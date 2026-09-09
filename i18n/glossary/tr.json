@@ -421,12 +421,10 @@
     "note": "Repo renders onboarding descriptively as 'başlamaya hazırlanma / başlamaya hazırlık'; no loanword."
   },
   "Town Square": {
-    "target": "Meydan",
-    "note": "Established default-channel name in server i18n; keep exactly 'Meydan'."
+    "target": "Meydan"
   },
   "Off-Topic": {
-    "target": "Konu dışı",
-    "note": "Established default-channel name in server i18n."
+    "target": "Konu dışı"
   },
   "read-only": {
     "target": "salt okunur"

@@ -228,8 +228,7 @@
     "target": "斜杠命令"
   },
   "webhook": {
-    "target": "Webhook",
-    "note": "Kept in English with capital W throughout existing zh-CN."
+    "target": "Webhook"
   },
   "incoming webhook": {
     "target": "传入 Webhook"

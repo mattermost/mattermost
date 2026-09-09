@@ -113,12 +113,11 @@
     "note": "Verb: erwähnen. Mandated by the German community rules. '@mention' stays '@Erwähnung' or keeps the @username literal."
   },
   "notification": {
-    "target": "Benachrichtigung",
-    "note": "Mandated by the German community rules."
+    "target": "Benachrichtigung"
   },
   "pin": {
     "target": "anheften",
-    "note": "Pinned messages = 'Angeheftete Nachrichten'; unpin = 'Loslösen' / 'nicht mehr anheften'. Avoid the variant 'anpinnen' that appears in one webapp string."
+    "note": "Pinned messages = 'Angeheftete Nachrichten'; unpin = 'Loslösen' / 'nicht mehr anheften'. One webapp string uses 'anpinnen'."
   },
   "bookmark": {
     "target": "Lesezeichen",
@@ -196,8 +195,7 @@
     "target": "Kanaladministrator"
   },
   "session": {
-    "target": "Sitzung",
-    "note": "Mandated by the German community rules."
+    "target": "Sitzung"
   },
   "sign in": {
     "target": "anmelden",
@@ -247,8 +245,7 @@
     "target": "Integration"
   },
   "slash command": {
-    "target": "Slash-Befehl",
-    "note": "Consistent existing rendering; keep the hyphenated half-English compound."
+    "target": "Slash-Befehl"
   },
   "webhook": {
     "target": "Webhook",
@@ -367,7 +364,7 @@
   },
   "burn-on-read": {
     "target": "Löschen-nach-Lesen",
-    "note": "Majority rendering ('Löschen-nach-Lesen-Nachricht'); some admin strings keep English 'Burn-on-Read'. Uppercase label: 'LÖSCHEN NACH LESEN'."
+    "note": "Majority rendering ('Löschen-nach-Lesen-Nachricht'); some admin strings keep English 'Burn-on-Read'."
   },
   "magic link": {
     "target": "Magic Link",
@@ -401,8 +398,7 @@
     "target": "Profil"
   },
   "username": {
-    "target": "Benutzername",
-    "note": "Per Weblate glossary."
+    "target": "Benutzername"
   },
   "nickname": {
     "target": "Spitzname"
@@ -435,16 +431,14 @@
     "note": "Neuter: das Attribut, Plural Attribute. Custom profile attribute = 'benutzerdefiniertes Profilattribut'."
   },
   "onboarding": {
-    "target": "Onboarding",
-    "note": "Kept in English per Weblate glossary."
+    "target": "Onboarding"
   },
   "Town Square": {
     "target": "Marktplatz",
     "note": "Established default-channel name in server i18n. Caution: 'marketplace' (plugin store) is also 'Marktplatz' — rely on context; consider 'Plugin-Marktplatz' when ambiguity is possible."
   },
   "Off-Topic": {
-    "target": "Sonstiges",
-    "note": "Established default-channel name in server i18n."
+    "target": "Sonstiges"
   },
   "read-only": {
     "target": "schreibgeschützt",

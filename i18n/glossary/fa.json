@@ -432,8 +432,7 @@
     "note": "The existing server rendering دانشگاه (university) is a mistranslation; use میدان شهر consistently as the default channel name."
   },
   "Off-Topic": {
-    "target": "بحث آزاد",
-    "note": "Existing server rendering; keep it."
+    "target": "بحث آزاد"
   },
   "read-only": {
     "target": "فقط خواندنی"

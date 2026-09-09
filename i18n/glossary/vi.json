@@ -240,16 +240,13 @@
     "note": "Kept in English throughout vi.json."
   },
   "incoming webhook": {
-    "target": "webhook đến",
-    "note": "Established in vi.json."
+    "target": "webhook đến"
   },
   "outgoing webhook": {
-    "target": "webhook đi",
-    "note": "Established in vi.json."
+    "target": "webhook đi"
   },
   "trigger word": {
-    "target": "từ kích hoạt",
-    "note": "Established in vi.json."
+    "target": "từ kích hoạt"
   },
   "plugin": {
     "target": "plugin",
@@ -404,16 +401,14 @@
     "note": "Policy = 'chính sách lưu giữ dữ liệu' (established in vi.json)."
   },
   "compliance export": {
-    "target": "xuất tuân thủ",
-    "note": "Established in vi.json."
+    "target": "xuất tuân thủ"
   },
   "access control": {
     "target": "kiểm soát truy cập",
     "note": "One legacy vi string renders 'Advanced Access Control' as 'Kiểm duyệt kênh' (channel moderation) — do not follow it; 'kiểm soát truy cập' is the standard term."
   },
   "attribute": {
-    "target": "thuộc tính",
-    "note": "Established in vi.json for LDAP/profile attributes."
+    "target": "thuộc tính"
   },
   "onboarding": {
     "target": "hướng dẫn bắt đầu",

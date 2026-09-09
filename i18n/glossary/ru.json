@@ -153,8 +153,7 @@
     "note": "For user availability. 'Состояние' appears in existing strings only for system/billing state, not user status."
   },
   "custom status": {
-    "target": "пользовательский статус",
-    "note": "Consistent in existing mobile and webapp strings."
+    "target": "пользовательский статус"
   },
   "do not disturb": {
     "target": "не беспокоить",
@@ -222,8 +221,7 @@
     "note": "Adjective 'archived': 'архивированный' / 'заархивированный'."
   },
   "unarchive": {
-    "target": "разархивировать",
-    "note": "Consistent in existing translations."
+    "target": "разархивировать"
   },
   "mute": {
     "target": "отключить уведомления",
@@ -267,8 +265,7 @@
     "note": "Existing usage is inconsistent ('ключевое слово', 'слово-триггер', 'триггерное слово'). Prefer 'триггерное слово' to avoid colliding with 'keyword' = 'ключевое слово' in notification settings."
   },
   "plugin": {
-    "target": "плагин",
-    "note": "Consistent in existing translations (70 occurrences)."
+    "target": "плагин"
   },
   "bot": {
     "target": "бот",
@@ -296,8 +293,7 @@
     "note": "Existing strings mix 'пробный период' (the period) and 'пробная версия' (the trial product/license); use 'пробный период' for the time-limited period sense."
   },
   "workspace": {
-    "target": "рабочее пространство",
-    "note": "Consistent majority rendering (16 occurrences)."
+    "target": "рабочее пространство"
   },
   "subscription": {
     "target": "подписка"
@@ -351,8 +347,7 @@
     "note": "Existing rendering 'Постоянные уведомления'."
   },
   "message priority": {
-    "target": "приоритет сообщения",
-    "note": "Consistent in existing translations."
+    "target": "приоритет сообщения"
   },
   "urgent": {
     "target": "срочно",
@@ -395,8 +390,7 @@
     "note": "Bare 'group' in group-mention context: 'группа'."
   },
   "permalink": {
-    "target": "постоянная ссылка",
-    "note": "Consistent in existing translations."
+    "target": "постоянная ссылка"
   },
   "profile": {
     "target": "профиль"

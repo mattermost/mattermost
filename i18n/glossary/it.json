@@ -155,8 +155,7 @@
     "target": "stato personalizzato"
   },
   "do not disturb": {
-    "target": "Non disturbare",
-    "note": "Consistent existing rendering across webapp and mobile."
+    "target": "Non disturbare"
   },
   "away": {
     "target": "Assente",
@@ -351,12 +350,10 @@
     "target": "notifica persistente"
   },
   "message priority": {
-    "target": "priorità del messaggio",
-    "note": "Existing mobile rendering."
+    "target": "priorità del messaggio"
   },
   "urgent": {
-    "target": "urgente",
-    "note": "Label form: 'URGENTE' (existing mobile)."
+    "target": "urgente"
   },
   "recap": {
     "target": "riepilogo",
@@ -402,12 +399,10 @@
     "note": "One legacy string maps Profile to 'Impostazioni Account' — avoid; use 'profilo'."
   },
   "username": {
-    "target": "nome utente",
-    "note": "Existing consistent rendering."
+    "target": "nome utente"
   },
   "nickname": {
-    "target": "soprannome",
-    "note": "Existing consistent rendering."
+    "target": "soprannome"
   },
   "display name": {
     "target": "nome visualizzato",
@@ -442,12 +437,10 @@
     "note": "Commonly kept in English in Italian software; masculine: 'l'onboarding'."
   },
   "Town Square": {
-    "target": "Piazza",
-    "note": "Existing server rendering of the default channel name."
+    "target": "Piazza"
   },
   "Off-Topic": {
-    "target": "Senza-Argomento",
-    "note": "Existing server rendering of the default channel name (hyphenated to remain a valid channel name)."
+    "target": "Senza-Argomento"
   },
   "read-only": {
     "target": "in sola lettura",

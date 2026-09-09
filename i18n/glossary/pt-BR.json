@@ -150,8 +150,7 @@
     "target": "status personalizado"
   },
   "do not disturb": {
-    "target": "Não Perturbe",
-    "note": "Established status name across webapp, mobile, and server."
+    "target": "Não Perturbe"
   },
   "away": {
     "target": "ausente"
@@ -165,8 +164,7 @@
     "note": "Some webapp strings keep 'Offline'; prefer 'desconectado' for the status name."
   },
   "out of office": {
-    "target": "Fora do Escritório",
-    "note": "Established rendering in status modals."
+    "target": "Fora do Escritório"
   },
   "guest": {
     "target": "convidado",
@@ -337,8 +335,7 @@
     "target": "prioridade da mensagem"
   },
   "urgent": {
-    "target": "urgente",
-    "note": "All-caps label: 'URGENTE'."
+    "target": "urgente"
   },
   "recap": {
     "target": "resumo",
@@ -350,7 +347,7 @@
   },
   "burn-on-read": {
     "target": "autodestruição após leitura",
-    "note": "No existing translation. Adjectival use: 'mensagem com autodestruição após leitura'; all-caps label: 'AUTODESTRUIÇÃO APÓS LEITURA'. Avoid literal 'queimar'."
+    "note": "No existing translation. Adjectival use: 'mensagem com autodestruição após leitura'. Avoid literal 'queimar'."
   },
   "magic link": {
     "target": "link mágico",

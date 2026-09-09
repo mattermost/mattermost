@@ -266,8 +266,7 @@
     "note": "Kept in English (masculine) per Weblate glossary and existing translations."
   },
   "bot": {
-    "target": "bot",
-    "note": "Kept in English per community rules."
+    "target": "bot"
   },
   "role": {
     "target": "rôle",

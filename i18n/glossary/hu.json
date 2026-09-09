@@ -149,24 +149,21 @@
     "target": "egyéni állapot"
   },
   "do not disturb": {
-    "target": "Ne zavarj",
-    "note": "Established status name; keep as a quoted status label ('Ne zavarj')."
+    "target": "Ne zavarj"
   },
   "away": {
     "target": "Nincs a gépnél",
     "note": "Established status name; 'távol' appears occasionally but 'Nincs a gépnél' is the majority rendering."
   },
   "online": {
-    "target": "Elérhető",
-    "note": "Established status name."
+    "target": "Elérhető"
   },
   "offline": {
     "target": "Nem elérhető",
     "note": "Established status name; lowercase 'nem elérhető' mid-sentence."
   },
   "out of office": {
-    "target": "Irodán kívül",
-    "note": "Established status name."
+    "target": "Irodán kívül"
   },
   "guest": {
     "target": "vendég"
@@ -345,8 +342,7 @@
     "note": "No established repo rendering; label form 'Üzenet prioritása'. Priority levels: Standard = 'Normál', Important = 'Fontos', Urgent = 'Sürgős'."
   },
   "urgent": {
-    "target": "sürgős",
-    "note": "Established ('Sürgős'); as a red label: 'SÜRGŐS'."
+    "target": "sürgős"
   },
   "recap": {
     "target": "összefoglaló",
@@ -365,8 +361,7 @@
     "note": "No repo signal; 'varázslink' is the common Hungarian rendering for passwordless sign-in links."
   },
   "personal access token": {
-    "target": "személyes hozzáférési token",
-    "note": "Established in server strings."
+    "target": "személyes hozzáférési token"
   },
   "announcement banner": {
     "target": "közlemény banner",
@@ -400,8 +395,7 @@
     "target": "megjelenítési név"
   },
   "collapsed reply threads": {
-    "target": "összecsukott válaszszálak",
-    "note": "Established in mobile."
+    "target": "összecsukott válaszszálak"
   },
   "auto-translation": {
     "target": "automatikus fordítás",
@@ -427,12 +421,10 @@
     "note": "Repo is inconsistent ('üdvözlő varázsló', 'rendszerbeállítás'); 'bevezetés' is a safe general term, 'üdvözlő varázsló' acceptable for the setup wizard specifically."
   },
   "Town Square": {
-    "target": "Főtér",
-    "note": "Established default-channel name in server i18n."
+    "target": "Főtér"
   },
   "Off-Topic": {
-    "target": "Egyebek",
-    "note": "Established default-channel name in server i18n."
+    "target": "Egyebek"
   },
   "read-only": {
     "target": "csak olvasható",

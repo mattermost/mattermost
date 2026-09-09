@@ -185,8 +185,7 @@
     "note": "Plural: потребители."
   },
   "system admin": {
-    "target": "системен администратор",
-    "note": "Established."
+    "target": "системен администратор"
   },
   "team admin": {
     "target": "администратор на екипа",
@@ -256,16 +255,13 @@
     "note": "Consistently kept in English in existing bg.json; inflected with a hyphen ('webhook-а') when a definite article is needed."
   },
   "incoming webhook": {
-    "target": "входящ webhook",
-    "note": "Established."
+    "target": "входящ webhook"
   },
   "outgoing webhook": {
-    "target": "изходящ webhook",
-    "note": "Established."
+    "target": "изходящ webhook"
   },
   "trigger word": {
-    "target": "задействаща дума",
-    "note": "Established."
+    "target": "задействаща дума"
   },
   "plugin": {
     "target": "приставка",
@@ -300,12 +296,10 @@
     "note": "Established: 'пробен период'; adjective form 'пробна' for the license label."
   },
   "workspace": {
-    "target": "работно пространство",
-    "note": "Established throughout billing/cloud strings."
+    "target": "работно пространство"
   },
   "subscription": {
-    "target": "абонамент",
-    "note": "Established."
+    "target": "абонамент"
   },
   "deactivate": {
     "target": "деактивиране",
@@ -336,12 +330,10 @@
     "note": "Majority; a few older strings use 'обществен канал' — prefer 'публичен'."
   },
   "private channel": {
-    "target": "частен канал",
-    "note": "Established."
+    "target": "частен канал"
   },
   "shared channel": {
-    "target": "споделен канал",
-    "note": "Established."
+    "target": "споделен канал"
   },
   "channel header": {
     "target": "заглавка на канала",
@@ -352,16 +344,14 @@
     "note": "Established majority; a couple of strings use 'предназначение'."
   },
   "system message": {
-    "target": "системно съобщение",
-    "note": "Established."
+    "target": "системно съобщение"
   },
   "persistent notification": {
     "target": "постоянно известие",
     "note": "Established: 'постоянни известия'."
   },
   "message priority": {
-    "target": "приоритет на съобщението",
-    "note": "Established."
+    "target": "приоритет на съобщението"
   },
   "urgent": {
     "target": "спешно",
@@ -403,24 +393,19 @@
     "note": "Group = 'група' established; plural 'потребителски групи'."
   },
   "permalink": {
-    "target": "постоянна връзка",
-    "note": "Established."
+    "target": "постоянна връзка"
   },
   "profile": {
-    "target": "профил",
-    "note": "Established."
+    "target": "профил"
   },
   "username": {
-    "target": "потребителско име",
-    "note": "Established."
+    "target": "потребителско име"
   },
   "nickname": {
-    "target": "псевдоним",
-    "note": "Established."
+    "target": "псевдоним"
   },
   "display name": {
-    "target": "показвано име",
-    "note": "Established."
+    "target": "показвано име"
   },
   "collapsed reply threads": {
     "target": "свити разговори",
@@ -459,8 +444,7 @@
     "note": "Established default channel name in server bg.json."
   },
   "read-only": {
-    "target": "само за четене",
-    "note": "Established."
+    "target": "само за четене"
   },
   "server": {
     "target": "сървър",

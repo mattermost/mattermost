@@ -259,8 +259,7 @@
     "target": "utgående webhook"
   },
   "trigger word": {
-    "target": "aktiveringsord",
-    "note": "Established rendering in existing translations (9 of 11 strings)."
+    "target": "aktiveringsord"
   },
   "plugin": {
     "target": "plugin",
@@ -355,8 +354,7 @@
     "target": "meddelandeprioritet"
   },
   "urgent": {
-    "target": "brådskande",
-    "note": "Label: 'BRÅDSKANDE'."
+    "target": "brådskande"
   },
   "recap": {
     "target": "sammanfattning",

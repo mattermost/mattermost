@@ -155,8 +155,7 @@
     "note": "Majority rendering; 'власний статус' also appears occasionally."
   },
   "do not disturb": {
-    "target": "Не турбувати",
-    "note": "Consistent across all apps."
+    "target": "Не турбувати"
   },
   "away": {
     "target": "Не на місці",
@@ -187,8 +186,7 @@
     "note": "Masculine. Genitive 'користувача'."
   },
   "system admin": {
-    "target": "системний адміністратор",
-    "note": "Consistent in existing translations."
+    "target": "системний адміністратор"
   },
   "team admin": {
     "target": "адміністратор команди"
@@ -221,8 +219,7 @@
     "note": "Perfective 'заархівувати' for one-shot actions; 'archived' = 'заархівовано' / 'архівний'."
   },
   "unarchive": {
-    "target": "розархівувати",
-    "note": "Consistent in existing translations."
+    "target": "розархівувати"
   },
   "mute": {
     "target": "заглушити",
@@ -298,8 +295,7 @@
     "note": "Existing strings mix 'пробний період' and 'пробна версія'; prefer 'пробний період' for the time-limited trial."
   },
   "workspace": {
-    "target": "робочий простір",
-    "note": "Consistent in existing translations."
+    "target": "робочий простір"
   },
   "subscription": {
     "target": "підписка"
@@ -317,8 +313,7 @@
     "note": "Neuter."
   },
   "sidebar": {
-    "target": "бічна панель",
-    "note": "Consistent in existing translations."
+    "target": "бічна панель"
   },
   "unread": {
     "target": "непрочитане",
@@ -384,8 +379,7 @@
     "note": "Existing strings inconsistent ('банер оголошення', 'банер з оголошеннями', 'Загальносистемні сповіщення'); standardize on 'банер оголошень'."
   },
   "channel banner": {
-    "target": "банер каналу",
-    "note": "Consistent in existing translations."
+    "target": "банер каналу"
   },
   "keyword": {
     "target": "ключове слово",
@@ -407,8 +401,7 @@
     "note": "Existing translations use 'Логін' for the standalone field label and 'ім'я користувача' in sentences; prefer 'ім'я користувача' for consistency."
   },
   "nickname": {
-    "target": "псевдонім",
-    "note": "Consistent in existing translations."
+    "target": "псевдонім"
   },
   "display name": {
     "target": "відображуване ім'я",
@@ -427,8 +420,7 @@
     "note": "'data retention policy' = 'політика зберігання даних' (consistent in existing translations)."
   },
   "compliance export": {
-    "target": "експорт відповідності",
-    "note": "Consistent in existing translations."
+    "target": "експорт відповідності"
   },
   "access control": {
     "target": "контроль доступу",

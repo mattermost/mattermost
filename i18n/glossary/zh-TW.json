@@ -69,8 +69,7 @@
     "target": "Global Relay"
   },
   "System Console": {
-    "target": "系統控制台",
-    "note": "Consistently used across existing zh-TW admin strings."
+    "target": "系統控制台"
   },
   "marketplace": {
     "target": "市集"
@@ -227,8 +226,7 @@
     "note": "Majority rendering (33 vs 3 for 斜線指令); keep 斜線命令."
   },
   "webhook": {
-    "target": "Webhook",
-    "note": "Kept in English with capital W throughout existing zh-TW strings."
+    "target": "Webhook"
   },
   "incoming webhook": {
     "target": "送入的 Webhook"

@@ -255,8 +255,7 @@
     "note": "Bot account: 'cuenta bot'."
   },
   "role": {
-    "target": "rol",
-    "note": "Plural 'roles'."
+    "target": "rol"
   },
   "permission": {
     "target": "permiso"
@@ -329,8 +328,7 @@
     "target": "prioridad del mensaje"
   },
   "urgent": {
-    "target": "urgente",
-    "note": "Label form: 'URGENTE'."
+    "target": "urgente"
   },
   "recap": {
     "target": "resumen",
@@ -341,7 +339,7 @@
   },
   "burn-on-read": {
     "target": "autodestrucción al leer",
-    "note": "No repo signal; follows messaging-app convention (Telegram 'autodestrucción'). As a message label: 'AUTODESTRUCCIÓN AL LEER'."
+    "note": "No repo signal; follows messaging-app convention (Telegram 'autodestrucción')."
   },
   "magic link": {
     "target": "enlace mágico"
@@ -357,8 +355,7 @@
     "target": "banner del canal"
   },
   "keyword": {
-    "target": "palabra clave",
-    "note": "Plural 'palabras clave' (clave stays singular)."
+    "target": "palabra clave"
   },
   "user group": {
     "target": "grupo de usuarios"
@@ -386,7 +383,7 @@
   },
   "auto-translation": {
     "target": "traducción automática",
-    "note": "Auto-translated label: 'TRADUCIDO AUTOMÁTICAMENTE'."
+    "note": "'auto-translated' = 'traducido automáticamente'."
   },
   "data retention": {
     "target": "retención de datos",

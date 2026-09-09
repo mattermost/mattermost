@@ -355,7 +355,7 @@
   },
   "urgent": {
     "target": "dringend",
-    "note": "Label 'DRINGEND' in caps context; 'urgente meldingen' also occurs but prefer 'dringend' (majority)."
+    "note": "'urgente meldingen' also occurs in some strings."
   },
   "recap": {
     "target": "samenvatting",
@@ -392,8 +392,7 @@
     "note": "Plural 'gebruikersgroepen'; plain 'group' = 'groep'."
   },
   "permalink": {
-    "target": "permalink",
-    "note": "Kept in English (existing usage)."
+    "target": "permalink"
   },
   "profile": {
     "target": "profiel",
@@ -434,12 +433,10 @@
     "note": "Plural 'attributen'; 'kenmerk' also occurs in ABAC strings — prefer 'attribuut' for the profile/access-control field."
   },
   "onboarding": {
-    "target": "verwelkoming",
-    "note": "Per Weblate glossary; existing strings are inconsistent (verwelkoming, onboarding, introductie) — standardize on 'verwelkoming'."
+    "target": "verwelkoming"
   },
   "Town Square": {
-    "target": "Dorpsplein",
-    "note": "Established default-channel name in server i18n."
+    "target": "Dorpsplein"
   },
   "Off-Topic": {
     "target": "Off-Topic",

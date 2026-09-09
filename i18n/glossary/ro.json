@@ -164,12 +164,10 @@
     "note": "Established in webapp; ignore the stray 'Deplasare' mistranslation."
   },
   "online": {
-    "target": "Online",
-    "note": "Kept in English in existing translations; standard in Romanian UIs."
+    "target": "Online"
   },
   "offline": {
-    "target": "Offline",
-    "note": "Kept in English in existing translations."
+    "target": "Offline"
   },
   "out of office": {
     "target": "Plecat din birou",
@@ -188,8 +186,7 @@
     "note": "Plural: 'utilizatori'."
   },
   "system admin": {
-    "target": "administrator de sistem",
-    "note": "Established in webapp/server."
+    "target": "administrator de sistem"
   },
   "team admin": {
     "target": "administrator de echipă"
@@ -366,7 +363,7 @@
   },
   "urgent": {
     "target": "urgent",
-    "note": "Label form: 'URGENT'. Feminine: 'urgentă'."
+    "note": "Feminine: 'urgentă'."
   },
   "recap": {
     "target": "recapitulare",
@@ -378,7 +375,7 @@
   },
   "burn-on-read": {
     "target": "autodistrugere la citire",
-    "note": "No repo signal. Label form: 'AUTODISTRUGERE LA CITIRE'; adjectival use: 'mesaj cu autodistrugere la citire' (Telegram-style convention)."
+    "note": "No repo signal. Adjectival use: 'mesaj cu autodistrugere la citire' (Telegram-style convention)."
   },
   "magic link": {
     "target": "link magic",
@@ -389,8 +386,7 @@
     "note": "Webapp mixes 'jeton de acces personal' and 'token' — prefer 'token' (established loanword in Romanian tech UI); treat 'jeton'/'indice' as legacy."
   },
   "announcement banner": {
-    "target": "banner de anunțuri",
-    "note": "Established in webapp."
+    "target": "banner de anunțuri"
   },
   "channel banner": {
     "target": "banner de canal"

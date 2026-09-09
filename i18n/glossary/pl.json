@@ -8,8 +8,7 @@
     "note": "Product edition name; keep in English. Existing pl.json once mistranslates it as 'Edytuj Zespół' (Team Edition) — do not follow that."
   },
   "Team Edition": {
-    "target": "Team Edition",
-    "note": "Product edition name; keep in English."
+    "target": "Team Edition"
   },
   "Mattermost Cloud": {
     "target": "Mattermost Cloud"
@@ -19,12 +18,10 @@
     "note": "Product name; keep in English. The common noun 'channel' is translated as 'kanał'."
   },
   "Playbooks": {
-    "target": "Playbooks",
-    "note": "Product name; keep in English."
+    "target": "Playbooks"
   },
   "Boards": {
-    "target": "Boards",
-    "note": "Product name; keep in English."
+    "target": "Boards"
   },
   "Calls": {
     "target": "Calls",
@@ -179,8 +176,7 @@
     "note": "Majority keeps 'offline' (indeclinable). 'Niedostępny' appears in some server command strings."
   },
   "out of office": {
-    "target": "Poza biurem",
-    "note": "Established status name."
+    "target": "Poza biurem"
   },
   "guest": {
     "target": "gość",
@@ -450,12 +446,10 @@
     "note": "Existing translations mostly keep the loanword 'onboarding'; 'proces wprowadzania' appears descriptively. Keep 'onboarding' (masculine, declinable: 'onboardingu')."
   },
   "Town Square": {
-    "target": "Rynek",
-    "note": "Established default-channel name in server translations; translate consistently as a channel name."
+    "target": "Rynek"
   },
   "Off-Topic": {
-    "target": "Pogawędki",
-    "note": "Established default-channel name in server translations."
+    "target": "Pogawędki"
   },
   "read-only": {
     "target": "tylko do odczytu",
