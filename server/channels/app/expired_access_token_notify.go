@@ -4,11 +4,17 @@
 package app
 
 import (
+	"time"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
+
+// The cleanup job runs hourly, so an older expiry only surfaces when a backlog
+// is drained, where a DM about a long-dead token is noise rather than news.
+const expiredAccessTokenNotifyMaxAge = 7 * 24 * time.Hour
 
 // NotifyExpiredAccessTokensDeleted DMs the owner of each expired personal
 // access token that the cleanup_expired_access_tokens job is about to delete.
@@ -21,8 +27,8 @@ import (
 // It is best-effort. It is invoked before the tokens are deleted so the
 // token→owner mapping is still available, and every failure is logged and
 // swallowed so it never blocks the cleanup. User-owned bot tokens notify the
-// bot owner; plugin-owned bot tokens and tokens without an active human
-// recipient are skipped.
+// bot owner; plugin-owned bot tokens, tokens without an active human recipient,
+// and long-expired tokens are skipped. Skipping never affects deletion.
 func (a *App) NotifyExpiredAccessTokensDeleted(rctx request.CTX, tokens []*model.UserAccessToken) {
 	if len(tokens) == 0 {
 		return
@@ -34,7 +40,12 @@ func (a *App) NotifyExpiredAccessTokensDeleted(rctx request.CTX, tokens []*model
 		return
 	}
 
+	notifyFloor := model.GetMillis() - expiredAccessTokenNotifyMaxAge.Milliseconds()
 	for _, token := range tokens {
+		if token.ExpiresAt < notifyFloor {
+			continue
+		}
+
 		recipient, bot, appErr := a.resolveAccessTokenNotificationRecipient(rctx, token)
 		if appErr != nil {
 			rctx.Logger().Warn("Failed to resolve recipient for expired personal access token notification",
