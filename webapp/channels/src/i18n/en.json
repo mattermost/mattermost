@@ -2232,6 +2232,7 @@
   "admin.manage_tokens.userAccessTokensIdLabel": "Token ID: ",
   "admin.manage_tokens.userAccessTokensNameLabel": "Token Description: ",
   "admin.manage_tokens.userAccessTokensNone": "No personal access tokens.",
+  "admin.managed_externally": "This setting can only be changed through the configuration file, an environment variable, or mmctl --local. It cannot be changed through the System Console.",
   "admin.member_list_group.name": "Name",
   "admin.member_list_group.notFound": "No users found",
   "admin.membership_policies.page_title": "Membership Policies",

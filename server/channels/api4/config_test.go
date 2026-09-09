@@ -340,6 +340,50 @@ func TestUpdateConfig(t *testing.T) {
 		})
 	})
 
+	t.Run("Should not be able to modify logging settings that resolve to filesystem paths", func(t *testing.T) {
+		advancedLogging := json.RawMessage(`{"pwned":{"type":"file","format":"plain","levels":[{"id":5,"name":"debug"}],"options":{"filename":"/tmp/pwned.log"}}}`)
+
+		// Audit targets are validated against the audit levels, so they cannot reuse the
+		// standard levels above.
+		advancedAuditLogging := json.RawMessage(`{"pwned":{"type":"file","format":"plain","levels":[{"id":100,"name":"audit-api"}],"options":{"filename":"/tmp/pwned-audit.log"}}}`)
+
+		t.Run("sysadmin", func(t *testing.T) {
+			oldLogging := th.App.Config().LogSettings.AdvancedLoggingJSON
+			oldAuditLogging := th.App.Config().ExperimentalAuditSettings.AdvancedLoggingJSON
+			oldAuditFileName := *th.App.Config().ExperimentalAuditSettings.FileName
+
+			cfg2 := th.App.Config().Clone()
+			cfg2.LogSettings.AdvancedLoggingJSON = advancedLogging
+			cfg2.ExperimentalAuditSettings.AdvancedLoggingJSON = advancedAuditLogging
+			*cfg2.ExperimentalAuditSettings.FileName = "/tmp/pwned-audit.log"
+
+			cfg2, _, err = th.SystemAdminClient.UpdateConfig(context.Background(), cfg2)
+			require.NoError(t, err)
+			assert.JSONEq(t, string(oldLogging), string(cfg2.LogSettings.AdvancedLoggingJSON))
+			assert.JSONEq(t, string(oldAuditLogging), string(cfg2.ExperimentalAuditSettings.AdvancedLoggingJSON))
+			assert.Equal(t, oldAuditFileName, *cfg2.ExperimentalAuditSettings.FileName)
+
+			assert.JSONEq(t, string(oldLogging), string(th.App.Config().LogSettings.AdvancedLoggingJSON))
+			assert.JSONEq(t, string(oldAuditLogging), string(th.App.Config().ExperimentalAuditSettings.AdvancedLoggingJSON))
+			assert.Equal(t, oldAuditFileName, *th.App.Config().ExperimentalAuditSettings.FileName)
+		})
+
+		t.Run("local mode", func(t *testing.T) {
+			oldLogging := th.App.Config().LogSettings.AdvancedLoggingJSON
+			defer th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.LogSettings.AdvancedLoggingJSON = oldLogging
+			})
+
+			cfg2 := th.App.Config().Clone()
+			cfg2.LogSettings.AdvancedLoggingJSON = advancedLogging
+
+			cfg2, _, err = th.LocalClient.UpdateConfig(context.Background(), cfg2)
+			require.NoError(t, err)
+			assert.JSONEq(t, string(advancedLogging), string(cfg2.LogSettings.AdvancedLoggingJSON))
+			assert.JSONEq(t, string(advancedLogging), string(th.App.Config().LogSettings.AdvancedLoggingJSON))
+		})
+	})
+
 	t.Run("System Admin should not be able to clear Site URL", func(t *testing.T) {
 		siteURL := cfg.ServiceSettings.SiteURL
 		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SiteURL = siteURL })
@@ -881,6 +925,104 @@ func TestPatchConfig(t *testing.T) {
 				})
 			}
 		})
+
+		t.Run("not allowing to change logging paths via api, unless local mode", func(t *testing.T) {
+			advancedLogging := json.RawMessage(`{"pwned":{"type":"file","format":"plain","levels":[{"id":5,"name":"debug"}],"options":{"filename":"/tmp/pwned.log"}}}`)
+
+			// Audit targets are validated against the audit levels, so they cannot reuse the
+			// standard levels above.
+			advancedAuditLogging := json.RawMessage(`{"pwned":{"type":"file","format":"plain","levels":[{"id":100,"name":"audit-api"}],"options":{"filename":"/tmp/pwned-audit.log"}}}`)
+
+			for name, config := range map[string]model.Config{
+				"LogSettings.AdvancedLoggingJSON": {LogSettings: model.LogSettings{
+					AdvancedLoggingJSON: advancedLogging,
+				}},
+				"ExperimentalAuditSettings.AdvancedLoggingJSON": {ExperimentalAuditSettings: model.ExperimentalAuditSettings{
+					AdvancedLoggingJSON: advancedAuditLogging,
+				}},
+				"ExperimentalAuditSettings.FileName": {ExperimentalAuditSettings: model.ExperimentalAuditSettings{
+					FileName: new("/tmp/pwned-audit.log"),
+				}},
+			} {
+				t.Run(name, func(t *testing.T) {
+					oldCfg := th.App.Config().Clone()
+					defer th.App.UpdateConfig(func(cfg *model.Config) {
+						cfg.LogSettings.AdvancedLoggingJSON = oldCfg.LogSettings.AdvancedLoggingJSON
+						cfg.ExperimentalAuditSettings.AdvancedLoggingJSON = oldCfg.ExperimentalAuditSettings.AdvancedLoggingJSON
+						*cfg.ExperimentalAuditSettings.FileName = *oldCfg.ExperimentalAuditSettings.FileName
+					})
+
+					// The request always succeeds: through the API the setting is silently kept
+					// at its stored value, while local mode applies it.
+					_, resp, err := client.PatchConfig(context.Background(), &config)
+					require.NoError(t, err)
+					CheckOKStatus(t, resp)
+
+					newCfg := th.App.Config()
+					if client == th.LocalClient {
+						assert.NotEqual(t, string(oldCfg.LogSettings.AdvancedLoggingJSON)+string(oldCfg.ExperimentalAuditSettings.AdvancedLoggingJSON)+*oldCfg.ExperimentalAuditSettings.FileName,
+							string(newCfg.LogSettings.AdvancedLoggingJSON)+string(newCfg.ExperimentalAuditSettings.AdvancedLoggingJSON)+*newCfg.ExperimentalAuditSettings.FileName,
+							"local mode should have applied the change")
+						return
+					}
+
+					assert.Equal(t, string(oldCfg.LogSettings.AdvancedLoggingJSON), string(newCfg.LogSettings.AdvancedLoggingJSON))
+					assert.Equal(t, string(oldCfg.ExperimentalAuditSettings.AdvancedLoggingJSON), string(newCfg.ExperimentalAuditSettings.AdvancedLoggingJSON))
+					assert.Equal(t, *oldCfg.ExperimentalAuditSettings.FileName, *newCfg.ExperimentalAuditSettings.FileName)
+				})
+			}
+		})
+
+	})
+
+	// Both logging subtests below run against this stored value.
+	storedAdvancedLogging := json.RawMessage(`{"file1":{"type":"file","format":"json","levels":[{"id":5,"name":"debug"}],"options":{"filename":"mattermost.log"}}}`)
+	storeAdvancedLogging := func(t *testing.T) {
+		oldLogging := th.App.Config().LogSettings.AdvancedLoggingJSON
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.LogSettings.AdvancedLoggingJSON = storedAdvancedLogging
+		})
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.LogSettings.AdvancedLoggingJSON = oldLogging
+			})
+		})
+	}
+
+	t.Run("patching a logging path setting keeps the stored value whatever is submitted", func(t *testing.T) {
+		stored := storedAdvancedLogging
+		storeAdvancedLogging(t)
+
+		for name, submitted := range map[string]json.RawMessage{
+			// An attempt to change the setting.
+			"different filename": json.RawMessage(`{"file1":{"type":"file","format":"json","levels":[{"id":5,"name":"debug"}],"options":{"filename":"/tmp/pwned.log"}}}`),
+			"additional target":  json.RawMessage(`{"file1":{"type":"file","format":"json","levels":[{"id":5,"name":"debug"}],"options":{"filename":"mattermost.log"}},"file2":{"type":"file","format":"json","levels":[{"id":5,"name":"debug"}],"options":{"filename":"/tmp/pwned.log"}}}`),
+			"non-object JSON":    json.RawMessage(`"/tmp/advancedlogging.conf"`),
+			"cleared":            json.RawMessage(`{}`),
+
+			// Shapes that arrive on saves which have nothing to do with logging, because the
+			// System Console resubmits the whole config every time. "null" is also what any typed
+			// client sends when it isn't setting the field: it has no omitempty, so a nil
+			// json.RawMessage still serializes as null.
+			"reformatted and reordered": json.RawMessage("{\n  \"file1\": {\n    \"format\": \"json\",\n    \"levels\": [{\"name\": \"debug\", \"id\": 5}],\n    \"options\": {\"filename\": \"mattermost.log\"},\n    \"type\": \"file\"\n  }\n}"),
+			"null":                      json.RawMessage(`null`),
+			"nil raw json":              nil,
+			"identical":                 stored,
+		} {
+			t.Run(name, func(t *testing.T) {
+				config := model.Config{LogSettings: model.LogSettings{
+					AdvancedLoggingJSON: submitted,
+				}}
+
+				_, resp, err := th.SystemAdminClient.PatchConfig(context.Background(), &config)
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+
+				// The stored value must survive byte-for-byte, so a patch can neither change the
+				// setting nor rewrite its representation.
+				assert.Equal(t, string(stored), string(th.App.Config().LogSettings.AdvancedLoggingJSON))
+			})
+		}
 	})
 
 	t.Run("Should not be able to modify PluginSettings.MarketplaceURL if EnableUploads is disabled", func(t *testing.T) {

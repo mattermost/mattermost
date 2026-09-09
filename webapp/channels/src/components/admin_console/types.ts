@@ -60,6 +60,11 @@ type AdminDefinitionSettingBase = {
     isHidden?: Check;
     isDisabled?: Check;
 
+    // Renders a notice that the setting is only writable through the configuration file, an
+    // environment variable or mmctl --local. Only wired for the text, longtext and number
+    // settings built by buildTextSetting in schema_admin_settings; ignored by other types.
+    isManagedExternally?: boolean;
+
     // Danger callout when isEnabled is true. Wired for bool/text settings in schema_admin_settings and ldap_boolean_setting.
     production_warning?: AdminDefinitionSettingProductionWarning;
 };
