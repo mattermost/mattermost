@@ -279,7 +279,7 @@ describe('rhs view actions', () => {
         };
 
         test('it adds message into history', () => {
-            store.dispatch(onSubmit(draft, {}));
+            store.dispatch(onSubmit(channelId, rootId, draft, {}));
 
             const testStore = mockStore(initialState);
             testStore.dispatch(addMessageIntoHistory('test'));
@@ -290,7 +290,7 @@ describe('rhs view actions', () => {
         });
 
         test('it submits a command when message is /away', () => {
-            store.dispatch(onSubmit({
+            store.dispatch(onSubmit(channelId, rootId, {
                 message: '/away',
                 fileInfos: [],
                 uploadsInProgress: [],
@@ -307,7 +307,7 @@ describe('rhs view actions', () => {
         });
 
         test('it submits a regular post when options.ignoreSlash is true', () => {
-            store.dispatch(onSubmit({
+            store.dispatch(onSubmit(channelId, rootId, {
                 message: '/fakecommand',
                 fileInfos: [],
                 uploadsInProgress: [],
@@ -323,7 +323,7 @@ describe('rhs view actions', () => {
         });
 
         test('it submits a regular post when message is something else', () => {
-            store.dispatch(onSubmit({
+            store.dispatch(onSubmit(channelId, rootId, {
                 message: 'test msg',
                 fileInfos: [],
                 uploadsInProgress: [],

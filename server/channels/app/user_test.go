@@ -121,7 +121,7 @@ func TestUpdateDefaultProfileImage(t *testing.T) {
 	err = th.App.UpdateDefaultProfileImage(th.Context, user)
 	require.Nil(t, err)
 
-	user = getUserFromDB(th.App, user.Id, t)
+	user = getUserFromDB(th.Context, th.App, user.Id, t)
 	assert.Less(t, user.LastPictureUpdate, -startTime, "LastPictureUpdate should be set to -(current time in milliseconds)")
 }
 
@@ -256,7 +256,7 @@ func TestUpdateUser(t *testing.T) {
 		// Give the user a LastPictureUpdate to mimic having a custom profile picture
 		err := th.App.Srv().Store().User().UpdateLastPictureUpdate(user.Id)
 		require.NoError(t, err)
-		iUser, errGetUser := th.App.GetUser(user.Id)
+		iUser, errGetUser := th.App.GetUser(th.Context, user.Id)
 		require.Nil(t, errGetUser)
 		iUser.Username = "updatedUsername"
 		iLastPictureUpdate := iUser.LastPictureUpdate
@@ -402,7 +402,7 @@ func TestCreateUser(t *testing.T) {
 
 		time.Sleep(1 * time.Second)
 
-		user, err = th.App.GetUser(user.Id)
+		user, err = th.App.GetUser(th.Context, user.Id)
 		require.Nil(t, err)
 		require.Equal(t, "sanitized", user.Nickname)
 	})
@@ -452,7 +452,7 @@ func TestUpdateActiveBotsSideEffect(t *testing.T) {
 	retbot1, err := th.App.GetBot(th.Context, bot.UserId, true)
 	require.Nil(t, err)
 	require.Zero(t, retbot1.DeleteAt)
-	user1, err := th.App.GetUser(bot.UserId)
+	user1, err := th.App.GetUser(th.Context, bot.UserId)
 	require.Nil(t, err)
 	require.Zero(t, user1.DeleteAt)
 
@@ -470,7 +470,7 @@ func TestUpdateActiveBotsSideEffect(t *testing.T) {
 	retbot2, err := th.App.GetBot(th.Context, bot.UserId, true)
 	require.Nil(t, err)
 	require.NotZero(t, retbot2.DeleteAt)
-	user2, err := th.App.GetUser(bot.UserId)
+	user2, err := th.App.GetUser(th.Context, bot.UserId)
 	require.Nil(t, err)
 	require.NotZero(t, user2.DeleteAt)
 
@@ -573,10 +573,10 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 			gitlabUser := getGitlabUserPayload(gitlabUserObj, t)
 			data := bytes.NewReader(gitlabUser)
 
-			user = getUserFromDB(th.App, user.Id, t)
+			user = getUserFromDB(th.Context, th.App, user.Id, t)
 			appErr := th.App.UpdateOAuthUserAttrs(th.Context, data, user, gitlabProvider, "gitlab", nil)
 			require.Nil(t, appErr)
-			user = getUserFromDB(th.App, user.Id, t)
+			user = getUserFromDB(th.Context, th.App, user.Id, t)
 
 			require.Equal(t, gitlabUserObj.Username, user.Username, "user's username is not updated")
 		})
@@ -587,10 +587,10 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 			gitlabUser := getGitlabUserPayload(gitlabUserObj, t)
 			data := bytes.NewReader(gitlabUser)
 
-			user = getUserFromDB(th.App, user.Id, t)
+			user = getUserFromDB(th.Context, th.App, user.Id, t)
 			appErr := th.App.UpdateOAuthUserAttrs(th.Context, data, user, gitlabProvider, "gitlab", nil)
 			require.Nil(t, appErr)
-			user = getUserFromDB(th.App, user.Id, t)
+			user = getUserFromDB(th.Context, th.App, user.Id, t)
 
 			require.NotEqual(t, gitlabUserObj.Username, user.Username, "user's username is updated though there already exists another user with the same username")
 		})
@@ -602,10 +602,10 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 			gitlabUser := getGitlabUserPayload(gitlabUserObj, t)
 			data := bytes.NewReader(gitlabUser)
 
-			user = getUserFromDB(th.App, user.Id, t)
+			user = getUserFromDB(th.Context, th.App, user.Id, t)
 			appErr := th.App.UpdateOAuthUserAttrs(th.Context, data, user, gitlabProvider, "gitlab", nil)
 			require.Nil(t, appErr)
-			user = getUserFromDB(th.App, user.Id, t)
+			user = getUserFromDB(th.Context, th.App, user.Id, t)
 
 			require.Equal(t, gitlabUserObj.Email, user.Email, "user's email is not updated")
 
@@ -618,10 +618,10 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 			gitlabUser := getGitlabUserPayload(gitlabUserObj, t)
 			data := bytes.NewReader(gitlabUser)
 
-			user = getUserFromDB(th.App, user.Id, t)
+			user = getUserFromDB(th.Context, th.App, user.Id, t)
 			appErr := th.App.UpdateOAuthUserAttrs(th.Context, data, user, gitlabProvider, "gitlab", nil)
 			require.Nil(t, appErr)
-			user = getUserFromDB(th.App, user.Id, t)
+			user = getUserFromDB(th.Context, th.App, user.Id, t)
 
 			require.NotEqual(t, gitlabUserObj.Email, user.Email, "user's email is updated though there already exists another user with the same email")
 		})
@@ -632,10 +632,10 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 		gitlabUser := getGitlabUserPayload(gitlabUserObj, t)
 		data := bytes.NewReader(gitlabUser)
 
-		user = getUserFromDB(th.App, user.Id, t)
+		user = getUserFromDB(th.Context, th.App, user.Id, t)
 		appErr := th.App.UpdateOAuthUserAttrs(th.Context, data, user, gitlabProvider, "gitlab", nil)
 		require.Nil(t, appErr)
-		user = getUserFromDB(th.App, user.Id, t)
+		user = getUserFromDB(th.Context, th.App, user.Id, t)
 
 		require.Equal(t, "Updated", user.FirstName, "user's first name is not updated")
 	})
@@ -645,10 +645,10 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 		gitlabUser := getGitlabUserPayload(gitlabUserObj, t)
 		data := bytes.NewReader(gitlabUser)
 
-		user = getUserFromDB(th.App, user.Id, t)
+		user = getUserFromDB(th.Context, th.App, user.Id, t)
 		appErr := th.App.UpdateOAuthUserAttrs(th.Context, data, user, gitlabProvider, "gitlab", nil)
 		require.Nil(t, appErr)
-		user = getUserFromDB(th.App, user.Id, t)
+		user = getUserFromDB(th.Context, th.App, user.Id, t)
 
 		require.Equal(t, "Lastname", user.LastName, "user's last name is not updated")
 	})
@@ -720,7 +720,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		appErr = th.App.VerifyEmailFromToken(th.Context, token.Token)
 		assert.Nil(t, appErr)
 
-		user2, appErr = th.App.GetUser(user2.Id)
+		user2, appErr = th.App.GetUser(th.Context, user2.Id)
 		assert.Nil(t, appErr)
 		assert.Equal(t, newEmail, user2.Email)
 		assert.True(t, user2.EmailVerified)
@@ -846,8 +846,8 @@ func TestUpdateUserEmail(t *testing.T) {
 	})
 }
 
-func getUserFromDB(a *App, id string, t *testing.T) *model.User {
-	user, err := a.GetUser(id)
+func getUserFromDB(rctx request.CTX, a *App, id string, t *testing.T) *model.User {
+	user, err := a.GetUser(rctx, id)
 	require.Nil(t, err, "user is not found", err)
 	return user
 }
@@ -1563,7 +1563,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 	assert.Equal(t, 1, botCount1)
 
 	// test that bot is deleted from bots table
-	retUser1, err := th.App.GetUser(bot.UserId)
+	retUser1, err := th.App.GetUser(th.Context, bot.UserId)
 	assert.Nil(t, err)
 
 	err = th.App.PermanentDeleteUser(th.Context, retUser1)
@@ -2043,7 +2043,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 		err := th.App.PromoteGuestToUser(th.Context, th.BasicUser, th.BasicUser.Id)
 		require.Nil(t, err)
 
-		user, err := th.App.GetUser(th.BasicUser.Id)
+		user, err := th.App.GetUser(th.Context, th.BasicUser.Id)
 		assert.Nil(t, err)
 		assert.Equal(t, "system_user", user.Roles)
 	})
@@ -2054,7 +2054,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 
 		err := th.App.PromoteGuestToUser(th.Context, guest, th.BasicUser.Id)
 		require.Nil(t, err)
-		guest, err = th.App.GetUser(guest.Id)
+		guest, err = th.App.GetUser(th.Context, guest.Id)
 		assert.Nil(t, err)
 		assert.Equal(t, "system_user", guest.Roles)
 	})
@@ -2070,7 +2070,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 
 		err = th.App.PromoteGuestToUser(th.Context, guest, th.BasicUser.Id)
 		require.Nil(t, err)
-		guest, err = th.App.GetUser(guest.Id)
+		guest, err = th.App.GetUser(th.Context, guest.Id)
 		assert.Nil(t, err)
 		assert.Equal(t, "system_user", guest.Roles)
 		teamMember, err = th.App.GetTeamMember(th.Context, th.BasicTeam.Id, guest.Id)
@@ -2094,7 +2094,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 
 		err = th.App.PromoteGuestToUser(th.Context, guest, th.BasicUser.Id)
 		require.Nil(t, err)
-		guest, err = th.App.GetUser(guest.Id)
+		guest, err = th.App.GetUser(th.Context, guest.Id)
 		assert.Nil(t, err)
 		assert.Equal(t, "system_user", guest.Roles)
 		teamMember, err = th.App.GetTeamMember(th.Context, th.BasicTeam.Id, guest.Id)
@@ -2126,7 +2126,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 
 		err = th.App.PromoteGuestToUser(th.Context, guest, th.BasicUser.Id)
 		require.Nil(t, err)
-		guest, err = th.App.GetUser(guest.Id)
+		guest, err = th.App.GetUser(th.Context, guest.Id)
 		assert.Nil(t, err)
 		assert.Equal(t, "system_user", guest.Roles)
 		teamMember, err = th.App.GetTeamMember(th.Context, th.BasicTeam.Id, guest.Id)
@@ -2176,7 +2176,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 
 	t.Run("Must reject bot user", func(t *testing.T) {
 		bot := th.CreateBot(t)
-		user, err := th.App.GetUser(bot.UserId)
+		user, err := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, err)
 		require.True(t, user.IsBot)
 
@@ -2218,7 +2218,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 		err := th.App.DemoteUserToGuest(th.Context, guest)
 		require.Nil(t, err)
 
-		user, err := th.App.GetUser(guest.Id)
+		user, err := th.App.GetUser(th.Context, guest.Id)
 		assert.Nil(t, err)
 		assert.Equal(t, "system_guest", user.Roles)
 	})
@@ -2229,7 +2229,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 
 		err := th.App.DemoteUserToGuest(th.Context, user)
 		require.Nil(t, err)
-		user, err = th.App.GetUser(user.Id)
+		user, err = th.App.GetUser(th.Context, user.Id)
 		assert.Nil(t, err)
 		assert.Equal(t, "system_guest", user.Roles)
 	})
@@ -2245,7 +2245,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 
 		err = th.App.DemoteUserToGuest(th.Context, user)
 		require.Nil(t, err)
-		user, err = th.App.GetUser(user.Id)
+		user, err = th.App.GetUser(th.Context, user.Id)
 		assert.Nil(t, err)
 		assert.Equal(t, "system_guest", user.Roles)
 		teamMember, err = th.App.GetTeamMember(th.Context, th.BasicTeam.Id, user.Id)
@@ -2269,7 +2269,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 
 		err = th.App.DemoteUserToGuest(th.Context, user)
 		require.Nil(t, err)
-		user, err = th.App.GetUser(user.Id)
+		user, err = th.App.GetUser(th.Context, user.Id)
 		assert.Nil(t, err)
 		assert.Equal(t, "system_guest", user.Roles)
 		teamMember, err = th.App.GetTeamMember(th.Context, th.BasicTeam.Id, user.Id)
@@ -2301,7 +2301,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 
 		err = th.App.DemoteUserToGuest(th.Context, user)
 		require.Nil(t, err)
-		user, err = th.App.GetUser(user.Id)
+		user, err = th.App.GetUser(th.Context, user.Id)
 		assert.Nil(t, err)
 		assert.Equal(t, "system_guest", user.Roles)
 		teamMember, err = th.App.GetTeamMember(th.Context, th.BasicTeam.Id, user.Id)
@@ -2349,7 +2349,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 		err = th.App.DemoteUserToGuest(th.Context, user)
 		require.Nil(t, err)
 
-		user, err = th.App.GetUser(user.Id)
+		user, err = th.App.GetUser(th.Context, user.Id)
 		assert.Nil(t, err)
 		assert.Equal(t, "system_guest", user.Roles)
 
@@ -2378,15 +2378,15 @@ func TestDeactivateGuests(t *testing.T) {
 	err := th.App.DeactivateGuests(th.Context)
 	require.Nil(t, err)
 
-	guest1, err = th.App.GetUser(guest1.Id)
+	guest1, err = th.App.GetUser(th.Context, guest1.Id)
 	assert.Nil(t, err)
 	assert.NotEqual(t, int64(0), guest1.DeleteAt)
 
-	guest2, err = th.App.GetUser(guest2.Id)
+	guest2, err = th.App.GetUser(th.Context, guest2.Id)
 	assert.Nil(t, err)
 	assert.NotEqual(t, int64(0), guest2.DeleteAt)
 
-	user, err = th.App.GetUser(user.Id)
+	user, err = th.App.GetUser(th.Context, user.Id)
 	assert.Nil(t, err)
 	assert.Equal(t, int64(0), user.DeleteAt)
 }
@@ -2464,7 +2464,7 @@ func TestDeactivateMfa(t *testing.T) {
 		})
 
 		user := th.BasicUser
-		err := th.App.DeactivateMfa(user.Id)
+		err := th.App.DeactivateMfa(th.Context, user.Id)
 		require.Nil(t, err)
 	})
 }

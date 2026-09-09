@@ -33,6 +33,7 @@ type TimerLayer struct {
 	CommandWebhookStore             store.CommandWebhookStore
 	ComplianceStore                 store.ComplianceStore
 	ContentFlaggingStore            store.ContentFlaggingStore
+	DeliveryTrackingStore           store.DeliveryTrackingStore
 	DesktopTokensStore              store.DesktopTokensStore
 	DraftStore                      store.DraftStore
 	EmojiStore                      store.EmojiStore
@@ -139,6 +140,10 @@ func (s *TimerLayer) Compliance() store.ComplianceStore {
 
 func (s *TimerLayer) ContentFlagging() store.ContentFlaggingStore {
 	return s.ContentFlaggingStore
+}
+
+func (s *TimerLayer) DeliveryTracking() store.DeliveryTrackingStore {
+	return s.DeliveryTrackingStore
 }
 
 func (s *TimerLayer) DesktopTokens() store.DesktopTokensStore {
@@ -400,6 +405,11 @@ type TimerLayerContentFlaggingStore struct {
 	Root *TimerLayer
 }
 
+type TimerLayerDeliveryTrackingStore struct {
+	store.DeliveryTrackingStore
+	Root *TimerLayer
+}
+
 type TimerLayerDesktopTokensStore struct {
 	store.DesktopTokensStore
 	Root *TimerLayer
@@ -630,6 +640,21 @@ type TimerLayerWebhookStore struct {
 	Root *TimerLayer
 }
 
+func (s *TimerLayerAccessControlPolicyStore) ClearEtagCache() {
+	start := time.Now()
+
+	s.AccessControlPolicyStore.ClearEtagCache()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AccessControlPolicyStore.ClearEtagCache", success, elapsed)
+	}
+}
+
 func (s *TimerLayerAccessControlPolicyStore) Delete(rctx request.CTX, id string) error {
 	start := time.Now()
 
@@ -694,6 +719,22 @@ func (s *TimerLayerAccessControlPolicyStore) GetActionsForPolicy(rctx request.CT
 	return result, err
 }
 
+func (s *TimerLayerAccessControlPolicyStore) GetEtagEpoch(rctx request.CTX, channelID string) (string, error) {
+	start := time.Now()
+
+	result, err := s.AccessControlPolicyStore.GetEtagEpoch(rctx, channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AccessControlPolicyStore.GetEtagEpoch", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerAccessControlPolicyStore) GetPoliciesByFieldID(rctx request.CTX, fieldID string) ([]*model.AccessControlPolicy, error) {
 	start := time.Now()
 
@@ -708,6 +749,21 @@ func (s *TimerLayerAccessControlPolicyStore) GetPoliciesByFieldID(rctx request.C
 		s.Root.Metrics.ObserveStoreMethodDuration("AccessControlPolicyStore.GetPoliciesByFieldID", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerAccessControlPolicyStore) InvalidateEtagForChannel(channelID string) {
+	start := time.Now()
+
+	s.AccessControlPolicyStore.InvalidateEtagForChannel(channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AccessControlPolicyStore.InvalidateEtagForChannel", success, elapsed)
+	}
 }
 
 func (s *TimerLayerAccessControlPolicyStore) Save(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, error) {
@@ -774,6 +830,21 @@ func (s *TimerLayerAccessControlPolicyStore) SetActiveStatusMultiple(rctx reques
 	return result, err
 }
 
+func (s *TimerLayerAttributesStore) ClearUserPropertyValuesEpochCache() {
+	start := time.Now()
+
+	s.AttributesStore.ClearUserPropertyValuesEpochCache()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AttributesStore.ClearUserPropertyValuesEpochCache", success, elapsed)
+	}
+}
+
 func (s *TimerLayerAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error) {
 	start := time.Now()
 
@@ -790,10 +861,10 @@ func (s *TimerLayerAttributesStore) GetChannelMembersToRemove(rctx request.CTX, 
 	return result, err
 }
 
-func (s *TimerLayerAttributesStore) GetSubject(rctx request.CTX, ID string, groupID string) (*model.Subject, error) {
+func (s *TimerLayerAttributesStore) GetSubject(rctx request.CTX, ID string, groupID string, objectType string) (*model.Subject, error) {
 	start := time.Now()
 
-	result, err := s.AttributesStore.GetSubject(rctx, ID, groupID)
+	result, err := s.AttributesStore.GetSubject(rctx, ID, groupID, objectType)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -820,6 +891,37 @@ func (s *TimerLayerAttributesStore) GetTeamMembersToRemove(rctx request.CTX, tea
 		s.Root.Metrics.ObserveStoreMethodDuration("AttributesStore.GetTeamMembersToRemove", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerAttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX, userID string) (string, error) {
+	start := time.Now()
+
+	result, err := s.AttributesStore.GetUserPropertyValuesEpoch(rctx, userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AttributesStore.GetUserPropertyValuesEpoch", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerAttributesStore) InvalidateUserPropertyValuesEpoch(userID string) {
+	start := time.Now()
+
+	s.AttributesStore.InvalidateUserPropertyValuesEpoch(userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AttributesStore.InvalidateUserPropertyValuesEpoch", success, elapsed)
+	}
 }
 
 func (s *TimerLayerAttributesStore) RefreshAttributes() error {
@@ -4179,6 +4281,85 @@ func (s *TimerLayerContentFlaggingStore) SaveReviewerSettings(reviewerSettings m
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ContentFlaggingStore.SaveReviewerSettings", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerDeliveryTrackingStore) ClearCaches() {
+	start := time.Now()
+
+	s.DeliveryTrackingStore.ClearCaches()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DeliveryTrackingStore.ClearCaches", success, elapsed)
+	}
+}
+
+func (s *TimerLayerDeliveryTrackingStore) GetTrackedChannelIDs(rctx request.CTX) ([]string, error) {
+	start := time.Now()
+
+	result, err := s.DeliveryTrackingStore.GetTrackedChannelIDs(rctx)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DeliveryTrackingStore.GetTrackedChannelIDs", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerDeliveryTrackingStore) IsChannelTrackable(rctx request.CTX, channelID string) (bool, error) {
+	start := time.Now()
+
+	result, err := s.DeliveryTrackingStore.IsChannelTrackable(rctx, channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DeliveryTrackingStore.IsChannelTrackable", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerDeliveryTrackingStore) IsChannelTracked(rctx request.CTX, channelID string) (bool, error) {
+	start := time.Now()
+
+	result, err := s.DeliveryTrackingStore.IsChannelTracked(rctx, channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DeliveryTrackingStore.IsChannelTracked", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerDeliveryTrackingStore) SaveTrackedChannelIDs(rctx request.CTX, channelIDs []string) error {
+	start := time.Now()
+
+	err := s.DeliveryTrackingStore.SaveTrackedChannelIDs(rctx, channelIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DeliveryTrackingStore.SaveTrackedChannelIDs", success, elapsed)
 	}
 	return err
 }
@@ -8783,22 +8964,6 @@ func (s *TimerLayerPropertyValueStore) Upsert(values []*model.PropertyValue) ([]
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PropertyValueStore.Upsert", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, error) {
-	start := time.Now()
-
-	result, err := s.ReactionStore.BulkGetForPosts(postIds)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ReactionStore.BulkGetForPosts", success, elapsed)
 	}
 	return result, err
 }
@@ -15549,6 +15714,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.CommandWebhookStore = &TimerLayerCommandWebhookStore{CommandWebhookStore: childStore.CommandWebhook(), Root: &newStore}
 	newStore.ComplianceStore = &TimerLayerComplianceStore{ComplianceStore: childStore.Compliance(), Root: &newStore}
 	newStore.ContentFlaggingStore = &TimerLayerContentFlaggingStore{ContentFlaggingStore: childStore.ContentFlagging(), Root: &newStore}
+	newStore.DeliveryTrackingStore = &TimerLayerDeliveryTrackingStore{DeliveryTrackingStore: childStore.DeliveryTracking(), Root: &newStore}
 	newStore.DesktopTokensStore = &TimerLayerDesktopTokensStore{DesktopTokensStore: childStore.DesktopTokens(), Root: &newStore}
 	newStore.DraftStore = &TimerLayerDraftStore{DraftStore: childStore.Draft(), Root: &newStore}
 	newStore.EmojiStore = &TimerLayerEmojiStore{EmojiStore: childStore.Emoji(), Root: &newStore}

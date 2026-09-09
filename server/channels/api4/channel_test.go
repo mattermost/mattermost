@@ -248,10 +248,9 @@ func TestCreateChannel(t *testing.T) {
 	t.Run("Guest users", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.AllowEmailAccounts = true })
 
 		guestUser := th.CreateUser(t)
-		appErr := th.App.VerifyUserEmail(guestUser.Id, guestUser.Email)
+		appErr := th.App.VerifyUserEmail(th.Context, guestUser.Id, guestUser.Email)
 		require.Nil(t, appErr)
 
 		appErr = th.App.DemoteUserToGuest(th.Context, guestUser)
@@ -2758,7 +2757,6 @@ func TestGetPublicChannelsByIdsForTeam(t *testing.T) {
 	t.Run("guest users should not be able to get channels", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.AllowEmailAccounts = true })
 
 		id := model.NewId()
 		guestPassword := model.NewTestPassword()
@@ -6899,6 +6897,7 @@ func TestGetChannelModerations(t *testing.T) {
 		mockStore.On("Post").Return(th.App.Srv().Store().Post())
 		mockStore.On("FileInfo").Return(th.App.Srv().Store().FileInfo())
 		mockStore.On("Webhook").Return(th.App.Srv().Store().Webhook())
+		mockStore.On("DeliveryTracking").Return(th.App.Srv().Store().DeliveryTracking())
 		mockStore.On("System").Return(th.App.Srv().Store().System())
 		mockStore.On("License").Return(th.App.Srv().Store().License())
 		mockStore.On("Role").Return(th.App.Srv().Store().Role())
@@ -7062,6 +7061,7 @@ func TestPatchChannelModerations(t *testing.T) {
 		mockStore.On("Post").Return(th.App.Srv().Store().Post())
 		mockStore.On("FileInfo").Return(th.App.Srv().Store().FileInfo())
 		mockStore.On("Webhook").Return(th.App.Srv().Store().Webhook())
+		mockStore.On("DeliveryTracking").Return(th.App.Srv().Store().DeliveryTracking())
 		mockStore.On("System").Return(th.App.Srv().Store().System())
 		mockStore.On("License").Return(th.App.Srv().Store().License())
 		mockStore.On("Role").Return(th.App.Srv().Store().Role())

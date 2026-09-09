@@ -877,7 +877,7 @@ func TestImageProxy(t *testing.T) {
 	mockUserStore := storemocks.UserStore{}
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 	mockPostStore := storemocks.PostStore{}
-	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+	mockPostStore.On("GetMaxPostSize").Return(model.PostMessageMaxBytesV2, nil)
 	mockSystemStore := storemocks.SystemStore{}
 	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
@@ -1526,7 +1526,7 @@ func TestCreatePost(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 		th.LinkUserToTeam(t, botUser, th.BasicTeam)
 		_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -1571,7 +1571,7 @@ func TestCreatePost(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 		th.LinkUserToTeam(t, botUser, th.BasicTeam)
 		_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -1709,7 +1709,7 @@ func TestCreatePost(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 		th.LinkUserToTeam(t, botUser, th.BasicTeam)
 		_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -1730,7 +1730,7 @@ func TestCreatePost(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 		th.LinkUserToTeam(t, botUser, th.BasicTeam)
 		_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -1757,7 +1757,7 @@ func TestCreatePost(t *testing.T) {
 		})
 
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 		th.LinkUserToTeam(t, botUser, th.BasicTeam)
 		_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -1785,7 +1785,7 @@ func TestCreatePost(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 
 		dm, appErr := th.App.createDirectChannel(th.Context, botUser.Id, th.BasicUser2.Id)
@@ -1814,7 +1814,7 @@ func TestCreatePost(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, botUser.Id, "")
 		require.Nil(t, appErr)
@@ -1846,7 +1846,7 @@ func TestCreatePost(t *testing.T) {
 
 		th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 		th.LinkUserToTeam(t, botUser, th.BasicTeam)
 		_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -2182,7 +2182,7 @@ func TestCreatePostAsUser(t *testing.T) {
 
 		bot := th.CreateBot(t)
 
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 
 		th.LinkUserToTeam(t, botUser, th.BasicTeam)
@@ -2213,7 +2213,7 @@ func TestCreatePostAsUser(t *testing.T) {
 
 		bot := th.CreateBot(t)
 
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 
 		th.LinkUserToTeam(t, botUser, th.BasicTeam)
@@ -6410,7 +6410,7 @@ func TestBurnOnReadRestrictionsForDMsAndBots(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Get the bot user
-		botUser, appErr := th.App.GetUser(createdBot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, createdBot.UserId)
 		require.Nil(t, appErr)
 		require.True(t, botUser.IsBot)
 
@@ -6459,7 +6459,7 @@ func TestBurnOnReadRestrictionsForDMsAndBots(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Get the bot user
-		botUser, appErr := th.App.GetUser(createdBot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, createdBot.UserId)
 		require.Nil(t, appErr)
 		require.True(t, botUser.IsBot)
 
@@ -6763,5 +6763,75 @@ func TestGetPostsForView(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, postList)
 		assert.Empty(t, postList.Posts)
+	})
+}
+
+func TestAppendABACEtag(t *testing.T) {
+	const base = "16.2.3.abcdefghij.1700000000000"
+
+	setup := func(t *testing.T, abacEnabled bool) (*TestHelper, *storemocks.AccessControlPolicyStore, *storemocks.AttributesStore) {
+		th := SetupConfigWithStoreMock(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = true
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(abacEnabled)
+		})
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+
+		mockACP := &storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(mockACP).Maybe()
+
+		mockAttributes := &storemocks.AttributesStore{}
+		mockStore.On("Attributes").Return(mockAttributes).Maybe()
+
+		return th, mockACP, mockAttributes
+	}
+
+	t.Run("returns the base ETag untouched and reads no store when ABAC is off", func(t *testing.T) {
+		th, mockACP, mockAttributes := setup(t, false)
+
+		assert.Equal(t, base, th.App.AppendABACEtag(base, model.NewId(), model.NewId()))
+
+		mockACP.AssertNotCalled(t, "GetEtagEpoch", mock.Anything, mock.Anything)
+		mockAttributes.AssertNotCalled(t, "GetUserPropertyValuesEpoch", mock.Anything, mock.Anything)
+	})
+
+	t.Run("folds both epochs in when ABAC is on", func(t *testing.T) {
+		th, mockACP, mockAttributes := setup(t, true)
+		userID := model.NewId()
+		channelID := model.NewId()
+
+		mockACP.On("GetEtagEpoch", mock.Anything, channelID).Return("111-2", nil).Once()
+		mockAttributes.On("GetUserPropertyValuesEpoch", mock.Anything, userID).Return("222-3", nil).Once()
+
+		assert.Equal(t, base+".111-2.222-3", th.App.AppendABACEtag(base, userID, channelID))
+
+		mockACP.AssertExpectations(t)
+		mockAttributes.AssertExpectations(t)
+	})
+
+	t.Run("skips the attribute epoch when there is no user in scope", func(t *testing.T) {
+		th, mockACP, mockAttributes := setup(t, true)
+		channelID := model.NewId()
+
+		mockACP.On("GetEtagEpoch", mock.Anything, channelID).Return("111-2", nil).Once()
+
+		assert.Equal(t, base+".111-2."+unknownABACEtagEpoch, th.App.AppendABACEtag(base, "", channelID))
+
+		mockAttributes.AssertNotCalled(t, "GetUserPropertyValuesEpoch", mock.Anything, mock.Anything)
+	})
+
+	t.Run("a store failure yields an ETag that cannot match the healthy one", func(t *testing.T) {
+		th, mockACP, mockAttributes := setup(t, true)
+		userID := model.NewId()
+		channelID := model.NewId()
+
+		mockACP.On("GetEtagEpoch", mock.Anything, channelID).Return("", errors.New("boom")).Twice()
+		mockAttributes.On("GetUserPropertyValuesEpoch", mock.Anything, userID).Return("222-3", nil).Twice()
+
+		etag := th.App.AppendABACEtag(base, userID, channelID)
+
+		assert.NotEqual(t, base, etag, "a failed epoch lookup must not collapse back onto the ungated ETag")
+		assert.Contains(t, etag, unknownABACEtagEpoch)
+		assert.NotEqual(t, etag, th.App.AppendABACEtag(base, userID, channelID),
+			"two failed lookups must not produce the same ETag, or a policy change between them would 304")
 	})
 }

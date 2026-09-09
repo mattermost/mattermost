@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -19,11 +20,14 @@ import (
 
 	"github.com/opensearch-project/opensearch-go/v4"
 	"github.com/opensearch-project/opensearch-go/v4/opensearchapi"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch/common"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore/mocks"
@@ -50,8 +54,9 @@ func TestStartTemplateFailureDoesNotCreateBulkProcessors(t *testing.T) {
 		switch {
 		case r.URL.Path == "/":
 			_, _ = fmt.Fprint(w, `{"version":{"number":"2.11.0"}}`)
-		case r.URL.Path == "/_nodes/plugins":
-			_, _ = fmt.Fprint(w, `{"_nodes":{"total":2,"successful":1,"failed":1},"nodes":{"node-1":{"name":"node-1","plugins":[]}}}`)
+		case r.URL.Path == "/_cat/plugins":
+			// Plugin inventory is optional and must not prevent the real template check.
+			w.WriteHeader(http.StatusInternalServerError)
 		case strings.HasPrefix(r.URL.Path, "/_index_template/") && strings.HasSuffix(r.URL.Path, "posts"):
 			w.WriteHeader(http.StatusBadRequest)
 			_, _ = fmt.Fprint(w, `{"error":{"type":"illegal_argument_exception","reason":"failed to parse template","caused_by":{"type":"illegal_argument_exception","reason":"Custom Analyzer [mm_lowercaser] failed to find tokenizer under name [icu_tokenizer]"}},"status":400}`)
@@ -78,6 +83,7 @@ func TestStartTemplateFailureDoesNotCreateBulkProcessors(t *testing.T) {
 	appErr := impl.Start(context.Background())
 	require.NotNil(t, appErr)
 	require.Contains(t, appErr.Error(), "icu_tokenizer")
+	require.Contains(t, appErr.Error(), "Verify that the required analysis-icu plugin is installed on every opensearch node")
 	require.Equal(t, int32(0), impl.ready.Load())
 	require.Nil(t, impl.bulkProcessor)
 	require.Nil(t, impl.syncBulkProcessor)
@@ -85,16 +91,16 @@ func TestStartTemplateFailureDoesNotCreateBulkProcessors(t *testing.T) {
 	require.Nil(t, impl.Stop())
 }
 
-func TestStartWithoutAnalysisICUReturnsExplicitError(t *testing.T) {
-	templateRequested := make(chan struct{}, 1)
+func TestStartWithoutPluginInventoryUsesTemplateValidation(t *testing.T) {
+	templateRequested := make(chan string, 4)
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case r.URL.Path == "/":
 			_, _ = fmt.Fprint(w, `{"version":{"number":"2.11.0"}}`)
-		case r.URL.Path == "/_nodes/plugins":
-			_, _ = fmt.Fprint(w, `{"_nodes":{"total":2,"successful":2,"failed":0},"nodes":{"node-1":{"name":"node-1","plugins":[{"name":"analysis-icu"}]},"node-2":{"name":"node-2","plugins":[]}}}`)
+		case r.URL.Path == "/_cat/plugins":
+			_, _ = fmt.Fprint(w, `[]`)
 		case strings.HasPrefix(r.URL.Path, "/_index_template/"):
-			templateRequested <- struct{}{}
+			templateRequested <- strings.TrimPrefix(r.URL.Path, "/_index_template/")
 			_, _ = fmt.Fprint(w, `{"acknowledged":true}`)
 		default:
 			w.WriteHeader(http.StatusNotFound)
@@ -115,16 +121,184 @@ func TestStartWithoutAnalysisICUReturnsExplicitError(t *testing.T) {
 	impl := &OpensearchInterfaceImpl{Platform: th.Server.Platform()}
 	defer func() { require.Nil(t, impl.Stop()) }()
 	appErr := impl.Start(context.Background())
-	require.NotNil(t, appErr)
-	require.Equal(t, "ent.elasticsearch.analysis_icu_required", appErr.Id)
-	require.Equal(t, int32(0), impl.ready.Load())
-	require.Nil(t, impl.bulkProcessor)
-	require.Nil(t, impl.syncBulkProcessor)
-	select {
-	case <-templateRequested:
-		require.Fail(t, "template creation should not be attempted without analysis-icu on every node")
-	default:
+	require.Nil(t, appErr)
+	require.Equal(t, int32(1), impl.ready.Load())
+	require.Len(t, templateRequested, 4)
+	requestedTemplates := make([]string, 0, 4)
+	for range 4 {
+		requestedTemplates = append(requestedTemplates, <-templateRequested)
 	}
+	require.ElementsMatch(t, []string{common.IndexBasePosts, common.IndexBaseChannels, common.IndexBaseUsers, common.IndexBaseFiles}, requestedTemplates)
+}
+
+// missingCJKPluginsWarning mirrors the warning Start logs when no CJK analyzer plugin is detected.
+const missingCJKPluginsWarning = "EnableCJKAnalyzers is set but no CJK analyzer plugins found installed. Please review opensearch settings."
+
+// pluginsHandler serves the endpoints Start and SearchPosts need, reporting one node per given list
+// of plugin names and recording the posts template and search request bodies.
+func pluginsHandler(t *testing.T, recorder *common.ClusterRecorder, nodePlugins ...[]string) http.HandlerFunc {
+	info := infoHandler("2.11.0")
+	catPlugins := common.CatPluginsResponse(nodePlugins...)
+
+	readBody := func(w http.ResponseWriter, r *http.Request) ([]byte, bool) {
+		body, err := io.ReadAll(r.Body)
+		if !assert.NoError(t, err) {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return nil, false
+		}
+		return body, true
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.URL.Path == "/":
+			info(w, r)
+		case r.URL.Path == "/_cat/plugins":
+			_, _ = fmt.Fprint(w, catPlugins)
+		case strings.HasPrefix(r.URL.Path, "/_index_template/"):
+			body, ok := readBody(w, r)
+			if !ok {
+				return
+			}
+			if strings.HasSuffix(r.URL.Path, common.IndexBasePosts) {
+				recorder.RecordPostsTemplate(body)
+			}
+			_, _ = fmt.Fprint(w, `{"acknowledged":true}`)
+		case strings.HasSuffix(r.URL.Path, "/_search"):
+			body, ok := readBody(w, r)
+			if !ok {
+				return
+			}
+			recorder.RecordSearch(body)
+			_, _ = fmt.Fprint(w, `{"took":1,"timed_out":false,"hits":{"total":{"value":0,"relation":"eq"},"max_score":0,"hits":[]}}`)
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}
+}
+
+func setupCJKCluster(t *testing.T, recorder *common.ClusterRecorder, nodePlugins ...[]string) (*api4.TestHelper, *OpensearchInterfaceImpl) {
+	server := httptest.NewServer(pluginsHandler(t, recorder, nodePlugins...))
+	t.Cleanup(server.Close)
+
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_CONNECTIONURL", server.URL)
+	t.Setenv("MM_ELASTICSEARCHSETTINGS_BACKEND", model.ElasticsearchSettingsOSBackend)
+
+	th := api4.SetupEnterprise(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.ConnectionURL = server.URL
+		*cfg.ElasticsearchSettings.Backend = model.ElasticsearchSettingsOSBackend
+		*cfg.ElasticsearchSettings.EnableIndexing = true
+		*cfg.ElasticsearchSettings.EnableSearching = true
+		*cfg.ElasticsearchSettings.EnableCJKAnalyzers = true
+	})
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	impl := &OpensearchInterfaceImpl{Platform: th.Server.Platform()}
+	t.Cleanup(func() { require.Nil(t, impl.Stop()) })
+
+	return th, impl
+}
+
+// TestCJKAnalyzersWithPrefixedPluginNames covers a cluster that reports analysis plugins under the
+// prefixed component name a managed service assigns to plugins it does not bundle. AWS OpenSearch
+// Service reports the Korean analyzer installed through associate-package as
+// "opensearch-analysis-nori" while its bundled analyzers keep their unprefixed names.
+func TestCJKAnalyzersWithPrefixedPluginNames(t *testing.T) {
+	namings := []struct {
+		Name    string
+		Plugins []string
+	}{
+		{"only nori prefixed", []string{"analysis-icu", "opensearch-analysis-nori", "analysis-kuromoji", "analysis-smartcn"}},
+		{"every analysis plugin prefixed", []string{"opensearch-analysis-icu", "opensearch-analysis-nori", "opensearch-analysis-kuromoji", "opensearch-analysis-smartcn"}},
+	}
+
+	for _, naming := range namings {
+		t.Run(naming.Name, func(t *testing.T) {
+			recorder := &common.ClusterRecorder{}
+			th, impl := setupCJKCluster(t, recorder, naming.Plugins)
+			require.Nil(t, impl.Start(context.Background()))
+
+			expectedSubFields := map[string]string{
+				"nori":     "mm_nori",
+				"kuromoji": "mm_kuromoji",
+				"smartcn":  "mm_smartcn",
+			}
+
+			t.Run("the posts index template maps every CJK sub-field", func(t *testing.T) {
+				template := recorder.PostsTemplate()
+				require.NotEmpty(t, template, "no posts index template was created")
+
+				require.Equal(t, expectedSubFields, common.TemplatePropertyFields(t, template, "message"))
+				require.Equal(t, expectedSubFields, common.TemplatePropertyFields(t, template, "attachments"))
+				require.Subset(t, common.TemplateAnalyzers(t, template), []string{"mm_nori", "mm_kuromoji", "mm_smartcn"})
+			})
+
+			t.Run("no missing plugin warning is logged", func(t *testing.T) {
+				require.NoError(t, th.TestLogger.Flush())
+				testlib.AssertNoLog(t, th.LogBuffer, mlog.LvlWarn.Name, missingCJKPluginsWarning)
+			})
+
+			channels := model.ChannelList{{Id: model.NewId(), TeamId: model.NewId(), Type: model.ChannelTypeOpen}}
+
+			searchFields := func(t *testing.T, terms string) [][]string {
+				t.Helper()
+
+				recorder.ResetSearches()
+				_, _, appErr := impl.SearchPosts(channels, model.ParseSearchParams(terms, 0), 0, 20)
+				require.Nil(t, appErr)
+
+				bodies := recorder.SearchBodies()
+				require.Len(t, bodies, 1)
+
+				return common.SimpleQueryStringFields(t, bodies[0])
+			}
+
+			t.Run("a CJK query searches the CJK sub-fields", func(t *testing.T) {
+				fields := searchFields(t, "검색")
+				require.Contains(t, fields, []string{"message", "message.nori", "message.kuromoji", "message.smartcn"})
+				require.Contains(t, fields, []string{"attachments", "attachments.nori", "attachments.kuromoji", "attachments.smartcn"})
+			})
+
+			t.Run("a non-CJK query only searches the base fields", func(t *testing.T) {
+				common.RequireOnlyBaseFields(t, searchFields(t, "search"))
+			})
+
+			t.Run("a CJK query only searches the base fields when CJK analyzers are disabled", func(t *testing.T) {
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.ElasticsearchSettings.EnableCJKAnalyzers = false
+				})
+				defer th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.ElasticsearchSettings.EnableCJKAnalyzers = true
+				})
+
+				common.RequireOnlyBaseFields(t, searchFields(t, "검색"))
+			})
+		})
+	}
+}
+
+// TestCJKAnalyzersWithoutAnyCJKPlugin covers the diagnostic that made this failure mode hard to
+// spot: the warning only fires when no CJK analyzer plugin is detected at all.
+func TestCJKAnalyzersWithoutAnyCJKPlugin(t *testing.T) {
+	recorder := &common.ClusterRecorder{}
+	th, impl := setupCJKCluster(t, recorder, []string{"analysis-icu"})
+	require.Nil(t, impl.Start(context.Background()))
+
+	template := recorder.PostsTemplate()
+	require.NotEmpty(t, template, "no posts index template was created")
+	require.Empty(t, common.TemplatePropertyFields(t, template, "message"))
+
+	channels := model.ChannelList{{Id: model.NewId(), TeamId: model.NewId(), Type: model.ChannelTypeOpen}}
+	_, _, appErr := impl.SearchPosts(channels, model.ParseSearchParams("검색", 0), 0, 20)
+	require.Nil(t, appErr)
+
+	bodies := recorder.SearchBodies()
+	require.Len(t, bodies, 1)
+	common.RequireOnlyBaseFields(t, common.SimpleQueryStringFields(t, bodies[0]))
+
+	require.NoError(t, th.TestLogger.Flush())
+	testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, missingCJKPluginsWarning)
 }
 
 func (s *OpensearchInterfaceTestSuite) SetupSuite() {

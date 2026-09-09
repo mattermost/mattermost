@@ -1,5 +1,5 @@
 ---
-title: Bill of Materials and Registry Mirroring
+title: "Bill of Materials and Registry Mirroring"
 sidebar_position: 2
 description: Gather the packages, images, and certificates you need before crossing the air gap, and set up a private registry or package mirror.
 ---
@@ -8,8 +8,6 @@ import Tabs from '@theme/Tabs';
 
 <EditionAvailability tiers="free,professional,enterprise,enterprise-advanced" />
 <DeploymentAvailability modes="self-hosted,air-gapped" />
-
-# Bill of Materials and Registry Mirroring
 
 On an internet-connected machine, you must gather all required packages, container images, and dependencies needed for the installation process. The resources you'll need will depend on your deployment method.
 
@@ -87,6 +85,24 @@ Mattermost includes a number of [pre-built integrations](/integrations-guide/pop
 ## SSL/TLS certificates and keys
 
 If your deployment requires SSL, ensure you have the necessary certificates. This includes certificates and keys for enabling HTTPS with Mattermost, as well as any CA files or certificates needed to access internal services such as LDAP or SAML. See [Setup TLS](/deployment-guide/server/setup-tls) for configuration details.
+
+## Local documentation
+
+Mattermost documentation can be built and served locally so that installation and configuration guidance is available inside the air-gapped environment. Clone the [mattermost/mattermost repository](https://github.com/mattermost/mattermost) on your internet-connected machine, build the documentation site, and transfer the generated static output across the air gap alongside the rest of your bill of materials.
+
+**Prerequisites**
+
+- Git [\[download\]](https://git-scm.com/downloads)
+- Node.js 20 or later [\[download\]](https://nodejs.org/en/download)
+
+```bash
+git clone https://github.com/mattermost/mattermost.git
+cd mattermost/docs/site
+npm ci
+npm run build
+```
+
+The build writes a self-contained static site to `docs/site/build/`, which you can serve from any web server in the air-gapped environment. See the [documentation site README](https://github.com/mattermost/mattermost/blob/master/docs/site/README.md) for the full build options, including how to skip the API reference generation step if you don't need it.
 
 ## Set up a private registry or mirror
 

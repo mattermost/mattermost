@@ -279,6 +279,7 @@ func TestSessionHasPermissionToChannel(t *testing.T) {
 		mockStore.On("Team").Return(th.App.Srv().Store().Team())
 		mockStore.On("User").Return(th.App.Srv().Store().User())
 		mockStore.On("Webhook").Return(th.App.Srv().Store().Webhook())
+		mockStore.On("DeliveryTracking").Return(th.App.Srv().Store().DeliveryTracking())
 		mockStore.On("Close").Return(nil)
 		th.App.Srv().SetStore(&mockStore)
 
@@ -376,6 +377,7 @@ func TestSessionHasPermissionToChannels(t *testing.T) {
 		mockStore.On("Team").Return(th.App.Srv().Store().Team())
 		mockStore.On("User").Return(th.App.Srv().Store().User())
 		mockStore.On("Webhook").Return(th.App.Srv().Store().Webhook())
+		mockStore.On("DeliveryTracking").Return(th.App.Srv().Store().DeliveryTracking())
 		mockStore.On("Close").Return(nil)
 		th.App.Srv().SetStore(&mockStore)
 
@@ -392,9 +394,9 @@ func TestHasPermissionToUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	assert.True(t, th.App.HasPermissionToUser(th.SystemAdminUser.Id, th.BasicUser.Id))
-	assert.True(t, th.App.HasPermissionToUser(th.BasicUser.Id, th.BasicUser.Id))
-	assert.False(t, th.App.HasPermissionToUser(th.BasicUser.Id, th.BasicUser2.Id))
+	assert.True(t, th.App.HasPermissionToUser(th.Context, th.SystemAdminUser.Id, th.BasicUser.Id))
+	assert.True(t, th.App.HasPermissionToUser(th.Context, th.BasicUser.Id, th.BasicUser.Id))
+	assert.False(t, th.App.HasPermissionToUser(th.Context, th.BasicUser.Id, th.BasicUser2.Id))
 }
 
 func TestSessionHasPermissionToManageBot(t *testing.T) {
@@ -517,8 +519,8 @@ func TestSessionHasPermissionToUser(t *testing.T) {
 			UserId: th.BasicUser.Id,
 			Roles:  model.SystemUserRoleId,
 		}
-		assert.True(t, th.App.SessionHasPermissionToUser(session, th.BasicUser.Id))
-		assert.False(t, th.App.SessionHasPermissionToUser(session, th.BasicUser2.Id))
+		assert.True(t, th.App.SessionHasPermissionToUser(th.Context, session, th.BasicUser.Id))
+		assert.False(t, th.App.SessionHasPermissionToUser(th.Context, session, th.BasicUser2.Id))
 	})
 
 	t.Run("test user manager access", func(t *testing.T) {
@@ -526,11 +528,11 @@ func TestSessionHasPermissionToUser(t *testing.T) {
 			UserId: th.BasicUser.Id,
 			Roles:  model.SystemUserManagerRoleId,
 		}
-		assert.False(t, th.App.SessionHasPermissionToUser(session, th.BasicUser2.Id))
+		assert.False(t, th.App.SessionHasPermissionToUser(th.Context, session, th.BasicUser2.Id))
 
 		th.AddPermissionToRole(t, model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
-		assert.True(t, th.App.SessionHasPermissionToUser(session, th.BasicUser2.Id))
-		assert.False(t, th.App.SessionHasPermissionToUser(session, th.SystemAdminUser.Id))
+		assert.True(t, th.App.SessionHasPermissionToUser(th.Context, session, th.BasicUser2.Id))
+		assert.False(t, th.App.SessionHasPermissionToUser(th.Context, session, th.SystemAdminUser.Id))
 		th.RemovePermissionFromRole(t, model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
 
 		bot, err := th.App.CreateBot(th.Context, &model.Bot{
@@ -545,7 +547,7 @@ func TestSessionHasPermissionToUser(t *testing.T) {
 			assert.Nil(t, appErr)
 		}()
 
-		assert.False(t, th.App.SessionHasPermissionToUser(session, bot.UserId))
+		assert.False(t, th.App.SessionHasPermissionToUser(th.Context, session, bot.UserId))
 	})
 
 	t.Run("test admin user access", func(t *testing.T) {
@@ -553,8 +555,8 @@ func TestSessionHasPermissionToUser(t *testing.T) {
 			UserId: th.SystemAdminUser.Id,
 			Roles:  model.SystemAdminRoleId,
 		}
-		assert.True(t, th.App.SessionHasPermissionToUser(session, th.BasicUser.Id))
-		assert.True(t, th.App.SessionHasPermissionToUser(session, th.BasicUser2.Id))
+		assert.True(t, th.App.SessionHasPermissionToUser(th.Context, session, th.BasicUser.Id))
+		assert.True(t, th.App.SessionHasPermissionToUser(th.Context, session, th.BasicUser2.Id))
 	})
 }
 
