@@ -38,6 +38,7 @@ export default class ChannelsPost {
     readonly emoticon;
     readonly messageText;
     readonly editedIndicator;
+    readonly addReactionButton;
 
     readonly removePostButton;
 
@@ -66,6 +67,7 @@ export default class ChannelsPost {
         this.emoticon = container.locator('.emoticon');
         this.messageText = container.locator('.post-message__text p');
         this.editedIndicator = container.getByText('Edited', {exact: true});
+        this.addReactionButton = container.getByRole('button', {name: 'Add a reaction', exact: true});
 
         this.removePostButton = container.getByTestId('post-remove-button');
 
@@ -275,6 +277,18 @@ export default class ChannelsPost {
         await this.container.hover();
         await this.postMenu.toBeVisible();
         await this.postMenu.addReactionButton.click();
+    }
+
+    async toHaveReaction(name: string, count: number) {
+        const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const reaction = this.container.getByRole('button', {name: new RegExp(escapedName, 'i')});
+        await expect(reaction).toBeVisible();
+        await expect(reaction.locator('.Reaction__number--display')).toHaveText(String(count));
+    }
+
+    async toBeReplyNotification(message: string) {
+        await expect(this.messageText).toHaveText(message);
+        await expect(this.container).toHaveClass(/mention-comment/);
     }
 
     /**
