@@ -338,11 +338,6 @@ type PropertyFieldPatch struct {
 	TargetType    *string            `json:"target_type"`
 	LinkedFieldID *string            `json:"linked_field_id,omitempty"`
 
-	// PermissionValues is PSAv2-only. As of MM-69869, only accepted by the API
-	// for a field with a LinkedFieldID (i.e. Global-Attributes-linked, not a
-	// standalone CPA field), restricted to PermissionLevelMember or
-	// PermissionLevelSysadmin (see patchPropertyField) -- that scoping isn't
-	// enforced here since this struct has no access to the existing field.
 	PermissionValues *PermissionLevel `json:"permission_values,omitempty"`
 }
 

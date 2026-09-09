@@ -41,8 +41,8 @@ type Props = {
     onRemove: (type: ResourceObjectType) => void;
 
     // Users-only config, forwarded to AttributeAppliesToUserItem alone (see the
-    // render loop below) -- Channels/Posts get their own config props when their
-    // own tickets land. See plans/mm-69869-applies-to-users-config.md.
+    // render loop below) -- Channels/Posts get their own config props once
+    // they have equivalent controls to expose.
     userVisibility?: FieldVisibility;
     onUserVisibilityChange?: (visibility: FieldVisibility) => void;
     userManaged?: UserManagedValue;

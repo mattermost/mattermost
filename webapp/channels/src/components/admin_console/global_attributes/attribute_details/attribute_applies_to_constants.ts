@@ -13,8 +13,8 @@ export type ResourceObjectType = 'user' | 'channel' | 'post';
 
 // Mirrors CPA's attrs.managed value domain exactly (see user_properties_dot_menu.tsx) --
 // '' means member-editable, 'admin' means locked to System Administrator. Deliberately
-// not the richer PSAv2 PermissionLevel type: this ticket writes the same value CPA
-// already writes, not a parallel permission mechanism (see plans/mm-69869-applies-to-users-config.md).
+// not the richer PSAv2 PermissionLevel type: this writes the same value CPA already
+// writes, not a parallel permission mechanism.
 export type UserManagedValue = '' | 'admin';
 
 // Fixed Users -> Channels -> Posts order used everywhere a resource list is
@@ -38,10 +38,10 @@ export type AttributeAppliesToItemProps = {
     lockedTooltip?: ReactNode;
     onRemove: () => void;
 
-    // Users-only config (see plans/mm-69869-applies-to-users-config.md). Optional so
-    // this shared prop type still fits AttributeAppliesToChannelItem/AttributeAppliesToPostItem,
-    // which don't have a config panel yet and simply don't destructure these -- Channels/Posts
-    // tickets should define their own config shape when they land, not inherit this one.
+    // Users-only config. Optional so this shared prop type still fits
+    // AttributeAppliesToChannelItem/AttributeAppliesToPostItem, which don't have
+    // a config panel yet and simply don't destructure these -- Channels/Posts
+    // should define their own config shape once they need one, not inherit this one.
     visibility?: FieldVisibility;
     onVisibilityChange?: (visibility: FieldVisibility) => void;
     managed?: UserManagedValue;

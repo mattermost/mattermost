@@ -5051,12 +5051,11 @@ func TestLinkedProperties(t *testing.T) {
 		}
 	})
 
-	// MM-69869: a linked field (any object type) must NOT inherit
-	// PermissionValues from its (always-sysadmin) template -- Global
-	// Attributes' "Who can set the value" needs it independently settable per
-	// resource. Standalone (non-linked) 'user' fields like CPA's own are
-	// untouched since the API only accepts permission_values when LinkedFieldID
-	// is set (see patchPropertyField).
+	// A linked field (any object type) must NOT inherit PermissionValues from
+	// its (always-sysadmin) template -- it needs to be independently settable
+	// per resource. Standalone (non-linked) fields are untouched since the API
+	// only accepts permission_values when LinkedFieldID is set (see
+	// patchPropertyField).
 	t.Run("create linked user field via API defaults PermissionValues to member, not the sysadmin template", func(t *testing.T) {
 		sourceField := &model.PropertyField{
 			Name:              model.NewId(),

@@ -169,9 +169,8 @@ function errorKindFromError(error: unknown): ErrorKind {
 // template's own name-conflict/limit-reached ids (both write into the same
 // access_control group), but the actionable copy is different -- a linked
 // 'user'-object-type field conflicts with a Custom Profile Attributes field,
-// not with another Global Attribute (see the plan's CPA-namespace-overlap
-// Decision). Returns null for anything else, so the caller falls back to the
-// generic applies-to-failed message.
+// not with another Global Attribute. Returns null for anything else, so the
+// caller falls back to the generic applies-to-failed message.
 function appliesToErrorKindFromError(error: unknown): 'applies_to_name_conflict' | 'applies_to_limit_reached' | null {
     const serverErrorId = (error as ClientError | undefined)?.server_error_id;
     switch (serverErrorId) {
@@ -335,8 +334,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const previousManualNameRef = useRef('');
 
     // Type and Options are independent state -- switching type never clears
-    // options (see Design Decision 3 in the plan): a Text -> Select -> Text ->
-    // Select round-trip must restore whatever the admin already entered.
+    // options: a Text -> Select -> Text -> Select round-trip must restore
+    // whatever the admin already entered.
     const [fieldType, setFieldType] = useState<AttributeFieldType>('text');
     const [options, setOptions] = useState<PropertyFieldOption[]>([]);
 
@@ -356,11 +355,10 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const persistedLinkedFieldsRef = useRef<Partial<Record<ResourceObjectType, PropertyField>>>({});
     const originalNameRef = useRef('');
 
-    // Users row config (MM-69869) -- Profile display / Who can set the value,
-    // both stored as attrs.visibility/attrs.managed on the Users linked field,
-    // matching CPA's own value domain exactly (see the plan's Context section
-    // for why this is attrs.managed and not the PSAv2 PermissionValues field).
-    // Defaults match CPA's defaults for a brand-new field.
+    // Users row config -- Profile display / Who can set the value, both stored
+    // as attrs.visibility/attrs.managed on the Users linked field, matching
+    // CPA's own value domain exactly rather than the PSAv2 PermissionValues
+    // field. Defaults match CPA's defaults for a brand-new field.
     const [userVisibility, setUserVisibility] = useState<FieldVisibility>('when_set');
     const [userManaged, setUserManaged] = useState<UserManagedValue>('');
 
@@ -551,8 +549,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         markDirty();
     }, [markDirty]);
 
-    // Users row config (MM-69869) -- no-op-guarded and markDirty()-wrapped,
-    // mirroring handleTypeChange/handleLink above.
+    // Users row config -- no-op-guarded and markDirty()-wrapped, mirroring
+    // handleTypeChange/handleLink above.
     const handleUserVisibilityChange = useCallback((visibility: FieldVisibility) => {
         if (visibility === userVisibility) {
             return;
@@ -570,12 +568,12 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     }, [userManaged, markDirty]);
 
     // Moves focus to the header Add-resource trigger after a pre-save removal
-    // (see the plan's Decisions table) -- via useEffect, not directly inside
-    // handleRemove, since the trigger may have just been re-rendered into
-    // existence this same update (e.g. removing the 3rd of 3 selected types
-    // un-hides both triggers), and a synchronous focus() call in the handler
-    // would run before that re-render commits. Mirrors the sibling external-
-    // source picker's own prevCountRef pattern (attribute_external_source.tsx).
+    // -- via useEffect, not directly inside handleRemove, since the trigger may
+    // have just been re-rendered into existence this same update (e.g. removing
+    // the 3rd of 3 selected types un-hides both triggers), and a synchronous
+    // focus() call in the handler would run before that re-render commits.
+    // Mirrors the sibling external-source picker's own prevCountRef pattern
+    // (attribute_external_source.tsx).
     //
     // Also handles the mirror-image case on add: picking the 3rd (last)
     // resource type unmounts BOTH "Add resource" triggers in this same
@@ -774,11 +772,10 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
 
     // Applies the fully-settled outcome of a save attempt -- the ONLY place in
     // handleSave that reads isMountedRef, checked once after the entire
-    // create-or-rollback sequence below has finished (see the plan's Decisions
-    // table: inserting a mounted-check earlier, e.g. right after the template
-    // create, would skip the linked-field loop and its rollback entirely if
-    // the admin navigated away mid-save, leaving an orphaned template with no
-    // cleanup attempted).
+    // create-or-rollback sequence below has finished. Inserting a
+    // mounted-check earlier, e.g. right after the template create, would skip
+    // the linked-field loop and its rollback entirely if the admin navigated
+    // away mid-save, leaving an orphaned template with no cleanup attempted.
     const finalizeSave = useCallback((outcome: SaveOutcome) => {
         if (!isMountedRef.current) {
             return;
@@ -804,14 +801,14 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         setFailedResourceTypes(null);
 
         // Bundled into the Users linked field's create request below (never a
-        // bare create followed by an immediate patch, per the ticket's explicit
-        // instruction) -- undefined for Channels/Posts, which have no config yet.
+        // bare create followed by an immediate patch) -- undefined for
+        // Channels/Posts, which have no config yet.
         const userConfigAttrs = {visibility: userVisibility, managed: userManaged};
 
         // The field's actual write-permission tier, kept in sync with managed --
         // sent as permission_values (top-level, not part of attrs) so the value
         // CPA's own attrs.managed toggle promises is the value that's actually
-        // enforced (see plans/mm-69869-applies-to-users-config.md).
+        // enforced.
         const userConfigPermissionValues: PermissionLevel = userManaged === 'admin' ? 'sysadmin' : 'member';
 
         if (isEditMode && fieldId) {
@@ -915,7 +912,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             // true for a row being deleted, so this check must not rely on file
             // ordering relative to the delete loop above), already persisted, and
             // not in `toCreate` (that row's create call above already carries the
-            // current values -- see plans/mm-69869-applies-to-users-config.md).
+            // current values).
             const userIsUpdateCandidate = appliesTo.includes('user') && !toCreate.includes('user') && Boolean(persistedLinkedFieldsRef.current.user);
             if (userIsUpdateCandidate) {
                 const visibilityChanged = userVisibility !== originalUserVisibilityRef.current;

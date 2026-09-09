@@ -94,10 +94,10 @@
     }
 }
 
-// Profile display segmented control (MM-69869) -- mirrors the segmented-toggle
-// pattern in access_control/modals/simulate_access/simulate_access_modal.scss,
-// namespaced under this component instead of a shared component (see the plan's
-// Decisions table: no reusable segmented control exists in this codebase yet).
+// Profile display segmented control -- mirrors the segmented-toggle pattern in
+// access_control/modals/simulate_access/simulate_access_modal.scss, namespaced
+// under this component instead of a shared component (no reusable segmented
+// control exists in this codebase yet).
 .AttributeAppliesToItem__profileDisplaySegments {
     display: inline-flex;
     padding: 2px;

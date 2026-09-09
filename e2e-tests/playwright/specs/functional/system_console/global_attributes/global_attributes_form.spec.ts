@@ -475,7 +475,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
 
         /**
          * @objective Ensure switching type mid-form preserves already-entered options rather than
-         * discarding them, per the ticket's "freely switch types" requirement.
+         * discarding them, so an admin can freely switch types without losing data.
          */
         test('preserves already-entered options when switching type away and back', async ({pw}) => {
             const {adminUser} = await requireGlobalAttributesEnabled(pw);
@@ -989,10 +989,10 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         /**
          * @objective Ensure a Users row added and configured in the same session bundles its
          * Profile display / Who can set the value config directly into the create request --
-         * per MM-69869's explicit instruction to never create bare and immediately patch -- and
-         * that every option of both controls (all 3 Profile display values, both Who can set the
-         * value options) is individually selectable and persists correctly, not just the one
-         * combination picked at creation.
+         * rather than creating bare and immediately patching -- and that every option of both
+         * controls (all 3 Profile display values, both Who can set the value options) is
+         * individually selectable and persists correctly, not just the one combination picked at
+         * creation.
          */
         test('saves Profile display and Who can set the value directly on a new Users row, for every option', async ({
             pw,
@@ -1083,7 +1083,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          * @objective Ensure changing config on an already-saved Users row issues its own patch
          * (rather than needing a delete-and-recreate), and that toggling Who can set the value
          * updates both attrs.managed and the field's actual permission_values in both
-         * directions (MM-69869's fix for the one-way permission ratchet).
+         * directions.
          */
         test('updates config on an already-saved Users row via patch, in both directions', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
@@ -1133,8 +1133,8 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 // * The UI-visible attrs.managed correctly round-trips to Member
                 expect(userField?.attrs?.managed).toBe('');
 
-                // * The field's actual write permission is unlocked back to member too (MM-69869
-                // fix) -- previously this stayed pinned to sysadmin (the one-way ratchet).
+                // * The field's actual write permission is unlocked back to member too -- not
+                // just the UI-visible attrs.managed.
                 expect(userField?.permission_values).toBe('member');
             } finally {
                 await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, name);

@@ -183,21 +183,19 @@ export function deleteAttributeField(fieldId: string): Promise<unknown> {
 // Creates a linked field for one Applies-to resource. The server validates
 // linked_field_id against the template and copies its Type and attrs.options
 // onto the new field (server/channels/app/properties/property_field.go) --
-// display_name is NOT copied, so it's sent explicitly here (see the plan's
-// Decisions table). objectType is the resource type ('user'/'channel'/'post'),
-// a URL path segment on the generic property-fields endpoint, not a separate
-// route.
+// display_name is NOT copied, so it's sent explicitly here. objectType is the
+// resource type ('user'/'channel'/'post'), a URL path segment on the generic
+// property-fields endpoint, not a separate route.
 //
 // extraAttrs merges additional attrs onto the request -- used to bundle a
 // Users row's Profile display config directly into the create request when
-// that row is new this session, per the ticket's explicit instruction to
-// never create bare and immediately patch
-// (plans/mm-69869-applies-to-users-config.md). undefined for Channels/Posts,
-// which have no config panel yet.
+// that row is new this session, so it's never created bare and then
+// immediately patched. undefined for Channels/Posts, which have no config
+// panel yet.
 //
-// permissionValues sets the field's actual write-permission tier (MM-69869's
-// "Who can set the value") -- a top-level PropertyField field, not part of
-// attrs. The server would otherwise inherit this from the template (always
+// permissionValues sets the field's actual write-permission tier ("Who can
+// set the value") -- a top-level PropertyField field, not part of attrs. The
+// server would otherwise inherit this from the template (always
 // sysadmin), overriding whatever the admin picked; passing it explicitly here
 // is honored for a linked field (see server/channels/app/properties/property_field.go).
 export function createLinkedAttributeField(
@@ -236,9 +234,9 @@ export function deleteLinkedAttributeField(objectType: ResourceObjectType, field
 // same as updateAttributeField above) -- only the keys present in `attrs` are
 // updated, everything else on the field is left untouched.
 //
-// permissionValues patches the field's actual write-permission tier
-// (MM-69869's "Who can set the value") -- see createLinkedAttributeField
-// above for why this is a top-level field, not part of attrs.
+// permissionValues patches the field's actual write-permission tier ("Who can
+// set the value") -- see createLinkedAttributeField above for why this is a
+// top-level field, not part of attrs.
 export function updateLinkedAttributeField(
     objectType: ResourceObjectType,
     fieldId: string,

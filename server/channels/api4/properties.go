@@ -476,14 +476,13 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// PermissionValues is only patchable on a Global-Attributes-linked field
-	// (any object type -- the "Who can set the value" control, MM-69869), and
-	// only to Member or Sysadmin. Requiring LinkedFieldID keeps this off
-	// standalone CPA 'user' fields, which can have a weaker (Member-level)
-	// PermissionField than a linked field's always-sysadmin one -- without
-	// this, a caller who can already edit a CPA field's definition could use
-	// this new capability to escalate its PermissionValues to sysadmin, or
-	// loosen another field's to member.
+	// PermissionValues is only patchable on a linked field (any object type),
+	// and only to Member or Sysadmin. Requiring LinkedFieldID keeps this off
+	// standalone fields, which can have a weaker (Member-level) PermissionField
+	// than a linked field's always-sysadmin one -- without this, a caller who
+	// can already edit a weaker-gated field's definition could use this
+	// capability to escalate its PermissionValues to sysadmin, or loosen
+	// another field's to member.
 	if patch.PermissionValues != nil {
 		if existingField.LinkedFieldID == nil || *existingField.LinkedFieldID == "" {
 			c.Err = model.NewAppError("patchPropertyField", "api.property_field.patch.permission_values_not_linked.app_error", nil, "", http.StatusBadRequest)

@@ -18,16 +18,15 @@ import './attribute_applies_to_item.scss';
 
 const BODY_ID = 'attribute-applies-to-user-panel';
 
-// Order matches the screenshot's pill row: Always | When set | Hidden.
+// Display order: Always | When set | Hidden.
 const PROFILE_DISPLAY_VALUES: FieldVisibility[] = ['always', 'when_set', 'hidden'];
 
 // The Users row of the Applies-to list -- owns its own expand/collapse state
-// (deliberately not the shared Accordion component, see the plan's Decisions
-// table: AccordionCard renders the row itself from plain data with no slot
-// for a child component to own it, and its open-row tracking is by array
-// index, which misattributes state when a row is removed from the middle of
-// the list). Remove is only reachable once expanded -- there is no
-// collapsed-row remove affordance.
+// (deliberately not the shared Accordion component: AccordionCard renders the
+// row itself from plain data with no slot for a child component to own it,
+// and its open-row tracking is by array index, which misattributes state when
+// a row is removed from the middle of the list). Remove is only reachable
+// once expanded -- there is no collapsed-row remove affordance.
 function AttributeAppliesToUserItem({
     disabled = false,
     lockedTooltip,
