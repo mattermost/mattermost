@@ -5,16 +5,27 @@ export {test, expect, PlaywrightExtended} from './test_fixture';
 export type {ExtendedFixtures} from './test_fixture';
 export {testConfig, resolveAppUrl, TESTCONTAINERS_SERVICE_NAMES} from './test_config';
 export type {TestContainersServiceName} from './test_config';
+export {
+    assertUpgradeFromFreshStart,
+    assertUpgradeToRequiresPriorFromRun,
+    getUpgradeFromServerImage,
+    getUpgradeToServerImage,
+    isUpgradeFromProjectSelected,
+    isUpgradePathProjectSelected,
+    isUpgradeToPhaseProjectSelected,
+    logUpgradeFromServerImage,
+    logUpgradeToServerImage,
+    UPGRADE_FROM_SERVER_IMAGE_ENV,
+} from './upgrade_env';
 export {baseGlobalSetup} from './global_setup';
 export {bindPageToLiveBaseURL, TestBrowser} from './browser_context';
-export {getBlobFromAsset, getFileFromAsset} from './file';
+export {assetPath, getBlobFromAsset, getFileFromAsset, getFileData, getBlobData} from './file';
 export {decomposeKorean, koreanTestPhrase, typeHangulCharacterWithIme, typeHangulWithIme} from './ime';
 export {duration, getRandomId, wait, newTestPassword} from './util';
 export {LicenseSkus, appsPluginId, callsPluginId, playbooksPluginId} from './constant';
 
 export {
     getAdminClient,
-    mergeWithOnPremServerConfig,
     getOnPremServerConfig,
     generateLdapUser,
     createLdapUser,
@@ -35,12 +46,18 @@ export {
     ensureAzurite,
     listAzuriteBlobNames,
     ensureLocalFile,
+    listMattermostDataFiles,
     ensurePostgresSearch,
     ensureFeatureFlag,
     runMmctl,
     ensureMmctl,
+    upgradeServerImage,
+    saveUpgradePhaseLogs,
+    installAndEnablePlugin,
+    getPluginStatus,
+    isPluginActive,
 } from './server';
-export type {LdapUser, KeycloakUser, MmctlResult} from './server';
+export type {LdapUser, KeycloakUser, MmctlResult, UpgradeLogPhase} from './server';
 
 export {startStack, stopStack} from './containers';
 
@@ -58,6 +75,7 @@ export {
 
 export {
     components,
+    AboutBuildModal,
     GlobalHeader,
     SearchBox,
     ChannelsCenterView,
