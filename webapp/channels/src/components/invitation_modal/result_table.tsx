@@ -19,7 +19,7 @@ import {imageURLForUser, getLongDisplayName} from 'utils/utils';
 import './result_table.scss';
 
 type InviteNotSent = {
-    text: React.ReactNode | React.ReactNodeArray;
+    text: React.ReactNode | readonly React.ReactNode[];
 };
 
 type InviteEmail = {
@@ -75,7 +75,7 @@ export default function ResultTable(props: Props) {
         return intl.formatMessage(
             reason,
             {
-                a: (chunks: React.ReactNode | React.ReactNodeArray) => (
+                a: (chunks: React.ReactNode | readonly React.ReactNode[]) => (
                     <a
                         href={link}
                         onClick={(e: React.MouseEvent) => {

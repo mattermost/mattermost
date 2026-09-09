@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useState} from 'react';
+import React, {useState, type JSX} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
 import {ChevronDownIcon, MessageTextOutlineIcon} from '@mattermost/compass-icons/components';

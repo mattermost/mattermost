@@ -3,7 +3,7 @@
   "browser": {
     "./client/web_client.jsx": "./client/browser_web_client.jsx"
   },
-  "version": "11.11.0",
+  "version": "12.0.0",
   "private": true,
   "dependencies": {
     "@atlaskit/pragmatic-drag-and-drop": "1.7.7",
@@ -13,10 +13,11 @@
     "@giphy/js-fetch-api": "5.7.0",
     "@giphy/react-components": "10.1.0",
     "@guyplusplus/turndown-plugin-gfm": "1.0.7",
-    "@mattermost/client": "11.11.0",
+    "@hello-pangea/dnd": "18.0.1",
+    "@mattermost/client": "12.0.0",
     "@mattermost/desktop-api": "6.3.0-2",
-    "@mattermost/shared": "11.11.0",
-    "@mattermost/types": "11.11.0",
+    "@mattermost/shared": "12.0.0",
+    "@mattermost/types": "12.0.0",
     "@mui/base": "5.0.0-beta.70",
     "@mui/material": "5.18.0",
     "@mui/styled-engine-sc": "5.14.12",
@@ -74,7 +75,6 @@
     "process": "0.11.10",
     "prop-types": "15.8.1",
     "react": "18.2.0",
-    "react-beautiful-dnd": "13.1.1",
     "react-bootstrap": "github:mattermost/react-bootstrap#d693ec8082954f0e6d3e826ca6161979b29001cd",
     "react-color": "2.19.3",
     "react-day-picker": "8.10.2",
@@ -125,7 +125,6 @@
     "@types/mark.js": "8.11.6",
     "@types/marked": "0.7.4",
     "@types/react": "18.2.64",
-    "@types/react-beautiful-dnd": "13.1.2",
     "@types/react-bootstrap": "0.32.35",
     "@types/react-color": "3.0.6",
     "@types/react-dom": "18.2.25",
@@ -197,7 +196,7 @@
     "stats": "cross-env NODE_ENV=production webpack --profile --json > webpack_stats.json",
     "i18n-extract": "formatjs extract 'src/**/*.{js,jsx,ts,tsx}' '../platform/shared/src/**/*.{js,jsx,ts,tsx}' --additional-function-names localizeMessage --ignore '**/*.d.ts' --ignore '**/*.test.*' --out-file src/i18n/en.json --format scripts/formatter.js --id-interpolation-pattern '[sha512:contenthash:base64:6]' --preserve-whitespace",
     "i18n-extract:check": "npm run i18n-extract -- --throws --out-file .i18n-check.tmp.json && diff src/i18n/en.json .i18n-check.tmp.json && rm -f .i18n-check.tmp.json || (rm -f .i18n-check.tmp.json && echo '\nen.json is out of sync with code. \nTo update: npm run i18n-extract' && exit 1)",
-    "i18n-verify-translations": "formatjs verify './src/i18n/*.json' --source-locale 'en' --structural-equality",
+    "i18n-verify-translations": "node scripts/check_icu.mjs src/i18n",
     "check-types": "tsc -b",
     "make-emojis": "node --experimental-json-modules build/emoji/make_emojis.mjs"
   }

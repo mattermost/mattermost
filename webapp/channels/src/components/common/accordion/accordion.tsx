@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React, {useState} from 'react';
-import type {RefObject} from 'react';
+import type {JSX, RefObject} from 'react';
 
 import AccordionCard from './accordion_card';
 
