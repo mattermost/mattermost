@@ -126,7 +126,7 @@
   },
   "saved messages": {
     "target": "Gespeicherte Nachrichten",
-    "note": "save = speichern, unsave = 'nicht mehr speichern' / 'Speichern rückgängig'."
+    "note": "save = speichern, unsave = 'nicht mehr speichern'"
   },
   "draft": {
     "target": "Entwurf",
@@ -221,7 +221,7 @@
   },
   "unarchive": {
     "target": "wiederherstellen",
-    "note": "Existing UI and Weblate glossary use 'wiederherstellen' (Kanal wiederherstellen), not 'dearchivieren'."
+    "note": "'Kanal wiederherstellen', 'Team wiederherstellen'. Not 'dearchivieren'."
   },
   "mute": {
     "target": "stummschalten",
@@ -281,7 +281,7 @@
   },
   "scheme": {
     "target": "Schema",
-    "note": "Neuter: das Schema, Plural Schemas/Schemata. Permission scheme = Berechtigungsschema."
+    "note": "Neuter: das Schema, Plural Schemata. Permission scheme = Berechtigungsschema."
   },
   "license": {
     "target": "Lizenz"
@@ -335,8 +335,8 @@
     "note": "Majority rendering ('gemeinsamer Kanal'); 'geteilter Kanal' also occurs and the admin role name stays English ('Shared Channel Manager'). Keep 'gemeinsam' for consistency."
   },
   "channel header": {
-    "target": "Kanal-Kopfzeile",
-    "note": "UI labels use 'Kanal-Kopfzeile'; body text is inconsistent ('Kanalüberschrift', 'Kopfzeile des Kanals'). Prefer Kanal-Kopfzeile; bare 'Header' = Kopfzeile."
+    "target": "Kanalüberschrift",
+    "note": "UI labels use 'Kanal-Kopfzeile'; bare 'header' = Kopfzeile."
   },
   "channel purpose": {
     "target": "Kanalzweck",
@@ -347,8 +347,7 @@
     "note": "Write as one compound; an existing string has the incorrect spaced form 'System Nachricht'."
   },
   "persistent notification": {
-    "target": "Dauerhafte Benachrichtigung",
-    "note": "Consistent existing rendering."
+    "target": "Dauerhafte Benachrichtigung"
   },
   "message priority": {
     "target": "Nachrichtenpriorität",
@@ -375,8 +374,8 @@
     "note": "Webapp majority keeps English 'Magic Link' (10 vs 4); server strings use 'magischer Link'. Keep Magic Link for consistency with the user-facing webapp."
   },
   "personal access token": {
-    "target": "Persönlicher Zugriffs-Token",
-    "note": "Webapp majority uses 'Zugriffs-Token' (14 vs 1); the Weblate glossary row says 'Persönliches Zugangs-Token' — prefer the repo majority. Token is used masculine ('den Token')."
+    "target": "Persönlicher Zugangs-Token",
+    "note": "Webapp majority uses 'Zugriffs-Token'. Token is masculine ('den Token')."
   },
   "announcement banner": {
     "target": "Ankündigungs-Banner",
@@ -396,7 +395,7 @@
   },
   "permalink": {
     "target": "Permalink",
-    "note": "Majority keeps 'Permalink'; one string paraphrases 'dauerhafter Link'."
+    "note": "Not 'dauerhafter Link'."
   },
   "profile": {
     "target": "Profil"
@@ -417,11 +416,11 @@
   },
   "auto-translation": {
     "target": "Automatische Übersetzung",
-    "note": "'auto-translated' = automatisch übersetzt; label 'AUTO-TRANSLATED' = 'AUTOMATISCH ÜBERSETZT'."
+    "note": "'auto-translated' = automatisch übersetzt."
   },
   "data retention": {
     "target": "Datenaufbewahrung",
-    "note": "Policy = 'Datenaufbewahrungsrichtlinie' / 'Richtlinie zur Datenaufbewahrung'."
+    "note": "Policy = 'Datenaufbewahrungsrichtlinie'."
   },
   "compliance export": {
     "target": "Compliance-Export",

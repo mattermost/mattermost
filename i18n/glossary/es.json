@@ -97,11 +97,11 @@
   },
   "direct message": {
     "target": "mensaje directo",
-    "note": "Abbreviation DM is not used in Spanish UI; spell out."
+    "note": "Spell out in UI. 'MD' is the usual Spanish abbreviation in prose, not 'DM'."
   },
   "group message": {
-    "target": "mensaje de grupo",
-    "note": "Majority rendering; 'mensaje grupal' also appears — prefer 'mensaje de grupo'."
+    "target": "mensaje grupal",
+    "note": "Existing majority is 'mensaje de grupo'; 'mensaje grupal' is more idiomatic."
   },
   "mention": {
     "target": "mención",
@@ -111,8 +111,8 @@
     "target": "notificación"
   },
   "pin": {
-    "target": "destacar",
-    "note": "Majority rendering ('Mensajes Destacados'); one string uses 'anclados'. Unpin: 'dejar de destacar'. Pinned: 'destacado'."
+    "target": "fijar",
+    "note": "Existing strings use 'destacar' ('Mensajes Destacados') and one uses 'anclados'. Unpin: 'desfijar'; pinned: 'fijado' ('mensajes fijados'). Matches Telegram and WhatsApp."
   },
   "bookmark": {
     "target": "marcador",
@@ -411,8 +411,8 @@
     "note": "Existing server translation renders the default channel name as 'General' (not a literal translation); keep for consistency with created channels."
   },
   "Off-Topic": {
-    "target": "Fuera de Tópico",
-    "note": "Existing server translation; 'Fuera de tema' would be more natural but keep the established name."
+    "target": "Fuera de tema",
+    "note": "Existing server translation is 'Fuera de Tópico', which is unidiomatic; Spanish sentence casing applies."
   },
   "read-only": {
     "target": "solo lectura",

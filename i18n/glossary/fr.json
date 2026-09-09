@@ -42,7 +42,7 @@
   },
   "MFA": {
     "target": "MFA",
-    "note": "Spelled out as 'authentification multi-facteurs (MFA)' where needed."
+    "note": "Spelled out as 'authentification multifacteur (MFA)' where needed."
   },
   "OpenID Connect": {
     "target": "OpenID Connect"
