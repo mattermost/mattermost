@@ -399,3 +399,82 @@ func TestAccessChannelRenderMatchesEnforcement(t *testing.T) {
 		})
 	}
 }
+
+func deniesChannel(mockACS *eMocks.AccessControlServiceInterface, channelID string) {
+	mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+		return req.Resource.ID == channelID
+	})).Return(model.AccessDecision{Decision: false}, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+		Return(model.AccessDecision{Decision: true}, nil)
+}
+
+// A denied channel must not shorten the page, because a short page is how a client
+// recognises the end of the results — one denial would otherwise hide every channel
+// after it. Pages may overlap once the server has read past offset+limit to fill one;
+// what must not happen is losing a channel.
+func TestGetPublicChannelsForTeamFillsPagesPastDeniedChannels(t *testing.T) {
+	const perPage = 3
+
+	// Denial positions relative to a page boundary: first of a page, last of a page,
+	// and first of the page a top-up reads into.
+	for _, deniedIndex := range []int{0, perPage - 1, perPage} {
+		t.Run(fmt.Sprintf("denied index %d", deniedIndex), func(t *testing.T) {
+			h := setupAccessChannelTest(t)
+			team := h.th.CreateTeam(t)
+			for range 6 {
+				h.th.CreateChannel(t, team)
+			}
+
+			// The store's own ordering, read before any access control service exists.
+			all, appErr := h.th.App.GetPublicChannelsForTeam(h.rctx, team.Id, 0, 100)
+			require.Nil(t, appErr)
+			require.Greater(t, len(all), perPage+deniedIndex)
+
+			denied := all[deniedIndex]
+			mockACS := h.mockACS(t)
+			governed(mockACS)
+			deniesChannel(mockACS, denied.Id)
+
+			// Page by page number, the way a client does.
+			seen := map[string]bool{}
+			firstPageLen := -1
+			for page := 0; page*perPage < len(all); page++ {
+				got, appErr := h.th.App.GetPublicChannelsForTeam(h.rctx, team.Id, page*perPage, perPage)
+				require.Nil(t, appErr)
+				if page == 0 {
+					firstPageLen = len(got)
+				}
+				for _, channel := range got {
+					require.NotEqual(t, denied.Id, channel.Id, "a denied channel must never be served")
+					seen[channel.Id] = true
+				}
+			}
+
+			require.Equal(t, perPage, firstPageLen,
+				"the first page must be topped up, or the client stops paginating here")
+
+			for _, channel := range all {
+				if channel.Id == denied.Id {
+					continue
+				}
+				require.True(t, seen[channel.Id], "channel %q was lost while paginating", channel.DisplayName)
+			}
+		})
+	}
+}
+
+func TestGetPublicChannelsForTeamGivesUpAfterMaxFillRounds(t *testing.T) {
+	h := setupAccessChannelTest(t)
+	team := h.th.CreateTeam(t)
+	for range 4 {
+		h.th.CreateChannel(t, team)
+	}
+
+	mockACS := h.mockACS(t)
+	governed(mockACS)
+	decides(mockACS, false)
+
+	got, appErr := h.th.App.GetPublicChannelsForTeam(h.rctx, team.Id, 0, 2)
+	require.Nil(t, appErr)
+	require.Empty(t, got, "a page the policy empties must terminate rather than loop")
+}

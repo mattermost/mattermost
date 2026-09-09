@@ -3,6 +3,10 @@
 
 package utils
 
+const (
+	FetchUntilMaxRounds = 10
+)
+
 // Pager fetches all items from a paginated API.
 // Pager is a generic function that fetches and aggregates paginated data.
 // It takes a fetch function and a perPage parameter as arguments.
@@ -42,23 +46,6 @@ func Pager[T any](fetch func(page int) ([]T, error), perPage int) ([]T, error) {
 	return list, nil
 }
 
-// FetchUntilMaxRounds bounds the round trips one output page may cost when a caller
-// is denied nearly every item.
-const FetchUntilMaxRounds = 20
-
-// FetchUntil assembles one page of `want` items that satisfy `keep`, re-reading the
-// source until the page is full or the source is exhausted. It exists for pages that
-// have to be filtered *after* the database has already paginated them: returning the
-// survivors alone hands the caller a short page, which is how clients recognise the
-// end of the results.
-//
-// fetch reads the source page at `cursor`; advance derives the cursor after the page
-// it is given. Both see the raw, unfiltered page, so filtering can never move the
-// cursor past unseen items. A source page shorter than `want` means exhaustion.
-//
-// truncated reports that the cap was hit with the page still unfilled: a short page
-// that is not the end of the results, which the caller must say so rather than let
-// the client stop paginating.
 func FetchUntil[T any, C any](
 	cursor C,
 	want int,

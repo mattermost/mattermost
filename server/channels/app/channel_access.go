@@ -266,7 +266,7 @@ func (a *App) FilterChannelsByAccess(rctx request.CTX, userID string, channels [
 }
 
 func (a *App) FilterChannelListByAccess(rctx request.CTX, userID string, channels model.ChannelList) model.ChannelList {
-	return model.ChannelList(a.FilterChannelsByAccess(rctx, userID, channels))
+	return a.FilterChannelsByAccess(rctx, userID, channels)
 }
 
 func (a *App) FilterChannelListWithTeamDataByAccess(rctx request.CTX, userID string, channels model.ChannelListWithTeamData) (kept model.ChannelListWithTeamData, dropped int) {

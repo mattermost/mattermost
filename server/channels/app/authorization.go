@@ -109,10 +109,6 @@ func (a *App) SessionHasPermissionToChannel(rctx request.CTX, session model.Sess
 	return hasPermission && a.EnforceAccessChannel(rctx, session.UserId, channel), isMember
 }
 
-// SessionHasPermissionToChannelRBACOnly is SessionHasPermissionToChannel without the
-// ABAC access_channel evaluation. Reserved for the surfaces that must stay reachable
-// regardless of policy: the plugin API, and the policy-administration endpoints an
-// admin needs in order to repair a mis-scoped policy.
 func (a *App) SessionHasPermissionToChannelRBACOnly(rctx request.CTX, session model.Session, channelID string, permission *model.Permission) (hasPermission bool, isMember bool) {
 	channel, ok := a.channelForPermissionCheck(rctx, channelID)
 	if !ok {
@@ -389,8 +385,6 @@ func (a *App) HasPermissionToChannel(rctx request.CTX, askingUserId string, chan
 	return a.HasPermissionToAccessChannelByID(rctx, askingUserId, channelID), isMember
 }
 
-// HasPermissionToChannelRBACOnly is HasPermissionToChannel without the ABAC
-// access_channel evaluation. See SessionHasPermissionToChannelRBACOnly.
 func (a *App) HasPermissionToChannelRBACOnly(rctx request.CTX, askingUserId string, channelID string, permission *model.Permission) (hasPermission bool, isMember bool) {
 	if channelID == "" || askingUserId == "" {
 		return false, false
@@ -505,10 +499,6 @@ func (a *App) SessionHasPermissionToReadChannel(rctx request.CTX, session model.
 	return hasPermission && a.EnforceAccessChannel(rctx, session.UserId, channel), isMember
 }
 
-// SessionHasPermissionToReadChannelRBACOnly is SessionHasPermissionToReadChannel
-// without the ABAC access_channel evaluation. The unrestricted (local mode)
-// short-circuit lives here, so local mode skips only the RBAC answer —
-// access_channel still applies, matching HasPermissionToFileAction.
 func (a *App) SessionHasPermissionToReadChannelRBACOnly(rctx request.CTX, session model.Session, channel *model.Channel) (hasPermission bool, isMember bool) {
 	if session.IsUnrestricted() {
 		return true, false
@@ -531,10 +521,6 @@ func (a *App) HasPermissionToReadChannel(rctx request.CTX, userID string, channe
 	return hasPermission && a.HasPermissionToAccessChannel(rctx, userID, channel), isMember
 }
 
-// HasPermissionToReadChannelRBACOnly is HasPermissionToReadChannel without the ABAC
-// access_channel evaluation. The public-channel fallback below answers at the team
-// level and so never reaches the channel gate; splitting the RBAC answer out is what
-// lets the wrapper cover it with a single evaluation.
 func (a *App) HasPermissionToReadChannelRBACOnly(rctx request.CTX, userID string, channel *model.Channel) (hasPermission bool, isMember bool) {
 	if ok, member := a.HasPermissionToChannelRBACOnly(rctx, userID, channel.Id, model.PermissionReadChannelContent); ok {
 		return true, member

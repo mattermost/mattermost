@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	putils "github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
@@ -2487,8 +2488,44 @@ func (a *App) GetAllChannelsCount(rctx request.CTX, opts model.ChannelSearchOpts
 	return count, nil
 }
 
+func (a *App) fillChannelPage(rctx request.CTX, userID string, offset, limit int, fetch func(offset, limit int) (model.ChannelList, error)) (model.ChannelList, error) {
+	if !a.accessChannelEnforcementActive() {
+		return fetch(offset, limit)
+	}
+
+	kept, truncated, err := putils.FetchUntil(offset, limit,
+		func(from int) ([]*model.Channel, error) {
+			return fetch(from, limit)
+		},
+		func(channel *model.Channel) bool {
+			return a.HasPermissionToAccessChannel(rctx, userID, channel)
+		},
+		// FetchUntil hands advance only the page it just read, so the offset has to
+		// accumulate here rather than being derived from the cursor.
+		func(page []*model.Channel) int {
+			offset += len(page)
+			return offset
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	if truncated {
+		rctx.Logger().Warn("Gave up filling a page of channels; the policy denies most of what this query returns",
+			mlog.String("user_id", userID),
+			mlog.Int("rounds", putils.FetchUntilMaxRounds),
+		)
+	}
+
+	return kept, nil
+}
+
 func (a *App) GetDeletedChannels(rctx request.CTX, teamID string, offset int, limit int, userID string, skipTeamMembershipCheck bool) (model.ChannelList, *model.AppError) {
-	list, err := a.Srv().Store().Channel().GetDeleted(teamID, offset, limit, userID, skipTeamMembershipCheck)
+	// Archiving a channel deletes its own policy row, so only a system-scoped
+	// permission policy can still hide one here.
+	list, err := a.fillChannelPage(rctx, userID, offset, limit, func(off, lim int) (model.ChannelList, error) {
+		return a.Srv().Store().Channel().GetDeleted(teamID, off, lim, userID, skipTeamMembershipCheck)
+	})
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -2499,9 +2536,7 @@ func (a *App) GetDeletedChannels(rctx request.CTX, teamID string, offset int, li
 		}
 	}
 
-	// Archiving a channel deletes its own policy row, so only a system-scoped
-	// permission policy can still hide one here.
-	return a.FilterChannelListByAccess(rctx, userID, list), nil
+	return list, nil
 }
 
 func (a *App) GetChannelsUserNotIn(rctx request.CTX, teamID string, userID string, offset int, limit int) (model.ChannelList, *model.AppError) {
@@ -2529,13 +2564,14 @@ func (a *App) GetPublicChannelsByIdsForTeam(rctx request.CTX, teamID string, cha
 }
 
 func (a *App) GetPublicChannelsForTeam(rctx request.CTX, teamID string, offset int, limit int) (model.ChannelList, *model.AppError) {
-	list, err := a.Srv().Store().Channel().GetPublicChannelsForTeam(teamID, offset, limit)
+	list, err := a.fillChannelPage(rctx, rctx.Session().UserId, offset, limit, func(off, lim int) (model.ChannelList, error) {
+		return a.Srv().Store().Channel().GetPublicChannelsForTeam(teamID, off, lim)
+	})
 	if err != nil {
 		return nil, model.NewAppError("GetPublicChannelsForTeam", "app.channel.get_public_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// No userID parameter; every caller of this is session-driven.
-	return a.FilterChannelListByAccess(rctx, rctx.Session().UserId, list), nil
+	return list, nil
 }
 
 func (a *App) GetPrivateChannelsForTeam(rctx request.CTX, teamID string, offset int, limit int) (model.ChannelList, *model.AppError) {
