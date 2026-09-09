@@ -3072,16 +3072,13 @@ func (a *App) GetThreadsForUser(rctx request.CTX, userID, teamID string, options
 }
 
 // threadsForUserPage reads one page of the user's threads, dropping those whose
-// channel the access_channel policy denies.
+// channel the access_channel policy denies. The store scopes the list by
+// ChannelMembers and an ABAC-denied user keeps their membership, so hidden channels
+// would otherwise surface. Filtering runs after the store has paginated, so the page
+// is topped up from the cursor — a short page is how the client recognises the end.
 //
-// The thread list has no channel-permission filter of its own: the store scopes it
-// by ChannelMembers, and an ABAC-denied user keeps their membership, so threads
-// from hidden channels would surface. Because filtering happens after the store
-// has already paginated, the page is topped up from the cursor — a short page is
-// how the client recognises the end of the list.
-//
-// The unread totals alongside this list are deliberately left as the store
-// computed them, matching how the channel unread aggregates behave.
+// The unread totals alongside this list are deliberately left as the store computed
+// them, matching how the channel unread aggregates behave.
 func (a *App) threadsForUserPage(rctx request.CTX, userID, teamID string, options model.GetUserThreadsOpts) ([]*model.ThreadResponse, error) {
 	fetch := func(opts model.GetUserThreadsOpts) ([]*model.ThreadResponse, error) {
 		return a.Srv().Store().Thread().GetThreadsForUser(rctx, userID, teamID, opts)

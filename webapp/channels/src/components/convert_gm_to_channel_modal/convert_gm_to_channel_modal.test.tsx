@@ -20,13 +20,11 @@ import {LicenseSkus} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
-// The modal gates its content behind a mandatory 1200ms loading animation, so
-// assertions on that content need real headroom above it. The previous 1500ms
-// budget left only ~150ms of slack and timed out on loaded CI runners.
+// The modal gates its content behind a mandatory 1200ms loading animation, and a
+// 1500ms budget left too little slack on loaded CI runners.
 const LOADING_TIMEOUT = 5000;
 
-// A 5s waitFor would consume the whole 5s default per-test budget on its own,
-// so raise it to leave room for the interactions that follow.
+// A 5s waitFor would consume the whole default per-test budget on its own.
 jest.setTimeout(20000);
 
 describe('component/ConvertGmToChannelModal', () => {
@@ -75,8 +73,8 @@ describe('component/ConvertGmToChannelModal', () => {
     };
 
     beforeEach(() => {
-        // `mockResolvedValueOnce` queues are not consumed when a test fails before
-        // clicking Confirm, which would leak the queued response into the next test.
+        // A `mockResolvedValueOnce` queue is left unconsumed by a test that fails
+        // before clicking Confirm, and would leak into the next test.
         baseProps.actions.convertGroupMessageToPrivateChannel.mockReset();
     });
 

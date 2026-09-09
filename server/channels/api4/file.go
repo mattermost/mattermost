@@ -547,6 +547,10 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !requireChannelAccess(c, channel) {
+		return
+	}
+
 	isContentReviewer := false
 	asContentReviewer, _ := strconv.ParseBool(r.URL.Query().Get(model.AsContentReviewerParam))
 	if asContentReviewer {
@@ -591,15 +595,6 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	model.AddEventParameterAuditableToAuditRec(auditRec, "file", fileInfo)
-
-	// Ahead of the branch below, content reviewers included: the uploader of a file
-	// proceeds with perm == false and the reviewer path is gated only on reviewer
-	// status, so neither consults the channel gate. Deliberately below the
-	// deleted-file check above, so a deleted file still reports as missing rather
-	// than denied.
-	if !requireChannelAccess(c, channel) {
-		return
-	}
 
 	perm, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
 	if !isContentReviewer {
@@ -667,8 +662,6 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	perm, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
-	// Checked separately because the uploader of a file proceeds below with
-	// perm == false, which never consults the channel gate.
 	if !requireChannelAccess(c, channel) {
 		return
 	}
@@ -748,8 +741,6 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	perm, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
-	// Checked separately because the uploader of a file proceeds below with
-	// perm == false, which never consults the channel gate.
 	if !requireChannelAccess(c, channel) {
 		return
 	}
@@ -808,8 +799,6 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	perm, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
-	// Checked separately because the uploader of a file proceeds below with
-	// perm == false, which never consults the channel gate.
 	if !requireChannelAccess(c, channel) {
 		return
 	}
@@ -881,8 +870,6 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	perm, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
-	// Checked separately because the uploader of a file proceeds below with
-	// perm == false, which never consults the channel gate.
 	if !requireChannelAccess(c, channel) {
 		return
 	}

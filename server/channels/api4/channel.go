@@ -930,13 +930,6 @@ func sanitizeDiscoverableChannel(channel *model.Channel) *model.Channel {
 	}
 }
 
-// requireChannelAccess evaluates the ABAC access_channel policy for the current
-// session and sets the distinct denial error when it fails. Returns false when the
-// caller should stop.
-//
-// Handlers need this explicitly wherever access is granted by something other
-// than the channel gates — a team-level permission, an uploader's own file, a
-// join affordance — since those paths never reach SessionHasPermissionToChannel.
 func requireChannelAccess(c *Context, channel *model.Channel) bool {
 	if c.App.EnforceAccessChannel(c.AppContext, c.AppContext.Session().UserId, channel) {
 		return true
@@ -956,8 +949,7 @@ func discoverableNonMemberView(c *Context, channel *model.Channel) (*model.Chann
 	if !c.App.Config().FeatureFlags.DiscoverableChannels {
 		return nil, nil
 	}
-	// A session the policy denies must not learn the channel exists, let alone be
-	// offered a way to join it.
+	// A denied session must not learn the channel exists, let alone be offered a join.
 	if !c.App.HasPermissionToAccessChannel(c.AppContext, c.AppContext.Session().UserId, channel) {
 		return nil, nil
 	}
@@ -1493,10 +1485,9 @@ func getChannelsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 	enc := json.NewEncoder(w)
-	// Filtering happens here rather than in the app layer for two reasons: the
-	// cursor advance and the "short page means done" test below both have to see the
-	// raw page, or one denied channel would silently truncate the whole sidebar; and
-	// the response is already streaming, so nothing can be retracted once written.
+	// Filtered here rather than in the app layer: the cursor advance and the "short
+	// page means done" test below both have to see the raw page, or one denied
+	// channel would silently truncate the whole sidebar.
 	wroteAny := false
 	for {
 		channels, err := c.App.GetChannelsForUser(c.AppContext, c.Params.UserId, c.Params.IncludeDeleted, lastDeleteAt, pageSize, fromChannelID)
@@ -1818,7 +1809,6 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Both branches below can grant on a team permission, bypassing the channel gate.
 	if !requireChannelAccess(c, channel) {
 		return
 	}
@@ -1867,7 +1857,6 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	// Ahead of the checks below, which can grant on a team permission alone.
 	if !requireChannelAccess(c, channel) {
 		return
 	}
@@ -2082,12 +2071,9 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// This endpoint is the client's detection point for losing access mid-session,
-	// so a denial on the channel being opened is reported rather than suppressed —
-	// and reported before ViewChannel runs, because a denial must not move the read
-	// marker or the active channel. The previous channel is only being left behind:
-	// dropping it withholds its marker without failing the navigation that already
-	// happened.
+	// The client's detection point for losing access mid-session, so the channel being
+	// opened reports its denial, before ViewChannel can move the read marker. The
+	// previous channel is only being left behind, so dropping it is enough.
 	if view.ChannelId != "" && !c.App.EnforceAccessChannelByID(c.AppContext, c.Params.UserId, view.ChannelId) {
 		c.SetPermissionError(model.PermissionReadChannel)
 		return
@@ -2133,8 +2119,8 @@ func readMultipleChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Suppress per channel rather than failing the batch: the channels the user can
-	// still see should be marked read regardless.
+	// Per channel rather than failing the batch: the channels the user can still see
+	// should be marked read regardless.
 	channelIds = c.App.FilterChannelIDsByAccess(c.AppContext, c.Params.UserId, channelIds)
 
 	times, appErr := c.App.MarkChannelsAsViewed(c.AppContext, channelIds, c.Params.UserId, c.AppContext.Session().Id, true, c.App.IsCRTEnabledForUser(c.AppContext, c.Params.UserId))
@@ -2472,10 +2458,6 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// The public-channel self-join below grants on a team permission and never
-	// reaches the channel gate, so joining would be the way around the policy.
-	// Unlike a read denial this is a genuine block rather than suppression: joining
-	// is a write. Who may be added is still membership's question, not this one.
 	if !requireChannelAccess(c, channel) {
 		return
 	}
@@ -2974,8 +2956,6 @@ func channelMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.
 		return
 	}
 
-	// This returns channel members behind a sysconsole permission alone, so the
-	// channel gate never runs for it.
 	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
@@ -3061,9 +3041,6 @@ func getChannelModerations(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Deliberately not gated on access_channel: moderation settings are permission
-	// scheme configuration, not channel content or membership, and locking an admin
-	// out of them would leave the channel unconfigurable.
 	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
 	if appErr != nil {
 		c.Err = appErr

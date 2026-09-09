@@ -79,10 +79,9 @@ func (a *App) RequestJoinChannel(rctx request.CTX, userID, channelID, message st
 		return false, nil, guardErr
 	}
 
-	// A session the access_channel policy denies cannot join, so it must not be
-	// able to ask to either — otherwise the request queue is the way around the
-	// policy. ChannelAccessControlled below only reports the membership action, so
-	// it cannot answer this.
+	// A denied session cannot join, so it must not be able to ask to either — the
+	// request queue would be the way around the policy. ChannelAccessControlled below
+	// reports only the membership action, so it cannot answer this.
 	if !a.HasPermissionToAccessChannel(rctx, userID, channel) {
 		return false, nil, model.NewAppError("RequestJoinChannel", "api.channel.access_channel.abac_denied.app_error", nil, "channel_id="+channel.Id, http.StatusForbidden)
 	}

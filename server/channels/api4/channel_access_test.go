@@ -15,10 +15,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// accessChannelSurface is one API call the access_channel policy has to cover.
-// wantDeniedStatus and wantDeniedErrorID say what the surface reports on a denial:
-// most return 403 with the distinct id, but a few deliberately differ — getPostInfo
-// hides behind a 404 so a denial is indistinguishable from a missing post.
 type accessChannelSurface struct {
 	name              string
 	call              func(t *testing.T, f *accessChannelFixture) (*model.Response, error)
@@ -28,10 +24,9 @@ type accessChannelSurface struct {
 
 const abacDeniedErrorID = "api.channel.access_channel.abac_denied.app_error"
 
-// accessChannelFixture is what the surfaces act on. post is authored by the acting
-// session: th.BasicPost belongs to TeamAdminUser, which would make the post
-// surfaces fail RBAC on the *_others_posts permissions before access_channel is
-// ever consulted.
+// post is authored by the acting session: th.BasicPost belongs to TeamAdminUser,
+// which would make the post surfaces fail RBAC on the *_others_posts permissions
+// before access_channel is ever consulted.
 type accessChannelFixture struct {
 	th   *TestHelper
 	post *model.Post
@@ -104,9 +99,8 @@ func accessChannelSurfaces() []accessChannelSurface {
 			return resp, err
 		}),
 		{
-			// A denial has to look like a missing post here, not a forbidden one,
-			// or the endpoint confirms the post exists to a session that cannot
-			// see its channel.
+			// A 403 here would confirm the post exists to a session that cannot see
+			// its channel.
 			name: "post info returns not found",
 			call: func(t *testing.T, f *accessChannelFixture) (*model.Response, error) {
 				_, resp, err := f.th.Client.GetPostInfo(context.Background(), f.post.Id)
@@ -185,23 +179,17 @@ func accessChannelSurfaces() []accessChannelSurface {
 	}
 }
 
-// isAccessChannelDenial reports whether err is the access_channel denial, in the
-// shape the surface reports it.
 func isAccessChannelDenial(err error, wantID string) bool {
 	appErr, ok := err.(*model.AppError)
 	return ok && appErr.Id == wantID
 }
 
-// accessChannelEvaluation matches only the PDP calls for our action, so the
-// pre-existing file-attachment actions can be answered separately.
 var accessChannelEvaluation = mock.MatchedBy(func(req model.AccessRequest) bool {
 	return req.Action == model.AccessControlPolicyActionAccessChannel
 })
 
-// setupAccessChannelAPI returns a helper with access_channel enforceable and a
-// mock PDP that answers our action with `allow`. The file-attachment actions some
-// of these surfaces also evaluate are answered permissively, so only access_channel
-// is under test.
+// The file-attachment actions these surfaces also evaluate are answered
+// permissively, so only access_channel is under test.
 func setupAccessChannelAPI(t *testing.T, allow bool) (*accessChannelFixture, *mocks.AccessControlServiceInterface) {
 	t.Helper()
 
@@ -214,8 +202,8 @@ func setupAccessChannelAPI(t *testing.T, allow bool) (*accessChannelFixture, *mo
 		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
 	})
 
-	// Authored before the mock is installed, so creating it is not itself a
-	// surface under test.
+	// Authored before the mock is installed, so creating it is not itself a surface
+	// under test.
 	post := th.CreatePost(t)
 
 	mockACS := installMockACS(t, th)
@@ -238,9 +226,6 @@ func installMockACS(t *testing.T, th *TestHelper) *mocks.AccessControlServiceInt
 	return mockACS
 }
 
-// TestAccessChannelDeniedSurfaces walks every surface the spec puts behind
-// access_channel and asserts the denial reaches the wire with the id clients
-// switch on. One helper for the whole table: a denial mutates nothing.
 func TestAccessChannelDeniedSurfaces(t *testing.T) {
 	f, _ := setupAccessChannelAPI(t, false)
 
@@ -258,14 +243,9 @@ func TestAccessChannelDeniedSurfaces(t *testing.T) {
 	}
 }
 
-// TestAccessChannelAllowedSurfaces is the other half: an allow decision must never
-// be what blocks a surface.
-//
-// It asserts the absence of a policy denial rather than the absence of any error,
-// because several of these endpoints have their own preconditions — an unedited
-// post has no edit history, and deleting a post makes the later post surfaces
-// return not-found. Those are the endpoints' own behaviour and not what is under
-// test here; the deny table above is what pins the positive contract.
+// Asserts the absence of a policy denial rather than of any error: several of these
+// endpoints have their own preconditions — an unedited post has no edit history, and
+// deleting a post makes the later post surfaces return not-found.
 func TestAccessChannelAllowedSurfaces(t *testing.T) {
 	f, _ := setupAccessChannelAPI(t, true)
 
@@ -280,10 +260,8 @@ func TestAccessChannelAllowedSurfaces(t *testing.T) {
 	}
 }
 
-// TestAccessChannelFlagOffCostsNothing pins the inert path: with the sub-flag off
-// no surface asks the PDP about access_channel at all. The file-attachment actions
-// are still evaluated — they are behind the umbrella flag, not this one — so the
-// assertion is scoped to our action rather than to the PDP as a whole.
+// The file-attachment actions are still evaluated — they sit behind the umbrella
+// flag, not this one — so the assertion is scoped to our action, not the whole PDP.
 func TestAccessChannelFlagOffCostsNothing(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
@@ -313,9 +291,6 @@ func TestAccessChannelFlagOffCostsNothing(t *testing.T) {
 	mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, accessChannelEvaluation)
 }
 
-// contentReviewerFixture is a flagged post with an attachment, in a private channel
-// the reviewer is not a member of — the shape the as_content_reviewer surfaces exist
-// to serve.
 type contentReviewerFixture struct {
 	th             *TestHelper
 	reviewerClient *model.Client4
@@ -325,13 +300,9 @@ type contentReviewerFixture struct {
 	reviewerID     string
 }
 
-// setupContentReviewerAccessChannel builds the reviewer scenario, then installs a PDP
-// answering access_channel with `allow`.
-//
-// The mock goes in last on purpose: uploading the file, creating the post and flagging
-// it all pass through the same gates under test, so a denying PDP would fail the
-// fixture rather than the assertion. The file-attachment actions are answered
-// permissively so only access_channel is under test.
+// The mock goes in last on purpose: uploading the file, creating the post and
+// flagging it all pass through the same gates under test, so a denying PDP would fail
+// the fixture rather than the assertion.
 func setupContentReviewerAccessChannel(t *testing.T, allow bool) (*contentReviewerFixture, *mocks.AccessControlServiceInterface) {
 	t.Helper()
 
@@ -344,8 +315,7 @@ func setupContentReviewerAccessChannel(t *testing.T, allow bool) (*contentReview
 		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
 	})
 
-	// A separate user, so the reviewer is genuinely a non-member of the channel and
-	// only reviewer status could let them read it.
+	// A separate user, so only reviewer status could let them read the channel.
 	reviewer := th.CreateUser(t)
 	require.Nil(t, setBasicCommonReviewerConfig(th, reviewer.Id))
 
@@ -387,8 +357,6 @@ func setupContentReviewerAccessChannel(t *testing.T, allow bool) (*contentReview
 	}, mockACS
 }
 
-// contentReviewerSurface is one reviewer-only endpoint that reaches channel content
-// or acts on it. Each of these was reachable with reviewer status alone.
 type contentReviewerSurface struct {
 	name string
 	call func(t *testing.T, f *contentReviewerFixture) (*model.Response, error)
@@ -426,14 +394,8 @@ func contentReviewerSurfaces() []contentReviewerSurface {
 	}
 }
 
-// TestAccessChannelContentReviewerIsNotExempt pins that reviewing flagged content
-// overrides channel membership but not the access_channel policy.
-//
-// getChannel and getFile evaluated the gate inside an `if !isContentReviewer` block,
-// so a reviewer skipped it; the content-flagging endpoints never had it at all.
-// getFile was the clearest of the two bugs: it still enforced the ABAC
-// download_file_attachment action on the same request, honouring one ABAC action
-// while skipping the one meant to be its prerequisite.
+// Reviewing flagged content overrides channel membership but not the access_channel
+// policy.
 func TestAccessChannelContentReviewerIsNotExempt(t *testing.T) {
 	f, _ := setupContentReviewerAccessChannel(t, false)
 
@@ -450,13 +412,9 @@ func TestAccessChannelContentReviewerIsNotExempt(t *testing.T) {
 	}
 }
 
-// TestAccessChannelContentReviewerAllowed is the other half: gating reviewers must
-// not break the review flow for a channel the policy allows. Without it the deny
-// table above would still pass if the reviewer paths were broken outright.
-//
-// It asserts the absence of a policy denial rather than of any error, because these
-// surfaces share one flagged post: keeping it resolves the flag the remove call then
-// cannot act on. That is the endpoints' own behaviour, not what is under test.
+// Asserts the absence of a policy denial rather than of any error: these surfaces
+// share one flagged post, and keeping it resolves the flag the remove call then
+// cannot act on.
 func TestAccessChannelContentReviewerAllowed(t *testing.T) {
 	f, _ := setupContentReviewerAccessChannel(t, true)
 
@@ -471,17 +429,10 @@ func TestAccessChannelContentReviewerAllowed(t *testing.T) {
 	}
 }
 
-// TestAccessChannelPolicyAdminEndpointsStayGeneric pins a property that is derived
-// rather than stated: the policy-administration surfaces must keep returning the
-// generic permission error even while the access_channel policy denies.
-//
-// They use the RBACOnly gate siblings on purpose — gating the endpoint a client uses
-// to *learn* it has been denied on the very policy doing the denying would 403 the
-// denial state itself. Because RBACOnly never reaches the policy, no enforcement
-// witness is recorded and SetPermissionError falls through to the generic error.
-//
-// Nothing else would notice a regression here: the existing access-control tests
-// assert only on status codes, and both ids are 403.
+// The policy-administration surfaces use the RBACOnly gate siblings on purpose:
+// gating the endpoint a client uses to *learn* it has been denied, on the very policy
+// doing the denying, would 403 the denial state itself. RBACOnly never reaches the
+// policy, so no enforcement witness is recorded and the generic error stands.
 func TestAccessChannelPolicyAdminEndpointsStayGeneric(t *testing.T) {
 	f, _ := setupAccessChannelAPI(t, false)
 	th := f.th

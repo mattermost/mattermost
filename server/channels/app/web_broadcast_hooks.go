@@ -536,14 +536,12 @@ func (h *onlyChannelAdminsBroadcastHook) Process(msg *platform.HookedWebSocketEv
 	return nil
 }
 
-// accessChannelBroadcastHook drops a channel-scoped event for any recipient the
-// ABAC access_channel policy denies.
-//
-// The channel gates cover what a session can fetch, but a post arriving over the
-// websocket was never fetched — without this, a session that has lost access keeps
-// receiving the channel's traffic until it reloads. Rejecting is honoured before
-// the event burns a sequence number or enters the reconnect replay queue, so a
-// dropped event leaves no gap for the client to notice.
+// accessChannelBroadcastHook drops a channel-scoped event for any recipient the ABAC
+// access_channel policy denies. The channel gates cover what a session can fetch, but
+// a post arriving over the websocket was never fetched, so without this a session
+// that has lost access keeps receiving the channel's traffic until it reloads.
+// Rejection lands before the event burns a sequence number or enters the reconnect
+// replay queue, so a dropped event leaves no gap for the client to notice.
 type accessChannelBroadcastHook struct{}
 
 func useAccessChannelHook(message *model.WebSocketEvent, channelID string) {
@@ -559,8 +557,7 @@ func (h *accessChannelBroadcastHook) Process(msg *platform.HookedWebSocketEvent,
 	}
 
 	// A rule may reference the session's device or network, so the evaluation needs
-	// this connection's session. Fail closed without one: an unauthenticated
-	// connection has nothing to evaluate and must not receive the event.
+	// this connection's session; without one there is nothing to evaluate.
 	session := webConn.GetSession()
 	if session == nil {
 		msg.Event().Reject()

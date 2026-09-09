@@ -57,7 +57,7 @@ function makeState(overrides: {currentChannelId?: string; flagOn?: boolean} = {}
     }) as any;
 }
 
-// The dropped ids across every LEAVE_CHANNEL the action dispatched, batched or not.
+// Across every LEAVE_CHANNEL the action dispatched, batched or not.
 function droppedIds(dispatch: jest.Mock): string[] {
     return dispatch.mock.calls.flatMap(([action]) => {
         const candidates = Array.isArray(action?.payload) ? action.payload : [action];
@@ -75,8 +75,6 @@ describe('reconcileChannelAccess', () => {
         dispatch = jest.fn((action) => (typeof action === 'function' ? action(dispatch, makeState()) : action));
     });
 
-    // The channel keeps its membership server-side; only the local copy goes, which
-    // is what lets it come back intact when access returns.
     it('drops the local copy of a channel the server stopped returning', async () => {
         (fetchAllMyTeamsChannels as jest.Mock).mockReturnValue(async () => ({data: [openChannel, dm]}));
 
@@ -102,7 +100,6 @@ describe('reconcileChannelAccess', () => {
         expect(droppedIds(dispatch)).toEqual([]);
     });
 
-    // A failed fetch must not be read as "everything was denied".
     it('drops nothing when the refresh fails', async () => {
         (fetchAllMyTeamsChannels as jest.Mock).mockReturnValue(async () => ({error: new Error('offline')}));
 

@@ -1173,10 +1173,8 @@ func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, m
 	return nil
 }
 
-// setupBroadcastHookForAccessChannel registers accessChannelBroadcastHook on a
-// channel-scoped event so each recipient's access_channel policy is evaluated
-// before the event reaches them. A no-op while the feature is inert, so the hub
-// pays nothing on the common path.
+// setupBroadcastHookForAccessChannel registers accessChannelBroadcastHook so each
+// recipient's access_channel policy is evaluated before the event reaches them.
 func (a *App) setupBroadcastHookForAccessChannel(channelID string, message *model.WebSocketEvent) {
 	if channelID == "" || !a.accessChannelEnforcementActive() {
 		return
@@ -2839,9 +2837,9 @@ func (a *App) GetPostIfAuthorized(rctx request.CTX, postID string, session *mode
 		return nil, err, false
 	}
 
-	// The ABAC access_channel policy is evaluated first and on its own, because the
-	// public-channel fallback below reaches the team level: checking it afterwards
-	// would let a denied session read any open channel on its team.
+	// Evaluated first and on its own: the public-channel fallback below answers at the
+	// team level, so checking afterwards would let a denied session read any open
+	// channel on its team.
 	if !a.HasPermissionToAccessChannel(rctx, session.UserId, channel) {
 		return nil, model.NewAppError("GetPostIfAuthorized", "api.channel.access_channel.abac_denied.app_error", nil,
 			"userId="+session.UserId+", channelId="+channel.Id, http.StatusForbidden), false

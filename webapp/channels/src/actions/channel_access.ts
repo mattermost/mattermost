@@ -22,10 +22,9 @@ import {ModalIdentifiers} from 'utils/constants';
 
 import type {ThunkActionFunc} from 'types/store';
 
-// How often a client re-checks which channels it may still see. An access_channel
-// rule can reference the session's device or network, so a session can lose access
-// without any server-side change to react to — nothing would otherwise tell the
-// client until it reloaded.
+// An access_channel rule can reference the session's device or network, so a session
+// can lose access with nothing on the server to broadcast. Only a periodic re-check
+// notices.
 export const ACCESS_CHANNEL_REFRESH_INTERVAL = 15 * 60 * 1000;
 
 let refreshIntervalId: ReturnType<typeof setInterval> | undefined;
@@ -37,17 +36,13 @@ function isGoverned(channel: Channel): boolean {
 }
 
 /**
- * Reconciles local channel state against the channels the server is still willing
- * to return, and reports it when the open channel is one of the losses.
- *
- * The server suppresses a denied channel from the channel list rather than removing
- * the user from it, so the client is left holding data for a channel it can no
- * longer show. Dropping that data locally is what makes the channel disappear.
+ * Reconciles local channel state against the channels the server is still willing to
+ * return. The server suppresses a denied channel rather than removing the user from
+ * it, so dropping the local copy is what makes the channel disappear.
  *
  * LEAVE_CHANNEL here is a local reducer action only — no request is made, and the
  * membership, followed threads, saved posts and unread counts all survive on the
- * server. That is what lets the channel reappear intact, with its accumulated
- * mentions, once access returns.
+ * server, so the channel reappears intact once access returns.
  */
 export function reconcileChannelAccess(): ThunkActionFunc<Promise<void>> {
     return async (doDispatch, doGetState) => {
@@ -58,14 +53,12 @@ export function reconcileChannelAccess(): ThunkActionFunc<Promise<void>> {
         const before = doGetState();
         const knownChannelIds = Object.keys(getMyChannelMemberships(before));
 
-        // Read the channel record directly rather than through getCurrentChannel,
-        // which resolves DM/GM display names from preferences we have no use for.
         const currentChannelId = getCurrentChannelId(before);
 
         const {data: channels} = await doDispatch(fetchAllMyTeamsChannels());
         if (!channels) {
-            // The fetch failed and already logged. Dropping local state on a
-            // network error would hide channels the policy still allows.
+            // Dropping local state on a network error would hide channels the
+            // policy still allows.
             return;
         }
 
@@ -84,8 +77,6 @@ export function reconcileChannelAccess(): ThunkActionFunc<Promise<void>> {
             return;
         }
 
-        // One batch, so the fifteen-odd reducers that clean up after
-        // LEAVE_CHANNEL run once rather than once per channel.
         doDispatch(batchActions(dropped.map((channelId) => ({
             type: ChannelTypes.LEAVE_CHANNEL,
             data: {
@@ -100,8 +91,6 @@ export function reconcileChannelAccess(): ThunkActionFunc<Promise<void>> {
             doDispatch(closeRightHandSide());
         }
 
-        // Losing the channel in view is the one case worth interrupting for: the
-        // user is looking at it, and it is about to vanish underneath them.
         if (currentChannelId && dropped.includes(currentChannelId)) {
             doDispatch(openModal({
                 modalId: ModalIdentifiers.CHANNEL_ACCESS_DENIED,
@@ -113,11 +102,6 @@ export function reconcileChannelAccess(): ThunkActionFunc<Promise<void>> {
     };
 }
 
-/**
- * Starts the periodic reconciliation. Safe to call repeatedly — only the first
- * call schedules — and a no-op while the feature is off, so a server without the
- * flag pays nothing.
- */
 export function startChannelAccessRefresh(): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
         if (refreshIntervalId !== undefined || !isAccessChannelABACPermissionEnabled(doGetState())) {

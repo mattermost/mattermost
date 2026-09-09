@@ -1739,10 +1739,6 @@ func getPostInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		hasPermissionToAccessChannel = canJoinOpenChannel || canJoinOpenTeam
 	}
 
-	// The join re-grant above is a second, independent grant, so the ABAC policy is
-	// checked on its own rather than relying on the read-channel gate: a session the
-	// policy denies must not even learn the channel exists to be joined. The 404 is
-	// kept so a denial stays indistinguishable from a post that isn't there.
 	if !hasPermissionToAccessChannel || !c.App.HasPermissionToAccessChannel(c.AppContext, c.AppContext.Session().UserId, channel) {
 		c.Err = notFoundError
 		return

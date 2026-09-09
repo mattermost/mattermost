@@ -345,9 +345,6 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	c.Logger = c.App.Log().With(loggerFields...)
 	c.AppContext = c.AppContext.WithLogger(c.Logger)
-	// Installed here rather than deeper: request.CTX values ride on a context that
-	// every With* call clones, so a memo installed inside a callee is lost when it
-	// returns and SetChannelPermissionError would never see the denial.
 	c.AppContext = app.WithChannelAccessMemo(c.AppContext)
 	c.App.ProcessSessionAttributesRequest(c.AppContext, r)
 

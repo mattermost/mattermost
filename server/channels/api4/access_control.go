@@ -86,8 +86,6 @@ func searchAccessControlDecisionActions(c *Context, w http.ResponseWriter, r *ht
 	// today, so anything else is rejected rather than silently skipping the access check.
 	switch req.Resource.Type {
 	case model.AccessControlPolicyTypeChannel:
-		// RBACOnly: this endpoint is how the client learns it has been denied via ABAC, so
-		// gating it on the same ABAC policy would 403 the denial state itself.
 		if hasPermission, _ := c.App.SessionHasPermissionToChannelRBACOnly(c.AppContext, *c.AppContext.Session(), req.Resource.ID, model.PermissionReadChannel); !hasPermission {
 			c.SetPermissionError(model.PermissionReadChannel)
 			return

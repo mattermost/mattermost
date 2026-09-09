@@ -15,10 +15,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// accessChannelHarness wires the pieces every access_channel test needs: an
-// Enterprise Advanced licence, ABAC on, the feature flag on (which must come from
-// SetupConfig — UpdateConfig silently drops FeatureFlags writes), and a request
-// context carrying a real session so the session-subject build path works.
+// The feature flag has to come from SetupConfig: UpdateConfig silently drops
+// FeatureFlags writes, which would leave every test here passing vacuously.
 type accessChannelHarness struct {
 	th   *TestHelper
 	rctx request.CTX
@@ -45,8 +43,6 @@ func setupAccessChannelTest(t *testing.T) *accessChannelHarness {
 	}
 }
 
-// mockACS installs a mock access control service that reports access_channel as
-// governed and answers evaluations with the given decision.
 func (h *accessChannelHarness) mockACS(t *testing.T) *eMocks.AccessControlServiceInterface {
 	t.Helper()
 
@@ -127,8 +123,8 @@ func TestHasPermissionToAccessChannel(t *testing.T) {
 		mockACS := h.mockACS(t)
 		governed(mockACS)
 
-		// A user that does not exist cannot have native attributes resolved, so
-		// BuildAccessControlSubject aborts rather than evaluating against zeroes.
+		// A user that does not exist has no native attributes to resolve, so the
+		// subject build aborts rather than evaluating against zeroes.
 		require.False(t, h.th.App.HasPermissionToAccessChannel(h.rctx, model.NewId(), h.th.BasicChannel))
 		mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
 	})
@@ -146,8 +142,7 @@ func TestHasPermissionToAccessChannel(t *testing.T) {
 	})
 
 	t.Run("evaluates every call when no memo is installed", func(t *testing.T) {
-		// Background jobs and websocket fan-out build contexts with no memo; the
-		// helper has to keep working, just without the collapsing.
+		// Background jobs and websocket fan-out build contexts with no memo.
 		h := setupAccessChannelTest(t)
 		mockACS := h.mockACS(t)
 		governed(mockACS)
@@ -162,8 +157,6 @@ func TestHasPermissionToAccessChannel(t *testing.T) {
 	})
 
 	t.Run("does not reuse one user's decision for another", func(t *testing.T) {
-		// One request can ask about more than one user — a webhook's owner, a
-		// notification's recipient — so the memo has to be keyed by both.
 		h := setupAccessChannelTest(t)
 		mockACS := h.mockACS(t)
 		governed(mockACS)
@@ -179,9 +172,8 @@ func TestHasPermissionToAccessChannel(t *testing.T) {
 		mockACS.AssertNumberOfCalls(t, "AccessEvaluation", 2)
 	})
 
-	// The error contract lives on the enforcement witness, not on the decision map:
-	// the raw helper is what suppression paths call, and a channel they drop must not
-	// relabel an unrelated permission error later in the same request.
+	// A channel a suppression path drops must not relabel an unrelated permission
+	// error later in the same request.
 	t.Run("the raw helper records nothing for the error contract", func(t *testing.T) {
 		h := setupAccessChannelTest(t)
 		mockACS := h.mockACS(t)
@@ -217,8 +209,6 @@ func TestHasPermissionToAccessChannel(t *testing.T) {
 		require.Empty(t, ChannelAccessEnforcementDenial(h.rctx))
 	})
 
-	// The Filter* helpers are the widest suppression surface: they drop denied
-	// channels and the request still succeeds with 200.
 	t.Run("a filter does not record an enforcement denial", func(t *testing.T) {
 		h := setupAccessChannelTest(t)
 		mockACS := h.mockACS(t)
@@ -233,8 +223,8 @@ func TestHasPermissionToAccessChannel(t *testing.T) {
 		require.Empty(t, ChannelAccessEnforcementDenial(h.rctx))
 	})
 
-	// This is what keeps push recipients, webhook owners and admin-acting-for-user
-	// evaluations out of the requester's own error.
+	// Keeps push recipients, webhook owners and admin-acting-for-user evaluations
+	// out of the requester's own error.
 	t.Run("a third-party evaluation does not record", func(t *testing.T) {
 		h := setupAccessChannelTest(t)
 		mockACS := h.mockACS(t)
@@ -263,8 +253,6 @@ func TestHasPermissionToAccessChannel(t *testing.T) {
 }
 
 func TestHasPermissionToAccessChannelShortCircuits(t *testing.T) {
-	// Each of these must return true without touching the PDP at all, so the
-	// feature is completely inert until deliberately enabled.
 	cases := map[string]func(t *testing.T, h *accessChannelHarness) *model.Channel{
 		"feature flag off": func(t *testing.T, h *accessChannelHarness) *model.Channel {
 			h.th.App.Srv().platform.SetConfigReadOnlyFF(false)
@@ -323,7 +311,7 @@ func TestHasPermissionToAccessChannelShortCircuits(t *testing.T) {
 func TestHasPermissionToAccessChannelByID(t *testing.T) {
 	t.Run("allows a channel that does not exist", func(t *testing.T) {
 		// The policy-administration endpoints pass policy IDs through the channel
-		// gates; a team or parent policy ID has no channel behind it to govern.
+		// gates, and a team or parent policy has no channel behind it.
 		h := setupAccessChannelTest(t)
 		mockACS := h.mockACS(t)
 
@@ -346,10 +334,9 @@ func TestHasPermissionToAccessChannelByID(t *testing.T) {
 	})
 }
 
-// TestBuildPushNotificationMessageAccessChannel pins the notification contract: a
-// push carries the post body without the recipient asking for it, so a denied
-// channel must downgrade to an id-only payload rather than being suppressed. The
-// device then fetches by id, and that fetch re-runs the gate live.
+// A push carries the post body without the recipient asking for it, so a denied
+// channel downgrades to an id-only payload rather than being suppressed. The device
+// then fetches by id, and that fetch re-runs the gate live.
 func TestBuildPushNotificationMessageAccessChannel(t *testing.T) {
 	build := func(t *testing.T, h *accessChannelHarness) *model.PushNotification {
 		t.Helper()
@@ -389,11 +376,9 @@ func TestBuildPushNotificationMessageAccessChannel(t *testing.T) {
 	})
 }
 
-// TestAccessChannelRenderMatchesEnforcement pins the invariant the render-decision
-// registry's own doc comment asserts: a render "allowed" can never disagree with
-// what enforcement would decide. The client uses the render decision to lay out
-// affordances; if it drifted, the UI would offer a channel the gate then refuses,
-// or hide one it would have allowed.
+// A render "allowed" can never disagree with what enforcement would decide: the
+// client lays out affordances from the render decision, so drift would offer a
+// channel the gate then refuses, or hide one it would have allowed.
 func TestAccessChannelRenderMatchesEnforcement(t *testing.T) {
 	for _, want := range []bool{true, false} {
 		t.Run(fmt.Sprintf("pdp=%v", want), func(t *testing.T) {

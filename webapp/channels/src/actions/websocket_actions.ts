@@ -247,9 +247,6 @@ export function initialize() {
 
     WebSocketClient.initialize(connUrl, undefined, true);
 
-    // A rule may reference the session's device or network, so access can change
-    // with nothing on the server to broadcast. Nothing but a periodic re-check
-    // would notice.
     dispatch(startChannelAccessRefresh());
 }
 
@@ -305,10 +302,8 @@ export function reconnect() {
             dispatch(handleRefreshAppsBindings());
         }
 
-        // A session's access can change while it was disconnected — a rule may
-        // depend on the network it is now on — so reconcile rather than only
-        // re-fetch: fetchAllMyTeamsChannels adds what is visible but never drops
-        // what no longer is.
+        // Access can change while disconnected, and fetchAllMyTeamsChannels adds
+        // what is visible but never drops what no longer is.
         dispatch(reconcileChannelAccess());
         dispatch(fetchAllMyTeamsChannels());
         if (isScheduledPostsEnabled(state)) {

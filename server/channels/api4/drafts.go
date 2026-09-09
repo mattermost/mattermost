@@ -43,8 +43,6 @@ func upsertDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else if channel, err := c.App.GetChannel(c.AppContext, draft.ChannelId); err == nil {
 		// Temporary permission check method until advanced permissions, please do not copy
 		if channel.Type == model.ChannelTypeOpen && c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionCreatePostPublic) {
-			// The team-level fallback bypasses the channel gate, so the ABAC policy
-			// has to be checked here too.
 			hasPermission = c.App.EnforceAccessChannel(c.AppContext, c.AppContext.Session().UserId, channel)
 		}
 	}

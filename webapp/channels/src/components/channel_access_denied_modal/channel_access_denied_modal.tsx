@@ -15,11 +15,9 @@ type Props = {
 /**
  * Shown when the channel the user is looking at is hidden by an access rule.
  *
- * Deliberately distinct from RemovedFromChannelModal: the user has not been
- * removed and has lost nothing. Their membership, unread counts and followed
- * threads are intact, and the channel returns on its own if whatever the rule
- * checks — their attributes, or the device or network they are on — changes back.
- * Telling them they were "removed" would be both wrong and unactionable.
+ * Deliberately distinct from RemovedFromChannelModal: nothing has been lost, and the
+ * channel returns on its own if whatever the rule checks changes back. Telling them
+ * they were "removed" would be both wrong and unactionable.
  */
 export default function ChannelAccessDeniedModal({onExited, channelName}: Props) {
     const [show, setShow] = useState(true);

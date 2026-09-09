@@ -2524,10 +2524,7 @@ func (a *App) GetPublicChannelsByIdsForTeam(rctx request.CTX, teamID string, cha
 		}
 	}
 
-	// A denied channel must leave no trace on a discovery surface: a name in
-	// Browse Channels or a search hit tells a session that a channel it cannot
-	// read exists. These functions take no userID, and every caller is
-	// session-driven.
+	// No userID parameter; every caller of this is session-driven.
 	return a.FilterChannelListByAccess(rctx, rctx.Session().UserId, list), nil
 }
 
@@ -2537,10 +2534,7 @@ func (a *App) GetPublicChannelsForTeam(rctx request.CTX, teamID string, offset i
 		return nil, model.NewAppError("GetPublicChannelsForTeam", "app.channel.get_public_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// A denied channel must leave no trace on a discovery surface: a name in
-	// Browse Channels or a search hit tells a session that a channel it cannot
-	// read exists. These functions take no userID, and every caller is
-	// session-driven.
+	// No userID parameter; every caller of this is session-driven.
 	return a.FilterChannelListByAccess(rctx, rctx.Session().UserId, list), nil
 }
 
@@ -3509,10 +3503,7 @@ func (a *App) SearchChannels(rctx request.CTX, teamID string, term string) (mode
 		return nil, model.NewAppError("SearchChannels", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// A denied channel must leave no trace on a discovery surface: a name in
-	// Browse Channels or a search hit tells a session that a channel it cannot
-	// read exists. These functions take no userID, and every caller is
-	// session-driven.
+	// No userID parameter; every caller of this is session-driven.
 	channelList = a.FilterChannelListByAccess(rctx, rctx.Session().UserId, channelList)
 
 	// Hydrate policy actions so search results carry the same action map as the
@@ -3589,10 +3580,9 @@ func (a *App) MarkTeamChannelsAndThreadsViewed(rctx request.CTX, teamID string, 
 		return nil, model.NewAppError("MarkTeamChannelsAndThreadsViewed", "app.channel.get_channels_by_team_with_unreads_and_with_mentions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// Marking a whole team read must not move the marker on a channel the
-	// access_channel policy hides. Dropping it here keeps its unread and mention
-	// counts intact, so they are waiting when access returns. Filtering times
-	// covers the thread update, the websocket payload and the response together.
+	// Dropping a hidden channel here leaves its unread and mention counts intact, so
+	// they are waiting when access returns. times feeds the thread update, the
+	// websocket payload and the response, so filtering it covers all three.
 	if a.accessChannelEnforcementActive() {
 		channelsToView = a.FilterChannelIDsByAccess(rctx, userID, channelsToView)
 		channelsToClearPushNotifications = a.FilterChannelIDsByAccess(rctx, userID, channelsToClearPushNotifications)

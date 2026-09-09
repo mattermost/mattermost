@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// pagedSource is a fixed slice served in pages, recording how many reads it took.
 type pagedSource struct {
 	items []int
 	reads int
@@ -73,7 +72,6 @@ func TestFetchUntil(t *testing.T) {
 	})
 
 	t.Run("reports truncation when the cap is hit with the page unfilled", func(t *testing.T) {
-		// Nothing is ever kept, so the page can never fill and only the cap stops it.
 		src := &pagedSource{items: seq(10000)}
 		got, truncated, err := FetchUntil(0, 10, src.fetch(10), func(int) bool { return false }, advanceBy(0))
 		require.NoError(t, err)

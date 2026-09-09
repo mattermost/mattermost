@@ -69,9 +69,7 @@ export function initializeTeam(team: Team): ActionFuncAsync<Team> {
             }
         }
 
-        // Switching teams is one of the ways a session regains a channel it had
-        // lost — and loses one it no longer qualifies for — so take the chance to
-        // reconcile what is visible.
+        // Switching teams can both regain and lose channels for this session.
         dispatch(reconcileChannelAccess());
 
         return {data: team};

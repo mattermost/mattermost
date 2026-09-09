@@ -1197,8 +1197,6 @@ func TestAccessChannelBroadcastHook_Process(t *testing.T) {
 	})
 
 	t.Run("a connection with no session is dropped", func(t *testing.T) {
-		// A rule may reference the session, so there is nothing to evaluate and
-		// nothing that justifies delivering the event.
 		msg := makeMessage()
 		require.NoError(t, hook.Process(msg, makeWebConn(t, true, false), map[string]any{"channel_id": channelID}))
 		assert.True(t, msg.Event().IsRejected())
