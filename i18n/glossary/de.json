@@ -114,7 +114,7 @@
   },
   "pin": {
     "target": "anheften",
-    "note": "Pinned messages = 'Angeheftete Nachrichten'; unpin = 'Loslösen' / 'nicht mehr anheften'. One webapp string uses 'anpinnen'."
+    "note": "Pinned messages = 'Angeheftete Nachrichten'; unpin = 'Loslösen' / 'nicht mehr anheften'."
   },
   "bookmark": {
     "target": "Lesezeichen",
