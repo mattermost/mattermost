@@ -7,11 +7,13 @@ export default class ThreadFooter {
     readonly container: Locator;
 
     readonly replyButton: Locator;
+    readonly avatarImages: Locator;
 
     constructor(container: Locator) {
         this.container = container;
 
         this.replyButton = container.locator('.ReplyButton');
+        this.avatarImages = container.locator('img.Avatar');
     }
 
     async toBeVisible() {
@@ -22,6 +24,21 @@ export default class ThreadFooter {
         const text = n === 1 ? '1 reply' : `${n} replies`;
 
         await expect(this.replyButton).toContainText(text);
+    }
+
+    /**
+     * True if every avatar in the footer has loaded a real image (not broken/blank).
+     */
+    async hasLoadedAvatars(): Promise<boolean> {
+        await expect(this.avatarImages.first()).toBeVisible();
+        const count = await this.avatarImages.count();
+        for (let i = 0; i < count; i++) {
+            const avatar = this.avatarImages.nth(i);
+            await expect
+                .poll(async () => avatar.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0))
+                .toBe(true);
+        }
+        return true;
     }
 
     /**
