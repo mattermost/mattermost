@@ -239,13 +239,13 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	switch oldChannel.Type {
 	case model.ChannelTypeOpen:
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManagePublicChannelProperties); !ok {
-			c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionManagePublicChannelProperties)
+			c.SetPermissionError(model.PermissionManagePublicChannelProperties)
 			return
 		}
 
 	case model.ChannelTypePrivate:
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManagePrivateChannelProperties); !ok {
-			c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionManagePrivateChannelProperties)
+			c.SetPermissionError(model.PermissionManagePrivateChannelProperties)
 			return
 		}
 
@@ -351,14 +351,14 @@ func updateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if model.ChannelType(privacy) == model.ChannelTypeOpen {
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionConvertPrivateChannelToPublic); !ok {
-			c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionConvertPrivateChannelToPublic)
+			c.SetPermissionError(model.PermissionConvertPrivateChannelToPublic)
 			return
 		}
 	}
 
 	if model.ChannelType(privacy) == model.ChannelTypePrivate {
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionConvertPublicChannelToPrivate); !ok {
-			c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionConvertPublicChannelToPrivate)
+			c.SetPermissionError(model.PermissionConvertPublicChannelToPrivate)
 			return
 		}
 	}
@@ -445,7 +445,7 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManagePrivateChannelDiscoverability); !ok {
-			c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionManagePrivateChannelDiscoverability)
+			c.SetPermissionError(model.PermissionManagePrivateChannelDiscoverability)
 			return
 		}
 	}
@@ -464,13 +464,13 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	case model.ChannelTypeOpen:
 		if updatingProperties {
 			if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManagePublicChannelProperties); !ok {
-				c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionManagePublicChannelProperties)
+				c.SetPermissionError(model.PermissionManagePublicChannelProperties)
 				return
 			}
 		}
 		if updatingAutoTranslation {
 			if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManagePublicChannelAutoTranslation); !ok {
-				c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionManagePublicChannelAutoTranslation)
+				c.SetPermissionError(model.PermissionManagePublicChannelAutoTranslation)
 				return
 			}
 		}
@@ -478,13 +478,13 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	case model.ChannelTypePrivate:
 		if updatingProperties {
 			if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManagePrivateChannelProperties); !ok {
-				c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionManagePrivateChannelProperties)
+				c.SetPermissionError(model.PermissionManagePrivateChannelProperties)
 				return
 			}
 		}
 		if updatingAutoTranslation {
 			if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManagePrivateChannelAutoTranslation); !ok {
-				c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionManagePrivateChannelAutoTranslation)
+				c.SetPermissionError(model.PermissionManagePrivateChannelAutoTranslation)
 				return
 			}
 		}
@@ -836,6 +836,10 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !requireChannelAccess(c, channel) {
+		return
+	}
+
 	isContentReviewer := false
 	asContentReviewer, _ := strconv.ParseBool(r.URL.Query().Get(model.AsContentReviewerParam))
 	if asContentReviewer {
@@ -875,17 +879,10 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !isContentReviewer {
-		// Ahead of both branches below: the public path grants on a team permission
-		// and the private path falls through to the discoverable view, so neither
-		// reaches the channel gate.
-		if !requireChannelAccess(c, channel) {
-			return
-		}
-
 		if channel.Type == model.ChannelTypeOpen {
 			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel) {
 				if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
-					c.SetChannelPermissionError(channel.Id, model.PermissionReadChannel)
+					c.SetPermissionError(model.PermissionReadChannel)
 					return
 				}
 			}
@@ -893,7 +890,7 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			if served := serveDiscoverableNonMember(c, w, channel); served {
 				return
 			}
-			c.SetChannelPermissionError(channel.Id, model.PermissionReadChannel)
+			c.SetPermissionError(model.PermissionReadChannel)
 			return
 		}
 	}
@@ -933,13 +930,6 @@ func sanitizeDiscoverableChannel(channel *model.Channel) *model.Channel {
 	}
 }
 
-// discoverableNonMemberView returns a sanitized non-member view of `channel`
-// when the calling user qualifies under the discoverable visibility rules,
-// or (nil, nil) when the channel must remain hidden — the caller should
-// emit its own permission-denied response. Errors from the discoverable
-// lookup are returned for the caller to assign to c.Err. When the feature
-// flag is off, this returns (nil, nil) and the caller falls through to its
-// default 403/404 path so the existing read contract is preserved.
 // requireChannelAccess evaluates the ABAC access_channel policy for the current
 // session and sets the distinct denial error when it fails. Returns false when the
 // caller should stop.
@@ -948,13 +938,20 @@ func sanitizeDiscoverableChannel(channel *model.Channel) *model.Channel {
 // than the channel gates — a team-level permission, an uploader's own file, a
 // join affordance — since those paths never reach SessionHasPermissionToChannel.
 func requireChannelAccess(c *Context, channel *model.Channel) bool {
-	if c.App.HasPermissionToAccessChannel(c.AppContext, c.AppContext.Session().UserId, channel) {
+	if c.App.EnforceAccessChannel(c.AppContext, c.AppContext.Session().UserId, channel) {
 		return true
 	}
-	c.SetChannelPermissionError(channel.Id, model.PermissionReadChannel)
+	c.SetPermissionError(model.PermissionReadChannel)
 	return false
 }
 
+// discoverableNonMemberView returns a sanitized non-member view of `channel`
+// when the calling user qualifies under the discoverable visibility rules,
+// or (nil, nil) when the channel must remain hidden — the caller should
+// emit its own permission-denied response. Errors from the discoverable
+// lookup are returned for the caller to assign to c.Err. When the feature
+// flag is off, this returns (nil, nil) and the caller falls through to its
+// default 403/404 path so the existing read contract is preserved.
 func discoverableNonMemberView(c *Context, channel *model.Channel) (*model.Channel, *model.AppError) {
 	if !c.App.Config().FeatureFlags.DiscoverableChannels {
 		return nil, nil
@@ -1015,7 +1012,7 @@ func getChannelUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
-		c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionReadChannel)
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
@@ -1040,7 +1037,7 @@ func getChannelStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
-		c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionReadChannel)
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
@@ -1136,7 +1133,7 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	var hasPermission, isMember bool
 	if hasPermission, isMember = c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel); !hasPermission {
-		c.SetChannelPermissionError(channel.Id, model.PermissionReadChannelContent)
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
@@ -1394,7 +1391,7 @@ func getPublicChannelsByIdsForTeam(c *Context, w http.ResponseWriter, r *http.Re
 	if session := c.AppContext.Session(); session.IsGuest() {
 		for _, channel := range channels {
 			if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *session, channel.Id, model.PermissionReadChannel); !ok {
-				c.SetChannelPermissionError(channel.Id, model.PermissionReadChannel)
+				c.SetPermissionError(model.PermissionReadChannel)
 				return
 			}
 		}
@@ -1770,14 +1767,14 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if channel.Type == model.ChannelTypeOpen {
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionDeletePublicChannel); !ok {
-			c.SetChannelPermissionError(channel.Id, model.PermissionDeletePublicChannel)
+			c.SetPermissionError(model.PermissionDeletePublicChannel)
 			return
 		}
 	}
 
 	if channel.Type == model.ChannelTypePrivate {
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionDeletePrivateChannel); !ok {
-			c.SetChannelPermissionError(channel.Id, model.PermissionDeletePrivateChannel)
+			c.SetPermissionError(model.PermissionDeletePrivateChannel)
 			return
 		}
 	}
@@ -1829,7 +1826,7 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 	if channel.Type == model.ChannelTypeOpen {
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel) {
 			if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionReadChannel); !ok {
-				c.SetChannelPermissionError(channel.Id, model.PermissionReadPublicChannel)
+				c.SetPermissionError(model.PermissionReadPublicChannel)
 				return
 			}
 		}
@@ -1879,7 +1876,7 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 	if channel.Type == model.ChannelTypeOpen {
 		teamOk := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel)
 		if !teamOk && !channelOk {
-			c.SetChannelPermissionError(channel.Id, model.PermissionReadPublicChannel)
+			c.SetPermissionError(model.PermissionReadPublicChannel)
 			return
 		}
 	} else if !channelOk {
@@ -1911,7 +1908,7 @@ func getChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
-		c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionReadChannel)
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
@@ -1939,7 +1936,7 @@ func getChannelMembersTimezones(c *Context, w http.ResponseWriter, r *http.Reque
 	}
 
 	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
-		c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionReadChannel)
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
@@ -1970,7 +1967,7 @@ func getChannelMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
-		c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionReadChannel)
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
@@ -1998,7 +1995,7 @@ func getChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
-		c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionReadChannel)
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
@@ -2091,8 +2088,8 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	// marker or the active channel. The previous channel is only being left behind:
 	// dropping it withholds its marker without failing the navigation that already
 	// happened.
-	if view.ChannelId != "" && !c.App.HasPermissionToAccessChannelByID(c.AppContext, c.Params.UserId, view.ChannelId) {
-		c.SetChannelPermissionError(view.ChannelId, model.PermissionReadChannel)
+	if view.ChannelId != "" && !c.App.EnforceAccessChannelByID(c.AppContext, c.Params.UserId, view.ChannelId) {
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 	if view.PrevChannelId != "" && !c.App.HasPermissionToAccessChannelByID(c.AppContext, c.Params.UserId, view.PrevChannelId) {
@@ -2227,7 +2224,7 @@ func updateChannelMemberRoles(c *Context, w http.ResponseWriter, r *http.Request
 	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
 
 	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManageChannelRoles); !ok {
-		c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionManageChannelRoles)
+		c.SetPermissionError(model.PermissionManageChannelRoles)
 		return
 	}
 
@@ -2267,7 +2264,7 @@ func updateChannelMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.R
 	model.AddEventParameterAuditableToAuditRec(auditRec, "roles", &schemeRoles)
 
 	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManageChannelRoles); !ok {
-		c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionManageChannelRoles)
+		c.SetPermissionError(model.PermissionManageChannelRoles)
 		return
 	}
 
@@ -2454,7 +2451,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	// to view its members
 	if c.AppContext.Session().IsGuest() {
 		if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !hasPermission {
-			c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionReadChannel)
+			c.SetPermissionError(model.PermissionReadChannel)
 			return
 		}
 		for _, userId := range userIds {
@@ -2858,14 +2855,14 @@ func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Params.UserId != c.AppContext.Session().UserId {
 		if channel.Type == model.ChannelTypeOpen {
 			if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionManagePublicChannelMembers); !ok {
-				c.SetChannelPermissionError(channel.Id, model.PermissionManagePublicChannelMembers)
+				c.SetPermissionError(model.PermissionManagePublicChannelMembers)
 				return
 			}
 		}
 
 		if channel.Type == model.ChannelTypePrivate {
 			if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionManagePrivateChannelMembers); !ok {
-				c.SetChannelPermissionError(channel.Id, model.PermissionManagePrivateChannelMembers)
+				c.SetPermissionError(model.PermissionManagePrivateChannelMembers)
 				return
 			}
 		}
@@ -3025,7 +3022,7 @@ func channelMemberCountsByGroup(c *Context, w http.ResponseWriter, r *http.Reque
 	}
 
 	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
-		c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionReadChannel)
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
@@ -3250,7 +3247,7 @@ func getDirectOrGroupMessageMembersCommonTeams(c *Context, w http.ResponseWriter
 	}
 
 	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
-		c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionReadChannel)
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
@@ -3332,12 +3329,12 @@ func canEditChannelBanner(c *Context, originalChannel *model.Channel) {
 	switch originalChannel.Type {
 	case model.ChannelTypePrivate:
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManagePrivateChannelBanner); !ok {
-			c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionManagePrivateChannelBanner)
+			c.SetPermissionError(model.PermissionManagePrivateChannelBanner)
 			return
 		}
 	case model.ChannelTypeOpen:
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManagePublicChannelBanner); !ok {
-			c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionManagePublicChannelBanner)
+			c.SetPermissionError(model.PermissionManagePublicChannelBanner)
 			return
 		}
 	default:
@@ -3352,7 +3349,7 @@ func getChannelAccessControlAttributes(c *Context, w http.ResponseWriter, r *htt
 	}
 
 	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel); !ok {
-		c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionReadChannel)
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 

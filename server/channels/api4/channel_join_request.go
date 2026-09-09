@@ -166,7 +166,7 @@ func getChannelJoinRequests(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManageChannelJoinRequests); !ok {
-		c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionManageChannelJoinRequests)
+		c.SetPermissionError(model.PermissionManageChannelJoinRequests)
 		return
 	}
 
@@ -197,7 +197,7 @@ func countPendingChannelJoinRequests(c *Context, w http.ResponseWriter, r *http.
 	}
 
 	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManageChannelJoinRequests); !ok {
-		c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionManageChannelJoinRequests)
+		c.SetPermissionError(model.PermissionManageChannelJoinRequests)
 		return
 	}
 
@@ -226,7 +226,7 @@ func patchChannelJoinRequest(c *Context, w http.ResponseWriter, r *http.Request)
 	}
 
 	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManageChannelJoinRequests); !ok {
-		c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionManageChannelJoinRequests)
+		c.SetPermissionError(model.PermissionManageChannelJoinRequests)
 		return
 	}
 

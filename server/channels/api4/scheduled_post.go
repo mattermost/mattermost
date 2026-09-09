@@ -98,7 +98,7 @@ func createSchedulePost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if len(scheduledPost.FileIds) > 0 {
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), scheduledPost.ChannelId, model.PermissionUploadFile); !ok {
-			c.SetChannelPermissionError(scheduledPost.ChannelId, model.PermissionUploadFile)
+			c.SetPermissionError(model.PermissionUploadFile)
 			return
 		}
 	}

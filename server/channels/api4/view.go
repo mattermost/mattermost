@@ -95,7 +95,7 @@ func getViewsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	hasPermission, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
 	if !hasPermission {
-		c.SetChannelPermissionError(channel.Id, model.PermissionReadChannelContent)
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
@@ -157,7 +157,7 @@ func getView(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	hasPermission, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
 	if !hasPermission {
-		c.SetChannelPermissionError(channel.Id, model.PermissionReadChannelContent)
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
@@ -365,7 +365,7 @@ func updateViewSortOrder(c *Context, w http.ResponseWriter, r *http.Request) {
 // in the given channel. Returns true if permission is granted, false otherwise (with c.Err set).
 func checkViewWritePermission(c *Context, channel *model.Channel) bool {
 	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionCreatePost); !ok {
-		c.SetChannelPermissionError(channel.Id, model.PermissionCreatePost)
+		c.SetPermissionError(model.PermissionCreatePost)
 		return false
 	}
 	return true
@@ -390,7 +390,7 @@ func getPostsForView(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	hasPermission, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
 	if !hasPermission {
-		c.SetChannelPermissionError(channel.Id, model.PermissionReadChannelContent)
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 

@@ -45,12 +45,12 @@ func upsertDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		if channel.Type == model.ChannelTypeOpen && c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionCreatePostPublic) {
 			// The team-level fallback bypasses the channel gate, so the ABAC policy
 			// has to be checked here too.
-			hasPermission = c.App.HasPermissionToAccessChannel(c.AppContext, c.AppContext.Session().UserId, channel)
+			hasPermission = c.App.EnforceAccessChannel(c.AppContext, c.AppContext.Session().UserId, channel)
 		}
 	}
 
 	if !hasPermission {
-		c.SetChannelPermissionError(draft.ChannelId, model.PermissionCreatePost)
+		c.SetPermissionError(model.PermissionCreatePost)
 		return
 	}
 

@@ -90,7 +90,7 @@ func createPostChecks(where string, c *Context, post *model.Post) {
 
 	if len(post.FileIds) > 0 {
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionUploadFile); !ok {
-			c.SetChannelPermissionError(post.ChannelId, model.PermissionUploadFile)
+			c.SetPermissionError(model.PermissionUploadFile)
 			return
 		}
 	}
@@ -321,7 +321,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	hasPermission, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
 	if !hasPermission {
-		c.SetChannelPermissionError(channel.Id, model.PermissionReadChannelContent)
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
@@ -414,7 +414,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 	}
 	hasPermission, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
 	if !hasPermission {
-		c.SetChannelPermissionError(channel.Id, model.PermissionReadChannelContent)
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
@@ -733,7 +733,7 @@ func getEditHistoryForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	ok, isMember := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost)
 	if !ok {
-		c.SetChannelPermissionError(originalPost.ChannelId, model.PermissionEditPost)
+		c.SetPermissionError(model.PermissionEditPost)
 		return
 	}
 
@@ -801,18 +801,18 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 	switch {
 	case c.AppContext.Session().UserId == post.UserId:
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeletePost); !ok {
-			c.SetChannelPermissionError(post.ChannelId, model.PermissionDeletePost)
+			c.SetPermissionError(model.PermissionDeletePost)
 			return
 		}
 	case post.Type == model.PostTypeCard && c.App.Config().FeatureFlags.IntegratedBoards:
 		// Cards: collaborative model — any user with delete_post can delete any card
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeletePost); !ok {
-			c.SetChannelPermissionError(post.ChannelId, model.PermissionDeletePost)
+			c.SetPermissionError(model.PermissionDeletePost)
 			return
 		}
 	default:
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeleteOthersPosts); !ok {
-			c.SetChannelPermissionError(post.ChannelId, model.PermissionDeleteOthersPosts)
+			c.SetPermissionError(model.PermissionDeleteOthersPosts)
 			return
 		}
 	}
@@ -1133,7 +1133,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	ok, isMember := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost)
 	if !ok {
-		c.SetChannelPermissionError(originalPost.ChannelId, model.PermissionEditPost)
+		c.SetPermissionError(model.PermissionEditPost)
 		return
 	}
 
@@ -1188,7 +1188,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else if c.AppContext.Session().UserId != originalPost.UserId {
 		// We don't need to check the member here, since we already checked it above
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditOthersPosts); !ok {
-			c.SetChannelPermissionError(originalPost.ChannelId, model.PermissionEditOthersPosts)
+			c.SetPermissionError(model.PermissionEditOthersPosts)
 			return
 		}
 	}
@@ -1310,7 +1310,7 @@ func postPatchChecks(c *Context, auditRec *model.AuditRecord, patch *model.PostP
 
 	ok, isMember := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, permission)
 	if !ok {
-		c.SetChannelPermissionError(originalPost.ChannelId, permission)
+		c.SetPermissionError(permission)
 		return false
 	}
 
@@ -1342,7 +1342,7 @@ func setPostUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if ok, _ := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.PostId); !ok {
-		c.SetPostChannelPermissionError(c.Params.PostId, model.PermissionReadChannelContent)
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
@@ -1367,7 +1367,7 @@ func setPostReminder(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if ok, _ := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.PostId); !ok {
-		c.SetPostChannelPermissionError(c.Params.PostId, model.PermissionReadChannelContent)
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
@@ -1411,7 +1411,7 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 	}
 	ok, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
 	if !ok {
-		c.SetChannelPermissionError(channel.Id, model.PermissionReadChannelContent)
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
@@ -1466,7 +1466,7 @@ func acknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if ok, _ := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.PostId); !ok {
-		c.SetPostChannelPermissionError(c.Params.PostId, model.PermissionReadChannelContent)
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
@@ -1505,7 +1505,7 @@ func unacknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if ok, _ := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.PostId); !ok {
-		c.SetPostChannelPermissionError(c.Params.PostId, model.PermissionReadChannelContent)
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
@@ -1612,7 +1612,7 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	ok, isMember := c.App.SessionHasPermissionToReadPost(c.AppContext, *c.AppContext.Session(), c.Params.PostId)
 	if !ok {
-		c.SetPostChannelPermissionError(c.Params.PostId, model.PermissionReadChannelContent)
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 

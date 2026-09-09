@@ -143,7 +143,7 @@ func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.F
 	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
 
 	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionUploadFile); !ok {
-		c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionUploadFile)
+		c.SetPermissionError(model.PermissionUploadFile)
 		return nil
 	}
 
@@ -322,7 +322,7 @@ NextPart:
 			return nil
 		}
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionUploadFile); !ok {
-			c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionUploadFile)
+			c.SetPermissionError(model.PermissionUploadFile)
 			return nil
 		}
 
@@ -440,7 +440,7 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 		return nil
 	}
 	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionUploadFile); !ok {
-		c.SetChannelPermissionError(channelId, model.PermissionUploadFile)
+		c.SetPermissionError(model.PermissionUploadFile)
 		return nil
 	}
 
@@ -592,20 +592,24 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	model.AddEventParameterAuditableToAuditRec(auditRec, "file", fileInfo)
 
+	// Ahead of the branch below, content reviewers included: the uploader of a file
+	// proceeds with perm == false and the reviewer path is gated only on reviewer
+	// status, so neither consults the channel gate. Deliberately below the
+	// deleted-file check above, so a deleted file still reports as missing rather
+	// than denied.
+	if !requireChannelAccess(c, channel) {
+		return
+	}
+
 	perm, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
 	if !isContentReviewer {
-		// Checked separately because the uploader of a file proceeds below with
-		// perm == false, which never consults the channel gate.
-		if !requireChannelAccess(c, channel) {
-			return
-		}
 		if fileInfo.CreatorId == model.BookmarkFileOwner {
 			if !perm {
-				c.SetChannelPermissionError(channel.Id, model.PermissionReadChannelContent)
+				c.SetPermissionError(model.PermissionReadChannelContent)
 				return
 			}
 		} else if fileInfo.CreatorId != c.AppContext.Session().UserId && !perm {
-			c.SetChannelPermissionError(channel.Id, model.PermissionReadChannelContent)
+			c.SetPermissionError(model.PermissionReadChannelContent)
 			return
 		}
 	}
@@ -670,11 +674,11 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	if info.CreatorId == model.BookmarkFileOwner {
 		if !perm {
-			c.SetChannelPermissionError(channel.Id, model.PermissionReadChannelContent)
+			c.SetPermissionError(model.PermissionReadChannelContent)
 			return
 		}
 	} else if info.CreatorId != c.AppContext.Session().UserId && !perm {
-		c.SetChannelPermissionError(channel.Id, model.PermissionReadChannelContent)
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
@@ -751,11 +755,11 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	if info.CreatorId == model.BookmarkFileOwner {
 		if !perm {
-			c.SetChannelPermissionError(channel.Id, model.PermissionReadChannelContent)
+			c.SetPermissionError(model.PermissionReadChannelContent)
 			return
 		}
 	} else if info.CreatorId != c.AppContext.Session().UserId && !perm {
-		c.SetChannelPermissionError(channel.Id, model.PermissionReadChannelContent)
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
@@ -811,11 +815,11 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	if info.CreatorId == model.BookmarkFileOwner {
 		if !perm {
-			c.SetChannelPermissionError(channel.Id, model.PermissionReadChannelContent)
+			c.SetPermissionError(model.PermissionReadChannelContent)
 			return
 		}
 	} else if info.CreatorId != c.AppContext.Session().UserId && !perm {
-		c.SetChannelPermissionError(channel.Id, model.PermissionReadChannelContent)
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
@@ -884,11 +888,11 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	if info.CreatorId == model.BookmarkFileOwner {
 		if !perm {
-			c.SetChannelPermissionError(channel.Id, model.PermissionReadChannelContent)
+			c.SetPermissionError(model.PermissionReadChannelContent)
 			return
 		}
 	} else if info.CreatorId != c.AppContext.Session().UserId && !perm {
-		c.SetChannelPermissionError(channel.Id, model.PermissionReadChannelContent)
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 

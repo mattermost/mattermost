@@ -27,10 +27,10 @@ type channelAccessMemoKey struct{}
 // four PDP round trips and a websocket fan-out would cost one per recipient per
 // mention.
 //
-// It also carries the error contract: a false entry means "the policy denied
-// this channel", which is what lets the API return a distinct error id instead
-// of the generic permission error. RBAC is evaluated first and && short-circuits,
-// so a channel denied on RBAC alone is never recorded here.
+// It also carries the error contract, but in a separate field: see
+// enforcementDenial below. A false decision only means the policy denied that
+// channel somewhere in this request, which is not the same as it being the reason
+// the request failed.
 //
 // The built subject is deliberately not memoised. BuildAccessControlSubject
 // attaches the channel-scoped role, so a subject is only valid for the one
@@ -41,6 +41,16 @@ type channelAccessMemo struct {
 	// a webhook's owner, a notification's recipient — and reusing the first
 	// answer for everybody would hand one user another's decision.
 	decisions map[channelAccessKey]bool
+
+	// enforcementDenial is the channel an *enforcement* gate denied for the
+	// requesting session, and it is deliberately not the same thing as a false
+	// entry in decisions.
+	//
+	// Filters and mention sanitisers record denials and still return 200, so a
+	// decision on its own cannot say why a request is failing — reading one as the
+	// reason would let a suppressed channel relabel an unrelated permission error.
+	// Only the enforcement call sites write this, and only for the session user.
+	enforcementDenial string
 }
 
 type channelAccessKey struct {
@@ -59,6 +69,21 @@ func (m *channelAccessMemo) set(key channelAccessKey, allowed bool) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.decisions[key] = allowed
+}
+
+// noteEnforcementDenial records the channel a failing enforcement gate denied.
+// Last write wins: when a handler gates two channels in sequence, the later denial
+// is the one the request dies on.
+func (m *channelAccessMemo) noteEnforcementDenial(channelID string) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.enforcementDenial = channelID
+}
+
+func (m *channelAccessMemo) getEnforcementDenial() string {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.enforcementDenial
 }
 
 func getChannelAccessMemo(rctx request.CTX) *channelAccessMemo {
@@ -89,19 +114,62 @@ func WithChannelAccessMemo(rctx request.CTX) request.CTX {
 	return rctx.WithContext(context.WithValue(rctx.Context(), channelAccessMemoKey{}, memo))
 }
 
-// ChannelAccessDeniedByPolicy reports whether this request denied the given
-// channel on the access_channel policy rather than on RBAC. The API layer uses it
-// to choose the error id, so a client can tell "you cannot view this channel
-// right now" apart from "you were removed from this channel". False whenever the
-// policy was never consulted.
-func ChannelAccessDeniedByPolicy(rctx request.CTX, channelID string) bool {
+// ChannelAccessEnforcementDenial returns the channel an enforcement gate denied for
+// this request's session on the access_channel policy, or "" when none did.
+//
+// SetPermissionError uses it to choose the error id, so a client can tell "you
+// cannot view this channel right now" apart from "you were removed from this
+// channel". Because the gates short-circuit on RBAC first and every caller returns
+// on failure, a witness means the denial is why this request is failing — which is
+// what makes it safe to consult from a setter that does not know the channel.
+func ChannelAccessEnforcementDenial(rctx request.CTX) string {
 	memo := getChannelAccessMemo(rctx)
 	if memo == nil {
-		return false
+		return ""
 	}
-	// The requesting session is the only user whose denial the response is about.
-	allowed, ok := memo.get(channelAccessKey{userID: rctx.Session().UserId, channelID: channelID})
-	return ok && !allowed
+	return memo.getEnforcementDenial()
+}
+
+// EnforceAccessChannel is HasPermissionToAccessChannel for the call sites that
+// enforce, recording a denial so the API layer can report it with the distinct
+// error id.
+//
+// Suppression call sites — the Filter* helpers, mention sanitising, permalink
+// previews, push fan-out — must keep using HasPermissionToAccessChannel, which
+// records nothing: they drop the channel and still succeed, so their denials are
+// not why anything failed.
+func (a *App) EnforceAccessChannel(rctx request.CTX, userID string, channel *model.Channel) bool {
+	if a.HasPermissionToAccessChannel(rctx, userID, channel) {
+		return true
+	}
+
+	a.noteAccessChannelEnforcementDenial(rctx, userID, channel.Id)
+	return false
+}
+
+// EnforceAccessChannelByID is EnforceAccessChannel for the gates that carry only an
+// id.
+func (a *App) EnforceAccessChannelByID(rctx request.CTX, userID, channelID string) bool {
+	if a.HasPermissionToAccessChannelByID(rctx, userID, channelID) {
+		return true
+	}
+
+	a.noteAccessChannelEnforcementDenial(rctx, userID, channelID)
+	return false
+}
+
+// noteAccessChannelEnforcementDenial records the denial only when the evaluated user
+// is the one the response is about. A caller asking about a third party — a webhook's
+// owner, a notification's recipient, a user an admin is acting for — must not have
+// that answer reported as the requester's own denial.
+func (a *App) noteAccessChannelEnforcementDenial(rctx request.CTX, userID, channelID string) {
+	if channelID == "" || userID != rctx.Session().UserId {
+		return
+	}
+
+	if memo := getChannelAccessMemo(rctx); memo != nil {
+		memo.noteEnforcementDenial(channelID)
+	}
 }
 
 // accessChannelEnforcementActive reports whether access_channel is being enforced
@@ -136,15 +204,11 @@ func (a *App) accessChannelEnforcementActive() bool {
 // service) or when no policy governs the channel, and false on any subject-build
 // or evaluation failure.
 func (a *App) HasPermissionToAccessChannel(rctx request.CTX, userID string, channel *model.Channel) bool {
-	// A nil channel reaches here from the policy-administration surfaces, which
-	// pass a policy ID where a channel ID is expected: a team or parent policy ID
-	// is not a channel, so there is nothing to govern.
 	if channel == nil || userID == "" {
 		return true
 	}
 
-	// DMs and GMs cannot carry a channel-scoped policy, and a system-scoped one
-	// would silently take a user's private conversations away.
+	// DMs and GMs are exempt from Access Channel policy
 	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
 		return true
 	}
@@ -173,10 +237,6 @@ func (a *App) HasPermissionToAccessChannel(rctx request.CTX, userID string, chan
 func (a *App) evaluateAccessChannel(rctx request.CTX, userID string, channel *model.Channel) bool {
 	acs := a.Srv().Channels().AccessControl
 
-	// Nothing to decide when no policy declares the action. A system-scoped
-	// permission policy applies to every channel, so both it and the channel's own
-	// policy have to be absent. ActionHasPermissionPolicy reports governed on any
-	// error, so a failure costs an evaluation rather than an allow.
 	governed, appErr := acs.ActionHasPermissionPolicy(rctx, model.AccessControlPolicyActionAccessChannel)
 	if appErr != nil {
 		rctx.Logger().Debug("Failed to check whether permission policies govern access_channel; evaluating anyway",

@@ -18,12 +18,12 @@ func userCreatePostPermissionCheckWithContext(c *Context, channelId string) {
 		if channel.Type == model.ChannelTypeOpen && c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionCreatePostPublic) {
 			// The team-level fallback bypasses the channel gate, so the ABAC policy
 			// has to be checked here too.
-			hasPermission = c.App.HasPermissionToAccessChannel(c.AppContext, c.AppContext.Session().UserId, channel)
+			hasPermission = c.App.EnforceAccessChannel(c.AppContext, c.AppContext.Session().UserId, channel)
 		}
 	}
 
 	if !hasPermission {
-		c.SetChannelPermissionError(channelId, model.PermissionCreatePost)
+		c.SetPermissionError(model.PermissionCreatePost)
 		return
 	}
 }
@@ -82,7 +82,7 @@ func checkUploadFilePermissionForNewFiles(c *Context, newFileIds []string, origi
 
 	if hasNewFiles {
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionUploadFile); !ok {
-			c.SetChannelPermissionError(originalPost.ChannelId, model.PermissionUploadFile)
+			c.SetPermissionError(model.PermissionUploadFile)
 			return
 		}
 	}
@@ -95,6 +95,6 @@ func checkEditFileAttachmentPermission(c *Context, newFileIds []string, original
 		return
 	}
 	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditFileAttachment); !ok {
-		c.SetChannelPermissionError(originalPost.ChannelId, model.PermissionEditFileAttachment)
+		c.SetPermissionError(model.PermissionEditFileAttachment)
 	}
 }

@@ -68,13 +68,13 @@ func createChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 	switch channel.Type {
 	case model.ChannelTypeOpen:
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionAddBookmarkPublicChannel); !ok {
-			c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionAddBookmarkPublicChannel)
+			c.SetPermissionError(model.PermissionAddBookmarkPublicChannel)
 			return
 		}
 
 	case model.ChannelTypePrivate:
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionAddBookmarkPrivateChannel); !ok {
-			c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionAddBookmarkPrivateChannel)
+			c.SetPermissionError(model.PermissionAddBookmarkPrivateChannel)
 			return
 		}
 
@@ -157,7 +157,7 @@ func updateChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 	case model.ChannelTypeOpen:
 		ok, member := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionEditBookmarkPublicChannel)
 		if !ok {
-			c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionEditBookmarkPublicChannel)
+			c.SetPermissionError(model.PermissionEditBookmarkPublicChannel)
 			return
 		}
 		isMember = member
@@ -165,7 +165,7 @@ func updateChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 	case model.ChannelTypePrivate:
 		ok, member := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionEditBookmarkPrivateChannel)
 		if !ok {
-			c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionEditBookmarkPrivateChannel)
+			c.SetPermissionError(model.PermissionEditBookmarkPrivateChannel)
 			return
 		}
 		isMember = member
@@ -279,14 +279,14 @@ func updateChannelBookmarkSortOrder(c *Context, w http.ResponseWriter, r *http.R
 	case model.ChannelTypeOpen:
 		ok, member := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionOrderBookmarkPublicChannel)
 		if !ok {
-			c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionOrderBookmarkPublicChannel)
+			c.SetPermissionError(model.PermissionOrderBookmarkPublicChannel)
 			return
 		}
 		isMember = member
 	case model.ChannelTypePrivate:
 		ok, member := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionOrderBookmarkPrivateChannel)
 		if !ok {
-			c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionOrderBookmarkPrivateChannel)
+			c.SetPermissionError(model.PermissionOrderBookmarkPrivateChannel)
 			return
 		}
 		isMember = member
@@ -372,14 +372,14 @@ func deleteChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 	case model.ChannelTypeOpen:
 		ok, member := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionDeleteBookmarkPublicChannel)
 		if !ok {
-			c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionDeleteBookmarkPublicChannel)
+			c.SetPermissionError(model.PermissionDeleteBookmarkPublicChannel)
 			return
 		}
 		isMember = member
 	case model.ChannelTypePrivate:
 		ok, member := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionDeleteBookmarkPrivateChannel)
 		if !ok {
-			c.SetChannelPermissionError(c.Params.ChannelId, model.PermissionDeleteBookmarkPrivateChannel)
+			c.SetPermissionError(model.PermissionDeleteBookmarkPrivateChannel)
 			return
 		}
 		isMember = member
@@ -462,7 +462,7 @@ func listChannelBookmarksForChannel(c *Context, w http.ResponseWriter, r *http.R
 
 	hasPermission, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
 	if !hasPermission {
-		c.SetChannelPermissionError(channel.Id, model.PermissionReadChannelContent)
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 

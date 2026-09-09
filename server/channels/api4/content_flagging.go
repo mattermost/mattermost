@@ -289,6 +289,12 @@ func getPostPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Not exempt: reviewing flagged content overrides channel membership, not the
+	// access_channel policy.
+	if !requireChannelAccess(c, channel) {
+		return
+	}
+
 	checkChannelFlaggable(c, channel)
 	if c.Err != nil {
 		return
@@ -344,6 +350,12 @@ func getFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
+		return
+	}
+
+	// Not exempt: reviewing flagged content overrides channel membership, not the
+	// access_channel policy.
+	if !requireChannelAccess(c, channel) {
 		return
 	}
 
@@ -458,6 +470,12 @@ func keepRemoveFlaggedPostChecks(c *Context, r *http.Request) (*model.FlagConten
 	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
+		return nil, "", nil
+	}
+
+	// Not exempt: reviewing flagged content overrides channel membership, not the
+	// access_channel policy.
+	if !requireChannelAccess(c, channel) {
 		return nil, "", nil
 	}
 
@@ -609,6 +627,12 @@ func assignFlaggedPostReviewer(c *Context, w http.ResponseWriter, r *http.Reques
 	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
+		return
+	}
+
+	// Not exempt: reviewing flagged content overrides channel membership, not the
+	// access_channel policy.
+	if !requireChannelAccess(c, channel) {
 		return
 	}
 

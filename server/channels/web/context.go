@@ -281,36 +281,30 @@ func NewJSONEncodingError(err error) *model.AppError {
 	return appErr
 }
 
-func (c *Context) SetPermissionError(permissions ...*model.Permission) {
-	c.Err = model.MakePermissionError(c.AppContext.Session(), permissions)
-}
-
-// SetChannelPermissionError reports a denied channel permission, distinguishing an
-// ABAC access_channel denial from an ordinary one.
+// SetPermissionError reports a denied permission, distinguishing an ABAC
+// access_channel denial from an ordinary one.
 //
 // Clients need the two apart: "you were removed from this channel" and "you cannot
 // view this channel right now" call for different messages, and only the second one
-// can resolve itself when the session or the user's attributes change. Falls back to
-// the generic permission error whenever the policy was not what denied.
-func (c *Context) SetChannelPermissionError(channelID string, permissions ...*model.Permission) {
-	if app.ChannelAccessDeniedByPolicy(c.AppContext, channelID) {
+// can resolve itself when the session or the user's attributes change.
+//
+// The channel is not a parameter. It comes from the enforcement gate that denied it
+// earlier in this request — the gates evaluate RBAC first and short-circuit, and
+// their callers return immediately, so a recorded denial is by construction why we
+// are reporting an error now. That keeps every handler on one setter and means a
+// new channel gate reports the right id without its author having to know.
+//
+// The permissions argument is only the label; the witness is the evidence. A
+// channel denial reported alongside a team-scoped permission is still a channel
+// denial (see getChannelByName, getChannelsMemberCount).
+func (c *Context) SetPermissionError(permissions ...*model.Permission) {
+	if channelID := app.ChannelAccessEnforcementDenial(c.AppContext); channelID != "" {
 		c.Err = model.NewAppError("Permissions", "api.channel.access_channel.abac_denied.app_error", nil,
 			"userId="+c.AppContext.Session().UserId+", channelId="+channelID, http.StatusForbidden)
 		return
 	}
 
-	c.SetPermissionError(permissions...)
-}
-
-// SetPostChannelPermissionError is SetChannelPermissionError for the handlers that
-// carry only a post id. Resolving the post's channel costs one read, taken only on
-// the denial path; an unresolvable post falls back to the generic error.
-func (c *Context) SetPostChannelPermissionError(postID string, permissions ...*model.Permission) {
-	channelID := ""
-	if post, appErr := c.App.GetSinglePost(c.AppContext, postID, true); appErr == nil {
-		channelID = post.ChannelId
-	}
-	c.SetChannelPermissionError(channelID, permissions...)
+	c.Err = model.MakePermissionError(c.AppContext.Session(), permissions)
 }
 
 func (c *Context) SetSiteURLHeader(url string) {

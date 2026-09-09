@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/stretchr/testify/require"
 )
@@ -310,4 +311,194 @@ func TestAccessChannelFlagOffCostsNothing(t *testing.T) {
 
 	mockACS.AssertNotCalled(t, "ActionHasPermissionPolicy", mock.Anything, mock.Anything)
 	mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, accessChannelEvaluation)
+}
+
+// contentReviewerFixture is a flagged post with an attachment, in a private channel
+// the reviewer is not a member of — the shape the as_content_reviewer surfaces exist
+// to serve.
+type contentReviewerFixture struct {
+	th             *TestHelper
+	reviewerClient *model.Client4
+	channel        *model.Channel
+	post           *model.Post
+	fileID         string
+	reviewerID     string
+}
+
+// setupContentReviewerAccessChannel builds the reviewer scenario, then installs a PDP
+// answering access_channel with `allow`.
+//
+// The mock goes in last on purpose: uploading the file, creating the post and flagging
+// it all pass through the same gates under test, so a denying PDP would fail the
+// fixture rather than the assertion. The file-attachment actions are answered
+// permissively so only access_channel is under test.
+func setupContentReviewerAccessChannel(t *testing.T, allow bool) (*contentReviewerFixture, *mocks.AccessControlServiceInterface) {
+	t.Helper()
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.AccessChannelABACPermission = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+	})
+
+	// A separate user, so the reviewer is genuinely a non-member of the channel and
+	// only reviewer status could let them read it.
+	reviewer := th.CreateUser(t)
+	require.Nil(t, setBasicCommonReviewerConfig(th, reviewer.Id))
+
+	channel := th.CreateChannelWithClient(t, th.Client, model.ChannelTypePrivate)
+
+	sent, fileErr := testutils.ReadTestFile("test.png")
+	require.NoError(t, fileErr)
+	fileResp, _, err := th.Client.UploadFile(context.Background(), sent, channel.Id, "test.png")
+	require.NoError(t, err)
+	require.NotEmpty(t, fileResp.FileInfos)
+
+	post := th.CreatePostWithFilesWithClient(t, th.Client, channel, fileResp.FileInfos[0])
+
+	resp, err := th.Client.FlagPostForContentReview(context.Background(), post.Id, &model.FlagContentRequest{
+		Reason:  "Classification mismatch",
+		Comment: "This is sensitive content",
+	})
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	reviewerClient := th.CreateClient()
+	_, _, err = reviewerClient.Login(context.Background(), reviewer.Email, reviewer.Password)
+	require.NoError(t, err)
+
+	mockACS := installMockACS(t, th)
+	mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).Return(true, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, accessChannelEvaluation).
+		Return(model.AccessDecision{Decision: allow}, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+		Return(model.AccessDecision{Decision: true}, nil)
+
+	return &contentReviewerFixture{
+		th:             th,
+		reviewerClient: reviewerClient,
+		channel:        channel,
+		post:           post,
+		fileID:         fileResp.FileInfos[0].Id,
+		reviewerID:     reviewer.Id,
+	}, mockACS
+}
+
+// contentReviewerSurface is one reviewer-only endpoint that reaches channel content
+// or acts on it. Each of these was reachable with reviewer status alone.
+type contentReviewerSurface struct {
+	name string
+	call func(t *testing.T, f *contentReviewerFixture) (*model.Response, error)
+}
+
+func contentReviewerSurfaces() []contentReviewerSurface {
+	action := &model.FlagContentActionRequest{Comment: "reviewed"}
+
+	return []contentReviewerSurface{
+		{"channel fetch", func(t *testing.T, f *contentReviewerFixture) (*model.Response, error) {
+			_, resp, err := f.reviewerClient.GetChannelAsContentReviewer(context.Background(), f.channel.Id, "", f.post.Id)
+			return resp, err
+		}},
+		{"file fetch", func(t *testing.T, f *contentReviewerFixture) (*model.Response, error) {
+			_, resp, err := f.reviewerClient.GetFileAsContentReviewer(context.Background(), f.fileID, f.post.Id)
+			return resp, err
+		}},
+		{"flagged post fetch", func(t *testing.T, f *contentReviewerFixture) (*model.Response, error) {
+			_, resp, err := f.reviewerClient.GetContentFlaggedPost(context.Background(), f.post.Id)
+			return resp, err
+		}},
+		{"flagging property values", func(t *testing.T, f *contentReviewerFixture) (*model.Response, error) {
+			_, resp, err := f.reviewerClient.GetPostPropertyValues(context.Background(), f.post.Id)
+			return resp, err
+		}},
+		{"assign reviewer", func(t *testing.T, f *contentReviewerFixture) (*model.Response, error) {
+			return f.reviewerClient.AssignContentFlaggingReviewer(context.Background(), f.post.Id, f.reviewerID)
+		}},
+		{"keep flagged post", func(t *testing.T, f *contentReviewerFixture) (*model.Response, error) {
+			return f.reviewerClient.KeepFlaggedPost(context.Background(), f.post.Id, action)
+		}},
+		{"remove flagged post", func(t *testing.T, f *contentReviewerFixture) (*model.Response, error) {
+			return f.reviewerClient.RemoveFlaggedPost(context.Background(), f.post.Id, action)
+		}},
+	}
+}
+
+// TestAccessChannelContentReviewerIsNotExempt pins that reviewing flagged content
+// overrides channel membership but not the access_channel policy.
+//
+// getChannel and getFile evaluated the gate inside an `if !isContentReviewer` block,
+// so a reviewer skipped it; the content-flagging endpoints never had it at all.
+// getFile was the clearest of the two bugs: it still enforced the ABAC
+// download_file_attachment action on the same request, honouring one ABAC action
+// while skipping the one meant to be its prerequisite.
+func TestAccessChannelContentReviewerIsNotExempt(t *testing.T) {
+	f, _ := setupContentReviewerAccessChannel(t, false)
+
+	for _, surface := range contentReviewerSurfaces() {
+		t.Run(surface.name, func(t *testing.T) {
+			resp, err := surface.call(t, f)
+			require.Error(t, err, "the reviewer path must not bypass the access_channel policy")
+			require.NotNil(t, resp)
+			require.Equal(t, http.StatusForbidden, resp.StatusCode)
+			appErr, ok := err.(*model.AppError)
+			require.True(t, ok, "expected an AppError, got %T", err)
+			require.Equal(t, abacDeniedErrorID, appErr.Id)
+		})
+	}
+}
+
+// TestAccessChannelContentReviewerAllowed is the other half: gating reviewers must
+// not break the review flow for a channel the policy allows. Without it the deny
+// table above would still pass if the reviewer paths were broken outright.
+//
+// It asserts the absence of a policy denial rather than of any error, because these
+// surfaces share one flagged post: keeping it resolves the flag the remove call then
+// cannot act on. That is the endpoints' own behaviour, not what is under test.
+func TestAccessChannelContentReviewerAllowed(t *testing.T) {
+	f, _ := setupContentReviewerAccessChannel(t, true)
+
+	for _, surface := range contentReviewerSurfaces() {
+		t.Run(surface.name, func(t *testing.T) {
+			_, err := surface.call(t, f)
+			if err != nil {
+				require.False(t, isAccessChannelDenial(err, abacDeniedErrorID),
+					"an allow decision must not deny the reviewer surface: %v", err)
+			}
+		})
+	}
+}
+
+// TestAccessChannelPolicyAdminEndpointsStayGeneric pins a property that is derived
+// rather than stated: the policy-administration surfaces must keep returning the
+// generic permission error even while the access_channel policy denies.
+//
+// They use the RBACOnly gate siblings on purpose — gating the endpoint a client uses
+// to *learn* it has been denied on the very policy doing the denying would 403 the
+// denial state itself. Because RBACOnly never reaches the policy, no enforcement
+// witness is recorded and SetPermissionError falls through to the generic error.
+//
+// Nothing else would notice a regression here: the existing access-control tests
+// assert only on status codes, and both ids are 403.
+func TestAccessChannelPolicyAdminEndpointsStayGeneric(t *testing.T) {
+	f, _ := setupAccessChannelAPI(t, false)
+	th := f.th
+
+	// A channel the user is not a member of, so the RBAC-only gate is what fails.
+	other := th.CreateChannelWithClient(t, th.SystemAdminClient, model.ChannelTypePrivate)
+
+	_, resp, err := th.Client.SearchAccessControlDecisionActions(context.Background(), model.ActionSearchRequest{
+		Resource: model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: other.Id},
+		Actions:  []string{model.AccessControlPolicyActionAccessChannel},
+	})
+	require.Error(t, err)
+	require.NotNil(t, resp)
+	require.Equal(t, http.StatusForbidden, resp.StatusCode)
+
+	appErr, ok := err.(*model.AppError)
+	require.True(t, ok, "expected an AppError, got %T", err)
+	require.Equal(t, "api.context.permissions.app_error", appErr.Id,
+		"the endpoint that reports a denial must not itself be reported as denied")
 }

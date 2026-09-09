@@ -179,16 +179,31 @@ func TestHasPermissionToAccessChannel(t *testing.T) {
 		mockACS.AssertNumberOfCalls(t, "AccessEvaluation", 2)
 	})
 
-	t.Run("records the denial for the error contract", func(t *testing.T) {
+	// The error contract lives on the enforcement witness, not on the decision map:
+	// the raw helper is what suppression paths call, and a channel they drop must not
+	// relabel an unrelated permission error later in the same request.
+	t.Run("the raw helper records nothing for the error contract", func(t *testing.T) {
 		h := setupAccessChannelTest(t)
 		mockACS := h.mockACS(t)
 		governed(mockACS)
 		decides(mockACS, false)
 
-		require.False(t, ChannelAccessDeniedByPolicy(h.rctx, h.th.BasicChannel.Id),
-			"nothing evaluated yet")
 		require.False(t, h.th.App.HasPermissionToAccessChannel(h.rctx, h.th.BasicUser.Id, h.th.BasicChannel))
-		require.True(t, ChannelAccessDeniedByPolicy(h.rctx, h.th.BasicChannel.Id))
+		require.Empty(t, ChannelAccessEnforcementDenial(h.rctx),
+			"a suppression-path denial must not be reportable as the reason a request failed")
+	})
+
+	t.Run("an enforcement gate records the denial", func(t *testing.T) {
+		h := setupAccessChannelTest(t)
+		mockACS := h.mockACS(t)
+		governed(mockACS)
+		decides(mockACS, false)
+
+		require.Empty(t, ChannelAccessEnforcementDenial(h.rctx), "nothing evaluated yet")
+
+		ok, _ := h.th.App.SessionHasPermissionToReadChannel(h.rctx, *h.rctx.Session(), h.th.BasicChannel)
+		require.False(t, ok)
+		require.Equal(t, h.th.BasicChannel.Id, ChannelAccessEnforcementDenial(h.rctx))
 	})
 
 	t.Run("does not record an allow as a denial", func(t *testing.T) {
@@ -197,8 +212,53 @@ func TestHasPermissionToAccessChannel(t *testing.T) {
 		governed(mockACS)
 		decides(mockACS, true)
 
-		require.True(t, h.th.App.HasPermissionToAccessChannel(h.rctx, h.th.BasicUser.Id, h.th.BasicChannel))
-		require.False(t, ChannelAccessDeniedByPolicy(h.rctx, h.th.BasicChannel.Id))
+		ok, _ := h.th.App.SessionHasPermissionToReadChannel(h.rctx, *h.rctx.Session(), h.th.BasicChannel)
+		require.True(t, ok)
+		require.Empty(t, ChannelAccessEnforcementDenial(h.rctx))
+	})
+
+	// The Filter* helpers are the widest suppression surface: they drop denied
+	// channels and the request still succeeds with 200.
+	t.Run("a filter does not record an enforcement denial", func(t *testing.T) {
+		h := setupAccessChannelTest(t)
+		mockACS := h.mockACS(t)
+		governed(mockACS)
+		decides(mockACS, false)
+
+		require.Empty(t, h.th.App.FilterChannelsByAccess(h.rctx, h.th.BasicUser.Id, []*model.Channel{h.th.BasicChannel}),
+			"the denied channel should be dropped")
+		require.Empty(t, ChannelAccessEnforcementDenial(h.rctx))
+
+		require.Empty(t, h.th.App.FilterChannelIDsByAccess(h.rctx, h.th.BasicUser.Id, []string{h.th.BasicChannel.Id}))
+		require.Empty(t, ChannelAccessEnforcementDenial(h.rctx))
+	})
+
+	// This is what keeps push recipients, webhook owners and admin-acting-for-user
+	// evaluations out of the requester's own error.
+	t.Run("a third-party evaluation does not record", func(t *testing.T) {
+		h := setupAccessChannelTest(t)
+		mockACS := h.mockACS(t)
+		governed(mockACS)
+		decides(mockACS, false)
+
+		require.False(t, h.th.App.EnforceAccessChannel(h.rctx, h.th.BasicUser2.Id, h.th.BasicChannel))
+		require.Empty(t, ChannelAccessEnforcementDenial(h.rctx),
+			"the session user is the only one the response is about")
+	})
+
+	t.Run("the last denial wins", func(t *testing.T) {
+		h := setupAccessChannelTest(t)
+		mockACS := h.mockACS(t)
+		governed(mockACS)
+		decides(mockACS, false)
+
+		require.False(t, h.th.App.EnforceAccessChannel(h.rctx, h.th.BasicUser.Id, h.th.BasicChannel))
+		require.Equal(t, h.th.BasicChannel.Id, ChannelAccessEnforcementDenial(h.rctx))
+
+		second := h.th.CreateChannel(t, h.th.BasicTeam)
+		require.False(t, h.th.App.EnforceAccessChannel(h.rctx, h.th.BasicUser.Id, second))
+		require.Equal(t, second.Id, ChannelAccessEnforcementDenial(h.rctx),
+			"when two channels are gated in sequence, the later denial is the one the request dies on")
 	})
 }
 

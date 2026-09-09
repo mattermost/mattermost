@@ -52,7 +52,7 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if ok, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel); !ok {
 		c.LogAudit("fail - bad channel permissions")
-		c.SetChannelPermissionError(channel.Id, model.PermissionReadChannelContent)
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
@@ -169,7 +169,7 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	if channel.Type != model.ChannelTypeOpen {
 		if ok, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel); !ok {
 			c.LogAudit("fail - bad channel permissions")
-			c.SetChannelPermissionError(channel.Id, model.PermissionReadChannelContent)
+			c.SetPermissionError(model.PermissionReadChannelContent)
 			return
 		}
 	}
@@ -522,7 +522,7 @@ func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if channelID != "" {
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelID, model.PermissionManageOwnOutgoingWebhooks); !ok {
-			c.SetChannelPermissionError(channelID, model.PermissionManageOwnOutgoingWebhooks)
+			c.SetPermissionError(model.PermissionManageOwnOutgoingWebhooks)
 			return
 		}
 
