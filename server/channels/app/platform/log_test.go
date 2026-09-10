@@ -118,6 +118,40 @@ func TestGetMattermostLog(t *testing.T) {
 	})
 }
 
+// Covers PlatformService.validateLogFilePath (used by GetLogFile) without enabling
+// file logging, which is the MM-70639 logger file-target race.
+func TestValidateLogFilePathWithRootOverride(t *testing.T) {
+	ps := &PlatformService{}
+
+	logDir, err := os.MkdirTemp("", "logs")
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		require.NoError(t, os.RemoveAll(logDir))
+	})
+	ps.SetLogRootPathOverride(logDir)
+
+	t.Run("allows path within override root", func(t *testing.T) {
+		inRoot := path.Join(logDir, "mattermost.log")
+		require.NoError(t, os.WriteFile(inRoot, []byte("ok"), 0644))
+		assert.NoError(t, ps.validateLogFilePath(inRoot))
+	})
+
+	t.Run("rejects path outside override root", func(t *testing.T) {
+		outsideDir, err := os.MkdirTemp("", "outside")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			require.NoError(t, os.RemoveAll(outsideDir))
+		})
+
+		outsideFile := path.Join(outsideDir, "secret.log")
+		require.NoError(t, os.WriteFile(outsideFile, []byte("secret"), 0644))
+
+		err = ps.validateLogFilePath(outsideFile)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "outside logging root")
+	})
+}
+
 func TestGetLogsSkipSendPathValidation(t *testing.T) {
 	mainHelper.Parallel(t)
 
