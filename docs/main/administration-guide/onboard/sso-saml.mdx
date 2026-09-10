@@ -73,6 +73,8 @@ Existing members that are identified by this attribute will be promoted from mem
 
 If the `admin` attribute is set to `false` the member's role as system admin is retained. However if the attribute is removed/changed, system admins that were promoted via the attribute will be demoted to members and will not retain access to the System Console. When this attribute is not in use, system admins can be manually promoted/demoted in **System Console \> User Management**.
 
+The Admin Attribute is the only way to designate system admins for SAML-authenticated users. The AD/LDAP [Admin Filter](/administration-guide/onboard/ad-ldap#admin-filter) doesn't apply to them, even when **Enable Synchronizing SAML Accounts With AD/LDAP** is enabled.
+
 </Note>
 
 ## Configuration assistance
