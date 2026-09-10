@@ -479,6 +479,17 @@ func listChannelBookmarksForChannel(c *Context, w http.ResponseWriter, r *http.R
 		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
 
+	// All bookmarks belong to the same channel, so a single evaluation covers the response.
+	if !c.App.HasPermissionToFileAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, c.Params.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
+		stripped := make([]*model.ChannelBookmarkWithFileInfo, len(bookmarks))
+		for i, bookmark := range bookmarks {
+			bookmarkCopy := bookmark.Clone()
+			bookmarkCopy.FileInfo = nil
+			stripped[i] = bookmarkCopy
+		}
+		bookmarks = stripped
+	}
+
 	if err := json.NewEncoder(w).Encode(bookmarks); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}

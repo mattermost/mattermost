@@ -25,6 +25,7 @@ const (
 	broadcastBurnOnRead         = "burn_on_read"
 	broadcastBurnOnReadReaction = "burn_on_read_reaction"
 	broadcastAbacFiles          = "abac_files"
+	broadcastAbacBookmarks      = "abac_bookmarks"
 	broadcastOnlyChannelAdmins  = "only_channel_admins"
 )
 
@@ -38,6 +39,7 @@ func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
 		broadcastBurnOnRead:         &burnOnReadBroadcastHook{},
 		broadcastBurnOnReadReaction: &burnOnReadReactionBroadcastHook{},
 		broadcastAbacFiles:          &abacFilesBroadcastHook{},
+		broadcastAbacBookmarks:      &abacBookmarksBroadcastHook{},
 		broadcastOnlyChannelAdmins:  &onlyChannelAdminsBroadcastHook{},
 	}
 }
@@ -504,6 +506,127 @@ func (h *abacFilesBroadcastHook) stripFilesFromMessage(msg *platform.HookedWebSo
 		msg.Event().Reject()
 	}
 	return nil
+}
+
+type abacBookmarksBroadcastHook struct{}
+
+func useAbacBookmarksHook(message *model.WebSocketEvent, channelID, field string) {
+	message.GetBroadcast().AddHook(broadcastAbacBookmarks, map[string]any{
+		"channel_id": channelID,
+		"field":      field,
+	})
+}
+
+// abacFileActionsActive reports whether ABAC file action policies are evaluated on this server.
+func (a *App) abacFileActionsActive() bool {
+	if a.Srv().Channels().AccessControl == nil {
+		return false
+	}
+
+	cfg := a.Config().AccessControlSettings.EnableAttributeBasedAccessControl
+	if cfg == nil || !*cfg {
+		return false
+	}
+
+	return a.Config().FeatureFlags.PermissionPolicies
+}
+
+// setupBroadcastHookForAbacBookmarks registers abacBookmarksBroadcastHook when ABAC is active
+// and at least one of the broadcast bookmarks carries file info.
+func (a *App) setupBroadcastHookForAbacBookmarks(message *model.WebSocketEvent, channelID, field string, bookmarks ...*model.ChannelBookmarkWithFileInfo) {
+	if !a.abacFileActionsActive() {
+		return
+	}
+
+	hasFileInfo := false
+	for _, bookmark := range bookmarks {
+		if bookmark != nil && bookmark.FileInfo != nil {
+			hasFileInfo = true
+			break
+		}
+	}
+	if !hasFileInfo {
+		return
+	}
+
+	useAbacBookmarksHook(message, channelID, field)
+}
+
+// Process strips bookmark file info for recipients denied the download_file_attachment action.
+// Once a deny decision is made, any serialisation failure rejects the event for that recipient.
+func (h *abacBookmarksBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
+	channelID, err := getTypedArg[string](args, "channel_id")
+	if err != nil {
+		return errors.Wrap(err, "Invalid channel_id value passed to abacBookmarksBroadcastHook")
+	}
+
+	field, err := getTypedArg[string](args, "field")
+	if err != nil {
+		return errors.Wrap(err, "Invalid field value passed to abacBookmarksBroadcastHook")
+	}
+
+	// The ABAC evaluator resolves role from rctx.Session(), not Subject.Role.
+	// Fail-secure: if the session is nil we cannot evaluate permissions, so strip file info.
+	session := webConn.GetSession()
+	if session != nil {
+		rctx := request.EmptyContext(webConn.Platform.Log()).WithSession(session)
+		if webConn.Suite.HasPermissionToFileAction(rctx, webConn.UserId, session.Roles, channelID, model.AccessControlPolicyActionDownloadFileAttachment) {
+			return nil
+		}
+	}
+
+	rawJSON, ok := msg.Get(field).(string)
+	if !ok {
+		mlog.Warn("abacBookmarksBroadcastHook: no bookmark payload in message; rejecting event",
+			mlog.String("user_id", webConn.UserId),
+			mlog.String("field", field),
+		)
+		msg.Event().Reject()
+		return nil
+	}
+
+	var payload any
+	if jsonErr := json.Unmarshal([]byte(rawJSON), &payload); jsonErr != nil {
+		mlog.Warn("abacBookmarksBroadcastHook: failed to deserialise bookmark payload; rejecting event",
+			mlog.String("user_id", webConn.UserId),
+			mlog.Err(jsonErr),
+		)
+		msg.Event().Reject()
+		return nil
+	}
+
+	stripBookmarkFileInfo(payload)
+
+	updatedJSON, jsonErr := json.Marshal(payload)
+	if jsonErr != nil {
+		mlog.Warn("abacBookmarksBroadcastHook: failed to marshal bookmark payload; rejecting event",
+			mlog.String("user_id", webConn.UserId),
+			mlog.Err(jsonErr),
+		)
+		msg.Event().Reject()
+		return nil
+	}
+
+	msg.Add(field, string(updatedJSON))
+	return nil
+}
+
+// stripBookmarkFileInfo walks a decoded bookmark payload of any shape and clears every "file" entry.
+func stripBookmarkFileInfo(value any) {
+	switch typed := value.(type) {
+	case map[string]any:
+		for key, nested := range typed {
+			if key == "file" {
+				typed[key] = nil
+				continue
+			}
+			stripBookmarkFileInfo(nested)
+		}
+	case []any:
+		for _, item := range typed {
+			stripBookmarkFileInfo(item)
+		}
+	}
 }
 
 // onlyChannelAdminsBroadcastHook narrows a channel-scoped broadcast to the
