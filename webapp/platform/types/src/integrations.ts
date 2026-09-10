@@ -146,9 +146,9 @@ export type OpenDialogRequest = {
     url: string;
     dialog: Dialog;
 
-    // The channel this dialog belongs to. Set by the integration to target a specific
-    // channel, or filled by the server from the trigger when the integration left it
-    // empty. Absent when the dialog came from a server that predates it.
+    // The channel this dialog belongs to. Always populated by the server from the
+    // signed trigger_id — the integration cannot override it. Absent when the dialog
+    // came from a server that predates this field.
     channel_id?: string;
 };
 
