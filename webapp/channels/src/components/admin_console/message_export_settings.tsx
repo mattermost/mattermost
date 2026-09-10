@@ -36,6 +36,7 @@ interface State extends BaseState {
     globalRelaySMTPServerTimeout: AdminConfig['MessageExportSettings']['GlobalRelaySettings']['SMTPServerTimeout'];
     globalRelayCustomHeaderName: AdminConfig['MessageExportSettings']['GlobalRelaySettings']['CustomHeaderName'];
     globalRelayCustomHeaderValue: AdminConfig['MessageExportSettings']['GlobalRelaySettings']['CustomHeaderValue'];
+    globalRelaySenderAddress: AdminConfig['MessageExportSettings']['GlobalRelaySettings']['SenderAddress'];
 }
 
 const messages = defineMessages({
@@ -47,6 +48,8 @@ const messages = defineMessages({
     globalRelaySMTPPassword_description: {id: 'admin.complianceExport.globalRelaySMTPPassword.description', defaultMessage: 'The password that is used to authenticate against the GlobalRelay SMTP server.'},
     globalRelayEmailAddress_title: {id: 'admin.complianceExport.globalRelayEmailAddress.title', defaultMessage: 'Email Address:'},
     globalRelayEmailAddress_description: {id: 'admin.complianceExport.globalRelayEmailAddress.description', defaultMessage: 'The email address that your GlobalRelay server monitors for incoming Compliance Exports.'},
+    globalRelaySenderAddress_title: {id: 'admin.complianceExport.globalRelaySenderAddress.title', defaultMessage: 'Sender Address:'},
+    globalRelaySenderAddress_description: {id: 'admin.complianceExport.globalRelaySenderAddress.description', defaultMessage: 'Optional fixed From address used for every exported EML and as the SMTP envelope sender. Leave blank to use the first channel participant by username. Participant emails remain in the To header.'},
     complianceExportTitle: {id: 'admin.service.complianceExportTitle', defaultMessage: 'Enable Compliance Export:'},
     complianceExportDesc: {id: 'admin.service.complianceExportDesc', defaultMessage: 'When true, Mattermost will export all messages that were posted in the last 24 hours. The export task is scheduled to run once per day. See <link>the documentation</link> to learn more.'},
     exportJobStartTime_title: {id: 'admin.complianceExport.exportJobStartTime.title', defaultMessage: 'Compliance Export Time:'},
@@ -82,6 +85,8 @@ string | MessageDescriptor | [MessageDescriptor, {[key: string]: any}]
     messages.globalRelaySMTPPassword_description,
     messages.globalRelayEmailAddress_title,
     messages.globalRelayEmailAddress_description,
+    messages.globalRelaySenderAddress_title,
+    messages.globalRelaySenderAddress_description,
 ];
 
 export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedComponentProps, State> {
@@ -101,6 +106,7 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
                 SMTPServerTimeout: this.state.globalRelaySMTPServerTimeout,
                 CustomHeaderName: this.state.globalRelayCustomHeaderName,
                 CustomHeaderValue: this.state.globalRelayCustomHeaderValue,
+                SenderAddress: this.state.globalRelaySenderAddress,
             };
         }
         return config;
@@ -120,6 +126,7 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
             globalRelayCustomSMTPPort: '',
             globalRelayCustomHeaderName: '',
             globalRelayCustomHeaderValue: '',
+            globalRelaySenderAddress: '',
             saveNeeded: false,
             saving: false,
             serverError: null,
@@ -133,6 +140,7 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
             state.globalRelayCustomSMTPPort = config.MessageExportSettings.GlobalRelaySettings.CustomSMTPPort;
             state.globalRelayCustomHeaderName = config.MessageExportSettings.GlobalRelaySettings.CustomHeaderName;
             state.globalRelayCustomHeaderValue = config.MessageExportSettings.GlobalRelaySettings.CustomHeaderValue;
+            state.globalRelaySenderAddress = config.MessageExportSettings.GlobalRelaySettings.SenderAddress;
         }
         return state;
     }
@@ -263,6 +271,19 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
                 />
             );
 
+            const globalRelaySenderAddress = (
+                <TextSetting
+                    id='globalRelaySenderAddress'
+                    label={<FormattedMessage {...messages.globalRelaySenderAddress_title}/>}
+                    placeholder={defineMessage({id: 'admin.complianceExport.globalRelaySenderAddress.example', defaultMessage: 'E.g.: "compliance-export@mattermost.com"'})}
+                    helpText={<FormattedMessage {...messages.globalRelaySenderAddress_description}/>}
+                    value={this.state.globalRelaySenderAddress ? this.state.globalRelaySenderAddress : ''}
+                    onChange={this.handleChange}
+                    setByEnv={this.isSetByEnv('MessageExportSettings.GlobalRelaySettings.SenderAddress')}
+                    disabled={this.props.isDisabled || !this.state.enableComplianceExport}
+                />
+            );
+
             const globalRelaySMTPServerName = (
                 <TextSetting
                     id='globalRelayCustomSMTPServerName'
@@ -361,6 +382,7 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
                     {globalRelaySMTPUsername}
                     {globalRelaySMTPPassword}
                     {globalRelayEmail}
+                    {globalRelaySenderAddress}
                     {
                         this.state.globalRelayCustomerType === 'CUSTOM' &&
                         globalRelaySMTPServerName

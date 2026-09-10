@@ -1339,6 +1339,42 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 			false,
 			"model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
 		},
+		{
+			"Empty sender address is valid",
+			&GlobalRelayMessageExportSettings{
+				CustomerType:  new(GlobalrelayCustomerTypeA9),
+				EmailAddress:  new("valid@mattermost.com"),
+				SMTPUsername:  new("SomeUsername"),
+				SMTPPassword:  new("SomePassword"),
+				SenderAddress: new(""),
+			},
+			true,
+			"",
+		},
+		{
+			"Valid sender address",
+			&GlobalRelayMessageExportSettings{
+				CustomerType:  new(GlobalrelayCustomerTypeA9),
+				EmailAddress:  new("valid@mattermost.com"),
+				SMTPUsername:  new("SomeUsername"),
+				SMTPPassword:  new("SomePassword"),
+				SenderAddress: new("compliance-export@mattermost.com"),
+			},
+			true,
+			"",
+		},
+		{
+			"Invalid sender address",
+			&GlobalRelayMessageExportSettings{
+				CustomerType:  new(GlobalrelayCustomerTypeA9),
+				EmailAddress:  new("valid@mattermost.com"),
+				SMTPUsername:  new("SomeUsername"),
+				SMTPPassword:  new("SomePassword"),
+				SenderAddress: new("not-an-email"),
+			},
+			false,
+			"model.config.is_valid.message_export.global_relay.sender_address.app_error",
+		},
 	}
 
 	for _, tt := range tests {
@@ -1382,6 +1418,25 @@ func TestGlobalRelayMessageExportSetDefaultsCustomHeader(t *testing.T) {
 
 	require.Equal(t, "", *grs.CustomHeaderName)
 	require.Equal(t, "", *grs.CustomHeaderValue)
+	require.Equal(t, "", *grs.SenderAddress)
+}
+
+func TestMessageExportSettingsGlobalRelayZipSenderAddress(t *testing.T) {
+	mes := &MessageExportSettings{
+		EnableExport:        new(true),
+		ExportFormat:        new(ComplianceExportTypeGlobalrelayZip),
+		ExportFromTimestamp: new(int64(0)),
+		DailyRunTime:        new("15:04"),
+		BatchSize:           new(100),
+		GlobalRelaySettings: &GlobalRelayMessageExportSettings{
+			CustomerType:  new(GlobalrelayCustomerTypeA9),
+			SenderAddress: new("not-an-email"),
+		},
+	}
+
+	appErr := mes.isValid()
+	require.NotNil(t, appErr)
+	require.Equal(t, "model.config.is_valid.message_export.global_relay.sender_address.app_error", appErr.Id)
 }
 
 func TestMessageExportSettingsGlobalRelayZipCustomHeader(t *testing.T) {

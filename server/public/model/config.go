@@ -3805,6 +3805,7 @@ type GlobalRelayMessageExportSettings struct {
 	CustomSMTPPort       *string `access:"compliance_compliance_export"`
 	CustomHeaderName     *string `access:"compliance_compliance_export"` // optional custom header name added to each exported EML
 	CustomHeaderValue    *string `access:"compliance_compliance_export"` // value sent with the custom header
+	SenderAddress        *string `access:"compliance_compliance_export"` // optional fixed From / SMTP envelope sender; empty keeps participant-derived From
 }
 
 func (s *GlobalRelayMessageExportSettings) SetDefaults() {
@@ -3834,6 +3835,9 @@ func (s *GlobalRelayMessageExportSettings) SetDefaults() {
 	}
 	if s.CustomHeaderValue == nil {
 		s.CustomHeaderValue = new("")
+	}
+	if s.SenderAddress == nil {
+		s.SenderAddress = new("")
 	}
 }
 
@@ -5249,10 +5253,14 @@ func (s *MessageExportSettings) isValid() *AppError {
 		}
 
 		if (*s.ExportFormat == ComplianceExportTypeGlobalrelay || *s.ExportFormat == ComplianceExportTypeGlobalrelayZip) &&
-			s.GlobalRelaySettings != nil &&
-			SafeDereference(s.GlobalRelaySettings.CustomerType) == GlobalrelayCustomerTypeCustom {
-			if appErr := s.GlobalRelaySettings.isValidCustomHeader(); appErr != nil {
-				return appErr
+			s.GlobalRelaySettings != nil {
+			if SafeDereference(s.GlobalRelaySettings.CustomerType) == GlobalrelayCustomerTypeCustom {
+				if appErr := s.GlobalRelaySettings.isValidCustomHeader(); appErr != nil {
+					return appErr
+				}
+			}
+			if sender := strings.TrimSpace(SafeDereference(s.GlobalRelaySettings.SenderAddress)); sender != "" && !strings.Contains(sender, "@") {
+				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.sender_address.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
 	}
