@@ -6,6 +6,7 @@ import {
     AccessControlSettings,
     AdminConfig,
     AnnouncementSettings,
+    AutoTranslationSettings,
     ClusterSettings,
     CollapsedThreads,
     EmailSettings,
@@ -34,6 +35,7 @@ export function getOnPremServerConfigPatch(): Partial<AdminConfig> {
 type TestAdminConfig = {
     AccessControlSettings: Partial<AccessControlSettings>;
     AnnouncementSettings: Partial<AnnouncementSettings>;
+    AutoTranslationSettings: Partial<AutoTranslationSettings>;
     ClusterSettings: Partial<ClusterSettings>;
     EmailSettings: Partial<EmailSettings>;
     ExperimentalSettings: Partial<ExperimentalSettings>;
@@ -57,6 +59,12 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
             // An in-product notice opens a modal over the channel view and swallows clicks near it.
             AdminNoticesEnabled: false,
             UserNoticesEnabled: false,
+        },
+        AutoTranslationSettings: {
+            // Channel autotranslation specs enable this via updateConfig. initSetup used to
+            // reset it with a full snapshot; patchConfig must restore Enable:false or later
+            // Localization specs click the already-on toggle off and miss Providerdropdown.
+            Enable: false,
         },
         ClusterSettings: {
             Enable: testConfig.haClusterEnabled,

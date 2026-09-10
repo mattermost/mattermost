@@ -41,19 +41,30 @@ test.describe('Team Settings Modal - Membership Policies Tab', () => {
 
     test('MM-67669_2 Membership Policies tab hidden when ABAC disabled', async ({pw}) => {
         await pw.skipIfNoLicense();
-        const {adminUser} = await pw.initSetup();
+        const {adminUser, adminClient} = await pw.initSetup();
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
+        try {
+            // initSetup enables ABAC for the suite; this test needs it off.
+            await adminClient.patchConfig({
+                AccessControlSettings: {EnableAttributeBasedAccessControl: false},
+            } as any);
 
-        const teamSettings = await channelsPage.openTeamSettings();
+            const {page} = await pw.testBrowser.login(adminUser);
+            const channelsPage = new ChannelsPage(page);
+            await channelsPage.goto();
+            await channelsPage.toBeVisible();
 
-        // * Tab is not visible
-        await expect(teamSettings.accessPoliciesTab).not.toBeVisible();
+            const teamSettings = await channelsPage.openTeamSettings();
 
-        await teamSettings.close();
+            // * Tab is not visible
+            await expect(teamSettings.accessPoliciesTab).not.toBeVisible();
+
+            await teamSettings.close();
+        } finally {
+            await adminClient.patchConfig({
+                AccessControlSettings: {EnableAttributeBasedAccessControl: true},
+            } as any);
+        }
     });
 
     test('MM-67669_4 Empty state displayed when no policies exist', async ({pw}) => {
