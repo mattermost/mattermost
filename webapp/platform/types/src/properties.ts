@@ -20,11 +20,9 @@ export type FieldValueType =
     'phone' |
     '';
 
-// Mirrors model/property_field.go's PermissionLevel. 'admin' resolves to the
-// admin of the field's target (sysadmin for system targets, team admin for
-// team targets, channel admin for channel targets). Empty means the server
-// fills in the default for the field's object type.
-export type PermissionLevel = 'none' | 'sysadmin' | 'admin' | 'member' | '';
+// Mirrors model/property_field.go. Empty means the server fills in the default
+// for the field's object type.
+export type PropertyPermissionLevel = 'none' | 'sysadmin' | 'admin' | 'member' | '';
 
 export type PropertyField = {
     id: string;
@@ -43,9 +41,9 @@ export type PropertyField = {
 
     // The server is authoritative on all three; the client reads permission_values
     // only to decide whether to offer an editing affordance.
-    permission_field?: PermissionLevel;
-    permission_values?: PermissionLevel;
-    permission_options?: PermissionLevel;
+    permission_field?: PropertyPermissionLevel;
+    permission_values?: PropertyPermissionLevel;
+    permission_options?: PropertyPermissionLevel;
     create_at: number;
     update_at: number;
     delete_at: number;

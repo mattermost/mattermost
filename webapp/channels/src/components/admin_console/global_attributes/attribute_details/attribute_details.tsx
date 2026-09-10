@@ -11,7 +11,7 @@ import {useParams} from 'react-router-dom';
 import type {ClientError} from '@mattermost/client';
 import {buttonClassNames} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
-import type {FieldVisibility, PermissionLevel, PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
+import type {FieldVisibility, PropertyField, PropertyFieldOption, PropertyPermissionLevel} from '@mattermost/types/properties';
 import {supportsOptions} from '@mattermost/types/properties';
 import type {GlobalState} from '@mattermost/types/store';
 
@@ -838,7 +838,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         // sent as permission_values (top-level, not part of attrs) so the value
         // CPA's own attrs.managed toggle promises is the value that's actually
         // enforced.
-        const userConfigPermissionValues: PermissionLevel = userManaged === 'admin' ? 'sysadmin' : 'member';
+        const userConfigPermissionValues: PropertyPermissionLevel = userManaged === 'admin' ? 'sysadmin' : 'member';
 
         // Dispatches each resource type's own config onto its create request --
         // Users' Profile display/Who can set the value, or Channels' own
@@ -854,7 +854,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 return undefined;
             }
         };
-        const newResourcePermissionValuesFor = (type: ResourceObjectType): PermissionLevel | undefined => {
+        const newResourcePermissionValuesFor = (type: ResourceObjectType): PropertyPermissionLevel | undefined => {
             switch (type) {
             case 'user':
                 return userConfigPermissionValues;

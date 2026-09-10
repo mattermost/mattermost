@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PropertyField, PermissionLevel} from '@mattermost/types/properties';
+import type {PropertyField, PropertyPermissionLevel} from '@mattermost/types/properties';
 
 import {getPropertyFieldChangePolicy, isPropertyFieldRequired} from 'mattermost-redux/utils/property_utils';
 
@@ -16,7 +16,7 @@ import {CHANNEL_DISPLAY_LOCATIONS} from './types';
  * "member", which would let any channel member change a marking. Dropping this
  * loosens access; it is not a tidy-up.
  */
-export const CHANNEL_VALUE_SETTER: PermissionLevel = 'admin';
+export const CHANNEL_VALUE_SETTER: PropertyPermissionLevel = 'admin';
 
 /**
  * The attrs a channel resource's configuration contributes to its linked field.

@@ -15,7 +15,7 @@ export type ResourceObjectType = 'user' | 'channel' | 'post';
 
 // Mirrors CPA's attrs.managed value domain exactly (see user_properties_dot_menu.tsx) --
 // '' means member-editable, 'admin' means locked to System Administrator. Deliberately
-// not the richer PSAv2 PermissionLevel type: this writes the same value CPA already
+// not the richer PSAv2 PropertyPermissionLevel type: this writes the same value CPA already
 // writes, not a parallel permission mechanism.
 export type UserManagedValue = '' | 'admin';
 

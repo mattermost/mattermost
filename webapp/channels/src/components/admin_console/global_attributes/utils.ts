@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PermissionLevel, PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
+import type {PropertyField, PropertyFieldOption, PropertyPermissionLevel} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
 
@@ -207,7 +207,7 @@ export function createLinkedAttributeField(
     displayName: string,
     linkedFieldId: string,
     attrs?: Record<string, unknown>,
-    permissionValues?: PermissionLevel,
+    permissionValues?: PropertyPermissionLevel,
 ): Promise<PropertyField> {
     return Client4.createPropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, {
         name,
@@ -244,7 +244,7 @@ export function patchLinkedAttributeField(
     objectType: ResourceObjectType,
     fieldId: string,
     attrs?: Record<string, unknown>,
-    permissionValues?: PermissionLevel,
+    permissionValues?: PropertyPermissionLevel,
 ): Promise<PropertyField> {
     return Client4.patchPropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, fieldId, {
         ...(attrs ? {attrs} : {}),

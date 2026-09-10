@@ -142,7 +142,7 @@ func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.Pr
 			}
 		}
 
-		// Inherit permission levels from source template.
+		// Inherit permission levels from source template
 		if source.PermissionField != nil {
 			field.PermissionField = source.PermissionField
 		}
