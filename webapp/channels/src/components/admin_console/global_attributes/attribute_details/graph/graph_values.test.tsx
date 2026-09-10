@@ -11,8 +11,8 @@ import {act, renderWithContext, screen, userEvent, waitFor, within} from 'tests/
 import {ModalIdentifiers} from 'utils/constants';
 
 import AttributeGraphDeleteModal from './delete_modal';
-import AttributeOptionsGraphValues from './graph_values';
 import {addChildOption, removeOption, renameOption} from './graph_utils';
+import AttributeOptionsGraphValues from './graph_values';
 
 jest.mock('actions/views/modals', () => ({
     openModal: jest.fn(() => ({type: 'MOCK_OPEN_MODAL'})),
