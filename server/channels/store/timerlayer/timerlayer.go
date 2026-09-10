@@ -9096,6 +9096,22 @@ func (s *TimerLayerReactionStore) GetForPostSince(postID string, since int64, ex
 	return result, err
 }
 
+func (s *TimerLayerReactionStore) GetReactionAuthorIDsForChannel(teamName string, channelName string, includeArchivedChannels bool) ([]string, error) {
+	start := time.Now()
+
+	result, err := s.ReactionStore.GetReactionAuthorIDsForChannel(teamName, channelName, includeArchivedChannels)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ReactionStore.GetReactionAuthorIDsForChannel", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerReactionStore) GetSingle(userID string, postID string, remoteID string, emojiName string) (*model.Reaction, error) {
 	start := time.Now()
 
@@ -12848,6 +12864,22 @@ func (s *TimerLayerThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []s
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetTeamsUnreadForUser", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerThreadStore) GetThreadFollowerIDsForChannel(teamName string, channelName string, includeArchivedChannels bool) ([]string, error) {
+	start := time.Now()
+
+	result, err := s.ThreadStore.GetThreadFollowerIDsForChannel(teamName, channelName, includeArchivedChannels)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetThreadFollowerIDsForChannel", success, elapsed)
 	}
 	return result, err
 }

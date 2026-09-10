@@ -706,7 +706,6 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 						rctx.Logger().Warn(
 							"Scoped import: source user's email already belongs to a differently-named destination account; leaving the source user unresolved rather than attributing their content to it — resolve the collision and re-import if this content matters",
 							mlog.String("source_username", *data.Username),
-							mlog.String("email", *data.Email),
 						)
 					}
 				}

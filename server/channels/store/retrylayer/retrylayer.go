@@ -11377,6 +11377,27 @@ func (s *RetryLayerReactionStore) GetForPostSince(postID string, since int64, ex
 
 }
 
+func (s *RetryLayerReactionStore) GetReactionAuthorIDsForChannel(teamName string, channelName string, includeArchivedChannels bool) ([]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.ReactionStore.GetReactionAuthorIDsForChannel(teamName, channelName, includeArchivedChannels)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerReactionStore) GetSingle(userID string, postID string, remoteID string, emojiName string) (*model.Reaction, error) {
 
 	tries := 0
@@ -16221,6 +16242,27 @@ func (s *RetryLayerThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []s
 	tries := 0
 	for {
 		result, err := s.ThreadStore.GetTeamsUnreadForUser(userID, teamIDs, includeUrgentMentionCount)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerThreadStore) GetThreadFollowerIDsForChannel(teamName string, channelName string, includeArchivedChannels bool) ([]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.ThreadStore.GetThreadFollowerIDsForChannel(teamName, channelName, includeArchivedChannels)
 		if err == nil {
 			return result, nil
 		}

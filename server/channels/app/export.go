@@ -596,12 +596,15 @@ func (a *App) exportAllUsers(rctx request.CTX, job *model.Job, writer io.Writer,
 		postAuthorsByTeam[teamName] = set
 	}
 
-	// For channel-scoped exports: collect member and post-author IDs across all
-	// (team, channel) pairs so the fast-path below can skip irrelevant users cheaply.
+	// For channel-scoped exports: collect member, post-author, reaction-author, and
+	// thread-follower IDs across all (team, channel) pairs so the fast-path below can
+	// skip irrelevant users cheaply.
 	// postAuthorsByChannel[teamName][channelName][userID] = true
 	// channelMembersByTeamChannel[teamName][channelName][userID] = true
 	channelMemberIDs := make(map[string]bool)
 	channelPostAuthorIDs := make(map[string]bool)
+	channelReactionAuthorIDs := make(map[string]bool)
+	channelThreadFollowerIDs := make(map[string]bool)
 	postAuthorsByChannel := make(map[string]map[string]map[string]bool)
 	channelMembersByTeamChannel := make(map[string]map[string]map[string]bool)
 	if len(channelNames) > 0 {
@@ -648,6 +651,22 @@ func (a *App) exportAllUsers(rctx request.CTX, job *model.Job, writer io.Writer,
 					channelPostAuthorIDs[id] = true
 				}
 				postAuthorsByChannel[teamName][channelName] = authorSet
+
+				reactionAuthorIDs, err := a.Srv().Store().Reaction().GetReactionAuthorIDsForChannel(teamName, channelName, includeArchivedChannels)
+				if err != nil {
+					return profilePictures, model.NewAppError("exportAllUsers", "app.reaction.get_author_ids_for_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+				}
+				for _, id := range reactionAuthorIDs {
+					channelReactionAuthorIDs[id] = true
+				}
+
+				threadFollowerIDs, err := a.Srv().Store().Thread().GetThreadFollowerIDsForChannel(teamName, channelName, includeArchivedChannels)
+				if err != nil {
+					return profilePictures, model.NewAppError("exportAllUsers", "app.thread.get_follower_ids_for_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+				}
+				for _, id := range threadFollowerIDs {
+					channelThreadFollowerIDs[id] = true
+				}
 			}
 		}
 	}
@@ -673,11 +692,13 @@ func (a *App) exportAllUsers(rctx request.CTX, job *model.Job, writer io.Writer,
 			}
 
 			// Fast-path: for channel-scoped exports skip the expensive per-user
-			// queries (preferences, team/channel memberships) for users that are
-			// not channel members and never posted in any target channel.
+			// queries (preferences, team/channel memberships) for users that have
+			// no connection to any target channel.
 			if len(channelNames) > 0 &&
 				!channelMemberIDs[user.Id] &&
-				!channelPostAuthorIDs[user.Id] {
+				!channelPostAuthorIDs[user.Id] &&
+				!channelReactionAuthorIDs[user.Id] &&
+				!channelThreadFollowerIDs[user.Id] {
 				continue
 			}
 
