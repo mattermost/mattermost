@@ -6,6 +6,7 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	"slices"
 	"testing"
 	"time"
 
@@ -731,11 +732,7 @@ func TestChannelBookmarkBroadcastsFileInfoABAC(t *testing.T) {
 					}
 				}
 			case []any:
-				for _, item := range typed {
-					if walk(item) {
-						return true
-					}
-				}
+				return slices.ContainsFunc(typed, walk)
 			}
 			return false
 		}
