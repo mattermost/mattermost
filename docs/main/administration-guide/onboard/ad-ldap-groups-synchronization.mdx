@@ -352,7 +352,7 @@ By default, the implementation of group removals does not differentiate between 
 
 From Mattermost v10.9, you can enable [Re-add Removed Members on Sync](/administration-guide/configure/authentication-configuration-settings#re-add-removed-members-on-sync) to have members who were previously removed by LDAP synchronization automatically re-added to group-synchronized teams or channels during a subsequent sync. This setting is disabled by default.
 
-Additionally, LDAP users who are not accessible to Mattermost based on filters will be removed from the groups and from group synced teams and channels. If they were removed from teams and channels then they would not be re-added to those teams and channels upon becoming subsequently reaccessible to Mattermost, unless Re-add Removed Members on Sync is enabled.
+Additionally, LDAP users who are inaccessible to Mattermost based on filters will be removed from the groups and from group-synced teams and channels. If they were removed from teams and channels then they would not be re-added to those teams and channels upon becoming subsequently reaccessible to Mattermost, unless Re-add Removed Members on Sync is enabled.
 
 ### How can I use LDAP attributes or Groups with OpenID?
 
