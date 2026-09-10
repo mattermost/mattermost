@@ -19,6 +19,7 @@ import (
 )
 
 func TestGetMattermostLog(t *testing.T) {
+	t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-70639")
 	mainHelper.Parallel(t)
 
 	th := Setup(t)
