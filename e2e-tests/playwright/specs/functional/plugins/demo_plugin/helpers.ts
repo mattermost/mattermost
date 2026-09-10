@@ -4,7 +4,7 @@
 import type {Page} from '@playwright/test';
 import {Client4, ClientError} from '@mattermost/client';
 
-import {mergeWithOnPremServerConfig} from '@mattermost/playwright-lib';
+import {expect} from '@mattermost/playwright-lib';
 
 const DEMO_PLUGIN_ID = 'com.mattermost.demo-plugin';
 const DEMO_PLUGIN_URL =
@@ -25,27 +25,6 @@ export async function sendDemoSlashCommand(page: Page, send: () => Promise<void>
         {timeout: 45_000},
     );
     await Promise.all([send(), responsePromise]);
-}
-
-/** Wait until server reports plugin active (handles concurrent initSetup clearing PluginStates). */
-async function waitUntilPluginActive(
-    adminClient: Client4,
-    pw: {isPluginActive: (client: Client4, pluginId: string) => Promise<boolean>},
-    deadlineMs: number,
-): Promise<boolean> {
-    const deadline = Date.now() + deadlineMs;
-    while (Date.now() < deadline) {
-        if (await pw.isPluginActive(adminClient, DEMO_PLUGIN_ID)) {
-            return true;
-        }
-        try {
-            await adminClient.enablePlugin(DEMO_PLUGIN_ID);
-        } catch {
-            // Transient — retry until deadline.
-        }
-        await new Promise((r) => setTimeout(r, 1000));
-    }
-    return false;
 }
 
 /**
@@ -83,14 +62,14 @@ export async function setupDemoPlugin(
         isPluginActive: (client: Client4, pluginId: string) => Promise<boolean>;
     },
 ) {
-    // Merge with on-prem defaults so we never wipe PluginSettings.Enable, PluginStates for other
-    // plugins, or omit EnableUploads — shallow patchConfig alone does that and breaks installs.
-    const merged = mergeWithOnPremServerConfig({
+    // No PluginStates here — patchConfig replaces that map wholesale. Enablement goes through
+    // installAndEnablePlugin's enablePlugin call, which the server applies to this id alone.
+    // EnableUploads is likewise absent: SERVER_ENV_BASELINE owns it and the API 403s on change.
+    await adminClient.patchConfig({
         FileSettings: {EnablePublicLink: true},
         ServiceSettings: {EnableGifPicker: true},
         PluginSettings: {
             Enable: true,
-            EnableUploads: true,
             AllowInsecureDownloadURL: true,
             Plugins: {
                 'com.mattermost.demo-plugin': {
@@ -99,39 +78,13 @@ export async function setupDemoPlugin(
                     lastname: 'User',
                 },
             },
-            PluginStates: {
-                [DEMO_PLUGIN_ID]: {Enable: true},
-            },
         },
-    } as unknown as Parameters<typeof mergeWithOnPremServerConfig>[0]);
-
-    await adminClient.patchConfig({
-        FileSettings: merged.FileSettings,
-        ServiceSettings: merged.ServiceSettings,
-        PluginSettings: merged.PluginSettings,
     });
 
-    const alreadyActive = await pw.isPluginActive(adminClient, DEMO_PLUGIN_ID);
-    if (!alreadyActive) {
+    if (!(await pw.isPluginActive(adminClient, DEMO_PLUGIN_ID))) {
         await installAndEnableDemoPlugin(adminClient, pw);
     }
 
-    if (await waitUntilPluginActive(adminClient, pw, 90_000)) {
-        return;
-    }
-
-    // Corrupt/partial install or stuck inactive — remove and reinstall once.
-    try {
-        await adminClient.removePlugin(DEMO_PLUGIN_ID);
-    } catch {
-        // Not installed — ignore.
-    }
-    await new Promise((r) => setTimeout(r, 2000));
-    await installAndEnableDemoPlugin(adminClient, pw);
-
-    if (await waitUntilPluginActive(adminClient, pw, 90_000)) {
-        return;
-    }
-
-    throw new Error(`Demo plugin ${DEMO_PLUGIN_ID} did not become active`);
+    // Activation is asynchronous server-side, so poll rather than assert immediately.
+    await expect.poll(() => pw.isPluginActive(adminClient, DEMO_PLUGIN_ID), {timeout: 30_000}).toBe(true);
 }

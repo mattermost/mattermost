@@ -3,7 +3,7 @@
 
 export {makeClient} from './client';
 export {createRandomChannel} from './channel';
-export {getOnPremServerConfig, mergeWithOnPremServerConfig} from './default_config';
+export {getOnPremServerConfig} from './default_config';
 export {initSetup, getAdminClient} from './init';
 export {createRandomPost} from './post';
 export {createNewTeam, createRandomTeam} from './team';
@@ -33,7 +33,13 @@ export {
     verifyUserNotInChannel,
     updateUserAttributes,
 } from './abac_helpers';
-export {installAndEnablePlugin, isPluginActive, getPluginStatus} from './plugin';
+export {
+    defaultEnabledPluginIds,
+    disableUnexpectedPlugins,
+    installAndEnablePlugin,
+    isPluginActive,
+    getPluginStatus,
+} from './plugin';
 export {
     generateLdapUser,
     createLdapUser,
@@ -49,8 +55,11 @@ export {listMinioObjectKeys, ensureMinio} from './minio';
 export {elasticsearchServerConfig, ensureElasticsearch} from './elasticsearch';
 export {opensearchServerConfig, ensureOpensearch} from './opensearch';
 export {ensureAzurite, listAzuriteBlobNames} from './azurite';
-export {ensureLocalFile} from './filestore';
+export {ensureLocalFile, listMattermostDataFiles} from './filestore';
 export {ensurePostgresSearch} from './postgres_search';
 export {ensureFeatureFlag} from './feature_flags';
-export {runMmctl, ensureMmctl} from './mmctl';
+export {runMmctl, runMmctlLocal, ensureMmctl} from './mmctl';
 export type {MmctlResult} from './mmctl';
+export {upgradeServerImage} from './version';
+export {saveUpgradePhaseLogs} from './upgrade_logs';
+export type {UpgradeLogPhase} from './upgrade_logs';
