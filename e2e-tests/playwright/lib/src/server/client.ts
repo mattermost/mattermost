@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {PlaywrightClient4} from './playwright_client';
 import type {UserProfile} from '@mattermost/types/users';
+
+import {PlaywrightClient4} from './playwright_client';
 
 import {testConfig} from '@/test_config';
 

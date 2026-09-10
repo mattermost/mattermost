@@ -768,7 +768,7 @@ export async function verifyPostAttachmentDownloadable(
     const post = await client.getPost(postId);
     expect(post.file_ids?.length).toBeGreaterThan(0);
 
-    const fileInfos = await Promise.all(post.file_ids!.map((fileId) => client.getFileInfo(fileId)));
+    const fileInfos = await client.getFileInfosForPost(postId);
     const fileInfo = fileInfos.find((info) => info.name === fileName);
     expect(fileInfo).toBeDefined();
 
