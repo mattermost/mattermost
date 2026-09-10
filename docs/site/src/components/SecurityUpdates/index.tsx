@@ -8,12 +8,7 @@ import {
   type TabId,
 } from './feed';
 import styles from './styles.module.css';
-import {
-  compareVersions,
-  labelToVersion,
-  rowMatchesVersionRange,
-  type Version,
-} from './versions';
+import {labelToVersion, rowMatchesVersionRange, type Version} from './versions';
 
 type SortKey = 'issueId' | 'severity' | 'affectedVersions' | 'releaseDate' | 'fixVersions' | 'details';
 type SortDir = 'asc' | 'desc';
@@ -33,8 +28,7 @@ const VERSION_FILTER_DEBOUNCE_MS = 250;
 const EMPTY_FILTERS = {
   issueId: '',
   severity: '',
-  minVersion: '',
-  maxVersion: '',
+  affectedVersion: '',
   dateFrom: '',
   dateTo: '',
   fixVersions: '',
@@ -180,8 +174,7 @@ export default function SecurityUpdates() {
   const [tabs, setTabs] = useState<SecurityUpdateTab[]>([]);
   const [activeTab, setActiveTab] = useState<TabId>('server');
   const [filters, setFilters] = useState(EMPTY_FILTERS);
-  const [minVersionDraft, setMinVersionDraft] = useState('');
-  const [maxVersionDraft, setMaxVersionDraft] = useState('');
+  const [versionDraft, setVersionDraft] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('releaseDate');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [page, setPage] = useState(1);
@@ -220,23 +213,14 @@ export default function SecurityUpdates() {
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setFilters((prev) => {
-        if (prev.minVersion === minVersionDraft && prev.maxVersion === maxVersionDraft) {
+        if (prev.affectedVersion === versionDraft) {
           return prev;
         }
-        return {...prev, minVersion: minVersionDraft, maxVersion: maxVersionDraft};
+        return {...prev, affectedVersion: versionDraft};
       });
     }, VERSION_FILTER_DEBOUNCE_MS);
     return () => window.clearTimeout(timer);
-  }, [minVersionDraft, maxVersionDraft]);
-
-  const versionOrderError = useMemo(() => {
-    const minV = labelToVersion(filters.minVersion, 'min');
-    const maxV = labelToVersion(filters.maxVersion, 'max');
-    if (minV && maxV && compareVersions(maxV, minV) < 0) {
-      return 'Max version must be greater than or equal to min version.';
-    }
-    return null;
-  }, [filters.minVersion, filters.maxVersion]);
+  }, [versionDraft]);
 
   const dateOrderError = useMemo(() => {
     if (filters.dateFrom && filters.dateTo && filters.dateFrom > filters.dateTo) {
@@ -245,15 +229,15 @@ export default function SecurityUpdates() {
     return null;
   }, [filters.dateFrom, filters.dateTo]);
 
-  const filterError = versionOrderError || dateOrderError;
+  const filterError = dateOrderError;
   const filterErrorId = `${formId}-filter-error`;
 
   const filteredRows = useMemo(() => {
     if (filterError) {
       return [];
     }
-    const minV = labelToVersion(filters.minVersion, 'min');
-    const maxV = labelToVersion(filters.maxVersion, 'max');
+    const minV = labelToVersion(filters.affectedVersion, 'min');
+    const maxV = labelToVersion(filters.affectedVersion, 'max');
     return sortRows(
       activeRows.filter((row) => rowMatchesFilters(row, filters, minV, maxV)),
       sortKey,
@@ -271,10 +255,8 @@ export default function SecurityUpdates() {
 
   const hasActiveFilters = useMemo(
     () =>
-      Object.values(filters).some((value) => value.trim() !== '') ||
-      minVersionDraft.trim() !== '' ||
-      maxVersionDraft.trim() !== '',
-    [filters, minVersionDraft, maxVersionDraft],
+      Object.values(filters).some((value) => value.trim() !== '') || versionDraft.trim() !== '',
+    [filters, versionDraft],
   );
 
   const setFilter = (key: keyof typeof EMPTY_FILTERS, value: string) => {
@@ -283,8 +265,7 @@ export default function SecurityUpdates() {
 
   const clearFilters = () => {
     setFilters(EMPTY_FILTERS);
-    setMinVersionDraft('');
-    setMaxVersionDraft('');
+    setVersionDraft('');
   };
 
   const toggleSort = (key: SortKey) => {
@@ -425,28 +406,13 @@ export default function SecurityUpdates() {
             </label>
 
             <label>
-              Min affected version
+              Affected version
               <input
-                value={minVersionDraft}
-                onChange={(event) => setMinVersionDraft(event.target.value)}
+                value={versionDraft}
+                onChange={(event) => setVersionDraft(event.target.value)}
                 placeholder="e.g. 10.11"
                 autoComplete="off"
                 spellCheck={false}
-                aria-invalid={Boolean(versionOrderError)}
-                aria-describedby={versionOrderError ? filterErrorId : undefined}
-              />
-            </label>
-
-            <label>
-              Max affected version
-              <input
-                value={maxVersionDraft}
-                onChange={(event) => setMaxVersionDraft(event.target.value)}
-                placeholder="e.g. 11.8"
-                autoComplete="off"
-                spellCheck={false}
-                aria-invalid={Boolean(versionOrderError)}
-                aria-describedby={versionOrderError ? filterErrorId : undefined}
               />
             </label>
 
@@ -484,8 +450,8 @@ export default function SecurityUpdates() {
 
             <div className={styles.filterActions}>
               <p className={styles.hint}>
-                Min/max match advisories whose affected range overlaps the versions you enter.
-                Set both to the same version to see issues that affect that exact release.
+                Shows advisories whose affected range includes this version. Use 10.11 to match the
+                10.11 line, or 10.11.23 for that exact patch.
               </p>
               <button
                 type="button"
