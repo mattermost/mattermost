@@ -65,7 +65,6 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-11-is-now-availa
  - Pre-packaged Jira plugin version [v4.8.0](https://github.com/mattermost/mattermost-plugin-jira/releases/tag/v4.8.0).
  - Pre-packaged Calls plugin version [v1.12.3](https://github.com/mattermost/mattermost-plugin-calls/releases/tag/v1.12.3).
  - Pre-packaged Agents plugin version [v2.6.1](https://github.com/mattermost/mattermost-plugin-agents/releases/tag/v2.6.1).
- - Pre-packaged Zoom plugin version [v1.13.1](https://github.com/mattermost/mattermost-plugin-zoom/releases/tag/v1.13.1).
  - Added a "Hide Archived" toggle to the **Browse Channels** modal that hides archived channels by default.
  - Added a red warning callout in the System Console that appears beneath certain settings (SAML Verify Signature/Enable Encryption, Enable Insecure Outgoing Connections, Enable Developer Mode, Enable Testing Commands, wildcard CORS, and skipping SMTP/AD-LDAP certificate verification) when they are configured to a value that is not recommended for production.
  - Added weekly recurring scheduled posts so users can schedule messages that repeat weekly and keep their recurring schedule when rescheduled.
@@ -159,8 +158,6 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-11-is-now-availa
  - Fixed an issue in which policies containing Rank attributes with 'shared-only' access mode were unable to be created by users.
  - Fixed an issue where a plugin request body wasn't properly validated.
  - Fixed an issue where team admins could accidentally update roles incorrectly.
- - Fixed an issue where the Korean ``nori`` analyzer was never applied when the search cluster reported the plugin under a prefixed component name, such as ``opensearch-analysis-nori`` on AWS OpenSearch Service.
- - Fixed an issue with bulk import handling for existing accounts.
 
 ### API Changes
  - Updated ``getFile`` API validation to check for content reviewer earlier.
