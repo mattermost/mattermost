@@ -4,33 +4,32 @@
 import classNames from 'classnames';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {ReactNode} from 'react';
-import type {MessageDescriptor} from 'react-intl';
 import {defineMessages, useIntl} from 'react-intl';
 
-import {
-    AlertOutlineIcon,
-    ChevronDownIcon,
-    CloseIcon,
-} from '@mattermost/compass-icons/components';
-import type {PropertyFieldOption} from '@mattermost/types/properties';
+import {ChevronDownIcon} from '@mattermost/compass-icons/components';
 
 import * as Menu from 'components/menu';
-import Input from 'components/widgets/inputs/input/input';
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import HierarchicalValueRow, {isKeydownSynthesisedClick} from './hierarchical_value_row';
+import {
+    HierarchicalMenuSearch,
+    HierarchicalMenuStatus,
+    SelectedValueChips,
+    hierarchicalMenuStatusKind,
+    isGraphFieldWithheld,
+} from './hierarchical_value_menu_parts';
+import type {ChipLabel} from './hierarchical_value_menu_parts';
 
 import type {GraphOccurrence, GraphOptionJoin} from '../graph';
 import {
     alsoUnderLabel,
     expandToSelected,
     flattenSearch,
-    joinGraphOptions,
     selectedDescendantCount,
 } from '../graph';
 import {unavailableValueMessage} from '../graph/graph_value_summary';
-import {pageAllAccessControlFieldOptions} from '../graph/page_all_access_control_field_options';
 import type {GraphFieldRef} from '../graph/page_all_access_control_field_options';
+import {useGraphOptionJoin} from '../graph/use_graph_option_join';
 
 import './hierarchical_value_menu.scss';
 
@@ -41,45 +40,9 @@ const messages = defineMessages({
         id: 'property_fields.hierarchical_value_menu.select_values',
         defaultMessage: 'Select values...',
     },
-    searchPlaceholder: {
-        id: 'property_fields.hierarchical_value_menu.search',
-        defaultMessage: 'Search values',
-    },
     alsoUnder: {
         id: 'property_fields.hierarchical_value_menu.also_under',
         defaultMessage: 'Also under {names}',
-    },
-    loading: {
-        id: 'property_fields.hierarchical_value_menu.loading',
-        defaultMessage: 'Loading values…',
-    },
-    error: {
-        id: 'property_fields.hierarchical_value_menu.error',
-        defaultMessage: 'These values could not be loaded.',
-    },
-    retry: {
-        id: 'property_fields.hierarchical_value_menu.retry',
-        defaultMessage: 'Retry',
-    },
-    withheld: {
-        id: 'property_fields.hierarchical_value_menu.withheld',
-        defaultMessage: 'The values for this attribute are not available to you here.',
-    },
-    empty: {
-        id: 'property_fields.hierarchical_value_menu.empty',
-        defaultMessage: 'This attribute has no values yet.',
-    },
-    noResults: {
-        id: 'property_fields.hierarchical_value_menu.no_results',
-        defaultMessage: 'No values match.',
-    },
-    removeValue: {
-        id: 'property_fields.hierarchical_value_menu.remove_value',
-        defaultMessage: 'Remove {name}',
-    },
-    removeUnnamedValue: {
-        id: 'property_fields.hierarchical_value_menu.remove_unnamed_value',
-        defaultMessage: 'Remove value',
     },
 });
 
@@ -120,11 +83,6 @@ export type HierarchicalValueMenuProps = {
     extraMenuItems?: ReactNode[];
 };
 
-type ChipLabel = {
-    text: string;
-    state: 'named' | 'pending' | 'unavailable';
-};
-
 type VisibleRow = {
     occKey: string;
     valueId: string;
@@ -134,165 +92,6 @@ type VisibleRow = {
     isBranch: boolean;
     isExpanded: boolean;
     insideCount: number;
-};
-
-type HierarchicalMenuStatusKind =
-    | 'loading' |
-    'error_fetch' |
-    'withheld' |
-    'empty' |
-    'no_results';
-
-const STATUS_MESSAGES: Record<HierarchicalMenuStatusKind, MessageDescriptor> = {
-    loading: messages.loading,
-    error_fetch: messages.error,
-    withheld: messages.withheld,
-    empty: messages.empty,
-    no_results: messages.noResults,
-};
-
-type SelectedValueChipsProps = {
-    selectedIds: string[];
-    labelForId: (id: string) => ChipLabel;
-    disabled: boolean;
-    onRemove: (id: string) => void;
-    trailingChips?: ReactNode;
-};
-
-const SelectedValueChips = ({selectedIds, labelForId, disabled, onRemove, trailingChips}: SelectedValueChipsProps) => {
-    const {formatMessage} = useIntl();
-
-    return (
-        <span className='hierarchical-value-menu__chips'>
-            {selectedIds.map((id) => {
-                const {text, state} = labelForId(id);
-
-                return (
-                    <span
-                        key={id}
-                        className={classNames('hierarchical-value-menu__chip', {
-                            'hierarchical-value-menu__chip--pending': state === 'pending',
-                            'hierarchical-value-menu__chip--unavailable': state === 'unavailable',
-                        })}
-                    >
-                        <span className='hierarchical-value-menu__chip-label'>{text}</span>
-                        {!disabled && (
-                            <span
-                                className='hierarchical-value-menu__chip-remove'
-                                role='button'
-                                tabIndex={0}
-                                aria-label={state === 'named' ? formatMessage(messages.removeValue, {name: text}) : formatMessage(messages.removeUnnamedValue)}
-
-                                // Inside the trigger: without stopPropagation, remove also opens the menu.
-                                onClick={(event) => {
-                                    event.stopPropagation();
-                                    event.preventDefault();
-                                    onRemove(id);
-                                }}
-                                onKeyDown={(event) => {
-                                    if (event.key === 'Enter' || event.key === ' ') {
-                                        event.stopPropagation();
-                                        event.preventDefault();
-                                        onRemove(id);
-                                    }
-                                }}
-                            >
-                                <CloseIcon size={12}/>
-                            </span>
-                        )}
-                    </span>
-                );
-            })}
-            {trailingChips}
-        </span>
-    );
-};
-
-type HierarchicalMenuSearchProps = {
-    inputName: string;
-    value: string;
-    disabled: boolean;
-    onChange: (next: string) => void;
-    onArrowDown: () => void;
-    inputRef: React.Ref<HTMLInputElement>;
-};
-
-const HierarchicalMenuSearch = ({inputName, value, disabled, onChange, onArrowDown, inputRef}: HierarchicalMenuSearchProps) => {
-    const {formatMessage} = useIntl();
-    const placeholder = formatMessage(messages.searchPlaceholder);
-
-    return (
-        <div
-            className='hierarchical-value-menu__search'
-            role='presentation'
-        >
-            <Input
-                ref={inputRef as React.Ref<HTMLInputElement>}
-                type='text'
-                name={inputName}
-                value={value}
-                disabled={disabled}
-                autoComplete='off'
-                useLegend={false}
-                placeholder={placeholder}
-                aria-label={placeholder}
-                onChange={(event) => {
-                    event.stopPropagation();
-                    onChange(event.target.value);
-                }}
-                onKeyUp={(event) => {
-                    event.stopPropagation();
-                }}
-                onKeyDown={(event) => {
-                    // Swallow Space/Enter/arrows so the Popover and MenuList do not steal them.
-                    // Tab and Escape still close the menu.
-                    if (event.key !== 'Tab' && event.key !== 'Escape') {
-                        event.stopPropagation();
-                    }
-                    if (event.key === 'ArrowDown') {
-                        event.preventDefault();
-                        onArrowDown();
-                    }
-                }}
-            />
-        </div>
-    );
-};
-
-type HierarchicalMenuStatusProps = {
-    kind: HierarchicalMenuStatusKind;
-    onRetry?: () => void;
-};
-
-const HierarchicalMenuStatus = ({kind, onRetry}: HierarchicalMenuStatusProps) => {
-    const {formatMessage} = useIntl();
-    const isError = kind === 'error_fetch';
-
-    return (
-        <span className='hierarchical-value-menu__status-inner'>
-            {kind === 'loading' && <LoadingSpinner/>}
-            {isError && <AlertOutlineIcon size={16}/>}
-            <span>{formatMessage(STATUS_MESSAGES[kind])}</span>
-            {onRetry && (
-                <button
-                    type='button'
-                    className='hierarchical-value-menu__retry'
-                    onClick={(event) => {
-                        event.stopPropagation();
-                        event.preventDefault();
-                        onRetry();
-                    }}
-                    onKeyDown={(event) => {
-                        if (event.key === 'Enter' || event.key === ' ') {
-                            event.stopPropagation();
-                        }
-                    }}
-                >
-                    {formatMessage(messages.retry)}
-                </button>
-            )}
-        </span>
-    );
 };
 
 export default function HierarchicalValueMenu({
@@ -320,26 +119,17 @@ export default function HierarchicalValueMenu({
     const [query, setQuery] = useState('');
     const [expandedOccKeys, setExpandedOccKeys] = useState<Set<string> | null>(null);
 
-    const [loaded, setLoaded] = useState<{options: PropertyFieldOption[]; join: GraphOptionJoin} | null>(null);
-    const [status, setStatus] = useState<'idle' | 'loading' | 'loaded' | 'error'>('idle');
+    const {options, join, status, refetch} = useGraphOptionJoin(field, {
+        prefetch: prefetchOnMount,
+        open: isOpen,
+        onOptionsLoaded,
+    });
 
-    const abortRef = useRef<AbortController | null>(null);
-
-    // Shared walks keep running after abort; ignore late results from a stale request.
-    const seqRef = useRef(0);
-
-    // Menu.Container reports onToggle(false) on mount; only a real close aborts.
-    const wasOpenRef = useRef(false);
-    const prefetchedRef = useRef(false);
     const searchInputRef = useRef<HTMLInputElement | null>(null);
     const rowRefs = useRef(new Map<string, HTMLLIElement>());
     const statusRowRef = useRef<HTMLLIElement | null>(null);
 
     const selectedIdSet = useMemo(() => new Set(selectedIds), [selectedIds]);
-
-    const emptyJoin = useMemo(() => joinGraphOptions([]), []);
-    const options = loaded?.options ?? null;
-    const join = loaded?.join ?? emptyJoin;
 
     const isSearching = query.trim() !== '';
     const searchRows = useMemo(
@@ -373,77 +163,13 @@ export default function HierarchicalValueMenu({
         return {text: id, state: 'named'};
     }, [join, fallbackLabels, status, formatMessage]);
 
-    const runFetch = useCallback(() => {
-        abortRef.current?.abort();
-        abortRef.current = null;
-
-        const seq = seqRef.current + 1;
-        seqRef.current = seq;
-
-        const controller = new AbortController();
-        abortRef.current = controller;
-
-        setStatus('loading');
-
-        pageAllAccessControlFieldOptions(
-            {id: field.id, object_type: field.object_type},
-            {signal: controller.signal},
-        ).then(
-            (fetched) => {
-                if (seqRef.current !== seq) {
-                    return;
-                }
-                const fetchedJoin = joinGraphOptions(fetched);
-                setLoaded({options: fetched, join: fetchedJoin});
-
-                // Same commit as the status flip so expand-to-selected seeds from the hydrated ids.
-                onOptionsLoaded?.(fetchedJoin);
-                setStatus('loaded');
-            },
-            (error: unknown) => {
-                if (seqRef.current !== seq) {
-                    return;
-                }
-
-                if (error instanceof Error && error.name === 'AbortError') {
-                    return;
-                }
-
-                setStatus('error');
-            },
-        );
-    }, [field.id, field.object_type, onOptionsLoaded]);
-
     useEffect(() => {
         if (isOpen) {
-            wasOpenRef.current = true;
-            runFetch();
             return;
         }
-
-        if (!wasOpenRef.current) {
-            return;
-        }
-        wasOpenRef.current = false;
-        abortRef.current?.abort();
-        abortRef.current = null;
         setQuery('');
         setExpandedOccKeys(null);
-    }, [isOpen, runFetch]);
-
-    useEffect(() => {
-        if (prefetchOnMount && !prefetchedRef.current) {
-            prefetchedRef.current = true;
-            runFetch();
-        }
-
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    useEffect(() => () => {
-        abortRef.current?.abort();
-        abortRef.current = null;
-    }, []);
+    }, [isOpen]);
 
     // Seed expansion once per open; after that the user owns it.
     useEffect(() => {
@@ -500,35 +226,17 @@ export default function HierarchicalValueMenu({
         return rows;
     }, [isSearching, searchRows, expandedOccKeys, join, selectedIdSet, formatMessage]);
 
-    const isWithheld = useMemo(() => {
-        const attrs = field.attrs;
-        return Boolean(
-            attrs?.options_omitted ||
-            attrs?.access_mode === 'source_only' ||
-            attrs?.access_mode === 'shared_only',
-        );
-    }, [field.attrs]);
-
-    const statusKind = useMemo<HierarchicalMenuStatusKind | null>(() => {
-        if (status === 'error') {
-            return 'error_fetch';
-        }
-        if (status === 'idle' || status === 'loading') {
-            return 'loading';
-        }
-        if (visibleRows.length > 0) {
-            return null;
-        }
-        if (isSearching) {
-            return 'no_results';
-        }
-        if (isWithheld) {
-            return 'withheld';
-        }
-
-        // A cycle can yield no roots from a non-empty list; only an empty graph is empty.
-        return options?.length ? null : 'empty';
-    }, [status, visibleRows.length, isSearching, isWithheld, options]);
+    const isWithheld = useMemo(() => isGraphFieldWithheld(field.attrs), [field.attrs]);
+    const statusKind = useMemo(
+        () => hierarchicalMenuStatusKind({
+            status,
+            visibleRowCount: visibleRows.length,
+            isSearching,
+            isWithheld,
+            optionCount: options?.length ?? null,
+        }),
+        [status, visibleRows.length, isSearching, isWithheld, options],
+    );
 
     const handleToggle = useCallback((open: boolean) => {
         setIsOpen(open);
@@ -589,14 +297,14 @@ export default function HierarchicalValueMenu({
             return;
         }
 
-        runFetch();
+        refetch();
     };
 
     const handleStatusKeyDown = (event: React.KeyboardEvent<HTMLLIElement>) => {
         if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
             event.stopPropagation();
-            runFetch();
+            refetch();
             return;
         }
 
@@ -630,7 +338,7 @@ export default function HierarchicalValueMenu({
                 labels={
                     <HierarchicalMenuStatus
                         kind={statusKind}
-                        onRetry={isRetryableStatus ? runFetch : undefined}
+                        onRetry={isRetryableStatus ? refetch : undefined}
                     />
                 }
             />,
