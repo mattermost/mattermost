@@ -11,10 +11,11 @@ import AssignmentGraphPicker from './assignment_picker';
 import type {AssignmentGraphPickerProps} from './assignment_picker';
 import type {GraphFieldRef} from './hierarchical_value_menu';
 
-import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from '../page_all_property_field_options';
+import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from '../graph/page_all_access_control_field_options';
 
-jest.mock('../page_all_property_field_options', () => ({
-    ...jest.requireActual('../page_all_property_field_options'),
+jest.mock('../graph/page_all_access_control_field_options', () => ({
+    ...jest.requireActual('../graph/page_all_access_control_field_options'),
+
     pageAllAccessControlFieldOptions: jest.fn(),
 }));
 

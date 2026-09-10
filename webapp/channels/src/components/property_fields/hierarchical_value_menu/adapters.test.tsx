@@ -18,11 +18,12 @@ import PolicyHierarchicalValues, {
 } from './policy_adapter';
 import type {PolicyHierarchicalValuesProps} from './policy_adapter';
 
-import {joinGraphOptions} from '../graph_option_tree';
-import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from '../page_all_property_field_options';
+import {joinGraphOptions} from '../graph';
+import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from '../graph/page_all_access_control_field_options';
 
-jest.mock('../page_all_property_field_options', () => ({
-    ...jest.requireActual('../page_all_property_field_options'),
+jest.mock('../graph/page_all_access_control_field_options', () => ({
+    ...jest.requireActual('../graph/page_all_access_control_field_options'),
+
     pageAllAccessControlFieldOptions: jest.fn(),
 }));
 

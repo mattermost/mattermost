@@ -19,9 +19,10 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import * as Menu from 'components/menu';
+import {oxfordJoinNames} from 'components/property_fields/graph';
+import type {GraphOccurrence} from 'components/property_fields/graph';
 
-import {oxfordJoinNames} from './graph_utils';
-import {occurrenceHasChildren, type GraphOccurrence} from './occurrences';
+import {occurrenceHasChildren} from './occurrences';
 import type {ConfirmGrant, ProposeParentResult} from './parent_ops';
 import AttributeGraphParentsPane from './parents_pane';
 import {useGraphRowDnd} from './use_graph_dnd';
@@ -36,12 +37,12 @@ export type GraphRowProps = {
     menuOpen: boolean;
     menuInitialView: GraphPaneView;
     expanded: boolean;
-    onToggleCollapse: (occurrenceKey: string) => void;
+    onToggleCollapse: (key: string) => void;
     onOpenMenuAddChild: (occurrence: GraphOccurrence, index: number) => void;
-    onOpenMenu: (occurrenceKey: string, view: GraphPaneView) => void;
+    onOpenMenu: (key: string, view: GraphPaneView) => void;
     onCloseMenu: () => void;
     onRename: (currentName: string, nextName: string) => 'applied' | 'duplicate' | 'noop';
-    onExpandOccurrence: (occurrenceKey: string) => void;
+    onExpandOccurrence: (key: string) => void;
     onDelete: (optionName: string) => void;
     options: PropertyFieldOption[];
     onOptionsChange: (options: PropertyFieldOption[]) => void;
@@ -50,6 +51,7 @@ export type GraphRowProps = {
     onDropResult: (result: ProposeParentResult, names: {childName: string; parentName: string}) => void;
     highlighted: boolean;
     rowRefs: React.MutableRefObject<Map<string, HTMLLIElement>>;
+    parentName: string | null;
 };
 
 export const GraphRow = React.memo(({
@@ -74,6 +76,7 @@ export const GraphRow = React.memo(({
     onDropResult,
     highlighted,
     rowRefs,
+    parentName,
 }: GraphRowProps) => {
     const {formatMessage} = useIntl();
     const editValueLabel = formatMessage(messages.editValue, {name: occurrence.option.name});
@@ -82,7 +85,7 @@ export const GraphRow = React.memo(({
     const dragHandleLabel = formatMessage(messages.dragHandleTooltip, {name: occurrence.option.name});
     const parentNames = occurrence.option.parents ?? [];
     const parentCount = parentNames.length;
-    const hasChildren = occurrenceHasChildren(options, occurrence);
+    const hasChildren = occurrenceHasChildren(occurrence);
     const [rowElement, setRowElement] = useState<HTMLLIElement | null>(null);
     const [handleElement, setHandleElement] = useState<HTMLSpanElement | null>(null);
 
@@ -90,7 +93,7 @@ export const GraphRow = React.memo(({
         rowElement,
         handleElement,
         optionName: occurrence.option.name,
-        parentName: occurrence.parentName,
+        parentName,
         options,
         onOptionsChange,
         confirmGrant,
@@ -101,9 +104,9 @@ export const GraphRow = React.memo(({
     const setRowRef = (el: HTMLLIElement | null) => {
         setRowElement(el);
         if (el) {
-            rowRefs.current.set(occurrence.occurrenceKey, el);
+            rowRefs.current.set(occurrence.key, el);
         } else {
-            rowRefs.current.delete(occurrence.occurrenceKey);
+            rowRefs.current.delete(occurrence.key);
         }
     };
 
@@ -112,7 +115,7 @@ export const GraphRow = React.memo(({
             onCloseMenu();
             return;
         }
-        onOpenMenu(occurrence.occurrenceKey, view);
+        onOpenMenu(occurrence.key, view);
     };
 
     const parentsBadge = parentCount >= 2 && (
@@ -146,7 +149,7 @@ export const GraphRow = React.memo(({
             style={{['--attribute-options-graph-values-indent' as string]: occurrence.depth}}
             data-testid='attributeOptionsGraphRow'
             data-option-name={occurrence.option.name}
-            data-parent-name={occurrence.parentName ?? ''}
+            data-parent-name={parentName ?? ''}
             data-depth={String(occurrence.depth)}
             aria-expanded={hasChildren ? expanded : undefined}
             tabIndex={-1}
@@ -158,7 +161,7 @@ export const GraphRow = React.memo(({
                         className='attribute-options-graph-values__collapse'
                         aria-label={formatMessage(expanded ? messages.collapse : messages.expand, {name: occurrence.option.name})}
                         aria-expanded={expanded}
-                        onClick={() => onToggleCollapse(occurrence.occurrenceKey)}
+                        onClick={() => onToggleCollapse(occurrence.key)}
                         data-testid='attributeOptionsGraphRow__collapse'
                     >
                         {expanded ? <ChevronDownIcon size={16}/> : <ChevronRightIcon size={16}/>}
@@ -281,13 +284,13 @@ export const GraphRow = React.memo(({
                     transformOrigin={{vertical: 'top', horizontal: 'right'}}
                 >
                     <AttributeGraphParentsPane
-                        key={`${occurrence.occurrenceKey}:${menuInitialView}`}
+                        key={`${occurrence.key}:${menuInitialView}`}
                         options={options}
                         optionName={occurrence.option.name}
                         onOptionsChange={onPaneOptionsChange}
                         onDelete={onDelete}
                         onRename={onRename}
-                        onChildAdded={() => onExpandOccurrence(occurrence.occurrenceKey)}
+                        onChildAdded={() => onExpandOccurrence(occurrence.key)}
                         disabled={disabled}
                         atMax={atMax}
                         confirmGrant={confirmGrant}

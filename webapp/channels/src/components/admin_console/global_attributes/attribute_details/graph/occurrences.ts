@@ -1,42 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PropertyFieldOption} from '@mattermost/types/properties';
+import type {GraphOccurrence} from 'components/property_fields/graph';
 
-import {getChildren, getRoots} from './graph_utils';
-
-export type GraphOccurrence = {
-    option: PropertyFieldOption;
-    parentName: string | null;
-    depth: number;
-    path: string[];
-    occurrenceKey: string;
-};
-
-export function flattenOccurrences(options: PropertyFieldOption[]): GraphOccurrence[] {
-    const occurrences: GraphOccurrence[] = [];
-
-    const walk = (option: PropertyFieldOption, path: string[]) => {
-        occurrences.push({
-            option,
-            parentName: path.length === 1 ? null : path[path.length - 2],
-            depth: path.length - 1,
-            path,
-            occurrenceKey: path.join('\0'),
-        });
-        for (const child of getChildren(options, option.name)) {
-            if (path.includes(child.name)) {
-                continue;
-            }
-            walk(child, [...path, child.name]);
+export function flattenOccurrenceTree(roots: GraphOccurrence[]): GraphOccurrence[] {
+    const out: GraphOccurrence[] = [];
+    const walk = (nodes: GraphOccurrence[]) => {
+        for (const node of nodes) {
+            out.push(node);
+            walk(node.children);
         }
     };
+    walk(roots);
+    return out;
+}
 
-    for (const root of getRoots(options)) {
-        walk(root, [root.name]);
-    }
-
-    return occurrences;
+export function occurrencePath(occurrence: GraphOccurrence): string[] {
+    return occurrence.key.split('\0');
 }
 
 export function pathStartsWith(path: string[], prefix: string[]): boolean {
@@ -55,8 +35,8 @@ export function isHiddenByCollapsedAncestor(path: string[], collapsedKeys: Set<s
     return false;
 }
 
-export function occurrenceHasChildren(options: PropertyFieldOption[], occurrence: GraphOccurrence): boolean {
-    return getChildren(options, occurrence.option.name).some((child) => !occurrence.path.includes(child.name));
+export function occurrenceHasChildren(occurrence: GraphOccurrence): boolean {
+    return occurrence.children.length > 0;
 }
 
 export function expandAncestorsForOption(
@@ -65,13 +45,17 @@ export function expandAncestorsForOption(
     optionName: string,
 ): Set<string> {
     const target = occurrences.find((occurrence) => occurrence.option.name === optionName);
-    if (!target || target.path.length < 2) {
+    if (!target) {
+        return collapsedKeys;
+    }
+    const path = occurrencePath(target);
+    if (path.length < 2) {
         return collapsedKeys;
     }
     let changed = false;
     const next = new Set(collapsedKeys);
-    for (let i = 1; i < target.path.length; i++) {
-        if (next.delete(target.path.slice(0, i).join('\0'))) {
+    for (let i = 1; i < path.length; i++) {
+        if (next.delete(path.slice(0, i).join('\0'))) {
             changed = true;
         }
     }
@@ -82,10 +66,15 @@ export function remapOccurrenceKey(key: string, oldName: string, newName: string
     return key.split('\0').map((part) => (part === oldName ? newName : part)).join('\0');
 }
 
-export function subtreeInsertAfterIndex(occurrences: GraphOccurrence[], occurrence: GraphOccurrence, index: number): number {
+export function subtreeInsertAfterIndex(
+    occurrences: GraphOccurrence[],
+    occurrence: GraphOccurrence,
+    index: number,
+): number {
+    const prefix = occurrencePath(occurrence);
     let insertAfterIndex = index;
     for (let j = index; j < occurrences.length; j++) {
-        if (pathStartsWith(occurrences[j].path, occurrence.path)) {
+        if (pathStartsWith(occurrencePath(occurrences[j]), prefix)) {
             insertAfterIndex = j;
         } else if (j > index) {
             break;

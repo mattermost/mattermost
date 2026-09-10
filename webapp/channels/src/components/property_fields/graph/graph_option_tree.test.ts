@@ -3,16 +3,21 @@
 
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
-import type {GraphOccurrence} from './graph_option_tree';
+import type {GraphOccurrence} from '.';
 import {
     alsoUnderLabel,
+    canvasOccurrenceKey,
     emitIdToName,
+    expandOccurrences,
     expandToSelected,
     flattenSearch,
+    GRAPH_MAX_DEPTH,
     hydrateNameToId,
+    indexOptions,
     joinGraphOptions,
+    pickerOccurrenceKey,
     selectedDescendantCount,
-} from './graph_option_tree';
+} from '.';
 
 // A graph option as GET /options reports one: parents by name, [] for a root.
 const opt = (id: string, name: string, parents: string[] = []): PropertyFieldOption => ({id, name, parents});
@@ -20,8 +25,8 @@ const opt = (id: string, name: string, parents: string[] = []): PropertyFieldOpt
 // A shared_only option: the parents key comes off entirely.
 const flat = (id: string, name: string): PropertyFieldOption => ({id, name});
 
-const occKeys = (nodes: Array<{occKey: string}>) => nodes.map((n) => n.occKey);
-const labels = (nodes: Array<{label: string}>) => nodes.map((n) => n.label);
+const occKeys = (nodes: Array<{key: string}>) => nodes.map((n) => n.key);
+const labels = (nodes: Array<{option: {name: string}}>) => nodes.map((n) => n.option.name);
 
 // A → B, A → C, B → D, C → D. D is the diamond floor.
 const diamond = (): PropertyFieldOption[] => [
@@ -83,7 +88,7 @@ const deepChain = (links: number): PropertyFieldOption[] => {
 const allOccKeys = (nodes: GraphOccurrence[]): string[] => {
     const keys: string[] = [];
     for (const node of nodes) {
-        keys.push(node.occKey, ...allOccKeys(node.children));
+        keys.push(node.key, ...allOccKeys(node.children));
     }
     return keys;
 };
@@ -91,7 +96,7 @@ const allOccKeys = (nodes: GraphOccurrence[]): string[] => {
 const allLabels = (nodes: GraphOccurrence[]): string[] => {
     const found: string[] = [];
     for (const node of nodes) {
-        found.push(node.label, ...allLabels(node.children));
+        found.push(node.option.name, ...allLabels(node.children));
     }
     return found;
 };
@@ -116,7 +121,7 @@ const allNodes = (nodes: GraphOccurrence[]): GraphOccurrence[] => {
 // actually costs.
 const allValueIds = (nodes: GraphOccurrence[], acc = new Set<string>()): Set<string> => {
     for (const node of nodes) {
-        acc.add(node.valueId);
+        acc.add(node.valueKey);
         allValueIds(node.children, acc);
     }
     return acc;
@@ -134,7 +139,7 @@ const freezeGraph = (options: PropertyFieldOption[]): PropertyFieldOption[] => {
 
 const findOccOrNothing = (nodes: GraphOccurrence[], occKey: string): GraphOccurrence | undefined => {
     for (const node of nodes) {
-        if (node.occKey === occKey) {
+        if (node.key === occKey) {
             return node;
         }
         const found = findOccOrNothing(node.children, occKey);
@@ -159,9 +164,9 @@ const findOcc = (nodes: GraphOccurrence[], occKey: string): GraphOccurrence => {
 // that memoises occurrences by occKey or by value id would, and then the second
 // parent must still learn it holds a selected value.
 const sharedChildObject = (): GraphOccurrence[] => {
-    const shared: GraphOccurrence = {occKey: 'p1::shared', valueId: 'shared', parentId: 'p1', label: 'Shared', alsoUnder: ['P2'], children: []};
-    const p1: GraphOccurrence = {occKey: '::p1', valueId: 'p1', parentId: null, label: 'P1', alsoUnder: [], children: [shared]};
-    const p2: GraphOccurrence = {occKey: '::p2', valueId: 'p2', parentId: null, label: 'P2', alsoUnder: [], children: [shared]};
+    const shared: GraphOccurrence = {key: 'p1::shared', valueKey: 'shared', parentKey: 'p1', option: opt('shared', 'Shared'), depth: 0, alsoUnder: ['P2'], children: []};
+    const p1: GraphOccurrence = {key: '::p1', valueKey: 'p1', parentKey: null, option: opt('p1', 'P1'), depth: 0, alsoUnder: [], children: [shared]};
+    const p2: GraphOccurrence = {key: '::p2', valueKey: 'p2', parentKey: null, option: opt('p2', 'P2'), depth: 0, alsoUnder: [], children: [shared]};
     return [p1, p2];
 };
 
@@ -169,8 +174,8 @@ const sharedChildObject = (): GraphOccurrence[] => {
 // produce this, but expandToSelected and selectedDescendantCount take a tree
 // from any caller, so both have to survive it.
 const cyclicOccurrences = (): GraphOccurrence[] => {
-    const x: GraphOccurrence = {occKey: '::x', valueId: 'x', parentId: null, label: 'X', alsoUnder: [], children: []};
-    const y: GraphOccurrence = {occKey: 'x::y', valueId: 'y', parentId: 'x', label: 'Y', alsoUnder: [], children: []};
+    const x: GraphOccurrence = {key: '::x', valueKey: 'x', parentKey: null, option: opt('x', 'X'), depth: 0, alsoUnder: [], children: []};
+    const y: GraphOccurrence = {key: 'x::y', valueKey: 'y', parentKey: 'x', option: opt('y', 'Y'), depth: 0, alsoUnder: [], children: []};
     x.children.push(y);
     y.children.push(x);
     return [x, y];
@@ -228,8 +233,8 @@ describe('joinGraphOptions — name join', () => {
         const {roots} = joinGraphOptions([opt('a', 'A')]);
 
         expect(roots).toHaveLength(1);
-        expect(roots[0].parentId).toBeNull();
-        expect(roots[0].occKey).toBe('::a');
+        expect(roots[0].parentKey).toBeNull();
+        expect(roots[0].key).toBe('::a');
     });
 
     test('an empty options array has no roots', () => {
@@ -245,10 +250,11 @@ describe('joinGraphOptions — name join', () => {
 
         expect(roots).toHaveLength(1);
         expect(roots[0]).toEqual({
-            occKey: '::only',
-            valueId: 'only',
-            parentId: null,
-            label: 'Only',
+            key: '::only',
+            valueKey: 'only',
+            parentKey: null,
+            option: opt('only', 'Only'),
+            depth: 1,
             alsoUnder: [],
             children: [],
         });
@@ -348,10 +354,10 @@ describe('joinGraphOptions — multi-parent occurrences', () => {
         const underB = findOcc(roots, 'b::d');
         const underC = findOcc(roots, 'c::d');
 
-        expect(underB.valueId).toBe('d');
-        expect(underC.valueId).toBe('d');
-        expect(underB.parentId).toBe('b');
-        expect(underC.parentId).toBe('c');
+        expect(underB.valueKey).toBe('d');
+        expect(underC.valueKey).toBe('d');
+        expect(underB.parentKey).toBe('b');
+        expect(underC.parentKey).toBe('c');
     });
 
     test('alsoUnder names the other parents on each occurrence', () => {
@@ -393,7 +399,7 @@ describe('joinGraphOptions — multi-parent occurrences', () => {
     test('occKey uses an empty parent segment for a root', () => {
         const {roots} = joinGraphOptions(diamond());
 
-        expect(roots[0].occKey).toBe('::a');
+        expect(roots[0].key).toBe('::a');
     });
 
     test('allocates a distinct occurrence object for every node', () => {
@@ -408,7 +414,7 @@ describe('joinGraphOptions — multi-parent occurrences', () => {
 
         expect(new Set(nodes).size).toBe(nodes.length);
 
-        const sharedKey = nodes.filter((node) => node.occKey === 'd::e');
+        const sharedKey = nodes.filter((node) => node.key === 'd::e');
 
         expect(sharedKey).toHaveLength(2);
         expect(sharedKey[0]).not.toBe(sharedKey[1]);
@@ -469,8 +475,8 @@ describe('joinGraphOptions — cycle safety', () => {
     test('a diamond is not collapsed by the cycle guard', () => {
         const {roots} = joinGraphOptions(diamond());
 
-        expect(findOcc(roots, 'b::d').valueId).toBe('d');
-        expect(findOcc(roots, 'c::d').valueId).toBe('d');
+        expect(findOcc(roots, 'b::d').valueKey).toBe('d');
+        expect(findOcc(roots, 'c::d').valueKey).toBe('d');
     });
 
     test('a cycle below a diamond is cut without collapsing either side', () => {
@@ -493,7 +499,7 @@ describe('joinGraphOptions — cycle safety', () => {
         // the back edge F → D is cut on the path rather than re-descending.
         for (const parentId of ['b', 'c']) {
             const floor = findOcc(roots, `${parentId}::d`);
-            expect(floor.valueId).toBe('d');
+            expect(floor.valueKey).toBe('d');
             expect(occKeys(floor.children)).toEqual(['d::e']);
 
             const under = floor.children[0];
@@ -539,7 +545,7 @@ describe('joinGraphOptions — occurrence budget', () => {
         const {roots} = joinGraphOptions(options);
 
         expect(labels(roots)).toEqual(['L0a', 'L0b', 'ZZ']);
-        expect(findOcc(roots, '::zz').valueId).toBe('zz');
+        expect(findOcc(roots, '::zz').valueKey).toBe('zz');
     });
 
     test('a flat option list is never truncated', () => {
@@ -566,7 +572,7 @@ describe('joinGraphOptions — occurrence budget', () => {
         }
 
         expect(depth).toBe(100);
-        expect(node.label).toBe('C99');
+        expect(node.option.name).toBe('C99');
         expect(node.children).toEqual([]);
     });
 
@@ -962,5 +968,43 @@ describe('alsoUnderLabel', () => {
         ]);
 
         expect(alsoUnderLabel(findOcc(roots, 'p1::v').alsoUnder)).toBe('P2 and P3');
+    });
+});
+
+describe('expandOccurrences — shared pair set', () => {
+    test('canvas and picker walks yield the same (parent, child) pairs on a diamond', () => {
+        const index = indexOptions(diamond());
+        const pairs = (roots: GraphOccurrence[]) => {
+            const out: Array<[string | null, string]> = [];
+            const walk = (nodes: GraphOccurrence[]) => {
+                for (const node of nodes) {
+                    out.push([node.parentKey, node.valueKey]);
+                    walk(node.children);
+                }
+            };
+            walk(roots);
+            return out.sort();
+        };
+        const picker = expandOccurrences(index, {
+            keyOf: pickerOccurrenceKey,
+            depthCap: GRAPH_MAX_DEPTH,
+            budget: 5000,
+            rootDepth: 1,
+        });
+        const canvas = expandOccurrences(index, {keyOf: canvasOccurrenceKey});
+        expect(pairs(picker)).toEqual(pairs(canvas));
+        expect(pairs(picker)).toEqual([
+            [null, 'a'],
+            ['a', 'b'],
+            ['a', 'c'],
+            ['b', 'd'],
+            ['c', 'd'],
+        ].sort());
+    });
+
+    test('an empty id keys by name so a draft still seats', () => {
+        const {roots} = joinGraphOptions([{id: '', name: 'Draft', parents: []}]);
+        expect(roots[0].key).toBe('::Draft');
+        expect(roots[0].valueKey).toBe('Draft');
     });
 });

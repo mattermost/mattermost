@@ -8,8 +8,8 @@ import type {PropertyFieldOption} from '@mattermost/types/properties';
 import HierarchicalValueMenu from './hierarchical_value_menu';
 import type {HierarchicalValueMenuProps} from './hierarchical_value_menu';
 
-import type {GraphOptionJoin} from '../graph_option_tree';
-import {emitIdToName, hydrateNameToId, joinGraphOptions} from '../graph_option_tree';
+import type {GraphOptionJoin} from '../graph';
+import {emitIdToName, hydrateNameToId, joinGraphOptions} from '../graph';
 
 /** Policy names → tree ids. An unresolved name stands in as its own id so the rule does not shrink. */
 export function hydratePolicyNamesToIds(

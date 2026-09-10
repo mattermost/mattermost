@@ -10,7 +10,7 @@ import {
     PROPERTY_FIELD_OPTIONS_PER_PAGE,
     clearPropertyFieldOptionWalks,
     pageAllAccessControlFieldOptions,
-} from './page_all_property_field_options';
+} from './page_all_access_control_field_options';
 
 // One flat, creation-ordered list, the way the server stores them: unique ids and
 // strictly increasing create_at, so a cursor identifies exactly one position.

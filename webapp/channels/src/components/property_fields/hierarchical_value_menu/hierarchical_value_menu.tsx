@@ -20,16 +20,16 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import HierarchicalValueRow, {isKeydownSynthesisedClick} from './hierarchical_value_row';
 
-import type {GraphOccurrence, GraphOptionJoin} from '../graph_option_tree';
+import type {GraphOccurrence, GraphOptionJoin} from '../graph';
 import {
     alsoUnderLabel,
     expandToSelected,
     flattenSearch,
     joinGraphOptions,
     selectedDescendantCount,
-} from '../graph_option_tree';
-import {pageAllAccessControlFieldOptions} from '../page_all_property_field_options';
-import type {GraphFieldRef} from '../page_all_property_field_options';
+} from '../graph';
+import {pageAllAccessControlFieldOptions} from '../graph/page_all_access_control_field_options';
+import type {GraphFieldRef} from '../graph/page_all_access_control_field_options';
 
 import './hierarchical_value_menu.scss';
 
@@ -484,11 +484,11 @@ export default function HierarchicalValueMenu({
         const walk = (nodes: GraphOccurrence[], depth: number) => {
             for (const node of nodes) {
                 const isBranch = node.children.length > 0;
-                const isExpanded = isBranch && open.has(node.occKey);
+                const isExpanded = isBranch && open.has(node.key);
                 rows.push({
-                    occKey: node.occKey,
-                    valueId: node.valueId,
-                    label: node.label,
+                    occKey: node.key,
+                    valueId: node.valueKey,
+                    label: node.option.name,
                     hint: node.alsoUnder.length > 0 ? formatMessage(messages.alsoUnder, {names: alsoUnderLabel(node.alsoUnder)}) : null,
                     depth,
                     isBranch,

@@ -85,4 +85,16 @@ export default defineConfig([
             },
         },
     },
+    {
+        files: ['src/components/property_fields/graph/**/*.{ts,tsx}'],
+        rules: {
+            'import/no-restricted-paths': ['error', {
+                zones: [{
+                    target: './src/components/property_fields/graph',
+                    from: './src/components/admin_console',
+                    message: 'property_fields/graph is the shared DAG read model and must not import admin_console.',
+                }],
+            }],
+        },
+    },
 ]);

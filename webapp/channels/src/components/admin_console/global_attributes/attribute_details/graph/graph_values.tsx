@@ -8,6 +8,9 @@ import {defineMessages, FormattedMessage} from 'react-intl';
 import {SitemapIcon} from '@mattermost/compass-icons/components';
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
+import {canvasOccurrenceKey, expandOccurrences, indexOptions} from 'components/property_fields/graph';
+import type {GraphIndex, GraphOccurrence} from 'components/property_fields/graph';
+
 import {useGraphNodeDelete} from './delete_modal';
 import {AddTopLevelForm, ChildDraftRow} from './draft_forms';
 import {GraphParentEdgeAlert} from './edge_alert';
@@ -24,11 +27,11 @@ import {
 } from './graph_utils';
 import {
     expandAncestorsForOption,
-    flattenOccurrences,
+    flattenOccurrenceTree,
     isHiddenByCollapsedAncestor,
+    occurrencePath,
     remapOccurrenceKey,
     subtreeInsertAfterIndex,
-    type GraphOccurrence,
 } from './occurrences';
 import type {ProposeParentResult} from './parent_ops';
 import {dropAlertFromProposeResult, type GraphDropAlert} from './use_graph_dnd';
@@ -50,13 +53,20 @@ type ChildDraft = {
 const DROP_ALERT_TIMEOUT_MS = 4000;
 const ROW_HIGHLIGHT_TIMEOUT_MS = 1800;
 
+function parentNameOf(occurrence: GraphOccurrence, graphIndex: GraphIndex): string | null {
+    if (occurrence.parentKey === null) {
+        return null;
+    }
+    return graphIndex.byId.get(occurrence.parentKey)?.name ?? occurrence.parentKey;
+}
+
 function focusGraphRow(
     optionName: string,
     occurrences: GraphOccurrence[],
     refs: Map<string, HTMLLIElement>,
 ): void {
     const occurrence = occurrences.find((row) => row.option.name === optionName);
-    const el = occurrence && refs.get(occurrence.occurrenceKey);
+    const el = occurrence && refs.get(occurrence.key);
     if (!el) {
         return;
     }
@@ -67,7 +77,7 @@ function focusGraphRow(
 const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false}: Props) => {
     const confirmGrantRaw = useGrantConfirm();
     const [draftName, setDraftName] = useState('');
-    const [openPane, setOpenPane] = useState<{occurrenceKey: string; view: GraphPaneView} | null>(null);
+    const [openPane, setOpenPane] = useState<{key: string; view: GraphPaneView} | null>(null);
     const [collapsedKeys, setCollapsedKeys] = useState<Set<string>>(() => new Set());
     const [childDraft, setChildDraft] = useState<ChildDraft | null>(null);
     const [childDraftName, setChildDraftName] = useState('');
@@ -119,7 +129,11 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
         };
     }, [clearDropAlert, clearRowHighlight]);
 
-    const occurrences = useMemo(() => flattenOccurrences(options), [options]);
+    const graphIndex = useMemo(() => indexOptions(options), [options]);
+    const occurrences = useMemo(
+        () => flattenOccurrenceTree(expandOccurrences(graphIndex, {keyOf: canvasOccurrenceKey})),
+        [graphIndex],
+    );
 
     const trimmed = draftName.trim();
     const nameIsUnique = useMemo(() => isNameUnique(options, trimmed), [options, trimmed]);
@@ -187,13 +201,13 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
 
     const promptDelete = useGraphNodeDelete(options, onOptionsChange, handleGoToOrphan);
 
-    const handleExpandOccurrence = useCallback((occurrenceKey: string) => {
+    const handleExpandOccurrence = useCallback((key: string) => {
         setCollapsedKeys((current) => {
-            if (!current.has(occurrenceKey)) {
+            if (!current.has(key)) {
                 return current;
             }
             const next = new Set(current);
-            next.delete(occurrenceKey);
+            next.delete(key);
             return next;
         });
     }, []);
@@ -206,23 +220,23 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
         });
         setChildDraftName('');
         setOpenPane(null);
-        handleExpandOccurrence(occurrence.occurrenceKey);
+        handleExpandOccurrence(occurrence.key);
     }, [handleExpandOccurrence, occurrences]);
 
-    const handleToggleCollapse = useCallback((occurrenceKey: string) => {
+    const handleToggleCollapse = useCallback((key: string) => {
         setCollapsedKeys((current) => {
             const next = new Set(current);
-            if (next.has(occurrenceKey)) {
-                next.delete(occurrenceKey);
+            if (next.has(key)) {
+                next.delete(key);
             } else {
-                next.add(occurrenceKey);
+                next.add(key);
             }
             return next;
         });
     }, []);
 
-    const handleOpenMenu = useCallback((occurrenceKey: string, view: GraphPaneView) => {
-        setOpenPane({occurrenceKey, view});
+    const handleOpenMenu = useCallback((key: string, view: GraphPaneView) => {
+        setOpenPane({key, view});
         setChildDraft(null);
     }, []);
 
@@ -245,7 +259,7 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
             }
             return {
                 ...current,
-                occurrenceKey: remapOccurrenceKey(current.occurrenceKey, currentName, trimmed),
+                key: remapOccurrenceKey(current.key, currentName, trimmed),
             };
         });
         setCollapsedKeys((current) => {
@@ -297,20 +311,20 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
     );
 
     const listItems: React.ReactNode[] = [];
-    occurrences.forEach((occurrence, index) => {
-        if (isHiddenByCollapsedAncestor(occurrence.path, collapsedKeys)) {
+    occurrences.forEach((occurrence, rowIndex) => {
+        if (isHiddenByCollapsedAncestor(occurrencePath(occurrence), collapsedKeys)) {
             return;
         }
         listItems.push(
             <GraphRow
-                key={occurrence.occurrenceKey}
+                key={occurrence.key}
                 occurrence={occurrence}
-                index={index}
+                index={rowIndex}
                 disabled={disabled}
                 atMax={atMax}
-                menuOpen={openPane?.occurrenceKey === occurrence.occurrenceKey}
+                menuOpen={openPane?.key === occurrence.key}
                 menuInitialView={openPane?.view ?? 'main'}
-                expanded={!collapsedKeys.has(occurrence.occurrenceKey)}
+                expanded={!collapsedKeys.has(occurrence.key)}
                 onToggleCollapse={handleToggleCollapse}
                 onOpenMenuAddChild={handleOpenMenuAddChild}
                 onOpenMenu={handleOpenMenu}
@@ -325,9 +339,10 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
                 onDropResult={handleDropResult}
                 highlighted={occurrence.option.name === highlightedOptionName}
                 rowRefs={rowRefs}
+                parentName={parentNameOf(occurrence, graphIndex)}
             />,
         );
-        if (childDraft && childDraft.insertAfterIndex === index) {
+        if (childDraft && childDraft.insertAfterIndex === rowIndex) {
             listItems.push(
                 <ChildDraftRow
                     key='attribute-options-graph-child-draft'

@@ -6,7 +6,7 @@ import React from 'react';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from 'components/property_fields/page_all_property_field_options';
+import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from 'components/property_fields/graph/page_all_access_control_field_options';
 
 import {defaultIntl} from 'tests/helpers/intl-test-helper';
 import {renderWithContext, screen, userEvent, act, fireEvent, waitFor} from 'tests/react_testing_utils';
@@ -14,8 +14,9 @@ import {TestHelper} from 'utils/test_helper';
 
 import UserSettingsGeneral, {UserSettingsGeneralTab} from './user_settings_general';
 
-jest.mock('components/property_fields/page_all_property_field_options', () => ({
-    ...jest.requireActual('components/property_fields/page_all_property_field_options'),
+jest.mock('components/property_fields/graph/page_all_access_control_field_options', () => ({
+    ...jest.requireActual('components/property_fields/graph/page_all_access_control_field_options'),
+
     pageAllAccessControlFieldOptions: jest.fn(),
 }));
 

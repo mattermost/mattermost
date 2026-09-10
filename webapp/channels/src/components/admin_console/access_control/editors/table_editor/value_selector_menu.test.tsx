@@ -6,7 +6,7 @@ import React from 'react';
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
-import {pageAllAccessControlFieldOptions} from 'components/property_fields/page_all_property_field_options';
+import {pageAllAccessControlFieldOptions} from 'components/property_fields/graph/page_all_access_control_field_options';
 
 import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
 
@@ -20,8 +20,9 @@ import ValueSelectorMenu from './value_selector_menu';
 // request to localhost, and the widget swallows fetch failures into an error
 // status. The test then fails on a missing element with no network error in the
 // output -- a destroyed report rather than a named bug.
-jest.mock('components/property_fields/page_all_property_field_options', () => ({
-    ...jest.requireActual('components/property_fields/page_all_property_field_options'),
+jest.mock('components/property_fields/graph/page_all_access_control_field_options', () => ({
+    ...jest.requireActual('components/property_fields/graph/page_all_access_control_field_options'),
+
     pageAllAccessControlFieldOptions: jest.fn(),
 }));
 

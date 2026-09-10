@@ -14,11 +14,12 @@ import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_te
 import HierarchicalValueMenu from './hierarchical_value_menu';
 import type {GraphFieldRef, HierarchicalValueMenuProps} from './hierarchical_value_menu';
 
-import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from '../page_all_property_field_options';
-import type * as PageAllModule from '../page_all_property_field_options';
+import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from '../graph/page_all_access_control_field_options';
+import type * as PageAllModule from '../graph/page_all_access_control_field_options';
 
-jest.mock('../page_all_property_field_options', () => ({
-    ...jest.requireActual('../page_all_property_field_options'),
+jest.mock('../graph/page_all_access_control_field_options', () => ({
+    ...jest.requireActual('../graph/page_all_access_control_field_options'),
+
     pageAllAccessControlFieldOptions: jest.fn(),
 }));
 
@@ -1921,7 +1922,7 @@ describe('HierarchicalValueMenu', () => {
     });
 
     describe('integration with the real pager', () => {
-        const actual = jest.requireActual<typeof PageAllModule>('../page_all_property_field_options');
+        const actual = jest.requireActual<typeof PageAllModule>('../graph/page_all_access_control_field_options');
 
         beforeEach(() => {
             actual.clearPropertyFieldOptionWalks();

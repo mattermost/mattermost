@@ -10,7 +10,7 @@ import {assignmentFallbackLabels, computeAssignmentPrefetch} from './assignment_
 import HierarchicalValueMenu from './hierarchical_value_menu';
 import type {GraphFieldRef, HierarchicalValueMenuProps} from './hierarchical_value_menu';
 
-import type {GraphOptionJoin} from '../graph_option_tree';
+import type {GraphOptionJoin} from '../graph';
 
 export type AssignmentGraphPickerProps = {
     field: GraphFieldRef;

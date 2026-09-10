@@ -3,11 +3,15 @@
 
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
+import {canvasOccurrenceKey, expandOccurrences, indexOptions} from 'components/property_fields/graph';
+import type {GraphOccurrence} from 'components/property_fields/graph';
+
 import {
     expandAncestorsForOption,
-    flattenOccurrences,
+    flattenOccurrenceTree,
     isHiddenByCollapsedAncestor,
     occurrenceHasChildren,
+    occurrencePath,
     pathStartsWith,
     remapOccurrenceKey,
     subtreeInsertAfterIndex,
@@ -15,40 +19,44 @@ import {
 
 const opt = (name: string, parents: string[] = []): PropertyFieldOption => ({id: '', name, parents});
 
-describe('flattenOccurrences', () => {
-    test('roots have parentName null and depth 0', () => {
-        const occurrences = flattenOccurrences([opt('A'), opt('B')]);
+function flattenCanvas(options: PropertyFieldOption[]): GraphOccurrence[] {
+    return flattenOccurrenceTree(expandOccurrences(indexOptions(options), {keyOf: canvasOccurrenceKey}));
+}
+
+describe('flattenOccurrenceTree', () => {
+    test('roots have parentKey null and depth 0', () => {
+        const occurrences = flattenCanvas([opt('A'), opt('B')]);
         expect(occurrences).toHaveLength(2);
         expect(occurrences[0]).toMatchObject({
             option: expect.objectContaining({name: 'A'}),
-            parentName: null,
+            parentKey: null,
             depth: 0,
-            path: ['A'],
         });
+        expect(occurrencePath(occurrences[0])).toEqual(['A']);
         expect(occurrences[1]).toMatchObject({
             option: expect.objectContaining({name: 'B'}),
-            parentName: null,
+            parentKey: null,
             depth: 0,
-            path: ['B'],
         });
+        expect(occurrencePath(occurrences[1])).toEqual(['B']);
     });
 
-    test('child has parentName and depth 1', () => {
-        const occurrences = flattenOccurrences([opt('A'), opt('B', ['A'])]);
+    test('child has parent and depth 1', () => {
+        const occurrences = flattenCanvas([opt('A'), opt('B', ['A'])]);
         expect(occurrences[1]).toMatchObject({
             option: expect.objectContaining({name: 'B'}),
-            parentName: 'A',
+            parentKey: 'A',
             depth: 1,
-            path: ['A', 'B'],
         });
+        expect(occurrencePath(occurrences[1])).toEqual(['A', 'B']);
     });
 
-    test('occurrenceKey equals path joined with NUL', () => {
-        const occurrences = flattenOccurrences([opt('A'), opt('B', ['A']), opt('C', ['B'])]);
+    test('key equals path joined with NUL', () => {
+        const occurrences = flattenCanvas([opt('A'), opt('B', ['A']), opt('C', ['B'])]);
         for (const occurrence of occurrences) {
-            expect(occurrence.occurrenceKey).toBe(occurrence.path.join('\0'));
+            expect(occurrence.key).toBe(occurrencePath(occurrence).join('\0'));
         }
-        expect(occurrences[2].occurrenceKey).toBe('A\0B\0C');
+        expect(occurrences[2].key).toBe('A\0B\0C');
     });
 
     test('walks in DFS order', () => {
@@ -58,7 +66,7 @@ describe('flattenOccurrences', () => {
             opt('C', ['A']),
             opt('D'),
         ];
-        expect(flattenOccurrences(options).map((row) => row.option.name)).toEqual(['A', 'B', 'C', 'D']);
+        expect(flattenCanvas(options).map((row) => row.option.name)).toEqual(['A', 'B', 'C', 'D']);
     });
 
     test('skips a child already on the path (cycle guard)', () => {
@@ -67,7 +75,7 @@ describe('flattenOccurrences', () => {
             opt('B', ['A', 'C']),
             opt('C', ['B']),
         ];
-        const names = flattenOccurrences(cyclic).map((row) => `${row.option.name}:${row.path.join('>')}`);
+        const names = flattenCanvas(cyclic).map((row) => `${row.option.name}:${occurrencePath(row).join('>')}`);
         expect(names).toEqual(['A:A', 'B:A>B', 'C:A>B>C']);
     });
 });
@@ -107,10 +115,10 @@ describe('isHiddenByCollapsedAncestor', () => {
 });
 
 describe('occurrenceHasChildren', () => {
-    test('true when a child name is not already on the path', () => {
+    test('true when a child is seated', () => {
         const options = [opt('A'), opt('B', ['A'])];
-        const [root] = flattenOccurrences(options);
-        expect(occurrenceHasChildren(options, root)).toBe(true);
+        const [root] = flattenCanvas(options);
+        expect(occurrenceHasChildren(root)).toBe(true);
     });
 
     test('false when every child is already on the path', () => {
@@ -119,15 +127,15 @@ describe('occurrenceHasChildren', () => {
             opt('B', ['A', 'C']),
             opt('C', ['B']),
         ];
-        const leaf = flattenOccurrences(options).find((row) => row.option.name === 'C');
+        const leaf = flattenCanvas(options).find((row) => row.option.name === 'C');
         expect(leaf).toBeDefined();
-        expect(occurrenceHasChildren(options, leaf!)).toBe(false);
+        expect(occurrenceHasChildren(leaf!)).toBe(false);
     });
 });
 
 describe('expandAncestorsForOption', () => {
     const options = [opt('A'), opt('B', ['A']), opt('C', ['B'])];
-    const occurrences = flattenOccurrences(options);
+    const occurrences = flattenCanvas(options);
 
     test('deletes ancestor keys for a nested name', () => {
         const collapsed = new Set(['A', 'A\0B']);
@@ -162,7 +170,7 @@ describe('remapOccurrenceKey', () => {
 });
 
 describe('subtreeInsertAfterIndex', () => {
-    const occurrences = flattenOccurrences([
+    const occurrences = flattenCanvas([
         opt('A'),
         opt('B', ['A']),
         opt('C', ['A']),
@@ -178,6 +186,6 @@ describe('subtreeInsertAfterIndex', () => {
     test('stops at the first later non-descendant', () => {
         expect(subtreeInsertAfterIndex(occurrences, occurrences[0], 0)).toBe(2);
         expect(occurrences[3].option.name).toBe('D');
-        expect(pathStartsWith(occurrences[3].path, occurrences[0].path)).toBe(false);
+        expect(pathStartsWith(occurrencePath(occurrences[3]), occurrencePath(occurrences[0]))).toBe(false);
     });
 });
