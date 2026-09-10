@@ -19,7 +19,7 @@ Post delivery audit logging requires all of the following:
 
 - A Mattermost Enterprise Advanced license.
 - The [feature flag](https://developers.mattermost.com/contribute/more-info/server/feature-flags/#changing-feature-flag-values) `MM_FEATUREFLAGS_POSTDELIVERYTRACKING`, which is disabled by default. **Restart the server after enabling the feature flag**.
-- Advanced Logging \> Advanced Logging to be enabled
+- Advanced audit logging configured at **System Console \> Compliance \> Audit Logging \> Advanced Logging**.
 - An audit log target that consumes the `audit-delivery` log level in the advanced audit log config.
 
 <Important>
@@ -62,7 +62,7 @@ DeliveryTrackingSettings.Enable is enabled but no configured audit log target co
 
 ## Enable post delivery audit logging
 
-In the System Console, enable post delivery audit logging and choose the channels that deliveries are recorded in by going to **Site Configuration \> Data Spillage Handling \> Post Delivery Audit Logging**. See [Post delivery audit logging](/administration-guide/manage/admin/content-flagging#post-delivery-audit-logging) for the steps, and [Content flagging](/administration-guide/configure/site-configuration-settings#content-flagging) for the corresponding `config.json` settings and environment variables.
+In the System Console, enable post delivery audit logging and choose the channels that deliveries are recorded in by going to **Site Configuration \> Data Spillage Handling \> Post Delivery Audit Logging**. See [Post delivery audit logging](/administration-guide/manage/admin/content-flagging#post-delivery-audit-logging) for the steps, and [site configuration settings](/administration-guide/configure/site-configuration-settings#enable-post-delivery-audit-logging) for the corresponding `config.json` settings and environment variables.
 
 ## Record format
 

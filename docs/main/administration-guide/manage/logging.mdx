@@ -403,7 +403,7 @@ Advanced logging options can be configured to:
 <Tabs>
 <TabItem value="multi-line-json" label="Multi-line JSON">
 
-In the example below, file output is written to `./logs/audit.log` in plain text and includes all audit log levels & events. Older logs are kept for 1 day, and up to a total of 10 backup log files are kept at a time. Logs are rotated using gzip when the maximum size of the log file reaches 500 MB. A maximum of 1000 audit records can be queued/buffered while writing to the file.
+In the example below, file output is written to `./logs/audit.log` in plain text and includes audit log levels 100-103 and their events. Older logs are kept for 1 day, and up to a total of 10 backup log files are kept at a time. Logs are rotated using gzip when the maximum size of the log file reaches 500 MB. A maximum of 1000 audit records can be queued/buffered while writing to the file.
 
 #### v11 or later
 
@@ -491,9 +491,9 @@ Advanced logging configuration can be pointed to a filespec to another configura
 
 The separate configuration file includes the multi-line JSON instead.
 
-In the example below, the first output is written to the console in plain text and includes all audit log levels, events, and command outputs. A pipe `|` delimiter is placed between fields.
+In the example below, the first output is written to the console in plain text and includes audit log levels 100-103, their events, and command outputs. A pipe `|` delimiter is placed between fields.
 
-A second output is written to `./logs/audit.log` in plain text in a machine-readable JSON format and includes all audit log levels, events, and command outputs. Older logs are kept for 1 day, and up to a total of 10 backup log files are kept at a time. Logs are rotated using GZIP when the maximum size of the log file reaches 500 MB. A maximum of 1000 audit records can be queued/buffered while writing to the file.
+A second output is written to `./logs/audit.log` in plain text in a machine-readable JSON format and includes audit log levels 100-103, their events, and command outputs. Older logs are kept for 1 day, and up to a total of 10 backup log files are kept at a time. Logs are rotated using GZIP when the maximum size of the log file reaches 500 MB. A maximum of 1000 audit records can be queued/buffered while writing to the file.
 
 Contents of `audit_log_config.json` file:
 

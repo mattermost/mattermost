@@ -232,9 +232,9 @@ To enable post delivery audit logging:
 
 5.  With **Selected channels** set, use **Channels to record deliveries in** to select the channels. Direct and group message channels can't be selected. Recording starts when you save and applies to eligible message content delivered from then on, including existing messages delivered through later channel loads, searches, and fetches.
 
-**Enable post delivery audit logging** and **Record deliveries in** can also be configured via the [config.json file or through environment variables](/administration-guide/configure/site-configuration-settings#content-flagging).
+**Enable post delivery audit logging** and **Record deliveries in** can also be configured via the [config.json file or through environment variables](/administration-guide/configure/site-configuration-settings#enable-post-delivery-audit-logging).
 
-The list of channels isn't stored in `config.json`. Mattermost stores it in the database, so manage it either in the System Console or through the `/api/v4/delivery_tracking/config` API endpoints. A `PUT` request that omits `ChannelIds` leaves the stored list unchanged, and an empty array clears it. See the [Mattermost API reference](https://api.mattermost.com/).
+The list of channels isn't stored in `config.json`. Mattermost stores it in the database, so manage it either in the System Console or through the `/api/v4/delivery_tracking/config` API endpoints. A `PUT` request that omits `ChannelIds` leaves the stored list unchanged. An empty array clears the list when **Record deliveries in** is set to **All channels**, and is rejected when it's set to **Selected channels**, because at least one channel is required. See the [Mattermost API reference](https://api.mattermost.com/).
 
 <Tip>
 
