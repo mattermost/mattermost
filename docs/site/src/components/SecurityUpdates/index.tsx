@@ -229,7 +229,18 @@ export default function SecurityUpdates() {
     return null;
   }, [filters.dateFrom, filters.dateTo]);
 
-  const filterError = dateOrderError;
+  const affectedVersionError = useMemo(() => {
+    const trimmed = filters.affectedVersion.trim();
+    if (!trimmed) {
+      return null;
+    }
+    if (!labelToVersion(trimmed, 'min')) {
+      return 'Enter a version such as 10.11 or 10.11.23.';
+    }
+    return null;
+  }, [filters.affectedVersion]);
+
+  const filterError = affectedVersionError || dateOrderError;
   const filterErrorId = `${formId}-filter-error`;
 
   const filteredRows = useMemo(() => {
@@ -413,6 +424,8 @@ export default function SecurityUpdates() {
                 placeholder="e.g. 10.11"
                 autoComplete="off"
                 spellCheck={false}
+                aria-invalid={Boolean(affectedVersionError)}
+                aria-describedby={affectedVersionError ? filterErrorId : undefined}
               />
             </label>
 
