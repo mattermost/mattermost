@@ -6,6 +6,7 @@ import React from 'react';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {clearGraphOptionNameCache} from 'components/property_fields/graph/use_graph_option_names';
 import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from 'components/property_fields/page_all_property_field_options';
 
 import {defaultIntl} from 'tests/helpers/intl-test-helper';
@@ -1336,7 +1337,6 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             const props = {
                 ...requiredProps,
                 enableCustomProfileAttributes: true,
-                isGraphPickerEnabled: flagOn,
                 customProfileAttributeFields: attributes,
                 user: values ? {...user, custom_profile_attributes: values} : {...user},
                 activeSection,
@@ -1383,6 +1383,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         beforeEach(() => {
             // The pager keeps its in-flight walks in module state.
             clearPropertyFieldOptionWalks();
+            clearGraphOptionNameCache();
 
             // A test that forgets to stub the walk must fail loudly rather than
             // fall through to the real Client4 and node-fetch.
@@ -1581,7 +1582,6 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
                 const props = {
                     ...requiredProps,
                     enableCustomProfileAttributes: true,
-                    isGraphPickerEnabled: true,
                     customProfileAttributeFields: [buildAttribute({options_omitted: true, ...attrs})],
                     user: {...user, ...userOverrides, custom_profile_attributes: {field1: ['opt1']}},
                     activeSection: SECTION,
@@ -1690,7 +1690,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             // EXPANDED first, which is the whole point: for an editable field
             // that is when the picker mounts and names arrive, so a count here
             // would be temporary. A read-only field renders no control, so no
-            // picker mounts, no walk runs, graphOptionNames stays empty for it,
+            // picker mounts, no walk runs, the summary does not walk for a read-only omitted field,
             // and the count is permanent -- where the same field on User Detail
             // shows names. Still better than the flag-off path, which prints the
             // ids themselves.

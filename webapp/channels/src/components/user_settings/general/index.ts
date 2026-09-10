@@ -15,7 +15,7 @@ import {
     getCustomProfileAttributeValues,
 } from 'mattermost-redux/actions/users';
 import {Permissions} from 'mattermost-redux/constants';
-import {getConfig, getCustomProfileAttributes, getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getCustomProfileAttributes, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import {getIsMobileView} from 'selectors/views/browser';
@@ -65,7 +65,6 @@ function mapStateToProps(state: GlobalState) {
         lockProfileFieldsForEmailUsers,
         canEditOtherUsers: haveISystemPermission(state, {permission: Permissions.EDIT_OTHER_USERS}),
         enableCustomProfileAttributes,
-        isGraphPickerEnabled: getFeatureFlagValue(state, 'PropertyFieldGraph') === 'true',
     };
 }
 

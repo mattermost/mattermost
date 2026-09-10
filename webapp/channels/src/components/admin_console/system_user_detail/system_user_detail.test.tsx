@@ -13,6 +13,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import SystemUserDetail, {getUserAuthenticationTextField} from 'components/admin_console/system_user_detail/system_user_detail';
 import type {Params, Props} from 'components/admin_console/system_user_detail/system_user_detail';
+import {clearGraphOptionNameCache} from 'components/property_fields/graph/use_graph_option_names';
 import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from 'components/property_fields/page_all_property_field_options';
 
 import type {MockIntl} from 'tests/helpers/intl-test-helper';
@@ -43,7 +44,6 @@ describe('SystemUserDetail', () => {
         mfaEnabled: false,
         customProfileAttributeEnabled: true,
         customProfileAttributeFields: [],
-        isGraphPickerEnabled: false,
         patchUser: jest.fn(),
         updateUserAuth: jest.fn(),
         updateUserMfa: jest.fn(),
@@ -677,7 +677,6 @@ describe('SystemUserDetail', () => {
             ) => {
                 const props = {
                     ...defaultProps,
-                    isGraphPickerEnabled: flagOn,
                     customProfileAttributeFields: [field],
                     getCustomProfileAttributeFields: jest.fn().mockResolvedValue({data: [field]}),
                     getCustomProfileAttributeValues: jest.fn().mockResolvedValue({
@@ -709,6 +708,7 @@ describe('SystemUserDetail', () => {
             beforeEach(() => {
                 // The pager keeps its in-flight walks in module state.
                 clearPropertyFieldOptionWalks();
+                clearGraphOptionNameCache();
 
                 // A test that forgets to stub the walk must fail loudly rather
                 // than fall through to the real Client4 and node-fetch.

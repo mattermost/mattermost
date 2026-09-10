@@ -28,6 +28,7 @@ import {
     joinGraphOptions,
     selectedDescendantCount,
 } from '../graph_option_tree';
+import {unavailableValueMessage} from '../graph/graph_value_summary';
 import {pageAllAccessControlFieldOptions} from '../page_all_property_field_options';
 import type {GraphFieldRef} from '../page_all_property_field_options';
 
@@ -76,17 +77,11 @@ const messages = defineMessages({
         id: 'property_fields.hierarchical_value_menu.remove_value',
         defaultMessage: 'Remove {name}',
     },
-    unavailableValue: {
-        id: 'property_fields.hierarchical_value_menu.unavailable_value',
-        defaultMessage: 'Value unavailable',
-    },
     removeUnnamedValue: {
         id: 'property_fields.hierarchical_value_menu.remove_unnamed_value',
         defaultMessage: 'Remove value',
     },
 });
-
-export const unavailableValueMessage = messages.unavailableValue;
 
 export type HierarchicalValueMenuProps = {
     field: GraphFieldRef;
@@ -367,7 +362,7 @@ export default function HierarchicalValueMenu({
         }
 
         if (status === 'error') {
-            return {text: formatMessage(messages.unavailableValue), state: 'unavailable'};
+            return {text: formatMessage(unavailableValueMessage), state: 'unavailable'};
         }
 
         if (status !== 'loaded') {

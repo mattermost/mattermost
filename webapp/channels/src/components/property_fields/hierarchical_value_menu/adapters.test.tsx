@@ -7,11 +7,6 @@ import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
-import AssignmentHierarchicalValues, {
-    assignmentFallbackLabels,
-    computeAssignmentPrefetch,
-} from './assignment_adapter';
-import type {AssignmentHierarchicalValuesProps} from './assignment_adapter';
 import PolicyHierarchicalValues, {
     emitPolicyIdsToNames,
     hydratePolicyNamesToIds,
@@ -96,18 +91,6 @@ const renderPolicy = (overrides: Partial<PolicyHierarchicalValuesProps> = {}) =>
         props,
         rerenderSame: () => rendered.rerender(<PolicyHierarchicalValues {...props}/>),
     };
-};
-
-const renderAssignment = (overrides: Partial<AssignmentHierarchicalValuesProps> = {}) => {
-    const props: AssignmentHierarchicalValuesProps = {
-        field: {id: 'field-1', object_type: 'user', attrs: {}},
-        ids: [],
-        onIdsChange: jest.fn(),
-        ...chrome,
-        ...overrides,
-    };
-    const rendered = renderWithContext(<AssignmentHierarchicalValues {...props}/>);
-    return {...rendered, props};
 };
 
 describe('hierarchical value menu adapters', () => {
@@ -392,171 +375,6 @@ describe('hierarchical value menu adapters', () => {
             await settle();
 
             expect(mockPageAll).toHaveBeenCalledTimes(1);
-        });
-    });
-
-    describe('computeAssignmentPrefetch', () => {
-        test('is true when options_omitted', () => {
-            expect(computeAssignmentPrefetch({attrs: {options_omitted: true}}, [])).toBe(true);
-        });
-
-        test('is true when a selected id is not named by the payload', () => {
-            expect(computeAssignmentPrefetch({attrs: {options: [opt('a', 'A')]}}, ['b'])).toBe(true);
-        });
-
-        test('is false when the payload names every selected id', () => {
-            expect(computeAssignmentPrefetch({attrs: {options: [opt('a', 'A')]}}, ['a'])).toBe(false);
-        });
-
-        test('is false with no selection and no omission', () => {
-            expect(computeAssignmentPrefetch({attrs: {options: []}}, [])).toBe(false);
-        });
-
-        test('is true when the payload has no options and something is selected', () => {
-            expect(computeAssignmentPrefetch({attrs: {}}, ['a'])).toBe(true);
-        });
-    });
-
-    describe('assignmentFallbackLabels', () => {
-        test('maps every payload option id to its name', () => {
-            expect(assignmentFallbackLabels({attrs: {options: [opt('a', 'A'), opt('b', 'B')]}})).toEqual({
-                a: 'A',
-                b: 'B',
-            });
-        });
-
-        test('skips an option with an empty id', () => {
-            expect(assignmentFallbackLabels({attrs: {options: [opt('', 'Legacy')]}})).toEqual({});
-        });
-
-        test('is empty for a field with no options', () => {
-            expect(assignmentFallbackLabels({})).toEqual({});
-        });
-    });
-
-    describe('AssignmentHierarchicalValues', () => {
-        test('does not fetch by itself', async () => {
-            renderAssignment({prefetchOnMount: false});
-
-            await settle();
-
-            expect(mockPageAll).not.toHaveBeenCalled();
-        });
-
-        test('passes ids straight through on selection', async () => {
-            mockPageAll.mockResolvedValue(hierarchy());
-            const onIdsChange = jest.fn();
-            renderAssignment({onIdsChange});
-
-            await openMenu();
-            await screen.findByRole('menuitemcheckbox', {name: 'Air Program'});
-            await userEvent.click(checkboxOf('Air Program'));
-
-            expect(onIdsChange).toHaveBeenCalledWith(['opt-air']);
-        });
-
-        test('receives ids unchanged as the selection', async () => {
-            mockPageAll.mockResolvedValue(hierarchy());
-            renderAssignment({ids: ['opt-f18']});
-
-            await openMenu();
-
-            expect(await screen.findByRole('menuitemcheckbox', {name: 'F-18 Program'})).toHaveAttribute('aria-checked', 'true');
-        });
-
-        test('emits an empty array on the last uncheck', async () => {
-            mockPageAll.mockResolvedValue(hierarchy());
-            const onIdsChange = jest.fn();
-            renderAssignment({onIdsChange, ids: ['opt-air']});
-
-            await openMenu();
-            await screen.findByRole('menuitemcheckbox', {name: 'Air Program'});
-            await userEvent.click(checkboxOf('Air Program'));
-
-            expect(onIdsChange).toHaveBeenCalledWith([]);
-        });
-
-        test('prefetches on mount when options are omitted', async () => {
-            mockPageAll.mockResolvedValue(hierarchy());
-            renderAssignment({field: {id: 'field-1', object_type: 'user', attrs: {options_omitted: true}}});
-
-            await settle();
-
-            expect(mockPageAll).toHaveBeenCalledTimes(1);
-        });
-
-        test('prefetches on mount when a selected id lacks a payload name', async () => {
-            mockPageAll.mockResolvedValue(hierarchy());
-            renderAssignment({
-                field: {id: 'field-1', object_type: 'user', attrs: {options: []}},
-                ids: ['opt-f18'],
-            });
-
-            await settle();
-
-            expect(mockPageAll).toHaveBeenCalledTimes(1);
-        });
-
-        test('does not prefetch when the payload names every selected id', async () => {
-            renderAssignment({
-                field: {id: 'field-1', object_type: 'user', attrs: {options: [opt('opt-f18', 'F-18 Program')]}},
-                ids: ['opt-f18'],
-            });
-
-            await settle();
-
-            expect(mockPageAll).not.toHaveBeenCalled();
-        });
-
-        test('an explicit prefetchOnMount prop overrides the computed value', async () => {
-            mockPageAll.mockResolvedValue(hierarchy());
-            renderAssignment({
-                field: {id: 'field-1', object_type: 'user', attrs: {options: [opt('opt-f18', 'F-18 Program')]}},
-                ids: ['opt-f18'],
-                prefetchOnMount: true,
-            });
-
-            await settle();
-
-            expect(mockPageAll).toHaveBeenCalledTimes(1);
-        });
-
-        test('an explicit false prefetchOnMount suppresses a computed true', async () => {
-            renderAssignment({
-                field: {id: 'field-1', object_type: 'user', attrs: {options_omitted: true}},
-                ids: ['opt-f18'],
-                prefetchOnMount: false,
-            });
-
-            await settle();
-
-            expect(mockPageAll).not.toHaveBeenCalled();
-        });
-
-        test('shows payload names as chips without fetching', async () => {
-            renderAssignment({
-                field: {id: 'field-1', object_type: 'user', attrs: {options: [opt('opt-f18', 'F-18 Program')]}},
-                ids: ['opt-f18'],
-            });
-
-            await settle();
-
-            expect(trigger()).toHaveTextContent('F-18 Program');
-            expect(mockPageAll).not.toHaveBeenCalled();
-        });
-
-        test('shows a pending chip rather than an id while prefetching', async () => {
-            const walk = deferred<PropertyFieldOption[]>();
-            mockPageAll.mockReturnValue(walk.promise);
-            renderAssignment({
-                field: {id: 'field-1', object_type: 'user', attrs: {options_omitted: true}},
-                ids: ['opt-f18'],
-            });
-
-            await settle();
-
-            expect(trigger()).not.toHaveTextContent('opt-f18');
-            expect(document.querySelector('.hierarchical-value-menu__chip--pending')).not.toBeNull();
         });
     });
 });

@@ -35,8 +35,8 @@ import ConfirmManageUserSettingsModal from 'components/admin_console/system_user
 import ConfirmModal from 'components/confirm_modal';
 import FormError from 'components/form_error';
 import * as Menu from 'components/menu';
+import GraphValueSummary from 'components/property_fields/graph/graph_value_summary';
 import {AssignmentGraphPicker} from 'components/property_fields/hierarchical_value_menu';
-import {unavailableValueMessage} from 'components/property_fields/hierarchical_value_menu/hierarchical_value_menu';
 import SaveButton from 'components/save_button';
 import TeamSelectorModal from 'components/team_selector_modal';
 import UserSettingsModal from 'components/user_settings/modal';
@@ -328,8 +328,6 @@ export type State = {
     customProfileAttributeValues: Record<string, string | string[]>;
     customProfileAttributeErrors: Record<string, string | undefined>;
     originalCpaValues: Record<string, string | string[]>;
-
-    graphOptionNames: Record<string, Record<string, string>>;
     isLoading: boolean;
     error: string | null;
     isSaving: boolean;
@@ -360,7 +358,6 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             customProfileAttributeValues: {},
             customProfileAttributeErrors: {},
             originalCpaValues: {},
-            graphOptionNames: {},
             isLoading: false,
             error: null,
             isSaving: false,
@@ -519,17 +516,6 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         });
     };
 
-    // Merge, never replace: a second fetch that resolves fewer ids must not
-    // erase names the first one found.
-    handleGraphNamesResolved = (fieldId: string, names: Record<string, string>) => {
-        this.setState((prev) => ({
-            graphOptionNames: {
-                ...prev.graphOptionNames,
-                [fieldId]: {...prev.graphOptionNames[fieldId], ...names},
-            },
-        }));
-    };
-
     // Resolves option IDs to display names for option-backed CPA fields.
     private resolveOptionNames = (field: UserPropertyField, value: string | string[] | undefined): string => {
         if (!value) {
@@ -538,8 +524,6 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
         const options = field.attrs?.options || [];
         if (valueRefersToOptions(field)) {
-            const resolved = this.state.graphOptionNames[field.id];
-
             if (!Array.isArray(value)) {
                 const option = options.find((opt) => opt.id === value);
                 return option ? option.name : value;
@@ -550,24 +534,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 return this.formatEmptyValue();
             }
 
-            const names = value.map((id) => {
-                const option = options.find((opt) => opt.id === id);
-                if (option) {
-                    return option.name;
-                }
-
-                const name = resolved?.[id];
-                if (name) {
-                    return name;
-                }
-
-                // No field entry means no successful read (picker reports {} on success).
-                if (!resolved && field.type === 'graph' && this.props.isGraphPickerEnabled) {
-                    return this.props.intl.formatMessage(unavailableValueMessage);
-                }
-
-                return id;
-            });
+            const names = value.map((id) => options.find((opt) => opt.id === id)?.name ?? id);
             return names.join(this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.arrayValueSeparator', defaultMessage: ', '}));
         }
 
@@ -802,7 +769,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         const isProtected = Boolean(field.attrs?.protected);
         const optionsOmitted = Boolean(field.attrs?.options_omitted);
 
-        const omitLocksField = optionsOmitted && !(field.type === 'graph' && this.props.isGraphPickerEnabled);
+        const omitLocksField = optionsOmitted && field.type !== 'graph';
         const isLockedFromEditing = isSynced || isProtected || isOwnerManaged || omitLocksField;
         const isDisabled = this.state.isSaving || this.state.isLoading || isLockedFromEditing;
 
@@ -871,7 +838,6 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             case 'graph': {
                 const options = field.attrs?.options || [];
                 const selectedValues = Array.isArray(value) ? value : [];
-
                 return (
                     <AssignmentGraphPicker
                         field={field}
@@ -886,8 +852,26 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             defaultMessage: 'Select options...',
                         })}
                         ariaLabel={getUserPropertyFieldLabel(field)}
-                        onNamesResolved={(names) => this.handleGraphNamesResolved(field.id, names)}
-                        fallback={() => (
+                        fallback={() => (optionsOmitted ? (
+                            <>
+                                <input
+                                    className='form-control'
+                                    type='text'
+                                    value={selectedValues.join(this.props.intl.formatMessage({
+                                        id: 'admin.userManagement.userDetail.arrayValueSeparator',
+                                        defaultMessage: ', ',
+                                    }))}
+                                    disabled={true}
+                                    readOnly={true}
+                                />
+                                <div className='user-property-field-values__sync-indicator'>
+                                    <FormattedMessage
+                                        id='admin.userManagement.userDetail.field_options_omitted'
+                                        defaultMessage='This field has too many options to be edited here.'
+                                    />
+                                </div>
+                            </>
+                        ) : (
                             <CPAMultiSelect
                                 options={options}
                                 selectedValues={selectedValues}
@@ -902,7 +886,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                     defaultMessage: 'No options available',
                                 })}
                             />
-                        )}
+                        ))}
                     />
                 );
             }
@@ -1389,9 +1373,14 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 if (field.id === fieldId) {
                     const fieldName = field.name;
                     const originalValue = this.state.originalCpaValues[fieldId];
-
-                    const oldValue = this.resolveOptionNames(field, originalValue);
-                    const newValue = this.resolveOptionNames(field, changes[1]);
+                    const nextValue = changes[1];
+                    const asIds = (v: string | string[] | undefined) => (Array.isArray(v) ? v : []);
+                    const graphConfirm = (v: string | string[] | undefined) => {
+                        const ids = asIds(v);
+                        return ids.length ? <GraphValueSummary field={field} ids={ids} mode='confirm'/> : this.formatEmptyValue();
+                    };
+                    const oldValue = field.type === 'graph' ? graphConfirm(originalValue) : this.resolveOptionNames(field, originalValue);
+                    const newValue = field.type === 'graph' ? graphConfirm(nextValue) : this.resolveOptionNames(field, nextValue);
 
                     fields.push(
                         <FormattedMessage
