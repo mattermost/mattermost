@@ -6,6 +6,8 @@ import {pathToFileURL} from 'node:url';
 const REPOSITORY = 'mattermost/mattermost';
 const CONTEXTS = new Set(['cypress', 'playwright'].flatMap((framework) =>
     ['enterprise', 'fips'].map((edition) => `e2e-test/${framework}-full/${edition}`)));
+const allowedContext = context => CONTEXTS.has(context) ||
+    /^e2e-test\/playwright-full\/(enterprise|fips|team)\/upgrade-from-release-[1-9][0-9]*\.(0|[1-9][0-9]*)(-esr)?$/.test(context);
 const AUTOMATION = '90a726ff-a72f-11f1-a7d1-d6b4613131ce';
 const check = (ok, message) => {if (!ok) throw new Error(message);};
 const positive = (value) => /^[1-9][0-9]*$/.test(String(value));
@@ -14,12 +16,13 @@ const sameScope = (a, b) => ['context', 'status_id', 'gh_run_id', 'gh_run_attemp
 
 export async function verifyManually(request, io) {
     check(request.repository === REPOSITORY && positive(request.pr_number) && /^[a-f0-9]{40}$/.test(request.assessed_sha), 'Invalid PR/SHA identity');
-    check(['review', 'comment'].includes(request.diagnosis_kind) && positive(request.diagnosis_id) &&
+    check(['maintainer', 'review', 'comment'].includes(request.diagnosis_kind), 'Invalid approval type');
+    if (request.diagnosis_kind !== 'maintainer') check(positive(request.diagnosis_id) &&
         /^[a-f0-9]{64}$/.test(request.diagnosis_sha256), 'Invalid diagnosis identity/hash');
     check(typeof request.reason === 'string' && request.reason.trim().length >= 20, 'A specific maintainer approval reason is required');
-    check(Array.isArray(request.contexts) && request.contexts.length > 0 && request.contexts.length <= 4 &&
+    check(Array.isArray(request.contexts) && request.contexts.length > 0 && request.contexts.length <= 24 &&
         new Set(request.contexts.map((item) => item.context)).size === request.contexts.length, 'Invalid or duplicate context scope');
-    for (const item of request.contexts) check(CONTEXTS.has(item.context) && Number.isSafeInteger(item.status_id) && item.status_id > 0 &&
+    for (const item of request.contexts) check(allowedContext(item.context) && Number.isSafeInteger(item.status_id) && item.status_id > 0 &&
         typeof item.gh_run_id === 'string' && positive(item.gh_run_id) && typeof item.gh_run_attempt === 'string' && positive(item.gh_run_attempt), 'Invalid context/status/run/attempt');
     check(/^[a-zA-Z0-9-]+$/.test(io.approver), 'Invalid maintainer identity');
     const repo = `/repos/${REPOSITORY}`;
@@ -34,6 +37,9 @@ export async function verifyManually(request, io) {
         baseSHA ??= pr.base.sha;
     };
     const inspectDiagnosis = async () => {
+        // Human authority is checked above. The exact request and reason are
+        // persisted before writes; no active AI automation is needed to approve.
+        if (request.diagnosis_kind === 'maintainer') return {html_url: io.workflowURL, body: request.reason};
         const path = request.diagnosis_kind === 'review' ? `${repo}/pulls/${request.pr_number}/reviews/${request.diagnosis_id}` :
             `${repo}/issues/comments/${request.diagnosis_id}`;
         const diagnosis = await io.github(path);
@@ -99,7 +105,7 @@ export async function verifyManually(request, io) {
     for (const item of request.contexts) {await inspectRun(item); await inspectStatus(item);}
     const approval = {kind: 'maintainer-e2e-verification-v1', approver: io.approver, workflow_sha: io.workflowSHA,
         workflow_run_url: io.workflowURL, base_sha: baseSHA, request, source_diagnosis_url: diagnosis.html_url, source_diagnosis_body: diagnosis.body};
-    const body = `E2E: maintainer verification approved by @${io.approver}.\n\nThis is a deliberate status waiver, not a claim that Cursor proved causation. Raw CI outcomes remain unchanged.\n\n<details><summary>Approval and diagnosis recorded before status changes</summary>\n\n\`\`\`json\n${JSON.stringify(approval, null, 2).replaceAll('<', '\\u003c')}\n\`\`\`\n</details>`;
+    const body = `E2E: maintainer verification approved by @${io.approver}.\n\nThis is a deliberate human status waiver. Automatic diagnosis has not established the cause; raw CI outcomes remain unchanged.\n\n<details><summary>Approval and supporting reason recorded before status changes</summary>\n\n\`\`\`json\n${JSON.stringify(approval, null, 2).replaceAll('<', '\\u003c')}\n\`\`\`\n</details>`;
     check(body.length <= 60000, 'Approval exceeds GitHub comment limit');
     const comment = await io.github(`${repo}/issues/${request.pr_number}/comments`, {body});
     check(positive(comment.id) && comment.html_url === `https://github.com/${REPOSITORY}/pull/${request.pr_number}#issuecomment-${comment.id}`, 'Approval comment write was not confirmed');

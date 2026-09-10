@@ -22,6 +22,11 @@ on:
         description: "Commit SHA to test (for Argo Events)"
         type: string
         required: false
+      run_rolling_upgrades:
+        description: "Also run Playwright rolling-upgrade coverage (upgrade-from/to matrix, then the full suite on each upgraded server)"
+        type: boolean
+        required: false
+        default: false
 
 permissions: {}
 
@@ -96,6 +101,7 @@ jobs:
     outputs:
       should_run: "${{ steps.check.outputs.should_run }}"
       should_run_fips: "${{ steps.check.outputs.should_run_fips }}"
+      should_run_rolling_upgrades: "${{ steps.check.outputs.should_run_rolling_upgrades }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -115,6 +121,7 @@ jobs:
           COMMIT_SHA: ${{ needs.resolve-pr.outputs.COMMIT_SHA }}
           INPUT_PR_NUMBER: ${{ inputs.pr_number }}
           HEAD_REF: ${{ needs.resolve-pr.outputs.HEAD_REF }}
+          INPUT_RUN_ROLLING_UPGRADES: ${{ inputs.run_rolling_upgrades }}
         run: |
           set -euo pipefail
           [[ "$BASE_SHA" =~ ^[a-f0-9]{40}$ && "$COMMIT_SHA" =~ ^[a-f0-9]{40}$ ]]
@@ -122,6 +129,28 @@ jobs:
           ARGS=(--base "$BASE_SHA" --head "$COMMIT_SHA" --head-ref "$HEAD_REF")
           if [ -n "$INPUT_PR_NUMBER" ]; then ARGS+=(--manual); fi
           node .github/scripts/e2e-change-scope.mjs "${ARGS[@]}"
+
+          # Rolling upgrades: opt-in on manual dispatch, or auto when the PR touches the harness.
+          CHANGED_FILES=$(git diff --name-only "$BASE_SHA...$COMMIT_SHA")
+          SHOULD_RUN_ROLLING_UPGRADES="false"
+          if [ "$INPUT_RUN_ROLLING_UPGRADES" = "true" ]; then
+            echo "Manual rolling-upgrades opt-in detected"
+            SHOULD_RUN_ROLLING_UPGRADES="true"
+          elif grep -qE '^e2e-tests/playwright/(upgrade-specs/|script/resolve_upgrade_matrix\.mjs)' <<< "$CHANGED_FILES"; then
+            echo "Found Playwright upgrade-path harness changes"
+            SHOULD_RUN_ROLLING_UPGRADES="true"
+          elif grep -qE '^\.github/workflows/e2e-tests-playwright-rolling-upgrades' <<< "$CHANGED_FILES"; then
+            echo "Found Playwright rolling-upgrade workflow changes"
+            SHOULD_RUN_ROLLING_UPGRADES="true"
+          # Server-side surfaces an upgrade has to survive: schema and config migrations, the
+          # app-layer data migrations, and the version list the from-version matrix is derived from.
+          elif grep -qE '^server/(channels/db/migrations/|config/migrations/|channels/app/(migrations|permissions_migrations)\.go$|public/model/version\.go$)' <<< "$CHANGED_FILES"; then
+            echo "Found server migration or version changes"
+            SHOULD_RUN_ROLLING_UPGRADES="true"
+          fi
+
+          echo "should_run_rolling_upgrades=${SHOULD_RUN_ROLLING_UPGRADES}" >> $GITHUB_OUTPUT
+          echo "Should run rolling upgrades: ${SHOULD_RUN_ROLLING_UPGRADES}"
 
   e2e-cypress:
     needs:
@@ -170,6 +199,7 @@ jobs:
       report_type: "PR"
       pr_number: "${{ needs.resolve-pr.outputs.PR_NUMBER }}"
       should_run: "${{ needs.check-changes.outputs.should_run }}"
+      run_rolling_upgrades: "${{ needs.check-changes.outputs.should_run_rolling_upgrades }}"
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
@@ -222,6 +252,7 @@ jobs:
       enable_reporting: true
       report_type: "PR"
       pr_number: "${{ needs.resolve-pr.outputs.PR_NUMBER }}"
+      run_rolling_upgrades: "${{ needs.check-changes.outputs.should_run_rolling_upgrades }}"
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"

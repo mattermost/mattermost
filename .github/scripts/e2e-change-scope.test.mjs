@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {execFileSync} from 'node:child_process';
-import {mkdtempSync, mkdirSync, writeFileSync, renameSync, rmSync} from 'node:fs';
+import {mkdtempSync, mkdirSync, readFileSync, writeFileSync, renameSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join, dirname} from 'node:path';
 import {classifyChanges, readChanges, main} from './e2e-change-scope.mjs';
@@ -96,4 +96,26 @@ test('malformed CLI arguments cannot emit a skip', () => {
     assert.throws(() => main(['--base', 'a'.repeat(40), '--base', 'b'.repeat(40)]));
     assert.throws(() => main(['--head']));
     assert.throws(() => main(['--unknown']));
+});
+
+test('rolling-upgrade selection preserves early matches in large PR diffs under pipefail', () => {
+    const workflow = readFileSync(new URL('../workflows/e2e-tests-ci.yml', import.meta.url), 'utf8');
+    const block = workflow.match(/          SHOULD_RUN_ROLLING_UPGRADES="false"[\s\S]*?          echo "Should run rolling upgrades:[^\n]*\n/);
+    assert.ok(block, 'The actual workflow selection step must be exercised');
+    const script = 'set -euo pipefail\nCHANGED_FILES=$(cat)\n' + block[0].replace(/^ {10}/gm, '');
+    const cwd = mkdtempSync(join(tmpdir(), 'e2e-rolling-scope-'));
+    const rest = Array.from({length: 20000}, (_, i) => `server/ordinary/path_${i}.go`).join('\n');
+    try {
+        for (const [file, manual, expected] of [
+            ['e2e-tests/playwright/upgrade-specs/example.spec.ts', 'false', true],
+            ['.github/workflows/e2e-tests-playwright-rolling-upgrades.yml', 'false', true],
+            ['server/config/migrations/example.go', 'false', true],
+            ['README.md', 'false', false],
+            ['README.md', 'true', true],
+        ]) {
+            const output = execFileSync('/bin/bash', ['-c', script], {cwd, encoding: 'utf8', input: `${file}\n${rest}\n`,
+                env: {...process.env, INPUT_RUN_ROLLING_UPGRADES: manual, GITHUB_OUTPUT: join(cwd, 'outputs')}});
+            assert.match(output, new RegExp(`Should run rolling upgrades: ${expected}`));
+        }
+    } finally { rmSync(cwd, {recursive: true, force: true}); }
 });

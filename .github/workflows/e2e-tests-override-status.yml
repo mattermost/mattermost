@@ -5,33 +5,33 @@ on:
   workflow_dispatch:
     inputs:
       pr_number:
-        description: "PR number whose diagnosis the maintainer reviewed"
+        description: "PR number whose exact failed checks the maintainer reviewed"
         required: true
         type: string
       assessed_sha:
-        description: "Exact 40-character PR commit SHA assessed by Cursor"
+        description: "Exact 40-character PR commit SHA reviewed by the maintainer"
         required: true
         type: string
       diagnosis_kind:
-        description: "Type of durable Cursor diagnosis"
+        description: "Maintainer approval, or a historical Cursor review/comment"
         required: true
         type: choice
-        default: review
-        options: [review, comment]
+        default: maintainer
+        options: [maintainer, review, comment]
       diagnosis_id:
         description: "Cursor PR review ID (or issue comment ID)"
-        required: true
+        required: false
         type: string
       diagnosis_sha256:
         description: "SHA-256 of the complete diagnosis body reviewed by the maintainer"
-        required: true
+        required: false
         type: string
       contexts_json:
         description: "JSON array: context, numeric status_id, string gh_run_id and gh_run_attempt"
         required: true
         type: string
       approval_reason:
-        description: "Why the maintainer approves these exact failures despite the diagnosis limitations"
+        description: "Evidence and reason for approving only these exact failed checks"
         required: true
         type: string
 

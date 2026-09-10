@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {DragDropContext, Droppable} from '@hello-pangea/dnd';
+import type {DropResult, DragStart, BeforeCapture} from '@hello-pangea/dnd';
 import classNames from 'classnames';
 import debounce from 'lodash/debounce';
 import React, {lazy} from 'react';
-import {DragDropContext, Droppable} from 'react-beautiful-dnd';
-import type {DropResult, DragStart, BeforeCapture} from 'react-beautiful-dnd';
 import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
 import {SpringSystem} from 'rebound';
 import type {Spring} from 'rebound';
@@ -399,7 +399,7 @@ export class SidebarList extends React.PureComponent<Props, State> {
         this.channelRefs.forEach((ref) => ref.classList.remove('animating'));
 
         // Turn off scrolling temporarily so that dimensions can be captured
-        const droppable = [...document.querySelectorAll<HTMLDivElement>('[data-rbd-droppable-id*="droppable-categories"]')];
+        const droppable = [...document.querySelectorAll<HTMLDivElement>('[data-rfd-droppable-id*="droppable-categories"]')];
         droppable[0].style.height = `${droppable[0].scrollHeight}px`;
 
         if (!this.props.multiSelectedChannelIds.find((id) => before.draggableId === id)) {
@@ -437,7 +437,7 @@ export class SidebarList extends React.PureComponent<Props, State> {
         this.props.actions.setDraggingState({state: DraggingStates.DURING});
 
         // Re-enable scroll box resizing
-        const droppable = [...document.querySelectorAll<HTMLDivElement>('[data-rbd-droppable-id*="droppable-categories"]')];
+        const droppable = [...document.querySelectorAll<HTMLDivElement>('[data-rfd-droppable-id*="droppable-categories"]')];
         droppable[0].style.height = '';
     };
 

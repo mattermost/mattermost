@@ -958,7 +958,7 @@ func (h *AccessControlHook) getCallerValuesForField(groupID, fieldID, callerID s
 }
 
 // extractOptionIDsFromValue parses a JSON value and extracts option IDs into a set.
-func (h *AccessControlHook) extractOptionIDsFromValue(fieldType model.PropertyFieldType, value []byte) (map[string]struct{}, error) {
+func extractOptionIDsFromValue(fieldType model.PropertyFieldType, value []byte) (map[string]struct{}, error) {
 	if len(value) == 0 {
 		return nil, nil
 	}
@@ -1022,7 +1022,7 @@ func (h *AccessControlHook) getCallerOptionIDsForField(groupID, fieldID, callerI
 
 	callerOptionIDs := make(map[string]struct{})
 	for _, val := range callerValues {
-		optionIDs, err := h.extractOptionIDsFromValue(fieldType, val.Value)
+		optionIDs, err := extractOptionIDsFromValue(fieldType, val.Value)
 		if err == nil && optionIDs != nil {
 			for optionID := range optionIDs {
 				callerOptionIDs[optionID] = struct{}{}
@@ -1211,7 +1211,7 @@ func (h *AccessControlHook) filterSharedOnlyValue(field *model.PropertyField, va
 		return nil
 	}
 
-	targetOptionIDs, err := h.extractOptionIDsFromValue(field.Type, value.Value)
+	targetOptionIDs, err := extractOptionIDsFromValue(field.Type, value.Value)
 	if err != nil || targetOptionIDs == nil || len(targetOptionIDs) == 0 {
 		return nil
 	}
@@ -1268,7 +1268,7 @@ func (h *AccessControlHook) filterSharedOnlyRankValue(field *model.PropertyField
 		return nil
 	}
 
-	targetOptionIDs, err := h.extractOptionIDsFromValue(field.Type, value.Value)
+	targetOptionIDs, err := extractOptionIDsFromValue(field.Type, value.Value)
 	if err != nil || len(targetOptionIDs) == 0 {
 		return nil
 	}

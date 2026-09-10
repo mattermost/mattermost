@@ -33,6 +33,12 @@ None proves causality or authorizes a waiver. Environment comparability, the eff
 
 Read-only live acceptance covered a same-repository final failure (#38407), a fork with no current E2E statuses (#38353), and a green-status/failed-workflow mismatch with only 32/40 Cypress worker reports (#38356). A failed fork is covered by fixtures, not a live acceptance run. Automatic clearance and a real generated repair PR remain unproved.
 
+## Human approval
+
+The existing **E2E Tests - Override Status** workflow defaults to maintainer approval and no longer requires a running Cursor automation. A maintainer with write access supplies the exact PR head, the selected context/status/run/attempt values, and the reason for accepting those failures. Historical Cursor reviews/comments can still be supplied as supporting records. The workflow saves the approval before changing a status, checks it again around writes, and preserves any newer independent CI status during recovery.
+
+Up to 24 explicitly selected contexts can be approved, including Playwright rolling-upgrade PR checks for enterprise, FIPS and team editions. The `upgrade-from-none` skip marker and master/release contexts are excluded. Approval never silently expands to other failed checks. Unsupported workflow/tested-commit combinations still stop for investigation. This is human approval, not the missing automatic unrelated-failure decision.
+
 ## Activation
 
 Land the reviewed scripts/workflows on master first. The mechanical policy uses `pull_request_target`, checks out the exact trusted base SHA, and reads the PR commit only as Git data; its first bootstrap PR cannot exercise a policy that is not on its base yet. Require the `E2E Mechanical Edit Policy / policy` check after that bootstrap. No PR source, install hook, artifact, or candidate policy is executed by this privileged event.

@@ -592,14 +592,6 @@
     "translation": "@[nazwaużytkownika1],@[nazwaużytkownika2] 'wiadomość'"
   },
   {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "few": "Nie można znaleźć użytkowników: {{.Users}}",
-      "many": "Nie można znaleźć użytkowników: {{.Users}}",
-      "one": "Nie można znaleźć użytkownika: {{.Users}}"
-    }
-  },
-  {
     "id": "api.command_groupmsg.max_users.app_error",
     "translation": "Wiadomości grupowe są ograniczone do maksymalnie {{.MaxUsers}} użytkowników."
   },
@@ -670,14 +662,6 @@
   {
     "id": "api.command_invite.success",
     "translation": "{{.User}} został dodany do kanału {{.Channel}}."
-  },
-  {
-    "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": {
-      "few": "{{.User}} są już na kanale.",
-      "many": "{{.User}} są już na kanale.",
-      "one": "{{.User}} jest już na kanale."
-    }
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -972,14 +956,6 @@
     "translation": "Masowa wysyłka maili została wyłączona przez administratora systemu."
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": {
-      "few": "Nowe powiadomienia [{{.SiteName}}] z {{.Month}} {{.Day}}, {{.Year}}",
-      "many": "Nowe powiadomienia [{{.SiteName}}] z {{.Month}} {{.Day}}, {{.Year}}",
-      "one": "Nowe powiadomienie [{{.SiteName}}] z {{.Month}} {{.Day}}, {{.Year}}"
-    }
-  },
-  {
     "id": "api.emoji.create.duplicate.app_error",
     "translation": "Nie można utworzyć emoji. Inne emoji o tej samej nazwie już istnieje."
   },
@@ -1160,10 +1136,6 @@
     "translation": "Ta licencja zezwala na tylko {{.Users}} użytkowników, podczas gdy Twój system ma {{.Count}} unikalnych użytkowników. Unikalni użytkownicy zliczani są na podstawie adresu email. Możesz zobaczyć całkowitę liczbę użytkowników w Raporty serwisu -> Zobacz statystyki."
   },
   {
-    "id": "api.license.client.old_format.app_error",
-    "translation": "Nowy format licencji klienta nie jest jeszcze wspierany. Proszę podać format=old w ciągu znaków zapytania."
-  },
-  {
     "id": "api.marshal_error",
     "translation": "Nie udało się zorganizować."
   },
@@ -1336,22 +1308,6 @@
     "translation": "Błąd integracji akcji."
   },
   {
-    "id": "api.post.get_message_for_notification.files_sent",
-    "translation": {
-      "few": "Wysłano {{.Count}} pliki: {{.Filenames}}",
-      "many": "Wysłano {{.Count}} pliki: {{.Filenames}}",
-      "one": "{{.Count}} plik wysłany: {{.Filenames}}"
-    }
-  },
-  {
-    "id": "api.post.get_message_for_notification.images_sent",
-    "translation": {
-      "few": "Wysłano {{.Count}} plików: {{.Filenames}}",
-      "many": "Wysłano {{.Count}} plików: {{.Filenames}}",
-      "one": "{{.Count}} plik wysłany: {{.Filenames}}"
-    }
-  },
-  {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Nie można zaktualizować wiadomości w usuniętym kanale."
   },
@@ -1484,78 +1440,6 @@
     "translation": "Błąd podczas uruchamiania serwera, err:%v"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.unable_import",
-    "translation": "Nie udało się zaimportować użytkownika Integracji/Slack Bot {{.Username}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\r\nDodane kanały:\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-    "translation": "Nie można dodać użytkownika Slacka {{.Username}} do kanału.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.import_failed",
-    "translation": "Nie można zaimportować kanału Slacka {{.DisplayName}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.merge",
-    "translation": "Kanał Slacka {{.DisplayName}} już istnieje jako aktywny kanał Mattermost. Kanały zostały połączone.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.created",
-    "translation": "\r\nUtworzeni użytkownicy:\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "Użytkownik Slacka został połączony z istniejącym użytkownikiem Mattermost z pasującym adresem e-mail {{.Email}} i nazwą użytkownika {{.Username}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Użytkownik Slacka został połączony z istniejącym użytkownikiem Mattermost z pasującym adresem e-mail {{.Email}} i nazwą użytkownika {{.Username}}, ale nie udało się dodać użytkownika do jego teamu.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "Użytkownik {{.Username}} nie ma adresu e-mail w eksporcie Slacka. Użyto {{.Email}} jako placeholdera. Użytkownik powinien zaktualizować adres po zalogowaniu.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.unable_import",
-    "translation": "Nie można zaimportować użytkownika: {{.Username}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.log",
-    "translation": "Dziennik importu z Slack do Mattermost\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note1",
-    "translation": "- Niektóre wiadomości mogły nie zostać zaimportowane ponieważ nie są obsługiwane przez ten importer.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note2",
-    "translation": "- Wiadomości bota Slacka nie są obecnie obsługiwane.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note3",
-    "translation": "- Dodatkowe błędy mogą się znajdować w logach serwera.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.notes",
-    "translation": "\r\nUwagi: \r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.open.app_error",
-    "translation": "Nie można otworzyć pliku: {{.Filename}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.team_fail",
-    "translation": "Nie udało się pobrać zespołu do którego ma nastąpić import.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.zip.app_error",
-    "translation": "Nie można otworzyć pliku zip z eksportem Slacka.\r\n"
-  },
-  {
     "id": "api.status.user_not_found.app_error",
     "translation": "Nie znaleziono użytkownika."
   },
@@ -1578,34 +1462,6 @@
   {
     "id": "api.team.get_team_icon.read_file.app_error",
     "translation": "Nie można odczytać pliku ikony zespołu."
-  },
-  {
-    "id": "api.team.import_team.array.app_error",
-    "translation": "Pusta tablica w kluczu 'image' w żądaniu."
-  },
-  {
-    "id": "api.team.import_team.integer.app_error",
-    "translation": "Rozmiar pliku nie jest integer."
-  },
-  {
-    "id": "api.team.import_team.no_file.app_error",
-    "translation": "Brak pliku w polu 'file' w żądaniu."
-  },
-  {
-    "id": "api.team.import_team.no_import_from.app_error",
-    "translation": "Nieprawidłowe zapytanie: pole importFrom nie istnieje."
-  },
-  {
-    "id": "api.team.import_team.open.app_error",
-    "translation": "Nie można otworzyć pliku."
-  },
-  {
-    "id": "api.team.import_team.parse.app_error",
-    "translation": "Nie udało się przetworzyć wieloczęściowego formularza."
-  },
-  {
-    "id": "api.team.import_team.unavailable.app_error",
-    "translation": "Nieprawidłowe zapytanie: pole rozmiaru pliku nie istnieje."
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -3536,14 +3392,6 @@
     "translation": "Zezwalanie na pliki cookie dla poddomen wymaga ustawienia SiteURL."
   },
   {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "Nieprawidłowy parametr RemoteImageProxyOptions dla atmos/camo. Musi być ustawiony na Twój klucz udostępniony."
-  },
-  {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
-    "translation": "Nieprawidłowy parametr RemoteImageProxyURL dla atmos/camo. Musi być ustawiony na Twój klucz udostępniony."
-  },
-  {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Nie można odblokować masowych emaili gdy klastrowanie jest odblokowane."
   },
@@ -3602,10 +3450,6 @@
   {
     "id": "model.config.is_valid.email_security.app_error",
     "translation": "Nieprawidłowe zabezpieczenie połączenia dla ustawień email. Musi być 'TLS', albo 'STARTTLS'."
-  },
-  {
-    "id": "model.config.is_valid.encrypt_sql.app_error",
-    "translation": "Nieprawidłowy klucz szyfrowania dla ustawień SQL. Musi składać się z 32 lub więcej znaków."
   },
   {
     "id": "model.config.is_valid.file_driver.app_error",
@@ -5276,10 +5120,6 @@
     "translation": "ID Loaded Push Notifications nie są skonfigurowane lub wspierane na tym serwerze."
   },
   {
-    "id": "api.slackimport.slack_import.zip.file_too_large",
-    "translation": "{{.Filename}} w archiwum zip jest za duże aby przetworzyć importowanie ze Slacka\r\n"
-  },
-  {
     "id": "api.push_notifications_ack.message.parse.app_error",
     "translation": "An error occurred building the push notification ack message."
   },
@@ -5510,10 +5350,6 @@
   {
     "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
     "translation": "Nie można uzyskać wszystkich reakcji z tą nazwą emoji."
-  },
-  {
-    "id": "app.reaction.bulk_get_for_post_ids.app_error",
-    "translation": "Nie można uzyskać reakcji na wiadomość."
   },
   {
     "id": "app.audit.save.saving.app_error",
@@ -7156,10 +6992,6 @@
     "translation": "Nieprawidłowe lub brakujące żądanie."
   },
   {
-    "id": "api.team.import_team.unknown_import_from.app_error",
-    "translation": "Nieznane źródło importu."
-  },
-  {
     "id": "api.team.add_team_member.invalid_body.app_error",
     "translation": "Nie można przetworzyć treści żądania."
   },
@@ -8564,10 +8396,6 @@
     "translation": "Nieprawidłowa wartość dla bajtów podczas wgrywania licencji."
   },
   {
-    "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "{{.Backend}} wersja {{.Version}} jest wyższa niż maksymalna obsługiwana wersja {{.MaxVersion}}"
-  },
-  {
     "id": "app.plugin.skip_installation.app_error",
     "translation": "Pomijanie instalacji wtyczki {{.Id}}, ponieważ istniejąca wersja jest równa lub nowsza."
   },
@@ -8670,30 +8498,6 @@
   {
     "id": "app.channel.update_member.notify_props_limit_exceeded.app_error",
     "translation": "Nie można zaktualizować członka kanału, przekroczono limit rozmiaru powiadomień."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.config.app_error",
-    "translation": "Działania te wymagają użycia dedykowanego magazynu eksportu."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.driver.app_error",
-    "translation": "Sterownik sklepu eksportowego nie obsługuje generowania adresów url presign."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.featureflag.app_error",
-    "translation": "Ta funkcja jest ograniczona przez flagę funkcji."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.fileexist.app_error",
-    "translation": "Nie można sprawdzić czy plik istnieje."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.link.app_error",
-    "translation": "Nie można wygenerować przypisanego adresu URL."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.notfound.app_error",
-    "translation": "Plik eksportu nie został znaleziony."
   },
   {
     "id": "model.channel_member.is_valid.notify_props.app_error",
@@ -9932,28 +9736,12 @@
     "translation": "Nie można usunąć zaplanowanych postów dla użytkownika."
   },
   {
-    "id": "app.scheduled_post.failed_messages",
-    "translation": {
-      "few": "Nie udało się wysłać {{.Count}} zaplanowanych postów.",
-      "many": "Nie udało się wysłać {{.Count}} zaplanowanych postów.",
-      "one": "Nie udało się wysłać {{.Count}} zaplanowanego posta."
-    }
-  },
-  {
     "id": "app.scheduled_post.private_channel",
     "translation": "Kanał prywatny"
   },
   {
     "id": "app.scheduled_post.unknown_channel",
     "translation": "Nieznany Kanał"
-  },
-  {
-    "id": "app.scheduled_post.failed_message_detail",
-    "translation": {
-      "few": "- {{.Count}} w kanałach {{.ChannelName}}. Powód: {{.ErrorReason}}",
-      "many": "- {{.Count}} w kanałach {{.ChannelName}}. Powód: {{.ErrorReason}}",
-      "one": "- {{.Count}} w kanale {{.ChannelName}}. Powód: {{.ErrorReason}}"
-    }
   },
   {
     "id": "model.config.is_valid.storage_class.app_error",
@@ -10604,10 +10392,6 @@
     "translation": "Nadrzędne jest już zaimportowane."
   },
   {
-    "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
-    "translation": "Ukrywanie archiwizowanych kanałów nie jest już obsługiwane. Zamiast tego ustaw te kanały jako prywatne i usuń ich członków."
-  },
-  {
     "id": "app.lookup_interactive_dialog.decode_json_error",
     "translation": "Napotkano błąd dekodowania odpowiedzi JSON z interaktywnego wyszukiwania okna dialogowego."
   },
@@ -10626,10 +10410,6 @@
   {
     "id": "ent.elasticsearch.create_processor.sync_bulk_processor_create_failed",
     "translation": "Nie udało się utworzyć masowego procesora synchronizacji Elasticsearch"
-  },
-  {
-    "id": "model.config.is_valid.client_side_cert_enable.app_error",
-    "translation": "Uwierzytelnianie oparte na certyfikatach zostało usunięte. Wyłącz ClientSideCertEnable, aby kontynuować."
   },
   {
     "id": "api.user.check_user_password.invalid_hash.app_error",
@@ -11656,18 +11436,6 @@
     "translation": "Nie można zainstalować Wtyczki: PluginSettings.Directory jest w konflikcie z ImportSettings.Directory."
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.email",
-    "translation": "Użytkownik Integration/Slack Bot z adresem e-mail {{.Email}} został zaimportowany.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.email",
-    "translation": "Użytkownik Slack z adresem e-mail {{.Email}} został zaimportowany.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.send_reset_email_failed",
-    "translation": "Nie można wysłać wiadomości e-mail z resetem hasła na adres {{.Username}} pod adresem {{.Email}}.\n"
-  },
-  {
     "id": "api.upload.create.check_directory.app_error",
     "translation": "Wystąpił błąd podczas sprawdzania konfiguracji katalogu importu."
   },
@@ -12310,14 +12078,6 @@
   {
     "id": "ent.elasticsearch.healthcheck.unreachable.app_error",
     "translation": "{{.Backend}} kontrola stanu nie powiodła się: nie można ukończyć kontroli."
-  },
-  {
-    "id": "ent.elasticsearch.min_version.app_error",
-    "translation": "{{.Backend}} Wersja {{.Version}} jest niższa niż min. wspierana wersja {{.MinVersion}}"
-  },
-  {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_options_length.app_error",
-    "translation": "Nieprawidłowe opcje RemoteImageProxyOptions dla atmos/camo: klucz HMAC musi mieć co najmniej {{.MinLength}} bajtów, aby zapewnić zgodność ze standardem FIPS."
   },
   {
     "id": "model.config.is_valid.sql_analytics_query_timeout.app_error",
@@ -12988,14 +12748,6 @@
     "translation": "**Identyfikatory informacji o pliku:** {{.FileInfoIDs}}"
   },
   {
-    "id": "app.data_spillage.report.detail.file_names",
-    "translation": {
-      "few": "{{.Count}} pliki zostało/zostały usuniętych/usunięte z dysku.",
-      "many": "Usunięto {{.Count}} plików z dysku.",
-      "one": "{{.Count}} plik został usunięty z dysku."
-    }
-  },
-  {
     "id": "app.data_spillage.report.detail.no_data_found",
     "translation": "Nie znaleziono żadnych danych."
   },
@@ -13010,14 +12762,6 @@
   {
     "id": "app.data_spillage.report.detail.post_scrubbed_deleted",
     "translation": "Post został wyczyszczony i usunięty."
-  },
-  {
-    "id": "app.data_spillage.report.detail.revisions_cleared",
-    "translation": {
-      "few": "Wyczyszczono {{.Count}} rewizji z {{.Total}}.",
-      "many": "Wyczyszczono {{.Count}} wersji z {{.Total}}.",
-      "one": "Wyczyszczono {{.Count}} rewizję z {{.Total}}."
-    }
   },
   {
     "id": "app.data_spillage.report.detail.thread_data_deleted",

@@ -8,6 +8,8 @@ import {defineMessages} from 'react-intl';
 import {AccountOutlineIcon, MessageTextOutlineIcon, ProductChannelsIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 
+import type {ChannelResourceConfig} from '../applies_to/channels/types';
+
 export type ResourceObjectType = 'user' | 'channel' | 'post';
 
 // Fixed Users -> Channels -> Posts order used everywhere a resource list is
@@ -30,6 +32,18 @@ export type AttributeAppliesToItemProps = {
     // case) renders no tooltip, matching today's existing behavior.
     lockedTooltip?: ReactNode;
     onRemove: () => void;
+};
+
+// Channels is the one resource with settings of its own, so its row takes the
+// shared props plus the configuration it edits. The page owns that state: it is
+// what the linked channel field is built from at save time.
+export type AttributeAppliesToChannelItemProps = AttributeAppliesToItemProps & {
+    config: ChannelResourceConfig;
+    onConfigChange: (next: ChannelResourceConfig) => void;
+
+    // Whether the attribute is rank-typed, which is what makes the directional
+    // change policies meaningful.
+    ordered?: boolean;
 };
 
 // Shared between AttributeAppliesTo (which owns the button) and AttributeDetails

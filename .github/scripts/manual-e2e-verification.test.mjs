@@ -46,6 +46,40 @@ function fixture() {
 }
 const writes = (state) => state.mutations.filter((mutation) => mutation.path.includes('/statuses/'));
 
+test('a maintainer can approve exact failures without an active Cursor automation', async () => {
+    const {request, state, io} = fixture();
+    request.diagnosis_kind = 'maintainer';
+    delete request.diagnosis_id;
+    delete request.diagnosis_sha256;
+    state.diagnosis = null;
+    const receipt = await verifyManually(request, io);
+    assert.equal(receipt.assessed_sha, head);
+    assert.equal(writes(state).length, 1);
+    assert.match(state.mutations[0].payload.body, /I reviewed the recurring master error/);
+});
+
+test('rolling-upgrade contexts use exact scoped maintainer approval for more than four contexts', async () => {
+    const {request, state, io} = fixture();
+    request.diagnosis_kind = 'maintainer';
+    const names = ['enterprise', 'fips', 'team'].flatMap(edition => ['11.7', '11.8-esr'].map(version =>
+        `e2e-test/playwright-full/${edition}/upgrade-from-release-${version}`));
+    request.contexts = names.map((name, index) => ({context: name, status_id: 100 + index, gh_run_id: '123', gh_run_attempt: '1'}));
+    state.statuses = request.contexts.map(scope => ({...state.statuses[0], id: scope.status_id, context: scope.context,
+        target_url: `https://staging-test-io.test.mattermost.com/reports/mattermost/feature/${head.slice(0, 7)}/${scope.context.slice(9).replaceAll('/', '-')}?gh_run_id=123&gh_run_attempt=1`}));
+    await verifyManually(request, io);
+    assert.deepEqual(writes(state).map(write => write.payload.context), names);
+});
+
+for (const unsupported of ['upgrade-from-none', 'upgrade-from-release-11.8/master', 'upgrade-from-release-11.8/release-11.9']) {
+    test(`does not admit rolling sentinel or non-PR scope ${unsupported}`, async () => {
+        const {request, state, io} = fixture();
+        request.diagnosis_kind = 'maintainer';
+        request.contexts[0].context = `e2e-test/playwright-full/enterprise/${unsupported}`;
+        await assert.rejects(verifyManually(request, io), /context\/status/);
+        assert.equal(writes(state).length, 0);
+    });
+}
+
 test('records deliberate maintainer approval and raw diagnosis before exact SHA/status write and receipt', async () => {
     const {request, state, io} = fixture();
     const receipt = await verifyManually(request, io);
