@@ -509,11 +509,11 @@ export default function HierarchicalValueMenu({
         const walk = (nodes: GraphOccurrence[], depth: number) => {
             for (const node of nodes) {
                 const isBranch = node.children.length > 0;
-                const isExpanded = isBranch && open.has(node.occKey);
+                const isExpanded = isBranch && open.has(node.key);
                 rows.push({
-                    occKey: node.occKey,
-                    valueId: node.valueId,
-                    label: node.label,
+                    occKey: node.key,
+                    valueId: node.valueKey,
+                    label: node.option.name,
                     hint: node.alsoUnder.length > 0 ? formatMessage(messages.alsoUnder, {names: alsoUnderLabel(node.alsoUnder)}) : null,
                     depth,
                     isBranch,

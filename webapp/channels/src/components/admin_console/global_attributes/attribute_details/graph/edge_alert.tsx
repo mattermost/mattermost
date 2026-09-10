@@ -4,14 +4,22 @@
 import React from 'react';
 import {defineMessages, useIntl} from 'react-intl';
 
-import {
-    GRAPH_CYCLE_ERROR_DEFAULT,
-    GRAPH_DEPTH_ERROR_DEFAULT,
-    GRAPH_MAX_PARENTS_ERROR_DEFAULT,
-    cycleErrorValues,
-    depthErrorValues,
-    type CheckParentEdgeInvalid,
-} from './graph_utils';
+import type {CheckParentEdgeInvalid} from './graph_utils';
+
+const GRAPH_CYCLE_ERROR_DEFAULT =
+    "{parent} can't be a parent of {child} — {child} already grants {parent}, so this would loop back on itself.";
+const GRAPH_DEPTH_ERROR_DEFAULT =
+    'Adding this parent pushes "{name}" to depth {n}; the limit is 100.';
+const GRAPH_MAX_PARENTS_ERROR_DEFAULT =
+    'An option can have at most 100 parents.';
+
+function cycleErrorValues(parentName: string, childName: string): {parent: string; child: string} {
+    return {parent: parentName, child: childName};
+}
+
+function depthErrorValues(name: string, depth: number): {name: string; n: number} {
+    return {name, n: depth};
+}
 
 type Props = {
     result: CheckParentEdgeInvalid;

@@ -10,9 +10,9 @@ import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import {openModal} from 'actions/views/modals';
 
-import {ModalIdentifiers} from 'utils/constants';
-
 import {oxfordJoinNames} from 'components/property_fields/graph';
+
+import {ModalIdentifiers} from 'utils/constants';
 
 import {
     findOrphansAfterDelete,

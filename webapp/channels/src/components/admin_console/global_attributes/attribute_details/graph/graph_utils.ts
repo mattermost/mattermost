@@ -8,7 +8,9 @@ import {
     GRAPH_MAX_EDGES,
     GRAPH_MAX_OPTIONS,
     GRAPH_MAX_PARENTS_PER_VALUE,
-} from '../../constants';
+    indexOptions,
+    optionKey,
+} from 'components/property_fields/graph';
 
 type ParentEdgeOpts = {
     removeParent?: string | null;
@@ -22,27 +24,13 @@ function optionByName(options: PropertyFieldOption[], name: string): PropertyFie
     return options.find((option) => option.name === name);
 }
 
-function parentAdj(options: PropertyFieldOption[]): Map<string, string[]> {
-    const adj = new Map<string, string[]>();
-    for (const option of options) {
-        adj.set(option.name, [...parentsOf(option)]);
-    }
-    return adj;
+function keyOfName(index: ReturnType<typeof indexOptions>, name: string): string | undefined {
+    const option = index.byExactName.get(name);
+    return option ? optionKey(option) : undefined;
 }
 
-function childAdj(options: PropertyFieldOption[]): Map<string, string[]> {
-    const adj = new Map<string, string[]>();
-    for (const option of options) {
-        for (const parentName of parentsOf(option)) {
-            const children = adj.get(parentName);
-            if (children) {
-                children.push(option.name);
-            } else {
-                adj.set(parentName, [option.name]);
-            }
-        }
-    }
-    return adj;
+function nameOfKey(index: ReturnType<typeof indexOptions>, key: string): string {
+    return index.byId.get(key)?.name ?? key;
 }
 
 function withProposedEdge(
@@ -73,16 +61,21 @@ function withProposedEdge(
 }
 
 function reachableDown(options: PropertyFieldOption[], start: string): Set<string> {
-    const children = childAdj(options);
+    const index = indexOptions(options);
+    const startKey = keyOfName(index, start);
+    if (startKey === undefined) {
+        return new Set([start]);
+    }
     const reached = new Set<string>();
-    const pending = [start];
+    const pending = [startKey];
     while (pending.length > 0) {
         const node = pending.pop() as string;
-        if (reached.has(node)) {
+        const name = nameOfKey(index, node);
+        if (reached.has(name)) {
             continue;
         }
-        reached.add(node);
-        const next = children.get(node) ?? [];
+        reached.add(name);
+        const next = index.childKeysByParentKey.get(node) ?? [];
         for (let i = 0; i < next.length; i++) {
             pending.push(next[i]);
         }
@@ -135,12 +128,15 @@ export function isNameUnique(
 }
 
 export function hasCaseInsensitiveDuplicateNames(options: PropertyFieldOption[]): boolean {
-    return options.some((option, index) =>
-        !isNameUnique(
-            options.filter((_, i) => i !== index),
-            option.name,
-        ),
-    );
+    const seen = new Set<string>();
+    for (const option of options) {
+        const key = option.name.trim().toLowerCase();
+        if (seen.has(key)) {
+            return true;
+        }
+        seen.add(key);
+    }
+    return false;
 }
 
 export function hasBlankTrimmedOptionName(options: PropertyFieldOption[]): boolean {
@@ -174,16 +170,21 @@ export function findOrphansAfterDelete(options: PropertyFieldOption[], optionNam
 }
 
 export function findAncestors(options: PropertyFieldOption[], optionName: string): string[] {
-    const adj = parentAdj(options);
+    const index = indexOptions(options);
+    const startKey = keyOfName(index, optionName);
+    if (startKey === undefined) {
+        return [];
+    }
     const ancestors = new Set<string>();
-    const pending = [...(adj.get(optionName) ?? [])];
+    const pending = [...(index.parentKeysByChildKey.get(startKey) ?? [])];
     while (pending.length > 0) {
         const node = pending.pop() as string;
-        if (node === optionName || ancestors.has(node)) {
+        const name = nameOfKey(index, node);
+        if (name === optionName || ancestors.has(name)) {
             continue;
         }
-        ancestors.add(node);
-        const next = adj.get(node) ?? [];
+        ancestors.add(name);
+        const next = index.parentKeysByChildKey.get(node) ?? [];
         for (let i = 0; i < next.length; i++) {
             pending.push(next[i]);
         }
@@ -198,8 +199,11 @@ export function computeDepthAfterAdd(
     opts?: ParentEdgeOpts,
 ): number {
     const after = withProposedEdge(options, childName, parentName, opts);
-    const above = longestChain(parentName, parentAdj(after), new Map(), new Set());
-    const below = longestChain(childName, childAdj(after), new Map(), new Set());
+    const index = indexOptions(after);
+    const parentKey = keyOfName(index, parentName);
+    const childKey = keyOfName(index, childName);
+    const above = parentKey === undefined ? 1 : longestChain(parentKey, index.parentKeysByChildKey, new Map(), new Set());
+    const below = childKey === undefined ? 1 : longestChain(childKey, index.childKeysByParentKey, new Map(), new Set());
     return above + below;
 }
 
@@ -419,26 +423,3 @@ export function removeOption(options: PropertyFieldOption[], optionName: string)
     });
 }
 
-export const GRAPH_CYCLE_ERROR_DEFAULT =
-    "{parent} can't be a parent of {child} — {child} already grants {parent}, so this would loop back on itself.";
-
-export const GRAPH_UNIQUENESS_ERROR_DEFAULT =
-    '"{name}" already exists in this field.';
-
-export const GRAPH_DEPTH_ERROR_DEFAULT =
-    'Adding this parent pushes "{name}" to depth {n}; the limit is 100.';
-
-export const GRAPH_MAX_PARENTS_ERROR_DEFAULT =
-    'An option can have at most 100 parents.';
-
-export function cycleErrorValues(parentName: string, childName: string): {parent: string; child: string} {
-    return {parent: parentName, child: childName};
-}
-
-export function uniquenessErrorValues(name: string): {name: string} {
-    return {name};
-}
-
-export function depthErrorValues(name: string, depth: number): {name: string; n: number} {
-    return {name, n: depth};
-}

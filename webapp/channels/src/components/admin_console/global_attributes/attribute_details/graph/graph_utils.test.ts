@@ -6,10 +6,6 @@ import type {PropertyFieldOption} from '@mattermost/types/properties';
 import {oxfordJoinNames} from 'components/property_fields/graph';
 
 import {
-    GRAPH_CYCLE_ERROR_DEFAULT,
-    GRAPH_DEPTH_ERROR_DEFAULT,
-    GRAPH_MAX_PARENTS_ERROR_DEFAULT,
-    GRAPH_UNIQUENESS_ERROR_DEFAULT,
     addChildOption,
     addParentEdge,
     addTopLevelOption,
@@ -17,8 +13,6 @@ import {
     computeDepthAfterAdd,
     countDescendants,
     countEdges,
-    cycleErrorValues,
-    depthErrorValues,
     findAncestors,
     findNewlyReachableDescendants,
     findOrphansAfterDelete,
@@ -31,7 +25,6 @@ import {
     removeParentEdge,
     renameOption,
     replaceOccurrenceParent,
-    uniquenessErrorValues,
     wouldCreateCycle,
     wouldExceedMaxEdges,
     wouldExceedMaxOptions,
@@ -417,25 +410,6 @@ describe('oxfordJoinNames', () => {
         expect(oxfordJoinNames(['A', 'B'])).toBe('A and B');
         expect(oxfordJoinNames(['A', 'B', 'C'])).toBe('A, B, and C');
         expect(oxfordJoinNames(['A', 'B', 'C', 'D'])).toBe('A, B, C, and D');
-    });
-});
-
-describe('copy helpers', () => {
-    test('cycle values map parent=B, child=A', () => {
-        expect(cycleErrorValues('B', 'A')).toEqual({parent: 'B', child: 'A'});
-    });
-
-    test('locked defaultMessage strings use option wording and literal 100', () => {
-        expect(GRAPH_CYCLE_ERROR_DEFAULT).toBe(
-            "{parent} can't be a parent of {child} — {child} already grants {parent}, so this would loop back on itself.",
-        );
-        expect(GRAPH_UNIQUENESS_ERROR_DEFAULT).toBe('"{name}" already exists in this field.');
-        expect(GRAPH_DEPTH_ERROR_DEFAULT).toBe(
-            'Adding this parent pushes "{name}" to depth {n}; the limit is 100.',
-        );
-        expect(GRAPH_MAX_PARENTS_ERROR_DEFAULT).toBe('An option can have at most 100 parents.');
-        expect(uniquenessErrorValues('Alpha')).toEqual({name: 'Alpha'});
-        expect(depthErrorValues('Alpha', 101)).toEqual({name: 'Alpha', n: 101});
     });
 });
 
