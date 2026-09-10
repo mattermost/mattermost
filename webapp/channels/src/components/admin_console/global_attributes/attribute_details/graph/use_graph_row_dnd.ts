@@ -11,76 +11,14 @@ import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import {useLatest} from 'hooks/useLatest';
 
-import {wouldCreateCycle, wouldExceedMaxEdges} from './graph_utils';
+import {createGraphRowDragPreview, GRAPH_ROW_DRAG_PREVIEW_PAD_PX, graphRowDragDataAtPoint} from './drag_preview';
+import {
+    classifyGraphDrop,
+    GRAPH_ROW_DRAG_KIND,
+    isGraphRowDragData,
+    type GraphRowDragData,
+} from './drop_classifier';
 import {proposeReplaceOccurrenceParent, type ConfirmGrant, type ProposeParentResult} from './parent_ops';
-
-export const GRAPH_ROW_DRAG_KIND = 'graph-row';
-
-export type GraphRowDragData = {
-    kind: typeof GRAPH_ROW_DRAG_KIND;
-    optionName: string;
-    parentName: string | null;
-};
-
-export function isGraphRowDragData(data: Record<string | symbol, unknown>): data is GraphRowDragData {
-    return data.kind === GRAPH_ROW_DRAG_KIND &&
-        typeof data.optionName === 'string' &&
-        (data.parentName === null || typeof data.parentName === 'string');
-}
-
-export function isSameGraphOccurrence(a: GraphRowDragData, b: GraphRowDragData): boolean {
-    return a.optionName === b.optionName && a.parentName === b.parentName;
-}
-
-export function dropWouldAddNetNewEdge(
-    options: PropertyFieldOption[],
-    childName: string,
-    oldParentName: string | null,
-    newParentName: string,
-): boolean {
-    const child = options.find((option) => option.name === childName);
-    const parents = child?.parents ?? [];
-    if (parents.includes(newParentName)) {
-        return false;
-    }
-    return oldParentName === null || !parents.includes(oldParentName);
-}
-
-export function canReparentGraphRow(
-    source: GraphRowDragData,
-    target: GraphRowDragData,
-    options: PropertyFieldOption[],
-): boolean {
-    if (isSameGraphOccurrence(source, target)) {
-        return false;
-    }
-    if (source.optionName === target.optionName) {
-        return false;
-    }
-    if (wouldCreateCycle(options, source.optionName, target.optionName)) {
-        return false;
-    }
-    return true;
-}
-
-export function canDropOnGraphRow(
-    sourceData: Record<string | symbol, unknown>,
-    target: GraphRowDragData,
-    options: PropertyFieldOption[],
-): boolean {
-    if (!isGraphRowDragData(sourceData)) {
-        return false;
-    }
-    if (isSameGraphOccurrence(sourceData, target)) {
-        return false;
-    }
-    if (dropWouldAddNetNewEdge(options, sourceData.optionName, sourceData.parentName, target.optionName) &&
-        wouldExceedMaxEdges(options)
-    ) {
-        return false;
-    }
-    return true;
-}
 
 export type GraphDropAlert = {
     check: Extract<ProposeParentResult, {status: 'invalid'}>['check'];
@@ -110,60 +48,47 @@ export function dropAlertFromProposeResult(
     }
 }
 
-const GRAPH_ROW_TEST_ID = 'attributeOptionsGraphRow';
-const HONEY_POT_ATTR = 'data-pdnd-honey-pot';
-
-const DRAG_PREVIEW_HOST_CLASS = 'attribute-options-graph-values--drag-preview-host';
-
-// Native setDragImage clips paint outside the snapshot box. Keep the lift
-// shadow inside that box, then shift the pointer offset by the same pad.
-export const GRAPH_ROW_DRAG_PREVIEW_PAD_PX = 16;
-
-// Clone the full row for the native drag image. A handle-sized source (or a
-// row inside overflow:hidden) otherwise ghosts as a clipped icon.
-export function createGraphRowDragPreview(rowElement: HTMLElement): HTMLElement {
-    const {width} = rowElement.getBoundingClientRect();
-    const host = document.createElement('div');
-    host.className = `attribute-options-graph-values ${DRAG_PREVIEW_HOST_CLASS}`;
-    host.setAttribute('aria-hidden', 'true');
-    host.style.padding = `${GRAPH_ROW_DRAG_PREVIEW_PAD_PX}px`;
-
-    const preview = rowElement.cloneNode(true) as HTMLElement;
-    preview.removeAttribute('data-testid');
-    preview.removeAttribute('tabindex');
-    preview.setAttribute('aria-hidden', 'true');
-    preview.classList.add('attribute-options-graph-values__row--active');
-    preview.style.width = `${width}px`;
-    preview.style.boxSizing = 'border-box';
-    preview.querySelectorAll('.attribute-options-graph-values__parents-anchor').forEach((node) => node.remove());
-
-    host.appendChild(preview);
-    return host;
-}
-
-export function graphRowDragDataAtPoint(clientX: number, clientY: number): GraphRowDragData | null {
-    const stack = document.elementsFromPoint(clientX, clientY);
-    for (const node of stack) {
-        // PDND's honey-pot sits on top of the row during drag.
-        if (!(node instanceof Element) || node.hasAttribute(HONEY_POT_ATTR)) {
-            continue;
-        }
-        const row = node.closest(`[data-testid="${GRAPH_ROW_TEST_ID}"]`);
-        if (!(row instanceof HTMLElement)) {
-            continue;
-        }
-        const optionName = row.getAttribute('data-option-name');
-        if (!optionName) {
-            return null;
-        }
-        const parentAttr = row.getAttribute('data-parent-name');
-        return {
-            kind: GRAPH_ROW_DRAG_KIND,
-            optionName,
-            parentName: parentAttr || null,
-        };
+export async function applyGraphDrop(args: {
+    sourceData: Record<string | symbol, unknown>;
+    target: GraphRowDragData;
+    options: PropertyFieldOption[];
+    confirmGrant: ConfirmGrant | undefined;
+    onOptionsChange: (options: PropertyFieldOption[]) => void;
+    onDropResult: (result: ProposeParentResult, names: {childName: string; parentName: string}) => void;
+}): Promise<void> {
+    const {sourceData, target, options, confirmGrant, onOptionsChange, onDropResult} = args;
+    if (!isGraphRowDragData(sourceData)) {
+        return;
     }
-    return null;
+    const names = {childName: sourceData.optionName, parentName: target.optionName};
+    const kind = classifyGraphDrop(sourceData, target, options);
+
+    switch (kind) {
+    case 'ignore':
+    case 'blocked-max-edges':
+        return;
+    case 'alert-cycle':
+        onDropResult({status: 'invalid', check: {ok: false, error: 'cycle'}}, names);
+        return;
+    case 'reparent': {
+        const result = await proposeReplaceOccurrenceParent(
+            options,
+            sourceData.optionName,
+            sourceData.parentName,
+            target.optionName,
+            confirmGrant,
+        );
+        if (result.status === 'applied') {
+            onOptionsChange(result.options);
+        }
+        onDropResult(result, names);
+        return;
+    }
+    default: {
+        const exhaustive: never = kind;
+        return exhaustive;
+    }
+    }
 }
 
 export async function handleMissedNativeGraphRowDrop(args: {
@@ -178,17 +103,10 @@ export async function handleMissedNativeGraphRowDrop(args: {
     if (!target) {
         return;
     }
-    if (!isGraphRowDragData(args.sourceData)) {
+    if (classifyGraphDrop(args.sourceData, target, args.options) === 'reparent') {
         return;
     }
-    if (!canDropOnGraphRow(args.sourceData, target, args.options)) {
-        return;
-    }
-
-    if (canReparentGraphRow(args.sourceData, target, args.options)) {
-        return;
-    }
-    await handleGraphRowDrop({
+    await applyGraphDrop({
         sourceData: args.sourceData,
         target,
         options: args.options,
@@ -289,19 +207,32 @@ export function useGraphRowDnd({
             }),
             dropTargetForElements({
                 element: rowElement,
-                canDrop: ({source}) => canDropOnGraphRow(source.data, target, optionsRef.current),
+                canDrop: ({source}) => {
+                    const kind = classifyGraphDrop(source.data, target, optionsRef.current);
+                    switch (kind) {
+                    case 'reparent':
+                    case 'alert-cycle':
+                        return true;
+                    case 'blocked-max-edges':
+                        return false;
+                    case 'ignore':
+                        return isGraphRowDragData(source.data) &&
+                            source.data.optionName === target.optionName &&
+                            source.data.parentName !== target.parentName;
+                    default: {
+                        const exhaustive: never = kind;
+                        return exhaustive;
+                    }
+                    }
+                },
                 getData: () => target,
                 onDrag: ({source}) => {
-                    if (!isGraphRowDragData(source.data)) {
-                        setIsOver(false);
-                        return;
-                    }
-                    setIsOver(canReparentGraphRow(source.data, target, optionsRef.current));
+                    setIsOver(classifyGraphDrop(source.data, target, optionsRef.current) === 'reparent');
                 },
                 onDragLeave: () => setIsOver(false),
                 onDrop: ({source}) => {
                     setIsOver(false);
-                    handleGraphRowDrop({
+                    applyGraphDrop({
                         sourceData: source.data,
                         target,
                         options: optionsRef.current,
@@ -318,46 +249,4 @@ export function useGraphRowDnd({
     }, [rowElement, handleElement, optionName, parentName, disabled]);
 
     return {isOver};
-}
-
-export async function handleGraphRowDrop(args: {
-    sourceData: Record<string | symbol, unknown>;
-    target: GraphRowDragData;
-    options: PropertyFieldOption[];
-    confirmGrant: ConfirmGrant | undefined;
-    onOptionsChange: (options: PropertyFieldOption[]) => void;
-    onDropResult: (result: ProposeParentResult, names: {childName: string; parentName: string}) => void;
-}): Promise<void> {
-    const {sourceData, target, options, confirmGrant, onOptionsChange, onDropResult} = args;
-    if (!isGraphRowDragData(sourceData)) {
-        return;
-    }
-    const names = {childName: sourceData.optionName, parentName: target.optionName};
-
-    if (isSameGraphOccurrence(sourceData, target)) {
-        return;
-    }
-
-    if (!canReparentGraphRow(sourceData, target, options)) {
-        if (sourceData.optionName === target.optionName) {
-            return;
-        }
-        onDropResult(
-            {status: 'invalid', check: {ok: false, error: 'cycle'}},
-            names,
-        );
-        return;
-    }
-
-    const result = await proposeReplaceOccurrenceParent(
-        options,
-        sourceData.optionName,
-        sourceData.parentName,
-        target.optionName,
-        confirmGrant,
-    );
-    if (result.status === 'applied') {
-        onOptionsChange(result.options);
-    }
-    onDropResult(result, names);
 }

@@ -25,7 +25,7 @@ import type {GraphOccurrence} from 'components/property_fields/graph';
 import {occurrenceHasChildren} from './occurrences';
 import type {ConfirmGrant, ProposeParentResult} from './parent_ops';
 import AttributeGraphParentsPane from './parents_pane';
-import {useGraphRowDnd} from './use_graph_dnd';
+import {useGraphRowDnd} from './use_graph_row_dnd';
 
 export type GraphPaneView = 'main' | 'parents' | 'children';
 
