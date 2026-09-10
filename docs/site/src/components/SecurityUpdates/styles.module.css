@@ -194,10 +194,10 @@
 
 .tableWrap .table {
   width: 100%;
-  min-width: 56rem;
+  min-width: 0;
   display: table;
   border-collapse: collapse;
-  table-layout: fixed;
+  table-layout: auto;
 }
 
 .table th,
@@ -208,6 +208,8 @@
   font-size: 0.86rem;
   line-height: 1.45;
   border-bottom: 1px solid var(--mm-border-subtle);
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .table th {

@@ -78,18 +78,6 @@ function normalizeSeverity(value: string): string {
   return trimmed.replace(/^\w/, (c) => c.toUpperCase());
 }
 
-function isHeaderRow(item: FeedItem): boolean {
-  const issueId = String(item.issue_id || '').trim();
-  const severity = String(item.severity || '').trim();
-  const platform = String(item.platform || '').trim();
-  return (
-    !issueId ||
-    /^issue\s*id$/i.test(issueId) ||
-    /^severity$/i.test(severity) ||
-    /^issue platform$/i.test(platform)
-  );
-}
-
 function parseIssueParts(issueId: string) {
   const parts = issueId.split('-');
   return {
@@ -144,9 +132,6 @@ export function normalizeFeed(feed: unknown): SecurityUpdateTab[] {
   [...(feed as FeedItem[])]
     .sort(compareFeedItems)
     .forEach((item) => {
-      if (isHeaderRow(item)) {
-        return;
-      }
       const tabId = PLATFORM_MAP[String(item.platform || '').trim()];
       if (!tabId) {
         return;

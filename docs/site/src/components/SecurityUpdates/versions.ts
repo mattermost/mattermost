@@ -46,11 +46,16 @@ function versionFromMatch(token: string, asUpperBound: boolean): Version | null 
   if (!parsed) {
     return null;
   }
-  if (asUpperBound && /\.x$/i.test(token.trim().replace(/^v/i, ''))) {
+  const cleaned = token.trim().replace(/^v/i, '');
+  if (asUpperBound && /\.x$/i.test(cleaned)) {
     return [parsed[0], parsed[1], INF];
   }
+  // "11" as a max means the whole 11 major line.
+  if (asUpperBound && /^\d+$/.test(cleaned)) {
+    return [parsed[0], INF, INF];
+  }
   // "11.9" as a max means the whole 11.9 line.
-  if (asUpperBound && /^\d+\.\d+$/.test(token.trim().replace(/^v/i, ''))) {
+  if (asUpperBound && /^\d+\.\d+$/.test(cleaned)) {
     return [parsed[0], parsed[1], INF];
   }
   return parsed;
@@ -88,25 +93,42 @@ function parseOneLine(line: string): VersionRange[] {
   if (text.includes('<=')) {
     const segments = text.split('<=');
     const left = (segments[0] || '').trim();
-    const maxes = segments
-      .slice(1)
-      .map((part) => versionFromMatch(part.trim().split(/\s+/)[0] || '', true))
-      .filter((max): max is Version => max !== null);
-    if (maxes.length === 0) {
+    const rightSegments = segments.slice(1).map((part) => part.trim()).filter(Boolean);
+    if (rightSegments.length === 0) {
+      return [];
+    }
+
+    // Multiple "<=" operators: union of upper bounds (e.g. "<=7.1.9 <=7.8.4").
+    if (rightSegments.length > 1) {
+      return rightSegments
+        .map((part) => versionFromMatch(part.split(/\s+/)[0] || '', true))
+        .filter((max): max is Version => max !== null)
+        .map((max) => ({min: ZERO, max}));
+    }
+
+    const tokens = rightSegments[0].split(/\s+/).filter(Boolean);
+    // Pre-2024 mashed line: "<=11.9 11.0.9 11.4.8 …" is a version list, not one open range.
+    if (tokens.length > 1 && !left) {
+      return tokens.flatMap((token) => {
+        const min = versionFromMatch(token, false);
+        const max = versionFromMatch(token, true);
+        return min && max ? [{min, max}] : [];
+      });
+    }
+
+    const max = versionFromMatch(tokens[0] || '', true);
+    if (!max) {
       return [];
     }
     const branch = left.match(/(\d+)\.(\d+)\.x/i);
-    if (branch && maxes.length === 1) {
-      return [{min: [Number(branch[1]), Number(branch[2]), 0], max: maxes[0]}];
-    }
-    if (maxes.length > 1) {
-      return maxes.map((max) => ({min: ZERO, max}));
+    if (branch) {
+      return [{min: [Number(branch[1]), Number(branch[2]), 0], max}];
     }
     const leftVer = parseVersionToken(left.replace(/^.*\s/, ''));
     if (leftVer) {
-      return [{min: leftVer, max: maxes[0]}];
+      return [{min: leftVer, max}];
     }
-    return [{min: ZERO, max: maxes[0]}];
+    return [{min: ZERO, max}];
   }
 
   if (text.includes('>=')) {
