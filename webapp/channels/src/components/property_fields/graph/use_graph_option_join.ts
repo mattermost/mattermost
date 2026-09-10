@@ -5,10 +5,11 @@ import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
-import {joinGraphOptions} from '.';
-import type {GraphOptionJoin} from '.';
 import {pageAllAccessControlFieldOptions} from './page_all_access_control_field_options';
 import type {GraphFieldRef} from './page_all_access_control_field_options';
+
+import {joinGraphOptions} from '.';
+import type {GraphOptionJoin} from '.';
 
 export type GraphJoinStatus = 'idle' | 'loading' | 'loaded' | 'error';
 

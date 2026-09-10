@@ -311,7 +311,7 @@ export function checkParentEdge(
     opts?: ParentEdgeOpts,
 ): CheckParentEdgeResult {
     const result = checkParentEdgeValidity(options, childName, parentName, opts);
-    if (!result.ok || result.noOp) {
+    if (!result.ok || ('noOp' in result && result.noOp)) {
         return result;
     }
     return {

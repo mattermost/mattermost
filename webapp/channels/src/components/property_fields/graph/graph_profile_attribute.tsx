@@ -11,12 +11,13 @@ import {valueRefersToOptions, type PropertyFieldOption} from '@mattermost/types/
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {getPluginDisplayName} from 'selectors/plugins';
+
 import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 import AssignmentGraphPicker from 'components/property_fields/hierarchical_value_menu/assignment_picker';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 
-import {getPluginDisplayName} from 'selectors/plugins';
 import {Constants} from 'utils/constants';
 import {getUserPropertyFieldLabel} from 'utils/properties';
 
@@ -29,7 +30,7 @@ type SelectOption = {
     label: string;
 };
 
-const selectStyles: StylesConfig<SelectOption, true> = {
+const selectStyles: StylesConfig<SelectOption, boolean> = {
     valueContainer: (baseStyles) => ({
         ...baseStyles,
         height: 'auto',

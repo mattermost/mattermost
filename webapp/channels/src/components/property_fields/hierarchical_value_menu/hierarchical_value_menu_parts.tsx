@@ -64,11 +64,11 @@ export type ChipLabel = {
 type GraphJoinStatus = 'idle' | 'loading' | 'loaded' | 'error';
 
 export type HierarchicalMenuStatusKind =
-    | 'loading'
-    | 'error_fetch'
-    | 'withheld'
-    | 'empty'
-    | 'no_results';
+    | 'loading' |
+    'error_fetch' |
+    'withheld' |
+    'empty' |
+    'no_results';
 
 const STATUS_MESSAGES: Record<HierarchicalMenuStatusKind, MessageDescriptor> = {
     loading: messages.loading,

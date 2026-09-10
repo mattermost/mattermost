@@ -7,14 +7,14 @@ import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
+import AssignmentGraphPicker from './assignment_picker';
+import type {AssignmentGraphPickerProps} from './assignment_picker';
+import type {GraphFieldRef} from './hierarchical_value_menu';
+
 import {assignmentFallbackLabels, computeAssignmentPrefetch} from '../graph/assignment_prefetch';
 import GraphValueSummary from '../graph/graph_value_summary';
 import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from '../graph/page_all_access_control_field_options';
 import {clearGraphOptionNameCache} from '../graph/use_graph_option_names';
-
-import AssignmentGraphPicker from './assignment_picker';
-import type {AssignmentGraphPickerProps} from './assignment_picker';
-import type {GraphFieldRef} from './hierarchical_value_menu';
 
 jest.mock('../graph/page_all_access_control_field_options', () => ({
     ...jest.requireActual('../graph/page_all_access_control_field_options'),

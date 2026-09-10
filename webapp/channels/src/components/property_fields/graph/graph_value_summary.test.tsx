@@ -7,10 +7,9 @@ import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
+import GraphValueSummary from './graph_value_summary';
 import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from './page_all_access_control_field_options';
 import type {GraphFieldRef} from './page_all_access_control_field_options';
-
-import GraphValueSummary from './graph_value_summary';
 import {clearGraphOptionNameCache, commitGraphOptionNames} from './use_graph_option_names';
 
 jest.mock('./page_all_access_control_field_options', () => ({

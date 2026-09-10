@@ -489,7 +489,6 @@ describe('HierarchicalValueMenu', () => {
         });
     });
 
-
     describe('multi-parent occurrences', () => {
         const expandBothRoots = async () => {
             await userEvent.click(labelOf('Dragon'));
@@ -612,7 +611,6 @@ describe('HierarchicalValueMenu', () => {
             expect(row('Fighter Jet')).not.toHaveTextContent('Also under');
         });
     });
-
 
     describe('keyboard', () => {
         const openTree = async (options = hierarchy(), overrides: Partial<HierarchicalValueMenuProps> = {}) => {

@@ -82,7 +82,7 @@ const CPAMultiSelect: React.FC<CPAMultiSelectProps> = ({
         label: option.name,
     }));
 
-        // Keep assigned ids even when the option is gone; dropping them shrinks the saved value.
+    // Keep assigned ids even when the option is gone; dropping them shrinks the saved value.
     const selectedOptions = selectedValues.map((selectedId) => {
         const option = options.find((opt) => opt.id === selectedId);
         return {value: selectedId, label: option?.name ?? selectedId};
@@ -1377,7 +1377,16 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     const asIds = (v: string | string[] | undefined) => (Array.isArray(v) ? v : []);
                     const graphConfirm = (v: string | string[] | undefined) => {
                         const ids = asIds(v);
-                        return ids.length ? <GraphValueSummary field={field} ids={ids} mode='confirm'/> : this.formatEmptyValue();
+                        if (!ids.length) {
+                            return this.formatEmptyValue();
+                        }
+                        return (
+                            <GraphValueSummary
+                                field={field}
+                                ids={ids}
+                                mode='confirm'
+                            />
+                        );
                     };
                     const oldValue = field.type === 'graph' ? graphConfirm(originalValue) : this.resolveOptionNames(field, originalValue);
                     const newValue = field.type === 'graph' ? graphConfirm(nextValue) : this.resolveOptionNames(field, nextValue);

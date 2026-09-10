@@ -7,7 +7,6 @@ import {act, renderHookWithContext, waitFor} from 'tests/react_testing_utils';
 
 import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from './page_all_access_control_field_options';
 import type {GraphFieldRef} from './page_all_access_control_field_options';
-
 import {useGraphOptionJoin} from './use_graph_option_join';
 import type {UseGraphOptionJoinOpts} from './use_graph_option_join';
 
@@ -29,7 +28,7 @@ const hierarchy = () => [
     opt('opt-rotary', 'Rotary', ['Air Program']),
 ];
 
-const deferred = <T, >() => {
+const deferred = <T >() => {
     let resolve!: (value: T) => void;
     let reject!: (reason?: unknown) => void;
     const promise = new Promise<T>((res, rej) => {

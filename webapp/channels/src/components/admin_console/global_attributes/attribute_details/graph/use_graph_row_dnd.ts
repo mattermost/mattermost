@@ -86,7 +86,7 @@ export async function applyGraphDrop(args: {
     }
     default: {
         const exhaustive: never = kind;
-        return exhaustive;
+        throw new Error(exhaustive);
     }
     }
 }
@@ -125,7 +125,7 @@ export async function alertOnMissedNativeGraphRowDrop(args: {
         return;
     default: {
         const exhaustive: never = kind;
-        return exhaustive;
+        throw new Error(exhaustive);
     }
     }
 }

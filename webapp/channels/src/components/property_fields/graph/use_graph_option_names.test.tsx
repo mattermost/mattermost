@@ -9,7 +9,6 @@ import {render, screen, waitFor} from 'tests/react_testing_utils';
 
 import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from './page_all_access_control_field_options';
 import type {GraphFieldRef} from './page_all_access_control_field_options';
-
 import {
     clearGraphOptionNameCache,
     commitGraphOptionNames,

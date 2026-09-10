@@ -13,9 +13,9 @@ import {
 export type EdgeDirection = 'parents' | 'children';
 
 export type ParentCandidateClass =
-    | {kind: 'omit'}
-    | {kind: 'disabled'; reason: 'self' | 'depth' | 'max-parents'}
-    | {kind: 'enabled'};
+    | {kind: 'omit'} |
+    {kind: 'disabled'; reason: 'self' | 'depth' | 'max-parents'} |
+    {kind: 'enabled'};
 
 export type Suggestion =
     {kind: 'existing'; name: string} |

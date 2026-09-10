@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import * as Menu from 'components/menu';
@@ -48,7 +49,6 @@ jest.mock('../graph/page_all_access_control_field_options', () => ({
 const mockPageAll = jest.mocked(pageAllAccessControlFieldOptions);
 
 const named = (text: string): ChipLabel => ({text, state: 'named'});
-
 
 describe('isGraphFieldWithheld', () => {
     test('options_omitted', () => {
@@ -162,7 +162,7 @@ describe('SelectedValueChips', () => {
     test('trailingChips are rendered after the chips', () => {
         renderChips({
             selectedIds: ['opt-air'],
-            trailingChips: <span data-testid="masked-chip"/>,
+            trailingChips: <span data-testid='masked-chip'/>,
         });
         expect(screen.getByTestId('masked-chip')).toBeInTheDocument();
         const chips = document.querySelector('.hierarchical-value-menu__chips') as HTMLElement;
@@ -197,14 +197,19 @@ describe('SelectedValueChips', () => {
 
 describe('HierarchicalMenuStatus', () => {
     test('spinner on loading', () => {
-        renderWithContext(<HierarchicalMenuStatus kind="loading"/>);
+        renderWithContext(<HierarchicalMenuStatus kind='loading'/>);
         expect(screen.getByTestId('loadingSpinner')).toBeInTheDocument();
         expect(screen.getByText('Loading values…')).toBeInTheDocument();
     });
 
     test('icon + Retry on error_fetch with onRetry', async () => {
         const onRetry = jest.fn();
-        renderWithContext(<HierarchicalMenuStatus kind="error_fetch" onRetry={onRetry}/>);
+        renderWithContext(
+            <HierarchicalMenuStatus
+                kind='error_fetch'
+                onRetry={onRetry}
+            />,
+        );
         expect(screen.getByText(COPY.error)).toBeInTheDocument();
         await userEvent.click(screen.getByRole('button', {name: 'Retry'}));
         expect(onRetry).toHaveBeenCalledTimes(1);
@@ -216,11 +221,11 @@ describe('HierarchicalMenuStatus', () => {
     });
 
     test('copy strings match COPY', () => {
-        const {rerender} = renderWithContext(<HierarchicalMenuStatus kind="empty"/>);
+        const {rerender} = renderWithContext(<HierarchicalMenuStatus kind='empty'/>);
         expect(screen.getByText(COPY.empty)).toBeInTheDocument();
-        rerender(<HierarchicalMenuStatus kind="withheld"/>);
+        rerender(<HierarchicalMenuStatus kind='withheld'/>);
         expect(screen.getByText(COPY.withheld)).toBeInTheDocument();
-        rerender(<HierarchicalMenuStatus kind="no_results"/>);
+        rerender(<HierarchicalMenuStatus kind='no_results'/>);
         expect(screen.getByText(COPY.noResults)).toBeInTheDocument();
     });
 });
@@ -263,7 +268,6 @@ describe('HierarchicalMenuSearch', () => {
         expect(onArrowDown).not.toHaveBeenCalled();
     });
 });
-
 
 describe('HierarchicalValueMenu chrome (mounted)', () => {
     beforeEach(() => {
@@ -394,7 +398,6 @@ describe('HierarchicalValueMenu chrome (mounted)', () => {
 
             expect(trigger()).toHaveTextContent('F-18 Program');
         });
-
     });
 
     describe('empty and withheld copy', () => {
@@ -528,7 +531,6 @@ describe('HierarchicalValueMenu chrome (mounted)', () => {
             expect(screen.queryByText(COPY.empty)).toBeNull();
         });
     });
-
 
     describe('search', () => {
         const openTree = async (options = hierarchy()) => {
@@ -722,7 +724,6 @@ describe('HierarchicalValueMenu chrome (mounted)', () => {
 
             expect(searchBox()).toHaveFocus();
         });
-
     });
 
     describe('status affordances and wiring leftovers', () => {
@@ -831,6 +832,5 @@ describe('HierarchicalValueMenu chrome (mounted)', () => {
             const list = screen.getByRole('menu');
             expect(list.lastElementChild).toContainElement(screen.getByTestId('channel-attributes-label'));
         });
-
     });
 });

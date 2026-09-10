@@ -59,8 +59,8 @@ function buildPatchOptionsAttr(fieldType: AttributeFieldType, options: PropertyF
     case 'text':
         return null;
     default: {
-        const _exhaustive: never = fieldType;
-        return _exhaustive;
+        const exhaustive: never = fieldType;
+        return exhaustive;
     }
     }
 }

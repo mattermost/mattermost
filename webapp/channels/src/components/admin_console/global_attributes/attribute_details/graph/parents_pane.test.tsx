@@ -6,6 +6,7 @@ import React from 'react';
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import {GRAPH_MAX_DEPTH} from 'components/property_fields/graph';
+
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import {GraphParentEdgeAlert} from './edge_alert';

@@ -3,11 +3,11 @@
 
 import {useCallback, useEffect, useMemo, useState} from 'react';
 
-import {joinGraphOptions} from '.';
+import {assignmentFallbackLabels, computeAssignmentPrefetch} from './assignment_prefetch';
 import {pageAllAccessControlFieldOptions} from './page_all_access_control_field_options';
 import type {GraphFieldRef} from './page_all_access_control_field_options';
 
-import {assignmentFallbackLabels, computeAssignmentPrefetch} from './assignment_prefetch';
+import {joinGraphOptions} from '.';
 
 export type GraphNameKind = 'name' | 'id' | 'unavailable';
 

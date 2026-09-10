@@ -10,7 +10,6 @@ import {ChevronDownIcon} from '@mattermost/compass-icons/components';
 
 import * as Menu from 'components/menu';
 
-import HierarchicalValueRow, {isKeydownSynthesisedClick} from './hierarchical_value_row';
 import {
     HierarchicalMenuSearch,
     HierarchicalMenuStatus,
@@ -19,6 +18,7 @@ import {
     isGraphFieldWithheld,
 } from './hierarchical_value_menu_parts';
 import type {ChipLabel} from './hierarchical_value_menu_parts';
+import HierarchicalValueRow, {isKeydownSynthesisedClick} from './hierarchical_value_row';
 
 import type {GraphOccurrence, GraphOptionJoin} from '../graph';
 import {

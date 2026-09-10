@@ -15,7 +15,6 @@ import {useGraphNodeDelete} from './delete_modal';
 import {AddTopLevelForm, ChildDraftRow} from './draft_forms';
 import {GraphParentEdgeAlert} from './edge_alert';
 import {useGrantConfirm} from './grant_confirm_modal';
-import type {GrantConfirmRequest} from './parent_ops';
 import {GraphRow, type GraphPaneView} from './graph_row';
 import {
     addChildOption,
@@ -33,7 +32,7 @@ import {
     remapOccurrenceKey,
     subtreeInsertAfterIndex,
 } from './occurrences';
-import type {ProposeParentResult} from './parent_ops';
+import type {GrantConfirmRequest, ProposeParentResult} from './parent_ops';
 import {dropAlertFromProposeResult, type GraphDropAlert} from './use_graph_row_dnd';
 
 import './graph_values.scss';
