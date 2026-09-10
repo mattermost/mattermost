@@ -214,3 +214,4 @@ docs/display-name-fix-test-report.pdf
 server/docs/*.pdf
 server/docs/*.md
 server/data_dest/
+server/import/

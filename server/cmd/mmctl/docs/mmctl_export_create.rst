@@ -24,6 +24,7 @@ Options
       --channel-name string         Export only the specified channel(s) by name. Accepts a comma-separated list. Requires --team-name or --team-id. Mutually exclusive with --channel-id.
   -h, --help                        help for create
       --include-archived-channels   Include archived channels in the export file.
+      --include-custom-emoji        Include the instance's custom emoji in a team- or channel-scoped export. Custom emoji are instance-wide, so scoped exports omit them by default. Full-instance exports always include them.
       --include-profile-pictures    Include profile pictures in the export file.
       --no-attachments              Exclude file attachments from the export file.
       --no-roles-and-schemes        Exclude roles and custom permission schemes from the export file.
