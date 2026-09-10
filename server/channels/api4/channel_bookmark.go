@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -479,8 +480,12 @@ func listChannelBookmarksForChannel(c *Context, w http.ResponseWriter, r *http.R
 		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
 
+	hasFileInfo := slices.ContainsFunc(bookmarks, func(bookmark *model.ChannelBookmarkWithFileInfo) bool {
+		return bookmark != nil && bookmark.FileInfo != nil
+	})
+
 	// All bookmarks belong to the same channel, so a single evaluation covers the response.
-	if !c.App.HasPermissionToFileAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, c.Params.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
+	if hasFileInfo && !c.App.HasPermissionToFileAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, c.Params.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
 		stripped := make([]*model.ChannelBookmarkWithFileInfo, len(bookmarks))
 		for i, bookmark := range bookmarks {
 			bookmarkCopy := bookmark.Clone()
