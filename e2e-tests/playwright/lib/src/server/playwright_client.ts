@@ -3,16 +3,26 @@
 
 import {Client4} from '@mattermost/client';
 import type {Channel, ChannelType} from '@mattermost/types/channels';
+import type {ClientLicense} from '@mattermost/types/config';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {createRandomChannel} from './channel';
 import {createNewUserProfile} from './user';
 
 /**
- * Client4 extended with Playwright test-setup helpers only.
- * These are not part of the Mattermost server API — do not add real API wrappers here.
+ * Client4 extended with Playwright test-setup helpers.
+ * Prefer not adding general Mattermost API wrappers here — keep those on Client4 —
+ * except for test-only compatibility shims needed against older server images.
  */
 export class PlaywrightClient4 extends Client4 {
+    /**
+     * Same as Client4.getClientLicenseOld, but keeps `format=old` for older from-images
+     * that still require it. Current servers ignore the parameter.
+     */
+    getClientLicenseOld = () => {
+        return this.doFetch<ClientLicense>(`${this.getBaseRoute()}/license/client?format=old`, {method: 'get'});
+    };
+
     private createChannelOfType(
         teamId: string,
         displayName: string,
