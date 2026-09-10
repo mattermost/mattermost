@@ -98,7 +98,6 @@ function getPreferredActiveTab(activeTab: string, visibleBuiltInTabs: SidebarTab
     return visibleBuiltInTabs[0]?.name ?? visiblePluginTabs[0]?.name ?? BuiltInTabIds.INFO;
 }
 
-
 function ChannelSettingsModal(props: ChannelSettingsModalProps) {
     const channel = useSelector((state: GlobalState) => getChannel(state, props.channelId));
     const {onExited} = props;
