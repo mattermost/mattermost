@@ -62,7 +62,7 @@ jest.mock('@atlaskit/pragmatic-drag-and-drop/element/set-custom-native-drag-prev
 }));
 
 jest.mock('@atlaskit/pragmatic-drag-and-drop/element/preserve-offset-on-source', () => ({
-    preserveOffsetOnSource: mockPreserveOffsetOnSourceSpy,
+    preserveOffsetOnSource: (...args: unknown[]) => mockPreserveOffsetOnSourceSpy(...args),
 }));
 
 const opt = (name: string, parents: string[] = []): PropertyFieldOption => ({id: '', name, parents});
