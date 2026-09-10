@@ -607,7 +607,7 @@ func (a *App) notifySysadminsBotOwnerDeactivated(rctx request.CTX, userID string
 	}
 
 	// user being disabled
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		return err
 	}
@@ -679,7 +679,7 @@ func (a *App) ConvertUserToBot(rctx request.CTX, user *model.User) (*model.Bot, 
 		}
 
 		// Refresh user data
-		updatedUser, err := a.GetUser(user.Id)
+		updatedUser, err := a.GetUser(rctx, user.Id)
 		if err != nil {
 			return nil, err
 		}

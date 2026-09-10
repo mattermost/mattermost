@@ -15,6 +15,7 @@ import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 
 import {getCurrentLocale} from 'selectors/i18n';
 
+import {useRenderPermission} from 'components/common/hooks/useRenderPermission';
 import FilePreview from 'components/file_preview';
 import type {FilePreviewInfo} from 'components/file_preview/file_preview';
 import FileUpload from 'components/file_upload';
@@ -47,6 +48,10 @@ const useUploadFiles = (
         return channel ? haveIChannelPermission(state, channel.team_id, channel.id, Permissions.EDIT_FILE_ATTACHMENT) : true;
     });
     const editAttachmentsDisabled = isPostBeingEdited && !canEditAttachments;
+
+    // Fail open while in flight: the endpoint enforces regardless, and failing closed flickers the
+    // button disabled on every first visit to a channel.
+    const uploadAllowedByPolicy = useRenderPermission({resourceType: 'channel', resourceId: channelId, action: 'upload_file_attachment'}, true);
 
     const [uploadsProgressPercent, setUploadsProgressPercent] = useState<{[clientID: string]: FilePreviewInfo}>({});
 
@@ -191,6 +196,7 @@ const useUploadFiles = (
             rootId={postId}
             channelId={channelId}
             postType={postType}
+            disabledByPolicy={!uploadAllowedByPolicy}
         />
     );
 

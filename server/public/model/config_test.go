@@ -33,13 +33,6 @@ func TestConfigDefaults(t *testing.T) {
 		var recursivelyUninitialize func(*Config, string, reflect.Value)
 		recursivelyUninitialize = func(config *Config, name string, v reflect.Value) {
 			if v.Type().Kind() == reflect.Pointer {
-				// Ignoring these 2 settings.
-				// TODO: remove them completely in v8.0.
-				if name == "config.ElasticsearchSettings.BulkIndexingTimeWindowSeconds" ||
-					name == "config.ClusterSettings.EnableExperimentalGossipEncryption" {
-					return
-				}
-
 				// Set every pointer we find in the tree to nil
 				v.Set(reflect.Zero(v.Type()))
 				require.True(t, v.IsNil())
@@ -275,6 +268,45 @@ func TestServiceSettingsIsValid(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestServiceSettingsHardenedModeMigration(t *testing.T) {
+	t.Run("defaults to disabled without the deprecated setting", func(t *testing.T) {
+		ss := ServiceSettings{}
+		ss.SetDefaults(false)
+
+		require.False(t, *ss.EnableHardenedMode)
+		require.False(t, *ss.ExperimentalEnableHardenedMode)
+		assert.Nil(t, ss.isValid())
+	})
+
+	t.Run("accepts the renamed setting", func(t *testing.T) {
+		ss := ServiceSettings{EnableHardenedMode: new(true)}
+		ss.SetDefaults(false)
+
+		assert.Nil(t, ss.isValid())
+	})
+
+	t.Run("migrates the deprecated setting to the renamed setting", func(t *testing.T) {
+		ss := ServiceSettings{ExperimentalEnableHardenedMode: new(true)}
+		ss.SetDefaults(false)
+
+		require.True(t, *ss.EnableHardenedMode)
+		require.True(t, *ss.ExperimentalEnableHardenedMode)
+		assert.Nil(t, ss.isValid())
+	})
+
+	t.Run("explicit new key wins over deprecated key", func(t *testing.T) {
+		ss := ServiceSettings{
+			EnableHardenedMode:             new(false),
+			ExperimentalEnableHardenedMode: new(true),
+		}
+		ss.SetDefaults(false)
+
+		require.False(t, *ss.EnableHardenedMode)
+		require.True(t, *ss.ExperimentalEnableHardenedMode)
+		assert.Nil(t, ss.isValid())
+	})
 }
 
 func TestConfigEnableDeveloper(t *testing.T) {
@@ -2199,7 +2231,6 @@ func TestConfigSanitize(t *testing.T) {
 	assert.Equal(t, FakeSetting, *c.OpenIdSettings.Secret)
 	assert.Equal(t, FakeSetting, *c.AutoTranslationSettings.LibreTranslate.APIKey)
 	assert.Equal(t, FakeSetting, *c.SqlSettings.DataSource)
-	assert.Equal(t, FakeSetting, *c.SqlSettings.AtRestEncryptKey)
 	assert.Equal(t, FakeSetting, *c.ElasticsearchSettings.Password)
 	assert.Equal(t, FakeSetting, *c.ServiceSettings.GoogleDeveloperKey)
 	assert.Equal(t, FakeSetting, *c.ServiceSettings.GiphySdkKey)
@@ -2745,14 +2776,25 @@ func TestConfigServiceSettingsIsValid(t *testing.T) {
 		appErr := cfg.ServiceSettings.isValid()
 		require.Nil(t, appErr)
 
+		// Custom URI schemes used by desktop OAuth clients are accepted
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"cursor://anysphere.cursor-mcp/oauth/callback", "com.example.app://callback/**"}
+		appErr = cfg.ServiceSettings.isValid()
+		require.Nil(t, appErr)
+
 		// Empty/whitespace entry rejected
 		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"https://ok.com/**", "  ", "https://also.com/cb"}
 		appErr = cfg.ServiceSettings.isValid()
 		require.NotNil(t, appErr)
 		require.Equal(t, "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", appErr.Id)
 
-		// Non-http(s) scheme rejected
-		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"ftp://example.com/**"}
+		// Scheme without a host rejected
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"cursor://"}
+		appErr = cfg.ServiceSettings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", appErr.Id)
+
+		// Opaque URI without a host rejected
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"javascript:alert(1)"}
 		appErr = cfg.ServiceSettings.isValid()
 		require.NotNil(t, appErr)
 		require.Equal(t, "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", appErr.Id)

@@ -45,7 +45,7 @@ This was tested with Keycloak v26.4.0. We recommend adding Mattermost as a clien
 
 > - **Sign Documents**: **Off**
 > - **Sign Assertions**: **On**
-> - **Signature Algorithm**: `RSA_SHA1`
+> - **Signature Algorithm**: `RSA_SHA256`
 > - **SAML signature key name**: `NONE`
 > - **Canonicalization Method**: `EXCLUSIVE`
 > - **Encryption Algorithm**: `AES_256_GCM`
@@ -54,15 +54,15 @@ This was tested with Keycloak v26.4.0. We recommend adding Mattermost as a clien
 >
 > ![In Keycloak, configure the Signature and Encryption settings for the Mattermost client.](/images/keycloak_1_client_signature_encryption.png)
 >
-> <div class="warning">
+> <div class="note">
 >
 > <div class="title">
 >
-> Warning
+> Note
 >
 > </div>
 >
-> Mattermost only supports `RSA_SHA1` for Keycloak SAML, because Keycloak is using `xmlenc` for `RSA_SHA512` and `RSA_SHA256`, wheras Mattermost currently only supports `xmldsig`. So make sure to use `RSA_SHA1` as the *Signature Algorithm* and *Digest Method* as described in this section.
+> Earlier versions of this documentation recommended `RSA_SHA1`. Use `RSA_SHA256` instead. [NIST SP 800-131A](https://csrc.nist.gov/pubs/sp/800/131/a/r2/final) set December 31, 2013 as the deadline after which SHA-1 is disallowed for digital signature generation. Revision 2 of that publication, published in March 2019, allows SHA-1 signature generation only where NIST protocol-specific guidance specifically permits it. A Keycloak server running in FIPS mode returns a `500` error when it tries to sign the assertion with `RSA_SHA1`. Mattermost validates `RSA_SHA256`-signed assertions, and Keycloak derives the signature digest method from the signature algorithm you select here.
 >
 > </div>
 
@@ -86,7 +86,37 @@ This was tested with Keycloak v26.4.0. We recommend adding Mattermost as a clien
 >
 >   </div>
 >
->   Mattermost does not support request signing with Keycloak so make sure to disable the Client signature setting as mentioned above.
+>   Leave **Client signature required** off, as shown above. Mattermost does sign its authentication requests when you enable **Sign Request** in step 4 of the Mattermost section below, but Keycloak validates those signatures only if you also import the Mattermost service provider certificate as a signing key on this tab. Turning **Client signature required** on without importing that certificate causes Keycloak to reject Mattermost's authentication requests.
+>
+>   </div>
+>
+>   <div class="note">
+>
+>   <div class="title">
+>
+>   Note
+>
+>   </div>
+>
+>   **If your Keycloak server runs in FIPS mode**, the **Archive Format** list offers only `BCFKS`, because `PKCS12` and `JKS` are unavailable. Export the `BCFKS` keystore, then convert it to `PKCS12` before you continue:
+>
+>   ```console
+>   keytool -importkeystore -srckeystore keystore.bcfks -srcstoretype BCFKS -providerclass org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider -providerpath /path/to/bc-fips-<version>.jar -destkeystore keystore.p12 -deststoretype PKCS12
+>   ```
+>
+>   Point `-providerpath` at your Bouncy Castle FIPS JAR. `keytool` prompts for the source and destination store passwords. The converted `keystore.p12` then works with the extraction commands in step 4 of Configure SAML in Mattermost below.
+>
+>   Convert the whole keystore as shown above rather than looking for a way to export the key on its own, because `keytool` has no command that exports a private key by itself.
+>
+>   As an alternative, generating the keypair locally and importing only the certificate into Keycloak avoids the keystore conversion entirely, and works on FIPS and non-FIPS servers alike:
+>
+>   ```console
+>   openssl req -x509 -newkey rsa:2048 -nodes -days 1095 -subj "/CN=mattermost" -keyout mattermost.key -out mattermost.crt
+>   ```
+>
+>   Keep `-nodes`, because Mattermost can't read a passphrase-protected private key. Set `-days` explicitly, because it defaults to 30. Keep `-keyout` and `-out`, because without them the certificate goes to standard output and the private key goes to a configuration-dependent default filename.
+>
+>   Import only `mattermost.crt` into the encryption keys section of this tab, then upload both files in step 4 below and skip the `openssl pkcs12` extraction commands, since you already have the files those commands would have produced.
 >
 >   </div>
 >

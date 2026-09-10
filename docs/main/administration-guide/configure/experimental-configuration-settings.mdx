@@ -13,10 +13,10 @@ Review and manage the following [experimental](/administration-guide/manage/feat
 
 <Tip>
 
-System admins managing a self-hosted Mattermost deployment can edit the `config.json` file as described in the following tables. Each configuration value below includes a JSON path to access the value programmatically in the `config.json` file using a JSON-aware tool. For example, the `EmailBatchingBufferSize` value is under `EmailSettings`.
+System admins managing a self-hosted Mattermost deployment can edit the `config.json` file as described in the following tables. Each configuration value below includes a JSON path to access the value programmatically in the `config.json` file using a JSON-aware tool. For example, the `LinkMetadataTimeoutMilliseconds` value is under `ExperimentalSettings`.
 
-- If using a tool such as [jq](https://stedolan.github.io/jq/), you'd enter: `cat config/config.json | jq '.EmailSettings.EmailBatchingBufferSize'`
-- When working with the `config.json` file manually, look for an object such as `EmailSettings`, then within that object, find the key `EmailBatchingBufferSize`.
+- If using a tool such as [jq](https://stedolan.github.io/jq/), you'd enter: `cat config/config.json | jq '.ExperimentalSettings.LinkMetadataTimeoutMilliseconds'`
+- When working with the `config.json` file manually, look for an object such as `ExperimentalSettings`, then within that object, find the key `LinkMetadataTimeoutMilliseconds`.
 
 </Tip>
 
@@ -56,68 +56,6 @@ Adds a configurable timeout for requests made to return link metadata. If the me
 </tbody>
 </table>
 
-### Email batching buffer size
-
-Specify the maximum number of notifications batched into a single email.
-
-<Note>
-
-- We recommend increasing the buffer size from the default value if you see the following error in the Mattermost logs: `Email batching job's receiving buffer was full. Please increase the EmailBatchingBufferSize. Falling back to sending immediate mail.` Increasing this value will ensure emails are queued up, without impacting server performance.
-- Notifications will be sent instantly if the queue of emails exceeds the [email batching interval](#email-batching-interval) configured.
-
-</Note>
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>EmailBatchingBufferSize</code>: 256`` with numerical input.</td>
-</tr>
-</tbody>
-</table>
-
-### Email batching interval
-
-Specify the maximum frequency, in seconds, which the batching job checks for new notifications.
-
-<Note>
-
-- We recommend decreasing the email batching interval from the default value if you see the following error in the Mattermost logs: `Email batching job's receiving buffer was full. Please increase the EmailBatchingBufferSize. Falling back to sending immediate mail.`.
-- Longer batching intervals may increase performance.
-- Notifications will be sent instantly if the [queue of emails](#email-batching-buffer-size) exceeds the email batching interval configured.
-
-</Note>
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>EmailBatchingInterval": 30</code> with numerical input.</td>
-</tr>
-</tbody>
-</table>
-
-### Enable account deactivation
-
-**True**: Ability for users to deactivate their own account from **Settings \> Advanced \> Deactivate Account**. If a user deactivates their own account, they will get an email notification confirming they were deactivated. Available only when authentication is set to use email/password. Not available when authentication uses SAML or AD/LDAP.
-
-**False**: Ability for users to deactivate their own account is disabled.
-
-<table style={{width: '98%'}}>
-<colgroup>
-<col style={{width: '97%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"EnableUserDeactivation": false</code> with options <code>true</code> and <code>false</code>.</td>
-</tr>
-</tbody>
-</table>
-
 ### Enable automatic replies
 
 **True**: Users can enable Automatic Replies in **Settings \> Notifications**. Users set a custom message that will be automatically sent in response to Direct Messages.
@@ -150,31 +88,6 @@ This setting determines whether team leave/join system messages are posted in th
 <tbody>
 <tr>
 <td>This feature's <code>config.json</code> setting is <code>"ExperimentalEnableDefaultChannelLeaveJoinMessages": true</code> with options <code>true</code> and <code>false</code>.</td>
-</tr>
-</tbody>
-</table>
-
-### Enable hardened mode
-
-**True**: Enables a hardened mode for Mattermost that makes user experience trade-offs in the interest of security.
-
-**False**: Disables hardened mode.
-
-Changes made when hardened mode is enabled:
-
-- Failed login returns a generic error message instead of a specific message for username and password.
-- If [multi-factor authentication (MFA)](/administration-guide/onboard/multi-factor-authentication) is enabled, the route to check if a user has MFA enabled always returns true. This causes the MFA input screen to appear even if the user does not have MFA enabled. The user may enter any value to pass the screen. Note that hardened mode does not affect user experience when MFA is enforced.
-- Password reset does not inform the user that they can not reset their SSO account through Mattermost and instead claims to have sent the password reset email.
-- Mattermost sanitizes all 500 errors before returned to the client. Use the supplied `request_id` to match user facing errors with the server logs.
-- Standard users authenticated via username and password can't use post props reserved for integrations, such as `override_username` or `override_icon_url`.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"ExperimentalEnableHardenedMode": false</code> with options <code>true</code> and <code>false</code>.</td>
 </tr>
 </tbody>
 </table>
@@ -240,38 +153,6 @@ If the team URL of the primary team is `https://example.mattermost.com/myteam/`,
 <tbody>
 <tr>
 <td>This feature's <code>config.json</code> setting is <code>"ExperimentalPrimaryTeam": ""</code> with string input.</td>
-</tr>
-</tbody>
-</table>
-
-### Use channel name in email notifications
-
-**True**: Channel and team name appears in email notification subject lines. Useful for servers using only one team.
-
-**False**: Only team name appears in email notification subject line.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"UseChannelInEmailNotifications": false</code> with options <code>true</code> and <code>false</code>.</td>
-</tr>
-</tbody>
-</table>
-
-### User status away timeout
-
-This setting defines the number of seconds after which the user's status indicator changes to "Away", when they are away from Mattermost.
-
-<table style={{width: '82%'}}>
-<colgroup>
-<col style={{width: '82%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"UserStatusAwayTimeout": 300</code> with numerical input.</td>
 </tr>
 </tbody>
 </table>

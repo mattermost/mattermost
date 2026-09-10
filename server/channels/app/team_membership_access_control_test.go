@@ -22,6 +22,7 @@ func TestHydrateTeamPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore).Maybe()
 
 		team := &model.Team{Id: model.NewId(), PolicyEnforced: false}
@@ -41,6 +42,7 @@ func TestHydrateTeamPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 
 		teamID := model.NewId()
@@ -58,6 +60,7 @@ func TestHydrateTeamPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 
 		teamID := model.NewId()
@@ -74,6 +77,7 @@ func TestHydrateTeamPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 
 		teamID := model.NewId()
@@ -91,6 +95,7 @@ func TestHydrateTeamPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 
 		teamID := model.NewId()
@@ -110,6 +115,7 @@ func TestHydrateTeamsPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore).Maybe()
 
 		appErr := thMock.App.HydrateTeamsPolicyActions(thMock.Context, nil)
@@ -123,6 +129,7 @@ func TestHydrateTeamsPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore).Maybe()
 
 		teams := []*model.Team{
@@ -141,6 +148,7 @@ func TestHydrateTeamsPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 
 		enforced1 := model.NewId()
@@ -180,6 +188,7 @@ func TestHydrateTeamsPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 
 		enforced := model.NewId()
@@ -197,6 +206,7 @@ func TestHydrateTeamsPolicyActions(t *testing.T) {
 		thMock := SetupWithStoreMock(t)
 		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
 		mockACPStore := storemocks.AccessControlPolicyStore{}
+		stubACPEtagInvalidation(&mockACPStore)
 		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
 
 		teams := []*model.Team{{Id: model.NewId(), PolicyEnforced: true}}

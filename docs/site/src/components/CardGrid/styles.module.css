@@ -1,12 +1,45 @@
+.gridContainer {
+  container-type: inline-size;
+}
+
 .grid {
   display: grid;
   gap: 1rem;
   margin: 1.5rem 0 2.5rem;
 }
 
-.cols2 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
-.cols3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
-.cols4 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+/* `repeat(auto-fit, minmax(200px, 1fr))` packed 4 cards into one tall, narrow
+ * row at typical article widths. Step the column count down explicitly
+ * instead, halving 4 to 2x2 and 3 to 2 before dropping to a single column. */
+.cols2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.cols3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.cols4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+@container (max-width: 1080px) {
+  .cols4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@container (max-width: 820px) {
+  .cols3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@container (max-width: 540px) {
+  .cols2,
+  .cols3,
+  .cols4 { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Fallback for browsers without container query support — viewport width is
+ * a reasonable stand-in since the doc sidebar collapses below 997px. */
+@supports not (container-type: inline-size) {
+  @media (max-width: 996px) {
+    .cols3,
+    .cols4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 600px) {
+    .cols2,
+    .cols3,
+    .cols4 { grid-template-columns: minmax(0, 1fr); }
+  }
+}
 
 .card {
   position: relative;
@@ -142,5 +175,87 @@
 
 [data-theme='dark'] .card:hover .arrow {
   background: rgba(255, 255, 255, 0.08);
+  color: var(--mm-color-white);
+}
+
+/* Compact variant — secondary destinations that sit under a primary
+ * card grid. Same affordances (surface, hover, arrow) at roughly half
+ * the visual weight, so they read as a second tier rather than a
+ * competing one. */
+.chipRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 0.6rem;
+  margin: 0.75rem 0 2.5rem;
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.85rem;
+  background: var(--mm-bg-surface);
+  border: 1px solid var(--mm-border-subtle);
+  border-radius: 6px;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.chip:hover {
+  background: var(--mm-bg-subtle);
+  border-color: var(--mm-border-strong);
+  text-decoration: none;
+  color: inherit;
+}
+.chip:focus-visible {
+  outline: 2px solid var(--mm-color-denim);
+  outline-offset: 2px;
+}
+
+[data-theme='dark'] .chip {
+  background: rgba(255, 255, 255, 0.035);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+[data-theme='dark'] .chip:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--mm-denim-300);
+}
+[data-theme='dark'] .chip:focus-visible {
+  outline-color: var(--mm-denim-300, #8499C5);
+}
+
+.chipBody {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.chipTitle {
+  display: block;
+  font-family: var(--mm-font-sans);
+  font-weight: 700;
+  font-size: 0.92rem;
+  letter-spacing: -0.01em;
+  color: var(--mm-text-primary);
+}
+
+.chipDescription {
+  display: block;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--mm-text-secondary);
+}
+
+.chipArrow {
+  flex: 0 0 auto;
+  color: var(--mm-text-secondary);
+  font-size: 0.85rem;
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+.chip:hover .chipArrow {
+  color: var(--mm-color-denim);
+  transform: translateX(3px);
+}
+
+[data-theme='dark'] .chip:hover .chipArrow {
   color: var(--mm-color-white);
 }

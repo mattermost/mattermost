@@ -176,7 +176,7 @@ export class AddUsersToTeamModal extends React.PureComponent<Props, State> {
         return (
             <div
                 key={option.id}
-                ref={isSelected ? this.selectedItemRef : option.id}
+                ref={isSelected ? this.selectedItemRef : undefined}
                 className={'more-modal__row ' + (blocked ? 'more-modal__row--disabled' : 'clickable ') + rowSelected}
                 aria-disabled={blocked}
                 onClick={blocked ? undefined : () => onAdd(option)}

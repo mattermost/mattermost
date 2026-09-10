@@ -48,7 +48,7 @@ import {
 } from './default_images';
 import {startInbucketContainer} from './inbucket_container';
 import {logTestcontainers} from './log';
-import {startMattermostContainer} from './mattermost_container';
+import {resolveMattermostBootEnv, startMattermostContainer} from './mattermost_container';
 import {getNetwork, getNetworkGatewayIp, stopNetwork} from './network';
 import {startPostgresContainer} from './postgres_container';
 import {ADDITIONAL_SERVICE_STARTERS} from './requirements';
@@ -234,7 +234,7 @@ function logStackReused(): void {
 
     // eslint-disable-next-line no-console
     console.log(
-        `Testcontainers (reused, network ${testConfig.testcontainersNetworkName}, tear down with: "npm run testcontainers:down"):\n${lines.join('\n')}\n`,
+        `Testcontainers (reused, network ${testConfig.testcontainersNetworkName}, tear down with: "npm run testcontainers:down"):\n${lines.join('\n')}\n${formatServerEnvSummary()}\n`,
     );
 }
 
@@ -508,7 +508,33 @@ function logStackStarted(stack: StartedStack): void {
         formatContainerLine(name, container, metadata),
     );
     // eslint-disable-next-line no-console
-    console.log(`Testcontainers (network ${stack.network.getId()}):\n${lines.join('\n')}`);
+    console.log(`Testcontainers (network ${stack.network.getId()}):\n${lines.join('\n')}\n${formatServerEnvSummary()}`);
+}
+
+const SENSITIVE_SERVER_ENV_KEYS = new Set([
+    'MM_LICENSE',
+    'MM_FILESETTINGS_AMAZONS3SECRETACCESSKEY',
+    'MM_FILESETTINGS_AZUREACCESSKEY',
+]);
+
+function redactServerEnvValue(key: string, value: string): string {
+    if (SENSITIVE_SERVER_ENV_KEYS.has(key)) {
+        return '***';
+    }
+    if (key === 'MM_SQLSETTINGS_DATASOURCE') {
+        return value.replace(/:([^:@/]+)@/, ':***@');
+    }
+    return value;
+}
+
+function formatServerEnvSummary(): string {
+    const env = resolveMattermostBootEnv(testConfig.bootEnvOverrides);
+    const lines = Object.entries(env)
+        .filter(([key]) => key.startsWith('MM_'))
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([key, value]) => `  - ${key} = ${redactServerEnvValue(key, value)}`);
+
+    return `server env (MM_*):\n${lines.join('\n')}`;
 }
 
 function logStackStopped(stack: StartedStack): void {

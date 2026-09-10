@@ -8,3 +8,13 @@ export const GRAPH_MAX_PARENTS_PER_VALUE = 100;
 export const GRAPH_MAX_DEPTH = 100;
 export const GRAPH_MAX_OPTIONS = 100_000;
 export const GRAPH_MAX_EDGES = 1_000_000;
+
+// Kept here (not on attribute_details.tsx) so the listing table can build an
+// edit URL without importing the details page, which already imports type
+// helpers from the table.
+export const GLOBAL_ATTRIBUTES_LIST_ROUTE = '/admin_console/system_attributes/manage_attributes';
+export const ATTRIBUTE_DETAILS_ROUTE = `${GLOBAL_ATTRIBUTES_LIST_ROUTE}/attribute_details`;
+
+export function attributeDetailsRoute(fieldId: string): string {
+    return `${ATTRIBUTE_DETAILS_ROUTE}/${fieldId}`;
+}

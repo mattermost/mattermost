@@ -80,6 +80,16 @@ export default class ChannelsCenterView {
     }
 
     /**
+     * Return the Center post whose body contains the given text. Prefer this over getLastPost:
+     * adding a member appends a join system message, so the post under test is often not last.
+     */
+    async getPostByText(text: string) {
+        const post = this.container.getByTestId('postView').filter({hasText: text}).last();
+        await post.waitFor();
+        return new ChannelsPost(post);
+    }
+
+    /**
      * Return the ID of the last post in the Center
      */
     async getLastPostID() {

@@ -123,12 +123,27 @@ func (a *App) propertyFieldOptionsChanged(rctx request.CTX, field *model.Propert
 			mlog.Err(err),
 		)
 		a.invalidatePolicyCachesForOptionChange(rctx, field.ID)
+		// Unconditional, unlike the success path below, which can see whether any
+		// field involved is one the AttributeView materializes. Here nothing can:
+		// a template carries object type "template" and its user-scoped dependents
+		// are exactly what could not be read, so testing the caller's copy would
+		// skip the invalidation in the case most likely to need it. The cost of
+		// invalidating when nothing was affected is one matview refresh.
+		a.invalidateAllUserAttributeCaches()
 		return
 	}
 
 	a.invalidatePolicyCachesForOptionChange(rctx, current.ID)
 	for _, dependent := range dependents {
 		a.invalidatePolicyCachesForOptionChange(rctx, dependent.ID)
+	}
+
+	// The matview resolves an object's stored option IDs to names through
+	// PropertyOptions, so an option write changes what every subject resolves to
+	// without touching a single PropertyValues row -- which is what the per-user
+	// epoch is computed from, so it cannot see this on its own.
+	if current.ObjectType == model.PropertyFieldObjectTypeUser || anyUserObjectType(dependents) {
+		a.invalidateAllUserAttributeCaches()
 	}
 
 	a.publishPropertyFieldEvent(rctx, model.WebsocketEventPropertyFieldUpdated, current, connectionID)

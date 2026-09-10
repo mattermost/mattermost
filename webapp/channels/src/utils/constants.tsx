@@ -504,6 +504,8 @@ export const ModalIdentifiers = {
     GLOBAL_ATTRIBUTE_FIELD_DELETE: 'global_attribute_field_delete',
     GRAPH_NODE_DELETE: 'graph_node_delete',
     GRAPH_GRANT_CONFIRM: 'graph_grant_confirm',
+    GLOBAL_ATTRIBUTE_REMOVE_APPLIES_TO: 'global_attribute_remove_applies_to',
+
     ATTRIBUTE_MODAL_LDAP: 'attribute_modal_ldap',
     ATTRIBUTE_MODAL_SAML: 'attribute_modal_saml',
     RANKED_SCHEMA_MODAL: 'ranked_schema_modal',
