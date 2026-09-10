@@ -848,6 +848,12 @@ type API interface {
 	// Minimum server version: 5.8
 	GetFile(fileId string) ([]byte, *model.AppError)
 
+	// HasPermissionToFileAction evaluates the applicable policy for a session and file.
+	//
+	// @tag File
+	// Minimum server version: 11.7
+	HasPermissionToFileAction(sessionID, fileID, action string) bool
+
 	// GetFileLink gets the public link to a file by fileId.
 	//
 	// @tag File

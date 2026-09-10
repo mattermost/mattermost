@@ -972,6 +972,30 @@ func (api *PluginAPI) GetFile(fileID string) ([]byte, *model.AppError) {
 	return api.app.GetFile(api.ctx, fileID)
 }
 
+func (api *PluginAPI) HasPermissionToFileAction(sessionID, fileID, action string) bool {
+	if sessionID == "" || fileID == "" || !model.IsPermissionAction(action) {
+		return false
+	}
+
+	session, appErr := api.app.GetSessionById(api.ctx, sessionID)
+	if appErr != nil || session == nil || session.IsValid() != nil {
+		return false
+	}
+
+	session, appErr = api.app.GetSession(session.Token)
+	if appErr != nil || session == nil || session.Id != sessionID {
+		return false
+	}
+
+	fileInfo, appErr := api.app.Srv().getFileInfo(fileID)
+	if appErr != nil || fileInfo.ChannelId == "" {
+		return false
+	}
+
+	rctx := api.ctx.WithSession(session)
+	return api.app.HasPermissionToFileAction(rctx, session.UserId, session.Roles, fileInfo.ChannelId, action)
+}
+
 func (api *PluginAPI) UploadFile(data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError) {
 	return api.app.UploadFile(api.ctx, data, channelID, filename)
 }
