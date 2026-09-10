@@ -700,11 +700,12 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		post = c.App.PreparePostForClient(c.AppContext, post, &model.PreparePostForClientOpts{IncludePriority: true})
 
-		post, isMemberForCurrentPreview, sanitizeErr := c.App.SanitizePostMetadataForUser(c.AppContext, post, c.AppContext.Session().UserId)
+		sanitizedPost, isMemberForCurrentPreview, sanitizeErr := c.App.SanitizePostMetadataForUser(c.AppContext, post, c.AppContext.Session().UserId)
 		if sanitizeErr != nil {
 			c.Err = sanitizeErr
 			return
 		}
+		post = sanitizedPost
 		isMemberForAllPreviews = isMemberForAllPreviews && isMemberForCurrentPreview
 
 		post.StripActionIntegrations()
