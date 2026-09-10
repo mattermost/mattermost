@@ -11,9 +11,9 @@ import {openModal} from 'actions/views/modals';
 
 import {ModalIdentifiers} from 'utils/constants';
 
-import type {GrantConfirmRequest} from './graph_parent_ops';
+import type {GrantConfirmRequest} from './parent_ops';
 
-import './attribute_graph_grant_confirm_modal.scss';
+import './grant_confirm_modal.scss';
 
 type Props = {
     parentName: string;

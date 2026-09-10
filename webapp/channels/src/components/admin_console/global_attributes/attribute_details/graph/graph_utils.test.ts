@@ -41,7 +41,7 @@ import {
     GRAPH_MAX_EDGES,
     GRAPH_MAX_OPTIONS,
     GRAPH_MAX_PARENTS_PER_VALUE,
-} from '../constants';
+} from '../../constants';
 
 const opt = (name: string, parents: string[] = []): PropertyFieldOption => ({id: '', name, parents});
 

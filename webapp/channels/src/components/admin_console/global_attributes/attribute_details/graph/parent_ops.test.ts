@@ -3,7 +3,7 @@
 
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
-import {proposeAddParent, proposeReplaceOccurrenceParent} from './graph_parent_ops';
+import {proposeAddParent, proposeReplaceOccurrenceParent} from './parent_ops';
 
 const opt = (name: string, parents: string[] = []): PropertyFieldOption => ({id: '', name, parents});
 
