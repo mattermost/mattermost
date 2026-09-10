@@ -22,7 +22,7 @@ import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import {getPluginDisplayName} from 'selectors/plugins';
 
-import {AssignmentGraphPicker} from 'components/property_fields/hierarchical_value_menu';
+import GraphProfileAttribute from 'components/property_fields/graph/graph_profile_attribute';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import SettingPicture from 'components/setting_picture';
@@ -176,8 +176,6 @@ export type Props = {
     lockProfileFieldsForEmailUsers: LockProfileFieldsSetting;
     canEditOtherUsers: boolean;
     enableCustomProfileAttributes: boolean;
-
-    isGraphPickerEnabled?: boolean;
 };
 
 type State = {
@@ -199,8 +197,6 @@ type State = {
     serverError?: string;
     emailError?: string;
     customAttributeValues: Record<string, string | string[]>;
-
-    graphOptionNames: Record<string, Record<string, string>>;
 };
 
 // Private component to get plugin display name
@@ -219,22 +215,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
 
-        // graphOptionNames is deliberately not part of setupInitialState:
-        // updateSection() spreads that object back into setState on every
-        // expand/collapse, and this is fetch-derived cache, not form state.
-        this.state = {...this.setupInitialState(props), graphOptionNames: {}};
+        this.state = this.setupInitialState(props);
     }
-
-    // Merge, never replace: a second fetch that resolves fewer ids must not
-    // erase names the first one found.
-    handleGraphNamesResolved = (fieldId: string, names: Record<string, string>) => {
-        this.setState((prev) => ({
-            graphOptionNames: {
-                ...prev.graphOptionNames,
-                [fieldId]: {...prev.graphOptionNames[fieldId], ...names},
-            },
-        }));
-    };
 
     componentDidMount() {
         if (this.props.enableCustomProfileAttributes && !this.props.user.custom_profile_attributes) {
@@ -1506,6 +1488,35 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             // Hide source_only fields from user profiles
             return attribute.attrs?.access_mode !== 'source_only';
         }).map((attribute) => {
+            if (attribute.type === 'graph') {
+                const sectionName = 'customAttribute_' + attribute.id;
+                const stored = this.props.user.custom_profile_attributes?.[attribute.id];
+                const draft = this.state.customAttributeValues[attribute.id];
+                return (
+                    <GraphProfileAttribute
+                        key={sectionName}
+                        attribute={attribute}
+                        sectionName={sectionName}
+                        active={this.props.activeSection === sectionName}
+                        areAllSectionsInactive={this.props.activeSection === ''}
+                        storedValue={stored}
+                        draftIds={Array.isArray(draft) ? draft : []}
+                        onDraftIdsChange={(nextIds) => this.setState({
+                            customAttributeValues: {
+                                ...this.state.customAttributeValues,
+                                [attribute.id]: nextIds,
+                            },
+                        })}
+                        onSubmit={() => this.submitAttribute([attribute.id])}
+                        updateSection={this.updateSection}
+                        sectionIsSaving={this.state.sectionIsSaving}
+                        serverError={this.state.serverError}
+                        isMobileView={this.props.isMobileView}
+                        user={this.props.user}
+                    />
+                );
+            }
+
             const sectionName = 'customAttribute_' + attribute.id;
             const active = this.props.activeSection === sectionName;
             let max = null;
@@ -1590,7 +1601,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 const isOwnerManaged = Boolean(attribute.attrs?.owners?.length);
                 const optionsOmitted = Boolean(attribute.attrs?.options_omitted);
 
-                const omitLocksField = optionsOmitted && !(attribute.type === 'graph' && this.props.isGraphPickerEnabled);
+                const omitLocksField = optionsOmitted;
                 const isReadOnly = isSynced || isOwnerManaged || isAdminManaged || isProtected || omitLocksField;
 
                 if (isSynced) {
@@ -1657,9 +1668,9 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                             return {label: o.name, value: o.id} as SelectOption;
                         });
 
-                        const legacySelect = (
+                        inputs.push(
                             <ReactSelect
-                                isMulti={attribute.type === 'multiselect' || attribute.type === 'graph' ? true : undefined}
+                                isMulti={attribute.type === 'multiselect' ? true : undefined}
                                 key={sectionName}
                                 id={'customProfileAttribute_' + attribute.id}
                                 inputId={'customProfileAttribute_' + attribute.id + '_input'}
@@ -1676,39 +1687,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                                 styles={selectStyles}
                                 value={getDisplayValue(this.state.customAttributeValues[attribute.id]) as SelectOption}
                                 onChange={(v, a) => this.updateSelectAttribute(v, a, attribute.id)}
-                            />
+                            />,
                         );
-
-                        if (attribute.type === 'graph') {
-                            const storedIds = this.state.customAttributeValues[attribute.id];
-                            const selectedIds = Array.isArray(storedIds) ? storedIds : [];
-
-                            inputs.push(
-                                <AssignmentGraphPicker
-                                    key={sectionName}
-                                    field={attribute}
-                                    ids={selectedIds}
-                                    onIdsChange={(nextIds) => this.setState({
-                                        customAttributeValues: {
-                                            ...this.state.customAttributeValues,
-                                            [attribute.id]: nextIds,
-                                        },
-                                    })}
-                                    menuId={`customProfileAttributeGraph_${attribute.id}`}
-                                    buttonId={`customProfileAttributeGraphButton_${attribute.id}`}
-                                    buttonDataTestId={`customProfileAttributeGraph_${attribute.id}`}
-                                    placeholder={formatMessage({
-                                        id: 'user.settings.general.select',
-                                        defaultMessage: 'Select',
-                                    })}
-                                    ariaLabel={getUserPropertyFieldLabel(attribute)}
-                                    onNamesResolved={(names) => this.handleGraphNamesResolved(attribute.id, names)}
-                                    fallback={() => legacySelect}
-                                />,
-                            );
-                        } else {
-                            inputs.push(legacySelect);
-                        }
                     } else {
                         const inputType = attribute.type as string;
                         inputs.push(
@@ -1767,26 +1747,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             let describe: JSX.Element | string = '';
             const storedValue = this.props.user.custom_profile_attributes?.[attribute.id];
 
-            if (attribute.type === 'graph' && this.props.isGraphPickerEnabled && Array.isArray(storedValue) && storedValue.length > 0) {
-                // Names or a count, never a raw id. Omitted fields stay a count until
-                // a picker fetch fills graphOptionNames (never, for a read-only field).
-                const inlineOptions = attribute.attrs?.options ?? [];
-                const resolvedNames = this.state.graphOptionNames[attribute.id];
-                const names = storedValue.map((id) => {
-                    const option = inlineOptions.find((o) => o.id === id);
-                    return option?.name ?? resolvedNames?.[id];
-                });
-
-                describe = names.every((name) => Boolean(name)) ? (
-                    <FormattedList value={names as string[]}/>
-                ) : (
-                    <FormattedMessage
-                        id='user.settings.general.graphValuesSelected'
-                        defaultMessage='{count, plural, one {# value selected} other {# values selected}}'
-                        values={{count: storedValue.length}}
-                    />
-                );
-            } else if (storedValue) {
+            if (storedValue) {
                 const attributeValue = getDisplayValue(storedValue);
                 if (attributeValue) {
                     if (typeof attributeValue === 'string') {

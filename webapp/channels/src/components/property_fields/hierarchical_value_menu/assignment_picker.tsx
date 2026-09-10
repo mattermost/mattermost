@@ -6,11 +6,15 @@ import type {ReactNode} from 'react';
 
 import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 
-import {assignmentFallbackLabels, computeAssignmentPrefetch} from './assignment_adapter';
-import HierarchicalValueMenu from './hierarchical_value_menu';
-import type {GraphFieldRef, HierarchicalValueMenuProps} from './hierarchical_value_menu';
-
+import {assignmentFallbackLabels, computeAssignmentPrefetch} from '../graph/assignment_prefetch';
 import type {GraphOptionJoin} from '../graph';
+import type {GraphFieldRef} from '../graph/page_all_access_control_field_options';
+import {commitGraphOptionNames} from '../graph/use_graph_option_names';
+
+import HierarchicalValueMenu from './hierarchical_value_menu';
+import type {HierarchicalValueMenuProps} from './hierarchical_value_menu';
+
+export {computeAssignmentPrefetch, assignmentFallbackLabels};
 
 export type AssignmentGraphPickerProps = {
     field: GraphFieldRef;
@@ -20,15 +24,22 @@ export type AssignmentGraphPickerProps = {
 
     // Flag-off control. Thunk so a class parent does not build it on flag-on renders.
     fallback: () => ReactNode;
-
-    // Names the last successful fetch resolved. Always called on success, including
-    // with {}: that is how a host tells a failed read from a successful miss.
-    onNamesResolved?: (names: Record<string, string>) => void;
 } & Pick<
     HierarchicalValueMenuProps,
 'menuId' | 'buttonId' | 'buttonDataTestId' | 'placeholder' | 'ariaLabel' |
 'className' | 'buttonClassName'
 >;
+
+function namesForHeldIds(join: GraphOptionJoin, reportFor: string[]): Record<string, string> {
+    const names: Record<string, string> = {};
+    for (const id of reportFor) {
+        const name = join.byId.get(id)?.name;
+        if (name) {
+            names[id] = name;
+        }
+    }
+    return names;
+}
 
 export default function AssignmentGraphPicker({
     field,
@@ -36,7 +47,6 @@ export default function AssignmentGraphPicker({
     onIdsChange,
     disabled,
     fallback,
-    onNamesResolved,
     ...chrome
 }: AssignmentGraphPickerProps) {
     const isGraphEnabled = useGetFeatureFlagValue('PropertyFieldGraph') === 'true';
@@ -47,40 +57,24 @@ export default function AssignmentGraphPicker({
 
     const idsRef = useRef(ids);
     idsRef.current = ids;
-    const onNamesResolvedRef = useRef(onNamesResolved);
-    onNamesResolvedRef.current = onNamesResolved;
 
     const joinRef = useRef<GraphOptionJoin | null>(null);
 
-    const reportNames = useCallback((reportFor: string[], evenIfEmpty = false) => {
-        const report = onNamesResolvedRef.current;
-        const join = joinRef.current;
-        if (!report || !join) {
-            return;
-        }
-
-        const names: Record<string, string> = {};
-        for (const id of reportFor) {
-            const name = join.byId.get(id)?.name;
-            if (name) {
-                names[id] = name;
-            }
-        }
-
-        if (evenIfEmpty || Object.keys(names).length > 0) {
-            report(names);
-        }
-    }, []);
-
     const handleOptionsLoaded = useCallback((join: GraphOptionJoin) => {
         joinRef.current = join;
-        reportNames(idsRef.current, true);
-    }, [reportNames]);
+        commitGraphOptionNames(field.id, namesForHeldIds(join, idsRef.current));
+    }, [field.id]);
 
     const handleIdsChange = useCallback((next: string[]) => {
-        reportNames(next);
+        const join = joinRef.current;
+        if (join) {
+            const names = namesForHeldIds(join, next);
+            if (Object.keys(names).length > 0) {
+                commitGraphOptionNames(field.id, names);
+            }
+        }
         onIdsChange(next);
-    }, [reportNames, onIdsChange]);
+    }, [field.id, onIdsChange]);
 
     if (!isGraphEnabled) {
         return <>{fallback()}</>;

@@ -5,17 +5,19 @@ import React from 'react';
 
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+
+import {assignmentFallbackLabels, computeAssignmentPrefetch} from '../graph/assignment_prefetch';
+import GraphValueSummary from '../graph/graph_value_summary';
+import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from '../graph/page_all_access_control_field_options';
+import {clearGraphOptionNameCache} from '../graph/use_graph_option_names';
 
 import AssignmentGraphPicker from './assignment_picker';
 import type {AssignmentGraphPickerProps} from './assignment_picker';
 import type {GraphFieldRef} from './hierarchical_value_menu';
 
-import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from '../graph/page_all_access_control_field_options';
-
 jest.mock('../graph/page_all_access_control_field_options', () => ({
     ...jest.requireActual('../graph/page_all_access_control_field_options'),
-
     pageAllAccessControlFieldOptions: jest.fn(),
 }));
 
@@ -47,6 +49,16 @@ const fieldOf = (overrides: GraphFieldRef['attrs'] = {}): GraphFieldRef => ({
     type: 'graph',
     attrs: overrides,
 });
+
+const deferred = <T, >() => {
+    let resolve!: (value: T) => void;
+    let reject!: (reason?: unknown) => void;
+    const promise = new Promise<T>((res, rej) => {
+        resolve = res;
+        reject = rej;
+    });
+    return {promise, resolve, reject};
+};
 
 const renderPicker = (overrides: Partial<AssignmentGraphPickerProps> = {}, flagOn = true) => {
     const props: AssignmentGraphPickerProps = {
@@ -83,19 +95,19 @@ const openMenu = async () => {
     await screen.findByRole('menu');
 };
 
-// Nothing here should reach the network. A test that forgets to stub the walk
-// must fail loudly rather than fall through to the real Client4, and an
-// open-ended stub must not be able to feed an accumulating keyset walk.
-const throwingDefault = () => {
-    mockPageAll.mockImplementation(() => {
-        throw new Error('pageAllAccessControlFieldOptions called without an explicit mock for this test');
+const settle = async () => {
+    await act(async () => {
+        await Promise.resolve();
     });
 };
 
 describe('AssignmentGraphPicker', () => {
     beforeEach(() => {
         clearPropertyFieldOptionWalks();
-        throwingDefault();
+        clearGraphOptionNameCache();
+        mockPageAll.mockImplementation(() => {
+            throw new Error('pageAllAccessControlFieldOptions called without an explicit mock for this test');
+        });
     });
 
     test('P1: renders the fallback and never calls it twice when the flag is off', () => {
@@ -150,50 +162,6 @@ describe('AssignmentGraphPicker', () => {
         expect(mockPageAll).not.toHaveBeenCalled();
     });
 
-    test('P6: reports names for held ids only', async () => {
-        mockPageAll.mockResolvedValue(REGIME_1);
-        const onNamesResolved = jest.fn();
-        renderPicker({
-            field: fieldOf({options_omitted: true}),
-            ids: ['opt1'],
-            onNamesResolved,
-        });
-
-        await waitFor(() => expect(onNamesResolved).toHaveBeenCalledTimes(1));
-        expect(onNamesResolved).toHaveBeenCalledWith({opt1: 'Option 1'});
-    });
-
-    test('P7: omits an unresolved id from the reported names', async () => {
-        mockPageAll.mockResolvedValue(REGIME_1);
-        const onNamesResolved = jest.fn();
-        renderPicker({
-            field: fieldOf({options_omitted: true}),
-            ids: ['opt1', 'ghost'],
-            onNamesResolved,
-        });
-
-        await waitFor(() => expect(onNamesResolved).toHaveBeenCalledTimes(1));
-        expect(onNamesResolved).toHaveBeenCalledWith({opt1: 'Option 1'});
-        expect(onNamesResolved.mock.calls[0][0]).not.toHaveProperty('ghost');
-    });
-
-    test('P7b: reports the name of a value selected after the fetch landed', async () => {
-        mockPageAll.mockResolvedValue(REGIME_1);
-        const onNamesResolved = jest.fn();
-        renderPicker({
-            field: fieldOf({options_omitted: true}),
-            ids: [],
-            onNamesResolved,
-        });
-
-        await openMenu();
-        await userEvent.click(await screen.findByRole('menuitemcheckbox', {name: 'Option 3'}));
-
-        // Nothing was held when the walk landed, so this name can only come
-        // from the selection itself.
-        expect(onNamesResolved).toHaveBeenCalledWith({opt3: 'Option 3'});
-    });
-
     test('P8: does not refetch when the selection changes while the menu is open', async () => {
         mockPageAll.mockResolvedValue(REGIME_1);
 
@@ -206,7 +174,6 @@ describe('AssignmentGraphPicker', () => {
                     field={fieldOf({options: REGIME_1})}
                     ids={ids}
                     onIdsChange={setIds}
-                    onNamesResolved={() => {}}
                     fallback={() => <div/>}
                     menuId='assignment-menu'
                     buttonId='assignment-button'
@@ -233,83 +200,106 @@ describe('AssignmentGraphPicker', () => {
         expect(mockPageAll).toHaveBeenCalledTimes(1);
     });
 
-    test('P9: keeps reporting names across a rerender with a new onNamesResolved identity', async () => {
-        mockPageAll.mockResolvedValue(REGIME_1);
-        const first = jest.fn();
-        const second = jest.fn();
-
-        const {rerenderWith} = renderPicker({
-            field: fieldOf({options_omitted: true}),
-            ids: ['opt1'],
-            onNamesResolved: first,
-        });
-
-        await waitFor(() => expect(first).toHaveBeenCalledTimes(1));
-
-        rerenderWith({
-            field: fieldOf({options_omitted: true}),
-            ids: ['opt1'],
-            onNamesResolved: second,
-        });
-
-        // The mount prefetch is latched, so a rerender must not walk again.
-        expect(mockPageAll).toHaveBeenCalledTimes(1);
-
-        await openMenu();
-        await waitFor(() => expect(second).toHaveBeenCalledTimes(1));
-        expect(second).toHaveBeenCalledWith({opt1: 'Option 1'});
-        expect(first).toHaveBeenCalledTimes(1);
-    });
-
     test('P10: forwards disabled to the trigger', () => {
         renderPicker({disabled: true});
 
         expect(trigger()).toBeDisabled();
     });
 
-    test('P11: reports an empty map when the walk names none of the held ids', async () => {
-        // The empty report is the signal that a read succeeded, and it is the
-        // only one a host gets: the widget tells callers about success and says
-        // nothing about failure, so "was I called at all" is the only way a
-        // change summary can tell "nothing is known about this id" from "the
-        // read worked and this id was not in it". Those look identical in the
-        // map and must not look identical on screen.
-        //
-        // This replaces an earlier skip that suppressed the empty call to save a
-        // render. The render is the price of the distinction.
-        mockPageAll.mockResolvedValue(REGIME_1);
-        const onNamesResolved = jest.fn();
+    test('shows payload names as chips without fetching', async () => {
         renderPicker({
-            field: fieldOf({options_omitted: true}),
-            ids: ['ghost-1', 'ghost-2'],
-            onNamesResolved,
+            field: fieldOf({options: [opt('opt-f18', 'F-18 Program')]}),
+            ids: ['opt-f18'],
         });
 
-        await waitFor(() => expect(onNamesResolved).toHaveBeenCalledTimes(1));
-        expect(onNamesResolved).toHaveBeenCalledWith({});
-        expect(mockPageAll).toHaveBeenCalledTimes(1);
+        await settle();
+
+        expect(trigger()).toHaveTextContent('F-18 Program');
+        expect(mockPageAll).not.toHaveBeenCalled();
     });
 
-    test('P12: does not report again when a selection change still names nothing', async () => {
-        // The half of the skip that survives. Once the read has been signalled,
-        // an empty report per checkbox click carries no new information, so the
-        // guard stays on the selection-change path: a wasted setState per click
-        // was the reason the skip existed.
-        mockPageAll.mockResolvedValue(REGIME_1);
-        const onNamesResolved = jest.fn();
+    test('shows a pending chip rather than an id while prefetching', async () => {
+        const walk = deferred<PropertyFieldOption[]>();
+        mockPageAll.mockReturnValue(walk.promise);
         renderPicker({
             field: fieldOf({options_omitted: true}),
-            ids: ['ghost-1', 'ghost-2'],
-            onNamesResolved,
+            ids: ['opt-f18'],
         });
 
-        await waitFor(() => expect(onNamesResolved).toHaveBeenCalledTimes(1));
-        onNamesResolved.mockClear();
+        await settle();
 
-        // Dropping one stale id leaves a selection that still names nothing, so
-        // there is nothing to say and nothing is said.
-        await userEvent.click(screen.getByRole('button', {name: 'Remove ghost-1'}));
+        expect(trigger()).not.toHaveTextContent('opt-f18');
+        expect(document.querySelector('.hierarchical-value-menu__chip--pending')).not.toBeNull();
+    });
 
-        expect(onNamesResolved).not.toHaveBeenCalled();
+    test('commits an empty name map on a successful walk that names none of the held ids', async () => {
+        mockPageAll.mockResolvedValue(REGIME_1);
+        const field = fieldOf({options_omitted: true});
+
+        renderWithContext(
+            <>
+                <AssignmentGraphPicker
+                    field={field}
+                    ids={['ghost-1', 'ghost-2']}
+                    onIdsChange={jest.fn()}
+                    fallback={() => <div/>}
+                    menuId='assignment-menu'
+                    buttonId='assignment-button'
+                    buttonDataTestId='assignment-trigger'
+                    ariaLabel='Programs'
+                />
+                <div data-testid='confirm-summary'>
+                    <GraphValueSummary
+                        field={field}
+                        ids={['ghost-1']}
+                        mode='confirm'
+                    />
+                </div>
+            </>,
+            {entities: {general: {config: {FeatureFlagPropertyFieldGraph: 'true'}}}},
+        );
+
+        await waitFor(() => expect(mockPageAll).toHaveBeenCalledTimes(1));
+        await waitFor(() => expect(screen.getByTestId('confirm-summary')).toHaveTextContent('ghost-1'));
+        expect(screen.getByTestId('confirm-summary')).not.toHaveTextContent('Value unavailable');
+    });
+});
+
+describe('computeAssignmentPrefetch', () => {
+    test('is true when options_omitted', () => {
+        expect(computeAssignmentPrefetch({attrs: {options_omitted: true}}, [])).toBe(true);
+    });
+
+    test('is true when a selected id is not named by the payload', () => {
+        expect(computeAssignmentPrefetch({attrs: {options: [opt('a', 'A')]}}, ['b'])).toBe(true);
+    });
+
+    test('is false when the payload names every selected id', () => {
+        expect(computeAssignmentPrefetch({attrs: {options: [opt('a', 'A')]}}, ['a'])).toBe(false);
+    });
+
+    test('is false with no selection and no omission', () => {
+        expect(computeAssignmentPrefetch({attrs: {options: []}}, [])).toBe(false);
+    });
+
+    test('is true when the payload has no options and something is selected', () => {
+        expect(computeAssignmentPrefetch({attrs: {}}, ['a'])).toBe(true);
+    });
+});
+
+describe('assignmentFallbackLabels', () => {
+    test('maps every payload option id to its name', () => {
+        expect(assignmentFallbackLabels({attrs: {options: [opt('a', 'A'), opt('b', 'B')]}})).toEqual({
+            a: 'A',
+            b: 'B',
+        });
+    });
+
+    test('skips an option with an empty id', () => {
+        expect(assignmentFallbackLabels({attrs: {options: [opt('', 'Legacy')]}})).toEqual({});
+    });
+
+    test('is empty for a field with no options', () => {
+        expect(assignmentFallbackLabels({})).toEqual({});
     });
 });
