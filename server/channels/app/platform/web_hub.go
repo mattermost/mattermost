@@ -32,7 +32,7 @@ type SuiteIFace interface {
 	HasPermissionToResolveChannelMention(rctx request.CTX, userID string, channel *model.Channel) bool
 	HasPermissionToFileAction(rctx request.CTX, userID string, roles string, channelID string, action string) bool
 	UserCanSeeOtherUser(rctx request.CTX, userID string, otherUserId string) (bool, *model.AppError)
-	MFARequired(rctx request.CTX) *model.AppError
+	MFARequired(rctx request.CTX, method string) *model.AppError
 	MakeAuditRecord(rctx request.CTX, event string, initialStatus string) *model.AuditRecord
 	LogAuditRec(rctx request.CTX, auditRec *model.AuditRecord, err error)
 }
@@ -534,6 +534,37 @@ func (h *Hub) Stop() {
 	}
 }
 
+func (h *Hub) recordPostDelivery(marker *model.PostDeliveryMarker, userID string) {
+	if marker == nil || userID == "" || userID == marker.UserId || h.platform.postDeliveryRecorder == nil {
+		return
+	}
+	h.platform.postDeliveryRecorder(marker, userID)
+}
+
+// broadcastToConn delivers msg to a single web connection, if it is still registered and
+// should receive the event. A post delivery is recorded only when the event is actually
+// enqueued onto the connection's send buffer — never before the ShouldSendEvent check, and
+// never on the default branch where the buffer is full and the connection is dropped.
+func (h *Hub) broadcastToConn(connIndex *hubConnectionIndex, webConn *WebConn, msg *model.WebSocketEvent, marker *model.PostDeliveryMarker, broadcastHooks []string, broadcastHookArgs []map[string]any) {
+	if !connIndex.Has(webConn) {
+		return
+	}
+	if webConn.ShouldSendEvent(msg) {
+		select {
+		case webConn.send <- h.runBroadcastHooks(msg, webConn, broadcastHooks, broadcastHookArgs):
+			h.recordPostDelivery(marker, webConn.UserId)
+		default:
+			// Don't log the warning if it's an inactive connection.
+			if webConn.Active.Load() {
+				mlog.Error("webhub.broadcast: cannot send, closing websocket for user",
+					mlog.String("user_id", webConn.UserId),
+					mlog.String("conn_id", webConn.GetConnectionID()))
+			}
+			closeAndRemoveConn(connIndex, webConn)
+		}
+	}
+}
+
 // Start starts the hub.
 func (h *Hub) Start() {
 	var doStart func()
@@ -719,26 +750,12 @@ func (h *Hub) Start() {
 
 				// Remove the broadcast hook information before precomputing the JSON so that those aren't included in it
 				msg, broadcastHooks, broadcastHookArgs := msg.WithoutBroadcastHooks()
+				msg, deliveryMarker := msg.WithoutRecordPostDelivery()
 
 				msg = msg.PrecomputeJSON()
 
 				broadcast := func(webConn *WebConn) {
-					if !connIndex.Has(webConn) {
-						return
-					}
-					if webConn.ShouldSendEvent(msg) {
-						select {
-						case webConn.send <- h.runBroadcastHooks(msg, webConn, broadcastHooks, broadcastHookArgs):
-						default:
-							// Don't log the warning if it's an inactive connection.
-							if webConn.Active.Load() {
-								mlog.Error("webhub.broadcast: cannot send, closing websocket for user",
-									mlog.String("user_id", webConn.UserId),
-									mlog.String("conn_id", webConn.GetConnectionID()))
-							}
-							closeAndRemoveConn(connIndex, webConn)
-						}
-					}
+					h.broadcastToConn(connIndex, webConn, msg, deliveryMarker, broadcastHooks, broadcastHookArgs)
 				}
 
 				// Quick return for a single connection.
