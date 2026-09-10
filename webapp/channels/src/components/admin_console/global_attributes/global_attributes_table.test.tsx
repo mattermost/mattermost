@@ -203,6 +203,99 @@ describe('GlobalAttributesTable', () => {
         expect(names).toEqual(['Aardvark Attribute', 'Zebra Attribute']);
     });
 
+    describe('Non-template fields', () => {
+        // Mirrors the fixed template-user-channel-post fetch order the component
+        // dispatches in. Each fetch pages until it sees an empty page: all four scopes'
+        // first pages resolve together (their calls fire before any of them awaits), then
+        // any scope whose first page was non-empty asks again, in that same scope order —
+        // so the queue is every scope's first page, followed by a terminating [] for each
+        // scope that got real data.
+        function mockScopedFields(scopes: {template?: PropertyField[]; user?: PropertyField[]; channel?: PropertyField[]; post?: PropertyField[]}) {
+            const firstPages = [scopes.template ?? [], scopes.user ?? [], scopes.channel ?? [], scopes.post ?? []];
+            firstPages.forEach((fields) => getPropertyFields.mockResolvedValueOnce(fields));
+            firstPages.forEach((fields) => {
+                if (fields.length > 0) {
+                    getPropertyFields.mockResolvedValueOnce([]);
+                }
+            });
+        }
+
+        it('lists an unlinked field from each resource scope alongside templates', async () => {
+            mockScopedFields({
+                user: [makeField({id: 'u1', name: 'user_field', object_type: 'user'})],
+                channel: [makeField({id: 'c1', name: 'channel_field', object_type: 'channel'})],
+                post: [makeField({id: 'p1', name: 'post_field', object_type: 'post'})],
+            });
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            expect(await screen.findByText('user_field')).toBeInTheDocument();
+            expect(screen.getByText('channel_field')).toBeInTheDocument();
+            expect(screen.getByText('post_field')).toBeInTheDocument();
+        });
+
+        it('excludes a non-template field that is linked to a template', async () => {
+            mockScopedFields({
+                user: [makeField({id: 'u1', name: 'linked_field', object_type: 'user', linked_field_id: 'template-1'})],
+            });
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            expect(await screen.findByTestId('global-attributes-empty')).toBeInTheDocument();
+            expect(screen.queryByText('linked_field')).not.toBeInTheDocument();
+        });
+
+        it('sorts templates and non-template fields together by display name, not templates-then-non-templates', async () => {
+            mockScopedFields({
+                template: [
+                    makeField({id: 't1', name: 'charlie_template', attrs: {display_name: 'Charlie'}}),
+                    makeField({id: 't2', name: 'echo_template', attrs: {display_name: 'Echo'}}),
+                ],
+                user: [makeField({id: 'u1', name: 'bravo_user', object_type: 'user', attrs: {display_name: 'Bravo'}})],
+                channel: [makeField({id: 'c1', name: 'delta_channel', object_type: 'channel', attrs: {display_name: 'Delta'}})],
+            });
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            await screen.findByText('Charlie');
+            const names = screen.getAllByTestId('global-attribute-name').map((cell) => cell.textContent);
+            expect(names).toEqual(['Bravo', 'Charlie', 'Delta', 'Echo']);
+        });
+
+        it('does not show the empty state when only non-template fields exist', async () => {
+            mockScopedFields({user: [makeField({id: 'u1', name: 'user_field', object_type: 'user'})]});
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            expect(await screen.findByText('user_field')).toBeInTheDocument();
+            expect(screen.queryByTestId('global-attributes-empty')).not.toBeInTheDocument();
+        });
+
+        it('shows the error state, not a partial list, when a resource-scope fetch fails', async () => {
+            // Suppress the expected console.error from the load failure this test triggers.
+            const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+            // Calls land in scope order (template, user, channel, post) for each page, then
+            // any scope whose page came back non-empty pages again in that same order — so
+            // the template and user pages each need a trailing [] to end their own paging
+            // before the channel scope's rejection.
+            getPropertyFields.mockResolvedValueOnce([makeField({id: 't1', name: 'template_field'})]). // template page 1
+                mockResolvedValueOnce([makeField({id: 'u1', name: 'user_field', object_type: 'user'})]). // user page 1
+                mockRejectedValueOnce(new Error('boom')). // channel page 1
+                mockResolvedValueOnce([]). // post page 1
+                mockResolvedValueOnce([]). // template page 2 (terminates)
+                mockResolvedValueOnce([]); // user page 2 (terminates)
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            expect(await screen.findByTestId('global-attributes-error')).toBeInTheDocument();
+            expect(screen.queryByText('template_field')).not.toBeInTheDocument();
+            expect(screen.queryByText('user_field')).not.toBeInTheDocument();
+
+            consoleSpy.mockRestore();
+        });
+    });
+
     it('renders the Applies-to column as an explicit placeholder, not a blank cell', async () => {
         getPropertyFields.mockResolvedValueOnce([makeField()]).mockResolvedValue([]);
 
@@ -628,6 +721,35 @@ describe('GlobalAttributesTable', () => {
 
             expect(deletePropertyField).not.toHaveBeenCalled();
             expect(screen.getByTestId('global-attribute-name')).toHaveTextContent('Department');
+        });
+
+        it('deletes a non-template field via its own object type scope', async () => {
+            deletePropertyField.mockResolvedValue({status: 'OK'});
+
+            const channelField = makeField({id: 'c1', name: 'channel_field', object_type: 'channel', attrs: {display_name: 'Channel Field'}});
+
+            // Calls land in scope order (template, user, channel, post) for the first page
+            // of each; only the channel scope got real data, so only it pages again.
+            getPropertyFields.mockResolvedValueOnce([]). // template
+                mockResolvedValueOnce([]). // user
+                mockResolvedValueOnce([channelField]). // channel
+                mockResolvedValueOnce([]). // post
+                mockResolvedValueOnce([]); // channel page 2 (terminates)
+
+            renderWithContext(
+                <div className='admin-console__wrapper'>
+                    <GlobalAttributesTable/>
+                    <ModalController/>
+                </div>,
+                getBaseState(),
+            );
+
+            await openDeleteModal('c1');
+            await userEvent.click(await screen.findByRole('button', {name: /^delete$/i}));
+
+            await waitFor(() => {
+                expect(deletePropertyField).toHaveBeenCalledWith('access_control', 'channel', 'c1');
+            });
         });
 
         it('deletes via the access_control/template scope and drops the row on success', async () => {
