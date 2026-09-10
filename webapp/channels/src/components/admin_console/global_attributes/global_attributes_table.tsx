@@ -252,7 +252,7 @@ function ActionsCell({field, isClassificationRow, canEditClassification, isMobil
         onDeleteError(null);
 
         try {
-            await deleteAttributeField(field.id);
+            await deleteAttributeField(field.object_type, field.id);
             dispatch({type: PropertyTypes.PROPERTY_FIELD_DELETED, data: {fieldId: field.id}});
         } catch (error) {
             onDeleteError(formatMessage(

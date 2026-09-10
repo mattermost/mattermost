@@ -172,12 +172,13 @@ export function updateAttributeField(
     });
 }
 
-// Deletes a template field from the access_control group. The server returns
-// 409 when the field still has active linked dependents (CountLinkedFields > 0);
-// callers are expected to surface that case distinctly (or, for a save-time
-// rollback, to only delete linked fields first -- see createLinkedAttributeField).
-export function deleteAttributeField(fieldId: string): Promise<unknown> {
-    return Client4.deletePropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, fieldId);
+// Deletes a field from the access_control group in its own object type. The
+// server returns 409 when the field still has active linked dependents
+// (CountLinkedFields > 0); callers are expected to surface that case distinctly
+// (or, for a save-time rollback, to only delete linked fields first -- see
+// createLinkedAttributeField).
+export function deleteAttributeField(objectType: string, fieldId: string): Promise<unknown> {
+    return Client4.deletePropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, fieldId);
 }
 
 // Creates a linked field for one Applies-to resource. The server validates

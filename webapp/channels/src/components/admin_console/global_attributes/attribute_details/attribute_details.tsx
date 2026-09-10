@@ -47,7 +47,7 @@ import {useConfirmRemoveAppliesTo} from './attribute_remove_applies_to_warning_m
 
 import {CHANNEL_VALUE_SETTER, DEFAULT_CHANNEL_RESOURCE_CONFIG, buildChannelFieldAttrs, buildChannelFieldPatch, isOrderedChangePolicy, parseChannelFieldConfig} from '../applies_to/channels';
 import type {ChannelResourceConfig} from '../applies_to/channels';
-import {GLOBAL_ATTRIBUTES_LIST_ROUTE} from '../constants';
+import {GLOBAL_ATTRIBUTES_LIST_ROUTE, GLOBAL_ATTRIBUTES_OBJECT_TYPE} from '../constants';
 import {getSourceKind, getTypeIcon, getTypeLabel, isClassificationMarkingsField, typeLabels} from '../global_attributes_table';
 import type {AttributeFieldType} from '../utils';
 import {
@@ -226,7 +226,7 @@ async function rollbackLinkedFields(
     }
 
     try {
-        await deleteAttributeField(templateFieldId);
+        await deleteAttributeField(GLOBAL_ATTRIBUTES_OBJECT_TYPE, templateFieldId);
     } catch (deleteTemplateError) {
         // Linked fields are gone, but the template is still on the server.
         // A retry under the same Unique name will conflict with it, so this

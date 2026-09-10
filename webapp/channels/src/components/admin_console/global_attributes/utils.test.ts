@@ -198,9 +198,17 @@ describe('global_attributes/utils', () => {
         it('calls Client4.deletePropertyField against the template object type', async () => {
             const deletePropertyField = jest.spyOn(Client4, 'deletePropertyField').mockResolvedValue({status: 'OK'});
 
-            await deleteAttributeField('field-id');
+            await deleteAttributeField('template', 'field-id');
 
             expect(deletePropertyField).toHaveBeenCalledWith('access_control', 'template', 'field-id');
+        });
+
+        it.each((['user', 'channel', 'post'] as const))('passes %s through unchanged as the object_type path segment', async (objectType) => {
+            const deletePropertyField = jest.spyOn(Client4, 'deletePropertyField').mockResolvedValue({status: 'OK'});
+
+            await deleteAttributeField(objectType, 'field-id');
+
+            expect(deletePropertyField).toHaveBeenCalledWith('access_control', objectType, 'field-id');
         });
     });
 
