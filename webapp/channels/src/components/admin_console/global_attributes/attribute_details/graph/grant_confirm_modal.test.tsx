@@ -8,8 +8,8 @@ import {openModal} from 'actions/views/modals';
 import {renderHookWithContext, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
 
-import AttributeGraphGrantConfirmModal, {useGrantConfirm} from './attribute_graph_grant_confirm_modal';
-import type {GrantConfirmRequest} from './attribute_graph_grant_confirm_modal';
+import AttributeGraphGrantConfirmModal, {useGrantConfirm} from './grant_confirm_modal';
+import type {GrantConfirmRequest} from './grant_confirm_modal';
 
 jest.mock('actions/views/modals', () => ({
     openModal: jest.fn(() => ({type: 'MOCK_OPEN_MODAL'})),

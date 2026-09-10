@@ -11,8 +11,8 @@ import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import {useLatest} from 'hooks/useLatest';
 
-import {proposeReplaceOccurrenceParent, type ConfirmGrant, type ProposeParentResult} from './graph_parent_ops';
 import {wouldCreateCycle, wouldExceedMaxEdges} from './graph_utils';
+import {proposeReplaceOccurrenceParent, type ConfirmGrant, type ProposeParentResult} from './parent_ops';
 
 export const GRAPH_ROW_DRAG_KIND = 'graph-row';
 

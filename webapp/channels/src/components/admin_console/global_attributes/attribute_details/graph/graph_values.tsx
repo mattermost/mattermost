@@ -25,12 +25,8 @@ import Input from 'components/widgets/inputs/input/input';
 
 import Constants from 'utils/constants';
 
-import {useGraphNodeDelete} from './attribute_graph_delete_modal';
-import {useGrantConfirm} from './attribute_graph_grant_confirm_modal';
-import type {GrantConfirmRequest} from './attribute_graph_grant_confirm_modal';
-import AttributeGraphParentsPane from './attribute_graph_parents_pane';
-import {GraphParentEdgeAlert} from './graph_edge_alert';
-import type {ConfirmGrant, ProposeParentResult} from './graph_parent_ops';
+import {useGraphNodeDelete} from './delete_modal';
+import {GraphParentEdgeAlert} from './edge_alert';
 import {
     addChildOption,
     addTopLevelOption,
@@ -42,9 +38,13 @@ import {
     wouldExceedMaxEdges,
     wouldExceedMaxOptions,
 } from './graph_utils';
+import {useGrantConfirm} from './grant_confirm_modal';
+import type {GrantConfirmRequest} from './grant_confirm_modal';
+import type {ConfirmGrant, ProposeParentResult} from './parent_ops';
+import AttributeGraphParentsPane from './parents_pane';
 import {dropAlertFromProposeResult, useGraphRowDnd, type GraphDropAlert} from './use_graph_dnd';
 
-import './attribute_options_graph_values.scss';
+import './graph_values.scss';
 
 type Props = {
     options: PropertyFieldOption[];

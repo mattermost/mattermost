@@ -13,7 +13,7 @@ import {ModalIdentifiers} from 'utils/constants';
 import AttributeGraphDeleteModal, {
     buildGraphNodeDeleteViewModel,
     useGraphNodeDelete,
-} from './attribute_graph_delete_modal';
+} from './delete_modal';
 import {removeOption} from './graph_utils';
 
 jest.mock('actions/views/modals', () => ({

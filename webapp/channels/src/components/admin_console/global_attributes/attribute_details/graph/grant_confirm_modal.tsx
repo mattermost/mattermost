@@ -11,7 +11,7 @@ import {openModal} from 'actions/views/modals';
 
 import {ModalIdentifiers} from 'utils/constants';
 
-import './attribute_graph_grant_confirm_modal.scss';
+import './grant_confirm_modal.scss';
 
 export type GrantConfirmRequest = {
     parentName: string;

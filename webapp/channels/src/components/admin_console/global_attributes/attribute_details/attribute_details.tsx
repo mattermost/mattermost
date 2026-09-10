@@ -37,11 +37,10 @@ import {ALL_RESOURCE_TYPES, ATTRIBUTE_APPLIES_TO_ADD_HEADER_TRIGGER_ID, resource
 import type {ResourceObjectType} from './attribute_applies_to_constants';
 import AttributeExternalSource from './attribute_external_source';
 import type {ExternalSource} from './attribute_external_source';
-import AttributeOptionsGraphValues from './attribute_options_graph_values';
 import AttributeOptionsRankValues from './attribute_options_rank_values';
 import AttributeOptionsValues from './attribute_options_values';
 import {useConfirmRemoveAppliesTo} from './attribute_remove_applies_to_warning_modal';
-import {hasBlankTrimmedOptionName, hasCaseInsensitiveDuplicateNames} from './graph_utils';
+import {GraphValues, hasBlankTrimmedOptionName, hasCaseInsensitiveDuplicateNames} from './graph';
 
 import {GLOBAL_ATTRIBUTES_LIST_ROUTE} from '../constants';
 import {getSourceKind, getTypeIcon, getTypeLabel, isClassificationMarkingsField, typeLabels} from '../global_attributes_table';
@@ -920,7 +919,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     let optionsEditor: JSX.Element | null;
     if (isHierarchical) {
         optionsEditor = (
-            <AttributeOptionsGraphValues
+            <GraphValues
                 options={options}
                 onOptionsChange={handleOptionsChange}
                 disabled={saving || disabled}

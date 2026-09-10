@@ -10,8 +10,8 @@ import {openModal} from 'actions/views/modals';
 import {act, renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
 
-import AttributeGraphDeleteModal from './attribute_graph_delete_modal';
-import AttributeOptionsGraphValues from './attribute_options_graph_values';
+import AttributeGraphDeleteModal from './delete_modal';
+import AttributeOptionsGraphValues from './graph_values';
 import {addChildOption, removeOption, renameOption} from './graph_utils';
 
 jest.mock('actions/views/modals', () => ({

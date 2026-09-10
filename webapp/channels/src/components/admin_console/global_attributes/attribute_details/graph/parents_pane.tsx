@@ -23,8 +23,7 @@ import Input from 'components/widgets/inputs/input/input';
 
 import Constants from 'utils/constants';
 
-import {GraphParentEdgeAlert} from './graph_edge_alert';
-import {proposeAddParent, type ConfirmGrant, type ProposeParentResult} from './graph_parent_ops';
+import {GraphParentEdgeAlert} from './edge_alert';
 import {
     addChildOption,
     addTopLevelOption,
@@ -37,8 +36,9 @@ import {
     wouldExceedMaxOptions,
     type CheckParentEdgeInvalid,
 } from './graph_utils';
+import {proposeAddParent, type ConfirmGrant, type ProposeParentResult} from './parent_ops';
 
-import './attribute_graph_parents_pane.scss';
+import './parents_pane.scss';
 
 export type {ConfirmGrant};
 

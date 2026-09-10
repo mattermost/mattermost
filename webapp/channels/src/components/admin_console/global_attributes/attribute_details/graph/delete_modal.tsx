@@ -19,7 +19,7 @@ import {
     removeOption,
 } from './graph_utils';
 
-import './attribute_graph_delete_modal.scss';
+import './delete_modal.scss';
 
 export type GraphNodeDeleteViewModel =
     | {variant: 'direct'; optionName: string} |
