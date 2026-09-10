@@ -948,7 +948,7 @@ func (api *PluginAPI) GetFile(fileID string) ([]byte, *model.AppError) {
 }
 
 func (api *PluginAPI) HasPermissionToFileAction(sessionID, fileID, action string) bool {
-	if sessionID == "" || fileID == "" || !model.IsPermissionAction(action) {
+	if sessionID == "" || fileID == "" || (action != model.AccessControlPolicyActionUploadFileAttachment && action != model.AccessControlPolicyActionDownloadFileAttachment) {
 		return false
 	}
 

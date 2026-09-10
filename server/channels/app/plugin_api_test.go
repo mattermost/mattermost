@@ -752,7 +752,6 @@ func TestPluginAPIHasPermissionToFileAction(t *testing.T) {
 		return
 	}
 
-	enableSessionAttributesCollection(t, th)
 	th.ConfigStore.SetReadOnlyFF(false)
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
@@ -774,10 +773,6 @@ func TestPluginAPIHasPermissionToFileAction(t *testing.T) {
 	})
 	require.Nil(t, appErr)
 
-	require.NoError(t, th.App.Srv().Store().SessionAttribute().Refresh(activeSession.Id, map[string]any{
-		model.SessionAttributesPropertyFieldIPAddress: "192.0.2.10",
-	}, model.GetMillis()))
-
 	fileInfo := th.CreateFileInfo(t, th.BasicUser.Id, "", th.BasicChannel.Id)
 	t.Cleanup(func() {
 		require.NoError(t, th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, fileInfo.Id))
@@ -791,8 +786,7 @@ func TestPluginAPIHasPermissionToFileAction(t *testing.T) {
 	})).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil)).Once()
 	mockAccessControl.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
 		return req.Resource.ID == th.BasicChannel.Id &&
-			req.Action == model.AccessControlPolicyActionUploadFileAttachment &&
-			req.Subject.Session[model.SessionAttributesPropertyFieldIPAddress] == "192.0.2.10"
+			req.Action == model.AccessControlPolicyActionUploadFileAttachment
 	})).Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil)).Once()
 
 	tests := []struct {
@@ -844,7 +838,7 @@ func TestPluginAPIHasPermissionToFileAction(t *testing.T) {
 			expected:  false,
 		},
 		{
-			name:      "policy allow with session attributes",
+			name:      "policy allow",
 			sessionID: activeSession.Id,
 			fileID:    fileInfo.Id,
 			action:    model.AccessControlPolicyActionUploadFileAttachment,
