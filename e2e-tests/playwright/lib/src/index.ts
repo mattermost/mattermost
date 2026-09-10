@@ -120,6 +120,7 @@ export {
     DeletePostConfirmationDialog,
     RestorePostConfirmationDialog,
     ProfileModal,
+    TextInputSetting,
 } from './ui/components';
 
 export {TestArgs, ScreenshotOptions} from './types';

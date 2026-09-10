@@ -10,7 +10,8 @@ async function skipIfNoAdvancedLicense(adminClient: any) {
 }
 
 async function setAnonymousUrls(adminClient: any, enabled: boolean) {
-    await adminClient.patchConfig({PrivacySettings: {UseAnonymousURLs: enabled}});}
+    await adminClient.patchConfig({PrivacySettings: {UseAnonymousURLs: enabled}});
+}
 
 function expectObfuscatedSlug(slug: string) {
     expect(slug).toMatch(OBFUSCATED_SLUG_RE);

@@ -145,13 +145,11 @@ export async function resolveUpgradeMatrix(now = new Date()) {
 
 async function main() {
     const entries = await resolveUpgradeMatrix();
-    // eslint-disable-next-line no-console
     console.log(JSON.stringify(entries));
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
     main().catch((error) => {
-        // eslint-disable-next-line no-console
         console.error(String(error));
 
         // Rethrow (not process.exit()) — an unhandled rejection still exits non-zero, which is

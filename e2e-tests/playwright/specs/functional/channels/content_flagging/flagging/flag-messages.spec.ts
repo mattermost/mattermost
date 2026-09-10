@@ -76,7 +76,8 @@ test('Verify flagged message is hidden by default', async ({pw}) => {
             AdditionalSettings: {
                 HideFlaggedContent: true,
                 Reasons: FLAG_REASONS,
-            },        },
+            },
+        },
     });
 
     const channelsPage = await loginAndNavigate(pw, user);
@@ -491,7 +492,8 @@ test('Verify message is removed from channel if the reviewer removed the message
                 Reasons: FLAG_REASONS,
             },
         },
-    });    await adminClient.removeFlaggedPost(postToBeflagged.id, 'Removing this post after review');
+    });
+    await adminClient.removeFlaggedPost(postToBeflagged.id, 'Removing this post after review');
 
     // Login as the user
     const channelsPage = await loginAndNavigate(pw, user, team.name, 'town-square');

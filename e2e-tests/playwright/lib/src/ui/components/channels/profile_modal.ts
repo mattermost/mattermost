@@ -18,6 +18,12 @@ export default class ProfileModal {
     readonly saveButton;
     readonly cancelButton;
 
+    readonly managedByAdminMessage;
+    readonly firstNameInput;
+    readonly lastNameInput;
+    readonly usernameInput;
+    readonly sectionHeadings;
+
     readonly pictureFileInput;
     readonly pictureSaveButton;
     readonly pictureRemoveButton;
