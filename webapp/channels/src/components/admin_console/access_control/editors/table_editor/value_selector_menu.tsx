@@ -2,16 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {useIntl} from 'react-intl';
 
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
-import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
-import {PolicyHierarchicalValues} from 'components/property_fields/hierarchical_value_menu';
-
-import {channelAttributeMenuItems} from './channel_attribute_target';
-import MaskedChip from './masked_chip';
+import GraphValueCell from './graph_value_cell';
 import MultiValueSelector from './multi_value_selector_menu';
 import SingleValueSelector from './single_value_selector_menu';
 
@@ -72,37 +67,20 @@ const ValueSelectorMenu = ({
     field,
     rowIndex = 0,
 }: ValueSelectorMenuProps) => {
-    const {formatMessage} = useIntl();
-    const graphTreeEnabled = useGetFeatureFlagValue('PropertyFieldGraph') === 'true';
-    const isGraph = field?.type === 'graph';
     const isMultiOperator = isMultiValueOperator(row.operator);
 
-    // Target mode has no option list; the operator check matches legal graph predicates.
-    const useHierarchy = graphTreeEnabled && isGraph && !row.targetAttribute && isMultiOperator;
-
-    if (useHierarchy) {
+    if (field?.type === 'graph' && isMultiOperator && !row.targetAttribute) {
         return (
-            <PolicyHierarchicalValues
-                field={{
-                    id: field.id,
-                    object_type: field.object_type,
-                    type: field.type,
-
-                    // Pass attrs through: `options: field.attrs?.options ?? []` would
-                    // allocate a new array every render and re-join the hierarchy.
-                    attrs: field.attrs,
-                }}
-                names={row.values}
-                onNamesChange={updateValues}
+            <GraphValueCell
+                field={field}
+                row={row}
                 disabled={disabled}
-
-                menuId={`value-selector-menu-${rowIndex}`}
-                buttonId={`value-selector-button-${rowIndex}`}
-                buttonDataTestId='valueSelectorMenuButton'
+                updateValues={updateValues}
+                options={options}
                 placeholder={placeholder}
-                className='values-editor'
-                trailingChips={row.hasMaskedValues ? <MaskedChip/> : undefined}
-                extraMenuItems={onSelectTarget ? channelAttributeMenuItems(channelFields, row.targetAttribute, onSelectTarget, formatMessage) : undefined}
+                channelFields={channelFields}
+                onSelectTarget={onSelectTarget}
+                rowIndex={rowIndex}
             />
         );
     }
@@ -120,7 +98,6 @@ const ValueSelectorMenu = ({
                 channelFields={channelFields}
                 targetAttribute={row.targetAttribute}
                 onSelectTarget={onSelectTarget}
-                forbidCreate={isGraph}
             />
         );
     }
