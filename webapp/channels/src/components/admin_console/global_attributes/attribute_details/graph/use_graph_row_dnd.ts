@@ -91,7 +91,7 @@ export async function applyGraphDrop(args: {
     }
 }
 
-export async function handleMissedNativeGraphRowDrop(args: {
+export async function alertOnMissedNativeGraphRowDrop(args: {
     sourceData: Record<string | symbol, unknown>;
     input: {clientX: number; clientY: number};
     options: PropertyFieldOption[];
@@ -103,17 +103,31 @@ export async function handleMissedNativeGraphRowDrop(args: {
     if (!target) {
         return;
     }
-    if (classifyGraphDrop(args.sourceData, target, args.options) === 'reparent') {
+    const kind = classifyGraphDrop(args.sourceData, target, args.options);
+    switch (kind) {
+    case 'reparent':
+        // Honey-pot recovery is alert-only. A missed native drop must not
+        // mutate. Legal reparents apply only through drop-target onDrop
+        // → applyGraphDrop.
         return;
+    case 'alert-cycle':
+        await applyGraphDrop({
+            sourceData: args.sourceData,
+            target,
+            options: args.options,
+            confirmGrant: args.confirmGrant,
+            onOptionsChange: args.onOptionsChange,
+            onDropResult: args.onDropResult,
+        });
+        return;
+    case 'ignore':
+    case 'blocked-max-edges':
+        return;
+    default: {
+        const exhaustive: never = kind;
+        return exhaustive;
     }
-    await applyGraphDrop({
-        sourceData: args.sourceData,
-        target,
-        options: args.options,
-        confirmGrant: args.confirmGrant,
-        onOptionsChange: args.onOptionsChange,
-        onDropResult: args.onDropResult,
-    });
+    }
 }
 
 export type UseGraphRowDndOptions = {
@@ -195,7 +209,7 @@ export function useGraphRowDnd({
                     if (location.current.dropTargets.length > 0) {
                         return;
                     }
-                    handleMissedNativeGraphRowDrop({
+                    alertOnMissedNativeGraphRowDrop({
                         sourceData: source.data,
                         input: location.current.input,
                         options: optionsRef.current,

@@ -9,9 +9,9 @@ import {GRAPH_ROW_DRAG_PREVIEW_PAD_PX} from './drag_preview';
 import {GRAPH_ROW_DRAG_KIND, type GraphRowDragData} from './drop_classifier';
 import * as graphUtils from './graph_utils';
 import {
+    alertOnMissedNativeGraphRowDrop,
     applyGraphDrop,
     dropAlertFromProposeResult,
-    handleMissedNativeGraphRowDrop,
     useGraphRowDnd,
 } from './use_graph_row_dnd';
 
@@ -374,7 +374,7 @@ describe('dropAlertFromProposeResult', () => {
     });
 });
 
-describe('handleMissedNativeGraphRowDrop', () => {
+describe('alertOnMissedNativeGraphRowDrop', () => {
     afterEach(() => {
         Reflect.deleteProperty(document, 'elementsFromPoint');
     });
@@ -394,7 +394,7 @@ describe('handleMissedNativeGraphRowDrop', () => {
 
         const onOptionsChange = jest.fn();
         const onDropResult = jest.fn();
-        await handleMissedNativeGraphRowDrop({
+        await alertOnMissedNativeGraphRowDrop({
             sourceData: cAtR,
             input: {clientX: 0, clientY: 0},
             options: g6,
@@ -415,7 +415,7 @@ describe('handleMissedNativeGraphRowDrop', () => {
 
         const onOptionsChange = jest.fn();
         const onDropResult = jest.fn();
-        await handleMissedNativeGraphRowDrop({
+        await alertOnMissedNativeGraphRowDrop({
             sourceData: cAtR,
             input: {clientX: 0, clientY: 0},
             options: g6,
