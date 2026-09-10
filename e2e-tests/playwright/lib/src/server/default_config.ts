@@ -5,12 +5,12 @@ import merge from 'deepmerge';
 import type {
     AccessControlSettings,
     AdminConfig,
+    AnnouncementSettings,
     ClusterSettings,
     EmailSettings,
     ExperimentalSettings,
     LogSettings,
     PasswordSettings,
-    PluginSettings,
     ServiceSettings,
     TeamSettings,
 } from '@mattermost/types/config';
@@ -22,28 +22,41 @@ export function getOnPremServerConfig(): AdminConfig {
     return merge<AdminConfig>(defaultServerConfig, onPremServerConfig() as AdminConfig);
 }
 
+/** Live-reloadable on-prem overrides only — safe for patchConfig (no restart-required keys). */
+export function getOnPremServerConfigPatch(): Partial<AdminConfig> {
+    return onPremServerConfig() as Partial<AdminConfig>;
+}
+
 export function mergeWithOnPremServerConfig(overrides: Partial<AdminConfig>): AdminConfig {
     return merge<AdminConfig>(getOnPremServerConfig(), overrides);
 }
 
 type TestAdminConfig = {
     AccessControlSettings: Partial<AccessControlSettings>;
+    AnnouncementSettings: Partial<AnnouncementSettings>;
     ClusterSettings: Partial<ClusterSettings>;
     EmailSettings: Partial<EmailSettings>;
     ExperimentalSettings: Partial<ExperimentalSettings>;
     LogSettings: Partial<LogSettings>;
     PasswordSettings: Partial<PasswordSettings>;
-    PluginSettings: Partial<PluginSettings>;
     ServiceSettings: Partial<ServiceSettings>;
     TeamSettings: Partial<TeamSettings>;
 };
 
-// On-prem setting that is different from the default
+// On-prem setting that is different from the default.
+//
+// Carries no PluginSettings: patchConfig replaces the PluginStates map wholesale, which would
+// clobber the plugins a running spec enabled. Specs enable and disable plugins per id instead.
 const onPremServerConfig = (): Partial<TestAdminConfig> => {
     return {
         AccessControlSettings: {
             EnableAttributeBasedAccessControl: true,
             EnableUserManagedAttributes: true,
+        },
+        AnnouncementSettings: {
+            // An in-product notice opens a modal over the channel view and swallows clicks near it.
+            AdminNoticesEnabled: false,
+            UserNoticesEnabled: false,
         },
         ClusterSettings: {
             Enable: testConfig.haClusterEnabled,
@@ -63,20 +76,6 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
             Symbol: false,
             EnableForgotLink: true,
         },
-        PluginSettings: {
-            EnableUploads: true,
-            PluginStates: {
-                'com.mattermost.calls': {
-                    Enable: false,
-                },
-                'com.mattermost.nps': {
-                    Enable: false,
-                },
-                playbooks: {
-                    Enable: true,
-                },
-            },
-        },
         ServiceSettings: {
             // SiteURL is the server's own view of itself (e.g. for building plugin callback
             // URLs), so it must use an address the server can reach itself with. In `testcontainers` mode
@@ -87,7 +86,6 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
             EnableOnboardingFlow: false,
             EnableSecurityFixAlert: false,
             GiphySdkKey: 's0glxvzVg9azvPipKxcPLpXV0q1x1fVP',
-            EnableTesting: true,
         },
         TeamSettings: {
             EnableOpenServer: true,

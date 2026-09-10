@@ -38,6 +38,7 @@ import {
     ensureAzurite,
     listAzuriteBlobNames,
     ensureLocalFile,
+    listMattermostDataFiles,
     ensurePostgresSearch,
     ensureFeatureFlag,
     generateLdapUser,
@@ -63,6 +64,8 @@ import {
     runMmctl,
     ensureMmctl,
     updateLdapUser,
+    upgradeServerImage,
+    saveUpgradePhaseLogs,
 } from './server';
 import {
     toBeFocusedWithFocusVisible,
@@ -124,7 +127,6 @@ export class PlaywrightExtended {
     // ./server
     readonly ensurePluginsLoaded;
     readonly getAdminClient;
-    readonly mergeWithOnPremServerConfig;
     readonly initSetup;
     readonly enableAIBridgeTestMode;
     readonly configureAIBridgeMock;
@@ -133,6 +135,7 @@ export class PlaywrightExtended {
     readonly createMockAIAgent;
     readonly rewriteCompletion;
     readonly recapCompletion;
+    readonly mergeWithOnPremServerConfig;
     readonly installAndEnablePlugin;
     readonly isPluginActive;
 
@@ -155,11 +158,17 @@ export class PlaywrightExtended {
     readonly ensureMinio;
     readonly ensureAzurite;
     readonly ensureLocalFile;
+    readonly listMattermostDataFiles;
     readonly ensurePostgresSearch;
     readonly ensureFeatureFlag;
     readonly listAzuriteBlobNames;
     readonly runMmctl;
     readonly ensureMmctl;
+
+    // ./server/version
+    readonly upgradeServerImage;
+    // ./server/upgrade_logs
+    readonly saveUpgradePhaseLogs;
 
     // ./test_action
     readonly toBeFocusedWithFocusVisible;
@@ -219,7 +228,6 @@ export class PlaywrightExtended {
         this.ensurePluginsLoaded = ensurePluginsLoaded;
         this.initSetup = initSetup;
         this.getAdminClient = getAdminClient;
-        this.mergeWithOnPremServerConfig = mergeWithOnPremServerConfig;
         this.enableAIBridgeTestMode = enableAIBridgeTestMode;
         this.configureAIBridgeMock = configureAIBridgeMock;
         this.getAIBridgeMock = getAIBridgeMock;
@@ -227,6 +235,7 @@ export class PlaywrightExtended {
         this.createMockAIAgent = createMockAIAgent;
         this.rewriteCompletion = rewriteCompletion;
         this.recapCompletion = recapCompletion;
+        this.mergeWithOnPremServerConfig = mergeWithOnPremServerConfig;
         this.isOutsideRemoteUserHour = isOutsideRemoteUserHour;
         this.installAndEnablePlugin = installAndEnablePlugin;
         this.isPluginActive = isPluginActive;
@@ -250,11 +259,17 @@ export class PlaywrightExtended {
         this.ensureMinio = ensureMinio;
         this.ensureAzurite = ensureAzurite;
         this.ensureLocalFile = ensureLocalFile;
+        this.listMattermostDataFiles = listMattermostDataFiles;
         this.ensurePostgresSearch = ensurePostgresSearch;
         this.ensureFeatureFlag = ensureFeatureFlag;
         this.listAzuriteBlobNames = listAzuriteBlobNames;
         this.runMmctl = runMmctl;
         this.ensureMmctl = ensureMmctl;
+
+        // ./server/version
+        this.upgradeServerImage = upgradeServerImage;
+        // ./server/upgrade_logs
+        this.saveUpgradePhaseLogs = saveUpgradePhaseLogs;
 
         // ./test_action
         this.toBeFocusedWithFocusVisible = toBeFocusedWithFocusVisible;
