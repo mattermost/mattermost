@@ -11,11 +11,48 @@ on:
         description: 'PR number to analyze (fork or same repository); empty reconciles recent failures'
         required: false
         type: string
+      request_clearance:
+        description: 'Request one full re-verification and automatic clearance if the evidence qualifies'
+        required: false
+        type: boolean
+        default: false
 permissions: {}
 concurrency:
   group: e2e-triage-shadow
   cancel-in-progress: false
 jobs:
+  clearance:
+    if: >-
+      vars.MM_TRIAGE_SET_STATUS == 'true' && github.ref == 'refs/heads/master' &&
+      (github.event_name != 'workflow_dispatch' || inputs.request_clearance) &&
+      (github.event_name != 'workflow_run' || github.event.workflow_run.path == '.github/workflows/e2e-tests-ci.yml')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      actions: write
+      checks: read
+      pull-requests: write
+      statuses: write
+    steps:
+      # This controller reads PR code/reports as data. It never executes PR code.
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+          sparse-checkout: .github/scripts
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238
+        with:
+          node-version: '24.11.1'
+      - name: Request or finish one independently verified clearance
+        run: node .github/scripts/triage-clearance-trigger.mjs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TSIO_URL: ${{ vars.MM_TRIAGE_TSIO_URL }}
+          MM_TRIAGE_SET_STATUS: ${{ vars.MM_TRIAGE_SET_STATUS }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          TRIAGE_SOURCE_RUN_ID: ${{ github.event.workflow_run.id }}
+
   analyze-pr:
     if: github.event_name == 'workflow_dispatch' && inputs.pr_number != ''
     runs-on: ubuntu-24.04
@@ -79,4 +116,6 @@ jobs:
           TSIO_URL: ${{ vars.MM_TRIAGE_TSIO_URL }}
           TSIO_TRIAGE_API_KEY: ${{ secrets.TSIO_TRIAGE_API_KEY }}
           GH_TOKEN: ${{ github.token }}
-          MM_TRIAGE_SET_STATUS: ${{ vars.MM_TRIAGE_SET_STATUS || 'false' }}
+          # The historical assessment ledger remains read-only for clearance.
+          # Only the separate verified-clearance controller may write statuses.
+          MM_TRIAGE_SET_STATUS: 'false'

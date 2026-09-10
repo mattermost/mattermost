@@ -8,7 +8,12 @@ import {harness, verifyClean} from './triage-harness.mjs';
 import {checkSource} from './triage-policy.mjs';
 import {ownerFor, codeowners} from './triage-queue.mjs';
 
-const normalizedError = value => typeof value === 'string' ? stripVTControlCharacters(value).replace(/\s+/g, ' ').trim() : '';
+const normalizedError = value => typeof value === 'string' ? stripVTControlCharacters(value).split(/\r?\n/).map(line =>
+    // Native Actions and the isolated runner mount the same repository at
+    // different roots. Normalize only those roots in complete V8 stack frames;
+    // retain the assertion, function, relative file and exact line/column.
+    line.replace(/^(\s*at (?:[^()\r\n]* \()?)\/(?:home\/runner\/work\/mattermost\/mattermost|work)(\/e2e-tests\/[^()\r\n]+:\d+:\d+\)?\s*)$/, '$1<repo>$2'),
+).join('\n').replace(/\s+/g, ' ').trim() : '';
 export function recordedFailure(item, evidence) {
     invariant(evidence?.schema_version === 1 && evidence.complete === true && evidence.truncated === false && evidence.trusted_source === true, 'Complete trusted recorded failure evidence is required');
     const group = evidence.group;

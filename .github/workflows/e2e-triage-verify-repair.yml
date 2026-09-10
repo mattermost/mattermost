@@ -1,0 +1,56 @@
+name: E2E Verify Repair PR
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Repair PR number (one existing test-file edit)
+        required: true
+        type: string
+      evidence_json:
+        description: 'Exact selector JSON: repository, commit_sha, gh_run_id, gh_run_attempt, name, stable_key (all strings)'
+        required: true
+        type: string
+permissions: {}
+concurrency:
+  group: e2e-verify-repair-${{ inputs.pr_number }}
+  cancel-in-progress: false
+jobs:
+  verify:
+    if: github.repository == 'mattermost/mattermost' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+    steps:
+      - name: Check out trusted controller revision
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238
+        with:
+          node-version: '24.11.1'
+      - name: Install trusted syntax checker
+        run: npm install --prefix "$RUNNER_TEMP/triage-policy" --ignore-scripts --no-audit --no-fund --save-exact typescript@6.0.3
+      - name: Prepare existing OpenLDAP harness
+        uses: ./.github/actions/runner-prep-openldap
+      - name: Reproduce original master failure and verify candidate five times
+        run: node .github/scripts/triage-verify-repair.mjs
+        env:
+          REPAIR_PR_NUMBER: ${{ inputs.pr_number }}
+          REPAIR_EVIDENCE_JSON: ${{ inputs.evidence_json }}
+          TSIO_URL: ${{ vars.MM_TRIAGE_TSIO_URL || 'https://test-io.test.mattermost.com/api/v1' }}
+          GH_TOKEN: ${{ github.token }}
+          MM_LICENSE: ${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}
+          TRIAGE_TYPESCRIPT_PATH: ${{ runner.temp }}/triage-policy/node_modules/typescript/lib/typescript.js
+          TRIAGE_ARTIFACTS: ${{ runner.temp }}/repair-verification
+      - name: Preserve reviewable verification evidence
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        with:
+          name: repair-verification-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/repair-verification
+          if-no-files-found: warn
+          retention-days: 30

@@ -114,8 +114,13 @@ test('rolling-upgrade selection preserves early matches in large PR diffs under 
             ['README.md', 'true', true],
         ]) {
             const output = execFileSync('/bin/bash', ['-c', script], {cwd, encoding: 'utf8', input: `${file}\n${rest}\n`,
-                env: {...process.env, INPUT_RUN_ROLLING_UPGRADES: manual, GITHUB_OUTPUT: join(cwd, 'outputs')}});
+                env: {...process.env, TRIAGE_SOURCE_RUN_ID: '', INPUT_RUN_ROLLING_UPGRADES: manual, GITHUB_OUTPUT: join(cwd, 'outputs')}});
             assert.match(output, new RegExp(`Should run rolling upgrades: ${expected}`));
         }
+        // Verification must stop instead of silently dropping rolling coverage
+        // or allowing its normal status writer to clear the original failure.
+        assert.throws(() => execFileSync('/bin/bash', ['-c', script], {cwd, encoding: 'utf8', input: 'server/config/migrations/example.go\n',
+            stdio: ['pipe', 'pipe', 'pipe'], env: {...process.env, TRIAGE_SOURCE_RUN_ID: '12', INPUT_RUN_ROLLING_UPGRADES: 'false', GITHUB_OUTPUT: join(cwd, 'outputs')}}),
+        error => error.status === 1 && error.stdout.includes('automatic clearance is not supported'));
     } finally { rmSync(cwd, {recursive: true, force: true}); }
 });

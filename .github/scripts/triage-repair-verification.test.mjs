@@ -10,6 +10,21 @@ const row = {id: 'case', report_id: 'report', suite_id: 'suite', stable_key: ite
 const evidence = () => ({schema_version: 1, complete: true, truncated: false, trusted_source: true, source_workflow_sha: item.source_workflow_sha, source_workflow_ref: 'mattermost/mattermost/.github/workflows/e2e-tests-on-merge.yml@refs/heads/master', group: {...item, id: item.report_group_id, status: 'completed'}, reports: [{id: 'report', environment_metadata: {server_image_digest: item.image_digest}}], tests: [{...row}]});
 const pw = (state = 'failed', error = message) => ({suites: [{title: 'a.spec.ts', file: 'a.spec.ts', specs: [{title: 'MM-T1 saves the message', file: 'a.spec.ts', tests: [{projectName: 'chrome', results: [{status: state, retry: 0, errors: state === 'passed' ? [] : [{message: error}]}]}]}]}]});
 
+test('the same original failure matches across native Actions and sandbox repository roots only', () => {
+    const original = message + '\n    at CenterView.toBeVisible (/home/runner/work/mattermost/mattermost/e2e-tests/playwright/lib/center_view.ts:56:38)\n    at /home/runner/work/mattermost/mattermost/e2e-tests/playwright/specs/a.spec.ts:66:24';
+    const recorded = evidence(); recorded.tests[0].error_message = original;
+    const expected = guardian.recordedFailure(item, recorded);
+    const sandbox = original.replaceAll('/home/runner/work/mattermost/mattermost/', '/work/');
+    guardian.verifyReproduction(reportTests('playwright', pw('failed', sandbox), 'chrome', item.file), expected);
+    for (const changed of [sandbox.replace(':56:38', ':57:38'), sandbox.replace('center_view.ts', 'another_view.ts'),
+        sandbox.replace('CenterView.toBeVisible', 'CenterView.toBeHidden'), sandbox.replaceAll('/work/', '/untrusted/'), sandbox.replace('pending', 'deleted')]) {
+        assert.throws(() => guardian.verifyReproduction(reportTests('playwright', pw('failed', changed), 'chrome', item.file), expected), /recorded failure/);
+    }
+    const literal = evidence(); literal.tests[0].error_message = message + '\nExpected path: /home/runner/work/mattermost/mattermost/e2e-tests/a.ts:1:2';
+    const literalExpected = guardian.recordedFailure(item, literal);
+    assert.throws(() => guardian.verifyReproduction(reportTests('playwright', pw('failed', literal.tests[0].error_message.replace('/home/runner/work/mattermost/mattermost/', '/work/')), 'chrome', item.file), literalExpected), /recorded failure/);
+});
+
 test('recorded failure matching uses exact queue selector, test identity and conservative error normalization', () => {
     const expected = guardian.recordedFailure(item, evidence());
     const baseline = reportTests('playwright', pw('failed', '\u001b[31m' + message.replaceAll('\n', '\r\n') + '\u001b[0m'), 'chrome', item.file);

@@ -8,6 +8,15 @@ name: E2E Tests - Cypress Template (test system io dispatch)
 on:
   workflow_call:
     inputs:
+      server_image_digest:
+        description: 'Optional immutable server image recorded by the clearance policy'
+        type: string
+        required: false
+      verification_only:
+        description: 'Preserve original PR statuses while collecting verification evidence'
+        type: boolean
+        required: false
+        default: false
       test_type:
         description: "Type of test run (smoke or full)"
         type: string
@@ -132,7 +141,7 @@ permissions:
   id-token: write
 
 env:
-  SERVER_IMAGE: "${{ inputs.server_image_repo }}/${{ inputs.server_edition == 'fips' && 'mattermost-enterprise-fips-edition' || inputs.server_edition == 'team' && 'mattermost-team-edition' || 'mattermost-enterprise-edition' }}:${{ inputs.server_image_tag }}"
+  SERVER_IMAGE: ${{ inputs.server_image_digest || format('{0}/{1}:{2}', inputs.server_image_repo, inputs.server_edition == 'fips' && 'mattermost-enterprise-fips-edition' || inputs.server_edition == 'team' && 'mattermost-team-edition' || 'mattermost-enterprise-edition', inputs.server_image_tag) }}
 
 jobs:
   prepare-run:
@@ -287,6 +296,7 @@ jobs:
           use-staging: ${{ inputs.pr_number == '38356' || vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
           framework: cypress
           repo-dir: ${{ github.workspace }}
+          post-pending-commit-status: ${{ !inputs.verification_only }}
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
           total-reports-expected: ${{ inputs.workers }}
           retest-on-fail: ${{ inputs.retest_on_fail }}
@@ -483,6 +493,7 @@ jobs:
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
           framework: cypress
           report-type: ${{ inputs.report_type }}
+          update-commit-status: ${{ !inputs.verification_only }}
           image-tag: ${{ inputs.server_image_tag }}
           image-aliases: ${{ inputs.server_image_aliases }}
           server-image: ${{ env.SERVER_IMAGE }}
@@ -491,7 +502,7 @@ jobs:
           commit-status-context: ${{ inputs.context_name }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: ci/publish-webhook
-        if: inputs.enable_reporting && env.REPORT_WEBHOOK_URL != ''
+        if: inputs.enable_reporting && !inputs.verification_only && env.REPORT_WEBHOOK_URL != ''
         env:
           REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
           PAYLOAD: ${{ steps.summary.outputs.webhook_payload }}

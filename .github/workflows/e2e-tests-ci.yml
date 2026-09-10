@@ -27,6 +27,14 @@ on:
         type: boolean
         required: false
         default: false
+      triage_source_run_attempt:
+        description: 'Internal: frozen original run attempt for re-verification'
+        type: string
+        required: false
+      triage_source_run_id:
+        description: 'Internal: re-verify a failed run without replacing its statuses; empty runs normal E2E'
+        type: string
+        required: false
 
 permissions: {}
 
@@ -35,6 +43,9 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
+      actions: read
+      checks: read
+      statuses: read
     runs-on: ubuntu-24.04
     outputs:
       PR_NUMBER: "${{ steps.resolve.outputs.PR_NUMBER }}"
@@ -43,6 +54,11 @@ jobs:
       BASE_REF: "${{ steps.resolve.outputs.BASE_REF }}"
       SERVER_IMAGE_TAG: "${{ steps.image-ref.outputs.image_tag }}"
       HEAD_REF: "${{ steps.resolve.outputs.HEAD_REF }}"
+      require_fips: ${{ steps.plan.outputs.require_fips }}
+      cypress_enterprise_image: ${{ steps.plan.outputs.cypress_enterprise_image }}
+      cypress_fips_image: ${{ steps.plan.outputs.cypress_fips_image }}
+      playwright_enterprise_image: ${{ steps.plan.outputs.playwright_enterprise_image }}
+      playwright_fips_image: ${{ steps.plan.outputs.playwright_fips_image }}
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -90,6 +106,25 @@ jobs:
             echo "image_tag=${DEFAULT_IMAGE_TAG}" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Check the original failure before running verification
+        id: plan
+        if: inputs.triage_source_run_id != ''
+        run: node .github/scripts/triage-clearance.mjs
+        env:
+          TRIAGE_MODE: plan
+          PR_NUMBER: ${{ steps.resolve.outputs.PR_NUMBER }}
+          TRIAGE_SOURCE_RUN_ID: ${{ inputs.triage_source_run_id }}
+          TRIAGE_SOURCE_RUN_ATTEMPT: ${{ inputs.triage_source_run_attempt }}
+          GH_TOKEN: ${{ github.token }}
+          TRIAGE_ARTIFACTS: ${{ runner.temp }}/clearance-plan
+      - name: Preserve the exact original statuses and requested verification
+        if: inputs.triage_source_run_id != ''
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        with:
+          name: clearance-plan-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/clearance-plan/plan.json
+          if-no-files-found: error
+          retention-days: 30
 
   check-changes:
     permissions:
@@ -122,13 +157,25 @@ jobs:
           INPUT_PR_NUMBER: ${{ inputs.pr_number }}
           HEAD_REF: ${{ needs.resolve-pr.outputs.HEAD_REF }}
           INPUT_RUN_ROLLING_UPGRADES: ${{ inputs.run_rolling_upgrades }}
+          TRIAGE_SOURCE_RUN_ID: ${{ inputs.triage_source_run_id }}
+          TRIAGE_REQUIRE_FIPS: ${{ needs.resolve-pr.outputs.require_fips }}
         run: |
           set -euo pipefail
           [[ "$BASE_SHA" =~ ^[a-f0-9]{40}$ && "$COMMIT_SHA" =~ ^[a-f0-9]{40}$ ]]
           git fetch --no-tags origin "$BASE_SHA" "$COMMIT_SHA"
           ARGS=(--base "$BASE_SHA" --head "$COMMIT_SHA" --head-ref "$HEAD_REF")
           if [ -n "$INPUT_PR_NUMBER" ]; then ARGS+=(--manual); fi
-          node .github/scripts/e2e-change-scope.mjs "${ARGS[@]}"
+          SCOPE_JSON="$(node .github/scripts/e2e-change-scope.mjs "${ARGS[@]}")"
+          echo "$SCOPE_JSON"
+          SCOPE_REQUIRES_FIPS="$(jq -er '.should_run_fips | tostring' <<< "$SCOPE_JSON")"
+          [[ "$SCOPE_REQUIRES_FIPS" = "true" || "$SCOPE_REQUIRES_FIPS" = "false" ]]
+          if [ -n "${TRIAGE_SOURCE_RUN_ID:-}" ] && [ "${TRIAGE_REQUIRE_FIPS:-}" != "true" ] && [ "$SCOPE_REQUIRES_FIPS" = "true" ]; then
+            echo "::error::The current change requires FIPS coverage without an original pinned FIPS plan. Run normal E2E first."
+            exit 1
+          fi
+          if [ -n "${TRIAGE_SOURCE_RUN_ID:-}" ] && [ "${TRIAGE_REQUIRE_FIPS:-}" = "true" ]; then
+            echo "should_run_fips=true" >> "$GITHUB_OUTPUT"
+          fi
 
           # Rolling upgrades: opt-in on manual dispatch, or auto when the PR touches the harness.
           CHANGED_FILES=$(git diff --name-only "$BASE_SHA...$COMMIT_SHA")
@@ -149,6 +196,14 @@ jobs:
             SHOULD_RUN_ROLLING_UPGRADES="true"
           fi
 
+          # The first clearance policy supports the four ordinary full suites.
+          # It must stop when rolling coverage is needed, never drop that coverage
+          # or let an unguarded rolling job overwrite the original statuses.
+          if [ -n "${TRIAGE_SOURCE_RUN_ID:-}" ] && [ "$SHOULD_RUN_ROLLING_UPGRADES" = "true" ]; then
+            echo "::error::Rolling-upgrade changes require normal E2E or human review; automatic clearance is not supported."
+            exit 1
+          fi
+
           echo "should_run_rolling_upgrades=${SHOULD_RUN_ROLLING_UPGRADES}" >> $GITHUB_OUTPUT
           echo "Should run rolling upgrades: ${SHOULD_RUN_ROLLING_UPGRADES}"
 
@@ -164,6 +219,8 @@ jobs:
       pull-requests: write
     uses: ./.github/workflows/e2e-tests-cypress.yml
     with:
+      server_image_digest: ${{ needs.resolve-pr.outputs.cypress_enterprise_image }}
+      verification_only: ${{ inputs.triage_source_run_id != '' }}
       commit_sha: "${{ needs.resolve-pr.outputs.COMMIT_SHA }}"
       server: "onprem"
       server_image_tag: "${{ needs.resolve-pr.outputs.SERVER_IMAGE_TAG }}"
@@ -192,6 +249,8 @@ jobs:
       pull-requests: write
     uses: ./.github/workflows/e2e-tests-playwright.yml
     with:
+      server_image_digest: ${{ needs.resolve-pr.outputs.playwright_enterprise_image }}
+      verification_only: ${{ inputs.triage_source_run_id != '' }}
       commit_sha: "${{ needs.resolve-pr.outputs.COMMIT_SHA }}"
       server: "onprem"
       server_image_tag: "${{ needs.resolve-pr.outputs.SERVER_IMAGE_TAG }}"
@@ -217,6 +276,8 @@ jobs:
       pull-requests: write
     uses: ./.github/workflows/e2e-tests-cypress.yml
     with:
+      server_image_digest: ${{ needs.resolve-pr.outputs.cypress_fips_image }}
+      verification_only: ${{ inputs.triage_source_run_id != '' }}
       commit_sha: "${{ needs.resolve-pr.outputs.COMMIT_SHA }}"
       server: "onprem"
       server_edition: fips
@@ -245,6 +306,8 @@ jobs:
       pull-requests: write
     uses: ./.github/workflows/e2e-tests-playwright.yml
     with:
+      server_image_digest: ${{ needs.resolve-pr.outputs.playwright_fips_image }}
+      verification_only: ${{ inputs.triage_source_run_id != '' }}
       commit_sha: "${{ needs.resolve-pr.outputs.COMMIT_SHA }}"
       server: "onprem"
       server_edition: fips
