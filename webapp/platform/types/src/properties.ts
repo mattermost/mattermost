@@ -119,11 +119,11 @@ export type SelectPropertyField = PropertyField & {
     };
 };
 
-export const supportsOptions = (field: PropertyField) => {
+export const supportsOptions = (field: {type: FieldType}): boolean => {
     return field.type === 'select' || field.type === 'multiselect' || field.type === 'rank';
 };
 
-export const supportsHierarchy = (field: PropertyField): boolean => field.type === 'graph';
+export const supportsHierarchy = (field: {type: FieldType}): boolean => field.type === 'graph';
 
 // Whether a field's stored value is a list of option ids that has to be resolved
 // against attrs.options before it is shown. supportsOptions answers a narrower

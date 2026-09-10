@@ -6714,7 +6714,6 @@
   "property_fields.hierarchical_value_menu.also_under": "Also under {names}",
   "property_fields.hierarchical_value_menu.empty": "This attribute has no values yet.",
   "property_fields.hierarchical_value_menu.error": "These values could not be loaded.",
-  "property_fields.hierarchical_value_menu.error_missing_identity": "This attribute is missing the information needed to load its values.",
   "property_fields.hierarchical_value_menu.loading": "Loading values…",
   "property_fields.hierarchical_value_menu.n_inside": "{count} inside",
   "property_fields.hierarchical_value_menu.no_results": "No values match.",

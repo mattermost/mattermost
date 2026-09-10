@@ -7,7 +7,7 @@ import type {PropertyFieldOption} from '@mattermost/types/properties';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {CHANNEL_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties_user';
 
-import {pageAllPropertyFieldOptions} from 'components/property_fields/page_all_property_field_options';
+import {pageAllAccessControlFieldOptions} from 'components/property_fields/page_all_property_field_options';
 
 import {renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 
@@ -23,10 +23,10 @@ jest.mock('mattermost-redux/actions/access_control', () => ({
 // them.
 jest.mock('components/property_fields/page_all_property_field_options', () => ({
     ...jest.requireActual('components/property_fields/page_all_property_field_options'),
-    pageAllPropertyFieldOptions: jest.fn(),
+    pageAllAccessControlFieldOptions: jest.fn(),
 }));
 
-const mockPageAll = jest.mocked(pageAllPropertyFieldOptions);
+const mockPageAll = jest.mocked(pageAllAccessControlFieldOptions);
 
 // File scope, not inside the flag-on describe: the flag-off tests below must not
 // fetch either, and left unimplemented the mock resolves to undefined, so
@@ -37,7 +37,7 @@ const mockPageAll = jest.mocked(pageAllPropertyFieldOptions);
 beforeEach(() => {
     mockPageAll.mockReset();
     mockPageAll.mockImplementation(() => {
-        throw new Error('pageAllPropertyFieldOptions was called by a test that queued no response');
+        throw new Error('pageAllAccessControlFieldOptions was called by a test that queued no response');
     });
 });
 

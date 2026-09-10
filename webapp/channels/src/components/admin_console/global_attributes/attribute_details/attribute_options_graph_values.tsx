@@ -27,10 +27,9 @@ import Constants from 'utils/constants';
 
 import {useGraphNodeDelete} from './attribute_graph_delete_modal';
 import {useGrantConfirm} from './attribute_graph_grant_confirm_modal';
-import type {GrantConfirmRequest} from './attribute_graph_grant_confirm_modal';
 import AttributeGraphParentsPane from './attribute_graph_parents_pane';
 import {GraphParentEdgeAlert} from './graph_edge_alert';
-import type {ConfirmGrant, ProposeParentResult} from './graph_parent_ops';
+import type {ConfirmGrant, GrantConfirmRequest, ProposeParentResult} from './graph_parent_ops';
 import {
     addChildOption,
     addTopLevelOption,

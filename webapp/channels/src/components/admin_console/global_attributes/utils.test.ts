@@ -6,6 +6,7 @@ import type {PropertyField} from '@mattermost/types/properties';
 import {Client4} from 'mattermost-redux/client';
 
 import {
+    ATTRIBUTE_FIELD_TYPES,
     buildOptionsAttr,
     createAttributeField,
     createLinkedAttributeField,
@@ -13,10 +14,10 @@ import {
     deleteLinkedAttributeField,
     fetchAttributeField,
     fetchLinkedFieldsForTemplate,
+    isAttributeFieldType,
     linkedFieldsByResourceType,
     updateAttributeField,
 } from './utils';
-
 
 describe('global_attributes/utils', () => {
     describe('createAttributeField', () => {
@@ -440,6 +441,21 @@ describe('global_attributes/utils', () => {
             expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'channel', 'system', undefined, expect.objectContaining({perPage: 200}));
             expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'post', 'system', undefined, expect.objectContaining({perPage: 200}));
             expect(fields.map((field) => field.id)).toEqual(['u1', 'c1']);
+        });
+    });
+
+    describe('isAttributeFieldType', () => {
+        it('accepts every ATTRIBUTE_FIELD_TYPES entry including graph', () => {
+            expect(ATTRIBUTE_FIELD_TYPES).toEqual(['text', 'select', 'multiselect', 'rank', 'graph']);
+            for (const type of ATTRIBUTE_FIELD_TYPES) {
+                expect(isAttributeFieldType(type)).toBe(true);
+            }
+        });
+
+        it('rejects FieldType values that are not attribute types', () => {
+            expect(isAttributeFieldType('date')).toBe(false);
+            expect(isAttributeFieldType('user')).toBe(false);
+            expect(isAttributeFieldType('')).toBe(false);
         });
     });
 

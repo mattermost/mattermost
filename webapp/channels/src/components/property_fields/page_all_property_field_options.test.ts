@@ -9,7 +9,7 @@ import {
     ACCESS_CONTROL_GROUP,
     PROPERTY_FIELD_OPTIONS_PER_PAGE,
     clearPropertyFieldOptionWalks,
-    pageAllPropertyFieldOptions,
+    pageAllAccessControlFieldOptions,
 } from './page_all_property_field_options';
 
 // One flat, creation-ordered list, the way the server stores them: unique ids and
@@ -154,7 +154,7 @@ function expectCursorChain(server: KeysetServer) {
 
 const FIELD = {id: 'field-1', object_type: 'user'};
 
-describe('pageAllPropertyFieldOptions', () => {
+describe('pageAllAccessControlFieldOptions', () => {
     beforeEach(() => {
         jest.restoreAllMocks();
         clearPropertyFieldOptionWalks();
@@ -178,7 +178,7 @@ describe('pageAllPropertyFieldOptions', () => {
             const all = makeOptions(3);
             const server = makeKeysetServer(all);
 
-            const result = await pageAllPropertyFieldOptions(FIELD);
+            const result = await pageAllAccessControlFieldOptions(FIELD);
 
             expect(result).toEqual(all);
             expect(server.spy).toHaveBeenCalledTimes(1);
@@ -188,7 +188,7 @@ describe('pageAllPropertyFieldOptions', () => {
             const all = makeOptions(PROPERTY_FIELD_OPTIONS_PER_PAGE + 5);
             const server = makeKeysetServer(all);
 
-            const result = await pageAllPropertyFieldOptions(FIELD);
+            const result = await pageAllAccessControlFieldOptions(FIELD);
 
             expect(result).toHaveLength(205);
             expect(server.spy).toHaveBeenCalledTimes(2);
@@ -199,7 +199,7 @@ describe('pageAllPropertyFieldOptions', () => {
             const all = makeOptions(PROPERTY_FIELD_OPTIONS_PER_PAGE);
             const server = makeKeysetServer(all);
 
-            const result = await pageAllPropertyFieldOptions(FIELD);
+            const result = await pageAllAccessControlFieldOptions(FIELD);
 
             expect(result).toHaveLength(PROPERTY_FIELD_OPTIONS_PER_PAGE);
             expect(server.spy).toHaveBeenCalledTimes(2);
@@ -211,7 +211,7 @@ describe('pageAllPropertyFieldOptions', () => {
             const all = makeOptions(407);
             const server = makeKeysetServer(all);
 
-            const result = await pageAllPropertyFieldOptions(FIELD);
+            const result = await pageAllAccessControlFieldOptions(FIELD);
 
             expect(result).toHaveLength(407);
             expect(result[0].id).toBe('opt-0');
@@ -229,7 +229,7 @@ describe('pageAllPropertyFieldOptions', () => {
             const all = makeOptions((PROPERTY_FIELD_OPTIONS_PER_PAGE * 4) + 3);
             const server = makeKeysetServer(all);
 
-            const result = await pageAllPropertyFieldOptions(FIELD);
+            const result = await pageAllAccessControlFieldOptions(FIELD);
 
             expect(server.spy).toHaveBeenCalledTimes(5);
             expectCursorChain(server);
@@ -243,7 +243,7 @@ describe('pageAllPropertyFieldOptions', () => {
             const all = makeOptions(407);
             const server = makeKeysetServer(all);
 
-            const result = await pageAllPropertyFieldOptions(FIELD);
+            const result = await pageAllAccessControlFieldOptions(FIELD);
 
             const ids = result.map((option) => option.id);
 
@@ -257,7 +257,7 @@ describe('pageAllPropertyFieldOptions', () => {
         it('resolves an empty array on an empty first page', async () => {
             const server = makeKeysetServer([]);
 
-            const result = await pageAllPropertyFieldOptions(FIELD);
+            const result = await pageAllAccessControlFieldOptions(FIELD);
 
             expect(result).toEqual([]);
             expect(server.spy).toHaveBeenCalledTimes(1);
@@ -266,7 +266,7 @@ describe('pageAllPropertyFieldOptions', () => {
         it('sends no cursor on the first request', async () => {
             const server = makeKeysetServer(makeOptions(3));
 
-            await pageAllPropertyFieldOptions(FIELD);
+            await pageAllAccessControlFieldOptions(FIELD);
 
             expect(server.spy.mock.calls[0][3]).toStrictEqual({
                 perPage: PROPERTY_FIELD_OPTIONS_PER_PAGE,
@@ -279,7 +279,7 @@ describe('pageAllPropertyFieldOptions', () => {
             const all = makeOptions(PROPERTY_FIELD_OPTIONS_PER_PAGE + 2);
             const server = makeKeysetServer(all);
 
-            await pageAllPropertyFieldOptions(FIELD);
+            await pageAllAccessControlFieldOptions(FIELD);
 
             const lastOfFirstPage = all[PROPERTY_FIELD_OPTIONS_PER_PAGE - 1];
             expect(server.spy.mock.calls[1][3]).toStrictEqual({
@@ -292,7 +292,7 @@ describe('pageAllPropertyFieldOptions', () => {
         it('always sends per_page 200', async () => {
             const server = makeKeysetServer(makeOptions(407));
 
-            await pageAllPropertyFieldOptions(FIELD);
+            await pageAllAccessControlFieldOptions(FIELD);
 
             expect(server.spy).toHaveBeenCalledTimes(3);
             for (const call of server.spy.mock.calls) {
@@ -307,7 +307,7 @@ describe('pageAllPropertyFieldOptions', () => {
             // template it copied and must never reach the GET.
             const fieldWithLink = {id: 'field-1', object_type: 'user', linked_field_id: 'other-field'};
 
-            await pageAllPropertyFieldOptions(fieldWithLink);
+            await pageAllAccessControlFieldOptions(fieldWithLink);
 
             expect(server.spy).toHaveBeenCalledTimes(2);
             for (const call of server.spy.mock.calls) {
@@ -323,7 +323,7 @@ describe('pageAllPropertyFieldOptions', () => {
             delete page[page.length - 1].create_at;
             const spy = jest.spyOn(Client4, 'getPropertyFieldOptions').mockResolvedValueOnce(page);
 
-            await expect(pageAllPropertyFieldOptions(FIELD)).rejects.toThrow(/has no create_at/);
+            await expect(pageAllAccessControlFieldOptions(FIELD)).rejects.toThrow(/has no create_at/);
             expect(spy).toHaveBeenCalledTimes(1);
         });
 
@@ -332,7 +332,7 @@ describe('pageAllPropertyFieldOptions', () => {
             page[page.length - 1].create_at = 0;
             const spy = jest.spyOn(Client4, 'getPropertyFieldOptions').mockResolvedValueOnce(page);
 
-            await expect(pageAllPropertyFieldOptions(FIELD)).rejects.toThrow(/has no create_at/);
+            await expect(pageAllAccessControlFieldOptions(FIELD)).rejects.toThrow(/has no create_at/);
             expect(spy).toHaveBeenCalledTimes(1);
         });
 
@@ -344,7 +344,7 @@ describe('pageAllPropertyFieldOptions', () => {
             // Names the half that is actually missing: this option has a perfectly
             // good create_at, so reporting one would send the next reader hunting
             // for the wrong fault.
-            await expect(pageAllPropertyFieldOptions(FIELD)).rejects.toThrow(
+            await expect(pageAllAccessControlFieldOptions(FIELD)).rejects.toThrow(
                 /option \(no id\) of field field-1 has no id/,
             );
             expect(spy).toHaveBeenCalledTimes(1);
@@ -355,49 +355,8 @@ describe('pageAllPropertyFieldOptions', () => {
             delete page[page.length - 1].create_at;
             const spy = jest.spyOn(Client4, 'getPropertyFieldOptions').mockResolvedValueOnce(page);
 
-            await expect(pageAllPropertyFieldOptions(FIELD)).resolves.toHaveLength(5);
+            await expect(pageAllAccessControlFieldOptions(FIELD)).resolves.toHaveLength(5);
             expect(spy).toHaveBeenCalledTimes(1);
-        });
-    });
-
-    describe('plugin mounts', () => {
-        it('resolves [] without calling Client4 when field.id is missing', async () => {
-            const spy = jest.spyOn(Client4, 'getPropertyFieldOptions');
-
-            await expect(pageAllPropertyFieldOptions({object_type: 'user'})).resolves.toEqual([]);
-            expect(spy).not.toHaveBeenCalled();
-        });
-
-        it('resolves [] without calling Client4 when field.object_type is missing', async () => {
-            const spy = jest.spyOn(Client4, 'getPropertyFieldOptions');
-
-            await expect(pageAllPropertyFieldOptions({id: 'field-1'})).resolves.toEqual([]);
-            expect(spy).not.toHaveBeenCalled();
-        });
-
-        it('resolves [] without calling Client4 when field.id is an empty string', async () => {
-            const spy = jest.spyOn(Client4, 'getPropertyFieldOptions');
-
-            await expect(pageAllPropertyFieldOptions({id: '', object_type: 'user'})).resolves.toEqual([]);
-            expect(spy).not.toHaveBeenCalled();
-        });
-
-        it('resolves [] without calling Client4 when field.object_type is an empty string', async () => {
-            const spy = jest.spyOn(Client4, 'getPropertyFieldOptions');
-
-            await expect(pageAllPropertyFieldOptions({id: 'field-1', object_type: ''})).resolves.toEqual([]);
-            expect(spy).not.toHaveBeenCalled();
-        });
-
-        it('resolves [] for a field with no id even when the signal is already aborted', async () => {
-            const spy = jest.spyOn(Client4, 'getPropertyFieldOptions');
-            const controller = new AbortController();
-            controller.abort();
-
-            await expect(
-                pageAllPropertyFieldOptions({object_type: 'user'}, {signal: controller.signal}),
-            ).resolves.toEqual([]);
-            expect(spy).not.toHaveBeenCalled();
         });
     });
 
@@ -406,8 +365,8 @@ describe('pageAllPropertyFieldOptions', () => {
             const page = deferred<PropertyFieldOption[]>();
             const spy = jest.spyOn(Client4, 'getPropertyFieldOptions').mockReturnValueOnce(page.promise);
 
-            const a = pageAllPropertyFieldOptions(FIELD);
-            const b = pageAllPropertyFieldOptions(FIELD);
+            const a = pageAllAccessControlFieldOptions(FIELD);
+            const b = pageAllAccessControlFieldOptions(FIELD);
 
             page.resolve(makePage(3, 'p1'));
 
@@ -421,8 +380,8 @@ describe('pageAllPropertyFieldOptions', () => {
             const page = deferred<PropertyFieldOption[]>();
             jest.spyOn(Client4, 'getPropertyFieldOptions').mockReturnValueOnce(page.promise);
 
-            const a = pageAllPropertyFieldOptions(FIELD);
-            const b = pageAllPropertyFieldOptions(FIELD);
+            const a = pageAllAccessControlFieldOptions(FIELD);
+            const b = pageAllAccessControlFieldOptions(FIELD);
 
             page.resolve(makePage(3, 'p1'));
 
@@ -437,8 +396,8 @@ describe('pageAllPropertyFieldOptions', () => {
                 mockResolvedValueOnce(makePage(3, 'p1'));
 
             await Promise.all([
-                pageAllPropertyFieldOptions({id: 'field-1', object_type: 'user'}),
-                pageAllPropertyFieldOptions({id: 'field-2', object_type: 'user'}),
+                pageAllAccessControlFieldOptions({id: 'field-1', object_type: 'user'}),
+                pageAllAccessControlFieldOptions({id: 'field-2', object_type: 'user'}),
             ]);
 
             expect(spy).toHaveBeenCalledTimes(2);
@@ -455,8 +414,8 @@ describe('pageAllPropertyFieldOptions', () => {
                 mockResolvedValueOnce(makePage(3, 'p1'));
 
             await Promise.all([
-                pageAllPropertyFieldOptions({id: 'field-1', object_type: 'user'}),
-                pageAllPropertyFieldOptions({id: 'field-1', object_type: 'channel'}),
+                pageAllAccessControlFieldOptions({id: 'field-1', object_type: 'user'}),
+                pageAllAccessControlFieldOptions({id: 'field-1', object_type: 'channel'}),
             ]);
 
             expect(spy).toHaveBeenCalledTimes(2);
@@ -468,8 +427,8 @@ describe('pageAllPropertyFieldOptions', () => {
                 mockResolvedValueOnce(makePage(3, 'p1')).
                 mockResolvedValueOnce(makePage(3, 'p1'));
 
-            await pageAllPropertyFieldOptions(FIELD);
-            await pageAllPropertyFieldOptions(FIELD);
+            await pageAllAccessControlFieldOptions(FIELD);
+            await pageAllAccessControlFieldOptions(FIELD);
 
             expect(spy).toHaveBeenCalledTimes(2);
         });
@@ -480,8 +439,8 @@ describe('pageAllPropertyFieldOptions', () => {
                 mockReturnValueOnce(firstPage.promise).
                 mockResolvedValueOnce(makePage(3, 'p2'));
 
-            const a = pageAllPropertyFieldOptions(FIELD);
-            const b = pageAllPropertyFieldOptions(FIELD);
+            const a = pageAllAccessControlFieldOptions(FIELD);
+            const b = pageAllAccessControlFieldOptions(FIELD);
 
             firstPage.resolve(makePage(PROPERTY_FIELD_OPTIONS_PER_PAGE, 'p1'));
 
@@ -499,7 +458,7 @@ describe('pageAllPropertyFieldOptions', () => {
             jest.spyOn(Client4, 'getPropertyFieldOptions').mockReturnValueOnce(page.promise);
 
             const controller = new AbortController();
-            const promise = pageAllPropertyFieldOptions(FIELD, {signal: controller.signal});
+            const promise = pageAllAccessControlFieldOptions(FIELD, {signal: controller.signal});
 
             controller.abort();
 
@@ -519,7 +478,7 @@ describe('pageAllPropertyFieldOptions', () => {
                 mockReturnValueOnce(secondPage.promise);
 
             const controller = new AbortController();
-            const promise = pageAllPropertyFieldOptions(FIELD, {signal: controller.signal});
+            const promise = pageAllAccessControlFieldOptions(FIELD, {signal: controller.signal});
 
             // Let page 1 land so there is a partial list to be tempted by.
             await waitForCalls(spy, 2);
@@ -546,7 +505,7 @@ describe('pageAllPropertyFieldOptions', () => {
 
             // LOAD-BEARING, and the only test in this file that covers it.
             //
-            // `pageAllPropertyFieldOptions` attaches its handlers to the shared walk
+            // `pageAllAccessControlFieldOptions` attaches its handlers to the shared walk
             // BEFORE testing `signal.aborted`. Move that attach after the check and
             // this test is the sole failure: an already-aborted caller -- a React
             // effect that aborts before its body runs, or a strict-mode double
@@ -561,7 +520,7 @@ describe('pageAllPropertyFieldOptions', () => {
             const controller = new AbortController();
             controller.abort();
 
-            const promise = pageAllPropertyFieldOptions(FIELD, {signal: controller.signal});
+            const promise = pageAllAccessControlFieldOptions(FIELD, {signal: controller.signal});
 
             await expect(promise).rejects.toMatchObject({name: 'AbortError'});
 
@@ -578,8 +537,8 @@ describe('pageAllPropertyFieldOptions', () => {
 
             const controllerA = new AbortController();
             const controllerB = new AbortController();
-            const a = pageAllPropertyFieldOptions(FIELD, {signal: controllerA.signal});
-            const b = pageAllPropertyFieldOptions(FIELD, {signal: controllerB.signal});
+            const a = pageAllAccessControlFieldOptions(FIELD, {signal: controllerA.signal});
+            const b = pageAllAccessControlFieldOptions(FIELD, {signal: controllerB.signal});
 
             controllerA.abort();
 
@@ -598,8 +557,8 @@ describe('pageAllPropertyFieldOptions', () => {
 
             const controllerA = new AbortController();
             const controllerB = new AbortController();
-            const a = pageAllPropertyFieldOptions(FIELD, {signal: controllerA.signal});
-            const b = pageAllPropertyFieldOptions(FIELD, {signal: controllerB.signal});
+            const a = pageAllAccessControlFieldOptions(FIELD, {signal: controllerA.signal});
+            const b = pageAllAccessControlFieldOptions(FIELD, {signal: controllerB.signal});
 
             controllerA.abort();
             await expect(a).rejects.toMatchObject({name: 'AbortError'});
@@ -619,8 +578,8 @@ describe('pageAllPropertyFieldOptions', () => {
 
             const controllerA = new AbortController();
             const controllerB = new AbortController();
-            const a = pageAllPropertyFieldOptions(FIELD, {signal: controllerA.signal});
-            const b = pageAllPropertyFieldOptions(FIELD, {signal: controllerB.signal});
+            const a = pageAllAccessControlFieldOptions(FIELD, {signal: controllerA.signal});
+            const b = pageAllAccessControlFieldOptions(FIELD, {signal: controllerB.signal});
 
             controllerA.abort();
             await expect(a).rejects.toMatchObject({name: 'AbortError'});
@@ -637,7 +596,7 @@ describe('pageAllPropertyFieldOptions', () => {
             jest.spyOn(Client4, 'getPropertyFieldOptions').mockReturnValueOnce(page.promise);
 
             const controller = new AbortController();
-            const promise = pageAllPropertyFieldOptions(FIELD, {signal: controller.signal});
+            const promise = pageAllAccessControlFieldOptions(FIELD, {signal: controller.signal});
 
             controller.abort();
 
@@ -656,8 +615,8 @@ describe('pageAllPropertyFieldOptions', () => {
             const controller = new AbortController();
             const addEventListener = jest.spyOn(controller.signal, 'addEventListener');
 
-            const a = pageAllPropertyFieldOptions(FIELD);
-            const b = pageAllPropertyFieldOptions(FIELD);
+            const a = pageAllAccessControlFieldOptions(FIELD);
+            const b = pageAllAccessControlFieldOptions(FIELD);
 
             // No wrapper promise, so the caller holds the shared walk itself.
             expect(a).toBe(b);
@@ -666,7 +625,7 @@ describe('pageAllPropertyFieldOptions', () => {
             // Handing the same signal in does produce a wrapper with a listener, so
             // the assertion above is about the signal-less path rather than about a
             // spy no implementation could ever have reached.
-            const withSignal = pageAllPropertyFieldOptions(FIELD, {signal: controller.signal});
+            const withSignal = pageAllAccessControlFieldOptions(FIELD, {signal: controller.signal});
             expect(withSignal).not.toBe(a);
             expect(addEventListener).toHaveBeenCalledWith('abort', expect.any(Function), {once: true});
 
@@ -680,7 +639,7 @@ describe('pageAllPropertyFieldOptions', () => {
             const forbidden = new Error('forbidden');
             jest.spyOn(Client4, 'getPropertyFieldOptions').mockRejectedValueOnce(forbidden);
 
-            await expect(pageAllPropertyFieldOptions(FIELD)).rejects.toBe(forbidden);
+            await expect(pageAllAccessControlFieldOptions(FIELD)).rejects.toBe(forbidden);
         });
 
         it('propagates a 404 from a later page', async () => {
@@ -689,7 +648,7 @@ describe('pageAllPropertyFieldOptions', () => {
                 mockResolvedValueOnce(makePage(PROPERTY_FIELD_OPTIONS_PER_PAGE, 'p1')).
                 mockRejectedValueOnce(notFound);
 
-            const result = await pageAllPropertyFieldOptions(FIELD).then(
+            const result = await pageAllAccessControlFieldOptions(FIELD).then(
                 (value) => ({resolved: true, value}),
                 (error) => ({resolved: false, value: error}),
             );
@@ -703,15 +662,15 @@ describe('pageAllPropertyFieldOptions', () => {
             const networkError = new TypeError('Failed to fetch');
             jest.spyOn(Client4, 'getPropertyFieldOptions').mockRejectedValueOnce(networkError);
 
-            await expect(pageAllPropertyFieldOptions(FIELD)).rejects.toBe(networkError);
+            await expect(pageAllAccessControlFieldOptions(FIELD)).rejects.toBe(networkError);
         });
 
         it('rejects both concurrent callers with the same error', async () => {
             const page = deferred<PropertyFieldOption[]>();
             const spy = jest.spyOn(Client4, 'getPropertyFieldOptions').mockReturnValueOnce(page.promise);
 
-            const a = pageAllPropertyFieldOptions(FIELD);
-            const b = pageAllPropertyFieldOptions(FIELD);
+            const a = pageAllAccessControlFieldOptions(FIELD);
+            const b = pageAllAccessControlFieldOptions(FIELD);
 
             const forbidden = new Error('forbidden');
             page.reject(forbidden);
@@ -727,8 +686,8 @@ describe('pageAllPropertyFieldOptions', () => {
                 mockRejectedValueOnce(new Error('forbidden')).
                 mockResolvedValueOnce(succeeded);
 
-            await expect(pageAllPropertyFieldOptions(FIELD)).rejects.toThrow('forbidden');
-            await expect(pageAllPropertyFieldOptions(FIELD)).resolves.toEqual(succeeded);
+            await expect(pageAllAccessControlFieldOptions(FIELD)).rejects.toThrow('forbidden');
+            await expect(pageAllAccessControlFieldOptions(FIELD)).resolves.toEqual(succeeded);
 
             expect(spy).toHaveBeenCalledTimes(2);
         });
@@ -742,12 +701,12 @@ describe('pageAllPropertyFieldOptions', () => {
                 mockResolvedValueOnce(makePage(3, 'p1')).
                 mockResolvedValueOnce(makePage(3, 'p1'));
 
-            await pageAllPropertyFieldOptions(FIELD);
+            await pageAllAccessControlFieldOptions(FIELD);
             expect(spy).toHaveBeenCalledTimes(1);
 
             const [a, b] = await Promise.all([
-                pageAllPropertyFieldOptions(FIELD),
-                pageAllPropertyFieldOptions(FIELD),
+                pageAllAccessControlFieldOptions(FIELD),
+                pageAllAccessControlFieldOptions(FIELD),
             ]);
 
             expect(spy).toHaveBeenCalledTimes(2);
@@ -763,8 +722,8 @@ describe('pageAllPropertyFieldOptions', () => {
                 mockResolvedValueOnce(makePage(PROPERTY_FIELD_OPTIONS_PER_PAGE, 'p2')).
                 mockResolvedValueOnce(makePage(4, 'p3'));
 
-            await expect(pageAllPropertyFieldOptions(FIELD)).rejects.toThrow(/has no create_at/);
-            await expect(pageAllPropertyFieldOptions(FIELD)).resolves.toHaveLength(204);
+            await expect(pageAllAccessControlFieldOptions(FIELD)).rejects.toThrow(/has no create_at/);
+            await expect(pageAllAccessControlFieldOptions(FIELD)).resolves.toHaveLength(204);
 
             expect(spy).toHaveBeenCalledTimes(3);
         });

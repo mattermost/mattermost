@@ -19,14 +19,14 @@ import PolicyHierarchicalValues, {
 import type {PolicyHierarchicalValuesProps} from './policy_adapter';
 
 import {joinGraphOptions} from '../graph_option_tree';
-import {clearPropertyFieldOptionWalks, pageAllPropertyFieldOptions} from '../page_all_property_field_options';
+import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from '../page_all_property_field_options';
 
 jest.mock('../page_all_property_field_options', () => ({
     ...jest.requireActual('../page_all_property_field_options'),
-    pageAllPropertyFieldOptions: jest.fn(),
+    pageAllAccessControlFieldOptions: jest.fn(),
 }));
 
-const mockPageAll = jest.mocked(pageAllPropertyFieldOptions);
+const mockPageAll = jest.mocked(pageAllAccessControlFieldOptions);
 
 const opt = (id: string, name: string, parents: string[] = []): PropertyFieldOption => ({
     id, name, parents, create_at: 1,

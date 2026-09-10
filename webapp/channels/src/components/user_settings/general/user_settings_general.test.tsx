@@ -6,7 +6,7 @@ import React from 'react';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {clearPropertyFieldOptionWalks, pageAllPropertyFieldOptions} from 'components/property_fields/page_all_property_field_options';
+import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from 'components/property_fields/page_all_property_field_options';
 
 import {defaultIntl} from 'tests/helpers/intl-test-helper';
 import {renderWithContext, screen, userEvent, act, fireEvent, waitFor} from 'tests/react_testing_utils';
@@ -16,10 +16,10 @@ import UserSettingsGeneral, {UserSettingsGeneralTab} from './user_settings_gener
 
 jest.mock('components/property_fields/page_all_property_field_options', () => ({
     ...jest.requireActual('components/property_fields/page_all_property_field_options'),
-    pageAllPropertyFieldOptions: jest.fn(),
+    pageAllAccessControlFieldOptions: jest.fn(),
 }));
 
-const mockPageAll = jest.mocked(pageAllPropertyFieldOptions);
+const mockPageAll = jest.mocked(pageAllAccessControlFieldOptions);
 
 jest.mock('@mattermost/client', () => ({
     ...jest.requireActual('@mattermost/client'),
@@ -1387,7 +1387,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             // A test that forgets to stub the walk must fail loudly rather than
             // fall through to the real Client4 and node-fetch.
             mockPageAll.mockImplementation(() => {
-                throw new Error('pageAllPropertyFieldOptions called without an explicit mock for this test');
+                throw new Error('pageAllAccessControlFieldOptions called without an explicit mock for this test');
             });
         });
 

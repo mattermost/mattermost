@@ -40,8 +40,6 @@ import {
 
 import './attribute_graph_parents_pane.scss';
 
-export type {ConfirmGrant};
-
 export type AttributeGraphParentsPaneProps = {
     options: PropertyFieldOption[];
     optionName: string;

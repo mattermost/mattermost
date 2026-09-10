@@ -28,9 +28,12 @@ import {
     joinGraphOptions,
     selectedDescendantCount,
 } from '../graph_option_tree';
-import {pageAllPropertyFieldOptions} from '../page_all_property_field_options';
+import {pageAllAccessControlFieldOptions} from '../page_all_property_field_options';
+import type {GraphFieldRef} from '../page_all_property_field_options';
 
 import './hierarchical_value_menu.scss';
+
+export type {GraphFieldRef};
 
 const messages = defineMessages({
     selectValues: {
@@ -52,10 +55,6 @@ const messages = defineMessages({
     error: {
         id: 'property_fields.hierarchical_value_menu.error',
         defaultMessage: 'These values could not be loaded.',
-    },
-    errorMissingIdentity: {
-        id: 'property_fields.hierarchical_value_menu.error_missing_identity',
-        defaultMessage: 'This attribute is missing the information needed to load its values.',
     },
     retry: {
         id: 'property_fields.hierarchical_value_menu.retry',
@@ -89,20 +88,8 @@ const messages = defineMessages({
 
 export const unavailableValueMessage = messages.unavailableValue;
 
-export type HierarchicalValueMenuField = {
-    id?: string;
-    object_type?: string;
-    type?: string;
-    attrs?: {
-        options?: PropertyFieldOption[];
-        options_omitted?: boolean;
-        options_count?: number;
-        access_mode?: '' | 'source_only' | 'shared_only';
-    };
-};
-
 export type HierarchicalValueMenuProps = {
-    field: HierarchicalValueMenuField;
+    field: GraphFieldRef;
 
     // Option ids. A stale id with no fetched option stays selected and emitted.
     selectedIds: string[];
@@ -157,7 +144,6 @@ type VisibleRow = {
 type HierarchicalMenuStatusKind =
     | 'loading' |
     'error_fetch' |
-    'error_missing_identity' |
     'withheld' |
     'empty' |
     'no_results';
@@ -165,7 +151,6 @@ type HierarchicalMenuStatusKind =
 const STATUS_MESSAGES: Record<HierarchicalMenuStatusKind, MessageDescriptor> = {
     loading: messages.loading,
     error_fetch: messages.error,
-    error_missing_identity: messages.errorMissingIdentity,
     withheld: messages.withheld,
     empty: messages.empty,
     no_results: messages.noResults,
@@ -286,7 +271,7 @@ type HierarchicalMenuStatusProps = {
 
 const HierarchicalMenuStatus = ({kind, onRetry}: HierarchicalMenuStatusProps) => {
     const {formatMessage} = useIntl();
-    const isError = kind === 'error_fetch' || kind === 'error_missing_identity';
+    const isError = kind === 'error_fetch';
 
     return (
         <span className='hierarchical-value-menu__status-inner'>
@@ -342,7 +327,6 @@ export default function HierarchicalValueMenu({
 
     const [loaded, setLoaded] = useState<{options: PropertyFieldOption[]; join: GraphOptionJoin} | null>(null);
     const [status, setStatus] = useState<'idle' | 'loading' | 'loaded' | 'error'>('idle');
-    const [errorKind, setErrorKind] = useState<'fetch_failed' | 'missing_identity' | null>(null);
 
     const abortRef = useRef<AbortController | null>(null);
 
@@ -401,19 +385,12 @@ export default function HierarchicalValueMenu({
         const seq = seqRef.current + 1;
         seqRef.current = seq;
 
-        if (!field.id || !field.object_type) {
-            setStatus('error');
-            setErrorKind('missing_identity');
-            return;
-        }
-
         const controller = new AbortController();
         abortRef.current = controller;
 
         setStatus('loading');
-        setErrorKind(null);
 
-        pageAllPropertyFieldOptions(
+        pageAllAccessControlFieldOptions(
             {id: field.id, object_type: field.object_type},
             {signal: controller.signal},
         ).then(
@@ -423,7 +400,6 @@ export default function HierarchicalValueMenu({
                 }
                 const fetchedJoin = joinGraphOptions(fetched);
                 setLoaded({options: fetched, join: fetchedJoin});
-                setErrorKind(null);
 
                 // Same commit as the status flip so expand-to-selected seeds from the hydrated ids.
                 onOptionsLoaded?.(fetchedJoin);
@@ -439,7 +415,6 @@ export default function HierarchicalValueMenu({
                 }
 
                 setStatus('error');
-                setErrorKind('fetch_failed');
             },
         );
     }, [field.id, field.object_type, onOptionsLoaded]);
@@ -534,7 +509,6 @@ export default function HierarchicalValueMenu({
         const attrs = field.attrs;
         return Boolean(
             attrs?.options_omitted ||
-            attrs?.options_count ||
             attrs?.access_mode === 'source_only' ||
             attrs?.access_mode === 'shared_only',
         );
@@ -542,7 +516,7 @@ export default function HierarchicalValueMenu({
 
     const statusKind = useMemo<HierarchicalMenuStatusKind | null>(() => {
         if (status === 'error') {
-            return errorKind === 'missing_identity' ? 'error_missing_identity' : 'error_fetch';
+            return 'error_fetch';
         }
         if (status === 'idle' || status === 'loading') {
             return 'loading';
@@ -559,7 +533,7 @@ export default function HierarchicalValueMenu({
 
         // A cycle can yield no roots from a non-empty list; only an empty graph is empty.
         return options?.length ? null : 'empty';
-    }, [status, errorKind, visibleRows.length, isSearching, isWithheld, options]);
+    }, [status, visibleRows.length, isSearching, isWithheld, options]);
 
     const handleToggle = useCallback((open: boolean) => {
         setIsOpen(open);

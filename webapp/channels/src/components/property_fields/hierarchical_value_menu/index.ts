@@ -3,7 +3,7 @@
 
 export {default as HierarchicalValueMenu} from './hierarchical_value_menu';
 export type {
-    HierarchicalValueMenuField,
+    GraphFieldRef,
     HierarchicalValueMenuProps,
 } from './hierarchical_value_menu';
 

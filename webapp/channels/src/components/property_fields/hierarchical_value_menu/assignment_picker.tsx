@@ -8,12 +8,12 @@ import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagVal
 
 import {assignmentFallbackLabels, computeAssignmentPrefetch} from './assignment_adapter';
 import HierarchicalValueMenu from './hierarchical_value_menu';
-import type {HierarchicalValueMenuField, HierarchicalValueMenuProps} from './hierarchical_value_menu';
+import type {GraphFieldRef, HierarchicalValueMenuProps} from './hierarchical_value_menu';
 
 import type {GraphOptionJoin} from '../graph_option_tree';
 
 export type AssignmentGraphPickerProps = {
-    field: HierarchicalValueMenuField;
+    field: GraphFieldRef;
     ids: string[];
     onIdsChange: (ids: string[]) => void;
     disabled?: boolean;

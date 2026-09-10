@@ -22,7 +22,7 @@ import Card from 'components/card/card';
 import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
-import {pageAllPropertyFieldOptions} from 'components/property_fields/page_all_property_field_options';
+import {pageAllAccessControlFieldOptions} from 'components/property_fields/page_all_property_field_options';
 import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import Input from 'components/widgets/inputs/input/input';
@@ -47,12 +47,14 @@ import {GLOBAL_ATTRIBUTES_LIST_ROUTE} from '../constants';
 import {getSourceKind, getTypeIcon, getTypeLabel, isClassificationMarkingsField, typeLabels} from '../global_attributes_table';
 import type {AttributeFieldType} from '../utils';
 import {
+    ATTRIBUTE_FIELD_TYPES,
     createAttributeField,
     createLinkedAttributeField,
     deleteAttributeField,
     deleteLinkedAttributeField,
     fetchAttributeField,
     fetchLinkedFieldsForTemplate,
+    isAttributeFieldType,
     linkedFieldsByResourceType,
     updateAttributeField,
 } from '../utils';
@@ -81,10 +83,6 @@ function hasDuplicateOptionNames(options: PropertyFieldOption[]): boolean {
 // Only meaningful when the current type is 'rank'.
 function hasValidRanks(options: PropertyFieldOption[]): boolean {
     return options.every((option, index) => isValidRank(option.rank) && !findRankCollision(options, option.rank as number, index));
-}
-
-function isAttributeFieldType(value: string): value is AttributeFieldType {
-    return value === 'text' || value === 'select' || value === 'multiselect' || value === 'rank' || value === 'graph';
 }
 
 function optionsFromField(field: PropertyField): PropertyFieldOption[] {
@@ -269,10 +267,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const isEditMode = Boolean(fieldId);
 
     const isGraphEnabled = useGetFeatureFlagValue('PropertyFieldGraph') === 'true';
-    const ALL_TYPES = useMemo<AttributeFieldType[]>(
-        () => (isGraphEnabled ?
-            ['text', 'select', 'multiselect', 'rank', 'graph'] :
-            ['text', 'select', 'multiselect', 'rank']),
+    const ALL_TYPES = useMemo(
+        () => ATTRIBUTE_FIELD_TYPES.filter((type) => type !== 'graph' || isGraphEnabled),
         [isGraphEnabled],
     );
 
@@ -389,7 +385,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 // Field GET strips graph parents so a read-modify-write cannot
                 // flatten the hierarchy. The options route is what reports them.
                 const loadedOptions = field.type === 'graph' ?
-                    await pageAllPropertyFieldOptions(field) :
+                    await pageAllAccessControlFieldOptions({id: field.id, object_type: field.object_type}) :
                     optionsFromField(field);
                 if (cancelled) {
                     return;
@@ -649,7 +645,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const typeLockedByAppliesTo = isEditMode && appliesTo.length > 0;
     const typeLocked = hasExternalSource || typeLockedByAppliesTo;
     const typeChanged = isEditMode && fieldType !== originalFieldTypeRef.current;
-    const typeSupportsOptions = supportsOptions({type: fieldType} as PropertyField);
+    const typeSupportsOptions = supportsOptions({type: fieldType});
 
     // Unique name is the identifier policies and integrations bind to, and the
     // server does not copy it onto linked fields. Renaming while any resource
@@ -684,7 +680,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         return null;
     }, [typeSupportsOptions, options, fieldType]);
 
-    const isHierarchical = supportsHierarchy({type: fieldType} as PropertyField);
+    const isHierarchical = supportsHierarchy({type: fieldType});
     const graphOptionsValid = useMemo(() => {
         if (!isHierarchical) {
             return true;

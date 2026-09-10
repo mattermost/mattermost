@@ -11,6 +11,12 @@ import {GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, GLOBAL_ATTR
 
 export type AttributeFieldType = 'text' | 'select' | 'multiselect' | 'rank' | 'graph';
 
+export const ATTRIBUTE_FIELD_TYPES: readonly AttributeFieldType[] = ['text', 'select', 'multiselect', 'rank', 'graph'];
+
+export function isAttributeFieldType(value: string): value is AttributeFieldType {
+    return (ATTRIBUTE_FIELD_TYPES as readonly string[]).includes(value);
+}
+
 // Server clamps per_page to this max (web.PerPageMaximum). Directory-mode
 // listing with no cursor sorts CreateAt ASC, so a default 60-item page can
 // miss a freshly created field.

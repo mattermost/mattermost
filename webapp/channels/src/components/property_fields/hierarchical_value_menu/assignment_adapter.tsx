@@ -4,10 +4,10 @@
 import React, {useMemo} from 'react';
 
 import HierarchicalValueMenu from './hierarchical_value_menu';
-import type {HierarchicalValueMenuField, HierarchicalValueMenuProps} from './hierarchical_value_menu';
+import type {GraphFieldRef, HierarchicalValueMenuProps} from './hierarchical_value_menu';
 
 /** True when chips cannot be named from the inlined option list. */
-export function computeAssignmentPrefetch(field: HierarchicalValueMenuField, ids: string[]): boolean {
+export function computeAssignmentPrefetch(field: Pick<GraphFieldRef, 'attrs'>, ids: string[]): boolean {
     if (field.attrs?.options_omitted) {
         return true;
     }
@@ -17,7 +17,7 @@ export function computeAssignmentPrefetch(field: HierarchicalValueMenuField, ids
 }
 
 /** id -> name from the field payload, for chips before the first fetch lands. */
-export function assignmentFallbackLabels(field: HierarchicalValueMenuField): Record<string, string> {
+export function assignmentFallbackLabels(field: Pick<GraphFieldRef, 'attrs'>): Record<string, string> {
     const labels: Record<string, string> = {};
     for (const option of field.attrs?.options ?? []) {
         if (option.id) {
@@ -28,7 +28,7 @@ export function assignmentFallbackLabels(field: HierarchicalValueMenuField): Rec
 }
 
 export type AssignmentHierarchicalValuesProps = {
-    field: HierarchicalValueMenuField;
+    field: GraphFieldRef;
     ids: string[];
     onIdsChange: (ids: string[]) => void;
     disabled?: boolean;

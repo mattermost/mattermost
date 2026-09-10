@@ -3,13 +3,18 @@
 
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
-import type {GrantConfirmRequest} from './attribute_graph_grant_confirm_modal';
 import {
     addParentEdge,
     checkParentEdge,
     replaceOccurrenceParent,
     type CheckParentEdgeResult,
 } from './graph_utils';
+
+export type GrantConfirmRequest = {
+    parentName: string;
+    childName: string;
+    newlyReachable: string[]; // gate only; do not render
+};
 
 export type ConfirmGrant = (req: GrantConfirmRequest) => Promise<boolean>;
 

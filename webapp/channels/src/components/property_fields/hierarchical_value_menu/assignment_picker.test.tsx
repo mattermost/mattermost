@@ -9,16 +9,16 @@ import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing
 
 import AssignmentGraphPicker from './assignment_picker';
 import type {AssignmentGraphPickerProps} from './assignment_picker';
-import type {HierarchicalValueMenuField} from './hierarchical_value_menu';
+import type {GraphFieldRef} from './hierarchical_value_menu';
 
-import {clearPropertyFieldOptionWalks, pageAllPropertyFieldOptions} from '../page_all_property_field_options';
+import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from '../page_all_property_field_options';
 
 jest.mock('../page_all_property_field_options', () => ({
     ...jest.requireActual('../page_all_property_field_options'),
-    pageAllPropertyFieldOptions: jest.fn(),
+    pageAllAccessControlFieldOptions: jest.fn(),
 }));
 
-const mockPageAll = jest.mocked(pageAllPropertyFieldOptions);
+const mockPageAll = jest.mocked(pageAllAccessControlFieldOptions);
 
 const opt = (id: string, name: string, parents: string[] = []): PropertyFieldOption => ({
     id, name, parents, create_at: 1,
@@ -40,7 +40,7 @@ const REGIME_2: PropertyFieldOption[] = Array.from(
     (_, index) => opt(`big-${index}`, `Big ${index}`),
 );
 
-const fieldOf = (overrides: HierarchicalValueMenuField['attrs'] = {}): HierarchicalValueMenuField => ({
+const fieldOf = (overrides: GraphFieldRef['attrs'] = {}): GraphFieldRef => ({
     id: 'field1',
     object_type: 'user',
     type: 'graph',
@@ -87,7 +87,7 @@ const openMenu = async () => {
 // open-ended stub must not be able to feed an accumulating keyset walk.
 const throwingDefault = () => {
     mockPageAll.mockImplementation(() => {
-        throw new Error('pageAllPropertyFieldOptions called without an explicit mock for this test');
+        throw new Error('pageAllAccessControlFieldOptions called without an explicit mock for this test');
     });
 };
 

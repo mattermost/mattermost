@@ -12,17 +12,17 @@ import * as Menu from 'components/menu';
 import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import HierarchicalValueMenu from './hierarchical_value_menu';
-import type {HierarchicalValueMenuField, HierarchicalValueMenuProps} from './hierarchical_value_menu';
+import type {GraphFieldRef, HierarchicalValueMenuProps} from './hierarchical_value_menu';
 
-import {clearPropertyFieldOptionWalks, pageAllPropertyFieldOptions} from '../page_all_property_field_options';
+import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from '../page_all_property_field_options';
 import type * as PageAllModule from '../page_all_property_field_options';
 
 jest.mock('../page_all_property_field_options', () => ({
     ...jest.requireActual('../page_all_property_field_options'),
-    pageAllPropertyFieldOptions: jest.fn(),
+    pageAllAccessControlFieldOptions: jest.fn(),
 }));
 
-const mockPageAll = jest.mocked(pageAllPropertyFieldOptions);
+const mockPageAll = jest.mocked(pageAllAccessControlFieldOptions);
 
 const COPY = {
     placeholder: 'Select values...',
@@ -30,7 +30,6 @@ const COPY = {
     empty: 'This attribute has no values yet.',
     withheld: 'The values for this attribute are not available to you here.',
     error: 'These values could not be loaded.',
-    missingIdentity: 'This attribute is missing the information needed to load its values.',
     noResults: 'No values match.',
 };
 
@@ -167,7 +166,7 @@ describe('HierarchicalValueMenu', () => {
                 object_type: 'user',
                 linked_field_id: 'template-1',
                 attrs: {},
-            } as HierarchicalValueMenuField;
+            } as GraphFieldRef;
             renderMenu({field});
 
             await openMenu();
@@ -519,15 +518,6 @@ describe('HierarchicalValueMenu', () => {
             expect(statusRow()).toHaveAttribute('aria-disabled', 'true');
         });
 
-        test('the missing-identity row stays unfocusable, having no retry', async () => {
-            renderMenu({field: {object_type: 'user', attrs: {}}});
-
-            await openMenu();
-            await screen.findByText(COPY.missingIdentity);
-
-            expect(statusRow()).toHaveAttribute('aria-disabled', 'true');
-        });
-
         test('keeps the chips through an error', async () => {
             mockPageAll.mockRejectedValue(httpErrorOf(403));
             renderMenu({selectedIds: ['opt-f18'], fallbackLabels: {'opt-f18': 'F-18 Program'}});
@@ -550,34 +540,6 @@ describe('HierarchicalValueMenu', () => {
 
             expect(await screen.findByRole('menuitemcheckbox', {name: 'Air Program'})).toBeInTheDocument();
             expect(screen.queryByText(COPY.error)).toBeNull();
-        });
-
-        test('shows error chrome and no Retry when field.id is missing', async () => {
-            renderMenu({field: {object_type: 'user', attrs: {}}});
-
-            await openMenu();
-
-            expect(await screen.findByText(COPY.missingIdentity)).toBeInTheDocument();
-            expect(screen.queryByRole('button', {name: 'Retry'})).toBeNull();
-            expect(mockPageAll).not.toHaveBeenCalled();
-        });
-
-        test('shows error chrome and no Retry when field.object_type is missing', async () => {
-            renderMenu({field: {id: 'field-1', attrs: {}}});
-
-            await openMenu();
-
-            expect(await screen.findByText(COPY.missingIdentity)).toBeInTheDocument();
-            expect(screen.queryByRole('button', {name: 'Retry'})).toBeNull();
-        });
-
-        test('does not call the pager at all for a field with no identity', async () => {
-            renderMenu({field: {attrs: {}}});
-
-            await openMenu();
-            await settle();
-
-            expect(mockPageAll).not.toHaveBeenCalled();
         });
     });
 
@@ -602,13 +564,34 @@ describe('HierarchicalValueMenu', () => {
             expect(screen.queryByText(COPY.empty)).toBeNull();
         });
 
-        test('200 [] with options_count uses withheld copy', async () => {
+        test('200 [] with options_count uses empty copy, not withheld', async () => {
             mockPageAll.mockResolvedValue([]);
             renderMenu({field: {id: 'field-1', object_type: 'user', attrs: {options_count: 1200}}});
 
             await openMenu();
 
-            expect(await screen.findByText(COPY.withheld)).toBeInTheDocument();
+            expect(await screen.findByText(COPY.empty)).toBeInTheDocument();
+            expect(screen.queryByText(COPY.withheld)).toBeNull();
+        });
+
+        test('inlined options plus options_count on a cyclic graph render empty, not withheld', async () => {
+            const cyclic = [
+                opt('opt-a', 'Alpha', ['Bravo']),
+                opt('opt-b', 'Bravo', ['Alpha']),
+            ];
+            mockPageAll.mockResolvedValue([]);
+            renderMenu({
+                field: {
+                    id: 'field-1',
+                    object_type: 'user',
+                    attrs: {options: cyclic, options_count: 2},
+                },
+            });
+
+            await openMenu();
+
+            expect(await screen.findByText(COPY.empty)).toBeInTheDocument();
+            expect(screen.queryByText(COPY.withheld)).toBeNull();
         });
 
         test('200 [] with access_mode source_only uses withheld copy', async () => {
@@ -1942,7 +1925,7 @@ describe('HierarchicalValueMenu', () => {
 
         beforeEach(() => {
             actual.clearPropertyFieldOptionWalks();
-            mockPageAll.mockImplementation(actual.pageAllPropertyFieldOptions);
+            mockPageAll.mockImplementation(actual.pageAllAccessControlFieldOptions);
 
             // The real pager runs in here, so an unmocked Client4 is a live
             // keyset walk against node-fetch. A test added below without its own
