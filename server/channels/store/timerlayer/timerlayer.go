@@ -33,6 +33,7 @@ type TimerLayer struct {
 	CommandWebhookStore             store.CommandWebhookStore
 	ComplianceStore                 store.ComplianceStore
 	ContentFlaggingStore            store.ContentFlaggingStore
+	DeliveryTrackingStore           store.DeliveryTrackingStore
 	DesktopTokensStore              store.DesktopTokensStore
 	DraftStore                      store.DraftStore
 	EmojiStore                      store.EmojiStore
@@ -139,6 +140,10 @@ func (s *TimerLayer) Compliance() store.ComplianceStore {
 
 func (s *TimerLayer) ContentFlagging() store.ContentFlaggingStore {
 	return s.ContentFlaggingStore
+}
+
+func (s *TimerLayer) DeliveryTracking() store.DeliveryTrackingStore {
+	return s.DeliveryTrackingStore
 }
 
 func (s *TimerLayer) DesktopTokens() store.DesktopTokensStore {
@@ -397,6 +402,11 @@ type TimerLayerComplianceStore struct {
 
 type TimerLayerContentFlaggingStore struct {
 	store.ContentFlaggingStore
+	Root *TimerLayer
+}
+
+type TimerLayerDeliveryTrackingStore struct {
+	store.DeliveryTrackingStore
 	Root *TimerLayer
 }
 
@@ -4271,6 +4281,85 @@ func (s *TimerLayerContentFlaggingStore) SaveReviewerSettings(reviewerSettings m
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ContentFlaggingStore.SaveReviewerSettings", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerDeliveryTrackingStore) ClearCaches() {
+	start := time.Now()
+
+	s.DeliveryTrackingStore.ClearCaches()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DeliveryTrackingStore.ClearCaches", success, elapsed)
+	}
+}
+
+func (s *TimerLayerDeliveryTrackingStore) GetTrackedChannelIDs(rctx request.CTX) ([]string, error) {
+	start := time.Now()
+
+	result, err := s.DeliveryTrackingStore.GetTrackedChannelIDs(rctx)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DeliveryTrackingStore.GetTrackedChannelIDs", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerDeliveryTrackingStore) IsChannelTrackable(rctx request.CTX, channelID string) (bool, error) {
+	start := time.Now()
+
+	result, err := s.DeliveryTrackingStore.IsChannelTrackable(rctx, channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DeliveryTrackingStore.IsChannelTrackable", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerDeliveryTrackingStore) IsChannelTracked(rctx request.CTX, channelID string) (bool, error) {
+	start := time.Now()
+
+	result, err := s.DeliveryTrackingStore.IsChannelTracked(rctx, channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DeliveryTrackingStore.IsChannelTracked", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerDeliveryTrackingStore) SaveTrackedChannelIDs(rctx request.CTX, channelIDs []string) error {
+	start := time.Now()
+
+	err := s.DeliveryTrackingStore.SaveTrackedChannelIDs(rctx, channelIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DeliveryTrackingStore.SaveTrackedChannelIDs", success, elapsed)
 	}
 	return err
 }
@@ -15625,6 +15714,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.CommandWebhookStore = &TimerLayerCommandWebhookStore{CommandWebhookStore: childStore.CommandWebhook(), Root: &newStore}
 	newStore.ComplianceStore = &TimerLayerComplianceStore{ComplianceStore: childStore.Compliance(), Root: &newStore}
 	newStore.ContentFlaggingStore = &TimerLayerContentFlaggingStore{ContentFlaggingStore: childStore.ContentFlagging(), Root: &newStore}
+	newStore.DeliveryTrackingStore = &TimerLayerDeliveryTrackingStore{DeliveryTrackingStore: childStore.DeliveryTracking(), Root: &newStore}
 	newStore.DesktopTokensStore = &TimerLayerDesktopTokensStore{DesktopTokensStore: childStore.DesktopTokens(), Root: &newStore}
 	newStore.DraftStore = &TimerLayerDraftStore{DraftStore: childStore.Draft(), Root: &newStore}
 	newStore.EmojiStore = &TimerLayerEmojiStore{EmojiStore: childStore.Emoji(), Root: &newStore}

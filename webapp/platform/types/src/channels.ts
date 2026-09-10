@@ -94,6 +94,10 @@ export type Channel = {
     autotranslation?: boolean;
     discoverable?: boolean;
     disable_join_leave_messages?: boolean;
+
+    // Create-only: attribute values to store with the channel. Sent so the server
+    // can refuse a channel that would not satisfy its own required attributes.
+    property_values?: Array<{field_id: string; value: unknown}>;
 };
 
 export type ServerChannel = Channel & {

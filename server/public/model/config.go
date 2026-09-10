@@ -2879,10 +2879,9 @@ func (s *ComplianceSettings) SetDefaults() {
 }
 
 type LocalizationSettings struct {
-	DefaultServerLocale       *string `access:"site_localization"`
-	DefaultClientLocale       *string `access:"site_localization"`
-	AvailableLocales          *string `access:"site_localization"`
-	EnableExperimentalLocales *bool   `access:"site_localization"`
+	DefaultServerLocale *string `access:"site_localization"`
+	DefaultClientLocale *string `access:"site_localization"`
+	AvailableLocales    *string `access:"site_localization"`
 }
 
 func (s *LocalizationSettings) SetDefaults() {
@@ -2896,10 +2895,6 @@ func (s *LocalizationSettings) SetDefaults() {
 
 	if s.AvailableLocales == nil {
 		s.AvailableLocales = new("")
-	}
-
-	if s.EnableExperimentalLocales == nil {
-		s.EnableExperimentalLocales = new(false)
 	}
 }
 
@@ -4212,6 +4207,7 @@ type Config struct {
 	ConnectedWorkspacesSettings ConnectedWorkspacesSettings
 	AccessControlSettings       AccessControlSettings
 	ContentFlaggingSettings     ContentFlaggingSettings
+	DeliveryTrackingSettings    DeliveryTrackingSettings
 	AutoTranslationSettings     AutoTranslationSettings
 	AIRecapSettings             AIRecapSettings
 }
@@ -4334,6 +4330,7 @@ func (o *Config) SetDefaults() {
 	o.ConnectedWorkspacesSettings.SetDefaults(isUpdate, o.ExperimentalSettings)
 	o.AccessControlSettings.SetDefaults()
 	o.ContentFlaggingSettings.SetDefaults()
+	o.DeliveryTrackingSettings.SetDefaults()
 	o.AIRecapSettings.SetDefaults()
 }
 
@@ -4492,6 +4489,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if appErr := o.ContentFlaggingSettings.IsValid(); appErr != nil {
+		return appErr
+	}
+
+	if appErr := o.DeliveryTrackingSettings.IsValid(); appErr != nil {
 		return appErr
 	}
 

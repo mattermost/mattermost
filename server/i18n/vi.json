@@ -144,10 +144,6 @@
     "translation": "Token không hợp lệ."
   },
   {
-    "id": "api.team.import_team.parse.app_error",
-    "translation": "Không thể phân tích form với định dạng multipart"
-  },
-  {
     "id": "api.templates.email_info2",
     "translation": "Những lời chúc tốt đẹp nhất,"
   },
@@ -174,10 +170,6 @@
   {
     "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
     "translation": "Bạn không thể đổi tên kênh tin nhắn trực tiếp."
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "Tài khoản Slack đã được gộp với tài khoản hệ thống tương ứng với email {{.Email}} và tên tài khoản {{.Username}}.\n"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
@@ -240,10 +232,6 @@
   {
     "id": "model.command.is_valid.update_at.app_error",
     "translation": "Trường Updated_at phải là thời gian hợp lệ"
-  },
-  {
-    "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Phần mềm tra cứu mục lục thất bại trong việc phân tích thời gian bắt đầu"
   },
   {
     "id": "api.web_socket_router.bad_seq.app_error",
@@ -458,10 +446,6 @@
     "translation": "Đăng nhập thất bại vì địa chỉ email chưa được xác minh"
   },
   {
-    "id": "model.config.is_valid.encrypt_sql.app_error",
-    "translation": "Khóa mã hóa không hợp lệ cho các cài đặt SQL. Phải từ 32 ký tự trở lên."
-  },
-  {
     "id": "api.team.set_team_icon.too_large.app_error",
     "translation": "Không thể tải hình ảnh biểu tượng lên. File quá lớn."
   },
@@ -602,10 +586,6 @@
     "translation": "Bạn không thể phản ứng trong một kênh lưu trữ."
   },
   {
-    "id": "oauth.gitlab.tos.error",
-    "translation": "Điều khoản dịch vụ của GitLab đã được cập nhật. Vui lòng truy cập gitlab.com để chấp nhận chúng và sau đó thử đăng nhập lại vào Matter Extreme."
-  },
-  {
     "id": "ent.ldap_groups.no_rows",
     "translation": "không tìm thấy nhóm nào phù hợp với uid"
   },
@@ -660,10 +640,6 @@
   {
     "id": "api.command_channel_rename.desc",
     "translation": "Đổi tên kênh"
-  },
-  {
-    "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Không thể lấy chỉ mục Elaticsearch"
   },
   {
     "id": "api.bot.teams_channels.add_message_mobile",
@@ -754,10 +730,6 @@
     "translation": "Không thể đăng thông báo cập nhật displayname"
   },
   {
-    "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Tài khoản Slack đã được gộp với tài khoản hệ thống tướng ứng với email {{.Email}} và tên tài khoản {{.Username}}, nhưng không thể thêm người dùng này vào nhóm của họ.\n"
-  },
-  {
     "id": "app.import.validate_user_import_data.notify_props_desktop_sound_invalid.error",
     "translation": "Desktop Sound Notify Prop không hợp lệ."
   },
@@ -816,16 +788,8 @@
     "translation": "Hãy gửi email cho chúng tôi khi có bất kỳ câu hỏi nào: "
   },
   {
-    "id": "api.slackimport.slack_add_users.unable_import",
-    "translation": "Không thể lưu nhập tài khoản Slack: {{.Username}}.\n"
-  },
-  {
     "id": "app.import.validate_channel_import_data.name_missing.error",
     "translation": "Thiếu thuộc tính kênh yêu cầu: tên"
-  },
-  {
-    "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "Tìm kiếm Elaticsearch bị vô hiệu hóa trên máy chủ này"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
@@ -912,24 +876,12 @@
     "translation": "Không thể xóa tùy chọn người dùng."
   },
   {
-    "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Không thể tạo mẫu Elaticsearch cho bài viết"
-  },
-  {
     "id": "app.import.validate_post_import_data.user_missing.error",
     "translation": "Thiếu thuộc tính bài đăng yêu cầu: Người dùng."
   },
   {
-    "id": "api.slackimport.slack_import.notes",
-    "translation": "\nGhi chú:\n"
-  },
-  {
     "id": "model.bot.is_valid.creator_id.app_error",
     "translation": "Id người tạo không hợp lệ"
-  },
-  {
-    "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Quyền kênh không phù hợp"
   },
   {
     "id": "model.guest.is_valid.channel.app_error",
@@ -1006,10 +958,6 @@
   {
     "id": "app.role.check_roles_exist.role_not_found",
     "translation": "Vai trò được cung cấp không tồn tại"
-  },
-  {
-    "id": "app.notification.subject.notification.full",
-    "translation": "[{{.SiteName}}] Có thông báo lúc {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",
@@ -1098,10 +1046,6 @@
   {
     "id": "app.import.validate_scheme_import_data.null_scope.error",
     "translation": "Phạm vi kế hoạch là cần thiết."
-  },
-  {
-    "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "{{.Username}} không phải là thành viên của team này."
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
@@ -1392,10 +1336,6 @@
     "translation": "Không thể thêm người dùng vào kiểu kênh này"
   },
   {
-    "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\nĐã thêm kênh:\n"
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Xin lỗi, chúng tôi không thể tìm thấy trang."
   },
@@ -1444,16 +1384,8 @@
     "translation": "Không thể cập nhật kênh"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.unable_import",
-    "translation": "Không thể lưu nhập tài khoản người dùng {{.Username}} dạng Tích hợp/Slack Bot.\n"
-  },
-  {
     "id": "api.templates.deactivate_subject",
     "translation": "[{{.SiteName}}] Tài khoản của bạn tại {{.ServerURL}} đã bị hủy kích hoạt"
-  },
-  {
-    "id": "api.slackimport.slack_import.open.app_error",
-    "translation": "Không thể mở tập tin: {{.Filename}}.\n"
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_channel_trigger_invalid.error",
@@ -1474,10 +1406,6 @@
   {
     "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
     "translation": "Bot đăng nhập bị cấm"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.import_failed",
-    "translation": "Không thể lưu nhập kênh Slack {{.DisplayName}}.\n"
   },
   {
     "id": "api.channel.add_member.added",
@@ -1546,10 +1474,6 @@
   {
     "id": "October",
     "translation": "Tháng Mười"
-  },
-  {
-    "id": "api.command_invite.missing_user.app_error",
-    "translation": "Chúng tôi không thể tìm thấy người dùng. Họ có thể đã bị vô hiệu hóa bởi Quản trị viên hệ thống."
   },
   {
     "id": "api.user.upload_profile_user.open.app_error",
@@ -1808,10 +1732,6 @@
     "translation": "Tên hiển thị không hợp lệ."
   },
   {
-    "id": "api.slackimport.slack_import.note3",
-    "translation": "-Lỗi bổ sung có thể được tìm thấy trong nhật ký máy chủ.\n"
-  },
-  {
     "id": "model.user.is_valid.auth_data_pwd.app_error",
     "translation": "Người dùng không hợp lệ, mật khẩu và dữ liệu xác thực đều không thể được đặt"
   },
@@ -1888,10 +1808,6 @@
     "translation": "Bạn đã cập nhật phương thức đăng nhập của mình trên {{.SiteName}} thành {{.Method}}."
   },
   {
-    "id": "api.team.import_team.integer.app_error",
-    "translation": "Kích thước tệp không phải là số nguyên"
-  },
-  {
     "id": "app.plugin.delete_public_key.delete.app_error",
     "translation": "Một lỗi đã xảy ra trong quá trình xóa chứng chỉ."
   },
@@ -1942,10 +1858,6 @@
   {
     "id": "model.file_info.is_valid.user_id.app_error",
     "translation": "Giá trị không hợp lệ cho user_id."
-  },
-  {
-    "id": "api.templates.invite_body.title",
-    "translation": "Bạn đã được mời"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
@@ -2174,20 +2086,12 @@
     "translation": "Tình trạng công việc không hợp lệ"
   },
   {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "RemoteImageProxyOptions không hợp lệ cho atmos / camo. Phải được đặt thành khóa chia sẻ của bạn."
-  },
-  {
     "id": "model.channel.is_valid.creator_id.app_error",
     "translation": "Id người tạo không hợp lệ"
   },
   {
     "id": "model.post.is_valid.type.app_error",
     "translation": "Type không hợp lệ"
-  },
-  {
-    "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Cài đặt Elasticsearch IndexingEnabled phải được bật lên khi Elastic Search SearchEnabled được bật."
   },
   {
     "id": "app.import.validate_team_import_data.display_name_missing.error",
@@ -2208,10 +2112,6 @@
   {
     "id": "api.user.create_user.signup_link_expired.app_error",
     "translation": "Liên kết đăng ký đã hết hạn"
-  },
-  {
-    "id": "web.incoming_webhook.user.app_error",
-    "translation": "Không thể tìm thấy người dùng"
   },
   {
     "id": "api.user.login.blank_pwd.app_error",
@@ -2238,10 +2138,6 @@
     "translation": "Thiếu thuộc tính bài đăng trực tiếp yêu cầu: created_at"
   },
   {
-    "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "Tài khoản người dùng {{.Username}} không có địa chỉ email trong dữ liệu trích xuất từ Slack. Đã sử dụng {{.Email}} như là dữ liệu thay thế. Người dùng nên cập nhật tài khoản của họ ngay khi đăng nhập hệ thống.\n"
-  },
-  {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error",
     "translation": "MarkUnread NotifyProps không hợp lệ cho tư cách thành viên kênh của người dùng."
   },
@@ -2252,10 +2148,6 @@
   {
     "id": "api.server.start_server.starting.critical",
     "translation": "Lỗi khởi động máy chủ, err:%v"
-  },
-  {
-    "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "Webhook này không được phép đăng lên kênh được yêu cầu"
   },
   {
     "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
@@ -2306,10 +2198,6 @@
     "translation": "Thêm ¯\\_(ツ)_/¯ vào tin nhắn của bạn"
   },
   {
-    "id": "api.slackimport.slack_import.zip.app_error",
-    "translation": "Không thể mở Slack xuất tệp zip.\n"
-  },
-  {
     "id": "app.plugin.remove_bundle.app_error",
     "translation": "Không thể xóa gói plugin khỏi tệp lưu trữ."
   },
@@ -2356,10 +2244,6 @@
   {
     "id": "model.preference.is_valid.name.app_error",
     "translation": "Tên không hợp lệ"
-  },
-  {
-    "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Thiết lập Client của phần mềm tra cứu không thành công"
   },
   {
     "id": "app.channel.create_channel.internal_error",
@@ -2490,10 +2374,6 @@
     "translation": "Vai trò được cung cấp được quản lý bởi một Scheme và do đó không thể được áp dụng trực tiếp cho một Team Member"
   },
   {
-    "id": "api.license.client.old_format.app_error",
-    "translation": "Định dạng mới cho cấu hình máy khách chưa được hỗ trợ. Vui lòng xác định format=old trong chuỗi truy vấn."
-  },
-  {
     "id": "app.import.import_line.null_scheme.error",
     "translation": "Dòng dữ liệu nhập có loại \"kế hoạch\" nhưng đối tượng kế hoạch không hợp lệ"
   },
@@ -2564,10 +2444,6 @@
   {
     "id": "api.oauth.get_access_token.credentials.app_error",
     "translation": "invalid_client: thông tin khách hàng không hợp lệ"
-  },
-  {
-    "id": "model.incoming_hook.id.app_error",
-    "translation": "Id không hợp lệ."
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -2714,10 +2590,6 @@
     "translation": "Giấy phép của bạn không hỗ trợ tính năng kiểm duyệt nội dung"
   },
   {
-    "id": "api.team.import_team.array.app_error",
-    "translation": "Mảng rỗng ứng với 'file' trong request"
-  },
-  {
     "id": "api.license.add_license.array.app_error",
     "translation": "Mảng 'giấy phép' trống trong yêu cầu"
   },
@@ -2778,16 +2650,8 @@
     "translation": "Tên hiển thị kế hoạch không hợp lệ."
   },
   {
-    "id": "api.slackimport.slack_import.note2",
-    "translation": "- Tin nhắn bot trùng hiện không được hỗ trợ.\n"
-  },
-  {
     "id": "web.error.unsupported_browser.learn_more",
     "translation": "Tìm hiểu thêm về các trình duyệt được hỗ trợ."
-  },
-  {
-    "id": "api.team.import_team.no_import_from.app_error",
-    "translation": "Yêu cầu không đúng: trường importFrom không có."
   },
   {
     "id": "model.preference.is_valid.category.app_error",
@@ -2942,10 +2806,6 @@
     "translation": "Tệp tin vượt quá kích thước tối đa có thể không được tải lên: {{.Filename}}"
   },
   {
-    "id": "api.templates.verify_body.title",
-    "translation": "Bạn đã tham gia {{.ServerURL}}"
-  },
-  {
     "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
     "translation": "Thiếu nút Trình mô tả SSO của nhà cung cấp danh tính trong XML."
   },
@@ -2968,10 +2828,6 @@
   {
     "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
     "translation": "Thiếu thuộc tính Reaction yêu cầu: EmojiName."
-  },
-  {
-    "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "Tìm kiếm Elaticsearch bị vô hiệu hóa trên máy chủ này"
   },
   {
     "id": "api.user.reset_password.invalid_link.app_error",
@@ -3178,10 +3034,6 @@
     "translation": "Tên file không hợp lệ"
   },
   {
-    "id": "api.slackimport.slack_import.note1",
-    "translation": "Một số tin nhắn có thể chưa được nhập vì chúng không được nhà nhập khẩu này hỗ trợ.\n"
-  },
-  {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
     "translation": "Không thể đọc phiên bản của tệp nhập dữ liệu."
   },
@@ -3198,10 +3050,6 @@
     "translation": "Tên nhóm quá dài."
   },
   {
-    "id": "api.slackimport.slack_add_users.created",
-    "translation": "\nNgười dùng đã tạo:\n"
-  },
-  {
     "id": "model.config.is_valid.saml_idp_url.app_error",
     "translation": "URL SAML SSO phải là một URL hợp lệ và bắt đầu bằng http:// hoặc https://."
   },
@@ -3212,10 +3060,6 @@
   {
     "id": "api.team.set_team_icon.write_file.app_error",
     "translation": "Không thể lưu biểu tượng nhóm"
-  },
-  {
-    "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Phần mềm tra cứu tổng hợp thất bại do việc tạo mục lục không thành công"
   },
   {
     "id": "model.utils.decode_json.app_error",
@@ -3243,7 +3087,7 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "@{{.Username}} và @{{.LastUsername}} không nhận được thông báo vì họ không ở trong kênh giao tiếp."
+    "translation": "@{{.Usernames}} và @{{.LastUsername}} không nhận được thông báo vì họ không ở trong kênh giao tiếp."
   },
   {
     "id": "api.command_echo.high_volume.app_error",
@@ -3314,10 +3158,6 @@
     "translation": "Tùy chỉnh về vụ năng bị vô hiệu hóa"
   },
   {
-    "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elaticsearch bị vô hiệu hóa."
-  },
-  {
     "id": "app.system_install_date.parse_int.app_error",
     "translation": "Không thể phân tích ngày cài đặt"
   },
@@ -3343,7 +3183,7 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
-    "translation": "@{{.Usernames}} không nhận được thông báo bởi vì họ không nằm trong kênh giao tiếp. Họ không thể được thêm vào kênh vì họ không phải là thành viên của các nhóm được liên kết. Để thêm họ vào kênh này, họ phải được thêm vào các nhóm được liên kết."
+    "translation": "@{{.Username}} không nhận được thông báo bởi vì họ không nằm trong kênh giao tiếp. Họ không thể được thêm vào kênh vì họ không phải là thành viên của các nhóm được liên kết. Để thêm họ vào kênh này, họ phải được thêm vào các nhóm được liên kết."
   },
   {
     "id": "app.import.validate_scheme_import_data.description_invalid.error",
@@ -3374,10 +3214,6 @@
     "translation": "File không có hình ảnh xem trước"
   },
   {
-    "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch không được bật."
-  },
-  {
     "id": "web.error.unsupported_browser.system_browser_or",
     "translation": "hoặc"
   },
@@ -3406,10 +3242,6 @@
     "translation": "Bạn đã nhận được một tin nhắn mới"
   },
   {
-    "id": "api.slackimport.slack_import.log",
-    "translation": "Nhật ký nhập Mattermost Slack\n"
-  },
-  {
     "id": "ent.account_migration.get_all_failed",
     "translation": "Không thể nhận thông tin người dùng."
   },
@@ -3428,10 +3260,6 @@
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
     "translation": "Tin nhắn được xuất từ GlobalRelaySettings.CustomerType phải được đặt từ 'A9' hoặc 'A10'"
-  },
-  {
-    "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Phần mềm tra cứu mục lục thất bại trong việc phân tích thời gian kết thúc"
   },
   {
     "id": "model.bot.is_valid.username.app_error",
@@ -3554,10 +3382,6 @@
     "translation": "Cần sử dụng dịch vụ createDirectChannel API để tạo kênh nhắn tin trực tiếp."
   },
   {
-    "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Cài đặt Elasticsearch IndexingEnabled phải được bật lên khi Elastic Search AutocompleteEnabled được bật."
-  },
-  {
     "id": "api.command_channel_remove.channel.app_error",
     "translation": "Lỗi khi truy xuất kênh hiện tại."
   },
@@ -3572,10 +3396,6 @@
   {
     "id": "api.user.login_by_oauth.parse.app_error",
     "translation": "Không thể tạo dữ liệu xác thực người dùng từ {{.Service}}"
-  },
-  {
-    "id": "web.command_webhook.parse.app_error",
-    "translation": "Không thể phân tích dữ liệu đến"
   },
   {
     "id": "api.command_join.hint",
@@ -3680,10 +3500,6 @@
   {
     "id": "app.plugin.install_id_failed_remove.app_error",
     "translation": "Không thể cài đặt plugin. Một plugin có cùng ID đã được cài đặt và không thể xóa được."
-  },
-  {
-    "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "Không thể xóa chỉ mục Elaticsearch"
   },
   {
     "id": "api.command_remove.hint",
@@ -3874,10 +3690,6 @@
     "translation": "Tên người dùng của bạn trong team {{.TeamDisplayName}} đã được đổi thành {{.NewUsername}}."
   },
   {
-    "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Phần mềm tra cứu tổng hợp thất bại trong việc lấy mục lục"
-  },
-  {
     "id": "model.group_syncable.syncable_id.app_error",
     "translation": "id đồng bộ hóa không hợp lệ cho đồng bộ nhóm"
   },
@@ -4022,16 +3834,8 @@
     "translation": "Mô tả không hợp lệ."
   },
   {
-    "id": "api.team.import_team.unavailable.app_error",
-    "translation": "Yêu cầu không đúng: trường kích thước tập tin không có."
-  },
-  {
     "id": "app.submit_interactive_dialog.json_error",
     "translation": "Gặp phải lỗi mã hóa JSON cho hội thoại tương tác."
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.merge",
-    "translation": "Kênh Slack {{.DisplayName}} đã tồn tại như một kênh hoạt động trong hệ thống. Hai kênh này đã được gộp vào.\n"
   },
   {
     "id": "model.config.is_valid.webserver_security.app_error",
@@ -4106,20 +3910,12 @@
     "translation": "Mã thông báo không hợp lệ hoặc bị thiếu"
   },
   {
-    "id": "api.team.import_team.open.app_error",
-    "translation": "Không thể mở tập tin"
-  },
-  {
     "id": "api.context.server_busy.app_error",
     "translation": "Máy chủ bận, các dịch vụ không quan trọng tạm thời không khả dụng"
   },
   {
     "id": "model.outgoing_hook.is_valid.token.app_error",
     "translation": "Token không hợp lệ."
-  },
-  {
-    "id": "api.slackimport.slack_import.team_fail",
-    "translation": "Không thể đặt nhóm để nhập vào.\n"
   },
   {
     "id": "model.command_hook.create_at.app_error",
@@ -4242,10 +4038,6 @@
     "translation": "User id không hợp lệ"
   },
   {
-    "id": "api.license.add_license.unique_users.app_error",
-    "translation": "Giấy phép này chỉ hỗ trợ người dùng, khi hệ thống của bạn có người dùng duy nhất. Người dùng duy nhất được tính khác biệt theo địa chỉ email. Bạn có thể thấy tổng số người dùng trong Báo cáo Trang web -> Xem Thống kê."
-  },
-  {
     "id": "api.command_invite.success",
     "translation": "{{.User}} đã được thêm vào kênh {{.Channel}}."
   },
@@ -4292,10 +4084,6 @@
   {
     "id": "api.scheme.delete_scheme.license.error",
     "translation": "Giấy phép của bạn không hỗ trợ xóa các chương trình cấp phép"
-  },
-  {
-    "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Phần mềm tra cứu tổng hợp thất bại trong việc tạo mục lục"
   },
   {
     "id": "api.emoji.storage.app_error",
@@ -4428,14 +4216,6 @@
     "translation": "Mã thông báo trạng thái không hợp lệ"
   },
   {
-    "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "ID kích hoạt cho hộp thoại tương tác đã hết hạn. ID kích hoạt tồn tại tối đa {{.Seconds}} giây."
-  },
-  {
-    "id": "api.team.import_team.no_file.app_error",
-    "translation": "Không có tệp tin 'file' trong yêu cầu"
-  },
-  {
     "id": "ent.migration.migratetoldap.duplicate_field",
     "translation": "Không thể di chuyển người dùng AD / LDAP với trường được chỉ định. Phát hiện mục trùng lặp. Vui lòng xóa tất cả các bản sao và thử lại."
   },
@@ -4564,10 +4344,6 @@
     "translation": "Mời không hợp lệ vì đây không phải là một nhóm mở."
   },
   {
-    "id": "web.command_webhook.command.app_error",
-    "translation": "Không thể tìm thấy lệnh"
-  },
-  {
     "id": "api.command_mute.desc",
     "translation": "Tắt thông báo trên màn hình, email và thông báo đẩy cho kênh hiện tại hoặc [channel] được chỉ định."
   },
@@ -4602,10 +4378,6 @@
   {
     "id": "api.user.create_user.accepted_domain.app_error",
     "translation": "Email bạn cung cấp không thuộc về một miền được chấp nhận. Vui lòng liên hệ với quản trị viên của bạn hoặc đăng ký với một email khác."
-  },
-  {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
-    "translation": "RemoteImageProxyURL không hợp lệ cho atmos / camo. Phải được đặt thành khóa chia sẻ của bạn."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
@@ -4694,10 +4466,6 @@
     "translation": "Không hợp lệ hoặc thiếu {{.Name}} trong thân yêu cầu"
   },
   {
-    "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Phần mềm tra cứu tổng hợp thất bại trong việc xóa mục lục"
-  },
-  {
     "id": "api.emoji.create.parse.app_error",
     "translation": "Không thể tạo emoji. Không thể hiểu được yêu cầu."
   },
@@ -4724,10 +4492,6 @@
   {
     "id": "api.emoji.create.too_large.app_error",
     "translation": "Không thể tạo emoji. Hình ảnh phải có kích thước nhỏ hơn 1 MB."
-  },
-  {
-    "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Không thể tạo mẫu Elaticsearch cho các kênh"
   },
   {
     "id": "api.reaction.delete.archived_channel.app_error",
@@ -4796,10 +4560,6 @@
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "Kết nối mở tối đa không hợp lệ cho các cài đặt SQL. Phải là một số dương."
-  },
-  {
-    "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "Nâng cấp kết nối websocket thất bại"
   },
   {
     "id": "model.config.is_valid.max_channels.app_error",
@@ -4922,10 +4682,6 @@
     "translation": "Loại kênh không hợp lệ."
   },
   {
-    "id": "ent.elasticsearch.generic.disabled",
-    "translation": "Tìm kiếm Elaticsearch không được kích hoạt trên máy chủ này"
-  },
-  {
     "id": "api.command_leave.fail.app_error",
     "translation": "Đã xảy ra lỗi khi rời khỏi kênh."
   },
@@ -4950,10 +4706,6 @@
     "translation": "Không thể lấy về scheme"
   },
   {
-    "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-    "translation": "Không thể thêm tài khoản Slack {{.Username}} cho kênh.\n"
-  },
-  {
     "id": "api.emoji.get_image.decode.app_error",
     "translation": "Không thể giải mã tập tin hình ảnh cho emoji."
   },
@@ -4968,10 +4720,6 @@
   {
     "id": "api.command_me.name",
     "translation": "tôi"
-  },
-  {
-    "id": "app.notification.subject.group_message.full",
-    "translation": "[{{.SiteName}}] Tin nhắn mới từ nhóm lúc {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_mobile_invalid.error",
@@ -5000,10 +4748,6 @@
   {
     "id": "model.channel_member.is_valid.unread_level.app_error",
     "translation": "Cấp đánh dấu chưa đọc không hợp lệ."
-  },
-  {
-    "id": "api.user.authorize_oauth_user.unsupported.app_error",
-    "translation": "Nhà cung cấp dịch vụ OAuth không được hỗ trợ"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -5060,10 +4804,6 @@
   {
     "id": "api.user.reset_password.token_parse.error",
     "translation": "Không thể phân tích mã thông báo đặt lại mật khẩu"
-  },
-  {
-    "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Không thể tạo mẫu Elaticsearch cho người dùng"
   },
   {
     "id": "model.group_member.user_id.app_error",
@@ -5212,10 +4952,6 @@
   {
     "id": "model.incoming_hook.channel_id.app_error",
     "translation": "Id kênh không hợp lệ"
-  },
-  {
-    "id": "api.templates.welcome_body.title",
-    "translation": "Bạn đã tham gia {{.ServerURL}}"
   },
   {
     "id": "app.import.validate_emoji_import_data.image_missing.error",
@@ -5666,10 +5402,6 @@
     "translation": "Bạn cần có quyền `{{.Permission}}` để quản lý các kênh được chia sẻ."
   },
   {
-    "id": "api.command_share.check_channel_exist.error",
-    "translation": "Lỗi khi kiểm tra xem kênh chia sẻ có tồn tại không: {{.Error}}"
-  },
-  {
     "id": "api.command_share.remote_already_invited",
     "translation": "Kết nối an toàn đã được mời."
   },
@@ -5794,10 +5526,6 @@
     "translation": "Failed to send license up for renewal emails"
   },
   {
-    "id": "api.slackimport.slack_import.zip.file_too_large",
-    "translation": "{{.Filename}} trong kho lưu trữ zip quá lớn để xử lý nhập Slack\n"
-  },
-  {
     "id": "api.system.logs.invalidFilter",
     "translation": "Bộ lọc nhật ký không hợp lệ"
   },
@@ -5824,10 +5552,6 @@
   {
     "id": "api.team.add_team_member.invalid_body.app_error",
     "translation": "Không thể phân tích nội dung yêu cầu."
-  },
-  {
-    "id": "api.team.import_team.unknown_import_from.app_error",
-    "translation": "Nguồn nhập không xác định."
   },
   {
     "id": "api.team.invite_guests_to_channels.disabled.error",
@@ -5974,10 +5698,6 @@
     "translation": "[{{ .SiteName }}] {{ .SenderName }} đã mời bạn tham gia các kênh {{ .ChannelsLen }} trên Nhóm {{ .TeamDisplayName }}"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subject",
-    "translation": "Giấy phép của bạn đã đến kỳ gia hạn"
-  },
-  {
     "id": "api.templates.license_up_for_renewal_title",
     "translation": "Đăng ký Mattermost của bạn sắp được gia hạn"
   },
@@ -5988,10 +5708,6 @@
   {
     "id": "api.templates.questions_footer.title",
     "translation": "Bạn có thắc mắc?"
-  },
-  {
-    "id": "api.templates.remove_expired_license.subject",
-    "translation": "Giấy phép Mattermost Enterprise đã bị vô hiệu hóa."
   },
   {
     "id": "api.templates.reset_body.info",
@@ -6030,16 +5746,8 @@
     "translation": "Cám ơn vì đã tham gia "
   },
   {
-    "id": "api.templates.email_footer_v2",
-    "translation": "© 2022 Mattermost, Inc. 530 Đại lộ Lytton, Tầng hai, Palo Alto, CA, 94301"
-  },
-  {
     "id": "api.templates.invite_team_and_channels_body.title",
     "translation": "{{ .SenderName }} đã mời bạn tham gia các kênh {{ .ChannelsLen }} trong Nhóm {{ .TeamDisplayName }}"
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_subtitle",
-    "translation": "{{.UserName}}, đăng ký của bạn sẽ hết hạn sau {{.Days}} ngày. Chúng tôi hy vọng bạn đang trải nghiệm sự cộng tác nhóm linh hoạt và an toàn mà Mattermost mang lại. Hãy sớm gia hạn để đảm bảo nhóm của bạn có thể tiếp tục tận hưởng những lợi ích này."
   },
   {
     "id": "api.system.id_loaded.not_available.app_error",
@@ -6774,10 +6482,6 @@
     "translation": "Không thể truy xuất thực thể cũ nhất (người dùng, kênh hoặc bài đăng) từ cơ sở dữ liệu"
   },
   {
-    "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "Phiên bản Elaticsearch {{.Version}} cao hơn phiên bản được hỗ trợ tối đa của {{.MaxVersion}}"
-  },
-  {
     "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",
     "translation": "Không thể lấy hàng loạt tệp để lập chỉ mục."
   },
@@ -6792,14 +6496,6 @@
   {
     "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
     "translation": "Không thể giải mã kết quả tìm kiếm"
-  },
-  {
-    "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Không tải được phiên bản máy chủ Elaticsearch."
-  },
-  {
-    "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Không thể phân tích phiên bản máy chủ Elaticsearch."
   },
   {
     "id": "ent.id_loaded.license_disable.app_error",
@@ -6940,10 +6636,6 @@
   {
     "id": "model.config.is_valid.amazons3_timeout.app_error",
     "translation": "Giá trị thời gian chờ không hợp lệ {{.Value}}. Phải là một số dương."
-  },
-  {
-    "id": "ent.elasticsearch.search_files.disabled",
-    "translation": "Tìm kiếm tệp Elaticsearch bị vô hiệu hóa trên máy chủ này"
   },
   {
     "id": "api.error_set_first_admin_complete_setup",
@@ -7120,14 +6812,6 @@
   {
     "id": "app.channel.delete.app_error",
     "translation": "Không thể xóa kênh."
-  },
-  {
-    "id": "app.channel.get.existing.app_error",
-    "translation": "Không thể tìm thấy kênh hiện có."
-  },
-  {
-    "id": "app.channel.get.find.app_error",
-    "translation": "Chúng tôi đã gặp lỗi khi tìm kênh."
   },
   {
     "id": "app.channel.get_all.app_error",
@@ -7374,22 +7058,6 @@
     "translation": "Không thể cập nhật lần xem cuối cùng vào thời điểm đó."
   },
   {
-    "id": "app.eport.generate_presigned_url.driver.app_error",
-    "translation": "Trình điều khiển cửa hàng xuất của bạn không hỗ trợ tạo url chỉ định."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.featureflag.app_error",
-    "translation": "Tính năng này bị hạn chế bởi cờ tính năng."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.link.app_error",
-    "translation": "Không thể tạo url được chỉ định."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.notfound.app_error",
-    "translation": "Không tìm thấy tệp xuất."
-  },
-  {
     "id": "app.export.export_attachment.copy_file.error",
     "translation": "Không thể sao chép tệp trong khi xuất."
   },
@@ -7400,14 +7068,6 @@
   {
     "id": "app.emoji.get_list.internal_error",
     "translation": "Không thể lấy được biểu tượng cảm xúc."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.fileexist.app_error",
-    "translation": "Không thể kiểm tra xem tập tin có tồn tại hay không."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.config.app_error",
-    "translation": "Hành động này yêu cầu sử dụng một nơi lưu trữ export riêng biệt."
   },
   {
     "id": "app.insert_error",
@@ -7552,10 +7212,6 @@
   {
     "id": "app.preference.permanent_delete_by_user.app_error",
     "translation": "Chúng tôi đã gặp lỗi khi xóa tùy chọn."
-  },
-  {
-    "id": "app.reaction.bulk_get_for_post_ids.app_error",
-    "translation": "Không thể nhận được phản ứng cho bài viết."
   },
   {
     "id": "app.reaction.get_for_post.app_error",
@@ -7986,10 +7642,6 @@
     "translation": "Trường UserId không hợp lệ cho phiên."
   },
   {
-    "id": "api.upgrade_to_enterprise.invalid-user-and-permission.app_error",
-    "translation": "Matter Extreme không thể nâng cấp lên Phiên bản doanh nghiệp. Người dùng hệ thống Matter Extreme {{.MattermostUsername}} không có quyền ghi vào tệp nhị phân cần thiết. Quản trị viên hệ thống có thể cập nhật quyền của tệp bằng cách thực hiện lệnh sau trên máy chủ nơi Matter Extreme được cài đặt:"
-  },
-  {
     "id": "api.user.autocomplete_users.missing_team_id.app_error",
     "translation": "Cần có tham số id nhóm để tự động hoàn thành theo kênh."
   },
@@ -8252,10 +7904,6 @@
   {
     "id": "app.user.get_total_users_count.app_error",
     "translation": "Chúng tôi không thể đếm được số lượng người dùng."
-  },
-  {
-    "id": "ent.elasticsearch.create_client.client_cert_malformed",
-    "translation": "Giải mã chứng chỉ ứng dụng khách cho Elaticsearch không thành công"
   },
   {
     "id": "app.channel.get_channels.get.app_error",
@@ -8784,22 +8432,6 @@
   {
     "id": "ent.data_retention.run_failed.error",
     "translation": "Công việc lưu giữ dữ liệu không thành công."
-  },
-  {
-    "id": "ent.elasticsearch.create_client.ca_cert_missing",
-    "translation": "Không thể mở tệp CA cho Elaticsearch"
-  },
-  {
-    "id": "ent.elasticsearch.create_client.client_cert_missing",
-    "translation": "Không thể mở tệp chứng chỉ ứng dụng khách cho Elaticsearch"
-  },
-  {
-    "id": "ent.elasticsearch.create_client.client_key_missing",
-    "translation": "Không thể mở tệp khóa ứng dụng khách cho Elaticsearch"
-  },
-  {
-    "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": "Không thể tạo mẫu Elaticsearch cho các tệp"
   },
   {
     "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
