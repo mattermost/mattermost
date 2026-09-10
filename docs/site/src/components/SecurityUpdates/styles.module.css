@@ -45,6 +45,7 @@
 .filters {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
   gap: 0.75rem 1rem;
   padding: 1rem 1.15rem;
   margin-bottom: 1rem;
@@ -103,7 +104,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 0.75rem;
 }
 
@@ -113,6 +114,21 @@
   font-size: 0.82rem;
   font-weight: 400;
   color: var(--mm-text-secondary);
+}
+
+.fieldHint {
+  margin: 0.15rem 0 0;
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--mm-text-secondary);
+}
+
+.fieldHint code {
+  padding: 0.05rem 0.25rem;
+  border-radius: 3px;
+  background: var(--mm-bg-surface);
+  font-size: 0.72rem;
 }
 
 .filterError {

@@ -224,7 +224,7 @@ export default function SecurityUpdates() {
 
   const dateOrderError = useMemo(() => {
     if (filters.dateFrom && filters.dateTo && filters.dateFrom > filters.dateTo) {
-      return 'Released to must be on or after released from.';
+      return 'Fix released to must be on or after fix released from.';
     }
     return null;
   }, [filters.dateFrom, filters.dateTo]);
@@ -421,16 +421,23 @@ export default function SecurityUpdates() {
               <input
                 value={versionDraft}
                 onChange={(event) => setVersionDraft(event.target.value)}
-                placeholder="e.g. 10.11"
+                placeholder="e.g. 10.11.23"
                 autoComplete="off"
                 spellCheck={false}
                 aria-invalid={Boolean(affectedVersionError)}
-                aria-describedby={affectedVersionError ? filterErrorId : undefined}
+                aria-describedby={
+                  affectedVersionError
+                    ? `${filterErrorId} ${formId}-affected-hint`
+                    : `${formId}-affected-hint`
+                }
               />
+              <small id={`${formId}-affected-hint`} className={styles.fieldHint}>
+                Enter the version you&rsquo;re running to see affected advisories.
+              </small>
             </label>
 
             <label>
-              Released from
+              Fix released from
               <input
                 type="date"
                 value={filters.dateFrom}
@@ -441,7 +448,7 @@ export default function SecurityUpdates() {
             </label>
 
             <label>
-              Released to
+              Fix released to
               <input
                 type="date"
                 value={filters.dateTo}
@@ -462,10 +469,6 @@ export default function SecurityUpdates() {
             </label>
 
             <div className={styles.filterActions}>
-              <p className={styles.hint}>
-                Shows advisories whose affected range includes this version. Use 10.11 to match the
-                10.11 line, or 10.11.23 for that exact patch.
-              </p>
               <button
                 type="button"
                 className={styles.resetButton}
