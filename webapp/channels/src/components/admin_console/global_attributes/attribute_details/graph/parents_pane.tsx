@@ -8,7 +8,6 @@ import type {PropertyFieldOption} from '@mattermost/types/properties';
 import {buildSuggestions, enabledSuggestionNames} from './edge_candidates';
 import {EdgeList} from './edge_list';
 import {
-    addChildOption,
     addTopLevelOption,
     countDescendants,
     getChildren,
@@ -126,15 +125,16 @@ function AttributeGraphParentsPane({
         applyProposeResult(await proposeAddParent(options, childName, optionName, confirmGrant), childName, onChildAdded);
     }, [applyProposeResult, confirmGrant, onChildAdded, optionName, options]);
 
-    const handleCreateChild = useCallback((name: string) => {
+    const handleCreateChild = useCallback(async (name: string) => {
         if (!isNameUnique(options, name) || wouldExceedMaxOptions(options) || wouldExceedMaxEdges(options) || disabled || atMax) {
             return;
         }
-        onOptionsChange(addChildOption(options, name, optionName));
-        onChildAdded?.();
-        setEdgeAlert(null);
-        setQuery('');
-    }, [atMax, disabled, onChildAdded, onOptionsChange, optionName, options]);
+        applyProposeResult(
+            await proposeAddParent(addTopLevelOption(options, name), name, optionName, confirmGrant),
+            name,
+            onChildAdded,
+        );
+    }, [applyProposeResult, atMax, confirmGrant, disabled, onChildAdded, optionName, options]);
 
     const commitRename = useCallback(() => {
         if (!onRename) {
