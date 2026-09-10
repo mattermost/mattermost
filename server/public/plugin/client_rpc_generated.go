@@ -4916,6 +4916,36 @@ func (s *apiRPCServer) GetFile(args *Z_GetFileArgs, returns *Z_GetFileReturns) e
 	return nil
 }
 
+type Z_HasPermissionToFileActionArgs struct {
+	A string
+	B string
+	C string
+}
+
+type Z_HasPermissionToFileActionReturns struct {
+	A bool
+}
+
+func (g *apiRPCClient) HasPermissionToFileAction(sessionID, fileID, action string) bool {
+	_args := &Z_HasPermissionToFileActionArgs{sessionID, fileID, action}
+	_returns := &Z_HasPermissionToFileActionReturns{}
+	if err := g.client.Call("Plugin.HasPermissionToFileAction", _args, _returns); err != nil {
+		log.Printf("RPC call to HasPermissionToFileAction API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) HasPermissionToFileAction(args *Z_HasPermissionToFileActionArgs, returns *Z_HasPermissionToFileActionReturns) error {
+	if hook, ok := s.impl.(interface {
+		HasPermissionToFileAction(sessionID, fileID, action string) bool
+	}); ok {
+		returns.A = hook.HasPermissionToFileAction(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API HasPermissionToFileAction called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetFileLinkArgs struct {
 	A string
 }
