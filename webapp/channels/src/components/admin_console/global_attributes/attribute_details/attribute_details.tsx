@@ -298,9 +298,9 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const isPluginOwned = Boolean(sourcePluginId);
 
     // Which object type Save PATCHes back to. Set once from the loaded field
-    // (see load() below); create mode never changes it, since creating a
-    // non-template field from this page is out of scope (phase 3 handles the
-    // rest of that constraint).
+    // in load() below; create mode leaves it at the template type, since this
+    // page only edits existing fields and has no way to create a
+    // user/channel/post field directly.
     const [objectType, setObjectType] = useState<string>(GLOBAL_ATTRIBUTES_OBJECT_TYPE);
 
     // Substituted for the bare `disabled` prop everywhere else on this page --
@@ -444,8 +444,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
 
                 // Only a template has linked fields to fetch -- an unlinked
                 // user/channel/post field has none, so Applies-to stays empty
-                // and there is no Channels config to parse (see §3, phase 3
-                // fixes the Applies-to/external-source display for real).
+                // and there is no Channels config to parse for it.
                 let linkedByType: Partial<Record<ResourceObjectType, PropertyField>> = {};
                 if (field.object_type === GLOBAL_ATTRIBUTES_OBJECT_TYPE) {
                     const linkedFields = await fetchLinkedFieldsForTemplate(fieldId);
@@ -786,8 +785,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
 
         if (isEditMode && fieldId) {
             // An unlinked user/channel/post field owns its own row -- one PATCH
-            // to that object type, never the template create-plus-link path
-            // below (which is a template's own edit path from here on).
+            // to that object type, skipping the template create-plus-link path
+            // below entirely.
             if (objectType !== GLOBAL_ATTRIBUTES_OBJECT_TYPE) {
                 try {
                     await updateAttributeField(objectType, fieldId, {
