@@ -856,6 +856,22 @@ func (a *App) preCreateSSOUser(rctx request.CTX, data *imports.UserImportData, d
 	newUser.MakeNonNil()
 	newUser.SetDefaultNotifications()
 
+	// importUser only deactivates and tags users it creates itself, and this pre-pass
+	// makes it match an existing account instead — so the scoped import's
+	// pending-review policy has to be applied here or these users silently land
+	// active. DeleteAt must be set at creation time: SqlUserStore.Update restores the
+	// previous value on a non-trusted update, so the main pass cannot correct it
+	// afterwards. A DeleteAt supplied by the source is preserved rather than
+	// overwritten with the import time.
+	if deactivateMissingUsers {
+		newUser.SetProp(model.UserPropsKeyImportedInactive, "true")
+		if data.DeleteAt != nil && *data.DeleteAt > 0 {
+			newUser.DeleteAt = *data.DeleteAt
+		} else {
+			newUser.DeleteAt = model.GetMillis()
+		}
+	}
+
 	if _, err := a.ch.srv.userService.CreateUser(rctx, newUser, users.UserCreateOptions{FromImport: true}); err != nil {
 		return model.NewAppError("preCreateSSOUser", "app.user.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

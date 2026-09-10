@@ -669,15 +669,46 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 			case errors.Is(err, users.UserStoreIsEmptyError):
 				return model.NewAppError("importUser", "app.user.store_is_empty.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			case errors.As(err, &invErr):
-				// A uniqueness collision does not verify that the destination account
-				// belongs to the source user. Leave the user unresolved instead of
-				// remapping their content to an unrelated account.
+				// A shell couldn't be created because the email or username is already taken
+				// by a different account on the destination. During a scoped import this is
+				// not fatal (see stopOnError), so the collision field decides whether that
+				// existing account is a safe place to attribute this user's content.
 				if deactivateMissingUsers {
-					rctx.Logger().Warn(
-						"Scoped import could not create an inactive user shell; leaving the source user unresolved",
-						mlog.String("source_username", *data.Username),
-						mlog.String("conflict_field", invErr.Field),
-					)
+					switch invErr.Field {
+					case "username":
+						// The collision is on the username itself, so this maps the source
+						// username onto the destination account already bearing that name —
+						// the account the export's own post records reference. It keeps those
+						// posts from being dropped as "user not found" without redirecting
+						// them anywhere the export didn't already point. Usernames can still
+						// collide by coincidence across instances, so log every remap.
+						if existing, getErr := a.Srv().Store().User().GetByUsername(*data.Username); getErr == nil {
+							rctx.Logger().Warn(
+								"Scoped import: attributing source user's content to the destination account holding the same username — not a verified identity match, review if the two instances don't share username conventions",
+								mlog.String("source_username", *data.Username),
+								mlog.String("matched_dest_username", existing.Username),
+							)
+							if report != nil {
+								report.Remap.Add(*data.Username, existing.Username)
+							}
+						}
+					case "email":
+						// Deliberately NOT remapped. The matched account has a different
+						// username (a same-username match would have failed as
+						// username_exists), so remapping would route this user's content —
+						// DMs and private channels included — to an account the export never
+						// referenced, on the strength of a shared email alone. Nothing here
+						// can distinguish "same person, renamed" from "different person,
+						// recycled address". Leaving the content unresolved is visible in
+						// this log and recoverable by re-importing; misattributing it is
+						// neither. Resolve the collision on the destination first if the
+						// content has to be preserved.
+						rctx.Logger().Warn(
+							"Scoped import: source user's email already belongs to a differently-named destination account; leaving the source user unresolved rather than attributing their content to it — resolve the collision and re-import if this content matters",
+							mlog.String("source_username", *data.Username),
+							mlog.String("email", *data.Email),
+						)
+					}
 				}
 				switch invErr.Field {
 				case "email":

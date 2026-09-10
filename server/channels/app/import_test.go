@@ -1260,6 +1260,75 @@ func TestPreCreateSSOUser(t *testing.T) {
 		assert.Equal(t, ad, *created.AuthData)
 	})
 
+	// A scoped import deactivates and tags every user it brings over, pending admin
+	// review. importUser only does that for users it creates itself, and this
+	// pre-pass makes it match an existing account instead — so the shell created here
+	// has to carry the policy or SSO users silently land active.
+	t.Run("scoped migration creates the shell deactivated and tagged", func(t *testing.T) {
+		username := model.NewUsername()
+		email := username + "@example.com"
+		ad := model.NewId()
+
+		data := &imports.UserImportData{
+			Username:    &username,
+			Email:       &email,
+			AuthService: &authService,
+			AuthData:    authData(ad),
+		}
+		appErr := th.App.preCreateSSOUser(th.Context, data, true)
+		require.Nil(t, appErr)
+
+		created, err := th.App.Srv().Store().User().GetByUsername(username)
+		require.NoError(t, err)
+		assert.NotZero(t, created.DeleteAt, "scoped migration must not leave an SSO shell active")
+		tag, ok := created.GetProp(model.UserPropsKeyImportedInactive)
+		require.True(t, ok, "shell must be tagged so admins can find it for review")
+		assert.Equal(t, "true", tag)
+	})
+
+	t.Run("scoped migration preserves a source DeleteAt instead of stamping import time", func(t *testing.T) {
+		username := model.NewUsername()
+		email := username + "@example.com"
+		ad := model.NewId()
+		const millisPerDay = int64(24 * 60 * 60 * 1000)
+		historical := model.GetMillis() - 400*millisPerDay
+
+		data := &imports.UserImportData{
+			Username:    &username,
+			Email:       &email,
+			AuthService: &authService,
+			AuthData:    authData(ad),
+			DeleteAt:    &historical,
+		}
+		appErr := th.App.preCreateSSOUser(th.Context, data, true)
+		require.Nil(t, appErr)
+
+		created, err := th.App.Srv().Store().User().GetByUsername(username)
+		require.NoError(t, err)
+		assert.Equal(t, historical, created.DeleteAt, "a user deactivated at the source keeps that timestamp")
+	})
+
+	t.Run("regular import leaves the shell active", func(t *testing.T) {
+		username := model.NewUsername()
+		email := username + "@example.com"
+		ad := model.NewId()
+
+		data := &imports.UserImportData{
+			Username:    &username,
+			Email:       &email,
+			AuthService: &authService,
+			AuthData:    authData(ad),
+		}
+		appErr := th.App.preCreateSSOUser(th.Context, data, false)
+		require.Nil(t, appErr)
+
+		created, err := th.App.Srv().Store().User().GetByUsername(username)
+		require.NoError(t, err)
+		assert.Zero(t, created.DeleteAt, "a non-scoped import must not deactivate anyone")
+		_, ok := created.GetProp(model.UserPropsKeyImportedInactive)
+		assert.False(t, ok, "a non-scoped import must not tag anyone as imported-inactive")
+	})
+
 	t.Run("returns error and does not panic on nil Username", func(t *testing.T) {
 		email := model.NewId() + "@example.com"
 		ad := model.NewId()

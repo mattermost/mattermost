@@ -2372,11 +2372,14 @@ func TestImportUsernamRemap(t *testing.T) {
 		assert.Equal(t, renamedUsername, remapped)
 	})
 
-	t.Run("remap is not populated on email conflict during scoped import shell creation", func(t *testing.T) {
+	t.Run("email conflict during scoped import shell creation is deliberately not remapped", func(t *testing.T) {
 		// SSO mismatch path (auth_data not found on dest) skips the username lookup entirely
-		// and goes straight to shell creation. If a different, unrelated dest account already
-		// owns the source email, CreateUser fails with email_exists. An email collision alone
-		// does not verify identity, so the source user must remain unresolved.
+		// and goes straight to shell creation. If a differently-named dest account already
+		// owns the source email, CreateUser fails with email_exists. Remapping to it would
+		// route this user's content — DMs included — to an account the export never
+		// referenced, on a shared email alone, and nothing can tell "same person, renamed"
+		// from "different person, recycled address". So the user is left unresolved: losing
+		// the content is logged and recoverable, misattributing it is neither.
 		existing := th.CreateUser(t)
 
 		authData := model.NewId() // no dest user has this auth_data
@@ -2397,10 +2400,10 @@ func TestImportUsernamRemap(t *testing.T) {
 		assert.Error(t, err, "no shell should exist for the source username")
 
 		_, ok := report.Remap.Lookup(srcUsername)
-		assert.False(t, ok, "email collision must not create an unverified remap")
+		assert.False(t, ok, "a shared email must not redirect content to a differently-named account")
 	})
 
-	t.Run("remap is not populated on username conflict during scoped import shell creation", func(t *testing.T) {
+	t.Run("remap is populated on username conflict during scoped import shell creation", func(t *testing.T) {
 		// Same SSO mismatch path, but the conflict is on username instead of email: a
 		// different, unrelated dest account already owns the literal source username.
 		existing := th.CreateUser(t)
@@ -2417,8 +2420,9 @@ func TestImportUsernamRemap(t *testing.T) {
 		require.NotNil(t, appErr, "shell creation should fail on the username conflict")
 		assert.Equal(t, "app.user.save.username_exists.app_error", appErr.Id)
 
-		_, ok := report.Remap.Lookup(existing.Username)
-		assert.False(t, ok, "username collision must not create an unverified remap")
+		remapped, ok := report.Remap.Lookup(existing.Username)
+		require.True(t, ok, "remap should record the source username → existing account mapping")
+		assert.Equal(t, existing.Username, remapped)
 	})
 }
 
