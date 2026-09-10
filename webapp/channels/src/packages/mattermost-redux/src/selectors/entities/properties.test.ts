@@ -505,18 +505,30 @@ describe('getChannelAttributeFields', () => {
         expect(getChannelAttributeFields(state)).toEqual([]);
     });
 
-    test('orders by sort_order, falling back to create_at', () => {
+    test('orders by sort_order, unranked fields last', () => {
         const state = makeAttrState([
             attrField({id: 'third', attrs: {sort_order: 30}}),
             attrField({id: 'first', attrs: {sort_order: 10}}),
-            attrField({id: 'unranked_older', create_at: 5}),
+            attrField({id: 'unranked_b', create_at: 5}),
             attrField({id: 'second', attrs: {sort_order: 20}}),
-            attrField({id: 'unranked_newer', create_at: 9}),
+            attrField({id: 'unranked_a', create_at: 9}),
         ]);
 
         expect(getChannelAttributeFields(state).map((f) => f.id)).toEqual([
-            'first', 'second', 'third', 'unranked_older', 'unranked_newer',
+            'first', 'second', 'third', 'unranked_a', 'unranked_b',
         ]);
+    });
+
+    // Order is what a viewer is told to read, so it has to be a property of the
+    // configuration alone. Breaking ties on create_at would let two servers
+    // restored from one export disagree.
+    test('breaks sort_order ties on field name, not creation time', () => {
+        const state = makeAttrState([
+            attrField({id: 'zulu', name: 'zulu', attrs: {sort_order: 10}, create_at: 1}),
+            attrField({id: 'alpha', name: 'alpha', attrs: {sort_order: 10}, create_at: 9}),
+        ]);
+
+        expect(getChannelAttributeFields(state).map((f) => f.id)).toEqual(['alpha', 'zulu']);
     });
 
     test('omits a deleted field, which must not be offered for assignment', () => {
@@ -590,18 +602,38 @@ describe('makeGetResolvedChannelAttributes', () => {
         const [resolved] = getResolvedChannelAttributes(state, CHANNEL_ID);
         expect(resolved.option).toBeUndefined();
         expect(resolved.displayValue).toBe('opt_deleted');
+        expect(resolved.unresolvedOptionIds).toEqual(['opt_deleted']);
     });
 
     test('multiselect falls back to the raw ID when an option no longer exists', () => {
         const state = makeAttrState([attrField({id: 'caveats', type: 'multiselect', attrs: {options}})], [attrValue('caveats', ['opt_a', 'opt_deleted'])]);
 
-        expect(getResolvedChannelAttributes(state, CHANNEL_ID)[0].displayValue).toBe('AURORA, opt_deleted');
+        const [resolved] = getResolvedChannelAttributes(state, CHANNEL_ID);
+        expect(resolved.displayValue).toBe('AURORA, opt_deleted');
+        expect(resolved.unresolvedOptionIds).toEqual(['opt_deleted']);
     });
 
-    test('text fields display their stored string directly', () => {
+    test('multiselect reports every stale id when none of the stored options resolve', () => {
+        const state = makeAttrState([attrField({id: 'caveats', type: 'multiselect', attrs: {options}})], [attrValue('caveats', ['opt_deleted_1', 'opt_deleted_2'])]);
+
+        const [resolved] = getResolvedChannelAttributes(state, CHANNEL_ID);
+        expect(resolved.unresolvedOptionIds).toEqual(['opt_deleted_1', 'opt_deleted_2']);
+    });
+
+    test('rank falls back to the raw ID and reports it unresolved when an option no longer exists', () => {
+        const state = makeAttrState([attrField({id: 'priority', type: 'rank', attrs: {options}})], [attrValue('priority', 'opt_deleted')]);
+
+        const [resolved] = getResolvedChannelAttributes(state, CHANNEL_ID);
+        expect(resolved.displayValue).toBe('opt_deleted');
+        expect(resolved.unresolvedOptionIds).toEqual(['opt_deleted']);
+    });
+
+    test('text fields display their stored string directly and never report unresolvedOptionIds', () => {
         const state = makeAttrState([attrField({id: 'note', type: 'text'})], [attrValue('note', 'handle with care')]);
 
-        expect(getResolvedChannelAttributes(state, CHANNEL_ID)[0].displayValue).toBe('handle with care');
+        const [resolved] = getResolvedChannelAttributes(state, CHANNEL_ID);
+        expect(resolved.displayValue).toBe('handle with care');
+        expect(resolved.unresolvedOptionIds).toBeUndefined();
     });
 
     test('does not leak another channel value into this channel', () => {
