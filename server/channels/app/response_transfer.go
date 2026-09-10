@@ -36,7 +36,8 @@ func (rt *PluginResponseWriter) Header() http.Header {
 	return rt.headers
 }
 
-// markResponseReady safely closes the ResponseReady channel if not already closed
+// markResponseReady closes ResponseReady exactly once. It may be called concurrently
+// by the plugin handler and request-cancellation cleanup.
 func (rt *PluginResponseWriter) markResponseReady() {
 	rt.readyOnce.Do(func() { close(rt.ResponseReady) })
 }
@@ -109,29 +110,29 @@ func (rt *PluginResponseWriter) Close() error {
 // Context cancellation unblocks reads, while closing the body cancels any
 // remaining destination work.
 type pluginResponseBody struct {
-	ctx    context.Context
-	cancel context.CancelFunc
-	reader *io.PipeReader
-	stop   func() bool
+	ctx                 context.Context
+	cancel              context.CancelFunc
+	reader              *io.PipeReader
+	stopContextCallback func() bool
 }
 
 func newPluginResponseBody(ctx context.Context, cancel context.CancelFunc, reader *io.PipeReader) io.ReadCloser {
 	body := &pluginResponseBody{ctx: ctx, cancel: cancel, reader: reader}
-	body.stop = context.AfterFunc(ctx, func() {
-		_ = body.closeWithError(ctx.Err(), false)
+	body.stopContextCallback = context.AfterFunc(ctx, func() {
+		_ = body.closeFromContext(ctx.Err())
 	})
 	return body
 }
 
 func (b *pluginResponseBody) Read(p []byte) (int, error) {
 	if err := b.ctx.Err(); err != nil {
-		_ = b.closeWithError(err, false)
+		_ = b.closeFromContext(err)
 		return 0, err
 	}
 
 	n, err := b.reader.Read(p)
 	if ctxErr := b.ctx.Err(); ctxErr != nil {
-		_ = b.closeWithError(ctxErr, false)
+		_ = b.closeFromContext(ctxErr)
 		return 0, ctxErr
 	}
 	if err != nil {
@@ -141,13 +142,17 @@ func (b *pluginResponseBody) Read(p []byte) (int, error) {
 }
 
 func (b *pluginResponseBody) Close() error {
-	return b.closeWithError(nil, true)
+	if b.stopContextCallback != nil {
+		b.stopContextCallback()
+	}
+	return b.closeWithError(nil)
 }
 
-func (b *pluginResponseBody) closeWithError(err error, stopContext bool) error {
-	if stopContext && b.stop != nil {
-		b.stop()
-	}
+func (b *pluginResponseBody) closeFromContext(err error) error {
+	return b.closeWithError(err)
+}
+
+func (b *pluginResponseBody) closeWithError(err error) error {
 	closeErr := b.reader.CloseWithError(err)
 	b.cancel()
 	return closeErr

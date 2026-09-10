@@ -59,12 +59,25 @@ func TestWatchRPCContextTransportErrorCancels(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	watchRPCContext(ctx, io.NopCloser(iotest.ErrReader(errors.New("transport error"))), cancel)
+	go watchRPCContext(ctx, io.NopCloser(iotest.ErrReader(errors.New("transport error"))), cancel)
 	select {
 	case <-ctx.Done():
 		require.ErrorIs(t, ctx.Err(), context.Canceled)
 	case <-time.After(rpcTestTimeout):
 		require.FailNow(t, "transport error did not cancel context")
+	}
+}
+
+func TestWatchRPCContextUnknownReasonCancels(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	go watchRPCContext(ctx, io.NopCloser(bytes.NewReader([]byte{255})), cancel)
+	select {
+	case <-ctx.Done():
+		require.ErrorIs(t, ctx.Err(), context.Canceled)
+	case <-time.After(rpcTestTimeout):
+		require.FailNow(t, "unknown close reason did not cancel context")
 	}
 }
 

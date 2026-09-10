@@ -11,13 +11,16 @@ import (
 )
 
 // rpcRequestContext carries only deadline metadata. Explicit cancellation is signaled
-// separately over the context stream; context values are intentionally not propagated.
+// separately over the context stream. Values are not propagated because contexts cannot
+// enumerate them, and their keys and values may rely on process-local identity.
 type rpcRequestContext struct {
 	DeadlineUnixNano int64
 }
 
 type closeReason byte
 
+// Cancellation writes one closeReason byte before closing the stream.
+// Normal closure is represented by EOF; unknown reasons cancel the context.
 const (
 	rpcStreamClosed closeReason = iota
 	rpcStreamCanceled
@@ -35,7 +38,7 @@ func openRPCRequestContext(muxBroker rpcMuxBroker, streamID uint32, requestConte
 	}
 
 	ctx, cancel := requestContext.Context()
-	watchRPCContext(ctx, connection, cancel)
+	go watchRPCContext(ctx, connection, cancel)
 	cleanup := func() {
 		cancel()
 		_ = connection.Close()
@@ -128,12 +131,12 @@ func (c *rpcStreamCloser) close(reason closeReason) error {
 // contextReadCloser closes the underlying stream when the context ends, unblocking an
 // active Read and ensuring it reports ctx.Err instead of a transport error.
 type contextReadCloser struct {
-	ctx       context.Context
-	reader    io.ReadCloser
-	closeOnce sync.Once
-	closeErr  error
-	stop      func() bool
-	onClose   func()
+	ctx                 context.Context
+	reader              io.ReadCloser
+	closeOnce           sync.Once
+	closeErr            error
+	stopContextCallback func() bool
+	onClose             func()
 }
 
 func newContextReadCloser(ctx context.Context, reader io.ReadCloser, onClose func()) io.ReadCloser {
@@ -144,8 +147,8 @@ func newContextReadCloser(ctx context.Context, reader io.ReadCloser, onClose fun
 	}
 
 	if ctx.Done() != nil {
-		r.stop = context.AfterFunc(ctx, func() {
-			_ = r.close(false)
+		r.stopContextCallback = context.AfterFunc(ctx, func() {
+			_ = r.closeFromContext()
 		})
 	}
 
@@ -170,14 +173,18 @@ func (r *contextReadCloser) Read(p []byte) (int, error) {
 }
 
 func (r *contextReadCloser) Close() error {
-	return r.close(true)
+	if r.stopContextCallback != nil {
+		r.stopContextCallback()
+	}
+	return r.close()
 }
 
-func (r *contextReadCloser) close(stopContext bool) error {
+func (r *contextReadCloser) closeFromContext() error {
+	return r.close()
+}
+
+func (r *contextReadCloser) close() error {
 	r.closeOnce.Do(func() {
-		if stopContext && r.stop != nil {
-			r.stop()
-		}
 		r.closeErr = r.reader.Close()
 		if r.onClose != nil {
 			r.onClose()
@@ -189,18 +196,28 @@ func (r *contextReadCloser) close(stopContext bool) error {
 // watchRPCContext cancels immediately on EOF or explicit cancellation. For deadline
 // expiry, it lets the reconstructed deadline fire locally so ctx.Err is DeadlineExceeded.
 func watchRPCContext(ctx context.Context, stream io.ReadCloser, cancel context.CancelFunc) {
-	go func() {
-		var buffer [1]byte
-		n, _ := stream.Read(buffer[:])
-		if n == 1 && closeReason(buffer[0]) == rpcStreamDeadlineExceeded {
-			if _, ok := ctx.Deadline(); ok {
-				<-ctx.Done()
-			} else {
-				cancel()
-			}
+	defer func() { _ = stream.Close() }()
+
+	var buffer [1]byte
+	if _, err := io.ReadFull(stream, buffer[:]); err != nil {
+		cancel()
+		return
+	}
+
+	switch closeReason(buffer[0]) {
+	case rpcStreamDeadlineExceeded:
+		// The sender reports DeadlineExceeded for the deadline copied into ctx.
+		// Wait for that deadline to expire so ctx.Err() returns DeadlineExceeded
+		// instead of Canceled.
+		if _, ok := ctx.Deadline(); ok {
+			<-ctx.Done()
 		} else {
 			cancel()
 		}
-		_ = stream.Close()
-	}()
+	case rpcStreamCanceled, rpcStreamClosed:
+		cancel()
+	default:
+		// Unknown reasons cancel the context.
+		cancel()
+	}
 }

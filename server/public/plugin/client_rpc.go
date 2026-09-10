@@ -308,8 +308,10 @@ func (s *hooksRPCServer) Implemented(args struct{}, reply *[]string) error {
 	return encodableError(nil)
 }
 
-// ContextHTTP is advertised in both directions: args enable plugin-to-server API calls,
-// while returns enable server-to-plugin hooks. Older peers decode the missing field as false.
+// ContextHTTP advertises context-aware HTTP support during plugin activation.
+// The argument reports server support to the plugin, and the return value reports
+// plugin support to the server. This is internal RPC metadata and does not change
+// the public OnActivate() error result. Older peers treat the missing field as false.
 type Z_OnActivateArgs struct {
 	APIMuxId    uint32
 	DriverMuxId uint32
@@ -527,7 +529,6 @@ func (g *hooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Re
 		select {
 		case <-responseConnectionAccepted:
 			<-responseRPCDone
-		case <-responseRPCDone:
 		default:
 		}
 	}
