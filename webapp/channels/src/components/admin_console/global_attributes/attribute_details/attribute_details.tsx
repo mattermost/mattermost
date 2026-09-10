@@ -297,6 +297,12 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const [sourcePluginId, setSourcePluginId] = useState<string | undefined>(undefined);
     const isPluginOwned = Boolean(sourcePluginId);
 
+    // Which object type Save PATCHes back to. Set once from the loaded field
+    // (see load() below); create mode never changes it, since creating a
+    // non-template field from this page is out of scope (phase 3 handles the
+    // rest of that constraint).
+    const [objectType, setObjectType] = useState<string>(GLOBAL_ATTRIBUTES_OBJECT_TYPE);
+
     // Substituted for the bare `disabled` prop everywhere else on this page --
     // one boolean, not a second parallel disabled path. Keeps the pre-existing
     // non-sysadmin `disabled` prop (schema-wired via isDisabled: it.not
@@ -434,12 +440,20 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                     return;
                 }
 
-                const linkedFields = await fetchLinkedFieldsForTemplate(fieldId);
-                if (cancelled) {
-                    return;
-                }
+                setObjectType(field.object_type);
 
-                const linkedByType = linkedFieldsByResourceType(linkedFields);
+                // Only a template has linked fields to fetch -- an unlinked
+                // user/channel/post field has none, so Applies-to stays empty
+                // and there is no Channels config to parse (see §3, phase 3
+                // fixes the Applies-to/external-source display for real).
+                let linkedByType: Partial<Record<ResourceObjectType, PropertyField>> = {};
+                if (field.object_type === GLOBAL_ATTRIBUTES_OBJECT_TYPE) {
+                    const linkedFields = await fetchLinkedFieldsForTemplate(fieldId);
+                    if (cancelled) {
+                        return;
+                    }
+                    linkedByType = linkedFieldsByResourceType(linkedFields);
+                }
                 persistedLinkedFieldsRef.current = linkedByType;
                 originalNameRef.current = field.name;
                 const loadedFieldType = isAttributeFieldType(field.type) ? field.type : 'text';
@@ -771,6 +785,32 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         setFailedResourceTypes(null);
 
         if (isEditMode && fieldId) {
+            // An unlinked user/channel/post field owns its own row -- one PATCH
+            // to that object type, never the template create-plus-link path
+            // below (which is a template's own edit path from here on).
+            if (objectType !== GLOBAL_ATTRIBUTES_OBJECT_TYPE) {
+                try {
+                    await updateAttributeField(objectType, fieldId, {
+                        ...(nameUnchanged ? {} : {name: currentName}),
+                        type: fieldType,
+                        displayName,
+                        options,
+                        ldapAttr,
+                        samlAttr,
+                    });
+                } catch (error) {
+                    finalizeSave({
+                        success: false,
+                        errorKind: errorKindFromError(error),
+                        serverErrorMessage: (error as ClientError | undefined)?.message ?? null,
+                        failedResourceTypes: null,
+                    });
+                    return;
+                }
+                finalizeSave({success: true});
+                return;
+            }
+
             const persisted = persistedLinkedFieldsRef.current;
             const toDelete = (Object.keys(persisted) as ResourceObjectType[]).filter((type) => !appliesTo.includes(type));
             const toCreate = appliesTo.filter((type) => !persisted[type]);
@@ -937,7 +977,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         }
 
         finalizeSave(outcome);
-    }, [canSave, isEditMode, fieldId, nameUnchanged, displayName, currentName, fieldType, typeChanged, options, ldapAttr, samlAttr, appliesTo, channelResource, finalizeSave, confirmRemoveAppliesTo]);
+    }, [canSave, isEditMode, fieldId, objectType, nameUnchanged, displayName, currentName, fieldType, typeChanged, options, ldapAttr, samlAttr, appliesTo, channelResource, finalizeSave, confirmRemoveAppliesTo]);
 
     const handleChannelResourceChange = useCallback((next: ChannelResourceConfig) => {
         setChannelResource(next);
