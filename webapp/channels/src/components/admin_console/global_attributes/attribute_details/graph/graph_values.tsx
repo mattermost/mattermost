@@ -34,7 +34,7 @@ import {
     subtreeInsertAfterIndex,
 } from './occurrences';
 import type {ProposeParentResult} from './parent_ops';
-import {dropAlertFromProposeResult, type GraphDropAlert} from './use_graph_dnd';
+import {dropAlertFromProposeResult, type GraphDropAlert} from './use_graph_row_dnd';
 
 import './graph_values.scss';
 
