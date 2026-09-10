@@ -12,6 +12,14 @@
 
 import {expect, test, hasAutotranslationLicense} from '@mattermost/playwright-lib';
 
+async function resetAutoTranslationOff(adminClient: {patchConfig: (patch: any) => Promise<any>}) {
+    // Channel autotranslation specs enable this via updateConfig on the shared server.
+    // initSetup's patch no longer sends a full snapshot, so restore the default before UI asserts.
+    await adminClient.patchConfig({
+        AutoTranslationSettings: {Enable: false},
+    });
+}
+
 test.describe('System Console - Autotranslation (Localization)', () => {
     test(
         'without EA license, auto-translation shows feature discovery block',
@@ -53,6 +61,8 @@ test.describe('System Console - Autotranslation (Localization)', () => {
                 'Skipping test - server does not have Entry or Advanced license',
             );
 
+            await resetAutoTranslationOff(adminClient);
+
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await systemConsolePage.goto();
             await systemConsolePage.toBeVisible();
@@ -82,6 +92,8 @@ test.describe('System Console - Autotranslation (Localization)', () => {
                 'Skipping test - server does not have Entry or Advanced license',
             );
 
+            await resetAutoTranslationOff(adminClient);
+
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await systemConsolePage.goto();
             await systemConsolePage.toBeVisible();
@@ -109,6 +121,8 @@ test.describe('System Console - Autotranslation (Localization)', () => {
                 !hasAutotranslationLicense(license.SkuShortName),
                 'Skipping test - server does not have Entry or Advanced license',
             );
+
+            await resetAutoTranslationOff(adminClient);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await systemConsolePage.goto();
@@ -140,6 +154,8 @@ test.describe('System Console - Autotranslation (Localization)', () => {
                 !hasAutotranslationLicense(license.SkuShortName),
                 'Skipping test - server does not have Entry or Advanced license',
             );
+
+            await resetAutoTranslationOff(adminClient);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await systemConsolePage.goto();
@@ -180,6 +196,8 @@ test.describe('System Console - Autotranslation (Localization)', () => {
                 !hasAutotranslationLicense(license.SkuShortName),
                 'Skipping test - server does not have Entry or Advanced license',
             );
+
+            await resetAutoTranslationOff(adminClient);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await systemConsolePage.goto();

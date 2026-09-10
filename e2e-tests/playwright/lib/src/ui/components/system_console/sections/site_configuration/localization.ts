@@ -48,8 +48,8 @@ export default class Localization {
     async isToggleOn(): Promise<boolean> {
         const toggle = this.autoTranslationToggle;
         await toggle.waitFor({state: 'visible'});
-        const ariaChecked = await toggle.getAttribute('aria-checked');
-        return ariaChecked === 'true';
+        const ariaPressed = await toggle.getAttribute('aria-pressed');
+        return ariaPressed === 'true';
     }
 
     async turnOnAutoTranslation() {
