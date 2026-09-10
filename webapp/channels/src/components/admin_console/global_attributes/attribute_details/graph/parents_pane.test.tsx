@@ -8,10 +8,9 @@ import type {PropertyFieldOption} from '@mattermost/types/properties';
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import {GraphParentEdgeAlert} from './edge_alert';
+import {classifyParentCandidate} from './edge_candidates';
 import {addChildOption, addParentEdge, addTopLevelOption, removeParentEdge} from './graph_utils';
-import AttributeGraphParentsPane, {
-    classifyParentCandidate,
-} from './parents_pane';
+import AttributeGraphParentsPane from './parents_pane';
 
 const opt = (name: string, parents: string[] = []): PropertyFieldOption => ({id: '', name, parents});
 
