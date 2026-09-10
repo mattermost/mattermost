@@ -11,14 +11,13 @@ import {useDispatch, useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
 import type {ClientError} from '@mattermost/client';
-import {ChevronDownCircleOutlineIcon, ContentCopyIcon, DotsHorizontalIcon, FormatListBulletedIcon, MenuVariantIcon, OpenInNewIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SortAscendingIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {ChevronDownCircleOutlineIcon, ContentCopyIcon, DotsHorizontalIcon, EyeOutlineIcon, FormatListBulletedIcon, MenuVariantIcon, OpenInNewIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SortAscendingIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FieldType, PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import {valueRefersToOptions} from '@mattermost/types/properties';
 
 import PropertyTypes from 'mattermost-redux/action_types/properties';
-import {getPluginStatuses} from 'mattermost-redux/actions/admin';
 import {fetchPropertyFields} from 'mattermost-redux/actions/properties';
 import {getConfig as getAdminConfig} from 'mattermost-redux/selectors/entities/admin';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
@@ -33,7 +32,7 @@ import {
     CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
 } from 'components/admin_console/classification_markings/utils';
 import AlertBanner from 'components/alert_banner';
-import {useIsFieldOrphaned} from 'components/common/hooks/use_field_orphaned';
+import {useIsFieldOrphaned, usePluginInventoryLoaded} from 'components/common/hooks/use_field_orphaned';
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
 
@@ -42,6 +41,7 @@ import {LicenseSkus} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
+import {CLASSIFICATION_ATTRIBUTE_ROUTE} from './classification_attribute';
 import {attributeDetailsRoute, GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, GLOBAL_ATTRIBUTES_TARGET_TYPE} from './constants';
 import {useGlobalAttributeFieldDelete} from './global_attribute_delete_modal';
 import {deleteAttributeField} from './utils';
@@ -93,6 +93,17 @@ function useClassificationMarkingsReachable(): boolean {
         const license = getLicense(state);
         return it.minLicenseTier(LicenseSkus.Enterprise)(config, state, license) &&
             it.configIsTrue('FeatureFlags', 'ClassificationMarkings')(config);
+    });
+}
+
+// Mirrors the classification_attribute route's own gate, the way the hook above
+// mirrors the Classification Markings one. Below Enterprise Advanced, or without
+// the flag, the route is hidden, so Edit must not offer it.
+function useClassificationAttributePageReachable(): boolean {
+    return useSelector((state: GlobalState) => {
+        const config = getAdminConfig(state);
+        return it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)(config, state, getLicense(state)) &&
+            it.configIsTrue('FeatureFlags', 'ChannelAttributes')(config);
     });
 }
 
@@ -213,13 +224,14 @@ function AttributeCell({field, isClassificationRow}: ClassificationAwareCellProp
 }
 
 type ActionsCellProps = ClassificationAwareCellProps & {
+    canEditClassification: boolean;
     isMobileView: boolean;
     pluginInventoryLoaded: boolean;
     onDeleteError: (message: string | null) => void;
     onDeleteModalExited: () => void;
 };
 
-function ActionsCell({field, isClassificationRow, isMobileView, pluginInventoryLoaded, onDeleteError, onDeleteModalExited}: ActionsCellProps) {
+function ActionsCell({field, isClassificationRow, canEditClassification, isMobileView, pluginInventoryLoaded, onDeleteError, onDeleteModalExited}: ActionsCellProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const promptDelete = useGlobalAttributeFieldDelete();
@@ -251,8 +263,7 @@ function ActionsCell({field, isClassificationRow, isMobileView, pluginInventoryL
 
     if (isClassificationRow) {
         const classificationLinkLabel = formatMessage(actionsLabels.classificationLink);
-
-        return (
+        const externalLink = (
             <WithTooltip
                 title={classificationLinkLabel}
                 disabled={isMobileView}
@@ -270,6 +281,47 @@ function ActionsCell({field, isClassificationRow, isMobileView, pluginInventoryL
                     />
                 </Link>
             </WithTooltip>
+        );
+
+        if (!canEditClassification) {
+            return externalLink;
+        }
+
+        // Both destinations: Edit configures which resources classification applies
+        // to, the link goes to where its levels are defined.
+        return (
+            <div className='GlobalAttributesTable__actions--classification'>
+                <Menu.Container
+                    menuButton={{
+                        id: `${menuId}-button`,
+                        class: 'btn btn-transparent GlobalAttributesTable__actionsButton',
+                        children: <DotsHorizontalIcon size={18}/>,
+                        dataTestId: menuId,
+                        'aria-label': formatMessage(actionsLabels.tooltip),
+                    }}
+                    menuButtonTooltip={{text: formatMessage(actionsLabels.tooltip)}}
+                    menu={{
+                        id: `${menuId}-menu`,
+                        'aria-label': formatMessage(actionsLabels.menuLabel),
+                    }}
+                    anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
+                    transformOrigin={{vertical: 'top', horizontal: 'right'}}
+                >
+                    <Menu.LinkItem
+                        id={`${menuId}-edit`}
+                        to={CLASSIFICATION_ATTRIBUTE_ROUTE}
+                        leadingElement={<PencilOutlineIcon size={18}/>}
+                        labels={<span><FormattedMessage {...actionsLabels.edit}/></span>}
+                    />
+                    <Menu.LinkItem
+                        id={`${menuId}-markings`}
+                        to={CLASSIFICATIONS_MARKINGS_ADMIN_URL}
+                        leadingElement={<OpenInNewIcon size={18}/>}
+                        labels={<span><FormattedMessage {...actionsLabels.classificationLink}/></span>}
+                    />
+                </Menu.Container>
+                {externalLink}
+            </div>
         );
     }
 
@@ -292,19 +344,9 @@ function ActionsCell({field, isClassificationRow, isMobileView, pluginInventoryL
         >
             <Menu.Item
                 id={`${menuId}-edit`}
-                disabled={isPluginOwned}
-                leadingElement={<PencilOutlineIcon size={18}/>}
-                onClick={isPluginOwned ? undefined : () => getHistory().push(attributeDetailsRoute(field.id))}
-                labels={
-                    isPluginOwned ? (
-                        <>
-                            <span><FormattedMessage {...actionsLabels.edit}/></span>
-                            <span><FormattedMessage {...actionsLabels.comingSoon}/></span>
-                        </>
-                    ) : (
-                        <FormattedMessage {...actionsLabels.edit}/>
-                    )
-                }
+                leadingElement={isPluginOwned ? <EyeOutlineIcon size={18}/> : <PencilOutlineIcon size={18}/>}
+                onClick={() => getHistory().push(attributeDetailsRoute(field.id))}
+                labels={<FormattedMessage {...(isPluginOwned ? actionsLabels.view : actionsLabels.edit)}/>}
             />
             <Menu.Item
                 id={`${menuId}-duplicate`}
@@ -353,6 +395,7 @@ export default function GlobalAttributesTable() {
     );
 
     const classificationMarkingsReachable = useClassificationMarkingsReachable();
+    const classificationAttributePageReachable = useClassificationAttributePageReachable();
     const isMobileView = useSelector(getIsMobileView);
 
     const fields = useSelector((state: GlobalState) =>
@@ -393,7 +436,6 @@ export default function GlobalAttributesTable() {
     // live in the admin plugin statuses, which nothing else on this page loads.
     // Fetched once, and only when a plugin-owned row is actually present.
     const hasPluginOwnedFields = useMemo(() => fields.some((field) => Boolean(field.attrs?.source_plugin_id)), [fields]);
-    const pluginStatusesRequested = useRef(false);
 
     // Whether the plugin inventory is known yet. This gates the orphan check
     // rather than the Source column, which degrades harmlessly to the plugin ID:
@@ -405,16 +447,7 @@ export default function GlobalAttributesTable() {
     // than resolved: a failed fetch still leaves the inventory as good as it will
     // get, and staying false forever would strand genuine leftovers as
     // undeletable.
-    const [pluginInventoryLoaded, setPluginInventoryLoaded] = useState(false);
-
-    useEffect(() => {
-        if (!hasPluginOwnedFields || pluginStatusesRequested.current) {
-            return;
-        }
-
-        pluginStatusesRequested.current = true;
-        dispatch(getPluginStatuses()).finally(() => setPluginInventoryLoaded(true));
-    }, [dispatch, hasPluginOwnedFields]);
+    const pluginInventoryLoaded = usePluginInventoryLoaded(hasPluginOwnedFields);
 
     const handleDeleteModalExited = useCallback(() => setDeleteModalExited(true), []);
 
@@ -521,6 +554,7 @@ export default function GlobalAttributesTable() {
                     <ActionsCell
                         field={row.original}
                         isClassificationRow={isClassificationRow(row.original)}
+                        canEditClassification={classificationAttributePageReachable}
                         isMobileView={isMobileView}
                         pluginInventoryLoaded={pluginInventoryLoaded}
                         onDeleteError={setDeleteError}
@@ -530,7 +564,7 @@ export default function GlobalAttributesTable() {
                 enableHiding: false,
             }),
         ];
-    }, [groupId, classificationMarkingsReachable, isMobileView, pluginInventoryLoaded, handleDeleteModalExited]);
+    }, [groupId, classificationMarkingsReachable, classificationAttributePageReachable, isMobileView, pluginInventoryLoaded, handleDeleteModalExited]);
 
     const table = useReactTable<PropertyField>({
         data: rows,
@@ -610,7 +644,10 @@ const messages = defineMessages({
     loadError: {id: 'admin.global_attributes.table.load_error', defaultMessage: 'There was an error while loading attributes.'},
     classificationSubtitle: {
         id: 'admin.global_attributes.table.attribute.classification_subtitle',
-        defaultMessage: 'Read-only',
+
+        // Scoped to the definition on purpose: the resources it applies to are
+        // editable on its own page.
+        defaultMessage: 'Definition is read-only',
     },
 });
 
@@ -642,6 +679,7 @@ export const actionsLabels = defineMessages({
     tooltip: {id: 'admin.global_attributes.table.actions.tooltip', defaultMessage: 'More actions'},
     menuLabel: {id: 'admin.global_attributes.table.actions.menu_label', defaultMessage: 'Select an action'},
     edit: {id: 'admin.global_attributes.table.actions.edit', defaultMessage: 'Edit attribute'},
+    view: {id: 'admin.global_attributes.table.actions.view', defaultMessage: 'View attribute'},
     duplicate: {id: 'admin.global_attributes.table.actions.duplicate', defaultMessage: 'Duplicate attribute'},
     delete: {id: 'admin.global_attributes.table.actions.delete', defaultMessage: 'Delete attribute'},
     comingSoon: {id: 'admin.global_attributes.table.actions.coming_soon', defaultMessage: 'Coming soon'},

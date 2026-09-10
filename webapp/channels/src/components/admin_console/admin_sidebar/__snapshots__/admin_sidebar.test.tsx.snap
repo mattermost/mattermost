@@ -1367,25 +1367,6 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           </li>
                           <li
                             class="sidebar-section"
-                            data-testid="site.recaps"
-                          >
-                            <a
-                              class="sidebar-section-title"
-                              href="/admin_console/site_config/recaps"
-                              id="site_config/recaps"
-                            >
-                              <span
-                                class="sidebar-section-title__text"
-                              >
-                                Recaps
-                              </span>
-                            </a>
-                            <ul
-                              class="nav nav__sub-menu subsections"
-                            />
-                          </li>
-                          <li
-                            class="sidebar-section"
                             data-testid="site.file_sharing_downloads"
                           >
                             <a
@@ -3197,25 +3178,6 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                                 class="sidebar-section-title__text"
                               >
                                 Posts
-                              </span>
-                            </a>
-                            <ul
-                              class="nav nav__sub-menu subsections"
-                            />
-                          </li>
-                          <li
-                            class="sidebar-section"
-                            data-testid="site.recaps"
-                          >
-                            <a
-                              class="sidebar-section-title"
-                              href="/admin_console/site_config/recaps"
-                              id="site_config/recaps"
-                            >
-                              <span
-                                class="sidebar-section-title__text"
-                              >
-                                Recaps
                               </span>
                             </a>
                             <ul
@@ -5070,25 +5032,6 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           </li>
                           <li
                             class="sidebar-section"
-                            data-testid="site.recaps"
-                          >
-                            <a
-                              class="sidebar-section-title"
-                              href="/admin_console/site_config/recaps"
-                              id="site_config/recaps"
-                            >
-                              <span
-                                class="sidebar-section-title__text"
-                              >
-                                Recaps
-                              </span>
-                            </a>
-                            <ul
-                              class="nav nav__sub-menu subsections"
-                            />
-                          </li>
-                          <li
-                            class="sidebar-section"
                             data-testid="site.file_sharing_downloads"
                           >
                             <a
@@ -6925,25 +6868,6 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           </li>
                           <li
                             class="sidebar-section"
-                            data-testid="site.recaps"
-                          >
-                            <a
-                              class="sidebar-section-title"
-                              href="/admin_console/site_config/recaps"
-                              id="site_config/recaps"
-                            >
-                              <span
-                                class="sidebar-section-title__text"
-                              >
-                                Recaps
-                              </span>
-                            </a>
-                            <ul
-                              class="nav nav__sub-menu subsections"
-                            />
-                          </li>
-                          <li
-                            class="sidebar-section"
                             data-testid="site.file_sharing_downloads"
                           >
                             <a
@@ -8749,25 +8673,6 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                                 class="sidebar-section-title__text"
                               >
                                 Posts
-                              </span>
-                            </a>
-                            <ul
-                              class="nav nav__sub-menu subsections"
-                            />
-                          </li>
-                          <li
-                            class="sidebar-section"
-                            data-testid="site.recaps"
-                          >
-                            <a
-                              class="sidebar-section-title"
-                              href="/admin_console/site_config/recaps"
-                              id="site_config/recaps"
-                            >
-                              <span
-                                class="sidebar-section-title__text"
-                              >
-                                Recaps
                               </span>
                             </a>
                             <ul
@@ -10679,25 +10584,6 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           </li>
                           <li
                             class="sidebar-section"
-                            data-testid="site.recaps"
-                          >
-                            <a
-                              class="sidebar-section-title"
-                              href="/admin_console/site_config/recaps"
-                              id="site_config/recaps"
-                            >
-                              <span
-                                class="sidebar-section-title__text"
-                              >
-                                Recaps
-                              </span>
-                            </a>
-                            <ul
-                              class="nav nav__sub-menu subsections"
-                            />
-                          </li>
-                          <li
-                            class="sidebar-section"
                             data-testid="site.file_sharing_downloads"
                           >
                             <a
@@ -12484,25 +12370,6 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                                 class="sidebar-section-title__text"
                               >
                                 Posts
-                              </span>
-                            </a>
-                            <ul
-                              class="nav nav__sub-menu subsections"
-                            />
-                          </li>
-                          <li
-                            class="sidebar-section"
-                            data-testid="site.recaps"
-                          >
-                            <a
-                              class="sidebar-section-title"
-                              href="/admin_console/site_config/recaps"
-                              id="site_config/recaps"
-                            >
-                              <span
-                                class="sidebar-section-title__text"
-                              >
-                                Recaps
                               </span>
                             </a>
                             <ul
@@ -14317,25 +14184,6 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                           </li>
                           <li
                             class="sidebar-section"
-                            data-testid="site.recaps"
-                          >
-                            <a
-                              class="sidebar-section-title"
-                              href="/admin_console/site_config/recaps"
-                              id="site_config/recaps"
-                            >
-                              <span
-                                class="sidebar-section-title__text"
-                              >
-                                Recaps
-                              </span>
-                            </a>
-                            <ul
-                              class="nav nav__sub-menu subsections"
-                            />
-                          </li>
-                          <li
-                            class="sidebar-section"
                             data-testid="site.file_sharing_downloads"
                           >
                             <a
@@ -16021,25 +15869,6 @@ c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4z M20,4v5H4V4H20z M22,15v5c0,1.1-0.9,2-2,2H
                                 class="sidebar-section-title__text"
                               >
                                 Posts
-                              </span>
-                            </a>
-                            <ul
-                              class="nav nav__sub-menu subsections"
-                            />
-                          </li>
-                          <li
-                            class="sidebar-section"
-                            data-testid="site.recaps"
-                          >
-                            <a
-                              class="sidebar-section-title"
-                              href="/admin_console/site_config/recaps"
-                              id="site_config/recaps"
-                            >
-                              <span
-                                class="sidebar-section-title__text"
-                              >
-                                Recaps
                               </span>
                             </a>
                             <ul

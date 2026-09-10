@@ -93,6 +93,10 @@ test.describe('Mobile view RHS auto-focus', () => {
         // * Verify the menu modal is visible after the click
         await expect(menuModal).toBeVisible();
 
+        // # Wait for the modal's entrance animation to finish. Until it does, the menu is still
+        // # sliding down through the top-left corner, so the click below would land on a menu item
+        await expect(menuModal.locator('..')).toHaveCSS('opacity', '1');
+
         // # Click the modal's backdrop layer outside the menu content
         await page.mouse.click(5, 5);
 

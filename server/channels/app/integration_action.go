@@ -82,7 +82,7 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 		mlog.String("team_id", upstreamRequest.TeamId),
 	)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
+	ctx, cancel := context.WithTimeout(a.Srv().Platform().GoContext(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
 	defer cancel()
 	resp, appErr := a.DoActionRequest(rctx.WithContext(ctx), setup.upstreamURL, requestJSON)
 	if appErr != nil {
@@ -180,6 +180,11 @@ func (a *App) DoActionRequest(rctx request.CTX, rawURL string, body []byte) (*ht
 	return resp, nil
 }
 
+// getPostActionClient returns the client used to call an integration action. Callers of
+// DoActionRequest give the request a deadline derived from
+// ServiceSettings.OutgoingIntegrationRequestsTimeout, so the client adds no timeout of its own,
+// which would cap a configured value above httpservice.RequestTimeout. A request that arrives
+// without a deadline still gets the configured timeout instead of running unbounded.
 func (a *App) getPostActionClient(rctx request.CTX, inURL *url.URL, req *http.Request) *http.Client {
 	// Allow access to plugin routes for action buttons
 	var httpClient *http.Client
@@ -191,6 +196,13 @@ func (a *App) getPostActionClient(rctx request.CTX, inURL *url.URL, req *http.Re
 	} else {
 		httpClient = a.HTTPService().MakeClient(false)
 	}
+
+	if _, ok := rctx.Context().Deadline(); ok {
+		httpClient.Timeout = 0
+	} else {
+		httpClient.Timeout = time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout) * time.Second
+	}
+
 	return httpClient
 }
 
@@ -486,7 +498,7 @@ func (a *App) SubmitInteractiveDialog(rctx request.CTX, request model.SubmitDial
 		mlog.Bool("cancelled", request.Cancelled),
 	)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
+	ctx, cancel := context.WithTimeout(a.Srv().Platform().GoContext(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
 	defer cancel()
 	resp, appErr := a.DoActionRequest(rctx.WithContext(ctx), url, b)
 	if appErr != nil {
@@ -583,7 +595,7 @@ func (a *App) ExecuteDialogAction(rctx request.CTX, userID string, req model.Exe
 		mlog.String("team_id", req.TeamId),
 	)
 
-	timeoutCtx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
+	timeoutCtx, cancel := context.WithTimeout(a.Srv().Platform().GoContext(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
 	defer cancel()
 	resp, appErr := a.DoActionRequest(rctx.WithContext(timeoutCtx), req.URL, requestJSON)
 	if appErr != nil {
@@ -622,7 +634,7 @@ func (a *App) LookupInteractiveDialog(rctx request.CTX, request model.SubmitDial
 		mlog.String("team_id", request.TeamId),
 	)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
+	ctx, cancel := context.WithTimeout(a.Srv().Platform().GoContext(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
 	defer cancel()
 	resp, appErr := a.DoActionRequest(rctx.WithContext(ctx), url, b)
 	if appErr != nil {
