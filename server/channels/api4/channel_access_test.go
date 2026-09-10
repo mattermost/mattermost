@@ -5,6 +5,7 @@ package api4
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"testing"
 
@@ -452,4 +453,37 @@ func TestAccessChannelPolicyAdminEndpointsStayGeneric(t *testing.T) {
 	require.True(t, ok, "expected an AppError, got %T", err)
 	require.Equal(t, "api.context.permissions.app_error", appErr.Id,
 		"the endpoint that reports a denial must not itself be reported as denied")
+}
+
+// The requester is the one receiving the response, so the filter follows the session
+// rather than the user being queried. Without that, anyone holding edit_other_users
+// could enumerate channels their own policy denies by asking about someone else.
+func TestAccessChannelMembersForUserFilterFollowsTheSession(t *testing.T) {
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.AccessChannelABACPermission = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+	})
+
+	// Denied for the admin doing the asking, allowed for the user being asked about.
+	mockACS := installMockACS(t, th)
+	mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).Return(true, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+		return req.Subject.ID == th.SystemAdminUser.Id
+	})).Return(model.AccessDecision{Decision: false}, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+		Return(model.AccessDecision{Decision: true}, nil)
+
+	for _, page := range []int{0, -1} {
+		t.Run(fmt.Sprintf("page=%d", page), func(t *testing.T) {
+			members, resp, err := th.SystemAdminClient.GetChannelMembersWithTeamData(context.Background(), th.BasicUser.Id, page, 200)
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+			require.Empty(t, members,
+				"the queried user's memberships must not expose channels the requester is denied")
+		})
+	}
 }
