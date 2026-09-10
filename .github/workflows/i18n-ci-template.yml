@@ -101,6 +101,13 @@ jobs:
         run: |
           npm run i18n-verify-translations -- --warn-missing-keys
 
+      # en.json lives under the paths that trigger this workflow, so an edit
+      # that leaves the authoring catalog out of lockstep is caught here.
+      - name: ci/i18n-extract-authoring
+        working-directory: webapp/channels
+        run: |
+          npm run i18n-extract-authoring:check
+
   verify-server:
     name: Verify server translation files
     needs: buildenv
@@ -119,3 +126,9 @@ jobs:
         with:
           build-server-tag: ${{ needs.buildenv.outputs.build-server-tag }}
           run: make i18n-verify
+
+      - name: ci/i18n-extract-authoring
+        uses: ./.github/actions/run-in-buildenv
+        with:
+          build-server-tag: ${{ needs.buildenv.outputs.build-server-tag }}
+          run: make i18n-extract-authoring-check
