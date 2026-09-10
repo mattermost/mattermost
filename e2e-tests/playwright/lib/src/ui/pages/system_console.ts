@@ -17,6 +17,8 @@ import Notifications from '@/ui/components/system_console/sections/site_configur
 import UsersAndTeams from '@/ui/components/system_console/sections/site_configuration/users_and_teams';
 import SystemProperties from '@/ui/components/system_console/sections/system_attributes/system_properties';
 import FeatureDiscovery from '@/ui/components/system_console/sections/system_users/feature_discovery';
+import PluginManagement from '@/ui/components/system_console/sections/plugins/plugin_management';
+import {testConfig} from '@/test_config';
 
 export default class SystemConsolePage {
     readonly page: Page;
@@ -50,6 +52,9 @@ export default class SystemConsolePage {
 
     // Feature Discovery (license-gated features)
     readonly featureDiscovery: FeatureDiscovery;
+
+    // Plugins
+    readonly pluginManagement: PluginManagement;
 
     constructor(page: Page) {
         this.page = page;
@@ -85,6 +90,9 @@ export default class SystemConsolePage {
 
         // Feature Discovery
         this.featureDiscovery = new FeatureDiscovery(adminConsoleWrapper);
+
+        // Plugins
+        this.pluginManagement = new PluginManagement(adminConsoleWrapper);
     }
 
     async toBeVisible() {
@@ -94,12 +102,21 @@ export default class SystemConsolePage {
     }
 
     async goto() {
-        await this.page.goto('/admin_console');
+        await this.page.goto(new URL('/admin_console', testConfig.baseURL).href);
     }
 
     /** Notifications settings URL is environment/notifications (sidebar groups under Site Configuration). */
     async gotoNotificationsSettings() {
-        await this.page.goto('/admin_console/environment/notifications');
-        await this.page.waitForLoadState('networkidle');
+        await this.page.goto(new URL('/admin_console/environment/notifications', testConfig.baseURL).href);
+    }
+
+    async gotoPluginManagement() {
+        await this.page.goto(new URL('/admin_console/plugins/plugin_management', testConfig.baseURL).href);
+        await this.pluginManagement.toBeVisible();
+    }
+
+    async gotoEditionAndLicense() {
+        await this.page.goto(new URL('/admin_console/about/license', testConfig.baseURL).href);
+        await this.editionAndLicense.toBeVisible();
     }
 }
