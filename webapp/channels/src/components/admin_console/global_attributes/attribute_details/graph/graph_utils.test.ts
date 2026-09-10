@@ -3,6 +3,8 @@
 
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
+import {oxfordJoinNames} from 'components/property_fields/graph';
+
 import {
     GRAPH_CYCLE_ERROR_DEFAULT,
     GRAPH_DEPTH_ERROR_DEFAULT,
@@ -25,7 +27,6 @@ import {
     hasBlankTrimmedOptionName,
     hasCaseInsensitiveDuplicateNames,
     isNameUnique,
-    oxfordJoinNames,
     removeOption,
     removeParentEdge,
     renameOption,

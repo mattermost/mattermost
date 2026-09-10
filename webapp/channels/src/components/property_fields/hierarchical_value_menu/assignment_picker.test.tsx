@@ -11,14 +11,14 @@ import AssignmentGraphPicker from './assignment_picker';
 import type {AssignmentGraphPickerProps} from './assignment_picker';
 import type {HierarchicalValueMenuField} from './hierarchical_value_menu';
 
-import {clearPropertyFieldOptionWalks, pageAllPropertyFieldOptions} from '../page_all_property_field_options';
+import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from '../graph/page_all_access_control_field_options';
 
-jest.mock('../page_all_property_field_options', () => ({
-    ...jest.requireActual('../page_all_property_field_options'),
-    pageAllPropertyFieldOptions: jest.fn(),
+jest.mock('../graph/page_all_access_control_field_options', () => ({
+    ...jest.requireActual('../graph/page_all_access_control_field_options'),
+    pageAllAccessControlFieldOptions: jest.fn(),
 }));
 
-const mockPageAll = jest.mocked(pageAllPropertyFieldOptions);
+const mockPageAll = jest.mocked(pageAllAccessControlFieldOptions);
 
 const opt = (id: string, name: string, parents: string[] = []): PropertyFieldOption => ({
     id, name, parents, create_at: 1,
@@ -87,7 +87,7 @@ const openMenu = async () => {
 // open-ended stub must not be able to feed an accumulating keyset walk.
 const throwingDefault = () => {
     mockPageAll.mockImplementation(() => {
-        throw new Error('pageAllPropertyFieldOptions called without an explicit mock for this test');
+        throw new Error('pageAllAccessControlFieldOptions called without an explicit mock for this test');
     });
 };
 

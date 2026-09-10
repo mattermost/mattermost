@@ -14,15 +14,15 @@ import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_te
 import HierarchicalValueMenu from './hierarchical_value_menu';
 import type {HierarchicalValueMenuField, HierarchicalValueMenuProps} from './hierarchical_value_menu';
 
-import {clearPropertyFieldOptionWalks, pageAllPropertyFieldOptions} from '../page_all_property_field_options';
-import type * as PageAllModule from '../page_all_property_field_options';
+import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from '../graph/page_all_access_control_field_options';
+import type * as PageAllModule from '../graph/page_all_access_control_field_options';
 
-jest.mock('../page_all_property_field_options', () => ({
-    ...jest.requireActual('../page_all_property_field_options'),
-    pageAllPropertyFieldOptions: jest.fn(),
+jest.mock('../graph/page_all_access_control_field_options', () => ({
+    ...jest.requireActual('../graph/page_all_access_control_field_options'),
+    pageAllAccessControlFieldOptions: jest.fn(),
 }));
 
-const mockPageAll = jest.mocked(pageAllPropertyFieldOptions);
+const mockPageAll = jest.mocked(pageAllAccessControlFieldOptions);
 
 const COPY = {
     placeholder: 'Select values...',
@@ -1938,11 +1938,11 @@ describe('HierarchicalValueMenu', () => {
     });
 
     describe('integration with the real pager', () => {
-        const actual = jest.requireActual<typeof PageAllModule>('../page_all_property_field_options');
+        const actual = jest.requireActual<typeof PageAllModule>('../graph/page_all_access_control_field_options');
 
         beforeEach(() => {
             actual.clearPropertyFieldOptionWalks();
-            mockPageAll.mockImplementation(actual.pageAllPropertyFieldOptions);
+            mockPageAll.mockImplementation(actual.pageAllAccessControlFieldOptions);
 
             // The real pager runs in here, so an unmocked Client4 is a live
             // keyset walk against node-fetch. A test added below without its own

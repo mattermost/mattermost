@@ -12,10 +12,11 @@ import {openModal} from 'actions/views/modals';
 
 import {ModalIdentifiers} from 'utils/constants';
 
+import {oxfordJoinNames} from 'components/property_fields/graph';
+
 import {
     findOrphansAfterDelete,
     getChildren,
-    oxfordJoinNames,
     removeOption,
 } from './graph_utils';
 

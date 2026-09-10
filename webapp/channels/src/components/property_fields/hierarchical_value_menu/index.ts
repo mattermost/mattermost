@@ -18,4 +18,4 @@ export type {AssignmentHierarchicalValuesProps} from './assignment_adapter';
 export {default as AssignmentGraphPicker} from './assignment_picker';
 export type {AssignmentGraphPickerProps} from './assignment_picker';
 
-export type {GraphOptionJoin} from '../graph_option_tree';
+export type {GraphOptionJoin} from '../graph';

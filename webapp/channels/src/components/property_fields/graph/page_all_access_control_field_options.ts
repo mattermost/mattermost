@@ -11,12 +11,19 @@ export const ACCESS_CONTROL_GROUP = 'access_control';
 // Endpoint default is 60; omit this and a hierarchy pages 60 at a time.
 export const PROPERTY_FIELD_OPTIONS_PER_PAGE = 200;
 
-export type PageAllField = {
-    id?: string;
-    object_type?: string;
+export type GraphFieldRef = {
+    id: string;
+    object_type: string;
+    type?: string;
+    attrs?: {
+        options?: PropertyFieldOption[];
+        options_omitted?: boolean;
+        options_count?: number;
+        access_mode?: '' | 'source_only' | 'shared_only';
+    };
 };
 
-export type PageAllPropertyFieldOptionsOpts = {
+export type PageAllAccessControlFieldOptionsOpts = {
     signal?: AbortSignal;
 };
 
@@ -51,7 +58,7 @@ async function walkPages(fieldId: string, objectType: string): Promise<PropertyF
         if (!last.id || !last.create_at) {
             const missingHalf = last.id ? 'create_at' : 'id';
             throw new Error(
-                `pageAllPropertyFieldOptions: option ${last.id || '(no id)'} of field ${fieldId} has no ${missingHalf}, so the page after it cannot be asked for`,
+                `pageAllAccessControlFieldOptions: option ${last.id || '(no id)'} of field ${fieldId} has no ${missingHalf}, so the page after it cannot be asked for`,
             );
         }
 
@@ -82,14 +89,10 @@ function sharedWalk(fieldId: string, objectType: string): Promise<PropertyFieldO
  * Pages every option of a field. Concurrent callers share one walk; `opts.signal`
  * cancels only this caller.
  */
-export function pageAllPropertyFieldOptions(
-    field: PageAllField,
-    opts?: PageAllPropertyFieldOptionsOpts,
+export function pageAllAccessControlFieldOptions(
+    field: GraphFieldRef,
+    opts?: PageAllAccessControlFieldOptionsOpts,
 ): Promise<PropertyFieldOption[]> {
-    if (!field.id || !field.object_type) {
-        return Promise.resolve([]);
-    }
-
     // Start the walk before reading signal.aborted so an already-aborted caller
     // still attaches a rejection handler (avoids an unhandled 403/404).
     const walk = sharedWalk(field.id, field.object_type);
@@ -106,7 +109,7 @@ export function pageAllPropertyFieldOptions(
                 return;
             }
             settled = true;
-            reject(new DOMException('pageAllPropertyFieldOptions aborted', 'AbortError'));
+            reject(new DOMException('pageAllAccessControlFieldOptions aborted', 'AbortError'));
         };
 
         walk.then(

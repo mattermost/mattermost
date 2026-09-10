@@ -3,7 +3,7 @@
 
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
-import type {GraphOccurrence} from './graph_option_tree';
+import type {GraphOccurrence} from '.';
 import {
     alsoUnderLabel,
     emitIdToName,
@@ -12,7 +12,7 @@ import {
     hydrateNameToId,
     joinGraphOptions,
     selectedDescendantCount,
-} from './graph_option_tree';
+} from '.';
 
 // A graph option as GET /options reports one: parents by name, [] for a root.
 const opt = (id: string, name: string, parents: string[] = []): PropertyFieldOption => ({id, name, parents});

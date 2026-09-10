@@ -13,19 +13,19 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import SystemUserDetail, {getUserAuthenticationTextField} from 'components/admin_console/system_user_detail/system_user_detail';
 import type {Params, Props} from 'components/admin_console/system_user_detail/system_user_detail';
-import {clearPropertyFieldOptionWalks, pageAllPropertyFieldOptions} from 'components/property_fields/page_all_property_field_options';
+import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from 'components/property_fields/graph/page_all_access_control_field_options';
 
 import type {MockIntl} from 'tests/helpers/intl-test-helper';
 import {renderWithContext, screen, waitFor, waitForElementToBeRemoved, within} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
-jest.mock('components/property_fields/page_all_property_field_options', () => ({
-    ...jest.requireActual('components/property_fields/page_all_property_field_options'),
-    pageAllPropertyFieldOptions: jest.fn(),
+jest.mock('components/property_fields/graph/page_all_access_control_field_options', () => ({
+    ...jest.requireActual('components/property_fields/graph/page_all_access_control_field_options'),
+    pageAllAccessControlFieldOptions: jest.fn(),
 }));
 
-const mockPageAll = jest.mocked(pageAllPropertyFieldOptions);
+const mockPageAll = jest.mocked(pageAllAccessControlFieldOptions);
 
 // Mock user profile data
 const user = Object.assign(TestHelper.getUserMock(), {auth_service: ''}) as UserProfile;
@@ -713,7 +713,7 @@ describe('SystemUserDetail', () => {
                 // A test that forgets to stub the walk must fail loudly rather
                 // than fall through to the real Client4 and node-fetch.
                 mockPageAll.mockImplementation(() => {
-                    throw new Error('pageAllPropertyFieldOptions called without an explicit mock for this test');
+                    throw new Error('pageAllAccessControlFieldOptions called without an explicit mock for this test');
                 });
             });
 

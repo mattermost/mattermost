@@ -3,6 +3,11 @@
 
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
+import {oxfordJoinNames} from './text';
+
+export {oxfordJoinNames} from './text';
+export {GRAPH_MAX_DEPTH, GRAPH_MAX_EDGES, GRAPH_MAX_OPTIONS, GRAPH_MAX_PARENTS_PER_VALUE} from './limits';
+
 export type GraphOccurrence = {
 
     // `${parentId ?? ''}::${valueId}`. Sibling React/expand key, not a node id —
@@ -43,20 +48,6 @@ const MAX_EXTRA_PATHS = 99;
 
 const PATH_SEPARATOR = ' › ';
 const EXTRA_PATHS_SEPARATOR = ' · ';
-
-// Duplicated from graph_utils so Account Settings does not import authoring.
-function oxfordJoinNames(names: string[]): string {
-    if (names.length === 0) {
-        return '';
-    }
-    if (names.length === 1) {
-        return names[0];
-    }
-    if (names.length === 2) {
-        return `${names[0]} and ${names[1]}`;
-    }
-    return `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}`;
-}
 
 function occKeyFor(parentId: string | null, valueId: string): string {
     return `${parentId ?? ''}::${valueId}`;

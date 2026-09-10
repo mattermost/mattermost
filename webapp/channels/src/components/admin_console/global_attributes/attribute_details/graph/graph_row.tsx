@@ -20,7 +20,8 @@ import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import * as Menu from 'components/menu';
 
-import {oxfordJoinNames} from './graph_utils';
+import {oxfordJoinNames} from 'components/property_fields/graph';
+
 import {occurrenceHasChildren, type GraphOccurrence} from './occurrences';
 import type {ConfirmGrant, ProposeParentResult} from './parent_ops';
 import AttributeGraphParentsPane from './parents_pane';
