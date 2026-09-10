@@ -16,10 +16,12 @@ import Localization from '@/ui/components/system_console/sections/site_configura
 import Notifications from '@/ui/components/system_console/sections/site_configuration/notifications';
 import UsersAndTeams from '@/ui/components/system_console/sections/site_configuration/users_and_teams';
 import BoardAttributes from '@/ui/components/system_console/sections/system_attributes/board_attributes';
+import GlobalAttributes from '@/ui/components/system_console/sections/system_attributes/global_attributes';
 import SystemProperties from '@/ui/components/system_console/sections/system_attributes/system_properties';
 import SessionAttributes from '@/ui/components/system_console/sections/system_attributes/session_attributes';
 import FeatureDiscovery from '@/ui/components/system_console/sections/system_users/feature_discovery';
 import PluginManagement from '@/ui/components/system_console/sections/plugins/plugin_management';
+import {testConfig} from '@/test_config';
 
 export default class SystemConsolePage {
     readonly page: Page;
@@ -49,6 +51,7 @@ export default class SystemConsolePage {
     readonly usersAndTeams: UsersAndTeams;
 
     // System Attributes
+    readonly globalAttributes: GlobalAttributes;
     readonly systemProperties: SystemProperties;
     readonly sessionAttributes: SessionAttributes;
     readonly boardAttributes: BoardAttributes;
@@ -89,6 +92,7 @@ export default class SystemConsolePage {
         this.usersAndTeams = new UsersAndTeams(adminConsoleWrapper);
 
         // System Attributes
+        this.globalAttributes = new GlobalAttributes(adminConsoleWrapper);
         this.systemProperties = new SystemProperties(adminConsoleWrapper);
         this.sessionAttributes = new SessionAttributes(adminConsoleWrapper);
         this.boardAttributes = new BoardAttributes(adminConsoleWrapper);
@@ -107,17 +111,21 @@ export default class SystemConsolePage {
     }
 
     async goto() {
-        await this.page.goto('/admin_console');
+        await this.page.goto(new URL('/admin_console', testConfig.baseURL).href);
     }
 
     /** Notifications settings URL is environment/notifications (sidebar groups under Site Configuration). */
     async gotoNotificationsSettings() {
-        await this.page.goto('/admin_console/environment/notifications');
-        await this.page.waitForLoadState('networkidle');
+        await this.page.goto(new URL('/admin_console/environment/notifications', testConfig.baseURL).href);
     }
 
     async gotoPluginManagement() {
-        await this.page.goto('/admin_console/plugins/plugin_management');
-        await this.page.waitForLoadState('networkidle');
+        await this.page.goto(new URL('/admin_console/plugins/plugin_management', testConfig.baseURL).href);
+        await this.pluginManagement.toBeVisible();
+    }
+
+    async gotoEditionAndLicense() {
+        await this.page.goto(new URL('/admin_console/about/license', testConfig.baseURL).href);
+        await this.editionAndLicense.toBeVisible();
     }
 }

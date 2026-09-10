@@ -1,5 +1,8 @@
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
+# Must be read before parse-time Enterprise detection so BUILD_ENTERPRISE_DIR applies.
+-include $(ROOT)config.override.mk
+
 ifeq ($(OS),Windows_NT)
 	PLATFORM := Windows
 else
@@ -195,8 +198,6 @@ CONFIG_FILE_PATH ?= ./config/config.json
 .PHONY: all
 all: run ## Alias for 'run'.
 
--include config.override.mk
-
 # Make sure not to modify an overridden ENABLED_DOCKER_SERVICES variable
 DOCKER_SERVICES_OVERRIDE=false
 ifneq (,$(ENABLED_DOCKER_SERVICES))
@@ -353,6 +354,11 @@ endif
 i18n-extract: ## Extract strings for translation from the source code
 	cd ../tools/mmgotool && $(GO) install .
 	$(GOBIN)/mmgotool i18n extract --portal-dir=""
+
+.PHONY: i18n-verify
+i18n-verify: ## Verify the non-English translation files against en.json
+	cd ../tools/mmgotool && $(GO) install .
+	$(GOBIN)/mmgotool i18n verify --warn-missing-ids
 
 .PHONY: i18n-check
 i18n-check: ## Exit on empty translation strings and translation source strings
