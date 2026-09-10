@@ -4,6 +4,10 @@
 import React from 'react';
 import type {Root} from 'react-dom/client';
 
+import {LogLevel} from '@mattermost/types/client4';
+
+import {Client4} from 'mattermost-redux/client';
+
 import {act} from 'tests/react_testing_utils';
 import messageHtmlToComponent from 'utils/message_html_to_component';
 
@@ -12,6 +16,20 @@ import './export';
 jest.mock('utils/message_html_to_component');
 
 describe('window.ReactDOM supports React 18 development client shims', () => {
+    let enableLogging: boolean;
+
+    beforeEach(() => {
+        enableLogging = Client4.enableLogging;
+        Client4.enableLogging = true;
+        jest.spyOn(Client4, 'logClientError').mockResolvedValue({message: 'logged'});
+        jest.spyOn(Math, 'random').mockReturnValue(0);
+    });
+
+    afterEach(() => {
+        Client4.enableLogging = enableLogging;
+        jest.restoreAllMocks();
+    });
+
     test.each(['createRoot', 'hydrateRoot'])('%s mounts plugin content', async (method) => {
         const reactDOM = (window as any).ReactDOM;
         const {__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED: internals} = reactDOM;
@@ -39,6 +57,10 @@ describe('window.ReactDOM supports React 18 development client shims', () => {
 
         expect(container).toHaveTextContent('Plugin content');
         expect(internals.usingClientEntryPoint).toBe(false);
+        expect(Client4.logClientError).toHaveBeenCalledWith(
+            `plugin_react_dom_shim_used api=${method} plugin_id=unknown plugin_version=unknown`,
+            LogLevel.Debug,
+        );
 
         await act(async () => root.unmount());
         expect(container).toBeEmptyDOMElement();

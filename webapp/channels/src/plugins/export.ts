@@ -44,6 +44,7 @@ import {AccessControlCELEditor, AccessControlTableEditor} from './access_control
 import {openInteractiveDialog} from './interactive_dialog'; // This import has intentional side effects. Do not remove without research.
 import {publishedEditorUtils} from './published_editor';
 import {canOpenPublishedModal, openPublishedModal} from './published_modals';
+import {wrapReactDOMRoot} from './react_dom_compatibility';
 import {loadSharedDependency} from './shared_dependencies';
 import Textbox from './textbox';
 
@@ -142,6 +143,8 @@ const {__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED: legacyClientInternals
 window.ReactDOM = {
     ...reactDom,
     ...reactDomClient,
+    createRoot: wrapReactDOMRoot('createRoot', reactDomClient.createRoot),
+    hydrateRoot: wrapReactDOMRoot('hydrateRoot', reactDomClient.hydrateRoot),
 
     // React 18 development client shims toggle this flag around root creation.
     __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED: legacyClientInternals ?? {
