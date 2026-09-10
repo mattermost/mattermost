@@ -5,13 +5,13 @@ import React from 'react';
 
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
+import {GRAPH_MAX_DEPTH} from 'components/property_fields/graph';
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import {GraphParentEdgeAlert} from './edge_alert';
+import {classifyParentCandidate} from './edge_candidates';
 import {addChildOption, addParentEdge, addTopLevelOption, removeParentEdge} from './graph_utils';
-import AttributeGraphParentsPane, {
-    classifyParentCandidate,
-} from './parents_pane';
+import AttributeGraphParentsPane from './parents_pane';
 
 const opt = (name: string, parents: string[] = []): PropertyFieldOption => ({id: '', name, parents});
 
@@ -303,6 +303,25 @@ describe('AttributeGraphParentsPane', () => {
         await userEvent.click(screen.getByTestId('attributeGraphParentsPane__createChild'));
 
         expect(onOptionsChange).toHaveBeenCalledWith(addChildOption(options, 'Wing', 'A'));
+    });
+
+    it('shows the depth alert when creating a child at GRAPH_MAX_DEPTH', async () => {
+        const options = Array.from({length: GRAPH_MAX_DEPTH}, (_, i) => (
+            opt(`L${i}`, i === 0 ? [] : [`L${i - 1}`])
+        ));
+        const leaf = `L${GRAPH_MAX_DEPTH - 1}`;
+        const {onOptionsChange} = renderPane(options, leaf);
+
+        await userEvent.click(screen.getByTestId('attributeGraphParentsPane__openChildren'));
+        await userEvent.type(screen.getByTestId('attributeGraphParentsPane__childSearch'), 'Overflow');
+        await userEvent.click(screen.getByTestId('attributeGraphParentsPane__createChild'));
+
+        await waitFor(() => {
+            expect(screen.getByTestId('attributeGraphParentsPane__alert')).toHaveTextContent(
+                `Adding this parent pushes "Overflow" to depth ${GRAPH_MAX_DEPTH + 1}; the limit is 100.`,
+            );
+        });
+        expect(onOptionsChange).not.toHaveBeenCalled();
     });
 
     it('adds an existing value as a child when newlyReachable is empty', async () => {
