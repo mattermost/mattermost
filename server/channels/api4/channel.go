@@ -2956,15 +2956,9 @@ func channelMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.
 		return
 	}
 
-	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-	if !requireChannelAccess(c, channel) {
-		return
-	}
-
+	// No access_channel gate: this is group-sync administration behind a sysconsole
+	// permission, matching teamMembersMinusGroupMembers. Gating it would let a
+	// mis-scoped policy hide the membership an admin needs in order to repair it.
 	users, totalCount, appErr := c.App.ChannelMembersMinusGroupMembers(
 		c.Params.ChannelId,
 		groupIDs,

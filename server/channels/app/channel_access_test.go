@@ -478,3 +478,18 @@ func TestGetPublicChannelsForTeamGivesUpAfterMaxFillRounds(t *testing.T) {
 	require.Nil(t, appErr)
 	require.Empty(t, got, "a page the policy empties must terminate rather than loop")
 }
+
+// A failed governance check says nothing about whether a policy applies. Short-
+// circuiting to "allowed" there would let a transient store failure bypass every
+// policy on channels that do not set PolicyEnforced.
+func TestEvaluateAccessChannelGovernanceCheckFailsClosed(t *testing.T) {
+	h := setupAccessChannelTest(t)
+	mockACS := h.mockACS(t)
+	mockACS.On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionAccessChannel).
+		Return(false, model.NewAppError("ActionHasPermissionPolicy", "boom", nil, "", http.StatusInternalServerError))
+	decides(mockACS, false)
+
+	require.False(t, h.th.BasicChannel.PolicyEnforced, "the channel must not carry its own policy for this to be meaningful")
+	require.False(t, h.th.App.HasPermissionToAccessChannel(h.rctx, h.th.BasicUser.Id, h.th.BasicChannel))
+	mockACS.AssertCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
+}

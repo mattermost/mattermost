@@ -148,6 +148,9 @@ func (a *App) evaluateAccessChannel(rctx request.CTX, userID string, channel *mo
 
 	governed, appErr := acs.ActionHasPermissionPolicy(rctx, model.AccessControlPolicyActionAccessChannel)
 	if appErr != nil {
+		// Evaluate rather than short-circuit: a failed governance check says nothing
+		// about whether a policy applies, and every other failure here denies.
+		governed = true
 		rctx.Logger().Debug("Failed to check whether permission policies govern access_channel; evaluating anyway",
 			mlog.String("channel_id", channel.Id),
 			mlog.Err(appErr),

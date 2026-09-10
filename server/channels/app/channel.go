@@ -2540,11 +2540,13 @@ func (a *App) GetDeletedChannels(rctx request.CTX, teamID string, offset int, li
 }
 
 func (a *App) GetChannelsUserNotIn(rctx request.CTX, teamID string, userID string, offset int, limit int) (model.ChannelList, *model.AppError) {
-	channels, err := a.Srv().Store().Channel().GetMoreChannels(teamID, userID, offset, limit)
+	channels, err := a.fillChannelPage(rctx, userID, offset, limit, func(off, lim int) (model.ChannelList, error) {
+		return a.Srv().Store().Channel().GetMoreChannels(teamID, userID, off, lim)
+	})
 	if err != nil {
 		return nil, model.NewAppError("GetChannelsUserNotIn", "app.channel.get_more_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	return a.FilterChannelListByAccess(rctx, userID, channels), nil
+	return channels, nil
 }
 
 func (a *App) GetPublicChannelsByIdsForTeam(rctx request.CTX, teamID string, channelIDs []string) (model.ChannelList, *model.AppError) {

@@ -22,8 +22,13 @@ import {ModalIdentifiers} from 'utils/constants';
 
 import type {ThunkActionFunc} from 'types/store';
 
+// A channel missing from the response only means "denied" if the response could have
+// carried it. DMs and GMs are exempt from access_channel on the server, and the
+// channel list omits archived channels whatever the policy says.
 function isGoverned(channel: Channel): boolean {
-    return channel.type !== General.DM_CHANNEL && channel.type !== General.GM_CHANNEL;
+    return channel.type !== General.DM_CHANNEL &&
+        channel.type !== General.GM_CHANNEL &&
+        channel.delete_at === 0;
 }
 
 /**

@@ -3071,6 +3071,10 @@ func (a *App) GetThreadsForUser(rctx request.CTX, userID, teamID string, options
 	return &result, nil
 }
 
+// defaultThreadsPageSize mirrors the page size SqlThreadStore.GetThreadsForUser
+// applies when the caller leaves PageSize unset.
+const defaultThreadsPageSize = 30
+
 func (a *App) threadsForUserPage(rctx request.CTX, userID, teamID string, options model.GetUserThreadsOpts) ([]*model.ThreadResponse, error) {
 	fetch := func(opts model.GetUserThreadsOpts) ([]*model.ThreadResponse, error) {
 		return a.Srv().Store().Thread().GetThreadsForUser(rctx, userID, teamID, opts)
@@ -3090,7 +3094,12 @@ func (a *App) threadsForUserPage(rctx request.CTX, userID, teamID string, option
 		return opts
 	}
 
+	// The store reads a zero PageSize as its own default; FetchUntil would read it as
+	// "no results", so the two have to agree.
 	want := int(options.PageSize)
+	if want == 0 {
+		want = defaultThreadsPageSize
+	}
 	threads, truncated, err := putils.FetchUntil(options, want, fetch,
 		func(thread *model.ThreadResponse) bool {
 			return thread.Post != nil && a.HasPermissionToAccessChannelByID(rctx, userID, thread.Post.ChannelId)

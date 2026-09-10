@@ -23,9 +23,10 @@ jest.mock('actions/global_actions', () => ({
     redirectUserToDefaultTeam: jest.fn(),
 }));
 
-const openChannel = {id: 'open1', team_id: 'team1', type: 'O', display_name: 'Open One'};
-const deniedChannel = {id: 'denied1', team_id: 'team1', type: 'P', display_name: 'Secret'};
-const dm = {id: 'dm1', team_id: '', type: 'D', display_name: 'A DM'};
+const openChannel = {id: 'open1', team_id: 'team1', type: 'O', display_name: 'Open One', delete_at: 0};
+const deniedChannel = {id: 'denied1', team_id: 'team1', type: 'P', display_name: 'Secret', delete_at: 0};
+const dm = {id: 'dm1', team_id: '', type: 'D', display_name: 'A DM', delete_at: 0};
+const archived = {id: 'arch1', team_id: 'team1', type: 'O', display_name: 'Archived', delete_at: 12345};
 
 function makeState(overrides: {currentChannelId?: string; flagOn?: boolean} = {}) {
     const {currentChannelId = '', flagOn = true} = overrides;
@@ -45,11 +46,13 @@ function makeState(overrides: {currentChannelId?: string; flagOn?: boolean} = {}
                     [openChannel.id]: openChannel,
                     [deniedChannel.id]: deniedChannel,
                     [dm.id]: dm,
+                    [archived.id]: archived,
                 },
                 myMembers: {
                     [openChannel.id]: {channel_id: openChannel.id, user_id: 'user1'},
                     [deniedChannel.id]: {channel_id: deniedChannel.id, user_id: 'user1'},
                     [dm.id]: {channel_id: dm.id, user_id: 'user1'},
+                    [archived.id]: {channel_id: archived.id, user_id: 'user1'},
                 },
             },
         },
@@ -125,6 +128,16 @@ describe('reconcileChannelAccess', () => {
         await reconcileChannelAccess()(dispatch, makeState({currentChannelId: openChannel.id}), undefined);
 
         expect(openModal).not.toHaveBeenCalled();
+    });
+
+    // The channel list omits archived channels regardless of policy, so their absence
+    // is not a denial.
+    it('never drops an archived channel', async () => {
+        (fetchAllMyTeamsChannels as jest.Mock).mockReturnValue(async () => ({data: [openChannel, deniedChannel, dm]}));
+
+        await reconcileChannelAccess()(dispatch, makeState(), undefined);
+
+        expect(droppedIds(dispatch)).toEqual([]);
     });
 
     it('does nothing at all while the feature flag is off', async () => {
