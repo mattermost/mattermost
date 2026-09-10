@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
-import {defineMessages, useIntl} from 'react-intl';
+import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
@@ -22,20 +22,9 @@ import {
 import './attribute_graph_delete_modal.scss';
 
 export type GraphNodeDeleteViewModel =
-    | {
-        variant: 'blocked';
-        optionName: string;
-        orphans: string[];
-        notAffected: Array<{name: string; remainingParents: string[]}>;
-        firstOrphan: string;
-    } |
-    {
-        variant: 'safe';
-        optionName: string;
-        descendantCount: number;
-        accessRemoved: Array<{target: string; parentsThatLost: string[]}>;
-        staysReachable: Array<{child: string; remainingParents: string[]}>;
-    };
+    | {variant: 'direct'; optionName: string} |
+    {variant: 'blocked'; optionName: string; orphanCount: number; firstOrphan: string} |
+    {variant: 'safe'; optionName: string; survivingChildren: string[]};
 
 type Props = {
     optionName: string;
@@ -44,87 +33,8 @@ type Props = {
     onExited: () => void;
 };
 
-// GenericModal only renders a Cancel button when handleCancel is supplied, and
-// cancelling needs no side effect here beyond closing — same shape as
-// global_attribute_delete_modal.
+// GenericModal only shows Cancel when handleCancel is set.
 const noop = () => {};
-
-function quotedOxfordJoin(names: string[]): string {
-    return oxfordJoinNames(names.map((name) => `"${name}"`));
-}
-
-function reachableNames(options: PropertyFieldOption[], start: string): Set<string> {
-    const children = new Map<string, string[]>();
-    for (const option of options) {
-        for (const parentName of option.parents ?? []) {
-            const list = children.get(parentName);
-            if (list) {
-                list.push(option.name);
-            } else {
-                children.set(parentName, [option.name]);
-            }
-        }
-    }
-    const reached = new Set<string>();
-    const pending = [start];
-    while (pending.length > 0) {
-        const node = pending.pop() as string;
-        if (reached.has(node)) {
-            continue;
-        }
-        reached.add(node);
-        for (const child of children.get(node) ?? []) {
-            pending.push(child);
-        }
-    }
-    return reached;
-}
-
-function buildAccessRemovedLines(
-    before: PropertyFieldOption[],
-    after: PropertyFieldOption[],
-): Array<{target: string; parentsThatLost: string[]}> {
-    const lostByParent = new Map<string, Set<string>>();
-    for (const option of after) {
-        const lost = reachableNames(before, option.name);
-        for (const name of reachableNames(after, option.name)) {
-            lost.delete(name);
-        }
-        lost.delete(option.name);
-        lostByParent.set(option.name, lost);
-    }
-
-    const lines: Array<{target: string; parentsThatLost: string[]}> = [];
-    for (const target of before) {
-        const parentsThatLost: string[] = [];
-        for (const option of after) {
-            if (lostByParent.get(option.name)?.has(target.name)) {
-                parentsThatLost.push(option.name);
-            }
-        }
-        if (parentsThatLost.length > 0) {
-            lines.push({target: target.name, parentsThatLost});
-        }
-    }
-    return lines;
-}
-
-function buildStaysReachableLines(
-    directChildren: PropertyFieldOption[],
-    after: PropertyFieldOption[],
-    deletedName: string,
-): Array<{child: string; remainingParents: string[]}> {
-    const lines: Array<{child: string; remainingParents: string[]}> = [];
-    for (const child of directChildren) {
-        const afterChild = after.find((option) => option.name === child.name);
-        const remainingParents = (afterChild?.parents ?? []).filter((parent) => parent !== deletedName);
-        if (remainingParents.length === 0) {
-            continue;
-        }
-        lines.push({child: child.name, remainingParents});
-    }
-    return lines;
-}
 
 export function buildGraphNodeDeleteViewModel(
     options: PropertyFieldOption[],
@@ -135,104 +45,51 @@ export function buildGraphNodeDeleteViewModel(
     }
 
     const orphans = findOrphansAfterDelete(options, optionName);
-    const directChildren = getChildren(options, optionName);
-
     if (orphans.length > 0) {
-        const orphanNames = new Set(orphans.map((orphan) => orphan.name));
-        const notAffected = directChildren.
-            filter((child) => !orphanNames.has(child.name)).
-            map((child) => ({
-                name: child.name,
-                remainingParents: (child.parents ?? []).filter((parent) => parent !== optionName),
-            }));
         return {
             variant: 'blocked',
             optionName,
-            orphans: orphans.map((orphan) => orphan.name),
-            notAffected,
+            orphanCount: orphans.length,
             firstOrphan: orphans[0].name,
         };
     }
 
-    const after = removeOption(options, optionName);
+    const directChildren = getChildren(options, optionName);
+    if (directChildren.length > 0) {
+        return {
+            variant: 'safe',
+            optionName,
+            survivingChildren: directChildren.map((child) => child.name),
+        };
+    }
 
-    return {
-        variant: 'safe',
-        optionName,
-        descendantCount: reachableNames(options, optionName).size - 1,
-        accessRemoved: buildAccessRemovedLines(options, after),
-        staysReachable: buildStaysReachableLines(directChildren, after, optionName),
-    };
+    return {variant: 'direct', optionName};
 }
 
 const messages = defineMessages({
     blockedTitle: {
         id: 'admin.global_attributes.attribute_details.graph.delete.blocked.title',
-        defaultMessage: '{count, plural, one {Move one value first} other {Move {count} values first}}',
+        defaultMessage: "Can't delete {name}",
     },
     blockedLead: {
         id: 'admin.global_attributes.attribute_details.graph.delete.blocked.lead',
-        defaultMessage: '{count, plural, one {Deleting "{name}" would leave {orphans} with no parent. Move it under something else first.} other {Deleting "{name}" would leave {orphans} with no parent. Move them under something else first.}}',
-    },
-    wouldBeLeftHeading: {
-        id: 'admin.global_attributes.attribute_details.graph.delete.blocked.would_be_left',
-        defaultMessage: 'Would be left with no parent',
-    },
-    onlyParent: {
-        id: 'admin.global_attributes.attribute_details.graph.delete.blocked.only_parent',
-        defaultMessage: '"{name}" is its only parent',
-    },
-    notAffectedHeading: {
-        id: 'admin.global_attributes.attribute_details.graph.delete.blocked.not_affected',
-        defaultMessage: 'Not affected',
-    },
-    notAffectedItem: {
-        id: 'admin.global_attributes.attribute_details.graph.delete.blocked.not_affected.item',
-        defaultMessage: '"{name}" is not affected — it also sits under {parents}.',
-    },
-    notAffectedHelper: {
-        id: 'admin.global_attributes.attribute_details.graph.delete.blocked.not_affected.helper',
-        defaultMessage: 'A value with another parent stays in the list, so it never blocks a delete.',
+        defaultMessage: "{count, plural, one {Child values need a parent. {name} is the only parent of 1 child value, so it can't be deleted until that child is moved or deleted.} other {Child values need a parent. {name} is the only parent of {count} child values, so it can't be deleted until those children are moved or deleted.}}",
     },
     goToOrphan: {
         id: 'admin.global_attributes.attribute_details.graph.delete.blocked.go_to',
-        defaultMessage: 'Go to "{name}"',
+        defaultMessage: 'Go to {name}',
     },
     safeTitle: {
         id: 'admin.global_attributes.attribute_details.graph.delete.safe.title',
-        defaultMessage: 'Delete "{name}"?',
+        defaultMessage: 'Delete {name}?',
     },
-    safeSubtitle: {
-        id: 'admin.global_attributes.attribute_details.graph.delete.safe.subtitle',
-        defaultMessage: 'This removes access, not just a row',
-    },
-    safeLeadNone: {
-        id: 'admin.global_attributes.attribute_details.graph.delete.safe.lead.none',
-        defaultMessage: '"{name}" grants access to nothing else, so deleting it only removes the value itself.',
-    },
-    safeLeadSome: {
-        id: 'admin.global_attributes.attribute_details.graph.delete.safe.lead.some',
-        defaultMessage: '{count, plural, one {"{name}" grants access to 1 value. Deleting it removes those routes.} other {"{name}" grants access to {count} values. Deleting it removes those routes.}}',
-    },
-    accessRemovedHeading: {
-        id: 'admin.global_attributes.attribute_details.graph.delete.safe.access_removed',
-        defaultMessage: 'Access removed',
-    },
-    accessRemovedItem: {
-        id: 'admin.global_attributes.attribute_details.graph.delete.safe.access_removed.item',
-        defaultMessage: 'Holders of {parents} can no longer reach "{target}".',
-    },
-    staysReachableHeading: {
-        id: 'admin.global_attributes.attribute_details.graph.delete.safe.stays_reachable',
-        defaultMessage: 'Stays reachable',
-    },
-    staysReachableItem: {
-        id: 'admin.global_attributes.attribute_details.graph.delete.safe.stays_reachable.item',
-        defaultMessage: '"{child}" stays under {parents}.',
+    safeLead: {
+        id: 'admin.global_attributes.attribute_details.graph.delete.safe.lead',
+        defaultMessage: '{count, plural, one {1 child ({children}) of this value has other parent values, so it will not be removed. Are you sure you want to delete {name}?} other {{count} children ({children}) of this value have other parent values, so they will not be removed. Are you sure you want to delete {name}?}}',
     },
     deleteValue: {
         id: 'admin.global_attributes.attribute_details.graph.delete.safe.confirm',
-        defaultMessage: 'Delete the value',
+        defaultMessage: 'Delete',
     },
 });
 
@@ -246,6 +103,11 @@ export function useGraphNodeDelete(
     return useCallback((optionName: string) => {
         const model = buildGraphNodeDeleteViewModel(options, optionName);
         if (!model) {
+            return;
+        }
+
+        if (model.variant === 'direct') {
+            onOptionsChange(removeOption(options, optionName));
             return;
         }
 
@@ -282,11 +144,13 @@ function AttributeGraphDeleteModal({optionName, options, onConfirm, onExited}: P
     }
 
     switch (model.variant) {
+    case 'direct':
+        return null;
     case 'blocked':
         return (
             <GenericModal
                 compassDesign={true}
-                modalHeaderText={formatMessage(messages.blockedTitle, {count: model.orphans.length})}
+                modalHeaderText={formatMessage(messages.blockedTitle, {name: model.optionName})}
                 confirmButtonText={formatMessage(messages.goToOrphan, {name: model.firstOrphan})}
                 handleCancel={noop}
                 handleConfirm={onConfirm}
@@ -295,53 +159,14 @@ function AttributeGraphDeleteModal({optionName, options, onConfirm, onExited}: P
             >
                 <div className='attribute-graph-delete-modal'>
                     <p>
-                        {formatMessage(messages.blockedLead, {
-                            count: model.orphans.length,
-                            name: model.optionName,
-                            orphans: quotedOxfordJoin(model.orphans),
-                        })}
+                        <FormattedMessage
+                            {...messages.blockedLead}
+                            values={{
+                                count: model.orphanCount,
+                                name: <strong>{model.optionName}</strong>,
+                            }}
+                        />
                     </p>
-                    <p className='attribute-graph-delete-modal__heading'>
-                        {formatMessage(messages.wouldBeLeftHeading)}
-                    </p>
-                    <ul className='attribute-graph-delete-modal__list'>
-                        {model.orphans.map((orphanName) => (
-                            <li
-                                key={orphanName}
-                                className='attribute-graph-delete-modal__item'
-                            >
-                                <span className='attribute-graph-delete-modal__item-name'>
-                                    {orphanName}
-                                </span>
-                                <span className='attribute-graph-delete-modal__item-secondary'>
-                                    {formatMessage(messages.onlyParent, {name: model.optionName})}
-                                </span>
-                            </li>
-                        ))}
-                    </ul>
-                    {model.notAffected.length > 0 && (
-                        <>
-                            <p className='attribute-graph-delete-modal__heading'>
-                                {formatMessage(messages.notAffectedHeading)}
-                            </p>
-                            <ul className='attribute-graph-delete-modal__list'>
-                                {model.notAffected.map((item) => (
-                                    <li
-                                        key={item.name}
-                                        className='attribute-graph-delete-modal__item'
-                                    >
-                                        {formatMessage(messages.notAffectedItem, {
-                                            name: item.name,
-                                            parents: quotedOxfordJoin(item.remainingParents),
-                                        })}
-                                    </li>
-                                ))}
-                            </ul>
-                            <p className='attribute-graph-delete-modal__helper'>
-                                {formatMessage(messages.notAffectedHelper)}
-                            </p>
-                        </>
-                    )}
                 </div>
             </GenericModal>
         );
@@ -350,7 +175,6 @@ function AttributeGraphDeleteModal({optionName, options, onConfirm, onExited}: P
             <GenericModal
                 compassDesign={true}
                 modalHeaderText={formatMessage(messages.safeTitle, {name: model.optionName})}
-                modalSubheaderText={formatMessage(messages.safeSubtitle)}
                 confirmButtonText={formatMessage(messages.deleteValue)}
                 confirmButtonVariant='destructive'
                 handleCancel={noop}
@@ -360,51 +184,15 @@ function AttributeGraphDeleteModal({optionName, options, onConfirm, onExited}: P
             >
                 <div className='attribute-graph-delete-modal'>
                     <p>
-                        {model.descendantCount === 0 ? formatMessage(messages.safeLeadNone, {name: model.optionName}) : formatMessage(messages.safeLeadSome, {
-                            count: model.descendantCount,
-                            name: model.optionName,
-                        })}
+                        <FormattedMessage
+                            {...messages.safeLead}
+                            values={{
+                                count: model.survivingChildren.length,
+                                children: oxfordJoinNames(model.survivingChildren),
+                                name: <strong>{model.optionName}</strong>,
+                            }}
+                        />
                     </p>
-                    {model.accessRemoved.length > 0 && (
-                        <>
-                            <p className='attribute-graph-delete-modal__heading'>
-                                {formatMessage(messages.accessRemovedHeading)}
-                            </p>
-                            <ul className='attribute-graph-delete-modal__list'>
-                                {model.accessRemoved.map((line) => (
-                                    <li
-                                        key={line.target}
-                                        className='attribute-graph-delete-modal__item'
-                                    >
-                                        {formatMessage(messages.accessRemovedItem, {
-                                            parents: quotedOxfordJoin(line.parentsThatLost),
-                                            target: line.target,
-                                        })}
-                                    </li>
-                                ))}
-                            </ul>
-                        </>
-                    )}
-                    {model.staysReachable.length > 0 && (
-                        <>
-                            <p className='attribute-graph-delete-modal__heading'>
-                                {formatMessage(messages.staysReachableHeading)}
-                            </p>
-                            <ul className='attribute-graph-delete-modal__list'>
-                                {model.staysReachable.map((line) => (
-                                    <li
-                                        key={line.child}
-                                        className='attribute-graph-delete-modal__item'
-                                    >
-                                        {formatMessage(messages.staysReachableItem, {
-                                            child: line.child,
-                                            parents: quotedOxfordJoin(line.remainingParents),
-                                        })}
-                                    </li>
-                                ))}
-                            </ul>
-                        </>
-                    )}
                 </div>
             </GenericModal>
         );

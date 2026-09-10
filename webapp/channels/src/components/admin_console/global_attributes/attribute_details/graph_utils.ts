@@ -90,6 +90,10 @@ function reachableDown(options: PropertyFieldOption[], start: string): Set<strin
     return reached;
 }
 
+export function countDescendants(options: PropertyFieldOption[], name: string): number {
+    return reachableDown(options, name).size - 1;
+}
+
 function longestChain(
     start: string,
     adjacency: Map<string, string[]>,
@@ -263,20 +267,28 @@ export function findNewlyReachableDescendants(
     return [...newly];
 }
 
-export type CheckParentEdgeResult =
-    | {ok: false; error: 'self'} |
+export type CheckParentEdgeInvalid =
+    {ok: false; error: 'self'} |
     {ok: false; error: 'cycle'} |
     {ok: false; error: 'depth'; depth: number} |
-    {ok: false; error: 'max-parents'} |
-    {ok: true; noOp: true} |
-    {ok: true; noOp?: false; newlyReachable: string[]; ancestorsOfParent: string[]};
+    {ok: false; error: 'max-parents'};
 
-export function checkParentEdge(
+export type CheckParentEdgeValidity =
+    CheckParentEdgeInvalid |
+    {ok: true; noOp: true} |
+    {ok: true};
+
+export type CheckParentEdgeResult =
+    CheckParentEdgeInvalid |
+    {ok: true; noOp: true} |
+    {ok: true; noOp?: false; newlyReachable: string[]};
+
+export function checkParentEdgeValidity(
     options: PropertyFieldOption[],
     childName: string,
     parentName: string,
     opts?: ParentEdgeOpts,
-): CheckParentEdgeResult {
+): CheckParentEdgeValidity {
     if (childName === parentName) {
         return {ok: false, error: 'self'};
     }
@@ -298,10 +310,22 @@ export function checkParentEdge(
         return {ok: false, error: 'max-parents'};
     }
 
+    return {ok: true};
+}
+
+export function checkParentEdge(
+    options: PropertyFieldOption[],
+    childName: string,
+    parentName: string,
+    opts?: ParentEdgeOpts,
+): CheckParentEdgeResult {
+    const result = checkParentEdgeValidity(options, childName, parentName, opts);
+    if (!result.ok || result.noOp) {
+        return result;
+    }
     return {
         ok: true,
         newlyReachable: findNewlyReachableDescendants(options, childName, parentName, opts),
-        ancestorsOfParent: findAncestors(options, parentName),
     };
 }
 

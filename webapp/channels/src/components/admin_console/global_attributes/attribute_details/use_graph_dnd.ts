@@ -185,7 +185,6 @@ export async function handleMissedNativeGraphRowDrop(args: {
         return;
     }
 
-    // Legal reparents require a native drop so Escape/cancel cannot mutate.
     if (canReparentGraphRow(args.sourceData, target, args.options)) {
         return;
     }
@@ -275,8 +274,6 @@ export function useGraphRowDnd({
                     });
                 },
                 onDrop: ({source, location}) => {
-                    // Native `drop` notifies the row target. dragend-without-drop
-                    // goes through PDND cancel() which has already cleared dropTargets.
                     if (location.current.dropTargets.length > 0) {
                         return;
                     }

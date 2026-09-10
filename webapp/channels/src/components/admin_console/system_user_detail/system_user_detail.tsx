@@ -82,10 +82,7 @@ const CPAMultiSelect: React.FC<CPAMultiSelectProps> = ({
         label: option.name,
     }));
 
-    // Branch on held ids, not on "is this id in the option list". A deleted
-    // option is still assigned; dropping it here removes the chip and, on the
-    // next onChange, silently shrinks the saved value. The id is the fallback
-    // label when the name no longer resolves.
+        // Keep assigned ids even when the option is gone; dropping them shrinks the saved value.
     const selectedOptions = selectedValues.map((selectedId) => {
         const option = options.find((opt) => opt.id === selectedId);
         return {value: selectedId, label: option?.name ?? selectedId};
@@ -196,9 +193,6 @@ const PluginDisplayName: React.FC<PluginDisplayNameProps> = ({pluginId}) => {
 type CpaFieldManagementIndicatorProps = {
     field: UserPropertyField;
 
-    // renderCpaField's own `omitLocksField`, passed in rather than re-derived.
-    // Describing a lock and deciding one are different jobs, and two copies of
-    // the predicate is how the flag-off parity break got into the plan.
     omitLocksField: boolean;
 };
 
@@ -298,9 +292,6 @@ const CpaFieldManagementIndicator: React.FC<CpaFieldManagementIndicatorProps> = 
         );
     }
 
-    // The graph picker pages the full option list itself, so an omitted graph
-    // field is editable and must not claim otherwise. Every other option-backed
-    // type still is not, and neither is a graph field with no picker to page it.
     if (omitLocksField) {
         return (
             <div className='user-property-field-values__sync-indicator'>
@@ -338,9 +329,6 @@ export type State = {
     customProfileAttributeErrors: Record<string, string | undefined>;
     originalCpaValues: Record<string, string | string[]>;
 
-    // id -> name for graph option ids the picker's fetch resolved, keyed by
-    // field id. The only place a name for an omitted field's value exists
-    // outside the picker, and the reason the change summary can avoid ids.
     graphOptionNames: Record<string, Record<string, string>>;
     isLoading: boolean;
     error: string | null;
@@ -550,14 +538,9 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
         const options = field.attrs?.options || [];
         if (valueRefersToOptions(field)) {
-            // An omitted field inlines no options, so the picker's fetch is the
-            // only source of a name for one of its values.
             const resolved = this.state.graphOptionNames[field.id];
 
             if (!Array.isArray(value)) {
-                // Select: resolve single ID to its name. The name cache is not
-                // consulted -- only a graph picker writes it, and a graph value
-                // is always an array -- so a scalar can never be found there.
                 const option = options.find((opt) => opt.id === value);
                 return option ? option.name : value;
             }
@@ -578,32 +561,11 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     return name;
                 }
 
-                // Two different reasons a graph id has no name, and the picker
-                // shows them differently, so this summary has to as well or it
-                // contradicts the chips a few pixels away.
-                //
-                // No entry for the field means no read succeeded -- the picker
-                // reports an empty map on success precisely so this case is
-                // distinguishable -- and nothing whatever is known about the id.
-                // The chip reads "Value unavailable"; so does this, from the
-                // widget's own descriptor rather than a second copy of the
-                // string, because two literals for one message drift.
-                //
-                // Gated on the field being a mounted graph picker, because a
-                // missing entry only means a failed read where something was
-                // supposed to write one. This branch is shared with multiselect
-                // and rank, and with graph itself when the flag is off, and in
-                // all of those no picker ever mounts: the absence means "no read
-                // was attempted", which is the stale case below, not a failure.
+                // No field entry means no successful read (picker reports {} on success).
                 if (!resolved && field.type === 'graph' && this.props.isGraphPickerEnabled) {
                     return this.props.intl.formatMessage(unavailableValueMessage);
                 }
 
-                // An entry exists and this id is not in it: a read succeeded
-                // without mentioning the value, i.e. the option was deleted
-                // while it was still assigned. The chip deliberately shows the
-                // id here, because for a stale value the id is the only true
-                // thing left to say about it. Match that, don't "improve" it.
                 return id;
             });
             return names.join(this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.arrayValueSeparator', defaultMessage: ', '}));
@@ -840,8 +802,6 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         const isProtected = Boolean(field.attrs?.protected);
         const optionsOmitted = Boolean(field.attrs?.options_omitted);
 
-        // Only a graph field can page past an omitted option list, and only when
-        // the picker is actually available to do it.
         const omitLocksField = optionsOmitted && !(field.type === 'graph' && this.props.isGraphPickerEnabled);
         const isLockedFromEditing = isSynced || isProtected || isOwnerManaged || omitLocksField;
         const isDisabled = this.state.isSaving || this.state.isLoading || isLockedFromEditing;

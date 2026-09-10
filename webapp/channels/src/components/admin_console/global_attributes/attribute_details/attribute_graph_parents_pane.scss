@@ -58,32 +58,43 @@
     .attribute-graph-parents-pane__row {
         display: flex;
         width: 100%;
-        align-items: flex-start;
-        padding: 4px 16px;
-        gap: 8px;
+        flex-direction: column;
+        padding: 6px 16px;
+        gap: 4px;
         text-align: left;
         transition: background-color 0.15s ease;
 
-        &:hover {
+        &:hover:not(.attribute-graph-parents-pane__row--confirming) {
             background: rgba(var(--center-channel-color-rgb), 0.08);
         }
+    }
+
+    .attribute-graph-parents-pane__row--confirming {
+        background: color-mix(in srgb, var(--warning-text) 8%, transparent);
+    }
+
+    .attribute-graph-parents-pane__row-top {
+        display: flex;
+        width: 100%;
+        min-height: 32px;
+        align-items: center;
+        gap: 8px;
     }
 
     .attribute-graph-parents-pane__row-label {
         min-width: 0;
         flex: 1;
-        padding-top: 1px;
         color: var(--center-channel-color);
         font-size: 14px;
-        font-weight: 600;
+        font-weight: 400;
         line-height: 20px;
         overflow-wrap: anywhere;
     }
 
     .attribute-graph-parents-pane__row-remove {
         display: inline-flex;
-        width: 20px;
-        height: 20px;
+        width: 24px;
+        height: 24px;
         flex-shrink: 0;
         align-items: center;
         justify-content: center;
@@ -103,6 +114,28 @@
             outline: 2px solid rgba(var(--button-bg-rgb), 0.72);
             outline-offset: 1px;
         }
+    }
+
+    .attribute-graph-parents-pane__confirm {
+        display: flex;
+        flex-direction: column;
+        padding: 8px 10px;
+        border-radius: 4px;
+        background: color-mix(in srgb, var(--warning-text) 8%, transparent);
+        gap: 6px;
+    }
+
+    .attribute-graph-parents-pane__confirm-text {
+        margin: 0;
+        color: var(--center-channel-color);
+        font-size: 12px;
+        line-height: 17px;
+    }
+
+    .attribute-graph-parents-pane__confirm-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
     }
 
     .attribute-graph-parents-pane__empty {

@@ -18,15 +18,12 @@ jest.mock('actions/views/modals', () => ({
 const displayProps = {
     parentName: 'Operation Aurora',
     childName: 'Raptor Flight',
-    newlyReachable: ['Mission Casper'],
-    ancestorsOfParent: ['Joint Command'],
 };
 
 const grantReq: GrantConfirmRequest = {
     parentName: 'Operation Aurora',
     childName: 'Raptor Flight',
     newlyReachable: ['Mission Casper'],
-    ancestorsOfParent: ['Joint Command'],
 };
 
 describe('AttributeGraphGrantConfirmModal', () => {
@@ -42,60 +39,23 @@ describe('AttributeGraphGrantConfirmModal', () => {
         return props;
     };
 
-    it('renders locked grant-framed chrome', () => {
+    it('renders the grant-confirm prototype chrome', () => {
         renderModal();
 
-        expect(screen.getByRole('heading', {name: 'Confirm this grant'})).toBeInTheDocument();
-        expect(screen.getByText('Operation Aurora → Raptor Flight')).toBeInTheDocument();
-        expect(screen.getByText('Adding this means everyone who holds "Operation Aurora" can reach every channel marked "Raptor Flight".')).toBeInTheDocument();
-        expect(screen.getByText('Anyone holding "Operation Aurora" also gets "Raptor Flight".')).toBeInTheDocument();
-        expect(screen.getByText('1 value becomes newly reachable')).toBeInTheDocument();
-
-        const list = screen.getByTestId('attributeGraphGrantConfirm__newlyReachable');
-        expect(list).toHaveTextContent('Mission Casper');
-        expect(list).not.toHaveTextContent('Raptor Flight');
-
-        expect(screen.getByRole('button', {name: /^add the parent$/i})).toBeInTheDocument();
+        expect(screen.getByRole('heading', {name: 'Add Operation Aurora as a parent?'})).toBeInTheDocument();
+        expect(screen.getByText((_, element) => (
+            element?.tagName === 'P' &&
+            element.textContent === 'Raptor Flight and all of its child values will also sit under Operation Aurora. Are you sure you want to add this parent?'
+        ))).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: /^add$/i})).toBeInTheDocument();
         expect(screen.getByRole('button', {name: /cancel/i})).toBeInTheDocument();
-    });
 
-    it('uses the plural newly-reachable title for N values', () => {
-        renderModal({newlyReachable: ['Mission Casper', 'Talon Flight']});
-
-        expect(screen.getByText('2 values become newly reachable')).toBeInTheDocument();
-        const list = screen.getByTestId('attributeGraphGrantConfirm__newlyReachable');
-        expect(list).toHaveTextContent('Mission Casper');
-        expect(list).toHaveTextContent('Talon Flight');
-    });
-
-    it('lists named descendants rather than a count-only body', () => {
-        renderModal({newlyReachable: ['Mission Casper', 'Talon Flight']});
-
-        const items = screen.getAllByRole('listitem');
-        expect(items.map((item) => item.textContent)).toEqual(['Mission Casper', 'Talon Flight']);
-    });
-
-    it('shows the ancestor hint when ancestorsOfParent is non-empty', () => {
-        renderModal();
-
-        expect(screen.getByTestId('attributeGraphGrantConfirm__ancestorHint')).toHaveTextContent(
-            'Everything above "Operation Aurora" inherits the same reach: "Joint Command".',
-        );
-    });
-
-    it('joins multiple ancestors with oxfordJoinNames', () => {
-        renderModal({ancestorsOfParent: ['Joint Command', 'Fleet']});
-
-        expect(screen.getByTestId('attributeGraphGrantConfirm__ancestorHint')).toHaveTextContent(
-            'Everything above "Operation Aurora" inherits the same reach: "Joint Command" and "Fleet".',
-        );
-    });
-
-    it('omits the ancestor hint when ancestorsOfParent is empty', () => {
-        renderModal({ancestorsOfParent: []});
-
+        expect(screen.queryByText('Operation Aurora → Raptor Flight')).not.toBeInTheDocument();
+        expect(screen.queryByText('Confirm this grant')).not.toBeInTheDocument();
+        expect(screen.queryByText('Add the parent')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('attributeGraphGrantConfirm__newlyReachable')).not.toBeInTheDocument();
         expect(screen.queryByTestId('attributeGraphGrantConfirm__ancestorHint')).not.toBeInTheDocument();
-        expect(screen.queryByText(/inherits the same reach/i)).not.toBeInTheDocument();
+        expect(screen.queryByRole('list')).not.toBeInTheDocument();
     });
 
     it('omits parent-framed and create-only copy', () => {
@@ -111,15 +71,16 @@ describe('AttributeGraphGrantConfirmModal', () => {
     it('keeps the primary button non-destructive', () => {
         renderModal();
 
-        const confirm = screen.getByRole('button', {name: /^add the parent$/i});
+        const confirm = screen.getByRole('button', {name: /^add$/i});
         expect(confirm).toHaveClass('confirm');
         expect(confirm).not.toHaveClass('delete');
+        expect(confirm).not.toHaveClass('btn-danger');
     });
 
-    it('invokes onConfirm when Add the parent is clicked', async () => {
+    it('invokes onConfirm when Add is clicked', async () => {
         const props = renderModal();
 
-        await userEvent.click(screen.getByRole('button', {name: /^add the parent$/i}));
+        await userEvent.click(screen.getByRole('button', {name: /^add$/i}));
 
         expect(props.onConfirm).toHaveBeenCalledTimes(1);
         expect(props.onCancel).not.toHaveBeenCalled();
@@ -152,13 +113,13 @@ describe('useGrantConfirm', () => {
             dialogProps: {
                 parentName: 'Operation Aurora',
                 childName: 'Raptor Flight',
-                newlyReachable: ['Mission Casper'],
-                ancestorsOfParent: ['Joint Command'],
                 onConfirm: expect.any(Function),
                 onCancel: expect.any(Function),
                 onExited: expect.any(Function),
             },
         });
+        expect((openModal as jest.Mock).mock.calls[0][0].dialogProps).not.toHaveProperty('ancestorsOfParent');
+        expect((openModal as jest.Mock).mock.calls[0][0].dialogProps).not.toHaveProperty('newlyReachable');
     });
 
     it('does not open the modal when newlyReachable is empty and resolves true', async () => {

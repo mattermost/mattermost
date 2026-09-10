@@ -1560,8 +1560,8 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
         });
 
         /**
-         * @objective Ensure adding a second parent through the Parents pane asks Confirm this
-         * grant and, once confirmed, records both parent names.
+         * @objective Ensure adding a second parent through the Parents pane asks Add
+         * {parent} as a parent? and, once confirmed with Add, records both parent names.
          */
         test('confirms a parent grant from the Parents pane and records both parents', async ({pw}) => {
             const {adminUser, adminClient} = await requireHierarchicalAttributesEnabled(pw);
@@ -1595,14 +1595,17 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
                 await page.getByTestId('attributeGraphParentsPane__search').click();
                 await page.getByTestId('attributeGraphParentsPane__candidate-Maritime').click();
 
-                await expect(page.getByRole('heading', {name: 'Confirm this grant'})).toBeVisible();
-                await expect(page.getByTestId('attributeGraphGrantConfirm__newlyReachable')).toContainText('Fighter');
-
-                // The row menu sits above the grant modal; dismiss it before confirming.
-                await page.keyboard.press('Escape');
+                await expect(page.getByTestId('attributeGraphGrantConfirmModal')).toBeVisible();
+                await expect(page.getByRole('heading', {name: 'Add Maritime as a parent?'})).toBeVisible();
+                await expect(
+                    page.getByText(
+                        'Air and all of its child values will also sit under Maritime. Are you sure you want to add this parent?',
+                    ),
+                ).toBeVisible();
                 await expect(page.getByRole('menu', {name: 'Edit Air'})).toHaveCount(0);
+                await expect(page.locator('#backdropForMenuComponent')).toHaveCount(0);
 
-                await page.getByRole('button', {name: /^add the parent$/i}).click();
+                await page.getByTestId('attributeGraphGrantConfirmModal').getByRole('button', {name: /^add$/i}).click();
 
                 // * Air now sits under Maritime as well as at the root of Fighter
                 await expect(graphRow(page, 'Air', 'Maritime')).toBeVisible();
@@ -1624,8 +1627,9 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
         });
 
         /**
-         * @objective Ensure Delete this value blocks when it would orphan a child, then
-         * allows deleting the leaf and saving the remaining root.
+         * @objective Ensure Delete this value blocks when it would orphan a child
+         * (Can't delete {name} + Go to first orphan), then deletes the leaf immediately
+         * and saves the remaining root.
          */
         test('blocks deleting a parent that would orphan a child, then deletes the leaf', async ({pw}) => {
             const {adminUser, adminClient} = await requireHierarchicalAttributesEnabled(pw);
@@ -1652,18 +1656,19 @@ test.describe('System Console - Global Attributes', {tag: '@system_console'}, ()
 
                 // # Delete Air — blocked because Fighter would be orphaned
                 await openGraphRowDelete(page, 'Air');
-                await expect(page.getByRole('heading', {name: 'Move one value first'})).toBeVisible();
-                await expect(page.getByText(/would leave "Fighter" with no parent/)).toBeVisible();
-                await page.getByRole('button', {name: 'Go to "Fighter"'}).click();
+                await expect(page.getByRole('heading', {name: "Can't delete Air"})).toBeVisible();
+                await expect(
+                    page.getByText(/Child values need a parent\. Air is the only parent of 1 child value/),
+                ).toBeVisible();
+                await page.getByRole('button', {name: 'Go to Fighter'}).click();
 
-                // * Air and Fighter are both still on the canvas
+                // * Air and Fighter are both still on the canvas, and Go to flashes Fighter
                 await expect(graphRow(page, 'Air')).toBeVisible();
                 await expect(graphRow(page, 'Fighter', 'Air')).toBeVisible();
+                await expect(graphRow(page, 'Fighter', 'Air')).toHaveClass(/attribute-options-graph-values__row--highlight/);
 
-                // # Delete the leaf instead
+                // # Delete the leaf — no confirm; the row is removed immediately
                 await openGraphRowDelete(page, 'Fighter', 'Air');
-                await expect(page.getByRole('heading', {name: 'Delete "Fighter"?'})).toBeVisible();
-                await page.getByRole('button', {name: 'Delete the value'}).click();
 
                 await expect(graphRow(page, 'Fighter', 'Air')).toHaveCount(0);
                 await expect(graphRow(page, 'Air')).toBeVisible();

@@ -61,6 +61,12 @@ const safeDeleteXOptions = [
     opt('Shared', ['X', 'Keep']),
 ];
 
+function getDeleteModalBody() {
+    const paragraph = screen.getByTestId('attributeGraphDeleteModal').querySelector('p');
+    expect(paragraph).not.toBeNull();
+    return paragraph!;
+}
+
 describe('buildGraphNodeDeleteViewModel', () => {
     it('returns null for an unknown name', () => {
         expect(buildGraphNodeDeleteViewModel([opt('A')], 'Nope')).toBeNull();
@@ -70,9 +76,17 @@ describe('buildGraphNodeDeleteViewModel', () => {
         expect(buildGraphNodeDeleteViewModel(blockedOptions, 'X')).toEqual({
             variant: 'blocked',
             optionName: 'X',
-            orphans: ['Orphan'],
-            notAffected: [{name: 'Shared', remainingParents: ['Keep']}],
+            orphanCount: 1,
             firstOrphan: 'Orphan',
+        });
+    });
+
+    it('returns blocked for two exclusive children in options-array order', () => {
+        expect(buildGraphNodeDeleteViewModel(twoExclusiveChildren, 'X')).toEqual({
+            variant: 'blocked',
+            optionName: 'X',
+            orphanCount: 2,
+            firstOrphan: 'A',
         });
     });
 
@@ -80,32 +94,37 @@ describe('buildGraphNodeDeleteViewModel', () => {
         expect(buildGraphNodeDeleteViewModel(diamondOptions, 'B')).toEqual({
             variant: 'safe',
             optionName: 'B',
-            descendantCount: 1,
-            accessRemoved: [
-                {target: 'B', parentsThatLost: ['A']},
-                {target: 'C', parentsThatLost: ['A']},
-            ],
-            staysReachable: [{child: 'C', remainingParents: ['D']}],
+            survivingChildren: ['C'],
         });
     });
 
-    it('returns descendantCount 0 for a leaf with one access-removed line', () => {
-        expect(buildGraphNodeDeleteViewModel(leafOptions, 'B')).toEqual({
+    it('returns safe when the only children still have another parent', () => {
+        expect(buildGraphNodeDeleteViewModel(safeDeleteXOptions, 'X')).toEqual({
+            variant: 'safe',
+            optionName: 'X',
+            survivingChildren: ['Shared'],
+        });
+    });
+
+    it('returns safe with two surviving children in options-array order', () => {
+        expect(buildGraphNodeDeleteViewModel(twoDescendants, 'B')).toEqual({
             variant: 'safe',
             optionName: 'B',
-            descendantCount: 0,
-            accessRemoved: [{target: 'B', parentsThatLost: ['A']}],
-            staysReachable: [],
+            survivingChildren: ['C', 'E'],
         });
     });
 
-    it('returns empty sections when deleting an isolated root', () => {
+    it('returns direct for a leaf with a parent', () => {
+        expect(buildGraphNodeDeleteViewModel(leafOptions, 'B')).toEqual({
+            variant: 'direct',
+            optionName: 'B',
+        });
+    });
+
+    it('returns direct for an isolated root', () => {
         expect(buildGraphNodeDeleteViewModel([opt('Only')], 'Only')).toEqual({
-            variant: 'safe',
+            variant: 'direct',
             optionName: 'Only',
-            descendantCount: 0,
-            accessRemoved: [],
-            staysReachable: [],
         });
     });
 });
@@ -122,33 +141,28 @@ describe('AttributeGraphDeleteModal blocked', () => {
         return props;
     };
 
-    it('shows the singular move-first title and lead', () => {
+    it('shows the singular can\'t-delete title and lead', () => {
         renderBlocked();
 
-        expect(screen.getByRole('heading', {name: 'Move one value first'})).toBeInTheDocument();
-        expect(screen.getByText('Deleting "X" would leave "Orphan" with no parent. Move it under something else first.')).toBeInTheDocument();
+        expect(screen.getByRole('heading', {name: "Can't delete X"})).toBeInTheDocument();
+        expect(getDeleteModalBody()).toHaveTextContent(
+            "Child values need a parent. X is the only parent of 1 child value, so it can't be deleted until that child is moved or deleted.",
+        );
     });
 
-    it('lists orphans under Would be left with no parent', () => {
+    it('does not show leftover list or not-affected copy', () => {
         renderBlocked();
 
-        expect(screen.getByText('Would be left with no parent')).toBeInTheDocument();
-        expect(screen.getByText('Orphan')).toBeInTheDocument();
-        expect(screen.getByText('"X" is its only parent')).toBeInTheDocument();
-    });
-
-    it('shows Not affected when a sibling still has another parent', () => {
-        renderBlocked();
-
-        expect(screen.getByText('Not affected')).toBeInTheDocument();
-        expect(screen.getByText('"Shared" is not affected — it also sits under "Keep".')).toBeInTheDocument();
-        expect(screen.getByText('A value with another parent stays in the list, so it never blocks a delete.')).toBeInTheDocument();
+        expect(screen.queryByText('Would be left with no parent')).not.toBeInTheDocument();
+        expect(screen.queryByText('Not affected')).not.toBeInTheDocument();
+        expect(screen.queryByText(/is its only parent/)).not.toBeInTheDocument();
+        expect(screen.queryByRole('list')).not.toBeInTheDocument();
     });
 
     it('uses a non-destructive Go to primary that calls onConfirm', async () => {
         const props = renderBlocked();
 
-        const goTo = screen.getByRole('button', {name: 'Go to "Orphan"'});
+        const goTo = screen.getByRole('button', {name: 'Go to Orphan'});
         expect(goTo).not.toHaveClass('delete');
         expect(goTo).not.toHaveClass('btn-danger');
 
@@ -165,12 +179,14 @@ describe('AttributeGraphDeleteModal blocked', () => {
         expect(props.onConfirm).not.toHaveBeenCalled();
     });
 
-    it('uses plural title, Move them, and the first orphan for Go to', () => {
+    it('uses can\'t-delete title, 2 child values, and Go to A', () => {
         renderBlocked(twoExclusiveChildren, 'X');
 
-        expect(screen.getByRole('heading', {name: 'Move 2 values first'})).toBeInTheDocument();
-        expect(screen.getByText('Deleting "X" would leave "A" and "B" with no parent. Move them under something else first.')).toBeInTheDocument();
-        expect(screen.getByRole('button', {name: 'Go to "A"'})).toBeInTheDocument();
+        expect(screen.getByRole('heading', {name: "Can't delete X"})).toBeInTheDocument();
+        expect(getDeleteModalBody()).toHaveTextContent(
+            "Child values need a parent. X is the only parent of 2 child values, so it can't be deleted until those children are moved or deleted.",
+        );
+        expect(screen.getByRole('button', {name: 'Go to A'})).toBeInTheDocument();
         expect(screen.queryByText('Not affected')).not.toBeInTheDocument();
     });
 
@@ -195,41 +211,50 @@ describe('AttributeGraphDeleteModal safe', () => {
         return props;
     };
 
-    it('shows the nothing-else lead and a destructive confirm for a leaf', async () => {
-        const props = renderSafe(leafOptions, 'B');
+    it('returns null for a leaf that is now a direct delete', () => {
+        renderSafe(leafOptions, 'B');
 
-        expect(screen.getByRole('heading', {name: 'Delete "B"?'})).toBeInTheDocument();
-        expect(screen.getByText('This removes access, not just a row')).toBeInTheDocument();
-        expect(screen.getByText('"B" grants access to nothing else, so deleting it only removes the value itself.')).toBeInTheDocument();
+        expect(screen.queryByTestId('attributeGraphDeleteModal')).not.toBeInTheDocument();
+        expect(screen.queryByRole('heading', {name: 'Delete B?'})).not.toBeInTheDocument();
+    });
 
-        const confirm = screen.getByRole('button', {name: 'Delete the value'});
+    it('shows Delete X? with no subtitle and the surviving-child lead', () => {
+        renderSafe(safeDeleteXOptions, 'X');
+
+        expect(screen.getByRole('heading', {name: 'Delete X?'})).toBeInTheDocument();
+        expect(screen.queryByText('This removes access, not just a row')).not.toBeInTheDocument();
+        expect(getDeleteModalBody()).toHaveTextContent(
+            '1 child (Shared) of this value has other parent values, so it will not be removed. Are you sure you want to delete X?',
+        );
+
+        const confirm = screen.getByRole('button', {name: 'Delete'});
         expect(confirm).toHaveClass('delete');
         expect(confirm).toHaveClass('btn-danger');
-
-        await userEvent.click(confirm);
-
-        expect(props.onConfirm).toHaveBeenCalledTimes(1);
     });
 
-    it('shows Access removed and Stays reachable for the diamond fixture', () => {
+    it('uses the singular surviving-child lead for the diamond fixture', () => {
         renderSafe(diamondOptions, 'B');
 
-        expect(screen.getByText('"B" grants access to 1 value. Deleting it removes those routes.')).toBeInTheDocument();
-        expect(screen.getByText('Access removed')).toBeInTheDocument();
-        expect(screen.getByText('Holders of "A" can no longer reach "B".')).toBeInTheDocument();
-        expect(screen.getByText('Holders of "A" can no longer reach "C".')).toBeInTheDocument();
-        expect(screen.getByText('Stays reachable')).toBeInTheDocument();
-        expect(screen.getByText('"C" stays under "D".')).toBeInTheDocument();
+        expect(screen.getByRole('heading', {name: 'Delete B?'})).toBeInTheDocument();
+        expect(getDeleteModalBody()).toHaveTextContent(
+            '1 child (C) of this value has other parent values, so it will not be removed. Are you sure you want to delete B?',
+        );
+        expect(screen.queryByText('Access removed')).not.toBeInTheDocument();
+        expect(screen.queryByText('Stays reachable')).not.toBeInTheDocument();
+        expect(screen.queryByText(/grants access to nothing else/)).not.toBeInTheDocument();
+        expect(screen.queryByRole('list')).not.toBeInTheDocument();
     });
 
-    it('uses the plural grants-access lead when there are two descendants', () => {
+    it('uses the plural surviving-children lead and oxfordJoinNames', () => {
         renderSafe(twoDescendants, 'B');
 
-        expect(screen.getByText('"B" grants access to 2 values. Deleting it removes those routes.')).toBeInTheDocument();
+        expect(getDeleteModalBody()).toHaveTextContent(
+            '2 children (C and E) of this value have other parent values, so they will not be removed. Are you sure you want to delete B?',
+        );
     });
 
     it('does not call onConfirm when Cancel is clicked', async () => {
-        const props = renderSafe(leafOptions, 'B');
+        const props = renderSafe(diamondOptions, 'B');
 
         await userEvent.click(screen.getByRole('button', {name: 'Cancel'}));
 
@@ -285,6 +310,32 @@ describe('useGraphNodeDelete', () => {
         result.current('Nope');
 
         expect(openModal).not.toHaveBeenCalled();
+        expect(onOptionsChange).not.toHaveBeenCalled();
+    });
+
+    it('deletes a leaf immediately without opening the modal', () => {
+        const {result} = renderHookWithContext(() =>
+            useGraphNodeDelete(leafOptions, onOptionsChange, onGoToOrphan),
+        );
+
+        result.current('B');
+
+        expect(openModal).not.toHaveBeenCalled();
+        expect(onOptionsChange).toHaveBeenCalledTimes(1);
+        expect(onOptionsChange).toHaveBeenCalledWith(removeOption(leafOptions, 'B'));
+    });
+
+    it('deletes an isolated root immediately without opening the modal', () => {
+        const isolated = [opt('Only')];
+        const {result} = renderHookWithContext(() =>
+            useGraphNodeDelete(isolated, onOptionsChange, onGoToOrphan),
+        );
+
+        result.current('Only');
+
+        expect(openModal).not.toHaveBeenCalled();
+        expect(onOptionsChange).toHaveBeenCalledTimes(1);
+        expect(onOptionsChange).toHaveBeenCalledWith(removeOption(isolated, 'Only'));
     });
 
     it('removes the option on safe confirm and does not Go to on exit', () => {

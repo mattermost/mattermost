@@ -102,64 +102,44 @@ export type HierarchicalValueMenuField = {
 };
 
 export type HierarchicalValueMenuProps = {
-
-    // The resolved field this menu reads. Never a template, never linked_field_id.
     field: HierarchicalValueMenuField;
 
-    // Selection is always by option id. A stale id with no option in the fetched
-    // set stays in here and stays emitted.
+    // Option ids. A stale id with no fetched option stays selected and emitted.
     selectedIds: string[];
     onSelectedIdsChange: (ids: string[]) => void;
 
-    // Fetch once on mount, closed, so chips can show names on first paint.
-    // Assignment-only: policy chips are already names.
+    // Fetch once on mount so chips can show names before the menu opens.
     prefetchOnMount?: boolean;
 
     disabled?: boolean;
 
-    // id -> last known name, for a selected id the fetch does not return.
+    // Last known name for a selected id the fetch does not return.
     fallbackLabels?: Record<string, string>;
 
-    // Fires with the join of every successful fetch, never on abort or error.
-    // Must be memoised by the caller: an unstable identity re-announces the
-    // current join on every render.
+    // Successful fetches only. Caller must memoise: an unstable identity re-announces every render.
     onOptionsLoaded?: (join: GraphOptionJoin) => void;
 
-    // Also fires once with `false` on mount, because Menu.Container does.
     onMenuOpenChange?: (open: boolean) => void;
 
-    // Must start with `value-selector-menu` at the policy call site: the
-    // Playwright spec locates the popup with [id^="value-selector-menu"].
+    // Policy rows must keep the `value-selector-menu` prefix for Playwright.
     menuId: string;
     buttonId: string;
-
-    // `valueSelectorMenuButton` at the policy call site.
     buttonDataTestId?: string;
 
     placeholder?: string;
-
-    // Accessible name for the trigger and the menu. Defaults to the placeholder.
     ariaLabel?: string;
 
     className?: string;
     buttonClassName?: string;
 
-    // Rendered after the chips inside the trigger. Phase 4 passes <MaskedChip/>.
     trailingChips?: ReactNode;
 
-    // Appended after the rows inside the <ul>. Must be an array rather than a
-    // fragment: MUI's MenuList console.errors on a Fragment child.
+    // Array, not a fragment: MenuList console.errors on Fragment children.
     extraMenuItems?: ReactNode[];
 };
 
 type ChipLabel = {
     text: string;
-
-    // named       -- text is the option's name, or the last name we knew for it.
-    // pending     -- nothing has been read yet; text is empty and the chip is a
-    //                skeleton.
-    // unavailable -- the read failed, so nothing at all is known about this id.
-    //                Not the same as pending: there is no walk to wait for.
     state: 'named' | 'pending' | 'unavailable';
 };
 
@@ -221,16 +201,9 @@ const SelectedValueChips = ({selectedIds, labelForId, disabled, onRemove, traili
                                 className='hierarchical-value-menu__chip-remove'
                                 role='button'
                                 tabIndex={0}
-
-                                // Named after what the control does, not after the
-                                // chip's state: this button removes the value in
-                                // every state, including while its name is still
-                                // being read.
                                 aria-label={state === 'named' ? formatMessage(messages.removeValue, {name: text}) : formatMessage(messages.removeUnnamedValue)}
 
-                                // Both handlers stop propagation because this control
-                                // lives inside the menu trigger button: without it,
-                                // removing a chip also opens the menu.
+                                // Inside the trigger: without stopPropagation, remove also opens the menu.
                                 onClick={(event) => {
                                     event.stopPropagation();
                                     event.preventDefault();
@@ -291,10 +264,8 @@ const HierarchicalMenuSearch = ({inputName, value, disabled, onChange, onArrowDo
                     event.stopPropagation();
                 }}
                 onKeyDown={(event) => {
-                    // Everything but Tab and Escape is swallowed here: the Popover
-                    // closes the menu on Space and Enter, and MUI's MenuList would
-                    // read arrows as row navigation. Those two have to get through
-                    // -- Tab for closeMenuOnTab, Escape for the Modal's own close.
+                    // Swallow Space/Enter/arrows so the Popover and MenuList do not steal them.
+                    // Tab and Escape still close the menu.
                     if (event.key !== 'Tab' && event.key !== 'Escape') {
                         event.stopPropagation();
                     }
@@ -332,8 +303,6 @@ const HierarchicalMenuStatus = ({kind, onRetry}: HierarchicalMenuStatusProps) =>
                         onRetry();
                     }}
                     onKeyDown={(event) => {
-                        // Space and Enter would otherwise reach the Popover, which
-                        // closes the menu on both.
                         if (event.key === 'Enter' || event.key === ' ') {
                             event.stopPropagation();
                         }
@@ -371,29 +340,20 @@ export default function HierarchicalValueMenu({
     const [query, setQuery] = useState('');
     const [expandedOccKeys, setExpandedOccKeys] = useState<Set<string> | null>(null);
 
-    // The fetched options and the tree built from them, as one state because they
-    // must never disagree. Holding the join here rather than deriving it means one
-    // walk per fetch instead of one for the render and another for the announce,
-    // and it means the caller is handed the very join this menu renders.
     const [loaded, setLoaded] = useState<{options: PropertyFieldOption[]; join: GraphOptionJoin} | null>(null);
     const [status, setStatus] = useState<'idle' | 'loading' | 'loaded' | 'error'>('idle');
     const [errorKind, setErrorKind] = useState<'fetch_failed' | 'missing_identity' | null>(null);
 
     const abortRef = useRef<AbortController | null>(null);
 
-    // Monotonic request id, belt-and-braces next to abort: the shared walk keeps
-    // running after we abort, and a co-caller can still deliver.
+    // Shared walks keep running after abort; ignore late results from a stale request.
     const seqRef = useRef(0);
 
-    // Menu.Container reports onToggle(false) once on mount; only a real close
-    // aborts and resets.
+    // Menu.Container reports onToggle(false) on mount; only a real close aborts.
     const wasOpenRef = useRef(false);
     const prefetchedRef = useRef(false);
     const searchInputRef = useRef<HTMLInputElement | null>(null);
     const rowRefs = useRef(new Map<string, HTMLLIElement>());
-
-    // Only ever set for a retryable status row, which is the one status row that
-    // may take focus.
     const statusRowRef = useRef<HTMLLIElement | null>(null);
 
     const selectedIdSet = useMemo(() => new Set(selectedIds), [selectedIds]);
@@ -422,23 +382,15 @@ export default function HierarchicalValueMenu({
             return {text: fallback, state: 'named'};
         }
 
-        // A read that failed says nothing about this id, so it is not stale and
-        // it is not loading either. An omitted-options assignment field supplies
-        // no fallbackLabels at all, so on a 403/404 this is the only branch its
-        // chips can reach -- and a raw identifier is never an acceptable chip.
         if (status === 'error') {
             return {text: formatMessage(messages.unavailableValue), state: 'unavailable'};
         }
 
-        // Nothing has been read yet, so the id is not known to be stale.
         if (status !== 'loaded') {
             return {text: '', state: 'pending'};
         }
 
-        // A successful read settled and this id is not in it. Keep the chip, keep
-        // the selection, keep emitting: a policy's rule must not shrink on its
-        // own. Only this branch may show the id, and only because for a stale
-        // policy name the id *is* the name.
+        // Successful read omitted this id: keep it selected. For a stale policy name the id is the name.
         return {text: id, state: 'named'};
     }, [join, fallbackLabels, status, formatMessage]);
 
@@ -449,9 +401,6 @@ export default function HierarchicalValueMenu({
         const seq = seqRef.current + 1;
         seqRef.current = seq;
 
-        // A plugin mount may hand us a field with neither. The pager answers []
-        // for that, which is indistinguishable from an empty graph, so the check
-        // happens here and the request is never made.
         if (!field.id || !field.object_type) {
             setStatus('error');
             setErrorKind('missing_identity');
@@ -476,20 +425,7 @@ export default function HierarchicalValueMenu({
                 setLoaded({options: fetched, join: fetchedJoin});
                 setErrorKind(null);
 
-                // Announced from inside this callback, in the same batch as the
-                // status flip, and NOT from an effect keyed on the options.
-                //
-                // The order of these two lines does not matter -- React 18
-                // batches them either way, so the reordering the plan and the
-                // implementation summary argued about is unobservable. What does
-                // matter is that both land in one commit: an adapter translates
-                // this join into a different `selectedIds`, and the
-                // expand-to-selected effect seeds once off the first 'loaded'
-                // render. Announce a commit later and it seeds from the
-                // pre-hydration selection, leaving an omitted-payload policy row
-                // opened to a collapsed tree. Locked by `hydrates from the
-                // fetched options when the payload omitted them` and by
-                // `opens expanded to a hydrated selection`.
+                // Same commit as the status flip so expand-to-selected seeds from the hydrated ids.
                 onOptionsLoaded?.(fetchedJoin);
                 setStatus('loaded');
             },
@@ -498,10 +434,7 @@ export default function HierarchicalValueMenu({
                     return;
                 }
 
-                // An abort is this widget closing or unmounting, not a failure the
-                // user can act on. The shared walk is not cancellable, so every
-                // aborted caller lands here.
-                if ((error as {name?: string} | null)?.name === 'AbortError') {
+                if (error instanceof Error && error.name === 'AbortError') {
                     return;
                 }
 
@@ -511,8 +444,6 @@ export default function HierarchicalValueMenu({
         );
     }, [field.id, field.object_type, onOptionsLoaded]);
 
-    // Fetch on every open. A graph is never cached: a stale tree is worse than a
-    // second walk, and the pager keeps no result cache anyway.
     useEffect(() => {
         if (isOpen) {
             wasOpenRef.current = true;
@@ -530,7 +461,6 @@ export default function HierarchicalValueMenu({
         setExpandedOccKeys(null);
     }, [isOpen, runFetch]);
 
-    // Assignment only: chips need names before the menu is ever opened.
     useEffect(() => {
         if (prefetchOnMount && !prefetchedRef.current) {
             prefetchedRef.current = true;
@@ -540,15 +470,12 @@ export default function HierarchicalValueMenu({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Dependency-free so it survives every unmount path, including the policy
-    // row being omitted after its last value is unchecked.
     useEffect(() => () => {
         abortRef.current?.abort();
         abortRef.current = null;
     }, []);
 
-    // Seeded once per open, when the tree first exists. Not re-seeded when the
-    // selection changes: once the menu is open, expansion belongs to the user.
+    // Seed expansion once per open; after that the user owns it.
     useEffect(() => {
         if (!isOpen || status !== 'loaded' || expandedOccKeys !== null) {
             return;
@@ -603,9 +530,6 @@ export default function HierarchicalValueMenu({
         return rows;
     }, [isSearching, searchRows, expandedOccKeys, join, selectedIdSet, formatMessage]);
 
-    // options_count is tested for truthiness deliberately: a genuinely empty
-    // graph reports 0 or omits the key, and that case has to be allowed to say
-    // there are no values.
     const isWithheld = useMemo(() => {
         const attrs = field.attrs;
         return Boolean(
@@ -633,11 +557,7 @@ export default function HierarchicalValueMenu({
             return 'withheld';
         }
 
-        // visibleRows comes from join.roots, and an option is only a root when it
-        // has no resolvable parent -- so a parent cycle yields no roots from a
-        // non-empty option list. Only a genuinely empty graph may say it has no
-        // values. With options but no rows the menu shows no message at all: the
-        // values are real and still reachable by typing.
+        // A cycle can yield no roots from a non-empty list; only an empty graph is empty.
         return options?.length ? null : 'empty';
     }, [status, errorKind, visibleRows.length, isSearching, isWithheld, options]);
 
@@ -682,18 +602,9 @@ export default function HierarchicalValueMenu({
             return;
         }
 
-        // No rows means a status row is showing, and if that row is retryable it
-        // is the only focusable thing in the list. The search box swallows
-        // ArrowDown before MenuList sees it, so this is the only way focus gets
-        // there -- and without it Retry has no keyboard route at all.
         statusRowRef.current?.focus();
     }, [visibleRows]);
 
-    // The returned closure is fresh on every render, so React does detach and
-    // reattach every row ref each render, exactly as an inline arrow would. That
-    // is harmless here -- the detach deletes the key and the attach re-adds it in
-    // the same commit, and nothing reads the map in between -- but it is not an
-    // optimisation, so do not read it as one.
     const setRowRef = useCallback((occKey: string) => (element: HTMLLIElement | null) => {
         if (element) {
             rowRefs.current.set(occKey, element);
@@ -702,13 +613,9 @@ export default function HierarchicalValueMenu({
         }
     }, []);
 
-    // The retryable error row is the one status row that does something, so it is
-    // the only one that may take focus.
     const isRetryableStatus = statusKind === 'error_fetch';
 
     const handleStatusActivate = (event: React.MouseEvent<HTMLLIElement> | React.KeyboardEvent<HTMLLIElement>) => {
-        // The keyboard path belongs to handleStatusKeyDown. See
-        // isKeydownSynthesisedClick: without this Enter would retry twice.
         if (isKeydownSynthesisedClick(event)) {
             return;
         }
@@ -718,15 +625,12 @@ export default function HierarchicalValueMenu({
 
     const handleStatusKeyDown = (event: React.KeyboardEvent<HTMLLIElement>) => {
         if (event.key === 'Enter' || event.key === ' ') {
-            // The Popover closes the menu on both, and recovering from a failed
-            // read must not close the thing being recovered.
             event.preventDefault();
             event.stopPropagation();
             runFetch();
             return;
         }
 
-        // Same as a first row: the only thing above this is the search box.
         if (event.key === 'ArrowUp') {
             event.preventDefault();
             event.stopPropagation();
@@ -734,8 +638,6 @@ export default function HierarchicalValueMenu({
         }
     };
 
-    // A flat array, never a fragment: MUI's MenuList console.errors on one, and
-    // arrow navigation only walks direct children of the <ul>.
     const menuChildren: ReactNode[] = [];
 
     if (statusKind) {
@@ -746,19 +648,9 @@ export default function HierarchicalValueMenu({
                 ref={isRetryableStatus ? statusRowRef : undefined}
                 role='menuitem'
 
-                // aria-disabled rather than MUI's `disabled`: that sets
-                // pointer-events: none on the row, which would make the nested
-                // Retry button unclickable in a browser.
-                //
-                // A message row stays aria-disabled so MenuList's moveFocus steps
-                // past it. The retryable row does not, because it has to be
-                // reachable: Tab closes the menu (closeMenuOnTab), the arrows skip
-                // anything aria-disabled, and WAI-ARIA 1.2 makes a menuitem's DOM
-                // descendants presentational -- so real assistive tech never
-                // exposes the nested Retry <button> at all, however green a jsdom
-                // role query looks. Carrying the action on the row itself is what
-                // gives a keyboard or AT user any route to recovery other than
-                // guessing that closing and reopening refetches.
+                // `disabled` would set pointer-events: none on Retry. aria-disabled
+                // lets MenuList skip message rows; the retryable row stays focusable
+                // because AT treats menuitem descendants as presentational.
                 aria-disabled={isRetryableStatus ? undefined : true}
                 disableCloseOnSelect={true}
                 className={classNames('hierarchical-value-menu__status', {
@@ -837,9 +729,6 @@ export default function HierarchicalValueMenu({
                     'aria-label': resolvedAriaLabel,
                     className: 'hierarchical-value-menu__menu',
                     onToggle: handleToggle,
-
-                    // The search box owns focus on open; MUI must not take it for
-                    // the first row.
                     autoFocusItem: false,
                 }}
                 menuHeader={

@@ -50,14 +50,45 @@
     .attribute-options-graph-values__empty-form {
         display: flex;
         flex-wrap: wrap;
-        align-items: flex-start;
+        align-items: center;
         justify-content: center;
         gap: 8px;
         text-align: left;
 
         .Input_container {
-            width: auto;
-            min-width: 240px;
+            width: 300px;
+            min-width: 0;
+        }
+
+        // Compact 32px field: the default Input uses an inset focus ring that
+        // needs wrapper margin. Without it the ring clips on the top/bottom.
+        .Input_fieldset {
+            min-height: 32px;
+            padding: 0;
+            background: var(--center-channel-bg);
+            box-shadow: none;
+
+            &:focus-within {
+                border-color: var(--button-bg);
+                box-shadow: 0 0 0 1px var(--button-bg);
+            }
+
+            &.Input_fieldset___error:focus-within {
+                border-color: var(--error-text);
+                box-shadow: 0 0 0 1px var(--error-text);
+            }
+        }
+
+        .Input_wrapper {
+            min-height: 30px;
+            padding: 0 12px;
+            margin: 0;
+        }
+
+        .Input {
+            height: 30px;
+            font-size: 12px;
+            line-height: 16px;
         }
     }
 
@@ -100,6 +131,10 @@
             .attribute-options-graph-values__drag-handle {
                 color: rgba(var(--center-channel-color-rgb), 0.56);
             }
+        }
+
+        &.attribute-options-graph-values__row--highlight {
+            background: rgba(var(--semantic-color-info), 0.16);
         }
 
         .Input_container {

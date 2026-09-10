@@ -27,13 +27,13 @@ import Constants from 'utils/constants';
 
 import {useGraphNodeDelete} from './attribute_graph_delete_modal';
 import {useGrantConfirm} from './attribute_graph_grant_confirm_modal';
+import type {GrantConfirmRequest} from './attribute_graph_grant_confirm_modal';
 import AttributeGraphParentsPane from './attribute_graph_parents_pane';
+import {GraphParentEdgeAlert} from './graph_edge_alert';
 import type {ConfirmGrant, ProposeParentResult} from './graph_parent_ops';
 import {
     addChildOption,
     addTopLevelOption,
-    cycleErrorValues,
-    depthErrorValues,
     getChildren,
     getRoots,
     isNameUnique,
@@ -41,7 +41,6 @@ import {
     renameOption,
     wouldExceedMaxEdges,
     wouldExceedMaxOptions,
-    type CheckParentEdgeResult,
 } from './graph_utils';
 import {dropAlertFromProposeResult, useGraphRowDnd, type GraphDropAlert} from './use_graph_dnd';
 
@@ -90,7 +89,7 @@ type GraphRowProps = {
     menuInitialView: GraphPaneView;
     expanded: boolean;
     onToggleCollapse: (occurrenceKey: string) => void;
-    onOpenMenuAddChild: (occurrence: GraphOccurrence) => void;
+    onOpenMenuAddChild: (occurrence: GraphOccurrence, index: number) => void;
     onOpenMenu: (occurrenceKey: string, view: GraphPaneView) => void;
     onCloseMenu: () => void;
     onRename: (currentName: string, nextName: string) => 'applied' | 'duplicate' | 'noop';
@@ -98,11 +97,14 @@ type GraphRowProps = {
     onDelete: (optionName: string) => void;
     options: PropertyFieldOption[];
     onOptionsChange: (options: PropertyFieldOption[]) => void;
+    onPaneOptionsChange: (options: PropertyFieldOption[]) => void;
     confirmGrant?: ConfirmGrant;
     onDropResult: (result: ProposeParentResult, names: {childName: string; parentName: string}) => void;
+    highlighted: boolean;
 };
 
 const DROP_ALERT_TIMEOUT_MS = 4000;
+const ROW_HIGHLIGHT_TIMEOUT_MS = 1800;
 
 type ChildDraftRowProps = {
     depth: number;
@@ -162,6 +164,25 @@ function isHiddenByCollapsedAncestor(path: string[], collapsedKeys: Set<string>)
 
 function occurrenceHasChildren(options: PropertyFieldOption[], occurrence: GraphOccurrence): boolean {
     return getChildren(options, occurrence.option.name).some((child) => !occurrence.path.includes(child.name));
+}
+
+function expandAncestorsForOption(
+    collapsedKeys: Set<string>,
+    occurrences: GraphOccurrence[],
+    optionName: string,
+): Set<string> {
+    const target = occurrences.find((occurrence) => occurrence.option.name === optionName);
+    if (!target || target.path.length < 2) {
+        return collapsedKeys;
+    }
+    let changed = false;
+    const next = new Set(collapsedKeys);
+    for (let i = 1; i < target.path.length; i++) {
+        if (next.delete(target.path.slice(0, i).join('\0'))) {
+            changed = true;
+        }
+    }
+    return changed ? next : collapsedKeys;
 }
 
 function remapOccurrenceKey(key: string, oldName: string, newName: string): string {
@@ -225,6 +246,7 @@ const AddTopLevelForm = ({
             <Button
                 type='button'
                 emphasis={isEmptyCanvas ? 'primary' : 'secondary'}
+                size={isEmptyCanvas ? 'sm' : 'md'}
                 onClick={onCommit}
                 disabled={!canAdd}
                 data-testid={`${testIdPrefix}__addButton`}
@@ -337,12 +359,16 @@ const GraphRow = React.memo(({
     onDelete,
     options,
     onOptionsChange,
+    onPaneOptionsChange,
     confirmGrant,
     onDropResult,
+    highlighted,
 }: GraphRowProps) => {
     const {formatMessage} = useIntl();
     const editValueLabel = formatMessage(messages.editValue, {name: occurrence.option.name});
     const addChildLabel = formatMessage(messages.addChildAria, {name: occurrence.option.name});
+    const deleteLabel = formatMessage(messages.deleteAria, {name: occurrence.option.name});
+    const dragHandleLabel = formatMessage(messages.dragHandleTooltip, {name: occurrence.option.name});
     const parentNames = occurrence.option.parents ?? [];
     const parentCount = parentNames.length;
     const hasChildren = occurrenceHasChildren(options, occurrence);
@@ -395,6 +421,7 @@ const GraphRow = React.memo(({
             ref={setRowElement}
             className={classNames('attribute-options-graph-values__row', {
                 'attribute-options-graph-values__row--active': menuOpen,
+                'attribute-options-graph-values__row--highlight': highlighted,
             })}
             style={{['--attribute-options-graph-values-indent' as string]: occurrence.depth}}
             data-testid='attributeOptionsGraphRow'
@@ -422,17 +449,23 @@ const GraphRow = React.memo(({
                         aria-hidden={true}
                     />
                 )}
-                <span
-                    ref={setHandleElement}
-                    className={classNames('attribute-options-graph-values__drag-handle', {
-                        'attribute-options-graph-values__drag-handle--disabled': disabled,
-                    })}
-                    tabIndex={-1}
-                    aria-hidden={true}
-                    data-testid='attributeOptionsGraphRow__dragHandle'
+                <WithTooltip
+                    title={dragHandleLabel}
+                    hint={formatMessage(messages.dragHandleHint)}
+                    disabled={disabled}
                 >
-                    <DragVerticalIcon size={16}/>
-                </span>
+                    <span
+                        ref={setHandleElement}
+                        className={classNames('attribute-options-graph-values__drag-handle', {
+                            'attribute-options-graph-values__drag-handle--disabled': disabled,
+                        })}
+                        tabIndex={-1}
+                        aria-hidden={true}
+                        data-testid='attributeOptionsGraphRow__dragHandle'
+                    >
+                        <DragVerticalIcon size={16}/>
+                    </span>
+                </WithTooltip>
             </span>
 
             {disabled ? (
@@ -471,7 +504,7 @@ const GraphRow = React.memo(({
                             className='btn btn-icon btn-xs attribute-options-graph-values__action'
                             aria-label={addChildLabel}
                             disabled={atMax}
-                            onClick={() => onOpenMenuAddChild(occurrence)}
+                            onClick={() => onOpenMenuAddChild(occurrence, index)}
                             data-testid='attributeOptionsGraphRow__addChild'
                         >
                             <PlusIcon size={16}/>
@@ -488,11 +521,11 @@ const GraphRow = React.memo(({
                             <SitemapIcon size={16}/>
                         </button>
                     </WithTooltip>
-                    <WithTooltip title={formatMessage(messages.deleteThisValue)}>
+                    <WithTooltip title={deleteLabel}>
                         <button
                             type='button'
                             className='btn btn-icon btn-xs attribute-options-graph-values__action attribute-options-graph-values__action--danger'
-                            aria-label={formatMessage(messages.deleteAria, {name: occurrence.option.name})}
+                            aria-label={deleteLabel}
                             onClick={() => onDelete(occurrence.option.name)}
                             data-testid='attributeOptionsGraphRow__delete'
                         >
@@ -531,7 +564,7 @@ const GraphRow = React.memo(({
                         key={`${occurrence.occurrenceKey}:${menuInitialView}`}
                         options={options}
                         optionName={occurrence.option.name}
-                        onOptionsChange={onOptionsChange}
+                        onOptionsChange={onPaneOptionsChange}
                         onDelete={onDelete}
                         onRename={onRename}
                         onChildAdded={() => onExpandOccurrence(occurrence.occurrenceKey)}
@@ -549,49 +582,28 @@ const GraphRow = React.memo(({
     );
 });
 
-function dropAlertMessage(check: Extract<CheckParentEdgeResult, {ok: false}>) {
-    switch (check.error) {
-    case 'cycle':
-        return messages.cycleError;
-    case 'depth':
-        return messages.depthError;
-    case 'max-parents':
-        return messages.maxParentsError;
-    case 'self':
-        return messages.cycleError;
-    default: {
-        const exhaustive: never = check;
-        return exhaustive;
+function focusGraphRow(optionName: string) {
+    const el = document.querySelector(
+        `[data-testid="attributeOptionsGraphRow"][data-option-name="${CSS.escape(optionName)}"]`,
+    );
+    if (!(el instanceof HTMLElement)) {
+        return;
     }
-    }
-}
-
-function dropAlertValues(alert: GraphDropAlert): Record<string, string | number> {
-    switch (alert.check.error) {
-    case 'cycle':
-        return cycleErrorValues(alert.parentName, alert.childName);
-    case 'depth':
-        return depthErrorValues(alert.childName, alert.check.depth);
-    case 'max-parents':
-        return {};
-    case 'self':
-        return {};
-    default: {
-        const exhaustive: never = alert.check;
-        return exhaustive;
-    }
-    }
+    el.scrollIntoView({block: 'nearest'});
+    el.focus();
 }
 
 const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false}: Props) => {
-    const confirmGrant = useGrantConfirm();
+    const confirmGrantRaw = useGrantConfirm();
     const [draftName, setDraftName] = useState('');
     const [openPane, setOpenPane] = useState<{occurrenceKey: string; view: GraphPaneView} | null>(null);
     const [collapsedKeys, setCollapsedKeys] = useState<Set<string>>(() => new Set());
     const [childDraft, setChildDraft] = useState<ChildDraft | null>(null);
     const [childDraftName, setChildDraftName] = useState('');
     const [dropAlert, setDropAlert] = useState<GraphDropAlert | null>(null);
+    const [highlightedOptionName, setHighlightedOptionName] = useState<string | null>(null);
     const dropAlertTimeoutRef = useRef<number | null>(null);
+    const highlightTimeoutRef = useRef<number | null>(null);
 
     const clearDropAlert = useCallback(() => {
         if (dropAlertTimeoutRef.current !== null) {
@@ -599,6 +611,14 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
             dropAlertTimeoutRef.current = null;
         }
         setDropAlert(null);
+    }, []);
+
+    const clearRowHighlight = useCallback(() => {
+        if (highlightTimeoutRef.current !== null) {
+            window.clearTimeout(highlightTimeoutRef.current);
+            highlightTimeoutRef.current = null;
+        }
+        setHighlightedOptionName(null);
     }, []);
 
     const handleDropResult = useCallback((
@@ -623,8 +643,9 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
     useEffect(() => {
         return () => {
             clearDropAlert();
+            clearRowHighlight();
         };
-    }, [clearDropAlert]);
+    }, [clearDropAlert, clearRowHighlight]);
 
     const occurrences = useMemo(() => flattenOccurrences(options), [options]);
 
@@ -651,20 +672,46 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
         setDraftName('');
     }, [draftName, options, onOptionsChange, disabled]);
 
-    const handleGoToOrphan = useCallback((optionName: string) => {
-        // Close overlays first; focusing on confirm loses to GenericModal restoreFocus.
+    const closePane = useCallback(() => {
         flushSync(() => {
             setOpenPane(null);
         });
-        const el = document.querySelector(
-            `[data-testid="attributeOptionsGraphRow"][data-option-name="${CSS.escape(optionName)}"]`,
-        );
-        if (!(el instanceof HTMLElement)) {
-            return;
-        }
-        el.scrollIntoView({block: 'nearest'});
-        el.focus();
     }, []);
+
+    const confirmGrant = useCallback((req: GrantConfirmRequest) => {
+        // Menu backdrop sits above GenericModal; close Parents before the grant dialog.
+        if (req.newlyReachable.length > 0) {
+            closePane();
+        }
+        return confirmGrantRaw(req);
+    }, [closePane, confirmGrantRaw]);
+
+    const handlePaneOptionsChange = useCallback((next: PropertyFieldOption[]) => {
+        closePane();
+        onOptionsChange(next);
+    }, [closePane, onOptionsChange]);
+
+    const handleGoToOrphan = useCallback((optionName: string) => {
+        closePane();
+        flushSync(() => {
+            setCollapsedKeys((current) => expandAncestorsForOption(current, occurrences, optionName));
+            setHighlightedOptionName(optionName);
+        });
+        focusGraphRow(optionName);
+
+        // GenericModal restoreFocus runs after onExited and would steal focus back to Delete.
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => focusGraphRow(optionName));
+        });
+
+        if (highlightTimeoutRef.current !== null) {
+            window.clearTimeout(highlightTimeoutRef.current);
+        }
+        highlightTimeoutRef.current = window.setTimeout(() => {
+            setHighlightedOptionName(null);
+            highlightTimeoutRef.current = null;
+        }, ROW_HIGHLIGHT_TIMEOUT_MS);
+    }, [closePane, occurrences]);
 
     const promptDelete = useGraphNodeDelete(options, onOptionsChange, handleGoToOrphan);
 
@@ -679,21 +726,16 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
         });
     }, []);
 
-    const handleOpenMenuAddChild = useCallback((occurrence: GraphOccurrence) => {
-        const nextOccurrences = flattenOccurrences(options);
-        const i = nextOccurrences.findIndex((item) => item.occurrenceKey === occurrence.occurrenceKey);
-        if (i < 0) {
-            return;
-        }
+    const handleOpenMenuAddChild = useCallback((occurrence: GraphOccurrence, index: number) => {
         setChildDraft({
             parentName: occurrence.option.name,
-            insertAfterIndex: subtreeInsertAfterIndex(nextOccurrences, occurrence, i),
+            insertAfterIndex: subtreeInsertAfterIndex(occurrences, occurrence, index),
             depth: occurrence.depth + 1,
         });
         setChildDraftName('');
         setOpenPane(null);
         handleExpandOccurrence(occurrence.occurrenceKey);
-    }, [handleExpandOccurrence, options]);
+    }, [handleExpandOccurrence, occurrences]);
 
     const handleToggleCollapse = useCallback((occurrenceKey: string) => {
         setCollapsedKeys((current) => {
@@ -806,8 +848,10 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
                 onDelete={promptDelete}
                 options={options}
                 onOptionsChange={onOptionsChange}
+                onPaneOptionsChange={handlePaneOptionsChange}
                 confirmGrant={confirmGrant}
                 onDropResult={handleDropResult}
+                highlighted={occurrence.option.name === highlightedOptionName}
             />,
         );
         if (childDraft && childDraft.insertAfterIndex === index) {
@@ -838,17 +882,14 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
             <p className='attribute-options-graph-values__helper'>
                 <FormattedMessage {...messages.helper}/>
             </p>
-            {dropAlert && dropAlert.check.error !== 'self' && (
-                <div
+            {dropAlert && (
+                <GraphParentEdgeAlert
+                    result={dropAlert.check}
+                    childName={dropAlert.childName}
+                    parentName={dropAlert.parentName}
                     className='attribute-options-graph-values__drop-alert'
-                    role='alert'
-                    data-testid='attributeOptionsGraphValues__dropAlert'
-                >
-                    <FormattedMessage
-                        {...dropAlertMessage(dropAlert.check)}
-                        values={dropAlertValues(dropAlert)}
-                    />
-                </div>
+                    testId='attributeOptionsGraphValues__dropAlert'
+                />
             )}
             {options.length === 0 ? (
                 <div
@@ -974,20 +1015,12 @@ const messages = defineMessages({
         id: 'admin.global_attributes.attribute_details.options.graph.delete_aria',
         defaultMessage: 'Delete {name}',
     },
-    deleteThisValue: {
-        id: 'admin.global_attributes.attribute_details.options.graph.delete_this_value',
-        defaultMessage: 'Delete this value',
+    dragHandleTooltip: {
+        id: 'admin.global_attributes.attribute_details.options.graph.drag_handle_tooltip',
+        defaultMessage: 'Drag to move {name}',
     },
-    cycleError: {
-        id: 'admin.global_attributes.attribute_details.options.graph.parent_edge.cycle',
-        defaultMessage: '{parent} can\'t be a parent of {child} — {child} already grants {parent}, so this would loop back on itself.',
-    },
-    depthError: {
-        id: 'admin.global_attributes.attribute_details.options.graph.parent_edge.depth',
-        defaultMessage: 'Adding this parent pushes "{name}" to depth {n}; the limit is 100.',
-    },
-    maxParentsError: {
-        id: 'admin.global_attributes.attribute_details.options.graph.parent_edge.max_parents',
-        defaultMessage: 'An option can have at most 100 parents.',
+    dragHandleHint: {
+        id: 'admin.global_attributes.attribute_details.options.graph.drag_handle_hint',
+        defaultMessage: 'Drop on a row to nest it under that value. Order in the list carries no meaning.',
     },
 });

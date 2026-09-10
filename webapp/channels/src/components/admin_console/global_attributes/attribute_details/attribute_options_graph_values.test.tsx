@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useState} from 'react';
 
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
@@ -12,7 +12,7 @@ import {ModalIdentifiers} from 'utils/constants';
 
 import AttributeGraphDeleteModal from './attribute_graph_delete_modal';
 import AttributeOptionsGraphValues from './attribute_options_graph_values';
-import {addChildOption, renameOption} from './graph_utils';
+import {addChildOption, removeOption, renameOption} from './graph_utils';
 
 jest.mock('actions/views/modals', () => ({
     openModal: jest.fn(() => ({type: 'MOCK_OPEN_MODAL'})),
@@ -432,7 +432,8 @@ describe('AttributeOptionsGraphValues', () => {
         expect(screen.getByRole('menuitem', {name: 'Delete this value'})).toBeInTheDocument();
 
         await clickRowDelete('Root');
-        expect(onOptionsChange).not.toHaveBeenCalled();
+        expect(openModal).not.toHaveBeenCalled();
+        expect(onOptionsChange).toHaveBeenCalledWith(removeOption([{id: '', name: 'Root', parents: []}], 'Root'));
     });
 
     it('opens the children submenu from the item menu and grants a new child', async () => {
@@ -468,6 +469,84 @@ describe('AttributeOptionsGraphValues', () => {
         expect(within(list).queryByRole('list')).toBeNull();
         expect(list.querySelectorAll(':scope > li')).toHaveLength(screen.getAllByTestId('attributeOptionsGraphRow').length);
     });
+
+    it('shows a drag-handle tooltip titled Drag to move {name} with the nest-and-order hint', async () => {
+        renderWithContext(
+            <AttributeOptionsGraphValues
+                options={[{id: '', name: 'Air Operations', parents: []}]}
+                onOptionsChange={jest.fn()}
+            />,
+        );
+
+        await userEvent.hover(within(getRow('Air Operations')).getByTestId('attributeOptionsGraphRow__dragHandle'));
+        const tooltip = await screen.findByRole('tooltip', {hidden: true});
+        expect(tooltip).toHaveTextContent('Drag to move Air Operations');
+        expect(tooltip).toHaveTextContent('Drop on a row to nest it under that value. Order in the list carries no meaning.');
+    });
+
+    it('shows Add a value under {name} on the add-child action', async () => {
+        renderWithContext(
+            <AttributeOptionsGraphValues
+                options={[{id: '', name: 'Air Operations', parents: []}]}
+                onOptionsChange={jest.fn()}
+            />,
+        );
+
+        await userEvent.hover(within(getRow('Air Operations')).getByTestId('attributeOptionsGraphRow__addChild'));
+        expect(await screen.findByRole('tooltip', {hidden: true})).toHaveTextContent('Add a value under Air Operations');
+    });
+
+    it('shows the parents-action tooltip on the sitemap icon', async () => {
+        renderWithContext(
+            <AttributeOptionsGraphValues
+                options={[{id: '', name: 'Air Operations', parents: []}]}
+                onOptionsChange={jest.fn()}
+            />,
+        );
+
+        await userEvent.hover(within(getRow('Air Operations')).getByTestId('attributeOptionsGraphRow__parents'));
+        expect(await screen.findByRole('tooltip', {hidden: true})).toHaveTextContent('Parents — who this value is granted by');
+    });
+
+    it('shows Delete {name} on the delete action', async () => {
+        renderWithContext(
+            <AttributeOptionsGraphValues
+                options={[{id: '', name: 'Air Operations', parents: []}]}
+                onOptionsChange={jest.fn()}
+            />,
+        );
+
+        const deleteButton = within(getRow('Air Operations')).getByTestId('attributeOptionsGraphRow__delete');
+        expect(deleteButton).toHaveAttribute('aria-label', 'Delete Air Operations');
+
+        await userEvent.hover(deleteButton);
+        expect(await screen.findByRole('tooltip', {hidden: true})).toHaveTextContent('Delete Air Operations');
+        expect(screen.queryByRole('tooltip', {hidden: true})).not.toHaveTextContent('Delete this value');
+    });
+
+    it('hides hover actions and does not open the drag-handle tooltip when disabled', async () => {
+        renderWithContext(
+            <AttributeOptionsGraphValues
+                options={[{id: '', name: 'Air Operations', parents: []}]}
+                onOptionsChange={jest.fn()}
+                disabled={true}
+            />,
+        );
+
+        const row = getRow('Air Operations');
+        expect(within(row).queryByTestId('attributeOptionsGraphRow__addChild')).not.toBeInTheDocument();
+        expect(within(row).queryByTestId('attributeOptionsGraphRow__parents')).not.toBeInTheDocument();
+        expect(within(row).queryByTestId('attributeOptionsGraphRow__delete')).not.toBeInTheDocument();
+
+        const handle = within(row).getByTestId('attributeOptionsGraphRow__dragHandle');
+        expect(handle).toHaveClass('attribute-options-graph-values__drag-handle--disabled');
+
+        await userEvent.hover(handle);
+
+        // Must exceed WithTooltip restMs + delay.open (800ms). 500ms is not enough.
+        await new Promise((resolve) => setTimeout(resolve, 900));
+        expect(screen.queryByRole('tooltip', {hidden: true})).not.toBeInTheDocument();
+    });
 });
 
 describe('AttributeOptionsGraphValues delete wiring', () => {
@@ -494,6 +573,57 @@ describe('AttributeOptionsGraphValues delete wiring', () => {
         );
 
         expect(within(getRow('X')).getByTestId('attributeOptionsGraphRow__delete')).not.toBeDisabled();
+    });
+
+    it('deletes a leaf from the row Delete action without opening the modal', async () => {
+        const options: PropertyFieldOption[] = [
+            {id: '', name: 'A', parents: []},
+            {id: '', name: 'B', parents: ['A']},
+        ];
+        const onOptionsChange = jest.fn();
+        renderWithContext(
+            <AttributeOptionsGraphValues
+                options={options}
+                onOptionsChange={onOptionsChange}
+            />,
+        );
+
+        await clickRowDelete('B', 'A');
+
+        expect(openModal).not.toHaveBeenCalled();
+        expect(onOptionsChange).toHaveBeenCalledTimes(1);
+        expect(onOptionsChange).toHaveBeenCalledWith(removeOption(options, 'B'));
+    });
+
+    it('opens GRAPH_NODE_DELETE from the row Delete action on a safe parent', async () => {
+        const options: PropertyFieldOption[] = [
+            {id: '', name: 'X', parents: []},
+            {id: '', name: 'Keep', parents: []},
+            {id: '', name: 'Shared', parents: ['X', 'Keep']},
+        ];
+        const onOptionsChange = jest.fn();
+        renderWithContext(
+            <AttributeOptionsGraphValues
+                options={options}
+                onOptionsChange={onOptionsChange}
+            />,
+        );
+
+        await clickRowDelete('X');
+
+        await waitFor(() => {
+            expect(openModal).toHaveBeenCalledWith({
+                modalId: ModalIdentifiers.GRAPH_NODE_DELETE,
+                dialogType: AttributeGraphDeleteModal,
+                dialogProps: {
+                    optionName: 'X',
+                    options,
+                    onConfirm: expect.any(Function),
+                    onExited: expect.any(Function),
+                },
+            });
+        });
+        expect(onOptionsChange).not.toHaveBeenCalled();
     });
 
     it('opens GRAPH_NODE_DELETE from the row Delete action', async () => {
@@ -567,7 +697,108 @@ describe('AttributeOptionsGraphValues delete wiring', () => {
 
         dialogProps().onExited();
         expect(orphanRow).toHaveFocus();
+        expect(orphanRow).toHaveClass('attribute-options-graph-values__row--highlight');
+        expect(getRow('X')).not.toHaveClass('attribute-options-graph-values__row--highlight');
         expect(orphanRow.scrollIntoView).toHaveBeenCalledWith({block: 'nearest'});
+    });
+
+    it('clears the Go-to row highlight after the flash timeout', async () => {
+        renderWithContext(
+            <AttributeOptionsGraphValues
+                options={blockedOptions()}
+                onOptionsChange={jest.fn()}
+            />,
+        );
+
+        await clickRowDelete('X');
+        await waitFor(() => {
+            expect(openModal).toHaveBeenCalled();
+        });
+
+        jest.useFakeTimers();
+        try {
+            const orphanRow = getRow('Orphan', 'X');
+            act(() => {
+                dialogProps().onConfirm();
+                dialogProps().onExited();
+            });
+            expect(orphanRow).toHaveClass('attribute-options-graph-values__row--highlight');
+
+            act(() => {
+                jest.advanceTimersByTime(1800);
+            });
+            expect(orphanRow).not.toHaveClass('attribute-options-graph-values__row--highlight');
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
+    it('expands a collapsed parent so Go-to can highlight the orphan row', async () => {
+        renderWithContext(
+            <AttributeOptionsGraphValues
+                options={blockedOptions()}
+                onOptionsChange={jest.fn()}
+            />,
+        );
+
+        await userEvent.click(within(getRow('X')).getByTestId('attributeOptionsGraphRow__collapse'));
+        expect(screen.queryAllByTestId('attributeOptionsGraphRow').find(
+            (el) => el.getAttribute('data-option-name') === 'Orphan',
+        )).toBeUndefined();
+
+        await clickRowDelete('X');
+        await waitFor(() => {
+            expect(openModal).toHaveBeenCalled();
+        });
+
+        act(() => {
+            dialogProps().onConfirm();
+            dialogProps().onExited();
+        });
+
+        const orphanRow = getRow('Orphan', 'X');
+        expect(orphanRow).toBeInTheDocument();
+        expect(orphanRow).toHaveClass('attribute-options-graph-values__row--highlight');
+        expect(orphanRow).toHaveFocus();
+    });
+
+    it('refocuses the orphan after GenericModal restoreFocus returns to Delete', async () => {
+        renderWithContext(
+            <AttributeOptionsGraphValues
+                options={blockedOptions()}
+                onOptionsChange={jest.fn()}
+            />,
+        );
+
+        await clickRowDelete('X');
+        await waitFor(() => {
+            expect(openModal).toHaveBeenCalled();
+        });
+
+        const orphanRow = getRow('Orphan', 'X');
+        const deleteButton = within(getRow('X')).getByTestId('attributeOptionsGraphRow__delete');
+
+        act(() => {
+            dialogProps().onConfirm();
+            dialogProps().onExited();
+        });
+        expect(orphanRow).toHaveFocus();
+
+        act(() => {
+            deleteButton.focus();
+        });
+        expect(deleteButton).toHaveFocus();
+
+        await act(async () => {
+            await new Promise<void>((resolve) => {
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => resolve());
+                });
+            });
+        });
+
+        expect(orphanRow).toHaveFocus();
+        expect(deleteButton).not.toHaveFocus();
     });
 
     it('closes the Parents pane when Go-to focuses the orphan after the modal exits', async () => {
@@ -599,6 +830,7 @@ describe('AttributeOptionsGraphValues delete wiring', () => {
             dialogProps().onExited();
         });
         expect(orphanRow).toHaveFocus();
+        expect(orphanRow).toHaveClass('attribute-options-graph-values__row--highlight');
         expect(screen.queryByTestId('attributeGraphParentsPane__nameInput')).not.toBeInTheDocument();
     });
 
@@ -618,5 +850,116 @@ describe('AttributeOptionsGraphValues delete wiring', () => {
         expect(screen.queryByTestId('attributeGraphParentsPane__back')).not.toBeInTheDocument();
         expect(within(getRow('Orphan', 'X')).getByTestId('attributeOptionsGraphRow__delete')).not.toBeDisabled();
         expect(screen.getByTestId('attributeOptionsGraphRow__childNameInput')).toBeInTheDocument();
+    });
+
+    it('applies a grant-skip second parent without a JS error and closes the Parents menu', async () => {
+        const Harness = () => {
+            const [options, setOptions] = useState<PropertyFieldOption[]>([
+                {id: '', name: 'X', parents: []},
+                {id: '', name: 'Keep', parents: []},
+                {id: '', name: 'Shared', parents: ['X']},
+            ]);
+            return (
+                <AttributeOptionsGraphValues
+                    options={options}
+                    onOptionsChange={setOptions}
+                />
+            );
+        };
+
+        renderWithContext(<Harness/>);
+
+        await clickRowParents('Shared', 'X');
+        expect(await screen.findByTestId('attributeGraphParentsPane__back')).toHaveTextContent('Parents of Shared');
+        await userEvent.click(screen.getByTestId('attributeGraphParentsPane__search'));
+        await userEvent.click(screen.getByTestId('attributeGraphParentsPane__candidate-Keep'));
+
+        await waitFor(() => {
+            expect(screen.queryByTestId('attributeGraphParentsPane__search')).not.toBeInTheDocument();
+        });
+        expect(openModal).not.toHaveBeenCalled();
+        expect(document.querySelector('#backdropForMenuComponent')).not.toBeInTheDocument();
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+
+        const badges = screen.getAllByTestId('attributeOptionsGraphRow__parentsBadge');
+        expect(badges).toHaveLength(2);
+        expect(badges[0]).toHaveTextContent('2 parents');
+        expect(badges[1]).toHaveTextContent('2 parents');
+        expect(getRow('Shared', 'X')).toBeInTheDocument();
+        expect(getRow('Shared', 'Keep')).toBeInTheDocument();
+    });
+
+    it('closes the Parents menu before GRAPH_GRANT_CONFIRM so Cancel does not add the parent', async () => {
+        const onOptionsChange = jest.fn();
+        renderWithContext(
+            <AttributeOptionsGraphValues
+                options={[
+                    {id: '', name: 'Maritime', parents: []},
+                    {id: '', name: 'Air', parents: []},
+                    {id: '', name: 'Fighter', parents: ['Air']},
+                ]}
+                onOptionsChange={onOptionsChange}
+            />,
+        );
+
+        await clickRowParents('Air');
+        expect(await screen.findByTestId('attributeGraphParentsPane__back')).toHaveTextContent('Parents of Air');
+        await userEvent.click(screen.getByTestId('attributeGraphParentsPane__search'));
+        await userEvent.click(screen.getByTestId('attributeGraphParentsPane__candidate-Maritime'));
+
+        await waitFor(() => {
+            expect(openModal).toHaveBeenCalledWith(expect.objectContaining({
+                modalId: ModalIdentifiers.GRAPH_GRANT_CONFIRM,
+            }));
+        });
+        expect(screen.queryByTestId('attributeGraphParentsPane__search')).not.toBeInTheDocument();
+        expect(document.querySelector('#backdropForMenuComponent')).not.toBeInTheDocument();
+        expect(onOptionsChange).not.toHaveBeenCalled();
+
+        const grantCall = (openModal as jest.Mock).mock.calls.find(
+            ([arg]) => arg.modalId === ModalIdentifiers.GRAPH_GRANT_CONFIRM,
+        );
+        act(() => {
+            grantCall[0].dialogProps.onCancel();
+        });
+        await Promise.resolve();
+        expect(onOptionsChange).not.toHaveBeenCalled();
+    });
+
+    it('applies the parent after Add once the Parents menu has already closed', async () => {
+        const onOptionsChange = jest.fn();
+        renderWithContext(
+            <AttributeOptionsGraphValues
+                options={[
+                    {id: '', name: 'Maritime', parents: []},
+                    {id: '', name: 'Air', parents: []},
+                    {id: '', name: 'Fighter', parents: ['Air']},
+                ]}
+                onOptionsChange={onOptionsChange}
+            />,
+        );
+
+        await clickRowParents('Air');
+        await userEvent.click(await screen.findByTestId('attributeGraphParentsPane__search'));
+        await userEvent.click(screen.getByTestId('attributeGraphParentsPane__candidate-Maritime'));
+
+        await waitFor(() => {
+            expect(openModal).toHaveBeenCalledWith(expect.objectContaining({
+                modalId: ModalIdentifiers.GRAPH_GRANT_CONFIRM,
+            }));
+        });
+        expect(screen.queryByTestId('attributeGraphParentsPane__search')).not.toBeInTheDocument();
+
+        const grantCall = (openModal as jest.Mock).mock.calls.find(
+            ([arg]) => arg.modalId === ModalIdentifiers.GRAPH_GRANT_CONFIRM,
+        );
+        act(() => {
+            grantCall[0].dialogProps.onConfirm();
+        });
+
+        await waitFor(() => {
+            expect(onOptionsChange).toHaveBeenCalledTimes(1);
+        });
+        expect(onOptionsChange.mock.calls[0][0].find((option: PropertyFieldOption) => option.name === 'Air')?.parents).toEqual(['Maritime']);
     });
 });

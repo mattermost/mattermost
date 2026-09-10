@@ -177,8 +177,6 @@ export type Props = {
     canEditOtherUsers: boolean;
     enableCustomProfileAttributes: boolean;
 
-    // Optional so an absent flag reads as "off", which is exactly the flag-off
-    // parity default. Tests here build props from a literal.
     isGraphPickerEnabled?: boolean;
 };
 
@@ -202,9 +200,6 @@ type State = {
     emailError?: string;
     customAttributeValues: Record<string, string | string[]>;
 
-    // id -> name per graph field, from the picker's fetch. The collapsed row has
-    // no picker mounted and an omitted field inlines no options, so this is the
-    // only place a name for such a value exists.
     graphOptionNames: Record<string, Record<string, string>>;
 };
 
@@ -495,8 +490,6 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             }
         }
 
-        // Graph values are option-id arrays, same as multiselect. An empty string
-        // is not a legal value and would fail server-side attribute validation.
         if ((attributeField.type === 'multiselect' || attributeField.type === 'graph') && !attributeValue) {
             attributeValue = [];
         }
@@ -1538,10 +1531,6 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         return attributeValue.map((value) => {
                             const option = attribOptions.find((o) => o.id === value);
 
-                            // Keep unresolved ids. Filtering them here under-counts
-                            // the collapsed row and, once the section is edited,
-                            // ReactSelect's next onChange would persist a shrunk
-                            // value. The id is the fallback label.
                             return {label: option?.name ?? value, value};
                         });
                     }
@@ -1601,8 +1590,6 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 const isOwnerManaged = Boolean(attribute.attrs?.owners?.length);
                 const optionsOmitted = Boolean(attribute.attrs?.options_omitted);
 
-                // A graph field pages its own options, so an omitted list is not
-                // a reason to lock it -- but only when the picker exists.
                 const omitLocksField = optionsOmitted && !(attribute.type === 'graph' && this.props.isGraphPickerEnabled);
                 const isReadOnly = isSynced || isOwnerManaged || isAdminManaged || isProtected || omitLocksField;
 
@@ -1670,8 +1657,6 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                             return {label: o.name, value: o.id} as SelectOption;
                         });
 
-                        // Built identically for both branches, so the flag-off
-                        // path is character-for-character today's element.
                         const legacySelect = (
                             <ReactSelect
                                 isMulti={attribute.type === 'multiselect' || attribute.type === 'graph' ? true : undefined}
@@ -1783,23 +1768,9 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             const storedValue = this.props.user.custom_profile_attributes?.[attribute.id];
 
             if (attribute.type === 'graph' && this.props.isGraphPickerEnabled && Array.isArray(storedValue) && storedValue.length > 0) {
-                // getDisplayValue falls back to the raw id for an omitted field.
-                // A collapsed row is chrome, not a chip: it prints names or it
-                // prints a count, never an id. All-or-nothing, so the row can
-                // never read "Engineering, ktm3..., Design".
+                // Names or a count, never a raw id. Omitted fields stay a count until
+                // a picker fetch fills graphOptionNames (never, for a read-only field).
                 const inlineOptions = attribute.attrs?.options ?? [];
-
-                // graphOptionNames is filled by a mounted picker reporting what
-                // its fetch named, so for an omitted field this row shows a count
-                // until the section has been expanded once -- and permanently for
-                // a read-only field, which renders no control to mount a picker
-                // into. That asymmetry with User Detail is known and accepted
-                // (A19 pins it): the alternative is fetching every omitted
-                // field's options on page load to caption a collapsed row, which
-                // is a request per field for text the user has not asked to see.
-                // Resolving names belongs on the server; until then the count is
-                // the honest answer, and it still beats the flag-off path, which
-                // prints the ids.
                 const resolvedNames = this.state.graphOptionNames[attribute.id];
                 const names = storedValue.map((id) => {
                     const option = inlineOptions.find((o) => o.id === id);

@@ -8,10 +8,9 @@ import type {PropertyFieldOption} from '@mattermost/types/properties';
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import AttributeGraphParentsPane, {
-    GraphParentEdgeAlert,
-    classifyChildCandidate,
     classifyParentCandidate,
 } from './attribute_graph_parents_pane';
+import {GraphParentEdgeAlert} from './graph_edge_alert';
 import {addChildOption, addParentEdge, addTopLevelOption, removeParentEdge} from './graph_utils';
 
 const opt = (name: string, parents: string[] = []): PropertyFieldOption => ({id: '', name, parents});
@@ -59,7 +58,7 @@ describe('classifyParentCandidate', () => {
     });
 });
 
-describe('classifyChildCandidate', () => {
+describe('classifyParentCandidate as a child candidate', () => {
     const chain: PropertyFieldOption[] = [
         opt('A'),
         opt('B', ['A']),
@@ -67,11 +66,11 @@ describe('classifyChildCandidate', () => {
     ];
 
     it('omits listed children and cycle-forming ancestors, disables self, and enables a legal sibling', () => {
-        expect(classifyChildCandidate(chain, 'A', 'B')).toEqual({kind: 'omit'});
-        expect(classifyChildCandidate(chain, 'A', 'A')).toEqual({kind: 'disabled', reason: 'self'});
-        expect(classifyChildCandidate(chain, 'A', 'C')).toEqual({kind: 'enabled'});
-        expect(classifyChildCandidate(chain, 'C', 'A')).toEqual({kind: 'omit'});
-        expect(classifyChildCandidate([opt('A'), opt('B'), opt('C', ['B'])], 'A', 'B')).toEqual({kind: 'enabled'});
+        expect(classifyParentCandidate(chain, 'B', 'A')).toEqual({kind: 'omit'});
+        expect(classifyParentCandidate(chain, 'A', 'A')).toEqual({kind: 'disabled', reason: 'self'});
+        expect(classifyParentCandidate(chain, 'C', 'A')).toEqual({kind: 'enabled'});
+        expect(classifyParentCandidate(chain, 'A', 'C')).toEqual({kind: 'omit'});
+        expect(classifyParentCandidate([opt('A'), opt('B'), opt('C', ['B'])], 'B', 'A')).toEqual({kind: 'enabled'});
     });
 });
 
@@ -188,14 +187,50 @@ describe('AttributeGraphParentsPane', () => {
         expect(confirmGrantFalse).toHaveBeenCalled();
     });
 
-    it('makes a root when the last parent row is removed', async () => {
+    it('makes a root when the last parent row is confirmed removed', async () => {
         const options = [opt('A'), opt('B', ['A'])];
         const {onOptionsChange} = renderPane(options, 'B');
         await openParentsView();
         await userEvent.click(screen.getByTestId('attributeGraphParentsPane__parentRemove'));
 
+        expect(onOptionsChange).not.toHaveBeenCalled();
+        expect(screen.getByTestId('attributeGraphParentsPane__parentRemoveConfirm')).toHaveTextContent(
+            'Remove it? "B" will no longer sit under "A".',
+        );
+
+        await userEvent.click(screen.getByTestId('attributeGraphParentsPane__parentRemoveConfirmButton'));
+
         expect(onOptionsChange).toHaveBeenCalledWith(removeParentEdge(options, 'B', 'A'));
         expect(onOptionsChange.mock.calls[0][0].find((o: PropertyFieldOption) => o.name === 'B')?.parents).toEqual([]);
+    });
+
+    it('keeps the parent when the confirm is dismissed', async () => {
+        const options = [opt('A'), opt('B', ['A'])];
+        const {onOptionsChange} = renderPane(options, 'B');
+        await openParentsView();
+        await userEvent.click(screen.getByTestId('attributeGraphParentsPane__parentRemove'));
+        await userEvent.click(screen.getByTestId('attributeGraphParentsPane__parentRemoveKeep'));
+
+        expect(onOptionsChange).not.toHaveBeenCalled();
+        expect(screen.queryByTestId('attributeGraphParentsPane__parentRemoveConfirm')).not.toBeInTheDocument();
+    });
+
+    it('mentions descendants when removing a parent of a value that has children', async () => {
+        const options = [opt('A'), opt('B', ['A']), opt('C', ['B'])];
+        renderPane(options, 'B');
+        await openParentsView();
+        await userEvent.click(screen.getByTestId('attributeGraphParentsPane__parentRemove'));
+
+        expect(screen.getByTestId('attributeGraphParentsPane__parentRemoveConfirm')).toHaveTextContent(
+            'Remove it? "B" will no longer sit under "A", or under anything above it. The 1 value below "B" go with it.',
+        );
+    });
+
+    it('shows a Remove Parent tooltip on the parent-row close control', async () => {
+        renderPane([opt('A'), opt('B', ['A'])], 'B');
+        await openParentsView();
+        await userEvent.hover(screen.getByTestId('attributeGraphParentsPane__parentRemove'));
+        expect(await screen.findByRole('tooltip', {hidden: true})).toHaveTextContent('Remove Parent');
     });
 
     it('calls onDelete from the main pane without mutating options', async () => {
@@ -291,6 +326,8 @@ describe('GraphParentEdgeAlert', () => {
                 result={{ok: false, error: 'cycle'}}
                 parentName='B'
                 childName='A'
+                className='attribute-graph-parents-pane__alert'
+                testId='attributeGraphParentsPane__alert'
             />,
         );
         expect(screen.getByRole('alert')).toHaveTextContent(
@@ -305,6 +342,8 @@ describe('GraphParentEdgeAlert', () => {
                 result={{ok: false, error: 'depth', depth: 101}}
                 parentName='B'
                 childName='A'
+                className='attribute-graph-parents-pane__alert'
+                testId='attributeGraphParentsPane__alert'
             />,
         );
         expect(screen.getByRole('alert')).toHaveTextContent(
@@ -320,6 +359,8 @@ describe('GraphParentEdgeAlert', () => {
                 result={{ok: false, error: 'max-parents'}}
                 parentName='B'
                 childName='A'
+                className='attribute-graph-parents-pane__alert'
+                testId='attributeGraphParentsPane__alert'
             />,
         );
         expect(screen.getByRole('alert')).toHaveTextContent('An option can have at most 100 parents.');
@@ -331,6 +372,8 @@ describe('GraphParentEdgeAlert', () => {
                 result={{ok: false, error: 'self'}}
                 parentName='A'
                 childName='A'
+                className='attribute-graph-parents-pane__alert'
+                testId='attributeGraphParentsPane__alert'
             />,
         );
         expect(screen.queryByRole('alert')).not.toBeInTheDocument();

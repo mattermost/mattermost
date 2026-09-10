@@ -55,8 +55,8 @@ describe('proposeAddParent', () => {
             parentName: 'P',
             childName: 'C',
             newlyReachable: ['D'],
-            ancestorsOfParent: [],
         });
+        expect(confirmGrant.mock.calls[0][0]).not.toHaveProperty('ancestorsOfParent');
         expect(result.status).toBe('applied');
         if (result.status === 'applied') {
             expect(result.options.find((o) => o.name === 'C')?.parents).toEqual(['P']);
@@ -143,6 +143,7 @@ describe('proposeReplaceOccurrenceParent', () => {
             childName: 'C',
             newlyReachable: ['D'],
         }));
+        expect(confirmGrant.mock.calls[0][0]).not.toHaveProperty('ancestorsOfParent');
         expect(result.status).toBe('applied');
         if (result.status === 'applied') {
             expect(result.options.find((o) => o.name === 'C')?.parents).toEqual(['P']);

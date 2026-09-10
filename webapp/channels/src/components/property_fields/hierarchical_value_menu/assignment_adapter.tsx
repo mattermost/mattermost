@@ -6,12 +6,7 @@ import React, {useMemo} from 'react';
 import HierarchicalValueMenu from './hierarchical_value_menu';
 import type {HierarchicalValueMenuField, HierarchicalValueMenuProps} from './hierarchical_value_menu';
 
-/**
- * Whether a closed assignment control has to page all options before it can
- * paint: either the field withheld its option list, or it inlined one that does
- * not name every value already held. A raw identifier is never an acceptable
- * chip.
- */
+/** True when chips cannot be named from the inlined option list. */
 export function computeAssignmentPrefetch(field: HierarchicalValueMenuField, ids: string[]): boolean {
     if (field.attrs?.options_omitted) {
         return true;
@@ -38,7 +33,6 @@ export type AssignmentHierarchicalValuesProps = {
     onIdsChange: (ids: string[]) => void;
     disabled?: boolean;
 
-    // Defaults to computeAssignmentPrefetch(field, ids).
     prefetchOnMount?: boolean;
 } & Pick<
     HierarchicalValueMenuProps,
@@ -46,11 +40,6 @@ export type AssignmentHierarchicalValuesProps = {
 'className' | 'buttonClassName' | 'trailingChips' | 'extraMenuItems'
 >;
 
-/**
- * CPA assignment's view of the tree: ids in, ids out, no translation at all.
- * This adapter exists so the two class-component hosts share one function
- * component seam and so neither of them invents a second fetch.
- */
 export default function AssignmentHierarchicalValues({
     field,
     ids,
@@ -61,8 +50,6 @@ export default function AssignmentHierarchicalValues({
 }: AssignmentHierarchicalValuesProps) {
     const fallbackLabels = useMemo(() => assignmentFallbackLabels(field), [field]);
 
-    // Read once, on mount, by the widget: a later change to `ids` deliberately
-    // does not retrigger it, because the menu-open fetch covers first paint on.
     const shouldPrefetch = prefetchOnMount ?? computeAssignmentPrefetch(field, ids);
 
     return (

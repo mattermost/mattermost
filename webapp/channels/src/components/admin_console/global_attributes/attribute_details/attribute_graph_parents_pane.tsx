@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
@@ -13,6 +14,8 @@ import {
     SourceBranchIcon,
     TrashCanOutlineIcon,
 } from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/shared/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import * as Menu from 'components/menu';
@@ -20,19 +23,19 @@ import Input from 'components/widgets/inputs/input/input';
 
 import Constants from 'utils/constants';
 
+import {GraphParentEdgeAlert} from './graph_edge_alert';
 import {proposeAddParent, type ConfirmGrant, type ProposeParentResult} from './graph_parent_ops';
 import {
     addChildOption,
     addTopLevelOption,
-    checkParentEdge,
-    cycleErrorValues,
-    depthErrorValues,
+    checkParentEdgeValidity,
+    countDescendants,
     getChildren,
     isNameUnique,
     removeParentEdge,
     wouldExceedMaxEdges,
     wouldExceedMaxOptions,
-    type CheckParentEdgeResult,
+    type CheckParentEdgeInvalid,
 } from './graph_utils';
 
 import './attribute_graph_parents_pane.scss';
@@ -57,8 +60,6 @@ export type ParentCandidateClass =
     {kind: 'disabled'; reason: 'self' | 'depth' | 'max-parents'} |
     {kind: 'enabled'};
 
-type EdgeAlert = Extract<CheckParentEdgeResult, {ok: false}>;
-
 type Suggestion =
     {kind: 'existing'; name: string} |
     {kind: 'create'; name: string};
@@ -72,7 +73,7 @@ export function classifyParentCandidate(
     if (listed) {
         return {kind: 'omit'};
     }
-    const result = checkParentEdge(options, childName, candidateName);
+    const result = checkParentEdgeValidity(options, childName, candidateName);
     if (!result.ok) {
         switch (result.error) {
         case 'cycle':
@@ -92,49 +93,6 @@ export function classifyParentCandidate(
     return {kind: 'enabled'};
 }
 
-export function classifyChildCandidate(
-    options: PropertyFieldOption[],
-    parentName: string,
-    candidateName: string,
-): ParentCandidateClass {
-    return classifyParentCandidate(options, candidateName, parentName);
-}
-
-export function GraphParentEdgeAlert({result, childName, parentName}: {
-    result: EdgeAlert;
-    childName: string;
-    parentName: string;
-}) {
-    const {formatMessage} = useIntl();
-    let text = '';
-    switch (result.error) {
-    case 'cycle':
-        text = formatMessage(messages.cycleError, cycleErrorValues(parentName, childName));
-        break;
-    case 'depth':
-        text = formatMessage(messages.depthError, depthErrorValues(childName, result.depth));
-        break;
-    case 'max-parents':
-        text = formatMessage(messages.maxParentsError);
-        break;
-    case 'self':
-        return null;
-    default: {
-        const exhaustive: never = result;
-        return exhaustive;
-    }
-    }
-    return (
-        <div
-            className='attribute-graph-parents-pane__alert'
-            role='alert'
-            data-testid='attributeGraphParentsPane__alert'
-        >
-            {text}
-        </div>
-    );
-}
-
 function AttributeGraphParentsPane({
     options,
     optionName,
@@ -151,9 +109,10 @@ function AttributeGraphParentsPane({
     const [view, setView] = useState<'main' | 'parents' | 'children'>(initialView);
     const [query, setQuery] = useState('');
     const [searchOpen, setSearchOpen] = useState(false);
-    const [edgeAlert, setEdgeAlert] = useState<EdgeAlert | null>(null);
+    const [edgeAlert, setEdgeAlert] = useState<CheckParentEdgeInvalid | null>(null);
     const [alertRelatedName, setAlertRelatedName] = useState('');
     const [nameDraft, setNameDraft] = useState(optionName);
+    const [confirmingParent, setConfirmingParent] = useState<string | null>(null);
     const skipBlurCommitRef = useRef(false);
 
     useEffect(() => {
@@ -171,29 +130,37 @@ function AttributeGraphParentsPane({
         setQuery('');
         setSearchOpen(false);
         setEdgeAlert(null);
+        setConfirmingParent(null);
     }, []);
+
+    const enabledSuggestionNames = useMemo(() => {
+        const names: string[] = [];
+        for (const candidate of options) {
+            const classification = view === 'children' ?
+                classifyParentCandidate(options, candidate.name, optionName) :
+                classifyParentCandidate(options, optionName, candidate.name);
+            if (classification.kind === 'enabled') {
+                names.push(candidate.name);
+            }
+        }
+        return names;
+    }, [optionName, options, view]);
 
     const suggestions = useMemo<Suggestion[]>(() => {
         const q = query.trim();
         const qLower = q.toLowerCase();
         const items: Suggestion[] = [];
-        for (const candidate of options) {
-            if (q && !candidate.name.toLowerCase().includes(qLower)) {
+        for (const name of enabledSuggestionNames) {
+            if (q && !name.toLowerCase().includes(qLower)) {
                 continue;
             }
-            const classification = view === 'children' ?
-                classifyChildCandidate(options, optionName, candidate.name) :
-                classifyParentCandidate(options, optionName, candidate.name);
-            if (classification.kind !== 'enabled') {
-                continue;
-            }
-            items.push({kind: 'existing', name: candidate.name});
+            items.push({kind: 'existing', name});
         }
         if (q && isNameUnique(options, q) && !disabled && !atMax && !wouldExceedMaxOptions(options) && !wouldExceedMaxEdges(options)) {
             items.push({kind: 'create', name: q});
         }
         return items;
-    }, [atMax, disabled, optionName, options, query, view]);
+    }, [atMax, disabled, enabledSuggestionNames, options, query]);
 
     const applyProposeResult = useCallback((result: ProposeParentResult, relatedName: string, onApplied?: () => void) => {
         switch (result.status) {
@@ -286,6 +253,7 @@ function AttributeGraphParentsPane({
         const showSuggestions = searchOpen && suggestions.length > 0 && !disabled;
         const addExisting = isChildren ? handleAddChild : handleAdd;
         const createNew = isChildren ? handleCreateChild : handleCreate;
+        const descendantCount = confirmingParent ? countDescendants(options, optionName) : 0;
 
         return (
             <>
@@ -310,13 +278,9 @@ function AttributeGraphParentsPane({
                             <FormattedMessage {...(isChildren ? messages.noChildrenYet : messages.noParentsYet)}/>
                         </p>
                     )}
-                    {relatedNames.map((relatedName) => (
-                        <div
-                            key={relatedName}
-                            className='attribute-graph-parents-pane__row'
-                            data-testid={isChildren ? 'attributeGraphParentsPane__childRow' : 'attributeGraphParentsPane__parentRow'}
-                        >
-                            <span className='attribute-graph-parents-pane__row-label'>{relatedName}</span>
+                    {relatedNames.map((relatedName) => {
+                        const isConfirming = !isChildren && confirmingParent === relatedName;
+                        const removeButton = (
                             <button
                                 type='button'
                                 className='attribute-graph-parents-pane__row-remove'
@@ -326,9 +290,11 @@ function AttributeGraphParentsPane({
                                     formatMessage(messages.removeParent, {parent: relatedName, child: optionName})}
                                 disabled={disabled}
                                 onClick={() => {
-                                    onOptionsChange(isChildren ?
-                                        removeParentEdge(options, relatedName, optionName) :
-                                        removeParentEdge(options, optionName, relatedName));
+                                    if (isChildren) {
+                                        onOptionsChange(removeParentEdge(options, relatedName, optionName));
+                                        return;
+                                    }
+                                    setConfirmingParent(relatedName);
                                 }}
                             >
                                 <CloseIcon
@@ -336,14 +302,77 @@ function AttributeGraphParentsPane({
                                     aria-hidden={true}
                                 />
                             </button>
-                        </div>
-                    ))}
+                        );
+
+                        return (
+                            <div
+                                key={relatedName}
+                                className={classNames('attribute-graph-parents-pane__row', {
+                                    'attribute-graph-parents-pane__row--confirming': isConfirming,
+                                })}
+                                data-testid={isChildren ? 'attributeGraphParentsPane__childRow' : 'attributeGraphParentsPane__parentRow'}
+                            >
+                                <div className='attribute-graph-parents-pane__row-top'>
+                                    <span className='attribute-graph-parents-pane__row-label'>{relatedName}</span>
+                                    {isChildren ? removeButton : (
+                                        <WithTooltip title={formatMessage(messages.removeParentTooltip)}>
+                                            {removeButton}
+                                        </WithTooltip>
+                                    )}
+                                </div>
+                                {isConfirming && (
+                                    <div
+                                        className='attribute-graph-parents-pane__confirm'
+                                        data-testid='attributeGraphParentsPane__parentRemoveConfirm'
+                                    >
+                                        <p className='attribute-graph-parents-pane__confirm-text'>
+                                            <FormattedMessage
+                                                {...(descendantCount > 0 ? messages.removeConfirmWithDescendants : messages.removeConfirm)}
+                                                values={{
+                                                    child: optionName,
+                                                    parent: relatedName,
+                                                    count: descendantCount,
+                                                }}
+                                            />
+                                        </p>
+                                        <div className='attribute-graph-parents-pane__confirm-actions'>
+                                            <Button
+                                                type='button'
+                                                emphasis='secondary'
+                                                size='sm'
+                                                variant='destructive'
+                                                disabled={disabled}
+                                                onClick={() => {
+                                                    onOptionsChange(removeParentEdge(options, optionName, relatedName));
+                                                    setConfirmingParent(null);
+                                                }}
+                                                data-testid='attributeGraphParentsPane__parentRemoveConfirmButton'
+                                            >
+                                                <FormattedMessage {...messages.removeTheParent}/>
+                                            </Button>
+                                            <Button
+                                                type='button'
+                                                emphasis='tertiary'
+                                                size='sm'
+                                                onClick={() => setConfirmingParent(null)}
+                                                data-testid='attributeGraphParentsPane__parentRemoveKeep'
+                                            >
+                                                <FormattedMessage {...messages.keepIt}/>
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
                 </div>
                 {edgeAlert && (
                     <GraphParentEdgeAlert
                         result={edgeAlert}
                         childName={isChildren ? alertRelatedName : optionName}
                         parentName={isChildren ? optionName : alertRelatedName}
+                        className='attribute-graph-parents-pane__alert'
+                        testId='attributeGraphParentsPane__alert'
                     />
                 )}
                 <Menu.Separator/>
@@ -620,17 +649,25 @@ const messages = defineMessages({
         id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.remove_parent',
         defaultMessage: 'Remove {parent} as a parent of {child}',
     },
-    cycleError: {
-        id: 'admin.global_attributes.attribute_details.options.graph.parent_edge.cycle',
-        defaultMessage: '{parent} can\'t be a parent of {child} — {child} already grants {parent}, so this would loop back on itself.',
+    removeParentTooltip: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.remove_parent_tooltip',
+        defaultMessage: 'Remove Parent',
     },
-    depthError: {
-        id: 'admin.global_attributes.attribute_details.options.graph.parent_edge.depth',
-        defaultMessage: 'Adding this parent pushes "{name}" to depth {n}; the limit is 100.',
+    removeConfirm: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.remove_confirm',
+        defaultMessage: 'Remove it? "{child}" will no longer sit under "{parent}".',
     },
-    maxParentsError: {
-        id: 'admin.global_attributes.attribute_details.options.graph.parent_edge.max_parents',
-        defaultMessage: 'An option can have at most 100 parents.',
+    removeConfirmWithDescendants: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.remove_confirm_with_descendants',
+        defaultMessage: 'Remove it? "{child}" will no longer sit under "{parent}", or under anything above it. The {count, plural, one {# value} other {# values}} below "{child}" go with it.',
+    },
+    removeTheParent: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.remove_confirm_action',
+        defaultMessage: 'Remove the parent',
+    },
+    keepIt: {
+        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.keep_it',
+        defaultMessage: 'Keep it',
     },
     deleteThisValue: {
         id: 'admin.global_attributes.attribute_details.options.graph.delete_this_value',

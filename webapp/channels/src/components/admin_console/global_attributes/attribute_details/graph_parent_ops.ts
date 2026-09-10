@@ -29,7 +29,6 @@ function toGrantReq(
         parentName,
         childName,
         newlyReachable: check.newlyReachable,
-        ancestorsOfParent: check.ancestorsOfParent,
     };
 }
 

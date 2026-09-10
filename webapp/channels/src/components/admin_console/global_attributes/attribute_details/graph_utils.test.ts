@@ -13,6 +13,7 @@ import {
     addTopLevelOption,
     checkParentEdge,
     computeDepthAfterAdd,
+    countDescendants,
     countEdges,
     cycleErrorValues,
     depthErrorValues,
@@ -106,6 +107,14 @@ describe('computeDepthAfterAdd', () => {
     });
 });
 
+describe('countDescendants', () => {
+    test('counts the reachable subtree and ignores the start node', () => {
+        expect(countDescendants([opt('A')], 'A')).toBe(0);
+        expect(countDescendants([opt('A'), opt('B', ['A']), opt('C', ['B'])], 'A')).toBe(2);
+        expect(countDescendants([opt('A'), opt('B', ['A']), opt('C', ['A'])], 'A')).toBe(2);
+    });
+});
+
 describe('findNewlyReachableDescendants', () => {
     test('reparent onto ancestor is empty (vs_original; after_remove would over-confirm) (G3)', () => {
         const shortcut = [opt('P'), opt('R', ['P']), opt('C', ['R']), opt('D', ['C'])];
@@ -189,8 +198,8 @@ describe('checkParentEdge', () => {
         expect(result).toEqual({
             ok: true,
             newlyReachable: ['D'],
-            ancestorsOfParent: [],
         });
+        expect(result).not.toHaveProperty('ancestorsOfParent');
         expect(result).not.toEqual(expect.objectContaining({noOp: true}));
     });
 
