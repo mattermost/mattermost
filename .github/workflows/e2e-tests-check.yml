@@ -9,6 +9,8 @@ on:
       - "webapp/platform/types/**"
       - ".github/workflows/e2e-*.yml"
       - ".github/scripts/e2e-*.mjs"
+      - ".github/scripts/triage-*.mjs"
+      - ".github/scripts/manual-e2e-verification*.mjs"
       - ".github/actions/check-e2e-test-only/**"
 
 permissions:
@@ -28,7 +30,14 @@ jobs:
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
         with:
           node-version: "22"
-      - run: node --test .github/scripts/e2e-change-scope.test.mjs .github/scripts/e2e-resolve-pr.test.mjs
+      - name: Install syntax checker for repair guard tests
+        run: npm install --prefix "$RUNNER_TEMP/triage-policy" --ignore-scripts --no-audit --no-fund --save-exact typescript@6.0.3
+      - name: Test E2E scope, triage and status guards
+        # Exercise candidate changes in this read-only job, without provider or
+        # status-writer credentials. The trusted-base policy job is separate.
+        run: node --test .github/scripts/e2e-change-scope.test.mjs .github/scripts/e2e-resolve-pr.test.mjs .github/scripts/triage-*.test.mjs .github/scripts/manual-e2e-verification.test.mjs
+        env:
+          TRIAGE_TYPESCRIPT_PATH: ${{ runner.temp }}/triage-policy/node_modules/typescript/lib/typescript.js
 
   check:
     runs-on: ubuntu-24.04

@@ -1,11 +1,55 @@
 import {mkdtemp, readFile, writeFile, lstat} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join, resolve} from 'node:path';
-import {clients, main, invariant, required, shaPattern, testPath, validateWorkflow, run, artifact} from './triage-lib.mjs';
+import {stripVTControlCharacters} from 'node:util';
+import {clients, main, invariant, required, shaPattern, testPath, validateWorkflow, run, artifact, sameRun, selector, query} from './triage-lib.mjs';
 import {provider} from './triage-provider.mjs';
 import {harness, verifyClean} from './triage-harness.mjs';
 import {checkSource} from './triage-policy.mjs';
 import {ownerFor, codeowners} from './triage-queue.mjs';
+
+const normalizedError = value => typeof value === 'string' ? stripVTControlCharacters(value).replace(/\s+/g, ' ').trim() : '';
+export function recordedFailure(item, evidence) {
+    invariant(evidence?.schema_version === 1 && evidence.complete === true && evidence.truncated === false && evidence.trusted_source === true, 'Complete trusted recorded failure evidence is required');
+    const group = evidence.group;
+    invariant(group && sameRun(group, item) && group.id === item.report_group_id && group.framework === item.framework && group.branch === 'master' && group.status === 'completed', 'Recorded failure run differs from claimed master evidence');
+    invariant(shaPattern.test(item.source_workflow_sha) && evidence.source_workflow_sha === item.source_workflow_sha && evidence.source_workflow_ref === `${item.repository}/.github/workflows/e2e-tests-on-merge.yml@refs/heads/master`, 'Recorded failure source workflow differs from claimed evidence');
+    invariant(Array.isArray(evidence.tests) && Array.isArray(evidence.reports), 'Recorded failure rows are missing');
+    invariant(evidence.tests.every(t => typeof t.id === 'string' && t.id) && new Set(evidence.tests.map(t => t.id)).size === evidence.tests.length, 'Recorded failure contains duplicate or missing row identities');
+    invariant(evidence.reports.every(r => typeof r.id === 'string' && r.id) && new Set(evidence.reports.map(r => r.id)).size === evidence.reports.length, 'Recorded failure contains duplicate or missing report identities');
+    const file = testPath(item.framework, item.file);
+    const rows = evidence.tests.filter(t => t.stable_key === item.stable_key);
+    invariant(rows.length > 0 && rows.every(t => testPath(item.framework, t.file) === file && t.full_title === item.full_title && (t.project ?? '') === item.project), 'Recorded failure test identity differs or is ambiguous');
+    const attempts = new Set();
+    for (const row of rows) {
+        const key = JSON.stringify([row.report_id, row.retry_count]);
+        invariant(Number.isInteger(row.retry_count) && row.retry_count >= 0 && !attempts.has(key), 'Recorded failure attempt identity is missing or ambiguous');
+        attempts.add(key);
+        const report = evidence.reports.find(r => r.id === row.report_id);
+        const metadata = report?.environment_metadata;
+        const digests = [metadata?.server_image_digest, metadata?.image_digest].filter(v => v !== undefined);
+        invariant(digests.length > 0 && digests.every(d => d === item.image_digest), 'Recorded failure image differs from claimed environment');
+    }
+    for (const reportID of new Set(rows.map(t => t.report_id))) {
+        const chain = rows.filter(t => t.report_id === reportID).sort((a, b) => a.retry_count - b.retry_count);
+        const failedCount = chain.filter(t => ['failed', 'timedOut'].includes(t.status)).length;
+        const runFailed = chain.at(-1).status !== 'passed';
+        invariant(chain.every((t, i) => t.retry_count === i && t.attempts === chain.length && t.attempts_failed === failedCount && t.run_failed === runFailed && ['passed', 'failed', 'timedOut'].includes(t.status)), 'Recorded failure attempt chain is incomplete, unknown or inconsistent');
+    }
+    const failures = rows.filter(t => ['failed', 'timedOut'].includes(t.status));
+    invariant(failures.length > 0 && failures.every(t => normalizedError(t.error_message)), 'Recorded failure has no usable original error');
+    const signatures = new Set(failures.map(t => JSON.stringify([t.status, normalizedError(t.error_message)])));
+    invariant(signatures.size === 1, 'Recorded failure has ambiguous error causes; human diagnosis required');
+    return {file, project: item.project, title: item.full_title, state: failures[0].status, error_message: failures[0].error_message, report_group_id: item.report_group_id};
+}
+export function verifyReproduction(tests, expected) {
+    const matches = tests.filter(t => t.file === expected.file && t.project === expected.project && t.title === expected.title);
+    invariant(matches.length === 1, 'Reproduction test identity is missing or ambiguous');
+    const test = matches[0];
+    const error = test.errors?.[0];
+    const message = typeof error === 'string' ? error : error?.message || error?.stack;
+    invariant(test.attempts === 1 && test.retry === 0 && test.state === expected.state && test.errors?.length === 1 && normalizedError(message) && normalizedError(message) === normalizedError(expected.error_message), 'Reproduction differs from the recorded failure; leave test unchanged');
+}
 
 export async function disposition(diagnosis, {complete, repair}) {
     if (diagnosis.decision === 'product_suspect') {
@@ -102,6 +146,8 @@ export async function guardian(env = process.env) {
         // Apply the publication freshness rule before cloning, installing or
         // reproducing an old queue item against a historical server image.
         await currentRepairMaster(gh, item);
+        const recorded = recordedFailure(item, await tsio(`/triage/run-evidence?${query(selector(item))}`));
+        await artifact(output, 'recorded-failure.json', recorded);
         const cwd = await mkdtemp(join(tmpdir(), 'mattermost-guardian-'));
         await run('git', ['clone', '--no-checkout', '--', `https://github.com/${repository}.git`, cwd], {signal: abort.signal});
         await run('git', ['merge-base', '--is-ancestor', item.commit_sha, 'origin/master'], {cwd, signal: abort.signal});
@@ -112,7 +158,7 @@ export async function guardian(env = process.env) {
         const original = await readFile(resolve(cwd, file), 'utf8'); invariant(original.length <= 250000, 'Test exceeds bounded repair size');
         const execution = await harness(item, cwd, output, abort.signal);
         const baseline = await execution.execute('reproduction');
-        invariant(baseline.some(t => t.title === item.full_title && t.state !== 'passed'), 'Claimed failure did not reproduce; leave test unchanged');
+        verifyReproduction(baseline, recorded);
         const evidence = {test: {framework: item.framework, file, full_title: item.full_title, stable_key: item.stable_key}, image_digest: item.image_digest, commit_sha: item.commit_sha, reproduction: baseline, source: original};
         const diagnosis = await propose.diagnose(evidence);
         await artifact(output, 'diagnosis.json', diagnosis);

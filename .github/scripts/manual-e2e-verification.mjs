@@ -25,9 +25,13 @@ export async function verifyManually(request, io) {
     const repo = `/repos/${REPOSITORY}`;
     const permission = await io.github(`${repo}/collaborators/${io.approver}/permission`);
     check(['admin', 'write'].includes(permission.permission), 'The approving maintainer requires write or admin permission');
+    let baseSHA;
     const inspectPR = async () => {
         const pr = await io.github(`${repo}/pulls/${request.pr_number}`);
         check(pr.state === 'open' && pr.base.ref === 'master' && pr.head.sha === request.assessed_sha, 'PR is closed, not on master, or its head changed');
+        check(/^[a-f0-9]{40}$/.test(pr.base.sha), 'PR base SHA is missing');
+        check(baseSHA === undefined || pr.base.sha === baseSHA, 'PR base changed after verification started');
+        baseSHA ??= pr.base.sha;
     };
     const inspectDiagnosis = async () => {
         const path = request.diagnosis_kind === 'review' ? `${repo}/pulls/${request.pr_number}/reviews/${request.diagnosis_id}` :
@@ -94,37 +98,68 @@ export async function verifyManually(request, io) {
     const diagnosis = await inspectDiagnosis();
     for (const item of request.contexts) {await inspectRun(item); await inspectStatus(item);}
     const approval = {kind: 'maintainer-e2e-verification-v1', approver: io.approver, workflow_sha: io.workflowSHA,
-        workflow_run_url: io.workflowURL, request, source_diagnosis_url: diagnosis.html_url, source_diagnosis_body: diagnosis.body};
+        workflow_run_url: io.workflowURL, base_sha: baseSHA, request, source_diagnosis_url: diagnosis.html_url, source_diagnosis_body: diagnosis.body};
     const body = `E2E: maintainer verification approved by @${io.approver}.\n\nThis is a deliberate status waiver, not a claim that Cursor proved causation. Raw CI outcomes remain unchanged.\n\n<details><summary>Approval and diagnosis recorded before status changes</summary>\n\n\`\`\`json\n${JSON.stringify(approval, null, 2).replaceAll('<', '\\u003c')}\n\`\`\`\n</details>`;
     check(body.length <= 60000, 'Approval exceeds GitHub comment limit');
     const comment = await io.github(`${repo}/issues/${request.pr_number}/comments`, {body});
     check(positive(comment.id) && comment.html_url === `https://github.com/${REPOSITORY}/pull/${request.pr_number}#issuecomment-${comment.id}`, 'Approval comment write was not confirmed');
     const saved = await io.github(`${repo}/issues/comments/${comment.id}`);
     check(saved.body === body, 'Stored approval differs from submitted approval');
-    const restore = (item) => io.github(`${repo}/statuses/${request.assessed_sha}`, {state: 'failure', context: item.context,
-        description: 'Verification invalidated; review approval record', target_url: comment.html_url});
+    const description = `Maintainer verified; approval ${comment.id}`;
+    const restore = async (item) => {
+        const current = (await latest()).get(item.context);
+        // A timed-out POST may have succeeded. Identify an unacknowledged write
+        // by this unique approval; never replace a newer independent status.
+        if (current?.state !== 'success' || current.target_url !== comment.html_url || current.description !== description ||
+            current.creator?.login !== 'github-actions[bot]' || (item.written_id && current.id !== item.written_id)) {
+            // Seeing the old failure cannot establish that a timed-out POST
+            // will not arrive later. Keep this outcome explicitly uncertain.
+            check(item.written_id, 'Unacknowledged status write may still complete');
+            return;
+        }
+        const restored = await io.github(`${repo}/statuses/${request.assessed_sha}`, {state: 'failure', context: item.context,
+            description: 'Verification invalidated; review approval record', target_url: comment.html_url});
+        check(restored.state === 'failure' && restored.context === item.context && positive(restored.id), 'Restoration was not confirmed');
+        return item.context;
+    };
     const written = [];
-    for (const item of request.contexts) {
-        await inspectPR();
-        await inspectDiagnosis();
-        await inspectRun(item);
-        await inspectStatus(item);
-        try {
+    const attempted = [];
+    try {
+        for (const item of request.contexts) {
+            await inspectPR();
+            await inspectDiagnosis();
+            await inspectRun(item);
+            await inspectStatus(item);
+            const attempt = {context: item.context};
+            attempted.push(attempt);
             const status = await io.github(`${repo}/statuses/${request.assessed_sha}`, {state: 'success', context: item.context,
-                description: `Maintainer verified; approval ${comment.id}`, target_url: comment.html_url});
+                description, target_url: comment.html_url});
             check(status.state === 'success' && status.context === item.context && positive(status.id), 'Status write was not confirmed');
+            attempt.written_id = status.id;
             written.push({context: item.context, status_id: status.id});
             const current = (await latest()).get(item.context);
             check(current?.id === status.id && current.state === 'success', 'Verified status was superseded');
+            await inspectPR();
+            await inspectDiagnosis();
             await inspectRun(item);
-        } catch (error) {
-            try {await restore(item);} catch {
-                throw Error(`Status may be green: restoration failed after ${error.message}; inspect ${comment.html_url}`);
-            }
-            throw Error(`Status restored to failure: ${error.message}`);
         }
+        // A later context must not hide a change to an earlier source run/status.
+        for (const item of request.contexts) {
+            await inspectRun(item);
+            check((await latest()).get(item.context)?.id === written.find((row) => row.context === item.context).status_id,
+                'Verified status was superseded');
+        }
+        await inspectPR();
+    } catch (error) {
+        const restored = [];
+        const uncertain = [];
+        for (const item of attempted) {
+            try {if (await restore(item)) restored.push(item.context);} catch {uncertain.push(item.context);}
+        }
+        if (uncertain.length) throw Error(`Status may be green for ${uncertain.join(', ')}: restoration failed after ${error.message}; inspect ${comment.html_url}`);
+        throw Error(`${restored.length ? 'Status restored to failure' : 'No owned success remains to restore'}: ${error.message}`);
     }
-    const receipt = {assessed_sha: request.assessed_sha, approval_url: comment.html_url, statuses: written};
+    const receipt = {assessed_sha: request.assessed_sha, base_sha: baseSHA, approval_url: comment.html_url, statuses: written};
     await io.github(`${repo}/issues/${request.pr_number}/comments`, {body:
         `E2E maintainer verification applied and verified on \`${request.assessed_sha}\`.\n\n[Approval and diagnosis](${comment.html_url})\n\n\`\`\`json\n${JSON.stringify(receipt, null, 2)}\n\`\`\``});
     return receipt;

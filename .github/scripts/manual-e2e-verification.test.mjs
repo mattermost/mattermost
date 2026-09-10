@@ -12,7 +12,7 @@ function fixture() {
     const request = {repository: binding.repository, pr_number: 38356, assessed_sha: head, diagnosis_kind: 'review',
         diagnosis_id: 10, diagnosis_sha256: hash(body), contexts: [scope], reason: 'I reviewed the recurring master error and accept the documented reproduction limit.'};
     const state = {permission: 'write', mutations: [], comments: new Map(), afterApproval: () => {}, afterStatus: () => {},
-        pr: {state: 'open', base: {ref: 'master'}, head: {sha: head}},
+        pr: {state: 'open', base: {ref: 'master', sha: 'b'.repeat(40)}, head: {sha: head}},
         diagnosis: {user: {login: 'cursor[bot]'}, body, commit_id: head,
             html_url: 'https://github.com/mattermost/mattermost/pull/38356#pullrequestreview-10'},
         run: {head_sha: head, status: 'completed', conclusion: 'failure', run_attempt: 1, path: '.github/workflows/e2e-tests-ci.yml'},
@@ -35,7 +35,7 @@ function fixture() {
             }
             if (path.includes('/issues/comments/')) return state.comments.get(Number(path.split('/').at(-1)));
             if (path.includes('/statuses/')) {
-                const status = {id: 200 + state.mutations.length, ...payload};
+                const status = {id: 200 + state.mutations.length, creator: {login: 'github-actions[bot]'}, ...payload};
                 state.statuses.unshift(status);
                 state.afterStatus();
                 return status;
@@ -116,6 +116,82 @@ test('detects a same-SHA rerun in the write gap and restores failure', async () 
     assert.equal(writes(state).length, 2);
     assert.equal(state.statuses[0].state, 'failure');
     assert.equal(state.comments.size, 1);
+});
+
+test('does not overwrite a newer independent status when verification loses a race', async () => {
+    const {request, state, io} = fixture();
+    state.afterStatus = () => {
+        state.statuses.unshift({id: 999, context, state: 'pending', target_url: 'https://github.com/mattermost/mattermost/actions/runs/999'});
+    };
+    await assert.rejects(verifyManually(request, io), /superseded/);
+    assert.equal(writes(state).length, 1);
+    assert.equal(state.statuses[0].id, 999);
+    assert.equal(state.statuses[0].state, 'pending');
+});
+
+test('refuses a base change after the approval is stored', async () => {
+    const {request, state, io} = fixture();
+    state.afterApproval = () => {state.pr.base.sha = 'd'.repeat(40);};
+    await assert.rejects(verifyManually(request, io), /base changed/);
+    assert.equal(writes(state).length, 0);
+});
+
+for (const field of ['head', 'base']) {
+    test(`invalidates its own success when the PR ${field} changes during the write`, async () => {
+        const {request, state, io} = fixture();
+        state.afterStatus = () => {state.pr[field].sha = 'd'.repeat(40);};
+        await assert.rejects(verifyManually(request, io), /restored to failure/);
+        assert.equal(writes(state).length, 2);
+        assert.equal(state.statuses[0].state, 'failure');
+    });
+}
+
+test('recovers an acknowledged-lost success only when the latest status belongs to its approval', async () => {
+    const {request, state, io} = fixture();
+    const github = io.github;
+    io.github = async (path, payload) => {
+        const result = await github(path, payload);
+        if (payload?.state === 'success') throw Error('Connection lost after write');
+        return result;
+    };
+    await assert.rejects(verifyManually(request, io), /restored to failure/);
+    assert.equal(writes(state).length, 2);
+    assert.equal(state.statuses[0].state, 'failure');
+});
+
+test('reports an uncertain write when a timed-out success is not yet visible', async () => {
+    const {request, state, io} = fixture();
+    const github = io.github;
+    let finishWrite;
+    io.github = async (path, payload) => {
+        if (payload?.state === 'success') {
+            finishWrite = () => github(path, payload);
+            throw Error('Connection timed out while POST remains pending');
+        }
+        return github(path, payload);
+    };
+    await assert.rejects(verifyManually(request, io), /Status may be green/);
+    assert.equal(state.statuses[0].state, 'failure');
+    await finishWrite();
+    assert.equal(state.statuses[0].state, 'success');
+});
+
+test('invalidates an earlier success if a later approved context changes before its write', async () => {
+    const {request, state, io} = fixture();
+    const second = {...request.contexts[0], context: 'e2e-test/playwright-full/enterprise', status_id: 101};
+    request.contexts.push(second);
+    state.diagnosis.body = `${automation}\n<!-- TSIO_E2E_DIAGNOSIS_V1\n${JSON.stringify({repository: request.repository,
+        pr_number: request.pr_number, head_sha: head, contexts: request.contexts})}\n-->`;
+    request.diagnosis_sha256 = hash(state.diagnosis.body);
+    state.statuses.push({...state.statuses[0], id: 101, context: second.context,
+        target_url: state.statuses[0].target_url.replace('cypress', 'playwright')});
+    state.afterStatus = () => {
+        if (writes(state).length === 1) state.statuses.unshift({id: 999, context: second.context, state: 'pending'});
+    };
+    await assert.rejects(verifyManually(request, io), /restored to failure.*status changed/);
+    assert.equal(writes(state).length, 2);
+    assert.equal(state.statuses.find((status) => status.context === context).state, 'failure');
+    assert.equal(state.statuses.find((status) => status.context === second.context).id, 999);
 });
 
 test('requires an exact structured binding for issue comments without authoritative commit_id', async () => {
