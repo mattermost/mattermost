@@ -269,7 +269,7 @@ describe('global_attributes/utils', () => {
         it('PATCHes the template and keeps option ids, sending null ldap/saml to unlink', async () => {
             const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue({} as PropertyField);
 
-            await updateAttributeField('field-id', {
+            await updateAttributeField('template', 'field-id', {
                 name: 'renamed',
                 type: 'select',
                 displayName: 'Renamed',
@@ -293,7 +293,7 @@ describe('global_attributes/utils', () => {
         it('omits name when it is not in the patch, and sends options: null for text', async () => {
             const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue({} as PropertyField);
 
-            await updateAttributeField('field-id', {
+            await updateAttributeField('template', 'field-id', {
                 type: 'text',
                 displayName: 'Cost center',
                 options: [{id: 'opt-1', name: ' leftover '}],
@@ -311,6 +311,20 @@ describe('global_attributes/utils', () => {
                 },
             });
         });
+
+        it('passes a non-template object type through as the PATCH path segment', async () => {
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue({} as PropertyField);
+
+            await updateAttributeField('user', 'field-id', {
+                type: 'text',
+                displayName: 'Cost center',
+                options: [],
+                ldapAttr: '',
+                samlAttr: '',
+            });
+
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'user', 'field-id', expect.anything());
+        });
     });
 
     describe('fetchAttributeField', () => {
@@ -319,16 +333,44 @@ describe('global_attributes/utils', () => {
         });
 
         it('returns the matching live template field and ignores deleted ones', async () => {
-            const live = {id: 'field-1', delete_at: 0} as PropertyField;
-            jest.spyOn(Client4, 'getPropertyFields').mockResolvedValue([
-                {id: 'field-1', delete_at: 1} as PropertyField,
-                live,
-            ]);
+            const live = {id: 'field-1', object_type: 'template', delete_at: 0} as PropertyField;
+            jest.spyOn(Client4, 'getPropertyFields').mockImplementation((_group, objectType) => {
+                if (objectType === 'template') {
+                    return Promise.resolve([
+                        {id: 'field-1', object_type: 'template', delete_at: 1} as PropertyField,
+                        live,
+                    ]);
+                }
+                return Promise.resolve([]);
+            });
 
             await expect(fetchAttributeField('field-1')).resolves.toBe(live);
         });
 
-        it('returns undefined when the id is not in the page', async () => {
+        it('returns a matching live user/channel/post field', async () => {
+            const live = {id: 'field-1', object_type: 'channel', delete_at: 0} as PropertyField;
+            jest.spyOn(Client4, 'getPropertyFields').mockImplementation((_group, objectType) => {
+                if (objectType === 'channel') {
+                    return Promise.resolve([live]);
+                }
+                return Promise.resolve([]);
+            });
+
+            await expect(fetchAttributeField('field-1')).resolves.toBe(live);
+        });
+
+        it('ignores a user/channel/post field that is a linked child of a template', async () => {
+            jest.spyOn(Client4, 'getPropertyFields').mockImplementation((_group, objectType) => {
+                if (objectType === 'channel') {
+                    return Promise.resolve([{id: 'field-1', object_type: 'channel', linked_field_id: 'template-id', delete_at: 0} as PropertyField]);
+                }
+                return Promise.resolve([]);
+            });
+
+            await expect(fetchAttributeField('field-1')).resolves.toBeUndefined();
+        });
+
+        it('returns undefined when the id is not in any object type', async () => {
             jest.spyOn(Client4, 'getPropertyFields').mockResolvedValue([{id: 'other', delete_at: 0} as PropertyField]);
 
             await expect(fetchAttributeField('field-1')).resolves.toBeUndefined();

@@ -826,7 +826,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             }
 
             try {
-                await updateAttributeField(fieldId, {
+                await updateAttributeField(GLOBAL_ATTRIBUTES_OBJECT_TYPE, fieldId, {
                     ...(nameUnchanged ? {} : {name: currentName}),
                     type: fieldType,
                     displayName,

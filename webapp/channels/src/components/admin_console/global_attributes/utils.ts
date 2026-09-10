@@ -79,11 +79,22 @@ async function listPropertyFields(objectType: string): Promise<PropertyField[]> 
     return fields;
 }
 
-// There is no GET-by-id property-fields HTTP handler. List template fields and
-// find the one whose id matches. Returns undefined when it isn't in the group.
+const ALL_ATTRIBUTE_FIELD_OBJECT_TYPES = [GLOBAL_ATTRIBUTES_OBJECT_TYPE, ...ALL_RESOURCE_TYPES];
+
+// There is no GET-by-id property-fields HTTP handler. List every object type a
+// field can live in and find the one whose id matches. A user/channel/post
+// field only counts when it isn't a template's linked child (linked_field_id
+// set) -- those aren't listed or edited on their own, so an id that only
+// resolves to one returns undefined and the details page redirects to the list.
 export async function fetchAttributeField(fieldId: string): Promise<PropertyField | undefined> {
-    const fields = await listPropertyFields(GLOBAL_ATTRIBUTES_OBJECT_TYPE);
-    return fields.find((field) => field.id === fieldId && field.delete_at === 0);
+    const pages = await Promise.all(
+        ALL_ATTRIBUTE_FIELD_OBJECT_TYPES.map((objectType) => listPropertyFields(objectType)),
+    );
+    return pages.flat().find((field) => (
+        field.id === fieldId &&
+        field.delete_at === 0 &&
+        (field.object_type === GLOBAL_ATTRIBUTES_OBJECT_TYPE || !field.linked_field_id)
+    ));
 }
 
 function isResourceObjectType(value: string): value is ResourceObjectType {
@@ -152,15 +163,16 @@ export type UpdateAttributeFieldPatch = {
     samlAttr: string;
 };
 
-// PATCHes a template field. Attrs are merge-patched (mergeAttrs=true on the
-// server): ldap/saml send null to unlink, and Text sends options: null so a
-// leftover options array is dropped. name is omitted when unchanged so the
-// server skips uniqueness re-validation.
+// PATCHes a field in the given object type. Attrs are merge-patched
+// (mergeAttrs=true on the server): ldap/saml send null to unlink, and Text
+// sends options: null so a leftover options array is dropped. name is omitted
+// when unchanged so the server skips uniqueness re-validation.
 export function updateAttributeField(
+    objectType: string,
     fieldId: string,
     patch: UpdateAttributeFieldPatch,
 ): Promise<PropertyField> {
-    return Client4.patchPropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, fieldId, {
+    return Client4.patchPropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, fieldId, {
         ...(patch.name === undefined ? {} : {name: patch.name}),
         type: patch.type as PropertyField['type'],
         attrs: {
