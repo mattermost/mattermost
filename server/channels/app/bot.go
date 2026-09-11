@@ -98,6 +98,11 @@ func (a *App) CreateBot(rctx request.CTX, bot *model.Bot) (*model.Bot, *model.Ap
 		return nil, vErr
 	}
 
+	// Reserved for GetOrCreateSystemOwnedBot; blocks squatting the username to inherit system-bot exemptions.
+	if bot.IsSystemOwned() {
+		return nil, model.NewAppError("CreateBot", "app.bot.createbot.reserved_username.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	user, nErr := a.Srv().Store().User().Save(rctx, model.UserFromBot(bot))
 	if nErr != nil {
 		var appErr *model.AppError
@@ -271,7 +276,13 @@ func (a *App) PatchBot(rctx request.CTX, botUserId string, botPatch *model.BotPa
 		return bot, nil
 	}
 
+	wasSystemOwned := bot.IsSystemOwned()
 	bot.Patch(botPatch)
+
+	// Blocks renaming into a protected username; see CreateBot.
+	if !wasSystemOwned && bot.IsSystemOwned() {
+		return nil, model.NewAppError("PatchBot", "app.bot.patchbot.reserved_username.app_error", nil, "", http.StatusBadRequest)
+	}
 
 	user, nErr := a.Srv().Store().User().Get(rctx, botUserId)
 	if nErr != nil {
