@@ -354,9 +354,16 @@ def normalize_formatting(text: str) -> str:
     return frontmatter + text
 
 
-# Regions of Markdown whose contents must never be escaped: inline code spans
-# (double- or single-backtick) and Markdown link destinations.
-_MDX_PROTECTED_RE = re.compile(r"``[^`]*``|`[^`]*`|\]\([^)]*\)")
+# Regions of Markdown whose contents must never be escaped. Fenced blocks are listed
+# first so they are consumed whole: an inline-code alternative would otherwise match
+# across a fence that contains backticks and protect the wrong spans.
+_MDX_PROTECTED_RE = re.compile(
+    r"```[\s\S]*?```"     # fenced code block (backticks)
+    r"|~~~[\s\S]*?~~~"    # fenced code block (tildes)
+    r"|``[^`]*``"         # inline code span (double backtick)
+    r"|`[^`]*`"           # inline code span (single backtick)
+    r"|\]\([^)]*\)"       # Markdown link destination
+)
 
 
 def escape_mdx_unsafe(text: str) -> str:
