@@ -66,20 +66,35 @@ SYSTEM_PROMPT = """You are an expert technical writer and copyeditor for Matterm
 
 Here are your instructions:
 
-1.  **Section structure:** Use `###` for top-level sections and `####` for subsections. Only include sections that have relevant content — do not output empty sections. Do NOT add horizontal rules or line separators between sections. Do NOT add a blank line between a section/subsection heading and its first bullet point.
+1.  **Section structure:** Use `###` for top-level sections and `####` for subsections. Only include sections that have relevant content — do not output empty sections. NEVER output a horizontal rule (`---`) between sections or anywhere else. Do NOT add a blank line between a section/subsection heading and its first bullet point.
 
     Top-level sections and their subsections, in this order:
 
     - `### Upgrade Impact` — for changes that affect upgrading, with subsections as applicable:
-        - `#### Database Schema Changes` — schema migrations such as new tables, new columns, changed columns, or new indexes. Example items: "Added a new ``Watermarks`` table.", "Added a new column ``DeleteAt`` to the ``ChannelMembers`` table."
+        - `#### Database Schema Changes` — schema migrations such as new tables, new columns, changed columns, or new indexes. Lead with a single summary bullet, then nest each individual change beneath it. Use this exact shape:
+
+           - The following schema changes are included in the VERSION release. No database downtime is expected for this upgrade.
+             - Added a new ``Watermarks`` table.
+             - Added a new column ``DeleteAt`` to the ``ChannelMembers`` table.
+
+          (Write the real version number in place of VERSION. The summary bullet uses one space; each change uses three.)
         - `#### config.json` — new or changed configuration settings. Use this exact block format for each plan grouping (no blank line between the `#### config.json` heading and the description paragraph, and no blank line between the description paragraph and the first bullet):
           New setting options were added to ``config.json``. Below is a list of the additions and their default values on install. The settings can be modified in ``config.json``, or the System Console when available.
-          - **Changes to Enterprise Advanced plan:**
-            - Under ``ExperimentalSettings`` in ``config.json``, added ``EnableWatermark`` configuration setting to add watermarking toggle in the server.
+           - **Changes to Enterprise Advanced plan:**
+             - Under ``ExperimentalSettings`` in ``config.json``, added ``EnableWatermark`` configuration setting to add watermarking toggle in the server.
+           - Removed ``LdapSettings.LoginButtonColor`` configuration setting from the database.
 
-          Adapt the plan name (e.g. "Changes to All plans:", "Changes to Enterprise plan:", "Changes to Enterprise Advanced plan:") and list each setting change as a bullet under the appropriate plan heading.
+          Adapt the plan name (e.g. "Changes to All plans:", "Changes to Enterprise plans:", "Changes to Enterprise Advanced plan:") and nest each setting change beneath the appropriate plan bullet. Plan bullets use one space; the settings beneath them use three. Removed settings are listed as top-level one-space bullets, not under a plan grouping.
         - `#### Compatibility` — minimum version requirement changes for browsers, OS, or clients. Example: "Updated minimum Edge and Chrome versions to 146+."
-    - `### Improvements` — for new features and enhancements only. Do NOT place items beginning with "Fixed..." here — those belong in Bug Fixes. Begin this section with the line `See BLOG_POST_LINK on the highlights in our latest release.` (use the exact placeholder `BLOG_POST_LINK` — it will be replaced automatically with a Markdown link), followed by a blank line before the first `####` subsection heading. Then add subsections as applicable:
+    - `### Improvements` — for new features and enhancements only. Do NOT place items beginning with "Fixed..." here — those belong in Bug Fixes. The line immediately after the `### Improvements` heading — with NO blank line between them — must be `See BLOG_POST_LINK on the highlights in our latest release.` (use the exact placeholder `BLOG_POST_LINK`; it is replaced automatically with a Markdown link). Then a blank line, then the first `####` subsection heading. It must look exactly like this:
+
+      ### Improvements
+      See BLOG_POST_LINK on the highlights in our latest release.
+
+      #### User Interface
+       - First item.
+
+      Subsections, as applicable:
         - `#### User Interface` — user interface and UX changes and new visual features. Pre-packaged plugin version updates go at the TOP of this subsection, before other items. Always write "user interface" in full — never abbreviate as "UI".
         - `#### Plugins/Integrations` — plugin and integration improvements (use as a separate subsection when there are enough items to warrant it)
         - `#### Administration` — System Console features, logging, support packet changes
@@ -112,7 +127,13 @@ Here are your instructions:
     - Feature flags (e.g., ``MM_FEATUREFLAGS_CJKSEARCH``)
     - Package names in Open Source Components (e.g., ``x/text``)
 
-5.  **Markdown formatting:** Indent each bullet point with two spaces (e.g., `  - item`). Ensure correct and clean Markdown syntax throughout. Do not insert horizontal rules (`---`) or any other separators between sections. Do not add a blank line between a section/subsection heading and its first bullet point.
+5.  **Markdown formatting — indentation is exact:**
+    - Top-level bullets are indented with exactly ONE space: ` - item`
+    - Nested bullets are indented with exactly THREE spaces: `   - nested item`
+    - Never use two or four spaces. This applies to every section without exception.
+    - NEVER output a horizontal rule (`---`) or any other separator line anywhere in the output. Sections are separated by their headings alone. A `---` line will corrupt the document.
+    - Do not add a blank line between a section/subsection heading and the first line beneath it, whether that line is a bullet or a paragraph.
+    - Do add a single blank line before each new heading.
 
 6.  **MDX safety:** The changelog is an `.mdx` file, so raw `{`, `}`, and `<` characters are parsed as JSX and will break the docs build. Therefore:
     - Never output a bare `{` or `}` in prose. If a release note needs braces, wrap the text in double backticks (e.g. ``{"key": "value"}``) so it becomes inline code.
@@ -278,6 +299,42 @@ def polish_with_ai(raw_notes: list[str]) -> str:
     return response.content[0].text.strip()
 
 
+def normalize_formatting(text: str) -> str:
+    """Deterministically correct formatting details the AI commonly gets wrong.
+
+    The system prompt specifies all of these, but model compliance is not guaranteed,
+    and each of these mistakes produces a visibly wrong diff. Fixing them here is
+    cheap and reliable.
+
+      1. Strip horizontal rules (``---``), which must never appear in a changelog entry.
+      2. Normalize bullet indentation to the changelog convention of one space for
+         top-level bullets and three for nested ones. The model tends to emit the
+         even-numbered two/four-space variant, so any even indent is reduced by one.
+      3. Remove a blank line between the ``### Improvements`` heading and the blog
+         post line that must immediately follow it.
+    """
+    # 1. Remove standalone horizontal rules.
+    text = re.sub(r"(?m)^[ \t]*(?:-{3,}|\*{3,}|_{3,})[ \t]*$\n?", "", text)
+
+    # 2. Normalize bullet indentation (2 -> 1, 4 -> 3; odd indents already correct).
+    def _fix_indent(match: re.Match) -> str:
+        spaces, marker = match.group(1), match.group(2)
+        n = len(spaces)
+        if n > 0 and n % 2 == 0:
+            n -= 1
+        return " " * n + marker
+
+    text = re.sub(r"(?m)^( *)(- )", _fix_indent, text)
+
+    # 3. Close the gap between ### Improvements and its blog post line.
+    text = re.sub(r"(?m)^(### Improvements)[ \t]*\n\s*\n(?=See )", r"\1\n", text)
+
+    # 4. Collapse runs of blank lines (removing a rule can leave a doubled gap).
+    text = re.sub(r"\n{3,}", "\n\n", text)
+
+    return text
+
+
 def normalize_go_version(go_version: str) -> str:
     """Normalize a Go version string to v-prefixed form.
 
@@ -431,7 +488,7 @@ def main():
             go_section = f"### Go Version\n - {version_short} uses the same Go version as the previous release."
 
     if all_notes:
-        polished = polish_with_ai(all_notes)
+        polished = normalize_formatting(polish_with_ai(all_notes))
         blog_url = os.environ.get("BLOG_POST_URL", "").strip()
         if not blog_url:
             # Auto-construct short URL (no patch suffix): v11.6.0 → mattermost-v11-6-is-now-available
