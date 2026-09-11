@@ -329,15 +329,20 @@ def normalize_formatting(text: str) -> str:
     # 1. Remove standalone horizontal rules.
     text = re.sub(r"(?m)^[ \t]*(?:-{3,}|\*{3,}|_{3,})[ \t]*$\n?", "", text)
 
-    # 2. Normalize bullet indentation (2 -> 1, 4 -> 3; odd indents already correct).
-    def _fix_indent(match: re.Match) -> str:
-        spaces, marker = match.group(1), match.group(2)
-        n = len(spaces)
-        if n > 0 and n % 2 == 0:
-            n -= 1
-        return " " * n + marker
+    # 2. Normalize bullet indentation to the changelog's two levels: one space for
+    #    top-level bullets, three for nested ones. Models variously emit 0/2, 1/3 or
+    #    2/4, so the shallowest bullet present is treated as top level and anything
+    #    deeper as nested. A fixed threshold cannot work here: two spaces means
+    #    top-level in a 2/4 fragment but nested in a 0/2 one.
+    bullet_re = re.compile(r"(?m)^( *)(- )")
+    indents = [len(m.group(1)) for m in bullet_re.finditer(text)]
+    if indents:
+        base = min(indents)
 
-    text = re.sub(r"(?m)^( *)(- )", _fix_indent, text)
+        def _fix_indent(match: re.Match) -> str:
+            return (" " if len(match.group(1)) == base else "   ") + match.group(2)
+
+        text = bullet_re.sub(_fix_indent, text)
 
     # 3. Close the gap between ### Improvements and its blog post line.
     text = re.sub(r"(?m)^(### Improvements)[ \t]*\n\s*\n(?=See )", r"\1\n", text)
