@@ -978,10 +978,11 @@ vet: setup-go-work install-govet ## Run mattermost go vet specific checks
 		-concurrentIndex \
 		-concurrentIndex.path=./channels/db/migrations/ \
 		-concurrentIndex.minMigration=166 \
+		-sortSlices \
 		./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
   ifneq ($(MM_NO_ENTERPRISE_LINT),true)
-	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -mlogFieldNaming -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -requestCtxNaming -enterpriseLicense $(BUILD_ENTERPRISE_DIR)/...
+	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -mlogFieldNaming -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -requestCtxNaming -sortSlices -enterpriseLicense $(BUILD_ENTERPRISE_DIR)/...
   endif
 endif
 
