@@ -26,7 +26,7 @@ import {createChannelTextField, expectMaskedTokenRejected} from './helpers';
 test.describe('ABAC resource.attributes - masking write path', {tag: ['@abac', '@abac_masking']}, () => {
     test('rejects saving a resource.attributes condition carrying the masked sentinel', async ({pw}) => {
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ResourceAttributesInPolicies', true);
+        await pw.ensureFeatureFlag('ResourceAttributesInPolicies', true);
 
         // The sentinel rejection under test lives inside the server's
         // AttributeValueMasking branch, so the flag has to be on. It cannot be

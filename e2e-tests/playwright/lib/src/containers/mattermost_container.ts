@@ -11,6 +11,7 @@ import {
     INBUCKET_SMTP_PORT,
     MATTERMOST_DATA_DIR,
     MATTERMOST_ALIAS,
+    MATTERMOST_FIXED_HOST_PORT,
     MATTERMOST_PORT,
     POSTGRES_ALIAS,
     POSTGRES_DB,
@@ -60,8 +61,6 @@ function structuralEnv(): Record<string, string> {
         MM_SQLSETTINGS_DATASOURCE: POSTGRES_DSN,
         MM_EMAILSETTINGS_SMTPSERVER: INBUCKET_ALIAS,
         MM_EMAILSETTINGS_SMTPPORT: String(INBUCKET_SMTP_PORT),
-        // Required at boot so prepackaged plugins (Agents, etc.) can activate without waiting for a later patchConfig.
-        MM_SERVICESETTINGS_SITEURL: `http://${MATTERMOST_ALIAS}:${MATTERMOST_PORT}`,
         ...(process.env.MM_LICENSE ? {MM_LICENSE: process.env.MM_LICENSE} : {}),
         // Replaces the baseline for this key: appends mock file-server hosts (host.docker.internal
         // and the bridge gateway IP, set by startStack() once the network is up).
@@ -113,7 +112,15 @@ export async function startMattermostContainer(
             .withLabels(TESTCONTAINERS_LABELS)
             // Ensures host.docker.internal resolves to the Docker host (via host-gateway).
             .withExtraHosts([{host: 'host.docker.internal', ipAddress: 'host-gateway'}])
-            .withExposedPorts(MATTERMOST_PORT)
+            // Fixed rather than a random host port: a random port changes on every
+            // restartMattermostContainer() call, which would make a host-reachable
+            // ServiceSettings.SiteURL (see server_env.ts's ensureSiteUrl()) stale the moment a
+            // fresh container replaces the old one. Not MATTERMOST_PORT (8065) itself, so this
+            // doesn't collide with a locally-run dev server (`make run`, external mode) on the
+            // same machine. Assumes one Mattermost testcontainers stack per host at a time, same
+            // as PW_TESTCONTAINERS_REUSE's existing single-stack-per-machine model; CI runs each
+            // matrix job on its own isolated runner, so this doesn't collide there either.
+            .withExposedPorts({container: MATTERMOST_PORT, host: MATTERMOST_FIXED_HOST_PORT})
             .withEnvironment(env)
             // Bind-mounted unconditionally so local-disk FileSettings data (server/build/Dockerfile's
             // VOLUME ["/mattermost/data", ...]) survives restartMattermostContainer()'s docker rm -f

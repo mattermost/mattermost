@@ -23,8 +23,8 @@ import {
     createKeycloakUser,
     createLdapUser,
     createMockAIAgent,
-    createNewUserProfile,
     createNewTeam,
+    createNewUserProfile,
     createRandomChannel,
     createRandomPost,
     createRandomTeam,
@@ -32,39 +32,46 @@ import {
     createUserWithAttributes,
     deleteKeycloakUser,
     deleteLdapUser,
+    elasticsearchServerConfig,
     enableAIBridgeTestMode,
-    listMinioObjectKeys,
-    ensureMinio,
     ensureAzurite,
-    listAzuriteBlobNames,
-    ensureLocalFile,
-    listMattermostDataFiles,
-    ensurePostgresSearch,
+    ensureElasticsearch,
     ensureFeatureFlag,
-    generateLdapUser,
-    getAIBridgeMock,
-    getAdminClient,
-    initSetup,
-    isOutsideRemoteUserHour,
-    ldapServerConfig,
+    ensureKeycloak,
+    ensureKeycloakOpenId,
+    ensureLocalFile,
+    ensureMinio,
+    ensureMmctl,
     ensureOpenldap,
+    ensureOpensearch,
+    ensurePostgresSearch,
+    ensureServerEnv,
+    ensureSiteUrl,
+    generateKeycloakUser,
+    generateLdapUser,
+    getAdminClient,
+    getAIBridgeMock,
+    initSetup,
+    installAndEnablePlugin,
+    isOutsideRemoteUserHour,
+    isPluginActive,
+    keycloakSamlDescriptorUrl,
+    ldapServerConfig,
+    listAzuriteBlobNames,
+    listMattermostDataFiles,
+    listMinioObjectKeys,
     makeClient,
+    openidServerConfig,
+    opensearchServerConfig,
     recapCompletion,
     resetAIBridgeMock,
     rewriteCompletion,
-    installAndEnablePlugin,
-    isPluginActive,
-    samlServerConfig,
-    ensureKeycloak,
-    elasticsearchServerConfig,
-    opensearchServerConfig,
-    ensureElasticsearch,
-    ensureOpensearch,
     runMmctl,
-    ensureMmctl,
+    samlServerConfig,
+    saveUpgradePhaseLogs,
+    suspendKeycloakUser,
     updateLdapUser,
     upgradeServerImage,
-    saveUpgradePhaseLogs,
 } from './server';
 import {
     toBeFocusedWithFocusVisible,
@@ -142,30 +149,37 @@ export class PlaywrightExtended {
     readonly isPluginActive;
 
     // ./server/openldap, ./server/keycloak, ./server/elasticsearch, ./server/opensearch, ./server/minio
-    readonly generateLdapUser;
-    readonly createLdapUser;
-    readonly updateLdapUser;
-    readonly deleteLdapUser;
-    readonly ldapServerConfig;
-    readonly ensureOpenldap;
     readonly createKeycloakUser;
+    readonly createLdapUser;
     readonly deleteKeycloakUser;
-    readonly samlServerConfig;
-    readonly ensureKeycloak;
+    readonly deleteLdapUser;
     readonly elasticsearchServerConfig;
-    readonly opensearchServerConfig;
-    readonly ensureElasticsearch;
-    readonly ensureOpensearch;
-    readonly listMinioObjectKeys;
-    readonly ensureMinio;
     readonly ensureAzurite;
-    readonly ensureLocalFile;
-    readonly listMattermostDataFiles;
-    readonly ensurePostgresSearch;
+    readonly ensureElasticsearch;
     readonly ensureFeatureFlag;
-    readonly listAzuriteBlobNames;
-    readonly runMmctl;
+    readonly ensureKeycloak;
+    readonly ensureKeycloakOpenId;
+    readonly ensureLocalFile;
+    readonly ensureMinio;
     readonly ensureMmctl;
+    readonly ensureOpenldap;
+    readonly ensureOpensearch;
+    readonly ensurePostgresSearch;
+    readonly ensureServerEnv;
+    readonly ensureSiteUrl;
+    readonly generateKeycloakUser;
+    readonly generateLdapUser;
+    readonly keycloakSamlDescriptorUrl;
+    readonly ldapServerConfig;
+    readonly listAzuriteBlobNames;
+    readonly listMattermostDataFiles;
+    readonly listMinioObjectKeys;
+    readonly openidServerConfig;
+    readonly opensearchServerConfig;
+    readonly runMmctl;
+    readonly samlServerConfig;
+    readonly suspendKeycloakUser;
+    readonly updateLdapUser;
 
     // ./server/version
     readonly upgradeServerImage;
@@ -208,9 +222,14 @@ export class PlaywrightExtended {
 
     // unauthenticated page
     readonly loginPage;
+    readonly keycloakLoginPage;
     readonly landingLoginPage;
     readonly signupPage;
     readonly resetPasswordPage;
+
+    // Same default page as above, post-login - for specs that authenticate it directly (e.g. a
+    // real browser SSO flow) rather than via testBrowser.login()'s separate context.
+    readonly channelsPage;
 
     readonly hasSeenLandingPage;
 
@@ -247,30 +266,37 @@ export class PlaywrightExtended {
         this.isPluginActive = isPluginActive;
 
         // ./server/openldap, ./server/keycloak, ./server/elasticsearch, ./server/opensearch, ./server/minio
-        this.generateLdapUser = generateLdapUser;
-        this.createLdapUser = createLdapUser;
-        this.updateLdapUser = updateLdapUser;
-        this.deleteLdapUser = deleteLdapUser;
-        this.ldapServerConfig = ldapServerConfig;
-        this.ensureOpenldap = ensureOpenldap;
         this.createKeycloakUser = createKeycloakUser;
+        this.createLdapUser = createLdapUser;
         this.deleteKeycloakUser = deleteKeycloakUser;
-        this.samlServerConfig = samlServerConfig;
-        this.ensureKeycloak = ensureKeycloak;
+        this.deleteLdapUser = deleteLdapUser;
         this.elasticsearchServerConfig = elasticsearchServerConfig;
-        this.opensearchServerConfig = opensearchServerConfig;
-        this.ensureElasticsearch = ensureElasticsearch;
-        this.ensureOpensearch = ensureOpensearch;
-        this.listMinioObjectKeys = listMinioObjectKeys;
-        this.ensureMinio = ensureMinio;
         this.ensureAzurite = ensureAzurite;
-        this.ensureLocalFile = ensureLocalFile;
-        this.listMattermostDataFiles = listMattermostDataFiles;
-        this.ensurePostgresSearch = ensurePostgresSearch;
+        this.ensureElasticsearch = ensureElasticsearch;
         this.ensureFeatureFlag = ensureFeatureFlag;
-        this.listAzuriteBlobNames = listAzuriteBlobNames;
-        this.runMmctl = runMmctl;
+        this.ensureKeycloak = ensureKeycloak;
+        this.ensureKeycloakOpenId = ensureKeycloakOpenId;
+        this.ensureLocalFile = ensureLocalFile;
+        this.ensureMinio = ensureMinio;
         this.ensureMmctl = ensureMmctl;
+        this.ensureOpenldap = ensureOpenldap;
+        this.ensureOpensearch = ensureOpensearch;
+        this.ensurePostgresSearch = ensurePostgresSearch;
+        this.ensureServerEnv = ensureServerEnv;
+        this.ensureSiteUrl = ensureSiteUrl;
+        this.generateKeycloakUser = generateKeycloakUser;
+        this.generateLdapUser = generateLdapUser;
+        this.keycloakSamlDescriptorUrl = keycloakSamlDescriptorUrl;
+        this.ldapServerConfig = ldapServerConfig;
+        this.listAzuriteBlobNames = listAzuriteBlobNames;
+        this.listMattermostDataFiles = listMattermostDataFiles;
+        this.listMinioObjectKeys = listMinioObjectKeys;
+        this.openidServerConfig = openidServerConfig;
+        this.opensearchServerConfig = opensearchServerConfig;
+        this.runMmctl = runMmctl;
+        this.samlServerConfig = samlServerConfig;
+        this.suspendKeycloakUser = suspendKeycloakUser;
+        this.updateLdapUser = updateLdapUser;
 
         // ./server/version
         this.upgradeServerImage = upgradeServerImage;
@@ -286,9 +312,13 @@ export class PlaywrightExtended {
 
         // unauthenticated page
         this.loginPage = new pages.LoginPage(page);
+        this.keycloakLoginPage = new pages.KeycloakLoginPage(page);
         this.landingLoginPage = new pages.LandingLoginPage(page, isMobile);
         this.signupPage = new pages.SignupPage(page);
         this.resetPasswordPage = new pages.ResetPasswordPage(page);
+
+        // Same default page as above, post-login
+        this.channelsPage = new pages.ChannelsPage(page);
 
         // ./mock_browser_api
         this.stubNotification = stubNotification;
@@ -322,9 +352,9 @@ export class PlaywrightExtended {
             userWithAttributes: createUserWithAttributes,
         };
 
-        this.hasSeenLandingPage = async () => {
+        this.hasSeenLandingPage = async (url = '/') => {
             // Visit the base URL to be able to set the localStorage
-            await page.goto('/');
+            await page.goto(url);
             return waitUntilLocalStorageIsSet(page, '__landingPageSeen__', 'true');
         };
     }
