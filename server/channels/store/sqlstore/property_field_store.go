@@ -69,6 +69,16 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 	// projected list also carries grants the caller never sent (source plugin, sync lock,
 	// ambient wildcard), and comparing against those would report a change for a caller who
 	// touched nothing.
+
+	// The four columns are the opposite case: every write rewrites them from the
+	// projection. Once the one-time backfill has read a row's columns, converted them,
+	// and written the projection back, they no longer hold the values the row was upgraded
+	// with. A synced or owner-managed access_control field converts to value.write = none,
+	// so its PermissionValues moves from 'member' to 'none'. That is still what an old
+	// release should read on rollback: the conversion asserts the legacy code already refused
+	// every human's value write on such a field before it ever read PermissionValues, and the
+	// owners/protected/ldap attrs that decision came from are stored unchanged (as explained
+	// in the paragraph above about the Attrs keys).
 	builder := s.getQueryBuilder().
 		Insert("PropertyFields").
 		Columns("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "ObjectType", "Protected", "PermissionField", "PermissionValues", "PermissionOptions", "LinkedFieldID", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy", "Permissions").
