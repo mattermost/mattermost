@@ -170,6 +170,7 @@ function AttributeAppliesTo({appliesTo, disabled = false, hideAddResource = fals
                                                 onConfigChange={onChannelResourceChange}
                                                 ordered={ordered}
                                                 disabled={disabled}
+                                                lockedTooltip={lockedTooltip}
                                                 onRemove={() => onRemove(type)}
                                             />
                                         );
