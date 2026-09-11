@@ -1856,5 +1856,15 @@ describe('AttributeDetails', () => {
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes'));
             expect(screen.queryByTestId('attributeDetails')).not.toBeInTheDocument();
         });
+
+        // A graph field is plugin-owned, yet plugin-owned fields open here read-only
+        // rather than redirect (the plugin-owned block above). So a graph field proves
+        // it's the type, not plugin ownership, that this editor redirects on.
+        it('redirects to the listing when the field type is graph, which this editor cannot render', async () => {
+            mockLoadedField(makePluginOwnedTemplate({type: 'graph'}));
+            renderEdit();
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes'));
+            expect(screen.queryByTestId('attributeDetails')).not.toBeInTheDocument();
+        });
     });
 });

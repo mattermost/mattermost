@@ -430,10 +430,13 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                     !field ||
                     isClassificationMarkingsField(field, field.group_id) ||
 
-                    // A type this editor can't author (graph, whose options carry
-                    // parent links it has no way to send back). Every save sends
-                    // `type`, so editing one here would retype the field and drop
-                    // every value it holds.
+                    // A type this editor can't render (graph, whose options carry
+                    // parent links it has no way to show) or re-save (every save sends
+                    // `type`, so it would retype the field and drop its values). Plugin
+                    // ownership is deliberately not part of this condition: a
+                    // plugin-owned text/select/etc. field opens here read-only
+                    // (effectiveDisabled); only an unrenderable type redirects. A graph
+                    // field, always plugin-owned, is caught by its type.
                     !isAttributeFieldType(field.type)
                 ) {
                     getHistory().push(LIST_ROUTE);
