@@ -87,11 +87,11 @@ func TestLicenseCheckHook(t *testing.T) {
 		// them one at a time writes no field row, so this is the only place the
 		// requirement can be applied to that path.
 		currentLicense = nil
-		_, getErr := th.service.GetFieldOptions(th.Context, created, 0, "", 100)
+		_, getErr := th.service.GetFieldOptions(th.Context, created.GroupID, created.ID, 0, "", 100)
 		require.Error(t, getErr)
 		assert.Contains(t, getErr.Error(), "license_error")
 
-		_, createErr := th.service.CreateFieldOptions(th.Context, created, []*model.PropertyFieldOption{{Name: "Sea"}})
+		_, createErr := th.service.CreateFieldOptions(th.Context, created.GroupID, created.ID, []*model.PropertyFieldOption{{Name: "Sea"}})
 		require.Error(t, createErr)
 		assert.Contains(t, createErr.Error(), "license_error")
 

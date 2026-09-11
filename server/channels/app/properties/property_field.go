@@ -51,7 +51,7 @@ func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.Pr
 
 	// Legacy properties (PSAv1) skip the conflict check.
 	if field.IsPSAv1() {
-		return ps.createFieldWithOptionLinks(field, suppliedOptions)
+		return ps.createFieldWithOptionLinks(rctx, field, suppliedOptions)
 	}
 
 	// If this field links to a source, validate the source and copy its schema
@@ -135,7 +135,10 @@ func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.Pr
 			)
 		}
 
-		// Copy type and options from source
+		// Copy type, options, and sync source from source. The sync source
+		// (ldap/saml) must match the template's, since it defines where the
+		// value comes from -- a linked field can't independently claim a
+		// different sync source than the definition it links to.
 		field.Type = source.Type
 		if field.Attrs == nil {
 			field.Attrs = make(model.StringInterface)
@@ -143,6 +146,12 @@ func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.Pr
 		if source.Attrs != nil {
 			if opts, ok := source.Attrs[model.PropertyFieldAttributeOptions]; ok {
 				field.Attrs[model.PropertyFieldAttributeOptions] = opts
+			}
+			if ldap, ok := source.Attrs[model.PropertyFieldAttrLDAP]; ok {
+				field.Attrs[model.PropertyFieldAttrLDAP] = ldap
+			}
+			if saml, ok := source.Attrs[model.PropertyFieldAttrSAML]; ok {
+				field.Attrs[model.PropertyFieldAttrSAML] = saml
 			}
 		}
 
@@ -176,7 +185,7 @@ func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.Pr
 		)
 	}
 
-	return ps.createFieldWithOptionLinks(field, suppliedOptions)
+	return ps.createFieldWithOptionLinks(rctx, field, suppliedOptions)
 }
 
 // createFieldWithOptionLinks writes a new field once the hierarchy its option
@@ -189,8 +198,8 @@ func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.Pr
 // options of the field's own, which that copy would otherwise have hidden. The
 // other call site is the legacy path above, which cannot link at all and so has
 // nothing copied over it.
-func (ps *PropertyService) createFieldWithOptionLinks(field *model.PropertyField, suppliedOptions bool) (*model.PropertyField, error) {
-	if field.Type == model.PropertyFieldTypeGraph && optionSourceID(field) != "" {
+func (ps *PropertyService) createFieldWithOptionLinks(rctx request.CTX, field *model.PropertyField, suppliedOptions bool) (*model.PropertyField, error) {
+	if field.Type == model.PropertyFieldTypeGraph && field.LinkSourceID() != "" {
 		// A field linking to a graph template serves that template's hierarchy and
 		// owns no part of it. An option of its own could never be given a parent from
 		// that hierarchy -- an edge never crosses fields -- so it could only form a
@@ -202,7 +211,7 @@ func (ps *PropertyService) createFieldWithOptionLinks(field *model.PropertyField
 		if suppliedOptions {
 			return nil, optionsChangeRefused(
 				"a field linking to field %s serves that field's option hierarchy and cannot own options of its own; add them to field %s instead",
-				optionSourceID(field), optionSourceID(field))
+				field.LinkSourceID(), field.LinkSourceID())
 		}
 
 		// Any list the field carries now is its template's, copied in above so a read

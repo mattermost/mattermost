@@ -5,6 +5,7 @@ package api4
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -14,10 +15,8 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
 
-// maxPropertyFieldOptionItems bounds how many options one request may create,
-// change, or delete. The bound belongs to the property service, which holds every
-// caller to it; this is where going over it is answered as a request-level
-// refusal naming the limit, rather than as a rejected payload.
+// maxPropertyFieldOptionItems aliases the property service's authoritative
+// limit, re-checked here so over-limit fails fast as a 400 naming the max.
 const maxPropertyFieldOptionItems = model.PropertyFieldOptionsMaxPerRequest
 
 // propertyFieldForOptions resolves the field the URL addresses and checks the
@@ -82,7 +81,8 @@ func requireOptionsPermission(c *Context, rctx request.CTX, field *model.Propert
 }
 
 // decodePropertyFieldOptions reads the array of options a write carries and
-// checks its size. It sets c.Err and returns nil on failure.
+// checks its size and that every element is non-nil. It sets c.Err and returns
+// nil on failure.
 func decodePropertyFieldOptions(c *Context, r *http.Request, callerName string) []*model.PropertyFieldOption {
 	var options []*model.PropertyFieldOption
 	if err := json.NewDecoder(r.Body).Decode(&options); err != nil {
@@ -91,6 +91,12 @@ func decodePropertyFieldOptions(c *Context, r *http.Request, callerName string) 
 	}
 	if !checkPropertyFieldOptionCount(c, len(options), callerName) {
 		return nil
+	}
+	for i, option := range options {
+		if option == nil {
+			c.SetInvalidParamWithDetails("property_field_options", fmt.Sprintf("options[%d] is not an option", i))
+			return nil
+		}
 	}
 	return options
 }
@@ -155,7 +161,7 @@ func getPropertyFieldOptions(c *Context, w http.ResponseWriter, r *http.Request)
 
 	perPage := min(c.Params.PerPage, maxPropertyFieldOptionItems)
 
-	options, appErr := c.App.GetPropertyFieldOptions(rctx, field, cursorCreateAt, cursorID, perPage)
+	options, appErr := c.App.GetPropertyFieldOptions(rctx, field.GroupID, field.ID, cursorCreateAt, cursorID, perPage)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -188,7 +194,7 @@ func createPropertyFieldOptions(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	created, appErr := c.App.CreatePropertyFieldOptions(rctx, field, options, r.Header.Get(model.ConnectionId))
+	created, appErr := c.App.CreatePropertyFieldOptions(rctx, field.GroupID, field.ID, options, r.Header.Get(model.ConnectionId))
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -224,7 +230,7 @@ func patchPropertyFieldOptions(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	updated, prior, appErr := c.App.UpdatePropertyFieldOptions(rctx, field, options, r.Header.Get(model.ConnectionId))
+	updated, prior, appErr := c.App.UpdatePropertyFieldOptions(rctx, field.GroupID, field.ID, options, r.Header.Get(model.ConnectionId))
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -269,7 +275,7 @@ func deletePropertyFieldOptions(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	deleted, appErr := c.App.DeletePropertyFieldOptions(rctx, field, optionIDs, r.Header.Get(model.ConnectionId))
+	deleted, appErr := c.App.DeletePropertyFieldOptions(rctx, field.GroupID, field.ID, optionIDs, r.Header.Get(model.ConnectionId))
 	if appErr != nil {
 		c.Err = appErr
 		return

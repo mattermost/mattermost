@@ -83,28 +83,20 @@ func optionsChangeFromValidation(err error) error {
 	return optionsChangeRefused("%s", strings.TrimSuffix(err.Error(), ": "+ErrInvalidFieldAttrs.Error()))
 }
 
-// writableField re-reads the field a change is aimed at and checks that its
-// options may be changed one at a time. The re-read field is what the change is
-// then validated and written against.
+// writableField reads the field a change is aimed at and checks that its
+// options may be changed one at a time. The field it returns is what the change
+// is then validated and written against.
 //
-// The re-read is not redundant. A caller hands in the field as it read it, and
-// that read may have gone to a replica -- every option change is written under
-// the UpdateAt it saw, so replication lag alone would make a caller lose a race
-// against a write that had already finished, and the answer would be a conflict
-// on a request that was never in conflict with anything. Reading the row the
-// change is about to swap on narrows the window to the same one the rest of this
-// path already has: every other query behind an option change goes to the master
-// for the same reason.
+// The read goes to the master, like every other query behind an option change:
+// every option change is written under a compare-and-swap on the UpdateAt this
+// read sees, and a replica's stale UpdateAt would answer a conflict to a request
+// that was in conflict with nothing.
 //
 // It also means the type and the link this decides on are the field's current
-// ones, so a field converted or unlinked since the caller read it is judged as it
+// ones, so a field converted or unlinked since it was last read is judged as it
 // is now -- and the same for the attributes the hooks decide access from.
-func (ps *PropertyService) writableField(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
-	if field == nil {
-		return nil, optionsChangeRefused("no property field to change the options of")
-	}
-
-	current, err := ps.getPropertyFieldFromMaster(rctx, field.GroupID, field.ID)
+func (ps *PropertyService) writableField(rctx request.CTX, groupID, fieldID string) (*model.PropertyField, error) {
+	current, err := ps.getPropertyFieldFromMaster(rctx, groupID, fieldID)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read the property field an option change is aimed at")
 	}
@@ -163,10 +155,10 @@ func requireWritableOptions(field *model.PropertyField) error {
 	// with a link to a graph template arrives with no mention of the graph type
 	// anywhere in the request, because its type is copied from the template later.
 	// A check reading the type from a request would not see this case at all.
-	if field.Type == model.PropertyFieldTypeGraph && optionSourceID(field) != "" {
+	if field.Type == model.PropertyFieldTypeGraph && field.LinkSourceID() != "" {
 		return optionsChangeRefused(
 			"field %s serves the option hierarchy of the template it links to and cannot own options of its own; change them on field %s instead",
-			field.ID, optionSourceID(field))
+			field.ID, field.LinkSourceID())
 	}
 	return nil
 }
@@ -201,15 +193,6 @@ func requireOptionCount(count int, verb string) error {
 	return nil
 }
 
-// optionSourceID returns the template a field inherits options from, or an empty
-// string when it inherits none.
-func optionSourceID(field *model.PropertyField) string {
-	if field.LinkedFieldID == nil {
-		return ""
-	}
-	return *field.LinkedFieldID
-}
-
 // GetFieldOptions returns one page of a field's effective option set, ordered by
 // creation and continuing after the option the cursor names. Options inherited
 // from a template come back flagged read-only, and a graph field's options carry
@@ -224,7 +207,7 @@ func optionSourceID(field *model.PropertyField) string {
 // several pages of rows. A page shorter than the size asked for is therefore the
 // end of what the caller may see, which is what a caller paging until a short page
 // needs it to be.
-func (ps *PropertyService) GetFieldOptions(rctx request.CTX, field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, error) {
+func (ps *PropertyService) GetFieldOptions(rctx request.CTX, groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, error) {
 	if perPage <= 0 {
 		return nil, optionsChangeRefused("a page of options has to be asked for with a positive page size")
 	}
@@ -238,15 +221,11 @@ func (ps *PropertyService) GetFieldOptions(rctx request.CTX, field *model.Proper
 	if (cursorID == "") != (cursorCreateAt == 0) {
 		return nil, optionsChangeRefused("a cursor names the option a page continues after, by its identifier and its creation time together")
 	}
-	if field == nil {
-		return nil, optionsChangeRefused("no property field to list the options of")
-	}
 
-	// Re-read rather than trust the caller's copy: which rows the store pages,
-	// whether they may be listed at all, and what the post-hook judges all have to
-	// agree with each other, and the only way to guarantee that is to decide all
-	// three from the same field.
-	field, err := ps.getPropertyField(rctx, field.GroupID, field.ID)
+	// Read from the store: which rows the store pages, whether they may be listed
+	// at all, and what the post-hook judges all have to agree with each other, and
+	// the only way to guarantee that is to decide all three from the same field.
+	field, err := ps.getPropertyField(rctx, groupID, fieldID)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read the property field a listing is aimed at")
 	}
@@ -317,8 +296,8 @@ func (ps *PropertyService) GetFieldOptions(rctx request.CTX, field *model.Proper
 // CreateFieldOptions adds options to a field, optionally placing each of them
 // under options already there or under others in the same payload. Every option
 // is created or none is.
-func (ps *PropertyService) CreateFieldOptions(rctx request.CTX, field *model.PropertyField, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
-	field, err := ps.writableField(rctx, field)
+func (ps *PropertyService) CreateFieldOptions(rctx request.CTX, groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
+	field, err := ps.writableField(rctx, groupID, fieldID)
 	if err != nil {
 		return nil, err
 	}
@@ -388,8 +367,8 @@ func (ps *PropertyService) CreateFieldOptions(rctx request.CTX, field *model.Pro
 // The options as they stood before the change are returned alongside the result.
 // A parent link is deleted outright rather than marked, so unless a caller records
 // what a change replaced there is nothing left to say the link was ever there.
-func (ps *PropertyService) UpdateFieldOptions(rctx request.CTX, field *model.PropertyField, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, []*model.PropertyFieldOption, error) {
-	field, err := ps.writableField(rctx, field)
+func (ps *PropertyService) UpdateFieldOptions(rctx request.CTX, groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, []*model.PropertyFieldOption, error) {
+	field, err := ps.writableField(rctx, groupID, fieldID)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -410,13 +389,16 @@ func (ps *PropertyService) UpdateFieldOptions(rctx request.CTX, field *model.Pro
 		byID[option.ID] = option
 	}
 
+	// Only a name that is actually changing can collide -- an option keeping its
+	// own name would otherwise collide with itself.
+	renamed := make([]string, 0, len(options))
 	for i, option := range options {
 		current := byID[option.ID]
 		if current == nil {
 			return nil, nil, optionsChangeError(i, "names option %q, which field %s does not have", option.ID, field.ID)
 		}
 		if current.ReadOnly {
-			return nil, nil, optionsChangeError(i, "names option %q, which field %s inherits from field %s; change it there instead", option.ID, field.ID, optionSourceID(field))
+			return nil, nil, optionsChangeError(i, "names option %q, which field %s inherits from field %s; change it there instead", option.ID, field.ID, field.LinkSourceID())
 		}
 		if option.Color == nil {
 			option.Color = current.Color
@@ -424,13 +406,7 @@ func (ps *PropertyService) UpdateFieldOptions(rctx request.CTX, field *model.Pro
 		if option.Attrs == nil {
 			option.Attrs = current.Attrs
 		}
-	}
-
-	// Only a name that is actually changing can collide -- an option keeping its
-	// own name would otherwise collide with itself.
-	renamed := make([]string, 0, len(options))
-	for _, option := range options {
-		if byID[option.ID].Name != option.Name {
+		if current.Name != option.Name {
 			renamed = append(renamed, option.Name)
 		}
 	}
@@ -485,8 +461,8 @@ func (ps *PropertyService) UpdateFieldOptions(rctx request.CTX, field *model.Pro
 // Values pointing at a removed option are left alone. A value naming an option
 // that no longer exists is ignored everywhere it is read, which is how the
 // property system has always treated one.
-func (ps *PropertyService) DeleteFieldOptions(rctx request.CTX, field *model.PropertyField, optionIDs []string) ([]*model.PropertyFieldOption, error) {
-	field, err := ps.writableField(rctx, field)
+func (ps *PropertyService) DeleteFieldOptions(rctx request.CTX, groupID, fieldID string, optionIDs []string) ([]*model.PropertyFieldOption, error) {
+	field, err := ps.writableField(rctx, groupID, fieldID)
 	if err != nil {
 		return nil, err
 	}
@@ -519,7 +495,7 @@ func (ps *PropertyService) DeleteFieldOptions(rctx request.CTX, field *model.Pro
 			return nil, optionsChangeError(i, "names option %q, which field %s does not have", optionID, field.ID)
 		}
 		if option.ReadOnly {
-			return nil, optionsChangeError(i, "names option %q, which field %s inherits from field %s; delete it there instead", optionID, field.ID, optionSourceID(field))
+			return nil, optionsChangeError(i, "names option %q, which field %s inherits from field %s; delete it there instead", optionID, field.ID, field.LinkSourceID())
 		}
 	}
 
@@ -550,26 +526,20 @@ func (ps *PropertyService) DeleteFieldOptions(rctx request.CTX, field *model.Pro
 //
 // Both halves are read from the master, because a change to them is what prompts
 // the read: a replica could answer with the option list from before it, and the
-// point of reading at all is to have the list the change left behind. The caller's
-// own copy of the field is not that list either -- it was read before the change,
-// so its option list and its UpdateAt are both stale.
+// point of reading at all is to have the list the change left behind.
 //
 // The two are kept apart rather than returned as one list because they are not
 // interchangeable to a caller: the field is the one the request named, and the
 // dependents are fields the requester may not even know exist.
-func (ps *PropertyService) FieldWithDependents(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, []*model.PropertyField, error) {
-	if field == nil {
-		return nil, nil, errors.New("no property field to read the dependents of")
-	}
-
-	current, err := ps.getPropertyFieldFromMaster(rctx, field.GroupID, field.ID)
+func (ps *PropertyService) FieldWithDependents(rctx request.CTX, groupID, fieldID string) (*model.PropertyField, []*model.PropertyField, error) {
+	current, err := ps.getPropertyFieldFromMaster(rctx, groupID, fieldID)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to re-read a property field whose options changed")
 	}
 
 	// The field itself is excluded, so that a field somehow linking to itself is
 	// reported once rather than twice.
-	dependents, err := ps.fieldStore.GetLinkedFields([]string{field.ID}, []string{field.ID})
+	dependents, err := ps.fieldStore.GetLinkedFields([]string{fieldID}, []string{fieldID})
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to read the property fields linking to one whose options changed")
 	}
@@ -674,7 +644,7 @@ func (ps *PropertyService) resolveOptionParents(field *model.PropertyField, opti
 			case parent == nil:
 				return nil, optionsChangeError(i, "puts option %q under %q, which field %s has no option called", option.Name, name, field.ID)
 			case parent.ReadOnly:
-				return nil, optionsChangeError(i, "puts option %q under %q, which field %s inherits from field %s; an option can only sit under one of the same field's options", option.Name, name, field.ID, optionSourceID(field))
+				return nil, optionsChangeError(i, "puts option %q under %q, which field %s inherits from field %s; an option can only sit under one of the same field's options", option.Name, name, field.ID, field.LinkSourceID())
 			case parent.ID == option.ID:
 				return nil, optionsChangeError(i, "puts option %q under itself", option.Name)
 			}
@@ -1007,7 +977,7 @@ func optionsByName(options []*model.PropertyFieldOption) map[string]*model.Prope
 // distinguish the field asked about from the template it inherits from.
 func ownerOf(field *model.PropertyField, option *model.PropertyFieldOption) string {
 	if option.ReadOnly {
-		return optionSourceID(field)
+		return field.LinkSourceID()
 	}
 	return field.ID
 }

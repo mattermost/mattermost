@@ -15,20 +15,13 @@ import (
 // them needs: past a thousand options the field stops serving its option list at
 // all, so a change has to name the options it touches.
 //
-// Every method here takes the field as the caller read it, rather than its ID,
-// because that read is needed anyway: to decide whether the caller may change the
-// field's options at all, and whether the options it names are the field's own or
-// inherited from a template.
-//
-// A mutation does not trust that copy's UpdateAt. Every option change is written
-// under a compare-and-swap, so that a change decided against a set of options
-// somebody else has since altered is refused rather than applied -- and the
-// property service re-reads the field from the master to anchor it, because this
-// one may have come from a replica.
+// Every option change is written under a compare-and-swap, anchored on a field
+// the property service reads from the master, so a change decided against
+// options somebody else has since altered is refused rather than applied.
 
 // GetPropertyFieldOptions returns one page of a field's effective option set.
-func (a *App) GetPropertyFieldOptions(rctx request.CTX, field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, *model.AppError) {
-	options, err := a.Srv().propertyService.GetFieldOptions(rctx, field, cursorCreateAt, cursorID, perPage)
+func (a *App) GetPropertyFieldOptions(rctx request.CTX, groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, *model.AppError) {
+	options, err := a.Srv().propertyService.GetFieldOptions(rctx, groupID, fieldID, cursorCreateAt, cursorID, perPage)
 	if err != nil {
 		if appErr := mapPropertyServiceError("GetPropertyFieldOptions", err); appErr != nil {
 			return nil, appErr
@@ -39,8 +32,8 @@ func (a *App) GetPropertyFieldOptions(rctx request.CTX, field *model.PropertyFie
 }
 
 // CreatePropertyFieldOptions adds options to a field.
-func (a *App) CreatePropertyFieldOptions(rctx request.CTX, field *model.PropertyField, options []*model.PropertyFieldOption, connectionID string) ([]*model.PropertyFieldOption, *model.AppError) {
-	created, err := a.Srv().propertyService.CreateFieldOptions(rctx, field, options)
+func (a *App) CreatePropertyFieldOptions(rctx request.CTX, groupID, fieldID string, options []*model.PropertyFieldOption, connectionID string) ([]*model.PropertyFieldOption, *model.AppError) {
+	created, err := a.Srv().propertyService.CreateFieldOptions(rctx, groupID, fieldID, options)
 	if err != nil {
 		if appErr := mapPropertyServiceError("CreatePropertyFieldOptions", err); appErr != nil {
 			return nil, appErr
@@ -48,14 +41,14 @@ func (a *App) CreatePropertyFieldOptions(rctx request.CTX, field *model.Property
 		return nil, model.NewAppError("CreatePropertyFieldOptions", "app.property_field.options.create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	a.propertyFieldOptionsChanged(rctx, field, connectionID)
+	a.propertyFieldOptionsChanged(rctx, groupID, fieldID, connectionID)
 	return created, nil
 }
 
 // UpdatePropertyFieldOptions rewrites options a field owns, and reports what
 // those options were beforehand so a caller can record what the change replaced.
-func (a *App) UpdatePropertyFieldOptions(rctx request.CTX, field *model.PropertyField, options []*model.PropertyFieldOption, connectionID string) (updated, prior []*model.PropertyFieldOption, appErr *model.AppError) {
-	updated, prior, err := a.Srv().propertyService.UpdateFieldOptions(rctx, field, options)
+func (a *App) UpdatePropertyFieldOptions(rctx request.CTX, groupID, fieldID string, options []*model.PropertyFieldOption, connectionID string) (updated, prior []*model.PropertyFieldOption, appErr *model.AppError) {
+	updated, prior, err := a.Srv().propertyService.UpdateFieldOptions(rctx, groupID, fieldID, options)
 	if err != nil {
 		if mapped := mapPropertyServiceError("UpdatePropertyFieldOptions", err); mapped != nil {
 			return nil, nil, mapped
@@ -63,15 +56,15 @@ func (a *App) UpdatePropertyFieldOptions(rctx request.CTX, field *model.Property
 		return nil, nil, model.NewAppError("UpdatePropertyFieldOptions", "app.property_field.options.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	a.propertyFieldOptionsChanged(rctx, field, connectionID)
+	a.propertyFieldOptionsChanged(rctx, groupID, fieldID, connectionID)
 	return updated, prior, nil
 }
 
 // DeletePropertyFieldOptions removes options a field owns, and reports them as
 // they stood: a parent link is deleted outright, so this is the only chance to
 // record that it existed.
-func (a *App) DeletePropertyFieldOptions(rctx request.CTX, field *model.PropertyField, optionIDs []string, connectionID string) ([]*model.PropertyFieldOption, *model.AppError) {
-	deleted, err := a.Srv().propertyService.DeleteFieldOptions(rctx, field, optionIDs)
+func (a *App) DeletePropertyFieldOptions(rctx request.CTX, groupID, fieldID string, optionIDs []string, connectionID string) ([]*model.PropertyFieldOption, *model.AppError) {
+	deleted, err := a.Srv().propertyService.DeleteFieldOptions(rctx, groupID, fieldID, optionIDs)
 	if err != nil {
 		if appErr := mapPropertyServiceError("DeletePropertyFieldOptions", err); appErr != nil {
 			return nil, appErr
@@ -79,7 +72,7 @@ func (a *App) DeletePropertyFieldOptions(rctx request.CTX, field *model.Property
 		return nil, model.NewAppError("DeletePropertyFieldOptions", "app.property_field.options.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	a.propertyFieldOptionsChanged(rctx, field, connectionID)
+	a.propertyFieldOptionsChanged(rctx, groupID, fieldID, connectionID)
 	return deleted, nil
 }
 
@@ -107,28 +100,31 @@ func (a *App) DeletePropertyFieldOptions(rctx request.CTX, field *model.Property
 // The invalidation runs before the broadcast, so that a client acting on the event
 // cannot read back a cache entry the event was announcing the end of. This is the
 // ordering the field write path uses, for the same reason.
-func (a *App) propertyFieldOptionsChanged(rctx request.CTX, field *model.PropertyField, connectionID string) {
-	current, dependents, err := a.Srv().propertyService.FieldWithDependents(rctx, field)
+func (a *App) propertyFieldOptionsChanged(rctx request.CTX, groupID, fieldID, connectionID string) {
+	current, dependents, err := a.Srv().propertyService.FieldWithDependents(rctx, groupID, fieldID)
 	if err != nil {
-		// The field the change named is still invalidated, from the caller's copy:
-		// dropping a cache entry that did not need dropping costs a recompile,
-		// while keeping one that did means deciding access from options that are
-		// gone. Its dependents cannot be -- they are exactly what could not be
-		// read -- so this is logged as an error and not swallowed. Nothing is
-		// published, because the only field state to publish is the one from
-		// before the change.
+		// Which fields' policies went stale is unknown -- that is exactly what
+		// this read failed to produce -- so every compiled policy is dropped
+		// rather than just the named field's. A policy names the dependent
+		// field it reads the attribute off, not the template, so per-field
+		// invalidation for the template would match no policy and leave every
+		// stale dependent policy in place. Nothing is published, because the
+		// only field state to publish is the one from before the change.
 		rctx.Logger().Error(
-			"Failed to read the property fields serving changed options; dependent access policy caches and clients were not notified",
-			mlog.String("field_id", field.ID),
+			"Failed to read the property fields serving changed options; involved fields are unknown and clients were not notified",
+			mlog.String("field_id", fieldID),
 			mlog.Err(err),
 		)
-		a.invalidatePolicyCachesForOptionChange(rctx, field.ID)
+		if acs := a.Srv().ch.AccessControl; acs != nil {
+			acs.InvalidateAllPolicyCaches(rctx)
+		}
 		// Unconditional, unlike the success path below, which can see whether any
 		// field involved is one the AttributeView materializes. Here nothing can:
 		// a template carries object type "template" and its user-scoped dependents
-		// are exactly what could not be read, so testing the caller's copy would
-		// skip the invalidation in the case most likely to need it. The cost of
-		// invalidating when nothing was affected is one matview refresh.
+		// are exactly what could not be read, so testing the field ID the change
+		// named would skip the invalidation in the case most likely to need it.
+		// The cost of invalidating when nothing was affected is one matview
+		// refresh.
 		a.invalidateAllUserAttributeCaches()
 		return
 	}

@@ -1090,12 +1090,36 @@ describe('AttributeDetails', () => {
                 target_type: 'system',
                 target_id: '',
                 linked_field_id: 'template-id',
-                attrs: {display_name: 'My Attribute'},
+                attrs: {display_name: 'My Attribute', visibility: 'when_set', managed: ''},
+                permission_values: 'member',
             }));
             expect(createPropertyField).toHaveBeenNthCalledWith(3, 'access_control', 'channel', expect.objectContaining({
                 linked_field_id: 'template-id',
                 attrs: {display_name: 'My Attribute'},
             }));
+        });
+
+        it('bundles the Users row config into its create request, never a separate patch, for a row added this session', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').
+                mockResolvedValueOnce({id: 'template-id'} as PropertyField).
+                mockResolvedValueOnce({id: 'user-field-id'} as PropertyField);
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField');
+
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await addResource('Users', 'user');
+
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+            await userEvent.click(screen.getByTestId('attributeAppliesToUserProfileDisplay-always'));
+            await userEvent.click(screen.getByTestId('attributeAppliesToUserWhoCanSet-admin'));
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            expect(createPropertyField).toHaveBeenNthCalledWith(2, 'access_control', 'user', expect.objectContaining({
+                attrs: expect.objectContaining({visibility: 'always', managed: 'admin'}),
+                permission_values: 'sysadmin',
+            }));
+            expect(patchPropertyField).not.toHaveBeenCalled();
         });
 
         it('picks up the current appliesTo value even though canSave does not depend on it (stale-closure regression)', async () => {
@@ -1399,7 +1423,7 @@ describe('AttributeDetails', () => {
             } as PropertyField;
         }
 
-        function makeLinked(objectType: 'user' | 'channel' | 'post', id: string): PropertyField {
+        function makeLinked(objectType: 'user' | 'channel' | 'post', id: string, overrides: Partial<PropertyField> = {}): PropertyField {
             return {
                 id,
                 name: 'department',
@@ -1415,6 +1439,7 @@ describe('AttributeDetails', () => {
                 created_by: '',
                 updated_by: '',
                 attrs: {display_name: 'Department'},
+                ...overrides,
             } as PropertyField;
         }
 
@@ -1479,6 +1504,27 @@ describe('AttributeDetails', () => {
             expect(screen.getByTestId('attributeAppliesToRow-user')).toBeInTheDocument();
             expect(screen.getByTestId('saveSetting')).toBeDisabled();
             expect(mockSetNavigationBlocked).not.toHaveBeenCalled();
+        });
+
+        it('round-trips a saved Users row config: loading an attribute shows its previously-saved Profile display / Who can set the value', async () => {
+            mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field', {attrs: {display_name: 'Department', visibility: 'always', managed: 'admin'}})]);
+
+            renderEdit();
+            await waitForForm();
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+
+            expect(screen.getByTestId('attributeAppliesToUserProfileDisplay-always')).toHaveAttribute('aria-pressed', 'true');
+            expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-admin')).toBeChecked();
+        });
+
+        it('falls back to When set for an unexpected persisted visibility value, rather than leaving every segment unpressed', async () => {
+            mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field', {attrs: {display_name: 'Department', visibility: 'not_a_real_value'}})]);
+
+            renderEdit();
+            await waitForForm();
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+
+            expect(screen.getByTestId('attributeAppliesToUserProfileDisplay-when_set')).toHaveAttribute('aria-pressed', 'true');
         });
 
         it('does not move focus to an Applies-to row when loading a field that already applies to every resource type', async () => {
@@ -1723,6 +1769,66 @@ describe('AttributeDetails', () => {
 
             expect(deletePropertyField).not.toHaveBeenCalled();
             expect(createPropertyField).not.toHaveBeenCalled();
+        });
+
+        it('issues no config patch for an already-persisted Users row when neither control changed', async () => {
+            mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field')]);
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue(makeTemplate());
+
+            renderEdit();
+            await waitForForm();
+
+            // Changes something else on the page (Display name), never touching
+            // Profile display/Who can set the value -- only the template PATCH
+            // should fire, never a 'user'-object-type patch.
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' 2');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            expect(patchPropertyField).toHaveBeenCalledTimes(1);
+            expect(patchPropertyField).not.toHaveBeenCalledWith('access_control', 'user', expect.anything(), expect.anything());
+        });
+
+        it('issues exactly one config patch, carrying both values, for an already-persisted Users row whose config changed', async () => {
+            mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field')]);
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockImplementation((_group, objectType) => (
+                Promise.resolve(objectType === 'user' ? makeLinked('user', 'user-field') : makeTemplate())
+            ));
+
+            renderEdit();
+            await waitForForm();
+
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+            await userEvent.click(screen.getByTestId('attributeAppliesToUserProfileDisplay-hidden'));
+            await userEvent.click(screen.getByTestId('attributeAppliesToUserWhoCanSet-admin'));
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'user', 'user-field', {
+                attrs: {visibility: 'hidden', managed: 'admin'},
+                permission_values: 'sysadmin',
+            });
+            expect(patchPropertyField.mock.calls.filter((call) => call[1] === 'user')).toHaveLength(1);
+        });
+
+        it('renders a distinct "settings couldn\'t be updated" banner (not "couldn\'t be applied") when the config patch fails, since the row is already linked', async () => {
+            mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field')]);
+            jest.spyOn(Client4, 'patchPropertyField').mockImplementation((_group, objectType) => (
+                objectType === 'user' ? Promise.reject(new Error('boom')) : Promise.resolve(makeTemplate())
+            ));
+
+            renderEdit();
+            await waitForForm();
+
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+            await userEvent.click(screen.getByTestId('attributeAppliesToUserWhoCanSet-admin'));
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            const banner = await screen.findByTestId('attributeSaveError');
+            expect(banner).toHaveTextContent('Users');
+            expect(banner).toHaveTextContent('settings');
+            expect(banner).not.toHaveTextContent('be applied');
+            expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
         });
 
         it('DELETEs removed resources before PATCHing when type also changes', async () => {

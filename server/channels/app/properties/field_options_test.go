@@ -23,22 +23,19 @@ func TestFieldOptionsWritableField(t *testing.T) {
 		return []*model.PropertyFieldOption{{Name: name}}
 	}
 
-	t.Run("a change decided against a field read before an earlier change still lands", func(t *testing.T) {
+	t.Run("a change is decided against the service's own fresh read, so consecutive changes both land", func(t *testing.T) {
 		graph := setupGraph(t, th, []string{"Air"}, nil)
-		// The field as first read. Every option change is written under a
-		// compare-and-swap on its UpdateAt, and this copy's is about to be out of
-		// date -- which is what a read that went to a replica looks like.
-		stale := *graph.field
 
-		_, err := th.service.CreateFieldOptions(th.Context, &stale, newOption("Sea"))
+		_, err := th.service.CreateFieldOptions(th.Context, graph.field.GroupID, graph.field.ID, newOption("Sea"))
 		require.NoError(t, err)
 
-		// Same stale copy again. The service re-reads the field it is about to swap
-		// on, so this is not a lost race; before it did, this answered 409.
-		_, err = th.service.CreateFieldOptions(th.Context, &stale, newOption("Land"))
+		// The service reads the field fresh and swaps on that read's UpdateAt, so a
+		// second change right behind the first is not a lost race -- there is no
+		// caller-held copy for it to fall behind.
+		_, err = th.service.CreateFieldOptions(th.Context, graph.field.GroupID, graph.field.ID, newOption("Land"))
 		require.NoError(t, err)
 
-		options, err := th.service.GetFieldOptions(th.Context, graph.field, 0, "", 100)
+		options, err := th.service.GetFieldOptions(th.Context, graph.field.GroupID, graph.field.ID, 0, "", 100)
 		require.NoError(t, err)
 		names := make([]string, 0, len(options))
 		for _, option := range options {
@@ -47,19 +44,18 @@ func TestFieldOptionsWritableField(t *testing.T) {
 		require.ElementsMatch(t, []string{"Air", "Sea", "Land"}, names)
 	})
 
-	t.Run("a change is decided against the field as it is now, not as the caller read it", func(t *testing.T) {
+	t.Run("a change is decided against the field as it is now, not as it stood earlier", func(t *testing.T) {
 		graph := setupGraph(t, th, []string{"Air"}, nil)
-		stale := *graph.field
 
 		require.NoError(t, th.dbStore.PropertyField().Delete(graph.field.GroupID, graph.field.ID))
 
-		// The caller's copy says the field is alive. The field is not, and an option
-		// written to a deleted field is written where nothing will look for it.
-		_, err := th.service.CreateFieldOptions(th.Context, &stale, newOption("Sea"))
+		// The field has been deleted since it was created, and an option written to
+		// a deleted field is written where nothing will look for it.
+		_, err := th.service.CreateFieldOptions(th.Context, graph.field.GroupID, graph.field.ID, newOption("Sea"))
 		require.Error(t, err)
 		require.ErrorContains(t, err, "has been deleted")
 
-		_, err = th.service.DeleteFieldOptions(th.Context, &stale, graph.of("Air"))
+		_, err = th.service.DeleteFieldOptions(th.Context, graph.field.GroupID, graph.field.ID, graph.of("Air"))
 		require.Error(t, err)
 		require.ErrorContains(t, err, "has been deleted")
 	})
@@ -79,27 +75,27 @@ func TestFieldOptionsWritableField(t *testing.T) {
 		// An option created here would carry no rank, which is the one state a rank
 		// field's options may never be in: it makes the field unwritable through its
 		// own option list and reads as covering nothing where a policy clamps.
-		_, err := th.service.CreateFieldOptions(th.Context, rank, newOption("Top Secret"))
+		_, err := th.service.CreateFieldOptions(th.Context, rank.GroupID, rank.ID, newOption("Top Secret"))
 		require.Error(t, err)
 		require.ErrorContains(t, err, "rank field")
 
-		options, err := th.service.GetFieldOptions(th.Context, rank, 0, "", 100)
+		options, err := th.service.GetFieldOptions(th.Context, rank.GroupID, rank.ID, 0, "", 100)
 		require.NoError(t, err)
 		require.Len(t, options, 1, "reading a rank field's options is still allowed")
 
 		// A caller that forgot a page size is told, rather than being handed an
 		// empty page it would read as a field with no options.
-		_, err = th.service.GetFieldOptions(th.Context, rank, 0, "", 0)
+		_, err = th.service.GetFieldOptions(th.Context, rank.GroupID, rank.ID, 0, "", 0)
 		require.Error(t, err)
 		require.ErrorContains(t, err, "positive page size")
 
-		_, _, err = th.service.UpdateFieldOptions(th.Context, rank, []*model.PropertyFieldOption{
+		_, _, err = th.service.UpdateFieldOptions(th.Context, rank.GroupID, rank.ID, []*model.PropertyFieldOption{
 			{ID: options[0].ID, Name: "Renamed"},
 		})
 		require.Error(t, err)
 		require.ErrorContains(t, err, "rank field")
 
-		_, err = th.service.DeleteFieldOptions(th.Context, rank, []string{options[0].ID})
+		_, err = th.service.DeleteFieldOptions(th.Context, rank.GroupID, rank.ID, []string{options[0].ID})
 		require.Error(t, err)
 		require.ErrorContains(t, err, "rank field")
 	})
@@ -154,22 +150,22 @@ func TestFieldOptionsAccessControl(t *testing.T) {
 		call func(rctx request.CTX, field *model.PropertyField, optionID string) error
 	}{
 		{"create", func(rctx request.CTX, field *model.PropertyField, _ string) error {
-			_, err := th.service.CreateFieldOptions(rctx, field, []*model.PropertyFieldOption{{Name: "Sea-" + model.NewId()}})
+			_, err := th.service.CreateFieldOptions(rctx, field.GroupID, field.ID, []*model.PropertyFieldOption{{Name: "Sea-" + model.NewId()}})
 			return err
 		}},
 		{"update", func(rctx request.CTX, field *model.PropertyField, optionID string) error {
-			_, _, err := th.service.UpdateFieldOptions(rctx, field, []*model.PropertyFieldOption{{ID: optionID, Name: "Land-" + model.NewId()}})
+			_, _, err := th.service.UpdateFieldOptions(rctx, field.GroupID, field.ID, []*model.PropertyFieldOption{{ID: optionID, Name: "Land-" + model.NewId()}})
 			return err
 		}},
 		{"delete", func(rctx request.CTX, field *model.PropertyField, optionID string) error {
-			_, err := th.service.DeleteFieldOptions(rctx, field, []string{optionID})
+			_, err := th.service.DeleteFieldOptions(rctx, field.GroupID, field.ID, []string{optionID})
 			return err
 		}},
 	}
 
 	optionID := func(t *testing.T, field *model.PropertyField) string {
 		t.Helper()
-		options, err := th.service.GetFieldOptions(source, field, 0, "", 100)
+		options, err := th.service.GetFieldOptions(source, field.GroupID, field.ID, 0, "", 100)
 		require.NoError(t, err)
 		require.Len(t, options, 1)
 		return options[0].ID
@@ -218,7 +214,7 @@ func TestFieldOptionsAccessControl(t *testing.T) {
 		attrs[model.PropertyAttrsAccessMode] = model.PropertyAccessModeSourceOnly
 		field := fieldWith(t, th.CPAGroupID, attrs)
 
-		options, err := th.service.GetFieldOptions(source, field, 0, "", 100)
+		options, err := th.service.GetFieldOptions(source, field.GroupID, field.ID, 0, "", 100)
 		require.NoError(t, err)
 		require.Len(t, options, 1)
 
@@ -228,20 +224,12 @@ func TestFieldOptionsAccessControl(t *testing.T) {
 		// An emptied page, not a missing one: a nil page serializes as null rather
 		// than [], which a caller looping over the page cannot read, and it is what
 		// a filter that builds its result by appending returns.
-		options, err = th.service.GetFieldOptions(other, field, 0, "", 100)
+		options, err = th.service.GetFieldOptions(other, field.GroupID, field.ID, 0, "", 100)
 		require.NoError(t, err)
 		require.NotNil(t, options)
 		require.Empty(t, options)
 
-		options, err = th.service.GetFieldOptions(admin, field, 0, "", 100)
-		require.NoError(t, err)
-		require.NotNil(t, options)
-		require.Empty(t, options)
-
-		// The gate is decided from the stored field, not from whatever the caller
-		// hands in: a copy carrying none of the field's access attributes must be
-		// refused exactly as the full field is.
-		options, err = th.service.GetFieldOptions(other, &model.PropertyField{ID: field.ID, GroupID: field.GroupID, Type: field.Type}, 0, "", 100)
+		options, err = th.service.GetFieldOptions(admin, field.GroupID, field.ID, 0, "", 100)
 		require.NoError(t, err)
 		require.NotNil(t, options)
 		require.Empty(t, options)
@@ -250,7 +238,7 @@ func TestFieldOptionsAccessControl(t *testing.T) {
 	t.Run("a public field's options are readable and writable as before", func(t *testing.T) {
 		field := fieldWith(t, th.CPAGroupID, model.StringInterface{})
 
-		options, err := th.service.GetFieldOptions(other, field, 0, "", 100)
+		options, err := th.service.GetFieldOptions(other, field.GroupID, field.ID, 0, "", 100)
 		require.NoError(t, err)
 		require.Len(t, options, 1)
 		require.NoError(t, changes[0].call(other, field, options[0].ID))
@@ -260,7 +248,7 @@ func TestFieldOptionsAccessControl(t *testing.T) {
 		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 		field := fieldWith(t, group.ID, protectedAttrs())
 
-		options, err := th.service.GetFieldOptions(other, field, 0, "", 100)
+		options, err := th.service.GetFieldOptions(other, field.GroupID, field.ID, 0, "", 100)
 		require.NoError(t, err)
 		require.Len(t, options, 1)
 		require.NoError(t, changes[0].call(other, field, options[0].ID))
@@ -431,7 +419,7 @@ func TestFieldOptionsFromFieldList(t *testing.T) {
 		// Leaving out a leaf was never in question: put one back under Air, then write
 		// a list without it, which is the read-modify-write a client actually performs.
 		seaParents := []string{"Air"}
-		_, err = th.service.CreateFieldOptions(th.Context, updated, []*model.PropertyFieldOption{
+		_, err = th.service.CreateFieldOptions(th.Context, updated.GroupID, updated.ID, []*model.PropertyFieldOption{
 			{Name: "Sea", Parents: &seaParents},
 		})
 		require.NoError(t, err)
@@ -561,7 +549,7 @@ func TestFieldOptionsFromFieldList(t *testing.T) {
 
 		// A field of a type with no hierarchy may own local options beside the ones it
 		// inherits, which is the only way this collision arises.
-		_, err = th.service.CreateFieldOptions(th.Context, dependent, []*model.PropertyFieldOption{{Name: "Land"}})
+		_, err = th.service.CreateFieldOptions(th.Context, dependent.GroupID, dependent.ID, []*model.PropertyFieldOption{{Name: "Land"}})
 		require.NoError(t, err)
 
 		renamed := *template
@@ -592,18 +580,18 @@ func TestFieldOptionsFromFieldList(t *testing.T) {
 		dependent, err = th.service.CreatePropertyField(th.Context, dependent)
 		require.NoError(t, err)
 
-		_, err = th.service.CreateFieldOptions(th.Context, dependent, []*model.PropertyFieldOption{{Name: "Land"}})
+		_, err = th.service.CreateFieldOptions(th.Context, dependent.GroupID, dependent.ID, []*model.PropertyFieldOption{{Name: "Land"}})
 		require.NoError(t, err)
 
 		// Through the options endpoint this time: the two write paths answer the same
 		// question the same way.
-		_, err = th.service.CreateFieldOptions(th.Context, template, []*model.PropertyFieldOption{{Name: "Land"}})
+		_, err = th.service.CreateFieldOptions(th.Context, template.GroupID, template.ID, []*model.PropertyFieldOption{{Name: "Land"}})
 		require.Error(t, err)
 		require.ErrorContains(t, err, "local option of its own")
 
 		// And the other direction, which is the half a field can answer on its own: a
 		// local option may not take a name the field inherits.
-		_, err = th.service.CreateFieldOptions(th.Context, dependent, []*model.PropertyFieldOption{{Name: "Air"}})
+		_, err = th.service.CreateFieldOptions(th.Context, dependent.GroupID, dependent.ID, []*model.PropertyFieldOption{{Name: "Air"}})
 		require.Error(t, err)
 		require.ErrorContains(t, err, "already has")
 		require.ErrorContains(t, err, template.ID)
