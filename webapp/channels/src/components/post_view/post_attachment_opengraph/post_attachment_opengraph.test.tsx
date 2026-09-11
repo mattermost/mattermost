@@ -7,7 +7,7 @@ import type {OpenGraphMetadata, Post} from '@mattermost/types/posts';
 
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
-import {render, renderWithContext} from 'tests/react_testing_utils';
+import {render, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {Preferences} from 'utils/constants';
 
 import {
@@ -170,6 +170,218 @@ describe('PostAttachmentOpenGraph', () => {
     });
 });
 
+describe('PostAttachmentOpenGraph with image dimensions arriving after the first render', () => {
+    const gifUrl = 'http://mattermost.com/animated.gif';
+
+    const gifOpenGraphData = {
+        description: 'An animated GIF whose dimensions are not declared by the website',
+        images: [{
+            height: 0,
+            secure_url: '',
+            type: 'image/gif',
+            url: gifUrl,
+            width: 0,
+        }],
+        site_name: 'Mattermost.com',
+        title: 'Animated GIF',
+        type: 'website',
+        url: 'https://www.mattermost.com/gif',
+    };
+
+    const gifState = {
+        ...initialState,
+        entities: {
+            ...initialState.entities,
+            posts: {
+                openGraph: {
+                    post_id_1: {
+                        [gifOpenGraphData.url]: gifOpenGraphData,
+                    },
+                },
+            },
+        },
+    };
+
+    const postWithoutDimensions = {
+        id: 'post_id_1',
+        channel_id: 'channel_id',
+        create_at: 1,
+        message: gifOpenGraphData.url,
+        metadata: {
+            images: {},
+        },
+    } as unknown as Post;
+
+    const postWithDimensions = {
+        ...postWithoutDimensions,
+        metadata: {
+            images: {
+                [gifUrl]: {
+                    format: 'gif',
+                    frameCount: 20,
+                    height: 200,
+                    width: 400,
+                },
+            },
+        },
+    } as unknown as Post;
+
+    const baseProps = {
+        postId: 'post_id_1',
+        link: gifOpenGraphData.url,
+        currentUserId: '1234',
+        toggleEmbedVisibility: jest.fn(),
+        actions: {
+            editPost: jest.fn(),
+        },
+    };
+
+    test('should keep a collapsed image hidden and reclassify it once dimensions arrive', () => {
+        const {container, rerender} = renderWithContext(
+            <PostAttachmentOpenGraph
+                {...baseProps}
+                post={postWithoutDimensions}
+                isEmbedVisible={false}
+            />,
+            gifState,
+        );
+
+        const card = container.querySelector('[data-testid="link-preview"]');
+
+        expect(screen.queryByAltText(gifOpenGraphData.title)).not.toBeInTheDocument();
+        expect(container.querySelector('.PostAttachmentOpenGraph__image.large')).not.toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Show image preview'})).toBeInTheDocument();
+
+        rerender(
+            <PostAttachmentOpenGraph
+                {...baseProps}
+                post={postWithDimensions}
+                isEmbedVisible={false}
+            />,
+        );
+
+        expect(container.querySelector('[data-testid="link-preview"]')).toBe(card);
+        expect(container.querySelector('.PostAttachmentOpenGraph__image.large')).toBeInTheDocument();
+        expect(screen.queryByAltText(gifOpenGraphData.title)).not.toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Show image preview'})).toBeInTheDocument();
+    });
+
+    test('should reclassify an expanded image from a thumbnail to a large image once dimensions arrive', () => {
+        const {container, rerender} = renderWithContext(
+            <PostAttachmentOpenGraph
+                {...baseProps}
+                post={postWithoutDimensions}
+                isEmbedVisible={true}
+            />,
+            gifState,
+        );
+
+        const card = container.querySelector('[data-testid="link-preview"]');
+
+        expect(screen.getByAltText(gifOpenGraphData.title)).toBeInTheDocument();
+        expect(container.querySelector('.PostAttachmentOpenGraph__image.large')).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: 'Hide image preview'})).not.toBeInTheDocument();
+
+        rerender(
+            <PostAttachmentOpenGraph
+                {...baseProps}
+                post={postWithDimensions}
+                isEmbedVisible={true}
+            />,
+        );
+
+        expect(container.querySelector('[data-testid="link-preview"]')).toBe(card);
+        expect(container.querySelector('.PostAttachmentOpenGraph__image.large')).toBeInTheDocument();
+        expect(screen.getByAltText(gifOpenGraphData.title)).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Hide image preview'})).toBeInTheDocument();
+    });
+
+    test('should reselect the best image once dimensions arrive', () => {
+        const thumbnailUrl = 'http://mattermost.com/thumbnail.png';
+        const twoImageOpenGraphData = {
+            ...gifOpenGraphData,
+            images: [
+                gifOpenGraphData.images[0],
+                {height: 0, secure_url: '', type: 'image/png', url: thumbnailUrl, width: 0},
+            ],
+        };
+        const state = {
+            ...gifState,
+            entities: {
+                ...gifState.entities,
+                posts: {
+                    openGraph: {
+                        post_id_1: {
+                            [twoImageOpenGraphData.url]: twoImageOpenGraphData,
+                        },
+                    },
+                },
+            },
+        };
+
+        const {rerender} = renderWithContext(
+            <PostAttachmentOpenGraph
+                {...baseProps}
+                post={postWithoutDimensions}
+                isEmbedVisible={true}
+            />,
+            state,
+        );
+
+        // Without dimensions neither image is closer to the ideal thumbnail size, so the first one wins
+        expect(screen.getByAltText(gifOpenGraphData.title).getAttribute('src')).toContain(encodeURIComponent(gifUrl));
+
+        rerender(
+            <PostAttachmentOpenGraph
+                {...baseProps}
+                post={{
+                    ...postWithoutDimensions,
+                    metadata: {
+                        images: {
+                            [gifUrl]: {format: 'gif', frameCount: 20, height: 1000, width: 1000},
+                            [thumbnailUrl]: {format: 'png', frameCount: 0, height: 80, width: 80},
+                        },
+                    },
+                } as unknown as Post}
+                isEmbedVisible={true}
+            />,
+        );
+
+        expect(screen.getByAltText(gifOpenGraphData.title).getAttribute('src')).toContain(encodeURIComponent(thumbnailUrl));
+    });
+
+    test('should reveal a collapsed image when the preview control is used', async () => {
+        const toggleEmbedVisibility = jest.fn();
+        const props = {
+            ...baseProps,
+            toggleEmbedVisibility,
+            post: postWithoutDimensions,
+        };
+
+        const {container, rerender} = renderWithContext(
+            <PostAttachmentOpenGraph
+                {...props}
+                isEmbedVisible={false}
+            />,
+            gifState,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'Show image preview'}));
+
+        expect(toggleEmbedVisibility).toHaveBeenCalledTimes(1);
+
+        rerender(
+            <PostAttachmentOpenGraph
+                {...props}
+                isEmbedVisible={true}
+            />,
+        );
+
+        expect(screen.getByAltText(gifOpenGraphData.title)).toBeInTheDocument();
+        expect(container.querySelector('.PostAttachmentOpenGraph__image.collapsed')).not.toBeInTheDocument();
+    });
+});
+
 describe('PostAttachmentOpenGraphBody', () => {
     const baseProps = {
         title: 'test-title',
@@ -257,6 +469,15 @@ describe('PostAttachmentOpenGraphImage', () => {
         title: 'test_image',
     };
 
+    const smallImageProps = {
+        ...baseProps,
+        imageMetadata: {
+            ...baseProps.imageMetadata!,
+            height: 90,
+            width: 120,
+        },
+    };
+
     test('should match snapshot', () => {
         const {container} = renderWithContext(
             <PostAttachmentOpenGraphImage {...baseProps}/>,
@@ -288,17 +509,26 @@ describe('PostAttachmentOpenGraphImage', () => {
 
         expect(container.querySelector('.PostAttachmentOpenGraph__image')).toBeInTheDocument();
         expect(container.querySelector('.PostAttachmentOpenGraph__image.large')).toBeInTheDocument();
-        expect(container.querySelector('.PostAttachmentOpenGraph__image .preview-toggle')).toBeInTheDocument();
+        expect(screen.getByAltText(baseProps.title)).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Hide image preview'})).toBeInTheDocument();
     });
 
     test('should render a small image without toggle', () => {
+        const {container} = renderWithContext(
+            <PostAttachmentOpenGraphImage {...smallImageProps}/>,
+            initialState,
+        );
+
+        expect(container.querySelector('.PostAttachmentOpenGraph__image')).toBeInTheDocument();
+        expect(container.querySelector('.PostAttachmentOpenGraph__image.large')).not.toBeInTheDocument();
+        expect(screen.getByAltText(baseProps.title)).toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: 'Hide image preview'})).not.toBeInTheDocument();
+    });
+
+    test('should hide a collapsed small image and offer the preview control instead', () => {
         const props = {
-            ...baseProps,
-            imageMetadata: {
-                ...baseProps.imageMetadata!,
-                height: 90,
-                width: 120,
-            },
+            ...smallImageProps,
+            isEmbedVisible: false,
         };
 
         const {container} = renderWithContext(
@@ -306,9 +536,25 @@ describe('PostAttachmentOpenGraphImage', () => {
             initialState,
         );
 
-        expect(container.querySelector('.PostAttachmentOpenGraph__image')).toBeInTheDocument();
         expect(container.querySelector('.PostAttachmentOpenGraph__image.large')).not.toBeInTheDocument();
-        expect(container.querySelector('.PostAttachmentOpenGraph__image .preview-toggle')).not.toBeInTheDocument();
+        expect(screen.queryByAltText(baseProps.title)).not.toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Show image preview'})).toBeInTheDocument();
+    });
+
+    test('should hide a collapsed large image and offer the preview control instead', () => {
+        const props = {
+            ...baseProps,
+            isEmbedVisible: false,
+        };
+
+        const {container} = renderWithContext(
+            <PostAttachmentOpenGraphImage {...props}/>,
+            initialState,
+        );
+
+        expect(container.querySelector('.PostAttachmentOpenGraph__image.large')).toBeInTheDocument();
+        expect(screen.queryByAltText(baseProps.title)).not.toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Show image preview'})).toBeInTheDocument();
     });
 });
 
