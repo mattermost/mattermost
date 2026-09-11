@@ -371,10 +371,6 @@ func searchPropertyFieldsCore(c *Context, w http.ResponseWriter, group *model.Pr
 		return
 	}
 
-	// A shared_only field's option list is filtered to the options the caller
-	// themselves holds, so this read has to say who is asking. See the note on
-	// sessionCallerID: an untagged read is not refused, it is answered as a
-	// caller who holds nothing.
 	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
 
 	fields, err := c.App.SearchPropertyFields(rctx, group.ID, opts)
@@ -720,11 +716,6 @@ func getPropertyValuesCore(c *Context, w http.ResponseWriter, r *http.Request, o
 	model.AddEventParameterToAuditRec(auditRec, "target_id", targetID)
 	model.AddEventParameterToAuditRec(auditRec, "since", opts.SinceUpdateAt)
 
-	// A shared_only field's values are masked against what the caller themselves
-	// holds, so this read has to say who is asking. See the note on
-	// sessionCallerID: an untagged read is not refused, it is answered as a
-	// caller who holds nothing -- and that answer is indistinguishable from
-	// masking working.
 	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
 
 	values, err := c.App.SearchPropertyValues(rctx, group.ID, opts)
