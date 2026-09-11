@@ -23,9 +23,11 @@ server.post('/setup', doSetup);
 server.post('/message_menus', postMessageMenus);
 server.post('/dialog_request', onDialogRequest);
 server.post('/simple_dialog_request', onSimpleDialogRequest);
+server.post('/basic_dialog_request', onBasicDialogRequest);
 server.post('/user_and_channel_dialog_request', onUserAndChannelDialogRequest);
 server.post('/dialog_submit', onDialogSubmit);
 server.post('/boolean_dialog_request', onBooleanDialogRequest);
+server.post('/checkbox_group_dialog_request', onCheckboxGroupDialogRequest);
 server.post('/multiselect_dialog_request', onMultiSelectDialogRequest);
 server.post('/dynamic_select_dialog_request', onDynamicSelectDialogRequest);
 server.post('/file_upload_dialog_request', onFileUploadDialogRequest);
@@ -67,9 +69,11 @@ function ping(req, res) {
             'POST /message_menus',
             'POST /dialog_request',
             'POST /simple_dialog_request',
+            'POST /basic_dialog_request',
             'POST /user_and_channel_dialog_request',
             'POST /dialog_submit',
             'POST /boolean_dialog_request',
+            'POST /checkbox_group_dialog_request',
             'POST /multiselect_dialog_request',
             'POST /dynamic_select_dialog_request',
             'POST /file_upload_dialog_request',
@@ -108,7 +112,29 @@ function doSetup(req, res) {
     adminUsername = req.body.adminUsername;
     adminPassword = req.body.adminPassword;
 
+    console.log(`Webhook server configured: baseUrl=${baseUrl}, webhookBaseUrl=${webhookBaseUrl}`);
+
     return res.status(201).send('Successfully setup the new base URLs and credential.');
+}
+
+async function handleDialogOpen(req, res, getDialog, successText) {
+    const {body} = req;
+    if (!body.trigger_id) {
+        res.setHeader('Content-Type', 'application/json');
+        return res.status(400).json({text: 'Missing trigger_id'});
+    }
+
+    try {
+        const dialog = getDialog(body.trigger_id, webhookBaseUrl);
+        console.log(JSON.stringify(dialog, null, 2));
+        await openDialog(dialog);
+        res.setHeader('Content-Type', 'application/json');
+        return res.json({text: successText});
+    } catch (err) {
+        console.error('Failed to open dialog:', err.message);
+        res.setHeader('Content-Type', 'application/json');
+        return res.status(500).json({text: `Failed to open dialog: ${err.message}`});
+    }
 }
 
 let client;
@@ -292,82 +318,51 @@ async function openDialog(dialog) {
 }
 
 function onDialogRequest(req, res) {
-    const {body} = req;
-    if (body.trigger_id) {
-        const dialog = webhookUtils.getFullDialog(body.trigger_id, webhookBaseUrl);
-        openDialog(dialog);
-    }
-
-    res.setHeader('Content-Type', 'application/json');
-    return res.json({text: 'Full dialog triggered via slash command!'});
+    return handleDialogOpen(req, res, webhookUtils.getFullDialog, 'Full dialog triggered via slash command!');
 }
 
 function onSimpleDialogRequest(req, res) {
-    const {body} = req;
-    if (body.trigger_id) {
-        const dialog = webhookUtils.getSimpleDialog(body.trigger_id, webhookBaseUrl);
-        openDialog(dialog);
-    }
+    return handleDialogOpen(req, res, webhookUtils.getSimpleDialog, 'Simple dialog triggered via slash command!');
+}
 
-    res.setHeader('Content-Type', 'application/json');
-    return res.json({text: 'Simple dialog triggered via slash command!'});
+function onBasicDialogRequest(req, res) {
+    return handleDialogOpen(req, res, webhookUtils.getBasicDialog, 'Basic dialog triggered via slash command!');
 }
 
 function onUserAndChannelDialogRequest(req, res) {
-    const {body} = req;
-    if (body.trigger_id) {
-        const dialog = webhookUtils.getUserAndChannelDialog(body.trigger_id, webhookBaseUrl);
-        openDialog(dialog);
-    }
-
-    res.setHeader('Content-Type', 'application/json');
-    return res.json({text: 'Simple dialog triggered via slash command!'});
+    return handleDialogOpen(req, res, webhookUtils.getUserAndChannelDialog, 'Simple dialog triggered via slash command!');
 }
 
 function onBooleanDialogRequest(req, res) {
-    const {body} = req;
-    if (body.trigger_id) {
-        const dialog = webhookUtils.getBooleanDialog(body.trigger_id, webhookBaseUrl);
-        openDialog(dialog);
-    }
+    return handleDialogOpen(req, res, webhookUtils.getBooleanDialog, 'Simple dialog triggered via slash command!');
+}
 
-    res.setHeader('Content-Type', 'application/json');
-    return res.json({text: 'Simple dialog triggered via slash command!'});
+function onCheckboxGroupDialogRequest(req, res) {
+    return handleDialogOpen(req, res, webhookUtils.getCheckboxGroupDialog, 'Checkbox dialog feature demo triggered via slash command!');
 }
 
 function onMultiSelectDialogRequest(req, res) {
     const {body} = req;
-    if (body.trigger_id) {
-        // Check URL parameters or body for includeDefaults flag
-        const includeDefaults = req.query.includeDefaults === 'true' || req.query.includeDefaults === true;
-        const dialog = webhookUtils.getMultiSelectDialog(body.trigger_id, webhookBaseUrl, includeDefaults);
-        openDialog(dialog);
+    if (!body.trigger_id) {
+        res.setHeader('Content-Type', 'application/json');
+        return res.status(400).json({text: 'Missing trigger_id'});
     }
 
-    res.setHeader('Content-Type', 'application/json');
-    return res.json({text: 'Multiselect dialog triggered via slash command!'});
+    const includeDefaults = req.query.includeDefaults === 'true' || req.query.includeDefaults === true;
+    return handleDialogOpen(
+        req,
+        res,
+        (triggerId, webhookUrl) => webhookUtils.getMultiSelectDialog(triggerId, webhookUrl, includeDefaults),
+        'Multiselect dialog triggered via slash command!',
+    );
 }
 
 function onDynamicSelectDialogRequest(req, res) {
-    const {body} = req;
-    if (body.trigger_id) {
-        const dialog = webhookUtils.getDynamicSelectDialog(body.trigger_id, webhookBaseUrl);
-        openDialog(dialog);
-    }
-
-    res.setHeader('Content-Type', 'application/json');
-    return res.json({text: 'Dynamic select dialog triggered via slash command!'});
+    return handleDialogOpen(req, res, webhookUtils.getDynamicSelectDialog, 'Dynamic select dialog triggered via slash command!');
 }
 
 function onFileUploadDialogRequest(req, res) {
-    const {body} = req;
-    if (body.trigger_id) {
-        const dialog = webhookUtils.getFileUploadDialog(body.trigger_id, webhookBaseUrl);
-        openDialog(dialog);
-    }
-
-    res.setHeader('Content-Type', 'application/json');
-    return res.json({text: 'File upload dialog triggered via slash command!'});
+    return handleDialogOpen(req, res, webhookUtils.getFileUploadDialog, 'File upload dialog triggered via slash command!');
 }
 
 function onDynamicSelectSource(req, res) {
@@ -402,13 +397,17 @@ function onDynamicSelectSource(req, res) {
     });
 }
 
-function onDateTimeDialogRequest(req, res) {
+async function onDateTimeDialogRequest(req, res) {
     const {body} = req;
-    if (body.trigger_id) {
+    if (!body.trigger_id) {
+        res.setHeader('Content-Type', 'application/json');
+        return res.status(400).json({text: 'Missing trigger_id'});
+    }
+
+    try {
         let dialog;
         const command = body.text ? body.text.trim() : '';
 
-        // Use focused dialog functions based on command parameter
         switch (command) {
         case 'basic':
             dialog = webhookUtils.getBasicDateDialog(body.trigger_id, webhookBaseUrl);
@@ -426,16 +425,18 @@ function onDateTimeDialogRequest(req, res) {
             dialog = webhookUtils.getTimezoneManualDialog(body.trigger_id, webhookBaseUrl);
             break;
         default:
-            // Default to basic datetime dialog for backward compatibility
             dialog = webhookUtils.getBasicDateTimeDialog(body.trigger_id, webhookBaseUrl);
             break;
         }
         console.log('Opening DateTime dialog', dialog.dialog.title);
-        openDialog(dialog);
+        await openDialog(dialog);
+        res.setHeader('Content-Type', 'application/json');
+        return res.json({text: 'DateTime dialog triggered via slash command!'});
+    } catch (err) {
+        console.error('Failed to open dialog:', err.message);
+        res.setHeader('Content-Type', 'application/json');
+        return res.status(500).json({text: `Failed to open dialog: ${err.message}`});
     }
-
-    res.setHeader('Content-Type', 'application/json');
-    return res.json({text: 'DateTime dialog triggered via slash command!'});
 }
 
 function onDateTimeDialogSubmit(req, res) {
@@ -529,9 +530,19 @@ function onDialogSubmit(req, res) {
 
     // Regular dialog submission
     // Format submission data for the channel message
+    const formatSubmissionValue = (value) => {
+        if (Array.isArray(value)) {
+            return JSON.stringify(value);
+        }
+        if (value && typeof value === 'object') {
+            return JSON.stringify(value);
+        }
+        return String(value);
+    };
+
     const sanitize = (str) => String(str).replace(/[<>&"']/g, (ch) => `&#${ch.charCodeAt(0)};`);
     const submissionData = Object.entries(body.submission || {}).
-        map(([key, value]) => `**${sanitize(key)}**: ${sanitize(value)}`).
+        map(([key, value]) => `**${sanitize(key)}**: ${sanitize(formatSubmissionValue(value))}`).
         join('\n');
 
     message = `Dialog submitted successfully!\n\n**Submission Data:**\n${submissionData}`;
@@ -623,25 +634,11 @@ function postOutgoingWebhook(req, res) {
 }
 
 function onFieldRefreshDialogRequest(req, res) {
-    const {body} = req;
-    if (body.trigger_id) {
-        const dialog = webhookUtils.getFieldRefreshDialog(body.trigger_id, webhookBaseUrl);
-        openDialog(dialog);
-    }
-
-    res.setHeader('Content-Type', 'application/json');
-    return res.json({text: 'Field refresh dialog triggered via slash command!'});
+    return handleDialogOpen(req, res, webhookUtils.getFieldRefreshDialog, 'Field refresh dialog triggered via slash command!');
 }
 
 function onMultistepDialogRequest(req, res) {
-    const {body} = req;
-    if (body.trigger_id) {
-        const dialog = webhookUtils.getMultistepStep1Dialog(body.trigger_id, webhookBaseUrl);
-        openDialog(dialog);
-    }
-
-    res.setHeader('Content-Type', 'application/json');
-    return res.json({text: 'Multistep dialog triggered via slash command!'});
+    return handleDialogOpen(req, res, webhookUtils.getMultistepStep1Dialog, 'Multistep dialog triggered via slash command!');
 }
 
 function onActionButtonDialogRequest(req, res) {

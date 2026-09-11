@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -1093,6 +1094,30 @@ func (api *PluginAPI) GetFile(fileID string) ([]byte, *model.AppError) {
 	return api.app.GetFile(api.ctx, fileID)
 }
 
+func (api *PluginAPI) HasPermissionToFileAction(sessionID, fileID, action string) bool {
+	if sessionID == "" || fileID == "" || !model.IsPermissionAction(action) {
+		return false
+	}
+
+	session, appErr := api.app.GetSessionById(api.ctx, sessionID)
+	if appErr != nil || session == nil || session.IsValid() != nil {
+		return false
+	}
+
+	session, appErr = api.app.GetSession(session.Token)
+	if appErr != nil || session == nil || session.Id != sessionID {
+		return false
+	}
+
+	fileInfo, appErr := api.app.Srv().getFileInfo(fileID)
+	if appErr != nil || fileInfo.ChannelId == "" {
+		return false
+	}
+
+	rctx := api.ctx.WithSession(session)
+	return api.app.HasPermissionToFileAction(rctx, session.UserId, session.Roles, fileInfo.ChannelId, action)
+}
+
 func (api *PluginAPI) UploadFile(data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError) {
 	return api.app.UploadFile(api.ctx, data, channelID, filename)
 }
@@ -1343,6 +1368,13 @@ func (api *PluginAPI) PublishUserTyping(userID, channelID, parentId string) *mod
 }
 
 func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
+	if err := request.Context().Err(); err != nil {
+		if request.Body != nil {
+			_ = request.Body.Close()
+		}
+		return nil
+	}
+
 	split := strings.SplitN(request.URL.Path, "/", 3)
 	if len(split) != 3 {
 		return &http.Response{
@@ -1364,6 +1396,8 @@ func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 			Body:       io.NopCloser(bytes.NewBufferString(message)),
 		}
 	}
+	requestCtx, cancelRequest := context.WithCancel(request.Context())
+	request = request.WithContext(requestCtx)
 
 	// Create pipe for streaming response
 	pr, pw := io.Pipe()
@@ -1386,11 +1420,27 @@ func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 		}()
 		api.app.ServeInterPluginRequest(responseTransfer, request, api.id, destinationPluginId)
 	}()
+	abort := func(err error) {
+		cancelRequest()
+		if request.Body != nil {
+			_ = request.Body.Close()
+		}
+		_ = responseTransfer.CloseWithError(err)
+		_ = pr.CloseWithError(err)
+	}
 
-	// Wait for headers to be ready before returning response
-	<-responseTransfer.ResponseReady
-
-	return responseTransfer.GenerateResponse(pr)
+	select {
+	case <-responseTransfer.ResponseReady:
+		if err := request.Context().Err(); err != nil {
+			abort(err)
+			return nil
+		}
+		return responseTransfer.GenerateResponse(request.Context(), pr, cancelRequest)
+	case <-request.Context().Done():
+		err := request.Context().Err()
+		abort(err)
+		return nil
+	}
 }
 
 func (api *PluginAPI) CreateCommand(cmd *model.Command) (*model.Command, error) {
