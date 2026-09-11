@@ -386,7 +386,7 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
 }
 
 const messages = defineMessages({
-    backLink: {id: 'admin.global_attributes.classification.back_link', defaultMessage: 'Back to Manage Attributes'},
+    backLink: {id: 'admin.global_attributes.classification.back_link', defaultMessage: 'Back to Attributes Management'},
     title: {id: 'admin.global_attributes.classification.title', defaultMessage: 'Classification'},
     subtitle: {
         id: 'admin.global_attributes.classification.subtitle',

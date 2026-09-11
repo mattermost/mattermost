@@ -42,7 +42,7 @@ export async function setGlobalAttributesFeatureFlag(adminClient: Client4, enabl
 }
 
 /**
- * Shared precondition for every test that needs the Manage Attributes page actually
+ * Shared precondition for every test that needs the Attributes Management page actually
  * reachable (as opposed to the flag-off gate test, which deliberately doesn't need this):
  * skips on a sub-Enterprise license, enables the GlobalAttributes flag, and skips if the
  * flag didn't actually take (e.g. env/SplitKey overrides). Returns the admin session.
@@ -58,7 +58,7 @@ export async function requireGlobalAttributesEnabled(pw: PlaywrightExtended) {
     const license = await adminClient.getClientLicenseOld();
     test.skip(
         licenseTier(license.SkuShortName) < 20,
-        'Manage Attributes requires Enterprise-tier license (SkuShortName enterprise, entry, or advanced). ' +
+        'Attributes Management requires Enterprise-tier license (SkuShortName enterprise, entry, or advanced). ' +
             'Professional is not sufficient—the admin route is hidden and redirects away.',
     );
 
