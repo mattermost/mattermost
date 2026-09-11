@@ -415,8 +415,6 @@ export default function GlobalAttributesTable() {
     const channelAttributesEnabled = useSelector((state: GlobalState) =>
         getFeatureFlagValue(state, 'ChannelAttributes') === 'true' && isMinimumEnterpriseAdvancedLicense(getLicense(state)));
 
-    // Every scope the table lists rows from: templates, then each resource type's
-    // unlinked non-template fields (channel only when the gate above allows it).
     const objectTypesToFetch = useMemo(
         () => [GLOBAL_ATTRIBUTES_OBJECT_TYPE, ...ALL_RESOURCE_TYPES.filter((type) => channelAttributesEnabled || type !== 'channel')],
         [channelAttributesEnabled],
