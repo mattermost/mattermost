@@ -900,16 +900,15 @@ func (ps *PropertyService) translateLegacyPermissionKeys(rctx request.CTX, field
 // attrs, and the protected/owners/access_mode attrs -- differ from what is
 // already stored on existing.
 //
-// The comparison runs against ProjectLegacyPermissions(existing) because
-// that is the v2 view a caller was shown and would echo back: for a converted
-// field the projection reports its permissions object, and for a field with no
-// permissions object the projection returns the field unchanged, so the
-// comparison falls through to the columns the store selects. PermissionValues is compared against
-// ProjectLegacyPermissions(existing) instead: that is the v2 view a caller
-// was shown and would echo back. Protected, PermissionField and
-// PermissionOptions are only compared that way when this group's update
-// hook does not pin Field/Options to sysadmin first -- that pin would
-// otherwise make every protected-field update look like a column change.
+// The comparison runs against ProjectLegacyPermissions(existing), not the raw
+// stored row: that is the v2 view a caller was shown and would echo back. For a
+// converted field the projection reports its permissions object; for a field
+// with no permissions object the projection returns the field unchanged, so the
+// comparison falls through to the columns the store selects. PermissionValues is
+// always compared that way; Protected, PermissionField and PermissionOptions
+// only when this group's update hook does not pin Field/Options to sysadmin
+// first -- that pin would otherwise make every protected-field update look like
+// a column change.
 // The owners / access_mode / protected / sync-source attrs are still stored,
 // and are compared against existing.Attrs rather than the projection -- the
 // owners attr can carry fewer entries than ProjectLegacyPermissions would
