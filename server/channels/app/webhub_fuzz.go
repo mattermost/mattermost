@@ -5,7 +5,6 @@
 package app
 
 import (
-	"math/rand/v2"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -20,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 // This is a file used to fuzz test the web_hub code.
@@ -266,8 +266,7 @@ func generateInitialCorpus() error {
 		return err
 	}
 	for i := 0; i < 100; i++ {
-		data := make([]byte, 25)
-		fillPseudoRandom(rand.New(rand.NewPCG(rand.Uint64(), rand.Uint64())), data)
+		data := utils.RandomBytes(25)
 		err = os.WriteFile("./workdir/corpus"+strconv.Itoa(i), data, 0644)
 		if err != nil {
 			return err
