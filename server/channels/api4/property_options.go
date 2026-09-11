@@ -14,10 +14,8 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
 
-// maxPropertyFieldOptionItems bounds how many options one request may create,
-// change, or delete. The bound belongs to the property service, which holds every
-// caller to it; this is where going over it is answered as a request-level
-// refusal naming the limit, rather than as a rejected payload.
+// maxPropertyFieldOptionItems aliases the property service's authoritative
+// limit, re-checked here so over-limit fails fast as a 400 naming the max.
 const maxPropertyFieldOptionItems = model.PropertyFieldOptionsMaxPerRequest
 
 // propertyFieldForOptions resolves the field the URL addresses and checks the
