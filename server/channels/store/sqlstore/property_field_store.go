@@ -58,10 +58,21 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 	}
 	defer finalizeTransactionX(transaction, &err)
 
+	projected := model.ProjectLegacyPermissions(field)
+
+	// The three legacy Attrs keys (owners, protected, access_mode) are stored as originally written
+	// and never refreshed from permissions, so they go stale after a v3 edit. This is tolerable
+	// because an old release reading them back on rollback wants the pre-upgrade values, and the
+	// only way they diverge is a v3 grant edit, which requires the PropertyFieldPermissionsV3
+	// feature flag to be on. They are not projected because legacyPermissionKeysChanged compares
+	// a caller's submitted owners against the raw stored owners attr on purpose, because the
+	// projected list also carries grants the caller never sent (source plugin, sync lock,
+	// ambient wildcard), and comparing against those would report a change for a caller who
+	// touched nothing.
 	builder := s.getQueryBuilder().
 		Insert("PropertyFields").
-		Columns("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "ObjectType", "LinkedFieldID", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy", "Permissions").
-		Values(field.ID, field.GroupID, field.Name, field.Type, storedFieldAttrs(field), field.TargetID, field.TargetType, field.ObjectType, field.LinkedFieldID, field.CreateAt, field.UpdateAt, field.DeleteAt, field.CreatedBy, field.UpdatedBy, storedFieldPermissions(field))
+		Columns("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "ObjectType", "Protected", "PermissionField", "PermissionValues", "PermissionOptions", "LinkedFieldID", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy", "Permissions").
+		Values(field.ID, field.GroupID, field.Name, field.Type, storedFieldAttrs(field), field.TargetID, field.TargetType, field.ObjectType, projected.Protected, projected.PermissionField, projected.PermissionValues, projected.PermissionOptions, field.LinkedFieldID, field.CreateAt, field.UpdateAt, field.DeleteAt, field.CreatedBy, field.UpdatedBy, storedFieldPermissions(field))
 
 	if _, err = transaction.ExecBuilder(builder); err != nil {
 		return nil, errors.Wrap(err, "property_field_create_insert")
