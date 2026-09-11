@@ -9,7 +9,7 @@ import (
 	"image"
 	"image/gif"
 	"image/jpeg"
-	"math/rand"
+	"math/rand/v2"
 	"testing"
 	"time"
 
@@ -22,6 +22,17 @@ var randomGIF []byte
 var zero10M = make([]byte, 10*1024*1024)
 var rgba *image.RGBA
 
+// fillPseudoRandom fills b with pseudo-random bytes drawn from r. math/rand/v2
+// has no Read method, unlike the v1 *rand.Rand it replaces.
+func fillPseudoRandom(r *rand.Rand, b []byte) {
+	for i := 0; i < len(b); i += 8 {
+		v := r.Uint64()
+		for j := 0; j < 8 && i+j < len(b); j++ {
+			b[i+j] = byte(v >> (8 * j))
+		}
+	}
+}
+
 func prepareTestImages(tb testing.TB) {
 	if rgba != nil {
 		return
@@ -32,14 +43,11 @@ func prepareTestImages(tb testing.TB) {
 		image.Point{0, 0},
 		image.Point{2048, 2048},
 	})
-	_, err := rand.New(rand.NewSource(1)).Read(rgba.Pix)
-	if err != nil {
-		tb.Fatal(err)
-	}
+	fillPseudoRandom(rand.New(rand.NewPCG(1, 1)), rgba.Pix)
 
 	// Encode it as JPEG and GIF
 	buf := &bytes.Buffer{}
-	err = jpeg.Encode(buf, rgba, &jpeg.Options{Quality: 50})
+	err := jpeg.Encode(buf, rgba, &jpeg.Options{Quality: 50})
 	if err != nil {
 		tb.Fatal(err)
 	}

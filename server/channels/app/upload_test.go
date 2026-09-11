@@ -6,7 +6,7 @@ package app
 import (
 	"bytes"
 	"io"
-	"math/rand"
+	"math/rand/v2"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -151,8 +151,7 @@ func TestUploadData(t *testing.T) {
 	require.NotEmpty(t, us)
 
 	data := make([]byte, us.FileSize)
-	_, err2 := rand.Read(data)
-	require.NoError(t, err2)
+	fillPseudoRandom(rand.New(rand.NewPCG(rand.Uint64(), rand.Uint64())), data)
 
 	t.Run("write error", func(t *testing.T) {
 		rd := &io.LimitedReader{
@@ -311,8 +310,7 @@ func TestUploadDataConcurrent(t *testing.T) {
 	require.NotEmpty(t, us)
 
 	data := make([]byte, us.FileSize)
-	_, err2 := rand.Read(data)
-	require.NoError(t, err2)
+	fillPseudoRandom(rand.New(rand.NewPCG(rand.Uint64(), rand.Uint64())), data)
 
 	var nErrs int32
 	var wg sync.WaitGroup

@@ -6,7 +6,7 @@ package commands
 
 import (
 	"fmt"
-	"math/rand"
+	"math/rand/v2"
 	"slices"
 	"sort"
 	"strings"
@@ -22,7 +22,7 @@ import (
 func randomPastTime(seconds int) int64 {
 	now := time.Now()
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.FixedZone("UTC", 0))
-	return (today.Unix() * 1000) - int64(rand.Intn(seconds*1000))
+	return (today.Unix() * 1000) - int64(rand.IntN(seconds*1000))
 }
 
 func sortedRandomDates(size int) []int64 {
@@ -36,13 +36,13 @@ func sortedRandomDates(size int) []int64 {
 
 func randomEmoji() string {
 	emojis := []string{"+1", "-1", "heart", "blush"}
-	return emojis[rand.Intn(len(emojis))]
+	return emojis[rand.IntN(len(emojis))]
 }
 
 func randomReaction(users []string, parentCreateAt int64) app.ReactionImportData {
-	user := users[rand.Intn(len(users))]
+	user := users[rand.IntN(len(users))]
 	emoji := randomEmoji()
-	date := parentCreateAt + int64(rand.Intn(100000))
+	date := parentCreateAt + int64(rand.IntN(100000))
 	return app.ReactionImportData{
 		User:      &user,
 		EmojiName: &emoji,
@@ -51,9 +51,9 @@ func randomReaction(users []string, parentCreateAt int64) app.ReactionImportData
 }
 
 func randomReply(users []string, parentCreateAt int64) imports.ReplyImportData {
-	user := users[rand.Intn(len(users))]
+	user := users[rand.IntN(len(users))]
 	message := randomMessage(users)
-	date := parentCreateAt + int64(rand.Intn(100000))
+	date := parentCreateAt + int64(rand.IntN(100000))
 	return imports.ReplyImportData{
 		User:     &user,
 		Message:  &message,
@@ -63,40 +63,40 @@ func randomReply(users []string, parentCreateAt int64) imports.ReplyImportData {
 
 func randomMessage(users []string) string {
 	var message string
-	switch rand.Intn(30) {
+	switch rand.IntN(30) {
 	case 0:
-		mention := users[rand.Intn(len(users))]
+		mention := users[rand.IntN(len(users))]
 		message = "@" + mention + " " + fake.Sentence()
 	case 1:
-		switch rand.Intn(2) {
+		switch rand.IntN(2) {
 		case 0:
 			mattermostVideos := []string{"Q4MgnxbpZas", "BFo7E9-Kc_E", "LsMLR-BHsKg", "MRmGDhlMhNA", "mUOPxT7VgWc"}
-			message = "https://www.youtube.com/watch?v=" + mattermostVideos[rand.Intn(len(mattermostVideos))]
+			message = "https://www.youtube.com/watch?v=" + mattermostVideos[rand.IntN(len(mattermostVideos))]
 		case 1:
 			mattermostTweets := []string{"943119062334353408", "949370809528832005", "948539688171819009", "939122439115681792", "938061722027425797"}
-			message = "https://twitter.com/mattermosthq/status/" + mattermostTweets[rand.Intn(len(mattermostTweets))]
+			message = "https://twitter.com/mattermosthq/status/" + mattermostTweets[rand.IntN(len(mattermostTweets))]
 		}
 	case 2:
 		message = ""
-		if rand.Intn(2) == 0 {
+		if rand.IntN(2) == 0 {
 			message += fake.Sentence()
 		}
-		for i := 0; i < rand.Intn(4)+1; i++ {
+		for i := 0; i < rand.IntN(4)+1; i++ {
 			message += "\n  * " + fake.Word()
 		}
 	default:
-		if rand.Intn(2) == 0 {
+		if rand.IntN(2) == 0 {
 			message = fake.Sentence()
 		} else {
 			message = fake.Paragraph()
 		}
-		if rand.Intn(3) == 0 {
+		if rand.IntN(3) == 0 {
 			message += "\n" + fake.Sentence()
 		}
-		if rand.Intn(3) == 0 {
+		if rand.IntN(3) == 0 {
 			message += "\n" + fake.Sentence()
 		}
-		if rand.Intn(3) == 0 {
+		if rand.IntN(3) == 0 {
 			message += "\n" + fake.Sentence()
 		}
 	}
@@ -144,7 +144,7 @@ func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndCh
 
 	// The 75% of the users have custom profile image
 	var profileImage *string
-	if rand.Intn(4) != 0 {
+	if rand.IntN(4) != 0 {
 		profileImageSelector := rand.Int()
 		if len(profileImages) > 0 {
 			profileImage = &profileImages[profileImageSelector%len(profileImages)]
@@ -152,28 +152,28 @@ func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndCh
 	}
 
 	useMilitaryTime := "false"
-	if idx != 0 && rand.Intn(2) == 0 {
+	if idx != 0 && rand.IntN(2) == 0 {
 		useMilitaryTime = "true"
 	}
 
 	collapsePreviews := "false"
-	if idx != 0 && rand.Intn(2) == 0 {
+	if idx != 0 && rand.IntN(2) == 0 {
 		collapsePreviews = "true"
 	}
 
 	messageDisplay := "clean"
-	if idx != 0 && rand.Intn(2) == 0 {
+	if idx != 0 && rand.IntN(2) == 0 {
 		messageDisplay = "compact"
 	}
 
 	channelDisplayMode := "full"
-	if idx != 0 && rand.Intn(2) == 0 {
+	if idx != 0 && rand.IntN(2) == 0 {
 		channelDisplayMode = "centered"
 	}
 
 	// Some users has nickname
 	nickname := ""
-	if rand.Intn(5) == 0 {
+	if rand.IntN(5) == 0 {
 		nickname = fake.Company()
 	}
 
@@ -181,7 +181,7 @@ func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndCh
 	// Other half of users also skip tutorial steps
 	tutorialStep := "999"
 	if idx > 2 {
-		switch rand.Intn(6) {
+		switch rand.IntN(6) {
 		case 1:
 			tutorialStep = "1"
 		case 2:
@@ -201,7 +201,7 @@ func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndCh
 		if len(possibleTeams) == 0 {
 			break
 		}
-		position := rand.Intn(len(possibleTeams))
+		position := rand.IntN(len(possibleTeams))
 		team := possibleTeams[position]
 		possibleTeams = append(possibleTeams[:position], possibleTeams[position+1:]...)
 		if teamChannels, err := teamsAndChannels[team]; err {
@@ -244,7 +244,7 @@ func createTeamMembership(numOfchannels int, teamChannels []string, teamName *st
 	roles := "team_user"
 	if guest {
 		roles = "team_guest"
-	} else if rand.Intn(5) == 0 {
+	} else if rand.IntN(5) == 0 {
 		roles = "team_user team_admin"
 	}
 	channels := []imports.UserChannelImportData{}
@@ -253,7 +253,7 @@ func createTeamMembership(numOfchannels int, teamChannels []string, teamName *st
 		if len(teamChannelsCopy) == 0 {
 			break
 		}
-		position := rand.Intn(len(teamChannelsCopy))
+		position := rand.IntN(len(teamChannelsCopy))
 		channelName := teamChannelsCopy[position]
 		teamChannelsCopy = append(teamChannelsCopy[:position], teamChannelsCopy[position+1:]...)
 		channels = append(channels, createChannelMembership(channelName, guest))
@@ -270,10 +270,10 @@ func createChannelMembership(channelName string, guest bool) imports.UserChannel
 	roles := "channel_user"
 	if guest {
 		roles = "channel_guest"
-	} else if rand.Intn(5) == 0 {
+	} else if rand.IntN(5) == 0 {
 		roles = "channel_user channel_admin"
 	}
-	favorite := rand.Intn(5) == 0
+	favorite := rand.IntN(5) == 0
 
 	return imports.UserChannelImportData{
 		Name:     &channelName,
@@ -294,7 +294,7 @@ func getSampleTeamName(idx int) string {
 func createTeam(idx int) imports.LineImportData {
 	displayName := fake.Word()
 	name := getSampleTeamName(idx)
-	allowOpenInvite := rand.Intn(2) == 0
+	allowOpenInvite := rand.IntN(2) == 0
 
 	description := fake.Paragraph()
 	if len(description) > 255 {
@@ -302,7 +302,7 @@ func createTeam(idx int) imports.LineImportData {
 	}
 
 	teamType := "O"
-	if rand.Intn(2) == 0 {
+	if rand.IntN(2) == 0 {
 		teamType = "I"
 	}
 
@@ -330,7 +330,7 @@ func createChannel(idx int, teamName string) imports.LineImportData {
 	}
 
 	channelType := model.ChannelTypePrivate
-	if rand.Intn(2) == 0 {
+	if rand.IntN(2) == 0 {
 		channelType = model.ChannelTypeOpen
 	}
 
@@ -350,29 +350,29 @@ func createChannel(idx int, teamName string) imports.LineImportData {
 
 func createPost(team string, channel string, allUsers []string, createAt int64) imports.LineImportData {
 	message := randomMessage(allUsers)
-	user := allUsers[rand.Intn(len(allUsers))]
+	user := allUsers[rand.IntN(len(allUsers))]
 
 	// Some messages are flagged by a user
 	flaggedBy := []string{}
-	if rand.Intn(10) == 0 {
-		flaggedBy = append(flaggedBy, allUsers[rand.Intn(len(allUsers))])
+	if rand.IntN(10) == 0 {
+		flaggedBy = append(flaggedBy, allUsers[rand.IntN(len(allUsers))])
 	}
 
 	reactions := []app.ReactionImportData{}
-	if rand.Intn(10) == 0 {
+	if rand.IntN(10) == 0 {
 		for {
 			reactions = append(reactions, randomReaction(allUsers, createAt))
-			if rand.Intn(3) == 0 {
+			if rand.IntN(3) == 0 {
 				break
 			}
 		}
 	}
 
 	replies := []imports.ReplyImportData{}
-	if rand.Intn(10) == 0 {
+	if rand.IntN(10) == 0 {
 		for {
 			replies = append(replies, randomReply(allUsers, createAt))
-			if rand.Intn(4) == 0 {
+			if rand.IntN(4) == 0 {
 				break
 			}
 		}
@@ -416,29 +416,29 @@ func createDirectChannel(members []string) imports.LineImportData {
 
 func createDirectPost(members []string, createAt int64) imports.LineImportData {
 	message := randomMessage(members)
-	user := members[rand.Intn(len(members))]
+	user := members[rand.IntN(len(members))]
 
 	// Some messages are flagged by an user
 	flaggedBy := []string{}
-	if rand.Intn(10) == 0 {
-		flaggedBy = append(flaggedBy, members[rand.Intn(len(members))])
+	if rand.IntN(10) == 0 {
+		flaggedBy = append(flaggedBy, members[rand.IntN(len(members))])
 	}
 
 	reactions := []app.ReactionImportData{}
-	if rand.Intn(10) == 0 {
+	if rand.IntN(10) == 0 {
 		for {
 			reactions = append(reactions, randomReaction(members, createAt))
-			if rand.Intn(3) == 0 {
+			if rand.IntN(3) == 0 {
 				break
 			}
 		}
 	}
 
 	replies := []imports.ReplyImportData{}
-	if rand.Intn(10) == 0 {
+	if rand.IntN(10) == 0 {
 		for {
 			replies = append(replies, randomReply(members, createAt))
-			if rand.Intn(4) == 0 {
+			if rand.IntN(4) == 0 {
 				break
 			}
 		}

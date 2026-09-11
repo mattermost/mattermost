@@ -5,7 +5,7 @@
 package app
 
 import (
-	"math/rand"
+	"math/rand/v2"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -267,10 +267,7 @@ func generateInitialCorpus() error {
 	}
 	for i := 0; i < 100; i++ {
 		data := make([]byte, 25)
-		_, err = rand.Read(data)
-		if err != nil {
-			return err
-		}
+		fillPseudoRandom(rand.New(rand.NewPCG(rand.Uint64(), rand.Uint64())), data)
 		err = os.WriteFile("./workdir/corpus"+strconv.Itoa(i), data, 0644)
 		if err != nil {
 			return err

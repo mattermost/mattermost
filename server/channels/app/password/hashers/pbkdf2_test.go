@@ -7,7 +7,7 @@ import (
 	"crypto/pbkdf2"
 	"crypto/sha256"
 	"encoding/base64"
-	"math/rand"
+	"math/rand/v2"
 	"strings"
 	"testing"
 
@@ -49,8 +49,9 @@ func TestPBKDF2Hash(t *testing.T) {
 
 func TestPBKDF2CompareHashAndPassword(t *testing.T) {
 	passwordTooLong := make([]byte, PasswordMaxLengthBytes+1)
-	_, err := rand.Read(passwordTooLong)
-	require.NoError(t, err)
+	for i := range passwordTooLong {
+		passwordTooLong[i] = byte(rand.IntN(256))
+	}
 
 	testCases := []struct {
 		testName    string
