@@ -1297,6 +1297,19 @@ func TestPropertyFieldAccessControlSignalling(t *testing.T) {
 		mockACS.AssertExpectations(t)
 	})
 
+	t.Run("a failure to read the changed field's dependents purges every policy cache instead", func(t *testing.T) {
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() { th.App.Srv().ch.AccessControl = nil })
+
+		mockACS.On("InvalidateAllPolicyCaches", mock.Anything).Return().Once()
+
+		th.App.propertyFieldOptionsChanged(th.Context, groupID, model.NewId(), "")
+
+		mockACS.AssertExpectations(t)
+		mockACS.AssertNotCalled(t, "OnPropertyFieldOptionsChanged", mock.Anything, mock.Anything)
+	})
+
 	t.Run("mutations succeed (no panic) when access control is unavailable", func(t *testing.T) {
 		// The signalling is guarded by `if acs != nil`; with no enterprise
 		// service installed the field CRUD must still succeed.

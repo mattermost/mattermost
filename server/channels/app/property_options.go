@@ -103,19 +103,21 @@ func (a *App) DeletePropertyFieldOptions(rctx request.CTX, groupID, fieldID stri
 func (a *App) propertyFieldOptionsChanged(rctx request.CTX, groupID, fieldID, connectionID string) {
 	current, dependents, err := a.Srv().propertyService.FieldWithDependents(rctx, groupID, fieldID)
 	if err != nil {
-		// The field ID the change named is still invalidated: dropping a cache
-		// entry that did not need dropping costs a recompile, while keeping one
-		// that did means deciding access from options that are gone. Its
-		// dependents cannot be -- they are exactly what could not be read -- so
-		// this is logged as an error and not swallowed. Nothing is published,
-		// because the only field state to publish is the one from before the
-		// change.
+		// Which fields' policies went stale is unknown -- that is exactly what
+		// this read failed to produce -- so every compiled policy is dropped
+		// rather than just the named field's. A policy names the dependent
+		// field it reads the attribute off, not the template, so per-field
+		// invalidation for the template would match no policy and leave every
+		// stale dependent policy in place. Nothing is published, because the
+		// only field state to publish is the one from before the change.
 		rctx.Logger().Error(
-			"Failed to read the property fields serving changed options; dependent access policy caches and clients were not notified",
+			"Failed to read the property fields serving changed options; involved fields are unknown and clients were not notified",
 			mlog.String("field_id", fieldID),
 			mlog.Err(err),
 		)
-		a.invalidatePolicyCachesForOptionChange(rctx, fieldID)
+		if acs := a.Srv().ch.AccessControl; acs != nil {
+			acs.InvalidateAllPolicyCaches(rctx)
+		}
 		// Unconditional, unlike the success path below, which can see whether any
 		// field involved is one the AttributeView materializes. Here nothing can:
 		// a template carries object type "template" and its user-scoped dependents
