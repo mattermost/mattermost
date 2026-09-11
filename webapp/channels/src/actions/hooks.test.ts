@@ -24,7 +24,7 @@ describe('runMessageWillBePostedHooks', () => {
                 components: {},
             },
         });
-        const post = {message: 'test'} as unknown as Post;
+        const post = {message: 'test'} as Post;
 
         const result = await store.dispatch(runMessageWillBePostedHooks(post));
 
@@ -47,7 +47,7 @@ describe('runMessageWillBePostedHooks', () => {
                 },
             },
         });
-        const post = {message: 'test'} as unknown as Post;
+        const post = {message: 'test'} as Post;
 
         const result = await store.dispatch(runMessageWillBePostedHooks(post));
 
@@ -73,7 +73,7 @@ describe('runMessageWillBePostedHooks', () => {
                 },
             },
         });
-        const post = {message: 'test'} as unknown as Post;
+        const post = {message: 'test'} as Post;
 
         const result = await store.dispatch(runMessageWillBePostedHooks(post));
 
@@ -99,7 +99,7 @@ describe('runMessageWillBePostedHooks', () => {
                 },
             },
         });
-        const post = {message: 'test'} as unknown as Post;
+        const post = {message: 'test'} as Post;
 
         const result = await store.dispatch(runMessageWillBePostedHooks(post));
 
@@ -133,7 +133,7 @@ describe('runMessageWillBePostedHooks', () => {
                 },
             },
         });
-        const post = {message: 'test'} as unknown as Post;
+        const post = {message: 'test'} as Post;
 
         const result = await store.dispatch(runMessageWillBePostedHooks(post));
 
@@ -155,7 +155,7 @@ describe('runMessageWillBePostedHooks', () => {
                 },
             },
         });
-        const post = {message: 'test'} as unknown as Post;
+        const post = {message: 'test'} as Post;
 
         const result = await store.dispatch(runMessageWillBePostedHooks(post));
 
@@ -354,7 +354,7 @@ describe('runMessageWillBeUpdatedHooks', () => {
             },
         });
 
-        const oldPost = {message: 'test'} as unknown as Post;
+        const oldPost = {message: 'test'} as Post;
         const newPost = {message: 'edited'};
 
         const result = await store.dispatch(runMessageWillBeUpdatedHooks(newPost, oldPost));
@@ -379,7 +379,7 @@ describe('runMessageWillBeUpdatedHooks', () => {
             },
         });
 
-        const oldPost = {message: 'test'} as unknown as Post;
+        const oldPost = {message: 'test'} as Post;
         const newPost = {message: 'edited'};
 
         const result = await store.dispatch(runMessageWillBeUpdatedHooks(newPost, oldPost));
@@ -407,7 +407,7 @@ describe('runMessageWillBeUpdatedHooks', () => {
             },
         });
 
-        const oldPost = {message: 'test'} as unknown as Post;
+        const oldPost = {message: 'test'} as Post;
         const newPost = {message: 'edited'};
 
         const result = await store.dispatch(runMessageWillBeUpdatedHooks(newPost, oldPost));
@@ -435,7 +435,7 @@ describe('runMessageWillBeUpdatedHooks', () => {
             },
         });
 
-        const oldPost = {message: 'test'} as unknown as Post;
+        const oldPost = {message: 'test'} as Post;
         const newPost = {message: 'edited'};
 
         const result = await store.dispatch(runMessageWillBeUpdatedHooks(newPost, oldPost));
@@ -471,7 +471,7 @@ describe('runMessageWillBeUpdatedHooks', () => {
             },
         });
 
-        const oldPost = {message: 'test'} as unknown as Post;
+        const oldPost = {message: 'test'} as Post;
         const newPost = {message: 'edited'};
 
         const result = await store.dispatch(runMessageWillBeUpdatedHooks(newPost, oldPost));
@@ -494,7 +494,7 @@ describe('runMessageWillBeUpdatedHooks', () => {
                 },
             },
         });
-        const oldPost = {message: 'test'} as unknown as Post;
+        const oldPost = {message: 'test'} as Post;
         const newPost = {message: 'edited'};
 
         const result = await store.dispatch(runMessageWillBeUpdatedHooks(newPost, oldPost));
@@ -513,10 +513,10 @@ describe('runDesktopNotificationHooks', () => {
                 components: {},
             },
         });
-        const post = {id: 'postid01234567890123456789'} as unknown as Post;
+        const post = {id: 'postid01234567890123456789'} as Post;
         const teamId = 'teamid01234567890123456789';
         const msgProps = {mentions: ['userid1'], team_id: teamId} as unknown as NewPostMessageProps;
-        const channel = {type: General.DM_CHANNEL} as unknown as Channel;
+        const channel = {type: General.DM_CHANNEL} as Channel;
         const args = {
             title: 'Notification title',
             body: 'Notification body',
@@ -547,10 +547,10 @@ describe('runDesktopNotificationHooks', () => {
                 },
             },
         });
-        const post = {id: 'postid01234567890123456789'} as unknown as Post;
+        const post = {id: 'postid01234567890123456789'} as Post;
         const teamId = 'teamid01234567890123456789';
         const msgProps = {mentions: ['userid1'], team_id: teamId} as unknown as NewPostMessageProps;
-        const channel = {type: General.DM_CHANNEL} as unknown as Channel;
+        const channel = {type: General.DM_CHANNEL} as Channel;
         const args = {
             title: 'Notification title',
             body: 'Notification body',
@@ -584,10 +584,10 @@ describe('runDesktopNotificationHooks', () => {
                 },
             },
         });
-        const post = {id: 'postid01234567890123456789'} as unknown as Post;
+        const post = {id: 'postid01234567890123456789'} as Post;
         const teamId = 'teamid01234567890123456789';
         const msgProps = {mentions: ['userid1'], team_id: teamId} as unknown as NewPostMessageProps;
-        const channel = {type: General.DM_CHANNEL} as unknown as Channel;
+        const channel = {type: General.DM_CHANNEL} as Channel;
         const args = {
             title: 'Notification title',
             body: 'Notification body',
@@ -621,10 +621,10 @@ describe('runDesktopNotificationHooks', () => {
                 },
             },
         });
-        const post = {id: 'postid01234567890123456789'} as unknown as Post;
+        const post = {id: 'postid01234567890123456789'} as Post;
         const teamId = 'teamid01234567890123456789';
         const msgProps = {mentions: ['userid1'], team_id: teamId} as unknown as NewPostMessageProps;
-        const channel = {type: General.DM_CHANNEL} as unknown as Channel;
+        const channel = {type: General.DM_CHANNEL} as Channel;
         const args = {
             title: 'Notification title',
             body: 'Notification body',
@@ -658,10 +658,10 @@ describe('runDesktopNotificationHooks', () => {
                 },
             },
         });
-        const post = {id: 'postid01234567890123456789'} as unknown as Post;
+        const post = {id: 'postid01234567890123456789'} as Post;
         const teamId = 'teamid01234567890123456789';
         const msgProps = {mentions: ['userid1'], team_id: teamId} as unknown as NewPostMessageProps;
-        const channel = {type: General.DM_CHANNEL} as unknown as Channel;
+        const channel = {type: General.DM_CHANNEL} as Channel;
         const args = {
             title: 'Notification title',
             body: 'Notification body',
@@ -707,10 +707,10 @@ describe('runDesktopNotificationHooks', () => {
                 },
             },
         });
-        const post = {id: 'postid01234567890123456789'} as unknown as Post;
+        const post = {id: 'postid01234567890123456789'} as Post;
         const teamId = 'teamid01234567890123456789';
         const msgProps = {mentions: ['userid1'], team_id: teamId} as unknown as NewPostMessageProps;
-        const channel = {type: General.DM_CHANNEL} as unknown as Channel;
+        const channel = {type: General.DM_CHANNEL} as Channel;
         const args = {
             title: 'Notification title',
             body: 'Notification body',
@@ -750,10 +750,10 @@ describe('runDesktopNotificationHooks', () => {
                 },
             },
         });
-        const post = {id: 'postid01234567890123456789'} as unknown as Post;
+        const post = {id: 'postid01234567890123456789'} as Post;
         const teamId = 'teamid01234567890123456789';
         const msgProps = {mentions: ['userid1'], team_id: teamId} as unknown as NewPostMessageProps;
-        const channel = {type: General.DM_CHANNEL} as unknown as Channel;
+        const channel = {type: General.DM_CHANNEL} as Channel;
         const args = {
             title: 'Notification title',
             body: 'Notification body',

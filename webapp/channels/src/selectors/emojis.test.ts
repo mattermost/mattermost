@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {RecentEmojiData} from '@mattermost/types/emojis';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
@@ -27,14 +28,14 @@ function makeRecentEmojisPreferences(recentEmojis: RecentEmojiData[]) {
 
 describe('getRecentEmojisData', () => {
     const currentUserId = 'currentUserId';
-    const baseState = {
+    const baseState: DeepPartial<GlobalState> = {
         entities: {
             emojis: {
                 customEmoji: {},
             },
             general: {
                 config: {
-                    EnableCustomEmojis: 'true',
+                    EnableCustomEmoji: 'true',
                 },
             },
             preferences: {
@@ -44,10 +45,10 @@ describe('getRecentEmojisData', () => {
                 currentUserId,
             },
         },
-    } as unknown as GlobalState;
+    };
 
     test('should return an empty array when there are no recent emojis in storage', () => {
-        expect(Selectors.getRecentEmojisData(baseState)).toEqual([]);
+        expect(Selectors.getRecentEmojisData(baseState as GlobalState)).toEqual([]);
     });
 
     test('should return the names of recent system emojis', () => {

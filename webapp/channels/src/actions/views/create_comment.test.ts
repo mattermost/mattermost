@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {CommandArgs} from '@mattermost/types/integrations';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {
     addMessageIntoHistory,
@@ -79,6 +80,10 @@ function lastCall<T>(calls: T[]): T {
     return calls[calls.length - 1];
 }
 
+function makeDraft(draft: DeepPartial<PostDraft>): PostDraft {
+    return draft as PostDraft;
+}
+
 const rootId = 'fc234c34c23';
 const currentUserId = '34jrnfj43';
 const teamId = '4j5nmn4j3';
@@ -86,7 +91,7 @@ const channelId = '4j5j4k3k34j4';
 const latestPostId = 'latestPostId';
 
 describe('rhs view actions', () => {
-    const initialState = {
+    const initialState: DeepPartial<GlobalState> = {
         entities: {
             posts: {
                 posts: {
@@ -148,7 +153,7 @@ describe('rhs view actions', () => {
             roles: {
                 roles: {
                     channel_roles: {
-                        permissions: '',
+                        permissions: '' as unknown as string[], // stale fixture: Role.permissions is a string[]
                     },
                 },
             },
@@ -175,7 +180,7 @@ describe('rhs view actions', () => {
         websocket: {
             connectionId: '',
         },
-    } as unknown as GlobalState;
+    };
 
     let store = mockStore(initialState);
 
@@ -184,7 +189,7 @@ describe('rhs view actions', () => {
     });
 
     describe('submitPost', () => {
-        const draft = {message: '', channelId, rootId, fileInfos: []} as unknown as PostDraft;
+        const draft = makeDraft({message: '', channelId, rootId, fileInfos: []});
 
         const post = {
             file_ids: [],
@@ -224,7 +229,7 @@ describe('rhs view actions', () => {
             root_id: rootId,
         };
 
-        const draft = {message: '/test msg', channelId, rootId} as unknown as PostDraft;
+        const draft = makeDraft({message: '/test msg', channelId, rootId});
 
         test('it calls executeCommand', async () => {
             await store.dispatch(submitCommand(channelId, rootId, draft));
@@ -275,13 +280,13 @@ describe('rhs view actions', () => {
     });
 
     describe('onSubmit', () => {
-        const draft = {
+        const draft = makeDraft({
             message: 'test',
             fileInfos: [],
             uploadsInProgress: [],
             rootId,
             channelId,
-        } as unknown as PostDraft;
+        });
 
         test('it adds message into history', () => {
             store.dispatch(onSubmit(channelId, rootId, draft, {}));
@@ -295,14 +300,14 @@ describe('rhs view actions', () => {
         });
 
         test('it submits a command when message is /away', () => {
-            store.dispatch(onSubmit(channelId, rootId, {
+            store.dispatch(onSubmit(channelId, rootId, makeDraft({
                 message: '/away',
                 fileInfos: [],
                 uploadsInProgress: [],
-            } as unknown as PostDraft, {}));
+            }), {}));
 
             const testStore = mockStore(initialState);
-            testStore.dispatch(submitCommand(channelId, rootId, {message: '/away', fileInfos: [], uploadsInProgress: []} as unknown as PostDraft));
+            testStore.dispatch(submitCommand(channelId, rootId, makeDraft({message: '/away', fileInfos: [], uploadsInProgress: []})));
 
             // This previously passed a second argument to toEqual() that jest silently ignored, so a
             // MOCK_ACTIONS_COMMAND_EXECUTE expectation never ran here. It fails when enabled: only
@@ -311,28 +316,28 @@ describe('rhs view actions', () => {
         });
 
         test('it submits a regular post when options.ignoreSlash is true', () => {
-            store.dispatch(onSubmit(channelId, rootId, {
+            store.dispatch(onSubmit(channelId, rootId, makeDraft({
                 message: '/fakecommand',
                 fileInfos: [],
                 uploadsInProgress: [],
-            } as unknown as PostDraft, {ignoreSlash: true}));
+            }), {ignoreSlash: true}));
 
             const testStore = mockStore(initialState);
-            testStore.dispatch(submitPost(channelId, rootId, {message: '/fakecommand', fileInfos: [], uploadsInProgress: []} as unknown as PostDraft));
+            testStore.dispatch(submitPost(channelId, rootId, makeDraft({message: '/fakecommand', fileInfos: [], uploadsInProgress: []})));
 
             expect(store.getActions()).toEqual(expect.arrayContaining(testStore.getActions()));
             expect(store.getActions()).toEqual(expect.arrayContaining([{args: ['/fakecommand'], type: 'MOCK_ADD_MESSAGE_INTO_HISTORY'}]));
         });
 
         test('it submits a regular post when message is something else', () => {
-            store.dispatch(onSubmit(channelId, rootId, {
+            store.dispatch(onSubmit(channelId, rootId, makeDraft({
                 message: 'test msg',
                 fileInfos: [],
                 uploadsInProgress: [],
-            } as unknown as PostDraft, {}));
+            }), {}));
 
             const testStore = mockStore(initialState);
-            testStore.dispatch(submitPost(channelId, rootId, {message: 'test msg', fileInfos: [], uploadsInProgress: []} as unknown as PostDraft));
+            testStore.dispatch(submitPost(channelId, rootId, makeDraft({message: 'test msg', fileInfos: [], uploadsInProgress: []})));
 
             expect(store.getActions()).toEqual(expect.arrayContaining(testStore.getActions()));
             expect(store.getActions()).toEqual(expect.arrayContaining([{args: ['test msg'], type: 'MOCK_ADD_MESSAGE_INTO_HISTORY'}]));

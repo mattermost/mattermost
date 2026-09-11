@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {DeepPartial} from '@mattermost/types/utilities';
+
 import {General} from 'mattermost-redux/constants';
 
 import {getCurrentLocale, getTranslations} from 'selectors/i18n';
@@ -10,7 +12,7 @@ import type {GlobalState} from 'types/store';
 describe('selectors/i18n', () => {
     describe('getCurrentLocale', () => {
         test('not logged in', () => {
-            const state = {
+            const state: DeepPartial<GlobalState> = {
                 entities: {
                     general: {
                         config: {
@@ -22,13 +24,13 @@ describe('selectors/i18n', () => {
                         profiles: {},
                     },
                 },
-            } as unknown as GlobalState;
+            };
 
-            expect(getCurrentLocale(state)).toEqual('fr');
+            expect(getCurrentLocale(state as GlobalState)).toEqual('fr');
         });
 
         test('logged in', () => {
-            const state = {
+            const state: DeepPartial<GlobalState> = {
                 entities: {
                     general: {
                         config: {
@@ -44,13 +46,13 @@ describe('selectors/i18n', () => {
                         },
                     },
                 },
-            } as unknown as GlobalState;
+            };
 
-            expect(getCurrentLocale(state)).toEqual('de');
+            expect(getCurrentLocale(state as GlobalState)).toEqual('de');
         });
 
         test('returns default locale when invalid user locale specified', () => {
-            const state = {
+            const state: DeepPartial<GlobalState> = {
                 entities: {
                     general: {
                         config: {
@@ -66,9 +68,9 @@ describe('selectors/i18n', () => {
                         },
                     },
                 },
-            } as unknown as GlobalState;
+            };
 
-            expect(getCurrentLocale(state)).toEqual(General.DEFAULT_LOCALE);
+            expect(getCurrentLocale(state as GlobalState)).toEqual(General.DEFAULT_LOCALE);
         });
 
         describe('locale from query parameter', () => {
@@ -84,7 +86,7 @@ describe('selectors/i18n', () => {
             });
 
             test('returns locale from query parameter if provided and not logged in', () => {
-                const state = {
+                const state: DeepPartial<GlobalState> = {
                     entities: {
                         general: {
                             config: {
@@ -96,15 +98,15 @@ describe('selectors/i18n', () => {
                             profiles: {},
                         },
                     },
-                } as unknown as GlobalState;
+                };
 
                 setWindowLocaleQueryParameter('ko');
 
-                expect(getCurrentLocale(state)).toEqual('ko');
+                expect(getCurrentLocale(state as GlobalState)).toEqual('ko');
             });
 
             test('returns DefaultClientLocale if locale from query parameter is not valid', () => {
-                const state = {
+                const state: DeepPartial<GlobalState> = {
                     entities: {
                         general: {
                             config: {
@@ -116,15 +118,15 @@ describe('selectors/i18n', () => {
                             profiles: {},
                         },
                     },
-                } as unknown as GlobalState;
+                };
 
                 setWindowLocaleQueryParameter('invalid_locale');
 
-                expect(getCurrentLocale(state)).toEqual('fr');
+                expect(getCurrentLocale(state as GlobalState)).toEqual('fr');
             });
 
             test('returns user locale when logged in and locale is provided in query parameter', () => {
-                const state = {
+                const state: DeepPartial<GlobalState> = {
                     entities: {
                         general: {
                             config: {
@@ -140,16 +142,17 @@ describe('selectors/i18n', () => {
                             },
                         },
                     },
-                } as unknown as GlobalState;
+                };
 
                 setWindowLocaleQueryParameter('ko');
 
-                expect(getCurrentLocale(state)).toEqual('de');
+                expect(getCurrentLocale(state as GlobalState)).toEqual('de');
             });
         });
     });
 
     describe('getTranslations', () => {
+        // Not DeepPartial: the assertions below read state.views.i18n.translations back.
         const state = {
             views: {
                 i18n: {

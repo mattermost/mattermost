@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {SystemEmoji} from '@mattermost/types/emojis';
+
 import * as PreferenceActions from 'mattermost-redux/actions/preferences';
 
 import * as EmojiActions from 'actions/emoji_actions';
@@ -17,6 +19,11 @@ const initialState = {
         },
     },
 };
+
+// The actions under test only ever call EmojiMap.get, so a plain Map stands in for one.
+function mockEmojiMap(emojis: Array<[string, Partial<SystemEmoji>]>): EmojiMap {
+    return new Map(emojis) as unknown as EmojiMap;
+}
 
 jest.mock('selectors/emojis', () => ({
     getRecentEmojisData: jest.fn(),
@@ -39,7 +46,7 @@ describe('Actions.Emojis', () => {
         });
 
         jest.mocked(getEmojiMap).mockImplementation(() => {
-            return new Map([['grinning', {short_name: 'grinning'}]]) as unknown as EmojiMap;
+            return mockEmojiMap([['grinning', {short_name: 'grinning'}]]);
         });
 
         const expectedActions = [{
@@ -72,7 +79,7 @@ describe('Actions.Emojis', () => {
         });
 
         jest.mocked(getEmojiMap).mockImplementation(() => {
-            return new Map([['thumbsup', {short_name: '+1'}]]) as unknown as EmojiMap;
+            return mockEmojiMap([['thumbsup', {short_name: '+1'}]]);
         });
 
         const expectedActions = [{
@@ -105,7 +112,7 @@ describe('Actions.Emojis', () => {
         });
 
         jest.mocked(getEmojiMap).mockImplementation(() => {
-            return new Map([['smile', {short_name: 'smile'}]]) as unknown as EmojiMap;
+            return mockEmojiMap([['smile', {short_name: 'smile'}]]);
         });
 
         const savePreferencesSpy = jest.spyOn(PreferenceActions, 'savePreferences').mockImplementation(() => {
@@ -127,7 +134,7 @@ describe('Actions.Emojis', () => {
         });
 
         jest.mocked(getEmojiMap).mockImplementation(() => {
-            return new Map([['grinning', {short_name: 'grinning'}]]) as unknown as EmojiMap;
+            return mockEmojiMap([['grinning', {short_name: 'grinning'}]]);
         });
 
         const expectedActions = [{
@@ -189,7 +196,7 @@ describe('Actions.Emojis', () => {
         });
 
         jest.mocked(getEmojiMap).mockImplementation(() => {
-            return new Map([['accept', {short_name: 'accept'}]]) as unknown as EmojiMap;
+            return mockEmojiMap([['accept', {short_name: 'accept'}]]);
         });
 
         const expectedActions = [{
@@ -250,13 +257,13 @@ describe('Actions.Emojis', () => {
         });
 
         jest.mocked(getEmojiMap).mockImplementation(() => {
-            return new Map([
+            return mockEmojiMap([
                 ['accept', {short_name: 'accept'}],
                 ['balloon', {short_name: 'balloon'}],
                 ['grinning', {short_name: 'grinning'}],
                 ['taco', {short_name: 'taco'}],
                 ['trumpet', {short_name: 'trumpet'}],
-            ]) as unknown as EmojiMap;
+            ]);
         });
 
         const expectedActions = [{

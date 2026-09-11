@@ -198,7 +198,7 @@ describe('executeCommand', () => {
 
     describe('settings', () => {
         test('should pass right modal params', async () => {
-            const result = await store.dispatch(executeCommand('/settings', {} as unknown as CommandArgs));
+            const result = await store.dispatch(executeCommand('/settings', {} as CommandArgs));
             expect(store.getActions()).toEqual([
                 {
                     type: ActionTypes.MODAL_OPEN,
@@ -233,9 +233,9 @@ describe('executeCommand', () => {
         });
 
         test('should show private modal if channel is private', async () => {
-            jest.spyOn(Channels, 'getCurrentChannel').mockImplementation(() => ({type: Constants.PRIVATE_CHANNEL} as unknown as Channel));
+            jest.spyOn(Channels, 'getCurrentChannel').mockImplementation(() => ({type: Constants.PRIVATE_CHANNEL} as Channel));
 
-            const result = await store.dispatch(executeCommand('/leave', {} as unknown as CommandArgs));
+            const result = await store.dispatch(executeCommand('/leave', {} as CommandArgs));
 
             const actionDispatch = store.getActions()[0];
 
@@ -252,9 +252,9 @@ describe('executeCommand', () => {
             jest.spyOn(Utils, 'getUserIdFromChannelName').mockImplementation(() => 'userId');
             jest.spyOn(Channels, 'getRedirectChannelNameForTeam').mockImplementation(() => 'channel1');
             jest.spyOn(Teams, 'getCurrentRelativeTeamUrl').mockImplementation(() => '/team1');
-            jest.spyOn(Channels, 'getCurrentChannel').mockImplementation(() => ({type: Constants.DM_CHANNEL} as unknown as Channel));
+            jest.spyOn(Channels, 'getCurrentChannel').mockImplementation(() => ({type: Constants.DM_CHANNEL} as Channel));
 
-            const result = await store.dispatch(executeCommand('/leave', {} as unknown as CommandArgs));
+            const result = await store.dispatch(executeCommand('/leave', {} as CommandArgs));
             expect(store.getActions()[0].data).toEqual([{category: 'direct_channel_show', name: 'userId', user_id: 'user123', value: 'false'}]);
 
             expect(result.data).toBeDefined();
@@ -264,9 +264,9 @@ describe('executeCommand', () => {
             jest.spyOn(Utils, 'getUserIdFromChannelName').mockImplementation(() => 'userId');
             jest.spyOn(Channels, 'getRedirectChannelNameForTeam').mockImplementation(() => 'channel1');
             jest.spyOn(Teams, 'getCurrentRelativeTeamUrl').mockImplementation(() => '/team1');
-            jest.spyOn(Channels, 'getCurrentChannel').mockImplementation(() => ({type: Constants.GM_CHANNEL, id: 'channelId'} as unknown as Channel));
+            jest.spyOn(Channels, 'getCurrentChannel').mockImplementation(() => ({type: Constants.GM_CHANNEL, id: 'channelId'} as Channel));
 
-            const result = await store.dispatch(executeCommand('/leave', {} as unknown as CommandArgs));
+            const result = await store.dispatch(executeCommand('/leave', {} as CommandArgs));
             expect(store.getActions()[0].data).toEqual([{category: 'group_channel_show', name: 'channelId', user_id: 'user123', value: 'false'}]);
 
             expect(result.data).toBeDefined();

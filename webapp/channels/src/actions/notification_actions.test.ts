@@ -5,6 +5,7 @@ import type {ChannelMembership, ChannelNotifyProps, ChannelType} from '@mattermo
 import type {Post, PostType} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {MarkUnread} from 'mattermost-redux/constants/channels';
 
@@ -644,61 +645,72 @@ describe('notification_actions', () => {
     });
 });
 
+// Identity helpers so each fixture below is checked against the real notify prop unions instead of
+// being cast blindly. Fixtures holding values outside those unions (empty strings) are stale and keep
+// their unchecked casts.
+function makeChannelMember(channelMember: DeepPartial<ChannelMembership>): ChannelMembership {
+    return channelMember as ChannelMembership;
+}
+
+function makeUser(user: DeepPartial<UserProfile>): UserProfile {
+    return user as UserProfile;
+}
+
 describe('isDesktopSoundEnabled', () => {
     test('should return channel member sound if it exists', () => {
-        const channelMember1 = {
+        const channelMember1 = makeChannelMember({
             notify_props: {
                 desktop_sound: 'on',
             },
-        } as unknown as ChannelMembership;
-        const user1 = {
+        });
+        const user1 = makeUser({
             notify_props: {
                 desktop_sound: 'false',
             },
-        } as unknown as UserProfile;
+        });
         expect(isDesktopSoundEnabled(channelMember1, user1)).toBe(true);
 
-        const channelMember2 = {
+        const channelMember2 = makeChannelMember({
             notify_props: {
                 desktop_sound: 'off',
             },
-        } as unknown as ChannelMembership;
-        const user2 = {
+        });
+        const user2 = makeUser({
             notify_props: {
                 desktop_sound: 'false',
             },
-        } as unknown as UserProfile;
+        });
         expect(isDesktopSoundEnabled(channelMember2, user2)).toBe(false);
 
-        const channelMember3 = {
+        const channelMember3 = makeChannelMember({
             notify_props: {
                 desktop_sound: 'default',
             },
-        } as unknown as ChannelMembership;
-        const user3 = {
+        });
+        const user3 = makeUser({
             notify_props: {
                 desktop_sound: 'false',
             },
-        } as unknown as UserProfile;
+        });
         expect(isDesktopSoundEnabled(channelMember3, user3)).toBe(false);
 
-        const channelMember4 = {
+        const channelMember4 = makeChannelMember({
             notify_props: {
                 desktop_sound: 'default',
             },
-        } as unknown as ChannelMembership;
-        const user4 = {
+        });
+        const user4 = makeUser({
             notify_props: {
                 desktop_sound: 'true',
             },
-        } as unknown as UserProfile;
+        });
         expect(isDesktopSoundEnabled(channelMember4, user4)).toBe(true);
 
-        const channelMember5 = {
+        const channelMember5 = makeChannelMember({
             notify_props: {
                 desktop_sound: 'on',
             },
-        } as unknown as ChannelMembership;
+        });
         const user5 = {
             notify_props: {
                 desktop_sound: '',
@@ -713,11 +725,11 @@ describe('isDesktopSoundEnabled', () => {
                 desktop_sound: '',
             },
         } as unknown as ChannelMembership;
-        const user1 = {
+        const user1 = makeUser({
             notify_props: {
                 desktop_sound: 'true',
             },
-        } as unknown as UserProfile;
+        });
         expect(isDesktopSoundEnabled(channelMember1, user1)).toBe(true);
 
         const channelMember2 = {
@@ -725,50 +737,50 @@ describe('isDesktopSoundEnabled', () => {
                 desktop_sound: '',
             },
         } as unknown as ChannelMembership;
-        const user2 = {
+        const user2 = makeUser({
             notify_props: {
                 desktop_sound: 'false',
             },
-        } as unknown as UserProfile;
+        });
         expect(isDesktopSoundEnabled(channelMember2, user2)).toBe(false);
 
-        const channelMember3 = {
+        const channelMember3 = makeChannelMember({
             notify_props: {},
-        } as unknown as ChannelMembership;
-        const user3 = {
+        });
+        const user3 = makeUser({
             notify_props: {
                 desktop_sound: 'false',
             },
-        } as unknown as UserProfile;
+        });
         expect(isDesktopSoundEnabled(channelMember3, user3)).toBe(false);
     });
 
     test('should return default if both channel member and user are not defined', () => {
-        const channelMember = {} as unknown as ChannelMembership;
-        const user = {} as unknown as UserProfile;
+        const channelMember = makeChannelMember({});
+        const user = makeUser({});
         expect(isDesktopSoundEnabled(channelMember, user)).toBe(true);
     });
 });
 
 describe('getDesktopNotificationSound', () => {
     test('should return channel member notification sound if it exists', () => {
-        const channelMember1 = {
+        const channelMember1 = makeChannelMember({
             notify_props: {
                 desktop_notification_sound: 'default',
             },
-        } as unknown as ChannelMembership;
-        const user1 = {
+        });
+        const user1 = makeUser({
             notify_props: {
                 desktop_notification_sound: 'Crackle',
             },
-        } as unknown as UserProfile;
+        });
         expect(getDesktopNotificationSound(channelMember1, user1)).toBe('Crackle');
 
-        const channelMember2 = {
+        const channelMember2 = makeChannelMember({
             notify_props: {
                 desktop_notification_sound: 'default',
             },
-        } as unknown as ChannelMembership;
+        });
         const user2 = {
             notify_props: {
                 desktop_notification_sound: '',
@@ -776,30 +788,30 @@ describe('getDesktopNotificationSound', () => {
         } as unknown as UserProfile;
         expect(getDesktopNotificationSound(channelMember2, user2)).toBe('Bing');
 
-        const channelMember3 = {
+        const channelMember3 = makeChannelMember({
             notify_props: {
                 desktop_notification_sound: 'Crackle',
             },
-        } as unknown as ChannelMembership;
-        const user3 = {
+        });
+        const user3 = makeUser({
             notify_props: {
                 desktop_notification_sound: 'Bing',
             },
-        } as unknown as UserProfile;
+        });
         expect(getDesktopNotificationSound(channelMember3, user3)).toBe('Crackle');
     });
 
     test('should return user notification sound if channel member sound is not defined', () => {
-        const channelMember1 = {} as unknown as ChannelMembership;
-        const user1 = {
+        const channelMember1 = makeChannelMember({});
+        const user1 = makeUser({
             notify_props: {
                 desktop_notification_sound: 'Crackle',
             },
-        } as unknown as UserProfile;
+        });
         expect(getDesktopNotificationSound(channelMember1, user1)).toBe('Crackle');
 
-        const channelMember2 = {} as unknown as ChannelMembership;
-        const user2 = {} as unknown as UserProfile;
+        const channelMember2 = makeChannelMember({});
+        const user2 = makeUser({});
         expect(getDesktopNotificationSound(channelMember2, user2)).toBe('Bing');
     });
 });

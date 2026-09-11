@@ -3,6 +3,8 @@
 
 import type {AnyAction} from 'redux';
 
+import type {DeepPartial} from '@mattermost/types/utilities';
+
 import {ChannelTypes, UserTypes, PostTypes, AdminTypes} from 'mattermost-redux/action_types';
 import {General, Permissions} from 'mattermost-redux/constants';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
@@ -13,10 +15,14 @@ import TestHelper from '../../../test/test_helper';
 
 type ReducerState = ReturnType<typeof channelsReducer>;
 
+function makeInitialState(state: DeepPartial<ReducerState>): ReducerState {
+    return state as ReducerState;
+}
+
 describe('channels', () => {
     describe('RECEIVED_CHANNEL_DELETED', () => {
         test('should mark channel as deleted', () => {
-            const state = deepFreeze(channelsReducer({
+            const state = deepFreeze(channelsReducer(makeInitialState({
                 channels: {
                     channel1: {
                         id: 'channel1',
@@ -25,7 +31,7 @@ describe('channels', () => {
                         id: 'channel2',
                     },
                 },
-            } as unknown as ReducerState, {} as AnyAction));
+            }), {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL_DELETED,
@@ -44,7 +50,7 @@ describe('channels', () => {
         });
 
         test('should do nothing for a channel that is not loaded', () => {
-            const state = deepFreeze(channelsReducer({
+            const state = deepFreeze(channelsReducer(makeInitialState({
                 channels: {
                     channel1: {
                         id: 'channel1',
@@ -53,7 +59,7 @@ describe('channels', () => {
                         id: 'channel2',
                     },
                 },
-            } as unknown as ReducerState, {} as AnyAction));
+            }), {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL_DELETED,
@@ -69,7 +75,7 @@ describe('channels', () => {
 
     describe('RECEIVED_CHANNEL_UNARCHIVED', () => {
         test('should mark channel as active', () => {
-            const state = deepFreeze(channelsReducer({
+            const state = deepFreeze(channelsReducer(makeInitialState({
                 channels: {
                     channel1: {
                         id: 'channel1',
@@ -79,7 +85,7 @@ describe('channels', () => {
                         id: 'channel2',
                     },
                 },
-            } as unknown as ReducerState, {} as AnyAction));
+            }), {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL_UNARCHIVED,
@@ -97,7 +103,7 @@ describe('channels', () => {
         });
 
         test('should do nothing for a channel that is not loaded', () => {
-            const state = deepFreeze(channelsReducer({
+            const state = deepFreeze(channelsReducer(makeInitialState({
                 channels: {
                     channel1: {
                         id: 'channel1',
@@ -106,7 +112,7 @@ describe('channels', () => {
                         id: 'channel2',
                     },
                 },
-            } as unknown as ReducerState, {} as AnyAction));
+            }), {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL_UNARCHIVED,
@@ -146,7 +152,7 @@ describe('channels', () => {
         });
 
         test("should update a channel's stats", () => {
-            const state = deepFreeze(channelsReducer({
+            const state = deepFreeze(channelsReducer(makeInitialState({
                 stats: {
                     channel1: {
                         channel_id: 'channel1',
@@ -156,7 +162,7 @@ describe('channels', () => {
                         files_count: 1,
                     },
                 },
-            } as unknown as ReducerState, {} as AnyAction));
+            }), {} as AnyAction));
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL_STATS,
                 data: {
@@ -181,7 +187,7 @@ describe('channels', () => {
         });
 
         test("should return the same object when a channel's stats are unchanged", () => {
-            const state = deepFreeze(channelsReducer({
+            const state = deepFreeze(channelsReducer(makeInitialState({
                 stats: {
                     channel1: {
                         channel_id: 'channel1',
@@ -191,7 +197,7 @@ describe('channels', () => {
                         files_count: 5,
                     },
                 },
-            } as unknown as ReducerState, {} as AnyAction));
+            }), {} as AnyAction));
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL_STATS,
                 data: {
@@ -209,6 +215,7 @@ describe('channels', () => {
 
     describe('INCREMENT_FILE_COUNT', () => {
         test('should change channel file count stats', () => {
+            // This fixture keys the stats by `id` instead of `channel_id`, so it can't be checked against ChannelStats.
             const state = deepFreeze(channelsReducer({
                 stats: {
                     channel1: {
@@ -229,6 +236,7 @@ describe('channels', () => {
     });
 
     describe('ADD_CHANNEL_MEMBER_SUCCESS', () => {
+        // This fixture keys the stats by `id` instead of `channel_id`, so it can't be checked against ChannelStats.
         const state = deepFreeze(channelsReducer({
             stats: {
                 channel1: {
@@ -260,7 +268,7 @@ describe('channels', () => {
 
     describe('REMOVE_MEMBER_FROM_CHANNEL', () => {
         test('should remove the channel member', () => {
-            const state = deepFreeze(channelsReducer({
+            const state = deepFreeze(channelsReducer(makeInitialState({
                 membersInChannel: {
                     channel1: {
                         memberId1: 'member-data-1',
@@ -269,7 +277,7 @@ describe('channels', () => {
                         memberId2: 'member-data-2',
                     },
                 },
-            } as unknown as ReducerState, {} as AnyAction));
+            }), {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.REMOVE_MEMBER_FROM_CHANNEL,
@@ -284,7 +292,7 @@ describe('channels', () => {
         });
 
         test('should work when channel member doesn\'t exist', () => {
-            const state = deepFreeze(channelsReducer({
+            const state = deepFreeze(channelsReducer(makeInitialState({
                 membersInChannel: {
                     channel1: {
                         memberId1: 'member-data-1',
@@ -293,7 +301,7 @@ describe('channels', () => {
                         memberId2: 'member-data-2',
                     },
                 },
-            } as unknown as ReducerState, {} as AnyAction));
+            }), {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.REMOVE_MEMBER_FROM_CHANNEL,
@@ -307,7 +315,7 @@ describe('channels', () => {
         });
 
         test('should work when channel doesn\'t exist', () => {
-            const state = deepFreeze(channelsReducer({
+            const state = deepFreeze(channelsReducer(makeInitialState({
                 membersInChannel: {
                     channel1: {
                         memberId1: 'member-data-1',
@@ -316,7 +324,7 @@ describe('channels', () => {
                         memberId2: 'member-data-2',
                     },
                 },
-            } as unknown as ReducerState, {} as AnyAction));
+            }), {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.REMOVE_MEMBER_FROM_CHANNEL,
@@ -332,7 +340,7 @@ describe('channels', () => {
 
     describe('RECEIVED_NEW_POST', () => {
         test('should update channel last_post_at', () => {
-            const state = deepFreeze(channelsReducer({
+            const state = deepFreeze(channelsReducer(makeInitialState({
                 channels: {
                     channel1: {
                         id: 'channel1',
@@ -343,7 +351,7 @@ describe('channels', () => {
                         id: 'channel2',
                     },
                 },
-            } as unknown as ReducerState, {} as AnyAction));
+            }), {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: PostTypes.RECEIVED_NEW_POST,
@@ -365,7 +373,7 @@ describe('channels', () => {
         });
 
         test('should not update channel last_root_post_at for threads with crtEnabled', () => {
-            const state = deepFreeze(channelsReducer({
+            const state = deepFreeze(channelsReducer(makeInitialState({
                 channels: {
                     channel1: {
                         id: 'channel1',
@@ -376,7 +384,7 @@ describe('channels', () => {
                         id: 'channel2',
                     },
                 },
-            } as unknown as ReducerState, {} as AnyAction));
+            }), {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: PostTypes.RECEIVED_NEW_POST,
@@ -397,7 +405,7 @@ describe('channels', () => {
             expect(nextState.channels.channel2).toBe(state.channels.channel2);
         });
         test('should do nothing for a channel that is not loaded', () => {
-            const state = deepFreeze(channelsReducer({
+            const state = deepFreeze(channelsReducer(makeInitialState({
                 channels: {
                     channel1: {
                         id: 'channel1',
@@ -406,7 +414,7 @@ describe('channels', () => {
                         id: 'channel2',
                     },
                 },
-            } as unknown as ReducerState, {} as AnyAction));
+            }), {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: PostTypes.RECEIVED_NEW_POST,
@@ -419,7 +427,7 @@ describe('channels', () => {
         });
 
         test('should not update channel last_post_at if existing value is greater than new post timestamp', () => {
-            const state = deepFreeze(channelsReducer({
+            const state = deepFreeze(channelsReducer(makeInitialState({
                 channels: {
                     channel1: {
                         id: 'channel1',
@@ -430,7 +438,7 @@ describe('channels', () => {
                         id: 'channel2',
                     },
                 },
-            } as unknown as ReducerState, {} as AnyAction));
+            }), {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: PostTypes.RECEIVED_NEW_POST,
@@ -505,13 +513,13 @@ describe('channels', () => {
 
     describe('RECEIVED_CHANNEL', () => {
         test('should not store message count sent by server', () => {
-            const state = deepFreeze(channelsReducer({
+            const state = deepFreeze(channelsReducer(makeInitialState({
                 channels: {
                     channel1: {
                         id: 'channel1',
                     },
                 },
-            } as unknown as ReducerState, {} as AnyAction));
+            }), {} as AnyAction));
 
             let nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL,
@@ -550,7 +558,7 @@ describe('channels', () => {
 
     describe('RECEIVED_CHANNELS', () => {
         test('should not remove current channel', () => {
-            const state = deepFreeze(channelsReducer({
+            const state = deepFreeze(channelsReducer(makeInitialState({
                 channels: {
                     channel1: {
                         id: 'channel1',
@@ -565,7 +573,7 @@ describe('channels', () => {
                         team_id: 'team',
                     },
                 },
-            } as unknown as ReducerState, {} as AnyAction));
+            }), {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNELS,
@@ -593,7 +601,7 @@ describe('channels', () => {
         });
 
         test('should preserve existing display_name if none incoming on DMs', () => {
-            const state = deepFreeze(channelsReducer({
+            const state = deepFreeze(channelsReducer(makeInitialState({
                 channels: {
                     no_display_name: {
                         id: 'no_display_name',
@@ -625,7 +633,7 @@ describe('channels', () => {
                         type: General.GM_CHANNEL,
                     },
                 },
-            } as unknown as ReducerState, {} as AnyAction));
+            }), {} as AnyAction));
 
             const nextState = channelsReducer(state, deepFreeze({
                 type: ChannelTypes.RECEIVED_CHANNELS,
@@ -698,13 +706,13 @@ describe('channels', () => {
         });
 
         test('should not store message count sent by server', () => {
-            const state = deepFreeze(channelsReducer({
+            const state = deepFreeze(channelsReducer(makeInitialState({
                 channels: {
                     channel1: {
                         id: 'channel1',
                     },
                 },
-            } as unknown as ReducerState, {} as AnyAction));
+            }), {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNELS,
@@ -736,14 +744,14 @@ describe('channels', () => {
 
     describe('RECEIVED_CHANNEL_MODERATIONS', () => {
         test('Should add new channel moderations', () => {
-            const state = deepFreeze(channelsReducer({
+            const state = deepFreeze(channelsReducer(makeInitialState({
                 channels: {
                     channel1: {
                         id: 'channel1',
                         team_id: 'team',
                     },
                 },
-            } as unknown as ReducerState, {} as AnyAction));
+            }), {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL_MODERATIONS,
@@ -767,7 +775,7 @@ describe('channels', () => {
             expect(nextState.channelModerations.channel1[0].roles.members).toEqual(true);
         });
         test('Should replace existing channel moderations', () => {
-            const state = deepFreeze(channelsReducer({
+            const state = deepFreeze(channelsReducer(makeInitialState({
                 channels: {
                     channel1: {
                         id: 'channel1',
@@ -782,7 +790,7 @@ describe('channels', () => {
                         },
                     }],
                 },
-            } as unknown as ReducerState, {} as AnyAction));
+            }), {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL_MODERATIONS,
@@ -811,14 +819,14 @@ describe('channels', () => {
 
     describe('RECEIVED_CHANNEL_MEMBER_COUNTS_BY_GROUP', () => {
         test('Should add new channel member counts', () => {
-            const state = deepFreeze(channelsReducer({
+            const state = deepFreeze(channelsReducer(makeInitialState({
                 channels: {
                     channel1: {
                         id: 'channel1',
                         team_id: 'team',
                     },
                 },
-            } as unknown as ReducerState, {} as AnyAction));
+            }), {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL_MEMBER_COUNTS_BY_GROUP,
@@ -849,7 +857,7 @@ describe('channels', () => {
             expect(nextState.channelMemberCountsByGroup.channel1['group-2'].channel_member_timezones_count).toEqual(131);
         });
         test('Should replace existing channel member counts', () => {
-            const state = deepFreeze(channelsReducer({
+            const state = deepFreeze(channelsReducer(makeInitialState({
                 channels: {
                     channel1: {
                         id: 'channel1',
@@ -868,7 +876,7 @@ describe('channels', () => {
                         channel_member_timezones_count: 131,
                     },
                 },
-            } as unknown as ReducerState, {} as AnyAction));
+            }), {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL_MEMBER_COUNTS_BY_GROUP,
@@ -910,14 +918,14 @@ describe('channels', () => {
 
     describe('RECEIVED_CHANNEL_MEMBER_COUNTS_FROM_GROUPS_LIST', () => {
         test('Should add new channel member counts', () => {
-            const state = deepFreeze(channelsReducer({
+            const state = deepFreeze(channelsReducer(makeInitialState({
                 channels: {
                     channel1: {
                         id: 'channel1',
                         team_id: 'team',
                     },
                 },
-            } as unknown as ReducerState, {} as AnyAction));
+            }), {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL_MEMBER_COUNTS_FROM_GROUPS_LIST,
@@ -947,7 +955,7 @@ describe('channels', () => {
             expect(nextState.channelMemberCountsByGroup.channel1['group-2'].channel_member_timezones_count).toEqual(131);
         });
         test('Should replace existing channel member counts', () => {
-            const state = deepFreeze(channelsReducer({
+            const state = deepFreeze(channelsReducer(makeInitialState({
                 channels: {
                     channel1: {
                         id: 'channel1',
@@ -966,7 +974,7 @@ describe('channels', () => {
                         channel_member_timezones_count: 131,
                     },
                 },
-            } as unknown as ReducerState, {} as AnyAction));
+            }), {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL_MEMBER_COUNTS_FROM_GROUPS_LIST,
@@ -1005,7 +1013,7 @@ describe('channels', () => {
 
     describe('Data Retention Channels', () => {
         test('RECEIVED_DATA_RETENTION_CUSTOM_POLICY_CHANNELS', () => {
-            const state = deepFreeze(channelsReducer({
+            const state = deepFreeze(channelsReducer(makeInitialState({
                 channels: {
                     channel1: {
                         id: 'channel1',
@@ -1020,7 +1028,7 @@ describe('channels', () => {
                         team_id: 'team',
                     },
                 },
-            } as unknown as ReducerState, {} as AnyAction));
+            }), {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: AdminTypes.RECEIVED_DATA_RETENTION_CUSTOM_POLICY_CHANNELS,
@@ -1053,7 +1061,7 @@ describe('channels', () => {
         });
 
         test('REMOVE_DATA_RETENTION_CUSTOM_POLICY_CHANNELS_SUCCESS', () => {
-            const state = deepFreeze(channelsReducer({
+            const state = deepFreeze(channelsReducer(makeInitialState({
                 channels: {
                     channel1: {
                         id: 'channel1',
@@ -1071,7 +1079,7 @@ describe('channels', () => {
                         policy_id: 'policy1',
                     },
                 },
-            } as unknown as ReducerState, {} as AnyAction));
+            }), {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: AdminTypes.REMOVE_DATA_RETENTION_CUSTOM_POLICY_CHANNELS_SUCCESS,
@@ -1098,7 +1106,7 @@ describe('channels', () => {
             });
         });
         test('RECEIVED_DATA_RETENTION_CUSTOM_POLICY_CHANNELS_SEARCH', () => {
-            const state = deepFreeze(channelsReducer({
+            const state = deepFreeze(channelsReducer(makeInitialState({
                 channels: {
                     channel1: {
                         id: 'channel1',
@@ -1113,7 +1121,7 @@ describe('channels', () => {
                         team_id: 'team',
                     },
                 },
-            } as unknown as ReducerState, {} as AnyAction));
+            }), {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: AdminTypes.RECEIVED_DATA_RETENTION_CUSTOM_POLICY_CHANNELS_SEARCH,

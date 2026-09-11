@@ -4,6 +4,7 @@
 import type {UserAutocomplete} from '@mattermost/types/autocomplete';
 import type {Channel} from '@mattermost/types/channels';
 import type {PostList} from '@mattermost/types/posts';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {leaveChannel, markChannelAsRead, getChannel} from 'mattermost-redux/actions/channels';
 import * as PostActions from 'mattermost-redux/actions/posts';
@@ -60,6 +61,10 @@ jest.mock('selectors/local_storage', () => ({
 jest.mock('mattermost-redux/selectors/entities/utils', () => ({
     makeAddLastViewAtToProfiles: () => jest.fn().mockReturnValue([]),
 }));
+
+function makePostList(postList: DeepPartial<PostList>): PostList {
+    return postList as PostList;
+}
 
 describe('channel view actions', () => {
     const channel1 = {id: 'channelid1', name: 'channel1', display_name: 'Channel 1', type: 'O', team_id: 'teamid1'} as Channel;
@@ -173,7 +178,7 @@ describe('channel view actions', () => {
                         selectedPostId: '1',
                     },
                 },
-            } as unknown as GlobalState);
+            });
             await store.dispatch(Actions.leaveChannel('channelid1'));
             expect(getHistory().push).toHaveBeenCalledWith(`/${team1.name}`);
             expect(leaveChannel).toHaveBeenCalledWith('channelid1');
@@ -208,11 +213,11 @@ describe('channel view actions', () => {
 
     describe('loadLatestPosts', () => {
         test('should call getPosts and return the results', async () => {
-            const posts = {posts: {}, order: []} as unknown as PostList;
+            const posts = makePostList({posts: {}, order: []});
 
             jest.mocked(PostActions.getPosts).mockReturnValue(async () => ({data: posts}));
 
-            const result = await store.dispatch(Actions.loadLatestPosts('channel')) as unknown as {data: PostList; atLatestMessage: boolean; atOldestmessage: boolean};
+            const result = await store.dispatch(Actions.loadLatestPosts('channel')) as {data: PostList; atLatestMessage: boolean; atOldestmessage: boolean};
 
             expect(result.data).toBe(posts);
 
@@ -220,11 +225,11 @@ describe('channel view actions', () => {
         });
 
         test('when oldest posts are recived', async () => {
-            const posts = {posts: {}, order: new Array(Posts.POST_CHUNK_SIZE), next_post_id: 'test', prev_post_id: ''} as unknown as PostList;
+            const posts = makePostList({posts: {}, order: new Array(Posts.POST_CHUNK_SIZE), next_post_id: 'test', prev_post_id: ''});
 
             jest.mocked(PostActions.getPosts).mockReturnValue(async () => ({data: posts}));
 
-            const result = await store.dispatch(Actions.loadLatestPosts('channel')) as unknown as {data: PostList; atLatestMessage: boolean; atOldestmessage: boolean};
+            const result = await store.dispatch(Actions.loadLatestPosts('channel')) as {data: PostList; atLatestMessage: boolean; atOldestmessage: boolean};
 
             expect(result.atLatestMessage).toBe(false);
             expect(result.atOldestmessage).toBe(true);
@@ -233,11 +238,11 @@ describe('channel view actions', () => {
         test('when latest posts are received', async () => {
             Date.now = jest.fn().mockReturnValue(12344);
 
-            const posts = {posts: {}, order: new Array((Posts.POST_CHUNK_SIZE / 2) - 1), next_post_id: '', prev_post_id: 'test'} as unknown as PostList;
+            const posts = makePostList({posts: {}, order: new Array((Posts.POST_CHUNK_SIZE / 2) - 1), next_post_id: '', prev_post_id: 'test'});
 
             jest.mocked(PostActions.getPosts).mockReturnValue(async () => ({data: posts}));
 
-            const result = await store.dispatch(Actions.loadLatestPosts('channel')) as unknown as {data: PostList; atLatestMessage: boolean; atOldestmessage: boolean};
+            const result = await store.dispatch(Actions.loadLatestPosts('channel')) as {data: PostList; atLatestMessage: boolean; atOldestmessage: boolean};
 
             expect(result.atLatestMessage).toBe(true);
             expect(result.atOldestmessage).toBe(false);
@@ -254,7 +259,7 @@ describe('channel view actions', () => {
 
     describe('loadUnreads', () => {
         test('when there are no posts after and before the response', async () => {
-            const posts = {posts: {}, order: [], next_post_id: '', prev_post_id: ''} as unknown as PostList;
+            const posts = makePostList({posts: {}, order: [], next_post_id: '', prev_post_id: ''});
 
             jest.mocked(PostActions.getPostsUnread).mockReturnValue(async () => ({data: posts}));
 
@@ -265,7 +270,7 @@ describe('channel view actions', () => {
         });
 
         test('when there are posts before and after the response', async () => {
-            const posts = {
+            const posts = makePostList({
                 posts: {},
                 order: [
                     ...new Array(Posts.POST_CHUNK_SIZE / 2), // after
@@ -274,7 +279,7 @@ describe('channel view actions', () => {
                 ],
                 next_post_id: 'test',
                 prev_post_id: 'test',
-            } as unknown as PostList;
+            });
 
             jest.mocked(PostActions.getPostsUnread).mockReturnValue(async () => ({data: posts}));
 
@@ -284,7 +289,7 @@ describe('channel view actions', () => {
         });
 
         test('when there are no posts after RECEIVED_POSTS_FOR_CHANNEL_AT_TIME should be dispatched', async () => {
-            const posts = {posts: {}, order: [], next_post_id: '', prev_post_id: ''} as unknown as PostList;
+            const posts = makePostList({posts: {}, order: [], next_post_id: '', prev_post_id: ''});
             Date.now = jest.fn().mockReturnValue(12344);
 
             jest.mocked(PostActions.getPostsUnread).mockReturnValue(async () => ({data: posts}));
@@ -307,7 +312,7 @@ describe('channel view actions', () => {
         });
 
         test('should disptach PREFETCH_POSTS_FOR_CHANNEL status when called with prefetch argument and loadUnreads sucess', async () => {
-            const posts = {posts: {}, order: [], next_post_id: '', prev_post_id: ''} as unknown as PostList;
+            const posts = makePostList({posts: {}, order: [], next_post_id: '', prev_post_id: ''});
 
             jest.mocked(PostActions.getPostsUnread).mockReturnValue(async () => ({data: posts}));
 
@@ -358,7 +363,7 @@ describe('channel view actions', () => {
 
     describe('loadPostsAround', () => {
         test('should call getPostsAround and return the results', async () => {
-            const posts = {posts: {}, order: [], next_post_id: '', prev_post_id: ''} as unknown as PostList;
+            const posts = makePostList({posts: {}, order: [], next_post_id: '', prev_post_id: ''});
 
             jest.mocked(PostActions.getPostsAround).mockReturnValue(async () => ({data: posts}));
 
@@ -370,7 +375,7 @@ describe('channel view actions', () => {
         });
 
         test('when there are posts before and after reponse posts chunk', async () => {
-            const posts = {
+            const posts = makePostList({
                 posts: {},
                 order: [
                     ...new Array(Posts.POST_CHUNK_SIZE / 2), // after
@@ -379,7 +384,7 @@ describe('channel view actions', () => {
                 ],
                 next_post_id: 'test',
                 prev_post_id: 'test',
-            } as unknown as PostList;
+            });
 
             jest.mocked(PostActions.getPostsAround).mockReturnValue(async () => ({data: posts}));
 
@@ -389,7 +394,7 @@ describe('channel view actions', () => {
         });
 
         test('when there are posts before the reponse posts chunk', async () => {
-            const posts = {
+            const posts = makePostList({
                 posts: {},
                 order: [
                     ...new Array(Posts.POST_CHUNK_SIZE / 2), // after
@@ -398,7 +403,7 @@ describe('channel view actions', () => {
                 ],
                 next_post_id: '',
                 prev_post_id: 'test',
-            } as unknown as PostList;
+            });
 
             jest.mocked(PostActions.getPostsAround).mockReturnValue(async () => ({data: posts}));
 
@@ -408,7 +413,7 @@ describe('channel view actions', () => {
         });
 
         test('when there are posts before the reponse posts chunk', async () => {
-            const posts = {
+            const posts = makePostList({
                 posts: {},
                 order: [
                     ...new Array((Posts.POST_CHUNK_SIZE / 2) - 1), // after
@@ -417,7 +422,7 @@ describe('channel view actions', () => {
                 ],
                 next_post_id: 'test',
                 prev_post_id: '',
-            } as unknown as PostList;
+            });
 
             jest.mocked(PostActions.getPostsAround).mockReturnValue(async () => ({data: posts}));
 
@@ -427,7 +432,7 @@ describe('channel view actions', () => {
         });
 
         test('when there are no posts before and after the posts chunk', async () => {
-            const posts = {
+            const posts = makePostList({
                 posts: {},
                 order: [
                     ...new Array((Posts.POST_CHUNK_SIZE / 2) - 1), // after
@@ -436,7 +441,7 @@ describe('channel view actions', () => {
                 ],
                 next_post_id: '',
                 prev_post_id: '',
-            } as unknown as PostList;
+            });
 
             jest.mocked(PostActions.getPostsAround).mockReturnValue(async () => ({data: posts}));
 
@@ -448,16 +453,16 @@ describe('channel view actions', () => {
 
     describe('increasePostVisibility', () => {
         test('should dispatch the correct actions', async () => {
-            const posts = {
+            const posts = makePostList({
                 posts: {},
                 order: new Array(7),
                 prev_post_id: '',
                 next_post_id: '',
-            } as unknown as PostList;
+            });
 
             jest.mocked(PostActions.getPostsBefore).mockReturnValue(async () => ({data: posts}));
 
-            await store.dispatch(Actions.loadPosts({channelId: 'current_channel_id', postId: 'oldest_post_id', type: PostRequestTypes.BEFORE_ID} as unknown as Actions.LoadPostsParameters));
+            await store.dispatch(Actions.loadPosts({channelId: 'current_channel_id', postId: 'oldest_post_id', type: PostRequestTypes.BEFORE_ID} as Actions.LoadPostsParameters));
 
             expect(store.getActions()).toEqual([
                 {channelId: 'current_channel_id', data: true, type: 'LOADING_POSTS'},
@@ -476,14 +481,14 @@ describe('channel view actions', () => {
             Date.now = jest.fn().mockReturnValue(12344);
 
             const channelId = 'channel1';
-            const posts = {
+            const posts = makePostList({
                 posts: {},
                 order: new Array(7),
-            } as unknown as PostList;
+            });
 
             jest.mocked(PostActions.getPostsBefore).mockReturnValue(async () => ({data: posts}));
 
-            await store.dispatch(Actions.loadPosts({channelId, postId: 'oldest_post_id', type: PostRequestTypes.BEFORE_ID} as unknown as Actions.LoadPostsParameters));
+            await store.dispatch(Actions.loadPosts({channelId, postId: 'oldest_post_id', type: PostRequestTypes.BEFORE_ID} as Actions.LoadPostsParameters));
 
             expect(store.getActions()).toContainEqual({
                 meta: {batch: true},
@@ -505,15 +510,15 @@ describe('channel view actions', () => {
 
         test('should return more to load when enough posts are received', async () => {
             const channelId = 'channel1';
-            const posts = {
+            const posts = makePostList({
                 posts: {},
                 order: new Array(Posts.POST_CHUNK_SIZE / 2),
                 prev_post_id: 'saasdsd',
-            } as unknown as PostList;
+            });
 
             jest.mocked(PostActions.getPostsBefore).mockReturnValue(async () => ({data: posts}));
 
-            const result = await store.dispatch(Actions.loadPosts({channelId, postId: 'oldest_post_id', type: PostRequestTypes.BEFORE_ID} as unknown as Actions.LoadPostsParameters));
+            const result = await store.dispatch(Actions.loadPosts({channelId, postId: 'oldest_post_id', type: PostRequestTypes.BEFORE_ID} as Actions.LoadPostsParameters));
 
             expect(result).toEqual({
                 moreToLoad: true,
@@ -522,15 +527,15 @@ describe('channel view actions', () => {
 
         test('should not return more to load when not enough posts are received', async () => {
             const channelId = 'channel1';
-            const posts = {
+            const posts = makePostList({
                 posts: {},
                 order: new Array((Posts.POST_CHUNK_SIZE / 2) - 1),
                 prev_post_id: '',
-            } as unknown as PostList;
+            });
 
             jest.mocked(PostActions.getPostsBefore).mockReturnValue(async () => ({data: posts}));
 
-            const result = await store.dispatch(Actions.loadPosts({channelId, postId: 'oldest_post_id', type: PostRequestTypes.BEFORE_ID} as unknown as Actions.LoadPostsParameters));
+            const result = await store.dispatch(Actions.loadPosts({channelId, postId: 'oldest_post_id', type: PostRequestTypes.BEFORE_ID} as Actions.LoadPostsParameters));
 
             expect(result).toEqual({
                 moreToLoad: false,
@@ -543,7 +548,7 @@ describe('channel view actions', () => {
 
             jest.mocked(PostActions.getPostsBefore).mockReturnValue(async () => ({error}));
 
-            const result = await store.dispatch(Actions.loadPosts({channelId, postId: 'oldest_post_id', type: PostRequestTypes.BEFORE_ID} as unknown as Actions.LoadPostsParameters));
+            const result = await store.dispatch(Actions.loadPosts({channelId, postId: 'oldest_post_id', type: PostRequestTypes.BEFORE_ID} as Actions.LoadPostsParameters));
 
             expect(result).toEqual({
                 error,
@@ -571,7 +576,7 @@ describe('channel view actions', () => {
                 websocket: {
                     lastDisconnectAt: 12344,
                 },
-            } as unknown as GlobalState);
+            });
 
             await store.dispatch(Actions.syncPostsInChannel(channelId, 12350));
             expect(PostActions.getPostsSince).toHaveBeenCalledWith(channelId, 12350);
@@ -595,7 +600,7 @@ describe('channel view actions', () => {
                 websocket: {
                     lastDisconnectAt: 12344,
                 },
-            } as unknown as GlobalState);
+            });
 
             await store.dispatch(Actions.syncPostsInChannel(channelId, 12355));
             expect(PostActions.getPostsSince).toHaveBeenCalledWith(channelId, 12343);
@@ -623,7 +628,7 @@ describe('channel view actions', () => {
                         },
                     },
                 },
-            } as unknown as GlobalState);
+            });
 
             await store.dispatch(Actions.markAsReadOnFocus());
 
@@ -646,7 +651,7 @@ describe('channel view actions', () => {
                         },
                     },
                 },
-            } as unknown as GlobalState);
+            });
 
             await store.dispatch(Actions.markAsReadOnFocus());
 
@@ -673,7 +678,7 @@ describe('channel view actions', () => {
                 websocket: {
                     lastDisconnectAt: 12344,
                 },
-            } as unknown as GlobalState);
+            });
 
             await store.dispatch(Actions.syncPostsInChannel(channelId, 12350, true));
 
@@ -716,7 +721,7 @@ describe('channel view actions', () => {
                 websocket: {
                     lastDisconnectAt: 12344,
                 },
-            } as unknown as GlobalState);
+            });
 
             await store.dispatch(Actions.syncPostsInChannel(channelId, 12350, true));
 
@@ -782,7 +787,7 @@ describe('channel view actions', () => {
                 websocket: {
                     lastDisconnectAt: 12344,
                 },
-            } as unknown as GlobalState);
+            });
 
             await store.dispatch(Actions.prefetchChannelPosts('channelid1'));
             expect(PostActions.getPostsSince).toHaveBeenCalledWith('channelid1', 1234);
@@ -815,7 +820,7 @@ describe('channel view actions', () => {
                 websocket: {
                     lastDisconnectAt: 12344,
                 },
-            } as unknown as GlobalState);
+            });
 
             await store.dispatch(Actions.prefetchChannelPosts('channelid1'));
             expect(PostActions.getPostsUnread).toHaveBeenCalledWith('channelid1');
@@ -824,7 +829,7 @@ describe('channel view actions', () => {
 
         test('should call for loadUnreads after a delay', async () => {
             jest.useFakeTimers();
-            const posts = {posts: {}, order: [], next_post_id: '', prev_post_id: ''} as unknown as PostList;
+            const posts = makePostList({posts: {}, order: [], next_post_id: '', prev_post_id: ''});
             jest.mocked(PostActions.getPostsUnread).mockReturnValue(async () => ({data: posts}));
             store.dispatch(Actions.prefetchChannelPosts('channelid1', 500));
             expect(PostActions.getPostsUnread).not.toHaveBeenCalled();

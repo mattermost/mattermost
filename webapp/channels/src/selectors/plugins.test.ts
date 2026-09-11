@@ -16,11 +16,11 @@ import {
 describe('Selectors.Plugins', () => {
     describe('getPluginUserSettings', () => {
         it('has no settings', () => {
-            const state = {
+            const state: DeepPartial<GlobalState> = {
                 plugins: {},
-            } as unknown as GlobalState;
+            };
 
-            expect(getPluginUserSettings(state)).toEqual({});
+            expect(getPluginUserSettings(state as GlobalState)).toEqual({});
         });
 
         it('has settings', () => {
@@ -32,19 +32,19 @@ describe('Selectors.Plugins', () => {
                     id: 'pluginId2',
                 },
             };
-            const state = {
+            const state: DeepPartial<GlobalState> = {
                 plugins: {
                     userSettings: stateSettings,
                 },
-            } as unknown as GlobalState;
+            };
 
-            expect(getPluginUserSettings(state)).toEqual(stateSettings);
+            expect(getPluginUserSettings(state as GlobalState)).toEqual(stateSettings);
         });
     });
 
     describe('getChannelHeaderMenuPluginComponents', () => {
         function makeState(channelHeaderComponents: ChannelHeaderAction[]): GlobalState {
-            return {
+            const state: DeepPartial<GlobalState> = {
                 entities: {
                     general: {
                         config: {},
@@ -58,7 +58,9 @@ describe('Selectors.Plugins', () => {
                         ChannelHeader: channelHeaderComponents,
                     },
                 },
-            } as unknown as GlobalState;
+            };
+
+            return state as GlobalState;
         }
 
         test('no channel header components found', () => {
@@ -165,13 +167,15 @@ describe('Selectors.Plugins', () => {
 
     describe('getChannelMobileHeaderPluginButtons', () => {
         function makeState(mobileChannelHeaderButtons: MobileChannelHeaderButtonAction[]): GlobalState {
-            return {
+            const state: DeepPartial<GlobalState> = {
                 plugins: {
                     components: {
                         MobileChannelHeaderButton: mobileChannelHeaderButtons,
                     },
                 },
-            } as unknown as GlobalState;
+            };
+
+            return state as GlobalState;
         }
 
         it('has no settings', () => {

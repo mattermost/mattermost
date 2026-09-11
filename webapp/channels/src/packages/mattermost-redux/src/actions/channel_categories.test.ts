@@ -6,6 +6,7 @@ import nock from 'nock';
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
 import {CategorySorting} from '@mattermost/types/channel_categories';
 import type {Channel} from '@mattermost/types/channels';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Client4} from 'mattermost-redux/client';
 import {getAllCategoriesByIds, getCategory} from 'mattermost-redux/selectors/entities/channel_categories';
@@ -424,9 +425,9 @@ describe('addChannelToInitialCategory', () => {
             },
         });
 
-        const newDmChannel = {id: 'newDmChannel', type: General.DM_CHANNEL} as unknown as Channel;
+        const newDmChannel: DeepPartial<Channel> = {id: 'newDmChannel', type: General.DM_CHANNEL};
 
-        store.dispatch(Actions.addChannelToInitialCategory(newDmChannel));
+        store.dispatch(Actions.addChannelToInitialCategory(newDmChannel as Channel));
 
         const categoriesById = getAllCategoriesByIds(store.getState());
         expect(categoriesById.dmCategory1.channel_ids).toEqual(['newDmChannel', 'dmChannel1', 'dmChannel2']);
@@ -448,9 +449,9 @@ describe('addChannelToInitialCategory', () => {
             },
         });
 
-        const publicChannel1 = {id: 'publicChannel1', type: General.OPEN_CHANNEL, team_id: 'team2'} as unknown as Channel;
+        const publicChannel1: DeepPartial<Channel> = {id: 'publicChannel1', type: General.OPEN_CHANNEL, team_id: 'team2'};
 
-        store.dispatch(Actions.addChannelToInitialCategory(publicChannel1));
+        store.dispatch(Actions.addChannelToInitialCategory(publicChannel1 as Channel));
 
         const categoriesById = getAllCategoriesByIds(store.getState());
         expect(categoriesById.channelsCategory1.channel_ids).toEqual(['publicChannel1', 'privateChannel1']);
@@ -473,9 +474,9 @@ describe('addChannelToInitialCategory', () => {
             },
         });
 
-        const newChannel = {id: 'newChannel', type: General.OPEN_CHANNEL, team_id: 'team1'} as unknown as Channel;
+        const newChannel: DeepPartial<Channel> = {id: 'newChannel', type: General.OPEN_CHANNEL, team_id: 'team1'};
 
-        store.dispatch(Actions.addChannelToInitialCategory(newChannel));
+        store.dispatch(Actions.addChannelToInitialCategory(newChannel as Channel));
 
         const categoriesById = getAllCategoriesByIds(store.getState());
         expect(categoriesById.channelsCategory1.channel_ids).toEqual(['newChannel', 'publicChannel1', 'privateChannel1']);
@@ -497,9 +498,9 @@ describe('addChannelToInitialCategory', () => {
             },
         });
 
-        const publicChannel1 = {id: 'publicChannel1', type: General.OPEN_CHANNEL, team_id: 'team1'} as unknown as Channel;
+        const publicChannel1: DeepPartial<Channel> = {id: 'publicChannel1', type: General.OPEN_CHANNEL, team_id: 'team1'};
 
-        store.dispatch(Actions.addChannelToInitialCategory(publicChannel1));
+        store.dispatch(Actions.addChannelToInitialCategory(publicChannel1 as Channel));
 
         const categoriesById = getAllCategoriesByIds(store.getState());
         expect(categoriesById.channelsCategory1.channel_ids).toEqual(['publicChannel1', 'privateChannel1']);
@@ -518,9 +519,9 @@ describe('addChannelToInitialCategory', () => {
             },
         });
 
-        const newDmChannel = {id: 'gmChannel', type: General.GM_CHANNEL} as unknown as Channel;
+        const newDmChannel: DeepPartial<Channel> = {id: 'gmChannel', type: General.GM_CHANNEL};
 
-        store.dispatch(Actions.addChannelToInitialCategory(newDmChannel));
+        store.dispatch(Actions.addChannelToInitialCategory(newDmChannel as Channel));
 
         const categoriesById = getAllCategoriesByIds(store.getState());
         expect(categoriesById.dmCategory1.channel_ids).toEqual(['dmChannel1', 'dmChannel2']);
@@ -544,9 +545,9 @@ describe('addChannelToInitialCategory', () => {
             },
         });
 
-        const newChannel = {id: 'newChannel', type: General.OPEN_CHANNEL, team_id: 'team1', default_category_name: 'My Category'} as unknown as Channel;
+        const newChannel: DeepPartial<Channel> = {id: 'newChannel', type: General.OPEN_CHANNEL, team_id: 'team1', default_category_name: 'My Category'};
 
-        const result = await store.dispatch(Actions.addChannelToInitialCategory(newChannel));
+        const result = await store.dispatch(Actions.addChannelToInitialCategory(newChannel as Channel));
 
         expect(result).toEqual({data: false});
 

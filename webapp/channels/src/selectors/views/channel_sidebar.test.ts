@@ -32,7 +32,7 @@ describe('isUnreadFilterEnabled', () => {
                 unreadFilterEnabled: false,
             },
         },
-    } as unknown as GlobalState;
+    } as GlobalState;
 
     test('should return false when filter is disabled', () => {
         const state = baseState;
@@ -243,7 +243,7 @@ describe('getUnreadChannels', () => {
                     unreadFilterEnabled: false,
                 },
             },
-        } as unknown as GlobalState;
+        } as GlobalState;
 
         expect(Selectors.getUnreadChannels(state)).toEqual([unreadChannel2, unreadChannel1]);
 
@@ -260,7 +260,7 @@ describe('getUnreadChannels', () => {
                     },
                 },
             },
-        } as unknown as GlobalState;
+        } as GlobalState;
 
         expect(Selectors.getUnreadChannels(state)).toEqual([readChannel, unreadChannel2, unreadChannel1]);
     });
@@ -312,7 +312,7 @@ describe('getUnreadChannels', () => {
                     },
                 },
             },
-        } as unknown as GlobalState;
+        } as GlobalState;
 
         // readChannel previously had a mention, so it should be sorted with the mentions
         expect(Selectors.getUnreadChannels(state)).toEqual([readChannel, unreadChannel1, unreadChannel2]);
@@ -416,7 +416,7 @@ describe('getUnreadChannels', () => {
                     lastUnreadChannel: null,
                 },
             },
-        } as unknown as GlobalState;
+        } as GlobalState;
 
         expect(Selectors.getUnreadChannels(state)).toEqual([archivedChannel, unreadChannel2, unreadChannel1]);
     });
@@ -519,7 +519,7 @@ describe('getDisplayedChannels', () => {
                     unreadFilterEnabled: true,
                 },
             },
-        } as unknown as GlobalState;
+        } as GlobalState;
 
         expect(Selectors.getDisplayedChannels(state)).toEqual([
             unreadChannel2,
@@ -542,7 +542,7 @@ describe('getDisplayedChannels', () => {
                     },
                 },
             },
-        } as unknown as GlobalState;
+        } as GlobalState;
 
         expect(Selectors.getDisplayedChannels(state)).toEqual([
             unreadChannel2,
@@ -593,7 +593,7 @@ describe('getDisplayedChannels', () => {
                         },
                     },
                 },
-            } as unknown as GlobalState;
+            } as GlobalState;
 
             expect(Selectors.getDisplayedChannels(baseState)).not.toBe(Selectors.getDisplayedChannels(modifiedState));
             expect(Selectors.getDisplayedChannels(modifiedState)).toBe(Selectors.getDisplayedChannels(modifiedState));
@@ -661,8 +661,8 @@ describe('makeGetFilteredChannelIdsForCategory', () => {
     } as unknown as GlobalState;
 
     test('should only include channels in the given category', () => {
-        const category1 = {id: 'category1', team_id: 'team1', channel_ids: [currentChannel.id, unreadChannel1.id]} as unknown as ChannelCategory;
-        const category2 = {id: 'category2', team_id: 'team1', channel_ids: [readChannel.id, unreadChannel2.id]} as unknown as ChannelCategory;
+        const category1 = {id: 'category1', team_id: 'team1', channel_ids: [currentChannel.id, unreadChannel1.id]} as ChannelCategory;
+        const category2 = {id: 'category2', team_id: 'team1', channel_ids: [readChannel.id, unreadChannel2.id]} as ChannelCategory;
 
         const state = {
             ...baseState,
@@ -688,7 +688,7 @@ describe('makeGetFilteredChannelIdsForCategory', () => {
     });
 
     test('with the unreads category enabled, should not include unread channels', () => {
-        const category1 = {id: 'category1', team_id: 'team1', channel_ids: [currentChannel.id, readChannel.id, unreadChannel1.id, unreadChannel2.id]} as unknown as ChannelCategory;
+        const category1 = {id: 'category1', team_id: 'team1', channel_ids: [currentChannel.id, readChannel.id, unreadChannel1.id, unreadChannel2.id]} as ChannelCategory;
 
         const state = {
             ...baseState,
@@ -717,7 +717,7 @@ describe('makeGetFilteredChannelIdsForCategory', () => {
     });
 
     test('with the unreads category enabled, should not include the current channel if it was previously unread', () => {
-        const category1 = {id: 'category1', team_id: 'team1', channel_ids: [currentChannel.id, readChannel.id, unreadChannel1.id, unreadChannel2.id]} as unknown as ChannelCategory;
+        const category1 = {id: 'category1', team_id: 'team1', channel_ids: [currentChannel.id, readChannel.id, unreadChannel1.id, unreadChannel2.id]} as ChannelCategory;
 
         const state = {
             ...baseState,
