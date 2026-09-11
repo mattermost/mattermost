@@ -69,11 +69,11 @@ func TestPlainFileIsBoundedRegardlessOfInputSize(t *testing.T) {
 func TestPlainFileRespectsSmallerMaxFileSize(t *testing.T) {
 	extractor := plainExtractor{}
 	content := bytes.Repeat([]byte("x"), 4096)
-	const max = int64(100)
-	out, err := extractor.Extract(context.Background(), "test.txt", bytes.NewReader(content), max)
+	const maxSize = int64(100)
+	out, err := extractor.Extract(context.Background(), "test.txt", bytes.NewReader(content), maxSize)
 	require.NoError(t, err)
-	require.Equal(t, int(max), len(out))
-	require.Equal(t, string(content[:max]), out)
+	require.Equal(t, int(maxSize), len(out))
+	require.Equal(t, string(content[:maxSize]), out)
 }
 
 // MM-70601: a caller-supplied maxFileSize larger than the extractor's own
