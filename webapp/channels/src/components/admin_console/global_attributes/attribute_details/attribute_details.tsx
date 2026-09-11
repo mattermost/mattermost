@@ -303,6 +303,12 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // user/channel/post field directly.
     const [objectType, setObjectType] = useState<string>(GLOBAL_ATTRIBUTES_OBJECT_TYPE);
 
+    // True for a loaded user/channel/post field that owns no template of its
+    // own -- create mode and templates both leave objectType at
+    // GLOBAL_ATTRIBUTES_OBJECT_TYPE, so this is false for them without an
+    // extra isEditMode clause.
+    const isNonTemplate = objectType !== GLOBAL_ATTRIBUTES_OBJECT_TYPE;
+
     // Substituted for the bare `disabled` prop everywhere else on this page --
     // one boolean, not a second parallel disabled path. Keeps the pre-existing
     // non-sysadmin `disabled` prop (schema-wired via isDisabled: it.not
@@ -466,7 +472,16 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 setOptions(optionsFromField(field));
                 setLdapAttr(typeof field.attrs?.ldap === 'string' ? field.attrs.ldap : '');
                 setSamlAttr(typeof field.attrs?.saml === 'string' ? field.attrs.saml : '');
-                setAppliesTo(ALL_RESOURCE_TYPES.filter((type) => Boolean(linkedByType[type])));
+
+                // A non-template field has no linked fields to seed from --
+                // its Applies-to is its own object type, fixed (see
+                // typeLockedByAppliesTo/isNonTemplate below for why it can't
+                // be changed).
+                setAppliesTo(
+                    field.object_type === GLOBAL_ATTRIBUTES_OBJECT_TYPE ?
+                        ALL_RESOURCE_TYPES.filter((type) => Boolean(linkedByType[type])) :
+                        ALL_RESOURCE_TYPES.filter((type) => type === field.object_type),
+                );
                 if (linkedByType.channel) {
                     setChannelResource(parseChannelFieldConfig(linkedByType.channel));
                 }
@@ -516,6 +531,15 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         nameDescribedBy = 'attribute-unique-name-error';
     } else if (isServerNameError) {
         nameDescribedBy = 'attribute-save-error';
+    }
+
+    // Plugin ownership wins over non-template: it disables the whole page,
+    // so it is the more specific reason to show.
+    let appliesToLockedTooltip: string | undefined;
+    if (isPluginOwned) {
+        appliesToLockedTooltip = formatMessage(isOrphaned ? messages.appliesToLockedPluginOrphanedTooltip : messages.appliesToLockedPluginTooltip);
+    } else if (isNonTemplate) {
+        appliesToLockedTooltip = formatMessage(messages.appliesToLockedSingleResourceTooltip);
     }
 
     const markDirty = useCallback(() => {
@@ -709,7 +733,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     }, [handleDoneClick, handleCancelEdit]);
 
     const hasExternalSource = Boolean(ldapAttr || samlAttr);
-    const typeLockedByAppliesTo = isEditMode && appliesTo.length > 0;
+    const typeLockedByAppliesTo = isEditMode && appliesTo.length > 0 && !isNonTemplate;
     const typeLocked = hasExternalSource || typeLockedByAppliesTo || isPluginOwned;
     const typeChanged = isEditMode && fieldType !== originalFieldTypeRef.current;
     const typeSupportsOptions = supportsOptions({type: fieldType} as PropertyField);
@@ -1343,9 +1367,9 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                     <AttributeAppliesTo
                         appliesTo={appliesTo}
                         allowedTypes={allowedResourceTypes}
-                        disabled={saving || effectiveDisabled}
-                        hideAddResource={isPluginOwned}
-                        lockedTooltip={isPluginOwned ? formatMessage(isOrphaned ? messages.appliesToLockedPluginOrphanedTooltip : messages.appliesToLockedPluginTooltip) : undefined}
+                        disabled={saving || effectiveDisabled || isNonTemplate}
+                        hideAddResource={isPluginOwned || isNonTemplate}
+                        lockedTooltip={appliesToLockedTooltip}
                         onAdd={handleAdd}
                         onRemove={handleRemove}
                         channelResource={channelResource}
@@ -1471,6 +1495,10 @@ const messages = defineMessages({
     appliesToLockedPluginOrphanedTooltip: {
         id: 'admin.global_attributes.attribute_details.applies_to.locked_plugin_orphaned_tooltip',
         defaultMessage: "This resource cannot be changed — this attribute was managed by a plugin that's no longer installed.",
+    },
+    appliesToLockedSingleResourceTooltip: {
+        id: 'admin.global_attributes.attribute_details.applies_to.locked_single_resource_tooltip',
+        defaultMessage: 'This resource cannot be changed — this attribute applies to only one resource.',
     },
     optionsLabel: {id: 'admin.global_attributes.attribute_details.options.label', defaultMessage: 'Options'},
     optionsHelp: {

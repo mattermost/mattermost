@@ -1512,6 +1512,63 @@ describe('AttributeDetails', () => {
             expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
         });
 
+        describe('non-template field applies-to', () => {
+            it('shows only the field\'s own resource row, with neither Add-resource trigger', async () => {
+                mockLoadedNonTemplateField(makeNonTemplate('user'));
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.getByTestId('attributeAppliesToRow-user')).toBeInTheDocument();
+                expect(screen.queryByTestId('attributeAppliesToRow-channel')).not.toBeInTheDocument();
+                expect(screen.queryByTestId('attributeAppliesToRow-post')).not.toBeInTheDocument();
+                expect(screen.queryByTestId('attributeAppliesToAddResourceButtonHeader')).not.toBeInTheDocument();
+                expect(screen.queryByTestId('attributeAppliesToAddResourceButtonInline')).not.toBeInTheDocument();
+            });
+
+            it('shows the Channels row for a non-template channel field', async () => {
+                mockLoadedNonTemplateField(makeNonTemplate('channel'));
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.getByTestId('attributeAppliesToRow-channel')).toBeInTheDocument();
+                expect(screen.queryByTestId('attributeAppliesToRow-user')).not.toBeInTheDocument();
+                expect(screen.queryByTestId('attributeAppliesToRow-post')).not.toBeInTheDocument();
+            });
+
+            it('disables the row\'s toggle behind an explanatory lock tooltip', async () => {
+                mockLoadedNonTemplateField(makeNonTemplate('user'));
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.getByTestId('attributeAppliesToRow-user-toggle')).toBeDisabled();
+                expect(screen.getByTestId('attributeAppliesToRow-user-toggleLockWrap')).toBeInTheDocument();
+            });
+
+            it('leaves Type editable -- the single-resource lock must not regress the earlier applies-to-stays-editable guard', async () => {
+                mockLoadedNonTemplateField(makeNonTemplate('user'));
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.getByTestId('attributeTypeMenuButton')).not.toBeDisabled();
+                expect(screen.queryByTestId('attributeTypeLockWrap')).not.toBeInTheDocument();
+            });
+
+            it('leaves a loaded template\'s Applies-to row enabled with its Add-resource trigger present', async () => {
+                mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field')]);
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.getByTestId('attributeAppliesToRow-user-toggle')).not.toBeDisabled();
+                expect(screen.queryByTestId('attributeAppliesToRow-user-toggleLockWrap')).not.toBeInTheDocument();
+                expect(screen.getByTestId('attributeAppliesToAddResourceButtonHeader')).toBeInTheDocument();
+            });
+        });
+
         it('keeps existing option IDs on PATCH and sends an empty id for newly added options', async () => {
             mockLoadedField(makeTemplate({
                 type: 'select',
