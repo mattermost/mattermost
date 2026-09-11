@@ -193,8 +193,10 @@ test(
 
         const {adminClient} = await pw.getAdminClient();
 
-        // * Verify fetching metadata from Keycloak's real SAML descriptor succeeds
+        // # Fetch metadata from Keycloak's real SAML descriptor
         const metadata = await adminClient.getSamlMetadataFromIdp(pw.keycloakSamlDescriptorUrl());
+
+        // * Verify the fetch succeeds
         expect(metadata.idp_public_certificate.length).toBeGreaterThan(0);
 
         // * Verify fetching metadata from an unreachable IdP fails
