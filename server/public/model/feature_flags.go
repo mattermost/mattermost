@@ -277,7 +277,7 @@ func (f *FeatureFlags) ToMap() map[string]string {
 	refStructVal := reflect.ValueOf(*f)
 	refStructType := reflect.TypeFor[FeatureFlags]()
 	ret := make(map[string]string)
-	for i := 0; i < refStructVal.NumField(); i++ {
+	for i := range refStructVal.NumField() {
 		refFieldVal := refStructVal.Field(i)
 		if !refFieldVal.IsValid() {
 			continue

@@ -5567,7 +5567,7 @@ func structToMapFilteredByTag(t any, typeOfTag, filterTag string) map[string]any
 
 	out := map[string]any{}
 
-	for i := 0; i < val.NumField(); i++ {
+	for i := range val.NumField() {
 		field := val.Field(i)
 
 		structField := elemField.Field(i)
@@ -5716,7 +5716,7 @@ func isDomainName(s string) bool {
 	last := byte('.')
 	ok := false // Ok once we've seen a letter.
 	partlen := 0
-	for i := 0; i < len(s); i++ {
+	for i := range len(s) {
 		c := s[i]
 		switch {
 		default:

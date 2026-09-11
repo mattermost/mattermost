@@ -2084,7 +2084,7 @@ func TestInterpluginPluginHTTPStreaming(t *testing.T) {
 
 					w.WriteHeader(http.StatusOK)
 
-					for i := 0; i < totalChunks; i++ {
+					for range totalChunks {
 						chunk := bytes.Repeat([]byte("X"), chunkSize)
 						w.Write(chunk)
 

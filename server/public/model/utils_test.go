@@ -1121,7 +1121,7 @@ func checkNowhereNil(t *testing.T, name string, value any) bool {
 
 	case reflect.Struct:
 		nowhereNil := true
-		for i := 0; i < v.NumField(); i++ {
+		for i := range v.NumField() {
 			f := v.Field(i)
 			// Ignore unexported fields
 			if v.Type().Field(i).PkgPath != "" {
