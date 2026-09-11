@@ -22,35 +22,6 @@ func readMigrationSQL(t *testing.T, filename string) string {
 	return string(data)
 }
 
-// 000176 still ships PermissionField/PermissionValues/PermissionOptions assignments.
-// Those columns are gone; these statements are the half of that migration that
-// still applies against the current schema.
-const cpaToAccessControlUpSQL = `
-UPDATE PropertyFields
-SET ObjectType = 'user',
-    TargetType = 'system'
-WHERE GroupID = (SELECT ID FROM PropertyGroups WHERE Name = 'custom_profile_attributes');
-
-UPDATE PropertyGroups
-SET Name    = 'access_control',
-    Version = 2
-WHERE Name = 'custom_profile_attributes';
-`
-
-const cpaToAccessControlDownSQL = `
-UPDATE PropertyGroups
-SET Name    = 'custom_profile_attributes',
-    Version = 1
-WHERE Name = 'access_control';
-
-UPDATE PropertyFields
-SET ObjectType = '',
-    TargetType = ''
-WHERE GroupID = (SELECT ID FROM PropertyGroups WHERE Name = 'custom_profile_attributes')
-  AND ObjectType = 'user'
-  AND TargetType = 'system';
-`
-
 func TestMigration000185(t *testing.T) {
 	logger := mlog.CreateTestLogger(t)
 
@@ -64,6 +35,8 @@ func TestMigration000185(t *testing.T) {
 	defer store.Close()
 
 	master := store.GetMaster()
+	cpaToAccessControlUpSQL := readMigrationSQL(t, "000176_migrate_cpa_to_access_control.up.sql")
+	cpaToAccessControlDownSQL := readMigrationSQL(t, "000176_migrate_cpa_to_access_control.down.sql")
 
 	// Insert a group simulating pre-migration CPA state.
 	groupID := model.NewId()
@@ -228,6 +201,8 @@ func TestMigration000185DownPreservesNonUserFields(t *testing.T) {
 	defer store.Close()
 
 	master := store.GetMaster()
+	cpaToAccessControlUpSQL := readMigrationSQL(t, "000176_migrate_cpa_to_access_control.up.sql")
+	cpaToAccessControlDownSQL := readMigrationSQL(t, "000176_migrate_cpa_to_access_control.down.sql")
 
 	groupID := model.NewId()
 	_, err = master.Exec("INSERT INTO PropertyGroups (ID, Name) VALUES (?, ?)", groupID, "custom_profile_attributes")
@@ -305,6 +280,8 @@ func TestMigration000185NoOpOnFreshDB(t *testing.T) {
 	defer store.Close()
 
 	master := store.GetMaster()
+	cpaToAccessControlUpSQL := readMigrationSQL(t, "000176_migrate_cpa_to_access_control.up.sql")
+	cpaToAccessControlDownSQL := readMigrationSQL(t, "000176_migrate_cpa_to_access_control.down.sql")
 
 	// On a fresh database with no CPA group, both up and down should be
 	// safe no-ops (the UPDATE statements match zero rows).
