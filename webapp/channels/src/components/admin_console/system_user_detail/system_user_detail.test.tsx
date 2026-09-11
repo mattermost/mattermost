@@ -806,6 +806,25 @@ describe('SystemUserDetail', () => {
                 expect(trigger()).toHaveTextContent('Gamma');
             });
 
+            test('clicking a branch option assigns it from the row, not only the checkbox', async () => {
+                const options = [
+                    graphOption('opt-air', 'Air'),
+                    graphOption('opt-fighter', 'Fighter', ['Air']),
+                ];
+                mockPageAll.mockResolvedValue(options);
+                renderDetail(buildGraphField({options}), []);
+
+                await waitForLoadingToFinish();
+                await openMenu();
+
+                await userEvent.click(await screen.findByRole('menuitemcheckbox', {name: 'Air'}));
+
+                expect(screen.getByRole('menuitemcheckbox', {name: 'Air'})).toHaveAttribute('aria-checked', 'true');
+                expect(screen.queryByRole('menuitemcheckbox', {name: 'Fighter'})).not.toBeInTheDocument();
+                expect(trigger()).toHaveTextContent('Air');
+                expect(screen.getByRole('menu')).toBeInTheDocument();
+            });
+
             test('G7: writes option ids, not names, when the picker selection changes', async () => {
                 const saveCustomProfileAttribute = jest.fn().mockResolvedValue({data: {}});
                 mockPageAll.mockResolvedValue(REGIME_1);

@@ -26,7 +26,7 @@ import {
     hierarchy,
     hintOf,
     httpErrorOf,
-    labelOf,
+    chevronOf,
     maybeRow,
     openMenu,
     opt,
@@ -650,7 +650,7 @@ describe('HierarchicalValueMenu chrome (mounted)', () => {
 
         test('clearing the query restores the tree', async () => {
             await openTree();
-            await userEvent.click(labelOf('Air Program'));
+            await userEvent.click(chevronOf('Air Program'));
             expect(maybeRow('Fighter Jet')).not.toBeNull();
 
             await userEvent.type(searchBox(), 'f-18');
