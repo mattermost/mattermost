@@ -55,6 +55,15 @@ test('collapsed image previews hide OpenGraph images of any size', {tag: '@messa
     await largeImagePreview.toBeVisible(pw.duration.half_min);
     await largeImagePreview.toHaveCollapsedImage();
 
+    // * Verify the collapsed control is laid out below the card body rather than squeezed into
+    // * the thumbnail column, whose width the card exposes as --open-graph-thumbnail-size
+    const thumbnailColumnWidth = await smallImagePreview.container.evaluate((card: HTMLElement) =>
+        parseFloat(getComputedStyle(card).getPropertyValue('--open-graph-thumbnail-size')),
+    );
+    const showImageButtonBox = await smallImagePreview.showImageButton.boundingBox();
+    expect(showImageButtonBox).not.toBeNull();
+    expect(showImageButtonBox!.width).toBeGreaterThan(thumbnailColumnWidth);
+
     // # Reveal the thumbnail-sized image
     await smallImagePreview.showImage();
 

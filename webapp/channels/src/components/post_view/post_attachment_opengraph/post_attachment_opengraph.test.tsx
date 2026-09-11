@@ -379,6 +379,43 @@ describe('PostAttachmentOpenGraph with image dimensions arriving after the first
 
         expect(screen.getByAltText(gifOpenGraphData.title)).toBeInTheDocument();
         expect(container.querySelector('.PostAttachmentOpenGraph__image.collapsed')).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: /image preview/})).not.toBeInTheDocument();
+    });
+
+    test('should render the image once Open Graph data arrives after the first render', () => {
+        const {container, updateStoreState} = renderWithContext(
+            <PostAttachmentOpenGraph
+                {...baseProps}
+                post={postWithDimensions}
+                isEmbedVisible={false}
+            />,
+            {
+                ...gifState,
+                entities: {
+                    ...gifState.entities,
+                    posts: {
+                        openGraph: {},
+                    },
+                },
+            },
+        );
+
+        expect(container).toBeEmptyDOMElement();
+
+        updateStoreState({
+            entities: {
+                posts: {
+                    openGraph: {
+                        post_id_1: {
+                            [gifOpenGraphData.url]: gifOpenGraphData,
+                        },
+                    },
+                },
+            },
+        });
+
+        expect(container.querySelector('.PostAttachmentOpenGraph__image.large')).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Show image preview'})).toBeInTheDocument();
     });
 });
 
@@ -522,7 +559,7 @@ describe('PostAttachmentOpenGraphImage', () => {
         expect(container.querySelector('.PostAttachmentOpenGraph__image')).toBeInTheDocument();
         expect(container.querySelector('.PostAttachmentOpenGraph__image.large')).not.toBeInTheDocument();
         expect(screen.getByAltText(baseProps.title)).toBeInTheDocument();
-        expect(screen.queryByRole('button', {name: 'Hide image preview'})).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: /image preview/})).not.toBeInTheDocument();
     });
 
     test('should hide a collapsed small image and offer the preview control instead', () => {
@@ -537,6 +574,9 @@ describe('PostAttachmentOpenGraphImage', () => {
         );
 
         expect(container.querySelector('.PostAttachmentOpenGraph__image.large')).not.toBeInTheDocument();
+
+        // The collapsed class moves the preview control out of the thumbnail column
+        expect(container.querySelector('.PostAttachmentOpenGraph__image.collapsed')).toBeInTheDocument();
         expect(screen.queryByAltText(baseProps.title)).not.toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Show image preview'})).toBeInTheDocument();
     });
