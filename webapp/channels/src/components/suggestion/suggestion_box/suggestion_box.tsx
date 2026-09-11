@@ -190,7 +190,7 @@ export type SuggestionBoxProps = {
     onKeyUp?: (e: React.KeyboardEvent<SuggestionBoxElement>) => void;
     onHeightChange?: (height: number, maxHeight: number) => void;
     onWidthChange?: (width: number) => void;
-    onPaste?: (e: ClipboardEvent) => void;
+    onPaste?: (e: React.ClipboardEvent<SuggestionBoxElement>) => void;
     style?: React.CSSProperties;
     tabIndex?: number;
     type?: string;

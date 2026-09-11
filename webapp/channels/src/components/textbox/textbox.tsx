@@ -48,7 +48,7 @@ export type Props = {
     onFocus?: () => void;
     supportsCommands?: boolean;
     handlePostError?: (message: JSX.Element | null) => void;
-    onPaste?: (e: ClipboardEvent) => void;
+    onPaste?: (e: React.ClipboardEvent<TextboxElement>) => void;
     suggestionList?: React.ComponentProps<typeof SuggestionBox>['listComponent'];
     suggestionListPosition?: React.ComponentProps<typeof SuggestionList>['position'];
     alignWithTextbox?: boolean;
