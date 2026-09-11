@@ -323,6 +323,39 @@ describe('GlobalAttributesTable', () => {
             expect(screen.queryByTestId('global-attributes-error')).not.toBeInTheDocument();
             expect(getPropertyFields.mock.calls.every((call) => call[1] !== 'channel')).toBe(true);
         });
+
+        it('hides a cached channel field when channel attributes are disabled', async () => {
+            // Channel-header labels (and a prior visit while licensed) can leave a
+            // channel field in the store after this page has stopped fetching that
+            // scope. First pages fire together as template/user/post; the user page
+            // then terminates with [].
+            const cachedChannel = makeField({id: 'c1', name: 'cached_channel_field', object_type: 'channel'});
+            const userField = makeField({id: 'u1', name: 'user_field', object_type: 'user'});
+            getPropertyFields.
+                mockResolvedValueOnce([]).
+                mockResolvedValueOnce([userField]).
+                mockResolvedValueOnce([]).
+                mockResolvedValueOnce([]);
+
+            const state = getBaseState();
+            state.entities!.properties = {
+                groups: {
+                    byId: {[ACCESS_CONTROL_GROUP_UUID]: {id: ACCESS_CONTROL_GROUP_UUID, name: 'access_control'}},
+                    byName: {access_control: {id: ACCESS_CONTROL_GROUP_UUID, name: 'access_control'}},
+                },
+                fields: {
+                    byId: {c1: cachedChannel},
+                    byObjectType: {
+                        channel: {[ACCESS_CONTROL_GROUP_UUID]: {c1: cachedChannel}},
+                    },
+                },
+            };
+
+            renderWithContext(<GlobalAttributesTable/>, state);
+
+            expect(await screen.findByText('user_field')).toBeInTheDocument();
+            expect(screen.queryByText('cached_channel_field')).not.toBeInTheDocument();
+        });
     });
 
     it('renders the Applies-to column as an explicit placeholder, not a blank cell', async () => {

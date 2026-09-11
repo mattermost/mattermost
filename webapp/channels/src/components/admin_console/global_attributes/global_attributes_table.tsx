@@ -416,7 +416,7 @@ export default function GlobalAttributesTable() {
         getFeatureFlagValue(state, 'ChannelAttributes') === 'true' && isMinimumEnterpriseAdvancedLicense(getLicense(state)));
 
     const objectTypesToFetch = useMemo(
-        () => [GLOBAL_ATTRIBUTES_OBJECT_TYPE, ...ALL_RESOURCE_TYPES.filter((type) => channelAttributesEnabled || type !== 'channel')],
+        (): string[] => [GLOBAL_ATTRIBUTES_OBJECT_TYPE, ...ALL_RESOURCE_TYPES.filter((type) => channelAttributesEnabled || type !== 'channel')],
         [channelAttributesEnabled],
     );
 
@@ -451,9 +451,15 @@ export default function GlobalAttributesTable() {
         };
     }, [dispatch, objectTypesToFetch]);
 
+    // getUnlinkedSystemFieldsForGroup reads every cached user/channel/post field.
+    // Channel fields can already be in the store (channel-header labels, a prior
+    // visit while licensed) after objectTypesToFetch has dropped that scope, so
+    // keep the table in lockstep with what this page is allowed to fetch.
     const rows = useMemo(
-        () => [...fields, ...unlinkedFields].sort((a, b) => getDisplayName(a).localeCompare(getDisplayName(b))),
-        [fields, unlinkedFields],
+        () => [...fields, ...unlinkedFields.filter((field) => objectTypesToFetch.includes(field.object_type))].sort(
+            (a, b) => getDisplayName(a).localeCompare(getDisplayName(b)),
+        ),
+        [fields, unlinkedFields, objectTypesToFetch],
     );
 
     // The Source column resolves plugin-owned rows to a plugin display name, but
