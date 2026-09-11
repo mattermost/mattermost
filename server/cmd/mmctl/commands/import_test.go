@@ -255,6 +255,92 @@ func (s *MmctlUnitTestSuite) TestImportProcessCmdF() {
 		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
 	})
 
+	// The job-data key is the only link between the flag and the importer, which
+	// enforces the choice server-side. A typo here drops the operator's choice
+	// silently and the scoped import then fails as if the flag were never passed.
+	s.Run("--imported-users is carried into job data", func() {
+		for _, posture := range []string{"active", "inactive"} {
+			printer.Clean()
+			importFile := "import.zip"
+			mockJob := &model.Job{
+				Type: model.JobTypeImportProcess,
+				Data: map[string]string{
+					"import_file":     importFile,
+					"local_mode":      "false",
+					"extract_content": "false",
+					"imported_users":  posture,
+				},
+			}
+
+			noCheckpoint()
+			s.client.
+				EXPECT().
+				CreateJob(context.TODO(), mockJob).
+				Return(mockJob, &model.Response{}, nil).
+				Times(1)
+
+			cmd := &cobra.Command{}
+			cmd.Flags().Bool("bypass-upload", false, "")
+			cmd.Flags().Bool("extract-content", false, "")
+			cmd.Flags().Int("workers", 0, "")
+			cmd.Flags().String("imported-users", "", "")
+			_ = cmd.Flags().Set("imported-users", posture)
+
+			err := importProcessCmdF(s.client, cmd, []string{importFile})
+			s.Require().Nil(err)
+			s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
+		}
+	})
+
+	// Omitting the flag must leave the key absent rather than writing an empty
+	// value, so a full-instance import is unaffected and a scoped one still gets
+	// the server-side "choice required" error.
+	s.Run("--imported-users omitted leaves the key out of job data", func() {
+		printer.Clean()
+		importFile := "import.zip"
+		mockJob := &model.Job{
+			Type: model.JobTypeImportProcess,
+			Data: map[string]string{
+				"import_file":     importFile,
+				"local_mode":      "false",
+				"extract_content": "false",
+			},
+		}
+
+		noCheckpoint()
+		s.client.
+			EXPECT().
+			CreateJob(context.TODO(), mockJob).
+			Return(mockJob, &model.Response{}, nil).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("bypass-upload", false, "")
+		cmd.Flags().Bool("extract-content", false, "")
+		cmd.Flags().Int("workers", 0, "")
+		cmd.Flags().String("imported-users", "", "")
+
+		err := importProcessCmdF(s.client, cmd, []string{importFile})
+		s.Require().Nil(err)
+		s.NotContains(mockJob.Data, "imported_users")
+	})
+
+	s.Run("--imported-users rejects a value that is neither active nor inactive", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("bypass-upload", false, "")
+		cmd.Flags().Bool("extract-content", false, "")
+		cmd.Flags().Int("workers", 0, "")
+		cmd.Flags().String("imported-users", "", "")
+		_ = cmd.Flags().Set("imported-users", "deactivated")
+
+		err := importProcessCmdF(s.client, cmd, []string{"import.zip"})
+		s.Require().NotNil(err)
+		s.Contains(err.Error(), "invalid --imported-users value")
+		s.Empty(printer.GetLines())
+	})
+
 	s.Run("workers exceeds max", func() {
 		printer.Clean()
 		importFile := "import.zip"

@@ -175,7 +175,7 @@ func processAttachments(rctx request.CTX, line *imports.LineImportData, basePath
 	return nil
 }
 
-func (a *App) bulkImportWorker(rctx request.CTX, dryRun, extractContent, deactivateMissingUsers bool, destinationTeam string, report *imports.ImportReport, wg *sync.WaitGroup, lines <-chan imports.LineImportWorkerData, errors chan<- imports.LineImportWorkerError) {
+func (a *App) bulkImportWorker(rctx request.CTX, dryRun, extractContent, deactivateMissingUsers bool, importedUsers model.ImportedUsersPosture, destinationTeam string, report *imports.ImportReport, wg *sync.WaitGroup, lines <-chan imports.LineImportWorkerData, errors chan<- imports.LineImportWorkerError) {
 	workerID := model.NewId()
 	processedLines := uint64(0)
 
@@ -214,7 +214,7 @@ func (a *App) bulkImportWorker(rctx request.CTX, dryRun, extractContent, deactiv
 				directPostLines = []imports.LineImportWorkerData{}
 			}
 		default:
-			if err := a.importLine(rctx, line.LineImportData, dryRun, deactivateMissingUsers, destinationTeam, report); err != nil {
+			if err := a.importLine(rctx, line.LineImportData, dryRun, deactivateMissingUsers, importedUsers, destinationTeam, report); err != nil {
 				errors <- imports.LineImportWorkerError{Error: err, LineNumber: line.LineNumber}
 			}
 		}
@@ -238,18 +238,18 @@ func (a *App) bulkImportWorker(rctx request.CTX, dryRun, extractContent, deactiv
 }
 
 func (a *App) BulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun bool, workers int) (int, *model.AppError) {
-	lineNumber, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, true, workers, "", "", "", false, 0, nil, &imports.ImportReport{})
+	lineNumber, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, true, workers, "", "", "", false, model.ImportedUsersUnset, 0, nil, &imports.ImportReport{})
 	return lineNumber, err
 }
 
 func (a *App) BulkImportWithPath(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string) (int, *model.AppError) {
-	lineNumber, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, extractContent, workers, importPath, "", "", false, 0, nil, &imports.ImportReport{})
+	lineNumber, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, extractContent, workers, importPath, "", "", false, model.ImportedUsersUnset, 0, nil, &imports.ImportReport{})
 	return lineNumber, err
 }
 
 func (a *App) BulkImportWithPathAndOpts(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string, opts model.BulkImportOpts) (int, *model.AppError) {
 	report := &imports.ImportReport{}
-	lineNumber, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, extractContent, workers, importPath, opts.DestinationTeamName, opts.DestinationChannelName, opts.SkipPreflight, opts.ResumeFromLine, opts.OnCheckpoint, report)
+	lineNumber, err := a.bulkImport(rctx, jsonlReader, attachmentsReader, dryRun, extractContent, workers, importPath, opts.DestinationTeamName, opts.DestinationChannelName, opts.SkipPreflight, opts.ImportedUsers, opts.ResumeFromLine, opts.OnCheckpoint, report)
 	return lineNumber, err
 }
 
@@ -257,7 +257,7 @@ func (a *App) BulkImportWithPathAndOpts(rctx request.CTX, jsonlReader io.Reader,
 // not nil. If it is nil, it will look for attachments on the
 // filesystem in the locations specified by the JSONL file according
 // to the older behavior
-func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string, destinationTeam string, destinationChannel string, skipPreflight bool, resumeFromLine int, onCheckpoint func(int), report *imports.ImportReport) (int, *model.AppError) {
+func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsReader *zip.Reader, dryRun, extractContent bool, workers int, importPath string, destinationTeam string, destinationChannel string, skipPreflight bool, importedUsers model.ImportedUsersPosture, resumeFromLine int, onCheckpoint func(int), report *imports.ImportReport) (int, *model.AppError) {
 	scanner := bufio.NewScanner(jsonlReader)
 	buf := make([]byte, 0, 64*1024)
 	scanner.Buffer(buf, maxScanTokenSize)
@@ -338,17 +338,6 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 					}
 					if scope.ChannelName != "" || scope.TeamName != "" {
 						deactivateMissingUsers = true
-						if attachmentsReader != nil {
-							if appErr := a.checkSSOProviderConfig(rctx, attachmentsReader, skipPreflight); appErr != nil {
-								return lineNumber, appErr
-							}
-							totalLines := a.preCreateSSOUsers(rctx, attachmentsReader, dryRun, deactivateMissingUsers)
-							if onCheckpoint != nil && totalLines > 0 {
-								// Store total line count early so a later failure
-								// can show percentage progress on resume.
-								onCheckpoint(-totalLines)
-							}
-						}
 					}
 				}
 			}
@@ -367,6 +356,28 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 			// in every one of them.
 			if destinationChannel != "" && len(splitTrimNames(sourceTeamName)) != 1 {
 				return lineNumber, model.NewAppError("BulkImport", "app.import.bulk_import.destination_channel_requires_single_team_scope.error", nil, "--destination-channel-name requires an export scoped to exactly one team, otherwise the channel name is ambiguous", http.StatusBadRequest)
+			}
+
+			// The access posture for accounts this import creates has no safe default
+			// (see model.ImportedUsersPosture), so a scoped archive requires the
+			// operator to state it. Enforced here rather than in mmctl so that no
+			// caller — job API, REST, or a future one — can bypass it. It sits with
+			// the other version-line guards, all of which run before the preflight
+			// passes below, which are the first thing that writes.
+			if deactivateMissingUsers && !importedUsers.IsValid() {
+				return lineNumber, model.NewAppError("BulkImport", "app.import.bulk_import.imported_users_choice_required.error", nil, "", http.StatusBadRequest)
+			}
+
+			if deactivateMissingUsers && attachmentsReader != nil {
+				if appErr := a.checkSSOProviderConfig(rctx, attachmentsReader, skipPreflight); appErr != nil {
+					return lineNumber, appErr
+				}
+				totalLines := a.preCreateSSOUsers(rctx, attachmentsReader, dryRun, deactivateMissingUsers, importedUsers)
+				if onCheckpoint != nil && totalLines > 0 {
+					// Store total line count early so a later failure
+					// can show percentage progress on resume.
+					onCheckpoint(-totalLines)
+				}
 			}
 
 			lastLineType = line.Type
@@ -426,7 +437,7 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 			linesChan = make(chan imports.LineImportWorkerData, workers)
 			for range workers {
 				wg.Add(1)
-				go a.bulkImportWorker(rctx, dryRun, extractContent, deactivateMissingUsers, destinationTeam, report, &wg, linesChan, errorsChan)
+				go a.bulkImportWorker(rctx, dryRun, extractContent, deactivateMissingUsers, importedUsers, destinationTeam, report, &wg, linesChan, errorsChan)
 			}
 		}
 
@@ -564,7 +575,7 @@ func processImportDataFileVersionLine(line imports.LineImportData) (int, *model.
 	return *line.Version, nil
 }
 
-func (a *App) importLine(rctx request.CTX, line imports.LineImportData, dryRun bool, deactivateMissingUsers bool, destinationTeam string, report *imports.ImportReport) *model.AppError {
+func (a *App) importLine(rctx request.CTX, line imports.LineImportData, dryRun bool, deactivateMissingUsers bool, importedUsers model.ImportedUsersPosture, destinationTeam string, report *imports.ImportReport) *model.AppError {
 	switch {
 	case line.Type == "role":
 		if line.Role == nil {
@@ -590,7 +601,7 @@ func (a *App) importLine(rctx request.CTX, line imports.LineImportData, dryRun b
 		if line.User == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_user.error", nil, "", http.StatusBadRequest)
 		}
-		return a.importUser(rctx, line.User, dryRun, deactivateMissingUsers, report)
+		return a.importUser(rctx, line.User, dryRun, deactivateMissingUsers, importedUsers, report)
 	case line.Type == "bot":
 		if line.Bot == nil {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_bot.error", nil, "", http.StatusBadRequest)
@@ -741,7 +752,7 @@ func (a *App) checkSSOProviderConfig(rctx request.CTX, zipReader *zip.Reader, sk
 // omitted; the main pass populates those after teams and channels exist on dest.
 // preCreateSSOUsers returns the total number of lines in the JSONL so callers
 // can store it for percentage display on resume.
-func (a *App) preCreateSSOUsers(rctx request.CTX, zipReader *zip.Reader, dryRun bool, deactivateMissingUsers bool) int {
+func (a *App) preCreateSSOUsers(rctx request.CTX, zipReader *zip.Reader, dryRun bool, deactivateMissingUsers bool, importedUsers model.ImportedUsersPosture) int {
 	var jsonlEntry *zip.File
 	for _, f := range zipReader.File {
 		if imports.IsRootJsonlFile(f.Name) {
@@ -793,7 +804,7 @@ func (a *App) preCreateSSOUsers(rctx request.CTX, zipReader *zip.Reader, dryRun 
 			continue
 		}
 
-		if appErr := a.preCreateSSOUser(rctx, line.User, deactivateMissingUsers); appErr != nil {
+		if appErr := a.preCreateSSOUser(rctx, line.User, deactivateMissingUsers, importedUsers); appErr != nil {
 			rctx.Logger().Warn("preCreateSSOUsers: failed to pre-create SSO user; main pass will handle it",
 				mlog.String("username", *line.User.Username),
 				mlog.String("auth_service", *line.User.AuthService),
@@ -806,7 +817,7 @@ func (a *App) preCreateSSOUsers(rctx request.CTX, zipReader *zip.Reader, dryRun 
 // preCreateSSOUser ensures a single SSO user exists on the dest with their
 // auth_data set. It tries auth_data first, then username, then creates fresh.
 // Errors are non-fatal — the main import pass will handle unresolved users.
-func (a *App) preCreateSSOUser(rctx request.CTX, data *imports.UserImportData, deactivateMissingUsers bool) *model.AppError {
+func (a *App) preCreateSSOUser(rctx request.CTX, data *imports.UserImportData, deactivateMissingUsers bool, importedUsers model.ImportedUsersPosture) *model.AppError {
 	if data == nil || data.Username == nil || data.Email == nil || data.AuthService == nil || data.AuthData == nil {
 		return model.NewAppError("preCreateSSOUser", "app.import.pre_create_sso_user.missing_fields.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -856,20 +867,22 @@ func (a *App) preCreateSSOUser(rctx request.CTX, data *imports.UserImportData, d
 	newUser.MakeNonNil()
 	newUser.SetDefaultNotifications()
 
-	// importUser only deactivates and tags users it creates itself, and this pre-pass
-	// makes it match an existing account instead — so the scoped import's
-	// pending-review policy has to be applied here or these users silently land
-	// active. DeleteAt must be set at creation time: SqlUserStore.Update restores the
-	// previous value on a non-trusted update, so the main pass cannot correct it
-	// afterwards. A DeleteAt supplied by the source is preserved rather than
-	// overwritten with the import time.
-	if deactivateMissingUsers {
+	// A DeleteAt supplied by the source is preserved unconditionally, outside the
+	// operator's choice: someone revoked at the source must never be re-enabled by a
+	// migration. DeleteAt has to be set at creation time either way, because
+	// SqlUserStore.Update restores the previous value on a non-trusted update, so the
+	// main pass cannot correct it afterwards.
+	if data.DeleteAt != nil && *data.DeleteAt > 0 {
+		newUser.DeleteAt = *data.DeleteAt
+	} else if deactivateMissingUsers && importedUsers == model.ImportedUsersInactive {
+		// importUser only deactivates and tags users it creates itself, and this
+		// pre-pass makes it match an existing account instead — so the pending-review
+		// posture has to be applied here or these users silently land active. This is
+		// where that bug lived.
+		newUser.DeleteAt = model.GetMillis()
+	}
+	if deactivateMissingUsers && importedUsers == model.ImportedUsersInactive {
 		newUser.SetProp(model.UserPropsKeyImportedInactive, "true")
-		if data.DeleteAt != nil && *data.DeleteAt > 0 {
-			newUser.DeleteAt = *data.DeleteAt
-		} else {
-			newUser.DeleteAt = model.GetMillis()
-		}
 	}
 
 	if _, err := a.ch.srv.userService.CreateUser(rctx, newUser, users.UserCreateOptions{FromImport: true}); err != nil {

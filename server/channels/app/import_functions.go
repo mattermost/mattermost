@@ -354,7 +354,7 @@ func (a *App) importChannel(rctx request.CTX, data *imports.ChannelImportData, d
 	return nil
 }
 
-func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun bool, deactivateMissingUsers bool, report *imports.ImportReport) *model.AppError {
+func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun bool, deactivateMissingUsers bool, importedUsers model.ImportedUsersPosture, report *imports.ImportReport) *model.AppError {
 	var fields []mlog.Field
 	if data != nil && data.Username != nil {
 		fields = append(fields, mlog.String("user_name", *data.Username))
@@ -381,10 +381,11 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 
 	var user *model.User
 	var nErr error
-	// createDeactivated is true when deactivateMissingUsers is set and the user
-	// doesn't exist on the destination. We still create the account so their posts
-	// are preserved, but deactivate it so they can't log in until an admin reviews
-	// and explicitly reactivates them.
+	// createDeactivated is true when this is a scoped import, the user doesn't exist
+	// on the destination, and the operator chose --imported-users=inactive. The
+	// account is created either way so their posts are preserved; the choice decides
+	// whether it arrives usable or pending administrator review. It does not affect a
+	// delete_at supplied by the source, which is always preserved below.
 	createDeactivated := false
 
 	// hasSSOIdentity is true whenever the import data carries a stable SSO identity
@@ -408,14 +409,16 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 				// Scoped import: no username fallback — the source and dest are different
 				// instances and a username match could silently link content to the wrong
 				// account (e.g. if usernames changed via SAML attribute sync). Create a
-				// deactivated shell so posts are preserved pending admin review.
+				// shell so posts are preserved; --imported-users decides whether it
+				// arrives usable or pending admin review.
 				rctx.Logger().Warn(
-					"auth_data match failed during scoped import; creating deactivated shell to preserve posts — review and reactivate manually if needed",
+					"auth_data match failed during scoped import; creating a shell account to preserve posts",
 					mlog.String("username", *data.Username),
 					mlog.String("auth_service", *data.AuthService),
 					mlog.String("identity_match", "not_found"),
+					mlog.String("imported_users", string(importedUsers)),
 				)
-				createDeactivated = true
+				createDeactivated = importedUsers == model.ImportedUsersInactive
 				user = &model.User{}
 				user.MakeNonNil()
 				user.SetDefaultNotifications()
@@ -451,8 +454,10 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 				return model.NewAppError("importUser", "app.user.get_by_username.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
 			if deactivateMissingUsers {
-				rctx.Logger().Info("User not found on destination during scoped import; creating as deactivated to preserve post authorship", mlog.String("username", *data.Username))
-				createDeactivated = true
+				createDeactivated = importedUsers == model.ImportedUsersInactive
+				rctx.Logger().Info("User not found on destination during scoped import; creating to preserve post authorship",
+					mlog.String("username", *data.Username),
+					mlog.String("imported_users", string(importedUsers)))
 			}
 			user = &model.User{}
 			user.MakeNonNil()

@@ -34,6 +34,7 @@ Options
       --destination-team-name string      Map the source team in the export to an existing team on the destination server (by name/slug). Works with both channel-scoped and full-team exports. Mutually exclusive with --destination-team-id.
       --extract-content                   If this is set, document attachments will be extracted and indexed during the import process. It is advised to disable it to improve performance. (default true)
   -h, --help                              help for process
+      --imported-users string             Required for a scoped (team- or channel-scoped) export: the access posture for accounts the import creates. Use "active" when importing into a new instance these users are moving to, so they can sign in. Use "inactive" when importing into an existing instance, so accounts created from weak identity matches stay deactivated until an admin reviews them. Users deactivated on the source stay deactivated either way, and accounts that already exist on the destination are not affected. Ignored for a full-instance import.
       --skip-preflight                    Skip SSO provider configuration checks. By default the import fails if an auth provider present in the export is not enabled on the destination. Use this flag only after reviewing the preflight error and accepting the risk.
       --workers int                       The number of concurrent import worker goroutines. Controls database load during import. When set to 0 (default), uses the number of CPUs available. Maximum allowed is 4x the CPU count.
 

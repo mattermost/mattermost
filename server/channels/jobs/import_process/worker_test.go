@@ -149,6 +149,7 @@ func TestMakeWorkerLocalModeOptsMapping(t *testing.T) {
 				"destination_team_name":    "engineering",
 				"destination_channel_name": "town-square",
 				"skip_preflight":           "true",
+				"imported_users":           "active",
 			},
 		}
 		expectWorkerJobCompletion(mockStore, job)
@@ -158,7 +159,39 @@ func TestMakeWorkerLocalModeOptsMapping(t *testing.T) {
 		require.Equal(t, "engineering", app.receivedOpts.DestinationTeamName)
 		require.Equal(t, "town-square", app.receivedOpts.DestinationChannelName)
 		require.True(t, app.receivedOpts.SkipPreflight)
+		require.Equal(t, model.ImportedUsersActive, app.receivedOpts.ImportedUsers)
 		require.False(t, app.removeFileCalled, "local_mode imports must not delete the source file")
+	})
+
+	// The job-data key is the only thing tying the mmctl flag to the importer. A
+	// typo here would silently drop the operator's choice, and a scoped import
+	// would then fail with "choice required" despite the flag having been passed.
+	t.Run("imported_users maps both values", func(t *testing.T) {
+		for _, posture := range []model.ImportedUsersPosture{model.ImportedUsersActive, model.ImportedUsersInactive} {
+			t.Run(string(posture), func(t *testing.T) {
+				jobServer, mockStore := makeTestJobServer(t)
+				expectJobDataUpdate(mockStore)
+
+				app := newFakeImportApp(t)
+				worker := MakeWorker(jobServer, app)
+
+				zipPath := makeImportZip(t, 0)
+				job := &model.Job{
+					Id: model.NewId(),
+					Data: map[string]string{
+						"import_file":    zipPath,
+						"local_mode":     "true",
+						"imported_users": string(posture),
+					},
+				}
+				expectWorkerJobCompletion(mockStore, job)
+
+				worker.DoJob(job)
+
+				require.Equal(t, posture, app.receivedOpts.ImportedUsers)
+				require.True(t, app.receivedOpts.ImportedUsers.IsValid())
+			})
+		}
 	})
 
 	t.Run("missing optional fields leave opts at zero values", func(t *testing.T) {
@@ -181,6 +214,8 @@ func TestMakeWorkerLocalModeOptsMapping(t *testing.T) {
 		require.Empty(t, app.receivedOpts.DestinationChannelName)
 		require.False(t, app.receivedOpts.SkipPreflight)
 		require.Equal(t, 0, app.receivedOpts.ResumeFromLine)
+		require.Equal(t, model.ImportedUsersUnset, app.receivedOpts.ImportedUsers,
+			"an absent choice must stay unset so the importer can require it for a scoped archive")
 	})
 }
 

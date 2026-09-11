@@ -133,6 +133,7 @@ func init() {
 	ImportProcessCmd.Flags().String("destination-channel-name", "", "Map the source channel in the export to a different channel name on the destination server (by name). Only valid for channel-scoped exports. Mutually exclusive with --destination-channel-id.")
 	ImportProcessCmd.Flags().String("destination-channel-id", "", "Map the source channel in the export to a different channel on the destination server (by ID). Only valid for channel-scoped exports. Mutually exclusive with --destination-channel-name.")
 	ImportProcessCmd.Flags().Bool("skip-preflight", false, "Skip SSO provider configuration checks. By default the import fails if an auth provider present in the export is not enabled on the destination. Use this flag only after reviewing the preflight error and accepting the risk.")
+	ImportProcessCmd.Flags().String("imported-users", "", "Required for a scoped (team- or channel-scoped) export: the access posture for accounts the import creates. Use \"active\" when importing into a new instance these users are moving to, so they can sign in. Use \"inactive\" when importing into an existing instance, so accounts created from weak identity matches stay deactivated until an admin reviews them. Users deactivated on the source stay deactivated either way, and accounts that already exist on the destination are not affected. Ignored for a full-instance import.")
 
 	ImportListCmd.AddCommand(
 		ImportListAvailableCmd,
@@ -331,6 +332,16 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 	destinationTeamNameID, _ := command.Flags().GetString("destination-team-id")
 	skipPreflight, _ := command.Flags().GetBool("skip-preflight")
 
+	// Only the value is validated here. Whether a choice is *required* depends on
+	// whether the archive is scoped, which only the server can see — it enforces
+	// that at the version line. Catching a typo locally still beats having the job
+	// fail server-side with the flag silently dropped.
+	importedUsersFlag, _ := command.Flags().GetString("imported-users")
+	importedUsers := model.ImportedUsersPosture(importedUsersFlag)
+	if importedUsers != model.ImportedUsersUnset && !importedUsers.IsValid() {
+		return fmt.Errorf("invalid --imported-users value %q: must be %q or %q", importedUsers, model.ImportedUsersActive, model.ImportedUsersInactive)
+	}
+
 	if destinationTeamName != "" && destinationTeamNameID != "" {
 		return fmt.Errorf("--destination-team-name and --destination-team-id are mutually exclusive")
 	}
@@ -378,6 +389,9 @@ func importProcessCmdF(c client.Client, command *cobra.Command, args []string) e
 	}
 	if skipPreflight {
 		jobData["skip_preflight"] = "true"
+	}
+	if importedUsers != model.ImportedUsersUnset {
+		jobData["imported_users"] = string(importedUsers)
 	}
 
 	// Check for a previous failed import of the same file with a checkpoint.

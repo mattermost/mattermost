@@ -6781,6 +6781,10 @@
     "translation": "The specified team was not found."
   },
   {
+    "id": "app.export.export_version.scope_marshal.error",
+    "translation": "Failed to write the team and channel scope into the export. Aborting rather than producing an archive that would import as a full-instance restore."
+  },
+  {
     "id": "app.export.export_attachment.copy_file.error",
     "translation": "Failed to copy file during export."
   },
@@ -6999,6 +7003,10 @@
   {
     "id": "app.import.bulk_import.file_scan.error",
     "translation": "Error reading import data file."
+  },
+  {
+    "id": "app.import.bulk_import.imported_users_choice_required.error",
+    "translation": "This is a scoped export, so --imported-users must be set to either \"active\" or \"inactive\"; there is no safe default. Use --imported-users=active when importing into a new instance that these users are moving to, so they can sign in — otherwise every account the import creates is deactivated and nobody, including SSO users, can log in until an administrator reactivates them one by one. Use --imported-users=inactive when importing into an existing instance that already holds other people's content, so accounts created from weak username or email matches stay deactivated until an administrator reviews them. Either way, users who were deactivated on the source server stay deactivated, and accounts that already exist on the destination are matched rather than created and so are not affected by this choice."
   },
   {
     "id": "app.import.bulk_import.json_decode.error",

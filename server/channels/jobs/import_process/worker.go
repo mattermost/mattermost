@@ -179,6 +179,7 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 			DestinationTeamName:    job.Data["destination_team_name"],
 			DestinationChannelName: job.Data["destination_channel_name"],
 			SkipPreflight:          job.Data["skip_preflight"] == "true",
+			ImportedUsers:          model.ImportedUsersPosture(job.Data["imported_users"]),
 			ResumeFromLine:         resumeFromLine,
 			OnCheckpoint:           onCheckpoint,
 		}

@@ -36,10 +36,14 @@ type VersionInfoImportData struct {
 }
 
 // ExportScopeAdditional is written into the version line's Additional field
-// when the export is scoped to a single team or channel. The import pipeline
-// reads this to set sourceTeamName (for --destination-team remapping) and to
-// enable deactivateMissingUsers mode, where users absent from the dest become
-// deactivated shell accounts rather than fresh active ones.
+// whenever the export is scoped to one or more teams, optionally narrowed to
+// named channels. Both fields carry comma-separated name sets. The import
+// pipeline reads this to set sourceTeamName/sourceChannelName (for
+// --destination-team and --destination-channel remapping) and to enable scoped
+// mode, in which users absent from the destination are created as shells rather
+// than treated as a fatal dangling reference. Whether those shells arrive active
+// or deactivated is the operator's --imported-users choice, which scoped mode
+// makes mandatory; see model.ImportedUsersPosture.
 type ExportScopeAdditional struct {
 	TeamName    string `json:"team_name,omitempty"`
 	ChannelName string `json:"channel_name,omitempty"`

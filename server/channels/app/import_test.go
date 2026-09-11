@@ -76,42 +76,42 @@ func TestImportImportLine(t *testing.T) {
 		Type: "gibberish",
 	}
 
-	err := th.App.importLine(th.Context, line, false, false, "", &imports.ImportReport{})
+	err := th.App.importLine(th.Context, line, false, false, model.ImportedUsersUnset, "", &imports.ImportReport{})
 	require.NotNil(t, err, "Expected an error when importing a line with invalid type.")
 
 	// Try import line with team type but nil team.
 	line.Type = "team"
-	err = th.App.importLine(th.Context, line, false, false, "", &imports.ImportReport{})
+	err = th.App.importLine(th.Context, line, false, false, model.ImportedUsersUnset, "", &imports.ImportReport{})
 	require.NotNil(t, err, "Expected an error when importing a line of type team with a nil team.")
 
 	// Try import line with channel type but nil channel.
 	line.Type = "channel"
-	err = th.App.importLine(th.Context, line, false, false, "", &imports.ImportReport{})
+	err = th.App.importLine(th.Context, line, false, false, model.ImportedUsersUnset, "", &imports.ImportReport{})
 	require.NotNil(t, err, "Expected an error when importing a line with type channel with a nil channel.")
 
 	// Try import line with user type but nil user.
 	line.Type = "user"
-	err = th.App.importLine(th.Context, line, false, false, "", &imports.ImportReport{})
+	err = th.App.importLine(th.Context, line, false, false, model.ImportedUsersUnset, "", &imports.ImportReport{})
 	require.NotNil(t, err, "Expected an error when importing a line with type user with a nil user.")
 
 	// Try import line with post type but nil post.
 	line.Type = "post"
-	err = th.App.importLine(th.Context, line, false, false, "", &imports.ImportReport{})
+	err = th.App.importLine(th.Context, line, false, false, model.ImportedUsersUnset, "", &imports.ImportReport{})
 	require.NotNil(t, err, "Expected an error when importing a line with type post with a nil post.")
 
 	// Try import line with direct_channel type but nil direct_channel.
 	line.Type = "direct_channel"
-	err = th.App.importLine(th.Context, line, false, false, "", &imports.ImportReport{})
+	err = th.App.importLine(th.Context, line, false, false, model.ImportedUsersUnset, "", &imports.ImportReport{})
 	require.NotNil(t, err, "Expected an error when importing a line with type direct_channel with a nil direct_channel.")
 
 	// Try import line with direct_post type but nil direct_post.
 	line.Type = "direct_post"
-	err = th.App.importLine(th.Context, line, false, false, "", &imports.ImportReport{})
+	err = th.App.importLine(th.Context, line, false, false, model.ImportedUsersUnset, "", &imports.ImportReport{})
 	require.NotNil(t, err, "Expected an error when importing a line with type direct_post with a nil direct_post.")
 
 	// Try import line with scheme type but nil scheme.
 	line.Type = "scheme"
-	err = th.App.importLine(th.Context, line, false, false, "", &imports.ImportReport{})
+	err = th.App.importLine(th.Context, line, false, false, model.ImportedUsersUnset, "", &imports.ImportReport{})
 	require.NotNil(t, err, "Expected an error when importing a line with type scheme with a nil scheme.")
 }
 
@@ -824,7 +824,7 @@ func TestDeactivateMissingUsersMode(t *testing.T) {
 {"type":"user","user":{"username":"` + existingUser.Username + `","email":"` + existingUser.Email + `","teams":[{"name":"` + teamName + `","channels":[{"name":"` + channelName + `"}]}]}}
 {"type":"user","user":{"username":"` + newUsername + `","email":"` + newUsername + `@example.com","teams":[{"name":"` + teamName + `","channels":[{"name":"` + channelName + `"}]}]}}`
 
-	_, appErr := th.App.BulkImportWithPath(th.Context, strings.NewReader(data), nil, false, false, 1, "")
+	_, appErr := th.App.BulkImportWithPathAndOpts(th.Context, strings.NewReader(data), nil, false, false, 1, "", model.BulkImportOpts{ImportedUsers: model.ImportedUsersInactive})
 	require.Nil(t, appErr)
 
 	// The existing user should still exist.
@@ -856,7 +856,7 @@ func TestRewriteTeamNameEndToEnd(t *testing.T) {
 {"type":"channel","channel":{"type":"O","display_name":"Test Channel","team":"` + srcTeamName + `","name":"` + channelName + `"}}
 {"type":"user","user":{"username":"` + username + `","email":"` + username + `@example.com","teams":[{"name":"` + srcTeamName + `","channels":[{"name":"` + channelName + `"}]}]}}`
 
-	opts := model.BulkImportOpts{DestinationTeamName: destTeam.Name}
+	opts := model.BulkImportOpts{ImportedUsers: model.ImportedUsersInactive, DestinationTeamName: destTeam.Name}
 	_, appErr := th.App.BulkImportWithPathAndOpts(th.Context, strings.NewReader(data), nil, false, false, 1, "", opts)
 	require.Nil(t, appErr)
 
@@ -1204,7 +1204,7 @@ func TestPreCreateSSOUser(t *testing.T) {
 			AuthService: &authService,
 			AuthData:    authData(ad),
 		}
-		appErr := th.App.preCreateSSOUser(th.Context, data, false)
+		appErr := th.App.preCreateSSOUser(th.Context, data, false, model.ImportedUsersUnset)
 		require.Nil(t, appErr)
 
 		// Verify no duplicate was created.
@@ -1229,7 +1229,7 @@ func TestPreCreateSSOUser(t *testing.T) {
 			AuthService: &authService,
 			AuthData:    authData(ad),
 		}
-		appErr := th.App.preCreateSSOUser(th.Context, data, false)
+		appErr := th.App.preCreateSSOUser(th.Context, data, false, model.ImportedUsersUnset)
 		require.Nil(t, appErr)
 
 		updated, err := th.App.Srv().Store().User().GetByUsername(user.Username)
@@ -1250,7 +1250,7 @@ func TestPreCreateSSOUser(t *testing.T) {
 			AuthService: &authService,
 			AuthData:    authData(ad),
 		}
-		appErr := th.App.preCreateSSOUser(th.Context, data, false)
+		appErr := th.App.preCreateSSOUser(th.Context, data, false, model.ImportedUsersUnset)
 		require.Nil(t, appErr)
 
 		created, err := th.App.Srv().Store().User().GetByUsername(username)
@@ -1275,7 +1275,7 @@ func TestPreCreateSSOUser(t *testing.T) {
 			AuthService: &authService,
 			AuthData:    authData(ad),
 		}
-		appErr := th.App.preCreateSSOUser(th.Context, data, true)
+		appErr := th.App.preCreateSSOUser(th.Context, data, true, model.ImportedUsersInactive)
 		require.Nil(t, appErr)
 
 		created, err := th.App.Srv().Store().User().GetByUsername(username)
@@ -1300,7 +1300,7 @@ func TestPreCreateSSOUser(t *testing.T) {
 			AuthData:    authData(ad),
 			DeleteAt:    &historical,
 		}
-		appErr := th.App.preCreateSSOUser(th.Context, data, true)
+		appErr := th.App.preCreateSSOUser(th.Context, data, true, model.ImportedUsersInactive)
 		require.Nil(t, appErr)
 
 		created, err := th.App.Srv().Store().User().GetByUsername(username)
@@ -1319,7 +1319,7 @@ func TestPreCreateSSOUser(t *testing.T) {
 			AuthService: &authService,
 			AuthData:    authData(ad),
 		}
-		appErr := th.App.preCreateSSOUser(th.Context, data, false)
+		appErr := th.App.preCreateSSOUser(th.Context, data, false, model.ImportedUsersUnset)
 		require.Nil(t, appErr)
 
 		created, err := th.App.Srv().Store().User().GetByUsername(username)
@@ -1338,7 +1338,7 @@ func TestPreCreateSSOUser(t *testing.T) {
 			AuthService: &authService,
 			AuthData:    authData(ad),
 		}
-		appErr := th.App.preCreateSSOUser(th.Context, data, false)
+		appErr := th.App.preCreateSSOUser(th.Context, data, false, model.ImportedUsersUnset)
 		require.NotNil(t, appErr)
 	})
 
@@ -1351,7 +1351,7 @@ func TestPreCreateSSOUser(t *testing.T) {
 			AuthService: &authService,
 			AuthData:    authData(ad),
 		}
-		appErr := th.App.preCreateSSOUser(th.Context, data, false)
+		appErr := th.App.preCreateSSOUser(th.Context, data, false, model.ImportedUsersUnset)
 		require.NotNil(t, appErr)
 	})
 
@@ -1369,7 +1369,7 @@ func TestPreCreateSSOUser(t *testing.T) {
 			AuthService: &authService, // ldap
 			AuthData:    authData(ldapData),
 		}
-		appErr := th.App.preCreateSSOUser(th.Context, data, false)
+		appErr := th.App.preCreateSSOUser(th.Context, data, false, model.ImportedUsersUnset)
 		require.Nil(t, appErr)
 
 		// Auth_service should still be saml, not ldap.
@@ -1397,7 +1397,7 @@ func TestPreCreateSSOUser(t *testing.T) {
 			AuthService: &authService,
 			AuthData:    authData(ad),
 		}
-		appErr := th.App.preCreateSSOUser(th.Context, data, true)
+		appErr := th.App.preCreateSSOUser(th.Context, data, true, model.ImportedUsersInactive)
 		require.NotNil(t, appErr, "fresh identity creation should report the username collision")
 
 		unchanged, err := th.App.Srv().Store().User().GetByUsername(destUser.Username)
@@ -1417,7 +1417,7 @@ func TestPreCreateSSOUser(t *testing.T) {
 			AuthService: &authService,
 			AuthData:    authData(ad),
 		}
-		appErr := th.App.preCreateSSOUser(th.Context, data, true)
+		appErr := th.App.preCreateSSOUser(th.Context, data, true, model.ImportedUsersInactive)
 		require.Nil(t, appErr)
 
 		created, err := th.App.Srv().Store().User().GetByUsername(username)

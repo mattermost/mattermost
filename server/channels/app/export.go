@@ -332,9 +332,17 @@ func (a *App) exportVersion(writer io.Writer, teamNames []string, channelNames [
 			TeamName:    strings.Join(teamNames, ","),
 			ChannelName: strings.Join(channelNames, ","),
 		}
-		if additional, err := json.Marshal(scope); err == nil {
-			info.Additional = additional
+		// This blob is the contract the whole scoped import keys off: its absence
+		// means "full instance", where every user missing from the destination is
+		// fatal and none of the scoped behavior applies. Emitting an unscoped
+		// archive in response to a scoped request must therefore fail the export
+		// rather than be silently downgraded.
+		additional, err := json.Marshal(scope)
+		if err != nil {
+			return model.NewAppError("exportVersion", "app.export.export_version.scope_marshal.error",
+				nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		info.Additional = additional
 	}
 
 	versionLine := &imports.LineImportData{

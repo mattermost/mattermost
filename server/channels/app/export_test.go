@@ -2861,3 +2861,63 @@ func TestImportLineFromUserMagicLinkSuppression(t *testing.T) {
 		assert.Nil(t, line.User.AuthService, "email user must have nil AuthService on export")
 	})
 }
+
+// The scope blob on the version line is the contract the entire scoped import
+// keys off: its absence means "full instance", where every user missing from the
+// destination is fatal and none of the scoped behavior applies. These assertions
+// pin the shape of that blob, including that an unscoped export carries none.
+func TestExportVersionScopeMetadata(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	scopeOf := func(t *testing.T, teamNames, channelNames []string) *imports.VersionInfoImportData {
+		t.Helper()
+		var buf bytes.Buffer
+		appErr := th.App.exportVersion(&buf, teamNames, channelNames)
+		require.Nil(t, appErr)
+
+		var line imports.LineImportData
+		require.NoError(t, json.Unmarshal(buf.Bytes(), &line))
+		require.Equal(t, "version", line.Type)
+		require.NotNil(t, line.Info)
+		return line.Info
+	}
+
+	t.Run("unscoped export carries no scope metadata", func(t *testing.T) {
+		info := scopeOf(t, nil, nil)
+		assert.Empty(t, info.Additional, "a full-instance export must not claim a scope")
+	})
+
+	t.Run("team scope is recorded", func(t *testing.T) {
+		info := scopeOf(t, []string{"engineering"}, nil)
+		require.NotEmpty(t, info.Additional)
+
+		var scope imports.ExportScopeAdditional
+		require.NoError(t, json.Unmarshal(info.Additional, &scope))
+		assert.Equal(t, "engineering", scope.TeamName)
+		assert.Empty(t, scope.ChannelName)
+	})
+
+	t.Run("multi-team and multi-channel scopes are comma-separated", func(t *testing.T) {
+		info := scopeOf(t, []string{"engineering", "design"}, []string{"town-square", "off-topic"})
+		require.NotEmpty(t, info.Additional)
+
+		var scope imports.ExportScopeAdditional
+		require.NoError(t, json.Unmarshal(info.Additional, &scope))
+		assert.Equal(t, "engineering,design", scope.TeamName)
+		assert.Equal(t, "town-square,off-topic", scope.ChannelName)
+
+		// splitTrimNames on the import side has to round-trip this back to the
+		// same sets, since the remap guards count them to detect ambiguity.
+		assert.Equal(t, []string{"engineering", "design"}, splitTrimNames(scope.TeamName))
+		assert.Equal(t, []string{"town-square", "off-topic"}, splitTrimNames(scope.ChannelName))
+	})
+
+	t.Run("channel scope without a team scope is not representable", func(t *testing.T) {
+		// BulkExport rejects this combination up front; exportVersion mirrors that
+		// by keying the blob off the team filter, so a channel-only call emits no
+		// scope rather than a scope the importer could not act on.
+		info := scopeOf(t, nil, []string{"town-square"})
+		assert.Empty(t, info.Additional)
+	})
+}

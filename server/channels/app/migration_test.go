@@ -8,6 +8,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"io"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -107,6 +108,16 @@ func channelScopedJSONL(t *testing.T, teamName, chanName string, postAuthors []s
 	}
 
 	return strings.NewReader(sb.String())
+}
+
+// scopedBulkImport runs a scoped archive through the importer with an explicit
+// access posture. A scoped import refuses to run without one (there is no safe
+// default — see model.ImportedUsersPosture), so tests that predate the choice pass
+// model.ImportedUsersInactive, which is the behavior their assertions were written
+// against.
+func scopedBulkImport(t *testing.T, app *App, rctx request.CTX, r io.Reader, posture model.ImportedUsersPosture) (int, *model.AppError) {
+	t.Helper()
+	return app.BulkImportWithPathAndOpts(rctx, r, nil, false, true, 1, "", model.BulkImportOpts{ImportedUsers: posture})
 }
 
 // createUserInDB creates a user directly in the test server's DB and returns it.
@@ -309,7 +320,7 @@ func TestChannelImportAllUsersPresent(t *testing.T) {
 
 	reader := channelScopedJSONL(t, teamName, chanName, []string{user1, user2}, []string{user1, user2})
 
-	lineNum, appErr := th.App.BulkImport(th.Context, reader, nil, false, 1)
+	lineNum, appErr := scopedBulkImport(t, th.App, th.Context, reader, model.ImportedUsersInactive)
 	assert.Nil(t, appErr, "import must succeed (failed at line %d)", lineNum)
 	assert.Equal(t, 2, postCountInChannel(t, th, th.Context, teamName, chanName))
 }
@@ -339,7 +350,7 @@ func TestChannelImportMissingUsersCreatedDeactivated(t *testing.T) {
 		[]string{presentUser, missingUser},
 	)
 
-	lineNum, appErr := th.App.BulkImport(th.Context, reader, nil, false, 1)
+	lineNum, appErr := scopedBulkImport(t, th.App, th.Context, reader, model.ImportedUsersInactive)
 	assert.Nil(t, appErr, "import must not error when some post authors are absent (failed at line %d)", lineNum)
 	// Both posts must land: missingUser is created as a deactivated shell account.
 	assert.Equal(t, 2, postCountInChannel(t, th, th.Context, teamName, chanName),
@@ -368,7 +379,7 @@ func TestChannelImportAllMissingUsersCreatedDeactivated(t *testing.T) {
 	// No users pre-created — ghost user is entirely absent from the dest DB.
 	reader := channelScopedJSONL(t, teamName, chanName, []string{ghostUser}, []string{ghostUser})
 
-	lineNum, appErr := th.App.BulkImport(th.Context, reader, nil, false, 1)
+	lineNum, appErr := scopedBulkImport(t, th.App, th.Context, reader, model.ImportedUsersInactive)
 	assert.Nil(t, appErr, "import must succeed even when all post authors are absent (failed at line %d)", lineNum)
 	// ghostUser's post must land; ghostUser is created as deactivated.
 	assert.Equal(t, 1, postCountInChannel(t, th, th.Context, teamName, chanName),
@@ -530,7 +541,7 @@ func TestChannelImportDestinationTeamRemap(t *testing.T) {
 		false,
 		1,
 		"",
-		model.BulkImportOpts{DestinationTeamName: destTeamName},
+		model.BulkImportOpts{ImportedUsers: model.ImportedUsersInactive, DestinationTeamName: destTeamName},
 	)
 	require.Nil(t, appErr)
 
@@ -626,7 +637,7 @@ func TestTeamOnlyImportDestinationTeamRemap(t *testing.T) {
 		false,
 		1,
 		"",
-		model.BulkImportOpts{DestinationTeamName: destTeamName},
+		model.BulkImportOpts{ImportedUsers: model.ImportedUsersInactive, DestinationTeamName: destTeamName},
 	)
 	require.Nil(t, appErr)
 
@@ -874,7 +885,7 @@ func TestExportEmptyChannelRoundTrip(t *testing.T) {
 
 	// InitBasic ensures a system admin exists; no users need pre-creating for an empty channel.
 	th = Setup(t).InitBasic(t)
-	_, appErr = th.App.BulkImport(th.Context, bytes.NewReader(exportBytes), nil, false, 1)
+	_, appErr = scopedBulkImport(t, th.App, th.Context, bytes.NewReader(exportBytes), model.ImportedUsersInactive)
 	require.Nil(t, appErr, "importing an empty-channel export must not error")
 
 	assert.Equal(t, 0, postCountInChannel(t, th, th.Context, teamName, chanName))
@@ -965,7 +976,7 @@ func TestChannelImportReplyFromMissingUserSkipped(t *testing.T) {
 		},
 	}))
 
-	_, appErr := th.App.BulkImport(th.Context, strings.NewReader(sb.String()), nil, false, 1)
+	_, appErr := scopedBulkImport(t, th.App, th.Context, strings.NewReader(sb.String()), model.ImportedUsersInactive)
 	require.Nil(t, appErr, "import must succeed even when reply author is absent")
 
 	// Only the root post (1), not the reply (0 extra rows).
@@ -1037,7 +1048,7 @@ func TestChannelImportPostForMissingChannelSkipped(t *testing.T) {
 		},
 	}))
 
-	_, appErr := th.App.BulkImport(th.Context, strings.NewReader(sb.String()), nil, false, 1)
+	_, appErr := scopedBulkImport(t, th.App, th.Context, strings.NewReader(sb.String()), model.ImportedUsersInactive)
 	require.Nil(t, appErr, "import must not abort when a post references a channel missing on the destination")
 
 	assert.Equal(t, 1, postCountInChannel(t, th, th.Context, teamName, realChanName),
@@ -1111,7 +1122,7 @@ func TestChannelImportSkipsLastAdminDemotion(t *testing.T) {
 		},
 	}))
 
-	_, appErr := th.App.BulkImport(th.Context, strings.NewReader(sb.String()), nil, false, 1)
+	_, appErr := scopedBulkImport(t, th.App, th.Context, strings.NewReader(sb.String()), model.ImportedUsersInactive)
 	require.Nil(t, appErr, "import must not abort when the source data would demote the destination's last system admin")
 
 	// The admin must still be an admin — the role update was skipped, not applied.
@@ -1189,7 +1200,7 @@ func TestChannelImportPreservesSourceDeleteAt(t *testing.T) {
 		},
 	}))
 
-	_, appErr := th.App.BulkImport(th.Context, strings.NewReader(sb.String()), nil, false, 1)
+	_, appErr := scopedBulkImport(t, th.App, th.Context, strings.NewReader(sb.String()), model.ImportedUsersInactive)
 	require.Nil(t, appErr, "import must succeed")
 
 	u, appErr2 := th.App.GetUserByUsername(username)
@@ -1230,7 +1241,7 @@ func TestChannelMigrationPostCountExact(t *testing.T) {
 	// Ensure the email also matches so the user record in the export updates gracefully.
 	_ = basicEmail
 
-	_, appErr = th.App.BulkImport(th.Context, &buf, nil, false, 1)
+	_, appErr = scopedBulkImport(t, th.App, th.Context, &buf, model.ImportedUsersInactive)
 	require.Nil(t, appErr)
 
 	assert.Equal(t, srcCount, postCountInChannel(t, th, th.Context, teamName, chanName),
@@ -1275,7 +1286,7 @@ func TestChannelMigrationTimestampsPreserved(t *testing.T) {
 	th = Setup(t).InitBasic(t)
 	createUserInDB(t, th, basicUsername)
 
-	_, appErr = th.App.BulkImport(th.Context, bytes.NewReader(exportBytes), nil, false, 1)
+	_, appErr = scopedBulkImport(t, th.App, th.Context, bytes.NewReader(exportBytes), model.ImportedUsersInactive)
 	require.Nil(t, appErr)
 
 	team, appErr := th.App.GetTeamByName(teamName)
@@ -1336,7 +1347,7 @@ func TestChannelMigrationThreadStructurePreserved(t *testing.T) {
 	th = Setup(t).InitBasic(t)
 	createUserInDB(t, th, basicUsername)
 
-	_, appErr = th.App.BulkImport(th.Context, &buf, nil, false, 1)
+	_, appErr = scopedBulkImport(t, th.App, th.Context, &buf, model.ImportedUsersInactive)
 	require.Nil(t, appErr)
 
 	team, appErr := th.App.GetTeamByName(teamName)
@@ -1409,7 +1420,7 @@ func TestChannelMigrationMembershipPreserved(t *testing.T) {
 		createUserInDB(t, th, uname)
 	}
 
-	_, appErr = th.App.BulkImport(th.Context, &buf, nil, false, 1)
+	_, appErr = scopedBulkImport(t, th.App, th.Context, &buf, model.ImportedUsersInactive)
 	require.Nil(t, appErr)
 
 	team, appErr := th.App.GetTeamByName(teamName)
@@ -1460,7 +1471,7 @@ func TestChannelMigrationPrivateChannelPreserved(t *testing.T) {
 	th = Setup(t).InitBasic(t)
 	createUserInDB(t, th, basicUsername)
 
-	_, appErr = th.App.BulkImport(th.Context, &buf, nil, false, 1)
+	_, appErr = scopedBulkImport(t, th.App, th.Context, &buf, model.ImportedUsersInactive)
 	require.Nil(t, appErr)
 
 	team, appErr := th.App.GetTeamByName(teamName)
@@ -1496,12 +1507,12 @@ func TestChannelMigrationIdempotent(t *testing.T) {
 	th = Setup(t).InitBasic(t)
 	createUserInDB(t, th, basicUsername)
 
-	_, appErr = th.App.BulkImport(th.Context, bytes.NewReader(exportBytes), nil, false, 1)
+	_, appErr = scopedBulkImport(t, th.App, th.Context, bytes.NewReader(exportBytes), model.ImportedUsersInactive)
 	require.Nil(t, appErr)
 	countAfterFirst := postCountInChannel(t, th, th.Context, teamName, chanName)
 
 	// Second import of the same export — must not duplicate posts.
-	_, appErr = th.App.BulkImport(th.Context, bytes.NewReader(exportBytes), nil, false, 1)
+	_, appErr = scopedBulkImport(t, th.App, th.Context, bytes.NewReader(exportBytes), model.ImportedUsersInactive)
 	require.Nil(t, appErr)
 	countAfterSecond := postCountInChannel(t, th, th.Context, teamName, chanName)
 
@@ -1589,7 +1600,7 @@ func TestChannelMigrationWithAttachments(t *testing.T) {
 
 	// importPath must point to the data/ subdirectory; attachment paths in the
 	// JSONL are relative (e.g. "teams/.../file.txt") and are resolved against it.
-	_, appErr = th.App.BulkImportWithPath(th.Context, jsonlFile, nil, false, true, 1, filepath.Join(importDir, "data"))
+	_, appErr = th.App.BulkImportWithPathAndOpts(th.Context, jsonlFile, nil, false, true, 1, filepath.Join(importDir, "data"), model.BulkImportOpts{ImportedUsers: model.ImportedUsersInactive})
 	require.Nil(t, appErr, "import with attachments must succeed")
 
 	// The post must exist and have a file attached.
@@ -1762,7 +1773,7 @@ func TestDestinationTeamNewTeamUsesSlugAsDisplayName(t *testing.T) {
 		false,
 		1,
 		"",
-		model.BulkImportOpts{DestinationTeamName: destTeamName},
+		model.BulkImportOpts{ImportedUsers: model.ImportedUsersInactive, DestinationTeamName: destTeamName},
 	)
 	require.Nil(t, appErr)
 
@@ -1814,7 +1825,7 @@ func TestDestinationTeamHyphenatedSlugDisplayName(t *testing.T) {
 		false,
 		1,
 		"",
-		model.BulkImportOpts{DestinationTeamName: destTeamName},
+		model.BulkImportOpts{ImportedUsers: model.ImportedUsersInactive, DestinationTeamName: destTeamName},
 	)
 	require.Nil(t, appErr)
 
@@ -1878,7 +1889,7 @@ func TestDestinationTeamExistingTeamDisplayNamePreserved(t *testing.T) {
 		false,
 		1,
 		"",
-		model.BulkImportOpts{DestinationTeamName: destTeamName},
+		model.BulkImportOpts{ImportedUsers: model.ImportedUsersInactive, DestinationTeamName: destTeamName},
 	)
 	require.Nil(t, appErr)
 
@@ -1923,7 +1934,7 @@ func TestNoDestinationTeamPreservesSourceDisplayName(t *testing.T) {
 	}
 
 	// Import WITHOUT DestinationTeam — the team must land with its source display name intact.
-	_, appErr = th2.App.BulkImport(th2.Context, &buf, nil, false, 1)
+	_, appErr = scopedBulkImport(t, th2.App, th2.Context, &buf, model.ImportedUsersInactive)
 	require.Nil(t, appErr)
 
 	destTeam, appErr := th2.App.GetTeamByName(srcTeamName)
@@ -1978,7 +1989,7 @@ func TestDestinationTeamDisplayNameIdempotentAfterRename(t *testing.T) {
 		false,
 		1,
 		"",
-		model.BulkImportOpts{DestinationTeamName: destTeamName},
+		model.BulkImportOpts{ImportedUsers: model.ImportedUsersInactive, DestinationTeamName: destTeamName},
 	)
 	require.Nil(t, appErr)
 
@@ -1999,7 +2010,7 @@ func TestDestinationTeamDisplayNameIdempotentAfterRename(t *testing.T) {
 		false,
 		1,
 		"",
-		model.BulkImportOpts{DestinationTeamName: destTeamName},
+		model.BulkImportOpts{ImportedUsers: model.ImportedUsersInactive, DestinationTeamName: destTeamName},
 	)
 	require.Nil(t, appErr)
 
@@ -2129,7 +2140,7 @@ func TestChannelMigrationReactionsPreserved(t *testing.T) {
 		th2 = Setup(t)
 	}
 
-	_, appErr = th2.App.BulkImport(th2.Context, bytes.NewReader(exportBytes), nil, false, 1)
+	_, appErr = scopedBulkImport(t, th2.App, th2.Context, bytes.NewReader(exportBytes), model.ImportedUsersInactive)
 	require.Nil(t, appErr)
 
 	destTeam, appErr := th2.App.GetTeamByName(srcTeamName)
@@ -2286,7 +2297,7 @@ func TestTeamMigrationMultipleChannelsRoundTrip(t *testing.T) {
 		th2 = Setup(t)
 	}
 
-	_, appErr = th2.App.BulkImport(th2.Context, &buf, nil, false, 1)
+	_, appErr = scopedBulkImport(t, th2.App, th2.Context, &buf, model.ImportedUsersInactive)
 	require.Nil(t, appErr)
 
 	for chanName, srcCount := range srcCounts {
@@ -2521,7 +2532,7 @@ func TestBulkImportKeepsLinesAfterNonFatalWorkerError(t *testing.T) {
 
 	_, appErr := th.App.BulkImportWithPathAndOpts(
 		th.Context, strings.NewReader(sb.String()), nil, false, false, 4, "",
-		model.BulkImportOpts{},
+		model.BulkImportOpts{ImportedUsers: model.ImportedUsersInactive},
 	)
 	require.Nil(t, appErr, "collisions are non-fatal, so the import as a whole must succeed")
 
@@ -2700,7 +2711,7 @@ func TestDestinationChannelNameRemapsChannel(t *testing.T) {
 		false,
 		1,
 		"",
-		model.BulkImportOpts{DestinationChannelName: destChanName},
+		model.BulkImportOpts{ImportedUsers: model.ImportedUsersInactive, DestinationChannelName: destChanName},
 	)
 	require.Nil(t, appErr)
 
