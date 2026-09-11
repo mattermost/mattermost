@@ -672,12 +672,16 @@
 .admin-sidebar {
     z-index: 10;
     display: flex;
-    overflow: clip;
     width: 220px;
     min-height: 0;
     flex-direction: column;
     background: #111;
     grid-area: lhs;
+
+    // Clip vertically so the sidebar itself never scrolls, but stay visible
+    // horizontally so the header dropdown can paint past this 220px column.
+    overflow-x: visible;
+    overflow-y: clip;
 
     .filter-container {
         position: relative;
