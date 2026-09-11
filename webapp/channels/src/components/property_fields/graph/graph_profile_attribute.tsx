@@ -19,6 +19,7 @@ import {getUserPropertyFieldLabel} from 'utils/properties';
 
 import type {GlobalState} from 'types/store';
 
+import {asGraphValueIds} from '.';
 import {useGraphOptionNames} from './use_graph_option_names';
 
 type PluginDisplayNameProps = {
@@ -62,12 +63,7 @@ export default function GraphProfileAttribute({
     user,
 }: GraphProfileAttributeProps): JSX.Element {
     const {formatMessage} = useIntl();
-    let storedIds: string[] = [];
-    if (Array.isArray(storedValue)) {
-        storedIds = storedValue;
-    } else if (storedValue) {
-        storedIds = [storedValue];
-    }
+    const storedIds = asGraphValueIds(storedValue);
     const {labelForId} = useGraphOptionNames(attribute, storedIds);
 
     const isProtected = Boolean(attribute.attrs?.protected);

@@ -896,6 +896,16 @@ describe('SystemUserDetail', () => {
                 expect(fieldContainer()).not.toHaveTextContent(OMITTED_COPY);
             });
 
+            test('G1b: preserves a scalar graph id as the current selection', async () => {
+                mockPageAll.mockResolvedValue(REGIME_1);
+                renderDetail(buildGraphField({options: REGIME_1}), 'opt-1');
+
+                await waitForLoadingToFinish();
+
+                await waitFor(() => expect(trigger()).toHaveTextContent('Alpha'));
+                expect(trigger()).not.toHaveTextContent('opt-1');
+            });
+
             test('G2: prefetches an omitted graph field\'s options once on mount', async () => {
                 mockPageAll.mockResolvedValue(REGIME_1);
                 renderDetail(buildGraphField({options_omitted: true}), ['opt-1']);

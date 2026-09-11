@@ -35,6 +35,7 @@ import ConfirmManageUserSettingsModal from 'components/admin_console/system_user
 import ConfirmModal from 'components/confirm_modal';
 import FormError from 'components/form_error';
 import * as Menu from 'components/menu';
+import {asGraphValueIds} from 'components/property_fields/graph';
 import {useGraphOptionNames} from 'components/property_fields/graph/use_graph_option_names';
 import {AssignmentGraphPicker} from 'components/property_fields/hierarchical_value_menu';
 import SaveButton from 'components/save_button';
@@ -933,7 +934,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 );
             }
             case 'graph': {
-                const selectedValues = Array.isArray(value) ? value : [];
+                const selectedValues = asGraphValueIds(value);
                 return (
                     <AssignmentGraphPicker
                         field={field}
@@ -1435,9 +1436,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     const fieldName = field.name;
                     const originalValue = this.state.originalCpaValues[fieldId];
                     const nextValue = changes[1];
-                    const asIds = (v: string | string[] | undefined) => (Array.isArray(v) ? v : []);
                     const graphConfirm = (v: string | string[] | undefined) => {
-                        const ids = asIds(v);
+                        const ids = asGraphValueIds(v);
                         if (!ids.length) {
                             return this.formatEmptyValue();
                         }

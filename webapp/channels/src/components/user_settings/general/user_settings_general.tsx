@@ -22,6 +22,7 @@ import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import {getPluginDisplayName} from 'selectors/plugins';
 
+import {asGraphValueIds} from 'components/property_fields/graph';
 import GraphProfileAttribute from 'components/property_fields/graph/graph_profile_attribute';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
@@ -1500,7 +1501,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         active={this.props.activeSection === sectionName}
                         areAllSectionsInactive={this.props.activeSection === ''}
                         storedValue={stored}
-                        draftIds={Array.isArray(draft) ? draft : []}
+                        draftIds={asGraphValueIds(draft)}
                         onDraftIdsChange={(nextIds) => this.setState({
                             customAttributeValues: {
                                 ...this.state.customAttributeValues,
