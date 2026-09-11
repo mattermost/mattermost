@@ -150,4 +150,39 @@ func TestPropertyFieldLegacyColumnDualWrite(t *testing.T) {
 			PermissionOptions: sql.NullString{String: "admin", Valid: true},
 		})
 	})
+
+	t.Run("should update projected values from Permissions object", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    model.NewId(),
+			Name:       "Update Projected",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Field:  model.WriteOnly{Write: model.PermissionLevelAdmin},
+					Value:  model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelMember},
+					Option: model.ReadWrite{Read: model.PermissionLevelEveryone, Write: model.PermissionLevelSysadmin},
+				},
+			},
+		}
+
+		created, err := store.PropertyField().Create(field)
+		require.NoError(t, err)
+
+		// Update permissions
+		field.Permissions.Restrictions.Field.Write = model.PermissionLevelSysadmin
+		field.Permissions.Restrictions.Value.Write = model.PermissionLevelAdmin
+		field.Permissions.Restrictions.Option.Write = model.PermissionLevelMember
+
+		_, err = store.PropertyField().Update(created.GroupID, []*model.PropertyField{field}, nil)
+		require.NoError(t, err)
+
+		verifyCols(t, created.ID, legacyCols{
+			Protected:         false,
+			PermissionField:   sql.NullString{String: "sysadmin", Valid: true},
+			PermissionValues:  sql.NullString{String: "admin", Valid: true},
+			PermissionOptions: sql.NullString{String: "member", Valid: true},
+		})
+	})
 }

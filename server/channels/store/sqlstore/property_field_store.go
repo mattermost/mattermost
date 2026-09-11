@@ -456,6 +456,10 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 	deleteAtCase := sq.Case("id")
 	updatedByCase := sq.Case("id")
 	permissionsCase := sq.Case("id")
+	protectedCase := sq.Case("id")
+	permissionFieldCase := sq.Case("id")
+	permissionValuesCase := sq.Case("id")
+	permissionOptionsCase := sq.Case("id")
 	ids := make([]string, len(fields))
 
 	for i, field := range fields {
@@ -475,6 +479,11 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 
 		ids[i] = field.ID
 		whenID := sq.Expr("?", field.ID)
+		projected := model.ProjectLegacyPermissions(field)
+		protectedCase = protectedCase.When(whenID, sq.Expr("?::boolean", projected.Protected))
+		permissionFieldCase = permissionFieldCase.When(whenID, sq.Expr("?::permission_level", projected.PermissionField))
+		permissionValuesCase = permissionValuesCase.When(whenID, sq.Expr("?::permission_level", projected.PermissionValues))
+		permissionOptionsCase = permissionOptionsCase.When(whenID, sq.Expr("?::permission_level", projected.PermissionOptions))
 		nameCase = nameCase.When(whenID, sq.Expr("?::text", field.Name))
 		typeCase = typeCase.When(whenID, sq.Expr("?::property_field_type", field.Type))
 		attrsCase = attrsCase.When(whenID, sq.Expr("?::jsonb", storedFieldAttrs(field)))
@@ -501,6 +510,10 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 		Set("Attrs", attrsCase).
 		Set("TargetID", targetIDCase).
 		Set("TargetType", targetTypeCase).
+		Set("Protected", protectedCase).
+		Set("PermissionField", permissionFieldCase).
+		Set("PermissionValues", permissionValuesCase).
+		Set("PermissionOptions", permissionOptionsCase).
 		Set("LinkedFieldID", linkedFieldIDCase).
 		Set("UpdateAt", updateTime).
 		Set("DeleteAt", deleteAtCase).
