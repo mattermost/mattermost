@@ -5,6 +5,7 @@ package api4
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -89,6 +90,12 @@ func decodePropertyFieldOptions(c *Context, r *http.Request, callerName string) 
 	}
 	if !checkPropertyFieldOptionCount(c, len(options), callerName) {
 		return nil
+	}
+	for i, option := range options {
+		if option == nil {
+			c.SetInvalidParamWithDetails("property_field_options", fmt.Sprintf("options[%d] is not an option", i))
+			return nil
+		}
 	}
 	return options
 }

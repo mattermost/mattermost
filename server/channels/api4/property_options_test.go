@@ -461,6 +461,20 @@ func TestPropertyFieldOptions(t *testing.T) {
 		CheckErrorID(t, err, "api.property_field.options.empty_body.app_error")
 	})
 
+	t.Run("a null options-array element is refused", func(t *testing.T) {
+		fields := setupOptionFields(t, th, group.ID, graph, memberLevel, nil)
+
+		_, resp, err := th.SystemAdminClient.CreatePropertyFieldOptions(context.Background(), group.Name, template, fields.template.ID, []*model.PropertyFieldOption{nil})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.context.invalid_body_param.app_error")
+
+		_, resp, err = th.SystemAdminClient.PatchPropertyFieldOptions(context.Background(), group.Name, template, fields.template.ID, []*model.PropertyFieldOption{nil})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.context.invalid_body_param.app_error")
+	})
+
 	t.Run("a payload larger than a page is refused", func(t *testing.T) {
 		fields := setupOptionFields(t, th, group.ID, graph, memberLevel, nil)
 
