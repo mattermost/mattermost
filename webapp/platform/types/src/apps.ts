@@ -388,7 +388,7 @@ function isAppForm(v: unknown): v is AppForm {
     return true;
 }
 
-export type AppFormValue = string | AppSelectOption | AppSelectOption[] | boolean | null;
+export type AppFormValue = string | string[] | AppSelectOption | AppSelectOption[] | boolean | null;
 
 function isAppFormValue(v: unknown): v is AppFormValue {
     if (typeof v === 'string') {
@@ -404,7 +404,7 @@ function isAppFormValue(v: unknown): v is AppFormValue {
     }
 
     if (Array.isArray(v)) {
-        return v.every(isAppSelectOption);
+        return v.every((e) => typeof e === 'string' || isAppSelectOption(e));
     }
 
     return isAppSelectOption(v);
@@ -453,6 +453,12 @@ export type DateTimeConfig = {
     manual_time_entry?: boolean; // Allow text entry for time
 };
 
+export type MatrixConfig = {
+    rows: AppSelectOption[];
+    columns: AppSelectOption[];
+    row_selection?: 'multiple' | 'single';
+};
+
 // This should go in mattermost-redux
 export type AppField = {
 
@@ -493,6 +499,8 @@ export type AppField = {
     // Collapsible section config. A field of type 'collapsible' groups child
     // fields behind an expandable title and contributes no value of its own.
     collapsible_config?: CollapsibleConfig;
+    label_position?: 'before' | 'after';
+    matrix_config?: MatrixConfig;
 
     // Action button props
     action_button_url?: string;

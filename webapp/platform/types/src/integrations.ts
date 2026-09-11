@@ -221,6 +221,12 @@ export type DialogElement = {
 
         // Whether the section renders without a box outline. Omitted/false means bordered.
         borderless?: boolean;
+    label_position?: 'before' | 'after';
+
+    matrix_config?: {
+        rows: Array<{text: string; value: string}>;
+        columns: Array<{text: string; value: string}>;
+        row_selection?: 'multiple' | 'single';
     };
 
     // Action button configuration (type "action_button")
