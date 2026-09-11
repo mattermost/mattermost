@@ -113,7 +113,7 @@ Some distributions come with Git preinstalled but you'll most likely have to ins
 
 ### Install XCode
 
-Install [Xcode](https://apps.apple.com/us/app/xcode/id497799835?ls=1&mt=12) to build and run the app on iOS. Use Xcode 16 or later: the app targets iOS 16.4 (see `ios/Podfile`) and CI builds it on GitHub's `macos-15` and `macos-26` runners, so those are the versions the build is exercised against.
+Install [Xcode](https://apps.apple.com/us/app/xcode/id497799835?ls=1&mt=12) to build and run the app on iOS. The minimum required version is 16.
 
 After installing, accept the license agreement, either by launching Xcode once or by running:
 

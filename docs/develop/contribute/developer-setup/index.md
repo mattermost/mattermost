@@ -39,16 +39,10 @@ The web app isn't exposed directly, it's exposed via the server. So if both serv
 1. Install and run [Docker](https://www.docker.com/). If you don't want to use Docker, you can follow [this guide](#develop-mattermost-without-docker).
     - When running `docker` commands under WSL2, if you receive the error `The command 'docker' could not be found in this WSL 2 distro.` you may need to toggle the `Use the WSL 2 based engine` off and on within Docker Settings after installation.
     - Make sure that Docker has virtual file share access to the directory that you will clone the repository in
-    - On macOS, `brew install docker` installs only the Docker CLI, and puts the Compose plugin in `~/.docker/bin`, which isn't on your `PATH`. Since `make run-server` invokes `docker compose`, it fails until you fix this. Either install Docker Desktop instead:
+    - On macOS, install Docker Desktop. The `docker` Homebrew formula installs the CLI on its own, without the Compose plugin or a container engine, so `make run-server` fails when it invokes `docker compose`.
 
         ```sh
         brew install --cask docker-desktop
-        ```
-
-        or add the plugin directory to your `PATH`:
-
-        ```sh
-        echo 'export PATH="$HOME/.docker/bin:$PATH"' >> ~/.zshrc
         ```
 
 1. Install [Go](https://go.dev/).
