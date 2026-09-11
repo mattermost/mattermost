@@ -19,8 +19,9 @@ import {getUserPropertyFieldLabel} from 'utils/properties';
 
 import type {GlobalState} from 'types/store';
 
-import {asGraphValueIds} from '.';
 import {useGraphOptionNames} from './use_graph_option_names';
+
+import {asGraphValueIds} from '.';
 
 type PluginDisplayNameProps = {
     pluginId?: string;
