@@ -2071,6 +2071,81 @@ func TestBulkExportSingleChannel(t *testing.T) {
 		})
 		require.NotNil(t, appErr, "exporting a nonexistent channel should return an error")
 	})
+
+	t.Run("includes user who only reacted in the channel and never posted or joined", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		// reactionUser is in the team but never joined the channel and never posted.
+		reactionUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, reactionUser, th.BasicTeam)
+
+		// Create a post in the target channel by the regular member.
+		post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "post-to-react-to", UserId: th.BasicUser.Id}
+		post, _, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		// reactionUser reacts to the post — their only connection to the channel.
+		_, err := th.App.SaveReactionForPost(th.Context, &model.Reaction{
+			UserId:    reactionUser.Id,
+			PostId:    post.Id,
+			EmojiName: "thumbsup",
+		})
+		require.Nil(t, err)
+
+		var b bytes.Buffer
+		appErr = th.App.BulkExport(th.Context, &b, "somePath", nil, model.BulkExportOpts{
+			TeamName:    th.BasicTeam.Name,
+			ChannelName: th.BasicChannel.Name,
+		})
+		require.Nil(t, appErr)
+
+		lines := parseExportLines(t, &b)
+
+		exportedUsers := make(map[string]bool)
+		for _, ul := range lines["user"] {
+			user := ul["user"].(map[string]any)
+			exportedUsers[user["username"].(string)] = true
+		}
+		assert.True(t, exportedUsers[reactionUser.Username],
+			"user who only reacted in the channel should be included in the export")
+	})
+
+	t.Run("includes user who only follows a thread in the channel and never posted or joined", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		// followerUser is in the team but never joined the channel and never posted.
+		followerUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, followerUser, th.BasicTeam)
+
+		// Create a root post and a reply to make it a thread.
+		rootPost := &model.Post{ChannelId: th.BasicChannel.Id, Message: "thread-root", UserId: th.BasicUser.Id}
+		rootPost, _, appErr := th.App.CreatePost(th.Context, rootPost, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+		reply := &model.Post{ChannelId: th.BasicChannel.Id, Message: "thread-reply", UserId: th.BasicUser.Id, RootId: rootPost.Id}
+		_, _, appErr = th.App.CreatePost(th.Context, reply, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		// followerUser follows the thread — their only connection to the channel.
+		appErr = th.App.UpdateThreadFollowForUser(followerUser.Id, th.BasicTeam.Id, rootPost.Id, true)
+		require.Nil(t, appErr)
+
+		var b bytes.Buffer
+		appErr = th.App.BulkExport(th.Context, &b, "somePath", nil, model.BulkExportOpts{
+			TeamName:    th.BasicTeam.Name,
+			ChannelName: th.BasicChannel.Name,
+		})
+		require.Nil(t, appErr)
+
+		lines := parseExportLines(t, &b)
+
+		exportedUsers := make(map[string]bool)
+		for _, ul := range lines["user"] {
+			user := ul["user"].(map[string]any)
+			exportedUsers[user["username"].(string)] = true
+		}
+		assert.True(t, exportedUsers[followerUser.Username],
+			"user who only follows a thread in the channel should be included in the export")
+	})
 }
 
 func TestBulkExportSingleTeam(t *testing.T) {
