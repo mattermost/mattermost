@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"database/sql"
 	"encoding/json"
 	"testing"
 
@@ -107,21 +108,28 @@ func TestMigration000185(t *testing.T) {
 
 	// Verify: all fields (including soft-deleted) have new metadata.
 	for _, tc := range []struct {
-		id    string
-		label string
+		id     string
+		label  string
+		values string
 	}{
-		{fieldID1, "non-managed text field"},
-		{fieldID2, "non-managed select field"},
-		{fieldID3, "admin-managed field"},
-		{deletedFieldID, "soft-deleted non-managed field"},
+		{fieldID1, "non-managed text field", "member"},
+		{fieldID2, "non-managed select field", "member"},
+		{fieldID3, "admin-managed field", "sysadmin"},
+		{deletedFieldID, "soft-deleted non-managed field", "member"},
 	} {
 		var f struct {
-			ObjectType string `db:"objecttype"`
-			TargetType string `db:"targettype"`
+			ObjectType        string         `db:"objecttype"`
+			TargetType        string         `db:"targettype"`
+			PermissionField   sql.NullString `db:"permissionfield"`
+			PermissionValues  sql.NullString `db:"permissionvalues"`
+			PermissionOptions sql.NullString `db:"permissionoptions"`
 		}
-		require.NoError(t, master.Get(&f, "SELECT ObjectType, TargetType FROM PropertyFields WHERE ID = ?", tc.id))
+		require.NoError(t, master.Get(&f, "SELECT ObjectType, TargetType, PermissionField, PermissionValues, PermissionOptions FROM PropertyFields WHERE ID = ?", tc.id))
 		assert.Equal(t, "user", f.ObjectType, "%s ObjectType", tc.label)
 		assert.Equal(t, "system", f.TargetType, "%s TargetType", tc.label)
+		assert.Equal(t, "sysadmin", f.PermissionField.String, "%s PermissionField", tc.label)
+		assert.Equal(t, tc.values, f.PermissionValues.String, "%s PermissionValues", tc.label)
+		assert.Equal(t, "sysadmin", f.PermissionOptions.String, "%s PermissionOptions", tc.label)
 	}
 
 	// Verify: property value is unchanged (GroupID still references the same ID).
@@ -175,12 +183,18 @@ func TestMigration000185(t *testing.T) {
 	// Verify: fields reverted.
 	for _, fid := range []string{fieldID1, fieldID2, fieldID3, deletedFieldID} {
 		var f struct {
-			ObjectType string `db:"objecttype"`
-			TargetType string `db:"targettype"`
+			ObjectType        string         `db:"objecttype"`
+			TargetType        string         `db:"targettype"`
+			PermissionField   sql.NullString `db:"permissionfield"`
+			PermissionValues  sql.NullString `db:"permissionvalues"`
+			PermissionOptions sql.NullString `db:"permissionoptions"`
 		}
-		require.NoError(t, master.Get(&f, "SELECT ObjectType, TargetType FROM PropertyFields WHERE ID = ?", fid))
+		require.NoError(t, master.Get(&f, "SELECT ObjectType, TargetType, PermissionField, PermissionValues, PermissionOptions FROM PropertyFields WHERE ID = ?", fid))
 		assert.Equal(t, "", f.ObjectType, "field %s ObjectType should revert", fid)
 		assert.Equal(t, "", f.TargetType, "field %s TargetType should revert", fid)
+		assert.False(t, f.PermissionField.Valid, "field %s PermissionField should revert to NULL", fid)
+		assert.False(t, f.PermissionValues.Valid, "field %s PermissionValues should revert to NULL", fid)
+		assert.False(t, f.PermissionOptions.Valid, "field %s PermissionOptions should revert to NULL", fid)
 	}
 
 	// Verify: value still unchanged after down migration.
