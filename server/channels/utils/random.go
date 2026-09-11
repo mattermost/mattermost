@@ -31,9 +31,9 @@ func FillPseudoRandom(r *rand.Rand, b []byte) {
 	}
 }
 
-// RandomBytes returns n pseudo-random bytes drawn from an unpredictably seeded
+// PseudoRandomBytes returns n pseudo-random bytes drawn from an unpredictably seeded
 // source. Not cryptographically secure; for tests and benchmarks only.
-func RandomBytes(n int) []byte {
+func PseudoRandomBytes(n int) []byte {
 	b := make([]byte, n)
 	FillPseudoRandom(rand.New(rand.NewPCG(rand.Uint64(), rand.Uint64())), b)
 	return b

@@ -266,7 +266,7 @@ func generateInitialCorpus() error {
 		return err
 	}
 	for i := 0; i < 100; i++ {
-		data := utils.RandomBytes(25)
+		data := utils.PseudoRandomBytes(25)
 		err = os.WriteFile("./workdir/corpus"+strconv.Itoa(i), data, 0644)
 		if err != nil {
 			return err

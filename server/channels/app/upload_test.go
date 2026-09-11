@@ -150,7 +150,7 @@ func TestUploadData(t *testing.T) {
 	require.Nil(t, uploadSessionAppErr)
 	require.NotEmpty(t, us)
 
-	data := utils.RandomBytes(int(us.FileSize))
+	data := utils.PseudoRandomBytes(int(us.FileSize))
 
 	t.Run("write error", func(t *testing.T) {
 		rd := &io.LimitedReader{
@@ -308,7 +308,7 @@ func TestUploadDataConcurrent(t *testing.T) {
 	require.Nil(t, appErr)
 	require.NotEmpty(t, us)
 
-	data := utils.RandomBytes(int(us.FileSize))
+	data := utils.PseudoRandomBytes(int(us.FileSize))
 
 	var nErrs int32
 	var wg sync.WaitGroup
