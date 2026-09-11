@@ -16,7 +16,8 @@ import type {GlobalState, ActionFunc, ActionFuncAsync} from 'types/store';
 export function logPluginLoadFailure(manifest: PluginManifest, reason: 'load' | 'execution' | 'initialization' | 'timeout', error: unknown): ActionFuncAsync<boolean> {
     return async () => {
         try {
-            if (Client4.enableLogging) {
+            // Sample 5% of failures to limit reports from clients loading the same plugin.
+            if (Client4.enableLogging && Math.random() < 0.05) {
                 const summary = error instanceof Error ? error.message : 'unknown';
                 const message = `plugin_load_failed plugin_id=${manifest.id} plugin_version=${manifest.version} reason=${reason} error=${summary}`;
                 await Client4.logClientError(message.replace(/[^\x20-\x7E]/g, ' ').slice(0, 399), LogLevel.Error);

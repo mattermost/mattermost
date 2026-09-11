@@ -15,6 +15,7 @@ describe('logPluginLoadFailure', () => {
     beforeEach(() => {
         enableLogging = Client4.enableLogging;
         Client4.enableLogging = true;
+        jest.spyOn(Math, 'random').mockReturnValue(0);
         jest.spyOn(Client4, 'logClientError').mockResolvedValue({message: 'logged'});
     });
 
@@ -27,12 +28,19 @@ describe('logPluginLoadFailure', () => {
         return (logPluginLoadFailure(manifest, 'execution', error) as () => Promise<unknown>)();
     }
 
-    test('sends the plugin version and failure reason to the server', async () => {
+    test.each([0, 0.049999])('sends a sampled failure when the random value is %s', async (value) => {
+        jest.mocked(Math.random).mockReturnValue(value);
         await report();
         expect(Client4.logClientError).toHaveBeenCalledWith(
             'plugin_load_failed plugin_id=github plugin_version=2.8.0 reason=execution error=ReactCurrentOwner',
             LogLevel.Error,
         );
+    });
+
+    test.each([0.05, 0.5, 0.999999])('skips reporting when the random value is %s', async (value) => {
+        jest.mocked(Math.random).mockReturnValue(value);
+        await expect(report()).resolves.toEqual({data: true});
+        expect(Client4.logClientError).not.toHaveBeenCalled();
     });
 
     test('bounds the message and removes control characters', async () => {
@@ -46,6 +54,7 @@ describe('logPluginLoadFailure', () => {
         Client4.enableLogging = false;
         await report();
         expect(Client4.logClientError).not.toHaveBeenCalled();
+        expect(Math.random).not.toHaveBeenCalled();
     });
 
     test.each(['throw', 'reject'])('contains logging failures that %s', async (failure) => {
