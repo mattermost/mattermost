@@ -138,7 +138,7 @@ describe('HierarchicalValueMenu', () => {
             expect(maybeRow('Fighter Jet')).toBeNull();
         });
 
-        test('clicking the label expands a branch without selecting', async () => {
+        test('clicking the label selects a branch without expanding', async () => {
             mockPageAll.mockResolvedValue(hierarchy());
             const onSelectedIdsChange = jest.fn();
             renderMenu({onSelectedIdsChange});
@@ -147,8 +147,8 @@ describe('HierarchicalValueMenu', () => {
             await screen.findByRole('menuitemcheckbox', {name: 'Air Program'});
             await userEvent.click(labelOf('Air Program'));
 
-            expect(onSelectedIdsChange).not.toHaveBeenCalled();
-            expect(maybeRow('Fighter Jet')).not.toBeNull();
+            expect(onSelectedIdsChange).toHaveBeenCalledWith(['opt-air']);
+            expect(maybeRow('Fighter Jet')).toBeNull();
         });
 
         test('clicking the chevron expands a branch without selecting', async () => {
@@ -164,14 +164,14 @@ describe('HierarchicalValueMenu', () => {
             expect(maybeRow('Fighter Jet')).not.toBeNull();
         });
 
-        test('clicking the label again collapses the branch', async () => {
+        test('clicking the chevron again collapses the branch', async () => {
             mockPageAll.mockResolvedValue(hierarchy());
             renderMenu();
 
             await openMenu();
             await screen.findByRole('menuitemcheckbox', {name: 'Air Program'});
-            await userEvent.click(labelOf('Air Program'));
-            await userEvent.click(labelOf('Air Program'));
+            await userEvent.click(chevronOf('Air Program'));
+            await userEvent.click(chevronOf('Air Program'));
 
             expect(maybeRow('Fighter Jet')).toBeNull();
         });
@@ -199,7 +199,7 @@ describe('HierarchicalValueMenu', () => {
             expect(onSelectedIdsChange).toHaveBeenCalledWith(['opt-rotary']);
         });
 
-        test('clicking a branch row element itself expands rather than selects', async () => {
+        test('clicking a branch row element itself selects rather than expands', async () => {
             mockPageAll.mockResolvedValue(hierarchy());
             const onSelectedIdsChange = jest.fn();
             renderMenu({onSelectedIdsChange});
@@ -207,8 +207,8 @@ describe('HierarchicalValueMenu', () => {
             await openMenu();
             await userEvent.click(await screen.findByRole('menuitemcheckbox', {name: 'Air Program'}));
 
-            expect(onSelectedIdsChange).not.toHaveBeenCalled();
-            expect(maybeRow('Fighter Jet')).not.toBeNull();
+            expect(onSelectedIdsChange).toHaveBeenCalledWith(['opt-air']);
+            expect(maybeRow('Fighter Jet')).toBeNull();
         });
 
         test('unchecking a selected value removes only that id', async () => {
@@ -321,7 +321,7 @@ describe('HierarchicalValueMenu', () => {
 
             await openMenu();
             await screen.findByRole('menuitemcheckbox', {name: 'F-18 Program'});
-            await userEvent.click(labelOf('Air Program'));
+            await userEvent.click(chevronOf('Air Program'));
 
             expect(row('Air Program')).toHaveTextContent('1 inside');
         });
@@ -332,7 +332,7 @@ describe('HierarchicalValueMenu', () => {
 
             await openMenu();
             await screen.findAllByRole('menuitemcheckbox', {name: 'Crew Capsule'});
-            await userEvent.click(labelOf('Dragon'));
+            await userEvent.click(chevronOf('Dragon'));
 
             expect(row('Dragon')).toHaveTextContent('1 inside');
             expect(row('Dragon')).not.toHaveTextContent('2 inside');
@@ -344,7 +344,7 @@ describe('HierarchicalValueMenu', () => {
 
             await openMenu();
             await screen.findByRole('menuitemcheckbox', {name: 'F-18 Program'});
-            await userEvent.click(labelOf('Air Program'));
+            await userEvent.click(chevronOf('Air Program'));
 
             expect(row('Air Program')).toHaveTextContent('2 inside');
         });
@@ -384,7 +384,7 @@ describe('HierarchicalValueMenu', () => {
 
             await openMenu();
             await screen.findByRole('menuitemcheckbox', {name: 'F-18 Program'});
-            await userEvent.click(labelOf('Air Program'));
+            await userEvent.click(chevronOf('Air Program'));
 
             const describedBy = row('Air Program').getAttribute('aria-describedby');
             expect(describedBy).not.toBeNull();
@@ -468,7 +468,7 @@ describe('HierarchicalValueMenu', () => {
 
             await openMenu();
             await screen.findByRole('menuitemcheckbox', {name: 'F-18 Program'});
-            await userEvent.click(labelOf('Air Program'));
+            await userEvent.click(chevronOf('Air Program'));
             expect(maybeRow('F-18 Program')).toBeNull();
 
             await closeMenu();
@@ -491,8 +491,8 @@ describe('HierarchicalValueMenu', () => {
 
     describe('multi-parent occurrences', () => {
         const expandBothRoots = async () => {
-            await userEvent.click(labelOf('Dragon'));
-            await userEvent.click(labelOf('Falcon'));
+            await userEvent.click(chevronOf('Dragon'));
+            await userEvent.click(chevronOf('Falcon'));
         };
 
         test('a multi-parent value renders one row per parent occurrence', async () => {
@@ -575,7 +575,7 @@ describe('HierarchicalValueMenu', () => {
 
             await openMenu();
             await screen.findByRole('menuitemcheckbox', {name: parents[0]});
-            await userEvent.click(labelOf(parents[0]));
+            await userEvent.click(chevronOf(parents[0]));
         };
 
         test('Also under joins two other parents with and', async () => {
@@ -606,7 +606,7 @@ describe('HierarchicalValueMenu', () => {
 
             await openMenu();
             await screen.findByRole('menuitemcheckbox', {name: 'Air Program'});
-            await userEvent.click(labelOf('Air Program'));
+            await userEvent.click(chevronOf('Air Program'));
 
             expect(row('Fighter Jet')).not.toHaveTextContent('Also under');
         });

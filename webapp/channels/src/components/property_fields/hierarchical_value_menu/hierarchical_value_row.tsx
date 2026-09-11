@@ -77,11 +77,12 @@ export default function HierarchicalValueRow({
         }
 
         const target = event.target as HTMLElement | null;
-        if (isBranch && !target?.closest('[data-hit="select"]')) {
+        if (isBranch && target?.closest('[data-hit="expand"]')) {
             onToggleExpand();
             return;
         }
 
+        // Checkbox, label, and the rest of the row select — same as Enter/Space.
         onToggleSelect();
     };
 
@@ -158,7 +159,10 @@ export default function HierarchicalValueRow({
                 </span>
             }
             trailingElements={
-                <span className='hierarchical-value-menu__trailing'>
+                <span
+                    className='hierarchical-value-menu__trailing'
+                    data-hit={isBranch ? 'expand' : undefined}
+                >
                     {showInsideCount ? (
                         <span
                             className='hierarchical-value-menu__count'

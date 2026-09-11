@@ -65,7 +65,7 @@ const openMenu = async () => {
 const row = (name: string) => screen.getByRole('menuitemcheckbox', {name});
 const everyRow = () => screen.queryAllByRole('menuitemcheckbox');
 const checkboxOf = (name: string) => row(name).querySelector('.hierarchical-value-menu__checkbox') as HTMLElement;
-const labelOf = (name: string) => row(name).querySelector('.hierarchical-value-menu__label') as HTMLElement;
+const chevronOf = (name: string) => row(name).querySelector('.hierarchical-value-menu__chevron') as HTMLElement;
 
 const lastSignal = () => {
     const call = mockPageAll.mock.calls[mockPageAll.mock.calls.length - 1];
@@ -288,7 +288,7 @@ describe('hierarchical value menu adapters', () => {
 
             // A selected branch is not opened for its own sake, so Rotary has to
             // be revealed before it can be checked.
-            await userEvent.click(labelOf('Air Program'));
+            await userEvent.click(chevronOf('Air Program'));
             await userEvent.click(checkboxOf('Rotary'));
 
             expect(onNamesChange).toHaveBeenCalledWith(['Air Program', 'Rotary']);
@@ -325,7 +325,7 @@ describe('hierarchical value menu adapters', () => {
 
             await openMenu();
             await screen.findByRole('menuitemcheckbox', {name: 'Air Program'});
-            await userEvent.click(labelOf('Air Program'));
+            await userEvent.click(chevronOf('Air Program'));
             await userEvent.click(checkboxOf('Rotary'));
 
             expect(onNamesChange).toHaveBeenCalledWith(['Air Program', 'Retired', 'Rotary']);
