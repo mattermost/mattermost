@@ -9,7 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"sort"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -1019,7 +1019,7 @@ func TestGetDBSchemaVersion(t *testing.T) {
 			for _, entry := range assetsList {
 				assetNamesForDriver = append(assetNamesForDriver, entry.Name())
 			}
-			sort.Strings(assetNamesForDriver)
+			slices.Sort(assetNamesForDriver)
 
 			require.NotEmpty(t, assetNamesForDriver)
 			lastMigration := assetNamesForDriver[len(assetNamesForDriver)-1]

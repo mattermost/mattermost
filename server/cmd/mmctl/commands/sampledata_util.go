@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"math/rand"
 	"slices"
-	"sort"
 	"strings"
 	"time"
 
@@ -196,7 +195,7 @@ func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndCh
 	for teamName := range teamsAndChannels {
 		possibleTeams = append(possibleTeams, teamName)
 	}
-	sort.Strings(possibleTeams)
+	slices.Sort(possibleTeams)
 	for range teamMemberships {
 		if len(possibleTeams) == 0 {
 			break

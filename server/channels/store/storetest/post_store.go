@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"slices"
-	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -3224,7 +3223,7 @@ func testPostCounts(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	// since update_at and since post id
 	tenMinAgoIDs := []string{p4.Id, p5.Id, p7.Id}
-	sort.Strings(tenMinAgoIDs)
+	slices.Sort(tenMinAgoIDs)
 	c, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: t1.Id, SinceUpdateAt: tenMinAgo, SincePostID: tenMinAgoIDs[0]})
 	require.NoError(t, err)
 	assert.Equal(t, int64(2), c)

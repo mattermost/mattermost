@@ -5,6 +5,7 @@ package api4
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -12,7 +13,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"sort"
+	"slices"
 	"strconv"
 	"testing"
 
@@ -580,11 +581,11 @@ func TestGetPostsForReporting(t *testing.T) {
 			postSlice := make([]*model.Post, 0, len(result.Posts))
 			postSlice = append(postSlice, result.Posts...)
 			// Sort by the expected order (desc)
-			sort.Slice(postSlice, func(i, j int) bool {
-				if postSlice[i].CreateAt == postSlice[j].CreateAt {
-					return postSlice[i].Id > postSlice[j].Id
+			slices.SortFunc(postSlice, func(a, b *model.Post) int {
+				if a.CreateAt == b.CreateAt {
+					return cmp.Compare(b.Id, a.Id)
 				}
-				return postSlice[i].CreateAt > postSlice[j].CreateAt
+				return cmp.Compare(b.CreateAt, a.CreateAt)
 			})
 			// Verify first post matches what we expect from DESC order
 			firstPost := postSlice[0]

@@ -19,8 +19,9 @@
 package app
 
 import (
+	"cmp"
 	"net/http"
-	"sort"
+	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
@@ -41,7 +42,7 @@ func (a *App) resolveGuards(rctx request.CTX, channelID, callerName string) (gua
 		return nil, nil
 	}
 	sorted := append([]*store.ChannelGuard(nil), raw...)
-	sort.Slice(sorted, func(i, j int) bool { return sorted[i].PluginId < sorted[j].PluginId })
+	slices.SortFunc(sorted, func(a, b *store.ChannelGuard) int { return cmp.Compare(a.PluginId, b.PluginId) })
 	env := ch.GetPluginsEnvironment()
 	if env == nil {
 		// Plugin system disabled in config or not yet initialized, but guards exist for this

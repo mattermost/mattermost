@@ -4,12 +4,12 @@
 package properties
 
 import (
+	"cmp"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
 	"slices"
-	"sort"
 	"strings"
 	"unicode/utf8"
 
@@ -412,8 +412,8 @@ func normalizeOptionRanks(options model.PropertyOptions[*model.CustomProfileAttr
 	for i := range options {
 		order[i] = i
 	}
-	sort.SliceStable(order, func(a, b int) bool {
-		return rankSortKey(options[order[a]].Rank) < rankSortKey(options[order[b]].Rank)
+	slices.SortStableFunc(order, func(a, b int) int {
+		return cmp.Compare(rankSortKey(options[a].Rank), rankSortKey(options[b].Rank))
 	})
 	for seq, idx := range order {
 		rank := seq + 1

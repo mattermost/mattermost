@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"cmp"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -18,12 +19,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	sq "github.com/mattermost/squirrel"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
-	sq "github.com/mattermost/squirrel"
 )
 
 type SqlStore interface {
@@ -404,8 +406,8 @@ func testChannelStoreGetMembersWithCursorPagination(t *testing.T, rctx request.C
 	require.Len(t, members, 2, "should have 2 members")
 
 	// Find member with smaller LastUpdateAt
-	sort.Slice(members, func(i, j int) bool {
-		return members[i].LastUpdateAt < members[j].LastUpdateAt
+	slices.SortFunc(members, func(a, b model.ChannelMember) int {
+		return cmp.Compare(a.LastUpdateAt, b.LastUpdateAt)
 	})
 	updateTime := members[0].LastUpdateAt
 

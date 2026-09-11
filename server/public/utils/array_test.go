@@ -5,7 +5,7 @@ package utils
 
 import (
 	"reflect"
-	"sort"
+	"slices"
 	"testing"
 	"time"
 )
@@ -162,12 +162,12 @@ func TestFindExclusives(t *testing.T) {
 			t.Run(tt.name, func(t *testing.T) {
 				exclusive1, exclusive2, common := FindExclusives(tt.arr1, tt.arr2)
 
-				sort.Ints(exclusive1)
-				sort.Ints(exclusive2)
-				sort.Ints(common)
-				sort.Ints(tt.expectedExclusive1)
-				sort.Ints(tt.expectedExclusive2)
-				sort.Ints(tt.expectedCommon)
+				slices.Sort(exclusive1)
+				slices.Sort(exclusive2)
+				slices.Sort(common)
+				slices.Sort(tt.expectedExclusive1)
+				slices.Sort(tt.expectedExclusive2)
+				slices.Sort(tt.expectedCommon)
 
 				if !reflect.DeepEqual(exclusive1, tt.expectedExclusive1) {
 					t.Errorf("Exclusive to arr1: expected %v, got %v", tt.expectedExclusive1, exclusive1)
@@ -273,12 +273,12 @@ func TestFindExclusives(t *testing.T) {
 			t.Run(tt.name, func(t *testing.T) {
 				exclusive1, exclusive2, common := FindExclusives(tt.arr1, tt.arr2)
 
-				sort.Strings(exclusive1)
-				sort.Strings(exclusive2)
-				sort.Strings(common)
-				sort.Strings(tt.expectedExclusive1)
-				sort.Strings(tt.expectedExclusive2)
-				sort.Strings(tt.expectedCommon)
+				slices.Sort(exclusive1)
+				slices.Sort(exclusive2)
+				slices.Sort(common)
+				slices.Sort(tt.expectedExclusive1)
+				slices.Sort(tt.expectedExclusive2)
+				slices.Sort(tt.expectedCommon)
 
 				if !reflect.DeepEqual(exclusive1, tt.expectedExclusive1) {
 					t.Errorf("Exclusive to arr1: expected %v, got %v", tt.expectedExclusive1, exclusive1)
@@ -477,24 +477,12 @@ func TestFindExclusives(t *testing.T) {
 			t.Run(tt.name, func(t *testing.T) {
 				exclusive1, exclusive2, common := FindExclusives(tt.arr1, tt.arr2)
 
-				sort.Slice(exclusive1, func(i, j int) bool {
-					return exclusive1[i].Before(exclusive1[j])
-				})
-				sort.Slice(exclusive2, func(i, j int) bool {
-					return exclusive2[i].Before(exclusive2[j])
-				})
-				sort.Slice(common, func(i, j int) bool {
-					return common[i].Before(common[j])
-				})
-				sort.Slice(tt.expectedExclusive1, func(i, j int) bool {
-					return tt.expectedExclusive1[i].Before(tt.expectedExclusive1[j])
-				})
-				sort.Slice(tt.expectedExclusive2, func(i, j int) bool {
-					return tt.expectedExclusive2[i].Before(tt.expectedExclusive2[j])
-				})
-				sort.Slice(tt.expectedCommon, func(i, j int) bool {
-					return tt.expectedCommon[i].Before(tt.expectedCommon[j])
-				})
+				slices.SortFunc(exclusive1, func(a, b time.Time) int { return a.Compare(b) })
+				slices.SortFunc(exclusive2, func(a, b time.Time) int { return a.Compare(b) })
+				slices.SortFunc(common, func(a, b time.Time) int { return a.Compare(b) })
+				slices.SortFunc(tt.expectedExclusive1, func(a, b time.Time) int { return a.Compare(b) })
+				slices.SortFunc(tt.expectedExclusive2, func(a, b time.Time) int { return a.Compare(b) })
+				slices.SortFunc(tt.expectedCommon, func(a, b time.Time) int { return a.Compare(b) })
 
 				if !reflect.DeepEqual(exclusive1, tt.expectedExclusive1) {
 					t.Errorf("Exclusive to arr1: expected %v, got %v", tt.expectedExclusive1, exclusive1)
