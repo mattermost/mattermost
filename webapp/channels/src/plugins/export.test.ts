@@ -2,18 +2,56 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import * as reactJSXDevRuntime from 'react/jsx-dev-runtime';
+import * as reactJSXRuntime from 'react/jsx-runtime';
 import type {Root} from 'react-dom/client';
 
 import {LogLevel} from '@mattermost/types/client4';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {act} from 'tests/react_testing_utils';
+import {act, render} from 'tests/react_testing_utils';
 import messageHtmlToComponent from 'utils/message_html_to_component';
 
 import './export';
 
 jest.mock('utils/message_html_to_component');
+
+describe('window JSX runtime exports', () => {
+    const hostJSXRuntime = (window as any).ReactJSXRuntime;
+    const hostJSXDevRuntime = (window as any).ReactJSXDevRuntime;
+
+    test('exposes the host runtime helpers and a callable development helper', () => {
+        expect(hostJSXRuntime.Fragment).toBe(reactJSXRuntime.Fragment);
+        expect(hostJSXRuntime.jsx).toBe(reactJSXRuntime.jsx);
+        expect(hostJSXRuntime.jsxs).toBe(reactJSXRuntime.jsxs);
+        expect(hostJSXDevRuntime.Fragment).toBe(reactJSXDevRuntime.Fragment);
+        expect(typeof hostJSXDevRuntime.jsxDEV).toBe('function');
+
+        if (reactJSXDevRuntime.jsxDEV) {
+            expect(hostJSXDevRuntime.jsxDEV).toBe(reactJSXDevRuntime.jsxDEV);
+        }
+    });
+
+    test.each(['jsx', 'jsxDEV'] as const)('%s creates keyed content with refs and fragments', (helper) => {
+        const ref = React.createRef<HTMLSpanElement>();
+        const props = {ref, children: 'Runtime child'};
+        const child = helper === 'jsx' ?
+            hostJSXRuntime.jsx('span', props, 'child-key') :
+            hostJSXDevRuntime.jsxDEV('span', props, 'child-key', false);
+        const fragment = helper === 'jsx' ?
+            hostJSXRuntime.jsxs(hostJSXRuntime.Fragment, {children: [child]}, 'fragment-key') :
+            hostJSXDevRuntime.jsxDEV(hostJSXDevRuntime.Fragment, {children: [child]}, 'fragment-key', true);
+
+        const {getByText} = render(fragment);
+        const renderedChild = getByText('Runtime child');
+
+        expect(renderedChild).toHaveTextContent('Runtime child');
+        expect(ref.current).toBe(renderedChild);
+        expect(child.key).toBe('child-key');
+        expect(fragment.key).toBe('fragment-key');
+    });
+});
 
 describe('window.ReactDOM supports React 18 development client shims', () => {
     let enableLogging: boolean;

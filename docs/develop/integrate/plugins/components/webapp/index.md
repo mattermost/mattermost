@@ -48,3 +48,7 @@ Further information on the available Redux Actions is documented here: [Redux Ac
 ## Best practices
 
 Some best practices for working with the webapp component of a plugin are documented here: [Best Practices](/developers/integrate/plugins/components/webapp/best-practices)
+
+## React and JSX runtime compatibility
+
+Plugins that render inside Mattermost must use the host's React, ReactDOM, and JSX runtime. See [React JSX runtime compatibility](/developers/integrate/plugins/components/webapp/react-jsx-runtime) for the Mattermost v12 host exports and guidance for plugins that also support older servers.
