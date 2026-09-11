@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"slices"
+	"unicode/utf8"
 )
 
 // Property field permission actions. Each names one cell of the
@@ -247,6 +248,9 @@ func (p *Permissions) IsValid(objectType string) error {
 			return err
 		}
 	}
+	if len(p.Grants) > PropertyGrantsMaxPerField {
+		return fmt.Errorf("too many grants (%d), max is %d", len(p.Grants), PropertyGrantsMaxPerField)
+	}
 	for i := range p.Grants {
 		if err := p.Grants[i].isValid(); err != nil {
 			return fmt.Errorf("grant %d: %w", i, err)
@@ -282,6 +286,9 @@ func (m *Masking) isValid(objectType string) error {
 		if id.ID == "*" {
 			return fmt.Errorf("except: wildcard id is not allowed")
 		}
+		if utf8.RuneCountInString(id.ID) > PropertyOwnerIDMaxRunes {
+			return fmt.Errorf("except: id exceeds max length of %d runes", PropertyOwnerIDMaxRunes)
+		}
 	}
 	if m.MaskByFieldID != "" && objectType != PropertyFieldObjectTypeTemplate {
 		return fmt.Errorf("mask_by_field_id is only allowed on object_type:template")
@@ -316,12 +323,21 @@ func (g *Grant) isValid() error {
 	if g.ID == "" {
 		return fmt.Errorf("id is required")
 	}
+	if utf8.RuneCountInString(g.ID) > PropertyOwnerIDMaxRunes {
+		return fmt.Errorf("id exceeds max length of %d runes", PropertyOwnerIDMaxRunes)
+	}
 	// The wildcard is machine-only: "any human" is what restrictions already
 	// express.
 	if g.ID == "*" && g.Type != PropertyOwnerTypePlugin && g.Type != PropertyOwnerTypeService {
 		return fmt.Errorf("wildcard id is only allowed for plugin or service grants")
 	}
+	if len(g.Scopes) > PropertyOwnerScopesMax {
+		return fmt.Errorf("too many scopes (%d), max is %d", len(g.Scopes), PropertyOwnerScopesMax)
+	}
 	for _, scope := range g.Scopes {
+		if utf8.RuneCountInString(scope) > PropertyOwnerScopeMaxRunes {
+			return fmt.Errorf("scope exceeds max length of %d runes", PropertyOwnerScopeMaxRunes)
+		}
 		if !IsValidPropertyOwnerScope(scope) {
 			return fmt.Errorf("invalid scope %q", scope)
 		}

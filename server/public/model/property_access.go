@@ -41,6 +41,13 @@ const (
 	PropertyOwnerScopesMax     = 32  // scopes per owner
 	PropertyOwnerScopeMaxRunes = 64  // length of a single scope label
 	PropertyOwnerIDMaxRunes    = 255 // length of an owner id
+	// PropertyGrantsMaxPerField bounds grants per field. Higher than the owners
+	// cap: a legitimate grantsFromLegacy conversion can emit more grants than the
+	// field had owners (up to 20 owners plus source plugin, sync source and the
+	// ambient wildcard, with a scope split that can double an identity), so 20
+	// would reject rows the backfill must convert. Well below the ~13k-row
+	// bind-parameter ceiling on a field's fanned-out grant rows.
+	PropertyGrantsMaxPerField = 64 // grants per field
 )
 
 // PropertyOwner is an identity trusted to manage an attribute's data. When a

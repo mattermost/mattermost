@@ -160,6 +160,54 @@ func TestGrantsValidation(t *testing.T) {
 	})
 }
 
+func TestGrantAndPermissionBounds(t *testing.T) {
+	grant := func(g Grant) *Permissions { return &Permissions{Grants: []Grant{g}} }
+	base := func() Grant {
+		return Grant{Identity: Identity{Type: PropertyOwnerTypePlugin, ID: "com.example"}, Allow: []string{PropertyActionValueWrite}}
+	}
+
+	t.Run("grant id at the cap accepted, over rejected", func(t *testing.T) {
+		g := base()
+		g.ID = strings.Repeat("a", PropertyOwnerIDMaxRunes)
+		require.NoError(t, grant(g).IsValid(""))
+		g.ID = strings.Repeat("a", PropertyOwnerIDMaxRunes+1)
+		require.Error(t, grant(g).IsValid(""))
+	})
+
+	t.Run("too many scopes rejected", func(t *testing.T) {
+		g := base()
+		g.Scopes = make([]string, PropertyOwnerScopesMax+1)
+		for i := range g.Scopes {
+			g.Scopes[i] = "scope"
+		}
+		require.Error(t, grant(g).IsValid(""))
+	})
+
+	t.Run("over-length scope rejected", func(t *testing.T) {
+		g := base()
+		g.Scopes = []string{strings.Repeat("a", PropertyOwnerScopeMaxRunes+1)}
+		require.Error(t, grant(g).IsValid(""))
+	})
+
+	t.Run("except id over the cap rejected", func(t *testing.T) {
+		p := &Permissions{Masking: &Masking{Except: []Identity{{Type: PropertyOwnerTypeUser, ID: strings.Repeat("a", PropertyOwnerIDMaxRunes+1)}}}}
+		require.Error(t, p.IsValid(PropertyFieldObjectTypeUser))
+	})
+
+	t.Run("grant count at the cap accepted, over rejected", func(t *testing.T) {
+		atCap := &Permissions{Grants: make([]Grant, PropertyGrantsMaxPerField)}
+		for i := range atCap.Grants {
+			atCap.Grants[i] = base()
+		}
+		require.NoError(t, atCap.IsValid(""))
+		over := &Permissions{Grants: make([]Grant, PropertyGrantsMaxPerField+1)}
+		for i := range over.Grants {
+			over.Grants[i] = base()
+		}
+		require.Error(t, over.IsValid(""))
+	})
+}
+
 func TestFilteredRejected(t *testing.T) {
 	require.Error(t, (&Permissions{Filtered: true}).IsValid(""))
 	require.NoError(t, (&Permissions{}).IsValid(""))
