@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {fireEvent} from '@testing-library/react';
 import {createMemoryHistory} from 'history';
 import React from 'react';
 import {Route} from 'react-router-dom';
@@ -9,9 +10,11 @@ import {ClientError} from '@mattermost/client';
 import type {PropertyField} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
+import {DISPLAY_LABEL_HEADER} from 'mattermost-redux/constants/properties';
 
 import ModalController from 'components/modal_controller';
 
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 
 import AttributeDetails from './attribute_details';
@@ -46,12 +49,19 @@ describe('AttributeDetails', () => {
         jest.restoreAllMocks();
     });
 
+    const CHANNEL_ATTRIBUTES_STATE = {entities: {general: {
+        config: {FeatureFlagChannelAttributes: 'true'},
+        license: {IsLicensed: 'true', SkuShortName: 'advanced'},
+    }}};
+
+    // Channels is only offered with the flag on and an Enterprise Advanced
+    // licence, and most cases here exercise all three resources.
     const renderComponent = (graphEnabled = false) => renderWithContext(
         <div>
             <AttributeDetails/>
             <ModalController/>
         </div>,
-        {
+        mergeObjects(CHANNEL_ATTRIBUTES_STATE, {
             entities: {
                 general: {
                     config: {
@@ -59,7 +69,7 @@ describe('AttributeDetails', () => {
                     },
                 },
             },
-        },
+        }),
     );
 
     it('renders the empty auto-slug caption as a dash, not the _copy sentinel', () => {
@@ -497,6 +507,116 @@ describe('AttributeDetails', () => {
                 ],
             }),
         }));
+    });
+
+    describe('applying an attribute to channels', () => {
+        const withoutChannelAttributes = () => renderWithContext(
+            <div>
+                <AttributeDetails/>
+                <ModalController/>
+            </div>,
+        );
+
+        const template = {id: 'template_id_1234567890abcdef', name: 'my_attribute', type: 'text', target_type: 'system', target_id: ''} as PropertyField;
+
+        const addChannels = async () => {
+            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Channels'}));
+            await waitFor(() => expect(screen.getByTestId('attributeAppliesToRow-channel')).toBeInTheDocument());
+        };
+
+        it('is not offered without the feature flag and an Enterprise Advanced licence', async () => {
+            withoutChannelAttributes();
+
+            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+
+            expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Users', 'Posts']);
+        });
+
+        it('creates only the template when Channels is not added', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue(template);
+
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            expect(createPropertyField).toHaveBeenCalledTimes(1);
+        });
+
+        it('carries the row\'s settings onto the linked channel field', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue(template);
+
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await addChannels();
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-toggle'));
+            await userEvent.click(screen.getByTestId('channelsResourceRequired-button'));
+            await userEvent.click(screen.getByTestId(`channelsResourceLocation-${DISPLAY_LABEL_HEADER}`));
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+
+            expect(createPropertyField).toHaveBeenNthCalledWith(1, 'access_control', 'template', expect.any(Object));
+            expect(createPropertyField).toHaveBeenNthCalledWith(2, 'access_control', 'channel', expect.objectContaining({
+                linked_field_id: template.id,
+                attrs: expect.objectContaining({
+                    required: true,
+                    actions: [DISPLAY_LABEL_HEADER],
+                }),
+            }));
+        });
+
+        it('sends no channel keys for a row left at its defaults, so the field reads as one created before them', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue(template);
+
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await addChannels();
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+
+            const channelCall = createPropertyField.mock.calls[1][2] as {attrs: Record<string, unknown>};
+            expect(Object.keys(channelCall.attrs)).toEqual(['display_name']);
+        });
+
+        it('pins who may set the value, since the server would otherwise let any member', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue(template);
+
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await addChannels();
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+
+            expect(createPropertyField).toHaveBeenNthCalledWith(2, 'access_control', 'channel', expect.objectContaining({
+                permission_values: 'admin',
+            }));
+
+            // Only Channels pins it; the template must keep the server's default.
+            expect(createPropertyField.mock.calls[0][2]).not.toHaveProperty('permission_values');
+        });
+
+        it('keeps the settings when Channels is removed and added back', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue(template);
+
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await addChannels();
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-toggle'));
+            await userEvent.click(screen.getByTestId('channelsResourceRequired-button'));
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-remove'));
+            await addChannels();
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+
+            expect(createPropertyField).toHaveBeenNthCalledWith(2, 'access_control', 'channel', expect.objectContaining({
+                attrs: expect.objectContaining({required: true}),
+            }));
+        });
     });
 
     it.each([
@@ -1314,7 +1434,7 @@ describe('AttributeDetails', () => {
                 </Route>
                 <ModalController/>
             </div>,
-            {
+            mergeObjects(CHANNEL_ATTRIBUTES_STATE, {
                 entities: {
                     general: {
                         config: {
@@ -1322,13 +1442,20 @@ describe('AttributeDetails', () => {
                         },
                     },
                 },
-            },
+            }),
             {
                 history: createMemoryHistory({
                     initialEntries: [`/admin_console/system_attributes/manage_attributes/attribute_details/${FIELD_ID}`],
                 }),
             },
         );
+
+        function makePluginOwnedTemplate(overrides: Partial<PropertyField> = {}): PropertyField {
+            return makeTemplate({
+                attrs: {display_name: 'Plugin field', source_plugin_id: 'com.example.plugin', protected: true},
+                ...overrides,
+            });
+        }
 
         const waitForForm = () => waitFor(() => expect(screen.getByTestId('attributeDetails')).toBeInTheDocument());
 
@@ -1682,15 +1809,182 @@ describe('AttributeDetails', () => {
             expect(banner).not.toHaveTextContent('Nothing else was saved');
         });
 
-        it('redirects to the listing when the field is plugin-owned', async () => {
-            mockLoadedField(makeTemplate({
-                attrs: {display_name: 'Plugin field', source_plugin_id: 'com.example.plugin', protected: true},
-            }));
+        describe('plugin-owned field', () => {
+            const PLUGIN_ID = 'com.example.plugin';
 
-            renderEdit();
+            function mockPluginInstalled() {
+                return jest.spyOn(Client4, 'getPluginStatuses').mockResolvedValue([{
+                    plugin_id: PLUGIN_ID,
+                    name: 'Example Plugin',
+                    description: '',
+                    version: '1.0.0',
+                    cluster_id: '',
+                    plugin_path: '',
+                    state: 1,
+                }]);
+            }
 
-            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes'));
-            expect(screen.queryByTestId('attributeDetails')).not.toBeInTheDocument();
+            function mockPluginNotInstalled() {
+                return jest.spyOn(Client4, 'getPluginStatuses').mockResolvedValue([]);
+            }
+
+            it('does not redirect to the listing (R1 regression)', async () => {
+                mockPluginInstalled();
+                mockLoadedField(makePluginOwnedTemplate());
+
+                renderEdit();
+                await waitForForm();
+
+                expect(mockHistoryPush).not.toHaveBeenCalled();
+            });
+
+            it('renders every Definition control disabled, and suppresses the options-validation error', async () => {
+                mockPluginInstalled();
+                mockLoadedField(makePluginOwnedTemplate({
+                    type: 'select',
+                    attrs: {display_name: 'Plugin field', source_plugin_id: PLUGIN_ID, protected: true, options: [{id: 'opt-1', name: 'dup'}, {id: 'opt-2', name: 'dup'}]},
+                }));
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.getByTestId('attributeDisplayNameInput')).toBeDisabled();
+                expect(screen.getByTestId('attributeTypeMenuButton')).toBeDisabled();
+                expect(screen.getByTestId('attributeOptionsValues__addInput')).toBeDisabled();
+
+                // A plugin-supplied template's options came from the plugin API, not
+                // this form -- they aren't guaranteed to satisfy this UI's own shape
+                // rules (duplicate names, here), and this page has no controls to act
+                // on such an error anyway.
+                expect(screen.queryByTestId('attributeOptionsRequiredError')).not.toBeInTheDocument();
+            });
+
+            it('shows the plugin-owned Type lock reason (not "applies to a resource") when the field has zero applied resources', async () => {
+                mockPluginInstalled();
+                mockLoadedField(makePluginOwnedTemplate());
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.getByTestId('attributeTypeMenuButton')).toHaveAccessibleName(/managed by a plugin/);
+            });
+
+            it('shows the plugin-owned Unique Name lock reason when the field has zero applied resources', async () => {
+                mockPluginInstalled();
+                mockLoadedField(makePluginOwnedTemplate());
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.getByTestId('attributeNameEditLink')).toBeDisabled();
+                expect(screen.getByTestId('attributeNameEditLink')).toHaveAccessibleName(/managed by a plugin/);
+            });
+
+            it('renders AttributePluginSource instead of AttributeExternalSource, resolving the same plugin name the listing would show', async () => {
+                mockPluginInstalled();
+                mockLoadedField(makePluginOwnedTemplate());
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.queryByTestId('attributeExternalSource')).not.toBeInTheDocument();
+                const pluginSource = await screen.findByTestId('attributePluginSource');
+                expect(pluginSource).toHaveTextContent('Example Plugin');
+            });
+
+            it('hides both Add-resource triggers even with fewer than 3 resource types applied', async () => {
+                mockPluginInstalled();
+                mockLoadedField(makePluginOwnedTemplate(), [makeLinked('user', 'user-field')]);
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.queryByTestId('attributeAppliesToAddResourceButtonHeader')).not.toBeInTheDocument();
+                expect(screen.queryByTestId('attributeAppliesToAddResourceButtonInline')).not.toBeInTheDocument();
+            });
+
+            it('keeps existing Applies-to rows visible but disables their toggle', async () => {
+                mockPluginInstalled();
+                mockLoadedField(makePluginOwnedTemplate(), [makeLinked('user', 'user-field')]);
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.getByTestId('attributeAppliesToRow-user')).toBeInTheDocument();
+                expect(screen.getByTestId('attributeAppliesToRow-user-toggle')).toBeDisabled();
+
+                // The lock is permanent (not the transient `saving` case), so it
+                // gets an explanatory tooltip, matching the Type/Unique-Name
+                // lock convention elsewhere on this page.
+                expect(screen.getByTestId('attributeAppliesToRow-user-toggleLockWrap')).toBeInTheDocument();
+            });
+
+            it('keeps Save disabled regardless of otherwise-valid field state', async () => {
+                mockPluginInstalled();
+                mockLoadedField(makePluginOwnedTemplate());
+
+                renderEdit();
+                await waitForForm();
+
+                // A freshly-loaded edit-mode field already has isDirty === false,
+                // which alone would disable Save regardless of plugin ownership --
+                // asserting disabled here alone wouldn't prove the plugin-owned lock
+                // itself is doing anything. fireEvent.change (not userEvent.type,
+                // which correctly refuses to type into a genuinely disabled input)
+                // forces every other canSave clause true -- non-empty display name,
+                // dirty, not saving, no validation/options error -- isolating
+                // effectiveDisabled as the one remaining clause keeping Save disabled.
+                fireEvent.change(screen.getByTestId('attributeDisplayNameInput'), {target: {value: 'Renamed'}});
+
+                expect(screen.getByTestId('saveSetting')).toBeDisabled();
+            });
+
+            it('stays fully locked when the owning plugin is orphaned, and shows the orphaned Managed-by copy with no link', async () => {
+                mockPluginNotInstalled();
+                mockLoadedField(makePluginOwnedTemplate());
+
+                renderEdit();
+                await waitForForm();
+
+                const pluginSource = await screen.findByTestId('attributePluginSource');
+                await waitFor(() => expect(pluginSource).toHaveTextContent('no longer installed'));
+                expect(screen.queryByTestId('attributePluginSourceLink')).not.toBeInTheDocument();
+
+                expect(screen.getByTestId('attributeDisplayNameInput')).toBeDisabled();
+                expect(screen.getByTestId('saveSetting')).toBeDisabled();
+            });
+
+            it('switches the Type and Unique Name lock reasons to the orphaned copy, not the plain "managed by a plugin" text', async () => {
+                mockPluginNotInstalled();
+                mockLoadedField(makePluginOwnedTemplate());
+
+                renderEdit();
+                await waitForForm();
+                await waitFor(() => expect(screen.getByTestId('attributePluginSource')).toHaveTextContent('no longer installed'));
+
+                expect(screen.getByTestId('attributeTypeMenuButton')).toHaveAccessibleName(/no longer installed/);
+                expect(screen.getByTestId('attributeTypeMenuButton')).not.toHaveAccessibleName(/managed by a plugin\./);
+                expect(screen.getByTestId('attributeNameEditLink')).toHaveAccessibleName(/no longer installed/);
+            });
+
+            it('keeps the Applies-to row locked (toggle disabled, Remove unreachable) when orphaned, even though the server would permit that delete', async () => {
+                mockPluginNotInstalled();
+                mockLoadedField(makePluginOwnedTemplate(), [makeLinked('user', 'user-field')]);
+
+                renderEdit();
+                await waitForForm();
+                await waitFor(() => expect(screen.getByTestId('attributePluginSource')).toHaveTextContent('no longer installed'));
+
+                // Remove is only rendered once the row is expanded, and expanding it
+                // requires clicking this same toggle -- asserting it stays disabled
+                // (and that a click on it doesn't expand the row) is a stronger
+                // guarantee than asserting Remove's own disabled attribute, since it
+                // proves Remove can never even be reached in the DOM.
+                const toggle = screen.getByTestId('attributeAppliesToRow-user-toggle');
+                expect(toggle).toBeDisabled();
+                await userEvent.click(toggle);
+                expect(screen.queryByTestId('attributeAppliesToRow-user-remove')).not.toBeInTheDocument();
+            });
         });
 
         it('redirects to the listing when the field is Classification Markings', async () => {

@@ -8,6 +8,7 @@ import (
 	"errors"
 	"maps"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -68,6 +69,28 @@ func getV2Group(c *Context, callerName string) *model.PropertyGroup {
 	return group
 }
 
+// requireChannelAttributeLicense gates channel-scoped objects in the
+// access_control group. They are the storage behind channel attributes and
+// classification's channel banner, which are Enterprise Advanced. The same
+// group also holds user attributes, which are not, so the tier is checked per
+// object type rather than on the group as a whole.
+func requireChannelAttributeLicense(c *Context, group *model.PropertyGroup, callerName string, objectTypes ...string) bool {
+	if group.Name != model.AccessControlPropertyGroupName {
+		return true
+	}
+
+	if !slices.Contains(objectTypes, model.PropertyFieldObjectTypeChannel) {
+		return true
+	}
+
+	if !model.MinimumEnterpriseAdvancedLicense(c.App.License()) {
+		c.Err = model.NewAppError(callerName, "api.property.channel_attributes.license.app_error", nil, "", http.StatusNotImplemented)
+		return false
+	}
+
+	return true
+}
+
 func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireGroupName().RequireObjectType()
 	if c.Err != nil {
@@ -76,6 +99,10 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	group := getV2Group(c, "createPropertyField")
 	if c.Err != nil {
+		return
+	}
+
+	if !requireChannelAttributeLicense(c, group, "createPropertyField", c.Params.ObjectType) {
 		return
 	}
 
@@ -331,6 +358,10 @@ func searchPropertyFieldsCore(c *Context, w http.ResponseWriter, group *model.Pr
 		opts.TargetType = string(model.PropertyFieldTargetLevelSystem)
 	}
 
+	if !requireChannelAttributeLicense(c, group, callerName, opts.ObjectTypes...) {
+		return
+	}
+
 	if !resolveScopeAndCheckPermissions(c, &opts, callerName) {
 		return
 	}
@@ -439,6 +470,10 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !requireChannelAttributeLicense(c, group, "patchPropertyField", c.Params.ObjectType) {
+		return
+	}
+
 	var patch *model.PropertyFieldPatch
 	if err := json.NewDecoder(r.Body).Decode(&patch); err != nil || patch == nil {
 		c.SetInvalidParamWithErr("property_field_patch", err)
@@ -544,6 +579,10 @@ func deletePropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !requireChannelAttributeLicense(c, group, "deletePropertyField", c.Params.ObjectType) {
+		return
+	}
+
 	auditRec := c.MakeAuditRecord(model.AuditEventDeletePropertyField, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "field_id", c.Params.FieldId)
@@ -617,6 +656,10 @@ func getSystemPropertyValues(c *Context, w http.ResponseWriter, r *http.Request)
 func getPropertyValuesCore(c *Context, w http.ResponseWriter, r *http.Request, objectType, targetID string) {
 	group := getV2Group(c, "getPropertyValues")
 	if c.Err != nil {
+		return
+	}
+
+	if !requireChannelAttributeLicense(c, group, "getPropertyValues", objectType) {
 		return
 	}
 
@@ -733,6 +776,10 @@ func patchSystemPropertyValues(c *Context, w http.ResponseWriter, r *http.Reques
 func patchPropertyValuesCore(c *Context, w http.ResponseWriter, r *http.Request, objectType, targetID string) {
 	group := getV2Group(c, "patchPropertyValues")
 	if c.Err != nil {
+		return
+	}
+
+	if !requireChannelAttributeLicense(c, group, "patchPropertyValues", objectType) {
 		return
 	}
 
@@ -864,7 +911,10 @@ func hasTargetAccess(c *Context, objectType, targetID string, write bool) bool {
 			case model.ChannelTypePrivate:
 				perm = model.PermissionManagePrivateChannelProperties
 			default:
-				// DM/GM channels: just check membership via read permission
+				// DM/GM channels have no manage_*_channel_properties permission, so
+				// this outer gate only checks membership. The per-field tier check in
+				// SessionHasPermissionToSetPropertyFieldValues is what actually keeps
+				// participants from setting DM/GM values.
 				perm = model.PermissionReadChannel
 			}
 			hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), targetID, perm)

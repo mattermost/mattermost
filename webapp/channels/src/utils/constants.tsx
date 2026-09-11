@@ -501,6 +501,7 @@ export const ModalIdentifiers = {
     USER_PROPERTY_FIELD_DELETE: 'user_property_field_delete',
     SESSION_ATTRIBUTE_DISABLE: 'session_attribute_disable',
     BOARD_ATTRIBUTE_FIELD_DELETE: 'board_attribute_field_delete',
+    CHANNEL_RESOURCE_REMOVE: 'channel_resource_remove',
     GLOBAL_ATTRIBUTE_FIELD_DELETE: 'global_attribute_field_delete',
     GRAPH_NODE_DELETE: 'graph_node_delete',
     GRAPH_GRANT_CONFIRM: 'graph_grant_confirm',

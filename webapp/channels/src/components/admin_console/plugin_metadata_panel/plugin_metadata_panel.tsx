@@ -27,6 +27,7 @@ export type PluginMetadataPanelProps = {
     homepageUrl?: string;
     releaseNotesUrl?: string;
     className?: string;
+    hideName?: boolean;
 };
 
 const PluginMetadataId = ({id}: {id: string}) => {
@@ -79,6 +80,7 @@ const PluginMetadataPanel = ({
     homepageUrl,
     releaseNotesUrl,
     className,
+    hideName = false,
 }: PluginMetadataPanelProps) => {
     const displayName = name.trim() || id;
     const formattedVersion = formatPluginVersion(version);
@@ -99,7 +101,7 @@ const PluginMetadataPanel = ({
     if (formattedVersion) {
         versionElement = (
             <>
-                {' - '}
+                {hideName ? ' · ' : ' - '}
                 {releaseNotesUrl ? (
                     <ExternalLink
                         href={releaseNotesUrl}
@@ -122,12 +124,12 @@ const PluginMetadataPanel = ({
             className={classNames('PluginMetadataPanel', className)}
             data-testid='plugin-metadata-panel'
         >
-            {nameElement}
+            {!hideName && nameElement}
             <span className='PluginMetadataPanel__metadata'>
-                {' ('}
+                {!hideName && ' ('}
                 <PluginMetadataId id={id}/>
                 {versionElement}
-                {')'}
+                {!hideName && ')'}
             </span>
         </span>
     );

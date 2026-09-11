@@ -23,6 +23,7 @@ import {
     ChannelsSidebarLeft,
 } from '@/ui/components';
 import {duration} from '@/util';
+import {testConfig} from '@/test_config';
 export default class ChannelsPage {
     readonly channels = 'Channels';
 
@@ -49,6 +50,7 @@ export default class ChannelsPage {
     readonly browseChannelsModal;
     readonly directChannelsModal;
     readonly keyboardShortcutsModal;
+    readonly imagePreviewModal;
     public invitePeopleModal: InvitePeopleModal | undefined;
     public membersInvitedModal: MembersInvitedModal | undefined;
     readonly profileModal;
@@ -102,6 +104,9 @@ export default class ChannelsPage {
             page.getByRole('dialog', {name: /Edit Header/}),
         );
         this.keyboardShortcutsModal = page.getByRole('dialog', {name: /Keyboard shortcuts/});
+        this.imagePreviewModal = new components.ImagePreviewModal(
+            page.getByRole('dialog').filter({has: page.getByAltText('preview url image')}),
+        );
         this.createTeamForm = new CreateTeamForm(page.getByTestId('create-team-form'));
         this.deletePostModal = new components.DeletePostModal(page.locator('#deletePostModal'));
         this.findChannelsModal = new components.FindChannelsModal(page.getByRole('dialog', {name: 'Find Channels'}));
@@ -211,7 +216,7 @@ export default class ChannelsPage {
                 channelsUrl += `${prefix}/${channelName}`;
             }
         }
-        await this.page.goto(channelsUrl);
+        await this.page.goto(new URL(channelsUrl, testConfig.baseURL).href);
 
         return channelsUrl;
     }
@@ -219,7 +224,7 @@ export default class ChannelsPage {
     // Force the /messages route for group-message slugs that do not start with '@'.
     async gotoMessage(teamName: string, channelName: string) {
         const channelsUrl = `/${teamName}/messages/${channelName}`;
-        await this.page.goto(channelsUrl);
+        await this.page.goto(new URL(channelsUrl, testConfig.baseURL).href);
 
         return channelsUrl;
     }
@@ -327,6 +332,27 @@ export default class ChannelsPage {
         return this.channelSettingsModal;
     }
 
+    /**
+     * Opens the Channel Info panel in the RHS, toggling it open if a different
+     * panel is already showing there.
+     */
+    async openChannelInfo() {
+        const infoButton = this.page.locator('#channel-info-btn');
+        await expect(infoButton).toBeVisible();
+
+        // The button toggles, so clicking it while Info is already showing would close it.
+        const infoHeading = this.sidebarRight.container.getByText('Info', {exact: true});
+        const alreadyOpen = await infoHeading.isVisible().catch(() => false);
+        if (!alreadyOpen) {
+            await infoButton.click();
+            await expect(infoHeading).toBeVisible();
+        }
+
+        await this.sidebarRight.toBeVisible();
+
+        return this.sidebarRight;
+    }
+
     async openChannelNotificationPreferences(): Promise<ChannelNotificationPreferencesModal> {
         const channelMenu = await this.openChannelMenu();
         await channelMenu.notificationPreferences.click();
@@ -404,6 +430,32 @@ export default class ChannelsPage {
         const teamButton = this.page.locator(`#${teamName}TeamButton`);
         await teamButton.waitFor();
         await teamButton.click();
+    }
+
+    getTeamButton(teamDisplayName: string) {
+        const escapedName = teamDisplayName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        return this.page.getByRole('button', {name: new RegExp(`^${escapedName} team`, 'i')});
+    }
+
+    async switchToTeamByDisplayName(teamDisplayName: string) {
+        await this.getTeamButton(teamDisplayName).click();
+    }
+
+    async toHaveTeamMentionCount(teamDisplayName: string, count: number) {
+        await expect(this.getTeamButton(teamDisplayName)).toHaveAccessibleName(
+            `${teamDisplayName.toLowerCase()} team, ${count} mentions`,
+        );
+    }
+
+    async toHaveTeamNoUnread(teamDisplayName: string) {
+        await expect(this.getTeamButton(teamDisplayName)).toHaveAccessibleName(`${teamDisplayName.toLowerCase()} team`);
+    }
+
+    async toHaveTeamUnread(teamDisplayName: string, teamId: string) {
+        const teamButton = this.getTeamButton(teamDisplayName);
+        await expect(teamButton).toHaveAccessibleName(`${teamDisplayName.toLowerCase()} team unread`);
+        await expect(teamButton.getByTestId(`team-badge-${teamId}`)).toBeVisible();
+        await expect(teamButton.getByTestId(`team-badge-${teamId}`)).toHaveText('');
     }
 
     /**

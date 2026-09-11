@@ -10,6 +10,66 @@ import (
 	"time"
 )
 
+func TestDedup(t *testing.T) {
+	t.Run("strings", func(t *testing.T) {
+		tests := []struct {
+			name     string
+			input    []string
+			expected []string
+		}{
+			{name: "nil stays nil", input: nil, expected: nil},
+			{name: "empty stays empty", input: []string{}, expected: []string{}},
+			{name: "no duplicates is unchanged", input: []string{"a", "b", "c"}, expected: []string{"a", "b", "c"}},
+			{name: "adjacent duplicates", input: []string{"a", "a", "b"}, expected: []string{"a", "b"}},
+			{name: "non-adjacent duplicates keep first occurrence order", input: []string{"b", "a", "b", "c", "a"}, expected: []string{"b", "a", "c"}},
+			{name: "all duplicates", input: []string{"a", "a", "a"}, expected: []string{"a"}},
+			{name: "empty string is a value like any other", input: []string{"", "a", ""}, expected: []string{"", "a"}},
+		}
+
+		for _, tc := range tests {
+			t.Run(tc.name, func(t *testing.T) {
+				result := Dedup(tc.input)
+				if !reflect.DeepEqual(result, tc.expected) {
+					t.Errorf("Dedup(%v) = %v, want %v", tc.input, result, tc.expected)
+				}
+				if tc.input == nil && result != nil {
+					t.Errorf("Dedup(nil) should stay nil, got %v", result)
+				}
+			})
+		}
+	})
+
+	t.Run("integers", func(t *testing.T) {
+		result := Dedup([]int{3, 1, 3, 2, 1})
+		expected := []int{3, 1, 2}
+		if !reflect.DeepEqual(result, expected) {
+			t.Errorf("Dedup() = %v, want %v", result, expected)
+		}
+	})
+
+	t.Run("structs", func(t *testing.T) {
+		type key struct {
+			Group string
+			ID    int
+		}
+
+		result := Dedup([]key{{"a", 1}, {"a", 1}, {"a", 2}, {"b", 1}})
+		expected := []key{{"a", 1}, {"a", 2}, {"b", 1}}
+		if !reflect.DeepEqual(result, expected) {
+			t.Errorf("Dedup() = %v, want %v", result, expected)
+		}
+	})
+
+	t.Run("does not modify the input", func(t *testing.T) {
+		input := []string{"a", "b", "a"}
+		Dedup(input)
+
+		if !reflect.DeepEqual(input, []string{"a", "b", "a"}) {
+			t.Errorf("Dedup mutated its input: %v", input)
+		}
+	})
+}
+
 func TestFindExclusives(t *testing.T) {
 	t.Run("integers", func(t *testing.T) {
 		tests := []struct {

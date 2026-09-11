@@ -4,29 +4,37 @@
 package sqlstore
 
 import (
-	"encoding/json"
-	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-// TestMigration000221 pins how a graph-typed property value appears in the two
-// attribute views: as the identifiers of the options the object holds, live
-// options only, always a JSON array.
+// tableExists reports whether a table of the given name exists in the current
+// schema.
+func tableExists(t *testing.T, s *SqlStore, name string) bool {
+	t.Helper()
+	var count int
+	err := s.GetMaster().Get(&count,
+		"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = current_schema() AND lower(table_name) = lower($1)", name)
+	require.NoError(t, err)
+	return count > 0
+}
+
+// TestMigration000221 verifies the move of select-style field options out of
+// PropertyFields.Attrs->'options' and into PropertyOptions.
 //
-// Worth pinning even though the array of identifiers is also what the views
-// produced before this migration, where a graph value had no branch of its own
-// and fell through to the catch-all. That made the projection an accident of
-// where the CASE ended, and an accident a later redefinition could undo without
-// anyone noticing. The assertions here fail if it is undone, and the down/up
-// cycle shows the two behaviours that are not accidental: a deleted option's
-// identifier is dropped, and a value that is not an array projects as holding
-// nothing.
+// The property both attribute views depend on is that an option identifier in a
+// property value still resolves to that option's name, including through a field
+// that only links to the template owning the option — which is the case the
+// previous view definitions got for free, because a linked field held its own copy
+// of the list. The test drives it through a full down/up cycle: the down migration
+// puts the options back in the blob and restores the previous view bodies, and the
+// up migration backfills from that blob, so the same assertions hold either side
+// and the backfill is exercised on rows the store wrote.
 func TestMigration000221(t *testing.T) {
 	logger := mlog.CreateTestLogger(t)
 
@@ -39,71 +47,39 @@ func TestMigration000221(t *testing.T) {
 	require.NoError(t, err)
 	defer store.Close()
 
+	// New() applies all migrations, so 000221 is already in effect.
+	require.True(t, tableExists(t, store, "PropertyOptions"), "PropertyOptions should exist after migration")
+
 	group, err := store.PropertyGroup().Register(&model.PropertyGroup{Name: model.NewId(), Version: model.PropertyGroupVersionV1})
 	require.NoError(t, err)
 	groupID := group.ID
 
-	airID := model.NewId()
-	jetID := model.NewId()
-	retiredID := model.NewId()
-	topicAID := model.NewId()
-	topicBID := model.NewId()
 	selectOptionID := model.NewId()
+	multiOptionAID := model.NewId()
+	multiOptionBID := model.NewId()
 	rankOptionID := model.NewId()
 
-	// The driving shape for a graph field: one template owns the hierarchy, and
-	// the fields that tag users with it link to the template and own no options
-	// of their own. The view has to find the options through the link.
+	// A user-scoped select field whose options are owned by a template, so the
+	// view has to resolve the option through the link.
 	template, err := store.PropertyField().Create(&model.PropertyField{
 		GroupID:    groupID,
-		Name:       "template_programs",
-		Type:       model.PropertyFieldTypeGraph,
+		Name:       "template_select",
+		Type:       model.PropertyFieldTypeSelect,
 		ObjectType: model.PropertyFieldObjectTypeTemplate,
 		TargetType: string(model.PropertyFieldTargetLevelSystem),
 		Attrs: model.StringInterface{
-			"options": []any{
-				map[string]any{"id": airID, "name": "Air Program"},
-				map[string]any{"id": jetID, "name": "Fighter Jet Program"},
-				map[string]any{"id": retiredID, "name": "Retired Program"},
-			},
+			"options": []any{map[string]any{"id": selectOptionID, "name": "Chosen", "color": "#abcdef"}},
 		},
 	})
 	require.NoError(t, err)
 
-	userGraph, err := store.PropertyField().Create(&model.PropertyField{
+	linkedSelect, err := store.PropertyField().Create(&model.PropertyField{
 		GroupID:       groupID,
-		Name:          "user_programs",
-		Type:          model.PropertyFieldTypeGraph,
+		Name:          "linked_select",
+		Type:          model.PropertyFieldTypeSelect,
 		ObjectType:    model.PropertyFieldObjectTypeUser,
 		TargetType:    string(model.PropertyFieldTargetLevelSystem),
 		LinkedFieldID: &template.ID,
-	})
-	require.NoError(t, err)
-
-	// The other arm of the option lookup: a graph field that owns its options
-	// outright, with no template above it.
-	channelGraph, err := store.PropertyField().Create(&model.PropertyField{
-		GroupID:    groupID,
-		Name:       "channel_programs",
-		Type:       model.PropertyFieldTypeGraph,
-		ObjectType: model.PropertyFieldObjectTypeChannel,
-		TargetType: string(model.PropertyFieldTargetLevelSystem),
-		Attrs: model.StringInterface{
-			"options": []any{
-				map[string]any{"id": topicAID, "name": "Topic A"},
-				map[string]any{"id": topicBID, "name": "Topic B"},
-			},
-		},
-	})
-	require.NoError(t, err)
-
-	// The types whose projections this migration must leave alone.
-	selectField, err := store.PropertyField().Create(&model.PropertyField{
-		GroupID:    groupID,
-		Name:       "user_select",
-		Type:       model.PropertyFieldTypeSelect,
-		ObjectType: model.PropertyFieldObjectTypeUser,
-		TargetType: string(model.PropertyFieldTargetLevelSystem),
 		Attrs: model.StringInterface{
 			"options": []any{map[string]any{"id": selectOptionID, "name": "Chosen", "color": "#abcdef"}},
 		},
@@ -125,10 +101,6 @@ func TestMigration000221(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	// Reuses the graph field's option identifiers on purpose: an option
-	// identifier is only unique within its field, so a projection that resolved
-	// options without scoping them to the field would read this field's names for
-	// the graph field's identifiers.
 	multiField, err := store.PropertyField().Create(&model.PropertyField{
 		GroupID:    groupID,
 		Name:       "channel_multi",
@@ -137,73 +109,42 @@ func TestMigration000221(t *testing.T) {
 		TargetType: string(model.PropertyFieldTargetLevelSystem),
 		Attrs: model.StringInterface{
 			"options": []any{
-				map[string]any{"id": topicAID, "name": "Topic A"},
-				map[string]any{"id": topicBID, "name": "Topic B"},
+				map[string]any{"id": multiOptionAID, "name": "Topic A"},
+				map[string]any{"id": multiOptionBID, "name": "Topic B"},
 			},
 		},
 	})
 	require.NoError(t, err)
 
-	// Three users and two channels, so each degenerate case sits on a target of
-	// its own and the views can be read one row at a time.
-	holderUser := model.NewId()
-	deletedOnlyUser := model.NewId()
-	malformedUser := model.NewId()
-	holderChannel := model.NewId()
-	multiChannel := model.NewId()
+	userTarget := model.NewId()
+	channelTarget := model.NewId()
 
-	createValue := func(t *testing.T, fieldID, targetID, targetType string, value string) *model.PropertyValue {
-		t.Helper()
-		pv, cErr := store.PropertyValue().Create(&model.PropertyValue{
-			TargetID: targetID, TargetType: targetType,
-			GroupID: groupID, FieldID: fieldID, Value: []byte(value),
-		})
-		require.NoError(t, cErr)
-		t.Cleanup(func() {
-			store.PropertyValue().Delete(groupID, pv.ID) //nolint:errcheck
-		})
-		return pv
-	}
-
-	// Holds two live options and one that is about to be soft-deleted, in an
-	// order that is not the option order, so the projection cannot be passing by
-	// coincidence.
-	createValue(t, userGraph.ID, holderUser, model.PropertyValueTargetTypeUser, `["`+jetID+`","`+retiredID+`","`+airID+`"]`)
-	createValue(t, userGraph.ID, deletedOnlyUser, model.PropertyValueTargetTypeUser, `["`+retiredID+`"]`)
-	createValue(t, channelGraph.ID, holderChannel, model.PropertyValueTargetTypeChannel, `["`+topicBID+`"]`)
-
-	createValue(t, selectField.ID, holderUser, model.PropertyValueTargetTypeUser, `"`+selectOptionID+`"`)
-	createValue(t, rankField.ID, holderUser, model.PropertyValueTargetTypeUser, `"`+rankOptionID+`"`)
-	// Deliberately in the reverse of the option order: a multiselect value keeps
-	// the order the value was written in.
-	createValue(t, multiField.ID, multiChannel, model.PropertyValueTargetTypeChannel, `["`+topicBID+`","`+topicAID+`"]`)
-
-	// A graph value that is not an array of identifiers, written straight to the
-	// table because no write path produces one -- which is the point: the view
-	// must not hand a rule something to compare instead of a set to intersect.
-	malformedID := model.NewId()
-	_, err = store.GetMaster().Exec(
-		`INSERT INTO PropertyValues (ID, TargetID, TargetType, GroupID, FieldID, Value, CreateAt, UpdateAt, DeleteAt)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)`,
-		malformedID, malformedUser, model.PropertyValueTargetTypeUser, groupID, userGraph.ID,
-		`"`+airID+`"`, model.GetMillis(), model.GetMillis())
+	selectValue, err := store.PropertyValue().Create(&model.PropertyValue{
+		TargetID: userTarget, TargetType: model.PropertyValueTargetTypeUser,
+		GroupID: groupID, FieldID: linkedSelect.ID, Value: []byte(`"` + selectOptionID + `"`),
+	})
 	require.NoError(t, err)
-
-	// Soft-delete one of the template's options. Its identifier stays in the
-	// value that holds it, which is the case the graph branch exists to filter.
-	_, err = store.GetMaster().Exec(
-		"UPDATE PropertyOptions SET DeleteAt = ? WHERE FieldID = ? AND ID = ?",
-		model.GetMillis(), template.ID, retiredID)
+	rankValue, err := store.PropertyValue().Create(&model.PropertyValue{
+		TargetID: userTarget, TargetType: model.PropertyValueTargetTypeUser,
+		GroupID: groupID, FieldID: rankField.ID, Value: []byte(`"` + rankOptionID + `"`),
+	})
+	require.NoError(t, err)
+	// Deliberately in the reverse of the option order: a multiselect value keeps
+	// the order the value was written in, not the order the options were.
+	multiValue, err := store.PropertyValue().Create(&model.PropertyValue{
+		TargetID: channelTarget, TargetType: model.PropertyValueTargetTypeChannel,
+		GroupID: groupID, FieldID: multiField.ID, Value: []byte(`["` + multiOptionBID + `","` + multiOptionAID + `"]`),
+	})
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
-		store.GetMaster().Exec("DELETE FROM PropertyValues WHERE ID = ?", malformedID) //nolint:errcheck
-		store.PropertyField().Delete(groupID, multiField.ID)                           //nolint:errcheck
-		store.PropertyField().Delete(groupID, rankField.ID)                            //nolint:errcheck
-		store.PropertyField().Delete(groupID, selectField.ID)                          //nolint:errcheck
-		store.PropertyField().Delete(groupID, channelGraph.ID)                         //nolint:errcheck
-		store.PropertyField().Delete(groupID, userGraph.ID)                            //nolint:errcheck
-		store.PropertyField().Delete(groupID, template.ID)                             //nolint:errcheck
+		store.PropertyValue().Delete(groupID, selectValue.ID)  //nolint:errcheck
+		store.PropertyValue().Delete(groupID, rankValue.ID)    //nolint:errcheck
+		store.PropertyValue().Delete(groupID, multiValue.ID)   //nolint:errcheck
+		store.PropertyField().Delete(groupID, linkedSelect.ID) //nolint:errcheck
+		store.PropertyField().Delete(groupID, rankField.ID)    //nolint:errcheck
+		store.PropertyField().Delete(groupID, multiField.ID)   //nolint:errcheck
+		store.PropertyField().Delete(groupID, template.ID)     //nolint:errcheck
 	})
 
 	attributeFor := func(t *testing.T, view, targetID, name string) string {
@@ -215,79 +156,68 @@ func TestMigration000221(t *testing.T) {
 		return out
 	}
 
-	// A graph projection is a set, not a sequence: a rule intersects it against
-	// the identifiers it was compiled with, and nothing reads its order. So it is
-	// compared as a set, and only its being an array is exact.
-	assertHeldIDs := func(t *testing.T, view, targetID, name string, expected []string, msg string) {
+	// assertProjections checks each type's projection: select yields the option
+	// name, multiselect an array of names in value order, rank an object of name
+	// and rank.
+	assertProjections := func(t *testing.T, stage string) {
 		t.Helper()
-		raw := attributeFor(t, view, targetID, name)
-		// The array itself is asserted before its contents, because a JSON null
-		// unmarshals into a nil slice that would compare equal to an empty one.
-		require.True(t, strings.HasPrefix(raw, "["), "%s: expected a JSON array, got %s", msg, raw)
-		var ids []string
-		require.NoError(t, json.Unmarshal([]byte(raw), &ids), "%s: expected a JSON array of identifiers, got %s", msg, raw)
-		assert.ElementsMatch(t, expected, ids, msg)
-	}
+		require.NoError(t, store.Attributes().RefreshAttributes())
 
-	assertOtherTypesUnchanged := func(t *testing.T, stage string) {
-		t.Helper()
-		assert.Equal(t, `"Chosen"`, attributeFor(t, "UserAttributeView", holderUser, "user_select"),
-			"%s: a select value must resolve to its option's name", stage)
-		assert.JSONEq(t, `{"name": "High", "rank": 2}`, attributeFor(t, "UserAttributeView", holderUser, "user_rank"),
+		require.Equal(t, `"Chosen"`, attributeFor(t, "UserAttributeView", userTarget, "linked_select"),
+			"%s: a select value on a linked field must resolve to the template option's name", stage)
+		require.JSONEq(t, `{"name": "High", "rank": 2}`, attributeFor(t, "UserAttributeView", userTarget, "user_rank"),
 			"%s: a rank value must resolve to its name and rank", stage)
-		assert.JSONEq(t, `["Topic B", "Topic A"]`, attributeFor(t, "ChannelAttributeView", multiChannel, "channel_multi"),
+		require.JSONEq(t, `["Topic B", "Topic A"]`, attributeFor(t, "ChannelAttributeView", channelTarget, "channel_multi"),
 			"%s: a multiselect value must resolve to names in value order", stage)
 	}
 
-	// New() applies all migrations, so 000221 is already in effect.
-	require.NoError(t, store.Attributes().RefreshAttributes())
+	assertProjections(t, "after migration")
 
-	t.Run("a graph value projects the identifiers it holds", func(t *testing.T) {
-		// Through the link: the options belong to the template, not to the field
-		// the value is attached to.
-		assertHeldIDs(t, "UserAttributeView", holderUser, "user_programs", []string{jetID, airID},
-			"a graph value must project the identifiers of the live options it holds, and no others")
-		// And on a field that owns its own options.
-		assertHeldIDs(t, "ChannelAttributeView", holderChannel, "channel_programs", []string{topicBID},
-			"a graph field owning its options must project them too")
-	})
+	// A linked field stores none of the options it serves; they belong to the
+	// template it links to.
+	var ownedByLinked int
+	require.NoError(t, store.GetMaster().Get(&ownedByLinked,
+		"SELECT COUNT(*) FROM PropertyOptions WHERE FieldID = $1", linkedSelect.ID))
+	require.Zero(t, ownedByLinked, "a linked field must not own a copy of its template's options")
 
-	t.Run("an option that no longer exists is not projected", func(t *testing.T) {
-		assertHeldIDs(t, "UserAttributeView", deletedOnlyUser, "user_programs", []string{},
-			"holding only deleted options is holding nothing, and must project an empty array rather than a JSON null")
-	})
+	downSQL := readMigrationSQL(t, "000221_move_property_options_to_table.down.sql")
+	upSQL := readMigrationSQL(t, "000221_move_property_options_to_table.up.sql")
 
-	t.Run("a value that is not an array projects as holding nothing", func(t *testing.T) {
-		assertHeldIDs(t, "UserAttributeView", malformedUser, "user_programs", []string{},
-			"a graph value that is not an array must not project the raw value")
-	})
+	// Down: the options go back into every field's own blob, including a copy in
+	// each linked field, and the table goes away.
+	_, err = store.GetMaster().Exec(downSQL)
+	require.NoError(t, err)
+	require.False(t, tableExists(t, store, "PropertyOptions"), "down should drop PropertyOptions")
 
-	t.Run("every other type projects as before", func(t *testing.T) {
-		assertOtherTypesUnchanged(t, "after migration")
-	})
+	var blobbedOptions int
+	require.NoError(t, store.GetMaster().Get(&blobbedOptions,
+		"SELECT jsonb_array_length(Attrs->'options') FROM PropertyFields WHERE ID = $1", linkedSelect.ID))
+	require.Equal(t, 1, blobbedOptions, "down should restore the linked field's own copy of the option list")
 
-	t.Run("the down migration restores the previous projections", func(t *testing.T) {
-		_, dErr := store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000221_add_graph_to_attribute_views.down.sql"))
-		require.NoError(t, dErr)
-		require.NoError(t, store.Attributes().RefreshAttributes())
+	assertProjections(t, "after down migration")
 
-		// Without the graph branch a graph value falls through to the catch-all
-		// again, which projects the stored array as it is: the deleted option's
-		// identifier included, and a value that is not an array left alone.
-		assertHeldIDs(t, "UserAttributeView", holderUser, "user_programs", []string{jetID, retiredID, airID},
-			"the catch-all projection keeps every identifier the value holds")
-		assert.Equal(t, `"`+airID+`"`, attributeFor(t, "UserAttributeView", malformedUser, "user_programs"),
-			"the catch-all projection passes a non-array value through")
-		assertOtherTypesUnchanged(t, "after down migration")
+	// Up again: this time the backfill reads the blob the down migration wrote,
+	// which is the shape a real upgrade starts from.
+	_, err = store.GetMaster().Exec(upSQL)
+	require.NoError(t, err)
+	require.True(t, tableExists(t, store, "PropertyOptions"), "up should recreate PropertyOptions")
 
-		_, uErr := store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000221_add_graph_to_attribute_views.up.sql"))
-		require.NoError(t, uErr)
-		require.NoError(t, store.Attributes().RefreshAttributes())
+	require.NoError(t, store.GetMaster().Get(&ownedByLinked,
+		"SELECT COUNT(*) FROM PropertyOptions WHERE FieldID = $1", linkedSelect.ID))
+	require.Zero(t, ownedByLinked, "the backfill should leave a linked field's inherited options owned by the template")
 
-		assertHeldIDs(t, "UserAttributeView", holderUser, "user_programs", []string{jetID, airID},
-			"re-applying the migration filters the deleted option again")
-		assertHeldIDs(t, "UserAttributeView", malformedUser, "user_programs", []string{},
-			"re-applying the migration stops the non-array value projecting again")
-		assertOtherTypesUnchanged(t, "after up migration")
-	})
+	var strippedOptions int
+	require.NoError(t, store.GetMaster().Get(&strippedOptions,
+		"SELECT COUNT(*) FROM PropertyFields WHERE Type IN ('select', 'multiselect', 'rank') AND Attrs->'options' IS NOT NULL"))
+	require.Zero(t, strippedOptions, "up should strip the options key from every option-bearing field")
+
+	assertProjections(t, "after up migration")
+
+	// The option list a field reads back survives the round trip.
+	readLinked, err := store.PropertyField().Get(request.TestContext(t), groupID, linkedSelect.ID)
+	require.NoError(t, err)
+	options, ok := readLinked.Attrs["options"].([]any)
+	require.True(t, ok)
+	require.Len(t, options, 1)
+	require.Equal(t, map[string]any{"id": selectOptionID, "name": "Chosen", "color": "#abcdef"}, options[0])
 }
