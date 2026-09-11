@@ -42,6 +42,7 @@ const DOC_ID_PREFIX = 'reference/';
 // line of its own; the body starts after that.
 const FRONT_MATTER = /^---\r?\n([\s\S]*?)\r?\n---\r?\n/;
 
+/** Parses a generated page's YAML frontmatter; throws if the block is absent. */
 function frontMatterOf(source, file) {
   const match = FRONT_MATTER.exec(source);
   if (!match) {
@@ -50,6 +51,10 @@ function frontMatterOf(source, file) {
   return parse(match[1]);
 }
 
+/**
+ * Decodes the OpenAPI operation object out of a page's `api` frontmatter,
+ * or returns undefined when the page carries none.
+ */
 function operationOf(frontMatter, file) {
   // `api` is absent on the info/tag pages, which this script never reads, and
   // on operations the plugin failed to serialize — skip those rather than
@@ -65,6 +70,7 @@ function operationOf(frontMatter, file) {
   }
 }
 
+/** Reads every generated endpoint page and writes the search index. */
 function main() {
   if (!existsSync(REFERENCE_DIR)) {
     console.error(`[api-search] generated API reference not found at ${REFERENCE_DIR}`);

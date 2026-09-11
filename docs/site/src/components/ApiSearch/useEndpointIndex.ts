@@ -12,17 +12,17 @@ export type EndpointIndex = {
   retry: () => void;
 };
 
+/** Shared across mounts, so the sidebar remounting doesn't refetch. */
+let cache: Endpoint[] | undefined;
+
 /**
  * Loads the generated endpoint index (data/api-search-index.json, built by
  * scripts/gen-api-search-index.mjs).
  *
  * The index is ~100 KB of JSON, so it's pulled in with a dynamic import:
  * webpack splits it into its own chunk that only the API pages ever fetch,
- * instead of adding it to every page's bundle. Module-level `cache` keeps
- * it out of the network a second time when the sidebar remounts.
+ * instead of adding it to every page's bundle.
  */
-let cache: Endpoint[] | undefined;
-
 export default function useEndpointIndex(): EndpointIndex {
   const [endpoints, setEndpoints] = useState<Endpoint[] | undefined>(cache);
   const [failed, setFailed] = useState(false);
