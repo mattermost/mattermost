@@ -36,7 +36,7 @@ export type Props = {
     autoCloseOnCancelButton?: boolean;
     autoCloseOnConfirmButton?: boolean;
     enforceFocus?: boolean;
-    container?: React.ReactNode | React.ReactNodeArray;
+    container?: React.ReactNode | readonly React.ReactNode[];
     ariaLabel?: string;
     ariaLabelledby?: string;
     errorText?: string | React.ReactNode;

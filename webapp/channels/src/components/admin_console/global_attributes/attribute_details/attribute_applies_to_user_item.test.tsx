@@ -30,19 +30,66 @@ describe('AttributeAppliesToUserItem', () => {
         expect(screen.getByTestId('attributeAppliesToRow-user')).toHaveTextContent('Users');
     });
 
-    it('starts collapsed, with no Remove button, and clicking the toggle reveals the placeholder body and Remove', async () => {
+    it('starts collapsed, with no Remove button and no config controls, and clicking the toggle reveals both controls and Remove', async () => {
         renderComponent();
 
         expect(screen.queryByTestId('attributeAppliesToRow-user-body')).not.toBeInTheDocument();
         expect(screen.queryByTestId('attributeAppliesToRow-user-remove')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('attributeAppliesToUserProfileDisplay-always')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('attributeAppliesToUserWhoCanSet-member')).not.toBeInTheDocument();
 
         await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
-        expect(screen.getByTestId('attributeAppliesToRow-user-body')).toHaveTextContent('No additional settings for this resource yet.');
         expect(screen.getByTestId('attributeAppliesToRow-user-remove')).toBeVisible();
+        expect(screen.getByTestId('attributeAppliesToUserProfileDisplay-always')).toBeVisible();
+        expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-member')).toBeVisible();
 
         await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
         expect(screen.queryByTestId('attributeAppliesToRow-user-body')).not.toBeInTheDocument();
         expect(screen.queryByTestId('attributeAppliesToRow-user-remove')).not.toBeInTheDocument();
+    });
+
+    it('Profile display: renders the visibility prop as the pressed segment, and clicking a different one calls onVisibilityChange', async () => {
+        const onVisibilityChange = jest.fn();
+        renderComponent({visibility: 'when_set', onVisibilityChange});
+        await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+
+        expect(screen.getByTestId('attributeAppliesToUserProfileDisplay-when_set')).toHaveAttribute('aria-pressed', 'true');
+        expect(screen.getByTestId('attributeAppliesToUserProfileDisplay-always')).toHaveAttribute('aria-pressed', 'false');
+        expect(screen.getByTestId('attributeAppliesToUserProfileDisplay-hidden')).toHaveAttribute('aria-pressed', 'false');
+
+        await userEvent.click(screen.getByTestId('attributeAppliesToUserProfileDisplay-always'));
+        expect(onVisibilityChange).toHaveBeenCalledWith('always');
+
+        await userEvent.click(screen.getByTestId('attributeAppliesToUserProfileDisplay-hidden'));
+        expect(onVisibilityChange).toHaveBeenCalledWith('hidden');
+    });
+
+    it('Who can set the value: renders the managed prop as the selected option, shows the static help caption, and calls onManagedChange on selection', async () => {
+        const onManagedChange = jest.fn();
+        renderComponent({managed: '', onManagedChange});
+        await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+
+        expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-member')).toBeChecked();
+        expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-admin')).not.toBeChecked();
+        expect(screen.getByText('Choose Member or System Administrator.')).toBeInTheDocument();
+
+        await userEvent.click(screen.getByTestId('attributeAppliesToUserWhoCanSet-admin'));
+        expect(onManagedChange).toHaveBeenCalledWith('admin');
+    });
+
+    it('disables both config controls when disabled, once expanded', async () => {
+        const {rerender} = renderComponent();
+        await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+        rerender(
+            <AttributeAppliesToUserItem
+                onRemove={onRemove}
+                disabled={true}
+            />,
+        );
+
+        expect(screen.getByTestId('attributeAppliesToUserProfileDisplay-always')).toBeDisabled();
+        expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-member')).toBeDisabled();
+        expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-admin')).toBeDisabled();
     });
 
     it('calls onRemove exactly once when Remove is clicked, once expanded', async () => {
@@ -64,6 +111,19 @@ describe('AttributeAppliesToUserItem', () => {
 
         expect(screen.getByTestId('attributeAppliesToRow-user-toggle')).toBeDisabled();
         expect(screen.getByTestId('attributeAppliesToRow-user-remove')).toBeDisabled();
+    });
+
+    it('wraps the toggle in a tooltip explaining the lock reason when lockedTooltip is provided, and omits the wrap otherwise', () => {
+        const {rerender} = renderComponent({disabled: true, lockedTooltip: 'Managed by a plugin'});
+        expect(screen.getByTestId('attributeAppliesToRow-user-toggleLockWrap')).toBeInTheDocument();
+
+        rerender(
+            <AttributeAppliesToUserItem
+                onRemove={onRemove}
+                disabled={true}
+            />,
+        );
+        expect(screen.queryByTestId('attributeAppliesToRow-user-toggleLockWrap')).not.toBeInTheDocument();
     });
 
     it('makes no Client4 calls and no data-mutating dispatch', async () => {

@@ -6,7 +6,9 @@ import path from 'node:path';
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {duration} from '@/util';
 import {assetPath} from '@/file';
+import {waitUntil} from '@/test_action';
 
 export default class ChannelsPostCreate {
     readonly container: Locator;
@@ -22,6 +24,8 @@ export default class ChannelsPostCreate {
     readonly suggestionOptions;
     readonly selectedSuggestion;
     readonly filePreview;
+    readonly filePreviewItems;
+    readonly messageTooLongWarning;
     readonly previewButton;
     readonly previewArea;
 
@@ -48,6 +52,8 @@ export default class ChannelsPostCreate {
         this.suggestionOptions = this.suggestionList.getByRole('option');
         this.selectedSuggestion = this.suggestionList.getByTestId('suggestion-selected');
         this.filePreview = container.getByTestId('file-preview-container');
+        this.filePreviewItems = this.filePreview.getByTestId('file-preview-item');
+        this.messageTooLongWarning = container.getByText(/Your message is too long\. Character count:/);
         this.previewButton = container.getByRole('button', {name: 'preview'});
         this.previewArea = container.locator('.textbox-preview-area');
 
@@ -206,6 +212,52 @@ export default class ChannelsPostCreate {
         await this.emojiButton.click();
     }
 
+    async selectFiles(files: File | File[]) {
+        const selectedFiles = Array.isArray(files) ? files : [files];
+        const fileChooserPromise = this.container.page().waitForEvent('filechooser');
+        await this.attachmentButton.click();
+        const fileChooser = await fileChooserPromise;
+        const payloads = await Promise.all(
+            selectedFiles.map(async (file) => ({
+                name: file.name,
+                mimeType: file.type,
+                buffer: Buffer.from(await file.arrayBuffer()),
+            })),
+        );
+        await fileChooser.setFiles(payloads);
+        await this.waitUntilFilePreviewContains(selectedFiles.map((file) => file.name));
+    }
+
+    getFilePreviewItem(fileName: string) {
+        return this.filePreviewItems.filter({hasText: fileName});
+    }
+
+    async toHaveFilePreview(fileName: string) {
+        const item = this.getFilePreviewItem(fileName);
+        await expect(item).toBeVisible();
+        await expect(item.getByLabel(/file thumbnail/i)).toBeVisible();
+    }
+
+    async removeFilePreview(fileName: string) {
+        await this.getFilePreviewItem(fileName).getByTestId('file-preview-remove').click();
+    }
+
+    async toHaveFilePreviewCount(count: number) {
+        await expect(this.filePreviewItems).toHaveCount(count);
+    }
+
+    async toNotHaveMessageTooLongWarning() {
+        await expect(this.messageTooLongWarning).not.toBeVisible();
+    }
+
+    async toHaveMessageTooLongWarning(characterCount: number, maximum: number) {
+        await expect(
+            this.container.getByText(`Your message is too long. Character count: ${characterCount}/${maximum}`, {
+                exact: true,
+            }),
+        ).toBeVisible();
+    }
+
     async togglePreview() {
         await expect(this.previewButton).toBeVisible();
         await this.previewButton.click();
@@ -216,10 +268,22 @@ export default class ChannelsPostCreate {
         await this.previewArea.locator('.mention-link').click();
     }
 
-    async waitUntilFilePreviewContains(files: string[]) {
-        await expect(this.filePreview).toBeVisible();
-        await expect(this.filePreview.getByTestId('file-preview-item')).toHaveCount(files.length);
-        await expect(this.filePreview.getByTestId('post-image-details')).toHaveCount(files.length);
+    async waitUntilFilePreviewContains(files: string[], timeout = duration.ten_sec) {
+        await waitUntil(
+            async () => {
+                const previews = this.filePreview.getByTestId('file-preview-item');
+                const details = this.filePreview.getByTestId('post-image-details');
+
+                const [previewsCount, detailsCount] = await Promise.all([previews.count(), details.count()]);
+                if (previewsCount !== files.length || detailsCount !== files.length) {
+                    return false;
+                }
+
+                const previewTexts = await previews.allTextContents();
+                return files.every((file) => previewTexts.some((text) => text.includes(file)));
+            },
+            {timeout},
+        );
     }
 
     /**

@@ -2,23 +2,27 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {IntlShape} from 'react-intl';
+import React, {useCallback, useEffect, useMemo, useRef, useState, type JSX} from 'react';
+import type {IntlShape, MessageDescriptor} from 'react-intl';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {useParams} from 'react-router-dom';
 
 import type {ClientError} from '@mattermost/client';
 import {buttonClassNames} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
-import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
+import type {FieldVisibility, PropertyField, PropertyFieldOption, PropertyPermissionLevel} from '@mattermost/types/properties';
 import {supportsOptions} from '@mattermost/types/properties';
+import type {GlobalState} from '@mattermost/types/store';
+
+import {getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
 import BlockableLink from 'components/admin_console/blockable_link';
 import {findRankCollision, isValidRank} from 'components/admin_console/system_properties/rank_utils';
 import Card from 'components/card/card';
+import {useIsFieldOrphaned, usePluginInventoryLoaded} from 'components/common/hooks/use_field_orphaned';
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
 import SaveButton from 'components/save_button';
@@ -27,18 +31,22 @@ import Input from 'components/widgets/inputs/input/input';
 
 import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
+import {isMinimumEnterpriseAdvancedLicense} from 'utils/license_utils';
 import {CPA_FIELD_NAME_MAX_RUNES, filterCELIdentifier, slugifyForCEL, validateCPAFieldName} from 'utils/properties';
 import type {CPAFieldNameValidationError} from 'utils/properties';
 
 import AttributeAppliesTo from './attribute_applies_to';
 import {ALL_RESOURCE_TYPES, ATTRIBUTE_APPLIES_TO_ADD_HEADER_TRIGGER_ID, resourceTypeLabels} from './attribute_applies_to_constants';
-import type {ResourceObjectType} from './attribute_applies_to_constants';
+import type {ResourceObjectType, UserManagedValue} from './attribute_applies_to_constants';
 import AttributeExternalSource from './attribute_external_source';
 import type {ExternalSource} from './attribute_external_source';
 import AttributeOptionsRankValues from './attribute_options_rank_values';
 import AttributeOptionsValues from './attribute_options_values';
+import AttributePluginSource from './attribute_plugin_source';
 import {useConfirmRemoveAppliesTo} from './attribute_remove_applies_to_warning_modal';
 
+import {CHANNEL_VALUE_SETTER, DEFAULT_CHANNEL_RESOURCE_CONFIG, buildChannelFieldAttrs, buildChannelFieldPatch, isOrderedChangePolicy, parseChannelFieldConfig} from '../applies_to/channels';
+import type {ChannelResourceConfig} from '../applies_to/channels';
 import {GLOBAL_ATTRIBUTES_LIST_ROUTE} from '../constants';
 import {getSourceKind, getTypeIcon, getTypeLabel, isClassificationMarkingsField, typeLabels} from '../global_attributes_table';
 import type {AttributeFieldType} from '../utils';
@@ -50,6 +58,7 @@ import {
     fetchAttributeField,
     fetchLinkedFieldsForTemplate,
     linkedFieldsByResourceType,
+    patchLinkedAttributeField,
     updateAttributeField,
 } from '../utils';
 
@@ -122,9 +131,22 @@ type ErrorKind =
     'applies_to_remove_failed' |
     'applies_to_remove_partial_save' |
     'applies_to_partial_save' |
+    'applies_to_config_save_failed' |
     'applies_to_rollback_failed' |
     'applies_to_name_conflict' |
     'applies_to_limit_reached';
+
+// The error kinds whose banner copy interpolates {resources} -- share one
+// flat formatMessage(errorMessages[errorKind], {resources}) call. Kept as a
+// Set (module scope, not rebuilt per render) rather than a chain of ===
+// comparisons at the call site.
+const RESOURCE_INTERPOLATED_ERROR_KINDS = new Set<ErrorKind>([
+    'applies_to_failed',
+    'applies_to_remove_failed',
+    'applies_to_remove_partial_save',
+    'applies_to_partial_save',
+    'applies_to_config_save_failed',
+]);
 
 function errorKindFromError(error: unknown): ErrorKind {
     const serverErrorId = (error as ClientError | undefined)?.server_error_id;
@@ -153,9 +175,8 @@ function errorKindFromError(error: unknown): ErrorKind {
 // template's own name-conflict/limit-reached ids (both write into the same
 // access_control group), but the actionable copy is different -- a linked
 // 'user'-object-type field conflicts with a Custom Profile Attributes field,
-// not with another Global Attribute (see the plan's CPA-namespace-overlap
-// Decision). Returns null for anything else, so the caller falls back to the
-// generic applies-to-failed message.
+// not with another Global Attribute. Returns null for anything else, so the
+// caller falls back to the generic applies-to-failed message.
 function appliesToErrorKindFromError(error: unknown): 'applies_to_name_conflict' | 'applies_to_limit_reached' | null {
     const serverErrorId = (error as ClientError | undefined)?.server_error_id;
     switch (serverErrorId) {
@@ -255,6 +276,18 @@ function nameErrorMessage(error: CPAFieldNameValidationError, formatMessage: Int
     return formatMessage(nameErrorMessages.invalidCharset);
 }
 
+// Returns the first reason whose condition is true, checked in the given order --
+// shared by typeLockReason/nameLockReason below so a priority-ordered "which lock
+// reason wins" chain exists in exactly one place, not once per lockable field.
+function firstMatchingReason<T extends string>(...pairs: Array<[T, boolean]>): T | null {
+    for (const [reason, matches] of pairs) {
+        if (matches) {
+            return reason;
+        }
+    }
+    return null;
+}
+
 type Props = {
     disabled?: boolean;
 };
@@ -267,6 +300,22 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
 
     const [loading, setLoading] = useState(isEditMode);
     const [isDirty, setIsDirty] = useState(false);
+
+    // Set once from the loaded field's attrs and never re-derived afterward -- a
+    // plugin-owned field has nothing else on this page that can change it. Used
+    // as the single source of truth for the plugin-owned lock (see
+    // effectiveDisabled below) rather than recomputing getSourceKind(field) at
+    // every render site.
+    const [sourcePluginId, setSourcePluginId] = useState<string | undefined>(undefined);
+    const isPluginOwned = Boolean(sourcePluginId);
+
+    // Substituted for the bare `disabled` prop everywhere else on this page --
+    // one boolean, not a second parallel disabled path. Keeps the pre-existing
+    // non-sysadmin `disabled` prop (schema-wired via isDisabled: it.not
+    // (it.isSystemAdmin)) and the new plugin-owned lock behaving identically at
+    // every call site.
+    const effectiveDisabled = disabled || isPluginOwned;
+
     const [displayName, setDisplayName] = useState('');
     const [manualName, setManualName] = useState('');
 
@@ -291,8 +340,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const previousManualNameRef = useRef('');
 
     // Type and Options are independent state -- switching type never clears
-    // options (see Design Decision 3 in the plan): a Text -> Select -> Text ->
-    // Select round-trip must restore whatever the admin already entered.
+    // options: a Text -> Select -> Text -> Select round-trip must restore
+    // whatever the admin already entered.
     const [fieldType, setFieldType] = useState<AttributeFieldType>('text');
     const [options, setOptions] = useState<PropertyFieldOption[]>([]);
 
@@ -302,15 +351,43 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const [ldapAttr, setLdapAttr] = useState('');
     const [samlAttr, setSamlAttr] = useState('');
 
+    // Global Attributes is Enterprise, but a channel attribute is refused below
+    // Enterprise Advanced, so Channels is not offered as a resource at all.
+    const channelAttributesEnabled = useSelector((state: GlobalState) =>
+        getFeatureFlagValue(state, 'ChannelAttributes') === 'true' && isMinimumEnterpriseAdvancedLicense(getLicense(state)));
+    const allowedResourceTypes = useMemo(
+        () => (channelAttributesEnabled ? ALL_RESOURCE_TYPES : ALL_RESOURCE_TYPES.filter((type) => type !== 'channel')),
+        [channelAttributesEnabled],
+    );
+
     // Pending Applies-to selection -- insertion order, not fixed Users/Channels/
     // Posts order (that fixed order only governs the picker's own offer list).
     const [appliesTo, setAppliesTo] = useState<ResourceObjectType[]>([]);
+
+    // What the Channels row edits. Kept whether or not Channels is currently in
+    // appliesTo, so removing the resource and adding it back does not silently
+    // reset the configuration.
+    const [channelResource, setChannelResource] = useState<ChannelResourceConfig>({...DEFAULT_CHANNEL_RESOURCE_CONFIG});
 
     // Loaded linked fields, keyed by resource type. Add/Remove only mutate
     // appliesTo; Save diffs against this snapshot. Updated in place after each
     // successful DELETE/POST so a retry does not repeat a completed step.
     const persistedLinkedFieldsRef = useRef<Partial<Record<ResourceObjectType, PropertyField>>>({});
     const originalNameRef = useRef('');
+
+    // Users row config -- Profile display / Who can set the value, both stored
+    // as attrs.visibility/attrs.managed on the Users linked field, matching
+    // CPA's own value domain exactly rather than the PSAv2 PermissionValues
+    // field. Defaults match CPA's defaults for a brand-new field.
+    const [userVisibility, setUserVisibility] = useState<FieldVisibility>('when_set');
+    const [userManaged, setUserManaged] = useState<UserManagedValue>('');
+
+    // Snapshot of what's actually persisted, to diff against at Save time --
+    // populated in the load effect below. Not needed for a brand-new attribute
+    // (both stay at the defaults above, matching what a new Users row would be
+    // created with, so the diff below is trivially "unchanged").
+    const originalUserVisibilityRef = useRef<FieldVisibility>('when_set');
+    const originalUserManagedRef = useRef<UserManagedValue>('');
 
     // Compared against the live fieldType at Save time to pick which order
     // DELETE/PATCH run in (see handleSave) -- the server rejects a type-changing
@@ -345,6 +422,23 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         isMountedRef.current = false;
     }, []);
 
+    // The Source column's plugin-name resolution degrades to a raw plugin ID for
+    // server-only plugins (no webapp bundle registered) until pluginStatuses has
+    // been fetched -- mirrors global_attributes_table.tsx's own fetch-once
+    // pattern (shared via usePluginInventoryLoaded) so a direct deep-link to
+    // this page resolves the same name the listing would show. Also needed to
+    // settle orphan detection below: an inventory that hasn't loaded yet reads
+    // identically to "nothing installed" (see useIsFieldOrphaned's own doc
+    // comment), so isOrphaned is only trusted once this is true.
+    const pluginInventoryLoaded = usePluginInventoryLoaded(isPluginOwned);
+
+    // protected: true is safe to hardcode here (rather than threaded from the
+    // loaded field) -- sourcePluginId is only ever set when getSourceKind(field)
+    // === 'plugin', which itself requires attrs.protected === true on the real
+    // field (see getSourceKind), so the invariant holds by construction.
+    const isOrphanedRaw = useIsFieldOrphaned({attrs: {source_plugin_id: sourcePluginId, protected: true}});
+    const isOrphaned = pluginInventoryLoaded && isOrphanedRaw;
+
     useEffect(() => {
         if (!fieldId) {
             return undefined;
@@ -360,7 +454,6 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 }
                 if (
                     !field ||
-                    getSourceKind(field) === 'plugin' ||
                     isClassificationMarkingsField(field, field.group_id)
                 ) {
                     getHistory().push(LIST_ROUTE);
@@ -378,6 +471,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 const loadedFieldType = isAttributeFieldType(field.type) ? field.type : 'text';
                 originalFieldTypeRef.current = loadedFieldType;
 
+                setSourcePluginId(getSourceKind(field) === 'plugin' ? (field.attrs?.source_plugin_id as string | undefined) : undefined);
                 setDisplayName((field.attrs?.display_name as string | undefined) || '');
                 setManualName(field.name);
                 setIsNameManuallyEdited(true);
@@ -386,6 +480,25 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 setLdapAttr(typeof field.attrs?.ldap === 'string' ? field.attrs.ldap : '');
                 setSamlAttr(typeof field.attrs?.saml === 'string' ? field.attrs.saml : '');
                 setAppliesTo(ALL_RESOURCE_TYPES.filter((type) => Boolean(linkedByType[type])));
+
+                // Branches on whether a Users linked field exists at all, not on
+                // create-vs-edit mode -- this one rule correctly covers a brand-new
+                // attribute AND an existing attribute that doesn't currently have a
+                // Users row (e.g. adding Users for the first time to an attribute
+                // that today only applies to Channels), falling back to the same
+                // defaults in both cases.
+                const userField = linkedByType.user;
+                const rawVisibility = userField?.attrs?.visibility;
+                const loadedVisibility: FieldVisibility = rawVisibility === 'always' || rawVisibility === 'when_set' || rawVisibility === 'hidden' ? rawVisibility : 'when_set';
+                const loadedManaged: UserManagedValue = userField?.attrs?.managed === 'admin' ? 'admin' : '';
+                setUserVisibility(loadedVisibility);
+                setUserManaged(loadedManaged);
+                originalUserVisibilityRef.current = loadedVisibility;
+                originalUserManagedRef.current = loadedManaged;
+
+                if (linkedByType.channel) {
+                    setChannelResource(parseChannelFieldConfig(linkedByType.channel));
+                }
                 setLoading(false);
             } catch {
                 if (!cancelled) {
@@ -459,13 +572,31 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         markDirty();
     }, [markDirty]);
 
+    // Users row config -- no-op-guarded and markDirty()-wrapped, mirroring
+    // handleTypeChange/handleLink above.
+    const handleUserVisibilityChange = useCallback((visibility: FieldVisibility) => {
+        if (visibility === userVisibility) {
+            return;
+        }
+        setUserVisibility(visibility);
+        markDirty();
+    }, [userVisibility, markDirty]);
+
+    const handleUserManagedChange = useCallback((managed: UserManagedValue) => {
+        if (managed === userManaged) {
+            return;
+        }
+        setUserManaged(managed);
+        markDirty();
+    }, [userManaged, markDirty]);
+
     // Moves focus to the header Add-resource trigger after a pre-save removal
-    // (see the plan's Decisions table) -- via useEffect, not directly inside
-    // handleRemove, since the trigger may have just been re-rendered into
-    // existence this same update (e.g. removing the 3rd of 3 selected types
-    // un-hides both triggers), and a synchronous focus() call in the handler
-    // would run before that re-render commits. Mirrors the sibling external-
-    // source picker's own prevCountRef pattern (attribute_external_source.tsx).
+    // -- via useEffect, not directly inside handleRemove, since the trigger may
+    // have just been re-rendered into existence this same update (e.g. removing
+    // the 3rd of 3 selected types un-hides both triggers), and a synchronous
+    // focus() call in the handler would run before that re-render commits.
+    // Mirrors the sibling external-source picker's own prevCountRef pattern
+    // (attribute_external_source.tsx).
     //
     // Also handles the mirror-image case on add: picking the 3rd (last)
     // resource type unmounts BOTH "Add resource" triggers in this same
@@ -523,6 +654,12 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         if (newType !== 'text') {
             setLdapAttr('');
             setSamlAttr('');
+        }
+
+        // Raise-only and lower-only compare ranks, so they cannot survive a move off
+        // Rank: left in place they would save a policy the server can never evaluate.
+        if (newType !== 'rank') {
+            setChannelResource((prev) => (isOrderedChangePolicy(prev.changePolicy) ? {...prev, changePolicy: 'any'} : prev));
         }
         setFieldType(newType);
     }, [fieldType, markDirty]);
@@ -620,7 +757,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
 
     const hasExternalSource = Boolean(ldapAttr || samlAttr);
     const typeLockedByAppliesTo = isEditMode && appliesTo.length > 0;
-    const typeLocked = hasExternalSource || typeLockedByAppliesTo;
+    const typeLocked = hasExternalSource || typeLockedByAppliesTo || isPluginOwned;
     const typeChanged = isEditMode && fieldType !== originalFieldTypeRef.current;
     const typeSupportsOptions = supportsOptions({type: fieldType} as PropertyField);
 
@@ -631,6 +768,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // persisted snapshot, not appliesTo, so a pending local remove doesn't
     // unlock a rename the dependents wouldn't receive.
     const nameLockedByAppliesTo = isEditMode && Object.keys(persistedLinkedFieldsRef.current).length > 0;
+    const nameLocked = nameLockedByAppliesTo || isPluginOwned;
 
     // Defensive re-check, not the primary guard: both options editors already
     // block duplicate names and invalid/duplicate ranks interactively at
@@ -657,17 +795,16 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         return null;
     }, [typeSupportsOptions, options, fieldType]);
 
-    const canSave = !disabled && Boolean(displayName.trim()) && Boolean(currentName) && !nameValidationError && !saving && optionsIssue === null && (!isEditMode || isDirty);
+    const canSave = !effectiveDisabled && Boolean(displayName.trim()) && Boolean(currentName) && !nameValidationError && !saving && optionsIssue === null && (!isEditMode || isDirty);
 
     const confirmRemoveAppliesTo = useConfirmRemoveAppliesTo();
 
     // Applies the fully-settled outcome of a save attempt -- the ONLY place in
     // handleSave that reads isMountedRef, checked once after the entire
-    // create-or-rollback sequence below has finished (see the plan's Decisions
-    // table: inserting a mounted-check earlier, e.g. right after the template
-    // create, would skip the linked-field loop and its rollback entirely if
-    // the admin navigated away mid-save, leaving an orphaned template with no
-    // cleanup attempted).
+    // create-or-rollback sequence below has finished. Inserting a
+    // mounted-check earlier, e.g. right after the template create, would skip
+    // the linked-field loop and its rollback entirely if the admin navigated
+    // away mid-save, leaving an orphaned template with no cleanup attempted.
     const finalizeSave = useCallback((outcome: SaveOutcome) => {
         if (!isMountedRef.current) {
             return;
@@ -691,6 +828,42 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         setErrorKind(null);
         setServerErrorMessage(null);
         setFailedResourceTypes(null);
+
+        // Bundled into the Users linked field's create request below (never a
+        // bare create followed by an immediate patch) -- undefined for Posts,
+        // which has no config yet.
+        const userConfigAttrs = {visibility: userVisibility, managed: userManaged};
+
+        // The field's actual write-permission tier, kept in sync with managed --
+        // sent as permission_values (top-level, not part of attrs) so the value
+        // CPA's own attrs.managed toggle promises is the value that's actually
+        // enforced.
+        const userConfigPermissionValues: PropertyPermissionLevel = userManaged === 'admin' ? 'sysadmin' : 'member';
+
+        // Dispatches each resource type's own config onto its create request --
+        // Users' Profile display/Who can set the value, or Channels' own
+        // required/change-policy attrs and pinned permission_values. Posts has
+        // no config panel yet, so it always gets undefined (server defaults).
+        const newResourceAttrsFor = (type: ResourceObjectType): Record<string, unknown> | undefined => {
+            switch (type) {
+            case 'user':
+                return userConfigAttrs;
+            case 'channel':
+                return buildChannelFieldAttrs(channelResource);
+            default:
+                return undefined;
+            }
+        };
+        const newResourcePermissionValuesFor = (type: ResourceObjectType): PropertyPermissionLevel | undefined => {
+            switch (type) {
+            case 'user':
+                return userConfigPermissionValues;
+            case 'channel':
+                return CHANNEL_VALUE_SETTER;
+            default:
+                return undefined;
+            }
+        };
 
         if (isEditMode && fieldId) {
             const persisted = persistedLinkedFieldsRef.current;
@@ -773,7 +946,15 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             for (const type of toCreate) {
                 try {
                     // eslint-disable-next-line no-await-in-loop
-                    const linkedField = await createLinkedAttributeField(type, currentName, fieldType, displayName, fieldId);
+                    const linkedField = await createLinkedAttributeField(
+                        type,
+                        currentName,
+                        fieldType,
+                        displayName,
+                        fieldId,
+                        newResourceAttrsFor(type),
+                        newResourcePermissionValuesFor(type),
+                    );
                     persistedLinkedFieldsRef.current[type] = linkedField;
                 } catch (error) {
                     const cpaErrorKind = type === 'user' ? appliesToErrorKindFromError(error) : null;
@@ -782,6 +963,64 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         errorKind: cpaErrorKind ?? 'applies_to_partial_save',
                         serverErrorMessage: null,
                         failedResourceTypes: [type],
+                    });
+                    return;
+                }
+            }
+
+            // Config-only patch for a Users row that's already persisted this
+            // session. Guarded by all three of: `'user' ∈ appliesTo` (excludes a
+            // row in `toDelete` -- already persisted and not in `toCreate` is also
+            // true for a row being deleted, so this check must not rely on file
+            // ordering relative to the delete loop above), already persisted, and
+            // not in `toCreate` (that row's create call above already carries the
+            // current values).
+            const userIsUpdateCandidate = appliesTo.includes('user') && !toCreate.includes('user') && Boolean(persistedLinkedFieldsRef.current.user);
+            if (userIsUpdateCandidate) {
+                const visibilityChanged = userVisibility !== originalUserVisibilityRef.current;
+                const managedChanged = userManaged !== originalUserManagedRef.current;
+                if (visibilityChanged || managedChanged) {
+                    const existingUserField = persistedLinkedFieldsRef.current.user;
+                    if (existingUserField) {
+                        try {
+                            const updatedUserField = await patchLinkedAttributeField('user', existingUserField.id, userConfigAttrs, userConfigPermissionValues);
+                            persistedLinkedFieldsRef.current.user = updatedUserField;
+                            originalUserVisibilityRef.current = userVisibility;
+                            originalUserManagedRef.current = userManaged;
+                        } catch {
+                            // Distinct from applies_to_partial_save -- the Users row is
+                            // already linked and persisted here (userIsUpdateCandidate
+                            // requires it), so "couldn't be applied to Users" would tell
+                            // the admin the linkage itself failed and risk them removing
+                            // and re-adding the row (a destructive, confirmation-gated
+                            // action) when a simple Save retry is all that's needed.
+                            finalizeSave({
+                                success: false,
+                                errorKind: 'applies_to_config_save_failed',
+                                serverErrorMessage: null,
+                                failedResourceTypes: ['user'],
+                            });
+                            return;
+                        }
+                    }
+                }
+            }
+
+            // An existing Channels row's own settings (required, change policy,
+            // display locations) are not part of the template patch above, so a
+            // resource that was already applied still needs its own PATCH to
+            // pick up an edit to those settings.
+            const persistedChannelField = persistedLinkedFieldsRef.current.channel;
+            if (persistedChannelField && appliesTo.includes('channel') && !toCreate.includes('channel')) {
+                try {
+                    const patchedChannelField = await patchLinkedAttributeField('channel', persistedChannelField.id, buildChannelFieldPatch(channelResource).attrs);
+                    persistedLinkedFieldsRef.current.channel = patchedChannelField;
+                } catch {
+                    finalizeSave({
+                        success: false,
+                        errorKind: 'applies_to_partial_save',
+                        serverErrorMessage: null,
+                        failedResourceTypes: ['channel'],
                     });
                     return;
                 }
@@ -812,7 +1051,15 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         for (const type of appliesTo) {
             try {
                 // eslint-disable-next-line no-await-in-loop
-                const linkedField = await createLinkedAttributeField(type, currentName, fieldType, displayName, templateField.id);
+                const linkedField = await createLinkedAttributeField(
+                    type,
+                    currentName,
+                    fieldType,
+                    displayName,
+                    templateField.id,
+                    newResourceAttrsFor(type),
+                    newResourcePermissionValuesFor(type),
+                );
                 createdLinkedFields.push({type, field: linkedField});
             } catch (error) {
                 // eslint-disable-next-line no-await-in-loop
@@ -822,22 +1069,37 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         }
 
         finalizeSave(outcome);
-    }, [canSave, isEditMode, fieldId, nameUnchanged, displayName, currentName, fieldType, typeChanged, options, ldapAttr, samlAttr, appliesTo, finalizeSave, confirmRemoveAppliesTo]);
+    }, [canSave, isEditMode, fieldId, nameUnchanged, displayName, currentName, fieldType, typeChanged, options, ldapAttr, samlAttr, appliesTo, channelResource, finalizeSave, confirmRemoveAppliesTo, userVisibility, userManaged]);
+
+    const handleChannelResourceChange = useCallback((next: ChannelResourceConfig) => {
+        setChannelResource(next);
+        markDirty();
+    }, [markDirty]);
 
     const TypeIcon = getTypeIcon(fieldType);
-    const typeLockTooltip = hasExternalSource ? formatMessage(messages.typeLockedExternalSourceTooltip) : formatMessage(messages.typeLockedAppliesToTooltip);
-    let typeButtonAriaLabel = formatMessage(messages.typeFieldAriaLabel, {value: formatMessage(getTypeLabel(fieldType))});
-    if (hasExternalSource) {
-        typeButtonAriaLabel = formatMessage(messages.typeFieldLockedAriaLabel);
-    } else if (typeLockedByAppliesTo) {
-        typeButtonAriaLabel = formatMessage(messages.typeFieldLockedAppliesToAriaLabel, {value: formatMessage(getTypeLabel(fieldType))});
-    }
+
+    // Reason derived once, then looked up for both the tooltip and the
+    // aria-label below -- pluginOrphaned/plugin checked first: a plugin-owned
+    // field with zero applied resources has typeLockedByAppliesTo === false and
+    // hasExternalSource === false, so it must not fall through to the
+    // "applies to a resource" copy, which would be factually wrong when it
+    // applies to nothing. pluginOrphaned (not plain "plugin") whenever the
+    // field is also orphaned, so this tooltip doesn't contradict the
+    // "(no longer installed)" copy the Managed-by panel shows one card up.
+    const typeLockReason = firstMatchingReason<'pluginOrphaned' | 'plugin' | 'externalSource' | 'appliesTo'>(
+        ['pluginOrphaned', isPluginOwned && isOrphaned],
+        ['plugin', isPluginOwned],
+        ['externalSource', hasExternalSource],
+        ['appliesTo', typeLockedByAppliesTo],
+    );
+    const typeLockTooltip = formatMessage(TYPE_LOCK_MESSAGES[typeLockReason ?? 'appliesTo'].tooltip);
+    const typeButtonAriaLabel = typeLockReason ? formatMessage(TYPE_LOCK_MESSAGES[typeLockReason].ariaLabel, {value: formatMessage(getTypeLabel(fieldType))}) : formatMessage(messages.typeFieldAriaLabel, {value: formatMessage(getTypeLabel(fieldType))});
     const typeMenu = (
         <Menu.Container
             menuButton={{
                 id: 'attribute-type-menu-button',
                 class: 'AttributeDetails__typeButton',
-                disabled: saving || disabled || typeLocked,
+                disabled: saving || effectiveDisabled || typeLocked,
                 'aria-label': typeButtonAriaLabel,
                 children: (
                     <>
@@ -893,7 +1155,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // has no notion of "User Attribute" to say, since that framing is
     // specific to this feature's CPA-namespace overlap.
     let errorContent: React.ReactNode = null;
-    if (errorKind === 'applies_to_failed' || errorKind === 'applies_to_remove_failed' || errorKind === 'applies_to_remove_partial_save' || errorKind === 'applies_to_partial_save') {
+    if (errorKind && RESOURCE_INTERPOLATED_ERROR_KINDS.has(errorKind)) {
         errorContent = formatMessage(errorMessages[errorKind], {resources: resourceTypeListLabel(failedResourceTypes ?? [], formatMessage)});
     } else if (errorKind === 'applies_to_rollback_failed') {
         const resources = resourceTypeListLabel(failedResourceTypes ?? [], formatMessage);
@@ -968,7 +1230,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                         value={displayName}
                                         onChange={handleDisplayNameChange}
                                         autoFocus={true}
-                                        disabled={saving || disabled}
+                                        disabled={saving || effectiveDisabled}
                                         maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_NAME_LENGTH}
                                         data-testid='attributeDisplayNameInput'
                                     />
@@ -995,7 +1257,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                                     onKeyDown={handleNameKeyDown}
                                                     onBlur={handleDoneClick}
                                                     autoFocus={true}
-                                                    disabled={saving || disabled || nameLockedByAppliesTo}
+                                                    disabled={saving || effectiveDisabled || nameLockedByAppliesTo}
                                                     maxLength={CPA_FIELD_NAME_MAX_RUNES}
                                                     aria-labelledby='attribute-unique-name-prefix'
                                                     aria-describedby={nameDescribedBy}
@@ -1012,6 +1274,17 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                                 </span>
                                             )}
                                             {(() => {
+                                                // Reason derived once, then looked up for both the aria-label
+                                                // and the tooltip below -- same priority reasoning as
+                                                // typeLockReason above, including preferring pluginOrphaned
+                                                // over plain "plugin" once the field is confirmed orphaned.
+                                                const nameLockReason = firstMatchingReason<'pluginOrphaned' | 'plugin' | 'appliesTo'>(
+                                                    ['pluginOrphaned', isPluginOwned && isOrphaned],
+                                                    ['plugin', isPluginOwned],
+                                                    ['appliesTo', nameLockedByAppliesTo],
+                                                );
+                                                const nameEditLinkAriaLabel = nameLockReason ? formatMessage(NAME_LOCK_MESSAGES[nameLockReason].ariaLabel) : formatMessage(isEditingName ? messages.doneLinkAriaLabel : messages.editLinkAriaLabel);
+
                                                 const editLinkButton = (
                                                     <button
                                                         type='button'
@@ -1024,18 +1297,24 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                                                 e.preventDefault();
                                                             }
                                                         }}
-                                                        disabled={saving || disabled || nameLockedByAppliesTo}
+                                                        disabled={saving || effectiveDisabled || nameLockedByAppliesTo}
                                                         aria-disabled={isDoneBlocked || undefined}
                                                         aria-describedby={isDoneBlocked ? 'attribute-unique-name-error' : undefined}
-                                                        aria-label={nameLockedByAppliesTo ? formatMessage(messages.nameLockedAppliesToAriaLabel) : formatMessage(isEditingName ? messages.doneLinkAriaLabel : messages.editLinkAriaLabel)}
+                                                        aria-label={nameEditLinkAriaLabel}
                                                         data-testid='attributeNameEditLink'
                                                     >
                                                         <FormattedMessage {...(isEditingName ? messages.doneLink : messages.editLink)}/>
                                                     </button>
                                                 );
-                                                return nameLockedByAppliesTo ? (
-                                                    <WithTooltip title={formatMessage(messages.nameLockedAppliesToTooltip)}>
-                                                        <span data-testid='attributeNameEditLinkLockWrap'>
+
+                                                const nameLockTooltip = formatMessage(NAME_LOCK_MESSAGES[nameLockReason ?? 'appliesTo'].tooltip);
+                                                return nameLocked ? (
+                                                    <WithTooltip title={nameLockTooltip}>
+                                                        <span
+                                                            // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child; without this the disabled button inside is unreachable by keyboard, so the tooltip explaining the lock is mouse-only
+                                                            tabIndex={0}
+                                                            data-testid='attributeNameEditLinkLockWrap'
+                                                        >
                                                             {editLinkButton}
                                                         </span>
                                                     </WithTooltip>
@@ -1079,6 +1358,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                     {typeLocked ? (
                                         <WithTooltip title={typeLockTooltip}>
                                             <span
+                                                // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child; without this the disabled Type menu button is unreachable by keyboard, so the tooltip explaining the lock is mouse-only
+                                                tabIndex={0}
                                                 className='AttributeDetails__typeLockWrap'
                                                 data-testid='attributeTypeLockWrap'
                                             >
@@ -1102,16 +1383,22 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                                 <AttributeOptionsRankValues
                                                     options={options}
                                                     onOptionsChange={handleOptionsChange}
-                                                    disabled={saving || disabled}
+                                                    disabled={saving || effectiveDisabled}
                                                 />
                                             ) : (
                                                 <AttributeOptionsValues
                                                     options={options}
                                                     onOptionsChange={handleOptionsChange}
-                                                    disabled={saving || disabled}
+                                                    disabled={saving || effectiveDisabled}
                                                 />
                                             )}
-                                            {optionsIssue && (
+                                            {/* Suppressed for plugin-owned fields -- this validation targets
+                                                admin-authored data entered through this form; a plugin-supplied
+                                                template's options came from the plugin API and aren't guaranteed
+                                                to satisfy this UI's own shape rules. Showing an actionable-looking
+                                                error on a page with no controls to act on it would be worse than
+                                                showing nothing. */}
+                                            {optionsIssue && !isPluginOwned && (
                                                 <div
                                                     className='AttributeDetails__uniqueNameError'
                                                     role='alert'
@@ -1131,23 +1418,41 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                             </p>
                                         )
                                     )}
-                                    <AttributeExternalSource
-                                        ldapAttr={ldapAttr}
-                                        samlAttr={samlAttr}
-                                        fieldType={fieldType}
-                                        onLink={handleLink}
-                                        disabled={saving || disabled}
-                                        disableAdding={typeLockedByAppliesTo}
-                                    />
+                                    {isPluginOwned ? (
+                                        <AttributePluginSource
+                                            pluginId={sourcePluginId!}
+                                            isOrphaned={isOrphaned}
+                                            pluginInventoryLoaded={pluginInventoryLoaded}
+                                        />
+                                    ) : (
+                                        <AttributeExternalSource
+                                            ldapAttr={ldapAttr}
+                                            samlAttr={samlAttr}
+                                            fieldType={fieldType}
+                                            onLink={handleLink}
+                                            disabled={saving || effectiveDisabled}
+                                            disableAdding={typeLockedByAppliesTo}
+                                        />
+                                    )}
                                 </div>
                             </div>
                         </Card.Body>
                     </Card>
                     <AttributeAppliesTo
                         appliesTo={appliesTo}
-                        disabled={saving || disabled}
+                        allowedTypes={allowedResourceTypes}
+                        disabled={saving || effectiveDisabled}
+                        hideAddResource={isPluginOwned}
+                        lockedTooltip={isPluginOwned ? formatMessage(isOrphaned ? messages.appliesToLockedPluginOrphanedTooltip : messages.appliesToLockedPluginTooltip) : undefined}
                         onAdd={handleAdd}
                         onRemove={handleRemove}
+                        userVisibility={userVisibility}
+                        onUserVisibilityChange={handleUserVisibilityChange}
+                        userManaged={userManaged}
+                        onUserManagedChange={handleUserManagedChange}
+                        channelResource={channelResource}
+                        onChannelResourceChange={handleChannelResourceChange}
+                        ordered={fieldType === 'rank'}
                     />
                 </div>
             </div>
@@ -1205,6 +1510,22 @@ const messages = defineMessages({
         id: 'admin.global_attributes.attribute_details.unique_name.locked_applies_to_tooltip',
         defaultMessage: 'Name cannot be changed while this attribute applies to a resource. Remove and save first.',
     },
+    nameLockedPluginAriaLabel: {
+        id: 'admin.global_attributes.attribute_details.unique_name.locked_plugin_aria_label',
+        defaultMessage: 'Edit unique name. Locked because this attribute is managed by a plugin.',
+    },
+    nameLockedPluginTooltip: {
+        id: 'admin.global_attributes.attribute_details.unique_name.locked_plugin_tooltip',
+        defaultMessage: 'Name cannot be changed — this attribute is managed by a plugin.',
+    },
+    nameLockedPluginOrphanedAriaLabel: {
+        id: 'admin.global_attributes.attribute_details.unique_name.locked_plugin_orphaned_aria_label',
+        defaultMessage: "Edit unique name. Locked because this attribute was managed by a plugin that's no longer installed.",
+    },
+    nameLockedPluginOrphanedTooltip: {
+        id: 'admin.global_attributes.attribute_details.unique_name.locked_plugin_orphaned_tooltip',
+        defaultMessage: "Name cannot be changed — this attribute was managed by a plugin that's no longer installed.",
+    },
     helperText: {
         id: 'admin.global_attributes.attribute_details.unique_name.helper_text',
         defaultMessage: 'Name is the internal identifier for policies and integrations. Display name is what admins and users see.',
@@ -1221,6 +1542,14 @@ const messages = defineMessages({
         id: 'admin.global_attributes.attribute_details.type.field_locked_applies_to_aria_label',
         defaultMessage: 'Type: {value}. Locked while this attribute applies to a resource.',
     },
+    typeFieldLockedPluginAriaLabel: {
+        id: 'admin.global_attributes.attribute_details.type.field_locked_plugin_aria_label',
+        defaultMessage: 'Type: {value}. Locked because this attribute is managed by a plugin.',
+    },
+    typeFieldLockedPluginOrphanedAriaLabel: {
+        id: 'admin.global_attributes.attribute_details.type.field_locked_plugin_orphaned_aria_label',
+        defaultMessage: "Type: {value}. Locked because this attribute was managed by a plugin that's no longer installed.",
+    },
     typeLockedAppliesToTooltip: {
         id: 'admin.global_attributes.attribute_details.type.locked_applies_to_tooltip',
         defaultMessage: 'Type cannot be changed while this attribute applies to a resource.',
@@ -1228,6 +1557,22 @@ const messages = defineMessages({
     typeLockedExternalSourceTooltip: {
         id: 'admin.global_attributes.attribute_details.type.locked_external_source_tooltip',
         defaultMessage: 'Type cannot be changed while this attribute is linked to an external source.',
+    },
+    typeLockedPluginTooltip: {
+        id: 'admin.global_attributes.attribute_details.type.locked_plugin_tooltip',
+        defaultMessage: 'Type cannot be changed — this attribute is managed by a plugin.',
+    },
+    typeLockedPluginOrphanedTooltip: {
+        id: 'admin.global_attributes.attribute_details.type.locked_plugin_orphaned_tooltip',
+        defaultMessage: "Type cannot be changed — this attribute was managed by a plugin that's no longer installed.",
+    },
+    appliesToLockedPluginTooltip: {
+        id: 'admin.global_attributes.attribute_details.applies_to.locked_plugin_tooltip',
+        defaultMessage: 'This resource cannot be changed — this attribute is managed by a plugin.',
+    },
+    appliesToLockedPluginOrphanedTooltip: {
+        id: 'admin.global_attributes.attribute_details.applies_to.locked_plugin_orphaned_tooltip',
+        defaultMessage: "This resource cannot be changed — this attribute was managed by a plugin that's no longer installed.",
     },
     optionsLabel: {id: 'admin.global_attributes.attribute_details.options.label', defaultMessage: 'Options'},
     optionsHelp: {
@@ -1245,6 +1590,22 @@ const messages = defineMessages({
     save: {id: 'admin.global_attributes.attribute_details.save', defaultMessage: 'Save'},
     cancel: {id: 'admin.global_attributes.attribute_details.cancel', defaultMessage: 'Cancel'},
 });
+
+// One reason derived once (see typeLockReason above), looked up here for both
+// the tooltip and the aria-label -- a new lock reason becomes one entry in
+// this map instead of a fourth branch across two separate if/else chains.
+const TYPE_LOCK_MESSAGES: Record<'pluginOrphaned' | 'plugin' | 'externalSource' | 'appliesTo', {tooltip: MessageDescriptor; ariaLabel: MessageDescriptor}> = {
+    pluginOrphaned: {tooltip: messages.typeLockedPluginOrphanedTooltip, ariaLabel: messages.typeFieldLockedPluginOrphanedAriaLabel},
+    plugin: {tooltip: messages.typeLockedPluginTooltip, ariaLabel: messages.typeFieldLockedPluginAriaLabel},
+    externalSource: {tooltip: messages.typeLockedExternalSourceTooltip, ariaLabel: messages.typeFieldLockedAriaLabel},
+    appliesTo: {tooltip: messages.typeLockedAppliesToTooltip, ariaLabel: messages.typeFieldLockedAppliesToAriaLabel},
+};
+
+const NAME_LOCK_MESSAGES: Record<'pluginOrphaned' | 'plugin' | 'appliesTo', {tooltip: MessageDescriptor; ariaLabel: MessageDescriptor}> = {
+    pluginOrphaned: {tooltip: messages.nameLockedPluginOrphanedTooltip, ariaLabel: messages.nameLockedPluginOrphanedAriaLabel},
+    plugin: {tooltip: messages.nameLockedPluginTooltip, ariaLabel: messages.nameLockedPluginAriaLabel},
+    appliesTo: {tooltip: messages.nameLockedAppliesToTooltip, ariaLabel: messages.nameLockedAppliesToAriaLabel},
+};
 
 const nameErrorMessages = defineMessages({
     invalidCharset: {
@@ -1273,6 +1634,10 @@ const errorMessages = defineMessages({
     reserved_word: {
         id: 'admin.global_attributes.attribute_details.save_error.reserved_word',
         defaultMessage: 'This name is a reserved word and cannot be used. Please choose a different name.',
+    },
+    channel_resource: {
+        id: 'admin.global_attributes.attribute_details.save_error.channel_resource',
+        defaultMessage: 'The attribute was created, but it could not be applied to channels. Its definition can no longer be changed here; select Save to try applying it again, or remove the Channels resource to finish without it.',
     },
     limit_reached: {
         id: 'admin.global_attributes.attribute_details.save_error.limit_reached',
@@ -1305,6 +1670,10 @@ const errorMessages = defineMessages({
     applies_to_partial_save: {
         id: 'admin.global_attributes.attribute_details.save_error.applies_to_partial_save',
         defaultMessage: 'The attribute was saved, but couldn\'t be applied to {resources}. Please try again.',
+    },
+    applies_to_config_save_failed: {
+        id: 'admin.global_attributes.attribute_details.save_error.applies_to_config_save_failed',
+        defaultMessage: "The attribute was saved, but its {resources} settings (Profile display, Who can set the value) couldn't be updated. Please try again.",
     },
     applies_to_rollback_failed: {
         id: 'admin.global_attributes.attribute_details.save_error.applies_to_rollback_failed',

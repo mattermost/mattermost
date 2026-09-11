@@ -384,6 +384,14 @@
     "translation": "Your license does not support groups"
   },
   {
+    "id": "api.channel.create_channel.attribute_no_permission.app_error",
+    "translation": "You do not have permission to set one of the submitted channel attributes."
+  },
+  {
+    "id": "api.channel.create_channel.attributes_feature_disabled.app_error",
+    "translation": "Channel attributes are not enabled on this server."
+  },
+  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Must use createDirectChannel API service for direct message channel creation."
   },
@@ -396,12 +404,20 @@
     "translation": "A direct channel cannot be created between these users because they do not share a team in common."
   },
   {
+    "id": "api.channel.create_channel.invalid_attribute.app_error",
+    "translation": "One of the submitted channel attributes is not valid for this channel."
+  },
+  {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
     "translation": "Unable to create more than {{.MaxChannelsPerTeam}} channels for current team."
   },
   {
     "id": "api.channel.create_channel.missing_display_name.error",
     "translation": "Missing display_name in request body"
+  },
+  {
+    "id": "api.channel.create_channel.missing_required_attributes.app_error",
+    "translation": "This channel is missing required attributes."
   },
   {
     "id": "api.channel.create_channel.missing_team_id.error",
@@ -2214,6 +2230,14 @@
     "translation": "Failed to read the flagged post report file information."
   },
   {
+    "id": "api.delivery_tracking.error.feature_flag",
+    "translation": "Post delivery audit logging is not enabled on this server."
+  },
+  {
+    "id": "api.delivery_tracking.error.license",
+    "translation": "Your license does not support post delivery audit logging."
+  },
+  {
     "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
     "translation": "Can not save draft to deleted channel"
   },
@@ -2639,6 +2663,10 @@
   {
     "id": "api.ldap.invalid_test_type.app_error",
     "translation": "Invalid test type: {{.TestType}}"
+  },
+  {
+    "id": "api.ldap.test.reenter_password",
+    "translation": "The AD/LDAP connection settings have changed. Please re-enter the bind password to test the connection."
   },
   {
     "id": "api.ldap_group.not_found",
@@ -3291,6 +3319,10 @@
     "translation": "Unable to update sidebar to match updated preferences"
   },
   {
+    "id": "api.property.channel_attributes.license.app_error",
+    "translation": "Channel attributes require an Enterprise Advanced license."
+  },
+  {
     "id": "api.property.session_attributes.license.app_error",
     "translation": "Session attributes require an Enterprise Advanced license."
   },
@@ -3349,6 +3381,14 @@
   {
     "id": "api.property_field.patch.legacy_field.app_error",
     "translation": "Cannot patch a v1 property field via this API."
+  },
+  {
+    "id": "api.property_field.patch.permission_values_invalid.app_error",
+    "translation": "permission_values must be either member or sysadmin."
+  },
+  {
+    "id": "api.property_field.patch.permission_values_not_linked.app_error",
+    "translation": "permission_values can only be set on a field linked to a template."
   },
   {
     "id": "api.property_field.update.no_field_permission.app_error",
@@ -6621,6 +6661,22 @@
     "translation": "Unable to fetch existing scheduled post from database."
   },
   {
+    "id": "app.delivery_tracking.dm_gm_not_allowed.app_error",
+    "translation": "Direct and group messages cannot be selected for post delivery audit logging."
+  },
+  {
+    "id": "app.delivery_tracking.get_config.app_error",
+    "translation": "Failed to read the post delivery audit logging settings from the database."
+  },
+  {
+    "id": "app.delivery_tracking.invalid_channel.app_error",
+    "translation": "One or more of the selected channels could not be found."
+  },
+  {
+    "id": "app.delivery_tracking.save_config.app_error",
+    "translation": "Failed to save the post delivery audit logging settings to the database."
+  },
+  {
     "id": "app.desktop_token.generateServerToken.invalid_or_expired",
     "translation": "Token does not exist or is expired"
   },
@@ -7507,6 +7563,10 @@
   {
     "id": "app.import.validate_user_import_data.notify_props_email_invalid.error",
     "translation": "Invalid Email Notify Prop value for user."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_mention_keys_invalid.error",
+    "translation": "Invalid mention_keys Notify Prop for user: exceeds the limit of {{.MaxCount}} keys or {{.MaxLength}} bytes."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_mobile_invalid.error",
@@ -8741,6 +8801,18 @@
     "translation": "Unable to register property group."
   },
   {
+    "id": "app.property_value.change_policy.lower_only.app_error",
+    "translation": "This attribute can only be lowered, never raised."
+  },
+  {
+    "id": "app.property_value.change_policy.never.app_error",
+    "translation": "This attribute cannot be changed after it is set."
+  },
+  {
+    "id": "app.property_value.change_policy.raise_only.app_error",
+    "translation": "This attribute can only be raised, never lowered."
+  },
+  {
     "id": "app.property_value.create.app_error",
     "translation": "Unable to create property value."
   },
@@ -8771,6 +8843,10 @@
   {
     "id": "app.property_value.invalid_input.app_error",
     "translation": "Invalid input provided."
+  },
+  {
+    "id": "app.property_value.required.app_error",
+    "translation": "This attribute is required and cannot be left empty."
   },
   {
     "id": "app.property_value.resolve_broadcast_params.unknown_object_type.app_error",
@@ -10807,6 +10883,10 @@
     "translation": "Invalid AD/LDAP Filter."
   },
   {
+    "id": "ent.ldap.validate_group_filter.app_error",
+    "translation": "Invalid AD/LDAP Group Filter."
+  },
+  {
     "id": "ent.ldap.validate_guest_filter.app_error",
     "translation": "Invalid AD/LDAP Guest Filter."
   },
@@ -11939,12 +12019,20 @@
     "translation": "Unable to enable email batching when clustering is enabled."
   },
   {
+    "id": "model.config.is_valid.cluster_gossip_port.app_error",
+    "translation": "ClusterSettings.GossipPort must be a valid port number."
+  },
+  {
     "id": "model.config.is_valid.collapsed_threads.app_error",
     "translation": "CollapsedThreads setting must be either disabled,default_on or default_off"
   },
   {
     "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
     "translation": "ThreadAutoFollow must be true to enable CollapsedThreads"
+  },
+  {
+    "id": "model.config.is_valid.connected_workspaces.batch_size.app_error",
+    "translation": "{{.Setting}} must be a positive number."
   },
   {
     "id": "model.config.is_valid.content_flagging.common_reviewers_not_set.app_error",
@@ -12051,6 +12139,14 @@
     "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} should be a prefix of IndexPrefix {{.IndexPrefix}}."
   },
   {
+    "id": "model.config.is_valid.elastic_search.index_replicas.app_error",
+    "translation": "{{.Setting}} must be greater than or equal to 0."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.index_shards.app_error",
+    "translation": "{{.Setting}} must be greater than or equal to 1."
+  },
+  {
     "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
     "translation": "Invalid search backend. Must be either elasticsearch or opensearch."
   },
@@ -12067,6 +12163,10 @@
     "translation": "Search Request Timeout must be at least 1 second."
   },
   {
+    "id": "model.config.is_valid.email_address.app_error",
+    "translation": "{{.Setting}} must be a valid email address."
+  },
+  {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
     "translation": "Invalid email batching buffer size for email settings. Must be zero or a positive number."
   },
@@ -12077,6 +12177,10 @@
   {
     "id": "model.config.is_valid.email_notification_contents_type.app_error",
     "translation": "Invalid email notification contents type for email settings. Must be one of either 'full' or 'generic'."
+  },
+  {
+    "id": "model.config.is_valid.email_push_notification_buffer.app_error",
+    "translation": "Invalid push notification buffer size for email settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.email_security.app_error",
@@ -12109,6 +12213,10 @@
   {
     "id": "model.config.is_valid.export_azure_timeout.app_error",
     "translation": "Invalid timeout value {{.Value}}. Should be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.export_file_driver.app_error",
+    "translation": "Invalid export driver name for file settings. Must be 'local', 'amazons3', or 'azureblob'."
   },
   {
     "id": "model.config.is_valid.extract_content_timeout.app_error",
@@ -12259,6 +12367,10 @@
     "translation": "Invalid format: {{.Error}}"
   },
   {
+    "id": "model.config.is_valid.log_level.app_error",
+    "translation": "Invalid log level {{.Value}} for {{.Setting}}."
+  },
+  {
     "id": "model.config.is_valid.login_attempts.app_error",
     "translation": "Invalid maximum login attempts for service settings. Must be a positive number."
   },
@@ -12335,6 +12447,10 @@
     "translation": "Message export GlobalRelaySettings.CustomHeaderValue must not contain control characters or line breaks."
   },
   {
+    "id": "model.config.is_valid.message_export.global_relay.custom_smtp_port.app_error",
+    "translation": "Message export job GlobalRelaySettings.CustomSMTPPort must be a valid port number."
+  },
+  {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
     "translation": "Message export GlobalRelaySettings.CustomerType must be set to one of either 'A9', 'A10' or 'CUSTOM'."
   },
@@ -12387,6 +12503,10 @@
     "translation": "One or more app download links are not valid URLs."
   },
   {
+    "id": "model.config.is_valid.non_negative_number.app_error",
+    "translation": "{{.Setting}} must be a non-negative number."
+  },
+  {
     "id": "model.config.is_valid.notification_settings.invalid_event",
     "translation": "Invalid flagging event specified."
   },
@@ -12419,6 +12539,14 @@
     "translation": "Invalid maximum number of recipients for persistent notifications. Must be a positive number."
   },
   {
+    "id": "model.config.is_valid.port.app_error",
+    "translation": "{{.Setting}} must be a valid port."
+  },
+  {
+    "id": "model.config.is_valid.positive_number.app_error",
+    "translation": "{{.Setting}} must be a positive number."
+  },
+  {
     "id": "model.config.is_valid.rate_mem.app_error",
     "translation": "Invalid memory store size for rate limit settings. Must be a positive number."
   },
@@ -12449,6 +12577,10 @@
   {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
     "translation": "Invalid direct message restriction. Must be 'any', or 'team'."
+  },
+  {
+    "id": "model.config.is_valid.s3_upload_part_size.app_error",
+    "translation": "{{.Setting}} must be at least {{.Min}} bytes."
   },
   {
     "id": "model.config.is_valid.saml_admin_attribute.app_error",
@@ -12503,6 +12635,26 @@
     "translation": "Invalid Username attribute. Must be set."
   },
   {
+    "id": "model.config.is_valid.service_settings.burn_on_read_duration_seconds.app_error",
+    "translation": "BurnOnReadDurationSeconds must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.service_settings.burn_on_read_maximum_time_to_live_seconds.app_error",
+    "translation": "BurnOnReadMaximumTimeToLiveSeconds must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.service_settings.burn_on_read_scheduler_frequency_seconds.app_error",
+    "translation": "BurnOnReadSchedulerFrequencySeconds must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.service_settings.feature_flag_sync_interval.app_error",
+    "translation": "FeatureFlagSyncIntervalSeconds must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.service_settings.refresh_post_stats_run_time.app_error",
+    "translation": "RefreshPostStatsRunTime must be a time in the format \"hh:mm\"."
+  },
+  {
     "id": "model.config.is_valid.site_url.app_error",
     "translation": "Site URL must be a valid URL and start with http:// or https://."
   },
@@ -12543,8 +12695,16 @@
     "translation": "Invalid maximum open connection for SQL settings. Must be a positive number."
   },
   {
+    "id": "model.config.is_valid.sql_migrations_statement_timeout_seconds.app_error",
+    "translation": "Invalid migrations statement timeout for SQL settings. Must be a non-negative number."
+  },
+  {
     "id": "model.config.is_valid.sql_query_timeout.app_error",
     "translation": "Invalid query timeout for SQL settings. Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.sql_replica_monitor_interval_seconds.app_error",
+    "translation": "Invalid replica monitor interval for SQL settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.storage_class.app_error",
@@ -12567,12 +12727,20 @@
     "translation": "Invalid value for TLS key file - Either use LetsEncrypt or set path to existing key file."
   },
   {
+    "id": "model.config.is_valid.tls_min_ver.app_error",
+    "translation": "Invalid TLS minimum version {{.Value}}. Must be '1.0', '1.1', '1.2', or '1.3'."
+  },
+  {
     "id": "model.config.is_valid.tls_overwrite_cipher.app_error",
     "translation": "Invalid value passed for TLS overwrite cipher - Please refer to the documentation for valid values."
   },
   {
     "id": "model.config.is_valid.user_status_away_timeout.app_error",
     "translation": "Invalid value for user status away timeout. Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.webserver_mode.app_error",
+    "translation": "Invalid webserver mode {{.Value}}. Must be 'gzip', 'nogzip', or 'disabled'."
   },
   {
     "id": "model.config.is_valid.webserver_security.app_error",
@@ -12617,6 +12785,18 @@
   {
     "id": "model.dcr.is_valid.unsupported_auth_method.app_error",
     "translation": "Unsupported token_endpoint_auth_method supplied."
+  },
+  {
+    "id": "model.delivery_tracking.is_valid.all_channels.app_error",
+    "translation": "Select at least one channel to record deliveries in."
+  },
+  {
+    "id": "model.delivery_tracking.is_valid.channel_id.app_error",
+    "translation": "Invalid channel ID provided in the post delivery audit logging settings."
+  },
+  {
+    "id": "model.delivery_tracking.is_valid.missing_toggle.app_error",
+    "translation": "The post delivery audit logging settings are incomplete."
   },
   {
     "id": "model.draft.is_valid.channel_id.app_error",
@@ -13605,6 +13785,10 @@
   {
     "id": "model.user.is_valid.marshal.app_error",
     "translation": "Failed to encode field to JSON"
+  },
+  {
+    "id": "model.user.is_valid.mention_keys.app_error",
+    "translation": "Invalid mention_keys: exceeds the limit of {{.MaxCount}} keys or {{.MaxLength}} bytes."
   },
   {
     "id": "model.user.is_valid.nickname.app_error",

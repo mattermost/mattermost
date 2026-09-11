@@ -376,9 +376,9 @@ async function initializeModuleFederation() {
 
             // Other containers will be forced to use the exact versions of shared modules that the web app provides.
             makeSharedModules([
+                '@hello-pangea/dnd',
                 'history',
                 'react',
-                'react-beautiful-dnd',
                 'react-bootstrap',
                 'react-dom',
                 'react-intl',
