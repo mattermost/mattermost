@@ -5259,7 +5259,7 @@ func (s *MessageExportSettings) isValid() *AppError {
 					return appErr
 				}
 			}
-			if sender := strings.TrimSpace(SafeDereference(s.GlobalRelaySettings.SenderAddress)); sender != "" && !strings.Contains(sender, "@") {
+			if sender := SafeDereference(s.GlobalRelaySettings.SenderAddress); sender != "" && !IsValidEmail(sender) {
 				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.sender_address.app_error", nil, "", http.StatusBadRequest)
 			}
 		}

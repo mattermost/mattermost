@@ -1375,6 +1375,42 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 			false,
 			"model.config.is_valid.message_export.global_relay.sender_address.app_error",
 		},
+		{
+			"Sender address with multiple at-signs",
+			&GlobalRelayMessageExportSettings{
+				CustomerType:  new(GlobalrelayCustomerTypeA9),
+				EmailAddress:  new("valid@mattermost.com"),
+				SMTPUsername:  new("SomeUsername"),
+				SMTPPassword:  new("SomePassword"),
+				SenderAddress: new("invalid@@mattermost.com"),
+			},
+			false,
+			"model.config.is_valid.message_export.global_relay.sender_address.app_error",
+		},
+		{
+			"Sender address with trailing at-sign",
+			&GlobalRelayMessageExportSettings{
+				CustomerType:  new(GlobalrelayCustomerTypeA9),
+				EmailAddress:  new("valid@mattermost.com"),
+				SMTPUsername:  new("SomeUsername"),
+				SMTPPassword:  new("SomePassword"),
+				SenderAddress: new("sender@"),
+			},
+			false,
+			"model.config.is_valid.message_export.global_relay.sender_address.app_error",
+		},
+		{
+			"Sender address with surrounding whitespace",
+			&GlobalRelayMessageExportSettings{
+				CustomerType:  new(GlobalrelayCustomerTypeA9),
+				EmailAddress:  new("valid@mattermost.com"),
+				SMTPUsername:  new("SomeUsername"),
+				SMTPPassword:  new("SomePassword"),
+				SenderAddress: new(" compliance-export@mattermost.com "),
+			},
+			false,
+			"model.config.is_valid.message_export.global_relay.sender_address.app_error",
+		},
 	}
 
 	for _, tt := range tests {
