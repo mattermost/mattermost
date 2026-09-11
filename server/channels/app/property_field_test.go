@@ -1221,7 +1221,7 @@ func TestPropertyFieldAccessControlSignalling(t *testing.T) {
 		mockACS.On("OnPropertyFieldOptionsChanged", mock.Anything, tmpl.ID).Return().Once()
 		mockACS.On("OnPropertyFieldOptionsChanged", mock.Anything, linked.ID).Return().Once()
 
-		_, _, appErr = th.App.UpdatePropertyFieldOptions(th.Context, tmpl, []*model.PropertyFieldOption{
+		_, _, appErr = th.App.UpdatePropertyFieldOptions(th.Context, tmpl.GroupID, tmpl.ID, []*model.PropertyFieldOption{
 			{ID: optionID, Name: "Aerial"},
 		}, "")
 		require.Nil(t, appErr)
@@ -1273,7 +1273,7 @@ func TestPropertyFieldAccessControlSignalling(t *testing.T) {
 		mockACS.On("OnPropertyFieldOptionsChanged", mock.Anything, tmpl.ID).Return()
 		mockACS.On("OnPropertyFieldOptionsChanged", mock.Anything, linked.ID).Return()
 
-		created, appErr := th.App.CreatePropertyFieldOptions(th.Context, tmpl, []*model.PropertyFieldOption{
+		created, appErr := th.App.CreatePropertyFieldOptions(th.Context, tmpl.GroupID, tmpl.ID, []*model.PropertyFieldOption{
 			{Name: "Air"}, {Name: "Fighter"},
 		}, "")
 		require.Nil(t, appErr)
@@ -1284,13 +1284,13 @@ func TestPropertyFieldAccessControlSignalling(t *testing.T) {
 		// its parent is named rather than identified because that is what the
 		// option payload carries.
 		fighter := created[1]
-		_, _, appErr = th.App.UpdatePropertyFieldOptions(th.Context, tmpl, []*model.PropertyFieldOption{
+		_, _, appErr = th.App.UpdatePropertyFieldOptions(th.Context, tmpl.GroupID, tmpl.ID, []*model.PropertyFieldOption{
 			{ID: fighter.ID, Name: fighter.Name, Parents: &[]string{"Air"}},
 		}, "")
 		require.Nil(t, appErr)
 		mockACS.AssertNumberOfCalls(t, "OnPropertyFieldOptionsChanged", 4)
 
-		_, appErr = th.App.DeletePropertyFieldOptions(th.Context, tmpl, []string{fighter.ID}, "")
+		_, appErr = th.App.DeletePropertyFieldOptions(th.Context, tmpl.GroupID, tmpl.ID, []string{fighter.ID}, "")
 		require.Nil(t, appErr)
 		mockACS.AssertNumberOfCalls(t, "OnPropertyFieldOptionsChanged", 6)
 

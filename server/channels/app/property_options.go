@@ -20,8 +20,8 @@ import (
 // options somebody else has since altered is refused rather than applied.
 
 // GetPropertyFieldOptions returns one page of a field's effective option set.
-func (a *App) GetPropertyFieldOptions(rctx request.CTX, field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, *model.AppError) {
-	options, err := a.Srv().propertyService.GetFieldOptions(rctx, field.GroupID, field.ID, cursorCreateAt, cursorID, perPage)
+func (a *App) GetPropertyFieldOptions(rctx request.CTX, groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, *model.AppError) {
+	options, err := a.Srv().propertyService.GetFieldOptions(rctx, groupID, fieldID, cursorCreateAt, cursorID, perPage)
 	if err != nil {
 		if appErr := mapPropertyServiceError("GetPropertyFieldOptions", err); appErr != nil {
 			return nil, appErr
@@ -32,8 +32,8 @@ func (a *App) GetPropertyFieldOptions(rctx request.CTX, field *model.PropertyFie
 }
 
 // CreatePropertyFieldOptions adds options to a field.
-func (a *App) CreatePropertyFieldOptions(rctx request.CTX, field *model.PropertyField, options []*model.PropertyFieldOption, connectionID string) ([]*model.PropertyFieldOption, *model.AppError) {
-	created, err := a.Srv().propertyService.CreateFieldOptions(rctx, field.GroupID, field.ID, options)
+func (a *App) CreatePropertyFieldOptions(rctx request.CTX, groupID, fieldID string, options []*model.PropertyFieldOption, connectionID string) ([]*model.PropertyFieldOption, *model.AppError) {
+	created, err := a.Srv().propertyService.CreateFieldOptions(rctx, groupID, fieldID, options)
 	if err != nil {
 		if appErr := mapPropertyServiceError("CreatePropertyFieldOptions", err); appErr != nil {
 			return nil, appErr
@@ -41,14 +41,14 @@ func (a *App) CreatePropertyFieldOptions(rctx request.CTX, field *model.Property
 		return nil, model.NewAppError("CreatePropertyFieldOptions", "app.property_field.options.create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	a.propertyFieldOptionsChanged(rctx, field.GroupID, field.ID, connectionID)
+	a.propertyFieldOptionsChanged(rctx, groupID, fieldID, connectionID)
 	return created, nil
 }
 
 // UpdatePropertyFieldOptions rewrites options a field owns, and reports what
 // those options were beforehand so a caller can record what the change replaced.
-func (a *App) UpdatePropertyFieldOptions(rctx request.CTX, field *model.PropertyField, options []*model.PropertyFieldOption, connectionID string) (updated, prior []*model.PropertyFieldOption, appErr *model.AppError) {
-	updated, prior, err := a.Srv().propertyService.UpdateFieldOptions(rctx, field.GroupID, field.ID, options)
+func (a *App) UpdatePropertyFieldOptions(rctx request.CTX, groupID, fieldID string, options []*model.PropertyFieldOption, connectionID string) (updated, prior []*model.PropertyFieldOption, appErr *model.AppError) {
+	updated, prior, err := a.Srv().propertyService.UpdateFieldOptions(rctx, groupID, fieldID, options)
 	if err != nil {
 		if mapped := mapPropertyServiceError("UpdatePropertyFieldOptions", err); mapped != nil {
 			return nil, nil, mapped
@@ -56,15 +56,15 @@ func (a *App) UpdatePropertyFieldOptions(rctx request.CTX, field *model.Property
 		return nil, nil, model.NewAppError("UpdatePropertyFieldOptions", "app.property_field.options.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	a.propertyFieldOptionsChanged(rctx, field.GroupID, field.ID, connectionID)
+	a.propertyFieldOptionsChanged(rctx, groupID, fieldID, connectionID)
 	return updated, prior, nil
 }
 
 // DeletePropertyFieldOptions removes options a field owns, and reports them as
 // they stood: a parent link is deleted outright, so this is the only chance to
 // record that it existed.
-func (a *App) DeletePropertyFieldOptions(rctx request.CTX, field *model.PropertyField, optionIDs []string, connectionID string) ([]*model.PropertyFieldOption, *model.AppError) {
-	deleted, err := a.Srv().propertyService.DeleteFieldOptions(rctx, field.GroupID, field.ID, optionIDs)
+func (a *App) DeletePropertyFieldOptions(rctx request.CTX, groupID, fieldID string, optionIDs []string, connectionID string) ([]*model.PropertyFieldOption, *model.AppError) {
+	deleted, err := a.Srv().propertyService.DeleteFieldOptions(rctx, groupID, fieldID, optionIDs)
 	if err != nil {
 		if appErr := mapPropertyServiceError("DeletePropertyFieldOptions", err); appErr != nil {
 			return nil, appErr
@@ -72,7 +72,7 @@ func (a *App) DeletePropertyFieldOptions(rctx request.CTX, field *model.Property
 		return nil, model.NewAppError("DeletePropertyFieldOptions", "app.property_field.options.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	a.propertyFieldOptionsChanged(rctx, field.GroupID, field.ID, connectionID)
+	a.propertyFieldOptionsChanged(rctx, groupID, fieldID, connectionID)
 	return deleted, nil
 }
 
