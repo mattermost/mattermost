@@ -4,6 +4,8 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {ChannelAttributeLabels} from './channel_attributes';
+
 export default class ChannelsHeader {
     readonly container: Locator;
 
@@ -11,6 +13,10 @@ export default class ChannelsHeader {
     readonly channelMenuDropdown;
     readonly callButton: Locator;
     readonly pinnedMessagesButton: Locator;
+    // Two chip slots, two accessors: 'attributes' is the row under the channel
+    // name, 'infoAttributes' the inline strip beside the member count.
+    readonly attributes: ChannelAttributeLabels;
+    readonly infoAttributes: ChannelAttributeLabels;
 
     constructor(container: Locator) {
         this.container = container;
@@ -19,6 +25,8 @@ export default class ChannelsHeader {
         this.channelMenuDropdown = container.locator('#channelHeaderDropdownButton');
         this.callButton = container.getByRole('button', {name: /call/i}).first();
         this.pinnedMessagesButton = container.locator('#channelHeaderPinButton');
+        this.attributes = new ChannelAttributeLabels(container.getByTestId('channelAttributeLabels-header'), 'header');
+        this.infoAttributes = new ChannelAttributeLabels(container.getByTestId('channelAttributeLabels-info'), 'info');
     }
 
     async toBeVisible() {

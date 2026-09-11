@@ -1154,10 +1154,6 @@
     "translation": "此授權只支援 {{.Users}} 位使用者，而您的系統有 {{.Count}} 位使用者。使用者人數是根據電子郵件地址計算的，可以到「站台報告 -> 檢視統計」確認。"
   },
   {
-    "id": "api.license.client.old_format.app_error",
-    "translation": "尚未支援新格式的用戶端授權。請在查詢字串中指定 format=old。"
-  },
-  {
     "id": "api.marshal_error",
     "translation": "封送處理錯誤。"
   },
@@ -1474,78 +1470,6 @@
     "translation": "啟動伺服器時遇到錯誤 err：%v"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.unable_import",
-    "translation": "無法匯入外部整合/Slack 機器人帳號 {{.Username}}。\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\n已新增頻道：\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-    "translation": "無法新增 Slack 帳號 {{.Username}} 至頻道。\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.import_failed",
-    "translation": "無法匯入 Slack 頻道 {{.DisplayName}}。\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.merge",
-    "translation": "Slack 頻道 {{.DisplayName}} 已存在於現行 Mattermost 中。已合併兩邊的頻道。\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.created",
-    "translation": "\n已建立使用者：\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "由於有相同的電子郵件地址 {{.Email}} 與使用者名稱 {{.Username}}，Slack 帳號與現有 Mattermost 帳號已合併。\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "由於有相同的電子郵件地址 {{.Email}} 與使用者名稱 {{.Username}}，Slack 帳號與現有 Mattermost 帳號已合併，但無法新增使用者至對應團隊。\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "使用者 {{.Username}} 在 Slack 匯出資料中沒有電子郵件地址。{{.Email}} 將會被用作預留地址。使用者在登入系統後應更新電子郵件地址。\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.unable_import",
-    "translation": "無法匯入 Slack 使用者：{{.Username}}\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.log",
-    "translation": "Mattermost Slack 匯入記錄\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note1",
-    "translation": "- 由於匯入程式尚未支援，部分訊息可能無法匯入。\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note2",
-    "translation": "- 目前尚未支援 Slack 機器人訊息。\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note3",
-    "translation": "- 或許可以在伺服器紀錄檔找到額外的錯誤。\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.notes",
-    "translation": "\n附註：\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.open.app_error",
-    "translation": "無法開啟檔案：{{.Filename}}。\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.team_fail",
-    "translation": "無法取得將要匯入的團隊。\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.zip.app_error",
-    "translation": "無法開啟 Slack 匯出 zip 檔。\n"
-  },
-  {
     "id": "api.status.user_not_found.app_error",
     "translation": "找不到使用者。"
   },
@@ -1568,34 +1492,6 @@
   {
     "id": "api.team.get_team_icon.read_file.app_error",
     "translation": "無法讀取團隊圖示檔案。"
-  },
-  {
-    "id": "api.team.import_team.array.app_error",
-    "translation": "要求中的「file」欄位是空陣列。"
-  },
-  {
-    "id": "api.team.import_team.integer.app_error",
-    "translation": "Filesize 不是整數。"
-  },
-  {
-    "id": "api.team.import_team.no_file.app_error",
-    "translation": "要求中的「file」欄位沒有檔案。"
-  },
-  {
-    "id": "api.team.import_team.no_import_from.app_error",
-    "translation": "要求格式錯誤：沒有 importFrom 欄位。"
-  },
-  {
-    "id": "api.team.import_team.open.app_error",
-    "translation": "無法開啟檔案。"
-  },
-  {
-    "id": "api.team.import_team.parse.app_error",
-    "translation": "無法解析 multipart 表單。"
-  },
-  {
-    "id": "api.team.import_team.unavailable.app_error",
-    "translation": "要求格式錯誤：沒有檔案大小欄位。"
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -2970,60 +2866,12 @@
     "translation": "現有授權不支援資料保留。"
   },
   {
-    "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Elasticsearch 彙總工作者新增索引工作時失敗"
-  },
-  {
-    "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Elasticsearch 彙總工作者刪除索引時失敗"
-  },
-  {
-    "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Elasticsearch 彙總工作者取得索引時失敗"
-  },
-  {
-    "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "由於索引工作失敗，Elasticsearch 彙總工作者失敗"
-  },
-  {
-    "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "設定 Elasticsearch 用戶端失敗"
-  },
-  {
-    "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "刪除 Elasticsearch 索引時失敗"
-  },
-  {
-    "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "取得 Elasticsearch 索引失敗"
-  },
-  {
     "id": "ent.elasticsearch.delete_post.error",
     "translation": "刪除訊息時失敗"
   },
   {
-    "id": "ent.elasticsearch.generic.disabled",
-    "translation": "Elasticsearch 搜尋在此伺服器上未啟用"
-  },
-  {
     "id": "ent.elasticsearch.index_post.error",
     "translation": "索引訊息失敗"
-  },
-  {
-    "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Elasticsearch 彙總工作者解析中止時間失敗"
-  },
-  {
-    "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Elasticsearch 彙總工作者解析開始時間失敗"
-  },
-  {
-    "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch 沒有啟動"
-  },
-  {
-    "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "此伺服器已停用 Elasticsearch 搜尋"
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
@@ -3036,10 +2884,6 @@
   {
     "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
     "translation": "解碼搜尋結果失敗"
-  },
-  {
-    "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch 已停用。"
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
@@ -3526,14 +3370,6 @@
     "translation": "允許子網域的 Cookie 需要設定 SiteURL。"
   },
   {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "atmos/camo 的 RemoteImageProxyOptions 無效。必須設成共享金鑰。"
-  },
-  {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
-    "translation": "atmos/camo 的 RemoteImageProxyURL 無效。必須設成共享金鑰。"
-  },
-  {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "啟用叢集時無法啟用批次郵件。"
   },
@@ -3562,10 +3398,6 @@
     "translation": "當啟用 ElasticSearch 搜尋時必須設定 ElasticSearch ConnectionUrl。"
   },
   {
-    "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "當啟用 ElasticSearch 搜尋時必須設定 ElasticSearch IndexingEnabled 為啟用"
-  },
-  {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
     "translation": "Elasticsearch 即時索引的批次大小必須至少為 1。"
   },
@@ -3592,10 +3424,6 @@
   {
     "id": "model.config.is_valid.email_security.app_error",
     "translation": "電子郵件設定中的連線安全性設定無效。必須為「」、「TLS」或「STARTTLS」其一。"
-  },
-  {
-    "id": "model.config.is_valid.encrypt_sql.app_error",
-    "translation": "SQL 資料加密金鑰無效，必須在 32 個字元以上。"
   },
   {
     "id": "model.config.is_valid.file_driver.app_error",
@@ -3948,10 +3776,6 @@
   {
     "id": "model.incoming_hook.icon_url.app_error",
     "translation": "訊息圖示無效。"
-  },
-  {
-    "id": "model.incoming_hook.id.app_error",
-    "translation": "ID 無效。"
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
@@ -4454,24 +4278,12 @@
     "translation": "系統"
   },
   {
-    "id": "web.command_webhook.command.app_error",
-    "translation": "找不到命令。"
-  },
-  {
-    "id": "web.command_webhook.parse.app_error",
-    "translation": "無法解析流入的資料。"
-  },
-  {
     "id": "web.get_access_token.internal_saving.app_error",
     "translation": "無法更新使用者存取資料。"
   },
   {
     "id": "web.incoming_webhook.channel.app_error",
     "translation": "找不到頻道。"
-  },
-  {
-    "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "此 Webhook 不被允許發布消息至指定的頻道。"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
@@ -4486,20 +4298,12 @@
     "translation": "無法解析流入的資料。"
   },
   {
-    "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "不適當的頻道權限。"
-  },
-  {
     "id": "web.incoming_webhook.split_props_length.app_error",
     "translation": "無法將 Webhook 屬性拆分成多個 {{.Max}} 字元的部份。"
   },
   {
     "id": "web.incoming_webhook.text.app_error",
     "translation": "沒有指定文字。"
-  },
-  {
-    "id": "web.incoming_webhook.user.app_error",
-    "translation": "找不到使用者。"
   },
   {
     "id": "model.group.name.invalid_length.app_error",
@@ -4726,10 +4530,6 @@
     "translation": "管理員屬性無效，必須為格式：「欄位=值」。"
   },
   {
-    "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "當啟用 ElasticSearch EnableAutocomplete 時必須設定 ElasticSearch EnableIndexing 為啟用"
-  },
-  {
     "id": "model.command.is_valid.autocomplete_data.app_error",
     "translation": "AutocompleteData 無效"
   },
@@ -4766,14 +4566,6 @@
     "translation": "授權不支援 ID Loaded Push Notification。"
   },
   {
-    "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "無法解析 Elasticsearch 伺服器版本。"
-  },
-  {
-    "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "無法取得 Elasticsearch 伺服器版本。"
-  },
-  {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
     "translation": "解碼搜尋結果失敗"
   },
@@ -4788,10 +4580,6 @@
   {
     "id": "ent.elasticsearch.search_channels.search_failed",
     "translation": "無法完成搜尋"
-  },
-  {
-    "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "此伺服器已停用 Elasticsearch 搜尋"
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
@@ -4816,18 +4604,6 @@
   {
     "id": "ent.elasticsearch.delete_channel.error",
     "translation": "刪除頻道失敗"
-  },
-  {
-    "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "為使用者建立 Elasticsearch 範本失敗"
-  },
-  {
-    "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "為訊息建立 Elasticsearch 範本失敗"
-  },
-  {
-    "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "為頻道建立 Elasticsearch 範本失敗"
   },
   {
     "id": "app.user_terms_of_service.save.app_error",
@@ -5074,14 +4850,6 @@
     "translation": "無法取得頻道。"
   },
   {
-    "id": "app.channel.get.find.app_error",
-    "translation": "尋找頻道時遇到錯誤。"
-  },
-  {
-    "id": "app.channel.get.existing.app_error",
-    "translation": "找不到現有的頻道。"
-  },
-  {
     "id": "app.channel.delete.app_error",
     "translation": "無法刪除頻道。"
   },
@@ -5206,10 +4974,6 @@
     "translation": "無法建立密碼回復代符"
   },
   {
-    "id": "api.templates.remove_expired_license.subject",
-    "translation": "Mattermost 企業授權已被停用。"
-  },
-  {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} 邀請您以訪客身份加入 {{ .TeamDisplayName }}"
   },
@@ -5264,10 +5028,6 @@
   {
     "id": "api.system.id_loaded.not_available.app_error",
     "translation": "此伺服器沒有設定或不支援 ID Loaded Push Notification。"
-  },
-  {
-    "id": "api.slackimport.slack_import.zip.file_too_large",
-    "translation": "匯入 Slack：ZIP 壓縮檔 {{.Filename}} 過大無法處理\n"
   },
   {
     "id": "api.push_notifications_ack.message.parse.app_error",
@@ -5486,10 +5246,6 @@
     "translation": "無法取得此表情符號名稱的反應。"
   },
   {
-    "id": "app.reaction.bulk_get_for_post_ids.app_error",
-    "translation": "無法取得訊息的反應。"
-  },
-  {
     "id": "app.audit.save.saving.app_error",
     "translation": "儲存稽核紀錄時遇到錯誤。"
   },
@@ -5612,10 +5368,6 @@
   {
     "id": "api.user.autocomplete_users.missing_team_id.app_error",
     "translation": "需要團隊 ID 參數以自動完成頻道列表。"
-  },
-  {
-    "id": "api.team.import_team.unknown_import_from.app_error",
-    "translation": "未知的匯入來源。"
   },
   {
     "id": "api.push_notifications.session.expired",
@@ -6998,14 +6750,6 @@
     "translation": "登入我們您的工作區，透過我們的"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subject",
-    "translation": "您的授權即將更新"
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_subtitle",
-    "translation": "親愛的 {{.UserName}}，您的訂閱將在 {{.Days}} 天後到期。我們希望您體驗著 Mattermost 帶來的彈性且安全的團隊協作。請儘速續訂以確保您的團隊可以繼續享受這些好處。"
-  },
-  {
     "id": "api.upload.create.upload_too_large.app_error",
     "translation": "無法上傳檔案。檔案過大。"
   },
@@ -7068,10 +6812,6 @@
   {
     "id": "app.valid_password_generic.app_error",
     "translation": "密碼無效"
-  },
-  {
-    "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "Elasticsearch 版本 {{.Version}} 高於支援的最新版本 {{.MaxVersion}}"
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
@@ -7242,10 +6982,6 @@
     "translation": "無法檢查未讀和提及的訊息"
   },
   {
-    "id": "app.eport.generate_presigned_url.featureflag.app_error",
-    "translation": "此功能由功能旗標限制。"
-  },
-  {
     "id": "app.notification.body.group.subTitle",
     "translation": "在您離開時，{{.SenderName}} 傳送了訊息至您的群組。"
   },
@@ -7366,10 +7102,6 @@
     "translation": "您的工作區已就緒！"
   },
   {
-    "id": "api.templates.email_footer_v2",
-    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
-  },
-  {
     "id": "api.templates.verify_body.info1",
     "translation": "若您沒有註冊，可以安全地忽略此信。"
   },
@@ -7388,10 +7120,6 @@
   {
     "id": "api.user.send_cloud_welcome_email.error",
     "translation": "無法傳送雲端歡迎電子郵件"
-  },
-  {
-    "id": "app.eport.generate_presigned_url.link.app_error",
-    "translation": "無法產生預先簽章網址。"
   },
   {
     "id": "app.export.export_attachment.mkdirall.error",
@@ -7594,10 +7322,6 @@
     "translation": "圖片限制檢查失敗。解析度過高。"
   },
   {
-    "id": "app.eport.generate_presigned_url.driver.app_error",
-    "translation": "您的匯出儲存空間驅動程式不支援產生預先簽章的網址。"
-  },
-  {
     "id": "app.user.get_users_batch_for_indexing.get_users.app_error",
     "translation": "無法批次取得索引用的使用者。"
   },
@@ -7648,10 +7372,6 @@
   {
     "id": "app.user.update_threads_read_for_user.app_error",
     "translation": "無法將所有使用者討論串更新為已讀"
-  },
-  {
-    "id": "ent.elasticsearch.create_client.client_key_missing",
-    "translation": "無法開啟 Elasticsearch 的用戶端金鑰檔案"
   },
   {
     "id": "ent.elasticsearch.index_file.error",
@@ -8250,10 +7970,6 @@
     "translation": "群組名稱不是唯一的"
   },
   {
-    "id": "app.eport.generate_presigned_url.config.app_error",
-    "translation": "此動作需要專用的匯出儲存空間。"
-  },
-  {
     "id": "app.export.marshal.app_error",
     "translation": "無法封送處理回應。"
   },
@@ -8458,22 +8174,6 @@
     "translation": "無法從使用者傳送自動回應。"
   },
   {
-    "id": "ent.elasticsearch.create_client.ca_cert_missing",
-    "translation": "無法開啟 Elasticsearch 的 CA 檔案"
-  },
-  {
-    "id": "ent.elasticsearch.create_client.client_cert_malformed",
-    "translation": "解碼 Elasticsearch 用戶端憑證失敗"
-  },
-  {
-    "id": "ent.elasticsearch.create_client.client_cert_missing",
-    "translation": "無法開啟 Elasticsearch 的用戶端憑證"
-  },
-  {
-    "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
-    "translation": "為檔案建立 Elasticsearch 範本失敗"
-  },
-  {
     "id": "ent.elasticsearch.delete_file.error",
     "translation": "刪除檔案失敗"
   },
@@ -8492,10 +8192,6 @@
   {
     "id": "ent.elasticsearch.delete_user_files.error",
     "translation": "刪除使用者檔案失敗"
-  },
-  {
-    "id": "ent.elasticsearch.search_files.disabled",
-    "translation": "此伺服器已停用 Elasticsearch 檔案搜尋"
   },
   {
     "id": "ent.elasticsearch.search_files.unmarshall_file_failed",
@@ -8740,14 +8436,6 @@
   {
     "id": "app.cloud.upgrade_plan_bot_message_single",
     "translation": "{{.WorkspaceName}} 工作區的 {{.UsersNum}} 位成員已申請升級工作區： "
-  },
-  {
-    "id": "app.eport.generate_presigned_url.fileexist.app_error",
-    "translation": "無法檢查該檔案是否存在。"
-  },
-  {
-    "id": "app.eport.generate_presigned_url.notfound.app_error",
-    "translation": "找不到匯出檔案。"
   },
   {
     "id": "app.file.cloud.get.app_error",

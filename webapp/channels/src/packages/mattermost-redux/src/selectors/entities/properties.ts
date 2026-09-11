@@ -2,15 +2,19 @@
 // See LICENSE.txt for license information.
 
 import type {PropertyField, PropertyFieldOption, PropertyGroup, PropertyValue} from '@mattermost/types/properties';
+import {supportsOptions} from '@mattermost/types/properties';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {
     ACCESS_CONTROL_PROPERTY_GROUP,
     CHANNEL_OBJECT_TYPE,
+    DISPLAY_BANNER_BOTTOM,
+    DISPLAY_BANNER_TOP,
     DISPLAY_LABEL_HEADER,
     DISPLAY_LABEL_INFO,
 } from 'mattermost-redux/constants/properties';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
 
 // Field selectors
 
@@ -112,6 +116,8 @@ export const getPropertyValuesForField = createSelector(
 
 const EMPTY_FIELDS: PropertyField[] = [];
 
+// Ties break on name, not create_at: chip order is something people are told to
+// read, so it must follow the configuration rather than insertion timing.
 function sortByFieldOrder(fields: PropertyField[]): PropertyField[] {
     return [...fields].sort((a, b) => {
         const rankA = typeof a.attrs?.sort_order === 'number' ? a.attrs.sort_order : Number.MAX_SAFE_INTEGER;
@@ -119,7 +125,10 @@ function sortByFieldOrder(fields: PropertyField[]): PropertyField[] {
         if (rankA !== rankB) {
             return rankA - rankB;
         }
-        return a.create_at - b.create_at;
+
+        // Fixed locale: the default is the viewer's, which would order equal-ranked
+        // chips differently per user. Names are ASCII slugs, so this is total.
+        return a.name.localeCompare(b.name, 'en');
     });
 }
 
@@ -163,6 +172,23 @@ export const getChannelLabelFields: (state: GlobalState) => PropertyField[] = cr
     },
 );
 
+/**
+ * The subset designated for the channel banner, in display order. Every one of them
+ * belongs in the same banner: designation is the admin saying this must be on screen,
+ * so a second designated attribute adds to the banner rather than losing to the first.
+ */
+export const getChannelBannerFields: (state: GlobalState) => PropertyField[] = createSelector(
+    'getChannelBannerFields',
+    getChannelAttributeFields,
+    (fields) => {
+        const banners = fields.filter((field) => {
+            const actions = field.attrs?.actions;
+            return Array.isArray(actions) && actions.some((action) => action === DISPLAY_BANNER_TOP || action === DISPLAY_BANNER_BOTTOM);
+        });
+        return banners.length === 0 ? EMPTY_FIELDS : banners;
+    },
+);
+
 export type ResolvedChannelAttribute = {
     field: PropertyField;
     value?: PropertyValue<unknown>;
@@ -175,36 +201,62 @@ export type ResolvedChannelAttribute = {
     // value counts as unset: the server keeps a null-valued row after a
     // user-initiated clear rather than deleting it.
     displayValue: string;
+
+    // Individual display strings — one entry per value. Multiselect fields
+    // produce one entry per selected option; all other types produce a
+    // single-element array matching displayValue. Empty when the attribute is unset.
+    displayValues: string[];
+
+    // Option ids stored on an options-bearing field (select/multiselect/rank) that no
+    // longer resolve to a live option, e.g. deleted after being chosen. Absent for
+    // text fields, where the raw string is the value rather than an option id.
+    unresolvedOptionIds?: string[];
 };
 
 const EMPTY_RESOLVED: ResolvedChannelAttribute[] = [];
 
-function resolveDisplayValue(field: PropertyField, raw: unknown): {option?: PropertyFieldOption; displayValue: string} {
-    if (raw === null || raw === undefined || raw === '') {
-        return {displayValue: ''};
+function resolveDisplayValue(field: PropertyField, raw: unknown): {option?: PropertyFieldOption; displayValue: string; displayValues: string[]; unresolvedOptionIds?: string[]} {
+    if (!isPropertyValueSet(raw)) {
+        return {displayValue: '', displayValues: []};
     }
 
     const options = (field.attrs?.options as PropertyFieldOption[] | undefined) ?? [];
+    const optionsBearing = supportsOptions(field);
 
     if (Array.isArray(raw)) {
-        const names = raw.
-            map((id) => options.find((option) => option.id === id)?.name ?? String(id));
-        return {displayValue: names.join(', ')};
+        const unresolvedOptionIds: string[] = [];
+        const names = raw.map((id) => {
+            const name = options.find((option) => option.id === id)?.name;
+            if (name === undefined && optionsBearing) {
+                unresolvedOptionIds.push(String(id));
+            }
+            return name ?? String(id);
+        });
+        return {
+            displayValue: names.join(', '),
+            displayValues: names,
+            unresolvedOptionIds: unresolvedOptionIds.length > 0 ? unresolvedOptionIds : undefined,
+        };
     }
 
     if (typeof raw !== 'string') {
-        return {displayValue: String(raw)};
+        const s = String(raw);
+        return {displayValue: s, displayValues: [s]};
     }
 
     const option = options.find((candidate) => candidate.id === raw);
     if (option) {
-        return {option, displayValue: option.name};
+        return {option, displayValue: option.name, displayValues: [option.name]};
     }
 
-    // Text fields store the display string directly. A select field whose option
-    // was deleted lands here too and renders the raw id, which is wrong but
-    // visible — better than silently dropping a marking.
-    return {displayValue: raw};
+    // Text fields store the display string directly. An options-bearing field
+    // whose option was deleted lands here too and renders the raw id, which is
+    // wrong but visible — better than silently dropping a marking.
+    return {
+        displayValue: raw,
+        displayValues: [raw],
+        unresolvedOptionIds: optionsBearing ? [raw] : undefined,
+    };
 }
 
 /**

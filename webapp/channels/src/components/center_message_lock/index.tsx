@@ -33,7 +33,7 @@ export default function CenterMessageLock() {
             defaultMessage: 'Full access to message history is included in <a>paid plans</a>',
         },
         {
-            a: (chunks: React.ReactNode | React.ReactNodeArray) => (
+            a: (chunks: React.ReactNode | readonly React.ReactNode[]) => (
                 <a
                     href='#'
                     onClick={(e: React.MouseEvent) => {

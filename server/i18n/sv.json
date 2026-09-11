@@ -608,10 +608,6 @@
     "translation": "Ogiltigt drivrutinsnamn i fillinställningar. Måste vara 'local' eller 'amazons3'."
   },
   {
-    "id": "model.config.is_valid.encrypt_sql.app_error",
-    "translation": "Felaktig SQL-krypteringsnyckel för \"at rest\". Nyckeln måste vara 32 tecken eller mer."
-  },
-  {
     "id": "model.config.is_valid.email_security.app_error",
     "translation": "Ogiltig anslutningssäkerhet i e-postinställningar. Måste vara '', 'TLS', eller 'STARTTLS'."
   },
@@ -638,14 +634,6 @@
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
     "translation": "Sök Live Indexing Batch Size måste vara minst 1."
-  },
-  {
-    "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Inställningen fö EnableIndexing måste vara aktiv när EnableSearching är aktiverad"
-  },
-  {
-    "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Inställningen för EnableIndexing måste vara aktiv när Sök-EnableAutocomplete är aktiverad"
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
@@ -682,14 +670,6 @@
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Kan inte aktivera massbearbetning av e-post när klusterfunktionen är aktiverad."
-  },
-  {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
-    "translation": "Ogiltig RemoteImageProxyURL för atmos/camo. Måste vara satt till din delade nyckel."
-  },
-  {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "Ogiltig RemoteImageProxyOptions för atmos/camo. Måste vara satt till din delade nyckel."
   },
   {
     "id": "model.config.is_valid.allow_cookies_for_subdomains.app_error",
@@ -3828,10 +3808,6 @@
     "translation": "Kunde inte hämta alla reaktioner med detta emoji-namn."
   },
   {
-    "id": "app.reaction.bulk_get_for_post_ids.app_error",
-    "translation": "Kunde inte hämta meddelandets reaktioner."
-  },
-  {
     "id": "app.preference.save.updating.app_error",
     "translation": "Ett fel uppstod när inställningar uppdaterades."
   },
@@ -4828,38 +4804,6 @@
     "translation": "Fel vid ogiltiggörande av e-postinbjudan."
   },
   {
-    "id": "api.team.import_team.unknown_import_from.app_error",
-    "translation": "Okänd importkälla."
-  },
-  {
-    "id": "api.team.import_team.unavailable.app_error",
-    "translation": "Felaktigt formaterad förfrågan: fältet filesize saknas."
-  },
-  {
-    "id": "api.team.import_team.parse.app_error",
-    "translation": "Gick inte att tolka multipart-formuläret."
-  },
-  {
-    "id": "api.team.import_team.open.app_error",
-    "translation": "Kunde inte öppna filen."
-  },
-  {
-    "id": "api.team.import_team.no_import_from.app_error",
-    "translation": "Felaktigt formaterad förfrågan. Fältet importFrom saknas."
-  },
-  {
-    "id": "api.team.import_team.no_file.app_error",
-    "translation": "Inga filer under 'fil' i förfrågan."
-  },
-  {
-    "id": "api.team.import_team.integer.app_error",
-    "translation": "Filesize är inte ett heltal."
-  },
-  {
-    "id": "api.team.import_team.array.app_error",
-    "translation": "Tom 'fil'-tabell i förfrågan."
-  },
-  {
     "id": "api.team.get_team_icon.read_file.app_error",
     "translation": "Kunde inte läsa filen för gruppikonen."
   },
@@ -4934,82 +4878,6 @@
   {
     "id": "api.status.user_not_found.app_error",
     "translation": "Användaren hittades inte."
-  },
-  {
-    "id": "api.slackimport.slack_import.zip.file_too_large",
-    "translation": "{{.Filename}} i zip-filen är för stor för att processas i Slack import\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.zip.app_error",
-    "translation": "Zip-filen med Slack-exporten kunde inte öppnas.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.team_fail",
-    "translation": "Kunde inte hitta Gruppen att importera till.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.open.app_error",
-    "translation": "Kunde inte öppna filen: {{.Filename}}.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.notes",
-    "translation": "\nAnteckningar:\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note3",
-    "translation": "- Eventuella felmeddelanden finns i systemloggen.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note2",
-    "translation": "- Slack bot-meddelanden stöds ännu inte.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note1",
-    "translation": "- Eventuellt har några meddelanden inte förts över på grund av att formatet inte stöds av import-funktionen.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.log",
-    "translation": "Mattermost log för Slack-import\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.unable_import",
-    "translation": "Kunde inte importera Slack-användaren: {{.Username}}.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "Användare {{.Username}} har ingen e-postadress i exportfilen från Slack. Sparade tillfälligt {{.Email}}. Användaren bör uppdatera e-postadressen vid första inloggningen.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Slack-användare sammanslagen med en befintlig Mattermost-användare med {{.Email}} och användarid {{.Username}}, men kunde inte läggas till i gruppen.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "Slack-användare sammanslagen med en befintlig Mattermost-användare med {{.Email}} och användarid {{.Username}}.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.created",
-    "translation": "\nAnvändare skapade:\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.merge",
-    "translation": "Slack-kanalen {{.DisplayName}} finns redan som en aktiv kanal i Mattermost. Kanalerna har slagits samman.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.import_failed",
-    "translation": "Kunde inte importera Slack-kanalen {{.DisplayName}}.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-    "translation": "Kunde inte lägga till Slack-användaren {{.Username}} till kanalen.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\nKanaler tillagda:\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_bot_user.unable_import",
-    "translation": "Kunde inte imortera Integrations-/Slack Bot-användaren {{.Username}}.\n"
   },
   {
     "id": "api.post.deduplicate_create_post.failed_to_get",
@@ -5194,10 +5062,6 @@
   {
     "id": "api.license.remove_expired_license.failed.error",
     "translation": "Det gick inte att skicka e-post om inaktiverad licens."
-  },
-  {
-    "id": "api.license.client.old_format.app_error",
-    "translation": "Nytt format för klientlicensen stöds ännu inte. Vänligen specificera format=old i sökförfrågan."
   },
   {
     "id": "api.license.add_license.unique_users.app_error",
@@ -5514,10 +5378,6 @@
   {
     "id": "api.templates.reset_body.button",
     "translation": "Återställ lösenord"
-  },
-  {
-    "id": "api.templates.remove_expired_license.subject",
-    "translation": "Mattermost Enterprise-licensen har inaktiverats."
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -7974,14 +7834,6 @@
     "translation": "Din Mattermost-prenumeration ska förnyas"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle",
-    "translation": "{{.UserName}}, din prenumeration löper ut om {{.Days}} dagar. Vi hoppas att du uppskattar det flexibla och säkra teamsamarbete som Mattermost möjliggör. Förnya prenumerationen för att ditt team ska kunna fortsätta njuta av funktionerna."
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_subject",
-    "translation": "Din licens ska förnyas"
-  },
-  {
     "id": "api.server.license_up_for_renewal.error_sending_email",
     "translation": "Misslyckades med att skicka e-postmeddelanden för förnyelse av licensen"
   },
@@ -8562,10 +8414,6 @@
     "translation": "Felaktigt värde för bytes licensen laddas upp."
   },
   {
-    "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "{{.Backend}} versionen {{.Version}} är högre än {{.MaxVersion}} som är den högsta versionen som stöds"
-  },
-  {
     "id": "app.plugin.skip_installation.app_error",
     "translation": "Hoppar över installationen av plugin {{.Id}} eftersom den befintliga versionen är samma eller nyare."
   },
@@ -8604,22 +8452,6 @@
   {
     "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
     "translation": "Ogiltigt maximalt antal mottagare för permanenta notifieringar. Måste vara ett positivt tal."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.config.app_error",
-    "translation": "Denna åtgärd kräver användning av specifik lagring av export."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.featureflag.app_error",
-    "translation": "Denna funktion begränsas av en funktionsflagga."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.link.app_error",
-    "translation": "Kan inte generera presigned url."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.fileexist.app_error",
-    "translation": "Kunde inte kontrollera om filen finns."
   },
   {
     "id": "api.user.invalidate_password_recovery_tokens.error",
@@ -8684,14 +8516,6 @@
   {
     "id": "app.channel.update_member.notify_props_limit_exceeded.app_error",
     "translation": "Kan inte uppdatera kanalmedlemmen, storleksgränsen för notify props har överskridits."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.driver.app_error",
-    "translation": "Din drivrutin för lagring av export har inte stöd för generering av presign url."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.notfound.app_error",
-    "translation": "Exportfilen hittades inte."
   },
   {
     "id": "app.post_priority.delete_persistent_notification_post.app_error",
@@ -10600,10 +10424,6 @@
     "translation": "Föräldern är redan importerad."
   },
   {
-    "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
-    "translation": "Att dölja arkiverade kanaler stöds inte längre. Gör dessa kanaler privata och ta bort medlemmar istället."
-  },
-  {
     "id": "app.lookup_interactive_dialog.decode_json_error",
     "translation": "Ett fel uppstod vid avkodning av JSON-svar från en interaktiv dialog."
   },
@@ -10622,10 +10442,6 @@
   {
     "id": "ent.elasticsearch.create_processor.sync_bulk_processor_create_failed",
     "translation": "Misslyckades att skapa en Elasticsearch synk bulk-processor"
-  },
-  {
-    "id": "model.config.is_valid.client_side_cert_enable.app_error",
-    "translation": "Certifikat-baserad autentisering har tagits bort. Inaktivera ClientSideCertEnable för att fortsätta."
   },
   {
     "id": "api.channel.patch_update_channel.restricted_dm.app_error",
