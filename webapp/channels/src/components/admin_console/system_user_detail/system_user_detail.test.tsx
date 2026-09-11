@@ -637,7 +637,7 @@ describe('SystemUserDetail', () => {
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
             const changesList = await screen.findByTestId('changesList');
-            expect(changesList).toHaveTextContent('Alpha, Beta, Gamma');
+            expect(changesList).toHaveTextContent('Alpha and Beta → Alpha, Beta, and Gamma');
             expect(changesList).not.toHaveTextContent('opt-1');
             expect(changesList).not.toHaveTextContent('opt-2');
             expect(changesList).not.toHaveTextContent('opt-3');
@@ -859,7 +859,7 @@ describe('SystemUserDetail', () => {
                 await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
                 const changesList = await screen.findByTestId('changesList');
-                expect(changesList).toHaveTextContent('Alpha, Beta, Gamma');
+                expect(changesList).toHaveTextContent('Alpha and Beta → Alpha, Beta, and Gamma');
                 expect(changesList).not.toHaveTextContent('opt-');
             });
 
