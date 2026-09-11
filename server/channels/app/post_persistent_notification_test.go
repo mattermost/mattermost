@@ -597,7 +597,10 @@ func TestSendPersistentNotificationsFileMetadataABAC(t *testing.T) {
 
 		mockACS := &einterfacesmocks.AccessControlServiceInterface{}
 		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
-			return req.Action == model.AccessControlPolicyActionDownloadFileAttachment
+			return req.Action == model.AccessControlPolicyActionDownloadFileAttachment &&
+				req.Subject.ID == th.BasicUser2.Id &&
+				req.Resource.Type == model.AccessControlPolicyTypeChannel &&
+				req.Resource.ID == th.BasicChannel.Id
 		})).Return(model.AccessDecision{Decision: allowed}, (*model.AppError)(nil))
 		th.App.Srv().Channels().AccessControl = mockACS
 
