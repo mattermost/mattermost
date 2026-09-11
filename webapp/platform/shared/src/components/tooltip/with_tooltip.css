@@ -6,7 +6,15 @@
     background: rgba(0, 0, 0, 1);
     box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
     line-height: 18px;
-    pointer-events: none;
+
+    /*
+     * Deliberately hoverable. WCAG 2.1 SC 1.4.13 (Content on Hover or Focus) requires that the
+     * pointer can be moved over the tooltip without it disappearing, which `pointer-events: none`
+     * makes impossible: the browser never reports the cursor as being over the tooltip, so it is
+     * treated as having left the trigger. `safePolygon` in with_tooltip.tsx keeps the tooltip open
+     * only while the cursor travels towards it, so this does not leave tooltips lingering.
+     */
+    pointer-events: auto;
     text-align: center;
     word-break: break-word;
 

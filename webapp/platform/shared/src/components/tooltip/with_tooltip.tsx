@@ -18,6 +18,7 @@ import {
     flip,
     shift,
     useMergeRefs,
+    safePolygon,
 } from '@floating-ui/react';
 import classNames from 'classnames';
 import React, {useRef, useState, useMemo, cloneElement, isValidElement} from 'react';
@@ -142,6 +143,16 @@ export function WithTooltip({
             open: OverlaysTimings.CURSOR_MOUSEOVER_TO_OPEN,
             close: delayClose ? OverlaysTimings.CURSOR_MOUSEOUT_TO_CLOSE_WITH_DELAY : OverlaysTimings.CURSOR_MOUSEOUT_TO_CLOSE,
         },
+
+        // WCAG 2.1 SC 1.4.13 (Content on Hover or Focus) requires that the pointer can be moved
+        // onto the tooltip without it disappearing. Without this, the tooltip closes as soon as the
+        // cursor leaves the trigger, which makes the OverlayArrow.OFFSET gap impossible to cross.
+        //
+        // `requireIntent` is off so that the polygon is always generated rather than only when the
+        // cursor is judged to be moving with intent. With the current 8px offset both settings
+        // behave the same, but the intent heuristic closes on cursor movement below 0.1px/ms, and
+        // slow, deliberate pointer movement is precisely the case this criterion exists to protect.
+        handleClose: safePolygon({requireIntent: false}),
     });
     const focus = useFocus(floatingContext);
     const dismiss = useDismiss(floatingContext);
@@ -175,7 +186,12 @@ export function WithTooltip({
                         className={classNames('tooltipContainer', className)}
                         style={{...floatingStyles, ...transitionStyles}}
                         {...getFloatingProps()}
-                        id={id}
+
+                        // Only override the id floating-ui generated when a caller actually supplied
+                        // one. Passing `id={undefined}` strips the generated id, which leaves the
+                        // `aria-describedby` on the trigger pointing at an element that does not
+                        // exist, so assistive tech announces nothing (WCAG 2.1 SC 1.3.1).
+                        id={id ?? floatingContext.floatingId}
                     >
                         <TooltipContent
                             title={title}
