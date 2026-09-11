@@ -5,13 +5,10 @@ package docextractor
 
 import (
 	"context"
-	"errors"
 	"io"
 	"strings"
 	"unicode"
 	"unicode/utf8"
-
-	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 // maxPlainTextExtractionSize bounds how much of a file this extractor reads
@@ -30,10 +27,19 @@ func (pe *plainExtractor) Match(filename string) bool {
 }
 
 func (pe *plainExtractor) Extract(_ context.Context, filename string, r io.ReadSeeker, maxFileSize int64) (string, error) {
+	limit := int64(maxPlainTextExtractionSize)
+	if maxFileSize > 0 && maxFileSize < limit {
+		limit = maxFileSize
+	}
+
+	// The initial probe never reads more than the limit, so a small
+	// maxFileSize also bounds how much is pulled from the underlying reader.
+	probeSize := min(limit, 1024)
+
 	// This detects any visible character plus any whitespace
 	validRanges := append(unicode.GraphicRanges, unicode.White_Space)
 
-	runes := make([]byte, 1024)
+	runes := make([]byte, probeSize)
 	total, err := r.Read(runes)
 	if err != nil && err != io.EOF {
 		return "", err
@@ -54,34 +60,35 @@ func (pe *plainExtractor) Extract(_ context.Context, filename string, r io.ReadS
 		}
 		count += size
 
-		// subtract the max rune size to prevent accidentally splitted runes at the end of first 1024 bytes
+		// subtract the max rune size to prevent accidentally splitted runes at the end of the probe
 		if count > total-utf8.UTFMax {
 			break
 		}
 	}
 
-	limit := int64(maxPlainTextExtractionSize)
-	if maxFileSize > 0 && maxFileSize < limit {
-		limit = maxFileSize
-	}
-
 	var sb strings.Builder
 	sb.Grow(int(limit))
-	if int64(total) > limit {
-		total = int(limit)
-	}
 	sb.Write(runes[0:total])
 	if remaining := limit - int64(total); remaining > 0 {
-		if _, err := io.Copy(&sb, utils.NewLimitedReaderWithError(r, remaining)); err != nil && !errors.Is(err, utils.ErrSizeLimitExceeded) {
+		// io.LimitReader never reads past remaining, so the underlying
+		// reader is never consumed beyond the configured limit.
+		if _, err := io.Copy(&sb, io.LimitReader(r, remaining)); err != nil {
 			return "", err
 		}
 	}
 
-	// LimitedReaderWithError may return one byte past the limit; clamp to enforce it.
-	out := sb.String()
-	if int64(len(out)) > limit {
-		out = out[:limit]
-	}
+	// The limit can land in the middle of a multi-byte rune; trim back to
+	// the last complete one so the result is always valid UTF-8.
+	return truncateUTF8(sb.String()), nil
+}
 
-	return out, nil
+func truncateUTF8(s string) string {
+	for s != "" {
+		r, size := utf8.DecodeLastRuneInString(s)
+		if r != utf8.RuneError || size != 1 {
+			break
+		}
+		s = s[:len(s)-1]
+	}
+	return s
 }
