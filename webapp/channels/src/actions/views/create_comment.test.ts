@@ -299,20 +299,25 @@ describe('rhs view actions', () => {
             );
         });
 
-        test('it submits a command when message is /away', () => {
-            store.dispatch(onSubmit(channelId, rootId, makeDraft({
+        test('it submits a command when message is /away', async () => {
+            // jest.config.js sets clearMocks, which clears calls but not implementations, so the
+            // empty-response override from the submitCommand suite above would otherwise leak here
+            // and make submitCommand return before dispatching executeCommand.
+            jest.mocked(HookActions.runSlashCommandWillBePostedHooks).mockImplementation((message, args) => async () => ({data: {message, args}}));
+
+            await store.dispatch(onSubmit(channelId, rootId, makeDraft({
                 message: '/away',
                 fileInfos: [],
                 uploadsInProgress: [],
             }), {}));
 
             const testStore = mockStore(initialState);
-            testStore.dispatch(submitCommand(channelId, rootId, makeDraft({message: '/away', fileInfos: [], uploadsInProgress: []})));
+            await testStore.dispatch(submitCommand(channelId, rootId, makeDraft({message: '/away', fileInfos: [], uploadsInProgress: []})));
 
-            // This previously passed a second argument to toEqual() that jest silently ignored, so a
-            // MOCK_ACTIONS_COMMAND_EXECUTE expectation never ran here. It fails when enabled: only
-            // MOCK_ADD_MESSAGE_INTO_HISTORY is dispatched. Left disabled pending triage.
+            const commandActions = [{args: ['/away', {channel_id: '4j5j4k3k34j4', root_id: 'fc234c34c23', team_id: '4j5nmn4j3'}], type: 'MOCK_ACTIONS_COMMAND_EXECUTE'}];
+
             expect(store.getActions()).toEqual(expect.arrayContaining(testStore.getActions()));
+            expect(store.getActions()).toEqual(expect.arrayContaining(commandActions));
         });
 
         test('it submits a regular post when options.ignoreSlash is true', () => {
