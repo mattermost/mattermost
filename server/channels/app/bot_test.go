@@ -67,6 +67,19 @@ func TestCreateBot(t *testing.T) {
 			require.Nil(t, bot)
 			require.Equal(t, "model.bot.is_valid.username.app_error", err.Id)
 		})
+
+		t.Run("username reserved for a system-owned bot", func(t *testing.T) {
+			th := Setup(t).InitBasic(t)
+
+			bot, err := th.App.CreateBot(th.Context, &model.Bot{
+				Username:    model.BotSystemBotUsername,
+				Description: "a bot",
+				OwnerId:     th.BasicUser.Id,
+			})
+			require.NotNil(t, err)
+			require.Nil(t, bot)
+			require.Equal(t, "app.bot.createbot.reserved_username.app_error", err.Id)
+		})
 	})
 
 	t.Run("create bot", func(t *testing.T) {
@@ -254,6 +267,29 @@ func TestPatchBot(t *testing.T) {
 		_, err = th.App.PatchBot(th.Context, bot.UserId, botPatch)
 		require.NotNil(t, err)
 		require.Equal(t, "model.bot.is_valid.description.app_error", err.Id)
+	})
+
+	t.Run("patch bot to username reserved for a system-owned bot", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		bot, err := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    "username",
+			Description: "a bot",
+			OwnerId:     th.BasicUser.Id,
+		})
+		require.Nil(t, err)
+		defer func() {
+			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			require.Nil(t, err)
+		}()
+
+		botPatch := &model.BotPatch{
+			Username: new(model.BotSystemBotUsername),
+		}
+
+		_, err = th.App.PatchBot(th.Context, bot.UserId, botPatch)
+		require.NotNil(t, err)
+		require.Equal(t, "app.bot.patchbot.reserved_username.app_error", err.Id)
 	})
 
 	t.Run("patch bot", func(t *testing.T) {
