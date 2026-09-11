@@ -26,9 +26,12 @@ export type Props = {
   children?: ReactNode;
 };
 
+/**
+ * Site-relative URL of an endpoint's page. The `api` docs instance is mounted
+ * at /api (docusaurus.config.ts) and index ids are doc ids, so
+ * `reference/get-user` → `/api/reference/get-user`. <Link> adds the baseUrl.
+ */
 function endpointHref(endpoint: Endpoint): string {
-  // The `api` docs instance is mounted at /api (docusaurus.config.ts) and
-  // index ids are doc ids, so `reference/get-user` → /api/reference/get-user.
   return `/api/${endpoint.id}`;
 }
 

@@ -34,6 +34,12 @@ export type ParsedQuery = {
   tokens: string[];
 };
 
+/**
+ * Splits a raw query into an optional method filter and the tokens that have
+ * to match. A leading verb is read as a filter, so `post channel` means
+ * "POST endpoints mentioning channel" and a bare `delete` lists every
+ * DELETE endpoint.
+ */
 export function parseQuery(raw: string): ParsedQuery {
   const tokens = raw.toLowerCase().split(/\s+/).filter(Boolean);
 
@@ -118,6 +124,11 @@ function scoreEndpoint(query: ParsedQuery, endpoint: Endpoint): number | null {
   return score;
 }
 
+/**
+ * Runs `rawQuery` over the index and returns the best `limit` matches, plus
+ * the unclipped match count so the UI can say "top 50 of 171". An empty or
+ * whitespace-only query matches nothing rather than everything.
+ */
 export function searchEndpoints(
   endpoints: readonly Endpoint[],
   rawQuery: string,
