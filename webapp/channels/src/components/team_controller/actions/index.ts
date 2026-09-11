@@ -15,7 +15,7 @@ import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
-import {reconcileChannelAccess} from 'actions/channel_access';
+import {reconcileChannelReadAccess} from 'actions/channel_read_access';
 import {addVisibleUsersInCurrentChannelAndSelfToStatusPoll} from 'actions/status_actions';
 import {addUserToTeam} from 'actions/team_actions';
 import LocalStorageStore from 'stores/local_storage_store';
@@ -70,7 +70,7 @@ export function initializeTeam(team: Team): ActionFuncAsync<Team> {
         }
 
         // Switching teams can both regain and lose channels for this session.
-        dispatch(reconcileChannelAccess());
+        dispatch(reconcileChannelReadAccess());
 
         return {data: team};
     };

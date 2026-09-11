@@ -264,10 +264,6 @@
     "translation": "Please add me to teams and channels you want me to interact in. To do this, use the browser or Mattermost Desktop App."
   },
   {
-    "id": "api.channel.access_channel.abac_denied.app_error",
-    "translation": "You do not currently have access to this channel."
-  },
-  {
     "id": "api.channel.add_guest.added",
     "translation": "%v added to the channel as guest by %v."
   },
@@ -390,6 +386,10 @@
   {
     "id": "api.channel.channel_member_counts_by_group.license.error",
     "translation": "Your license does not support groups"
+  },
+  {
+    "id": "api.channel.channel_read_access.abac_denied.app_error",
+    "translation": "You do not currently have access to this channel."
   },
   {
     "id": "api.channel.create_channel.attribute_no_permission.app_error",

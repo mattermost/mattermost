@@ -1157,9 +1157,9 @@ func TestSetupBroadcastHookForAbacFiles(t *testing.T) {
 	})
 }
 
-func TestAccessChannelBroadcastHook_Process(t *testing.T) {
+func TestChannelReadAccessBroadcastHook_Process(t *testing.T) {
 	mainHelper.Parallel(t)
-	hook := &accessChannelBroadcastHook{}
+	hook := &channelReadAccessBroadcastHook{}
 
 	userID := model.NewId()
 	channelID := model.NewId()
@@ -1172,7 +1172,7 @@ func TestAccessChannelBroadcastHook_Process(t *testing.T) {
 	makeWebConn := func(t *testing.T, allowed bool, withSession bool) *platform.WebConn {
 		t.Helper()
 		mockSuite := &platform_mocks.SuiteIFace{}
-		mockSuite.On("HasPermissionToAccessChannelByID", mock.Anything, userID, channelID).Return(allowed).Maybe()
+		mockSuite.On("HasChannelReadAccessByID", mock.Anything, userID, channelID).Return(allowed).Maybe()
 		wc := &platform.WebConn{
 			UserId:   userID,
 			Platform: &platform.PlatformService{},

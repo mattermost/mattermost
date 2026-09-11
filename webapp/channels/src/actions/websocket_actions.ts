@@ -140,7 +140,7 @@ import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {handlePostExpired} from 'actions/burn_on_read_deletion';
 import {handleBurnOnReadPostRevealed, handleBurnOnReadAllRevealed} from 'actions/burn_on_read_websocket';
-import {reconcileChannelAccess} from 'actions/channel_access';
+import {reconcileChannelReadAccess} from 'actions/channel_read_access';
 import {loadChannelsForCurrentUser} from 'actions/channel_actions';
 import {
     getTeamsUsage,
@@ -300,7 +300,7 @@ export function reconnect() {
 
         // Access can change while disconnected, and fetchAllMyTeamsChannels adds
         // what is visible but never drops what no longer is.
-        dispatch(reconcileChannelAccess());
+        dispatch(reconcileChannelReadAccess());
         dispatch(fetchAllMyTeamsChannels());
         if (isScheduledPostsEnabled(state)) {
             dispatch(fetchTeamScheduledPosts(currentTeamId, true, true));
@@ -919,7 +919,7 @@ export function handleChannelAccessControlUpdatedEvent(msg: WebSocketMessages.Ch
 
         doDispatch(invalidateRenderDecisionsForChannel(channel.id));
         doDispatch(refreshPostsAfterPolicyChange(channel.id));
-        doDispatch(reconcileChannelAccess());
+        doDispatch(reconcileChannelReadAccess());
     };
 }
 
@@ -949,7 +949,7 @@ export function handlePermissionPolicyUpdatedEvent(): ThunkActionFunc<void> {
 
         doDispatch(clearRenderDecisions());
         doDispatch(refreshPostsAfterPolicyChange());
-        doDispatch(reconcileChannelAccess());
+        doDispatch(reconcileChannelReadAccess());
     };
 }
 

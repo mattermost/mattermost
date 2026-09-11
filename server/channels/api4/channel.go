@@ -996,7 +996,7 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !requireChannelAccess(c, channel) {
+	if !requireChannelReadAccess(c, channel) {
 		return
 	}
 
@@ -1090,8 +1090,8 @@ func sanitizeDiscoverableChannel(channel *model.Channel) *model.Channel {
 	}
 }
 
-func requireChannelAccess(c *Context, channel *model.Channel) bool {
-	if c.App.EnforceAccessChannel(c.AppContext, c.AppContext.Session().UserId, channel) {
+func requireChannelReadAccess(c *Context, channel *model.Channel) bool {
+	if c.App.EnforceChannelReadAccess(c.AppContext, c.AppContext.Session().UserId, channel) {
 		return true
 	}
 	c.SetPermissionError(model.PermissionReadChannel)
@@ -1110,7 +1110,7 @@ func discoverableNonMemberView(c *Context, channel *model.Channel) (*model.Chann
 		return nil, nil
 	}
 	// A denied session must not learn the channel exists, let alone be offered a join.
-	if !c.App.HasPermissionToAccessChannel(c.AppContext, c.AppContext.Session().UserId, channel) {
+	if !c.App.HasChannelReadAccess(c.AppContext, c.AppContext.Session().UserId, channel) {
 		return nil, nil
 	}
 	user, userErr := c.App.GetUser(c.AppContext, c.AppContext.Session().UserId)
@@ -1668,7 +1668,7 @@ func getChannelsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		for _, ch := range channels {
-			if !c.App.HasPermissionToAccessChannel(c.AppContext, c.Params.UserId, ch) {
+			if !c.App.HasChannelReadAccess(c.AppContext, c.Params.UserId, ch) {
 				continue
 			}
 			if wroteAny {
@@ -1969,7 +1969,7 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !requireChannelAccess(c, channel) {
+	if !requireChannelReadAccess(c, channel) {
 		return
 	}
 
@@ -2017,7 +2017,7 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	if !requireChannelAccess(c, channel) {
+	if !requireChannelReadAccess(c, channel) {
 		return
 	}
 
@@ -2234,11 +2234,11 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	// The client's detection point for losing access mid-session, so the channel being
 	// opened reports its denial, before ViewChannel can move the read marker. The
 	// previous channel is only being left behind, so dropping it is enough.
-	if view.ChannelId != "" && !c.App.EnforceAccessChannelByID(c.AppContext, c.Params.UserId, view.ChannelId) {
+	if view.ChannelId != "" && !c.App.EnforceChannelReadAccessByID(c.AppContext, c.Params.UserId, view.ChannelId) {
 		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
-	if view.PrevChannelId != "" && !c.App.HasPermissionToAccessChannelByID(c.AppContext, c.Params.UserId, view.PrevChannelId) {
+	if view.PrevChannelId != "" && !c.App.HasChannelReadAccessByID(c.AppContext, c.Params.UserId, view.PrevChannelId) {
 		view.PrevChannelId = ""
 	}
 
@@ -2281,7 +2281,7 @@ func readMultipleChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Per channel rather than failing the batch: the channels the user can still see
 	// should be marked read regardless.
-	channelIds = c.App.FilterChannelIDsByAccess(c.AppContext, c.Params.UserId, channelIds)
+	channelIds = c.App.FilterChannelIDsByReadAccess(c.AppContext, c.Params.UserId, channelIds)
 
 	times, appErr := c.App.MarkChannelsAsViewed(c.AppContext, channelIds, c.Params.UserId, c.AppContext.Session().Id, true, c.App.IsCRTEnabledForUser(c.AppContext, c.Params.UserId))
 	if appErr != nil {
@@ -2615,10 +2615,6 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
 		c.Err = model.NewAppError("addUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	if !requireChannelAccess(c, channel) {
 		return
 	}
 
@@ -3116,7 +3112,7 @@ func channelMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.
 		return
 	}
 
-	// No access_channel gate: this is group-sync administration behind a sysconsole
+	// No channel_read_access gate: this is group-sync administration behind a sysconsole
 	// permission, matching teamMembersMinusGroupMembers. Gating it would let a
 	// mis-scoped policy hide the membership an admin needs in order to repair it.
 	users, totalCount, appErr := c.App.ChannelMembersMinusGroupMembers(

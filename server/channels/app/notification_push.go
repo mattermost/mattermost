@@ -804,7 +804,7 @@ func (a *App) BuildPushNotificationMessage(rctx request.CTX, contentsConfig stri
 	// denied recipient — including one with no cached session attributes — gets the
 	// notification downgraded rather than suppressed: the device fetches by id, and
 	// that fetch re-runs the gate live.
-	denied := !a.HasPermissionToAccessChannel(rctx, user.Id, channel)
+	denied := !a.HasChannelReadAccess(rctx, user.Id, channel)
 	if denied {
 		contentsConfig = model.IdLoadedNotification
 	}

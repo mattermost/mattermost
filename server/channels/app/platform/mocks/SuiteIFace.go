@@ -48,12 +48,12 @@ func (_m *SuiteIFace) GetSession(token string) (*model.Session, *model.AppError)
 	return r0, r1
 }
 
-// HasPermissionToAccessChannelByID provides a mock function with given fields: rctx, userID, channelID
-func (_m *SuiteIFace) HasPermissionToAccessChannelByID(rctx request.CTX, userID string, channelID string) bool {
+// HasChannelReadAccessByID provides a mock function with given fields: rctx, userID, channelID
+func (_m *SuiteIFace) HasChannelReadAccessByID(rctx request.CTX, userID string, channelID string) bool {
 	ret := _m.Called(rctx, userID, channelID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for HasPermissionToAccessChannelByID")
+		panic("no return value specified for HasChannelReadAccessByID")
 	}
 
 	var r0 bool

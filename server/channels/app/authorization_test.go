@@ -1059,18 +1059,18 @@ func TestSessionHasPermissionToChannelByPost(t *testing.T) {
 	assert.Nil(t, appErr)
 
 	t.Run("read channel", func(t *testing.T) {
-		require.Equal(t, true, th.App.SessionHasPermissionToChannelByPost(th.Context, *session, post.Id, model.PermissionReadChannel))
-		require.Equal(t, false, th.App.SessionHasPermissionToChannelByPost(th.Context, *session2, post.Id, model.PermissionReadChannel))
+		require.Equal(t, true, th.App.SessionHasPermissionToChannelByPost(*session, post.Id, model.PermissionReadChannel))
+		require.Equal(t, false, th.App.SessionHasPermissionToChannelByPost(*session2, post.Id, model.PermissionReadChannel))
 	})
 
 	t.Run("read archived channel", func(t *testing.T) {
-		require.Equal(t, true, th.App.SessionHasPermissionToChannelByPost(th.Context, *session, archivedPost.Id, model.PermissionReadChannel))
-		require.Equal(t, false, th.App.SessionHasPermissionToChannelByPost(th.Context, *session2, archivedPost.Id, model.PermissionReadChannel))
+		require.Equal(t, true, th.App.SessionHasPermissionToChannelByPost(*session, archivedPost.Id, model.PermissionReadChannel))
+		require.Equal(t, false, th.App.SessionHasPermissionToChannelByPost(*session2, archivedPost.Id, model.PermissionReadChannel))
 	})
 
 	t.Run("read public channel", func(t *testing.T) {
-		require.Equal(t, true, th.App.SessionHasPermissionToChannelByPost(th.Context, *session, post.Id, model.PermissionReadPublicChannel))
-		require.Equal(t, true, th.App.SessionHasPermissionToChannelByPost(th.Context, *session2, post.Id, model.PermissionReadPublicChannel))
+		require.Equal(t, true, th.App.SessionHasPermissionToChannelByPost(*session, post.Id, model.PermissionReadPublicChannel))
+		require.Equal(t, true, th.App.SessionHasPermissionToChannelByPost(*session2, post.Id, model.PermissionReadPublicChannel))
 	})
 
 	t.Run("read channel - user is admin", func(t *testing.T) {
@@ -1080,7 +1080,7 @@ func TestSessionHasPermissionToChannelByPost(t *testing.T) {
 		})
 		require.Nil(t, err)
 
-		require.Equal(t, true, th.App.SessionHasPermissionToChannelByPost(th.Context, *adminSession, post.Id, model.PermissionReadChannel))
+		require.Equal(t, true, th.App.SessionHasPermissionToChannelByPost(*adminSession, post.Id, model.PermissionReadChannel))
 	})
 }
 

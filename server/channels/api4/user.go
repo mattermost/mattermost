@@ -3764,7 +3764,7 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 		}
 		// Filtered for the session, not the queried user: a requester acting for
 		// someone else must not learn of a channel their own policy denies.
-		members = c.App.FilterChannelMembersWithTeamDataByAccess(c.AppContext, currentUserId, members)
+		members = c.App.FilterChannelMembersWithTeamDataByReadAccess(c.AppContext, currentUserId, members)
 
 		if err := json.NewEncoder(w).Encode(members); err != nil {
 			c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -3805,7 +3805,7 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 			// short-page test below must see the raw page, or the whole list would
 			// truncate at the first denial. Evaluated for the session, not the
 			// queried user, for the same reason as the paginated branch above.
-			if !c.App.HasPermissionToAccessChannelByID(c.AppContext, currentUserId, member.ChannelId) {
+			if !c.App.HasChannelReadAccessByID(c.AppContext, currentUserId, member.ChannelId) {
 				continue
 			}
 			// Sanitize each member before encoding in the stream

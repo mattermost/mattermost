@@ -106,7 +106,11 @@ func (a *App) SessionHasPermissionToChannel(rctx request.CTX, session model.Sess
 	}
 
 	hasPermission, isMember = a.sessionHasPermissionToChannelRBAC(rctx, session, channel, permission)
-	return hasPermission && a.EnforceAccessChannel(rctx, session.UserId, channel), isMember
+	if !hasPermission || !isChannelReadPermission(permission) {
+		return hasPermission, isMember
+	}
+
+	return a.EnforceChannelReadAccess(rctx, session.UserId, channel), isMember
 }
 
 func (a *App) SessionHasPermissionToChannelRBACOnly(rctx request.CTX, session model.Session, channelID string, permission *model.Permission) (hasPermission bool, isMember bool) {
@@ -169,11 +173,11 @@ func (a *App) SessionHasPermissionToChannels(rctx request.CTX, session model.Ses
 		return true
 	}
 
-	// Evaluated before the role short-circuits below, because access_channel applies
+	// Evaluated before the role short-circuits below, because channel_read_access applies
 	// to unrestricted and system-admin sessions too.
-	if a.accessChannelEnforcementActive() {
+	if isChannelReadPermission(permission) && a.channelReadAccessEnforcementActive() {
 		for _, channelID := range channelIDs {
-			if !a.EnforceAccessChannelByID(rctx, session.UserId, channelID) {
+			if !a.EnforceChannelReadAccessByID(rctx, session.UserId, channelID) {
 				return false
 			}
 		}
@@ -238,21 +242,9 @@ func (a *App) SessionHasPermissionToGroup(session model.Session, groupID string,
 	return a.SessionHasPermissionTo(session, permission)
 }
 
-func (a *App) SessionHasPermissionToChannelByPost(rctx request.CTX, session model.Session, postID string, permission *model.Permission) bool {
+func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postID string, permission *model.Permission) bool {
 	if postID == "" {
 		return false
-	}
-
-	if a.accessChannelEnforcementActive() {
-		channel, err := a.Srv().Store().Channel().GetForPost(postID)
-		if err != nil {
-			// The fallbacks below have no channel to evaluate against, so granting
-			// on a team- or system-wide permission would bypass the policy.
-			return false
-		}
-		if !a.EnforceAccessChannel(rctx, session.UserId, channel) {
-			return false
-		}
 	}
 
 	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, session.UserId); err == nil {
@@ -277,7 +269,7 @@ func (a *App) SessionHasPermissionToReadPost(rctx request.CTX, session model.Ses
 
 	channel, err := a.Srv().Store().Channel().GetForPost(postID)
 	if err != nil {
-		if a.accessChannelEnforcementActive() {
+		if a.channelReadAccessEnforcementActive() {
 			// The fallback below has no channel to evaluate against, so granting on
 			// a system-wide permission would bypass the policy.
 			return false, false
@@ -377,12 +369,12 @@ func (a *App) HasPermissionToTeam(rctx request.CTX, askingUserId string, teamID 
 // isMember: used for auditing access without membership. True if the user is a member of the channel, otherwise false.
 func (a *App) HasPermissionToChannel(rctx request.CTX, askingUserId string, channelID string, permission *model.Permission) (hasPermission bool, isMember bool) {
 	hasPermission, isMember = a.HasPermissionToChannelRBACOnly(rctx, askingUserId, channelID, permission)
-	if !hasPermission {
-		return false, isMember
+	if !hasPermission || !isChannelReadPermission(permission) {
+		return hasPermission, isMember
 	}
 
-	// Suppression helper: deliberately non-recording, see EnforceAccessChannel.
-	return a.HasPermissionToAccessChannelByID(rctx, askingUserId, channelID), isMember
+	// Suppression helper: deliberately non-recording, see EnforceChannelReadAccess.
+	return a.HasChannelReadAccessByID(rctx, askingUserId, channelID), isMember
 }
 
 func (a *App) HasPermissionToChannelRBACOnly(rctx request.CTX, askingUserId string, channelID string, permission *model.Permission) (hasPermission bool, isMember bool) {
@@ -496,7 +488,7 @@ func (a *App) SessionHasPermissionToManageBot(rctx request.CTX, session model.Se
 // isMember: used for auditing access without membership. True if the user is a member of the channel, false otherwise
 func (a *App) SessionHasPermissionToReadChannel(rctx request.CTX, session model.Session, channel *model.Channel) (hasPermission bool, isMember bool) {
 	hasPermission, isMember = a.SessionHasPermissionToReadChannelRBACOnly(rctx, session, channel)
-	return hasPermission && a.EnforceAccessChannel(rctx, session.UserId, channel), isMember
+	return hasPermission && a.EnforceChannelReadAccess(rctx, session.UserId, channel), isMember
 }
 
 func (a *App) SessionHasPermissionToReadChannelRBACOnly(rctx request.CTX, session model.Session, channel *model.Channel) (hasPermission bool, isMember bool) {
@@ -517,8 +509,8 @@ func (a *App) SessionHasPermissionToReadChannelRBACOnly(rctx request.CTX, sessio
 // isMember: used for auditing access without membership. True if the user is a member of the channel, false otherwise
 func (a *App) HasPermissionToReadChannel(rctx request.CTX, userID string, channel *model.Channel) (hasPermission bool, isMember bool) {
 	hasPermission, isMember = a.HasPermissionToReadChannelRBACOnly(rctx, userID, channel)
-	// Suppression helper: deliberately non-recording, see EnforceAccessChannel.
-	return hasPermission && a.HasPermissionToAccessChannel(rctx, userID, channel), isMember
+	// Suppression helper: deliberately non-recording, see EnforceChannelReadAccess.
+	return hasPermission && a.HasChannelReadAccess(rctx, userID, channel), isMember
 }
 
 func (a *App) HasPermissionToReadChannelRBACOnly(rctx request.CTX, userID string, channel *model.Channel) (hasPermission bool, isMember bool) {
@@ -544,9 +536,9 @@ func (a *App) HasPermissionToReadChannelRBACOnly(rctx request.CTX, userID string
 // Private/DM/GM channels resolve only for members (via the content-read check). Public channels
 // on a team the user does not belong to stay unresolved, preventing cross-team disclosure.
 func (a *App) HasPermissionToResolveChannelMention(rctx request.CTX, userID string, channel *model.Channel) bool {
-	// Suppression helper: deliberately non-recording, see EnforceAccessChannel.
+	// Suppression helper: deliberately non-recording, see EnforceChannelReadAccess.
 	return a.hasPermissionToResolveChannelMentionRBAC(rctx, userID, channel) &&
-		a.HasPermissionToAccessChannel(rctx, userID, channel)
+		a.HasChannelReadAccess(rctx, userID, channel)
 }
 
 func (a *App) hasPermissionToResolveChannelMentionRBAC(rctx request.CTX, userID string, channel *model.Channel) bool {
@@ -563,7 +555,7 @@ func (a *App) hasPermissionToResolveChannelMentionRBAC(rctx request.CTX, userID 
 
 func (a *App) HasPermissionToChannelMemberCount(rctx request.CTX, userID string, channel *model.Channel) bool {
 	return a.hasPermissionToChannelMemberCountRBAC(rctx, userID, channel) &&
-		a.EnforceAccessChannel(rctx, userID, channel)
+		a.EnforceChannelReadAccess(rctx, userID, channel)
 }
 
 func (a *App) hasPermissionToChannelMemberCountRBAC(rctx request.CTX, userID string, channel *model.Channel) bool {

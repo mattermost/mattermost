@@ -79,13 +79,6 @@ func (a *App) RequestJoinChannel(rctx request.CTX, userID, channelID, message st
 		return false, nil, guardErr
 	}
 
-	// A denied session cannot join, so it must not be able to ask to either — the
-	// request queue would be the way around the policy. ChannelAccessControlled below
-	// reports only the membership action, so it cannot answer this.
-	if !a.HasPermissionToAccessChannel(rctx, userID, channel) {
-		return false, nil, model.NewAppError("RequestJoinChannel", "api.channel.access_channel.abac_denied.app_error", nil, "channel_id="+channel.Id, http.StatusForbidden)
-	}
-
 	_, memberErr := a.Srv().Store().Channel().GetMember(rctx, channel.Id, user.Id)
 	if memberErr == nil {
 		return false, nil, model.NewAppError("RequestJoinChannel", "api.channel.discoverable_join_request.already_member.app_error", nil, "channel_id="+channel.Id, http.StatusBadRequest)

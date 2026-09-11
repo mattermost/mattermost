@@ -674,7 +674,7 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab 
             data: {
                 results: [{
                     user: {id: 'current_user_id'},
-                    decisions: {[ACCESS_CONTROL_ACTION_ACCESS_CHANNEL]: {decision: true}},
+                    decisions: {[ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS]: {decision: true}},
                 }],
                 total: 1,
             },
@@ -780,7 +780,7 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab 
                 general: {
                     config: {
                         FeatureFlagPermissionPolicies: 'true',
-                        FeatureFlagAccessChannelABACPermission: 'true',
+                        FeatureFlagChannelReadAccessABACPermission: 'true',
                         FeatureFlagPolicySimulation: simulation ? 'true' : 'false',
                     },
                 },
@@ -797,13 +797,13 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab 
             data: {
                 results: [{
                     user: {id: 'current_user_id'},
-                    decisions: {[ACCESS_CONTROL_ACTION_ACCESS_CHANNEL]: {decision}},
+                    decisions: {[ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS]: {decision}},
                 }],
                 total: 1,
             },
         });
 
-        // Authors an access_channel rule and clicks through to the confirmation.
+        // Authors a channel_read_access rule and clicks through to the confirmation.
         const authorAccessChannelRule = async (state: object, channel?: Channel) => {
             const props = channel ? {...baseProps, channel} : baseProps;
             renderWithContext(<ChannelSettingsPermissionsPolicyTab {...props}/>, state);
@@ -817,7 +817,7 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab 
                 const {calls} = (TableEditor as unknown as jest.Mock).mock;
                 calls[calls.length - 1][0].onChange('user.attributes.department == "eng"');
             });
-            await userEvent.click(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_ACCESS_CHANNEL}`));
+            await userEvent.click(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS}`));
             await userEvent.type(screen.getByTestId('permissions-policy-editor-name'), 'Managed devices only');
             await userEvent.click(screen.getByTestId('permissions-policy-editor-save'));
 
@@ -839,7 +839,7 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab 
         // evaluation_scope must be 'all'. With the server's default of 'this_rule'
         // and no rule_name, the response filter flips a deny back to allowed and the
         // guard can never fire.
-        test('asks the simulator about access_channel across the whole policy', async () => {
+        test('asks the simulator about channel_read_access across the whole policy', async () => {
             mockActions.simulatePolicyForUsers.mockResolvedValue(selfDecision(true));
 
             await authorAccessChannelRule(stateWith());
@@ -848,7 +848,7 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab 
             const params = mockActions.simulatePolicyForUsers.mock.calls[0][0];
             expect(params.evaluation_scope).toBe('all');
             expect(params.rule_name).toBeUndefined();
-            expect(params.actions).toEqual([ACCESS_CONTROL_ACTION_ACCESS_CHANNEL]);
+            expect(params.actions).toEqual([ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS]);
             expect(params.users).toEqual([{user_id: 'current_user_id'}]);
             expect(params.policy.type).toBe('channel');
         });
@@ -869,7 +869,7 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab 
             const {policy} = mockActions.simulatePolicyForUsers.mock.calls[0][0];
             expect(policy.imports).toEqual(['parent_policy_id']);
             expect(policy.rules.some((r: AccessControlPolicyRule) => r.actions?.includes('membership'))).toBe(true);
-            expect(policy.rules.some((r: AccessControlPolicyRule) => r.actions?.includes(ACCESS_CONTROL_ACTION_ACCESS_CHANNEL))).toBe(true);
+            expect(policy.rules.some((r: AccessControlPolicyRule) => r.actions?.includes(ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS))).toBe(true);
         });
 
         test('saves when the author keeps access', async () => {
@@ -882,7 +882,7 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab 
         });
 
         // Unlike the Membership tab there is no public-channel exemption: an
-        // access_channel deny hides a public channel just as effectively.
+        // channel_read_access deny hides a public channel just as effectively.
         test('guards a public channel too', async () => {
             mockActions.simulatePolicyForUsers.mockResolvedValue(selfDecision(false));
 
@@ -905,7 +905,7 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab 
             expect(mockActions.simulatePolicyForUsers).toHaveBeenCalledTimes(1);
         });
 
-        test('does not simulate for a policy without access_channel', async () => {
+        test('does not simulate for a policy without channel_read_access', async () => {
             renderWithContext(<ChannelSettingsPermissionsPolicyTab {...baseProps}/>, stateWith());
 
             const addRuleButton = await screen.findByTestId('permissions-policy-add-rule');

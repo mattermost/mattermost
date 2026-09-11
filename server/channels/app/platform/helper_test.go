@@ -68,7 +68,7 @@ func (ms *mockSuite) HasPermissionToFileAction(rctx request.CTX, userID string, 
 	return true
 }
 
-func (ms *mockSuite) HasPermissionToAccessChannelByID(rctx request.CTX, userID string, channelID string) bool {
+func (ms *mockSuite) HasChannelReadAccessByID(rctx request.CTX, userID string, channelID string) bool {
 	return true
 }
 

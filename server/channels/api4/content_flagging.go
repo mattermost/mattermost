@@ -289,7 +289,7 @@ func getPostPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !requireChannelAccess(c, channel) {
+	if !requireChannelReadAccess(c, channel) {
 		return
 	}
 
@@ -351,7 +351,7 @@ func getFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !requireChannelAccess(c, channel) {
+	if !requireChannelReadAccess(c, channel) {
 		return
 	}
 
@@ -466,10 +466,6 @@ func keepRemoveFlaggedPostChecks(c *Context, r *http.Request) (*model.FlagConten
 	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
-		return nil, "", nil
-	}
-
-	if !requireChannelAccess(c, channel) {
 		return nil, "", nil
 	}
 
@@ -621,10 +617,6 @@ func assignFlaggedPostReviewer(c *Context, w http.ResponseWriter, r *http.Reques
 	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
-		return
-	}
-
-	if !requireChannelAccess(c, channel) {
 		return
 	}
 

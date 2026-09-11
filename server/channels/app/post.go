@@ -21,6 +21,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	putils "github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
@@ -1167,20 +1168,20 @@ func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, m
 	}
 
 	a.setupBroadcastHookForAbacFiles(post, message)
-	a.setupBroadcastHookForAccessChannel(post.ChannelId, message)
+	a.setupBroadcastHookForChannelReadAccess(post.ChannelId, message)
 
 	a.Publish(message)
 	return nil
 }
 
-// setupBroadcastHookForAccessChannel registers accessChannelBroadcastHook so each
-// recipient's access_channel policy is evaluated before the event reaches them.
-func (a *App) setupBroadcastHookForAccessChannel(channelID string, message *model.WebSocketEvent) {
-	if channelID == "" || !a.accessChannelEnforcementActive() {
+// setupBroadcastHookForChannelReadAccess registers channelReadAccessBroadcastHook so each
+// recipient's channel_read_access policy is evaluated before the event reaches them.
+func (a *App) setupBroadcastHookForChannelReadAccess(channelID string, message *model.WebSocketEvent) {
+	if channelID == "" || !a.channelReadAccessEnforcementActive() {
 		return
 	}
 
-	useAccessChannelHook(message, channelID)
+	useChannelReadAccessHook(message, channelID)
 }
 
 // setupBroadcastHookForAbacFiles registers abacFilesBroadcastHook when ABAC is active and
@@ -1665,8 +1666,55 @@ func (a *App) GetPostThread(rctx request.CTX, postID string, opts model.GetPosts
 	return posts, nil
 }
 
+// fillFlaggedPostPage keeps a page of saved posts a full page after channel_read_access
+// removes the ones the session may not read, refetching from the store until the page
+// is filled or the store runs dry. A short page would otherwise tell the client it had
+// reached the end, hiding every saved post past the first denied one.
+func (a *App) fillFlaggedPostPage(rctx request.CTX, userID string, offset, limit int, fetch func(offset, limit int) (*model.PostList, error)) (*model.PostList, error) {
+	if !a.channelReadAccessEnforcementActive() {
+		return fetch(offset, limit)
+	}
+
+	kept, truncated, err := putils.FetchUntil(offset, limit,
+		func(from int) ([]*model.Post, error) {
+			page, fetchErr := fetch(from, limit)
+			if fetchErr != nil {
+				return nil, fetchErr
+			}
+			return page.ToSlice(), nil
+		},
+		func(post *model.Post) bool {
+			return a.HasChannelReadAccessByID(rctx, userID, post.ChannelId)
+		},
+		// FetchUntil hands advance only the page it just read, so the offset has to
+		// accumulate here rather than being derived from the cursor.
+		func(page []*model.Post) int {
+			offset += len(page)
+			return offset
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	if truncated {
+		rctx.Logger().Warn("Gave up filling a page of saved posts; the policy denies most of what this query returns",
+			mlog.String("user_id", userID),
+			mlog.Int("rounds", putils.FetchUntilMaxRounds),
+		)
+	}
+
+	postList := model.NewPostList()
+	for _, post := range kept {
+		postList.AddPost(post)
+		postList.AddOrder(post.Id)
+	}
+	return postList, nil
+}
+
 func (a *App) GetFlaggedPosts(rctx request.CTX, userID string, offset int, limit int) (*model.PostList, *model.AppError) {
-	postList, err := a.Srv().Store().Post().GetFlaggedPosts(userID, offset, limit)
+	postList, err := a.fillFlaggedPostPage(rctx, userID, offset, limit, func(off, lim int) (*model.PostList, error) {
+		return a.Srv().Store().Post().GetFlaggedPosts(userID, off, lim)
+	})
 	if err != nil {
 		return nil, model.NewAppError("GetFlaggedPosts", "app.post.get_flagged_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -1688,7 +1736,9 @@ func (a *App) GetFlaggedPosts(rctx request.CTX, userID string, offset int, limit
 }
 
 func (a *App) GetFlaggedPostsForTeam(rctx request.CTX, userID, teamID string, offset int, limit int) (*model.PostList, *model.AppError) {
-	postList, err := a.Srv().Store().Post().GetFlaggedPostsForTeam(userID, teamID, offset, limit)
+	postList, err := a.fillFlaggedPostPage(rctx, userID, offset, limit, func(off, lim int) (*model.PostList, error) {
+		return a.Srv().Store().Post().GetFlaggedPostsForTeam(userID, teamID, off, lim)
+	})
 	if err != nil {
 		return nil, model.NewAppError("GetFlaggedPostsForTeam", "app.post.get_flagged_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -1710,7 +1760,9 @@ func (a *App) GetFlaggedPostsForTeam(rctx request.CTX, userID, teamID string, of
 }
 
 func (a *App) GetFlaggedPostsForChannel(rctx request.CTX, userID, channelID string, offset int, limit int) (*model.PostList, *model.AppError) {
-	postList, err := a.Srv().Store().Post().GetFlaggedPostsForChannel(userID, channelID, offset, limit)
+	postList, err := a.fillFlaggedPostPage(rctx, userID, offset, limit, func(off, lim int) (*model.PostList, error) {
+		return a.Srv().Store().Post().GetFlaggedPostsForChannel(userID, channelID, off, lim)
+	})
 	if err != nil {
 		return nil, model.NewAppError("GetFlaggedPostsForChannel", "app.post.get_flagged_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -2325,7 +2377,6 @@ func (a *App) SearchPostsInTeam(teamID string, paramsList []*model.SearchParams)
 }
 
 func (a *App) SearchPostsForUser(rctx request.CTX, terms string, userID string, teamID string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, bool, *model.AppError) {
-	var postSearchResults *model.PostSearchResults
 	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
 
 	if !*a.Config().ServiceSettings.EnablePostSearch {
@@ -2359,31 +2410,96 @@ func (a *App) SearchPostsForUser(rctx request.CTX, terms string, userID string, 
 		return model.MakePostSearchResults(model.NewPostList(), nil), true, nil
 	}
 
-	postSearchResults, err := a.Srv().Store().Post().SearchPostsForUser(rctx, finalParamsList, userID, teamID, page, perPage)
-	if err != nil {
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &appErr):
-			return nil, false, appErr
-		default:
-			return nil, false, model.NewAppError("SearchPostsForUser", "app.post.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
-	}
-
-	if appErr := a.filterInaccessiblePosts(postSearchResults.PostList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
-		return nil, false, appErr
-	}
-
-	allPostHaveMembership, appErr := a.FilterPostsByChannelPermissions(rctx, postSearchResults.PostList, userID)
+	postSearchResults, rawLen, allPostHaveMembership, appErr := a.searchPostsForUserPage(rctx, finalParamsList, userID, teamID, page, perPage)
 	if appErr != nil {
 		return nil, false, appErr
 	}
 
-	if appErr := a.filterBurnOnReadPosts(postSearchResults.PostList); appErr != nil {
-		return nil, false, appErr
+	if !a.channelReadAccessEnforcementActive() {
+		return postSearchResults, allPostHaveMembership, nil
 	}
 
+	// Top up the page that channel_read_access just shortened. Deliberately additive
+	// rather than a putils.FetchUntil over perPage: the database search path ignores
+	// perPage and can hand back more rows than were asked for, and trimming to perPage
+	// would silently drop the remainder on a store that cannot serve page 1.
+	for range putils.FetchUntilMaxRounds {
+		if len(postSearchResults.Order) >= perPage || rawLen < perPage {
+			return postSearchResults, allPostHaveMembership, nil
+		}
+
+		page++
+		next, nextRawLen, nextAllHaveMembership, nextErr := a.searchPostsForUserPage(rctx, finalParamsList, userID, teamID, page, perPage)
+		if nextErr != nil {
+			return nil, false, nextErr
+		}
+
+		// Extend calls UniqueOrder, so an overlapping page dedupes and the original
+		// ordering - CreateAt on the database path, relevance on the engine path - holds.
+		postSearchResults.PostList.Extend(next.PostList)
+		for postID, matches := range next.Matches {
+			if postSearchResults.Matches == nil {
+				postSearchResults.Matches = model.PostSearchMatches{}
+			}
+			postSearchResults.Matches[postID] = matches
+		}
+		allPostHaveMembership = allPostHaveMembership && nextAllHaveMembership
+		rawLen = nextRawLen
+	}
+
+	rctx.Logger().Warn("Gave up filling a page of search results; the policy denies most of what this query returns",
+		mlog.String("user_id", userID),
+		mlog.Int("rounds", putils.FetchUntilMaxRounds),
+	)
+
 	return postSearchResults, allPostHaveMembership, nil
+}
+
+// searchPostsForUserPage runs one store page through the filters. rawLen is the number
+// of posts the store returned before any filtering, which is the only reliable signal
+// for whether it still has more to give.
+func (a *App) searchPostsForUserPage(rctx request.CTX, finalParamsList []*model.SearchParams, userID, teamID string, page, perPage int) (results *model.PostSearchResults, rawLen int, allPostHaveMembership bool, appErr *model.AppError) {
+	postSearchResults, err := a.Srv().Store().Post().SearchPostsForUser(rctx, finalParamsList, userID, teamID, page, perPage)
+	if err != nil {
+		var nErr *model.AppError
+		switch {
+		case errors.As(err, &nErr):
+			return nil, 0, false, nErr
+		default:
+			return nil, 0, false, model.NewAppError("SearchPostsForUser", "app.post.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	rawLen = len(postSearchResults.Order)
+
+	if appErr := a.filterInaccessiblePosts(postSearchResults.PostList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+		return nil, 0, false, appErr
+	}
+
+	allPostHaveMembership, appErr = a.FilterPostsByChannelPermissions(rctx, postSearchResults.PostList, userID)
+	if appErr != nil {
+		return nil, 0, false, appErr
+	}
+
+	if appErr := a.filterBurnOnReadPosts(postSearchResults.PostList); appErr != nil {
+		return nil, 0, false, appErr
+	}
+
+	pruneSearchMatches(postSearchResults)
+
+	return postSearchResults, rawLen, allPostHaveMembership, nil
+}
+
+// pruneSearchMatches drops the match entries of posts the filters removed. Every filter
+// in the search pipeline rewrites Order and Posts but leaves Matches alone, so without
+// this a removed post still ships its id and the terms it matched on. Only the search
+// engines populate Matches; the database path leaves it nil.
+func pruneSearchMatches(results *model.PostSearchResults) {
+	for postID := range results.Matches {
+		if _, ok := results.Posts[postID]; !ok {
+			delete(results.Matches, postID)
+		}
+	}
 }
 
 func (a *App) FilterPostsByChannelPermissions(rctx request.CTX, postList *model.PostList, userID string) (bool, *model.AppError) {
@@ -2837,8 +2953,8 @@ func (a *App) GetPostIfAuthorized(rctx request.CTX, postID string, session *mode
 		return nil, err, false
 	}
 
-	if !a.HasPermissionToAccessChannel(rctx, session.UserId, channel) {
-		return nil, model.NewAppError("GetPostIfAuthorized", "api.channel.access_channel.abac_denied.app_error", nil,
+	if !a.HasChannelReadAccess(rctx, session.UserId, channel) {
+		return nil, model.NewAppError("GetPostIfAuthorized", "api.channel.channel_read_access.abac_denied.app_error", nil,
 			"userId="+session.UserId+", channelId="+channel.Id, http.StatusForbidden), false
 	}
 
@@ -3479,14 +3595,14 @@ func (a *App) CleanUpAfterPostDeletion(rctx request.CTX, post *model.Post, delet
 	userMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
 	userMessage.Add("post", sanitizedPostJSON)
 	userMessage.GetBroadcast().ContainsSanitizedData = true
-	a.setupBroadcastHookForAccessChannel(post.ChannelId, userMessage)
+	a.setupBroadcastHookForChannelReadAccess(post.ChannelId, userMessage)
 	a.Publish(userMessage)
 
 	adminMessage := model.NewWebSocketEvent(model.WebsocketEventPostDeleted, "", post.ChannelId, "", nil, "")
 	adminMessage.Add("post", string(postJSON))
 	adminMessage.Add("delete_by", deleteByID)
 	adminMessage.GetBroadcast().ContainsSensitiveData = true
-	a.setupBroadcastHookForAccessChannel(post.ChannelId, adminMessage)
+	a.setupBroadcastHookForChannelReadAccess(post.ChannelId, adminMessage)
 	a.Publish(adminMessage)
 
 	a.Srv().Go(func() {

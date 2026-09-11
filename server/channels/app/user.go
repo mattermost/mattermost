@@ -3080,7 +3080,7 @@ func (a *App) threadsForUserPage(rctx request.CTX, userID, teamID string, option
 		return a.Srv().Store().Thread().GetThreadsForUser(rctx, userID, teamID, opts)
 	}
 
-	if !a.accessChannelEnforcementActive() {
+	if !a.channelReadAccessEnforcementActive() {
 		return fetch(options)
 	}
 
@@ -3102,7 +3102,7 @@ func (a *App) threadsForUserPage(rctx request.CTX, userID, teamID string, option
 	}
 	threads, truncated, err := putils.FetchUntil(options, want, fetch,
 		func(thread *model.ThreadResponse) bool {
-			return thread.Post != nil && a.HasPermissionToAccessChannelByID(rctx, userID, thread.Post.ChannelId)
+			return thread.Post != nil && a.HasChannelReadAccessByID(rctx, userID, thread.Post.ChannelId)
 		},
 		func(page []*model.ThreadResponse) model.GetUserThreadsOpts {
 			return advance(options, page)

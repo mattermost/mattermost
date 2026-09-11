@@ -8,7 +8,7 @@ import {openModal} from 'actions/views/modals';
 
 import {ModalIdentifiers} from 'utils/constants';
 
-import {reconcileChannelAccess} from './channel_access';
+import {reconcileChannelReadAccess} from './channel_read_access';
 
 jest.mock('mattermost-redux/actions/channels', () => ({
     fetchAllMyTeamsChannels: jest.fn(),
@@ -35,7 +35,7 @@ function makeState(overrides: {currentChannelId?: string; flagOn?: boolean} = {}
             general: {
                 config: {
                     FeatureFlagPermissionPolicies: 'true',
-                    FeatureFlagAccessChannelABACPermission: flagOn ? 'true' : 'false',
+                    FeatureFlagChannelReadAccessABACPermission: flagOn ? 'true' : 'false',
                 },
                 license: {},
             },
@@ -70,7 +70,7 @@ function droppedIds(dispatch: jest.Mock): string[] {
     });
 }
 
-describe('reconcileChannelAccess', () => {
+describe('reconcileChannelReadAccess', () => {
     let dispatch: jest.Mock;
 
     beforeEach(() => {
@@ -81,7 +81,7 @@ describe('reconcileChannelAccess', () => {
     it('drops the local copy of a channel the server stopped returning', async () => {
         (fetchAllMyTeamsChannels as jest.Mock).mockReturnValue(async () => ({data: [openChannel, dm]}));
 
-        await reconcileChannelAccess()(dispatch, makeState(), undefined);
+        await reconcileChannelReadAccess()(dispatch, makeState(), undefined);
 
         expect(droppedIds(dispatch)).toEqual([deniedChannel.id]);
     });
@@ -89,7 +89,7 @@ describe('reconcileChannelAccess', () => {
     it('drops nothing when every channel is still returned', async () => {
         (fetchAllMyTeamsChannels as jest.Mock).mockReturnValue(async () => ({data: [openChannel, deniedChannel, dm]}));
 
-        await reconcileChannelAccess()(dispatch, makeState(), undefined);
+        await reconcileChannelReadAccess()(dispatch, makeState(), undefined);
 
         expect(droppedIds(dispatch)).toEqual([]);
     });
@@ -98,7 +98,7 @@ describe('reconcileChannelAccess', () => {
     it('never drops a DM', async () => {
         (fetchAllMyTeamsChannels as jest.Mock).mockReturnValue(async () => ({data: [openChannel, deniedChannel]}));
 
-        await reconcileChannelAccess()(dispatch, makeState(), undefined);
+        await reconcileChannelReadAccess()(dispatch, makeState(), undefined);
 
         expect(droppedIds(dispatch)).toEqual([]);
     });
@@ -106,7 +106,7 @@ describe('reconcileChannelAccess', () => {
     it('drops nothing when the refresh fails', async () => {
         (fetchAllMyTeamsChannels as jest.Mock).mockReturnValue(async () => ({error: new Error('offline')}));
 
-        await reconcileChannelAccess()(dispatch, makeState(), undefined);
+        await reconcileChannelReadAccess()(dispatch, makeState(), undefined);
 
         expect(droppedIds(dispatch)).toEqual([]);
     });
@@ -114,7 +114,7 @@ describe('reconcileChannelAccess', () => {
     it('tells the user when the channel they are looking at is the one denied', async () => {
         (fetchAllMyTeamsChannels as jest.Mock).mockReturnValue(async () => ({data: [openChannel, dm]}));
 
-        await reconcileChannelAccess()(dispatch, makeState({currentChannelId: deniedChannel.id}), undefined);
+        await reconcileChannelReadAccess()(dispatch, makeState({currentChannelId: deniedChannel.id}), undefined);
 
         expect(openModal).toHaveBeenCalledWith(expect.objectContaining({
             modalId: ModalIdentifiers.CHANNEL_ACCESS_DENIED,
@@ -125,7 +125,7 @@ describe('reconcileChannelAccess', () => {
     it('stays silent when the denied channel is not the one in view', async () => {
         (fetchAllMyTeamsChannels as jest.Mock).mockReturnValue(async () => ({data: [openChannel, dm]}));
 
-        await reconcileChannelAccess()(dispatch, makeState({currentChannelId: openChannel.id}), undefined);
+        await reconcileChannelReadAccess()(dispatch, makeState({currentChannelId: openChannel.id}), undefined);
 
         expect(openModal).not.toHaveBeenCalled();
     });
@@ -135,13 +135,13 @@ describe('reconcileChannelAccess', () => {
     it('never drops an archived channel', async () => {
         (fetchAllMyTeamsChannels as jest.Mock).mockReturnValue(async () => ({data: [openChannel, deniedChannel, dm]}));
 
-        await reconcileChannelAccess()(dispatch, makeState(), undefined);
+        await reconcileChannelReadAccess()(dispatch, makeState(), undefined);
 
         expect(droppedIds(dispatch)).toEqual([]);
     });
 
     it('does nothing at all while the feature flag is off', async () => {
-        await reconcileChannelAccess()(dispatch, makeState({flagOn: false}), undefined);
+        await reconcileChannelReadAccess()(dispatch, makeState({flagOn: false}), undefined);
 
         expect(fetchAllMyTeamsChannels).not.toHaveBeenCalled();
         expect(dispatch).not.toHaveBeenCalled();

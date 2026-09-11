@@ -56,7 +56,7 @@ func generateFlaggedPostReport(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if !requireChannelAccess(c, channel) {
+	if !requireChannelReadAccess(c, channel) {
 		return
 	}
 
@@ -142,7 +142,7 @@ func generatePostExposureReport(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if !requireChannelAccess(c, channel) {
+	if !requireChannelReadAccess(c, channel) {
 		return
 	}
 

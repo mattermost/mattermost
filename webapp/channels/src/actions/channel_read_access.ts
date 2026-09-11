@@ -9,21 +9,21 @@ import {ChannelTypes} from 'mattermost-redux/action_types';
 import {fetchAllMyTeamsChannels} from 'mattermost-redux/actions/channels';
 import {General} from 'mattermost-redux/constants';
 import {getCurrentChannelId, getMyChannelMemberships} from 'mattermost-redux/selectors/entities/channels';
-import {isAccessChannelABACPermissionEnabled} from 'mattermost-redux/selectors/entities/general';
+import {isChannelReadAccessABACPermissionEnabled} from 'mattermost-redux/selectors/entities/general';
 
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {openModal} from 'actions/views/modals';
 import {closeRightHandSide} from 'actions/views/rhs';
 import {getSelectedChannelId} from 'selectors/rhs';
 
-import ChannelAccessDeniedModal from 'components/channel_access_denied_modal';
+import ChannelReadAccessDeniedModal from 'components/channel_read_access_denied_modal';
 
 import {ModalIdentifiers} from 'utils/constants';
 
 import type {ThunkActionFunc} from 'types/store';
 
 // A channel missing from the response only means "denied" if the response could have
-// carried it. DMs and GMs are exempt from access_channel on the server, and the
+// carried it. DMs and GMs are exempt from channel_read_access on the server, and the
 // channel list omits archived channels whatever the policy says.
 function isGoverned(channel: Channel): boolean {
     return channel.type !== General.DM_CHANNEL &&
@@ -40,9 +40,9 @@ function isGoverned(channel: Channel): boolean {
  * membership, followed threads, saved posts and unread counts all survive on the
  * server, so the channel reappears intact once access returns.
  */
-export function reconcileChannelAccess(): ThunkActionFunc<Promise<void>> {
+export function reconcileChannelReadAccess(): ThunkActionFunc<Promise<void>> {
     return async (doDispatch, doGetState) => {
-        if (!isAccessChannelABACPermissionEnabled(doGetState())) {
+        if (!isChannelReadAccessABACPermissionEnabled(doGetState())) {
             return;
         }
 
@@ -90,7 +90,7 @@ export function reconcileChannelAccess(): ThunkActionFunc<Promise<void>> {
         if (currentChannelId && dropped.includes(currentChannelId)) {
             doDispatch(openModal({
                 modalId: ModalIdentifiers.CHANNEL_ACCESS_DENIED,
-                dialogType: ChannelAccessDeniedModal,
+                dialogType: ChannelReadAccessDeniedModal,
                 dialogProps: {channelName: before.entities.channels.channels[currentChannelId]?.display_name},
             }));
             redirectUserToDefaultTeam();

@@ -12,7 +12,7 @@ type Props = {
     channelName?: string;
 };
 
-export default function ChannelAccessDeniedModal({onExited, channelName}: Props) {
+export default function ChannelReadAccessDeniedModal({onExited, channelName}: Props) {
     const [show, setShow] = useState(true);
     const onHide = useCallback(() => setShow(false), []);
 
