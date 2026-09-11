@@ -49,7 +49,7 @@ import {CHANNEL_VALUE_SETTER, DEFAULT_CHANNEL_RESOURCE_CONFIG, buildChannelField
 import type {ChannelResourceConfig} from '../applies_to/channels';
 import {GLOBAL_ATTRIBUTES_LIST_ROUTE, GLOBAL_ATTRIBUTES_OBJECT_TYPE} from '../constants';
 import {getSourceKind, getTypeIcon, getTypeLabel, isClassificationMarkingsField, typeLabels} from '../global_attributes_table';
-import type {AttributeFieldType} from '../utils';
+import type {AttributeFieldType, UpdateAttributeFieldPatch} from '../utils';
 import {
     createAttributeField,
     createLinkedAttributeField,
@@ -784,19 +784,21 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         setFailedResourceTypes(null);
 
         if (isEditMode && fieldId) {
+            const patch: UpdateAttributeFieldPatch = {
+                ...(nameUnchanged ? {} : {name: currentName}),
+                type: fieldType,
+                displayName,
+                options,
+                ldapAttr,
+                samlAttr,
+            };
+
             // An unlinked user/channel/post field owns its own row -- one PATCH
             // to that object type, skipping the template create-plus-link path
             // below entirely.
             if (objectType !== GLOBAL_ATTRIBUTES_OBJECT_TYPE) {
                 try {
-                    await updateAttributeField(objectType, fieldId, {
-                        ...(nameUnchanged ? {} : {name: currentName}),
-                        type: fieldType,
-                        displayName,
-                        options,
-                        ldapAttr,
-                        samlAttr,
-                    });
+                    await updateAttributeField(objectType, fieldId, patch);
                 } catch (error) {
                     finalizeSave({
                         success: false,
@@ -865,14 +867,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             }
 
             try {
-                await updateAttributeField(GLOBAL_ATTRIBUTES_OBJECT_TYPE, fieldId, {
-                    ...(nameUnchanged ? {} : {name: currentName}),
-                    type: fieldType,
-                    displayName,
-                    options,
-                    ldapAttr,
-                    samlAttr,
-                });
+                await updateAttributeField(GLOBAL_ATTRIBUTES_OBJECT_TYPE, fieldId, patch);
             } catch (error) {
                 finalizeSave({
                     success: false,
