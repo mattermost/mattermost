@@ -40,7 +40,6 @@ linters:
     - iface              # identical job interfaces are intentional — type-safe scheduling without coupling
     - inamedparam
     - interfacebloat
-    - intrange
     - iotamixing         # const blocks intentionally mix iota with explicit values (ABI stability, ASCII)
     - ireturn
     - lll

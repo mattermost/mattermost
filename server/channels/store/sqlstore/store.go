@@ -461,7 +461,7 @@ func (ss *SqlStore) GetSearchReplicaX() *sqlxDBWrapper {
 		return ss.GetReplica()
 	}
 
-	for i := 0; i < len(ss.searchReplicaXs); i++ {
+	for i := 0; i < len(ss.searchReplicaXs); i++ { //nolint:intrange // ss.searchReplicaXs is a shared, mutable store field that could be reassigned concurrently
 		rrNum := atomic.AddInt64(&ss.srCounter, 1) % int64(len(ss.searchReplicaXs))
 		if ss.searchReplicaXs[rrNum].Load().Online() {
 			return ss.searchReplicaXs[rrNum].Load()
@@ -477,7 +477,7 @@ func (ss *SqlStore) GetReplica() *sqlxDBWrapper {
 		return ss.GetMaster()
 	}
 
-	for i := 0; i < len(ss.ReplicaXs); i++ {
+	for i := 0; i < len(ss.ReplicaXs); i++ { //nolint:intrange // ss.ReplicaXs is a shared, mutable store field that could be reassigned concurrently
 		rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.ReplicaXs))
 		if ss.ReplicaXs[rrNum].Load().Online() {
 			return ss.ReplicaXs[rrNum].Load()

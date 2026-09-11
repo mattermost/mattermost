@@ -181,7 +181,7 @@ func TestIsFirstUserAccountThunderingHerd(t *testing.T) {
 			defer userStoreMock.AssertExpectations(t)
 
 			var wg sync.WaitGroup
-			for i := 0; i < te.concurrentRequest; i++ {
+			for range te.concurrentRequest {
 				wg.Go(func() {
 					require.Equal(t, te.result, th.Service.IsFirstUserAccount())
 				})
