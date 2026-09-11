@@ -243,7 +243,8 @@ The versions below match `android/build.gradle`, which is the source of truth. I
   - Android Emulator
   - Android SDK Platform-Tools
   - Android SDK Command-line Tools (latest)
-  - NDK 27.1.12297006
+  - NDK (Side by side) 27.1.12297006
+  - CMake
   - Google Play services
   - Support Repository
     - Android Support Repository
@@ -251,12 +252,9 @@ The versions below match `android/build.gradle`, which is the source of truth. I
 
   ![image](sdk_tools.png)
 
-- SDK Platforms (you may have to select **Show Package Details** to expand packages)
-  - Android API 36, matching `compileSdkVersion`
-    - Google APIs
-    - SDK Platform
-    - A system image for your machine's architecture: **arm64-v8a** on Apple Silicon, **x86\_64** on Intel
-  - Any other API version that you want to test. The app's `minSdkVersion` is 24, so anything from API 24 up is a valid test target.
+- SDK Platforms, under **Android 16.0**:
+  - Android SDK Platform 36
+  - Google APIs ARM 64 v8a System Image on Apple Silicon, or Google APIs Intel x86 Atom\_64 System Image on Intel
 
   ![image](sdk_platforms.png)
 
