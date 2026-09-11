@@ -5,9 +5,9 @@ import React from 'react';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
-import AccessChannelConfirmModal from './access_channel_confirm_modal';
+import ChannelReadAccessConfirmModal from './channel_read_access_confirm_modal';
 
-describe('components/admin_console/permission_policies/modals/AccessChannelConfirmModal', () => {
+describe('components/admin_console/permission_policies/modals/ChannelReadAccessConfirmModal', () => {
     const baseProps = {
         show: true,
         onHide: jest.fn(),
@@ -15,15 +15,15 @@ describe('components/admin_console/permission_policies/modals/AccessChannelConfi
         targetScope: 'system' as const,
     };
 
-    const workspaceScopeCopy = 'This policy controls Access Channel across every channel in the workspace, except direct messages and group messages.';
-    const channelScopeCopy = 'This policy controls Access Channel for this channel only.';
+    const workspaceScopeCopy = 'This policy controls Channel Read Access across every channel in the workspace, except direct messages and group messages.';
+    const channelScopeCopy = 'This policy controls Channel Read Access for this channel only.';
 
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
     test('states the workspace-wide scope, the effect on sessions and the simulate prompt', () => {
-        renderWithContext(<AccessChannelConfirmModal {...baseProps}/>);
+        renderWithContext(<ChannelReadAccessConfirmModal {...baseProps}/>);
 
         expect(screen.getByText('Save this policy?')).toBeInTheDocument();
         expect(screen.getByText(workspaceScopeCopy)).toBeInTheDocument();
@@ -37,7 +37,7 @@ describe('components/admin_console/permission_policies/modals/AccessChannelConfi
     // overstate the blast radius of the save being confirmed.
     test('scopes the copy to the single channel when saving a channel policy', () => {
         renderWithContext(
-            <AccessChannelConfirmModal
+            <ChannelReadAccessConfirmModal
                 {...baseProps}
                 targetScope='channel'
             />,
@@ -52,7 +52,7 @@ describe('components/admin_console/permission_policies/modals/AccessChannelConfi
     });
 
     test('confirming calls onConfirm and not onHide', async () => {
-        renderWithContext(<AccessChannelConfirmModal {...baseProps}/>);
+        renderWithContext(<ChannelReadAccessConfirmModal {...baseProps}/>);
 
         await userEvent.click(screen.getByRole('button', {name: 'Save policy'}));
 
@@ -61,7 +61,7 @@ describe('components/admin_console/permission_policies/modals/AccessChannelConfi
     });
 
     test('cancelling calls onHide and not onConfirm', async () => {
-        renderWithContext(<AccessChannelConfirmModal {...baseProps}/>);
+        renderWithContext(<ChannelReadAccessConfirmModal {...baseProps}/>);
 
         await userEvent.click(screen.getByRole('button', {name: 'Cancel'}));
 
@@ -73,7 +73,7 @@ describe('components/admin_console/permission_policies/modals/AccessChannelConfi
     // state is reachable: isSaving is what stops a second confirm click.
     test('both buttons are inert while a save is in flight', () => {
         renderWithContext(
-            <AccessChannelConfirmModal
+            <ChannelReadAccessConfirmModal
                 {...baseProps}
                 isSaving={true}
             />,
@@ -84,13 +84,13 @@ describe('components/admin_console/permission_policies/modals/AccessChannelConfi
     });
 
     test('a second confirm click while saving does not fire onConfirm again', async () => {
-        const {rerender} = renderWithContext(<AccessChannelConfirmModal {...baseProps}/>);
+        const {rerender} = renderWithContext(<ChannelReadAccessConfirmModal {...baseProps}/>);
 
         await userEvent.click(screen.getByRole('button', {name: 'Save policy'}));
         expect(baseProps.onConfirm).toHaveBeenCalledTimes(1);
 
         rerender(
-            <AccessChannelConfirmModal
+            <ChannelReadAccessConfirmModal
                 {...baseProps}
                 isSaving={true}
             />,

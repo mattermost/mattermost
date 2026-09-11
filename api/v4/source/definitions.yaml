@@ -4895,7 +4895,7 @@ components:
             type: string
           description: |
             Permission actions to simulate (e.g. `upload_file_attachment`,
-            `download_file_attachment`, `access_channel`). At least one action
+            `download_file_attachment`, `channel_read_access`). At least one action
             is required —
             the picker UX only makes sense once an action is in scope. The
             backend rejects empty arrays with `app.pap.simulate.missing_actions`

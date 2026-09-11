@@ -9,7 +9,7 @@ import {Button} from '@mattermost/shared/components/button';
 
 import type {TargetScope} from 'components/admin_console/access_control/modals/simulate_access/role_applicability';
 
-import './access_channel_confirm_modal.scss';
+import './channel_read_access_confirm_modal.scss';
 
 type Props = {
     show: boolean;
@@ -24,12 +24,12 @@ type Props = {
 };
 
 /**
- * Save confirmation for a permission policy that carries the `access_channel`
+ * Save confirmation for a permission policy that carries the `channel_read_access`
  * action. Denying it hides the channel and its contents from a session
  * without telling the user, so the save needs an explicit confirmation.
  * Policies with only file actions save without one.
  */
-export default function AccessChannelConfirmModal({
+export default function ChannelReadAccessConfirmModal({
     show,
     onHide,
     onConfirm,
@@ -39,8 +39,8 @@ export default function AccessChannelConfirmModal({
 }: Props): JSX.Element {
     return (
         <GenericModal
-            className='AccessChannelConfirmModal a11y__modal'
-            id='access-channel-confirm-modal'
+            className='ChannelReadAccessConfirmModal a11y__modal'
+            id='channel-read-access-confirm-modal'
             show={show}
             onHide={onHide}
             onExited={onHide}
@@ -48,19 +48,19 @@ export default function AccessChannelConfirmModal({
             isStacked={isStacked}
             modalHeaderText={
                 <FormattedMessage
-                    id='admin.permission_policies.access_channel_confirm.title'
+                    id='admin.permission_policies.channel_read_access_confirm.title'
                     defaultMessage='Save this policy?'
                 />
             }
             footerContent={
-                <div className='AccessChannelConfirmModal__buttons'>
+                <div className='ChannelReadAccessConfirmModal__buttons'>
                     <Button
                         emphasis='tertiary'
                         onClick={onHide}
                         disabled={isSaving}
                     >
                         <FormattedMessage
-                            id='admin.permission_policies.access_channel_confirm.cancel'
+                            id='admin.permission_policies.channel_read_access_confirm.cancel'
                             defaultMessage='Cancel'
                         />
                     </Button>
@@ -70,36 +70,36 @@ export default function AccessChannelConfirmModal({
                         disabled={isSaving}
                     >
                         <FormattedMessage
-                            id='admin.permission_policies.access_channel_confirm.confirm'
+                            id='admin.permission_policies.channel_read_access_confirm.confirm'
                             defaultMessage='Save policy'
                         />
                     </Button>
                 </div>
             }
         >
-            <div className='AccessChannelConfirmModal__body'>
+            <div className='ChannelReadAccessConfirmModal__body'>
                 <p>
                     {targetScope === 'channel' ? (
                         <FormattedMessage
-                            id='admin.permission_policies.access_channel_confirm.body_scope_channel'
-                            defaultMessage='This policy controls Access Channel for this channel only.'
+                            id='admin.permission_policies.channel_read_access_confirm.body_scope_channel'
+                            defaultMessage='This policy controls Channel Read Access for this channel only.'
                         />
                     ) : (
                         <FormattedMessage
-                            id='admin.permission_policies.access_channel_confirm.body_scope_workspace'
-                            defaultMessage='This policy controls Access Channel across every channel in the workspace, except direct messages and group messages.'
+                            id='admin.permission_policies.channel_read_access_confirm.body_scope_workspace'
+                            defaultMessage='This policy controls Channel Read Access across every channel in the workspace, except direct messages and group messages.'
                         />
                     )}
                 </p>
                 <p>
                     <FormattedMessage
-                        id='admin.permission_policies.access_channel_confirm.body_effect'
+                        id='admin.permission_policies.channel_read_access_confirm.body_effect'
                         defaultMessage='Any session that does not meet the conditions will lose access to channels covered by this policy.'
                     />
                 </p>
                 <p>
                     <FormattedMessage
-                        id='admin.permission_policies.access_channel_confirm.body_simulate'
+                        id='admin.permission_policies.channel_read_access_confirm.body_simulate'
                         defaultMessage='Run Simulate rules first if you have not confirmed who this affects.'
                     />
                 </p>

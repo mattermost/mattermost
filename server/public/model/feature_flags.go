@@ -63,12 +63,12 @@ type FeatureFlags struct {
 	// PermissionPolicies dependency is enforced at every call site.
 	PolicySimulation bool
 
-	// Enable the access_channel action on ABAC policies. Requires
+	// Enable the channel_read_access action on ABAC policies. Requires
 	// PermissionPolicies. Kept separate from ChannelPermissionPolicies
-	// (which gates the file actions) because denying access_channel hides a
+	// (which gates the file actions) because denying channel_read_access hides a
 	// whole channel, not just an attachment. Read via
-	// IsAccessChannelABACPermissionEnabled().
-	AccessChannelABACPermission bool
+	// IsChannelReadAccessABACPermissionEnabled().
+	ChannelReadAccessABACPermission bool
 
 	ContentFlagging bool
 
@@ -191,7 +191,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ResourceAttributesInPolicies = false
 	f.ChannelPermissionPolicies = true
 	f.PolicySimulation = true
-	f.AccessChannelABACPermission = false
+	f.ChannelReadAccessABACPermission = false
 	f.ContentFlagging = true
 	f.EnableMattermostEntry = true
 
@@ -279,11 +279,11 @@ func (f *FeatureFlags) IsPolicySimulationEnabled() bool {
 	return f.PermissionPolicies && f.PolicySimulation
 }
 
-// IsAccessChannelABACPermissionEnabled reports whether policies may carry the
-// access_channel action. Both this sub-flag and the PermissionPolicies umbrella
+// IsChannelReadAccessABACPermissionEnabled reports whether policies may carry the
+// channel_read_access action. Both this sub-flag and the PermissionPolicies umbrella
 // must be on.
-func (f *FeatureFlags) IsAccessChannelABACPermissionEnabled() bool {
-	return f.PermissionPolicies && f.AccessChannelABACPermission
+func (f *FeatureFlags) IsChannelReadAccessABACPermissionEnabled() bool {
+	return f.PermissionPolicies && f.ChannelReadAccessABACPermission
 }
 
 // ToMap returns the feature flags as a map[string]string

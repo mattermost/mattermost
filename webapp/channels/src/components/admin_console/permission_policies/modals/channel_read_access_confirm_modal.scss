@@ -1,5 +1,5 @@
-.AccessChannelConfirmModal {
-    .AccessChannelConfirmModal__body {
+.ChannelReadAccessConfirmModal {
+    .ChannelReadAccessConfirmModal__body {
         color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 14px;
         line-height: 20px;
@@ -13,7 +13,7 @@
         }
     }
 
-    .AccessChannelConfirmModal__buttons {
+    .ChannelReadAccessConfirmModal__buttons {
         display: flex;
         justify-content: flex-end;
         gap: 8px;
