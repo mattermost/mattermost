@@ -474,9 +474,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 setSamlAttr(typeof field.attrs?.saml === 'string' ? field.attrs.saml : '');
 
                 // A non-template field has no linked fields to seed from --
-                // its Applies-to is its own object type, fixed (see
-                // typeLockedByAppliesTo/isNonTemplate below for why it can't
-                // be changed).
+                // its Applies-to is its own object type, fixed (the
+                // AttributeAppliesTo call below disables it via isNonTemplate).
                 setAppliesTo(
                     field.object_type === GLOBAL_ATTRIBUTES_OBJECT_TYPE ?
                         ALL_RESOURCE_TYPES.filter((type) => Boolean(linkedByType[type])) :
