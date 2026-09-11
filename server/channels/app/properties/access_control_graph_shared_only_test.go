@@ -143,7 +143,7 @@ func (h *graphSharedOnlyHelper) visibleOptionsBatch(t *testing.T, callerID strin
 func (h *graphSharedOnlyHelper) listedOptions(t *testing.T, callerID string, field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int) []*model.PropertyFieldOption {
 	t.Helper()
 
-	options, err := h.th.service.GetFieldOptions(RequestContextWithCallerID(h.th.Context, callerID), field, cursorCreateAt, cursorID, perPage)
+	options, err := h.th.service.GetFieldOptions(RequestContextWithCallerID(h.th.Context, callerID), field.GroupID, field.ID, cursorCreateAt, cursorID, perPage)
 	require.NoError(t, err)
 	require.NotNil(t, options, "a page nothing is left in is an empty page, never nothing at all")
 	return options

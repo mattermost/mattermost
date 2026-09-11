@@ -83,28 +83,20 @@ func optionsChangeFromValidation(err error) error {
 	return optionsChangeRefused("%s", strings.TrimSuffix(err.Error(), ": "+ErrInvalidFieldAttrs.Error()))
 }
 
-// writableField re-reads the field a change is aimed at and checks that its
-// options may be changed one at a time. The re-read field is what the change is
-// then validated and written against.
+// writableField reads the field a change is aimed at and checks that its
+// options may be changed one at a time. The field it returns is what the change
+// is then validated and written against.
 //
-// The re-read is not redundant. A caller hands in the field as it read it, and
-// that read may have gone to a replica -- every option change is written under
-// the UpdateAt it saw, so replication lag alone would make a caller lose a race
-// against a write that had already finished, and the answer would be a conflict
-// on a request that was never in conflict with anything. Reading the row the
-// change is about to swap on narrows the window to the same one the rest of this
-// path already has: every other query behind an option change goes to the master
-// for the same reason.
+// The read goes to the master, like every other query behind an option change:
+// every option change is written under a compare-and-swap on the UpdateAt this
+// read sees, and a replica's stale UpdateAt would answer a conflict to a request
+// that was in conflict with nothing.
 //
 // It also means the type and the link this decides on are the field's current
-// ones, so a field converted or unlinked since the caller read it is judged as it
+// ones, so a field converted or unlinked since it was last read is judged as it
 // is now -- and the same for the attributes the hooks decide access from.
-func (ps *PropertyService) writableField(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
-	if field == nil {
-		return nil, optionsChangeRefused("no property field to change the options of")
-	}
-
-	current, err := ps.getPropertyFieldFromMaster(rctx, field.GroupID, field.ID)
+func (ps *PropertyService) writableField(rctx request.CTX, groupID, fieldID string) (*model.PropertyField, error) {
+	current, err := ps.getPropertyFieldFromMaster(rctx, groupID, fieldID)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read the property field an option change is aimed at")
 	}
@@ -215,7 +207,7 @@ func requireOptionCount(count int, verb string) error {
 // several pages of rows. A page shorter than the size asked for is therefore the
 // end of what the caller may see, which is what a caller paging until a short page
 // needs it to be.
-func (ps *PropertyService) GetFieldOptions(rctx request.CTX, field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, error) {
+func (ps *PropertyService) GetFieldOptions(rctx request.CTX, groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, error) {
 	if perPage <= 0 {
 		return nil, optionsChangeRefused("a page of options has to be asked for with a positive page size")
 	}
@@ -229,15 +221,11 @@ func (ps *PropertyService) GetFieldOptions(rctx request.CTX, field *model.Proper
 	if (cursorID == "") != (cursorCreateAt == 0) {
 		return nil, optionsChangeRefused("a cursor names the option a page continues after, by its identifier and its creation time together")
 	}
-	if field == nil {
-		return nil, optionsChangeRefused("no property field to list the options of")
-	}
 
-	// Re-read rather than trust the caller's copy: which rows the store pages,
-	// whether they may be listed at all, and what the post-hook judges all have to
-	// agree with each other, and the only way to guarantee that is to decide all
-	// three from the same field.
-	field, err := ps.getPropertyField(rctx, field.GroupID, field.ID)
+	// Read from the store: which rows the store pages, whether they may be listed
+	// at all, and what the post-hook judges all have to agree with each other, and
+	// the only way to guarantee that is to decide all three from the same field.
+	field, err := ps.getPropertyField(rctx, groupID, fieldID)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read the property field a listing is aimed at")
 	}
@@ -308,8 +296,8 @@ func (ps *PropertyService) GetFieldOptions(rctx request.CTX, field *model.Proper
 // CreateFieldOptions adds options to a field, optionally placing each of them
 // under options already there or under others in the same payload. Every option
 // is created or none is.
-func (ps *PropertyService) CreateFieldOptions(rctx request.CTX, field *model.PropertyField, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
-	field, err := ps.writableField(rctx, field)
+func (ps *PropertyService) CreateFieldOptions(rctx request.CTX, groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
+	field, err := ps.writableField(rctx, groupID, fieldID)
 	if err != nil {
 		return nil, err
 	}
@@ -379,8 +367,8 @@ func (ps *PropertyService) CreateFieldOptions(rctx request.CTX, field *model.Pro
 // The options as they stood before the change are returned alongside the result.
 // A parent link is deleted outright rather than marked, so unless a caller records
 // what a change replaced there is nothing left to say the link was ever there.
-func (ps *PropertyService) UpdateFieldOptions(rctx request.CTX, field *model.PropertyField, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, []*model.PropertyFieldOption, error) {
-	field, err := ps.writableField(rctx, field)
+func (ps *PropertyService) UpdateFieldOptions(rctx request.CTX, groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, []*model.PropertyFieldOption, error) {
+	field, err := ps.writableField(rctx, groupID, fieldID)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -473,8 +461,8 @@ func (ps *PropertyService) UpdateFieldOptions(rctx request.CTX, field *model.Pro
 // Values pointing at a removed option are left alone. A value naming an option
 // that no longer exists is ignored everywhere it is read, which is how the
 // property system has always treated one.
-func (ps *PropertyService) DeleteFieldOptions(rctx request.CTX, field *model.PropertyField, optionIDs []string) ([]*model.PropertyFieldOption, error) {
-	field, err := ps.writableField(rctx, field)
+func (ps *PropertyService) DeleteFieldOptions(rctx request.CTX, groupID, fieldID string, optionIDs []string) ([]*model.PropertyFieldOption, error) {
+	field, err := ps.writableField(rctx, groupID, fieldID)
 	if err != nil {
 		return nil, err
 	}
