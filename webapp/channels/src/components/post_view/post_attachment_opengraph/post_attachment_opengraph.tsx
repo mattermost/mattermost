@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {memo, useRef} from 'react';
+import React, {memo, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 
 import {CloseIcon, MenuDownIcon, MenuRightIcon} from '@mattermost/compass-icons/components';
@@ -118,7 +118,7 @@ export function getScaledImageDimensions(imageMetadata: ImageMetadata, large: bo
 
 const PostAttachmentOpenGraph = ({openGraphData, post, actions, link, isInPermalink, previewEnabled, ...rest}: Props) => {
     const {formatMessage} = useIntl();
-    const {current: bestImageData} = useRef<ImageMetadata>(getBestImage(openGraphData, post.metadata.images));
+    const bestImageData = useMemo(() => getBestImage(openGraphData, post.metadata.images), [openGraphData, post.metadata.images]);
     const isPreviewRemoved = post?.props?.[PostTypes.REMOVE_LINK_PREVIEW] === 'true';
 
     // block of early return statements
@@ -292,6 +292,8 @@ export const PostAttachmentOpenGraphImage = memo(({imageMetadata, isInPermalink,
         </ExternalImage>
     );
 
+    const smallImage = isEmbedVisible ? image : imageCollapseButton;
+
     return (
         <div className={classNames('PostAttachmentOpenGraph__image', {large, collapsed: !isEmbedVisible})}>
             {large ? (
@@ -300,7 +302,7 @@ export const PostAttachmentOpenGraphImage = memo(({imageMetadata, isInPermalink,
                     slot1={image}
                     slot2={imageCollapseButton}
                 />
-            ) : image}
+            ) : smallImage}
         </div>
     );
 });
