@@ -74,6 +74,19 @@ export function isPolicySimulationEnabled(state: GlobalState): boolean {
         getConfig(state).FeatureFlagPolicySimulation === 'true';
 }
 
+/**
+ * Whether Channel Read Access should be offered in the policy authoring pickers.
+ *
+ * Both `ChannelReadAccessABACPermission` and the `PermissionPolicies` umbrella must
+ * be on, mirroring the server's `IsChannelReadAccessABACPermissionEnabled()`. It is
+ * independent of `ChannelPermissionPolicies`: denying channel_read_access hides a
+ * whole channel, not just an attachment, so it ships on its own flag.
+ */
+export function isChannelReadAccessABACPermissionEnabled(state: GlobalState): boolean {
+    return isPermissionPoliciesEnabled(state) &&
+        getConfig(state).FeatureFlagChannelReadAccessABACPermission === 'true';
+}
+
 export type PasswordConfig = {
     minimumLength: number;
     requireLowercase: boolean;

@@ -446,6 +446,41 @@ describe('Selectors.General', () => {
             expect(Selectors.isChannelPermissionPoliciesEnabled(state)).toBe(true);
             expect(Selectors.isPolicySimulationEnabled(state)).toBe(false);
         });
+
+        test('isChannelReadAccessABACPermissionEnabled returns false when umbrella is off', () => {
+            const state = buildState({
+                FeatureFlagPermissionPolicies: 'false',
+                FeatureFlagChannelReadAccessABACPermission: 'true',
+            });
+            expect(Selectors.isChannelReadAccessABACPermissionEnabled(state)).toBe(false);
+        });
+
+        test('isChannelReadAccessABACPermissionEnabled returns false when sub-flag is off', () => {
+            const state = buildState({
+                FeatureFlagPermissionPolicies: 'true',
+                FeatureFlagChannelReadAccessABACPermission: 'false',
+            });
+            expect(Selectors.isChannelReadAccessABACPermissionEnabled(state)).toBe(false);
+        });
+
+        test('isChannelReadAccessABACPermissionEnabled returns true only when both flags are on', () => {
+            const state = buildState({
+                FeatureFlagPermissionPolicies: 'true',
+                FeatureFlagChannelReadAccessABACPermission: 'true',
+            });
+            expect(Selectors.isChannelReadAccessABACPermissionEnabled(state)).toBe(true);
+        });
+
+        test('channel read access is independent of the file-action sub-flag', () => {
+            // The two flags are independent, so neither may imply the other.
+            const state = buildState({
+                FeatureFlagPermissionPolicies: 'true',
+                FeatureFlagChannelPermissionPolicies: 'false',
+                FeatureFlagChannelReadAccessABACPermission: 'true',
+            });
+            expect(Selectors.isChannelPermissionPoliciesEnabled(state)).toBe(false);
+            expect(Selectors.isChannelReadAccessABACPermissionEnabled(state)).toBe(true);
+        });
     });
 
     describe('isPostAttributesEnabled', () => {
