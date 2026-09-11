@@ -1,5 +1,16 @@
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import type {Endpoint} from './search';
+
+export type EndpointIndex = {
+  /** Undefined until the index resolves; empty array if it held no endpoints. */
+  endpoints?: Endpoint[];
+
+  /** True once a load attempt has failed and no index is in hand. */
+  failed: boolean;
+
+  /** Starts a fresh load attempt; no-op while one is in flight or done. */
+  retry: () => void;
+};
 
 /**
  * Loads the generated endpoint index (data/api-search-index.json, built by
@@ -12,8 +23,11 @@ import type {Endpoint} from './search';
  */
 let cache: Endpoint[] | undefined;
 
-export default function useEndpointIndex(): Endpoint[] | undefined {
+export default function useEndpointIndex(): EndpointIndex {
   const [endpoints, setEndpoints] = useState<Endpoint[] | undefined>(cache);
+  const [failed, setFailed] = useState(false);
+  // Bumping this re-runs the effect, which is what makes `retry` work.
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     if (cache) {
@@ -29,17 +43,29 @@ export default function useEndpointIndex(): Endpoint[] | undefined {
         cache = data.endpoints ?? [];
         if (!cancelled) {
           setEndpoints(cache);
+          setFailed(false);
         }
       })
       .catch((error) => {
-        // Leaves the box in its loading state rather than breaking the page.
+        // Chunk loads fail for transient reasons — a dropped connection, or a
+        // stale hashed URL after a redeploy. Surface it so the box can say
+        // search is unavailable and offer a retry, rather than sitting on
+        // "Loading endpoints…" until someone reloads the page.
         console.error('[api-search] could not load the endpoint index', error);
+        if (!cancelled) {
+          setFailed(true);
+        }
       });
 
     return () => {
       cancelled = true;
     };
+  }, [attempt]);
+
+  const retry = useCallback(() => {
+    setFailed(false);
+    setAttempt((n) => n + 1);
   }, []);
 
-  return endpoints;
+  return {endpoints, failed, retry};
 }

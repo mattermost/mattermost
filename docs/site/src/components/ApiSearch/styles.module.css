@@ -77,6 +77,22 @@
   font-size: 0.75rem;
 }
 
+/* Retry after a failed index load — styled as a link, not a chunky button:
+ * it sits inline in the one-line status text. */
+.retry {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--mm-link);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.retry:hover {
+  color: var(--mm-link-hover);
+}
+
 /* === Result rows (both variants) === */
 
 .result {
@@ -193,6 +209,11 @@
 :global(.navbar-sidebar) .resultPath,
 :global(.navbar-sidebar) .status {
   color: var(--ifm-menu-color);
+}
+
+/* --mm-link is tuned for the light page background, not denim. */
+:global(.navbar-sidebar) .retry {
+  color: var(--ifm-menu-color-active);
 }
 
 :global(.navbar-sidebar) .deprecated {

@@ -78,7 +78,7 @@ export default function ApiSearch({variant = 'page', children}: Props) {
   const isSidebar = variant === 'sidebar';
 
   const [query, setQuery] = useState('');
-  const endpoints = useEndpointIndex();
+  const {endpoints, failed, retry} = useEndpointIndex();
   const inputRef = useRef<HTMLInputElement>(null);
   const resultRefs = useRef<Array<HTMLAnchorElement | null>>([]);
   const {withBaseUrl} = useBaseUrlUtils();
@@ -147,6 +147,16 @@ export default function ApiSearch({variant = 'page', children}: Props) {
   const status = (() => {
     if (trimmed === '') {
       return null;
+    }
+    if (failed) {
+      return (
+        <>
+          {'Endpoint search is unavailable — the index didn’t load. '}
+          <button type="button" className={styles.retry} onClick={retry}>
+            Retry
+          </button>
+        </>
+      );
     }
     if (!endpoints) {
       return 'Loading endpoints…';
@@ -242,14 +252,16 @@ export default function ApiSearch({variant = 'page', children}: Props) {
 
   // Sidebar variant lives inside the theme's <ul class="menu__list">, so it
   // has to emit <li>s: the box in one, then either the results or the
-  // untouched sidebar tree.
+  // untouched sidebar tree. The tree stays up whenever there are no results
+  // to show — no match, still loading, index failed to load — so the status
+  // line explains itself without stranding the reader on a blank sidebar.
   if (isSidebar) {
     return (
       <>
         <li className={clsx('menu__list-item', styles.search, styles.searchSidebar)}>
           {searchBox}
         </li>
-        {trimmed === '' ? children : results.map(resultRow)}
+        {results.length > 0 ? results.map(resultRow) : children}
       </>
     );
   }
@@ -257,12 +269,15 @@ export default function ApiSearch({variant = 'page', children}: Props) {
   return (
     <div className={clsx(styles.search, styles.searchPage)}>
       {searchBox}
-      {trimmed === '' ? (
+      {trimmed === '' && (
         <p className={styles.hint}>
           Try <code>post channel</code>, <code>delete reaction</code>, or a path fragment like{' '}
           <code>/users/{'{'}user_id{'}'}/image</code>.
         </p>
-      ) : (
+      )}
+      {/* No empty bordered box when a query matches nothing (or the index
+          didn't load) — the status line above says what happened. */}
+      {results.length > 0 && (
         <ul className={styles.pageResults}>{results.map(resultRow)}</ul>
       )}
     </div>
