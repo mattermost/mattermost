@@ -312,7 +312,20 @@ def normalize_formatting(text: str) -> str:
          even-numbered two/four-space variant, so any even indent is reduced by one.
       3. Remove a blank line between the ``### Improvements`` heading and the blog
          post line that must immediately follow it.
+
+    MDX safety: rule 1 would otherwise strip the ``---`` delimiters of a YAML
+    frontmatter block, which MDX requires at the very start of the file. This is
+    normally called only on the AI-generated fragment (which has no frontmatter),
+    but a leading frontmatter block is detected and preserved verbatim so the
+    function is also safe if it is ever applied to whole file contents.
     """
+    # Split off and protect a leading YAML frontmatter block.
+    frontmatter = ""
+    fm_match = re.match(r"\A---\n.*?\n---\n", text, re.DOTALL)
+    if fm_match:
+        frontmatter = fm_match.group(0)
+        text = text[fm_match.end():]
+
     # 1. Remove standalone horizontal rules.
     text = re.sub(r"(?m)^[ \t]*(?:-{3,}|\*{3,}|_{3,})[ \t]*$\n?", "", text)
 
@@ -330,9 +343,46 @@ def normalize_formatting(text: str) -> str:
     text = re.sub(r"(?m)^(### Improvements)[ \t]*\n\s*\n(?=See )", r"\1\n", text)
 
     # 4. Collapse runs of blank lines (removing a rule can leave a doubled gap).
+    #    At least one blank line is always kept, which MDX needs around JSX blocks.
     text = re.sub(r"\n{3,}", "\n\n", text)
 
-    return text
+    return frontmatter + text
+
+
+# Regions of Markdown whose contents must never be escaped: inline code spans
+# (double- or single-backtick) and Markdown link destinations.
+_MDX_PROTECTED_RE = re.compile(r"``[^`]*``|`[^`]*`|\]\([^)]*\)")
+
+
+def escape_mdx_unsafe(text: str) -> str:
+    """Backslash-escape characters that MDX would parse as JSX.
+
+    In MDX an unescaped ``{`` opens a JSX expression and ``<`` followed by a letter,
+    ``/`` or ``!`` opens a JSX element, so release-note prose containing text such as
+    ``<plugin ID>`` or ``{"status": "ok"}`` fails the docs build. The system prompt
+    instructs the model to wrap such text in backticks, but compliance is not
+    guaranteed and the failure mode is a broken build, so escape defensively.
+
+    Only applied to the AI-generated fragment — never to whole file contents, which
+    legitimately contain JSX components such as <Note> and <Important>.
+
+    ``}`` is deliberately left alone: escaping ``{`` alone is sufficient to prevent a
+    JSX expression, and a bare ``}`` is harmless. This also keeps the generated
+    heading anchor ``\\{#release-v11-9-feature-release}`` intact.
+    """
+    def _escape(segment: str) -> str:
+        segment = re.sub(r"(?<!\\)\{", r"\\{", segment)
+        segment = re.sub(r"(?<!\\)<(?=[A-Za-z/!])", r"\\<", segment)
+        return segment
+
+    parts = []
+    last = 0
+    for match in _MDX_PROTECTED_RE.finditer(text):
+        parts.append(_escape(text[last:match.start()]))
+        parts.append(match.group(0))   # protected region, copied verbatim
+        last = match.end()
+    parts.append(_escape(text[last:]))
+    return "".join(parts)
 
 
 def normalize_go_version(go_version: str) -> str:
@@ -488,7 +538,9 @@ def main():
             go_section = f"### Go Version\n - {version_short} uses the same Go version as the previous release."
 
     if all_notes:
-        polished = normalize_formatting(polish_with_ai(all_notes))
+        # normalize_formatting fixes layout; escape_mdx_unsafe makes the prose
+        # MDX-safe. Both are applied to the AI fragment only, never to file contents.
+        polished = escape_mdx_unsafe(normalize_formatting(polish_with_ai(all_notes)))
         blog_url = os.environ.get("BLOG_POST_URL", "").strip()
         if not blog_url:
             # Auto-construct short URL (no patch suffix): v11.6.0 → mattermost-v11-6-is-now-available
