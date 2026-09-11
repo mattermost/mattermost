@@ -3649,10 +3649,10 @@ func TestPluginAPIGetPropertyFieldProjectsLegacyPermissions(t *testing.T) {
 		assertProjected(t, got)
 	})
 
-	// Store hydration fills the dropped Protected/Permission* columns from
-	// Permissions so a load-modify-save does not look like a legacy-column
-	// change. Attrs (owners, access_mode) are still projected only on the
-	// plugin/v2 copy via ProjectLegacyPermissions.
+	// Store hydration overrides the stored Protected/Permission* columns with the
+	// values projected from Permissions, so a load-modify-save does not look like a
+	// legacy-column change. Attrs (owners, access_mode) are still projected only on
+	// the plugin/v2 copy via ProjectLegacyPermissions.
 	stored, appErr := th.App.GetPropertyField(th.Context, group.ID, field.ID)
 	require.Nil(t, appErr)
 	require.NotNil(t, stored)

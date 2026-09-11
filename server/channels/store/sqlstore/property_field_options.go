@@ -913,10 +913,12 @@ func storedFieldPermissions(field *model.PropertyField) any {
 	return string(model.ToJSON(field.Permissions))
 }
 
-// applyProjectedPermissionColumns fills the dropped Protected and Permission*
-// columns from field.Permissions so a load-modify-save does not look like a
-// legacy-column change. Those columns are always the zero value after a SELECT
-// that no longer reads them.
+// applyProjectedPermissionColumns overrides the Protected and Permission* columns
+// the SELECT read with the values projected from field.Permissions, so a converted
+// field reports the v2 view of its permissions object rather than whatever its
+// columns held when it was converted -- and a load-modify-save does not look like a
+// legacy-column change. A field with no permissions object is skipped and keeps the
+// columns as stored.
 func applyProjectedPermissionColumns(fields []*model.PropertyField) {
 	for _, field := range fields {
 		if field == nil || field.Permissions == nil {
