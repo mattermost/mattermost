@@ -6,7 +6,7 @@ package jobs
 import (
 	"os"
 	"testing"
-	"time"
+	"testing/synctest"
 
 	"github.com/stretchr/testify/require"
 )
@@ -23,27 +23,31 @@ func TestStartWorkers(t *testing.T) {
 	})
 
 	t.Run("already running", func(t *testing.T) {
-		jobServer, _, _ := makeJobServer(t)
-		jobServer.initWorkers()
-		err := jobServer.StartWorkers()
-		require.NoError(t, err)
-		err = jobServer.StartWorkers()
-		require.Equal(t, ErrWorkersRunning, err)
-		// Parking the go routing to let the worker watcher start
-		time.Sleep(1 * time.Millisecond)
-		err = jobServer.StopWorkers()
-		require.NoError(t, err)
+		synctest.Test(t, func(t *testing.T) {
+			jobServer, _, _ := makeJobServer(t)
+			jobServer.initWorkers()
+			err := jobServer.StartWorkers()
+			require.NoError(t, err)
+			err = jobServer.StartWorkers()
+			require.Equal(t, ErrWorkersRunning, err)
+			// Wait for the worker watcher goroutine to reach its durably blocked state.
+			synctest.Wait()
+			err = jobServer.StopWorkers()
+			require.NoError(t, err)
+		})
 	})
 
 	t.Run("not running", func(t *testing.T) {
-		jobServer, _, _ := makeJobServer(t)
-		jobServer.initWorkers()
-		err := jobServer.StartWorkers()
-		require.NoError(t, err)
-		// Parking the go routing to let the worker watcher start
-		time.Sleep(1 * time.Millisecond)
-		err = jobServer.StopWorkers()
-		require.NoError(t, err)
+		synctest.Test(t, func(t *testing.T) {
+			jobServer, _, _ := makeJobServer(t)
+			jobServer.initWorkers()
+			err := jobServer.StartWorkers()
+			require.NoError(t, err)
+			// Wait for the worker watcher goroutine to reach its durably blocked state.
+			synctest.Wait()
+			err = jobServer.StopWorkers()
+			require.NoError(t, err)
+		})
 	})
 }
 
@@ -66,14 +70,16 @@ func TestStopWorkers(t *testing.T) {
 	})
 
 	t.Run("running", func(t *testing.T) {
-		jobServer, _, _ := makeJobServer(t)
-		jobServer.initWorkers()
-		err := jobServer.StartWorkers()
-		require.NoError(t, err)
-		// Parking the go routing to let the worker watcher start
-		time.Sleep(1 * time.Millisecond)
-		err = jobServer.StopWorkers()
-		require.NoError(t, err)
+		synctest.Test(t, func(t *testing.T) {
+			jobServer, _, _ := makeJobServer(t)
+			jobServer.initWorkers()
+			err := jobServer.StartWorkers()
+			require.NoError(t, err)
+			// Wait for the worker watcher goroutine to reach its durably blocked state.
+			synctest.Wait()
+			err = jobServer.StopWorkers()
+			require.NoError(t, err)
+		})
 	})
 }
 
