@@ -401,6 +401,9 @@ func (ps *PropertyService) UpdateFieldOptions(rctx request.CTX, field *model.Pro
 		byID[option.ID] = option
 	}
 
+	// Only a name that is actually changing can collide -- an option keeping its
+	// own name would otherwise collide with itself.
+	renamed := make([]string, 0, len(options))
 	for i, option := range options {
 		current := byID[option.ID]
 		if current == nil {
@@ -415,13 +418,7 @@ func (ps *PropertyService) UpdateFieldOptions(rctx request.CTX, field *model.Pro
 		if option.Attrs == nil {
 			option.Attrs = current.Attrs
 		}
-	}
-
-	// Only a name that is actually changing can collide -- an option keeping its
-	// own name would otherwise collide with itself.
-	renamed := make([]string, 0, len(options))
-	for _, option := range options {
-		if byID[option.ID].Name != option.Name {
+		if current.Name != option.Name {
 			renamed = append(renamed, option.Name)
 		}
 	}
