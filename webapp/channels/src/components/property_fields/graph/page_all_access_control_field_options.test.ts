@@ -7,6 +7,7 @@ import {Client4} from 'mattermost-redux/client';
 
 import {
     ACCESS_CONTROL_GROUP,
+    PROPERTY_FIELD_OPTIONS_MAX_PAGES,
     PROPERTY_FIELD_OPTIONS_PER_PAGE,
     clearPropertyFieldOptionWalks,
     pageAllAccessControlFieldOptions,
@@ -334,6 +335,16 @@ describe('pageAllAccessControlFieldOptions', () => {
 
             await expect(pageAllAccessControlFieldOptions(FIELD)).rejects.toThrow(/has no create_at/);
             expect(spy).toHaveBeenCalledTimes(1);
+        });
+
+        it('throws when a full page is served past the page cap', async () => {
+            const page = makePage(PROPERTY_FIELD_OPTIONS_PER_PAGE, 'stuck');
+            const spy = jest.spyOn(Client4, 'getPropertyFieldOptions').mockResolvedValue(page);
+
+            await expect(pageAllAccessControlFieldOptions(FIELD)).rejects.toThrow(
+                /served more than \d+ pages, so the cursor is not advancing/,
+            );
+            expect(spy).toHaveBeenCalledTimes(PROPERTY_FIELD_OPTIONS_MAX_PAGES);
         });
 
         it('throws when the last option of a full page has no id', async () => {

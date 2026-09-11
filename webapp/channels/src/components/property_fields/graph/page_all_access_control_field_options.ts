@@ -5,11 +5,18 @@ import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
 
+import {GRAPH_MAX_OPTIONS} from './limits';
+
 // GET identity is this group plus the field's object_type and id, never linked_field_id.
 export const ACCESS_CONTROL_GROUP = 'access_control';
 
 // Endpoint default is 60; omit this and a hierarchy pages 60 at a time.
 export const PROPERTY_FIELD_OPTIONS_PER_PAGE = 200;
+
+// 100,000 options at 200 per page, plus the trailing short page. A walk that
+// needs more pages is not advancing.
+export const PROPERTY_FIELD_OPTIONS_MAX_PAGES =
+    Math.ceil(GRAPH_MAX_OPTIONS / PROPERTY_FIELD_OPTIONS_PER_PAGE) + 1;
 
 export type GraphFieldRef = {
     id: string;
@@ -37,7 +44,13 @@ async function walkPages(fieldId: string, objectType: string): Promise<PropertyF
     let cursorId: string | undefined;
     let cursorCreateAt: number | undefined;
 
-    for (;;) {
+    for (let pages = 0; ; pages++) {
+        if (pages >= PROPERTY_FIELD_OPTIONS_MAX_PAGES) {
+            throw new Error(
+                `pageAllAccessControlFieldOptions: field ${fieldId} served more than ${PROPERTY_FIELD_OPTIONS_MAX_PAGES} pages, so the cursor is not advancing`,
+            );
+        }
+
         const page = await Client4.getPropertyFieldOptions( // eslint-disable-line no-await-in-loop
             ACCESS_CONTROL_GROUP,
             objectType,
