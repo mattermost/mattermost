@@ -2520,7 +2520,9 @@ func TestDialogElement_Collapsible_IsValid(t *testing.T) {
 			DisplayName: "Section " + name,
 			Name:        name,
 			Type:        "collapsible",
-			Elements:    children,
+			CollapsibleConfig: &DialogElementCollapsibleConfig{
+				Elements: children,
+			},
 		}
 	}
 
@@ -2560,11 +2562,11 @@ func TestDialogElement_Collapsible_IsValid(t *testing.T) {
 		assert.NoError(t, defaults.IsValid(), "collapsible with default Collapsed/Borderless should be valid")
 
 		collapsed := collapsible("s2", validText("b"))
-		collapsed.Collapsed = true
+		collapsed.CollapsibleConfig.Collapsed = true
 		assert.NoError(t, collapsed.IsValid(), "collapsible with Collapsed=true should be valid")
 
 		borderless := collapsible("s3", validText("c"))
-		borderless.Borderless = true
+		borderless.CollapsibleConfig.Borderless = true
 		assert.NoError(t, borderless.IsValid(), "collapsible with Borderless=true should be valid")
 	})
 }

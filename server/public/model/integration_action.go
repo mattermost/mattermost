@@ -488,14 +488,9 @@ type DialogElement struct {
 	AllowMultiple bool                 `json:"allow_multiple,omitempty"`
 	Refresh       bool                 `json:"refresh,omitempty"`
 
-	// Collapsible section children; only used when Type is "collapsible".
-	Elements []DialogElement `json:"elements,omitempty"`
-	// Collapsed controls the initial open/closed state. The zero value (false)
-	// means the section starts expanded.
-	Collapsed bool `json:"collapsed,omitempty"`
-	// Borderless controls whether the section renders without a box outline. The
-	// zero value (false) means the section is bordered.
-	Borderless bool `json:"borderless,omitempty"`
+	// CollapsibleConfig holds child elements and display options for a
+	// "collapsible" element. Nil for all other element types.
+	CollapsibleConfig *DialogElementCollapsibleConfig `json:"collapsible_config,omitempty"`
 
 	// Date/datetime field configuration
 	DateTimeConfig *DialogDateTimeConfig `json:"datetime_config,omitempty"`
@@ -516,6 +511,15 @@ func (e *DialogElement) EffectiveDateTimeConfig() DialogDateTimeConfig {
 type DialogActionButton struct {
 	URL     string            `json:"url"`
 	Context map[string]string `json:"context,omitempty"`
+}
+
+type DialogElementCollapsibleConfig struct {
+	// Elements are the child elements rendered inside the collapsible section.
+	Elements []DialogElement `json:"elements,omitempty"`
+	// Collapsed controls the initial open/closed state. False means expanded.
+	Collapsed bool `json:"collapsed,omitempty"`
+	// Borderless controls whether the section renders without a box outline.
+	Borderless bool `json:"borderless,omitempty"`
 }
 
 type OpenDialogRequest struct {
@@ -927,11 +931,16 @@ func (e *DialogElement) validateCommon() error {
 func (e *DialogElement) validateCollapsible(depth int, seen map[string]bool) error {
 	var multiErr *multierror.Error
 
-	if len(e.Elements) == 0 {
+	cfg := e.CollapsibleConfig
+	if cfg == nil || len(cfg.Elements) == 0 {
 		multiErr = multierror.Append(multiErr, errors.New("collapsible element must have at least one child element"))
 	}
 
-	for i, child := range e.Elements {
+	var children []DialogElement
+	if cfg != nil {
+		children = cfg.Elements
+	}
+	for i, child := range children {
 		if seen[child.Name] {
 			multiErr = multierror.Append(multiErr, errors.Errorf("duplicate dialog element %q", child.Name))
 		}
