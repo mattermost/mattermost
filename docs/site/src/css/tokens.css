@@ -38,6 +38,26 @@
   --mm-marigold-500: #FFBC1F;    /* = marigold, brand accent */
   --mm-marigold-700: #B27F00;
 
+  /* === HTTP method colors ===
+   * Single source for the verb chips, used by the API sidebar badges
+   * (custom.css), <MethodBadge>, the landing-page <MethodLegend>, and the
+   * endpoint search results. Nudged down from the original legend hexes
+   * (get #2D7BD2, put #A86A1F) so every fill carries white text at >= 4.8:1
+   * — the chips render at ~10px bold, well under WCAG's large-text cutoff,
+   * so they owe the full 4.5:1.
+   *
+   * Dark mode deliberately reuses the same fills rather than brightening
+   * them: a lighter fill separates better from the dark sidebar but drops
+   * white-on-fill text under AA. --mm-method-border adds a hairline instead,
+   * which gives the chip its edge without touching text contrast. */
+  --mm-method-get:    #2A73C4;   /* operational blue */
+  --mm-method-post:   #2C7A4F;   /* operational green */
+  --mm-method-put:    #9E631C;   /* operational amber */
+  --mm-method-patch:  #6B4FA0;   /* operational violet */
+  --mm-method-delete: #8B1F1F;   /* operational red */
+  --mm-method-other:  #4A5568;   /* HEAD, OPTIONS, anything new */
+  --mm-method-border: transparent;
+
   /* === Typography ===
    * Trade Gothic Next is licensed via Adobe Fonts and not embedded yet
    * (open item — see PLAN.md §12). Until licensing is confirmed, body uses
@@ -81,6 +101,8 @@
   --mm-text-secondary: var(--mm-denim-200);
   --mm-text-inverse:   var(--mm-color-black);
   --mm-text-on-accent: var(--mm-color-black);
+  /* See the light-mode note above: same fills, hairline edge. */
+  --mm-method-border:  rgba(255, 255, 255, 0.22);
   --mm-border-subtle:  var(--mm-denim-700);
   --mm-border-strong:  var(--mm-denim-500);
   /* Not --mm-color-sky (#C5D2EC): passes AA against the page (~12:1),

@@ -1,0 +1,247 @@
+/* === Shared === */
+
+.box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input {
+  width: 100%;
+  border: 1px solid var(--mm-border-strong);
+  border-radius: 4px;
+  background: var(--mm-bg-surface);
+  color: var(--mm-text-primary);
+  font-family: var(--mm-font-sans);
+  /* Never below 16px on the page variant: iOS Safari zooms the viewport when
+   * a focused input's text is smaller than that. */
+  font-size: 1rem;
+  line-height: 1.4;
+  padding: 0.5rem 2.2rem 0.5rem 0.65rem;
+}
+
+.input::placeholder {
+  color: var(--mm-text-secondary);
+  opacity: 0.85;
+}
+
+.input:focus {
+  outline: 2px solid var(--mm-focus-ring);
+  outline-offset: 1px;
+  border-color: var(--mm-border-strong);
+}
+
+/* The native clear affordance duplicates our button (and is unstyleable). */
+.input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.clear,
+.shortcut {
+  position: absolute;
+  right: 0.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 3px;
+  color: var(--mm-text-secondary);
+}
+
+.clear {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0;
+}
+
+.clear:hover {
+  background: var(--mm-bg-subtle);
+  color: var(--mm-text-primary);
+}
+
+.shortcut {
+  border: 1px solid var(--mm-border-subtle);
+  background: var(--mm-bg-subtle);
+  font-family: var(--mm-font-mono);
+  font-size: 0.7rem;
+  pointer-events: none;
+}
+
+.status {
+  margin: 0.4rem 0 0;
+  color: var(--mm-text-secondary);
+  font-size: 0.75rem;
+}
+
+/* === Result rows (both variants) === */
+
+.result {
+  list-style: none;
+}
+
+/* Typography is restated rather than inherited: in the sidebar variant this
+ * link sits at level 1 of the menu list, where the theme's section-header
+ * styling (bold, capitalized) would otherwise reach it. */
+.resultLink {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.15rem;
+  /* Overrides the .menu__link flex-row centering in the sidebar variant. */
+  justify-content: flex-start;
+  font-family: var(--mm-font-sans);
+  font-weight: 400;
+  letter-spacing: 0;
+  text-align: left;
+  text-transform: none;
+}
+
+.resultHeading {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.resultTitle {
+  overflow: hidden;
+  color: var(--mm-text-primary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  /* Two lines max, like the theme's own sidebar labels. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.resultMeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.1rem 0.35rem;
+  min-width: 0;
+}
+
+.resultPath {
+  overflow-wrap: anywhere;
+  color: var(--mm-text-secondary);
+  font-family: var(--mm-font-mono);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.deprecated {
+  flex: 0 0 auto;
+  border: 1px solid var(--mm-border-strong);
+  border-radius: 3px;
+  padding: 0 0.25rem;
+  color: var(--mm-text-secondary);
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* === Sidebar variant === */
+
+/* Pinned above the tree: the API sidebar is ~650 endpoints deep, so a search
+ * box that scrolls away with the list would be useless once you're inside a
+ * tag group.
+ *
+ * `.menu` (custom.css) pads the scroll container by 1.25rem, and sticky
+ * offsets are measured from the padding box — so a plain `top: 0` would
+ * leave a 1.25rem strip of scrolling items visible above the box. The first
+ * box-shadow paints that strip in the sidebar's own background; the second
+ * is the usual "content continues below" edge. */
+.searchSidebar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  background: var(--mm-bg-subtle);
+  box-shadow:
+    0 -1.3rem 0 var(--mm-bg-subtle),
+    0 0.3rem 0.35rem -0.3rem rgb(0 0 0 / 12%);
+}
+
+.searchSidebar .input {
+  font-size: 0.85rem;
+  padding: 0.4rem 2rem 0.4rem 0.55rem;
+}
+
+/* The mobile sidebar is a flat panel in the navbar dropdown with its own
+ * background, and it scrolls as one — sticky there would pin the box over
+ * unrelated navbar content. */
+:global(.navbar-sidebar) .searchSidebar {
+  position: static;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* That panel is denim in both color modes, so the light-mode text tokens
+ * (near-black title, denim-600 path) would be unreadable on it — the same
+ * reason custom.css re-pins the menu color there. */
+:global(.navbar-sidebar) .resultTitle {
+  color: var(--ifm-menu-color-active);
+}
+
+:global(.navbar-sidebar) .resultPath,
+:global(.navbar-sidebar) .status {
+  color: var(--ifm-menu-color);
+}
+
+:global(.navbar-sidebar) .deprecated {
+  border-color: var(--ifm-menu-color);
+  color: var(--ifm-menu-color);
+}
+
+/* === Page variant === */
+
+.searchPage {
+  margin: 1.5rem 0 2rem;
+}
+
+.hint {
+  margin: 0.5rem 0 0;
+  color: var(--mm-text-secondary);
+  font-size: 0.85rem;
+}
+
+.hint code {
+  font-size: 0.8rem;
+}
+
+.pageResults {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  border: 1px solid var(--mm-border-subtle);
+  border-radius: 4px;
+  /* Long result sets scroll in place instead of pushing the rest of the
+   * landing page (start-here cards, workflows) off the screen. */
+  max-height: 26rem;
+  overflow-y: auto;
+}
+
+.pageResults .result + .result {
+  border-top: 1px solid var(--mm-border-subtle);
+}
+
+.searchPage .resultLink {
+  padding: 0.5rem 0.75rem;
+  text-decoration: none;
+}
+
+.searchPage .resultLink:hover {
+  background: var(--mm-bg-subtle);
+  text-decoration: none;
+}
+
+.resultLinkActive {
+  background: var(--mm-bg-subtle);
+}

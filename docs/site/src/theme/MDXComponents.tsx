@@ -16,6 +16,7 @@ import Hero from '@site/src/components/Hero';
 import Eyebrow from '@site/src/components/Eyebrow';
 import StatStrip from '@site/src/components/StatStrip';
 import MethodLegend from '@site/src/components/MethodLegend';
+import ApiSearch from '@site/src/components/ApiSearch';
 import CardGrid from '@site/src/components/CardGrid';
 import UpgradeNotesFilter from '@site/src/components/UpgradeNotesFilter';
 import PluginGoDocs from '@site/src/components/PluginGoDocs';
@@ -48,6 +49,7 @@ export default {
   Eyebrow,
   StatStrip,
   MethodLegend,
+  ApiSearch,
   CardGrid,
   UpgradeNotesFilter,
   PluginGoDocs,

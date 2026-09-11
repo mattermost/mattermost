@@ -341,9 +341,13 @@ h2, h3, h4 {
  * Font: Archivo Black's 900-weight display face reads fine for a short,
  * single word/acronym at large size (e.g. an "IME" page title), but at
  * this small size (0.82rem) its heavy strokes and tight kerning crowd
- * multi-word labels together — use the body sans face at bold instead. */
+ * multi-word labels together — use the body sans face at bold instead.
+ *
+ * `.api-search-result` rows are excluded: endpoint search renders its
+ * results at level 1 of the API sidebar's menu list, and they're endpoint
+ * links (natural case, regular weight), not section headers. */
 .menu .menu__list-item-collapsible > .menu__link,
-.menu > .menu__list > .menu__list-item > .menu__link {
+.menu > .menu__list > .menu__list-item:not(.api-search-result) > .menu__link {
   font-family: var(--mm-font-sans);
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -361,15 +365,100 @@ h2, h3, h4 {
   color: var(--ifm-menu-color);
 }
 
-/* Endpoint leaves keep their natural case (e.g. "Login to Mattermost server"). */
-.menu .menu__link.api-method {
+/* Endpoint leaves keep their natural case (e.g. "Login to Mattermost server").
+ *
+ * Selector note: docusaurus-plugin-openapi-docs emits the endpoint's method
+ * as a sidebar item className ("api-method get"), and Docusaurus applies an
+ * item's className to the <li>, not to the link inside it — so the link has
+ * to be matched as a child. The previous `.menu__link.api-method` form
+ * matched nothing, which is why these leaves rendered with the category
+ * typography above. */
+.menu .api-method > .menu__link {
   font-family: var(--mm-font-sans);
   font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
   font-size: 0.85rem;
   color: var(--mm-text-primary);
+  justify-content: flex-start;
 }
+
+/* Method chip in front of every endpoint leaf (GET / POST / DELETE / …),
+ * matching the chips on the endpoint pages and in <MethodLegend>. The verb
+ * only exists as a class on the item, so the label is drawn with ::before
+ * content per method. Colors come from the shared --mm-method-* tokens. */
+.menu .api-method.get > .menu__link::before,
+.menu .api-method.post > .menu__link::before,
+.menu .api-method.put > .menu__link::before,
+.menu .api-method.patch > .menu__link::before,
+.menu .api-method.delete > .menu__link::before,
+.menu .api-method.head > .menu__link::before,
+.menu .api-method.options > .menu__link::before,
+.menu .api-method.trace > .menu__link::before {
+  flex: 0 0 auto;
+  width: 2.9rem;
+  margin-right: 0.5rem;
+  padding: 0.12rem 0;
+  border: 1px solid var(--mm-method-border);
+  border-radius: 3px;
+  /* Default fill, kept by the read-only/rare verbs (head, options, trace);
+   * the four mutating verbs and get override it below. */
+  background: var(--mm-method-other);
+  color: var(--mm-color-white);
+  font-family: var(--mm-font-mono);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1.35;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+/* Verb label + fill. Only the methods listed here get a chip at all — an
+ * unrecognized verb keeps the plain label instead of an empty chip. */
+.menu .api-method.get > .menu__link::before {
+  content: 'get';
+  background: var(--mm-method-get);
+}
+.menu .api-method.post > .menu__link::before {
+  content: 'post';
+  background: var(--mm-method-post);
+}
+.menu .api-method.put > .menu__link::before {
+  content: 'put';
+  background: var(--mm-method-put);
+}
+.menu .api-method.patch > .menu__link::before {
+  content: 'patch';
+  background: var(--mm-method-patch);
+}
+.menu .api-method.delete > .menu__link::before {
+  content: 'delete';
+  background: var(--mm-method-delete);
+}
+.menu .api-method.head > .menu__link::before {
+  content: 'head';
+}
+.menu .api-method.options > .menu__link::before {
+  content: 'options';
+}
+.menu .api-method.trace > .menu__link::before {
+  content: 'trace';
+}
+
+/* Endpoint labels pin --mm-text-primary above, which is near-black in light
+ * mode — unreadable on the mobile slide-out's always-denim background. Hand
+ * them back the menu color there, same as the category headers further up. */
+.navbar-sidebar .menu .api-method > .menu__link {
+  color: var(--ifm-menu-color);
+}
+
+/* No rule for deprecated endpoints here on purpose: the plugin puts
+ * `menu__list-item--deprecated` on the item in its generated sidebar file,
+ * but each endpoint page's own `sidebar_class_name` frontmatter (just
+ * "<verb> api-method") is what Docusaurus actually renders, so that class
+ * never reaches the DOM. Endpoint search surfaces deprecation instead — it
+ * reads the flag straight from the spec (see ApiSearch). */
 
 /* === Code === */
 

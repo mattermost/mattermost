@@ -1,12 +1,13 @@
 import React from 'react';
+import MethodBadge from '@site/src/components/MethodBadge';
 import styles from './styles.module.css';
 
-const METHODS: Array<{verb: string; tone: string; meaning: string}> = [
-  {verb: 'GET',    tone: 'get',    meaning: 'Read'},
-  {verb: 'POST',   tone: 'post',   meaning: 'Create / action'},
-  {verb: 'PUT',    tone: 'put',    meaning: 'Replace'},
-  {verb: 'PATCH',  tone: 'patch',  meaning: 'Update fields'},
-  {verb: 'DELETE', tone: 'delete', meaning: 'Remove'},
+const METHODS: Array<{verb: string; meaning: string}> = [
+  {verb: 'GET',    meaning: 'Read'},
+  {verb: 'POST',   meaning: 'Create / action'},
+  {verb: 'PUT',    meaning: 'Replace'},
+  {verb: 'PATCH',  meaning: 'Update fields'},
+  {verb: 'DELETE', meaning: 'Remove'},
 ];
 
 /**
@@ -20,7 +21,7 @@ export default function MethodLegend() {
     <ul className={styles.legend}>
       {METHODS.map((m) => (
         <li key={m.verb} className={styles.item}>
-          <span className={`${styles.badge} ${styles[m.tone]}`}>{m.verb}</span>
+          <MethodBadge method={m.verb} size="md" />
           <span className={styles.meaning}>{m.meaning}</span>
         </li>
       ))}
