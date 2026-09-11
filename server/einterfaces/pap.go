@@ -63,6 +63,12 @@ type PolicyAdministrationPointInterface interface {
 	// the service no-ops for fields it does not track.
 	OnPropertyFieldOptionsChanged(rctx request.CTX, fieldID string)
 
+	// InvalidateAllPolicyCaches purges every compiled policy, local and
+	// cluster-wide, both the resource-policy cache and the permission-policy
+	// cache. For a caller that cannot enumerate which compiled policies a
+	// change made stale, dropping all of them is the only sound alternative.
+	InvalidateAllPolicyCaches(rctx request.CTX)
+
 	// HasMaskedValuesForCaller reports whether expression contains any literal
 	// value hidden from the caller according to resolver. Returns an error when
 	// field resolution or CEL parsing fails — callers must treat any error as
