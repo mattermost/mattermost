@@ -329,7 +329,7 @@ func TestNonSortedArrayFromJSON(t *testing.T) {
 	t.Run("Duplicate keys, returns one", func(t *testing.T) {
 		var ids []string
 		id := NewId()
-		for i := 0; i <= 10; i++ {
+		for range 11 {
 			ids = append(ids, id)
 		}
 		b, _ := json.Marshal(ids)
