@@ -1475,6 +1475,28 @@ describe('AttributeDetails', () => {
             expect(mockHistoryPush).not.toHaveBeenCalled();
         });
 
+        it('loads a user field with the channel scope skipped when channel attributes are unavailable', async () => {
+            // Below Enterprise Advanced the channel GET 501s; fetchAttributeField
+            // must skip it rather than reject and bounce a user-field edit to the
+            // list. The channel reject below must never be reached.
+            const getPropertyFields = jest.spyOn(Client4, 'getPropertyFields').mockImplementation((_group, objectType) => {
+                if (objectType === 'channel') {
+                    return Promise.reject(new Error('channel 501'));
+                }
+                if (objectType === 'user') {
+                    return Promise.resolve([makeNonTemplate('user')]);
+                }
+                return Promise.resolve([]);
+            });
+
+            renderEdit({entities: {general: {config: {FeatureFlagChannelAttributes: 'false'}, license: {SkuShortName: 'professional'}}}});
+            await waitForForm();
+
+            expect(screen.getByTestId('attributeDisplayNameInput')).toHaveValue('Department');
+            expect(mockHistoryPush).not.toHaveBeenCalled();
+            expect(getPropertyFields.mock.calls.every((call) => call[1] !== 'channel')).toBe(true);
+        });
+
         it('saves a non-template field with a PATCH to its own object type, not the template create/link path', async () => {
             mockLoadedNonTemplateField(makeNonTemplate('user'));
             const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue(makeNonTemplate('user'));
@@ -1535,6 +1557,17 @@ describe('AttributeDetails', () => {
                 expect(screen.getByTestId('attributeAppliesToRow-channel')).toBeInTheDocument();
                 expect(screen.queryByTestId('attributeAppliesToRow-user')).not.toBeInTheDocument();
                 expect(screen.queryByTestId('attributeAppliesToRow-post')).not.toBeInTheDocument();
+            });
+
+            it('seeds the locked Channels row summary from the field, not the default config', async () => {
+                mockLoadedNonTemplateField(makeNonTemplate('channel', {attrs: {display_name: 'Region', required: true}}));
+
+                renderEdit();
+                await waitForForm();
+
+                // required:true parses to "Required"; the default config is "Optional",
+                // so this proves the row reflects the field rather than the default.
+                expect(screen.getByTestId('attributeAppliesToRow-channel-summary')).toHaveTextContent('Required');
             });
 
             it('disables the row\'s toggle behind an explanatory lock tooltip', async () => {

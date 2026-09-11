@@ -344,7 +344,7 @@ describe('global_attributes/utils', () => {
                 return Promise.resolve([]);
             });
 
-            await expect(fetchAttributeField('field-1')).resolves.toBe(live);
+            await expect(fetchAttributeField('field-1', true)).resolves.toBe(live);
         });
 
         it('returns a matching live user/channel/post field', async () => {
@@ -356,7 +356,7 @@ describe('global_attributes/utils', () => {
                 return Promise.resolve([]);
             });
 
-            await expect(fetchAttributeField('field-1')).resolves.toBe(live);
+            await expect(fetchAttributeField('field-1', true)).resolves.toBe(live);
         });
 
         it('ignores a user/channel/post field that is a linked child of a template', async () => {
@@ -367,13 +367,23 @@ describe('global_attributes/utils', () => {
                 return Promise.resolve([]);
             });
 
-            await expect(fetchAttributeField('field-1')).resolves.toBeUndefined();
+            await expect(fetchAttributeField('field-1', true)).resolves.toBeUndefined();
         });
 
         it('returns undefined when the id is not in any object type', async () => {
             jest.spyOn(Client4, 'getPropertyFields').mockResolvedValue([{id: 'other', delete_at: 0} as PropertyField]);
 
-            await expect(fetchAttributeField('field-1')).resolves.toBeUndefined();
+            await expect(fetchAttributeField('field-1', true)).resolves.toBeUndefined();
+        });
+
+        it('does not query the channel scope when includeChannel is false', async () => {
+            const getPropertyFields = jest.spyOn(Client4, 'getPropertyFields').mockResolvedValue([]);
+
+            await fetchAttributeField('field-1', false);
+
+            const queriedObjectTypes = getPropertyFields.mock.calls.map((call) => call[1]);
+            expect(queriedObjectTypes).toEqual(expect.arrayContaining(['template', 'user', 'post']));
+            expect(queriedObjectTypes).not.toContain('channel');
         });
     });
 

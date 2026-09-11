@@ -98,6 +98,19 @@ function getReachableState(overrides: {licenseSku?: string; classificationMarkin
     return state;
 }
 
+// State where the table fetches the channel scope: Enterprise Advanced license
+// plus the ChannelAttributes flag in client config (where getFeatureFlagValue
+// reads it), matching the gate the table applies before fetching channel. Without
+// this the channel scope is skipped and the *-channel-* mocks below go unconsumed.
+function getChannelScopeState(): DeepPartial<GlobalState> {
+    const state = getBaseState();
+    state.entities!.general = {
+        config: {FeatureFlagChannelAttributes: 'true'},
+        license: {IsLicensed: 'true', SkuShortName: 'advanced'},
+    } as EntitiesPartial['general'];
+    return state;
+}
+
 function getMobileState(): DeepPartial<GlobalState> {
     const state = getReachableState();
     state.views = {browser: {windowSize: WindowSizes.MOBILE_VIEW}} as DeepPartial<GlobalState>['views'];
@@ -227,7 +240,7 @@ describe('GlobalAttributesTable', () => {
                 post: [makeField({id: 'p1', name: 'post_field', object_type: 'post'})],
             });
 
-            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+            renderWithContext(<GlobalAttributesTable/>, getChannelScopeState());
 
             expect(await screen.findByText('user_field')).toBeInTheDocument();
             expect(screen.getByText('channel_field')).toBeInTheDocument();
@@ -239,7 +252,7 @@ describe('GlobalAttributesTable', () => {
                 user: [makeField({id: 'u1', name: 'linked_field', object_type: 'user', linked_field_id: 'template-1'})],
             });
 
-            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+            renderWithContext(<GlobalAttributesTable/>, getChannelScopeState());
 
             expect(await screen.findByTestId('global-attributes-empty')).toBeInTheDocument();
             expect(screen.queryByText('linked_field')).not.toBeInTheDocument();
@@ -255,7 +268,7 @@ describe('GlobalAttributesTable', () => {
                 channel: [makeField({id: 'c1', name: 'delta_channel', object_type: 'channel', attrs: {display_name: 'Delta'}})],
             });
 
-            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+            renderWithContext(<GlobalAttributesTable/>, getChannelScopeState());
 
             await screen.findByText('Charlie');
             const names = screen.getAllByTestId('global-attribute-name').map((cell) => cell.textContent);
@@ -265,7 +278,7 @@ describe('GlobalAttributesTable', () => {
         it('does not show the empty state when only non-template fields exist', async () => {
             mockScopedFields({user: [makeField({id: 'u1', name: 'user_field', object_type: 'user'})]});
 
-            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+            renderWithContext(<GlobalAttributesTable/>, getChannelScopeState());
 
             expect(await screen.findByText('user_field')).toBeInTheDocument();
             expect(screen.queryByTestId('global-attributes-empty')).not.toBeInTheDocument();
@@ -286,13 +299,29 @@ describe('GlobalAttributesTable', () => {
                 mockResolvedValueOnce([]). // template page 2 (terminates)
                 mockResolvedValueOnce([]); // user page 2 (terminates)
 
-            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+            renderWithContext(<GlobalAttributesTable/>, getChannelScopeState());
 
             expect(await screen.findByTestId('global-attributes-error')).toBeInTheDocument();
             expect(screen.queryByText('template_field')).not.toBeInTheDocument();
             expect(screen.queryByText('user_field')).not.toBeInTheDocument();
 
             consoleSpy.mockRestore();
+        });
+
+        it('skips the channel scope below Enterprise Advanced, so a channel 501 cannot fail the page', async () => {
+            // The server 501s a channel-scoped access_control GET below Enterprise
+            // Advanced; fetching it here would reject the load and show the error
+            // state. getBaseState() has no Advanced license, so the channel scope
+            // must be skipped entirely -- the reject below must never be reached.
+            getPropertyFields.mockImplementation((_group, objectType) =>
+                (objectType === 'channel' ? Promise.reject(new Error('channel 501')) : Promise.resolve([])),
+            );
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            expect(await screen.findByTestId('global-attributes-empty')).toBeInTheDocument();
+            expect(screen.queryByTestId('global-attributes-error')).not.toBeInTheDocument();
+            expect(getPropertyFields.mock.calls.every((call) => call[1] !== 'channel')).toBe(true);
         });
     });
 
@@ -741,7 +770,7 @@ describe('GlobalAttributesTable', () => {
                     <GlobalAttributesTable/>
                     <ModalController/>
                 </div>,
-                getBaseState(),
+                getChannelScopeState(),
             );
 
             await openDeleteModal('c1');

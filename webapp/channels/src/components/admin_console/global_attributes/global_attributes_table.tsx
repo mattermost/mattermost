@@ -20,7 +20,7 @@ import {supportsOptions} from '@mattermost/types/properties';
 import PropertyTypes from 'mattermost-redux/action_types/properties';
 import {fetchPropertyFields} from 'mattermost-redux/actions/properties';
 import {getConfig as getAdminConfig} from 'mattermost-redux/selectors/entities/admin';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getPropertyFieldsForObjectTypeAndGroup, getPropertyGroupByName, getUnlinkedSystemFieldsForGroup} from 'mattermost-redux/selectors/entities/properties';
 
 import {getPluginDisplayName} from 'selectors/plugins';
@@ -38,6 +38,7 @@ import * as Menu from 'components/menu';
 
 import {getHistory} from 'utils/browser_history';
 import {LicenseSkus} from 'utils/constants';
+import {isMinimumEnterpriseAdvancedLicense} from 'utils/license_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -53,11 +54,6 @@ import {AdminConsoleListTable} from '../list_table';
 import './global_attributes_table.scss';
 
 const columnHelper = createColumnHelper<PropertyField>();
-
-// Every scope the table lists rows from: templates, then each resource type's
-// unlinked non-template fields. Module-level so the load effect's [dispatch]
-// dependency list doesn't need to change.
-const OBJECT_TYPES_TO_FETCH: string[] = [GLOBAL_ATTRIBUTES_OBJECT_TYPE, ...ALL_RESOURCE_TYPES];
 
 // Same set as the User Attributes page's type selector (user_properties_type_menu.tsx).
 const TYPE_ICONS: Partial<Record<FieldType, ComponentType<IconProps>>> = {
@@ -411,12 +407,27 @@ export default function GlobalAttributesTable() {
         getUnlinkedSystemFieldsForGroup(state, groupId),
     );
 
+    // Same gate the details page applies. Channel is fetched only when channel
+    // attributes are licensed and enabled: the server 501s a channel-scoped
+    // access_control GET below Enterprise Advanced, and this page is reachable at
+    // plain Enterprise, so an unconditional channel fetch would reject the load's
+    // Promise.all and fail the whole page there.
+    const channelAttributesEnabled = useSelector((state: GlobalState) =>
+        getFeatureFlagValue(state, 'ChannelAttributes') === 'true' && isMinimumEnterpriseAdvancedLicense(getLicense(state)));
+
+    // Every scope the table lists rows from: templates, then each resource type's
+    // unlinked non-template fields (channel only when the gate above allows it).
+    const objectTypesToFetch = useMemo(
+        () => [GLOBAL_ATTRIBUTES_OBJECT_TYPE, ...ALL_RESOURCE_TYPES.filter((type) => channelAttributesEnabled || type !== 'channel')],
+        [channelAttributesEnabled],
+    );
+
     useEffect(() => {
         let active = true;
 
         const load = async () => {
             try {
-                await Promise.all(OBJECT_TYPES_TO_FETCH.map(
+                await Promise.all(objectTypesToFetch.map(
                     (objectType) => dispatch(fetchPropertyFields(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, GLOBAL_ATTRIBUTES_TARGET_TYPE)),
                 ));
                 if (active) {
@@ -440,7 +451,7 @@ export default function GlobalAttributesTable() {
         return () => {
             active = false;
         };
-    }, [dispatch]);
+    }, [dispatch, objectTypesToFetch]);
 
     const rows = useMemo(
         () => [...fields, ...unlinkedFields].sort((a, b) => getDisplayName(a).localeCompare(getDisplayName(b))),

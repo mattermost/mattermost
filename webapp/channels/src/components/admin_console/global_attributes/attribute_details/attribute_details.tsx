@@ -434,7 +434,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
 
         const load = async () => {
             try {
-                const field = await fetchAttributeField(fieldId);
+                const field = await fetchAttributeField(fieldId, channelAttributesEnabled);
                 if (cancelled) {
                     return;
                 }
@@ -481,8 +481,14 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         ALL_RESOURCE_TYPES.filter((type) => Boolean(linkedByType[type])) :
                         ALL_RESOURCE_TYPES.filter((type) => type === field.object_type),
                 );
-                if (linkedByType.channel) {
-                    setChannelResource(parseChannelFieldConfig(linkedByType.channel));
+
+                // A non-template channel field is itself the channel field, so its
+                // row settings parse from it directly; a template seeds them from
+                // its linked channel child instead. Without this the locked Channels
+                // row would show the default config, misrepresenting the field.
+                const channelConfigSource = field.object_type === 'channel' ? field : linkedByType.channel;
+                if (channelConfigSource) {
+                    setChannelResource(parseChannelFieldConfig(channelConfigSource));
                 }
                 setLoading(false);
             } catch {
@@ -497,7 +503,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         return () => {
             cancelled = true;
         };
-    }, [fieldId]);
+    }, [fieldId, channelAttributesEnabled]);
 
     const autoSlugDisplay = useMemo(() => computeAutoSlugDisplay(displayName), [displayName]);
     const currentName = (isEditingName || isNameManuallyEdited) ? manualName : (autoSlugDisplay ?? '');

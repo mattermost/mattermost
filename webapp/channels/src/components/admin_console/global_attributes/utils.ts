@@ -79,16 +79,20 @@ async function listPropertyFields(objectType: string): Promise<PropertyField[]> 
     return fields;
 }
 
-const ALL_ATTRIBUTE_FIELD_OBJECT_TYPES = [GLOBAL_ATTRIBUTES_OBJECT_TYPE, ...ALL_RESOURCE_TYPES];
-
 // There is no GET-by-id property-fields HTTP handler. List every object type a
 // field can live in and find the one whose id matches. A user/channel/post
 // field only counts when it isn't a template's linked child (linked_field_id
 // set) -- those aren't listed or edited on their own, so an id that only
 // resolves to one returns undefined and the details page redirects to the list.
-export async function fetchAttributeField(fieldId: string): Promise<PropertyField | undefined> {
+//
+// includeChannel is false below Enterprise Advanced (or with the ChannelAttributes
+// flag off): the server 501s a channel-scoped access_control GET there, and
+// fetching it unconditionally would reject the whole Promise.all and bounce every
+// details page to the list -- even one editing a user or template field.
+export async function fetchAttributeField(fieldId: string, includeChannel: boolean): Promise<PropertyField | undefined> {
+    const objectTypes = [GLOBAL_ATTRIBUTES_OBJECT_TYPE, ...ALL_RESOURCE_TYPES.filter((type) => includeChannel || type !== 'channel')];
     const pages = await Promise.all(
-        ALL_ATTRIBUTE_FIELD_OBJECT_TYPES.map((objectType) => listPropertyFields(objectType)),
+        objectTypes.map((objectType) => listPropertyFields(objectType)),
     );
     return pages.flat().find((field) => (
         field.id === fieldId &&
