@@ -1291,6 +1291,34 @@ describe('AttributeDetails', () => {
             });
         }
 
+        function makeNonTemplate(objectType: 'user' | 'channel' | 'post', overrides: Partial<PropertyField> = {}): PropertyField {
+            return {
+                id: FIELD_ID,
+                name: 'department',
+                type: 'text',
+                group_id: 'accesscontrolgroupuuid001',
+                object_type: objectType,
+                target_id: '',
+                target_type: 'system',
+                create_at: 1,
+                update_at: 1,
+                delete_at: 0,
+                created_by: '',
+                updated_by: '',
+                attrs: {display_name: 'Department'},
+                ...overrides,
+            } as PropertyField;
+        }
+
+        function mockLoadedNonTemplateField(field: PropertyField) {
+            jest.spyOn(Client4, 'getPropertyFields').mockImplementation((_group, objectType) => {
+                if (objectType === field.object_type) {
+                    return Promise.resolve([field]);
+                }
+                return Promise.resolve([]);
+            });
+        }
+
         const renderEdit = (initialState: Record<string, unknown> = {}) => renderWithContext(
             <div>
                 <Route path='/admin_console/system_attributes/manage_attributes/attribute_details/:field_id'>
@@ -1430,6 +1458,186 @@ describe('AttributeDetails', () => {
                 attrs: expect.objectContaining({display_name: 'Department 2'}),
             }));
             expect(patchPropertyField.mock.calls[0][3]).not.toHaveProperty('name');
+        });
+
+        it('loads a non-template field into Definition without redirecting to the list', async () => {
+            mockLoadedNonTemplateField(makeNonTemplate('user', {
+                type: 'select',
+                attrs: {display_name: 'Department', options: [{id: 'opt-1', name: 'Engineering'}]},
+            }));
+
+            renderEdit();
+            await waitForForm();
+
+            expect(screen.getByTestId('attributeDisplayNameInput')).toHaveValue('Department');
+            expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('department');
+            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Select');
+            expect(mockHistoryPush).not.toHaveBeenCalled();
+        });
+
+        it('loads a user field with the channel scope skipped when channel attributes are unavailable', async () => {
+            // Below Enterprise Advanced the channel GET 501s; fetchAttributeField
+            // must skip it rather than reject and bounce a user-field edit to the
+            // list. The channel reject below must never be reached.
+            const getPropertyFields = jest.spyOn(Client4, 'getPropertyFields').mockImplementation((_group, objectType) => {
+                if (objectType === 'channel') {
+                    return Promise.reject(new Error('channel 501'));
+                }
+                if (objectType === 'user') {
+                    return Promise.resolve([makeNonTemplate('user')]);
+                }
+                return Promise.resolve([]);
+            });
+
+            renderEdit({entities: {general: {config: {FeatureFlagChannelAttributes: 'false'}, license: {SkuShortName: 'professional'}}}});
+            await waitForForm();
+
+            expect(screen.getByTestId('attributeDisplayNameInput')).toHaveValue('Department');
+            expect(mockHistoryPush).not.toHaveBeenCalled();
+            expect(getPropertyFields.mock.calls.every((call) => call[1] !== 'channel')).toBe(true);
+        });
+
+        it('saves a non-template field with a PATCH to its own object type, not the template create/link path', async () => {
+            mockLoadedNonTemplateField(makeNonTemplate('user'));
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue(makeNonTemplate('user'));
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField');
+            const deletePropertyField = jest.spyOn(Client4, 'deletePropertyField');
+
+            renderEdit();
+            await waitForForm();
+
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' 2');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes'));
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'user', FIELD_ID, expect.objectContaining({
+                type: 'text',
+                attrs: expect.objectContaining({display_name: 'Department 2'}),
+            }));
+            expect(createPropertyField).not.toHaveBeenCalled();
+            expect(deletePropertyField).not.toHaveBeenCalled();
+        });
+
+        it('surfaces a rejected PATCH for a non-template field and leaves Save usable', async () => {
+            mockLoadedNonTemplateField(makeNonTemplate('user'));
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockRejectedValue(makeClientError('app.property_field.update.name_conflict.app_error'));
+
+            renderEdit();
+            await waitForForm();
+
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' 2');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            expect(await screen.findByTestId('attributeSaveError')).toBeInTheDocument();
+            expect(patchPropertyField).toHaveBeenCalledTimes(1);
+            expect(mockHistoryPush).not.toHaveBeenCalled();
+            expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+        });
+
+        describe('non-template field applies-to', () => {
+            it('shows only the field\'s own resource row, with neither Add-resource trigger', async () => {
+                mockLoadedNonTemplateField(makeNonTemplate('user'));
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.getByTestId('attributeAppliesToRow-user')).toBeInTheDocument();
+                expect(screen.queryByTestId('attributeAppliesToRow-channel')).not.toBeInTheDocument();
+                expect(screen.queryByTestId('attributeAppliesToRow-post')).not.toBeInTheDocument();
+                expect(screen.queryByTestId('attributeAppliesToAddResourceButtonHeader')).not.toBeInTheDocument();
+                expect(screen.queryByTestId('attributeAppliesToAddResourceButtonInline')).not.toBeInTheDocument();
+            });
+
+            it('shows the Channels row for a non-template channel field', async () => {
+                mockLoadedNonTemplateField(makeNonTemplate('channel'));
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.getByTestId('attributeAppliesToRow-channel')).toBeInTheDocument();
+                expect(screen.queryByTestId('attributeAppliesToRow-user')).not.toBeInTheDocument();
+                expect(screen.queryByTestId('attributeAppliesToRow-post')).not.toBeInTheDocument();
+            });
+
+            it('seeds the locked Channels row summary from the field, not the default config', async () => {
+                mockLoadedNonTemplateField(makeNonTemplate('channel', {attrs: {display_name: 'Region', required: true}}));
+
+                renderEdit();
+                await waitForForm();
+
+                // required:true parses to "Required"; the default config is "Optional",
+                // so this proves the row reflects the field rather than the default.
+                expect(screen.getByTestId('attributeAppliesToRow-channel-summary')).toHaveTextContent('Required');
+            });
+
+            it('disables the row\'s toggle behind an explanatory lock tooltip', async () => {
+                mockLoadedNonTemplateField(makeNonTemplate('user'));
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.getByTestId('attributeAppliesToRow-user-toggle')).toBeDisabled();
+                expect(screen.getByTestId('attributeAppliesToRow-user-toggleLockWrap')).toBeInTheDocument();
+            });
+
+            it('leaves Type editable -- the single-resource lock must not regress the earlier applies-to-stays-editable guard', async () => {
+                mockLoadedNonTemplateField(makeNonTemplate('user'));
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.getByTestId('attributeTypeMenuButton')).not.toBeDisabled();
+                expect(screen.queryByTestId('attributeTypeLockWrap')).not.toBeInTheDocument();
+            });
+
+            it('leaves a loaded template\'s Applies-to row enabled with its Add-resource trigger present', async () => {
+                mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field')]);
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.getByTestId('attributeAppliesToRow-user-toggle')).not.toBeDisabled();
+                expect(screen.queryByTestId('attributeAppliesToRow-user-toggleLockWrap')).not.toBeInTheDocument();
+                expect(screen.getByTestId('attributeAppliesToAddResourceButtonHeader')).toBeInTheDocument();
+            });
+        });
+
+        describe('non-template field external source', () => {
+            it('does not render the external-source editor for a non-template channel field', async () => {
+                mockLoadedNonTemplateField(makeNonTemplate('channel'));
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.queryByTestId('attributeExternalSource')).not.toBeInTheDocument();
+            });
+
+            it('does not render the external-source editor for a non-template post field', async () => {
+                mockLoadedNonTemplateField(makeNonTemplate('post'));
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.queryByTestId('attributeExternalSource')).not.toBeInTheDocument();
+            });
+
+            it('renders the external-source editor for a non-template user field', async () => {
+                mockLoadedNonTemplateField(makeNonTemplate('user'));
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.getByTestId('attributeExternalSource')).toBeInTheDocument();
+            });
+
+            it('leaves a loaded template\'s external-source editor rendered with no resources applied', async () => {
+                mockLoadedField(makeTemplate());
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.getByTestId('attributeExternalSource')).toBeInTheDocument();
+            });
         });
 
         it('keeps existing option IDs on PATCH and sends an empty id for newly added options', async () => {

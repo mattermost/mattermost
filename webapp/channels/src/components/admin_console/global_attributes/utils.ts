@@ -79,11 +79,26 @@ async function listPropertyFields(objectType: string): Promise<PropertyField[]> 
     return fields;
 }
 
-// There is no GET-by-id property-fields HTTP handler. List template fields and
-// find the one whose id matches. Returns undefined when it isn't in the group.
-export async function fetchAttributeField(fieldId: string): Promise<PropertyField | undefined> {
-    const fields = await listPropertyFields(GLOBAL_ATTRIBUTES_OBJECT_TYPE);
-    return fields.find((field) => field.id === fieldId && field.delete_at === 0);
+// There is no GET-by-id property-fields HTTP handler. List every object type a
+// field can live in and find the one whose id matches. A user/channel/post
+// field only counts when it isn't a template's linked child (linked_field_id
+// set) -- those aren't listed or edited on their own, so an id that only
+// resolves to one returns undefined and the details page redirects to the list.
+//
+// includeChannel is false below Enterprise Advanced (or with the ChannelAttributes
+// flag off): the server 501s a channel-scoped access_control GET there, and
+// fetching it unconditionally would reject the whole Promise.all and bounce every
+// details page to the list -- even one editing a user or template field.
+export async function fetchAttributeField(fieldId: string, includeChannel: boolean): Promise<PropertyField | undefined> {
+    const objectTypes = [GLOBAL_ATTRIBUTES_OBJECT_TYPE, ...ALL_RESOURCE_TYPES.filter((type) => includeChannel || type !== 'channel')];
+    const pages = await Promise.all(
+        objectTypes.map((objectType) => listPropertyFields(objectType)),
+    );
+    return pages.flat().find((field) => (
+        field.id === fieldId &&
+        field.delete_at === 0 &&
+        (field.object_type === GLOBAL_ATTRIBUTES_OBJECT_TYPE || !field.linked_field_id)
+    ));
 }
 
 function isResourceObjectType(value: string): value is ResourceObjectType {
@@ -152,15 +167,16 @@ export type UpdateAttributeFieldPatch = {
     samlAttr: string;
 };
 
-// PATCHes a template field. Attrs are merge-patched (mergeAttrs=true on the
-// server): ldap/saml send null to unlink, and Text sends options: null so a
-// leftover options array is dropped. name is omitted when unchanged so the
-// server skips uniqueness re-validation.
+// PATCHes a field in the given object type. Attrs are merge-patched
+// (mergeAttrs=true on the server): ldap/saml send null to unlink, and Text
+// sends options: null so a leftover options array is dropped. name is omitted
+// when unchanged so the server skips uniqueness re-validation.
 export function updateAttributeField(
+    objectType: string,
     fieldId: string,
     patch: UpdateAttributeFieldPatch,
 ): Promise<PropertyField> {
-    return Client4.patchPropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, fieldId, {
+    return Client4.patchPropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, fieldId, {
         ...(patch.name === undefined ? {} : {name: patch.name}),
         type: patch.type as PropertyField['type'],
         attrs: {
@@ -172,12 +188,13 @@ export function updateAttributeField(
     });
 }
 
-// Deletes a template field from the access_control group. The server returns
-// 409 when the field still has active linked dependents (CountLinkedFields > 0);
-// callers are expected to surface that case distinctly (or, for a save-time
-// rollback, to only delete linked fields first -- see createLinkedAttributeField).
-export function deleteAttributeField(fieldId: string): Promise<unknown> {
-    return Client4.deletePropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, fieldId);
+// Deletes a field from the access_control group in its own object type. The
+// server returns 409 when the field still has active linked dependents
+// (CountLinkedFields > 0); callers are expected to surface that case distinctly
+// (or, for a save-time rollback, to only delete linked fields first -- see
+// createLinkedAttributeField).
+export function deleteAttributeField(objectType: string, fieldId: string): Promise<unknown> {
+    return Client4.deletePropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, fieldId);
 }
 
 // Creates a linked field for one Applies-to resource. The server validates

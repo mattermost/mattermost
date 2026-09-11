@@ -20,8 +20,8 @@ import {supportsOptions} from '@mattermost/types/properties';
 import PropertyTypes from 'mattermost-redux/action_types/properties';
 import {fetchPropertyFields} from 'mattermost-redux/actions/properties';
 import {getConfig as getAdminConfig} from 'mattermost-redux/selectors/entities/admin';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
-import {getPropertyFieldsForObjectTypeAndGroup, getPropertyGroupByName} from 'mattermost-redux/selectors/entities/properties';
+import {getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getPropertyFieldsForObjectTypeAndGroup, getPropertyGroupByName, getUnlinkedSystemFieldsForGroup} from 'mattermost-redux/selectors/entities/properties';
 
 import {getPluginDisplayName} from 'selectors/plugins';
 import {getIsMobileView} from 'selectors/views/browser';
@@ -38,9 +38,11 @@ import * as Menu from 'components/menu';
 
 import {getHistory} from 'utils/browser_history';
 import {LicenseSkus} from 'utils/constants';
+import {isMinimumEnterpriseAdvancedLicense} from 'utils/license_utils';
 
 import type {GlobalState} from 'types/store';
 
+import {ALL_RESOURCE_TYPES} from './attribute_details/attribute_applies_to_constants';
 import {CLASSIFICATION_ATTRIBUTE_ROUTE} from './classification_attribute';
 import {attributeDetailsRoute, GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, GLOBAL_ATTRIBUTES_TARGET_TYPE} from './constants';
 import {useGlobalAttributeFieldDelete} from './global_attribute_delete_modal';
@@ -252,7 +254,7 @@ function ActionsCell({field, isClassificationRow, canEditClassification, isMobil
         onDeleteError(null);
 
         try {
-            await deleteAttributeField(field.id);
+            await deleteAttributeField(field.object_type, field.id);
             dispatch({type: PropertyTypes.PROPERTY_FIELD_DELETED, data: {fieldId: field.id}});
         } catch (error) {
             onDeleteError(formatMessage(
@@ -401,13 +403,31 @@ export default function GlobalAttributesTable() {
     const fields = useSelector((state: GlobalState) =>
         getPropertyFieldsForObjectTypeAndGroup(state, GLOBAL_ATTRIBUTES_OBJECT_TYPE, groupId),
     );
+    const unlinkedFields = useSelector((state: GlobalState) =>
+        getUnlinkedSystemFieldsForGroup(state, groupId),
+    );
+
+    // Same gate the details page applies. Channel is fetched only when channel
+    // attributes are licensed and enabled: the server 501s a channel-scoped
+    // access_control GET below Enterprise Advanced, and this page is reachable at
+    // plain Enterprise, so an unconditional channel fetch would reject the load's
+    // Promise.all and fail the whole page there.
+    const channelAttributesEnabled = useSelector((state: GlobalState) =>
+        getFeatureFlagValue(state, 'ChannelAttributes') === 'true' && isMinimumEnterpriseAdvancedLicense(getLicense(state)));
+
+    const objectTypesToFetch = useMemo(
+        (): string[] => [GLOBAL_ATTRIBUTES_OBJECT_TYPE, ...ALL_RESOURCE_TYPES.filter((type) => channelAttributesEnabled || type !== 'channel')],
+        [channelAttributesEnabled],
+    );
 
     useEffect(() => {
         let active = true;
 
         const load = async () => {
             try {
-                await dispatch(fetchPropertyFields(GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, GLOBAL_ATTRIBUTES_TARGET_TYPE));
+                await Promise.all(objectTypesToFetch.map(
+                    (objectType) => dispatch(fetchPropertyFields(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, GLOBAL_ATTRIBUTES_TARGET_TYPE)),
+                ));
                 if (active) {
                     setLoadError(false);
                 }
@@ -429,13 +449,24 @@ export default function GlobalAttributesTable() {
         return () => {
             active = false;
         };
-    }, [dispatch]);
+    }, [dispatch, objectTypesToFetch]);
+
+    // getUnlinkedSystemFieldsForGroup reads every cached user/channel/post field.
+    // Channel fields can already be in the store (channel-header labels, a prior
+    // visit while licensed) after objectTypesToFetch has dropped that scope, so
+    // keep the table in lockstep with what this page is allowed to fetch.
+    const rows = useMemo(
+        () => [...fields, ...unlinkedFields.filter((field) => objectTypesToFetch.includes(field.object_type))].sort(
+            (a, b) => getDisplayName(a).localeCompare(getDisplayName(b)),
+        ),
+        [fields, unlinkedFields, objectTypesToFetch],
+    );
 
     // The Source column resolves plugin-owned rows to a plugin display name, but
     // server-only plugins are absent from the webapp manifest registry — their names
     // live in the admin plugin statuses, which nothing else on this page loads.
     // Fetched once, and only when a plugin-owned row is actually present.
-    const hasPluginOwnedFields = useMemo(() => fields.some((field) => Boolean(field.attrs?.source_plugin_id)), [fields]);
+    const hasPluginOwnedFields = useMemo(() => rows.some((field) => Boolean(field.attrs?.source_plugin_id)), [rows]);
 
     // Whether the plugin inventory is known yet. This gates the orphan check
     // rather than the Source column, which degrades harmlessly to the plugin ID:
@@ -478,11 +509,6 @@ export default function GlobalAttributesTable() {
         bannerRef.current?.focus?.({preventScroll: true});
         bannerRef.current?.closest('.admin-console__wrapper')?.scrollTo?.({top: 0});
     }, [deleteError, deleteModalExited]);
-
-    const rows = useMemo(
-        () => [...fields].sort((a, b) => getDisplayName(a).localeCompare(getDisplayName(b))),
-        [fields],
-    );
 
     const columns = useMemo<Array<ColumnDef<PropertyField, any>>>(() => {
         const isClassificationRow = (field: PropertyField) =>

@@ -47,9 +47,9 @@ import {useConfirmRemoveAppliesTo} from './attribute_remove_applies_to_warning_m
 
 import {CHANNEL_VALUE_SETTER, DEFAULT_CHANNEL_RESOURCE_CONFIG, buildChannelFieldAttrs, buildChannelFieldPatch, isOrderedChangePolicy, parseChannelFieldConfig} from '../applies_to/channels';
 import type {ChannelResourceConfig} from '../applies_to/channels';
-import {GLOBAL_ATTRIBUTES_LIST_ROUTE} from '../constants';
+import {GLOBAL_ATTRIBUTES_LIST_ROUTE, GLOBAL_ATTRIBUTES_OBJECT_TYPE} from '../constants';
 import {getSourceKind, getTypeIcon, getTypeLabel, isClassificationMarkingsField, typeLabels} from '../global_attributes_table';
-import type {AttributeFieldType} from '../utils';
+import type {AttributeFieldType, UpdateAttributeFieldPatch} from '../utils';
 import {
     createAttributeField,
     createLinkedAttributeField,
@@ -226,7 +226,7 @@ async function rollbackLinkedFields(
     }
 
     try {
-        await deleteAttributeField(templateFieldId);
+        await deleteAttributeField(GLOBAL_ATTRIBUTES_OBJECT_TYPE, templateFieldId);
     } catch (deleteTemplateError) {
         // Linked fields are gone, but the template is still on the server.
         // A retry under the same Unique name will conflict with it, so this
@@ -296,6 +296,18 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // every render site.
     const [sourcePluginId, setSourcePluginId] = useState<string | undefined>(undefined);
     const isPluginOwned = Boolean(sourcePluginId);
+
+    // Which object type Save PATCHes back to. Set once from the loaded field
+    // in load() below; create mode leaves it at the template type, since this
+    // page only edits existing fields and has no way to create a
+    // user/channel/post field directly.
+    const [objectType, setObjectType] = useState<string>(GLOBAL_ATTRIBUTES_OBJECT_TYPE);
+
+    // True for a loaded user/channel/post field that owns no template of its
+    // own -- create mode and templates both leave objectType at
+    // GLOBAL_ATTRIBUTES_OBJECT_TYPE, so this is false for them without an
+    // extra isEditMode clause.
+    const isNonTemplate = objectType !== GLOBAL_ATTRIBUTES_OBJECT_TYPE;
 
     // Substituted for the bare `disabled` prop everywhere else on this page --
     // one boolean, not a second parallel disabled path. Keeps the pre-existing
@@ -422,7 +434,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
 
         const load = async () => {
             try {
-                const field = await fetchAttributeField(fieldId);
+                const field = await fetchAttributeField(fieldId, channelAttributesEnabled);
                 if (cancelled) {
                     return;
                 }
@@ -434,12 +446,19 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                     return;
                 }
 
-                const linkedFields = await fetchLinkedFieldsForTemplate(fieldId);
-                if (cancelled) {
-                    return;
-                }
+                setObjectType(field.object_type);
 
-                const linkedByType = linkedFieldsByResourceType(linkedFields);
+                // Only a template has linked fields to fetch -- an unlinked
+                // user/channel/post field has none, so Applies-to stays empty
+                // and there is no Channels config to parse for it.
+                let linkedByType: Partial<Record<ResourceObjectType, PropertyField>> = {};
+                if (field.object_type === GLOBAL_ATTRIBUTES_OBJECT_TYPE) {
+                    const linkedFields = await fetchLinkedFieldsForTemplate(fieldId);
+                    if (cancelled) {
+                        return;
+                    }
+                    linkedByType = linkedFieldsByResourceType(linkedFields);
+                }
                 persistedLinkedFieldsRef.current = linkedByType;
                 originalNameRef.current = field.name;
                 const loadedFieldType = isAttributeFieldType(field.type) ? field.type : 'text';
@@ -453,9 +472,23 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 setOptions(optionsFromField(field));
                 setLdapAttr(typeof field.attrs?.ldap === 'string' ? field.attrs.ldap : '');
                 setSamlAttr(typeof field.attrs?.saml === 'string' ? field.attrs.saml : '');
-                setAppliesTo(ALL_RESOURCE_TYPES.filter((type) => Boolean(linkedByType[type])));
-                if (linkedByType.channel) {
-                    setChannelResource(parseChannelFieldConfig(linkedByType.channel));
+
+                // A non-template field has no linked fields to seed from --
+                // its Applies-to is its own object type, fixed (the
+                // AttributeAppliesTo call below disables it via isNonTemplate).
+                setAppliesTo(
+                    field.object_type === GLOBAL_ATTRIBUTES_OBJECT_TYPE ?
+                        ALL_RESOURCE_TYPES.filter((type) => Boolean(linkedByType[type])) :
+                        ALL_RESOURCE_TYPES.filter((type) => type === field.object_type),
+                );
+
+                // A non-template channel field is itself the channel field, so its
+                // row settings parse from it directly; a template seeds them from
+                // its linked channel child instead. Without this the locked Channels
+                // row would show the default config, misrepresenting the field.
+                const channelConfigSource = field.object_type === 'channel' ? field : linkedByType.channel;
+                if (channelConfigSource) {
+                    setChannelResource(parseChannelFieldConfig(channelConfigSource));
                 }
                 setLoading(false);
             } catch {
@@ -470,7 +503,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         return () => {
             cancelled = true;
         };
-    }, [fieldId]);
+    }, [fieldId, channelAttributesEnabled]);
 
     const autoSlugDisplay = useMemo(() => computeAutoSlugDisplay(displayName), [displayName]);
     const currentName = (isEditingName || isNameManuallyEdited) ? manualName : (autoSlugDisplay ?? '');
@@ -503,6 +536,15 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         nameDescribedBy = 'attribute-unique-name-error';
     } else if (isServerNameError) {
         nameDescribedBy = 'attribute-save-error';
+    }
+
+    // Plugin ownership wins over non-template: it disables the whole page,
+    // so it is the more specific reason to show.
+    let appliesToLockedTooltip: string | undefined;
+    if (isPluginOwned) {
+        appliesToLockedTooltip = formatMessage(isOrphaned ? messages.appliesToLockedPluginOrphanedTooltip : messages.appliesToLockedPluginTooltip);
+    } else if (isNonTemplate) {
+        appliesToLockedTooltip = formatMessage(messages.appliesToLockedSingleResourceTooltip);
     }
 
     const markDirty = useCallback(() => {
@@ -696,7 +738,13 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     }, [handleDoneClick, handleCancelEdit]);
 
     const hasExternalSource = Boolean(ldapAttr || samlAttr);
-    const typeLockedByAppliesTo = isEditMode && appliesTo.length > 0;
+
+    // External source (LDAP/SAML) is a user-identity concept. A template's linked
+    // children can include a user field, so every template keeps the editor
+    // regardless of which resources it currently applies to; among non-template
+    // fields only a user field qualifies.
+    const showsExternalSource = !isNonTemplate || objectType === 'user';
+    const typeLockedByAppliesTo = isEditMode && appliesTo.length > 0 && !isNonTemplate;
     const typeLocked = hasExternalSource || typeLockedByAppliesTo || isPluginOwned;
     const typeChanged = isEditMode && fieldType !== originalFieldTypeRef.current;
     const typeSupportsOptions = supportsOptions({type: fieldType} as PropertyField);
@@ -771,6 +819,34 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         setFailedResourceTypes(null);
 
         if (isEditMode && fieldId) {
+            const patch: UpdateAttributeFieldPatch = {
+                ...(nameUnchanged ? {} : {name: currentName}),
+                type: fieldType,
+                displayName,
+                options,
+                ldapAttr,
+                samlAttr,
+            };
+
+            // An unlinked user/channel/post field owns its own row -- one PATCH
+            // to that object type, skipping the template create-plus-link path
+            // below entirely.
+            if (objectType !== GLOBAL_ATTRIBUTES_OBJECT_TYPE) {
+                try {
+                    await updateAttributeField(objectType, fieldId, patch);
+                } catch (error) {
+                    finalizeSave({
+                        success: false,
+                        errorKind: errorKindFromError(error),
+                        serverErrorMessage: (error as ClientError | undefined)?.message ?? null,
+                        failedResourceTypes: null,
+                    });
+                    return;
+                }
+                finalizeSave({success: true});
+                return;
+            }
+
             const persisted = persistedLinkedFieldsRef.current;
             const toDelete = (Object.keys(persisted) as ResourceObjectType[]).filter((type) => !appliesTo.includes(type));
             const toCreate = appliesTo.filter((type) => !persisted[type]);
@@ -826,14 +902,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             }
 
             try {
-                await updateAttributeField(fieldId, {
-                    ...(nameUnchanged ? {} : {name: currentName}),
-                    type: fieldType,
-                    displayName,
-                    options,
-                    ldapAttr,
-                    samlAttr,
-                });
+                await updateAttributeField(GLOBAL_ATTRIBUTES_OBJECT_TYPE, fieldId, patch);
             } catch (error) {
                 finalizeSave({
                     success: false,
@@ -937,7 +1006,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         }
 
         finalizeSave(outcome);
-    }, [canSave, isEditMode, fieldId, nameUnchanged, displayName, currentName, fieldType, typeChanged, options, ldapAttr, samlAttr, appliesTo, channelResource, finalizeSave, confirmRemoveAppliesTo]);
+    }, [canSave, isEditMode, fieldId, objectType, nameUnchanged, displayName, currentName, fieldType, typeChanged, options, ldapAttr, samlAttr, appliesTo, channelResource, finalizeSave, confirmRemoveAppliesTo]);
 
     const handleChannelResourceChange = useCallback((next: ChannelResourceConfig) => {
         setChannelResource(next);
@@ -1293,14 +1362,16 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                             pluginInventoryLoaded={pluginInventoryLoaded}
                                         />
                                     ) : (
-                                        <AttributeExternalSource
-                                            ldapAttr={ldapAttr}
-                                            samlAttr={samlAttr}
-                                            fieldType={fieldType}
-                                            onLink={handleLink}
-                                            disabled={saving || effectiveDisabled}
-                                            disableAdding={typeLockedByAppliesTo}
-                                        />
+                                        showsExternalSource && (
+                                            <AttributeExternalSource
+                                                ldapAttr={ldapAttr}
+                                                samlAttr={samlAttr}
+                                                fieldType={fieldType}
+                                                onLink={handleLink}
+                                                disabled={saving || effectiveDisabled}
+                                                disableAdding={typeLockedByAppliesTo}
+                                            />
+                                        )
                                     )}
                                 </div>
                             </div>
@@ -1309,9 +1380,9 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                     <AttributeAppliesTo
                         appliesTo={appliesTo}
                         allowedTypes={allowedResourceTypes}
-                        disabled={saving || effectiveDisabled}
-                        hideAddResource={isPluginOwned}
-                        lockedTooltip={isPluginOwned ? formatMessage(isOrphaned ? messages.appliesToLockedPluginOrphanedTooltip : messages.appliesToLockedPluginTooltip) : undefined}
+                        disabled={saving || effectiveDisabled || isNonTemplate}
+                        hideAddResource={isPluginOwned || isNonTemplate}
+                        lockedTooltip={appliesToLockedTooltip}
                         onAdd={handleAdd}
                         onRemove={handleRemove}
                         channelResource={channelResource}
@@ -1437,6 +1508,10 @@ const messages = defineMessages({
     appliesToLockedPluginOrphanedTooltip: {
         id: 'admin.global_attributes.attribute_details.applies_to.locked_plugin_orphaned_tooltip',
         defaultMessage: "This resource cannot be changed — this attribute was managed by a plugin that's no longer installed.",
+    },
+    appliesToLockedSingleResourceTooltip: {
+        id: 'admin.global_attributes.attribute_details.applies_to.locked_single_resource_tooltip',
+        defaultMessage: 'This resource cannot be changed — this attribute applies to only one resource.',
     },
     optionsLabel: {id: 'admin.global_attributes.attribute_details.options.label', defaultMessage: 'Options'},
     optionsHelp: {
