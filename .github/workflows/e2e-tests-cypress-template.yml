@@ -219,11 +219,21 @@ jobs:
           persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 1
+      # Release-cut and PR E2E run this template from a newer ref (usually
+      # master) against an older commit_sha. Composite actions must come from
+      # the workflow ref so we do not require them on the tested SHA.
+      - name: ci/checkout-workflow-actions
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          sparse-checkout: .github/actions
+          sparse-checkout-cone-mode: true
+          path: .workflow-actions
       # lookup-only: asking whether the key exists costs a metadata call rather
       # than a ~275 MB download. The workers do the real restore.
       - name: ci/probe-cypress-deps
         id: probe
-        uses: ./.github/actions/restore-cypress-deps
+        uses: ./.workflow-actions/.github/actions/restore-cypress-deps
         with:
           lookup-only: "true"
       # Which transport a run took is otherwise only legible from which steps
@@ -246,12 +256,12 @@ jobs:
       # symlinks to.
       - name: ci/setup-webapp-node-modules
         if: steps.probe.outputs.cache-hit != 'true'
-        uses: ./.github/actions/webapp-setup
+        uses: ./.workflow-actions/.github/actions/webapp-setup
       # Read-only restore of the registry cache warmed daily from master, so the
       # install below refetches as little as possible.
       - name: ci/restore-npm-cache
         if: steps.probe.outputs.cache-hit != 'true'
-        uses: ./.github/actions/restore-e2e-npm-cache
+        uses: ./.workflow-actions/.github/actions/restore-e2e-npm-cache
       # The postinstall downloads the Cypress binary to ~/.cache/Cypress rather
       # than into node_modules, which is why the artifact carries both.
       - name: ci/install-cypress-deps
@@ -260,7 +270,7 @@ jobs:
         run: npm ci
       - name: ci/pack-cypress-deps
         if: steps.probe.outputs.cache-hit != 'true'
-        uses: ./.github/actions/pack-cypress-deps
+        uses: ./.workflow-actions/.github/actions/pack-cypress-deps
         with:
           fips: ${{ inputs.server_edition == 'fips' }}
 
@@ -330,37 +340,38 @@ jobs:
       CWS_URL: "${{ secrets.CWS_URL }}"
       CWS_EXTRA_HTTP_HEADERS: "${{ secrets.CWS_EXTRA_HTTP_HEADERS }}"
     steps:
-      - name: ci/checkout-actions
-        # Sparse-checkout just .github/actions from the triggering ref (master)
-        # so the composite action below is available before the full checkout
-        # overwrites the workspace with inputs.commit_sha.
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          persist-credentials: false
-          sparse-checkout: .github/actions
-          sparse-checkout-cone-mode: true
-      - name: ci/runner-prep-for-openldap
-        uses: ./.github/actions/runner-prep-openldap
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
+      # Same reason as prep-deps: local composite actions come from the
+      # workflow ref, not from commit_sha. Runner-prep can run after the
+      # repo checkout because it only changes the host, not the tree.
+      - name: ci/checkout-workflow-actions
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          sparse-checkout: .github/actions
+          sparse-checkout-cone-mode: true
+          path: .workflow-actions
+      - name: ci/runner-prep-for-openldap
+        uses: ./.workflow-actions/.github/actions/runner-prep-openldap
       - name: ci/setup-webapp-node-modules
-        uses: ./.github/actions/webapp-setup
+        uses: ./.workflow-actions/.github/actions/webapp-setup
         with:
           read-only: "true"
       # Exactly one of the next two steps runs, per prep-deps' probe. The warmed
       # cache is the normal path; the artifact exists only when the probe missed.
       - name: ci/restore-cypress-deps
         if: needs.prep-deps.outputs.cache-hit == 'true'
-        uses: ./.github/actions/restore-cypress-deps
+        uses: ./.workflow-actions/.github/actions/restore-cypress-deps
         with:
           fail-on-cache-miss: "true"
       - name: ci/reuse-cypress-deps
         if: needs.prep-deps.outputs.cache-hit != 'true'
-        uses: ./.github/actions/unpack-cypress-deps
+        uses: ./.workflow-actions/.github/actions/unpack-cypress-deps
         with:
           fips: ${{ inputs.server_edition == 'fips' }}
       - name: ci/cloud-init
