@@ -6781,10 +6781,6 @@
     "translation": "The specified team was not found."
   },
   {
-    "id": "app.export.export_version.scope_marshal.error",
-    "translation": "Failed to write the team and channel scope into the export. Aborting rather than producing an archive that would import as a full-instance restore."
-  },
-  {
     "id": "app.export.export_attachment.copy_file.error",
     "translation": "Failed to copy file during export."
   },
@@ -6807,6 +6803,10 @@
   {
     "id": "app.export.export_custom_emoji.mkdir.error",
     "translation": "Unable to create a directory for custom emoji images"
+  },
+  {
+    "id": "app.export.export_version.scope_marshal.error",
+    "translation": "Failed to write the team and channel scope into the export. Aborting rather than producing an archive that would import as a full-instance restore."
   },
   {
     "id": "app.export.export_write_line.io_writer.error",
@@ -8965,6 +8965,10 @@
     "translation": "Unable to get all reactions with this emoji name."
   },
   {
+    "id": "app.reaction.get_author_ids_for_channel.app_error",
+    "translation": "Unable to get reaction author IDs for the channel."
+  },
+  {
     "id": "app.reaction.get_for_post.app_error",
     "translation": "Unable to get reactions for post."
   },
@@ -9745,6 +9749,10 @@
   {
     "id": "app.terms_of_service.get.no_rows.app_error",
     "translation": "No terms of service found."
+  },
+  {
+    "id": "app.thread.get_follower_ids_for_channel.app_error",
+    "translation": "Unable to get thread follower IDs for the channel."
   },
   {
     "id": "app.thread.get_threadmembers_for_export.app_error",
