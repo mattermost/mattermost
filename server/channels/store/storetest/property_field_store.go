@@ -1492,7 +1492,6 @@ func testPropertyFieldLegacyPermissionColumns(t *testing.T, _ request.CTX, ss st
 		created, err := ss.PropertyField().Create(field)
 		require.NoError(t, err)
 
-		// Update permissions
 		field.Permissions.Restrictions.Field.Write = model.PermissionLevelSysadmin
 		field.Permissions.Restrictions.Value.Write = model.PermissionLevelAdmin
 		field.Permissions.Restrictions.Option.Write = model.PermissionLevelMember
