@@ -1548,31 +1548,31 @@ func TestInheritV0_5Rejected(t *testing.T) {
 	require.Empty(t, child.Imports)
 }
 
-// TestAccessChannelAction covers how access_channel validates. It is a permission
+// TestChannelReadAccessAction covers how channel_read_access validates. It is a permission
 // action, so a v0.4 channel policy needs a channel role and a unique rule name
 // for it. A v0.3 system permission policy needs neither.
-func TestAccessChannelAction(t *testing.T) {
+func TestChannelReadAccessAction(t *testing.T) {
 	t.Run("is a permission action", func(t *testing.T) {
-		require.True(t, IsPermissionAction(AccessControlPolicyActionAccessChannel))
-		require.True(t, allowedActionsV0_3[AccessControlPolicyActionAccessChannel])
+		require.True(t, IsPermissionAction(AccessControlPolicyActionChannelReadAccess))
+		require.True(t, allowedActionsV0_3[AccessControlPolicyActionChannelReadAccess])
 	})
 
-	t.Run("HasAccessChannelAction", func(t *testing.T) {
+	t.Run("HasChannelReadAccessAction", func(t *testing.T) {
 		var nilPolicy *AccessControlPolicy
-		require.False(t, nilPolicy.HasAccessChannelAction())
+		require.False(t, nilPolicy.HasChannelReadAccessAction())
 
 		fileOnly := &AccessControlPolicy{Rules: []AccessControlPolicyRule{{
 			Actions: []string{AccessControlPolicyActionUploadFileAttachment},
 		}}}
-		require.False(t, fileOnly.HasAccessChannelAction())
+		require.False(t, fileOnly.HasChannelReadAccessAction())
 		require.True(t, fileOnly.HasPermissionRuleAction())
 
 		// The action can be on any rule, and can share one with the file actions.
 		mixed := &AccessControlPolicy{Rules: []AccessControlPolicyRule{
 			{Actions: []string{AccessControlPolicyActionMembership}},
-			{Actions: []string{AccessControlPolicyActionUploadFileAttachment, AccessControlPolicyActionAccessChannel}},
+			{Actions: []string{AccessControlPolicyActionUploadFileAttachment, AccessControlPolicyActionChannelReadAccess}},
 		}}
-		require.True(t, mixed.HasAccessChannelAction())
+		require.True(t, mixed.HasChannelReadAccessAction())
 		require.True(t, mixed.HasPermissionRuleAction())
 	})
 
@@ -1585,7 +1585,7 @@ func TestAccessChannelAction(t *testing.T) {
 			Version:  AccessControlPolicyVersionV0_3,
 			Roles:    []string{SystemUserRoleId},
 			Rules: []AccessControlPolicyRule{{
-				Actions:    []string{AccessControlPolicyActionAccessChannel},
+				Actions:    []string{AccessControlPolicyActionChannelReadAccess},
 				Expression: `user.session.device_type == "desktop"`,
 			}},
 		}
@@ -1601,7 +1601,7 @@ func TestAccessChannelAction(t *testing.T) {
 			Version:  AccessControlPolicyVersionV0_3,
 			Roles:    []string{SystemUserRoleId},
 			Rules: []AccessControlPolicyRule{{
-				Actions:    []string{AccessControlPolicyActionAccessChannel},
+				Actions:    []string{AccessControlPolicyActionChannelReadAccess},
 				Expression: `user.session.ip_address.inCIDR("10.0.0.0/8")`,
 			}},
 		}
@@ -1623,7 +1623,7 @@ func TestAccessChannelAction(t *testing.T) {
 			Rules: []AccessControlPolicyRule{{
 				Name:       "Members on managed devices only",
 				Role:       ChannelUserRoleId,
-				Actions:    []string{AccessControlPolicyActionAccessChannel},
+				Actions:    []string{AccessControlPolicyActionChannelReadAccess},
 				Expression: `user.attributes.dept == "eng"`,
 			}},
 		}
@@ -1640,7 +1640,7 @@ func TestAccessChannelAction(t *testing.T) {
 				Name: "Managed devices only",
 				Role: ChannelUserRoleId,
 				Actions: []string{
-					AccessControlPolicyActionAccessChannel,
+					AccessControlPolicyActionChannelReadAccess,
 					AccessControlPolicyActionUploadFileAttachment,
 					AccessControlPolicyActionDownloadFileAttachment,
 				},
@@ -1659,7 +1659,7 @@ func TestAccessChannelAction(t *testing.T) {
 			Rules: []AccessControlPolicyRule{{
 				Name:       "Mixed",
 				Role:       ChannelUserRoleId,
-				Actions:    []string{AccessControlPolicyActionMembership, AccessControlPolicyActionAccessChannel},
+				Actions:    []string{AccessControlPolicyActionMembership, AccessControlPolicyActionChannelReadAccess},
 				Expression: "true",
 			}},
 		}
@@ -1676,7 +1676,7 @@ func TestAccessChannelAction(t *testing.T) {
 			Version:  AccessControlPolicyVersionV0_4,
 			Rules: []AccessControlPolicyRule{{
 				Name:       "No role",
-				Actions:    []string{AccessControlPolicyActionAccessChannel},
+				Actions:    []string{AccessControlPolicyActionChannelReadAccess},
 				Expression: "true",
 			}},
 		}
@@ -1695,13 +1695,13 @@ func TestAccessChannelAction(t *testing.T) {
 				{
 					Name:       "Duplicate",
 					Role:       ChannelUserRoleId,
-					Actions:    []string{AccessControlPolicyActionAccessChannel},
+					Actions:    []string{AccessControlPolicyActionChannelReadAccess},
 					Expression: "true",
 				},
 				{
 					Name:       "Duplicate",
 					Role:       ChannelGuestRoleId,
-					Actions:    []string{AccessControlPolicyActionAccessChannel},
+					Actions:    []string{AccessControlPolicyActionChannelReadAccess},
 					Expression: "true",
 				},
 			},
@@ -1726,7 +1726,7 @@ func TestAccessChannelAction(t *testing.T) {
 				Rules: []AccessControlPolicyRule{{
 					Name:       "Viewing",
 					Role:       ChannelUserRoleId,
-					Actions:    []string{AccessControlPolicyActionAccessChannel},
+					Actions:    []string{AccessControlPolicyActionChannelReadAccess},
 					Expression: "true",
 				}},
 			}
@@ -1743,17 +1743,17 @@ func TestAccessChannelAction(t *testing.T) {
 				Revision: 0,
 				Version:  AccessControlPolicyVersionV0_3,
 				Rules: []AccessControlPolicyRule{{
-					Actions:    []string{AccessControlPolicyActionAccessChannel},
+					Actions:    []string{AccessControlPolicyActionChannelReadAccess},
 					Expression: "true",
 				}},
 			}
 			err := policy.IsValid()
 			require.NotNil(t, err)
-			require.Equal(t, "model.access_policy.is_valid.actions.access_channel_type.app_error", err.Id)
+			require.Equal(t, "model.access_policy.is_valid.actions.channel_read_access_type.app_error", err.Id)
 		})
 
 		t.Run("membership is still allowed on a v0.3 "+policyType+" policy", func(t *testing.T) {
-			// The new v0.3 guard must be scoped to access_channel only.
+			// The new v0.3 guard must be scoped to channel_read_access only.
 			policy := &AccessControlPolicy{
 				ID:       NewId(),
 				Type:     policyType,
@@ -1780,7 +1780,7 @@ func TestAccessChannelAction(t *testing.T) {
 			Version:  AccessControlPolicyVersionV0_5,
 			Rules: []AccessControlPolicyRule{{
 				Role:       ChannelUserRoleId,
-				Actions:    []string{AccessControlPolicyActionAccessChannel},
+				Actions:    []string{AccessControlPolicyActionChannelReadAccess},
 				Expression: "true",
 			}},
 		}

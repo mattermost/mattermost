@@ -5,7 +5,7 @@ import {
     ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,
     ACCESS_CONTROL_ACTION_MEMBERSHIP,
     ACCESS_CONTROL_ACTION_UPLOAD_FILE,
-    ACCESS_CONTROL_ACTION_ACCESS_CHANNEL,
+    ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
     ACCESS_CONTROL_PERMISSION_ACTIONS,
     buildRulesWithMembership,
     buildRulesWithPermissionRules,
@@ -127,67 +127,67 @@ describe('buildRulesWithMembership', () => {
     });
 });
 
-describe('access_channel as a permission action', () => {
+describe('channel_read_access as a permission action', () => {
     test('is part of the permission action set', () => {
-        expect(ACCESS_CONTROL_PERMISSION_ACTIONS).toContain(ACCESS_CONTROL_ACTION_ACCESS_CHANNEL);
-        expect(ACCESS_CONTROL_ACTION_ACCESS_CHANNEL).toBe('access_channel');
+        expect(ACCESS_CONTROL_PERMISSION_ACTIONS).toContain(ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS);
+        expect(ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS).toBe('channel_read_access');
     });
 
-    test('getPermissionRules picks up access_channel rules', () => {
+    test('getPermissionRules picks up channel_read_access rules', () => {
         const rules: AccessControlPolicyRule[] = [
             {actions: [ACCESS_CONTROL_ACTION_MEMBERSHIP], expression: 'membership_expr'},
-            {name: 'Access', role: 'channel_user', actions: [ACCESS_CONTROL_ACTION_ACCESS_CHANNEL], expression: 'access_expr'},
+            {name: 'Access', role: 'channel_user', actions: [ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS], expression: 'access_expr'},
         ];
         expect(getPermissionRules(rules)).toEqual([
-            {name: 'Access', role: 'channel_user', actions: [ACCESS_CONTROL_ACTION_ACCESS_CHANNEL], expression: 'access_expr'},
+            {name: 'Access', role: 'channel_user', actions: [ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS], expression: 'access_expr'},
         ]);
     });
 
-    test('hasOverlappingPermissionRules detects two access_channel rules for the same role', () => {
+    test('hasOverlappingPermissionRules detects two channel_read_access rules for the same role', () => {
         const overlapping: AccessControlPolicyRule[] = [
-            {name: 'A', role: 'channel_user', actions: [ACCESS_CONTROL_ACTION_ACCESS_CHANNEL], expression: 'a'},
-            {name: 'B', role: 'channel_user', actions: [ACCESS_CONTROL_ACTION_ACCESS_CHANNEL], expression: 'b'},
+            {name: 'A', role: 'channel_user', actions: [ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS], expression: 'a'},
+            {name: 'B', role: 'channel_user', actions: [ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS], expression: 'b'},
         ];
         expect(hasOverlappingPermissionRules(overlapping)).toBe(true);
 
         const distinct: AccessControlPolicyRule[] = [
-            {name: 'A', role: 'channel_user', actions: [ACCESS_CONTROL_ACTION_ACCESS_CHANNEL], expression: 'a'},
-            {name: 'B', role: 'channel_guest', actions: [ACCESS_CONTROL_ACTION_ACCESS_CHANNEL], expression: 'b'},
+            {name: 'A', role: 'channel_user', actions: [ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS], expression: 'a'},
+            {name: 'B', role: 'channel_guest', actions: [ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS], expression: 'b'},
         ];
         expect(hasOverlappingPermissionRules(distinct)).toBe(false);
     });
 
-    test('buildRulesWithPermissionRules replaces access_channel rules and keeps membership', () => {
+    test('buildRulesWithPermissionRules replaces channel_read_access rules and keeps membership', () => {
         const existing: AccessControlPolicyRule[] = [
             {actions: [ACCESS_CONTROL_ACTION_MEMBERSHIP], expression: 'membership_expr'},
-            {name: 'Old access', role: 'channel_user', actions: [ACCESS_CONTROL_ACTION_ACCESS_CHANNEL], expression: 'old'},
+            {name: 'Old access', role: 'channel_user', actions: [ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS], expression: 'old'},
             {name: 'Old upload', role: 'channel_user', actions: [ACCESS_CONTROL_ACTION_UPLOAD_FILE], expression: 'old'},
         ];
         const replacement: AccessControlPolicyRule[] = [
-            {name: 'New access', role: 'channel_admin', actions: [ACCESS_CONTROL_ACTION_ACCESS_CHANNEL], expression: 'new'},
+            {name: 'New access', role: 'channel_admin', actions: [ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS], expression: 'new'},
         ];
         expect(buildRulesWithPermissionRules(existing, replacement)).toEqual([
             {actions: [ACCESS_CONTROL_ACTION_MEMBERSHIP], expression: 'membership_expr'},
-            {name: 'New access', role: 'channel_admin', actions: [ACCESS_CONTROL_ACTION_ACCESS_CHANNEL], expression: 'new'},
+            {name: 'New access', role: 'channel_admin', actions: [ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS], expression: 'new'},
         ]);
     });
 
-    test('buildRulesWithMembership preserves an access_channel rule', () => {
+    test('buildRulesWithMembership preserves a channel_read_access rule', () => {
         const existing: AccessControlPolicyRule[] = [
             {actions: [ACCESS_CONTROL_ACTION_MEMBERSHIP], expression: 'old_membership'},
-            {name: 'Access', role: 'channel_user', actions: [ACCESS_CONTROL_ACTION_ACCESS_CHANNEL], expression: 'access_expr'},
+            {name: 'Access', role: 'channel_user', actions: [ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS], expression: 'access_expr'},
         ];
         expect(buildRulesWithMembership(existing, 'new_membership')).toEqual([
             {actions: [ACCESS_CONTROL_ACTION_MEMBERSHIP], expression: 'new_membership'},
-            {name: 'Access', role: 'channel_user', actions: [ACCESS_CONTROL_ACTION_ACCESS_CHANNEL], expression: 'access_expr'},
+            {name: 'Access', role: 'channel_user', actions: [ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS], expression: 'access_expr'},
         ]);
     });
 
-    test('a rule mixing access_channel with a file action counts once per action', () => {
+    test('a rule mixing channel_read_access with a file action counts once per action', () => {
         const rules: AccessControlPolicyRule[] = [{
             name: 'Managed devices',
             role: 'channel_user',
-            actions: [ACCESS_CONTROL_ACTION_ACCESS_CHANNEL, ACCESS_CONTROL_ACTION_DOWNLOAD_FILE],
+            actions: [ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS, ACCESS_CONTROL_ACTION_DOWNLOAD_FILE],
             expression: 'expr',
         }];
         expect(getPermissionRules(rules)).toHaveLength(1);

@@ -319,7 +319,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
     });
 });
 
-describe('components/admin_console/permission_policies/policy_details/PermissionPolicyDetails — Access Channel', () => {
+describe('components/admin_console/permission_policies/policy_details/PermissionPolicyDetails — Channel Read Access', () => {
     const mockFetchPolicy = jest.fn();
     const mockCreatePolicy = jest.fn();
     const mockGetAccessControlFields = jest.fn();
@@ -352,7 +352,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
             general: {
                 config: {
                     FeatureFlagPermissionPolicies: 'true',
-                    FeatureFlagAccessChannelABACPermission: enabled ? 'true' : 'false',
+                    FeatureFlagChannelReadAccessABACPermission: enabled ? 'true' : 'false',
                 },
             },
         },
@@ -419,22 +419,22 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         });
     };
 
-    test('does not offer Access Channel when the flag is off', async () => {
+    test('does not offer Channel Read Access when the flag is off', async () => {
         await renderAndOpenMenu(false);
 
-        expect(document.getElementById('pp-add-permission-access_channel')).toBeNull();
+        expect(document.getElementById('pp-add-permission-channel_read_access')).toBeNull();
         expect(document.getElementById('pp-add-permission-upload_file_attachment')).not.toBeNull();
     });
 
-    test('offers Access Channel when the flag is on', async () => {
+    test('offers Channel Read Access when the flag is on', async () => {
         await renderAndOpenMenu(true);
 
-        expect(document.getElementById('pp-add-permission-access_channel')).not.toBeNull();
+        expect(document.getElementById('pp-add-permission-channel_read_access')).not.toBeNull();
     });
 
-    test('confirms before saving a policy that carries access_channel', async () => {
+    test('confirms before saving a policy that carries channel_read_access', async () => {
         await renderAndOpenMenu(true);
-        await pickPermission('Access Channel');
+        await pickPermission('Channel Read Access');
 
         await userEvent.click(screen.getByText('Save'));
 
@@ -447,13 +447,13 @@ describe('components/admin_console/permission_policies/policy_details/Permission
             expect(mockCreatePolicy).toHaveBeenCalledTimes(1);
         });
         expect(mockCreatePolicy.mock.calls[0][0].rules[0].actions).toEqual(
-            expect.arrayContaining(['download_file_attachment', 'access_channel']),
+            expect.arrayContaining(['download_file_attachment', 'channel_read_access']),
         );
     });
 
     test('cancelling the confirmation leaves the policy unsaved', async () => {
         await renderAndOpenMenu(true);
-        await pickPermission('Access Channel');
+        await pickPermission('Channel Read Access');
 
         await userEvent.click(screen.getByText('Save'));
         await screen.findByText('Save this policy?');
@@ -462,7 +462,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         expect(mockCreatePolicy).not.toHaveBeenCalled();
     });
 
-    test('does not confirm when the flag is off, even for a stored access_channel policy', async () => {
+    test('does not confirm when the flag is off, even for a stored channel_read_access policy', async () => {
         // The server would 501 the save, so the dialog would only be a scary
         // prompt in front of an error.
         mockFetchPolicy.mockResolvedValue({
@@ -471,7 +471,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
                 name: 'Policy 1',
                 roles: ['system_user'],
                 rules: [{
-                    actions: ['download_file_attachment', 'access_channel'],
+                    actions: ['download_file_attachment', 'channel_read_access'],
                     expression: 'user.attributes.teams == "engineering"',
                 }],
             },

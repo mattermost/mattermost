@@ -72,7 +72,7 @@ test.describe('Permission Policies - List Page', () => {
         await navigateToPermissionPoliciesPage(systemConsolePage.page);
 
         // * Subtitle is action-agnostic — it must not enumerate the individual
-        // permissions, which grow over time (upload, download, access channel...)
+        // permissions, which grow over time (upload, download, channel read access...)
         await expect(
             systemConsolePage.page.getByText(
                 'Create policies to control what users can do, based on their attributes',

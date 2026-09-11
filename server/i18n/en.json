@@ -56,12 +56,12 @@
     "translation": "Render-time access control decisions are not supported for resource type \"{{.Type}}\"."
   },
   {
-    "id": "api.access_control_policy.access_channel.feature_disabled",
-    "translation": "Access Channel permission policies feature is not enabled."
-  },
-  {
     "id": "api.access_control_policy.channel_permission_policies.feature_disabled",
     "translation": "Channel-level permission policies feature is not enabled."
+  },
+  {
+    "id": "api.access_control_policy.channel_read_access.feature_disabled",
+    "translation": "Channel Read Access permission policies feature is not enabled."
   },
   {
     "id": "api.access_control_policy.get_channels.limit.app_error",
@@ -392,6 +392,14 @@
     "translation": "Your license does not support groups"
   },
   {
+    "id": "api.channel.create_channel.attribute_no_permission.app_error",
+    "translation": "You do not have permission to set one of the submitted channel attributes."
+  },
+  {
+    "id": "api.channel.create_channel.attributes_feature_disabled.app_error",
+    "translation": "Channel attributes are not enabled on this server."
+  },
+  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Must use createDirectChannel API service for direct message channel creation."
   },
@@ -404,12 +412,20 @@
     "translation": "A direct channel cannot be created between these users because they do not share a team in common."
   },
   {
+    "id": "api.channel.create_channel.invalid_attribute.app_error",
+    "translation": "One of the submitted channel attributes is not valid for this channel."
+  },
+  {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
     "translation": "Unable to create more than {{.MaxChannelsPerTeam}} channels for current team."
   },
   {
     "id": "api.channel.create_channel.missing_display_name.error",
     "translation": "Missing display_name in request body"
+  },
+  {
+    "id": "api.channel.create_channel.missing_required_attributes.app_error",
+    "translation": "This channel is missing required attributes."
   },
   {
     "id": "api.channel.create_channel.missing_team_id.error",
@@ -3309,6 +3325,10 @@
   {
     "id": "api.preference.update_preferences.update_sidebar.app_error",
     "translation": "Unable to update sidebar to match updated preferences"
+  },
+  {
+    "id": "api.property.channel_attributes.license.app_error",
+    "translation": "Channel attributes require an Enterprise Advanced license."
   },
   {
     "id": "api.property.session_attributes.license.app_error",
@@ -8785,6 +8805,18 @@
     "translation": "Unable to register property group."
   },
   {
+    "id": "app.property_value.change_policy.lower_only.app_error",
+    "translation": "This attribute can only be lowered, never raised."
+  },
+  {
+    "id": "app.property_value.change_policy.never.app_error",
+    "translation": "This attribute cannot be changed after it is set."
+  },
+  {
+    "id": "app.property_value.change_policy.raise_only.app_error",
+    "translation": "This attribute can only be raised, never lowered."
+  },
+  {
     "id": "app.property_value.create.app_error",
     "translation": "Unable to create property value."
   },
@@ -8815,6 +8847,10 @@
   {
     "id": "app.property_value.invalid_input.app_error",
     "translation": "Invalid input provided."
+  },
+  {
+    "id": "app.property_value.required.app_error",
+    "translation": "This attribute is required and cannot be left empty."
   },
   {
     "id": "app.property_value.resolve_broadcast_params.unknown_object_type.app_error",
@@ -11295,12 +11331,12 @@
     "translation": "Could not inherit access control policy."
   },
   {
-    "id": "model.access_policy.is_valid.actions.access_channel_type.app_error",
-    "translation": "The Access Channel action is only allowed on permission and channel policies."
-  },
-  {
     "id": "model.access_policy.is_valid.actions.app_error",
     "translation": "Action(s) is not valid."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_read_access_type.app_error",
+    "translation": "The Channel Read Access action is only allowed on permission and channel policies."
   },
   {
     "id": "model.access_policy.is_valid.actions.membership_combined.app_error",

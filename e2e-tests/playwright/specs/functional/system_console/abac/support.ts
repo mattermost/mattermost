@@ -1338,7 +1338,7 @@ export async function getPolicyIdByName(
 /**
  * Create a permission policy using the CEL (Advanced) editor.
  * Caller must already be on the Permission Policies list page.
- * Available permissions: 'download_file_attachment' | 'upload_file_attachment' | 'access_channel'
+ * Available permissions: 'download_file_attachment' | 'upload_file_attachment' | 'channel_read_access'
  * Available roles: 'system_guest' | 'system_user' | 'system_admin'
  */
 export async function createPermissionPolicy(
@@ -1346,7 +1346,7 @@ export async function createPermissionPolicy(
     options: {
         name: string;
         celExpression: string;
-        permissions: Array<'Download Files' | 'Upload Files' | 'Access Channel'>;
+        permissions: Array<'Download Files' | 'Upload Files' | 'Channel Read Access'>;
         role?: 'system_guest' | 'system_user' | 'system_admin';
         adminClient?: Client4;
     },
@@ -1414,7 +1414,7 @@ export async function createPermissionPolicy(
     const permissionIdMap: Record<string, string> = {
         'Download Files': 'pp-add-permission-download_file_attachment',
         'Upload Files': 'pp-add-permission-upload_file_attachment',
-        'Access Channel': 'pp-add-permission-access_channel',
+        'Channel Read Access': 'pp-add-permission-channel_read_access',
     };
     for (const permission of options.permissions) {
         await page.getByRole('button', {name: 'Add permission'}).click();
@@ -1423,10 +1423,10 @@ export async function createPermissionPolicy(
 
     await page.getByRole('button', {name: 'Save'}).last().click();
 
-    // A policy with Access Channel shows a confirmation dialog before saving.
+    // A policy with Channel Read Access shows a confirmation dialog before saving.
     // File-only policies save straight through, so the dialog is optional.
-    if (options.permissions.includes('Access Channel')) {
-        const confirmModal = page.locator('#access-channel-confirm-modal');
+    if (options.permissions.includes('Channel Read Access')) {
+        const confirmModal = page.locator('#channel-read-access-confirm-modal');
         await confirmModal.waitFor({state: 'visible'});
         await confirmModal.getByRole('button', {name: 'Save policy'}).click();
     }
