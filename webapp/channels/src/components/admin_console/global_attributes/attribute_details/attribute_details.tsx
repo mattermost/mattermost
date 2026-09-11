@@ -428,7 +428,6 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 }
                 if (
                     !field ||
-                    getSourceKind(field) === 'plugin' ||
                     isClassificationMarkingsField(field, field.group_id) ||
 
                     // A type this editor can't author (graph, whose options carry
