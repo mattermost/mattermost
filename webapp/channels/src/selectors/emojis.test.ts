@@ -1,15 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import mergeObjects from 'mattermost-redux/test/merge_objects';
+import type {RecentEmojiData} from '@mattermost/types/emojis';
+
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import Constants, {Preferences} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
+import type {GlobalState} from 'types/store';
+
 import * as Selectors from './emojis';
 
-function makeRecentEmojisPreferences(recentEmojis) {
+function makeRecentEmojisPreferences(recentEmojis: RecentEmojiData[]) {
     const userId = 'currentUserId';
     return {
         [getPreferenceKey(Constants.Preferences.RECENT_EMOJIS, userId)]: {
@@ -40,7 +44,7 @@ describe('getRecentEmojisData', () => {
                 currentUserId,
             },
         },
-    };
+    } as unknown as GlobalState;
 
     test('should return an empty array when there are no recent emojis in storage', () => {
         expect(Selectors.getRecentEmojisData(baseState)).toEqual([]);

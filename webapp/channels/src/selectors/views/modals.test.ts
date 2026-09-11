@@ -3,6 +3,8 @@
 
 import {isModalOpen} from 'selectors/views/modals';
 
+import type {GlobalState} from 'types/store';
+
 describe('modals selector', () => {
     const state = {
         views: {
@@ -14,7 +16,7 @@ describe('modals selector', () => {
                 },
             },
         },
-    };
+    } as unknown as GlobalState;
 
     it('should return the isOpen value from the state for the given modalId', () => {
         expect(isModalOpen(state, 'someModalId')).toBeTruthy();

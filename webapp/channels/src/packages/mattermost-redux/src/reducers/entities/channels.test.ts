@@ -1,12 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
+
 import {ChannelTypes, UserTypes, PostTypes, AdminTypes} from 'mattermost-redux/action_types';
 import {General, Permissions} from 'mattermost-redux/constants';
-import TestHelper from 'mattermost-redux/test/test_helper';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
 import channelsReducer, * as Reducers from './channels';
+
+import TestHelper from '../../../test/test_helper';
+
+type ReducerState = ReturnType<typeof channelsReducer>;
 
 describe('channels', () => {
     describe('RECEIVED_CHANNEL_DELETED', () => {
@@ -20,7 +25,7 @@ describe('channels', () => {
                         id: 'channel2',
                     },
                 },
-            }, {}));
+            } as unknown as ReducerState, {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL_DELETED,
@@ -48,7 +53,7 @@ describe('channels', () => {
                         id: 'channel2',
                     },
                 },
-            }, {}));
+            } as unknown as ReducerState, {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL_DELETED,
@@ -74,7 +79,7 @@ describe('channels', () => {
                         id: 'channel2',
                     },
                 },
-            }, {}));
+            } as unknown as ReducerState, {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL_UNARCHIVED,
@@ -101,7 +106,7 @@ describe('channels', () => {
                         id: 'channel2',
                     },
                 },
-            }, {}));
+            } as unknown as ReducerState, {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL_UNARCHIVED,
@@ -116,7 +121,7 @@ describe('channels', () => {
 
     describe('RECEIVED_CHANNEL_STATS', () => {
         test("should store a channel's stats", () => {
-            const state = deepFreeze(channelsReducer({}, {}));
+            const state = deepFreeze(channelsReducer({}, {} as AnyAction));
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL_STATS,
                 data: {
@@ -151,7 +156,7 @@ describe('channels', () => {
                         files_count: 1,
                     },
                 },
-            }, {}));
+            } as unknown as ReducerState, {} as AnyAction));
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL_STATS,
                 data: {
@@ -186,7 +191,7 @@ describe('channels', () => {
                         files_count: 5,
                     },
                 },
-            }, {}));
+            } as unknown as ReducerState, {} as AnyAction));
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL_STATS,
                 data: {
@@ -211,7 +216,7 @@ describe('channels', () => {
                         files_count: 1,
                     },
                 },
-            }, {}));
+            } as unknown as ReducerState, {} as AnyAction));
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.INCREMENT_FILE_COUNT,
                 id: 'channel1',
@@ -231,7 +236,7 @@ describe('channels', () => {
                     member_count: 1,
                 },
             },
-        }, {}));
+        } as unknown as ReducerState, {} as AnyAction));
         test('should increment by 1 default', () => {
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.ADD_CHANNEL_MEMBER_SUCCESS,
@@ -264,7 +269,7 @@ describe('channels', () => {
                         memberId2: 'member-data-2',
                     },
                 },
-            }, {}));
+            } as unknown as ReducerState, {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.REMOVE_MEMBER_FROM_CHANNEL,
@@ -288,7 +293,7 @@ describe('channels', () => {
                         memberId2: 'member-data-2',
                     },
                 },
-            }, {}));
+            } as unknown as ReducerState, {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.REMOVE_MEMBER_FROM_CHANNEL,
@@ -311,7 +316,7 @@ describe('channels', () => {
                         memberId2: 'member-data-2',
                     },
                 },
-            }, {}));
+            } as unknown as ReducerState, {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.REMOVE_MEMBER_FROM_CHANNEL,
@@ -338,7 +343,7 @@ describe('channels', () => {
                         id: 'channel2',
                     },
                 },
-            }, {}));
+            } as unknown as ReducerState, {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: PostTypes.RECEIVED_NEW_POST,
@@ -371,7 +376,7 @@ describe('channels', () => {
                         id: 'channel2',
                     },
                 },
-            }, {}));
+            } as unknown as ReducerState, {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: PostTypes.RECEIVED_NEW_POST,
@@ -401,7 +406,7 @@ describe('channels', () => {
                         id: 'channel2',
                     },
                 },
-            }, {}));
+            } as unknown as ReducerState, {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: PostTypes.RECEIVED_NEW_POST,
@@ -425,7 +430,7 @@ describe('channels', () => {
                         id: 'channel2',
                     },
                 },
-            }, {}));
+            } as unknown as ReducerState, {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: PostTypes.RECEIVED_NEW_POST,
@@ -506,7 +511,7 @@ describe('channels', () => {
                         id: 'channel1',
                     },
                 },
-            }, {}));
+            } as unknown as ReducerState, {} as AnyAction));
 
             let nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL,
@@ -560,7 +565,7 @@ describe('channels', () => {
                         team_id: 'team',
                     },
                 },
-            }, {}));
+            } as unknown as ReducerState, {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNELS,
@@ -620,7 +625,7 @@ describe('channels', () => {
                         type: General.GM_CHANNEL,
                     },
                 },
-            }, {}));
+            } as unknown as ReducerState, {} as AnyAction));
 
             const nextState = channelsReducer(state, deepFreeze({
                 type: ChannelTypes.RECEIVED_CHANNELS,
@@ -699,7 +704,7 @@ describe('channels', () => {
                         id: 'channel1',
                     },
                 },
-            }, {}));
+            } as unknown as ReducerState, {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNELS,
@@ -738,7 +743,7 @@ describe('channels', () => {
                         team_id: 'team',
                     },
                 },
-            }, {}));
+            } as unknown as ReducerState, {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL_MODERATIONS,
@@ -777,7 +782,7 @@ describe('channels', () => {
                         },
                     }],
                 },
-            }, {}));
+            } as unknown as ReducerState, {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL_MODERATIONS,
@@ -813,7 +818,7 @@ describe('channels', () => {
                         team_id: 'team',
                     },
                 },
-            }, {}));
+            } as unknown as ReducerState, {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL_MEMBER_COUNTS_BY_GROUP,
@@ -863,7 +868,7 @@ describe('channels', () => {
                         channel_member_timezones_count: 131,
                     },
                 },
-            }, {}));
+            } as unknown as ReducerState, {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL_MEMBER_COUNTS_BY_GROUP,
@@ -912,7 +917,7 @@ describe('channels', () => {
                         team_id: 'team',
                     },
                 },
-            }, {}));
+            } as unknown as ReducerState, {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL_MEMBER_COUNTS_FROM_GROUPS_LIST,
@@ -961,7 +966,7 @@ describe('channels', () => {
                         channel_member_timezones_count: 131,
                     },
                 },
-            }, {}));
+            } as unknown as ReducerState, {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: ChannelTypes.RECEIVED_CHANNEL_MEMBER_COUNTS_FROM_GROUPS_LIST,
@@ -1015,7 +1020,7 @@ describe('channels', () => {
                         team_id: 'team',
                     },
                 },
-            }, {}));
+            } as unknown as ReducerState, {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: AdminTypes.RECEIVED_DATA_RETENTION_CUSTOM_POLICY_CHANNELS,
@@ -1066,7 +1071,7 @@ describe('channels', () => {
                         policy_id: 'policy1',
                     },
                 },
-            }, {}));
+            } as unknown as ReducerState, {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: AdminTypes.REMOVE_DATA_RETENTION_CUSTOM_POLICY_CHANNELS_SUCCESS,
@@ -1108,7 +1113,7 @@ describe('channels', () => {
                         team_id: 'team',
                     },
                 },
-            }, {}));
+            } as unknown as ReducerState, {} as AnyAction));
 
             const nextState = channelsReducer(state, {
                 type: AdminTypes.RECEIVED_DATA_RETENTION_CUSTOM_POLICY_CHANNELS_SEARCH,

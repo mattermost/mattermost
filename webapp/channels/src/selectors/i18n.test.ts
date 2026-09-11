@@ -5,6 +5,8 @@ import {General} from 'mattermost-redux/constants';
 
 import {getCurrentLocale, getTranslations} from 'selectors/i18n';
 
+import type {GlobalState} from 'types/store';
+
 describe('selectors/i18n', () => {
     describe('getCurrentLocale', () => {
         test('not logged in', () => {
@@ -20,7 +22,7 @@ describe('selectors/i18n', () => {
                         profiles: {},
                     },
                 },
-            };
+            } as unknown as GlobalState;
 
             expect(getCurrentLocale(state)).toEqual('fr');
         });
@@ -42,7 +44,7 @@ describe('selectors/i18n', () => {
                         },
                     },
                 },
-            };
+            } as unknown as GlobalState;
 
             expect(getCurrentLocale(state)).toEqual('de');
         });
@@ -64,13 +66,13 @@ describe('selectors/i18n', () => {
                         },
                     },
                 },
-            };
+            } as unknown as GlobalState;
 
             expect(getCurrentLocale(state)).toEqual(General.DEFAULT_LOCALE);
         });
 
         describe('locale from query parameter', () => {
-            const setWindowLocaleQueryParameter = (locale) => {
+            const setWindowLocaleQueryParameter = (locale: string) => {
                 const url = new URL(window.location.href);
                 url.searchParams.set('locale', locale);
                 window.history.replaceState({}, '', url.toString());
@@ -94,7 +96,7 @@ describe('selectors/i18n', () => {
                             profiles: {},
                         },
                     },
-                };
+                } as unknown as GlobalState;
 
                 setWindowLocaleQueryParameter('ko');
 
@@ -114,7 +116,7 @@ describe('selectors/i18n', () => {
                             profiles: {},
                         },
                     },
-                };
+                } as unknown as GlobalState;
 
                 setWindowLocaleQueryParameter('invalid_locale');
 
@@ -138,7 +140,7 @@ describe('selectors/i18n', () => {
                             },
                         },
                     },
-                };
+                } as unknown as GlobalState;
 
                 setWindowLocaleQueryParameter('ko');
 
@@ -158,7 +160,7 @@ describe('selectors/i18n', () => {
                     },
                 },
             },
-        };
+        } as unknown as GlobalState;
 
         test('returns loaded translations', () => {
             expect(getTranslations(state, 'en')).toBe(state.views.i18n.translations.en);

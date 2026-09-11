@@ -1,6 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ChannelMembership, ChannelNotifyProps, ChannelType} from '@mattermost/types/channels';
+import type {Post, PostType} from '@mattermost/types/posts';
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
+
 import {MarkUnread} from 'mattermost-redux/constants/channels';
 
 import testConfigureStore from 'tests/test_store';
@@ -10,6 +15,9 @@ import * as NotificationSounds from 'utils/notification_sounds';
 import * as utils from 'utils/notifications';
 import {getFocusedPopoutInfo} from 'utils/popouts/focus';
 
+import type {GlobalState} from 'types/store';
+
+import type {NewPostMessageProps} from './new_post';
 import {sendDesktopNotification, isDesktopSoundEnabled, getDesktopNotificationSound} from './notification_actions';
 
 jest.mock('utils/popouts/focus', () => ({
@@ -18,17 +26,17 @@ jest.mock('utils/popouts/focus', () => ({
 
 describe('notification_actions', () => {
     describe('sendDesktopNotification', () => {
-        let baseState;
-        let channelSettings;
-        let crt;
-        let msgProps;
-        let post;
-        let spy;
-        let userSettings;
+        let baseState: GlobalState;
+        let channelSettings: Partial<ChannelNotifyProps>;
+        let crt: Partial<PreferenceType>;
+        let msgProps: NewPostMessageProps;
+        let post: Post;
+        let spy: jest.SpyInstance<ReturnType<typeof utils.showNotification>, Parameters<typeof utils.showNotification>>;
+        let userSettings: Partial<UserNotifyProps>;
 
         beforeEach(() => {
-            spy = jest.spyOn(utils, 'showNotification').mockReturnValue(async () => ({status: 'success'}));
-            NotificationSounds.ding = jest.fn();
+            spy = jest.spyOn(utils, 'showNotification').mockReturnValue((async () => ({status: 'success'})) as unknown as ReturnType<typeof utils.showNotification>);
+            (NotificationSounds as {ding: typeof NotificationSounds.ding}).ding = jest.fn();
 
             crt = {
                 user_id: 'current_user_id',
@@ -46,7 +54,7 @@ describe('notification_actions', () => {
                 mention_keys: 'mentionkey',
                 first_name: 'true',
                 channel: 'true',
-            };
+            } as unknown as Partial<UserNotifyProps>;
 
             post = {
                 id: 'post_id',
@@ -55,7 +63,7 @@ describe('notification_actions', () => {
                 channel_id: 'channel_id',
                 props: {from_webhook: false},
                 message: 'Where is Jessica Hyde?',
-            };
+            } as unknown as Post;
 
             msgProps = {
                 post: JSON.stringify(post),
@@ -198,7 +206,7 @@ describe('notification_actions', () => {
                         DesktopNotificationHooks: [],
                     },
                 },
-            };
+            } as unknown as GlobalState;
         });
 
         test('should notify user', async () => {
@@ -216,7 +224,7 @@ describe('notification_actions', () => {
                     onClick: expect.any(Function),
                 });
 
-                spy.mock.calls[0][0].onClick();
+                (spy.mock.calls[0][0]!.onClick as () => void)();
 
                 expect(getHistory().push).toHaveBeenCalledWith('/team/channels/utopia');
                 expect(window.focus).toHaveBeenCalled();
@@ -274,7 +282,7 @@ describe('notification_actions', () => {
 
         test('should notify user when notify props is set to mention and there are no mentions but it\'s a DM_CHANNEL', () => {
             userSettings.desktop = NotificationLevels.MENTION;
-            msgProps.channel_type = Constants.DM_CHANNEL;
+            msgProps.channel_type = Constants.DM_CHANNEL as ChannelType;
 
             const store = testConfigureStore(baseState);
             return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
@@ -305,7 +313,7 @@ describe('notification_actions', () => {
 
         test('should not notify user on systemMessage', () => {
             const store = testConfigureStore(baseState);
-            post.type = 'system_message';
+            post.type = 'system_message' as PostType;
             return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
                 expect(spy).not.toHaveBeenCalled();
             });
@@ -483,7 +491,7 @@ describe('notification_actions', () => {
                         title: 'Reply in Utopia',
                         onClick: expect.any(Function),
                     });
-                    spy.mock.calls[0][0].onClick();
+                    (spy.mock.calls[0][0]!.onClick as () => void)();
 
                     expect(getHistory().push).toHaveBeenCalledWith('/team/pl/post_id');
                     expect(window.focus).toHaveBeenCalled();
@@ -494,12 +502,12 @@ describe('notification_actions', () => {
 
         describe('popout windows', () => {
             afterEach(() => {
-                getFocusedPopoutInfo.mockReturnValue(null);
+                jest.mocked(getFocusedPopoutInfo).mockReturnValue(null);
             });
 
             test('should not notify when the channel is focused in a popout window', () => {
                 baseState.views.browser.focused = false;
-                getFocusedPopoutInfo.mockReturnValue({channelId: 'channel_id'});
+                jest.mocked(getFocusedPopoutInfo).mockReturnValue({channelId: 'channel_id'});
 
                 const store = testConfigureStore(baseState);
                 return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
@@ -509,7 +517,7 @@ describe('notification_actions', () => {
 
             test('should notify when the popout is focused on a different channel', () => {
                 baseState.views.browser.focused = false;
-                getFocusedPopoutInfo.mockReturnValue({channelId: 'other_channel_id'});
+                jest.mocked(getFocusedPopoutInfo).mockReturnValue({channelId: 'other_channel_id'});
 
                 const store = testConfigureStore(baseState);
                 return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
@@ -520,7 +528,7 @@ describe('notification_actions', () => {
             test('should not notify when a CRT thread is focused in a popout window', () => {
                 crt.value = 'on';
                 baseState.views.browser.focused = false;
-                getFocusedPopoutInfo.mockReturnValue({channelId: 'channel_id', threadId: 'root_id'});
+                jest.mocked(getFocusedPopoutInfo).mockReturnValue({channelId: 'channel_id', threadId: 'root_id'});
                 msgProps.mentions = JSON.stringify(['current_user_id']);
                 msgProps.followers = JSON.stringify(['current_user_id']);
 
@@ -533,7 +541,7 @@ describe('notification_actions', () => {
             test('should notify when the thread popout is focused on a different thread', () => {
                 crt.value = 'on';
                 baseState.views.browser.focused = false;
-                getFocusedPopoutInfo.mockReturnValue({channelId: 'channel_id', threadId: 'other_thread_id'});
+                jest.mocked(getFocusedPopoutInfo).mockReturnValue({channelId: 'channel_id', threadId: 'other_thread_id'});
                 msgProps.mentions = JSON.stringify(['current_user_id']);
                 msgProps.followers = JSON.stringify(['current_user_id']);
 
@@ -545,7 +553,7 @@ describe('notification_actions', () => {
 
             test('should not suppress notification when a thread popout is focused but post is a channel message', () => {
                 baseState.views.browser.focused = false;
-                getFocusedPopoutInfo.mockReturnValue({channelId: 'channel_id', threadId: 'some_thread_id'});
+                jest.mocked(getFocusedPopoutInfo).mockReturnValue({channelId: 'channel_id', threadId: 'some_thread_id'});
 
                 const store = testConfigureStore(baseState);
                 return store.dispatch(sendDesktopNotification(post, msgProps)).then(() => {
@@ -642,60 +650,60 @@ describe('isDesktopSoundEnabled', () => {
             notify_props: {
                 desktop_sound: 'on',
             },
-        };
+        } as unknown as ChannelMembership;
         const user1 = {
             notify_props: {
                 desktop_sound: 'false',
             },
-        };
+        } as unknown as UserProfile;
         expect(isDesktopSoundEnabled(channelMember1, user1)).toBe(true);
 
         const channelMember2 = {
             notify_props: {
                 desktop_sound: 'off',
             },
-        };
+        } as unknown as ChannelMembership;
         const user2 = {
             notify_props: {
                 desktop_sound: 'false',
             },
-        };
+        } as unknown as UserProfile;
         expect(isDesktopSoundEnabled(channelMember2, user2)).toBe(false);
 
         const channelMember3 = {
             notify_props: {
                 desktop_sound: 'default',
             },
-        };
+        } as unknown as ChannelMembership;
         const user3 = {
             notify_props: {
                 desktop_sound: 'false',
             },
-        };
+        } as unknown as UserProfile;
         expect(isDesktopSoundEnabled(channelMember3, user3)).toBe(false);
 
         const channelMember4 = {
             notify_props: {
                 desktop_sound: 'default',
             },
-        };
+        } as unknown as ChannelMembership;
         const user4 = {
             notify_props: {
                 desktop_sound: 'true',
             },
-        };
+        } as unknown as UserProfile;
         expect(isDesktopSoundEnabled(channelMember4, user4)).toBe(true);
 
         const channelMember5 = {
             notify_props: {
                 desktop_sound: 'on',
             },
-        };
+        } as unknown as ChannelMembership;
         const user5 = {
             notify_props: {
                 desktop_sound: '',
             },
-        };
+        } as unknown as UserProfile;
         expect(isDesktopSoundEnabled(channelMember5, user5)).toBe(true);
     });
 
@@ -704,40 +712,40 @@ describe('isDesktopSoundEnabled', () => {
             notify_props: {
                 desktop_sound: '',
             },
-        };
+        } as unknown as ChannelMembership;
         const user1 = {
             notify_props: {
                 desktop_sound: 'true',
             },
-        };
+        } as unknown as UserProfile;
         expect(isDesktopSoundEnabled(channelMember1, user1)).toBe(true);
 
         const channelMember2 = {
             notify_props: {
                 desktop_sound: '',
             },
-        };
+        } as unknown as ChannelMembership;
         const user2 = {
             notify_props: {
                 desktop_sound: 'false',
             },
-        };
+        } as unknown as UserProfile;
         expect(isDesktopSoundEnabled(channelMember2, user2)).toBe(false);
 
         const channelMember3 = {
             notify_props: {},
-        };
+        } as unknown as ChannelMembership;
         const user3 = {
             notify_props: {
                 desktop_sound: 'false',
             },
-        };
+        } as unknown as UserProfile;
         expect(isDesktopSoundEnabled(channelMember3, user3)).toBe(false);
     });
 
     test('should return default if both channel member and user are not defined', () => {
-        const channelMember = {};
-        const user = {};
+        const channelMember = {} as unknown as ChannelMembership;
+        const user = {} as unknown as UserProfile;
         expect(isDesktopSoundEnabled(channelMember, user)).toBe(true);
     });
 });
@@ -748,50 +756,50 @@ describe('getDesktopNotificationSound', () => {
             notify_props: {
                 desktop_notification_sound: 'default',
             },
-        };
+        } as unknown as ChannelMembership;
         const user1 = {
             notify_props: {
                 desktop_notification_sound: 'Crackle',
             },
-        };
+        } as unknown as UserProfile;
         expect(getDesktopNotificationSound(channelMember1, user1)).toBe('Crackle');
 
         const channelMember2 = {
             notify_props: {
                 desktop_notification_sound: 'default',
             },
-        };
+        } as unknown as ChannelMembership;
         const user2 = {
             notify_props: {
                 desktop_notification_sound: '',
             },
-        };
+        } as unknown as UserProfile;
         expect(getDesktopNotificationSound(channelMember2, user2)).toBe('Bing');
 
         const channelMember3 = {
             notify_props: {
                 desktop_notification_sound: 'Crackle',
             },
-        };
+        } as unknown as ChannelMembership;
         const user3 = {
             notify_props: {
                 desktop_notification_sound: 'Bing',
             },
-        };
+        } as unknown as UserProfile;
         expect(getDesktopNotificationSound(channelMember3, user3)).toBe('Crackle');
     });
 
     test('should return user notification sound if channel member sound is not defined', () => {
-        const channelMember1 = {};
+        const channelMember1 = {} as unknown as ChannelMembership;
         const user1 = {
             notify_props: {
                 desktop_notification_sound: 'Crackle',
             },
-        };
+        } as unknown as UserProfile;
         expect(getDesktopNotificationSound(channelMember1, user1)).toBe('Crackle');
 
-        const channelMember2 = {};
-        const user2 = {};
+        const channelMember2 = {} as unknown as ChannelMembership;
+        const user2 = {} as unknown as UserProfile;
         expect(getDesktopNotificationSound(channelMember2, user2)).toBe('Bing');
     });
 });

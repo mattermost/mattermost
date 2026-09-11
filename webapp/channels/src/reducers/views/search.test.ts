@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
+
 import searchReducer from 'reducers/views/search';
 
 import {SearchTypes} from 'utils/constants';
@@ -21,7 +23,7 @@ describe('Reducers.Search', () => {
             {
                 modalSearch: '',
             },
-            {},
+            {} as AnyAction,
         );
 
         expect(nextState).toEqual(initialState);
@@ -45,7 +47,7 @@ describe('Reducers.Search', () => {
     });
 
     test('should set user grid search', () => {
-        const filters = {team_id: '123456789'};
+        const filters = {team_roles: ['team_admin']};
         const nextState = searchReducer(
             {
                 userGridSearch: {filters},
@@ -65,7 +67,7 @@ describe('Reducers.Search', () => {
     test('should set user grid filters', () => {
         const nextState = searchReducer(
             {
-                userGridSearch: {term: 'something', filters: {team_id: '123456789'}},
+                userGridSearch: {term: 'something', filters: {team_roles: ['team_admin']}},
             },
             {
                 type: SearchTypes.SET_USER_GRID_FILTERS,

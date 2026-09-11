@@ -1,6 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Channel} from '@mattermost/types/channels';
+import type {CommandArgs} from '@mattermost/types/integrations';
+import type {Post} from '@mattermost/types/posts';
+
 import {General} from 'mattermost-redux/constants';
 
 import mockStore from 'tests/test_store';
@@ -11,6 +15,7 @@ import {
     runMessageWillBeUpdatedHooks,
     runSlashCommandWillBePostedHooks,
 } from './hooks';
+import type {NewPostMessageProps} from './new_post';
 
 describe('runMessageWillBePostedHooks', () => {
     test('should do nothing when no hooks are registered', async () => {
@@ -19,7 +24,7 @@ describe('runMessageWillBePostedHooks', () => {
                 components: {},
             },
         });
-        const post = {message: 'test'};
+        const post = {message: 'test'} as unknown as Post;
 
         const result = await store.dispatch(runMessageWillBePostedHooks(post));
 
@@ -42,7 +47,7 @@ describe('runMessageWillBePostedHooks', () => {
                 },
             },
         });
-        const post = {message: 'test'};
+        const post = {message: 'test'} as unknown as Post;
 
         const result = await store.dispatch(runMessageWillBePostedHooks(post));
 
@@ -68,7 +73,7 @@ describe('runMessageWillBePostedHooks', () => {
                 },
             },
         });
-        const post = {message: 'test'};
+        const post = {message: 'test'} as unknown as Post;
 
         const result = await store.dispatch(runMessageWillBePostedHooks(post));
 
@@ -94,7 +99,7 @@ describe('runMessageWillBePostedHooks', () => {
                 },
             },
         });
-        const post = {message: 'test'};
+        const post = {message: 'test'} as unknown as Post;
 
         const result = await store.dispatch(runMessageWillBePostedHooks(post));
 
@@ -128,7 +133,7 @@ describe('runMessageWillBePostedHooks', () => {
                 },
             },
         });
-        const post = {message: 'test'};
+        const post = {message: 'test'} as unknown as Post;
 
         const result = await store.dispatch(runMessageWillBePostedHooks(post));
 
@@ -150,7 +155,7 @@ describe('runMessageWillBePostedHooks', () => {
                 },
             },
         });
-        const post = {message: 'test'};
+        const post = {message: 'test'} as unknown as Post;
 
         const result = await store.dispatch(runMessageWillBePostedHooks(post));
 
@@ -169,7 +174,7 @@ describe('runSlashCommandWillBePostedHooks', () => {
             },
         });
         const message = '/test';
-        const args = {channelId: 'abcdefg'};
+        const args = {channelId: 'abcdefg'} as unknown as CommandArgs;
 
         const result = await store.dispatch(runSlashCommandWillBePostedHooks(message, args));
 
@@ -193,7 +198,7 @@ describe('runSlashCommandWillBePostedHooks', () => {
             },
         });
         const message = '/test';
-        const args = {channelId: 'abcdefg'};
+        const args = {channelId: 'abcdefg'} as unknown as CommandArgs;
 
         const result = await store.dispatch(runSlashCommandWillBePostedHooks(message, args));
 
@@ -220,7 +225,7 @@ describe('runSlashCommandWillBePostedHooks', () => {
             },
         });
         const message = '/test';
-        const args = {channelId: 'abcdefg'};
+        const args = {channelId: 'abcdefg'} as unknown as CommandArgs;
 
         const result = await store.dispatch(runSlashCommandWillBePostedHooks(message, args));
 
@@ -247,7 +252,7 @@ describe('runSlashCommandWillBePostedHooks', () => {
             },
         });
         const message = '/test';
-        const args = {channelId: 'abcdefg'};
+        const args = {channelId: 'abcdefg'} as unknown as CommandArgs;
 
         const result = await store.dispatch(runSlashCommandWillBePostedHooks(message, args));
 
@@ -274,7 +279,7 @@ describe('runSlashCommandWillBePostedHooks', () => {
             },
         });
         const message = '/test';
-        const args = {channelId: 'abcdefg'};
+        const args = {channelId: 'abcdefg'} as unknown as CommandArgs;
 
         const result = await store.dispatch(runSlashCommandWillBePostedHooks(message, args));
 
@@ -307,7 +312,7 @@ describe('runSlashCommandWillBePostedHooks', () => {
             },
         });
         const message = '/test';
-        const args = {channelId: 'abcdefg'};
+        const args = {channelId: 'abcdefg'} as unknown as CommandArgs;
 
         const result = await store.dispatch(runSlashCommandWillBePostedHooks(message, args));
 
@@ -330,7 +335,7 @@ describe('runSlashCommandWillBePostedHooks', () => {
             },
         });
         const message = '/test';
-        const args = {channelId: 'abcdefg'};
+        const args = {channelId: 'abcdefg'} as unknown as CommandArgs;
 
         const result = await store.dispatch(runSlashCommandWillBePostedHooks(message, args));
 
@@ -349,7 +354,7 @@ describe('runMessageWillBeUpdatedHooks', () => {
             },
         });
 
-        const oldPost = {message: 'test'};
+        const oldPost = {message: 'test'} as unknown as Post;
         const newPost = {message: 'edited'};
 
         const result = await store.dispatch(runMessageWillBeUpdatedHooks(newPost, oldPost));
@@ -374,7 +379,7 @@ describe('runMessageWillBeUpdatedHooks', () => {
             },
         });
 
-        const oldPost = {message: 'test'};
+        const oldPost = {message: 'test'} as unknown as Post;
         const newPost = {message: 'edited'};
 
         const result = await store.dispatch(runMessageWillBeUpdatedHooks(newPost, oldPost));
@@ -402,7 +407,7 @@ describe('runMessageWillBeUpdatedHooks', () => {
             },
         });
 
-        const oldPost = {message: 'test'};
+        const oldPost = {message: 'test'} as unknown as Post;
         const newPost = {message: 'edited'};
 
         const result = await store.dispatch(runMessageWillBeUpdatedHooks(newPost, oldPost));
@@ -430,7 +435,7 @@ describe('runMessageWillBeUpdatedHooks', () => {
             },
         });
 
-        const oldPost = {message: 'test'};
+        const oldPost = {message: 'test'} as unknown as Post;
         const newPost = {message: 'edited'};
 
         const result = await store.dispatch(runMessageWillBeUpdatedHooks(newPost, oldPost));
@@ -466,7 +471,7 @@ describe('runMessageWillBeUpdatedHooks', () => {
             },
         });
 
-        const oldPost = {message: 'test'};
+        const oldPost = {message: 'test'} as unknown as Post;
         const newPost = {message: 'edited'};
 
         const result = await store.dispatch(runMessageWillBeUpdatedHooks(newPost, oldPost));
@@ -489,7 +494,7 @@ describe('runMessageWillBeUpdatedHooks', () => {
                 },
             },
         });
-        const oldPost = {message: 'test'};
+        const oldPost = {message: 'test'} as unknown as Post;
         const newPost = {message: 'edited'};
 
         const result = await store.dispatch(runMessageWillBeUpdatedHooks(newPost, oldPost));
@@ -508,10 +513,10 @@ describe('runDesktopNotificationHooks', () => {
                 components: {},
             },
         });
-        const post = {id: 'postid01234567890123456789'};
+        const post = {id: 'postid01234567890123456789'} as unknown as Post;
         const teamId = 'teamid01234567890123456789';
-        const msgProps = {mentions: ['userid1'], team_id: teamId};
-        const channel = {type: General.DM_CHANNEL};
+        const msgProps = {mentions: ['userid1'], team_id: teamId} as unknown as NewPostMessageProps;
+        const channel = {type: General.DM_CHANNEL} as unknown as Channel;
         const args = {
             title: 'Notification title',
             body: 'Notification body',
@@ -542,10 +547,10 @@ describe('runDesktopNotificationHooks', () => {
                 },
             },
         });
-        const post = {id: 'postid01234567890123456789'};
+        const post = {id: 'postid01234567890123456789'} as unknown as Post;
         const teamId = 'teamid01234567890123456789';
-        const msgProps = {mentions: ['userid1'], team_id: teamId};
-        const channel = {type: General.DM_CHANNEL};
+        const msgProps = {mentions: ['userid1'], team_id: teamId} as unknown as NewPostMessageProps;
+        const channel = {type: General.DM_CHANNEL} as unknown as Channel;
         const args = {
             title: 'Notification title',
             body: 'Notification body',
@@ -579,10 +584,10 @@ describe('runDesktopNotificationHooks', () => {
                 },
             },
         });
-        const post = {id: 'postid01234567890123456789'};
+        const post = {id: 'postid01234567890123456789'} as unknown as Post;
         const teamId = 'teamid01234567890123456789';
-        const msgProps = {mentions: ['userid1'], team_id: teamId};
-        const channel = {type: General.DM_CHANNEL};
+        const msgProps = {mentions: ['userid1'], team_id: teamId} as unknown as NewPostMessageProps;
+        const channel = {type: General.DM_CHANNEL} as unknown as Channel;
         const args = {
             title: 'Notification title',
             body: 'Notification body',
@@ -616,10 +621,10 @@ describe('runDesktopNotificationHooks', () => {
                 },
             },
         });
-        const post = {id: 'postid01234567890123456789'};
+        const post = {id: 'postid01234567890123456789'} as unknown as Post;
         const teamId = 'teamid01234567890123456789';
-        const msgProps = {mentions: ['userid1'], team_id: teamId};
-        const channel = {type: General.DM_CHANNEL};
+        const msgProps = {mentions: ['userid1'], team_id: teamId} as unknown as NewPostMessageProps;
+        const channel = {type: General.DM_CHANNEL} as unknown as Channel;
         const args = {
             title: 'Notification title',
             body: 'Notification body',
@@ -653,10 +658,10 @@ describe('runDesktopNotificationHooks', () => {
                 },
             },
         });
-        const post = {id: 'postid01234567890123456789'};
+        const post = {id: 'postid01234567890123456789'} as unknown as Post;
         const teamId = 'teamid01234567890123456789';
-        const msgProps = {mentions: ['userid1'], team_id: teamId};
-        const channel = {type: General.DM_CHANNEL};
+        const msgProps = {mentions: ['userid1'], team_id: teamId} as unknown as NewPostMessageProps;
+        const channel = {type: General.DM_CHANNEL} as unknown as Channel;
         const args = {
             title: 'Notification title',
             body: 'Notification body',
@@ -702,10 +707,10 @@ describe('runDesktopNotificationHooks', () => {
                 },
             },
         });
-        const post = {id: 'postid01234567890123456789'};
+        const post = {id: 'postid01234567890123456789'} as unknown as Post;
         const teamId = 'teamid01234567890123456789';
-        const msgProps = {mentions: ['userid1'], team_id: teamId};
-        const channel = {type: General.DM_CHANNEL};
+        const msgProps = {mentions: ['userid1'], team_id: teamId} as unknown as NewPostMessageProps;
+        const channel = {type: General.DM_CHANNEL} as unknown as Channel;
         const args = {
             title: 'Notification title',
             body: 'Notification body',
@@ -745,10 +750,10 @@ describe('runDesktopNotificationHooks', () => {
                 },
             },
         });
-        const post = {id: 'postid01234567890123456789'};
+        const post = {id: 'postid01234567890123456789'} as unknown as Post;
         const teamId = 'teamid01234567890123456789';
-        const msgProps = {mentions: ['userid1'], team_id: teamId};
-        const channel = {type: General.DM_CHANNEL};
+        const msgProps = {mentions: ['userid1'], team_id: teamId} as unknown as NewPostMessageProps;
+        const channel = {type: General.DM_CHANNEL} as unknown as Channel;
         const args = {
             title: 'Notification title',
             body: 'Notification body',

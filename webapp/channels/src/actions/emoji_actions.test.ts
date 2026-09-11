@@ -7,6 +7,7 @@ import * as EmojiActions from 'actions/emoji_actions';
 import {getRecentEmojisData, getEmojiMap} from 'selectors/emojis';
 
 import mockStore from 'tests/test_store';
+import type EmojiMap from 'utils/emoji_map';
 
 const currentUserId = 'current_user_id';
 const initialState = {
@@ -23,22 +24,22 @@ jest.mock('selectors/emojis', () => ({
 }));
 
 jest.mock('mattermost-redux/actions/preferences', () => ({
-    savePreferences: (...args) => ({type: 'RECEIVED_PREFERENCES', args}),
+    savePreferences: (...args: unknown[]) => ({type: 'RECEIVED_PREFERENCES', args}),
 }));
 
 describe('Actions.Emojis', () => {
-    let store;
+    let store: ReturnType<typeof mockStore>;
     beforeEach(async () => {
         store = await mockStore(initialState);
     });
 
     test('Emoji alias is stored in recent emojis', async () => {
-        getRecentEmojisData.mockImplementation(() => {
+        jest.mocked(getRecentEmojisData).mockImplementation(() => {
             return [];
         });
 
-        getEmojiMap.mockImplementation(() => {
-            return new Map([['grinning', {short_name: 'grinning'}]]);
+        jest.mocked(getEmojiMap).mockImplementation(() => {
+            return new Map([['grinning', {short_name: 'grinning'}]]) as unknown as EmojiMap;
         });
 
         const expectedActions = [{
@@ -66,12 +67,12 @@ describe('Actions.Emojis', () => {
     });
 
     test('First alias is stored in recent emojis even if second alias used', async () => {
-        getRecentEmojisData.mockImplementation(() => {
+        jest.mocked(getRecentEmojisData).mockImplementation(() => {
             return [];
         });
 
-        getEmojiMap.mockImplementation(() => {
-            return new Map([['thumbsup', {short_name: '+1'}]]);
+        jest.mocked(getEmojiMap).mockImplementation(() => {
+            return new Map([['thumbsup', {short_name: '+1'}]]) as unknown as EmojiMap;
         });
 
         const expectedActions = [{
@@ -99,16 +100,16 @@ describe('Actions.Emojis', () => {
     });
 
     test('Invalid emoji are not stored in recents', async () => {
-        getRecentEmojisData.mockImplementation(() => {
+        jest.mocked(getRecentEmojisData).mockImplementation(() => {
             return [];
         });
 
-        getEmojiMap.mockImplementation(() => {
-            return new Map([['smile', {short_name: 'smile'}]]);
+        jest.mocked(getEmojiMap).mockImplementation(() => {
+            return new Map([['smile', {short_name: 'smile'}]]) as unknown as EmojiMap;
         });
 
         const savePreferencesSpy = jest.spyOn(PreferenceActions, 'savePreferences').mockImplementation(() => {
-            return {date: true};
+            return {date: true} as unknown as ReturnType<typeof PreferenceActions.savePreferences>;
         });
 
         await store.dispatch(EmojiActions.addRecentEmoji('gamgamstyle'));
@@ -116,7 +117,7 @@ describe('Actions.Emojis', () => {
     });
 
     test('Emoji already present in recent should be bumped on the top', async () => {
-        getRecentEmojisData.mockImplementation(() => {
+        jest.mocked(getRecentEmojisData).mockImplementation(() => {
             return [
                 {name: 'smile', usageCount: 1},
                 {name: 'grinning', usageCount: 1},
@@ -125,8 +126,8 @@ describe('Actions.Emojis', () => {
             ];
         });
 
-        getEmojiMap.mockImplementation(() => {
-            return new Map([['grinning', {short_name: 'grinning'}]]);
+        jest.mocked(getEmojiMap).mockImplementation(() => {
+            return new Map([['grinning', {short_name: 'grinning'}]]) as unknown as EmojiMap;
         });
 
         const expectedActions = [{
@@ -183,12 +184,12 @@ describe('Actions.Emojis', () => {
             {name: '22', usageCount: 1},
             {name: '23', usageCount: 1},
         ];
-        getRecentEmojisData.mockImplementation(() => {
+        jest.mocked(getRecentEmojisData).mockImplementation(() => {
             return recentEmojisList;
         });
 
-        getEmojiMap.mockImplementation(() => {
-            return new Map([['accept', {short_name: 'accept'}]]);
+        jest.mocked(getEmojiMap).mockImplementation(() => {
+            return new Map([['accept', {short_name: 'accept'}]]) as unknown as EmojiMap;
         });
 
         const expectedActions = [{
@@ -244,18 +245,18 @@ describe('Actions.Emojis', () => {
             {name: 'balloon', usageCount: 3},
             {name: 'taco', usageCount: 4},
         ];
-        getRecentEmojisData.mockImplementation(() => {
+        jest.mocked(getRecentEmojisData).mockImplementation(() => {
             return recentEmojisList;
         });
 
-        getEmojiMap.mockImplementation(() => {
+        jest.mocked(getEmojiMap).mockImplementation(() => {
             return new Map([
                 ['accept', {short_name: 'accept'}],
                 ['balloon', {short_name: 'balloon'}],
                 ['grinning', {short_name: 'grinning'}],
                 ['taco', {short_name: 'taco'}],
                 ['trumpet', {short_name: 'trumpet'}],
-            ]);
+            ]) as unknown as EmojiMap;
         });
 
         const expectedActions = [{
