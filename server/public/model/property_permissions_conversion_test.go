@@ -279,7 +279,7 @@ func TestPermissionsFromLegacyWorstCaseGrantCountUnderCap(t *testing.T) {
 	// into a value grant and a definition grant, plus a source plugin, a sync
 	// source, and the ambient wildcard of a public owner-managed field. This is
 	// what sets PropertyGrantsMaxPerField's floor -- a lower cap would reject a
-	// field that was legal under the old owners cap.
+	// field whose owners stay within PropertyOwnersMaxPerField.
 	owners := make([]PropertyOwner, PropertyOwnersMaxPerField)
 	for i := range owners {
 		owners[i] = PropertyOwner{Type: PropertyOwnerTypeUser, ID: NewId(), Scopes: []string{"scope"}}
