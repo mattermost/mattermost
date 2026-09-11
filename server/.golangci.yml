@@ -86,7 +86,7 @@ linters:
             - "$all"
           deny:
             - pkg: "math/rand$"
-              desc: "use math/rand/v2 instead; math/rand (v1) is deprecated, requires manual seeding, and uses a weaker PRNG (see MM-70625)"
+              desc: "use math/rand/v2 instead"
     govet:
       disable:
         - fieldalignment
