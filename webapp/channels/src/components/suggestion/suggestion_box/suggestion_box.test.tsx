@@ -122,7 +122,7 @@ type FixedProviderOptions = {
 class FixedProvider extends Provider {
     private options: FixedProviderOptions;
 
-    // Neither of these are part of Provider, but SuggestionBox looks for them on the providers it's given
+    // Optional provider hooks that SuggestionBox calls when a provider implements them
     handleCompleteWord?: jest.Mock;
     openAppsModalFromCommand?: jest.Mock;
 

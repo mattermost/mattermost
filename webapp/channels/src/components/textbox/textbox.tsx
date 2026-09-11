@@ -314,8 +314,6 @@ export default class Textbox extends React.PureComponent<Props> {
                     />
                 </div>
                 <SuggestionBox
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
                     ref={this.message}
                     id={this.props.id}
                     className={textboxClassName}
