@@ -630,6 +630,15 @@ func (pf *PropertyField) IsPSAv2() bool {
 	return pf.ObjectType != ""
 }
 
+// LinkSourceID returns the template this field derives (inherits) its options
+// from, or an empty string when it derives none.
+func (pf *PropertyField) LinkSourceID() string {
+	if pf.LinkedFieldID == nil {
+		return ""
+	}
+	return *pf.LinkedFieldID
+}
+
 // IsValidPSAv2PropertyFieldTargetType checks if the given TargetType string is a valid
 // PSAv2 target level
 func IsValidPSAv2PropertyFieldTargetType(targetType string) bool {

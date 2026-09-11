@@ -182,19 +182,10 @@ func optionRank(raw any) (int64, bool) {
 	return int64(f), true
 }
 
-// optionSourceID returns the template this field derives options from, or an
-// empty string when it derives none.
-func optionSourceID(field *model.PropertyField) string {
-	if field.LinkedFieldID == nil {
-		return ""
-	}
-	return *field.LinkedFieldID
-}
-
 // optionOwnerIDs returns the fields whose options make up this field's
 // effective option set: itself, plus the template it links to.
 func optionOwnerIDs(field *model.PropertyField) []string {
-	if sourceID := optionSourceID(field); sourceID != "" {
+	if sourceID := field.LinkSourceID(); sourceID != "" {
 		return []string{field.ID, sourceID}
 	}
 	return []string{field.ID}
@@ -217,7 +208,7 @@ func optionOwnerIDs(field *model.PropertyField) []string {
 // hierarchy disconnected from the template's, and the option a caller means when
 // it names a linked field's hierarchy is the inherited one.
 func graphOptionOwnerID(field *model.PropertyField) string {
-	if sourceID := optionSourceID(field); sourceID != "" {
+	if sourceID := field.LinkSourceID(); sourceID != "" {
 		return sourceID
 	}
 	return field.ID
@@ -1060,7 +1051,7 @@ func (s *SqlPropertyFieldStore) countPropertyOptions(db sqlxExecutor, fieldIDs [
 func (s *SqlPropertyFieldStore) linkSourcesBeingCleared(db sqlxExecutor, fields []*model.PropertyField) (map[string]string, error) {
 	var clearing []string
 	for _, field := range fields {
-		if optionSourceID(field) == "" && field.Type.SupportsOptions() {
+		if field.LinkSourceID() == "" && field.Type.SupportsOptions() {
 			clearing = append(clearing, field.ID)
 		}
 	}
@@ -1257,7 +1248,7 @@ func (s *SqlPropertyFieldStore) syncPropertyFieldOptions(transaction *sqlxTxWrap
 		}
 
 		own := byField[field.ID]
-		inherited := byField[optionSourceID(field)]
+		inherited := byField[field.LinkSourceID()]
 
 		keep := make(map[string]bool, len(options))
 		for i, opt := range options {

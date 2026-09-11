@@ -190,7 +190,7 @@ func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.Pr
 // other call site is the legacy path above, which cannot link at all and so has
 // nothing copied over it.
 func (ps *PropertyService) createFieldWithOptionLinks(field *model.PropertyField, suppliedOptions bool) (*model.PropertyField, error) {
-	if field.Type == model.PropertyFieldTypeGraph && optionSourceID(field) != "" {
+	if field.Type == model.PropertyFieldTypeGraph && field.LinkSourceID() != "" {
 		// A field linking to a graph template serves that template's hierarchy and
 		// owns no part of it. An option of its own could never be given a parent from
 		// that hierarchy -- an edge never crosses fields -- so it could only form a
@@ -202,7 +202,7 @@ func (ps *PropertyService) createFieldWithOptionLinks(field *model.PropertyField
 		if suppliedOptions {
 			return nil, optionsChangeRefused(
 				"a field linking to field %s serves that field's option hierarchy and cannot own options of its own; add them to field %s instead",
-				optionSourceID(field), optionSourceID(field))
+				field.LinkSourceID(), field.LinkSourceID())
 		}
 
 		// Any list the field carries now is its template's, copied in above so a read

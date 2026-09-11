@@ -163,10 +163,10 @@ func requireWritableOptions(field *model.PropertyField) error {
 	// with a link to a graph template arrives with no mention of the graph type
 	// anywhere in the request, because its type is copied from the template later.
 	// A check reading the type from a request would not see this case at all.
-	if field.Type == model.PropertyFieldTypeGraph && optionSourceID(field) != "" {
+	if field.Type == model.PropertyFieldTypeGraph && field.LinkSourceID() != "" {
 		return optionsChangeRefused(
 			"field %s serves the option hierarchy of the template it links to and cannot own options of its own; change them on field %s instead",
-			field.ID, optionSourceID(field))
+			field.ID, field.LinkSourceID())
 	}
 	return nil
 }
@@ -199,15 +199,6 @@ func requireOptionCount(count int, verb string) error {
 		return optionsChangeRefused("names %d options to %s, and no more than %d may be named in one call", count, verb, model.PropertyFieldOptionsMaxPerRequest)
 	}
 	return nil
-}
-
-// optionSourceID returns the template a field inherits options from, or an empty
-// string when it inherits none.
-func optionSourceID(field *model.PropertyField) string {
-	if field.LinkedFieldID == nil {
-		return ""
-	}
-	return *field.LinkedFieldID
 }
 
 // GetFieldOptions returns one page of a field's effective option set, ordered by
@@ -416,7 +407,7 @@ func (ps *PropertyService) UpdateFieldOptions(rctx request.CTX, field *model.Pro
 			return nil, nil, optionsChangeError(i, "names option %q, which field %s does not have", option.ID, field.ID)
 		}
 		if current.ReadOnly {
-			return nil, nil, optionsChangeError(i, "names option %q, which field %s inherits from field %s; change it there instead", option.ID, field.ID, optionSourceID(field))
+			return nil, nil, optionsChangeError(i, "names option %q, which field %s inherits from field %s; change it there instead", option.ID, field.ID, field.LinkSourceID())
 		}
 		if option.Color == nil {
 			option.Color = current.Color
@@ -519,7 +510,7 @@ func (ps *PropertyService) DeleteFieldOptions(rctx request.CTX, field *model.Pro
 			return nil, optionsChangeError(i, "names option %q, which field %s does not have", optionID, field.ID)
 		}
 		if option.ReadOnly {
-			return nil, optionsChangeError(i, "names option %q, which field %s inherits from field %s; delete it there instead", optionID, field.ID, optionSourceID(field))
+			return nil, optionsChangeError(i, "names option %q, which field %s inherits from field %s; delete it there instead", optionID, field.ID, field.LinkSourceID())
 		}
 	}
 
@@ -674,7 +665,7 @@ func (ps *PropertyService) resolveOptionParents(field *model.PropertyField, opti
 			case parent == nil:
 				return nil, optionsChangeError(i, "puts option %q under %q, which field %s has no option called", option.Name, name, field.ID)
 			case parent.ReadOnly:
-				return nil, optionsChangeError(i, "puts option %q under %q, which field %s inherits from field %s; an option can only sit under one of the same field's options", option.Name, name, field.ID, optionSourceID(field))
+				return nil, optionsChangeError(i, "puts option %q under %q, which field %s inherits from field %s; an option can only sit under one of the same field's options", option.Name, name, field.ID, field.LinkSourceID())
 			case parent.ID == option.ID:
 				return nil, optionsChangeError(i, "puts option %q under itself", option.Name)
 			}
@@ -1007,7 +998,7 @@ func optionsByName(options []*model.PropertyFieldOption) map[string]*model.Prope
 // distinguish the field asked about from the template it inherits from.
 func ownerOf(field *model.PropertyField, option *model.PropertyFieldOption) string {
 	if option.ReadOnly {
-		return optionSourceID(field)
+		return field.LinkSourceID()
 	}
 	return field.ID
 }
