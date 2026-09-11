@@ -34,7 +34,7 @@ type DropTargetConfig = {
 const mockDraggableRegistrations: DraggableConfig[] = [];
 const mockDropTargetRegistrations: DropTargetConfig[] = [];
 const mockSetCustomNativeDragPreviewSpy = jest.fn();
-const mockPreserveOffsetOnSourceSpy = jest.fn(() => () => ({x: 0, y: 0}));
+const mockPreserveOffsetOnSourceSpy = jest.fn((_args: unknown) => () => ({x: 0, y: 0}));
 
 jest.mock('@atlaskit/pragmatic-drag-and-drop/element/adapter', () => ({
     draggable: (config: DraggableConfig) => {
