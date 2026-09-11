@@ -733,6 +733,12 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     }, [handleDoneClick, handleCancelEdit]);
 
     const hasExternalSource = Boolean(ldapAttr || samlAttr);
+
+    // External source (LDAP/SAML) is a user-identity concept. A template's linked
+    // children can include a user field, so every template keeps the editor
+    // regardless of which resources it currently applies to; among non-template
+    // fields only a user field qualifies.
+    const showsExternalSource = !isNonTemplate || objectType === 'user';
     const typeLockedByAppliesTo = isEditMode && appliesTo.length > 0 && !isNonTemplate;
     const typeLocked = hasExternalSource || typeLockedByAppliesTo || isPluginOwned;
     const typeChanged = isEditMode && fieldType !== originalFieldTypeRef.current;
@@ -1351,14 +1357,16 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                             pluginInventoryLoaded={pluginInventoryLoaded}
                                         />
                                     ) : (
-                                        <AttributeExternalSource
-                                            ldapAttr={ldapAttr}
-                                            samlAttr={samlAttr}
-                                            fieldType={fieldType}
-                                            onLink={handleLink}
-                                            disabled={saving || effectiveDisabled}
-                                            disableAdding={typeLockedByAppliesTo}
-                                        />
+                                        showsExternalSource && (
+                                            <AttributeExternalSource
+                                                ldapAttr={ldapAttr}
+                                                samlAttr={samlAttr}
+                                                fieldType={fieldType}
+                                                onLink={handleLink}
+                                                disabled={saving || effectiveDisabled}
+                                                disableAdding={typeLockedByAppliesTo}
+                                            />
+                                        )
                                     )}
                                 </div>
                             </div>

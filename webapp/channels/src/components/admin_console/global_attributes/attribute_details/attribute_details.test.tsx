@@ -1569,6 +1569,44 @@ describe('AttributeDetails', () => {
             });
         });
 
+        describe('non-template field external source', () => {
+            it('does not render the external-source editor for a non-template channel field', async () => {
+                mockLoadedNonTemplateField(makeNonTemplate('channel'));
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.queryByTestId('attributeExternalSource')).not.toBeInTheDocument();
+            });
+
+            it('does not render the external-source editor for a non-template post field', async () => {
+                mockLoadedNonTemplateField(makeNonTemplate('post'));
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.queryByTestId('attributeExternalSource')).not.toBeInTheDocument();
+            });
+
+            it('renders the external-source editor for a non-template user field', async () => {
+                mockLoadedNonTemplateField(makeNonTemplate('user'));
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.getByTestId('attributeExternalSource')).toBeInTheDocument();
+            });
+
+            it('leaves a loaded template\'s external-source editor rendered with no resources applied', async () => {
+                mockLoadedField(makeTemplate());
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.getByTestId('attributeExternalSource')).toBeInTheDocument();
+            });
+        });
+
         it('keeps existing option IDs on PATCH and sends an empty id for newly added options', async () => {
             mockLoadedField(makeTemplate({
                 type: 'select',
