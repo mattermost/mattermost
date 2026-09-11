@@ -463,6 +463,35 @@ func testValidateMaskByFieldID(t *testing.T, _ request.CTX, ss store.Store) {
 		_, err = ss.PropertyField().Update("", []*model.PropertyField{template}, nil)
 		require.NoError(t, err)
 	})
+
+	t.Run("mask_by_field_id referencing a member-writable field is rejected", func(t *testing.T) {
+		template, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:    groupID,
+			Name:       "Template masked by a writable holdings field",
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		})
+		require.NoError(t, err)
+
+		linkedFieldID := template.ID
+		writableHoldings, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:       groupID,
+			Name:          "Member-writable holdings field",
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &linkedFieldID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Value: model.ReadWrite{Write: model.PermissionLevelMember}},
+			},
+		})
+		require.NoError(t, err)
+
+		template.Permissions = &model.Permissions{Masking: &model.Masking{MaskByFieldID: writableHoldings.ID}}
+		_, err = ss.PropertyField().Update("", []*model.PropertyField{template}, nil)
+		require.ErrorContains(t, err, "write their own holdings")
+	})
 }
 
 // insertPropertyFieldWithNullColumns inserts a property field row that

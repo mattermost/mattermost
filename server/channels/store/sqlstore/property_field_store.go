@@ -157,6 +157,13 @@ func (s *SqlPropertyFieldStore) ValidateMaskByFieldID(rctx request.CTX, groupID,
 		return fmt.Errorf("mask_by_field_id references a field not linked to this template")
 	}
 
+	// A member- or everyone-writable holdings field defeats masking: the people it
+	// filters could set their own holdings to whatever they want the read to return.
+	// target.PermissionValues is the effective value.write after the store's projection.
+	if target.PermissionValues != nil && (*target.PermissionValues == model.PermissionLevelMember || *target.PermissionValues == model.PermissionLevelEveryone) {
+		return fmt.Errorf("mask_by_field_id references a field whose value.write (%q) lets the people it filters write their own holdings", *target.PermissionValues)
+	}
+
 	return nil
 }
 
