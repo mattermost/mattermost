@@ -2294,7 +2294,7 @@ func TestDoPluginRequest(t *testing.T) {
 		import (
 			"net/http"
 			"reflect"
-			"sort"
+			"slices"
 
 			"github.com/mattermost/mattermost/server/public/plugin"
 		)
