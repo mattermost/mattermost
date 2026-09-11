@@ -11,6 +11,7 @@ import {
     AlertOutlineIcon,
     CloseIcon,
 } from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/shared/components/button';
 
 import Input from 'components/widgets/inputs/input/input';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
@@ -236,8 +237,10 @@ export function HierarchicalMenuStatus({kind, onRetry}: HierarchicalMenuStatusPr
             {isError && <AlertOutlineIcon size={16}/>}
             <span>{formatMessage(STATUS_MESSAGES[kind])}</span>
             {onRetry && (
-                <button
+                <Button
                     type='button'
+                    emphasis='tertiary'
+                    size='xs'
                     className='hierarchical-value-menu__retry'
                     onClick={(event) => {
                         event.stopPropagation();
@@ -251,7 +254,7 @@ export function HierarchicalMenuStatus({kind, onRetry}: HierarchicalMenuStatusPr
                     }}
                 >
                     {formatMessage(messages.retry)}
-                </button>
+                </Button>
             )}
         </span>
     );

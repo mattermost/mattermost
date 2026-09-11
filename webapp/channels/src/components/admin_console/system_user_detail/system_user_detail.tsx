@@ -192,7 +192,7 @@ const PluginDisplayName: React.FC<PluginDisplayNameProps> = ({pluginId}) => {
 
 function GraphConfirmLabels({field, ids}: {field: UserPropertyField; ids: string[]}) {
     const {formatMessage, formatList} = useIntl();
-    const {labelForId} = useGraphOptionNames(field, ids);
+    const {labelForId} = useGraphOptionNames(field, ids, {walk: true});
 
     return formatList(ids.map((id) => {
         const label = labelForId(id);

@@ -105,6 +105,39 @@ describe('useGraphOptionNames', () => {
         expect(latest?.labelForId('ghost-1')).toEqual({kind: 'id', text: 'ghost-1'});
     });
 
+    test('a walk commits every named option, so a later id is not treated as unresolved', async () => {
+        mockPageAll.mockResolvedValue(REGIME_1);
+        let latest: UseGraphOptionNamesResult | undefined;
+
+        const {rerender} = render(
+            <Harness
+                field={fieldOf('later-field', {options_omitted: true})}
+                ids={['ghost-1']}
+                walk={true}
+                onResult={(result) => {
+                    latest = result;
+                }}
+            />,
+        );
+
+        await waitFor(() => expect(latest?.didResolve).toBe(true));
+        expect(latest?.labelForId('ghost-1')).toEqual({kind: 'id', text: 'ghost-1'});
+
+        rerender(
+            <Harness
+                field={fieldOf('later-field', {options_omitted: true})}
+                ids={['opt1']}
+                walk={false}
+                onResult={(result) => {
+                    latest = result;
+                }}
+            />,
+        );
+
+        expect(latest?.labelForId('opt1')).toEqual({kind: 'name', text: 'Option 1'});
+        expect(mockPageAll).toHaveBeenCalledTimes(1);
+    });
+
     test('a failed walk leaves didResolve false and labelForId unavailable', async () => {
         mockPageAll.mockRejectedValue(new Error('boom'));
         let latest: UseGraphOptionNamesResult | undefined;

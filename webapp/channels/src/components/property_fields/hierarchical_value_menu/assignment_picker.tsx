@@ -9,7 +9,7 @@ import type {HierarchicalValueMenuProps} from './hierarchical_value_menu';
 import type {GraphOptionJoin} from '../graph';
 import {assignmentFallbackLabels, computeAssignmentPrefetch} from '../graph/assignment_prefetch';
 import type {GraphFieldRef} from '../graph/page_all_access_control_field_options';
-import {commitGraphOptionNames} from '../graph/use_graph_option_names';
+import {commitGraphOptionNames, graphJoinNames} from '../graph/use_graph_option_names';
 
 export {computeAssignmentPrefetch, assignmentFallbackLabels};
 
@@ -53,7 +53,7 @@ export default function AssignmentGraphPicker({
 
     const handleOptionsLoaded = useCallback((join: GraphOptionJoin) => {
         joinRef.current = join;
-        commitGraphOptionNames(field.id, namesForHeldIds(join, idsRef.current));
+        commitGraphOptionNames(field.id, graphJoinNames(join));
     }, [field.id]);
 
     const handleIdsChange = useCallback((next: string[]) => {

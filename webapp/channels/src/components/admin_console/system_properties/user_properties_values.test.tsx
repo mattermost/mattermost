@@ -168,6 +168,23 @@ describe('UserPropertyValues', () => {
         expect(screen.getByText('Option 2')).toBeInTheDocument();
     });
 
+    it('renders an omitted graph field as an option count instead of an empty picker', () => {
+        renderComponent({
+            ...baseField,
+            type: 'graph',
+            attrs: {
+                ...baseField.attrs,
+                options: [],
+                options_omitted: true,
+                options_count: 1500,
+            },
+        });
+
+        expect(screen.getByTestId('user-property-field-values__options-omitted').textContent).toBe('1,500 options');
+        expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+        expect(screen.queryByText('Add values… (required)')).not.toBeInTheDocument();
+    });
+
     it('shows LDAP sync information when field has LDAP attribute', () => {
         const ldapField = {
             ...baseField,

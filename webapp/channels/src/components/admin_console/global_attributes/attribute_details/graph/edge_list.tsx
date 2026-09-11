@@ -293,16 +293,12 @@ export function EdgeList({
                 {showSuggestions && (
                     <ul
                         className='attribute-graph-parents-pane__suggestions'
-                        role='listbox'
                         data-testid={labels.suggestionsTestId}
                     >
                         {suggestions.map((row) => {
                             if (row.kind === 'create') {
                                 return (
-                                    <li
-                                        key='__create'
-                                        role='option'
-                                    >
+                                    <li key='__create'>
                                         <button
                                             type='button'
                                             className='attribute-graph-parents-pane__suggestion attribute-graph-parents-pane__suggestion--create'
@@ -324,10 +320,7 @@ export function EdgeList({
                                 );
                             }
                             return (
-                                <li
-                                    key={row.name}
-                                    role='option'
-                                >
+                                <li key={row.name}>
                                     <button
                                         type='button'
                                         className='attribute-graph-parents-pane__suggestion'
@@ -403,7 +396,7 @@ const messages = defineMessages({
     },
     removeConfirmWithDescendants: {
         id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.remove_confirm_with_descendants',
-        defaultMessage: 'Remove it? "{child}" will no longer sit under "{parent}", or under anything above it. The {count, plural, one {# value} other {# values}} below "{child}" go with it.',
+        defaultMessage: 'Remove it? "{child}" will no longer sit under "{parent}", or under anything above it. {count, plural, one {The # value below "{child}" goes with it.} other {The # values below "{child}" go with it.}}',
     },
     removeTheParent: {
         id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.remove_confirm_action',

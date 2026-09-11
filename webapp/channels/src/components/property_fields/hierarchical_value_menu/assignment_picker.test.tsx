@@ -247,6 +247,34 @@ describe('AssignmentGraphPicker', () => {
         await waitFor(() => expect(screen.getByTestId('confirm-summary')).toHaveTextContent('ghost-1'));
         expect(screen.getByTestId('confirm-summary')).not.toHaveTextContent('Value unavailable');
     });
+
+    test('commits every fetched option name, not only the held ids', async () => {
+        mockPageAll.mockResolvedValue(REGIME_1);
+        const field = fieldOf({options_omitted: true});
+
+        renderWithContext(
+            <>
+                <AssignmentGraphPicker
+                    field={field}
+                    ids={['ghost-1']}
+                    onIdsChange={jest.fn()}
+                    menuId='assignment-menu'
+                    buttonId='assignment-button'
+                    buttonDataTestId='assignment-trigger'
+                    ariaLabel='Programs'
+                />
+                <div data-testid='other-id'>
+                    <CommittedIdLabel
+                        field={field}
+                        id='opt1'
+                    />
+                </div>
+            </>,
+        );
+
+        await waitFor(() => expect(mockPageAll).toHaveBeenCalledTimes(1));
+        await waitFor(() => expect(screen.getByTestId('other-id')).toHaveTextContent('Option 1'));
+    });
 });
 
 describe('computeAssignmentPrefetch', () => {

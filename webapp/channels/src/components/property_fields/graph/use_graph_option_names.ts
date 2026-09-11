@@ -7,7 +7,7 @@ import {assignmentFallbackLabels, computeAssignmentPrefetch} from './assignment_
 import {pageAllAccessControlFieldOptions} from './page_all_access_control_field_options';
 import type {GraphFieldRef} from './page_all_access_control_field_options';
 
-import {joinGraphOptions} from '.';
+import {joinGraphOptions, type GraphOptionJoin} from '.';
 
 export type GraphNameKind = 'name' | 'id' | 'unavailable';
 
@@ -34,6 +34,16 @@ function notifyCacheListeners() {
     for (const listener of cacheListeners) {
         listener();
     }
+}
+
+export function graphJoinNames(join: GraphOptionJoin): Record<string, string> {
+    const names: Record<string, string> = {};
+    for (const option of join.byId.values()) {
+        if (option.id) {
+            names[option.id] = option.name;
+        }
+    }
+    return names;
 }
 
 export function commitGraphOptionNames(fieldId: string, names: Record<string, string>): void {
@@ -104,14 +114,7 @@ export function useGraphOptionNames(
                 }
 
                 const join = joinGraphOptions(options);
-                const resolved: Record<string, string> = {};
-                for (const id of ids) {
-                    const name = join.byId.get(id)?.name;
-                    if (name) {
-                        resolved[id] = name;
-                    }
-                }
-                commitGraphOptionNames(field.id, resolved);
+                commitGraphOptionNames(field.id, graphJoinNames(join));
             } catch {
                 // Failed walk does not commit; didResolve stays false.
             }

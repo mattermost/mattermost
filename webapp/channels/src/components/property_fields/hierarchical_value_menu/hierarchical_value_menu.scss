@@ -192,7 +192,10 @@
         gap: 8px;
     }
 
-    &__retry {
+    &__retry.btn {
+        height: auto;
+        min-height: 0;
+        padding: 0;
         border: none;
         background: transparent;
         color: var(--link-color);

@@ -7,7 +7,7 @@ import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import {GRAPH_MAX_DEPTH} from 'components/property_fields/graph';
 
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import {GraphParentEdgeAlert} from './edge_alert';
 import {classifyParentCandidate} from './edge_candidates';
@@ -223,7 +223,7 @@ describe('AttributeGraphParentsPane', () => {
         await userEvent.click(screen.getByTestId('attributeGraphParentsPane__parentRemove'));
 
         expect(screen.getByTestId('attributeGraphParentsPane__parentRemoveConfirm')).toHaveTextContent(
-            'Remove it? "B" will no longer sit under "A", or under anything above it. The 1 value below "B" go with it.',
+            'Remove it? "B" will no longer sit under "A", or under anything above it. The 1 value below "B" goes with it.',
         );
     });
 
@@ -277,6 +277,22 @@ describe('AttributeGraphParentsPane', () => {
 
         await userEvent.clear(input);
         await userEvent.type(input, 'West{Enter}');
+        expect(onRename).toHaveBeenCalledWith('A', 'West');
+    });
+
+    it('commits a rename typed after Escape when the input blurs', async () => {
+        const onRename = jest.fn(() => 'applied' as const);
+        renderPane([opt('A')], 'A', jest.fn(), {onRename});
+
+        const input = screen.getByTestId('attributeGraphParentsPane__nameInput');
+        await userEvent.clear(input);
+        await userEvent.type(input, 'Temp{Escape}');
+        expect(onRename).not.toHaveBeenCalled();
+        expect(input).toHaveValue('A');
+
+        await userEvent.clear(input);
+        await userEvent.type(input, 'West');
+        fireEvent.blur(input);
         expect(onRename).toHaveBeenCalledWith('A', 'West');
     });
 

@@ -67,7 +67,10 @@ export function NodeMenu({
                         useLegend={false}
                         value={nameDraft}
                         aria-label={formatMessage(messages.valueName)}
-                        onChange={(event) => onNameDraftChange(event.target.value)}
+                        onChange={(event) => {
+                            skipBlurCommitRef.current = false;
+                            onNameDraftChange(event.target.value);
+                        }}
                         onKeyDown={(event) => {
                             event.stopPropagation();
                             if (event.key === 'Escape') {
