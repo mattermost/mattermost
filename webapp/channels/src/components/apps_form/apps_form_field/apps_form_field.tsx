@@ -16,6 +16,8 @@ import Markdown from 'components/markdown';
 import ModalSuggestionList from 'components/suggestion/modal_suggestion_list';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import BoolSetting from 'components/widgets/settings/bool_setting';
+import CheckboxGroupSetting from 'components/widgets/settings/checkbox_group_setting';
+import CheckboxMatrixSetting from 'components/widgets/settings/checkbox_matrix_setting';
 import RadioSetting from 'components/widgets/settings/radio_setting';
 import TextSetting from 'components/widgets/settings/text_setting';
 import type {InputTypes} from 'components/widgets/settings/text_setting';
@@ -210,13 +212,14 @@ export default class AppsFormField extends React.PureComponent<Props> {
                     helpText={helpTextContent}
                     placeholder={placeholder}
                     onChange={onChange}
+                    labelPosition={field.label_position}
                 />
             );
         }
         case AppFieldTypes.RADIO: {
             // Radio values may be stored as AppSelectOption objects (from initial default)
             // or plain strings (after user interaction via RadioSetting.onChange)
-            const radioValue = isAppSelectOption(value) ? value.value : (value as string) ?? '';
+            const radioValue = isAppSelectOption(value) ? value.value : (value as string | null) ?? '';
             return (
                 <RadioSetting
                     id={name}
@@ -225,6 +228,41 @@ export default class AppsFormField extends React.PureComponent<Props> {
                     options={field.options?.map((o) => ({text: o.label, value: o.value}))}
                     value={radioValue}
                     onChange={onChange}
+                    labelPosition={field.label_position}
+                    isOptional={!field.is_required}
+                    disabled={field.readonly}
+                />
+            );
+        }
+        case AppFieldTypes.CHECKBOX_GROUP: {
+            const groupValue = Array.isArray(value) ? value as string[] : [];
+            return (
+                <CheckboxGroupSetting
+                    id={name}
+                    label={displayNameContent}
+                    helpText={helpTextContent}
+                    options={field.options?.map((o) => ({text: o.label, value: o.value}))}
+                    value={groupValue}
+                    onChange={onChange}
+                    labelPosition={field.label_position}
+                    disabled={field.readonly}
+                />
+            );
+        }
+        case AppFieldTypes.CHECKBOX_MATRIX: {
+            const matrixValue = Array.isArray(value) ? value as string[] : [];
+            if (!field.matrix_config) {
+                return null;
+            }
+            return (
+                <CheckboxMatrixSetting
+                    id={name}
+                    label={displayNameContent}
+                    helpText={helpTextContent}
+                    matrixConfig={field.matrix_config}
+                    value={matrixValue}
+                    onChange={onChange}
+                    disabled={field.readonly}
                 />
             );
         }
