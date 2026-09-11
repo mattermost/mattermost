@@ -6841,6 +6841,7 @@
   "property_fields.hierarchical_value_menu.remove_value": "Remove {name}",
   "property_fields.hierarchical_value_menu.retry": "Retry",
   "property_fields.hierarchical_value_menu.search": "Search values",
+  "property_fields.hierarchical_value_menu.search_truncated": "Showing the first {count} matches. Type more to narrow the list.",
   "property_fields.hierarchical_value_menu.select_values": "Select values...",
   "property_fields.hierarchical_value_menu.unavailable_value": "Value unavailable",
   "property_fields.hierarchical_value_menu.withheld": "The values for this attribute are not available to you here.",

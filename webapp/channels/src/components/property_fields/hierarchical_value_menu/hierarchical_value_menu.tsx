@@ -25,6 +25,7 @@ import {
     alsoUnderLabel,
     expandToSelected,
     flattenSearch,
+    GRAPH_MAX_SEARCH_ROWS,
     selectedDescendantCount,
 } from '../graph';
 import type {GraphFieldRef} from '../graph/page_all_access_control_field_options';
@@ -46,6 +47,10 @@ const messages = defineMessages({
     unavailableValue: {
         id: 'property_fields.hierarchical_value_menu.unavailable_value',
         defaultMessage: 'Value unavailable',
+    },
+    searchTruncated: {
+        id: 'property_fields.hierarchical_value_menu.search_truncated',
+        defaultMessage: 'Showing the first {count} matches. Type more to narrow the list.',
     },
 });
 
@@ -135,10 +140,12 @@ export default function HierarchicalValueMenu({
     const selectedIdSet = useMemo(() => new Set(selectedIds), [selectedIds]);
 
     const isSearching = query.trim() !== '';
-    const searchRows = useMemo(
-        () => (isSearching ? flattenSearch(options ?? [], query) : []),
+    const searchResult = useMemo(
+        () => (isSearching ? flattenSearch(options ?? [], query) : {rows: [], truncated: false}),
         [isSearching, options, query],
     );
+    const searchRows = searchResult.rows;
+    const searchTruncated = searchResult.truncated;
 
     const resolvedPlaceholder = placeholder ?? formatMessage(messages.selectValues);
     const resolvedAriaLabel = ariaLabel ?? resolvedPlaceholder;
@@ -364,6 +371,24 @@ export default function HierarchicalValueMenu({
                     onToggleExpand={() => handleToggleExpand(row.occKey)}
                     onFocusSearch={focusSearch}
                     innerRef={setRowRef(row.occKey)}
+                />,
+            );
+        }
+
+        if (searchTruncated) {
+            menuChildren.push(
+                <Menu.Item
+                    key='search-truncated'
+                    id={`${menuId}-search-truncated`}
+                    role='menuitem'
+                    aria-disabled={true}
+                    disableCloseOnSelect={true}
+                    className='hierarchical-value-menu__status'
+                    labels={
+                        <span className='hierarchical-value-menu__status-inner'>
+                            <span>{formatMessage(messages.searchTruncated, {count: GRAPH_MAX_SEARCH_ROWS})}</span>
+                        </span>
+                    }
                 />,
             );
         }

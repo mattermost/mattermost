@@ -39,6 +39,7 @@ import {
     trigger,
 } from './hierarchical_value_menu_test_helpers';
 
+import {GRAPH_MAX_SEARCH_ROWS} from '../graph';
 import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from '../graph/page_all_access_control_field_options';
 
 jest.mock('../graph/page_all_access_control_field_options', () => ({
@@ -571,6 +572,17 @@ describe('HierarchicalValueMenu chrome (mounted)', () => {
 
             expect(everyRow()).toHaveLength(1);
             expect(everyRow()[0]).toHaveAccessibleName('F-18 Program');
+        });
+
+        test('caps a broad search and reports truncation', async () => {
+            const many = Array.from({length: GRAPH_MAX_SEARCH_ROWS + 5}, (unused, index) => (
+                opt(`opt-${index}`, `Option ${index}`)
+            ));
+            await openTree(many);
+            await userEvent.type(searchBox(), 'option');
+
+            expect(everyRow()).toHaveLength(GRAPH_MAX_SEARCH_ROWS);
+            expect(screen.getByText('Showing the first 200 matches. Type more to narrow the list.')).toBeInTheDocument();
         });
 
         test('search reaches a value whose ancestors are collapsed', async () => {

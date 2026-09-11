@@ -3,7 +3,7 @@
 
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
-import {GRAPH_MAX_DEPTH} from './limits';
+import {GRAPH_MAX_DEPTH, GRAPH_MAX_SEARCH_ROWS} from './limits';
 import {expandOccurrences} from './occurrences';
 import type {GraphOccurrence, OccurrenceKeyOf} from './occurrences';
 
@@ -15,6 +15,7 @@ export {
     GRAPH_MAX_EDGES,
     GRAPH_MAX_OPTIONS,
     GRAPH_MAX_PARENTS_PER_VALUE,
+    GRAPH_MAX_SEARCH_ROWS,
 } from './limits';
 
 export type GraphSearchRow = {
@@ -24,6 +25,18 @@ export type GraphSearchRow = {
     // First-parent chain (`A › B › C` or `A › B · +2`). May start mid-graph.
     path: string;
 };
+
+export type GraphSearchResult = {
+    rows: GraphSearchRow[];
+    truncated: boolean;
+};
+
+export function asGraphValueIds(value: string | string[] | undefined): string[] {
+    if (Array.isArray(value)) {
+        return value;
+    }
+    return value ? [value] : [];
+}
 
 export type GraphOptionJoin = {
     byId: Map<string, PropertyFieldOption>;
@@ -191,10 +204,10 @@ function countRootPaths(valueKey: string, index: GraphIndex, memo: Map<string, n
     return total;
 }
 
-export function flattenSearch(options: PropertyFieldOption[], query: string): GraphSearchRow[] {
+export function flattenSearch(options: PropertyFieldOption[], query: string): GraphSearchResult {
     const needle = query.trim().toLowerCase();
     if (needle === '') {
-        return [];
+        return {rows: [], truncated: false};
     }
 
     const index = indexOptions(options);
@@ -205,6 +218,10 @@ export function flattenSearch(options: PropertyFieldOption[], query: string): Gr
         const option = index.byId.get(valueKey) as PropertyFieldOption;
         if (!option.name.toLowerCase().includes(needle)) {
             continue;
+        }
+
+        if (rows.length >= GRAPH_MAX_SEARCH_ROWS) {
+            return {rows, truncated: true};
         }
 
         const path = firstParentPath(valueKey, index);
@@ -218,5 +235,5 @@ export function flattenSearch(options: PropertyFieldOption[], query: string): Gr
         });
     }
 
-    return rows;
+    return {rows, truncated: false};
 }

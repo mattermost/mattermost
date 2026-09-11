@@ -6,12 +6,14 @@ import type {PropertyFieldOption} from '@mattermost/types/properties';
 import type {GraphOccurrence} from '.';
 import {
     alsoUnderLabel,
+    asGraphValueIds,
     canvasOccurrenceKey,
     emitIdToName,
     expandOccurrences,
     expandToSelected,
     flattenSearch,
     GRAPH_MAX_DEPTH,
+    GRAPH_MAX_SEARCH_ROWS,
     hydrateNameToId,
     indexOptions,
     joinGraphOptions,
@@ -27,6 +29,7 @@ const flat = (id: string, name: string): PropertyFieldOption => ({id, name});
 
 const occKeys = (nodes: Array<{key: string}>) => nodes.map((n) => n.key);
 const labels = (nodes: Array<{option: {name: string}}>) => nodes.map((n) => n.option.name);
+const searchRows = (options: PropertyFieldOption[], query: string) => flattenSearch(options, query).rows;
 
 // A → B, A → C, B → D, C → D. D is the diamond floor.
 const diamond = (): PropertyFieldOption[] => [
@@ -577,7 +580,7 @@ describe('joinGraphOptions — occurrence budget', () => {
     });
 
     test('every value in a truncated ladder is still findable by search', () => {
-        const rows = flattenSearch(ladder(100), 'L99b');
+        const rows = searchRows(ladder(100), 'L99b');
 
         expect(rows).toHaveLength(1);
         expect(rows[0].valueId).toBe('l99b');
@@ -640,65 +643,80 @@ describe('emitIdToName', () => {
     });
 });
 
+describe('asGraphValueIds', () => {
+    test('keeps an array value', () => {
+        expect(asGraphValueIds(['a', 'b'])).toEqual(['a', 'b']);
+    });
+
+    test('wraps a non-empty scalar', () => {
+        expect(asGraphValueIds('opt-1')).toEqual(['opt-1']);
+    });
+
+    test('treats missing and empty scalars as no selection', () => {
+        expect(asGraphValueIds(undefined)).toEqual([]);
+        expect(asGraphValueIds('')).toEqual([]);
+    });
+});
+
 describe('flattenSearch', () => {
     test('matches an exact label', () => {
-        const rows = flattenSearch(diamond(), 'D');
+        const rows = searchRows(diamond(), 'D');
 
         expect(rows).toEqual([{valueId: 'd', label: 'D', path: 'A › B · +1'}]);
     });
 
     test('matches a partial label', () => {
-        const rows = flattenSearch([opt('z', 'Zulu'), opt('a', 'Alpha')], 'ul');
+        const rows = searchRows([opt('z', 'Zulu'), opt('a', 'Alpha')], 'ul');
 
         expect(rows).toHaveLength(1);
         expect(rows[0].valueId).toBe('z');
     });
 
     test('matches case-insensitively', () => {
-        const rows = flattenSearch(diamond(), 'd');
+        const rows = searchRows(diamond(), 'd');
 
         expect(rows).toHaveLength(1);
         expect(rows[0].valueId).toBe('d');
     });
 
     test('matches case-insensitively in the other direction', () => {
-        const rows = flattenSearch([opt('e', 'ENGINEERING')], 'engineering');
+        const rows = searchRows([opt('e', 'ENGINEERING')], 'engineering');
 
         expect(rows).toHaveLength(1);
         expect(rows[0].valueId).toBe('e');
     });
 
     test('returns nothing for a query that matches nothing', () => {
-        expect(flattenSearch(diamond(), 'zzz')).toEqual([]);
+        expect(flattenSearch(diamond(), 'zzz')).toEqual({rows: [], truncated: false});
     });
 
     test('returns nothing for an empty query', () => {
-        expect(flattenSearch(diamond(), '')).toEqual([]);
+        expect(flattenSearch(diamond(), '')).toEqual({rows: [], truncated: false});
     });
 
     test('returns nothing for a whitespace-only query', () => {
-        expect(flattenSearch(diamond(), '   ')).toEqual([]);
+        expect(flattenSearch(diamond(), '   ')).toEqual({rows: [], truncated: false});
     });
 
     test('trims the query before matching', () => {
-        const rows = flattenSearch(diamond(), '  D  ');
+        const rows = searchRows(diamond(), '  D  ');
 
         expect(rows).toHaveLength(1);
         expect(rows[0].valueId).toBe('d');
     });
 
     test('returns nothing for an empty option list', () => {
-        expect(flattenSearch([], 'a')).toEqual([]);
+        expect(flattenSearch([], 'a')).toEqual({rows: [], truncated: false});
     });
 
     test('renders the first parent path with a plus count for a diamond', () => {
-        const rows = flattenSearch(diamond(), 'D');
+        const rows = searchRows(diamond(), 'D');
 
         expect(rows[0].path).toBe('A › B · +1');
     });
 
     test('renders a three-level path', () => {
-        const rows = flattenSearch([
+        const rows = searchRows([
             opt('a', 'A'),
             opt('b', 'B', ['A']),
             opt('c', 'C', ['B']),
@@ -710,7 +728,7 @@ describe('flattenSearch', () => {
     });
 
     test('renders A › B › C · +1 for a value with a second path', () => {
-        const rows = flattenSearch([
+        const rows = searchRows([
             opt('a', 'A'),
             opt('b', 'B', ['A']),
             opt('c', 'C', ['B']),
@@ -723,44 +741,44 @@ describe('flattenSearch', () => {
     });
 
     test('renders an empty path for a root', () => {
-        const rows = flattenSearch(diamond(), 'A');
+        const rows = searchRows(diamond(), 'A');
 
         expect(rows).toHaveLength(1);
         expect(rows[0].path).toBe('');
     });
 
     test('renders an empty path for a value whose only parent dangles', () => {
-        const rows = flattenSearch([opt('v', 'V', ['Nope'])], 'V');
+        const rows = searchRows([opt('v', 'V', ['Nope'])], 'V');
 
         expect(rows).toHaveLength(1);
         expect(rows[0].path).toBe('');
     });
 
     test('emits one row per value id, not per occurrence', () => {
-        expect(flattenSearch(diamond(), 'D')).toHaveLength(1);
+        expect(searchRows(diamond(), 'D')).toHaveLength(1);
     });
 
     test('emits one row per value even when two values share a name', () => {
-        const rows = flattenSearch([opt('d1', 'Dup'), opt('d2', 'Dup')], 'dup');
+        const rows = searchRows([opt('d1', 'Dup'), opt('d2', 'Dup')], 'dup');
 
         expect(rows.map((row) => row.valueId)).toEqual(['d1', 'd2']);
     });
 
     test('orders rows by the input order', () => {
-        const rows = flattenSearch([opt('z', 'Zulua'), opt('a', 'Alpha')], 'a');
+        const rows = searchRows([opt('z', 'Zulua'), opt('a', 'Alpha')], 'a');
 
         expect(rows.map((row) => row.valueId)).toEqual(['z', 'a']);
     });
 
     test('saturates the plus count rather than multiplying out a diamond ladder', () => {
-        const rows = flattenSearch(ladder(100), 'L99b');
+        const rows = searchRows(ladder(100), 'L99b');
 
         expect(rows).toHaveLength(1);
         expect(rows[0].path.endsWith('· +99')).toBe(true);
     });
 
     test('is cycle-safe on the path walk', () => {
-        const rows = flattenSearch([opt('a', 'A', ['B']), opt('b', 'B', ['A'])], 'A');
+        const rows = searchRows([opt('a', 'A', ['B']), opt('b', 'B', ['A'])], 'A');
 
         expect(rows).toHaveLength(1);
         expect(rows[0].valueId).toBe('a');
@@ -771,7 +789,7 @@ describe('flattenSearch', () => {
     });
 
     test('ignores read_only entirely', () => {
-        const rows = flattenSearch([{id: 'a', name: 'A', parents: [], read_only: true}], 'A');
+        const rows = searchRows([{id: 'a', name: 'A', parents: [], read_only: true}], 'A');
 
         expect(rows).toEqual([{valueId: 'a', label: 'A', path: ''}]);
     });
@@ -781,6 +799,26 @@ describe('flattenSearch', () => {
 
         expect(() => flattenSearch(options, 'D')).not.toThrow();
         expect(options[3].parents).toEqual(['B', 'C']);
+    });
+
+    test('caps matching rows and reports truncation past the cap', () => {
+        const options = Array.from({length: GRAPH_MAX_SEARCH_ROWS + 5}, (unused, i) => (
+            flat(`f${i}`, `Match ${i}`)
+        ));
+        const result = flattenSearch(options, 'match');
+
+        expect(result.rows).toHaveLength(GRAPH_MAX_SEARCH_ROWS);
+        expect(result.truncated).toBe(true);
+        expect(result.rows[0].valueId).toBe('f0');
+        expect(result.rows[GRAPH_MAX_SEARCH_ROWS - 1].valueId).toBe(`f${GRAPH_MAX_SEARCH_ROWS - 1}`);
+    });
+
+    test('does not report truncation when every match fits', () => {
+        expect(flattenSearch(diamond(), 'D').truncated).toBe(false);
+        expect(flattenSearch(
+            Array.from({length: GRAPH_MAX_SEARCH_ROWS}, (unused, i) => flat(`f${i}`, `Match ${i}`)),
+            'match',
+        ).truncated).toBe(false);
     });
 });
 
