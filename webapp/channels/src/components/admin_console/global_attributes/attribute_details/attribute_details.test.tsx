@@ -1750,6 +1750,33 @@ describe('AttributeDetails', () => {
             expect(deletePropertyField).not.toHaveBeenCalled();
         });
 
+        it('does not PATCH Users on retry after a later resource create failed', async () => {
+            mockLoadedField(makeTemplate());
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').
+                mockResolvedValueOnce({id: 'user-field-id'} as PropertyField).
+                mockRejectedValueOnce(new Error('boom')).
+                mockResolvedValueOnce({id: 'channel-field-id'} as PropertyField);
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue(makeTemplate());
+
+            renderEdit();
+            await waitForForm();
+            await addResource('Users', 'user');
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+            await userEvent.click(screen.getByTestId('attributeAppliesToUserProfileDisplay-always'));
+            await addResource('Channels', 'channel');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            expect(await screen.findByTestId('attributeSaveError')).toBeInTheDocument();
+            expect(createPropertyField.mock.calls.filter((call) => call[1] === 'user')).toHaveLength(1);
+
+            await userEvent.click(screen.getByTestId('saveSetting'));
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+
+            expect(patchPropertyField).not.toHaveBeenCalledWith('access_control', 'user', expect.anything(), expect.anything());
+            expect(createPropertyField.mock.calls.filter((call) => call[1] === 'user')).toHaveLength(1);
+            expect(createPropertyField.mock.calls.filter((call) => call[1] === 'channel')).toHaveLength(2);
+        });
+
         it('issues neither DELETE nor POST when a persisted resource is removed then re-added before Save', async () => {
             mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field')]);
             jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue(makeTemplate());

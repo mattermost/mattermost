@@ -990,6 +990,10 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         newResourcePermissionValuesFor(type),
                     );
                     persistedLinkedFieldsRef.current[type] = linkedField;
+                    if (type === 'user') {
+                        originalUserVisibilityRef.current = userVisibility;
+                        originalUserManagedRef.current = userManaged;
+                    }
                 } catch (error) {
                     const cpaErrorKind = type === 'user' ? appliesToErrorKindFromError(error) : null;
                     finalizeSave({
