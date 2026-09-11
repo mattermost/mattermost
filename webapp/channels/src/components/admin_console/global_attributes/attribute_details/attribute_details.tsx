@@ -11,7 +11,7 @@ import {useParams} from 'react-router-dom';
 import type {ClientError} from '@mattermost/client';
 import {buttonClassNames} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
-import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
+import type {FieldVisibility, PropertyField, PropertyFieldOption, PropertyPermissionLevel} from '@mattermost/types/properties';
 import {supportsOptions} from '@mattermost/types/properties';
 import type {GlobalState} from '@mattermost/types/store';
 
@@ -37,7 +37,7 @@ import type {CPAFieldNameValidationError} from 'utils/properties';
 
 import AttributeAppliesTo from './attribute_applies_to';
 import {ALL_RESOURCE_TYPES, ATTRIBUTE_APPLIES_TO_ADD_HEADER_TRIGGER_ID, resourceTypeLabels} from './attribute_applies_to_constants';
-import type {ResourceObjectType} from './attribute_applies_to_constants';
+import type {ResourceObjectType, UserManagedValue} from './attribute_applies_to_constants';
 import AttributeExternalSource from './attribute_external_source';
 import type {ExternalSource} from './attribute_external_source';
 import AttributeOptionsRankValues from './attribute_options_rank_values';
@@ -131,9 +131,22 @@ type ErrorKind =
     'applies_to_remove_failed' |
     'applies_to_remove_partial_save' |
     'applies_to_partial_save' |
+    'applies_to_config_save_failed' |
     'applies_to_rollback_failed' |
     'applies_to_name_conflict' |
     'applies_to_limit_reached';
+
+// The error kinds whose banner copy interpolates {resources} -- share one
+// flat formatMessage(errorMessages[errorKind], {resources}) call. Kept as a
+// Set (module scope, not rebuilt per render) rather than a chain of ===
+// comparisons at the call site.
+const RESOURCE_INTERPOLATED_ERROR_KINDS = new Set<ErrorKind>([
+    'applies_to_failed',
+    'applies_to_remove_failed',
+    'applies_to_remove_partial_save',
+    'applies_to_partial_save',
+    'applies_to_config_save_failed',
+]);
 
 function errorKindFromError(error: unknown): ErrorKind {
     const serverErrorId = (error as ClientError | undefined)?.server_error_id;
@@ -162,9 +175,8 @@ function errorKindFromError(error: unknown): ErrorKind {
 // template's own name-conflict/limit-reached ids (both write into the same
 // access_control group), but the actionable copy is different -- a linked
 // 'user'-object-type field conflicts with a Custom Profile Attributes field,
-// not with another Global Attribute (see the plan's CPA-namespace-overlap
-// Decision). Returns null for anything else, so the caller falls back to the
-// generic applies-to-failed message.
+// not with another Global Attribute. Returns null for anything else, so the
+// caller falls back to the generic applies-to-failed message.
 function appliesToErrorKindFromError(error: unknown): 'applies_to_name_conflict' | 'applies_to_limit_reached' | null {
     const serverErrorId = (error as ClientError | undefined)?.server_error_id;
     switch (serverErrorId) {
@@ -328,8 +340,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const previousManualNameRef = useRef('');
 
     // Type and Options are independent state -- switching type never clears
-    // options (see Design Decision 3 in the plan): a Text -> Select -> Text ->
-    // Select round-trip must restore whatever the admin already entered.
+    // options: a Text -> Select -> Text -> Select round-trip must restore
+    // whatever the admin already entered.
     const [fieldType, setFieldType] = useState<AttributeFieldType>('text');
     const [options, setOptions] = useState<PropertyFieldOption[]>([]);
 
@@ -362,6 +374,20 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // successful DELETE/POST so a retry does not repeat a completed step.
     const persistedLinkedFieldsRef = useRef<Partial<Record<ResourceObjectType, PropertyField>>>({});
     const originalNameRef = useRef('');
+
+    // Users row config -- Profile display / Who can set the value, both stored
+    // as attrs.visibility/attrs.managed on the Users linked field, matching
+    // CPA's own value domain exactly rather than the PSAv2 PermissionValues
+    // field. Defaults match CPA's defaults for a brand-new field.
+    const [userVisibility, setUserVisibility] = useState<FieldVisibility>('when_set');
+    const [userManaged, setUserManaged] = useState<UserManagedValue>('');
+
+    // Snapshot of what's actually persisted, to diff against at Save time --
+    // populated in the load effect below. Not needed for a brand-new attribute
+    // (both stay at the defaults above, matching what a new Users row would be
+    // created with, so the diff below is trivially "unchanged").
+    const originalUserVisibilityRef = useRef<FieldVisibility>('when_set');
+    const originalUserManagedRef = useRef<UserManagedValue>('');
 
     // Compared against the live fieldType at Save time to pick which order
     // DELETE/PATCH run in (see handleSave) -- the server rejects a type-changing
@@ -462,6 +488,22 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 setLdapAttr(typeof field.attrs?.ldap === 'string' ? field.attrs.ldap : '');
                 setSamlAttr(typeof field.attrs?.saml === 'string' ? field.attrs.saml : '');
                 setAppliesTo(ALL_RESOURCE_TYPES.filter((type) => Boolean(linkedByType[type])));
+
+                // Branches on whether a Users linked field exists at all, not on
+                // create-vs-edit mode -- this one rule correctly covers a brand-new
+                // attribute AND an existing attribute that doesn't currently have a
+                // Users row (e.g. adding Users for the first time to an attribute
+                // that today only applies to Channels), falling back to the same
+                // defaults in both cases.
+                const userField = linkedByType.user;
+                const rawVisibility = userField?.attrs?.visibility;
+                const loadedVisibility: FieldVisibility = rawVisibility === 'always' || rawVisibility === 'when_set' || rawVisibility === 'hidden' ? rawVisibility : 'when_set';
+                const loadedManaged: UserManagedValue = userField?.attrs?.managed === 'admin' ? 'admin' : '';
+                setUserVisibility(loadedVisibility);
+                setUserManaged(loadedManaged);
+                originalUserVisibilityRef.current = loadedVisibility;
+                originalUserManagedRef.current = loadedManaged;
+
                 if (linkedByType.channel) {
                     setChannelResource(parseChannelFieldConfig(linkedByType.channel));
                 }
@@ -538,13 +580,31 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         markDirty();
     }, [markDirty]);
 
+    // Users row config -- no-op-guarded and markDirty()-wrapped, mirroring
+    // handleTypeChange/handleLink above.
+    const handleUserVisibilityChange = useCallback((visibility: FieldVisibility) => {
+        if (visibility === userVisibility) {
+            return;
+        }
+        setUserVisibility(visibility);
+        markDirty();
+    }, [userVisibility, markDirty]);
+
+    const handleUserManagedChange = useCallback((managed: UserManagedValue) => {
+        if (managed === userManaged) {
+            return;
+        }
+        setUserManaged(managed);
+        markDirty();
+    }, [userManaged, markDirty]);
+
     // Moves focus to the header Add-resource trigger after a pre-save removal
-    // (see the plan's Decisions table) -- via useEffect, not directly inside
-    // handleRemove, since the trigger may have just been re-rendered into
-    // existence this same update (e.g. removing the 3rd of 3 selected types
-    // un-hides both triggers), and a synchronous focus() call in the handler
-    // would run before that re-render commits. Mirrors the sibling external-
-    // source picker's own prevCountRef pattern (attribute_external_source.tsx).
+    // -- via useEffect, not directly inside handleRemove, since the trigger may
+    // have just been re-rendered into existence this same update (e.g. removing
+    // the 3rd of 3 selected types un-hides both triggers), and a synchronous
+    // focus() call in the handler would run before that re-render commits.
+    // Mirrors the sibling external-source picker's own prevCountRef pattern
+    // (attribute_external_source.tsx).
     //
     // Also handles the mirror-image case on add: picking the 3rd (last)
     // resource type unmounts BOTH "Add resource" triggers in this same
@@ -749,11 +809,10 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
 
     // Applies the fully-settled outcome of a save attempt -- the ONLY place in
     // handleSave that reads isMountedRef, checked once after the entire
-    // create-or-rollback sequence below has finished (see the plan's Decisions
-    // table: inserting a mounted-check earlier, e.g. right after the template
-    // create, would skip the linked-field loop and its rollback entirely if
-    // the admin navigated away mid-save, leaving an orphaned template with no
-    // cleanup attempted).
+    // create-or-rollback sequence below has finished. Inserting a
+    // mounted-check earlier, e.g. right after the template create, would skip
+    // the linked-field loop and its rollback entirely if the admin navigated
+    // away mid-save, leaving an orphaned template with no cleanup attempted.
     const finalizeSave = useCallback((outcome: SaveOutcome) => {
         if (!isMountedRef.current) {
             return;
@@ -777,6 +836,42 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         setErrorKind(null);
         setServerErrorMessage(null);
         setFailedResourceTypes(null);
+
+        // Bundled into the Users linked field's create request below (never a
+        // bare create followed by an immediate patch) -- undefined for Posts,
+        // which has no config yet.
+        const userConfigAttrs = {visibility: userVisibility, managed: userManaged};
+
+        // The field's actual write-permission tier, kept in sync with managed --
+        // sent as permission_values (top-level, not part of attrs) so the value
+        // CPA's own attrs.managed toggle promises is the value that's actually
+        // enforced.
+        const userConfigPermissionValues: PropertyPermissionLevel = userManaged === 'admin' ? 'sysadmin' : 'member';
+
+        // Dispatches each resource type's own config onto its create request --
+        // Users' Profile display/Who can set the value, or Channels' own
+        // required/change-policy attrs and pinned permission_values. Posts has
+        // no config panel yet, so it always gets undefined (server defaults).
+        const newResourceAttrsFor = (type: ResourceObjectType): Record<string, unknown> | undefined => {
+            switch (type) {
+            case 'user':
+                return userConfigAttrs;
+            case 'channel':
+                return buildChannelFieldAttrs(channelResource);
+            default:
+                return undefined;
+            }
+        };
+        const newResourcePermissionValuesFor = (type: ResourceObjectType): PropertyPermissionLevel | undefined => {
+            switch (type) {
+            case 'user':
+                return userConfigPermissionValues;
+            case 'channel':
+                return CHANNEL_VALUE_SETTER;
+            default:
+                return undefined;
+            }
+        };
 
         if (isEditMode && fieldId) {
             const persisted = persistedLinkedFieldsRef.current;
@@ -865,8 +960,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         fieldType,
                         displayName,
                         fieldId,
-                        type === 'channel' ? buildChannelFieldAttrs(channelResource) : undefined,
-                        type === 'channel' ? CHANNEL_VALUE_SETTER : undefined,
+                        newResourceAttrsFor(type),
+                        newResourcePermissionValuesFor(type),
                     );
                     persistedLinkedFieldsRef.current[type] = linkedField;
                 } catch (error) {
@@ -881,6 +976,44 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 }
             }
 
+            // Config-only patch for a Users row that's already persisted this
+            // session. Guarded by all three of: `'user' ∈ appliesTo` (excludes a
+            // row in `toDelete` -- already persisted and not in `toCreate` is also
+            // true for a row being deleted, so this check must not rely on file
+            // ordering relative to the delete loop above), already persisted, and
+            // not in `toCreate` (that row's create call above already carries the
+            // current values).
+            const userIsUpdateCandidate = appliesTo.includes('user') && !toCreate.includes('user') && Boolean(persistedLinkedFieldsRef.current.user);
+            if (userIsUpdateCandidate) {
+                const visibilityChanged = userVisibility !== originalUserVisibilityRef.current;
+                const managedChanged = userManaged !== originalUserManagedRef.current;
+                if (visibilityChanged || managedChanged) {
+                    const existingUserField = persistedLinkedFieldsRef.current.user;
+                    if (existingUserField) {
+                        try {
+                            const updatedUserField = await patchLinkedAttributeField('user', existingUserField.id, userConfigAttrs, userConfigPermissionValues);
+                            persistedLinkedFieldsRef.current.user = updatedUserField;
+                            originalUserVisibilityRef.current = userVisibility;
+                            originalUserManagedRef.current = userManaged;
+                        } catch {
+                            // Distinct from applies_to_partial_save -- the Users row is
+                            // already linked and persisted here (userIsUpdateCandidate
+                            // requires it), so "couldn't be applied to Users" would tell
+                            // the admin the linkage itself failed and risk them removing
+                            // and re-adding the row (a destructive, confirmation-gated
+                            // action) when a simple Save retry is all that's needed.
+                            finalizeSave({
+                                success: false,
+                                errorKind: 'applies_to_config_save_failed',
+                                serverErrorMessage: null,
+                                failedResourceTypes: ['user'],
+                            });
+                            return;
+                        }
+                    }
+                }
+            }
+
             // An existing Channels row's own settings (required, change policy,
             // display locations) are not part of the template patch above, so a
             // resource that was already applied still needs its own PATCH to
@@ -888,8 +1021,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             const persistedChannelField = persistedLinkedFieldsRef.current.channel;
             if (persistedChannelField && appliesTo.includes('channel') && !toCreate.includes('channel')) {
                 try {
-                    // eslint-disable-next-line no-await-in-loop
-                    const patchedChannelField = await patchLinkedAttributeField('channel', persistedChannelField.id, buildChannelFieldPatch(channelResource));
+                    const patchedChannelField = await patchLinkedAttributeField('channel', persistedChannelField.id, buildChannelFieldPatch(channelResource).attrs);
                     persistedLinkedFieldsRef.current.channel = patchedChannelField;
                 } catch {
                     finalizeSave({
@@ -933,8 +1065,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                     fieldType,
                     displayName,
                     templateField.id,
-                    type === 'channel' ? buildChannelFieldAttrs(channelResource) : undefined,
-                    type === 'channel' ? CHANNEL_VALUE_SETTER : undefined,
+                    newResourceAttrsFor(type),
+                    newResourcePermissionValuesFor(type),
                 );
                 createdLinkedFields.push({type, field: linkedField});
             } catch (error) {
@@ -945,7 +1077,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         }
 
         finalizeSave(outcome);
-    }, [canSave, isEditMode, fieldId, nameUnchanged, displayName, currentName, fieldType, typeChanged, options, ldapAttr, samlAttr, appliesTo, channelResource, finalizeSave, confirmRemoveAppliesTo]);
+    }, [canSave, isEditMode, fieldId, nameUnchanged, displayName, currentName, fieldType, typeChanged, options, ldapAttr, samlAttr, appliesTo, channelResource, finalizeSave, confirmRemoveAppliesTo, userVisibility, userManaged]);
 
     const handleChannelResourceChange = useCallback((next: ChannelResourceConfig) => {
         setChannelResource(next);
@@ -1031,7 +1163,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // has no notion of "User Attribute" to say, since that framing is
     // specific to this feature's CPA-namespace overlap.
     let errorContent: React.ReactNode = null;
-    if (errorKind === 'applies_to_failed' || errorKind === 'applies_to_remove_failed' || errorKind === 'applies_to_remove_partial_save' || errorKind === 'applies_to_partial_save') {
+    if (errorKind && RESOURCE_INTERPOLATED_ERROR_KINDS.has(errorKind)) {
         errorContent = formatMessage(errorMessages[errorKind], {resources: resourceTypeListLabel(failedResourceTypes ?? [], formatMessage)});
     } else if (errorKind === 'applies_to_rollback_failed') {
         const resources = resourceTypeListLabel(failedResourceTypes ?? [], formatMessage);
@@ -1322,6 +1454,10 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         lockedTooltip={isPluginOwned ? formatMessage(isOrphaned ? messages.appliesToLockedPluginOrphanedTooltip : messages.appliesToLockedPluginTooltip) : undefined}
                         onAdd={handleAdd}
                         onRemove={handleRemove}
+                        userVisibility={userVisibility}
+                        onUserVisibilityChange={handleUserVisibilityChange}
+                        userManaged={userManaged}
+                        onUserManagedChange={handleUserManagedChange}
                         channelResource={channelResource}
                         onChannelResourceChange={handleChannelResourceChange}
                         ordered={fieldType === 'rank'}
@@ -1542,6 +1678,10 @@ const errorMessages = defineMessages({
     applies_to_partial_save: {
         id: 'admin.global_attributes.attribute_details.save_error.applies_to_partial_save',
         defaultMessage: 'The attribute was saved, but couldn\'t be applied to {resources}. Please try again.',
+    },
+    applies_to_config_save_failed: {
+        id: 'admin.global_attributes.attribute_details.save_error.applies_to_config_save_failed',
+        defaultMessage: "The attribute was saved, but its {resources} settings (Profile display, Who can set the value) couldn't be updated. Please try again.",
     },
     applies_to_rollback_failed: {
         id: 'admin.global_attributes.attribute_details.save_error.applies_to_rollback_failed',

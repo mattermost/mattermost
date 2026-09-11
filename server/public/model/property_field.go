@@ -523,16 +523,19 @@ type PropertyFieldPatch struct {
 	TargetID      *string            `json:"target_id"`
 	TargetType    *string            `json:"target_type"`
 	LinkedFieldID *string            `json:"linked_field_id,omitempty"`
+
+	PermissionValues *PermissionLevel `json:"permission_values,omitempty"`
 }
 
 func (pfp *PropertyFieldPatch) Auditable() map[string]any {
 	return map[string]any{
-		"name":            pfp.Name,
-		"type":            pfp.Type,
-		"attrs":           pfp.Attrs,
-		"target_id":       pfp.TargetID,
-		"target_type":     pfp.TargetType,
-		"linked_field_id": pfp.LinkedFieldID,
+		"name":              pfp.Name,
+		"type":              pfp.Type,
+		"attrs":             pfp.Attrs,
+		"target_id":         pfp.TargetID,
+		"target_type":       pfp.TargetType,
+		"linked_field_id":   pfp.LinkedFieldID,
+		"permission_values": pfp.PermissionValues,
 	}
 }
 
@@ -563,6 +566,10 @@ func (pfp *PropertyFieldPatch) IsValid() error {
 		*pfp.Type != PropertyFieldTypeRank &&
 		*pfp.Type != PropertyFieldTypeGraph {
 		return NewAppError("PropertyFieldPatch.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "type", "Reason": "unknown value"}, "", http.StatusBadRequest)
+	}
+
+	if pfp.PermissionValues != nil && !slices.Contains(validPermissionLevels, *pfp.PermissionValues) {
+		return NewAppError("PropertyFieldPatch.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permission_values", "Reason": "invalid permission level"}, "", http.StatusBadRequest)
 	}
 
 	return nil
@@ -612,6 +619,10 @@ func (pf *PropertyField) Patch(patch *PropertyFieldPatch, mergeAttrs bool) {
 		} else {
 			pf.LinkedFieldID = patch.LinkedFieldID
 		}
+	}
+
+	if patch.PermissionValues != nil {
+		pf.PermissionValues = patch.PermissionValues
 	}
 }
 
