@@ -48,7 +48,7 @@ func (a *App) CreatePropertyFieldOptions(rctx request.CTX, field *model.Property
 		return nil, model.NewAppError("CreatePropertyFieldOptions", "app.property_field.options.create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	a.propertyFieldOptionsChanged(rctx, field, connectionID)
+	a.propertyFieldOptionsChanged(rctx, field.GroupID, field.ID, connectionID)
 	return created, nil
 }
 
@@ -63,7 +63,7 @@ func (a *App) UpdatePropertyFieldOptions(rctx request.CTX, field *model.Property
 		return nil, nil, model.NewAppError("UpdatePropertyFieldOptions", "app.property_field.options.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	a.propertyFieldOptionsChanged(rctx, field, connectionID)
+	a.propertyFieldOptionsChanged(rctx, field.GroupID, field.ID, connectionID)
 	return updated, prior, nil
 }
 
@@ -79,7 +79,7 @@ func (a *App) DeletePropertyFieldOptions(rctx request.CTX, field *model.Property
 		return nil, model.NewAppError("DeletePropertyFieldOptions", "app.property_field.options.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	a.propertyFieldOptionsChanged(rctx, field, connectionID)
+	a.propertyFieldOptionsChanged(rctx, field.GroupID, field.ID, connectionID)
 	return deleted, nil
 }
 
@@ -107,28 +107,29 @@ func (a *App) DeletePropertyFieldOptions(rctx request.CTX, field *model.Property
 // The invalidation runs before the broadcast, so that a client acting on the event
 // cannot read back a cache entry the event was announcing the end of. This is the
 // ordering the field write path uses, for the same reason.
-func (a *App) propertyFieldOptionsChanged(rctx request.CTX, field *model.PropertyField, connectionID string) {
-	current, dependents, err := a.Srv().propertyService.FieldWithDependents(rctx, field)
+func (a *App) propertyFieldOptionsChanged(rctx request.CTX, groupID, fieldID, connectionID string) {
+	current, dependents, err := a.Srv().propertyService.FieldWithDependents(rctx, groupID, fieldID)
 	if err != nil {
-		// The field the change named is still invalidated, from the caller's copy:
-		// dropping a cache entry that did not need dropping costs a recompile,
-		// while keeping one that did means deciding access from options that are
-		// gone. Its dependents cannot be -- they are exactly what could not be
-		// read -- so this is logged as an error and not swallowed. Nothing is
-		// published, because the only field state to publish is the one from
-		// before the change.
+		// The field ID the change named is still invalidated: dropping a cache
+		// entry that did not need dropping costs a recompile, while keeping one
+		// that did means deciding access from options that are gone. Its
+		// dependents cannot be -- they are exactly what could not be read -- so
+		// this is logged as an error and not swallowed. Nothing is published,
+		// because the only field state to publish is the one from before the
+		// change.
 		rctx.Logger().Error(
 			"Failed to read the property fields serving changed options; dependent access policy caches and clients were not notified",
-			mlog.String("field_id", field.ID),
+			mlog.String("field_id", fieldID),
 			mlog.Err(err),
 		)
-		a.invalidatePolicyCachesForOptionChange(rctx, field.ID)
+		a.invalidatePolicyCachesForOptionChange(rctx, fieldID)
 		// Unconditional, unlike the success path below, which can see whether any
 		// field involved is one the AttributeView materializes. Here nothing can:
 		// a template carries object type "template" and its user-scoped dependents
-		// are exactly what could not be read, so testing the caller's copy would
-		// skip the invalidation in the case most likely to need it. The cost of
-		// invalidating when nothing was affected is one matview refresh.
+		// are exactly what could not be read, so testing the field ID the change
+		// named would skip the invalidation in the case most likely to need it.
+		// The cost of invalidating when nothing was affected is one matview
+		// refresh.
 		a.invalidateAllUserAttributeCaches()
 		return
 	}

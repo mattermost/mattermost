@@ -538,26 +538,20 @@ func (ps *PropertyService) DeleteFieldOptions(rctx request.CTX, field *model.Pro
 //
 // Both halves are read from the master, because a change to them is what prompts
 // the read: a replica could answer with the option list from before it, and the
-// point of reading at all is to have the list the change left behind. The caller's
-// own copy of the field is not that list either -- it was read before the change,
-// so its option list and its UpdateAt are both stale.
+// point of reading at all is to have the list the change left behind.
 //
 // The two are kept apart rather than returned as one list because they are not
 // interchangeable to a caller: the field is the one the request named, and the
 // dependents are fields the requester may not even know exist.
-func (ps *PropertyService) FieldWithDependents(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, []*model.PropertyField, error) {
-	if field == nil {
-		return nil, nil, errors.New("no property field to read the dependents of")
-	}
-
-	current, err := ps.getPropertyFieldFromMaster(rctx, field.GroupID, field.ID)
+func (ps *PropertyService) FieldWithDependents(rctx request.CTX, groupID, fieldID string) (*model.PropertyField, []*model.PropertyField, error) {
+	current, err := ps.getPropertyFieldFromMaster(rctx, groupID, fieldID)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to re-read a property field whose options changed")
 	}
 
 	// The field itself is excluded, so that a field somehow linking to itself is
 	// reported once rather than twice.
-	dependents, err := ps.fieldStore.GetLinkedFields([]string{field.ID}, []string{field.ID})
+	dependents, err := ps.fieldStore.GetLinkedFields([]string{fieldID}, []string{fieldID})
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to read the property fields linking to one whose options changed")
 	}
