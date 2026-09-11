@@ -6153,7 +6153,7 @@ func TestGetPostsByIdsFileMetadataABAC(t *testing.T) {
 		return post
 	}
 
-	mockDownloadDecision := func(t *testing.T, allowed bool) {
+	mockDownloadDecision := func(t *testing.T, allowed bool) *einterfacesmocks.AccessControlServiceInterface {
 		t.Helper()
 
 		mockACS := &einterfacesmocks.AccessControlServiceInterface{}
@@ -6169,6 +6169,8 @@ func TestGetPostsByIdsFileMetadataABAC(t *testing.T) {
 		t.Cleanup(func() {
 			th.App.Srv().Channels().AccessControl = original
 		})
+
+		return mockACS
 	}
 
 	// Posts are created before any decision is mocked so the stored posts keep their file ids.
@@ -6177,7 +6179,7 @@ func TestGetPostsByIdsFileMetadataABAC(t *testing.T) {
 	plainPost := th.CreatePost(t)
 
 	t.Run("file metadata is stripped from every post when the policy denies the download action", func(t *testing.T) {
-		mockDownloadDecision(t, false)
+		mockACS := mockDownloadDecision(t, false)
 
 		posts, resp, err := th.Client.GetPostsByIds(context.Background(), []string{postWithFile1.Id, postWithFile2.Id})
 		require.NoError(t, err)
@@ -6190,10 +6192,11 @@ func TestGetPostsByIdsFileMetadataABAC(t *testing.T) {
 			assert.Empty(t, post.Metadata.Files, "file metadata should be stripped")
 			assert.Equal(t, 1, post.Metadata.RedactedFileCount)
 		}
+		mockACS.AssertExpectations(t)
 	})
 
 	t.Run("file metadata is returned when the policy allows the download action", func(t *testing.T) {
-		mockDownloadDecision(t, true)
+		mockACS := mockDownloadDecision(t, true)
 
 		posts, resp, err := th.Client.GetPostsByIds(context.Background(), []string{postWithFile1.Id})
 		require.NoError(t, err)
@@ -6203,10 +6206,11 @@ func TestGetPostsByIdsFileMetadataABAC(t *testing.T) {
 		require.NotNil(t, posts[0].Metadata)
 		assert.Len(t, posts[0].Metadata.Files, 1)
 		assert.Equal(t, 0, posts[0].Metadata.RedactedFileCount)
+		mockACS.AssertExpectations(t)
 	})
 
 	t.Run("posts without attachments are returned untouched in a denied batch", func(t *testing.T) {
-		mockDownloadDecision(t, false)
+		mockACS := mockDownloadDecision(t, false)
 
 		posts, resp, err := th.Client.GetPostsByIds(context.Background(), []string{postWithFile1.Id, plainPost.Id})
 		require.NoError(t, err)
@@ -6226,10 +6230,16 @@ func TestGetPostsByIdsFileMetadataABAC(t *testing.T) {
 
 		require.Contains(t, byID, postWithFile1.Id)
 		assert.Empty(t, byID[postWithFile1.Id].Metadata.Files)
+		mockACS.AssertExpectations(t)
 	})
 
 	t.Run("file metadata is unaffected when ABAC is disabled", func(t *testing.T) {
-		mockDownloadDecision(t, false)
+		mockACS := &einterfacesmocks.AccessControlServiceInterface{}
+		original := th.App.Srv().Channels().AccessControl
+		th.App.Srv().Channels().AccessControl = mockACS
+		t.Cleanup(func() {
+			th.App.Srv().Channels().AccessControl = original
+		})
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(false)
@@ -6247,6 +6257,7 @@ func TestGetPostsByIdsFileMetadataABAC(t *testing.T) {
 		assert.Len(t, posts[0].FileIds, 1)
 		require.NotNil(t, posts[0].Metadata)
 		assert.Len(t, posts[0].Metadata.Files, 1)
+		mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
 	})
 }
 
