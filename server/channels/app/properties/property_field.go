@@ -51,7 +51,7 @@ func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.Pr
 
 	// Legacy properties (PSAv1) skip the conflict check.
 	if field.IsPSAv1() {
-		return ps.createFieldWithOptionLinks(field, suppliedOptions)
+		return ps.createFieldWithOptionLinks(rctx, field, suppliedOptions)
 	}
 
 	// If this field links to a source, validate the source and copy its schema
@@ -176,7 +176,7 @@ func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.Pr
 		)
 	}
 
-	return ps.createFieldWithOptionLinks(field, suppliedOptions)
+	return ps.createFieldWithOptionLinks(rctx, field, suppliedOptions)
 }
 
 // createFieldWithOptionLinks writes a new field once the hierarchy its option
@@ -189,7 +189,7 @@ func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.Pr
 // options of the field's own, which that copy would otherwise have hidden. The
 // other call site is the legacy path above, which cannot link at all and so has
 // nothing copied over it.
-func (ps *PropertyService) createFieldWithOptionLinks(field *model.PropertyField, suppliedOptions bool) (*model.PropertyField, error) {
+func (ps *PropertyService) createFieldWithOptionLinks(rctx request.CTX, field *model.PropertyField, suppliedOptions bool) (*model.PropertyField, error) {
 	if field.Type == model.PropertyFieldTypeGraph && field.LinkSourceID() != "" {
 		// A field linking to a graph template serves that template's hierarchy and
 		// owns no part of it. An option of its own could never be given a parent from
