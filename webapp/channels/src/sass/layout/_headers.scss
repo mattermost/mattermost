@@ -13,6 +13,14 @@
     background: functions.v(center-channel-bg);
     font-size: 14px;
 
+    // The attribute chips render on a second row, which the fixed 56px cap would
+    // clip — the row then paints over whatever sits below the header. Let the
+    // header grow instead, but only when that row actually has chips.
+    &:has(.channel-header__attributes:not(:empty)) {
+        max-height: none;
+        padding-bottom: 6px;
+    }
+
     #channelHeaderDropdownButton {
         display: flex;
     }
@@ -367,11 +375,31 @@
 
     .channel-header__icons {
         display: flex;
+
+        // A flex item defaults to min-width:auto, which refuses to shrink below its
+        // content. Without this the channel attribute chips inside can only widen
+        // the header, never yield — so they would push the call and info controls
+        // instead of collapsing into their +N.
+        min-width: 0;
         margin-right: 8px;
         gap: 4px;
 
         .btn-icon {
             margin: 0;
+        }
+    }
+
+    // The second chip slot: its own row under the channel name. Collapses to
+    // nothing when the slot has no chips, so an unconfigured header keeps its
+    // original height rather than reserving an empty row.
+    .channel-header__attributes {
+        display: flex;
+        min-width: 0;
+        margin-top: 4px;
+        margin-right: 8px;
+
+        &:empty {
+            display: none;
         }
     }
 

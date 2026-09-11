@@ -15,6 +15,7 @@ export default class SystemConsoleSidebarHeader {
     readonly title: Locator;
     readonly userName: Locator;
     readonly menuButton: Locator;
+    readonly menu: Locator;
     readonly aboutMenuItem: Locator;
 
     constructor(container: Locator) {
@@ -25,6 +26,7 @@ export default class SystemConsoleSidebarHeader {
         this.menuButton = container.getByRole('button', {name: 'Admin Console Menu'});
 
         // Rendered in a portal at the page level once the menu is open.
+        this.menu = container.page().getByRole('menu');
         this.aboutMenuItem = container.page().getByRole('menuitem', {name: /^About /});
     }
 
@@ -34,10 +36,19 @@ export default class SystemConsoleSidebarHeader {
     }
 
     /**
+     * Opens the sidebar header's menu and returns the menu list.
+     */
+    async openMenu(): Promise<Locator> {
+        await this.menuButton.click();
+        await expect(this.menu).toBeVisible();
+        return this.menu;
+    }
+
+    /**
      * Opens the sidebar header's menu and selects "About {siteName}", returning the modal.
      */
     async openAbout(): Promise<AboutBuildModal> {
-        await this.menuButton.click();
+        await this.openMenu();
         await this.aboutMenuItem.click();
 
         const aboutModal = new AboutBuildModal(this.container.page().getByRole('dialog', {name: /^About /}));
