@@ -51,4 +51,4 @@ Some best practices for working with the webapp component of a plugin are docume
 
 ## React and JSX runtime compatibility
 
-Plugins that render inside Mattermost must use the host's React, ReactDOM, and JSX runtime. See [React JSX runtime compatibility](/developers/integrate/plugins/components/webapp/react-jsx-runtime) for the Mattermost v12 host exports and guidance for plugins that also support older servers.
+Plugins that render inside Mattermost must use the host's React, ReactDOM, and JSX runtime. See [React JSX runtime compatibility](/developers/integrate/plugins/components/webapp/react-jsx-runtime) to configure the host exports and require Mattermost 12.0 or later.
