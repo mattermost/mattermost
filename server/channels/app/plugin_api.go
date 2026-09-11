@@ -1289,7 +1289,7 @@ func (api *PluginAPI) HasPermissionToTeam(userID, teamID string, permission *mod
 }
 
 func (api *PluginAPI) HasPermissionToChannel(userID, channelID string, permission *model.Permission) bool {
-	ok, _ := api.app.HasPermissionToChannel(api.ctx, userID, channelID, permission)
+	ok, _ := api.app.HasPermissionToChannelRBACOnly(api.ctx, userID, channelID, permission)
 	return ok
 }
 

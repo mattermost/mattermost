@@ -996,6 +996,10 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !requireChannelReadAccess(c, channel) {
+		return
+	}
+
 	isContentReviewer := false
 	asContentReviewer, _ := strconv.ParseBool(r.URL.Query().Get(model.AsContentReviewerParam))
 	if asContentReviewer {
@@ -1086,6 +1090,14 @@ func sanitizeDiscoverableChannel(channel *model.Channel) *model.Channel {
 	}
 }
 
+func requireChannelReadAccess(c *Context, channel *model.Channel) bool {
+	if c.App.EnforceChannelReadAccess(c.AppContext, c.AppContext.Session().UserId, channel) {
+		return true
+	}
+	c.SetPermissionError(model.PermissionReadChannel)
+	return false
+}
+
 // discoverableNonMemberView returns a sanitized non-member view of `channel`
 // when the calling user qualifies under the discoverable visibility rules,
 // or (nil, nil) when the channel must remain hidden — the caller should
@@ -1095,6 +1107,10 @@ func sanitizeDiscoverableChannel(channel *model.Channel) *model.Channel {
 // default 403/404 path so the existing read contract is preserved.
 func discoverableNonMemberView(c *Context, channel *model.Channel) (*model.Channel, *model.AppError) {
 	if !c.App.Config().FeatureFlags.DiscoverableChannels {
+		return nil, nil
+	}
+	// A denied session must not learn the channel exists, let alone be offered a join.
+	if !c.App.HasChannelReadAccess(c.AppContext, c.AppContext.Session().UserId, channel) {
 		return nil, nil
 	}
 	user, userErr := c.App.GetUser(c.AppContext, c.AppContext.Session().UserId)
@@ -1629,6 +1645,10 @@ func getChannelsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 	enc := json.NewEncoder(w)
+	// Filtered here rather than in the app layer: the cursor advance and the "short
+	// page means done" test below both have to see the raw page, or one denied
+	// channel would silently truncate the whole sidebar.
+	wroteAny := false
 	for {
 		channels, err := c.App.GetChannelsForUser(c.AppContext, c.Params.UserId, c.Params.IncludeDeleted, lastDeleteAt, pageSize, fromChannelID)
 		if err != nil {
@@ -1647,22 +1667,19 @@ func getChannelsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// intermediary comma between sets
-		if fromChannelID != "" {
-			if _, err := w.Write([]byte(`,`)); err != nil {
-				c.Logger.Warn("Error while writing response", mlog.Err(err))
+		for _, ch := range channels {
+			if !c.App.HasChannelReadAccess(c.AppContext, c.Params.UserId, ch) {
+				continue
 			}
-		}
-
-		for i, ch := range channels {
-			if err := enc.Encode(ch); err != nil {
-				c.Logger.Warn("Error while writing response", mlog.Err(err))
-			}
-			if i < len(channels)-1 {
+			if wroteAny {
 				if _, err := w.Write([]byte(`,`)); err != nil {
 					c.Logger.Warn("Error while writing response", mlog.Err(err))
 				}
 			}
+			if err := enc.Encode(ch); err != nil {
+				c.Logger.Warn("Error while writing response", mlog.Err(err))
+			}
+			wroteAny = true
 		}
 
 		if len(channels) < pageSize {
@@ -1952,6 +1969,10 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !requireChannelReadAccess(c, channel) {
+		return
+	}
+
 	if channel.Type == model.ChannelTypeOpen {
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel) {
 			if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionReadChannel); !ok {
@@ -1993,6 +2014,10 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 	channel, appErr := c.App.GetChannelByNameForTeamName(c.AppContext, c.Params.ChannelName, c.Params.TeamName, includeDeleted)
 	if appErr != nil {
 		c.Err = appErr
+		return
+	}
+
+	if !requireChannelReadAccess(c, channel) {
 		return
 	}
 
@@ -2206,6 +2231,17 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// The client's detection point for losing access mid-session, so the channel being
+	// opened reports its denial, before ViewChannel can move the read marker. The
+	// previous channel is only being left behind, so dropping it is enough.
+	if view.ChannelId != "" && !c.App.EnforceChannelReadAccessByID(c.AppContext, c.Params.UserId, view.ChannelId) {
+		c.SetPermissionError(model.PermissionReadChannel)
+		return
+	}
+	if view.PrevChannelId != "" && !c.App.HasChannelReadAccessByID(c.AppContext, c.Params.UserId, view.PrevChannelId) {
+		view.PrevChannelId = ""
+	}
+
 	times, err := c.App.ViewChannel(c.AppContext, &view, c.Params.UserId, c.AppContext.Session().Id, view.CollapsedThreadsSupported)
 	if err != nil {
 		c.Err = err
@@ -2242,6 +2278,10 @@ func readMultipleChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
+
+	// Per channel rather than failing the batch: the channels the user can still see
+	// should be marked read regardless.
+	channelIds = c.App.FilterChannelIDsByReadAccess(c.AppContext, c.Params.UserId, channelIds)
 
 	times, appErr := c.App.MarkChannelsAsViewed(c.AppContext, channelIds, c.Params.UserId, c.AppContext.Session().Id, true, c.App.IsCRTEnabledForUser(c.AppContext, c.Params.UserId))
 	if appErr != nil {
@@ -3072,6 +3112,9 @@ func channelMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.
 		return
 	}
 
+	// No channel_read_access gate: this is group-sync administration behind a sysconsole
+	// permission, matching teamMembersMinusGroupMembers. Gating it would let a
+	// mis-scoped policy hide the membership an admin needs in order to repair it.
 	users, totalCount, appErr := c.App.ChannelMembersMinusGroupMembers(
 		c.Params.ChannelId,
 		groupIDs,

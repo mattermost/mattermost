@@ -56,6 +56,10 @@ func generateFlaggedPostReport(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	if !requireChannelReadAccess(c, channel) {
+		return
+	}
+
 	checkChannelFlaggable(c, channel)
 	if c.Err != nil {
 		return
@@ -135,6 +139,10 @@ func generatePostExposureReport(c *Context, w http.ResponseWriter, r *http.Reque
 	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
+		return
+	}
+
+	if !requireChannelReadAccess(c, channel) {
 		return
 	}
 

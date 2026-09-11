@@ -737,6 +737,14 @@ func getEditHistoryForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Edit history is a read surface that happens to be gated on edit_post, because
+	// only the author may see it. That permission is a write, so the channel gate does
+	// not evaluate channel_read_access for it and this has to ask explicitly.
+	if !c.App.EnforceChannelReadAccessByID(c.AppContext, c.AppContext.Session().UserId, originalPost.ChannelId) {
+		c.SetPermissionError(model.PermissionReadChannel)
+		return
+	}
+
 	if originalPost.Type == model.PostTypeCard && c.App.Config().FeatureFlags.IntegratedBoards {
 		// Cards: collaborative model — any channel member with edit_post can view edit history
 	} else if c.AppContext.Session().UserId != originalPost.UserId {
@@ -1727,19 +1735,19 @@ func getPostInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hasPermissionToAccessChannel, hasJoinedChannel := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
+	hasChannelReadAccess, hasJoinedChannel := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
 
 	// Join metadata is independent of ComplianceSettings. Compliance still blocks
 	// reading public-channel *content* for non-members (HasPermissionToReadChannel),
 	// including permalink previews. GetPostInfo returns only channel/team identifiers
 	// so the client can join, which creates the compliance trail, then load the post.
-	if !hasPermissionToAccessChannel && channel.Type == model.ChannelTypeOpen {
+	if !hasChannelReadAccess && channel.Type == model.ChannelTypeOpen {
 		canJoinOpenChannel := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionJoinPublicChannels)
 		canJoinOpenTeam := team != nil && team.AllowOpenInvite && c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionJoinPublicTeams)
-		hasPermissionToAccessChannel = canJoinOpenChannel || canJoinOpenTeam
+		hasChannelReadAccess = canJoinOpenChannel || canJoinOpenTeam
 	}
 
-	if !hasPermissionToAccessChannel {
+	if !hasChannelReadAccess || !c.App.HasChannelReadAccess(c.AppContext, c.AppContext.Session().UserId, channel) {
 		c.Err = notFoundError
 		return
 	}

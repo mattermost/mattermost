@@ -45,6 +45,36 @@ func (_m *PolicyDecisionPointInterface) AccessEvaluation(rctx request.CTX, acces
 	return r0, r1
 }
 
+// ActionHasPermissionPolicy provides a mock function with given fields: rctx, action
+func (_m *PolicyDecisionPointInterface) ActionHasPermissionPolicy(rctx request.CTX, action string) (bool, *model.AppError) {
+	ret := _m.Called(rctx, action)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ActionHasPermissionPolicy")
+	}
+
+	var r0 bool
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (bool, *model.AppError)); ok {
+		return rf(rctx, action)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string) bool); ok {
+		r0 = rf(rctx, action)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string) *model.AppError); ok {
+		r1 = rf(rctx, action)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // NewPolicyDecisionPointInterface creates a new instance of PolicyDecisionPointInterface. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewPolicyDecisionPointInterface(t interface {

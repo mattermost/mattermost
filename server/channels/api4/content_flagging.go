@@ -289,6 +289,10 @@ func getPostPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !requireChannelReadAccess(c, channel) {
+		return
+	}
+
 	checkChannelFlaggable(c, channel)
 	if c.Err != nil {
 		return
@@ -344,6 +348,10 @@ func getFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
 	if appErr != nil {
 		c.Err = appErr
+		return
+	}
+
+	if !requireChannelReadAccess(c, channel) {
 		return
 	}
 

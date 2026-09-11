@@ -23,6 +23,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	putils "github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/app/email"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
 	"github.com/mattermost/mattermost/server/v8/channels/app/password/hashers"
@@ -3039,7 +3040,7 @@ func (a *App) GetThreadsForUser(rctx request.CTX, userID, teamID string, options
 
 	if !options.TotalsOnly {
 		eg.Go(func() error {
-			threads, err := a.Srv().Store().Thread().GetThreadsForUser(rctx, userID, teamID, options)
+			threads, err := a.threadsForUserPage(rctx, userID, teamID, options)
 			if err != nil {
 				return errors.Wrapf(err, "failed to get threads for user id=%s", userID)
 			}
@@ -3068,6 +3069,57 @@ func (a *App) GetThreadsForUser(rctx request.CTX, userID, teamID string, options
 	a.populatePostListTranslations(rctx, list)
 
 	return &result, nil
+}
+
+// defaultThreadsPageSize mirrors the page size SqlThreadStore.GetThreadsForUser
+// applies when the caller leaves PageSize unset.
+const defaultThreadsPageSize = 30
+
+func (a *App) threadsForUserPage(rctx request.CTX, userID, teamID string, options model.GetUserThreadsOpts) ([]*model.ThreadResponse, error) {
+	fetch := func(opts model.GetUserThreadsOpts) ([]*model.ThreadResponse, error) {
+		return a.Srv().Store().Thread().GetThreadsForUser(rctx, userID, teamID, opts)
+	}
+
+	if !a.channelReadAccessEnforcementActive() {
+		return fetch(options)
+	}
+
+	advance := func(opts model.GetUserThreadsOpts, page []*model.ThreadResponse) model.GetUserThreadsOpts {
+		last := page[len(page)-1].PostId
+		if opts.After != "" {
+			opts.After = last
+		} else {
+			opts.Before = last
+		}
+		return opts
+	}
+
+	// The store reads a zero PageSize as its own default; FetchUntil would read it as
+	// "no results", so the two have to agree.
+	want := int(options.PageSize)
+	if want == 0 {
+		want = defaultThreadsPageSize
+	}
+	threads, truncated, err := putils.FetchUntil(options, want, fetch,
+		func(thread *model.ThreadResponse) bool {
+			return thread.Post != nil && a.HasChannelReadAccessByID(rctx, userID, thread.Post.ChannelId)
+		},
+		func(page []*model.ThreadResponse) model.GetUserThreadsOpts {
+			return advance(options, page)
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	if truncated {
+		rctx.Logger().Warn("Gave up filling a page of threads; the policy denies most of this user's channels",
+			mlog.String("user_id", userID),
+			mlog.String("team_id", teamID),
+			mlog.Int("rounds", putils.FetchUntilMaxRounds),
+		)
+	}
+
+	return threads, nil
 }
 
 func (a *App) GetThreadMembershipForUser(userId, threadId string) (*model.ThreadMembership, *model.AppError) {

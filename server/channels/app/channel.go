@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	putils "github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
@@ -2477,6 +2478,8 @@ func (a *App) GetChannelsForTeamForUser(rctx request.CTX, teamID string, userID 
 			mlog.Err(appErr),
 		)
 	}
+
+	channels = a.FilterChannelListByReadAccess(rctx, userID, channels)
 	return channels, nil
 }
 
@@ -2539,8 +2542,44 @@ func (a *App) GetAllChannelsCount(rctx request.CTX, opts model.ChannelSearchOpts
 	return count, nil
 }
 
+func (a *App) fillChannelPage(rctx request.CTX, userID string, offset, limit int, fetch func(offset, limit int) (model.ChannelList, error)) (model.ChannelList, error) {
+	if !a.channelReadAccessEnforcementActive() {
+		return fetch(offset, limit)
+	}
+
+	kept, truncated, err := putils.FetchUntil(offset, limit,
+		func(from int) ([]*model.Channel, error) {
+			return fetch(from, limit)
+		},
+		func(channel *model.Channel) bool {
+			return a.HasChannelReadAccess(rctx, userID, channel)
+		},
+		// FetchUntil hands advance only the page it just read, so the offset has to
+		// accumulate here rather than being derived from the cursor.
+		func(page []*model.Channel) int {
+			offset += len(page)
+			return offset
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	if truncated {
+		rctx.Logger().Warn("Gave up filling a page of channels; the policy denies most of what this query returns",
+			mlog.String("user_id", userID),
+			mlog.Int("rounds", putils.FetchUntilMaxRounds),
+		)
+	}
+
+	return kept, nil
+}
+
 func (a *App) GetDeletedChannels(rctx request.CTX, teamID string, offset int, limit int, userID string, skipTeamMembershipCheck bool) (model.ChannelList, *model.AppError) {
-	list, err := a.Srv().Store().Channel().GetDeleted(teamID, offset, limit, userID, skipTeamMembershipCheck)
+	// Archiving a channel deletes its own policy row, so only a system-scoped
+	// permission policy can still hide one here.
+	list, err := a.fillChannelPage(rctx, userID, offset, limit, func(off, lim int) (model.ChannelList, error) {
+		return a.Srv().Store().Channel().GetDeleted(teamID, off, lim, userID, skipTeamMembershipCheck)
+	})
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -2555,7 +2594,9 @@ func (a *App) GetDeletedChannels(rctx request.CTX, teamID string, offset int, li
 }
 
 func (a *App) GetChannelsUserNotIn(rctx request.CTX, teamID string, userID string, offset int, limit int) (model.ChannelList, *model.AppError) {
-	channels, err := a.Srv().Store().Channel().GetMoreChannels(teamID, userID, offset, limit)
+	channels, err := a.fillChannelPage(rctx, userID, offset, limit, func(off, lim int) (model.ChannelList, error) {
+		return a.Srv().Store().Channel().GetMoreChannels(teamID, userID, off, lim)
+	})
 	if err != nil {
 		return nil, model.NewAppError("GetChannelsUserNotIn", "app.channel.get_more_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -2574,11 +2615,14 @@ func (a *App) GetPublicChannelsByIdsForTeam(rctx request.CTX, teamID string, cha
 		}
 	}
 
-	return list, nil
+	// No userID parameter; every caller of this is session-driven.
+	return a.FilterChannelListByReadAccess(rctx, rctx.Session().UserId, list), nil
 }
 
 func (a *App) GetPublicChannelsForTeam(rctx request.CTX, teamID string, offset int, limit int) (model.ChannelList, *model.AppError) {
-	list, err := a.Srv().Store().Channel().GetPublicChannelsForTeam(teamID, offset, limit)
+	list, err := a.fillChannelPage(rctx, rctx.Session().UserId, offset, limit, func(off, lim int) (model.ChannelList, error) {
+		return a.Srv().Store().Channel().GetPublicChannelsForTeam(teamID, off, lim)
+	})
 	if err != nil {
 		return nil, model.NewAppError("GetPublicChannelsForTeam", "app.channel.get_public_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -3449,6 +3493,7 @@ func (a *App) AutocompleteChannels(rctx request.CTX, userID, term string) (model
 	if appErr != nil {
 		return nil, appErr
 	}
+	channelList, _ = a.FilterChannelListWithTeamDataByReadAccess(rctx, userID, channelList)
 	return channelList, nil
 }
 
@@ -3465,6 +3510,8 @@ func (a *App) AutocompleteChannelsForTeam(rctx request.CTX, teamID, userID, term
 	if err != nil {
 		return nil, model.NewAppError("AutocompleteChannels", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	channelList = a.FilterChannelListByReadAccess(rctx, userID, channelList)
 
 	return a.FilterChannelListForUserVisibility(rctx, channelList, userID)
 }
@@ -3483,6 +3530,8 @@ func (a *App) AutocompleteChannelsForTeamFiltered(rctx request.CTX, teamID, user
 		return nil, model.NewAppError("AutocompleteChannelsForTeamFiltered", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	channelList = a.FilterChannelListByReadAccess(rctx, userID, channelList)
+
 	return a.FilterChannelListForUserVisibility(rctx, channelList, userID)
 }
 
@@ -3496,7 +3545,7 @@ func (a *App) AutocompleteChannelsForSearch(rctx request.CTX, teamID string, use
 		return nil, model.NewAppError("AutocompleteChannelsForSearch", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	return channelList, nil
+	return a.FilterChannelListByReadAccess(rctx, userID, channelList), nil
 }
 
 // SearchAllChannels returns a list of channels, the total count of the results of the search (if the paginate search option is true), and an error.
@@ -3546,6 +3595,9 @@ func (a *App) SearchChannels(rctx request.CTX, teamID string, term string) (mode
 		return nil, model.NewAppError("SearchChannels", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// No userID parameter; every caller of this is session-driven.
+	channelList = a.FilterChannelListByReadAccess(rctx, rctx.Session().UserId, channelList)
+
 	// Hydrate policy actions so search results carry the same action map as the
 	// bootstrap channel list; otherwise a search would overwrite a hydrated
 	// channel in the frontend store with an unhydrated copy. No-op without a
@@ -3569,6 +3621,8 @@ func (a *App) SearchChannelsForUser(rctx request.CTX, userID, teamID, term strin
 	if err != nil {
 		return nil, model.NewAppError("SearchChannelsForUser", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	channelList = a.FilterChannelListByReadAccess(rctx, userID, channelList)
 
 	// Hydrate policy actions so search results carry the same action map as the
 	// bootstrap channel list; otherwise a search would overwrite a hydrated
@@ -3616,6 +3670,19 @@ func (a *App) MarkTeamChannelsAndThreadsViewed(rctx request.CTX, teamID string, 
 	channelsToView, channelsToClearPushNotifications, times, err := a.Srv().Store().Channel().GetTeamChannelsWithUnreadAndMentions(rctx, teamID, userID, user.NotifyProps)
 	if err != nil {
 		return nil, model.NewAppError("MarkTeamChannelsAndThreadsViewed", "app.channel.get_channels_by_team_with_unreads_and_with_mentions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Dropping a hidden channel here leaves its unread and mention counts intact, so
+	// they are waiting when access returns. times feeds the thread update, the
+	// websocket payload and the response, so filtering it covers all three.
+	if a.channelReadAccessEnforcementActive() {
+		channelsToView = a.FilterChannelIDsByReadAccess(rctx, userID, channelsToView)
+		channelsToClearPushNotifications = a.FilterChannelIDsByReadAccess(rctx, userID, channelsToClearPushNotifications)
+		for channelID := range times {
+			if !a.HasChannelReadAccessByID(rctx, userID, channelID) {
+				delete(times, channelID)
+			}
+		}
 	}
 
 	// times already contains every channel the user belongs to in this team, including

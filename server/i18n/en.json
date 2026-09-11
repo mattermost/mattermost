@@ -388,6 +388,10 @@
     "translation": "Your license does not support groups"
   },
   {
+    "id": "api.channel.channel_read_access.abac_denied.app_error",
+    "translation": "You do not currently have access to this channel."
+  },
+  {
     "id": "api.channel.create_channel.attribute_no_permission.app_error",
     "translation": "You do not have permission to set one of the submitted channel attributes."
   },
@@ -8159,6 +8163,10 @@
   {
     "id": "app.pdp.access_evaluation.permission_policy.app_error",
     "translation": "Failed to evaluate permission policy."
+  },
+  {
+    "id": "app.pdp.action_has_permission_policy.app_error",
+    "translation": "Could not determine whether permission policies govern this action."
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
