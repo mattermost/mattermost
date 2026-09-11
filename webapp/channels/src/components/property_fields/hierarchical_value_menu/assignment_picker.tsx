@@ -2,9 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useMemo, useRef} from 'react';
-import type {ReactNode} from 'react';
-
-import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 
 import HierarchicalValueMenu from './hierarchical_value_menu';
 import type {HierarchicalValueMenuProps} from './hierarchical_value_menu';
@@ -21,9 +18,6 @@ export type AssignmentGraphPickerProps = {
     ids: string[];
     onIdsChange: (ids: string[]) => void;
     disabled?: boolean;
-
-    // Flag-off control. Thunk so a class parent does not build it on flag-on renders.
-    fallback: () => ReactNode;
 } & Pick<
     HierarchicalValueMenuProps,
 'menuId' | 'buttonId' | 'buttonDataTestId' | 'placeholder' | 'ariaLabel' |
@@ -46,11 +40,8 @@ export default function AssignmentGraphPicker({
     ids,
     onIdsChange,
     disabled,
-    fallback,
     ...chrome
 }: AssignmentGraphPickerProps) {
-    const isGraphEnabled = useGetFeatureFlagValue('PropertyFieldGraph') === 'true';
-
     const fallbackLabels = useMemo(() => assignmentFallbackLabels(field), [field]);
 
     const prefetchOnMount = useMemo(() => computeAssignmentPrefetch(field, ids), [field, ids]);
@@ -75,10 +66,6 @@ export default function AssignmentGraphPicker({
         }
         onIdsChange(next);
     }, [field.id, onIdsChange]);
-
-    if (!isGraphEnabled) {
-        return <>{fallback()}</>;
-    }
 
     return (
         <HierarchicalValueMenu

@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {OCCURRENCE_KEY_SEPARATOR} from 'components/property_fields/graph';
 import type {GraphOccurrence} from 'components/property_fields/graph';
 
 export function flattenOccurrenceTree(roots: GraphOccurrence[]): GraphOccurrence[] {
@@ -16,7 +17,7 @@ export function flattenOccurrenceTree(roots: GraphOccurrence[]): GraphOccurrence
 }
 
 export function occurrencePath(occurrence: GraphOccurrence): string[] {
-    return occurrence.key.split('\0');
+    return occurrence.key.split(OCCURRENCE_KEY_SEPARATOR);
 }
 
 export function pathStartsWith(path: string[], prefix: string[]): boolean {
@@ -28,7 +29,7 @@ export function pathStartsWith(path: string[], prefix: string[]): boolean {
 
 export function isHiddenByCollapsedAncestor(path: string[], collapsedKeys: Set<string>): boolean {
     for (let i = 1; i < path.length; i++) {
-        if (collapsedKeys.has(path.slice(0, i).join('\0'))) {
+        if (collapsedKeys.has(path.slice(0, i).join(OCCURRENCE_KEY_SEPARATOR))) {
             return true;
         }
     }
@@ -55,7 +56,7 @@ export function expandAncestorsForOption(
     let changed = false;
     const next = new Set(collapsedKeys);
     for (let i = 1; i < path.length; i++) {
-        if (next.delete(path.slice(0, i).join('\0'))) {
+        if (next.delete(path.slice(0, i).join(OCCURRENCE_KEY_SEPARATOR))) {
             changed = true;
         }
     }
@@ -63,7 +64,7 @@ export function expandAncestorsForOption(
 }
 
 export function remapOccurrenceKey(key: string, oldName: string, newName: string): string {
-    return key.split('\0').map((part) => (part === oldName ? newName : part)).join('\0');
+    return key.split(OCCURRENCE_KEY_SEPARATOR).map((part) => (part === oldName ? newName : part)).join(OCCURRENCE_KEY_SEPARATOR);
 }
 
 export function subtreeInsertAfterIndex(

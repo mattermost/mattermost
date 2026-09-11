@@ -29,12 +29,12 @@ jest.mock('components/property_fields/graph/page_all_access_control_field_option
 
 const mockPageAll = jest.mocked(pageAllAccessControlFieldOptions);
 
-// File scope, not inside the flag-on describe: the flag-off tests below must not
-// fetch either, and left unimplemented the mock resolves to undefined, so
-// `.then` on it throws a TypeError from inside a React effect. That reads as an
-// unrelated render crash rather than "the gate opened with the flag off", which
-// is the diagnosis the next engineer actually needs. clearMocks resets call
-// state but not implementations, so this is re-established every test.
+// File scope: a test that opens the tree without queuing a response would
+// otherwise hit an unimplemented mock, which resolves to undefined and throws
+// `.then` from inside a React effect. That reads as an unrelated render crash
+// rather than "this test opened the menu and forgot to stub the pager".
+// clearMocks resets call state but not implementations, so this is
+// re-established every test.
 beforeEach(() => {
     mockPageAll.mockReset();
     mockPageAll.mockImplementation(() => {
@@ -123,6 +123,10 @@ describe('TableEditor - graph attributes', () => {
     beforeEach(() => {
         actions.getVisualAST.mockClear();
         onChange.mockClear();
+        mockPageAll.mockResolvedValue([
+            {id: 'opt-air', name: 'Air Program'},
+            {id: 'opt-f18', name: 'F-18 Program'},
+        ]);
     });
 
     test('a new row on a graph attribute defaults to "covers all of"', async () => {
@@ -336,10 +340,6 @@ describe('TableEditor - graph attributes', () => {
     });
 });
 
-// Everything above runs with the flag OFF: renderWithContext builds its store
-// from {}, so entities.general.config is empty and useGetFeatureFlagValue
-// returns undefined. Those tests are the flat-picker regression suite and are
-// deliberately untouched. Everything below turns the flag on explicitly.
 const graphEnabledState = {
     entities: {
         general: {
@@ -807,19 +807,17 @@ describe('TableEditor - graph attributes with the hierarchy picker', () => {
         expect(mockPageAll).not.toHaveBeenCalled();
     });
 
-    test('keeps the flat option list when the flag is off', async () => {
-        // The gate from the other side: without this, a gate that never renders
-        // the tree would still pass every test above if the flag state were wrong.
+    test('mounts the hierarchy picker even when PropertyFieldGraph is off', async () => {
         actions.getVisualAST.mockResolvedValue({data: {conditions: []}});
+        mockPageAll.mockResolvedValue(hierarchyOptions);
 
         renderWithContext(<TableEditor {...propsFor(programsHydrated)}/>, {});
         await addRow();
         await openValues();
 
-        // Flat: every option is present at once, with nothing to expand.
-        expect(await screen.findByRole('menuitemcheckbox', {name: 'F-18 Program'})).toBeInTheDocument();
-        expect(screen.getByRole('menuitemcheckbox', {name: 'Fighter Jet Program'})).toBeInTheDocument();
-        expect(mockPageAll).not.toHaveBeenCalled();
+        expect(await treeRow('Air Program')).toBeInTheDocument();
+        expect(screen.queryByRole('menuitemcheckbox', {name: 'Fighter Jet Program'})).not.toBeInTheDocument();
+        expect(mockPageAll).toHaveBeenCalled();
     });
 
     test('shows the masked chip on a masked graph row', async () => {

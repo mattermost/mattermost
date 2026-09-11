@@ -1242,7 +1242,9 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 // * Air and Fighter are both still on the canvas, and Go to flashes Fighter
                 await expect(graphRow(page, 'Air')).toBeVisible();
                 await expect(graphRow(page, 'Fighter', 'Air')).toBeVisible();
-                await expect(graphRow(page, 'Fighter', 'Air')).toHaveClass(/attribute-options-graph-values__row--highlight/);
+                await expect(graphRow(page, 'Fighter', 'Air')).toHaveClass(
+                    /attribute-options-graph-values__row--highlight/,
+                );
 
                 // # Delete the leaf — no confirm; the row is removed immediately
                 await openGraphRowDelete(page, 'Fighter', 'Air');

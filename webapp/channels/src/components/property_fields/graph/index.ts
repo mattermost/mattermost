@@ -41,6 +41,7 @@ const MAX_EXTRA_PATHS = 99;
 
 const PATH_SEPARATOR = ' › ';
 const EXTRA_PATHS_SEPARATOR = ' · ';
+export const OCCURRENCE_KEY_SEPARATOR = '\0';
 
 export function optionKey(option: PropertyFieldOption): string {
     return option.id || option.name;
@@ -58,7 +59,7 @@ export type GraphIndex = {
 export const pickerOccurrenceKey: OccurrenceKeyOf = ({parentKey, valueKey}) =>
     `${parentKey ?? ''}::${valueKey}`;
 
-export const canvasOccurrenceKey: OccurrenceKeyOf = ({path}) => path.join('\0');
+export const canvasOccurrenceKey: OccurrenceKeyOf = ({path}) => path.join(OCCURRENCE_KEY_SEPARATOR);
 
 export function indexOptions(options: PropertyFieldOption[]): GraphIndex {
     const byId = new Map<string, PropertyFieldOption>();

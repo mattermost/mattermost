@@ -3,7 +3,12 @@
 
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
-import {oxfordJoinNames} from 'components/property_fields/graph';
+import {
+    GRAPH_MAX_EDGES,
+    GRAPH_MAX_OPTIONS,
+    GRAPH_MAX_PARENTS_PER_VALUE,
+    oxfordJoinNames,
+} from 'components/property_fields/graph';
 
 import {
     addChildOption,
@@ -30,12 +35,6 @@ import {
     wouldExceedMaxOptions,
     wouldExceedMaxParents,
 } from './graph_utils';
-
-import {
-    GRAPH_MAX_EDGES,
-    GRAPH_MAX_OPTIONS,
-    GRAPH_MAX_PARENTS_PER_VALUE,
-} from '../../constants';
 
 const opt = (name: string, parents: string[] = []): PropertyFieldOption => ({id: '', name, parents});
 

@@ -1707,11 +1707,25 @@ describe('AttributeDetails', () => {
             expect(screen.queryByTestId('attributeDetails')).not.toBeInTheDocument();
         });
 
-        it('redirects to the listing when the field is graph and PropertyFieldGraph is off', async () => {
-            mockLoadedField(makeTemplate({type: 'graph', attrs: {display_name: 'Org chart'}}));
+        it('loads a graph field for edit when PropertyFieldGraph is off', async () => {
+            mockLoadedField(makeTemplate({
+                type: 'graph',
+                attrs: {
+                    display_name: 'Org chart',
+                    options: [{id: 'opt-1', name: 'Air'}, {id: 'opt-2', name: 'Fighter'}],
+                },
+            }));
+            jest.spyOn(Client4, 'getPropertyFieldOptions').mockResolvedValue([
+                {id: 'opt-1', name: 'Air', parents: []},
+                {id: 'opt-2', name: 'Fighter', parents: ['Air']},
+            ]);
+
             renderEdit();
-            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes'));
-            expect(screen.queryByTestId('attributeDetails')).not.toBeInTheDocument();
+            await waitForForm();
+
+            expect(screen.getByRole('heading', {name: 'Edit attribute'})).toBeInTheDocument();
+            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Hierarchical');
+            expect(mockHistoryPush).not.toHaveBeenCalled();
         });
 
         it('loads a graph field from the options route so parents survive field GET sanitization', async () => {

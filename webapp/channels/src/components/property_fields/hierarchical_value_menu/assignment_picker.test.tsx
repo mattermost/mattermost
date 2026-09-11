@@ -12,9 +12,8 @@ import type {AssignmentGraphPickerProps} from './assignment_picker';
 import type {GraphFieldRef} from './hierarchical_value_menu';
 
 import {assignmentFallbackLabels, computeAssignmentPrefetch} from '../graph/assignment_prefetch';
-import GraphValueSummary from '../graph/graph_value_summary';
 import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from '../graph/page_all_access_control_field_options';
-import {clearGraphOptionNameCache} from '../graph/use_graph_option_names';
+import {clearGraphOptionNameCache, useGraphOptionNames} from '../graph/use_graph_option_names';
 
 jest.mock('../graph/page_all_access_control_field_options', () => ({
     ...jest.requireActual('../graph/page_all_access_control_field_options'),
@@ -60,12 +59,11 @@ const deferred = <T, >() => {
     return {promise, resolve, reject};
 };
 
-const renderPicker = (overrides: Partial<AssignmentGraphPickerProps> = {}, flagOn = true) => {
+const renderPicker = (overrides: Partial<AssignmentGraphPickerProps> = {}) => {
     const props: AssignmentGraphPickerProps = {
         field: fieldOf({options: REGIME_1}),
         ids: [],
         onIdsChange: jest.fn(),
-        fallback: () => <div data-testid='legacy-control'/>,
         menuId: 'assignment-menu',
         buttonId: 'assignment-button',
         buttonDataTestId: 'assignment-trigger',
@@ -73,9 +71,7 @@ const renderPicker = (overrides: Partial<AssignmentGraphPickerProps> = {}, flagO
         ...overrides,
     };
 
-    const view = renderWithContext(<AssignmentGraphPicker {...props}/>, {
-        entities: {general: {config: {FeatureFlagPropertyFieldGraph: flagOn ? 'true' : 'false'}}},
-    });
+    const view = renderWithContext(<AssignmentGraphPicker {...props}/>);
 
     return {
         props,
@@ -87,6 +83,12 @@ const renderPicker = (overrides: Partial<AssignmentGraphPickerProps> = {}, flagO
         ),
     };
 };
+
+function CommittedIdLabel({field, id}: {field: GraphFieldRef; id: string}) {
+    const {labelForId} = useGraphOptionNames(field, [id]);
+    const label = labelForId(id);
+    return <>{label.kind === 'name' ? label.text : id}</>;
+}
 
 const trigger = () => screen.getByTestId('assignment-trigger');
 
@@ -110,23 +112,11 @@ describe('AssignmentGraphPicker', () => {
         });
     });
 
-    test('P1: renders the fallback and never calls it twice when the flag is off', () => {
-        const fallback = jest.fn(() => <div data-testid='legacy-control'/>);
-        renderPicker({fallback}, false);
-
-        expect(screen.getByTestId('legacy-control')).toBeInTheDocument();
-        expect(screen.queryByTestId('assignment-trigger')).not.toBeInTheDocument();
-        expect(fallback).toHaveBeenCalledTimes(1);
-        expect(mockPageAll).not.toHaveBeenCalled();
-    });
-
-    test('P2: does not invoke the fallback when the flag is on', () => {
-        const fallback = jest.fn(() => <div data-testid='legacy-control'/>);
-        renderPicker({fallback});
+    test('P2: mounts the hierarchy picker', () => {
+        renderPicker();
 
         expect(trigger()).toBeInTheDocument();
-        expect(screen.queryByTestId('legacy-control')).not.toBeInTheDocument();
-        expect(fallback).not.toHaveBeenCalled();
+        expect(mockPageAll).not.toHaveBeenCalled();
     });
 
     test('P3: prefetches for an omitted field', async () => {
@@ -174,7 +164,6 @@ describe('AssignmentGraphPicker', () => {
                     field={fieldOf({options: REGIME_1})}
                     ids={ids}
                     onIdsChange={setIds}
-                    fallback={() => <div/>}
                     menuId='assignment-menu'
                     buttonId='assignment-button'
                     buttonDataTestId='assignment-trigger'
@@ -183,9 +172,7 @@ describe('AssignmentGraphPicker', () => {
             );
         };
 
-        renderWithContext(<Host/>, {
-            entities: {general: {config: {FeatureFlagPropertyFieldGraph: 'true'}}},
-        });
+        renderWithContext(<Host/>);
 
         await openMenu();
         await screen.findByRole('menuitemcheckbox', {name: 'Option 1'});
@@ -242,21 +229,18 @@ describe('AssignmentGraphPicker', () => {
                     field={field}
                     ids={['ghost-1', 'ghost-2']}
                     onIdsChange={jest.fn()}
-                    fallback={() => <div/>}
                     menuId='assignment-menu'
                     buttonId='assignment-button'
                     buttonDataTestId='assignment-trigger'
                     ariaLabel='Programs'
                 />
                 <div data-testid='confirm-summary'>
-                    <GraphValueSummary
+                    <CommittedIdLabel
                         field={field}
-                        ids={['ghost-1']}
-                        mode='confirm'
+                        id='ghost-1'
                     />
                 </div>
             </>,
-            {entities: {general: {config: {FeatureFlagPropertyFieldGraph: 'true'}}}},
         );
 
         await waitFor(() => expect(mockPageAll).toHaveBeenCalledTimes(1));

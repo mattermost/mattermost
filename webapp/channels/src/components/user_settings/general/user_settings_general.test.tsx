@@ -821,34 +821,6 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         expect(await screen.findByText('opt1')).toBeInTheDocument();
     });
 
-    test('should not let a graph field with omitted options be edited', async () => {
-        const graphAttribute: UserPropertyField = {
-            ...customProfileAttribute,
-            type: 'graph',
-            attrs: {
-                value_type: '',
-                visibility: 'when_set',
-                sort_order: 0,
-                options_omitted: true,
-            },
-        };
-
-        const testUser = {...user, custom_profile_attributes: {field1: ['opt1', 'opt2']}};
-        const props = {
-            ...requiredProps,
-            enableCustomProfileAttributes: true,
-            customProfileAttributeFields: [graphAttribute],
-            user: testUser,
-            activeSection: 'customAttribute_field1',
-        };
-
-        renderWithContext(<UserSettingsGeneral {...props}/>);
-
-        expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
-        expect(screen.queryByText('Select')).not.toBeInTheDocument();
-        expect(await screen.findByText('This field has too many options to be edited here.')).toBeInTheDocument();
-    });
-
     test('should show admin-managed graph Custom Attribute Field option names read-only', async () => {
         const graphAttribute: UserPropertyField = {
             ...customProfileAttribute,
@@ -877,92 +849,6 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
 
         expect(await screen.findByText('Option 1')).toBeInTheDocument();
         expect(screen.queryByText('opt1')).not.toBeInTheDocument();
-    });
-
-    test('updateSelectAttribute() should handle multi-select changes for a graph attribute', async () => {
-        const saveCustomProfileAttribute = jest.fn().mockResolvedValue({});
-        const graphAttribute: UserPropertyField = {
-            ...customProfileAttribute,
-            type: 'graph',
-            attrs: {
-                value_type: '',
-                visibility: 'when_set',
-                sort_order: 0,
-                options: [
-                    {id: 'opt1', name: 'Option 1', color: ''},
-                    {id: 'opt2', name: 'Option 2', color: ''},
-                ],
-            },
-        };
-
-        const props = {
-            ...requiredProps,
-            enableCustomProfileAttributes: true,
-            customProfileAttributeFields: [graphAttribute],
-            user: {...user},
-            activeSection: 'customAttribute_field1',
-            actions: {
-                ...requiredProps.actions,
-                saveCustomProfileAttribute,
-            },
-        };
-
-        renderWithContext(<UserSettingsGeneral {...props}/>);
-
-        const select = await screen.findByText('Select');
-        await userEvent.click(select);
-        await userEvent.click(await screen.findByText('Option 1'));
-
-        await userEvent.click(await screen.findByText('Option 1'));
-        await userEvent.click(await screen.findByText('Option 2'));
-
-        const saveButton = screen.getByRole('button', {name: 'Save'});
-        await userEvent.click(saveButton);
-
-        expect(props.actions.saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', ['opt1', 'opt2']);
-    });
-
-    test('updateSelectAttribute() should clear a graph attribute as an empty array', async () => {
-        const saveCustomProfileAttribute = jest.fn().mockResolvedValue({});
-        const graphAttribute: UserPropertyField = {
-            ...customProfileAttribute,
-            type: 'graph',
-            attrs: {
-                value_type: '',
-                visibility: 'when_set',
-                sort_order: 0,
-                options: [
-                    {id: 'opt1', name: 'Option 1', color: ''},
-                    {id: 'opt2', name: 'Option 2', color: ''},
-                ],
-            },
-        };
-
-        const testUser = {...user, custom_profile_attributes: {field1: ['opt1']}};
-        const props = {
-            ...requiredProps,
-            enableCustomProfileAttributes: true,
-            customProfileAttributeFields: [graphAttribute],
-            user: testUser,
-            activeSection: 'customAttribute_field1',
-            actions: {
-                ...requiredProps.actions,
-                saveCustomProfileAttribute,
-            },
-        };
-
-        const {container} = renderWithContext(<UserSettingsGeneral {...props}/>);
-
-        const clearIndicator = container.querySelector('.react-select__clear-indicator');
-        expect(clearIndicator).toBeInTheDocument();
-
-        await userEvent.click(clearIndicator!);
-        await screen.findByText('Select');
-
-        const saveButton = screen.getByRole('button', {name: 'Save'});
-        await userEvent.click(saveButton);
-
-        expect(props.actions.saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', []);
     });
 
     test('should not show custom attribute input field when LDAP attribute is set', async () => {
@@ -1325,7 +1211,6 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         } as UserPropertyField);
 
         type RenderOptions = {
-            flagOn?: boolean;
             activeSection?: string;
             saveCustomProfileAttribute?: jest.Mock;
         };
@@ -1333,7 +1218,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         const renderSettings = (
             attributes: UserPropertyField[],
             values: Record<string, string | string[]> | undefined,
-            {flagOn = true, activeSection = SECTION, saveCustomProfileAttribute}: RenderOptions = {},
+            {activeSection = SECTION, saveCustomProfileAttribute}: RenderOptions = {},
         ) => {
             const props = {
                 ...requiredProps,
@@ -1347,9 +1232,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
                 },
             };
 
-            const view = renderWithContext(<UserSettingsGeneral {...props}/>, {
-                entities: {general: {config: {FeatureFlagPropertyFieldGraph: flagOn ? 'true' : 'false'}}},
-            });
+            const view = renderWithContext(<UserSettingsGeneral {...props}/>);
 
             return {
                 ...view,
@@ -1693,8 +1576,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             // would be temporary. A read-only field renders no control, so no
             // picker mounts, no walk runs, the summary does not walk for a read-only omitted field,
             // and the count is permanent -- where the same field on User Detail
-            // shows names. Still better than the flag-off path, which prints the
-            // ids themselves.
+            // shows names.
             //
             // Asserted through expansion deliberately. Pinned from the collapsed
             // state alone this test passes whether or not the field is read-only,
@@ -1715,46 +1597,6 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             expect(await screen.findByText('2 values selected')).toBeInTheDocument();
             expect(collapsedRow()).not.toHaveTextContent('opt1');
             expect(mockPageAll).not.toHaveBeenCalled();
-        });
-
-        test('A17: renders today\'s ReactSelect for a graph field when the flag is off', async () => {
-            renderSettings(
-                [buildAttribute({options: REGIME_1})],
-                {field1: []},
-                {flagOn: false},
-            );
-
-            expect(await screen.findByText('Select')).toBeInTheDocument();
-            expect(screen.queryByTestId('customProfileAttributeGraph_field1')).not.toBeInTheDocument();
-            expect(mockPageAll).not.toHaveBeenCalled();
-        });
-
-        test('A18: keeps an omitted graph field read-only when the flag is off', async () => {
-            renderSettings(
-                [buildAttribute({options_omitted: true})],
-                {field1: ['opt1', 'opt2']},
-                {flagOn: false},
-            );
-
-            expect(await screen.findByText(OMITTED_COPY)).toBeInTheDocument();
-            expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
-            expect(screen.queryByTestId('customProfileAttributeGraph_field1')).not.toBeInTheDocument();
-            expect(mockPageAll).not.toHaveBeenCalled();
-        });
-
-        test('A20: flag-off omitted graph field prints ids in the collapsed row', async () => {
-            const {collapse} = renderSettings(
-                [buildAttribute({options_omitted: true})],
-                {field1: ['opt1', 'opt2']},
-                {flagOn: false},
-            );
-
-            await screen.findByText(OMITTED_COPY);
-            collapse();
-
-            expect(await screen.findByText(/opt1/)).toBeInTheDocument();
-            expect(collapsedRow()).toHaveTextContent('opt1');
-            expect(screen.queryByText('2 values selected')).not.toBeInTheDocument();
         });
 
         test('A21: collapsed omitted multiselect prints ids, never a graph count', async () => {

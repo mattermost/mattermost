@@ -76,7 +76,6 @@ const ValueSelectorMenu = ({
                 row={row}
                 disabled={disabled}
                 updateValues={updateValues}
-                options={options}
                 placeholder={placeholder}
                 channelFields={channelFields}
                 onSelectTarget={onSelectTarget}

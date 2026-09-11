@@ -2,18 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, FormattedList, useIntl} from 'react-intl';
+import {FormattedList, FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
-import type {OnChangeValue, StylesConfig} from 'react-select';
-import ReactSelect from 'react-select';
 
-import {valueRefersToOptions, type PropertyFieldOption} from '@mattermost/types/properties';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {getPluginDisplayName} from 'selectors/plugins';
 
-import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 import AssignmentGraphPicker from 'components/property_fields/hierarchical_value_menu/assignment_picker';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
@@ -23,35 +19,7 @@ import {getUserPropertyFieldLabel} from 'utils/properties';
 
 import type {GlobalState} from 'types/store';
 
-import GraphValueSummary from './graph_value_summary';
-
-type SelectOption = {
-    value: string;
-    label: string;
-};
-
-const selectStyles: StylesConfig<SelectOption, boolean> = {
-    valueContainer: (baseStyles) => ({
-        ...baseStyles,
-        height: 'auto',
-        minHeight: '38px',
-        flexWrap: 'wrap',
-        whiteSpace: 'normal',
-    }),
-    multiValue: (baseStyles) => ({
-        ...baseStyles,
-        margin: '2px',
-    }),
-    control: (baseStyles) => ({
-        ...baseStyles,
-        height: 'auto',
-        minHeight: '38px',
-    }),
-    multiValueLabel: (baseStyles) => ({
-        ...baseStyles,
-        padding: '2px 6px',
-    }),
-};
+import {useGraphOptionNames} from './use_graph_option_names';
 
 type PluginDisplayNameProps = {
     pluginId?: string;
@@ -61,44 +29,6 @@ const PluginDisplayName: React.FC<PluginDisplayNameProps> = ({pluginId}) => {
     const displayName = useSelector((state: GlobalState) => getPluginDisplayName(state, pluginId));
     return <>{displayName}</>;
 };
-
-function getDisplayValue(attribute: UserPropertyField, attributeValue: string | string[]) {
-    if (!attributeValue || (!Array.isArray(attributeValue) && !attributeValue.length)) {
-        return '';
-    }
-
-    if (valueRefersToOptions(attribute)) {
-        const attribOptions = attribute.attrs.options;
-        const optionsOmitted = Boolean(attribute.attrs?.options_omitted);
-        if (!attribOptions) {
-            if (optionsOmitted) {
-                if (Array.isArray(attributeValue)) {
-                    return attributeValue.map((value) => ({label: value, value}));
-                }
-                return {label: attributeValue, value: attributeValue};
-            }
-            return '';
-        }
-        if (Array.isArray(attributeValue)) {
-            return attributeValue.map((value) => {
-                const option = attribOptions.find((o) => o.id === value);
-
-                return {label: option?.name ?? value, value};
-            });
-        }
-
-        const option = attribOptions.find((o) => o.id === attributeValue);
-        if (option) {
-            return {label: option?.name, value: option?.id};
-        }
-        if (optionsOmitted) {
-            return {label: attributeValue, value: attributeValue};
-        }
-        return '';
-    }
-
-    return attributeValue as string;
-}
 
 export type GraphProfileAttributeProps = {
     attribute: UserPropertyField;
@@ -132,16 +62,20 @@ export default function GraphProfileAttribute({
     user,
 }: GraphProfileAttributeProps): JSX.Element {
     const {formatMessage} = useIntl();
-    const flagOn = useGetFeatureFlagValue('PropertyFieldGraph') === 'true';
-    const optionsOmitted = Boolean(attribute.attrs?.options_omitted);
-    const omitLocksField = optionsOmitted && !flagOn;
+    let storedIds: string[] = [];
+    if (Array.isArray(storedValue)) {
+        storedIds = storedValue;
+    } else if (storedValue) {
+        storedIds = [storedValue];
+    }
+    const {labelForId} = useGraphOptionNames(attribute, storedIds);
 
     const isProtected = Boolean(attribute.attrs?.protected);
     const isSynced = Boolean((user.auth_service === Constants.LDAP_SERVICE && attribute.attrs?.ldap) ||
         (user.auth_service === Constants.SAML_SERVICE && attribute.attrs?.saml));
     const isAdminManaged = attribute.attrs?.managed === 'admin';
     const isOwnerManaged = Boolean(attribute.attrs?.owners?.length);
-    const isReadOnly = isSynced || isOwnerManaged || isAdminManaged || isProtected || omitLocksField;
+    const isReadOnly = isSynced || isOwnerManaged || isAdminManaged || isProtected;
 
     let max = null;
 
@@ -187,62 +121,9 @@ export default function GraphProfileAttribute({
                     />
                 </span>
             );
-        } else if (omitLocksField) {
-            extraInfo = (
-                <span>
-                    <FormattedMessage
-                        id='user.settings.general.field_options_omitted'
-                        defaultMessage='This field has too many options to be edited here.'
-                    />
-                </span>
-            );
         }
 
         if (!isReadOnly) {
-            const attribOptions: PropertyFieldOption[] = (attribute.attrs!.options as PropertyFieldOption[]) ?? [];
-            const opts = attribOptions.map((o) => {
-                return {label: o.name, value: o.id} as SelectOption;
-            });
-
-            const legacySelect = (
-                <ReactSelect
-                    isMulti={true}
-                    key={sectionName}
-                    id={'customProfileAttribute_' + attribute.id}
-                    inputId={'customProfileAttribute_' + attribute.id + '_input'}
-                    className='react-select inlineSelect'
-                    classNamePrefix='react-select'
-                    options={opts}
-                    isClearable={true}
-                    isSearchable={false}
-                    placeholder={formatMessage({
-                        id: 'user.settings.general.select',
-                        defaultMessage: 'Select',
-                    })}
-                    components={{IndicatorSeparator: null}}
-                    styles={selectStyles}
-                    value={getDisplayValue(attribute, draftIds) as SelectOption}
-                    onChange={(v: OnChangeValue<SelectOption, boolean>) => {
-                        if (!v) {
-                            onDraftIdsChange([]);
-                            return;
-                        }
-                        if (Array.isArray(v)) {
-                            onDraftIdsChange(v.
-                                filter((option): option is SelectOption =>
-                                    Boolean(option && Object.hasOwn(option, 'value'))).
-                                map((option) => option.value));
-                            return;
-                        }
-                        if ('value' in v) {
-                            onDraftIdsChange(v.value ? [v.value] : []);
-                            return;
-                        }
-                        onDraftIdsChange([]);
-                    }}
-                />
-            );
-
             inputs.push(
                 <AssignmentGraphPicker
                     key={sectionName}
@@ -257,7 +138,6 @@ export default function GraphProfileAttribute({
                         defaultMessage: 'Select',
                     })}
                     ariaLabel={getUserPropertyFieldLabel(attribute)}
-                    fallback={() => legacySelect}
                 />,
             );
 
@@ -289,24 +169,18 @@ export default function GraphProfileAttribute({
 
     let describe: JSX.Element | string = '';
 
-    if (flagOn && Array.isArray(storedValue) && storedValue.length > 0) {
-        describe = (
-            <GraphValueSummary
-                field={attribute}
-                ids={storedValue}
-                mode='describe'
-            />
-        );
-    } else if (storedValue) {
-        const attributeValue = getDisplayValue(attribute, storedValue);
-        if (attributeValue) {
-            if (typeof attributeValue === 'string') {
-                describe = attributeValue;
-            } else if (Array.isArray(attributeValue) && attributeValue.length > 0) {
-                describe = <FormattedList value={attributeValue.map((attrib) => attrib?.label || null)}/>;
-            } else if (!Array.isArray(attributeValue) && Object.hasOwn(attributeValue, 'label')) {
-                describe = attributeValue.label || '';
-            }
+    if (storedIds.length > 0) {
+        const named = storedIds.map((id) => labelForId(id));
+        if (named.every((label) => label.kind === 'name')) {
+            describe = <FormattedList value={named.map((label) => label.text)}/>;
+        } else {
+            describe = (
+                <FormattedMessage
+                    id='user.settings.general.graphValuesSelected'
+                    defaultMessage='{count, plural, one {# value selected} other {# values selected}}'
+                    values={{count: storedIds.length}}
+                />
+            );
         }
     }
 

@@ -3,7 +3,7 @@
 
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
-import {canvasOccurrenceKey, expandOccurrences, indexOptions} from 'components/property_fields/graph';
+import {canvasOccurrenceKey, expandOccurrences, indexOptions, OCCURRENCE_KEY_SEPARATOR} from 'components/property_fields/graph';
 import type {GraphOccurrence} from 'components/property_fields/graph';
 
 import {
@@ -18,6 +18,8 @@ import {
 } from './occurrences';
 
 const opt = (name: string, parents: string[] = []): PropertyFieldOption => ({id: '', name, parents});
+
+const occurrenceKey = (...parts: string[]) => parts.join(OCCURRENCE_KEY_SEPARATOR);
 
 function flattenCanvas(options: PropertyFieldOption[]): GraphOccurrence[] {
     return flattenOccurrenceTree(expandOccurrences(indexOptions(options), {keyOf: canvasOccurrenceKey}));
@@ -54,9 +56,9 @@ describe('flattenOccurrenceTree', () => {
     test('key equals path joined with NUL', () => {
         const occurrences = flattenCanvas([opt('A'), opt('B', ['A']), opt('C', ['B'])]);
         for (const occurrence of occurrences) {
-            expect(occurrence.key).toBe(occurrencePath(occurrence).join('\0'));
+            expect(occurrence.key).toBe(occurrencePath(occurrence).join(OCCURRENCE_KEY_SEPARATOR));
         }
-        expect(occurrences[2].key).toBe('A\0B\0C');
+        expect(occurrences[2].key).toBe(occurrenceKey('A', 'B', 'C'));
     });
 
     test('walks in DFS order', () => {
@@ -101,11 +103,11 @@ describe('pathStartsWith', () => {
 describe('isHiddenByCollapsedAncestor', () => {
     test('hides when an ancestor key is collapsed', () => {
         expect(isHiddenByCollapsedAncestor(['A', 'B', 'C'], new Set(['A']))).toBe(true);
-        expect(isHiddenByCollapsedAncestor(['A', 'B', 'C'], new Set(['A\0B']))).toBe(true);
+        expect(isHiddenByCollapsedAncestor(['A', 'B', 'C'], new Set([occurrenceKey('A', 'B')]))).toBe(true);
     });
 
     test('does not hide when only a different branch is collapsed', () => {
-        expect(isHiddenByCollapsedAncestor(['A', 'C'], new Set(['A\0B']))).toBe(false);
+        expect(isHiddenByCollapsedAncestor(['A', 'C'], new Set([occurrenceKey('A', 'B')]))).toBe(false);
         expect(isHiddenByCollapsedAncestor(['D', 'E'], new Set(['A']))).toBe(false);
     });
 
@@ -138,7 +140,7 @@ describe('expandAncestorsForOption', () => {
     const occurrences = flattenCanvas(options);
 
     test('deletes ancestor keys for a nested name', () => {
-        const collapsed = new Set(['A', 'A\0B']);
+        const collapsed = new Set(['A', occurrenceKey('A', 'B')]);
         const next = expandAncestorsForOption(collapsed, occurrences, 'C');
         expect(next).not.toBe(collapsed);
         expect([...next]).toEqual([]);
@@ -163,9 +165,9 @@ describe('expandAncestorsForOption', () => {
 
 describe('remapOccurrenceKey', () => {
     test('renames matching path segments only', () => {
-        expect(remapOccurrenceKey('A\0B\0C', 'B', 'X')).toBe('A\0X\0C');
-        expect(remapOccurrenceKey('A\0B\0A', 'A', 'X')).toBe('X\0B\0X');
-        expect(remapOccurrenceKey('A\0B', 'C', 'X')).toBe('A\0B');
+        expect(remapOccurrenceKey(occurrenceKey('A', 'B', 'C'), 'B', 'X')).toBe(occurrenceKey('A', 'X', 'C'));
+        expect(remapOccurrenceKey(occurrenceKey('A', 'B', 'A'), 'A', 'X')).toBe(occurrenceKey('X', 'B', 'X'));
+        expect(remapOccurrenceKey(occurrenceKey('A', 'B'), 'C', 'X')).toBe(occurrenceKey('A', 'B'));
     });
 });
 

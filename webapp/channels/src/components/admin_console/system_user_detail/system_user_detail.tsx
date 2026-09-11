@@ -7,7 +7,7 @@ import classNames from 'classnames';
 import React, {PureComponent} from 'react';
 import type {ChangeEvent, KeyboardEvent, MouseEvent} from 'react';
 import type {IntlShape, WrappedComponentProps} from 'react-intl';
-import {FormattedList, FormattedMessage, defineMessage, injectIntl} from 'react-intl';
+import {FormattedList, FormattedMessage, defineMessage, injectIntl, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 import type {RouteComponentProps} from 'react-router-dom';
 import ReactSelect from 'react-select';
@@ -35,7 +35,7 @@ import ConfirmManageUserSettingsModal from 'components/admin_console/system_user
 import ConfirmModal from 'components/confirm_modal';
 import FormError from 'components/form_error';
 import * as Menu from 'components/menu';
-import GraphValueSummary from 'components/property_fields/graph/graph_value_summary';
+import {useGraphOptionNames} from 'components/property_fields/graph/use_graph_option_names';
 import {AssignmentGraphPicker} from 'components/property_fields/hierarchical_value_menu';
 import SaveButton from 'components/save_button';
 import TeamSelectorModal from 'components/team_selector_modal';
@@ -189,6 +189,25 @@ const PluginDisplayName: React.FC<PluginDisplayNameProps> = ({pluginId}) => {
     const displayName = useSelector((state: GlobalState) => getPluginDisplayName(state, pluginId));
     return <>{displayName}</>;
 };
+
+function GraphConfirmLabels({field, ids}: {field: UserPropertyField; ids: string[]}) {
+    const {formatMessage, formatList} = useIntl();
+    const {labelForId} = useGraphOptionNames(field, ids);
+
+    return formatList(ids.map((id) => {
+        const label = labelForId(id);
+        if (label.kind === 'name') {
+            return label.text;
+        }
+        if (label.kind === 'id') {
+            return id;
+        }
+        return formatMessage({
+            id: 'property_fields.hierarchical_value_menu.unavailable_value',
+            defaultMessage: 'Value unavailable',
+        });
+    }));
+}
 
 type CpaFieldManagementIndicatorProps = {
     field: UserPropertyField;
@@ -836,7 +855,6 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 );
             }
             case 'graph': {
-                const options = field.attrs?.options || [];
                 const selectedValues = Array.isArray(value) ? value : [];
                 return (
                     <AssignmentGraphPicker
@@ -852,41 +870,6 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             defaultMessage: 'Select options...',
                         })}
                         ariaLabel={getUserPropertyFieldLabel(field)}
-                        fallback={() => (optionsOmitted ? (
-                            <>
-                                <input
-                                    className='form-control'
-                                    type='text'
-                                    value={selectedValues.join(this.props.intl.formatMessage({
-                                        id: 'admin.userManagement.userDetail.arrayValueSeparator',
-                                        defaultMessage: ', ',
-                                    }))}
-                                    disabled={true}
-                                    readOnly={true}
-                                />
-                                <div className='user-property-field-values__sync-indicator'>
-                                    <FormattedMessage
-                                        id='admin.userManagement.userDetail.field_options_omitted'
-                                        defaultMessage='This field has too many options to be edited here.'
-                                    />
-                                </div>
-                            </>
-                        ) : (
-                            <CPAMultiSelect
-                                options={options}
-                                selectedValues={selectedValues}
-                                onChange={(values) => this.handleCpaValueChange(field.id, values)}
-                                disabled={isDisabled}
-                                placeholder={this.props.intl.formatMessage({
-                                    id: 'admin.user.selectOptions',
-                                    defaultMessage: 'Select options...',
-                                })}
-                                noOptionsMessage={this.props.intl.formatMessage({
-                                    id: 'admin.userManagement.userDetail.noOptions',
-                                    defaultMessage: 'No options available',
-                                })}
-                            />
-                        ))}
                     />
                 );
             }
@@ -1381,10 +1364,9 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             return this.formatEmptyValue();
                         }
                         return (
-                            <GraphValueSummary
+                            <GraphConfirmLabels
                                 field={field}
                                 ids={ids}
-                                mode='confirm'
                             />
                         );
                     };

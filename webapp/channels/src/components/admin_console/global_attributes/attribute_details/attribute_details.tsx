@@ -369,8 +369,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                     !field ||
                     getSourceKind(field) === 'plugin' ||
                     isClassificationMarkingsField(field, field.group_id) ||
-                    !isAttributeFieldType(field.type) ||
-                    (field.type === 'graph' && !isGraphEnabled)
+                    !isAttributeFieldType(field.type)
                 ) {
                     getHistory().push(LIST_ROUTE);
                     return;
@@ -416,7 +415,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         return () => {
             cancelled = true;
         };
-    }, [fieldId, isGraphEnabled]);
+    }, [fieldId]);
 
     const autoSlugDisplay = useMemo(() => computeAutoSlugDisplay(displayName), [displayName]);
     const currentName = (isEditingName || isNameManuallyEdited) ? manualName : (autoSlugDisplay ?? '');
@@ -912,7 +911,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         return <LoadingScreen/>;
     }
 
-    let optionsEditor: JSX.Element | null;
+    let optionsEditor: JSX.Element | null = null;
     if (isHierarchical) {
         optionsEditor = (
             <GraphValues
@@ -948,9 +947,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 )}
             </>
         );
-    } else if (hasExternalSource) {
-        optionsEditor = null;
-    } else {
+    } else if (!hasExternalSource) {
         optionsEditor = (
             <p
                 className='AttributeDetails__optionsHelp'

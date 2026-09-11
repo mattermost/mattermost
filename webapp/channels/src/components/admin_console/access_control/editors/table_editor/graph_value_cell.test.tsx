@@ -13,12 +13,6 @@ import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
 import type {TableRow} from './value_selector_menu';
 import ValueSelectorMenu from './value_selector_menu';
 
-// Every test in this file that leaves the flag off renders with an empty store,
-// so the tree must never mount. If it ever does, the widget would call the real
-// pager: setup_jest.ts assigns globalThis.fetch = nodeFetch, so it becomes an
-// outbound request to localhost, and the widget swallows fetch failures into an
-// error status. The test then fails on a missing element with no network error
-// in the output -- a destroyed report rather than a named bug.
 jest.mock('components/property_fields/graph/page_all_access_control_field_options', () => ({
     ...jest.requireActual('components/property_fields/graph/page_all_access_control_field_options'),
     pageAllAccessControlFieldOptions: jest.fn(),
@@ -29,7 +23,7 @@ const mockPageAll = jest.mocked(pageAllAccessControlFieldOptions);
 beforeEach(() => {
     mockPageAll.mockReset();
     mockPageAll.mockImplementation(() => {
-        throw new Error('the flat picker fetched options: the graph tree mounted with the flag off');
+        throw new Error('pageAllAccessControlFieldOptions was called by a test that queued no response');
     });
 });
 
@@ -64,10 +58,6 @@ describe('GraphValueCell — graph value cell via ValueSelectorMenu', () => {
                 sort_order: 0,
                 visibility: 'always',
                 value_type: '',
-
-                // No options and the omitted markers is the >1000 regime, and
-                // it is the one that turned create on: an absent list is
-                // indistinguishable from an option-less attribute.
                 ...(options ? {options} : {options_omitted: true, options_count: 1500}),
             },
             create_at: 0,
@@ -98,112 +88,28 @@ describe('GraphValueCell — graph value cell via ValueSelectorMenu', () => {
         );
     }
 
-    function openAndFilter(text: string) {
+    test('mounts the hierarchy picker for a graph row', async () => {
+        mockPageAll.mockReset();
+        mockPageAll.mockResolvedValue([{id: 'opt-air', name: 'Air Program'} as PropertyFieldOption]);
+
+        renderGraph(graphField([{id: 'opt-air', name: 'Air Program'} as PropertyFieldOption]), graphRow());
         fireEvent.click(screen.getByTestId('valueSelectorMenuButton'));
-        const input = screen.getByRole('textbox');
-        fireEvent.change(input, {target: {value: text}});
-        return input;
-    }
 
-    describe('flag off', () => {
-        afterEach(() => {
-            expect(mockPageAll).not.toHaveBeenCalled();
-        });
-
-        test('offers no create item for an omitted graph with the flag off', () => {
-            renderGraph(graphField(), graphRow());
-            openAndFilter('Skunkworks');
-
-            expect(screen.queryByText(/Create "Skunkworks"/)).not.toBeInTheDocument();
-        });
-
-        test('shows the search placeholder, not the create placeholder, for an omitted graph', () => {
-            renderGraph(graphField(), graphRow());
-            fireEvent.click(screen.getByTestId('valueSelectorMenuButton'));
-
-            // By accessible name rather than the placeholder attribute: Input
-            // moves the placeholder text into its legend once focused and drops
-            // the attribute, but keeps it on aria-label either way.
-            expect(screen.getByRole('textbox', {name: 'Search values...'})).toBeInTheDocument();
-            expect(screen.queryByRole('textbox', {name: /create/i})).not.toBeInTheDocument();
-        });
-
-        test('does not create a value on Enter in the filter for an omitted graph', () => {
-            renderGraph(graphField(), graphRow());
-            const input = openAndFilter('Skunkworks');
-
-            fireEvent.keyDown(input, {key: 'Enter'});
-
-            expect(updateValues).not.toHaveBeenCalled();
-        });
-
-        test('shows the select placeholder on the closed button for an omitted graph', () => {
-            renderGraph(graphField(), graphRow({values: []}));
-
-            const button = screen.getByTestId('valueSelectorMenuButton');
-            expect(button).toHaveTextContent('Select values...');
-            expect(button).not.toHaveTextContent('Type to create value');
-        });
-
-        test('still offers no create item for a hydrated graph', () => {
-            renderGraph(graphField([{id: 'opt-air', name: 'Air Program'} as PropertyFieldOption]), graphRow());
-
-            fireEvent.click(screen.getByTestId('valueSelectorMenuButton'));
-            expect(screen.getByText('Air Program')).toBeInTheDocument();
-
-            fireEvent.change(screen.getByRole('textbox'), {target: {value: 'Skunkworks'}});
-            expect(screen.queryByText(/Create "Skunkworks"/)).not.toBeInTheDocument();
-        });
-
-        test('does not persist the flag-off omitted sentinel if it is clicked', () => {
-            renderGraph(graphField(), graphRow());
-            fireEvent.click(screen.getByTestId('valueSelectorMenuButton'));
-
-            const items = screen.queryAllByRole('menuitemcheckbox');
-            for (const item of items) {
-                fireEvent.click(item);
-            }
-
-            expect(updateValues).not.toHaveBeenCalled();
-        });
+        expect(await screen.findByRole('textbox', {name: 'Search values'})).toBeInTheDocument();
+        expect(mockPageAll).toHaveBeenCalled();
+        expect(screen.queryByText(/Create /)).not.toBeInTheDocument();
     });
 
-    describe('flag on', () => {
-        const graphEnabledState = {
-            entities: {
-                general: {
-                    config: {
-                        FeatureFlagPropertyFieldGraph: 'true',
-                    },
-                },
-            },
-        };
+    test('pages options for an omitted graph instead of offering create', async () => {
+        mockPageAll.mockReset();
+        mockPageAll.mockResolvedValue([{id: 'opt-air', name: 'Air Program'} as PropertyFieldOption]);
 
-        beforeEach(() => {
-            mockPageAll.mockReset();
-            mockPageAll.mockResolvedValue([{id: 'opt-air', name: 'Air Program'} as PropertyFieldOption]);
-        });
+        renderGraph(graphField(), graphRow());
+        fireEvent.click(screen.getByTestId('valueSelectorMenuButton'));
 
-        test('mounts the hierarchy picker when PropertyFieldGraph is on', async () => {
-            mockPageAll.mockReset();
-            mockPageAll.mockResolvedValue([{id: 'opt-air', name: 'Air Program'} as PropertyFieldOption]);
-
-            renderWithContext(
-                <ValueSelectorMenu
-                    row={graphRow()}
-                    disabled={false}
-                    updateValues={updateValues}
-                    options={[]}
-                    field={graphField([{id: 'opt-air', name: 'Air Program'} as PropertyFieldOption])}
-                />,
-                graphEnabledState,
-            );
-            fireEvent.click(screen.getByTestId('valueSelectorMenuButton'));
-
-            expect(await screen.findByRole('textbox', {name: 'Search values'})).toBeInTheDocument();
-            expect(screen.queryByRole('textbox', {name: 'Search values...'})).not.toBeInTheDocument();
-            expect(mockPageAll).toHaveBeenCalled();
-            expect(screen.queryByText(/Create /)).not.toBeInTheDocument();
-        });
+        expect(await screen.findByRole('textbox', {name: 'Search values'})).toBeInTheDocument();
+        expect(mockPageAll).toHaveBeenCalled();
+        expect(screen.queryByText(/Create /)).not.toBeInTheDocument();
+        expect(screen.queryByRole('textbox', {name: /create/i})).not.toBeInTheDocument();
     });
 });

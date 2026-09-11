@@ -578,7 +578,7 @@ describe('SystemUserDetail', () => {
             expect(input).toBeDisabled();
         });
 
-        test('should render a graph field\'s stored option ids as names in the flag-off multiselect', async () => {
+        test('should render a graph field\'s stored option ids as names', async () => {
             const graphField = {
                 ...buildCPAField({
                     options: [
@@ -607,16 +607,16 @@ describe('SystemUserDetail', () => {
         });
 
         test('should resolve graph field option ids to names in the change summary', async () => {
-            const userEventInstance = userEvent.setup();
+            const options = [
+                {id: 'opt-1', name: 'Alpha'},
+                {id: 'opt-2', name: 'Beta'},
+                {id: 'opt-3', name: 'Gamma'},
+            ];
+            mockPageAll.mockResolvedValue(options);
             const graphField = {
-                ...buildCPAField({
-                    options: [
-                        {id: 'opt-1', name: 'Alpha'},
-                        {id: 'opt-2', name: 'Beta'},
-                        {id: 'opt-3', name: 'Gamma'},
-                    ],
-                }),
+                ...buildCPAField({options}),
                 type: 'graph',
+                object_type: 'user',
             } as UserPropertyField;
             const props = {
                 ...defaultProps,
@@ -629,12 +629,12 @@ describe('SystemUserDetail', () => {
 
             await waitForLoadingToFinish();
 
-            const fieldContainer = screen.getByTestId('user-detail-custom-attribute-label-cpa-1');
-            const picker = within(fieldContainer).getByRole('combobox');
-            await userEventInstance.click(picker);
-            await userEventInstance.click(await screen.findByText('Gamma'));
+            await userEvent.click(screen.getByTestId('cpa-graph-select-cpa-1'));
+            await userEvent.click(await screen.findByRole('menuitemcheckbox', {name: 'Gamma'}));
+            await userEvent.keyboard('{Escape}');
+            await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
 
-            await userEventInstance.click(screen.getByRole('button', {name: 'Save'}));
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
             const changesList = await screen.findByTestId('changesList');
             expect(changesList).toHaveTextContent('Alpha, Beta, Gamma');
@@ -674,7 +674,7 @@ describe('SystemUserDetail', () => {
             const renderDetail = (
                 field: UserPropertyField,
                 values: string | string[] | undefined,
-                {flagOn = true, propOverrides = {}}: {flagOn?: boolean; propOverrides?: Partial<Props>} = {},
+                {propOverrides = {}}: {propOverrides?: Partial<Props>} = {},
             ) => {
                 const props = {
                     ...defaultProps,
@@ -686,9 +686,7 @@ describe('SystemUserDetail', () => {
                     ...propOverrides,
                 };
 
-                return renderWithContext(<SystemUserDetail {...props}/>, {
-                    entities: {general: {config: {FeatureFlagPropertyFieldGraph: flagOn ? 'true' : 'false'}}},
-                });
+                return renderWithContext(<SystemUserDetail {...props}/>);
             };
 
             const fieldContainer = () => screen.getByTestId('user-detail-custom-attribute-label-cpa-1');
@@ -844,27 +842,6 @@ describe('SystemUserDetail', () => {
                 const changesList = await screen.findByTestId('changesList');
                 expect(changesList).toHaveTextContent('Alpha, Beta, Gamma');
                 expect(changesList).not.toHaveTextContent('opt-');
-            });
-
-            test('G9: renders today\'s CPAMultiSelect for a graph field when the flag is off', async () => {
-                renderDetail(buildGraphField({options: REGIME_1}), ['opt-1'], {flagOn: false});
-
-                await waitForLoadingToFinish();
-
-                expect(within(fieldContainer()).getByRole('combobox')).toBeInTheDocument();
-                expect(screen.queryByTestId('cpa-graph-select-cpa-1')).not.toBeInTheDocument();
-                expect(mockPageAll).not.toHaveBeenCalled();
-            });
-
-            test('G10: keeps an omitted graph field locked when the flag is off', async () => {
-                renderDetail(buildGraphField({options_omitted: true}), ['opt-1', 'opt-2'], {flagOn: false});
-
-                await waitForLoadingToFinish();
-
-                expect(fieldContainer().querySelector('input')).toHaveValue('opt-1, opt-2');
-                expect(fieldContainer().querySelector('input')).toBeDisabled();
-                expect(fieldContainer()).toHaveTextContent(OMITTED_COPY);
-                expect(mockPageAll).not.toHaveBeenCalled();
             });
 
             test('G11: still locks a synced graph field with omitted options', async () => {
@@ -1138,19 +1115,6 @@ describe('SystemUserDetail', () => {
                     'cpa-1',
                     ['opt-1', 'ghost-1', 'opt-3'],
                 ));
-            });
-
-            test('G23: prints the id for a stale graph value when the flag is off', async () => {
-                // Definition of Done, line 2: with the flag off this file must
-                // behave exactly as it did before Phase 5, and before Phase 5
-                // this summary printed the id.
-                renderDetail(buildGraphField({options: staleOptions}), ['opt-1', 'ghost-1'], {flagOn: false});
-                await waitForLoadingToFinish();
-
-                const changesList = await addGammaAndSave();
-                expect(changesList).toHaveTextContent('ghost-1');
-                expect(changesList).not.toHaveTextContent('Value unavailable');
-                expect(mockPageAll).not.toHaveBeenCalled();
             });
         });
     });

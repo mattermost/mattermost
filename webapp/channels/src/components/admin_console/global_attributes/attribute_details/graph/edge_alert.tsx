@@ -6,21 +6,6 @@ import {defineMessages, useIntl} from 'react-intl';
 
 import type {CheckParentEdgeInvalid} from './graph_utils';
 
-const GRAPH_CYCLE_ERROR_DEFAULT =
-    "{parent} can't be a parent of {child} — {child} already grants {parent}, so this would loop back on itself.";
-const GRAPH_DEPTH_ERROR_DEFAULT =
-    'Adding this parent pushes "{name}" to depth {n}; the limit is 100.';
-const GRAPH_MAX_PARENTS_ERROR_DEFAULT =
-    'An option can have at most 100 parents.';
-
-function cycleErrorValues(parentName: string, childName: string): {parent: string; child: string} {
-    return {parent: parentName, child: childName};
-}
-
-function depthErrorValues(name: string, depth: number): {name: string; n: number} {
-    return {name, n: depth};
-}
-
 type Props = {
     result: CheckParentEdgeInvalid;
     childName: string;
@@ -34,10 +19,10 @@ export function GraphParentEdgeAlert({result, childName, parentName, className, 
     let text = '';
     switch (result.error) {
     case 'cycle':
-        text = formatMessage(messages.cycleError, cycleErrorValues(parentName, childName));
+        text = formatMessage(messages.cycleError, {parent: parentName, child: childName});
         break;
     case 'depth':
-        text = formatMessage(messages.depthError, depthErrorValues(childName, result.depth));
+        text = formatMessage(messages.depthError, {name: childName, n: result.depth});
         break;
     case 'max-parents':
         text = formatMessage(messages.maxParentsError);
@@ -63,14 +48,14 @@ export function GraphParentEdgeAlert({result, childName, parentName, className, 
 const messages = defineMessages({
     cycleError: {
         id: 'admin.global_attributes.attribute_details.options.graph.parent_edge.cycle',
-        defaultMessage: GRAPH_CYCLE_ERROR_DEFAULT,
+        defaultMessage: "{parent} can't be a parent of {child} — {child} already grants {parent}, so this would loop back on itself.",
     },
     depthError: {
         id: 'admin.global_attributes.attribute_details.options.graph.parent_edge.depth',
-        defaultMessage: GRAPH_DEPTH_ERROR_DEFAULT,
+        defaultMessage: 'Adding this parent pushes "{name}" to depth {n}; the limit is 100.',
     },
     maxParentsError: {
         id: 'admin.global_attributes.attribute_details.options.graph.parent_edge.max_parents',
-        defaultMessage: GRAPH_MAX_PARENTS_ERROR_DEFAULT,
+        defaultMessage: 'An option can have at most 100 parents.',
     },
 });

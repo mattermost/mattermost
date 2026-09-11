@@ -4,12 +4,6 @@
 export const GLOBAL_ATTRIBUTES_GROUP_NAME = 'access_control';
 export const GLOBAL_ATTRIBUTES_OBJECT_TYPE = 'template';
 export const GLOBAL_ATTRIBUTES_TARGET_TYPE = 'system';
-export {
-    GRAPH_MAX_PARENTS_PER_VALUE,
-    GRAPH_MAX_DEPTH,
-    GRAPH_MAX_OPTIONS,
-    GRAPH_MAX_EDGES,
-} from 'components/property_fields/graph/limits';
 
 // Kept here (not on attribute_details.tsx) so the listing table can build an
 // edit URL without importing the details page, which already imports type

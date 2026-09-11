@@ -27,7 +27,6 @@ import {
     flattenSearch,
     selectedDescendantCount,
 } from '../graph';
-import {unavailableValueMessage} from '../graph/graph_value_summary';
 import type {GraphFieldRef} from '../graph/page_all_access_control_field_options';
 import {useGraphOptionJoin} from '../graph/use_graph_option_join';
 
@@ -43,6 +42,10 @@ const messages = defineMessages({
     alsoUnder: {
         id: 'property_fields.hierarchical_value_menu.also_under',
         defaultMessage: 'Also under {names}',
+    },
+    unavailableValue: {
+        id: 'property_fields.hierarchical_value_menu.unavailable_value',
+        defaultMessage: 'Value unavailable',
     },
 });
 
@@ -152,7 +155,7 @@ export default function HierarchicalValueMenu({
         }
 
         if (status === 'error') {
-            return {text: formatMessage(unavailableValueMessage), state: 'unavailable'};
+            return {text: formatMessage(messages.unavailableValue), state: 'unavailable'};
         }
 
         if (status !== 'loaded') {
