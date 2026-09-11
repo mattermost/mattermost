@@ -195,6 +195,8 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.ClassificationMarkings = true
 
+	f.GlobalAttributes = true
+
 	f.BurnOnRead = true
 
 	// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge - Remove this default when MVP is to be released

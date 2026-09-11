@@ -23,6 +23,7 @@ import {
 
 import {
     GLOBAL_ATTRIBUTES_ADMIN_PATH,
+    USER_ATTRIBUTES_ADMIN_PATH,
     createGlobalAttributeField,
     createLinkedDependentField,
     deleteGlobalAttributeFieldIfExists,
@@ -58,9 +59,10 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
 
     test.describe('access gate', () => {
         /**
-         * @objective Ensure the Manage Attributes admin route is unavailable when the feature flag is off.
+         * @objective Ensure the Manage Attributes route is unavailable when the feature flag is
+         * off, and that the legacy "User Attributes" page is reachable again in that state.
          */
-        test('feature flag off hides Manage Attributes regardless of license', async ({pw}) => {
+        test('feature flag off hides Manage Attributes and restores the legacy User Attributes page', async ({pw}) => {
             const {adminUser, adminClient} = await getAdminClient();
 
             if (!adminUser || !adminClient) {
@@ -81,17 +83,30 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
 
             // * User is redirected away from the hidden route (no Route registered)
             await expect(systemConsolePage.page).not.toHaveURL(/manage_attributes/);
+            // * The sidebar itself rendered
+            await expect(systemConsolePage.page.getByTestId('admin-sidebar')).toBeVisible();
             // * Manage Attributes menu entry is not shown in the sidebar
             await expect(
                 systemConsolePage.page.getByTestId('admin-sidebar').getByText('Manage Attributes'),
             ).not.toBeVisible();
+
+            // # Navigate to the legacy User Attributes path
+            await systemConsolePage.page.goto(USER_ATTRIBUTES_ADMIN_PATH);
+
+            // * The page is reachable again
+            await expect(systemConsolePage.page).toHaveURL(/user_attributes/);
+            await expect(
+                systemConsolePage.page.getByTestId('admin-sidebar').getByText('User Attributes'),
+            ).toBeVisible();
         });
 
         /**
-         * @objective Ensure the Manage Attributes page is reachable and shows its page frame
-         * once the feature flag is on and the license meets the Enterprise tier.
+         * @objective Ensure the Manage Attributes page is reachable once the flag is on and the
+         * license meets the Enterprise tier, and that the legacy "User Attributes" page hides.
          */
-        test('feature flag on with Enterprise+ license shows the page frame', async ({pw}) => {
+        test('feature flag on with Enterprise+ license shows Manage Attributes and hides the legacy User Attributes page', async ({
+            pw,
+        }) => {
             const {adminUser} = await requireGlobalAttributesEnabled(pw);
 
             // # Log in and open the Manage Attributes URL
@@ -112,6 +127,18 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
             await expect(
                 systemConsolePage.page.getByText('Define an attribute once, then choose which resources can use it.'),
             ).toBeVisible();
+
+            // # Navigate directly to the legacy User Attributes path
+            await systemConsolePage.page.goto(USER_ATTRIBUTES_ADMIN_PATH);
+
+            // * User is redirected away from the hidden route (no Route registered)
+            await expect(systemConsolePage.page).not.toHaveURL(/user_attributes/);
+            // * The sidebar itself rendered
+            await expect(systemConsolePage.page.getByTestId('admin-sidebar')).toBeVisible();
+            // * User Attributes menu entry is not shown in the sidebar
+            await expect(
+                systemConsolePage.page.getByTestId('admin-sidebar').getByText('User Attributes'),
+            ).not.toBeVisible();
         });
     });
 
@@ -422,6 +449,73 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
                 }
             },
         );
+
+        /**
+         * @objective Verify each attribute's persisted sort_order propagates to profile settings
+         * and popover ordering. The Manage Attributes table has no manual reorder control today,
+         * so this sets sort_order directly via the API rather than through a UI action.
+         */
+        test("propagates each attribute's persisted sort_order to profile settings and popover ordering", async ({
+            pw,
+        }) => {
+            await requireGlobalAttributesEnabled(pw);
+            const {adminClient, team, user} = await pw.initSetup();
+
+            const timestamp = Date.now();
+            const labels = [`PW Sort First ${timestamp}`, `PW Sort Second ${timestamp}`, `PW Sort Third ${timestamp}`];
+            const names = labels.map((_, index) => `e2e_global_attribute_sort_${index}_${timestamp}`);
+            const linkedIds: string[] = [];
+
+            try {
+                // # Create three attributes with sort_order descending relative to creation
+                // order, so the rendered order proves it follows sort_order, not insertion order.
+                for (const [index, label] of labels.entries()) {
+                    const template = await createGlobalAttributeField(adminClient, names[index], {
+                        type: 'text',
+                        attrs: {display_name: label, sort_order: (labels.length - index) * 10},
+                    });
+                    const linked = await createLinkedDependentField(
+                        adminClient,
+                        names[index],
+                        template.id,
+                        'text',
+                        'user',
+                        {display_name: label, sort_order: (labels.length - index) * 10, visibility: 'always'},
+                    );
+                    linkedIds.push(linked.id);
+
+                    await adminClient.updateUserCustomProfileAttributesValues(user.id, {
+                        [linked.id]: `Value ${index + 1}`,
+                    });
+                }
+
+                // sort_order is 30/20/10 for First/Second/Third, so ascending order is
+                // Third, Second, First.
+                const expectedOrder = [labels[2], labels[1], labels[0]];
+
+                // * The expected order renders in profile settings (Settings > Profile)
+                const {channelsPage} = await pw.testBrowser.login(user);
+                await channelsPage.goto(team.name, 'town-square');
+                const profileModal = await channelsPage.openProfileModal();
+                const sectionHeadings = await profileModal.sectionHeadings.allTextContents();
+                expect(sectionHeadings.filter((heading) => labels.includes(heading))).toEqual(expectedOrder);
+                await profileModal.closeModal();
+
+                // * The same order renders in the profile popover
+                await channelsPage.postMessage(`sort-order-${timestamp}`);
+                const post = await channelsPage.getLastPost();
+                const popover = await channelsPage.openProfilePopover(post);
+                const attributeHeadings = await popover.attributeHeadings.allTextContents();
+                expect(attributeHeadings.filter((heading) => labels.includes(heading))).toEqual(expectedOrder);
+            } finally {
+                for (const linkedId of linkedIds) {
+                    await deleteLinkedDependentField(adminClient, linkedId);
+                }
+                for (const name of names) {
+                    await deleteGlobalAttributeFieldIfExists(adminClient, name);
+                }
+            }
+        });
     });
 
     test.describe('delete attribute', () => {

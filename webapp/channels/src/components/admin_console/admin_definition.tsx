@@ -643,7 +643,10 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'system_attributes/user_attributes',
                 title: defineMessage({id: 'admin.sidebar.user_attributes', defaultMessage: 'User Attributes'}),
                 searchableStrings: systemPropertiesSearchableStrings,
-                isHidden: it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
+                isHidden: it.any(
+                    it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
+                    it.configIsTrue('FeatureFlags', 'GlobalAttributes'),
+                ),
                 schema: {
                     id: 'SystemProperties',
                     component: SystemProperties,

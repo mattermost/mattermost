@@ -9,6 +9,8 @@
  * Local runs: upload or use a license with SkuShortName `enterprise`, `entry`, or `advanced`.
  */
 
+import type {PropertyField} from '@mattermost/types/properties';
+
 import {expect, test, getAdminClient} from '@mattermost/playwright-lib';
 
 import {
@@ -17,6 +19,7 @@ import {
     createLinkedDependentField,
     deleteAppliesToAttributeAndLinkedFieldsIfExists,
     deleteGlobalAttributeFieldIfExists,
+    deleteLinkedDependentField,
     fetchLinkedFieldsForTemplate,
     requireGlobalAttributesEnabled,
     setGlobalAttributesFeatureFlag,
@@ -1142,6 +1145,79 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         });
     });
 
+    test.describe('display name rendering', () => {
+        /**
+         * @objective Verify a Global Attributes user-linked field's display_name renders as the
+         * user-facing label across the profile popover, account settings, and admin user detail.
+         */
+        test('renders display name across the profile popover, account settings, and admin user detail page', async ({
+            pw,
+        }) => {
+            await requireGlobalAttributesEnabled(pw);
+            const {adminClient, adminUser, team, user} = await pw.initSetup();
+
+            const timestamp = Date.now();
+            const name = `e2e_global_attribute_display_name_${timestamp}`;
+            const displayName = `Playwright Display Name ${timestamp}`;
+            const attributeValue = 'Engineering';
+
+            let userField: PropertyField | undefined;
+
+            try {
+                const template = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
+                    attrs: {display_name: displayName},
+                });
+                userField = await createLinkedDependentField(adminClient, name, template.id, 'text', 'user', {
+                    display_name: displayName,
+                    visibility: 'always',
+                });
+
+                // # Set a value for the target user directly through the CPA-compatible values route
+                await adminClient.updateUserCustomProfileAttributesValues(user.id, {
+                    [userField.id]: attributeValue,
+                });
+
+                // # Post a message as the user and open their own profile popover
+                const {channelsPage} = await pw.testBrowser.login(user);
+                await channelsPage.goto(team.name, 'town-square');
+                await channelsPage.postMessage(`display-name-rendering-${timestamp}`);
+
+                const lastPost = await channelsPage.getLastPost();
+                await channelsPage.openProfilePopover(lastPost);
+
+                // * The profile popover renders the display_name, not the internal name
+                await expect(
+                    channelsPage.page.locator(`#user-popover__custom_attributes-title-${userField.id}`),
+                ).toHaveText(displayName);
+                await channelsPage.userProfilePopover.close();
+
+                // * Account settings (Settings > Profile) also renders the display_name, both as
+                // the section heading and as the input's accessible name once in edit mode
+                const profileModal = await channelsPage.openProfileModal();
+                await expect(profileModal.getAttributeSection(displayName)).toBeVisible();
+                await profileModal.editAttribute(displayName);
+                await expect(profileModal.getAttributeInput(displayName)).toBeVisible();
+                await profileModal.closeModal();
+
+                // # Open the admin user detail page for the target user
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                await systemConsolePage.page.goto(`/admin_console/user_management/user/${user.id}`);
+                await systemConsolePage.users.userDetail.toBeVisible();
+
+                // * The admin user detail label also uses display_name
+                await expect(
+                    systemConsolePage.page.getByTestId(`user-detail-custom-attribute-label-${userField.id}`),
+                ).toContainText(displayName);
+            } finally {
+                if (userField) {
+                    await deleteLinkedDependentField(adminClient, userField.id);
+                }
+                await deleteGlobalAttributeFieldIfExists(adminClient, name);
+            }
+        });
+    });
+
     test.describe('edit attribute', () => {
         /**
          * @objective Opening Edit on a managed attribute prefills the Definition form and Save
@@ -1535,6 +1611,163 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 expect(remaining[0].id).toBe(linked.id);
             } finally {
                 await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, name);
+            }
+        });
+
+        /**
+         * @objective Ensure renaming an attribute to a name already taken by another surfaces the
+         * real server name_conflict error (not stubbed) and leaves the rename uncommitted.
+         */
+        test('shows the real server name_conflict error when renaming to a name already taken by another attribute', async ({
+            pw,
+        }) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const takenName = `e2e_global_attribute_name_taken_${timestamp}`;
+            const takenDisplayName = `Playwright Name Taken ${timestamp}`;
+            const renamingName = `e2e_global_attribute_renaming_${timestamp}`;
+            const renamingDisplayName = `Playwright Renaming ${timestamp}`;
+
+            try {
+                await createGlobalAttributeField(adminClient, takenName, {
+                    type: 'text',
+                    attrs: {display_name: takenDisplayName},
+                });
+                const renamingField = await createGlobalAttributeField(adminClient, renamingName, {
+                    type: 'text',
+                    attrs: {display_name: renamingDisplayName},
+                });
+
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                await page.getByTestId(`global-attribute-actions-${renamingField.id}`).click();
+                await page.locator(`#global-attribute-actions-${renamingField.id}-edit`).click();
+                await expect(page).toHaveURL(new RegExp(`attribute_details/${renamingField.id}$`));
+
+                // # Rename the second attribute's Unique Name to the first attribute's Unique Name
+                await page.getByTestId('attributeNameEditLink').click();
+                const nameInput = page.getByTestId('attributeNameInput');
+                await nameInput.fill(takenName);
+                await nameInput.press('Enter');
+                await expect(page.getByTestId('attributeUniqueNameValue')).toHaveText(takenName);
+
+                await page.getByTestId('saveSetting').click();
+
+                // * The real server 409 surfaces via the Save error banner, naming the conflicting
+                // attribute, and the admin stays on the form with Save re-clickable
+                const banner = page.getByTestId('attributeSaveError');
+                await expect(banner).toBeVisible();
+                await expect(banner).toContainText(takenName);
+                await expect(banner).toContainText('already exists');
+                await expect(page).toHaveURL(new RegExp(`attribute_details/${renamingField.id}$`));
+                await expect(page.getByTestId('saveSetting')).toBeEnabled();
+
+                // * The rename was never persisted
+                const templates = await adminClient.getPropertyFields(
+                    'access_control',
+                    'template',
+                    'system',
+                    undefined,
+                    {
+                        perPage: 200,
+                    },
+                );
+                const stillRenaming = templates.find((f) => f.id === renamingField.id);
+                expect(stillRenaming?.name).toBe(renamingName);
+            } finally {
+                await deleteGlobalAttributeFieldIfExists(adminClient, takenName);
+                await deleteGlobalAttributeFieldIfExists(adminClient, renamingName);
+            }
+        });
+
+        /**
+         * @objective Ensure the options editor on an already-persisted Select attribute supports
+         * adding an option, renaming one via its chip popover, and rejects a duplicate label.
+         */
+        test('adds, renames, and rejects a duplicate option on an already-persisted Select attribute', async ({pw}) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const name = `e2e_global_attribute_edit_options_${timestamp}`;
+            const displayName = `Playwright Edit Options ${timestamp}`;
+
+            try {
+                const field = await createGlobalAttributeField(adminClient, name, {
+                    type: 'select',
+                    attrs: {
+                        display_name: displayName,
+                        options: [
+                            {id: '', name: 'Engineering'},
+                            {id: '', name: 'Sales'},
+                        ],
+                    },
+                });
+
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                await page.getByTestId(`global-attribute-actions-${field.id}`).click();
+                await page.locator(`#global-attribute-actions-${field.id}-edit`).click();
+                await expect(page).toHaveURL(new RegExp(`attribute_details/${field.id}$`));
+
+                const chipLabels = page.getByTestId('attributeOptionsValues__chipLabel');
+                await expect(chipLabels).toHaveText(['Engineering', 'Sales']);
+
+                // # Add a new option to the already-persisted field
+                const optionsInput = page.getByTestId('attributeOptionsValues__addInput');
+                await optionsInput.fill('Marketing');
+                await optionsInput.press('Enter');
+                await expect(chipLabels).toHaveText(['Engineering', 'Sales', 'Marketing']);
+
+                // # Rename the existing "Sales" option (index 1) via its chip's popover
+                await page.getByTestId('attribute-option-chip-1').click();
+                const labelInput = page.getByRole('textbox', {name: 'Option label'});
+                await expect(labelInput).toHaveValue('Sales');
+                await labelInput.fill('Retail');
+                await labelInput.press('Enter');
+                await expect(chipLabels).toHaveText(['Engineering', 'Retail', 'Marketing']);
+
+                // # Close the chip's popover (the rename already committed above)
+                await labelInput.press('Escape');
+
+                // # Attempt to add a value that duplicates an existing option's label
+                await optionsInput.fill('Retail');
+                await optionsInput.press('Enter');
+
+                // * Rejected -- a "Values must be unique." error appears and no fourth chip commits
+                await expect(page.getByRole('alert').filter({hasText: 'Values must be unique.'})).toBeVisible();
+                await expect(chipLabels).toHaveText(['Engineering', 'Retail', 'Marketing']);
+                await optionsInput.fill('');
+
+                await page.getByTestId('saveSetting').click();
+                await expect(page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+
+                // * The saved attribute reflects the edited options, both in the list and via the API
+                const row = page.locator('tr', {
+                    has: page.getByTestId('global-attribute-name').filter({hasText: displayName}),
+                });
+                await expect(row.getByTestId('global-attribute-options')).toContainText('3 options');
+
+                const templates = await adminClient.getPropertyFields(
+                    'access_control',
+                    'template',
+                    'system',
+                    undefined,
+                    {
+                        perPage: 200,
+                    },
+                );
+                const updated = templates.find((f) => f.id === field.id);
+                const optionNames = (updated?.attrs?.options as Array<{name: string}> | undefined)
+                    ?.map((option) => option.name)
+                    .sort();
+                expect(optionNames).toEqual(['Engineering', 'Marketing', 'Retail'].sort());
+            } finally {
+                await deleteGlobalAttributeFieldIfExists(adminClient, name);
             }
         });
     });

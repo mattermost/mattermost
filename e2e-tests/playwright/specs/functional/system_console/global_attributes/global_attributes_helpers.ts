@@ -9,6 +9,10 @@ import type {PlaywrightExtended} from '@mattermost/playwright-lib';
 
 export const GLOBAL_ATTRIBUTES_ADMIN_PATH = '/admin_console/system_attributes/manage_attributes';
 
+// The legacy "User Attributes" field-definition page, hidden once GlobalAttributes is on.
+// Canonical value: lib/src/ui/components/system_console/sections/system_attributes/system_properties.ts
+export const USER_ATTRIBUTES_ADMIN_PATH = '/admin_console/system_attributes/user_attributes';
+
 // Canonical values: webapp/channels/src/components/admin_console/global_attributes/constants.ts
 // (cross-package import not feasible between e2e-tests and webapp)
 const PROPERTY_GROUP = 'access_control';
