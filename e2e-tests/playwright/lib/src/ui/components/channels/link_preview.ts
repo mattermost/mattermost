@@ -28,6 +28,11 @@ export default class LinkPreview {
         await expect(this.hideImageButton).toBeVisible();
     }
 
+    async toHaveCollapsedImage() {
+        await expect(this.showImageButton).toBeVisible();
+        await expect(this.image).not.toBeVisible();
+    }
+
     async hideImage() {
         await this.hideImageButton.click();
         await expect(this.showImageButton).toBeVisible();
