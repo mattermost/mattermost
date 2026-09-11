@@ -333,6 +333,327 @@ func TestCreateChannel(t *testing.T) {
 	})
 }
 
+func TestCreateChannelWithPropertyValues(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.ChannelAttributes = true
+	}).InitBasic(t)
+
+	// The attribute validation hook is registered against the access_control
+	// group only, and channel attributes need Enterprise Advanced.
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	memberLevel := model.PermissionLevelMember
+	sysadminLevel := model.PermissionLevelSysadmin
+
+	// Required attributes are system-wide, so one left behind by a subtest would
+	// have to be satisfied by every later one. Each field lives for one subtest.
+	createField := func(t *testing.T, fieldType model.PropertyFieldType, level model.PermissionLevel, attrs model.StringInterface) *model.PropertyField {
+		t.Helper()
+		field, fieldErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:              "f_" + model.NewId(),
+			Type:              fieldType,
+			GroupID:           group.ID,
+			ObjectType:        "channel",
+			TargetType:        "system",
+			PermissionField:   &memberLevel,
+			PermissionValues:  &level,
+			PermissionOptions: &memberLevel,
+			Attrs:             attrs,
+		}, false, "")
+		require.Nil(t, fieldErr)
+		t.Cleanup(func() {
+			require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, field.ID, true, ""))
+		})
+		return field
+	}
+
+	newRequest := func(items ...model.PropertyValuePatchItem) (*model.ChannelCreateRequest, string) {
+		name := "attr-" + model.NewId()
+		return &model.ChannelCreateRequest{
+			Channel: model.Channel{
+				DisplayName: "Attributes",
+				Name:        name,
+				Type:        model.ChannelTypeOpen,
+				TeamId:      th.BasicTeam.Id,
+			},
+			PropertyValues: items,
+		}, name
+	}
+
+	valuesFor := func(t *testing.T, channelID string) []*model.PropertyValue {
+		t.Helper()
+		values, valuesErr := th.App.SearchPropertyValues(th.Context, group.ID, model.PropertyValueSearchOpts{
+			TargetType: model.PropertyValueTargetTypeChannel,
+			TargetIDs:  []string{channelID},
+			PerPage:    20,
+		})
+		require.Nil(t, valuesErr)
+		return values
+	}
+
+	requireNoSuchChannel := func(t *testing.T, name string) {
+		t.Helper()
+		_, chErr := th.App.GetChannelByName(th.Context, name, th.BasicTeam.Id, false)
+		require.NotNil(t, chErr, "the channel must not survive a failed attribute write")
+	}
+
+	th.LoginBasic(t)
+
+	t.Run("a required attribute with no value is refused, without naming it", func(t *testing.T) {
+		field := createField(t, model.PropertyFieldTypeText, memberLevel, model.StringInterface{
+			model.PropertyFieldAttrRequired: true,
+		})
+
+		req, name := newRequest()
+		_, resp, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.channel.create_channel.missing_required_attributes.app_error")
+		require.NotContains(t, err.Error(), field.Name)
+		requireNoSuchChannel(t, name)
+	})
+
+	t.Run("a required attribute present only as an empty value is refused", func(t *testing.T) {
+		field := createField(t, model.PropertyFieldTypeText, memberLevel, model.StringInterface{
+			model.PropertyFieldAttrRequired: true,
+		})
+
+		req, name := newRequest(model.PropertyValuePatchItem{FieldID: field.ID, Value: json.RawMessage(`"   "`)})
+		_, resp, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		requireNoSuchChannel(t, name)
+	})
+
+	t.Run("a required attribute with a value is stored with the channel", func(t *testing.T) {
+		field := createField(t, model.PropertyFieldTypeText, memberLevel, model.StringInterface{
+			model.PropertyFieldAttrRequired: true,
+		})
+
+		req, _ := newRequest(model.PropertyValuePatchItem{FieldID: field.ID, Value: json.RawMessage(`"SECRET"`)})
+		channel, resp, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		values := valuesFor(t, channel.Id)
+		require.Len(t, values, 1)
+		require.Equal(t, field.ID, values[0].FieldID)
+		require.JSONEq(t, `"SECRET"`, string(values[0].Value))
+	})
+
+	t.Run("a required attribute the caller cannot set does not block creation", func(t *testing.T) {
+		// Otherwise one sysadmin-only required attribute makes channel creation
+		// impossible for everyone else, with a 400 they cannot act on.
+		createField(t, model.PropertyFieldTypeText, sysadminLevel, model.StringInterface{
+			model.PropertyFieldAttrRequired: true,
+		})
+
+		req, _ := newRequest()
+		_, resp, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
+
+	t.Run("a value for an unknown field is refused and creates nothing", func(t *testing.T) {
+		req, name := newRequest(model.PropertyValuePatchItem{FieldID: model.NewId(), Value: json.RawMessage(`"x"`)})
+		_, resp, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.channel.create_channel.invalid_attribute.app_error")
+		requireNoSuchChannel(t, name)
+	})
+
+	t.Run("a value the hook rejects leaves no channel behind", func(t *testing.T) {
+		// A select field only accepts one of its own option IDs, and that check
+		// runs after the channel row is inserted — so this is the compensation path.
+		field := createField(t, model.PropertyFieldTypeSelect, memberLevel, model.StringInterface{
+			model.PropertyFieldAttributeOptions: []map[string]any{{"id": model.NewId(), "name": "Alpha"}},
+		})
+
+		req, name := newRequest(model.PropertyValuePatchItem{FieldID: field.ID, Value: json.RawMessage(`"not-an-option"`)})
+		_, _, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)
+		require.Error(t, err)
+		requireNoSuchChannel(t, name)
+	})
+
+	t.Run("classification value is accepted even when ChannelAttributes is off", func(t *testing.T) {
+		// Classification predates channel attributes and ships behind
+		// ClassificationMarkings + Enterprise, not ChannelAttributes + Enterprise
+		// Advanced — so it must still work with the newer flag off.
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributes = false
+			cfg.FeatureFlags.ClassificationMarkings = true
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributes = true
+		})
+
+		optionID := model.NewId()
+		templateField, fieldErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:       "classification",
+			Type:       model.PropertyFieldTypeSelect,
+			GroupID:    group.ID,
+			ObjectType: "template",
+			TargetType: "system",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []map[string]any{{"id": optionID, "name": "SECRET"}},
+			},
+		}, false, "")
+		require.Nil(t, fieldErr)
+		t.Cleanup(func() {
+			require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, templateField.ID, true, ""))
+		})
+
+		classificationField, fieldErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:             "classification",
+			Type:             model.PropertyFieldTypeSelect,
+			GroupID:          group.ID,
+			ObjectType:       "channel",
+			TargetType:       "system",
+			PermissionField:  &memberLevel,
+			PermissionValues: &memberLevel,
+			LinkedFieldID:    &templateField.ID,
+		}, false, "")
+		require.Nil(t, fieldErr)
+		t.Cleanup(func() {
+			require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, classificationField.ID, true, ""))
+		})
+
+		req, _ := newRequest(model.PropertyValuePatchItem{FieldID: classificationField.ID, Value: json.RawMessage(`"` + optionID + `"`)})
+		channel, resp, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		values := valuesFor(t, channel.Id)
+		require.Len(t, values, 1)
+		require.Equal(t, classificationField.ID, values[0].FieldID)
+	})
+
+	t.Run("a non-classification value is still refused when ChannelAttributes is off", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributes = false
+			cfg.FeatureFlags.ClassificationMarkings = true
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributes = true
+		})
+
+		field := createField(t, model.PropertyFieldTypeText, memberLevel, nil)
+
+		req, name := newRequest(model.PropertyValuePatchItem{FieldID: field.ID, Value: json.RawMessage(`"x"`)})
+		_, resp, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.channel.create_channel.attributes_feature_disabled.app_error")
+		requireNoSuchChannel(t, name)
+	})
+
+	t.Run("values are refused when the feature flag is off", func(t *testing.T) {
+		field := createField(t, model.PropertyFieldTypeText, memberLevel, nil)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributes = false
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributes = true
+		})
+
+		req, name := newRequest(model.PropertyValuePatchItem{FieldID: field.ID, Value: json.RawMessage(`"x"`)})
+		_, resp, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.channel.create_channel.attributes_feature_disabled.app_error")
+		requireNoSuchChannel(t, name)
+	})
+
+	t.Run("values are refused below Enterprise Advanced", func(t *testing.T) {
+		field := createField(t, model.PropertyFieldTypeText, memberLevel, nil)
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		defer th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+		req, name := newRequest(model.PropertyValuePatchItem{FieldID: field.ID, Value: json.RawMessage(`"x"`)})
+		_, resp, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.channel.create_channel.attributes_feature_disabled.app_error")
+		requireNoSuchChannel(t, name)
+	})
+
+	t.Run("a required attribute is not enforced when the feature flag is off", func(t *testing.T) {
+		// Creation has to stay byte-identical to its pre-feature behaviour, or
+		// turning the flag on becomes the only safe state for every integration.
+		createField(t, model.PropertyFieldTypeText, memberLevel, model.StringInterface{
+			model.PropertyFieldAttrRequired: true,
+		})
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributes = false
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributes = true
+		})
+
+		req, _ := newRequest()
+		_, resp, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
+}
+
+// The tiers that need a session are covered by TestCreateChannelWithPropertyValues.
+// This covers the ones that must answer no without consulting one, because on the
+// create path this function is the only gate: a field the property API would refuse
+// a value for must not become settable by creating a channel.
+func TestCanSetChannelAttributeOnCreate(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	c := &Context{App: th.App, AppContext: th.Context}
+
+	member := model.PermissionLevelMember
+	admin := model.PermissionLevelAdmin
+	none := model.PermissionLevelNone
+	unknown := model.PermissionLevel("supervisor")
+
+	t.Run("member and admin are satisfied by creation itself", func(t *testing.T) {
+		require.True(t, canSetChannelAttributeOnCreate(c, &model.PropertyField{PermissionValues: &member}))
+		require.True(t, canSetChannelAttributeOnCreate(c, &model.PropertyField{PermissionValues: &admin}))
+	})
+
+	t.Run("none is never settable", func(t *testing.T) {
+		require.False(t, canSetChannelAttributeOnCreate(c, &model.PropertyField{PermissionValues: &none}))
+	})
+
+	t.Run("an unset tier is not settable", func(t *testing.T) {
+		require.False(t, canSetChannelAttributeOnCreate(c, &model.PropertyField{}))
+	})
+
+	t.Run("an unrecognised tier is not settable", func(t *testing.T) {
+		require.False(t, canSetChannelAttributeOnCreate(c, &model.PropertyField{PermissionValues: &unknown}))
+	})
+
+	sysadmin := model.PermissionLevelSysadmin
+
+	t.Run("sysadmin tier is settable by a caller with manage_system", func(t *testing.T) {
+		sysadminContext := &Context{App: th.App, AppContext: th.Context.WithSession(&model.Session{
+			Roles: model.SystemAdminRoleId,
+		})}
+		require.True(t, canSetChannelAttributeOnCreate(sysadminContext, &model.PropertyField{PermissionValues: &sysadmin}))
+	})
+
+	t.Run("sysadmin tier is not settable by a caller without manage_system", func(t *testing.T) {
+		memberContext := &Context{App: th.App, AppContext: th.Context.WithSession(&model.Session{
+			Roles: model.SystemUserRoleId,
+		})}
+		require.False(t, canSetChannelAttributeOnCreate(memberContext, &model.PropertyField{PermissionValues: &sysadmin}))
+	})
+}
+
 func TestCreateChannelRejectsSpaceType(t *testing.T) {
 	mainHelper.Parallel(t)
 

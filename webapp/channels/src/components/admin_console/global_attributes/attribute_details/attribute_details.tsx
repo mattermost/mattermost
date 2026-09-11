@@ -2,10 +2,10 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState, type JSX} from 'react';
 import type {IntlShape, MessageDescriptor} from 'react-intl';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {useParams} from 'react-router-dom';
 
 import type {ClientError} from '@mattermost/client';
@@ -13,6 +13,9 @@ import {buttonClassNames} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import {supportsOptions} from '@mattermost/types/properties';
+import type {GlobalState} from '@mattermost/types/store';
+
+import {getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
@@ -28,6 +31,7 @@ import Input from 'components/widgets/inputs/input/input';
 
 import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
+import {isMinimumEnterpriseAdvancedLicense} from 'utils/license_utils';
 import {CPA_FIELD_NAME_MAX_RUNES, filterCELIdentifier, slugifyForCEL, validateCPAFieldName} from 'utils/properties';
 import type {CPAFieldNameValidationError} from 'utils/properties';
 
@@ -41,6 +45,8 @@ import AttributeOptionsValues from './attribute_options_values';
 import AttributePluginSource from './attribute_plugin_source';
 import {useConfirmRemoveAppliesTo} from './attribute_remove_applies_to_warning_modal';
 
+import {CHANNEL_VALUE_SETTER, DEFAULT_CHANNEL_RESOURCE_CONFIG, buildChannelFieldAttrs, buildChannelFieldPatch, isOrderedChangePolicy, parseChannelFieldConfig} from '../applies_to/channels';
+import type {ChannelResourceConfig} from '../applies_to/channels';
 import {GLOBAL_ATTRIBUTES_LIST_ROUTE} from '../constants';
 import {getSourceKind, getTypeIcon, getTypeLabel, isClassificationMarkingsField, typeLabels} from '../global_attributes_table';
 import type {AttributeFieldType} from '../utils';
@@ -52,6 +58,7 @@ import {
     fetchAttributeField,
     fetchLinkedFieldsForTemplate,
     linkedFieldsByResourceType,
+    patchLinkedAttributeField,
     updateAttributeField,
 } from '../utils';
 
@@ -332,9 +339,23 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const [ldapAttr, setLdapAttr] = useState('');
     const [samlAttr, setSamlAttr] = useState('');
 
+    // Global Attributes is Enterprise, but a channel attribute is refused below
+    // Enterprise Advanced, so Channels is not offered as a resource at all.
+    const channelAttributesEnabled = useSelector((state: GlobalState) =>
+        getFeatureFlagValue(state, 'ChannelAttributes') === 'true' && isMinimumEnterpriseAdvancedLicense(getLicense(state)));
+    const allowedResourceTypes = useMemo(
+        () => (channelAttributesEnabled ? ALL_RESOURCE_TYPES : ALL_RESOURCE_TYPES.filter((type) => type !== 'channel')),
+        [channelAttributesEnabled],
+    );
+
     // Pending Applies-to selection -- insertion order, not fixed Users/Channels/
     // Posts order (that fixed order only governs the picker's own offer list).
     const [appliesTo, setAppliesTo] = useState<ResourceObjectType[]>([]);
+
+    // What the Channels row edits. Kept whether or not Channels is currently in
+    // appliesTo, so removing the resource and adding it back does not silently
+    // reset the configuration.
+    const [channelResource, setChannelResource] = useState<ChannelResourceConfig>({...DEFAULT_CHANNEL_RESOURCE_CONFIG});
 
     // Loaded linked fields, keyed by resource type. Add/Remove only mutate
     // appliesTo; Save diffs against this snapshot. Updated in place after each
@@ -433,6 +454,9 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 setLdapAttr(typeof field.attrs?.ldap === 'string' ? field.attrs.ldap : '');
                 setSamlAttr(typeof field.attrs?.saml === 'string' ? field.attrs.saml : '');
                 setAppliesTo(ALL_RESOURCE_TYPES.filter((type) => Boolean(linkedByType[type])));
+                if (linkedByType.channel) {
+                    setChannelResource(parseChannelFieldConfig(linkedByType.channel));
+                }
                 setLoading(false);
             } catch {
                 if (!cancelled) {
@@ -570,6 +594,12 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         if (newType !== 'text') {
             setLdapAttr('');
             setSamlAttr('');
+        }
+
+        // Raise-only and lower-only compare ranks, so they cannot survive a move off
+        // Rank: left in place they would save a policy the server can never evaluate.
+        if (newType !== 'rank') {
+            setChannelResource((prev) => (isOrderedChangePolicy(prev.changePolicy) ? {...prev, changePolicy: 'any'} : prev));
         }
         setFieldType(newType);
     }, [fieldType, markDirty]);
@@ -821,7 +851,15 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             for (const type of toCreate) {
                 try {
                     // eslint-disable-next-line no-await-in-loop
-                    const linkedField = await createLinkedAttributeField(type, currentName, fieldType, displayName, fieldId);
+                    const linkedField = await createLinkedAttributeField(
+                        type,
+                        currentName,
+                        fieldType,
+                        displayName,
+                        fieldId,
+                        type === 'channel' ? buildChannelFieldAttrs(channelResource) : undefined,
+                        type === 'channel' ? CHANNEL_VALUE_SETTER : undefined,
+                    );
                     persistedLinkedFieldsRef.current[type] = linkedField;
                 } catch (error) {
                     const cpaErrorKind = type === 'user' ? appliesToErrorKindFromError(error) : null;
@@ -830,6 +868,27 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         errorKind: cpaErrorKind ?? 'applies_to_partial_save',
                         serverErrorMessage: null,
                         failedResourceTypes: [type],
+                    });
+                    return;
+                }
+            }
+
+            // An existing Channels row's own settings (required, change policy,
+            // display locations) are not part of the template patch above, so a
+            // resource that was already applied still needs its own PATCH to
+            // pick up an edit to those settings.
+            const persistedChannelField = persistedLinkedFieldsRef.current.channel;
+            if (persistedChannelField && appliesTo.includes('channel') && !toCreate.includes('channel')) {
+                try {
+                    // eslint-disable-next-line no-await-in-loop
+                    const patchedChannelField = await patchLinkedAttributeField('channel', persistedChannelField.id, buildChannelFieldPatch(channelResource));
+                    persistedLinkedFieldsRef.current.channel = patchedChannelField;
+                } catch {
+                    finalizeSave({
+                        success: false,
+                        errorKind: 'applies_to_partial_save',
+                        serverErrorMessage: null,
+                        failedResourceTypes: ['channel'],
                     });
                     return;
                 }
@@ -860,7 +919,15 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         for (const type of appliesTo) {
             try {
                 // eslint-disable-next-line no-await-in-loop
-                const linkedField = await createLinkedAttributeField(type, currentName, fieldType, displayName, templateField.id);
+                const linkedField = await createLinkedAttributeField(
+                    type,
+                    currentName,
+                    fieldType,
+                    displayName,
+                    templateField.id,
+                    type === 'channel' ? buildChannelFieldAttrs(channelResource) : undefined,
+                    type === 'channel' ? CHANNEL_VALUE_SETTER : undefined,
+                );
                 createdLinkedFields.push({type, field: linkedField});
             } catch (error) {
                 // eslint-disable-next-line no-await-in-loop
@@ -870,7 +937,12 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         }
 
         finalizeSave(outcome);
-    }, [canSave, isEditMode, fieldId, nameUnchanged, displayName, currentName, fieldType, typeChanged, options, ldapAttr, samlAttr, appliesTo, finalizeSave, confirmRemoveAppliesTo]);
+    }, [canSave, isEditMode, fieldId, nameUnchanged, displayName, currentName, fieldType, typeChanged, options, ldapAttr, samlAttr, appliesTo, channelResource, finalizeSave, confirmRemoveAppliesTo]);
+
+    const handleChannelResourceChange = useCallback((next: ChannelResourceConfig) => {
+        setChannelResource(next);
+        markDirty();
+    }, [markDirty]);
 
     const TypeIcon = getTypeIcon(fieldType);
 
@@ -1236,11 +1308,15 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                     </Card>
                     <AttributeAppliesTo
                         appliesTo={appliesTo}
+                        allowedTypes={allowedResourceTypes}
                         disabled={saving || effectiveDisabled}
                         hideAddResource={isPluginOwned}
                         lockedTooltip={isPluginOwned ? formatMessage(isOrphaned ? messages.appliesToLockedPluginOrphanedTooltip : messages.appliesToLockedPluginTooltip) : undefined}
                         onAdd={handleAdd}
                         onRemove={handleRemove}
+                        channelResource={channelResource}
+                        onChannelResourceChange={handleChannelResourceChange}
+                        ordered={fieldType === 'rank'}
                     />
                 </div>
             </div>
@@ -1422,6 +1498,10 @@ const errorMessages = defineMessages({
     reserved_word: {
         id: 'admin.global_attributes.attribute_details.save_error.reserved_word',
         defaultMessage: 'This name is a reserved word and cannot be used. Please choose a different name.',
+    },
+    channel_resource: {
+        id: 'admin.global_attributes.attribute_details.save_error.channel_resource',
+        defaultMessage: 'The attribute was created, but it could not be applied to channels. Its definition can no longer be changed here; select Save to try applying it again, or remove the Channels resource to finish without it.',
     },
     limit_reached: {
         id: 'admin.global_attributes.attribute_details.save_error.limit_reached',

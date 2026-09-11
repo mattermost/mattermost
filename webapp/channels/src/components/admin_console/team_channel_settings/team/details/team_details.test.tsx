@@ -1406,6 +1406,9 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         await userEvent.click(screen.getByText('Save'));
 
         // Saving rule changes surfaces the Apply membership policy confirmation.
+        // onSave counts affected members over several awaits before opening it, so the
+        // modal is not mounted on the commit that follows the Save click.
+        await waitFor(() => expect(screen.getByText('Apply membership policy')).toBeInTheDocument());
         await userEvent.click(document.getElementById('confirmModalButton')!);
 
         await waitFor(() => {
