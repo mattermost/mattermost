@@ -81,7 +81,8 @@ func requireOptionsPermission(c *Context, rctx request.CTX, field *model.Propert
 }
 
 // decodePropertyFieldOptions reads the array of options a write carries and
-// checks its size. It sets c.Err and returns nil on failure.
+// checks its size and that every element is non-nil. It sets c.Err and returns
+// nil on failure.
 func decodePropertyFieldOptions(c *Context, r *http.Request, callerName string) []*model.PropertyFieldOption {
 	var options []*model.PropertyFieldOption
 	if err := json.NewDecoder(r.Body).Decode(&options); err != nil {
