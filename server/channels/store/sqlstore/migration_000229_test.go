@@ -4,7 +4,6 @@
 package sqlstore
 
 import (
-	"database/sql"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -14,10 +13,18 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
-// TestMigration000229 verifies that the permission_level enum accepts 'everyone'.
-// The model already accepts 'everyone' on the three legacy columns, so a v2 request
-// carrying it is reachable, and the column write would otherwise surface a raw
-// pq enum error as a 500.
+func permissionLevelHasValue(t *testing.T, s *SqlStore, label string) bool {
+	t.Helper()
+	var count int
+	err := s.GetMaster().Get(&count, `
+		SELECT COUNT(*)
+		FROM pg_enum e
+		JOIN pg_type ty ON ty.oid = e.enumtypid
+		WHERE ty.typname = 'permission_level' AND e.enumlabel = $1`, label)
+	require.NoError(t, err)
+	return count > 0
+}
+
 func TestMigration000229(t *testing.T) {
 	logger := mlog.CreateTestLogger(t)
 
@@ -30,59 +37,18 @@ func TestMigration000229(t *testing.T) {
 	require.NoError(t, err)
 	defer store.Close()
 
-	master := store.GetMaster()
+	// New() applies all migrations, so 000229 is already in effect.
+	require.True(t, permissionLevelHasValue(t, store, "everyone"))
 
-	groupID := model.NewId()
-	_, err = master.Exec("INSERT INTO PropertyGroups (ID, Name) VALUES (?, ?)", groupID, "test_everyone_group")
-	require.NoError(t, err)
+	t.Run("the down migration keeps the enum value", func(t *testing.T) {
+		_, dErr := store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000229_add_everyone_to_permission_level.down.sql"))
+		require.NoError(t, dErr, "down migration should succeed")
+		assert.True(t, permissionLevelHasValue(t, store, "everyone"),
+			"the down migration is a no-op, so 'everyone' must survive it")
 
-	t.Cleanup(func() {
-		master.Exec("DELETE FROM PropertyFields WHERE GroupID = ?", groupID) //nolint:errcheck
-		master.Exec("DELETE FROM PropertyGroups WHERE ID = ?", groupID)      //nolint:errcheck
+		// And re-applying the up migration on top is harmless.
+		_, uErr := store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000229_add_everyone_to_permission_level.up.sql"))
+		require.NoError(t, uErr, "up migration should be re-appliable")
+		assert.True(t, permissionLevelHasValue(t, store, "everyone"))
 	})
-
-	now := model.GetMillis()
-	fieldID := model.NewId()
-
-	// Test INSERT with 'everyone'
-	_, err = master.Exec(
-		`INSERT INTO PropertyFields
-		(ID, GroupID, Name, Type, Attrs, TargetID, TargetType, ObjectType, CreateAt, UpdateAt, DeleteAt, PermissionField, PermissionValues, PermissionOptions)
-		VALUES (?, ?, ?, 'text', '{}'::jsonb, '', 'system', 'user', ?, ?, ?, ?, ?, ?)`,
-		fieldID, groupID, "test_field", now, now, 0, "everyone", "everyone", "everyone",
-	)
-	require.NoError(t, err, "inserting field with 'everyone' should succeed")
-
-	var row struct {
-		PermissionField   sql.NullString `db:"permissionfield"`
-		PermissionValues  sql.NullString `db:"permissionvalues"`
-		PermissionOptions sql.NullString `db:"permissionoptions"`
-	}
-	require.NoError(t, master.Get(&row, "SELECT PermissionField, PermissionValues, PermissionOptions FROM PropertyFields WHERE ID = ?", fieldID))
-	assert.True(t, row.PermissionField.Valid)
-	assert.Equal(t, "everyone", row.PermissionField.String)
-	assert.True(t, row.PermissionValues.Valid)
-	assert.Equal(t, "everyone", row.PermissionValues.String)
-	assert.True(t, row.PermissionOptions.Valid)
-	assert.Equal(t, "everyone", row.PermissionOptions.String)
-
-	// Test UPDATE to 'everyone'
-	fieldID2 := model.NewId()
-	_, err = master.Exec(
-		`INSERT INTO PropertyFields
-		(ID, GroupID, Name, Type, Attrs, TargetID, TargetType, ObjectType, CreateAt, UpdateAt, DeleteAt, PermissionValues)
-		VALUES (?, ?, ?, 'text', '{}'::jsonb, '', 'system', 'user', ?, ?, ?, ?)`,
-		fieldID2, groupID, "test_field_update", now, now, 0, "member",
-	)
-	require.NoError(t, err)
-
-	_, err = master.Exec("UPDATE PropertyFields SET PermissionValues = ? WHERE ID = ?", "everyone", fieldID2)
-	require.NoError(t, err, "updating PermissionValues to 'everyone' should succeed")
-
-	var row2 struct {
-		PermissionValues sql.NullString `db:"permissionvalues"`
-	}
-	require.NoError(t, master.Get(&row2, "SELECT PermissionValues FROM PropertyFields WHERE ID = ?", fieldID2))
-	assert.True(t, row2.PermissionValues.Valid)
-	assert.Equal(t, "everyone", row2.PermissionValues.String)
 }
