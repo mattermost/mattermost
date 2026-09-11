@@ -274,6 +274,33 @@ func TestPermissionsFromLegacyGrantsUnscopedOwnerUnaffected(t *testing.T) {
 	assert.ElementsMatch(t, validPropertyActions, p.Grants[0].Allow)
 }
 
+func TestPermissionsFromLegacyWorstCaseGrantCountUnderCap(t *testing.T) {
+	// The worst realistic conversion: the max owners, each scoped so it splits
+	// into a value grant and a definition grant, plus a source plugin, a sync
+	// source, and the ambient wildcard of a public owner-managed field. This is
+	// what sets PropertyGrantsMaxPerField's floor -- a lower cap would reject a
+	// field that was legal under the old owners cap.
+	owners := make([]PropertyOwner, PropertyOwnersMaxPerField)
+	for i := range owners {
+		owners[i] = PropertyOwner{Type: PropertyOwnerTypeUser, ID: NewId(), Scopes: []string{"scope"}}
+	}
+	field := &PropertyField{
+		Attrs: StringInterface{
+			PropertyAttrsOwners:         owners,
+			PropertyAttrsSourcePluginID: "source-plugin",
+			PropertyFieldAttrLDAP:       "ldap-sync",
+		},
+	}
+
+	p := PermissionsFromLegacy(field, LegacyConversionOpts{ConvertAttrs: true})
+
+	assert.Greater(t, len(p.Grants), PropertyOwnersMaxPerField,
+		"the conversion emits more grants than the field had owners, which is why the grant cap exceeds the owners cap")
+	assert.LessOrEqual(t, len(p.Grants), PropertyGrantsMaxPerField,
+		"PropertyGrantsMaxPerField must be high enough for the worst realistic conversion")
+	require.NoError(t, p.IsValid(""))
+}
+
 func TestPermissionsFromLegacyGrantsScopedOwnerAndSyncSourceStaySeparate(t *testing.T) {
 	// A field with both a scoped owner and a sync source converts to grants
 	// that keep the two identities separate -- the split tracks value/other
