@@ -8,7 +8,7 @@ import type {MessageDescriptor} from 'react-intl';
 import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
 import {css} from 'styled-components';
 
-import {CheckIcon, ChevronDownCircleOutlineIcon, EmailOutlineIcon, FormatListBulletedIcon, LinkVariantIcon, MenuVariantIcon, PoundIcon, SortAscendingIcon} from '@mattermost/compass-icons/components';
+import {CheckIcon, ChevronDownCircleOutlineIcon, EmailOutlineIcon, FormatListBulletedIcon, LinkVariantIcon, MenuVariantIcon, PoundIcon, SitemapIcon, SortAscendingIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import type {FieldType, FieldValueType} from '@mattermost/types/properties';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
@@ -65,8 +65,10 @@ const SelectType = (props: Props) => {
     const isProtected = Boolean(props.field.attrs?.protected);
 
     // Linked fields take their type from the template they link to; the server
-    // rejects a type change on them.
-    const isDisabled = props.field.delete_at !== 0 || isProtected || isLinkedField(props.field);
+    // rejects a type change on them. A graph field is locked for a different
+    // reason: its options carry a hierarchy, and changing the type here would
+    // hand the server a flat option list that discards every parent edge.
+    const isDisabled = props.field.delete_at !== 0 || isProtected || isLinkedField(props.field) || props.field.type === 'graph';
 
     return (
         <Menu.Container
@@ -155,7 +157,7 @@ const getTypeDescriptor = (field: UserPropertyField): TypeDescriptor => {
     return TYPE_DESCRIPTOR.text;
 };
 
-type TypeID = 'text' | 'email' | 'phone' | 'url' | 'select' | 'multiselect' | 'rank';
+type TypeID = 'text' | 'email' | 'phone' | 'url' | 'select' | 'multiselect' | 'rank' | 'graph';
 
 type TypeDescriptor = {
     id: TypeID;
@@ -236,6 +238,23 @@ const TYPE_DESCRIPTOR: IDMappedObjects<TypeDescriptor> = {
         label: defineMessage({
             id: 'admin.system_properties.user_properties.table.select_type.rank',
             defaultMessage: 'Rank',
+        }),
+    },
+
+    // Hidden, so the menu never offers it: a graph field's options form a
+    // hierarchy that only the REST and plugin APIs can build, and converting an
+    // existing field to graph here would produce one with no edges. It is listed
+    // so that a graph field created through those APIs names its own type
+    // instead of falling back to the "Text" label.
+    graph: {
+        id: 'graph',
+        hidden: true,
+        fieldType: 'graph',
+        valueType: '',
+        icon: SitemapIcon,
+        label: defineMessage({
+            id: 'admin.system_properties.user_properties.table.select_type.graph',
+            defaultMessage: 'Graph',
         }),
     },
 } as const;
