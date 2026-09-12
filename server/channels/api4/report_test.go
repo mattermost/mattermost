@@ -284,6 +284,16 @@ func TestFillUserReportOptions(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Equal(t, "", options.GuestFilter)
 	})
+
+	t.Run("search_term", func(t *testing.T) {
+		values := url.Values{}
+		values.Set("search_term", "alice")
+
+		options, appErr := fillUserReportOptions(values)
+
+		require.Nil(t, appErr)
+		require.Equal(t, "alice", options.SearchTerm)
+	})
 }
 
 func TestGetPostsForReporting(t *testing.T) {
