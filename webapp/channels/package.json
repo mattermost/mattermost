@@ -23,7 +23,6 @@
     "@mui/styled-engine-sc": "5.14.12",
     "@redux-devtools/extension": "3.3.0",
     "@tanstack/react-table": "8.10.7",
-    "@tippyjs/react": "4.2.6",
     "@tiptap/extension-code-block-lowlight": "3.20.0",
     "@tiptap/extension-link": "3.20.0",
     "@tiptap/extension-placeholder": "3.20.0",

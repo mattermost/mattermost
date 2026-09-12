@@ -46,11 +46,10 @@
     "classnames": "^2.3.1",
     "lodash": "^4.17.21",
     "react-intl": "*",
-    "shallow-equals": "^1.0.0",
-    "tippy.js": "^6.3.7"
+    "shallow-equals": "^1.0.0"
   },
   "dependencies": {
-    "@tippyjs/react": "4.2.6",
+    "@floating-ui/react": "0.27.20",
     "react-bootstrap": "github:mattermost/react-bootstrap#d693ec8082954f0e6d3e826ca6161979b29001cd",
     "styled-components": "5.3.7"
   }

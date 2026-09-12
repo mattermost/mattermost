@@ -1,11 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import Tippy from '@tippyjs/react';
+import {
+    useFloating,
+    autoUpdate,
+    offset as floatingOffset,
+    flip,
+    shift,
+    arrow,
+    FloatingPortal,
+    useTransitionStyles,
+    type Placement,
+} from '@floating-ui/react';
 import classNames from 'classnames';
-import React, {useRef, type JSX} from 'react';
+import React, {useId, useRef, type CSSProperties, type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
-import type {Placement} from 'tippy.js';
 
 import {Button} from '@mattermost/shared/components/button';
 
@@ -14,17 +23,31 @@ import {TourTipBackdrop} from './tour_tip_backdrop';
 import type {Props as PunchOutCoordsHeightAndWidth} from '../common/hooks/useMeasurePunchouts';
 import {PulsatingDot} from '../pulsating_dot';
 
-import 'tippy.js/dist/tippy.css';
-import 'tippy.js/themes/light-border.css';
-import 'tippy.js/animations/scale-subtle.css';
-import 'tippy.js/animations/perspective-subtle.css';
-
 import './tour_tip.scss';
 
 export type TourTipEventSource = 'next' | 'prev' | 'dismiss' | 'jump' | 'skipped' | 'open' | 'punchOut';
 
 // If this needs to alter, change in _variables $z-index-tour-tips-popover as well
 const DEFAULT_Z_INDEX_TOUR_TIPS_POPOVER = 1300;
+const ARROW_OFFSET = 12;
+const ROOT_PORTAL_ID = 'root-portal';
+const TRANSITION_STYLE_PROPS = {
+    duration: {
+        open: 250,
+        close: 150,
+    },
+    initial: {
+        opacity: 0,
+        transform: 'scale(0.96)',
+    },
+};
+
+const staticSideByPlacement = {
+    top: 'bottom',
+    right: 'left',
+    bottom: 'top',
+    left: 'right',
+} as const;
 
 type Props = {
     show: boolean;
@@ -85,7 +108,7 @@ export const TourTip = ({
     nextBtn,
     prevBtn,
     className,
-    offset = [-18, 4],
+    offset: tipOffset = [-18, 4],
     placement = 'right-start',
     showOptOut = true,
     width = 352,
@@ -94,13 +117,59 @@ export const TourTip = ({
     tippyBlueStyle = false,
 }: Props) => {
     const FIRST_STEP_INDEX = 0;
-    const triggerRef = useRef(null);
+    const titleId = useId();
+    const arrowRef = useRef<HTMLDivElement>(null);
     const onJump = (event: React.MouseEvent, jumpToStep: number) => {
         handleJump?.(event, jumpToStep);
     };
 
-    // This needs to be changed if root-portal node isn't available to maybe body
-    const rootPortal = document.getElementById('root-portal');
+    const rootPortal = document.getElementById(ROOT_PORTAL_ID);
+    const backdropPortal = rootPortal ?? document.body;
+
+    const {
+        refs: {setReference, setFloating},
+        floatingStyles,
+        context: floatingContext,
+        placement: resolvedPlacement,
+        middlewareData,
+    } = useFloating({
+        open: show,
+        whileElementsMounted: autoUpdate,
+        placement,
+        middleware: [
+            floatingOffset({
+                crossAxis: tipOffset[0],
+                mainAxis: tipOffset[1],
+            }),
+            flip(),
+            shift({padding: 8}),
+            arrow({
+                element: arrowRef,
+            }),
+        ],
+    });
+    const {isMounted, styles: transitionStyles} = useTransitionStyles(
+        floatingContext,
+        TRANSITION_STYLE_PROPS,
+    );
+
+    const arrowStyles: CSSProperties = {};
+    if (middlewareData.arrow?.x != null) {
+        arrowStyles.left = `${middlewareData.arrow.x}px`;
+    }
+    if (middlewareData.arrow?.y != null) {
+        arrowStyles.top = `${middlewareData.arrow.y}px`;
+    }
+
+    const mainPlacement = resolvedPlacement.split('-')[0] as keyof typeof staticSideByPlacement;
+    const staticSide = staticSideByPlacement[mainPlacement];
+    if (staticSide) {
+        (arrowStyles as Record<string, string>)[staticSide] = `-${ARROW_OFFSET / 2}px`;
+    }
+    const combinedTransform = [
+        floatingStyles.transform,
+        transitionStyles.transform,
+    ].filter(Boolean).join(' ');
 
     const dots = [];
     if (!singleTip && tourSteps) {
@@ -132,7 +201,10 @@ export const TourTip = ({
                 className='tour-tip__header'
                 data-testid={'current_tutorial_tip'}
             >
-                <h4 className='tour-tip__header__title'>
+                <h4
+                    id={titleId}
+                    className='tour-tip__header__title'
+                >
                     {title}
                 </h4>
                 <button
@@ -206,47 +278,55 @@ export const TourTip = ({
         <>
             <div
                 id='tipButton'
-                ref={triggerRef}
+                ref={setReference}
                 onClick={handleOpen}
                 className='tour-tip__pulsating-dot-ctr'
                 data-pulsating-dot-placement={pulsatingDotPlacement || 'right'}
                 style={{
-                    transform: `translate(${pulsatingDotTranslate?.x}px, ${pulsatingDotTranslate?.y}px)`,
+                    transform: pulsatingDotTranslate ?
+                        `translate(${pulsatingDotTranslate.x}px, ${pulsatingDotTranslate.y}px)` :
+                        undefined,
                 }}
             >
                 <PulsatingDot/>
             </div>
             <TourTipBackdrop
-                show={show}
+                show={isMounted}
                 onDismiss={handleDismiss}
                 onPunchOut={handlePunchOut}
                 interactivePunchOut={interactivePunchOut}
                 overlayPunchOut={overlayPunchOut}
-                appendTo={rootPortal!}
+                appendTo={backdropPortal}
                 transparent={hideBackdrop}
             />
-            {show && (
-                <Tippy
-                    showOnCreate={show}
-                    content={content}
-                    animation='scale-subtle'
-                    trigger='click'
-                    duration={[250, 150]}
-                    maxWidth={width}
-                    aria={{content: 'labelledby'}}
-                    allowHTML={true}
-                    zIndex={zIndex}
-                    reference={triggerRef}
-                    interactive={true}
-                    appendTo={rootPortal!}
-                    offset={offset}
-                    className={classNames(
-                        'tour-tip__box',
-                        className,
-                        {'tippy-blue-style': tippyBlueStyle},
-                    )}
-                    placement={placement}
-                />
+            {isMounted && (
+                <FloatingPortal id={ROOT_PORTAL_ID}>
+                    <div
+                        ref={setFloating}
+                        className={classNames(
+                            'tour-tip__box',
+                            className,
+                            {'tippy-blue-style': tippyBlueStyle},
+                        )}
+                        style={{
+                            ...floatingStyles,
+                            ...transitionStyles,
+                            transform: combinedTransform || undefined,
+                            maxWidth: width,
+                            zIndex,
+                        }}
+                        data-placement={resolvedPlacement}
+                        role='dialog'
+                        aria-labelledby={titleId}
+                    >
+                        {content}
+                        <div
+                            ref={arrowRef}
+                            className='tour-tip__arrow'
+                            style={arrowStyles}
+                        />
+                    </div>
+                </FloatingPortal>
             )}
         </>
     );

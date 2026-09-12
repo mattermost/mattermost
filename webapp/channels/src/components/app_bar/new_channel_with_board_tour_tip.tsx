@@ -2,9 +2,9 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useState, type JSX} from 'react';
+import type {Placement} from '@floating-ui/react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-import type {Placement} from 'tippy.js';
 
 import {TourTip, useMeasurePunchouts} from '@mattermost/components';
 

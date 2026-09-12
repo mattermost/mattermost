@@ -13,7 +13,6 @@ import './performance_mock';
 import './redux-persist_mock';
 import './react-intl_mock';
 import './react-router-dom_mock';
-import './react-tippy_mock';
 import './react_virtualized_auto_sizer_mock';
 
 module.exports = async () => {

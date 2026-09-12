@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React, {type JSX} from 'react';
+import type {Placement} from '@floating-ui/react';
 import {FormattedMessage, defineMessages} from 'react-intl';
-import type {Placement} from 'tippy.js';
 
 import type {PunchOutCoordsHeightAndWidth} from '@mattermost/components';
 import {TourTip} from '@mattermost/components';
