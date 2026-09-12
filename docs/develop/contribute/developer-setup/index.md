@@ -39,6 +39,11 @@ The web app isn't exposed directly, it's exposed via the server. So if both serv
 1. Install and run [Docker](https://www.docker.com/). If you don't want to use Docker, you can follow [this guide](#develop-mattermost-without-docker).
     - When running `docker` commands under WSL2, if you receive the error `The command 'docker' could not be found in this WSL 2 distro.` you may need to toggle the `Use the WSL 2 based engine` off and on within Docker Settings after installation.
     - Make sure that Docker has virtual file share access to the directory that you will clone the repository in
+    - On macOS, install Docker Desktop. The `docker` Homebrew formula installs the CLI on its own, without the Compose plugin or a container engine, so `make run-server` fails when it invokes `docker compose`.
+
+        ```sh
+        brew install --cask docker-desktop
+        ```
 
 1. Install [Go](https://go.dev/).
     - Version 1.21 or higher is required.
@@ -101,7 +106,7 @@ The web app isn't exposed directly, it's exposed via the server. So if both serv
     - Optionally, you can also populate the database with random sample data as well:
 
        ```sh
-       bin/mmctl sampledata
+       bin/mmctl --local sampledata
        ```
 
 1. Start the web app:
@@ -132,6 +137,8 @@ The web app isn't exposed directly, it's exposed via the server. So if both serv
 # Build the Mattermost Server
 
 The `make package` command will package the application and place it under the `./dist` directory. You can distribute the .tar.gz file if you wish the run the application elsewhere. Note that you would need to run `make build` before this to build the binaries.
+
+`make package` also verifies the signatures on the prepackaged plugins, so it requires `gpg` to be installed. On macOS, install it with `brew install gnupg`.
 
 # Develop Mattermost without Docker
 1. Install `make`.

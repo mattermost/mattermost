@@ -19,7 +19,12 @@ A macOS computer is required to build the Mattermost iOS mobile app.
 
 
 <Note title="Android mobile app">
-Version 17 of the Java SE Development Kit (JDK) is required to develop the Mattermost Android mobile app. You can download the latest OpenJDK release of Java from Oracle, for free, under an open source license.
+Version 17 of the Java SE Development Kit (JDK) is required to develop the Mattermost Android mobile app. You can download the latest OpenJDK release of Java from Oracle, for free, under an open source license. On macOS, you can install a suitable build with Homebrew:
+
+```sh
+brew install --cask temurin@17
+```
+
 </Note>
 
 
@@ -108,7 +113,13 @@ Some distributions come with Git preinstalled but you'll most likely have to ins
 
 ### Install XCode
 
-Install [Xcode](https://apps.apple.com/us/app/xcode/id497799835?ls=1&mt=12) to build and run the app on iOS. The minimum required version is 11.0.
+Install [Xcode](https://apps.apple.com/us/app/xcode/id497799835?ls=1&mt=12) to build and run the app on iOS. The minimum required version is 16.
+
+After installing, accept the license agreement, either by launching Xcode once or by running:
+
+```sh
+sudo xcodebuild -license accept
+```
 
 ### Install Ruby
 
@@ -177,26 +188,26 @@ Make sure you have the following environment variables configured for your platf
 <Tabs>
 <TabItem value="droid-common" label="All platforms">
 - Set `ANDROID_HOME` to where Android SDK is located (likely `/Users/<username>/Library/Android/sdk` or `/home/<username>/Android/Sdk`)
-- Make sure your `PATH` includes `ANDROID_HOME/tools` and `ANDROID_HOME/platform-tools`
+- Make sure your `PATH` includes `$ANDROID_HOME/platform-tools`, `$ANDROID_HOME/emulator`, and `$ANDROID_HOME/cmdline-tools/latest/bin`
 </TabItem>
 
 <TabItem value="droid-mac" label="macOS">
-On Mac, this usually requires adding the following lines to your `~/.bash_profile` file:
+Since macOS Catalina the default shell is zsh, so add the following lines to your `~/.zshrc` file:
 
 ```sh
 export ANDROID_HOME=$HOME/Library/Android/sdk
-export PATH=$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$ANDROID_HOME/tools:$PATH
+export PATH=$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
 ```
 
-Then reload your bash configuration:
+Then reload your shell configuration:
 
 ```sh
-source ~/.bash_profile
+source ~/.zshrc
 ```
 
 
 <Note>
-Depending on the shell you're using, this might need to be put into a different file such as `~/.zshrc`. Adjust this accordingly.
+If you use a different shell, put these lines in its startup file instead — `~/.bash_profile` for bash, for example — and reload that file.
 </Note>
 </TabItem>
 
@@ -205,8 +216,7 @@ On Linux the home folder is located under `/home/<username>` which results in a 
 
 ```sh
 export ANDROID_HOME=/home/<username>/Android/Sdk
-export PATH=$ANDROID_HOME/platform-tools:$PATH
-export PATH=$ANDROID_HOME/tools:$PATH
+export PATH=$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
 ```
 
 Then reload your configuration
@@ -226,28 +236,31 @@ Depending on the shell you're using, this might need to be put into a different 
 
 In the SDK Manager using Android Studio or the [Android SDK command line tool](https://developer.android.com/studio/command-line/sdkmanager.html), ensure the following are installed:
 
+The versions below match `android/build.gradle`, which is the source of truth. If a build fails complaining about a missing SDK or build-tools version, check that file first.
+
 - SDK Tools (you may have to select **Show Package Details** to expand packages):
-  - Android SDK Build-Tools 31
+  - Android SDK Build-Tools 36.0.0
   - Android Emulator
   - Android SDK Platform-Tools
-  - Android SDK Tools
+  - Android SDK Command-line Tools (latest)
+  - NDK (Side by side) 27.1.12297006
+  - CMake
   - Google Play services
-  - Intel x86 Emulator Accelerator (HAXM installer)
   - Support Repository
     - Android Support Repository
     - Google Repository
 
   ![image](sdk_tools.png)
 
-- SDK Platforms (you may have to select **Show Package Details** to expand packages)
-  - Android 12  or above
-    - Google APIs
-    - SDK Platform
-      - Android SDK Platform 31 or above
-    - Intel or Google Play Intel x86 Atom\_64 System Image
-  - Any other API version that you want to test
+- SDK Platforms, under **Android 16.0**:
+  - Android SDK Platform 36
+  - Google APIs ARM 64 v8a System Image on Apple Silicon, or Google APIs Intel x86 Atom\_64 System Image on Intel
 
   ![image](sdk_platforms.png)
+
+### Create an Android Virtual Device
+
+In Android Studio, select **More Actions > Device Manager**, then **Create Virtual Device**. Pick a device definition, then a system image matching the API level and architecture you installed above. Choose an image that includes **Google APIs** so Google Play services are available.
 
 ## Obtain the source code
 
