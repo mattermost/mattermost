@@ -79,6 +79,39 @@ class TestProvider extends Provider {
     }
 }
 
+// Emits an initial ordering and then, on demand, a re-ordered set of the same terms to simulate
+// remote results merging in and re-ranking after the local results are already shown.
+class ReorderingProvider extends Provider {
+    private firstOrder = ['aaa', 'bbb', 'ccc'];
+    private secondOrder = ['ccc', 'aaa', 'bbb'];
+    private resultCallback?: ResultsCallback<string>;
+
+    handlePretextChanged(pretext: string, resultCallback: ResultsCallback<string>) {
+        if (pretext.trim().length === 0) {
+            return false;
+        }
+
+        this.resultCallback = resultCallback;
+        resultCallback({
+            matchedPretext: pretext,
+            terms: this.firstOrder,
+            items: this.firstOrder,
+            component: TestSuggestion,
+        });
+
+        return true;
+    }
+
+    emitReordered(pretext: string) {
+        this.resultCallback?.({
+            matchedPretext: pretext,
+            terms: this.secondOrder,
+            items: this.secondOrder,
+            component: TestSuggestion,
+        });
+    }
+}
+
 describe('SuggestionBox', () => {
     function makeBaseProps(): React.ComponentProps<typeof SuggestionBox> {
         return {
@@ -252,6 +285,67 @@ describe('SuggestionBox', () => {
 
         // expect(onSuggestionsReceived).toHaveBeenCalledTimes(1);
         expect(screen.getByPlaceholderText('test input')).toHaveValue('@use@use This is important');
+    });
+
+    test('lets incoming results re-rank the selection until the user explicitly engages', async () => {
+        const provider = new ReorderingProvider();
+
+        renderWithContext(
+            <TestWrapper
+                {...makeBaseProps()}
+                providers={[provider]}
+            />,
+        );
+
+        const input = screen.getByPlaceholderText('test input');
+        await userEvent.click(input);
+        await userEvent.keyboard('x');
+
+        await waitFor(() => {
+            expect(screen.getByText('Suggestion: aaa')).toBeVisible();
+        });
+
+        // The top result is auto-selected before the user engages with the list
+        expect(input.getAttribute('aria-activedescendant')).toBe('suggestionList_item_aaa');
+
+        // New results arriving in a different order snap the selection to the new top result
+        act(() => provider.emitReordered('x'));
+
+        expect(input.getAttribute('aria-activedescendant')).toBe('suggestionList_item_ccc');
+    });
+
+    test('keeps an explicitly selected suggestion selected as results re-rank', async () => {
+        const provider = new ReorderingProvider();
+
+        renderWithContext(
+            <TestWrapper
+                {...makeBaseProps()}
+                providers={[provider]}
+            />,
+        );
+
+        const input = screen.getByPlaceholderText('test input');
+        await userEvent.click(input);
+        await userEvent.keyboard('x');
+
+        await waitFor(() => {
+            expect(screen.getByText('Suggestion: aaa')).toBeVisible();
+        });
+
+        // Arrow down to explicitly select the second result
+        await userEvent.keyboard('{arrowdown}');
+        expect(input.getAttribute('aria-activedescendant')).toBe('suggestionList_item_bbb');
+
+        // New results arrive in a different order, but the explicit selection is preserved instead
+        // of being reordered out from under the user
+        act(() => provider.emitReordered('x'));
+        expect(input.getAttribute('aria-activedescendant')).toBe('suggestionList_item_bbb');
+
+        // Typing again lets incoming results re-rank the selection once more
+        await userEvent.keyboard('y');
+        await waitFor(() => {
+            expect(input.getAttribute('aria-activedescendant')).toBe('suggestionList_item_aaa');
+        });
     });
 
     test('keyboard support and ARIA', async () => {

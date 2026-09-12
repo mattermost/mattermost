@@ -203,6 +203,11 @@ export default class SuggestionBox extends React.PureComponent {
         // Used for preventing suggestion list to close when scrollbar is clicked
         this.preventSuggestionListCloseFlag = false;
 
+        // Set once the user explicitly picks a row (arrow keys or hover). While false the selection
+        // tracks the top result so incoming results are free to re-rank; while true the picked row
+        // stays selected so it can't be reordered out from under the user mid-selection.
+        this.selectionIsLocked = false;
+
         // pretext: the text before the cursor
         // selection: the term currently selected by the keyboard
         this.state = {
@@ -502,6 +507,7 @@ export default class SuggestionBox extends React.PureComponent {
             selectionIndex = terms.length - 1;
         }
 
+        this.selectionIsLocked = true;
         this.setState({
             selection: terms[selectionIndex],
             selectionIndex,
@@ -511,8 +517,9 @@ export default class SuggestionBox extends React.PureComponent {
     setSelection = (term) => {
         const terms = flattenTerms(this.state.results);
 
-        const selectionIndex = terms.indexOf(this.state.selection);
+        const selectionIndex = terms.indexOf(term);
 
+        this.selectionIsLocked = true;
         this.setState({
             selection: term,
             selectionIndex,
@@ -521,6 +528,7 @@ export default class SuggestionBox extends React.PureComponent {
 
     clear = () => {
         if (!this.state.cleared) {
+            this.selectionIsLocked = false;
             this.setState({
                 cleared: true,
                 results: emptyResults(),
@@ -597,6 +605,21 @@ export default class SuggestionBox extends React.PureComponent {
         const terms = flattenTerms(results);
         let selection = this.state.selection;
         const selectionIndex = terms.indexOf(selection);
+
+        // Once the user has explicitly picked a row, keep it selected as new results merge in so it
+        // can't be reordered out from under them mid-selection. Until then, snap the selection back
+        // to the top result so incoming results are free to re-rank.
+        if (this.selectionIsLocked && selectionIndex !== -1) {
+            this.setState({
+                cleared: false,
+                selection,
+                selectionIndex,
+                results,
+            });
+
+            return {selection, matchedPretext: suggestions.matchedPretext};
+        }
+
         if (selectionIndex !== this.state.selectionIndex) {
             if (terms.length > 0) {
                 selection = terms[0];
@@ -668,6 +691,8 @@ export default class SuggestionBox extends React.PureComponent {
     };
 
     handlePretextChanged = (pretext) => {
+        // Typing is not an explicit selection, so let incoming results re-rank freely again.
+        this.selectionIsLocked = false;
         this.pretext = pretext;
         this.debouncedPretextChanged(pretext);
     };
