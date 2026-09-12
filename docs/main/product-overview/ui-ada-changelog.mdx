@@ -18,6 +18,46 @@ This changelog tracks User Interface (UI) and Accessibility (ADA) changes across
 </thead>
 <tbody>
 <tr>
+<td>v11.11</td>
+<td>(UI) Added a "Hide Archived" toggle to the <strong>Browse Channels</strong> modal that hides archived channels by default.</td>
+</tr>
+<tr>
+<td>v11.11</td>
+<td>(UI) Added a red warning callout in the System Console that appears beneath certain settings (SAML Verify Signature/Enable Encryption, Enable Insecure Outgoing Connections, Enable Developer Mode, Enable Testing Commands, wildcard CORS, and skipping SMTP/AD-LDAP certificate verification) when they are configured to a value that is not recommended for production.</td>
+</tr>
+<tr>
+<td>v11.11</td>
+<td>(UI) Added weekly recurring scheduled posts so users can schedule messages that repeat weekly and keep their recurring schedule when rescheduled.</td>
+</tr>
+<tr>
+<td>v11.11</td>
+<td>(UI) Added tooltips (Desktop, Mobile, Web Browser) to the platform icons shown for session attributes in the access control policy attribute picker.</td>
+</tr>
+<tr>
+<td>v11.11</td>
+<td>(UI) Added operators for CIDR and version checks to the simple policy editor.</td>
+</tr>
+<tr>
+<td>v11.11</td>
+<td>(UI) Licenses marked as non-production (<code>is_non_production</code>) now display a permanent, non-dismissible banner stating the server is licensed with a developer key and is not for use in production environments. The flag is exposed in the client license, support packet, and <code>GET /api/v4/license/client</code> response.</td>
+</tr>
+<tr>
+<td>v11.11</td>
+<td>(UI) The invite modal now returns an error and does not send an invitation email when the invited email address belongs to a deactivated user account.</td>
+</tr>
+<tr>
+<td>v11.11</td>
+<td>(UI) Policy simulation now evaluates draft rules against each selected user's recent sessions, including their session attributes.</td>
+</tr>
+<tr>
+<td>v11.11</td>
+<td>(UI) Updated the local image proxy to enforce a maximum size limit when fetching images directly.</td>
+</tr>
+<tr>
+<td>v11.11</td>
+<td>(UI) Adjusted user interface style for the post component's button for non-US environments.</td>
+</tr>
+<tr>
 <td>v11.10</td>
 <td>(UI) Added a WYSIWYG editor option for message composition, allowing users to compose messages with rich-text formatting while preserving full markdown round-trip.</td>
 </tr>
