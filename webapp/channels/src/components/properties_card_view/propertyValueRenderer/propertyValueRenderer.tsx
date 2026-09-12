@@ -15,8 +15,8 @@ import type {
 } from 'components/properties_card_view/properties_card_view';
 
 import ChannelPropertyRenderer from './channel_property_renderer/channel_property_renderer';
+import OptionPropertyRenderer from './option_property_renderer/option_property_renderer';
 import PostPreviewPropertyRenderer from './post_preview_property_renderer/post_preview_property_renderer';
-import SelectPropertyRenderer from './select_property_renderer/selectPropertyRenderer';
 import TeamPropertyRenderer from './team_property_renderer/team_property_renderer';
 import TextPropertyRenderer from './text_property_renderer/textPropertyRenderer';
 import TimestampPropertyRenderer from './timestamp_property_renderer/timestamp_property_renderer';
@@ -28,9 +28,10 @@ type Props = {
     field: PropertyField;
     value: PropertyValue<unknown>;
     metadata?: FieldMetadata;
+    maxItems?: number;
 };
 
-export default function PropertyValueRenderer({field, value, metadata}: Props) {
+export default function PropertyValueRenderer({field, value, metadata, maxItems}: Props) {
     switch (field.type) {
     case 'text':
         return (
@@ -48,20 +49,27 @@ export default function PropertyValueRenderer({field, value, metadata}: Props) {
                 metadata={metadata as UserPropertyMetadata}
             />
         );
+
+    // The whole option-bearing family shares one renderer. `resolveOptionChips`
+    // caps `select` and `rank` at a single chip, so `maxItems` only bites on
+    // `multiselect`.
     case 'select':
     case 'rank':
+    case 'multiselect':
         return (
-            <SelectPropertyRenderer
+            <OptionPropertyRenderer
                 value={value}
                 field={field}
+                maxItems={maxItems}
             />
         );
+
     default:
         return null;
     }
 }
 
-function RenderTextSubtype({field, value, metadata}: Props) {
+function RenderTextSubtype({field, value, metadata}: Omit<Props, 'maxItems'>) {
     if (field.type !== 'text') {
         return null;
     }

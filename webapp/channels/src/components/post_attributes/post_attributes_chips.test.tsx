@@ -292,7 +292,146 @@ describe('PostAttributesChips', () => {
         expect(screen.getByTestId('post-attributes-chips').textContent).toBe('SECRETSECRET+1');
     });
 
+    // Reaching the same rule through the component: a value the renderer cannot
+    // turn into a chip has to be indistinguishable from an unset one, right down
+    // to the row not being mounted. Rendering the row would leave an empty
+    // flex container with its own vertical margin under the message.
+    describe('a value whose option no longer exists', () => {
+        test('renders no row at all when it is the post only attribute', () => {
+            const fields = [makeField({id: 'f_a', name: 'alpha'})];
+            const values = [makeValue({id: 'v_a', field_id: 'f_a', value: 'opt_withdrawn'})];
+
+            renderWithContext(
+                <PostAttributesChips
+                    post={post}
+                    channel={channel}
+                />,
+                makeState(fields, values),
+            );
+
+            expect(screen.queryByTestId('post-attributes-chips')).not.toBeInTheDocument();
+            expect(screen.queryByText('opt_withdrawn')).not.toBeInTheDocument();
+        });
+
+        test('does not show the stored value as raw text alongside a valid chip', () => {
+            const fields = [
+                makeField({id: 'f_a', name: 'alpha', attrs: {options: OPTIONS, sort_order: 10}}),
+                makeField({id: 'f_gone', name: 'bravo', attrs: {options: OPTIONS, sort_order: 20}}),
+            ];
+            const values = [
+                makeValue({id: 'v_a', field_id: 'f_a', value: 'opt_secret'}),
+                makeValue({id: 'v_gone', field_id: 'f_gone', value: 'opt_withdrawn'}),
+            ];
+
+            renderWithContext(
+                <PostAttributesChips
+                    post={post}
+                    channel={channel}
+                />,
+                makeState(fields, values),
+            );
+
+            expect(screen.getAllByTestId('select-property').map((chip) => chip.textContent)).toEqual(['SECRET']);
+            expect(screen.queryByText('opt_withdrawn')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('post-attributes-overflow')).not.toBeInTheDocument();
+        });
+
+        test('drops only the unresolvable entries of a multiselect', () => {
+            const fields = [makeField({id: 'f_tags', name: 'tags', type: 'multiselect', attrs: {options: OPTIONS, sort_order: 10}})];
+            const values = [makeValue({id: 'v_tags', field_id: 'f_tags', value: ['opt_secret', 'opt_withdrawn']})];
+
+            renderWithContext(
+                <PostAttributesChips
+                    post={post}
+                    channel={channel}
+                />,
+                makeState(fields, values),
+            );
+
+            expect(screen.getAllByTestId('select-property').map((chip) => chip.textContent)).toEqual(['SECRET']);
+            expect(screen.queryByTestId('post-attributes-overflow')).not.toBeInTheDocument();
+        });
+    });
+
     describe('the chip budget', () => {
+        const MULTI_OPTIONS = [
+            {id: 'opt_a', name: 'ALPHA', color: 'blue'},
+            {id: 'opt_b', name: 'BRAVO', color: 'purple'},
+            {id: 'opt_c', name: 'CHARLIE', color: 'pink'},
+            {id: 'opt_d', name: 'DELTA', color: 'yellow'},
+        ];
+
+        // The budget is spent on chips, not on fields. Slicing the field list
+        // instead would let one multiselect holding four entries render all four
+        // inside the first slot, and the select behind it would vanish with no
+        // badge to say so.
+        test('renders two chips and +3 for a four-entry multiselect followed by a select', () => {
+            const fields = [
+                makeField({id: 'f_tags', name: 'tags', type: 'multiselect', attrs: {options: MULTI_OPTIONS, sort_order: 10}}),
+                makeField({id: 'f_class', name: 'classification', attrs: {options: OPTIONS, sort_order: 20}}),
+            ];
+            const values = [
+                makeValue({id: 'v_tags', field_id: 'f_tags', value: ['opt_a', 'opt_b', 'opt_c', 'opt_d']}),
+                makeValue({id: 'v_class', field_id: 'f_class', value: 'opt_secret'}),
+            ];
+
+            renderWithContext(
+                <PostAttributesChips
+                    post={post}
+                    channel={channel}
+                />,
+                makeState(fields, values),
+            );
+
+            expect(screen.getAllByTestId('select-property').map((chip) => chip.textContent)).toEqual(['ALPHA', 'BRAVO']);
+            expect(screen.queryByText('SECRET')).not.toBeInTheDocument();
+
+            // Two unshown entries of the multiselect, plus the whole select.
+            expect(screen.getByTestId('post-attributes-overflow')).toHaveTextContent('+3');
+        });
+
+        test('spends the remaining slot on a multiselect that follows a select', () => {
+            const fields = [
+                makeField({id: 'f_class', name: 'classification', attrs: {options: OPTIONS, sort_order: 10}}),
+                makeField({id: 'f_tags', name: 'tags', type: 'multiselect', attrs: {options: MULTI_OPTIONS, sort_order: 20}}),
+            ];
+            const values = [
+                makeValue({id: 'v_class', field_id: 'f_class', value: 'opt_secret'}),
+                makeValue({id: 'v_tags', field_id: 'f_tags', value: ['opt_a', 'opt_b', 'opt_c']}),
+            ];
+
+            renderWithContext(
+                <PostAttributesChips
+                    post={post}
+                    channel={channel}
+                />,
+                makeState(fields, values),
+            );
+
+            expect(screen.getAllByTestId('select-property').map((chip) => chip.textContent)).toEqual(['SECRET', 'ALPHA']);
+            expect(screen.getByTestId('post-attributes-overflow')).toHaveTextContent('+2');
+        });
+
+        test('renders a two-entry multiselect in full with no overflow badge', () => {
+            const fields = [
+                makeField({id: 'f_tags', name: 'tags', type: 'multiselect', attrs: {options: MULTI_OPTIONS, sort_order: 10}}),
+            ];
+            const values = [
+                makeValue({id: 'v_tags', field_id: 'f_tags', value: ['opt_a', 'opt_b']}),
+            ];
+
+            renderWithContext(
+                <PostAttributesChips
+                    post={post}
+                    channel={channel}
+                />,
+                makeState(fields, values),
+            );
+
+            expect(screen.getAllByTestId('select-property').map((chip) => chip.textContent)).toEqual(['ALPHA', 'BRAVO']);
+            expect(screen.queryByTestId('post-attributes-overflow')).not.toBeInTheDocument();
+        });
+
         test('renders two chips and +1 for three set single-valued fields', () => {
             const fields = [
                 makeField({id: 'f_a', name: 'alpha', attrs: {options: OPTIONS, sort_order: 10}}),

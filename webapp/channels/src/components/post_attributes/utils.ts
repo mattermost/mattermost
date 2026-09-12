@@ -4,8 +4,11 @@
 import {useMemo} from 'react';
 
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
+import {supportsOptions} from '@mattermost/types/properties';
 
 import {toValueList} from 'components/properties_card_view/propertyValueRenderer/multi_value_utils';
+
+import {resolveOptionChips} from 'utils/property_options';
 
 export type VisibleAttribute = {
     field: PropertyField;
@@ -20,10 +23,17 @@ export type ChipAllocation = VisibleAttribute & {
     maxItems?: number;
 };
 
+// Field types that render one chip per stored entry rather than one per field.
+// `chipCount` reaches `multiselect` through `supportsOptions` first, so in practice
+// this set answers two narrower questions: which fields need a `maxItems` cap, and
+// how to count a `multiuser` field, which has no options to resolve against.
 const MULTI_VALUED_TYPES = new Set(['multiselect', 'multiuser']);
 
 /**
- * Whether a stored value counts as set.
+ * Whether a stored value counts as set, judged on the value alone.
+ *
+ * Necessary but not sufficient for a chip: an option-bearing field also needs the
+ * value to resolve to an option that still exists. `chipCount` is the whole answer.
  */
 export function hasValue(value?: PropertyValue<unknown>): boolean {
     if (!value) {
@@ -48,7 +58,36 @@ export function hasValue(value?: PropertyValue<unknown>): boolean {
  * can do nothing about.
  */
 export function isChipVisible(field: PropertyField, value?: PropertyValue<unknown>): boolean {
-    return field.attrs?.visibility !== 'hidden' && hasValue(value);
+    return field.attrs?.visibility !== 'hidden' && chipCount(field, value) > 0;
+}
+
+/**
+ * How many chips a field earns on a post, before the row's budget is applied.
+ *
+ * The single answer to "is there anything to show?" — `isChipVisible` and
+ * `allocateChipBudget` both go through it, so the filter, the budget and the
+ * renderer cannot disagree about how many slots a field spends.
+ *
+ * For an option-bearing field the count is the number of *resolvable* options, not
+ * the number of stored entries. A value naming an option that no longer exists has
+ * nothing to render — the chip's text and its colour both come from the option
+ * definition — so it counts as unset. Counting it would spend a slot on an empty
+ * chip and inflate `+N` with an attribute the user can never see.
+ */
+export function chipCount(field: PropertyField, value?: PropertyValue<unknown>): number {
+    if (!value || !hasValue(value)) {
+        return 0;
+    }
+
+    if (supportsOptions(field)) {
+        return resolveOptionChips(field, value.value).length;
+    }
+
+    if (MULTI_VALUED_TYPES.has(field.type)) {
+        return toValueList(value.value).length;
+    }
+
+    return 1;
 }
 
 /**
@@ -83,17 +122,6 @@ export function useVisibleAttributes(
 }
 
 /**
- * How many chips one attribute would render if nothing capped it.
- */
-function chipCount(attribute: VisibleAttribute): number {
-    if (!MULTI_VALUED_TYPES.has(attribute.field.type)) {
-        return 1;
-    }
-
-    return toValueList(attribute.value.value).length;
-}
-
-/**
  * Spends a budget of `max` *rendered chips* across the visible attributes in order.
  *
  * The cap is on chips rather than on fields because a multi-valued field renders one
@@ -114,7 +142,7 @@ export function allocateChipBudget(visible: VisibleAttribute[], max: number): {
     let overflow = 0;
 
     for (const attribute of visible) {
-        const count = chipCount(attribute);
+        const count = chipCount(attribute.field, attribute.value);
         const take = Math.min(count, remaining);
 
         if (take > 0) {

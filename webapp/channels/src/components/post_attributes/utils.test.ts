@@ -4,9 +4,22 @@
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
 import type {VisibleAttribute} from './utils';
-import {allocateChipBudget, hasValue, isChipVisible} from './utils';
+import {allocateChipBudget, chipCount, hasValue, isChipVisible} from './utils';
+
+// Every name these tests store as a value. An option-bearing field only earns a
+// chip for a value that resolves to one of its options, so the fixture has to
+// define them or nothing would render.
+const OPTIONS = [
+    {id: 'opt_secret', name: 'SECRET'},
+    {id: 'opt_internal', name: 'INTERNAL'},
+    {id: 'opt_restricted', name: 'RESTRICTED'},
+    {id: 'opt_confidential', name: 'CONFIDENTIAL'},
+    {id: 'opt_execution', name: 'Execution'},
+];
 
 function makeField(overrides: Partial<PropertyField> = {}): PropertyField {
+    const {attrs, ...rest} = overrides;
+
     return {
         id: 'field_1',
         group_id: 'group_1',
@@ -15,13 +28,16 @@ function makeField(overrides: Partial<PropertyField> = {}): PropertyField {
         target_id: '',
         target_type: 'system',
         object_type: 'post',
-        attrs: {},
         create_at: 1,
         update_at: 1,
         delete_at: 0,
         created_by: 'user_1',
         updated_by: 'user_1',
-        ...overrides,
+        ...rest,
+
+        // Merged, not replaced: an override that sets `visibility` still needs the
+        // options, or the value it stores would resolve to nothing.
+        attrs: {options: OPTIONS, ...attrs},
     } as PropertyField;
 }
 
@@ -71,6 +87,59 @@ describe('hasValue', () => {
     });
 });
 
+describe('chipCount', () => {
+    it('is zero for a missing value', () => {
+        expect(chipCount(makeField(), undefined)).toBe(0);
+    });
+
+    it.each([
+        ['null', null],
+        ['an empty string', ''],
+        ['an empty array', []],
+    ])('is zero for %s', (_label, raw) => {
+        expect(chipCount(makeField(), makeValue(raw))).toBe(0);
+    });
+
+    it('is one for a single-valued field whose value resolves to an option', () => {
+        expect(chipCount(makeField(), makeValue('SECRET'))).toBe(1);
+    });
+
+    // The chip *is* the option: both its text and its colour come from the option
+    // definition, so a value naming an option the channel no longer defines has
+    // nothing to render. Counting it would spend a chip slot on nothing and, when
+    // it is the post's only attribute, leave an empty chip row on screen.
+    it('is zero when the value names an option that no longer exists', () => {
+        expect(chipCount(makeField(), makeValue('WITHDRAWN'))).toBe(0);
+    });
+
+    // A field that defines no options has had nothing deleted — its choices simply
+    // live somewhere the field cannot see, as content flagging's `reporting_reason`
+    // keeps them in server config. The stored string is the content, so it counts.
+    it('counts a set value on a field that defines no options', () => {
+        expect(chipCount(makeField({attrs: {options: []}}), makeValue('Classification mismatch'))).toBe(1);
+    });
+
+    it('counts only the resolvable entries of a multiselect', () => {
+        const field = makeField({type: 'multiselect'});
+
+        expect(chipCount(field, makeValue(['SECRET', 'WITHDRAWN', 'INTERNAL']))).toBe(2);
+        expect(chipCount(field, makeValue(['WITHDRAWN', 'RETIRED']))).toBe(0);
+    });
+
+    it('counts a rank field by its options, the same as a select', () => {
+        expect(chipCount(makeField({type: 'rank'}), makeValue('SECRET'))).toBe(1);
+        expect(chipCount(makeField({type: 'rank'}), makeValue('WITHDRAWN'))).toBe(0);
+    });
+
+    // A field with no options has no option to resolve against, so a set value is
+    // a chip on its own terms.
+    it('is one for a set field that carries no options', () => {
+        expect(chipCount(makeField({type: 'text'}), makeValue('free text'))).toBe(1);
+        expect(chipCount(makeField({type: 'text'}), makeValue(0))).toBe(1);
+        expect(chipCount(makeField({type: 'user'}), makeValue('user_1'))).toBe(1);
+    });
+});
+
 describe('isChipVisible', () => {
     it('hides a hidden field even when it is set', () => {
         expect(isChipVisible(makeField({attrs: {visibility: 'hidden'}}), makeValue('SECRET'))).toBe(false);
@@ -90,6 +159,20 @@ describe('isChipVisible', () => {
     it('treats an absent visibility as when_set', () => {
         expect(isChipVisible(makeField(), makeValue('SECRET'))).toBe(true);
         expect(isChipVisible(makeField(), undefined)).toBe(false);
+    });
+
+    // Same rule as `chipCount`, reached through the filter the row actually runs:
+    // a value the renderer cannot turn into a chip is indistinguishable from unset.
+    it('hides a field whose value names an option that no longer exists', () => {
+        expect(isChipVisible(makeField(), makeValue('WITHDRAWN'))).toBe(false);
+        expect(isChipVisible(makeField({attrs: {visibility: 'always'}}), makeValue('WITHDRAWN'))).toBe(false);
+    });
+
+    it('shows a multiselect when at least one entry still resolves', () => {
+        const field = makeField({type: 'multiselect'});
+
+        expect(isChipVisible(field, makeValue(['WITHDRAWN', 'SECRET']))).toBe(true);
+        expect(isChipVisible(field, makeValue(['WITHDRAWN']))).toBe(false);
     });
 
     it('treats an unrecognised visibility as when_set', () => {
@@ -177,6 +260,40 @@ describe('allocateChipBudget', () => {
 
         expect(shown).toHaveLength(1);
         expect(overflow).toBe(0);
+    });
+
+    // The budget and the renderer must agree on how many chips a field is worth,
+    // or `+N` misreports. Both count resolved options, so an unresolvable entry
+    // is invisible to both.
+    it('budgets a multiselect by its resolvable entries only', () => {
+        const attributes = [
+            visible(makeField({id: 'a', type: 'multiselect'}), ['SECRET', 'WITHDRAWN', 'INTERNAL', 'RESTRICTED']),
+        ];
+
+        const {shown, overflow} = allocateChipBudget(attributes, 2);
+
+        expect(shown[0].maxItems).toBe(2);
+
+        // Three entries resolve, two fit, so one overflows — the deleted option is
+        // not counted as a fourth.
+        expect(overflow).toBe(1);
+    });
+
+    it('leaves a field whose value resolves to nothing out of the row and out of +N', () => {
+        const attributes = [
+            visible(makeField({id: 'a'}), 'SECRET'),
+            visible(makeField({id: 'gone'}), 'WITHDRAWN'),
+            visible(makeField({id: 'b'}), 'INTERNAL'),
+            visible(makeField({id: 'c'}), 'RESTRICTED'),
+        ];
+
+        const {shown, overflow} = allocateChipBudget(attributes, 2);
+
+        expect(shown.map((entry) => entry.field.id)).toEqual(['a', 'b']);
+
+        // Only `c` is unshown. Counting the unresolvable field would say +2 and
+        // promise the user an attribute that cannot be displayed anywhere.
+        expect(overflow).toBe(1);
     });
 
     it('shows nothing for an empty list', () => {

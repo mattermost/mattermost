@@ -38,11 +38,12 @@ function PostAttributesChips({post, channel}: Props) {
             className='PostAttributesChips'
             data-testid='post-attributes-chips'
         >
-            {shown.map(({field, value}) => (
+            {shown.map(({field, value, maxItems}) => (
                 <PropertyValueRenderer
                     key={field.id}
                     field={field}
                     value={value}
+                    maxItems={maxItems}
                 />
             ))}
             {overflow > 0 && (

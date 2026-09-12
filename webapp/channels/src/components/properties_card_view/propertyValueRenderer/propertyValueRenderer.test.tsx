@@ -23,9 +23,15 @@ jest.mock('./user_property_renderer/userPropertyRenderer', () => {
     };
 });
 
-jest.mock('./select_property_renderer/selectPropertyRenderer', () => {
-    return function MockSelectPropertyRenderer({value}: {field: PropertyField; value: PropertyValue<unknown>}) {
-        return <div data-testid='mock-select-property'>{String(value.value)}</div>;
+jest.mock('./option_property_renderer/option_property_renderer', () => {
+    return function MockOptionPropertyRenderer({field, value, maxItems}: {field: PropertyField; value: PropertyValue<unknown>; maxItems?: number}) {
+        return (
+            <div data-testid='mock-option-property'>
+                {JSON.stringify(value.value)}
+                <span data-testid='mock-option-field-type'>{field.type}</span>
+                <span data-testid='mock-option-max-items'>{String(maxItems)}</span>
+            </div>
+        );
     };
 });
 
@@ -253,96 +259,76 @@ describe('PropertyValueRenderer', () => {
         });
     });
 
-    describe('select field type', () => {
-        it('should render SelectPropertyRenderer for select field', () => {
-            const field = {
-                id: 'field-1',
-                name: 'Select Field',
-                type: 'select',
-                attrs: {
-                    options: [
-                        {id: 'option1', name: 'Option 1', color: 'blue'},
-                    ],
-                },
-            } as SelectPropertyField;
+    // One renderer for the whole option-bearing family, so the dispatch test is
+    // about which types reach it and what cap they carry, not about markup.
+    describe('option-bearing field types', () => {
+        const optionField = (type: string) => ({
+            id: 'field-1',
+            name: 'Option Field',
+            type,
+            attrs: {
+                options: [
+                    {id: 'option1', name: 'Option 1', color: 'blue'},
+                    {id: 'option2', name: 'Option 2', color: 'red'},
+                ],
+            },
+        } as SelectPropertyField);
 
-            const value = {
-                value: 'option1',
-            } as PropertyValue<string>;
-
+        it.each(['select', 'rank', 'multiselect'])('should render OptionPropertyRenderer for a %s field', (type) => {
             renderWithContext(
                 <PropertyValueRenderer
-                    field={field}
-                    value={value}
+                    field={optionField(type)}
+                    value={{value: 'option1'} as PropertyValue<string>}
                 />,
             );
 
-            expect(screen.getByTestId('mock-select-property')).toBeInTheDocument();
-            expect(screen.getByText('option1')).toBeInTheDocument();
+            expect(screen.getByTestId('mock-option-property')).toBeInTheDocument();
+            expect(screen.getByTestId('mock-option-field-type')).toHaveTextContent(type);
+        });
+
+        // Without this, the chip row's budget stops at the field boundary and a
+        // single multiselect holding twelve entries renders twelve chips.
+        it('should pass maxItems through to the renderer', () => {
+            renderWithContext(
+                <PropertyValueRenderer
+                    field={optionField('multiselect')}
+                    value={{value: ['option1', 'option2']} as PropertyValue<string[]>}
+                    maxItems={1}
+                />,
+            );
+
+            expect(screen.getByTestId('mock-option-max-items')).toHaveTextContent('1');
+        });
+
+        it('should leave maxItems undefined when the caller sets no budget', () => {
+            renderWithContext(
+                <PropertyValueRenderer
+                    field={optionField('multiselect')}
+                    value={{value: ['option1', 'option2']} as PropertyValue<string[]>}
+                />,
+            );
+
+            expect(screen.getByTestId('mock-option-max-items')).toHaveTextContent('undefined');
         });
     });
 
     describe('unsupported field types', () => {
-        it('should return null for unsupported field type', () => {
+        it.each([
+            ['an unrecognised type', 'unsupported', 'test value'],
+            ['date', 'date', 1642694400000],
+            ['multiuser', 'multiuser', ['user-id-1', 'user-id-2']],
+        ])('should return null for %s', (_label, type, raw) => {
             const field = {
                 id: 'field-1',
-                name: 'Unsupported Field',
-                type: 'unsupported' as unknown,
+                name: 'Unrendered Field',
+                type,
                 attrs: {},
-            } as PropertyField;
-
-            const value = {
-                value: 'test value',
-            } as PropertyValue<string>;
+            } as unknown as PropertyField;
 
             const {container} = renderWithContext(
                 <PropertyValueRenderer
                     field={field}
-                    value={value}
-                />,
-            );
-
-            expect(container.firstChild).toBeNull();
-        });
-
-        it('should return null for multiselect field type', () => {
-            const field = {
-                id: 'field-1',
-                name: 'Multiselect Field',
-                type: 'multiselect',
-                attrs: {},
-            } as PropertyField;
-
-            const value = {
-                value: ['option1', 'option2'],
-            } as PropertyValue<string[]>;
-
-            const {container} = renderWithContext(
-                <PropertyValueRenderer
-                    field={field}
-                    value={value}
-                />,
-            );
-
-            expect(container.firstChild).toBeNull();
-        });
-
-        it('should return null for date field type', () => {
-            const field = {
-                id: 'field-1',
-                name: 'Date Field',
-                type: 'date',
-                attrs: {},
-            } as PropertyField;
-
-            const value = {
-                value: 1642694400000,
-            } as PropertyValue<number>;
-
-            const {container} = renderWithContext(
-                <PropertyValueRenderer
-                    field={field}
-                    value={value}
+                    value={{value: raw} as PropertyValue<unknown>}
                 />,
             );
 
