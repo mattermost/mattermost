@@ -46,8 +46,8 @@ describe('Support Packet Generation', () => {
 
 const goToSupportPacketGenerationModal = () => {
     // # Open system menu and click Customer Support
-    cy.findByRole('button', {name: 'Menu Icon'}).should('exist').click();
-    cy.findByRole('button', {name: 'Commercial Support'}).click();
+    cy.findByRole('button', {name: 'Admin Console Menu'}).should('exist').click();
+    cy.findByText('Commercial Support').click();
 
     // * Ensure the download Support Packet button exist and that text regarding setting the proper settings exist
     cy.findByRole('button', {name: 'Download Support Packet'}).should('exist');

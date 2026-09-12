@@ -23,8 +23,10 @@ export default class SystemConsoleSidebarHeader {
         this.headerInfo = container.getByTestId('admin-sidebar-header-info');
         this.title = container.getByText('System Console');
         this.userName = container.getByText(/^@/);
-        this.menuButton = container.getByRole('button', {name: 'Menu Icon'});
-        this.menu = container.getByRole('menu');
+        this.menuButton = container; // container IS the #admin-sidebar-header button
+
+        // Rendered in a portal at the page level once the menu is open.
+        this.menu = container.page().getByRole('menu');
         this.aboutMenuItem = container.page().getByRole('menuitem', {name: /^About /});
     }
 
