@@ -118,7 +118,7 @@ import type {
 import type {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics, PostInfo} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
-import type {NameMappedPropertyFields, PropertyField, PropertyValue} from '@mattermost/types/properties';
+import type {NameMappedPropertyFields, PropertyField, PropertyFieldOption, PropertyValue} from '@mattermost/types/properties';
 import type {UserPropertyField, UserPropertyFieldPatch} from '@mattermost/types/properties_user';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {Recap, CreateRecapRequest, ScheduledRecap, ScheduledRecapInput, RecapLimitStatus} from '@mattermost/types/recaps';
@@ -180,6 +180,13 @@ export const HEADER_X_VERSION_ID = 'X-Version-Id';
 const LOGS_PER_PAGE_DEFAULT = 10000;
 const AUTOCOMPLETE_LIMIT_DEFAULT = 25;
 const PER_PAGE_DEFAULT = 60;
+
+// The largest page the options endpoint serves (server
+// `model.PropertyFieldOptionsMaxPerRequest`). Sent on every options request:
+// the endpoint's own default is PER_PAGE_DEFAULT, which would page a hierarchy
+// 60 options at a time.
+const PROPERTY_FIELD_OPTIONS_PER_PAGE_DEFAULT = 200;
+
 export const DEFAULT_LIMIT_BEFORE = 30;
 export const DEFAULT_LIMIT_AFTER = 30;
 
@@ -365,6 +372,10 @@ export default class Client4 {
 
     getPropertyFieldRoute(groupName: string, objectType: string, fieldId: string) {
         return `${this.getPropertyFieldsRoute(groupName, objectType)}/${fieldId}`;
+    }
+
+    getPropertyFieldOptionsRoute(groupName: string, objectType: string, fieldId: string) {
+        return `${this.getPropertyFieldRoute(groupName, objectType, fieldId)}/options`;
     }
 
     getCustomProfileAttributeFieldsRoute() {
@@ -2535,6 +2546,30 @@ export default class Client4 {
         }
         return this.doFetch<PropertyField[]>(
             `${this.getPropertyFieldsRoute(groupName, objectType)}?${params.toString()}`,
+            {method: 'GET'},
+        );
+    };
+
+    // One page of a property field's options, in creation order. Continue from
+    // the last option of a page by passing its id and create_at; a page shorter
+    // than perPage is the last one. The two cursor halves go together — the
+    // server refuses a request carrying only one of them.
+    getPropertyFieldOptions = async (
+        groupName: string,
+        objectType: string,
+        fieldId: string,
+        options?: {perPage?: number; cursorId?: string; cursorCreateAt?: number},
+    ) => {
+        const params = new URLSearchParams();
+        params.set('per_page', String(options?.perPage ?? PROPERTY_FIELD_OPTIONS_PER_PAGE_DEFAULT));
+        if (options?.cursorId) {
+            params.set('cursor_id', options.cursorId);
+        }
+        if (options?.cursorCreateAt) {
+            params.set('cursor_create_at', String(options.cursorCreateAt));
+        }
+        return this.doFetch<PropertyFieldOption[]>(
+            `${this.getPropertyFieldOptionsRoute(groupName, objectType, fieldId)}?${params.toString()}`,
             {method: 'GET'},
         );
     };

@@ -5,7 +5,7 @@ import {act, screen, waitFor, within} from '@testing-library/react';
 import React from 'react';
 
 import {ClientError} from '@mattermost/client';
-import {ChevronDownCircleOutlineIcon, FormatListBulletedIcon, MenuVariantIcon, PowerPlugOutlineIcon, SortAscendingIcon, SyncIcon} from '@mattermost/compass-icons/components';
+import {ChevronDownCircleOutlineIcon, FormatListBulletedIcon, MenuVariantIcon, PowerPlugOutlineIcon, SitemapIcon, SortAscendingIcon, SyncIcon} from '@mattermost/compass-icons/components';
 import type {PropertyField} from '@mattermost/types/properties';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
@@ -270,6 +270,7 @@ describe('GlobalAttributesTable', () => {
             ['select', 'Select'],
             ['multiselect', 'Multiselect'],
             ['rank', 'Ranked'],
+            ['graph', 'Hierarchical'],
         ])('renders the %s type with the %s label and a leading icon', async (type, label) => {
             getPropertyFields.mockResolvedValueOnce([makeField({type: type as PropertyField['type']})]).mockResolvedValue([]);
 
@@ -280,7 +281,7 @@ describe('GlobalAttributesTable', () => {
             expect(cell.querySelector('svg')).toBeInTheDocument();
         });
 
-        it('renders a defined fallback (not a blank cell) for a FieldType outside text/select/multiselect/rank', async () => {
+        it('renders a defined fallback (not a blank cell) for a FieldType outside text/select/multiselect/rank/graph', async () => {
             getPropertyFields.mockResolvedValueOnce([makeField({type: 'date'})]).mockResolvedValue([]);
 
             renderWithContext(<GlobalAttributesTable/>, getBaseState());
@@ -299,6 +300,7 @@ describe('GlobalAttributesTable', () => {
             ['select', ChevronDownCircleOutlineIcon],
             ['multiselect', FormatListBulletedIcon],
             ['rank', SortAscendingIcon],
+            ['graph', SitemapIcon],
             ['date', MenuVariantIcon],
         ])('maps the %s field type to the expected icon component', (type, icon) => {
             expect(getTypeIcon(type as PropertyField['type'])).toBe(icon);
@@ -345,16 +347,69 @@ describe('GlobalAttributesTable', () => {
             expect(screen.queryByText('1 options')).not.toBeInTheDocument();
         });
 
-        it('renders the option count (not "Free Text") for a graph field', async () => {
+        it('renders the option count for a graph field, not Free Text', async () => {
             getPropertyFields.mockResolvedValueOnce([makeField({
                 type: 'graph',
-                attrs: {options: [{id: 'o1', name: 'A'}, {id: 'o2', name: 'B'}]},
+                attrs: {
+                    options: [
+                        {id: 'o1', name: 'Root', parents: []},
+                        {id: 'o2', name: 'Child', parents: ['Root']},
+                    ],
+                },
             })]).mockResolvedValue([]);
 
             renderWithContext(<GlobalAttributesTable/>, getBaseState());
 
             const cell = await screen.findByTestId('global-attribute-options');
             expect(cell).toHaveTextContent('2 options');
+            expect(cell).not.toHaveTextContent('Free Text');
+        });
+
+        it('renders an explicit zero-count for a graph field with no inline options, not Free Text', async () => {
+            getPropertyFields.mockResolvedValueOnce([makeField({
+                type: 'graph',
+                attrs: {options: []},
+            })]).mockResolvedValue([]);
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            const cell = await screen.findByTestId('global-attribute-options');
+            expect(cell).toHaveTextContent('0 options');
+            expect(cell).not.toHaveTextContent('Free Text');
+        });
+
+        it('uses options_count when options_omitted is set, never 0 options or Free Text', async () => {
+            getPropertyFields.mockResolvedValueOnce([makeField({
+                type: 'graph',
+                attrs: {
+                    options: [],
+                    options_omitted: true,
+                    options_count: 1500,
+                },
+            })]).mockResolvedValue([]);
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            const cell = await screen.findByTestId('global-attribute-options');
+
+            // ICU formats 1500 as 1,500; exact text so "0 options" is not a substring false-positive.
+            expect(cell.textContent).toBe('1,500 options');
+            expect(cell).not.toHaveTextContent('Free Text');
+        });
+
+        it('uses options_count when options_omitted and the options key is absent', async () => {
+            getPropertyFields.mockResolvedValueOnce([makeField({
+                type: 'graph',
+                attrs: {
+                    options_omitted: true,
+                    options_count: 1500,
+                },
+            })]).mockResolvedValue([]);
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            const cell = await screen.findByTestId('global-attribute-options');
+            expect(cell.textContent).toBe('1,500 options');
             expect(cell).not.toHaveTextContent('Free Text');
         });
 
@@ -575,6 +630,20 @@ describe('GlobalAttributesTable', () => {
             // plugin-managed/disabled, same as before this change.
             expect(del).toHaveAttribute('aria-disabled', 'true');
             expect(del).toHaveTextContent('Plugin-managed');
+        });
+
+        it('opens Edit for a graph field, same as any other managed type', async () => {
+            getPropertyFields.mockResolvedValueOnce([makeField({type: 'graph'})]).mockResolvedValue([]);
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            const trigger = await screen.findByTestId('global-attribute-actions-field-1');
+            await userEvent.click(trigger);
+
+            const edit = screen.getAllByRole('menuitem').find((el) => el.textContent?.includes('Edit attribute'));
+            expect(edit).toBeDefined();
+            expect(edit!).not.toHaveAttribute('aria-disabled', 'true');
+            expect(edit!).not.toHaveTextContent('Coming soon');
         });
     });
 

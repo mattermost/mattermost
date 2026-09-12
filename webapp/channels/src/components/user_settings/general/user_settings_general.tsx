@@ -22,6 +22,8 @@ import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import {getPluginDisplayName} from 'selectors/plugins';
 
+import {asGraphValueIds} from 'components/property_fields/graph';
+import GraphProfileAttribute from 'components/property_fields/graph/graph_profile_attribute';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import SettingPicture from 'components/setting_picture';
@@ -213,6 +215,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
     constructor(props: Props) {
         super(props);
+
         this.state = this.setupInitialState(props);
     }
 
@@ -470,8 +473,6 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             }
         }
 
-        // Graph values are option-id arrays, same as multiselect. An empty string
-        // is not a legal value and would fail server-side attribute validation.
         if ((attributeField.type === 'multiselect' || attributeField.type === 'graph') && !attributeValue) {
             attributeValue = [];
         }
@@ -1488,6 +1489,35 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
             // Hide source_only fields from user profiles
             return attribute.attrs?.access_mode !== 'source_only';
         }).map((attribute) => {
+            if (attribute.type === 'graph') {
+                const sectionName = 'customAttribute_' + attribute.id;
+                const stored = this.props.user.custom_profile_attributes?.[attribute.id];
+                const draft = this.state.customAttributeValues[attribute.id];
+                return (
+                    <GraphProfileAttribute
+                        key={sectionName}
+                        attribute={attribute}
+                        sectionName={sectionName}
+                        active={this.props.activeSection === sectionName}
+                        areAllSectionsInactive={this.props.activeSection === ''}
+                        storedValue={stored}
+                        draftIds={asGraphValueIds(draft)}
+                        onDraftIdsChange={(nextIds) => this.setState({
+                            customAttributeValues: {
+                                ...this.state.customAttributeValues,
+                                [attribute.id]: nextIds,
+                            },
+                        })}
+                        onSubmit={() => this.submitAttribute([attribute.id])}
+                        updateSection={this.updateSection}
+                        sectionIsSaving={this.state.sectionIsSaving}
+                        serverError={this.state.serverError}
+                        isMobileView={this.props.isMobileView}
+                        user={this.props.user}
+                    />
+                );
+            }
+
             const sectionName = 'customAttribute_' + attribute.id;
             const active = this.props.activeSection === sectionName;
             let max = null;
@@ -1512,14 +1542,9 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                     if (Array.isArray(attributeValue)) {
                         return attributeValue.map((value) => {
                             const option = attribOptions.find((o) => o.id === value);
-                            if (option) {
-                                return {label: option?.name, value: option?.id};
-                            }
-                            if (optionsOmitted) {
-                                return {label: value, value};
-                            }
-                            return null;
-                        }).filter((value) => value != null);
+
+                            return {label: option?.name ?? value, value};
+                        });
                     }
 
                     // Handle single select
@@ -1576,7 +1601,9 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 // writes, so render them read-only just like synced fields.
                 const isOwnerManaged = Boolean(attribute.attrs?.owners?.length);
                 const optionsOmitted = Boolean(attribute.attrs?.options_omitted);
-                const isReadOnly = isSynced || isOwnerManaged || isAdminManaged || isProtected || optionsOmitted;
+
+                const omitLocksField = optionsOmitted;
+                const isReadOnly = isSynced || isOwnerManaged || isAdminManaged || isProtected || omitLocksField;
 
                 if (isSynced) {
                     extraInfo = (
@@ -1616,7 +1643,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                             />
                         </span>
                     );
-                } else if (optionsOmitted) {
+                } else if (omitLocksField) {
                     extraInfo = (
                         <span>
                             <FormattedMessage
@@ -1641,9 +1668,10 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         const opts = attribOptions.map((o) => {
                             return {label: o.name, value: o.id} as SelectOption;
                         });
+
                         inputs.push(
                             <ReactSelect
-                                isMulti={attribute.type === 'multiselect' || attribute.type === 'graph' ? true : undefined}
+                                isMulti={attribute.type === 'multiselect' ? true : undefined}
                                 key={sectionName}
                                 id={'customProfileAttribute_' + attribute.id}
                                 inputId={'customProfileAttribute_' + attribute.id + '_input'}
@@ -1718,8 +1746,10 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                 );
             }
             let describe: JSX.Element | string = '';
-            if (this.props.user.custom_profile_attributes?.[attribute.id]) {
-                const attributeValue = getDisplayValue(this.props.user.custom_profile_attributes?.[attribute.id]);
+            const storedValue = this.props.user.custom_profile_attributes?.[attribute.id];
+
+            if (storedValue) {
+                const attributeValue = getDisplayValue(storedValue);
                 if (attributeValue) {
                     if (typeof attributeValue === 'string') {
                         describe = attributeValue;

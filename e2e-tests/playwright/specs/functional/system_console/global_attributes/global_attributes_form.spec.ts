@@ -9,6 +9,8 @@
  * Local runs: upload or use a license with SkuShortName `enterprise`, `entry`, or `advanced`.
  */
 
+import type {Page} from '@playwright/test';
+
 import {expect, test, getAdminClient} from '@mattermost/playwright-lib';
 
 import {
@@ -18,7 +20,10 @@ import {
     deleteAppliesToAttributeAndLinkedFieldsIfExists,
     deleteGlobalAttributeFieldIfExists,
     fetchLinkedFieldsForTemplate,
+    getGlobalAttributeFieldByName,
+    getGlobalAttributeFieldOptions,
     requireGlobalAttributesEnabled,
+    requireHierarchicalAttributesEnabled,
     setGlobalAttributesFeatureFlag,
 } from './global_attributes_helpers';
 
@@ -475,7 +480,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
 
         /**
          * @objective Ensure switching type mid-form preserves already-entered options rather than
-         * discarding them, so an admin can freely switch types without losing data.
+         * discarding them, per the ticket's "freely switch types" requirement.
          */
         test('preserves already-entered options when switching type away and back', async ({pw}) => {
             const {adminUser} = await requireGlobalAttributesEnabled(pw);
@@ -983,6 +988,279 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 expect(linkedFields).toHaveLength(3);
             } finally {
                 await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, expectedName);
+            }
+        });
+
+        /**
+         * @objective Ensure Hierarchical is a first-class type on New attribute: the empty
+         * canvas disables Save without extra copy, External source is hidden, and a parent/child
+         * graph saves with named parents and shows Hierarchical in the list.
+         */
+        test('creates a Hierarchical attribute with a parent and child and persists named parents', async ({pw}) => {
+            const {adminUser, adminClient} = await requireHierarchicalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const displayName = `Playwright Graph ${timestamp}`;
+            const expectedName = `playwright_graph_${timestamp}`;
+
+            try {
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                await page.getByTestId('newAttributeButton').click();
+                await expect(page).toHaveURL(/attribute_details/);
+
+                await page.getByTestId('attributeDisplayNameInput').fill(displayName);
+                await expect(page.getByTestId('attributeUniqueNameValue')).toHaveText(expectedName);
+
+                // # Switch type to Hierarchical
+                await page.getByTestId('attributeTypeMenuButton').click();
+                await page.getByRole('menuitemradio', {name: 'Hierarchical'}).click();
+
+                // * Empty canvas, no extra required-options copy, External source hidden, Save disabled
+                await expect(page.getByTestId('attributeTypeMenuButton')).toContainText('Hierarchical');
+                await expect(page.getByTestId('attributeOptionsGraphEmpty')).toBeVisible();
+                await expect(page.getByTestId('attributeExternalSource')).toHaveCount(0);
+                await expect(page.getByTestId('attributeOptionsRequiredError')).toHaveCount(0);
+                await expect(page.getByText('At least one option is required')).toHaveCount(0);
+                await expect(page.getByTestId('saveSetting')).toBeDisabled();
+
+                // # Add a root, then a child from its row menu
+                await page.getByTestId('attributeOptionsGraphEmpty__nameInput').fill('Air');
+                await page.getByTestId('attributeOptionsGraphEmpty__addButton').click();
+                await expect(graphRow(page, 'Air')).toBeVisible();
+                await expect(page.getByTestId('saveSetting')).toBeEnabled();
+
+                await openGraphRowAddChild(page, 'Air');
+                await page.getByTestId('attributeOptionsGraphRow__childNameInput').fill('Fighter');
+                await page.getByTestId('attributeOptionsGraphRow__childAddButton').click();
+
+                await expect(graphRow(page, 'Fighter', 'Air')).toBeVisible();
+                await expect(graphRow(page, 'Fighter', 'Air')).toHaveAttribute('data-depth', '1');
+
+                await page.getByTestId('saveSetting').click();
+
+                // * List shows Hierarchical with two options
+                await expect(page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+                const row = page.locator('tr', {
+                    has: page.getByTestId('global-attribute-name').filter({hasText: displayName}),
+                });
+                await expect(row.getByTestId('global-attribute-type')).toContainText('Hierarchical');
+                await expect(row.getByTestId('global-attribute-options')).toContainText('2 options');
+
+                // * Saved payload is a graph field; named parents live on the options route
+                const field = await getGlobalAttributeFieldByName(adminClient, expectedName);
+                expect(field?.type).toBe('graph');
+                expect(field?.id).toBeTruthy();
+                const options = await getGlobalAttributeFieldOptions(adminClient, field!.id);
+                expect(options.find((option) => option.name === 'Air')?.parents ?? []).toEqual([]);
+                expect(options.find((option) => option.name === 'Fighter')?.parents).toEqual(['Air']);
+            } finally {
+                await deleteGlobalAttributeFieldIfExists(adminClient, expectedName);
+            }
+        });
+
+        /**
+         * @objective Ensure a duplicate graph value is rejected in the canvas and does not
+         * disable Save on the already-valid graph.
+         */
+        test('rejects a duplicate graph value name and leaves Save enabled for the existing graph', async ({pw}) => {
+            const {adminUser} = await requireHierarchicalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const displayName = `Playwright Graph ${timestamp}`;
+            const expectedName = `playwright_graph_${timestamp}`;
+
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            const {page} = systemConsolePage;
+            await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+            await page.getByTestId('newAttributeButton').click();
+
+            await page.getByTestId('attributeDisplayNameInput').fill(displayName);
+            await expect(page.getByTestId('attributeUniqueNameValue')).toHaveText(expectedName);
+
+            await page.getByTestId('attributeTypeMenuButton').click();
+            await page.getByRole('menuitemradio', {name: 'Hierarchical'}).click();
+
+            await page.getByTestId('attributeOptionsGraphEmpty__nameInput').fill('Engineering');
+            await page.getByTestId('attributeOptionsGraphEmpty__addButton').click();
+            await expect(graphRow(page, 'Engineering')).toBeVisible();
+            await expect(page.getByTestId('saveSetting')).toBeEnabled();
+
+            // # Try to add the same name again (case-insensitive)
+            await page.getByTestId('attributeOptionsGraphAddTop__nameInput').fill('engineering');
+            await page.getByTestId('attributeOptionsGraphAddTop__nameInput').press('Enter');
+
+            // * Duplicate is refused; the unique-name alert is shown; Save stays enabled
+            await expect(page.getByRole('alert')).toContainText('"engineering" already exists in this field.');
+            await expect(page.getByTestId('attributeOptionsGraphAddTop__nameInput')).toHaveAttribute(
+                'aria-invalid',
+                'true',
+            );
+            await expect(graphRow(page, 'Engineering')).toHaveCount(1);
+            await expect(page.getByTestId('saveSetting')).toBeEnabled();
+        });
+
+        /**
+         * @objective Ensure switching to Hierarchical drops Select options, and switching away
+         * from Hierarchical drops graph values.
+         */
+        test('clears options when switching to Hierarchical and when switching away', async ({pw}) => {
+            const {adminUser} = await requireHierarchicalAttributesEnabled(pw);
+
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            const {page} = systemConsolePage;
+            await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+            await page.getByTestId('newAttributeButton').click();
+
+            await page.getByTestId('attributeTypeMenuButton').click();
+            await page.getByRole('menuitemradio', {name: 'Select', exact: true}).click();
+            const selectInput = page.getByTestId('attributeOptionsValues__addInput');
+            await selectInput.fill('Engineering');
+            await selectInput.press('Enter');
+            await expect(page.getByTestId('attributeOptionsValues__chipLabel')).toHaveText('Engineering');
+
+            await page.getByTestId('attributeTypeMenuButton').click();
+            await page.getByRole('menuitemradio', {name: 'Hierarchical'}).click();
+            await expect(page.getByText('Engineering')).toHaveCount(0);
+            await expect(page.getByTestId('attributeOptionsGraphEmpty')).toBeVisible();
+
+            await page.getByTestId('attributeOptionsGraphEmpty__nameInput').fill('Root');
+            await page.getByTestId('attributeOptionsGraphEmpty__addButton').click();
+            await expect(graphRow(page, 'Root')).toBeVisible();
+
+            await page.getByTestId('attributeTypeMenuButton').click();
+            await page.getByRole('menuitemradio', {name: 'Select', exact: true}).click();
+            await expect(graphRow(page, 'Root')).toHaveCount(0);
+            await expect(page.getByTestId('attributeOptionsValues__chipLabel')).toHaveCount(0);
+        });
+
+        /**
+         * @objective Ensure adding a second parent through the Parents pane asks Add
+         * {parent} as a parent? and, once confirmed with Add, records both parent names.
+         */
+        test('confirms a parent grant from the Parents pane and records both parents', async ({pw}) => {
+            const {adminUser, adminClient} = await requireHierarchicalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const displayName = `Playwright Grant ${timestamp}`;
+            const expectedName = `playwright_grant_${timestamp}`;
+
+            try {
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+                await page.getByTestId('newAttributeButton').click();
+                await page.getByTestId('attributeDisplayNameInput').fill(displayName);
+
+                await page.getByTestId('attributeTypeMenuButton').click();
+                await page.getByRole('menuitemradio', {name: 'Hierarchical'}).click();
+
+                // # Maritime (root), Air (root) with child Fighter
+                await page.getByTestId('attributeOptionsGraphEmpty__nameInput').fill('Maritime');
+                await page.getByTestId('attributeOptionsGraphEmpty__addButton').click();
+                await page.getByTestId('attributeOptionsGraphAddTop__nameInput').fill('Air');
+                await page.getByTestId('attributeOptionsGraphAddTop__addButton').click();
+                await openGraphRowAddChild(page, 'Air');
+                await page.getByTestId('attributeOptionsGraphRow__childNameInput').fill('Fighter');
+                await page.getByTestId('attributeOptionsGraphRow__childAddButton').click();
+
+                // # Open Air's Parents pane and grant Maritime as a parent (newly reaches Fighter)
+                await openGraphRowParents(page, 'Air');
+                await expect(page.getByTestId('attributeGraphParentsPane__back')).toHaveText('Parents of Air');
+                await page.getByTestId('attributeGraphParentsPane__search').click();
+                await page.getByTestId('attributeGraphParentsPane__candidate-Maritime').click();
+
+                await expect(page.getByTestId('attributeGraphGrantConfirmModal')).toBeVisible();
+                await expect(page.getByRole('heading', {name: 'Add Maritime as a parent?'})).toBeVisible();
+                await expect(
+                    page.getByText(
+                        'Air and all of its child values will also sit under Maritime. Are you sure you want to add this parent?',
+                    ),
+                ).toBeVisible();
+                await expect(page.getByRole('menu', {name: 'Edit Air'})).toHaveCount(0);
+                await expect(page.locator('#backdropForMenuComponent')).toHaveCount(0);
+
+                await page.getByTestId('attributeGraphGrantConfirmModal').getByRole('button', {name: /^add$/i}).click();
+
+                // * Air now sits under Maritime as well as at the root of Fighter
+                await expect(graphRow(page, 'Air', 'Maritime')).toBeVisible();
+                await expect(graphRow(page, 'Fighter', 'Air')).toBeVisible();
+
+                await page.getByTestId('saveSetting').click();
+                await expect(page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+
+                const field = await getGlobalAttributeFieldByName(adminClient, expectedName);
+                expect(field?.id).toBeTruthy();
+                const options = await getGlobalAttributeFieldOptions(adminClient, field!.id);
+                expect(options.find((option) => option.name === 'Air')?.parents).toEqual(
+                    expect.arrayContaining(['Maritime']),
+                );
+                expect(options.find((option) => option.name === 'Fighter')?.parents).toEqual(['Air']);
+            } finally {
+                await deleteGlobalAttributeFieldIfExists(adminClient, expectedName);
+            }
+        });
+
+        /**
+         * @objective Ensure Delete this value blocks when it would orphan a child
+         * (Can't delete {name} + Go to first orphan), then deletes the leaf immediately
+         * and saves the remaining root.
+         */
+        test('blocks deleting a parent that would orphan a child, then deletes the leaf', async ({pw}) => {
+            const {adminUser, adminClient} = await requireHierarchicalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const displayName = `Playwright Del ${timestamp}`;
+            const expectedName = `playwright_del_${timestamp}`;
+
+            try {
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+                await page.getByTestId('newAttributeButton').click();
+                await page.getByTestId('attributeDisplayNameInput').fill(displayName);
+
+                await page.getByTestId('attributeTypeMenuButton').click();
+                await page.getByRole('menuitemradio', {name: 'Hierarchical'}).click();
+
+                await page.getByTestId('attributeOptionsGraphEmpty__nameInput').fill('Air');
+                await page.getByTestId('attributeOptionsGraphEmpty__addButton').click();
+                await openGraphRowAddChild(page, 'Air');
+                await page.getByTestId('attributeOptionsGraphRow__childNameInput').fill('Fighter');
+                await page.getByTestId('attributeOptionsGraphRow__childAddButton').click();
+
+                // # Delete Air — blocked because Fighter would be orphaned
+                await openGraphRowDelete(page, 'Air');
+                await expect(page.getByRole('heading', {name: "Can't delete Air"})).toBeVisible();
+                await expect(
+                    page.getByText(/Child values need a parent\. Air is the only parent of 1 child value/),
+                ).toBeVisible();
+                await page.getByRole('button', {name: 'Go to Fighter'}).click();
+
+                // * Air and Fighter are both still on the canvas, and Go to flashes Fighter
+                await expect(graphRow(page, 'Air')).toBeVisible();
+                await expect(graphRow(page, 'Fighter', 'Air')).toBeVisible();
+                await expect(graphRow(page, 'Fighter', 'Air')).toHaveClass(
+                    /attribute-options-graph-values__row--highlight/,
+                );
+
+                // # Delete the leaf — no confirm; the row is removed immediately
+                await openGraphRowDelete(page, 'Fighter', 'Air');
+
+                await expect(graphRow(page, 'Fighter', 'Air')).toHaveCount(0);
+                await expect(graphRow(page, 'Air')).toBeVisible();
+
+                await page.getByTestId('saveSetting').click();
+                await expect(page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+
+                const field = await getGlobalAttributeFieldByName(adminClient, expectedName);
+                expect(field?.id).toBeTruthy();
+                const options = await getGlobalAttributeFieldOptions(adminClient, field!.id);
+                expect(options.map((option) => option.name)).toEqual(['Air']);
+            } finally {
+                await deleteGlobalAttributeFieldIfExists(adminClient, expectedName);
             }
         });
 
@@ -1539,3 +1817,27 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         });
     });
 });
+
+function graphRow(page: Page, optionName: string, parentName = '') {
+    return page.locator(
+        `[data-testid="attributeOptionsGraphRow"][data-option-name="${optionName}"][data-parent-name="${parentName}"]`,
+    );
+}
+
+async function openGraphRowAddChild(page: Page, optionName: string, parentName = '') {
+    const row = graphRow(page, optionName, parentName);
+    await row.hover();
+    await row.getByTestId('attributeOptionsGraphRow__addChild').click();
+}
+
+async function openGraphRowParents(page: Page, optionName: string, parentName = '') {
+    const row = graphRow(page, optionName, parentName);
+    await row.hover();
+    await row.getByTestId('attributeOptionsGraphRow__parents').click();
+}
+
+async function openGraphRowDelete(page: Page, optionName: string, parentName = '') {
+    const row = graphRow(page, optionName, parentName);
+    await row.hover();
+    await row.getByTestId('attributeOptionsGraphRow__delete').click();
+}

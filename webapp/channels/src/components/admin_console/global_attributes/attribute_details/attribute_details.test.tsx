@@ -15,7 +15,7 @@ import {DISPLAY_LABEL_HEADER} from 'mattermost-redux/constants/properties';
 import ModalController from 'components/modal_controller';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 
 import AttributeDetails from './attribute_details';
 
@@ -56,12 +56,20 @@ describe('AttributeDetails', () => {
 
     // Channels is only offered with the flag on and an Enterprise Advanced
     // licence, and most cases here exercise all three resources.
-    const renderComponent = () => renderWithContext(
+    const renderComponent = (graphEnabled = false) => renderWithContext(
         <div>
             <AttributeDetails/>
             <ModalController/>
         </div>,
-        CHANNEL_ATTRIBUTES_STATE,
+        mergeObjects(CHANNEL_ATTRIBUTES_STATE, {
+            entities: {
+                general: {
+                    config: {
+                        FeatureFlagPropertyFieldGraph: graphEnabled ? 'true' : 'false',
+                    },
+                },
+            },
+        }),
     );
 
     it('renders the empty auto-slug caption as a dash, not the _copy sentinel', () => {
@@ -920,6 +928,134 @@ describe('AttributeDetails', () => {
         });
     });
 
+    describe('hierarchical type', () => {
+        function getGraphRow(optionName: string, parentName = '') {
+            const row = screen.getAllByTestId('attributeOptionsGraphRow').find(
+                (el) => el.getAttribute('data-option-name') === optionName && el.getAttribute('data-parent-name') === parentName,
+            );
+            if (!row) {
+                throw new Error(`row not found: ${optionName} @ ${parentName || 'root'}`);
+            }
+            return row;
+        }
+
+        it('hides Hierarchical in the type menu when PropertyFieldGraph is off', async () => {
+            renderComponent(false);
+            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            expect(screen.queryByRole('menuitemradio', {name: 'Hierarchical'})).not.toBeInTheDocument();
+            for (const label of ['Text', 'Select', 'Multiselect', 'Ranked']) {
+                expect(screen.getByRole('menuitemradio', {name: new RegExp(label)})).toBeInTheDocument();
+            }
+        });
+
+        it('shows Hierarchical in the type menu when PropertyFieldGraph is on', async () => {
+            renderComponent(true);
+            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            expect(screen.getByRole('menuitemradio', {name: 'Hierarchical'})).toBeInTheDocument();
+        });
+
+        it('selecting Hierarchical shows the empty graph canvas, hides External source, and does not show optionsRequired', async () => {
+            renderComponent(true);
+            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByRole('menuitemradio', {name: 'Hierarchical'}));
+
+            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Hierarchical');
+            expect(screen.getByTestId('attributeOptionsGraphEmpty')).toBeInTheDocument();
+            expect(screen.queryByTestId('attributeOptionsValues')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('attributeOptionsHelp')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('attributeExternalSource')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('attributeOptionsRequiredError')).not.toBeInTheDocument();
+            expect(screen.queryByText('At least one option is required')).not.toBeInTheDocument();
+            expect(screen.queryByText('List settings')).not.toBeInTheDocument();
+        });
+
+        it('clears select options when switching to Hierarchical, and clears graph options when switching away', async () => {
+            renderComponent(true);
+
+            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
+            await userEvent.type(screen.getByTestId('attributeOptionsValues__addInput'), 'Engineering{Enter}');
+            expect(screen.getByText('Engineering')).toBeInTheDocument();
+
+            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByRole('menuitemradio', {name: 'Hierarchical'}));
+            expect(screen.queryByText('Engineering')).not.toBeInTheDocument();
+            expect(screen.getByTestId('attributeOptionsGraphEmpty')).toBeInTheDocument();
+
+            await userEvent.type(screen.getByTestId('attributeOptionsGraphEmpty__nameInput'), 'Root');
+            await userEvent.click(screen.getByTestId('attributeOptionsGraphEmpty__addButton'));
+            expect(screen.queryByTestId('attributeOptionsGraphEmpty')).not.toBeInTheDocument();
+            expect(screen.getByText('Root')).toBeInTheDocument();
+
+            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
+            expect(screen.queryByText('Root')).not.toBeInTheDocument();
+            expect(screen.queryAllByTestId('attributeOptionsValues__chip')).toHaveLength(0);
+        });
+
+        it('disables Save at 0 graph options with no extra copy, and enables Save after the first value', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
+
+            renderComponent(true);
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+
+            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByRole('menuitemradio', {name: 'Hierarchical'}));
+
+            expect(screen.getByTestId('saveSetting')).toBeDisabled();
+            expect(screen.queryByTestId('attributeOptionsRequiredError')).not.toBeInTheDocument();
+            expect(screen.queryByText('At least one option is required')).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByTestId('saveSetting'));
+            expect(createPropertyField).not.toHaveBeenCalled();
+            expect(mockHistoryPush).not.toHaveBeenCalled();
+
+            await userEvent.type(screen.getByTestId('attributeOptionsGraphEmpty__nameInput'), 'Root');
+            await userEvent.click(screen.getByTestId('attributeOptionsGraphEmpty__addButton'));
+            expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+            expect(createPropertyField).not.toHaveBeenCalled();
+        });
+
+        it('saves a Hierarchical attribute with root parents [] and child parents [Root]', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
+
+            renderComponent(true);
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Org chart');
+            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByRole('menuitemradio', {name: 'Hierarchical'}));
+
+            await userEvent.type(screen.getByTestId('attributeOptionsGraphEmpty__nameInput'), 'Root');
+            await userEvent.click(screen.getByTestId('attributeOptionsGraphEmpty__addButton'));
+
+            await userEvent.click(within(getGraphRow('Root')).getByTestId('attributeOptionsGraphRow__addChild'));
+            await userEvent.type(await screen.findByTestId('attributeOptionsGraphRow__childNameInput'), 'Child');
+            await userEvent.click(screen.getByTestId('attributeOptionsGraphRow__childAddButton'));
+
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes'));
+
+            expect(createPropertyField).toHaveBeenCalledTimes(1);
+            expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
+                name: 'org_chart',
+                type: 'graph',
+                attrs: expect.objectContaining({
+                    display_name: 'Org chart',
+                    options: [
+                        {id: '', name: 'Root', parents: []},
+                        {id: '', name: 'Child', parents: ['Root']},
+                    ],
+                }),
+            }));
+
+            const attrs = createPropertyField.mock.calls[0][2].attrs as {options: Array<Record<string, unknown>>};
+            expect(attrs.options[0]).toHaveProperty('parents');
+            expect(JSON.stringify(attrs.options[0])).toContain('"parents":[]');
+            expect(JSON.stringify(attrs.options[1])).toContain('"parents":["Root"]');
+        });
+    });
+
     describe('applies to', () => {
         // Opens the header Add-resource menu and picks `label` -- a non-
         // checkbox/radio Menu.Item defers its onClick until after the menu's
@@ -1316,14 +1452,22 @@ describe('AttributeDetails', () => {
             });
         }
 
-        const renderEdit = (initialState: Record<string, unknown> = {}) => renderWithContext(
+        const renderEdit = (graphEnabled = false) => renderWithContext(
             <div>
                 <Route path='/admin_console/system_attributes/manage_attributes/attribute_details/:field_id'>
                     <AttributeDetails/>
                 </Route>
                 <ModalController/>
             </div>,
-            mergeObjects(CHANNEL_ATTRIBUTES_STATE, initialState),
+            mergeObjects(CHANNEL_ATTRIBUTES_STATE, {
+                entities: {
+                    general: {
+                        config: {
+                            FeatureFlagPropertyFieldGraph: graphEnabled ? 'true' : 'false',
+                        },
+                    },
+                },
+            }),
             {
                 history: createMemoryHistory({
                     initialEntries: [`/admin_console/system_attributes/manage_attributes/attribute_details/${FIELD_ID}`],
@@ -1604,6 +1748,33 @@ describe('AttributeDetails', () => {
                 linked_field_id: FIELD_ID,
             }));
             expect(deletePropertyField).not.toHaveBeenCalled();
+        });
+
+        it('does not PATCH Users on retry after a later resource create failed', async () => {
+            mockLoadedField(makeTemplate());
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').
+                mockResolvedValueOnce({id: 'user-field-id'} as PropertyField).
+                mockRejectedValueOnce(new Error('boom')).
+                mockResolvedValueOnce({id: 'channel-field-id'} as PropertyField);
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue(makeTemplate());
+
+            renderEdit();
+            await waitForForm();
+            await addResource('Users', 'user');
+            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+            await userEvent.click(screen.getByTestId('attributeAppliesToUserProfileDisplay-always'));
+            await addResource('Channels', 'channel');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            expect(await screen.findByTestId('attributeSaveError')).toBeInTheDocument();
+            expect(createPropertyField.mock.calls.filter((call) => call[1] === 'user')).toHaveLength(1);
+
+            await userEvent.click(screen.getByTestId('saveSetting'));
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+
+            expect(patchPropertyField).not.toHaveBeenCalledWith('access_control', 'user', expect.anything(), expect.anything());
+            expect(createPropertyField.mock.calls.filter((call) => call[1] === 'user')).toHaveLength(1);
+            expect(createPropertyField.mock.calls.filter((call) => call[1] === 'channel')).toHaveLength(2);
         });
 
         it('issues neither DELETE nor POST when a persisted resource is removed then re-added before Save', async () => {
@@ -1963,14 +2134,50 @@ describe('AttributeDetails', () => {
             expect(screen.queryByTestId('attributeDetails')).not.toBeInTheDocument();
         });
 
-        // A graph field is plugin-owned, yet plugin-owned fields open here read-only
-        // rather than redirect (the plugin-owned block above). So a graph field proves
-        // it's the type, not plugin ownership, that this editor redirects on.
-        it('redirects to the listing when the field type is graph, which this editor cannot render', async () => {
-            mockLoadedField(makePluginOwnedTemplate({type: 'graph'}));
+        it('loads a graph field for edit when PropertyFieldGraph is off', async () => {
+            mockLoadedField(makeTemplate({
+                type: 'graph',
+                attrs: {
+                    display_name: 'Org chart',
+                    options: [{id: 'opt-1', name: 'Air'}, {id: 'opt-2', name: 'Fighter'}],
+                },
+            }));
+            jest.spyOn(Client4, 'getPropertyFieldOptions').mockResolvedValue([
+                {id: 'opt-1', name: 'Air', parents: []},
+                {id: 'opt-2', name: 'Fighter', parents: ['Air']},
+            ]);
+
             renderEdit();
-            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes'));
-            expect(screen.queryByTestId('attributeDetails')).not.toBeInTheDocument();
+            await waitForForm();
+
+            expect(screen.getByRole('heading', {name: 'Edit attribute'})).toBeInTheDocument();
+            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Hierarchical');
+            expect(mockHistoryPush).not.toHaveBeenCalled();
+        });
+
+        it('loads a graph field from the options route so parents survive field GET sanitization', async () => {
+            mockLoadedField(makeTemplate({
+                type: 'graph',
+                attrs: {
+                    display_name: 'Org chart',
+                    options: [{id: 'opt-1', name: 'Air'}, {id: 'opt-2', name: 'Fighter'}],
+                },
+            }));
+            const getPropertyFieldOptions = jest.spyOn(Client4, 'getPropertyFieldOptions').mockResolvedValue([
+                {id: 'opt-1', name: 'Air', parents: []},
+                {id: 'opt-2', name: 'Fighter', parents: ['Air']},
+            ]);
+
+            renderEdit(true);
+            await waitForForm();
+
+            expect(getPropertyFieldOptions).toHaveBeenCalled();
+            expect(screen.getByRole('heading', {name: 'Edit attribute'})).toBeInTheDocument();
+            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Hierarchical');
+            expect(screen.getByTestId('attributeOptionsGraphValues')).toBeInTheDocument();
+            expect(screen.getAllByTestId('attributeOptionsGraphRow__name').map((el) => el.textContent)).toEqual(['Air', 'Fighter']);
+            expect(screen.queryByTestId('attributeExternalSourceTrigger')).not.toBeInTheDocument();
+            expect(mockHistoryPush).not.toHaveBeenCalled();
         });
     });
 });
