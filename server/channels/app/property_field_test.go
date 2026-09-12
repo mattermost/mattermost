@@ -746,6 +746,72 @@ func TestPropertyFieldBroadcastParams(t *testing.T) {
 	})
 }
 
+func TestPropertyFieldBroadcastPayload(t *testing.T) {
+	options := []any{
+		map[string]any{"id": "opt1", "value": "Option 1"},
+		map[string]any{"id": "opt2", "value": "Option 2"},
+	}
+
+	t.Run("public field keeps options", func(t *testing.T) {
+		field := &model.PropertyField{
+			Type: model.PropertyFieldTypeSelect,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: options,
+			},
+		}
+
+		payload := propertyFieldBroadcastPayload(field)
+
+		assert.Same(t, field, payload)
+		assert.Equal(t, options, payload.Attrs[model.PropertyFieldAttributeOptions])
+	})
+
+	t.Run("source-only field omits options without mutating original", func(t *testing.T) {
+		field := &model.PropertyField{
+			Type: model.PropertyFieldTypeSelect,
+			Attrs: model.StringInterface{
+				model.PropertyAttrsAccessMode:       model.PropertyAccessModeSourceOnly,
+				model.PropertyFieldAttributeOptions: options,
+			},
+		}
+
+		payload := propertyFieldBroadcastPayload(field)
+
+		require.NotSame(t, field, payload)
+		assert.Empty(t, payload.Attrs[model.PropertyFieldAttributeOptions])
+		assert.Equal(t, options, field.Attrs[model.PropertyFieldAttributeOptions])
+	})
+
+	t.Run("shared-only field omits options without mutating original", func(t *testing.T) {
+		field := &model.PropertyField{
+			Type: model.PropertyFieldTypeMultiselect,
+			Attrs: model.StringInterface{
+				model.PropertyAttrsAccessMode:       model.PropertyAccessModeSharedOnly,
+				model.PropertyFieldAttributeOptions: options,
+			},
+		}
+
+		payload := propertyFieldBroadcastPayload(field)
+
+		require.NotSame(t, field, payload)
+		assert.Empty(t, payload.Attrs[model.PropertyFieldAttributeOptions])
+		assert.Equal(t, options, field.Attrs[model.PropertyFieldAttributeOptions])
+	})
+
+	t.Run("non-option field is unchanged", func(t *testing.T) {
+		field := &model.PropertyField{
+			Type: model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.PropertyAttrsAccessMode: model.PropertyAccessModeSourceOnly,
+			},
+		}
+
+		payload := propertyFieldBroadcastPayload(field)
+
+		assert.Same(t, field, payload)
+	})
+}
+
 func TestGetPropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
