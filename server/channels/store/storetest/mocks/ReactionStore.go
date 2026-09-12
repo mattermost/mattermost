@@ -179,6 +179,36 @@ func (_m *ReactionStore) GetForPostSince(postID string, since int64, excludeRemo
 	return r0, r1
 }
 
+// GetReactionAuthorIDsForChannel provides a mock function with given fields: teamName, channelName, includeArchivedChannels
+func (_m *ReactionStore) GetReactionAuthorIDsForChannel(teamName string, channelName string, includeArchivedChannels bool) ([]string, error) {
+	ret := _m.Called(teamName, channelName, includeArchivedChannels)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetReactionAuthorIDsForChannel")
+	}
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, bool) ([]string, error)); ok {
+		return rf(teamName, channelName, includeArchivedChannels)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, bool) []string); ok {
+		r0 = rf(teamName, channelName, includeArchivedChannels)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, bool) error); ok {
+		r1 = rf(teamName, channelName, includeArchivedChannels)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetSingle provides a mock function with given fields: userID, postID, remoteID, emojiName
 func (_m *ReactionStore) GetSingle(userID string, postID string, remoteID string, emojiName string) (*model.Reaction, error) {
 	ret := _m.Called(userID, postID, remoteID, emojiName)

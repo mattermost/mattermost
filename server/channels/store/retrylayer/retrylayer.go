@@ -9040,11 +9040,11 @@ func (s *RetryLayerPostStore) GetOldestEntityCreationTime() (int64, error) {
 
 }
 
-func (s *RetryLayerPostStore) GetParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.PostForExport, error) {
+func (s *RetryLayerPostStore) GetParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool, teamName string, channelNameFilter string) ([]*model.PostForExport, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetParentsForExportAfter(limit, afterID, includeArchivedChannels)
+		result, err := s.PostStore.GetParentsForExportAfter(limit, afterID, includeArchivedChannels, teamName, channelNameFilter)
 		if err == nil {
 			return result, nil
 		}
@@ -9066,6 +9066,48 @@ func (s *RetryLayerPostStore) GetPostAfterTime(channelID string, timestamp int64
 	tries := 0
 	for {
 		result, err := s.PostStore.GetPostAfterTime(channelID, timestamp, collapsedThreads)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPostStore) GetPostAuthorIDsForChannel(teamName string, channelName string, includeArchivedChannels bool) ([]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostStore.GetPostAuthorIDsForChannel(teamName, channelName, includeArchivedChannels)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPostStore) GetPostAuthorIDsForTeam(teamName string, includeArchivedChannels bool) ([]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostStore.GetPostAuthorIDsForTeam(teamName, includeArchivedChannels)
 		if err == nil {
 			return result, nil
 		}
@@ -11319,6 +11361,27 @@ func (s *RetryLayerReactionStore) GetForPostSince(postID string, since int64, ex
 	tries := 0
 	for {
 		result, err := s.ReactionStore.GetForPostSince(postID, since, excludeRemoteID, inclDeleted)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerReactionStore) GetReactionAuthorIDsForChannel(teamName string, channelName string, includeArchivedChannels bool) ([]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.ReactionStore.GetReactionAuthorIDsForChannel(teamName, channelName, includeArchivedChannels)
 		if err == nil {
 			return result, nil
 		}
@@ -16179,6 +16242,27 @@ func (s *RetryLayerThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []s
 	tries := 0
 	for {
 		result, err := s.ThreadStore.GetTeamsUnreadForUser(userID, teamIDs, includeUrgentMentionCount)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerThreadStore) GetThreadFollowerIDsForChannel(teamName string, channelName string, includeArchivedChannels bool) ([]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.ThreadStore.GetThreadFollowerIDsForChannel(teamName, channelName, includeArchivedChannels)
 		if err == nil {
 			return result, nil
 		}

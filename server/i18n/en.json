@@ -5715,6 +5715,10 @@
     "translation": "Unable to get all the direct channels."
   },
   {
+    "id": "app.channel.get_by_name.app_error",
+    "translation": "Unable to find the channel by name."
+  },
+  {
     "id": "app.channel.get_by_name.existing.app_error",
     "translation": "Unable to find the existing channel."
   },
@@ -5801,6 +5805,10 @@
   {
     "id": "app.channel.get_member_count.app_error",
     "translation": "Unable to get the channel member count."
+  },
+  {
+    "id": "app.channel.get_member_ids.app_error",
+    "translation": "Unable to get channel member IDs."
   },
   {
     "id": "app.channel.get_members.app_error",
@@ -6765,6 +6773,22 @@
     "translation": "Unable to get the emoji."
   },
   {
+    "id": "app.export.channel_requires_team.error",
+    "translation": "A channel name requires a team name to be specified."
+  },
+  {
+    "id": "app.export.export_all_channels.channel_not_found.error",
+    "translation": "The specified channel was not found in any of the specified teams."
+  },
+  {
+    "id": "app.export.export_all_teams.team_deleted.error",
+    "translation": "The specified team has been deleted."
+  },
+  {
+    "id": "app.export.export_all_teams.team_not_found.error",
+    "translation": "The specified team was not found."
+  },
+  {
     "id": "app.export.export_attachment.copy_file.error",
     "translation": "Failed to copy file during export."
   },
@@ -6787,6 +6811,10 @@
   {
     "id": "app.export.export_custom_emoji.mkdir.error",
     "translation": "Unable to create a directory for custom emoji images"
+  },
+  {
+    "id": "app.export.export_version.scope_marshal.error",
+    "translation": "Failed to write the team and channel scope into the export. Aborting rather than producing an archive that would import as a full-instance restore."
   },
   {
     "id": "app.export.export_write_line.io_writer.error",
@@ -6965,8 +6993,28 @@
     "translation": "Error seeking the file: \"{{.FilePath}}\""
   },
   {
+    "id": "app.import.bulk_import.destination_channel_requires_channel_scope.error",
+    "translation": "--destination-channel-name requires a channel-scoped export."
+  },
+  {
+    "id": "app.import.bulk_import.destination_channel_requires_single_channel_scope.error",
+    "translation": "--destination-channel-name requires a single-channel export; this export contains multiple channels."
+  },
+  {
+    "id": "app.import.bulk_import.destination_channel_requires_single_team_scope.error",
+    "translation": "--destination-channel-name requires an export scoped to exactly one team, otherwise the channel name is ambiguous."
+  },
+  {
+    "id": "app.import.bulk_import.destination_team_requires_single_team_scope.error",
+    "translation": "--destination-team-name requires a single-team export; this export contains multiple teams."
+  },
+  {
     "id": "app.import.bulk_import.file_scan.error",
     "translation": "Error reading import data file."
+  },
+  {
+    "id": "app.import.bulk_import.imported_users_choice_required.error",
+    "translation": "This is a scoped export, so --imported-users must be set to either \"active\" or \"inactive\"; there is no safe default. Use --imported-users=active when importing into a new instance that these users are moving to, so they can sign in — otherwise every account the import creates is deactivated and nobody, including SSO users, can log in until an administrator reactivates them one by one. Use --imported-users=inactive when importing into an existing instance that already holds other people's content, so accounts created from weak username or email matches stay deactivated until an administrator reviews them. Either way, users who were deactivated on the source server stay deactivated, and accounts that already exist on the destination are matched rather than created and so are not affected by this choice."
   },
   {
     "id": "app.import.bulk_import.json_decode.error",
@@ -7035,6 +7083,10 @@
   {
     "id": "app.import.import_direct_channel.get_channel_members.error",
     "translation": "Failed to get channel members for direct channel"
+  },
+  {
+    "id": "app.import.import_direct_channel.get_ever_members.error",
+    "translation": "Failed to get the history of members who have ever belonged to the direct channel"
   },
   {
     "id": "app.import.import_direct_channel.no_members.error",
@@ -7151,6 +7203,14 @@
   {
     "id": "app.import.import_user_teams.save_preferences.error",
     "translation": "Unable to save the team theme preferences"
+  },
+  {
+    "id": "app.import.pre_create_sso_user.missing_fields.app_error",
+    "translation": "SSO user import data is missing required fields (username or email)."
+  },
+  {
+    "id": "app.import.preflight.auth_provider_not_configured.error",
+    "translation": "The {{.Service}} auth provider is not configured on this server: {{.Detail}}"
   },
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
@@ -8065,16 +8125,8 @@
     "translation": "A policy with this name already exists. Please choose a different name."
   },
   {
-    "id": "app.pap.save_policy.parent_resource_attributes_team_assigned",
-    "translation": "This access rule uses channel attributes, which teams do not have. Remove the teams assigned to this policy before saving."
-  },
-  {
     "id": "app.pap.save_policy.resolver_error",
     "translation": "Could not initialise attribute resolver for policy save."
-  },
-  {
-    "id": "app.pap.save_policy.resource_attributes_disabled",
-    "translation": "Access rules cannot use channel attributes on this server. This capability is not enabled."
   },
   {
     "id": "app.pap.save_policy.rule_name_unique.app_error",
@@ -8085,20 +8137,12 @@
     "translation": "You do not satisfy one or more conditions in this policy."
   },
   {
-    "id": "app.pap.save_policy.team_resource_attributes",
-    "translation": "This access rule uses channel attributes, which teams do not have. Access rules with channel attributes can only be applied to channels."
-  },
-  {
     "id": "app.pap.search_access_control_policies.app_error",
     "translation": "Could not search access control policies."
   },
   {
     "id": "app.pap.simulate.attribute_refresh",
     "translation": "Failed to refresh attributes for the simulation."
-  },
-  {
-    "id": "app.pap.simulate.channel_required_for_resource",
-    "translation": "A channel is required to simulate a policy that references channel attributes."
   },
   {
     "id": "app.pap.simulate.compile_failed",
@@ -8399,6 +8443,14 @@
   {
     "id": "app.post.get.app_error",
     "translation": "Unable to get the post."
+  },
+  {
+    "id": "app.post.get_author_ids_for_channel.app_error",
+    "translation": "Unable to get post author IDs for the channel."
+  },
+  {
+    "id": "app.post.get_author_ids_for_team.app_error",
+    "translation": "Unable to get post author IDs for the team."
   },
   {
     "id": "app.post.get_direct_posts.app_error",
@@ -8903,6 +8955,10 @@
   {
     "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
     "translation": "Unable to get all reactions with this emoji name."
+  },
+  {
+    "id": "app.reaction.get_author_ids_for_channel.app_error",
+    "translation": "Unable to get reaction author IDs for the channel."
   },
   {
     "id": "app.reaction.get_for_post.app_error",
@@ -9687,6 +9743,10 @@
     "translation": "No terms of service found."
   },
   {
+    "id": "app.thread.get_follower_ids_for_channel.app_error",
+    "translation": "Unable to get thread follower IDs for the channel."
+  },
+  {
     "id": "app.thread.get_threadmembers_for_export.app_error",
     "translation": "Unable to get thread members for export."
   },
@@ -9837,6 +9897,10 @@
   {
     "id": "app.user.get_badge_count.app_error",
     "translation": "We could not get the badge count for the user."
+  },
+  {
+    "id": "app.user.get_by_auth.app_error",
+    "translation": "Unable to find the user by authentication data."
   },
   {
     "id": "app.user.get_by_auth.missing_account.app_error",

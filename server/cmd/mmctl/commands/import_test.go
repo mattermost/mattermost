@@ -213,6 +213,17 @@ func (s *MmctlUnitTestSuite) TestImportJobListCmdF() {
 }
 
 func (s *MmctlUnitTestSuite) TestImportProcessCmdF() {
+	noCheckpoint := func() {
+		s.client.EXPECT().
+			GetJobs(context.TODO(), model.JobTypeImportProcess, model.JobStatusError, 0, 10).
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+		s.client.EXPECT().
+			GetJobs(context.TODO(), model.JobTypeImportProcess, model.JobStatusInProgress, 0, 10).
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+	}
+
 	s.Run("default workers", func() {
 		printer.Clean()
 		importFile := "import.zip"
@@ -225,6 +236,7 @@ func (s *MmctlUnitTestSuite) TestImportProcessCmdF() {
 			},
 		}
 
+		noCheckpoint()
 		s.client.
 			EXPECT().
 			CreateJob(context.TODO(), mockJob).
@@ -241,6 +253,92 @@ func (s *MmctlUnitTestSuite) TestImportProcessCmdF() {
 		s.Len(printer.GetLines(), 1)
 		s.Empty(printer.GetErrorLines())
 		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
+	})
+
+	// The job-data key is the only link between the flag and the importer, which
+	// enforces the choice server-side. A typo here drops the operator's choice
+	// silently and the scoped import then fails as if the flag were never passed.
+	s.Run("--imported-users is carried into job data", func() {
+		for _, posture := range []string{"active", "inactive"} {
+			printer.Clean()
+			importFile := "import.zip"
+			mockJob := &model.Job{
+				Type: model.JobTypeImportProcess,
+				Data: map[string]string{
+					"import_file":     importFile,
+					"local_mode":      "false",
+					"extract_content": "false",
+					"imported_users":  posture,
+				},
+			}
+
+			noCheckpoint()
+			s.client.
+				EXPECT().
+				CreateJob(context.TODO(), mockJob).
+				Return(mockJob, &model.Response{}, nil).
+				Times(1)
+
+			cmd := &cobra.Command{}
+			cmd.Flags().Bool("bypass-upload", false, "")
+			cmd.Flags().Bool("extract-content", false, "")
+			cmd.Flags().Int("workers", 0, "")
+			cmd.Flags().String("imported-users", "", "")
+			_ = cmd.Flags().Set("imported-users", posture)
+
+			err := importProcessCmdF(s.client, cmd, []string{importFile})
+			s.Require().Nil(err)
+			s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
+		}
+	})
+
+	// Omitting the flag must leave the key absent rather than writing an empty
+	// value, so a full-instance import is unaffected and a scoped one still gets
+	// the server-side "choice required" error.
+	s.Run("--imported-users omitted leaves the key out of job data", func() {
+		printer.Clean()
+		importFile := "import.zip"
+		mockJob := &model.Job{
+			Type: model.JobTypeImportProcess,
+			Data: map[string]string{
+				"import_file":     importFile,
+				"local_mode":      "false",
+				"extract_content": "false",
+			},
+		}
+
+		noCheckpoint()
+		s.client.
+			EXPECT().
+			CreateJob(context.TODO(), mockJob).
+			Return(mockJob, &model.Response{}, nil).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("bypass-upload", false, "")
+		cmd.Flags().Bool("extract-content", false, "")
+		cmd.Flags().Int("workers", 0, "")
+		cmd.Flags().String("imported-users", "", "")
+
+		err := importProcessCmdF(s.client, cmd, []string{importFile})
+		s.Require().Nil(err)
+		s.NotContains(mockJob.Data, "imported_users")
+	})
+
+	s.Run("--imported-users rejects a value that is neither active nor inactive", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("bypass-upload", false, "")
+		cmd.Flags().Bool("extract-content", false, "")
+		cmd.Flags().Int("workers", 0, "")
+		cmd.Flags().String("imported-users", "", "")
+		_ = cmd.Flags().Set("imported-users", "deactivated")
+
+		err := importProcessCmdF(s.client, cmd, []string{"import.zip"})
+		s.Require().NotNil(err)
+		s.Contains(err.Error(), "invalid --imported-users value")
+		s.Empty(printer.GetLines())
 	})
 
 	s.Run("workers exceeds max", func() {
@@ -274,6 +372,7 @@ func (s *MmctlUnitTestSuite) TestImportProcessCmdF() {
 			},
 		}
 
+		noCheckpoint()
 		s.client.
 			EXPECT().
 			CreateJob(context.TODO(), mockJob).
@@ -291,6 +390,306 @@ func (s *MmctlUnitTestSuite) TestImportProcessCmdF() {
 		s.Len(printer.GetLines(), 1)
 		s.Empty(printer.GetErrorLines())
 		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
+	})
+
+	s.Run("destination team by ID", func() {
+		printer.Clean()
+		importFile := "import.zip"
+		mockTeam := &model.Team{Id: "teamid1", Name: "myteam"}
+		mockJob := &model.Job{
+			Type: model.JobTypeImportProcess,
+			Data: map[string]string{
+				"import_file":           importFile,
+				"local_mode":            "false",
+				"extract_content":       "false",
+				"destination_team_name": "myteam",
+			},
+		}
+
+		noCheckpoint()
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), "teamid1", "").
+			Return(mockTeam, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			CreateJob(context.TODO(), mockJob).
+			Return(mockJob, &model.Response{}, nil).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("bypass-upload", false, "")
+		cmd.Flags().Bool("extract-content", false, "")
+		cmd.Flags().Int("workers", 0, "")
+		cmd.Flags().String("destination-team-name", "", "")
+		cmd.Flags().String("destination-team-id", "teamid1", "")
+		cmd.Flags().Bool("skip-preflight", false, "")
+
+		err := importProcessCmdF(s.client, cmd, []string{importFile})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Empty(printer.GetErrorLines())
+		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
+	})
+
+	s.Run("--destination-team-name and --destination-team-id are mutually exclusive", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("bypass-upload", false, "")
+		cmd.Flags().Bool("extract-content", false, "")
+		cmd.Flags().Int("workers", 0, "")
+		cmd.Flags().String("destination-team-name", "myteam", "")
+		cmd.Flags().String("destination-team-id", "teamid1", "")
+		cmd.Flags().Bool("skip-preflight", false, "")
+
+		err := importProcessCmdF(s.client, cmd, []string{"import.zip"})
+		s.Require().NotNil(err)
+		s.Contains(err.Error(), "mutually exclusive")
+		s.Empty(printer.GetLines())
+	})
+
+	s.Run("non-existent destination team ID fails immediately", func() {
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			GetTeam(context.TODO(), "nosuchid", "").
+			Return(nil, &model.Response{}, fmt.Errorf("not found")).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("bypass-upload", false, "")
+		cmd.Flags().Bool("extract-content", false, "")
+		cmd.Flags().Int("workers", 0, "")
+		cmd.Flags().String("destination-team-name", "", "")
+		cmd.Flags().String("destination-team-id", "nosuchid", "")
+		cmd.Flags().Bool("skip-preflight", false, "")
+
+		err := importProcessCmdF(s.client, cmd, []string{"import.zip"})
+		s.Require().NotNil(err)
+		s.Contains(err.Error(), "nosuchid")
+		s.Empty(printer.GetLines())
+	})
+
+	s.Run("destination channel by name", func() {
+		printer.Clean()
+		importFile := "import.zip"
+		mockJob := &model.Job{
+			Type: model.JobTypeImportProcess,
+			Data: map[string]string{
+				"import_file":              importFile,
+				"local_mode":               "false",
+				"extract_content":          "false",
+				"destination_channel_name": "mychannel",
+			},
+		}
+
+		noCheckpoint()
+		s.client.
+			EXPECT().
+			CreateJob(context.TODO(), mockJob).
+			Return(mockJob, &model.Response{}, nil).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("bypass-upload", false, "")
+		cmd.Flags().Bool("extract-content", false, "")
+		cmd.Flags().Int("workers", 0, "")
+		cmd.Flags().String("destination-channel-name", "mychannel", "")
+		cmd.Flags().String("destination-channel-id", "", "")
+		cmd.Flags().Bool("skip-preflight", false, "")
+
+		err := importProcessCmdF(s.client, cmd, []string{importFile})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Empty(printer.GetErrorLines())
+		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
+	})
+
+	s.Run("destination channel by ID", func() {
+		printer.Clean()
+		importFile := "import.zip"
+		mockChannel := &model.Channel{Id: "chanid1", Name: "mychannel"}
+		mockJob := &model.Job{
+			Type: model.JobTypeImportProcess,
+			Data: map[string]string{
+				"import_file":              importFile,
+				"local_mode":               "false",
+				"extract_content":          "false",
+				"destination_channel_name": "mychannel",
+			},
+		}
+
+		noCheckpoint()
+		s.client.
+			EXPECT().
+			GetChannel(context.TODO(), "chanid1").
+			Return(mockChannel, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			CreateJob(context.TODO(), mockJob).
+			Return(mockJob, &model.Response{}, nil).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("bypass-upload", false, "")
+		cmd.Flags().Bool("extract-content", false, "")
+		cmd.Flags().Int("workers", 0, "")
+		cmd.Flags().String("destination-channel-name", "", "")
+		cmd.Flags().String("destination-channel-id", "chanid1", "")
+		cmd.Flags().Bool("skip-preflight", false, "")
+
+		err := importProcessCmdF(s.client, cmd, []string{importFile})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Empty(printer.GetErrorLines())
+		s.Equal(mockJob, printer.GetLines()[0].(*model.Job))
+	})
+
+	s.Run("--destination-channel-name and --destination-channel-id are mutually exclusive", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("bypass-upload", false, "")
+		cmd.Flags().Bool("extract-content", false, "")
+		cmd.Flags().Int("workers", 0, "")
+		cmd.Flags().String("destination-channel-name", "mychannel", "")
+		cmd.Flags().String("destination-channel-id", "chanid1", "")
+		cmd.Flags().Bool("skip-preflight", false, "")
+
+		err := importProcessCmdF(s.client, cmd, []string{"import.zip"})
+		s.Require().NotNil(err)
+		s.Contains(err.Error(), "mutually exclusive")
+		s.Empty(printer.GetLines())
+	})
+
+	s.Run("non-existent destination channel ID fails immediately", func() {
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			GetChannel(context.TODO(), "nosuchid").
+			Return(nil, &model.Response{}, fmt.Errorf("not found")).
+			Times(1)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("bypass-upload", false, "")
+		cmd.Flags().Bool("extract-content", false, "")
+		cmd.Flags().Int("workers", 0, "")
+		cmd.Flags().String("destination-channel-name", "", "")
+		cmd.Flags().String("destination-channel-id", "nosuchid", "")
+		cmd.Flags().Bool("skip-preflight", false, "")
+
+		err := importProcessCmdF(s.client, cmd, []string{"import.zip"})
+		s.Require().NotNil(err)
+		s.Contains(err.Error(), "nosuchid")
+		s.Empty(printer.GetLines())
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestReadYesNo() {
+	// EOF is spelled as an empty reader: ReadString returns "" with io.EOF, which
+	// must fall back to the default rather than counting as an answer.
+	testCases := []struct {
+		name     string
+		input    string
+		def      bool
+		expected bool
+	}{
+		{"explicit y", "y\n", false, true},
+		{"explicit yes", "YES\n", false, true},
+		{"explicit n", "n\n", true, false},
+		{"explicit no", "No\n", true, false},
+		{"surrounding whitespace is trimmed", "  y  \n", false, true},
+		{"bare enter takes the default", "\n", true, true},
+		{"bare enter takes a negative default", "\n", false, false},
+		{"unrecognised answer takes the default", "maybe\n", false, false},
+		{"eof takes the default", "", false, false},
+		{"eof cannot manufacture consent on a negative default", "", false, false},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			s.Equal(tc.expected, readYesNo(strings.NewReader(tc.input), tc.def))
+		})
+	}
+}
+
+// TestFindImportCheckpoint covers the fix for a hard-killed import_process job
+// (OOM, container restart) never transitioning to JobStatusError — only a
+// recovered Go panic does that. Without also checking JobStatusInProgress
+// jobs, a checkpoint saved by a crashed job would never be found on retry.
+func (s *MmctlUnitTestSuite) TestFindImportCheckpoint() {
+	importFile := "import.zip"
+
+	s.Run("finds checkpoint on a failed job", func() {
+		mockJob := &model.Job{
+			Data: map[string]string{
+				"import_file":     importFile,
+				"checkpoint":      "42",
+				"checkpoint_file": importFile,
+			},
+		}
+		s.client.EXPECT().
+			GetJobs(context.TODO(), model.JobTypeImportProcess, model.JobStatusError, 0, 10).
+			Return([]*model.Job{mockJob}, &model.Response{}, nil).
+			Times(1)
+
+		checkpoint, checkpointFile, _, maybeRunning := findImportCheckpoint(s.client, importFile)
+		s.Equal(42, checkpoint)
+		s.Equal(importFile, checkpointFile)
+		s.False(maybeRunning, "a job in the error state has definitively stopped")
+	})
+
+	s.Run("finds checkpoint on a stale in_progress job (process was killed)", func() {
+		s.client.EXPECT().
+			GetJobs(context.TODO(), model.JobTypeImportProcess, model.JobStatusError, 0, 10).
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+
+		staleJob := &model.Job{
+			LastActivityAt: model.GetMillis() - (2 * staleInProgressThreshold).Milliseconds(),
+			Data: map[string]string{
+				"import_file":     importFile,
+				"checkpoint":      "17",
+				"checkpoint_file": importFile,
+			},
+		}
+		s.client.EXPECT().
+			GetJobs(context.TODO(), model.JobTypeImportProcess, model.JobStatusInProgress, 0, 10).
+			Return([]*model.Job{staleJob}, &model.Response{}, nil).
+			Times(1)
+
+		checkpoint, checkpointFile, _, maybeRunning := findImportCheckpoint(s.client, importFile)
+		s.Equal(17, checkpoint)
+		s.Equal(importFile, checkpointFile)
+		s.True(maybeRunning, "an in_progress job is only guessed to be abandoned, so the caller must be warned it may still be running")
+	})
+
+	s.Run("ignores a recently-active in_progress job — likely still genuinely running", func() {
+		s.client.EXPECT().
+			GetJobs(context.TODO(), model.JobTypeImportProcess, model.JobStatusError, 0, 10).
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+
+		freshJob := &model.Job{
+			LastActivityAt: model.GetMillis(),
+			Data: map[string]string{
+				"import_file":     importFile,
+				"checkpoint":      "17",
+				"checkpoint_file": importFile,
+			},
+		}
+		s.client.EXPECT().
+			GetJobs(context.TODO(), model.JobTypeImportProcess, model.JobStatusInProgress, 0, 10).
+			Return([]*model.Job{freshJob}, &model.Response{}, nil).
+			Times(1)
+
+		checkpoint, _, _, _ := findImportCheckpoint(s.client, importFile)
+		s.Equal(0, checkpoint, "a job that's still actively checkpointing must not be offered for resume")
 	})
 }
 
