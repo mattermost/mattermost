@@ -1489,7 +1489,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
 export default AttributeDetails;
 
 const messages = defineMessages({
-    backLink: {id: 'admin.global_attributes.attribute_details.back_link', defaultMessage: 'Back to Manage Attributes'},
+    backLink: {id: 'admin.global_attributes.attribute_details.back_link', defaultMessage: 'Back to Attributes Management'},
     title: {id: 'admin.global_attributes.attribute_details.title', defaultMessage: 'New attribute'},
     editTitle: {id: 'admin.global_attributes.attribute_details.edit_title', defaultMessage: 'Edit attribute'},
     subtitle: {id: 'admin.global_attributes.attribute_details.subtitle', defaultMessage: 'Add a display name, choose a type, and pick where it applies.'},

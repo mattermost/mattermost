@@ -17,7 +17,7 @@ import GlobalAttributesTable from './global_attributes_table';
 import './global_attributes.scss';
 
 const messages = defineMessages({
-    title: {id: 'admin.global_attributes.title', defaultMessage: 'Manage Attributes'},
+    title: {id: 'admin.global_attributes.title', defaultMessage: 'Attributes Management'},
     subtitle: {id: 'admin.global_attributes.subtitle', defaultMessage: 'Define an attribute once, then choose which resources can use it.'},
     newAttribute: {id: 'admin.global_attributes.new_attribute', defaultMessage: 'New attribute'},
 });
