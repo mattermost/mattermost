@@ -5,7 +5,7 @@ import React from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
-import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
+import type {FieldType, PropertyField, PropertyValue} from '@mattermost/types/properties';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
@@ -349,6 +349,55 @@ describe('PostAttributesChips', () => {
             );
 
             expect(screen.getAllByTestId('select-property').map((chip) => chip.textContent)).toEqual(['SECRET']);
+            expect(screen.queryByTestId('post-attributes-overflow')).not.toBeInTheDocument();
+        });
+    });
+
+    // `PropertyValueRenderer` draws nothing for these a set value of either type
+    // must be indistinguishable from an unset one, right down to the row not mounting.
+    // Otherwise the post carries an empty flex container with its own vertical margin.
+    describe('a field type with no renderer', () => {
+        test.each([
+            ['date', 'date', 1642694400000],
+            ['multiuser', 'multiuser', ['user_1', 'user_2']],
+        ])('renders no row when a %s field is the post only attribute', (_label, type, raw) => {
+            const fields = [makeField({id: 'f_a', name: 'alpha', type: type as FieldType})];
+            const values = [makeValue({id: 'v_a', field_id: 'f_a', value: raw})];
+
+            renderWithContext(
+                <PostAttributesChips
+                    post={post}
+                    channel={channel}
+                />,
+                makeState(fields, values),
+            );
+
+            expect(screen.queryByTestId('post-attributes-chips')).not.toBeInTheDocument();
+        });
+
+        test('does not spend a chip slot or inflate +N', () => {
+            const fields = [
+                makeField({id: 'f_a', name: 'alpha', attrs: {options: OPTIONS, sort_order: 10}}),
+                makeField({id: 'f_due', name: 'bravo', type: 'date', attrs: {sort_order: 20}}),
+                makeField({id: 'f_b', name: 'charlie', attrs: {options: OPTIONS, sort_order: 30}}),
+            ];
+            const values = [
+                makeValue({id: 'v_a', field_id: 'f_a', value: 'opt_secret'}),
+                makeValue({id: 'v_due', field_id: 'f_due', value: 1642694400000}),
+                makeValue({id: 'v_b', field_id: 'f_b', value: 'opt_unclassified'}),
+            ];
+
+            renderWithContext(
+                <PostAttributesChips
+                    post={post}
+                    channel={channel}
+                />,
+                makeState(fields, values),
+            );
+
+            // Both selects fit. Counting the date would show only SECRET, with a
+            // blank second slot and a +1 nobody could account for.
+            expect(screen.getAllByTestId('select-property').map((chip) => chip.textContent)).toEqual(['SECRET', 'UNCLASSIFIED']);
             expect(screen.queryByTestId('post-attributes-overflow')).not.toBeInTheDocument();
         });
     });

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
+import type {FieldType, PropertyField, PropertyValue} from '@mattermost/types/properties';
 
 import type {VisibleAttribute} from './utils';
 import {allocateChipBudget, chipCount, hasValue, isChipVisible} from './utils';
@@ -131,6 +131,13 @@ describe('chipCount', () => {
         expect(chipCount(makeField({type: 'rank'}), makeValue('WITHDRAWN'))).toBe(0);
     });
 
+    it.each([
+        ['date', 'date', 1642694400000],
+        ['multiuser', 'multiuser', ['user_1', 'user_2', 'user_3']],
+    ])('is zero for a set %s field, which has no renderer', (_label, type, raw) => {
+        expect(chipCount(makeField({type: type as FieldType}), makeValue(raw))).toBe(0);
+    });
+
     // A field with no options has no option to resolve against, so a set value is
     // a chip on its own terms.
     it('is one for a set field that carries no options', () => {
@@ -175,6 +182,14 @@ describe('isChipVisible', () => {
         expect(isChipVisible(field, makeValue(['WITHDRAWN']))).toBe(false);
     });
 
+    it.each([
+        ['date', 'date', 1642694400000],
+        ['multiuser', 'multiuser', ['user_1', 'user_2']],
+    ])('hides a set %s field, which has no renderer', (_label, type, raw) => {
+        expect(isChipVisible(makeField({type: type as FieldType}), makeValue(raw))).toBe(false);
+        expect(isChipVisible(makeField({type: type as FieldType, attrs: {visibility: 'always'}}), makeValue(raw))).toBe(false);
+    });
+
     it('treats an unrecognised visibility as when_set', () => {
         const field = makeField({attrs: {visibility: 'sometimes'}});
         expect(isChipVisible(field, makeValue('SECRET'))).toBe(true);
@@ -200,8 +215,11 @@ describe('allocateChipBudget', () => {
     it('caps a single multi-valued field at the whole budget rather than the field', () => {
         // Slicing the field list would let one field with twelve entries render
         // twelve chips inside the first slot.
-        const twelve = Array.from({length: 12}, (_, index) => `user_${index}`);
-        const attributes = [visible(makeField({id: 'a', type: 'multiuser'}), twelve)];
+        const twelve = Array.from({length: 12}, (_, index) => ({id: `opt_${index}`, name: `OPT_${index}`}));
+        const attributes = [visible(
+            makeField({id: 'a', type: 'multiselect', attrs: {options: twelve}}),
+            twelve.map((option) => option.id),
+        )];
 
         const {shown, overflow} = allocateChipBudget(attributes, 2);
 
@@ -294,6 +312,36 @@ describe('allocateChipBudget', () => {
         // Only `c` is unshown. Counting the unresolvable field would say +2 and
         // promise the user an attribute that cannot be displayed anywhere.
         expect(overflow).toBe(1);
+    });
+
+    it('does not spend a slot on a field whose type has no renderer', () => {
+        const attributes = [
+            visible(makeField({id: 'a'}), 'SECRET'),
+            visible(makeField({id: 'due', type: 'date'}), 1642694400000),
+            visible(makeField({id: 'b'}), 'INTERNAL'),
+        ];
+
+        const {shown, overflow} = allocateChipBudget(attributes, 2);
+
+        // Both selects fit. Counting the date would push `b` out of a row that had
+        // room for it, and draw one visible chip where there should be two.
+        expect(shown.map((entry) => entry.field.id)).toEqual(['a', 'b']);
+        expect(overflow).toBe(0);
+    });
+
+    it('does not let a multiuser inflate the overflow count', () => {
+        const attributes = [
+            visible(makeField({id: 'a'}), 'SECRET'),
+            visible(makeField({id: 'b'}), 'INTERNAL'),
+            visible(makeField({id: 'reviewers', type: 'multiuser'}), ['u1', 'u2', 'u3', 'u4', 'u5']),
+        ];
+
+        const {shown, overflow} = allocateChipBudget(attributes, 2);
+
+        expect(shown.map((entry) => entry.field.id)).toEqual(['a', 'b']);
+
+        // Not +5: those five would promise chips that can never be rendered.
+        expect(overflow).toBe(0);
     });
 
     it('shows nothing for an empty list', () => {

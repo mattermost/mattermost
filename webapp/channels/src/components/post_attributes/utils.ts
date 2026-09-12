@@ -6,8 +6,6 @@ import {useMemo} from 'react';
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 import {supportsOptions} from '@mattermost/types/properties';
 
-import {toValueList} from 'components/properties_card_view/propertyValueRenderer/multi_value_utils';
-
 import {resolveOptionChips} from 'utils/property_options';
 
 export type VisibleAttribute = {
@@ -23,11 +21,12 @@ export type ChipAllocation = VisibleAttribute & {
     maxItems?: number;
 };
 
+const UNRENDERABLE_TYPES = new Set(['date', 'multiuser']);
+
 // Field types that render one chip per stored entry rather than one per field.
-// `chipCount` reaches `multiselect` through `supportsOptions` first, so in practice
-// this set answers two narrower questions: which fields need a `maxItems` cap, and
-// how to count a `multiuser` field, which has no options to resolve against.
-const MULTI_VALUED_TYPES = new Set(['multiselect', 'multiuser']);
+// Only `multiselect` qualifies for the time being; the set is what decides which
+// allocations carry a `maxItems` cap.
+const MULTI_VALUED_TYPES = new Set(['multiselect']);
 
 /**
  * Whether a stored value counts as set, judged on the value alone.
@@ -66,7 +65,8 @@ export function isChipVisible(field: PropertyField, value?: PropertyValue<unknow
  *
  * The single answer to "is there anything to show?" — `isChipVisible` and
  * `allocateChipBudget` both go through it, so the filter, the budget and the
- * renderer cannot disagree about how many slots a field spends.
+ * renderer cannot disagree about how many slots a field spends. A type the
+ * dispatcher cannot render earns nothing.
  *
  * For an option-bearing field the count is the number of *resolvable* options, not
  * the number of stored entries. A value naming an option that no longer exists has
@@ -75,16 +75,12 @@ export function isChipVisible(field: PropertyField, value?: PropertyValue<unknow
  * chip and inflate `+N` with an attribute the user can never see.
  */
 export function chipCount(field: PropertyField, value?: PropertyValue<unknown>): number {
-    if (!value || !hasValue(value)) {
+    if (!value || !hasValue(value) || UNRENDERABLE_TYPES.has(field.type)) {
         return 0;
     }
 
     if (supportsOptions(field)) {
         return resolveOptionChips(field, value.value).length;
-    }
-
-    if (MULTI_VALUED_TYPES.has(field.type)) {
-        return toValueList(value.value).length;
     }
 
     return 1;
