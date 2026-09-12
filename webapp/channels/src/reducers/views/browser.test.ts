@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
+
 import browserReducer from 'reducers/views/browser';
 
 import {ActionTypes, WindowSizes} from 'utils/constants';
@@ -17,7 +19,7 @@ describe('Reducers.Browser', () => {
                 focused: true,
                 windowSize: WindowSizes.DESKTOP_VIEW,
             },
-            {},
+            {} as AnyAction,
         );
 
         expect(nextState).toEqual(initialState);

@@ -1,11 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ChannelCategory} from '@mattermost/types/channel_categories';
+
 import {Preferences} from 'mattermost-redux/constants';
-import mergeObjects from 'mattermost-redux/test/merge_objects';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {TestHelper} from 'utils/test_helper';
+
+import type {GlobalState} from 'types/store';
 
 import * as Selectors from './channel_sidebar';
 
@@ -28,7 +32,7 @@ describe('isUnreadFilterEnabled', () => {
                 unreadFilterEnabled: false,
             },
         },
-    };
+    } as GlobalState;
 
     test('should return false when filter is disabled', () => {
         const state = baseState;
@@ -124,7 +128,7 @@ describe('getUnreadChannels', () => {
                 unreadFilterEnabled: true,
             },
         },
-    };
+    } as unknown as GlobalState;
 
     test('should return channels sorted by recency', () => {
         expect(Selectors.getUnreadChannels(baseState)).toEqual([unreadChannel2, unreadChannel1, currentChannel]);
@@ -149,7 +153,7 @@ describe('getUnreadChannels', () => {
                     ...baseState.entities.preferences,
                 },
             },
-        };
+        } as unknown as GlobalState;
 
         expect(Selectors.getUnreadChannels(state)).toEqual([unreadChannel1, unreadChannel2, currentChannel]);
 
@@ -172,7 +176,7 @@ describe('getUnreadChannels', () => {
                     ...baseState.entities.preferences,
                 },
             },
-        };
+        } as unknown as GlobalState;
 
         expect(Selectors.getUnreadChannels(state)).toEqual([unreadChannel2, unreadChannel1, currentChannel]);
     });
@@ -207,7 +211,7 @@ describe('getUnreadChannels', () => {
                     unreadFilterEnabled: true,
                 },
             },
-        };
+        } as unknown as GlobalState;
 
         expect(Selectors.getUnreadChannels(state)).toEqual([readChannel, unreadChannel2, unreadChannel1]);
     });
@@ -239,7 +243,7 @@ describe('getUnreadChannels', () => {
                     unreadFilterEnabled: false,
                 },
             },
-        };
+        } as GlobalState;
 
         expect(Selectors.getUnreadChannels(state)).toEqual([unreadChannel2, unreadChannel1]);
 
@@ -247,14 +251,16 @@ describe('getUnreadChannels', () => {
             ...state,
             views: {
                 ...state.views,
+
+                // A `...state.views.channels` spread here was a typo for `channel` and always
+                // undefined, so this replaces views.channel rather than extending it.
                 channel: {
-                    ...state.views.channels,
                     lastUnreadChannel: {
                         id: 'readChannel',
                     },
                 },
             },
-        };
+        } as GlobalState;
 
         expect(Selectors.getUnreadChannels(state)).toEqual([readChannel, unreadChannel2, unreadChannel1]);
     });
@@ -289,7 +295,7 @@ describe('getUnreadChannels', () => {
                     },
                 },
             },
-        };
+        } as unknown as GlobalState;
 
         // readChannel previously had no mentions, so it should be sorted with the non-mentions
         expect(Selectors.getUnreadChannels(state)).toEqual([unreadChannel1, readChannel, unreadChannel2]);
@@ -306,7 +312,7 @@ describe('getUnreadChannels', () => {
                     },
                 },
             },
-        };
+        } as GlobalState;
 
         // readChannel previously had a mention, so it should be sorted with the mentions
         expect(Selectors.getUnreadChannels(state)).toEqual([readChannel, unreadChannel1, unreadChannel2]);
@@ -331,7 +337,7 @@ describe('getUnreadChannels', () => {
                     ...baseState.entities.preferences,
                 },
             },
-        };
+        } as unknown as GlobalState;
 
         // No channels are muted
         expect(Selectors.getUnreadChannels(state)).toEqual([unreadChannel2, unreadChannel1, currentChannel]);
@@ -354,7 +360,7 @@ describe('getUnreadChannels', () => {
                     ...baseState.entities.preferences,
                 },
             },
-        };
+        } as unknown as GlobalState;
 
         // unreadChannel2 is muted and has a mention
         expect(Selectors.getUnreadChannels(state)).toEqual([unreadChannel1, currentChannel, unreadChannel2]);
@@ -390,7 +396,7 @@ describe('getUnreadChannels', () => {
                     },
                 },
             },
-        };
+        } as unknown as GlobalState;
 
         expect(Selectors.getUnreadChannels(state)).toEqual([unreadChannel2, unreadChannel1, currentChannel]);
 
@@ -410,7 +416,7 @@ describe('getUnreadChannels', () => {
                     lastUnreadChannel: null,
                 },
             },
-        };
+        } as GlobalState;
 
         expect(Selectors.getUnreadChannels(state)).toEqual([archivedChannel, unreadChannel2, unreadChannel1]);
     });
@@ -491,7 +497,7 @@ describe('getDisplayedChannels', () => {
                 unreadFilterEnabled: false,
             },
         },
-    };
+    } as unknown as GlobalState;
 
     test('should return channels in the order that they appear in each category', () => {
         const state = baseState;
@@ -513,7 +519,7 @@ describe('getDisplayedChannels', () => {
                     unreadFilterEnabled: true,
                 },
             },
-        };
+        } as GlobalState;
 
         expect(Selectors.getDisplayedChannels(state)).toEqual([
             unreadChannel2,
@@ -527,14 +533,16 @@ describe('getDisplayedChannels', () => {
             ...baseState,
             entities: {
                 ...baseState.entities,
+
+                // A `...baseState.preferences` spread here was a typo for `baseState.entities
+                // .preferences` and always undefined, so only myPreferences is set.
                 preferences: {
-                    ...baseState.preferences,
                     myPreferences: {
                         [getPreferenceKey(Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.SHOW_UNREAD_SECTION)]: {value: 'true'},
                     },
                 },
             },
-        };
+        } as GlobalState;
 
         expect(Selectors.getDisplayedChannels(state)).toEqual([
             unreadChannel2,
@@ -567,7 +575,7 @@ describe('getDisplayedChannels', () => {
                         },
                     },
                 },
-            };
+            } as unknown as GlobalState;
 
             expect(Selectors.getDisplayedChannels(baseState)).toBe(Selectors.getDisplayedChannels(modifiedState));
         });
@@ -577,14 +585,15 @@ describe('getDisplayedChannels', () => {
                 ...baseState,
                 entities: {
                     ...baseState.entities,
+
+                    // Same no-op `...baseState.preferences` typo as above.
                     preferences: {
-                        ...baseState.preferences,
                         myPreferences: {
                             [getPreferenceKey(Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.SHOW_UNREAD_SECTION)]: {value: 'true'},
                         },
                     },
                 },
-            };
+            } as GlobalState;
 
             expect(Selectors.getDisplayedChannels(baseState)).not.toBe(Selectors.getDisplayedChannels(modifiedState));
             expect(Selectors.getDisplayedChannels(modifiedState)).toBe(Selectors.getDisplayedChannels(modifiedState));
@@ -649,11 +658,11 @@ describe('makeGetFilteredChannelIdsForCategory', () => {
                 lastUnreadChannel: null,
             },
         },
-    };
+    } as unknown as GlobalState;
 
     test('should only include channels in the given category', () => {
-        const category1 = {id: 'category1', team_id: 'team1', channel_ids: [currentChannel.id, unreadChannel1.id]};
-        const category2 = {id: 'category2', team_id: 'team1', channel_ids: [readChannel.id, unreadChannel2.id]};
+        const category1 = {id: 'category1', team_id: 'team1', channel_ids: [currentChannel.id, unreadChannel1.id]} as ChannelCategory;
+        const category2 = {id: 'category2', team_id: 'team1', channel_ids: [readChannel.id, unreadChannel2.id]} as ChannelCategory;
 
         const state = {
             ...baseState,
@@ -670,7 +679,7 @@ describe('makeGetFilteredChannelIdsForCategory', () => {
                     },
                 },
             },
-        };
+        } as unknown as GlobalState;
 
         const getFilteredChannelIdsForCategory = Selectors.makeGetFilteredChannelIdsForCategory();
 
@@ -679,7 +688,7 @@ describe('makeGetFilteredChannelIdsForCategory', () => {
     });
 
     test('with the unreads category enabled, should not include unread channels', () => {
-        const category1 = {id: 'category1', team_id: 'team1', channel_ids: [currentChannel.id, readChannel.id, unreadChannel1.id, unreadChannel2.id]};
+        const category1 = {id: 'category1', team_id: 'team1', channel_ids: [currentChannel.id, readChannel.id, unreadChannel1.id, unreadChannel2.id]} as ChannelCategory;
 
         const state = {
             ...baseState,
@@ -700,7 +709,7 @@ describe('makeGetFilteredChannelIdsForCategory', () => {
                     },
                 },
             },
-        };
+        } as unknown as GlobalState;
 
         const getFilteredChannelIdsForCategory = Selectors.makeGetFilteredChannelIdsForCategory();
 
@@ -708,7 +717,7 @@ describe('makeGetFilteredChannelIdsForCategory', () => {
     });
 
     test('with the unreads category enabled, should not include the current channel if it was previously unread', () => {
-        const category1 = {id: 'category1', team_id: 'team1', channel_ids: [currentChannel.id, readChannel.id, unreadChannel1.id, unreadChannel2.id]};
+        const category1 = {id: 'category1', team_id: 'team1', channel_ids: [currentChannel.id, readChannel.id, unreadChannel1.id, unreadChannel2.id]} as ChannelCategory;
 
         const state = {
             ...baseState,
@@ -738,7 +747,7 @@ describe('makeGetFilteredChannelIdsForCategory', () => {
                     },
                 },
             },
-        };
+        } as unknown as GlobalState;
 
         const getFilteredChannelIdsForCategory = Selectors.makeGetFilteredChannelIdsForCategory();
 

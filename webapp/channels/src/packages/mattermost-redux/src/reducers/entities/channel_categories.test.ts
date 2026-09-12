@@ -1,6 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ChannelCategory} from '@mattermost/types/channel_categories';
+import type {DeepPartial, IDMappedObjects} from '@mattermost/types/utilities';
+
 import {ChannelCategoryTypes, ChannelTypes, TeamTypes} from 'mattermost-redux/action_types';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 
@@ -8,13 +11,13 @@ import * as Reducers from './channel_categories';
 
 describe('byId', () => {
     test('should remove references to a channel when leaving it', () => {
-        const initialState = {
+        const initialState: DeepPartial<IDMappedObjects<ChannelCategory>> = {
             category1: {id: 'category1', channel_ids: ['channel1', 'channel2']},
             category2: {id: 'category2', channel_ids: ['channel3', 'channel4']},
         };
 
         const state = Reducers.byId(
-            initialState,
+            initialState as IDMappedObjects<ChannelCategory>,
             {
                 type: ChannelTypes.LEAVE_CHANNEL,
                 data: {
@@ -28,7 +31,7 @@ describe('byId', () => {
     });
 
     test('should remove corresponding categories when leaving a team', () => {
-        const initialState = {
+        const initialState: DeepPartial<IDMappedObjects<ChannelCategory>> = {
             category1: {id: 'category1', team_id: 'team1', type: CategoryTypes.CUSTOM},
             category2: {id: 'category2', team_id: 'team1', type: CategoryTypes.CUSTOM},
             dmCategory1: {id: 'dmCategory1', team_id: 'team1', type: CategoryTypes.DIRECT_MESSAGES},
@@ -38,7 +41,7 @@ describe('byId', () => {
         };
 
         const state = Reducers.byId(
-            initialState,
+            initialState as IDMappedObjects<ChannelCategory>,
             {
                 type: TeamTypes.LEAVE_TEAM,
                 data: {

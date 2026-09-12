@@ -8,7 +8,11 @@ import configureStore from 'store';
 import * as Actions from './admin_actions';
 
 describe('Actions.Admin', () => {
-    let store;
+    // These actions type `component` as a React.Component instance, but every caller
+    // (including the plugin registry) passes the component class itself.
+    const componentClass = React.Component as unknown as React.Component;
+
+    let store = configureStore();
     beforeEach(async () => {
         store = await configureStore();
     });
@@ -43,7 +47,7 @@ describe('Actions.Admin', () => {
     test('Register a custom plugin setting adds the component to the state', async () => {
         expect(store.getState().plugins.adminConsoleCustomComponents).toEqual({});
 
-        store.dispatch(Actions.registerAdminConsoleCustomSetting('plugin-id', 'settingA', React.Component, {showTitle: true}));
+        store.dispatch(Actions.registerAdminConsoleCustomSetting('plugin-id', 'settingA', componentClass, {showTitle: true}));
         expect(store.getState().plugins.adminConsoleCustomComponents).toEqual(
             {'plugin-id': {
                 settinga: {
@@ -59,7 +63,7 @@ describe('Actions.Admin', () => {
     test('Register a custom plugin section adds the component to the state', async () => {
         expect(store.getState().plugins.adminConsoleCustomSections).toEqual({});
 
-        store.dispatch(Actions.registerAdminConsoleCustomSection('plugin-id', 'sectionA', React.Component));
+        store.dispatch(Actions.registerAdminConsoleCustomSection('plugin-id', 'sectionA', componentClass));
         expect(store.getState().plugins.adminConsoleCustomSections).toEqual(
             {'plugin-id': {
                 sectiona: {

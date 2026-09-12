@@ -3,6 +3,8 @@
 
 import nock from 'nock';
 
+import {CollapsedThreads} from '@mattermost/types/config';
+
 import {UserTypes} from 'mattermost-redux/action_types';
 import * as Actions from 'mattermost-redux/actions/preferences';
 import {loadMe} from 'mattermost-redux/actions/users';
@@ -28,7 +30,7 @@ describe('Actions.Preferences', () => {
                 },
                 general: {
                     config: {
-                        CollapsedThreads: 'always_on',
+                        CollapsedThreads: CollapsedThreads.ALWAYS_ON,
                     },
                 },
             },
