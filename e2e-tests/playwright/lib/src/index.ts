@@ -122,6 +122,7 @@ export {
     ProfileModal,
     WysiwygEditor,
 } from './ui/components';
+export type {PriorityOption} from './ui/components';
 
 export {setWysiwygUserPreference, WYSIWYG_PREF_CATEGORY, WYSIWYG_PREF_NAME} from './wysiwyg_helpers';
 
