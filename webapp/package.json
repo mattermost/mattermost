@@ -2,9 +2,10 @@
   "name": "@mattermost/webapp",
   "private": true,
   "engines": {
-    "node": "^24",
-    "npm": "^11"
+    "node": "24.11.1",
+    "npm": "11.6.2"
   },
+  "packageManager": "npm@11.6.2",
   "scripts": {
     "postinstall": "patch-package && npm run build --workspace platform/types --workspace platform/client --workspace platform/shared --workspace platform/components",
     "build": "node scripts/build.mjs",
