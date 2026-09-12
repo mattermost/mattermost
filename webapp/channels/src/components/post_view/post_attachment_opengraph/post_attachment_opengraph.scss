@@ -171,6 +171,11 @@
         }
 
         &.collapsed {
+            width: auto;
+            height: auto;
+            margin-top: 12px;
+            grid-column: 1 / 2;
+            grid-row: 2 / 3;
             place-content: start;
             place-items: start;
 
