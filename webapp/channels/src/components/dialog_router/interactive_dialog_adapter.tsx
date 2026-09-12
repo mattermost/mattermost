@@ -43,6 +43,10 @@ interface Props extends WrappedComponentProps {
     notifyOnCancel?: boolean;
     onExited?: () => void;
 
+    // Channel the dialog's trigger was created in. Left undefined when the trigger's
+    // source did not record one, in which case the actions fall back to the current channel.
+    channelId?: string;
+
     // Enhanced functionality
     sourceUrl?: string; // Optional URL for form refresh functionality
     conversionOptions?: Partial<ConversionOptions>;
@@ -287,7 +291,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
                 state: dialogState, // Dialog state for multiform step tracking
                 submission: finalSubmission as {[x: string]: string},
                 user_id: '', // Populated by submitInteractiveDialog action
-                channel_id: '', // Populated by submitInteractiveDialog action
+                channel_id: this.props.channelId || '', // Falls back to the current channel in the action
                 team_id: '', // Populated by submitInteractiveDialog action
                 cancelled: false,
                 ...(fileIds.length > 0 && {file_ids: fileIds}),
@@ -364,7 +368,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             state: this.props.state || '',
             cancelled: true,
             user_id: '', // Populated by submitInteractiveDialog action
-            channel_id: '', // Populated by submitInteractiveDialog action
+            channel_id: this.props.channelId || '', // Falls back to the current channel in the action
             team_id: '', // Populated by submitInteractiveDialog action
             submission: {},
         };
@@ -459,7 +463,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             state: state ?? '',
             submission: convertedValues as {[x: string]: string},
             user_id: '',
-            channel_id: '',
+            channel_id: this.props.channelId || '',
             team_id: '',
             cancelled: false,
         };
@@ -560,7 +564,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
                 state: call.state || this.props.state || '',
                 submission: refreshPayload as {[x: string]: string}, // Send complete accumulated payload
                 user_id: '',
-                channel_id: '',
+                channel_id: this.props.channelId || '',
                 team_id: '',
                 cancelled: false,
                 type: 'refresh', // Indicate this is a field refresh request
@@ -689,6 +693,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
         const context = createCallContext(
             'legacy-interactive-dialog', // app_id for legacy dialogs
             'interactive_dialog', // location
+            this.props.channelId,
         );
 
         return (

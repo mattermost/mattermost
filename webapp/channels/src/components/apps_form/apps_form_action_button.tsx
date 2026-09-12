@@ -13,9 +13,10 @@ type Props = {
     label: string;
     url: string;
     context?: Record<string, string>;
+    channelId?: string;
 };
 
-const AppsFormActionButton: React.FC<Props> = ({label, url, context}) => {
+const AppsFormActionButton: React.FC<Props> = ({label, url, context, channelId}) => {
     const dispatch = useDispatch();
     const intl = useIntl();
     const [loading, setLoading] = useState(false);
@@ -34,7 +35,7 @@ const AppsFormActionButton: React.FC<Props> = ({label, url, context}) => {
         setLoading(true);
         setError(null);
         try {
-            const result = await dispatch(executeDialogAction(url, context));
+            const result = await dispatch(executeDialogAction(url, context, channelId));
             if (!mountedRef.current) {
                 return;
             }
@@ -50,7 +51,7 @@ const AppsFormActionButton: React.FC<Props> = ({label, url, context}) => {
                 setLoading(false);
             }
         }
-    }, [dispatch, url, context, intl]);
+    }, [dispatch, url, context, channelId, intl]);
 
     return (
         <div className='form-group'>

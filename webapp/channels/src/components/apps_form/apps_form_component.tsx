@@ -37,6 +37,10 @@ const DEFAULT_TIME_INTERVAL_MINUTES = 60;
 
 export type AppsFormProps = {
     form: AppForm;
+
+    // Channel this form belongs to, used by action buttons so their request targets the
+    // form's channel rather than whichever channel the user is currently viewing.
+    channelId?: string;
     timezone?: string;
     isEmbedded?: boolean;
     onExited: () => void;
@@ -738,6 +742,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
                     field={field}
                     key={field.name}
                     autoFocus={index === 0}
+                    channelId={this.props.channelId}
                     name={field.name}
                     errorText={this.state.fieldErrors[field.name]}
                     value={this.state.values[field.name]}

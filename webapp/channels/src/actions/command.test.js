@@ -3,6 +3,7 @@
 
 import * as UserAgent from '@mattermost/shared/utils/user_agent';
 
+import {IntegrationTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {Permissions} from 'mattermost-redux/constants';
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
@@ -212,6 +213,42 @@ describe('executeCommand', () => {
             Client4.executeCommand = jest.fn().mockResolvedValue({});
             await store.dispatch(executeCommand('/collapse', []));
             expect(Client4.executeCommand).toHaveBeenCalledWith('/collapse ', []);
+        });
+    });
+
+    // MM-70251: the server mints the dialog's trigger against the channel sent here, so
+    // this is where a dialog's channel originates — the composer's channel, which is the
+    // thread's channel in the RHS rather than whichever channel is centre stage.
+    describe('dialog trigger', () => {
+        test('sends the command channel to the server', async () => {
+            Client4.executeCommand = jest.fn().mockResolvedValue({trigger_id: 'trigger123'});
+
+            await store.dispatch(executeCommand('/somecommand', {channel_id: 'command_channel_id'}));
+
+            expect(Client4.executeCommand).toHaveBeenCalledWith(
+                '/somecommand ',
+                expect.objectContaining({channel_id: 'command_channel_id'}),
+            );
+        });
+
+        test('announces the trigger returned by the server', async () => {
+            Client4.executeCommand = jest.fn().mockResolvedValue({trigger_id: 'trigger123'});
+
+            await store.dispatch(executeCommand('/somecommand', {channel_id: 'command_channel_id'}));
+
+            expect(store.getActions()).toContainEqual({
+                type: IntegrationTypes.RECEIVED_DIALOG_TRIGGER_ID,
+                data: 'trigger123',
+            });
+        });
+
+        test('announces nothing when the command returns no trigger_id', async () => {
+            Client4.executeCommand = jest.fn().mockResolvedValue({});
+
+            await store.dispatch(executeCommand('/somecommand', {channel_id: 'command_channel_id'}));
+
+            const triggerAction = store.getActions().find((a) => a.type === IntegrationTypes.RECEIVED_DIALOG_TRIGGER_ID);
+            expect(triggerAction).toBeUndefined();
         });
     });
 

@@ -19,12 +19,6 @@ jest.mock('mattermost-redux/actions/users', () => ({
 }));
 
 jest.mock('mattermost-redux/actions/integrations', () => ({
-    submitInteractiveDialog: jest.fn(() => {
-        return {type: 'MOCK_SUBMIT_DIALOG', data: {errors: {}}};
-    }),
-    lookupInteractiveDialog: jest.fn(() => {
-        return {type: 'MOCK_LOOKUP_DIALOG', data: {items: []}};
-    }),
     getIncomingHooks: jest.fn(() => {
         return {type: 'MOCK_GET_INCOMING_HOOKS', data: []};
     }),
@@ -48,10 +42,6 @@ jest.mock('mattermost-redux/actions/integrations', () => ({
 
 jest.mock('mattermost-redux/selectors/entities/apps', () => ({
     appsEnabled: jest.fn(() => true),
-}));
-
-jest.mock('mattermost-redux/selectors/entities/integrations', () => ({
-    getDialogArguments: jest.fn(() => null),
 }));
 
 jest.mock('mattermost-redux/client');
@@ -173,181 +163,6 @@ describe('actions/integration_actions', () => {
         });
     });
 
-    describe('submitInteractiveDialog', () => {
-        test('submitInteractiveDialog with current channel', async () => {
-            const {getDialogArguments} = require('mattermost-redux/selectors/entities/integrations');
-            const testState = {
-                ...initialState,
-                entities: {
-                    ...initialState.entities,
-                    integrations: {
-                        ...initialState.entities.integrations,
-                        dialogArguments: {
-                            channel_id: 'dialog_channel_id',
-                        },
-                    },
-                },
-            };
-            const testStore = mockStore(testState);
-            getDialogArguments.mockReturnValue({channel_id: 'dialog_channel_id'});
-            const submission = {
-                callback_id: 'callback_id',
-                state: 'state',
-                submission: {
-                    name: 'value',
-                },
-                user_id: 'current_user_id',
-                team_id: 'team_id1',
-                channel_id: '',
-                cancelled: false,
-            };
-
-            const expectedSubmission = {
-                ...submission,
-                channel_id: 'dialog_channel_id',
-            };
-
-            await testStore.dispatch(Actions.submitInteractiveDialog(submission));
-
-            expect(IntegrationActions.submitInteractiveDialog).toHaveBeenCalledWith(expectedSubmission);
-        });
-
-        test('submitInteractiveDialog with currentChannel context', async () => {
-            const {getDialogArguments} = require('mattermost-redux/selectors/entities/integrations');
-            getDialogArguments.mockReturnValue(null);
-            const testStore = mockStore(initialState);
-
-            const submission = {
-                callback_id: 'callback_id',
-                state: 'state',
-                submission: {
-                    name: 'value',
-                },
-                user_id: 'current_user_id',
-                team_id: 'team_id1',
-                channel_id: 'current_channel_id',
-                cancelled: false,
-            };
-
-            await testStore.dispatch(Actions.submitInteractiveDialog(submission));
-
-            expect(IntegrationActions.submitInteractiveDialog).toHaveBeenCalledWith(submission);
-        });
-
-        test('submitInteractiveDialog populates user_id and team_id from Redux state', async () => {
-            const testStore = mockStore(initialState);
-
-            // Components pass empty strings, action should populate from Redux state
-            const submission = {
-                callback_id: 'callback_id',
-                state: 'state',
-                submission: {
-                    name: 'value',
-                },
-                user_id: '', // Empty - should be populated by action
-                team_id: '', // Empty - should be populated by action
-                channel_id: 'current_channel_id',
-                cancelled: false,
-            };
-
-            const expectedSubmission = {
-                ...submission,
-                user_id: 'current_user_id', // Should be populated from getCurrentUserId
-                team_id: 'team_id1', // Should be populated from getCurrentTeamId
-            };
-
-            await testStore.dispatch(Actions.submitInteractiveDialog(submission));
-
-            expect(IntegrationActions.submitInteractiveDialog).toHaveBeenCalledWith(expectedSubmission);
-        });
-    });
-
-    describe('lookupInteractiveDialog', () => {
-        const {getDialogArguments} = require('mattermost-redux/selectors/entities/integrations');
-
-        test('lookupInteractiveDialog with current channel', async () => {
-            const testState = {
-                ...initialState,
-                entities: {
-                    ...initialState.entities,
-                    integrations: {
-                        ...initialState.entities.integrations,
-                        dialogArguments: {
-                            channel_id: 'dialog_channel_id',
-                        },
-                    },
-                },
-            };
-            const testStore = mockStore(testState);
-            getDialogArguments.mockReturnValue({channel_id: 'dialog_channel_id'});
-
-            const submission = {
-                callback_id: 'callback_id',
-                state: 'state',
-                submission: {
-                    query: 'search term',
-                    selected_field: 'dynamic_field',
-                },
-                user_id: 'current_user_id',
-                team_id: 'team_id1',
-                channel_id: '',
-                cancelled: false,
-                url: 'https://example.com/lookup',
-            };
-
-            const expectedSubmission = {
-                ...submission,
-                channel_id: 'dialog_channel_id',
-            };
-
-            await testStore.dispatch(Actions.lookupInteractiveDialog(submission));
-
-            expect(IntegrationActions.lookupInteractiveDialog).toHaveBeenCalledWith(expectedSubmission);
-        });
-
-        test('lookupInteractiveDialog without dialog arguments', async () => {
-            const testStore = mockStore(initialState);
-            getDialogArguments.mockReturnValue(null);
-
-            const submission = {
-                callback_id: 'callback_id',
-                state: 'state',
-                submission: {
-                    query: 'search term',
-                },
-                user_id: 'current_user_id',
-                team_id: 'team_id1',
-                channel_id: 'current_channel_id',
-                cancelled: false,
-                url: 'https://example.com/lookup',
-            };
-
-            await testStore.dispatch(Actions.lookupInteractiveDialog(submission));
-
-            expect(IntegrationActions.lookupInteractiveDialog).toHaveBeenCalledWith(submission);
-        });
-
-        test('lookupInteractiveDialog with current channel', async () => {
-            const testStore = mockStore(initialState);
-            const {getDialogArguments} = require('mattermost-redux/selectors/entities/integrations');
-            getDialogArguments.mockReturnValue(null);
-
-            const submission = {
-                callback_id: 'callback_id',
-                state: 'state',
-                submission: {query: 'test'},
-                user_id: 'current_user_id',
-                team_id: 'team_id1',
-                channel_id: 'current_channel_id',
-                cancelled: false,
-                url: 'https://example.com/lookup',
-            };
-
-            await testStore.dispatch(Actions.lookupInteractiveDialog(submission));
-            expect(IntegrationActions.lookupInteractiveDialog).toHaveBeenCalledWith(submission);
-        });
-    });
-
     describe('loadIncomingHooksAndProfilesForTeam', () => {
         test('should load hooks and profiles', async () => {
             const testStore = mockStore(initialState);
@@ -463,22 +278,15 @@ describe('actions/integration_actions', () => {
     });
 
     describe('executeDialogAction', () => {
-        const {getDialogArguments} = require('mattermost-redux/selectors/entities/integrations');
-
         const url = 'https://example.com/action';
         const context = {key: 'value'};
 
-        beforeEach(() => {
-            getDialogArguments.mockReturnValue(null);
-        });
-
-        test('uses dialog channel_id when getDialogArguments returns a dialog with channel_id', async () => {
-            getDialogArguments.mockReturnValue({channel_id: 'dialog_channel_id'});
+        test('uses the dialog channel when one is supplied', async () => {
             (Client4.executeDialogAction as jest.Mock).mockResolvedValue({});
 
             // currentChannelId in state is 'current_channel_id' — proves dialog wins
             const testStore = mockStore(initialState);
-            await testStore.dispatch(Actions.executeDialogAction(url, context));
+            await testStore.dispatch(Actions.executeDialogAction(url, context, 'dialog_channel_id'));
 
             expect(Client4.executeDialogAction).toHaveBeenCalledWith(
                 url,
@@ -488,8 +296,7 @@ describe('actions/integration_actions', () => {
             );
         });
 
-        test('falls back to getCurrentChannelId when getDialogArguments returns null', async () => {
-            getDialogArguments.mockReturnValue(null);
+        test('falls back to getCurrentChannelId when no dialog channel is supplied', async () => {
             (Client4.executeDialogAction as jest.Mock).mockResolvedValue({});
 
             const testStore = mockStore(initialState);
@@ -503,12 +310,11 @@ describe('actions/integration_actions', () => {
             );
         });
 
-        test('falls back to getCurrentChannelId when dialog has no channel_id', async () => {
-            getDialogArguments.mockReturnValue({callback_id: 'cb1'});
+        test('falls back to getCurrentChannelId when the dialog channel is empty', async () => {
             (Client4.executeDialogAction as jest.Mock).mockResolvedValue({});
 
             const testStore = mockStore(initialState);
-            await testStore.dispatch(Actions.executeDialogAction(url, context));
+            await testStore.dispatch(Actions.executeDialogAction(url, context, ''));
 
             expect(Client4.executeDialogAction).toHaveBeenCalledWith(
                 url,

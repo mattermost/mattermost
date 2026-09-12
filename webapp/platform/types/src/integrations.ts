@@ -70,10 +70,6 @@ export type CommandArgs = {
     root_id?: string;
 };
 
-export type DialogArgs = {
-    channel_id: string;
-};
-
 export type CommandResponse = {
     response_type: string;
     text: string;
@@ -141,7 +137,6 @@ export type IntegrationsState = {
     appsBotIDs: string[];
     systemCommands: IDMappedObjects<Command>;
     commands: IDMappedObjects<Command>;
-    dialogArguments?: DialogArgs;
     dialogTriggerId: string;
     dialogs: Record<string, OpenDialogRequest>;
 };
@@ -150,6 +145,11 @@ export type OpenDialogRequest = {
     trigger_id: string;
     url: string;
     dialog: Dialog;
+
+    // The channel this dialog belongs to. Always populated by the server from the
+    // signed trigger_id — the integration cannot override it. Absent when the dialog
+    // came from a server that predates this field.
+    channel_id?: string;
 };
 
 export type Dialog = {

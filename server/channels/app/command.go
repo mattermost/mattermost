@@ -233,7 +233,7 @@ func (a *App) ExecuteCommand(rctx request.CTX, args *model.CommandArgs) (*model.
 
 	trigger = strings.TrimPrefix(trigger, "/")
 
-	clientTriggerId, triggerId, appErr := model.GenerateTriggerId(args.UserId, a.AsymmetricSigningKey())
+	clientTriggerId, triggerId, appErr := model.GenerateTriggerId(args.UserId, args.ChannelId, a.AsymmetricSigningKey())
 	if appErr != nil {
 		rctx.Logger().Warn("error occurred in generating trigger Id for a user ", mlog.Err(appErr))
 	}
