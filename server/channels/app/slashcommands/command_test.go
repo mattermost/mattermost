@@ -312,6 +312,72 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	assert.Equal(t, "<!here>", resp.Attachments[0].Text)
 }
 
+// response.Props can carry override_* directly (in addition to response.Username /
+// response.IconURL). CreateCommandPost must apply the same EnablePost*Override
+// gates as the top-level fields so props cannot bypass admin intent.
+func TestHandleCommandResponsePostPropsOverrides(t *testing.T) {
+	th := setup(t).initBasic(t)
+
+	command := &model.Command{}
+	args := &model.CommandArgs{
+		ChannelId: th.BasicChannel.Id,
+		TeamId:    th.BasicTeam.Id,
+		UserId:    th.BasicUser.Id,
+	}
+
+	// Non-builtin so from_webhook is set and CreatePost reinjects under
+	// FromIncomingWebhook authority.
+	builtIn := false
+
+	t.Run("props overrides stripped when EnablePost*Override off", func(t *testing.T) {
+		*th.App.Config().ServiceSettings.EnablePostUsernameOverride = false
+		*th.App.Config().ServiceSettings.EnablePostIconOverride = false
+
+		resp := &model.CommandResponse{
+			Type:         model.PostTypeDefault,
+			ResponseType: model.CommandResponseTypeInChannel,
+			Text:         "props override attempt",
+			Props: model.StringInterface{
+				model.PostPropsOverrideUsername:  "PropsUser",
+				model.PostPropsOverrideIconURL:   "http://example.com/icon.png",
+				model.PostPropsOverrideIconEmoji: ":robot:",
+				"custom_key":                     "kept",
+			},
+		}
+
+		post, err := th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
+		require.Nil(t, err)
+		assert.Equal(t, "true", post.GetProp(model.PostPropsFromWebhook))
+		assert.Nil(t, post.GetProp(model.PostPropsOverrideUsername))
+		assert.Nil(t, post.GetProp(model.PostPropsOverrideIconURL))
+		assert.Nil(t, post.GetProp(model.PostPropsOverrideIconEmoji))
+		assert.Equal(t, "kept", post.GetProp("custom_key"))
+	})
+
+	t.Run("props overrides reinjected when EnablePost*Override on", func(t *testing.T) {
+		*th.App.Config().ServiceSettings.EnablePostUsernameOverride = true
+		*th.App.Config().ServiceSettings.EnablePostIconOverride = true
+
+		resp := &model.CommandResponse{
+			Type:         model.PostTypeDefault,
+			ResponseType: model.CommandResponseTypeInChannel,
+			Text:         "props override allowed",
+			Props: model.StringInterface{
+				model.PostPropsOverrideUsername:  "PropsUser",
+				model.PostPropsOverrideIconURL:   "http://example.com/icon.png",
+				model.PostPropsOverrideIconEmoji: ":robot:",
+			},
+		}
+
+		post, err := th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
+		require.Nil(t, err)
+		assert.Equal(t, "true", post.GetProp(model.PostPropsFromWebhook))
+		assert.Equal(t, "PropsUser", post.GetProp(model.PostPropsOverrideUsername))
+		assert.Equal(t, "http://example.com/icon.png", post.GetProp(model.PostPropsOverrideIconURL))
+		assert.Equal(t, ":robot:", post.GetProp(model.PostPropsOverrideIconEmoji))
+	})
+}
+
 func TestHandleCommandResponse(t *testing.T) {
 	th := setup(t).initBasic(t)
 
