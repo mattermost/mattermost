@@ -18,6 +18,8 @@ import {
     convertDialogToAppForm,
     convertServerDialogResponseToAppForm,
     extractPrimitiveValues,
+    flattenAppFields,
+    flattenDialogElements,
     type ConversionOptions,
     type ValidationError,
 } from 'utils/dialog_conversion';
@@ -145,7 +147,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
 
     private convertToAppForm = (): {form?: AppForm; error?: string} => {
         const {elements, title, introductionText, iconUrl, submitLabel, sourceUrl, state} = this.props;
-        this.currentDialogElements = elements;
+        this.currentDialogElements = flattenDialogElements(elements || []);
         const {form, errors} = convertDialogToAppForm(
             elements,
             title,
@@ -223,12 +225,12 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
     private convertServerResponseToForm = (serverForm: any) => {
         const {form, errors} = convertServerDialogResponseToAppForm(serverForm, this.conversionContext);
 
-        // Update current elements for reference
-        this.currentDialogElements = form.fields?.map((field) => ({
+        // Update current elements for reference, flattening collapsible children
+        this.currentDialogElements = flattenAppFields(form.fields || []).map((field) => ({
             name: field.name,
             type: field.type === 'static_select' ? 'select' : field.type,
             display_name: field.label,
-        } as any)) || [];
+        } as any));
 
         // Handle validation errors if any
         if (errors.length > 0) {
@@ -406,7 +408,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
 
         // If the field has a lookup path defined, use that instead
         if (!lookupPath && call.selected_field) {
-            const field = this.props.elements?.find((element) => element.name === call.selected_field);
+            const field = flattenDialogElements(this.props.elements || []).find((element) => element.name === call.selected_field);
             if (field?.data_source === 'dynamic' && field?.data_source_url) {
                 lookupPath = field.data_source_url;
             }
