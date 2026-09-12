@@ -30,6 +30,7 @@ const {
     shellUnzip,
 } = require('./shell');
 const urlHealthCheck = require('./url_health_check');
+const writeTSIOAttempts = require('./tsio_attempts');
 
 const log = (message) => {
     console.log(message);
@@ -78,6 +79,7 @@ module.exports = (on, config) => {
 
     // https://docs.cypress.io/guides/guides/screenshots-and-videos#Delete-videos-for-specs-without-failing-or-retried-tests
     on('after:spec', (spec, results) => {
+        writeTSIOAttempts(spec, results);
         if (results && results.video) {
             // Do we have failures for any retry attempts?
             const failures = results.tests.some((test) =>

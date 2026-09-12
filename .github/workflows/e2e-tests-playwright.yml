@@ -3,6 +3,15 @@ name: E2E Tests - Playwright
 on:
   workflow_call:
     inputs:
+      server_image_digest:
+        description: 'Optional immutable server image recorded by the clearance policy'
+        type: string
+        required: false
+      verification_only:
+        description: 'Upload full-suite evidence without changing the original PR statuses'
+        type: boolean
+        required: false
+        default: false
       commit_sha:
         type: string
         required: true
@@ -79,10 +88,21 @@ jobs:
           INPUT_SERVER_IMAGE_ALIASES: ${{ inputs.server_image_aliases }}
           INPUT_SERVER_IMAGE_REPO: ${{ inputs.server_image_repo }}
           INPUT_SERVER_IMAGE_TAG: ${{ inputs.server_image_tag }}
+          INPUT_SERVER_IMAGE_DIGEST: ${{ inputs.server_image_digest }}
+          VERIFICATION_ONLY: ${{ inputs.verification_only }}
+          RUN_ROLLING_UPGRADES: ${{ inputs.run_rolling_upgrades }}
           PR_NUMBER: ${{ inputs.pr_number }}
           RUN_ATTEMPT: ${{ github.run_attempt }}
           RUN_ID: ${{ github.run_id }}
         run: |
+          if [ "$VERIFICATION_ONLY" = "true" ] && [ "$RUN_ROLLING_UPGRADES" = "true" ]; then
+            echo "::error::Rolling-upgrade coverage requires normal CI; report-only verification is not supported."
+            exit 1
+          fi
+          if [ -n "$INPUT_SERVER_IMAGE_DIGEST" ] && ! [[ "$INPUT_SERVER_IMAGE_DIGEST" =~ ^[a-z0-9][a-z0-9./:_-]*@sha256:[a-f0-9]{64}$ ]]; then
+            echo "::error::Invalid immutable server image reference"
+            exit 1
+          fi
           # Use provided server_image_tag or derive from commit SHA
           if [ -n "$INPUT_SERVER_IMAGE_TAG" ]; then
             SERVER_IMAGE_TAG="$INPUT_SERVER_IMAGE_TAG"
@@ -150,7 +170,7 @@ jobs:
   skip:
     needs:
       - generate-build-variables
-    if: inputs.should_run == 'false'
+    if: inputs.should_run == 'false' && !inputs.verification_only
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -182,6 +202,8 @@ jobs:
       pull-requests: write
     uses: ./.github/workflows/e2e-tests-playwright-template.yml
     with:
+      verification_only: ${{ inputs.verification_only }}
+      server_image_digest: ${{ inputs.server_image_digest }}
       workers: 20
       enabled_docker_services: "postgres inbucket"
       commit_sha: ${{ inputs.commit_sha }}

@@ -27,6 +27,14 @@ on:
         type: boolean
         required: false
         default: false
+      triage_source_run_attempt:
+        description: 'Internal: frozen original run attempt for re-verification'
+        type: string
+        required: false
+      triage_source_run_id:
+        description: 'Internal: re-verify a failed run without replacing its statuses; empty runs normal E2E'
+        type: string
+        required: false
 
 permissions: {}
 
@@ -35,19 +43,34 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
+      actions: read
+      checks: read
+      statuses: read
     runs-on: ubuntu-24.04
     outputs:
       PR_NUMBER: "${{ steps.resolve.outputs.PR_NUMBER }}"
       COMMIT_SHA: "${{ steps.resolve.outputs.COMMIT_SHA }}"
-      SERVER_IMAGE_TAG: "${{ steps.e2e-check.outputs.image_tag }}"
+      BASE_SHA: "${{ steps.resolve.outputs.BASE_SHA }}"
+      BASE_REF: "${{ steps.resolve.outputs.BASE_REF }}"
+      SERVER_IMAGE_TAG: "${{ steps.image-ref.outputs.image_tag }}"
       HEAD_REF: "${{ steps.resolve.outputs.HEAD_REF }}"
+      require_fips: ${{ steps.plan.outputs.require_fips }}
+      cypress_enterprise_image: ${{ steps.plan.outputs.cypress_enterprise_image }}
+      cypress_fips_image: ${{ steps.plan.outputs.cypress_fips_image }}
+      playwright_enterprise_image: ${{ steps.plan.outputs.playwright_enterprise_image }}
+      playwright_fips_image: ${{ steps.plan.outputs.playwright_fips_image }}
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
+          ref: ${{ github.workflow_sha }}
           fetch-depth: 0
 
+      - name: ci/setup-scope-node
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: "22"
       - name: ci/resolve-pr-and-commit
         id: resolve
         env:
@@ -55,78 +78,53 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           INPUT_PR_NUMBER: ${{ inputs.pr_number }}
           INPUT_COMMIT_SHA: ${{ inputs.commit_sha }}
-        run: |
-          # Validate inputs
-          if [ -n "$INPUT_PR_NUMBER" ] && ! [[ "$INPUT_PR_NUMBER" =~ ^[0-9]+$ ]]; then
-            echo "::error::Invalid PR number format. Must be numeric."
-            exit 1
-          fi
-          if [ -n "$INPUT_COMMIT_SHA" ] && ! [[ "$INPUT_COMMIT_SHA" =~ ^[a-f0-9]{7,40}$ ]]; then
-            echo "::error::Invalid commit SHA format. Must be 7-40 hex characters."
-            exit 1
-          fi
-
-          # Manual trigger: PR number provided, resolve commit SHA from PR head
-          if [ -n "$INPUT_PR_NUMBER" ]; then
-            echo "Manual trigger: resolving commit SHA from PR #${INPUT_PR_NUMBER}"
-            PR_DATA=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${INPUT_PR_NUMBER}")
-            COMMIT_SHA=$(echo "$PR_DATA" | jq -r '.head.sha')
-
-            if [ -z "$COMMIT_SHA" ] || [ "$COMMIT_SHA" = "null" ]; then
-              echo "::error::Could not resolve commit SHA for PR #${INPUT_PR_NUMBER}"
-              exit 1
-            fi
-
-            echo "PR_NUMBER=${INPUT_PR_NUMBER}" >> $GITHUB_OUTPUT
-            echo "COMMIT_SHA=${COMMIT_SHA}" >> $GITHUB_OUTPUT
-            echo "HEAD_REF=$(echo "$PR_DATA" | jq -r '.head.ref')" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          # Argo Events trigger: commit SHA provided, resolve PR number
-          if [ -n "$INPUT_COMMIT_SHA" ]; then
-            echo "Automated trigger: resolving PR number from commit ${INPUT_COMMIT_SHA}"
-            PR_DATA=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${INPUT_COMMIT_SHA}/pulls" \
-              --jq '.[0] // empty' 2>/dev/null || echo "")
-            PR_NUMBER=$(echo "$PR_DATA" | jq -r '.number // empty' 2>/dev/null || echo "")
-            if [ -z "$PR_NUMBER" ]; then
-              echo "::error::No PR found for commit ${INPUT_COMMIT_SHA}. This workflow is for PRs only."
-              exit 1
-            fi
-
-            echo "Found PR #${PR_NUMBER} for commit ${INPUT_COMMIT_SHA}"
-
-            # Skip if PR is already merged to master or a release branch.
-            # The e2e-tests-on-merge workflow handles post-merge E2E tests.
-            PR_MERGED=$(echo "$PR_DATA" | jq -r '.merged_at // empty' 2>/dev/null || echo "")
-            PR_BASE_REF=$(echo "$PR_DATA" | jq -r '.base.ref // empty' 2>/dev/null || echo "")
-            if [ -n "$PR_MERGED" ]; then
-              if [ "$PR_BASE_REF" = "master" ] || [[ "$PR_BASE_REF" =~ ^release-[0-9]+\.[0-9]+$ ]]; then
-                echo "PR #${PR_NUMBER} is already merged to ${PR_BASE_REF}. Skipping - handled by e2e-tests-on-merge workflow."
-                echo "PR_NUMBER=" >> $GITHUB_OUTPUT
-                echo "COMMIT_SHA=" >> $GITHUB_OUTPUT
-                echo "HEAD_REF=" >> $GITHUB_OUTPUT
-                exit 0
-              fi
-            fi
-
-            echo "PR_NUMBER=${PR_NUMBER}" >> $GITHUB_OUTPUT
-            echo "COMMIT_SHA=${INPUT_COMMIT_SHA}" >> $GITHUB_OUTPUT
-            echo "HEAD_REF=$(echo "$PR_DATA" | jq -r '.head.ref // empty' 2>/dev/null || echo "")" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          # Neither provided
-          echo "::error::Either pr_number or commit_sha must be provided"
-          exit 1
+        run: node .github/scripts/e2e-resolve-pr.mjs
 
       - name: ci/check-e2e-test-only
         if: steps.resolve.outputs.PR_NUMBER != ''
         id: e2e-check
         uses: ./.github/actions/check-e2e-test-only
         with:
+          base_sha: ${{ steps.resolve.outputs.BASE_SHA }}
+          base_ref: ${{ steps.resolve.outputs.BASE_REF }}
+          head_sha: ${{ steps.resolve.outputs.COMMIT_SHA }}
           pr_number: ${{ steps.resolve.outputs.PR_NUMBER }}
 
+      - name: ci/select-demo-image
+        if: steps.resolve.outputs.PR_NUMBER != ''
+        id: image-ref
+        env:
+          PR_NUMBER: ${{ steps.resolve.outputs.PR_NUMBER }}
+          COMMIT_SHA: ${{ steps.resolve.outputs.COMMIT_SHA }}
+          DEFAULT_IMAGE_TAG: ${{ steps.e2e-check.outputs.image_tag }}
+        run: |
+          # PR 38356 demonstrates immutable failure evidence. Its image must
+          # come from this resolved head's completed Enterprise CI build.
+          if [ "$PR_NUMBER" = "38356" ]; then
+            echo "image_tag=${COMMIT_SHA::7}" >> "$GITHUB_OUTPUT"
+          else
+            echo "image_tag=${DEFAULT_IMAGE_TAG}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check the original failure before running verification
+        id: plan
+        if: inputs.triage_source_run_id != ''
+        run: node .github/scripts/triage-clearance.mjs
+        env:
+          TRIAGE_MODE: plan
+          PR_NUMBER: ${{ steps.resolve.outputs.PR_NUMBER }}
+          TRIAGE_SOURCE_RUN_ID: ${{ inputs.triage_source_run_id }}
+          TRIAGE_SOURCE_RUN_ATTEMPT: ${{ inputs.triage_source_run_attempt }}
+          GH_TOKEN: ${{ github.token }}
+          TRIAGE_ARTIFACTS: ${{ runner.temp }}/clearance-plan
+      - name: Preserve the exact original statuses and requested verification
+        if: inputs.triage_source_run_id != ''
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        with:
+          name: clearance-plan-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/clearance-plan/plan.json
+          if-no-files-found: error
+          retention-days: 30
 
   check-changes:
     permissions:
@@ -144,97 +142,66 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-          ref: ${{ needs.resolve-pr.outputs.COMMIT_SHA }}
+          # Execute the policy from the workflow revision, never the tested PR.
+          ref: ${{ github.workflow_sha }}
           fetch-depth: 0
+      - name: ci/setup-scope-node
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: "22"
       - name: ci/check-relevant-changes
         id: check
         env:
-          GH_TOKEN: ${{ github.token }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          PR_NUMBER: ${{ needs.resolve-pr.outputs.PR_NUMBER }}
+          BASE_SHA: ${{ needs.resolve-pr.outputs.BASE_SHA }}
           COMMIT_SHA: ${{ needs.resolve-pr.outputs.COMMIT_SHA }}
           INPUT_PR_NUMBER: ${{ inputs.pr_number }}
           HEAD_REF: ${{ needs.resolve-pr.outputs.HEAD_REF }}
           INPUT_RUN_ROLLING_UPGRADES: ${{ inputs.run_rolling_upgrades }}
+          TRIAGE_SOURCE_RUN_ID: ${{ inputs.triage_source_run_id }}
+          TRIAGE_REQUIRE_FIPS: ${{ needs.resolve-pr.outputs.require_fips }}
         run: |
-          # Get the base branch of the PR and changed files
-          BASE_SHA=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '.base.sha')
-          CHANGED_FILES=$(git diff --name-only "${BASE_SHA}...${COMMIT_SHA}")
-
-          echo "Changed files:"
-          echo "$CHANGED_FILES"
-
-          # Determine should_run for regular E2E tests
-          if [ -n "$INPUT_PR_NUMBER" ]; then
-            # Manual trigger: always run E2E tests
-            echo "Manual trigger detected - skipping file change check for regular E2E"
-            SHOULD_RUN="true"
-          else
-            # Automated trigger: check for relevant file changes
-            echo "Automated trigger detected - checking for relevant file changes"
-            SHOULD_RUN="false"
-
-            if echo "$CHANGED_FILES" | grep -qE '^server/.*\.go$'; then
-              echo "Found server Go file changes"
-              SHOULD_RUN="true"
-            fi
-
-            if echo "$CHANGED_FILES" | grep -qE '^webapp/.*\.(ts|tsx|js|jsx)$'; then
-              echo "Found webapp TypeScript/JavaScript file changes"
-              SHOULD_RUN="true"
-            fi
-
-            if echo "$CHANGED_FILES" | grep -qE '^e2e-tests/.*\.(ts|tsx|js|jsx)$'; then
-              echo "Found e2e-tests TypeScript/JavaScript file changes"
-              SHOULD_RUN="true"
-            fi
-
-            if echo "$CHANGED_FILES" | grep -qE '^\.github/workflows/e2e-.*\.yml$'; then
-              echo "Found E2E CI workflow file changes"
-              SHOULD_RUN="true"
-            fi
+          set -euo pipefail
+          [[ "$BASE_SHA" =~ ^[a-f0-9]{40}$ && "$COMMIT_SHA" =~ ^[a-f0-9]{40}$ ]]
+          git fetch --no-tags origin "$BASE_SHA" "$COMMIT_SHA"
+          ARGS=(--base "$BASE_SHA" --head "$COMMIT_SHA" --head-ref "$HEAD_REF")
+          if [ -n "$INPUT_PR_NUMBER" ]; then ARGS+=(--manual); fi
+          SCOPE_JSON="$(node .github/scripts/e2e-change-scope.mjs "${ARGS[@]}")"
+          echo "$SCOPE_JSON"
+          SCOPE_REQUIRES_FIPS="$(jq -er '.should_run_fips | tostring' <<< "$SCOPE_JSON")"
+          [[ "$SCOPE_REQUIRES_FIPS" = "true" || "$SCOPE_REQUIRES_FIPS" = "false" ]]
+          if [ -n "${TRIAGE_SOURCE_RUN_ID:-}" ] && [ "${TRIAGE_REQUIRE_FIPS:-}" != "true" ] && [ "$SCOPE_REQUIRES_FIPS" = "true" ]; then
+            echo "::error::The current change requires FIPS coverage without an original pinned FIPS plan. Run normal E2E first."
+            exit 1
           fi
-
-          echo "should_run=${SHOULD_RUN}" >> $GITHUB_OUTPUT
-          echo "Should run E2E tests: ${SHOULD_RUN}"
-
-          # Check for FIPS-related conditions
-          SHOULD_RUN_FIPS="false"
-
-          if echo "$HEAD_REF" | grep -iqE 'fips'; then
-            echo "Branch name '$HEAD_REF' contains 'fips'"
-            SHOULD_RUN_FIPS="true"
+          if [ -n "${TRIAGE_SOURCE_RUN_ID:-}" ] && [ "${TRIAGE_REQUIRE_FIPS:-}" = "true" ]; then
+            echo "should_run_fips=true" >> "$GITHUB_OUTPUT"
           fi
-
-          if echo "$CHANGED_FILES" | grep -qE '(^|/)go\.mod$'; then
-            echo "Found go.mod file changes"
-            SHOULD_RUN_FIPS="true"
-          fi
-
-          if echo "$CHANGED_FILES" | grep -qE '^server/build/Dockerfile\.buildenv-fips$'; then
-            echo "Found FIPS Dockerfile changes"
-            SHOULD_RUN_FIPS="true"
-          fi
-
-          echo "should_run_fips=${SHOULD_RUN_FIPS}" >> $GITHUB_OUTPUT
-          echo "Should run FIPS E2E tests: ${SHOULD_RUN_FIPS}"
 
           # Rolling upgrades: opt-in on manual dispatch, or auto when the PR touches the harness.
+          CHANGED_FILES=$(git diff --name-only "$BASE_SHA...$COMMIT_SHA")
           SHOULD_RUN_ROLLING_UPGRADES="false"
           if [ "$INPUT_RUN_ROLLING_UPGRADES" = "true" ]; then
             echo "Manual rolling-upgrades opt-in detected"
             SHOULD_RUN_ROLLING_UPGRADES="true"
-          elif echo "$CHANGED_FILES" | grep -qE '^e2e-tests/playwright/(upgrade-specs/|script/resolve_upgrade_matrix\.mjs)'; then
+          elif grep -qE '^e2e-tests/playwright/(upgrade-specs/|script/resolve_upgrade_matrix\.mjs)' <<< "$CHANGED_FILES"; then
             echo "Found Playwright upgrade-path harness changes"
             SHOULD_RUN_ROLLING_UPGRADES="true"
-          elif echo "$CHANGED_FILES" | grep -qE '^\.github/workflows/e2e-tests-playwright-rolling-upgrades'; then
+          elif grep -qE '^\.github/workflows/e2e-tests-playwright-rolling-upgrades' <<< "$CHANGED_FILES"; then
             echo "Found Playwright rolling-upgrade workflow changes"
             SHOULD_RUN_ROLLING_UPGRADES="true"
           # Server-side surfaces an upgrade has to survive: schema and config migrations, the
           # app-layer data migrations, and the version list the from-version matrix is derived from.
-          elif echo "$CHANGED_FILES" | grep -qE '^server/(channels/db/migrations/|config/migrations/|channels/app/(migrations|permissions_migrations)\.go$|public/model/version\.go$)'; then
+          elif grep -qE '^server/(channels/db/migrations/|config/migrations/|channels/app/(migrations|permissions_migrations)\.go$|public/model/version\.go$)' <<< "$CHANGED_FILES"; then
             echo "Found server migration or version changes"
             SHOULD_RUN_ROLLING_UPGRADES="true"
+          fi
+
+          # The first clearance policy supports the four ordinary full suites.
+          # It must stop when rolling coverage is needed, never drop that coverage
+          # or let an unguarded rolling job overwrite the original statuses.
+          if [ -n "${TRIAGE_SOURCE_RUN_ID:-}" ] && [ "$SHOULD_RUN_ROLLING_UPGRADES" = "true" ]; then
+            echo "::error::Rolling-upgrade changes require normal E2E or human review; automatic clearance is not supported."
+            exit 1
           fi
 
           echo "should_run_rolling_upgrades=${SHOULD_RUN_ROLLING_UPGRADES}" >> $GITHUB_OUTPUT
@@ -252,6 +219,8 @@ jobs:
       pull-requests: write
     uses: ./.github/workflows/e2e-tests-cypress.yml
     with:
+      server_image_digest: ${{ needs.resolve-pr.outputs.cypress_enterprise_image }}
+      verification_only: ${{ inputs.triage_source_run_id != '' }}
       commit_sha: "${{ needs.resolve-pr.outputs.COMMIT_SHA }}"
       server: "onprem"
       server_image_tag: "${{ needs.resolve-pr.outputs.SERVER_IMAGE_TAG }}"
@@ -280,6 +249,8 @@ jobs:
       pull-requests: write
     uses: ./.github/workflows/e2e-tests-playwright.yml
     with:
+      server_image_digest: ${{ needs.resolve-pr.outputs.playwright_enterprise_image }}
+      verification_only: ${{ inputs.triage_source_run_id != '' }}
       commit_sha: "${{ needs.resolve-pr.outputs.COMMIT_SHA }}"
       server: "onprem"
       server_image_tag: "${{ needs.resolve-pr.outputs.SERVER_IMAGE_TAG }}"
@@ -305,6 +276,8 @@ jobs:
       pull-requests: write
     uses: ./.github/workflows/e2e-tests-cypress.yml
     with:
+      server_image_digest: ${{ needs.resolve-pr.outputs.cypress_fips_image }}
+      verification_only: ${{ inputs.triage_source_run_id != '' }}
       commit_sha: "${{ needs.resolve-pr.outputs.COMMIT_SHA }}"
       server: "onprem"
       server_edition: fips
@@ -333,6 +306,8 @@ jobs:
       pull-requests: write
     uses: ./.github/workflows/e2e-tests-playwright.yml
     with:
+      server_image_digest: ${{ needs.resolve-pr.outputs.playwright_fips_image }}
+      verification_only: ${{ inputs.triage_source_run_id != '' }}
       commit_sha: "${{ needs.resolve-pr.outputs.COMMIT_SHA }}"
       server: "onprem"
       server_edition: fips

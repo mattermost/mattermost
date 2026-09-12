@@ -8,6 +8,10 @@ on:
       - "webapp/platform/eslint-plugin/**"
       - "webapp/platform/types/**"
       - ".github/workflows/e2e-*.yml"
+      - ".github/scripts/e2e-*.mjs"
+      - ".github/scripts/triage-*.mjs"
+      - ".github/scripts/manual-e2e-verification*.mjs"
+      - ".github/actions/check-e2e-test-only/**"
 
 permissions:
   actions: write
@@ -15,6 +19,26 @@ permissions:
   pull-requests: read
 
 jobs:
+  change-scope-policy:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
+        with:
+          node-version: "22"
+      - name: Install syntax checker for repair guard tests
+        run: npm install --prefix "$RUNNER_TEMP/triage-policy" --ignore-scripts --no-audit --no-fund --save-exact typescript@6.0.3
+      - name: Test E2E scope, triage and status guards
+        # Exercise candidate changes in this read-only job, without provider or
+        # status-writer credentials. The trusted-base policy job is separate.
+        run: node --test .github/scripts/e2e-change-scope.test.mjs .github/scripts/e2e-resolve-pr.test.mjs .github/scripts/triage-*.test.mjs .github/scripts/manual-e2e-verification.test.mjs
+        env:
+          TRIAGE_TYPESCRIPT_PATH: ${{ runner.temp }}/triage-policy/node_modules/typescript/lib/typescript.js
+
   check:
     runs-on: ubuntu-24.04
     steps:
@@ -85,3 +109,130 @@ jobs:
         run: |
           echo "Triggering E2E tests for PR #${PR_NUMBER} with mattermostdevelopment/mattermost-enterprise-edition:${IMAGE_TAG}"
           gh workflow run e2e-tests-ci.yml --field pr_number="${PR_NUMBER}"
+
+  # Every cross-repo `uses:` pin in the E2E workflows must name a commit that is
+  # on that repository's default branch.
+  #
+  # A pin to a commit that only exists on an open pull request's branch works
+  # right up until that branch is force-pushed or deleted — at which point the
+  # SHA becomes unresolvable and GitHub fails the `uses:` step. That does not
+  # fail one job: it fails every E2E run in this repository, on every branch,
+  # with an error that names a commit in a repository most people here cannot
+  # see. There is no way to detect it from inside a run, because the run cannot
+  # start.
+  #
+  # The pins on this branch currently point at a commit on
+  # mattermost-test-system-io#114, so a finding is EXPECTED until that pull
+  # request merges and the pins are moved. Because of that, this job warns
+  # rather than fails: set PIN_CHECK_ENFORCE below to "true" once the pins point
+  # at a commit on that repository's default branch.
+  #
+  # A job that is known-red for weeks teaches people to ignore it, and an
+  # ignored check is worse than no check — by the time a pin genuinely breaks,
+  # nobody is reading the one signal that would have said so.
+  #
+  # Warning, not silence. Findings are emitted as GitHub annotations and written
+  # to the job summary either way, so they stay visible on every run rather than
+  # depending on somebody remembering.
+  pinned-action-commits:
+    name: check/pinned-action-commits
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: ci/check-pins-are-on-default-branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          # Flip to "true" once mattermost-test-system-io#114 has merged and the
+          # dispatch-run pins point at a commit on that repo's default branch.
+          PIN_CHECK_ENFORCE: "false"
+        run: |
+          set -euo pipefail
+
+          # Scoped to mattermost-owned repositories. Third-party actions are
+          # pinned to the commit behind a release tag, which is not always on
+          # the upstream default branch and is not ours to police; the risk this
+          # guards against is a pin we control pointing at our own open PR.
+          # A newline-separated list rather than `mapfile`, which is bash 4+.
+          # The runner has bash 5, but keeping this portable means the check can
+          # be run by hand on any machine before it is changed.
+          pins="$(grep -rhoE 'uses: *mattermost/[A-Za-z0-9_.-]+/[^@ ]+@[0-9a-f]{40}' .github/workflows/ \
+                    | sed -E 's/^uses: *//' | sort -u || true)"
+
+          if [ -z "$pins" ]; then
+            echo "No mattermost-owned pinned actions found."
+            exit 0
+          fi
+
+          echo "### Pinned action commits" >> "$GITHUB_STEP_SUMMARY"
+
+          failed=0
+          # A here-string, not a pipe: the loop must run in this shell so that
+          # `failed` survives it.
+          while IFS= read -r pin; do
+            [ -n "$pin" ] || continue
+            ref="${pin##*@}"
+            path="${pin%@*}"
+            owner="$(echo "$path" | cut -d/ -f1)"
+            repo="$(echo "$path" | cut -d/ -f2)"
+
+            if ! default_branch="$(gh api "repos/${owner}/${repo}" --jq .default_branch 2>/dev/null)"; then
+              echo "::warning::could not read the default branch of ${owner}/${repo} — skipping ${pin}"
+              continue
+            fi
+
+            # compare base...head reports "identical" when the two are the same
+            # commit and "behind" when head is an ancestor of base. Anything
+            # else ("ahead", "diverged") means the commit is not on the default
+            # branch, and a 404 means it is not reachable at all.
+            # Assign-then-fallback, NOT `cmd || echo`: gh writes its error body
+            # to stdout, so a piped fallback concatenates the 404 JSON onto the
+            # sentinel and every unreachable ref lands in the wrong branch of
+            # the case below, reported as "not on the default branch" with a
+            # wall of JSON in the message.
+            if ! status="$(gh api "repos/${owner}/${repo}/compare/${default_branch}...${ref}" --jq .status 2>/dev/null)"; then
+              status="unreachable"
+            fi
+            [ -n "$status" ] || status="unreachable"
+
+            case "$status" in
+              identical|behind)
+                echo "ok        ${owner}/${repo}@${ref:0:8} is on ${default_branch} (${status})"
+                ;;
+              unreachable)
+                echo "::warning::${owner}/${repo}@${ref:0:8} is NOT reachable — the branch it was on may already have been force-pushed or deleted. Referenced as ${pin}"
+                echo "- **unreachable** \`${pin}\` — the commit does not resolve, so every E2E run in this repository fails at the \`uses:\` step until the pin moves." >> "$GITHUB_STEP_SUMMARY"
+                failed=1
+                ;;
+              *)
+                echo "::warning::${owner}/${repo}@${ref:0:8} is NOT on ${default_branch} (${status}). Referenced as ${pin}"
+                echo "- **not on \`${default_branch}\`** (${status}) \`${pin}\` — a commit that exists only on a pull-request branch stops resolving the moment that branch is force-pushed, breaking every E2E run repo-wide." >> "$GITHUB_STEP_SUMMARY"
+                failed=1
+                ;;
+            esac
+          done <<< "$pins"
+
+          if [ "$failed" -eq 0 ]; then
+            echo "All mattermost-owned pins are on their repository's default branch."
+            echo "All pins are on their repository's default branch." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          if [ "${PIN_CHECK_ENFORCE}" != "true" ]; then
+            echo
+            echo "The findings above are WARNINGS: PIN_CHECK_ENFORCE is \"${PIN_CHECK_ENFORCE}\"."
+            echo "Expected while mattermost-test-system-io#114 is open."
+            {
+              echo ""
+              echo "> Reported as warnings — \`PIN_CHECK_ENFORCE\` is \`false\`, which is expected"
+              echo "> until mattermost-test-system-io#114 merges and the pins are moved. Flip it in"
+              echo "> \`.github/workflows/e2e-tests-check.yml\` to make this blocking."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          exit 1

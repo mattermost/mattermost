@@ -8,6 +8,15 @@ name: E2E Tests - Playwright Template (test system io dispatch)
 on:
   workflow_call:
     inputs:
+      server_image_digest:
+        description: 'Optional immutable server image recorded by the clearance policy'
+        type: string
+        required: false
+      verification_only:
+        description: 'Preserve original PR statuses while collecting verification evidence'
+        type: boolean
+        required: false
+        default: false
       workers:
         description: "Number of parallel test system io dispatch workers"
         type: number
@@ -98,7 +107,7 @@ permissions:
   id-token: write
 
 env:
-  SERVER_IMAGE: "${{ inputs.server_image_repo }}/${{ inputs.server_edition == 'fips' && 'mattermost-enterprise-fips-edition' || inputs.server_edition == 'team' && 'mattermost-team-edition' || 'mattermost-enterprise-edition' }}:${{ inputs.server_image_tag }}"
+  SERVER_IMAGE: ${{ inputs.server_image_digest || format('{0}/{1}:{2}', inputs.server_image_repo, inputs.server_edition == 'fips' && 'mattermost-enterprise-fips-edition' || inputs.server_edition == 'team' && 'mattermost-team-edition' || 'mattermost-enterprise-edition', inputs.server_image_tag) }}
 
 jobs:
   prepare-run:
@@ -232,11 +241,13 @@ jobs:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 1
       - name: ci/dispatch-begin
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-begin@1631d8fcea24f4545a0b3b7f77e41c2fe0be4418 # 2026-07-28
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-begin@d5b2bde060dca0e93091ebc6bd2870dd3f0a26d3 # 2026-09-08, mattermost-test-system-io#114
         with:
-          use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
+          # Keep the evidence/override demo isolated from production TSIO.
+          use-staging: ${{ inputs.pr_number == '38356' || vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
           framework: playwright
           repo-dir: ${{ github.workspace }}
+          post-pending-commit-status: ${{ !inputs.verification_only }}
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
           total-reports-expected: ${{ inputs.workers }}
           retest-on-fail: ${{ inputs.retest_on_fail }}
@@ -319,10 +330,93 @@ jobs:
       - name: ci/prepare-playwright
         working-directory: e2e-tests/playwright
         run: npx playwright test --project=setup
+      # Builds environment_metadata with jq rather than by interpolating into a
+      # JSON string literal.
+      #
+      # String concatenation put every field one empty value away from taking
+      # the whole document down. A workflow_call default does not apply to an
+      # input that is passed as an empty string (only to one that is omitted),
+      # and `"playwright_retries": ${{ inputs.playwright_retries }}` was
+      # unquoted — so the first caller passing it empty produced
+      # `"playwright_retries": ,`, which is not JSON. Every other field would
+      # have degraded to "" on its own; this one took the document with it, and
+      # a consumer reproducing a failure would get no metadata at all rather
+      # than one blank field. Commit 6598863 fixed the same class of bug for
+      # server_edition.
+      #
+      # With --arg, a value's content cannot change the document's shape: jq
+      # quotes and escapes it. Booleans and numbers go through --argjson with
+      # an explicit fallback, so an empty input becomes null rather than a
+      # syntax error.
+      #
+      # Never put MM_LICENSE itself here — this lands in
+      # report_groups.environment_metadata, which /api/v1/tests/evidence serves
+      # back unauthenticated. license_secret_present is a boolean and says only
+      # whether the secret was configured on this runner; it is deliberately
+      # NOT named "licensed", because it does not report whether the server was
+      # actually licensed.
+      - name: ci/resolve-environment-metadata
+        id: environment-metadata
+        # npx resolves the workspace's own Playwright install from here.
+        working-directory: e2e-tests/playwright
+        env:
+          SERVER_EDITION: ${{ inputs.server_edition || 'enterprise' }}
+          SERVER: ${{ inputs.server }}
+          SERVER_IMAGE: ${{ env.SERVER_IMAGE }}
+          SERVER_IMAGE_TAG: ${{ inputs.server_image_tag }}
+          SERVER_IMAGE_REPO: ${{ inputs.server_image_repo }}
+          PLAYWRIGHT_PROJECT: ${{ inputs.playwright_project }}
+          PLAYWRIGHT_RETRIES: ${{ inputs.playwright_retries }}
+          RETEST_ON_FAIL: ${{ inputs.retest_on_fail }}
+          WORKER_INDEX: ${{ matrix.worker_index }}
+          ENABLED_DOCKER_SERVICES: ${{ inputs.enabled_docker_services }}
+          LICENSE_SECRET_PRESENT: ${{ secrets.MM_LICENSE != '' }}
+        run: |
+          set -euo pipefail
+
+          # The digest of the image that actually ran.
+          #
+          # server_image_tag is very often the mutable "master", and SERVER_IMAGE
+          # is computed by a ternary the consumer never sees (server_edition
+          # 'fips' resolves to mattermost-enterprise-fips-edition, 'team' to
+          # mattermost-team-edition). Without the resolved name and its digest, a
+          # reproduction can run against a different binary than the one that
+          # failed while believing it matched — which makes "verified N/N against
+          # a real server" unsound, because the N runs and the failure were not
+          # against the same server.
+          #
+          # Read after ci/prepare-playwright, so testcontainers has pulled the
+          # image. RepoDigests is empty for a locally built image; fall back to
+          # the local image ID, and to empty when the image is not present at
+          # all. This step must never fail the run: metadata is diagnostic, and
+          # losing a whole E2E run over a missing digest is a worse outcome than
+          # recording an empty one.
+          SERVER_IMAGE_DIGEST=""
+          if docker image inspect "$SERVER_IMAGE" >/dev/null 2>&1; then
+            SERVER_IMAGE_DIGEST="$(docker image inspect --format '{{index .RepoDigests 0}}' "$SERVER_IMAGE" 2>/dev/null || true)"
+            if [ -z "$SERVER_IMAGE_DIGEST" ]; then
+              SERVER_IMAGE_DIGEST="$(docker image inspect --format '{{.Id}}' "$SERVER_IMAGE" 2>/dev/null || true)"
+            fi
+          fi
+
+          # Versions decide whether a reproduction is comparable at all: a
+          # selector timeout under one browser build is not the same failure as
+          # the same timeout under another. `install --dry-run` reports the
+          # browser build this Playwright version pins without downloading
+          # anything. Both are best-effort for the same reason as the digest.
+          PLAYWRIGHT_VERSION="$(npx --no-install playwright --version 2>/dev/null || true)"
+          BROWSER_VERSION="$(npx --no-install playwright install --dry-run chromium 2>/dev/null             | sed -n 's/^browser: *//p' | head -1 || true)"
+
+          # --argjson for the non-strings, each with an explicit fallback so an
+          # empty input yields null instead of breaking the parse.
+          METADATA="$(jq -n -c             --arg server_edition "$SERVER_EDITION"             --arg server "$SERVER"             --arg server_image "$SERVER_IMAGE"             --arg server_image_digest "$SERVER_IMAGE_DIGEST"             --arg server_image_tag "$SERVER_IMAGE_TAG"             --arg server_image_repo "$SERVER_IMAGE_REPO"             --arg playwright_project "$PLAYWRIGHT_PROJECT"             --arg playwright_version "$PLAYWRIGHT_VERSION"             --arg browser_version "$BROWSER_VERSION"             --arg enabled_docker_services "$ENABLED_DOCKER_SERVICES"             --arg testcontainers_services "${PW_TESTCONTAINERS_SERVICES:-}"             --argjson playwright_retries "${PLAYWRIGHT_RETRIES:-null}"             --argjson retest_on_fail "${RETEST_ON_FAIL:-null}"             --argjson worker_index "${WORKER_INDEX:-null}"             --argjson license_secret_present "${LICENSE_SECRET_PRESENT:-false}"             --argjson testcontainers "$([ "${PW_USE_TESTCONTAINERS:-}" = "true" ] && echo true || echo false)"             --argjson testcontainers_reuse "$([ "${PW_TESTCONTAINERS_REUSE:-}" = "true" ] && echo true || echo false)"             '$ARGS.named')"
+
+          echo "metadata=$METADATA" >> "$GITHUB_OUTPUT"
       - name: ci/dispatch-run
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-run@1631d8fcea24f4545a0b3b7f77e41c2fe0be4418 # 2026-07-28
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-run@d5b2bde060dca0e93091ebc6bd2870dd3f0a26d3 # 2026-09-08, mattermost-test-system-io#114
         with:
-          use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
+          # Keep the evidence/override demo isolated from production TSIO.
+          use-staging: ${{ inputs.pr_number == '38356' || vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
           framework: playwright
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
           repo-dir: ${{ github.workspace }}
@@ -331,6 +425,11 @@ jobs:
           gh-job-name: dispatch-run-${{ matrix.worker_index }}
           playwright-retries: ${{ inputs.playwright_retries }}
           playwright-project: ${{ inputs.playwright_project }}
+          # Lets a consumer reproducing a failure (human or automation) start
+          # its own server the same way this one ran, instead of guessing at
+          # defaults that may not match. Built by ci/resolve-environment-metadata
+          # above; see that step for why it is not a JSON string literal.
+          environment-metadata: ${{ steps.environment-metadata.outputs.metadata }}
       - name: ci/upload-debug-artifacts
         if: always()
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
@@ -362,12 +461,14 @@ jobs:
       - name: ci/run-summary
         id: summary
         continue-on-error: true
-        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-summary@e2d5032cfa71a3ad11b0975b135cd221564f2787 # 2026-08-06
+        uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-summary@d5b2bde060dca0e93091ebc6bd2870dd3f0a26d3 # 2026-09-08, mattermost-test-system-io#114
         with:
-          use-staging: ${{ vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
+          # Keep the evidence/override demo isolated from production TSIO.
+          use-staging: ${{ inputs.pr_number == '38356' || vars.E2E_USE_STAGING_TEST_IO_URL != 'false' }}
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
           framework: playwright
           report-type: ${{ inputs.report_type }}
+          update-commit-status: ${{ !inputs.verification_only }}
           image-tag: ${{ inputs.server_image_tag }}
           image-aliases: ${{ inputs.server_image_aliases }}
           server-image: ${{ env.SERVER_IMAGE }}
@@ -376,7 +477,7 @@ jobs:
           commit-status-context: ${{ inputs.context_name }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: ci/publish-webhook
-        if: inputs.enable_reporting && env.REPORT_WEBHOOK_URL != ''
+        if: inputs.enable_reporting && !inputs.verification_only && env.REPORT_WEBHOOK_URL != ''
         env:
           REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
           PAYLOAD: ${{ steps.summary.outputs.webhook_payload }}
