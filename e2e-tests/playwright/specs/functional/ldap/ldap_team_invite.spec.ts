@@ -32,7 +32,7 @@ test('LDAP member login with team invite lands on the invited team', {tag: '@lda
     await adminClient.revokeAllSessionsForUser(provisionedUser.id);
 
     // # Log in again now that the member belongs to the invited team
-    await pw.loginPage.goto();
+    await pw.loginPage.expectLoginRedirectFrom('/login');
     await pw.loginPage.toBeVisible();
     await pw.loginPage.submitCredentials(ldapUser.username, ldapUser.password);
     await pw.loginPage.expectNotOnLoginPage();
@@ -81,7 +81,7 @@ test('LDAP guest login with team invite lands on the invited channel', {tag: '@l
         await adminClient.revokeAllSessionsForUser(provisionedUser.id);
 
         // # Log in again now that the guest belongs to the invited team
-        await pw.loginPage.goto();
+        await pw.loginPage.expectLoginRedirectFrom('/login');
         await pw.loginPage.toBeVisible();
         await pw.loginPage.submitCredentials(ldapUser.username, ldapUser.password);
         await pw.loginPage.expectNotOnLoginPage();
