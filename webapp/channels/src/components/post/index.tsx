@@ -11,7 +11,7 @@ import type {Post} from '@mattermost/types/posts';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {General, Preferences as ReduxPreferences} from 'mattermost-redux/constants';
-import {getDirectTeammate, isMyChannelAutotranslated} from 'mattermost-redux/selectors/entities/channels';
+import {getDirectTeammate, isMyChannelAutotranslated, makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, isPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserLocale} from 'mattermost-redux/selectors/entities/i18n';
 import {getPost, makeGetCommentCountForPost, makeIsPostCommentMention, isPostAcknowledgementsEnabled, isPostPriorityEnabled, isPostFlagged} from 'mattermost-redux/selectors/entities/posts';
@@ -101,6 +101,7 @@ function isConsecutivePost(state: GlobalState, ownProps: OwnProps, locale: strin
 function makeMapStateToProps() {
     const isPostCommentMention = makeIsPostCommentMention();
     const getReplyCount = makeGetCommentCountForPost();
+    const getChannelSelector = makeGetChannel();
 
     return function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         let post;
@@ -124,7 +125,7 @@ function makeMapStateToProps() {
         const enableEmojiPicker = config.EnableEmojiPicker === 'true';
         const enablePostUsernameOverride = config.EnablePostUsernameOverride === 'true';
         const permissionPoliciesEnabled = isPermissionPoliciesEnabled(state);
-        const channel = state.entities.channels.channels[post.channel_id];
+        const channel = getChannelSelector(state, post.channel_id) ?? state.entities.channels.channels[post.channel_id];
         if (!channel) {
             return null;
         }
