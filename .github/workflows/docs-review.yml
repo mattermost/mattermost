@@ -1,0 +1,228 @@
+name: Docs AI Review
+
+# Reviews documentation changes through the persona registry in
+# .github/prompts/personas/ and posts one sticky comment per PR.
+#
+# Pull requests only: every job here exists to produce that comment. `validate`
+# resolves the registry against the working tree, so a rename that strands a
+# persona's docs_paths surfaces on the next docs PR rather than on the merge
+# that caused it. Accepted, because the failure names the offending path and
+# nothing here gates a release.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "docs/main/**"
+      - "docs/develop/**"
+      - "!docs/main/agents/docs/**"
+      - ".github/prompts/**"
+      - ".github/scripts/docs-ai/**"
+      - ".github/workflows/docs-review.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate persona registry
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version-file: .nvmrc
+          cache: "npm"
+          cache-dependency-path: .github/scripts/docs-ai/package-lock.json
+
+      - name: Install dependencies
+        working-directory: .github/scripts/docs-ai
+        run: npm ci --ignore-scripts
+
+      - name: Test
+        working-directory: .github/scripts/docs-ai
+        run: npm test
+
+  prepare:
+    name: Diff, lint and route
+    needs: validate
+    runs-on: ubuntu-24.04
+    # Forks have neither secrets nor a writable token, so the whole model path
+    # sits behind this one condition: review and report both gate on the
+    # personas this job outputs.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    outputs:
+      personas: ${{ steps.route.outputs.personas }}
+      reviewable: ${{ steps.diff.outputs.reviewable }}
+    env:
+      HAS_ANTHROPIC_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+
+      - name: Collect docs diff
+        id: diff
+        run: |
+          set -euo pipefail
+          mkdir -p .docs-ai
+
+          PATHSPEC=(
+            docs/main docs/develop
+            ':(exclude)docs/main/agents/docs'
+          )
+
+          git diff --name-only HEAD^1 HEAD -- "${PATHSPEC[@]}" \
+            | grep -E '\.(mdx|md)$' > .docs-ai/files.txt || true
+          git diff HEAD^1 HEAD -- "${PATHSPEC[@]}" > .docs-ai/pr.diff
+
+          COUNT=$(wc -l < .docs-ai/files.txt | tr -d ' ')
+          echo "Changed documentation pages: ${COUNT}"
+          cat .docs-ai/files.txt
+
+          if [ "${COUNT}" -eq 0 ]; then
+            echo "No documentation content changed; skipping review." >> "$GITHUB_STEP_SUMMARY"
+            echo "reviewable=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "reviewable=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Node
+        if: steps.diff.outputs.reviewable == 'true' && env.HAS_ANTHROPIC_KEY == 'true'
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version-file: .nvmrc
+          cache: "npm"
+          cache-dependency-path: .github/scripts/docs-ai/package-lock.json
+
+      - name: Install dependencies
+        if: steps.diff.outputs.reviewable == 'true' && env.HAS_ANTHROPIC_KEY == 'true'
+        working-directory: .github/scripts/docs-ai
+        run: npm ci --ignore-scripts
+
+      - name: Select personas
+        id: route
+        if: steps.diff.outputs.reviewable == 'true' && env.HAS_ANTHROPIC_KEY == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          DOCS_AI_ROUTER_MODEL: ${{ vars.DOCS_AI_ROUTER_MODEL }}
+        run: |
+          set -euo pipefail
+          PERSONAS=$(node .github/scripts/docs-ai/router.mjs --diff .docs-ai/pr.diff)
+          echo "personas=${PERSONAS}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload review inputs
+        if: steps.route.outcome == 'success'
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: docs-review-inputs
+          path: .docs-ai/
+          retention-days: 3
+
+  review:
+    name: ${{ matrix.persona }}
+    needs: prepare
+    if: needs.prepare.outputs.personas != ''
+    runs-on: ubuntu-24.04
+    strategy:
+      # One reviewer failing should not cost the rest of the report.
+      fail-fast: false
+      matrix:
+        persona: ${{ fromJSON(needs.prepare.outputs.personas) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version-file: .nvmrc
+          cache: "npm"
+          cache-dependency-path: .github/scripts/docs-ai/package-lock.json
+
+      - name: Install dependencies
+        working-directory: .github/scripts/docs-ai
+        # No dependency here needs an install script, so refuse to run any.
+        # This job executes PR-authored code by design; that removes one way
+        # for a dependency to run code before the tests do.
+        run: npm ci --ignore-scripts
+
+      - name: Download review inputs
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        with:
+          name: docs-review-inputs
+          path: .docs-ai
+
+      - name: Review
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          DOCS_AI_REVIEW_MODEL: ${{ vars.DOCS_AI_REVIEW_MODEL }}
+          PERSONA: ${{ matrix.persona }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$PR_BODY" > .docs-ai/pr-body.txt
+
+          node .github/scripts/docs-ai/persona-review.mjs \
+            --persona "$PERSONA" \
+            --diff .docs-ai/pr.diff \
+            --pr-title "$PR_TITLE" \
+            --pr-body-file .docs-ai/pr-body.txt \
+            --out ".docs-ai/results/${PERSONA}.json"
+
+      - name: Upload verdict
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: docs-review-result-${{ matrix.persona }}
+          path: .docs-ai/results/
+          retention-days: 3
+
+  report:
+    name: Post review comment
+    needs: [prepare, review]
+    if: always() && needs.prepare.outputs.personas != ''
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version-file: .nvmrc
+
+      # A cancelled or failed reviewer leaves no artifact. Reporting on the
+      # reviewers that did finish beats posting nothing.
+      - name: Download verdicts
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        continue-on-error: true
+        with:
+          pattern: docs-review-result-*
+          merge-multiple: true
+          path: .docs-ai/results
+
+      - name: Post comment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node .github/scripts/docs-ai/report.mjs --results-dir .docs-ai/results
