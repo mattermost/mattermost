@@ -52,6 +52,7 @@ import {getStandardAnalytics} from 'mattermost-redux/actions/admin';
 import {fetchAppBindings, fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
 import {addChannelToInitialCategory, fetchMyCategories, handleManagedCategoryPropertyValuesUpdated, receivedCategoryOrder} from 'mattermost-redux/actions/channel_categories';
 import {
+    actionsToMarkChannelAsUnread,
     getChannelAndMyMember,
     getChannelMember,
     getMyChannelMember,
@@ -1459,6 +1460,18 @@ export function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel):
         const currentUserId = getCurrentUserId(doGetState());
         if (currentUserId === msg.data.user_id) {
             doDispatch(fetchChannelAndAddToSidebar(msg.broadcast.channel_id));
+        }
+
+        // When join/leave messages are suppressed in a channel, the system_add_to_channel
+        // post's WS event is scoped only to the added user. Other members never receive it,
+        // so the normal posted-event unread path never fires for them. Use user_added (which
+        // is channel-scoped) to mark the channel unread for existing members, making sidebar
+        // state consistent with what they'd see after a refresh.
+        if (currentUserId !== msg.data.user_id) {
+            const addedChannel = getChannel(doGetState(), msg.broadcast.channel_id);
+            if (addedChannel?.disable_join_leave_messages) {
+                doDispatch(batchActions(actionsToMarkChannelAsUnread(doGetState, msg.data.team_id || '', msg.broadcast.channel_id, '', false, true, '')));
+            }
         }
 
         // This event is fired when a user first joins the server, so refresh analytics to see if we're now over the user limit
