@@ -423,6 +423,8 @@ describe('Markdown.Links', () => {
 
             expect(Markdown.format('mailto:test@example.com').trim()).toBe(`<p>${link('mailto:test@example.com')}</p>`);
 
+            expect(Markdown.format('gemini://example.com').trim()).toBe(`<p>${link('gemini://example.com')}</p>`);
+
             // These aren't linked since they're not configured on the server
             expect(Markdown.format('git://git.example.com').trim()).toBe('<p>git://git.example.com</p>');
 
