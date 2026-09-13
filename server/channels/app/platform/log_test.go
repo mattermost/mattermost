@@ -50,21 +50,18 @@ func TestGetMattermostLog(t *testing.T) {
 	// Override log root path to allow log file reads from our temp directory
 	th.Service.SetLogRootPathOverride(dir)
 
-	// Enable log file but point to an empty directory to get an error trying to read the file
+	// Enable log file but point to an empty directory to get an error trying to read the file.
+	// FileLevel is pinned to "fatal" so the file target never writes: enabling file logging
+	// installs a live target at FileLocation, and any record it writes -- including ones from
+	// unrelated code reaching this logger -- creates mattermost.log and defeats the
+	// missing-file assertion below (MM-70639).
 	th.Service.UpdateConfig(func(cfg *model.Config) {
 		*cfg.LogSettings.EnableFile = true
 		*cfg.LogSettings.FileLocation = dir
+		*cfg.LogSettings.FileLevel = "fatal"
 	})
 
 	logLocation := config.GetLogFileLocation(dir)
-
-	// ReconfigureLogger may create mattermost.log as soon as file logging is enabled.
-	// Flush and remove it so the next GetLogFile exercises the missing-file path.
-	th.Service.Logger().Flush()
-	err = os.Remove(logLocation)
-	if err != nil && !os.IsNotExist(err) {
-		require.NoError(t, err)
-	}
 
 	// There is no mattermost.log file yet, so this fails
 	fileData, err = th.Service.GetLogFile(th.Context)

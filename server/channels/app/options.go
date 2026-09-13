@@ -101,6 +101,15 @@ func WithLicense(license *model.License) Option {
 	}
 }
 
+// DisableGlobalLogger stops the platform service from claiming the process-wide logging
+// globals. See [platform.DisableGlobalLogger]; this is a test option.
+func DisableGlobalLogger() Option {
+	return func(s *Server) error {
+		s.platformOptions = append(s.platformOptions, platform.DisableGlobalLogger())
+		return nil
+	}
+}
+
 // SetLogger requires platform service to be initialized before calling.
 // If not, logger should be set after platform service are initialized.
 func SetLogger(logger *mlog.Logger) Option {
