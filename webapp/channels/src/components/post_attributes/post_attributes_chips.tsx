@@ -27,6 +27,31 @@ function PostAttributesChips({post, channel}: Props) {
 
     const visible = useVisibleAttributes(fields, values);
 
+    // Ahead of every other check, including the one for fields. The server sets this
+    // only when it was asked for a post's values and could not read them, and it never
+    // asks for a channel with no applicable fields — so this says the post has
+    // attributes that cannot be shown, which outranks anything the store holds. Any
+    // values left over from an earlier fetch are stale by definition, and rendering
+    // them is the failure this marker exists to prevent.
+    if (post.metadata?.property_values_unavailable) {
+        return (
+            <div
+                className='PostAttributesChips'
+                data-testid='post-attributes-chips-unavailable'
+            >
+                <span
+                    className='PostAttributesChips__unavailable'
+                    data-testid='post-attributes-unavailable'
+                >
+                    <FormattedMessage
+                        id='post_attributes.chips.unavailable'
+                        defaultMessage='Attributes unavailable'
+                    />
+                </span>
+            </div>
+        );
+    }
+
     if (visible.length === 0) {
         return null;
     }

@@ -596,4 +596,71 @@ describe('PostAttributesChips', () => {
 
         expect(screen.queryByTestId('post-attributes-chips')).not.toBeInTheDocument();
     });
+
+    // The server sets this when it was asked for a post's values and could not read
+    // them. Saying so is the whole point: a post whose marking failed to load must not
+    // look like a post that has no marking.
+    describe('when the values could not be loaded', () => {
+        const unavailablePost = {
+            id: POST_ID,
+            metadata: {property_values_unavailable: true},
+        } as Post;
+
+        test('says so instead of rendering chips', () => {
+            renderWithContext(
+                <PostAttributesChips
+                    post={unavailablePost}
+                    channel={channel}
+                />,
+                makeState([makeField()], [makeValue()]),
+            );
+
+            expect(screen.getByTestId('post-attributes-unavailable')).toBeInTheDocument();
+            expect(screen.getByText('Attributes unavailable')).toBeInTheDocument();
+            expect(screen.queryByText('SECRET')).not.toBeInTheDocument();
+        });
+
+        // Values left over from an earlier successful fetch are exactly what must not
+        // show: they are the stale reading the marker exists to warn about.
+        test('says so even with values still in the store', () => {
+            renderWithContext(
+                <PostAttributesChips
+                    post={unavailablePost}
+                    channel={channel}
+                />,
+                makeState([makeField()], [makeValue()]),
+            );
+
+            expect(screen.queryByTestId('post-attributes-chips')).not.toBeInTheDocument();
+        });
+
+        // The server only marks a post unavailable for a channel that has fields
+        // so an empty field list here means this client has not loaded them or failed
+        // to — not that the channel has no attributes. The marker is the more reliable
+        // of the two.
+        test('says so even before this client has loaded the fields', () => {
+            renderWithContext(
+                <PostAttributesChips
+                    post={unavailablePost}
+                    channel={channel}
+                />,
+                makeState([], []),
+            );
+
+            expect(screen.getByTestId('post-attributes-unavailable')).toBeInTheDocument();
+        });
+
+        test('stays quiet on a post that was hydrated successfully', () => {
+            renderWithContext(
+                <PostAttributesChips
+                    post={{id: POST_ID, metadata: {property_values_unavailable: false}} as Post}
+                    channel={channel}
+                />,
+                makeState([makeField()], [makeValue()]),
+            );
+
+            expect(screen.queryByTestId('post-attributes-unavailable')).not.toBeInTheDocument();
+            expect(screen.getByText('SECRET')).toBeInTheDocument();
+        });
+    });
 });

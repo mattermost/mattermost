@@ -6674,6 +6674,7 @@
   "pluginsMenu.more_actions": "More actions",
   "popout_menu_item.openInNewWindow": "Open in new window",
   "post_attributes.chips.overflow": "+{count, number}",
+  "post_attributes.chips.unavailable": "Attributes unavailable",
   "post_body.check_for_out_of_channel_groups_mentions.message": "did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups.",
   "post_body.check_for_out_of_channel_mentions.link.and": " and ",
   "post_body.check_for_out_of_channel_mentions.link.private": "add them to this private channel",

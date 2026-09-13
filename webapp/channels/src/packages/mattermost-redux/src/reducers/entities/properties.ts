@@ -278,6 +278,12 @@ function valuesReducer(
     case PostTypes.RECEIVED_POST:
         return mergeValues(state, valuesFromPosts([action.data]));
 
+    // Three action types, though eight carry a PostList. The other five —
+    // RECEIVED_POSTS_IN_CHANNEL, _SINCE, _AFTER, _BEFORE and _IN_THREAD — are never
+    // dispatched alone: every one of them travels in the same batchActions as a
+    // RECEIVED_POSTS carrying the same posts. That is a convention the action creators
+    // in actions/posts.ts hold, not something the types enforce, so a new dispatch that
+    // breaks it would lose the values silently.
     case PostTypes.RECEIVED_POSTS:
         return mergeValues(state, valuesFromPosts(action.data?.posts));
 

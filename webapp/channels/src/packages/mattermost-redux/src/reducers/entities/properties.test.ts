@@ -817,6 +817,25 @@ describe('propertiesReducer', () => {
             expect(after.values.byTargetId.p1.f1.value).toBe('new');
         });
 
+        test('a delete after a hydrated load removes that field and leaves the rest', () => {
+            const seeded = propertiesReducer(initialState, {
+                type: PostTypes.RECEIVED_POSTS,
+                data: {posts: {p1: post('p1', [
+                    makeValue({id: 'v1', target_id: 'p1', field_id: 'f1'}),
+                    makeValue({id: 'v2', target_id: 'p1', field_id: 'f2'}),
+                ])}},
+            });
+
+            const after = propertiesReducer(seeded, {
+                type: PropertyTypes.PROPERTY_VALUE_DELETED,
+                data: {targetId: 'p1', fieldId: 'f1'},
+            });
+
+            expect(after.values.byTargetId.p1.f1).toBeUndefined();
+            expect(after.values.byTargetId.p1.f2.id).toBe('v2');
+            expect(after.values.byFieldId.f1).toBeUndefined();
+        });
+
         test('a tombstone inside metadata is not stored', () => {
             const state = propertiesReducer(initialState, {
                 type: PostTypes.RECEIVED_POSTS,
@@ -824,6 +843,28 @@ describe('propertiesReducer', () => {
             });
 
             expect(state.values.byTargetId.p1).toBeUndefined();
+        });
+
+        // The reducer handles three post action types, not the eight that can carry a
+        // PostList. That is safe only because every dispatch of one of the other five sits
+        // in the same batchActions as a RECEIVED_POSTS — a convention the action creators
+        // hold, which no type enforces.
+        test.each([
+            PostTypes.RECEIVED_POSTS_IN_CHANNEL,
+            PostTypes.RECEIVED_POSTS_SINCE,
+            PostTypes.RECEIVED_POSTS_AFTER,
+            PostTypes.RECEIVED_POSTS_BEFORE,
+            PostTypes.RECEIVED_POSTS_IN_THREAD,
+        ])('%s on its own stores nothing', (type) => {
+            const v = makeValue({id: 'v1', target_id: 'p1', field_id: 'f1'});
+
+            const state = propertiesReducer(initialState, {
+                type,
+                data: {posts: {p1: post('p1', [v])}},
+                channelId: 'c1',
+            });
+
+            expect(state.values).toBe(initialState.values);
         });
     });
 });
