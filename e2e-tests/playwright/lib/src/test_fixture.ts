@@ -227,6 +227,8 @@ export class PlaywrightExtended {
     readonly keycloakLoginPage;
     readonly landingLoginPage;
     readonly signupPage;
+    readonly selectTeamPage;
+    readonly shouldVerifyEmailPage;
     readonly resetPasswordPage;
     readonly errorPage;
 
@@ -319,6 +321,8 @@ export class PlaywrightExtended {
         this.keycloakLoginPage = new pages.KeycloakLoginPage(page);
         this.landingLoginPage = new pages.LandingLoginPage(page, isMobile);
         this.signupPage = new pages.SignupPage(page);
+        this.selectTeamPage = new pages.SelectTeamPage(page);
+        this.shouldVerifyEmailPage = new pages.ShouldVerifyEmailPage(page);
         this.resetPasswordPage = new pages.ResetPasswordPage(page);
         this.errorPage = new pages.ErrorPage(page);
 
