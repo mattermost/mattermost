@@ -55,9 +55,9 @@ test(
     async ({pw}) => {
         await pw.ensureLicense();
         await pw.skipIfNoLicense();
-        await pw.ensureOpenldap();
 
         const {adminClient} = await pw.initSetup();
+        await pw.ensureOpenldap();
 
         try {
             await adminClient.patchConfig({
