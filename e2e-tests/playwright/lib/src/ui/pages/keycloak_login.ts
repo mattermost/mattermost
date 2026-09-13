@@ -33,11 +33,7 @@ export default class KeycloakLoginPage {
         await this.signInButton.click();
     }
 
-    /**
-     * Ends the Keycloak SSO session. Visiting the OIDC logout URL without an
-     * id_token_hint often shows a confirmation page and does not drop the SAML
-     * session cookie, so confirm if needed and always clear browser cookies.
-     */
+    // OIDC logout without id_token_hint may only show a confirm page; clear cookies either way.
     async logout() {
         await this.page.goto(`${testConfig.keycloakUrl}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/logout`, {
             waitUntil: 'domcontentloaded',
