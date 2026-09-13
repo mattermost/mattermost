@@ -227,7 +227,7 @@ const maxLogPathDepth = 256
 func evalSymlinksLenient(path string) (string, error) {
 	var missing []string
 
-	for depth := 0; depth < maxLogPathDepth; depth++ {
+	for range maxLogPathDepth {
 		resolved, err := filepath.EvalSymlinks(path)
 		if err == nil {
 			return filepath.Join(append([]string{resolved}, missing...)...), nil
