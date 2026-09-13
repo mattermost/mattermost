@@ -77,7 +77,14 @@ export async function disableMfa(adminClient?: Client4): Promise<void> {
         throw new Error('disableMfa requires a Mattermost container or an admin client.');
     }
 
-    await adminClient.patchConfig({
-        ServiceSettings: {EnableMultifactorAuthentication: false, EnforceMultifactorAuthentication: false},
-    });
+    try {
+        await adminClient.patchConfig({
+            ServiceSettings: {EnableMultifactorAuthentication: false, EnforceMultifactorAuthentication: false},
+        });
+    } catch (error) {
+        throw new Error(
+            'disableMfa could not restore MFA via the admin API. Enforcing MFA invalidates unenrolled admin sessions, so patchConfig returns 403. Run against Testcontainers Mattermost so mmctl --local can disable MFA, or enroll the admin in MFA before enforcing it. Original error: ' +
+                String(error),
+        );
+    }
 }
