@@ -30,12 +30,8 @@ export default class AdLdap {
         this.successIcon = container.getByTitle('Success Icon');
         this.saveButton = container.getByRole('button', {name: 'Save'});
         this.errorMessage = container.getByTestId('errorMessage');
-        this.usernameAttributeRequiredError = container.getByText(
-            'AD/LDAP field "Username Attribute" is required.',
-        );
-        this.loginIdAttributeRequiredError = container.getByText(
-            'AD/LDAP field "Login ID Attribute" is required.',
-        );
+        this.usernameAttributeRequiredError = container.getByText('AD/LDAP field "Username Attribute" is required.');
+        this.loginIdAttributeRequiredError = container.getByText('AD/LDAP field "Login ID Attribute" is required.');
     }
 
     async toBeVisible() {
