@@ -81,6 +81,7 @@ import {
 } from 'mattermost-redux/actions/posts';
 import {
     fetchPropertyFields,
+    fetchPropertyValues,
     fetchSystemPropertyValues,
 } from 'mattermost-redux/actions/properties';
 import {getRecap} from 'mattermost-redux/actions/recaps';
@@ -124,6 +125,7 @@ import {getConfig, getFeatureFlagValue, getLicense, isPermissionPoliciesEnabled}
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
 import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getPropertyGroupById} from 'mattermost-redux/selectors/entities/properties';
 import {haveISystemPermission, haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getScheduledPostTeamId, isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {
@@ -182,6 +184,7 @@ import {getIntl} from 'utils/i18n';
 import {MAX_OPEN_DIALOGS, getOpenDialogCount} from 'utils/interactive_dialog';
 import {isEnterpriseLicense} from 'utils/license_utils';
 import {isChannelPopoutWindow} from 'utils/popouts/popout_windows';
+import {isWithheldPropertyValue} from 'utils/properties';
 import {getSiteURL} from 'utils/url';
 
 import type {ActionFunc, ThunkActionFunc} from 'types/store';
@@ -1504,21 +1507,25 @@ function handlePropertyFieldDeleted(
     };
 }
 
-// The server emits four distinct payloads under one event, distinguished only by
+// The server emits five distinct payloads under one event, distinguished only by
 // which keys are present (see TestPropertyValuesUpdatedPayloadShapes):
 //
 //   upsert            object_type + target_id + the target's full values array
 //   single delete     same keys, but one synthesized row with an empty id
 //   delete for target same keys, values "[]"
 //   delete for field  field_id, no object_type/target_id, values "[]"
+//   withheld          same keys as upsert, but one or more rows carry the
+//                     withheld marker in place of their value
 //
 // A delete tombstone carries no value, and a nil RawMessage marshals to null, so
 // it is byte-identical to a user-initiated `PATCH value: null` apart from the
 // empty id. Treating either of the empty-array shapes as an upsert is a no-op,
 // and treating a tombstone as one leaves a blank row in place of the deleted
-// value — so each shape has to be routed to its own reducer action.
+// value — so each shape has to be routed to its own reducer action. A withheld
+// row carries a real id, so it can't be mistaken for the tombstone shape either;
+// it is split out below and repaired with a refetch instead of being stored.
 export function handlePropertyValuesUpdated(msg: WebSocketMessages.PropertyValuesUpdated): ThunkActionFunc<void> {
-    return (doDispatch) => {
+    return (doDispatch, doGetState) => {
         let values;
         try {
             values = JSON.parse(msg.data.values ?? '[]');
@@ -1527,11 +1534,17 @@ export function handlePropertyValuesUpdated(msg: WebSocketMessages.PropertyValue
             return;
         }
 
+        // Shape routing stays keyed on the full array: an event whose every row is
+        // withheld must not be mistaken for the values.length === 0 branch below,
+        // which would wipe the target's values for fields the client can't see.
+        const withheld: Array<PropertyValue<string>> = values.filter((value: PropertyValue<unknown>) => isWithheldPropertyValue(value.value));
+        const visible: Array<PropertyValue<string>> = values.filter((value: PropertyValue<unknown>) => !isWithheldPropertyValue(value.value));
+
         const parsedPropertyValuesUpdated = {
             object_type: msg.data.object_type,
             target_id: msg.data.target_id,
             field_id: msg.data.field_id,
-            values,
+            values: visible,
         };
 
         const {object_type: objectType, target_id: targetId, field_id: fieldId} = msg.data;
@@ -1554,14 +1567,25 @@ export function handlePropertyValuesUpdated(msg: WebSocketMessages.PropertyValue
                     data: {targetId: value.target_id ?? targetId, fieldId: value.field_id},
                 });
             }
-        } else {
+        } else if (visible.length > 0) {
             // Populate the Redux property values store so any component that reads
             // from entities.properties.values (e.g. GlobalClassificationBanner) gets
             // real-time updates without an extra network round-trip.
             doDispatch({
                 type: PropertyTypes.RECEIVED_PROPERTY_VALUES,
-                data: {values},
+                data: {values: visible},
             });
+        }
+
+        if (withheld.length > 0 && isTargetScoped) {
+            const state = doGetState();
+            const groupIds = new Set<string>(withheld.map((value) => value.group_id));
+            for (const groupId of groupIds) {
+                const groupName = getPropertyGroupById(state, groupId)?.name;
+                if (groupName) {
+                    doDispatch(fetchPropertyValues(groupName, objectType, targetId));
+                }
+            }
         }
 
         doDispatch(handleManagedCategoryPropertyValuesUpdated(parsedPropertyValuesUpdated));
