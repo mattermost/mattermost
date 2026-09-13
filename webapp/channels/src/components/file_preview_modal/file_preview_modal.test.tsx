@@ -26,6 +26,11 @@ jest.mock('components/code_preview', () => ({
     default: () => <div>{'Code Preview'}</div>,
     hasSupportedLanguage: () => true,
 }));
+jest.mock('components/markdown_preview', () => ({
+    __esModule: true,
+    default: () => <div>{'Markdown Preview'}</div>,
+    isMarkdownFile: (fileInfo: {extension: string}) => ['md', 'mkd', 'mkdown'].includes(fileInfo.extension),
+}));
 jest.mock('components/file_info_preview', () => () => <div>{'File Info Preview'}</div>);
 jest.mock('components/loading_image_preview', () => () => <div>{'Loading Image Preview'}</div>);
 jest.mock('components/pdf_preview', () => ({
@@ -104,6 +109,17 @@ describe('components/FilePreviewModal', () => {
             ref.current?.setState({loaded: [true] as any});
         });
         expect(container).toMatchSnapshot();
+    });
+
+    test('should match snapshot, loaded with .md file', () => {
+        const fileInfos = [TestHelper.getFileInfoMock({id: 'file_id', extension: 'md'})];
+        const props = {...baseProps, fileInfos};
+        const {container, ref} = renderModal(props);
+        act(() => {
+            ref.current?.setState({loaded: [true] as any});
+        });
+        expect(container).toMatchSnapshot();
+        expect(container).toHaveTextContent('Markdown Preview');
     });
 
     test('should match snapshot, loaded with other file', () => {
