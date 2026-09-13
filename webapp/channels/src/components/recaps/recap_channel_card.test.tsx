@@ -7,6 +7,7 @@ import type {RecapChannel} from '@mattermost/types/recaps';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
+import {getSiteURL} from 'utils/url';
 
 import RecapChannelCard from './recap_channel_card';
 
@@ -26,8 +27,13 @@ jest.mock('actions/views/channel', () => ({
 }));
 
 jest.mock('components/external_link', () => {
-    return function ExternalLink({children, href}: {children: React.ReactNode; href: string}) {
-        return <a href={href}>{children}</a>;
+    return function ExternalLink({children, href, className}: {children: React.ReactNode; href: string; className?: string}) {
+        return (
+            <a
+                href={href}
+                className={className}
+            >{children}</a>
+        );
     };
 });
 
@@ -56,6 +62,11 @@ jest.mock('./recap_text_formatter', () => {
 });
 
 describe('RecapChannelCard', () => {
+    const postId = 'abcdefghijklmnopqrstuvwxyz';
+    const otherPostId = 'zyxwvutsrqponmlkjihgfedcba';
+    const permalink = `${getSiteURL()}/test-team/pl/${postId}`;
+    const otherPermalink = `${getSiteURL()}/test-team/pl/${otherPostId}`;
+
     const mockChannel = TestHelper.getChannelMock({
         id: 'channel1',
         name: 'test-channel',
@@ -258,7 +269,7 @@ describe('RecapChannelCard', () => {
     test('should parse permalinks from highlights', () => {
         const channelWithPermalinks: RecapChannel = {
             ...mockRecapChannel,
-            highlights: ['Update from @john [PERMALINK:https://example.com/post1]'],
+            highlights: [`Update from @john [PERMALINK:${permalink}]`],
         };
 
         const {container} = renderWithContext(
@@ -270,14 +281,14 @@ describe('RecapChannelCard', () => {
         expect(screen.getByText('Update from @john')).toBeInTheDocument();
 
         // Check that a link is rendered
-        const link = container.querySelector('a[href="https://example.com/post1"]');
+        const link = container.querySelector(`a[href="${permalink}"]`);
         expect(link).toBeInTheDocument();
     });
 
     test('should parse permalinks from action items', () => {
         const channelWithPermalinks: RecapChannel = {
             ...mockRecapChannel,
-            action_items: ['Review PR [PERMALINK:https://example.com/pr123]'],
+            action_items: [`Review PR [PERMALINK:${otherPermalink}]`],
         };
 
         const {container} = renderWithContext(
@@ -289,8 +300,75 @@ describe('RecapChannelCard', () => {
         expect(screen.getByText('Review PR')).toBeInTheDocument();
 
         // Check that a link is rendered
-        const link = container.querySelector('a[href="https://example.com/pr123"]');
+        const link = container.querySelector(`a[href="${otherPermalink}"]`);
         expect(link).toBeInTheDocument();
+    });
+
+    test('should not link a permalink pointing outside the site URL', () => {
+        const channelWithPermalinks: RecapChannel = {
+            ...mockRecapChannel,
+            highlights: ['Update from @john [PERMALINK:https://attacker.example]'],
+            action_items: [`Review PR [PERMALINK:https://attacker.example/test-team/pl/${postId}]`],
+        };
+
+        const {container} = renderWithContext(
+            <RecapChannelCard channel={channelWithPermalinks}/>,
+            baseState,
+        );
+
+        expect(screen.getByText('Update from @john')).toBeInTheDocument();
+        expect(screen.getByText('Review PR')).toBeInTheDocument();
+        expect(container.querySelector('a[href*="attacker.example"]')).not.toBeInTheDocument();
+        expect(container.querySelectorAll('a.recap-item-badge-link')).toHaveLength(0);
+    });
+
+    test('should not link a permalink with a dangerous scheme', () => {
+        const channelWithPermalinks: RecapChannel = {
+            ...mockRecapChannel,
+
+            // eslint-disable-next-line no-script-url
+            highlights: ['Update from @john [PERMALINK:javascript:alert(1)]'],
+            action_items: ['Review PR [PERMALINK:data:text/html,hello]'],
+        };
+
+        const {container} = renderWithContext(
+            <RecapChannelCard channel={channelWithPermalinks}/>,
+            baseState,
+        );
+
+        expect(container.querySelectorAll('a.recap-item-badge-link')).toHaveLength(0);
+    });
+
+    test('should ignore an untrusted permalink that precedes the real citation', () => {
+        const channelWithPermalinks: RecapChannel = {
+            ...mockRecapChannel,
+            highlights: [`@john said [PERMALINK:https://attacker.example] about the release [PERMALINK:${permalink}]`],
+            action_items: [],
+        };
+
+        const {container} = renderWithContext(
+            <RecapChannelCard channel={channelWithPermalinks}/>,
+            baseState,
+        );
+
+        expect(screen.getByText('@john said about the release')).toBeInTheDocument();
+        expect(container.querySelector('a[href*="attacker.example"]')).not.toBeInTheDocument();
+        expect(container.querySelector(`a[href="${permalink}"]`)).toBeInTheDocument();
+    });
+
+    test('should not link a permalink to another team route', () => {
+        const channelWithPermalinks: RecapChannel = {
+            ...mockRecapChannel,
+            highlights: [`Update from @john [PERMALINK:${getSiteURL()}/test-team/channels/town-square]`],
+            action_items: [`Review PR [PERMALINK:${getSiteURL()}/admin_console/user_management/users]`],
+        };
+
+        const {container} = renderWithContext(
+            <RecapChannelCard channel={channelWithPermalinks}/>,
+            baseState,
+        );
+
+        expect(container.querySelectorAll('a.recap-item-badge-link')).toHaveLength(0);
     });
 
     test('should render badges for items without permalinks', () => {
