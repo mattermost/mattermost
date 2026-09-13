@@ -12,7 +12,6 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
-	"sort"
 	"time"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
@@ -184,7 +183,7 @@ func processProfileImagesDir(profileImagesPath, tmpDir, bulk string) ([]string, 
 		}
 	}
 
-	sort.Strings(profileImages)
+	slices.Sort(profileImages)
 	return profileImages, nil
 }
 
@@ -282,7 +281,7 @@ func sampledataCmdF(c client.Client, command *cobra.Command, args []string) erro
 		teamsList[teamsListIndex] = teamName
 		teamsListIndex++
 	}
-	sort.Strings(teamsList)
+	slices.Sort(teamsList)
 
 	for _, teamName := range teamsList {
 		for i := range channelsPerTeam {

@@ -5,12 +5,13 @@ package app
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"math/rand"
-	"sort"
+	"slices"
 	"strings"
 	"testing"
 
@@ -758,8 +759,8 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 		require.Nil(t, err)
 
 		// Sort the list of teams based on their creation date
-		sort.Slice(teamsList, func(i, j int) bool {
-			return teamsList[i].CreateAt < teamsList[j].CreateAt
+		slices.SortFunc(teamsList, func(a, b *model.Team) int {
+			return cmp.Compare(a.CreateAt, b.CreateAt)
 		})
 
 		for i := range teamsList {
@@ -825,8 +826,8 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 		require.Nil(t, err)
 
 		// Sort the list of teams based on their creation date
-		sort.Slice(teamsList, func(i, j int) bool {
-			return teamsList[i].CreateAt < teamsList[j].CreateAt
+		slices.SortFunc(teamsList, func(a, b *model.Team) int {
+			return cmp.Compare(a.CreateAt, b.CreateAt)
 		})
 
 		for i := range teamsList {
@@ -860,8 +861,8 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 		require.Nil(t, err)
 
 		// Sort the list of teams based on their creation date
-		sort.Slice(teamsList, func(i, j int) bool {
-			return teamsList[i].CreateAt < teamsList[j].CreateAt
+		slices.SortFunc(teamsList, func(a, b *model.Team) int {
+			return cmp.Compare(a.CreateAt, b.CreateAt)
 		})
 
 		require.NotEqual(t, int64(0), teamsList[0].DeleteAt)
@@ -1745,8 +1746,8 @@ func TestGetTeamMembers(t *testing.T) {
 		require.Nil(t, err)
 
 		// Sort the users array by username
-		sort.Slice(users, func(i, j int) bool {
-			return users[i].Username < users[j].Username
+		slices.SortFunc(users, func(a, b model.User) int {
+			return cmp.Compare(a.Username, b.Username)
 		})
 
 		// We should have the same number of users in both users and members array as we have not excluded any deleted members
@@ -1789,8 +1790,8 @@ func TestGetTeamMembers(t *testing.T) {
 		}
 
 		// Sort our non deleted members by username
-		sort.Slice(usersNotDeleted, func(i, j int) bool {
-			return usersNotDeleted[i].Username < usersNotDeleted[j].Username
+		slices.SortFunc(usersNotDeleted, func(a, b model.User) int {
+			return cmp.Compare(a.Username, b.Username)
 		})
 
 		require.Equal(t, len(usersNotDeleted), len(members))
@@ -1801,8 +1802,8 @@ func TestGetTeamMembers(t *testing.T) {
 
 	t.Run("Ensure Sorted By User ID when no TeamMemberGetOptions is passed", func(t *testing.T) {
 		// Sort them by UserID because the result of GetTeamMembers() is also sorted
-		sort.Slice(users, func(i, j int) bool {
-			return users[i].Id < users[j].Id
+		slices.SortFunc(users, func(a, b model.User) int {
+			return cmp.Compare(a.Id, b.Id)
 		})
 
 		// Fetch team members multiple times

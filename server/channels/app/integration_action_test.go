@@ -2294,7 +2294,7 @@ func TestDoPluginRequest(t *testing.T) {
 		import (
 			"net/http"
 			"reflect"
-			"sort"
+			"slices"
 
 			"github.com/mattermost/mattermost/server/public/plugin"
 		)
@@ -2317,7 +2317,7 @@ func TestDoPluginRequest(t *testing.T) {
 				_, _ = w.Write([]byte("param multiple should have 3 values"))
 				return
 			}
-			sort.Strings(multiple)
+			slices.Sort(multiple)
 			if !reflect.DeepEqual(multiple, []string{"1 first", "2 second", "3 third"}) {
 				w.WriteHeader(http.StatusInternalServerError)
 				_, _ = w.Write([]byte("param multiple not correct"))

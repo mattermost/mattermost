@@ -4,10 +4,11 @@
 package sqlstore
 
 import (
+	"cmp"
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"sort"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -2112,8 +2113,8 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime int64, startFileID str
 	for _, user := range userMap {
 		usersForIndexing = append(usersForIndexing, user)
 	}
-	sort.Slice(usersForIndexing, func(i, j int) bool {
-		return usersForIndexing[i].CreateAt < usersForIndexing[j].CreateAt
+	slices.SortFunc(usersForIndexing, func(a, b *model.UserForIndexing) int {
+		return cmp.Compare(a.CreateAt, b.CreateAt)
 	})
 
 	return usersForIndexing, nil
