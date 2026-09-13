@@ -32,6 +32,7 @@ import {
     createUserWithAttributes,
     deleteKeycloakUser,
     deleteLdapUser,
+    disableMfa,
     elasticsearchServerConfig,
     enableAIBridgeTestMode,
     ensureAzurite,
@@ -166,6 +167,7 @@ export class PlaywrightExtended {
     readonly ensureOpenldap;
     readonly ensureOpensearch;
     readonly ensurePostgresSearch;
+    readonly disableMfa;
     readonly enableUserMfa;
     readonly ensureServerEnv;
     readonly ensureSiteUrl;
@@ -288,6 +290,7 @@ export class PlaywrightExtended {
         this.ensureOpenldap = ensureOpenldap;
         this.ensureOpensearch = ensureOpensearch;
         this.ensurePostgresSearch = ensurePostgresSearch;
+        this.disableMfa = disableMfa;
         this.enableUserMfa = enableUserMfa;
         this.ensureServerEnv = ensureServerEnv;
         this.ensureSiteUrl = ensureSiteUrl;

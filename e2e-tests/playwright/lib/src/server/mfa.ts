@@ -5,6 +5,10 @@ import {createHmac} from 'node:crypto';
 
 import type {Client4} from '@mattermost/client';
 
+import {runMmctlLocal} from './mmctl';
+
+import {testConfig} from '@/test_config';
+
 function base32Decode(secret: string): Buffer {
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
     const cleaned = secret.toUpperCase().replace(/[=+\s]/g, '');
@@ -43,4 +47,37 @@ export function generateTotp(secret: string, stepSeconds = 30): string {
 export async function enableUserMfa(adminClient: Client4, userId: string) {
     const {secret} = await adminClient.generateMfaSecret(userId);
     await adminClient.updateUserMfa(userId, true, generateTotp(secret));
+}
+
+/**
+ * Turns MFA off without depending on an admin API session. Enforcing MFA invalidates
+ * password login for unenrolled admins, so patchConfig cannot restore the server.
+ */
+export async function disableMfa(adminClient?: Client4): Promise<void> {
+    if (testConfig.mattermostContainerId) {
+        const enable = await runMmctlLocal([
+            'config',
+            'set',
+            'ServiceSettings.EnableMultifactorAuthentication',
+            'false',
+        ]);
+        const enforce = await runMmctlLocal([
+            'config',
+            'set',
+            'ServiceSettings.EnforceMultifactorAuthentication',
+            'false',
+        ]);
+        if (enable.exitCode !== 0 || enforce.exitCode !== 0) {
+            throw new Error(`Failed to disable MFA: ${enable.output} ${enforce.output}`);
+        }
+        return;
+    }
+
+    if (!adminClient) {
+        throw new Error('disableMfa requires a Mattermost container or an admin client.');
+    }
+
+    await adminClient.patchConfig({
+        ServiceSettings: {EnableMultifactorAuthentication: false, EnforceMultifactorAuthentication: false},
+    });
 }

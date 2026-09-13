@@ -17,9 +17,7 @@ test('hides MFA in Profile when multifactor authentication is disabled', {tag: '
 
     try {
         // # Disable MFA and open Profile -> Security
-        await adminClient.patchConfig({
-            ServiceSettings: {EnableMultifactorAuthentication: false, EnforceMultifactorAuthentication: false},
-        });
+        await pw.disableMfa(adminClient);
         const {channelsPage} = await pw.testBrowser.login(user);
         const profileModal = await channelsPage.openProfileModal();
         await profileModal.openSecurityTab();
@@ -27,9 +25,7 @@ test('hides MFA in Profile when multifactor authentication is disabled', {tag: '
         // * Verify the MFA section is not shown
         await expect(profileModal.securityTab.mfaHeading).toBeHidden();
     } finally {
-        await adminClient.patchConfig({
-            ServiceSettings: {EnableMultifactorAuthentication: false, EnforceMultifactorAuthentication: false},
-        });
+        await pw.disableMfa(adminClient);
     }
 });
 
@@ -57,9 +53,7 @@ test('shows MFA in Profile when multifactor authentication is enabled', {tag: '@
         // * Verify the MFA section is shown
         await expect(profileModal.securityTab.mfaHeading).toBeVisible();
     } finally {
-        await adminClient.patchConfig({
-            ServiceSettings: {EnableMultifactorAuthentication: false, EnforceMultifactorAuthentication: false},
-        });
+        await pw.disableMfa(adminClient);
     }
 });
 
@@ -92,8 +86,6 @@ test('logs in without an MFA prompt when MFA is not enforced', {tag: '@authentic
         await pw.mfaSetupPage.toBeHidden();
         await pw.selectTeamPage.toBeVisible();
     } finally {
-        await adminClient.patchConfig({
-            ServiceSettings: {EnableMultifactorAuthentication: false, EnforceMultifactorAuthentication: false},
-        });
+        await pw.disableMfa(adminClient);
     }
 });

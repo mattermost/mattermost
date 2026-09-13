@@ -33,9 +33,7 @@ test('sends an unenrolled user to MFA setup when MFA is enforced', {tag: '@authe
         // * Verify the MFA setup page is shown
         await pw.mfaSetupPage.toBeVisible();
     } finally {
-        await adminClient.patchConfig({
-            ServiceSettings: {EnableMultifactorAuthentication: false, EnforceMultifactorAuthentication: false},
-        });
+        await pw.disableMfa(adminClient);
     }
 });
 
@@ -76,9 +74,7 @@ test('lets an admin remove MFA from an enrolled user', {tag: '@authentication'},
         await pw.mfaSetupPage.toBeHidden();
         await pw.selectTeamPage.toBeVisible();
     } finally {
-        await adminClient.patchConfig({
-            ServiceSettings: {EnableMultifactorAuthentication: false, EnforceMultifactorAuthentication: false},
-        });
+        await pw.disableMfa(adminClient);
     }
 });
 
@@ -110,8 +106,6 @@ test('hides Remove MFA for a user who has not enrolled', {tag: '@authentication'
         // * Verify Remove MFA is not offered
         await actions.expectRemoveMfaHidden();
     } finally {
-        await adminClient.patchConfig({
-            ServiceSettings: {EnableMultifactorAuthentication: false, EnforceMultifactorAuthentication: false},
-        });
+        await pw.disableMfa(adminClient);
     }
 });
