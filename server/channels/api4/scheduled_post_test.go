@@ -11,6 +11,8 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/stretchr/testify/require"
 )
 
@@ -440,6 +442,128 @@ func TestCreateScheduledPost(t *testing.T) {
 				}
 			})
 		}
+	})
+}
+
+func TestCreateScheduledPostABACEnforcement(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+	}).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+	client := th.Client
+
+	// The channel upload_file permission check runs before ABAC, so the user must already be
+	// able to upload for this to reach the gate under test.
+	mockUploadDecision := func(t *testing.T, allowed bool) {
+		t.Helper()
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Action == model.AccessControlPolicyActionUploadFileAttachment
+		})).Return(model.AccessDecision{Decision: allowed}, (*model.AppError)(nil))
+
+		original := th.App.Srv().Channels().AccessControl
+		th.App.Srv().Channels().AccessControl = mockACS
+		t.Cleanup(func() {
+			th.App.Srv().Channels().AccessControl = original
+		})
+	}
+
+	uploadFile := func(t *testing.T) string {
+		t.Helper()
+		fileResp, resp, err := client.UploadFile(context.Background(), []byte("test file data"), th.BasicChannel.Id, "test-file.txt")
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		return fileResp.FileInfos[0].Id
+	}
+
+	t.Run("scheduling a post with files is rejected when the policy denies the upload action", func(t *testing.T) {
+		fileId := uploadFile(t)
+		mockUploadDecision(t, false)
+
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "scheduled post blocked by ABAC",
+				FileIds:   model.StringArray{fileId},
+			},
+			ScheduledAt: model.GetMillis() + 100000,
+		}
+		created, resp, err := client.CreateScheduledPost(context.Background(), scheduledPost)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.file.upload_file.abac_denied.app_error")
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+		require.Nil(t, created)
+	})
+
+	t.Run("scheduling a post with files succeeds when the policy allows the upload action", func(t *testing.T) {
+		fileId := uploadFile(t)
+		mockUploadDecision(t, true)
+
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "scheduled post allowed by ABAC",
+				FileIds:   model.StringArray{fileId},
+			},
+			ScheduledAt: model.GetMillis() + 100000,
+		}
+		created, _, err := client.CreateScheduledPost(context.Background(), scheduledPost)
+		require.NoError(t, err)
+		require.NotNil(t, created)
+	})
+
+	t.Run("scheduling a post with files is unaffected when ABAC is disabled (regression)", func(t *testing.T) {
+		fileId := uploadFile(t)
+		mockUploadDecision(t, false)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(false)
+		})
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+			})
+		})
+
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "scheduled post with file, ABAC disabled",
+				FileIds:   model.StringArray{fileId},
+			},
+			ScheduledAt: model.GetMillis() + 100000,
+		}
+		created, _, err := client.CreateScheduledPost(context.Background(), scheduledPost)
+		require.NoError(t, err)
+		require.NotNil(t, created)
+	})
+
+	t.Run("scheduling a post without files is unaffected by a denying policy", func(t *testing.T) {
+		mockUploadDecision(t, false)
+
+		scheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "scheduled post without files",
+			},
+			ScheduledAt: model.GetMillis() + 100000,
+		}
+		created, _, err := client.CreateScheduledPost(context.Background(), scheduledPost)
+		require.NoError(t, err)
+		require.NotNil(t, created)
 	})
 }
 

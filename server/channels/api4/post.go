@@ -93,6 +93,10 @@ func createPostChecks(where string, c *Context, post *model.Post) {
 			c.SetPermissionError(model.PermissionUploadFile)
 			return
 		}
+		if !c.App.HasPermissionToFileAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, post.ChannelId, model.AccessControlPolicyActionUploadFileAttachment) {
+			c.Err = model.NewAppError(where, "api.file.upload_file.abac_denied.app_error", nil, "", http.StatusForbidden)
+			return
+		}
 	}
 
 	postHardenedModeCheckWithContext(where, c, post.GetProps())
