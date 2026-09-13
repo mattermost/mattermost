@@ -432,6 +432,7 @@ jobs:
           environment-metadata: ${{ steps.environment-metadata.outputs.metadata }}
       - name: ci/upload-debug-artifacts
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: playwright-full-${{ inputs.server_edition }}-debug-${{ matrix.worker_index }}

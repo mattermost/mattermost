@@ -70,3 +70,12 @@ test('manual runs use the scope-selected server image without a PR-number overri
     assert.doesNotMatch(workflow, /ci\/select-demo-image/);
     assert.doesNotMatch(workflow, /PR_NUMBER" = "[0-9]+"/);
 });
+
+test('optional debug artifact upload cannot turn completed test reports red', () => {
+    for (const file of ['e2e-tests-cypress-template.yml', 'e2e-tests-playwright-template.yml']) {
+        const workflow = readFileSync(new URL(`../workflows/${file}`, import.meta.url), 'utf8');
+        const step = workflow.match(/      - name: ci\/upload-debug-artifacts\n[\s\S]*?(?=\n      - name:|\n  report:)/)?.[0];
+        assert.ok(step, `${file} debug artifact step must exist`);
+        assert.match(step, /\n        continue-on-error: true\n/);
+    }
+});
