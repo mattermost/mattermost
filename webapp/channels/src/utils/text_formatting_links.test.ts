@@ -187,6 +187,141 @@ describe('Markdown.Links', () => {
         );
     });
 
+    it('Links with deeply nested parentheses', () => {
+        const godboltUrl =
+            "https://godbolt.org/#g:!((g:!((g:!((h:codeEditor,i:(filename:'1',fontScale:15,lang:c%2B%2B,selection:(endColumn:2,endLineNumber:26),source:'%23include+%3Cmeta%3E'))";
+        const escapedUrl = godboltUrl.replace(/'/g, '&#39;');
+        const expectedLink =
+            '<a class="theme markdown__link" href="' +
+            escapedUrl +
+            '" rel="noreferrer" target="_blank">' +
+            escapedUrl +
+            '</a>';
+
+        expect(Markdown.format(godboltUrl).trim()).toBe(
+            '<p>' + expectedLink + '</p>',
+        );
+        expect(Markdown.format('<' + godboltUrl + '>').trim()).toBe(
+            '<p>' + expectedLink + '</p>',
+        );
+
+        const decodedGodboltUrl =
+            "https://godbolt.org/#g:!((g:!((source:'#include+<meta>'))";
+        const escapedDecodedUrl = decodedGodboltUrl.
+            replace(/'/g, '&#39;').
+            replace(/</g, '&lt;').
+            replace(/>/g, '&gt;');
+        const expectedDecodedLink =
+            '<a class="theme markdown__link" href="' +
+            escapedDecodedUrl +
+            '" rel="noreferrer" target="_blank">' +
+            escapedDecodedUrl +
+            '</a>';
+
+        expect(Markdown.format(decodedGodboltUrl).trim()).toBe(
+            '<p>' + expectedDecodedLink + '</p>',
+        );
+    });
+
+    it('stops autolink at HTML tags adjacent to host', () => {
+        const expected =
+            '<a class="theme markdown__link" href="http://www.example.com" rel="noreferrer" target="_blank">www.example.com</a>';
+
+        expect(Markdown.format('www.example.com</b>').trim()).toBe(
+            '<p>' + expected + '&lt;/b&gt;</p>',
+        );
+        expect(Markdown.format('www.example.com<b>bold</b>').trim()).toBe(
+            '<p>' + expected + '&lt;b&gt;bold&lt;/b&gt;</p>',
+        );
+        expect(Markdown.format('We use www2.example.com</b>').trim()).toBe(
+            '<p>We use <a class="theme markdown__link" href="http://www2.example.com" rel="noreferrer" target="_blank">www2.example.com</a>&lt;/b&gt;</p>',
+        );
+    });
+
+    it('keeps angle brackets inside autolinked URL path', () => {
+        const url = 'https://godbolt.org/#include+<meta>';
+        const escaped = url.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const expected =
+            '<a class="theme markdown__link" href="' +
+            escaped +
+            '" rel="noreferrer" target="_blank">' +
+            escaped +
+            '</a>';
+
+        expect(Markdown.format(url).trim()).toBe('<p>' + expected + '</p>');
+    });
+
+    it('stops autolink at HTML tag after URL path', () => {
+        const expected =
+            '<a class="theme markdown__link" href="http://www.example.com/path" rel="noreferrer" target="_blank">www.example.com/path</a>';
+
+        expect(Markdown.format('www.example.com/path<b>bold</b>').trim()).toBe(
+            '<p>' + expected + '&lt;b&gt;bold&lt;/b&gt;</p>',
+        );
+    });
+
+    it('stops autolink at self-closing and attributed HTML tags after URL path', () => {
+        const expected =
+            '<a class="theme markdown__link" href="http://www.example.com/path" rel="noreferrer" target="_blank">www.example.com/path</a>';
+
+        expect(Markdown.format('www.example.com/path<br/>').trim()).toBe(
+            '<p>' + expected + '&lt;br/&gt;</p>',
+        );
+        expect(Markdown.format('www.example.com/path<br />').trim()).toBe(
+            '<p>' + expected + '&lt;br /&gt;</p>',
+        );
+        expect(Markdown.format('www.example.com/path<b class="x">bold</b>').trim()).toBe(
+            '<p>' + expected + '&lt;b class=&quot;x&quot;&gt;bold&lt;/b&gt;</p>',
+        );
+    });
+
+    it('autolinks full godbolt share URL', () => {
+        const godboltUrl =
+            "https://godbolt.org/#g:!((g:!((g:!((h:codeEditor,i:(filename:'1',fontScale:15,fontUsePx:'0',j:2,lang:c%2B%2B,selection:(endColumn:2,endLineNumber:26,positionColumn:2,positionLineNumber:26,selectionStartColumn:2,selectionStartLineNumber:26,startColumn:2,startLineNumber:26),source:'%23include+%3Cmeta%3E%0A%23include+%3Cprint%3E%0A%23include+%3Cspan%3E%0A%23include+%3Carray%3E%0Anamespace+meta+%3D+std::meta%3B%0A%0Aenum+ShapeKind+%7B%0A++CIRCLE,%0A++TRIANGLE,%0A++RECTANGLE,%0A%7D%3B%0A%0Atemplate%3Ctypename+E%3E%0Aconstexpr+std::string_view+to_string(E+value)+%7B%0A++template+for+(constexpr+auto+e+:%0A++++++++++++++++std::define_static_array(meta::enumerators_of(%5E%5EE)))%0A++++if+(value+%3D%3D+%5B:e:%5D)%0A++++++return+meta::identifier_of(e)%3B%0A++return+%22%3Cunknown%3E%22%3B%0A%7D%0A%0Aint+main()+%7B%0A++++std::println(%22%7B%7D%22,+to_string(ShapeKind::CIRCLE))%3B%0A++++std::println(%22%7B%7D%22,+to_string(ShapeKind::TRIANGLE))%3B%0A++++std::println(%22%7B%7D%22,+to_string(ShapeKind::RECTANGLE))%3B%0A%7D'),l:'5',n:'0',o:'C%2B%2B+source+%232',t:'0')),header:(),k:50,l:'4',n:'0',o:'',s:0,t:'0'),(g:!((h:executor,i:(argsPanelShown:'1',compilationPanelShown:'0',compiler:g161,compilerName:'',compilerOutShown:'0',execArgs:'',execStdin:'',fontScale:14,fontUsePx:'0',j:1,lang:c%2B%2B,libs:!(),options:'-std%3Dc%2B%2B26+-freflection',overrides:!(),runtimeTools:!(),source:2,stdinPanelShown:'1',wrap:'1'),l:'5',n:'0',o:'Executor+x86-64+gcc+16.1+(C%2B%2B,+Editor+%232)',t:'0')),k:50,l:'4',n:'0',o:'',s:0,t:'0')),l:'2',n:'0',o:'',t:'0')),version:4";
+        const html = Markdown.format(godboltUrl).trim();
+        const href = html.match(/href="([^"]+)"/)?.[1] ?? '';
+
+        expect(href).toContain('version:4');
+        expect(href).toContain('%3Cmeta%3E');
+    });
+
+    it('stops autolink at CJK punctuation', () => {
+        const expected =
+            '<a class="theme markdown__link" href="https://mattermost.com/" rel="noreferrer" target="_blank">https://mattermost.com/</a>';
+
+        expect(
+            Markdown.format('https://mattermost.com/，這是第二個網址。').trim(),
+        ).toBe('<p>' + expected + '，這是第二個網址。</p>');
+    });
+
+    it('does not continue autolink across a blank line', () => {
+        const url = 'https://example.com/foo';
+        const expected =
+            '<a class="theme markdown__link" href="' +
+            url +
+            '" rel="noreferrer" target="_blank">' +
+            url +
+            '</a>';
+
+        expect(Markdown.format(url + '\n\nnext paragraph').trim()).toBe(
+            '<p>' + expected + '</p>\n<p>next paragraph</p>',
+        );
+    });
+
+    it('stops autolink at newline before following text', () => {
+        const url = 'https://example.com/foo';
+        const expected =
+            '<a class="theme markdown__link" href="' +
+            url +
+            '" rel="noreferrer" target="_blank">' +
+            url +
+            '</a>';
+
+        expect(Markdown.format(url + '\nmore text').trim()).toBe(
+            '<p>' + expected + '\nmore text</p>',
+        );
+    });
+
     it('Email addresses', () => {
         expect(Markdown.format('test@example.com').trim()).toBe(
             '<p><a class="theme" href="mailto:test@example.com" rel="noreferrer" target="_blank">test@example.com</a></p>',
