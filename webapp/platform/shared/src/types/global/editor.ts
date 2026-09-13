@@ -55,7 +55,7 @@ export type WysiwygEditorProps = {
 };
 
 export type SuggestionListProps = {
-    inputRef?: RefObject<HTMLDivElement>;
+    inputRef?: RefObject<HTMLDivElement | null>;
     open: boolean;
     position?: 'top' | 'bottom';
     renderNoResults?: boolean;

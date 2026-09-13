@@ -24,7 +24,7 @@ export type Props = {
     group: GroupValue;
     isSelected: boolean;
     rowSelected: string;
-    selectedItemRef: React.RefObject<HTMLDivElement>;
+    selectedItemRef: React.RefObject<HTMLDivElement | null>;
     onMouseMove: (group: GroupValue) => void;
     addUserProfile: (profile: UserProfileValue) => void;
 };

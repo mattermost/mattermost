@@ -28,7 +28,7 @@ type State = {
 
 export default class ShowMore extends React.PureComponent<Props, State> {
     private maxHeight: number;
-    private textContainer: React.RefObject<HTMLDivElement>;
+    private textContainer: React.RefObject<HTMLDivElement | null>;
     private overflowRef?: number;
 
     constructor(props: Props) {

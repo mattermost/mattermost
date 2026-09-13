@@ -33,7 +33,7 @@ type Props = {
      * Ref to a menu node rendered outside this wrapper in the DOM (e.g. through a portal). Clicks and
      * focus changes inside it are treated as inside the menu so it isn't closed prematurely.
      */
-    portalNodeRef?: React.RefObject<HTMLElement>;
+    portalNodeRef?: React.RefObject<HTMLElement | null>;
 };
 
 type State = {
@@ -44,7 +44,7 @@ type State = {
  * @deprecated Use the "webapp/channels/src/components/menu" instead.
  */
 export default class MenuWrapper extends React.PureComponent<Props, State> {
-    private node: React.RefObject<HTMLDivElement>;
+    private node: React.RefObject<HTMLDivElement | null>;
 
     public static defaultProps = {
         className: '',

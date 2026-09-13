@@ -86,6 +86,9 @@ describe('Collapsed Reply Threads', () => {
         // # Go to the ‘Threads’ view on Team A
         cy.uiGetSidebarThreadsButton().click();
 
+        // * Wait for the view to mount, since that is what records threads as the team's last viewed type
+        cy.get('.GlobalThreads').should('be.visible');
+
         // # Switch to Team B
         cy.get(`#${teamB.name}TeamButton`, {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').click();
 

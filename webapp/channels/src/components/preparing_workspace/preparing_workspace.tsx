@@ -94,7 +94,7 @@ const PreparingWorkspace = ({
 
     const config = useSelector(getConfig);
     const pluginsEnabled = config.PluginsEnabled === 'true';
-    const showOnMountTimeout = useRef<NodeJS.Timeout>();
+    const showOnMountTimeout = useRef<NodeJS.Timeout>(undefined);
     const configSiteUrl = config.SiteURL;
     const isConfigSiteUrlDefault = Boolean(config.SiteURL && config.SiteURL === Constants.DEFAULT_SITE_URL);
     const isSelfHosted = useSelector(getLicense).Cloud !== 'true';

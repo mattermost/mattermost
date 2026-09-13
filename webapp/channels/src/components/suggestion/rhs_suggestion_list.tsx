@@ -11,7 +11,7 @@ import Constants from 'utils/constants';
 import SuggestionList from './suggestion_list';
 
 type Props = React.ComponentProps<typeof SuggestionList> & {
-    inputRef: React.RefObject<HTMLTextAreaElement>;
+    inputRef: React.RefObject<HTMLTextAreaElement | null>;
     open: boolean;
 };
 

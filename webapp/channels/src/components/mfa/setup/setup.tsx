@@ -36,7 +36,7 @@ type State = {
 };
 
 export default class Setup extends React.PureComponent<Props, State> {
-    input: React.RefObject<HTMLInputElement>;
+    input: React.RefObject<HTMLInputElement | null>;
 
     public constructor(props: Props) {
         super(props);

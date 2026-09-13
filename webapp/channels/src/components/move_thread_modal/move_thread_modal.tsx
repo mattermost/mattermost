@@ -74,7 +74,7 @@ const MoveThreadModal = ({onExited, post, actions}: Props) => {
     const [selectedChannel, setSelectedChannel] = useState<ChannelOption>();
     const [isButtonClicked, setIsButtonClicked] = useState<boolean>(false);
 
-    const bodyRef = useRef<HTMLDivElement>();
+    const bodyRef = useRef<HTMLDivElement>(undefined);
 
     const measuredRef = useCallback((node: HTMLDivElement) => {
         if (node !== null) {

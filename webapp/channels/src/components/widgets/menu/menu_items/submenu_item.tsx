@@ -70,7 +70,7 @@ type State = {
  * @deprecated Use the "webapp/channels/src/components/menu" instead.
  */
 export class SubMenuItem extends React.PureComponent<Props, State> {
-    private node: React.RefObject<HTMLLIElement>;
+    private node: React.RefObject<HTMLLIElement | null>;
 
     public static defaultProps = {
         show: true,

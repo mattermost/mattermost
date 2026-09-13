@@ -516,7 +516,7 @@ type State = BaseState & {
     draggingUpload: boolean;
 };
 export class PluginManagement extends OLDAdminSettings<Props, State> {
-    private fileInput: React.RefObject<HTMLInputElement>;
+    private fileInput: React.RefObject<HTMLInputElement | null>;
     constructor(props: Props) {
         super(props);
 

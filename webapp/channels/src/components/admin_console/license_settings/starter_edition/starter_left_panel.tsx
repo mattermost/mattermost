@@ -16,7 +16,7 @@ export interface StarterEditionProps {
     openEELicenseModal: () => void;
     currentPlan: JSX.Element;
     upgradedFromTE: boolean;
-    fileInputRef: RefObject<HTMLInputElement>;
+    fileInputRef: RefObject<HTMLInputElement | null>;
     handleChange: () => void;
 }
 

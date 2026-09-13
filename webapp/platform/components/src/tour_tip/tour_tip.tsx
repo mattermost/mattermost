@@ -94,7 +94,7 @@ export const TourTip = ({
     tippyBlueStyle = false,
 }: Props) => {
     const FIRST_STEP_INDEX = 0;
-    const triggerRef = useRef(null);
+    const triggerRef = useRef<HTMLDivElement>(null);
     const onJump = (event: React.MouseEvent, jumpToStep: number) => {
         handleJump?.(event, jumpToStep);
     };
@@ -236,7 +236,7 @@ export const TourTip = ({
                     aria={{content: 'labelledby'}}
                     allowHTML={true}
                     zIndex={zIndex}
-                    reference={triggerRef}
+                    reference={triggerRef as React.RefObject<Element>}
                     interactive={true}
                     appendTo={rootPortal!}
                     offset={offset}
