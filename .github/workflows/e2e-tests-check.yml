@@ -105,10 +105,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
           IMAGE_TAG: ${{ steps.check.outputs.image_tag }}
         run: |
           echo "Triggering E2E tests for PR #${PR_NUMBER} with mattermostdevelopment/mattermost-enterprise-edition:${IMAGE_TAG}"
-          gh workflow run e2e-tests-ci.yml --field pr_number="${PR_NUMBER}"
+          # E2E-only changes must exercise their own workflow/test revision.
+          # These branch-sourced runs are validation evidence, never clearance authority.
+          gh workflow run e2e-tests-ci.yml --ref "${HEAD_REF}" --field pr_number="${PR_NUMBER}"
 
   # Every cross-repo `uses:` pin in the E2E workflows must name a commit that is
   # on that repository's default branch.

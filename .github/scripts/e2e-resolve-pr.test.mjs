@@ -79,3 +79,9 @@ test('optional debug artifact upload cannot turn completed test reports red', ()
         assert.match(step, /\n        continue-on-error: true\n/);
     }
 });
+
+test('E2E-only PR check dispatches the workflow from the exact tested branch', () => {
+    const workflow = readFileSync(new URL('../workflows/e2e-tests-check.yml', import.meta.url), 'utf8');
+    assert.match(workflow, /HEAD_REF: \$\{\{ github\.event\.pull_request\.head\.ref \}\}/);
+    assert.match(workflow, /gh workflow run e2e-tests-ci\.yml --ref "\$\{HEAD_REF\}" --field pr_number="\$\{PR_NUMBER\}"/);
+});
