@@ -25,6 +25,7 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
     const enablePostIconOverride = config.EnablePostIconOverride === 'true';
     const hookId = (new URLSearchParams(ownProps.location.search)).get('id') || '';
     const canBypassChannelLock = haveICurrentTeamPermission(state, Permissions.BYPASS_INCOMING_WEBHOOK_CHANNEL_LOCK);
+    const canManageOthersWebhooks = haveICurrentTeamPermission(state, Permissions.MANAGE_OTHERS_INCOMING_WEBHOOKS);
 
     return {
         hookId,
@@ -33,6 +34,7 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
         enablePostUsernameOverride,
         enablePostIconOverride,
         canBypassChannelLock,
+        canManageOthersWebhooks,
     };
 }
 

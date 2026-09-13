@@ -174,9 +174,35 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Reassigning the owner requires the "manage others" permission, and the new owner must be
+	// able to access the channel its posts are attributed to.
+	if updatedHook.UserId == "" {
+		updatedHook.UserId = oldHook.UserId
+	}
+	if updatedHook.UserId != oldHook.UserId {
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionManageOthersIncomingWebhooks) {
+			c.LogAudit("fail - inappropriate permissions")
+			c.SetPermissionError(model.PermissionManageOthersIncomingWebhooks)
+			return
+		}
+
+		var newOwner *model.User
+		newOwner, err = c.App.GetUser(updatedHook.UserId)
+		if err != nil {
+			c.Err = err
+			return
+		}
+
+		if appErr := c.App.ValidateIncomingWebhookUser(c.AppContext, *c.AppContext.Session(), newOwner, channel); appErr != nil {
+			c.LogAudit("fail - invalid webhook user")
+			c.Err = appErr
+			return
+		}
+	}
+
 	// Moving the hook must not attribute its owner's posts to a channel they cannot access.
 	if updatedHook.ChannelId != oldHook.ChannelId {
-		if appErr := c.App.ValidateIncomingWebhookUserChannelAccess(c.AppContext, oldHook.UserId, channel); appErr != nil {
+		if appErr := c.App.ValidateIncomingWebhookUserChannelAccess(c.AppContext, updatedHook.UserId, channel); appErr != nil {
 			c.LogAudit("fail - invalid webhook user")
 			c.Err = appErr
 			return
@@ -442,7 +468,22 @@ func updateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedHook.CreatorId = c.AppContext.Session().UserId
+	// Reassigning the owner requires the "manage others" permission and the new owner must exist.
+	if updatedHook.CreatorId == "" {
+		updatedHook.CreatorId = oldHook.CreatorId
+	}
+	if updatedHook.CreatorId != oldHook.CreatorId {
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), updatedHook.TeamId, model.PermissionManageOthersOutgoingWebhooks) {
+			c.LogAudit("fail - inappropriate permissions")
+			c.SetPermissionError(model.PermissionManageOthersOutgoingWebhooks)
+			return
+		}
+
+		if _, err = c.App.GetUser(updatedHook.CreatorId); err != nil {
+			c.Err = err
+			return
+		}
+	}
 
 	rhook, err := c.App.UpdateOutgoingWebhook(c.AppContext, oldHook, &updatedHook)
 	if err != nil {

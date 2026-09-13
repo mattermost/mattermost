@@ -53,9 +53,9 @@ var CreateIncomingWebhookCmd = &cobra.Command{
 var ModifyIncomingWebhookCmd = &cobra.Command{
 	Use:     "modify-incoming",
 	Short:   "Modify incoming webhook",
-	Long:    "Modify existing incoming webhook by changing its title, description, channel or icon url",
+	Long:    "Modify existing incoming webhook by changing its title, description, channel, icon url or owner",
 	Args:    cobra.ExactArgs(1),
-	Example: "  webhook modify-incoming [webhookID] --channel [channelID] --display-name [displayName] --description [webhookDescription] --lock-to-channel --icon [iconURL]",
+	Example: "  webhook modify-incoming [webhookID] --channel [channelID] --display-name [displayName] --description [webhookDescription] --lock-to-channel --icon [iconURL] --user [username]",
 	RunE:    withClient(modifyIncomingWebhookCmdF),
 }
 
@@ -71,9 +71,9 @@ var CreateOutgoingWebhookCmd = &cobra.Command{
 var ModifyOutgoingWebhookCmd = &cobra.Command{
 	Use:     "modify-outgoing",
 	Short:   "Modify outgoing webhook",
-	Long:    "Modify existing outgoing webhook by changing its title, description, channel, icon, url, content-type, and triggers",
+	Long:    "Modify existing outgoing webhook by changing its title, description, channel, icon, url, content-type, triggers, and owner",
 	Args:    cobra.ExactArgs(1),
-	Example: `  webhook modify-outgoing [webhookId] --channel [channelId] --display-name [displayName] --description "New webhook description" --icon http://localhost:8000/my-slash-handler-bot-icon.png --url http://localhost:8000/my-webhook-handler --content-type "application/json" --trigger-word test --trigger-when start`,
+	Example: `  webhook modify-outgoing [webhookId] --channel [channelId] --display-name [displayName] --description "New webhook description" --icon http://localhost:8000/my-slash-handler-bot-icon.png --url http://localhost:8000/my-webhook-handler --content-type "application/json" --trigger-word test --trigger-when start --user [username]`,
 	RunE:    withClient(modifyOutgoingWebhookCmdF),
 }
 
@@ -220,6 +220,16 @@ func modifyIncomingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 	if iconURL != "" {
 		updatedHook.IconURL = iconURL
 	}
+
+	userArg, _ := command.Flags().GetString("user")
+	if userArg != "" {
+		user := getUserFromUserArg(c, userArg)
+		if user == nil {
+			return errors.New("Unable to find user '" + userArg + "'")
+		}
+		updatedHook.UserId = user.Id
+	}
+
 	channelLocked, _ := command.Flags().GetBool("lock-to-channel")
 	updatedHook.ChannelLocked = channelLocked
 
@@ -371,6 +381,15 @@ func modifyOutgoingWebhookCmdF(c client.Client, command *cobra.Command, args []s
 		updatedHook.CallbackURLs = callbackURLs
 	}
 
+	userArg, _ := command.Flags().GetString("user")
+	if userArg != "" {
+		user := getUserFromUserArg(c, userArg)
+		if user == nil {
+			return errors.New("unable to find user '" + userArg + "'")
+		}
+		updatedHook.CreatorId = user.Id
+	}
+
 	var newHook *model.OutgoingWebhook
 	if newHook, _, err = c.UpdateOutgoingWebhook(context.TODO(), updatedHook); err != nil {
 		printer.PrintError("Unable to modify outgoing webhook")
@@ -440,6 +459,7 @@ func init() {
 	ModifyIncomingWebhookCmd.Flags().String("display-name", "", "Incoming webhook display name")
 	ModifyIncomingWebhookCmd.Flags().String("description", "", "Incoming webhook description")
 	ModifyIncomingWebhookCmd.Flags().String("icon", "", "Icon URL")
+	ModifyIncomingWebhookCmd.Flags().String("user", "", "User username, email, or ID to set as the webhook owner")
 	ModifyIncomingWebhookCmd.Flags().Bool("lock-to-channel", false, "Lock to channel")
 
 	CreateOutgoingWebhookCmd.Flags().String("team", "", "Team name or ID (required)")
@@ -466,6 +486,7 @@ func init() {
 	ModifyOutgoingWebhookCmd.Flags().String("icon", "", "Icon URL")
 	ModifyOutgoingWebhookCmd.Flags().StringArray("url", []string{}, "Callback URL")
 	ModifyOutgoingWebhookCmd.Flags().String("content-type", "", "Content-type")
+	ModifyOutgoingWebhookCmd.Flags().String("user", "", "User username, email, or ID to set as the webhook owner")
 
 	WebhookCmd.AddCommand(
 		ListWebhookCmd,

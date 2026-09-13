@@ -377,6 +377,91 @@ func (s *MmctlUnitTestSuite) TestModifyIncomingWebhookCmd() {
 		s.Require().Equal(&updatedIncomingWebhook, printer.GetLines()[0])
 	})
 
+	s.Run("Successfully modify incoming webhook owner", func() {
+		printer.Clean()
+
+		mockIncomingWebhook := model.IncomingWebhook{
+			Id:            incomingWebhookID,
+			ChannelId:     channelID,
+			Username:      userName,
+			DisplayName:   displayName,
+			ChannelLocked: false,
+			UserId:        "oldUserID",
+		}
+
+		newUserID := "newUserID"
+		newUserName := "newUserName"
+		mockUser := model.User{
+			Id:       newUserID,
+			Username: newUserName,
+		}
+
+		expectedHook := mockIncomingWebhook
+		expectedHook.UserId = newUserID
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("user", newUserName, "")
+
+		s.client.
+			EXPECT().
+			GetIncomingWebhook(context.TODO(), incomingWebhookID, "").
+			Return(&mockIncomingWebhook, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), newUserName, "").
+			Return(&mockUser, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateIncomingWebhook(context.TODO(), &expectedHook).
+			Return(&expectedHook, &model.Response{}, nil).
+			Times(1)
+
+		err := modifyIncomingWebhookCmdF(s.client, cmd, []string{incomingWebhookID})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Len(printer.GetErrorLines(), 0)
+		s.Require().Equal(newUserID, mockIncomingWebhook.UserId)
+	})
+
+	s.Run("modify incoming webhook with unknown owner errors", func() {
+		printer.Clean()
+
+		mockIncomingWebhook := model.IncomingWebhook{
+			Id:        incomingWebhookID,
+			ChannelId: channelID,
+			UserId:    "oldUserID",
+		}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().String("user", "unknownUser", "")
+
+		s.client.
+			EXPECT().
+			GetIncomingWebhook(context.TODO(), incomingWebhookID, "").
+			Return(&mockIncomingWebhook, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), "unknownUser", "").
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUser(context.TODO(), "unknownUser", "").
+			Return(nil, &model.Response{}, nil).
+			Times(1)
+
+		err := modifyIncomingWebhookCmdF(s.client, cmd, []string{incomingWebhookID})
+		s.Require().Error(err)
+		s.Len(printer.GetLines(), 0)
+	})
+
 	s.Run("modify incoming webhook errored", func() {
 		printer.Clean()
 
@@ -562,6 +647,57 @@ func (s *MmctlUnitTestSuite) TestModifyOutgoingWebhookCmd() {
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
 		s.Require().Equal(&updatedOutgoingWebhook, printer.GetLines()[0])
+	})
+
+	s.Run("Successfully modify outgoing webhook owner", func() {
+		printer.Clean()
+
+		mockOutgoingWebhook := model.OutgoingWebhook{
+			Id:           outgoingWebhookID,
+			TriggerWords: []string{},
+			CallbackURLs: []string{},
+			TriggerWhen:  0,
+			CreatorId:    "oldCreatorID",
+		}
+
+		newUserID := "newUserID"
+		newUserName := "newUserName"
+		mockUser := model.User{
+			Id:       newUserID,
+			Username: newUserName,
+		}
+
+		expectedHook := mockOutgoingWebhook
+		expectedHook.CreatorId = newUserID
+
+		cmd := &cobra.Command{}
+		cmd.Flags().StringArray("url", []string{}, "")
+		cmd.Flags().StringArray("trigger-word", []string{}, "")
+		cmd.Flags().String("user", newUserName, "")
+
+		s.client.
+			EXPECT().
+			GetOutgoingWebhook(context.TODO(), outgoingWebhookID).
+			Return(&mockOutgoingWebhook, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByUsername(context.TODO(), newUserName, "").
+			Return(&mockUser, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			UpdateOutgoingWebhook(context.TODO(), &expectedHook).
+			Return(&expectedHook, &model.Response{}, nil).
+			Times(1)
+
+		err := modifyOutgoingWebhookCmdF(s.client, cmd, []string{outgoingWebhookID})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Len(printer.GetErrorLines(), 0)
+		s.Require().Equal(newUserID, mockOutgoingWebhook.CreatorId)
 	})
 
 	s.Run("Modify outgoing webhook error", func() {

@@ -11,6 +11,7 @@ import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {IncomingWebhook} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
+import {UserSelector} from 'components/admin_console/content_flagging/user_multiselector/user_multiselector';
 import BackstageHeader from 'components/backstage/components/backstage_header';
 import ChannelSelect from 'components/channel_select';
 import FormError from 'components/form_error';
@@ -23,6 +24,7 @@ interface State {
     channelLocked: boolean;
     username: string;
     iconURL: string;
+    userId: string;
     saving: boolean;
     serverError: string;
     clientError: JSX.Element | null;
@@ -76,6 +78,11 @@ interface Props {
     canBypassChannelLock?: boolean;
 
     /**
+    * Whether the user can reassign the webhook to a different owner.
+    */
+    canManageOthersWebhooks?: boolean;
+
+    /**
     * The async function to run when the action button is pressed
     */
     action: (hook: IncomingWebhook) => Promise<void>;
@@ -96,6 +103,7 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
             channelLocked: hook?.channel_locked || false,
             username: hook?.username || '',
             iconURL: hook?.icon_url || '',
+            userId: hook?.user_id || '',
             saving: false,
             serverError: '',
             clientError: null,
@@ -141,7 +149,7 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
             update_at: this.props.initialHook?.update_at || 0,
             delete_at: this.props.initialHook?.delete_at || 0,
             team_id: this.props.initialHook?.team_id || '',
-            user_id: this.props.initialHook?.user_id || '',
+            user_id: this.state.userId || this.props.initialHook?.user_id || '',
             last_used: this.props.initialHook?.last_used || 0,
         };
 
@@ -182,6 +190,10 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
         this.setState({
             iconURL: e.target.value,
         });
+    };
+
+    updateUserId = (userId: string) => {
+        this.setState({userId});
     };
 
     render() {
@@ -287,6 +299,34 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
                                 </div>
                             </div>
                         </div>
+                        { this.props.canManageOthersWebhooks &&
+                            <div className='form-group'>
+                                <label
+                                    className='control-label col-sm-4'
+                                    htmlFor='ownerId'
+                                >
+                                    <FormattedMessage
+                                        id='add_incoming_webhook.owner'
+                                        defaultMessage='Owner'
+                                    />
+                                </label>
+                                <div className='col-md-5 col-sm-8'>
+                                    <UserSelector
+                                        id='ownerId'
+                                        isMulti={false}
+                                        showDropdownIndicator={true}
+                                        singleSelectInitialValue={this.state.userId}
+                                        singleSelectOnChange={this.updateUserId}
+                                    />
+                                    <div className='form__help'>
+                                        <FormattedMessage
+                                            id='add_incoming_webhook.owner.help'
+                                            defaultMessage='Specify the user this webhook posts as. Posts created by this webhook are attributed to the selected owner.'
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        }
                         { this.props.canBypassChannelLock &&
                             <div className='form-group'>
                                 <label
