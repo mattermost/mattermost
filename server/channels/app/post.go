@@ -1175,16 +1175,7 @@ func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, m
 // setupBroadcastHookForAbacFiles registers abacFilesBroadcastHook when ABAC is active and
 // the post has file attachments. Skipped for burn-on-read posts (handled by their own hook).
 func (a *App) setupBroadcastHookForAbacFiles(post *model.Post, message *model.WebSocketEvent) {
-	if a.Srv().Channels().AccessControl == nil {
-		return
-	}
-
-	cfg := a.Config().AccessControlSettings.EnableAttributeBasedAccessControl
-	if cfg == nil || !*cfg {
-		return
-	}
-
-	if !a.Config().FeatureFlags.PermissionPolicies {
+	if !a.abacFileActionsActive() {
 		return
 	}
 

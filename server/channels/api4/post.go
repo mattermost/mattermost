@@ -684,6 +684,7 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var posts = []*model.Post{}
 	isMemberForAllPosts := true
+	isMemberForAllPreviews := true
 	for _, post := range postsList {
 		channel, ok := channelMap[post.ChannelId]
 		if !ok {
@@ -698,6 +699,15 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		isMemberForAllPosts = isMemberForAllPosts && isMemberForCurrentPost
 
 		post = c.App.PreparePostForClient(c.AppContext, post, &model.PreparePostForClientOpts{IncludePriority: true})
+
+		sanitizedPost, isMemberForCurrentPreview, sanitizeErr := c.App.SanitizePostMetadataForUser(c.AppContext, post, c.AppContext.Session().UserId)
+		if sanitizeErr != nil {
+			c.Err = sanitizeErr
+			return
+		}
+		post = sanitizedPost
+		isMemberForAllPreviews = isMemberForAllPreviews && isMemberForCurrentPreview
+
 		post.StripActionIntegrations()
 		posts = append(posts, post)
 	}
@@ -714,8 +724,11 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "post_ids", postIDs)
 
-	if !isMemberForAllPosts {
+	if !isMemberForAllPosts || !isMemberForAllPreviews {
 		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
+		if !isMemberForAllPreviews {
+			model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access_on_previews", true)
+		}
 	}
 }
 
