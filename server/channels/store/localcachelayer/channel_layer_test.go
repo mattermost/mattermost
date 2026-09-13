@@ -556,6 +556,8 @@ func TestChannelStoreRemoveMemberInvalidatesCache(t *testing.T) {
 	cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, redisProvider, logger)
 	require.NoError(t, err)
 
+	cachedStore.Channel().InvalidateMemberCount("channel-cold")
+
 	rctx := request.TestContext(t)
 	err = cachedStore.Channel().RemoveMember(rctx, "channel-cold", "user1")
 	require.NoError(t, err)
