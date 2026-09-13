@@ -24,6 +24,7 @@ import SessionAttributes from '@/ui/components/system_console/sections/system_at
 import FeatureDiscovery from '@/ui/components/system_console/sections/system_users/feature_discovery';
 import PluginManagement from '@/ui/components/system_console/sections/plugins/plugin_management';
 import OpenIdConnect from '@/ui/components/system_console/sections/authentication/openid_connect';
+import AdLdap from '@/ui/components/system_console/sections/authentication/ad_ldap';
 import {testConfig} from '@/test_config';
 
 export default class SystemConsolePage {
@@ -67,6 +68,7 @@ export default class SystemConsolePage {
 
     // Authentication
     readonly openIdConnect: OpenIdConnect;
+    readonly adLdap: AdLdap;
 
     // Same page after logging out of the System Console
     readonly loginPage: LoginPage;
@@ -114,6 +116,7 @@ export default class SystemConsolePage {
 
         // Authentication
         this.openIdConnect = new OpenIdConnect(adminConsoleWrapper);
+        this.adLdap = new AdLdap(adminConsoleWrapper);
 
         this.loginPage = new LoginPage(page);
     }
@@ -151,6 +154,11 @@ export default class SystemConsolePage {
     async gotoUser(userId: string) {
         await this.page.goto(new URL(`/admin_console/user_management/user/${userId}`, testConfig.baseURL).href);
         await this.users.userDetail.toBeVisible();
+    }
+
+    async gotoAdLdap() {
+        await this.page.goto(new URL('/admin_console/authentication/ldap', testConfig.baseURL).href);
+        await this.adLdap.toBeVisible();
     }
 
     async logOut() {
