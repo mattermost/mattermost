@@ -43,6 +43,9 @@ export default class OpenIdConnect {
     }
 
     async fillButtonColor(hex: string) {
+        // ColorInput.onFocus selects past the leading '#', so a normal fill would
+        // produce "##c02222" and the widget would revert on blur.
+        await this.buttonColor.click({clickCount: 3});
         await this.buttonColor.fill(hex);
         await this.buttonColor.blur();
     }

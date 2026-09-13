@@ -39,6 +39,7 @@ test('saves Generic OpenID Connect settings and shows the login button', {tag: '
         const config = await adminClient.getConfig();
         expect(config.OpenIdSettings.Secret).toBe(FAKE_SETTING);
         expect(config.OpenIdSettings.Id).toBe('OpenIdId');
+        expect(config.OpenIdSettings.ButtonColor).toBe('#c02222');
         expect(config.OpenIdSettings.DiscoveryEndpoint).toBe('http://test.com/.well-known/openid-configuration');
 
         // # Log out of the System Console
