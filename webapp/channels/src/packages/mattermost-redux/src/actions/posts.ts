@@ -159,7 +159,7 @@ export function getPost(postId: string, includeDeleted?: boolean, retainContent?
         const crtEnabled = isCollapsedThreadsEnabled(getState());
 
         try {
-            post = await Client4.getPost(postId, includeDeleted, retainContent);
+            post = await Client4.getPost(postId, includeDeleted, retainContent, getPostPropertyGroups(getState()));
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch({type: PostTypes.GET_POSTS_FAILURE, error});
@@ -661,6 +661,7 @@ export function getPostThread(rootId: string, fetchThreads = true, lastUpdateAt 
         const options: FetchPaginatedThreadOptions = {
             fetchThreads,
             collapsedThreads: collapsedThreadsEnabled,
+            includePropertyGroups: getPostPropertyGroups(state),
         };
         if (lastUpdateAt !== 0) {
             options.updatesOnly = true;
@@ -703,6 +704,7 @@ export function getNewestPostThread(rootId: string): ActionFuncAsync {
             direction: 'down',
             fromCreateAt: latestReply?.create_at,
             fromPost: latestReply?.id,
+            includePropertyGroups: getPostPropertyGroups(getState()),
         };
 
         let posts;
@@ -794,7 +796,7 @@ export function getPostsSince(channelId: string, since: number, fetchThreads = t
         let posts;
         try {
             const collapsedThreadsEnabled = isCollapsedThreadsEnabled(getState());
-            posts = await Client4.getPostsSince(channelId, since, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended);
+            posts = await Client4.getPostsSince(channelId, since, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended, getPostPropertyGroups(getState()));
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -816,7 +818,7 @@ export function getPostsBefore(channelId: string, postId: string, page = 0, perP
         let posts;
         try {
             const collapsedThreadsEnabled = isCollapsedThreadsEnabled(getState());
-            posts = await Client4.getPostsBefore(channelId, postId, page, perPage, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended);
+            posts = await Client4.getPostsBefore(channelId, postId, page, perPage, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended, getPostPropertyGroups(getState()));
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -838,7 +840,7 @@ export function getPostsAfter(channelId: string, postId: string, page = 0, perPa
         let posts;
         try {
             const collapsedThreadsEnabled = isCollapsedThreadsEnabled(getState());
-            posts = await Client4.getPostsAfter(channelId, postId, page, perPage, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended);
+            posts = await Client4.getPostsAfter(channelId, postId, page, perPage, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended, getPostPropertyGroups(getState()));
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -863,10 +865,11 @@ export function getPostsAround(channelId: string, postId: string, perPage = Post
 
         try {
             const collapsedThreadsEnabled = isCollapsedThreadsEnabled(getState());
+            const propertyGroups = getPostPropertyGroups(getState());
             [after, thread, before] = await Promise.all([
-                Client4.getPostsAfter(channelId, postId, 0, perPage, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended),
-                Client4.getPostThread(postId, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended),
-                Client4.getPostsBefore(channelId, postId, 0, perPage, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended),
+                Client4.getPostsAfter(channelId, postId, 0, perPage, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended, propertyGroups),
+                Client4.getPostThread(postId, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended, propertyGroups),
+                Client4.getPostsBefore(channelId, postId, 0, perPage, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended, propertyGroups),
             ]);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
