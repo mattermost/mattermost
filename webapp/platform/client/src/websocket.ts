@@ -363,7 +363,7 @@ export default class WebSocketClient {
                 }
             } else if (this.eventCallback || this.messageListeners.size > 0) {
                 // We check the hello packet, which is always the first packet in a stream.
-                if (msg.event === WebSocketEvents.Hello && (this.missedEventCallback || this.missedMessageListeners.size > 0)) {
+                if (msg.event === WebSocketEvents.Hello) {
                     console.log('got connection id ', msg.data.connection_id); //eslint-disable-line no-console
                     // If we already have a connectionId present, and server sends a different one,
                     // that means it's either a long timeout, or server restart, or sequence number is not found.
