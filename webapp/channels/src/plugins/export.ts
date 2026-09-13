@@ -29,6 +29,7 @@ import ThreadViewer from 'components/threading/thread_viewer';
 import Timestamp from 'components/timestamp';
 import BotTag from 'components/widgets/tag/bot_tag';
 import Avatar from 'components/widgets/users/avatar';
+import Avatars from 'components/widgets/users/avatars';
 
 import {getHistory} from 'utils/browser_history';
 import {ModalIdentifiers} from 'utils/constants';
@@ -105,6 +106,7 @@ interface WindowWithLibraries {
         ChannelNotificationsModal: typeof ChannelNotificationsModal;
         EditChannelHeaderModal: typeof EditChannelHeaderModal;
         Avatar: typeof Avatar;
+        Avatars: typeof Avatars;
         imageURLForUser: typeof imageURLForUser;
         BotBadge: typeof BotTag;
         StartTrialFormModal: typeof StartTrialFormModal;
@@ -201,6 +203,7 @@ window.Components = {
     ChannelNotificationsModal,
     EditChannelHeaderModal,
     Avatar,
+    Avatars,
     imageURLForUser,
     BotBadge: BotTag,
     StartTrialFormModal,
