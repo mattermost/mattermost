@@ -29,6 +29,8 @@ type notificationType string
 type pushJWTClaims struct {
 	AckId    string `json:"ack_id"`
 	DeviceId string `json:"device_id"`
+	// set only for session wipe pushes; VerifyWipeSignature rejects signatures without it
+	UserId string `json:"user_id,omitempty"`
 	jwt.RegisteredClaims
 }
 

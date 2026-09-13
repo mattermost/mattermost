@@ -471,6 +471,8 @@ tags:
     description: Endpoints related to metrics, including the Client Performance Monitoring feature.
   - name: audit_logs
     description: Endpoints for managing audit log certificates and configuration.
+  - name: ephemeral mode
+    description: Endpoints for logging client-side ephemeral mode audit events.
   - name: recaps
     description: Endpoints for creating and managing AI-powered channel recaps that summarize unread messages.
   - name: scheduled recaps
