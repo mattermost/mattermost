@@ -35,9 +35,7 @@ test('saves GitLab OpenID Connect settings and shows the login button', {tag: '@
         const config = await adminClient.getConfig();
         expect(config.GitLabSettings.Secret).toBe(FAKE_SETTING);
         expect(config.GitLabSettings.Id).toBe('GitlabId');
-        expect(config.GitLabSettings.DiscoveryEndpoint).toBe(
-            'https://gitlab.com/.well-known/openid-configuration',
-        );
+        expect(config.GitLabSettings.DiscoveryEndpoint).toBe('https://gitlab.com/.well-known/openid-configuration');
 
         // # Log out of the System Console
         await systemConsolePage.logOut();
