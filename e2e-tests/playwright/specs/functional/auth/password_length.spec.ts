@@ -97,10 +97,10 @@ test('resets Minimum password length to the default after clearing it', {tag: '@
         await systemConsolePage.passwordSettings.save();
         await systemConsolePage.passwordSettings.reload();
 
-        // * Verify the saved value is no longer the custom length
+        // * Verify the saved value reset independently of the custom length
         const resetLength = (await adminClient.getConfig()).PasswordSettings.MinimumLength;
-        expect(resetLength).not.toBe(customLength);
-        await expect(systemConsolePage.passwordSettings.minimumLength).toHaveValue(String(resetLength));
+        expect(resetLength).toBe(originalMinimumLength);
+        await expect(systemConsolePage.passwordSettings.minimumLength).toHaveValue(String(originalMinimumLength));
     } finally {
         await adminClient.patchConfig({PasswordSettings: {MinimumLength: originalMinimumLength}});
     }
