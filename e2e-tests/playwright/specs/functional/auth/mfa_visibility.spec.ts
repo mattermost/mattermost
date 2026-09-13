@@ -13,12 +13,14 @@ test('hides MFA in Profile when multifactor authentication is disabled', {tag: '
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
 
-    const {user, adminClient} = await pw.initSetup();
+    const {user, adminClient, team} = await pw.initSetup();
 
     try {
         // # Disable MFA and open Profile -> Security
         await pw.disableMfa(adminClient);
         const {channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name);
+        await channelsPage.toBeVisible();
         const profileModal = await channelsPage.openProfileModal();
         await profileModal.openSecurityTab();
 
@@ -39,7 +41,7 @@ test('shows MFA in Profile when multifactor authentication is enabled', {tag: '@
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
 
-    const {user, adminClient} = await pw.initSetup();
+    const {user, adminClient, team} = await pw.initSetup();
 
     try {
         // # Enable MFA and open Profile -> Security
@@ -47,6 +49,8 @@ test('shows MFA in Profile when multifactor authentication is enabled', {tag: '@
             ServiceSettings: {EnableMultifactorAuthentication: true, EnforceMultifactorAuthentication: false},
         });
         const {channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name);
+        await channelsPage.toBeVisible();
         const profileModal = await channelsPage.openProfileModal();
         await profileModal.openSecurityTab();
 
