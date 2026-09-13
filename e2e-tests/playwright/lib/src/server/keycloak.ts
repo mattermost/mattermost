@@ -9,6 +9,8 @@ import {
     KEYCLOAK_ADMIN_PASSWORD,
     KEYCLOAK_ADMIN_USER,
     KEYCLOAK_ALIAS,
+    KEYCLOAK_OPENID_CLIENT_ID,
+    KEYCLOAK_OPENID_CLIENT_SECRET,
     KEYCLOAK_PORT,
     KEYCLOAK_REALM,
 } from '../containers/constants';
@@ -16,6 +18,7 @@ import {
 import {getAdminClient} from './init';
 
 import {testConfig} from '@/test_config';
+import {getRandomId} from '@/util';
 
 export type KeycloakUser = {
     username: string;
@@ -24,6 +27,18 @@ export type KeycloakUser = {
     lastName: string;
     password: string;
 };
+
+/** Generates a directory-only Keycloak user's fields - createKeycloakUser() still creates it. */
+export function generateKeycloakUser(prefix = 'user'): KeycloakUser {
+    const randomId = getRandomId();
+    return {
+        username: `${prefix}${randomId}`,
+        email: `${prefix}${randomId}@mmtest.com`,
+        firstName: `Firstname-${randomId}`,
+        lastName: `Lastname-${randomId}`,
+        password: 'Password1',
+    };
+}
 
 async function getAdminToken(): Promise<string> {
     const response = await fetch(`${testConfig.keycloakUrl}/realms/master/protocol/openid-connect/token`, {
@@ -71,6 +86,19 @@ export async function createKeycloakUser(user: KeycloakUser): Promise<string> {
     return userId;
 }
 
+/** Disables the Keycloak user (`enabled: false`), so Keycloak itself refuses further logins. */
+export async function suspendKeycloakUser(userId: string): Promise<void> {
+    const token = await getAdminToken();
+    const response = await fetch(`${testConfig.keycloakUrl}/admin/realms/${KEYCLOAK_REALM}/users/${userId}`, {
+        method: 'PUT',
+        headers: {Authorization: `Bearer ${token}`, 'Content-Type': 'application/json'},
+        body: JSON.stringify({enabled: false}),
+    });
+    if (!response.ok) {
+        throw new Error(`Failed to suspend Keycloak user: ${response.status} ${await response.text()}`);
+    }
+}
+
 export async function deleteKeycloakUser(userId: string): Promise<void> {
     const token = await getAdminToken();
     const response = await fetch(`${testConfig.keycloakUrl}/admin/realms/${KEYCLOAK_REALM}/users/${userId}`, {
@@ -90,7 +118,7 @@ const SAML_SERVICE_PROVIDER_ID = 'mattermost';
 // which the browser follows directly and so must be reachable from the host instead. Only the
 // certificate from this response is used; its embedded URLs reflect the alias host, not the one
 // the browser needs.
-function keycloakSamlDescriptorUrl(): string {
+export function keycloakSamlDescriptorUrl(): string {
     return `http://${KEYCLOAK_ALIAS}:${KEYCLOAK_PORT}/realms/${KEYCLOAK_REALM}/protocol/saml/descriptor`;
 }
 
@@ -117,6 +145,9 @@ export async function samlServerConfig(adminClient: Client4): Promise<Partial<Ad
         Verify: true,
         Encrypt: false,
         SignRequest: false,
+        // Reset explicitly: a prior test (e.g. saml_ldap_sync.spec.ts) may have turned this on,
+        // and with it on a SAML user absent from LDAP fails to log in at all.
+        EnableSyncWithLdap: false,
         IdpURL: `${testConfig.keycloakUrl}/realms/${KEYCLOAK_REALM}/protocol/saml`,
         IdpDescriptorURL: `${testConfig.keycloakUrl}/realms/${KEYCLOAK_REALM}`,
         ServiceProviderIdentifier: SAML_SERVICE_PROVIDER_ID,
@@ -147,5 +178,86 @@ export async function ensureKeycloak(): Promise<void> {
         await adminClient.patchConfig({SamlSettings: config});
     } catch (error) {
         test.skip(true, `Skipping test - Keycloak SAML setup failed: ${String(error)}`);
+    }
+}
+
+/**
+ * Fixes the realm's issuer identity to the host-reachable Keycloak URL, regardless of which
+ * hostname (host-mapped or Testcontainers alias) a given request actually arrived on.
+ *
+ * Keycloak (KC_HOSTNAME_STRICT=false) otherwise ties an access token's validity to whichever
+ * hostname received the request that issued it. AuthEndpoint below is host-reachable (so the
+ * OpenID button works the same for a real browser as it does for Playwright's), but
+ * TokenEndpoint/UserAPIEndpoint must dial the Testcontainers alias, since only that address is
+ * reachable from inside the server's own container - without a fixed issuer, that hostname
+ * mismatch would make the server's userinfo call fail with `invalid_token` even though the token
+ * exchange itself succeeds.
+ */
+async function ensureKeycloakRealmFrontendUrl(): Promise<void> {
+    const token = await getAdminToken();
+    const realmUrl = `${testConfig.keycloakUrl}/admin/realms/${KEYCLOAK_REALM}`;
+
+    const response = await fetch(realmUrl, {headers: {Authorization: `Bearer ${token}`}});
+    if (!response.ok) {
+        throw new Error(`Failed to read Keycloak realm: ${response.status} ${await response.text()}`);
+    }
+    const realm = await response.json();
+
+    if (realm.attributes?.frontendUrl === testConfig.keycloakUrl) {
+        return;
+    }
+
+    realm.attributes = {...realm.attributes, frontendUrl: testConfig.keycloakUrl};
+    const putResponse = await fetch(realmUrl, {
+        method: 'PUT',
+        headers: {Authorization: `Bearer ${token}`, 'Content-Type': 'application/json'},
+        body: JSON.stringify(realm),
+    });
+    if (!putResponse.ok) {
+        throw new Error(`Failed to set Keycloak realm frontend URL: ${putResponse.status} ${await putResponse.text()}`);
+    }
+}
+
+/**
+ * Points the server at the `mattermost-openid` client already provisioned in
+ * keycloak-realm-export.json. AuthEndpoint is browser-facing - any browser, not just
+ * Playwright's, can reach it and start the login - while TokenEndpoint/UserAPIEndpoint are
+ * called by the server itself, so they use the Testcontainers network alias instead (see
+ * ensureKeycloakRealmFrontendUrl() for why that hostname difference doesn't break token
+ * validation). DiscoveryEndpoint is left empty on purpose: when set, the server resolves
+ * endpoints from it instead of the explicit ones above, server-side, which would bypass this
+ * split entirely.
+ */
+export function openidServerConfig(): Partial<AdminConfig['OpenIdSettings']> {
+    return {
+        Enable: true,
+        Id: KEYCLOAK_OPENID_CLIENT_ID,
+        Secret: KEYCLOAK_OPENID_CLIENT_SECRET,
+        Scope: 'openid profile email',
+        AuthEndpoint: `${testConfig.keycloakUrl}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/auth`,
+        TokenEndpoint: `http://${KEYCLOAK_ALIAS}:${KEYCLOAK_PORT}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token`,
+        UserAPIEndpoint: `http://${KEYCLOAK_ALIAS}:${KEYCLOAK_PORT}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/userinfo`,
+        DiscoveryEndpoint: '',
+        ButtonText: 'Keycloak OpenID',
+        UsePreferredUsername: true,
+    };
+}
+
+/**
+ * Checks Keycloak was started this run, points the server's OpenID settings at it, and skips the
+ * test if either step fails, instead of failing on an unmet precondition.
+ */
+export async function ensureKeycloakOpenId(): Promise<void> {
+    if (!testConfig.testcontainersServices.includes('keycloak')) {
+        test.skip(true, 'Skipping test - keycloak not started (set PW_TESTCONTAINERS_SERVICES=keycloak)');
+        return;
+    }
+
+    try {
+        await ensureKeycloakRealmFrontendUrl();
+        const {adminClient} = await getAdminClient();
+        await adminClient.patchConfig({OpenIdSettings: openidServerConfig()});
+    } catch (error) {
+        test.skip(true, `Skipping test - Keycloak OpenID setup failed: ${String(error)}`);
     }
 }
