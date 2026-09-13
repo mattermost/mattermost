@@ -24,6 +24,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
+	eMocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/mocks"
 )
@@ -4868,7 +4869,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 	require.Nil(t, err2)
 
 	t.Run("should return the edit history", func(t *testing.T) {
-		edits, err := th.App.GetEditHistoryForPost(post.Id)
+		edits, err := th.App.GetEditHistoryForPost(th.Context, post.Id)
 		require.Nil(t, err)
 
 		require.Len(t, edits, 2)
@@ -4877,7 +4878,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 	})
 
 	t.Run("should return an error if the post is not found", func(t *testing.T) {
-		edits, err := th.App.GetEditHistoryForPost("invalid-post-id")
+		edits, err := th.App.GetEditHistoryForPost(th.Context, "invalid-post-id")
 		require.NotNil(t, err)
 		require.Empty(t, edits)
 	})
@@ -4915,7 +4916,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 		_, _, appErr = th.App.PatchPost(th.Context, post.Id, patch, nil)
 		require.Nil(t, appErr)
 
-		edits, err := th.App.GetEditHistoryForPost(post.Id)
+		edits, err := th.App.GetEditHistoryForPost(th.Context, post.Id)
 		require.Nil(t, err)
 
 		require.Len(t, edits, 3)
@@ -4965,7 +4966,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 		_, err := th.App.Srv().Store().FileInfo().DeleteForPost(th.Context, post.Id)
 		require.NoError(t, err)
 
-		edits, appErr := th.App.GetEditHistoryForPost(post.Id)
+		edits, appErr := th.App.GetEditHistoryForPost(th.Context, post.Id)
 		require.Nil(t, appErr)
 
 		require.Len(t, edits, 3)
@@ -4976,6 +4977,70 @@ func TestGetEditHistoryForPost(t *testing.T) {
 			require.Len(t, edit.Metadata.Files, 1)
 			require.Equal(t, fileInfo.Id, edit.Metadata.Files[0].Id)
 			require.Greater(t, edit.Metadata.Files[0].DeleteAt, int64(0))
+		}
+	})
+}
+
+func TestGetEditHistoryForPostABACRedaction(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+	}).InitBasic(t)
+
+	fileInfo, appErr := th.App.UploadFile(th.Context, []byte("file contents"), th.BasicChannel.Id, "file.txt")
+	require.Nil(t, appErr)
+
+	post := &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		Message:   "message with an attachment",
+		UserId:    th.BasicUser.Id,
+		FileIds:   model.StringArray{fileInfo.Id},
+	}
+	_, _, appErr = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
+
+	_, _, appErr = th.App.PatchPost(th.Context, post.Id, &model.PostPatch{Message: new("edited")}, nil)
+	require.Nil(t, appErr)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+	})
+
+	mockACS := &eMocks.AccessControlServiceInterface{}
+	originalACS := th.App.Srv().ch.AccessControl
+	th.App.Srv().ch.AccessControl = mockACS
+	t.Cleanup(func() { th.App.Srv().ch.AccessControl = originalACS })
+
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+		Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
+
+	rctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id, Roles: th.BasicUser.Roles})
+
+	t.Run("redacts attachments for a reader denied the download action", func(t *testing.T) {
+		edits, appErr := th.App.GetEditHistoryForPost(rctx, post.Id)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, edits)
+
+		for _, edit := range edits {
+			require.Empty(t, edit.Metadata.Files)
+			require.Empty(t, edit.FileIds)
+			require.Equal(t, 1, edit.Metadata.RedactedFileCount)
+		}
+	})
+
+	// Content flagging deletes and reports on this data on the system's behalf rather than
+	// serving it to a reader, so it must keep the attachments regardless of the acting
+	// reviewer's own download policy.
+	t.Run("keeps attachments for content flagging", func(t *testing.T) {
+		edits, appErr := th.App.getEditHistoryForPostUnrestricted(rctx, post.Id)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, edits)
+
+		for _, edit := range edits {
+			require.Len(t, edit.Metadata.Files, 1)
+			require.Equal(t, fileInfo.Id, edit.Metadata.Files[0].Id)
+			require.Equal(t, model.StringArray{fileInfo.Id}, edit.FileIds)
+			require.Zero(t, edit.Metadata.RedactedFileCount)
 		}
 	})
 }
@@ -5548,7 +5613,7 @@ func TestPopulateEditHistoryFileMetadata(t *testing.T) {
 			post.FileIds = model.StringArray{fileInfo2.Id}
 		})
 
-		appErr := th.App.populateEditHistoryFileMetadata([]*model.Post{post1, post2})
+		appErr := th.App.populateEditHistoryFileMetadata(th.Context, []*model.Post{post1, post2}, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
 		require.Len(t, post1.Metadata.Files, 1)
@@ -5587,7 +5652,7 @@ func TestPopulateEditHistoryFileMetadata(t *testing.T) {
 		_, appErr = th.App.DeletePost(th.Context, post2.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
-		appErr = th.App.populateEditHistoryFileMetadata([]*model.Post{post1, post2})
+		appErr = th.App.populateEditHistoryFileMetadata(th.Context, []*model.Post{post1, post2}, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
 		require.Len(t, post1.Metadata.Files, 1)
@@ -5626,7 +5691,7 @@ func TestPopulateEditHistoryFileMetadata(t *testing.T) {
 		_, err = th.App.Srv().Store().FileInfo().DeleteForPost(th.Context, post2.Id)
 		require.NoError(t, err)
 
-		appErr := th.App.populateEditHistoryFileMetadata([]*model.Post{post1, post2})
+		appErr := th.App.populateEditHistoryFileMetadata(th.Context, []*model.Post{post1, post2}, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
 		require.Len(t, post1.Metadata.Files, 1)

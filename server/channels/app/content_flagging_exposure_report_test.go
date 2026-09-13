@@ -405,7 +405,7 @@ func TestComputePostExposure(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, patched)
 
-		history, appErr := th.App.GetEditHistoryForPost(post.Id)
+		history, appErr := th.App.GetEditHistoryForPost(th.Context, post.Id)
 		require.Nil(t, appErr)
 		require.NotEmpty(t, history)
 
