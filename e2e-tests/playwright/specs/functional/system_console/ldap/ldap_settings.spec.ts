@@ -12,9 +12,8 @@ import {expect, test} from '@mattermost/playwright-lib';
 test('AD/LDAP test connection succeeds against the configured directory', {tag: '@ldap'}, async ({pw}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
-    await pw.ensureOpenldap();
-
     const {adminUser} = await pw.initSetup();
+    await pw.ensureOpenldap();
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Open AD/LDAP settings and test the connection
@@ -35,9 +34,8 @@ test('AD/LDAP test connection succeeds against the configured directory', {tag: 
 test('requires Username Attribute before saving AD/LDAP settings', {tag: '@ldap'}, async ({pw}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
-    await pw.ensureOpenldap();
-
     const {adminUser, adminClient} = await pw.initSetup();
+    await pw.ensureOpenldap();
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     try {
@@ -67,9 +65,8 @@ test('requires Username Attribute before saving AD/LDAP settings', {tag: '@ldap'
 test('requires Login ID Attribute before saving AD/LDAP settings', {tag: '@ldap'}, async ({pw}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
-    await pw.ensureOpenldap();
-
     const {adminUser, adminClient} = await pw.initSetup();
+    await pw.ensureOpenldap();
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     try {
