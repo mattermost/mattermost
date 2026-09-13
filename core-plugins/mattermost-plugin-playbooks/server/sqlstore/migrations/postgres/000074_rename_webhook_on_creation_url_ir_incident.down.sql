@@ -1,0 +1,1 @@
+ALTER TABLE IR_Incident RENAME COLUMN ConcatenatedWebhookOnCreationURLs TO WebhookOnCreationURL;

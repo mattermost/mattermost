@@ -1,0 +1,234 @@
+[
+    {
+        "id": "app.user.digest.tasks.num_assigned",
+        "translation": {
+            "one": "Du hast eine zugewiesene Aufgabe:",
+            "other": "Du hast insgesamt {{.Count}} zugewiesene Aufgaben:"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.zero_assigned",
+        "translation": "Du hast keine zugewiesene Aufgabe."
+    },
+    {
+        "id": "app.user.digest.tasks.num_assigned_due_until_today",
+        "translation": {
+            "one": "Du hast eine zugewiesene Aufgabe, die jetzt fällig ist:",
+            "other": "Du hast {{.Count}} zugewiesene Aufgaben, die jetzt fällig sind:"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.heading",
+        "translation": "Deine zugewiesenen Aufgaben"
+    },
+    {
+        "id": "app.user.digest.tasks.due_yesterday",
+        "translation": "Gestern fällig"
+    },
+    {
+        "id": "app.user.digest.tasks.due_x_days_ago",
+        "translation": "Fällig vor {{.Count}} Tagen"
+    },
+    {
+        "id": "app.user.digest.tasks.due_today",
+        "translation": "Fällig heute"
+    },
+    {
+        "id": "app.user.digest.tasks.due_in_x_days",
+        "translation": {
+            "one": "Fällig morgen",
+            "other": "Fällig in {{.Count}} Tagen"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.due_after_today",
+        "translation": {
+            "one": "Du hast **eine zugewiesene Aufgabe, die nach dem heutige Tag fällig ist**.",
+            "other": "Du hast **{{.Count}} zugewiesene Aufgaben, die nach dem heutige Tag fällig sind**."
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.all_tasks_command",
+        "translation": "Bitte benutze `/playbook todo` um alle deine Aufgaben anzuzeigen."
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.zero_in_progress",
+        "translation": "Du hast keinen aktiven Durchlauf."
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.num_in_progress",
+        "translation": {
+            "one": "Du hast einen aktiven Durchlauf:",
+            "other": "Du hast {{.Count}} aktive Durchläufe:"
+        }
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.heading",
+        "translation": "Aktive Durchläufe"
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.zero_overdue",
+        "translation": "Du hast keine überfälligen Durchläufe."
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.num_overdue",
+        "translation": {
+            "one": "Du hast einen überfälligen Durchlauf für einen Statusaktualisierung:",
+            "other": "Du hast {{.Count}} überfällige Durchläufe für einen Statusaktualisierung:"
+        }
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.heading",
+        "translation": "Überfällige Statusaktualisierungen"
+    },
+    {
+        "id": "app.command.execute.error",
+        "translation": "Kann Befehl nicht ausführen."
+    },
+    {
+        "id": "app.user.run.request_update",
+        "translation": "@here — @{{.Name}} hat eine Statusaktualisierung für [{{.RunName}}]({{.RunURL}}) angefordert. \n"
+    },
+    {
+        "id": "app.user.run.request_get_involved",
+        "translation": "@here - @{{.Name}} möchten an diesem Durchlauf teilnehmen. Um sie als Teilnehmer hinzuzufügen, füge sie bitte diesem Kanal hinzu.\n"
+    },
+    {
+        "id": "app.user.run.retro_publish",
+        "translation": "@{{.Name}} hat eine Retrospektive veröffentlicht\n[Ganze Retrospektive ansehen]({{.URL}})\n"
+    },
+    {
+        "id": "app.user.run.joined_run_channel_private_participate",
+        "translation": "@{{.Name}} nimmt am Durchlauf teil. @{{.Name}} wurde nicht automatisch zu diesem privaten Kanal hinzugefügt, aber jedes Mitglied kann @{{.Name}} hinzufügen.\n"
+    },
+    {
+        "id": "app.user.run.joined_run_channel_private_add_participant",
+        "translation": "@{{.Name}} wurde zum Durchlauf von @{{.RequesterName}} hinzugefügt. @{{.Name}} wurde nicht zum Kanal hinzugefügt, da @{{.RequesterName}} kein Mitglied des privaten Kanals ist.\n"
+    },
+    {
+        "id": "app.user.run.request_join_channel",
+        "translation": "@{{.Name}} ist ein Teilnehmer und möchte diesem Kanal beitreten. Jedes Mitglied des Kanals kann ihn einladen.\n"
+    },
+    {
+        "id": "app.user.run.status_enable",
+        "translation": "@{{.Username}} hat die Statusaktualisierungen für [{{.RunName}}]({{.RunURL}}) aktiviert"
+    },
+    {
+        "id": "app.user.run.status_disable",
+        "translation": "@{{.Username}} hat die Statusaktualisierungen für [{{.RunName}}]({{.RunURL}}) deaktiviert"
+    },
+    {
+        "id": "app.user.run.update_status.title",
+        "translation": "Statusaktualisierung"
+    },
+    {
+        "id": "app.user.run.update_status.submit_label",
+        "translation": "Nachricht"
+    },
+    {
+        "id": "app.user.run.update_status.reminder_for_next_update",
+        "translation": "Erinnerung an das nächste Update"
+    },
+    {
+        "id": "app.user.run.update_status.num_channel",
+        "translation": {
+            "one": "Bringe die Beteiligten auf den neuesten Stand. Dieser Beitrag wird in einem Kanal veröffentlicht.",
+            "other": "Bringe die Beteiligten auf den neuesten Stand. Dieser Beitrag wird in {{.Count}} Kanälen veröffentlicht."
+        }
+    },
+    {
+        "id": "app.user.run.update_status.finish_run.placeholder",
+        "translation": "Markiere den Durchlauf auch als beendet"
+    },
+    {
+        "id": "app.user.run.update_status.finish_run",
+        "translation": "Durchlauf beenden"
+    },
+    {
+        "id": "app.user.run.update_status.change_since_last_update",
+        "translation": "Änderung seit der letzten Aktualisierung"
+    },
+    {
+        "id": "app.user.run.confirm_finish.title",
+        "translation": "Beenden des Durchlaufs bestätigen"
+    },
+    {
+        "id": "app.user.run.confirm_finish.submit_label",
+        "translation": "Durchlauf beenden"
+    },
+    {
+        "id": "app.user.run.confirm_finish.num_outstanding",
+        "translation": {
+            "one": "Es gibt eine **{{.Count}} offene Aufgabe**. Bist du sicher, dass du den Durchlauf *{{.RunName}}* für alle Teilnehmer beenden willst?",
+            "other": "Es gibt **{{.Count}} offene Aufgaben**. Bist du sicher, dass du den Durchlauf *{{.RunName}}* für alle Teilnehmer beenden willst?"
+        }
+    },
+    {
+        "id": "app.user.run.add_to_timeline.title",
+        "translation": "Zur Zeitleiste hinzufügen"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary.placeholder",
+        "translation": "Kurze Zusammenfassung auf der Zeitachse"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary.help",
+        "translation": "Max. 64 Zeichen"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary",
+        "translation": "Zusammenfassung"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.submit_label",
+        "translation": "Zur Zeitleiste hinzufügen"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.playbook_run",
+        "translation": "Playbook-Durchlauf"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.title",
+        "translation": "Neue Aufgabe hinzufügen"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.submit_label",
+        "translation": "Aufgabe hinzufügen"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.name",
+        "translation": "Name"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.description",
+        "translation": "Beschreibung"
+    },
+    {
+        "id": "app.user.new_run.title",
+        "translation": "Playbook starten"
+    },
+    {
+        "id": "app.user.new_run.submit_label",
+        "translation": "Starte Durchlauf"
+    },
+    {
+        "id": "app.user.new_run.run_name",
+        "translation": "Durchlaufname"
+    },
+    {
+        "id": "app.user.new_run.playbook",
+        "translation": "Playbook"
+    },
+    {
+        "id": "app.user.new_run.new_playbook",
+        "translation": "[Klicke hier]({{.RunURL}}), um dein eigenes Playbook zu erstellen."
+    },
+    {
+        "id": "app.user.new_run.intro",
+        "translation": "**Eigentümer** {{.Username}}"
+    },
+    {
+        "id": "playbooks.checklist.condition.reason.modified",
+        "translation": "angezeigt, weil die Aufgabe geändert wurde"
+    }
+]

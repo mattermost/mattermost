@@ -1,0 +1,542 @@
+name: ci
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+  schedule:
+    - cron: "0 03 * * 1-6" # Daily at 03:00 UTC from Monday through Saturday.
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  TERM: xterm
+  IS_NOT_FORK: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
+
+jobs:
+  go:
+    name: Compute Go Version
+    runs-on: ubuntu-22.04
+    outputs:
+      version: ${{ steps.calculate.outputs.GO_VERSION }}
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: "0"
+      - name: Calculate version
+        id: calculate
+        run: echo GO_VERSION=$(grep -E '^go [0-9]+\.[0-9]+' go.mod | cut -d' ' -f2) >> "${GITHUB_OUTPUT}"
+
+  lint:
+    runs-on: ubuntu-22.04
+    needs:
+      - go
+    container:
+      image: mattermostdevelopment/mattermost-build-server:${{ needs.go.outputs.version }}
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: "0"
+
+      - name: ci/configure-git-safe-directory
+        run: git config --global --add safe.directory $GITHUB_WORKSPACE
+
+      - name: ci/cache-node-modules
+        id: cache-node-modules
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: |
+            webapp/node_modules
+            e2e-tests/node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('webapp/package-lock.json') }}-${{ hashFiles('e2e-tests/package-lock.json') }}
+          restore-keys: ${{ runner.os }}-node-modules-${{ hashFiles('webapp/package-lock.json') }}-${{ hashFiles('e2e-tests/package-lock.json') }}
+
+      - name: ci/setup-webapp-npm-deps
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        env:
+          NODE_ENV: development
+        run: |
+          cd webapp
+          npm install --ignore-scripts --no-save --legacy-peer-deps
+
+      - name: ci/setup-e2e-npm-deps
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        env:
+          NODE_ENV: development
+        run: |
+          cd e2e-tests
+          npm install --ignore-scripts --no-save --legacy-peer-deps
+
+      - name: ci/checking-code-style
+        run: make check-style
+
+      - name: ci/go-tidy
+        run: go mod tidy -v
+
+      - name: ci/check-diff-on-gomod
+        run: git --no-pager diff --exit-code go.mod go.sum || (echo "Please run \"go mod tidy\" and commit the changes in go.mod and go.sum." && exit 1)
+
+      - name: ci/run-make-apply
+        run: make apply
+
+      - name: ci/check-diff-on-generated-manifest-files
+        run: git --no-pager diff --exit-code *manifest.* || (echo "Please run \"make apply\" and commit the changes in the generated manifests." && exit 1)
+
+      - name: ci/run-make-i18n-extract-webapp
+        run: make i18n-extract-webapp
+
+      - name: ci/check-diff-on-webapp-i18n-files
+        run: git --no-pager diff --exit-code webapp/i18n/en.json || (echo "Please run \"make i18n-extract\" and commit the changes in webapp/i18n/en.json." && exit 1)
+
+      - name: ci/run-make-graphql
+        run: make graphql
+
+      - name: ci/check-diff-on-webapp-graphql-generated-files
+        run: git --no-pager diff --exit-code webapp/src/graphql/generated/ || (echo "Please run \"make graphql\" and commit the changes." && exit 1)
+
+  dist:
+    runs-on: ubuntu-22.04
+    needs:
+      - go
+      - lint
+    container:
+      image: mattermostdevelopment/mattermost-build-server:${{ needs.go.outputs.version }}
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: "0"
+      - name: ci/configure-git-safe-directory
+        run: git config --global --add safe.directory $GITHUB_WORKSPACE
+      - name: ci/get-short-sha
+        id: short-sha
+        run: echo "sha=$(echo ${{ github.event.pull_request.head.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
+      - name: ci/build-for-upload
+        run: make dist
+      - name: ci/upload-build-artifact
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: playbooks-bundle-${{ steps.short-sha.outputs.sha }}
+          path: |
+            dist/playbooks-*.tar.gz
+          retention-days: 7 ## No need to keep build artifacts for more than 7 days
+      - name: ci/ensure-build-on-all-platforms ## Verify builds on all platforms *after* ci/build-for-upload to keep artifact small
+        run: make dist
+
+  dist-fips:
+    # Skip FIPS testing for forks, which won't have docker login credentials.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-22.04
+    needs:
+      - go
+      - lint
+    container:
+      image: mattermostdevelopment/mattermost-build-server-fips:${{ needs.go.outputs.version }}
+      credentials:
+        username: ${{ secrets.DOCKERHUB_DEV_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_DEV_TOKEN }}
+    env:
+      FIPS_ENABLED: true
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: "0"
+      - name: ci/configure-git-safe-directory
+        run: git config --global --add safe.directory $GITHUB_WORKSPACE
+      - name: ci/get-short-sha
+        id: short-sha
+        run: echo "sha=$(echo ${{ github.event.pull_request.head.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
+      - name: ci/build-for-upload
+        run: make dist
+      - name: ci/upload-build-artifact
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: playbooks-bundle-fips-${{ steps.short-sha.outputs.sha }}
+          path: |
+            dist/playbooks-*.tar.gz
+          retention-days: 7 ## No need to keep build artifacts for more than 7 days
+      - name: ci/ensure-build-on-all-platforms ## Verify builds on all platforms *after* ci/build-for-upload to keep artifact small
+        run: make dist
+
+  upload:
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-22.04
+    needs:
+      - dist
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: "0"
+      - name: ci/get-short-sha
+        id: short-sha
+        run: echo "sha=$(echo ${{ github.event.pull_request.head.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
+      - name: ci/download-build-artifact
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: playbooks-bundle-${{ steps.short-sha.outputs.sha }}
+          path: dist
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Upload dist to S3
+        run: |
+          aws s3 cp dist/playbooks-*.tar.gz s3://${{ secrets.AWS_S3_BUCKET }}/mattermost-plugin-playbooks/mattermost-plugin-playbooks-${{ steps.short-sha.outputs.sha }}.tar.gz
+
+  upload-fips:
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-22.04
+    needs:
+      - dist-fips
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: "0"
+      - name: ci/get-short-sha
+        id: short-sha
+        run: echo "sha=$(echo ${{ github.event.pull_request.head.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
+      - name: ci/download-build-artifact-fips
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: playbooks-bundle-fips-${{ steps.short-sha.outputs.sha }}
+          path: dist-fips
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Upload dist-fips to S3
+        run: |
+          aws s3 cp dist-fips/playbooks-*.tar.gz s3://${{ secrets.AWS_S3_BUCKET }}/mattermost-plugin-playbooks/mattermost-plugin-playbooks-fips-${{ steps.short-sha.outputs.sha }}.tar.gz
+
+  test:
+    runs-on: ubuntu-22.04
+    needs:
+      - lint
+      - go
+    container:
+      image: mattermostdevelopment/mattermost-build-server:${{ needs.go.outputs.version }}
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: mmuser
+          POSTGRES_DB: mattermost_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: "0"
+
+      - name: ci/configure-git-safe-directory
+        run: git config --global --add safe.directory $GITHUB_WORKSPACE
+
+      - name: ci/test-with-db
+        uses: ./.github/actions/test-with-db
+
+  test-fips:
+    # Skip FIPS testing for forks, which won't have docker login credentials.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-22.04
+    needs:
+      - lint
+      - go
+    container:
+      image: mattermostdevelopment/mattermost-build-server-fips:${{ needs.go.outputs.version }}
+      credentials:
+        username: ${{ secrets.DOCKERHUB_DEV_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_DEV_TOKEN }}
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: mmuser
+          POSTGRES_DB: mattermost_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: "0"
+
+      - name: ci/configure-git-safe-directory
+        run: git config --global --add safe.directory $GITHUB_WORKSPACE
+
+      - name: ci/test-with-db
+        uses: ./.github/actions/test-with-db
+
+  generate-specs:
+    runs-on: ubuntu-22.04
+    outputs:
+      specs: ${{ steps.generate-specs.outputs.specs }}
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: ci/generate-specs
+        id: generate-specs
+        uses: ./.github/actions/generate-specs
+        with:
+          parallelism: 3
+          directory: e2e-tests
+          search_path: tests/integration
+
+  e2e-cypress-tests:
+    runs-on: ubuntu-22.04
+    needs:
+      - go
+      - lint
+      - generate-specs
+      - dist
+    name: e2e-cypress-tests-run-${{ matrix.runId }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.generate-specs.outputs.specs) }}
+    services:
+      postgres:
+        image: postgres:15.3
+        env:
+          POSTGRES_USER: mmuser
+          POSTGRES_PASSWORD: mostest
+          POSTGRES_DB: mattermost_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      minio:
+        image: minio/minio:RELEASE.2019-10-11T00-38-09Z
+        env:
+          MINIO_ACCESS_KEY: minioaccesskey
+          MINIO_SECRET_KEY: miniosecretkey
+          MINIO_SSE_MASTER_KEY: "my-minio-key:6368616e676520746869732070617373776f726420746f206120736563726574"
+      inbucket:
+        image: mattermost/inbucket:release-1.2.0
+        ports:
+          - 10080:10080
+          - 10110:10110
+          - 10025:10025
+      elasticsearch:
+        image: mattermost/mattermost-elasticsearch-docker:7.0.0
+        env:
+          http.host: "0.0.0.0"
+          http.port: 9200
+          http.cors.enabled: "true"
+          http.cors.allow-origin: "http://localhost:1358,http://127.0.0.1:1358"
+          http.cors.allow-headers: "X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization"
+          http.cors.allow-credentials: "true"
+          transport.host: "127.0.0.1"
+          ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+        ports:
+          - 9200:9200
+      mattermost-server:
+        image: mattermostdevelopment/mattermost-enterprise-edition:master
+        env:
+          DB_HOST: postgres
+          DB_PORT_NUMBER: 5432
+          MM_DBNAME: mattermost_test
+          MM_USERNAME: mmuser
+          MM_PASSWORD: mostest
+          CI_INBUCKET_HOST: inbucket
+          CI_INBUCKET_PORT: 10080
+          CI_MINIO_HOST: minio
+          IS_CI: true
+          MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
+          MM_CLUSTERSETTINGS_READONLYCONFIG: false
+          MM_EMAILSETTINGS_SMTPSERVER: inbucket
+          MM_EMAILSETTINGS_SMTPPORT: 10025
+          MM_ELASTICSEARCHSETTINGS_CONNECTIONURL: http://elasticsearch:9200
+          MM_EXPERIMENTALSETTINGS_USENEWSAMLLIBRARY: true
+          MM_SQLSETTINGS_DATASOURCE: "postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10"
+          MM_SQLSETTINGS_DRIVERNAME: postgres
+          MM_PLUGINSETTINGS_ENABLEUPLOADS: true
+          MM_SERVICESETTINGS_SITEURL: http://localhost:8065
+          MM_PLUGINSETTINGS_AUTOMATICPREPACKAGEDPLUGINS: true
+          MM_ANNOUNCEMENTSETTINGS_ADMINNOTICESENABLED: false
+          MM_SERVICESETTINGS_ENABLELEGACYSIDEBAR: true
+          MM_TEAMSETTINGS_MAXUSERSPERTEAM: 10000
+          MM_SERVICESETTINGS_ENABLEONBOARDINGFLOW: false
+          MM_SERVICEENVIRONMENT: test
+          MM_SERVICESETTINGS_EXPERIMENTALSTRICTCSRFENFORCEMENT: false
+          MM_SERVICESETTINGS_STRICTCSRFENFORCEMENT: false
+        ports:
+          - 8065:8065
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: "0"
+
+      - name: ci/get-short-sha
+        id: short-sha
+        run: echo "sha=$(echo ${{ github.event.pull_request.head.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
+
+      - name: ci/download-build-artifact
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: playbooks-bundle-${{ steps.short-sha.outputs.sha }}
+          path: dist
+
+      - name: ci/e2e-test
+        uses: ./.github/actions/e2e-test
+        with:
+          CYPRESS_serverEdition: E20
+          SPECS: ${{ matrix.specs }}
+
+  e2e-cypress-tests-fips:
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-22.04
+    needs:
+      - go
+      - lint
+      - generate-specs
+      - dist-fips
+    name: e2e-cypress-tests-fips-run-${{ matrix.runId }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.generate-specs.outputs.specs) }}
+    services:
+      postgres:
+        image: postgres:15.3
+        env:
+          POSTGRES_USER: mmuser
+          POSTGRES_PASSWORD: mostest
+          POSTGRES_DB: mattermost_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      minio:
+        image: minio/minio:RELEASE.2019-10-11T00-38-09Z
+        env:
+          MINIO_ACCESS_KEY: minioaccesskey
+          MINIO_SECRET_KEY: miniosecretkey
+          MINIO_SSE_MASTER_KEY: "my-minio-key:6368616e676520746869732070617373776f726420746f206120736563726574"
+      inbucket:
+        image: mattermost/inbucket:release-1.2.0
+        ports:
+          - 10080:10080
+          - 10110:10110
+          - 10025:10025
+      elasticsearch:
+        image: mattermost/mattermost-elasticsearch-docker:7.0.0
+        env:
+          http.host: "0.0.0.0"
+          http.port: 9200
+          http.cors.enabled: "true"
+          http.cors.allow-origin: "http://localhost:1358,http://127.0.0.1:1358"
+          http.cors.allow-headers: "X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization"
+          http.cors.allow-credentials: "true"
+          transport.host: "127.0.0.1"
+          ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+        ports:
+          - 9200:9200
+      mattermost-server:
+        image: mattermostdevelopment/mattermost-enterprise-fips-edition:master
+        env:
+          DB_HOST: postgres
+          DB_PORT_NUMBER: 5432
+          MM_DBNAME: mattermost_test
+          MM_USERNAME: mmuser
+          MM_PASSWORD: mostest
+          CI_INBUCKET_HOST: inbucket
+          CI_INBUCKET_PORT: 10080
+          CI_MINIO_HOST: minio
+          IS_CI: true
+          MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
+          MM_CLUSTERSETTINGS_READONLYCONFIG: false
+          MM_EMAILSETTINGS_SMTPSERVER: inbucket
+          MM_EMAILSETTINGS_SMTPPORT: 10025
+          MM_ELASTICSEARCHSETTINGS_CONNECTIONURL: http://elasticsearch:9200
+          MM_EXPERIMENTALSETTINGS_USENEWSAMLLIBRARY: true
+          MM_SQLSETTINGS_DATASOURCE: "postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10"
+          MM_SQLSETTINGS_DRIVERNAME: postgres
+          MM_PLUGINSETTINGS_ENABLEUPLOADS: true
+          MM_SERVICESETTINGS_SITEURL: http://localhost:8065
+          MM_PLUGINSETTINGS_AUTOMATICPREPACKAGEDPLUGINS: true
+          MM_ANNOUNCEMENTSETTINGS_ADMINNOTICESENABLED: false
+          MM_SERVICESETTINGS_ENABLELEGACYSIDEBAR: true
+          MM_TEAMSETTINGS_MAXUSERSPERTEAM: 10000
+          MM_SERVICESETTINGS_ENABLEONBOARDINGFLOW: false
+          MM_SERVICEENVIRONMENT: test
+          MM_SERVICESETTINGS_EXPERIMENTALSTRICTCSRFENFORCEMENT: false
+          MM_SERVICESETTINGS_STRICTCSRFENFORCEMENT: false
+        ports:
+          - 8065:8065
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: "0"
+
+      - name: ci/get-short-sha
+        id: short-sha
+        run: echo "sha=$(echo ${{ github.event.pull_request.head.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
+
+      - name: ci/download-build-artifact
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: playbooks-bundle-fips-${{ steps.short-sha.outputs.sha }}
+          path: dist
+
+      - name: ci/e2e-test
+        uses: ./.github/actions/e2e-test
+        with:
+          CYPRESS_serverEdition: E20
+          SPECS: ${{ matrix.specs }}
+          ARTIFACT_SUFFIX: -fips
+
+  report-test-results:
+    if: always() && github.event.pull_request.head.repo.full_name == github.repository
+    needs:
+      - e2e-cypress-tests
+      - e2e-cypress-tests-fips
+      - test
+      - test-fips
+    runs-on: ubuntu-22.04
+    permissions:
+      checks: write
+    steps:
+      - name: ci/checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: ci/download-test-results
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+      - name: ci/publish-results
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+        run: python3 .github/scripts/junit_report.py

@@ -1,0 +1,250 @@
+[
+    {
+        "id": "app.user.digest.tasks.zero_outstanding",
+        "translation": "Imaš 0 neobavljenih zadataka."
+    },
+    {
+        "id": "app.user.digest.tasks.num_outstanding",
+        "translation": {
+            "one": "Imaš {{.Count}} neobavljeni zadatak:",
+            "few": "Imaš {{.Count}} neobavljena zadatka:",
+            "other": "Imaš {{.Count}} neobavljenih zadataka:"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.heading",
+        "translation": "Tebi dodijeljeni zadaci"
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.zero_in_progress",
+        "translation": "Imaš 0 izvođenja trenutačno u tijeku."
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.num_in_progress",
+        "translation": {
+            "one": "Imaš {{.Count}} izvođenje trenutačno u tijeku:",
+            "few": "Imaš {{.Count}} izvođenja trenutačno u tijeku:",
+            "other": "Imaš {{.Count}} izvođenja trenutačno u tijeku:"
+        }
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.heading",
+        "translation": "Izvođenja u tijeku"
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.zero_overdue",
+        "translation": "Imaš 0 izvođenja s prekoračenjem roka."
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.num_overdue",
+        "translation": {
+            "one": "Imaš {{.Count}} izvođenje s prekoračenjem roka za aktualiziranje stanja:",
+            "few": "Imaš {{.Count}} izvođenja s prekoračenjem roka za aktualiziranje stanja:",
+            "other": "Imaš {{.Count}} izvođenja s prekoračenjem roka za aktualiziranje stanja:"
+        }
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.heading",
+        "translation": "Aktualiziranja stanja prekoračenja roka"
+    },
+    {
+        "id": "app.command.execute.error",
+        "translation": "Nije moguće izvršiti naredbu."
+    },
+    {
+        "id": "app.user.digest.tasks.zero_assigned",
+        "translation": "Nemaš nijedan dodijeljeni zadatak."
+    },
+    {
+        "id": "app.user.digest.tasks.num_assigned",
+        "translation": {
+            "one": "Imaš {{.Count}} dodijeljen zadatak:",
+            "few": "Imaš {{.Count}} dodijeljena zadatka:",
+            "other": "Imaš {{.Count}} dodijeljenih zadataka:"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.all_tasks_command",
+        "translation": "Koristi `/playbook todo` za prikaz svih tvojih zadataka."
+    },
+    {
+        "id": "app.user.digest.tasks.num_assigned_due_until_today",
+        "translation": {
+            "one": "Imaš {{.Count}} dodijeljen zadatak čiji je rok sada:",
+            "few": "Imaš {{.Count}} dodijeljena zadatka čiji su rokovi sada:",
+            "other": "Imaš {{.Count}} dodijeljenih zadataka čiji su rokovi sada:"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.due_yesterday",
+        "translation": "Rok: jučer"
+    },
+    {
+        "id": "app.user.digest.tasks.due_x_days_ago",
+        "translation": "Rok: prije {{.Count}} dana"
+    },
+    {
+        "id": "app.user.digest.tasks.due_today",
+        "translation": "Rok je danas"
+    },
+    {
+        "id": "app.user.digest.tasks.due_in_x_days",
+        "translation": {
+            "one": "Rok: {{.Count}} dan",
+            "few": "Rok: {{.Count}} dana",
+            "other": "Rok: {{.Count}} dana"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.due_after_today",
+        "translation": {
+            "one": "Imaš **{{.Count}} dodijeljen zadatak s rokom nakon danas**.",
+            "few": "Imaš **{{.Count}} dodijeljena zadatka s rokom nakon danas**.",
+            "other": "Imaš **{{.Count}} dodijeljenih zadataka s rokom nakon danas**."
+        }
+    },
+    {
+        "id": "app.user.run.request_update",
+        "translation": "@here – @{{.Name}} je zatražio/la aktualiziranje stanja za [{{.RunName}}]({{.RunURL}}). \n"
+    },
+    {
+        "id": "app.user.run.request_get_involved",
+        "translation": "@here – @{{.Name}} želi sudjelovati u ovom izvođenju. Da bi postali članovi izvođenja, dodaj ih ovom kanalu.\n"
+    },
+    {
+        "id": "app.user.run.joined_run_channel_private_add_participant",
+        "translation": "@{{.RequesterName}} je dodao/la @{{.Name}} u izvođenje . Nisu automatski dodani u kanal jer @{{.RequesterName}} nije član kanala, a kanal je privatan.\n"
+    },
+    {
+        "id": "app.user.run.joined_run_channel_private_participate",
+        "translation": "@{{.Name}} se pridružio/la izvođenju. Nisu automatski dodani na ovaj privatni kanal, ali bilo koji član kanala ih može pozvati da se pridruže.\n"
+    },
+    {
+        "id": "app.user.run.request_join_channel",
+        "translation": "@{{.Name}} je sudionik izvođenja i želi se pridružiti ovom kanalu. Svaki član kanala ih može pozvati.\n"
+    },
+    {
+        "id": "app.user.run.status_enable",
+        "translation": "@{{.Username}} je aktivirao/la aktualiziranja stanja za [{{.RunName}}]({{.RunURL}})"
+    },
+    {
+        "id": "app.user.run.status_disable",
+        "translation": "@{{.Username}} je deaktivirao/la aktualiziranja stanja za [{{.RunName}}]({{.RunURL}})"
+    },
+    {
+        "id": "app.user.run.update_status.title",
+        "translation": "Aktualiziranje stanja"
+    },
+    {
+        "id": "app.user.run.update_status.submit_label",
+        "translation": "Objava"
+    },
+    {
+        "id": "app.user.run.update_status.reminder_for_next_update",
+        "translation": "Podsjetnik za sljedeće aktualiziranje"
+    },
+    {
+        "id": "app.user.run.update_status.num_channel",
+        "translation": {
+            "one": "Obavijesti sudionike o aktualnom stanju. Ova će se objava poslati na {{.Count}} kanal.",
+            "few": "Obavijesti sudionike o aktualnom stanju. Ova će se objava poslati na {{.Count}} kanala.",
+            "other": "Obavijesti sudionike o aktualnom stanju. Ova će se objava poslati na {{.Count}} kanala."
+        }
+    },
+    {
+        "id": "app.user.run.update_status.finish_run.placeholder",
+        "translation": "Također, označi izvođenje kao završeno"
+    },
+    {
+        "id": "app.user.run.update_status.finish_run",
+        "translation": "Završi izvođenje"
+    },
+    {
+        "id": "app.user.run.update_status.change_since_last_update",
+        "translation": "Promjena od zadnjeg aktualiziranja"
+    },
+    {
+        "id": "app.user.run.confirm_finish.title",
+        "translation": "Potvrdi završavanje"
+    },
+    {
+        "id": "app.user.run.confirm_finish.submit_label",
+        "translation": "Završi"
+    },
+    {
+        "id": "app.user.run.confirm_finish.num_outstanding",
+        "translation": {
+            "one": "Postoji **{{.Count}} neobavljen zadatak**. Stvarno želiš završiti *{{.RunName}}* za sve sudionike?",
+            "few": "Postoje **{{.Count}} neobavljena zadatka**. Stvarno želiš završiti *{{.RunName}}* za sve sudionike?",
+            "other": "Postoji **{{.Count}} neobavljenih zadataka**. Stvarno želiš završiti *{{.RunName}}* za sve sudionike?"
+        }
+    },
+    {
+        "id": "app.user.run.add_to_timeline.title",
+        "translation": "Dodaj u vremensku crtu izvođenja"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary.placeholder",
+        "translation": "Kratak sažetak prikazan na vremenskoj crti"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary.help",
+        "translation": "Maks. 64 znakova"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary",
+        "translation": "Sažetak"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.submit_label",
+        "translation": "Dodaj u vremensku crtu izvođenja"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.playbook_run",
+        "translation": "Izvođenje priručnika"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.title",
+        "translation": "Dodaj novi zadatak"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.submit_label",
+        "translation": "Dodaj zadatak"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.name",
+        "translation": "Ime"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.description",
+        "translation": "Opis"
+    },
+    {
+        "id": "app.user.new_run.title",
+        "translation": "Priručnik izvođenja"
+    },
+    {
+        "id": "app.user.new_run.submit_label",
+        "translation": "Pokreni izvođenje"
+    },
+    {
+        "id": "app.user.new_run.run_name",
+        "translation": "Ime izvođenja"
+    },
+    {
+        "id": "app.user.new_run.playbook",
+        "translation": "Playbook"
+    },
+    {
+        "id": "app.user.new_run.new_playbook",
+        "translation": "[Pritisni ovdje]({{.RunURL}}) za izradu vlastitog priručnika."
+    },
+    {
+        "id": "app.user.new_run.intro",
+        "translation": "**Vlasnik** {{.Username}}"
+    },
+    {
+        "id": "playbooks.checklist.condition.reason.modified",
+        "translation": "prikazano, jer je zadatak promijenjen"
+    }
+]

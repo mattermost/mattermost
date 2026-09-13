@@ -1,0 +1,230 @@
+[
+    {
+        "id": "app.user.digest.tasks.zero_outstanding",
+        "translation": "У вас 0 нерешенных задач."
+    },
+    {
+        "id": "app.user.digest.tasks.num_outstanding",
+        "translation": {
+            "one": "У вас {{.Count}} нерешенная задача:",
+            "few": "У вас {{.Count}} нерешенных задачи:",
+            "many": "У вас {{.Count}} нерешенных задач:"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.heading",
+        "translation": "Ваши назначенные задачи"
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.zero_in_progress",
+        "translation": "В настоящее время у вас нет запусков."
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.num_in_progress",
+        "translation": {
+            "one": "У вас запущен {{.Count}}:",
+            "few": "У вас запущено {{.Count}}:",
+            "many": "У вас запущены {{.Count}}:"
+        }
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.heading",
+        "translation": "Выполняется"
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.zero_overdue",
+        "translation": "У вас просрочено 0 запусков."
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.num_overdue",
+        "translation": {
+            "one": "У вас есть {{.Count}} просроченный запуск для обновления статуса:",
+            "few": "У вас есть {{.Count}} просроченных запуска для обновления статуса:",
+            "many": "У вас есть {{.Count}} просроченных запусков для обновления статуса:"
+        }
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.heading",
+        "translation": "Просроченные обновления статуса"
+    },
+    {
+        "id": "app.command.execute.error",
+        "translation": "Невозможно выполнить команду."
+    },
+    {
+        "id": "app.user.digest.tasks.due_yesterday",
+        "translation": "Вчера"
+    },
+    {
+        "id": "app.user.digest.tasks.due_x_days_ago",
+        "translation": "Срок выполнения {{.Count}} дн. назад"
+    },
+    {
+        "id": "app.user.digest.tasks.due_today",
+        "translation": "Сегодня"
+    },
+    {
+        "id": "app.user.digest.tasks.due_in_x_days",
+        "translation": {
+            "one": "Через {{.Count}} день",
+            "few": "Через {{.Count}} дня",
+            "many": "Через {{.Count}} дней"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.due_after_today",
+        "translation": {
+            "one": "У вас есть **{{.Count}} назначенная задача, которую необходимо выполнить после сегодняшнего дня**.",
+            "few": "У вас есть **{{.Count}} назначенные задачи, которые необходимо выполнить после сегодняшнего дня**.",
+            "many": "У вас есть **{{.Count}} назначенных задач, которые необходимо выполнить после сегодняшнего дня**."
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.all_tasks_command",
+        "translation": "Пожалуйста, используйте `/playbook todo`, чтобы увидеть все свои задачи."
+    },
+    {
+        "id": "app.user.digest.tasks.num_assigned",
+        "translation": {
+            "one": "У вас есть {{.Count}} назначенная задача:",
+            "few": "У вас есть {{.Count}} назначенные задачи:",
+            "many": "У вас есть {{.Count}} назначенных задач:"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.num_assigned_due_until_today",
+        "translation": {
+            "one": "У вас есть {{.Count}} назначенная задача, которая должна быть выполнена сейчас:",
+            "few": "У вас есть {{.Count}} назначенные задачи, которые должны быть выполнены сейчас:",
+            "many": "У вас есть {{.Count}} назначенных задач, которые должны быть выполнены сейчас:"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.zero_assigned",
+        "translation": "У вас нет назначенных задач."
+    },
+    {
+        "id": "app.user.run.status_enable",
+        "translation": "@{{.Username}} включил обновление статуса для этого запуска"
+    },
+    {
+        "id": "app.user.run.status_disable",
+        "translation": "@{{.Username}} отключил обновление статуса для этого запуска"
+    },
+    {
+        "id": "app.user.run.request_update",
+        "translation": "@here - @{{.Name}} запросил обновление статуса. \n"
+    },
+    {
+        "id": "app.user.run.request_join_channel",
+        "translation": "@{{.Name}} является участником запуска и хочет присоединиться к этому каналу. Любой участник канала может пригласить его.\n"
+    },
+    {
+        "id": "app.user.run.update_status.change_since_last_update",
+        "translation": "Изменения с момента последнего обновления"
+    },
+    {
+        "id": "app.user.run.update_status.num_channel",
+        "translation": {
+            "one": "",
+            "few": "",
+            "many": "Предоставь обновленную информацию заинтересованным сторонам. Этот пост будет транслироваться на каналах {{.Count}}."
+        }
+    },
+    {
+        "id": "app.user.run.update_status.title",
+        "translation": "Обновление статуса"
+    },
+    {
+        "id": "app.user.run.confirm_finish.title",
+        "translation": "Подтверди финишную пробежку"
+    },
+    {
+        "id": "app.user.new_run.intro",
+        "translation": "**Владелец** {{.Username}}"
+    },
+    {
+        "id": "app.user.new_run.playbook",
+        "translation": "Пособие"
+    },
+    {
+        "id": "app.user.run.update_status.finish_run",
+        "translation": "Финишный рывок"
+    },
+    {
+        "id": "app.user.run.update_status.finish_run.placeholder",
+        "translation": "Также пометьте выполнение как завершенное"
+    },
+    {
+        "id": "app.user.run.update_status.reminder_for_next_update",
+        "translation": "Напоминание о следующем обновлении"
+    },
+    {
+        "id": "app.user.run.update_status.submit_label",
+        "translation": "Обновление статуса"
+    },
+    {
+        "id": "app.user.new_run.run_name",
+        "translation": "Название бега"
+    },
+    {
+        "id": "app.user.new_run.submit_label",
+        "translation": "Стартовый забег"
+    },
+    {
+        "id": "app.user.new_run.title",
+        "translation": "Запусти сценарий"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.description",
+        "translation": "Описание"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.name",
+        "translation": "Имя"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.submit_label",
+        "translation": "Добавь задание"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.title",
+        "translation": "Добавь новое задание"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.playbook_run",
+        "translation": "Пособие \"Бег"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.submit_label",
+        "translation": "Добавить в график выполнения"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary",
+        "translation": "Резюме"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary.help",
+        "translation": "Максимум 64 символа"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary.placeholder",
+        "translation": "Краткое содержание, отображаемое на временной шкале"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.title",
+        "translation": "Добавить в график выполнения"
+    },
+    {
+        "id": "app.user.run.confirm_finish.num_outstanding",
+        "translation": {
+            "one": "",
+            "few": "",
+            "many": "Есть **{{.Count}} невыполненных заданий**. Ты уверен, что хочешь завершить забег *{{.RunName}}* для всех участников?"
+        }
+    },
+    {
+        "id": "app.user.run.confirm_finish.submit_label",
+        "translation": "Финишный рывок"
+    }
+]

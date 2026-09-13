@@ -1,0 +1,58 @@
+{
+    "regulars": {
+        "samluser-1": {
+            "username": "samluser-1",
+            "password": "Password1",
+            "email": "samluser-1@test.com",
+            "firstname": "saml1",
+            "lastname": "user",
+            "userType": ""
+        },
+        "samluser-2": {
+            "username": "samluser-2",
+            "password": "Password1",
+            "email": "samluser-2@test.com",
+            "firstname": "saml2",
+            "lastname": "user",
+            "userType": ""
+        }
+    },
+    "admins": {
+        "samladmin-1": {
+            "username": "samladmin-1",
+            "password": "Password1",
+            "email": "samladmin-1@test.com",
+            "firstname": "saml1",
+            "lastname": "admin",
+            "userType": "Admin"
+        },
+        "samladmin-2": {
+            "username": "samladmin-2",
+            "password": "Password1",
+            "email": "samladmin-2@test.com",
+            "firstname": "saml2",
+            "lastname": "admin",
+            "userType": null,
+            "isAdmin": true
+        }
+    },
+    "guests": {
+        "samlguest-1": {
+            "username": "samlguest-1",
+            "password": "Password1",
+            "email": "samlguest-1@test.com",
+            "firstname": "saml1",
+            "lastname": "guest",
+            "userType": "Guest"
+        },
+        "samlguest-2": {
+            "username": "samlguest-2",
+            "password": "Password1",
+            "email": "samlguest-2@test.com",
+            "firstname": "saml2",
+            "lastname": "guest",
+            "userType": null,
+            "isGuest": true
+        }
+    }
+}

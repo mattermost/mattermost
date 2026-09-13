@@ -1,0 +1,34 @@
+.eslintcache
+.stylelintcache
+report.xml
+bin/
+dist/
+webapp/src/manifest.ts
+server/manifest.go
+server/data/
+server/e2etest.config.json
+server/logs/
+mprocs.yaml
+
+# Mac
+.DS_Store
+
+# Jetbrains
+.idea/
+
+# VS Code
+.vscode
+
+# Zed
+.zed
+
+# Notice
+.notice-work
+.aider*
+.env
+
+# Claude
+**/CLAUDE.local.md
+.claude
+CLAUDE.md
+.cursorrules
