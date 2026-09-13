@@ -1,7 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Client4} from '@mattermost/client';
+
 import {expect, test} from '@mattermost/playwright-lib';
+
+async function runLdapSyncAndWait(adminClient: Client4) {
+    const startedAt = Date.now();
+    await adminClient.syncLdap();
+    await expect(async () => {
+        const jobs = await adminClient.getJobsByType('ldap_sync');
+        const job = jobs.find((candidate) => candidate.create_at >= startedAt - 2_000);
+        expect(job?.status).toBe('success');
+    }).toPass({timeout: 90_000, intervals: [2_000]});
+}
 
 /**
  * @objective Verify that when EnableSyncWithLdap is on and a synced user is removed from LDAP,
@@ -52,7 +64,11 @@ test('removing a synced user from LDAP deactivates their Mattermost account on s
 
         // # Remove the user from LDAP and run a sync
         await pw.deleteLdapUser(sharedUsername);
-        await adminClient.syncLdap();
+        await adminClient.patchConfig({
+            LdapSettings: {EnableSync: true},
+            SamlSettings: {EnableSyncWithLdap: true},
+        });
+        await runLdapSyncAndWait(adminClient);
 
         // * Verify the sync deactivated the account
         await expect(async () => {
