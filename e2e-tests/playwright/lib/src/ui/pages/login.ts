@@ -56,7 +56,9 @@ export default class LoginPage {
         this.forgotPasswordLink = page.getByText('Forgot your password?');
         this.userErrorLabel = page.getByText('Please enter your email or username');
         this.emptyPasswordError = page.getByText('Please enter your password');
-        this.invalidCredentialsError = page.getByText('The email/username or password is invalid.');
+        this.invalidCredentialsError = page.getByText(
+            /The email\/username or password is invalid\.|Enter a valid email or username and\/or password/,
+        );
         // No accessible role/label - AlertBanner is a plain styled div.
         this.errorBanner = page.locator('.AlertBanner.danger');
         this.alreadyAssociatedError = page.getByText(
