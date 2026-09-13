@@ -49,31 +49,33 @@ test('rejects open-team invite signup for a disallowed domain', {tag: '@authenti
  * @precondition
  * A licensed server.
  */
-test('keeps the create-account link when email signup is off and LDAP is on', {tag: '@authentication'}, async ({
-    pw,
-}) => {
-    await pw.ensureLicense();
-    await pw.skipIfNoLicense();
-    await pw.ensureOpenldap();
+test(
+    'keeps the create-account link when email signup is off and LDAP is on',
+    {tag: '@authentication'},
+    async ({pw}) => {
+        await pw.ensureLicense();
+        await pw.skipIfNoLicense();
+        await pw.ensureOpenldap();
 
-    const {adminClient} = await pw.initSetup();
+        const {adminClient} = await pw.initSetup();
 
-    try {
-        await adminClient.patchConfig({
-            EmailSettings: {EnableSignUpWithEmail: false},
-            LdapSettings: {Enable: true},
-        });
+        try {
+            await adminClient.patchConfig({
+                EmailSettings: {EnableSignUpWithEmail: false},
+                LdapSettings: {Enable: true},
+            });
 
-        await pw.hasSeenLandingPage();
-        await pw.loginPage.goto();
-        await pw.loginPage.toBeVisible();
+            await pw.hasSeenLandingPage();
+            await pw.loginPage.goto();
+            await pw.loginPage.toBeVisible();
 
-        // * Verify the create-account link is still shown
-        await expect(pw.loginPage.createAccountLink).toBeVisible();
-    } finally {
-        await adminClient.patchConfig({EmailSettings: {EnableSignUpWithEmail: true}});
-    }
-});
+            // * Verify the create-account link is still shown
+            await expect(pw.loginPage.createAccountLink).toBeVisible();
+        } finally {
+            await adminClient.patchConfig({EmailSettings: {EnableSignUpWithEmail: true}});
+        }
+    },
+);
 
 /**
  * @objective Verify email signup fields are shown when email account creation is enabled.
