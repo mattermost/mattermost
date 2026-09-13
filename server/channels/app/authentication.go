@@ -67,6 +67,13 @@ func (a *App) checkUserPassword(user *model.User, password string) *model.AppErr
 		return model.NewAppError("checkUserPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 	}
 
+	// Normalize to the same Unicode form used when the password was hashed
+	// (see PreSave/UpdatePassword), so a password typed with a different
+	// but canonically-equivalent Unicode composition on another device
+	// still verifies correctly. This also affects the plaintext password
+	// forwarded to migratePassword below, which re-hashes it.
+	password = utils.NormalizePassword(password)
+
 	// Get the hasher and parsed PHC
 	hasher, phc, err := hashers.GetHasherFromPHCString(user.Password)
 	if err != nil {
