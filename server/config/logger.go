@@ -217,11 +217,9 @@ func GetLogRootPath() string {
 	return absPath
 }
 
-// evalSymlinksLenient resolves the symlinks in path. Log file paths are routinely validated
-// before the file exists, which filepath.EvalSymlinks cannot handle, so a missing leaf is
-// resolved as far as its deepest existing ancestor with the remaining elements appended
-// unchanged. An existing path is always resolved in full, so a symlink pointing out of the
-// logging root is still caught.
+// evalSymlinksLenient resolves symlinks in path, tolerating a leaf that does not exist yet
+// by resolving the deepest existing ancestor and appending the rest. An existing path is
+// still resolved in full, so a symlink escaping the logging root is caught.
 func evalSymlinksLenient(path string) (string, error) {
 	var missing []string
 
@@ -265,9 +263,8 @@ func ValidateLogFilePath(filePath string, loggingRoot string) error {
 		return fmt.Errorf("cannot resolve logging root %s: %w", loggingRoot, err)
 	}
 
-	// The root has to be resolved the same way as absPath, or the prefix comparison below
-	// rejects legitimate paths whenever an ancestor of either is a symlink
-	// (macOS /var -> /private/var, or a symlinked deployment directory).
+	// Must resolve the same way as absPath, or the prefix check below rejects legitimate
+	// paths when an ancestor is a symlink (macOS /var -> /private/var).
 	absRoot, err = evalSymlinksLenient(absRoot)
 	if err != nil {
 		return fmt.Errorf("cannot resolve symlinks for logging root %s: %w", loggingRoot, err)

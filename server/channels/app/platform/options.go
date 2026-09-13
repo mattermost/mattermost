@@ -122,14 +122,9 @@ func StartMetrics() Option {
 }
 
 // DisableGlobalLogger stops this service from claiming the process-wide logging globals:
-// the logger backing package-level mlog calls, and the destination of the redirected
-// standard library logger. This is a test option.
-//
-// A test binary runs many PlatformService instances concurrently, and by default whichever
-// one configured itself last captures every package-level mlog call in the process --
-// including those from unrelated tests -- and routes them into its own log targets. That
-// made TestGetMattermostLog flaky (MM-70639). Disabled, package-level calls fall back to
-// mlog's stderr default, which is where they already go before any service is constructed.
+// the logger behind package-level mlog calls and the redirected standard library logger.
+// Test binaries run many PlatformService instances concurrently, so without this the last
+// one configured captures package-level mlog calls from unrelated tests (MM-70639).
 func DisableGlobalLogger() Option {
 	return func(ps *PlatformService) error {
 		ps.skipGlobalLogger = true

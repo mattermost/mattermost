@@ -265,7 +265,7 @@ func TestValidateLogFilePath(t *testing.T) {
 			os.RemoveAll(linkDir)
 		})
 
-		// Reach the same directory through a symlink, the way /var -> /private/var does.
+		// Reach the same directory through a symlink, as /var -> /private/var does.
 		symlinkedRoot := filepath.Join(linkDir, "logs")
 		err = os.Symlink(realRoot, symlinkedRoot)
 		require.NoError(t, err)
@@ -276,7 +276,6 @@ func TestValidateLogFilePath(t *testing.T) {
 		assert.NoError(t, ValidateLogFilePath(filepath.Join(symlinkedRoot, "app.log"), symlinkedRoot))
 		assert.NoError(t, ValidateLogFilePath(filepath.Join(symlinkedRoot, "future.log"), symlinkedRoot))
 
-		// The two spellings of the same directory must agree in either combination.
 		assert.NoError(t, ValidateLogFilePath(filepath.Join(realRoot, "app.log"), symlinkedRoot))
 		assert.NoError(t, ValidateLogFilePath(filepath.Join(symlinkedRoot, "app.log"), realRoot))
 	})

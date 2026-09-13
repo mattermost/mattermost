@@ -51,10 +51,8 @@ func TestGetMattermostLog(t *testing.T) {
 	th.Service.SetLogRootPathOverride(dir)
 
 	// Enable log file but point to an empty directory to get an error trying to read the file.
-	// FileLevel is pinned to "fatal" so the file target never writes: enabling file logging
-	// installs a live target at FileLocation, and any record it writes -- including ones from
-	// unrelated code reaching this logger -- creates mattermost.log and defeats the
-	// missing-file assertion below (MM-70639).
+	// FileLevel "fatal" stops the file target from ever creating mattermost.log, which would
+	// otherwise defeat the missing-file assertion below (MM-70639).
 	th.Service.UpdateConfig(func(cfg *model.Config) {
 		*cfg.LogSettings.EnableFile = true
 		*cfg.LogSettings.FileLocation = dir
