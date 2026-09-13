@@ -58,8 +58,12 @@ describe('custom_attribute_values_updated withheld entries', () => {
     });
 
     test('either case triggers a refetch of the user', () => {
-        dispatchEvent({[FIELD_ID]: {withheld: true}});
+        dispatchEvent({[FIELD_ID]: 'AURORA', [OTHER_FIELD_ID]: {withheld: true}});
+        expect(getCustomProfileAttributeValues).toHaveBeenCalledWith(USER_ID);
 
+        jest.clearAllMocks();
+
+        dispatchEvent({[FIELD_ID]: {withheld: true}});
         expect(getCustomProfileAttributeValues).toHaveBeenCalledWith(USER_ID);
     });
 
