@@ -7,6 +7,12 @@ import (
 	"net/http"
 )
 
+const (
+	RecapProcessingDefaultMaxConcurrentJobs      = 4
+	RecapProcessingDefaultMaxConcurrentLLMCalls  = 16
+	RecapProcessingDefaultMaxDueSchedulesPerTick = 1000
+)
+
 // RecapLimitSettings configures the limits for AI Recaps
 type RecapLimitSettings struct {
 	MaxRecapsPerDay     *int `access:"ai_recaps"` // Default: 10, -1 = unlimited
@@ -83,12 +89,67 @@ func (s *RecapLimitSettings) isValid() *AppError {
 	return nil
 }
 
+// RecapProcessingSettings configures server-side processing of recap jobs.
+type RecapProcessingSettings struct {
+	// MaxConcurrentJobs is the size of each recap-related job worker pool on a
+	// server node. Takes effect when the workers restart.
+	MaxConcurrentJobs *int `access:"ai_recaps"` // Default: 4, minimum 1
+
+	// MaxConcurrentLLMCalls caps in-flight LLM channel-summarization calls per
+	// node across all recap jobs. Declared now; consumed in a later phase.
+	MaxConcurrentLLMCalls *int `access:"ai_recaps"` // Default: 16, minimum 1
+
+	// MaxDueSchedulesPerTick caps how many due scheduled recaps are enqueued
+	// per scheduler tick. Declared now; consumed in a later phase.
+	MaxDueSchedulesPerTick *int `access:"ai_recaps"` // Default: 1000, minimum 1
+}
+
+// MaxConcurrentJobsOrDefault returns the configured worker pool size, falling
+// back to the default and enforcing the runtime minimum.
+func (s *RecapProcessingSettings) MaxConcurrentJobsOrDefault() int {
+	if s == nil || s.MaxConcurrentJobs == nil {
+		return RecapProcessingDefaultMaxConcurrentJobs
+	}
+	return max(*s.MaxConcurrentJobs, 1)
+}
+
+// SetDefaults sets the default values for RecapProcessingSettings
+func (s *RecapProcessingSettings) SetDefaults() {
+	if s.MaxConcurrentJobs == nil {
+		s.MaxConcurrentJobs = NewPointer(RecapProcessingDefaultMaxConcurrentJobs)
+	}
+	if s.MaxConcurrentLLMCalls == nil {
+		s.MaxConcurrentLLMCalls = NewPointer(RecapProcessingDefaultMaxConcurrentLLMCalls)
+	}
+	if s.MaxDueSchedulesPerTick == nil {
+		s.MaxDueSchedulesPerTick = NewPointer(RecapProcessingDefaultMaxDueSchedulesPerTick)
+	}
+}
+
+// isValid validates the RecapProcessingSettings. Unlike RecapLimitSettings,
+// these knobs have no unlimited (-1) value; the floor is always 1.
+func (s *RecapProcessingSettings) isValid() *AppError {
+	if s.MaxConcurrentJobs != nil && *s.MaxConcurrentJobs < 1 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.ai_recap.max_concurrent_jobs.app_error", nil, "", http.StatusBadRequest)
+	}
+	if s.MaxConcurrentLLMCalls != nil && *s.MaxConcurrentLLMCalls < 1 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.ai_recap.max_concurrent_llm_calls.app_error", nil, "", http.StatusBadRequest)
+	}
+	if s.MaxDueSchedulesPerTick != nil && *s.MaxDueSchedulesPerTick < 1 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.ai_recap.max_due_schedules_per_tick.app_error", nil, "", http.StatusBadRequest)
+	}
+	return nil
+}
+
 // AIRecapSettings configures the AI Recap feature limits
 type AIRecapSettings struct {
 	Enable *bool `access:"ai_recaps"` // Master toggle, default: true
 
 	// System-wide default limits
 	DefaultLimits *RecapLimitSettings `access:"ai_recaps"`
+
+	// Server-side processing configuration
+	Processing *RecapProcessingSettings `access:"ai_recaps"`
 
 	// Per-limit enforcement toggles (all default to true)
 	EnforceRecapsPerDay     *bool `access:"ai_recaps"`
@@ -110,6 +171,11 @@ func (s *AIRecapSettings) SetDefaults() {
 		s.DefaultLimits = &RecapLimitSettings{}
 	}
 	s.DefaultLimits.SetDefaults()
+
+	if s.Processing == nil {
+		s.Processing = &RecapProcessingSettings{}
+	}
+	s.Processing.SetDefaults()
 
 	if s.EnforceRecapsPerDay == nil {
 		s.EnforceRecapsPerDay = NewPointer(true)
@@ -148,6 +214,11 @@ func (o *Config) AIRecapsEnabled() bool {
 func (s *AIRecapSettings) IsValid() *AppError {
 	if s.DefaultLimits != nil {
 		if appErr := s.DefaultLimits.isValid(); appErr != nil {
+			return appErr
+		}
+	}
+	if s.Processing != nil {
+		if appErr := s.Processing.isValid(); appErr != nil {
 			return appErr
 		}
 	}

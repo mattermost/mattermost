@@ -1094,9 +1094,16 @@ export type RecapLimitSettings = {
     CooldownMinutes: number;
 };
 
+export type RecapProcessingSettings = {
+    MaxConcurrentJobs: number;
+    MaxConcurrentLLMCalls: number;
+    MaxDueSchedulesPerTick: number;
+};
+
 export type AIRecapSettings = {
     Enable: boolean;
     DefaultLimits: RecapLimitSettings;
+    Processing: RecapProcessingSettings;
     EnforceRecapsPerDay: boolean;
     EnforceScheduledRecaps: boolean;
     EnforceChannelsPerRecap: boolean;
