@@ -332,6 +332,27 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		assert.Len(t, members, 2)
 	})
 
+	t.Run("token cannot be redeemed twice", func(t *testing.T) {
+		token := model.NewToken(
+			model.TokenTypeTeamInvitation,
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id}),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		otherUser := th.CreateUser(t)
+
+		_, _, err := th.App.AddUserToTeamByToken(th.Context, ruser.Id, token.Token)
+		require.Nil(t, err, "first redemption should succeed")
+
+		// Simulates a second, concurrent request redeeming the same token: the loser
+		// must be rejected instead of also joining the team.
+		_, _, err = th.App.AddUserToTeamByToken(th.Context, otherUser.Id, token.Token)
+		require.NotNil(t, err, "reusing an already-consumed token must fail")
+
+		_, teamMemberErr := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, otherUser.Id)
+		require.NotNil(t, teamMemberErr, "second user must not have joined the team")
+	})
+
 	t.Run("invalid add a guest using a regular invite", func(t *testing.T) {
 		token := model.NewToken(
 			model.TokenTypeTeamInvitation,
