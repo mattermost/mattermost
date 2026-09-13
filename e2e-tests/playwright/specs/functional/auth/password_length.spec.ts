@@ -8,6 +8,7 @@ import {expect, test} from '@mattermost/playwright-lib';
  */
 test('rejects a minimum password length outside the allowed range', {tag: '@authentication'}, async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
+    const originalMinimumLength = (await adminClient.getConfig()).PasswordSettings.MinimumLength;
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     try {
@@ -27,7 +28,7 @@ test('rejects a minimum password length outside the allowed range', {tag: '@auth
         // * Verify the range error is shown
         await expect(systemConsolePage.passwordSettings.lengthError).toBeVisible();
     } finally {
-        await adminClient.patchConfig({PasswordSettings: {MinimumLength: 8}});
+        await adminClient.patchConfig({PasswordSettings: {MinimumLength: originalMinimumLength}});
     }
 });
 
@@ -36,6 +37,7 @@ test('rejects a minimum password length outside the allowed range', {tag: '@auth
  */
 test('applies a new minimum password length on signup', {tag: '@authentication'}, async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
+    const originalMinimumLength = (await adminClient.getConfig()).PasswordSettings.MinimumLength;
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     try {
@@ -68,7 +70,7 @@ test('applies a new minimum password length on signup', {tag: '@authentication'}
         // * Verify signup succeeds
         await pw.selectTeamPage.toBeVisible();
     } finally {
-        await adminClient.patchConfig({PasswordSettings: {MinimumLength: 8}});
+        await adminClient.patchConfig({PasswordSettings: {MinimumLength: originalMinimumLength}});
     }
 });
 
@@ -77,6 +79,7 @@ test('applies a new minimum password length on signup', {tag: '@authentication'}
  */
 test('resets Minimum password length to the default after clearing it', {tag: '@authentication'}, async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
+    const originalMinimumLength = (await adminClient.getConfig()).PasswordSettings.MinimumLength;
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     try {
@@ -99,6 +102,6 @@ test('resets Minimum password length to the default after clearing it', {tag: '@
             String(config.PasswordSettings.MinimumLength),
         );
     } finally {
-        await adminClient.patchConfig({PasswordSettings: {MinimumLength: 8}});
+        await adminClient.patchConfig({PasswordSettings: {MinimumLength: originalMinimumLength}});
     }
 });
