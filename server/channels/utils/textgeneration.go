@@ -6,7 +6,7 @@ package utils
 import (
 	crand "crypto/rand"
 	"math/big"
-	mrand "math/rand"
+	mrand "math/rand/v2"
 	"strings"
 )
 
@@ -470,7 +470,7 @@ Up to and hey without pill that this squid alas brusque on inventoried and sprea
 func RandString(l int, charset string) string {
 	ret := make([]byte, l)
 	for i := range l {
-		ret[i] = charset[mrand.Intn(len(charset))]
+		ret[i] = charset[mrand.IntN(len(charset))]
 	}
 	return string(ret)
 }
@@ -531,7 +531,7 @@ func RandomText(length Range, hashtags Range, mentions Range, users []string) st
 
 	// Shuffle the words
 	for i := range words {
-		j := mrand.Intn(i + 1)
+		j := mrand.IntN(i + 1)
 		words[i], words[j] = words[j], words[i]
 	}
 

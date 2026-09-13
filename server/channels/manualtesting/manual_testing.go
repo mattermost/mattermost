@@ -6,12 +6,8 @@ package manualtesting
 import (
 	"context"
 	"errors"
-	"hash/fnv"
-	"math/rand"
 	"net/http"
 	"net/url"
-	"strconv"
-	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -42,20 +38,6 @@ func ManualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = model.NewAppError("/manual", "manaultesting.manual_test.parse.app_error", nil, "", http.StatusBadRequest)
 		return
-	}
-
-	// Grab a uuid (if available) to seed the random number generator so we don't get conflicts.
-	uid, ok := params["uid"]
-	if ok {
-		hasher := fnv.New32a()
-		_, writeErr := hasher.Write([]byte(uid[0] + strconv.Itoa(int(time.Now().UTC().UnixNano()))))
-		if writeErr != nil {
-			c.Logger.Error("Failed to write to hasher", mlog.Err(writeErr))
-		}
-		hash := hasher.Sum32()
-		rand.Seed(int64(hash))
-	} else {
-		c.Logger.Debug("No uid in URL")
 	}
 
 	// Create a client for tests to use
@@ -108,7 +90,7 @@ func ManualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 		user, _, err = client.CreateUser(context.Background(), user)
 		if err != nil {
 			var appErr *model.AppError
-			ok = errors.As(err, &appErr)
+			ok := errors.As(err, &appErr)
 			if ok {
 				c.Err = appErr
 			} else {
@@ -134,7 +116,7 @@ func ManualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 		_, _, err = client.LoginById(context.Background(), user.Id, slashcommands.UserPassword)
 		if err != nil {
 			var appErr *model.AppError
-			ok = errors.As(err, &appErr)
+			ok := errors.As(err, &appErr)
 			if ok {
 				c.Err = appErr
 			} else {

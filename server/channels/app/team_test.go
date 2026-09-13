@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math/rand"
+	"math/rand/v2"
 	"sort"
 	"strings"
 	"testing"
@@ -1723,7 +1723,7 @@ func TestGetTeamMembers(t *testing.T) {
 			Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
 			Username: fmt.Sprintf("user%v", i),
 			Password: model.NewTestPassword(),
-			DeleteAt: int64(rand.Intn(2)),
+			DeleteAt: int64(rand.IntN(2)),
 		}
 		ruser, err := th.App.CreateUser(th.Context, &user)
 		require.Nil(t, err)
