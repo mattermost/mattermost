@@ -39,7 +39,7 @@ test(
             await pw.loginPage.submitCredentials(user.username, user.password);
 
             // * Verify the user can proceed after verifying
-            await pw.selectTeamPage.toBeVisible();
+            await pw.channelsPage.toBeVisible();
         } finally {
             await adminClient.patchConfig({EmailSettings: {RequireEmailVerification: false}});
         }
