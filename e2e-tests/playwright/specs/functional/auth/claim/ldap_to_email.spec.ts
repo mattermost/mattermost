@@ -49,6 +49,7 @@ test('switches an AD/LDAP account to email and password', {tag: '@authentication
         // * Verify email login succeeds
         await pw.loginPage.expectNotOnLoginPage();
     } finally {
+        await pw.deleteLdapUser(ldapUser.username).catch(() => undefined);
         await adminClient.patchConfig({LdapSettings: {Enable: false}});
     }
 });

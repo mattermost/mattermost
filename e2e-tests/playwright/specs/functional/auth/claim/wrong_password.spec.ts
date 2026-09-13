@@ -78,6 +78,7 @@ test('rejects email-to-LDAP when the current password is wrong', {tag: '@authent
         const unchanged = await adminClient.getUser(user.id);
         expect(unchanged.auth_service).toBe('');
     } finally {
+        await pw.deleteLdapUser(ldapUser.username).catch(() => undefined);
         await adminClient.patchConfig({LdapSettings: {Enable: false}});
     }
 });

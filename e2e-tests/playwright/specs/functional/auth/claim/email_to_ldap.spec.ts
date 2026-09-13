@@ -51,6 +51,7 @@ test('switches an email account to AD/LDAP', {tag: '@authentication'}, async ({p
         // * Verify LDAP login succeeds
         await pw.loginPage.expectNotOnLoginPage();
     } finally {
+        await pw.deleteLdapUser(ldapUser.username).catch(() => undefined);
         await adminClient.patchConfig({LdapSettings: {Enable: false}});
     }
 });
