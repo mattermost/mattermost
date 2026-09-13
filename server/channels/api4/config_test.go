@@ -663,6 +663,33 @@ func TestGetEnvironmentConfig(t *testing.T) {
 	})
 }
 
+func TestGetEnvironmentConfigGlobalRelayNested(t *testing.T) {
+	// These MUST be t.Setenv (not UpdateConfig) because GetEnvironmentConfig
+	// returns only config values sourced from environment variables.
+	// t.Setenv prevents t.Parallel — intentionally serial.
+	t.Setenv("MM_MESSAGEEXPORTSETTINGS_GLOBALRELAYSETTINGS_SMTPUSERNAME", "envUser")
+	t.Setenv("MM_MESSAGEEXPORTSETTINGS_GLOBALRELAYSETTINGS_EMAILADDRESS", "env@example.com")
+
+	th := Setup(t)
+
+	envConfig, _, err := th.SystemAdminClient.GetEnvironmentConfig(context.Background())
+	require.NoError(t, err)
+
+	messageExportSettings, ok := envConfig["MessageExportSettings"].(map[string]any)
+	require.True(t, ok, "should've returned MessageExportSettings")
+
+	globalRelaySettings, ok := messageExportSettings["GlobalRelaySettings"].(map[string]any)
+	require.True(t, ok, "should've returned nested GlobalRelaySettings for pointer-to-struct env overrides")
+
+	smtpUsername, ok := globalRelaySettings["SMTPUsername"].(bool)
+	require.True(t, ok, "should've returned GlobalRelaySettings.SMTPUsername as a boolean")
+	require.True(t, smtpUsername)
+
+	emailAddress, ok := globalRelaySettings["EmailAddress"].(bool)
+	require.True(t, ok, "should've returned GlobalRelaySettings.EmailAddress as a boolean")
+	require.True(t, emailAddress)
+}
+
 func TestGetClientConfig(t *testing.T) {
 	th := Setup(t)
 

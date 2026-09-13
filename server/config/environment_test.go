@@ -6,6 +6,7 @@ package config
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -199,4 +200,74 @@ func TestRemoveEnvOverrides(t *testing.T) {
 			require.Equal(t, testCase.expectedConfig, applyEnvironmentMap(testCase.inputConfig, testCase.env))
 		})
 	}
+}
+
+func TestGenerateEnvironmentMapPointerToStruct(t *testing.T) {
+	env := map[string]string{
+		"MM_MESSAGEEXPORTSETTINGS_ENABLEEXPORT":                             "true",
+		"MM_MESSAGEEXPORTSETTINGS_GLOBALRELAYSETTINGS_CUSTOMERTYPE":         "CUSTOM",
+		"MM_MESSAGEEXPORTSETTINGS_GLOBALRELAYSETTINGS_SMTPUSERNAME":         "envUser",
+		"MM_MESSAGEEXPORTSETTINGS_GLOBALRELAYSETTINGS_SMTPPASSWORD":         "envPassword",
+		"MM_MESSAGEEXPORTSETTINGS_GLOBALRELAYSETTINGS_EMAILADDRESS":         "env@example.com",
+		"MM_MESSAGEEXPORTSETTINGS_GLOBALRELAYSETTINGS_CUSTOMSMTPSERVERNAME": "feeds.example.com",
+		"MM_MESSAGEEXPORTSETTINGS_GLOBALRELAYSETTINGS_CUSTOMSMTPPORT":       "2525",
+		"MM_MESSAGEEXPORTSETTINGS_GLOBALRELAYSETTINGS_CUSTOMHEADERNAME":     "X-Custom",
+		"MM_MESSAGEEXPORTSETTINGS_GLOBALRELAYSETTINGS_CUSTOMHEADERVALUE":    "Message",
+	}
+
+	overrides := generateEnvironmentMap(env, nil)
+	require.NotNil(t, overrides)
+
+	messageExportSettings, ok := overrides["MessageExportSettings"].(map[string]any)
+	require.True(t, ok, "expected MessageExportSettings override map")
+	assert.Equal(t, true, messageExportSettings["EnableExport"])
+
+	globalRelaySettings, ok := messageExportSettings["GlobalRelaySettings"].(map[string]any)
+	require.True(t, ok, "expected nested GlobalRelaySettings override map for pointer-to-struct fields")
+	assert.Equal(t, map[string]any{
+		"CustomerType":         true,
+		"SMTPUsername":         true,
+		"SMTPPassword":         true,
+		"EmailAddress":         true,
+		"CustomSMTPServerName": true,
+		"CustomSMTPPort":       true,
+		"CustomHeaderName":     true,
+		"CustomHeaderValue":    true,
+	}, globalRelaySettings)
+}
+
+func TestRemoveEnvOverridesPointerToStruct(t *testing.T) {
+	cfgWithoutEnv := modifiedDefault(func(in *model.Config) {
+		*in.MessageExportSettings.GlobalRelaySettings.SMTPUsername = "storedUser"
+		*in.MessageExportSettings.GlobalRelaySettings.EmailAddress = "stored@example.com"
+	})
+
+	cfgWithEnv := cfgWithoutEnv.Clone()
+	*cfgWithEnv.MessageExportSettings.GlobalRelaySettings.SMTPUsername = "envUser"
+	*cfgWithEnv.MessageExportSettings.GlobalRelaySettings.EmailAddress = "env@example.com"
+
+	envOverrides := generateEnvironmentMap(map[string]string{
+		"MM_MESSAGEEXPORTSETTINGS_GLOBALRELAYSETTINGS_SMTPUSERNAME": "envUser",
+		"MM_MESSAGEEXPORTSETTINGS_GLOBALRELAYSETTINGS_EMAILADDRESS": "env@example.com",
+	}, nil)
+	require.NotNil(t, envOverrides)
+
+	cleaned := removeEnvOverrides(cfgWithEnv, cfgWithoutEnv, envOverrides)
+	assert.Equal(t, "storedUser", *cleaned.MessageExportSettings.GlobalRelaySettings.SMTPUsername)
+	assert.Equal(t, "stored@example.com", *cleaned.MessageExportSettings.GlobalRelaySettings.EmailAddress)
+}
+
+func TestApplyEnvironmentMapPointerToStruct(t *testing.T) {
+	input := modifiedDefault(func(in *model.Config) {
+		*in.MessageExportSettings.GlobalRelaySettings.SMTPUsername = "storedUser"
+		*in.MessageExportSettings.GlobalRelaySettings.CustomerType = "A9"
+	})
+
+	applied := applyEnvironmentMap(input, map[string]string{
+		"MM_MESSAGEEXPORTSETTINGS_GLOBALRELAYSETTINGS_SMTPUSERNAME": "envUser",
+		"MM_MESSAGEEXPORTSETTINGS_GLOBALRELAYSETTINGS_CUSTOMERTYPE": "CUSTOM",
+	})
+
+	assert.Equal(t, "envUser", *applied.MessageExportSettings.GlobalRelaySettings.SMTPUsername)
+	assert.Equal(t, "CUSTOM", *applied.MessageExportSettings.GlobalRelaySettings.CustomerType)
 }
