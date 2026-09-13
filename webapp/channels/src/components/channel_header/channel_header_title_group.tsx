@@ -45,19 +45,17 @@ const ChannelHeaderTitleGroup = ({
         }
     }
 
-    const displayNames = channel.display_name.split(', ');
+    // The channel's display name is only rebuilt without the current user once every member of the
+    // group message has been loaded, so until then it still contains the current user's username
+    const displayNames = channel.display_name.split(', ').filter((displayName) => displayName !== currentUser?.username);
 
     return (
         <>
             {displayNames.map((displayName, index) => {
-                if (!membersMap[displayName]) {
-                    return displayName;
-                }
-
-                const user = membersMap[displayName].shift();
+                const user = membersMap[displayName]?.shift();
 
                 return (
-                    <React.Fragment key={user?.id}>
+                    <React.Fragment key={user?.id ?? `${displayName}-${index}`}>
                         {index > 0 && ', '}
                         {displayName}
                         {isGuest(user?.roles ?? '') && <GuestTag/>}
