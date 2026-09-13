@@ -55,8 +55,8 @@ test('rejects login-page signup when the email domain is not allowed', {tag: '@a
         await pw.loginPage.toBeVisible();
         await expect(pw.loginPage.createAccountLink).toBeVisible();
 
-        // # Attempt signup with a disallowed-domain email
-        await pw.signupPage.goto();
+        // # Open signup from the login-page create-account link
+        await pw.loginPage.createAccountLink.click();
         await pw.signupPage.toBeVisible();
         await pw.signupPage.create(
             {
