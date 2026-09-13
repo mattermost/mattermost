@@ -278,14 +278,8 @@ export async function verifyAttributeInPopover(
     attributeValue: string,
 ): Promise<void> {
     const popover = channelsPage.userProfilePopover.container;
-
-    // Check for the attribute name
-    const nameElement = popover.getByText(attributeName, {exact: false});
-    await expect(nameElement).toBeVisible();
-
-    // Check for the attribute value
-    const valueElement = popover.getByText(attributeValue, {exact: false});
-    await expect(valueElement).toBeVisible();
+    await expect(popover.getByRole('heading', {name: attributeName})).toBeVisible();
+    await expect(popover.getByText(attributeValue, {exact: false})).toBeVisible();
 }
 
 /**
@@ -295,10 +289,7 @@ export async function verifyAttributeInPopover(
  */
 export async function verifyAttributeNotInPopover(channelsPage: ChannelsPage, attributeName: string): Promise<void> {
     const popover = channelsPage.userProfilePopover.container;
-
-    // Check that the attribute name is not present
-    const nameElement = popover.getByText(attributeName, {exact: false});
-    await expect(nameElement).not.toBeVisible();
+    await expect(popover.getByRole('heading', {name: attributeName})).not.toBeVisible();
 }
 
 /**
@@ -315,22 +306,13 @@ export async function updateCustomProfileAttributeVisibility(
     visibility: 'when_set' | 'hidden' | 'always',
 ): Promise<void> {
     const fieldID = getFieldIdByName(fieldsMap, attributeName);
-
-    try {
-        // Update the visibility property
-        const updatedField = await adminClient.patchCustomProfileAttributeField(fieldID, {
-            // @ts-expect-error The type definition requires more properties than we need to set
-            attrs: {
-                visibility,
-            },
-        });
-
-        // Update the fieldsMap with the updated field
-        fieldsMap[updatedField.id] = updatedField;
-    } catch (error) {
-        // eslint-disable-next-line no-console
-        console.log(`Failed to update visibility for attribute ${attributeName}:`, error);
-    }
+    const updatedField = await adminClient.patchCustomProfileAttributeField(fieldID, {
+        // @ts-expect-error The type definition requires more properties than we need to set
+        attrs: {
+            visibility,
+        },
+    });
+    fieldsMap[updatedField.id] = updatedField;
 }
 
 /**
@@ -487,12 +469,7 @@ export async function setupCustomProfileAttributeValues(
 
     // Only make the API call if we have values to set
     if (Object.keys(valuesByFieldId).length > 0) {
-        try {
-            await userClient.updateCustomProfileAttributeValues(valuesByFieldId);
-        } catch (error) {
-            // eslint-disable-next-line no-console
-            console.log('Failed to set attribute values:', error);
-        }
+        await userClient.updateCustomProfileAttributeValues(valuesByFieldId);
     }
 }
 
