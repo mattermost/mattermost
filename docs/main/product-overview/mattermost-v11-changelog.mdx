@@ -16,13 +16,22 @@ Platform and OS scope reflects reported and tested environments and may not repr
 
 ## Release v11.10 - [Feature Release](https://docs.mattermost.com/product-overview/release-policy.html#release-types) \{#release-v11-10-feature-release}
 
-<Attention>
-
-**Breaking Changes**
- - Starting with v11.10.1, the updated `glibc-openssl-fips` bundle includes a new OpenSSL build that enforces the FIPS minimum key length of 112 bits for HMAC operations. The PostgreSQL driver (lib/pq) passes the database password as the HMAC key during SCRAM authentication, so a password shorter than 112 bits, or 14 ASCII characters, now causes a panic on connect rather than a graceful failure. Before upgrading, FIPS deployments should verify that the password in `SqlSettings.DataSource` is at least 14 characters and rotate it in PostgreSQL if it is shorter. Standard, non-FIPS builds are unaffected.
-
-</Attention>
-
+- **11.10.2, released 2026-09-11**
+  - Mattermost v11.10.2 contains Medium severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Pre-packaged Agents plugin version [v2.5.3](https://github.com/mattermost/mattermost-plugin-agents/releases/tag/v2.5.3).
+  - Updated how error details are formatted for session and OAuth authorization flows.
+  - Updated AD/LDAP test connection handling to require re-entering the bind password when connection settings change.
+  - Updated how user presence status responses are serialized.
+  - Updated the msgpack fork to cap byte-string allocations.
+  - Fixed an issue where a plugin request body wasn't properly validated.
+  - Fixed an issue where team admins could accidentally update roles incorrectly.
+  - Fixed an issue where OAuth requests did not check the server's outbound connection restrictions.
+  - Editing an outgoing OAuth connection now requires re-entering the client secret before validating or saving.
+  - Truncated PDF text extraction to a specific limit.
+  - Removed the unneeded ``POST /api/v4/posts/ids/reactions`` endpoint.
+  - Mention keywords are now limited to 500 keys and 50,000 bytes in total. Users or imports that exceed these limits receive a descriptive error.
+  - Fixed the cloud preview introduction modal so it is vertically centered instead of sitting at the bottom of the page.
+  - Mattermost v11.10.2 contains no database or functional changes.
 - **11.10.1, released 2026-08-25**
   - Mattermost v11.10.1 contains medium to high severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
   - Go runtime was updated from 1.26.4 to 1.26.7.
@@ -41,6 +50,13 @@ Platform and OS scope reflects reported and tested environments and may not repr
   - Updated account type switch handling.
 - **11.10.0, released 2026-08-14**
   - Original 11.10.0 release.
+
+<Attention>
+
+**Breaking Changes**
+ - Starting with v11.10.1, the updated `glibc-openssl-fips` bundle includes a new OpenSSL build that enforces the FIPS minimum key length of 112 bits for HMAC operations. The PostgreSQL driver (lib/pq) passes the database password as the HMAC key during SCRAM authentication, so a password shorter than 112 bits, or 14 ASCII characters, now causes a panic on connect rather than a graceful failure. Before upgrading, FIPS deployments should verify that the password in `SqlSettings.DataSource` is at least 14 characters and rotate it in PostgreSQL if it is shorter. Standard, non-FIPS builds are unaffected.
+
+</Attention>
 
 ### Upgrade Impact
 
@@ -209,6 +225,31 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-10-is-now-availa
 
 ## Release v11.9 - [Feature Release](https://docs.mattermost.com/product-overview/release-policy.html#release-types) \{#release-v11-9-feature-release}
 
+- **11.9.2, released 2026-09-11**
+  - Mattermost v11.9.2 contains Medium to High severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Pre-packaged Agents plugin version [v2.4.5](https://github.com/mattermost/mattermost-plugin-agents/releases/tag/v2.4.5).
+  - Updated how error details are formatted for session and OAuth authorization flows.
+  - Updated AD/LDAP test connection handling to require re-entering the bind password when connection settings change.
+  - Updated how user presence status responses are serialized.
+  - Updated the msgpack fork to cap byte-string allocations.
+  - Fixed an issue where a plugin request body wasn't properly validated.
+  - Fixed an issue where OAuth requests did not check the server's outbound connection restrictions.
+  - Editing an outgoing OAuth connection now requires re-entering the client secret before validating or saving.
+  - Truncated PDF text extraction to a specific limit.
+  - Removed the unneeded ``POST /api/v4/posts/ids/reactions`` endpoint.
+  - Mention keywords are now limited to 500 keys and 50,000 bytes in total. Users or imports that exceed these limits receive a descriptive error.
+  - Updated ``getFile`` API validation to check for content reviewer earlier.
+  - Updated Slack import to handle user matching differently depending on the import type.
+  - Updated the local image proxy to enforce a maximum size limit when fetching images directly.
+  - Added signing/verification for RelayState in SAML flow.
+  - Updated how team admin status is assigned when a user joins a team.
+  - Prevented a post belonging to Direct/Group Message from being quarantined.
+  - Updated how post and thread payloads handle interactive-message action data.
+  - Fixed an edge case in team invitation handling.
+  - Fixed an issue where certain role update requests for channel and team members were not fully validated.
+  - Enhanced team search to only display teams relevant and accessible to the requesting user.
+  - Updated account type switch handling.
+  - Mattermost v11.9.2 contains no database or functional changes.
 - **11.9.1, released 2026-08-13**
   - Mattermost v11.9.1 contains medium to high severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
   - Pre-packaged Boards plugin version [v9.3.1](https://github.com/mattermost/mattermost-plugin-boards/releases/tag/v9.3.1).
@@ -389,6 +430,33 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-9-is-now-availab
 
 ## Release v11.8 - [Feature Release](https://docs.mattermost.com/product-overview/release-policy.html#release-types) \{#release-v11-8-feature-release}
 
+- **11.8.6, released 2026-09-11**
+  - Mattermost v11.8.6 contains Medium to High severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Pre-packaged Agents plugin version [v2.0.9](https://github.com/mattermost/mattermost-plugin-agents/releases/tag/v2.0.9).
+  - Pre-packaged Boards plugin version [v9.2.8](https://github.com/mattermost/mattermost-plugin-boards/releases/tag/v9.2.8).
+  - Updated how error details are formatted for session and OAuth authorization flows.
+  - Updated AD/LDAP test connection handling to require re-entering the bind password when connection settings change.
+  - Updated how user presence status responses are serialized.
+  - Updated the msgpack fork to cap byte-string allocations.
+  - Fixed an issue with user profile update handling.
+  - Fixed an issue where a plugin request body wasn't properly validated.
+  - Fixed an issue where OAuth requests did not check the server's outbound connection restrictions.
+  - Editing an outgoing OAuth connection now requires re-entering the client secret before validating or saving.
+  - Truncated PDF text extraction to a specific limit.
+  - Removed the unneeded ``POST /api/v4/posts/ids/reactions`` endpoint.
+  - Mention keywords are now limited to 500 keys and 50,000 bytes in total. Users or imports that exceed these limits receive a descriptive error.
+  - Updated ``getFile`` API validation to check for content reviewer earlier.
+  - Updated Slack import to handle user matching differently depending on the import type.
+  - Updated the local image proxy to enforce a maximum size limit when fetching images directly.
+  - Added signing/verification for RelayState in SAML flow.
+  - Updated how team admin status is assigned when a user joins a team.
+  - Prevented a post belonging to Direct/Group Message from being quarantined.
+  - Updated how post and thread payloads handle interactive-message action data.
+  - Fixed an edge case in team invitation handling.
+  - Fixed an issue where certain role update requests for channel and team members were not fully validated.
+  - Enhanced team search to only display teams relevant and accessible to the requesting user.
+  - Updated account type switch handling.
+  - Mattermost v11.8.6 contains no database or functional changes.
 - **11.8.5, released 2026-08-13**
   - Mattermost v11.8.5 contains medium to high severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
   - Pre-packaged Boards plugin version [v9.2.7](https://github.com/mattermost/mattermost-plugin-boards/releases/tag/v9.2.7).
@@ -596,6 +664,29 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-8-0-is-now-avail
 
 </Attention>
 
+- **11.7.11, released 2026-09-11**
+  - Mattermost v11.7.11 contains Low to High severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
+  - Pre-packaged Agents plugin version [v2.0.9](https://github.com/mattermost/mattermost-plugin-agents/releases/tag/v2.0.9).
+  - Pre-packaged Boards plugin version [v9.2.8](https://github.com/mattermost/mattermost-plugin-boards/releases/tag/v9.2.8).
+  - Pre-packaged Jira plugin version [v4.7.2](https://github.com/mattermost/mattermost-plugin-jira/releases/tag/v4.7.2).
+  - Updated how error details are formatted for session and OAuth authorization flows.
+  - Updated AD/LDAP test connection handling to require re-entering the bind password when connection settings change.
+  - Updated how user presence status responses are serialized.
+  - Updated the msgpack fork to cap byte-string allocations.
+  - Fixed an issue with user profile update handling.
+  - Fixed an issue where a plugin request body wasn't properly validated.
+  - Fixed an issue where team admins could accidentally update roles incorrectly.
+  - Fixed an issue where OAuth requests did not check the server's outbound connection restrictions.
+  - Editing an outgoing OAuth connection now requires re-entering the client secret before validating or saving.
+  - Truncated PDF text extraction to a specific limit.
+  - Removed the unneeded ``POST /api/v4/posts/ids/reactions`` endpoint.
+  - Mention keywords are now limited to 500 keys and 50,000 bytes in total. Users or imports that exceed these limits receive a descriptive error.
+  - Fixed Elasticsearch and OpenSearch startup on AWS managed domains that omit plugin data from the Nodes Info API.
+  - Fixed an issue where the Korean ``nori`` analyzer was never applied when the search cluster reported the plugin under a prefixed component name, such as ``opensearch-analysis-nori`` on AWS OpenSearch Service.
+  - Improved performance of the bulk-indexing job for Elasticsearch and OpenSearch on very large ``FileInfo`` and ``Channels`` tables.
+  - Mattermost v11.7.11 contains the following database changes:
+    - Added composite index ``idx_channels_create_at_id`` on ``Channels`` (``CreateAt``, ``Id``) to accelerate cursor-based pagination; no downtime expected, minimal impact on concurrent operations.
+    - Added composite index ``idx_fileinfo_create_at_id`` on ``Fileinfo(CreateAt, Id``) using ``CONCURRENTLY`` to improve file query performance with no downtime impact.
 - **11.7.10, released 2026-08-26**
   - Mattermost v11.7.10 contains low to high severity level security fixes. [Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is recommended. Details will be posted on our [security updates page](https://mattermost.com/security-updates/) 30 days after release as per the [Mattermost Responsible Disclosure Policy](https://mattermost.com/security-vulnerability-report/).
   - Go runtime was updated from 1.25.10 to 1.26.7.
