@@ -34,6 +34,20 @@ import (
 //   - A change is checked as a whole and written as a whole, under the field's
 //     UpdateAt as the caller read it. The first thing wrong with it is reported
 //     with the position it was in, and nothing is written.
+//
+// That last rule closes one window and no wider one: the UpdateAt is the one the
+// server itself read at the start of the request, not one the caller supplied, so
+// what it protects is the gap between this request validating a change and
+// writing it. Two callers who each read a field's options and then edit still
+// resolve last-writer-wins -- the edit that landed first is silently replaced,
+// and neither caller is told. A client that has to detect this compares the
+// field's UpdateAt itself, before and after.
+//
+// That ceiling is acceptable because a caller shown a masked option list cannot
+// write the field at all -- so no edit is ever decided from a list the caller
+// only partly saw. Last-writer-wins loses an edit; it never destroys options the
+// winner could not see. Pinned by options_omitted_test.go's "a masked read keeps
+// the marker, so a write it still refuses is refused for the real reason".
 
 // A rejected change answers with the reason in the *message*, not only in the
 // detail. An option payload is refused for one reason at a time and the caller
@@ -296,6 +310,8 @@ func (ps *PropertyService) GetFieldOptions(rctx request.CTX, groupID, fieldID st
 // CreateFieldOptions adds options to a field, optionally placing each of them
 // under options already there or under others in the same payload. Every option
 // is created or none is.
+//
+// Resolves a concurrent edit last-writer-wins, per the package comment above.
 func (ps *PropertyService) CreateFieldOptions(rctx request.CTX, groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
 	field, err := ps.writableField(rctx, groupID, fieldID)
 	if err != nil {
@@ -367,6 +383,8 @@ func (ps *PropertyService) CreateFieldOptions(rctx request.CTX, groupID, fieldID
 // The options as they stood before the change are returned alongside the result.
 // A parent link is deleted outright rather than marked, so unless a caller records
 // what a change replaced there is nothing left to say the link was ever there.
+//
+// Resolves a concurrent edit last-writer-wins, per the package comment above.
 func (ps *PropertyService) UpdateFieldOptions(rctx request.CTX, groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, []*model.PropertyFieldOption, error) {
 	field, err := ps.writableField(rctx, groupID, fieldID)
 	if err != nil {
@@ -461,6 +479,8 @@ func (ps *PropertyService) UpdateFieldOptions(rctx request.CTX, groupID, fieldID
 // Values pointing at a removed option are left alone. A value naming an option
 // that no longer exists is ignored everywhere it is read, which is how the
 // property system has always treated one.
+//
+// Resolves a concurrent edit last-writer-wins, per the package comment above.
 func (ps *PropertyService) DeleteFieldOptions(rctx request.CTX, groupID, fieldID string, optionIDs []string) ([]*model.PropertyFieldOption, error) {
 	field, err := ps.writableField(rctx, groupID, fieldID)
 	if err != nil {
