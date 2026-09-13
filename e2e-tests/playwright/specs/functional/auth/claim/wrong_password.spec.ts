@@ -54,9 +54,10 @@ test('rejects email-to-LDAP when the current password is wrong', {tag: '@authent
     const {adminClient, user, team} = await pw.initSetup();
     await pw.ensureOpenldap();
     const ldapUser = pw.generateLdapUser('claimbad');
-    await pw.createLdapUser(ldapUser);
 
     try {
+        await pw.createLdapUser(ldapUser);
+
         // # Log in as the email user and open Switch to AD/LDAP
         await pw.hasSeenLandingPage();
         await pw.loginPage.goto();

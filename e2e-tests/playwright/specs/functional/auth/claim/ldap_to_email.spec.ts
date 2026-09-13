@@ -15,10 +15,11 @@ test('switches an AD/LDAP account to email and password', {tag: '@authentication
     const {adminClient, team} = await pw.initSetup();
     await pw.ensureOpenldap();
     const ldapUser = pw.generateLdapUser('claimldap');
-    await pw.createLdapUser(ldapUser);
     const newPassword = pw.newTestPassword();
 
     try {
+        await pw.createLdapUser(ldapUser);
+
         // # Provision the user through LDAP login
         await pw.hasSeenLandingPage();
         await pw.loginPage.goto();

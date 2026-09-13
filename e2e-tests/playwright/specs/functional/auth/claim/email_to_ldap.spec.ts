@@ -21,9 +21,10 @@ test('switches an email account to AD/LDAP', {tag: '@authentication'}, async ({p
         firstname: user.first_name || 'First',
         lastname: user.last_name || 'Last',
     };
-    await pw.createLdapUser(ldapUser);
 
     try {
+        await pw.createLdapUser(ldapUser);
+
         // # Log in as the email user and open Switch to AD/LDAP
         await pw.hasSeenLandingPage();
         await pw.loginPage.goto();
