@@ -21,7 +21,7 @@ export default class LdapToEmailPage {
         this.passwordInput = page.locator('#claim input[name="password"]');
         this.confirmPasswordInput = page.locator('#claim input[name="passwordconfirm"]');
         this.submitButton = page.getByRole('button', {name: 'Switch account to email/password'});
-        this.mfaTokenInput = page.getByPlaceholder('MFA Token');
+        this.mfaTokenInput = page.getByRole('textbox', {name: 'MFA Token'});
         this.mfaSubmitButton = page.getByRole('button', {name: 'Submit'});
     }
 
