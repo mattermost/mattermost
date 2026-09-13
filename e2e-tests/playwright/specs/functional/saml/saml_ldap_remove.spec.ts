@@ -17,47 +17,54 @@ test('removing a synced user from LDAP deactivates their Mattermost account on s
     await pw.ensureKeycloak();
 
     const {adminClient} = await pw.getAdminClient();
-    await adminClient.patchConfig({
-        LdapSettings: {EnableSync: true},
-        SamlSettings: {EnableSyncWithLdap: true},
-    });
+    try {
+        await adminClient.patchConfig({
+            LdapSettings: {EnableSync: true},
+            SamlSettings: {EnableSyncWithLdap: true},
+        });
 
-    const sharedUsername = `samlldapremove${Date.now()}`;
-    await pw.createLdapUser({
-        username: sharedUsername,
-        password: 'Password1',
-        email: `${sharedUsername}@mmtest.com`,
-        firstname: 'Firstname',
-        lastname: 'Lastname',
-    });
-    await pw.createKeycloakUser({
-        username: sharedUsername,
-        password: 'Password1',
-        email: `${sharedUsername}@mmtest.com`,
-        firstName: 'Firstname',
-        lastName: 'Lastname',
-    });
+        const sharedUsername = `samlldapremove${Date.now()}`;
+        await pw.createLdapUser({
+            username: sharedUsername,
+            password: 'Password1',
+            email: `${sharedUsername}@mmtest.com`,
+            firstname: 'Firstname',
+            lastname: 'Lastname',
+        });
+        await pw.createKeycloakUser({
+            username: sharedUsername,
+            password: 'Password1',
+            email: `${sharedUsername}@mmtest.com`,
+            firstName: 'Firstname',
+            lastName: 'Lastname',
+        });
 
-    // # Log in once via SAML to provision the account
-    await pw.hasSeenLandingPage();
-    await pw.loginPage.goto();
-    await pw.loginPage.toBeVisible();
-    await pw.loginPage.samlLoginButton.click();
-    await pw.keycloakLoginPage.login(sharedUsername, 'Password1');
-    await pw.loginPage.expectNotOnLoginPage();
+        // # Log in once via SAML to provision the account
+        await pw.hasSeenLandingPage();
+        await pw.loginPage.goto();
+        await pw.loginPage.toBeVisible();
+        await pw.loginPage.samlLoginButton.click();
+        await pw.keycloakLoginPage.login(sharedUsername, 'Password1');
+        await pw.loginPage.expectNotOnLoginPage();
 
-    const provisionedUser = await adminClient.getUserByUsername(sharedUsername);
-    expect(provisionedUser.delete_at).toBe(0);
+        const provisionedUser = await adminClient.getUserByUsername(sharedUsername);
+        expect(provisionedUser.delete_at).toBe(0);
 
-    // # Remove the user from LDAP and run a sync
-    await pw.deleteLdapUser(sharedUsername);
-    await adminClient.syncLdap();
+        // # Remove the user from LDAP and run a sync
+        await pw.deleteLdapUser(sharedUsername);
+        await adminClient.syncLdap();
 
-    // * Verify the sync deactivated the account
-    await expect(async () => {
-        const syncedUser = await adminClient.getUser(provisionedUser.id);
-        expect(syncedUser.delete_at).toBeGreaterThan(0);
-    }).toPass({timeout: 30_000});
+        // * Verify the sync deactivated the account
+        await expect(async () => {
+            const syncedUser = await adminClient.getUser(provisionedUser.id);
+            expect(syncedUser.delete_at).toBeGreaterThan(0);
+        }).toPass({timeout: 30_000});
+    } finally {
+        await adminClient.patchConfig({
+            SamlSettings: {EnableSyncWithLdap: false},
+            LdapSettings: {EnableSync: false},
+        });
+    }
 });
 
 /**
@@ -74,46 +81,54 @@ test('SAML login is rejected when the user is not registered in LDAP', {tag: '@s
     await pw.ensureKeycloak();
 
     const {adminClient} = await pw.getAdminClient();
-    await adminClient.patchConfig({
-        LdapSettings: {EnableSync: true},
-        SamlSettings: {EnableSyncWithLdap: true},
-    });
+    try {
+        await adminClient.patchConfig({
+            LdapSettings: {EnableSync: true},
+            SamlSettings: {EnableSyncWithLdap: true},
+        });
 
-    const username = `samlnoldap${Date.now()}`;
-    const email = `${username}@mmtest.com`;
-    await pw.createKeycloakUser({
-        username,
-        password: 'Password1',
-        email,
-        firstName: 'NoLdapFirst',
-        lastName: 'NoLdapLast',
-    });
+        const username = `samlnoldap${Date.now()}`;
+        const email = `${username}@mmtest.com`;
+        await pw.createKeycloakUser({
+            username,
+            password: 'Password1',
+            email,
+            firstName: 'NoLdapFirst',
+            lastName: 'NoLdapLast',
+        });
 
-    // # Attempt SAML login while the user exists only in Keycloak
-    await pw.hasSeenLandingPage();
-    await pw.loginPage.goto();
-    await pw.loginPage.toBeVisible();
-    await pw.loginPage.samlLoginButton.click();
-    await pw.keycloakLoginPage.login(username, 'Password1');
+        // # Attempt SAML login while the user exists only in Keycloak
+        await pw.hasSeenLandingPage();
+        await pw.loginPage.goto();
+        await pw.loginPage.toBeVisible();
+        await pw.loginPage.samlLoginButton.click();
+        await pw.keycloakLoginPage.login(username, 'Password1');
 
-    // * Verify the login is rejected because the user is not in LDAP
-    await expect(pw.loginPage.userNotRegisteredOnLdapError).toBeVisible();
+        // * Verify the login is rejected because the user is not in LDAP
+        await pw.errorPage.toBeVisible();
+        await expect(pw.errorPage.userNotRegisteredOnLdap).toBeVisible();
 
-    // # Create the matching LDAP user and retry SAML login
-    await pw.createLdapUser({
-        username,
-        password: 'Password1',
-        email,
-        firstname: 'NoLdapFirst',
-        lastname: 'NoLdapLast',
-    });
-    await pw.loginPage.goto();
-    await pw.loginPage.toBeVisible();
-    await pw.loginPage.samlLoginButton.click();
-    await pw.keycloakLoginPage.login(username, 'Password1');
+        // # Create the matching LDAP user and retry SAML login
+        await pw.createLdapUser({
+            username,
+            password: 'Password1',
+            email,
+            firstname: 'NoLdapFirst',
+            lastname: 'NoLdapLast',
+        });
+        await pw.loginPage.goto();
+        await pw.loginPage.toBeVisible();
+        await pw.loginPage.samlLoginButton.click();
+        await pw.keycloakLoginPage.login(username, 'Password1');
 
-    // * Verify the login succeeds once the user exists in LDAP
-    await pw.loginPage.expectNotOnLoginPage();
-    const provisionedUser = await adminClient.getUserByUsername(username);
-    expect(provisionedUser.auth_service).toBe('saml');
+        // * Verify the login succeeds once the user exists in LDAP
+        await pw.loginPage.expectNotOnLoginPage();
+        const provisionedUser = await adminClient.getUserByUsername(username);
+        expect(provisionedUser.auth_service).toBe('saml');
+    } finally {
+        await adminClient.patchConfig({
+            SamlSettings: {EnableSyncWithLdap: false},
+            LdapSettings: {EnableSync: false},
+        });
+    }
 });

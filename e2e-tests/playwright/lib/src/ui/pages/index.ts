@@ -11,6 +11,7 @@ import SignupPage from './signup';
 import SystemConsolePage from './system_console';
 import ScheduledPostsPage from './scheduled_posts';
 import DraftsPage from './drafts';
+import ErrorPage from './error';
 import ThreadsPage from './threads';
 import ContentReviewPage from './content_review_dm';
 
@@ -26,6 +27,7 @@ const pages = {
     ContentReviewPage,
     SystemConsolePage,
     DraftsPage,
+    ErrorPage,
     ThreadsPage,
 };
 
@@ -34,6 +36,7 @@ export {
     ChannelsPage,
     ContentReviewPage,
     DraftsPage,
+    ErrorPage,
     KeycloakLoginPage,
     LandingLoginPage,
     LoginPage,
