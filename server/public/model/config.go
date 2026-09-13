@@ -5577,7 +5577,7 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
 		if opts.PartiallyRedactDataSources && driverName != "" {
 			sanitized, err := SanitizeDataSource(driverName, dataSource)
 			if err != nil {
-				mlog.Warn("Failed to sanitize "+fieldName+". Falling back to fully sanitizing the setting.", mlog.Err(err))
+				mlog.Warn("Failed to sanitize " + fieldName + ". Falling back to fully sanitizing the setting.")
 				return FakeSetting
 			}
 			return sanitized
@@ -5685,6 +5685,9 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
 // SanitizeDataSource redacts sensitive information (username and password) from a PostgreSQL
 // connection string while preserving other connection parameters.
 //
+// Only postgres:// and postgresql:// URL connection strings are supported; any other
+// format returns an error.
+//
 // Example:
 //
 //	"postgres://user:pass@host:5432/db" -> "postgres://****:****@host:5432/db"
@@ -5695,6 +5698,10 @@ func SanitizeDataSource(driverName, dataSource string) (string, error) {
 
 	if driverName != DatabaseDriverPostgres {
 		return "", errors.New("invalid drivername: only postgres is supported")
+	}
+
+	if !strings.HasPrefix(dataSource, "postgres://") && !strings.HasPrefix(dataSource, "postgresql://") {
+		return "", errors.New("invalid data source: only postgres:// and postgresql:// connection strings are supported")
 	}
 
 	u, err := url.Parse(dataSource)
