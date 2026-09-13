@@ -17,12 +17,14 @@ export default class LoginPage {
     readonly loginPlaceholder;
     readonly loginWithAdLdapPlaceholder;
     readonly samlLoginButton;
+    readonly openIdLoginButton;
     readonly passwordInput;
     readonly passwordToggleButton;
     readonly signInButton;
     readonly createAccountLink;
     readonly forgotPasswordLink;
     readonly userErrorLabel;
+    readonly errorBanner;
 
     readonly header;
     readonly footer;
@@ -37,12 +39,18 @@ export default class LoginPage {
         this.loginPlaceholder = page.getByPlaceholder('Email or Username');
         this.loginWithAdLdapPlaceholder = page.getByRole('textbox', {name: 'Email, Username or AD/LDAP Username'});
         this.samlLoginButton = page.locator('#saml');
+        // Accessible name is the configurable ButtonText, so it isn't stable across tests -
+        // matches the samlLoginButton locator above for the same reason.
+        this.openIdLoginButton = page.locator('#openid');
         this.passwordInput = page.locator('#input_password-input');
         this.passwordToggleButton = page.locator('#password_toggle');
         this.signInButton = page.getByRole('button', {name: 'Log in'});
         this.createAccountLink = page.getByRole('link', {name: "Don't have an account?"});
         this.forgotPasswordLink = page.getByText('Forgot your password?');
         this.userErrorLabel = page.getByText('Please enter your email or username');
+        // No accessible role/label - AlertBanner is a plain styled div, and its message text
+        // varies by config (which login-id types are enabled).
+        this.errorBanner = page.locator('.AlertBanner.danger');
 
         this.header = new components.MainHeader(page.getByTestId('hfroute-header'));
         this.footer = new components.Footer(page.getByTestId('hfroute-footer'));
@@ -55,8 +63,8 @@ export default class LoginPage {
         await expect(this.passwordInput).toBeVisible();
     }
 
-    async goto() {
-        await this.page.goto('/login');
+    async goto(url = '/login') {
+        await this.page.goto(url);
     }
 
     async login(user: UserProfile, useUsername = true) {
