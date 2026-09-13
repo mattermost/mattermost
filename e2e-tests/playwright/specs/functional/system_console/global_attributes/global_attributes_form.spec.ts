@@ -475,7 +475,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
 
         /**
          * @objective Ensure switching type mid-form preserves already-entered options rather than
-         * discarding them, per the ticket's "freely switch types" requirement.
+         * discarding them, so an admin can freely switch types without losing data.
          */
         test('preserves already-entered options when switching type away and back', async ({pw}) => {
             const {adminUser} = await requireGlobalAttributesEnabled(pw);
@@ -983,6 +983,161 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 expect(linkedFields).toHaveLength(3);
             } finally {
                 await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, expectedName);
+            }
+        });
+
+        /**
+         * @objective Ensure a Users row added and configured in the same session bundles its
+         * Profile display / Who can set the value config directly into the create request --
+         * rather than creating bare and immediately patching -- and that every option of both
+         * controls (all 3 Profile display values, both Who can set the value options) is
+         * individually selectable and persists correctly, not just the one combination picked at
+         * creation.
+         */
+        test('saves Profile display and Who can set the value directly on a new Users row, for every option', async ({
+            pw,
+        }) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            // Kept short (well under Constants.MAX_CUSTOM_ATTRIBUTE_NAME_LENGTH = 40, the
+            // Display name input's maxLength) so the auto-derived unique name below isn't
+            // silently truncated -- unlike sibling Applies-to tests, this one's assertions
+            // depend on the exact expected name matching what's actually persisted.
+            const displayName = `PW Cfg ${timestamp}`;
+            const expectedName = `pw_cfg_${timestamp}`;
+
+            try {
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+                await page.getByTestId('newAttributeButton').click();
+
+                // # Fill Display name, add Users, expand the row, and set both controls to their
+                // first values (Always / Member -- the picker's default and Member need an
+                // explicit pick here too, not just an assumed default)
+                await page.getByTestId('attributeDisplayNameInput').fill(displayName);
+                await page.getByTestId('attributeAppliesToAddResourceButtonHeader').click();
+                await page.getByRole('menuitem', {name: 'Users'}).click();
+                await page.getByTestId('attributeAppliesToRow-user-toggle').click();
+                await page.getByTestId('attributeAppliesToUserProfileDisplay-always').click();
+                await page.getByTestId('attributeAppliesToUserWhoCanSet-member').click();
+
+                // # Save
+                await page.getByTestId('saveSetting').click();
+                await expect(page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+
+                const templateFields = await adminClient.getPropertyFields(
+                    'access_control',
+                    'template',
+                    'system',
+                    undefined,
+                    {perPage: 200},
+                );
+                const templateField = templateFields.find((f) => f.name === expectedName && f.delete_at === 0);
+                expect(templateField).toBeDefined();
+
+                let linkedFields = await fetchLinkedFieldsForTemplate(adminClient, templateField!.id);
+                let userField = linkedFields.find((f) => f.object_type === 'user');
+                expect(userField?.attrs?.visibility).toBe('always');
+                expect(userField?.attrs?.managed).toBe('');
+
+                // # Reopen Edit and switch Who can set the value to System Administrator -- the
+                // other option not covered by the create above
+                await page.getByTestId(`global-attribute-actions-${templateField!.id}`).click();
+                await page.locator(`#global-attribute-actions-${templateField!.id}-edit`).click();
+                await expect(page).toHaveURL(new RegExp(`attribute_details/${templateField!.id}$`));
+                await page.getByTestId('attributeAppliesToRow-user-toggle').click();
+                await page.getByTestId('attributeAppliesToUserWhoCanSet-admin').click();
+                await page.getByTestId('saveSetting').click();
+                await expect(page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+
+                linkedFields = await fetchLinkedFieldsForTemplate(adminClient, templateField!.id);
+                userField = linkedFields.find((f) => f.object_type === 'user');
+                expect(userField?.attrs?.managed).toBe('admin');
+
+                // * Every remaining Profile display option (When set, Hidden) is individually
+                // selectable and persists correctly, one save per value
+                for (const value of ['when_set', 'hidden'] as const) {
+                    await page.getByTestId(`global-attribute-actions-${templateField!.id}`).click();
+                    await page.locator(`#global-attribute-actions-${templateField!.id}-edit`).click();
+                    await expect(page).toHaveURL(new RegExp(`attribute_details/${templateField!.id}$`));
+                    await page.getByTestId('attributeAppliesToRow-user-toggle').click();
+                    await page.getByTestId(`attributeAppliesToUserProfileDisplay-${value}`).click();
+                    await page.getByTestId('saveSetting').click();
+                    await expect(page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+
+                    linkedFields = await fetchLinkedFieldsForTemplate(adminClient, templateField!.id);
+                    userField = linkedFields.find((f) => f.object_type === 'user');
+                    expect(userField?.attrs?.visibility).toBe(value);
+                    // Who can set the value is untouched by this loop -- confirms one control's
+                    // save doesn't clobber the other's already-persisted value.
+                    expect(userField?.attrs?.managed).toBe('admin');
+                }
+            } finally {
+                await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, expectedName);
+            }
+        });
+
+        /**
+         * @objective Ensure changing config on an already-saved Users row issues its own patch
+         * (rather than needing a delete-and-recreate), and that toggling Who can set the value
+         * updates both attrs.managed and the field's actual permission_values in both
+         * directions.
+         */
+        test('updates config on an already-saved Users row via patch, in both directions', async ({pw}) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const name = `e2e_applies_to_config_update_${timestamp}`;
+            const displayName = `Playwright Applies To Config Update ${timestamp}`;
+
+            try {
+                const template = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
+                    attrs: {display_name: displayName},
+                });
+                await createLinkedDependentField(adminClient, name, template.id, 'text', 'user', {
+                    display_name: displayName,
+                });
+
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+                await page.getByTestId(`global-attribute-actions-${template.id}`).click();
+                await page.locator(`#global-attribute-actions-${template.id}-edit`).click();
+                await expect(page).toHaveURL(new RegExp(`attribute_details/${template.id}$`));
+
+                // # Set Who can set the value to System Administrator, save
+                await page.getByTestId('attributeAppliesToRow-user-toggle').click();
+                await page.getByTestId('attributeAppliesToUserWhoCanSet-admin').click();
+                await page.getByTestId('saveSetting').click();
+                await expect(page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+
+                let linkedFields = await fetchLinkedFieldsForTemplate(adminClient, template.id);
+                let userField = linkedFields.find((f) => f.object_type === 'user');
+                expect(userField?.attrs?.managed).toBe('admin');
+                expect(userField?.permission_values).toBe('sysadmin');
+
+                // # Switch it back to Member, save again
+                await page.getByTestId(`global-attribute-actions-${template.id}`).click();
+                await page.locator(`#global-attribute-actions-${template.id}-edit`).click();
+                await page.getByTestId('attributeAppliesToRow-user-toggle').click();
+                await page.getByTestId('attributeAppliesToUserWhoCanSet-member').click();
+                await page.getByTestId('saveSetting').click();
+                await expect(page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+
+                linkedFields = await fetchLinkedFieldsForTemplate(adminClient, template.id);
+                userField = linkedFields.find((f) => f.object_type === 'user');
+
+                // * The UI-visible attrs.managed correctly round-trips to Member
+                expect(userField?.attrs?.managed).toBe('');
+
+                // * The field's actual write permission is unlocked back to member too -- not
+                // just the UI-visible attrs.managed.
+                expect(userField?.permission_values).toBe('member');
+            } finally {
+                await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, name);
             }
         });
     });
