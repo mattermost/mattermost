@@ -162,9 +162,9 @@ export async function samlServerConfig(adminClient: Client4): Promise<Partial<Ad
 }
 
 /**
- * Checks Keycloak was started this run, points the server's SAML settings at it (fetching its IdP
- * metadata/certificate along the way), and skips the test if either step fails, instead of
- * failing on an unmet precondition.
+ * Checks Keycloak was started this run and points the server's SAML settings at it (fetching its
+ * IdP metadata/certificate along the way). Skips only when Keycloak was not requested; setup
+ * failures fail the test so CI cannot go green without running SSO coverage.
  */
 export async function ensureKeycloak(): Promise<void> {
     if (!testConfig.testcontainersServices.includes('keycloak')) {
@@ -172,13 +172,9 @@ export async function ensureKeycloak(): Promise<void> {
         return;
     }
 
-    try {
-        const {adminClient} = await getAdminClient();
-        const config = await samlServerConfig(adminClient);
-        await adminClient.patchConfig({SamlSettings: config});
-    } catch (error) {
-        test.skip(true, `Skipping test - Keycloak SAML setup failed: ${String(error)}`);
-    }
+    const {adminClient} = await getAdminClient();
+    const config = await samlServerConfig(adminClient);
+    await adminClient.patchConfig({SamlSettings: config});
 }
 
 /**
@@ -244,8 +240,9 @@ export function openidServerConfig(): Partial<AdminConfig['OpenIdSettings']> {
 }
 
 /**
- * Checks Keycloak was started this run, points the server's OpenID settings at it, and skips the
- * test if either step fails, instead of failing on an unmet precondition.
+ * Checks Keycloak was started this run and points the server's OpenID settings at it. Skips only
+ * when Keycloak was not requested; setup failures fail the test so CI cannot go green without
+ * running SSO coverage.
  */
 export async function ensureKeycloakOpenId(): Promise<void> {
     if (!testConfig.testcontainersServices.includes('keycloak')) {
@@ -253,11 +250,7 @@ export async function ensureKeycloakOpenId(): Promise<void> {
         return;
     }
 
-    try {
-        await ensureKeycloakRealmFrontendUrl();
-        const {adminClient} = await getAdminClient();
-        await adminClient.patchConfig({OpenIdSettings: openidServerConfig()});
-    } catch (error) {
-        test.skip(true, `Skipping test - Keycloak OpenID setup failed: ${String(error)}`);
-    }
+    await ensureKeycloakRealmFrontendUrl();
+    const {adminClient} = await getAdminClient();
+    await adminClient.patchConfig({OpenIdSettings: openidServerConfig()});
 }
