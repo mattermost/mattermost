@@ -63,3 +63,10 @@ test('image-selection action rejects a PR retarget even when both commit SHAs st
         assert.equal(existsSync(output), false);
     } finally { rmSync(cwd, {recursive: true, force: true}); }
 });
+
+test('manual runs use the scope-selected server image without a PR-number override', () => {
+    const workflow = readFileSync(new URL('../workflows/e2e-tests-ci.yml', import.meta.url), 'utf8');
+    assert.match(workflow, /SERVER_IMAGE_TAG: "\$\{\{ steps\.e2e-check\.outputs\.image_tag \}\}"/);
+    assert.doesNotMatch(workflow, /ci\/select-demo-image/);
+    assert.doesNotMatch(workflow, /PR_NUMBER" = "[0-9]+"/);
+});
