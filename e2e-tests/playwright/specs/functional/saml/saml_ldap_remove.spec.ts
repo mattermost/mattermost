@@ -6,12 +6,21 @@ import type {Client4} from '@mattermost/client';
 import {expect, test} from '@mattermost/playwright-lib';
 
 async function runLdapSyncAndWait(adminClient: Client4) {
-    const startedAt = Date.now();
+    const existingIds = new Set((await adminClient.getJobsByType('ldap_sync')).map((job) => job.id));
     await adminClient.syncLdap();
+
+    let createdIds: string[] = [];
     await expect(async () => {
         const jobs = await adminClient.getJobsByType('ldap_sync');
-        const job = jobs.find((candidate) => candidate.create_at >= startedAt - 2_000);
-        expect(job?.status).toBe('success');
+        createdIds = jobs.filter((job) => !existingIds.has(job.id)).map((job) => job.id);
+        expect(createdIds.length).toBeGreaterThan(0);
+    }).toPass({timeout: 15_000, intervals: [500]});
+
+    await expect(async () => {
+        const jobs = await Promise.all(createdIds.map((id) => adminClient.getJob(id)));
+        for (const job of jobs) {
+            expect(job.status).toBe('success');
+        }
     }).toPass({timeout: 90_000, intervals: [2_000]});
 }
 
