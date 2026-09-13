@@ -685,9 +685,10 @@ func TestPostActionProps(t *testing.T) {
 					},
 				},
 			},
-			model.PostPropsOverrideIconURL: "old_override_icon",
-			model.PostPropsFromWebhook:     "false",
-			"B":                            "BB",
+			model.PostPropsOverrideIconURL:   "old_override_icon",
+			model.PostPropsOverrideIconEmoji: "old_override_emoji",
+			model.PostPropsFromWebhook:       "false",
+			"B":                              "BB",
 		},
 	}
 
@@ -709,6 +710,7 @@ func TestPostActionProps(t *testing.T) {
 	assert.Nil(t, newPost.GetProp(model.PostPropsOverrideUsername))
 	assert.Equal(t, "AA", newPost.GetProp("A"))
 	assert.Equal(t, "old_override_icon", newPost.GetProp(model.PostPropsOverrideIconURL))
+	assert.Equal(t, "old_override_emoji", newPost.GetProp(model.PostPropsOverrideIconEmoji))
 	// from_webhook is NOT in the default SanitizeProps strip list under hardened-OFF (v11) — it
 	// remains user-settable for backward compatibility with the user-PAT-impersonation idiom.
 	// The client-supplied value survives sanitization. PostActionRetainPropKeys includes
