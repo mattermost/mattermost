@@ -367,7 +367,8 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.App.CompleteOAuth(c.AppContext, service, body, props, tokenUser)
+	user, userCreated, err := c.App.CompleteOAuth(c.AppContext, service, body, props, tokenUser)
+	auditRec.AddMeta("user_created", userCreated)
 	if err != nil {
 		err.Translate(c.AppContext.T)
 		c.LogErrorByCode(err)
