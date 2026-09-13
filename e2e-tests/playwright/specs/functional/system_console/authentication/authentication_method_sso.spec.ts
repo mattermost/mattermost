@@ -12,9 +12,9 @@ import {test} from '@mattermost/playwright-lib';
 test('shows LDAP as the authentication method for a directory user', {tag: '@authentication'}, async ({pw}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
-    await pw.ensureOpenldap();
 
     const {adminUser, adminClient} = await pw.initSetup();
+    await pw.ensureOpenldap();
     const ldapUser = pw.generateLdapUser();
     await pw.createLdapUser(ldapUser);
 
