@@ -232,6 +232,7 @@ type ChannelStore interface {
 	GetPublicChannelsForTeam(teamID string, offset int, limit int) (model.ChannelList, error)
 	GetPublicChannelsByIdsForTeam(teamID string, channelIds []string) (model.ChannelList, error)
 	GetTeamChannels(teamID string) (model.ChannelList, error)
+	GetTeamChannelsCount(teamID string) (int64, error)
 	GetTeamSpaceChannels(teamID string) (model.ChannelList, error)
 	GetTeamSpaceChannelsForUser(teamID string, userID string) (model.ChannelList, error)
 	GetAll(teamID string) ([]*model.Channel, error)
