@@ -217,19 +217,29 @@ func GetLogRootPath() string {
 	return absPath
 }
 
+// maxLogPathDepth caps the ancestor walk in evalSymlinksLenient. It is far beyond any real
+// log path, so reaching it means the path is malformed and validation fails closed.
+const maxLogPathDepth = 256
+
 // evalSymlinksLenient resolves symlinks in path, tolerating a leaf that does not exist yet
 // by resolving the deepest existing ancestor and appending the rest. An existing path is
 // still resolved in full, so a symlink escaping the logging root is caught.
 func evalSymlinksLenient(path string) (string, error) {
 	var missing []string
 
-	for {
+	for depth := 0; depth < maxLogPathDepth; depth++ {
 		resolved, err := filepath.EvalSymlinks(path)
 		if err == nil {
 			return filepath.Join(append([]string{resolved}, missing...)...), nil
 		}
 		if !os.IsNotExist(err) {
 			return "", err
+		}
+
+		// EvalSymlinks reports a dangling symlink as absent, but Lstat still sees the link,
+		// so an entry that exists here is unresolvable and must not be stripped as missing.
+		if _, lerr := os.Lstat(path); lerr == nil {
+			return "", fmt.Errorf("unresolved symlink at %s", path)
 		}
 
 		parent := filepath.Dir(path)
@@ -239,6 +249,8 @@ func evalSymlinksLenient(path string) (string, error) {
 		missing = append([]string{filepath.Base(path)}, missing...)
 		path = parent
 	}
+
+	return "", fmt.Errorf("exceeded maximum directory depth of %d", maxLogPathDepth)
 }
 
 // ValidateLogFilePath validates that a log file path is within the logging root directory.
