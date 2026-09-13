@@ -6,6 +6,7 @@ package commands
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
@@ -21,6 +22,23 @@ func executeRawCommand(root *cobra.Command, args string) (c *cobra.Command, outp
 	RootCmd.SetArgs(strings.Split(args, " "))
 	c, err = RootCmd.ExecuteC()
 	return c, actual.String(), err
+}
+
+func TestRunShowsHelpOnMissingPositionalArgs(t *testing.T) {
+	out := new(bytes.Buffer)
+	errOut := new(bytes.Buffer)
+	RootCmd.SetOut(out)
+	RootCmd.SetErr(errOut)
+	t.Cleanup(func() {
+		RootCmd.SetOut(os.Stdout)
+		RootCmd.SetErr(os.Stderr)
+	})
+
+	err := Run([]string{"bot", "assign"})
+	assert.Error(t, err)
+	combined := out.String() + errOut.String()
+	assert.Contains(t, combined, "Usage:")
+	assert.NotContains(t, combined, "Error: accepts")
 }
 
 func TestRootRecover(t *testing.T) {
