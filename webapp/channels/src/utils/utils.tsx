@@ -211,6 +211,13 @@ export function isGIFImage(extin: string): boolean {
     return extin.toLowerCase() === Constants.IMAGE_TYPE_GIF;
 }
 
+export function isAnimatedImage(extension: string | undefined, hasPreviewImage: boolean): boolean {
+    if (!extension) {
+        return false;
+    }
+    return (isGIFImage(extension) || extension.toLowerCase() === 'webp') && !hasPreviewImage;
+}
+
 const removeQuerystringOrHash = (extin: string): string => {
     return extin.split(/[?#]/)[0];
 };
