@@ -104,6 +104,7 @@ import {
 } from 'mattermost-redux/actions/threads';
 import {
     checkForModifiedUsers,
+    getCustomProfileAttributeValues,
     getUser as loadUser,
 } from 'mattermost-redux/actions/users';
 import {removeNotVisibleUsers} from 'mattermost-redux/actions/websocket';
@@ -2474,10 +2475,22 @@ function handleChannelBookmarkSorted(msg: WebSocketMessages.ChannelBookmarkSorte
 
 export function handleCustomAttributeValuesUpdated(msg: WebSocketMessages.CPAValuesUpdated): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
-        doDispatch({
-            type: UserTypes.RECEIVED_CPA_VALUES,
-            data: {userID: msg.data.user_id, customAttributeValues: msg.data.values},
-        });
+        const entries = Object.entries(msg.data.values);
+        const withheld = entries.filter(([, value]) => isWithheldPropertyValue(value));
+        const visible = Object.fromEntries(entries.filter(([, value]) => !isWithheldPropertyValue(value)));
+
+        if (Object.keys(visible).length > 0) {
+            doDispatch({
+                type: UserTypes.RECEIVED_CPA_VALUES,
+                data: {userID: msg.data.user_id, customAttributeValues: visible},
+            });
+        }
+
+        // A withheld field id is dropped rather than stored, so the reducer's merge
+        // leaves whatever the store already had for it until the refetch below lands.
+        if (withheld.length > 0) {
+            doDispatch(getCustomProfileAttributeValues(msg.data.user_id));
+        }
 
         // The current user's attribute values are an input to ABAC evaluation, so
         // their render decisions are now stale. Other users' updates do not affect
