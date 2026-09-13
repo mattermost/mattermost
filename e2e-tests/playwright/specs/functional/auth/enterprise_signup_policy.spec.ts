@@ -69,6 +69,7 @@ test(
             await pw.loginPage.goto();
             await pw.loginPage.toBeVisible();
 
+            // # Open the login page with email signup off and LDAP on
             // * Verify the create-account link is still shown
             await expect(pw.loginPage.createAccountLink).toBeVisible();
         } finally {
@@ -99,6 +100,7 @@ test('shows email signup fields when email account creation is enabled', {tag: '
         await pw.signupPage.goto(`/signup_user_complete/?id=${team.invite_id}`);
         await pw.signupPage.toBeVisible();
 
+        // # Open invite signup with email account creation enabled
         // * Verify email signup fields are shown
         await expect(pw.signupPage.emailAddressLabel).toBeVisible();
         await expect(pw.signupPage.choosePasswordPlaceholder).toBeVisible();

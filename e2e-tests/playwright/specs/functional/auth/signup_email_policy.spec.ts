@@ -49,6 +49,7 @@ test('hides email signup when email account creation is disabled', {tag: '@authe
         await pw.hasSeenLandingPage();
         await pw.signupPage.goto(`/signup_user_complete/?id=${team.invite_id}`);
 
+        // # Open signup while email account creation is disabled
         // * Verify GitLab is offered and email signup fields are hidden
         await expect(pw.signupPage.createAccountWithFollowing).toBeVisible();
         await expect(pw.signupPage.gitlabButton).toBeVisible();
