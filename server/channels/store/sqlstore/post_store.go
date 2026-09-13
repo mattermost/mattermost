@@ -1424,7 +1424,7 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(rctx request.CTX, options m
 		Where(sq.Eq{"Posts.ChannelId": options.ChannelId}).
 		Where(sq.Gt{"Posts.UpdateAt": options.Time}).
 		Where(sq.Eq{"Posts.RootId": ""}).
-		OrderBy("Posts.CreateAt DESC").
+		OrderBy("Posts.UpdateAt DESC").
 		Limit(1000)
 
 	if err := s.GetReplica().SelectBuilder(&posts, query); err != nil {

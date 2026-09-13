@@ -1504,7 +1504,9 @@ func (a *App) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions
 
 	a.supplementWithTranslationUpdatedPosts(rctx, postList, options.ChannelId, options.Time, options.CollapsedThreads)
 
-	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+	// The collapsed-threads store path orders results by UpdateAt (not CreateAt), so its
+	// PostList.Order is not monotonic in CreateAt; use linear filtering in that case.
+	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: !options.CollapsedThreads}); appErr != nil {
 		return nil, appErr
 	}
 
