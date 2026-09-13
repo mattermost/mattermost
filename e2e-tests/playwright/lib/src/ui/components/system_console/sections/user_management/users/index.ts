@@ -125,6 +125,11 @@ export default class Users {
         await expect(this.usersTable.getColumnHeader('User details')).toBeEnabled();
     }
 
+    async openUserActions(searchTerm: string) {
+        await this.searchUsers(searchTerm);
+        return this.usersTable.getRowByIndex(0).openActionMenu();
+    }
+
     /**
      * Clear the search input
      */

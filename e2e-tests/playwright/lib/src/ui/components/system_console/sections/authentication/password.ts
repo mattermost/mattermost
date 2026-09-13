@@ -44,4 +44,9 @@ export default class PasswordSettings {
         await expect(this.saveButton).toBeEnabled();
         await this.saveButton.click();
     }
+
+    async reload() {
+        await this.container.page().reload();
+        await this.toBeVisible();
+    }
 }

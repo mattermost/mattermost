@@ -229,6 +229,7 @@ export class PlaywrightExtended {
     readonly signupPage;
     readonly selectTeamPage;
     readonly shouldVerifyEmailPage;
+    readonly mfaSetupPage;
     readonly resetPasswordPage;
     readonly errorPage;
 
@@ -323,6 +324,7 @@ export class PlaywrightExtended {
         this.signupPage = new pages.SignupPage(page);
         this.selectTeamPage = new pages.SelectTeamPage(page);
         this.shouldVerifyEmailPage = new pages.ShouldVerifyEmailPage(page);
+        this.mfaSetupPage = new pages.MfaSetupPage(page);
         this.resetPasswordPage = new pages.ResetPasswordPage(page);
         this.errorPage = new pages.ErrorPage(page);
 

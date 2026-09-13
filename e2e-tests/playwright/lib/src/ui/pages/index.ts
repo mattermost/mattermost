@@ -10,6 +10,7 @@ import ResetPasswordPage from './reset_password';
 import SignupPage from './signup';
 import SelectTeamPage from './select_team';
 import ShouldVerifyEmailPage from './should_verify_email';
+import MfaSetupPage from './mfa_setup';
 import SystemConsolePage from './system_console';
 import ScheduledPostsPage from './scheduled_posts';
 import DraftsPage from './drafts';
@@ -27,6 +28,7 @@ const pages = {
     SignupPage,
     SelectTeamPage,
     ShouldVerifyEmailPage,
+    MfaSetupPage,
     ScheduledPostsPage,
     ContentReviewPage,
     SystemConsolePage,
@@ -49,6 +51,7 @@ export {
     SignupPage,
     SelectTeamPage,
     ShouldVerifyEmailPage,
+    MfaSetupPage,
     ScheduledPostsPage,
     SystemConsolePage,
 };
