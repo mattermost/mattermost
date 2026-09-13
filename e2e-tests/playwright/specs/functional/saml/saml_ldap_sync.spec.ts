@@ -10,58 +10,54 @@ import {expect, test} from '@mattermost/playwright-lib';
  * @precondition
  * Keycloak and OpenLDAP running, with matching users in both directories.
  */
-test(
-    'SAML login syncs profile attributes from the LDAP directory when enabled',
-    {tag: '@saml'},
-    async ({pw}) => {
-        await pw.ensureLicense();
-        await pw.skipIfNoLicense();
-        await pw.ensureOpenldap();
-        await pw.ensureKeycloak();
+test('SAML login syncs profile attributes from the LDAP directory when enabled', {tag: '@saml'}, async ({pw}) => {
+    await pw.ensureLicense();
+    await pw.skipIfNoLicense();
+    await pw.ensureOpenldap();
+    await pw.ensureKeycloak();
 
-        const {adminClient} = await pw.getAdminClient();
-        await adminClient.patchConfig({
-            LdapSettings: {EnableSync: true},
-            SamlSettings: {EnableSyncWithLdap: true},
-        });
+    const {adminClient} = await pw.getAdminClient();
+    await adminClient.patchConfig({
+        LdapSettings: {EnableSync: true},
+        SamlSettings: {EnableSyncWithLdap: true},
+    });
 
-        const sharedUsername = `samlldapsync${Date.now()}`;
-        await pw.createLdapUser({
-            username: sharedUsername,
-            password: 'Password1',
-            email: `${sharedUsername}@mmtest.com`,
-            firstname: 'OriginalFirstname',
-            lastname: 'OriginalLastname',
-        });
-        await pw.createKeycloakUser({
-            username: sharedUsername,
-            password: 'Password1',
-            email: `${sharedUsername}@mmtest.com`,
-            firstName: 'OriginalFirstname',
-            lastName: 'OriginalLastname',
-        });
+    const sharedUsername = `samlldapsync${Date.now()}`;
+    await pw.createLdapUser({
+        username: sharedUsername,
+        password: 'Password1',
+        email: `${sharedUsername}@mmtest.com`,
+        firstname: 'OriginalFirstname',
+        lastname: 'OriginalLastname',
+    });
+    await pw.createKeycloakUser({
+        username: sharedUsername,
+        password: 'Password1',
+        email: `${sharedUsername}@mmtest.com`,
+        firstName: 'OriginalFirstname',
+        lastName: 'OriginalLastname',
+    });
 
-        // # Log in through SAML to provision the account
-        await pw.hasSeenLandingPage();
-        await pw.loginPage.goto();
-        await pw.loginPage.toBeVisible();
-        await pw.loginPage.samlLoginButton.click();
-        await pw.keycloakLoginPage.login(sharedUsername, 'Password1');
-        await pw.loginPage.expectNotOnLoginPage();
+    // # Log in through SAML to provision the account
+    await pw.hasSeenLandingPage();
+    await pw.loginPage.goto();
+    await pw.loginPage.toBeVisible();
+    await pw.loginPage.samlLoginButton.click();
+    await pw.keycloakLoginPage.login(sharedUsername, 'Password1');
+    await pw.loginPage.expectNotOnLoginPage();
 
-        // # Change the name in LDAP only and run a sync
-        await pw.updateLdapUser(sharedUsername, {firstname: 'UpdatedFirstname', lastname: 'UpdatedLastname'});
-        await adminClient.syncLdap();
+    // # Change the name in LDAP only and run a sync
+    await pw.updateLdapUser(sharedUsername, {firstname: 'UpdatedFirstname', lastname: 'UpdatedLastname'});
+    await adminClient.syncLdap();
 
-        // * Verify the profile picked up the new LDAP value
-        await expect(async () => {
-            const provisionedUser = await adminClient.getUserByUsername(sharedUsername);
-            expect(provisionedUser.auth_service).toBe('saml');
-            expect(provisionedUser.first_name).toBe('UpdatedFirstname');
-            expect(provisionedUser.last_name).toBe('UpdatedLastname');
-        }).toPass({timeout: 30_000});
-    },
-);
+    // * Verify the profile picked up the new LDAP value
+    await expect(async () => {
+        const provisionedUser = await adminClient.getUserByUsername(sharedUsername);
+        expect(provisionedUser.auth_service).toBe('saml');
+        expect(provisionedUser.first_name).toBe('UpdatedFirstname');
+        expect(provisionedUser.last_name).toBe('UpdatedLastname');
+    }).toPass({timeout: 30_000});
+});
 
 /**
  * @objective Verify that with EnableSyncWithLdap off, an LDAP name change is not applied and the

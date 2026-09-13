@@ -10,59 +10,55 @@ import {expect, test} from '@mattermost/playwright-lib';
  * @precondition
  * Keycloak and OpenLDAP running, with matching users in both directories.
  */
-test(
-    'removing a synced user from LDAP deactivates their Mattermost account on sync',
-    {tag: '@saml'},
-    async ({pw}) => {
-        await pw.ensureLicense();
-        await pw.skipIfNoLicense();
-        await pw.ensureOpenldap();
-        await pw.ensureKeycloak();
+test('removing a synced user from LDAP deactivates their Mattermost account on sync', {tag: '@saml'}, async ({pw}) => {
+    await pw.ensureLicense();
+    await pw.skipIfNoLicense();
+    await pw.ensureOpenldap();
+    await pw.ensureKeycloak();
 
-        const {adminClient} = await pw.getAdminClient();
-        await adminClient.patchConfig({
-            LdapSettings: {EnableSync: true},
-            SamlSettings: {EnableSyncWithLdap: true},
-        });
+    const {adminClient} = await pw.getAdminClient();
+    await adminClient.patchConfig({
+        LdapSettings: {EnableSync: true},
+        SamlSettings: {EnableSyncWithLdap: true},
+    });
 
-        const sharedUsername = `samlldapremove${Date.now()}`;
-        await pw.createLdapUser({
-            username: sharedUsername,
-            password: 'Password1',
-            email: `${sharedUsername}@mmtest.com`,
-            firstname: 'Firstname',
-            lastname: 'Lastname',
-        });
-        await pw.createKeycloakUser({
-            username: sharedUsername,
-            password: 'Password1',
-            email: `${sharedUsername}@mmtest.com`,
-            firstName: 'Firstname',
-            lastName: 'Lastname',
-        });
+    const sharedUsername = `samlldapremove${Date.now()}`;
+    await pw.createLdapUser({
+        username: sharedUsername,
+        password: 'Password1',
+        email: `${sharedUsername}@mmtest.com`,
+        firstname: 'Firstname',
+        lastname: 'Lastname',
+    });
+    await pw.createKeycloakUser({
+        username: sharedUsername,
+        password: 'Password1',
+        email: `${sharedUsername}@mmtest.com`,
+        firstName: 'Firstname',
+        lastName: 'Lastname',
+    });
 
-        // # Log in once via SAML to provision the account
-        await pw.hasSeenLandingPage();
-        await pw.loginPage.goto();
-        await pw.loginPage.toBeVisible();
-        await pw.loginPage.samlLoginButton.click();
-        await pw.keycloakLoginPage.login(sharedUsername, 'Password1');
-        await pw.loginPage.expectNotOnLoginPage();
+    // # Log in once via SAML to provision the account
+    await pw.hasSeenLandingPage();
+    await pw.loginPage.goto();
+    await pw.loginPage.toBeVisible();
+    await pw.loginPage.samlLoginButton.click();
+    await pw.keycloakLoginPage.login(sharedUsername, 'Password1');
+    await pw.loginPage.expectNotOnLoginPage();
 
-        const provisionedUser = await adminClient.getUserByUsername(sharedUsername);
-        expect(provisionedUser.delete_at).toBe(0);
+    const provisionedUser = await adminClient.getUserByUsername(sharedUsername);
+    expect(provisionedUser.delete_at).toBe(0);
 
-        // # Remove the user from LDAP and run a sync
-        await pw.deleteLdapUser(sharedUsername);
-        await adminClient.syncLdap();
+    // # Remove the user from LDAP and run a sync
+    await pw.deleteLdapUser(sharedUsername);
+    await adminClient.syncLdap();
 
-        // * Verify the sync deactivated the account
-        await expect(async () => {
-            const syncedUser = await adminClient.getUser(provisionedUser.id);
-            expect(syncedUser.delete_at).toBeGreaterThan(0);
-        }).toPass({timeout: 30_000});
-    },
-);
+    // * Verify the sync deactivated the account
+    await expect(async () => {
+        const syncedUser = await adminClient.getUser(provisionedUser.id);
+        expect(syncedUser.delete_at).toBeGreaterThan(0);
+    }).toPass({timeout: 30_000});
+});
 
 /**
  * @objective Verify a SAML user who is not present in LDAP cannot log in while
