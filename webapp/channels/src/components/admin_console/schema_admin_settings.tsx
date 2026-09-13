@@ -42,6 +42,7 @@ import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 import BetaTag from 'components/widgets/tag/beta_tag';
 
 import * as I18n from 'i18n/i18n';
+import {isUnlicensedAddOn} from 'utils/addons';
 import Constants from 'utils/constants';
 import {mappingValueFromRoles, rolesFromMapping} from 'utils/policy_roles_adapter';
 
@@ -380,6 +381,10 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
         const pluginState = this.props.pluginStatus?.state ?? (this.props.plugin.active ? PluginState.PLUGIN_STATE_RUNNING : PluginState.PLUGIN_STATE_NOT_RUNNING);
         const description = (this.props.plugin.description || this.props.pluginStatus?.description || '').trim();
 
+        // Enabling an unlicensed add-on only ever returns 403, and the settings list
+        // already shows an explanation in place of the toggle.
+        const unlicensedAddOn = isUnlicensedAddOn(this.props.plugin.id, this.props.license);
+
         return (
             <div className='PluginMetadataPanel__settingsWrapper'>
                 <div className='PluginMetadataPanel__actionsPanel'>
@@ -401,13 +406,15 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                                 )}
                             </div>
                         </div>
-                        <PluginEnableButton
-                            id={getPluginEnabledConfigKey(this.props.plugin.id)}
-                            disabled={this.props.isDisabled}
-                            homepageUrl={this.props.plugin.homepage_url}
-                            saveNeeded={this.state.saveNeeded}
-                            value={this.props.plugin.active}
-                        />
+                        {!unlicensedAddOn && (
+                            <PluginEnableButton
+                                id={getPluginEnabledConfigKey(this.props.plugin.id)}
+                                disabled={this.props.isDisabled}
+                                homepageUrl={this.props.plugin.homepage_url}
+                                saveNeeded={this.state.saveNeeded}
+                                value={this.props.plugin.active}
+                            />
+                        )}
                     </div>
                     {this.renderPluginStateError(pluginState, this.props.pluginStatus?.error)}
                 </div>

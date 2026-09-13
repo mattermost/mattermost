@@ -274,6 +274,43 @@ func TestGetClientLicense(t *testing.T) {
 	require.Equal(t, "true", sanitized["IsNonProduction"])
 }
 
+func TestGetClientLicenseAddOns(t *testing.T) {
+	newLicense := func(addOns ...string) *model.License {
+		license := &model.License{
+			Customer: &model.Customer{},
+			Features: &model.Features{},
+			AddOns:   addOns,
+		}
+		license.Features.SetDefaults()
+		return license
+	}
+
+	t.Run("no add-ons", func(t *testing.T) {
+		props := GetClientLicense(newLicense())
+		require.Equal(t, "", props["AddOns"])
+	})
+
+	t.Run("single add-on", func(t *testing.T) {
+		props := GetClientLicense(newLicense(model.AddOnCrossGuard))
+		require.Equal(t, "crossguard", props["AddOns"])
+	})
+
+	t.Run("multiple add-ons are comma separated", func(t *testing.T) {
+		props := GetClientLicense(newLicense(model.AddOnCrossGuard, "another"))
+		require.Equal(t, "crossguard,another", props["AddOns"])
+	})
+
+	t.Run("survives sanitization", func(t *testing.T) {
+		// Anything stripped here disappears from the System Console after a license
+		// change. Do not add AddOns to the delete list.
+		props := GetClientLicense(newLicense(model.AddOnCrossGuard))
+		require.Equal(t, "crossguard", props["AddOns"])
+
+		sanitized := GetSanitizedClientLicense(props)
+		require.Equal(t, "crossguard", sanitized["AddOns"], "AddOns must survive sanitization")
+	})
+}
+
 func TestGetLicenseFileFromDisk(t *testing.T) {
 	t.Run("missing file", func(t *testing.T) {
 		fileBytes := GetLicenseFileFromDisk("thisfileshouldnotexist.mattermost-license")

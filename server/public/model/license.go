@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"slices"
+	"strings"
 	"time"
 )
 
@@ -94,6 +96,10 @@ type License struct {
 	ExtraUsers *int           `json:"extra_users"`
 	SignupJWT  *string        `json:"signup_jwt"`
 	Limits     *LicenseLimits `json:"limits"`
+	// AddOns names products purchased alongside the license that are not part of
+	// any SKU tier. Unrecognized names are ignored, so a license issued for a newer
+	// add-on still validates here. Read it through HasAddOn.
+	AddOns []string `json:"add_ons"`
 }
 
 func (l *License) IsMattermostEntry() bool {
@@ -435,6 +441,19 @@ func (l *License) HasMHPNS() bool {
 	return l != nil && l.Features != nil && l.Features.MHPNS != nil && *l.Features.MHPNS
 }
 
+// HasAddOn reports whether the license grants the named add-on. Unlike the
+// SKU-derived helpers above, this deliberately has no minimum-license fallback:
+// an add-on is bought separately from the tier.
+func (l *License) HasAddOn(addOn string) bool {
+	if l == nil {
+		return false
+	}
+
+	return slices.ContainsFunc(l.AddOns, func(a string) bool {
+		return strings.EqualFold(a, addOn)
+	})
+}
+
 // NewTestLicense returns a license that expires in the future and has the given features.
 func NewTestLicense(features ...string) *License {
 	ret := &License{
@@ -475,6 +494,13 @@ func NewTestLicenseWithFalseDefaults(features ...string) *License {
 	featureJson, _ := json.Marshal(featureMap)
 	json.Unmarshal(featureJson, &ret.Features)
 
+	return ret
+}
+
+// NewTestLicenseWithAddOns returns a test license granting the given add-ons.
+func NewTestLicenseWithAddOns(addOns ...string) *License {
+	ret := NewTestLicense()
+	ret.AddOns = addOns
 	return ret
 }
 

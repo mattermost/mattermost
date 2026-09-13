@@ -426,5 +426,9 @@ func (ps *PlatformService) logLicense(message string, license *model.License) {
 		)
 	}
 
+	if len(license.AddOns) > 0 {
+		logger = logger.With(mlog.Array("add_ons", license.AddOns))
+	}
+
 	logger.Info(message)
 }

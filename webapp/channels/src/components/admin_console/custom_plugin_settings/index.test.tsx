@@ -1010,4 +1010,100 @@ describe('custom plugin sections and settings', () => {
         expect(screen.getByText('Custom Component Section 1')).toBeInTheDocument();
         expect(screen.getByText('Custom Component Section 2')).toBeInTheDocument();
     });
+
+    describe('licensed add-on plugins', () => {
+        const addOnBannerText = 'This plugin is a licensed add-on. Your license does not include it, so it cannot be enabled. Contact your Mattermost account team to purchase it.';
+
+        const addOnPlugin = {
+            ...plugin,
+            id: 'crossguard',
+            name: 'Cross Guard',
+        };
+
+        const renderAddOnPlugin = (license: Record<string, string>, consoleAccess = baseProps.consoleAccess) => {
+            const props = {
+                ...baseProps,
+                license,
+                consoleAccess,
+                match: {params: {plugin_id: 'crossguard'}} as match<{plugin_id: string}>,
+            };
+
+            renderWithContext(
+                <CustomPluginSettings
+                    {...props}
+                    patchConfig={jest.fn()}
+                />,
+                {
+                    entities: {
+                        admin: {plugins: {crossguard: addOnPlugin}},
+                        general: {license},
+                    },
+                },
+            );
+        };
+
+        it('hides every enable control and explains why when the license lacks the add-on', () => {
+            renderAddOnPlugin({IsLicensed: 'true'});
+
+            expect(screen.queryByTestId('PluginSettings.PluginStates.crossguard.Enable')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('PluginSettings.PluginStates.crossguard.Enable-button')).not.toBeInTheDocument();
+            expect(screen.getByText(addOnBannerText)).toBeInTheDocument();
+        });
+
+        it('hides every enable control on an unlicensed server', () => {
+            renderAddOnPlugin({IsLicensed: 'false'});
+
+            expect(screen.queryByTestId('PluginSettings.PluginStates.crossguard.Enable')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('PluginSettings.PluginStates.crossguard.Enable-button')).not.toBeInTheDocument();
+            expect(screen.getByText(addOnBannerText)).toBeInTheDocument();
+        });
+
+        it('shows the enable control when the license grants the add-on', () => {
+            renderAddOnPlugin({IsLicensed: 'true', AddOns: 'crossguard'});
+
+            expect(screen.getByTestId('PluginSettings.PluginStates.crossguard.Enable-button')).toBeInTheDocument();
+            expect(screen.queryByText(addOnBannerText)).not.toBeInTheDocument();
+        });
+
+        it('keeps the explanation visible to a read-only admin', () => {
+            // buildBannerSetting renders nothing for a disabled setting, which would
+            // leave this page with no toggle and no reason given.
+            renderAddOnPlugin(
+                {IsLicensed: 'true'},
+                {
+                    ...baseProps.consoleAccess,
+                    write: {...baseProps.consoleAccess.write, plugins: false},
+                },
+            );
+
+            expect(screen.getByText(addOnBannerText)).toBeInTheDocument();
+            expect(screen.queryByTestId('PluginSettings.PluginStates.crossguard.Enable-button')).not.toBeInTheDocument();
+        });
+
+        it('does not match an add-on on a substring', () => {
+            renderAddOnPlugin({IsLicensed: 'true', AddOns: 'crossguard-premium'});
+
+            expect(screen.queryByTestId('PluginSettings.PluginStates.crossguard.Enable-button')).not.toBeInTheDocument();
+            expect(screen.getByText(addOnBannerText)).toBeInTheDocument();
+        });
+
+        it('leaves plugins that are not add-ons alone', () => {
+            renderWithContext(
+                <CustomPluginSettings
+                    {...baseProps}
+                    license={{IsLicensed: 'true'}}
+                    patchConfig={jest.fn()}
+                />,
+                {
+                    entities: {
+                        admin: {plugins: {testplugin: plugin}},
+                        general: {license: {IsLicensed: 'true'}},
+                    },
+                },
+            );
+
+            expect(screen.getByTestId('PluginSettings.PluginStates.testplugin.Enable-button')).toBeInTheDocument();
+            expect(screen.queryByText(addOnBannerText)).not.toBeInTheDocument();
+        });
+    });
 });

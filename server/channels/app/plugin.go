@@ -252,6 +252,18 @@ func (ch *Channels) initPlugins(rctx request.CTX, pluginDir, webappPluginDir str
 
 	ch.srv.RemoveLicenseListener(ch.pluginLicenseListenerID)
 	ch.pluginLicenseListenerID = ch.srv.AddLicenseListener(func(oldLicense, newLicense *model.License) {
+		// A license upload does not change the config, so the config listener above
+		// never fires for it and add-on gating would not be re-evaluated. Guarded
+		// because SetLicense fires far more often than the add-on set changes, and
+		// the sync activates every installed plugin on this goroutine.
+		//
+		// Sync before the hook, so OnLicenseChanged reaches only plugins the new
+		// license permits. A revoked add-on therefore sees OnDeactivate instead;
+		// hook-then-sync would lose the grant direction instead, which is worse.
+		if !addOnEntitlementsEqual(oldLicense, newLicense) {
+			ch.syncPluginsActiveState()
+		}
+
 		ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			hooks.OnLicenseChanged(oldLicense, newLicense)
 			return true
@@ -447,6 +459,13 @@ func (ch *Channels) enablePlugin(id string) *model.AppError {
 
 	if manifest == nil {
 		return model.NewAppError("EnablePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusNotFound)
+	}
+
+	// Reject up front rather than writing Enable: true and letting
+	// syncPluginsActiveState deactivate it again, reporting success for a plugin
+	// that cannot run. Scoped to add-ons; Apps keeps its existing behaviour.
+	if addOn, isAddOn := model.PluginRequiredAddOn(id); isAddOn && !ch.srv.License().HasAddOn(addOn) {
+		return model.NewAppError("EnablePlugin", "app.plugin.addon_not_licensed.app_error", map[string]any{"AddOn": addOn}, "", http.StatusForbidden)
 	}
 
 	ch.cfgSvc.UpdateConfig(func(cfg *model.Config) {
@@ -1250,11 +1269,39 @@ func getIcon(iconPath string) (string, error) {
 	return fmt.Sprintf("data:image/svg+xml;base64,%s", base64.StdEncoding.EncodeToString(icon)), nil
 }
 
+// addOnEntitlementsEqual compares case- and order-insensitively, to match
+// License.HasAddOn.
+func addOnEntitlementsEqual(oldLicense, newLicense *model.License) bool {
+	normalize := func(l *model.License) []string {
+		if l == nil {
+			return nil
+		}
+
+		addOns := make([]string, 0, len(l.AddOns))
+		for _, addOn := range l.AddOns {
+			addOns = append(addOns, strings.ToLower(addOn))
+		}
+		slices.Sort(addOns)
+
+		return slices.Compact(addOns)
+	}
+
+	return slices.Equal(normalize(oldLicense), normalize(newLicense))
+}
+
 func (ch *Channels) getPluginStateOverride(pluginID string) (bool, bool) {
 	switch pluginID {
 	case model.PluginIdApps:
 		// Tie Apps proxy disabled status to the feature flag.
 		if !ch.cfgSvc.Config().FeatureFlags.AppsEnabled {
+			return true, false
+		}
+	}
+
+	// Overrides PluginStates, so an unlicensed add-on cannot be enabled by editing
+	// config.
+	if addOn, ok := model.PluginRequiredAddOn(pluginID); ok {
+		if !ch.srv.License().HasAddOn(addOn) {
 			return true, false
 		}
 	}

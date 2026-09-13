@@ -8165,6 +8165,10 @@
     "translation": "Failed to evaluate permission policy."
   },
   {
+    "id": "app.plugin.addon_not_licensed.app_error",
+    "translation": "This plugin requires the {{.AddOn}} add-on, which your license does not include."
+  },
+  {
     "id": "app.plugin.cluster.save_config.app_error",
     "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
   },

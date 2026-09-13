@@ -19,6 +19,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -265,6 +266,9 @@ func GetClientLicense(l *model.License) map[string]string {
 		props["IsTrial"] = strconv.FormatBool(l.IsTrial)
 		props["IsGovSku"] = strconv.FormatBool(l.IsGovSku)
 		props["IsNonProduction"] = strconv.FormatBool(l.IsNonProduction)
+		// Consumers must split on "," not substring match, so "crossguard" is not
+		// satisfied by "crossguard-premium".
+		props["AddOns"] = strings.Join(l.AddOns, ",")
 	}
 
 	return props
@@ -282,6 +286,12 @@ func GetSanitizedClientLicense(l map[string]string) map[string]string {
 	delete(sanitizedLicense, "StartsAt")
 	delete(sanitizedLicense, "ExpiresAt")
 	delete(sanitizedLicense, "SkuName")
+
+	// Do not strip AddOns. Only identity and date fields are removed above;
+	// entitlements survive, and add-ons are entitlements. The license_changed
+	// websocket event broadcasts this map and the webapp replaces its license
+	// object wholesale, so anything stripped here is lost from the System Console
+	// after any license change. Narrowing this endpoint is tracked in MM-68045.
 
 	return sanitizedLicense
 }
