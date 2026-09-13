@@ -1,0 +1,50 @@
+name: "Pack Playwright build output artifact"
+description: >
+  Tar everything Playwright needs that is compiled from our own source — the
+  rolled-up lib/dist and the built @mattermost/{client,types} output — and upload
+  it as a run-scoped artifact for this run's workers.
+
+  These are deliberately not cached. Both are derived from first-party source
+  rather than from a lockfile, so caching them would drag lib/src and the
+  platform sources into the deps key: 18.6% of master commits touch one of those,
+  against 1.4% for the Playwright lockfile alone. Keying ~275 MB of dependencies
+  on our own edit rate is the churn this split exists to avoid, and prep-deps
+  builds both every run regardless, so there is nothing to warm.
+
+  The container mounts the repo, so the workers already have the sources. What
+  they lack is the tsc and rollup output, which is all this carries.
+
+inputs:
+  fips:
+    description: >
+      Whether this is a FIPS-edition run. e2e-tests-ci.yml invokes the playwright
+      template twice per workflow run — once per edition — and artifact names are
+      run-scoped, so the two invocations would otherwise collide. Must match the
+      unpack step.
+    required: false
+    default: "false"
+
+runs:
+  using: "composite"
+  steps:
+    # -C so the archive holds paths relative to the workspace, letting unpack
+    # extract straight into it.
+    - name: ci/pack-playwright-build
+      shell: bash
+      run: |
+        set -euo pipefail
+        tar -czf "${RUNNER_TEMP}/playwright-build.tgz" -C "${GITHUB_WORKSPACE}" \
+          e2e-tests/playwright/lib/dist \
+          webapp/platform/client/lib \
+          webapp/platform/types/lib
+    - name: ci/upload-playwright-build
+      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+      with:
+        name: e2e-playwright-build${{ inputs.fips == 'true' && '-fips' || '' }}
+        path: ${{ runner.temp }}/playwright-build.tgz
+        # Only ever consumed by workers in the same run.
+        retention-days: 1
+        if-no-files-found: error
+        # The tarball is already gzipped; re-compressing it in the zip wrapper
+        # costs CPU for no gain.
+        compression-level: 0
