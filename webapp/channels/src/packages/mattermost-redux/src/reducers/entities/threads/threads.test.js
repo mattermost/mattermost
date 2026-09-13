@@ -194,6 +194,98 @@ describe('threads', () => {
         });
     });
 
+    test('FOLLOW_CHANGED_THREAD should decrement unread counts when unfollowing an unread thread', () => {
+        const state = deepFreeze({
+            threadsInTeam: {
+                a: ['id'],
+            },
+            unreadThreadsInTeam: {
+                a: ['id'],
+            },
+            threads: {
+                id: {
+                    id: 'id',
+                    is_following: true,
+                    unread_replies: 1,
+                    unread_mentions: 2,
+                    is_urgent: true,
+                    last_reply_at: 10,
+                },
+            },
+            counts: {},
+            countsIncludingDirect: {
+                a: {
+                    total: 1,
+                    total_unread_threads: 1,
+                    total_unread_mentions: 2,
+                    total_unread_urgent_mentions: 2,
+                },
+            },
+        });
+
+        const nextState = threadsReducer(state, {
+            type: ThreadTypes.FOLLOW_CHANGED_THREAD,
+            data: {
+                id: 'id',
+                team_id: 'a',
+                following: false,
+            },
+        });
+
+        expect(nextState.threads.id.is_following).toBe(false);
+        expect(nextState.unreadThreadsInTeam.a).toEqual([]);
+        expect(nextState.countsIncludingDirect.a).toEqual({
+            total: 0,
+            total_unread_threads: 0,
+            total_unread_mentions: 0,
+            total_unread_urgent_mentions: 0,
+        });
+    });
+
+    test('FOLLOW_CHANGED_THREAD should increment unread counts when following an unread thread', () => {
+        const state = deepFreeze({
+            threadsInTeam: {
+                a: [],
+            },
+            unreadThreadsInTeam: {
+                a: [],
+            },
+            threads: {
+                id: {
+                    id: 'id',
+                    is_following: false,
+                    unread_replies: 1,
+                    unread_mentions: 2,
+                    last_reply_at: 10,
+                },
+            },
+            counts: {},
+            countsIncludingDirect: {
+                a: {
+                    total: 0,
+                    total_unread_threads: 0,
+                    total_unread_mentions: 0,
+                },
+            },
+        });
+
+        const nextState = threadsReducer(state, {
+            type: ThreadTypes.FOLLOW_CHANGED_THREAD,
+            data: {
+                id: 'id',
+                team_id: 'a',
+                following: true,
+            },
+        });
+
+        expect(nextState.threads.id.is_following).toBe(true);
+        expect(nextState.countsIncludingDirect.a).toEqual({
+            total: 1,
+            total_unread_threads: 1,
+            total_unread_mentions: 2,
+        });
+    });
+
     test('READ_CHANGED_THREAD should update the count for thread per channel', () => {
         const state = deepFreeze({
             threadsInTeam: {
