@@ -12,10 +12,9 @@ import {expect, test} from '@mattermost/playwright-lib';
 test('switches an email account to OpenID SSO', {tag: '@authentication'}, async ({pw}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
-    await pw.ensureKeycloakOpenId();
-    await pw.ensureSiteUrl();
-
     const {adminClient, user, team} = await pw.initSetup();
+    await pw.ensureSiteUrl();
+    await pw.ensureKeycloakOpenId();
     const keycloakUser = {
         username: `kc${user.username}`,
         email: user.email,

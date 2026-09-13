@@ -12,9 +12,8 @@ import {expect, test} from '@mattermost/playwright-lib';
 test('switches an email account to AD/LDAP', {tag: '@authentication'}, async ({pw}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
-    await pw.ensureOpenldap();
-
     const {adminClient, user, team} = await pw.initSetup();
+    await pw.ensureOpenldap();
     const ldapUser = {
         username: `ldap${pw.random.id()}`,
         password: 'Password1',

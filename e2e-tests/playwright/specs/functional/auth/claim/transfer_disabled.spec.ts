@@ -12,10 +12,9 @@ import {expect, test} from '@mattermost/playwright-lib';
 test('hides Sign-in Method when authentication transfer is disabled', {tag: '@authentication'}, async ({pw}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
-    await pw.ensureKeycloakOpenId();
-    await pw.ensureSiteUrl();
-
     const {adminClient, user, team} = await pw.initSetup();
+    await pw.ensureSiteUrl();
+    await pw.ensureKeycloakOpenId();
 
     try {
         // # Disable authentication transfer while another sign-in method is available

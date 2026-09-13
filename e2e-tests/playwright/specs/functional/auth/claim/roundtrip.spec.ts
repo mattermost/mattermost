@@ -14,10 +14,9 @@ test('round-trips an email account through OpenID and back to email', {tag: '@au
 
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
-    await pw.ensureKeycloakOpenId();
-    await pw.ensureSiteUrl();
-
     const {adminClient, user, team} = await pw.initSetup();
+    await pw.ensureSiteUrl();
+    await pw.ensureKeycloakOpenId();
     const keycloakUser = {
         username: `kc${user.username}`,
         email: user.email,

@@ -12,10 +12,9 @@ import {expect, test} from '@mattermost/playwright-lib';
 test('switches an OpenID account to email and password', {tag: '@authentication'}, async ({pw}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
-    await pw.ensureKeycloakOpenId();
-    await pw.ensureSiteUrl();
-
     const {adminClient, team} = await pw.initSetup();
+    await pw.ensureSiteUrl();
+    await pw.ensureKeycloakOpenId();
     const keycloakUser = pw.generateKeycloakUser('openidclaim');
     await pw.createKeycloakUser(keycloakUser);
     const newPassword = pw.newTestPassword();

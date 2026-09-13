@@ -12,10 +12,9 @@ import {expect, test} from '@mattermost/playwright-lib';
 test('rejects email-to-OpenID when the current password is wrong', {tag: '@authentication'}, async ({pw}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
-    await pw.ensureKeycloakOpenId();
-    await pw.ensureSiteUrl();
-
     const {adminClient, user, team} = await pw.initSetup();
+    await pw.ensureSiteUrl();
+    await pw.ensureKeycloakOpenId();
 
     try {
         // # Log in as the email user and open Switch to OpenID
@@ -52,9 +51,8 @@ test('rejects email-to-OpenID when the current password is wrong', {tag: '@authe
 test('rejects email-to-LDAP when the current password is wrong', {tag: '@authentication'}, async ({pw}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
-    await pw.ensureOpenldap();
-
     const {adminClient, user, team} = await pw.initSetup();
+    await pw.ensureOpenldap();
     const ldapUser = pw.generateLdapUser('claimbad');
     await pw.createLdapUser(ldapUser);
 
