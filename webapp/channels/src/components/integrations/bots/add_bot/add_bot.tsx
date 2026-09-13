@@ -17,6 +17,15 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import BackstageHeader from 'components/backstage/components/backstage_header';
+import type {ExpiryPreset} from 'components/common/token_expiry_picker/token_expiry';
+import {
+    clampExpiresAtToMaxLifetime,
+    defaultCustomExpiryDate,
+    defaultExpiryPreset,
+    getExpiryValidationError,
+    resolveTokenExpiresAt,
+} from 'components/common/token_expiry_picker/token_expiry';
+import TokenExpiryPicker from 'components/common/token_expiry_picker/token_expiry_picker';
 import ExternalLink from 'components/external_link';
 import FormError from 'components/form_error';
 import SpinnerButton from 'components/spinner_button';
@@ -57,6 +66,8 @@ export type Props = {
      */
     maxFileSize: number;
 
+    maxLifetimeDays: number;
+
     /**
      * Editing user has the MANAGE_SYSTEM permission
      */
@@ -90,7 +101,7 @@ export type Props = {
         /**
          * For creating default access token
          */
-        createUserAccessToken: (userId: string, description: string) => Promise<ActionResult<UserAccessToken>>;
+        createUserAccessToken: (userId: string, description: string, expiresAt?: number) => Promise<ActionResult<UserAccessToken>>;
 
         /**
          * For creating setting bot to system admin or special posting permissions
@@ -106,11 +117,13 @@ export type State = {
     role: string;
     postAll: boolean;
     postChannels: boolean;
-    error: JSX.Element | string;
+    error: React.ReactNode;
     adding: boolean;
     image: string;
     orientationStyles: {transform: string; transformOrigin: string};
     pictureFile: File | null | string;
+    expiryPreset: ExpiryPreset;
+    customExpiryDate: string;
 };
 
 export default class AddBot extends React.PureComponent<Props, State> {
@@ -130,8 +143,40 @@ export default class AddBot extends React.PureComponent<Props, State> {
             postChannels: this.props.bot ? UserUtils.hasPostAllPublicRole(this.props.roles || '') : false,
             orientationStyles: {transform: '', transformOrigin: ''},
             pictureFile: null,
+            expiryPreset: this.defaultExpiryPreset(),
+            customExpiryDate: this.defaultCustomExpiryDate(),
         };
     }
+
+    defaultCustomExpiryDate = (): string => {
+        return defaultCustomExpiryDate(this.props.maxLifetimeDays);
+    };
+
+    defaultExpiryPreset = (): ExpiryPreset => {
+        return defaultExpiryPreset(this.props.maxLifetimeDays, this.props.maxLifetimeDays > 0);
+    };
+
+    resolveExpiresAt = (): number => {
+        return resolveTokenExpiresAt(this.state.expiryPreset, this.state.customExpiryDate);
+    };
+
+    getExpiryValidationError = (): React.ReactNode | null => {
+        return getExpiryValidationError(this.state.expiryPreset, this.state.customExpiryDate, this.props.maxLifetimeDays, this.props.maxLifetimeDays > 0, !this.props.bot);
+    };
+
+    updateExpiryPreset = (e: ChangeEvent<HTMLSelectElement>) => {
+        this.setState({
+            expiryPreset: e.target.value as ExpiryPreset,
+            error: '',
+        });
+    };
+
+    updateCustomExpiryDate = (e: ChangeEvent<HTMLInputElement>) => {
+        this.setState({
+            customExpiryDate: e.target.value,
+            error: '',
+        });
+    };
 
     updateUsername = (e: ChangeEvent<HTMLInputElement>) => {
         this.setState({
@@ -262,6 +307,14 @@ export default class AddBot extends React.PureComponent<Props, State> {
             }
         }
 
+        const expiryError = this.getExpiryValidationError();
+        if (expiryError) {
+            this.setState({
+                error: expiryError,
+            });
+            return;
+        }
+
         this.setState({
             adding: true,
             error: '',
@@ -345,12 +398,16 @@ export default class AddBot extends React.PureComponent<Props, State> {
                 } else {
                     await this.props.actions.setDefaultProfileImage(data.user_id);
                 }
+                const expiresAt = this.resolveExpiresAt();
+                const clampedExpiresAt = clampExpiresAtToMaxLifetime(expiresAt, this.props.maxLifetimeDays);
                 const tokenResult = await this.props.actions.createUserAccessToken(data.user_id,
                     Utils.localizeMessage({id: 'bot.token.default.description', defaultMessage: 'Default Token'}),
+                    clampedExpiresAt > 0 ? clampedExpiresAt : undefined,
                 );
 
                 // On error just skip the confirmation because we have a bot without a token.
                 if (!tokenResult || tokenResult.error) {
+                    this.updateRoles(data);
                     getHistory().push(`/${this.props.team.name}/integrations/bots`);
                     return;
                 }
@@ -377,6 +434,50 @@ export default class AddBot extends React.PureComponent<Props, State> {
                 error: error.message,
             });
         }
+    };
+
+    renderDefaultTokenExpiryPicker = (): JSX.Element | null => {
+        if (this.props.bot) {
+            return null;
+        }
+
+        return (
+            <>
+                <div className='row bot-profile__section'>
+                    <div className='col-md-5 col-sm-8 col-sm-offset-4'>
+                        <strong>
+                            <FormattedMessage
+                                id='bot.add.default_token.title'
+                                defaultMessage='Default access token'
+                            />
+                        </strong>
+                    </div>
+                </div>
+                <div className='form-group'>
+                    <label
+                        className='control-label col-sm-4'
+                        htmlFor='defaultTokenExpiry'
+                    >
+                        <FormattedMessage
+                            id='bot.add.default_token.expiry'
+                            defaultMessage='Default token expires'
+                        />
+                    </label>
+                    <div className='col-md-5 col-sm-8'>
+                        <TokenExpiryPicker
+                            idPrefix='defaultToken'
+                            expiryPreset={this.state.expiryPreset}
+                            customExpiryDate={this.state.customExpiryDate}
+                            maxLifetimeDays={this.props.maxLifetimeDays}
+                            enforceExpiry={this.props.maxLifetimeDays > 0}
+                            onPresetChange={this.updateExpiryPreset}
+                            onCustomDateChange={this.updateCustomExpiryDate}
+                            hintClassName='form__help'
+                        />
+                    </div>
+                </div>
+            </>
+        );
     };
 
     render() {
@@ -709,6 +810,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                 </div>
                             </div>
                         </div>
+                        {this.renderDefaultTokenExpiryPicker()}
                         <div className='backstage-form__footer'>
                             <FormError
                                 type='backstage'
