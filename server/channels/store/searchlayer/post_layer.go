@@ -110,6 +110,17 @@ func (s SearchPostStore) Save(rctx request.CTX, post *model.Post) (*model.Post, 
 	return npost, err
 }
 
+func (s SearchPostStore) SaveMultiple(rctx request.CTX, posts []*model.Post) ([]*model.Post, int, error) {
+	nposts, errIdx, err := s.PostStore.SaveMultiple(rctx, posts)
+
+	if err == nil {
+		for _, npost := range nposts {
+			s.indexPost(rctx, npost)
+		}
+	}
+	return nposts, errIdx, err
+}
+
 func (s SearchPostStore) Delete(rctx request.CTX, postId string, date int64, deletedByID string) error {
 	err := s.PostStore.Delete(rctx, postId, date, deletedByID)
 	if err != nil {
