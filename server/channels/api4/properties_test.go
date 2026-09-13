@@ -4461,6 +4461,50 @@ func TestPropertyValuesUpdatedPayloadShapes(t *testing.T) {
 		require.Empty(t, event.GetBroadcast().ChannelId)
 		require.Empty(t, event.GetBroadcast().TeamId)
 	})
+
+	t.Run("shape 5: a non-public field's value is withheld", func(t *testing.T) {
+		withheldField := newChannelField(t)
+
+		// Flipping access_mode through the store, not the API, bypasses
+		// ValidatePropertyFieldAccessMode (which would demand protected: true).
+		// Leaving protected unset is a test-only posture: it keeps the field
+		// writable by a session caller so the test can provoke a broadcast,
+		// which no plugin-authored source_only field would allow.
+		if withheldField.Attrs == nil {
+			withheldField.Attrs = model.StringInterface{}
+		}
+		withheldField.Attrs[model.PropertyAttrsAccessMode] = model.PropertyAccessModeSourceOnly
+		_, err := th.App.Srv().Store().PropertyField().Update(group.ID, []*model.PropertyField{withheldField}, nil)
+		require.NoError(t, err)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: field.ID, Value: json.RawMessage(`"visible"`)},
+			{FieldID: withheldField.ID, Value: json.RawMessage(`"hidden"`)},
+		}
+		_, resp, patchErr := th.Client.PatchPropertyValues(context.Background(), group.Name, "channel", th.BasicChannel.Id, items)
+		require.NoError(t, patchErr)
+		CheckOKStatus(t, resp)
+
+		event := nextPropertyValuesEvent(t, webSocketClient)
+		values := decodeBroadcastValues(t, event)
+		require.Len(t, values, 2)
+
+		byFieldID := make(map[string]*model.PropertyValue, len(values))
+		for _, v := range values {
+			byFieldID[v.FieldID] = v
+		}
+
+		withheld := byFieldID[withheldField.ID]
+		require.Equal(t, json.RawMessage(model.PropertyValueWithheldJSON), withheld.Value)
+		require.NotEmpty(t, withheld.ID)
+		require.Equal(t, withheldField.ID, withheld.FieldID)
+		require.Equal(t, th.BasicChannel.Id, withheld.TargetID)
+
+		// The public field in the same batch keeps its real value: masking is
+		// decided per row, not per broadcast.
+		public := byFieldID[field.ID]
+		require.Equal(t, json.RawMessage(`"visible"`), public.Value)
+	})
 }
 
 func TestPatchPropertyValuesChannelObjectTypeBroadcast(t *testing.T) {
