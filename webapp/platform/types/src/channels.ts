@@ -93,6 +93,7 @@ export type Channel = {
     managed_category_name?: string;
     autotranslation?: boolean;
     discoverable?: boolean;
+    disable_join_leave_messages?: boolean;
 
     // Create-only: attribute values to store with the channel. Sent so the server
     // can refuse a channel that would not satisfy its own required attributes.
