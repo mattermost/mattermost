@@ -121,6 +121,5 @@ test('logout invalidates a session created via OpenID', {tag: '@openid'}, async 
     await pw.loginPage.expectOnLoginPage();
 
     // * Verify revisiting the team's channel redirects back to login
-    await pw.loginPage.goto(`/${team.name}`);
-    await pw.loginPage.expectOnLoginPage();
+    await pw.loginPage.expectLoginRedirectFrom(`/${team.name}`);
 });

@@ -99,6 +99,18 @@ export default class LoginPage {
         await expect(this.page).toHaveURL(/\/login/);
     }
 
+    async expectLoginRedirectFrom(path: string) {
+        try {
+            await this.page.goto(path, {waitUntil: 'commit'});
+        } catch (error) {
+            const message = String(error);
+            if (!/interrupted|ERR_ABORTED/i.test(message)) {
+                throw error;
+            }
+        }
+        await this.expectOnLoginPage();
+    }
+
     oauthLoginButton(name: string) {
         return this.page.getByRole('link', {name});
     }
