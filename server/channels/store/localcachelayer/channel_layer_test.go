@@ -15,6 +15,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 	cmocks "github.com/mattermost/mattermost/server/v8/platform/services/cache/mocks"
 )
 
@@ -536,3 +537,33 @@ func TestChannelStoreGetAllChannelMembersForUser(t *testing.T) {
 	_, err = cachedStore.Channel().GetAllChannelMembersForUser(request.TestContext(t), "u1", true, false)
 	require.NoError(t, err)
 }
+
+func TestChannelStoreRemoveMemberInvalidatesCache(t *testing.T) {
+	logger := mlog.CreateConsoleTestLogger(t)
+
+	mockStore := getMockStore(t)
+	mockStore.Channel().(*mocks.ChannelStore).On("RemoveMember", mock.Anything, "channel-cold", "user1").Return(nil)
+	mockStore.Channel().(*mocks.ChannelStore).On("GetChannelsMemberCount", []string{"channel-cold"}).Return(map[string]int64{"channel-cold": 9}, nil)
+
+	redisProvider, err := cache.NewRedisProvider(&cache.RedisOptions{
+		RedisAddr: "127.0.0.1:6379",
+	})
+	if err != nil {
+		t.Skip("Redis is not available: ", err)
+	}
+	defer redisProvider.Close()
+
+	cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, redisProvider, logger)
+	require.NoError(t, err)
+
+	rctx := request.TestContext(t)
+	err = cachedStore.Channel().RemoveMember(rctx, "channel-cold", "user1")
+	require.NoError(t, err)
+
+	counts, err := cachedStore.Channel().GetChannelsMemberCount([]string{"channel-cold"})
+	require.NoError(t, err)
+
+	assert.Equal(t, int64(9), counts["channel-cold"])
+}
+
+
