@@ -4,6 +4,7 @@
 import React from 'react';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
+import {useFreezableImageUrl} from '@mattermost/shared/utils/animated_image';
 
 export interface Props {
     children: React.ReactNode;
@@ -13,7 +14,8 @@ export interface Props {
 
 const PostEmoji = ({children, name, imageUrl}: Props) => {
     const emojiText = `:${name}:`;
-    const backgroundImageUrl = `url(${imageUrl})`;
+    const displayUrl = useFreezableImageUrl(imageUrl);
+    const backgroundImageUrl = `url(${displayUrl})`;
 
     if (!imageUrl) {
         return <>{children}</>;
