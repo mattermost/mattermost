@@ -116,4 +116,24 @@ export default class LoginPage {
     oauthLoginButton(name: string) {
         return this.page.getByRole('link', {name});
     }
+
+    async expectOAuthLogin(name: string, path: string, color?: string) {
+        const button = this.oauthLoginButton(name);
+        await expect(button).toBeVisible();
+        const escapedPath = path.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        await expect(button).toHaveAttribute('href', new RegExp(`${escapedPath}(?:\\?extra=expired)?$`));
+        if (color) {
+            const rgb = hexToRgb(color);
+            await expect(button).toHaveCSS('color', rgb);
+            await expect(button).toHaveCSS('border-color', rgb);
+        }
+    }
+}
+
+function hexToRgb(hex: string): string {
+    const n = hex.replace('#', '');
+    const r = parseInt(n.slice(0, 2), 16);
+    const g = parseInt(n.slice(2, 4), 16);
+    const b = parseInt(n.slice(4, 6), 16);
+    return `rgb(${r}, ${g}, ${b})`;
 }
