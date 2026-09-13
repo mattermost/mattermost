@@ -83,7 +83,7 @@ func (a *App) filterInaccessibleFiles(fileList *model.FileInfoList, options filt
 		inaccessibleCount := lenFiles - accessibleCount
 		// Linearly cover shorter route to traverse files map
 		if inaccessibleCount < accessibleCount {
-			for i := 0; i < bounds.start; i++ {
+			for i := range bounds.start {
 				delete(files, order[i])
 			}
 			for i := bounds.end + 1; i < lenFiles; i++ {

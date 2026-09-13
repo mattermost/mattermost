@@ -81,7 +81,7 @@ func randomMessage(users []string) string {
 		if rand.Intn(2) == 0 {
 			message += fake.Sentence()
 		}
-		for i := 0; i < rand.Intn(4)+1; i++ {
+		for i := 0; i < rand.Intn(4)+1; i++ { //nolint:intrange // bound is re-rolled every iteration; range would fix it once and change the iteration count
 			message += "\n  * " + fake.Word()
 		}
 	default:

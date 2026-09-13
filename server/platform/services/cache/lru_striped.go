@@ -149,7 +149,7 @@ func NewLRUStriped(opts *CacheOptions) (Cache, error) {
 	opts.Size = (opts.Size / opts.StripedBuckets) + (opts.Size % opts.StripedBuckets)
 
 	buckets := make([]*LRU, opts.StripedBuckets)
-	for i := 0; i < opts.StripedBuckets; i++ {
+	for i := 0; i < opts.StripedBuckets; i++ { //nolint:intrange // opts is reachable through the pointer passed into NewLRU below; the bound isn't provably safe to hoist
 		buckets[i] = NewLRU(opts).(*LRU)
 	}
 

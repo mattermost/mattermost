@@ -42,7 +42,7 @@ func BenchmarkLRUStriped(b *testing.B) {
 		bucketKey := xxhash.Sum64String(key) % uint64(opts.StripedBuckets)
 		bucketKeys[bucketKey] = append(bucketKeys[bucketKey], key)
 	}
-	for i := 0; i < opts.Size; i++ {
+	for i := 0; i < opts.Size; i++ { //nolint:intrange // opts is aliased via &opts passed into NewLRUStriped above; the bound isn't provably safe to hoist
 		cache.SetWithDefaultExpiry(keys[i], "preflight")
 	}
 
@@ -75,7 +75,7 @@ func BenchmarkLRUStriped(b *testing.B) {
 		b.StopTimer()
 		wgSet.Add(1)
 		go set()
-		for j := 0; j < opts.StripedBuckets; j++ {
+		for j := 0; j < opts.StripedBuckets; j++ { //nolint:intrange // opts is aliased via &opts passed into NewLRUStriped above; the bound isn't provably safe to hoist
 			wgGet.Add(1)
 			go get(j)
 		}
