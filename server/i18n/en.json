@@ -12463,6 +12463,10 @@
     "translation": "Message export job GlobalRelaySettings.EmailAddress must be set to a valid email address."
   },
   {
+    "id": "model.config.is_valid.message_export.global_relay.sender_address.app_error",
+    "translation": "Message export GlobalRelaySettings.SenderAddress must be empty or a valid email address."
+  },
+  {
     "id": "model.config.is_valid.message_export.global_relay.smtp_password.app_error",
     "translation": "Message export job GlobalRelaySettings.SmtpPassword must be set."
   },
