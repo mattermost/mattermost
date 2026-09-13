@@ -56,6 +56,14 @@ Alternatively, you can configure Data Spillage Handling via the [config.json fil
     - **Require reviewers to add comment**: Set to **True** to require reviewers to add a comment when resolving a quarantine.
     - **Hide message from channel while it is being reviewed**: Set to **True** to automatically hide quarantined messages from the channel until reviews are complete. If a root post is quarantined, the entire thread is hidden.
 
+4.  Under **Post Delivery Audit Logging**, record each user, plugin, and outgoing webhook that a message is delivered to:
+
+    - **Enable post delivery audit logging**: Set to **True** to record an audit log entry for each delivery of a message in an eligible channel. These records are written to the audit log only, and aren't surfaced anywhere in the Mattermost interface.
+    - **Record deliveries in**: Select **All channels**, or select **Selected channels** to limit recording to specific channels.
+    - **Channels to record deliveries in**: With **Selected channels** set, select the channels in which deliveries are recorded.
+
+    Direct and group message channels are never eligible, regardless of **Record deliveries in**. See [Post delivery audit logging](#post-delivery-audit-logging) for details.
+
 <Tip>
 
 We recommend enabling **Hide message from channel while it is being reviewed** and require comments from both reporters and reviewers to maintain transparency, accountability, and an auditable record of actions.
@@ -187,6 +195,52 @@ When any step reports **Partial** or **Failed**, the report displays an *incompl
 The post deletion report is the single source of truth for post-removal auditing. It isn't stored elsewhere in the System Console, so the reviewer thread containing the report should be retained in line with your organization's audit retention policy.
 
 </Note>
+
+## Post delivery audit logging
+
+From Mattermost v12.0, Mattermost can record an audit log entry for each delivery of a message in an eligible channel, so that you can establish which users, plugins, and outgoing webhooks a given message was delivered to. Direct and group message channels are never eligible. Delivery records add storage and processing cost, so enable them only where they're needed.
+
+<Note>
+
+Post delivery audit logging is currently in [Beta](/administration-guide/manage/feature-labels#beta).
+
+</Note>
+
+Delivery records are written to the audit log only. They aren't surfaced anywhere in the Mattermost interface, and they aren't included in any Mattermost report. To use them, ingest them with the same pipeline you use for the rest of your Mattermost audit log.
+
+<Important>
+
+Post delivery audit logging requires the [feature flag](https://developers.mattermost.com/contribute/more-info/server/feature-flags/#changing-feature-flag-values) `MM_FEATUREFLAGS_POSTDELIVERYTRACKING`, which is disabled by default, and a server restart after you enable it.
+
+</Important>
+
+<Warning>
+
+Delivery records are discarded unless an audit log target consumes the `audit-delivery` log level. Enabling the setting without configuring such a target records nothing, and Mattermost doesn't block the configuration. Configure the target first.
+
+</Warning>
+
+To enable post delivery audit logging:
+
+1.  Add an audit log target that consumes the `audit-delivery` log level. See [Post delivery audit logging](/administration-guide/comply/post-delivery-audit-logging).
+2.  Go to **System Console \> Site Configuration \> Data Spillage Handling**, and find **Post Delivery Audit Logging**.
+3.  Set **Enable post delivery audit logging** to **True**.
+4.  Set **Record deliveries in**:
+
+    - **All channels**: Deliveries are recorded in every eligible channel. This is the most complete option, and the most expensive.
+    - **Selected channels**: Deliveries are recorded only in the eligible channels you select. At least one channel is required.
+
+5.  With **Selected channels** set, use **Channels to record deliveries in** to select the channels. Direct and group message channels can't be selected. Recording starts when you save and applies to eligible message content delivered from then on, including existing messages delivered through later channel loads, searches, and fetches.
+
+**Enable post delivery audit logging** and **Record deliveries in** can also be configured via the [config.json file or through environment variables](/administration-guide/configure/site-configuration-settings#enable-post-delivery-audit-logging).
+
+The list of channels isn't stored in `config.json`. Mattermost stores it in the database, so manage it either in the System Console or through the `/api/v4/delivery_tracking/config` API endpoints. A `PUT` request that omits `ChannelIds` leaves the stored list unchanged. An empty array clears the list when **Record deliveries in** is set to **All channels**, and is rejected when it's set to **Selected channels**, because at least one channel is required. See the [Mattermost API reference](https://api.mattermost.com/).
+
+<Tip>
+
+See [Post delivery audit logging](/administration-guide/comply/post-delivery-audit-logging) for the format of a delivery record, every delivery mechanism that's recorded, what isn't recorded, and how to interpret the records.
+
+</Tip>
 
 ## Best practice recommendations
 

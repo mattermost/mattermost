@@ -1,0 +1,183 @@
+---
+title: "Post delivery audit logging"
+---
+<PlanAvailability slug="entry-adv" />
+
+From Mattermost v12.0, Mattermost can record an audit log entry each time a message's content is delivered to a user or to an integration. These records let you establish which users a given message was delivered to, and by what means.
+
+<Note>
+
+Post delivery audit logging is currently in [Beta](/administration-guide/manage/feature-labels#beta).
+
+</Note>
+
+Delivery records are ordinary audit log records, written through the existing audit logging pipeline to whichever audit log targets you've configured.
+
+## Before you begin
+
+Post delivery audit logging requires all of the following:
+
+- A Mattermost Enterprise Advanced license.
+- The [feature flag](https://developers.mattermost.com/contribute/more-info/server/feature-flags/#changing-feature-flag-values) `MM_FEATUREFLAGS_POSTDELIVERYTRACKING`, which is disabled by default. **Restart the server after enabling the feature flag**.
+- Advanced audit logging configured at **System Console \> Compliance \> Audit Logging \> Advanced Logging**.
+- An audit log target that consumes the `audit-delivery` log level in the advanced audit log config.
+
+<Important>
+
+Enabling post delivery audit logging on its own produces no output. Delivery records are discarded until an audit log target consumes the `audit-delivery` log level. Configure the target before you enable the feature. The log volume increases substantially once these audit logs are enabled.
+
+</Important>
+
+## Configure an audit log target
+
+Delivery records are written at the `audit-delivery` log level, ID `104`. Unlike the other [audit log levels](/administration-guide/manage/logging#log-levels), `audit-delivery` isn't written by the built-in audit log file target, so enabling `ExperimentalAuditSettings.FileEnabled` doesn't capture delivery records. Add a target that consumes level `104` to `ExperimentalAuditSettings.AdvancedLoggingJSON` instead. See [advanced logging](/administration-guide/manage/logging#advanced-logging) for the available target types and options.
+
+We recommend a dedicated target, so that the volume of delivery records doesn't overwhelm your other audit records. The example below writes delivery records to their own file, rotated at 100 MB, with up to 10,000 records buffered in memory while writing:
+
+``` JSON
+{
+    "post-delivery-audit": {
+        "type": "file",
+        "format": "json",
+        "levels": [
+            { "id": 104, "name": "audit-delivery" }
+        ],
+        "options": {
+            "filename": "./logs/post-delivery-audit.log",
+            "max_size": 100,
+            "max_age": 0,
+            "max_backups": 0,
+            "compress": true
+        },
+        "maxqueuesize": 10000
+    }
+}
+```
+
+If post delivery audit logging is enabled and no audit log target consumes the `audit-delivery` level, the configuration remains valid, delivery records are discarded, and Mattermost logs the following warning at startup and whenever the configuration changes:
+
+``` text
+DeliveryTrackingSettings.Enable is enabled but no configured audit log target consumes the audit-delivery level; post delivery audit records will be discarded. Add a target for the level via ExperimentalAuditSettings.AdvancedLoggingJSON.
+```
+
+## Enable post delivery audit logging
+
+In the System Console, enable post delivery audit logging and choose the channels that deliveries are recorded in by going to **Site Configuration \> Data Spillage Handling \> Post Delivery Audit Logging**. See [Post delivery audit logging](/administration-guide/manage/admin/content-flagging#post-delivery-audit-logging) for the steps, and [site configuration settings](/administration-guide/configure/site-configuration-settings#enable-post-delivery-audit-logging) for the corresponding `config.json` settings and environment variables.
+
+## Record format
+
+Each delivery is recorded as a `postDelivered` audit log record. The `status` of the record is always `success`.
+
+**The recipient of the message is the actor of the record**, in `actor.user_id`. There's no separate recipient field. This lets you group records by actor to answer "what was delivered to this user". Deliveries to a plugin or to an outgoing webhook have no human recipient, so `actor.user_id` is empty and `meta.plugin_id` or `meta.webhook_id` identifies the integration instead.
+
+The `meta` object identifies what was delivered and how. Unlike audit records emitted from a REST API request, delivery records carry no `api_path` or `cluster_id` in `meta`.
+
+A message delivered to a user through the Mattermost REST API:
+
+``` json
+{
+    "timestamp": "2026-08-12 14:03:11.482 Z",
+    "event_name": "postDelivered",
+    "status": "success",
+    "actor": {
+        "user_id": "hx4k9m2qzbfytr7wn6cbd3jvse",
+        "session_id": "",
+        "client": "",
+        "ip_address": ""
+    },
+    "meta": {
+        "post_id": "xpw97hf6kfncirzhqisb5sym7e",
+        "channel_id": "pfis7ycuy78o7m3zebajmxqeuo",
+        "mechanism": "product"
+    },
+    "error": {}
+}
+```
+
+The same message delivered to a plugin, with no human recipient:
+
+``` json
+{
+    "timestamp": "2026-08-12 14:03:11.509 Z",
+    "event_name": "postDelivered",
+    "status": "success",
+    "actor": {
+        "user_id": "",
+        "session_id": "",
+        "client": "",
+        "ip_address": ""
+    },
+    "meta": {
+        "post_id": "xpw97hf6kfncirzhqisb5sym7e",
+        "channel_id": "pfis7ycuy78o7m3zebajmxqeuo",
+        "mechanism": "plugin",
+        "plugin_id": "com.mattermost.example-plugin"
+    },
+    "error": {}
+}
+```
+
+See the [audit log JSON schema](/administration-guide/comply/embedded-json-audit-log-schema) for the fields common to every Mattermost audit log record.
+
+## Payload fields
+
+The `meta` object of a `postDelivered` record contains the following fields. The recipient isn't in `meta` — the recipient is the actor of the record, in `actor.user_id`.
+
+| **Field name** | **Data type** | **Description** |
+|----|----|----|
+| post_id | string | Always present. The unique identifier of the message whose content was delivered. |
+| channel_id | string | Always present. The unique identifier of the channel that the message belongs to. |
+| mechanism | string | Always present. How the message content reached the recipient. See [delivery mechanisms](#delivery-mechanisms) for the possible values. |
+| plugin_id | string | Present for `plugin` deliveries only. The plugin that the message content was passed to. |
+| webhook_id | string | Present for `outgoing_webhook` deliveries only. The outgoing webhook that the message content was sent to. |
+| via_post_id | string | Present for `permalink_preview` deliveries only. The message that embedded the permalink preview. |
+| via_channel_id | string | Present for `permalink_preview` deliveries only. The channel containing the message that embedded the permalink preview. |
+
+## Delivery mechanisms
+
+The `mechanism` field records how the message content reached the recipient. It's always one of the following seven values:
+
+| **Value** | **Delivery** |
+|----|----|
+| `product` | Any read of message content through the Mattermost REST API. This covers channel loads, thread and reply views, search results, direct fetches of a message by ID, pinned messages, saved messages, and message edit history. |
+| `post_broadcast` | A new or edited message pushed over WebSocket to connected channel members. |
+| `permalink_preview` | A message rendered as a permalink preview inside another message. |
+| `email` | Message content included in a notification email. |
+| `push` | Message content included in a push notification payload, and the acknowledgement fetch that retrieves content for an ID-only push notification. |
+| `outgoing_webhook` | Message content sent to an outgoing webhook. |
+| `plugin` | A message passed to a plugin's `MessageWillBePosted` or `MessageWillBeUpdated` hook, or read through the plugin API. |
+
+<Note>
+
+Channel loads, thread views, search results, and direct message fetches all share the `product` value. They aren't reported as separate mechanisms.
+
+</Note>
+
+## What isn't recorded
+
+The following are never recorded:
+
+- **The message author**: A user never receives a delivery record for their own message.
+- **System messages and ephemeral messages**.
+- **Burn-on-read messages**.
+- **Direct and group messages**: These channels are never eligible, including when deliveries are recorded in all channels.
+- **Generic push notifications**: A push notification that doesn't include message content records nothing. When push notifications are configured to send only IDs, the delivery is recorded when the device fetches the content.
+- **Plugins reading from the database**: A plugin that reads messages directly from the database, rather than through the plugin API or a message hook, can't be observed and isn't recorded.
+
+Messages posted by bots and by outgoing webhooks are recorded like any other message.
+
+## Interpret delivery records
+
+Mattermost records one entry for each message delivered to each recipient, with no batching. A channel load that returns 100 messages produces 100 records, and a new message broadcast to 40 connected channel members produces 40 records.
+
+Delivery records are an append-only event stream, not a deduplicated list of who has seen a message. The same combination of user, message, and mechanism recurs, because every time a user revisits a channel the same page of messages is delivered again. Each record is a genuine delivery with its own timestamp.
+
+Deduplicate on `actor.user_id`, `meta.post_id`, and `meta.mechanism` to get one entry per recipient, message, and delivery mechanism, taking the earliest timestamp in each group as the first delivery by that mechanism. A recipient who received the same message by more than one mechanism — for example `push` and then `product` — has one entry per mechanism.
+
+To reduce that to a distinct list of the users a message reached, drop `meta.mechanism` from the key and deduplicate on `actor.user_id` and `meta.post_id` alone.
+
+Keep the following in mind when working with delivery records:
+
+- **Delivery isn't proof of reading**: A record means Mattermost transmitted the message content to an endpoint the recipient could read it from. It doesn't mean anyone read it. A user with email notifications configured to include message content is recorded as a delivery even if they never opened Mattermost.
+- **Records aren't guaranteed to be complete**: Audit logging is asynchronous, so records still queued in memory are lost if the server stops uncleanly. A controlled shutdown flushes the queue. This is existing audit logging behaviour that applies to all audit log levels.
+- **Permalink previews follow the previewed message**: Whether a permalink preview delivery is recorded depends on the channel of the message being previewed, not the channel of the message containing the preview. A preview of a message in a recorded channel is recorded even when the preview is rendered in a channel that isn't. Without this, a recorded message could be read by permalinking it into any other channel. Mattermost renders one level of permalink preview, so one level is recorded.
