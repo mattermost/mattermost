@@ -121,7 +121,7 @@ test('SAML login is rejected when the user is not registered in LDAP', {tag: '@s
         await pw.loginPage.goto();
         await pw.loginPage.toBeVisible();
         await pw.loginPage.samlLoginButton.click();
-        await pw.keycloakLoginPage.login(username, 'Password1');
+        await pw.keycloakLoginPage.loginIfFormShown(username, 'Password1');
 
         // * Verify the login succeeds once the user exists in LDAP
         await pw.loginPage.expectNotOnLoginPage();

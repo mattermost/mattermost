@@ -33,9 +33,31 @@ export default class KeycloakLoginPage {
         await this.signInButton.click();
     }
 
+    /**
+     * Ends the Keycloak SSO session. Visiting the OIDC logout URL without an
+     * id_token_hint often shows a confirmation page and does not drop the SAML
+     * session cookie, so confirm if needed and always clear browser cookies.
+     */
     async logout() {
         await this.page.goto(`${testConfig.keycloakUrl}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/logout`, {
             waitUntil: 'domcontentloaded',
         });
+        const confirmLogout = this.page.locator('#kc-logout');
+        await confirmLogout.click({timeout: 5000}).catch(() => undefined);
+        await this.page.context().clearCookies();
+    }
+
+    /**
+     * Completes Keycloak login when the hosted form is shown, or no-ops if the
+     * IdP session is reused and the browser never lands on Keycloak.
+     */
+    async loginIfFormShown(username: string, password: string) {
+        await Promise.race([
+            this.usernameInput.waitFor({state: 'visible'}),
+            this.page.waitForURL((url) => !url.pathname.startsWith('/login') && !url.pathname.includes('/realms/')),
+        ]);
+        if (await this.usernameInput.isVisible()) {
+            await this.login(username, password);
+        }
     }
 }
