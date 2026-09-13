@@ -41,6 +41,11 @@ var searchPostStoreTests = []searchTest{
 		Tags: []string{EnginePostgres, EngineElasticSearch},
 	},
 	{
+		Name: "Should be able to search numbers that only appear after a hyphen",
+		Fn:   testSearchNumbersAfterHyphens,
+		Tags: []string{EnginePostgres},
+	},
+	{
 		Name: "Should be able to search when markdown underscores are applied",
 		Fn:   testSearchMarkdownUnderscores,
 		Tags: []string{EnginePostgres, EngineElasticSearch},
@@ -500,6 +505,41 @@ func testSearchEmailAddresses(t *testing.T, th *SearchTestHelper) {
 
 		require.Len(t, results.Posts, 1)
 		th.checkPostInSearchResults(t, p1.Id, results.Posts)
+	})
+}
+
+func testSearchNumbersAfterHyphens(t *testing.T, th *SearchTestHelper) {
+	p1, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "we should discuss CVE-2026-2332 today", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	p2, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "room 2332 is booked", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	defer th.deleteUserPosts(th.User.Id)
+
+	t.Run("Should search the full hyphenated identifier", func(t *testing.T) {
+		params := &model.SearchParams{Terms: "CVE-2026-2332"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, p1.Id, results.Posts)
+	})
+
+	t.Run("Should search a number that only appears after a hyphen", func(t *testing.T) {
+		params := &model.SearchParams{Terms: "2332"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 2)
+		th.checkPostInSearchResults(t, p1.Id, results.Posts)
+		th.checkPostInSearchResults(t, p2.Id, results.Posts)
+	})
+
+	t.Run("Should exclude posts where the number only appears after a hyphen", func(t *testing.T) {
+		params := &model.SearchParams{Terms: "discuss", ExcludedTerms: "2332"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 0)
 	})
 }
 

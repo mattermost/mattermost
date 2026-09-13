@@ -37,6 +37,33 @@ func TestNeutralizeNonWordHyphens(t *testing.T) {
 	}
 }
 
+func TestExpandSignedNumberTokens(t *testing.T) {
+	testCases := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{"plain number expanded", "2332", "(2332|-2332)"},
+		{"number among words", "cve 2332", "cve (2332|-2332)"},
+		{"multiple numbers expanded", "2026 2332", "(2026|-2026) (2332|-2332)"},
+		{"wildcard number expanded", "2332:* ", "(2332:*|-2332:*) "},
+		{"plain word untouched", "t-shirt", "t-shirt"},
+		{"hyphenated compound untouched", "CVE-2026-2332", "CVE-2026-2332"},
+		{"word with digits untouched", "covid19", "covid19"},
+		{"quoted number untouched", `"2332"`, `"2332"`},
+		{"number inside quoted phrase untouched", `"error 2332 report"`, `"error 2332 report"`},
+		{"mixed quoted and bare", `"a 1" 2`, `"a 1" (2|-2)`},
+		{"no digits", "hello world", "hello world"},
+		{"empty string", "", ""},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			require.Equal(t, tc.expected, expandSignedNumberTokens(tc.input))
+		})
+	}
+}
+
 func TestChunkSlice(t *testing.T) {
 	if enableFullyParallelTests {
 		t.Parallel()

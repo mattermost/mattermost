@@ -10,6 +10,7 @@ import (
 	"io"
 	"maps"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 	"unicode"
@@ -227,6 +228,38 @@ func neutralizeNonWordHyphens(s string) string {
 // attach to the preceding base letter rather than acting as a boundary.
 func isWordRune(r rune) bool {
 	return unicode.IsLetter(r) || unicode.IsDigit(r) || unicode.IsMark(r)
+}
+
+var numberSearchTokenRegex = regexp.MustCompile(`^\d+(:\*)?$`)
+
+func expandSignedNumberTokens(s string) string {
+	if !strings.ContainsAny(s, "0123456789") {
+		return s
+	}
+	var sb strings.Builder
+	last := 0
+	for _, loc := range quotedStringsRegex.FindAllStringIndex(s, -1) {
+		sb.WriteString(expandSignedNumberFields(s[last:loc[0]]))
+		sb.WriteString(s[loc[0]:loc[1]])
+		last = loc[1]
+	}
+	sb.WriteString(expandSignedNumberFields(s[last:]))
+	return sb.String()
+}
+
+func expandSignedNumberFields(s string) string {
+	fields := strings.Split(s, " ")
+	changed := false
+	for i, f := range fields {
+		if numberSearchTokenRegex.MatchString(f) {
+			fields[i] = "(" + f + "|-" + f + ")"
+			changed = true
+		}
+	}
+	if !changed {
+		return s
+	}
+	return strings.Join(fields, " ")
 }
 
 // scanRowsIntoMap scans SQL rows into a map, using a provided scanner function to extract key-value pairs
