@@ -116,6 +116,21 @@ func TestMigration000221(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	// A select field whose one option gets soft-deleted after the upgrade, so
+	// down must not resurrect it from a stale blob.
+	resurrectionOptionID := model.NewId()
+	resurrectionField, err := store.PropertyField().Create(&model.PropertyField{
+		GroupID:    groupID,
+		Name:       "resurrection_select",
+		Type:       model.PropertyFieldTypeSelect,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs: model.StringInterface{
+			"options": []any{map[string]any{"id": resurrectionOptionID, "name": "Present"}},
+		},
+	})
+	require.NoError(t, err)
+
 	userTarget := model.NewId()
 	channelTarget := model.NewId()
 
@@ -138,13 +153,14 @@ func TestMigration000221(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
-		store.PropertyValue().Delete(groupID, selectValue.ID)  //nolint:errcheck
-		store.PropertyValue().Delete(groupID, rankValue.ID)    //nolint:errcheck
-		store.PropertyValue().Delete(groupID, multiValue.ID)   //nolint:errcheck
-		store.PropertyField().Delete(groupID, linkedSelect.ID) //nolint:errcheck
-		store.PropertyField().Delete(groupID, rankField.ID)    //nolint:errcheck
-		store.PropertyField().Delete(groupID, multiField.ID)   //nolint:errcheck
-		store.PropertyField().Delete(groupID, template.ID)     //nolint:errcheck
+		store.PropertyValue().Delete(groupID, selectValue.ID)       //nolint:errcheck
+		store.PropertyValue().Delete(groupID, rankValue.ID)         //nolint:errcheck
+		store.PropertyValue().Delete(groupID, multiValue.ID)        //nolint:errcheck
+		store.PropertyField().Delete(groupID, linkedSelect.ID)      //nolint:errcheck
+		store.PropertyField().Delete(groupID, rankField.ID)         //nolint:errcheck
+		store.PropertyField().Delete(groupID, multiField.ID)        //nolint:errcheck
+		store.PropertyField().Delete(groupID, template.ID)          //nolint:errcheck
+		store.PropertyField().Delete(groupID, resurrectionField.ID) //nolint:errcheck
 	})
 
 	attributeFor := func(t *testing.T, view, targetID, name string) string {
@@ -180,6 +196,17 @@ func TestMigration000221(t *testing.T) {
 		"SELECT COUNT(*) FROM PropertyOptions WHERE FieldID = $1", linkedSelect.ID))
 	require.Zero(t, ownedByLinked, "a linked field must not own a copy of its template's options")
 
+	// The state a real upgrade window leaves behind: the blob written by hand
+	// because storedFieldAttrs strips it on every store write, and the option
+	// row deleted as it would be by an edit made after the upgrade.
+	_, err = store.GetMaster().Exec(
+		"UPDATE PropertyFields SET Attrs = jsonb_set(COALESCE(Attrs,'{}'::jsonb), '{options}', $1::jsonb, true) WHERE ID = $2",
+		`[{"id":"`+resurrectionOptionID+`","name":"Gone"}]`, resurrectionField.ID)
+	require.NoError(t, err)
+	_, err = store.GetMaster().Exec(
+		"UPDATE PropertyOptions SET DeleteAt = 1 WHERE FieldID = $1", resurrectionField.ID)
+	require.NoError(t, err)
+
 	downSQL := readMigrationSQL(t, "000221_move_property_options_to_table.down.sql")
 	upSQL := readMigrationSQL(t, "000221_move_property_options_to_table.up.sql")
 
@@ -193,6 +220,11 @@ func TestMigration000221(t *testing.T) {
 	require.NoError(t, store.GetMaster().Get(&blobbedOptions,
 		"SELECT jsonb_array_length(Attrs->'options') FROM PropertyFields WHERE ID = $1", linkedSelect.ID))
 	require.Equal(t, 1, blobbedOptions, "down should restore the linked field's own copy of the option list")
+
+	var resurrected int
+	require.NoError(t, store.GetMaster().Get(&resurrected,
+		"SELECT COUNT(*) FROM PropertyFields WHERE ID = $1 AND Attrs->'options' IS NOT NULL", resurrectionField.ID))
+	require.Zero(t, resurrected, "down must not resurrect a deleted option")
 
 	assertProjections(t, "after down migration")
 
