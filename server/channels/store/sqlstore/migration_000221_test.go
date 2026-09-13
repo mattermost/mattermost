@@ -206,10 +206,10 @@ func TestMigration000221(t *testing.T) {
 		"SELECT COUNT(*) FROM PropertyOptions WHERE FieldID = $1", linkedSelect.ID))
 	require.Zero(t, ownedByLinked, "the backfill should leave a linked field's inherited options owned by the template")
 
-	var strippedOptions int
-	require.NoError(t, store.GetMaster().Get(&strippedOptions,
-		"SELECT COUNT(*) FROM PropertyFields WHERE Type IN ('select', 'multiselect', 'rank') AND Attrs->'options' IS NOT NULL"))
-	require.Zero(t, strippedOptions, "up should strip the options key from every option-bearing field")
+	var blobbedAfterUp int
+	require.NoError(t, store.GetMaster().Get(&blobbedAfterUp,
+		"SELECT COUNT(*) FROM PropertyFields WHERE GroupID = $1 AND Type IN ('select', 'multiselect', 'rank') AND Attrs->'options' IS NOT NULL", groupID))
+	require.Greater(t, blobbedAfterUp, 0, "up must leave the blob in place for nodes that have not upgraded")
 
 	assertProjections(t, "after up migration")
 
