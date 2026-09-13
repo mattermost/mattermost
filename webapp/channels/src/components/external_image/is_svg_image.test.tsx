@@ -42,6 +42,18 @@ describe('ExternalIImage isSVGImage', () => {
             expected: true,
         },
         {
+            name: 'no metadata, query contains .svg but path is not svg',
+            src: 'https://example.com/image.png?icon=accessibility.svg',
+            imageMetadata: undefined,
+            expected: false,
+        },
+        {
+            name: 'no metadata, data URI svg',
+            src: 'data:image/svg+xml,%3Csvg%3E%3C/svg%3E',
+            imageMetadata: undefined,
+            expected: true,
+        },
+        {
             name: 'with metadata, not an SVG',
             src: 'https://example.com/image.png',
             imageMetadata: {
