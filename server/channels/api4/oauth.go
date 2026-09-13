@@ -48,6 +48,12 @@ func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	defer c.LogAuditRec(auditRec)
 
+	if c.AppContext.Session().IsOAuth {
+		c.SetPermissionError(model.PermissionManageOAuth)
+		c.Err.DetailedError += ", attempted access by oauth app"
+		return
+	}
+
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOAuth) {
 		c.SetPermissionError(model.PermissionManageOAuth)
 		return

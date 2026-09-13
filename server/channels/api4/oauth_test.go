@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -82,6 +83,132 @@ func TestCreateOAuthApp(t *testing.T) {
 	_, resp, err = adminClient.CreateOAuthApp(context.Background(), oapp)
 	require.Error(t, err)
 	CheckNotImplementedStatus(t, resp)
+}
+
+func TestCreateOAuthAppDeniesOAuthSession(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
+	enableDeveloper := th.App.Config().ServiceSettings.EnableDeveloper
+	defer func() {
+		th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuthServiceProvider
+			cfg.ServiceSettings.EnableDeveloper = enableDeveloper
+		})
+	}()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
+		*cfg.ServiceSettings.EnableDeveloper = true
+	})
+	th.AddPermissionToRole(t, model.PermissionManageOAuth.Id, model.SystemUserRoleId)
+
+	newAppRequest := func(isPublic bool) model.OAuthAppRequest {
+		return model.OAuthAppRequest{
+			Name:         GenerateTestAppName(),
+			Homepage:     "https://nowhere.com",
+			Description:  "test",
+			CallbackUrls: []string{"https://nowhere.com"},
+			IsPublic:     isPublic,
+		}
+	}
+
+	createApp := func(t *testing.T, client *model.Client4, appRequest model.OAuthAppRequest) (*model.OAuthApp, *http.Response, error) {
+		payload, jsonErr := json.Marshal(appRequest)
+		require.NoError(t, jsonErr)
+
+		r, err := client.DoAPIPost(context.Background(), "/oauth/apps", string(payload))
+		if err != nil {
+			return nil, r, err
+		}
+		defer r.Body.Close()
+
+		var rapp model.OAuthApp
+		require.NoError(t, json.NewDecoder(r.Body).Decode(&rapp))
+		return &rapp, r, nil
+	}
+
+	requireDeniedAsOAuthApp := func(t *testing.T, r *http.Response, err error) {
+		require.Error(t, err)
+		require.NotNil(t, r)
+		require.Equal(t, http.StatusForbidden, r.StatusCode)
+
+		var appErr *model.AppError
+		require.True(t, errors.As(err, &appErr))
+		require.Equal(t, "api.context.permissions.app_error", appErr.Id)
+		require.Contains(t, appErr.DetailedError, "attempted access by oauth app")
+	}
+
+	requireAppNotCreated := func(t *testing.T, name string) {
+		apps, _, err := th.SystemAdminClient.GetOAuthApps(context.Background(), 0, 200)
+		require.NoError(t, err)
+		for _, a := range apps {
+			require.NotEqual(t, name, a.Name)
+		}
+	}
+
+	markSessionAsOAuth := func(t *testing.T, authToken string) {
+		session, appErr := th.App.GetSession(authToken)
+		require.Nil(t, appErr)
+		session.IsOAuth = true
+		th.App.AddSessionToCache(session)
+	}
+
+	t.Run("regular session with permission creates a confidential app", func(t *testing.T) {
+		rapp, r, err := createApp(t, th.Client, newAppRequest(false))
+		require.NoError(t, err)
+		require.Equal(t, http.StatusCreated, r.StatusCode)
+		require.NotEmpty(t, rapp.Id)
+		require.NotEmpty(t, rapp.ClientSecret)
+	})
+
+	t.Run("regular session with permission creates a public app", func(t *testing.T) {
+		rapp, r, err := createApp(t, th.Client, newAppRequest(true))
+		require.NoError(t, err)
+		require.Equal(t, http.StatusCreated, r.StatusCode)
+		require.NotEmpty(t, rapp.Id)
+		require.Empty(t, rapp.ClientSecret)
+	})
+
+	t.Run("system admin session with oauth flag is denied", func(t *testing.T) {
+		markSessionAsOAuth(t, th.SystemAdminClient.AuthToken)
+
+		appRequest := newAppRequest(false)
+		_, r, err := createApp(t, th.SystemAdminClient, appRequest)
+		requireDeniedAsOAuthApp(t, r, err)
+		requireAppNotCreated(t, appRequest.Name)
+	})
+
+	t.Run("user session with oauth flag is denied even with manage_oauth", func(t *testing.T) {
+		markSessionAsOAuth(t, th.Client.AuthToken)
+
+		appRequest := newAppRequest(false)
+		_, r, err := createApp(t, th.Client, appRequest)
+		requireDeniedAsOAuthApp(t, r, err)
+		requireAppNotCreated(t, appRequest.Name)
+	})
+
+	t.Run("public client request from oauth session is denied", func(t *testing.T) {
+		markSessionAsOAuth(t, th.Client.AuthToken)
+
+		appRequest := newAppRequest(true)
+		_, r, err := createApp(t, th.Client, appRequest)
+		requireDeniedAsOAuthApp(t, r, err)
+		requireAppNotCreated(t, appRequest.Name)
+	})
+
+	t.Run("trusted app request from oauth session is denied", func(t *testing.T) {
+		markSessionAsOAuth(t, th.SystemAdminClient.AuthToken)
+
+		appRequest := newAppRequest(false)
+		appRequest.IsTrusted = true
+		_, r, err := createApp(t, th.SystemAdminClient, appRequest)
+		requireDeniedAsOAuthApp(t, r, err)
+		requireAppNotCreated(t, appRequest.Name)
+	})
 }
 
 func TestUpdateOAuthApp(t *testing.T) {
