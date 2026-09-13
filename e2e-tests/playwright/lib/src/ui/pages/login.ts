@@ -42,9 +42,9 @@ export default class LoginPage {
         this.subtitle = page.getByText('Collaborate with your team in real-time');
         this.bodyCard = page.getByTestId('login-body-card');
         this.loginInput = page.locator('#input_loginId');
-        this.loginPlaceholder = page.getByPlaceholder('Email or Username');
-        this.emailOnlyPlaceholder = page.getByPlaceholder('Email', {exact: true});
-        this.usernameOnlyPlaceholder = page.getByPlaceholder('Username', {exact: true});
+        this.loginPlaceholder = page.getByRole('textbox', {name: 'Email or Username'});
+        this.emailOnlyPlaceholder = page.getByRole('textbox', {name: 'Email', exact: true});
+        this.usernameOnlyPlaceholder = page.getByRole('textbox', {name: 'Username', exact: true});
         this.loginWithAdLdapPlaceholder = page.getByRole('textbox', {name: 'Email, Username or AD/LDAP Username'});
         this.samlLoginButton = page.locator('#saml');
         // Accessible name is the configurable ButtonText, so it isn't stable across tests.
