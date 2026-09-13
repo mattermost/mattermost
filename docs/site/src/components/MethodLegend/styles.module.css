@@ -16,25 +16,8 @@
   margin: 0;
 }
 
-.badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 3.6rem;
-  padding: 0.2rem 0.55rem;
-  font-family: var(--mm-font-mono);
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  border-radius: 3px;
-  color: var(--mm-color-white);
-}
-
-.get    { background: #2D7BD2; }   /* operational blue */
-.post   { background: #2C7A4F; }   /* operational green */
-.put    { background: #A86A1F; }   /* operational amber */
-.patch  { background: #6B4FA0; }   /* operational violet */
-.delete { background: #8B1F1F; }   /* operational red */
+/* The chips themselves are <MethodBadge size="md">; colors live in
+ * tokens.css (--mm-method-*), shared with the API sidebar. */
 
 .meaning {
   color: var(--mm-text-secondary);

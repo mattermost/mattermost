@@ -1,0 +1,47 @@
+/* Colors and the dark-mode hairline come from --mm-method-* (tokens.css),
+ * shared with the API sidebar chips in custom.css. */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border: 1px solid var(--mm-method-border);
+  border-radius: 3px;
+  background: var(--mm-method-other);
+  color: var(--mm-color-white);
+  font-family: var(--mm-font-mono);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+/* Matches the sidebar chip's footprint (2.9rem / 0.6rem) so a search result
+ * and the sidebar entry it points at line up. */
+.sm {
+  min-width: 2.9rem;
+  padding: 0.12rem 0.25rem;
+  font-size: 0.6rem;
+}
+
+.md {
+  min-width: 3.6rem;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.7rem;
+}
+
+.get {
+  background: var(--mm-method-get);
+}
+.post {
+  background: var(--mm-method-post);
+}
+.put {
+  background: var(--mm-method-put);
+}
+.patch {
+  background: var(--mm-method-patch);
+}
+.delete {
+  background: var(--mm-method-delete);
+}

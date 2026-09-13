@@ -172,6 +172,49 @@ gen-api-docs mattermost` run before it has any pages to render. `prestart`
 handles this too — using the existing OpenAPI spec if present, only falling
 back to the slow `make -C api build` spec rebuild if it's missing.
 
+### API reference: method badges and endpoint search
+
+Two things make the ~650-endpoint API reference navigable, both driven off
+what `docusaurus gen-api-docs` generates:
+
+**Method badges.** `docusaurus-plugin-openapi-docs` tags each endpoint's
+sidebar item with its verb as a className (`"api-method get"`), but ships no
+styling for it — the chips (GET / POST / DELETE / …) are ours, drawn as
+`::before` content in `src/css/custom.css`. Note that Docusaurus puts a
+sidebar item's className on the `<li>`, not on the link, so those selectors
+have to be written as `.api-method > .menu__link`.
+
+Chip colors live in `src/css/tokens.css` as `--mm-method-*` and are shared
+by three surfaces: the sidebar chips, the `<MethodBadge />` React component
+(used by `<MethodLegend />` on the API landing page and by search results),
+and anything else that needs to label a verb. Change them in one place.
+
+**Endpoint search.** `<ApiSearch />` is a client-side, path-aware search over
+every documented endpoint: `post channel`, `delete reaction`, or a pasted
+`/api/v4/users/{user_id}/image` all resolve to the right endpoint page. It
+renders in two places:
+
+- Pinned at the top of the API sidebar on every `/api` page, via the
+  `src/theme/DocSidebarItems` wrapper (that one theme component backs both
+  the desktop sidebar and the mobile navbar panel). Press <kbd>/</kbd> to
+  focus it; arrow keys walk the results. While a query is active the results
+  replace the sidebar tree.
+- As a standalone box on the API landing page (`docs/api/index.mdx`), since
+  `<ApiSearch />` is registered in `src/theme/MDXComponents.tsx`.
+
+It reads `data/api-search-index.json` (gitignored), built by
+`scripts/gen-api-search-index.mjs` from the generated
+`docs/api/reference/*.api.mdx` frontmatter — that's the only place an
+endpoint's method/path and its published doc id appear together, so the
+index can't drift from the routes. `npm run build:api-search-index`
+regenerates it; `prestart`/`prebuild` run it after `build:openapi:docs`.
+The component loads the ~100 KB index with a dynamic `import()`, so only
+API pages pay for it.
+
+This is deliberately separate from Algolia (below), which indexes prose and
+needs credentials that local and preview builds don't have. Endpoint search
+works everywhere, including offline.
+
 ### Full production build
 
 The production build also includes an OpenAPI prebuild step (`npm run
@@ -202,6 +245,10 @@ npm run docusaurus build       # calls docusaurus directly, skips prebuild
 
 ### Algolia search
 
+Site-wide prose search. For finding an individual API endpoint, see
+[endpoint search](#api-reference-method-badges-and-endpoint-search) above —
+that one is client-side and always available.
+
 There's a single Algolia DocSearch app for `docs.mattermost.com` — credentials
 aren't distributed to individual developers. They're set as repository
 variables (`vars.ALGOLIA_APP_ID`, `vars.ALGOLIA_SEARCH_API_KEY`) and injected
@@ -221,7 +268,8 @@ shell before running `npm start`/`npm run build`.
 | `npm run build:sidebars` | Regenerate the documentation + developer sidebar JSON |
 | `npm run build:openapi:spec` | Regenerate the OpenAPI spec only (slow — invokes `make -C api build`) |
 | `npm run build:openapi:docs` | Regenerate the API reference MDX pages from the existing spec (fast) |
-| `npm run build:openapi` | Full OpenAPI pipeline: spec then docs |
+| `npm run build:api-search-index` | Rebuild the endpoint search index from the generated API pages (fast) |
+| `npm run build:openapi` | Full OpenAPI pipeline: spec, then docs, then search index |
 | `npm run build:plugin-docs` | Regenerate all three plugin SDK reference data files (see above) |
 | `npm run serve` | Serve the `build/` output locally |
 | `npm run typecheck` | TypeScript type check |
