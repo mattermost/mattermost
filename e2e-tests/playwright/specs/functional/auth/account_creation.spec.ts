@@ -8,6 +8,7 @@ import {expect, test} from '@mattermost/playwright-lib';
  */
 test('hides signup when user creation is disabled', {tag: '@authentication'}, async ({pw}) => {
     const {adminClient} = await pw.initSetup();
+    const originalConfig = await adminClient.getConfig();
 
     try {
         await adminClient.patchConfig({
@@ -28,7 +29,10 @@ test('hides signup when user creation is disabled', {tag: '@authentication'}, as
         // * Verify no sign-in methods are offered
         await expect(pw.signupPage.noSignInMethods).toBeVisible();
     } finally {
-        await adminClient.patchConfig({TeamSettings: {EnableUserCreation: true}});
+        await adminClient.patchConfig({
+            TeamSettings: {EnableUserCreation: originalConfig.TeamSettings.EnableUserCreation},
+            LdapSettings: {Enable: originalConfig.LdapSettings.Enable},
+        });
     }
 });
 
@@ -37,6 +41,7 @@ test('hides signup when user creation is disabled', {tag: '@authentication'}, as
  */
 test('rejects login-page signup when the email domain is not allowed', {tag: '@authentication'}, async ({pw}) => {
     const {adminClient} = await pw.initSetup();
+    const originalConfig = await adminClient.getConfig();
 
     try {
         await adminClient.patchConfig({
@@ -65,7 +70,13 @@ test('rejects login-page signup when the email domain is not allowed', {tag: '@a
         // * Verify the domain restriction error is shown
         await expect(pw.signupPage.domainRestrictionError).toBeVisible();
     } finally {
-        await adminClient.patchConfig({TeamSettings: {RestrictCreationToDomains: '', EnableUserCreation: true}});
+        await adminClient.patchConfig({
+            EmailSettings: {RequireEmailVerification: originalConfig.EmailSettings.RequireEmailVerification},
+            TeamSettings: {
+                RestrictCreationToDomains: originalConfig.TeamSettings.RestrictCreationToDomains,
+                EnableUserCreation: originalConfig.TeamSettings.EnableUserCreation,
+            },
+        });
     }
 });
 
@@ -74,6 +85,7 @@ test('rejects login-page signup when the email domain is not allowed', {tag: '@a
  */
 test('rejects an email invite outside the allowed domains', {tag: '@authentication'}, async ({pw}) => {
     const {adminClient, user, team} = await pw.initSetup();
+    const originalConfig = await adminClient.getConfig();
 
     try {
         await adminClient.patchConfig({
@@ -103,7 +115,12 @@ test('rejects an email invite outside the allowed domains', {tag: '@authenticati
         );
     } finally {
         await adminClient.patchConfig({
-            TeamSettings: {RestrictCreationToDomains: '', EnableUserCreation: true},
+            EmailSettings: {RequireEmailVerification: originalConfig.EmailSettings.RequireEmailVerification},
+            ServiceSettings: {EnableEmailInvitations: originalConfig.ServiceSettings.EnableEmailInvitations},
+            TeamSettings: {
+                RestrictCreationToDomains: originalConfig.TeamSettings.RestrictCreationToDomains,
+                EnableUserCreation: originalConfig.TeamSettings.EnableUserCreation,
+            },
         });
     }
 });
