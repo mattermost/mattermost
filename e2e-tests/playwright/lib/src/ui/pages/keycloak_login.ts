@@ -3,6 +3,9 @@
 
 import type {Page} from '@playwright/test';
 
+import {KEYCLOAK_REALM} from '@/containers/constants';
+import {testConfig} from '@/test_config';
+
 // Keycloak's own hosted login form (not part of the Mattermost webapp). Its element ids are
 // Keycloak's default theme, stable across releases, unlike its (locale-dependent) label text.
 export default class KeycloakLoginPage {
@@ -28,5 +31,11 @@ export default class KeycloakLoginPage {
         await this.usernameInput.fill(username);
         await this.passwordInput.fill(password);
         await this.signInButton.click();
+    }
+
+    async logout() {
+        await this.page.goto(`${testConfig.keycloakUrl}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/logout`, {
+            waitUntil: 'domcontentloaded',
+        });
     }
 }

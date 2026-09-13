@@ -98,6 +98,7 @@ test('SAML login is rejected when the user is not registered in LDAP', {tag: '@s
         });
 
         // # Attempt SAML login while the user exists only in Keycloak
+        await pw.keycloakLoginPage.logout();
         await pw.hasSeenLandingPage();
         await pw.loginPage.goto();
         await pw.loginPage.toBeVisible();
@@ -116,6 +117,7 @@ test('SAML login is rejected when the user is not registered in LDAP', {tag: '@s
             firstname: 'NoLdapFirst',
             lastname: 'NoLdapLast',
         });
+        await pw.keycloakLoginPage.logout();
         await pw.loginPage.goto();
         await pw.loginPage.toBeVisible();
         await pw.loginPage.samlLoginButton.click();
