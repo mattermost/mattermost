@@ -234,6 +234,10 @@ export class PlaywrightExtended {
     readonly mfaSetupPage;
     readonly resetPasswordPage;
     readonly errorPage;
+    readonly emailToOAuthPage;
+    readonly oauthToEmailPage;
+    readonly emailToLdapPage;
+    readonly ldapToEmailPage;
 
     // Same default page as above, post-login - for specs that authenticate it directly (e.g. a
     // real browser SSO flow) rather than via testBrowser.login()'s separate context.
@@ -330,6 +334,10 @@ export class PlaywrightExtended {
         this.mfaSetupPage = new pages.MfaSetupPage(page);
         this.resetPasswordPage = new pages.ResetPasswordPage(page);
         this.errorPage = new pages.ErrorPage(page);
+        this.emailToOAuthPage = new pages.EmailToOAuthPage(page);
+        this.oauthToEmailPage = new pages.OAuthToEmailPage(page);
+        this.emailToLdapPage = new pages.EmailToLdapPage(page);
+        this.ldapToEmailPage = new pages.LdapToEmailPage(page);
 
         // Same default page as above, post-login
         this.channelsPage = new pages.ChannelsPage(page);

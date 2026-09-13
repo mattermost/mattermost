@@ -191,4 +191,19 @@ class SecurityTab {
     async openSignInMethod() {
         await this.editSignInMethod.click();
     }
+
+    async clickSwitchToOpenId() {
+        await this.openSignInMethod();
+        await this.switchToOpenId.click();
+    }
+
+    async clickSwitchToLdap() {
+        await this.openSignInMethod();
+        await this.switchToLdap.click();
+    }
+
+    async clickSwitchToEmail() {
+        await this.openSignInMethod();
+        await this.switchToEmail.click();
+    }
 }

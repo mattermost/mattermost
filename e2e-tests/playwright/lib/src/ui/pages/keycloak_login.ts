@@ -56,4 +56,18 @@ export default class KeycloakLoginPage {
             await this.login(username, password);
         }
     }
+
+    /**
+     * Completes Keycloak login when the hosted form is shown, or no-ops if the
+     * IdP session is reused and the browser never lands on Keycloak.
+     */
+    async loginIfFormShown(username: string, password: string) {
+        await Promise.race([
+            this.usernameInput.waitFor({state: 'visible'}),
+            this.page.waitForURL((url) => !url.pathname.startsWith('/login') && !url.pathname.includes('/realms/')),
+        ]);
+        if (await this.usernameInput.isVisible()) {
+            await this.login(username, password);
+        }
+    }
 }
