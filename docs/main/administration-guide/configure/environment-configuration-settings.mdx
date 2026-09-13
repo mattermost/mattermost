@@ -2973,6 +2973,7 @@ Enable debug logs by changing the [file log level](#file-log-level) to `DEBUG` t
 - Logs are recorded asynchronously to reduce latency to the caller.
 - Advanced logging supports hot-reloading of logger configuration.
 - From Mattermost v11.4, file paths specified in `AdvancedLoggingJSON` configurations should be within the directory specified by the `MM_LOG_PATH` environment variable. See [log path restrictions](/administration-guide/manage/logging#log-path-restrictions) for details.
+- This setting can only be changed using `config.json`, an environment variable, or `mmctl --local`. It's read-only in the System Console, and a REST API request that tries to change it is silently ignored. See [settings that can't be changed through the API](/administration-guide/manage/logging#settings-that-cant-be-changed-through-the-api) for details.
 
 </Note>
 
@@ -3232,7 +3233,8 @@ When `FileEnabled` is set to **true**, then the [audit file name](#audit-file-na
 
 <Note>
 
-When [output audit logs to file](#output-audit-logs-to-file) is enabled, the file name must be set. To configure file rotation and advanced audit log output, use the [AdvancedLoggingJSON](#output-audit-logs-to-multiple-targets) setting.
+- When [output audit logs to file](#output-audit-logs-to-file) is enabled, the file name must be set. To configure file rotation and advanced audit log output, use the [AdvancedLoggingJSON](#output-audit-logs-to-multiple-targets) setting.
+- This setting can only be changed using `config.json`, an environment variable, or `mmctl --local`. It's read-only in the System Console, and a REST API request that tries to change it is silently ignored. See [settings that can't be changed through the API](/administration-guide/manage/logging#settings-that-cant-be-changed-through-the-api) for details.
 
 </Note>
 
@@ -3271,6 +3273,7 @@ When [output audit logs to file](#output-audit-logs-to-file) is enabled, the fil
 - See the [Mattermost logging](/administration-guide/manage/logging) documentation for details on advanced logging configuration. These targets have been chosen as they support the vast majority of log aggregators, and other log analysis tools, without needing additional software installed.
 - Audit logs are recorded asynchronously to reduce latency to the caller.
 - Advanced audit logging supports hot-reloading of logger configuration.
+- This setting can only be changed using `config.json`, an environment variable, or `mmctl --local`. It's read-only in the System Console, and a REST API request that tries to change it is silently ignored. See [settings that can't be changed through the API](/administration-guide/manage/logging#settings-that-cant-be-changed-through-the-api) for details.
 
 </Note>
 

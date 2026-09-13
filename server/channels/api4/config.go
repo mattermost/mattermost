@@ -162,6 +162,15 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Do not allow import directory to be changed through the API
 	*cfg.ImportSettings.Directory = *appCfg.ImportSettings.Directory
 
+	// Do not allow the advanced logging configuration, or the audit log file name, to be
+	// changed through the API: they choose which files the server writes to. They are managed
+	// via the configuration file, environment variables, or mmctl --local.
+	// The json.RawMessage assignments shallow-copy the slice header. So be careful if there
+	// are concurrent modifications to the slice.
+	cfg.LogSettings.AdvancedLoggingJSON = appCfg.LogSettings.AdvancedLoggingJSON
+	cfg.ExperimentalAuditSettings.AdvancedLoggingJSON = appCfg.ExperimentalAuditSettings.AdvancedLoggingJSON
+	*cfg.ExperimentalAuditSettings.FileName = *appCfg.ExperimentalAuditSettings.FileName
+
 	// Do not allow marketplace URL to be toggled through the API if EnableUploads are disabled.
 	if cfg.PluginSettings.EnableUploads != nil && !*appCfg.PluginSettings.EnableUploads {
 		*cfg.PluginSettings.MarketplaceURL = *appCfg.PluginSettings.MarketplaceURL
@@ -318,6 +327,18 @@ func patchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("patchConfig", "api.config.update_config.not_allowed_security.app_error", map[string]any{"Name": "ImportSettings.Directory"}, "", http.StatusForbidden)
 		return
 	}
+
+	// Do not allow the advanced logging configuration, or the audit log file name, to be
+	// changed through the API: they choose which files the server writes to. They are managed
+	// via the configuration file, environment variables, or mmctl --local.
+	//
+	// Dropping them from the patch makes the merge below keep the stored values, mirroring the
+	// full update endpoint. Rejecting instead is not an option here: the System Console
+	// resubmits the whole config on every save, and a nil json.RawMessage still serializes as
+	// null, so these fields arrive on saves that have nothing to do with logging.
+	cfg.LogSettings.AdvancedLoggingJSON = nil
+	cfg.ExperimentalAuditSettings.AdvancedLoggingJSON = nil
+	cfg.ExperimentalAuditSettings.FileName = nil
 
 	// Do not allow marketplace URL to be toggled if plugin uploads are disabled.
 	if cfg.PluginSettings.MarketplaceURL != nil && cfg.PluginSettings.EnableUploads != nil {

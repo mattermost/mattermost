@@ -2205,7 +2205,8 @@ const AdminDefinition: AdminDefinitionType = {
                                 ),
                             },
                             placeholder: defineMessage({id: 'admin.log.AdvancedLoggingJSONPlaceholder', defaultMessage: 'Enter your JSON configuration'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.LOGGING)),
+                            isDisabled: true,
+                            isManagedExternally: true,
                             validate: (value) => {
                                 const valid = new ValidationResult(true, '');
                                 if (!value) {
@@ -6584,7 +6585,17 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'ExperimentalAuditSettings.FileEnabled',
                             label: defineMessage({id: 'admin.audit_logging_experimental.file_enabled.title', defaultMessage: 'File Enabled'}),
                             help_text: defineMessage({id: 'admin.audit_logging_experimental.file_enabled.help_text', defaultMessage: 'Choose whether audit logs are written locally to a file or not.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+
+                                // Enabling this requires a file name, which is not writable through
+                                // the System Console, so without one the page could not be saved.
+                                // Turning it back off stays available.
+                                it.all(
+                                    it.configIsFalse('ExperimentalAuditSettings', 'FileEnabled'),
+                                    it.configIsFalse('ExperimentalAuditSettings', 'FileName'),
+                                ),
+                            ),
                             isHidden: it.licensedForFeature('Cloud'),
                         },
                         {
@@ -6592,10 +6603,8 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'ExperimentalAuditSettings.FileName',
                             label: defineMessage({id: 'admin.audit_logging_experimental.file_name.title', defaultMessage: 'File Name'}),
                             help_text: defineMessage({id: 'admin.audit_logging_experimental.file_name.help_text', defaultMessage: 'The name of the file to write to.'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                                it.stateIsFalse('ExperimentalAuditSettings.FileEnabled'),
-                            ),
+                            isDisabled: true,
+                            isManagedExternally: true,
                             isHidden: it.licensedForFeature('Cloud'),
                         },
                         {
@@ -6615,7 +6624,8 @@ const AdminDefinition: AdminDefinitionType = {
                                 ),
                             },
                             placeholder: defineMessage({id: 'admin.log.AdvancedLoggingJSONPlaceholder', defaultMessage: 'Enter your JSON configuration'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                            isDisabled: true,
+                            isManagedExternally: true,
                             validate: (value) => {
                                 const valid = new ValidationResult(true, '');
                                 if (!value) {
