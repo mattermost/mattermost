@@ -18,7 +18,6 @@ import {getThread} from 'mattermost-redux/actions/threads';
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
 import {getChannel, getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
-import {getTeamByName} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
@@ -26,6 +25,7 @@ import {loadStatusesByIds} from 'actions/status_actions';
 import {selectPost} from 'actions/views/rhs';
 import {markThreadAsRead} from 'actions/views/threads';
 
+import {useTeamByName} from 'components/common/hooks/use_team';
 import {usePost} from 'components/common/hooks/usePost';
 import {useUser} from 'components/common/hooks/useUser';
 import ThreadPane from 'components/threading/global_threads/thread_pane';
@@ -63,7 +63,7 @@ export default function ThreadPopout() {
     const currentUserId = useSelector(getCurrentUserId);
 
     const post = usePost(postId);
-    const team = useSelector((state: GlobalState) => getTeamByName(state, teamName));
+    const team = useTeamByName(teamName);
     const channel = useSelector((state: GlobalState) => getChannel(state, post?.channel_id ?? ''));
     const currentChannel = useSelector(getCurrentChannel);
     useUser(currentChannel?.type === Constants.DM_CHANNEL && currentChannel.teammate_id ? currentChannel.teammate_id : '');
