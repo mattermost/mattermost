@@ -306,6 +306,80 @@ func TestPermalinkBroadcastHook(t *testing.T) {
 	})
 }
 
+func TestPermalinkBroadcastHook_ChannelMentions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	session, err := th.Server.Platform().CreateSession(th.Context, &model.Session{
+		UserId: th.BasicUser.Id,
+	})
+	require.NoError(t, err)
+
+	wc := &platform.WebConn{
+		Platform: th.Server.Platform(),
+		Suite:    th.App,
+		UserId:   session.UserId,
+	}
+	hook := &permalinkBroadcastHook{}
+
+	// BasicUser can read the previewed post's channel, but not this private channel.
+	privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+	appErr := th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, "", privateChannel)
+	require.Nil(t, appErr)
+
+	refPost := th.CreatePost(t, th.BasicChannel)
+	refPost.AddProp(model.PostPropsChannelMentions, map[string]any{
+		privateChannel.Name: map[string]any{
+			"id":           privateChannel.Id,
+			"display_name": privateChannel.DisplayName,
+		},
+		th.BasicChannel.Name: map[string]any{
+			"id":           th.BasicChannel.Id,
+			"display_name": th.BasicChannel.DisplayName,
+		},
+	})
+	previewPost := model.NewPreviewPost(refPost, th.BasicTeam, th.BasicChannel)
+
+	cleanPost := th.BasicPost.Clone()
+	cleanPost.Metadata = &model.PostMetadata{}
+	cleanJSON, err := cleanPost.ToJSON()
+	require.NoError(t, err)
+
+	wsEvent := model.NewWebSocketEvent(model.WebsocketEventPosted, "", th.BasicPost.ChannelId, "", nil, "")
+	wsEvent.Add("post", cleanJSON)
+
+	msg := platform.MakeHookedWebSocketEvent(wsEvent)
+	err = hook.Process(msg, wc, map[string]any{
+		"preview_channel":          th.BasicChannel,
+		"permalink_previewed_post": previewPost,
+		"preview_prop":             refPost.Id,
+	})
+	require.NoError(t, err)
+
+	gotJSON, ok := msg.Get("post").(string)
+	require.True(t, ok)
+	assert.NotContains(t, gotJSON, privateChannel.DisplayName, "private channel display name should not be broadcast")
+
+	var gotPost model.Post
+	require.NoError(t, json.Unmarshal([]byte(gotJSON), &gotPost))
+	require.Len(t, gotPost.Metadata.Embeds, 1)
+
+	embedData, ok := gotPost.Metadata.Embeds[0].Data.(map[string]any)
+	require.True(t, ok)
+	embeddedPost, ok := embedData["post"].(map[string]any)
+	require.True(t, ok)
+	embeddedProps, ok := embeddedPost["props"].(map[string]any)
+	require.True(t, ok)
+	mentions, ok := embeddedProps[model.PostPropsChannelMentions].(map[string]any)
+	require.True(t, ok)
+
+	assert.NotContains(t, mentions, privateChannel.Name)
+	assert.Contains(t, mentions, th.BasicChannel.Name)
+
+	// The hook args are shared across recipients, so the previewed post must not be mutated.
+	assert.Contains(t, refPost.GetProp(model.PostPropsChannelMentions), privateChannel.Name)
+}
+
 func TestChannelMentionsBroadcastHook(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
