@@ -245,6 +245,7 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
                         value={this.state.text}
                         onItemSelected={this.handleSubmit}
                         listComponent={SuggestionList}
+                        listMaxHeight={Constants.SUGGESTION_LIST_MAXHEIGHT_MODAL}
                         listPosition='bottom'
                         maxLength='64'
                         providers={providers}
