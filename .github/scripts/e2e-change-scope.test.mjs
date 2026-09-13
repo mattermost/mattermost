@@ -34,6 +34,17 @@ test('application build actions cannot select a base-branch image as test-only c
     assert.equal(classifyChanges(['e2e-tests/cypress/spec.js', '.github/workflows/e2e-tests-ci.yml']).e2e_test_only, true);
     assert.equal(classifyChanges(['e2e-tests/cypress/spec.js', 'webapp/package-lock.json']).e2e_test_only, false);
 });
+test('E2E harness changes may include review metadata and documentation', () => {
+    assert.equal(classifyChanges([
+        '.github/actions/check-e2e-test-only/action.yml',
+        '.github/scripts/triage-pr.mjs',
+        '.github/workflows/e2e-triage-shadow.yml',
+        'e2e-tests/cypress/tests/plugins/tsio_attempts.js',
+        'CODEOWNERS',
+        'docs/automation/e2e-triage.md',
+    ]).e2e_test_only, true);
+    assert.equal(classifyChanges(['CODEOWNERS', 'docs/automation/e2e-triage.md']).e2e_test_only, false);
+});
 test('unusual filenames cannot hide runtime changes behind a documentation entry', () => {
     assert.equal(classifyChanges(['docs/file.md\nserver/plugin.go']).should_run, false); // one actual docs path
     assert.equal(classifyChanges(['docs/file.md', 'server/plugin.go\nREADME.md']).should_run, true);

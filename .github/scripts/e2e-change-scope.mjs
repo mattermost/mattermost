@@ -4,7 +4,8 @@ import {pathToFileURL} from 'node:url';
 
 const sha = /^[a-f0-9]{40}$/;
 const documentationOnly = (file) => file.startsWith('docs/') || /^(README(?:\.[^/]*)?|LICENSE(?:\.[^/]*)?|NOTICE\.txt|CONTRIBUTING\.md|SECURITY\.md|CODE_OF_CONDUCT\.md)$/.test(file);
-const harnessOnly = (file) => file.startsWith('e2e-tests/') || /^\.github\/workflows\/e2e-.*\.ya?ml$/.test(file) || /^\.github\/scripts\/(?:e2e-|triage-|manual-e2e-verification|impact-gate-)/.test(file);
+const harnessOnly = (file) => file.startsWith('e2e-tests/') || file.startsWith('.github/actions/check-e2e-test-only/') || /^\.github\/workflows\/e2e-.*\.ya?ml$/.test(file) || /^\.github\/scripts\/(?:e2e-|triage-|manual-e2e-verification|impact-gate-)/.test(file);
+const harnessCompanion = (file) => documentationOnly(file) || file === 'CODEOWNERS';
 
 export function classifyChanges(files, {manual = false, headRef = ''} = {}) {
     if (!Array.isArray(files) || files.some(file => typeof file !== 'string' || !file || file.includes('\0'))) throw new Error('Expected a complete changed-file list');
@@ -15,7 +16,7 @@ export function classifyChanges(files, {manual = false, headRef = ''} = {}) {
     return {
         should_run: manual || files.length === 0 || relevant.length > 0,
         should_run_fips: /fips/i.test(headRef) || files.some(file => /(^|\/)(go\.(?:mod|sum|work)|go\.work\.sum)$/.test(file) || /^server\/build\/Dockerfile.*fips/.test(file)),
-        e2e_test_only: files.length > 0 && files.every(harnessOnly),
+        e2e_test_only: files.some(harnessOnly) && files.every(file => harnessOnly(file) || harnessCompanion(file)),
         changed_files: files,
         reason: manual ? 'Explicit manual full-suite request' : files.length === 0 ? 'Empty comparison: keep the full suite' : relevant.length ? 'Runtime, harness or unassessed changes: keep the full suite' : 'Only explicitly recognized documentation paths changed',
     };
