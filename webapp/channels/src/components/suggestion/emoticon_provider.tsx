@@ -85,17 +85,19 @@ export default class EmoticonProvider extends Provider {
         }
 
         if (store.getState().entities.general.config.EnableCustomEmoji === 'true') {
-            store.dispatch(autocompleteCustomEmojis(partialName)).then(() => this.findAndSuggestEmojis(text, partialName, resultsCallback));
+            store.dispatch(autocompleteCustomEmojis(partialName)).then(() => this.findAndSuggestEmojis(text, partialName, resultsCallback, prefix));
         } else {
-            this.findAndSuggestEmojis(text, partialName, resultsCallback);
+            this.findAndSuggestEmojis(text, partialName, resultsCallback, prefix);
         }
 
         return true;
     }
 
-    formatEmojis(emojis: EmojiItem[]) {
+    formatEmojis(emojis: EmojiItem[], prefix = '') {
+        const isEmojiReaction = prefix === '+' || prefix === '-';
+
         return emojis.map((item) => {
-            if (isSystemEmoji(item.emoji)) {
+            if (isSystemEmoji(item.emoji) && !isEmojiReaction) {
                 return unifiedToUnicode((item.emoji as SystemEmoji).unified);
             }
             return ':' + item.name + ':';
@@ -112,7 +114,7 @@ export default class EmoticonProvider extends Provider {
     //
     // For now, this behaviour and difference is by design.
     // See https://mattermost.atlassian.net/browse/MM-17320.
-    findAndSuggestEmojis(text: string, partialName: string, resultsCallback: ResultsCallback<EmojiItem>) {
+    findAndSuggestEmojis(text: string, partialName: string, resultsCallback: ResultsCallback<EmojiItem>, prefix = '') {
         const recentMatched: EmojiItem[] = [];
         const matched: EmojiItem[] = [];
         const state = store.getState();
@@ -161,8 +163,8 @@ export default class EmoticonProvider extends Provider {
         matched.sort(sortEmojisHelper);
 
         const terms = [
-            ...this.formatEmojis(recentMatched),
-            ...this.formatEmojis(matched),
+            ...this.formatEmojis(recentMatched, prefix),
+            ...this.formatEmojis(matched, prefix),
         ];
 
         const items = [
