@@ -79,16 +79,19 @@ test('OpenID button visibility follows config', {tag: '@openid'}, async ({pw}) =
     const {adminClient} = await pw.getAdminClient();
     await pw.hasSeenLandingPage();
 
-    // # Disable OpenID and load the login page
-    await adminClient.patchConfig({OpenIdSettings: {Enable: false}});
-    await pw.loginPage.goto();
-    await pw.loginPage.toBeVisible();
+    try {
+        // # Disable OpenID and load the login page
+        await adminClient.patchConfig({OpenIdSettings: {Enable: false}});
+        await pw.loginPage.goto();
+        await pw.loginPage.toBeVisible();
 
-    // * Verify the button is hidden
-    await expect(pw.loginPage.openIdLoginButton).toBeHidden();
+        // * Verify the button is hidden
+        await expect(pw.loginPage.openIdLoginButton).toBeHidden();
+    } finally {
+        await pw.ensureKeycloakOpenId();
+    }
 
-    // # Enable OpenID and reload
-    await pw.ensureKeycloakOpenId();
+    // # Reload with OpenID enabled
     await pw.loginPage.goto();
     await pw.loginPage.toBeVisible();
 
