@@ -45,6 +45,7 @@ import {
     ensureOpenldap,
     ensureOpensearch,
     ensurePostgresSearch,
+    enableUserMfa,
     ensureServerEnv,
     ensureSiteUrl,
     generateKeycloakUser,
@@ -165,6 +166,7 @@ export class PlaywrightExtended {
     readonly ensureOpenldap;
     readonly ensureOpensearch;
     readonly ensurePostgresSearch;
+    readonly enableUserMfa;
     readonly ensureServerEnv;
     readonly ensureSiteUrl;
     readonly generateKeycloakUser;
@@ -283,6 +285,7 @@ export class PlaywrightExtended {
         this.ensureOpenldap = ensureOpenldap;
         this.ensureOpensearch = ensureOpensearch;
         this.ensurePostgresSearch = ensurePostgresSearch;
+        this.enableUserMfa = enableUserMfa;
         this.ensureServerEnv = ensureServerEnv;
         this.ensureSiteUrl = ensureSiteUrl;
         this.generateKeycloakUser = generateKeycloakUser;

@@ -148,6 +148,11 @@ export default class SystemConsolePage {
         await this.openIdConnect.toBeVisible();
     }
 
+    async gotoUser(userId: string) {
+        await this.page.goto(new URL(`/admin_console/user_management/user/${userId}`, testConfig.baseURL).href);
+        await this.users.userDetail.toBeVisible();
+    }
+
     async logOut() {
         await this.sidebar.header.logOut();
         await this.loginPage.toBeVisible();
