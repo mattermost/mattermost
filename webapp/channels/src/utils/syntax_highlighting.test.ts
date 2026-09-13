@@ -6,6 +6,7 @@ import javascript from 'highlight.js/lib/languages/javascript';
 import plaintext from 'highlight.js/lib/languages/plaintext';
 import swift from 'highlight.js/lib/languages/swift';
 
+import hcl from './hcl_language';
 import {highlight} from './syntax_highlighting';
 
 jest.mock('highlight.js/lib/core');
@@ -33,5 +34,23 @@ describe('utils/syntax_highlighting.tsx', () => {
         await highlight('vtt', '');
 
         expect(hlJS.registerLanguage).toHaveBeenCalledWith('vtt', plaintext);
+    });
+
+    it('should register the vendored hcl language', async () => {
+        expect.assertions(1);
+
+        await highlight('hcl', '');
+
+        expect(hlJS.registerLanguage).toHaveBeenCalledWith('hcl', hcl);
+    });
+
+    it('should register terraform and tf aliases as hcl', async () => {
+        expect.assertions(2);
+
+        await highlight('terraform', '');
+        expect(hlJS.registerLanguage).toHaveBeenCalledWith('hcl', hcl);
+
+        await highlight('tf', '');
+        expect(hlJS.registerLanguage).toHaveBeenCalledWith('hcl', hcl);
     });
 });
