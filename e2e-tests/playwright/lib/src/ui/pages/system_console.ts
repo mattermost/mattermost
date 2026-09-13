@@ -3,6 +3,8 @@
 
 import type {Page} from '@playwright/test';
 
+import LoginPage from './login';
+
 import SystemConsoleNavbar from '@/ui/components/system_console/navbar';
 import SystemConsoleSidebar from '@/ui/components/system_console/sidebar';
 import SystemConsoleHeader from '@/ui/components/system_console/header';
@@ -23,8 +25,6 @@ import FeatureDiscovery from '@/ui/components/system_console/sections/system_use
 import PluginManagement from '@/ui/components/system_console/sections/plugins/plugin_management';
 import OpenIdConnect from '@/ui/components/system_console/sections/authentication/openid_connect';
 import {testConfig} from '@/test_config';
-
-import LoginPage from './login';
 
 export default class SystemConsolePage {
     readonly page: Page;
