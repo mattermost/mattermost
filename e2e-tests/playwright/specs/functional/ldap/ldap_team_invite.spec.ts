@@ -29,10 +29,17 @@ test('LDAP member login with team invite lands on the invited team', {tag: '@lda
 
     const provisionedUser = await adminClient.getUserByUsername(ldapUser.username);
     await adminClient.addToTeam(team.id, provisionedUser.id);
-    await pw.channelsPage.goto(team.name);
+    await adminClient.revokeAllSessionsForUser(provisionedUser.id);
 
-    // * Verify the invited member lands on a real channel
-    await pw.channelsPage.toBeVisible();
+    // # Log in again now that the member belongs to the invited team
+    await pw.hasSeenLandingPage();
+    await pw.loginPage.goto();
+    await pw.loginPage.toBeVisible();
+    await pw.loginPage.submitCredentials(ldapUser.username, ldapUser.password);
+    await pw.loginPage.expectNotOnLoginPage();
+
+    // * Verify login itself lands on the invited team
+    await pw.channelsPage.expectOnTeamChannel(team.name);
 });
 
 /**
@@ -51,27 +58,42 @@ test('LDAP guest login with team invite lands on the invited channel', {tag: '@l
     const team = await pw.createNewTeam(adminClient);
     const ldapUser = pw.generateLdapUser('ldapguestinv');
     await pw.createLdapUser(ldapUser);
-    await adminClient.patchConfig({
-        GuestAccountsSettings: {Enable: true},
-        LdapSettings: {UserFilter: '(cn=no_such_user)', GuestFilter: `(cn=${ldapUser.firstname})`},
-    });
 
-    // # Log in once to provision the guest
-    await pw.hasSeenLandingPage();
-    await pw.loginPage.goto();
-    await pw.loginPage.toBeVisible();
-    await pw.loginPage.submitCredentials(ldapUser.username, ldapUser.password);
-    await pw.loginPage.expectNotOnLoginPage();
+    try {
+        await adminClient.patchConfig({
+            GuestAccountsSettings: {Enable: true},
+            LdapSettings: {UserFilter: '(cn=no_such_user)', GuestFilter: `(cn=${ldapUser.firstname})`},
+        });
 
-    const provisionedUser = await adminClient.getUserByUsername(ldapUser.username);
-    expect(provisionedUser.roles.split(' ')).toContain('system_guest');
+        // # Log in once to provision the guest
+        await pw.hasSeenLandingPage();
+        await pw.loginPage.goto();
+        await pw.loginPage.toBeVisible();
+        await pw.loginPage.submitCredentials(ldapUser.username, ldapUser.password);
+        await pw.loginPage.expectNotOnLoginPage();
 
-    // # Invite the guest to the team and default channel
-    await adminClient.addToTeam(team.id, provisionedUser.id);
-    const townSquare = await adminClient.getChannelByName(team.id, 'town-square');
-    await adminClient.addToChannel(provisionedUser.id, townSquare.id);
-    await pw.channelsPage.goto(team.name, 'town-square');
+        const provisionedUser = await adminClient.getUserByUsername(ldapUser.username);
+        expect(provisionedUser.roles.split(' ')).toContain('system_guest');
 
-    // * Verify the invited guest lands on the channel
-    await pw.channelsPage.toBeVisible();
+        // # Invite the guest to the team and default channel
+        await adminClient.addToTeam(team.id, provisionedUser.id);
+        const townSquare = await adminClient.getChannelByName(team.id, 'town-square');
+        await adminClient.addToChannel(provisionedUser.id, townSquare.id);
+        await adminClient.revokeAllSessionsForUser(provisionedUser.id);
+
+        // # Log in again now that the guest belongs to the invited team
+        await pw.hasSeenLandingPage();
+        await pw.loginPage.goto();
+        await pw.loginPage.toBeVisible();
+        await pw.loginPage.submitCredentials(ldapUser.username, ldapUser.password);
+        await pw.loginPage.expectNotOnLoginPage();
+
+        // * Verify login itself lands on the invited channel
+        await pw.channelsPage.expectOnTeamChannel(team.name, 'town-square');
+    } finally {
+        await adminClient.patchConfig({
+            GuestAccountsSettings: {Enable: false},
+            LdapSettings: {UserFilter: '(objectClass=inetOrgPerson)', GuestFilter: ''},
+        });
+    }
 });
