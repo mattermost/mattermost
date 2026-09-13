@@ -80,27 +80,27 @@ test('applies a new minimum password length on signup', {tag: '@authentication'}
 test('resets Minimum password length to the default after clearing it', {tag: '@authentication'}, async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
     const originalMinimumLength = (await adminClient.getConfig()).PasswordSettings.MinimumLength;
+    const customLength = originalMinimumLength === 20 ? 21 : 20;
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     try {
         await systemConsolePage.gotoPasswordSettings();
 
         // # Save a custom minimum length
-        await systemConsolePage.passwordSettings.minimumLength.fill('20');
+        await systemConsolePage.passwordSettings.minimumLength.fill(String(customLength));
         await systemConsolePage.passwordSettings.save();
         await systemConsolePage.passwordSettings.reload();
-        await expect(systemConsolePage.passwordSettings.minimumLength).toHaveValue('20');
+        await expect(systemConsolePage.passwordSettings.minimumLength).toHaveValue(String(customLength));
 
         // # Clear the field and save
         await systemConsolePage.passwordSettings.minimumLength.clear();
         await systemConsolePage.passwordSettings.save();
         await systemConsolePage.passwordSettings.reload();
 
-        // * Verify the field reflects the server's current minimum
-        const config = await adminClient.getConfig();
-        await expect(systemConsolePage.passwordSettings.minimumLength).toHaveValue(
-            String(config.PasswordSettings.MinimumLength),
-        );
+        // * Verify the saved value is no longer the custom length
+        const resetLength = (await adminClient.getConfig()).PasswordSettings.MinimumLength;
+        expect(resetLength).not.toBe(customLength);
+        await expect(systemConsolePage.passwordSettings.minimumLength).toHaveValue(String(resetLength));
     } finally {
         await adminClient.patchConfig({PasswordSettings: {MinimumLength: originalMinimumLength}});
     }
