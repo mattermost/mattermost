@@ -885,6 +885,54 @@ func TestLinkedPropertyFields(t *testing.T) {
 		assert.Equal(t, sourceOpts, linkedOpts)
 	})
 
+	t.Run("create linked field copies source ldap/saml sync attrs", func(t *testing.T) {
+		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeText,
+			Name:       "SyncSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrLDAP: "sAMAccountName",
+			},
+		})
+
+		linked, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "SyncLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+		require.NoError(t, err)
+		assert.Equal(t, "sAMAccountName", linked.Attrs[model.PropertyFieldAttrLDAP])
+		assert.Equal(t, "ldap", model.GetPropertyFieldSyncSource(linked))
+
+		samlSource := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeText,
+			Name:       "SamlSyncSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrSAML: "employeeID",
+			},
+		})
+
+		samlLinked, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "SamlSyncLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &samlSource.ID,
+		})
+		require.NoError(t, err)
+		assert.Equal(t, "employeeID", samlLinked.Attrs[model.PropertyFieldAttrSAML])
+		assert.Equal(t, "saml", model.GetPropertyFieldSyncSource(samlLinked))
+	})
+
 	t.Run("create linked field inherits source permission values when the caller sends none", func(t *testing.T) {
 		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			GroupID:          group.ID,
