@@ -228,6 +228,7 @@ export class PlaywrightExtended {
     readonly landingLoginPage;
     readonly signupPage;
     readonly resetPasswordPage;
+    readonly errorPage;
 
     // Same default page as above, post-login, for specs that authenticate it directly.
     readonly channelsPage;
@@ -317,6 +318,7 @@ export class PlaywrightExtended {
         this.landingLoginPage = new pages.LandingLoginPage(page, isMobile);
         this.signupPage = new pages.SignupPage(page);
         this.resetPasswordPage = new pages.ResetPasswordPage(page);
+        this.errorPage = new pages.ErrorPage(page);
 
         // Same default page as above, post-login
         this.channelsPage = new pages.ChannelsPage(page);

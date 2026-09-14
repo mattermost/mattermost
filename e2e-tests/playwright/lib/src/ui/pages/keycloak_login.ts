@@ -3,6 +3,9 @@
 
 import type {Page} from '@playwright/test';
 
+import {KEYCLOAK_REALM} from '@/containers/constants';
+import {testConfig} from '@/test_config';
+
 // Keycloak's own hosted login form (not part of the Mattermost webapp). Its element ids are
 // Keycloak's default theme, stable across releases, unlike its (locale-dependent) label text.
 export default class KeycloakLoginPage {
@@ -28,5 +31,29 @@ export default class KeycloakLoginPage {
         await this.usernameInput.fill(username);
         await this.passwordInput.fill(password);
         await this.signInButton.click();
+    }
+
+    // OIDC logout without id_token_hint may only show a confirm page; clear cookies either way.
+    async logout() {
+        await this.page.goto(`${testConfig.keycloakUrl}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/logout`, {
+            waitUntil: 'domcontentloaded',
+        });
+        const confirmLogout = this.page.locator('#kc-logout');
+        await confirmLogout.click({timeout: 5000}).catch(() => undefined);
+        await this.page.context().clearCookies();
+    }
+
+    /**
+     * Completes Keycloak login when the hosted form is shown, or no-ops if the
+     * IdP session is reused and the browser never lands on Keycloak.
+     */
+    async loginIfFormShown(username: string, password: string) {
+        await Promise.race([
+            this.usernameInput.waitFor({state: 'visible'}),
+            this.page.waitForURL((url) => !url.pathname.startsWith('/login') && !url.pathname.includes('/realms/')),
+        ]);
+        if (await this.usernameInput.isVisible()) {
+            await this.login(username, password);
+        }
     }
 }
