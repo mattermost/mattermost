@@ -42,9 +42,9 @@ export default class LoginPage {
         this.subtitle = page.getByText('Collaborate with your team in real-time');
         this.bodyCard = page.getByTestId('login-body-card');
         this.loginInput = page.locator('#input_loginId');
-        this.loginPlaceholder = page.getByPlaceholder('Email or Username');
-        this.emailOnlyPlaceholder = page.getByPlaceholder('Email', {exact: true});
-        this.usernameOnlyPlaceholder = page.getByPlaceholder('Username', {exact: true});
+        this.loginPlaceholder = page.getByRole('textbox', {name: 'Email or Username'});
+        this.emailOnlyPlaceholder = page.getByRole('textbox', {name: 'Email', exact: true});
+        this.usernameOnlyPlaceholder = page.getByRole('textbox', {name: 'Username', exact: true});
         this.loginWithAdLdapPlaceholder = page.getByRole('textbox', {name: 'Email, Username or AD/LDAP Username'});
         this.samlLoginButton = page.locator('#saml');
         // Accessible name is the configurable ButtonText, so it isn't stable across tests.
@@ -56,7 +56,9 @@ export default class LoginPage {
         this.forgotPasswordLink = page.getByText('Forgot your password?');
         this.userErrorLabel = page.getByText('Please enter your email or username');
         this.emptyPasswordError = page.getByText('Please enter your password');
-        this.invalidCredentialsError = page.getByText('The email/username or password is invalid.');
+        this.invalidCredentialsError = page.getByText(
+            /The email\/username or password is invalid\.|Enter a valid email or username and\/or password/,
+        );
         // No accessible role/label - AlertBanner is a plain styled div.
         this.errorBanner = page.locator('.AlertBanner.danger');
         this.alreadyAssociatedError = page.getByText(
@@ -76,7 +78,7 @@ export default class LoginPage {
     }
 
     async goto(url = '/login') {
-        await this.page.goto(url);
+        await this.page.goto(url, {waitUntil: 'domcontentloaded'});
     }
 
     async login(user: UserProfile, useUsername = true) {
@@ -99,7 +101,39 @@ export default class LoginPage {
         await expect(this.page).toHaveURL(/\/login/);
     }
 
+    async expectLoginRedirectFrom(path: string) {
+        try {
+            await this.page.goto(path, {waitUntil: 'commit'});
+        } catch (error) {
+            const message = String(error);
+            if (!/interrupted|ERR_ABORTED/i.test(message)) {
+                throw error;
+            }
+        }
+        await this.expectOnLoginPage();
+    }
+
     oauthLoginButton(name: string) {
         return this.page.getByRole('link', {name});
     }
+
+    async expectOAuthLogin(name: string, path: string, color?: string) {
+        const button = this.oauthLoginButton(name);
+        await expect(button).toBeVisible();
+        const escapedPath = path.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        await expect(button).toHaveAttribute('href', new RegExp(`${escapedPath}(?:\\?extra=expired)?$`));
+        if (color) {
+            const rgb = hexToRgb(color);
+            await expect(button).toHaveCSS('color', rgb);
+            await expect(button).toHaveCSS('border-color', rgb);
+        }
+    }
+}
+
+function hexToRgb(hex: string): string {
+    const n = hex.replace('#', '');
+    const r = parseInt(n.slice(0, 2), 16);
+    const g = parseInt(n.slice(2, 4), 16);
+    const b = parseInt(n.slice(4, 6), 16);
+    return `rgb(${r}, ${g}, ${b})`;
 }
