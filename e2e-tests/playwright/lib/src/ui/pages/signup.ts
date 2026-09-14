@@ -25,6 +25,12 @@ export default class SignupPage {
     readonly emailError;
     readonly usernameError;
     readonly passwordError;
+    readonly domainRestrictionError;
+    readonly noSignInMethods;
+    readonly createAccountWithFollowing;
+    readonly gitlabButton;
+    readonly emailAddressLabel;
+    readonly choosePasswordPlaceholder;
     readonly adminChosenUsernameMessage;
     readonly presetName;
 
@@ -48,6 +54,14 @@ export default class SignupPage {
             'Usernames have to begin with a lowercase letter and be 3-22 characters long. You can use lowercase letters, numbers, periods, dashes, and underscores.',
         );
         this.passwordError = page.getByText(/Must be \d+-72 characters long\./);
+        this.domainRestrictionError = page.getByText(
+            'The email you provided does not belong to an accepted domain. Please contact your administrator or sign up with a different email.',
+        );
+        this.noSignInMethods = page.getByText('This server doesn’t have any sign-in methods enabled');
+        this.createAccountWithFollowing = page.getByText('Create your account with one of the following:');
+        this.gitlabButton = page.getByRole('link', {name: 'GitLab'});
+        this.emailAddressLabel = page.getByText('Email address');
+        this.choosePasswordPlaceholder = page.getByPlaceholder('Choose a Password');
         this.adminChosenUsernameMessage = page.getByText('Your username was chosen by your admin.');
         this.presetName = page.getByTestId('signup-body-card-preset-name');
 

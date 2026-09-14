@@ -45,6 +45,7 @@ import {
     ensureOpenldap,
     ensureOpensearch,
     ensurePostgresSearch,
+    enableUserMfa,
     ensureServerEnv,
     ensureSiteUrl,
     generateKeycloakUser,
@@ -166,6 +167,7 @@ export class PlaywrightExtended {
     readonly ensureOpenldap;
     readonly ensureOpensearch;
     readonly ensurePostgresSearch;
+    readonly enableUserMfa;
     readonly ensureServerEnv;
     readonly ensureSiteUrl;
     readonly generateKeycloakUser;
@@ -227,6 +229,8 @@ export class PlaywrightExtended {
     readonly keycloakLoginPage;
     readonly landingLoginPage;
     readonly signupPage;
+    readonly selectTeamPage;
+    readonly shouldVerifyEmailPage;
     readonly resetPasswordPage;
     readonly errorPage;
 
@@ -284,6 +288,7 @@ export class PlaywrightExtended {
         this.ensureOpenldap = ensureOpenldap;
         this.ensureOpensearch = ensureOpensearch;
         this.ensurePostgresSearch = ensurePostgresSearch;
+        this.enableUserMfa = enableUserMfa;
         this.ensureServerEnv = ensureServerEnv;
         this.ensureSiteUrl = ensureSiteUrl;
         this.generateKeycloakUser = generateKeycloakUser;
@@ -317,6 +322,8 @@ export class PlaywrightExtended {
         this.keycloakLoginPage = new pages.KeycloakLoginPage(page);
         this.landingLoginPage = new pages.LandingLoginPage(page, isMobile);
         this.signupPage = new pages.SignupPage(page);
+        this.selectTeamPage = new pages.SelectTeamPage(page);
+        this.shouldVerifyEmailPage = new pages.ShouldVerifyEmailPage(page);
         this.resetPasswordPage = new pages.ResetPasswordPage(page);
         this.errorPage = new pages.ErrorPage(page);
 
