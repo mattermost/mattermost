@@ -433,7 +433,7 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
                 await channelsPage.goto(team.name, 'town-square');
                 const profileModal = await channelsPage.openProfileModal();
                 const sectionHeadings = await profileModal.sectionHeadings.allTextContents();
-                expect(sectionHeadings.filter((heading) => labels.includes(heading))).toEqual(expectedOrder);
+                expect(sectionHeadings.filter((heading: string) => labels.includes(heading))).toEqual(expectedOrder);
                 await profileModal.closeModal();
 
                 // * The same order renders in the profile popover
@@ -441,7 +441,7 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
                 const post = await channelsPage.getLastPost();
                 const popover = await channelsPage.openProfilePopover(post);
                 const attributeHeadings = await popover.attributeHeadings.allTextContents();
-                expect(attributeHeadings.filter((heading) => labels.includes(heading))).toEqual(expectedOrder);
+                expect(attributeHeadings.filter((heading: string) => labels.includes(heading))).toEqual(expectedOrder);
             } finally {
                 for (const linkedId of linkedIds) {
                     await deleteLinkedDependentField(adminClient, linkedId);

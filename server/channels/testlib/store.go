@@ -46,6 +46,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	systemStore.On("GetByName", "managed_category_setup_done").Return(&model.System{Name: "managed_category_setup_done", Value: "true"}, nil)
 	systemStore.On("GetByName", "session_attributes_setup_done").Return(&model.System{Name: "session_attributes_setup_done", Value: "true"}, nil)
 	systemStore.On("GetByName", "cpa_display_name_backfill_done").Return(&model.System{Name: "cpa_display_name_backfill_done", Value: "true"}, nil)
+	systemStore.On("GetByName", "cpa_to_global_attributes_migration_done").Return(&model.System{Name: "cpa_to_global_attributes_migration_done", Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyEmojiPermissionsSplit).Return(&model.System{Name: model.MigrationKeyEmojiPermissionsSplit, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyWebhookPermissionsSplit).Return(&model.System{Name: model.MigrationKeyWebhookPermissionsSplit, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyIntegrationsOwnPermissions).Return(&model.System{Name: model.MigrationKeyIntegrationsOwnPermissions, Value: "true"}, nil)
