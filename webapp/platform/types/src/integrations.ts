@@ -221,6 +221,8 @@ export type DialogElement = {
 
         // Whether the section renders without a box outline. Omitted/false means bordered.
         borderless?: boolean;
+    };
+
     label_position?: 'before' | 'after';
 
     matrix_config?: {
