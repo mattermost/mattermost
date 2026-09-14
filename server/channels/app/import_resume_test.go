@@ -64,7 +64,7 @@ func buildResumeJSONL(t *testing.T, teamName, chanName string, users []string, p
 	}
 
 	base := int64(1700000000000)
-	for i := 0; i < posts; i++ {
+	for i := range posts {
 		author := users[i%len(users)]
 		ts := base + int64(i)*1000
 		replyTs := ts - 500 // reply before parent -> exercises B1 clamp on replay
