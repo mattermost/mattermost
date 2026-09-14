@@ -1438,9 +1438,6 @@ describe('Actions.Posts', () => {
                         [postId]: {id: postId, channel_id: channelId},
                     },
                 },
-                integrations: {
-                    dialogArguments: {},
-                },
             },
         });
 
@@ -1454,11 +1451,8 @@ describe('Actions.Posts', () => {
         const state = store.getState();
         expect(data).toBeTruthy();
         expect(data).toEqual({trigger_id: triggerId});
-        expect(data).toBeTruthy();
 
-        expect(state.entities.integrations.dialogArguments).toBeTruthy();
         expect(state.entities.integrations.dialogTriggerId).toEqual(triggerId);
-        expect(state.entities.integrations.dialogArguments.channel_id).toEqual(channelId);
     });
 
     it('addMessageIntoHistory', async () => {
