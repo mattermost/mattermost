@@ -173,6 +173,12 @@ func setupChannelReadAccessAPI(t *testing.T, allow bool) (*channelReadAccessFixt
 	post := th.CreatePost(t)
 
 	mockACS := installMockACS(t, th)
+	// Only channel_read_access is governed here. channel_write_access must stay
+	// ungoverned for TestChannelReadAccessDoesNotGateWrites to mean anything: the
+	// write gate is inert until a write policy exists, and that is exactly the
+	// condition under which a read denial leaves writes alone.
+	mockACS.On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionChannelWriteAccess).
+		Return(false, nil)
 	mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).Return(true, nil)
 	mockACS.On("AccessEvaluation", mock.Anything, channelReadAccessEvaluation).
 		Return(model.AccessDecision{Decision: allow}, nil)
@@ -192,9 +198,10 @@ func installMockACS(t *testing.T, th *TestHelper) *mocks.AccessControlServiceInt
 	return mockACS
 }
 
-// channelReadAccessWriteSurfaces are the surfaces channel_write_access will govern.
-// Until that action exists they must not be gated by channel_read_access: a denial of
-// "may this session read the channel" has nothing to say about a write.
+// channelReadAccessWriteSurfaces are the surfaces channel_write_access governs.
+// With no write policy in play they must not be gated by channel_read_access: a
+// denial of "may this session read the channel" has nothing to say about a write
+// nobody asked to restrict.
 func channelReadAccessWriteSurfaces() []channelReadAccessSurface {
 	write := func(name string, fn func(t *testing.T, f *channelReadAccessFixture) (*model.Response, error)) channelReadAccessSurface {
 		return channelReadAccessSurface{name: name, call: fn}
@@ -264,8 +271,9 @@ func channelReadAccessWriteSurfaces() []channelReadAccessSurface {
 	}
 }
 
-// The inverse of TestChannelReadAccessDeniedSurfaces: with the policy denying, every
-// write must still get through, because writes moved to channel_write_access.
+// The inverse of TestChannelReadAccessDeniedSurfaces: with the read policy denying
+// and no channel_write_access policy governing, every write must still get through.
+// Writes are channel_write_access's question, and it is not being asked here.
 func TestChannelReadAccessDoesNotGateWrites(t *testing.T) {
 	f, _ := setupChannelReadAccessAPI(t, false)
 

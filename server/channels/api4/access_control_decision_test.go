@@ -228,3 +228,59 @@ func TestSearchAccessControlDecisionActionsChannelReadAccess(t *testing.T) {
 		require.Contains(t, discovered.Decisions, model.AccessControlPolicyActionUploadFileAttachment)
 	})
 }
+
+// The composer resolves its disabled state through this endpoint, so
+// channel_write_access has to be queryable — and has to hide behind the same flag
+// as its read counterpart.
+func TestSearchAccessControlDecisionActionsChannelWriteAccess(t *testing.T) {
+	t.Run("flag off returns bad request and hides the action from discovery", func(t *testing.T) {
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = true
+			cfg.FeatureFlags.ChannelAccessABACPermission = false
+		}).InitBasic(t)
+
+		channelResource := model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: th.BasicChannel.Id}
+
+		_, resp, err := th.Client.SearchAccessControlDecisionActions(context.Background(), model.ActionSearchRequest{
+			Resource: channelResource,
+			Actions:  []string{model.AccessControlPolicyActionChannelWriteAccess},
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		discovered, _, err := th.Client.SearchAccessControlDecisionActions(context.Background(), model.ActionSearchRequest{
+			Resource: channelResource,
+		})
+		require.NoError(t, err)
+		require.NotContains(t, discovered.Decisions, model.AccessControlPolicyActionChannelWriteAccess)
+		// Positive control: an empty decision set would otherwise satisfy the
+		// assertion above without proving anything.
+		require.Contains(t, discovered.Decisions, model.AccessControlPolicyActionUploadFileAttachment)
+	})
+
+	t.Run("flag on evaluates the action and lists it in discovery", func(t *testing.T) {
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = true
+			cfg.FeatureFlags.ChannelAccessABACPermission = true
+		}).InitBasic(t)
+
+		channelResource := model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: th.BasicChannel.Id}
+
+		targeted, _, err := th.Client.SearchAccessControlDecisionActions(context.Background(), model.ActionSearchRequest{
+			Resource: channelResource,
+			Actions:  []string{model.AccessControlPolicyActionChannelWriteAccess},
+		})
+		require.NoError(t, err)
+		require.Contains(t, targeted.Decisions, model.AccessControlPolicyActionChannelWriteAccess)
+		// ABAC is inactive in this fixture, so the registry default applies — the
+		// composer must not grey itself out on a server with the feature switched off.
+		require.True(t, targeted.Decisions[model.AccessControlPolicyActionChannelWriteAccess].Allowed)
+
+		discovered, _, err := th.Client.SearchAccessControlDecisionActions(context.Background(), model.ActionSearchRequest{
+			Resource: channelResource,
+		})
+		require.NoError(t, err)
+		require.Contains(t, discovered.Decisions, model.AccessControlPolicyActionChannelWriteAccess)
+		require.Contains(t, discovered.Decisions, model.AccessControlPolicyActionChannelReadAccess)
+	})
+}
