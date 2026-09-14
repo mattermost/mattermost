@@ -9,9 +9,13 @@ import type {
     ClusterSettings,
     EmailSettings,
     ExperimentalSettings,
+    LdapSettings,
     LogSettings,
+    Office365Settings,
     PasswordSettings,
+    SamlSettings,
     ServiceSettings,
+    SSOSettings,
     TeamSettings,
 } from '@mattermost/types/config';
 import {CollapsedThreads} from '@mattermost/types/config';
@@ -37,6 +41,12 @@ type TestAdminConfig = {
     PasswordSettings: Partial<PasswordSettings>;
     ServiceSettings: Partial<ServiceSettings>;
     TeamSettings: Partial<TeamSettings>;
+    GitLabSettings: Partial<SSOSettings>;
+    GoogleSettings: Partial<SSOSettings>;
+    Office365Settings: Partial<Office365Settings>;
+    OpenIdSettings: Partial<SSOSettings>;
+    SamlSettings: Partial<SamlSettings>;
+    LdapSettings: Partial<LdapSettings>;
 };
 
 // On-prem setting that is different from the default.
@@ -88,6 +98,14 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
             EnableOpenServer: true,
             MaxUsersPerTeam: 2000,
         },
+        // SSO specs turn these on; initSetup must turn them back off so later login/signup
+        // specs do not inherit leftover IdP buttons or EnableSyncWithLdap.
+        GitLabSettings: {Enable: false},
+        GoogleSettings: {Enable: false},
+        Office365Settings: {Enable: false},
+        OpenIdSettings: {Enable: false},
+        SamlSettings: {Enable: false, EnableSyncWithLdap: false},
+        LdapSettings: {Enable: false},
     };
 };
 
