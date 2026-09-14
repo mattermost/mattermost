@@ -216,11 +216,11 @@ func (s *SqlPropertyFieldStore) CountOptionEdges(fieldID string) (int, error) {
 // and empty. Callers can tell those apart, and every question asked about an
 // absent option is answered "no".
 func (s *SqlPropertyFieldStore) GetOptionAncestorsOrSelf(field *model.PropertyField, optionIDs []string) (map[string][]string, error) {
-	return s.walkOptionHierarchy(field, optionIDs, towardsParents)
+	return s.walkOptionHierarchy(field, optionIDs, towardsParents, model.PropertyGraphMaxWalkRows)
 }
 
 func (s *SqlPropertyFieldStore) GetOptionDescendantsOrSelf(field *model.PropertyField, optionIDs []string) (map[string][]string, error) {
-	return s.walkOptionHierarchy(field, optionIDs, towardsChildren)
+	return s.walkOptionHierarchy(field, optionIDs, towardsChildren, model.PropertyGraphMaxWalkRows)
 }
 
 // hierarchyDirection is the way a walk moves through the edges. A walk matches
@@ -273,7 +273,14 @@ var (
 // either what a mutation may do to a hierarchy or whether somebody may see
 // something, and replication lag would answer both from a hierarchy that is no
 // longer there.
-func (s *SqlPropertyFieldStore) walkOptionHierarchy(field *model.PropertyField, optionIDs []string, direction hierarchyDirection) (map[string][]string, error) {
+//
+// maxRows bounds the (SeedID, OptionID) rows the walk may return in total, not
+// per statement: LIMIT on each batch's query stops that batch from pulling more
+// rows than the budget has left, but a walk seeded from many options still has to
+// be judged on what all of its batches added up to. Going over is an error, with
+// nothing of the walk returned -- callers hide or refuse on it, never show a
+// partial hierarchy.
+func (s *SqlPropertyFieldStore) walkOptionHierarchy(field *model.PropertyField, optionIDs []string, direction hierarchyDirection, maxRows int) (map[string][]string, error) {
 	if field == nil || len(optionIDs) == 0 {
 		return nil, nil
 	}
@@ -295,6 +302,7 @@ func (s *SqlPropertyFieldStore) walkOptionHierarchy(field *model.PropertyField, 
 	// one reaches does not depend on what another was asked about -- so the results
 	// merge by concatenation.
 	resolved := map[string][]string{}
+	totalRows := 0
 	for batch := range slices.Chunk(optionIDs, maxOptionIDsPerQuery) {
 		seeds := s.getSubQueryBuilder().
 			Select("opt.ID", "opt.ID").
@@ -306,11 +314,16 @@ func (s *SqlPropertyFieldStore) walkOptionHierarchy(field *model.PropertyField, 
 		builder := s.getQueryBuilder().
 			Select("SeedID", "OptionID").
 			From("hierarchy").
-			Prefix("WITH RECURSIVE hierarchy (SeedID, OptionID) AS (? UNION "+step+")", seeds, ownerID)
+			Prefix("WITH RECURSIVE hierarchy (SeedID, OptionID) AS (? UNION "+step+")", seeds, ownerID).
+			Limit(uint64(maxRows + 1))
 
 		rows := []*reached{}
 		if err := s.GetMaster().SelectBuilder(&rows, builder); err != nil {
 			return nil, errors.Wrap(err, "property_option_hierarchy_select_query")
+		}
+		totalRows += len(rows)
+		if totalRows > maxRows {
+			return nil, errors.Errorf("property field %s hierarchy walk exceeded its %d row bound; refused rather than returning a partial result", field.ID, maxRows)
 		}
 		for _, row := range rows {
 			resolved[row.SeedID] = append(resolved[row.SeedID], row.OptionID)
