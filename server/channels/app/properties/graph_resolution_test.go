@@ -271,6 +271,50 @@ func TestGraphClampToCoverage(t *testing.T) {
 	})
 }
 
+func TestGraphCoveredBelowBudget(t *testing.T) {
+	th := Setup(t)
+	graph := setupGraph(t, th, []string{"A", "B", "C", "D", "E"}, map[string][]string{
+		"B": {"A"},
+		"C": {"A"},
+		"D": {"A"},
+		"E": {"A"},
+	})
+
+	t.Run("over budget errors and names the bound, nothing collected", func(t *testing.T) {
+		below, _, err := th.service.coveredBelow(th.Context, graph.field, graph.ids["A"], graph.of("D"), 2)
+		require.ErrorContains(t, err, "2")
+		require.Empty(t, below)
+	})
+
+	t.Run("within budget returns what it visited", func(t *testing.T) {
+		below, visited, err := th.service.coveredBelow(th.Context, graph.field, graph.ids["A"], graph.of("D"), 4)
+		require.NoError(t, err)
+		require.Equal(t, []string{"D"}, graph.named(below))
+		require.Equal(t, 4, visited)
+	})
+
+	t.Run("clampToCoverage still masks with the real constant", func(t *testing.T) {
+		worked := setupWorkedExample(t, th)
+
+		visible, err := th.service.clampToCoverage(th.Context, worked.field, worked.of("A"), worked.of("C"), nil)
+		require.NoError(t, err)
+		require.Equal(t, []string{"C"}, worked.named(visible))
+	})
+
+	t.Run("a value naming two uncovered options shares one budget", func(t *testing.T) {
+		twoBranches := setupGraph(t, th, []string{"Air", "Fighter Jet", "F-18", "Sea", "Frigate"}, map[string][]string{
+			"Fighter Jet": {"Air"},
+			"F-18":        {"Fighter Jet"},
+			"Frigate":     {"Sea"},
+		})
+
+		visible, err := th.service.clampToCoverage(th.Context, twoBranches.field,
+			twoBranches.of("Air", "Sea"), twoBranches.of("F-18", "Frigate"), nil)
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{"F-18", "Frigate"}, twoBranches.named(visible))
+	})
+}
+
 func TestGraphWouldCreateCycle(t *testing.T) {
 	th := Setup(t)
 
