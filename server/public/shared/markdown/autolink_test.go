@@ -958,6 +958,70 @@ func TestAutolinking(t *testing.T) {
 			Markdown:     `http://foo.com/unicode_(✪)_in_parens`,
 			ExpectedHTML: `<p><a href="http://foo.com/unicode_(%E2%9C%AA)_in_parens">http://foo.com/unicode_(✪)_in_parens</a></p>`,
 		},
+		"link-with-deeply-nested-parentheses": {
+			Markdown:     `https://godbolt.org/#g:!((g:!((g:!((h:codeEditor,i:(filename:'1',lang:c%2B%2B)`,
+			ExpectedHTML: `<p><a href="https://godbolt.org/#g:!((g:!((g:!((h:codeEditor,i:(filename:'1',lang:c%2B%2B)">https://godbolt.org/#g:!((g:!((g:!((h:codeEditor,i:(filename:'1',lang:c%2B%2B)</a></p>`,
+		},
+		"link-with-decoded-angle-brackets": {
+			Markdown:     `https://godbolt.org/#g:!((source:'#include+<meta>'))`,
+			ExpectedHTML: `<p><a href="https://godbolt.org/#g:!((source:'#include+%3Cmeta%3E'))">https://godbolt.org/#g:!((source:'#include+&lt;meta&gt;'))</a></p>`,
+		},
+		"link-stops-at-closing-html-tag": {
+			Markdown:     `We use www2.example.com</b>`,
+			ExpectedHTML: `<p>We use <a href="http://www2.example.com">www2.example.com</a>&lt;/b&gt;</p>`,
+		},
+		"link-stops-at-opening-html-tag": {
+			Markdown:     `www.example.com<b>bold</b>`,
+			ExpectedHTML: `<p><a href="http://www.example.com">www.example.com</a>&lt;b&gt;bold&lt;/b&gt;</p>`,
+		},
+		"link-with-angle-brackets-in-path": {
+			Markdown:     `https://godbolt.org/#include+<meta>`,
+			ExpectedHTML: `<p><a href="https://godbolt.org/#include+%3Cmeta%3E">https://godbolt.org/#include+&lt;meta&gt;</a></p>`,
+		},
+		"link-stops-at-html-tag-after-path": {
+			Markdown:     `www.example.com/path<b>bold</b>`,
+			ExpectedHTML: `<p><a href="http://www.example.com/path">www.example.com/path</a>&lt;b&gt;bold&lt;/b&gt;</p>`,
+		},
+		"link-stops-at-self-closing-html-tag-after-path": {
+			Markdown:     `www.example.com/path<br/>`,
+			ExpectedHTML: `<p><a href="http://www.example.com/path">www.example.com/path</a>&lt;br/&gt;</p>`,
+		},
+		"link-stops-at-self-closing-html-tag-with-space-after-path": {
+			Markdown:     `www.example.com/path<br />`,
+			ExpectedHTML: `<p><a href="http://www.example.com/path">www.example.com/path</a>&lt;br /&gt;</p>`,
+		},
+		"link-stops-at-html-tag-with-attributes-after-path": {
+			Markdown:     `www.example.com/path<b class="x">bold</b>`,
+			ExpectedHTML: `<p><a href="http://www.example.com/path">www.example.com/path</a>&lt;b class=&quot;x&quot;&gt;bold&lt;/b&gt;</p>`,
+		},
+		"link-stops-at-self-closing-html-tag-with-attributes": {
+			Markdown:     `https://example.com/foo<img src="x"/>`,
+			ExpectedHTML: `<p><a href="https://example.com/foo">https://example.com/foo</a>&lt;img src=&quot;x&quot;/&gt;</p>`,
+		},
+		"link-stops-at-html-tag-with-newline-before-attributes": {
+			Markdown:     "https://example.com/path<b\nclass=\"x\">",
+			ExpectedHTML: "<p><a href=\"https://example.com/path\">https://example.com/path</a>&lt;b\nclass=&quot;x&quot;&gt;</p>",
+		},
+		"link-stops-at-html-tag-with-cr-before-attributes": {
+			Markdown:     "https://example.com/path<b\rclass=\"x\">",
+			ExpectedHTML: "<p><a href=\"https://example.com/path\">https://example.com/path</a>&lt;b\nclass=&quot;x&quot;&gt;</p>",
+		},
+		"link-with-full-godbolt-url": {
+			Markdown:     `https://godbolt.org/#g:!((g:!((g:!((h:codeEditor,i:(filename:'1',fontScale:15,fontUsePx:'0',j:2,lang:c%2B%2B,selection:(endColumn:2,endLineNumber:26,positionColumn:2,positionLineNumber:26,selectionStartColumn:2,selectionStartLineNumber:26,startColumn:2,startLineNumber:26),source:'%23include+%3Cmeta%3E%0A%23include+%3Cprint%3E%0A%23include+%3Cspan%3E%0A%23include+%3Carray%3E%0Anamespace+meta+%3D+std::meta%3B%0A%0Aenum+ShapeKind+%7B%0A++CIRCLE,%0A++TRIANGLE,%0A++RECTANGLE,%0A%7D%3B%0A%0Atemplate%3Ctypename+E%3E%0Aconstexpr+std::string_view+to_string(E+value)+%7B%0A++template+for+(constexpr+auto+e+:%0A++++++++++++++++std::define_static_array(meta::enumerators_of(%5E%5EE)))%0A++++if+(value+%3D%3D+%5B:e:%5D)%0A++++++return+meta::identifier_of(e)%3B%0A++return+%22%3Cunknown%3E%22%3B%0A%7D%0A%0Aint+main()+%7B%0A++++std::println(%22%7B%7D%22,+to_string(ShapeKind::CIRCLE))%3B%0A++++std::println(%22%7B%7D%22,+to_string(ShapeKind::TRIANGLE))%3B%0A++++std::println(%22%7B%7D%22,+to_string(ShapeKind::RECTANGLE))%3B%0A%7D'),l:'5',n:'0',o:'C%2B%2B+source+%232',t:'0')),header:(),k:50,l:'4',n:'0',o:'',s:0,t:'0'),(g:!((h:executor,i:(argsPanelShown:'1',compilationPanelShown:'0',compiler:g161,compilerName:'',compilerOutShown:'0',execArgs:'',execStdin:'',fontScale:14,fontUsePx:'0',j:1,lang:c%2B%2B,libs:!(),options:'-std%3Dc%2B%2B26+-freflection',overrides:!(),runtimeTools:!(),source:2,stdinPanelShown:'1',wrap:'1'),l:'5',n:'0',o:'Executor+x86-64+gcc+16.1+(C%2B%2B,+Editor+%232)',t:'0')),k:50,l:'4',n:'0',o:'',s:0,t:'0')),l:'2',n:'0',o:'',t:'0')),version:4`,
+			ExpectedHTML: `<p><a href="https://godbolt.org/#g:!((g:!((g:!((h:codeEditor,i:(filename:'1',fontScale:15,fontUsePx:'0',j:2,lang:c%2B%2B,selection:(endColumn:2,endLineNumber:26,positionColumn:2,positionLineNumber:26,selectionStartColumn:2,selectionStartLineNumber:26,startColumn:2,startLineNumber:26),source:'%23include+%3Cmeta%3E%0A%23include+%3Cprint%3E%0A%23include+%3Cspan%3E%0A%23include+%3Carray%3E%0Anamespace+meta+%3D+std::meta%3B%0A%0Aenum+ShapeKind+%7B%0A++CIRCLE,%0A++TRIANGLE,%0A++RECTANGLE,%0A%7D%3B%0A%0Atemplate%3Ctypename+E%3E%0Aconstexpr+std::string_view+to_string(E+value)+%7B%0A++template+for+(constexpr+auto+e+:%0A++++++++++++++++std::define_static_array(meta::enumerators_of(%5E%5EE)))%0A++++if+(value+%3D%3D+%5B:e:%5D)%0A++++++return+meta::identifier_of(e)%3B%0A++return+%22%3Cunknown%3E%22%3B%0A%7D%0A%0Aint+main()+%7B%0A++++std::println(%22%7B%7D%22,+to_string(ShapeKind::CIRCLE))%3B%0A++++std::println(%22%7B%7D%22,+to_string(ShapeKind::TRIANGLE))%3B%0A++++std::println(%22%7B%7D%22,+to_string(ShapeKind::RECTANGLE))%3B%0A%7D'),l:'5',n:'0',o:'C%2B%2B+source+%232',t:'0')),header:(),k:50,l:'4',n:'0',o:'',s:0,t:'0'),(g:!((h:executor,i:(argsPanelShown:'1',compilationPanelShown:'0',compiler:g161,compilerName:'',compilerOutShown:'0',execArgs:'',execStdin:'',fontScale:14,fontUsePx:'0',j:1,lang:c%2B%2B,libs:!(),options:'-std%3Dc%2B%2B26+-freflection',overrides:!(),runtimeTools:!(),source:2,stdinPanelShown:'1',wrap:'1'),l:'5',n:'0',o:'Executor+x86-64+gcc+16.1+(C%2B%2B,+Editor+%232)',t:'0')),k:50,l:'4',n:'0',o:'',s:0,t:'0')),l:'2',n:'0',o:'',t:'0')),version:4">https://godbolt.org/#g:!((g:!((g:!((h:codeEditor,i:(filename:'1',fontScale:15,fontUsePx:'0',j:2,lang:c%2B%2B,selection:(endColumn:2,endLineNumber:26,positionColumn:2,positionLineNumber:26,selectionStartColumn:2,selectionStartLineNumber:26,startColumn:2,startLineNumber:26),source:'%23include+%3Cmeta%3E%0A%23include+%3Cprint%3E%0A%23include+%3Cspan%3E%0A%23include+%3Carray%3E%0Anamespace+meta+%3D+std::meta%3B%0A%0Aenum+ShapeKind+%7B%0A++CIRCLE,%0A++TRIANGLE,%0A++RECTANGLE,%0A%7D%3B%0A%0Atemplate%3Ctypename+E%3E%0Aconstexpr+std::string_view+to_string(E+value)+%7B%0A++template+for+(constexpr+auto+e+:%0A++++++++++++++++std::define_static_array(meta::enumerators_of(%5E%5EE)))%0A++++if+(value+%3D%3D+%5B:e:%5D)%0A++++++return+meta::identifier_of(e)%3B%0A++return+%22%3Cunknown%3E%22%3B%0A%7D%0A%0Aint+main()+%7B%0A++++std::println(%22%7B%7D%22,+to_string(ShapeKind::CIRCLE))%3B%0A++++std::println(%22%7B%7D%22,+to_string(ShapeKind::TRIANGLE))%3B%0A++++std::println(%22%7B%7D%22,+to_string(ShapeKind::RECTANGLE))%3B%0A%7D'),l:'5',n:'0',o:'C%2B%2B+source+%232',t:'0')),header:(),k:50,l:'4',n:'0',o:'',s:0,t:'0'),(g:!((h:executor,i:(argsPanelShown:'1',compilationPanelShown:'0',compiler:g161,compilerName:'',compilerOutShown:'0',execArgs:'',execStdin:'',fontScale:14,fontUsePx:'0',j:1,lang:c%2B%2B,libs:!(),options:'-std%3Dc%2B%2B26+-freflection',overrides:!(),runtimeTools:!(),source:2,stdinPanelShown:'1',wrap:'1'),l:'5',n:'0',o:'Executor+x86-64+gcc+16.1+(C%2B%2B,+Editor+%232)',t:'0')),k:50,l:'4',n:'0',o:'',s:0,t:'0')),l:'2',n:'0',o:'',t:'0')),version:4</a></p>`,
+		},
+		"link-stops-at-cjk-punctuation": {
+			Markdown:     `https://mattermost.com/，這是第二個網址。`,
+			ExpectedHTML: `<p><a href="https://mattermost.com/">https://mattermost.com/</a>，這是第二個網址。</p>`,
+		},
+		"link-stops-at-newline": {
+			Markdown:     "https://example.com/foo\nmore text",
+			ExpectedHTML: "<p><a href=\"https://example.com/foo\">https://example.com/foo</a>\nmore text</p>",
+		},
+		"link-stops-at-blank-line": {
+			Markdown:     "https://example.com/foo\n\nnext paragraph",
+			ExpectedHTML: `<p><a href="https://example.com/foo">https://example.com/foo</a></p><p>next paragraph</p>`,
+		},
 
 		"inside-another-link-1": {
 			Markdown:     `[www.example.com](https://example.com)`,

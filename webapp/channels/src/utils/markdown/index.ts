@@ -3,6 +3,8 @@
 
 import marked from 'marked';
 
+import './autolink';
+
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getAutolinkedUrlSchemes, getConfig} from 'mattermost-redux/selectors/entities/general';
 
