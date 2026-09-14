@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import isEqual from 'lodash/isEqual';
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 

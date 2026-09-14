@@ -6,6 +6,7 @@
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
     "build": "docusaurus build",
+    "postbuild": "node scripts/duplicate-redirect-stubs.mjs",
     "stage:agents-docs": "node scripts/stage-agents-docs.mjs",
     "build:sidebars": "node scripts/gen-documentation-sidebar.mjs && node scripts/gen-developer-sidebar.mjs",
     "build:openapi:spec": "node scripts/build-openapi.mjs",

@@ -10,8 +10,12 @@ import type {Team} from '@mattermost/types/teams';
 
 import {closeRightHandSide} from 'actions/views/rhs';
 
+import ChannelAttributeLabels from 'components/channel_attributes/channel_attribute_labels';
+import useChannelLabels from 'components/common/hooks/useChannelLabels';
 import RhsHeaderPost from 'components/rhs_header_post';
 import ThreadViewer from 'components/threading/thread_viewer';
+
+import './rhs_thread.scss';
 
 import type {FakePost, RhsState} from 'types/store/rhs';
 
@@ -20,6 +24,21 @@ type Props = {
     channel?: Channel;
     selected: Post | FakePost;
     previousRhsState?: RhsState;
+};
+
+const RhsThreadAttributeChips = ({channelId}: {channelId: string}) => {
+    const labels = useChannelLabels(channelId, 'header');
+    if (labels.length === 0) {
+        return null;
+    }
+    return (
+        <div className='RhsThread__attributes'>
+            <ChannelAttributeLabels
+                channelId={channelId}
+                surface='header'
+            />
+        </div>
+    );
 };
 
 const RhsThread = ({
@@ -53,6 +72,7 @@ const RhsThread = ({
                 channel={channel}
                 previousRhsState={previousRhsState}
             />
+            <RhsThreadAttributeChips channelId={channel.id}/>
             <ThreadViewer
                 rootPostId={selected.id}
                 useRelativeTimestamp={true}

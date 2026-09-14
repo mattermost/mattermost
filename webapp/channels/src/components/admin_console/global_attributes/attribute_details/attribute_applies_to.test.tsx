@@ -8,6 +8,8 @@ import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing
 import AttributeAppliesTo from './attribute_applies_to';
 import type {ResourceObjectType} from './attribute_applies_to_constants';
 
+import {DEFAULT_CHANNEL_RESOURCE_CONFIG} from '../applies_to/channels';
+
 describe('AttributeAppliesTo', () => {
     const onAdd = jest.fn();
     const onRemove = jest.fn();
@@ -22,6 +24,8 @@ describe('AttributeAppliesTo', () => {
                 appliesTo={[]}
                 onAdd={onAdd}
                 onRemove={onRemove}
+                channelResource={DEFAULT_CHANNEL_RESOURCE_CONFIG}
+                onChannelResourceChange={jest.fn()}
                 {...props}
             />,
         );

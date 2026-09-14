@@ -1,8 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+export const aiPluginId = 'mattermost-ai';
 export const appsPluginId = 'com.mattermost.apps';
 export const callsPluginId = 'com.mattermost.calls';
+export const npsPluginId = 'com.mattermost.nps';
 export const playbooksPluginId = 'playbooks';
 
 // License SKU short names — mirrored from webapp/channels/src/utils/constants.tsx LicenseSkus

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {createRef} from 'react';
-import type {ChangeEvent, ClipboardEvent, MouseEvent, RefObject} from 'react';
+import type {ChangeEvent, ClipboardEvent, JSX, MouseEvent, RefObject} from 'react';
 import {defineMessages, FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape, MessageDescriptor} from 'react-intl';
 
