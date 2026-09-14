@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
+	"strings"
 	"unicode/utf8"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -182,11 +184,9 @@ func (ps *PropertyService) lookupReusableTemplate(rctx request.CTX, groupID, tem
 
 // isPermanentPropertyFieldFailure reports whether a CreatePropertyField or
 // fieldStore.Update failure is deterministic and won't resolve on retry: the
-// create-only field-limit sentinels, or an AppError from validation (create-
-// or update-time, e.g. ValidateCPAFieldName or PropertyField.IsValid's
-// cross-field checks — some are stricter on create, so a legacy field can
-// fail every attempt). Anything else is a genuine store/DB error and
-// transient.
+// create-only field-limit sentinels, or an AppError from validation (e.g.
+// PropertyField.IsValid's 255-rune Name cap on a long slugified legacy
+// name). Anything else is a genuine store/DB error and transient.
 func isPermanentPropertyFieldFailure(err error) bool {
 	if errors.Is(err, ErrGroupFieldLimitReached) || errors.Is(err, ErrFieldLimitReached) ||
 		errors.Is(err, ErrInvalidFieldAttrs) || errors.Is(err, ErrAdminRequired) {
@@ -196,24 +196,72 @@ func isPermanentPropertyFieldFailure(err error) bool {
 	return errors.As(err, &appErr)
 }
 
-// disambiguatedTemplateName returns a template name for cpaField that can
-// never collide with anything: the field's own ID is globally unique, so
-// appending it guarantees a fresh name no matter what else exists in the
-// group — including another feature's reserved template name. Deterministic
-// across restarts, so a crashed prior run's orphaned template at this same
-// name is still found and reused by lookupReusableTemplate rather than
-// duplicated. Attempted exactly once — if this also fails, that failure is
-// final (see createOrReuseGlobalAttributeTemplate).
-func disambiguatedTemplateName(cpaField *model.PropertyField) string {
-	return cpaField.Name + "_" + cpaField.ID
+// disambiguatedTemplateName appends the field's own globally-unique ID to
+// baseName, guaranteeing no collision with anything else in the group.
+// Deterministic across restarts, so a crashed prior run's orphaned template
+// at this name is found and reused, not duplicated.
+func disambiguatedTemplateName(baseName, fieldID string) string {
+	return baseName + "_" + fieldID
+}
+
+var (
+	celCamelBoundary1     = regexp.MustCompile(`([a-z0-9])([A-Z])`)
+	celCamelBoundary2     = regexp.MustCompile(`([A-Z]+)([A-Z][a-z])`)
+	celInvalidChars       = regexp.MustCompile(`[^a-z0-9_]`)
+	celLeadingDigit       = regexp.MustCompile(`^[0-9]`)
+	celRepeatedUnderscore = regexp.MustCompile(`_+`)
+	celTrailingUnderscore = regexp.MustCompile(`_+$`)
+)
+
+// slugifyForCEL converts name into a CEL-safe identifier, mirroring the
+// webapp's twin (utils/properties.ts) used when suggesting a unique name
+// from a display name, so the same input produces the same result whether
+// slugified client-side or here. Always satisfies CPAFieldNamePattern by
+// construction; additionally escapes a charset-valid CEL reserved word
+// (e.g. a legacy field literally named "in"), which the webapp twin doesn't
+// need to since it never has to survive ValidateCPAFieldName on its own.
+func slugifyForCEL(name string) string {
+	slug := celCamelBoundary1.ReplaceAllString(name, "${1}_${2}")
+	slug = celCamelBoundary2.ReplaceAllString(slug, "${1}_${2}")
+	slug = strings.ToLower(slug)
+	slug = celInvalidChars.ReplaceAllString(slug, "_")
+	if celLeadingDigit.MatchString(slug) {
+		slug = "_" + slug
+	}
+	slug = celRepeatedUnderscore.ReplaceAllString(slug, "_")
+	slug = celTrailingUnderscore.ReplaceAllString(slug, "")
+	if slug == "" {
+		slug = "_copy"
+	}
+	if _, reserved := model.CPAFieldNameReservedWords[slug]; reserved {
+		slug += "_attr"
+	}
+	return slug
+}
+
+// templateNameBase returns the name to attempt for cpaField's template:
+// cpaField.Name verbatim when it's already CEL-safe, or a slugified version
+// when it's not (a legacy name that predates ValidateCPAFieldName, e.g. one
+// containing a space). The CPA field's own Name is never changed, and the
+// original string is preserved as the template's display_name — already
+// backfilled from Name if empty by MigrateBackfillCPADisplayName, which
+// runs before this migration — so nothing user-visible changes.
+func templateNameBase(cpaField *model.PropertyField) string {
+	if appErr := model.ValidateCPAFieldName(cpaField.Name); appErr != nil {
+		return slugifyForCEL(cpaField.Name)
+	}
+	return cpaField.Name
 }
 
 // attemptCreateOrReuseTemplate reuses or creates a template named
-// templateName for cpaField. unrelatedNameCollision reports whether the
-// failure was specifically an unrelated-template name collision, so the
-// caller can decide whether a disambiguated retry is worth attempting. See
-// createOrReuseGlobalAttributeTemplate for the transient/permanent contract.
-func (ps *PropertyService) attemptCreateOrReuseTemplate(rctx request.CTX, groupID, templateName string, cpaField *model.PropertyField) (template *model.PropertyField, transient, unrelatedNameCollision bool, err error) {
+// templateName for cpaField. templateName == baseName is the primary
+// attempt; anything else is a disambiguated retry, which appends a
+// "(copy)" suffix to display_name. unrelatedNameCollision reports whether
+// the failure was an unrelated-template name collision, so the caller
+// knows whether a disambiguated retry is worth attempting. See
+// createOrReuseGlobalAttributeTemplate for the transient/permanent
+// contract.
+func (ps *PropertyService) attemptCreateOrReuseTemplate(rctx request.CTX, groupID, templateName, baseName string, cpaField *model.PropertyField) (template *model.PropertyField, transient, unrelatedNameCollision bool, err error) {
 	existing, found, lookupErr := ps.lookupReusableTemplate(rctx, groupID, templateName, cpaField)
 	if found {
 		return existing, false, errors.Is(lookupErr, errUnrelatedTemplateName), lookupErr
@@ -227,7 +275,7 @@ func (ps *PropertyService) attemptCreateOrReuseTemplate(rctx request.CTX, groupI
 		return nil, true, false, fmt.Errorf("failed to deep-copy attrs for field %q: %w", cpaField.ID, copyErr)
 	}
 	attrsCopy[model.PropertyAttrsMigratedToGlobal] = true
-	if templateName != cpaField.Name {
+	if templateName != baseName {
 		if displayName, _ := attrsCopy[model.PropertyFieldAttrDisplayName].(string); displayName != "" {
 			// Skip the suffix rather than risk pushing an already-long
 			// display_name over the field name length limit and turning a
@@ -277,16 +325,18 @@ func (ps *PropertyService) attemptCreateOrReuseTemplate(rctx request.CTX, groupI
 // transient=true means retry on a later restart (don't persist the "done"
 // marker yet); transient=false is a permanent, by-design skip.
 //
-// A name collision with an unrelated, unmarked template retries once under
-// disambiguatedTemplateName, which — being ID-suffixed — always succeeds
-// regardless of what the colliding name is.
+// The base name (see templateNameBase) is attempted first. A collision with
+// an unrelated, unmarked template retries once with that base name
+// disambiguated by field ID (see disambiguatedTemplateName), which always
+// succeeds.
 func (ps *PropertyService) createOrReuseGlobalAttributeTemplate(rctx request.CTX, groupID string, cpaField *model.PropertyField) (template *model.PropertyField, transient bool, err error) {
-	template, transient, unrelatedNameCollision, err := ps.attemptCreateOrReuseTemplate(rctx, groupID, cpaField.Name, cpaField)
+	baseName := templateNameBase(cpaField)
+	template, transient, unrelatedNameCollision, err := ps.attemptCreateOrReuseTemplate(rctx, groupID, baseName, baseName, cpaField)
 	if !unrelatedNameCollision {
 		return template, transient, err
 	}
 
-	template, transient, _, err = ps.attemptCreateOrReuseTemplate(rctx, groupID, disambiguatedTemplateName(cpaField), cpaField)
+	template, transient, _, err = ps.attemptCreateOrReuseTemplate(rctx, groupID, disambiguatedTemplateName(baseName, cpaField.ID), baseName, cpaField)
 	return template, transient, err
 }
 

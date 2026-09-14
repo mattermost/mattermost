@@ -486,6 +486,32 @@ func TestMigrateCPAFieldsToGlobalAttributes_NameCollisionWithoutMarker(t *testin
 		assert.Equal(t, maxLengthDisplayName, disambiguated.Attrs[model.PropertyFieldAttrDisplayName],
 			"the ' (copy)' suffix must be skipped, not appended, since it would overflow the length limit")
 	})
+
+	t.Run("a slugified name that overflows the length limit once ID-suffixed is a permanent skip, not an error", func(t *testing.T) {
+		th := setupMigrationTestHelper(t)
+
+		// Long enough that baseName + "_" + a 26-char field ID exceeds
+		// PropertyFieldNameMaxRunes (255). The space forces slugification;
+		// slugifying doesn't shorten the name, so this baseName is already
+		// 250 runes long.
+		longName := strings.Repeat("a", 125) + " " + strings.Repeat("a", 124)
+		longSlug := strings.Repeat("a", 125) + "_" + strings.Repeat("a", 124)
+
+		// No PropertyAttrsMigratedToGlobal marker: an admin-created template,
+		// forcing the ID-suffixed disambiguation retry.
+		seedTemplate(t, th, longSlug, model.PropertyFieldTypeText, nil)
+		seeded := seedCPAField(t, th, longName, nil)
+
+		migrated, skipped, retryable, err := th.service.MigrateCPAFieldsToGlobalAttributes(th.Context)
+		require.NoError(t, err)
+		assert.Equal(t, 0, migrated)
+		assert.Equal(t, 1, skipped, "an over-length disambiguated name must be a permanent skip, not retried forever")
+		assert.Equal(t, 0, retryable)
+
+		untouched, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, seeded.ID)
+		require.NoError(t, err)
+		assert.Nil(t, untouched.LinkedFieldID)
+	})
 }
 
 func TestMigrateCPAFieldsToGlobalAttributes_FieldLimitReached(t *testing.T) {
@@ -533,23 +559,45 @@ func TestMigrateCPAFieldsToGlobalAttributes_ManagedAdminField(t *testing.T) {
 	assert.Equal(t, "admin", template.Attrs[model.PropertyFieldAttrManaged])
 }
 
-func TestMigrateCPAFieldsToGlobalAttributes_DeterministicValidationFailureIsPermanentlySkipped(t *testing.T) {
+func TestMigrateCPAFieldsToGlobalAttributes_LegacyInvalidNameIsSlugified(t *testing.T) {
 	// A legacy CPA field whose Name predates the CEL-safe-identifier rule
-	// (e.g. containing a space) deterministically fails this migration's
-	// template create on every restart and must be a permanent skip, not
-	// retried forever.
+	// (e.g. containing a space) can't be used as the template's Name
+	// verbatim, so the migration slugifies it into a CEL-safe name instead
+	// of permanently skipping the field.
 	th := setupMigrationTestHelper(t)
 
-	seedCPAField(t, th, "Job Title", nil)
+	seeded := seedCPAField(t, th, "Job Title", nil)
 
 	migrated, skipped, retryable, err := th.service.MigrateCPAFieldsToGlobalAttributes(th.Context)
 	require.NoError(t, err)
-	assert.Equal(t, 0, migrated)
-	assert.Equal(t, 1, skipped, "a deterministic name-validation rejection must be a permanent skip, not retryable")
+	assert.Equal(t, 1, migrated)
+	assert.Equal(t, 0, skipped)
 	assert.Equal(t, 0, retryable)
 
-	_, lookupErr := th.service.getPropertyFieldByNameForObjectType(th.Context, th.CPAGroupID, "", model.PropertyFieldObjectTypeTemplate, "Job Title")
-	assert.Error(t, lookupErr, "no template should have been created for a field that fails create-time validation")
+	template := templateByName(t, th, "job_title")
+	assert.Equal(t, model.PropertyFieldObjectTypeTemplate, template.ObjectType)
+
+	updatedField, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, seeded.ID)
+	require.NoError(t, err)
+	require.NotNil(t, updatedField.LinkedFieldID)
+	assert.Equal(t, template.ID, *updatedField.LinkedFieldID)
+	assert.Equal(t, "Job Title", updatedField.Name, "the original CPA field's Name is left untouched -- only the new template gets a CEL-safe name")
+}
+
+func TestMigrateCPAFieldsToGlobalAttributes_ReservedWordNameIsSlugified(t *testing.T) {
+	// A legacy CPA field named after a bare CEL keyword (valid charset, but
+	// reserved) must also be slugified rather than permanently skipped.
+	th := setupMigrationTestHelper(t)
+
+	seedCPAField(t, th, "in", nil)
+
+	migrated, skipped, retryable, err := th.service.MigrateCPAFieldsToGlobalAttributes(th.Context)
+	require.NoError(t, err)
+	assert.Equal(t, 1, migrated)
+	assert.Equal(t, 0, skipped)
+	assert.Equal(t, 0, retryable)
+
+	templateByName(t, th, "in_attr")
 }
 
 func TestMigrateCPAFieldsToGlobalAttributes_InvalidAttrsFailureIsPermanentlySkipped(t *testing.T) {
