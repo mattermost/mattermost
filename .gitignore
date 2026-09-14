@@ -1,4 +1,8 @@
 
+# Tracked, not ignored: mise.toml pins the Node this repo builds with, and
+# it is common to ignore mise.toml globally for personal use elsewhere.
+!mise.toml
+
 logs
 .DS_Store
 node_modules
