@@ -1808,11 +1808,11 @@ func (api *PluginAPI) CountPropertyFieldsForTarget(groupID, targetType, targetID
 
 func (api *PluginAPI) GetPropertyFieldOptions(groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, error) {
 	rctx := api.psaPluginContext()
-	options, appErr := api.app.GetPropertyFieldOptions(rctx, groupID, fieldID, cursorCreateAt, cursorID, perPage)
+	page, appErr := api.app.GetPropertyFieldOptions(rctx, groupID, fieldID, cursorCreateAt, cursorID, perPage)
 	if appErr != nil {
 		return nil, appErr
 	}
-	return options, nil
+	return page.Options, nil
 }
 
 func (api *PluginAPI) CreatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {

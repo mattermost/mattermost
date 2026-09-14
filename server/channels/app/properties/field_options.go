@@ -216,12 +216,9 @@ func requireOptionCount(count int, verb string) error {
 // forgot one would be indistinguishable from a field with no options, which is
 // the mistake the option rows exist to stop being possible.
 //
-// What comes back is what this caller may see, which on a field whose options are
-// access-controlled is less than the rows hold — so filling one page can take
-// several pages of rows. A page shorter than the size asked for is therefore the
-// end of what the caller may see, which is what a caller paging until a short page
-// needs it to be.
-func (ps *PropertyService) GetFieldOptions(rctx request.CTX, groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, error) {
+// The page is filtered in the query, so it comes back full while options remain,
+// and the listing ends only when HasMore is false.
+func (ps *PropertyService) GetFieldOptions(rctx request.CTX, groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) (*model.PropertyFieldOptionPage, error) {
 	if perPage <= 0 {
 		return nil, optionsChangeRefused("a page of options has to be asked for with a positive page size")
 	}
@@ -247,66 +244,38 @@ func (ps *PropertyService) GetFieldOptions(rctx request.CTX, groupID, fieldID st
 		return nil, err
 	}
 
-	// Asked once for the whole listing, before the loop pays for a single row: a
-	// caller of a source_only field but its source plugin, and a caller of a
-	// shared_only field who holds nothing for it, will see nothing on any page,
-	// and a hook can say so without reading one. An empty page answers them
-	// exactly as the scan below would have, at the cost of one call instead of a
-	// scan of the whole field.
+	// Asked once for the whole listing, before a row is read: a caller of a
+	// source_only field but its source plugin, and a caller of a shared_only
+	// field who holds nothing for it, will see nothing on any page, and a hook
+	// can say so without reading one. An empty page answers them exactly as the
+	// query below would have, at the cost of one call instead of a query of the
+	// whole field.
 	filter, err := ps.runPreGetPropertyFieldOptions(rctx, field)
 	if err != nil {
 		return nil, err
 	}
 	if filter != nil && filter.ShowNothing {
-		return []*model.PropertyFieldOption{}, nil
+		return &model.PropertyFieldOptionPage{Options: []*model.PropertyFieldOption{}}, nil
 	}
 
-	// A page a caller may see only part of is filled from the rows behind it, not
-	// answered short. A caller pages until a page comes back shorter than the size
-	// it asked for, so a page that lost most of its options to the hooks would end
-	// the listing early -- and the options the caller may see further down would
-	// never be reached. Read on until the page is full or the rows run out, so a
-	// short page means what a caller reads it as.
-	//
-	// The cost of that is a scan of the whole field whenever little of it is
-	// visible. A caller who may see a handful of a large field's options still
-	// pays for the rows in between to find them -- the hook above only answers
-	// "nothing, ever", not "not much", and the loop below is what handles the case
-	// it cannot.
-	//
-	// An empty page and no page are not the same answer: a hook building its result
-	// by appending returns nil when it keeps nothing, and nil serializes as null
-	// rather than [], which a caller looping over the page cannot read. Starting
-	// from an empty slice settles it for every path out of here.
-	options := []*model.PropertyFieldOption{}
-	for {
-		storePage, err := ps.fieldStore.GetFieldOptions(field, cursorCreateAt, cursorID, perPage, nil)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to read a property field's options")
-		}
-
-		visible, err := ps.runPostGetPropertyFieldOptions(rctx, field, filter, storePage.Options)
-		if err != nil {
-			return nil, err
-		}
-		options = append(options, visible...)
-
-		// A page the store answered short is the end of the field's options.
-		// Anything else, and the answer is full once perPage of them survived.
-		if len(storePage.Options) < perPage || len(options) >= perPage {
-			break
-		}
-		last := storePage.Options[len(storePage.Options)-1]
-		cursorCreateAt, cursorID = last.CreateAt, last.ID
+	storePage, err := ps.fieldStore.GetFieldOptions(field, cursorCreateAt, cursorID, perPage, filter)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to read a property field's options")
 	}
 
-	// The last read can carry the answer past the size asked for. The surplus is
-	// dropped rather than kept, because the caller continues from the option they
-	// were last shown and will be given it on the next page.
-	if len(options) > perPage {
-		options = options[:perPage]
+	visible, err := ps.runPostGetPropertyFieldOptions(rctx, field, filter, storePage.Options)
+	if err != nil {
+		return nil, err
 	}
-	return options, nil
+
+	// HasMore and the cursor are the store's own, unchanged by what the post-hook
+	// did to the rows: the post-hook's own verification may drop rows the query
+	// already decided were covered, and a page that ends up short that way still
+	// has more behind it. Recomputing either from what survived would reintroduce
+	// the empty page that cannot advance -- the case a query-side filter exists to
+	// remove.
+	storePage.Options = visible
+	return storePage, nil
 }
 
 // CreateFieldOptions adds options to a field, optionally placing each of them
