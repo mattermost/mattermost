@@ -922,8 +922,8 @@ describe('components/PluginManagement', () => {
     });
 
     describe('plugins forced off by a state override', () => {
-        // getPluginStateOverride holds a plugin at NotRunning with Enable still true
-        // in config, which left the admin no way to clear the flag.
+        // getPluginStateOverride holds a plugin at NotRunning with Enable still
+        // true in config.
         const renderWithPluginState = (configEnabled: boolean) => {
             const props = {
                 ...defaultProps,

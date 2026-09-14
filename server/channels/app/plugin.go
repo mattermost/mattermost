@@ -252,14 +252,11 @@ func (ch *Channels) initPlugins(rctx request.CTX, pluginDir, webappPluginDir str
 
 	ch.srv.RemoveLicenseListener(ch.pluginLicenseListenerID)
 	ch.pluginLicenseListenerID = ch.srv.AddLicenseListener(func(oldLicense, newLicense *model.License) {
-		// A license upload does not change the config, so the config listener above
-		// never fires for it and add-on gating would not be re-evaluated. Guarded
-		// because SetLicense fires far more often than the add-on set changes, and
-		// the sync activates every installed plugin on this goroutine.
-		//
-		// Sync before the hook, so OnLicenseChanged reaches only plugins the new
-		// license permits. A revoked add-on therefore sees OnDeactivate instead;
-		// hook-then-sync would lose the grant direction instead, which is worse.
+		// The config listener above never fires for a license upload, so add-on
+		// gating would go stale. Guarded because SetLicense fires far more often
+		// than entitlements change and the sync activates every installed plugin
+		// on this goroutine. Sync before the hook, so OnLicenseChanged only
+		// reaches plugins the new license permits.
 		if !addOnEntitlementsEqual(oldLicense, newLicense) {
 			ch.syncPluginsActiveState()
 		}
@@ -463,7 +460,7 @@ func (ch *Channels) enablePlugin(id string) *model.AppError {
 
 	// Reject up front rather than writing Enable: true and letting
 	// syncPluginsActiveState deactivate it again, reporting success for a plugin
-	// that cannot run. Scoped to add-ons; Apps keeps its existing behaviour.
+	// that cannot run.
 	if addOn := manifest.RequiredAddOn; addOn != "" && !ch.srv.License().HasAddOn(addOn) {
 		return model.NewAppError("EnablePlugin", "app.plugin.addon_not_licensed.app_error", map[string]any{"AddOn": addOn}, "", http.StatusForbidden)
 	}

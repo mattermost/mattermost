@@ -262,9 +262,9 @@ const PluginItem = ({
     const activating = pluginStatus.state === PluginState.PLUGIN_STATE_STARTING;
     const deactivating = pluginStatus.state === PluginState.PLUGIN_STATE_STOPPING;
 
-    // Key on the config flag too, since that is what the control mutates. A plugin
-    // forced off by getPluginStateOverride sits at NotRunning with Enable still
-    // true, leaving the admin an Enable link and no way to clear it.
+    // Key on the config flag too, not just running state: getPluginStateOverride
+    // holds a plugin at NotRunning with Enable still true, and the control mutates
+    // the config flag.
     if (pluginStatus.active || configEnabled) {
         activateButton = (
             <a

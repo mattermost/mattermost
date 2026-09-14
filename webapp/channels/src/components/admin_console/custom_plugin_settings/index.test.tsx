@@ -946,8 +946,6 @@ describe('custom plugin sections and settings', () => {
         });
 
         it('keeps the explanation visible to a read-only admin', () => {
-            // buildBannerSetting renders nothing for a disabled setting, which would
-            // leave this page with no toggle and no reason given.
             renderAddOnPlugin(
                 {IsLicensed: 'true'},
                 {
