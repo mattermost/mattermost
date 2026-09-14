@@ -243,7 +243,7 @@ func (ps *PropertyService) GetFieldOptions(rctx request.CTX, groupID, fieldID st
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read the property field a listing is aimed at")
 	}
-	if err := requireOptionsAddressable(field); err != nil {
+	if err = requireOptionsAddressable(field); err != nil {
 		return nil, err
 	}
 
@@ -253,9 +253,11 @@ func (ps *PropertyService) GetFieldOptions(rctx request.CTX, groupID, fieldID st
 	// and a hook can say so without reading one. An empty page answers them
 	// exactly as the scan below would have, at the cost of one call instead of a
 	// scan of the whole field.
-	if may, err := ps.runMayShowAnyPropertyFieldOptions(rctx, field); err != nil {
+	filter, err := ps.runPreGetPropertyFieldOptions(rctx, field)
+	if err != nil {
 		return nil, err
-	} else if !may {
+	}
+	if filter != nil && filter.ShowNothing {
 		return []*model.PropertyFieldOption{}, nil
 	}
 
@@ -283,7 +285,7 @@ func (ps *PropertyService) GetFieldOptions(rctx request.CTX, groupID, fieldID st
 			return nil, errors.Wrap(err, "failed to read a property field's options")
 		}
 
-		visible, err := ps.runPostGetPropertyFieldOptions(rctx, field, storePage.Options)
+		visible, err := ps.runPostGetPropertyFieldOptions(rctx, field, filter, storePage.Options)
 		if err != nil {
 			return nil, err
 		}

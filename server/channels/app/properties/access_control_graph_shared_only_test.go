@@ -33,6 +33,20 @@ func setupGraphSharedOnly(t *testing.T) *graphSharedOnlyHelper {
 	return &graphSharedOnlyHelper{th: th, rctxSource: RequestContextWithCallerID(th.Context, "test-plugin")}
 }
 
+// accessControlHook returns the AccessControlHook setupGraphSharedOnly
+// registered, for a test that has to call it directly rather than through the
+// service.
+func (h *graphSharedOnlyHelper) accessControlHook(t *testing.T) *AccessControlHook {
+	t.Helper()
+	for _, hook := range h.th.service.hooks {
+		if ach, ok := hook.(*AccessControlHook); ok {
+			return ach
+		}
+	}
+	t.Fatal("AccessControlHook not registered")
+	return nil
+}
+
 // newField creates a shared_only graph field from options given as option name ->
 // parent names, and reports the identifier each name was given.
 func (h *graphSharedOnlyHelper) newField(t *testing.T, name string, parents map[string][]string, names ...string) (*model.PropertyField, map[string]string) {
@@ -600,6 +614,32 @@ func TestGraphSharedOnly_OptionListNothingVisible(t *testing.T) {
 		assert.ElementsMatch(t, []string{"Fighter Jet Program", "F-18 Program"},
 			listedNames(h.listedOptions(t, caller, field, 0, "", 100)),
 			"the short circuit must not fire for a caller the scan would show something to")
+	})
+}
+
+// TestGraphSharedOnly_OptionPageFilter covers the filter the hook decides once
+// per listing, which the listing carries into the page query and the post-hook
+// rather than have every page re-read the caller's holdings.
+func TestGraphSharedOnly_OptionPageFilter(t *testing.T) {
+	h := setupGraphSharedOnly(t)
+	field, ids := h.newField(t, "programs-options-filter", programHierarchy, programNames...)
+	hook := h.accessControlHook(t)
+
+	t.Run("a masked caller's filter carries exactly the options they hold", func(t *testing.T) {
+		caller := model.NewId()
+		h.assign(t, field.ID, caller, ids["Fighter Jet Program"], ids["Sea Program"])
+
+		filter, err := hook.PreGetPropertyFieldOptions(RequestContextWithCallerID(h.th.Context, caller), field, nil)
+		require.NoError(t, err)
+		require.NotNil(t, filter)
+		assert.False(t, filter.ShowNothing)
+		assert.ElementsMatch(t, []string{ids["Fighter Jet Program"], ids["Sea Program"]}, filter.CoveredBy)
+	})
+
+	t.Run("a caller with unrestricted read access produces a filter that narrows nothing", func(t *testing.T) {
+		filter, err := hook.PreGetPropertyFieldOptions(RequestContextWithCallerID(h.th.Context, "test-plugin"), field, nil)
+		require.NoError(t, err)
+		assert.Nil(t, filter)
 	})
 }
 

@@ -95,23 +95,28 @@ type PropertyHook interface {
 	// options. Implementations may drop entries; unlike the field post-hooks
 	// there is no cardinality rule, because a shorter page is the answer when a
 	// caller may not see all of them.
-	PostGetPropertyFieldOptions(rctx request.CTX, field *model.PropertyField, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error)
-
-	// MayShowAnyPropertyFieldOptions answers, once per listing rather than once
-	// per page, whether this caller may see any of a field's options at all. It
-	// is asked before the scan that pages through them, so it takes no page: a
-	// hook that needed a page to answer could not tell "nothing on this page"
-	// from "nothing on any page", which is exactly what the listing needs told
-	// apart to stop early.
 	//
-	// false means no page of this field will ever show this caller anything,
-	// and must never be the answer for a caller who would be shown something --
-	// the listing stops before looking. A hook unsure of the answer returns
-	// true: the caller then pays for the scan and gets the right answer, which
-	// is the safe direction. An error is the listing's own error, not a false --
+	// filter is the answer PreGetPropertyFieldOptions gave for this listing, an
+	// optimisation of the read rather than its authority: a hook must be able to
+	// reach the same answer on its own when filter is nil or names nothing, the
+	// same way it would if this were the only hook registered.
+	PostGetPropertyFieldOptions(rctx request.CTX, field *model.PropertyField, filter *model.PropertyFieldOptionPageFilter, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error)
+
+	// PreGetPropertyFieldOptions answers, once per listing rather than once per
+	// page, which of a field's options this caller may ever see. It is asked
+	// before the scan that pages through them, so it takes no page: a hook that
+	// needed a page to answer could not tell "nothing on this page" from
+	// "nothing on any page", which is exactly what the listing needs told apart
+	// to stop early.
+	//
+	// filter is what the hook before this one decided, nil for the first hook;
+	// each hook returns what the listing should narrow to next, so a hook that
+	// has no opinion returns filter unchanged. ShowNothing must never be the
+	// answer for a caller who would be shown something -- the listing stops
+	// before looking. An error is the listing's own error, not a ShowNothing --
 	// "the answer could not be worked out" must not look like "there is nothing
 	// here".
-	MayShowAnyPropertyFieldOptions(rctx request.CTX, field *model.PropertyField) (bool, error)
+	PreGetPropertyFieldOptions(rctx request.CTX, field *model.PropertyField, filter *model.PropertyFieldOptionPageFilter) (*model.PropertyFieldOptionPageFilter, error)
 
 	// Value pre-hooks (write operations)
 
@@ -183,11 +188,11 @@ func (BasePropertyHook) PostGetPropertyFields(_ request.CTX, fields []*model.Pro
 func (BasePropertyHook) PreChangePropertyFieldOptions(_ request.CTX, _ *model.PropertyField) error {
 	return nil
 }
-func (BasePropertyHook) PostGetPropertyFieldOptions(_ request.CTX, _ *model.PropertyField, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
+func (BasePropertyHook) PostGetPropertyFieldOptions(_ request.CTX, _ *model.PropertyField, _ *model.PropertyFieldOptionPageFilter, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
 	return options, nil
 }
-func (BasePropertyHook) MayShowAnyPropertyFieldOptions(_ request.CTX, _ *model.PropertyField) (bool, error) {
-	return true, nil
+func (BasePropertyHook) PreGetPropertyFieldOptions(_ request.CTX, _ *model.PropertyField, filter *model.PropertyFieldOptionPageFilter) (*model.PropertyFieldOptionPageFilter, error) {
+	return filter, nil
 }
 func (BasePropertyHook) PreCreatePropertyValue(_ request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
 	return value, nil
@@ -412,10 +417,11 @@ func (ps *PropertyService) runPreChangePropertyFieldOptions(rctx request.CTX, fi
 
 // runPostGetPropertyFieldOptions runs all registered post-hooks for a page of a
 // field's options. A hook may return fewer options than it received, or none.
-func (ps *PropertyService) runPostGetPropertyFieldOptions(rctx request.CTX, field *model.PropertyField, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
+// filter is what runPreGetPropertyFieldOptions decided for this listing.
+func (ps *PropertyService) runPostGetPropertyFieldOptions(rctx request.CTX, field *model.PropertyField, filter *model.PropertyFieldOptionPageFilter, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
 	var err error
 	for _, hook := range ps.hooks {
-		options, err = hook.PostGetPropertyFieldOptions(rctx, field, options)
+		options, err = hook.PostGetPropertyFieldOptions(rctx, field, filter, options)
 		if err != nil {
 			return nil, err
 		}
@@ -423,23 +429,26 @@ func (ps *PropertyService) runPostGetPropertyFieldOptions(rctx request.CTX, fiel
 	return options, nil
 }
 
-// runMayShowAnyPropertyFieldOptions asks all registered hooks whether the
-// caller may see any of a field's options at all, once for the whole listing
-// rather than once per page. PostGetPropertyFieldOptions runs every hook's
-// filter over the same page in sequence, so one hook emptying it leaves
-// nothing for the rest to show regardless of their own answer -- this mirrors
-// that by returning false as soon as any hook says no.
-func (ps *PropertyService) runMayShowAnyPropertyFieldOptions(rctx request.CTX, field *model.PropertyField) (bool, error) {
+// runPreGetPropertyFieldOptions asks all registered hooks which of a field's
+// options the caller may ever see, once for the whole listing rather than once
+// per page. It chains the hooks the way runPostGetPropertyFieldOptions chains
+// a page through them: each hook receives what the one before it returned,
+// starting from nil, and the chain stops as soon as one returns ShowNothing --
+// nothing after it can widen the answer back, the same reasoning
+// runPostGetPropertyFieldOptions relies on for a hook emptying a page.
+func (ps *PropertyService) runPreGetPropertyFieldOptions(rctx request.CTX, field *model.PropertyField) (*model.PropertyFieldOptionPageFilter, error) {
+	var filter *model.PropertyFieldOptionPageFilter
 	for _, hook := range ps.hooks {
-		may, err := hook.MayShowAnyPropertyFieldOptions(rctx, field)
+		var err error
+		filter, err = hook.PreGetPropertyFieldOptions(rctx, field, filter)
 		if err != nil {
-			return false, err
+			return nil, err
 		}
-		if !may {
-			return false, nil
+		if filter != nil && filter.ShowNothing {
+			return filter, nil
 		}
 	}
-	return true, nil
+	return filter, nil
 }
 
 // runPreCreatePropertyValue runs all registered pre-hooks for CreatePropertyValue.

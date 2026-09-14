@@ -336,7 +336,11 @@ func (h *AccessControlHook) PreChangePropertyFieldOptions(rctx request.CTX, fiel
 // options the caller holds themselves, and the equivalent here would have to
 // intersect every page against the caller's holdings for no gain over reading the
 // field. Serving them unfiltered would answer a question the field read refuses.
-func (h *AccessControlHook) PostGetPropertyFieldOptions(rctx request.CTX, field *model.PropertyField, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
+//
+// filter is what PreGetPropertyFieldOptions decided for this listing; it is an
+// optimisation of the read below, not its authority -- see
+// filterSharedOnlyGraphOptionPage.
+func (h *AccessControlHook) PostGetPropertyFieldOptions(rctx request.CTX, field *model.PropertyField, filter *model.PropertyFieldOptionPageFilter, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
 	if field == nil || !h.isGroupManaged(field.GroupID) {
 		return options, nil
 	}
@@ -345,7 +349,7 @@ func (h *AccessControlHook) PostGetPropertyFieldOptions(rctx request.CTX, field 
 		return options, nil
 	}
 	if field.Type == model.PropertyFieldTypeGraph && h.getAccessMode(field) == model.PropertyAccessModeSharedOnly {
-		return h.filterSharedOnlyGraphOptionPage(rctx, field, options, callerID)
+		return h.filterSharedOnlyGraphOptionPage(rctx, field, filter, options, callerID)
 	}
 	return []*model.PropertyFieldOption{}, nil
 }
@@ -363,22 +367,34 @@ func (h *AccessControlHook) PostGetPropertyFieldOptions(rctx request.CTX, field 
 // the page size. Because the test is per option and the basis is the caller's own
 // holdings, two pages of the same listing are filtered against the same thing.
 //
+// filter's CoveredBy, when PreGetPropertyFieldOptions has already read it, saves
+// that lookup here. It is not trusted on its own: an empty or nil filter falls
+// back to reading the caller's holdings directly, the same answer this method
+// would give with no filter at all -- so a caller cannot be shown more than their
+// holdings cover by a filter that failed to carry them.
+//
 // A failure to resolve the hierarchy is returned rather than answered with an
 // empty page. Every other shared_only path hides and logs because it has nowhere
 // to put a failure, but a listing does: an empty page here is indistinguishable
 // from a field with no options, which is the confusion the option rows exist to
 // stop being possible.
-func (h *AccessControlHook) filterSharedOnlyGraphOptionPage(rctx request.CTX, field *model.PropertyField, options []*model.PropertyFieldOption, callerID string) ([]*model.PropertyFieldOption, error) {
+func (h *AccessControlHook) filterSharedOnlyGraphOptionPage(rctx request.CTX, field *model.PropertyField, filter *model.PropertyFieldOptionPageFilter, options []*model.PropertyFieldOption, callerID string) ([]*model.PropertyFieldOption, error) {
 	if len(options) == 0 {
 		return []*model.PropertyFieldOption{}, nil
 	}
 
-	held, err := h.getCallerOptionIDsForField(field.GroupID, field.ID, callerID, field.Type)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read the caller's own options of graph field %s: %w", field.ID, err)
-	}
-	if len(held) == 0 {
-		return []*model.PropertyFieldOption{}, nil
+	var held []string
+	if filter != nil && len(filter.CoveredBy) > 0 {
+		held = filter.CoveredBy
+	} else {
+		holding, err := h.getCallerOptionIDsForField(field.GroupID, field.ID, callerID, field.Type)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read the caller's own options of graph field %s: %w", field.ID, err)
+		}
+		if len(holding) == 0 {
+			return []*model.PropertyFieldOption{}, nil
+		}
+		held = slices.Collect(maps.Keys(holding))
 	}
 
 	pageIDs := make([]string, 0, len(options))
@@ -386,7 +402,7 @@ func (h *AccessControlHook) filterSharedOnlyGraphOptionPage(rctx request.CTX, fi
 		pageIDs = append(pageIDs, option.ID)
 	}
 
-	covered, err := h.propertyService.CoveredBy(rctx, field, pageIDs, slices.Collect(maps.Keys(held)))
+	covered, err := h.propertyService.CoveredBy(rctx, field, pageIDs, held)
 	if err != nil {
 		return nil, fmt.Errorf("failed to establish which of graph field %s's options the caller may see: %w", field.ID, err)
 	}
@@ -413,37 +429,42 @@ func (h *AccessControlHook) filterSharedOnlyGraphOptionPage(rctx request.CTX, fi
 	return shown, nil
 }
 
-// MayShowAnyPropertyFieldOptions answers, without paging through a field's
-// option rows, whether the caller may ever see anything from its listing. It
+// PreGetPropertyFieldOptions answers, without paging through a field's option
+// rows, which of its options the caller may ever see from its listing. It
 // shares hasUnrestrictedFieldReadAccess and getAccessMode with
 // PostGetPropertyFieldOptions rather than restating them, so the two cannot
-// drift into disagreeing about the same caller: false here means exactly what
-// that method would hand back an empty page for, on every page rather than
-// only the one asked.
+// drift into disagreeing about the same caller: ShowNothing here means
+// exactly what that method would hand back an empty page for, on every page
+// rather than only the one asked.
 //
 // A shared_only graph field is the one case answerable without a page:
 // covering is a relation between the caller's own options and the field's, so
-// whether the caller covers anything does not depend on which page of the
-// hierarchy is asked. Every other caller without unrestricted read access --
-// a source_only field's non-source caller, or a shared_only field of a flat
-// type -- is served nothing regardless of holdings, which
+// which of them the caller covers does not depend on which page of the
+// hierarchy is asked -- so the caller's held options, once read here, are
+// carried on the filter for PostGetPropertyFieldOptions to reuse rather than
+// read a second time per page. Every other caller without unrestricted read
+// access -- a source_only field's non-source caller, or a shared_only field of
+// a flat type -- is served nothing regardless of holdings, which
 // PostGetPropertyFieldOptions already answers unconditionally.
-func (h *AccessControlHook) MayShowAnyPropertyFieldOptions(rctx request.CTX, field *model.PropertyField) (bool, error) {
+func (h *AccessControlHook) PreGetPropertyFieldOptions(rctx request.CTX, field *model.PropertyField, filter *model.PropertyFieldOptionPageFilter) (*model.PropertyFieldOptionPageFilter, error) {
 	if field == nil || !h.isGroupManaged(field.GroupID) {
-		return true, nil
+		return filter, nil
 	}
 	callerID := h.extractCallerID(rctx)
 	if h.hasUnrestrictedFieldReadAccess(field, callerID) {
-		return true, nil
+		return filter, nil
 	}
 	if field.Type != model.PropertyFieldTypeGraph || h.getAccessMode(field) != model.PropertyAccessModeSharedOnly {
-		return false, nil
+		return &model.PropertyFieldOptionPageFilter{ShowNothing: true}, nil
 	}
 	held, err := h.getCallerOptionIDsForField(field.GroupID, field.ID, callerID, field.Type)
 	if err != nil {
-		return false, fmt.Errorf("failed to read the caller's own options of graph field %s: %w", field.ID, err)
+		return nil, fmt.Errorf("failed to read the caller's own options of graph field %s: %w", field.ID, err)
 	}
-	return len(held) > 0, nil
+	if len(held) == 0 {
+		return &model.PropertyFieldOptionPageFilter{ShowNothing: true}, nil
+	}
+	return &model.PropertyFieldOptionPageFilter{CoveredBy: slices.Collect(maps.Keys(held))}, nil
 }
 
 // PostGetPropertyField applies read access control to a single field.

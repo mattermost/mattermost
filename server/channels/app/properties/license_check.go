@@ -80,12 +80,12 @@ func (h *LicenseCheckHook) PreChangePropertyFieldOptions(_ request.CTX, field *m
 	return h.requireLicense(field.GroupID)
 }
 
-func (h *LicenseCheckHook) PostGetPropertyFieldOptions(_ request.CTX, field *model.PropertyField, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
+func (h *LicenseCheckHook) PostGetPropertyFieldOptions(_ request.CTX, field *model.PropertyField, _ *model.PropertyFieldOptionPageFilter, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
 	return options, h.requireLicense(field.GroupID)
 }
 
-func (h *LicenseCheckHook) MayShowAnyPropertyFieldOptions(_ request.CTX, field *model.PropertyField) (bool, error) {
-	return true, h.requireLicense(field.GroupID)
+func (h *LicenseCheckHook) PreGetPropertyFieldOptions(_ request.CTX, field *model.PropertyField, filter *model.PropertyFieldOptionPageFilter) (*model.PropertyFieldOptionPageFilter, error) {
+	return filter, h.requireLicense(field.GroupID)
 }
 
 // Field post-hooks

@@ -95,15 +95,15 @@ func TestLicenseCheckHook(t *testing.T) {
 		require.Error(t, createErr)
 		assert.Contains(t, createErr.Error(), "license_error")
 
-		// GetFieldOptions has no hook that answers false, so the early exit this
-		// hook backs is never reached through the service; call it directly.
-		_, mayErr := hook.MayShowAnyPropertyFieldOptions(th.Context, created)
-		require.Error(t, mayErr)
-		assert.Contains(t, mayErr.Error(), "license_error")
+		// GetFieldOptions has no hook that answers ShowNothing, so the early exit
+		// this hook backs is never reached through the service; call it directly.
+		_, preErr := hook.PreGetPropertyFieldOptions(th.Context, created, nil)
+		require.Error(t, preErr)
+		assert.Contains(t, preErr.Error(), "license_error")
 
 		currentLicense = enterpriseLicense
-		_, mayErr = hook.MayShowAnyPropertyFieldOptions(th.Context, created)
-		require.NoError(t, mayErr)
+		_, preErr = hook.PreGetPropertyFieldOptions(th.Context, created, nil)
+		require.NoError(t, preErr)
 	})
 
 	t.Run("allows operations on unmanaged groups without license", func(t *testing.T) {
