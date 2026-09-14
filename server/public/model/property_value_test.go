@@ -376,3 +376,37 @@ func TestSanitizePropertyValue(t *testing.T) {
 		assert.Equal(t, &raw[0], &got[0], "expected same backing array when unchanged")
 	})
 }
+
+func TestBroadcastValue(t *testing.T) {
+	value := json.RawMessage(`"secret"`)
+
+	publicField := &PropertyField{Attrs: StringInterface{PropertyAttrsAccessMode: PropertyAccessModePublic}}
+	sourceOnlyField := &PropertyField{Attrs: StringInterface{PropertyAttrsAccessMode: PropertyAccessModeSourceOnly}}
+	sharedOnlyField := &PropertyField{Attrs: StringInterface{PropertyAttrsAccessMode: PropertyAccessModeSharedOnly}}
+	noAttrsField := &PropertyField{}
+
+	cases := []struct {
+		name  string
+		field *PropertyField
+		want  json.RawMessage
+	}{
+		{"public field returns value unchanged", publicField, value},
+		{"source_only field returns the marker", sourceOnlyField, json.RawMessage(PropertyValueWithheldJSON)},
+		{"shared_only field returns the marker", sharedOnlyField, json.RawMessage(PropertyValueWithheldJSON)},
+		{"nil field returns the marker", nil, json.RawMessage(PropertyValueWithheldJSON)},
+		{"field with no Attrs counts as public", noAttrsField, value},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := BroadcastValue(tc.field, value)
+			assert.Equal(t, string(tc.want), string(got))
+		})
+	}
+
+	t.Run("marker is valid JSON that unmarshals to a non-null object", func(t *testing.T) {
+		got := BroadcastValue(sourceOnlyField, value)
+		var obj map[string]any
+		require.NoError(t, json.Unmarshal(got, &obj))
+		assert.NotNil(t, obj)
+	})
+}
