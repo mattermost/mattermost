@@ -2757,10 +2757,10 @@ func TestDialogElementCheckboxMatrixValidation(t *testing.T) {
 			MatrixConfig: matrixConfig,
 			Options:      matrixConfig.Rows,
 		}
-	err := element.IsValid()
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "cannot have options")
-})
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "cannot have options")
+	})
 }
 
 func TestDialogElementFileValidation(t *testing.T) {
