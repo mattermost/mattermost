@@ -309,6 +309,10 @@ func (c *Client4) contentFlaggingRoute() clientRoute {
 	return newClientRoute("content_flagging")
 }
 
+func (c *Client4) deliveryTrackingRoute() clientRoute {
+	return newClientRoute("delivery_tracking")
+}
+
 func (c *Client4) postsEphemeralRoute() clientRoute {
 	return newClientRoute("posts").Join("ephemeral")
 }
@@ -708,6 +712,10 @@ func (c *Client4) celRoute() clientRoute {
 
 func (c *Client4) accessControlPolicyRoute(policyID string) clientRoute {
 	return c.accessControlPoliciesRoute().Join(url.PathEscape(policyID))
+}
+
+func (c *Client4) accessControlDecisionsRoute() clientRoute {
+	return newClientRoute("access_control").Join("decisions")
 }
 
 func (c *Client4) logsRoute() clientRoute {
@@ -2836,6 +2844,18 @@ func (c *Client4) CreateChannel(ctx context.Context, channel *Channel) (*Channel
 	return DecodeJSONFromResponse[*Channel](r)
 }
 
+// CreateChannelWithPropertyValues creates a channel and its attribute values in
+// one request, which is what lets the server refuse a channel that would not
+// satisfy its own required attributes.
+func (c *Client4) CreateChannelWithPropertyValues(ctx context.Context, req *ChannelCreateRequest) (*Channel, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.channelsRoute(), req)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Channel](r)
+}
+
 // CreateBoard creates a board channel. The channel.Type must be ChannelTypeOpenBoard
 // or ChannelTypePrivateBoard. Requires the IntegratedBoards feature flag to be enabled
 // on the server; otherwise the route is not registered and returns 404.
@@ -3970,6 +3990,24 @@ func (c *Client4) GetContentFlaggingSettings(ctx context.Context) (*ContentFlagg
 	return DecodeJSONFromResponse[*ContentFlaggingSettingsRequest](r)
 }
 
+func (c *Client4) GetDeliveryTrackingConfig(ctx context.Context) (*DeliveryTrackingConfig, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.deliveryTrackingRoute().Join("config"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*DeliveryTrackingConfig](r)
+}
+
+func (c *Client4) UpdateDeliveryTrackingConfig(ctx context.Context, config *DeliveryTrackingConfig) (*Response, error) {
+	r, err := c.doAPIPutJSON(ctx, c.deliveryTrackingRoute().Join("config"), config)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 func (c *Client4) AssignContentFlaggingReviewer(ctx context.Context, postId, reviewerId string) (*Response, error) {
 	r, err := c.doAPIPost(ctx, c.contentFlaggingRoute().Join("post", postId, "assign", reviewerId), "")
 	if err != nil {
@@ -4015,6 +4053,15 @@ func (c *Client4) KeepFlaggedPost(ctx context.Context, postId string, actionRequ
 // flagged post report for the given post.
 func (c *Client4) GenerateFlaggedPostReport(ctx context.Context, postId string, actionRequest *FlagContentActionRequest) ([]byte, *Response, error) {
 	r, err := c.doAPIPostJSON(ctx, c.contentFlaggingRoute().Join("post", postId, "report"), actionRequest)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return ReadBytesFromResponse(r)
+}
+
+func (c *Client4) GeneratePostExposureReport(ctx context.Context, postId string) ([]byte, *Response, error) {
+	r, err := c.doAPIPost(ctx, c.contentFlaggingRoute().Join("post", postId, "exposure_report"), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5464,6 +5511,20 @@ func (c *Client4) GetLogs(ctx context.Context, page, perPage int) ([]string, *Re
 	return DecodeJSONFromResponse[[]string](r)
 }
 
+// QueryLogs returns a page of logs, filtered by the given LogFilter, keyed by node id.
+func (c *Client4) QueryLogs(ctx context.Context, page, perPage int, filter *LogFilter) (map[string][]json.RawMessage, *Response, error) {
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("logs_per_page", strconv.Itoa(perPage))
+
+	r, err := c.doAPIPostJSONWithQuery(ctx, c.logsRoute().Join("query"), values, filter)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[map[string][]json.RawMessage](r)
+}
+
 // Download logs as mattermost.log file
 func (c *Client4) DownloadLogs(ctx context.Context) ([]byte, *Response, error) {
 	r, err := c.doAPIGet(ctx, c.logsRoute().Join("download"), "")
@@ -6308,16 +6369,6 @@ func (c *Client4) DeleteReaction(ctx context.Context, reaction *Reaction) (*Resp
 	}
 	defer closeBody(r)
 	return BuildResponse(r), nil
-}
-
-// FetchBulkReactions returns a map of postIds and corresponding reactions
-func (c *Client4) GetBulkReactions(ctx context.Context, postIds []string) (map[string][]*Reaction, *Response, error) {
-	r, err := c.doAPIPostJSON(ctx, c.postsRoute().Join("ids", "reactions"), postIds)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[map[string][]*Reaction](r)
 }
 
 // Timezone Section
@@ -8380,6 +8431,18 @@ func (c *Client4) SearchAccessControlPolicies(ctx context.Context, options Acces
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[*AccessControlPoliciesWithCount](r)
+}
+
+// SearchAccessControlDecisionActions returns non-authoritative, render-time ABAC
+// decisions for the current session user on a resource. Results are for UI
+// rendering only; enforcement always re-evaluates the PDP server-side.
+func (c *Client4) SearchAccessControlDecisionActions(ctx context.Context, req ActionSearchRequest) (*ActionSearchResponse, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.accessControlDecisionsRoute().Join("actions", "search"), req)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*ActionSearchResponse](r)
 }
 
 func (c *Client4) AssignAccessControlPolicies(ctx context.Context, policyID string, resourceIDs []string) (*Response, error) {

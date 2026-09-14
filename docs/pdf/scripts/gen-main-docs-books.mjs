@@ -4,7 +4,7 @@
 // build-book-pdf.mjs.
 //
 // Sources:
-//   docs-site/sidebars/documentation.generated.json  (already authoritative)
+//   site/sidebars/documentation.generated.json  (already authoritative)
 //
 // Outputs:
 //   pdf/books/product-overview.json
@@ -20,7 +20,7 @@ import {fileURLToPath} from 'node:url';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const PDF_ROOT = resolve(HERE, '..');
 const REPO_ROOT = resolve(PDF_ROOT, '..');
-const SIDEBAR = resolve(REPO_ROOT, 'docs-site/sidebars/documentation.generated.json');
+const SIDEBAR = resolve(REPO_ROOT, 'site/sidebars/documentation.generated.json');
 const BOOKS_DIR = resolve(PDF_ROOT, 'books');
 
 // Mapping from sidebar category label → book metadata (eyebrow/version).

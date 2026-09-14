@@ -197,6 +197,6 @@ func getChannelID(a *app.App, channelname string, teamid string, userid string) 
 			return channel.Id, true
 		}
 	}
-	mlog.Debug("Could not find channel", mlog.String("Channel name", channelname), mlog.Int("Possibilities searched", len(channels)))
+	mlog.Debug("Could not find channel", mlog.String("channel_name", channelname), mlog.Int("possibilities_searched", len(channels)))
 	return "", false
 }

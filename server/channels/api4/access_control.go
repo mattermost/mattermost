@@ -63,6 +63,52 @@ func (api *API) InitAccessControlPolicy() {
 	api.BaseRoutes.AccessControlPolicy.Handle("/unassign", api.APISessionRequired(unassignAccessPolicy)).Methods(http.MethodDelete)
 	api.BaseRoutes.AccessControlPolicy.Handle("/resources/channels", api.APISessionRequired(getChannelsForAccessControlPolicy)).Methods(http.MethodGet)
 	api.BaseRoutes.AccessControlPolicy.Handle("/resources/channels/search", api.APISessionRequired(searchChannelsForAccessControlPolicy)).Methods(http.MethodPost)
+
+	api.BaseRoutes.AccessControlDecisions.Handle("/actions/search", api.APISessionRequired(searchAccessControlDecisionActions)).Methods(http.MethodPost)
+}
+
+// searchAccessControlDecisionActions returns non-authoritative, render-time ABAC
+// decisions for the current session user on a single resource. If Subject is
+// provided in the request it must match the authenticated session user ID — any
+// other value is rejected with 403. Results are for rendering only; protected
+// endpoints always re-evaluate the PDP live.
+func searchAccessControlDecisionActions(c *Context, w http.ResponseWriter, r *http.Request) {
+	var req model.ActionSearchRequest
+	if jsonErr := json.NewDecoder(r.Body).Decode(&req); jsonErr != nil {
+		c.SetInvalidParamWithErr("action_search", jsonErr)
+		return
+	}
+	if appErr := req.IsValid(); appErr != nil {
+		c.Err = appErr
+		return
+	}
+	// Fail closed on resource types we can't authorize: only channel decisions are exposed
+	// today, so anything else is rejected rather than silently skipping the access check.
+	switch req.Resource.Type {
+	case model.AccessControlPolicyTypeChannel:
+		if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), req.Resource.ID, model.PermissionReadChannel); !hasPermission {
+			c.SetPermissionError(model.PermissionReadChannel)
+			return
+		}
+	default:
+		c.Err = model.NewAppError("searchAccessControlDecisionActions", "api.access_control.decision.unsupported_resource_type.app_error", map[string]any{"Type": req.Resource.Type}, "", http.StatusBadRequest)
+		return
+	}
+
+	resp, appErr := c.App.SearchAllowedActionsForCurrentUser(c.AppContext, req)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	js, err := json.Marshal(resp)
+	if err != nil {
+		c.Err = model.NewAppError("searchAccessControlDecisionActions", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -426,6 +472,9 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 		Cursor: model.SubjectCursor{
 			TargetID: checkExpressionRequest.After,
 		},
+		// Carry the channel so a resource.attributes.* expression resolves
+		// against that channel's values; ignored for resource-free expressions.
+		ResourceID: channelId,
 	}
 
 	// Scope results to a team's current members only for callers authorized on
@@ -1310,6 +1359,14 @@ func getFieldsAutocomplete(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	teamID := r.URL.Query().Get("team_id")
 
+	// Pulls channel-object-type CPA fields — the ones a rule references as
+	// resource.attributes.* — for a caller with no single channel to scope by,
+	// such as an editor for a policy that many channels import. Only meaningful
+	// without a channelId (a channel scope already includes them), and in that
+	// case the permission check below requires either ManageSystem or
+	// team-admin access-rule permission on team_id (via teamAdminCELContextOK).
+	includeResourceFields := r.URL.Query().Get("include_resource_fields") == "true"
+
 	hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	if !hasSystemPermission {
 		if !teamAdminCELContextOK(c, channelId, teamID) {
@@ -1348,7 +1405,7 @@ func getFieldsAutocomplete(c *Context, w http.ResponseWriter, r *http.Request) {
 	var ac []*model.PropertyField
 	var appErr *model.AppError
 
-	ac, appErr = c.App.GetAccessControlFieldsAutocomplete(c.AppContext, after, limit, c.AppContext.Session().UserId)
+	ac, appErr = c.App.GetAccessControlFieldsAutocomplete(c.AppContext, channelId, includeResourceFields, after, limit, c.AppContext.Session().UserId)
 
 	if appErr != nil {
 		c.Err = appErr

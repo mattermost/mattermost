@@ -52,7 +52,7 @@ func TestUpdateScheduledPost(t *testing.T) {
 		// Switch back to original user and verify the post wasn't modified
 		th.LoginBasic(t)
 
-		fetchedPost, err := th.App.Srv().Store().ScheduledPost().Get(createdScheduledPost.Id)
+		fetchedPost, err := th.App.Srv().Store().ScheduledPost().Get(th.Context, createdScheduledPost.Id)
 		require.NoError(t, err)
 		require.NotNil(t, fetchedPost)
 		require.Equal(t, originalMessage, fetchedPost.Message)
@@ -77,7 +77,7 @@ func TestUpdateScheduledPost(t *testing.T) {
 
 		createdScheduledPost.ErrorCode = model.ScheduledPostErrorUnableToSend
 		createdScheduledPost.ProcessedAt = model.GetMillis()
-		require.NoError(t, th.App.Srv().Store().ScheduledPost().UpdatedScheduledPost(createdScheduledPost))
+		require.NoError(t, th.App.Srv().Store().ScheduledPost().UpdatedScheduledPost(th.Context, createdScheduledPost))
 
 		createdScheduledPost.ScheduledAt = model.GetMillis() + 300000
 		createdScheduledPost.RepeatTimezone = "America/New_York"
@@ -90,7 +90,7 @@ func TestUpdateScheduledPost(t *testing.T) {
 		require.Equal(t, model.ScheduledPostRepeatTypeWeekly, updatedScheduledPost.RepeatType)
 		require.Equal(t, "America/New_York", updatedScheduledPost.RepeatTimezone)
 
-		fetchedPost, err := th.App.Srv().Store().ScheduledPost().Get(createdScheduledPost.Id)
+		fetchedPost, err := th.App.Srv().Store().ScheduledPost().Get(th.Context, createdScheduledPost.Id)
 		require.NoError(t, err)
 		require.Equal(t, model.ScheduledPostRepeatTypeWeekly, fetchedPost.RepeatType)
 		require.Equal(t, "America/New_York", fetchedPost.RepeatTimezone)
@@ -134,7 +134,7 @@ func TestUpdateScheduledPost(t *testing.T) {
 		require.Equal(t, model.ScheduledPostRepeatTypeWeekly, updatedScheduledPost.RepeatType)
 		require.Equal(t, "America/New_York", updatedScheduledPost.RepeatTimezone)
 
-		fetchedPost, err := th.App.Srv().Store().ScheduledPost().Get(createdScheduledPost.Id)
+		fetchedPost, err := th.App.Srv().Store().ScheduledPost().Get(th.Context, createdScheduledPost.Id)
 		require.NoError(t, err)
 		require.Equal(t, "rescheduled by an old client", fetchedPost.Message)
 		require.Equal(t, model.ScheduledPostRepeatTypeWeekly, fetchedPost.RepeatType)
@@ -166,10 +166,74 @@ func TestUpdateScheduledPost(t *testing.T) {
 		require.Empty(t, updatedScheduledPost.RepeatType)
 		require.Empty(t, updatedScheduledPost.RepeatTimezone)
 
-		fetchedPost, err := th.App.Srv().Store().ScheduledPost().Get(createdScheduledPost.Id)
+		fetchedPost, err := th.App.Srv().Store().ScheduledPost().Get(th.Context, createdScheduledPost.Id)
 		require.NoError(t, err)
 		require.Empty(t, fetchedPost.RepeatType)
 		require.Empty(t, fetchedPost.RepeatTimezone)
+	})
+
+	t.Run("system post types", func(t *testing.T) {
+		testCases := []struct {
+			name     string
+			postType string
+			rejected bool
+		}{
+			{
+				name:     "generic system post type",
+				postType: model.PostTypeSystemGeneric,
+				rejected: true,
+			},
+			{
+				name:     "structured system post type",
+				postType: model.PostTypeAddToTeam,
+				rejected: true,
+			},
+			{
+				name:     "default post type",
+				postType: model.PostTypeDefault,
+				rejected: false,
+			},
+			{
+				name:     "attachment post type",
+				postType: model.PostTypeMessageAttachment,
+				rejected: false,
+			},
+		}
+
+		for _, testCase := range testCases {
+			t.Run(testCase.name, func(t *testing.T) {
+				scheduledPost := &model.ScheduledPost{
+					Draft: model.Draft{
+						CreateAt:  model.GetMillis(),
+						UserId:    th.BasicUser.Id,
+						ChannelId: th.BasicChannel.Id,
+						Message:   "this is a scheduled post",
+					},
+					ScheduledAt: model.GetMillis() + 100000,
+				}
+				created, _, err := th.Client.CreateScheduledPost(context.Background(), scheduledPost)
+				require.NoError(t, err)
+				require.NotNil(t, created)
+
+				created.Type = testCase.postType
+				created.ScheduledAt = model.GetMillis() + 200000
+
+				updated, resp, err := th.Client.UpdateScheduledPost(context.Background(), created)
+
+				if !testCase.rejected {
+					require.NoError(t, err)
+					require.NotNil(t, updated)
+					return
+				}
+
+				require.Error(t, err)
+				CheckBadRequestStatus(t, resp)
+
+				fetched, storeErr := th.App.Srv().Store().ScheduledPost().Get(th.Context, created.Id)
+				require.NoError(t, storeErr)
+				require.NotEqual(t, testCase.postType, fetched.Type, "a scheduled post must not keep a reserved system post type")
+			})
+		}
 	})
 }
 
@@ -203,7 +267,7 @@ func TestDeleteScheduledPost(t *testing.T) {
 		// Switch back to original user and verify the post wasn't deleted
 		th.LoginBasic(t)
 
-		fetchedPost, err := th.App.Srv().Store().ScheduledPost().Get(createdScheduledPost.Id)
+		fetchedPost, err := th.App.Srv().Store().ScheduledPost().Get(th.Context, createdScheduledPost.Id)
 		require.NoError(t, err)
 		require.NotNil(t, fetchedPost)
 		require.Equal(t, createdScheduledPost.Id, fetchedPost.Id)
@@ -310,6 +374,73 @@ func TestCreateScheduledPost(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 		require.Nil(t, created)
 	})
+
+	t.Run("system post types", func(t *testing.T) {
+		testCases := []struct {
+			name     string
+			postType string
+			rejected bool
+		}{
+			{
+				name:     "generic system post type",
+				postType: model.PostTypeSystemGeneric,
+				rejected: true,
+			},
+			{
+				name:     "structured system post type",
+				postType: model.PostTypeAddToTeam,
+				rejected: true,
+			},
+			{
+				name:     "default post type",
+				postType: model.PostTypeDefault,
+				rejected: false,
+			},
+			{
+				name:     "attachment post type",
+				postType: model.PostTypeMessageAttachment,
+				rejected: false,
+			},
+		}
+
+		for _, testCase := range testCases {
+			t.Run(testCase.name, func(t *testing.T) {
+				scheduledPost := &model.ScheduledPost{
+					Draft: model.Draft{
+						CreateAt:  model.GetMillis(),
+						UserId:    th.BasicUser.Id,
+						ChannelId: th.BasicChannel.Id,
+						Message:   "scheduled post of type " + testCase.postType,
+						Type:      testCase.postType,
+					},
+					ScheduledAt: model.GetMillis() + 100000,
+				}
+
+				created, resp, err := client.CreateScheduledPost(context.Background(), scheduledPost)
+
+				if !testCase.rejected {
+					require.NoError(t, err)
+					require.NotNil(t, created)
+					require.Equal(t, testCase.postType, created.Type)
+
+					fetched, storeErr := th.App.Srv().Store().ScheduledPost().Get(th.Context, created.Id)
+					require.NoError(t, storeErr)
+					require.Equal(t, testCase.postType, fetched.Type)
+					return
+				}
+
+				require.Error(t, err)
+				CheckBadRequestStatus(t, resp)
+				require.Nil(t, created)
+
+				storedScheduledPosts, storeErr := th.App.Srv().Store().ScheduledPost().GetScheduledPostsForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
+				require.NoError(t, storeErr)
+				for _, storedScheduledPost := range storedScheduledPosts {
+					require.NotEqual(t, scheduledPost.Message, storedScheduledPost.Message, "a rejected scheduled post must not be stored")
+				}
+			})
+		}
+	})
 }
 
 func TestScheduledPostRecurringFeatureFlag(t *testing.T) {
@@ -413,7 +544,7 @@ func TestScheduledPostRecurringFeatureFlag(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 		CheckErrorID(t, err, "app.scheduled_post.recurring_disabled.app_error")
 
-		fetched, storeErr := th.App.Srv().Store().ScheduledPost().Get(created.Id)
+		fetched, storeErr := th.App.Srv().Store().ScheduledPost().Get(th.Context, created.Id)
 		require.NoError(t, storeErr)
 		require.Equal(t, model.ScheduledPostRepeatTypeNone, fetched.RepeatType)
 	})

@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import type {ReactNode} from 'react';
+import type {JSX, ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {UserProfile} from '@mattermost/types/users';

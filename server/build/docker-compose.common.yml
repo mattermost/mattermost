@@ -12,7 +12,7 @@ services:
       - mm-test
     environment:
       POSTGRES_USER: mmuser
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mostest}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mostest_password}
       POSTGRES_DB: mattermost_test
       POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
     command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
@@ -25,7 +25,7 @@ services:
       timeout: 10s
       retries: 3
   minio:
-    image: "minio/minio:RELEASE.2024-06-22T05-26-45Z"
+    image: "cgr.dev/chainguard/minio:latest"
     logging: *default-logging
     command: "server /data --console-address :9002"
     networks:
@@ -60,7 +60,7 @@ services:
       LDAP_TLS_VERIFY_CLIENT: "never"
       LDAP_ORGANISATION: "Mattermost Test"
       LDAP_DOMAIN: "mm.test.com"
-      LDAP_ADMIN_PASSWORD: "mostest"
+      LDAP_ADMIN_PASSWORD: "mostest_password"
   elasticsearch:
     build:
       context: .

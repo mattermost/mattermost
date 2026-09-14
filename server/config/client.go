@@ -81,7 +81,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["EnablePublicLink"] = strconv.FormatBool(*c.FileSettings.EnablePublicLink)
 
 	props["AvailableLocales"] = *c.LocalizationSettings.AvailableLocales
-	props["EnableExperimentalLocales"] = strconv.FormatBool(*c.LocalizationSettings.EnableExperimentalLocales)
 
 	props["SQLDriverName"] = *c.SqlSettings.DriverName
 
@@ -321,10 +320,6 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["EnableSignUpWithEmail"] = strconv.FormatBool(*c.EmailSettings.EnableSignUpWithEmail)
 	props["EnableSignInWithEmail"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithEmail)
 	props["EnableSignInWithUsername"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithUsername)
-
-	props["EmailLoginButtonColor"] = *c.EmailSettings.LoginButtonColor
-	props["EmailLoginButtonBorderColor"] = *c.EmailSettings.LoginButtonBorderColor
-	props["EmailLoginButtonTextColor"] = *c.EmailSettings.LoginButtonTextColor
 
 	props["TermsOfServiceLink"] = *c.SupportSettings.TermsOfServiceLink
 	props["PrivacyPolicyLink"] = *c.SupportSettings.PrivacyPolicyLink

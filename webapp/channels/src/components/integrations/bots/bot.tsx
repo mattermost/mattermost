@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {ChangeEvent, SyntheticEvent, ReactNode} from 'react';
+import type {ChangeEvent, JSX, ReactNode, SyntheticEvent} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 

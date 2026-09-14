@@ -31,7 +31,7 @@ func (a *App) CreateSession(rctx request.CTX, session *model.Session) (*model.Se
 	// remote/synthetic users cannot create sessions. This lookup will already be cached.
 	// Some unit tests rely on sessions being created for users that don't exist, therefore
 	// missing users are allowed.
-	user, appErr := a.GetUser(session.UserId)
+	user, appErr := a.GetUser(rctx, session.UserId)
 	if appErr != nil && appErr.StatusCode != http.StatusNotFound {
 		return nil, appErr
 	}
@@ -459,7 +459,7 @@ func (a *App) ExtendSessionExpiryIfNeeded(rctx request.CTX, session *model.Sessi
 	rctx.Logger().Debug("Session extended",
 		mlog.String("user_id", session.UserId),
 		mlog.String("session_id", session.Id),
-		mlog.Int("newExpiry", newExpiry),
+		mlog.Int("new_expiry", newExpiry),
 		mlog.Int("session_length", sessionLength),
 	)
 

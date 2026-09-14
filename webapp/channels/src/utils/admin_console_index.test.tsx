@@ -34,9 +34,35 @@ describe('AdminConsoleIndex.generateIndex', () => {
         expect(idx.search('nginx')).toEqual([
             'environment/rate_limiting',
         ]);
+        expect(idx.search('channel_viewed')).toEqual([
+            'environment/web_server',
+        ]);
+        expect(idx.search('hardened')).toEqual([
+            'environment/web_server',
+        ]);
         expect(idx.search('characters')).toEqual([
             'site_config/customization',
             'authentication/password',
+        ]);
+        expect(idx.search('batching')).toEqual([
+            'environment/notifications',
+        ]);
+        expect(idx.search('Email Batching Buffer Size')).toEqual([
+            'environment/notifications',
+        ]);
+        expect(idx.search('subject lines')).toEqual([
+            'environment/notifications',
+        ]);
+        expect(idx.search('deactivation')).toEqual([
+            'authentication/saml',
+            'site_config/users_and_teams',
+        ]);
+        expect(idx.search('away')).toEqual([
+            'site_config/users_and_teams',
+        ]);
+        expect(idx.search('typing')).toEqual([
+            'experimental/features',
+            'site_config/posts',
         ]);
         expect(idx.search('caracteres')).toEqual([]);
         expect(idx.search('notexistingword')).toEqual([]);
@@ -75,7 +101,7 @@ describe('AdminConsoleIndex.generateIndex', () => {
 
         const idx = generateIndex(AdminDefinition, intl, {[samplePlugin1.id]: samplePlugin1, [samplePlugin2.id]: samplePlugin2});
 
-        expect(idx.search('random')).toEqual(['site_config/users_and_teams', 'plugin_Some-random-plugin', 'site_config/public_links']);
+        expect(idx.search('random')).toEqual(['plugin_Some-random-plugin', 'site_config/users_and_teams', 'site_config/public_links']);
         expect(idx.search('autolink')).toEqual(['plugin_mattermost-autolink']);
     });
 });

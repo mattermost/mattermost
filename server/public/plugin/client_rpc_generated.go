@@ -1383,6 +1383,58 @@ func (s *hooksRPCServer) OnCloudLimitsUpdated(args *Z_OnCloudLimitsUpdatedArgs, 
 }
 
 func init() {
+	hookNameToId["OnLicenseChanged"] = OnLicenseChangedID
+}
+
+type Z_OnLicenseChangedArgs struct {
+	A *model.License
+	B *model.License
+}
+
+type Z_OnLicenseChangedReturns struct {
+}
+
+func (g *hooksRPCClient) OnLicenseChanged(oldLicense, newLicense *model.License) {
+	_args := &Z_OnLicenseChangedArgs{oldLicense, newLicense}
+	_returns := &Z_OnLicenseChangedReturns{}
+	if g.implemented[OnLicenseChangedID] {
+		if err := g.client.Call("Plugin.OnLicenseChanged", _args, _returns); err != nil {
+			g.log.Error("RPC call OnLicenseChanged to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+// OnLicenseChangedWithRPCErr returns the same values as OnLicenseChanged, with an additional trailing error
+// for the RPC transport — always the LAST return slot.
+func (g *hooksRPCClient) OnLicenseChangedWithRPCErr(oldLicense, newLicense *model.License) error {
+	_args := &Z_OnLicenseChangedArgs{oldLicense, newLicense}
+	_returns := &Z_OnLicenseChangedReturns{}
+	var _err error
+	if g.implemented[OnLicenseChangedID] {
+		_err = g.client.Call("Plugin.OnLicenseChanged", _args, _returns)
+		if _err != nil {
+			// Reset _returns so partial gob decoding can't leak non-zero
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
+			_returns = &Z_OnLicenseChangedReturns{}
+			g.log.Debug("RPC call OnLicenseChanged to plugin failed.", mlog.Err(_err))
+		}
+	}
+	return _err
+}
+
+func (s *hooksRPCServer) OnLicenseChanged(args *Z_OnLicenseChangedArgs, returns *Z_OnLicenseChangedReturns) error {
+	if hook, ok := s.impl.(interface {
+		OnLicenseChanged(oldLicense, newLicense *model.License)
+	}); ok {
+		hook.OnLicenseChanged(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook OnLicenseChanged called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
 	hookNameToId["ConfigurationWillBeSaved"] = ConfigurationWillBeSavedID
 }
 
@@ -2250,6 +2302,8 @@ type HooksWithRPCErrGenerated interface {
 	OnSendDailyTelemetryWithRPCErr() error
 
 	OnCloudLimitsUpdatedWithRPCErr(limits *model.ProductLimits) error
+
+	OnLicenseChangedWithRPCErr(oldLicense, newLicense *model.License) error
 
 	ConfigurationWillBeSavedWithRPCErr(newCfg *model.Config) (*model.Config, error, error)
 
@@ -6002,6 +6056,36 @@ func (s *apiRPCServer) GetFile(args *Z_GetFileArgs, returns *Z_GetFileReturns) e
 		returns.A, returns.B = hook.GetFile(args.A)
 	} else {
 		return encodableError(fmt.Errorf("API GetFile called but not implemented."))
+	}
+	return nil
+}
+
+type Z_HasPermissionToFileActionArgs struct {
+	A string
+	B string
+	C string
+}
+
+type Z_HasPermissionToFileActionReturns struct {
+	A bool
+}
+
+func (g *apiRPCClient) HasPermissionToFileAction(sessionID, fileID, action string) bool {
+	_args := &Z_HasPermissionToFileActionArgs{sessionID, fileID, action}
+	_returns := &Z_HasPermissionToFileActionReturns{}
+	if err := g.client.Call("Plugin.HasPermissionToFileAction", _args, _returns); err != nil {
+		log.Printf("RPC call to HasPermissionToFileAction API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) HasPermissionToFileAction(args *Z_HasPermissionToFileActionArgs, returns *Z_HasPermissionToFileActionReturns) error {
+	if hook, ok := s.impl.(interface {
+		HasPermissionToFileAction(sessionID, fileID, action string) bool
+	}); ok {
+		returns.A = hook.HasPermissionToFileAction(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API HasPermissionToFileAction called but not implemented."))
 	}
 	return nil
 }

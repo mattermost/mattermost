@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {act} from 'react-dom/test-utils';
 import {defineMessage} from 'react-intl';
 
 import type {CloudState} from '@mattermost/types/cloud';
@@ -11,7 +12,7 @@ import {defaultIntl} from 'tests/helpers/intl-test-helper';
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import {it} from './admin_definition_helpers';
-import SchemaAdminSettings, {SchemaAdminSettings as SchemaAdminSettingsClass} from './schema_admin_settings';
+import SchemaAdminSettings, {SchemaAdminSettings as SchemaAdminSettingsClass, getConfigFromState} from './schema_admin_settings';
 import type {ConsoleAccess, AdminDefinitionSubSectionSchema, AdminDefinitionSettingInput} from './types';
 import ValidationResult from './validation';
 
@@ -286,6 +287,27 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         expect(screen.getByText('Test')).toBeInTheDocument();
     });
 
+    test('should render a component-only section without settings', () => {
+        renderWithContext(
+            <SchemaAdminSettings
+                {...DefaultProps}
+                config={config}
+                environmentConfig={environmentConfig}
+                schema={{
+                    id: 'Config',
+                    name: 'config',
+                    sections: [{
+                        key: 'component-only',
+                        component: () => <p>{'Component-only section'}</p>,
+                    }],
+                } as unknown as AdminDefinitionSubSectionSchema}
+                patchConfig={jest.fn()}
+            />,
+        );
+
+        expect(screen.getByText('Component-only section')).toBeInTheDocument();
+    });
+
     test('should render header text with markdown links', () => {
         const headerText = 'This is [a link](!https://example.com) in the header';
         const props = {
@@ -334,6 +356,73 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         // Verify the surrounding text is present
         expect(container.textContent).toContain('This is');
         expect(container.textContent).toContain('in the footer');
+    });
+
+    test('should render a schema footer after all sections', () => {
+        const props = {
+            ...DefaultProps,
+            config,
+            environmentConfig,
+            schema: {
+                id: 'Config',
+                name: 'config',
+                header: 'Schema header',
+                footer: 'Schema footer',
+                sections: [{
+                    key: 'section',
+                    title: 'Plugin section',
+                    settings: [],
+                }],
+            } as AdminDefinitionSubSectionSchema,
+            patchConfig: jest.fn(),
+        };
+
+        const {container} = renderWithContext(<SchemaAdminSettings {...props}/>);
+        const text = container.textContent || '';
+
+        expect(text.indexOf('Schema header')).toBeLessThan(text.indexOf('Plugin section'));
+        expect(text.indexOf('Plugin section')).toBeLessThan(text.indexOf('Schema footer'));
+    });
+
+    test('should render top-level settings and sections between the schema header and footer', () => {
+        const props = {
+            ...DefaultProps,
+            config,
+            environmentConfig,
+            schema: {
+                id: 'Config',
+                name: 'config',
+                header: 'Schema header',
+                footer: 'Schema footer',
+                settings: [{
+                    key: 'ServiceSettings.SiteURL',
+                    label: 'Top-level Setting',
+                    type: 'text' as const,
+                }],
+                sections: [{
+                    key: 'section',
+                    title: 'Plugin section',
+                    settings: [{
+                        key: 'ServiceSettings.ConnectionURL',
+                        label: 'Section Setting',
+                        type: 'text' as const,
+                    }],
+                }],
+            } as AdminDefinitionSubSectionSchema,
+            patchConfig: jest.fn(),
+        };
+
+        const {container} = renderWithContext(<SchemaAdminSettings {...props}/>);
+        const text = container.textContent || '';
+
+        expect(screen.getByText('Schema header')).toBeInTheDocument();
+        expect(screen.getByText('Schema footer')).toBeInTheDocument();
+        expect(screen.getByText('Top-level Setting')).toBeInTheDocument();
+        expect(screen.getByText('Section Setting')).toBeInTheDocument();
+        expect(text.indexOf('Schema header')).toBeLessThan(text.indexOf('Top-level Setting'));
+        expect(text.indexOf('Top-level Setting')).toBeLessThan(text.indexOf('Plugin section'));
+        expect(text.indexOf('Plugin section')).toBeLessThan(text.indexOf('Section Setting'));
+        expect(text.indexOf('Section Setting')).toBeLessThan(text.indexOf('Schema footer'));
     });
 
     test('should render page not found', () => {
@@ -420,6 +509,102 @@ describe('components/admin_console/SchemaAdminSettings', () => {
 
         expect(ref.current?.canSave()).toBe(true);
         expect(mockValidate).toHaveBeenCalled();
+    });
+
+    test('should persist permissions from sections in a mixed schema', async () => {
+        const permissionKey = 'Permissions.enableTeamCreation';
+        const editRole = jest.fn().mockResolvedValue({});
+        const roles = {
+            system_user: {
+                name: 'system_user',
+                permissions: [],
+            },
+        };
+        const mixedSchema = {
+            id: 'Config',
+            name: 'config',
+            settings: [{
+                key: 'ServiceSettings.SiteURL',
+                label: 'Site URL',
+                type: 'text' as const,
+            }],
+            sections: [{
+                key: 'permissions',
+                settings: [{
+                    key: permissionKey,
+                    label: 'Enable Team Creation',
+                    type: 'permission' as const,
+                    permissions_mapping_name: 'enableTeamCreation' as const,
+                }],
+            }],
+        };
+        const ref = React.createRef<SchemaAdminSettingsClass>();
+        renderWithContext(
+            <SchemaAdminSettingsClass
+                ref={ref}
+                {...DefaultProps}
+                config={config}
+                editRole={editRole}
+                environmentConfig={environmentConfig}
+                roles={roles as any}
+                schema={mixedSchema}
+                patchConfig={jest.fn()}
+                intl={defaultIntl}
+            />,
+        );
+
+        act(() => {
+            ref.current!.setState({
+                [permissionKey]: true,
+                saveNeeded: 'permissions',
+            } as any);
+        });
+        await ref.current!.handleSubmit({preventDefault: jest.fn()} as any);
+
+        expect(editRole).toHaveBeenCalledWith(expect.objectContaining({
+            name: 'system_user',
+            permissions: ['create_team'],
+        }));
+    });
+
+    test('should validate top-level and section settings in a mixed schema', () => {
+        const topLevelValidate = jest.fn(() => new ValidationResult(true, ''));
+        const sectionValidate = jest.fn(() => new ValidationResult(false, 'Invalid section setting'));
+        const mixedSchema = {
+            id: 'Config',
+            name: 'config',
+            settings: [{
+                key: 'ServiceSettings.SiteURL',
+                label: 'Site URL',
+                type: 'text' as const,
+                validate: topLevelValidate,
+            }],
+            sections: [{
+                key: 'connection',
+                settings: [{
+                    key: 'ServiceSettings.ConnectionURL',
+                    label: 'Connection URL',
+                    type: 'text' as const,
+                    validate: sectionValidate,
+                }],
+            }],
+        };
+        const ref = React.createRef<SchemaAdminSettingsClass>();
+        renderWithContext(
+            <SchemaAdminSettingsClass
+                ref={ref}
+                {...DefaultProps}
+                config={config}
+                environmentConfig={environmentConfig}
+                schema={mixedSchema}
+                patchConfig={jest.fn()}
+                intl={defaultIntl}
+            />,
+        );
+
+        expect(ref.current?.canSave()).toBe(false);
+        expect(topLevelValidate).toHaveBeenCalled();
+        expect(sectionValidate).toHaveBeenCalled();
     });
 
     test('should handle changing text input values', async () => {
@@ -932,5 +1117,68 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         await waitFor(() => {
             expect(mockPatchConfig).toHaveBeenCalled();
         });
+    });
+});
+
+describe('components/admin_console/SchemaAdminSettings/getConfigFromState', () => {
+    const buildSchema = (setting: AdminDefinitionSettingInput) => ({
+        id: 'ServiceSettings',
+        name: 'Service Settings',
+        settings: [setting],
+    } as unknown as AdminDefinitionSubSectionSchema);
+
+    const multipleSetting = {
+        type: 'text',
+        key: 'ServiceSettings.DCRRedirectURIAllowlist',
+        label: 'label',
+        multiple: true,
+    } as AdminDefinitionSettingInput;
+
+    test('should trim whitespace from a multiple text setting', () => {
+        const config = getConfigFromState(
+            {},
+            {'ServiceSettings.DCRRedirectURIAllowlist': ['https://one.example.com', ' https://two.example.com']},
+            buildSchema(multipleSetting),
+            () => false,
+        );
+
+        expect(config.ServiceSettings?.DCRRedirectURIAllowlist).toEqual(['https://one.example.com', 'https://two.example.com']);
+    });
+
+    test('should drop empty entries from a multiple text setting', () => {
+        const config = getConfigFromState(
+            {},
+            {'ServiceSettings.DCRRedirectURIAllowlist': ['https://one.example.com', '', '   ']},
+            buildSchema(multipleSetting),
+            () => false,
+        );
+
+        expect(config.ServiceSettings?.DCRRedirectURIAllowlist).toEqual(['https://one.example.com']);
+    });
+
+    test('should save an empty array for a blank multiple text setting', () => {
+        const config = getConfigFromState(
+            {},
+            {'ServiceSettings.DCRRedirectURIAllowlist': [' ']},
+            buildSchema(multipleSetting),
+            () => false,
+        );
+
+        expect(config.ServiceSettings?.DCRRedirectURIAllowlist).toEqual([]);
+    });
+
+    test('should preserve whitespace in a text setting that is not multiple', () => {
+        const config = getConfigFromState(
+            {},
+            {'ServiceSettings.SiteURL': ' https://example.com '},
+            buildSchema({
+                type: 'text',
+                key: 'ServiceSettings.SiteURL',
+                label: 'label',
+            } as AdminDefinitionSettingInput),
+            () => false,
+        );
+
+        expect(config.ServiceSettings?.SiteURL).toBe(' https://example.com ');
     });
 });

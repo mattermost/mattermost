@@ -889,7 +889,7 @@ func TestUserHasLoggedIn(t *testing.T) {
 	assert.NotNil(t, session)
 
 	require.EventuallyWithT(t, func(c *assert.CollectT) {
-		user, _ := th.App.GetUser(th.BasicUser.Id)
+		user, _ := th.App.GetUser(th.Context, th.BasicUser.Id)
 		assert.Equal(c, user.FirstName, "plugin-callback-success", "Expected firstname overwrite, got default")
 	}, 2*time.Second, 100*time.Millisecond)
 }
@@ -938,7 +938,7 @@ func TestUserHasBeenDeactivated(t *testing.T) {
 	require.Nil(t, err)
 
 	time.Sleep(2 * time.Second)
-	user, err = th.App.GetUser(user.Id)
+	user, err = th.App.GetUser(th.Context, user.Id)
 	require.Nil(t, err)
 	require.Equal(t, "plugin-callback-success", user.Nickname)
 }
@@ -983,7 +983,7 @@ func TestUserHasBeenCreated(t *testing.T) {
 	require.Nil(t, err)
 
 	time.Sleep(2 * time.Second)
-	user, err = th.App.GetUser(user.Id)
+	user, err = th.App.GetUser(th.Context, user.Id)
 	require.Nil(t, err)
 	require.Equal(t, "plugin-callback-success", user.Nickname)
 }
@@ -1169,7 +1169,7 @@ func TestActiveHooks(t *testing.T) {
 		_, appErr := th.App.CreateUser(th.Context, user1)
 		require.Nil(t, appErr)
 		time.Sleep(2 * time.Second)
-		user1, appErr = th.App.GetUser(user1.Id)
+		user1, appErr = th.App.GetUser(th.Context, user1.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, "plugin-callback-success", user1.Nickname)
 
@@ -1275,7 +1275,7 @@ func TestHookMetrics(t *testing.T) {
 		_, appErr := th.App.CreateUser(th.Context, user1)
 		require.Nil(t, appErr)
 		time.Sleep(2 * time.Second)
-		user1, appErr = th.App.GetUser(user1.Id)
+		user1, appErr = th.App.GetUser(th.Context, user1.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, "plugin-callback-success", user1.Nickname)
 
@@ -1515,6 +1515,68 @@ func TestHookOnCloudLimitsUpdated(t *testing.T) {
 	require.True(t, hookCalled)
 }
 
+func TestHookOnLicenseChanged(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t, StartMetrics)
+
+	tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/model"
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) OnLicenseChanged(oldLicense, newLicense *model.License) {
+			oldID := "nil"
+			if oldLicense != nil {
+				oldID = oldLicense.Id
+			}
+			newID := "nil"
+			if newLicense != nil {
+				newID = newLicense.Id
+			}
+			p.API.KVSet("old_license_id", []byte(oldID))
+			p.API.KVSet("new_license_id", []byte(newID))
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`,
+		}, th.App, th.NewPluginAPI)
+	defer tearDown()
+
+	require.Len(t, pluginIDs, 1)
+	require.NoError(t, activationErrors[0])
+	pluginID := pluginIDs[0]
+	require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+
+	oldLicense := model.NewTestLicense()
+	oldLicense.Id = model.NewId()
+	require.True(t, th.App.Srv().SetLicense(oldLicense))
+
+	newLicense := model.NewTestLicense()
+	newLicense.Id = model.NewId()
+	require.True(t, th.App.Srv().SetLicense(newLicense))
+
+	oldID, appErr := th.App.GetPluginKey(pluginID, "old_license_id")
+	require.Nil(t, appErr)
+	require.Equal(t, []byte(oldLicense.Id), oldID)
+
+	newID, appErr := th.App.GetPluginKey(pluginID, "new_license_id")
+	require.Nil(t, appErr)
+	require.Equal(t, []byte(newLicense.Id), newID)
+
+	require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+}
+
 //go:embed test_templates/hook_notification_will_be_pushed.tmpl
 var hookNotificationWillBePushedTmpl string
 
@@ -1720,6 +1782,103 @@ func TestHookNotificationWillBePushedTransportPreserved(t *testing.T) {
 			notifications := handler.notifications()
 			assert.Equal(t, model.PushTransportVoIP, notifications[0].Transport, "plugin must not be able to change the transport")
 			assert.Equal(t, "voiptoken", notifications[0].DeviceId, "VoIP routing must be preserved despite the plugin")
+		})
+	}
+}
+
+func TestHookNotificationWillBePushedIdentityPreservedForDelivery(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping TestHookNotificationWillBePushedIdentityPreservedForDelivery test in short mode")
+	}
+
+	// A plugin returning a replacement notification must not be able to point the delivery audit
+	// record at another post, nor suppress it by dropping the identifiers the record is built from.
+	tests := []struct {
+		name           string
+		testCode       string
+		expectedRecord bool
+	}{
+		{
+			name: "plugin rewriting the identifiers keeps the original in the record",
+			testCode: `notification.PostId = "abcdefghijklmnopqrstuvwxyz"
+	notification.ChannelId = "zyxwvutsrqponmlkjihgfedcba"
+	return notification, ""`,
+			expectedRecord: true,
+		},
+		{
+			name: "plugin zeroing PostId still records the delivery",
+			testCode: `notification.PostId = ""
+	return notification, ""`,
+			expectedRecord: true,
+		},
+		{
+			name: "plugin marking the post as a system message still records the delivery",
+			testCode: `notification.PostType = "system_join_channel"
+	return notification, ""`,
+			expectedRecord: true,
+		},
+		{
+			name:           "plugin rejecting the notification records nothing",
+			testCode:       `return nil, "rejected"`,
+			expectedRecord: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			th := setupDeliveryTracking(t)
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.EmailSettings.PushNotificationContents = model.NewPointer(model.FullNotification)
+			})
+
+			templatedPlugin := fmt.Sprintf(hookNotificationWillBePushedTmpl, tt.testCode)
+			tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{templatedPlugin}, th.App, th.NewPluginAPI)
+			defer tearDown()
+
+			handler := &testPushNotificationHandler{t: t, behavior: "simple"}
+			pushServer := httptest.NewServer(http.HandlerFunc(handler.handleReq))
+			defer pushServer.Close()
+
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+			})
+
+			_, err := th.App.CreateSession(th.Context, &model.Session{
+				UserId:    th.BasicUser2.Id,
+				DeviceId:  model.PushNotifyAppleReactNative + ":standardtoken",
+				ExpiresAt: model.GetMillis() + 100000,
+			})
+			require.Nil(t, err)
+
+			capture := startDeliveryAuditCapture(t, th)
+
+			// BasicUser wrote BasicPost; BasicUser2 is notified about it.
+			msg := &model.PushNotification{
+				Type:      model.PushTypeMessage,
+				PostId:    th.BasicPost.Id,
+				ChannelId: th.BasicPost.ChannelId,
+				SenderId:  th.BasicPost.UserId,
+				Message:   "notification content",
+			}
+			appErr := th.App.sendPushNotificationToAllSessions(th.Context, msg, th.BasicUser2.Id, "")
+			require.Nil(t, appErr)
+
+			if !tt.expectedRecord {
+				require.Never(t, func() bool {
+					return len(capture.records()) > 0
+				}, 2*time.Second, 100*time.Millisecond)
+				return
+			}
+
+			require.Eventually(t, func() bool {
+				return len(capture.records()) == 1
+			}, 5*time.Second, 20*time.Millisecond, "the push carried the post, so the delivery must be recorded")
+
+			actorUserID, meta := capture.requireOne()
+			require.Equal(t, th.BasicUser2.Id, actorUserID)
+			require.Equal(t, th.BasicPost.Id, meta[model.PostDeliveryKeyPostID], "plugin must not change the recorded post")
+			require.Equal(t, th.BasicPost.ChannelId, meta[model.PostDeliveryKeyChannelID], "plugin must not change the recorded channel")
+			require.Equal(t, model.DeliveryMechanismPush, meta[model.PostDeliveryKeyMechanism])
 		})
 	}
 }

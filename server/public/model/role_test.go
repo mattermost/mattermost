@@ -566,6 +566,37 @@ func TestIsValidChannelMemberRoles(t *testing.T) {
 	}
 }
 
+func TestIsValidTeamMemberRoles(t *testing.T) {
+	tests := []struct {
+		name  string
+		roles string
+		valid bool
+	}{
+		{name: "team user only", roles: TeamUserRoleId, valid: true},
+		{name: "team user and admin", roles: TeamUserRoleId + " " + TeamAdminRoleId, valid: true},
+		{name: "team guest only", roles: TeamGuestRoleId, valid: true},
+		{name: "team post all with team user", roles: TeamUserRoleId + " " + TeamPostAllRoleId, valid: false},
+		{name: "team post all public with team user", roles: TeamUserRoleId + " " + TeamPostAllPublicRoleId, valid: false},
+		{name: "custom role with team user", roles: TeamUserRoleId + " custom_role", valid: true},
+		{name: "prefixed custom team role with team user", roles: TeamUserRoleId + " team_custom", valid: true},
+		{name: "prefixed custom system role with team user", roles: TeamUserRoleId + " system_custom", valid: true},
+		{name: "channel user with team user", roles: TeamUserRoleId + " " + ChannelUserRoleId, valid: false},
+		{name: "system user with team user", roles: TeamUserRoleId + " " + SystemUserRoleId, valid: false},
+		{name: "system manager with team user", roles: TeamUserRoleId + " " + SystemManagerRoleId, valid: false},
+		{name: "system post all with team user", roles: TeamUserRoleId + " " + SystemPostAllRoleId, valid: false},
+		{name: "system read only admin with team user", roles: TeamUserRoleId + " " + SystemReadOnlyAdminRoleId, valid: false},
+		{name: "custom group user with team user", roles: TeamUserRoleId + " " + CustomGroupUserRoleId, valid: false},
+		{name: "system custom group admin with team user", roles: TeamUserRoleId + " " + SystemCustomGroupAdminRoleId, valid: false},
+		{name: "invalid role name", roles: "invalid-role", valid: false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.valid, IsValidTeamMemberRoles(tc.roles))
+		})
+	}
+}
+
 func TestIsBuiltInRole(t *testing.T) {
 	tests := []struct {
 		name     string

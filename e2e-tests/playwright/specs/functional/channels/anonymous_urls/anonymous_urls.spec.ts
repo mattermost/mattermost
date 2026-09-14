@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, getAdminClient, mergeWithOnPremServerConfig, test} from '@mattermost/playwright-lib';
+import {expect, getAdminClient, test} from '@mattermost/playwright-lib';
 
 const OBFUSCATED_SLUG_RE = /^[a-z0-9]{26}$/;
 
@@ -11,10 +11,7 @@ async function skipIfNoAdvancedLicense(adminClient: any) {
 }
 
 async function setAnonymousUrls(adminClient: any, enabled: boolean) {
-    const merged = mergeWithOnPremServerConfig({
-        PrivacySettings: {UseAnonymousURLs: enabled},
-    } as unknown as Parameters<typeof mergeWithOnPremServerConfig>[0]);
-    await adminClient.patchConfig({PrivacySettings: merged.PrivacySettings});
+    await adminClient.patchConfig({PrivacySettings: {UseAnonymousURLs: enabled}});
 }
 
 function expectObfuscatedSlug(slug: string) {
@@ -98,6 +95,13 @@ async function createAnonymousUrlChannel(
 }
 
 test.describe('Anonymous URLs', () => {
+    // initSetup patches only the on-prem overrides, so PrivacySettings survives from whichever
+    // test ran last. Start every test from the default (off); tests needing it on enable it.
+    test.beforeEach(async () => {
+        const {adminClient} = await getAdminClient({skipLog: true});
+        await setAnonymousUrls(adminClient, false);
+    });
+
     // Reset PrivacySettings.UseAnonymousURLs to its default (off) at the end
     // of this file so leftover state does not affect other suites. Tests within
     // this file explicitly set the value they need at the start of each test.

@@ -12,7 +12,7 @@ import {
     FloatingPortal,
     offset,
 } from '@floating-ui/react';
-import React, {useEffect, useState, useRef, useCallback} from 'react';
+import React, {useEffect, useState, useRef, useCallback, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import styled from 'styled-components';

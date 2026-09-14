@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import path from 'node:path';
+
 // Single source of truth for the fixed values every container/helper needs to agree on.
 // Kept separate from test_config.ts because these are not overridable — they're either
 // Testcontainers network aliases (only meaningful inside the Testcontainers network) or
@@ -10,7 +12,7 @@ export const POSTGRES_ALIAS = 'postgres';
 export const POSTGRES_PORT = 5432;
 export const POSTGRES_DB = 'mattermost_test';
 export const POSTGRES_USER = 'mmuser';
-export const POSTGRES_PASSWORD = 'mostest';
+export const POSTGRES_PASSWORD = 'mostest_password';
 
 export const INBUCKET_ALIAS = 'inbucket';
 export const INBUCKET_WEB_PORT = 9001;
@@ -28,7 +30,7 @@ export const WEBHOOK_PORT = 3000;
 export const OPENLDAP_ALIAS = 'openldap';
 export const OPENLDAP_PORT = 389;
 export const OPENLDAP_ADMIN_DN = 'cn=admin,dc=mm,dc=test,dc=com';
-export const OPENLDAP_ADMIN_PASSWORD = 'mostest';
+export const OPENLDAP_ADMIN_PASSWORD = 'mostest_password';
 export const OPENLDAP_BASE_DN = 'dc=mm,dc=test,dc=com';
 
 export const KEYCLOAK_ALIAS = 'keycloak';
@@ -66,3 +68,10 @@ export const OPENSEARCH_ADMIN_PASSWORD = 'Test@dmin_123';
 export const TESTCONTAINERS_LABEL_KEY = 'mm-playwright-testcontainers';
 export const TESTCONTAINERS_LABEL_VALUE = 'true';
 export const TESTCONTAINERS_LABELS = {[TESTCONTAINERS_LABEL_KEY]: TESTCONTAINERS_LABEL_VALUE};
+
+// Bind-mounted into every Mattermost container at /mattermost/data (mattermost_container.ts) so
+// local-disk file storage survives restartMattermostContainer()'s docker rm -f, which would
+// otherwise discard the anonymous VOLUME Docker creates for it. Fixed and repo-relative (not an
+// os.tmpdir()) so every process — including a later npm-script invocation or CI loop iteration —
+// resolves the same path independently, with nothing to persist through .env.testcontainers.
+export const MATTERMOST_DATA_DIR = path.resolve(process.cwd(), '.mattermost_data');

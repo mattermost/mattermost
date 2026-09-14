@@ -155,6 +155,8 @@ describe('dialog_conversion', () => {
         it('should map select fields correctly', () => {
             expect(getFieldType({type: DialogElementTypes.SELECT} as DialogElement)).toBe('static_select');
             expect(getFieldType({type: DialogElementTypes.RADIO} as DialogElement)).toBe('radio');
+            expect(getFieldType({type: DialogElementTypes.CHECKBOX_GROUP} as DialogElement)).toBe('checkbox_group');
+            expect(getFieldType({type: DialogElementTypes.CHECKBOX_MATRIX} as DialogElement)).toBe('checkbox_matrix');
         });
 
         it('should map select fields with data_source correctly', () => {
@@ -1360,6 +1362,63 @@ describe('dialog_conversion', () => {
             });
         });
 
+        it('should flag a required checkbox_group left empty in enhanced mode', () => {
+            const values = {
+                reasons: [],
+            } as unknown as AppFormValues;
+
+            const elements: DialogElement[] = [
+                {
+                    name: 'reasons',
+                    type: 'checkbox_group',
+                    display_name: 'Reasons',
+                    optional: false,
+                    options: [
+                        {text: 'Reason 1', value: 'r1'},
+                        {text: 'Reason 2', value: 'r2'},
+                    ],
+                } as DialogElement,
+            ];
+
+            const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                values,
+                elements,
+                enhancedOptions,
+            );
+
+            // An empty array is not null/undefined, so the required check must be
+            // enforced here rather than silently submitting [].
+            expect(errors).toHaveLength(1);
+            expect(errors[0].field).toBe('reasons');
+            expect(errors[0].code).toBe(ValidationErrorCode.REQUIRED);
+            expect(submission).toEqual({reasons: []});
+        });
+
+        it('should not flag an optional checkbox_group left empty', () => {
+            const values = {
+                reasons: [],
+            } as unknown as AppFormValues;
+
+            const elements: DialogElement[] = [
+                {
+                    name: 'reasons',
+                    type: 'checkbox_group',
+                    display_name: 'Reasons',
+                    optional: true,
+                    options: [{text: 'Reason 1', value: 'r1'}],
+                } as DialogElement,
+            ];
+
+            const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                values,
+                elements,
+                enhancedOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(submission).toEqual({reasons: []});
+        });
+
         it('should handle multiselect field without options validation', () => {
             const values = {
                 multiselect_field: ['user1', 'user2'], // Primitive values (already processed by extractPrimitiveValues)
@@ -1488,6 +1547,82 @@ describe('dialog_conversion', () => {
             expect(submission).toEqual({
                 radio_object: 'optA',
                 radio_string: 'optB',
+            });
+        });
+
+        it('should handle checkbox_group field values', () => {
+            const values = {
+                waiver_reasons: ['reason_1', 'reason_3'],
+            } as unknown as AppFormValues;
+
+            const elements: DialogElement[] = [
+                {
+                    name: 'waiver_reasons',
+                    type: 'checkbox_group',
+                    display_name: 'Reasons',
+                    optional: false,
+                } as DialogElement,
+            ];
+
+            const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                values,
+                elements,
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(submission).toEqual({
+                waiver_reasons: ['reason_1', 'reason_3'],
+            });
+        });
+
+        it('should submit empty array for optional checkbox_group with no value', () => {
+            const values = {} as unknown as AppFormValues;
+
+            const elements: DialogElement[] = [
+                {
+                    name: 'waiver_reasons',
+                    type: 'checkbox_group',
+                    display_name: 'Reasons',
+                    optional: true,
+                } as DialogElement,
+            ];
+
+            const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                values,
+                elements,
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(submission).toEqual({
+                waiver_reasons: [],
+            });
+        });
+
+        it('should handle checkbox_matrix field values', () => {
+            const values = {
+                waiver_severity: ['reason_1:high,severe', 'reason_3:high'],
+            } as unknown as AppFormValues;
+
+            const elements: DialogElement[] = [
+                {
+                    name: 'waiver_severity',
+                    type: 'checkbox_matrix',
+                    display_name: 'Severity',
+                    optional: false,
+                } as DialogElement,
+            ];
+
+            const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                values,
+                elements,
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(submission).toEqual({
+                waiver_severity: ['reason_1:high,severe', 'reason_3:high'],
             });
         });
 
@@ -1755,81 +1890,17 @@ describe('dialog_conversion', () => {
         });
 
         describe('convertDialogToAppForm with date/datetime fields', () => {
-            it('should convert date field with min_date and max_date', () => {
-                const elements: DialogElement[] = [
-                    {
-                        name: 'event_date',
-                        type: 'date',
-                        display_name: 'Event Date',
-                        min_date: '2025-01-01',
-                        max_date: '2025-12-31',
-                        optional: false,
-                    } as DialogElement,
-                ];
-
-                const {form} = convertDialogToAppForm(
-                    elements,
-                    'Test Form',
-                    undefined,
-                    undefined,
-                    undefined,
-                    '',
-                    '',
-                    legacyOptions,
-                );
-
-                expect(form.fields).toHaveLength(1);
-                expect(form.fields?.[0]).toMatchObject({
-                    name: 'event_date',
-                    type: 'date',
-                    label: 'Event Date',
-                    min_date: '2025-01-01',
-                    max_date: '2025-12-31',
-                    is_required: true,
-                });
-            });
-
-            it('should convert datetime field with time_interval', () => {
-                const elements: DialogElement[] = [
-                    {
-                        name: 'meeting_time',
-                        type: 'datetime',
-                        display_name: 'Meeting Time',
-                        time_interval: 30,
-                        optional: true,
-                    } as DialogElement,
-                ];
-
-                const {form} = convertDialogToAppForm(
-                    elements,
-                    'Test Form',
-                    undefined,
-                    undefined,
-                    undefined,
-                    '',
-                    '',
-                    legacyOptions,
-                );
-
-                expect(form.fields).toHaveLength(1);
-                expect(form.fields?.[0]).toMatchObject({
-                    name: 'meeting_time',
-                    type: 'datetime',
-                    label: 'Meeting Time',
-                    time_interval: 30,
-                    is_required: false,
-                });
-            });
-
-            it('should convert datetime field with all date properties', () => {
+            it('should convert datetime field with all datetime_config properties', () => {
                 const elements: DialogElement[] = [
                     {
                         name: 'full_datetime',
                         type: 'datetime',
                         display_name: 'Full DateTime',
-                        min_date: 'today',
-                        max_date: '+30d',
-                        time_interval: 15,
+                        datetime_config: {
+                            min_date: 'today',
+                            max_date: '+30d',
+                            time_interval: 15,
+                        },
                         optional: false,
                     } as DialogElement,
                 ];
@@ -1850,10 +1921,12 @@ describe('dialog_conversion', () => {
                     name: 'full_datetime',
                     type: 'datetime',
                     label: 'Full DateTime',
+                    is_required: true,
+                });
+                expect(form.fields?.[0]?.datetime_config).toMatchObject({
                     min_date: 'today',
                     max_date: '+30d',
                     time_interval: 15,
-                    is_required: true,
                 });
             });
 
@@ -1887,8 +1960,6 @@ describe('dialog_conversion', () => {
                     name: 'event_date',
                     type: 'date',
                     label: 'Event Date',
-                    min_date: '2025-01-01',
-                    max_date: '2025-12-31',
                     is_required: true,
                 });
                 expect(form.fields?.[0]?.datetime_config).toMatchObject({
@@ -1926,41 +1997,12 @@ describe('dialog_conversion', () => {
                     name: 'meeting_time',
                     type: 'datetime',
                     label: 'Meeting Time',
-                    time_interval: 30,
                     is_required: false,
                 });
                 expect(form.fields?.[0]?.datetime_config?.time_interval).toBe(30);
             });
 
-            it('normalizes deprecated allow_manual_time_entry into manual_time_entry', () => {
-                const elements: DialogElement[] = [
-                    {
-                        name: 'meeting_time',
-                        type: 'datetime',
-                        display_name: 'Meeting Time',
-                        datetime_config: {
-                            allow_manual_time_entry: true,
-                        },
-                        optional: false,
-                    } as DialogElement,
-                ];
-
-                const {form} = convertDialogToAppForm(
-                    elements,
-                    'Test Form',
-                    undefined,
-                    undefined,
-                    undefined,
-                    '',
-                    '',
-                    legacyOptions,
-                );
-
-                expect(form.fields?.[0]?.datetime_config?.manual_time_entry).toBe(true);
-                expect(form.fields?.[0]?.datetime_config?.allow_manual_time_entry).toBeUndefined();
-            });
-
-            it('preserves manual_time_entry when set directly', () => {
+            it('preserves manual_time_entry when set', () => {
                 const elements: DialogElement[] = [
                     {
                         name: 'meeting_time',
@@ -1985,10 +2027,9 @@ describe('dialog_conversion', () => {
                 );
 
                 expect(form.fields?.[0]?.datetime_config?.manual_time_entry).toBe(true);
-                expect(form.fields?.[0]?.datetime_config?.allow_manual_time_entry).toBeUndefined();
             });
 
-            it('omits manual_time_entry when neither source is true', () => {
+            it('omits manual_time_entry when not set', () => {
                 const elements: DialogElement[] = [
                     {
                         name: 'meeting_time',
@@ -2013,20 +2054,16 @@ describe('dialog_conversion', () => {
                 );
 
                 expect(form.fields?.[0]?.datetime_config?.manual_time_entry).toBeUndefined();
-                expect(form.fields?.[0]?.datetime_config?.allow_manual_time_entry).toBeUndefined();
             });
 
-            it('datetime_config should take precedence over legacy fields', () => {
+            it('should not add datetime-specific properties to date fields', () => {
                 const elements: DialogElement[] = [
                     {
-                        name: 'event_date',
+                        name: 'simple_date',
                         type: 'date',
-                        display_name: 'Event Date',
-                        min_date: '2024-01-01',
-                        max_date: '2024-12-31',
+                        display_name: 'Simple Date',
                         datetime_config: {
-                            min_date: '2025-06-01',
-                            max_date: '2025-12-31',
+                            time_interval: 30, // Should be ignored for date fields
                         },
                         optional: false,
                     } as DialogElement,
@@ -2043,37 +2080,7 @@ describe('dialog_conversion', () => {
                     legacyOptions,
                 );
 
-                expect(form.fields?.[0]?.min_date).toBe('2025-06-01');
-                expect(form.fields?.[0]?.max_date).toBe('2025-12-31');
-                expect(form.fields?.[0]?.datetime_config?.min_date).toBe('2025-06-01');
-                expect(form.fields?.[0]?.datetime_config?.max_date).toBe('2025-12-31');
-            });
-
-            it('should not add datetime-specific properties to date fields', () => {
-                const elements: DialogElement[] = [
-                    {
-                        name: 'simple_date',
-                        type: 'date',
-                        display_name: 'Simple Date',
-                        time_interval: 30, // Should be ignored for date fields
-                        optional: false,
-                    } as DialogElement,
-                ];
-
-                const {form} = convertDialogToAppForm(
-                    elements,
-                    'Test Form',
-                    undefined,
-                    undefined,
-                    undefined,
-                    '',
-                    '',
-                    legacyOptions,
-                );
-
-                expect(form.fields?.[0]).not.toHaveProperty('time_interval');
-                expect(form.fields?.[0]).not.toHaveProperty('min_date');
-                expect(form.fields?.[0]).not.toHaveProperty('max_date');
+                expect(form.fields?.[0]?.datetime_config?.time_interval).toBeUndefined();
             });
         });
 

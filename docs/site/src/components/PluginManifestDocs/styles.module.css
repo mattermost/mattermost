@@ -1,0 +1,14 @@
+.docsList {
+  list-style: none;
+  padding-left: 0;
+}
+
+.docsList li {
+  margin: 1.25rem 0;
+  padding-left: 1rem;
+  border-left: 2px solid var(--mm-border-subtle);
+}
+
+.docsList code {
+  font-size: 0.95em;
+}

@@ -7,7 +7,7 @@ Web app plugins extend and modify the Mattermost web and desktop apps, without h
 
 Looking for a quick start? [See our "Hello, world!" tutorial](/developers/integrate/plugins/components/webapp/hello-world).
 
-Want the web app SDK reference doc? [Find it here](/developers/integrate/reference/webapp/webapp-reference).
+Want the web app SDK reference doc? [Find it here](/developers/integrate/reference/webapp).
 
 ## Features
 
@@ -25,7 +25,7 @@ Register your own React components alongside other root components like the side
 
 Web app plugins can also render different post components based on the post's type. Any time the web app encounters a post with this post type, it replaces the default rendering of the post component with your own custom implementation. Only one plugin can own the rendering for a given custom post type at a time: the last plugin to register will own the rendering for that custom post type.
 
-For example, you can register a custom post type `custom_poll` using [registerPostTypeComponent](/developers/integrate/reference/webapp/webapp-reference#registerPostTypeComponent). Then, any time the web app sees that post type, it replaces the regular rendering of the post component with your own custom implementation.
+For example, you can register a custom post type `custom_poll` using [registerPostTypeComponent](/developers/integrate/reference/webapp#registerPostTypeComponent). Then, any time the web app sees that post type, it replaces the regular rendering of the post component with your own custom implementation.
 
 Use this in conjunction with setting the post type in webhooks or slash commands, through the REST API or with a server plugin, and you can deeply integrate or extend Mattermost posts to fit your needs.
 
@@ -35,7 +35,7 @@ When a plugin is uploaded to a Mattermost server and activated, the server check
 
 On web app launch, a request is made to the server to get a list of plugins that contain web app components. The web app then proceeds to download and execute the JavaScript bundles for each plugin. A similar process happens if an already launched web app receives a WebSocket event for a newly activated plugin.
 
-Once downloaded and executed, each plugin should have registered itself via the global [registerPlugin](/developers/integrate/reference/webapp/webapp-reference#registerPlugin). The web app then invokes the `initialize` function defined on the plugin class, passing a registry and store. The registry passed allows the plugin to register (and unregister) components, event callbacks and Redux reducers to track plugin state. The store passed is the same Redux store used by the web app, giving the plugin access to the full state of the web app.
+Once downloaded and executed, each plugin should have registered itself via the global [registerPlugin](/developers/integrate/reference/webapp#registerPlugin). The web app then invokes the `initialize` function defined on the plugin class, passing a registry and store. The registry passed allows the plugin to register (and unregister) components, event callbacks and Redux reducers to track plugin state. The store passed is the same Redux store used by the web app, giving the plugin access to the full state of the web app.
 
 Components registered by the plugin via the registry are tracked in the Redux store and used by `Pluggable` components throughout the web app. `Pluggable` components with a `pluggableName` attribute can render multiple such components registered by plugins.
 

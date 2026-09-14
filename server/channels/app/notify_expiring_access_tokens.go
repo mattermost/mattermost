@@ -117,7 +117,7 @@ func (a *App) sendAccessTokenExpiryNotification(rctx request.CTX, systemBot *mod
 		return appErr
 	}
 
-	user, appErr := a.GetUser(token.UserId)
+	user, appErr := a.GetUser(rctx, token.UserId)
 	if appErr != nil {
 		return appErr
 	}

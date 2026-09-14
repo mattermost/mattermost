@@ -75,7 +75,7 @@ func (a *App) JoinDefaultChannels(rctx request.CTX, teamID string, user *model.U
 	for _, channelName := range a.DefaultChannelNames(rctx) {
 		channel, channelErr := a.Srv().Store().Channel().GetByName(teamID, channelName, true)
 		if channelErr != nil {
-			rctx.Logger().Warn("No default channel with this name", mlog.String("channelName", channelName), mlog.String("teamID", teamID), mlog.Err(channelErr))
+			rctx.Logger().Warn("No default channel with this name", mlog.String("channel_name", channelName), mlog.String("team_id", teamID), mlog.Err(channelErr))
 			continue
 		}
 
@@ -156,6 +156,23 @@ func (a *App) postJoinMessageForDefaultChannel(rctx request.CTX, user *model.Use
 }
 
 func (a *App) CreateChannelWithUser(rctx request.CTX, channel *model.Channel, userID string) (*model.Channel, *model.AppError) {
+	return a.CreateChannelWithUserAndPropertyValues(rctx, channel, userID, nil)
+}
+
+// CreateChannelWithUserAndPropertyValues creates a channel and its attribute
+// values together. propertyValues are already validated and group-stamped by the
+// caller, and are written before this returns so nothing reacting to channel
+// creation observes a channel whose attributes are missing.
+//
+// A required attribute's "must have a value" rule is enforced only by the api4
+// handler that builds propertyValues (api4/channel.go:createChannel), not here.
+// Every other caller of this function or of CreateChannel — plugin_api.go,
+// import_functions.go, api4/channel_local.go, sharedchannel/channelinvite.go,
+// slashcommands/auto_channels.go — reaches it with no propertyValues at all,
+// which this layer accepts. That is deliberate: required is a creation-time UX
+// gate for the public API, not a data invariant, and these are trusted paths
+// the UX gate was never meant to police.
+func (a *App) CreateChannelWithUserAndPropertyValues(rctx request.CTX, channel *model.Channel, userID string, propertyValues []*model.PropertyValue) (*model.Channel, *model.AppError) {
 	if channel.IsGroupOrDirect() {
 		return nil, model.NewAppError("CreateChannelWithUser", "api.channel.create_channel.direct_channel.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -184,7 +201,7 @@ func (a *App) CreateChannelWithUser(rctx request.CTX, channel *model.Channel, us
 
 	channel.CreatorId = userID
 
-	rchannel, err := a.CreateChannel(rctx, channel, true)
+	rchannel, err := a.CreateChannel(rctx, channel, true, propertyValues...)
 	if err != nil {
 		return nil, err
 	}
@@ -192,7 +209,7 @@ func (a *App) CreateChannelWithUser(rctx request.CTX, channel *model.Channel, us
 	a.addChannelToDefaultCategory(rctx, userID, channel)
 
 	var user *model.User
-	if user, err = a.GetUser(userID); err != nil {
+	if user, err = a.GetUser(rctx, userID); err != nil {
 		return nil, err
 	}
 
@@ -235,7 +252,7 @@ func (a *App) RenameChannel(rctx request.CTX, channel *model.Channel, newChannel
 	return newChannel, nil
 }
 
-func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember bool) (*model.Channel, *model.AppError) {
+func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember bool, propertyValues ...*model.PropertyValue) (*model.Channel, *model.AppError) {
 	if channel.IsBoard() {
 		return nil, model.NewAppError("CreateChannel", "app.channel.create_channel.board_type.app_error", nil, "use CreateBoardChannel instead", http.StatusBadRequest)
 	}
@@ -333,6 +350,12 @@ func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember 
 		}
 	}
 
+	if len(propertyValues) > 0 {
+		if appErr := a.setChannelPropertyValuesOnCreate(rctx, sc, propertyValues); appErr != nil {
+			return nil, appErr
+		}
+	}
+
 	if sc.IsSpace() {
 		return sc, nil
 	}
@@ -346,6 +369,37 @@ func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember 
 	})
 
 	return sc, nil
+}
+
+// setChannelPropertyValuesOnCreate writes a new channel's attribute values, and
+// removes the channel again if that write fails. Compensating is safe only here:
+// the values go in before the join message, the channel_created event and the
+// plugin hook, so nobody has been told the channel exists and nobody but the
+// creator is in it. There is no transaction spanning the channel and property
+// stores, so this is the only way a caller gets all-or-nothing.
+func (a *App) setChannelPropertyValuesOnCreate(rctx request.CTX, channel *model.Channel, values []*model.PropertyValue) *model.AppError {
+	for _, value := range values {
+		value.TargetID = channel.Id
+		value.TargetType = model.PropertyValueTargetTypeChannel
+		value.CreatedBy = channel.CreatorId
+		value.UpdatedBy = channel.CreatorId
+	}
+
+	_, appErr := a.UpsertPropertyValues(rctx, values, model.PropertyFieldObjectTypeChannel, channel.Id, "")
+	if appErr == nil {
+		return nil
+	}
+
+	if deleteErr := a.PermanentDeleteChannel(rctx, channel); deleteErr != nil {
+		// The channel now exists without its required values, which is the state
+		// this whole path exists to prevent — so it is logged loudly rather than
+		// folded into the error the caller sees.
+		rctx.Logger().Error("Failed to remove channel after its attribute values could not be written",
+			mlog.String("channel_id", channel.Id),
+			mlog.Err(deleteErr))
+	}
+
+	return appErr
 }
 
 func (a *App) GetOrCreateDirectChannel(rctx request.CTX, userID, otherUserID string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
@@ -2014,7 +2068,7 @@ func (a *App) AddChannelMember(rctx request.CTX, userID string, channel *model.C
 	var user *model.User
 	var err *model.AppError
 
-	if user, err = a.GetUser(userID); err != nil {
+	if user, err = a.GetUser(rctx, userID); err != nil {
 		return nil, err
 	}
 
@@ -2024,7 +2078,7 @@ func (a *App) AddChannelMember(rctx request.CTX, userID string, channel *model.C
 
 	var userRequestor *model.User
 	if opts.UserRequestorID != "" {
-		if userRequestor, err = a.GetUser(opts.UserRequestorID); err != nil {
+		if userRequestor, err = a.GetUser(rctx, opts.UserRequestorID); err != nil {
 			return nil, err
 		}
 	}
@@ -3033,7 +3087,7 @@ func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 	if appErr := a.removeChannelMembership(rctx, userIDToRemove, channel.Id, "removeUserFromChannel"); appErr != nil {
 		return appErr
 	}
-	if err := a.Srv().Store().ChannelMemberHistory().LogLeaveEvent(userIDToRemove, channel.Id, model.GetMillis()); err != nil {
+	if err := a.Srv().Store().ChannelMemberHistory().LogLeaveEvent(rctx, userIDToRemove, channel.Id, model.GetMillis()); err != nil {
 		return model.NewAppError("removeUserFromChannel", "app.channel_member_history.log_leave_event.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -3078,7 +3132,7 @@ func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 
 	var actorUser *model.User
 	if removerUserId != "" {
-		actorUser, _ = a.GetUser(removerUserId)
+		actorUser, _ = a.GetUser(rctx, removerUserId)
 	}
 
 	a.Srv().Go(func() {
@@ -3123,7 +3177,7 @@ func (a *App) RemoveUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 	}
 
 	var user *model.User
-	if user, err = a.GetUser(userIDToRemove); err != nil {
+	if user, err = a.GetUser(rctx, userIDToRemove); err != nil {
 		return err
 	}
 
@@ -3236,7 +3290,7 @@ func (a *App) MarkChannelAsUnreadFromPost(rctx request.CTX, postID string, userI
 		return nil, err
 	}
 
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -3263,7 +3317,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(rctx request.CTX, postID
 		return nil, appErr
 	}
 
-	user, appErr := a.GetUser(userID)
+	user, appErr := a.GetUser(rctx, userID)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -3342,7 +3396,9 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(rctx request.CTX, postID
 		if mErr != nil {
 			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(mErr)
 		}
-		a.sanitizeThreadResponse(thread)
+		a.sanitizeProfiles(thread.Participants, false)
+		thread.Post.SanitizeNonIdentityProps()
+		thread.Post.StripActionIntegrations()
 
 		if a.IsCRTEnabledForUser(rctx, userID) {
 			payload, jsonErr := json.Marshal(thread)
@@ -3351,6 +3407,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(rctx request.CTX, postID
 			}
 			message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, channel.TeamId, "", userID, nil, "")
 			message.Add("thread", string(payload))
+			a.markPostDeliveryForBroadcast(rctx, message, thread.Post)
 			a.Publish(message)
 		}
 	}
@@ -3380,7 +3437,7 @@ func (a *App) AutocompleteChannels(rctx request.CTX, userID, term string) (model
 	includeDeleted := true
 	term = strings.TrimSpace(term)
 
-	user, appErr := a.GetUser(userID)
+	user, appErr := a.GetUser(rctx, userID)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -3401,7 +3458,7 @@ func (a *App) AutocompleteChannelsForTeam(rctx request.CTX, teamID, userID, term
 	includeDeleted := true
 	term = strings.TrimSpace(term)
 
-	user, appErr := a.GetUser(userID)
+	user, appErr := a.GetUser(rctx, userID)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -3418,7 +3475,7 @@ func (a *App) AutocompleteChannelsForTeamFiltered(rctx request.CTX, teamID, user
 	includeDeleted := true
 	term = strings.TrimSpace(term)
 
-	user, appErr := a.GetUser(userID)
+	user, appErr := a.GetUser(rctx, userID)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -3848,7 +3905,7 @@ func (a *App) MoveChannel(rctx request.CTX, team *model.Team, channel *model.Cha
 			}
 			for _, channelMember := range channelMembers {
 				if _, ok := teamMembersMap[channelMember.UserId]; !ok {
-					rctx.Logger().Warn("Not member of the target team", mlog.String("userId", channelMember.UserId))
+					rctx.Logger().Warn("Not member of the target team", mlog.String("user_id", channelMember.UserId))
 				}
 			}
 			return model.NewAppError("MoveChannel", "app.channel.move_channel.members_do_not_match.error", nil, "", http.StatusInternalServerError)
@@ -3895,7 +3952,7 @@ func (a *App) MoveChannel(rctx request.CTX, team *model.Team, channel *model.Cha
 			if webhook.ChannelId == channel.Id {
 				webhook.TeamId = team.Id
 				if _, err := a.Srv().Store().Webhook().UpdateIncoming(webhook); err != nil {
-					rctx.Logger().Warn("Failed to move incoming webhook to new team", mlog.String("webhook id", webhook.Id))
+					rctx.Logger().Warn("Failed to move incoming webhook to new team", mlog.String("webhook_id", webhook.Id))
 				}
 			}
 		}
@@ -3908,7 +3965,7 @@ func (a *App) MoveChannel(rctx request.CTX, team *model.Team, channel *model.Cha
 			if webhook.ChannelId == channel.Id {
 				webhook.TeamId = team.Id
 				if _, err := a.Srv().Store().Webhook().UpdateOutgoing(webhook); err != nil {
-					rctx.Logger().Warn("Failed to move outgoing webhook to new team.", mlog.String("webhook id", webhook.Id))
+					rctx.Logger().Warn("Failed to move outgoing webhook to new team.", mlog.String("webhook_id", webhook.Id))
 				}
 			}
 		}
@@ -4431,7 +4488,7 @@ func (a *App) validateForConvertGroupMessageToChannel(rctx request.CTX, converte
 }
 
 func (a *App) postMessageForConvertGroupMessageToChannel(rctx request.CTX, channelID, convertedByUserId string, channelUsers []*model.User) *model.AppError {
-	convertedByUser, appErr := a.GetUser(convertedByUserId)
+	convertedByUser, appErr := a.GetUser(rctx, convertedByUserId)
 	if appErr != nil {
 		return appErr
 	}
@@ -4590,6 +4647,13 @@ func (a *App) cleanupChannelAccessControlPolicy(rctx request.CTX, channel *model
 			)
 		}
 	}
+
+	// Drop the channel's cached render-ETag epoch: its policy row is gone, so a stale epoch
+	// would otherwise linger until the cache TTL. Gated, unlike the delete above: nothing can be
+	// cached for this channel if ABAC was off, and every archive would cost a cluster message.
+	if a.attributeBasedAccessControlEnabled() {
+		a.Srv().Store().AccessControlPolicy().InvalidateEtagForChannel(channel.Id)
+	}
 }
 
 // recommendedPublicChannelsScanPageSize is the per-page size used while
@@ -4626,7 +4690,7 @@ func (a *App) GetRecommendedPublicChannelsForUser(rctx request.CTX, userID, team
 		return model.ChannelList{}, nil
 	}
 
-	user, appErr := a.GetUser(userID)
+	user, appErr := a.GetUser(rctx, userID)
 	if appErr != nil {
 		return nil, appErr
 	}

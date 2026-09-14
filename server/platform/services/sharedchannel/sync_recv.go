@@ -167,9 +167,9 @@ func (scs *Service) ProcessSyncMessage(rctx request.CTX, syncMsg *model.SyncMsg,
 		if syncMsg.ChannelId != post.ChannelId {
 			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "ChannelId mismatch",
 				mlog.String("remote", rc.Name),
-				mlog.String("sm.ChannelId", syncMsg.ChannelId),
-				mlog.String("sm.Post.ChannelId", post.ChannelId),
-				mlog.String("PostId", post.Id),
+				mlog.String("sm_channel_id", syncMsg.ChannelId),
+				mlog.String("sm_post_channel_id", post.ChannelId),
+				mlog.String("post_id", post.Id),
 			)
 			syncResp.PostErrors = append(syncResp.PostErrors, post.Id)
 			continue
@@ -180,8 +180,8 @@ func (scs *Service) ProcessSyncMessage(rctx request.CTX, syncMsg *model.SyncMsg,
 			team, err2 = scs.server.GetStore().Channel().GetTeamForChannel(syncMsg.ChannelId)
 			if err2 != nil {
 				scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Error getting Team for Channel",
-					mlog.String("ChannelId", post.ChannelId),
-					mlog.String("PostId", post.Id),
+					mlog.String("channel_id", post.ChannelId),
+					mlog.String("post_id", post.Id),
 					mlog.String("remote", rc.Name),
 					mlog.Err(err2),
 				)
@@ -557,10 +557,15 @@ func (scs *Service) upsertSyncPost(post *model.Post, targetChannel *model.Channe
 		}
 
 		// First update the basic post. The post is federated and remote-owned
-		// (verified above); the origin cluster already enforced mm_blocks_actions
-		// authority, so allow the synced value through the UpdatePost freeze so
-		// button edits (or removals) made upstream propagate to this cluster.
-		rpost, _, appErr = scs.app.UpdatePost(rctx, post, &model.UpdatePostOptions{AllowMmBlocksActionsUpdate: true})
+		// (verified above); the origin cluster already enforced both
+		// mm_blocks_actions and integration-prop authority, so allow the synced
+		// values through the UpdatePost freeze — button edits made upstream
+		// propagate, and the remote's display-identity values are honored
+		// instead of restoring stale local ones from the prior post.
+		rpost, _, appErr = scs.app.UpdatePost(rctx, post, &model.UpdatePostOptions{
+			AllowMmBlocksActionsUpdate: true,
+			AllowIdentityPropsUpdate:   true,
+		})
 		if appErr != nil {
 			rerr := errors.New(appErr.Error())
 			return nil, rerr

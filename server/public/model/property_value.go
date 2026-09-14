@@ -4,6 +4,7 @@
 package model
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
 	"strings"
@@ -198,6 +199,22 @@ type PropertyValueSearch struct {
 type PropertyValuePatchItem struct {
 	FieldID string          `json:"field_id"`
 	Value   json.RawMessage `json:"value"`
+}
+
+// IsEmptyPropertyValue reports whether a raw value counts as unset. Mirrors the
+// webapp, which renders null, "" and [] alike as "Not set". Callers must
+// sanitize first: that is what turns ["  "] into [].
+func IsEmptyPropertyValue(raw json.RawMessage) bool {
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 {
+		return true
+	}
+
+	switch string(trimmed) {
+	case "null", `""`, "[]":
+		return true
+	}
+	return false
 }
 
 // SanitizePropertyValue normalizes a raw property value's JSON:
