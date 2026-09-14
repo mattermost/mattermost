@@ -2,6 +2,8 @@
 // See LICENSE.txt for license information.
 
 import * as UserAgent from '@mattermost/shared/utils/user_agent';
+import type {Channel} from '@mattermost/types/channels';
+import type {CommandArgs} from '@mattermost/types/integrations';
 
 import {Client4} from 'mattermost-redux/client';
 import {Permissions} from 'mattermost-redux/constants';
@@ -16,6 +18,8 @@ import UserSettingsModal from 'components/user_settings/modal';
 import mockStore from 'tests/test_store';
 import {ActionTypes, Constants, ModalIdentifiers} from 'utils/constants';
 import * as Utils from 'utils/utils';
+
+import type {ActionFuncAsync, GlobalState} from 'types/store';
 
 import {executeCommand} from './command';
 
@@ -131,7 +135,7 @@ const initialState = {
             searchType: '',
         },
     },
-};
+} as unknown as GlobalState;
 
 const isMobileMock = jest.mocked(UserAgent.isMobile);
 jest.mock('@mattermost/shared/utils/user_agent', () => ({
@@ -141,14 +145,14 @@ jest.mock('@mattermost/shared/utils/user_agent', () => ({
 jest.mock('actions/global_actions');
 
 describe('executeCommand', () => {
-    let store;
+    let store: ReturnType<typeof mockStore>;
     beforeEach(async () => {
         store = await mockStore(initialState);
     });
 
     describe('search', () => {
         test('should fire the UPDATE_RHS_SEARCH_TERMS with the terms', async () => {
-            store.dispatch(executeCommand('/search foo bar', []));
+            store.dispatch(executeCommand('/search foo bar', [] as unknown as CommandArgs));
 
             expect(store.getActions()).toEqual([
                 {type: 'UPDATE_RHS_SEARCH_TERMS', terms: 'foo bar'},
@@ -167,7 +171,7 @@ describe('executeCommand', () => {
         test('should return error in case of mobile', async () => {
             isMobileMock.mockReturnValueOnce(true);
 
-            const result = await store.dispatch(executeCommand('/shortcuts', []));
+            const result = await store.dispatch(executeCommand('/shortcuts', [] as unknown as CommandArgs));
 
             expect(result).toEqual({
                 error: {
@@ -179,7 +183,7 @@ describe('executeCommand', () => {
         test('should open shortcut modal in case of no mobile', async () => {
             isMobileMock.mockReturnValueOnce(false);
 
-            const result = await store.dispatch(executeCommand('/shortcuts', []));
+            const result = await store.dispatch(executeCommand('/shortcuts', [] as unknown as CommandArgs));
 
             const actionDispatch = store.getActions()[0];
 
@@ -194,7 +198,7 @@ describe('executeCommand', () => {
 
     describe('settings', () => {
         test('should pass right modal params', async () => {
-            const result = await store.dispatch(executeCommand('/settings', {}));
+            const result = await store.dispatch(executeCommand('/settings', {} as CommandArgs));
             expect(store.getActions()).toEqual([
                 {
                     type: ActionTypes.MODAL_OPEN,
@@ -210,14 +214,14 @@ describe('executeCommand', () => {
     describe('collapse', () => {
         test('call executeCommand with right params', async () => {
             Client4.executeCommand = jest.fn().mockResolvedValue({});
-            await store.dispatch(executeCommand('/collapse', []));
+            await store.dispatch(executeCommand('/collapse', [] as unknown as CommandArgs));
             expect(Client4.executeCommand).toHaveBeenCalledWith('/collapse ', []);
         });
     });
 
     describe('leave', () => {
         test('should send message when command typed in reply threads', async () => {
-            GlobalActions.sendEphemeralPost = jest.fn().mockReturnValue({type: 'someaction'});
+            jest.mocked(GlobalActions.sendEphemeralPost).mockReturnValue({type: 'someaction'} as unknown as ActionFuncAsync<boolean>);
 
             const result = await store.dispatch(executeCommand('/leave', {channel_id: 'channel_id', root_id: 'root_id'}));
 
@@ -229,9 +233,9 @@ describe('executeCommand', () => {
         });
 
         test('should show private modal if channel is private', async () => {
-            Channels.getCurrentChannel = jest.fn(() => ({type: Constants.PRIVATE_CHANNEL}));
+            jest.spyOn(Channels, 'getCurrentChannel').mockImplementation(() => ({type: Constants.PRIVATE_CHANNEL} as Channel));
 
-            const result = await store.dispatch(executeCommand('/leave', {}));
+            const result = await store.dispatch(executeCommand('/leave', {} as CommandArgs));
 
             const actionDispatch = store.getActions()[0];
 
@@ -245,24 +249,24 @@ describe('executeCommand', () => {
         });
 
         test('should use user id as name if channel is dm', async () => {
-            Utils.getUserIdFromChannelName = jest.fn(() => 'userId');
-            Channels.getRedirectChannelNameForTeam = jest.fn(() => 'channel1');
-            Teams.getCurrentRelativeTeamUrl = jest.fn(() => '/team1');
-            Channels.getCurrentChannel = jest.fn(() => ({type: Constants.DM_CHANNEL}));
+            jest.spyOn(Utils, 'getUserIdFromChannelName').mockImplementation(() => 'userId');
+            jest.spyOn(Channels, 'getRedirectChannelNameForTeam').mockImplementation(() => 'channel1');
+            jest.spyOn(Teams, 'getCurrentRelativeTeamUrl').mockImplementation(() => '/team1');
+            jest.spyOn(Channels, 'getCurrentChannel').mockImplementation(() => ({type: Constants.DM_CHANNEL} as Channel));
 
-            const result = await store.dispatch(executeCommand('/leave', {}));
+            const result = await store.dispatch(executeCommand('/leave', {} as CommandArgs));
             expect(store.getActions()[0].data).toEqual([{category: 'direct_channel_show', name: 'userId', user_id: 'user123', value: 'false'}]);
 
             expect(result.data).toBeDefined();
         });
 
         test('should use channel id as name if channel is gm', async () => {
-            Utils.getUserIdFromChannelName = jest.fn(() => 'userId');
-            Channels.getRedirectChannelNameForTeam = jest.fn(() => 'channel1');
-            Teams.getCurrentRelativeTeamUrl = jest.fn(() => '/team1');
-            Channels.getCurrentChannel = jest.fn(() => ({type: Constants.GM_CHANNEL, id: 'channelId'}));
+            jest.spyOn(Utils, 'getUserIdFromChannelName').mockImplementation(() => 'userId');
+            jest.spyOn(Channels, 'getRedirectChannelNameForTeam').mockImplementation(() => 'channel1');
+            jest.spyOn(Teams, 'getCurrentRelativeTeamUrl').mockImplementation(() => '/team1');
+            jest.spyOn(Channels, 'getCurrentChannel').mockImplementation(() => ({type: Constants.GM_CHANNEL, id: 'channelId'} as Channel));
 
-            const result = await store.dispatch(executeCommand('/leave', {}));
+            const result = await store.dispatch(executeCommand('/leave', {} as CommandArgs));
             expect(store.getActions()[0].data).toEqual([{category: 'group_channel_show', name: 'channelId', user_id: 'user123', value: 'false'}]);
 
             expect(result.data).toBeDefined();
@@ -289,7 +293,7 @@ describe('executeCommand', () => {
             store = await mockStore(state);
 
             Client4.executeCommand = jest.fn().mockResolvedValue({});
-            const result = await store.dispatch(executeCommand('/marketplace', []));
+            const result = await store.dispatch(executeCommand('/marketplace', [] as unknown as CommandArgs));
 
             // Make sure the server was not called
             expect(Client4.executeCommand).not.toHaveBeenCalled();
@@ -320,7 +324,7 @@ describe('executeCommand', () => {
             };
 
             store = await mockStore(state);
-            const res = await store.dispatch(executeCommand('/marketplace', []));
+            const res = await store.dispatch(executeCommand('/marketplace', [] as unknown as CommandArgs));
             expect(res.error).not.toBeUndefined();
         });
 
@@ -350,7 +354,7 @@ describe('executeCommand', () => {
             };
 
             store = await mockStore(state);
-            const res = await store.dispatch(executeCommand('/marketplace', []));
+            const res = await store.dispatch(executeCommand('/marketplace', [] as unknown as CommandArgs));
             expect(res.error).not.toBeUndefined();
         });
     });

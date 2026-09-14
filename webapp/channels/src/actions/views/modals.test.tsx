@@ -12,6 +12,7 @@ import {ActionTypes, ModalIdentifiers} from 'utils/constants';
 const TestModal = () => (
     <Modal
         show={true}
+        onHide={jest.fn()}
     >
         <Modal.Header closeButton={true}/>
         <Modal.Body/>
@@ -19,7 +20,7 @@ const TestModal = () => (
 );
 
 describe('modals view actions', () => {
-    let store;
+    let store: ReturnType<typeof mockStore>;
     beforeEach(() => {
         store = mockStore();
     });
