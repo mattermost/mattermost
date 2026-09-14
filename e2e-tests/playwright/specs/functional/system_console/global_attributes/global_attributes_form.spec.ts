@@ -3,15 +3,14 @@
 
 /**
  * System Console — Global Attributes create/edit form (Definition, options, external
- * source, Applies-to). Assumes the GlobalAttributes flag is already on — flag-off
- * coverage lives in global_attributes_listing.spec.ts so this file never turns it off.
+ * source, Applies-to).
  *
  * Local runs: upload or use a license with SkuShortName `enterprise`, `entry`, or `advanced`.
  */
 
 import type {PropertyField} from '@mattermost/types/properties';
 
-import {expect, test, getAdminClient} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 
 import {
     GLOBAL_ATTRIBUTES_ADMIN_PATH,
@@ -22,27 +21,11 @@ import {
     deleteLinkedDependentField,
     fetchLinkedFieldsForTemplate,
     requireGlobalAttributesEnabled,
-    setGlobalAttributesFeatureFlag,
 } from './global_attributes_helpers';
 
 test.describe('System Console - Global Attributes form', {tag: '@system_console'}, () => {
     // Serial so create/edit/applies-to tests on the shared server do not overlap mid-save.
     test.describe.configure({mode: 'serial'});
-
-    let originalFlagValue: boolean | undefined;
-
-    test.beforeAll(async () => {
-        const {adminClient} = await getAdminClient();
-        const {FeatureFlags} = await adminClient.getConfig();
-        originalFlagValue = FeatureFlags.GlobalAttributes === true;
-    });
-
-    test.afterAll(async () => {
-        const {adminClient} = await getAdminClient();
-        if (adminClient && originalFlagValue !== undefined) {
-            await setGlobalAttributesFeatureFlag(adminClient, originalFlagValue);
-        }
-    });
 
     test.describe('create attribute', () => {
         /**

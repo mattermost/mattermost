@@ -82,9 +82,6 @@ type FeatureFlags struct {
 	// Enable classification markings for banners at the system and channel level
 	ClassificationMarkings bool
 
-	// Enable the Global Attributes management page in the System Console
-	GlobalAttributes bool
-
 	// Enable burn-on-read messages that automatically delete after viewing
 	BurnOnRead bool
 
@@ -194,8 +191,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AutoTranslation = true
 
 	f.ClassificationMarkings = true
-
-	f.GlobalAttributes = true
 
 	f.BurnOnRead = true
 

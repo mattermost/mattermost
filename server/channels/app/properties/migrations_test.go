@@ -4,8 +4,11 @@
 package properties
 
 import (
+	"fmt"
 	"strings"
 	"testing"
+
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -31,6 +34,26 @@ func (s *raceInjectingFieldStore) Get(rctx request.CTX, groupID, id string) (*mo
 	if err == nil && !s.fired && id == s.fieldID {
 		s.fired = true
 		s.trigger()
+	}
+	return field, err
+}
+
+// invalidFieldReturningStore wraps a real store.PropertyFieldStore and mutates
+// a specific field ID's in-memory struct on Get into a state that
+// PropertyField.IsValid deterministically rejects on the subsequent Update --
+// simulating a legacy row inconsistent with a validation rule added after it
+// was created.
+type invalidFieldReturningStore struct {
+	store.PropertyFieldStore
+	fieldID string
+}
+
+func (s *invalidFieldReturningStore) Get(rctx request.CTX, groupID, id string) (*model.PropertyField, error) {
+	field, err := s.PropertyFieldStore.Get(rctx, groupID, id)
+	if err == nil && id == s.fieldID {
+		// Non-protected fields cannot have field permission set to "none".
+		none := model.PermissionLevelNone
+		field.PermissionField = &none
 	}
 	return field, err
 }
@@ -156,6 +179,22 @@ func seedCPAField(tb testing.TB, th *TestHelper, name string, attrs model.String
 	})
 }
 
+func seedTemplate(tb testing.TB, th *TestHelper, name string, fieldType model.PropertyFieldType, attrs model.StringInterface) *model.PropertyField {
+	tb.Helper()
+	sysadmin := model.PermissionLevelSysadmin
+	return th.CreatePropertyFieldDirect(tb, &model.PropertyField{
+		GroupID:           th.CPAGroupID,
+		Name:              name,
+		Type:              fieldType,
+		ObjectType:        model.PropertyFieldObjectTypeTemplate,
+		TargetType:        string(model.PropertyFieldTargetLevelSystem),
+		PermissionField:   &sysadmin,
+		PermissionValues:  &sysadmin,
+		PermissionOptions: &sysadmin,
+		Attrs:             attrs,
+	})
+}
+
 func templateByName(tb testing.TB, th *TestHelper, name string) *model.PropertyField {
 	tb.Helper()
 	field, err := th.service.getPropertyFieldByNameForObjectType(th.Context, th.CPAGroupID, "", model.PropertyFieldObjectTypeTemplate, name)
@@ -231,17 +270,7 @@ func TestMigrateCPAFieldsToGlobalAttributes_SkipsIneligibleFields(t *testing.T) 
 	t.Run("already-linked field is left untouched", func(t *testing.T) {
 		th := setupMigrationTestHelper(t)
 
-		sysadmin := model.PermissionLevelSysadmin
-		template := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			GroupID:           th.CPAGroupID,
-			Name:              "already_linked",
-			Type:              model.PropertyFieldTypeText,
-			ObjectType:        model.PropertyFieldObjectTypeTemplate,
-			TargetType:        string(model.PropertyFieldTargetLevelSystem),
-			PermissionField:   &sysadmin,
-			PermissionValues:  &sysadmin,
-			PermissionOptions: &sysadmin,
-		})
+		template := seedTemplate(t, th, "already_linked", model.PropertyFieldTypeText, nil)
 
 		linked := th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			GroupID:       th.CPAGroupID,
@@ -293,19 +322,8 @@ func TestMigrateCPAFieldsToGlobalAttributes_Idempotent(t *testing.T) {
 func TestMigrateCPAFieldsToGlobalAttributes_OrphanTemplateReuse(t *testing.T) {
 	th := setupMigrationTestHelper(t)
 
-	sysadmin := model.PermissionLevelSysadmin
-	orphan := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-		GroupID:           th.CPAGroupID,
-		Name:              "recovered",
-		Type:              model.PropertyFieldTypeText,
-		ObjectType:        model.PropertyFieldObjectTypeTemplate,
-		TargetType:        string(model.PropertyFieldTargetLevelSystem),
-		PermissionField:   &sysadmin,
-		PermissionValues:  &sysadmin,
-		PermissionOptions: &sysadmin,
-		Attrs: model.StringInterface{
-			model.PropertyAttrsMigratedToGlobal: true,
-		},
+	orphan := seedTemplate(t, th, "recovered", model.PropertyFieldTypeText, model.StringInterface{
+		model.PropertyAttrsMigratedToGlobal: true,
 	})
 
 	seeded := seedCPAField(t, th, "recovered", nil)
@@ -326,20 +344,9 @@ func TestMigrateCPAFieldsToGlobalAttributes_NameCollisionWithoutMarker(t *testin
 	t.Run("generic unrelated template name collision is resolved via a _copy suffix", func(t *testing.T) {
 		th := setupMigrationTestHelper(t)
 
-		sysadmin := model.PermissionLevelSysadmin
-		unrelated := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			GroupID:           th.CPAGroupID,
-			Name:              "department",
-			Type:              model.PropertyFieldTypeText,
-			ObjectType:        model.PropertyFieldObjectTypeTemplate,
-			TargetType:        string(model.PropertyFieldTargetLevelSystem),
-			PermissionField:   &sysadmin,
-			PermissionValues:  &sysadmin,
-			PermissionOptions: &sysadmin,
-			Attrs: model.StringInterface{
-				model.PropertyFieldAttrDisplayName: "Department",
-			},
-			// No PropertyAttrsMigratedToGlobal marker: an admin-created template.
+		// No PropertyAttrsMigratedToGlobal marker: an admin-created template.
+		unrelated := seedTemplate(t, th, "department", model.PropertyFieldTypeText, model.StringInterface{
+			model.PropertyFieldAttrDisplayName: "Department",
 		})
 
 		seeded := seedCPAField(t, th, "department", model.StringInterface{
@@ -369,19 +376,9 @@ func TestMigrateCPAFieldsToGlobalAttributes_NameCollisionWithoutMarker(t *testin
 	t.Run("a collision on the _copy name too falls back to a permanent skip", func(t *testing.T) {
 		th := setupMigrationTestHelper(t)
 
-		sysadmin := model.PermissionLevelSysadmin
+		// Neither carries the marker: both are unrelated, admin-created templates.
 		for _, name := range []string{"department", "department_copy"} {
-			th.CreatePropertyFieldDirect(t, &model.PropertyField{
-				GroupID:           th.CPAGroupID,
-				Name:              name,
-				Type:              model.PropertyFieldTypeText,
-				ObjectType:        model.PropertyFieldObjectTypeTemplate,
-				TargetType:        string(model.PropertyFieldTargetLevelSystem),
-				PermissionField:   &sysadmin,
-				PermissionValues:  &sysadmin,
-				PermissionOptions: &sysadmin,
-				// Neither carries the marker: both are unrelated, admin-created templates.
-			})
+			seedTemplate(t, th, name, model.PropertyFieldTypeText, nil)
 		}
 
 		seeded := seedCPAField(t, th, "department", nil)
@@ -400,31 +397,12 @@ func TestMigrateCPAFieldsToGlobalAttributes_NameCollisionWithoutMarker(t *testin
 	t.Run("a marker-tagged _copy template from a crashed prior run is reused, not recreated", func(t *testing.T) {
 		th := setupMigrationTestHelper(t)
 
-		sysadmin := model.PermissionLevelSysadmin
-		th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			GroupID:           th.CPAGroupID,
-			Name:              "department",
-			Type:              model.PropertyFieldTypeText,
-			ObjectType:        model.PropertyFieldObjectTypeTemplate,
-			TargetType:        string(model.PropertyFieldTargetLevelSystem),
-			PermissionField:   &sysadmin,
-			PermissionValues:  &sysadmin,
-			PermissionOptions: &sysadmin,
-			// Unrelated, unmarked -- the original collision that forced a _copy on a prior run.
-		})
-		orphanCopy := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			GroupID:           th.CPAGroupID,
-			Name:              "department_copy",
-			Type:              model.PropertyFieldTypeText,
-			ObjectType:        model.PropertyFieldObjectTypeTemplate,
-			TargetType:        string(model.PropertyFieldTargetLevelSystem),
-			PermissionField:   &sysadmin,
-			PermissionValues:  &sysadmin,
-			PermissionOptions: &sysadmin,
-			Attrs: model.StringInterface{
-				// A prior run created this and marked it, then crashed before linking.
-				model.PropertyAttrsMigratedToGlobal: true,
-			},
+		// Unrelated, unmarked -- the original collision that forced a _copy on a prior run.
+		seedTemplate(t, th, "department", model.PropertyFieldTypeText, nil)
+
+		// A prior run created this and marked it, then crashed before linking.
+		orphanCopy := seedTemplate(t, th, "department_copy", model.PropertyFieldTypeText, model.StringInterface{
+			model.PropertyAttrsMigratedToGlobal: true,
 		})
 
 		seeded := seedCPAField(t, th, "department", nil)
@@ -444,20 +422,10 @@ func TestMigrateCPAFieldsToGlobalAttributes_NameCollisionWithoutMarker(t *testin
 	t.Run("Classification Markings' own template is never retried under a _copy name", func(t *testing.T) {
 		th := setupMigrationTestHelper(t)
 
-		sysadmin := model.PermissionLevelSysadmin
-		classification := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			GroupID:           th.CPAGroupID,
-			Name:              "classification",
-			Type:              model.PropertyFieldTypeRank,
-			ObjectType:        model.PropertyFieldObjectTypeTemplate,
-			TargetType:        string(model.PropertyFieldTargetLevelSystem),
-			PermissionField:   &sysadmin,
-			PermissionValues:  &sysadmin,
-			PermissionOptions: &sysadmin,
-			// Real shape: Classification Markings' template has no
-			// PropertyAttrsMigratedToGlobal marker, since it isn't created by
-			// this migration.
-		})
+		// Real shape: Classification Markings' template has no
+		// PropertyAttrsMigratedToGlobal marker, since it isn't created by
+		// this migration.
+		classification := seedTemplate(t, th, "classification", model.PropertyFieldTypeRank, nil)
 
 		// Same Type (Rank, matching Classification's real template type) as the
 		// template above -- isolates the marker check as the reason this field
@@ -492,17 +460,7 @@ func TestMigrateCPAFieldsToGlobalAttributes_NameCollisionWithoutMarker(t *testin
 	t.Run("a _copy suffix that pushes display_name over the length limit is a permanent skip, not an error", func(t *testing.T) {
 		th := setupMigrationTestHelper(t)
 
-		sysadmin := model.PermissionLevelSysadmin
-		th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			GroupID:           th.CPAGroupID,
-			Name:              "department",
-			Type:              model.PropertyFieldTypeText,
-			ObjectType:        model.PropertyFieldObjectTypeTemplate,
-			TargetType:        string(model.PropertyFieldTargetLevelSystem),
-			PermissionField:   &sysadmin,
-			PermissionValues:  &sysadmin,
-			PermissionOptions: &sysadmin,
-		})
+		seedTemplate(t, th, "department", model.PropertyFieldTypeText, nil)
 
 		maxLengthDisplayName := strings.Repeat("a", model.PropertyFieldNameMaxRunes)
 		seeded := seedCPAField(t, th, "department", model.StringInterface{
@@ -527,18 +485,8 @@ func TestMigrateCPAFieldsToGlobalAttributes_FieldLimitReached(t *testing.T) {
 	// Fill the group up to the global field limit with template fields (an
 	// object type not subject to the per-object-type "user" cap), then add one
 	// eligible CPA field that would push the group over the limit.
-	sysadmin := model.PermissionLevelSysadmin
 	for range model.AccessControlGroupFieldLimit {
-		th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			GroupID:           th.CPAGroupID,
-			Name:              "filler_" + model.NewId(),
-			Type:              model.PropertyFieldTypeText,
-			ObjectType:        model.PropertyFieldObjectTypeTemplate,
-			TargetType:        string(model.PropertyFieldTargetLevelSystem),
-			PermissionField:   &sysadmin,
-			PermissionValues:  &sysadmin,
-			PermissionOptions: &sysadmin,
-		})
+		seedTemplate(t, th, "filler_"+model.NewId(), model.PropertyFieldTypeText, nil)
 	}
 
 	seeded := seedCPAField(t, th, "over_the_limit", nil)
@@ -622,20 +570,9 @@ func TestMigrateCPAFieldsToGlobalAttributes_RefusesToReuseAnUnsafeMarkedTemplate
 	t.Run("protected marked template is not reused", func(t *testing.T) {
 		th := setupMigrationTestHelper(t)
 
-		sysadmin := model.PermissionLevelSysadmin
-		unsafeTemplate := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			GroupID:           th.CPAGroupID,
-			Name:              "protected_template",
-			Type:              model.PropertyFieldTypeText,
-			ObjectType:        model.PropertyFieldObjectTypeTemplate,
-			TargetType:        string(model.PropertyFieldTargetLevelSystem),
-			PermissionField:   &sysadmin,
-			PermissionValues:  &sysadmin,
-			PermissionOptions: &sysadmin,
-			Attrs: model.StringInterface{
-				model.PropertyAttrsMigratedToGlobal: true,
-				model.PropertyAttrsProtected:        true,
-			},
+		unsafeTemplate := seedTemplate(t, th, "protected_template", model.PropertyFieldTypeText, model.StringInterface{
+			model.PropertyAttrsMigratedToGlobal: true,
+			model.PropertyAttrsProtected:        true,
 		})
 
 		seeded := seedCPAField(t, th, "protected_template", nil)
@@ -658,19 +595,8 @@ func TestMigrateCPAFieldsToGlobalAttributes_RefusesToReuseAnUnsafeMarkedTemplate
 	t.Run("type-mismatched marked template is not reused", func(t *testing.T) {
 		th := setupMigrationTestHelper(t)
 
-		sysadmin := model.PermissionLevelSysadmin
-		mismatchedTemplate := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			GroupID:           th.CPAGroupID,
-			Name:              "type_mismatch",
-			Type:              model.PropertyFieldTypeSelect,
-			ObjectType:        model.PropertyFieldObjectTypeTemplate,
-			TargetType:        string(model.PropertyFieldTargetLevelSystem),
-			PermissionField:   &sysadmin,
-			PermissionValues:  &sysadmin,
-			PermissionOptions: &sysadmin,
-			Attrs: model.StringInterface{
-				model.PropertyAttrsMigratedToGlobal: true,
-			},
+		mismatchedTemplate := seedTemplate(t, th, "type_mismatch", model.PropertyFieldTypeSelect, model.StringInterface{
+			model.PropertyAttrsMigratedToGlobal: true,
 		})
 
 		// The CPA field is a text field, but the marker-tagged template with a
@@ -704,18 +630,9 @@ func TestMigrateCPAFieldsToGlobalAttributes_RefusesToReuseAnUnsafeMarkedTemplate
 		// "budget" field was already disambiguated into.
 		th := setupMigrationTestHelper(t)
 
-		unrelated := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			GroupID:           th.CPAGroupID,
-			Name:              "budget",
-			Type:              model.PropertyFieldTypeText,
-			ObjectType:        model.PropertyFieldObjectTypeTemplate,
-			TargetType:        string(model.PropertyFieldTargetLevelSystem),
-			PermissionField:   model.NewPointer(model.PermissionLevelSysadmin),
-			PermissionValues:  model.NewPointer(model.PermissionLevelSysadmin),
-			PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
-			// Unrelated, unmarked -- forces the "budget" CPA field below into
-			// the "_copy" fallback name.
-		})
+		// Unrelated, unmarked -- forces the "budget" CPA field below into the
+		// "_copy" fallback name.
+		unrelated := seedTemplate(t, th, "budget", model.PropertyFieldTypeText, nil)
 
 		budget := seedCPAField(t, th, "budget", nil)
 
@@ -755,18 +672,8 @@ func TestMigrateLinkCPAFieldToGlobalAttributeTemplate_ConcurrentEditIsNotClobber
 
 	seeded := seedCPAField(t, th, "department", nil)
 
-	template := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-		GroupID:           th.CPAGroupID,
-		Name:              "department",
-		Type:              model.PropertyFieldTypeText,
-		ObjectType:        model.PropertyFieldObjectTypeTemplate,
-		TargetType:        string(model.PropertyFieldTargetLevelSystem),
-		PermissionField:   model.NewPointer(model.PermissionLevelSysadmin),
-		PermissionValues:  model.NewPointer(model.PermissionLevelSysadmin),
-		PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
-		Attrs: model.StringInterface{
-			model.PropertyAttrsMigratedToGlobal: true,
-		},
+	template := seedTemplate(t, th, "department", model.PropertyFieldTypeText, model.StringInterface{
+		model.PropertyAttrsMigratedToGlobal: true,
 	})
 
 	realStore := th.service.fieldStore
@@ -840,4 +747,61 @@ func TestMigrateCPAFieldsToGlobalAttributes_ConcurrentEditIsRetryableAndSelfHeal
 
 	template := templateByName(t, th, "department_renamed_concurrently")
 	assert.Equal(t, template.ID, *healed.LinkedFieldID, "must migrate under the name the concurrent edit left in place")
+}
+
+func TestIsPermanentPropertyFieldFailure(t *testing.T) {
+	appErr := model.NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", nil, "", 400)
+
+	tests := []struct {
+		name      string
+		err       error
+		permanent bool
+	}{
+		{"an AppError wrapped with fmt.Errorf is permanent", fmt.Errorf("failed to link field: %w", appErr), true},
+		{"an AppError wrapped with pkg/errors.Wrap (the store layer's own wrapping) is permanent", errors.Wrap(appErr, "property_field_update_isvalid"), true},
+		{"ErrGroupFieldLimitReached is permanent", ErrGroupFieldLimitReached, true},
+		{"a plain store.ErrConflict is transient", store.NewErrConflict("PropertyField", nil, "concurrent modification detected"), false},
+		{"a plain store.ErrNotFound is transient", store.NewErrNotFound("PropertyField", "some-id"), false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.permanent, isPermanentPropertyFieldFailure(tc.err))
+		})
+	}
+}
+
+func TestMigrateLinkCPAFieldToGlobalAttributeTemplate_DeterministicallyInvalidFieldIsPermanentFailure(t *testing.T) {
+	th := setupMigrationTestHelper(t)
+
+	seeded := seedCPAField(t, th, "department", nil)
+	template := seedTemplate(t, th, "department", model.PropertyFieldTypeText, model.StringInterface{
+		model.PropertyAttrsMigratedToGlobal: true,
+	})
+
+	th.service.fieldStore = &invalidFieldReturningStore{
+		PropertyFieldStore: th.service.fieldStore,
+		fieldID:            seeded.ID,
+	}
+
+	_, linkErr := th.service.MigrateLinkCPAFieldToGlobalAttributeTemplate(th.Context, th.CPAGroupID, seeded.ID, template.ID)
+	require.Error(t, linkErr)
+	assert.True(t, isPermanentPropertyFieldFailure(linkErr), "an IsValid() AppError must classify as permanent, not retried forever")
+}
+
+func TestMigrateCPAFieldsToGlobalAttributes_DeterministicLinkFailureIsPermanentlySkipped(t *testing.T) {
+	th := setupMigrationTestHelper(t)
+
+	seeded := seedCPAField(t, th, "department", nil)
+
+	th.service.fieldStore = &invalidFieldReturningStore{
+		PropertyFieldStore: th.service.fieldStore,
+		fieldID:            seeded.ID,
+	}
+
+	migrated, skipped, retryable, err := th.service.MigrateCPAFieldsToGlobalAttributes(th.Context)
+	require.NoError(t, err)
+	assert.Equal(t, 0, migrated)
+	assert.Equal(t, 1, skipped, "a deterministically-invalid link write must be a permanent skip, not retried forever")
+	assert.Equal(t, 0, retryable)
 }

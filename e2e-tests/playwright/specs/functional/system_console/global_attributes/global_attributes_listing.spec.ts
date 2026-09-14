@@ -3,14 +3,11 @@
 
 /**
  * System Console — Global Attributes access gate and attribute listing.
- * Visibility is gated by the GlobalAttributes feature flag AND an Enterprise-tier license.
+ * Visibility is gated by an Enterprise-tier license.
  * Once past the gate, the page lists every access_control/template property field on the server.
  *
  * Local runs: upload or use a license with SkuShortName `enterprise`, `entry`, or `advanced`.
  * Professional-only licenses hide this admin route (React Router redirects away).
- *
- * Flag-off access-gate tests live only in this file. The form spec assumes the flag is on
- * and must not turn it off — both files share a server, and default PW_WORKERS is 1.
  */
 
 import {expect, test, getAdminClient} from '@mattermost/playwright-lib';
@@ -23,35 +20,26 @@ import {
 
 import {
     GLOBAL_ATTRIBUTES_ADMIN_PATH,
-    USER_ATTRIBUTES_ADMIN_PATH,
     createGlobalAttributeField,
     createLinkedDependentField,
     deleteGlobalAttributeFieldIfExists,
     deleteLinkedDependentField,
     requireGlobalAttributesEnabled,
-    setGlobalAttributesFeatureFlag,
 } from './global_attributes_helpers';
 
 test.describe('System Console - Global Attributes listing', {tag: '@system_console'}, () => {
-    // Access-gate tests toggle the server-wide GlobalAttributes flag. Stay serial so a
-    // flag-off assertion cannot race a later listing/delete test in this file.
     test.describe.configure({mode: 'serial'});
 
-    let originalFlagValue: boolean | undefined;
     let originalClassificationFlagValue: boolean | undefined;
 
     test.beforeAll(async () => {
         const {adminClient} = await getAdminClient();
         const {FeatureFlags} = await adminClient.getConfig();
-        originalFlagValue = FeatureFlags.GlobalAttributes === true;
         originalClassificationFlagValue = FeatureFlags.ClassificationMarkings === true;
     });
 
     test.afterAll(async () => {
         const {adminClient} = await getAdminClient();
-        if (adminClient && originalFlagValue !== undefined) {
-            await setGlobalAttributesFeatureFlag(adminClient, originalFlagValue);
-        }
         if (adminClient && originalClassificationFlagValue !== undefined) {
             await setClassificationMarkingsFeatureFlag(adminClient, originalClassificationFlagValue);
         }
@@ -59,54 +47,9 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
 
     test.describe('access gate', () => {
         /**
-         * @objective Ensure the Manage Attributes route is unavailable when the feature flag is
-         * off, and that the legacy "User Attributes" page is reachable again in that state.
+         * @objective Ensure the Manage Attributes page is reachable on an Enterprise+ license.
          */
-        test('feature flag off hides Manage Attributes and restores the legacy User Attributes page', async ({pw}) => {
-            const {adminUser, adminClient} = await getAdminClient();
-
-            if (!adminUser || !adminClient) {
-                throw new Error('Failed to get admin user');
-            }
-
-            // # Turn off GlobalAttributes in server config
-            await setGlobalAttributesFeatureFlag(adminClient, false);
-            const {FeatureFlags} = await adminClient.getConfig();
-            test.skip(
-                FeatureFlags.GlobalAttributes === true,
-                'GlobalAttributes stays enabled (e.g. MM_FEATUREFLAGS or split-key overrides); cannot assert flag-off in this environment.',
-            );
-
-            // # Navigate directly to the Manage Attributes path
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
-
-            // * User is redirected away from the hidden route (no Route registered)
-            await expect(systemConsolePage.page).not.toHaveURL(/manage_attributes/);
-            // * The sidebar itself rendered
-            await expect(systemConsolePage.page.getByTestId('admin-sidebar')).toBeVisible();
-            // * Manage Attributes menu entry is not shown in the sidebar
-            await expect(
-                systemConsolePage.page.getByTestId('admin-sidebar').getByText('Manage Attributes'),
-            ).not.toBeVisible();
-
-            // # Navigate to the legacy User Attributes path
-            await systemConsolePage.page.goto(USER_ATTRIBUTES_ADMIN_PATH);
-
-            // * The page is reachable again
-            await expect(systemConsolePage.page).toHaveURL(/user_attributes/);
-            await expect(
-                systemConsolePage.page.getByTestId('admin-sidebar').getByText('User Attributes'),
-            ).toBeVisible();
-        });
-
-        /**
-         * @objective Ensure the Manage Attributes page is reachable once the flag is on and the
-         * license meets the Enterprise tier, and that the legacy "User Attributes" page hides.
-         */
-        test('feature flag on with Enterprise+ license shows Manage Attributes and hides the legacy User Attributes page', async ({
-            pw,
-        }) => {
+        test('Enterprise+ license shows Manage Attributes', async ({pw}) => {
             const {adminUser} = await requireGlobalAttributesEnabled(pw);
 
             // # Log in and open the Manage Attributes URL
@@ -127,18 +70,6 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
             await expect(
                 systemConsolePage.page.getByText('Define an attribute once, then choose which resources can use it.'),
             ).toBeVisible();
-
-            // # Navigate directly to the legacy User Attributes path
-            await systemConsolePage.page.goto(USER_ATTRIBUTES_ADMIN_PATH);
-
-            // * User is redirected away from the hidden route (no Route registered)
-            await expect(systemConsolePage.page).not.toHaveURL(/user_attributes/);
-            // * The sidebar itself rendered
-            await expect(systemConsolePage.page.getByTestId('admin-sidebar')).toBeVisible();
-            // * User Attributes menu entry is not shown in the sidebar
-            await expect(
-                systemConsolePage.page.getByTestId('admin-sidebar').getByText('User Attributes'),
-            ).not.toBeVisible();
         });
     });
 
@@ -350,8 +281,7 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
                 const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
                 // # The link's destination page is gated by its own independent feature flag
-                // (ClassificationMarkings), separate from the GlobalAttributes flag gating this
-                // listing page — both must be on for the link to render.
+                // (ClassificationMarkings) — it must be on for the link to render.
                 // Tagged @classification_markings like every other spec that touches this same
                 // shared server-wide field/flag (classification_markings.spec.ts,
                 // global_classification_banner.spec.ts) — those specs are NOT otherwise

@@ -127,38 +127,31 @@ func deepCopyAttrs(attrs model.StringInterface) (model.StringInterface, error) {
 	return clone, nil
 }
 
-// errUnrelatedTemplateName marks a lookupReusableTemplate failure that's
-// specifically a name collision with an unrelated template — as opposed to a
-// marked template that's unsafe to reuse for some other reason (protected,
-// plugin/owner-managed, type mismatch). Callers use this to decide whether
-// retrying under a disambiguating name is worth attempting.
+// errUnrelatedTemplateName marks a lookupReusableTemplate failure that's a
+// name collision with an unrelated template, as opposed to a marked template
+// that's unsafe for some other reason (protected, plugin/owner-managed, type
+// mismatch). Callers use this to decide whether a "_copy" retry is worth it.
 var errUnrelatedTemplateName = errors.New("template name is used by an unrelated template")
 
 // reservedTemplateNames lists template Names owned by another Mattermost
-// feature. A CPA field colliding with one of these is always skipped — never
-// retried under a "_copy" name — since the name itself belongs to that
-// feature, not to an incidental admin-created attribute.
+// feature; a collision here is always skipped, never retried under "_copy".
 var reservedTemplateNames = map[string]bool{
 	"classification": true, // Classification Markings' own template
 }
 
-// lookupReusableTemplate looks for an existing template named templateName
-// that's safe to reuse for cpaField: it must carry this migration's own
-// marker (PropertyAttrsMigratedToGlobal) — an unmarked, same-named template
-// belongs to someone else and must not be hijacked (errUnrelatedTemplateName)
-// — it must be unprotected, not plugin/owner-managed, and type-matched, since
-// the link-write this feeds bypasses the validation that would normally check
-// all of that, and it must not already be linked from a different field: two
-// CPA fields sharing one template is the "ambiguous sibling" state
-// access_control_masking.go documents as having no DB-level uniqueness guard.
+// lookupReusableTemplate finds a template named templateName safe to reuse
+// for cpaField: marked PropertyAttrsMigratedToGlobal (unmarked means it
+// belongs to someone else, don't hijack it), unprotected, not
+// plugin/owner-managed, type-matched, and not already linked from another
+// field (the "ambiguous sibling" state access_control_masking.go warns has
+// no DB-level guard) — the link-write this feeds skips all that validation.
 //
-// Reads from master: also used as the post-create-failure fallback, so it
-// must see another HA node's just-committed row without replication lag.
+// Reads from master: also serves as the post-create-failure fallback, so it
+// must see another HA node's just-committed row.
 //
-// Returns (template, true, nil) on a safe reuse; (nil, false, nil) when
-// nothing exists at this name; (nil, true, err) for an unsafe or conflicting
-// match (permanent skip); (nil, false, err) when the lookup itself failed
-// (transient).
+// Returns: (template, true, nil) safe reuse; (nil, false, nil) no match;
+// (nil, true, err) unsafe/conflicting match, permanent skip; (nil, false,
+// err) lookup itself failed, transient.
 func (ps *PropertyService) lookupReusableTemplate(rctx request.CTX, groupID, templateName string, cpaField *model.PropertyField) (template *model.PropertyField, found bool, err error) {
 	existing, lookupErr := ps.getPropertyFieldByNameForObjectType(store.RequestContextWithMaster(rctx), groupID, "", model.PropertyFieldObjectTypeTemplate, templateName)
 	if lookupErr != nil {
@@ -192,14 +185,14 @@ func (ps *PropertyService) lookupReusableTemplate(rctx request.CTX, groupID, tem
 	return existing, true, nil
 }
 
-// isPermanentCreateFailure reports whether a CreatePropertyField failure is
-// deterministic and will never resolve on retry: the field-limit sentinels,
-// or any AppError/ErrInvalidFieldAttrs/ErrAdminRequired raised by the hook
-// chain's create-time validation. Several of these validations are strict on
-// create but grandfathered on update (e.g. ValidateCPAFieldName), so a
-// legacy CPA field can fail every single create attempt. A genuine store/DB
-// error carries none of these sentinels and is treated as transient.
-func isPermanentCreateFailure(err error) bool {
+// isPermanentPropertyFieldFailure reports whether a CreatePropertyField or
+// fieldStore.Update failure is deterministic and won't resolve on retry: the
+// create-only field-limit sentinels, or an AppError from validation (create-
+// or update-time, e.g. ValidateCPAFieldName or PropertyField.IsValid's
+// cross-field checks — some are stricter on create, so a legacy field can
+// fail every attempt). Anything else is a genuine store/DB error and
+// transient.
+func isPermanentPropertyFieldFailure(err error) bool {
 	if errors.Is(err, ErrGroupFieldLimitReached) || errors.Is(err, ErrFieldLimitReached) ||
 		errors.Is(err, ErrInvalidFieldAttrs) || errors.Is(err, ErrAdminRequired) {
 		return true
@@ -257,35 +250,29 @@ func (ps *PropertyService) attemptCreateOrReuseTemplate(rctx request.CTX, groupI
 		return created, false, false, nil
 	}
 
-	// Retry the lookup before classifying createErr: CreatePropertyField's own
-	// name-conflict check reads master before the INSERT, so an HA race
-	// between two nodes usually surfaces as a deterministic-looking AppError.
-	// If another node already committed a template here, that wins regardless
-	// of how createErr looks.
+	// Retry the lookup before classifying createErr: another node may have
+	// already committed a template here (its conflict check reads master
+	// before the INSERT), which wins regardless of how createErr looks.
 	existing, found, lookupErr = ps.lookupReusableTemplate(rctx, groupID, templateName, cpaField)
 	if found {
 		return existing, false, errors.Is(lookupErr, errUnrelatedTemplateName), lookupErr
 	}
 
-	if isPermanentCreateFailure(createErr) {
+	if isPermanentPropertyFieldFailure(createErr) {
 		return nil, false, false, fmt.Errorf("permanently skipping field %q: %w", cpaField.Name, createErr)
 	}
 
 	return nil, true, false, fmt.Errorf("failed to create template for field %q: %w", cpaField.Name, errors.Join(createErr, lookupErr))
 }
 
-// createOrReuseGlobalAttributeTemplate creates a new Global Attribute template
-// for the given CPA field, or reuses an existing one this same migration
-// created on a prior (crashed or racing) run. Returns transient=true when the
-// failure is unresolved and the field should be retried on a later restart
-// (the caller must not persist the migration's "done" marker for this run);
-// transient=false marks a permanent, by-design skip.
+// createOrReuseGlobalAttributeTemplate creates a template for cpaField, or
+// reuses one this migration created on a prior crashed/racing run.
+// transient=true means retry on a later restart (don't persist the "done"
+// marker yet); transient=false is a permanent, by-design skip.
 //
-// If cpaField.Name collides with an unrelated, unmarked template, this
-// retries exactly once under "<name>_copy" rather than skipping outright —
-// unless the name is reserved for another Mattermost feature (e.g.
-// Classification Markings' "classification" template), which is always
-// skipped rather than risking a look-alike under that feature's name.
+// A name collision with an unrelated, unmarked template retries once under
+// "<name>_copy" — except reserved names (e.g. Classification Markings'
+// "classification"), which are always skipped instead.
 func (ps *PropertyService) createOrReuseGlobalAttributeTemplate(rctx request.CTX, groupID string, cpaField *model.PropertyField) (template *model.PropertyField, transient bool, err error) {
 	template, transient, unrelatedNameCollision, err := ps.attemptCreateOrReuseTemplate(rctx, groupID, cpaField.Name, cpaField)
 	if !unrelatedNameCollision || reservedTemplateNames[cpaField.Name] {
@@ -307,12 +294,9 @@ func (ps *PropertyService) MigrateLinkCPAFieldToGlobalAttributeTemplate(rctx req
 		return nil, fmt.Errorf("MigrateLinkCPAFieldToGlobalAttributeTemplate: failed to get field %q: %w", fieldID, err)
 	}
 
-	// An HA rolling restart can have this node running the migration while
-	// another node is still live and serving an admin edit to this same
-	// field. expectedUpdateAts closes that TOCTOU window: if the row changed
-	// since the Get above, the store returns store.ErrConflict instead of
-	// blindly overwriting the concurrent write, and the caller retries the
-	// field on a later restart (see MigrateCPAFieldsToGlobalAttributes).
+	// Closes the TOCTOU window an HA rolling restart opens (another node can
+	// still be live, editing this field): a mismatch surfaces as
+	// store.ErrConflict instead of silently overwriting that edit.
 	expectedUpdateAt := field.UpdateAt
 	field.LinkedFieldID = &templateID
 
@@ -325,18 +309,13 @@ func (ps *PropertyService) MigrateLinkCPAFieldToGlobalAttributeTemplate(rctx req
 }
 
 // MigrateCPAFieldsToGlobalAttributes migrates every eligible CPA field (see
-// isEligibleForGlobalAttributesMigration) into a Global Attributes template:
-// a new template field is created (or an orphaned one from a prior crashed
-// run is reused), and the original CPA field is linked to it. Values
-// (PropertyValue rows) are never touched — they stay attached to the original
-// field's unchanged ID.
+// isEligibleForGlobalAttributesMigration) into a Global Attributes template,
+// creating or reusing a template and linking the field to it. PropertyValue
+// rows are untouched — they stay attached to the field's unchanged ID.
 //
-// Returns the number of fields migrated, the number permanently skipped by
-// design, and the number that hit an unresolved per-field failure. The
-// caller must not persist the migration's "done" marker when retryable > 0,
-// so a later restart retries those fields; err is reserved for a
-// migration-wide failure (e.g. can't look up the property group or list its
-// fields).
+// Returns counts of migrated, permanently-skipped, and retryable fields; the
+// caller must not persist the "done" marker while retryable > 0. err is only
+// set for a migration-wide failure (e.g. can't look up the property group).
 func (ps *PropertyService) MigrateCPAFieldsToGlobalAttributes(rctx request.CTX) (migrated, skipped, retryable int, err error) {
 	group, err := ps.Group(model.AccessControlPropertyGroupName)
 	if err != nil {
@@ -384,9 +363,15 @@ func (ps *PropertyService) MigrateCPAFieldsToGlobalAttributes(rctx request.CTX) 
 		}
 
 		if _, linkErr := ps.MigrateLinkCPAFieldToGlobalAttributeTemplate(migCtx, groupID, field.ID, template.ID); linkErr != nil {
-			rctx.Logger().Warn("CPA-to-Global-Attributes migration: field will be retried on a later restart",
-				mlog.String("field_id", field.ID), mlog.String("field_name", field.Name), mlog.String("template_id", template.ID), mlog.Err(linkErr))
-			retryable++
+			if isPermanentPropertyFieldFailure(linkErr) {
+				rctx.Logger().Warn("CPA-to-Global-Attributes migration: field permanently skipped",
+					mlog.String("field_id", field.ID), mlog.String("field_name", field.Name), mlog.String("template_id", template.ID), mlog.Err(linkErr))
+				skipped++
+			} else {
+				rctx.Logger().Warn("CPA-to-Global-Attributes migration: field will be retried on a later restart",
+					mlog.String("field_id", field.ID), mlog.String("field_name", field.Name), mlog.String("template_id", template.ID), mlog.Err(linkErr))
+				retryable++
+			}
 			continue
 		}
 
