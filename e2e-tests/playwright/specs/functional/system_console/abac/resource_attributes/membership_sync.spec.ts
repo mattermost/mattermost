@@ -37,7 +37,7 @@ test.describe('ABAC resource.attributes - membership sync', {tag: ['@abac', '@ab
     test('mixed user/resource scalar policy syncs and enforces joins', async ({pw}) => {
         test.setTimeout(120000);
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ResourceAttributesInPolicies', true);
+        await pw.ensureFeatureFlag('ResourceAttributesInPolicies', true);
 
         const {adminClient, team} = await pw.initSetup();
         await enableUserManagedAttributes(adminClient);
@@ -100,7 +100,7 @@ test.describe('ABAC resource.attributes - membership sync', {tag: ['@abac', '@ab
     test('deny-on-miss removes all members when the channel attribute is absent', async ({pw}) => {
         test.setTimeout(120000);
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ResourceAttributesInPolicies', true);
+        await pw.ensureFeatureFlag('ResourceAttributesInPolicies', true);
 
         const {adminClient, team} = await pw.initSetup();
         await enableUserManagedAttributes(adminClient);
