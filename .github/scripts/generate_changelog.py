@@ -107,7 +107,6 @@ Here are your instructions:
     - `### Go Version` — Always include this section. The Go version content will be injected automatically — output only this heading with no content beneath it.
     - `### Open Source Components` — open source component additions or removals. Format each item as: "Added ``<package>`` to <repo_url>." or "Removed ``<package>`` from <repo_url>." Example: "Added ``x/text`` to https://github.com/mattermost/mattermost/." Only include if there are relevant notes.
     - `### Security` — security-related fixes not already covered under Bug Fixes
-    - `### Contributors` — contributor acknowledgements. Only include if the raw notes contain contributor information; otherwise omit this section entirely (it is usually added manually after generation).
 
 2.  **Sentence patterns:** Follow these conventions consistently:
     - New features and additions: "Added [feature]..." or "Added support for [feature]..."
