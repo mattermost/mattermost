@@ -496,6 +496,8 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
     // get, and staying false forever would strand genuine leftovers as
     // undeletable.
     const pluginInventoryLoaded = usePluginInventoryLoaded(hasPluginOwnedFields);
+    const pluginInventoryLoadedRef = useRef(pluginInventoryLoaded);
+    pluginInventoryLoadedRef.current = pluginInventoryLoaded;
 
     const handleDeleteModalExited = useCallback(() => setDeleteModalExited(true), []);
 
@@ -625,7 +627,7 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                             isClassificationRow={isClassificationRow(row.original)}
                             canEditClassification={classificationAttributePageReachable}
                             isMobileView={isMobileView}
-                            pluginInventoryLoaded={pluginInventoryLoaded}
+                            pluginInventoryLoaded={pluginInventoryLoadedRef.current}
                             onDeleteError={setDeleteError}
                             onDeleteModalExited={handleDeleteModalExited}
                         />
@@ -634,7 +636,7 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                 enableHiding: false,
             }),
         ];
-    }, [appliesToByTemplateId, groupId, classificationMarkingsReachable, classificationAttributePageReachable, isMobileView, pluginInventoryLoaded, handleDeleteModalExited]);
+    }, [appliesToByTemplateId, groupId, classificationMarkingsReachable, classificationAttributePageReachable, isMobileView, handleDeleteModalExited]);
 
     const table = useReactTable<PropertyField>({
         data: rows,

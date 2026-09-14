@@ -120,7 +120,20 @@ describe('GlobalAttributesTable', () => {
     beforeEach(() => {
         getPropertyFields.mockReset();
         mockHistoryPush.mockReset();
+        jest.spyOn(Client4, 'getPluginStatuses').mockRejectedValue(new Error('network'));
     });
+
+    // Plugin-owned rows fetch plugin statuses after first paint. That update
+    // remounts the actions menu if it is already open, so wait it out first.
+    async function openActionsMenu(fieldId = 'field-1') {
+        const trigger = await screen.findByTestId(`global-attribute-actions-${fieldId}`);
+        await waitFor(() => expect(Client4.getPluginStatuses).toHaveBeenCalled());
+        await act(async () => {
+            await Promise.resolve();
+        });
+        await userEvent.click(trigger);
+        return screen.findAllByRole('menuitem');
+    }
 
     it('shows the loading state before fields resolve', async () => {
         getPropertyFields.mockResolvedValueOnce([]).mockResolvedValue([]);
@@ -466,7 +479,10 @@ describe('GlobalAttributesTable', () => {
 
             const cell = await screen.findByTestId('global-attribute-source');
             expect(cell).toHaveTextContent('Example Plugin');
-            expect(cell.querySelector('svg')).toBeInTheDocument();
+
+            // PowerPlugOutlineIcon's path contains newlines; jest-dom's
+            // toBeInTheDocument() does not treat that SVG node as in-document.
+            expect(cell.firstElementChild?.nodeName.toLowerCase()).toBe('svg');
         });
 
         it('resolves a server-only plugin name from the admin plugin statuses rather than showing the raw plugin ID', async () => {
@@ -617,9 +633,7 @@ describe('GlobalAttributesTable', () => {
 
             renderWithContext(<GlobalAttributesTable/>, state);
 
-            await userEvent.click(await screen.findByTestId('global-attribute-actions-field-1'));
-
-            const menuitems = screen.getAllByRole('menuitem');
+            const menuitems = await openActionsMenu();
             expect(menuitems.find((el) => el.textContent?.includes('Edit attribute'))).toBeUndefined();
 
             const view = menuitems.find((el) => el.textContent?.includes('View attribute'));
@@ -644,9 +658,7 @@ describe('GlobalAttributesTable', () => {
 
             renderWithContext(<GlobalAttributesTable/>, state);
 
-            await userEvent.click(await screen.findByTestId('global-attribute-actions-field-1'));
-
-            const menuitems = screen.getAllByRole('menuitem');
+            const menuitems = await openActionsMenu();
             const duplicate = menuitems.find((el) => el.textContent?.includes('Duplicate attribute'));
             const del = menuitems.find((el) => el.textContent?.includes('Delete attribute'));
 
@@ -913,9 +925,7 @@ describe('GlobalAttributesTable', () => {
         it('keeps Delete disabled with a reason on a plugin-owned row while the plugin is installed', async () => {
             renderTable([makePluginOwnedField()], getStateWithInstalledPlugin(PLUGIN_ID));
 
-            await userEvent.click(await screen.findByTestId('global-attribute-actions-field-1'));
-
-            const del = screen.getAllByRole('menuitem').find((el) => el.textContent?.includes('Delete attribute'));
+            const del = (await openActionsMenu()).find((el) => el.textContent?.includes('Delete attribute'));
             expect(del!).toHaveAttribute('aria-disabled', 'true');
             expect(del!).toHaveTextContent('Plugin-managed');
 
@@ -935,9 +945,7 @@ describe('GlobalAttributesTable', () => {
             // server itself keys the delete allowance off (checkFieldDeleteAccess)
             renderTable([makePluginOwnedField()]);
 
-            await userEvent.click(await screen.findByTestId('global-attribute-actions-field-1'));
-
-            const del = screen.getAllByRole('menuitem').find((el) => el.textContent?.includes('Delete attribute'));
+            const del = (await openActionsMenu()).find((el) => el.textContent?.includes('Delete attribute'));
             expect(del!).not.toHaveAttribute('aria-disabled', 'true');
             expect(del!).not.toHaveTextContent('Plugin-managed');
 
