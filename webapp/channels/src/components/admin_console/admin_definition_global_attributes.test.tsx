@@ -42,6 +42,12 @@ function isHidden(config: Partial<AdminConfig>, license: ClientLicense) {
     return check(config, {}, license, true, consoleAccess);
 }
 
+function isUserAttributesHidden(config: Partial<AdminConfig>, license: ClientLicense) {
+    const subsection = AdminDefinition.system_attributes.subsections.system_properties;
+    const check = subsection.isHidden as Extract<Check, (...args: any[]) => boolean>;
+    return check(config, {}, license, true, consoleAccess);
+}
+
 function isDisabled(isSystemAdmin: boolean) {
     const subsection = AdminDefinition.system_attributes.subsections.global_attributes;
     const check = subsection.isDisabled as Extract<Check, (...args: any[]) => boolean>;
@@ -72,5 +78,21 @@ describe('AdminDefinition - Global Attributes access gate', () => {
     test('disables the page for non-sysadmins', () => {
         expect(isDisabled(true)).toBe(false);
         expect(isDisabled(false)).toBe(true);
+    });
+});
+
+describe('AdminDefinition - User Attributes hidden when Global Attributes is on', () => {
+    test('stays visible when the flag is off and license is Enterprise+', () => {
+        expect(isUserAttributesHidden(flagOff, enterpriseLicense)).toBe(false);
+    });
+
+    test('is hidden when the flag is on and license is Enterprise+', () => {
+        expect(isUserAttributesHidden(flagOn, enterpriseLicense)).toBe(true);
+    });
+
+    test('stays hidden below Enterprise regardless of the flag', () => {
+        expect(isUserAttributesHidden(flagOff, professionalLicense)).toBe(true);
+        expect(isUserAttributesHidden(flagOn, professionalLicense)).toBe(true);
+        expect(isUserAttributesHidden(flagOn, unlicensed)).toBe(true);
     });
 });
