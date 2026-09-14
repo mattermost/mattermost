@@ -8,6 +8,7 @@ import SystemConsoleSidebar from '@/ui/components/system_console/sidebar';
 import SystemConsoleHeader from '@/ui/components/system_console/header';
 import EditionAndLicense from '@/ui/components/system_console/sections/about/edition_and_license';
 import TeamStatistics from '@/ui/components/system_console/sections/reporting/team_statistics';
+import ServerLogs from '@/ui/components/system_console/sections/reporting/server_logs';
 import Users from '@/ui/components/system_console/sections/user_management/users';
 import DelegatedGranularAdministration from '@/ui/components/system_console/sections/user_management/delegated_granular_administration';
 import PermissionsSystemScheme from '@/ui/components/system_console/sections/user_management/permissions_system_scheme';
@@ -36,6 +37,7 @@ export default class SystemConsolePage {
 
     // Reporting
     readonly teamStatistics: TeamStatistics;
+    readonly serverLogs: ServerLogs;
 
     // User Management
     readonly users: Users;
@@ -77,6 +79,7 @@ export default class SystemConsolePage {
 
         // Reporting
         this.teamStatistics = new TeamStatistics(adminConsoleWrapper);
+        this.serverLogs = new ServerLogs(adminConsoleWrapper);
 
         // User Management
         this.users = new Users(adminConsoleWrapper);
@@ -127,5 +130,10 @@ export default class SystemConsolePage {
     async gotoEditionAndLicense() {
         await this.page.goto(new URL('/admin_console/about/license', testConfig.baseURL).href);
         await this.editionAndLicense.toBeVisible();
+    }
+
+    async gotoServerLogs() {
+        await this.page.goto('/admin_console/reporting/server_logs');
+        await this.page.waitForLoadState('networkidle');
     }
 }
