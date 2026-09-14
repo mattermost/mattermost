@@ -96,8 +96,9 @@ func ensurePluginMeta() error {
 // This constant is the seam for a future instance pool: enabling real parallel
 // execution is a matter of raising it and handing each lease a distinct instance.
 // The lease contract below (one instance held for the whole test) is already what
-// such a pool requires, so tests may call t.Parallel() today and are simply
-// serialized through here until the pool lands.
+// such a pool requires, so tests may call t.Parallel() today — provided they call
+// it before Setup (see acquireInstance) — and are simply serialized through here
+// until the pool lands.
 const maxConcurrentTests = 1
 
 var (
@@ -111,6 +112,10 @@ var (
 // exactly once via t.Cleanup. Keying the lease on t (rather than on each Setup call)
 // is what lets a test call Setup twice — e.g. to assert database-reset isolation —
 // without deadlocking against itself when maxConcurrentTests is 1.
+//
+// A parallel test must call t.Parallel() before Setup. t.Parallel() suspends the test
+// until serial tests finish; a test that leased the instance first would hold the only
+// slot while suspended, so a serial test blocks here forever and the binary hangs.
 func acquireInstance(t *testing.T) {
 	t.Helper()
 	if _, held := leasedTests.LoadOrStore(t, struct{}{}); held {
@@ -128,8 +133,9 @@ func acquireInstance(t *testing.T) {
 // database — no state leaks between tests.
 //
 // Because tests share one Mattermost instance and mutate global server state, Setup
-// serializes them: a test holds the instance from Setup until it finishes. Tests may
-// still call t.Parallel(); they are gated one at a time. See maxConcurrentTests.
+// serializes them: a test holds the instance from Setup until it finishes. A parallel
+// test must call t.Parallel() before Setup, otherwise it holds the instance while
+// suspended and deadlocks serial tests. See acquireInstance and maxConcurrentTests.
 //
 // If Docker is not available the test fails. Set SKIP_DOCKER_TESTS to skip instead.
 func Setup(t *testing.T) *TestHelper {
