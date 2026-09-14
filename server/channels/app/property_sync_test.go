@@ -467,7 +467,7 @@ func TestPropertySyncer_OptionCap(t *testing.T) {
 	syncRctx := h.emptyContextWithCallerID(model.CallerIDLDAPSync)
 	for _, f := range []*model.PropertyField{multi, single} {
 		options := make([]*model.CustomProfileAttributesSelectOption, 0, model.PropertySyncMaxOptionsPerField-1)
-		for i := 0; i < model.PropertySyncMaxOptionsPerField-1; i++ {
+		for i := range model.PropertySyncMaxOptionsPerField - 1 {
 			options = append(options, &model.CustomProfileAttributesSelectOption{Name: fmt.Sprintf("group-%03d", i)})
 		}
 		f.Attrs[model.PropertyFieldAttributeOptions] = options
