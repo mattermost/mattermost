@@ -179,19 +179,32 @@ export function countsIncludingDirectReducer(state: ThreadsState['counts'] = {},
         return handleReadChangedThread(state, action, teamId, isUrgent);
     }
     case ThreadTypes.FOLLOW_CHANGED_THREAD: {
-        const {team_id: teamId, following} = action.data;
+        const {id, team_id: teamId, following} = action.data;
         const counts = state[teamId];
 
         if (counts?.total == null) {
             return state;
         }
 
+        const thread = extra.threads[id];
+        const unreadThreadsDiff = thread?.unread_replies ? 1 : 0;
+        const unreadMentionsDiff = thread?.unread_mentions || 0;
+        const unreadUrgentMentionsDiff = thread?.is_urgent ? unreadMentionsDiff : 0;
+        const multiplier = following ? 1 : -1;
+        const nextCounts = {
+            ...counts,
+            total: following ? counts.total + 1 : counts.total - 1,
+            total_unread_threads: Math.max(counts.total_unread_threads + (unreadThreadsDiff * multiplier), 0),
+            total_unread_mentions: Math.max(counts.total_unread_mentions + (unreadMentionsDiff * multiplier), 0),
+        };
+
+        if (counts.total_unread_urgent_mentions != null || unreadUrgentMentionsDiff > 0) {
+            nextCounts.total_unread_urgent_mentions = Math.max((counts.total_unread_urgent_mentions || 0) + (unreadUrgentMentionsDiff * multiplier), 0);
+        }
+
         return {
             ...state,
-            [teamId]: {
-                ...counts,
-                total: following ? counts.total + 1 : counts.total - 1,
-            },
+            [teamId]: nextCounts,
         };
     }
     case TeamTypes.LEAVE_TEAM:
