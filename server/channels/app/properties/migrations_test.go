@@ -506,7 +506,7 @@ func TestMigrateCPAFieldsToGlobalAttributes_FieldLimitReached(t *testing.T) {
 	// object type not subject to the per-object-type "user" cap), then add one
 	// eligible CPA field that would push the group over the limit.
 	sysadmin := model.PermissionLevelSysadmin
-	for i := int64(0); i < model.AccessControlGroupFieldLimit; i++ {
+	for range model.AccessControlGroupFieldLimit {
 		th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			GroupID:           th.CPAGroupID,
 			Name:              "filler_" + model.NewId(),
