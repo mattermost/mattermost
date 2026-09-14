@@ -43,7 +43,7 @@ func (h *graphSharedOnlyHelper) accessControlHook(t *testing.T) *AccessControlHo
 			return ach
 		}
 	}
-	t.Fatal("AccessControlHook not registered")
+	require.FailNow(t, "AccessControlHook not registered")
 	return nil
 }
 
