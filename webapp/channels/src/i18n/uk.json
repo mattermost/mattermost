@@ -3722,7 +3722,7 @@
   "drafts.sidebarLink": "Чернетки",
   "drafts.subtitle": "Усі розпочаті вами повідомлення відображатимуться тут",
   "drafts.title": "{prefix}Чернетки - {displayName} {siteName}",
-  "drafts.tooltipText": "{draftCount, plural, =0 {} =1 {1 чернетка} other {{draftCount} чернеток}} <br></br> {scheduledPostCount, plural, =0 {} other {{scheduledPostCount} заплановано}}",
+  "drafts.tooltipText": "{draftCount, plural, =0 {} =1 {1 чернетка} other {{draftCount} чернеток}} <br></br> {scheduledPostCount, plural, =0 {} one {{scheduledPostCount} запланована} other {{scheduledPostCount} заплановано}}",
   "editPost.timeLimitModal.description": "Встановлення часового обмеження <b>застосовується до всіх користувачів</b>, які мають права \"Редагувати допис\" у будь-якій схемі дозволів.",
   "edit_category_modal.helpText": "Перетягніть канали до цієї категорії, щоб упорядкувати бічну панель.",
   "edit_category_modal.placeholder": "Введіть назву категорії",
