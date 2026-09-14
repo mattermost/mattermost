@@ -62,7 +62,7 @@ export default function GraphProfileAttribute({
     serverError,
     isMobileView,
     user,
-}: GraphProfileAttributeProps): JSX.Element {
+}: GraphProfileAttributeProps): React.JSX.Element {
     const {formatMessage} = useIntl();
     const storedIds = asGraphValueIds(storedValue);
     const {labelForId} = useGraphOptionNames(attribute, storedIds);
@@ -78,7 +78,7 @@ export default function GraphProfileAttribute({
 
     if (active) {
         const inputs = [];
-        let extraInfo: JSX.Element | string = '';
+        let extraInfo: React.JSX.Element | string = '';
         let submit = null;
 
         if (isSynced) {
@@ -164,7 +164,7 @@ export default function GraphProfileAttribute({
         );
     }
 
-    let describe: JSX.Element | string = '';
+    let describe: React.JSX.Element | string = '';
 
     if (storedIds.length > 0) {
         const named = storedIds.map((id) => labelForId(id));
