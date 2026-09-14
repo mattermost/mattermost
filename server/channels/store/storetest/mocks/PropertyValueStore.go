@@ -189,6 +189,36 @@ func (_m *PropertyValueStore) GetMany(groupID string, ids []string) ([]*model.Pr
 	return r0, r1
 }
 
+// GetReferencedOptionIDs provides a mock function with given fields: groupID, fieldID
+func (_m *PropertyValueStore) GetReferencedOptionIDs(groupID string, fieldID string) ([]string, error) {
+	ret := _m.Called(groupID, fieldID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetReferencedOptionIDs")
+	}
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) ([]string, error)); ok {
+		return rf(groupID, fieldID)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) []string); ok {
+		r0 = rf(groupID, fieldID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(groupID, fieldID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // SearchPropertyValues provides a mock function with given fields: rctx, opts
 func (_m *PropertyValueStore) SearchPropertyValues(rctx request.CTX, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
 	ret := _m.Called(rctx, opts)

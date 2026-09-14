@@ -955,6 +955,13 @@ func (h *AccessControlHook) hasUnrestrictedFieldReadAccess(field *model.Property
 		return true
 	}
 
+	// The sync that owns a field's values must see its full option list,
+	// otherwise it would match against a filtered view and provision
+	// duplicates of options that already exist.
+	if syncCallerID := model.PropertySyncCallerID(model.GetPropertyFieldSyncSource(field)); syncCallerID != "" && syncCallerID == callerID {
+		return true
+	}
+
 	return false
 }
 

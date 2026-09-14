@@ -1246,6 +1246,10 @@ type PropertyValueStore interface {
 	Delete(groupID string, id string) error
 	DeleteForField(groupID, fieldID string) error
 	DeleteForTarget(groupID string, targetType string, targetID string) error
+	// GetReferencedOptionIDs returns the distinct option IDs that live values
+	// of the given select-shaped field reference, from both single-option
+	// (JSON string) and multi-option (JSON string array) values.
+	GetReferencedOptionIDs(groupID, fieldID string) ([]string, error)
 }
 
 type AccessControlPolicyStore interface {

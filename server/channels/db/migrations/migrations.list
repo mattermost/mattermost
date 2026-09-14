@@ -459,3 +459,5 @@ channels/db/migrations/postgres/000231_create_health_findings.down.sql
 channels/db/migrations/postgres/000231_create_health_findings.up.sql
 channels/db/migrations/postgres/000232_create_healthfindings_lastseenat_index.down.sql
 channels/db/migrations/postgres/000232_create_healthfindings_lastseenat_index.up.sql
+channels/db/migrations/postgres/000233_create_property_values_groupid_fieldid_index.down.sql
+channels/db/migrations/postgres/000233_create_property_values_groupid_fieldid_index.up.sql

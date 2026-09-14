@@ -2125,22 +2125,290 @@ func TestAccessControlAttributeValidationHookSync(t *testing.T) {
 		assert.Equal(t, "position", updated.Attrs[model.PropertyFieldAttrSAML])
 	})
 
-	t.Run("non-text field strips ldap and saml sync attrs", func(t *testing.T) {
+	t.Run("select and multiselect fields keep ldap and saml sync attrs", func(t *testing.T) {
+		for _, fieldType := range []model.PropertyFieldType{model.PropertyFieldTypeSelect, model.PropertyFieldTypeMultiselect} {
+			field := &model.PropertyField{
+				GroupID:    group.ID,
+				Name:       "field_" + model.NewId(),
+				Type:       fieldType,
+				TargetType: "system",
+				ObjectType: "user",
+				Attrs: model.StringInterface{
+					model.PropertyFieldAttrLDAP: "memberOf",
+					model.PropertyFieldAttrSAML: "groups",
+				},
+			}
+			created, createErr := th.service.CreatePropertyField(th.Context, field)
+			require.NoError(t, createErr, "type %s", fieldType)
+			assert.Equal(t, "memberOf", created.Attrs[model.PropertyFieldAttrLDAP], "type %s", fieldType)
+			assert.Equal(t, "groups", created.Attrs[model.PropertyFieldAttrSAML], "type %s", fieldType)
+		}
+	})
+
+	t.Run("types that cannot be synced strip ldap and saml sync attrs", func(t *testing.T) {
+		for _, fieldType := range []model.PropertyFieldType{model.PropertyFieldTypeRank, model.PropertyFieldTypeDate, model.PropertyFieldTypeUser, model.PropertyFieldTypeMultiuser} {
+			field := &model.PropertyField{
+				GroupID:    group.ID,
+				Name:       "field_" + model.NewId(),
+				Type:       fieldType,
+				TargetType: "system",
+				ObjectType: "user",
+				Attrs: model.StringInterface{
+					model.PropertyFieldAttrLDAP: "employeeID",
+					model.PropertyFieldAttrSAML: "position",
+				},
+			}
+			if fieldType == model.PropertyFieldTypeRank {
+				rank := 1
+				field.Attrs[model.PropertyFieldAttributeOptions] = []*model.CustomProfileAttributesSelectOption{{Name: "low", Rank: &rank}}
+			}
+			created, createErr := th.service.CreatePropertyField(th.Context, field)
+			require.NoError(t, createErr, "type %s", fieldType)
+			assert.NotContains(t, created.Attrs, model.PropertyFieldAttrLDAP, "type %s", fieldType)
+			assert.NotContains(t, created.Attrs, model.PropertyFieldAttrSAML, "type %s", fieldType)
+		}
+	})
+
+	t.Run("synced option field accepts an empty option list and stores it as absent", func(t *testing.T) {
 		field := &model.PropertyField{
 			GroupID:    group.ID,
 			Name:       "field_" + model.NewId(),
-			Type:       model.PropertyFieldTypeSelect,
+			Type:       model.PropertyFieldTypeMultiselect,
 			TargetType: "system",
 			ObjectType: "user",
 			Attrs: model.StringInterface{
-				model.PropertyFieldAttrLDAP: "employeeID",
-				model.PropertyFieldAttrSAML: "position",
+				model.PropertyFieldAttrLDAP:         "memberOf",
+				model.PropertyFieldAttributeOptions: []any{},
 			},
 		}
 		created, createErr := th.service.CreatePropertyField(th.Context, field)
 		require.NoError(t, createErr)
-		assert.NotContains(t, created.Attrs, model.PropertyFieldAttrLDAP)
-		assert.NotContains(t, created.Attrs, model.PropertyFieldAttrSAML)
+		assert.NotContains(t, created.Attrs, model.PropertyFieldAttributeOptions)
+	})
+
+	t.Run("non-synced option field still rejects an empty option list", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeMultiselect,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{},
+			},
+		}
+		_, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.ErrorIs(t, createErr, ErrInvalidFieldAttrs)
+	})
+
+	t.Run("sync caller can update an admin-managed synced field", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeMultiselect,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrManaged: "admin",
+				model.PropertyFieldAttrLDAP:    "memberOf",
+			},
+		}
+		created, createErr := th.service.CreatePropertyField(adminRctx, field)
+		require.NoError(t, createErr)
+
+		syncRctx := RequestContextWithCallerID(th.Context, model.CallerIDLDAPSync)
+		created.Attrs[model.PropertyFieldAttributeOptions] = []*model.CustomProfileAttributesSelectOption{{Name: "Engineering"}}
+		updated, _, updateErr := th.service.UpdatePropertyField(syncRctx, group.ID, created)
+		require.NoError(t, updateErr)
+		assert.Equal(t, "admin", updated.Attrs[model.PropertyFieldAttrManaged])
+		require.NotNil(t, updated.PermissionValues)
+		assert.Equal(t, model.PermissionLevelSysadmin, *updated.PermissionValues)
+	})
+
+	t.Run("setting managed=admin still requires admin permission", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+		}
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+
+		syncRctx := RequestContextWithCallerID(th.Context, model.CallerIDLDAPSync)
+		created.Attrs[model.PropertyFieldAttrManaged] = "admin"
+		_, _, updateErr := th.service.UpdatePropertyField(syncRctx, group.ID, created)
+		require.ErrorIs(t, updateErr, ErrAdminRequired)
+	})
+}
+
+func TestAccessControlAttributeValidationHookSyncedOptionsOwnership(t *testing.T) {
+	th := Setup(t)
+
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_synced_options", Version: model.PropertyGroupVersionV2})
+	require.NoError(t, err)
+
+	adminUserID := model.NewId()
+	permChecker := func(_ request.CTX, userID string, _ *model.Permission) bool {
+		return userID == adminUserID
+	}
+	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{PermissionChecker: permChecker}, group.ID)
+	th.service.AddHook(hook)
+
+	adminRctx := RequestContextWithCallerID(th.Context, adminUserID)
+	ldapSyncRctx := RequestContextWithCallerID(th.Context, model.CallerIDLDAPSync)
+	samlSyncRctx := RequestContextWithCallerID(th.Context, model.CallerIDSAMLSync)
+
+	requireLocked := func(t *testing.T, err error) {
+		t.Helper()
+		require.Error(t, err)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, "app.property_field.synced_options_locked.app_error", appErr.Id)
+	}
+
+	newSyncedField := func(t *testing.T, sourceAttr string) *model.PropertyField {
+		t.Helper()
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeMultiselect,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				sourceAttr: "memberOf",
+			},
+		}
+		created, createErr := th.service.CreatePropertyField(adminRctx, field)
+		require.NoError(t, createErr)
+
+		// Provision two options as the owning sync would.
+		created.Attrs[model.PropertyFieldAttributeOptions] = []*model.CustomProfileAttributesSelectOption{{Name: "Engineering"}, {Name: "Sales"}}
+		syncRctx := ldapSyncRctx
+		if sourceAttr == model.PropertyFieldAttrSAML {
+			syncRctx = samlSyncRctx
+		}
+		updated, _, updateErr := th.service.UpdatePropertyField(syncRctx, group.ID, created)
+		require.NoError(t, updateErr)
+		return updated
+	}
+
+	optionsOf := func(t *testing.T, field *model.PropertyField) model.PropertyOptions[*model.CustomProfileAttributesSelectOption] {
+		t.Helper()
+		options, optErr := model.NewPropertyOptionsFromFieldAttrs[*model.CustomProfileAttributesSelectOption](field.Attrs[model.PropertyFieldAttributeOptions])
+		require.NoError(t, optErr)
+		return options
+	}
+
+	t.Run("owning sync may add and remove options", func(t *testing.T) {
+		field := newSyncedField(t, model.PropertyFieldAttrLDAP)
+		options := optionsOf(t, field)
+		options = append(options[:1], &model.CustomProfileAttributesSelectOption{Name: "Support"})
+		field.Attrs[model.PropertyFieldAttributeOptions] = options
+
+		updated, _, updateErr := th.service.UpdatePropertyField(ldapSyncRctx, group.ID, field)
+		require.NoError(t, updateErr)
+		require.Len(t, optionsOf(t, updated), 2)
+	})
+
+	t.Run("other sync source cannot change options", func(t *testing.T) {
+		field := newSyncedField(t, model.PropertyFieldAttrLDAP)
+		options := optionsOf(t, field)
+		field.Attrs[model.PropertyFieldAttributeOptions] = append(options, &model.CustomProfileAttributesSelectOption{Name: "Support"})
+
+		_, _, updateErr := th.service.UpdatePropertyField(samlSyncRctx, group.ID, field)
+		requireLocked(t, updateErr)
+	})
+
+	t.Run("admin cannot add an option", func(t *testing.T) {
+		field := newSyncedField(t, model.PropertyFieldAttrSAML)
+		options := optionsOf(t, field)
+		field.Attrs[model.PropertyFieldAttributeOptions] = append(options, &model.CustomProfileAttributesSelectOption{Name: "Support"})
+
+		_, _, updateErr := th.service.UpdatePropertyField(adminRctx, group.ID, field)
+		requireLocked(t, updateErr)
+	})
+
+	t.Run("admin cannot remove an option", func(t *testing.T) {
+		field := newSyncedField(t, model.PropertyFieldAttrLDAP)
+		field.Attrs[model.PropertyFieldAttributeOptions] = optionsOf(t, field)[:1]
+
+		_, _, updateErr := th.service.UpdatePropertyField(adminRctx, group.ID, field)
+		requireLocked(t, updateErr)
+	})
+
+	t.Run("admin cannot rename an option", func(t *testing.T) {
+		field := newSyncedField(t, model.PropertyFieldAttrLDAP)
+		options := optionsOf(t, field)
+		options[0].Name = "Renamed"
+		field.Attrs[model.PropertyFieldAttributeOptions] = options
+
+		_, _, updateErr := th.service.UpdatePropertyField(adminRctx, group.ID, field)
+		requireLocked(t, updateErr)
+	})
+
+	t.Run("admin can change option colors and reorder", func(t *testing.T) {
+		field := newSyncedField(t, model.PropertyFieldAttrLDAP)
+		options := optionsOf(t, field)
+		options[0].Color = "#ff0000"
+		options[0], options[1] = options[1], options[0]
+		field.Attrs[model.PropertyFieldAttributeOptions] = options
+
+		updated, _, updateErr := th.service.UpdatePropertyField(adminRctx, group.ID, field)
+		require.NoError(t, updateErr)
+		colors := map[string]string{}
+		for _, opt := range optionsOf(t, updated) {
+			colors[opt.Name] = opt.Color
+		}
+		assert.Equal(t, "#ff0000", colors["Engineering"])
+		assert.Equal(t, "", colors["Sales"])
+	})
+
+	t.Run("admin can edit other attrs while leaving options untouched", func(t *testing.T) {
+		field := newSyncedField(t, model.PropertyFieldAttrLDAP)
+		field.Attrs[model.PropertyFieldAttrVisibility] = model.PropertyFieldVisibilityAlways
+
+		updated, _, updateErr := th.service.UpdatePropertyField(adminRctx, group.ID, field)
+		require.NoError(t, updateErr)
+		assert.Equal(t, model.PropertyFieldVisibilityAlways, updated.Attrs[model.PropertyFieldAttrVisibility])
+		require.Len(t, optionsOf(t, updated), 2)
+	})
+
+	t.Run("unlinking the field hands the options back to the admin", func(t *testing.T) {
+		field := newSyncedField(t, model.PropertyFieldAttrLDAP)
+		delete(field.Attrs, model.PropertyFieldAttrLDAP)
+		field.Attrs[model.PropertyFieldAttributeOptions] = append(optionsOf(t, field), &model.CustomProfileAttributesSelectOption{Name: "Support"})
+
+		updated, _, updateErr := th.service.UpdatePropertyField(adminRctx, group.ID, field)
+		require.NoError(t, updateErr)
+		require.Len(t, optionsOf(t, updated), 3)
+	})
+
+	t.Run("linking a text field to a source and changing it to multiselect must not carry admin options", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrLDAP: "department",
+			},
+		}
+		created, createErr := th.service.CreatePropertyField(adminRctx, field)
+		require.NoError(t, createErr)
+
+		created.Type = model.PropertyFieldTypeMultiselect
+		created.Attrs[model.PropertyFieldAttributeOptions] = []*model.CustomProfileAttributesSelectOption{{Name: "Injected"}}
+		_, _, updateErr := th.service.UpdatePropertyField(adminRctx, group.ID, created)
+		requireLocked(t, updateErr)
+
+		delete(created.Attrs, model.PropertyFieldAttributeOptions)
+		updated, _, updateErr := th.service.UpdatePropertyField(adminRctx, group.ID, created)
+		require.NoError(t, updateErr)
+		assert.Equal(t, model.PropertyFieldTypeMultiselect, updated.Type)
+		assert.NotContains(t, updated.Attrs, model.PropertyFieldAttributeOptions)
 	})
 }
 

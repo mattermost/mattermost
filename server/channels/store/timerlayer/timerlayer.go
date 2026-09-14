@@ -9314,6 +9314,22 @@ func (s *TimerLayerPropertyValueStore) GetMany(groupID string, ids []string) ([]
 	return result, err
 }
 
+func (s *TimerLayerPropertyValueStore) GetReferencedOptionIDs(groupID string, fieldID string) ([]string, error) {
+	start := time.Now()
+
+	result, err := s.PropertyValueStore.GetReferencedOptionIDs(groupID, fieldID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyValueStore.GetReferencedOptionIDs", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPropertyValueStore) SearchPropertyValues(rctx request.CTX, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
 	start := time.Now()
 

@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
 )
 
 // propertyFieldOptionsEqual reports whether two values from
@@ -354,6 +355,10 @@ func (a *App) UpdatePropertyField(rctx request.CTX, groupID string, field *model
 // value lists the IDs of fields whose dependent property values were cleared
 // as a side effect.
 func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField, bypassProtectedCheck bool, connectionID string) ([]*model.PropertyField, []string, *model.AppError) {
+	return a.updatePropertyFields(rctx, groupID, fields, bypassProtectedCheck, connectionID, properties.UpdatePropertyFieldsOpts{})
+}
+
+func (a *App) updatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField, bypassProtectedCheck bool, connectionID string, opts properties.UpdatePropertyFieldsOpts) ([]*model.PropertyField, []string, *model.AppError) {
 	if len(fields) == 0 {
 		return nil, nil, model.NewAppError("UpdatePropertyFields", "app.property_field.invalid_input.app_error", nil, "property fields are required", http.StatusBadRequest)
 	}
@@ -462,7 +467,7 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 		}
 	}
 
-	updated, propagated, clearedFieldIDs, err := a.Srv().propertyService.UpdatePropertyFields(rctx, groupID, fields)
+	updated, propagated, clearedFieldIDs, err := a.Srv().propertyService.UpdatePropertyFieldsWithOpts(rctx, groupID, fields, opts)
 	if err != nil {
 		if appErr := mapPropertyServiceError("UpdatePropertyFields", err); appErr != nil {
 			return nil, nil, appErr

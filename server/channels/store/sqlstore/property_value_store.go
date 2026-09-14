@@ -384,6 +384,42 @@ func (s *SqlPropertyValueStore) DeleteForField(groupID, fieldID string) error {
 	return nil
 }
 
+func (s *SqlPropertyValueStore) GetReferencedOptionIDs(groupID, fieldID string) ([]string, error) {
+	if fieldID == "" {
+		return nil, store.NewErrInvalidInput("PropertyValue", "fieldID", fieldID)
+	}
+
+	// A select value is a JSON string and a multiselect value a JSON string
+	// array; both are normalized to an array so one expansion covers them.
+	// Anything else (null, objects) expands to nothing.
+	builder := s.getQueryBuilder().
+		Select("DISTINCT opt").
+		From("PropertyValues pv").
+		CrossJoin(`LATERAL jsonb_array_elements_text(
+			CASE jsonb_typeof(pv.Value)
+				WHEN 'array' THEN pv.Value
+				WHEN 'string' THEN jsonb_build_array(pv.Value)
+				ELSE '[]'::jsonb
+			END
+		) AS opt`).
+		Where(sq.Eq{"pv.FieldID": fieldID, "pv.DeleteAt": 0}).
+		Where("opt <> ''").
+		OrderBy("opt")
+
+	if groupID != "" {
+		builder = builder.Where(sq.Eq{"pv.GroupID": groupID})
+	}
+
+	// Read from master: the caller decides whether to remove an option based
+	// on this, so a lagging replica must not hide a value that was just written.
+	ids := []string{}
+	if err := s.GetMaster().SelectBuilder(&ids, builder); err != nil {
+		return nil, errors.Wrap(err, "property_value_get_referenced_option_ids_select")
+	}
+
+	return ids, nil
+}
+
 func (s *SqlPropertyValueStore) DeleteForTarget(groupID string, targetType string, targetID string) error {
 	if targetType == "" || targetID == "" {
 		return store.NewErrInvalidInput("PropertyValue", "target", "type or id empty")
