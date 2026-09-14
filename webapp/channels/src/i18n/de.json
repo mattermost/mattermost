@@ -4550,7 +4550,7 @@
   "filtered_channels_list.search": "Suche Kanäle",
   "filtered_channels_list.search.label": "Suche Kanäle",
   "filtered_user_list.countTotal": "{count, number} {count, plural, one {Benutzer} other {Benutzer}} von {total, number} insgesamt",
-  "filtered_user_list.countTotalPage": "{startCount, number} - {endCount, number} {count, plural, =0 {0 Mitglieder} one {Mitglied} other {Mitglieder}} von {total, number} insgesamt",
+  "filtered_user_list.countTotalPage": "{startCount, number} - {endCount, number} {count, plural, one {Mitglied} other {Mitglieder}} von {total, number} insgesamt",
   "filtered_user_list.next": "Weiter",
   "filtered_user_list.prev": "Zurück",
   "filtered_user_list.search": "Benutzer suchen",

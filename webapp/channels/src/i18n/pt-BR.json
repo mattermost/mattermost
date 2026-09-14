@@ -4057,7 +4057,7 @@
   "suggestion.archive": "Canais Arquivados",
   "suggestion.commands": "Comandos",
   "suggestion.emoji": "Emoji",
-  "suggestion.group.members": "{member_count} {member_count, plural, one {membro} few{membro} other {membros}}",
+  "suggestion.group.members": "{member_count} {member_count, plural, one {membro} other {membros}}",
   "suggestion.mention.all": "Notifica a todos no canal",
   "suggestion.mention.channel": "Notifica a todos no canal",
   "suggestion.mention.channels": "Meus Canais",
