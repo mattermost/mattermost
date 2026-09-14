@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
+
 import textboxReducer from 'reducers/views/textbox';
 
 import {ActionTypes} from 'utils/constants';
@@ -17,7 +19,7 @@ describe('Reducers.RHS', () => {
     test('Initial state', () => {
         const nextState = textboxReducer(
             {},
-            {},
+            {} as AnyAction,
         );
 
         expect(nextState).toEqual(initialState);

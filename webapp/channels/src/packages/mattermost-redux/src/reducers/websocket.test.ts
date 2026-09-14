@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
+
 import {GeneralTypes} from 'mattermost-redux/action_types';
 
 import reducer from './websocket';
@@ -8,7 +10,7 @@ import reducer from './websocket';
 describe('websocket', () => {
     describe('lastConnectAt', () => {
         test('should update lastConnectAt when first connecting', () => {
-            let state = reducer(undefined, {});
+            let state = reducer(undefined, {} as AnyAction);
 
             state = reducer(state, {
                 type: GeneralTypes.WEBSOCKET_SUCCESS,
@@ -20,7 +22,7 @@ describe('websocket', () => {
         });
 
         test('should not update lastConnectAt when already connected', () => {
-            let state = reducer(undefined, {});
+            let state = reducer(undefined, {} as AnyAction);
 
             state = reducer(state, {
                 type: GeneralTypes.WEBSOCKET_SUCCESS,
@@ -37,7 +39,7 @@ describe('websocket', () => {
         });
 
         test('should update when reconnecting', () => {
-            let state = reducer(undefined, {});
+            let state = reducer(undefined, {} as AnyAction);
 
             state = reducer(state, {
                 type: GeneralTypes.WEBSOCKET_SUCCESS,
@@ -61,7 +63,7 @@ describe('websocket', () => {
 
     describe('lastDisconnectAt', () => {
         test('should update lastDisconnectAt when disconnected', () => {
-            let state = reducer(undefined, {});
+            let state = reducer(undefined, {} as AnyAction);
 
             state = reducer(state, {
                 type: GeneralTypes.WEBSOCKET_SUCCESS,
@@ -78,7 +80,7 @@ describe('websocket', () => {
         });
 
         test('should not update lastDisconnectAt when failing to reconnect', () => {
-            let state = reducer(undefined, {});
+            let state = reducer(undefined, {} as AnyAction);
 
             state = reducer(state, {
                 type: GeneralTypes.WEBSOCKET_SUCCESS,
