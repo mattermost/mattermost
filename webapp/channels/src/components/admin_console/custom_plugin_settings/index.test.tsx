@@ -938,6 +938,13 @@ describe('custom plugin sections and settings', () => {
             expect(screen.getByText(addOnBannerText)).toBeInTheDocument();
         });
 
+        it('drops the schema footer along with the settings', () => {
+            renderAddOnPlugin({IsLicensed: 'true'});
+
+            expect(screen.getByText(addOnBannerText)).toBeInTheDocument();
+            expect(screen.queryByText('This is the footer')).not.toBeInTheDocument();
+        });
+
         it('shows the enable control when the license grants the add-on', () => {
             renderAddOnPlugin({IsLicensed: 'true', AddOns: 'crossguard'});
 

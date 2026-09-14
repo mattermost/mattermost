@@ -24,6 +24,11 @@ describe('utils/addons', () => {
             expect(licenseHasAddOn(licensed('other,crossguard'), 'crossguard')).toBe(true);
         });
 
+        test('should return false for an empty add-on name', () => {
+            expect(licenseHasAddOn(licensed('crossguard'), '')).toBe(false);
+            expect(licenseHasAddOn(licensed(''), '')).toBe(false);
+        });
+
         test('should not match on a substring', () => {
             expect(licenseHasAddOn(licensed('crossguard-premium'), 'crossguard')).toBe(false);
             expect(licenseHasAddOn(licensed('cross'), 'crossguard')).toBe(false);

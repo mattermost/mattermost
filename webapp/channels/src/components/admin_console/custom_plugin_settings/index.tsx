@@ -228,6 +228,7 @@ function makeGetPluginSchema() {
                 stateKey: plugin.id,
                 name: plugin.name,
                 header: undefined,
+                footer: unlicensedAddOn ? undefined : plugin.settings_schema?.footer,
                 settings: sections.length > 0 ? undefined : settings,
                 sections: sections.length > 0 ? sections : undefined,
                 translate: Boolean(plugin.translate),

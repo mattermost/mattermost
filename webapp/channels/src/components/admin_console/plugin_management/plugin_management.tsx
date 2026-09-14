@@ -8,7 +8,7 @@ import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 import semver from 'semver';
 
-import type {AdminConfig} from '@mattermost/types/config';
+import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import PluginState from 'mattermost-redux/constants/plugins';
@@ -18,6 +18,7 @@ import ConfirmModal from 'components/confirm_modal';
 import ExternalLink from 'components/external_link';
 import LoadingScreen from 'components/loading_screen';
 
+import {isUnlicensedAddOn} from 'utils/addons';
 import {appsPluginID} from 'utils/apps';
 import {DeveloperLinks} from 'utils/constants';
 import * as Utils from 'utils/utils';
@@ -189,7 +190,9 @@ type PluginItemProps = {
     plugin?: {
         homepage_url?: string;
         release_notes_url?: string;
+        required_add_on?: string;
     };
+    license?: ClientLicense;
     removing: boolean;
     handleEnable: (e: any) => any;
     handleDisable: (e: any) => any;
@@ -257,6 +260,7 @@ const PluginItem = ({
     appsFeatureFlagEnabled,
     isDisabled,
     configEnabled,
+    license,
 }: PluginItemProps) => {
     let activateButton: React.ReactNode;
     const activating = pluginStatus.state === PluginState.PLUGIN_STATE_STARTING;
@@ -452,6 +456,16 @@ const PluginItem = ({
         removeButton = null;
     }
 
+    // Enabling would only ever return 403 from the server-side add-on gate.
+    if (isUnlicensedAddOn(plugin?.required_add_on, license)) {
+        activateButton = (
+            <FormattedMessage
+                id='admin.plugin.addOn.notLicensed'
+                defaultMessage='Not included in your license'
+            />
+        );
+    }
+
     return (
         <div data-testid={pluginStatus.id}>
             <PluginMetadataPanel
@@ -483,6 +497,7 @@ type Props = BaseProps & {
     pluginStatuses: Record<string, PluginStatus>;
     plugins: any;
     appsFeatureFlagEnabled: boolean;
+    license?: ClientLicense;
     actions: {
         uploadPlugin: (fileData: File, force: boolean) => Promise<ActionResult>;
         removePlugin: (pluginId: string) => Promise<ActionResult>;
@@ -1162,6 +1177,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                         showInstances={showInstances}
                         hasSettings={hasSettings}
                         appsFeatureFlagEnabled={this.props.appsFeatureFlagEnabled}
+                        license={this.props.license}
                         isDisabled={this.props.isDisabled}
                         configEnabled={Boolean(this.props.config.PluginSettings?.PluginStates?.[pluginStatus.id]?.Enable)}
                     />

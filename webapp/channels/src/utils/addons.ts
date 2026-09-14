@@ -6,7 +6,8 @@ import type {ClientLicense} from '@mattermost/types/config';
 // Comma-separated because ClientLicense is Record<string, string>. Split rather
 // than substring match, so 'crossguard' is not satisfied by 'crossguard-premium'.
 export function licenseHasAddOn(license: ClientLicense | undefined, addOn: string): boolean {
-    if (license?.IsLicensed !== 'true') {
+    // ''.split(',') is [''], which an empty target would match.
+    if (!addOn || license?.IsLicensed !== 'true') {
         return false;
     }
 
