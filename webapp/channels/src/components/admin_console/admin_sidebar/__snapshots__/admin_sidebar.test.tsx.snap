@@ -2712,7 +2712,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                               <span
                                 class="sidebar-section-title__text"
                               >
-                                Manage Attributes
+                                Attribute Management
                               </span>
                             </a>
                             <ul
@@ -4573,7 +4573,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                               <span
                                 class="sidebar-section-title__text"
                               >
-                                Manage Attributes
+                                Attribute Management
                               </span>
                             </a>
                             <ul

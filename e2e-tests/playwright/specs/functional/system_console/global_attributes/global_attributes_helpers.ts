@@ -29,7 +29,7 @@ const ALL_RESOURCE_OBJECT_TYPES: ResourceObjectType[] = ['user', 'channel', 'pos
 const MAX_PROPERTY_FIELDS_PER_PAGE = 200;
 
 /**
- * Shared precondition for every test that needs the Manage Attributes page actually
+ * Shared precondition for every test that needs the Attribute Management page actually
  * reachable: skips on a sub-Enterprise license. Returns the admin session.
  */
 export async function requireGlobalAttributesEnabled(pw: PlaywrightExtended) {
@@ -43,7 +43,7 @@ export async function requireGlobalAttributesEnabled(pw: PlaywrightExtended) {
     const license = await adminClient.getClientLicenseOld();
     test.skip(
         licenseTier(license.SkuShortName) < 20,
-        'Manage Attributes requires Enterprise-tier license (SkuShortName enterprise, entry, or advanced). ' +
+        'Attribute Management requires Enterprise-tier license (SkuShortName enterprise, entry, or advanced). ' +
             'Professional is not sufficient—the admin route is hidden and redirects away.',
     );
 

@@ -280,7 +280,7 @@ func TestGenerateTriggerId(t *testing.T) {
 		require.NoError(t, err)
 
 		userId := NewId()
-		clientTriggerId, triggerId, appErr := GenerateTriggerId(userId, key)
+		clientTriggerId, triggerId, appErr := GenerateTriggerId(userId, NewId(), key)
 		assert.Nil(t, appErr)
 		assert.NotEmpty(t, clientTriggerId)
 		assert.NotEmpty(t, triggerId)
@@ -291,7 +291,7 @@ func TestGenerateTriggerId(t *testing.T) {
 		badSigner := &failingSigner{err: assert.AnError}
 
 		userId := NewId()
-		_, _, appErr := GenerateTriggerId(userId, badSigner)
+		_, _, appErr := GenerateTriggerId(userId, NewId(), badSigner)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.generate_trigger_id.signing_failed", appErr.Id)
 		assert.NotEmpty(t, appErr.Error())
@@ -310,7 +310,7 @@ func TestGenerateTriggerId(t *testing.T) {
 		}
 
 		userId := NewId()
-		_, _, appErr := GenerateTriggerId(userId, invalidKey)
+		_, _, appErr := GenerateTriggerId(userId, NewId(), invalidKey)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.generate_trigger_id.signing_failed", appErr.Id)
 		assert.Contains(t, appErr.Error(), "invalid signing key")
@@ -326,7 +326,7 @@ func TestGenerateTriggerId(t *testing.T) {
 		}
 
 		userId := NewId()
-		_, _, appErr := GenerateTriggerId(userId, invalidKey)
+		_, _, appErr := GenerateTriggerId(userId, NewId(), invalidKey)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.generate_trigger_id.signing_failed", appErr.Id)
 	})
@@ -338,63 +338,83 @@ func TestTriggerIdDecodeAndVerification(t *testing.T) {
 
 	t.Run("should succeed decoding and validation", func(t *testing.T) {
 		userId := NewId()
-		clientTriggerId, triggerId, appErr := GenerateTriggerId(userId, key)
+		channelId := NewId()
+		clientTriggerId, triggerId, appErr := GenerateTriggerId(userId, channelId, key)
 		require.Nil(t, appErr)
-		decodedClientTriggerId, decodedUserId, appErr := DecodeAndVerifyTriggerId(triggerId, key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		decodedClientTriggerId, decodedUserId, decodedChannelId, appErr := DecodeAndVerifyTriggerId(triggerId, key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		assert.Nil(t, appErr)
 		assert.Equal(t, clientTriggerId, decodedClientTriggerId)
 		assert.Equal(t, userId, decodedUserId)
+		assert.Equal(t, channelId, decodedChannelId)
 	})
 
 	t.Run("should succeed decoding and validation through request structs", func(t *testing.T) {
 		actionReq := &PostActionIntegrationRequest{
-			UserId: NewId(),
+			UserId:    NewId(),
+			ChannelId: NewId(),
 		}
 		clientTriggerId, triggerId, appErr := actionReq.GenerateTriggerId(key)
 		require.Nil(t, appErr)
 		dialogReq := &OpenDialogRequest{TriggerId: triggerId}
-		decodedClientTriggerId, decodedUserId, appErr := dialogReq.DecodeAndVerifyTriggerId(key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		decodedClientTriggerId, decodedUserId, decodedChannelId, appErr := dialogReq.DecodeAndVerifyTriggerId(key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		assert.Nil(t, appErr)
 		assert.Equal(t, clientTriggerId, decodedClientTriggerId)
 		assert.Equal(t, actionReq.UserId, decodedUserId)
+		assert.Equal(t, actionReq.ChannelId, decodedChannelId)
+	})
+
+	t.Run("should reject a trigger whose channel was tampered with", func(t *testing.T) {
+		_, triggerId, appErr := GenerateTriggerId(NewId(), NewId(), key)
+		require.Nil(t, appErr)
+
+		raw, decErr := base64.StdEncoding.DecodeString(triggerId)
+		require.NoError(t, decErr)
+		parts := strings.Split(string(raw), ":")
+		require.Len(t, parts, 5)
+		parts[3] = NewId() // swap the channel, leave the signature alone
+
+		tampered := base64.StdEncoding.EncodeToString([]byte(strings.Join(parts, ":")))
+		_, _, _, appErr = DecodeAndVerifyTriggerId(tampered, key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "interactive_message.decode_trigger_id.verify_signature_failed", appErr.Id)
 	})
 
 	t.Run("should fail on base64 decode", func(t *testing.T) {
-		_, _, appErr := DecodeAndVerifyTriggerId("junk!", key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		_, _, _, appErr := DecodeAndVerifyTriggerId("junk!", key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.decode_trigger_id.base64_decode_failed", appErr.Id)
 	})
 
 	t.Run("should fail on trigger parsing", func(t *testing.T) {
-		_, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("junk!")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		_, _, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("junk!")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.decode_trigger_id.missing_data", appErr.Id)
 	})
 
 	t.Run("should fail on expired timestamp", func(t *testing.T) {
-		_, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("some-trigger-id:some-user-id:1234567890:junksignature")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		_, _, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("some-trigger-id:some-user-id:1234567890:some-channel-id:junksignature")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.decode_trigger_id.expired", appErr.Id)
 	})
 
 	t.Run("should fail on base64 decoding signature", func(t *testing.T) {
-		_, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("some-trigger-id:some-user-id:12345678900000:junk!")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		_, _, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("some-trigger-id:some-user-id:12345678900000:some-channel-id:junk!")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.decode_trigger_id.base64_decode_failed_signature", appErr.Id)
 	})
 
 	t.Run("should fail on bad signature", func(t *testing.T) {
-		_, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("some-trigger-id:some-user-id:12345678900000:junk")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		_, _, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("some-trigger-id:some-user-id:12345678900000:some-channel-id:junk")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.decode_trigger_id.signature_decode_failed", appErr.Id)
 	})
 
 	t.Run("should fail on bad key", func(t *testing.T) {
-		_, triggerId, appErr := GenerateTriggerId(NewId(), key)
+		_, triggerId, appErr := GenerateTriggerId(NewId(), NewId(), key)
 		require.Nil(t, appErr)
 		newKey, keyErr := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 		require.NoError(t, keyErr)
-		_, _, appErr = DecodeAndVerifyTriggerId(triggerId, newKey, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		_, _, _, appErr = DecodeAndVerifyTriggerId(triggerId, newKey, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.decode_trigger_id.verify_signature_failed", appErr.Id)
 	})
@@ -1120,6 +1140,20 @@ func TestIsMultiSelectDefaultInOptions(t *testing.T) {
 	t.Run("should return true for all valid defaults", func(t *testing.T) {
 		result := isMultiSelectDefaultInOptions("opt1,opt2,opt3,opt4", options)
 		assert.True(t, result)
+	})
+
+	t.Run("should preserve internal spaces in option values", func(t *testing.T) {
+		spacedOptions := []*PostActionOptions{
+			{Text: "High risk", Value: "high risk"},
+			{Text: "Low risk", Value: "low risk"},
+		}
+
+		// A default matching an option value that legitimately contains a space
+		// must validate — the trim only strips whitespace around the comma
+		// separators, not inside a value.
+		assert.True(t, isMultiSelectDefaultInOptions("high risk", spacedOptions))
+		assert.True(t, isMultiSelectDefaultInOptions("high risk, low risk", spacedOptions))
+		assert.False(t, isMultiSelectDefaultInOptions("highrisk", spacedOptions))
 	})
 
 	t.Run("should return false for single invalid default", func(t *testing.T) {
@@ -2499,6 +2533,184 @@ func TestMmBlocksContextMap(t *testing.T) {
 		got := MmBlocksContextMap(`{"unclosed":`)
 		require.NotNil(t, got)
 		assert.Equal(t, `{"unclosed":`, got["context"])
+	})
+}
+
+func TestDialogElementCheckboxGroupValidation(t *testing.T) {
+	validOptions := []*PostActionOptions{
+		{Text: "Reason 1", Value: "reason_1"},
+		{Text: "Reason 2", Value: "reason_2"},
+	}
+
+	t.Run("valid checkbox_group", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:   "Reasons",
+			Name:          "reasons",
+			Type:          "checkbox_group",
+			Options:       validOptions,
+			Default:       "reason_1,reason_2",
+			LabelPosition: DialogLabelPositionBefore,
+		}
+		assert.NoError(t, element.IsValid())
+	})
+
+	t.Run("checkbox_group accepts default value with internal spaces", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Risk",
+			Name:        "risk",
+			Type:        "checkbox_group",
+			Options: []*PostActionOptions{
+				{Text: "High risk", Value: "high risk"},
+				{Text: "Low risk", Value: "low risk"},
+			},
+			Default: "high risk,low risk",
+		}
+		assert.NoError(t, element.IsValid())
+	})
+
+	t.Run("checkbox_group rejects matrix_config", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Reasons",
+			Name:        "reasons",
+			Type:        "checkbox_group",
+			Options:     validOptions,
+			MatrixConfig: &DialogMatrixConfig{
+				Rows: validOptions,
+			},
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "matrix_config can only be used with checkbox_matrix")
+	})
+
+	t.Run("checkbox_group rejects invalid label_position on select", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:   "Department",
+			Name:          "department",
+			Type:          "select",
+			Options:       validOptions,
+			LabelPosition: DialogLabelPositionBefore,
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "label_position cannot be used with type")
+	})
+}
+
+func TestDialogElementCheckboxMatrixValidation(t *testing.T) {
+	matrixConfig := &DialogMatrixConfig{
+		Rows: []*PostActionOptions{
+			{Text: "Reason 1", Value: "reason_1"},
+			{Text: "Reason 2", Value: "reason_2"},
+		},
+		Columns: []*PostActionOptions{
+			{Text: "High", Value: "high"},
+			{Text: "Severe", Value: "severe"},
+		},
+		RowSelection: DialogMatrixRowSelectionMultiple,
+	}
+
+	t.Run("valid checkbox_matrix", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Severity",
+			Name:         "severity",
+			Type:         "checkbox_matrix",
+			MatrixConfig: matrixConfig,
+			Default:      "reason_1:high,severe;reason_2:high",
+		}
+		assert.NoError(t, element.IsValid())
+	})
+
+	t.Run("checkbox_matrix rejects colon in row value", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Severity",
+			Name:        "severity",
+			Type:        "checkbox_matrix",
+			MatrixConfig: &DialogMatrixConfig{
+				Rows: []*PostActionOptions{
+					{Text: "Bad", Value: "bad:row"},
+				},
+				Columns: matrixConfig.Columns,
+			},
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "must not contain")
+	})
+
+	t.Run("checkbox_matrix rejects default column not in columns", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Severity",
+			Name:         "severity",
+			Type:         "checkbox_matrix",
+			MatrixConfig: matrixConfig,
+			Default:      "reason_1:nonexistent",
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "is not in matrix_config.columns")
+	})
+
+	t.Run("checkbox_matrix rejects duplicate row in default string", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Severity",
+			Name:         "severity",
+			Type:         "checkbox_matrix",
+			MatrixConfig: matrixConfig,
+			Default:      "reason_1:high;reason_1:severe",
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "duplicate row")
+	})
+
+	t.Run("checkbox_matrix rejects multiple columns in one row when row_selection is single", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Severity",
+			Name:        "severity",
+			Type:        "checkbox_matrix",
+			MatrixConfig: &DialogMatrixConfig{
+				Rows:         matrixConfig.Rows,
+				Columns:      matrixConfig.Columns,
+				RowSelection: DialogMatrixRowSelectionSingle,
+			},
+			Default: "reason_1:high,severe",
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "row_selection is single")
+	})
+
+	t.Run("checkbox_matrix rejects semicolon in row value", func(t *testing.T) {
+		// ";" separates row entries in the default string, so a row value
+		// containing it would corrupt default parsing and must be rejected.
+		element := DialogElement{
+			DisplayName: "Severity",
+			Name:        "severity",
+			Type:        "checkbox_matrix",
+			MatrixConfig: &DialogMatrixConfig{
+				Rows: []*PostActionOptions{
+					{Text: "Bad", Value: "a;b"},
+				},
+				Columns: matrixConfig.Columns,
+			},
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "must not contain")
+	})
+
+	t.Run("checkbox_matrix rejects top-level options", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Severity",
+			Name:         "severity",
+			Type:         "checkbox_matrix",
+			MatrixConfig: matrixConfig,
+			Options:      matrixConfig.Rows,
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "cannot have options")
 	})
 }
 

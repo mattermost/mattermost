@@ -47,25 +47,30 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
 
     test.describe('access gate', () => {
         /**
-         * @objective Ensure the Manage Attributes page is reachable on an Enterprise+ license.
+         * @objective Ensure the Attribute Management page is reachable and shows its page frame
+         * on an Enterprise+ license.
          */
-        test('Enterprise+ license shows Manage Attributes', async ({pw}) => {
+        test('Enterprise+ license shows Attribute Management', async ({pw}) => {
             const {adminUser} = await requireGlobalAttributesEnabled(pw);
 
-            // # Log in and open the Manage Attributes URL
+            // # Log in and open the Attribute Management URL
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
 
-            // * URL stays on the Manage Attributes section
+            // * URL stays on the Attribute Management section
             await expect(systemConsolePage.page).toHaveURL(/manage_attributes/);
-            // * Sidebar menu entry and page heading are both visible ("Manage Attributes"
+            // * Sidebar menu entry and page heading are both visible ("Attribute Management"
             // renders in both places, so each is asserted within its own scope)
             await expect(
-                systemConsolePage.page.getByTestId('admin-sidebar').getByText('Manage Attributes'),
+                systemConsolePage.page.getByTestId('admin-sidebar').getByText('Attribute Management'),
             ).toBeVisible();
             await expect(
-                systemConsolePage.page.getByTestId('admin-console-header').getByText('Manage Attributes'),
+                systemConsolePage.page.getByTestId('admin-console-header').getByText('Attribute Management'),
             ).toBeVisible();
+            // * The old User Attributes sidebar entry is replaced by Attribute Management
+            await expect(
+                systemConsolePage.page.getByTestId('admin-sidebar').getByText('User Attributes', {exact: true}),
+            ).not.toBeVisible();
             // * Page frame's static subtitle is present (renders regardless of fetch state)
             await expect(
                 systemConsolePage.page.getByText('Define an attribute once, then choose which resources can use it.'),
@@ -163,7 +168,7 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
                     });
                 }
 
-                // # Log in and open the Manage Attributes page once every field is seeded
+                // # Log in and open the Attribute Management page once every field is seeded
                 const {systemConsolePage} = await pw.testBrowser.login(adminUser);
                 await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
 

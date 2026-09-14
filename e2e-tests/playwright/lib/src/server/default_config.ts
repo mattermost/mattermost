@@ -711,6 +711,7 @@ const defaultServerConfig: AdminConfig = {
             CustomSMTPPort: '25',
             CustomHeaderName: '',
             CustomHeaderValue: '',
+            SenderAddress: '',
         },
     },
     JobSettings: {

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {type JSX, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 import {Link} from 'react-router-dom';
@@ -386,7 +386,7 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
 }
 
 const messages = defineMessages({
-    backLink: {id: 'admin.global_attributes.classification.back_link', defaultMessage: 'Back to Manage Attributes'},
+    backLink: {id: 'admin.global_attributes.classification.back_link', defaultMessage: 'Back to Attribute Management'},
     title: {id: 'admin.global_attributes.classification.title', defaultMessage: 'Classification'},
     subtitle: {
         id: 'admin.global_attributes.classification.subtitle',

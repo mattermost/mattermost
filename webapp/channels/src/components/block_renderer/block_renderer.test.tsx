@@ -107,7 +107,7 @@ describe('BlockRenderer', () => {
                 src: imageUrl,
                 imageMetadata: imagesMetadata[imageUrl],
             }),
-            expect.anything(),
+            undefined,
         );
 
         expect(jest.mocked(SizeAwareImage)).toHaveBeenCalledWith(
@@ -115,7 +115,7 @@ describe('BlockRenderer', () => {
                 src: imageUrl,
                 dimensions: imagesMetadata[imageUrl],
             }),
-            expect.anything(),
+            undefined,
         );
 
         expect(screen.getByTestId('external-image-mock')).toHaveAttribute('data-image-format', 'png');
