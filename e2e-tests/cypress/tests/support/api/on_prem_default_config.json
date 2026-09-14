@@ -527,7 +527,8 @@
             "CustomSMTPServerName": "",
             "CustomSMTPPort": "25",
             "CustomHeaderName": "",
-            "CustomHeaderValue": ""
+            "CustomHeaderValue": "",
+            "SenderAddress": ""
         }
     },
     "JobSettings": {
