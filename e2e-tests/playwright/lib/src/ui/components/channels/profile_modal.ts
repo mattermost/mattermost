@@ -165,12 +165,45 @@ class ProfileSettingsTab {
 
 class SecurityTab {
     readonly container: Locator;
+    readonly mfaHeading: Locator;
+    readonly signInHeading: Locator;
+    readonly switchToOpenId: Locator;
+    readonly switchToSaml: Locator;
+    readonly switchToLdap: Locator;
+    readonly switchToEmail: Locator;
+    readonly editSignInMethod: Locator;
 
     constructor(container: Locator) {
         this.container = container;
+        this.mfaHeading = container.getByText('Multi-factor Authentication', {exact: true});
+        this.signInHeading = container.getByText('Sign-in Method', {exact: true});
+        this.editSignInMethod = container.locator('#signinEdit');
+        this.switchToOpenId = container.getByRole('link', {name: 'Switch to Using OpenID SSO'});
+        this.switchToSaml = container.getByRole('link', {name: 'Switch to Using SAML SSO'});
+        this.switchToLdap = container.getByRole('link', {name: 'Switch to Using AD/LDAP'});
+        this.switchToEmail = container.getByRole('link', {name: 'Switch to Using Email and Password'});
     }
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
+    }
+
+    async openSignInMethod() {
+        await this.editSignInMethod.click();
+    }
+
+    async clickSwitchToOpenId() {
+        await this.openSignInMethod();
+        await this.switchToOpenId.click();
+    }
+
+    async clickSwitchToLdap() {
+        await this.openSignInMethod();
+        await this.switchToLdap.click();
+    }
+
+    async clickSwitchToEmail() {
+        await this.openSignInMethod();
+        await this.switchToEmail.click();
     }
 }

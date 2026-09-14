@@ -26,6 +26,7 @@ import PluginManagement from '@/ui/components/system_console/sections/plugins/pl
 import OpenIdConnect from '@/ui/components/system_console/sections/authentication/openid_connect';
 import AdLdap from '@/ui/components/system_console/sections/authentication/ad_ldap';
 import PasswordSettings from '@/ui/components/system_console/sections/authentication/password';
+import MfaSettings from '@/ui/components/system_console/sections/authentication/mfa';
 import PublicLinks from '@/ui/components/system_console/sections/site_configuration/public_links';
 import {testConfig} from '@/test_config';
 
@@ -72,6 +73,7 @@ export default class SystemConsolePage {
     readonly openIdConnect: OpenIdConnect;
     readonly adLdap: AdLdap;
     readonly passwordSettings: PasswordSettings;
+    readonly mfaSettings: MfaSettings;
     readonly publicLinks: PublicLinks;
 
     // Same page after logging out of the System Console
@@ -122,6 +124,7 @@ export default class SystemConsolePage {
         this.openIdConnect = new OpenIdConnect(adminConsoleWrapper);
         this.adLdap = new AdLdap(adminConsoleWrapper);
         this.passwordSettings = new PasswordSettings(adminConsoleWrapper);
+        this.mfaSettings = new MfaSettings(adminConsoleWrapper);
         this.publicLinks = new PublicLinks(adminConsoleWrapper);
 
         this.loginPage = new LoginPage(page);
@@ -162,6 +165,11 @@ export default class SystemConsolePage {
         await this.users.userDetail.toBeVisible();
     }
 
+    async gotoUsers() {
+        await this.page.goto(new URL('/admin_console/user_management/users', testConfig.baseURL).href);
+        await this.users.toBeVisible();
+    }
+
     async gotoAdLdap() {
         await this.page.goto(new URL('/admin_console/authentication/ldap', testConfig.baseURL).href);
         await this.adLdap.toBeVisible();
@@ -170,6 +178,11 @@ export default class SystemConsolePage {
     async gotoPasswordSettings() {
         await this.page.goto(new URL('/admin_console/authentication/password', testConfig.baseURL).href);
         await this.passwordSettings.toBeVisible();
+    }
+
+    async gotoMfaSettings() {
+        await this.page.goto(new URL('/admin_console/authentication/mfa', testConfig.baseURL).href);
+        await this.mfaSettings.toBeVisible();
     }
 
     async gotoPublicLinks() {
