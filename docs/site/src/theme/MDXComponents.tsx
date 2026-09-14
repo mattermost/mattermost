@@ -18,6 +18,7 @@ import StatStrip from '@site/src/components/StatStrip';
 import MethodLegend from '@site/src/components/MethodLegend';
 import CardGrid from '@site/src/components/CardGrid';
 import UpgradeNotesFilter from '@site/src/components/UpgradeNotesFilter';
+import SecurityUpdates from '@site/src/components/SecurityUpdates';
 import PluginGoDocs from '@site/src/components/PluginGoDocs';
 import PluginGoExample from '@site/src/components/PluginGoExample';
 import PluginJsDocs from '@site/src/components/PluginJsDocs';
@@ -50,6 +51,7 @@ export default {
   MethodLegend,
   CardGrid,
   UpgradeNotesFilter,
+  SecurityUpdates,
   PluginGoDocs,
   PluginGoExample,
   PluginJsDocs,

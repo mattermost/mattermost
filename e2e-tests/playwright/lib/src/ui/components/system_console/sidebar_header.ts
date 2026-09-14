@@ -4,6 +4,8 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import AboutBuildModal from '@/ui/components/about_build_modal';
+
 /**
  * System Console Sidebar Header component
  */
@@ -13,6 +15,8 @@ export default class SystemConsoleSidebarHeader {
     readonly title: Locator;
     readonly userName: Locator;
     readonly menuButton: Locator;
+    readonly menu: Locator;
+    readonly aboutMenuItem: Locator;
 
     constructor(container: Locator) {
         this.container = container;
@@ -20,10 +24,33 @@ export default class SystemConsoleSidebarHeader {
         this.title = container.getByText('System Console');
         this.userName = container.getByText(/^@/);
         this.menuButton = container.getByRole('button', {name: 'Menu Icon'});
+        this.menu = container.getByRole('menu');
+        this.aboutMenuItem = container.page().getByRole('menuitem', {name: /^About /});
     }
 
     async toBeVisible() {
         await expect(this.container).toBeVisible();
         await expect(this.title).toBeVisible();
+    }
+
+    /**
+     * Opens the sidebar header's menu and returns the menu list.
+     */
+    async openMenu(): Promise<Locator> {
+        await this.menuButton.click();
+        await expect(this.menu).toBeVisible();
+        return this.menu;
+    }
+
+    /**
+     * Opens the sidebar header's menu and selects "About {siteName}", returning the modal.
+     */
+    async openAbout(): Promise<AboutBuildModal> {
+        await this.openMenu();
+        await this.aboutMenuItem.click();
+
+        const aboutModal = new AboutBuildModal(this.container.page().getByRole('dialog', {name: /^About /}));
+        await aboutModal.toBeVisible();
+        return aboutModal;
     }
 }

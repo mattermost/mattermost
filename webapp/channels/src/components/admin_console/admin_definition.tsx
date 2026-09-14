@@ -98,6 +98,7 @@ import UserAttributesFeatureDiscovery from './feature_discovery/features/user_at
 import FeatureFlags, {messages as featureFlagsMessages} from './feature_flags';
 import GlobalAttributes, {searchableStrings as globalAttributesSearchableStrings} from './global_attributes';
 import AttributeDetails from './global_attributes/attribute_details';
+import ClassificationAttribute from './global_attributes/classification_attribute';
 import GroupDetails from './group_settings/group_details';
 import GroupSettings from './group_settings/group_settings';
 import IPFiltering from './ip_filtering';
@@ -642,7 +643,12 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'system_attributes/user_attributes',
                 title: defineMessage({id: 'admin.sidebar.user_attributes', defaultMessage: 'User Attributes'}),
                 searchableStrings: systemPropertiesSearchableStrings,
-                isHidden: it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
+
+                // Replaced by Attribute Management when the GlobalAttributes flag is on.
+                isHidden: it.any(
+                    it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
+                    it.configIsTrue('FeatureFlags', 'GlobalAttributes'),
+                ),
                 schema: {
                     id: 'SystemProperties',
                     component: SystemProperties,
@@ -718,6 +724,25 @@ const AdminDefinition: AdminDefinitionType = {
                     component: BoardAttributes,
                 },
             },
+            classification_attribute: {
+                url: 'system_attributes/manage_attributes/classification',
+
+                // Gated on ChannelAttributes as well: with that flag off the only
+                // editable thing on this page is the Channels resource, so there is
+                // nothing here that the Classification Markings page does not cover.
+                // That resource is also what sets the tier: channel attributes are
+                // Enterprise Advanced even though Global Attributes is not.
+                isHidden: it.not(it.all(
+                    it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
+                    it.configIsTrue('FeatureFlags', 'GlobalAttributes'),
+                    it.configIsTrue('FeatureFlags', 'ChannelAttributes'),
+                )),
+                isDisabled: it.not(it.isSystemAdmin),
+                schema: {
+                    id: 'ClassificationAttribute',
+                    component: ClassificationAttribute,
+                },
+            },
             global_attribute_details_edit: {
                 url: `system_attributes/manage_attributes/attribute_details/:field_id(${ID_PATH_PATTERN})`,
                 isHidden: it.not(it.all(
@@ -744,7 +769,7 @@ const AdminDefinition: AdminDefinitionType = {
             },
             global_attributes: {
                 url: 'system_attributes/manage_attributes',
-                title: defineMessage({id: 'admin.sidebar.global_attributes', defaultMessage: 'Manage Attributes'}),
+                title: defineMessage({id: 'admin.sidebar.global_attributes', defaultMessage: 'Attribute Management'}),
                 searchableStrings: globalAttributesSearchableStrings,
                 isHidden: it.not(it.all(
                     it.minLicenseTier(LicenseSkus.Enterprise),
@@ -4024,7 +4049,10 @@ const AdminDefinition: AdminDefinitionType = {
             recaps: {
                 url: 'site_config/recaps',
                 title: defineMessage({id: 'admin.sidebar.recaps', defaultMessage: 'Recaps'}),
-                isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
+                isHidden: it.any(
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
+                    it.configIsFalse('FeatureFlags', 'EnableAIRecaps'),
+                ),
                 schema: {
                     id: 'RecapSettings',
                     name: defineMessage({id: 'admin.site.recaps', defaultMessage: 'Recaps'}),
