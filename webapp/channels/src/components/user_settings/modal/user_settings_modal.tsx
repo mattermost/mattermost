@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import ReactDOM from 'react-dom';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
@@ -173,8 +172,8 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
 
     // Called to hide the settings pane when on mobile
     handleCollapse = () => {
-        const el = ReactDOM.findDOMNode(this.modalBodyRef.current) as HTMLDivElement;
-        el.closest('.modal-dialog')!.classList.remove('display--content');
+        const el = this.modalBodyRef.current;
+        el?.closest('.modal-dialog')!.classList.remove('display--content');
 
         this.setState({
             active_tab: '',

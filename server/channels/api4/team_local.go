@@ -163,6 +163,12 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 				if !isEmailAddressAllowed(emailAddress, allowedDomains) {
 					invite.Error = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": emailAddress}, "", http.StatusBadRequest)
 					errList = append(errList, model.EmailInviteWithErrorToString(invite))
+				} else if deactivated, userErr := c.App.IsDeactivatedUserEmail(emailAddress); userErr != nil {
+					invite.Error = userErr
+					errList = append(errList, model.EmailInviteWithErrorToString(invite))
+				} else if deactivated {
+					invite.Error = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.account_deactivated.app_error", map[string]any{"Addresses": emailAddress}, "", http.StatusBadRequest)
+					errList = append(errList, model.EmailInviteWithErrorToString(invite))
 				} else {
 					goodEmails = append(goodEmails, emailAddress)
 				}
@@ -218,9 +224,9 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 	} else {
 		var invalidEmailList []string
 
-		for _, email := range emailList {
-			if !isEmailAddressAllowed(email, allowedDomains) {
-				invalidEmailList = append(invalidEmailList, email)
+		for _, emailAddr := range emailList {
+			if !isEmailAddressAllowed(emailAddr, allowedDomains) {
+				invalidEmailList = append(invalidEmailList, emailAddr)
 			}
 		}
 		if len(invalidEmailList) > 0 {
@@ -228,6 +234,10 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 			c.Err = model.NewAppError("localInviteUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": s}, "", http.StatusBadRequest)
 			return
 		}
+		if c.Err = c.App.CheckForDeactivatedInvites("localInviteUsersToTeam", emailList); c.Err != nil {
+			return
+		}
+
 		err := c.App.Srv().EmailService.SendInviteEmails(c.AppContext, email.InviteEmailData{
 			Team:          team,
 			SenderName:    "Administrator",

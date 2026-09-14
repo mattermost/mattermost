@@ -370,7 +370,7 @@ func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
-	th := setupTestHelper(tb, testlib.GetMockStoreForSetupFunctions(), nil, nil, false, false, nil, nil)
+	th := setupTestHelper(tb, testlib.GetMockStoreForSetupFunctions(), nil, nil, false, false, useCustomPushNotificationServer, nil)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -383,10 +383,15 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	return th
 }
 
+func useCustomPushNotificationServer(config *model.Config) {
+	*config.EmailSettings.PushNotificationServer = "https://push.example.com"
+}
+
 func SetupEnterpriseWithStoreMock(tb testing.TB, options ...app.Option) *TestHelper {
 	removeSpuriousErrors := func(config *model.Config) {
 		// If not set, you will receive an unactionable error in the console
 		*config.ServiceSettings.SiteURL = "http://localhost:8065"
+		useCustomPushNotificationServer(config)
 	}
 
 	th := setupTestHelper(tb, testlib.GetMockStoreForSetupFunctions(), nil, nil, true, false, removeSpuriousErrors, options)
@@ -485,31 +490,31 @@ func (th *TestHelper) InitLogin(tb testing.TB) *TestHelper {
 	systemAdminPassword := th.SystemAdminUser.Password
 	_, appErr := th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 	require.Nil(tb, appErr)
-	th.SystemAdminUser, appErr = th.App.GetUser(th.SystemAdminUser.Id)
+	th.SystemAdminUser, appErr = th.App.GetUser(th.Context, th.SystemAdminUser.Id)
 	require.Nil(tb, appErr)
 
 	th.SystemManagerUser = th.CreateUser(tb)
 	systemManagerPassword := th.SystemManagerUser.Password
 	_, appErr = th.App.UpdateUserRoles(th.Context, th.SystemManagerUser.Id, model.SystemUserRoleId+" "+model.SystemManagerRoleId, false)
 	require.Nil(tb, appErr)
-	th.SystemManagerUser, appErr = th.App.GetUser(th.SystemManagerUser.Id)
+	th.SystemManagerUser, appErr = th.App.GetUser(th.Context, th.SystemManagerUser.Id)
 	require.Nil(tb, appErr)
 
 	th.TeamAdminUser = th.CreateUser(tb)
 	teamAdminPassword := th.TeamAdminUser.Password
 	_, appErr = th.App.UpdateUserRoles(th.Context, th.TeamAdminUser.Id, model.SystemUserRoleId, false)
 	require.Nil(tb, appErr)
-	th.TeamAdminUser, appErr = th.App.GetUser(th.TeamAdminUser.Id)
+	th.TeamAdminUser, appErr = th.App.GetUser(th.Context, th.TeamAdminUser.Id)
 	require.Nil(tb, appErr)
 
 	th.BasicUser = th.CreateUser(tb)
 	basicUserPassword := th.BasicUser.Password
-	th.BasicUser, appErr = th.App.GetUser(th.BasicUser.Id)
+	th.BasicUser, appErr = th.App.GetUser(th.Context, th.BasicUser.Id)
 	require.Nil(tb, appErr)
 
 	th.BasicUser2 = th.CreateUser(tb)
 	basicUser2Password := th.BasicUser2.Password
-	th.BasicUser2, appErr = th.App.GetUser(th.BasicUser2.Id)
+	th.BasicUser2, appErr = th.App.GetUser(th.Context, th.BasicUser2.Id)
 	require.Nil(tb, appErr)
 
 	// restore non-hashed password for login
@@ -777,7 +782,7 @@ func (th *TestHelper) SetupLdapConfig() {
 		*cfg.LdapSettings.LdapServer = "dockerhost"
 		*cfg.LdapSettings.BaseDN = "dc=mm,dc=test,dc=com"
 		*cfg.LdapSettings.BindUsername = "cn=admin,dc=mm,dc=test,dc=com"
-		*cfg.LdapSettings.BindPassword = "mostest"
+		*cfg.LdapSettings.BindPassword = "mostest_password"
 		*cfg.LdapSettings.FirstNameAttribute = "cn"
 		*cfg.LdapSettings.LastNameAttribute = "sn"
 		*cfg.LdapSettings.NicknameAttribute = "cn"
@@ -1424,7 +1429,7 @@ func (th *TestHelper) SetUserRemoteID(tb testing.TB, userID, remoteID string) *m
 	require.NoError(tb, err)
 
 	th.App.InvalidateCacheForUser(userID)
-	user, appErr := th.App.GetUser(userID)
+	user, appErr := th.App.GetUser(th.Context, userID)
 	require.Nil(tb, appErr)
 	return user
 }

@@ -8,10 +8,11 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-func (a *App) getStartOfUserDay(userID string) (time.Time, *model.AppError) {
-	user, appErr := a.GetUser(userID)
+func (a *App) getStartOfUserDay(rctx request.CTX, userID string) (time.Time, *model.AppError) {
+	user, appErr := a.GetUser(rctx, userID)
 	if appErr != nil {
 		return time.Time{}, appErr
 	}
@@ -22,8 +23,8 @@ func (a *App) getStartOfUserDay(userID string) (time.Time, *model.AppError) {
 	return startOfDay, nil
 }
 
-func (a *App) getStartOfUserDayMillis(userID string) (int64, *model.AppError) {
-	startOfDay, appErr := a.getStartOfUserDay(userID)
+func (a *App) getStartOfUserDayMillis(rctx request.CTX, userID string) (int64, *model.AppError) {
+	startOfDay, appErr := a.getStartOfUserDay(rctx, userID)
 	if appErr != nil {
 		return 0, appErr
 	}
@@ -43,14 +44,14 @@ func (a *App) requireAIRecapsEnabled(where string) *model.AppError {
 }
 
 // GetRecapLimitStatus returns the current user's limit status for UI display
-func (a *App) GetRecapLimitStatus(userID string) (*model.RecapLimitStatus, *model.AppError) {
+func (a *App) GetRecapLimitStatus(rctx request.CTX, userID string) (*model.RecapLimitStatus, *model.AppError) {
 	// Get effective limits
 	limits, appErr := a.GetEffectiveLimits()
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	startOfDay, appErr := a.getStartOfUserDay(userID)
+	startOfDay, appErr := a.getStartOfUserDay(rctx, userID)
 	if appErr != nil {
 		return nil, appErr
 	}

@@ -695,29 +695,25 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	jobs := []model.Job{
-		{
-			Id:       model.NewId(),
-			Type:     model.JobTypeDataRetention,
-			CreateAt: 999,
-		},
-		{
-			Id:       model.NewId(),
-			Type:     model.JobTypeMessageExport,
-			CreateAt: 1001,
-		},
-	}
 	testCases := []struct {
-		Job                model.Job
+		JobType            string
 		PermissionRequired *model.Permission
 	}{
 		{
-			Job:                jobs[0],
+			JobType:            model.JobTypeDataRetention,
 			PermissionRequired: model.PermissionReadDataRetentionJob,
 		},
 		{
-			Job:                jobs[1],
+			JobType:            model.JobTypeMessageExport,
 			PermissionRequired: model.PermissionReadComplianceExportJob,
+		},
+		{
+			JobType:            model.JobTypePostPersistentNotifications,
+			PermissionRequired: model.PermissionReadJobs,
+		},
+		{
+			JobType:            model.JobTypeDeleteExpiredPosts,
+			PermissionRequired: model.PermissionReadJobs,
 		},
 	}
 
@@ -727,7 +723,7 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 
 	// Check to see if admin has permission to all the jobs
 	for _, testCase := range testCases {
-		hasPermission, permissionRequired := th.App.SessionHasPermissionToReadJob(session, testCase.Job.Type)
+		hasPermission, permissionRequired := th.App.SessionHasPermissionToReadJob(session, testCase.JobType)
 		assert.Equal(t, true, hasPermission)
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)
@@ -739,7 +735,7 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 
 	// Initially the system manager should not have access to read these jobs
 	for _, testCase := range testCases {
-		hasPermission, permissionRequired := th.App.SessionHasPermissionToReadJob(session, testCase.Job.Type)
+		hasPermission, permissionRequired := th.App.SessionHasPermissionToReadJob(session, testCase.JobType)
 		assert.Equal(t, false, hasPermission)
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)
@@ -754,21 +750,21 @@ func TestSessionHasPermissionToReadJob(t *testing.T) {
 
 	// Now system manager should have ability to read data retention jobs
 	for _, testCase := range testCases {
-		hasPermission, permissionRequired := th.App.SessionHasPermissionToReadJob(session, testCase.Job.Type)
-		expectedHasPermission := testCase.Job.Type == model.JobTypeDataRetention
+		hasPermission, permissionRequired := th.App.SessionHasPermissionToReadJob(session, testCase.JobType)
+		expectedHasPermission := testCase.JobType == model.JobTypeDataRetention
 		assert.Equal(t, expectedHasPermission, hasPermission)
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)
 	}
 
-	role.Permissions = append(role.Permissions, model.PermissionReadComplianceExportJob.Id)
+	role.Permissions = append(role.Permissions, model.PermissionReadComplianceExportJob.Id, model.PermissionReadJobs.Id)
 
 	_, err = th.App.UpdateRole(role)
 	require.Nil(t, err)
 
-	// Now system read only admin should have ability to create all jobs
+	// Now system read only admin should have ability to read all jobs
 	for _, testCase := range testCases {
-		hasPermission, permissionRequired := th.App.SessionHasPermissionToReadJob(session, testCase.Job.Type)
+		hasPermission, permissionRequired := th.App.SessionHasPermissionToReadJob(session, testCase.JobType)
 		assert.Equal(t, true, hasPermission)
 		require.NotNil(t, permissionRequired)
 		assert.Equal(t, testCase.PermissionRequired.Id, permissionRequired.Id)

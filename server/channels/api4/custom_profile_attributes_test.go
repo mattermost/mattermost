@@ -27,9 +27,7 @@ func celSafeName() string {
 
 func TestCreateCPAField(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.CustomProfileAttributes = true
-	})
+	th := Setup(t)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		field := &model.PropertyField{Name: celSafeName(), Type: model.PropertyFieldTypeText}
@@ -139,9 +137,7 @@ func TestCreateCPAField(t *testing.T) {
 
 func TestCPAFieldLimit(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.CustomProfileAttributes = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	// Create 20 fields — the maximum allowed by FieldLimitHook.
@@ -185,9 +181,7 @@ func TestCPAFieldLimit(t *testing.T) {
 
 func TestListCPAFields(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.CustomProfileAttributes = true
-	})
+	th := Setup(t)
 
 	// License required for field creation (LicenseCheckHook)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
@@ -238,7 +232,6 @@ func TestListCPAFields(t *testing.T) {
 func TestPatchCPAField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.CustomProfileAttributes = true
 		cfg.FeatureFlags.PropertyFieldRank = true
 	})
 
@@ -590,9 +583,7 @@ func TestPatchCPAField(t *testing.T) {
 
 func TestDeleteCPAField(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.CustomProfileAttributes = true
-	})
+	th := Setup(t)
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		// Create a field with a license so we can test the license check on delete.
@@ -677,9 +668,7 @@ func TestDeleteCPAField(t *testing.T) {
 func TestListCPAValues(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.CustomProfileAttributes = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	// License required for field/value creation (LicenseCheckHook)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
@@ -774,9 +763,7 @@ func TestListCPAValues(t *testing.T) {
 func TestPatchCPAValues(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.CustomProfileAttributes = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	// License required for field creation (LicenseCheckHook)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
@@ -1178,9 +1165,7 @@ func TestPatchCPAValues(t *testing.T) {
 func TestPatchCPAValuesForUser(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.CustomProfileAttributes = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	// License required for field creation (LicenseCheckHook)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
@@ -1578,7 +1563,6 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 func TestCPANonAdminWriteOwnValueViaGenericAPI(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.CustomProfileAttributes = true
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
@@ -1640,7 +1624,6 @@ func TestCPANonAdminWriteOwnValueViaGenericAPI(t *testing.T) {
 func TestCPANonAdminBlockedFromAdminManagedViaGenericAPI(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.CustomProfileAttributes = true
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
@@ -1705,7 +1688,6 @@ func TestCPANonAdminBlockedFromAdminManagedViaGenericAPI(t *testing.T) {
 func TestCPACrossAPIFieldRoundtrip(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.CustomProfileAttributes = true
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
@@ -1824,7 +1806,6 @@ func TestCPACrossAPIFieldRoundtrip(t *testing.T) {
 func TestCPABackwardCompatAfterRefactor(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.CustomProfileAttributes = true
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
@@ -1919,9 +1900,7 @@ func TestCPABackwardCompatAfterRefactor(t *testing.T) {
 func TestOwnerManagedCPAFieldHumanValueWrites(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.CustomProfileAttributes = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
@@ -1985,9 +1964,7 @@ func TestOwnerManagedCPAFieldHumanValueWrites(t *testing.T) {
 func TestSysadminManagesCPAFieldOwners(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.CustomProfileAttributes = true
-	}).InitBasic(t)
+	th := Setup(t).InitBasic(t)
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 

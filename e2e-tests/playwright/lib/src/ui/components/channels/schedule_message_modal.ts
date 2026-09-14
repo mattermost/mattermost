@@ -4,11 +4,14 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {getDayPickerDayCell} from '../day_picker';
+
 export default class ScheduleMessageModal {
     readonly container: Locator;
     readonly dateButton: Locator;
     readonly timeButton: Locator;
     readonly timeOptionDropdown: Locator;
+    readonly repeatWeeklyCheckbox: Locator;
     readonly closeButton: Locator;
     readonly scheduleButton: Locator;
     readonly cancelButton: Locator;
@@ -18,6 +21,7 @@ export default class ScheduleMessageModal {
         this.dateButton = container.getByRole('button', {name: /Date/});
         this.timeButton = container.getByTestId('time_button');
         this.timeOptionDropdown = container.getByLabel('Choose a time');
+        this.repeatWeeklyCheckbox = container.getByRole('checkbox', {name: 'Repeat weekly'});
         this.closeButton = container.getByRole('button', {name: 'Close'});
         this.scheduleButton = container.getByRole('button', {name: 'Schedule'});
         this.cancelButton = container.getByRole('button', {name: 'Cancel'});
@@ -27,27 +31,8 @@ export default class ScheduleMessageModal {
         await expect(this.container).toBeVisible();
     }
 
-    getDaySuffix(day: number): string {
-        if (day > 3 && day < 21) {
-            return 'th';
-        }
-
-        switch (day % 10) {
-            case 1:
-                return 'st';
-            case 2:
-                return 'nd';
-            case 3:
-                return 'rd';
-            default:
-                return 'th';
-        }
-    }
-
-    dateLocator(day: number, month: string, dayOfWeek: string) {
-        const daySuffix = this.getDaySuffix(day);
-        const name = `${day}${daySuffix} ${month} (${dayOfWeek})`;
-        return this.container.getByRole('button', {name});
+    dateLocator(day: number) {
+        return getDayPickerDayCell(this.container, day);
     }
 
     async selectDate(dayFromToday: number = 0) {
@@ -62,9 +47,8 @@ export default class ScheduleMessageModal {
 
         const day = pacificDate.getDate();
         const month = pacificDate.toLocaleString('default', {month: 'long'});
-        const dayOfWeek = pacificDate.toLocaleDateString('en-US', {weekday: 'long'});
 
-        const dateLocator = this.dateLocator(day, month, dayOfWeek);
+        const dateLocator = this.dateLocator(day);
 
         const isMonthChanged = pacificDate.getMonth() !== originDate.getMonth();
         if (!(await dateLocator.isVisible()) && isMonthChanged) {
@@ -98,8 +82,20 @@ export default class ScheduleMessageModal {
         return text;
     }
 
-    async scheduleMessage(dayFromToday: number = 0, timeOptionIndex: number = 0) {
+    async setRepeatWeekly(enabled: boolean) {
+        const isChecked = await this.repeatWeeklyCheckbox.isChecked();
+
+        if (isChecked !== enabled) {
+            await this.repeatWeeklyCheckbox.click();
+        }
+    }
+
+    async scheduleMessage(dayFromToday: number = 0, timeOptionIndex: number = 0, repeatWeekly?: boolean) {
         await this.toBeVisible();
+
+        if (typeof repeatWeekly === 'boolean') {
+            await this.setRepeatWeekly(repeatWeekly);
+        }
 
         const selectedDate = await this.selectDate(dayFromToday);
 

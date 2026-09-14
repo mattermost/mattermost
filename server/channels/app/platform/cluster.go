@@ -151,7 +151,7 @@ func (ps *PlatformService) KVDelete(productID, key string) *model.AppError {
 func (ps *PlatformService) KVList(productID string, page, perPage int) ([]string, *model.AppError) {
 	data, err := ps.Store.Plugin().List(productID, page*perPage, perPage)
 	if err != nil {
-		ps.logger.Error("Failed to list plugin key values", mlog.Int("page", page), mlog.Int("perPage", perPage), mlog.Err(err))
+		ps.logger.Error("Failed to list plugin key values", mlog.Int("page", page), mlog.Int("per_page", perPage), mlog.Err(err))
 		return nil, model.NewAppError("ListPluginKeys", "app.plugin_store.list.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -236,7 +236,7 @@ func (ps *PlatformService) PublishSkipClusterSend(event *model.WebSocketEvent) {
 func (ps *PlatformService) ListPluginKeys(pluginID string, page, perPage int) ([]string, *model.AppError) {
 	data, err := ps.Store.Plugin().List(pluginID, page*perPage, perPage)
 	if err != nil {
-		mlog.Error("Failed to list plugin key values", mlog.Int("page", page), mlog.Int("perPage", perPage), mlog.Err(err))
+		mlog.Error("Failed to list plugin key values", mlog.Int("page", page), mlog.Int("per_page", perPage), mlog.Err(err))
 		return nil, model.NewAppError("ListPluginKeys", "app.plugin_store.list.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 

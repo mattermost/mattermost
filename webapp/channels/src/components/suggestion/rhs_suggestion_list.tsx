@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, type JSX} from 'react';
 import {useSelector} from 'react-redux';
 
 import {getIsMobileView} from 'selectors/views/browser';

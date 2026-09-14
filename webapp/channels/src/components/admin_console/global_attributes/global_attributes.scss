@@ -1,0 +1,51 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.GlobalAttributes__root {
+    // AdminHeader is normally a fixed 64px single-line bar (see _admin-console.scss's
+    // `height: 64px; flex: 0 0 64px;`); this page needs a second line for the subtitle,
+    // so it grows to the design spec's 90px instead. `height: auto` is required here —
+    // min-height alone only raises the floor on top of the shared rule's still-fixed
+    // `height: 64px` (max(64, 90) = 90, but still capped there), so a longer translated
+    // subtitle wrapping to a 3rd line would silently overlap the table below instead
+    // of growing the header.
+    .admin-console__header {
+        height: auto;
+        min-height: 90px;
+        flex: 0 0 auto;
+        align-items: flex-start;
+        padding-top: 18px;
+        padding-bottom: 18px;
+    }
+
+    .admin-console__container {
+        max-width: 1680px;
+    }
+}
+
+.GlobalAttributes__actions {
+    display: flex;
+    justify-content: flex-end;
+    padding: 24px;
+}
+
+.GlobalAttributes__headerGroup {
+    h1 {
+        margin: 0;
+        color: var(--center-channel-color);
+
+        // Inherits .admin-console__header's own Metropolis/600/22px title styling;
+        // only the line-height differs from the header's default (32px vs. 28px here).
+        font: inherit;
+        line-height: 28px;
+    }
+
+    p {
+        margin: 4px 0 0;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-family: 'Open Sans', sans-serif;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 20px;
+    }
+}

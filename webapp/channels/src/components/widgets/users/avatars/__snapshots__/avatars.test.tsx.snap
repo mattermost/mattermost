@@ -9,6 +9,7 @@ exports[`components/widgets/users/Avatars should fetch missing users 1`] = `
       aria-expanded="false"
       aria-haspopup="dialog"
       class="style--none btn-round"
+      type="button"
     >
       <img
         alt="first.last1 profile image"
@@ -23,6 +24,7 @@ exports[`components/widgets/users/Avatars should fetch missing users 1`] = `
       aria-expanded="false"
       aria-haspopup="dialog"
       class="style--none btn-round"
+      type="button"
     >
       <img
         alt="user profile image"
@@ -37,6 +39,7 @@ exports[`components/widgets/users/Avatars should fetch missing users 1`] = `
       aria-expanded="false"
       aria-haspopup="dialog"
       class="style--none btn-round"
+      type="button"
     >
       <img
         alt="user profile image"
@@ -66,6 +69,7 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
       aria-expanded="false"
       aria-haspopup="dialog"
       class="style--none btn-round"
+      type="button"
     >
       <img
         alt="first.last1 profile image"
@@ -80,6 +84,7 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
       aria-expanded="false"
       aria-haspopup="dialog"
       class="style--none btn-round"
+      type="button"
     >
       <img
         alt="first.last2 profile image"
@@ -94,6 +99,7 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
       aria-expanded="false"
       aria-haspopup="dialog"
       class="style--none btn-round"
+      type="button"
     >
       <img
         alt="first.last3 profile image"
@@ -123,6 +129,7 @@ exports[`components/widgets/users/Avatars should support userIds 1`] = `
       aria-expanded="false"
       aria-haspopup="dialog"
       class="style--none btn-round"
+      type="button"
     >
       <img
         alt="first.last1 profile image"
@@ -137,6 +144,7 @@ exports[`components/widgets/users/Avatars should support userIds 1`] = `
       aria-expanded="false"
       aria-haspopup="dialog"
       class="style--none btn-round"
+      type="button"
     >
       <img
         alt="first.last2 profile image"
@@ -151,6 +159,7 @@ exports[`components/widgets/users/Avatars should support userIds 1`] = `
       aria-expanded="false"
       aria-haspopup="dialog"
       class="style--none btn-round"
+      type="button"
     >
       <img
         alt="first.last3 profile image"

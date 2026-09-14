@@ -123,7 +123,7 @@ func (a *App) SendReportToUser(rctx request.CTX, job *model.Job, format string) 
 		return err
 	}
 
-	user, err := a.GetUser(requestingUserId)
+	user, err := a.GetUser(rctx, requestingUserId)
 	if err != nil {
 		return err
 	}
@@ -240,7 +240,7 @@ func (a *App) StartUsersBatchExport(rctx request.CTX, ro *model.UserReportOption
 			return
 		}
 
-		user, err := a.GetUser(rctx.Session().UserId)
+		user, err := a.GetUser(rctx, rctx.Session().UserId)
 		if err != nil {
 			rctx.Logger().Error("Failed to get the user", mlog.Err(err))
 			return

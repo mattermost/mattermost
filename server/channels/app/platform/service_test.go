@@ -18,6 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/markdown"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
@@ -248,4 +249,16 @@ func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
 	// It's hard to check whether the schema version is correct or not.
 	// So, we just check if it's greater than 1.
 	assert.GreaterOrEqual(t, schemaVersion, strconv.Itoa(1))
+}
+
+func TestNewSyncsMarkdownMaxLenWithMaxPostSize(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	// markdown.SetMaxPostRunes is package-global; parallel tests (including
+	// markdown's own tests) can overwrite it between Setup and this check.
+	require.Eventually(t, func() bool {
+		maxPostSize := th.Service.MaxPostSize()
+		return markdown.MaxLen() == 4*maxPostSize
+	}, 5*time.Second, 10*time.Millisecond)
 }

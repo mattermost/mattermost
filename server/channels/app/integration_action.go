@@ -82,7 +82,7 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 		mlog.String("team_id", upstreamRequest.TeamId),
 	)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
+	ctx, cancel := context.WithTimeout(a.Srv().Platform().GoContext(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
 	defer cancel()
 	resp, appErr := a.DoActionRequest(rctx.WithContext(ctx), setup.upstreamURL, requestJSON)
 	if appErr != nil {
@@ -180,6 +180,11 @@ func (a *App) DoActionRequest(rctx request.CTX, rawURL string, body []byte) (*ht
 	return resp, nil
 }
 
+// getPostActionClient returns the client used to call an integration action. Callers of
+// DoActionRequest give the request a deadline derived from
+// ServiceSettings.OutgoingIntegrationRequestsTimeout, so the client adds no timeout of its own,
+// which would cap a configured value above httpservice.RequestTimeout. A request that arrives
+// without a deadline still gets the configured timeout instead of running unbounded.
 func (a *App) getPostActionClient(rctx request.CTX, inURL *url.URL, req *http.Request) *http.Client {
 	// Allow access to plugin routes for action buttons
 	var httpClient *http.Client
@@ -191,6 +196,13 @@ func (a *App) getPostActionClient(rctx request.CTX, inURL *url.URL, req *http.Re
 	} else {
 		httpClient = a.HTTPService().MakeClient(false)
 	}
+
+	if _, ok := rctx.Context().Deadline(); ok {
+		httpClient.Timeout = 0
+	} else {
+		httpClient.Timeout = time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout) * time.Second
+	}
+
 	return httpClient
 }
 
@@ -486,7 +498,7 @@ func (a *App) SubmitInteractiveDialog(rctx request.CTX, request model.SubmitDial
 		mlog.Bool("cancelled", request.Cancelled),
 	)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
+	ctx, cancel := context.WithTimeout(a.Srv().Platform().GoContext(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
 	defer cancel()
 	resp, appErr := a.DoActionRequest(rctx.WithContext(ctx), url, b)
 	if appErr != nil {
@@ -546,7 +558,7 @@ func (a *App) ExecuteDialogAction(rctx request.CTX, userID string, req model.Exe
 		Context:   ctx,
 	}
 
-	user, userErr := a.Srv().Store().User().Get(context.Background(), userID)
+	user, userErr := a.Srv().Store().User().Get(rctx, userID)
 	if userErr != nil {
 		return "", model.NewAppError("ExecuteDialogAction", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(userErr)
 	}
@@ -583,7 +595,7 @@ func (a *App) ExecuteDialogAction(rctx request.CTX, userID string, req model.Exe
 		mlog.String("team_id", req.TeamId),
 	)
 
-	timeoutCtx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
+	timeoutCtx, cancel := context.WithTimeout(a.Srv().Platform().GoContext(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
 	defer cancel()
 	resp, appErr := a.DoActionRequest(rctx.WithContext(timeoutCtx), req.URL, requestJSON)
 	if appErr != nil {
@@ -600,6 +612,28 @@ func (a *App) ExecuteDialogAction(rctx request.CTX, userID string, req model.Exe
 
 	// Drain response body to allow HTTP connection reuse
 	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, MaxDialogResponseSize))
+
+	// DoActionRequest routes plugin-relative URLs ("/plugins/...") through
+	// DoLocalRequest, which never inspects the plugin handler's response status, so a
+	// failing action arrives here with appErr == nil. Checking it here rather than in
+	// DoActionRequest keeps the change scoped to dialog actions: the other
+	// DoActionRequest callers parse the response body and would change behaviour.
+	//
+	// Without this the client is told the action succeeded, so an action_button's error
+	// state is unreachable no matter what the integration returns.
+	if resp.StatusCode != http.StatusOK {
+		// Mirrors the status mapping DoActionRequest applies to non-plugin URLs:
+		// preserve the retry-carrying 429/503, map other 5xx to 502 since the failure
+		// is upstream of MM, and sanitize everything else to 400.
+		status := http.StatusBadRequest
+		switch {
+		case resp.StatusCode == http.StatusTooManyRequests, resp.StatusCode == http.StatusServiceUnavailable:
+			status = resp.StatusCode
+		case resp.StatusCode >= 500:
+			status = http.StatusBadGateway
+		}
+		return "", model.NewAppError("ExecuteDialogAction", "api.post.do_action.action_integration.app_error", nil, fmt.Sprintf("status=%v", resp.StatusCode), status)
+	}
 
 	return clientTriggerId, nil
 }
@@ -622,7 +656,7 @@ func (a *App) LookupInteractiveDialog(rctx request.CTX, request model.SubmitDial
 		mlog.String("team_id", request.TeamId),
 	)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
+	ctx, cancel := context.WithTimeout(a.Srv().Platform().GoContext(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
 	defer cancel()
 	resp, appErr := a.DoActionRequest(rctx.WithContext(ctx), url, b)
 	if appErr != nil {

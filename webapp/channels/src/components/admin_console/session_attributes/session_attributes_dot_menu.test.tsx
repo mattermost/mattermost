@@ -42,7 +42,7 @@ function makeField(name: string, extra: ExtraAttrs = {}): SessionAttributeField 
     } as UserPropertyField;
 }
 
-const enabledField = makeField('ip_address', {
+const enabledField = makeField('client_ip_address', {
     display_name: 'Client IP',
     enabled: true,
     ttl_seconds: 300,
@@ -54,6 +54,13 @@ const disabledField = makeField('vpn_active', {
     enabled: false,
     ttl_seconds: 30,
     grace_period_seconds: 30,
+});
+
+const serverSourcedField = makeField('ip_address', {
+    display_name: 'IP Address',
+    enabled: true,
+    ttl_seconds: 300,
+    grace_period_seconds: 60,
 });
 
 function renderMenu(field: SessionAttributeField, onStageChange = jest.fn()) {
@@ -123,6 +130,15 @@ describe('SessionAttributesDotMenu', () => {
 
         const unselected = screen.getByTestId(`session-attribute-ttl-option-${enabledField.id}-30`);
         expect(unselected).toHaveAttribute('aria-checked', 'false');
+    });
+
+    it('hides the TTL and Grace submenus for server-sourced attributes', async () => {
+        renderMenu(serverSourcedField);
+
+        await userEvent.click(screen.getByTestId(`session-attribute-dotmenu-${serverSourcedField.id}`));
+
+        expect(screen.queryByRole('menuitem', {name: /Time-to-live/})).not.toBeInTheDocument();
+        expect(screen.queryByRole('menuitem', {name: /Grace Period/})).not.toBeInTheDocument();
     });
 
     it('opens the confirmation modal for Disable without staging immediately', async () => {

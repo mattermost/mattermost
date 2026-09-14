@@ -35,7 +35,7 @@ import './use_rewrite.scss';
 export interface MenuItemConfig {
     action: RewriteAction;
     label: MessageDescriptor;
-    icon: React.ReactElement;
+    icon: React.ReactElement<any>;
 }
 
 export const menuItems: MenuItemConfig[] = [

@@ -9,6 +9,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 import type {Group} from '@mattermost/types/groups';
 
+import {addMessageIntoHistory} from 'mattermost-redux/actions/posts';
 import Permissions from 'mattermost-redux/constants/permissions';
 import {getDefaultAgent} from 'mattermost-redux/selectors/entities/agents';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
@@ -31,13 +32,26 @@ import SuggestionList from 'components/suggestion/suggestion_list';
 import type {ProviderResults, SuggestionResults} from 'components/suggestion/suggestion_results';
 import {normalizeResultsFromProvider, countResults} from 'components/suggestion/suggestion_results';
 
+import Constants from 'utils/constants';
+
 import type {GlobalState} from 'types/store';
+
+const EXECUTE_CURRENT_COMMAND_ITEM_ID = Constants.Integrations.EXECUTE_CURRENT_COMMAND_ITEM_ID;
+const OPEN_COMMAND_IN_MODAL_ITEM_ID = Constants.Integrations.OPEN_COMMAND_IN_MODAL_ITEM_ID;
 
 interface Props {
     editor: Editor | null;
     channelId: string;
     rootId?: string;
+    onSubmit?: () => void;
 }
+
+type AppsModalProvider = {
+    openAppsModalFromCommand: (command: string) => void;
+};
+
+const canOpenAppsModal = <T extends object>(provider: T): provider is T & AppsModalProvider =>
+    typeof (provider as T & AppsModalProvider).openAppsModalFromCommand === 'function';
 
 const EMPTY_RESULTS: SuggestionResults = {
     matchedPretext: '',
@@ -65,7 +79,7 @@ function getTextBeforeCursor(editor: Editor): string {
     return state.doc.textBetween(startOfLine, from, '\n');
 }
 
-const WysiwygSuggestionList = ({editor, channelId, rootId}: Props) => {
+const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => {
     const dispatch = useDispatch();
 
     const [results, setResults] = useState<SuggestionResults>(EMPTY_RESULTS);
@@ -171,8 +185,35 @@ const WysiwygSuggestionList = ({editor, channelId, rootId}: Props) => {
         };
     }, [editor, providers, handleReceivedSuggestions]);
 
+    const closeSuggestions = useCallback(() => {
+        setIsOpen(false);
+        setResults(EMPTY_RESULTS);
+    }, []);
+
     const handleCompleteWord = useCallback((term: string, matchedPretext: string) => {
         if (!editor || editor.isDestroyed) {
+            return false;
+        }
+
+        if (term.endsWith(EXECUTE_CURRENT_COMMAND_ITEM_ID)) {
+            closeSuggestions();
+            editor.commands.focus();
+            onSubmit?.();
+            return true;
+        }
+
+        if (term.endsWith(OPEN_COMMAND_IN_MODAL_ITEM_ID)) {
+            closeSuggestions();
+
+            const command = term.slice(0, -OPEN_COMMAND_IN_MODAL_ITEM_ID.length);
+            const appProvider = providers.find(canOpenAppsModal);
+            if (!appProvider) {
+                return false;
+            }
+
+            appProvider.openAppsModalFromCommand(command);
+            dispatch(addMessageIntoHistory(command));
+            editor.chain().focus().clearContent().run();
             return false;
         }
 
@@ -195,10 +236,9 @@ const WysiwygSuggestionList = ({editor, channelId, rootId}: Props) => {
 
         editor.chain().focus().deleteRange({from: deleteFrom, to: deleteTo}).insertContent(completedText).run();
 
-        setIsOpen(false);
-        setResults(EMPTY_RESULTS);
+        closeSuggestions();
         return true;
-    }, [editor]);
+    }, [editor, providers, dispatch, onSubmit, closeSuggestions]);
 
     const handleItemHover = useCallback((term: string) => {
         setSelection(term);

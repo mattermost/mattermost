@@ -412,6 +412,36 @@ The SMTP server port that will receive your Global Relay EML file when a [custom
 </tbody>
 </table>
 
+### Custom header name
+
+An optional custom header added to each exported EML file when a [custom customer account type](#global-relay-customer-account) is configured. Both the custom header name and value must be set, or both left blank to omit. A save is rejected if only one of the two is set, or if the name reuses a header the export already writes (such as `From`, `To`, `Subject`, or `X-GlobalRelay-MsgType`).
+
+<table>
+<colgroup>
+<col style={{width: '100%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This feature's <code>config.json</code> setting is <code>".MessageExportSettings.GlobalRelaySettings.CustomHeaderName": ""</code> with string input.</td>
+</tr>
+</tbody>
+</table>
+
+### Custom header value
+
+The value sent with the custom header when a [custom customer account type](#global-relay-customer-account) is configured. Both the custom header name and value must be set, or both left blank to omit. A save is rejected if only one of the two is set, or if the name reuses a header the export already writes.
+
+<table>
+<colgroup>
+<col style={{width: '100%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This feature's <code>config.json</code> setting is <code>".MessageExportSettings.GlobalRelaySettings.CustomHeaderValue": ""</code> with string input.</td>
+</tr>
+</tbody>
+</table>
+
 ### Message export batch size
 
 This setting isn't available in the System Console and can only be set in `config.json`.

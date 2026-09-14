@@ -112,4 +112,61 @@ describe('Actions.fetchPropertyFields', () => {
         const state = store.getState() as GlobalState;
         expect(state.entities.properties.groups.byName[GROUP]).toBeUndefined();
     });
+
+    it('clears a previously-cached scope when a subsequent fetch returns nothing', async () => {
+        const store = configureStore();
+        const field = makeField('field-1', {enabled: true});
+        field.group_id = GROUP_UUID;
+
+        getPropertyFields.mockResolvedValueOnce([field]).mockResolvedValueOnce([]);
+        await store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, TARGET_TYPE));
+
+        let state = store.getState() as GlobalState;
+        expect(state.entities.properties.fields.byObjectType[OBJECT_TYPE]?.[GROUP_UUID]?.['field-1']).toEqual(field);
+
+        // The field was deleted server-side; a directory-mode refetch no longer returns it.
+        getPropertyFields.mockResolvedValue([]);
+        await store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, TARGET_TYPE));
+
+        state = store.getState() as GlobalState;
+        expect(state.entities.properties.fields.byObjectType[OBJECT_TYPE]?.[GROUP_UUID]).toBeUndefined();
+        expect(state.entities.properties.fields.byId['field-1']).toBeUndefined();
+    });
+
+    it('ignores a stale scope-replace dispatch from an older, out-of-order fetch', async () => {
+        const store = configureStore();
+        const field = makeField('field-1', {enabled: true});
+        field.group_id = GROUP_UUID;
+
+        // Seed the store as if an earlier fetch already cached this field for the scope.
+        getPropertyFields.mockResolvedValueOnce([field]).mockResolvedValueOnce([]);
+        await store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, TARGET_TYPE));
+
+        let resolveOlderPage: (fields: PropertyField[]) => void = () => {};
+
+        getPropertyFields.
+            mockImplementationOnce(() => new Promise((resolve) => {
+                resolveOlderPage = resolve;
+            })).
+            mockResolvedValueOnce([]). // newer fetch's only page: the field is gone
+            mockResolvedValueOnce([]); // older fetch's terminating (empty) page
+
+        // Start an older fetch (still in flight) before a newer one for the same scope.
+        const olderFetch = store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, TARGET_TYPE));
+        const newerFetch = store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, TARGET_TYPE));
+
+        // The newer fetch resolves first, discovering the field was deleted server-side.
+        await newerFetch;
+
+        let state = store.getState() as GlobalState;
+        expect(state.entities.properties.fields.byObjectType[OBJECT_TYPE]?.[GROUP_UUID]).toBeUndefined();
+
+        // The older fetch resolves after, with its stale (pre-deletion) result. Its
+        // scope-replace must be ignored, not resurrect the field the newer fetch cleared.
+        resolveOlderPage([field]);
+        await olderFetch;
+
+        state = store.getState() as GlobalState;
+        expect(state.entities.properties.fields.byObjectType[OBJECT_TYPE]?.[GROUP_UUID]).toBeUndefined();
+    });
 });

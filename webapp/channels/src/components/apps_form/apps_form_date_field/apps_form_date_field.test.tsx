@@ -114,8 +114,10 @@ describe('AppsFormDateField', () => {
     it('should render without errors even when date is outside range (validation is centralized)', () => {
         const fieldWithRange = {
             ...defaultField,
-            min_date: '2025-01-10',
-            max_date: '2025-01-20',
+            datetime_config: {
+                min_date: '2025-01-10',
+                max_date: '2025-01-20',
+            },
         };
         renderComponent({field: fieldWithRange, value: '2025-01-01'});
 
@@ -126,8 +128,10 @@ describe('AppsFormDateField', () => {
     it('should not show error for valid date within range', () => {
         const fieldWithRange = {
             ...defaultField,
-            min_date: '2025-01-01',
-            max_date: '2025-01-31',
+            datetime_config: {
+                min_date: '2025-01-01',
+                max_date: '2025-01-31',
+            },
         };
         renderComponent({field: fieldWithRange, value: '2025-01-15'});
         expect(screen.queryByText(/error/i)).not.toBeInTheDocument();
@@ -145,8 +149,10 @@ describe('AppsFormDateField', () => {
     it('should handle date range constraints', () => {
         const fieldWithRange = {
             ...defaultField,
-            min_date: '2025-01-01',
-            max_date: '2025-01-31',
+            datetime_config: {
+                min_date: '2025-01-01',
+                max_date: '2025-01-31',
+            },
         };
 
         renderComponent({field: fieldWithRange, value: '2025-01-15'});

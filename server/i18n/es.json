@@ -592,14 +592,6 @@
     "translation": "@[nombre de usuario 1], @[nombre de usuario 2] 'mensaje'"
   },
   {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "many": "No se pueden encontrar los usuarios: {{.Users}}",
-      "one": "No se puede encontrar el usuario: {{.Users}}",
-      "other": ""
-    }
-  },
-  {
     "id": "api.command_groupmsg.max_users.app_error",
     "translation": "Los mensajes de Grupo están limitados a un máximo de {{.MaxUsers}} usuarios."
   },
@@ -670,14 +662,6 @@
   {
     "id": "api.command_invite.success",
     "translation": "{{.User}} agregado al canal {{.Channel}}."
-  },
-  {
-    "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": {
-      "many": "{{.User}} ya están en el canal.",
-      "one": "{{.User}} ya está en el canal.",
-      "other": ""
-    }
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -972,14 +956,6 @@
     "translation": "Los correos electrónicos por lotes han sido inhabilitados por el administrador de sistema."
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": {
-      "many": "[{{.SiteName}}] Nuevas Notificaciones del {{.Day}} {{.Month}}, {{.Year}}",
-      "one": "[{{.SiteName}}] Nueva Notificación del {{.Day}} {{.Month}}, {{.Year}}",
-      "other": ""
-    }
-  },
-  {
     "id": "api.emoji.create.duplicate.app_error",
     "translation": "No se puede crear el emoticon. Ya existe otro emoticon con el mismo nombre."
   },
@@ -1160,10 +1136,6 @@
     "translation": "Esta licencia sólo soporta {{.Users}} usuarios, cuando tu sistema tiene {{.Count}} usuarios únicos. Los usuarios únicos se cuentan por direcciónes de correo electrónico distintas. Puedes ver el totoal de usuarios en REPORTES DEL SITIO -> Ver Estadísticas."
   },
   {
-    "id": "api.license.client.old_format.app_error",
-    "translation": "Nuevo formato de la licencia de cliente no es compatible todavía. Por favor utiliza format=old en la cadena de consulta."
-  },
-  {
     "id": "api.marshal_error",
     "translation": "Error al procesar."
   },
@@ -1336,22 +1308,6 @@
     "translation": "Error en la acción de la integración."
   },
   {
-    "id": "api.post.get_message_for_notification.files_sent",
-    "translation": {
-      "many": "{{.Count}} archivos enviados: {{.Filenames}}",
-      "one": "{{.Count}} archivo enviado: {{.Filenames}}",
-      "other": ""
-    }
-  },
-  {
-    "id": "api.post.get_message_for_notification.images_sent",
-    "translation": {
-      "many": "{{.Count}} imágenes enviadas: {{.Filenames}}",
-      "one": "{{.Count}} imagen enviada: {{.Filenames}}",
-      "other": ""
-    }
-  },
-  {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "No se puede actualizar un mensaje en un canal que ha sido eliminado."
   },
@@ -1484,78 +1440,6 @@
     "translation": "Error arrancando el servidor, err:%v"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.unable_import",
-    "translation": "No se puede importar la Integración/usuario Bot de Slack {{.Username}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\r\n Canales agregados:\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-    "translation": "No se puede agregar el usuario de Slack {{.Username}} al canal.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.import_failed",
-    "translation": "No se puede importar el canal de Slack {{.DisplayName}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.merge",
-    "translation": "El canal de Slack {{.DisplayName}} ya existe como un canal activo en Mattermost. Ambos canales se han fusionado.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.created",
-    "translation": "\r\nUsuarios creados:\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "El usuario de Slack ha sido combinado con el usuario existente en Mattermost ya que el correo electrónico {{.Email}} y el nombre de usuario {{.Username}} coinciden.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "El usuario de Slack ha sido combinado con el usuario existente en Mattermost ya que el correo electrónico {{.Email}} y el nombre de usuario {{.Username}} coinciden, pero el usuario no pudo ser agregado a su equipo.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "Usuario {{.Username}} no posee una dirección de correo electrónico en la exportación de Slack. Se utiliza {{.Email}} como el valor. El usuario debe actualizar su dirección de correo electrónico una vez que inicie sesión en el sistema.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.unable_import",
-    "translation": "No se pudo importar el usuario de Slack: {{.Username}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.log",
-    "translation": "Mattermost Registros de importación de Slack\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note1",
-    "translation": "- Algunos mensajes puede que no hayan sido importados porque no son soportados por esta herramienta.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note2",
-    "translation": "- Los mensajes del bot de Slack actualmente no son soportados.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note3",
-    "translation": "- Errores adicionales pueden ser encontrados en los registros del servidor.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.notes",
-    "translation": "\r\nNotas:\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.open.app_error",
-    "translation": "No se puede abrir el archivo: {{.Filename}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.team_fail",
-    "translation": "Falla al obtener el equipo al cual se debe importar.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.zip.app_error",
-    "translation": "No se puede abrir el archivo de exportación zip de Slack.\r\n"
-  },
-  {
     "id": "api.status.user_not_found.app_error",
     "translation": "Usuario no encontrado."
   },
@@ -1578,34 +1462,6 @@
   {
     "id": "api.team.get_team_icon.read_file.app_error",
     "translation": "No se puede leer el archivo del icono del equipo."
-  },
-  {
-    "id": "api.team.import_team.array.app_error",
-    "translation": "Solicitud con matriz vacía en 'file'."
-  },
-  {
-    "id": "api.team.import_team.integer.app_error",
-    "translation": "El tamaño del archivo no es un entero."
-  },
-  {
-    "id": "api.team.import_team.no_file.app_error",
-    "translation": "No hay un archivo bajo la solicitud de 'file'."
-  },
-  {
-    "id": "api.team.import_team.no_import_from.app_error",
-    "translation": "Solicitud con formato incorrecto: campo importFrom no está presente."
-  },
-  {
-    "id": "api.team.import_team.open.app_error",
-    "translation": "No se pudo abrir el archivo."
-  },
-  {
-    "id": "api.team.import_team.parse.app_error",
-    "translation": "No se pudo analizar el contenido del formulario multiparte."
-  },
-  {
-    "id": "api.team.import_team.unavailable.app_error",
-    "translation": "Solicitud con formato incorrecto: campo con el tamaño del archivo no está presente."
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -3536,14 +3392,6 @@
     "translation": "Permitir cookies para subdominios requiere definir la URL del sitio."
   },
   {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "El valor de RemoteImageProxyOptions de atmos/camo no es válido. Debes utilizar la llave compartida."
-  },
-  {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
-    "translation": "El valor de RemoteImageProxyURL de atmos/camo no es válido. Debes utilizar la llave compartida."
-  },
-  {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "No se puede habilitar el correo electrónico por lotes cuando la agrupación de servidores está habilitada."
   },
@@ -3602,10 +3450,6 @@
   {
     "id": "model.config.is_valid.email_security.app_error",
     "translation": "Configuración inválida de seguridad en la configuración de correos. Debe ser '', 'TLS', o 'STARTTLS'."
-  },
-  {
-    "id": "model.config.is_valid.encrypt_sql.app_error",
-    "translation": "Llave de cifrado rest para las configuraciones de SQL inválida. Debe ser de 32 caracteres o más."
   },
   {
     "id": "model.config.is_valid.file_driver.app_error",
@@ -4464,14 +4308,6 @@
     "translation": "Sistema"
   },
   {
-    "id": "web.command_webhook.command.app_error",
-    "translation": "No se encontró el comando."
-  },
-  {
-    "id": "web.command_webhook.parse.app_error",
-    "translation": "No se puede analizar los datos entrantes."
-  },
-  {
     "id": "web.get_access_token.internal_saving.app_error",
     "translation": "No se puede actualizar los datos de acceso del usuario."
   },
@@ -5044,14 +4880,6 @@
     "translation": "No se pudo obtener todos los canales."
   },
   {
-    "id": "app.channel.get.find.app_error",
-    "translation": "Encontramos un error buscando el canal."
-  },
-  {
-    "id": "app.channel.get.existing.app_error",
-    "translation": "No se pudo encontrar el canal existente."
-  },
-  {
     "id": "app.channel.delete.app_error",
     "translation": "No se pudo borrar el canal."
   },
@@ -5176,10 +5004,6 @@
     "translation": "No se puede crear el token de recuperación de contraseña"
   },
   {
-    "id": "api.templates.remove_expired_license.subject",
-    "translation": "La licencia de Mattermost Enterprise ha sido desactivada."
-  },
-  {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} te ha invitado a unirte al equipo {{ .TeamDisplayName }} como huésped"
   },
@@ -5234,10 +5058,6 @@
   {
     "id": "api.system.id_loaded.not_available.app_error",
     "translation": "Carga de Notificaciones Push por ID no está configurado o soportado en este servidor."
-  },
-  {
-    "id": "api.slackimport.slack_import.zip.file_too_large",
-    "translation": "{{.Filename}} en archivo zip es muy grande para ser procesado por el importador de Slack\r\n"
   },
   {
     "id": "api.push_notifications_ack.message.parse.app_error",
@@ -5528,10 +5348,6 @@
     "translation": "No se puede obtener las reacciones con el nombre del emoticon suministrado."
   },
   {
-    "id": "app.reaction.bulk_get_for_post_ids.app_error",
-    "translation": "No se pueden obtener reacciones del mensaje."
-  },
-  {
     "id": "app.emoji.get_by_name.no_result",
     "translation": "No pudimos encontrar el emoji."
   },
@@ -5574,10 +5390,6 @@
   {
     "id": "api.user.autocomplete_users.missing_team_id.app_error",
     "translation": "Se requiere el parámetro de identificación del equipo para autocompletar por canal."
-  },
-  {
-    "id": "api.team.import_team.unknown_import_from.app_error",
-    "translation": "Origen de importación desconocido."
   },
   {
     "id": "api.push_notifications.session.expired",
@@ -7216,14 +7028,6 @@
     "translation": "Su suscripción a Mattermost está pendiente de renovación"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle",
-    "translation": "{{.UserName}}, tu suscripción caduca en {{.Days}} días. Esperamos que esté experimentando la colaboración en equipo flexible y segura que permite Mattermost. Renueva pronto para asegurarte de que tu equipo pueda seguir disfrutando de estos beneficios."
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_subject",
-    "translation": "Su licencia está pendiente de renovación"
-  },
-  {
     "id": "api.templates.invite_body_guest.subTitle",
     "translation": "Ha sido invitado como huésped para colaborar con el equipo"
   },
@@ -7242,10 +7046,6 @@
   {
     "id": "api.templates.invite_body.subTitle",
     "translation": "Empieza a colaborar con tu equipo en Mattermost"
-  },
-  {
-    "id": "api.templates.email_footer_v2",
-    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
   },
   {
     "id": "api.templates.cloud_welcome_email.title",

@@ -209,6 +209,85 @@ describe('propertiesReducer', () => {
             expect(state.fields.byObjectType.channel.gx.f1).toBe(field);
         });
 
+        test('RECEIVED_PROPERTY_FIELDS_FOR_SCOPE drops a field that fell out of a subsequent fetch', () => {
+            const field1 = makeField({id: 'f1', object_type: 'post', group_id: 'g1'});
+            const field2 = makeField({id: 'f2', object_type: 'post', group_id: 'g1'});
+            const state1 = propertiesReducer(initialState, {
+                type: PropertyTypes.RECEIVED_PROPERTY_FIELDS_FOR_SCOPE,
+                data: {objectType: 'post', groupId: 'g1', fields: [field1, field2]},
+            });
+
+            // f2 was deleted server-side; the refetch only returns f1.
+            const state2 = propertiesReducer(state1, {
+                type: PropertyTypes.RECEIVED_PROPERTY_FIELDS_FOR_SCOPE,
+                data: {objectType: 'post', groupId: 'g1', fields: [field1]},
+            });
+
+            expect(state2.fields.byObjectType.post.g1.f1).toBe(field1);
+            expect(state2.fields.byObjectType.post.g1.f2).toBeUndefined();
+            expect(state2.fields.byId.f2).toBeUndefined();
+        });
+
+        test('RECEIVED_PROPERTY_FIELDS_FOR_SCOPE clears the whole scope when the refetch is empty', () => {
+            const field = makeField({id: 'f1', object_type: 'post', group_id: 'g1'});
+            const state1 = propertiesReducer(initialState, {
+                type: PropertyTypes.RECEIVED_PROPERTY_FIELDS_FOR_SCOPE,
+                data: {objectType: 'post', groupId: 'g1', fields: [field]},
+            });
+
+            // Last remaining field in this scope was deleted; the refetch returns nothing.
+            const state2 = propertiesReducer(state1, {
+                type: PropertyTypes.RECEIVED_PROPERTY_FIELDS_FOR_SCOPE,
+                data: {objectType: 'post', groupId: 'g1', fields: []},
+            });
+
+            expect(state2.fields.byObjectType.post).toBeUndefined();
+            expect(state2.fields.byId.f1).toBeUndefined();
+        });
+
+        test('RECEIVED_PROPERTY_FIELDS_FOR_SCOPE does not affect other objectType/groupId combinations', () => {
+            const otherField = makeField({id: 'f0', object_type: 'user', group_id: 'g0'});
+            const state1 = propertiesReducer(initialState, {
+                type: PropertyTypes.RECEIVED_PROPERTY_FIELDS_FOR_SCOPE,
+                data: {objectType: 'user', groupId: 'g0', fields: [otherField]},
+            });
+
+            const field = makeField({id: 'f1', object_type: 'post', group_id: 'g1'});
+            const state2 = propertiesReducer(state1, {
+                type: PropertyTypes.RECEIVED_PROPERTY_FIELDS_FOR_SCOPE,
+                data: {objectType: 'post', groupId: 'g1', fields: [field]},
+            });
+
+            const state3 = propertiesReducer(state2, {
+                type: PropertyTypes.RECEIVED_PROPERTY_FIELDS_FOR_SCOPE,
+                data: {objectType: 'post', groupId: 'g1', fields: []},
+            });
+
+            expect(state3.fields.byObjectType.user.g0.f0).toBe(otherField);
+        });
+
+        test('RECEIVED_PROPERTY_FIELDS_FOR_SCOPE skips PSA v1 fields but keeps valid ones', () => {
+            const validField = makeField({id: 'f1', object_type: 'post', group_id: 'g1'});
+            const v1Field = makeField({id: 'f2', object_type: ''});
+
+            const state = propertiesReducer(initialState, {
+                type: PropertyTypes.RECEIVED_PROPERTY_FIELDS_FOR_SCOPE,
+                data: {objectType: 'post', groupId: 'g1', fields: [validField, v1Field]},
+            });
+
+            expect(state.fields.byObjectType.post.g1.f1).toBe(validField);
+            expect(state.fields.byId.f2).toBeUndefined();
+        });
+
+        test('RECEIVED_PROPERTY_FIELDS_FOR_SCOPE returns same state ref when scope is empty before and after', () => {
+            const state = propertiesReducer(initialState, {
+                type: PropertyTypes.RECEIVED_PROPERTY_FIELDS_FOR_SCOPE,
+                data: {objectType: 'post', groupId: 'g1', fields: []},
+            });
+
+            expect(state.fields).toBe(initialState.fields);
+        });
+
         test('PROPERTY_FIELD_DELETED removes field from both byObjectType and byId', () => {
             const field = makeField({id: 'f1', object_type: 'post', group_id: 'g1'});
             const state1 = propertiesReducer(initialState, {

@@ -43,7 +43,6 @@ var configSensitivePaths = map[string]bool{
 	"FileSettings.AzureAccessKey":                            true,
 	"FileSettings.ExportAzureAccessKey":                      true,
 	"SqlSettings.DataSource":                                 true,
-	"SqlSettings.AtRestEncryptKey":                           true,
 	"SqlSettings.DataSourceReplicas":                         true,
 	"SqlSettings.DataSourceSearchReplicas":                   true,
 	"EmailSettings.SMTPPassword":                             true,

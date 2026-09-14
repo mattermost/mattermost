@@ -4,6 +4,7 @@
 package docextractor
 
 import (
+	"context"
 	"io"
 	"unicode"
 	"unicode/utf8"
@@ -19,7 +20,7 @@ func (pe *plainExtractor) Match(filename string) bool {
 	return true
 }
 
-func (pe *plainExtractor) Extract(filename string, r io.ReadSeeker, _ int64) (string, error) {
+func (pe *plainExtractor) Extract(_ context.Context, filename string, r io.ReadSeeker, _ int64) (string, error) {
 	// This detects any visible character plus any whitespace
 	validRanges := append(unicode.GraphicRanges, unicode.White_Space)
 

@@ -27,7 +27,7 @@ function hasLicenseForFeature(license, key) {
 }
 
 Cypress.Commands.add('apiGetClientLicense', () => {
-    return cy.request('/api/v4/license/client?format=old').then((response) => {
+    return cy.request('/api/v4/license/client').then((response) => {
         expect(response.status).to.equal(200);
 
         const license = response.body;

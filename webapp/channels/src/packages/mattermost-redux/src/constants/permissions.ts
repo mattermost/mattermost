@@ -71,7 +71,6 @@ const values = {
     REMOVE_USER_FROM_TEAM: 'remove_user_from_team',
     CREATE_TEAM: 'create_team',
     MANAGE_TEAM: 'manage_team',
-    IMPORT_TEAM: 'import_team',
     VIEW_TEAM: 'view_team',
     LIST_USERS_WITHOUT_TEAM: 'list_users_without_team',
     CREATE_USER_ACCESS_TOKEN: 'create_user_access_token',

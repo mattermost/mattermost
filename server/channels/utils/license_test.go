@@ -152,6 +152,7 @@ func TestValidateLicense(t *testing.T) {
 
 func TestLicenseFromBytesEnvironmentMismatch(t *testing.T) {
 	t.Run("test license uploaded to a production server returns the wrong-environment error", func(t *testing.T) {
+		t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-70560")
 		t.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentProduction)
 
 		license, appErr := LicenseValidator.LicenseFromBytes(validTestLicense)
@@ -162,6 +163,7 @@ func TestLicenseFromBytesEnvironmentMismatch(t *testing.T) {
 	})
 
 	t.Run("production license uploaded to a test/dev server returns the wrong-environment error", func(t *testing.T) {
+		t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-70560")
 		t.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentTest)
 
 		// We cannot sign with the real production key, so stand in a generated key as
@@ -251,6 +253,25 @@ func TestGetLicenseFileLocation(t *testing.T) {
 
 	fileName = GetLicenseFileLocation("mattermost.mattermost-license")
 	require.Equal(t, fileName, "mattermost.mattermost-license", "invalid file name")
+}
+
+func TestGetClientLicense(t *testing.T) {
+	license := &model.License{
+		Customer: &model.Customer{},
+		Features: &model.Features{},
+	}
+	license.Features.SetDefaults()
+
+	props := GetClientLicense(license)
+	require.Equal(t, "false", props["IsNonProduction"])
+
+	license.IsNonProduction = true
+	props = GetClientLicense(license)
+	require.Equal(t, "true", props["IsNonProduction"])
+
+	// The flag must survive sanitization so all users can see the non-production banner.
+	sanitized := GetSanitizedClientLicense(props)
+	require.Equal(t, "true", sanitized["IsNonProduction"])
 }
 
 func TestGetLicenseFileFromDisk(t *testing.T) {

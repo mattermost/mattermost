@@ -4,8 +4,8 @@
   "eyebrow": "SECURITY",
   "version": "unreleased",
   "spine": [
+    "/security-guide/security-updates",
     "/security-guide/cmmc-compliance",
-    "/security-guide/dependency-vulnerability-analysis",
     "/security-guide/finra-compliance",
     "/security-guide/hipaa-compliance",
     "/security-guide/mobile-security",

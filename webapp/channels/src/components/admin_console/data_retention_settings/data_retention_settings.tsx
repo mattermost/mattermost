@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {createRef} from 'react';
-import type {RefObject} from 'react';
+import type {JSX, RefObject} from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
 import type {SelectInstance} from 'react-select';
