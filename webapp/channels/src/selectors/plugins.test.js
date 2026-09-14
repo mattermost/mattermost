@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getChannelHeaderMenuPluginComponents, getPluginUserSettings, getChannelMobileHeaderPluginButtons} from 'selectors/plugins';
+import {getCallButtonPluginComponents, getChannelHeaderMenuPluginComponents, getChannelMobileHeaderPluginButtons, getPluginUserSettings, getChannelHeaderPluginComponents} from 'selectors/plugins';
+
+import {Constants, LicenseSkus, suitePluginIds} from 'utils/constants';
 
 describe('selectors/plugins', () => {
     describe('getPluginUserSettings', () => {
@@ -37,8 +39,13 @@ describe('selectors/plugins', () => {
 
             const state = {
                 entities: {
+                    channels: {
+                        channels: {},
+                        currentChannelId: '',
+                    },
                     general: {
                         config: {},
+                        license: {},
                     },
                     preferences: {
                         myPreferences: {},
@@ -63,8 +70,13 @@ describe('selectors/plugins', () => {
 
             const state = {
                 entities: {
+                    channels: {
+                        channels: {},
+                        currentChannelId: '',
+                    },
                     general: {
                         config: {},
+                        license: {},
                     },
                     preferences: {
                         myPreferences: {},
@@ -90,8 +102,13 @@ describe('selectors/plugins', () => {
 
             const state = {
                 entities: {
+                    channels: {
+                        channels: {},
+                        currentChannelId: '',
+                    },
                     general: {
                         config: {},
+                        license: {},
                     },
                     preferences: {
                         myPreferences: {},
@@ -113,8 +130,13 @@ describe('selectors/plugins', () => {
 
             const state = {
                 entities: {
+                    channels: {
+                        channels: {},
+                        currentChannelId: '',
+                    },
                     general: {
                         config: {},
+                        license: {},
                     },
                     preferences: {
                         myPreferences: {},
@@ -138,8 +160,13 @@ describe('selectors/plugins', () => {
 
             let state = {
                 entities: {
+                    channels: {
+                        channels: {},
+                        currentChannelId: '',
+                    },
                     general: {
                         config: {},
+                        license: {},
                     },
                     preferences: {
                         myPreferences: {},
@@ -211,6 +238,19 @@ describe('selectors/plugins', () => {
     describe('getChannelMobileHeaderPluginButtons', () => {
         it('has no settings', () => {
             const state = {
+                entities: {
+                    channels: {
+                        channels: {},
+                        currentChannelId: '',
+                    },
+                    general: {
+                        config: {},
+                        license: {},
+                    },
+                    preferences: {
+                        myPreferences: {},
+                    },
+                },
                 plugins: {
                     components: {
                         MobileChannelHeaderButton: [],
@@ -227,6 +267,19 @@ describe('selectors/plugins', () => {
                 dropdownText: 'some dropdown text',
             };
             const state = {
+                entities: {
+                    channels: {
+                        channels: {},
+                        currentChannelId: '',
+                    },
+                    general: {
+                        config: {},
+                        license: {},
+                    },
+                    preferences: {
+                        myPreferences: {},
+                    },
+                },
                 plugins: {
                     components: {
                         MobileChannelHeaderButton: [headerButton],
@@ -235,6 +288,128 @@ describe('selectors/plugins', () => {
             };
             const settings = getChannelMobileHeaderPluginButtons(state);
             expect(settings).toEqual([headerButton]);
+        });
+    });
+
+    describe('calls plugin filtering', () => {
+        const callsComponent = {
+            id: 'callsMenuItem',
+            pluginId: suitePluginIds.calls,
+            text: 'Disable calls',
+        };
+
+        const otherComponent = {
+            id: 'otherMenuItem',
+            pluginId: 'other.plugin',
+            text: 'Other action',
+        };
+
+        const baseState = {
+            entities: {
+                channels: {
+                    channels: {
+                        channel1: {
+                            id: 'channel1',
+                            type: Constants.OPEN_CHANNEL,
+                        },
+                        dmChannel: {
+                            id: 'dmChannel',
+                            name: 'user1__user2',
+                            type: Constants.DM_CHANNEL,
+                        },
+                    },
+                    currentChannelId: 'channel1',
+                },
+                general: {
+                    config: {},
+                    license: {
+                        IsLicensed: 'false',
+                    },
+                },
+                preferences: {
+                    myPreferences: {},
+                },
+                users: {
+                    currentUserId: 'user1',
+                    profiles: {},
+                    statuses: {},
+                },
+            },
+            plugins: {
+                components: {
+                    ChannelHeader: [callsComponent, otherComponent],
+                    MobileChannelHeaderButton: [callsComponent],
+                    CallButton: [callsComponent],
+                },
+            },
+        };
+
+        test('filters calls channel header menu items on unlicensed non-DM channels', () => {
+            const components = getChannelHeaderMenuPluginComponents(baseState);
+            expect(components).toEqual([otherComponent]);
+        });
+
+        test('keeps calls channel header menu items in DMs on unlicensed servers', () => {
+            const state = {
+                ...baseState,
+                entities: {
+                    ...baseState.entities,
+                    channels: {
+                        ...baseState.entities.channels,
+                        currentChannelId: 'dmChannel',
+                    },
+                },
+            };
+
+            const components = getChannelHeaderMenuPluginComponents(state);
+            expect(components).toEqual([callsComponent, otherComponent]);
+        });
+
+        test('keeps calls channel header menu items on enterprise licensed channels', () => {
+            const state = {
+                ...baseState,
+                entities: {
+                    ...baseState.entities,
+                    general: {
+                        ...baseState.entities.general,
+                        license: {
+                            IsLicensed: 'true',
+                            SkuShortName: LicenseSkus.Enterprise,
+                        },
+                    },
+                },
+            };
+
+            const components = getChannelHeaderMenuPluginComponents(state);
+            expect(components).toEqual([callsComponent, otherComponent]);
+        });
+
+        test('filters calls mobile header buttons on unlicensed non-DM channels', () => {
+            const components = getChannelMobileHeaderPluginButtons(baseState);
+            expect(components).toEqual([]);
+        });
+
+        test('filters calls channel header components on unlicensed non-DM channels', () => {
+            const components = getChannelHeaderPluginComponents(baseState);
+            expect(components.filter((c) => c.pluginId === suitePluginIds.calls)).toEqual([]);
+        });
+
+        test('keeps calls UI on professional licensed servers', () => {
+            const proState = {
+                ...baseState,
+                entities: {
+                    ...baseState.entities,
+                    general: {
+                        ...baseState.entities.general,
+                        license: {
+                            IsLicensed: 'true',
+                            SkuShortName: 'professional',
+                        },
+                    },
+                },
+            };
+            expect(getChannelHeaderMenuPluginComponents(proState)).toEqual([callsComponent, otherComponent]);
+            expect(getCallButtonPluginComponents(proState)).toEqual([callsComponent]);
         });
     });
 });
