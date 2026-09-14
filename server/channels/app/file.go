@@ -1550,7 +1550,7 @@ func (a *App) searchFilesInTeamForUserPage(rctx request.CTX, finalParamsList []*
 
 	rawLen = len(fileInfoSearchResults.Order)
 
-	if appErr := a.filterInaccessibleFiles(fileInfoSearchResults, filterFileOptions{assumeSortedCreatedAt: true}); appErr != nil {
+	if appErr = a.filterInaccessibleFiles(fileInfoSearchResults, filterFileOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, 0, false, appErr
 	}
 

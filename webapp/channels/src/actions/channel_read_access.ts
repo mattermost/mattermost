@@ -9,7 +9,7 @@ import {ChannelTypes} from 'mattermost-redux/action_types';
 import {fetchAllMyTeamsChannels} from 'mattermost-redux/actions/channels';
 import {General} from 'mattermost-redux/constants';
 import {getCurrentChannelId, getMyChannelMemberships} from 'mattermost-redux/selectors/entities/channels';
-import {isChannelReadAccessABACPermissionEnabled} from 'mattermost-redux/selectors/entities/general';
+import {isChannelAccessABACPermissionEnabled} from 'mattermost-redux/selectors/entities/general';
 
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {openModal} from 'actions/views/modals';
@@ -42,7 +42,7 @@ function isGoverned(channel: Channel): boolean {
  */
 export function reconcileChannelReadAccess(): ThunkActionFunc<Promise<void>> {
     return async (doDispatch, doGetState) => {
-        if (!isChannelReadAccessABACPermissionEnabled(doGetState())) {
+        if (!isChannelAccessABACPermissionEnabled(doGetState())) {
             return;
         }
 

@@ -140,8 +140,8 @@ import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {handlePostExpired} from 'actions/burn_on_read_deletion';
 import {handleBurnOnReadPostRevealed, handleBurnOnReadAllRevealed} from 'actions/burn_on_read_websocket';
-import {reconcileChannelReadAccess} from 'actions/channel_read_access';
 import {loadChannelsForCurrentUser} from 'actions/channel_actions';
+import {reconcileChannelReadAccess} from 'actions/channel_read_access';
 import {
     getTeamsUsage,
 } from 'actions/cloud';

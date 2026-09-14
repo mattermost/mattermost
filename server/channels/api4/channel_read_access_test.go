@@ -161,7 +161,7 @@ func setupChannelReadAccessAPI(t *testing.T, allow bool) (*channelReadAccessFixt
 
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
-		cfg.FeatureFlags.ChannelReadAccessABACPermission = true
+		cfg.FeatureFlags.ChannelAccessABACPermission = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -319,7 +319,7 @@ func TestChannelReadAccessAllowedSurfaces(t *testing.T) {
 func TestChannelReadAccessFlagOffCostsNothing(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
-		cfg.FeatureFlags.ChannelReadAccessABACPermission = false
+		cfg.FeatureFlags.ChannelAccessABACPermission = false
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -362,7 +362,7 @@ func setupContentReviewerChannelReadAccess(t *testing.T, allow bool) (*contentRe
 
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
-		cfg.FeatureFlags.ChannelReadAccessABACPermission = true
+		cfg.FeatureFlags.ChannelAccessABACPermission = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -503,7 +503,7 @@ func TestChannelReadAccessPolicyAdminEndpointsStayGeneric(t *testing.T) {
 func TestChannelReadAccessMembersForUserFilterFollowsTheSession(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
-		cfg.FeatureFlags.ChannelReadAccessABACPermission = true
+		cfg.FeatureFlags.ChannelAccessABACPermission = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {

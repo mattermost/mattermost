@@ -2587,7 +2587,7 @@ func (a *App) searchPostsForUserPage(rctx request.CTX, finalParamsList []*model.
 
 	rawLen = len(postSearchResults.Order)
 
-	if appErr := a.filterInaccessiblePosts(postSearchResults.PostList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+	if appErr = a.filterInaccessiblePosts(postSearchResults.PostList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, 0, false, appErr
 	}
 
@@ -2596,7 +2596,7 @@ func (a *App) searchPostsForUserPage(rctx request.CTX, finalParamsList []*model.
 		return nil, 0, false, appErr
 	}
 
-	if appErr := a.filterBurnOnReadPosts(postSearchResults.PostList); appErr != nil {
+	if appErr = a.filterBurnOnReadPosts(postSearchResults.PostList); appErr != nil {
 		return nil, 0, false, appErr
 	}
 

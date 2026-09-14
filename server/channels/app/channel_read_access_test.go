@@ -27,7 +27,7 @@ func setupChannelReadAccessTest(t *testing.T) *channelReadAccessHarness {
 
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
-		cfg.FeatureFlags.ChannelReadAccessABACPermission = true
+		cfg.FeatureFlags.ChannelAccessABACPermission = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -257,7 +257,7 @@ func TestHasChannelReadAccessShortCircuits(t *testing.T) {
 		"feature flag off": func(t *testing.T, h *channelReadAccessHarness) *model.Channel {
 			h.th.App.Srv().platform.SetConfigReadOnlyFF(false)
 			h.th.App.UpdateConfig(func(cfg *model.Config) {
-				cfg.FeatureFlags.ChannelReadAccessABACPermission = false
+				cfg.FeatureFlags.ChannelAccessABACPermission = false
 			})
 			return h.th.BasicChannel
 		},

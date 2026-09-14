@@ -35,7 +35,7 @@ function makeState(overrides: {currentChannelId?: string; flagOn?: boolean} = {}
             general: {
                 config: {
                     FeatureFlagPermissionPolicies: 'true',
-                    FeatureFlagChannelReadAccessABACPermission: flagOn ? 'true' : 'false',
+                    FeatureFlagChannelAccessABACPermission: flagOn ? 'true' : 'false',
                 },
                 license: {},
             },
