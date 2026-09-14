@@ -138,7 +138,7 @@ describe('reducers/entities/emojis', () => {
             });
         });
 
-        const testForSinglePost = (actionType) => () => {
+        const testForSinglePost = (actionType: string) => () => {
             it('no post metadata', () => {
                 const state = deepFreeze({});
                 const action = {

@@ -435,3 +435,5 @@ channels/db/migrations/postgres/000219_add_fileinfo_createat_id_index.down.sql
 channels/db/migrations/postgres/000219_add_fileinfo_createat_id_index.up.sql
 channels/db/migrations/postgres/000220_add_channels_createat_id_index.down.sql
 channels/db/migrations/postgres/000220_add_channels_createat_id_index.up.sql
+channels/db/migrations/postgres/000221_add_disable_join_leave_messages_to_channels.down.sql
+channels/db/migrations/postgres/000221_add_disable_join_leave_messages_to_channels.up.sql

@@ -1,6 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {CommandArgs} from '@mattermost/types/integrations';
+import type {DeepPartial} from '@mattermost/types/utilities';
+
 import {
     addMessageIntoHistory,
 } from 'mattermost-redux/actions/posts';
@@ -19,6 +22,9 @@ import mockStore from 'tests/test_store';
 import {StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
+import type {GlobalState} from 'types/store';
+import type {PostDraft} from 'types/store/draft';
+
 /* eslint-disable global-require */
 
 jest.mock('mattermost-redux/client', () => {
@@ -35,10 +41,10 @@ jest.mock('mattermost-redux/client', () => {
 });
 
 jest.mock('mattermost-redux/actions/posts', () => ({
-    removeReaction: (...args) => ({type: 'MOCK_REMOVE_REACTION', args}),
-    addMessageIntoHistory: (...args) => ({type: 'MOCK_ADD_MESSAGE_INTO_HISTORY', args}),
-    moveHistoryIndexBack: (...args) => ({type: 'MOCK_MOVE_MESSAGE_HISTORY_BACK', args}),
-    moveHistoryIndexForward: (...args) => ({type: 'MOCK_MOVE_MESSAGE_HISTORY_FORWARD', args}),
+    removeReaction: (...args: any[]) => ({type: 'MOCK_REMOVE_REACTION', args}),
+    addMessageIntoHistory: (...args: any[]) => ({type: 'MOCK_ADD_MESSAGE_INTO_HISTORY', args}),
+    moveHistoryIndexBack: (...args: any[]) => ({type: 'MOCK_MOVE_MESSAGE_HISTORY_BACK', args}),
+    moveHistoryIndexForward: (...args: any[]) => ({type: 'MOCK_MOVE_MESSAGE_HISTORY_FORWARD', args}),
 }));
 
 jest.mock('actions/command', () => ({
@@ -55,23 +61,27 @@ jest.mock('actions/hooks', () => ({
 }));
 
 jest.mock('actions/post_actions', () => ({
-    submitReaction: (...args) => ({type: 'MOCK_SUBMIT_REACTION', args}),
-    addReaction: (...args) => ({type: 'MOCK_ADD_REACTION', args}),
+    submitReaction: (...args: any[]) => ({type: 'MOCK_SUBMIT_REACTION', args}),
+    addReaction: (...args: any[]) => ({type: 'MOCK_ADD_REACTION', args}),
     createPost: jest.fn(() => ({type: 'MOCK_CREATE_POST'})),
-    setEditingPost: (...args) => ({type: 'MOCK_SET_EDITING_POST', args}),
+    setEditingPost: (...args: any[]) => ({type: 'MOCK_SET_EDITING_POST', args}),
 }));
 
 jest.mock('actions/storage', () => {
     const original = jest.requireActual('actions/storage');
     return {
         ...original,
-        setGlobalItem: (...args) => ({type: 'MOCK_SET_GLOBAL_ITEM', args}),
-        actionOnGlobalItemsWithPrefix: (...args) => ({type: 'MOCK_ACTION_ON_GLOBAL_ITEMS_WITH_PREFIX', args}),
+        setGlobalItem: (...args: any[]) => ({type: 'MOCK_SET_GLOBAL_ITEM', args}),
+        actionOnGlobalItemsWithPrefix: (...args: any[]) => ({type: 'MOCK_ACTION_ON_GLOBAL_ITEMS_WITH_PREFIX', args}),
     };
 });
 
-function lastCall(calls) {
+function lastCall<T>(calls: T[]): T {
     return calls[calls.length - 1];
+}
+
+function makeDraft(draft: DeepPartial<PostDraft>): PostDraft {
+    return draft as PostDraft;
 }
 
 const rootId = 'fc234c34c23';
@@ -81,7 +91,7 @@ const channelId = '4j5j4k3k34j4';
 const latestPostId = 'latestPostId';
 
 describe('rhs view actions', () => {
-    const initialState = {
+    const initialState: DeepPartial<GlobalState> = {
         entities: {
             posts: {
                 posts: {
@@ -143,7 +153,7 @@ describe('rhs view actions', () => {
             roles: {
                 roles: {
                     channel_roles: {
-                        permissions: '',
+                        permissions: '' as unknown as string[], // stale fixture: Role.permissions is a string[]
                     },
                 },
             },
@@ -172,14 +182,14 @@ describe('rhs view actions', () => {
         },
     };
 
-    let store;
+    let store = mockStore(initialState);
 
     beforeEach(() => {
         store = mockStore(initialState);
     });
 
     describe('submitPost', () => {
-        const draft = {message: '', channelId, rootId, fileInfos: []};
+        const draft = makeDraft({message: '', channelId, rootId, fileInfos: []});
 
         const post = {
             file_ids: [],
@@ -195,15 +205,15 @@ describe('rhs view actions', () => {
             expect(HookActions.runMessageWillBePostedHooks).toHaveBeenCalled();
             expect(PostActions.createPost).toHaveBeenCalled();
 
-            expect(lastCall(PostActions.createPost.mock.calls)[0]).toEqual(
+            expect(lastCall(jest.mocked(PostActions.createPost).mock.calls)[0]).toEqual(
                 expect.objectContaining(post),
             );
 
-            expect(lastCall(PostActions.createPost.mock.calls)[1]).toBe(draft.fileInfos);
+            expect(lastCall(jest.mocked(PostActions.createPost).mock.calls)[1]).toBe(draft.fileInfos);
         });
 
         test('it does not call PostActions.createPost when hooks fail', async () => {
-            HookActions.runMessageWillBePostedHooks.mockImplementation(() => () => ({error: {message: 'An error occurred'}}));
+            jest.mocked(HookActions.runMessageWillBePostedHooks).mockImplementation(() => async () => ({error: {message: 'An error occurred'}}));
 
             await store.dispatch(submitPost(channelId, rootId, draft));
 
@@ -219,7 +229,7 @@ describe('rhs view actions', () => {
             root_id: rootId,
         };
 
-        const draft = {message: '/test msg', channelId, rootId};
+        const draft = makeDraft({message: '/test msg', channelId, rootId});
 
         test('it calls executeCommand', async () => {
             await store.dispatch(submitCommand(channelId, rootId, draft));
@@ -228,14 +238,14 @@ describe('rhs view actions', () => {
             expect(executeCommand).toHaveBeenCalled();
 
             // First argument
-            expect(lastCall(executeCommand.mock.calls)[0]).toEqual(draft.message);
+            expect(lastCall(jest.mocked(executeCommand).mock.calls)[0]).toEqual(draft.message);
 
             // Second argument
-            expect(lastCall(executeCommand.mock.calls)[1]).toEqual(args);
+            expect(lastCall(jest.mocked(executeCommand).mock.calls)[1]).toEqual(args);
         });
 
         test('it does not call executeComaand when hooks fail', async () => {
-            HookActions.runSlashCommandWillBePostedHooks.mockImplementation(() => () => ({error: {message: 'An error occurred'}}));
+            jest.mocked(HookActions.runSlashCommandWillBePostedHooks).mockImplementation(() => async () => ({error: {message: 'An error occurred'}}));
 
             await store.dispatch(submitCommand(channelId, rootId, draft));
 
@@ -244,7 +254,7 @@ describe('rhs view actions', () => {
         });
 
         test('it should not error in case of an empty response', async () => {
-            HookActions.runSlashCommandWillBePostedHooks.mockImplementation(() => () => ({data: {}}));
+            jest.mocked(HookActions.runSlashCommandWillBePostedHooks).mockImplementation(() => async () => ({data: {} as {message: string; args: CommandArgs}}));
 
             const res = await store.dispatch(submitCommand(channelId, rootId, draft));
             expect(res).toStrictEqual({});
@@ -270,13 +280,13 @@ describe('rhs view actions', () => {
     });
 
     describe('onSubmit', () => {
-        const draft = {
+        const draft = makeDraft({
             message: 'test',
             fileInfos: [],
             uploadsInProgress: [],
             rootId,
             channelId,
-        };
+        });
 
         test('it adds message into history', () => {
             store.dispatch(onSubmit(channelId, rootId, draft, {}));
@@ -289,53 +299,53 @@ describe('rhs view actions', () => {
             );
         });
 
-        test('it submits a command when message is /away', () => {
-            store.dispatch(onSubmit(channelId, rootId, {
+        test('it submits a command when message is /away', async () => {
+            // jest.config.js sets clearMocks, which clears calls but not implementations, so the
+            // empty-response override from the submitCommand suite above would otherwise leak here
+            // and make submitCommand return before dispatching executeCommand.
+            jest.mocked(HookActions.runSlashCommandWillBePostedHooks).mockImplementation((message, args) => async () => ({data: {message, args}}));
+
+            await store.dispatch(onSubmit(channelId, rootId, makeDraft({
                 message: '/away',
                 fileInfos: [],
                 uploadsInProgress: [],
-            }, {}));
+            }), {}));
 
             const testStore = mockStore(initialState);
-            testStore.dispatch(submitCommand(channelId, rootId, {message: '/away', fileInfos: [], uploadsInProgress: []}));
+            await testStore.dispatch(submitCommand(channelId, rootId, makeDraft({message: '/away', fileInfos: [], uploadsInProgress: []})));
 
             const commandActions = [{args: ['/away', {channel_id: '4j5j4k3k34j4', root_id: 'fc234c34c23', team_id: '4j5nmn4j3'}], type: 'MOCK_ACTIONS_COMMAND_EXECUTE'}];
-            expect(store.getActions()).toEqual(
-                expect.arrayContaining(testStore.getActions()),
-                expect.arrayContaining(commandActions),
-            );
+
+            expect(store.getActions()).toEqual(expect.arrayContaining(testStore.getActions()));
+            expect(store.getActions()).toEqual(expect.arrayContaining(commandActions));
         });
 
         test('it submits a regular post when options.ignoreSlash is true', () => {
-            store.dispatch(onSubmit(channelId, rootId, {
+            store.dispatch(onSubmit(channelId, rootId, makeDraft({
                 message: '/fakecommand',
                 fileInfos: [],
                 uploadsInProgress: [],
-            }, {ignoreSlash: true}));
+            }), {ignoreSlash: true}));
 
             const testStore = mockStore(initialState);
-            testStore.dispatch(submitPost(channelId, rootId, {message: '/fakecommand', fileInfos: [], uploadsInProgress: []}));
+            testStore.dispatch(submitPost(channelId, rootId, makeDraft({message: '/fakecommand', fileInfos: [], uploadsInProgress: []})));
 
-            expect(store.getActions()).toEqual(
-                expect.arrayContaining(testStore.getActions()),
-                expect.arrayContaining([{args: ['/fakecommand'], type: 'MOCK_ADD_MESSAGE_INTO_HISTORY'}]),
-            );
+            expect(store.getActions()).toEqual(expect.arrayContaining(testStore.getActions()));
+            expect(store.getActions()).toEqual(expect.arrayContaining([{args: ['/fakecommand'], type: 'MOCK_ADD_MESSAGE_INTO_HISTORY'}]));
         });
 
         test('it submits a regular post when message is something else', () => {
-            store.dispatch(onSubmit(channelId, rootId, {
+            store.dispatch(onSubmit(channelId, rootId, makeDraft({
                 message: 'test msg',
                 fileInfos: [],
                 uploadsInProgress: [],
-            }, {}));
+            }), {}));
 
             const testStore = mockStore(initialState);
-            testStore.dispatch(submitPost(channelId, rootId, {message: 'test msg', fileInfos: [], uploadsInProgress: []}));
+            testStore.dispatch(submitPost(channelId, rootId, makeDraft({message: 'test msg', fileInfos: [], uploadsInProgress: []})));
 
-            expect(store.getActions()).toEqual(
-                expect.arrayContaining(testStore.getActions()),
-                expect.arrayContaining([{args: ['test msg'], type: 'MOCK_ADD_MESSAGE_INTO_HISTORY'}]),
-            );
+            expect(store.getActions()).toEqual(expect.arrayContaining(testStore.getActions()));
+            expect(store.getActions()).toEqual(expect.arrayContaining([{args: ['test msg'], type: 'MOCK_ADD_MESSAGE_INTO_HISTORY'}]));
         });
     });
 });

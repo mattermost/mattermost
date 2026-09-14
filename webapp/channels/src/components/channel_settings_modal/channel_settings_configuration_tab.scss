@@ -24,10 +24,10 @@
         gap: 16px;
     }
 
-    .channel_banner_header, .channel_translation_header, .channel_shared_with_workspaces_header {
+    .channel_banner_header, .channel_translation_header, .channel_join_leave_messages_header, .channel_shared_with_workspaces_header {
         display: flex;
 
-        .channel_banner_header__text, .channel_translation_header__text, .channel_shared_with_workspaces_header__text {
+        .channel_banner_header__text, .channel_translation_header__text, .channel_join_leave_messages_header__text, .channel_shared_with_workspaces_header__text {
             display: flex;
             flex: 1;
             flex-direction: column;
