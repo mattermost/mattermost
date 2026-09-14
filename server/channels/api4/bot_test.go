@@ -1472,6 +1472,36 @@ func TestAssignBot(t *testing.T) {
 		require.Equal(t, th.BasicUser2.Id, after.OwnerId)
 	})
 
+	t.Run("assign to non-existent user fails", func(t *testing.T) {
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+
+		th.AddPermissionToRole(t, model.PermissionCreateBot.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionReadBots.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionReadOthersBots.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageBots.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
+
+		bot := &model.Bot{
+			Username:    GenerateTestUsername(),
+			Description: "bot",
+		}
+		bot, resp, err := th.Client.CreateBot(context.Background(), bot)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		defer func() {
+			appErr := th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			assert.Nil(t, appErr)
+		}()
+
+		_, resp, err = th.Client.AssignBot(context.Background(), bot.UserId, model.NewId())
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
 	t.Run("bot assigned to bot fails", func(t *testing.T) {
 		defaultPerms := th.SaveDefaultRolePermissions(t)
 		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
