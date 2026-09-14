@@ -176,6 +176,7 @@ export function loadPlugin(manifest: PluginManifest): Promise<void> {
 
         const script = document.createElement('script');
         script.id = 'plugin_' + manifest.id;
+        script.dataset.pluginVersion = manifest.version;
         script.type = 'text/javascript';
         script.src = getSiteURL() + bundlePath;
         script.defer = true;
