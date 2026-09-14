@@ -87,7 +87,7 @@ const EmojiPicker = ({
 
     const infiniteLoaderRef = React.useRef<InfiniteLoader & {_listRef: FixedSizeList<CategoryOrEmojiRow[]>}>(null);
 
-    const shouldRunCreateCategoryAndEmojiRows = useRef<boolean>();
+    const shouldRunCreateCategoryAndEmojiRows = useRef<boolean>(undefined);
 
     const throttledSearchCustomEmoji = useRef(throttle((newFilter, customEmojisEnabled) => {
         if (customEmojisEnabled && newFilter && newFilter.trim().length) {
