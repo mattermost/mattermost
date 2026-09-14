@@ -491,11 +491,34 @@ test('renders every single-chip field type through its own renderer', {tag: '@po
 
         // * Verify a text field renders its stored string through the text renderer
         const textOnScreen = await channelsPage.centerView.getPostById(textPost.id);
-        await expect(textOnScreen.container.getByTestId(TEXT_CHIP)).toHaveText('Q3 planning');
+        const textChip = textOnScreen.container.getByTestId(TEXT_CHIP);
+
+        await expect(textChip).toHaveText('Q3 planning');
 
         // * Verify a select renders the option's name, never the stored option id
         const selectOnScreen = await channelsPage.centerView.getPostById(selectPost.id);
-        await expect(selectOnScreen.container.getByTestId(OPTION_CHIP)).toHaveText('SECRET');
+        const selectChip = selectOnScreen.container.getByTestId(OPTION_CHIP);
+
+        await expect(selectChip).toHaveText('SECRET');
+
+        // * Verify the text value is drawn as the same chip as an option, in the same
+        // neutral. Neither field carries a colour, so comparing the two against each
+        // other pins them together without naming a value that changes with the theme.
+        const neutralBackground = await selectChip.evaluate((el: Element) => getComputedStyle(el).backgroundColor);
+
+        await expect(textChip).toHaveCSS('background-color', neutralBackground);
+        await expect(textChip).toHaveCSS(
+            'border-radius',
+            await selectChip.evaluate((el: Element) => getComputedStyle(el).borderRadius),
+        );
+        await expect(textChip).toHaveCSS(
+            'font-weight',
+            await selectChip.evaluate((el: Element) => getComputedStyle(el).fontWeight),
+        );
+        await expect(textChip).toHaveCSS(
+            'padding',
+            await selectChip.evaluate((el: Element) => getComputedStyle(el).padding),
+        );
 
         // * Verify a rank goes through that same option renderer and draws one chip
         const rankOnScreen = await channelsPage.centerView.getPostById(rankPost.id);
@@ -504,8 +527,14 @@ test('renders every single-chip field type through its own renderer', {tag: '@po
         // * Verify a user field resolves the id to a name. TeammateNameDisplay is
         // 'username' in the E2E config baseline, so that is what it resolves to.
         const userOnScreen = await channelsPage.centerView.getPostById(userPost.id);
-        await expect(userOnScreen.container.getByTestId(USER_CHIP)).toContainText(user.username);
-        await expect(userOnScreen.container.getByTestId(USER_CHIP)).not.toContainText(user.id);
+        const userChip = userOnScreen.container.getByTestId(USER_CHIP);
+
+        await expect(userChip).toContainText(user.username);
+        await expect(userChip).not.toContainText(user.id);
+
+        // * Verify the chip carries the avatar beside the name. A user value is the one
+        // chip that is not text alone, and the name assertion above would hold without it.
+        await expect(userChip.locator('.Avatar')).toBeVisible();
     } finally {
         await deleteFields(adminClient, created);
     }
