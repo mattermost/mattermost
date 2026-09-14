@@ -174,14 +174,14 @@ func TestSearchAccessControlDecisionActions(t *testing.T) {
 	})
 }
 
-// The ChannelReadAccessABACPermission gate on the render-decision endpoint. Each
+// The ChannelAccessABACPermission gate on the render-decision endpoint. Each
 // case needs its own TestHelper because SetupConfig is the only place a
 // feature flag sticks.
 func TestSearchAccessControlDecisionActionsChannelReadAccess(t *testing.T) {
 	t.Run("flag off returns bad request and hides the action from discovery", func(t *testing.T) {
 		th := SetupConfig(t, func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = true
-			cfg.FeatureFlags.ChannelReadAccessABACPermission = false
+			cfg.FeatureFlags.ChannelAccessABACPermission = false
 		}).InitBasic(t)
 
 		channelResource := model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: th.BasicChannel.Id}
@@ -206,7 +206,7 @@ func TestSearchAccessControlDecisionActionsChannelReadAccess(t *testing.T) {
 	t.Run("flag on evaluates the action and lists it in discovery", func(t *testing.T) {
 		th := SetupConfig(t, func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = true
-			cfg.FeatureFlags.ChannelReadAccessABACPermission = true
+			cfg.FeatureFlags.ChannelAccessABACPermission = true
 		}).InitBasic(t)
 
 		channelResource := model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: th.BasicChannel.Id}

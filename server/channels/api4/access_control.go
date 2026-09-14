@@ -137,7 +137,7 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 	}
 
 	// Allow channel read access action only if the corresponding feature flag is enabled
-	if policy.HasChannelReadAccessAction() && !c.App.Config().FeatureFlags.IsChannelReadAccessABACPermissionEnabled() {
+	if policy.HasChannelReadAccessAction() && !c.App.Config().FeatureFlags.IsChannelAccessABACPermissionEnabled() {
 		c.Err = model.NewAppError("createAccessControlPolicy", "api.access_control_policy.channel_read_access.feature_disabled", nil, "", http.StatusNotImplemented)
 		return
 	}

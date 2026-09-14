@@ -153,7 +153,7 @@ func (p *AccessControlPolicy) HasPermissionRuleAction() bool {
 
 // HasChannelReadAccessAction reports whether any rule on this policy carries the
 // channel_read_access action. API4 uses it to gate the action behind its own
-// ChannelReadAccessABACPermission flag, for every policy type. Safe to call on a
+// ChannelAccessABACPermission flag, for every policy type. Safe to call on a
 // nil policy.
 func (p *AccessControlPolicy) HasChannelReadAccessAction() bool {
 	if p == nil {

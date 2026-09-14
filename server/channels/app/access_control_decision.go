@@ -45,7 +45,7 @@ var renderableABACActions = map[string]renderableActionConfig{
 		DefaultWhenInactive: true,
 		FailClosedOnError:   true,
 		Enabled: func(cfg *model.Config) bool {
-			return cfg.FeatureFlags.IsChannelReadAccessABACPermissionEnabled()
+			return cfg.FeatureFlags.IsChannelAccessABACPermissionEnabled()
 		},
 	},
 }

@@ -27,7 +27,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
-import {getFeatureFlagValue, isPolicySimulationEnabled, isChannelReadAccessABACPermissionEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getFeatureFlagValue, isPolicySimulationEnabled, isChannelAccessABACPermissionEnabled} from 'mattermost-redux/selectors/entities/general';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {mergeSessionAttributes} from 'components/admin_console/access_control/editors/shared';
@@ -194,7 +194,7 @@ function ChannelSettingsPermissionsPolicyTab({
     // hiding the UI here keeps the author from clicking a button
     // that would only surface a backend error.
     const policySimulationEnabled = useSelector(isPolicySimulationEnabled);
-    const channelReadAccessEnabled = useSelector(isChannelReadAccessABACPermissionEnabled);
+    const channelReadAccessEnabled = useSelector(isChannelAccessABACPermissionEnabled);
 
     const [showChannelReadAccessConfirmModal, setShowChannelReadAccessConfirmModal] = useState(false);
     const [isSavingPolicy, setIsSavingPolicy] = useState(false);

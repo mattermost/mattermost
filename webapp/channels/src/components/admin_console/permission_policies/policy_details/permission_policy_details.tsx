@@ -18,7 +18,7 @@ import type {AccessControlSettings} from '@mattermost/types/config';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {CHANNEL_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties_user';
 
-import {isPolicySimulationEnabled, isChannelReadAccessABACPermissionEnabled} from 'mattermost-redux/selectors/entities/general';
+import {isPolicySimulationEnabled, isChannelAccessABACPermissionEnabled} from 'mattermost-redux/selectors/entities/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import SimulateAccessModal from 'components/admin_console/access_control/modals/simulate_access/simulate_access_modal';
@@ -168,7 +168,7 @@ function PermissionPolicyDetails({
     // Hide the Channel Read Access row when the flag is off, since saving it would
     // 501. Rows already selected on a stored policy still render, so an admin
     // can remove one after the flag is turned off.
-    const channelReadAccessEnabled = useSelector(isChannelReadAccessABACPermissionEnabled);
+    const channelReadAccessEnabled = useSelector(isChannelAccessABACPermissionEnabled);
 
     // The autocomplete mixes the requesting user's attributes (user.attributes.*)
     // and the accessed channel's attributes (resource.attributes.*), tagged by

@@ -447,28 +447,28 @@ describe('Selectors.General', () => {
             expect(Selectors.isPolicySimulationEnabled(state)).toBe(false);
         });
 
-        test('isChannelReadAccessABACPermissionEnabled returns false when umbrella is off', () => {
+        test('isChannelAccessABACPermissionEnabled returns false when umbrella is off', () => {
             const state = buildState({
                 FeatureFlagPermissionPolicies: 'false',
-                FeatureFlagChannelReadAccessABACPermission: 'true',
+                FeatureFlagChannelAccessABACPermission: 'true',
             });
-            expect(Selectors.isChannelReadAccessABACPermissionEnabled(state)).toBe(false);
+            expect(Selectors.isChannelAccessABACPermissionEnabled(state)).toBe(false);
         });
 
-        test('isChannelReadAccessABACPermissionEnabled returns false when sub-flag is off', () => {
+        test('isChannelAccessABACPermissionEnabled returns false when sub-flag is off', () => {
             const state = buildState({
                 FeatureFlagPermissionPolicies: 'true',
-                FeatureFlagChannelReadAccessABACPermission: 'false',
+                FeatureFlagChannelAccessABACPermission: 'false',
             });
-            expect(Selectors.isChannelReadAccessABACPermissionEnabled(state)).toBe(false);
+            expect(Selectors.isChannelAccessABACPermissionEnabled(state)).toBe(false);
         });
 
-        test('isChannelReadAccessABACPermissionEnabled returns true only when both flags are on', () => {
+        test('isChannelAccessABACPermissionEnabled returns true only when both flags are on', () => {
             const state = buildState({
                 FeatureFlagPermissionPolicies: 'true',
-                FeatureFlagChannelReadAccessABACPermission: 'true',
+                FeatureFlagChannelAccessABACPermission: 'true',
             });
-            expect(Selectors.isChannelReadAccessABACPermissionEnabled(state)).toBe(true);
+            expect(Selectors.isChannelAccessABACPermissionEnabled(state)).toBe(true);
         });
 
         test('channel read access is independent of the file-action sub-flag', () => {
@@ -476,10 +476,10 @@ describe('Selectors.General', () => {
             const state = buildState({
                 FeatureFlagPermissionPolicies: 'true',
                 FeatureFlagChannelPermissionPolicies: 'false',
-                FeatureFlagChannelReadAccessABACPermission: 'true',
+                FeatureFlagChannelAccessABACPermission: 'true',
             });
             expect(Selectors.isChannelPermissionPoliciesEnabled(state)).toBe(false);
-            expect(Selectors.isChannelReadAccessABACPermissionEnabled(state)).toBe(true);
+            expect(Selectors.isChannelAccessABACPermissionEnabled(state)).toBe(true);
         });
     });
 

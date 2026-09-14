@@ -63,12 +63,13 @@ type FeatureFlags struct {
 	// PermissionPolicies dependency is enforced at every call site.
 	PolicySimulation bool
 
-	// Enable the channel_read_access action on ABAC policies. Requires
-	// PermissionPolicies. Kept separate from ChannelPermissionPolicies
-	// (which gates the file actions) because denying channel_read_access hides a
-	// whole channel, not just an attachment. Read via
-	// IsChannelReadAccessABACPermissionEnabled().
-	ChannelReadAccessABACPermission bool
+	// Enable the channel-access actions on ABAC policies: channel_read_access
+	// today, and its write counterpart on the same flag rather than a second
+	// one. Requires PermissionPolicies. Kept separate from
+	// ChannelPermissionPolicies (which gates the file actions) because denying
+	// channel access hides a whole channel, not just an attachment. Read via
+	// IsChannelAccessABACPermissionEnabled().
+	ChannelAccessABACPermission bool
 
 	ContentFlagging bool
 
@@ -191,7 +192,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ResourceAttributesInPolicies = false
 	f.ChannelPermissionPolicies = true
 	f.PolicySimulation = true
-	f.ChannelReadAccessABACPermission = false
+	f.ChannelAccessABACPermission = false
 	f.ContentFlagging = true
 	f.EnableMattermostEntry = true
 
@@ -279,11 +280,11 @@ func (f *FeatureFlags) IsPolicySimulationEnabled() bool {
 	return f.PermissionPolicies && f.PolicySimulation
 }
 
-// IsChannelReadAccessABACPermissionEnabled reports whether policies may carry the
-// channel_read_access action. Both this sub-flag and the PermissionPolicies umbrella
-// must be on.
-func (f *FeatureFlags) IsChannelReadAccessABACPermissionEnabled() bool {
-	return f.PermissionPolicies && f.ChannelReadAccessABACPermission
+// IsChannelAccessABACPermissionEnabled reports whether policies may carry the
+// channel-access actions (channel_read_access and its write counterpart). Both
+// this sub-flag and the PermissionPolicies umbrella must be on.
+func (f *FeatureFlags) IsChannelAccessABACPermissionEnabled() bool {
+	return f.PermissionPolicies && f.ChannelAccessABACPermission
 }
 
 // ToMap returns the feature flags as a map[string]string
