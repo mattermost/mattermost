@@ -8,7 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/rand"
+	"math/rand/v2"
 	"os"
 	"path/filepath"
 	"slices"
@@ -265,7 +265,6 @@ func sampledataCmdF(c client.Client, command *cobra.Command, args []string) erro
 	}
 
 	fake.Seed(seed)
-	rand.Seed(seed)
 
 	teamsAndChannels := make(map[string][]string, teams)
 	for i := range teams {
@@ -335,8 +334,8 @@ func sampledataCmdF(c client.Client, command *cobra.Command, args []string) erro
 	}
 
 	for range directChannels {
-		user1 := allUsers[rand.Intn(len(allUsers))]
-		user2 := allUsers[rand.Intn(len(allUsers))]
+		user1 := allUsers[rand.IntN(len(allUsers))]
+		user2 := allUsers[rand.IntN(len(allUsers))]
 		channelLine := createDirectChannel([]string{user1, user2})
 		if err := encoder.Encode(channelLine); err != nil {
 			return fmt.Errorf("cannot encode channel line: %w", err)
@@ -344,8 +343,8 @@ func sampledataCmdF(c client.Client, command *cobra.Command, args []string) erro
 	}
 
 	for range directChannels {
-		user1 := allUsers[rand.Intn(len(allUsers))]
-		user2 := allUsers[rand.Intn(len(allUsers))]
+		user1 := allUsers[rand.IntN(len(allUsers))]
+		user2 := allUsers[rand.IntN(len(allUsers))]
 
 		dates := sortedRandomDates(postsPerDirectChannel)
 		for j := range postsPerDirectChannel {
@@ -358,9 +357,9 @@ func sampledataCmdF(c client.Client, command *cobra.Command, args []string) erro
 
 	for range groupChannels {
 		users := []string{}
-		totalUsers := 3 + rand.Intn(3)
+		totalUsers := 3 + rand.IntN(3)
 		for len(users) < totalUsers {
-			user := allUsers[rand.Intn(len(allUsers))]
+			user := allUsers[rand.IntN(len(allUsers))]
 			if !slices.Contains(users, user) {
 				users = append(users, user)
 			}
@@ -373,9 +372,9 @@ func sampledataCmdF(c client.Client, command *cobra.Command, args []string) erro
 
 	for range groupChannels {
 		users := []string{}
-		totalUsers := 3 + rand.Intn(3)
+		totalUsers := 3 + rand.IntN(3)
 		for len(users) < totalUsers {
-			user := allUsers[rand.Intn(len(allUsers))]
+			user := allUsers[rand.IntN(len(allUsers))]
 			if !slices.Contains(users, user) {
 				users = append(users, user)
 			}

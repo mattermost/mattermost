@@ -6,7 +6,6 @@ package app
 import (
 	"bytes"
 	"io"
-	"math/rand"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -17,6 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/imgutils"
 )
@@ -150,9 +150,7 @@ func TestUploadData(t *testing.T) {
 	require.Nil(t, uploadSessionAppErr)
 	require.NotEmpty(t, us)
 
-	data := make([]byte, us.FileSize)
-	_, err2 := rand.Read(data)
-	require.NoError(t, err2)
+	data := utils.PseudoRandomBytes(int(us.FileSize))
 
 	t.Run("write error", func(t *testing.T) {
 		rd := &io.LimitedReader{
@@ -310,9 +308,7 @@ func TestUploadDataConcurrent(t *testing.T) {
 	require.Nil(t, appErr)
 	require.NotEmpty(t, us)
 
-	data := make([]byte, us.FileSize)
-	_, err2 := rand.Read(data)
-	require.NoError(t, err2)
+	data := utils.PseudoRandomBytes(int(us.FileSize))
 
 	var nErrs int32
 	var wg sync.WaitGroup
