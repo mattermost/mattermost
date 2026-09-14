@@ -25,6 +25,56 @@
     border: solid 2px #fff;
 }
 
+.AdminUserCard__picture {
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 auto;
+}
+
+.AdminUserCard__picture-input {
+    display: none;
+}
+
+.AdminUserCard__picture-edit {
+    position: absolute;
+    z-index: 2;
+
+    // Anchor to the bottom-right of the 128px (xxl) avatar from the top-left
+    // origin so placement is independent of the avatar wrapper's own box size.
+    top: 94px;
+    left: 94px;
+    display: flex;
+    width: 32px;
+    height: 32px;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: solid 2px #fff;
+    border-radius: 50%;
+    background-color: #1c58d9;
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.3);
+    color: #fff;
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+        background-color: #1451c8;
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+
+    svg {
+        fill: currentColor;
+    }
+
+    .LoadingSpinner {
+        display: flex;
+        font-size: 16px;
+    }
+}
+
 .AdminUserCard__body {
     padding: 12px 20px 20px 178px;
     background-color: #fff;

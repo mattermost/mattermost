@@ -296,6 +296,45 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		post.AddProp(model.PostPropsFromOAuthApp, "true")
 	}
 
+	// Re-inject display-identity overrides under verified integration authority.
+	// SanitizeProps strips override_username, override_icon_url,
+	// override_icon_emoji, and webhook_display_name on every locally-originated
+	// post so a regular client cannot impersonate another user in thread lists,
+	// push notifications, edit history, and post previews.
+	//
+	// Scoped to FromIncomingWebhook only, not the broader isIntegrationPostAuthor
+	// (which also covers bot users, OAuth-app sessions, and plugins): override
+	// display has been an incoming-webhook-specific feature since it was
+	// introduced in 2015 (paired with from_webhook and a "BOT" badge, before
+	// Mattermost had real bot accounts) and every channel-rendering path
+	// (GetSenderName, user_profile.tsx, post_profile_picture.tsx, avatar.tsx,
+	// commented_on.tsx) still gates on from_webhook alone — none check
+	// from_plugin either. Mobile push notifications are the one exception —
+	// notification_push.go applies override_username/override_icon_url based
+	// only on the EnablePostUsernameOverride/EnablePostIconOverride config, not
+	// from_webhook — so narrowing this gate also closes a push-notification
+	// spoofing surface for bot/OAuth/plugin-authored posts that the config
+	// toggle alone didn't prevent. Bots and plugins typically run as their own
+	// bot account with account-level username/icon already configured in
+	// System Console; there's no legitimate per-post override use case for
+	// them, and re-injecting one here would just resurrect the from_webhook +
+	// override_username forgery idiom this sanitization exists to close,
+	// laundered through a bot/OAuth/plugin session instead of a forged prop.
+	if flags.FromIncomingWebhook {
+		if flags.OverrideUsername != "" {
+			post.AddProp(model.PostPropsOverrideUsername, flags.OverrideUsername)
+		}
+		if flags.OverrideIconURL != "" {
+			post.AddProp(model.PostPropsOverrideIconURL, flags.OverrideIconURL)
+		}
+		if flags.OverrideIconEmoji != "" {
+			post.AddProp(model.PostPropsOverrideIconEmoji, flags.OverrideIconEmoji)
+		}
+		if flags.WebhookDisplayName != "" {
+			post.AddProp(model.PostPropsWebhookDisplayName, flags.WebhookDisplayName)
+		}
+	}
+
 	// Strip mm_blocks_actions from posts that are neither bot-authored nor
 	// created via an integration session. CreateWebhookPost passes
 	// AllowMmBlocksActions instead of relying on from_webhook, which clients
@@ -768,6 +807,14 @@ func (a *App) handlePostEvents(rctx request.CTX, post *model.Post, user *model.U
 	return nil
 }
 
+// SendEphemeralPost broadcasts a transient, single-viewer post via WebSocket. It
+// intentionally does NOT go through SanitizeProps + isIntegrationPostAuthor
+// re-injection — ephemeral posts are not persisted, are delivered only to the
+// originating user, and cannot reach other channel members. The impersonation
+// surface SanitizeProps closes on saved posts (thread lists, push notifications,
+// edit history, post previews) does not apply here. A caller that intentionally
+// sets override_username or override_icon_url on an ephemeral post will see it
+// rendered to themselves only.
 func (a *App) SendEphemeralPost(rctx request.CTX, userID string, post *model.Post) (*model.Post, bool) {
 	post.Type = model.PostTypeEphemeral
 
@@ -865,6 +912,36 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		updatePostOptions = model.DefaultUpdatePostOptions()
 	}
 
+	// Capture caller-supplied display-identity props BEFORE SanitizeProps strips
+	// them. They are re-applied to newPost below only when the caller has opted
+	// in via AllowIdentityPropsUpdate (Shared Channels federation receive is the
+	// only production caller). Without that opt-in, postIdentityPropsPreservedOnUpdate
+	// restores the prior post's values — preventing a regular user from stripping
+	// or replacing a bot's identity on edit.
+	var receivedOverrideUsername, receivedOverrideIconURL string
+	var receivedOverrideIconEmoji, receivedWebhookDisplayName string
+	if updatePostOptions.AllowIdentityPropsUpdate {
+		receivedOverrideUsername, _ = receivedUpdatedPost.GetProp(model.PostPropsOverrideUsername).(string)
+		receivedOverrideIconURL, _ = receivedUpdatedPost.GetProp(model.PostPropsOverrideIconURL).(string)
+		receivedOverrideIconEmoji, _ = receivedUpdatedPost.GetProp(model.PostPropsOverrideIconEmoji).(string)
+		receivedWebhookDisplayName, _ = receivedUpdatedPost.GetProp(model.PostPropsWebhookDisplayName).(string)
+	}
+
+	// RemoteId is caller-data, not caller-authority: SanitizeInput() clears it
+	// on the plain REST update path, but callers that skip SanitizeInput
+	// (PatchPost inheriting the stored row's real RemoteId, or an interactive
+	// action response decoded straight from an integration's JSON body) can
+	// reach here with it set. SanitizeProps' own federation check trusts
+	// RemoteId alone to skip stripping identity props — and if oldPost has no
+	// existing value for a given prop, PreserveIdentityPropsFrom below has
+	// nothing to restore over a forged one. Clearing RemoteId here for every
+	// caller except the one explicitly granted AllowIdentityPropsUpdate closes
+	// both: SanitizeProps strips normally, and the preserve-skip below can
+	// only ever trigger for the genuine federation-sync caller.
+	if !updatePostOptions.AllowIdentityPropsUpdate {
+		receivedUpdatedPost.RemoteId = nil
+	}
+
 	receivedUpdatedPost.SanitizeProps()
 
 	postLists, nErr := a.Srv().Store().Post().Get(rctx, receivedUpdatedPost.Id, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
@@ -933,7 +1010,45 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		newPost.IsPinned = receivedUpdatedPost.IsPinned
 		newPost.HasReactions = receivedUpdatedPost.HasReactions
 		newPost.SetProps(receivedUpdatedPost.GetProps())
-		newPost.PreserveIdentityPropsFrom(oldPost)
+
+		// SanitizeProps above left identity props untouched for federated posts
+		// (RemoteId set), so receivedUpdatedPost.GetProps() already IS the
+		// remote's complete, authoritative identity state — including a prop's
+		// absence, which means the origin cluster cleared it. Restoring from
+		// oldPost here would silently resurrect a stale local value the remote
+		// no longer has. For non-federated posts, SanitizeProps already
+		// stripped these props from receivedUpdatedPost, so restoring from
+		// oldPost is what stops a regular edit from wiping a bot's identity.
+		//
+		// Gated on AllowIdentityPropsUpdate as well as RemoteId: RemoteId alone
+		// is caller-data, not caller-authority — PatchPost inherits it unchanged
+		// from the stored row (PostPatch has no RemoteId field, but the fetched
+		// originalPost's real one survives), and it isn't cleared before
+		// reaching here. Only Shared Channels federation receive sets both
+		// RemoteId AND AllowIdentityPropsUpdate together, so requiring both is
+		// what actually restricts this skip to the genuine sync path.
+		isFederatedSync := updatePostOptions.AllowIdentityPropsUpdate && receivedUpdatedPost.IsRemote()
+		if !isFederatedSync {
+			newPost.PreserveIdentityPropsFrom(oldPost)
+		}
+
+		// When the caller opted in via AllowIdentityPropsUpdate (federation
+		// receive), prefer the caller's new override values over the prior
+		// post's. Captured before SanitizeProps above; empty-string means absent.
+		if updatePostOptions.AllowIdentityPropsUpdate {
+			if receivedOverrideUsername != "" {
+				newPost.AddProp(model.PostPropsOverrideUsername, receivedOverrideUsername)
+			}
+			if receivedOverrideIconURL != "" {
+				newPost.AddProp(model.PostPropsOverrideIconURL, receivedOverrideIconURL)
+			}
+			if receivedOverrideIconEmoji != "" {
+				newPost.AddProp(model.PostPropsOverrideIconEmoji, receivedOverrideIconEmoji)
+			}
+			if receivedWebhookDisplayName != "" {
+				newPost.AddProp(model.PostPropsWebhookDisplayName, receivedWebhookDisplayName)
+			}
+		}
 
 		// mm_blocks_actions is a trusted, click-resolved prop. It may only be
 		// *changed* by a caller that is both permitted and actually supplying a
@@ -2861,7 +2976,20 @@ func (a *App) GetPostsByIds(postIDs []string) ([]*model.Post, int64, *model.AppE
 	return posts, firstInaccessiblePostTime, nil
 }
 
-func (a *App) GetEditHistoryForPost(postID string) ([]*model.Post, *model.AppError) {
+// GetEditHistoryForPost returns the historical versions of a post, redacting attachments the
+// requesting user is not allowed to download.
+func (a *App) GetEditHistoryForPost(rctx request.CTX, postID string) ([]*model.Post, *model.AppError) {
+	return a.getEditHistoryForPost(rctx, postID, rctx.Session().UserId)
+}
+
+// getEditHistoryForPostUnrestricted returns the historical versions with their attachment
+// metadata intact. Content flagging deletes and reports on this data on the system's behalf
+// rather than serving it to a reader, and enforces reviewer-facing policy itself.
+func (a *App) getEditHistoryForPostUnrestricted(rctx request.CTX, postID string) ([]*model.Post, *model.AppError) {
+	return a.getEditHistoryForPost(rctx, postID, "")
+}
+
+func (a *App) getEditHistoryForPost(rctx request.CTX, postID, requesterID string) ([]*model.Post, *model.AppError) {
 	posts, err := a.Srv().Store().Post().GetEditHistoryForPost(postID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -2873,14 +3001,17 @@ func (a *App) GetEditHistoryForPost(postID string) ([]*model.Post, *model.AppErr
 		}
 	}
 
-	if appErr := a.populateEditHistoryFileMetadata(posts); appErr != nil {
+	if appErr := a.populateEditHistoryFileMetadata(rctx, posts, requesterID); appErr != nil {
 		return nil, appErr
 	}
 
 	return posts, nil
 }
 
-func (a *App) populateEditHistoryFileMetadata(editHistoryPosts []*model.Post) *model.AppError {
+// populateEditHistoryFileMetadata attaches file metadata to each historical version,
+// redacting it when requesterID is denied the download_file_attachment action. An empty
+// requesterID means there is no reader to authorize and nothing is redacted.
+func (a *App) populateEditHistoryFileMetadata(rctx request.CTX, editHistoryPosts []*model.Post, requesterID string) *model.AppError {
 	for _, post := range editHistoryPosts {
 		fileInfos, err := a.Srv().Store().FileInfo().GetByIds(post.FileIds, true, true, false)
 		if err != nil {
@@ -2891,6 +3022,22 @@ func (a *App) populateEditHistoryFileMetadata(editHistoryPosts []*model.Post) *m
 
 		if post.Metadata == nil {
 			post.Metadata = &model.PostMetadata{}
+		}
+
+		// Historical versions must redact the same attachments the live post does.
+		// Gate on FileIds rather than the fetched infos so a version referencing a
+		// missing FileInfo row still has its ids cleared for a denied user.
+		if len(post.FileIds) > 0 && !a.hasFileAttachmentAccess(rctx, requesterID, post.ChannelId) {
+			rctx.Logger().Debug("Stripping file attachments from edit history due to ABAC permission policy",
+				mlog.String("user_id", requesterID),
+				mlog.String("post_id", post.Id),
+				mlog.String("channel_id", post.ChannelId),
+				mlog.Int("files_removed", len(post.FileIds)),
+			)
+			post.Metadata.RedactedFileCount = len(post.FileIds)
+			post.Metadata.Files = nil
+			post.FileIds = model.StringArray{}
+			continue
 		}
 
 		post.Metadata.Files = fileInfos
@@ -3253,15 +3400,32 @@ func (a *App) CopyWranglerPostlist(rctx request.CTX, wpl *model.WranglerPostList
 		newPost = newPost.CleanPost()
 		newPost.ChannelId = targetChannel.Id
 
+		// The original post's display-identity props were already stripped
+		// from newPost by CleanPost/SanitizeProps inside the CreatePost call
+		// below, so re-derive them from the still-intact original post and
+		// forward them through CreatePostFlags. Without this, moving/copying
+		// a webhook-authored post would silently re-attribute it to the
+		// channel member running the move (see app/post.go's CreatePost
+		// reinjection block and model/post.go's SanitizeProps).
+		flags := model.CreatePostFlags{
+			FromIncomingWebhook: post.GetProp(model.PostPropsFromWebhook) == "true",
+		}
+		if flags.FromIncomingWebhook {
+			flags.OverrideUsername, _ = post.GetProp(model.PostPropsOverrideUsername).(string)
+			flags.OverrideIconURL, _ = post.GetProp(model.PostPropsOverrideIconURL).(string)
+			flags.OverrideIconEmoji, _ = post.GetProp(model.PostPropsOverrideIconEmoji).(string)
+			flags.WebhookDisplayName, _ = post.GetProp(model.PostPropsWebhookDisplayName).(string)
+		}
+
 		if i == 0 {
-			newPost, isMemberForPreviews, appErr = a.CreatePost(rctx, newPost, targetChannel, model.CreatePostFlags{})
+			newPost, isMemberForPreviews, appErr = a.CreatePost(rctx, newPost, targetChannel, flags)
 			if appErr != nil {
 				return nil, false, appErr
 			}
 			newRootPost = newPost.Clone()
 		} else {
 			newPost.RootId = newRootPost.Id
-			newPost, _, appErr = a.CreatePost(rctx, newPost, targetChannel, model.CreatePostFlags{})
+			newPost, _, appErr = a.CreatePost(rctx, newPost, targetChannel, flags)
 			if appErr != nil {
 				return nil, false, appErr
 			}

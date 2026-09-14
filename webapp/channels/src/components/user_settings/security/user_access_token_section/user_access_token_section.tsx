@@ -174,7 +174,7 @@ type State = {
 };
 
 class UserAccessTokenSection extends React.PureComponent<Props, State> {
-    private minRef: React.RefObject<SettingItemMinComponent>;
+    private minRef: React.RefObject<SettingItemMinComponent | null>;
 
     constructor(props: Props) {
         super(props);

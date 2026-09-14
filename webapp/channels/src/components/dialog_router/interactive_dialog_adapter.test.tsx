@@ -818,7 +818,7 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                         doAppSubmit: expect.any(Function),
                     }),
                 }),
-                {},
+                undefined,
             );
         });
 
