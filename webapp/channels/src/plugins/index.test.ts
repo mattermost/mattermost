@@ -139,7 +139,7 @@ describe('loadPlugin', () => {
         expect(logPluginLoadFailure).not.toHaveBeenCalled();
     });
 
-    test('a superseded initializer cannot register handlers after its script fails', async () => {
+    test('a superseded initializer cannot register handlers after its replacement loads', async () => {
         let resume!: () => void;
         const paused = new Promise<void>((resolve) => {
             resume = resolve;
@@ -155,17 +155,17 @@ describe('loadPlugin', () => {
 
         const replacement = {...manifest, version: '2.0.0', webapp: {bundle_path: '/static/plugins/startup-test/new.js'}};
         const second = loadPlugin(replacement);
-        firstScript.dispatchEvent(new Event('error'));
-        await first;
+        expect(firstScript.isConnected).toBe(false);
         pluginWindow.registerPlugin(manifest.id, {
             initialize: (registry) => registry.registerWebSocketEventHandler('current', jest.fn()),
         });
         await second;
         resume();
-        await paused;
+        await first;
 
         expect(registerPluginWebSocketEvent).toHaveBeenCalledTimes(1);
         expect(registerPluginWebSocketEvent).toHaveBeenCalledWith(manifest.id, 'current', expect.any(Function));
+        expect(document.querySelectorAll(`[id="plugin_${manifest.id}"]`)).toHaveLength(1);
     });
 
     test('logging dispatch failures cannot leave startup pending', async () => {

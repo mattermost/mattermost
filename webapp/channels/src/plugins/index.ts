@@ -171,6 +171,7 @@ export function loadPlugin(manifest: PluginManifest): Promise<void> {
         if (oldManifest) {
             // upgrading, perform cleanup
             store.dispatch(removeWebappPlugin(manifest));
+            document.getElementById('plugin_' + manifest.id)?.remove();
         }
 
         let settled = false;
@@ -216,8 +217,10 @@ export function loadPlugin(manifest: PluginManifest): Promise<void> {
                 return;
             }
             try {
-                // Removing this load's script also disables its registry's late callbacks.
-                const registry = new PluginRegistry(manifest.id, () => script.isConnected);
+                const registry = new PluginRegistry(
+                    manifest.id,
+                    () => script.isConnected && document.getElementById(script.id) === script,
+                );
                 await window.plugins[manifest.id]?.initialize?.(registry, store);
             } catch (error) {
                 fail('initialization', new Error('Unable to initialize ' + describePlugin(manifest), {cause: error}));
