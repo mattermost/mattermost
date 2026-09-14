@@ -42,6 +42,7 @@ export type Props = {
 type State = {
     loadFailed: boolean;
     loaded: boolean;
+    loadedHeight: number;
 };
 
 export default class MarkdownImage extends PureComponent<Props, State> {
@@ -55,6 +56,7 @@ export default class MarkdownImage extends PureComponent<Props, State> {
         this.state = {
             loadFailed: false,
             loaded: false,
+            loadedHeight: 0,
         };
     }
 
@@ -65,21 +67,21 @@ export default class MarkdownImage extends PureComponent<Props, State> {
             width,
         } = this.props;
 
-        if (!imageMetadata) {
-            return 0;
+        if (height && height !== 'auto') {
+            return parseInt(height, 10);
         }
 
-        if (!height) {
-            return imageMetadata.height;
-        }
-
-        if (height === 'auto') {
+        if (height === 'auto' && imageMetadata?.height && imageMetadata?.width) {
             const widthNumber = parseInt(width, 10);
 
             return (imageMetadata.height / imageMetadata.width) * widthNumber;
         }
 
-        return parseInt(height, 10);
+        // Fall back to the natural height once the image loads. Inline images from the GIF
+        // picker often arrive over the websocket before the server has their dimensions, so
+        // without this the collapse control never mounts and the image ignores the user's
+        // collapsed-preview preference until the channel is reloaded.
+        return imageMetadata?.height || this.state.loadedHeight;
     };
 
     getFileExtensionFromUrl = (url: string) => {
@@ -132,6 +134,7 @@ export default class MarkdownImage extends PureComponent<Props, State> {
     handleImageLoaded = ({height, width}: {height: number; width: number}) => {
         this.setState({
             loaded: true,
+            loadedHeight: height,
         }, () => { // Call onImageLoaded prop only after state has already been set
             if (this.props.onImageLoaded) {
                 this.props.onImageLoaded({height, width});
