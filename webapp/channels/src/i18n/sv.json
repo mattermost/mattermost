@@ -4047,7 +4047,7 @@
   "drafts.sidebarLink": "Utkast",
   "drafts.subtitle": "Meddelanden som du har påbörjat visas här",
   "drafts.title": "{prefix}Utkast - {displayName} {siteName}",
-  "drafts.tooltipText": "{draftCount, plural, =0 {} =1 {1 utkast} other {{draftCount} utkast}} <br></br> {scheduledPostCount, plural, =0 {} =1 {schemalagt} other {{scheduledPostCount} schemalagda}}",
+  "drafts.tooltipText": "{draftCount, plural, =0 {} =1 {1 utkast} other {{draftCount} utkast}} <br></br> {scheduledPostCount, plural, =0 {} one {schemalagt} other {{scheduledPostCount} schemalagda}}",
   "editPost.timeLimitModal.description": "Att ställa in en tidsgräns <b>gäller för alla användare</b> som har behörigheten \"Redigera inlägg\" i ett behörighetsschema.",
   "edit_category_modal.helpText": "Dra kanaler in i denna kategori för att organisera din sidofält.",
   "edit_category_modal.placeholder": "Namnsätt din kategori",
