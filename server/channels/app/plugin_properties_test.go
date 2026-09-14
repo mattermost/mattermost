@@ -1287,17 +1287,22 @@ func TestPluginProperties(t *testing.T) {
 
 				// The field linking to the template serves those options without
 				// owning any of them, which is what read only says.
-				inherited, err := p.API.GetPropertyFieldOptions(groupID, linked.ID, 0, "", 100)
+				inheritedPage, err := p.API.GetPropertyFieldOptions(groupID, linked.ID, 0, "", 100)
 				if err != nil {
 					return fmt.Errorf("failed to list the linked field's options: %w", err)
 				}
-				if len(inherited) != 3 {
-					return fmt.Errorf("expected the linked field to serve 3 options, got %d", len(inherited))
+				if len(inheritedPage.Options) != 3 {
+					return fmt.Errorf("expected the linked field to serve 3 options, got %d", len(inheritedPage.Options))
 				}
-				for _, option := range inherited {
+				for _, option := range inheritedPage.Options {
 					if !option.ReadOnly {
 						return fmt.Errorf("option %q is inherited and should be read only", option.Name)
 					}
+				}
+				// The page carries the listing's own continuation, not only its
+				// options: everything fit in the page asked for, so nothing is left.
+				if inheritedPage.HasMore || inheritedPage.NextCursorCreateAt != 0 || inheritedPage.NextCursorID != "" {
+					return fmt.Errorf("a complete page reported it had more: %+v", inheritedPage)
 				}
 
 				// It cannot own options of its own: one could never be attached to
@@ -1346,12 +1351,12 @@ func TestPluginProperties(t *testing.T) {
 					return fmt.Errorf("the refusal did not say which item was at fault: %s", err.Error())
 				}
 				// Nothing was written, including the item that was fine.
-				held, err := p.API.GetPropertyFieldOptions(groupID, template.ID, 0, "", 100)
+				heldPage, err := p.API.GetPropertyFieldOptions(groupID, template.ID, 0, "", 100)
 				if err != nil {
 					return fmt.Errorf("failed to list options: %w", err)
 				}
-				if len(held) != 3 {
-					return fmt.Errorf("expected the refused call to write nothing, found %d options", len(held))
+				if len(heldPage.Options) != 3 {
+					return fmt.Errorf("expected the refused call to write nothing, found %d options", len(heldPage.Options))
 				}
 
 				if _, err = p.API.CreatePropertyFieldOptions(groupID, template.ID, nil); err == nil {
@@ -1369,12 +1374,12 @@ func TestPluginProperties(t *testing.T) {
 				if err = p.API.DeletePropertyFieldOptions(groupID, template.ID, []string{air.ID, jet.ID, f18.ID}); err != nil {
 					return fmt.Errorf("failed to delete a branch: %w", err)
 				}
-				held, err = p.API.GetPropertyFieldOptions(groupID, template.ID, 0, "", 100)
+				heldPage, err = p.API.GetPropertyFieldOptions(groupID, template.ID, 0, "", 100)
 				if err != nil {
 					return fmt.Errorf("failed to list options after the deletion: %w", err)
 				}
-				if len(held) != 0 {
-					return fmt.Errorf("expected no options left, found %d", len(held))
+				if len(heldPage.Options) != 0 {
+					return fmt.Errorf("expected no options left, found %d", len(heldPage.Options))
 				}
 
 				// A page has to be asked for: an empty page would read as a field
@@ -1456,12 +1461,12 @@ func TestPluginProperties(t *testing.T) {
 					return fmt.Errorf("the source plugin failed to add an option to its own field: %w", err)
 				}
 
-				options, err := p.API.GetPropertyFieldOptions("` + cpaID + `", field.ID, 0, "", 100)
+				page, err := p.API.GetPropertyFieldOptions("` + cpaID + `", field.ID, 0, "", 100)
 				if err != nil {
 					return fmt.Errorf("the source plugin failed to list its own field's options: %w", err)
 				}
-				if len(options) != 2 {
-					return fmt.Errorf("expected the source plugin to see 2 options, got %d", len(options))
+				if len(page.Options) != 2 {
+					return fmt.Errorf("expected the source plugin to see 2 options, got %d", len(page.Options))
 				}
 
 				return nil
@@ -1508,12 +1513,12 @@ func TestPluginProperties(t *testing.T) {
 				// The field itself reads back with its option list emptied, and the
 				// options behind it answer the same way rather than serving what the
 				// field read refused.
-				options, err := p.API.GetPropertyFieldOptions("` + cpaID + `", target.ID, 0, "", 100)
+				page, err := p.API.GetPropertyFieldOptions("` + cpaID + `", target.ID, 0, "", 100)
 				if err != nil {
 					return fmt.Errorf("failed to list another plugin's options: %w", err)
 				}
-				if len(options) != 0 {
-					return fmt.Errorf("expected to see none of another plugin's options, got %d", len(options))
+				if len(page.Options) != 0 {
+					return fmt.Errorf("expected to see none of another plugin's options, got %d", len(page.Options))
 				}
 
 				// Refused for want of authority over the field, not because the

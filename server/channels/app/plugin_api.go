@@ -1806,13 +1806,13 @@ func (api *PluginAPI) CountPropertyFieldsForTarget(groupID, targetType, targetID
 	return count, nil
 }
 
-func (api *PluginAPI) GetPropertyFieldOptions(groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, error) {
+func (api *PluginAPI) GetPropertyFieldOptions(groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) (*model.PropertyFieldOptionPage, error) {
 	rctx := api.psaPluginContext()
 	page, appErr := api.app.GetPropertyFieldOptions(rctx, groupID, fieldID, cursorCreateAt, cursorID, perPage)
 	if appErr != nil {
 		return nil, appErr
 	}
-	return page.Options, nil
+	return page, nil
 }
 
 func (api *PluginAPI) CreatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {

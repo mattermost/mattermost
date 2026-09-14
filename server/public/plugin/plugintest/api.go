@@ -3217,23 +3217,23 @@ func (_m *API) GetPropertyFieldByName(groupID string, targetID string, name stri
 }
 
 // GetPropertyFieldOptions provides a mock function with given fields: groupID, fieldID, cursorCreateAt, cursorID, perPage
-func (_m *API) GetPropertyFieldOptions(groupID string, fieldID string, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, error) {
+func (_m *API) GetPropertyFieldOptions(groupID string, fieldID string, cursorCreateAt int64, cursorID string, perPage int) (*model.PropertyFieldOptionPage, error) {
 	ret := _m.Called(groupID, fieldID, cursorCreateAt, cursorID, perPage)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetPropertyFieldOptions")
 	}
 
-	var r0 []*model.PropertyFieldOption
+	var r0 *model.PropertyFieldOptionPage
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, int64, string, int) ([]*model.PropertyFieldOption, error)); ok {
+	if rf, ok := ret.Get(0).(func(string, string, int64, string, int) (*model.PropertyFieldOptionPage, error)); ok {
 		return rf(groupID, fieldID, cursorCreateAt, cursorID, perPage)
 	}
-	if rf, ok := ret.Get(0).(func(string, string, int64, string, int) []*model.PropertyFieldOption); ok {
+	if rf, ok := ret.Get(0).(func(string, string, int64, string, int) *model.PropertyFieldOptionPage); ok {
 		r0 = rf(groupID, fieldID, cursorCreateAt, cursorID, perPage)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.PropertyFieldOption)
+			r0 = ret.Get(0).(*model.PropertyFieldOptionPage)
 		}
 	}
 

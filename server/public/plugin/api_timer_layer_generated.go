@@ -1625,7 +1625,7 @@ func (api *apiTimerLayer) CountPropertyFieldsForTarget(groupID, targetType, targ
 	return _returnsA, _returnsB
 }
 
-func (api *apiTimerLayer) GetPropertyFieldOptions(groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, error) {
+func (api *apiTimerLayer) GetPropertyFieldOptions(groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) (*model.PropertyFieldOptionPage, error) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetPropertyFieldOptions(groupID, fieldID, cursorCreateAt, cursorID, perPage)
 	api.recordTime(startTime, "GetPropertyFieldOptions", _returnsB == nil)

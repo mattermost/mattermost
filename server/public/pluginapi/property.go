@@ -84,11 +84,12 @@ func (p *PropertyService) CountPropertyFieldsForTarget(groupID, targetType, targ
 // where the field's options form a hierarchy.
 //
 // A page holds the options this caller may see, which on a field whose options
-// are access-controlled is fewer than the field has; a page shorter than the size
-// asked for is the end of them.
+// are access-controlled is fewer than the field has. Continue while the page's
+// HasMore is true, passing its NextCursorCreateAt and NextCursorID back on the
+// next call: the page length alone does not say whether the listing is over.
 //
 // Minimum server version: 11.10
-func (p *PropertyService) GetPropertyFieldOptions(groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, error) {
+func (p *PropertyService) GetPropertyFieldOptions(groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) (*model.PropertyFieldOptionPage, error) {
 	return p.api.GetPropertyFieldOptions(groupID, fieldID, cursorCreateAt, cursorID, perPage)
 }
 
