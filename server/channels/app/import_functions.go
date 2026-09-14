@@ -761,7 +761,14 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 				return appErr
 			}
 		}
-		if password != "" {
+		// Only update the password of an existing destination account when the
+		// import explicitly carried one. Exports never include passwords, so for a
+		// user matched to a pre-existing account the password here is an auto-
+		// generated value (see the generatePassword branch above); applying it would
+		// reset — and lock out — a real destination user who merely shares a
+		// username with someone in the export. New accounts still receive their
+		// generated password via CreateUser in the user.Id == "" branch above.
+		if password != "" && data.Password != nil {
 			if appErr = a.UpdatePassword(rctx, user, password); appErr != nil {
 				return appErr
 			}
@@ -1008,7 +1015,7 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 		}
 	}
 
-	return a.importUserTeams(rctx, savedUser, data.Teams)
+	return a.importUserTeams(rctx, savedUser, data.Teams, deactivateMissingUsers)
 }
 
 func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bool) *model.AppError {
@@ -1220,7 +1227,7 @@ func (a *App) importProfileImage(rctx request.CTX, userID string, data *imports.
 	return nil
 }
 
-func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]imports.UserTeamImportData) *model.AppError {
+func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]imports.UserTeamImportData, deactivateMissingUsers bool) *model.AppError {
 	if data == nil {
 		return nil
 	}
@@ -1376,7 +1383,7 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 			}
 		}
 		channelsToImport := channels[team.Id]
-		if err := a.importUserChannels(rctx, user, team, &channelsToImport); err != nil {
+		if err := a.importUserChannels(rctx, user, team, &channelsToImport, deactivateMissingUsers); err != nil {
 			return err
 		}
 	}
@@ -1384,7 +1391,7 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 	return nil
 }
 
-func (a *App) importUserChannels(rctx request.CTX, user *model.User, team *model.Team, data *[]imports.UserChannelImportData) *model.AppError {
+func (a *App) importUserChannels(rctx request.CTX, user *model.User, team *model.Team, data *[]imports.UserChannelImportData, deactivateMissingUsers bool) *model.AppError {
 	if data == nil {
 		return nil
 	}
@@ -1421,6 +1428,15 @@ func (a *App) importUserChannels(rctx request.CTX, user *model.User, team *model
 	for _, cdata := range *data {
 		channel, ok := allChannels[strings.ToLower(*cdata.Name)]
 		if !ok {
+			if deactivateMissingUsers {
+				// Scoped import: a channel referenced by this membership does not exist
+				// on the destination (e.g. deleted or renamed between runs). Skip the
+				// membership and continue, mirroring how posts for a missing channel are
+				// skipped, rather than aborting the whole import.
+				rctx.Logger().Warn("Skipping channel membership for a channel not found on destination during scoped import",
+					mlog.String("channel", *cdata.Name), mlog.String("user", user.Username))
+				continue
+			}
 			return model.NewAppError("BulkImport", "app.import.import_user_channels.channel_not_found.error", nil, "", http.StatusInternalServerError)
 		}
 		if _, ok = channelsByID[channel.Id]; ok && *cdata.Name == model.DefaultChannelName {

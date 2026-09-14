@@ -4,10 +4,9 @@
 package app
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
-
-	"encoding/json"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imports"

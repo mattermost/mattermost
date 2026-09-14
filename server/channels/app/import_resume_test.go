@@ -72,7 +72,7 @@ func buildResumeJSONL(t *testing.T, teamName, chanName string, users []string, p
 			Team: model.NewPointer(teamName), Channel: model.NewPointer(chanName), User: model.NewPointer(author),
 			Message: model.NewPointer(fmt.Sprintf("root-%d", i)), CreateAt: &ts,
 			Reactions: &[]imports.ReactionImportData{{User: model.NewPointer(author), EmojiName: model.NewPointer("+1"), CreateAt: &ts}},
-			Replies: &[]imports.ReplyImportData{{User: model.NewPointer(author), Message: model.NewPointer(fmt.Sprintf("reply-%d", i)), CreateAt: &replyTs}},
+			Replies:   &[]imports.ReplyImportData{{User: model.NewPointer(author), Message: model.NewPointer(fmt.Sprintf("reply-%d", i)), CreateAt: &replyTs}},
 		}}))
 	}
 	return sb.String()
