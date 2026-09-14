@@ -214,10 +214,10 @@ function CELEditor({
     const [showHelpModal, setShowHelpModal] = useState(false);
 
     // Store the handleChange callback in a ref to avoid recreating the editor
-    const handleChangeRef = useRef<(value: string) => void>();
+    const handleChangeRef = useRef<(value: string) => void>(undefined);
 
     // Store the validateSyntax callback in a ref to avoid recreating debounced function
-    const validateSyntaxRef = useRef<(expression: string) => Promise<void>>();
+    const validateSyntaxRef = useRef<(expression: string) => Promise<void>>(undefined);
 
     useEffect(() => {
         setEditorState((prev) => ({...prev, expression: value}));

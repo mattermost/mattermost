@@ -53,7 +53,7 @@ const SearchBar: React.FunctionComponent<Props> = (props: Props): JSX.Element =>
         children = null,
     } = props;
 
-    const searchRef = useRef<SuggestionBoxComponent>();
+    const searchRef = useRef<SuggestionBoxComponent>(undefined);
     const intl = useIntl();
 
     useEffect((): void => {
