@@ -199,6 +199,50 @@ func (o *PropertyFieldOption) IsValid() error {
 	return nil
 }
 
+// PropertyFieldOptionPage is one page of a field's options, as the listing
+// endpoint returns it. A bare list of options cannot say whether the listing
+// continues past them -- a filtered page can be short with options still to
+// come -- so the page carries that separately.
+//
+// HasMore is the only signal that ends a listing: a short page does not, and
+// an empty page does not either. A caller loops while HasMore, sending
+// NextCursorCreateAt and NextCursorID back each time.
+//
+// The cursor names the last candidate row the page query *examined*, not the
+// last option it *returned*. Those differ whenever a coverage filter dropped
+// rows at the end of the window, and the difference is the whole point: a
+// caller resuming from the last option returned would re-examine the dropped
+// rows on every page, and a page that returns nothing at all would never
+// advance.
+//
+// Options is never nil when the call succeeded: an empty page serializes as
+// [] rather than null.
+type PropertyFieldOptionPage struct {
+	Options            []*PropertyFieldOption `json:"options"`
+	HasMore            bool                   `json:"has_more"`
+	NextCursorCreateAt int64                  `json:"next_cursor_create_at,omitempty"`
+	NextCursorID       string                 `json:"next_cursor_id,omitempty"`
+}
+
+// PropertyFieldOptionPageFilter is the coverage filter a listing's page query
+// is narrowed by, decided once per listing by the hooks and consumed by the
+// store.
+//
+// A nil filter means the caller may see every option the field has, which is
+// what an unmasked read is. ShowNothing means no page of this field will ever
+// show this caller anything, so the listing answers empty without reading a
+// row. CoveredBy names the caller's own options: a candidate is kept when one
+// of them is at-or-above it, the same covering relation the hooks' own
+// masking applies elsewhere -- this filter only narrows the query by it.
+//
+// ShowNothing is checked first when both fields are set on the same value. A
+// non-nil filter whose CoveredBy is empty means "nothing", not "everything":
+// a filter that failed to name any held option must fail closed.
+type PropertyFieldOptionPageFilter struct {
+	ShowNothing bool
+	CoveredBy   []string
+}
+
 // PropertyOptionEdge is one parent link between two options of the same
 // property field: ChildOptionID sits directly below ParentOptionID in that
 // field's option hierarchy.
