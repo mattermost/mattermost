@@ -11146,6 +11146,27 @@ func (s *RetryLayerPropertyValueStore) GetMany(groupID string, ids []string) ([]
 
 }
 
+func (s *RetryLayerPropertyValueStore) GetReferencedOptionIDs(groupID string, fieldID string) ([]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.PropertyValueStore.GetReferencedOptionIDs(groupID, fieldID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPropertyValueStore) SearchPropertyValues(opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
 
 	tries := 0

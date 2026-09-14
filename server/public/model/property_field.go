@@ -98,6 +98,21 @@ func (t PropertyFieldType) SupportsOptions() bool {
 	return slices.Contains(optionFieldTypes, t)
 }
 
+var externallySyncableFieldTypes = []PropertyFieldType{
+	PropertyFieldTypeText,
+	PropertyFieldTypeSelect,
+	PropertyFieldTypeMultiselect,
+}
+
+// SupportsExternalSync reports whether values of this field type can be
+// populated from an external identity source (AD/LDAP, SAML). Text and select
+// store the first value the source delivers; multiselect stores all of them.
+// Rank is excluded because its option order is admin-authored, and the
+// remaining types have no meaningful mapping from an attribute value.
+func (t PropertyFieldType) SupportsExternalSync() bool {
+	return slices.Contains(externallySyncableFieldTypes, t)
+}
+
 type PropertyField struct {
 	ID                string            `json:"id"`
 	GroupID           string            `json:"group_id"`

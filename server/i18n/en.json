@@ -8761,6 +8761,10 @@
     "translation": "Unable to search property fields."
   },
   {
+    "id": "app.property_field.synced_options_locked.app_error",
+    "translation": "The options of an attribute synced from AD/LDAP or SAML are managed by the sync. Only option colors can be edited."
+  },
+  {
     "id": "app.property_field.update.app_error",
     "translation": "Unable to update property fields."
   },
@@ -8811,6 +8815,26 @@
   {
     "id": "app.property_group.register.app_error",
     "translation": "Unable to register property group."
+  },
+  {
+    "id": "app.property_sync.ensure_options.app_error",
+    "translation": "Unable to provision options for the synced attribute."
+  },
+  {
+    "id": "app.property_sync.invalid_options.app_error",
+    "translation": "The synced attribute has invalid options."
+  },
+  {
+    "id": "app.property_sync.invalid_source.app_error",
+    "translation": "Invalid property sync source."
+  },
+  {
+    "id": "app.property_sync.invalid_user_id.app_error",
+    "translation": "Invalid user ID for property sync."
+  },
+  {
+    "id": "app.property_sync.referenced_options.app_error",
+    "translation": "Unable to determine which options of the synced attribute are in use."
   },
   {
     "id": "app.property_value.change_policy.lower_only.app_error",

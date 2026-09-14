@@ -7,8 +7,10 @@ import (
 	"encoding/json"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -570,6 +572,71 @@ func TestCreatePropertyField(t *testing.T) {
 		result, err := th.service.CreatePropertyField(rctx, field)
 		require.NoError(t, err)
 		assert.NotEmpty(t, result.ID)
+	})
+}
+
+func TestUpdatePropertyFieldsWithOpts(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	rctx := th.Context
+	groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2).ID
+
+	newField := func(t *testing.T) *model.PropertyField {
+		t.Helper()
+		return th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			ObjectType: "user",
+			GroupID:    groupID,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeText,
+			Name:       "field-" + model.NewId(),
+			Attrs:      map[string]any{"key": "original"},
+		})
+	}
+
+	t.Run("matching expectation lets the update through", func(t *testing.T) {
+		field := newField(t)
+		field.Attrs["key"] = "updated"
+
+		updated, _, _, err := th.service.UpdatePropertyFieldsWithOpts(rctx, groupID, []*model.PropertyField{field}, UpdatePropertyFieldsOpts{
+			ExpectedUpdateAts: map[string]int64{field.ID: field.UpdateAt},
+		})
+		require.NoError(t, err)
+		require.Len(t, updated, 1)
+		assert.Equal(t, "updated", updated[0].Attrs["key"])
+	})
+
+	t.Run("stale expectation is rejected with a conflict and leaves the field untouched", func(t *testing.T) {
+		field := newField(t)
+		stale := field.UpdateAt
+
+		// Someone else writes first; force a distinct UpdateAt.
+		concurrent := *field
+		concurrent.Attrs = map[string]any{"key": "concurrent"}
+		time.Sleep(2 * time.Millisecond)
+		_, _, err := th.service.UpdatePropertyField(rctx, groupID, &concurrent)
+		require.NoError(t, err)
+
+		field.Attrs = map[string]any{"key": "mine"}
+		_, _, _, err = th.service.UpdatePropertyFieldsWithOpts(rctx, groupID, []*model.PropertyField{field}, UpdatePropertyFieldsOpts{
+			ExpectedUpdateAts: map[string]int64{field.ID: stale},
+		})
+		require.Error(t, err)
+		var conflictErr *store.ErrConflict
+		require.ErrorAs(t, err, &conflictErr)
+
+		current, err := th.service.GetPropertyField(rctx, groupID, field.ID)
+		require.NoError(t, err)
+		assert.Equal(t, "concurrent", current.Attrs["key"])
+	})
+
+	t.Run("expectations for other fields are ignored", func(t *testing.T) {
+		field := newField(t)
+		field.Attrs["key"] = "updated"
+
+		updated, _, _, err := th.service.UpdatePropertyFieldsWithOpts(rctx, groupID, []*model.PropertyField{field}, UpdatePropertyFieldsOpts{
+			ExpectedUpdateAts: map[string]int64{model.NewId(): 1},
+		})
+		require.NoError(t, err)
+		assert.Equal(t, "updated", updated[0].Attrs["key"])
 	})
 }
 

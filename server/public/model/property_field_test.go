@@ -1748,6 +1748,23 @@ func TestPropertyFieldType_SupportsOptions(t *testing.T) {
 	}
 }
 
+func TestPropertyFieldType_SupportsExternalSync(t *testing.T) {
+	cases := map[PropertyFieldType]bool{
+		PropertyFieldTypeText:        true,
+		PropertyFieldTypeSelect:      true,
+		PropertyFieldTypeMultiselect: true,
+		PropertyFieldTypeRank:        false,
+		PropertyFieldTypeDate:        false,
+		PropertyFieldTypeUser:        false,
+		PropertyFieldTypeMultiuser:   false,
+		PropertyFieldType("bogus"):   false,
+	}
+
+	for fieldType, expected := range cases {
+		assert.Equal(t, expected, fieldType.SupportsExternalSync(), "SupportsExternalSync for %q", fieldType)
+	}
+}
+
 func TestPropertyField_EnsureOptionIDs(t *testing.T) {
 	t.Run("generates IDs for multiselect options without IDs", func(t *testing.T) {
 		pf := &PropertyField{
