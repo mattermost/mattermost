@@ -1157,10 +1157,6 @@
     "translation": "De licentie ondersteund {{.Users}} gebruikers, wanneer het systeem {{.Count}} unieke gebruikers heeft. Unieke gebruikers worden geteld op basis het e-mail adress. Het totaal aantal gebruikers is te zien bij 'Server Overzichten' -> 'Bekijk statistieken'."
   },
   {
-    "id": "api.license.client.old_format.app_error",
-    "translation": "Nieuw formaat voor de clientlicentie wordt nog niet ondersteund. Gelieve format=oud te specificeren in de querystring."
-  },
-  {
     "id": "api.marshal_error",
     "translation": "Fout bij marshal."
   },
@@ -1479,78 +1475,6 @@
     "translation": "Fout bij het starten van de server, fout:%v"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.unable_import",
-    "translation": "Fout bij het importeren van Integratie /Slack Bot gebruiker {{.Username}}.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\r\n Kanalen Toegevoegd \r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-    "translation": "Kan Slackgebruiker {{.Username}} niet toevoegen aan het kanaal.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.import_failed",
-    "translation": "Kan het Slack kanaal {{.DisplayName}} niet importeren.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.merge",
-    "translation": "Het Slack kanaal {{.DisplayName}} bestaat reeds als een actief Mattermost kanaal. Beide kanalen zijn samengevoegd.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.created",
-    "translation": "\r\n Gebruikers aangemaakt\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "Slack gebruiker is samengevoegd met een bestaande Mattermost gebruiker met zelfde e-mail {{.Email}} en gebruikersnaam {{.Username}}.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Slackgebruiker is samengevoegd met een bestaande Mattermostgebruiker met overeenstemmend e-mail {{.Email}} en gebruikersnaam{{.Username}}, maar kon niet toevoegd worden aan het team.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "Gebruiker {{.Username}} heeft geen e-mailadres in de Slack-export. We gebruikten voorlopig {{.Email}} . De gebruiker zou zijn e-mailadres moeten bijwerken eens deze is aangemeld in het systeem.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.unable_import",
-    "translation": "Kan gebruiker niet importeren: {{.Username}}\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.log",
-    "translation": "Mattermost Slack importeer log\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note1",
-    "translation": "- Sommige berichten zijn niet geimporteerd, omdat ze niet ondersteund worden.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note2",
-    "translation": "- Slack bot berichten worden op dit moment niet ondersteund.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note3",
-    "translation": "- Bijkomende fouten kunnen gevonden worden in de serverlogs.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.notes",
-    "translation": "\nNotities:\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.open.app_error",
-    "translation": "Kan het bestand {{.Filename}} niet openen.\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.team_fail",
-    "translation": "Fout bij het ophalen van het team waarin de import gedaan moet worden.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.zip.app_error",
-    "translation": "Kan het Slack-exportbestand niet openen.\n"
-  },
-  {
     "id": "api.status.user_not_found.app_error",
     "translation": "Gebruiker niet gevonden."
   },
@@ -1573,34 +1497,6 @@
   {
     "id": "api.team.get_team_icon.read_file.app_error",
     "translation": "Kan het teamicoonbestand liet lezen."
-  },
-  {
-    "id": "api.team.import_team.array.app_error",
-    "translation": "Lege data bij 'licentie' in aanvraag."
-  },
-  {
-    "id": "api.team.import_team.integer.app_error",
-    "translation": "Bestandsgrootte is geen getal."
-  },
-  {
-    "id": "api.team.import_team.no_file.app_error",
-    "translation": "Geen bestand bij 'bestand' in aanvraag."
-  },
-  {
-    "id": "api.team.import_team.no_import_from.app_error",
-    "translation": "Foutief verzoek: importFrom veld is niet aanwezig."
-  },
-  {
-    "id": "api.team.import_team.open.app_error",
-    "translation": "Kan het bestand niet openen."
-  },
-  {
-    "id": "api.team.import_team.parse.app_error",
-    "translation": "Kan het 'multipart form' niet verwerken."
-  },
-  {
-    "id": "api.team.import_team.unavailable.app_error",
-    "translation": "Fout verzoek: bestandsgrootte veld is niet aanwezig."
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -3531,14 +3427,6 @@
     "translation": "Voor het toestaan van cookies voor subdomeinen moet de SiteURL ingesteld zijn."
   },
   {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "Ongeldige RemoteImageProxyOptions voor atmos/camo. Moet ingesteld zijn op je gedeelde sleutel."
-  },
-  {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
-    "translation": "Ongeldige RemoteImageProxyURL voor atmos/camo. Ongeldige. Moet ingesteld zijn op je gedeelde sleutel."
-  },
-  {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Niet mogelijk om bulk email aan te zetten als clustering aan staat."
   },
@@ -3597,10 +3485,6 @@
   {
     "id": "model.config.is_valid.email_security.app_error",
     "translation": "Ongeldige beveiligingsinstelling bij e-mail. Moet '', 'TLS' of 'STARTTLS' zijn."
-  },
-  {
-    "id": "model.config.is_valid.encrypt_sql.app_error",
-    "translation": "Ongeldige encryptie sleutel bij de SQL instellingen. Deze moet 32 of karakters hebben."
   },
   {
     "id": "model.config.is_valid.file_driver.app_error",
@@ -5295,10 +5179,6 @@
     "translation": "ID Loaded Push berichten zijn niet geconfigureerd of ondersteund op deze server."
   },
   {
-    "id": "api.slackimport.slack_import.zip.file_too_large",
-    "translation": "Bestand {{.Filename}} in het zip-archief is te groot om verwerkt te worden bij het importen vanuit Slack\r\n"
-  },
-  {
     "id": "api.push_notifications_ack.message.parse.app_error",
     "translation": "Er is een fout opgetreden bij het maken van het push notificatie ack bericht."
   },
@@ -5571,10 +5451,6 @@
     "translation": "Team id parameter is verplicht bij automatisch aanvullen per kanaal."
   },
   {
-    "id": "api.team.import_team.unknown_import_from.app_error",
-    "translation": "Onbekende importbron."
-  },
-  {
     "id": "api.push_notifications.session.expired",
     "translation": "Sessie verlopen: log opnieuw in om meldingen te blijven ontvangen. Sessies for {{.siteName}} zijn geconfigureerd door je systeembeheerder en verlopen elke {{.hoursCount}} uur."
   },
@@ -5593,10 +5469,6 @@
   {
     "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
     "translation": "Fout bij het ophalen van alle reacties met deze emoticonnaam."
-  },
-  {
-    "id": "app.reaction.bulk_get_for_post_ids.app_error",
-    "translation": "Kan de reacties op dit bericht niet ophalen."
   },
   {
     "id": "api.license.request-trial.bad-request.terms-not-accepted",
@@ -8626,10 +8498,6 @@
     "translation": "Ongeldige frequentie van blijvende meldingen. Moet minstens twee minuten zijn."
   },
   {
-    "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "{{.Backend}} versie {{.Version}} is hoger dan de maximaal ondersteunde versie van {{.MaxVersion}}"
-  },
-  {
     "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
     "translation": "Ongeldig maximum aantal ontvangers voor blijvende meldingen. Moet een positief getal zijn."
   },
@@ -8696,30 +8564,6 @@
   {
     "id": "app.channel.update_member.notify_props_limit_exceeded.app_error",
     "translation": "Kan kanaallid niet bijwerken, meldings propsgroottte limiet overschreden."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.config.app_error",
-    "translation": "Deze actie vereist het gebruik van een speciale exportstore."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.driver.app_error",
-    "translation": "Het stuurprogramma van je exportwinkel ondersteunt het genereren van presign-url's niet."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.featureflag.app_error",
-    "translation": "Deze functie wordt beperkt door een feature flag."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.fileexist.app_error",
-    "translation": "Kon niet controleren of het bestand bestaat."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.link.app_error",
-    "translation": "Kan de presigned url niet genereren."
-  },
-  {
-    "id": "app.eport.generate_presigned_url.notfound.app_error",
-    "translation": "Het exportbestand is niet gevonden."
   },
   {
     "id": "app.post.delete_post.get_team.app_error",
@@ -10612,10 +10456,6 @@
     "translation": "Het bovenliggend beleid is al geïmporteerd."
   },
   {
-    "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
-    "translation": "Het verbergen van gearchiveerde kanalen wordt niet langer ondersteund. Maak deze kanalen privé en verwijder in plaats daarvan leden."
-  },
-  {
     "id": "app.lookup_interactive_dialog.decode_json_error",
     "translation": "Er is een fout opgetreden bij het decoderen van de JSON respons van het interactief dialoogvenster voor opzoeken."
   },
@@ -10634,10 +10474,6 @@
   {
     "id": "ent.elasticsearch.create_processor.sync_bulk_processor_create_failed",
     "translation": "Aanmaken van Elasticsearch-bulkprocessor is mislukt"
-  },
-  {
-    "id": "model.config.is_valid.client_side_cert_enable.app_error",
-    "translation": "Certificaat-gebaseerde authenticatie is verwijderd. Schakel ClientSideCertEnable uit om verder te gaan."
   },
   {
     "id": "api.user.check_user_password.invalid_hash.app_error",
@@ -11664,18 +11500,6 @@
     "translation": "Kan plugin niet installeren: PluginSettings.Directory conflicteert met ImportSettings.Directory."
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.email",
-    "translation": "De Integratie/Slack Bot gebruiker met e-mail {{.Email}} is geïmporteerd.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.email",
-    "translation": "Slack gebruiker met e-mail {{.Email}} is geïmporteerd.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.send_reset_email_failed",
-    "translation": "Kan wachtwoord reset e-mail niet verzenden naar {{.Username}} op {{.Email}}.\n"
-  },
-  {
     "id": "api.upload.create.check_directory.app_error",
     "translation": "Er is een fout opgetreden tijdens het controleren van de configuratie van de importmap."
   },
@@ -12318,14 +12142,6 @@
   {
     "id": "ent.elasticsearch.healthcheck.unreachable.app_error",
     "translation": "{{.Backend}} gezondheidscontrole mislukt: kon controle niet voltooien."
-  },
-  {
-    "id": "ent.elasticsearch.min_version.app_error",
-    "translation": "{{.Backend}} versie {{.Version}} lager is dan min ondersteunde versie van {{.MinVersion}}"
-  },
-  {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_options_length.app_error",
-    "translation": "Ongeldige RemoteImageProxyOptions voor atmos/camo: HMAC-sleutel moet minimaal {{.MinLength}} bytes zijn voor naleving van FIPS."
   },
   {
     "id": "model.config.is_valid.sql_analytics_query_timeout.app_error",

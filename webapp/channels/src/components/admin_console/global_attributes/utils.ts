@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
+import type {PropertyField, PropertyFieldOption, PropertyPermissionLevel} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
 
@@ -183,16 +183,31 @@ export function deleteAttributeField(fieldId: string): Promise<unknown> {
 // Creates a linked field for one Applies-to resource. The server validates
 // linked_field_id against the template and copies its Type and attrs.options
 // onto the new field (server/channels/app/properties/property_field.go) --
-// display_name is NOT copied, so it's sent explicitly here (see the plan's
-// Decisions table). objectType is the resource type ('user'/'channel'/'post'),
-// a URL path segment on the generic property-fields endpoint, not a separate
-// route.
+// display_name is NOT copied, so it's sent explicitly here. objectType is the
+// resource type ('user'/'channel'/'post'), a URL path segment on the generic
+// property-fields endpoint, not a separate route.
+//
+// `attrs` is what the resource's own settings contribute -- e.g. a Users row's
+// Profile display config, or a Channels row's required/change-policy attrs
+// (buildChannelFieldAttrs) -- bundled directly into the create request so the
+// row is never created bare and then immediately patched. Trailing and
+// optional so a resource type with no config panel yet keeps calling this
+// unchanged.
+//
+// `permissionValues` sets the field's actual write-permission tier -- a
+// top-level PropertyField field, not part of attrs. The server would
+// otherwise inherit this from the template (always sysadmin), overriding
+// whatever the caller picked; passing it explicitly here is honored for a
+// linked field (see server/channels/app/properties/property_field.go).
+// Omitting it takes the server's own per-object-type default.
 export function createLinkedAttributeField(
     objectType: ResourceObjectType,
     name: string,
     fieldType: AttributeFieldType,
     displayName: string,
     linkedFieldId: string,
+    attrs?: Record<string, unknown>,
+    permissionValues?: PropertyPermissionLevel,
 ): Promise<PropertyField> {
     return Client4.createPropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, {
         name,
@@ -200,8 +215,10 @@ export function createLinkedAttributeField(
         target_type: GLOBAL_ATTRIBUTES_TARGET_TYPE,
         target_id: '',
         linked_field_id: linkedFieldId,
+        ...(permissionValues ? {permission_values: permissionValues} : {}),
         attrs: {
             display_name: displayName.trim() || undefined,
+            ...attrs,
         },
     });
 }
@@ -211,4 +228,26 @@ export function createLinkedAttributeField(
 // deleting a template with active linked dependents.
 export function deleteLinkedAttributeField(objectType: ResourceObjectType, fieldId: string): Promise<unknown> {
     return Client4.deletePropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, fieldId);
+}
+
+// PATCHes a linked field's config for an already-persisted Applies-to
+// resource (e.g. a Users row's Profile display, or a Channels row's own
+// settings, changed after the row itself was already saved). Attrs are
+// merge-patched (mergeAttrs=true on the server, same as updateAttributeField
+// above) -- only the keys present in `attrs` are updated, everything else on
+// the field is left untouched.
+//
+// permissionValues patches the field's actual write-permission tier -- see
+// createLinkedAttributeField above for why this is a top-level field, not
+// part of attrs.
+export function patchLinkedAttributeField(
+    objectType: ResourceObjectType,
+    fieldId: string,
+    attrs?: Record<string, unknown>,
+    permissionValues?: PropertyPermissionLevel,
+): Promise<PropertyField> {
+    return Client4.patchPropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, fieldId, {
+        ...(attrs ? {attrs} : {}),
+        ...(permissionValues ? {permission_values: permissionValues} : {}),
+    });
 }

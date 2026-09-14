@@ -143,7 +143,7 @@ During an outage, you may see the following log messages:
 | Error | `Search engine health check failed repeatedly; stopping engine` | The failure threshold was reached and the engine has been stopped. Search falls back to the database. |
 | Warn | `Search engine health check failed` | An individual health check failed. Includes a `consecutive_failures` count. |
 | Warn | `Search engine health check failed: it is now marked as unhealthy` | A previously healthy engine failed a health check and has been marked unhealthy. Search requests will fall back to the database immediately. |
-| Warn | `Search engine watcher: Start() failed, will retry` | A reconnection attempt failed. Includes a `next_backoff` field indicating the time until the next retry. |
+| Error | `Search engine watcher: Start() failed, will retry` | A reconnection attempt failed. Includes a `next_backoff` field indicating the time until the next retry. |
 | Info | `Search engine health check succeeded: it is now marked as healthy` | The engine passed a health check after being unhealthy and is now handling search requests again. |
 | Info | `Search engine watcher: engine started successfully` | The engine has recovered and is active again. |
 | Info | `Search engine watcher: engine disabled, parking` | The health monitor is idle because the search engine is disabled in configuration. |

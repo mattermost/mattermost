@@ -53,7 +53,7 @@ describe('user_access_token_section helpers', () => {
 
     describe('mapServerErrorIdToMessage', () => {
         const renderNode = (node: React.ReactNode) => render(
-            <IntlProvider locale='en'>{node as React.ReactElement}</IntlProvider>,
+            <IntlProvider locale='en'>{node as React.ReactElement<any>}</IntlProvider>,
         ).container.textContent;
 
         test('maps expires_at_required (short and app_error variants)', () => {

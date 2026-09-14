@@ -697,6 +697,8 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 	message.Add("team_id", team.Id)
 	message.Add("set_online", setOnline)
 
+	a.markPostDeliveryForBroadcast(rctx, message, post)
+
 	if len(post.FileIds) != 0 && fchan != nil {
 		message.Add("otherFile", "true")
 
@@ -850,7 +852,9 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 						userThread.UnreadMentions = 0
 						userThread.UnreadReplies = 0
 					}
-					a.sanitizeThreadResponse(userThread)
+					a.sanitizeProfiles(userThread.Participants, false)
+					userThread.Post.SanitizeNonIdentityProps()
+					userThread.Post.StripActionIntegrations()
 
 					sanitizedPost, isMemberForPreview, err := a.SanitizePostMetadataForUser(rctx, userThread.Post, uid)
 					if err != nil {
@@ -875,6 +879,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 					message.Add("thread", string(payload))
 					message.Add("previous_unread_mentions", previousUnreadMentions)
 					message.Add("previous_unread_replies", previousUnreadReplies)
+					a.markPostDeliveryForBroadcast(rctx, message, userThread.Post)
 
 					auditRec := a.MakeAuditRecord(rctx, model.AuditEventWebsocketPost, model.AuditStatusSuccess)
 					defer a.LogAuditRec(rctx, auditRec, nil)
@@ -1017,7 +1022,9 @@ func (a *App) RemoveNotifications(rctx request.CTX, post *model.Post, channel *m
 				previousUnreadMentions := int64(0)
 				previousUnreadReplies := int64(0)
 
-				a.sanitizeThreadResponse(userThread)
+				a.sanitizeProfiles(userThread.Participants, false)
+				userThread.Post.SanitizeNonIdentityProps()
+				userThread.Post.StripActionIntegrations()
 
 				sanitizedPost, isMemberForPreview, err1 := a.SanitizePostMetadataForUser(rctx, userThread.Post, userID)
 				if err1 != nil {
@@ -1046,6 +1053,7 @@ func (a *App) RemoveNotifications(rctx request.CTX, post *model.Post, channel *m
 				message.Add("thread", string(payload))
 				message.Add("previous_unread_mentions", previousUnreadMentions)
 				message.Add("previous_unread_replies", previousUnreadReplies)
+				a.markPostDeliveryForBroadcast(rctx, message, userThread.Post)
 
 				a.Publish(message)
 			}

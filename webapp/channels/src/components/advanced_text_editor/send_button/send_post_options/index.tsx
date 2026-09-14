@@ -32,8 +32,9 @@ export function SendPostOptions({disabled, onSelect, channelId, allowRecurring}:
     const dispatch = useDispatch();
 
     const handleOnSelect = useCallback((e: React.FormEvent, scheduledAt: number) => {
+        // Not stopping propagation is load-bearing: in mobile view the menu is a modal that
+        // only dismisses once the click reaches the list wrapping the menu items.
         e.preventDefault();
-        e.stopPropagation();
 
         const schedulingInfo: SchedulingInfo = {
             scheduled_at: scheduledAt,

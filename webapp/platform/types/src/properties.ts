@@ -20,6 +20,10 @@ export type FieldValueType =
     'phone' |
     '';
 
+// Mirrors model/property_field.go. Empty means the server fills in the default
+// for the field's object type.
+export type PropertyPermissionLevel = 'none' | 'sysadmin' | 'admin' | 'member' | '';
+
 export type PropertyField = {
     id: string;
     group_id: string;
@@ -34,6 +38,12 @@ export type PropertyField = {
     object_type: string;
     linked_field_id?: string;
     protected?: boolean;
+
+    // The server is authoritative on all three; the client reads permission_values
+    // only to decide whether to offer an editing affordance.
+    permission_field?: PropertyPermissionLevel;
+    permission_values?: PropertyPermissionLevel;
+    permission_options?: PropertyPermissionLevel;
     create_at: number;
     update_at: number;
     delete_at: number;
@@ -86,6 +96,23 @@ export type SelectPropertyField = PropertyField & {
 export const supportsOptions = (field: PropertyField) => {
     return field.type === 'select' || field.type === 'multiselect' || field.type === 'rank';
 };
+
+export const isTextField = (field: PropertyField) => {
+    return field.type === 'text';
+};
+
+// How a value may move once it is set, mirroring attrs.change_policy in
+// model/property_field_attrs_validation.go. raise_only and lower_only compare
+// option ranks, so the server strips them from any field that is not a rank.
+export const PROPERTY_CHANGE_POLICIES = ['any', 'raise_only', 'lower_only', 'never'] as const;
+
+export type PropertyChangePolicy = typeof PROPERTY_CHANGE_POLICIES[number];
+
+export const ORDERED_PROPERTY_CHANGE_POLICIES: PropertyChangePolicy[] = ['raise_only', 'lower_only'];
+
+export function isOrderedChangePolicy(policy: PropertyChangePolicy): boolean {
+    return ORDERED_PROPERTY_CHANGE_POLICIES.includes(policy);
+}
 
 // PSA v2 state types
 

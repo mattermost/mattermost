@@ -61,7 +61,7 @@ Simple Mode is ideal for simple and straightforward access control scenarios. Ea
 </TabItem>
 <TabItem value="advanced-mode" label="Advanced Mode">
 
-Advanced Mode is ideal for complex access control scenarios that require CEL syntax to combine multiple conditions with logical operators that support rules like `user.&lt;attribute&gt; == &lt;value&gt;`, using `&&` / `||` (and/or) for multiple conditions, and `()` to group conditions. The CEL Expression Editor provides real-time syntax validation and feedback, as well as context-aware autocomplete for attributes, operators, and attribute values.
+Advanced Mode is ideal for complex access control scenarios that require CEL syntax to combine multiple conditions with logical operators that support rules like `user.<attribute> == <value>`, using `&&` / `||` (and/or) for multiple conditions, and `()` to group conditions. The CEL Expression Editor provides real-time syntax validation and feedback, as well as context-aware autocomplete for attributes, operators, and attribute values.
 
     You can also start defining rules in Simple Mode and then switch to Advanced Mode to refine the rules further as needed. However, you'll be blocked from switching from Advanced back to Simple Mode if one of the following are true:
 
@@ -69,7 +69,7 @@ Advanced Mode is ideal for complex access control scenarios that require CEL syn
     - Nested logic/grouping (parentheses) are present.
     - Unsupported operators or expressions are detected.
 
-    The syntax structure is `user.&lt;attribute&gt; &lt;operator&gt; &lt;value&gt;`.
+    The syntax structure is `user.<attribute> <operator> <value>`.
 
     As you type, autocompletes show available attributes. As you select attributes, autocomplete suggests appropriate CEL operators. After selecting an operator, when attribute values are pre-defined, autocomplete suggests values to choose from. Mattermost will explicitly indicate issues such as missing operators, incorrect syntax, or incomplete conditions.
 

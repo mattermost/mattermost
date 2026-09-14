@@ -45,9 +45,9 @@ This page provides guidance on configuring SAML with Microsoft Entra ID for Matt
 9. In the **Mattermost** enterprise application settings, select **Manage > Single sign-on**, then select **SAML** under **Select a single sign-on method**.
 10. Select **Edit** in the **Basic SAML Configuration** section, then set the fields below and select **Save**:
 
-    - **Identifier (Entity ID)**: `https://&lt;your-mattermost-url&gt;`
-    - **Reply URL (Assertion Consumer Service URL)**: `https://&lt;your-mattermost-url&gt;/login/sso/saml`
-    - **Sign on URL**: `https://&lt;your-mattermost-url&gt;/login`
+    - **Identifier (Entity ID)**: `https://<your-mattermost-url>`
+    - **Reply URL (Assertion Consumer Service URL)**: `https://<your-mattermost-url>/login/sso/saml`
+    - **Sign on URL**: `https://<your-mattermost-url>/login`
 
 11. Select **Edit** in the **Attributes & Claims** section, then configure the required claim and additional claims as described below.
 
@@ -128,14 +128,14 @@ This page provides guidance on configuring SAML with Microsoft Entra ID for Matt
 
 1.  In the Mattermost **System Console**, select **Authentication \> SAML 2.0**.
 2.  Set **Enable Login With SAML 2.0** to **True**.
-3.  Set **Identity Provider Metadata URL**: `https://login.microsoftonline.com/&lt;your-tenant-id&gt;/federationmetadata/2007-06/federationmetadata.xml?appid=&lt;your-app-id&gt;`
+3.  Set **Identity Provider Metadata URL**: `https://login.microsoftonline.com/<your-tenant-id>/federationmetadata/2007-06/federationmetadata.xml?appid=<your-app-id>`
 4.  Select **Get SAML Metadata From IdP** to verify that the SAML metadata can be retrieved successfully.
-5.  Set **SAML SSO URL**: `https://login.microsoftonline.com/&lt;your-tenant-id&gt;/saml2`
-6.  Set **Identity Provider Issuer URL** (trailing slash is required): `https://sts.windows.net/&lt;your-tenant-id&gt;/`
+5.  Set **SAML SSO URL**: `https://login.microsoftonline.com/<your-tenant-id>/saml2`
+6.  Set **Identity Provider Issuer URL** (trailing slash is required): `https://sts.windows.net/<your-tenant-id>/`
 7.  Choose the **Identity Provider Public Certificate** file from step 13 of **Set up an enterprise app for Mattermost SSO in Entra ID** then upload.
 8.  Set **Verify Signature** to **True**.
-9.  Set **Service Provider Login URL**: `https://&lt;your-mattermost-url&gt;/login/sso/saml`
-10. Set **Service Provider Identifier**: `https://&lt;your-mattermost-url&gt;`
+9.  Set **Service Provider Login URL**: `https://<your-mattermost-url>/login/sso/saml`
+10. Set **Service Provider Identifier**: `https://<your-mattermost-url>`
 11. Set **Enable Encryption** to **True**.
 12. Choose your **Service Provider Private Key** file then upload. If you used the Bash script referenced in the **Before you begin** section, this is the `mattermost-x509.key` file.
 13. Choose your **Service Provider Public Certificate** then upload. If you used the Bash script referenced in the **Before you begin** section, this is the `mattermost-x509.crt` file.

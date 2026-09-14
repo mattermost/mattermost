@@ -197,7 +197,7 @@ exports[`components/AddGroupsToChannelModal should match when renderOption is ca
     alt="group picture"
     className="more-modal__image"
     height="32"
-    src=""
+    src="test-file-stub"
     width="32"
   />
   <div
@@ -247,7 +247,7 @@ exports[`components/AddGroupsToChannelModal should match when renderOption is ca
     alt="group picture"
     className="more-modal__image"
     height="32"
-    src=""
+    src="test-file-stub"
     width="32"
   />
   <div
@@ -297,7 +297,7 @@ exports[`components/AddGroupsToChannelModal should match when renderOption is ca
     alt="group picture"
     className="more-modal__image"
     height="32"
-    src=""
+    src="test-file-stub"
     width="32"
   />
   <div

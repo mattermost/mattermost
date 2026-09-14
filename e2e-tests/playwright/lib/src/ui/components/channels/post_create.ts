@@ -23,6 +23,8 @@ export default class ChannelsPostCreate {
     readonly suggestionOptions;
     readonly selectedSuggestion;
     readonly filePreview;
+    readonly filePreviewItems;
+    readonly messageTooLongWarning;
     readonly previewButton;
     readonly previewArea;
 
@@ -48,6 +50,8 @@ export default class ChannelsPostCreate {
         this.suggestionOptions = this.suggestionList.getByRole('option');
         this.selectedSuggestion = this.suggestionList.getByTestId('suggestion-selected');
         this.filePreview = container.getByTestId('file-preview-container');
+        this.filePreviewItems = this.filePreview.getByTestId('file-preview-item');
+        this.messageTooLongWarning = container.getByText(/Your message is too long\. Character count:/);
         this.previewButton = container.getByRole('button', {name: 'preview'});
         this.previewArea = container.locator('.textbox-preview-area');
 
@@ -142,24 +146,19 @@ export default class ChannelsPostCreate {
 
         if (files) {
             const filePaths = files.map((file) => path.join(assetPath, file));
-            page.once('filechooser', async (fileChooser) => {
-                await fileChooser.setFiles(filePaths);
-            });
-
-            // Click on the attachment button
-            await this.attachmentButton.click();
-
-            // Wait until the file preview is displayed
+            await expect(this.attachmentButton).toBeVisible();
+            const fileInput = this.container.locator('input[type="file"]');
+            await expect(fileInput).toBeAttached();
+            await fileInput.setInputFiles(filePaths);
+            // Wait for the upload API first so the 10s preview asserts run after
+            // the file exists, instead of racing the default expect timeout.
+            if (uploadResponsePromise) {
+                await uploadResponsePromise;
+            }
             await this.waitUntilFilePreviewContains(files);
         }
 
         await this.sendMessage();
-
-        // Without this, tests can click Send before the upload finishes under CI load,
-        // producing posts with no attachments (flaky redacted-file / demo_plugin tests).
-        if (uploadResponsePromise) {
-            await uploadResponsePromise;
-        }
     }
 
     /**
@@ -211,6 +210,52 @@ export default class ChannelsPostCreate {
         await this.emojiButton.click();
     }
 
+    async selectFiles(files: File | File[]) {
+        const selectedFiles = Array.isArray(files) ? files : [files];
+        const fileChooserPromise = this.container.page().waitForEvent('filechooser');
+        await this.attachmentButton.click();
+        const fileChooser = await fileChooserPromise;
+        const payloads = await Promise.all(
+            selectedFiles.map(async (file) => ({
+                name: file.name,
+                mimeType: file.type,
+                buffer: Buffer.from(await file.arrayBuffer()),
+            })),
+        );
+        await fileChooser.setFiles(payloads);
+        await this.waitUntilFilePreviewContains(selectedFiles.map((file) => file.name));
+    }
+
+    getFilePreviewItem(fileName: string) {
+        return this.filePreviewItems.filter({hasText: fileName});
+    }
+
+    async toHaveFilePreview(fileName: string) {
+        const item = this.getFilePreviewItem(fileName);
+        await expect(item).toBeVisible();
+        await expect(item.getByLabel(/file thumbnail/i)).toBeVisible();
+    }
+
+    async removeFilePreview(fileName: string) {
+        await this.getFilePreviewItem(fileName).getByTestId('file-preview-remove').click();
+    }
+
+    async toHaveFilePreviewCount(count: number) {
+        await expect(this.filePreviewItems).toHaveCount(count);
+    }
+
+    async toNotHaveMessageTooLongWarning() {
+        await expect(this.messageTooLongWarning).not.toBeVisible();
+    }
+
+    async toHaveMessageTooLongWarning(characterCount: number, maximum: number) {
+        await expect(
+            this.container.getByText(`Your message is too long. Character count: ${characterCount}/${maximum}`, {
+                exact: true,
+            }),
+        ).toBeVisible();
+    }
+
     async togglePreview() {
         await expect(this.previewButton).toBeVisible();
         await this.previewButton.click();
@@ -228,8 +273,12 @@ export default class ChannelsPostCreate {
                 const details = this.filePreview.getByTestId('post-image-details');
 
                 const [previewsCount, detailsCount] = await Promise.all([previews.count(), details.count()]);
+                if (previewsCount !== files.length || detailsCount !== files.length) {
+                    return false;
+                }
 
-                return previewsCount === files.length && detailsCount === files.length;
+                const previewTexts = await previews.allTextContents();
+                return files.every((file) => previewTexts.some((text) => text.includes(file)));
             },
             {timeout},
         );
@@ -239,7 +288,8 @@ export default class ChannelsPostCreate {
      * Toggle the burn-on-read feature for the message
      */
     async toggleBurnOnRead() {
-        await expect(this.burnOnReadButton).toBeVisible();
+        await expect(this.burnOnReadButton).toBeAttached();
+        await expect(this.burnOnReadButton).toBeEnabled();
         await this.burnOnReadButton.click();
     }
 

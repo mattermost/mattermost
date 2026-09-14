@@ -44,11 +44,11 @@ describe('Markdown', () => {
                 should('have.class', 'markdown-inline-img').
                 and('have.class', 'markdown-inline-img--hover').
                 and('have.attr', 'alt', 'Build Status').
-                and('have.attr', 'src', `${baseUrl}/api/v4/image?url=https%3A%2F%2Fdocs.mattermost.com%2F_images%2Ficon-76x76.png`).
+                and('have.attr', 'src', `${baseUrl}/api/v4/image?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmattermost%2Fmattermost%2Fmaster%2Fe2e-tests%2Fcypress%2Ftests%2Ffixtures%2Fmattermost-icon_128x128.png`).
                 and((inlineImg) => {
-                    expect(inlineImg.height()).to.be.closeTo(76, 76);
+                    expect(inlineImg.height()).to.be.closeTo(128, 2);
                 }).
-                and('have.css', 'width', '76px');
+                and('have.css', 'width', '128px');
         });
     });
 

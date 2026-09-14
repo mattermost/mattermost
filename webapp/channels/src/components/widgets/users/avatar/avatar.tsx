@@ -97,7 +97,10 @@ const Avatar = forwardRef<HTMLElement, Props & Attrs>(({
             alt={alt ?? formatMessage({id: 'avatar.alt', defaultMessage: '{username} profile image'}, {
                 username: username || 'user',
             })}
-            src={url}
+
+            // Callers use an empty url to mean "no picture available", but an empty src makes the
+            // browser re-request the current page, so go straight to the fallback image instead
+            src={url || BotDefaultIcon}
             loading='lazy'
             onError={handleOnError}
         />

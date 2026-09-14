@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -641,7 +642,9 @@ func (api *PluginAPI) SearchPostsInTeam(teamID string, paramsList []*model.Searc
 	if err != nil {
 		return nil, err
 	}
-	return postList.ForPlugin().ToSlice(), nil
+	pluginList := postList.ForPlugin()
+	api.app.RecordPostListDeliveryToPlugin(api.ctx, api.id, pluginList)
+	return pluginList.ToSlice(), nil
 }
 
 func (api *PluginAPI) SearchPostsInTeamForUser(teamID string, userID string, searchParams model.SearchParameter) (*model.PostSearchResults, *model.AppError) {
@@ -678,6 +681,7 @@ func (api *PluginAPI) SearchPostsInTeamForUser(teamID string, userID string, sea
 	results, _, appErr := api.app.SearchPostsForUser(api.ctx, terms, userID, teamID, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
 	if results != nil {
 		results = results.ForPlugin()
+		api.app.RecordPostListDeliveryToPlugin(api.ctx, api.id, results.PostList)
 	}
 	return results, appErr
 }
@@ -900,6 +904,14 @@ func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError
 	}
 
 	silent := post.HasSilentNotification()
+	// Display-identity props (override_username/override_icon_url/
+	// override_icon_emoji/webhook_display_name) are not captured here: plugins
+	// don't get them re-injected by CreatePost (scoped to FromIncomingWebhook
+	// only — see the re-injection block in app/post.go), since no render path
+	// honors from_plugin the way it honors from_webhook. SanitizeProps below
+	// strips whatever the plugin set on post.Props like any other
+	// non-federated caller. Plugins are a trusted server surface (arbitrary
+	// UserId, system types, etc.); we do not clear RemoteId here.
 	post.SanitizeProps()
 
 	post, _, appErr = api.app.CreatePost(api.ctx, post, channel, model.CreatePostFlags{
@@ -949,6 +961,7 @@ func (api *PluginAPI) GetPostThread(postID string) (*model.PostList, *model.AppE
 	list, appErr := api.app.GetPostThread(api.ctx, postID, model.GetPostsOptions{}, "")
 	if list != nil {
 		list = list.ForPlugin()
+		api.app.RecordPostListDeliveryToPlugin(api.ctx, api.id, list)
 	}
 	return list, appErr
 }
@@ -957,6 +970,7 @@ func (api *PluginAPI) GetPost(postID string) (*model.Post, *model.AppError) {
 	post, appErr := api.app.GetSinglePost(api.ctx, postID, false)
 	if post != nil {
 		post = post.ForPlugin()
+		api.app.RecordPostDeliveryToPlugin(api.ctx, api.id, post)
 	}
 	return post, appErr
 }
@@ -965,6 +979,7 @@ func (api *PluginAPI) GetPostsSince(channelID string, time int64) (*model.PostLi
 	list, appErr := api.app.GetPostsSince(api.ctx, model.GetPostsSinceOptions{ChannelId: channelID, Time: time})
 	if list != nil {
 		list = list.ForPlugin()
+		api.app.RecordPostListDeliveryToPlugin(api.ctx, api.id, list)
 	}
 	return list, appErr
 }
@@ -973,6 +988,7 @@ func (api *PluginAPI) GetPostsAfter(channelID, postID string, page, perPage int)
 	list, appErr := api.app.GetPostsAfterPost(api.ctx, model.GetPostsOptions{ChannelId: channelID, PostId: postID, Page: page, PerPage: perPage})
 	if list != nil {
 		list = list.ForPlugin()
+		api.app.RecordPostListDeliveryToPlugin(api.ctx, api.id, list)
 	}
 	return list, appErr
 }
@@ -981,6 +997,7 @@ func (api *PluginAPI) GetPostsBefore(channelID, postID string, page, perPage int
 	list, appErr := api.app.GetPostsBeforePost(api.ctx, model.GetPostsOptions{ChannelId: channelID, PostId: postID, Page: page, PerPage: perPage})
 	if list != nil {
 		list = list.ForPlugin()
+		api.app.RecordPostListDeliveryToPlugin(api.ctx, api.id, list)
 	}
 	return list, appErr
 }
@@ -989,6 +1006,7 @@ func (api *PluginAPI) GetPostsForChannel(channelID string, page, perPage int) (*
 	list, appErr := api.app.GetPostsPage(api.ctx, model.GetPostsOptions{ChannelId: channelID, Page: page, PerPage: perPage})
 	if list != nil {
 		list = list.ForPlugin()
+		api.app.RecordPostListDeliveryToPlugin(api.ctx, api.id, list)
 	}
 	return list, appErr
 }
@@ -1006,7 +1024,15 @@ func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError
 		}
 		allowMmBlocksActionsUpdate = true
 	}
-	post, _, appErr := api.app.UpdatePost(api.ctx, post, &model.UpdatePostOptions{SafeUpdate: false, AllowMmBlocksActionsUpdate: allowMmBlocksActionsUpdate})
+
+	// Display-identity props are not granted AllowIdentityPropsUpdate: no
+	// render path honors a plugin-authored override (see CreatePost above), so
+	// SanitizeProps' default strip-and-preserve-from-old behavior applies to
+	// plugin edits like any other non-federated caller.
+	post, _, appErr := api.app.UpdatePost(api.ctx, post, &model.UpdatePostOptions{
+		SafeUpdate:                 false,
+		AllowMmBlocksActionsUpdate: allowMmBlocksActionsUpdate,
+	})
 	if post != nil {
 		post = post.ForPlugin()
 	}
@@ -1082,6 +1108,30 @@ func (api *PluginAPI) ReadFile(path string) ([]byte, *model.AppError) {
 
 func (api *PluginAPI) GetFile(fileID string) ([]byte, *model.AppError) {
 	return api.app.GetFile(api.ctx, fileID)
+}
+
+func (api *PluginAPI) HasPermissionToFileAction(sessionID, fileID, action string) bool {
+	if sessionID == "" || fileID == "" || !model.IsPermissionAction(action) {
+		return false
+	}
+
+	session, appErr := api.app.GetSessionById(api.ctx, sessionID)
+	if appErr != nil || session == nil || session.IsValid() != nil {
+		return false
+	}
+
+	session, appErr = api.app.GetSession(session.Token)
+	if appErr != nil || session == nil || session.Id != sessionID {
+		return false
+	}
+
+	fileInfo, appErr := api.app.Srv().getFileInfo(fileID)
+	if appErr != nil || fileInfo.ChannelId == "" {
+		return false
+	}
+
+	rctx := api.ctx.WithSession(session)
+	return api.app.HasPermissionToFileAction(rctx, session.UserId, session.Roles, fileInfo.ChannelId, action)
 }
 
 func (api *PluginAPI) UploadFile(data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError) {
@@ -1334,6 +1384,13 @@ func (api *PluginAPI) PublishUserTyping(userID, channelID, parentId string) *mod
 }
 
 func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
+	if err := request.Context().Err(); err != nil {
+		if request.Body != nil {
+			_ = request.Body.Close()
+		}
+		return nil
+	}
+
 	split := strings.SplitN(request.URL.Path, "/", 3)
 	if len(split) != 3 {
 		return &http.Response{
@@ -1355,6 +1412,8 @@ func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 			Body:       io.NopCloser(bytes.NewBufferString(message)),
 		}
 	}
+	requestCtx, cancelRequest := context.WithCancel(request.Context())
+	request = request.WithContext(requestCtx)
 
 	// Create pipe for streaming response
 	pr, pw := io.Pipe()
@@ -1377,11 +1436,27 @@ func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 		}()
 		api.app.ServeInterPluginRequest(responseTransfer, request, api.id, destinationPluginId)
 	}()
+	abort := func(err error) {
+		cancelRequest()
+		if request.Body != nil {
+			_ = request.Body.Close()
+		}
+		_ = responseTransfer.CloseWithError(err)
+		_ = pr.CloseWithError(err)
+	}
 
-	// Wait for headers to be ready before returning response
-	<-responseTransfer.ResponseReady
-
-	return responseTransfer.GenerateResponse(pr)
+	select {
+	case <-responseTransfer.ResponseReady:
+		if err := request.Context().Err(); err != nil {
+			abort(err)
+			return nil
+		}
+		return responseTransfer.GenerateResponse(request.Context(), pr, cancelRequest)
+	case <-request.Context().Done():
+		err := request.Context().Err()
+		abort(err)
+		return nil
+	}
 }
 
 func (api *PluginAPI) CreateCommand(cmd *model.Command) (*model.Command, error) {

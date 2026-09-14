@@ -885,6 +885,103 @@ func TestLinkedPropertyFields(t *testing.T) {
 		assert.Equal(t, sourceOpts, linkedOpts)
 	})
 
+	t.Run("create linked field copies source ldap/saml sync attrs", func(t *testing.T) {
+		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeText,
+			Name:       "SyncSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrLDAP: "sAMAccountName",
+			},
+		})
+
+		linked, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "SyncLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+		require.NoError(t, err)
+		assert.Equal(t, "sAMAccountName", linked.Attrs[model.PropertyFieldAttrLDAP])
+		assert.Equal(t, "ldap", model.GetPropertyFieldSyncSource(linked))
+
+		samlSource := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeText,
+			Name:       "SamlSyncSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrSAML: "employeeID",
+			},
+		})
+
+		samlLinked, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "SamlSyncLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &samlSource.ID,
+		})
+		require.NoError(t, err)
+		assert.Equal(t, "employeeID", samlLinked.Attrs[model.PropertyFieldAttrSAML])
+		assert.Equal(t, "saml", model.GetPropertyFieldSyncSource(samlLinked))
+	})
+
+	t.Run("create linked field inherits source permission values when the caller sends none", func(t *testing.T) {
+		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:          group.ID,
+			ObjectType:       model.PropertyFieldObjectTypeTemplate,
+			TargetType:       string(model.PropertyFieldTargetLevelSystem),
+			Type:             model.PropertyFieldTypeText,
+			Name:             "InheritSource-" + model.NewId(),
+			PermissionValues: model.NewPointer(model.PermissionLevelSysadmin),
+		})
+
+		linked, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeChannel,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "InheritLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, linked.PermissionValues)
+		assert.Equal(t, model.PermissionLevelSysadmin, *linked.PermissionValues)
+	})
+
+	t.Run("create linked field keeps the caller's permission values over the source's", func(t *testing.T) {
+		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:          group.ID,
+			ObjectType:       model.PropertyFieldObjectTypeTemplate,
+			TargetType:       string(model.PropertyFieldTargetLevelSystem),
+			Type:             model.PropertyFieldTypeText,
+			Name:             "PinSource-" + model.NewId(),
+			PermissionValues: model.NewPointer(model.PermissionLevelSysadmin),
+		})
+
+		// A channel attribute set by any member, defined by a template only
+		// admins may edit.
+		linked, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:          group.ID,
+			ObjectType:       model.PropertyFieldObjectTypeChannel,
+			TargetType:       string(model.PropertyFieldTargetLevelSystem),
+			Name:             "PinLinked-" + model.NewId(),
+			Type:             model.PropertyFieldTypeText,
+			LinkedFieldID:    &source.ID,
+			PermissionValues: model.NewPointer(model.PermissionLevelMember),
+		})
+		require.NoError(t, err)
+		require.NotNil(t, linked.PermissionValues)
+		assert.Equal(t, model.PermissionLevelMember, *linked.PermissionValues)
+	})
+
 	t.Run("create linked field rejects non-existent source", func(t *testing.T) {
 		fakeID := model.NewId()
 		_, err := th.service.CreatePropertyField(rctx, &model.PropertyField{

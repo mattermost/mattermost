@@ -100,7 +100,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-10-is-now-availa
  - Added a new **Board Attributes** panel under **System Console > System Attributes** for managing the default attributes shown on every board, including the locked **Status** and **Assignee** fields. Available when the ``IntegratedBoards`` feature flag is enabled.
  - Added a "Revoke non-compliant tokens" action in **System Console > Integrations > Integration Management** that lets admins revoke existing personal access tokens that violate the configured **Maximum Personal Access Token Lifetime** (tokens that never expire or expire beyond the cap). Bot account tokens are exempt, and the number of affected tokens is shown for confirmation before revoking.
  - Added a discovery page for **Classification Markings** in the **System Console** so the feature is surfaced with an upgrade path on licenses below Enterprise when the ``ClassificationMarkings`` feature flag is enabled.
- - Added a **Session Attributes** management page under **System Console > System Attributes**, and made enabled session attributes selectable in Attribute-Based permission-policy editors (generating ``user.session.&lt;name>`` conditions). Requires Enterprise Advanced license.
+ - Added a **Session Attributes** management page under **System Console > System Attributes**, and made enabled session attributes selectable in Attribute-Based permission-policy editors (generating ``user.session.<name>`` conditions). Requires Enterprise Advanced license.
  - Added the ability to edit a team's name and description from the System Console **Team Configuration** page.
  - Added a Teams column to the System Console user data CSV export, listing each user's team memberships.
  - Team membership can now be controlled by [user attributes](https://docs.mattermost.com/administration-guide/manage/admin/attribute-based-access-control.html) (department, program, etc.) — private teams automatically enforce access rules, block non-qualifying joins, and remove ineligible members via sync; public teams use advisory mode, surfacing a "Recommended" tag to qualifying users without blocking anyone. Team admins and system admins can define per-team membership rules, configure auto-add, and trigger or monitor sync jobs directly from Team Settings and the System Console, with inline enforcement in the Invite People and Add Members modals.
@@ -133,7 +133,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v11-10-is-now-availa
  - Hard-coded a second plugin signing key from Mattermost.
 
 #### mmctl
- - Added the ability to send direct messages with ``mmctl`` using ``mmctl post create @username --message &lt;text>``.
+ - Added the ability to send direct messages with ``mmctl`` using ``mmctl post create @username --message <text>``.
  - Added new ``mmctl`` commands: ``job create`` to create jobs with type-specific options, ``job show`` to display job details, and ``job cancel`` to cancel running jobs.
  - Added a new ``--auto-add-users`` flag to the ``mmctl channel move`` command. The command now also lists the channel members that are missing from the destination team when a move is rejected.
  - Added a new ``mmctl channel users list`` command that lists the members of a channel (ID, username, email, and roles), with ``--page``, ``--per-page``, and ``--all`` pagination flags.

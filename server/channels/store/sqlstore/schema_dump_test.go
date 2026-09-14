@@ -72,7 +72,7 @@ func TestGetSchemaDefinition(t *testing.T) {
 				if table.Name == "channels" {
 					// Check that indexes are present
 					assert.NotEmpty(t, table.Indexes, "channels table should have indexes")
-					assert.Equal(t, 13, len(table.Indexes), "channels table should have 13 indexes")
+					assert.Equal(t, 14, len(table.Indexes), "channels table should have 14 indexes")
 
 					// Expected index definitions
 					expectedIndexDefs := map[string]string{
@@ -89,6 +89,7 @@ func TestGetSchemaDefinition(t *testing.T) {
 						"idx_channels_team_id_type":            "CREATE INDEX idx_channels_team_id_type ON public.channels USING btree (teamid, type)",
 						"idx_channels_autotranslation_enabled": "CREATE INDEX idx_channels_autotranslation_enabled ON public.channels USING btree (id) WHERE (autotranslation = true)",
 						"idx_channels_discoverable_team":       "CREATE INDEX idx_channels_discoverable_team ON public.channels USING btree (teamid) WHERE ((discoverable = true) AND (type = 'P'::channel_type) AND (deleteat = 0))",
+						"idx_channels_create_at_id":            "CREATE INDEX idx_channels_create_at_id ON public.channels USING btree (createat, id)",
 					}
 
 					// Verify all expected indexes are present with correct definitions

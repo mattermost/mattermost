@@ -7,7 +7,7 @@ import type {Channel, ChannelWithTeamData} from '@mattermost/types/channels';
 
 import {General} from 'mattermost-redux/constants';
 
-import {renderWithContext, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelList from './channel_list';
@@ -38,9 +38,8 @@ describe('admin_console/team_channel_settings/channel/ChannelList', () => {
             />,
         );
 
-        await waitFor(() => {
-            expect(actions.getData).toHaveBeenCalled();
-        });
+        await screen.findByText('DN');
+        expect(actions.getData).toHaveBeenCalled();
 
         expect(container).toMatchSnapshot();
     });
@@ -69,9 +68,8 @@ describe('admin_console/team_channel_settings/channel/ChannelList', () => {
             />,
         );
 
-        await waitFor(() => {
-            expect(actions.getData).toHaveBeenCalled();
-        });
+        await screen.findByText('DN');
+        expect(actions.getData).toHaveBeenCalled();
 
         expect(container).toMatchSnapshot();
     });
@@ -101,9 +99,8 @@ describe('admin_console/team_channel_settings/channel/ChannelList', () => {
             />,
         );
 
-        await waitFor(() => {
-            expect(actions.getData).toHaveBeenCalled();
-        });
+        await screen.findByText('DN0');
+        expect(actions.getData).toHaveBeenCalled();
 
         expect(container).toMatchSnapshot();
     });
@@ -133,9 +130,8 @@ describe('admin_console/team_channel_settings/channel/ChannelList', () => {
             />,
         );
 
-        await waitFor(() => {
-            expect(actions.getData).toHaveBeenCalled();
-        });
+        await screen.findByText('Archived Public');
+        expect(actions.getData).toHaveBeenCalled();
 
         expect(container).toMatchSnapshot();
     });
@@ -165,9 +161,8 @@ describe('admin_console/team_channel_settings/channel/ChannelList', () => {
             />,
         );
 
-        await waitFor(() => {
-            expect(actions.getData).toHaveBeenCalled();
-        });
+        await screen.findByText('Archived Private');
+        expect(actions.getData).toHaveBeenCalled();
 
         expect(container).toMatchSnapshot();
     });
