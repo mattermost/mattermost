@@ -5,6 +5,7 @@ $z-index-tour-tips-backdrop: 1250;
 
     &__box {
         position: relative;
+        overflow: visible;
         padding: 18px 24px 24px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
         background: var(--button-bg);
@@ -95,32 +96,6 @@ $z-index-tour-tips-backdrop: 1250;
                 }
             }
         }
-
-        // fix for https://mattermost.atlassian.net/browse/MM-41711. This covers the current placements we use for the channels and other tools tour
-        &[data-placement^=right] > .tour-tip__arrow {
-            transform: translate3d(0, 14px, 0) rotate(45deg);
-        }
-
-        &[data-placement^=top] > .tour-tip__arrow {
-            transform: translate3d(14px, 0, 0) rotate(45deg);
-        }
-
-        &[data-placement^=bottom] > .tour-tip__arrow {
-            transform: translate3d(14px, 0, 0) rotate(45deg);
-        }
-
-        &[data-placement=bottom-end] > .tour-tip__arrow {
-            transform: translate3d(317px, 0, 0) rotate(45deg);
-        }
-    }
-
-    &__arrow {
-        position: absolute;
-        width: 12px;
-        height: 12px;
-        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-        background: var(--button-bg);
-        transform: rotate(45deg);
     }
 
     &__pulsating-dot-ctr {

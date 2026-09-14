@@ -8,12 +8,13 @@ import {
     flip,
     shift,
     arrow,
+    FloatingArrow,
     FloatingPortal,
     useTransitionStyles,
     type Placement,
 } from '@floating-ui/react';
 import classNames from 'classnames';
-import React, {useId, useRef, type CSSProperties, type JSX} from 'react';
+import React, {useId, useRef, type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
@@ -29,8 +30,11 @@ export type TourTipEventSource = 'next' | 'prev' | 'dismiss' | 'jump' | 'skipped
 
 // If this needs to alter, change in _variables $z-index-tour-tips-popover as well
 const DEFAULT_Z_INDEX_TOUR_TIPS_POPOVER = 1300;
-const ARROW_OFFSET = 12;
 const ROOT_PORTAL_ID = 'root-portal';
+const OverlayArrow = {
+    WIDTH: 12,
+    HEIGHT: 8,
+};
 const TRANSITION_STYLE_PROPS = {
     duration: {
         open: 250,
@@ -41,13 +45,6 @@ const TRANSITION_STYLE_PROPS = {
         transform: 'scale(0.96)',
     },
 };
-
-const staticSideByPlacement = {
-    top: 'bottom',
-    right: 'left',
-    bottom: 'top',
-    left: 'right',
-} as const;
 
 type Props = {
     show: boolean;
@@ -118,7 +115,7 @@ export const TourTip = ({
 }: Props) => {
     const FIRST_STEP_INDEX = 0;
     const titleId = useId();
-    const arrowRef = useRef<HTMLDivElement>(null);
+    const arrowRef = useRef<SVGSVGElement>(null);
     const onJump = (event: React.MouseEvent, jumpToStep: number) => {
         handleJump?.(event, jumpToStep);
     };
@@ -131,7 +128,6 @@ export const TourTip = ({
         floatingStyles,
         context: floatingContext,
         placement: resolvedPlacement,
-        middlewareData,
     } = useFloating({
         open: show,
         whileElementsMounted: autoUpdate,
@@ -145,6 +141,7 @@ export const TourTip = ({
             shift({padding: 8}),
             arrow({
                 element: arrowRef,
+                padding: 8,
             }),
         ],
     });
@@ -153,19 +150,6 @@ export const TourTip = ({
         TRANSITION_STYLE_PROPS,
     );
 
-    const arrowStyles: CSSProperties = {};
-    if (middlewareData.arrow?.x != null) {
-        arrowStyles.left = `${middlewareData.arrow.x}px`;
-    }
-    if (middlewareData.arrow?.y != null) {
-        arrowStyles.top = `${middlewareData.arrow.y}px`;
-    }
-
-    const mainPlacement = resolvedPlacement.split('-')[0] as keyof typeof staticSideByPlacement;
-    const staticSide = staticSideByPlacement[mainPlacement];
-    if (staticSide) {
-        (arrowStyles as Record<string, string>)[staticSide] = `-${ARROW_OFFSET / 2}px`;
-    }
     const combinedTransform = [
         floatingStyles.transform,
         transitionStyles.transform,
@@ -320,10 +304,15 @@ export const TourTip = ({
                         aria-labelledby={titleId}
                     >
                         {content}
-                        <div
+                        <FloatingArrow
                             ref={arrowRef}
+                            context={floatingContext}
                             className='tour-tip__arrow'
-                            style={arrowStyles}
+                            width={OverlayArrow.WIDTH}
+                            height={OverlayArrow.HEIGHT}
+                            fill='var(--button-bg)'
+                            stroke='rgba(var(--center-channel-color-rgb), 0.16)'
+                            strokeWidth={1}
                         />
                     </div>
                 </FloatingPortal>

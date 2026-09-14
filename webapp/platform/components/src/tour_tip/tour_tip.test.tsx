@@ -90,12 +90,15 @@ describe('TourTip', () => {
         });
     });
 
-    test('renders the arrow and resolved placement on the floating box', async () => {
+    test('renders the Floating UI arrow and resolved placement on the floating box', async () => {
         renderTourTip({placement: 'bottom-start'});
 
         const dialog = await screen.findByRole('dialog');
+        const arrow = dialog.querySelector('svg.tour-tip__arrow');
+
         expect(dialog).toHaveClass('tour-tip__box');
-        expect(dialog.querySelector('.tour-tip__arrow')).toBeInTheDocument();
+        expect(arrow).toBeInTheDocument();
+        expect(arrow?.tagName.toLowerCase()).toBe('svg');
         expect(dialog).toHaveAttribute('data-placement');
         expect(dialog.getAttribute('data-placement')).toMatch(/^(top|bottom|left|right)(-start|-end)?$/);
     });
