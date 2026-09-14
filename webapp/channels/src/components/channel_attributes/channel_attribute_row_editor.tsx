@@ -1,0 +1,163 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import React, {useCallback, useMemo, useState} from 'react';
+import {useIntl} from 'react-intl';
+import type {OnChangeValue} from 'react-select';
+
+import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
+import {supportsOptions} from '@mattermost/types/properties';
+
+import {PROPERTY_TEXT_VALUE_MAX_LENGTH} from 'mattermost-redux/constants/properties';
+import {canMoveToOption, getPropertyFieldChangePolicy, getPropertyFieldLabel, isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
+
+import {ColorSwatch, LevelOptionLabel} from 'components/admin_console/classification_markings/classification_markings_styled';
+import DropdownInput from 'components/dropdown_input';
+import Input from 'components/widgets/inputs/input/input';
+
+import type {ChannelAttributeValue} from './set_channel_attribute_value';
+
+type Option = {label: string; value: string; color?: string};
+
+function formatColorOptionLabel(option: Option) {
+    if (!option.color) {
+        return <span>{option.label}</span>;
+    }
+    return (
+        <LevelOptionLabel>
+            <ColorSwatch style={{backgroundColor: option.color}}/>
+            <span>{option.label}</span>
+        </LevelOptionLabel>
+    );
+}
+
+// Portalled to the body to escape the RHS's overflow, matching the create-modal
+// form's reasoning.
+const dropdownStyles = {
+    menu: (provided: Record<string, unknown>) => ({...provided, zIndex: 100}),
+    menuPortal: (provided: Record<string, unknown>) => ({...provided, zIndex: 1100}),
+};
+
+function toOptions(field: PropertyField): Option[] {
+    const options = (field.attrs?.options as PropertyFieldOption[] | undefined) ?? [];
+    return options.map((option) => ({label: option.name, value: option.id, color: option.color}));
+}
+
+function currentSelection(field: PropertyField, raw: unknown): Option | undefined {
+    const options = toOptions(field);
+    if (Array.isArray(raw)) {
+        return options.filter((option) => raw.includes(option.value)) as unknown as Option;
+    }
+    if (typeof raw === 'string') {
+        return options.find((option) => option.value === raw);
+    }
+    return undefined;
+}
+
+type Props = {
+    field: PropertyField;
+    rawValue: unknown;
+    onSubmit: (value: ChannelAttributeValue) => void;
+    onCancel: () => void;
+    saving: boolean;
+};
+
+/**
+ * The edit control for a single attribute row. A select commits on choice — a save
+ * step on a one-field row is friction. Text commits on blur or Enter; Escape abandons.
+ */
+const ChannelAttributeRowEditor = ({field, rawValue, onSubmit, onCancel, saving}: Props) => {
+    const {formatMessage} = useIntl();
+
+    const label = getPropertyFieldLabel(field);
+
+    const isText = field.type === 'text';
+    const isMultiselect = field.type === 'multiselect';
+
+    const initialText = typeof rawValue === 'string' && !supportsOptions(field) ? rawValue : '';
+    const [text, setText] = useState(initialText);
+
+    const selected = useMemo(() => currentSelection(field, rawValue), [field, rawValue]);
+
+    // A policy narrows the ladder rather than disabling the row: an option the
+    // server would refuse is left out instead of being offered and rejected.
+    const options = useMemo(
+        () => toOptions(field).filter((option) => canMoveToOption(field, rawValue, option.value)),
+        [field, rawValue],
+    );
+
+    const hasColoredOptions = useMemo(() => options.some((o) => Boolean(o.color)), [options]);
+
+    // Clearing is a change like any other, so every policy but "any" forbids it
+    // once a value exists.
+    const clearable = getPropertyFieldChangePolicy(field) === 'any' || !isPropertyValueSet(rawValue);
+
+    const handleSelect = useCallback((next: OnChangeValue<Option, boolean>) => {
+        if (Array.isArray(next)) {
+            const ids = next.map((option) => option.value);
+            onSubmit(ids.length ? ids : null);
+            return;
+        }
+        onSubmit((next as Option | null)?.value ?? null);
+    }, [onSubmit]);
+
+    const handleTextKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            onSubmit(text.trim() || null);
+        } else if (event.key === 'Escape') {
+            event.preventDefault();
+            onCancel();
+        }
+    }, [text, onSubmit, onCancel]);
+
+    if (isText) {
+        return (
+            <Input
+                id={`channelAttributeEdit-${field.id}`}
+                name={`channelAttributeEdit-${field.name}`}
+                type='text'
+                value={text}
+                maxLength={PROPERTY_TEXT_VALUE_MAX_LENGTH}
+                onChange={(e) => setText(e.target.value)}
+                onKeyDown={handleTextKeyDown}
+
+                // An abandoned edit is not a request to clear the value.
+                onBlur={() => {
+                    if (text === initialText) {
+                        onCancel();
+                        return;
+                    }
+                    const next = text.trim();
+                    onSubmit(next || null);
+                }}
+                disabled={saving}
+                autoFocus={true}
+                placeholder={formatMessage({id: 'channel_attributes.enter_value', defaultMessage: 'Enter a value'})}
+                aria-label={label}
+                data-testid={`channelAttributeEdit-${field.name}`}
+            />
+        );
+    }
+
+    return (
+        <DropdownInput
+            name={`channelAttributeEdit-${field.id}`}
+            testId={`channelAttributeEdit-${field.name}`}
+            options={options}
+            value={selected}
+            onChange={handleSelect}
+            isMulti={isMultiselect}
+            isClearable={clearable}
+            isDisabled={saving}
+            autoFocus={true}
+            placeholder={formatMessage({id: 'channel_attributes.select_value', defaultMessage: 'Select a value'})}
+            styles={dropdownStyles}
+            menuPortalTarget={document.body}
+            formatOptionLabel={hasColoredOptions ? formatColorOptionLabel : undefined}
+            aria-label={label}
+        />
+    );
+};
+
+export default ChannelAttributeRowEditor;

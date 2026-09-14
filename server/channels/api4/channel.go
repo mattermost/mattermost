@@ -17,6 +17,12 @@ import (
 
 const maxListSize = 1000
 
+// classificationChannelFieldName is the channel-linked classification field's
+// Name within the access_control property group. Classification predates
+// channel attributes and ships behind its own flag/license pair, but writes
+// through the same property-values path as channel attributes on creation.
+const classificationChannelFieldName = "classification"
+
 // rejectBoardChannelByID returns true and sets c.Err if the channel ID belongs
 // to a board channel. Board channels must use the /boards endpoints, not /channels.
 // Use this on write endpoints to give a clear error instead of a 404.
@@ -123,12 +129,13 @@ func (api *API) InitChannel() {
 }
 
 func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
-	var channel *model.Channel
-	err := json.NewDecoder(r.Body).Decode(&channel)
-	if err != nil || channel == nil {
+	var req *model.ChannelCreateRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil || req == nil {
 		c.SetInvalidParamWithErr("channel", err)
 		return
 	}
+	channel := &req.Channel
 
 	if channel.IsBoard() {
 		c.SetInvalidParamWithDetails("type", "cannot create board channels via /channels endpoint")
@@ -158,6 +165,9 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord(model.AuditEventCreateChannel, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "channel", channel)
+	// Count only. The values themselves are markings, and this sink is shared with
+	// user attribute values.
+	model.AddEventParameterToAuditRec(auditRec, "property_value_count", len(req.PropertyValues))
 
 	if channel.Type == model.ChannelTypeOpen && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionCreatePublicChannel) {
 		c.SetPermissionError(model.PermissionCreatePublicChannel)
@@ -187,7 +197,13 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	sc, appErr := c.App.CreateChannelWithUser(c.AppContext, channel, c.AppContext.Session().UserId)
+	propertyValues, appErr := channelAttributeValuesForCreate(c, channel, license, req.PropertyValues)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	sc, appErr := c.App.CreateChannelWithUserAndPropertyValues(c.AppContext, channel, c.AppContext.Session().UserId, propertyValues)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -201,6 +217,150 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(sc); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// channelAttributeValuesForCreate turns the submitted attribute values into
+// PropertyValues to write with the channel, and refuses the creation when a
+// required attribute has no value. Each field is gated by its own feature:
+// classification by ClassificationMarkings + Enterprise, everything else by
+// ChannelAttributes + Enterprise Advanced. Both off with no items keeps
+// creation byte-identical to its pre-feature behaviour, which is what makes
+// this safe to add to an endpoint every integration uses.
+//
+// Errors never name an attribute: which markings a server defines is itself
+// sensitive, and the caller may not be allowed to see them.
+func channelAttributeValuesForCreate(c *Context, channel *model.Channel, license *model.License, items []model.PropertyValuePatchItem) ([]*model.PropertyValue, *model.AppError) {
+	// A DM/GM type reaching here is refused by the app layer anyway, but values on
+	// one are never legitimate: DM/GM attributes are derived from the participants,
+	// not hand-written.
+	if channel.IsGroupOrDirect() {
+		if len(items) > 0 {
+			return nil, model.NewAppError("createChannel", "api.channel.create_channel.invalid_attribute.app_error", nil, "attributes are not assigned to direct or group channels", http.StatusBadRequest)
+		}
+		return nil, nil
+	}
+
+	channelAttributesAvailable := c.App.Config().FeatureFlags.ChannelAttributes && model.MinimumEnterpriseAdvancedLicense(license)
+	classificationAvailable := c.App.Config().FeatureFlags.ClassificationMarkings && model.MinimumEnterpriseLicense(license)
+
+	if !channelAttributesAvailable && !classificationAvailable {
+		if len(items) > 0 {
+			return nil, model.NewAppError("createChannel", "api.channel.create_channel.attributes_feature_disabled.app_error", nil, "", http.StatusBadRequest)
+		}
+		return nil, nil
+	}
+
+	group, appErr := c.App.GetPropertyGroup(c.AppContext, model.AccessControlPropertyGroupName)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	// The group's field budget is capped, so every caller reads one oversized page
+	// rather than paginating.
+	fields, appErr := c.App.SearchPropertyFields(c.AppContext, group.ID, model.PropertyFieldSearchOpts{
+		GroupID:    group.ID,
+		ObjectType: model.PropertyFieldObjectTypeChannel,
+		TargetType: model.PropertyValueTargetTypeSystem,
+		PerPage:    model.AccessControlGroupFieldLimit + 5,
+	})
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	fieldByID := make(map[string]*model.PropertyField, len(fields))
+	for _, field := range fields {
+		fieldByID[field.ID] = field
+	}
+
+	supplied := make(map[string]json.RawMessage, len(items))
+	values := make([]*model.PropertyValue, 0, len(items))
+	for _, item := range items {
+		if !model.IsValidId(item.FieldID) {
+			return nil, model.NewAppError("createChannel", "api.channel.create_channel.invalid_attribute.app_error", nil, "", http.StatusBadRequest)
+		}
+		if _, ok := supplied[item.FieldID]; ok {
+			return nil, model.NewAppError("createChannel", "api.channel.create_channel.invalid_attribute.app_error", nil, "duplicate field", http.StatusBadRequest)
+		}
+		field, ok := fieldByID[item.FieldID]
+		if !ok {
+			return nil, model.NewAppError("createChannel", "api.channel.create_channel.invalid_attribute.app_error", nil, "unknown field", http.StatusBadRequest)
+		}
+		if !channelAttributeFieldAvailable(field, channelAttributesAvailable, classificationAvailable) {
+			return nil, model.NewAppError("createChannel", "api.channel.create_channel.attributes_feature_disabled.app_error", nil, "", http.StatusBadRequest)
+		}
+		if !canSetChannelAttributeOnCreate(c, field) {
+			return nil, model.NewAppError("createChannel", "api.channel.create_channel.attribute_no_permission.app_error", nil, "", http.StatusForbidden)
+		}
+
+		// Sanitize before the emptiness test, so "  " counts as unset here exactly
+		// as it will when the value is written.
+		value := model.SanitizePropertyValue(item.Value)
+		supplied[item.FieldID] = value
+		values = append(values, &model.PropertyValue{
+			GroupID: group.ID,
+			FieldID: field.ID,
+			Value:   value,
+		})
+	}
+
+	for _, field := range fields {
+		if !model.IsPropertyFieldRequired(field) || !canSetChannelAttributeOnCreate(c, field) {
+			continue
+		}
+		if !channelAttributeFieldAvailable(field, channelAttributesAvailable, classificationAvailable) {
+			continue
+		}
+		if value, ok := supplied[field.ID]; !ok || model.IsEmptyPropertyValue(value) {
+			return nil, model.NewAppError("createChannel", "api.channel.create_channel.missing_required_attributes.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	if len(values) == 0 {
+		return nil, nil
+	}
+	return values, nil
+}
+
+// isClassificationChannelField reports whether field is the channel-scoped
+// classification linked field rather than a generic channel attribute.
+func isClassificationChannelField(field *model.PropertyField) bool {
+	return field.Name == classificationChannelFieldName && field.LinkedFieldID != nil && *field.LinkedFieldID != ""
+}
+
+// channelAttributeFieldAvailable reports whether field's own feature is on,
+// given the pre-computed availability of channel attributes and classification.
+func channelAttributeFieldAvailable(field *model.PropertyField, channelAttributesAvailable, classificationAvailable bool) bool {
+	if isClassificationChannelField(field) {
+		return classificationAvailable
+	}
+	return channelAttributesAvailable
+}
+
+// canSetChannelAttributeOnCreate reports whether the caller may set this
+// attribute on a channel they are about to create. The channel does not exist
+// yet, so the channel-scoped tiers are answered from what creation itself
+// guarantees: the creator is saved as a channel admin, which satisfies both
+// "admin" and "member". A tier the caller cannot satisfy is skipped rather than
+// enforced — one sysadmin-only required attribute must not make channel creation
+// impossible for everyone else.
+//
+// Unrecognised and unset tiers answer no, matching
+// SessionHasPermissionToSetPropertyFieldValues. That check is the only gate on
+// this path, so a field the property API would refuse a value for must not
+// become settable through channel creation.
+func canSetChannelAttributeOnCreate(c *Context, field *model.PropertyField) bool {
+	if field.PermissionValues == nil {
+		return false
+	}
+
+	switch *field.PermissionValues {
+	case model.PermissionLevelMember, model.PermissionLevelAdmin:
+		return true
+	case model.PermissionLevelSysadmin:
+		return c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+	default:
+		return false
 	}
 }
 
@@ -368,7 +528,7 @@ func updateChannelPrivacy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.App.GetUser(c.AppContext.Session().UserId)
+	user, err := c.App.GetUser(c.AppContext, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -713,7 +873,7 @@ func readAllMessages(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "user_id", c.Params.UserId)
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -937,7 +1097,7 @@ func discoverableNonMemberView(c *Context, channel *model.Channel) (*model.Chann
 	if !c.App.Config().FeatureFlags.DiscoverableChannels {
 		return nil, nil
 	}
-	user, userErr := c.App.GetUser(c.AppContext.Session().UserId)
+	user, userErr := c.App.GetUser(c.AppContext, c.AppContext.Session().UserId)
 	if userErr != nil {
 		return nil, userErr
 	}
@@ -982,7 +1142,7 @@ func getChannelUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -1119,7 +1279,8 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.HandleEtag(posts.Etag(), "Get Pinned Posts", w, r) {
+	pinnedEtag := c.App.AppendABACEtag(posts.Etag(), c.AppContext.Session().UserId, c.Params.ChannelId)
+	if c.HandleEtag(pinnedEtag, "Get Pinned Posts", w, r) {
 		return
 	}
 
@@ -1130,9 +1291,11 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set(model.HeaderEtagServer, clientPostList.Etag())
+	w.Header().Set(model.HeaderEtagServer, pinnedEtag)
 	if err := clientPostList.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	} else {
+		c.App.RecordPostListDelivery(c.AppContext, c.AppContext.Session().UserId, clientPostList, model.DeliveryMechanismProduct)
 	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventUpdateChannelMemberRoles, model.AuditStatusSuccess)
@@ -1387,7 +1550,7 @@ func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -1438,7 +1601,7 @@ func getChannelsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -1754,7 +1917,7 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		if *c.App.Config().ServiceSettings.EnableAPIChannelDeletion {
 			err = c.App.PermanentDeleteChannel(c.AppContext, channel)
 		} else {
-			user, usrErr := c.App.GetUser(c.AppContext.Session().UserId)
+			user, usrErr := c.App.GetUser(c.AppContext, c.AppContext.Session().UserId)
 			if usrErr == nil && user != nil && user.IsSystemAdmin() {
 				// More verbose error message for system admins
 				err = model.NewAppError("deleteChannel", "api.user.delete_channel.not_enabled.for_admin.app_error", nil, "channelId="+c.Params.ChannelId, http.StatusUnauthorized)
@@ -2014,7 +2177,7 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -2075,7 +2238,7 @@ func readMultipleChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -2112,7 +2275,7 @@ func readAllInTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "user_id", c.Params.UserId)
 	model.AddEventParameterToAuditRec(auditRec, "team_id", c.Params.TeamId)
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -2246,7 +2409,7 @@ func updateChannelMemberNotifyProps(c *Context, w http.ResponseWriter, r *http.R
 	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
 	model.AddEventParameterToAuditRec(auditRec, "props", props)
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -2297,7 +2460,7 @@ func updateChannelMemberAutotranslation(c *Context, w http.ResponseWriter, r *ht
 	model.AddEventParameterToAuditRec(auditRec, "autotranslation_disabled", props.AutoTranslationDisabled)
 	model.AddEventParameterToAuditRec(auditRec, "user_id", c.Params.UserId)
 
-	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
 	}
@@ -2771,7 +2934,7 @@ func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.App.GetUser(c.Params.UserId)
+	user, err := c.App.GetUser(c.AppContext, c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -3113,7 +3276,7 @@ func moveChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := c.App.GetUser(c.AppContext.Session().UserId)
+	user, err := c.App.GetUser(c.AppContext, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -3157,7 +3320,7 @@ func getDirectOrGroupMessageMembersCommonTeams(c *Context, w http.ResponseWriter
 		return
 	}
 
-	user, err := c.App.GetUser(c.AppContext.Session().UserId)
+	user, err := c.App.GetUser(c.AppContext, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -3203,7 +3366,7 @@ func convertGroupMessageToChannel(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	user, err := c.App.GetUser(c.AppContext.Session().UserId)
+	user, err := c.App.GetUser(c.AppContext, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return

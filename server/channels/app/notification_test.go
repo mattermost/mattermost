@@ -442,7 +442,7 @@ func TestSendNotifications_SilentPostBroadcastsPosted(t *testing.T) {
 	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
 
 	bot := th.CreateBot(t)
-	botUser, appErr := th.App.GetUser(bot.UserId)
+	botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 	require.Nil(t, appErr)
 	th.LinkUserToTeam(t, botUser, th.BasicTeam)
 	_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -481,7 +481,7 @@ func TestCreatePostSilentBroadcastsPostedWithProps(t *testing.T) {
 	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
 
 	bot := th.CreateBot(t)
-	botUser, appErr := th.App.GetUser(bot.UserId)
+	botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 	require.Nil(t, appErr)
 	th.LinkUserToTeam(t, botUser, th.BasicTeam)
 	_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -521,7 +521,7 @@ func TestSendNotifications_SilentSkipsGroupMention(t *testing.T) {
 	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
 
 	bot := th.CreateBot(t)
-	botUser, appErr := th.App.GetUser(bot.UserId)
+	botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 	require.Nil(t, appErr)
 	th.LinkUserToTeam(t, botUser, th.BasicTeam)
 	_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -566,7 +566,7 @@ func TestSendNotifications_SilentSkipsCRTFollowers(t *testing.T) {
 	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
 
 	bot := th.CreateBot(t)
-	botUser, appErr := th.App.GetUser(bot.UserId)
+	botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 	require.Nil(t, appErr)
 	th.LinkUserToTeam(t, botUser, th.BasicTeam)
 	_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -3519,6 +3519,168 @@ func TestRemoveNotifications(t *testing.T) {
 		require.Equal(t, int64(0), thread.UnreadMentions)
 		require.Equal(t, int64(0), thread.UnreadReplies)
 	})
+}
+
+func TestSendNotificationsStripsActionIntegrations(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	u1 := th.BasicUser
+	u2 := th.BasicUser2
+	c1 := th.BasicChannel
+	th.AddUserToChannel(t, u2, c1)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+	})
+
+	rootPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    u1.Id,
+		ChannelId: c1.Id,
+		Message:   "interactive root",
+		Props: model.StringInterface{
+			model.PostPropsAttachments: []*model.MessageAttachment{
+				{
+					Text: "hello",
+					Actions: []*model.PostAction{
+						{
+							Type: model.PostActionTypeButton,
+							Name: "action",
+							Integration: &model.PostActionIntegration{
+								URL:     "http://localhost:8065/secret-endpoint",
+								Context: map[string]any{"secret_marker": "s3cr3t"},
+							},
+						},
+					},
+				},
+			},
+		},
+	}, c1, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
+
+	// u2 replies to auto-follow the thread
+	_, _, appErr = th.App.CreatePost(th.Context, &model.Post{
+		UserId:    u2.Id,
+		ChannelId: c1.Id,
+		RootId:    rootPost.Id,
+		Message:   "reply by u2",
+	}, c1, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
+
+	// u2 will receive thread_updated when u1 replies
+	messages, closeWS := connectFakeWebSocket(t, th, u2.Id, "", []model.WebsocketEventType{model.WebsocketEventThreadUpdated})
+	defer closeWS()
+
+	_, _, appErr = th.App.CreatePost(th.Context, &model.Post{
+		UserId:    u1.Id,
+		ChannelId: c1.Id,
+		RootId:    rootPost.Id,
+		Message:   "second reply by u1",
+	}, c1, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
+
+	select {
+	case event := <-messages:
+		threadJSON, ok := event.GetData()["thread"].(string)
+		require.True(t, ok)
+		assert.NotContains(t, threadJSON, "secret-endpoint")
+		assert.NotContains(t, threadJSON, "secret_marker")
+
+		var thread model.ThreadResponse
+		require.NoError(t, json.Unmarshal([]byte(threadJSON), &thread))
+		require.NotNil(t, thread.Post)
+		attachments := thread.Post.Attachments()
+		require.Len(t, attachments, 1)
+		require.Len(t, attachments[0].Actions, 1)
+		assert.Equal(t, "action", attachments[0].Actions[0].Name, "non-secret attachment data must be preserved")
+		assert.Nil(t, attachments[0].Actions[0].Integration)
+	case <-time.After(10 * time.Second):
+		require.Fail(t, "Did not receive websocket message in time")
+	}
+}
+
+func TestRemoveNotificationsStripsActionIntegrations(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	u1 := th.BasicUser
+	u2 := th.BasicUser2
+	c1 := th.BasicChannel
+	th.AddUserToChannel(t, u2, c1)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+	})
+
+	rootPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    u1.Id,
+		ChannelId: c1.Id,
+		Message:   "interactive root",
+		Props: model.StringInterface{
+			model.PostPropsAttachments: []*model.MessageAttachment{
+				{
+					Text: "hello",
+					Actions: []*model.PostAction{
+						{
+							Type: model.PostActionTypeButton,
+							Name: "action",
+							Integration: &model.PostActionIntegration{
+								URL:     "http://localhost:8065/secret-endpoint",
+								Context: map[string]any{"secret_marker": "s3cr3t"},
+							},
+						},
+					},
+				},
+			},
+		},
+	}, c1, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
+
+	// u2 replies to auto-follow the thread
+	_, _, appErr = th.App.CreatePost(th.Context, &model.Post{
+		UserId:    u2.Id,
+		ChannelId: c1.Id,
+		RootId:    rootPost.Id,
+		Message:   "reply by u2",
+	}, c1, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
+
+	// u1 mentions u2 in a reply, creating an unread mention for u2
+	mentionReply, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    u1.Id,
+		ChannelId: c1.Id,
+		RootId:    rootPost.Id,
+		Message:   "@" + u2.Username + " you're mentioned",
+	}, c1, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
+
+	// u2 receives thread_updated when the mention reply is deleted (RemoveNotifications)
+	messages, closeWS := connectFakeWebSocket(t, th, u2.Id, "", []model.WebsocketEventType{model.WebsocketEventThreadUpdated})
+	defer closeWS()
+
+	_, appErr = th.App.DeletePost(th.Context, mentionReply.Id, u1.Id)
+	require.Nil(t, appErr)
+
+	select {
+	case event := <-messages:
+		threadJSON, ok := event.GetData()["thread"].(string)
+		require.True(t, ok)
+		assert.NotContains(t, threadJSON, "secret-endpoint")
+		assert.NotContains(t, threadJSON, "secret_marker")
+
+		var thread model.ThreadResponse
+		require.NoError(t, json.Unmarshal([]byte(threadJSON), &thread))
+		require.NotNil(t, thread.Post)
+		attachments := thread.Post.Attachments()
+		require.Len(t, attachments, 1)
+		require.Len(t, attachments[0].Actions, 1)
+		assert.Equal(t, "action", attachments[0].Actions[0].Name, "non-secret attachment data must be preserved")
+		assert.Nil(t, attachments[0].Actions[0].Integration)
+	case <-time.After(10 * time.Second):
+		require.Fail(t, "Did not receive websocket message in time")
+	}
 }
 
 func TestShouldAckWebsocketNotification(t *testing.T) {

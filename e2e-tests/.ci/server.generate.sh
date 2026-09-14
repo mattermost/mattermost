@@ -128,7 +128,7 @@ $(if mme2e_is_token_in_list "minio" "$ENABLED_DOCKER_SERVICES"; then
       file: ../../server/build/docker-compose.common.yml
       service: minio
     healthcheck:
-      test: [ "CMD", "curl", "-f", "127.0.0.1:9000/minio/health/live" ]
+      test: [ "CMD", "mc", "ready", "local" ]
       interval: 10s
       timeout: 15s
       retries: 12'

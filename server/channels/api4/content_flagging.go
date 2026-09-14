@@ -375,6 +375,8 @@ func getFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	c.App.RecordPostDelivery(c.AppContext, c.AppContext.Session().UserId, post, model.DeliveryMechanismProduct)
+
 	if !isMemberForPreviews {
 		previewPost := post.GetPreviewPost()
 		if previewPost != nil {

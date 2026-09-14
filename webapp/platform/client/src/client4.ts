@@ -67,6 +67,7 @@ import type {
     PatchDataRetentionCustomPolicy,
     GetDataRetentionCustomPoliciesRequest,
 } from '@mattermost/types/data_retention';
+import type {DeliveryTrackingConfig} from '@mattermost/types/delivery_tracking';
 import type {Draft} from '@mattermost/types/drafts';
 import type {CustomEmoji} from '@mattermost/types/emojis';
 import type {ServerError} from '@mattermost/types/errors';
@@ -122,6 +123,7 @@ import type {UserPropertyField, UserPropertyFieldPatch} from '@mattermost/types/
 import type {Reaction} from '@mattermost/types/reactions';
 import type {Recap, CreateRecapRequest, ScheduledRecap, ScheduledRecapInput, RecapLimitStatus} from '@mattermost/types/recaps';
 import type {RemoteCluster, RemoteClusterAcceptInvite, RemoteClusterPatch, RemoteClusterWithPassword} from '@mattermost/types/remote_clusters';
+import type {ActionSearchRequest, ActionSearchResponse} from '@mattermost/types/render_permissions';
 import type {UserReport, UserReportFilter, UserReportOptions} from '@mattermost/types/reports';
 import type {Role} from '@mattermost/types/roles';
 import type {SamlCertificateStatus, SamlMetadataResponse} from '@mattermost/types/saml';
@@ -575,6 +577,10 @@ export default class Client4 {
 
     getContentFlaggingRoute() {
         return `${this.getBaseRoute()}/content_flagging`;
+    }
+
+    getDeliveryTrackingRoute() {
+        return `${this.getBaseRoute()}/delivery_tracking`;
     }
 
     getCSRFFromCookie() {
@@ -4928,6 +4934,7 @@ export default class Client4 {
             server_error_id: data.id,
             status_code: data.status_code,
             detailed_error: data.detailed_error,
+            props: data.props,
             url,
         });
     };
@@ -5117,6 +5124,17 @@ export default class Client4 {
         return this.doFetch<AccessControlPoliciesResult>(
             `${this.getBaseRoute()}/access_control_policies/search`,
             {method: 'post', body: JSON.stringify({term, type: 'permission', cursor: {id: after}, limit})},
+        );
+    };
+
+    searchAccessControlDecisionActions = (resourceType: string, resourceId: string, actions?: string[]) => {
+        const body: ActionSearchRequest = {resource: {type: resourceType, id: resourceId}};
+        if (actions && actions.length > 0) {
+            body.actions = actions;
+        }
+        return this.doFetch<ActionSearchResponse>(
+            `${this.getBaseRoute()}/access_control/decisions/actions/search`,
+            {method: 'post', body: JSON.stringify(body)},
         );
     };
 
@@ -5417,6 +5435,20 @@ export default class Client4 {
         );
     };
 
+    getDeliveryTrackingConfig = () => {
+        return this.doFetch<DeliveryTrackingConfig>(
+            `${this.getDeliveryTrackingRoute()}/config`,
+            {method: 'get'},
+        );
+    };
+
+    saveDeliveryTrackingConfig = (config: DeliveryTrackingConfig) => {
+        return this.doFetch<StatusOK>(
+            `${this.getDeliveryTrackingRoute()}/config`,
+            {method: 'put', body: JSON.stringify(config)},
+        );
+    };
+
     getFlaggedPostReportUrl = (postId: string) => {
         return `${this.getContentFlaggingRoute()}/post/${postId}/report`;
     };
@@ -5479,6 +5511,7 @@ export class ClientError extends Error implements ServerError {
     server_error_id?: string;
     status_code?: number;
     detailed_error?: string;
+    props?: Record<string, string>;
 
     constructor(baseUrl: string, data: ServerError, cause?: any) {
         super(data.message + ': ' + cleanUrlForLogging(baseUrl, data.url || ''), {cause});
@@ -5488,6 +5521,7 @@ export class ClientError extends Error implements ServerError {
         this.server_error_id = data.server_error_id;
         this.status_code = data.status_code;
         this.detailed_error = data.detailed_error;
+        this.props = data.props;
 
         // Ensure message is treated as a property of this class when object spreading. Without this,
         // copying the object by using `{...error}` would not include the message.

@@ -216,6 +216,9 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockContentFlaggingStore := mocks.ContentFlaggingStore{}
 	mockStore.On("ContentFlagging").Return(&mockContentFlaggingStore)
 
+	mockDeliveryTrackingStore := mocks.DeliveryTrackingStore{}
+	mockStore.On("DeliveryTracking").Return(&mockDeliveryTrackingStore)
+
 	mockSessionAttributeStore := mocks.SessionAttributeStore{}
 	mockStore.On("SessionAttribute").Return(&mockSessionAttributeStore)
 
@@ -226,6 +229,14 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockPropertyFieldStore.On("Update", "group-id", []*model.PropertyField{&fakeField}, map[string]int64(nil)).Return([]*model.PropertyField{&fakeField}, nil)
 	mockPropertyFieldStore.On("Delete", "group-id", "field-id").Return(nil)
 	mockStore.On("PropertyField").Return(&mockPropertyFieldStore)
+
+	mockAccessControlPolicyStore := mocks.AccessControlPolicyStore{}
+	mockAccessControlPolicyStore.On("GetEtagEpoch", mock.Anything, "channel-id").Return("100-1", nil)
+	mockStore.On("AccessControlPolicy").Return(&mockAccessControlPolicyStore)
+
+	mockAttributesStore := mocks.AttributesStore{}
+	mockAttributesStore.On("GetUserPropertyValuesEpoch", mock.Anything, "user-id").Return("200-1", nil)
+	mockStore.On("Attributes").Return(&mockAttributesStore)
 
 	mockReadReceiptStore := &mocks.ReadReceiptStore{}
 	mockStore.On("ReadReceipt").Return(mockReadReceiptStore)

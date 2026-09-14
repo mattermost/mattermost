@@ -64,6 +64,7 @@ build-v4: node_modules playbooks
 	@cat $(V4_SRC)/audit_logging.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/access_control.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/content_flagging.yaml >> $(V4_YAML)
+	@cat $(V4_SRC)/delivery_tracking.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/agents.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/scheduled_recaps.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/properties.yaml >> $(V4_YAML)

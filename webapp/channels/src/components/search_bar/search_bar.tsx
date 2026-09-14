@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React, {useEffect, useRef} from 'react';
-import type {ChangeEvent, CSSProperties, FormEvent} from 'react';
+import type {ChangeEvent, CSSProperties, FormEvent, JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import type Provider from 'components/suggestion/provider';

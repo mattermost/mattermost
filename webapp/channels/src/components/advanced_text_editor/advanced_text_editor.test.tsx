@@ -15,7 +15,7 @@ import type {FileUpload} from 'components/file_upload/file_upload';
 import type Textbox from 'components/textbox/textbox';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {renderWithContext, userEvent, screen, act, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent, screen, act, createEvent, fireEvent} from 'tests/react_testing_utils';
 import Constants, {Locations, PostTypes, StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -211,6 +211,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
     describe('keyDown behavior', () => {
         it('ESC should blur the input', async () => {
+            jest.useFakeTimers();
             renderWithContext(
                 <AdvancedTextEditor
                     {...baseProps}
@@ -227,7 +228,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             );
             const textbox = screen.getByTestId('post_textbox');
 
-            await userEvent.type(textbox, 'something{escape}');
+            await userEvent.type(textbox, 'something{escape}', {advanceTimers: jest.advanceTimersByTime});
 
             expect(textbox).not.toHaveFocus();
             expect(mockedUpdateDraft).not.toHaveBeenCalled();
@@ -299,6 +300,49 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         expect(screen.getByPlaceholderText('Write to Other Channel')).toHaveValue('a different draft');
     });
 
+    it('should mount and send when rootId is omitted, as plugins may do via window.Components', async () => {
+        // Plugins reach AdvancedTextEditor through the untyped window.Components bridge, so
+        // TypeScript cannot enforce the required rootId prop. An undefined rootId used to
+        // mismatch the draft's '' on every render pass, throwing React error #301 on mount
+        // and, once mounted, leaving the post-submit draft reset silently dropped.
+        const message = 'a message sent from a composer without a rootId';
+
+        renderWithContext(
+            <AdvancedTextEditor
+                {...baseProps}
+                rootId={undefined as unknown as string}
+            />,
+            mergeObjects(initialState, {
+                entities: {
+                    roles: {
+                        roles: {
+                            user_roles: {permissions: [Permissions.CREATE_POST]},
+                        },
+                    },
+                },
+            }),
+        );
+
+        const textbox = screen.getByTestId('post_textbox');
+
+        // SuggestionBox listens to onInput, not onChange.
+        fireEvent.input(textbox, {target: {value: message}});
+        expect(textbox).toHaveValue(message);
+
+        await act(async () => {
+            fireEvent.click(screen.getByTestId('SendMessageButton'));
+        });
+
+        expect(mockedOnSubmit).toHaveBeenCalledWith(
+            channelId,
+            '',
+            expect.objectContaining({message, channelId, rootId: ''}),
+            expect.anything(),
+            undefined,
+        );
+        expect(textbox).toHaveValue('');
+    });
+
     it('should submit a destination-owned draft while the textbox still holds the previous channel value', async () => {
         const sourceDraft = 'stale draft from the source channel';
         const destinationMessage = 'new message composed for the destination channel';
@@ -325,8 +369,10 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 const textbox = screen.getByPlaceholderText('Write to Other Channel');
                 expect(textbox).toHaveValue(sourceDraft);
 
-                // SuggestionBox listens to onInput, not onChange.
-                fireEvent.input(textbox, {target: {value: destinationMessage}});
+                // SuggestionBox listens to onInput, not onChange. Dispatched directly instead of
+                // with fireEvent because fireEvent opens a nested act(...) scope, which React
+                // rejects while it's already flushing this commit.
+                textbox.dispatchEvent(createEvent.input(textbox, {target: {value: destinationMessage}}));
                 setSendDestinationMessage(true);
             }, [editorChannelId]);
 
@@ -338,7 +384,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                     return;
                 }
 
-                fireEvent.click(screen.getByTestId('SendMessageButton'));
+                screen.getByTestId('SendMessageButton').click();
             }, [sendDestinationMessage]);
 
             return (
@@ -437,7 +483,10 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
                 const textbox = screen.getByPlaceholderText('Write to Other Channel');
                 expect(textbox).toHaveValue(sourceDraft);
-                fireEvent.input(textbox, {target: {value: destinationMessage}});
+
+                // Dispatched directly instead of with fireEvent because fireEvent opens a nested
+                // act(...) scope, which React rejects while it's already flushing this commit.
+                textbox.dispatchEvent(createEvent.input(textbox, {target: {value: destinationMessage}}));
             }, [editorChannelId]);
 
             return (

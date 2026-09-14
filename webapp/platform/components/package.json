@@ -1,6 +1,6 @@
 {
   "name": "@mattermost/components",
-  "version": "11.11.0",
+  "version": "12.0.0",
   "private": true,
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
@@ -42,7 +42,7 @@
   "peerDependencies": {
     "@babel/runtime-corejs3": "^7.17.8",
     "@mattermost/compass-icons": "0.1.61",
-    "@mattermost/shared": "11.11.0",
+    "@mattermost/shared": "12.0.0",
     "classnames": "^2.3.1",
     "lodash": "^4.17.21",
     "react-intl": "*",
@@ -51,7 +51,7 @@
   },
   "dependencies": {
     "@tippyjs/react": "4.2.6",
-    "react-bootstrap": "github:mattermost/react-bootstrap#c17701564a6f240a14419d94369936c380f917e5",
+    "react-bootstrap": "github:mattermost/react-bootstrap#d693ec8082954f0e6d3e826ca6161979b29001cd",
     "styled-components": "5.3.7"
   }
 }

@@ -106,6 +106,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	systemStore.On("GetByName", model.MigrationKeyAddEditFileAttachmentPermission).Return(&model.System{Name: model.MigrationKeyAddEditFileAttachmentPermission, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyAddDiscoverableChannelPermissions).Return(&model.System{Name: model.MigrationKeyAddDiscoverableChannelPermissions, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationRemoveImportTeamPermission).Return(&model.System{Name: model.MigrationRemoveImportTeamPermission, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MigrationKeyAddAIRecapsPermissions).Return(&model.System{Name: model.MigrationKeyAddAIRecapsPermissions, Value: "true"}, nil)
 
 	systemStore.On("InsertIfExists", mock.AnythingOfType("*model.System")).Return(&model.System{}, nil).Once()
 	systemStore.On("Save", mock.AnythingOfType("*model.System")).Return(nil)

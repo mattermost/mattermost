@@ -7,6 +7,8 @@ import (
 	"runtime"
 	"time"
 
+	lru "github.com/hashicorp/golang-lru/v2"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -81,6 +83,10 @@ const (
 
 	ContentFlaggingCacheSize = 100
 
+	DeliveryTrackingCacheSize = 100
+
+	DeliveryTrackingChannelCacheSize = 20000
+
 	ReadReceiptCacheSize = 50000
 
 	TemporaryPostCacheSize    = 10000
@@ -90,6 +96,12 @@ const (
 
 	PropertyFieldCacheSize = 100
 	PropertyFieldCacheSec  = 30 * 60
+
+	AccessControlPolicyEtagCacheSize = 25000 // Per-channel render-ETag epochs
+	AccessControlPolicyEtagCacheSec  = 15 * 60
+
+	UserPropertyValuesEpochCacheSize = 25000 // Per-user CPA epochs
+	UserPropertyValuesEpochCacheSec  = 15 * 60
 )
 
 var clearCacheMessageData = []byte("")
@@ -153,6 +165,9 @@ type LocalCacheStore struct {
 	contentFlagging      LocalCacheContentFlaggingStore
 	contentFlaggingCache cache.Cache
 
+	deliveryTracking      *LocalCacheDeliveryTrackingStore
+	deliveryTrackingCache cache.Cache
+
 	readReceipt                     LocalCacheReadReceiptStore
 	readReceiptCache                cache.Cache
 	readReceiptPostReadersCache     cache.Cache
@@ -166,6 +181,12 @@ type LocalCacheStore struct {
 
 	propertyField      LocalCachePropertyFieldStore
 	propertyFieldCache cache.Cache
+
+	accessControlPolicy          LocalCacheAccessControlPolicyStore
+	accessControlPolicyEtagCache cache.Cache
+
+	attributes                   LocalCacheAttributesStore
+	userPropertyValuesEpochCache cache.Cache
 }
 
 func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface, cacheProvider cache.Provider, logger mlog.LoggerIFace) (localCacheStore LocalCacheStore, err error) {
@@ -435,6 +456,27 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	}
 	localCacheStore.contentFlagging = LocalCacheContentFlaggingStore{ContentFlaggingStore: baseStore.ContentFlagging(), rootStore: &localCacheStore}
 
+	if localCacheStore.deliveryTrackingCache, err = cacheProvider.NewCache(&cache.CacheOptions{
+		Size:                   DeliveryTrackingCacheSize,
+		Name:                   "DeliveryTracking",
+		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForDeliveryTracking,
+	}); err != nil {
+		return
+	}
+	var trackedChannels, trackableChannels *lru.Cache[string, bool]
+	if trackedChannels, err = lru.New[string, bool](DeliveryTrackingChannelCacheSize); err != nil {
+		return
+	}
+	if trackableChannels, err = lru.New[string, bool](DeliveryTrackingChannelCacheSize); err != nil {
+		return
+	}
+	localCacheStore.deliveryTracking = &LocalCacheDeliveryTrackingStore{
+		DeliveryTrackingStore: baseStore.DeliveryTracking(),
+		rootStore:             &localCacheStore,
+		trackedChannels:       trackedChannels,
+		trackableChannels:     trackableChannels,
+	}
+
 	// Read Receipts
 	if localCacheStore.readReceiptCache, err = cacheProvider.NewCache(&cache.CacheOptions{
 		Size:                   ReadReceiptCacheSize,
@@ -491,6 +533,28 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	}
 	localCacheStore.propertyField = LocalCachePropertyFieldStore{PropertyFieldStore: baseStore.PropertyField(), rootStore: &localCacheStore}
 
+	// Access Control Policy render-ETag epochs
+	if localCacheStore.accessControlPolicyEtagCache, err = cacheProvider.NewCache(&cache.CacheOptions{
+		Size:                   AccessControlPolicyEtagCacheSize,
+		Name:                   "AccessControlPolicyEtag",
+		DefaultExpiry:          AccessControlPolicyEtagCacheSec * time.Second,
+		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForAccessControlPolicyEtag,
+	}); err != nil {
+		return
+	}
+	localCacheStore.accessControlPolicy = LocalCacheAccessControlPolicyStore{AccessControlPolicyStore: baseStore.AccessControlPolicy(), rootStore: &localCacheStore}
+
+	// User property-values (CPA) epochs
+	if localCacheStore.userPropertyValuesEpochCache, err = cacheProvider.NewCache(&cache.CacheOptions{
+		Size:                   UserPropertyValuesEpochCacheSize,
+		Name:                   "UserPropertyValuesEpoch",
+		DefaultExpiry:          UserPropertyValuesEpochCacheSec * time.Second,
+		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForUserPropertyValuesEpoch,
+	}); err != nil {
+		return
+	}
+	localCacheStore.attributes = LocalCacheAttributesStore{AttributesStore: baseStore.Attributes(), rootStore: &localCacheStore}
+
 	if cluster != nil {
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForReactions, localCacheStore.reaction.handleClusterInvalidateReaction)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForRoles, localCacheStore.role.handleClusterInvalidateRole)
@@ -518,10 +582,13 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForUserAutoTranslation, localCacheStore.autotranslation.handleClusterInvalidateUserAutoTranslation)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForPostTranslationEtag, localCacheStore.autotranslation.handleClusterInvalidatePostTranslationEtag)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForContentFlagging, localCacheStore.contentFlagging.handleClusterInvalidateContentFlagging)
+		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForDeliveryTracking, localCacheStore.deliveryTracking.handleClusterInvalidateDeliveryTracking)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForReadReceipts, localCacheStore.readReceipt.handleClusterInvalidateReadReceipts)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForTemporaryPosts, localCacheStore.temporaryPost.handleClusterInvalidateTemporaryPosts)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForSessionAttributes, localCacheStore.sessionAttribute.handleClusterInvalidateSessionAttributes)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForPropertyFields, localCacheStore.propertyField.handleClusterInvalidatePropertyField)
+		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForAccessControlPolicyEtag, localCacheStore.accessControlPolicy.handleClusterInvalidateAccessControlPolicyEtag)
+		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForUserPropertyValuesEpoch, localCacheStore.attributes.handleClusterInvalidateUserPropertyValuesEpoch)
 	}
 	return
 }
@@ -578,6 +645,10 @@ func (s LocalCacheStore) ContentFlagging() store.ContentFlaggingStore {
 	return s.contentFlagging
 }
 
+func (s LocalCacheStore) DeliveryTracking() store.DeliveryTrackingStore {
+	return s.deliveryTracking
+}
+
 func (s LocalCacheStore) ReadReceipt() store.ReadReceiptStore {
 	return s.readReceipt
 }
@@ -592,6 +663,14 @@ func (s LocalCacheStore) SessionAttribute() store.SessionAttributeStore {
 
 func (s LocalCacheStore) PropertyField() store.PropertyFieldStore {
 	return s.propertyField
+}
+
+func (s LocalCacheStore) AccessControlPolicy() store.AccessControlPolicyStore {
+	return s.accessControlPolicy
+}
+
+func (s LocalCacheStore) Attributes() store.AttributesStore {
+	return s.attributes
 }
 
 func (s LocalCacheStore) DropAllTables() {
@@ -736,11 +815,14 @@ func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.rolePermissionsCache)
 	s.doClearCacheCluster(s.userAutoTranslationCache)
 	s.doClearCacheCluster(s.postTranslationEtagCache)
+	s.doClearCacheCluster(s.deliveryTrackingCache)
 	s.doClearCacheCluster(s.readReceiptCache)
 	s.doClearCacheCluster(s.readReceiptPostReadersCache)
 	s.doClearCacheCluster(s.temporaryPostCache)
 	s.doClearCacheCluster(s.sessionAttributeCache)
 	s.doClearCacheCluster(s.propertyFieldCache)
+	s.doClearCacheCluster(s.accessControlPolicyEtagCache)
+	s.doClearCacheCluster(s.userPropertyValuesEpochCache)
 }
 
 // allocateCacheTargets is used to fill target value types

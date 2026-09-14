@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 // Shared / Global Components
+import AboutBuildModal from './about_build_modal';
 import Footer from './footer';
 import GlobalHeader from './global_header';
 import MainHeader from './main_header';
@@ -39,6 +40,8 @@ import NewChannelModal from './channels/new_channel_modal';
 import FlagPostConfirmationDialog from './channels/flag_post_confirmation_dialog';
 import GenericConfirmModal from './channels/generic_confirm_modal';
 import InvitePeopleModal from './channels/invite_people_modal';
+import ImagePreviewModal from './channels/image_preview_modal';
+import LinkPreview from './channels/link_preview';
 import MembersInvitedModal from './channels/members_invited_modal';
 import MessagePriority from './channels/message_priority';
 import ChannelsMobileNavbar from './channels/mobile_navbar';
@@ -90,6 +93,7 @@ import Users from './system_console/sections/user_management/users';
 
 const components = {
     // Shared / Global
+    AboutBuildModal,
     Footer,
     GlobalHeader,
     MainHeader,
@@ -128,6 +132,8 @@ const components = {
     BrowseChannelsModal,
     GenericConfirmModal,
     InvitePeopleModal,
+    ImagePreviewModal,
+    LinkPreview,
     MembersInvitedModal,
     MessagePriority,
     ChannelsMobileNavbar,
@@ -182,6 +188,7 @@ export {
     components,
 
     // Shared / Global
+    AboutBuildModal,
     Footer,
     GlobalHeader,
     MainHeader,
@@ -220,6 +227,8 @@ export {
     DirectChannelsModal,
     GenericConfirmModal,
     InvitePeopleModal,
+    ImagePreviewModal,
+    LinkPreview,
     MembersInvitedModal,
     MessagePriority,
     ChannelsMobileNavbar,

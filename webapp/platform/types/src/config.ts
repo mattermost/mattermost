@@ -60,7 +60,6 @@ export type ClientConfig = {
     EnableCustomEmoji: string;
     EnableCustomGroups: string;
     EnableCustomUserStatuses: string;
-    EnableExperimentalLocales: string;
     EnableUserStatuses: string;
     EnableLastActiveTime: string;
     EnableChannelCategorySorting: string;
@@ -131,7 +130,9 @@ export type ClientConfig = {
     FeatureFlagChannelPermissionPolicies: string;
     FeatureFlagPolicySimulation: string;
     FeatureFlagContentFlagging: string;
+    FeatureFlagPostDeliveryTracking: string;
     FeatureFlagClassificationMarkings: string;
+    FeatureFlagChannelAttributes: string;
     FeatureFlagPropertyFieldRank: string;
     FeatureFlagManagedChannelCategories: string;
     FeatureFlagSessionAttributes: string;
@@ -778,7 +779,6 @@ export type LocalizationSettings = {
     DefaultServerLocale: string;
     DefaultClientLocale: string;
     AvailableLocales: string;
-    EnableExperimentalLocales: boolean;
 };
 
 export type AutoTranslationSettings = {

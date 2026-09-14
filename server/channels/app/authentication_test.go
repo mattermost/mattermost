@@ -82,7 +82,7 @@ func TestCheckPasswordAndAllCriteria(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// setup MFA
-	secret, appErr := th.App.GenerateMfaSecret(th.BasicUser.Id)
+	secret, appErr := th.App.GenerateMfaSecret(th.Context, th.BasicUser.Id)
 	require.Nil(t, appErr)
 	err := th.Server.Store().User().UpdateMfaActive(th.BasicUser.Id, true)
 	require.NoError(t, err)
@@ -98,7 +98,7 @@ func TestCheckPasswordAndAllCriteria(t *testing.T) {
 		appErr = th.App.CheckPasswordAndAllCriteria(th.Context, th.BasicUser.Id, password, token)
 		require.Nil(t, appErr)
 
-		updatedUser, appErr := th.App.GetUser(th.BasicUser.Id)
+		updatedUser, appErr := th.App.GetUser(th.Context, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, 0, updatedUser.FailedAttempts, "successful login must reset FailedAttempts")
 	})
@@ -114,7 +114,7 @@ func TestCheckPasswordAndAllCriteria(t *testing.T) {
 		require.NotNil(t, appErr)
 		require.Equal(t, "mfa.validate_token.authenticate.app_error", appErr.Id)
 
-		updatedUser, appErr := th.App.GetUser(th.BasicUser.Id)
+		updatedUser, appErr := th.App.GetUser(th.Context, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, 0, updatedUser.FailedAttempts, "MFA probe must not consume a slot")
 	})
@@ -129,7 +129,7 @@ func TestCheckPasswordAndAllCriteria(t *testing.T) {
 		require.NotNil(t, appErr)
 		require.Equal(t, "api.user.check_user_mfa.bad_code.app_error", appErr.Id)
 
-		updatedUser, appErr := th.App.GetUser(th.BasicUser.Id)
+		updatedUser, appErr := th.App.GetUser(th.Context, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, 1, updatedUser.FailedAttempts, "real MFA failure must consume a slot")
 	})
@@ -151,7 +151,7 @@ func TestCheckPasswordAndAllCriteria(t *testing.T) {
 		require.NotNil(t, appErr)
 		require.Equal(t, "api.user.check_user_password.invalid_hash.app_error", appErr.Id)
 
-		updatedUser, appErr := th.App.GetUser(badHashUser.Id)
+		updatedUser, appErr := th.App.GetUser(th.Context, badHashUser.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, 0, updatedUser.FailedAttempts, "backend error must not consume a slot")
 	})
@@ -232,7 +232,7 @@ func TestDoubleCheckPassword(t *testing.T) {
 
 	// DoubleCheckPassword does not re-fetch the user; it inspects user.Password
 	// directly. Pull a fresh struct that reflects the hash we just wrote.
-	user, appErr := th.App.GetUser(th.BasicUser.Id)
+	user, appErr := th.App.GetUser(th.Context, th.BasicUser.Id)
 	require.Nil(t, appErr)
 
 	t.Run("correct password succeeds and resets the counter", func(t *testing.T) {
@@ -242,7 +242,7 @@ func TestDoubleCheckPassword(t *testing.T) {
 		appErr := th.App.DoubleCheckPassword(th.Context, user, password)
 		require.Nil(t, appErr)
 
-		updatedUser, appErr := th.App.GetUser(user.Id)
+		updatedUser, appErr := th.App.GetUser(th.Context, user.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, 0, updatedUser.FailedAttempts)
 	})
@@ -264,14 +264,14 @@ func TestDoubleCheckPassword(t *testing.T) {
 		err = th.App.Srv().Store().User().UpdateFailedPasswordAttempts(badHashUser.Id, 0)
 		require.NoError(t, err)
 
-		user, appErr := th.App.GetUser(badHashUser.Id)
+		user, appErr := th.App.GetUser(th.Context, badHashUser.Id)
 		require.Nil(t, appErr)
 
 		appErr = th.App.DoubleCheckPassword(th.Context, user, "any-password")
 		require.NotNil(t, appErr)
 		require.Equal(t, "api.user.check_user_password.invalid_hash.app_error", appErr.Id)
 
-		updatedUser, appErr := th.App.GetUser(badHashUser.Id)
+		updatedUser, appErr := th.App.GetUser(th.Context, badHashUser.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, 0, updatedUser.FailedAttempts, "backend error must not consume a slot")
 	})
@@ -368,7 +368,7 @@ func TestCheckLdapUserPasswordAndAllCriteria(t *testing.T) {
 			}
 
 			if tc.expectedErrID == "api.user.check_user_login_attempts.too_many_ldap.app_error" {
-				updatedUser, err := th.App.GetUser(ldapUser.Id)
+				updatedUser, err := th.App.GetUser(th.Context, ldapUser.Id)
 				require.Nil(t, err)
 				require.Equal(t, maxFailedLoginAttempts, updatedUser.FailedAttempts)
 			}
@@ -392,12 +392,12 @@ func TestCheckLdapUserPasswordAndAllCriteria(t *testing.T) {
 			EmailVerified: true,
 		})
 		require.Nil(t, appErr)
-		secret, appErr := th.App.GenerateMfaSecret(created.Id)
+		secret, appErr := th.App.GenerateMfaSecret(th.Context, created.Id)
 		require.Nil(t, appErr)
 		require.NoError(t, th.Server.Store().User().UpdateMfaActive(created.Id, true))
 		require.NoError(t, th.Server.Store().User().UpdateMfaSecret(created.Id, secret.Secret))
 		require.NoError(t, th.App.Srv().Store().User().UpdateFailedPasswordAttempts(created.Id, 0))
-		created, appErr = th.App.GetUser(created.Id)
+		created, appErr = th.App.GetUser(th.Context, created.Id)
 		require.Nil(t, appErr)
 		created.AuthData = &userAuthData
 		return created, &userAuthData
@@ -429,7 +429,7 @@ func TestCheckLdapUserPasswordAndAllCriteria(t *testing.T) {
 		require.NotNil(t, appErr)
 		require.Equal(t, "ent.ldap.do_login.invalid_password.app_error", appErr.Id)
 
-		updatedUser, appErr := th.App.GetUser(preCreated.Id)
+		updatedUser, appErr := th.App.GetUser(th.Context, preCreated.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, 1, updatedUser.FailedAttempts, "first-time LDAP wrong password must be counted")
 	})
@@ -451,7 +451,7 @@ func TestCheckLdapUserPasswordAndAllCriteria(t *testing.T) {
 		require.NotNil(t, appErr)
 		require.Equal(t, "api.user.check_user_mfa.bad_code.app_error", appErr.Id)
 
-		updatedUser, appErr := th.App.GetUser(preCreated.Id)
+		updatedUser, appErr := th.App.GetUser(th.Context, preCreated.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, 1, updatedUser.FailedAttempts, "first-time LDAP wrong MFA must be counted")
 	})
@@ -471,7 +471,7 @@ func TestCheckLdapUserPasswordAndAllCriteria(t *testing.T) {
 		require.NotNil(t, appErr)
 		require.Equal(t, "ent.ldap.do_login.unable_to_connect.app_error", appErr.Id)
 
-		updatedUser, appErr := th.App.GetUser(user.Id)
+		updatedUser, appErr := th.App.GetUser(th.Context, user.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, 0, updatedUser.FailedAttempts, "LDAP backend error must refund the slot")
 	})
@@ -490,7 +490,7 @@ func TestCheckLdapUserPasswordAndAllCriteria(t *testing.T) {
 		require.NotNil(t, appErr)
 		require.Equal(t, "mfa.validate_token.authenticate.app_error", appErr.Id)
 
-		updatedUser, appErr := th.App.GetUser(preCreated.Id)
+		updatedUser, appErr := th.App.GetUser(th.Context, preCreated.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, 0, updatedUser.FailedAttempts, "MFA probe on existing LDAP user must not consume a slot")
 	})
@@ -536,7 +536,7 @@ func TestCheckLdapUserPasswordAndAllCriteria(t *testing.T) {
 		close(start)
 		require.NoError(t, g.Wait())
 
-		updatedUser, appErr := th.App.GetUser(preCreated.Id)
+		updatedUser, appErr := th.App.GetUser(th.Context, preCreated.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, maxFailedLoginAttempts, updatedUser.FailedAttempts, "concurrent first-time attempts must not lose increments and must cap at maxAttempts")
 	})
@@ -567,14 +567,14 @@ func TestCheckLdapUserPasswordConcurrency(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// setup MFA
-	secret, appErr := th.App.GenerateMfaSecret(user.Id)
+	secret, appErr := th.App.GenerateMfaSecret(th.Context, user.Id)
 	require.Nil(t, appErr)
 	err := th.Server.Store().User().UpdateMfaActive(user.Id, true)
 	require.NoError(t, err)
 	err = th.Server.Store().User().UpdateMfaSecret(user.Id, secret.Secret)
 	require.NoError(t, err)
 
-	user, appErr = th.App.GetUser(user.Id)
+	user, appErr = th.App.GetUser(th.Context, user.Id)
 	require.Nil(t, appErr)
 	user.AuthData = &authData
 
@@ -675,7 +675,7 @@ func TestCheckUserPassword(t *testing.T) {
 		require.NoError(t, err)
 		th.App.InvalidateCacheForUser(user.Id)
 
-		updatedUser, appErr := th.App.GetUser(user.Id)
+		updatedUser, appErr := th.App.GetUser(th.Context, user.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, hash, updatedUser.Password)
 
@@ -706,7 +706,7 @@ func TestCheckUserPassword(t *testing.T) {
 		err := th.App.checkUserPassword(user, pwd)
 		require.Nil(t, err)
 
-		updatedUser, err := th.App.GetUser(user.Id)
+		updatedUser, err := th.App.GetUser(th.Context, user.Id)
 		require.Nil(t, err)
 		require.NotEqual(t, pwdBcrypt, updatedUser.Password)
 		require.Contains(t, updatedUser.Password, "$pbkdf2")
@@ -727,7 +727,7 @@ func TestCheckUserPassword(t *testing.T) {
 	t.Run("empty password", func(t *testing.T) {
 		user := createUserWithHash(pwdPBKDF2)
 
-		user, err := th.App.GetUser(user.Id)
+		user, err := th.App.GetUser(th.Context, user.Id)
 		require.Nil(t, err)
 
 		err = th.App.checkUserPassword(user, "")
@@ -738,7 +738,7 @@ func TestCheckUserPassword(t *testing.T) {
 	t.Run("user with empty password hash", func(t *testing.T) {
 		user := createUserWithHash("")
 
-		user, err := th.App.GetUser(user.Id)
+		user, err := th.App.GetUser(th.Context, user.Id)
 		require.Nil(t, err)
 
 		err = th.App.checkUserPassword(user, pwd)
@@ -762,7 +762,7 @@ func TestCheckUserPassword(t *testing.T) {
 		appErr := th.App.checkUserPassword(user, pwd)
 		require.Nil(t, appErr)
 
-		updatedUser, appErr := th.App.GetUser(user.Id)
+		updatedUser, appErr := th.App.GetUser(th.Context, user.Id)
 		require.Nil(t, appErr)
 		require.NotEqual(t, pwdBcrypt, updatedUser.Password)
 		require.Contains(t, updatedUser.Password, "$pbkdf2")
@@ -793,7 +793,7 @@ func TestMigratePassword(t *testing.T) {
 		require.NoError(t, err)
 		th.App.InvalidateCacheForUser(user.Id)
 
-		updatedUser, appErr := th.App.GetUser(user.Id)
+		updatedUser, appErr := th.App.GetUser(th.Context, user.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, hash, updatedUser.Password)
 
@@ -806,7 +806,7 @@ func TestMigratePassword(t *testing.T) {
 		err := th.App.migratePassword(user, pwd)
 		require.Nil(t, err)
 
-		updatedUser, err := th.App.GetUser(user.Id)
+		updatedUser, err := th.App.GetUser(th.Context, user.Id)
 		require.Nil(t, err)
 		require.NotEqual(t, pwdBcrypt, updatedUser.Password)
 		require.Contains(t, updatedUser.Password, "$pbkdf2")

@@ -12,7 +12,7 @@ Install Mattermost Server on Red Hat Enterprise Linux (RHEL), Rocky Linux, AlmaL
 
 - **Operating system**: RHEL 7+, Rocky / Alma 8+, Oracle Linux 7+, CentOS Stream 8+.
 - **Hardware**: 1 vCPU and 2 GB RAM (supports up to ~1,000 users).
-- **Database**: [PostgreSQL 14+](/deployment-guide/postgres-migration).
+- **Database**: [PostgreSQL 14+](/administration-guide/manage/admin/postgres-migration).
 - **Network**: TCP 80/443 inbound (TLS), 8065 inbound (System Console), 10025 outbound (SMTP relay if used).
 
 </Note>
@@ -27,7 +27,7 @@ Choose one of:
 
 ## Step 2: Prepare the database
 
-Follow the [database preparation](/deployment-guide/server/preparations#database-preparation) instructions to create the Mattermost database, user, and grants.
+Follow the [database preparation](/deployment-guide/server/prepare-database) instructions to create the Mattermost database, user, and grants.
 
 ## Step 3: Download the Mattermost Server tarball
 
@@ -37,14 +37,14 @@ SSH onto the target host and download the release. Replace `amd64` with `arm64` 
 <TabItem value="latest" label="Latest release" default>
 
 ```sh
-wget https://releases.mattermost.com/11.10.0/mattermost-11.10.0-linux-amd64.tar.gz
+wget https://releases.mattermost.com/11.10.1/mattermost-11.10.1-linux-amd64.tar.gz
 ```
 
 </TabItem>
 <TabItem value="esr" label="Current ESR">
 
 ```sh
-wget https://releases.mattermost.com/11.7.9/mattermost-11.7.9-linux-amd64.tar.gz
+wget https://releases.mattermost.com/11.7.10/mattermost-11.7.10-linux-amd64.tar.gz
 ```
 
 </TabItem>
@@ -320,7 +320,7 @@ allow perm=execute exe=/opt/rtcd/bin/rtcd : dir=/opt/rtcd all trust=0
 allow perm=execute exe=/usr/lib/systemd/systemd trust=1 : dir=/opt/rtcd/ all trust=0
 ```
 
-Then reload fapolicyd as above. See [RTCD setup and configuration](/deployment-guide/calls/calls-rtcd-setup) for the full rtcd install path.
+Then reload fapolicyd as above. See [RTCD Setup and Configuration](/deployment-guide/calls/calls-rtcd-setup) for the full rtcd install path.
 
 <Note title="Rule numbering">
 
@@ -354,4 +354,3 @@ sudo userdel mattermost
 
 - [Set up an NGINX reverse proxy](/deployment-guide/server/setup-nginx-proxy)
 - [Set up TLS](/deployment-guide/server/setup-tls)
-- [DISA STIG mapping](/security-guide/compliance-frameworks/disa-stig) if this deployment is bound for a regulated environment

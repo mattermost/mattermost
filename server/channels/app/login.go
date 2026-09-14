@@ -101,7 +101,7 @@ func (a *App) GetUserForLogin(rctx request.CTX, id, loginId string) (*model.User
 	if enableEmail || enableUsername {
 		// If we are given a userID then fail if we can't find a user with that ID
 		if id != "" {
-			user, err := a.GetUser(id)
+			user, err := a.GetUser(rctx, id)
 			if err != nil {
 				if err.Id != MissingAccountError {
 					err.StatusCode = http.StatusInternalServerError

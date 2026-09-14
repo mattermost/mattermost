@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import type {ReactNode} from 'react';
+import type {ReactNode, JSX} from 'react';
 import React from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -61,8 +61,6 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
     const pluginMenuItems = useSelector(getChannelHeaderMenuPluginComponents);
     const isChannelBookmarksEnabled = useSelector(getIsChannelBookmarksEnabled);
     const isChannelAutotranslated = useSelector((state: GlobalState) => (channel?.id ? isChannelAutotranslatedSelector(state, channel.id) : false));
-
-    const isReadonly = false;
 
     if (!channel) {
         return null;
@@ -181,7 +179,6 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
                     isFavorite={isFavorite}
                     isMobile={isMobile || false}
                     isDefault={isDefault}
-                    isReadonly={isReadonly}
                     isLicensedForLDAPGroups={isLicensedForLDAPGroups}
                     isChannelBookmarksEnabled={isChannelBookmarksEnabled}
                     isChannelAutotranslated={isChannelAutotranslated}

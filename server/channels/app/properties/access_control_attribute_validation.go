@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"net/http"
 	"slices"
 	"sort"
 	"strings"
@@ -25,7 +26,7 @@ var (
 
 // PermissionChecker checks whether a user has a specific permission.
 // This avoids a circular dependency between the properties and app packages.
-type PermissionChecker func(userID string, permission *model.Permission) bool
+type PermissionChecker func(rctx request.CTX, userID string, permission *model.Permission) bool
 
 // AccessControlAttributeValidationHook validates and sanitizes property field attributes
 // and values for managed property groups. It owns the full attr pipeline
@@ -41,6 +42,12 @@ type PermissionChecker func(userID string, permission *model.Permission) bool
 //     ldap/saml on non-text fields)
 //   - auto-assigns IDs to options that lack one and validates option shape
 //   - validates visibility, value_type, managed, display_name, and sort_order
+//   - validates required and editable, removing either when explicitly unset
+//   - validates and canonicalizes actions, the render-placement allow-list
+//     shared by the classification banner and channel labels; on update this
+//     fires only when actions actually change, so a field carrying a value
+//     that is no longer valid stays editable on all other attrs (lenient
+//     grandfather, as for Name)
 //   - validates property values for text fields against value_type
 //     constraints (email, url, phone)
 //   - enforces that managed="admin" can only be set by callers with
@@ -80,8 +87,9 @@ func (h *AccessControlAttributeValidationHook) isGroupManaged(groupID string) bo
 // default, clears attrs that don't apply to the field type, validates each
 // attr, and auto-IDs+validates options for select-shaped fields. Mutates
 // field.Attrs in place. prevType is the field's type before this operation.
-// prevType is empty on creation of a new field.
-func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(field *model.PropertyField, prevType model.PropertyFieldType) error {
+// prevType is empty on creation of a new field. prevActions is the field's
+// attrs["actions"] before this operation, nil on creation.
+func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(field *model.PropertyField, prevType model.PropertyFieldType, prevActions any) error {
 	if field.Attrs == nil {
 		field.Attrs = model.StringInterface{}
 	}
@@ -136,7 +144,54 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 	if err := model.ValidatePropertyFieldSortOrder(field); err != nil {
 		return fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
 	}
+	for _, key := range boolFieldAttrKeys {
+		if err := model.SanitizeAndValidatePropertyFieldBoolAttr(field, key); err != nil {
+			return fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
+		}
+	}
+	if err := model.SanitizeAndValidatePropertyFieldChangePolicy(field); err != nil {
+		return fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
+	}
+	// Lenient grandfather, same rationale as Name: a PATCH merges attrs, so a
+	// field carrying an actions value that predates (or has since fallen out of)
+	// the allow-list would otherwise be unpatchable on every other attr, with
+	// delete/recreate the only way out. Only a caller actually changing actions
+	// gets the strict check; an untouched value rides along as-is.
+	if err := model.SanitizeAndValidatePropertyFieldActions(field); err != nil {
+		if !sameFieldActions(field.Attrs[model.PropertyFieldAttrActions], prevActions) {
+			return fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
+		}
+	}
 	return nil
+}
+
+// sameFieldActions reports whether two raw attrs["actions"] values carry the
+// same list. Anything that isn't a list of strings compares unequal, so a
+// caller sending a malformed value is still rejected rather than grandfathered.
+func sameFieldActions(a, b any) bool {
+	as, aOK := fieldActionsAsStrings(a)
+	bs, bOK := fieldActionsAsStrings(b)
+	return aOK && bOK && slices.Equal(as, bs)
+}
+
+func fieldActionsAsStrings(raw any) ([]string, bool) {
+	switch v := raw.(type) {
+	case nil:
+		return nil, true
+	case []string:
+		return v, true
+	case []any:
+		out := make([]string, 0, len(v))
+		for _, elem := range v {
+			s, ok := elem.(string)
+			if !ok {
+				return nil, false
+			}
+			out = append(out, s)
+		}
+		return out, true
+	}
+	return nil, false
 }
 
 // trimmedFieldAttrKeys lists the string-valued attrs the hook trims on the
@@ -149,6 +204,14 @@ var trimmedFieldAttrKeys = []string{
 	model.PropertyFieldAttrLDAP,
 	model.PropertyFieldAttrSAML,
 	model.PropertyFieldAttrDisplayName,
+}
+
+// boolFieldAttrKeys lists the boolean-valued attrs the hook validates. No
+// object_type branch: scoping comes from the field's ObjectType, as for every
+// other key.
+var boolFieldAttrKeys = []string{
+	model.PropertyFieldAttrRequired,
+	model.PropertyFieldAttrEditable,
 }
 
 // sanitizeAndValidateOptions auto-assigns IDs to options without one,
@@ -413,7 +476,7 @@ func (h *AccessControlAttributeValidationHook) enforceGroupPermissions(rctx requ
 			return nil, fmt.Errorf("missing permission to set managed=admin: no permission checker configured: %w", ErrAdminRequired)
 		}
 		callerID := h.propertyService.extractCallerID(rctx)
-		if callerID == "" || !h.permissionChecker(callerID, model.PermissionManageSystem) {
+		if callerID == "" || !h.permissionChecker(rctx, callerID, model.PermissionManageSystem) {
 			return nil, fmt.Errorf("missing permission to set managed=admin: only system admins can set managed=admin: %w", ErrAdminRequired)
 		}
 		field.PermissionValues = &sysadmin
@@ -434,11 +497,17 @@ func (h *AccessControlAttributeValidationHook) enforceGroupPermissions(rctx requ
 // defaultPermissionValuesForObjectType returns the PermissionValues level a
 // field should default to when the caller doesn't pin one. User fields are
 // member-writable so users can set their own values; system and template
-// fields attach to admin-owned scopes and require sysadmin.
+// fields attach to admin-owned scopes and require sysadmin. Channel fields
+// default to admin: unlike a user field, a channel attribute is shared state
+// that any member reading the channel would otherwise be able to overwrite,
+// and these values are expected to feed access-control policy decisions, so
+// the safer default is channel-admin (or sysadmin) rather than membership.
 func defaultPermissionValuesForObjectType(objectType string) model.PermissionLevel {
 	switch objectType {
 	case model.PropertyFieldObjectTypeSystem, model.PropertyFieldObjectTypeTemplate:
 		return model.PermissionLevelSysadmin
+	case model.PropertyFieldObjectTypeChannel:
+		return model.PermissionLevelAdmin
 	default:
 		return model.PermissionLevelMember
 	}
@@ -458,9 +527,10 @@ func (h *AccessControlAttributeValidationHook) PreCreatePropertyField(rctx reque
 		return nil, appErr
 	}
 
-	// Create: no prior type, so a rank field here is authored directly and its
-	// ranks are validated strictly rather than repaired.
-	if err := h.sanitizeAndValidateFieldAttrs(field, ""); err != nil {
+	// Create: no prior type or actions, so a rank field here is authored directly
+	// and its ranks are validated strictly rather than repaired, and actions get
+	// the strict check with nothing to grandfather.
+	if err := h.sanitizeAndValidateFieldAttrs(field, "", nil); err != nil {
 		return nil, err
 	}
 
@@ -485,7 +555,7 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyField(rctx reque
 		}
 	}
 
-	if err := h.sanitizeAndValidateFieldAttrs(field, existing.Type); err != nil {
+	if err := h.sanitizeAndValidateFieldAttrs(field, existing.Type, existing.Attrs[model.PropertyFieldAttrActions]); err != nil {
 		return nil, err
 	}
 
@@ -524,10 +594,12 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyFields(rctx requ
 		// the not-found error later); strict rank validation is the safe
 		// default for that path.
 		var prevType model.PropertyFieldType
+		var prevActions any
 		if existing != nil {
 			prevType = existing.Type
+			prevActions = existing.Attrs[model.PropertyFieldAttrActions]
 		}
-		if err := h.sanitizeAndValidateFieldAttrs(field, prevType); err != nil {
+		if err := h.sanitizeAndValidateFieldAttrs(field, prevType, prevActions); err != nil {
 			return nil, fmt.Errorf("field %s: %w", field.ID, err)
 		}
 
@@ -692,9 +764,194 @@ func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, 
 		if err := h.validateValueAgainstField(field, value); err != nil {
 			return fmt.Errorf("field %s: %s: %w", value.FieldID, err.Error(), ErrInvalidValue)
 		}
+		if model.IsPropertyFieldRequired(field) && model.IsEmptyPropertyValue(value.Value) {
+			return newRequiredValueError(field)
+		}
+	}
+
+	return h.validateChangePolicy(groupID, values, fieldMap)
+}
+
+// validateChangePolicy enforces attrs.change_policy: a value may be set once,
+// and after that may only move in the direction its policy allows. It runs on
+// every write path into the group, so a direct API call is refused the same way
+// the UI refuses to offer the edit.
+//
+// Only channel targets are covered. The same group holds user attributes, which
+// LDAP/SAML sync rewrites on login; locking those would break the sync. Other
+// object types are a separate decision.
+//
+// This is a read-then-write with no transaction around it, so two concurrent
+// first writes can both pass. That is the window the rest of the property system
+// already lives with, and the loser overwrites a value set milliseconds earlier.
+func (h *AccessControlAttributeValidationHook) validateChangePolicy(groupID string, values []*model.PropertyValue, fieldMap map[string]*model.PropertyField) error {
+	// Grouped by target so one search covers every governed field on a channel:
+	// PropertyValueSearchOpts carries a single FieldID, so a per-field lookup
+	// would cost a round trip each. "any" is the default and the common case,
+	// so an ordinary write does no query at all.
+	governed := map[string][]*model.PropertyValue{}
+	for _, value := range values {
+		if value.TargetType != model.PropertyValueTargetTypeChannel {
+			continue
+		}
+		field, ok := fieldMap[value.FieldID]
+		if !ok || model.GetPropertyFieldChangePolicy(field) == model.PropertyFieldChangePolicyAny {
+			continue
+		}
+		governed[value.TargetID] = append(governed[value.TargetID], value)
+	}
+
+	for targetID, pending := range governed {
+		existing, err := h.getValuesForTarget(groupID, model.PropertyValueTargetTypeChannel, targetID)
+		if err != nil {
+			return err
+		}
+
+		existingByFieldID := make(map[string]*model.PropertyValue, len(existing))
+		for _, value := range existing {
+			existingByFieldID[value.FieldID] = value
+		}
+
+		for _, value := range pending {
+			old, ok := existingByFieldID[value.FieldID]
+
+			// A user-initiated clear leaves a null-valued row behind rather than
+			// deleting it, so the presence of a row is not proof of a set value.
+			if !ok || model.IsEmptyPropertyValue(old.Value) {
+				continue
+			}
+			if err := checkValueMove(fieldMap[value.FieldID], old.Value, value.Value); err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil
+}
+
+// checkValueMove decides whether a field's policy permits replacing old with
+// next. Both are known non-empty on the old side; next may be empty, which is a
+// clear.
+func checkValueMove(field *model.PropertyField, old, next json.RawMessage) error {
+	policy := model.GetPropertyFieldChangePolicy(field)
+
+	if policy == model.PropertyFieldChangePolicyNever {
+		return newChangePolicyError(field, policy)
+	}
+
+	// Clearing is the largest downgrade there is, and re-setting afterwards
+	// would launder a value straight past a directional policy.
+	if model.IsEmptyPropertyValue(next) {
+		return newChangePolicyError(field, policy)
+	}
+
+	ranks := buildOptionRankMap(field)
+	oldRank, oldOK := singleOptionRank(field.Type, old, ranks)
+	newRank, newOK := singleOptionRank(field.Type, next, ranks)
+
+	// Fail closed: an option deleted from the field leaves a comparison that
+	// cannot be made, and an unresolvable comparison on a marking must not
+	// default to permitted.
+	if !oldOK || !newOK {
+		return newChangePolicyError(field, policy)
+	}
+
+	// Higher rank is higher, matching filterSharedOnlyRankFieldOptions, which
+	// exposes every option at or below the caller's own rank.
+	switch policy {
+	case model.PropertyFieldChangePolicyRaiseOnly:
+		if newRank > oldRank {
+			return nil
+		}
+	case model.PropertyFieldChangePolicyLowerOnly:
+		if newRank < oldRank {
+			return nil
+		}
+	}
+
+	return newChangePolicyError(field, policy)
+}
+
+// singleOptionRank resolves the rank of the one option a rank value carries. A
+// rank field is select-shaped, so anything other than exactly one known option
+// is unresolvable.
+func singleOptionRank(fieldType model.PropertyFieldType, raw json.RawMessage, ranks map[string]int) (int, bool) {
+	optionIDs, err := extractOptionIDsFromValue(fieldType, raw)
+	if err != nil || len(optionIDs) != 1 {
+		return 0, false
+	}
+	for optionID := range optionIDs {
+		rank, ok := ranks[optionID]
+		return rank, ok
+	}
+	return 0, false
+}
+
+// newChangePolicyError returns the refusal for a policy. The AppError is
+// returned rather than a sentinel so its specific i18n key survives the HTTP
+// layer's mapPropertyServiceError fallback, the same way the CEL name errors do.
+//
+// Each key is written inline: i18n-extract only sees IDs passed literally to
+// NewAppError, and drops any it cannot find from en.json.
+func newChangePolicyError(field *model.PropertyField, policy string) error {
+	details := fmt.Sprintf("field %s: change policy %q does not permit this change", field.ID, policy)
+
+	switch policy {
+	case model.PropertyFieldChangePolicyRaiseOnly:
+		return model.NewAppError("UpsertPropertyValues", "app.property_value.change_policy.raise_only.app_error", nil, details, http.StatusForbidden)
+	case model.PropertyFieldChangePolicyLowerOnly:
+		return model.NewAppError("UpsertPropertyValues", "app.property_value.change_policy.lower_only.app_error", nil, details, http.StatusForbidden)
+	default:
+		return model.NewAppError("UpsertPropertyValues", "app.property_value.change_policy.never.app_error", nil, details, http.StatusForbidden)
+	}
+}
+
+// newRequiredValueError returns the refusal for writing or deleting an empty
+// value on a required field.
+func newRequiredValueError(field *model.PropertyField) error {
+	details := fmt.Sprintf("field %s: value is required", field.ID)
+	return model.NewAppError("UpsertPropertyValues", "app.property_value.required.app_error", nil, details, http.StatusBadRequest)
+}
+
+// getValuesForTarget loads every value stored against one target, paging with
+// the same bounds as the access-control lookups.
+func (h *AccessControlAttributeValidationHook) getValuesForTarget(groupID, targetType, targetID string) ([]*model.PropertyValue, error) {
+	allValues := []*model.PropertyValue{}
+	var cursor model.PropertyValueSearchCursor
+
+	for iterations := 0; ; iterations++ {
+		if iterations >= propertyAccessMaxPaginationIterations {
+			return nil, fmt.Errorf("exceeded maximum pagination iterations (%d)", propertyAccessMaxPaginationIterations)
+		}
+
+		opts := model.PropertyValueSearchOpts{
+			TargetType: targetType,
+			TargetIDs:  []string{targetID},
+			PerPage:    propertyAccessPaginationPageSize,
+		}
+		if !cursor.IsEmpty() {
+			opts.Cursor = cursor
+		}
+
+		values, err := h.propertyService.searchPropertyValues(groupID, opts)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load existing values for target %s: %w", targetID, err)
+		}
+
+		allValues = append(allValues, values...)
+
+		if len(values) < propertyAccessPaginationPageSize {
+			break
+		}
+
+		lastValue := values[len(values)-1]
+		cursor = model.PropertyValueSearchCursor{
+			PropertyValueID: lastValue.ID,
+			CreateAt:        lastValue.CreateAt,
+		}
+	}
+
+	return allValues, nil
 }
 
 func (h *AccessControlAttributeValidationHook) PreUpsertPropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
@@ -737,4 +994,90 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyValues(rctx requ
 		return nil, err
 	}
 	return values, nil
+}
+
+// PreDeletePropertyValue closes the gap a literal delete would otherwise leave in
+// change_policy: a delete is indistinguishable from a clear, which every
+// non-"any" policy already refuses on the upsert path. Without this, deleting a
+// locked value and writing a fresh one would launder it past its policy.
+func (h *AccessControlAttributeValidationHook) PreDeletePropertyValue(rctx request.CTX, groupID string, id string) error {
+	if !h.isGroupManaged(groupID) {
+		return nil
+	}
+
+	value, err := h.propertyService.getPropertyValue(groupID, id)
+	if err != nil {
+		// Nothing to enforce against a value that cannot be found; the delete
+		// itself will fail downstream with the appropriate not-found error.
+		return nil
+	}
+	return h.refuseGovernedDelete(rctx, groupID, []*model.PropertyValue{value})
+}
+
+// PreDeletePropertyValuesForTarget covers the same gap for a target-wide delete
+// (e.g. via the plugin API). Other target types are untouched -- see
+// validateChangePolicy for why enforcement is scoped to channels.
+func (h *AccessControlAttributeValidationHook) PreDeletePropertyValuesForTarget(rctx request.CTX, groupID string, targetType string, targetID string) error {
+	if targetType != model.PropertyValueTargetTypeChannel || !h.isGroupManaged(groupID) {
+		return nil
+	}
+	values, err := h.getValuesForTarget(groupID, targetType, targetID)
+	if err != nil {
+		return err
+	}
+	return h.refuseGovernedDelete(rctx, groupID, values)
+}
+
+// refuseGovernedDelete refuses to delete any set channel value that is required,
+// or governed by a non-"any" change policy.
+func (h *AccessControlAttributeValidationHook) refuseGovernedDelete(rctx request.CTX, groupID string, values []*model.PropertyValue) error {
+	if !h.isGroupManaged(groupID) {
+		return nil
+	}
+
+	setValues := make([]*model.PropertyValue, 0, len(values))
+	for _, v := range values {
+		if !model.IsEmptyPropertyValue(v.Value) {
+			setValues = append(setValues, v)
+		}
+	}
+	if len(setValues) == 0 {
+		return nil
+	}
+
+	fieldIDSet := make(map[string]struct{})
+	for _, v := range setValues {
+		fieldIDSet[v.FieldID] = struct{}{}
+	}
+	fieldIDs := make([]string, 0, len(fieldIDSet))
+	for id := range fieldIDSet {
+		fieldIDs = append(fieldIDs, id)
+	}
+
+	fields, err := h.propertyService.getPropertyFields(rctx, groupID, fieldIDs)
+	if err != nil {
+		return fmt.Errorf("failed to fetch fields for delete validation: %w", err)
+	}
+	fieldMap := make(map[string]*model.PropertyField, len(fields))
+	for _, f := range fields {
+		fieldMap[f.ID] = f
+	}
+
+	for _, v := range setValues {
+		field, ok := fieldMap[v.FieldID]
+		if !ok {
+			continue
+		}
+		// Required is enforced for every target type, matching the write path
+		// in validateValues. change_policy stays channel-only -- see
+		// validateChangePolicy for why.
+		if model.IsPropertyFieldRequired(field) {
+			return newRequiredValueError(field)
+		}
+		if v.TargetType == model.PropertyValueTargetTypeChannel && model.GetPropertyFieldChangePolicy(field) != model.PropertyFieldChangePolicyAny {
+			return newChangePolicyError(field, model.GetPropertyFieldChangePolicy(field))
+		}
+	}
+
+	return nil
 }

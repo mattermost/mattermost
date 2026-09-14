@@ -74,6 +74,7 @@ type Store struct {
 	SessionAttributeStore           mocks.SessionAttributeStore
 	AutoTranslationStore            mocks.AutoTranslationStore
 	ContentFlaggingStore            mocks.ContentFlaggingStore
+	DeliveryTrackingStore           mocks.DeliveryTrackingStore
 	RecapStore                      mocks.RecapStore
 	ScheduledRecapStore             mocks.ScheduledRecapStore
 	ReadReceiptStore                mocks.ReadReceiptStore
@@ -180,6 +181,9 @@ func (s *Store) AutoTranslation() store.AutoTranslationStore {
 func (s *Store) ContentFlagging() store.ContentFlaggingStore {
 	return &s.ContentFlaggingStore
 }
+func (s *Store) DeliveryTracking() store.DeliveryTrackingStore {
+	return &s.DeliveryTrackingStore
+}
 func (s *Store) Recap() store.RecapStore {
 	return &s.RecapStore
 }
@@ -256,6 +260,7 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.SessionAttributeStore,
 		&s.AutoTranslationStore,
 		&s.ContentFlaggingStore,
+		&s.DeliveryTrackingStore,
 		&s.RecapStore,
 		&s.ScheduledRecapStore,
 		&s.ReadReceiptStore,
