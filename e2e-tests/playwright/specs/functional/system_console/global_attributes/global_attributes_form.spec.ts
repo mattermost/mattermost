@@ -46,7 +46,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          * @objective Ensure the full create flow works end-to-end: the "New attribute" button
          * navigates to the create page, the Unique name live-updates from Display name, the
          * Edit/Done toggle round-trips correctly, and Save creates a real bare Text template
-         * that shows up back in the Manage Attributes list.
+         * that shows up back in the Attribute Management list.
          */
         test('creates a bare Text attribute via the New attribute page and shows it in the list', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
@@ -66,7 +66,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
             const expectedName = `playwright_attr_${timestamp}`;
 
             try {
-                // # Log in and open the Manage Attributes page
+                // # Log in and open the Attribute Management page
                 const {systemConsolePage} = await pw.testBrowser.login(adminUser);
                 await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
 
@@ -90,7 +90,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 // # Save
                 await systemConsolePage.page.getByTestId('saveSetting').click();
 
-                // * Redirected back to the Manage Attributes list
+                // * Redirected back to the Attribute Management list
                 await expect(systemConsolePage.page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
 
                 // * The new attribute renders with the expected Display name, Type, and Source
@@ -115,7 +115,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         }) => {
             const {adminUser} = await requireGlobalAttributesEnabled(pw);
 
-            // # Log in and open the Manage Attributes page
+            // # Log in and open the Attribute Management page
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
 
@@ -507,7 +507,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
 
         /**
          * @objective Ensure a Text attribute can be linked to AD/LDAP via the external source
-         * picker end-to-end, and that the Manage Attributes list picks up the new attrs.ldap
+         * picker end-to-end, and that the Attribute Management list picks up the new attrs.ldap
          * value with no further changes needed on that page.
          */
         test('creates a Text attribute linked to AD/LDAP via the external source picker', async ({pw}) => {
@@ -858,7 +858,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 // # Save
                 await systemConsolePage.page.getByTestId('saveSetting').click();
 
-                // * Redirected back to the Manage Attributes list
+                // * Redirected back to the Attribute Management list
                 await expect(systemConsolePage.page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
 
                 // * Exactly two linked fields exist, pointing back at the template

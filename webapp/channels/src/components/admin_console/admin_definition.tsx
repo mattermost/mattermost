@@ -644,7 +644,7 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.user_attributes', defaultMessage: 'User Attributes'}),
                 searchableStrings: systemPropertiesSearchableStrings,
 
-                // Replaced by Attributes Management when the GlobalAttributes flag is on.
+                // Replaced by Attribute Management when the GlobalAttributes flag is on.
                 isHidden: it.any(
                     it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
                     it.configIsTrue('FeatureFlags', 'GlobalAttributes'),
@@ -769,7 +769,7 @@ const AdminDefinition: AdminDefinitionType = {
             },
             global_attributes: {
                 url: 'system_attributes/manage_attributes',
-                title: defineMessage({id: 'admin.sidebar.global_attributes', defaultMessage: 'Attributes Management'}),
+                title: defineMessage({id: 'admin.sidebar.global_attributes', defaultMessage: 'Attribute Management'}),
                 searchableStrings: globalAttributesSearchableStrings,
                 isHidden: it.not(it.all(
                     it.minLicenseTier(LicenseSkus.Enterprise),
