@@ -20,8 +20,6 @@ func TestPropertyOptionHierarchyWalkBudget(t *testing.T) {
 	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		groupID := model.NewId()
 
-		// newGraphField creates a graph field owning one option per name, under the
-		// identifiers the caller supplies.
 		newGraphField := func(t *testing.T, optionIDsByName map[string]string) *model.PropertyField {
 			t.Helper()
 			options := make([]any, 0, len(optionIDsByName))

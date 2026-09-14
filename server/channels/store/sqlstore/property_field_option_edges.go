@@ -275,11 +275,11 @@ var (
 // longer there.
 //
 // maxRows bounds the (SeedID, OptionID) rows the walk may return in total, not
-// per statement: LIMIT on each batch's query stops that batch from pulling more
-// rows than the budget has left, but a walk seeded from many options still has to
-// be judged on what all of its batches added up to. Going over is an error, with
-// nothing of the walk returned -- callers hide or refuse on it, never show a
-// partial hierarchy.
+// per statement: every batch's query carries the same fixed LIMIT of maxRows+1,
+// not reduced by what earlier batches already spent, so it is the running total
+// across batches -- checked after each one -- that decides whether the walk
+// stays within bound. Going over is an error, with nothing of the walk
+// returned -- callers hide or refuse on it, never show a partial hierarchy.
 func (s *SqlPropertyFieldStore) walkOptionHierarchy(field *model.PropertyField, optionIDs []string, direction hierarchyDirection, maxRows int) (map[string][]string, error) {
 	if field == nil || len(optionIDs) == 0 {
 		return nil, nil

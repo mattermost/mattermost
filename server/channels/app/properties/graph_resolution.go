@@ -224,8 +224,8 @@ func (ps *PropertyService) clampToCoverage(rctx request.CTX, field *model.Proper
 // visited reports what this call actually visited: len(seen) minus the seed,
 // which is recorded but never a visit. clampToCoverage holds one budget per
 // masked value and spends it across that value's descents, so it subtracts
-// visited before the next one -- a descent served from its cache reaches here at
-// all, so it spends nothing.
+// visited before the next one -- a descent clampToCoverage already has cached
+// never calls this function at all, so it spends nothing.
 //
 // The other way to compute it is to intersect everything below the option with
 // everything the holder covers: three queries rather than one per level, at the
