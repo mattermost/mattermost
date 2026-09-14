@@ -151,7 +151,7 @@ describe('ChannelInfoAttributes', () => {
 
     test('shows Classification rather than the stored unique name', () => {
         const classification = field('classification', {required: true, type: 'rank'});
-        delete classification.attrs.display_name;
+        delete classification.attrs!.display_name;
 
         renderWithContext(
             <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
