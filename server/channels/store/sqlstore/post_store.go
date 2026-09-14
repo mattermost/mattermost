@@ -1465,7 +1465,7 @@ func (s *SqlPostStore) GetPostsSince(rctx request.CTX, options model.GetPostsSin
 	       Posts
 	WHERE
 	       UpdateAt > ? AND ChannelId = ?
-	       LIMIT 1000)
+	       ORDER BY UpdateAt DESC LIMIT 1000)
 	(SELECT ` + postColumnsCte + replyCountQuery2 + ` FROM cte)
 	UNION
 	(SELECT ` + postColumnsP1 + replyCountQuery1 + ` FROM Posts p1 WHERE id in (SELECT rootid FROM cte))
