@@ -525,7 +525,7 @@ func (hub *PushNotificationsHub) start(rctx request.CTX) {
 
 func (hub *PushNotificationsHub) stop() {
 	// Drain the channel.
-	for i := 0; i < hub.buffer+1; i++ {
+	for range hub.buffer + 1 {
 		hub.notificationsChan <- PushNotification{
 			notificationType: notificationTypeDummy,
 		}
