@@ -148,8 +148,14 @@ func isChannelReadPermission(permission *model.Permission) bool {
 // read": a new channel permission must be classified by hand, and
 // TestChannelPermissionClassification fails until it is.
 //
-// read_deleted_posts is on neither list. It never reaches the channel gates —
-// it only shapes an error payload behind an IsSystemAdmin check.
+// Two permissions are on neither list:
+//
+//   - read_deleted_posts never reaches the channel gates. It only shapes an error
+//     payload behind an IsSystemAdmin check.
+//   - manage_channel_access_rules is policy administration, not channel content.
+//     Every call site already asks RBAC-only, and it must stay that way: gating it
+//     would make a policy that denies its own author unfixable, since the gate
+//     binds system admins too.
 func isChannelWritePermission(permission *model.Permission) bool {
 	switch permission.Id {
 	case model.PermissionAddBookmarkPrivateChannel.Id,
@@ -171,7 +177,6 @@ func isChannelWritePermission(permission *model.Permission) bool {
 		model.PermissionEditFileAttachment.Id,
 		model.PermissionEditOthersPosts.Id,
 		model.PermissionEditPost.Id,
-		model.PermissionManageChannelAccessRules.Id,
 		model.PermissionManageChannelJoinRequests.Id,
 		model.PermissionManageChannelRoles.Id,
 		model.PermissionManagePrivateChannelAutoTranslation.Id,
