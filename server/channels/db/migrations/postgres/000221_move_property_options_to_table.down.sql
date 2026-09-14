@@ -10,6 +10,19 @@
 -- applies: the leftover keys in Attrs, then id and name from their columns, then
 -- color and rank only where the column has a value, so an option that never
 -- carried a color does not gain one.
+--
+-- The blob is cleared first because the rehydrate only writes fields that have
+-- a live option row. A field whose options were all soft-deleted after the
+-- upgrade joins nothing in "effective" below and would otherwise keep
+-- whatever the blob last held, resurrecting an option that access-control
+-- policies had stopped matching. Scoped the same way the up migration's
+-- backfill selects its rows, so a field of a type that never carries options,
+-- or one that was never backfilled, is left untouched.
+UPDATE PropertyFields
+   SET Attrs = Attrs - 'options'
+ WHERE Type IN ('select', 'multiselect', 'rank')
+   AND jsonb_typeof(Attrs->'options') = 'array';
+
 WITH hydrated AS (
     SELECT
         po.FieldID AS fieldid,

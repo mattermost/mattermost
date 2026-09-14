@@ -164,6 +164,12 @@ func (ps *PropertyService) clampToCoverage(rctx request.CTX, field *model.Proper
 		}
 	}
 
+	// One budget for the whole call, spent across its descents: a value may name
+	// many uncovered options, and each runs its own descent, so a per-descent
+	// budget would multiply out by however many options the value names -- which
+	// nothing else here bounds.
+	budget := model.PropertyGraphMaxMaskedOptions
+
 	visible := map[string]bool{}
 	for _, optionID := range optionIDs {
 		if covered[optionID] {
@@ -173,10 +179,12 @@ func (ps *PropertyService) clampToCoverage(rctx request.CTX, field *model.Proper
 		belowIDs, ok := below[optionID]
 		if !ok {
 			var err error
-			belowIDs, err = ps.coveredBelow(rctx, field, optionID, held)
+			var visited int
+			belowIDs, visited, err = ps.coveredBelow(rctx, field, optionID, held, budget)
 			if err != nil {
 				return nil, err
 			}
+			budget -= visited
 			below[optionID] = belowIDs
 		}
 		for _, coveredID := range belowIDs {
@@ -205,10 +213,19 @@ func (ps *PropertyService) clampToCoverage(rctx request.CTX, field *model.Proper
 // 1,110-option subtree, masking its root costs the same whether the holder covers
 // nothing below it or holds an option one level down.
 //
-// Nothing is capped, because a cap would mask a value to less than the holder may
-// see with nothing anywhere to say why. The subtree bounds it already, and the
-// holder who would make that subtree largest -- one holding a root -- covers the
-// option outright and never arrives here.
+// budget bounds how many options this descent may visit -- checked after each
+// level, because a level's children all arrive in one GetOptionChildren query and
+// are counted once they are in hand. That means the walk can overshoot before the
+// check catches it: the peak is budget plus the one level that crossed it, not
+// budget itself. Exceeding it is an error, with nothing of the descent returned --
+// the caller (clampToCoverage) treats it like any other lookup failure and masks
+// the value to nothing rather than showing a partial replacement.
+//
+// visited reports what this call actually visited: len(seen) minus the seed,
+// which is recorded but never a visit. clampToCoverage holds one budget per
+// masked value and spends it across that value's descents, so it subtracts
+// visited before the next one -- a descent clampToCoverage already has cached
+// never calls this function at all, so it spends nothing.
 //
 // The other way to compute it is to intersect everything below the option with
 // everything the holder covers: three queries rather than one per level, at the
@@ -216,15 +233,26 @@ func (ps *PropertyService) clampToCoverage(rctx request.CTX, field *model.Proper
 // four times faster, so it is the upgrade path if masking ever shows up in a read
 // profile. Both formulations sit on the same store primitives and agree option for
 // option.
-func (ps *PropertyService) coveredBelow(rctx request.CTX, field *model.PropertyField, optionID string, held []string) ([]string, error) {
+func (ps *PropertyService) coveredBelow(rctx request.CTX, field *model.PropertyField, optionID string, held []string, budget int) (below []string, visited int, err error) {
 	// The option itself is never a candidate -- whoever asks has established that
 	// the holder does not cover it -- and having it here also keeps a branch that
 	// rejoins the hierarchy above from walking back onto it.
 	seen := map[string]bool{optionID: true}
 
+	checkBudget := func() error {
+		visited = len(seen) - 1
+		if visited > budget {
+			return errors.Errorf("graph property field %s option %s's coverage descent exceeded its %d option masking budget; value masked to nothing rather than a partial result", field.ID, optionID, budget)
+		}
+		return nil
+	}
+
 	frontier, err := ps.levelBelow(field, []string{optionID}, seen)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
+	}
+	if err = checkBudget(); err != nil {
+		return nil, visited, err
 	}
 
 	var candidates []string
@@ -232,7 +260,7 @@ func (ps *PropertyService) coveredBelow(rctx request.CTX, field *model.PropertyF
 		var covered map[string]bool
 		covered, err = ps.CoveredBy(rctx, field, frontier, held)
 		if err != nil {
-			return nil, err
+			return nil, visited, err
 		}
 
 		var uncovered []string
@@ -248,12 +276,15 @@ func (ps *PropertyService) coveredBelow(rctx request.CTX, field *model.PropertyF
 
 		frontier, err = ps.levelBelow(field, uncovered, seen)
 		if err != nil {
-			return nil, err
+			return nil, visited, err
+		}
+		if err = checkBudget(); err != nil {
+			return nil, visited, err
 		}
 	}
 
 	if len(candidates) < 2 {
-		return candidates, nil
+		return candidates, visited, nil
 	}
 
 	// Stopping at the first covered option on each branch does not by itself make
@@ -262,9 +293,9 @@ func (ps *PropertyService) coveredBelow(rctx request.CTX, field *model.PropertyF
 	// reported alongside something that is above it.
 	above, err := ps.AncestorsOrSelf(rctx, field, candidates)
 	if err != nil {
-		return nil, err
+		return nil, visited, err
 	}
-	return maximalElements(candidates, above), nil
+	return maximalElements(candidates, above), visited, nil
 }
 
 // levelBelow returns the options one step below the given ones, leaving out any

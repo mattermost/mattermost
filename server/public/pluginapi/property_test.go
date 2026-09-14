@@ -261,15 +261,15 @@ func TestPropertyFieldOptionAPI(t *testing.T) {
 	t.Run("GetPropertyFieldOptions", func(t *testing.T) {
 		api := &plugintest.API{}
 
-		options := []*model.PropertyFieldOption{option("Air Program")}
-		api.On("GetPropertyFieldOptions", "group1", "field1", int64(1700000000000), "cursor1", 50).Return(options, nil)
+		page := &model.PropertyFieldOptionPage{Options: []*model.PropertyFieldOption{option("Air Program")}}
+		api.On("GetPropertyFieldOptions", "group1", "field1", int64(1700000000000), "cursor1", 50).Return(page, nil)
 
 		client := NewClient(api, nil)
 
 		result, err := client.Property.GetPropertyFieldOptions("group1", "field1", 1700000000000, "cursor1", 50)
 
 		require.NoError(t, err)
-		assert.Equal(t, options, result)
+		assert.Equal(t, page, result)
 		api.AssertExpectations(t)
 	})
 

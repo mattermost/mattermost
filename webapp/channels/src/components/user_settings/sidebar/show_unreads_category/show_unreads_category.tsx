@@ -33,7 +33,7 @@ type State = {
 };
 
 export default class ShowUnreadsCategory extends React.PureComponent<Props, State> {
-    minRef: RefObject<SettingItemMinComponent>;
+    minRef: RefObject<SettingItemMinComponent | null>;
 
     constructor(props: Props) {
         super(props);

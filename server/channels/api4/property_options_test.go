@@ -296,7 +296,7 @@ func TestPropertyFieldOptions(t *testing.T) {
 		// The rename landed -- the broadcast was masked, not the write rejected.
 		listed, _, err := th.SystemAdminClient.GetPropertyFieldOptions(context.Background(), group.Name, template, sharedTemplate.ID, 0, "", 100)
 		require.NoError(t, err)
-		require.Equal(t, []string{"Aerial Program"}, optionNames(listed))
+		require.Equal(t, []string{"Aerial Program"}, optionNames(listed.Options))
 	})
 
 	t.Run("the effective set is listed, with inherited options read-only", func(t *testing.T) {
@@ -313,17 +313,17 @@ func TestPropertyFieldOptions(t *testing.T) {
 		listed, resp, err := th.Client.GetPropertyFieldOptions(context.Background(), group.Name, userObject, fields.linked.ID, 0, "", 100)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.Len(t, listed, 2)
-		for _, option := range listed {
+		require.Len(t, listed.Options, 2)
+		for _, option := range listed.Options {
 			require.True(t, option.ReadOnly, "option %q should be read-only through a linked field", option.Name)
 		}
-		require.Equal(t, []string{"Air Program"}, *optionByName(t, listed, "Fighter Jet Program").Parents)
+		require.Equal(t, []string{"Air Program"}, *optionByName(t, listed.Options, "Fighter Jet Program").Parents)
 
 		// Through the template that owns them: nothing is read-only.
 		owned, _, err := th.Client.GetPropertyFieldOptions(context.Background(), group.Name, template, fields.template.ID, 0, "", 100)
 		require.NoError(t, err)
-		require.Len(t, owned, 2)
-		for _, option := range owned {
+		require.Len(t, owned.Options, 2)
+		for _, option := range owned.Options {
 			require.False(t, option.ReadOnly)
 		}
 	})
@@ -344,14 +344,113 @@ func TestPropertyFieldOptions(t *testing.T) {
 		for range 4 {
 			page, _, err := th.SystemAdminClient.GetPropertyFieldOptions(context.Background(), group.Name, template, fields.template.ID, cursorCreateAt, cursorID, 2)
 			require.NoError(t, err)
-			if len(page) == 0 {
+			paged = append(paged, page.Options...)
+			if !page.HasMore {
 				break
 			}
-			paged = append(paged, page...)
-			last := page[len(page)-1]
-			cursorCreateAt, cursorID = last.CreateAt, last.ID
+			cursorCreateAt, cursorID = page.NextCursorCreateAt, page.NextCursorID
 		}
 		require.Equal(t, []string{"one", "two", "three"}, optionNames(paged))
+	})
+
+	t.Run("a listing that fits in one page reports no continuation", func(t *testing.T) {
+		fields := setupOptionFields(t, th, group.ID, graph, memberLevel, nil)
+
+		// Two separate calls, so the two options do not race for the same
+		// creation timestamp and land in an order this test cannot predict.
+		for _, name := range []string{"Air Program", "Sea Program"} {
+			_, _, err := th.SystemAdminClient.CreatePropertyFieldOptions(context.Background(), group.Name, template, fields.template.ID, []*model.PropertyFieldOption{
+				namedOption(name),
+			})
+			require.NoError(t, err)
+		}
+
+		page, resp, err := th.SystemAdminClient.GetPropertyFieldOptions(context.Background(), group.Name, template, fields.template.ID, 0, "", 100)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.False(t, page.HasMore)
+		require.Equal(t, []string{"Air Program", "Sea Program"}, optionNames(page.Options))
+	})
+
+	t.Run("paging one option at a time follows has_more to the end", func(t *testing.T) {
+		fields := setupOptionFields(t, th, group.ID, graph, memberLevel, nil)
+
+		for _, name := range []string{"one", "two", "three"} {
+			_, _, err := th.SystemAdminClient.CreatePropertyFieldOptions(context.Background(), group.Name, template, fields.template.ID, []*model.PropertyFieldOption{
+				namedOption(name),
+			})
+			require.NoError(t, err)
+		}
+
+		var paged []*model.PropertyFieldOption
+		var hasMoreFlags []bool
+		var cursorCreateAt int64
+		var cursorID string
+		for range 4 {
+			page, _, err := th.SystemAdminClient.GetPropertyFieldOptions(context.Background(), group.Name, template, fields.template.ID, cursorCreateAt, cursorID, 1)
+			require.NoError(t, err)
+			paged = append(paged, page.Options...)
+			hasMoreFlags = append(hasMoreFlags, page.HasMore)
+			if !page.HasMore {
+				break
+			}
+			cursorCreateAt, cursorID = page.NextCursorCreateAt, page.NextCursorID
+		}
+		require.Equal(t, []string{"one", "two", "three"}, optionNames(paged))
+		// A full page cannot tell on its own that nothing follows it -- that
+		// takes one more, empty page -- so has_more stays true through every
+		// page that returned an option, and turns false exactly once, on the
+		// empty page after the last one.
+		require.Equal(t, []bool{true, true, true, false}, hasMoreFlags)
+	})
+
+	t.Run("the response body carries the documented keys", func(t *testing.T) {
+		fields := setupOptionFields(t, th, group.ID, graph, memberLevel, nil)
+
+		_, _, err := th.SystemAdminClient.CreatePropertyFieldOptions(context.Background(), group.Name, template, fields.template.ID, []*model.PropertyFieldOption{
+			namedOption("one"),
+			namedOption("two"),
+		})
+		require.NoError(t, err)
+
+		path := fmt.Sprintf("/properties/groups/%s/%s/fields/%s/options?per_page=1", group.Name, template, fields.template.ID)
+		httpResp, err := th.SystemAdminClient.DoAPIGet(context.Background(), path, "")
+		require.NoError(t, err)
+		defer httpResp.Body.Close()
+		body, err := io.ReadAll(httpResp.Body)
+		require.NoError(t, err)
+
+		// Asserted on the raw body, not only the decoded struct, so a renamed key
+		// cannot pass unnoticed.
+		var raw map[string]any
+		require.NoError(t, json.Unmarshal(body, &raw))
+		require.Contains(t, raw, "options")
+		require.Contains(t, raw, "has_more")
+		require.Contains(t, raw, "next_cursor_create_at")
+		require.Contains(t, raw, "next_cursor_id")
+
+		var page model.PropertyFieldOptionPage
+		require.NoError(t, json.Unmarshal(body, &page))
+		require.True(t, page.HasMore)
+		require.Len(t, page.Options, 1)
+	})
+
+	t.Run("an empty listing answers with no options rather than null", func(t *testing.T) {
+		fields := setupOptionFields(t, th, group.ID, graph, memberLevel, nil)
+
+		path := fmt.Sprintf("/properties/groups/%s/%s/fields/%s/options", group.Name, template, fields.template.ID)
+		httpResp, err := th.SystemAdminClient.DoAPIGet(context.Background(), path, "")
+		require.NoError(t, err)
+		defer httpResp.Body.Close()
+		body, err := io.ReadAll(httpResp.Body)
+		require.NoError(t, err)
+		require.JSONEq(t, `{"options":[],"has_more":false}`, string(body))
+
+		page, _, err := th.SystemAdminClient.GetPropertyFieldOptions(context.Background(), group.Name, template, fields.template.ID, 0, "", 100)
+		require.NoError(t, err)
+		require.NotNil(t, page.Options)
+		require.Empty(t, page.Options)
+		require.False(t, page.HasMore)
 	})
 
 	t.Run("half a cursor is refused", func(t *testing.T) {
@@ -384,7 +483,7 @@ func TestPropertyFieldOptions(t *testing.T) {
 		listed, resp, err := th.SystemAdminClient.GetPropertyFieldOptions(context.Background(), group.Name, template, fields.template.ID, 0, "", model.PropertyFieldOptionsMaxPerRequest*2)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.LessOrEqual(t, len(listed), model.PropertyFieldOptionsMaxPerRequest)
+		require.LessOrEqual(t, len(listed.Options), model.PropertyFieldOptionsMaxPerRequest)
 	})
 
 	t.Run("a change names the first item it cannot accept", func(t *testing.T) {
@@ -444,7 +543,7 @@ func TestPropertyFieldOptions(t *testing.T) {
 		// Nothing from any of those payloads was written.
 		listed, _, lErr := th.SystemAdminClient.GetPropertyFieldOptions(context.Background(), group.Name, template, fields.template.ID, 0, "", 100)
 		require.NoError(t, lErr)
-		require.Equal(t, []string{"Air Program"}, optionNames(listed))
+		require.Equal(t, []string{"Air Program"}, optionNames(listed.Options))
 	})
 
 	t.Run("an empty payload is refused", func(t *testing.T) {
@@ -516,9 +615,9 @@ func TestPropertyFieldOptions(t *testing.T) {
 		// And it now serves both.
 		listed, _, err := th.SystemAdminClient.GetPropertyFieldOptions(context.Background(), group.Name, userObject, selectFields.linked.ID, 0, "", 100)
 		require.NoError(t, err)
-		require.Len(t, listed, 2)
-		require.True(t, optionByName(t, listed, "Inherited").ReadOnly)
-		require.False(t, optionByName(t, listed, "Local").ReadOnly)
+		require.Len(t, listed.Options, 2)
+		require.True(t, optionByName(t, listed.Options, "Inherited").ReadOnly)
+		require.False(t, optionByName(t, listed.Options, "Local").ReadOnly)
 	})
 
 	t.Run("parents on a field whose options form no hierarchy are refused", func(t *testing.T) {
@@ -604,8 +703,8 @@ func TestPropertyFieldOptions(t *testing.T) {
 		// The hierarchy is untouched.
 		listed, _, err := th.SystemAdminClient.GetPropertyFieldOptions(context.Background(), group.Name, template, fields.template.ID, 0, "", 100)
 		require.NoError(t, err)
-		require.Empty(t, *optionByName(t, listed, "Air Program").Parents)
-		require.Equal(t, []string{"Air Program"}, *optionByName(t, listed, "Fighter Jet Program").Parents)
+		require.Empty(t, *optionByName(t, listed.Options, "Air Program").Parents)
+		require.Equal(t, []string{"Air Program"}, *optionByName(t, listed.Options, "Fighter Jet Program").Parents)
 	})
 
 	t.Run("an inherited option cannot be changed or deleted through the field that inherits it", func(t *testing.T) {
@@ -615,8 +714,8 @@ func TestPropertyFieldOptions(t *testing.T) {
 
 		listed, _, err := th.SystemAdminClient.GetPropertyFieldOptions(context.Background(), group.Name, userObject, fields.linked.ID, 0, "", 100)
 		require.NoError(t, err)
-		require.Len(t, listed, 1)
-		inherited := listed[0]
+		require.Len(t, listed.Options, 1)
+		inherited := listed.Options[0]
 		require.True(t, inherited.ReadOnly)
 
 		_, resp, err := th.SystemAdminClient.PatchPropertyFieldOptions(context.Background(), group.Name, userObject, fields.linked.ID, []*model.PropertyFieldOption{
@@ -640,7 +739,7 @@ func TestPropertyFieldOptions(t *testing.T) {
 
 		listed, _, err = th.SystemAdminClient.GetPropertyFieldOptions(context.Background(), group.Name, userObject, fields.linked.ID, 0, "", 100)
 		require.NoError(t, err)
-		require.Equal(t, []string{"Renamed"}, optionNames(listed))
+		require.Equal(t, []string{"Renamed"}, optionNames(listed.Options))
 	})
 
 	t.Run("an option with something still below it can only go with it", func(t *testing.T) {
@@ -668,8 +767,8 @@ func TestPropertyFieldOptions(t *testing.T) {
 
 		listed, _, err := th.SystemAdminClient.GetPropertyFieldOptions(context.Background(), group.Name, template, fields.template.ID, 0, "", 100)
 		require.NoError(t, err)
-		require.Equal(t, []string{"Air Program"}, optionNames(listed))
-		require.Equal(t, root.ID, listed[0].ID)
+		require.Equal(t, []string{"Air Program"}, optionNames(listed.Options))
+		require.Equal(t, root.ID, listed.Options[0].ID)
 	})
 
 	t.Run("every mutation is gated on the field's options permission", func(t *testing.T) {
@@ -706,11 +805,11 @@ func TestPropertyFieldOptions(t *testing.T) {
 					// Reading is not gated on the options permission: a field's
 					// options are part of its definition, which is readable at the
 					// field's own scope.
-					var listed []*model.PropertyFieldOption
+					var listed *model.PropertyFieldOptionPage
 					listed, resp, err = client.GetPropertyFieldOptions(context.Background(), group.Name, template, fields.template.ID, 0, "", 100)
 					require.NoError(t, err)
 					CheckOKStatus(t, resp)
-					seeded := optionByName(t, listed, "Seeded Program")
+					seeded := optionByName(t, listed.Options, "Seeded Program")
 
 					_, resp, err = client.PatchPropertyFieldOptions(context.Background(), group.Name, template, fields.template.ID, []*model.PropertyFieldOption{
 						{ID: seeded.ID, Name: "Renamed Program"},
@@ -779,10 +878,10 @@ func TestPropertyFieldOptions(t *testing.T) {
 		options, resp, err := th.SystemAdminClient.GetPropertyFieldOptions(context.Background(), group.Name, template, created.ID, 0, "", 100)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.Len(t, options, 3)
-		require.Equal(t, []string{"Air Program"}, *optionByName(t, options, "Fighter Jet Program").Parents)
-		require.Equal(t, []string{"Fighter Jet Program"}, *optionByName(t, options, "F-18 Program").Parents)
-		require.Empty(t, *optionByName(t, options, "Air Program").Parents)
+		require.Len(t, options.Options, 3)
+		require.Equal(t, []string{"Air Program"}, *optionByName(t, options.Options, "Fighter Jet Program").Parents)
+		require.Equal(t, []string{"Fighter Jet Program"}, *optionByName(t, options.Options, "F-18 Program").Parents)
+		require.Empty(t, *optionByName(t, options.Options, "Air Program").Parents)
 	})
 
 	t.Run("a parent no option of the field is called is refused, in the answer to the request", func(t *testing.T) {

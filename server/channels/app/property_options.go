@@ -20,15 +20,15 @@ import (
 // options somebody else has since altered is refused rather than applied.
 
 // GetPropertyFieldOptions returns one page of a field's effective option set.
-func (a *App) GetPropertyFieldOptions(rctx request.CTX, groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, *model.AppError) {
-	options, err := a.Srv().propertyService.GetFieldOptions(rctx, groupID, fieldID, cursorCreateAt, cursorID, perPage)
+func (a *App) GetPropertyFieldOptions(rctx request.CTX, groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) (*model.PropertyFieldOptionPage, *model.AppError) {
+	page, err := a.Srv().propertyService.GetFieldOptions(rctx, groupID, fieldID, cursorCreateAt, cursorID, perPage)
 	if err != nil {
 		if appErr := mapPropertyServiceError("GetPropertyFieldOptions", err); appErr != nil {
 			return nil, appErr
 		}
 		return nil, model.NewAppError("GetPropertyFieldOptions", "app.property_field.options.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	return options, nil
+	return page, nil
 }
 
 // CreatePropertyFieldOptions adds options to a field.

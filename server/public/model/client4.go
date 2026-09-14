@@ -8290,9 +8290,11 @@ func (c *Client4) DeletePropertyField(ctx context.Context, groupName, objectType
 }
 
 // GetPropertyFieldOptions returns one page of a property field's options, in
-// creation order. Continue from the last option of a page by passing its id and
-// create_at; a page shorter than perPage is the last one.
-func (c *Client4) GetPropertyFieldOptions(ctx context.Context, groupName, objectType, fieldID string, cursorCreateAt int64, cursorID string, perPage int) ([]*PropertyFieldOption, *Response, error) {
+// creation order. Continue while the page's HasMore is true, passing its
+// NextCursorCreateAt and NextCursorID back on the next call: the page length
+// alone does not say whether the listing is over, and the cursor names the last
+// row the page query examined rather than the last option it returned.
+func (c *Client4) GetPropertyFieldOptions(ctx context.Context, groupName, objectType, fieldID string, cursorCreateAt int64, cursorID string, perPage int) (*PropertyFieldOptionPage, *Response, error) {
 	values := url.Values{}
 	if perPage > 0 {
 		values.Set("per_page", strconv.Itoa(perPage))
@@ -8308,7 +8310,7 @@ func (c *Client4) GetPropertyFieldOptions(ctx context.Context, groupName, object
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return DecodeJSONFromResponse[[]*PropertyFieldOption](r)
+	return DecodeJSONFromResponse[*PropertyFieldOptionPage](r)
 }
 
 // CreatePropertyFieldOptions adds options to a property field. Each option may

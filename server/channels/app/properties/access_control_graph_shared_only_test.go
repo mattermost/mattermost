@@ -33,6 +33,20 @@ func setupGraphSharedOnly(t *testing.T) *graphSharedOnlyHelper {
 	return &graphSharedOnlyHelper{th: th, rctxSource: RequestContextWithCallerID(th.Context, "test-plugin")}
 }
 
+// accessControlHook returns the AccessControlHook setupGraphSharedOnly
+// registered, for a test that has to call it directly rather than through the
+// service.
+func (h *graphSharedOnlyHelper) accessControlHook(t *testing.T) *AccessControlHook {
+	t.Helper()
+	for _, hook := range h.th.service.hooks {
+		if ach, ok := hook.(*AccessControlHook); ok {
+			return ach
+		}
+	}
+	require.FailNow(t, "AccessControlHook not registered")
+	return nil
+}
+
 // newField creates a shared_only graph field from options given as option name ->
 // parent names, and reports the identifier each name was given.
 func (h *graphSharedOnlyHelper) newField(t *testing.T, name string, parents map[string][]string, names ...string) (*model.PropertyField, map[string]string) {
@@ -138,15 +152,22 @@ func (h *graphSharedOnlyHelper) visibleOptionsBatch(t *testing.T, callerID strin
 	return byTarget
 }
 
-// listedOptions lists one page of a field's options as the given caller, from the
+// listedPage lists one page of a field's options as the given caller, from the
 // option rows rather than from the list a field read carries inline.
-func (h *graphSharedOnlyHelper) listedOptions(t *testing.T, callerID string, field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int) []*model.PropertyFieldOption {
+func (h *graphSharedOnlyHelper) listedPage(t *testing.T, callerID string, field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int) *model.PropertyFieldOptionPage {
 	t.Helper()
 
-	options, err := h.th.service.GetFieldOptions(RequestContextWithCallerID(h.th.Context, callerID), field.GroupID, field.ID, cursorCreateAt, cursorID, perPage)
+	page, err := h.th.service.GetFieldOptions(RequestContextWithCallerID(h.th.Context, callerID), field.GroupID, field.ID, cursorCreateAt, cursorID, perPage)
 	require.NoError(t, err)
-	require.NotNil(t, options, "a page nothing is left in is an empty page, never nothing at all")
-	return options
+	require.NotNil(t, page.Options, "a page nothing is left in is an empty page, never nothing at all")
+	return page
+}
+
+// listedOptions is listedPage's options alone, for a test that only cares which
+// options came back and not whether the listing continues.
+func (h *graphSharedOnlyHelper) listedOptions(t *testing.T, callerID string, field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int) []*model.PropertyFieldOption {
+	t.Helper()
+	return h.listedPage(t, callerID, field, cursorCreateAt, cursorID, perPage).Options
 }
 
 // listedNames reduces a page of options to the names it reported.
@@ -566,18 +587,84 @@ func TestGraphSharedOnly_OptionListPaged(t *testing.T) {
 	var cursorCreateAt int64
 	var cursorID string
 	for {
-		page := h.listedOptions(t, caller, field, cursorCreateAt, cursorID, 1)
-		if len(page) == 0 {
+		page := h.listedPage(t, caller, field, cursorCreateAt, cursorID, 1)
+		require.LessOrEqual(t, len(page.Options), 1, "a page never holds more than the size asked for")
+		for _, option := range page.Options {
+			names = append(names, option.Name)
+		}
+		if !page.HasMore {
 			break
 		}
-		require.Len(t, page, 1, "a page never holds more than the size asked for")
-		names = append(names, page[0].Name)
-		cursorCreateAt, cursorID = page[0].CreateAt, page[0].ID
+		require.Len(t, page.Options, 1, "a page before the last comes back full, because the query fills it rather than answering short")
+		cursorCreateAt, cursorID = page.NextCursorCreateAt, page.NextCursorID
 		require.LessOrEqual(t, len(names), len(programNames), "the listing has to end")
 	}
 
 	assert.Equal(t, expected, names,
 		"paging one option at a time reaches every option the caller covers, in the field's own order")
+}
+
+// TestGraphSharedOnly_OptionListPageWindowExhausted covers the page whose
+// candidate window holds none of the caller's options at all: the filtered
+// query cannot fill it, but the cursor it hands back still moves past every
+// candidate it examined, so the next page picks up where this one left off
+// instead of re-examining the same dropped rows forever.
+func TestGraphSharedOnly_OptionListPageWindowExhausted(t *testing.T) {
+	h := setupGraphSharedOnly(t)
+
+	// Enough filler options, all outside the caller's coverage, to fill the page
+	// query's whole candidate window on their own -- so the option the caller
+	// does cover, wherever it lands in creation order, is not guaranteed a seat
+	// in the first window.
+	total := model.PropertyFieldOptionCandidatesMaxPerRequest + 1
+	options := make([]any, 0, total)
+	for i := 0; i < total-1; i++ {
+		options = append(options, map[string]any{"name": fmt.Sprintf("Filler %04d", i)})
+	}
+	options = append(options, map[string]any{"name": "Held Program"})
+
+	field, err := h.th.service.CreatePropertyField(h.rctxSource, &model.PropertyField{
+		GroupID:    h.th.CPAGroupID,
+		Name:       "programs-options-window",
+		Type:       model.PropertyFieldTypeGraph,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs: model.StringInterface{
+			model.PropertyAttrsAccessMode:       model.PropertyAccessModeSharedOnly,
+			model.PropertyAttrsProtected:        true,
+			model.PropertyFieldAttributeOptions: options,
+		},
+	})
+	require.NoError(t, err)
+	ids := optionIDsByName(t, field)
+
+	// These were all written in one call, so creation order is decided by
+	// identifier rather than by the order given -- paged here, as an unrestricted
+	// caller, to find which option actually lands last.
+	var last string
+	var cursorCreateAt int64
+	var cursorID string
+	for {
+		page := h.listedPage(t, "test-plugin", field, cursorCreateAt, cursorID, model.PropertyFieldOptionsMaxPerRequest)
+		for _, option := range page.Options {
+			last = option.Name
+		}
+		if !page.HasMore {
+			break
+		}
+		cursorCreateAt, cursorID = page.NextCursorCreateAt, page.NextCursorID
+	}
+
+	caller := model.NewId()
+	h.assign(t, field.ID, caller, ids[last])
+
+	first := h.listedPage(t, caller, field, 0, "", 100)
+	assert.Empty(t, first.Options, "the caller's option sits past the first candidate window")
+	assert.True(t, first.HasMore, "the window may hold the caller's option further along, so the listing is not over")
+
+	second := h.listedPage(t, caller, field, first.NextCursorCreateAt, first.NextCursorID, 100)
+	assert.Equal(t, []string{last}, listedNames(second.Options),
+		"the cursor advanced past the rows the first page dropped, so the caller's option is still reached")
 }
 
 // TestGraphSharedOnly_OptionListNothingVisible covers the short circuit that
@@ -600,6 +687,32 @@ func TestGraphSharedOnly_OptionListNothingVisible(t *testing.T) {
 		assert.ElementsMatch(t, []string{"Fighter Jet Program", "F-18 Program"},
 			listedNames(h.listedOptions(t, caller, field, 0, "", 100)),
 			"the short circuit must not fire for a caller the scan would show something to")
+	})
+}
+
+// TestGraphSharedOnly_OptionPageFilter covers the filter the hook decides once
+// per listing, which the listing carries into the page query and the post-hook
+// rather than have every page re-read the caller's holdings.
+func TestGraphSharedOnly_OptionPageFilter(t *testing.T) {
+	h := setupGraphSharedOnly(t)
+	field, ids := h.newField(t, "programs-options-filter", programHierarchy, programNames...)
+	hook := h.accessControlHook(t)
+
+	t.Run("a masked caller's filter carries exactly the options they hold", func(t *testing.T) {
+		caller := model.NewId()
+		h.assign(t, field.ID, caller, ids["Fighter Jet Program"], ids["Sea Program"])
+
+		filter, err := hook.PreGetPropertyFieldOptions(RequestContextWithCallerID(h.th.Context, caller), field, nil)
+		require.NoError(t, err)
+		require.NotNil(t, filter)
+		assert.False(t, filter.ShowNothing)
+		assert.ElementsMatch(t, []string{ids["Fighter Jet Program"], ids["Sea Program"]}, filter.CoveredBy)
+	})
+
+	t.Run("a caller with unrestricted read access produces a filter that narrows nothing", func(t *testing.T) {
+		filter, err := hook.PreGetPropertyFieldOptions(RequestContextWithCallerID(h.th.Context, "test-plugin"), field, nil)
+		require.NoError(t, err)
+		assert.Nil(t, filter)
 	})
 }
 

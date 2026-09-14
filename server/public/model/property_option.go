@@ -39,6 +39,50 @@ const (
 // is held in memory and its parents are looked up together.
 const PropertyFieldOptionsMaxPerRequest = 200
 
+// The limits one request's hierarchy work is held within. The limits above
+// bound what a hierarchy may hold; these bound the work one request may do over
+// a hierarchy already inside those limits -- a hierarchy entirely legal by
+// PropertyGraphMaxOptions and friends can still be too large to walk on a read
+// that has to stay cheap, and that is deliberate rather than a gap in the limits
+// above.
+//
+// Exceeding one is never a partial answer: a masking caller hides what it could
+// not resolve, a validation caller refuses the change, and a caller cannot tell
+// a hierarchy at the bound from one they cover nothing in -- the server log is
+// the only place the difference shows.
+//
+// Fixed rather than configurable, for the same reason the block above is: a
+// deployment raising one would be changing how much work an ordinary read is
+// allowed to cost every other request on the node.
+const (
+	// PropertyGraphMaxWalkRows bounds the (seed, option) pairs one recursive
+	// walk over a field's hierarchy may return. One seed reaching every option
+	// of a maximum-size field is PropertyGraphMaxOptions (100,000) rows, so
+	// this leaves room for a handful of seeds each doing that. Reaching it
+	// takes a hierarchy that is both large and an overlay -- most options
+	// reachable from most others, which is what options with many parents each
+	// produce -- walked from many seeds at once, which is what masking a value
+	// marked with hundreds of options does.
+	PropertyGraphMaxWalkRows = 250000
+
+	// PropertyGraphMaxMaskedOptions bounds the options the downward walk
+	// behind one masked value may visit. Reaching it takes a value marked with
+	// an option that has more than this many options below it -- a root, or
+	// something near one, of a hierarchy with tens of thousands of options --
+	// read by a caller who covers only part of it. The walk is one query per
+	// level, so this is also tens of queries on a read that has to stay cheap.
+	PropertyGraphMaxMaskedOptions = 10000
+
+	// PropertyFieldOptionCandidatesMaxPerRequest bounds how many candidate
+	// option rows one page of a listing may examine, independent of the page
+	// size asked for. Reaching it takes a caller who covers so little of a
+	// large hierarchy that most rows the page query reads are dropped by the
+	// coverage filter -- covering ten options of a hundred thousand, say.
+	// Unlike the other two this is not a refusal: the page ends there and the
+	// cursor resumes from the last candidate examined.
+	PropertyFieldOptionCandidatesMaxPerRequest = 2000
+)
+
 // propertyOptionReservedAttrs are the keys an option's Attrs may not carry.
 // Each of them names something PropertyFieldOption models directly or leaves
 // out on purpose, and the option list a field serves projects all four from
@@ -153,6 +197,50 @@ func (o *PropertyFieldOption) IsValid() error {
 	}
 
 	return nil
+}
+
+// PropertyFieldOptionPage is one page of a field's options, as the listing
+// endpoint returns it. A bare list of options cannot say whether the listing
+// continues past them -- a filtered page can be short with options still to
+// come -- so the page carries that separately.
+//
+// HasMore is the only signal that ends a listing: a short page does not, and
+// an empty page does not either. A caller loops while HasMore, sending
+// NextCursorCreateAt and NextCursorID back each time.
+//
+// The cursor names the last candidate row the page query *examined*, not the
+// last option it *returned*. Those differ whenever a coverage filter dropped
+// rows at the end of the window, and the difference is the whole point: a
+// caller resuming from the last option returned would re-examine the dropped
+// rows on every page, and a page that returns nothing at all would never
+// advance.
+//
+// Options is never nil when the call succeeded: an empty page serializes as
+// [] rather than null.
+type PropertyFieldOptionPage struct {
+	Options            []*PropertyFieldOption `json:"options"`
+	HasMore            bool                   `json:"has_more"`
+	NextCursorCreateAt int64                  `json:"next_cursor_create_at,omitempty"`
+	NextCursorID       string                 `json:"next_cursor_id,omitempty"`
+}
+
+// PropertyFieldOptionPageFilter is the coverage filter a listing's page query
+// is narrowed by, decided once per listing by the hooks and consumed by the
+// store.
+//
+// A nil filter means the caller may see every option the field has, which is
+// what an unmasked read is. ShowNothing means no page of this field will ever
+// show this caller anything, so the listing answers empty without reading a
+// row. CoveredBy names the caller's own options: a candidate is kept when one
+// of them is at-or-above it, the same covering relation the hooks' own
+// masking applies elsewhere -- this filter only narrows the query by it.
+//
+// ShowNothing is checked first when both fields are set on the same value. A
+// non-nil filter whose CoveredBy is empty means "nothing", not "everything":
+// a filter that failed to name any held option must fail closed.
+type PropertyFieldOptionPageFilter struct {
+	ShowNothing bool
+	CoveredBy   []string
 }
 
 // PropertyOptionEdge is one parent link between two options of the same

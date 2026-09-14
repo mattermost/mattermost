@@ -165,9 +165,9 @@ func TestGraphPropertyFieldAuthoring(t *testing.T) {
 	owned, resp, err := admin.GetPropertyFieldOptions(ctx, groupName, model.PropertyFieldObjectTypeTemplate, programs.ID, 0, "", model.PropertyFieldOptionsMaxPerRequest)
 	require.NoError(t, err)
 	CheckOKStatus(t, resp)
-	require.Len(t, owned, 3)
-	f18ID := optionByName(t, owned, f18Program).ID
-	fighterJetID := optionByName(t, owned, fighterJetProgram).ID
+	require.Len(t, owned.Options, 3)
+	f18ID := optionByName(t, owned.Options, f18Program).ID
+	fighterJetID := optionByName(t, owned.Options, fighterJetProgram).ID
 
 	// The two fields that serve the hierarchy without owning it. Every assertion
 	// about derivation below is made for both of them.
@@ -180,7 +180,7 @@ func TestGraphPropertyFieldAuthoring(t *testing.T) {
 	}
 
 	t.Run("the hierarchy is served through both linked fields, and is theirs to read only", func(t *testing.T) {
-		for _, option := range owned {
+		for _, option := range owned.Options {
 			assert.False(t, option.ReadOnly, "the field that owns %q may edit it", option.Name)
 		}
 
@@ -189,17 +189,17 @@ func TestGraphPropertyFieldAuthoring(t *testing.T) {
 				listed, resp, err := admin.GetPropertyFieldOptions(ctx, groupName, tc.objectType, tc.fieldID, 0, "", model.PropertyFieldOptionsMaxPerRequest)
 				require.NoError(t, err)
 				CheckOKStatus(t, resp)
-				require.Len(t, listed, 3)
+				require.Len(t, listed.Options, 3)
 
 				// The same options under the same identifiers, with the same
 				// hierarchy, and none of them this field's to change.
-				for _, option := range listed {
+				for _, option := range listed.Options {
 					assert.True(t, option.ReadOnly, "%q is the template's option, not this field's", option.Name)
 				}
-				assert.Empty(t, *optionByName(t, listed, airProgram).Parents)
-				assert.Equal(t, []string{airProgram}, *optionByName(t, listed, fighterJetProgram).Parents)
-				assert.Equal(t, []string{fighterJetProgram}, *optionByName(t, listed, f18Program).Parents)
-				assert.Equal(t, f18ID, optionByName(t, listed, f18Program).ID)
+				assert.Empty(t, *optionByName(t, listed.Options, airProgram).Parents)
+				assert.Equal(t, []string{airProgram}, *optionByName(t, listed.Options, fighterJetProgram).Parents)
+				assert.Equal(t, []string{fighterJetProgram}, *optionByName(t, listed.Options, f18Program).Parents)
+				assert.Equal(t, f18ID, optionByName(t, listed.Options, f18Program).ID)
 
 				// Editing one through the field that only serves it is refused,
 				// naming the field to go to instead.
@@ -307,8 +307,8 @@ func TestGraphPropertyFieldAuthoring(t *testing.T) {
 		for i, tc := range served {
 			listed, _, lErr := admin.GetPropertyFieldOptions(ctx, groupName, tc.objectType, tc.fieldID, 0, "", model.PropertyFieldOptionsMaxPerRequest)
 			require.NoError(t, lErr)
-			require.Len(t, listed, 4)
-			added := optionByName(t, listed, f35Program)
+			require.Len(t, listed.Options, 4)
+			added := optionByName(t, listed.Options, f35Program)
 			assert.True(t, added.ReadOnly)
 			assert.Equal(t, []string{fighterJetProgram}, *added.Parents)
 
@@ -340,7 +340,7 @@ func TestGraphPropertyFieldAuthoring(t *testing.T) {
 		// One transaction, so the item before the bad one was not written either.
 		listed, _, lErr := admin.GetPropertyFieldOptions(ctx, groupName, model.PropertyFieldObjectTypeTemplate, programs.ID, 0, "", model.PropertyFieldOptionsMaxPerRequest)
 		require.NoError(t, lErr)
-		assert.ElementsMatch(t, []string{airProgram, fighterJetProgram, f18Program, f35Program}, optionNames(listed))
+		assert.ElementsMatch(t, []string{airProgram, fighterJetProgram, f18Program, f35Program}, optionNames(listed.Options))
 	})
 }
 
@@ -454,12 +454,11 @@ func TestGraphPropertyFieldAboveHydrationCutoff(t *testing.T) {
 			page, resp, pErr := admin.GetPropertyFieldOptions(ctx, groupName, model.PropertyFieldObjectTypeTemplate, programs.ID, cursorCreateAt, cursorID, model.PropertyFieldOptionsMaxPerRequest)
 			require.NoError(t, pErr)
 			CheckOKStatus(t, resp)
-			if len(page) == 0 {
+			listed = append(listed, page.Options...)
+			if !page.HasMore {
 				break
 			}
-			listed = append(listed, page...)
-			last := page[len(page)-1]
-			cursorCreateAt, cursorID = last.CreateAt, last.ID
+			cursorCreateAt, cursorID = page.NextCursorCreateAt, page.NextCursorID
 		}
 		require.Len(t, listed, model.PropertyFieldMaxHydratedOptions+1)
 		assert.Equal(t, []string{airProgram}, *optionByName(t, listed, "Program 0000").Parents)
@@ -498,8 +497,8 @@ func TestGraphPropertyFieldAboveHydrationCutoff(t *testing.T) {
 		// size would be refused as naming nothing.
 		page, _, err := admin.GetPropertyFieldOptions(ctx, groupName, model.PropertyFieldObjectTypeUser, userPrograms.ID, 0, "", model.PropertyFieldOptionsMaxPerRequest)
 		require.NoError(t, err)
-		require.Len(t, page, model.PropertyFieldOptionsMaxPerRequest)
-		held := page[len(page)-1]
+		require.Len(t, page.Options, model.PropertyFieldOptionsMaxPerRequest)
+		held := page.Options[len(page.Options)-1]
 
 		upserted, resp, err := admin.PatchPropertyValues(ctx, groupName, model.PropertyFieldObjectTypeUser, th.BasicUser.Id, []model.PropertyValuePatchItem{{
 			FieldID: userPrograms.ID,

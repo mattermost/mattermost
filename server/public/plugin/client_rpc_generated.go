@@ -8829,11 +8829,11 @@ type Z_GetPropertyFieldOptionsArgs struct {
 }
 
 type Z_GetPropertyFieldOptionsReturns struct {
-	A []*model.PropertyFieldOption
+	A *model.PropertyFieldOptionPage
 	B error
 }
 
-func (g *apiRPCClient) GetPropertyFieldOptions(groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, error) {
+func (g *apiRPCClient) GetPropertyFieldOptions(groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) (*model.PropertyFieldOptionPage, error) {
 	_args := &Z_GetPropertyFieldOptionsArgs{groupID, fieldID, cursorCreateAt, cursorID, perPage}
 	_returns := &Z_GetPropertyFieldOptionsReturns{}
 	if err := g.client.Call("Plugin.GetPropertyFieldOptions", _args, _returns); err != nil {
@@ -8844,7 +8844,7 @@ func (g *apiRPCClient) GetPropertyFieldOptions(groupID, fieldID string, cursorCr
 
 func (s *apiRPCServer) GetPropertyFieldOptions(args *Z_GetPropertyFieldOptionsArgs, returns *Z_GetPropertyFieldOptionsReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetPropertyFieldOptions(groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, error)
+		GetPropertyFieldOptions(groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) (*model.PropertyFieldOptionPage, error)
 	}); ok {
 		returns.A, returns.B = hook.GetPropertyFieldOptions(args.A, args.B, args.C, args.D, args.E)
 		returns.B = encodableError(returns.B)

@@ -59,9 +59,9 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
 
     test.describe('access gate', () => {
         /**
-         * @objective Ensure the Manage Attributes admin route is unavailable when the feature flag is off.
+         * @objective Ensure the Attribute Management admin route is unavailable when the feature flag is off.
          */
-        test('feature flag off hides Manage Attributes regardless of license', async ({pw}) => {
+        test('feature flag off hides Attribute Management regardless of license', async ({pw}) => {
             const {adminUser, adminClient} = await getAdminClient();
 
             if (!adminUser || !adminClient) {
@@ -76,39 +76,43 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
                 'GlobalAttributes stays enabled (e.g. MM_FEATUREFLAGS or split-key overrides); cannot assert flag-off in this environment.',
             );
 
-            // # Navigate directly to the Manage Attributes path
+            // # Navigate directly to the Attribute Management path
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
 
             // * User is redirected away from the hidden route (no Route registered)
             await expect(systemConsolePage.page).not.toHaveURL(/manage_attributes/);
-            // * Manage Attributes menu entry is not shown in the sidebar
+            // * Attribute Management menu entry is not shown in the sidebar
             await expect(
-                systemConsolePage.page.getByTestId('admin-sidebar').getByText('Manage Attributes'),
+                systemConsolePage.page.getByTestId('admin-sidebar').getByText('Attribute Management'),
             ).not.toBeVisible();
         });
 
         /**
-         * @objective Ensure the Manage Attributes page is reachable and shows its page frame
+         * @objective Ensure the Attribute Management page is reachable and shows its page frame
          * once the feature flag is on and the license meets the Enterprise tier.
          */
         test('feature flag on with Enterprise+ license shows the page frame', async ({pw}) => {
             const {adminUser} = await requireGlobalAttributesEnabled(pw);
 
-            // # Log in and open the Manage Attributes URL
+            // # Log in and open the Attribute Management URL
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
 
-            // * URL stays on the Manage Attributes section
+            // * URL stays on the Attribute Management section
             await expect(systemConsolePage.page).toHaveURL(/manage_attributes/);
-            // * Sidebar menu entry and page heading are both visible ("Manage Attributes"
+            // * Sidebar menu entry and page heading are both visible ("Attribute Management"
             // renders in both places, so each is asserted within its own scope)
             await expect(
-                systemConsolePage.page.getByTestId('admin-sidebar').getByText('Manage Attributes'),
+                systemConsolePage.page.getByTestId('admin-sidebar').getByText('Attribute Management'),
             ).toBeVisible();
             await expect(
-                systemConsolePage.page.getByTestId('admin-console-header').getByText('Manage Attributes'),
+                systemConsolePage.page.getByTestId('admin-console-header').getByText('Attribute Management'),
             ).toBeVisible();
+            // * The old User Attributes sidebar entry is replaced by Attribute Management
+            await expect(
+                systemConsolePage.page.getByTestId('admin-sidebar').getByText('User Attributes', {exact: true}),
+            ).not.toBeVisible();
             // * Page frame's static subtitle is present (renders regardless of fetch state)
             await expect(
                 systemConsolePage.page.getByText('Define an attribute once, then choose which resources can use it.'),
@@ -206,7 +210,7 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
                     });
                 }
 
-                // # Log in and open the Manage Attributes page once every field is seeded
+                // # Log in and open the Attribute Management page once every field is seeded
                 const {systemConsolePage} = await pw.testBrowser.login(adminUser);
                 await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
 

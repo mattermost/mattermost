@@ -161,7 +161,7 @@ func getPropertyFieldOptions(c *Context, w http.ResponseWriter, r *http.Request)
 
 	perPage := min(c.Params.PerPage, maxPropertyFieldOptionItems)
 
-	options, appErr := c.App.GetPropertyFieldOptions(rctx, field.GroupID, field.ID, cursorCreateAt, cursorID, perPage)
+	page, appErr := c.App.GetPropertyFieldOptions(rctx, field.GroupID, field.ID, cursorCreateAt, cursorID, perPage)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -169,7 +169,9 @@ func getPropertyFieldOptions(c *Context, w http.ResponseWriter, r *http.Request)
 
 	auditRec.Success()
 
-	if err := json.NewEncoder(w).Encode(options); err != nil {
+	// No released client depends on this endpoint's response shape: Client4 and
+	// these api4 tests are its only consumers, so the shape is still free to change.
+	if err := json.NewEncoder(w).Encode(page); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

@@ -1119,7 +1119,12 @@ type API interface {
 	// Minimum server version: 5.10
 	PermanentDeleteBot(botUserId string) *model.AppError
 
-	// PluginHTTP allows inter-plugin requests to plugin APIs.
+	// PluginHTTP allows inter-plugin requests to plugin APIs. Deadlines and cancellation attached to
+	// request.Context() are propagated to updated destination plugins. If the context ends before
+	// response headers arrive, PluginHTTP returns nil and the caller can inspect request.Context().Err().
+	// If it ends after headers arrive, reads from the response body return the context error.
+	// Context propagation requires Mattermost server v12.0 or later.
+	// Calls to older servers retain legacy behavior and may not return promptly after cancellation.
 	//
 	// Minimum server version: 5.18
 	PluginHTTP(request *http.Request) *http.Response
@@ -1587,12 +1592,15 @@ type API interface {
 	// A page holds the options this caller may see, which on a field whose
 	// options are access-controlled is fewer than the field has -- and on one
 	// whose options form a hierarchy the options above the caller's own are
-	// withheld along with their names, so those options carry no parents. A page
-	// shorter than the size asked for is the end of what the caller may see.
+	// withheld along with their names, so those options carry no parents.
+	// Continue while the page's HasMore is true, passing its NextCursorCreateAt
+	// and NextCursorID back on the next call: the page length alone does not say
+	// whether the listing is over, and the cursor names the last option the page
+	// query examined rather than the last one it returned.
 	//
 	// @tag PropertyField
 	// Minimum server version: 11.10
-	GetPropertyFieldOptions(groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, error)
+	GetPropertyFieldOptions(groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) (*model.PropertyFieldOptionPage, error)
 
 	// CreatePropertyFieldOptions adds options to a property field, at most 200
 	// per call. Each option may name the options it sits under, by name, in

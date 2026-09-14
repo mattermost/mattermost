@@ -219,16 +219,31 @@ BEGIN
 END
 $$;
 
--- The rows are now authoritative; drop the blob key so there is exactly one
--- place options live. Only for the types that were backfilled.
-UPDATE PropertyFields
-   SET Attrs = Attrs - 'options'
- WHERE Type IN ('select', 'multiselect', 'rank')
-   AND Attrs->'options' IS NOT NULL;
+-- The blob is left in place rather than stripped. Upgraded code reads and
+-- writes options only through PropertyOptions: hydratePropertyFieldOptions
+-- (property_field_options.go) deletes the options key from every field it
+-- returns before repopulating it from these rows, and storedFieldAttrs (same
+-- file) drops the key from every field write, so nothing upgraded ever reads
+-- the blob back. A node still running pre-upgrade code has no such rewrite --
+-- it reads option lists straight out of Attrs->'options' -- so stripping the
+-- key here would make every select, multiselect and rank field look
+-- optionless to it for as long as the upgrade takes to roll out. Leaving the
+-- blob keeps that node serving the pre-upgrade list instead.
+--
+-- Accepted for the length of the upgrade window: an option edit made on an
+-- upgraded node is invisible to one that has not upgraded, and a field write
+-- from a not-yet-upgraded node is ignored by the upgraded ones. The fallback
+-- also degrades field by field rather than staying in step -- storedFieldAttrs
+-- rewrites the whole Attrs column, so the first write to a field from
+-- upgraded code erases that field's blob. That is the consequence of choosing
+-- not to dual-write, not an oversight.
+--
+-- The blob's removal is a migration of its own, in a later release, once
+-- every supported node reads options from PropertyOptions.
 
--- Both attribute views resolved option names out of the blob, which is now
--- empty, so both have to be redefined here or every policy referencing a
--- select-style attribute starts matching nothing.
+-- Both attribute views resolved option names out of the blob, so both have to
+-- be redefined here or every policy referencing a select-style attribute
+-- starts matching nothing.
 --
 -- Two changes from the previous definitions. The jsonb_to_recordset over
 -- Attrs->'options' becomes a lookup against PropertyOptions, and the lookup is

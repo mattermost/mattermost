@@ -35,10 +35,10 @@ func TestFieldOptionsWritableField(t *testing.T) {
 		_, err = th.service.CreateFieldOptions(th.Context, graph.field.GroupID, graph.field.ID, newOption("Land"))
 		require.NoError(t, err)
 
-		options, err := th.service.GetFieldOptions(th.Context, graph.field.GroupID, graph.field.ID, 0, "", 100)
+		page, err := th.service.GetFieldOptions(th.Context, graph.field.GroupID, graph.field.ID, 0, "", 100)
 		require.NoError(t, err)
-		names := make([]string, 0, len(options))
-		for _, option := range options {
+		names := make([]string, 0, len(page.Options))
+		for _, option := range page.Options {
 			names = append(names, option.Name)
 		}
 		require.ElementsMatch(t, []string{"Air", "Sea", "Land"}, names)
@@ -79,9 +79,9 @@ func TestFieldOptionsWritableField(t *testing.T) {
 		require.Error(t, err)
 		require.ErrorContains(t, err, "rank field")
 
-		options, err := th.service.GetFieldOptions(th.Context, rank.GroupID, rank.ID, 0, "", 100)
+		page, err := th.service.GetFieldOptions(th.Context, rank.GroupID, rank.ID, 0, "", 100)
 		require.NoError(t, err)
-		require.Len(t, options, 1, "reading a rank field's options is still allowed")
+		require.Len(t, page.Options, 1, "reading a rank field's options is still allowed")
 
 		// A caller that forgot a page size is told, rather than being handed an
 		// empty page it would read as a field with no options.
@@ -90,12 +90,12 @@ func TestFieldOptionsWritableField(t *testing.T) {
 		require.ErrorContains(t, err, "positive page size")
 
 		_, _, err = th.service.UpdateFieldOptions(th.Context, rank.GroupID, rank.ID, []*model.PropertyFieldOption{
-			{ID: options[0].ID, Name: "Renamed"},
+			{ID: page.Options[0].ID, Name: "Renamed"},
 		})
 		require.Error(t, err)
 		require.ErrorContains(t, err, "rank field")
 
-		_, err = th.service.DeleteFieldOptions(th.Context, rank.GroupID, rank.ID, []string{options[0].ID})
+		_, err = th.service.DeleteFieldOptions(th.Context, rank.GroupID, rank.ID, []string{page.Options[0].ID})
 		require.Error(t, err)
 		require.ErrorContains(t, err, "rank field")
 	})
@@ -165,10 +165,10 @@ func TestFieldOptionsAccessControl(t *testing.T) {
 
 	optionID := func(t *testing.T, field *model.PropertyField) string {
 		t.Helper()
-		options, err := th.service.GetFieldOptions(source, field.GroupID, field.ID, 0, "", 100)
+		page, err := th.service.GetFieldOptions(source, field.GroupID, field.ID, 0, "", 100)
 		require.NoError(t, err)
-		require.Len(t, options, 1)
-		return options[0].ID
+		require.Len(t, page.Options, 1)
+		return page.Options[0].ID
 	}
 
 	t.Run("a protected field's options are the source plugin's alone to change", func(t *testing.T) {
@@ -214,9 +214,9 @@ func TestFieldOptionsAccessControl(t *testing.T) {
 		attrs[model.PropertyAttrsAccessMode] = model.PropertyAccessModeSourceOnly
 		field := fieldWith(t, th.CPAGroupID, attrs)
 
-		options, err := th.service.GetFieldOptions(source, field.GroupID, field.ID, 0, "", 100)
+		page, err := th.service.GetFieldOptions(source, field.GroupID, field.ID, 0, "", 100)
 		require.NoError(t, err)
-		require.Len(t, options, 1)
+		require.Len(t, page.Options, 1)
 
 		// The field read hands these two an option list that has been emptied, so
 		// the rows behind it cannot answer in full either.
@@ -224,34 +224,34 @@ func TestFieldOptionsAccessControl(t *testing.T) {
 		// An emptied page, not a missing one: a nil page serializes as null rather
 		// than [], which a caller looping over the page cannot read, and it is what
 		// a filter that builds its result by appending returns.
-		options, err = th.service.GetFieldOptions(other, field.GroupID, field.ID, 0, "", 100)
+		page, err = th.service.GetFieldOptions(other, field.GroupID, field.ID, 0, "", 100)
 		require.NoError(t, err)
-		require.NotNil(t, options)
-		require.Empty(t, options)
+		require.NotNil(t, page.Options)
+		require.Empty(t, page.Options)
 
-		options, err = th.service.GetFieldOptions(admin, field.GroupID, field.ID, 0, "", 100)
+		page, err = th.service.GetFieldOptions(admin, field.GroupID, field.ID, 0, "", 100)
 		require.NoError(t, err)
-		require.NotNil(t, options)
-		require.Empty(t, options)
+		require.NotNil(t, page.Options)
+		require.Empty(t, page.Options)
 	})
 
 	t.Run("a public field's options are readable and writable as before", func(t *testing.T) {
 		field := fieldWith(t, th.CPAGroupID, model.StringInterface{})
 
-		options, err := th.service.GetFieldOptions(other, field.GroupID, field.ID, 0, "", 100)
+		page, err := th.service.GetFieldOptions(other, field.GroupID, field.ID, 0, "", 100)
 		require.NoError(t, err)
-		require.Len(t, options, 1)
-		require.NoError(t, changes[0].call(other, field, options[0].ID))
+		require.Len(t, page.Options, 1)
+		require.NoError(t, changes[0].call(other, field, page.Options[0].ID))
 	})
 
 	t.Run("a group nothing manages is not gated at all", func(t *testing.T) {
 		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 		field := fieldWith(t, group.ID, protectedAttrs())
 
-		options, err := th.service.GetFieldOptions(other, field.GroupID, field.ID, 0, "", 100)
+		page, err := th.service.GetFieldOptions(other, field.GroupID, field.ID, 0, "", 100)
 		require.NoError(t, err)
-		require.Len(t, options, 1)
-		require.NoError(t, changes[0].call(other, field, options[0].ID))
+		require.Len(t, page.Options, 1)
+		require.NoError(t, changes[0].call(other, field, page.Options[0].ID))
 	})
 }
 
