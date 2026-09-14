@@ -8744,10 +8744,10 @@ func (s *TimerLayerPropertyFieldStore) GetFieldByNameForObjectType(rctx request.
 	return result, err
 }
 
-func (s *TimerLayerPropertyFieldStore) GetFieldOptions(field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, error) {
+func (s *TimerLayerPropertyFieldStore) GetFieldOptions(field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int, filter *model.PropertyFieldOptionPageFilter) (*model.PropertyFieldOptionPage, error) {
 	start := time.Now()
 
-	result, err := s.PropertyFieldStore.GetFieldOptions(field, cursorCreateAt, cursorID, perPage)
+	result, err := s.PropertyFieldStore.GetFieldOptions(field, cursorCreateAt, cursorID, perPage, filter)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"database/sql"
 	"fmt"
 	"maps"
 	"math"
@@ -283,11 +284,62 @@ func flatOption(option *model.PropertyFieldOption) map[string]any {
 // hierarchy. A name is the only reference the write side accepts, and an option
 // name is unique across a field's effective set, so a page of options carries
 // enough to rebuild the part of the hierarchy it covers.
-func (s *SqlPropertyFieldStore) GetFieldOptions(field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, error) {
+//
+// filter narrows the page to the options a caller covers, applied inside the
+// page query itself rather than after it -- see getFieldOptionsPage. A nil
+// filter reads everything the field has to offer, which is what an unmasked
+// read is.
+func (s *SqlPropertyFieldStore) GetFieldOptions(field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int, filter *model.PropertyFieldOptionPageFilter) (*model.PropertyFieldOptionPage, error) {
+	return s.getFieldOptionsPage(field, cursorCreateAt, cursorID, perPage, filter, model.PropertyFieldOptionCandidatesMaxPerRequest)
+}
+
+// getFieldOptionsPage is GetFieldOptions with the candidate-window bound taken
+// as an argument, for the same reason walkOptionHierarchy takes maxRows as one:
+// the test below drives it over a handful of rows instead of two thousand.
+func (s *SqlPropertyFieldStore) getFieldOptionsPage(field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int, filter *model.PropertyFieldOptionPageFilter, maxCandidates int) (*model.PropertyFieldOptionPage, error) {
 	if field == nil || perPage <= 0 {
 		return nil, nil
 	}
 
+	// A non-nil filter with nothing in CoveredBy fails closed rather than open:
+	// it is a filter that named no option the caller holds, not a filter that
+	// was never applied.
+	if filter != nil && (filter.ShowNothing || len(filter.CoveredBy) == 0) {
+		return &model.PropertyFieldOptionPage{Options: []*model.PropertyFieldOption{}}, nil
+	}
+
+	replica := s.GetReplica()
+
+	var rows []*propertyOptionRow
+	var page *model.PropertyFieldOptionPage
+	var err error
+	if filter == nil {
+		rows, page, err = s.unfilteredFieldOptionsPage(replica, field, cursorCreateAt, cursorID, perPage)
+	} else {
+		rows, page, err = s.filteredFieldOptionsPage(replica, field, cursorCreateAt, cursorID, perPage, filter.CoveredBy, maxCandidates)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	options := make([]*model.PropertyFieldOption, 0, len(rows))
+	for _, row := range rows {
+		options = append(options, row.fieldOption(field.ID))
+	}
+	// Parent names are attached only to the options actually returned, never to
+	// the wider candidate window a filtered page reads to find them.
+	if field.Type == model.PropertyFieldTypeGraph {
+		if err := s.attachOptionParentNames(replica, field, options); err != nil {
+			return nil, err
+		}
+	}
+	page.Options = options
+	return page, nil
+}
+
+// unfilteredFieldOptionsPage is today's plain keyset page, unchanged: no
+// candidate window is involved because nothing is being dropped out of it.
+func (s *SqlPropertyFieldStore) unfilteredFieldOptionsPage(replica *sqlxDBWrapper, field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int) ([]*propertyOptionRow, *model.PropertyFieldOptionPage, error) {
 	builder := s.getQueryBuilder().
 		Select(propertyOptionColumns...).
 		From("PropertyOptions").
@@ -306,24 +358,141 @@ func (s *SqlPropertyFieldStore) GetFieldOptions(field *model.PropertyField, curs
 		})
 	}
 
-	replica := s.GetReplica()
 	rows := []*propertyOptionRow{}
 	if err := replica.SelectBuilder(&rows, builder); err != nil {
-		return nil, errors.Wrap(err, "property_options_page_query")
+		return nil, nil, errors.Wrap(err, "property_options_page_query")
 	}
 
-	options := make([]*model.PropertyFieldOption, 0, len(rows))
-	for _, row := range rows {
-		options = append(options, row.fieldOption(field.ID))
+	page := &model.PropertyFieldOptionPage{HasMore: len(rows) == perPage}
+	if page.HasMore {
+		last := rows[len(rows)-1]
+		page.NextCursorCreateAt, page.NextCursorID = last.CreateAt, last.ID
+	}
+	return rows, page, nil
+}
+
+// filteredFieldOptionsPage is a page of options narrowed to the ones covered
+// by coveredBy, in one statement:
+//
+//	WITH RECURSIVE covered (OptionID) AS (
+//	    <coveredBy's own live rows>
+//	  UNION
+//	    <options one step below something already in covered>
+//	), candidates AS (
+//	    <the next maxCandidates live rows after the cursor>
+//	)
+//	SELECT ... FROM candidates WHERE ID IN (SELECT OptionID FROM covered)
+//	ORDER BY CreateAt ASC, ID ASC LIMIT perPage
+//
+// covered walks **down** from the caller's own options, which is the direction
+// filterSharedOnlyGraphOptionPage (access_control.go) deliberately does not
+// take in Go. In SQL the trade goes the other way: covered is deduplicated by
+// option, so it is bounded by the field's option count -- PropertyGraphMaxOptions,
+// 100,000 -- whereas walking up from the candidates would produce (candidate,
+// ancestor) pairs, up to two thousand times that, which is the product
+// PropertyGraphMaxWalkRows exists to refuse. The set covered never leaves the
+// database; only the page does.
+//
+// UNION, not UNION ALL, for the reason walkOptionHierarchy's comment gives: it
+// enumerates the options reached rather than the paths to them, and it is what
+// ends the walk if the edges ever form a cycle.
+//
+// covered's seeds come from PropertyOptions rather than straight from
+// coveredBy, so a held option that is no longer live reaches nothing.
+//
+// LIMIT applies to candidates, after covered has already been computed in
+// full -- so a page comes back full while options remain, rather than being
+// filtered down from a LIMIT taken before the masking. That is the whole point
+// of doing this in the query instead of in Go.
+func (s *SqlPropertyFieldStore) filteredFieldOptionsPage(replica *sqlxDBWrapper, field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int, coveredBy []string, maxCandidates int) ([]*propertyOptionRow, *model.PropertyFieldOptionPage, error) {
+	ownerID := graphOptionOwnerID(field)
+
+	// coveredBy is the caller's own options for one field, which
+	// getCallerValuesForField already bounds at a thousand values, so this is
+	// small in practice. Chunk it with slices.Chunk(..., maxOptionIDsPerQuery)
+	// the way optionParentEdges does if a caller can ever hold more than that.
+	coveredSeeds := s.getSubQueryBuilder().
+		Select("opt.ID").
+		From("PropertyOptions opt").
+		Where(sq.Eq{"opt.FieldID": ownerID}).
+		Where(sq.Eq{"opt.ID": coveredBy}).
+		Where(sq.Eq{"opt.DeleteAt": 0})
+
+	candidatesQuery := func() sq.SelectBuilder {
+		builder := s.getSubQueryBuilder().
+			Select(propertyOptionColumns...).
+			From("PropertyOptions").
+			Where(sq.Eq{"FieldID": optionOwnerIDs(field)}).
+			Where(sq.Eq{"DeleteAt": 0})
+		if cursorID != "" {
+			builder = builder.Where(sq.Or{
+				sq.Gt{"CreateAt": cursorCreateAt},
+				sq.And{
+					sq.Eq{"CreateAt": cursorCreateAt},
+					sq.Gt{"ID": cursorID},
+				},
+			})
+		}
+		return builder.OrderBy("CreateAt ASC", "ID ASC").Limit(uint64(maxCandidates))
 	}
 
-	if field.Type != model.PropertyFieldTypeGraph {
-		return options, nil
+	pageBuilder := s.getQueryBuilder().
+		Select(propertyOptionColumns...).
+		From("candidates").
+		Where("ID IN (SELECT OptionID FROM covered)").
+		OrderBy("CreateAt ASC", "ID ASC").
+		Limit(uint64(perPage)).
+		Prefix(`WITH RECURSIVE covered (OptionID) AS (
+			? UNION
+			SELECT edge.ChildOptionID FROM PropertyOptionEdges edge
+			JOIN covered ON covered.OptionID = edge.ParentOptionID
+			WHERE edge.FieldID = ?
+		), candidates AS (?)`, coveredSeeds, ownerID, candidatesQuery())
+
+	rows := []*propertyOptionRow{}
+	if err := replica.SelectBuilder(&rows, pageBuilder); err != nil {
+		return nil, nil, errors.Wrap(err, "property_options_filtered_page_query")
 	}
-	if err := s.attachOptionParentNames(replica, field, options); err != nil {
-		return nil, err
+
+	page := &model.PropertyFieldOptionPage{}
+	if len(rows) == perPage {
+		// The common case: the page filled without running out of candidates, so
+		// there may be more and the cursor resumes right after what was returned.
+		page.HasMore = true
+		last := rows[len(rows)-1]
+		page.NextCursorCreateAt, page.NextCursorID = last.CreateAt, last.ID
+		return rows, page, nil
 	}
-	return options, nil
+
+	// The page came up short of perPage, which on its own could mean either that
+	// the listing ended or that the coverage filter dropped most of a full
+	// candidate window. Telling those apart -- and resuming past the dropped
+	// rows either way -- costs a second, cheap query over the same candidates:
+	// its own tail row, and how many rows the window held.
+	tailBuilder := s.getQueryBuilder().
+		Select("ID", "CreateAt", "COUNT(*) OVER () AS Examined").
+		From("candidates").
+		OrderBy("CreateAt DESC", "ID DESC").
+		Limit(1).
+		Prefix("WITH candidates AS (?)", candidatesQuery())
+
+	var tail struct {
+		ID       string
+		CreateAt int64
+		Examined int
+	}
+	switch err := replica.GetBuilder(&tail, tailBuilder); {
+	case errors.Is(err, sql.ErrNoRows):
+		// The candidate window was empty: nothing is left to examine, so the
+		// listing is over.
+		return rows, page, nil
+	case err != nil:
+		return nil, nil, errors.Wrap(err, "property_options_filtered_page_tail_query")
+	}
+
+	page.NextCursorCreateAt, page.NextCursorID = tail.CreateAt, tail.ID
+	page.HasMore = tail.Examined == maxCandidates
+	return rows, page, nil
 }
 
 // attachOptionParentNames fills in the parents of each of the given options, by

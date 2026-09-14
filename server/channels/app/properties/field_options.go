@@ -278,12 +278,12 @@ func (ps *PropertyService) GetFieldOptions(rctx request.CTX, groupID, fieldID st
 	// from an empty slice settles it for every path out of here.
 	options := []*model.PropertyFieldOption{}
 	for {
-		page, err := ps.fieldStore.GetFieldOptions(field, cursorCreateAt, cursorID, perPage)
+		storePage, err := ps.fieldStore.GetFieldOptions(field, cursorCreateAt, cursorID, perPage, nil)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to read a property field's options")
 		}
 
-		visible, err := ps.runPostGetPropertyFieldOptions(rctx, field, page)
+		visible, err := ps.runPostGetPropertyFieldOptions(rctx, field, storePage.Options)
 		if err != nil {
 			return nil, err
 		}
@@ -291,10 +291,10 @@ func (ps *PropertyService) GetFieldOptions(rctx request.CTX, groupID, fieldID st
 
 		// A page the store answered short is the end of the field's options.
 		// Anything else, and the answer is full once perPage of them survived.
-		if len(page) < perPage || len(options) >= perPage {
+		if len(storePage.Options) < perPage || len(options) >= perPage {
 			break
 		}
-		last := page[len(page)-1]
+		last := storePage.Options[len(storePage.Options)-1]
 		cursorCreateAt, cursorID = last.CreateAt, last.ID
 	}
 

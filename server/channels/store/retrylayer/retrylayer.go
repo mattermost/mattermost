@@ -10915,11 +10915,11 @@ func (s *RetryLayerPropertyFieldStore) GetFieldByNameForObjectType(rctx request.
 
 }
 
-func (s *RetryLayerPropertyFieldStore) GetFieldOptions(field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, error) {
+func (s *RetryLayerPropertyFieldStore) GetFieldOptions(field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int, filter *model.PropertyFieldOptionPageFilter) (*model.PropertyFieldOptionPage, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyFieldStore.GetFieldOptions(field, cursorCreateAt, cursorID, perPage)
+		result, err := s.PropertyFieldStore.GetFieldOptions(field, cursorCreateAt, cursorID, perPage, filter)
 		if err == nil {
 			return result, nil
 		}

@@ -397,29 +397,29 @@ func (_m *PropertyFieldStore) GetFieldByNameForObjectType(rctx request.CTX, grou
 	return r0, r1
 }
 
-// GetFieldOptions provides a mock function with given fields: field, cursorCreateAt, cursorID, perPage
-func (_m *PropertyFieldStore) GetFieldOptions(field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int) ([]*model.PropertyFieldOption, error) {
-	ret := _m.Called(field, cursorCreateAt, cursorID, perPage)
+// GetFieldOptions provides a mock function with given fields: field, cursorCreateAt, cursorID, perPage, filter
+func (_m *PropertyFieldStore) GetFieldOptions(field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int, filter *model.PropertyFieldOptionPageFilter) (*model.PropertyFieldOptionPage, error) {
+	ret := _m.Called(field, cursorCreateAt, cursorID, perPage, filter)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetFieldOptions")
 	}
 
-	var r0 []*model.PropertyFieldOption
+	var r0 *model.PropertyFieldOptionPage
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*model.PropertyField, int64, string, int) ([]*model.PropertyFieldOption, error)); ok {
-		return rf(field, cursorCreateAt, cursorID, perPage)
+	if rf, ok := ret.Get(0).(func(*model.PropertyField, int64, string, int, *model.PropertyFieldOptionPageFilter) (*model.PropertyFieldOptionPage, error)); ok {
+		return rf(field, cursorCreateAt, cursorID, perPage, filter)
 	}
-	if rf, ok := ret.Get(0).(func(*model.PropertyField, int64, string, int) []*model.PropertyFieldOption); ok {
-		r0 = rf(field, cursorCreateAt, cursorID, perPage)
+	if rf, ok := ret.Get(0).(func(*model.PropertyField, int64, string, int, *model.PropertyFieldOptionPageFilter) *model.PropertyFieldOptionPage); ok {
+		r0 = rf(field, cursorCreateAt, cursorID, perPage, filter)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.PropertyFieldOption)
+			r0 = ret.Get(0).(*model.PropertyFieldOptionPage)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*model.PropertyField, int64, string, int) error); ok {
-		r1 = rf(field, cursorCreateAt, cursorID, perPage)
+	if rf, ok := ret.Get(1).(func(*model.PropertyField, int64, string, int, *model.PropertyFieldOptionPageFilter) error); ok {
+		r1 = rf(field, cursorCreateAt, cursorID, perPage, filter)
 	} else {
 		r1 = ret.Error(1)
 	}
