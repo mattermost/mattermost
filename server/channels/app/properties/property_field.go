@@ -131,7 +131,10 @@ func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.Pr
 			)
 		}
 
-		// Copy type and options from source
+		// Copy type, options, and sync source from source. The sync source
+		// (ldap/saml) must match the template's, since it defines where the
+		// value comes from -- a linked field can't independently claim a
+		// different sync source than the definition it links to.
 		field.Type = source.Type
 		if field.Attrs == nil {
 			field.Attrs = make(model.StringInterface)
@@ -139,6 +142,12 @@ func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.Pr
 		if source.Attrs != nil {
 			if opts, ok := source.Attrs[model.PropertyFieldAttributeOptions]; ok {
 				field.Attrs[model.PropertyFieldAttributeOptions] = opts
+			}
+			if ldap, ok := source.Attrs[model.PropertyFieldAttrLDAP]; ok {
+				field.Attrs[model.PropertyFieldAttrLDAP] = ldap
+			}
+			if saml, ok := source.Attrs[model.PropertyFieldAttrSAML]; ok {
+				field.Attrs[model.PropertyFieldAttrSAML] = saml
 			}
 		}
 

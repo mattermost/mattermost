@@ -106,7 +106,11 @@ func (p *PluginService) GetPluginStatus(id string) (*model.PluginStatus, error) 
 	return pluginStatus, normalizeAppErr(appErr)
 }
 
-// HTTP allows inter-plugin requests to plugin APIs.
+// HTTP allows inter-plugin requests to plugin APIs. Deadlines and cancellation attached to
+// request.Context() are propagated to updated destination plugins. It returns nil when the
+// context ends before response headers arrive; after headers, body reads return the context error.
+// Context propagation requires Mattermost server v12.0 or later.
+// Calls to older servers retain legacy behavior and may not return promptly after cancellation.
 //
 // Minimum server version: 5.18
 func (p *PluginService) HTTP(request *http.Request) *http.Response {
