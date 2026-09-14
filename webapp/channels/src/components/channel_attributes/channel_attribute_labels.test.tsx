@@ -7,7 +7,8 @@ import React from 'react';
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import * as rhsActions from 'actions/views/rhs';
+import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -83,13 +84,14 @@ function makeState(fields: PropertyField[], flag = 'true'): DeepPartial<GlobalSt
     } as DeepPartial<GlobalState>;
 }
 
-// jsdom does not lay out, so widths are stubbed: the container reports
-// `containerWidth` and every chip a fixed width. That is enough to exercise the
-// accumulate-and-split logic, which is the part with the bugs in it.
+// jsdom does not lay out, so widths are stubbed. Overflow is measured from the
+// parent (space left by siblings), so the parent of ChannelAttributeLabels
+// reports `containerWidth` and every chip a fixed width.
 function stubWidths(containerWidth: number, chipWidth = 60) {
     jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function(this: HTMLElement) {
-        const isContainer = this.classList.contains('ChannelAttributeLabels');
-        return {width: isContainer ? containerWidth : chipWidth} as DOMRect;
+        const isLabels = this.classList.contains('ChannelAttributeLabels');
+        const isParentOfLabels = Boolean(this.querySelector?.(':scope > .ChannelAttributeLabels'));
+        return {width: isLabels || isParentOfLabels ? containerWidth : chipWidth} as DOMRect;
     });
 }
 
@@ -113,6 +115,24 @@ describe('ChannelAttributeLabels', () => {
 
         expect(screen.getByTestId('channelAttributeLabels-info')).toBeInTheDocument();
         expect(screen.queryByTestId('channelAttributeLabels-header')).not.toBeInTheDocument();
+    });
+
+    test('renders chips from every requested surface in one row', async () => {
+        stubWidths(1000);
+        const info = field('program');
+        info.attrs = {...info.attrs, actions: ['display_label_info']};
+
+        renderWithContext(
+            <ChannelAttributeLabels
+                channelId={CHANNEL_ID}
+                surface={['info', 'header']}
+            />,
+            makeState([info, field('classification')]),
+        );
+
+        await waitFor(() => expect(screen.getAllByTestId('attributeChip')).toHaveLength(2));
+        expect(screen.getByTestId('channelAttributeLabels-info-header')).toBeInTheDocument();
+        expect(screen.queryByTestId('channelAttributeLabelsOverflow-info-header')).not.toBeInTheDocument();
     });
 
     test('renders nothing when no attribute is designated for the header', () => {
@@ -177,6 +197,7 @@ describe('ChannelAttributeLabels', () => {
         );
 
         await waitFor(() => expect(screen.getAllByTestId('attributeChip')).toHaveLength(3));
+        expect(screen.getAllByTestId('attributeChip')[0]).toHaveClass('AttributeChip--medium');
         expect(screen.queryByTestId('channelAttributeLabelsOverflow-header')).not.toBeInTheDocument();
     });
 
@@ -212,6 +233,50 @@ describe('ChannelAttributeLabels', () => {
         expect(screen.getAllByTestId('attributeChip')).toHaveLength(1);
     });
 
+    test('in the thread header, overflows every chip into +N when none fit', async () => {
+        stubWidths(10);
+
+        renderWithContext(
+            <ChannelAttributeLabels
+                channelId={CHANNEL_ID}
+                surface='header'
+                allowEmptyVisible={true}
+            />,
+            makeState([field('a'), field('b'), field('c')]),
+        );
+
+        const overflow = await screen.findByTestId('channelAttributeLabelsOverflow-header');
+        expect(overflow).toHaveTextContent('+3');
+        expect(screen.queryByTestId('attributeChip')).not.toBeInTheDocument();
+    });
+
+    test('in the thread header, the channel name yields so chips are not squeezed out', async () => {
+        // Room for one 60px chip plus +N. A 60px channel-name sibling would
+        // consume that leftover if counted, collapsing every chip into +3.
+        stubWidths(110);
+
+        renderWithContext(
+            <div className='sidebar--right__title'>
+                <button
+                    type='button'
+                    className='sidebar--right__title__channel'
+                >
+                    {'Off-Topic'}
+                </button>
+                <ChannelAttributeLabels
+                    channelId={CHANNEL_ID}
+                    surface='header'
+                    allowEmptyVisible={true}
+                />
+            </div>,
+            makeState([field('a'), field('b'), field('c')]),
+        );
+
+        const overflow = await screen.findByTestId('channelAttributeLabelsOverflow-header');
+        expect(overflow).toHaveTextContent('+2');
+        expect(screen.getAllByTestId('attributeChip')).toHaveLength(1);
+    });
+
     test('lists the overflowed attributes in the popover', async () => {
         stubWidths(110);
 
@@ -231,6 +296,7 @@ describe('ChannelAttributeLabels', () => {
         const popover = await screen.findByTestId('channelAttributeLabelsPopover-header');
         expect(popover).toHaveTextContent('B');
         expect(popover).toHaveTextContent('C');
+        expect(screen.getByTestId('channelAttributeLabelsViewAll-header')).toHaveTextContent('View all attributes');
     });
 
     // Regression: labels arrive after mount, so the split state starts life sized
@@ -275,5 +341,101 @@ describe('ChannelAttributeLabels', () => {
             state,
         );
         expect((await screen.findByTestId('channelAttributeLabelsOverflow-header')).textContent).toBe(firstCount);
+    });
+
+    test('opens channel info when a chip is clicked', async () => {
+        stubWidths(1000);
+        const showChannelInfo = jest.spyOn(rhsActions, 'showChannelInfo');
+
+        renderWithContext(
+            <ChannelAttributeLabels
+                channelId={CHANNEL_ID}
+                surface='header'
+            />,
+            makeState([field('program')]),
+        );
+
+        await userEvent.click(await screen.findByTestId('attributeChip'));
+        expect(showChannelInfo).toHaveBeenCalledWith(CHANNEL_ID);
+    });
+
+    test('opens channel info when an overflowed chip is clicked', async () => {
+        stubWidths(110);
+        const showChannelInfo = jest.spyOn(rhsActions, 'showChannelInfo');
+
+        renderWithContext(
+            <ChannelAttributeLabels
+                channelId={CHANNEL_ID}
+                surface='header'
+            />,
+            makeState([field('a'), field('b'), field('c')]),
+        );
+
+        const overflow = await screen.findByTestId('channelAttributeLabelsOverflow-header');
+        await act(async () => {
+            overflow.click();
+        });
+
+        const popover = await screen.findByTestId('channelAttributeLabelsPopover-header');
+        await userEvent.click(popover.querySelector('[data-testid="attributeChip"]')!);
+        expect(showChannelInfo).toHaveBeenCalledWith(CHANNEL_ID);
+    });
+
+    test('shows every chip when the title row has room after a 100px header-text floor', async () => {
+        jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function(this: HTMLElement) {
+            if (this.classList.contains('channel-header__title')) {
+                return {width: 1000} as DOMRect;
+            }
+            if (this.classList.contains('channel-header__top')) {
+                return {width: 80} as DOMRect;
+            }
+
+            // Greedy description: leftover after the name. Chips must still use
+            // the 100px floor, not this inflated width, or they stay collapsed.
+            if (this.classList.contains('channel-header__description')) {
+                return {width: 700} as DOMRect;
+            }
+            return {width: 60} as DOMRect;
+        });
+
+        renderWithContext(
+            <div className='channel-header__title'>
+                <div className='channel-header__top'/>
+                <div className='channel-header__icons'>
+                    <ChannelAttributeLabels
+                        channelId={CHANNEL_ID}
+                        surface='header'
+                    />
+                </div>
+                <div className='channel-header__description'>
+                    Testing a long channel header and how it looks
+                </div>
+            </div>,
+            makeState([field('a'), field('b'), field('c')]),
+        );
+
+        await waitFor(() => expect(screen.getAllByTestId('attributeChip')).toHaveLength(3));
+        expect(screen.queryByTestId('channelAttributeLabelsOverflow-header')).not.toBeInTheDocument();
+    });
+
+    test('opens channel info from View all attributes', async () => {
+        stubWidths(110);
+        const showChannelInfo = jest.spyOn(rhsActions, 'showChannelInfo');
+
+        renderWithContext(
+            <ChannelAttributeLabels
+                channelId={CHANNEL_ID}
+                surface='header'
+            />,
+            makeState([field('a'), field('b'), field('c')]),
+        );
+
+        const overflow = await screen.findByTestId('channelAttributeLabelsOverflow-header');
+        await act(async () => {
+            overflow.click();
+        });
+
+        await userEvent.click(await screen.findByTestId('channelAttributeLabelsViewAll-header'));
+        expect(showChannelInfo).toHaveBeenCalledWith(CHANNEL_ID);
     });
 });

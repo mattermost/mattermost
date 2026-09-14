@@ -87,6 +87,15 @@
 // classes (not just .AttributeExternalSource__trigger alone) so this
 // selector's specificity reliably beats _buttons.scss's own same-named rule,
 // regardless of stylesheet load order.
+// WithTooltip clones this wrap as the floating-ui reference. A flex-column
+// child stretches to the full Options column, so the tooltip would sit over
+// empty space instead of the compact trigger. Size to the button.
+.AttributeExternalSource__triggerLockWrap {
+    display: inline-flex;
+    align-self: flex-start;
+    max-width: 100%;
+}
+
 .AttributeExternalSource__trigger {
     align-items: center;
     align-self: flex-start;

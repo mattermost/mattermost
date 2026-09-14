@@ -103,6 +103,27 @@ export async function fetchLinkedFieldsForTemplate(templateFieldId: string): Pro
     ));
 }
 
+export function appliedResourceTypesByTemplateId(linkedFields: PropertyField[]): Record<string, ResourceObjectType[]> {
+    const present = new Map<string, Set<ResourceObjectType>>();
+    for (const field of linkedFields) {
+        if (!field.linked_field_id || field.delete_at !== 0 || !isResourceObjectType(field.object_type)) {
+            continue;
+        }
+        let types = present.get(field.linked_field_id);
+        if (!types) {
+            types = new Set();
+            present.set(field.linked_field_id, types);
+        }
+        types.add(field.object_type);
+    }
+
+    const byTemplate: Record<string, ResourceObjectType[]> = {};
+    for (const [templateId, types] of present) {
+        byTemplate[templateId] = ALL_RESOURCE_TYPES.filter((type) => types.has(type));
+    }
+    return byTemplate;
+}
+
 export function linkedFieldsByResourceType(fields: PropertyField[]): Partial<Record<ResourceObjectType, PropertyField>> {
     const byType: Partial<Record<ResourceObjectType, PropertyField>> = {};
     for (const field of fields) {
@@ -234,4 +255,12 @@ export function patchLinkedAttributeField(
     patch: Partial<PropertyField> & Record<string, unknown>,
 ): Promise<PropertyField> {
     return Client4.patchPropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, fieldId, patch);
+}
+
+export function formatAttributeHeadingName(name: string): string {
+    const trimmed = name.trim();
+    if (!trimmed) {
+        return trimmed;
+    }
+    return trimmed.charAt(0).toLocaleUpperCase() + trimmed.slice(1);
 }

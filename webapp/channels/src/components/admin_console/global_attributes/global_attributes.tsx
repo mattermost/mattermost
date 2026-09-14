@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback, useState} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
-import {PlusIcon} from '@mattermost/compass-icons/components';
+import {MagnifyIcon, PlusIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/shared/components/button';
 
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import Input from 'components/widgets/inputs/input/input';
 
 import {getHistory} from 'utils/browser_history';
 
@@ -20,13 +21,25 @@ const messages = defineMessages({
     title: {id: 'admin.global_attributes.title', defaultMessage: 'Manage Attributes'},
     subtitle: {id: 'admin.global_attributes.subtitle', defaultMessage: 'Define an attribute once, then choose which resources can use it.'},
     newAttribute: {id: 'admin.global_attributes.new_attribute', defaultMessage: 'New attribute'},
+    searchPlaceholder: {id: 'admin.global_attributes.search.placeholder', defaultMessage: 'Search attributes'},
 });
 
 export const searchableStrings = [
     messages.title,
+    messages.searchPlaceholder,
 ];
 
 const GlobalAttributes: React.FC = () => {
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const handleSearchChange = useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        setSearchQuery(event.target.value);
+    }, []);
+
+    const handleSearchClear = useCallback(() => {
+        setSearchQuery('');
+    }, []);
+
     return (
         <div
             className='wrapper--fixed GlobalAttributes__root'
@@ -50,6 +63,19 @@ const GlobalAttributes: React.FC = () => {
                     data-testid='global_attributes'
                 >
                     <div className='GlobalAttributes__actions'>
+                        <Input
+                            type='text'
+                            name='searchAttributes'
+                            clearable={true}
+                            useLegend={false}
+                            containerClassName='GlobalAttributes__search'
+                            placeholder={messages.searchPlaceholder}
+                            inputPrefix={<MagnifyIcon size={16}/>}
+                            value={searchQuery}
+                            onChange={handleSearchChange}
+                            onClear={handleSearchClear}
+                            data-testid='global-attributes-search'
+                        />
                         <Button
                             emphasis='primary'
                             onClick={() => {
@@ -63,7 +89,7 @@ const GlobalAttributes: React.FC = () => {
                             </span>
                         </Button>
                     </div>
-                    <GlobalAttributesTable/>
+                    <GlobalAttributesTable searchQuery={searchQuery}/>
                 </div>
             </div>
         </div>

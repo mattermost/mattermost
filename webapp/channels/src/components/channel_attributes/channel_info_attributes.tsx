@@ -5,7 +5,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {LockOutlineIcon, PencilOutlineIcon, PlusIcon} from '@mattermost/compass-icons/components';
+import {LockOutlineIcon, PlusIcon} from '@mattermost/compass-icons/components';
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import {supportsOptions} from '@mattermost/types/properties';
 
@@ -181,8 +181,11 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
 
     const handleAdd = useCallback((fieldId: string) => {
         setRevealedFieldIds((prev) => (prev.includes(fieldId) ? prev : [...prev, fieldId]));
-        setEditingFieldId(fieldId);
-    }, []);
+        const added = allAttributes.find((attribute) => attribute.field.id === fieldId);
+        if (added?.field.type === 'text') {
+            setEditingFieldId(fieldId);
+        }
+    }, [allAttributes]);
 
     const handleCancel = useCallback((fieldId: string) => {
         setEditingFieldId(undefined);
@@ -205,71 +208,58 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
                 />
             </div>
 
-            {rows.map((attribute) => {
-                const {field} = attribute;
-                const label = getPropertyFieldLabel(field);
+            <div className='ChannelInfoAttributes__body'>
+                <div className='ChannelInfoAttributes__list'>
+                    {rows.map((attribute) => {
+                        const {field} = attribute;
+                        const label = getPropertyFieldLabel(field);
 
-                // Read off the stored value, not the rendered one: a value that
-                // fails to render (a deleted option, a type with no display path)
-                // is still a value, and the server will refuse to replace it.
-                const hasValue = isPropertyValueSet(attribute.value?.value);
-                const policy = getPropertyFieldChangePolicy(field);
-                const stuck = hasValue && !hasReachableOption(field, attribute.value?.value);
-                const locked = hasValue && (policy === 'never' || stuck);
-                const editable = isChannelAdmin && hasEditor(field) && !stuck && canSet(field, hasValue);
-                const isEditing = editingFieldId === field.id;
+                        // Read off the stored value, not the rendered one: a value that
+                        // fails to render (a deleted option, a type with no display path)
+                        // is still a value, and the server will refuse to replace it.
+                        const hasValue = isPropertyValueSet(attribute.value?.value);
+                        const policy = getPropertyFieldChangePolicy(field);
+                        const stuck = hasValue && !hasReachableOption(field, attribute.value?.value);
+                        const locked = hasValue && (policy === 'never' || stuck);
+                        const isText = field.type === 'text';
+                        const editable = isChannelAdmin && hasEditor(field) && !stuck && canSet(field, hasValue);
+                        const isEditing = editingFieldId === field.id;
+                        const showMenu = editable && !isText;
+                        const showTextEditor = editable && isText && isEditing;
 
-                return (
-                    <div
-                        key={field.id}
-                        className='ChannelInfoAttributes__row'
-                        data-testid={`channelInfoAttributeRow-${field.name}`}
-                    >
-                        <span className='ChannelInfoAttributes__label'>
-                            {label}
-                            {locked && (
-                                <LockOutlineIcon
-                                    size={12}
-                                    data-testid={`channelInfoAttributeLock-${field.name}`}
-                                    aria-label={formatMessage(lockReasons[policy as keyof typeof lockReasons] ?? lockReasons.never)}
-                                />
-                            )}
-                        </span>
-
-                        <span className='ChannelInfoAttributes__value'>
-                            {isEditing ? (
-                                <ChannelAttributeRowEditor
-                                    field={field}
-                                    rawValue={attribute.value?.value}
-                                    onSubmit={(value) => handleSubmit(field, value)}
-                                    onCancel={() => handleCancel(field.id)}
-                                    saving={savingFieldId === field.id}
-                                />
-                            ) : (
-                                <>
-                                    {attribute.displayValue ? (
-                                        <AttributeChip
-                                            label={label}
-                                            value={attribute.displayValue}
-                                            color={optionColor(attribute)}
-                                            announceLabel={false}
+                        return (
+                            <div
+                                key={field.id}
+                                className='ChannelInfoAttributes__row'
+                                data-testid={`channelInfoAttributeRow-${field.name}`}
+                            >
+                                <span className='ChannelInfoAttributes__label'>
+                                    {label}
+                                    {locked && (
+                                        <LockOutlineIcon
+                                            size={12}
+                                            data-testid={`channelInfoAttributeLock-${field.name}`}
+                                            aria-label={formatMessage(lockReasons[policy as keyof typeof lockReasons] ?? lockReasons.never)}
                                         />
-                                    ) : (
-                                        <span
-                                            className='ChannelInfoAttributes__empty'
-                                            data-testid={`channelInfoAttributeUnset-${field.name}`}
-                                        >
-                                            <FormattedMessage
-                                                id='channel_attributes.info.not_set'
-                                                defaultMessage='Not set'
-                                            />
-                                        </span>
                                     )}
+                                </span>
 
-                                    {editable && (
+                                <span className='ChannelInfoAttributes__value'>
+                                    {showMenu || showTextEditor ? (
+                                        <ChannelAttributeRowEditor
+                                            key={`${channelId}-${field.id}`}
+                                            field={field}
+                                            rawValue={attribute.value?.value}
+                                            displayValue={attribute.displayValue}
+                                            color={optionColor(attribute)}
+                                            onSubmit={(value) => handleSubmit(field, value)}
+                                            onCancel={() => handleCancel(field.id)}
+                                            saving={savingFieldId === field.id}
+                                        />
+                                    ) : editable && isText ? (
                                         <button
                                             type='button'
-                                            className='ChannelInfoAttributes__edit'
+                                            className='ChannelInfoAttributes__valueTrigger'
                                             onClick={() => setEditingFieldId(field.id)}
                                             aria-label={formatMessage(
                                                 {id: 'channel_attributes.info.edit', defaultMessage: 'Edit {label}'},
@@ -277,29 +267,64 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
                                             )}
                                             data-testid={`channelInfoAttributeEdit-${field.name}`}
                                         >
-                                            <PencilOutlineIcon size={14}/>
+                                            {attribute.displayValue ? (
+                                                <span className='ChannelInfoAttributes__textValue'>
+                                                    {attribute.displayValue}
+                                                </span>
+                                            ) : (
+                                                <span
+                                                    className='ChannelInfoAttributes__empty'
+                                                    data-testid={`channelInfoAttributeUnset-${field.name}`}
+                                                >
+                                                    <FormattedMessage
+                                                        id='channel_attributes.info.not_set'
+                                                        defaultMessage='Not set'
+                                                    />
+                                                </span>
+                                            )}
                                         </button>
+                                    ) : (
+                                        <>
+                                            {attribute.displayValue ? (
+                                                <AttributeChip
+                                                    label={label}
+                                                    value={attribute.displayValue}
+                                                    color={optionColor(attribute)}
+                                                    announceLabel={false}
+                                                    size='medium'
+                                                />
+                                            ) : (
+                                                <span
+                                                    className='ChannelInfoAttributes__empty'
+                                                    data-testid={`channelInfoAttributeUnset-${field.name}`}
+                                                >
+                                                    <FormattedMessage
+                                                        id='channel_attributes.info.not_set'
+                                                        defaultMessage='Not set'
+                                                    />
+                                                </span>
+                                            )}
+                                        </>
                                     )}
-                                </>
-                            )}
-                        </span>
+                                </span>
 
-                        {failedFieldId === field.id && (
-                            <span
-                                className='ChannelInfoAttributes__error'
-                                role='alert'
-                                data-testid={`channelInfoAttributeError-${field.name}`}
-                            >
-                                <FormattedMessage
-                                    id='channel_attributes.info.save_failed'
-                                    defaultMessage="Couldn't save {label}. Try again."
-                                    values={{label}}
-                                />
-                            </span>
-                        )}
-                    </div>
-                );
-            })}
+                                {failedFieldId === field.id && (
+                                    <span
+                                        className='ChannelInfoAttributes__error'
+                                        role='alert'
+                                        data-testid={`channelInfoAttributeError-${field.name}`}
+                                    >
+                                        <FormattedMessage
+                                            id='channel_attributes.info.save_failed'
+                                            defaultMessage="Couldn't save {label}. Try again."
+                                            values={{label}}
+                                        />
+                                    </span>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
 
             {addableAttributes.length > 0 && (
                 <Menu.Container
@@ -308,7 +333,7 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
                         class: 'ChannelInfoAttributes__add',
                         children: (
                             <>
-                                <PlusIcon size={14}/>
+                                <PlusIcon size={16}/>
                                 <FormattedMessage
                                     id='channel_attributes.info.add'
                                     defaultMessage='Add attribute'
@@ -333,6 +358,7 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
                     ))}
                 </Menu.Container>
             )}
+            </div>
         </div>
     );
 };

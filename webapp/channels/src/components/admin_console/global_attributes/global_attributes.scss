@@ -25,8 +25,20 @@
 
 .GlobalAttributes__actions {
     display: flex;
-    justify-content: flex-end;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
     padding: 24px;
+}
+
+.GlobalAttributes__search {
+    flex: 1 1 120px;
+    max-width: 420px;
+    min-width: 0;
+
+    .Input_fieldset {
+        min-height: 40px;
+    }
 }
 
 .GlobalAttributes__headerGroup {

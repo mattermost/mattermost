@@ -23,7 +23,7 @@ import {WindowSizes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
-import GlobalAttributesTable, {getDisplayName, getSourceIcon, getSourceKind, getTypeIcon, isClassificationMarkingsField} from './global_attributes_table';
+import GlobalAttributesTable, {fieldMatchesSearch, getDisplayName, getSourceIcon, getSourceKind, getTypeIcon, isClassificationMarkingsField} from './global_attributes_table';
 
 const mockHistoryPush = jest.fn();
 jest.mock('utils/browser_history', () => ({
@@ -203,28 +203,57 @@ describe('GlobalAttributesTable', () => {
         expect(names).toEqual(['Aardvark Attribute', 'Zebra Attribute']);
     });
 
-    it('renders the Applies-to column as an explicit placeholder, not a blank cell', async () => {
+    it('renders the Applies-to column as an explicit placeholder when nothing is linked', async () => {
         getPropertyFields.mockResolvedValueOnce([makeField()]).mockResolvedValue([]);
 
         renderWithContext(<GlobalAttributesTable/>, getBaseState());
 
-        expect(await screen.findByTestId('global-attribute-applies-to')).toBeInTheDocument();
+        expect(await screen.findByTestId('global-attribute-applies-to')).toHaveTextContent('—');
     });
 
-    it('wraps an ordinary row\'s name in the shared attribute container without the classification modifier or subtitle', async () => {
+    it('renders Applies-to chips for the resources a field is linked to', async () => {
+        const template = makeField({id: 'template-1', name: 'department'});
+        getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
+            if (opts?.cursorId) {
+                return Promise.resolve([]);
+            }
+            if (objectType === 'template') {
+                return Promise.resolve([template]);
+            }
+            if (objectType === 'user') {
+                return Promise.resolve([makeField({
+                    id: 'user-1',
+                    object_type: 'user',
+                    linked_field_id: template.id,
+                })]);
+            }
+            if (objectType === 'post') {
+                return Promise.resolve([makeField({
+                    id: 'post-1',
+                    object_type: 'post',
+                    linked_field_id: template.id,
+                })]);
+            }
+            return Promise.resolve([]);
+        });
+
+        renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+        const appliesTo = await screen.findByTestId('global-attribute-applies-to');
+        expect(appliesTo).toHaveTextContent('Users');
+        expect(appliesTo).toHaveTextContent('Posts');
+        expect(appliesTo).not.toHaveTextContent('Channels');
+        expect(appliesTo).not.toHaveTextContent('—');
+    });
+
+    it('renders an ordinary row\'s name without a classification subtitle', async () => {
         getPropertyFields.mockResolvedValueOnce([makeField()]).mockResolvedValue([]);
 
         renderWithContext(<GlobalAttributesTable/>, getBaseState());
 
         const nameCell = await screen.findByTestId('global-attribute-name');
-
-        // * Every row (not just the classification one) renders through the shared
-        // .GlobalAttributesTable__attribute wrapper introduced alongside the classification
-        // row, but an ordinary row keeps its plain (non-classification) name styling and
-        // never renders a subtitle underneath it.
-        expect(nameCell.closest('.GlobalAttributesTable__attribute')).toBeInTheDocument();
-        expect(nameCell).not.toHaveClass('GlobalAttributesTable__name--classification');
-        expect(screen.queryByTestId(/^global-attribute-classification-subtitle/)).not.toBeInTheDocument();
+        expect(nameCell).toHaveClass('GlobalAttributesTable__name');
+        expect(screen.queryByText('Definition is read-only')).not.toBeInTheDocument();
     });
 
     it('shows the empty-state message when there are no fields', async () => {
@@ -233,6 +262,80 @@ describe('GlobalAttributesTable', () => {
         renderWithContext(<GlobalAttributesTable/>, getBaseState());
 
         expect(await screen.findByTestId('global-attributes-empty')).toBeInTheDocument();
+    });
+
+    it('filters rows by the search query and shows a no-match state when nothing remains', async () => {
+        const fields = [
+            makeField({id: 'f1', name: 'clearance', attrs: {display_name: 'Clearance'}}),
+            makeField({id: 'f2', name: 'department', type: 'text', attrs: {display_name: 'Department'}}),
+        ];
+        getPropertyFields.mockResolvedValueOnce(fields).mockResolvedValue([]);
+
+        const {rerender} = renderWithContext(<GlobalAttributesTable searchQuery='clear'/>, getBaseState());
+
+        expect(await screen.findByText('Clearance')).toBeInTheDocument();
+        expect(screen.queryByText('Department')).not.toBeInTheDocument();
+
+        rerender(<GlobalAttributesTable searchQuery='zzz'/>);
+
+        expect(await screen.findByTestId('global-attributes-empty-search')).toBeInTheDocument();
+        expect(screen.queryByTestId('global-attributes-empty')).not.toBeInTheDocument();
+    });
+
+    describe('fieldMatchesSearch', () => {
+        it('matches display name, internal name, or type label, and ignores blank queries', () => {
+            const field = makeField({name: 'dept_code', type: 'select', attrs: {display_name: 'Department'}});
+
+            expect(fieldMatchesSearch(field, '', 'Select')).toBe(true);
+            expect(fieldMatchesSearch(field, '  ', 'Select')).toBe(true);
+            expect(fieldMatchesSearch(field, 'depart', 'Select')).toBe(true);
+            expect(fieldMatchesSearch(field, 'DEPT_CODE', 'Select')).toBe(true);
+            expect(fieldMatchesSearch(field, 'select', 'Select')).toBe(true);
+            expect(fieldMatchesSearch(field, 'rank', 'Select')).toBe(false);
+        });
+    });
+
+    describe('Row click', () => {
+        it('opens the edit page when a managed row is clicked', async () => {
+            getPropertyFields.mockResolvedValueOnce([makeField()]).mockResolvedValue([]);
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            await userEvent.click(await screen.findByTestId('global-attribute-name'));
+
+            expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes/attribute_details/field-1');
+        });
+
+        it('does not navigate when the actions menu is opened', async () => {
+            getPropertyFields.mockResolvedValueOnce([makeField()]).mockResolvedValue([]);
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            await userEvent.click(await screen.findByTestId('global-attribute-actions-field-1'));
+
+            expect(mockHistoryPush).not.toHaveBeenCalled();
+            expect(screen.getByRole('menu')).toBeInTheDocument();
+        });
+
+        it('opens the classification edit page when a classification row is clicked', async () => {
+            getPropertyFields.mockResolvedValueOnce([makeClassificationField()]).mockResolvedValue([]);
+
+            renderWithContext(<GlobalAttributesTable/>, getReachableState());
+
+            await userEvent.click(await screen.findByTestId('global-attribute-name'));
+
+            expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes/classification');
+        });
+
+        it('opens Classification Markings when a classification row is clicked but its edit page is hidden', async () => {
+            getPropertyFields.mockResolvedValueOnce([makeClassificationField()]).mockResolvedValue([]);
+
+            renderWithContext(<GlobalAttributesTable/>, getReachableState({channelAttributesFlagOn: false}));
+
+            await userEvent.click(await screen.findByTestId('global-attribute-name'));
+
+            expect(mockHistoryPush).toHaveBeenCalledWith(CLASSIFICATIONS_MARKINGS_ADMIN_URL);
+        });
     });
 
     it('shows an error state (not the empty state) when the fetch fails', async () => {
@@ -885,13 +988,13 @@ describe('GlobalAttributesTable', () => {
     });
 
     describe('Classification Markings row', () => {
-        it('renders the subtitle, an open-in-new link and a menu carrying Edit when the field matches and the destination is reachable', async () => {
+        it('renders an open-in-new link and a menu carrying Edit when the field matches and the destination is reachable', async () => {
             getPropertyFields.mockResolvedValueOnce([makeClassificationField()]).mockResolvedValue([]);
 
             renderWithContext(<GlobalAttributesTable/>, getReachableState());
 
-            // * The subtitle is scoped to the definition, not to the whole row
-            expect(await screen.findByTestId('global-attribute-classification-subtitle-field-1')).toHaveTextContent('Definition is read-only');
+            expect(await screen.findByTestId('global-attribute-name')).toHaveTextContent('Classification');
+            expect(screen.queryByText('Definition is read-only')).not.toBeInTheDocument();
 
             const link = screen.getByTestId('global-attribute-classification-link-field-1');
             expect(link).toHaveAttribute('href', CLASSIFICATIONS_MARKINGS_ADMIN_URL);
@@ -915,7 +1018,7 @@ describe('GlobalAttributesTable', () => {
             expect(screen.queryByTestId('global-attribute-actions-field-1')).not.toBeInTheDocument();
         });
 
-        it('renders the ordinary dot-menu, no subtitle, and the generic "Managed here" source when the field matches but the destination is not reachable (flag off / sub-Enterprise)', async () => {
+        it('renders the ordinary dot-menu and the generic "Managed here" source when the field matches but the destination is not reachable (flag off / sub-Enterprise)', async () => {
             getPropertyFields.mockResolvedValueOnce([makeClassificationField()]).mockResolvedValue([]);
 
             // getBaseState() has no license/FeatureFlags set, so the reachability check is false.
@@ -924,7 +1027,6 @@ describe('GlobalAttributesTable', () => {
             const trigger = await screen.findByTestId('global-attribute-actions-field-1');
             expect(trigger).toBeInTheDocument();
 
-            expect(screen.queryByTestId('global-attribute-classification-subtitle-field-1')).not.toBeInTheDocument();
             expect(screen.queryByTestId('global-attribute-classification-link-field-1')).not.toBeInTheDocument();
             expect(screen.getByTestId('global-attribute-source')).toHaveTextContent('Managed here');
         });
@@ -937,7 +1039,6 @@ describe('GlobalAttributesTable', () => {
             const trigger = await screen.findByTestId('global-attribute-actions-field-1');
             expect(trigger).toBeInTheDocument();
 
-            expect(screen.queryByTestId('global-attribute-classification-subtitle-field-1')).not.toBeInTheDocument();
             expect(screen.queryByTestId('global-attribute-classification-link-field-1')).not.toBeInTheDocument();
         });
 
@@ -949,7 +1050,6 @@ describe('GlobalAttributesTable', () => {
             const trigger = await screen.findByTestId('global-attribute-actions-field-1');
             expect(trigger).toBeInTheDocument();
 
-            expect(screen.queryByTestId('global-attribute-classification-subtitle-field-1')).not.toBeInTheDocument();
             expect(screen.queryByTestId('global-attribute-classification-link-field-1')).not.toBeInTheDocument();
         });
 
@@ -978,7 +1078,6 @@ describe('GlobalAttributesTable', () => {
             const trigger = await screen.findByTestId('global-attribute-actions-field-1');
             expect(trigger).toBeInTheDocument();
 
-            expect(screen.queryByTestId('global-attribute-classification-subtitle-field-1')).not.toBeInTheDocument();
             expect(screen.queryByTestId('global-attribute-classification-link-field-1')).not.toBeInTheDocument();
         });
     });
@@ -991,6 +1090,10 @@ describe('getDisplayName', () => {
 
     it('falls back to the internal name when no display_name is set', () => {
         expect(getDisplayName(makeField({name: 'internal_name', attrs: {}}))).toBe('internal_name');
+    });
+
+    it('title-cases the classification template name so the listing matches the edit page', () => {
+        expect(getDisplayName(makeClassificationField())).toBe('Classification');
     });
 });
 

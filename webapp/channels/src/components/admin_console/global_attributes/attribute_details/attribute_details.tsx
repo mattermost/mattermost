@@ -9,6 +9,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {useParams} from 'react-router-dom';
 
 import type {ClientError} from '@mattermost/client';
+import {ChevronLeftIcon} from '@mattermost/compass-icons/components';
 import {buttonClassNames} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
@@ -57,6 +58,7 @@ import {
     deleteLinkedAttributeField,
     fetchAttributeField,
     fetchLinkedFieldsForTemplate,
+    formatAttributeHeadingName,
     linkedFieldsByResourceType,
     patchLinkedAttributeField,
     updateAttributeField,
@@ -1044,16 +1046,24 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         >
             <AdminHeader withBackButton={true}>
                 <div>
-                    <BlockableLink
-                        to={LIST_ROUTE}
-                        className='fa fa-angle-left back'
-                        aria-label={formatMessage(messages.backLink)}
-                        data-testid='attributeDetailsBackLink'
-                    />
+                    <div className='AttributeDetails__back'>
+                        <BlockableLink
+                            to={LIST_ROUTE}
+                            className='AttributeDetails__backButton'
+                            aria-label={formatMessage(messages.backLink)}
+                            data-testid='attributeDetailsBackLink'
+                        >
+                            <ChevronLeftIcon
+                                size={20}
+                                aria-hidden={true}
+                            />
+                        </BlockableLink>
+                    </div>
                     <hgroup className='AttributeDetails__headerGroup'>
                         <FormattedMessage
                             tagName='h1'
                             {...(isEditMode ? messages.editTitle : messages.title)}
+                            values={isEditMode ? {name: formatAttributeHeadingName(displayName)} : undefined}
                         />
                         <FormattedMessage
                             tagName='p'
@@ -1355,7 +1365,7 @@ export default AttributeDetails;
 const messages = defineMessages({
     backLink: {id: 'admin.global_attributes.attribute_details.back_link', defaultMessage: 'Back to Manage Attributes'},
     title: {id: 'admin.global_attributes.attribute_details.title', defaultMessage: 'New attribute'},
-    editTitle: {id: 'admin.global_attributes.attribute_details.edit_title', defaultMessage: 'Edit attribute'},
+    editTitle: {id: 'admin.global_attributes.attribute_details.edit_title', defaultMessage: 'Edit {name} Attribute'},
     subtitle: {id: 'admin.global_attributes.attribute_details.subtitle', defaultMessage: 'Add a display name, choose a type, and pick where it applies.'},
     definitionTitle: {id: 'admin.global_attributes.attribute_details.definition.title', defaultMessage: 'Definition'},
     definitionSubtitle: {id: 'admin.global_attributes.attribute_details.definition.subtitle', defaultMessage: 'Display name, type, and options.'},

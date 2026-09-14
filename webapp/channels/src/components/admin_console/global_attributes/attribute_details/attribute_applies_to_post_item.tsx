@@ -5,11 +5,12 @@ import classNames from 'classnames';
 import React, {useState, type JSX} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
-import {ChevronDownIcon, MessageTextOutlineIcon} from '@mattermost/compass-icons/components';
+import {ChevronDownIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {resourceTypeLabels} from './attribute_applies_to_constants';
+import ResourceTypeIcon from './resource_type_icon';
 import type {AttributeAppliesToItemProps} from './attribute_applies_to_constants';
 
 import './attribute_applies_to_item.scss';
@@ -31,9 +32,8 @@ function AttributeAppliesToPostItem({disabled = false, lockedTooltip, onRemove}:
     const toggleLabel = formatMessage(isOpen ? messages.collapseLabel : messages.expandLabel, {label});
 
     const toggleButton = (
-        <Button
+        <button
             type='button'
-            emphasis='quaternary'
             className='AttributeAppliesToItem__toggle'
             onClick={() => setIsOpen((prev) => !prev)}
             disabled={disabled}
@@ -46,9 +46,11 @@ function AttributeAppliesToPostItem({disabled = false, lockedTooltip, onRemove}:
                 size={16}
                 className={classNames('AttributeAppliesToItem__chevron', {'AttributeAppliesToItem__chevron--open': isOpen})}
             />
-            <MessageTextOutlineIcon size={18}/>
-            <span className='AttributeAppliesToItem__label'>{label}</span>
-        </Button>
+            <span className='AttributeAppliesToItem__name'>
+                <ResourceTypeIcon type='post'/>
+                <span className='AttributeAppliesToItem__label'>{label}</span>
+            </span>
+        </button>
     );
 
     return (

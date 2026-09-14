@@ -8,8 +8,6 @@
 .AppliesToCard__header {
     display: flex;
     align-items: flex-start;
-    justify-content: space-between;
-    gap: 16px;
 }
 
 // Matches AttributeDetails__blockTitle: a card-level title sitting under the
@@ -30,13 +28,28 @@
     line-height: 20px;
 }
 
-// Shell comes from buttonClassNames({emphasis: 'quaternary'}); this only aligns
+.AppliesToCard__rows {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+    border-radius: 8px;
+    background: var(--center-channel-bg);
+}
+
+.AppliesToCard__footer {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 12px;
+}
+
+// Shell comes from buttonClassNames({emphasis: 'tertiary'}); this only aligns
 // the icon and opts out of the flex parent stretching it to the full row width.
 // Setting `display` here would fight .btn's own inline-flex.
 .AppliesToCard__addResource {
     align-items: center;
     align-self: flex-start;
-    gap: 4px;
+    gap: 6px;
 }
 
 .AppliesToCard__empty {

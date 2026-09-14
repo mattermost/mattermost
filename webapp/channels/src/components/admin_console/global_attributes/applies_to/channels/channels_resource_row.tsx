@@ -1,10 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useMemo, useState} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
-import {ChevronDownIcon, ChevronRightIcon, GlobeIcon} from '@mattermost/compass-icons/components';
+import {ChevronDownIcon, ChevronRightIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/shared/components/button';
+
+import ResourceTypeIcon from '../../attribute_details/resource_type_icon';
 
 import ChannelsResourceSettings from './channels_resource_settings';
 import {summarizeChannelResource} from './summary';
@@ -44,7 +48,7 @@ const ChannelsResourceRow = ({value, onChange, onRemove, ordered, disabled}: Pro
 
     return (
         <div
-            className='ChannelsResourceRow'
+            className={classNames('ChannelsResourceRow', {'ChannelsResourceRow--open': expanded})}
             data-testid='channelsResourceRow'
         >
             <div className='ChannelsResourceRow__header'>
@@ -58,28 +62,33 @@ const ChannelsResourceRow = ({value, onChange, onRemove, ordered, disabled}: Pro
                     data-testid='channelsResourceRowDisclosure'
                 >
                     {expanded ? <ChevronDownIcon size={16}/> : <ChevronRightIcon size={16}/>}
-                </button>
-                <div className='ChannelsResourceRow__heading'>
-                    <span className='ChannelsResourceRow__title'>
-                        <GlobeIcon size={16}/>
-                        <FormattedMessage {...messages.title}/>
+                    <span className='ChannelsResourceRow__heading'>
+                        <span className='ChannelsResourceRow__title'>
+                            <ResourceTypeIcon type='channel'/>
+                            <FormattedMessage {...messages.title}/>
+                        </span>
+                        <span
+                            className='ChannelsResourceRow__summary'
+                            data-testid='channelsResourceRowSummary'
+                        >
+                            {summary}
+                        </span>
                     </span>
-                    <span
-                        className='ChannelsResourceRow__summary'
-                        data-testid='channelsResourceRowSummary'
+                </button>
+                {expanded && (
+                    <Button
+                        type='button'
+                        emphasis='tertiary'
+                        variant='destructive'
+                        size='sm'
+                        className='ChannelsResourceRow__remove'
+                        onClick={onRemove}
+                        disabled={disabled}
+                        data-testid='channelsResourceRowRemove'
                     >
-                        {summary}
-                    </span>
-                </div>
-                <button
-                    type='button'
-                    className='ChannelsResourceRow__remove'
-                    onClick={onRemove}
-                    disabled={disabled}
-                    data-testid='channelsResourceRowRemove'
-                >
-                    <FormattedMessage {...messages.remove}/>
-                </button>
+                        <FormattedMessage {...messages.remove}/>
+                    </Button>
+                )}
             </div>
 
             {expanded && (

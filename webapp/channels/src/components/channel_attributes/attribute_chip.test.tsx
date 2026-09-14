@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import AttributeChip from './attribute_chip';
 
@@ -103,5 +103,23 @@ describe('AttributeChip', () => {
         const chip = screen.getByTestId('attributeChip');
         expect(chip).toHaveClass('AttributeChip--neutral');
         expect(chip).not.toHaveStyle({color: '#ffffff'});
+    });
+
+    test('places the remove control inside the chip', async () => {
+        const onRemove = jest.fn();
+        renderWithContext(
+            <AttributeChip
+                label='Severity'
+                value='SEV 1'
+                onRemove={onRemove}
+                removeLabel='Clear Severity'
+            />,
+        );
+
+        const remove = screen.getByTestId('attributeChipRemove');
+        expect(screen.getByTestId('attributeChip')).toContainElement(remove);
+
+        await userEvent.click(remove);
+        expect(onRemove).toHaveBeenCalledTimes(1);
     });
 });

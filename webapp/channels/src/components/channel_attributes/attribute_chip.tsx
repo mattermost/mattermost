@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import React, {useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {CloseCircleIcon} from '@mattermost/compass-icons/components';
 import {getContrastingSimpleColor} from 'mattermost-redux/utils/theme_utils';
 
 import './attribute_chip.scss';
@@ -26,6 +27,12 @@ type Props = {
     // does not hear it twice.
     announceLabel?: boolean;
 
+    // Channel Info and the channel header both use medium.
+    size?: 'small' | 'medium';
+
+    onRemove?: (event: React.MouseEvent) => void;
+    removeLabel?: string;
+
     className?: string;
 };
 
@@ -39,7 +46,16 @@ type Props = {
  * The background is admin-chosen, so the foreground is derived from its luminance,
  * as the channel banner already does. That is what holds contrast in all themes.
  */
-const AttributeChip = ({label, value, color, announceLabel = true, className}: Props) => {
+const AttributeChip = ({
+    label,
+    value,
+    color,
+    announceLabel = true,
+    size = 'small',
+    onRemove,
+    removeLabel,
+    className,
+}: Props) => {
     const style = useMemo(() => {
         if (!color || !HEX_COLOR_PATTERN.test(color)) {
             return undefined;
@@ -56,7 +72,15 @@ const AttributeChip = ({label, value, color, announceLabel = true, className}: P
 
     return (
         <span
-            className={classNames('AttributeChip', {'AttributeChip--neutral': !style}, className)}
+            className={classNames(
+                'AttributeChip',
+                `AttributeChip--${size}`,
+                {
+                    'AttributeChip--neutral': !style,
+                    'AttributeChip--removable': Boolean(onRemove),
+                },
+                className,
+            )}
             style={style}
             data-testid='attributeChip'
         >
@@ -70,6 +94,31 @@ const AttributeChip = ({label, value, color, announceLabel = true, className}: P
                 </span>
             )}
             <span className='AttributeChip__value'>{value}</span>
+            {onRemove && (
+                <button
+                    type='button'
+                    className='AttributeChip__remove'
+                    data-testid='attributeChipRemove'
+                    data-chip-remove={true}
+                    tabIndex={-1}
+                    aria-label={removeLabel}
+                    onMouseDown={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }}
+                    onClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        event.nativeEvent.stopImmediatePropagation();
+                        onRemove(event);
+                    }}
+                >
+                    <CloseCircleIcon
+                        size={14}
+                        aria-hidden={true}
+                    />
+                </button>
+            )}
         </span>
     );
 };

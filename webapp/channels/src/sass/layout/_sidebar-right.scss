@@ -122,6 +122,8 @@
 
     .sidebar--right__title {
         display: flex;
+        overflow: hidden;
+        min-width: 0;
         height: auto;
         flex: 1 1 auto;
         align-items: center;
@@ -138,11 +140,25 @@
             font-size: inherit;
             font-weight: inherit;
         }
+
+        .sidebar--right__title__heading {
+            flex: 0 0 auto;
+        }
+
+        .ChannelAttributeLabels {
+            overflow: visible;
+            min-width: min-content;
+            flex: 0 0 auto;
+            margin-left: 8px;
+        }
     }
 
     .sidebar--right__title__channel {
         overflow: hidden;
+        min-width: 0;
+        max-width: max-content;
         height: 2.4rem;
+        flex: 1 1 0;
         padding: 0 8px;
         border-left: var(--border-light);
         margin: 0 0 0 8px;
@@ -181,13 +197,6 @@
         line-height: 2.4rem;
         text-overflow: ellipsis;
         white-space: nowrap;
-    }
-
-    .sidebar--right__follow__thread {
-        height: 2.4rem;
-        margin-right: 4px;
-        font-size: 12px;
-        line-height: 16px;
     }
 
     .sidebar--right__header {
