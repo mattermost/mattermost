@@ -361,6 +361,25 @@ describe('ChannelInfoAttributes', () => {
             ));
         });
 
+        test('clears a value from the options menu without requiring the chip remove control', async () => {
+            const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
+
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('program')], [value('program', 'opt_program')]),
+            );
+
+            await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-program'));
+            await userEvent.click(await screen.findByTestId('channelAttributeClear-program'));
+
+            await waitFor(() => expect(patchSpy).toHaveBeenCalledWith(
+                'access_control',
+                'channel',
+                CHANNEL_ID,
+                [{field_id: 'program', value: null}],
+            ));
+        });
+
         test('names a select editor with the attribute label, not the shared placeholder', async () => {
             renderWithContext(
                 <ChannelInfoAttributes channelId={CHANNEL_ID}/>,

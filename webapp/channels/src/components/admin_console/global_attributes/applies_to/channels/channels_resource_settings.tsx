@@ -82,10 +82,7 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled}: Props) =
                         <span className='ChannelsResourceSettings__switchLabel'>
                             <FormattedMessage {...(value.required ? messages.on : messages.off)}/>
                         </span>
-                        <span
-                            className='ChannelsResourceSettings__switchTrack'
-                            aria-hidden={true}
-                        >
+                        <span className='ChannelsResourceSettings__switchTrack'>
                             <input
                                 id='channelsResourceRequired'
                                 type='checkbox'
@@ -97,7 +94,10 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled}: Props) =
                                 aria-label={formatMessage(messages.requiredLabel)}
                                 data-testid='channelsResourceRequired-button'
                             />
-                            <span className='ChannelsResourceSettings__switchKnob'/>
+                            <span
+                                className='ChannelsResourceSettings__switchKnob'
+                                aria-hidden={true}
+                            />
                         </span>
                     </label>
                     <p className='ChannelsResourceSettings__help'>

@@ -1195,7 +1195,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         <FormattedMessage
                             tagName='h1'
                             {...(isEditMode ? messages.editTitle : messages.title)}
-                            values={isEditMode ? {name: formatAttributeHeadingName(displayName)} : undefined}
+                            values={isEditMode ? {name: formatAttributeHeadingName(displayName || currentName)} : undefined}
                         />
                         <FormattedMessage
                             tagName='p'

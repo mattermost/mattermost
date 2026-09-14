@@ -92,6 +92,7 @@ function availableWidthForLabels(containerEl: HTMLElement): number {
  * third caller appears, extract the shared core rather than growing either copy.
  */
 type OverflowOptions = {
+
     // Channel header always keeps one chip so the row is not just "+3". The
     // thread header is tight enough that a forced chip becomes a colour square;
     // there, overflow may include every chip.
@@ -199,10 +200,12 @@ export function useLabelsOverflow(ids: string[], {allowEmptyVisible = false}: Ov
         observerRef.current = observer;
         chipRefs.current.forEach((el) => observer.observe(el));
         const title = containerEl?.closest(TITLE_SELECTOR);
+        const parent = containerEl?.parentElement;
         if (title) {
             observer.observe(title);
-        } else if (containerEl?.parentElement) {
-            observer.observe(containerEl.parentElement);
+        }
+        if (parent && parent !== title) {
+            observer.observe(parent);
         }
 
         return () => {

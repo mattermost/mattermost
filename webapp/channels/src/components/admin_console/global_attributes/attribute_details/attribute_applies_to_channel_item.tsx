@@ -9,9 +9,8 @@ import {ChevronDownIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
-import {resourceTypeLabels} from './attribute_applies_to_constants';
+import {resourceTypeLabels, type AttributeAppliesToChannelItemProps} from './attribute_applies_to_constants';
 import ResourceTypeIcon from './resource_type_icon';
-import type {AttributeAppliesToChannelItemProps} from './attribute_applies_to_constants';
 
 import ChannelsResourceSettings from '../applies_to/channels/channels_resource_settings';
 import {summarizeChannelResource} from '../applies_to/channels/summary';

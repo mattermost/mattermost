@@ -6,6 +6,7 @@ import React, {useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {CloseCircleIcon} from '@mattermost/compass-icons/components';
+
 import {getContrastingSimpleColor} from 'mattermost-redux/utils/theme_utils';
 
 import './attribute_chip.scss';

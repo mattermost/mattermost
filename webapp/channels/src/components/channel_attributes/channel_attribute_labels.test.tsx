@@ -8,6 +8,7 @@ import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import * as rhsActions from 'actions/views/rhs';
+
 import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
@@ -408,7 +409,7 @@ describe('ChannelAttributeLabels', () => {
                     />
                 </div>
                 <div className='channel-header__description'>
-                    Testing a long channel header and how it looks
+                    {'Testing a long channel header and how it looks'}
                 </div>
             </div>,
             makeState([field('a'), field('b'), field('c')]),

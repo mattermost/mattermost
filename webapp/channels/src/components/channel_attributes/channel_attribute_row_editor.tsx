@@ -164,6 +164,14 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
                     'aria-label': label,
                 }}
             >
+                {clearable && hasDisplay && (
+                    <Menu.Item
+                        id={`channelAttributeClear-${field.name}`}
+                        data-testid={`channelAttributeClear-${field.name}`}
+                        onClick={() => onSubmit(null)}
+                        labels={<span>{clearLabel}</span>}
+                    />
+                )}
                 {options.map((option) => {
                     const selected = chosen.includes(option.value);
                     return (

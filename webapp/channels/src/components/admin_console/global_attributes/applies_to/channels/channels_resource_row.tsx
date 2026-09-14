@@ -8,11 +8,11 @@ import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import {ChevronDownIcon, ChevronRightIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/shared/components/button';
 
-import ResourceTypeIcon from '../../attribute_details/resource_type_icon';
-
 import ChannelsResourceSettings from './channels_resource_settings';
 import {summarizeChannelResource} from './summary';
 import type {ChannelResourceConfig} from './types';
+
+import ResourceTypeIcon from '../../attribute_details/resource_type_icon';
 
 import './channels_resource_row.scss';
 
