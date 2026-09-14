@@ -169,7 +169,10 @@ func getPropertyFieldOptions(c *Context, w http.ResponseWriter, r *http.Request)
 
 	auditRec.Success()
 
-	if err := json.NewEncoder(w).Encode(page.Options); err != nil {
+	// The wire shape is free to change here: this endpoint is new in this PR, so
+	// Client4 and these api4 tests are its only consumers, and no released client
+	// is reading the array shape this replaces.
+	if err := json.NewEncoder(w).Encode(page); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
