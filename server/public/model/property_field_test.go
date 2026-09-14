@@ -930,6 +930,26 @@ func TestPropertyFieldPatch_IsValid(t *testing.T) {
 		}
 		require.NoError(t, patch.IsValid())
 	})
+
+	t.Run("valid PermissionValues level", func(t *testing.T) {
+		patch := &PropertyFieldPatch{
+			PermissionValues: new(PermissionLevelMember),
+		}
+		require.NoError(t, patch.IsValid())
+	})
+
+	t.Run("invalid PermissionValues level", func(t *testing.T) {
+		invalidLevel := PermissionLevel("invalid")
+		patch := &PropertyFieldPatch{
+			PermissionValues: &invalidLevel,
+		}
+		require.Error(t, patch.IsValid())
+	})
+
+	t.Run("nil PermissionValues is valid", func(t *testing.T) {
+		patch := &PropertyFieldPatch{}
+		require.NoError(t, patch.IsValid())
+	})
 }
 
 func TestPropertyField_Patch(t *testing.T) {
@@ -1115,6 +1135,40 @@ func TestPropertyField_Patch(t *testing.T) {
 
 		require.NotNil(t, pf.LinkedFieldID)
 		assert.Equal(t, linkedID, *pf.LinkedFieldID)
+	})
+
+	t.Run("patch with PermissionValues updates it", func(t *testing.T) {
+		pf := &PropertyField{
+			Name:             "test",
+			Type:             PropertyFieldTypeText,
+			PermissionValues: new(PermissionLevelSysadmin),
+		}
+
+		patch := &PropertyFieldPatch{
+			PermissionValues: new(PermissionLevelMember),
+		}
+
+		pf.Patch(patch, false)
+
+		require.NotNil(t, pf.PermissionValues)
+		assert.Equal(t, PermissionLevelMember, *pf.PermissionValues)
+	})
+
+	t.Run("patch with nil PermissionValues does not change it", func(t *testing.T) {
+		pf := &PropertyField{
+			Name:             "test",
+			Type:             PropertyFieldTypeText,
+			PermissionValues: new(PermissionLevelSysadmin),
+		}
+
+		patch := &PropertyFieldPatch{
+			Name: new("renamed"),
+		}
+
+		pf.Patch(patch, false)
+
+		require.NotNil(t, pf.PermissionValues)
+		assert.Equal(t, PermissionLevelSysadmin, *pf.PermissionValues)
 	})
 }
 
