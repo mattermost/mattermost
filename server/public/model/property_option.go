@@ -39,6 +39,50 @@ const (
 // is held in memory and its parents are looked up together.
 const PropertyFieldOptionsMaxPerRequest = 200
 
+// The limits one request's hierarchy work is held within. The limits above
+// bound what a hierarchy may hold; these bound the work one request may do over
+// a hierarchy already inside those limits -- a hierarchy entirely legal by
+// PropertyGraphMaxOptions and friends can still be too large to walk on a read
+// that has to stay cheap, and that is deliberate rather than a gap in the limits
+// above.
+//
+// Exceeding one is never a partial answer: a masking caller hides what it could
+// not resolve, a validation caller refuses the change, and a caller cannot tell
+// a hierarchy at the bound from one they cover nothing in -- the server log is
+// the only place the difference shows.
+//
+// Fixed rather than configurable, for the same reason the block above is: a
+// deployment raising one would be changing how much work an ordinary read is
+// allowed to cost every other request on the node.
+const (
+	// PropertyGraphMaxWalkRows bounds the (seed, option) pairs one recursive
+	// walk over a field's hierarchy may return. One seed reaching every option
+	// of a maximum-size field is PropertyGraphMaxOptions (100,000) rows, so
+	// this leaves room for a handful of seeds each doing that. Reaching it
+	// takes a hierarchy that is both large and an overlay -- most options
+	// reachable from most others, which is what options with many parents each
+	// produce -- walked from many seeds at once, which is what masking a value
+	// marked with hundreds of options does.
+	PropertyGraphMaxWalkRows = 250000
+
+	// PropertyGraphMaxMaskedOptions bounds the options the downward walk
+	// behind one masked value may visit. Reaching it takes a value marked with
+	// an option that has more than this many options below it -- a root, or
+	// something near one, of a hierarchy with tens of thousands of options --
+	// read by a caller who covers only part of it. The walk is one query per
+	// level, so this is also tens of queries on a read that has to stay cheap.
+	PropertyGraphMaxMaskedOptions = 10000
+
+	// PropertyFieldOptionCandidatesMaxPerRequest bounds how many candidate
+	// option rows one page of a listing may examine, independent of the page
+	// size asked for. Reaching it takes a caller who covers so little of a
+	// large hierarchy that most rows the page query reads are dropped by the
+	// coverage filter -- covering ten options of a hundred thousand, say.
+	// Unlike the other two this is not a refusal: the page ends there and the
+	// cursor resumes from the last candidate examined.
+	PropertyFieldOptionCandidatesMaxPerRequest = 2000
+)
+
 // propertyOptionReservedAttrs are the keys an option's Attrs may not carry.
 // Each of them names something PropertyFieldOption models directly or leaves
 // out on purpose, and the option list a field serves projects all four from
