@@ -104,7 +104,7 @@ If you choose to skip the report download from the **Remove message** or **Keep 
 
 If report generation fails (for example, due to a network interruption or session timeout), the dialog displays an error and offers a retry option. You can also skip the report and proceed with the action, or cancel and download the report later from the message details.
 
-Each time a reviewer generates a report, the **Data Spillage Bot** notifies all content reviewers so an auditable record exists whenever a copy of the potentially spilled data is obtained.
+Each time a reviewer generates a report, the **Data Spillage Bot** notifies all content reviewers so an auditable record exists whenever a copy of the potentially spilled data is obtained. If the report was generated without the message's file attachments, the bot sends an additional notification to the reviewer who requested it, explaining why. See [File attachments and download policies](#file-attachments-and-download-policies) for details.
 
 <Tip>
 
@@ -122,6 +122,7 @@ The archive has the following structure:
 /
 ├── report_metadata.yaml
 ├── content_review.yaml
+├── ATTACHMENTS_OMITTED.txt   # only when attachments are withheld
 ├── post/
 │   ├── post.yaml
 │   └── attachments/
@@ -136,10 +137,34 @@ The archive has the following structure:
 - **report_metadata.yaml**: Identifies the report itself, including the user ID and username of the reviewer who generated the report, the generation timestamp, and the report format version (used for forward compatibility if the report format changes in future releases).
 - **content_review.yaml**: Captures the data spillage event, including the reporter's user ID, username, selected reason, and comment; the report timestamp; whether the message was hidden during review; and, once the quarantine is resolved, the reviewer's user ID, username, comment, and action timestamp. For unresolved quarantines, reviewer fields are omitted.
 - **post/post.yaml**: Describes the quarantined message, including the post ID, author ID, author name, author email, message content, channel ID, channel display name, team ID, team display name, creation and update timestamps, pinned status, root ID, post properties, post metadata, reply count (for root posts), and the ordered list of edit history post IDs.
-- **post/attachments/**: The original files attached to the quarantined message, included verbatim.
+- **post/attachments/**: The original files attached to the quarantined message, included verbatim. This directory is left out entirely when the reviewer isn't permitted to download attachments from the channel.
 - **edit_history/\<edit_post_id\>/**: One subdirectory per previous version of the message, each containing a `post.yaml` and an `attachments/` directory in the same format as the base post directory.
+- **ATTACHMENTS_OMITTED.txt**: Present only when attachments were withheld from the report. See [File attachments and download policies](#file-attachments-and-download-policies).
 
 To avoid duplication, attachment files are deduplicated across the entire archive by their file ID. Each unique attachment appears exactly once — under the base post if it exists in the current version of the message, or under the earliest edit-history entry that referenced it.
+
+#### File attachments and download policies
+
+If your deployment restricts who can download file attachments using [channel-level permission policies](/administration-guide/manage/admin/abac-channel-access-rules#channel-level-permission-policies) or [system-wide permission policies](/administration-guide/manage/admin/abac-system-wide-policies#permission-policies), those policies apply to content reviewers generating a report as well. Being a content reviewer doesn't exempt someone from the channel's file download rules.
+
+Before building the archive, Mattermost evaluates the requesting reviewer against the quarantined message's channel for the file download action:
+
+- **When the reviewer satisfies the policy**, the report includes attachments as described above.
+- **When the reviewer doesn't satisfy the policy**, the report is still generated and downloaded, but the attachment files are withheld. The `post/attachments/` and `edit_history/<edit_post_id>/attachments/` directories are left out, and the attachment metadata is removed from `post.yaml` in each of those sections, so the archive carries no reference to the withheld files. Every other part of the report - message content, review activity, and report metadata - is unaffected.
+
+Reports aren't blocked when attachments are withheld, so reviewers who can't access the files can still capture the message and its review history for record-keeping.
+
+When attachments are withheld, Mattermost signals it in three places:
+
+- **`ATTACHMENTS_OMITTED.txt`**: A plain-text file added at the root of the archive, in place of the attachment directories, reading *"The attachments on this message were omitted from this report because you do not comply with the channel's file download policy."* Its presence makes an incomplete report self-describing for anyone who receives the archive later.
+- **A notification to the requesting reviewer**: The **Data Spillage Bot** posts a message in that reviewer's content review thread for the quarantined message, explaining that the report didn't include the file attachments. Only the reviewer who generated the report receives it; the other reviewers see the usual report generation notification.
+- **The audit log**: The `generateFlaggedPostReport` audit entry records an `omitted_attachment_count` parameter holding the number of withheld attachments. The parameter is only present when attachments were actually withheld, so its absence indicates a complete report.
+
+<Note>
+
+Permission policies require a Mattermost Enterprise Advanced license and the `PermissionPolicies` feature flag. Where they aren't in use, reviewers who can generate a report always receive its attachments, and none of the behavior in this section applies.
+
+</Note>
 
 ### Deleted messages
 
