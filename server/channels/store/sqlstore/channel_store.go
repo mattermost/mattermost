@@ -4,10 +4,10 @@
 package sqlstore
 
 import (
+	"cmp"
 	"database/sql"
 	"fmt"
 	"slices"
-	"sort"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -3571,8 +3571,8 @@ func (s SqlChannelStore) AutocompleteInTeamForSearch(teamID string, userID strin
 
 	channels = append(channels, directChannels...)
 
-	sort.Slice(channels, func(a, b int) bool {
-		return strings.ToLower(channels[a].DisplayName) < strings.ToLower(channels[b].DisplayName)
+	slices.SortFunc(channels, func(a, b *model.Channel) int {
+		return cmp.Compare(strings.ToLower(a.DisplayName), strings.ToLower(b.DisplayName))
 	})
 
 	return channels, nil

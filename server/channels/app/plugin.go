@@ -4,6 +4,7 @@
 package app
 
 import (
+	"cmp"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -12,7 +13,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"slices"
-	"sort"
 	"strings"
 	"sync"
 
@@ -577,8 +577,8 @@ func (a *App) GetMarketplacePlugins(rctx request.CTX, filter *model.MarketplaceP
 	}
 
 	// Sort result alphabetically.
-	sort.SliceStable(result, func(i, j int) bool {
-		return strings.ToLower(result[i].Manifest.Name) < strings.ToLower(result[j].Manifest.Name)
+	slices.SortStableFunc(result, func(a, b *model.MarketplacePlugin) int {
+		return cmp.Compare(strings.ToLower(a.Manifest.Name), strings.ToLower(b.Manifest.Name))
 	})
 
 	return result, nil
