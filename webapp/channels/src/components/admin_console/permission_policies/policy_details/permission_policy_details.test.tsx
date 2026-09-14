@@ -352,7 +352,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
             general: {
                 config: {
                     FeatureFlagPermissionPolicies: 'true',
-                    FeatureFlagChannelReadAccessABACPermission: enabled ? 'true' : 'false',
+                    FeatureFlagChannelAccessABACPermission: enabled ? 'true' : 'false',
                 },
             },
         },

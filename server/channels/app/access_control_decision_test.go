@@ -312,7 +312,7 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 	})
 }
 
-// With ChannelReadAccessABACPermission off, asking for channel_read_access is a 400 and
+// With ChannelAccessABACPermission off, asking for channel_read_access is a 400 and
 // discovery mode must not list it. The flag has to be set through SetupConfig:
 // UpdateConfig silently drops FeatureFlags writes, so setting it there would
 // make this pass without testing anything.
@@ -320,7 +320,7 @@ func TestSearchAllowedActionsChannelReadAccessFlagOff(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
-		cfg.FeatureFlags.ChannelReadAccessABACPermission = false
+		cfg.FeatureFlags.ChannelAccessABACPermission = false
 	}).InitBasic(t)
 
 	session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
@@ -372,7 +372,7 @@ func TestSearchAllowedActionsChannelReadAccessFlagOn(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
-		cfg.FeatureFlags.ChannelReadAccessABACPermission = true
+		cfg.FeatureFlags.ChannelAccessABACPermission = true
 	}).InitBasic(t)
 
 	session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})

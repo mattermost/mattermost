@@ -632,7 +632,7 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab 
             general: {
                 config: {
                     FeatureFlagPermissionPolicies: 'true',
-                    FeatureFlagChannelReadAccessABACPermission: enabled ? 'true' : 'false',
+                    FeatureFlagChannelAccessABACPermission: enabled ? 'true' : 'false',
                 },
             },
             users: {
