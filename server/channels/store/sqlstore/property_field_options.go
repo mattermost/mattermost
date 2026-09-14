@@ -295,7 +295,7 @@ func (s *SqlPropertyFieldStore) GetFieldOptions(field *model.PropertyField, curs
 
 // getFieldOptionsPage is GetFieldOptions with the candidate-window bound taken
 // as an argument, for the same reason walkOptionHierarchy takes maxRows as one:
-// the test below drives it over a handful of rows instead of two thousand.
+// this package's tests drive it over a handful of rows instead of two thousand.
 func (s *SqlPropertyFieldStore) getFieldOptionsPage(field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int, filter *model.PropertyFieldOptionPageFilter, maxCandidates int) (*model.PropertyFieldOptionPage, error) {
 	if field == nil || perPage <= 0 {
 		return nil, nil
@@ -337,8 +337,8 @@ func (s *SqlPropertyFieldStore) getFieldOptionsPage(field *model.PropertyField, 
 	return page, nil
 }
 
-// unfilteredFieldOptionsPage is today's plain keyset page, unchanged: no
-// candidate window is involved because nothing is being dropped out of it.
+// unfilteredFieldOptionsPage is the plain keyset page: no candidate window is
+// involved because nothing is being dropped out of it.
 func (s *SqlPropertyFieldStore) unfilteredFieldOptionsPage(replica *sqlxDBWrapper, field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int) ([]*propertyOptionRow, *model.PropertyFieldOptionPage, error) {
 	builder := s.getQueryBuilder().
 		Select(propertyOptionColumns...).

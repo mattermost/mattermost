@@ -53,9 +53,9 @@ func TestPropertyFieldOptionsPage(t *testing.T) {
 		}
 
 		// X, Y, Z are unrelated to the A-B-C hierarchy and created first, so they
-		// sort ahead of it by (CreateAt, ID) -- the shape the old code could not
-		// page: the covered options sit behind a run of rows the caller may not
-		// see. A, B, and C are each upserted in their own call, and the sleeps
+		// sort ahead of it by (CreateAt, ID): the covered options sit behind a run
+		// of rows the caller may not see. A, B, and C are each upserted in their
+		// own call, and the sleeps
 		// between every step are what makes all of this ordering deterministic
 		// rather than a race on millisecond timestamps.
 		ids := map[string]string{"X": model.NewId(), "Y": model.NewId(), "Z": model.NewId()}
