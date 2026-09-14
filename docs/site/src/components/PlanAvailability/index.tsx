@@ -106,7 +106,7 @@ export default function PlanAvailability({slug}: {slug: string}) {
         <span>
           {data.text}{' '}
           <Link href={data.href}>{data.linkText}</Link>
-          {data.text.endsWith('on') && !data.linkText.endsWith('plans') ? ' plans' : ''}
+          {data.text.endsWith('on') && !data.linkText.includes('plans') ? ' plans' : ''}
         </span>
       </aside>
     );
