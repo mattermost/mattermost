@@ -258,9 +258,24 @@ test.describe('System Console - Membership Policy graph operators', () => {
             //   close it before saving.
             const valueButton = page.locator('[data-testid="valueSelectorMenuButton"]').first();
             await valueButton.click();
-            const valueMenu = page.locator('[id^="value-selector-menu"]');
+
+            // The hierarchy picker derives its row, status and hint ids from the
+            // menu id, so a bare prefix match now resolves to the list and every
+            // row at once. Pin it to the list element.
+            const valueMenu = page.locator('ul[id^="value-selector-menu"]');
             await valueMenu.waitFor({state: 'visible', timeout: 10000});
-            await valueMenu.getByRole('menuitemcheckbox', {name: f18Program, exact: true}).click();
+
+            // # F-18 Program sits three levels down and a fresh row has nothing
+            //   selected, so nothing is expanded and the option is not rendered
+            //   yet. Search for it: a non-empty query replaces the tree with a
+            //   flat list of label matches. The search box lives in the menu's
+            //   header, which is a sibling of the list, so it is located from the
+            //   page rather than from valueMenu.
+            await page.getByRole('textbox', {name: 'Search values', exact: true}).fill('F-18');
+
+            const f18Row = valueMenu.getByRole('menuitemcheckbox', {name: f18Program, exact: true});
+            await expect(f18Row).toBeVisible();
+            await f18Row.click();
             await expect(valueButton).toContainText(f18Program);
             await page.keyboard.press('Escape');
 
@@ -319,7 +334,10 @@ test.describe('System Console - Membership Policy graph operators', () => {
             //   menu having selected nothing.
             const valueButton = page.locator('[data-testid="valueSelectorMenuButton"]').first();
             await valueButton.click();
-            const valueMenu = page.locator('[id^="value-selector-menu"]');
+
+            // Same narrowing as the option-name test: the prefix alone matches
+            // the hierarchy picker's rows as well as its list.
+            const valueMenu = page.locator('ul[id^="value-selector-menu"]');
             await valueMenu.waitFor({state: 'visible', timeout: 10000});
             await valueMenu.locator(`#channel-attr-${hierarchy!.channelFieldId}`).click();
             await expect(valueButton).toContainText(`Channel: ${hierarchy!.channelFieldName}`);

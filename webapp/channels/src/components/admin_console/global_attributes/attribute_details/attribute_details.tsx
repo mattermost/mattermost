@@ -12,7 +12,7 @@ import type {ClientError} from '@mattermost/client';
 import {buttonClassNames} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FieldVisibility, PropertyField, PropertyFieldOption, PropertyPermissionLevel} from '@mattermost/types/properties';
-import {supportsOptions} from '@mattermost/types/properties';
+import {supportsHierarchy, supportsOptions} from '@mattermost/types/properties';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
@@ -23,8 +23,10 @@ import BlockableLink from 'components/admin_console/blockable_link';
 import {findRankCollision, isValidRank} from 'components/admin_console/system_properties/rank_utils';
 import Card from 'components/card/card';
 import {useIsFieldOrphaned, usePluginInventoryLoaded} from 'components/common/hooks/use_field_orphaned';
+import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
+import {pageAllAccessControlFieldOptions} from 'components/property_fields/graph/page_all_access_control_field_options';
 import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import Input from 'components/widgets/inputs/input/input';
@@ -44,6 +46,7 @@ import AttributeOptionsRankValues from './attribute_options_rank_values';
 import AttributeOptionsValues from './attribute_options_values';
 import AttributePluginSource from './attribute_plugin_source';
 import {useConfirmRemoveAppliesTo} from './attribute_remove_applies_to_warning_modal';
+import {GraphValues, hasBlankTrimmedOptionName, hasCaseInsensitiveDuplicateNames} from './graph';
 
 import {CHANNEL_VALUE_SETTER, DEFAULT_CHANNEL_RESOURCE_CONFIG, buildChannelFieldAttrs, buildChannelFieldPatch, isOrderedChangePolicy, parseChannelFieldConfig} from '../applies_to/channels';
 import type {ChannelResourceConfig} from '../applies_to/channels';
@@ -51,12 +54,14 @@ import {GLOBAL_ATTRIBUTES_LIST_ROUTE} from '../constants';
 import {getSourceKind, getTypeIcon, getTypeLabel, isClassificationMarkingsField, typeLabels} from '../global_attributes_table';
 import type {AttributeFieldType} from '../utils';
 import {
+    ATTRIBUTE_FIELD_TYPES,
     createAttributeField,
     createLinkedAttributeField,
     deleteAttributeField,
     deleteLinkedAttributeField,
     fetchAttributeField,
     fetchLinkedFieldsForTemplate,
+    isAttributeFieldType,
     linkedFieldsByResourceType,
     patchLinkedAttributeField,
     updateAttributeField,
@@ -64,7 +69,6 @@ import {
 
 import './attribute_details.scss';
 
-const ALL_TYPES: AttributeFieldType[] = ['text', 'select', 'multiselect', 'rank'];
 const LIST_ROUTE = GLOBAL_ATTRIBUTES_LIST_ROUTE;
 
 // Whether any option in `options` has a name equal to another option's name.
@@ -87,10 +91,6 @@ function hasDuplicateOptionNames(options: PropertyFieldOption[]): boolean {
 // Only meaningful when the current type is 'rank'.
 function hasValidRanks(options: PropertyFieldOption[]): boolean {
     return options.every((option, index) => isValidRank(option.rank) && !findRankCollision(options, option.rank as number, index));
-}
-
-function isAttributeFieldType(value: string): value is AttributeFieldType {
-    return (ALL_TYPES as string[]).includes(value);
 }
 
 function optionsFromField(field: PropertyField): PropertyFieldOption[] {
@@ -298,6 +298,12 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const {field_id: fieldId} = useParams<{field_id?: string}>();
     const isEditMode = Boolean(fieldId);
 
+    const isGraphEnabled = useGetFeatureFlagValue('PropertyFieldGraph') === 'true';
+    const ALL_TYPES = useMemo(
+        () => ATTRIBUTE_FIELD_TYPES.filter((type) => type !== 'graph' || isGraphEnabled),
+        [isGraphEnabled],
+    );
+
     const [loading, setLoading] = useState(isEditMode);
     const [isDirty, setIsDirty] = useState(false);
 
@@ -339,9 +345,10 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // committed override (see handleDoneClick).
     const previousManualNameRef = useRef('');
 
-    // Type and Options are independent state -- switching type never clears
-    // options: a Text -> Select -> Text -> Select round-trip must restore
-    // whatever the admin already entered.
+    // Type and Options are independent for text/select/multiselect/rank — a
+    // Text -> Select -> Text -> Select round-trip must restore names already
+    // entered. Switching to or from graph clears options: DAG parents are
+    // incompatible with a flat chip list.
     const [fieldType, setFieldType] = useState<AttributeFieldType>('text');
     const [options, setOptions] = useState<PropertyFieldOption[]>([]);
 
@@ -456,13 +463,9 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                     !field ||
                     isClassificationMarkingsField(field, field.group_id) ||
 
-                    // A type this editor can't render (graph, whose options carry
-                    // parent links it has no way to show) or re-save (every save sends
-                    // `type`, so it would retype the field and drop its values). Plugin
-                    // ownership is deliberately not part of this condition: a
+                    // Plugin ownership is deliberately not part of this condition: a
                     // plugin-owned text/select/etc. field opens here read-only
-                    // (effectiveDisabled); only an unrenderable type redirects. A graph
-                    // field, always plugin-owned, is caught by its type.
+                    // (effectiveDisabled); only an unrenderable type redirects.
                     !isAttributeFieldType(field.type)
                 ) {
                     getHistory().push(LIST_ROUTE);
@@ -470,6 +473,15 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 }
 
                 const linkedFields = await fetchLinkedFieldsForTemplate(fieldId);
+                if (cancelled) {
+                    return;
+                }
+
+                // Field GET strips graph parents so a read-modify-write cannot
+                // flatten the hierarchy. The options route is what reports them.
+                const loadedOptions = field.type === 'graph' ?
+                    await pageAllAccessControlFieldOptions({id: field.id, object_type: field.object_type}) :
+                    optionsFromField(field);
                 if (cancelled) {
                     return;
                 }
@@ -484,7 +496,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 setManualName(field.name);
                 setIsNameManuallyEdited(true);
                 setFieldType(field.type);
-                setOptions(optionsFromField(field));
+                setOptions(loadedOptions);
                 setLdapAttr(typeof field.attrs?.ldap === 'string' ? field.attrs.ldap : '');
                 setSamlAttr(typeof field.attrs?.saml === 'string' ? field.attrs.saml : '');
                 setAppliesTo(ALL_RESOURCE_TYPES.filter((type) => Boolean(linkedByType[type])));
@@ -651,6 +663,11 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             return;
         }
         markDirty();
+
+        // Must run before rank reassignment so graph → rank does not rank leftover DAG options.
+        if ((newType === 'graph') !== (fieldType === 'graph')) {
+            setOptions([]);
+        }
         if (newType === 'rank' && fieldType !== 'rank') {
             setOptions((prevOptions) => (prevOptions.length > 0 ? prevOptions.map((option, index) => ({...option, rank: index + 1})) : prevOptions));
         }
@@ -767,7 +784,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const typeLockedByAppliesTo = isEditMode && appliesTo.length > 0;
     const typeLocked = hasExternalSource || typeLockedByAppliesTo || isPluginOwned;
     const typeChanged = isEditMode && fieldType !== originalFieldTypeRef.current;
-    const typeSupportsOptions = supportsOptions({type: fieldType} as PropertyField);
+    const typeSupportsOptions = supportsOptions({type: fieldType});
 
     // Unique name is the identifier policies and integrations bind to, and the
     // server does not copy it onto linked fields. Renaming while any resource
@@ -803,7 +820,16 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         return null;
     }, [typeSupportsOptions, options, fieldType]);
 
-    const canSave = !effectiveDisabled && Boolean(displayName.trim()) && Boolean(currentName) && !nameValidationError && !saving && optionsIssue === null && (!isEditMode || isDirty);
+    const isHierarchical = supportsHierarchy({type: fieldType});
+    const graphOptionsValid = useMemo(() => {
+        if (!isHierarchical) {
+            return true;
+        }
+        return options.length > 0 &&
+            !hasBlankTrimmedOptionName(options) &&
+            !hasCaseInsensitiveDuplicateNames(options);
+    }, [isHierarchical, options]);
+    const canSave = !effectiveDisabled && Boolean(displayName.trim()) && Boolean(currentName) && !nameValidationError && !saving && optionsIssue === null && graphOptionsValid && (!isEditMode || isDirty);
 
     const confirmRemoveAppliesTo = useConfirmRemoveAppliesTo();
 
@@ -964,6 +990,10 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         newResourcePermissionValuesFor(type),
                     );
                     persistedLinkedFieldsRef.current[type] = linkedField;
+                    if (type === 'user') {
+                        originalUserVisibilityRef.current = userVisibility;
+                        originalUserManagedRef.current = userManaged;
+                    }
                 } catch (error) {
                     const cpaErrorKind = type === 'user' ? appliesToErrorKindFromError(error) : null;
                     finalizeSave({
@@ -1149,6 +1179,59 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
 
     if (loading) {
         return <LoadingScreen/>;
+    }
+
+    let optionsEditor: JSX.Element | null = null;
+    if (isHierarchical) {
+        optionsEditor = (
+            <GraphValues
+                options={options}
+                onOptionsChange={handleOptionsChange}
+                disabled={saving || effectiveDisabled}
+            />
+        );
+    } else if (typeSupportsOptions) {
+        optionsEditor = (
+            <>
+                {fieldType === 'rank' ? (
+                    <AttributeOptionsRankValues
+                        options={options}
+                        onOptionsChange={handleOptionsChange}
+                        disabled={saving || effectiveDisabled}
+                    />
+                ) : (
+                    <AttributeOptionsValues
+                        options={options}
+                        onOptionsChange={handleOptionsChange}
+                        disabled={saving || effectiveDisabled}
+                    />
+                )}
+                {/* Suppressed for plugin-owned fields -- this validation targets
+                    admin-authored data entered through this form; a plugin-supplied
+                    template's options came from the plugin API and aren't guaranteed
+                    to satisfy this UI's own shape rules. Showing an actionable-looking
+                    error on a page with no controls to act on it would be worse than
+                    showing nothing. */}
+                {optionsIssue && !isPluginOwned && (
+                    <div
+                        className='AttributeDetails__uniqueNameError'
+                        role='alert'
+                        data-testid='attributeOptionsRequiredError'
+                    >
+                        <FormattedMessage {...(optionsIssue === 'required' ? messages.optionsRequired : messages.optionsInvalid)}/>
+                    </div>
+                )}
+            </>
+        );
+    } else if (!hasExternalSource) {
+        optionsEditor = (
+            <p
+                className='AttributeDetails__optionsHelp'
+                data-testid='attributeOptionsHelp'
+            >
+                <FormattedMessage {...messages.optionsHelp}/>
+            </p>
+        );
     }
 
     // The two applies_to_* kinds below that interpolate resource names need
@@ -1385,47 +1468,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                     <FormattedMessage {...messages.optionsLabel}/>
                                 </span>
                                 <div className='AttributeDetails__fieldControl'>
-                                    {typeSupportsOptions ? (
-                                        <>
-                                            {fieldType === 'rank' ? (
-                                                <AttributeOptionsRankValues
-                                                    options={options}
-                                                    onOptionsChange={handleOptionsChange}
-                                                    disabled={saving || effectiveDisabled}
-                                                />
-                                            ) : (
-                                                <AttributeOptionsValues
-                                                    options={options}
-                                                    onOptionsChange={handleOptionsChange}
-                                                    disabled={saving || effectiveDisabled}
-                                                />
-                                            )}
-                                            {/* Suppressed for plugin-owned fields -- this validation targets
-                                                admin-authored data entered through this form; a plugin-supplied
-                                                template's options came from the plugin API and aren't guaranteed
-                                                to satisfy this UI's own shape rules. Showing an actionable-looking
-                                                error on a page with no controls to act on it would be worse than
-                                                showing nothing. */}
-                                            {optionsIssue && !isPluginOwned && (
-                                                <div
-                                                    className='AttributeDetails__uniqueNameError'
-                                                    role='alert'
-                                                    data-testid='attributeOptionsRequiredError'
-                                                >
-                                                    <FormattedMessage {...(optionsIssue === 'required' ? messages.optionsRequired : messages.optionsInvalid)}/>
-                                                </div>
-                                            )}
-                                        </>
-                                    ) : (
-                                        !hasExternalSource && (
-                                            <p
-                                                className='AttributeDetails__optionsHelp'
-                                                data-testid='attributeOptionsHelp'
-                                            >
-                                                <FormattedMessage {...messages.optionsHelp}/>
-                                            </p>
-                                        )
-                                    )}
+                                    {optionsEditor}
                                     {isPluginOwned ? (
                                         <AttributePluginSource
                                             pluginId={sourcePluginId!}
@@ -1433,14 +1476,16 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                             pluginInventoryLoaded={pluginInventoryLoaded}
                                         />
                                     ) : (
-                                        <AttributeExternalSource
-                                            ldapAttr={ldapAttr}
-                                            samlAttr={samlAttr}
-                                            fieldType={fieldType}
-                                            onLink={handleLink}
-                                            disabled={saving || effectiveDisabled}
-                                            disableAdding={typeLockedByAppliesTo}
-                                        />
+                                        fieldType !== 'graph' && (
+                                            <AttributeExternalSource
+                                                ldapAttr={ldapAttr}
+                                                samlAttr={samlAttr}
+                                                fieldType={fieldType}
+                                                onLink={handleLink}
+                                                disabled={saving || effectiveDisabled}
+                                                disableAdding={typeLockedByAppliesTo}
+                                            />
+                                        )
                                     )}
                                 </div>
                             </div>

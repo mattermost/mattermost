@@ -14,11 +14,21 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import SystemUserDetail, {getUserAuthenticationTextField} from 'components/admin_console/system_user_detail/system_user_detail';
 import type {Params, Props} from 'components/admin_console/system_user_detail/system_user_detail';
+import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from 'components/property_fields/graph/page_all_access_control_field_options';
+import {clearGraphOptionNameCache} from 'components/property_fields/graph/use_graph_option_names';
 
 import type {MockIntl} from 'tests/helpers/intl-test-helper';
 import {renderWithContext, screen, waitFor, waitForElementToBeRemoved, within} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
+
+jest.mock('components/property_fields/graph/page_all_access_control_field_options', () => ({
+    ...jest.requireActual('components/property_fields/graph/page_all_access_control_field_options'),
+
+    pageAllAccessControlFieldOptions: jest.fn(),
+}));
+
+const mockPageAll = jest.mocked(pageAllAccessControlFieldOptions);
 
 // Mock user profile data
 const user = Object.assign(TestHelper.getUserMock(), {auth_service: ''}) as UserProfile;
@@ -668,7 +678,11 @@ describe('SystemUserDetail', () => {
             updated_by: '',
             target_id: '',
             target_type: '',
-            object_type: '',
+
+            // The picker short-circuits to its missing-identity error without
+            // this, and every "the field is editable" assertion below would pass
+            // for the wrong reason.
+            object_type: 'user',
             attrs: {
                 sort_order: 0,
                 visibility: 'when_set',
@@ -731,7 +745,7 @@ describe('SystemUserDetail', () => {
             expect(input).toBeDisabled();
         });
 
-        test('should render a graph field\'s stored option ids as names in the picker', async () => {
+        test('should render a graph field\'s stored option ids as names', async () => {
             const graphField = {
                 ...buildCPAField({
                     options: [
@@ -760,16 +774,16 @@ describe('SystemUserDetail', () => {
         });
 
         test('should resolve graph field option ids to names in the change summary', async () => {
-            const userEventInstance = userEvent.setup();
+            const options = [
+                {id: 'opt-1', name: 'Alpha'},
+                {id: 'opt-2', name: 'Beta'},
+                {id: 'opt-3', name: 'Gamma'},
+            ];
+            mockPageAll.mockResolvedValue(options);
             const graphField = {
-                ...buildCPAField({
-                    options: [
-                        {id: 'opt-1', name: 'Alpha'},
-                        {id: 'opt-2', name: 'Beta'},
-                        {id: 'opt-3', name: 'Gamma'},
-                    ],
-                }),
+                ...buildCPAField({options}),
                 type: 'graph',
+                object_type: 'user',
             } as UserPropertyField;
             const props = {
                 ...defaultProps,
@@ -782,41 +796,522 @@ describe('SystemUserDetail', () => {
 
             await waitForLoadingToFinish();
 
-            const fieldContainer = screen.getByTestId('user-detail-custom-attribute-label-cpa-1');
-            const picker = within(fieldContainer).getByRole('combobox');
-            await userEventInstance.click(picker);
-            await userEventInstance.click(await screen.findByText('Gamma'));
+            await userEvent.click(screen.getByTestId('cpa-graph-select-cpa-1'));
+            await userEvent.click(await screen.findByRole('menuitemcheckbox', {name: 'Gamma'}));
+            await userEvent.keyboard('{Escape}');
+            await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
 
-            await userEventInstance.click(screen.getByRole('button', {name: 'Save'}));
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
             const changesList = await screen.findByTestId('changesList');
-            expect(changesList).toHaveTextContent('Alpha, Beta, Gamma');
+            expect(changesList).toHaveTextContent('Alpha and Beta → Alpha, Beta, and Gamma');
             expect(changesList).not.toHaveTextContent('opt-1');
             expect(changesList).not.toHaveTextContent('opt-2');
             expect(changesList).not.toHaveTextContent('opt-3');
         });
 
-        test('should render a graph field with omitted options as read-only stored values', async () => {
-            const graphField = {
-                ...buildCPAField({options_omitted: true}),
+        describe('graph omit-unlock', () => {
+            const OMITTED_COPY = 'This field has too many options to be edited here.';
+
+            const graphOption = (id: string, name: string, parents: string[] = []) => ({
+                id, name, parents, create_at: 1,
+            });
+
+            // Regime 1: a small field that inlines every option.
+            const REGIME_1 = [
+                graphOption('opt-1', 'Alpha'),
+                graphOption('opt-2', 'Beta'),
+                graphOption('opt-3', 'Gamma'),
+                graphOption('opt-4', 'Delta'),
+                graphOption('opt-5', 'Epsilon'),
+            ];
+
+            // Regime 2: 201-1000 options, still inlined in full, carrying
+            // neither options_omitted nor options_count.
+            const REGIME_2 = Array.from(
+                {length: 300},
+                (_, index) => graphOption(`big-${index}`, `Big ${index}`),
+            );
+
+            const buildGraphField = (overrides: Partial<UserPropertyField['attrs']> = {}) => ({
+                ...buildCPAField(overrides),
                 type: 'graph',
-            } as UserPropertyField;
-            const props = {
-                ...defaultProps,
-                customProfileAttributeFields: [graphField],
-                getCustomProfileAttributeFields: jest.fn().mockResolvedValue({data: [graphField]}),
-                getCustomProfileAttributeValues: jest.fn().mockResolvedValue({data: {[graphField.id]: ['opt-1', 'opt-2']}}),
+            } as UserPropertyField);
+
+            const renderDetail = (
+                field: UserPropertyField,
+                values: string | string[] | undefined,
+                {propOverrides = {}}: {propOverrides?: Partial<Props>} = {},
+            ) => {
+                const props = {
+                    ...defaultProps,
+                    customProfileAttributeFields: [field],
+                    getCustomProfileAttributeFields: jest.fn().mockResolvedValue({data: [field]}),
+                    getCustomProfileAttributeValues: jest.fn().mockResolvedValue({
+                        data: values ? {[field.id]: values} : {},
+                    }),
+                    ...propOverrides,
+                };
+
+                return renderWithContext(<SystemUserDetail {...props}/>);
             };
 
-            renderWithContext(<SystemUserDetail {...props}/>);
+            const fieldContainer = () => screen.getByTestId('user-detail-custom-attribute-label-cpa-1');
+            const trigger = () => screen.getByTestId('cpa-graph-select-cpa-1');
 
-            await waitForLoadingToFinish();
+            const openMenu = async () => {
+                await userEvent.click(trigger());
+                await screen.findByRole('menu');
+            };
 
-            const fieldContainer = screen.getByTestId('user-detail-custom-attribute-label-cpa-1');
-            expect(fieldContainer.querySelector('input')).toHaveValue('opt-1, opt-2');
-            expect(fieldContainer).toHaveTextContent('This field has too many options to be edited here.');
-            expect(within(fieldContainer).queryByRole('combobox')).not.toBeInTheDocument();
-            expect(fieldContainer.querySelector('input')).toBeDisabled();
+            // The open popover is a MUI Modal, which aria-hides the rest of the
+            // page. Anything outside the menu has to wait for it to close.
+            const closeMenu = async () => {
+                await userEvent.keyboard('{Escape}');
+                await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
+            };
+
+            beforeEach(() => {
+                // The pager keeps its in-flight walks in module state.
+                clearPropertyFieldOptionWalks();
+                clearGraphOptionNameCache();
+
+                // A test that forgets to stub the walk must fail loudly rather
+                // than fall through to the real Client4 and node-fetch.
+                mockPageAll.mockImplementation(() => {
+                    throw new Error('pageAllAccessControlFieldOptions called without an explicit mock for this test');
+                });
+            });
+
+            test('G1: renders an omitted graph field as an editable picker, not a disabled id input', async () => {
+                mockPageAll.mockResolvedValue(REGIME_1);
+                renderDetail(buildGraphField({options_omitted: true, options_count: 1010}), ['opt-1', 'opt-2']);
+
+                await waitForLoadingToFinish();
+
+                await waitFor(() => expect(trigger()).toHaveTextContent('Alpha'));
+                expect(trigger()).toHaveTextContent('Beta');
+                expect(trigger()).not.toHaveTextContent('opt-1');
+                expect(fieldContainer().querySelector('input:disabled')).toBeNull();
+                expect(fieldContainer()).not.toHaveTextContent(OMITTED_COPY);
+            });
+
+            test('G1b: preserves a scalar graph id as the current selection', async () => {
+                mockPageAll.mockResolvedValue(REGIME_1);
+                renderDetail(buildGraphField({options: REGIME_1}), 'opt-1');
+
+                await waitForLoadingToFinish();
+
+                await waitFor(() => expect(trigger()).toHaveTextContent('Alpha'));
+                expect(trigger()).not.toHaveTextContent('opt-1');
+            });
+
+            test('G2: prefetches an omitted graph field\'s options once on mount', async () => {
+                mockPageAll.mockResolvedValue(REGIME_1);
+                renderDetail(buildGraphField({options_omitted: true}), ['opt-1']);
+
+                await waitForLoadingToFinish();
+
+                await waitFor(() => expect(mockPageAll).toHaveBeenCalledTimes(1));
+                expect(mockPageAll).toHaveBeenCalledWith(
+                    {id: 'cpa-1', object_type: 'user'},
+                    expect.anything(),
+                );
+            });
+
+            test('G3: does not prefetch a hydrated graph field whose options name every held value', async () => {
+                mockPageAll.mockResolvedValue(REGIME_1);
+                renderDetail(buildGraphField({options: REGIME_1}), ['opt-1', 'opt-3']);
+
+                await waitForLoadingToFinish();
+                await waitFor(() => expect(trigger()).toHaveTextContent('Alpha'));
+
+                expect(mockPageAll).not.toHaveBeenCalled();
+            });
+
+            test('G3b: does not prefetch a 300-option graph field with no omission markers', async () => {
+                mockPageAll.mockResolvedValue(REGIME_2);
+                renderDetail(buildGraphField({options: REGIME_2}), ['big-7']);
+
+                await waitForLoadingToFinish();
+                await waitFor(() => expect(trigger()).toHaveTextContent('Big 7'));
+
+                expect(mockPageAll).not.toHaveBeenCalled();
+            });
+
+            test('G4: prefetches a hydrated graph field holding an id its options do not name', async () => {
+                mockPageAll.mockResolvedValue(REGIME_1);
+                renderDetail(buildGraphField({options: REGIME_1}), ['opt-1', 'ghost']);
+
+                await waitForLoadingToFinish();
+
+                await waitFor(() => expect(mockPageAll).toHaveBeenCalledTimes(1));
+            });
+
+            test('G5: shows an error with Retry when the option walk fails, and does not fall back to a disabled id input', async () => {
+                mockPageAll.mockRejectedValue(new Error('boom'));
+                renderDetail(buildGraphField({options_omitted: true}), ['opt-1', 'opt-2']);
+
+                await waitForLoadingToFinish();
+                await openMenu();
+
+                expect(await screen.findByText('These values could not be loaded.')).toBeInTheDocument();
+                expect(fieldContainer().querySelector('input:disabled')).toBeNull();
+                expect(fieldContainer()).not.toHaveTextContent(OMITTED_COPY);
+
+                const callsBeforeRetry = mockPageAll.mock.calls.length;
+                mockPageAll.mockResolvedValue(REGIME_1);
+                await userEvent.click(screen.getByRole('button', {name: 'Retry'}));
+
+                expect(await screen.findByRole('menuitemcheckbox', {name: 'Alpha'})).toBeInTheDocument();
+                expect(mockPageAll.mock.calls.length).toBe(callsBeforeRetry + 1);
+            });
+
+            test('G6: keeps a read_only option selectable', async () => {
+                mockPageAll.mockResolvedValue(REGIME_1.map((option) => ({...option, read_only: true})));
+                renderDetail(buildGraphField({options_omitted: true}), []);
+
+                await waitForLoadingToFinish();
+                await openMenu();
+
+                const row = await screen.findByRole('menuitemcheckbox', {name: 'Gamma'});
+                expect(row).toHaveAttribute('aria-checked', 'false');
+
+                await userEvent.click(row);
+
+                expect(screen.getByRole('menuitemcheckbox', {name: 'Gamma'})).toHaveAttribute('aria-checked', 'true');
+                expect(trigger()).toHaveTextContent('Gamma');
+            });
+
+            test('clicking a branch option assigns it from the row, not only the checkbox', async () => {
+                const options = [
+                    graphOption('opt-air', 'Air'),
+                    graphOption('opt-fighter', 'Fighter', ['Air']),
+                ];
+                mockPageAll.mockResolvedValue(options);
+                renderDetail(buildGraphField({options}), []);
+
+                await waitForLoadingToFinish();
+                await openMenu();
+
+                await userEvent.click(await screen.findByRole('menuitemcheckbox', {name: 'Air'}));
+
+                expect(screen.getByRole('menuitemcheckbox', {name: 'Air'})).toHaveAttribute('aria-checked', 'true');
+                expect(screen.queryByRole('menuitemcheckbox', {name: 'Fighter'})).not.toBeInTheDocument();
+                expect(trigger()).toHaveTextContent('Air');
+                expect(screen.getByRole('menu')).toBeInTheDocument();
+            });
+
+            test('G7: writes option ids, not names, when the picker selection changes', async () => {
+                const saveCustomProfileAttribute = jest.fn().mockResolvedValue({data: {}});
+                mockPageAll.mockResolvedValue(REGIME_1);
+                renderDetail(buildGraphField({options_omitted: true}), ['opt-1'], {
+                    propOverrides: {saveCustomProfileAttribute},
+                });
+
+                await waitForLoadingToFinish();
+                await openMenu();
+                await userEvent.click(await screen.findByRole('menuitemcheckbox', {name: 'Gamma'}));
+                await closeMenu();
+
+                await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+                await userEvent.click(await screen.findByRole('button', {name: 'Save Changes'}));
+
+                await waitFor(() => expect(saveCustomProfileAttribute).toHaveBeenCalledWith(
+                    user.id,
+                    'cpa-1',
+                    ['opt-1', 'opt-3'],
+                ));
+            });
+
+            test('G8: shows resolved names in the change summary for an omitted graph field', async () => {
+                mockPageAll.mockResolvedValue(REGIME_1);
+                renderDetail(buildGraphField({options_omitted: true}), ['opt-1', 'opt-2']);
+
+                await waitForLoadingToFinish();
+                await openMenu();
+                await userEvent.click(await screen.findByRole('menuitemcheckbox', {name: 'Gamma'}));
+                await closeMenu();
+
+                await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+                const changesList = await screen.findByTestId('changesList');
+                expect(changesList).toHaveTextContent('Alpha and Beta → Alpha, Beta, and Gamma');
+                expect(changesList).not.toHaveTextContent('opt-');
+            });
+
+            test('G11: still locks a synced graph field with omitted options', async () => {
+                mockPageAll.mockResolvedValue(REGIME_1);
+                renderDetail(buildGraphField({options_omitted: true, ldap: 'dept'}), ['opt-1']);
+
+                await waitForLoadingToFinish();
+
+                expect(trigger()).toBeDisabled();
+                expect(screen.getByText('Synced with:')).toBeInTheDocument();
+                expect(fieldContainer()).not.toHaveTextContent(OMITTED_COPY);
+            });
+
+            test('G12: still locks a protected graph field, including shared_only', async () => {
+                mockPageAll.mockResolvedValue([]);
+                renderDetail(
+                    buildGraphField({protected: true, access_mode: 'shared_only', source_plugin_id: 'plugin.x'}),
+                    ['opt-1'],
+                );
+
+                await waitForLoadingToFinish();
+
+                expect(trigger()).toBeDisabled();
+                expect(fieldContainer()).toHaveTextContent('Managed by plugin');
+            });
+
+            test('G13: still locks an owner-managed graph field', async () => {
+                mockPageAll.mockResolvedValue(REGIME_1);
+                renderDetail(
+                    buildGraphField({options_omitted: true, owners: [{id: 'plugin.x', type: 'plugin', scopes: []}]}),
+                    ['opt-1'],
+                );
+
+                await waitForLoadingToFinish();
+
+                expect(trigger()).toBeDisabled();
+                expect(screen.getByText('Synced with:')).toBeInTheDocument();
+            });
+
+            test('G14: leaves an admin-managed graph field editable', async () => {
+                mockPageAll.mockResolvedValue(REGIME_1);
+                renderDetail(buildGraphField({options_omitted: true, managed: 'admin'}), ['opt-1']);
+
+                await waitForLoadingToFinish();
+
+                expect(trigger()).toBeEnabled();
+                await waitFor(() => expect(trigger()).toHaveTextContent('Alpha'));
+            });
+
+            test('G15: keeps a multiselect field with omitted options locked', async () => {
+                renderDetail(
+                    {...buildCPAField({options_omitted: true}), type: 'multiselect'} as UserPropertyField,
+                    ['opt-1', 'opt-2'],
+                );
+
+                await waitForLoadingToFinish();
+
+                expect(fieldContainer().querySelector('input')).toHaveValue('opt-1, opt-2');
+                expect(fieldContainer().querySelector('input')).toBeDisabled();
+                expect(fieldContainer()).toHaveTextContent(OMITTED_COPY);
+                expect(mockPageAll).not.toHaveBeenCalled();
+            });
+
+            test('G16: keeps a select field with omitted options locked', async () => {
+                renderDetail(
+                    {...buildCPAField({options_omitted: true}), type: 'select'} as UserPropertyField,
+                    'opt-1',
+                );
+
+                await waitForLoadingToFinish();
+
+                expect(fieldContainer().querySelector('input')).toHaveValue('opt-1');
+                expect(fieldContainer().querySelector('input')).toBeDisabled();
+                expect(fieldContainer()).toHaveTextContent(OMITTED_COPY);
+                expect(mockPageAll).not.toHaveBeenCalled();
+            });
+
+            test('G17: opens the menu when the field label is clicked', async () => {
+                // The trigger is a <button> inside <label class='cpa-field'>, so
+                // label activation opens an overlay where a multiselect in the
+                // same wrapper would only take focus. Nothing declares that --
+                // it follows from the trigger being the label's first labelable
+                // descendant -- so adding htmlFor, reordering the label's
+                // children, or moving the indicator out changes it silently.
+                mockPageAll.mockResolvedValue(REGIME_1);
+                renderDetail(buildGraphField({options_omitted: true}), ['opt-1']);
+
+                await waitForLoadingToFinish();
+                expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+
+                await userEvent.click(fieldContainer());
+
+                expect(await screen.findByRole('menu')).toBeInTheDocument();
+            });
+
+            test('G18: names the picker trigger after the field, not the placeholder', async () => {
+                // A wrapping <label> forwards clicks to a <button> but does not
+                // contribute to its accessible name, so without the explicit
+                // ariaLabel every graph trigger on the page announces as
+                // "Select values...". Every other test addresses the trigger by
+                // test id, which would not notice the prop being dropped.
+                mockPageAll.mockResolvedValue(REGIME_1);
+                renderDetail(buildGraphField({options_omitted: true}), ['opt-1']);
+
+                await waitForLoadingToFinish();
+
+                expect(screen.getByRole('button', {name: 'department'})).toBe(trigger());
+            });
+
+            test('G19: says "Value unavailable" on both surfaces when the walk failed', async () => {
+                // The convergence, asserted from both ends. A failed read knows
+                // nothing about these ids, so neither the chip nor the change
+                // summary may print one, and both take their wording from the
+                // same message descriptor -- there is no second copy to drift.
+                //
+                // Both halves are asserted so this fails if either surface
+                // regresses: the chips going back to ids, or the summary doing so.
+                // G20 pins the OTHER path into the same fallback, where showing
+                // the id is correct, so a blanket rule cannot satisfy both.
+                mockPageAll.mockRejectedValue(new Error('boom'));
+                renderDetail(buildGraphField({options_omitted: true}), ['opt-1', 'opt-2']);
+
+                await waitForLoadingToFinish();
+                await waitFor(() => expect(mockPageAll).toHaveBeenCalledTimes(1));
+
+                // The chip's remove control lives inside the trigger button and
+                // stays available in the error state, which is what makes the
+                // modal reachable with nothing resolved.
+                const removes = await screen.findAllByRole('button', {name: 'Remove value'});
+                expect(removes).toHaveLength(2);
+                await userEvent.click(removes[0]);
+
+                // Checked before Save: the confirm modal aria-hides the page
+                // behind it, so the chips stop being reachable by role once it
+                // is open.
+                expect(screen.getAllByRole('button', {name: 'Remove value'})).toHaveLength(1);
+                expect(trigger()).toHaveTextContent('Value unavailable');
+                expect(trigger()).not.toHaveTextContent('opt-2');
+
+                await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+                const changesList = await screen.findByTestId('changesList');
+                expect(changesList).toHaveTextContent('Value unavailable');
+                expect(changesList).not.toHaveTextContent('opt-1');
+                expect(changesList).not.toHaveTextContent('opt-2');
+            });
+
+            test('G20: prints the id on both surfaces for a stale id the walk succeeded without', async () => {
+                // The second, quieter path into `?? id`, and the reason the tail
+                // cannot simply be swapped for "Value unavailable". Here the walk
+                // SUCCEEDS and just does not mention one held id -- a deleted
+                // option. The cache is populated, so a lookup miss is specific to
+                // that id rather than to the read.
+                //
+                // On this path the widget shows the raw id too, deliberately:
+                // Dara's labelForId keeps the id for a stale value because it is
+                // the only true thing left to say about a value that really is
+                // still assigned. So modal and chip already agree, and a blanket
+                // change to the tail would break that agreement in the other
+                // direction -- "Value unavailable" in the summary beside a chip
+                // reading `ghost-1`.
+                mockPageAll.mockResolvedValue(REGIME_1);
+                renderDetail(buildGraphField({options_omitted: true}), ['opt-1', 'ghost-1']);
+
+                await waitForLoadingToFinish();
+                await waitFor(() => expect(trigger()).toHaveTextContent('Alpha'));
+
+                // Checked before Save, as in G19: the modal aria-hides the page.
+                // The chip is 'named' with the id as its name, so the id reaches
+                // the accessible label too -- "Remove ghost-1", not the
+                // "Remove value" that an unavailable chip gets. That is the
+                // cheapest available proof of which branch produced this chip.
+                expect(trigger()).toHaveTextContent('ghost-1');
+                expect(await screen.findByRole('button', {name: 'Remove ghost-1'})).toBeInTheDocument();
+
+                await userEvent.click(screen.getByRole('button', {name: 'Remove Alpha'}));
+                await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+                const changesList = await screen.findByTestId('changesList');
+                expect(changesList).toHaveTextContent('ghost-1');
+                expect(changesList).not.toHaveTextContent('Value unavailable');
+            });
+
+            test('G21: says the ids when a successful walk named none of them', async () => {
+                // The state that makes the picker's empty report load-bearing.
+                // Every held id here is stale, so a successful read names none of
+                // them and the name map arrives empty. That is G20's case, not
+                // G19's -- the read worked -- so both surfaces must show ids.
+                //
+                // Were the picker to skip reporting an empty map, this field
+                // would be indistinguishable from the failed read in G19 and the
+                // summary would say "Value unavailable" beside chips reading
+                // `ghost-1`. This test is what fails if that skip comes back.
+                mockPageAll.mockResolvedValue(REGIME_1);
+                renderDetail(buildGraphField({options_omitted: true}), ['ghost-1', 'ghost-2']);
+
+                await waitForLoadingToFinish();
+                await waitFor(() => expect(mockPageAll).toHaveBeenCalledTimes(1));
+                await waitFor(() => expect(trigger()).toHaveTextContent('ghost-1'));
+                expect(trigger()).not.toHaveTextContent('Value unavailable');
+
+                await userEvent.click(screen.getByRole('button', {name: 'Remove ghost-1'}));
+                await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+                const changesList = await screen.findByTestId('changesList');
+                expect(changesList).toHaveTextContent('ghost-2');
+                expect(changesList).not.toHaveTextContent('Value unavailable');
+            });
+
+            // The two field kinds that share resolveOptionNames' array branch
+            // without ever mounting a picker. For them an empty name map means
+            // "nobody was ever going to write one", not "the read failed", so
+            // the unavailable wording would be a lie -- and both printed the id
+            // before the graph picker existed, which is what flag-off has to
+            // keep doing.
+            const staleOptions = [
+                {id: 'opt-1', name: 'Alpha'},
+                {id: 'opt-3', name: 'Gamma'},
+            ];
+
+            const addGammaAndSave = async () => {
+                const picker = within(fieldContainer()).getByRole('combobox');
+                await userEvent.click(picker);
+                await userEvent.click(await screen.findByText('Gamma'));
+                await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+                return screen.findByTestId('changesList');
+            };
+
+            test('G22: prints the id for a stale multiselect value, with no picker in sight', async () => {
+                const field = {
+                    ...buildCPAField({options: staleOptions}),
+                    type: 'multiselect',
+                } as UserPropertyField;
+
+                renderDetail(field, ['opt-1', 'ghost-1']);
+                await waitForLoadingToFinish();
+
+                const changesList = await addGammaAndSave();
+                expect(changesList).toHaveTextContent('ghost-1');
+                expect(changesList).not.toHaveTextContent('Value unavailable');
+
+                // Not a graph field, so nothing should have gone looking.
+                expect(mockPageAll).not.toHaveBeenCalled();
+            });
+
+            test('G22b: adding a live option to a stale multiselect still emits the ghost id', async () => {
+                // G22 only fences confirm-modal wording (print the id, not
+                // "Value unavailable"). It is green even when the control
+                // drops the ghost from the *new* side -- Jules R1, qa_stale_multi.
+                // This is the keep: chip, new-side summary, and PATCH must
+                // still name ghost-1 after a live option is added.
+                const field = {
+                    ...buildCPAField({options: staleOptions}),
+                    type: 'multiselect',
+                } as UserPropertyField;
+                const saveCustomProfileAttribute = jest.fn().mockResolvedValue({data: {}});
+
+                renderDetail(field, ['opt-1', 'ghost-1'], {propOverrides: {saveCustomProfileAttribute}});
+                await waitForLoadingToFinish();
+
+                expect(fieldContainer()).toHaveTextContent('Alpha');
+                expect(fieldContainer()).toHaveTextContent('ghost-1');
+
+                const changesList = await addGammaAndSave();
+                expect(changesList).toHaveTextContent('Alpha, ghost-1 → Alpha, ghost-1, Gamma');
+                expect(changesList).not.toHaveTextContent('Value unavailable');
+
+                await userEvent.click(await screen.findByRole('button', {name: 'Save Changes'}));
+                await waitFor(() => expect(saveCustomProfileAttribute).toHaveBeenCalledWith(
+                    user.id,
+                    'cpa-1',
+                    ['opt-1', 'ghost-1', 'opt-3'],
+                ));
+            });
         });
     });
 });

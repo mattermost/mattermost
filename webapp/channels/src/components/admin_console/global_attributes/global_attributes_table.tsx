@@ -11,7 +11,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
 import type {ClientError} from '@mattermost/client';
-import {ChevronDownCircleOutlineIcon, ContentCopyIcon, DotsHorizontalIcon, EyeOutlineIcon, FormatListBulletedIcon, MenuVariantIcon, OpenInNewIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SortAscendingIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {ChevronDownCircleOutlineIcon, ContentCopyIcon, DotsHorizontalIcon, EyeOutlineIcon, FormatListBulletedIcon, MenuVariantIcon, OpenInNewIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SitemapIcon, SortAscendingIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FieldType, PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
@@ -59,6 +59,7 @@ const TYPE_ICONS: Partial<Record<FieldType, ComponentType<IconProps>>> = {
     select: ChevronDownCircleOutlineIcon,
     multiselect: FormatListBulletedIcon,
     rank: SortAscendingIcon,
+    graph: SitemapIcon,
 };
 
 export function getTypeIcon(fieldType: FieldType): ComponentType<IconProps> {
@@ -187,7 +188,11 @@ function OptionsCell({field}: {field: PropertyField}) {
         return <FormattedMessage {...optionsLabels.freeText}/>;
     }
 
-    const count = (field.attrs?.options as PropertyFieldOption[] | undefined)?.length ?? 0;
+    const attrs = field.attrs;
+    const omitted = Boolean(attrs?.options_omitted);
+    const count = omitted ?
+        ((attrs?.options_count as number | undefined) ?? 0) :
+        ((attrs?.options as PropertyFieldOption[] | undefined)?.length ?? 0);
 
     return (
         <FormattedMessage
@@ -656,6 +661,7 @@ export const typeLabels = defineMessages({
     select: {id: 'admin.global_attributes.table.type.select', defaultMessage: 'Select'},
     multiselect: {id: 'admin.global_attributes.table.type.multiselect', defaultMessage: 'Multiselect'},
     rank: {id: 'admin.global_attributes.table.type.rank', defaultMessage: 'Ranked'},
+    graph: {id: 'admin.global_attributes.table.type.graph', defaultMessage: 'Hierarchical'},
     fallback: {id: 'admin.global_attributes.table.type.fallback', defaultMessage: 'Other'},
 });
 

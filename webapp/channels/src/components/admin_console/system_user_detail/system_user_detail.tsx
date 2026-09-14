@@ -7,7 +7,7 @@ import classNames from 'classnames';
 import React, {PureComponent} from 'react';
 import type {ChangeEvent, KeyboardEvent, MouseEvent} from 'react';
 import type {IntlShape, WrappedComponentProps} from 'react-intl';
-import {FormattedList, FormattedMessage, defineMessage, injectIntl} from 'react-intl';
+import {FormattedList, FormattedMessage, defineMessage, injectIntl, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 import type {RouteComponentProps} from 'react-router-dom';
 import ReactSelect from 'react-select';
@@ -35,6 +35,9 @@ import ConfirmManageUserSettingsModal from 'components/admin_console/system_user
 import ConfirmModal from 'components/confirm_modal';
 import FormError from 'components/form_error';
 import * as Menu from 'components/menu';
+import {asGraphValueIds} from 'components/property_fields/graph';
+import {useGraphOptionNames} from 'components/property_fields/graph/use_graph_option_names';
+import {AssignmentGraphPicker} from 'components/property_fields/hierarchical_value_menu';
 import SaveButton from 'components/save_button';
 import TeamSelectorModal from 'components/team_selector_modal';
 import UserSettingsModal from 'components/user_settings/modal';
@@ -80,11 +83,11 @@ const CPAMultiSelect: React.FC<CPAMultiSelectProps> = ({
         label: option.name,
     }));
 
-    // Transform selected values to ReactSelect format
+    // Keep assigned ids even when the option is gone; dropping them shrinks the saved value.
     const selectedOptions = selectedValues.map((selectedId) => {
         const option = options.find((opt) => opt.id === selectedId);
-        return option ? {value: option.id, label: option.name} : null;
-    }).filter((opt): opt is {value: string; label: string} => opt !== null);
+        return {value: selectedId, label: option?.name ?? selectedId};
+    });
 
     return (
         <ReactSelect
@@ -188,11 +191,32 @@ const PluginDisplayName: React.FC<PluginDisplayNameProps> = ({pluginId}) => {
     return <>{displayName}</>;
 };
 
+function GraphConfirmLabels({field, ids}: {field: UserPropertyField; ids: string[]}) {
+    const {formatMessage, formatList} = useIntl();
+    const {labelForId} = useGraphOptionNames(field, ids, {walk: true});
+
+    return formatList(ids.map((id) => {
+        const label = labelForId(id);
+        if (label.kind === 'name') {
+            return label.text;
+        }
+        if (label.kind === 'id') {
+            return id;
+        }
+        return formatMessage({
+            id: 'property_fields.hierarchical_value_menu.unavailable_value',
+            defaultMessage: 'Value unavailable',
+        });
+    }));
+}
+
 type CpaFieldManagementIndicatorProps = {
     field: UserPropertyField;
+
+    omitLocksField: boolean;
 };
 
-const CpaFieldManagementIndicator: React.FC<CpaFieldManagementIndicatorProps> = ({field}) => {
+const CpaFieldManagementIndicator: React.FC<CpaFieldManagementIndicatorProps> = ({field, omitLocksField}) => {
     const pluginsById = useSelector((state: GlobalState) => state.plugins?.plugins ?? {});
     const owners = field.attrs?.owners ?? [];
     const hasSyncedSources = Boolean(field.attrs?.ldap || field.attrs?.saml || owners.length > 0);
@@ -288,7 +312,7 @@ const CpaFieldManagementIndicator: React.FC<CpaFieldManagementIndicatorProps> = 
         );
     }
 
-    if (field.attrs?.options_omitted) {
+    if (omitLocksField) {
         return (
             <div className='user-property-field-values__sync-indicator'>
                 <FormattedMessage
@@ -539,7 +563,6 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         const options = field.attrs?.options || [];
         if (valueRefersToOptions(field)) {
             if (!Array.isArray(value)) {
-                // Select: resolve single ID to its name
                 const option = options.find((opt) => opt.id === value);
                 return option ? option.name : value;
             }
@@ -549,10 +572,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 return this.formatEmptyValue();
             }
 
-            const names = value.map((id) => {
-                const option = options.find((opt) => opt.id === id);
-                return option ? option.name : id;
-            });
+            const names = value.map((id) => options.find((opt) => opt.id === id)?.name ?? id);
             return names.join(this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.arrayValueSeparator', defaultMessage: ', '}));
         }
 
@@ -846,11 +866,13 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         const isOwnerManaged = Boolean(field.attrs?.owners?.length);
         const isProtected = Boolean(field.attrs?.protected);
         const optionsOmitted = Boolean(field.attrs?.options_omitted);
-        const isLockedFromEditing = isSynced || isProtected || isOwnerManaged || optionsOmitted;
+
+        const omitLocksField = optionsOmitted && field.type !== 'graph';
+        const isLockedFromEditing = isSynced || isProtected || isOwnerManaged || omitLocksField;
         const isDisabled = this.state.isSaving || this.state.isLoading || isLockedFromEditing;
 
         const fieldContent = (() => {
-            if (optionsOmitted && valueRefersToOptions(field)) {
+            if (omitLocksField && valueRefersToOptions(field)) {
                 const display = Array.isArray(value) ?
                     value.join(this.props.intl.formatMessage({
                         id: 'admin.userManagement.userDetail.arrayValueSeparator',
@@ -911,7 +933,25 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     />
                 );
             }
-            case 'graph':
+            case 'graph': {
+                const selectedValues = asGraphValueIds(value);
+                return (
+                    <AssignmentGraphPicker
+                        field={field}
+                        ids={selectedValues}
+                        onIdsChange={(values) => this.handleCpaValueChange(field.id, values)}
+                        disabled={isDisabled}
+                        menuId={`cpa-graph-menu-${field.id}`}
+                        buttonId={`cpa-graph-button-${field.id}`}
+                        buttonDataTestId={`cpa-graph-select-${field.id}`}
+                        placeholder={this.props.intl.formatMessage({
+                            id: 'admin.user.selectOptions',
+                            defaultMessage: 'Select options...',
+                        })}
+                        ariaLabel={getUserPropertyFieldLabel(field)}
+                    />
+                );
+            }
             case 'multiselect': {
                 const options = field.attrs?.options || [];
                 const selectedValues = Array.isArray(value) ? value : [];
@@ -981,7 +1021,10 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     values={{fieldName: getUserPropertyFieldLabel(field)}}
                 />
                 {fieldContent}
-                <CpaFieldManagementIndicator field={field}/>
+                <CpaFieldManagementIndicator
+                    field={field}
+                    omitLocksField={omitLocksField}
+                />
             </label>
         );
     };
@@ -1392,9 +1435,21 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 if (field.id === fieldId) {
                     const fieldName = field.name;
                     const originalValue = this.state.originalCpaValues[fieldId];
-
-                    const oldValue = this.resolveOptionNames(field, originalValue);
-                    const newValue = this.resolveOptionNames(field, changes[1]);
+                    const nextValue = changes[1];
+                    const graphConfirm = (v: string | string[] | undefined) => {
+                        const ids = asGraphValueIds(v);
+                        if (!ids.length) {
+                            return this.formatEmptyValue();
+                        }
+                        return (
+                            <GraphConfirmLabels
+                                field={field}
+                                ids={ids}
+                            />
+                        );
+                    };
+                    const oldValue = field.type === 'graph' ? graphConfirm(originalValue) : this.resolveOptionNames(field, originalValue);
+                    const newValue = field.type === 'graph' ? graphConfirm(nextValue) : this.resolveOptionNames(field, nextValue);
 
                     fields.push(
                         <FormattedMessage

@@ -6,12 +6,15 @@ import type {PropertyField} from '@mattermost/types/properties';
 import {Client4} from 'mattermost-redux/client';
 
 import {
+    ATTRIBUTE_FIELD_TYPES,
+    buildOptionsAttr,
     createAttributeField,
     createLinkedAttributeField,
     deleteAttributeField,
     deleteLinkedAttributeField,
     fetchAttributeField,
     fetchLinkedFieldsForTemplate,
+    isAttributeFieldType,
     linkedFieldsByResourceType,
     updateAttributeField,
 } from './utils';
@@ -101,6 +104,46 @@ describe('global_attributes/utils', () => {
             }));
         });
 
+        it('sends {id, name, parents} options for graph, stripping local ids and always setting parents', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
+
+            await createAttributeField('Org chart', 'org_chart', 'graph', [
+                {id: 'local-1', name: 'Root', parents: []},
+                {id: 'local-2', name: 'Child', parents: ['Root']},
+            ]);
+
+            expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
+                type: 'graph',
+                attrs: expect.objectContaining({
+                    options: [
+                        {id: '', name: 'Root', parents: []},
+                        {id: '', name: 'Child', parents: ['Root']},
+                    ],
+                }),
+            }));
+
+            const attrs = createPropertyField.mock.calls[0][2].attrs as {options: Array<Record<string, unknown>>};
+            expect(attrs.options[0]).not.toHaveProperty('rank');
+            expect(attrs.options[0]).not.toHaveProperty('color');
+            expect(attrs.options[1]).not.toHaveProperty('rank');
+            expect(attrs.options[1]).not.toHaveProperty('color');
+            expect(JSON.stringify(attrs.options[0])).toContain('"parents":[]');
+        });
+
+        it('coalesces missing parents on a graph root to [] rather than omitting the key', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
+
+            await createAttributeField('Org chart', 'org_chart', 'graph', [
+                {id: 'local-1', name: 'Root'},
+            ]);
+
+            const attrs = createPropertyField.mock.calls[0][2].attrs as {options: Array<Record<string, unknown>>};
+            expect(attrs.options).toEqual([{id: '', name: 'Root', parents: []}]);
+            expect(attrs.options[0]).toHaveProperty('parents');
+            expect(JSON.stringify(attrs.options[0])).toContain('"parents":[]');
+            expect(JSON.stringify(attrs.options[0])).not.toEqual(expect.stringMatching(/^{"id":"","name":"Root"}$/));
+        });
+
         it('sends no options key at all for text', async () => {
             const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
 
@@ -187,6 +230,22 @@ describe('global_attributes/utils', () => {
             expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
                 attrs: {display_name: 'My Attribute', ldap: 'department', saml: 'dept'},
             }));
+        });
+    });
+
+    describe('buildOptionsAttr', () => {
+        it('returns [] for graph with no options', () => {
+            expect(buildOptionsAttr('graph', [])).toEqual([]);
+        });
+
+        it('always sets parents, coalescing missing parents to []', () => {
+            expect(buildOptionsAttr('graph', [
+                {id: 'local-1', name: 'Root'},
+                {id: 'local-2', name: 'Child', parents: ['Root']},
+            ])).toEqual([
+                {id: '', name: 'Root', parents: []},
+                {id: '', name: 'Child', parents: ['Root']},
+            ]);
         });
     });
 
@@ -303,6 +362,34 @@ describe('global_attributes/utils', () => {
                 },
             });
         });
+
+        it('keeps option ids and always sets parents on a graph PATCH', async () => {
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue({} as PropertyField);
+
+            await updateAttributeField('field-id', {
+                type: 'graph',
+                displayName: 'Org chart',
+                options: [
+                    {id: 'opt-1', name: 'Air'},
+                    {id: '', name: 'Fighter', parents: ['Air']},
+                ],
+                ldapAttr: '',
+                samlAttr: '',
+            });
+
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'template', 'field-id', {
+                type: 'graph',
+                attrs: {
+                    display_name: 'Org chart',
+                    options: [
+                        {id: 'opt-1', name: 'Air', parents: []},
+                        {id: '', name: 'Fighter', parents: ['Air']},
+                    ],
+                    ldap: null,
+                    saml: null,
+                },
+            });
+        });
     });
 
     describe('fetchAttributeField', () => {
@@ -354,6 +441,21 @@ describe('global_attributes/utils', () => {
             expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'channel', 'system', undefined, expect.objectContaining({perPage: 200}));
             expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'post', 'system', undefined, expect.objectContaining({perPage: 200}));
             expect(fields.map((field) => field.id)).toEqual(['u1', 'c1']);
+        });
+    });
+
+    describe('isAttributeFieldType', () => {
+        it('accepts every ATTRIBUTE_FIELD_TYPES entry including graph', () => {
+            expect(ATTRIBUTE_FIELD_TYPES).toEqual(['text', 'select', 'multiselect', 'rank', 'graph']);
+            for (const type of ATTRIBUTE_FIELD_TYPES) {
+                expect(isAttributeFieldType(type)).toBe(true);
+            }
+        });
+
+        it('rejects FieldType values that are not attribute types', () => {
+            expect(isAttributeFieldType('date')).toBe(false);
+            expect(isAttributeFieldType('user')).toBe(false);
+            expect(isAttributeFieldType('')).toBe(false);
         });
     });
 
