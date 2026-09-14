@@ -1663,8 +1663,19 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 			continue
 		}
 
+		// A reply may not predate its parent. Clamp the effective CreateAt up to the
+		// parent's, and use that same value for the existence lookup below — the reply
+		// is stored under the clamped value, so a re-import/resume must look it up by
+		// the clamped value too or it will fail to find the existing row and insert a
+		// duplicate.
+		effectiveCreateAt := *replyData.CreateAt
+		if effectiveCreateAt < post.CreateAt {
+			rctx.Logger().Warn("Reply CreateAt is before parent post CreateAt, setting it to parent post CreateAt", mlog.Int("reply_create_at", *replyData.CreateAt), mlog.Int("parent_create_at", post.CreateAt))
+			effectiveCreateAt = post.CreateAt
+		}
+
 		// Check if this post already exists.
-		replies, nErr := a.Srv().Store().Post().GetPostsCreatedAt(post.ChannelId, *replyData.CreateAt)
+		replies, nErr := a.Srv().Store().Post().GetPostsCreatedAt(post.ChannelId, effectiveCreateAt)
 		if nErr != nil {
 			return model.NewAppError("importReplies", "app.post.get_posts_created_at.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
@@ -1684,11 +1695,7 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 		reply.ChannelId = post.ChannelId
 		reply.RootId = post.Id
 		reply.Message = *replyData.Message
-		reply.CreateAt = *replyData.CreateAt
-		if reply.CreateAt < post.CreateAt {
-			rctx.Logger().Warn("Reply CreateAt is before parent post CreateAt, setting it to parent post CreateAt", mlog.Int("reply_create_at", reply.CreateAt), mlog.Int("parent_create_at", post.CreateAt))
-			reply.CreateAt = post.CreateAt
-		}
+		reply.CreateAt = effectiveCreateAt
 		if replyData.Props != nil {
 			reply.Props = *replyData.Props
 		}
