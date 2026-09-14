@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"unicode/utf8"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -133,12 +134,6 @@ func deepCopyAttrs(attrs model.StringInterface) (model.StringInterface, error) {
 // mismatch). Callers use this to decide whether a "_copy" retry is worth it.
 var errUnrelatedTemplateName = errors.New("template name is used by an unrelated template")
 
-// reservedTemplateNames lists template Names owned by another Mattermost
-// feature; a collision here is always skipped, never retried under "_copy".
-var reservedTemplateNames = map[string]bool{
-	"classification": true, // Classification Markings' own template
-}
-
 // lookupReusableTemplate finds a template named templateName safe to reuse
 // for cpaField: marked PropertyAttrsMigratedToGlobal (unmarked means it
 // belongs to someone else, don't hijack it), unprotected, not
@@ -201,11 +196,17 @@ func isPermanentPropertyFieldFailure(err error) bool {
 	return errors.As(err, &appErr)
 }
 
-// copyNameSuffix disambiguates a template name that collides with an
-// unrelated, unmarked template. Attempted exactly once — if the
-// disambiguated name also fails, that failure is final (see
-// createOrReuseGlobalAttributeTemplate).
-const copyNameSuffix = "_copy"
+// disambiguatedTemplateName returns a template name for cpaField that can
+// never collide with anything: the field's own ID is globally unique, so
+// appending it guarantees a fresh name no matter what else exists in the
+// group — including another feature's reserved template name. Deterministic
+// across restarts, so a crashed prior run's orphaned template at this same
+// name is still found and reused by lookupReusableTemplate rather than
+// duplicated. Attempted exactly once — if this also fails, that failure is
+// final (see createOrReuseGlobalAttributeTemplate).
+func disambiguatedTemplateName(cpaField *model.PropertyField) string {
+	return cpaField.Name + "_" + cpaField.ID
+}
 
 // attemptCreateOrReuseTemplate reuses or creates a template named
 // templateName for cpaField. unrelatedNameCollision reports whether the
@@ -228,7 +229,13 @@ func (ps *PropertyService) attemptCreateOrReuseTemplate(rctx request.CTX, groupI
 	attrsCopy[model.PropertyAttrsMigratedToGlobal] = true
 	if templateName != cpaField.Name {
 		if displayName, _ := attrsCopy[model.PropertyFieldAttrDisplayName].(string); displayName != "" {
-			attrsCopy[model.PropertyFieldAttrDisplayName] = displayName + " (copy)"
+			// Skip the suffix rather than risk pushing an already-long
+			// display_name over the field name length limit and turning a
+			// disambiguation attempt into its own permanent skip.
+			const copySuffix = " (copy)"
+			if utf8.RuneCountInString(displayName)+utf8.RuneCountInString(copySuffix) <= model.PropertyFieldNameMaxRunes {
+				attrsCopy[model.PropertyFieldAttrDisplayName] = displayName + copySuffix
+			}
 		}
 	}
 
@@ -271,15 +278,15 @@ func (ps *PropertyService) attemptCreateOrReuseTemplate(rctx request.CTX, groupI
 // marker yet); transient=false is a permanent, by-design skip.
 //
 // A name collision with an unrelated, unmarked template retries once under
-// "<name>_copy" — except reserved names (e.g. Classification Markings'
-// "classification"), which are always skipped instead.
+// disambiguatedTemplateName, which — being ID-suffixed — always succeeds
+// regardless of what the colliding name is.
 func (ps *PropertyService) createOrReuseGlobalAttributeTemplate(rctx request.CTX, groupID string, cpaField *model.PropertyField) (template *model.PropertyField, transient bool, err error) {
 	template, transient, unrelatedNameCollision, err := ps.attemptCreateOrReuseTemplate(rctx, groupID, cpaField.Name, cpaField)
-	if !unrelatedNameCollision || reservedTemplateNames[cpaField.Name] {
+	if !unrelatedNameCollision {
 		return template, transient, err
 	}
 
-	template, transient, _, err = ps.attemptCreateOrReuseTemplate(rctx, groupID, cpaField.Name+copyNameSuffix, cpaField)
+	template, transient, _, err = ps.attemptCreateOrReuseTemplate(rctx, groupID, disambiguatedTemplateName(cpaField), cpaField)
 	return template, transient, err
 }
 

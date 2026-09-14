@@ -341,7 +341,7 @@ func TestMigrateCPAFieldsToGlobalAttributes_OrphanTemplateReuse(t *testing.T) {
 }
 
 func TestMigrateCPAFieldsToGlobalAttributes_NameCollisionWithoutMarker(t *testing.T) {
-	t.Run("generic unrelated template name collision is resolved via a _copy suffix", func(t *testing.T) {
+	t.Run("generic unrelated template name collision is resolved via an ID-suffixed name", func(t *testing.T) {
 		th := setupMigrationTestHelper(t)
 
 		// No PropertyAttrsMigratedToGlobal marker: an admin-created template.
@@ -363,49 +363,52 @@ func TestMigrateCPAFieldsToGlobalAttributes_NameCollisionWithoutMarker(t *testin
 		require.NoError(t, err)
 		require.NotNil(t, updated.LinkedFieldID)
 
-		copyTemplate := templateByName(t, th, "department_copy")
-		assert.Equal(t, *updated.LinkedFieldID, copyTemplate.ID, "field must be linked to the disambiguated _copy template")
-		assert.Equal(t, "Department (copy)", copyTemplate.Attrs[model.PropertyFieldAttrDisplayName])
-		assert.Equal(t, true, copyTemplate.Attrs[model.PropertyAttrsMigratedToGlobal], "the _copy template must still carry the marker for future-run idempotency")
+		disambiguated := templateByName(t, th, "department_"+seeded.ID)
+		assert.Equal(t, *updated.LinkedFieldID, disambiguated.ID, "field must be linked to the ID-disambiguated template")
+		assert.Equal(t, "Department (copy)", disambiguated.Attrs[model.PropertyFieldAttrDisplayName])
+		assert.Equal(t, true, disambiguated.Attrs[model.PropertyAttrsMigratedToGlobal], "the disambiguated template must still carry the marker for future-run idempotency")
 
 		stillNoDependents, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, unrelated.ID)
 		require.NoError(t, err)
 		assert.Nil(t, stillNoDependents.LinkedFieldID, "the unrelated template itself must be left untouched")
 	})
 
-	t.Run("a collision on the _copy name too falls back to a permanent skip", func(t *testing.T) {
+	t.Run("a pre-existing 'name_copy' template does not block migration, since the fallback name carries the field's own ID", func(t *testing.T) {
 		th := setupMigrationTestHelper(t)
 
-		// Neither carries the marker: both are unrelated, admin-created templates.
-		for _, name := range []string{"department", "department_copy"} {
-			seedTemplate(t, th, name, model.PropertyFieldTypeText, nil)
-		}
+		// Both unrelated, unmarked -- including one that happens to already sit
+		// at the legacy "_copy" name a naive suffix scheme would have retried.
+		seedTemplate(t, th, "department", model.PropertyFieldTypeText, nil)
+		seedTemplate(t, th, "department_copy", model.PropertyFieldTypeText, nil)
 
 		seeded := seedCPAField(t, th, "department", nil)
 
 		migrated, skipped, retryable, err := th.service.MigrateCPAFieldsToGlobalAttributes(th.Context)
 		require.NoError(t, err)
-		assert.Equal(t, 0, migrated)
-		assert.Equal(t, 1, skipped, "no _copy_copy attempt: a second collision is a permanent skip")
+		assert.Equal(t, 1, migrated, "an ID-suffixed fallback name can't collide with a pre-existing 'name_copy' template")
+		assert.Equal(t, 0, skipped)
 		assert.Equal(t, 0, retryable)
 
-		untouched, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, seeded.ID)
+		updated, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, seeded.ID)
 		require.NoError(t, err)
-		assert.Nil(t, untouched.LinkedFieldID)
+		require.NotNil(t, updated.LinkedFieldID)
+
+		disambiguated := templateByName(t, th, "department_"+seeded.ID)
+		assert.Equal(t, disambiguated.ID, *updated.LinkedFieldID)
 	})
 
-	t.Run("a marker-tagged _copy template from a crashed prior run is reused, not recreated", func(t *testing.T) {
+	t.Run("a marker-tagged disambiguated template from a crashed prior run is reused, not recreated", func(t *testing.T) {
 		th := setupMigrationTestHelper(t)
 
-		// Unrelated, unmarked -- the original collision that forced a _copy on a prior run.
+		// Unrelated, unmarked -- the original collision that forces disambiguation.
 		seedTemplate(t, th, "department", model.PropertyFieldTypeText, nil)
 
+		seeded := seedCPAField(t, th, "department", nil)
+
 		// A prior run created this and marked it, then crashed before linking.
-		orphanCopy := seedTemplate(t, th, "department_copy", model.PropertyFieldTypeText, model.StringInterface{
+		orphan := seedTemplate(t, th, "department_"+seeded.ID, model.PropertyFieldTypeText, model.StringInterface{
 			model.PropertyAttrsMigratedToGlobal: true,
 		})
-
-		seeded := seedCPAField(t, th, "department", nil)
 
 		migrated, skipped, retryable, err := th.service.MigrateCPAFieldsToGlobalAttributes(th.Context)
 		require.NoError(t, err)
@@ -416,10 +419,10 @@ func TestMigrateCPAFieldsToGlobalAttributes_NameCollisionWithoutMarker(t *testin
 		updated, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, seeded.ID)
 		require.NoError(t, err)
 		require.NotNil(t, updated.LinkedFieldID)
-		assert.Equal(t, orphanCopy.ID, *updated.LinkedFieldID, "must reuse the existing marked _copy template rather than creating another one")
+		assert.Equal(t, orphan.ID, *updated.LinkedFieldID, "must reuse the existing marked orphan template rather than creating another one")
 	})
 
-	t.Run("Classification Markings' own template is never retried under a _copy name", func(t *testing.T) {
+	t.Run("a CPA field literally named 'classification' migrates under a disambiguated name, never hijacking Classification Markings' template", func(t *testing.T) {
 		th := setupMigrationTestHelper(t)
 
 		// Real shape: Classification Markings' template has no
@@ -428,8 +431,8 @@ func TestMigrateCPAFieldsToGlobalAttributes_NameCollisionWithoutMarker(t *testin
 		classification := seedTemplate(t, th, "classification", model.PropertyFieldTypeRank, nil)
 
 		// Same Type (Rank, matching Classification's real template type) as the
-		// template above -- isolates the marker check as the reason this field
-		// is skipped, rather than the unrelated type-mismatch gate.
+		// template above -- isolates the marker check as the reason this
+		// collides, rather than the unrelated type-mismatch gate.
 		seeded := th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			GroupID:    th.CPAGroupID,
 			Name:       "classification",
@@ -440,24 +443,25 @@ func TestMigrateCPAFieldsToGlobalAttributes_NameCollisionWithoutMarker(t *testin
 
 		migrated, skipped, retryable, err := th.service.MigrateCPAFieldsToGlobalAttributes(th.Context)
 		require.NoError(t, err)
-		assert.Equal(t, 0, migrated)
-		assert.Equal(t, 1, skipped)
+		assert.Equal(t, 1, migrated, "an ID-suffixed name can never collide with Classification Markings' reserved name")
+		assert.Equal(t, 0, skipped)
 		assert.Equal(t, 0, retryable)
 
-		untouched, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, seeded.ID)
+		updated, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, seeded.ID)
 		require.NoError(t, err)
-		assert.Nil(t, untouched.LinkedFieldID)
+		require.NotNil(t, updated.LinkedFieldID)
+		assert.NotEqual(t, classification.ID, *updated.LinkedFieldID, "must never link to Classification Markings' own template")
+
+		disambiguated := templateByName(t, th, "classification_"+seeded.ID)
+		assert.Equal(t, disambiguated.ID, *updated.LinkedFieldID)
 
 		unchangedClassification, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, classification.ID)
 		require.NoError(t, err)
 		assert.Equal(t, classification.UpdateAt, unchangedClassification.UpdateAt,
 			"Classification Markings' own template must not be written to")
-
-		_, lookupErr := th.service.getPropertyFieldByNameForObjectType(th.Context, th.CPAGroupID, "", model.PropertyFieldObjectTypeTemplate, "classification_copy")
-		assert.Error(t, lookupErr, "reserved names must never be retried under a _copy suffix")
 	})
 
-	t.Run("a _copy suffix that pushes display_name over the length limit is a permanent skip, not an error", func(t *testing.T) {
+	t.Run("a disambiguated name's display_name copy suffix is skipped, not failed, when it would exceed the length limit", func(t *testing.T) {
 		th := setupMigrationTestHelper(t)
 
 		seedTemplate(t, th, "department", model.PropertyFieldTypeText, nil)
@@ -469,13 +473,18 @@ func TestMigrateCPAFieldsToGlobalAttributes_NameCollisionWithoutMarker(t *testin
 
 		migrated, skipped, retryable, err := th.service.MigrateCPAFieldsToGlobalAttributes(th.Context)
 		require.NoError(t, err)
-		assert.Equal(t, 0, migrated)
-		assert.Equal(t, 1, skipped, "display_name exceeding the length limit after ' (copy)' is appended must be a permanent skip")
+		assert.Equal(t, 1, migrated, "an over-length display_name must not turn a disambiguation attempt into a permanent skip")
+		assert.Equal(t, 0, skipped)
 		assert.Equal(t, 0, retryable)
 
-		untouched, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, seeded.ID)
+		updated, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, seeded.ID)
 		require.NoError(t, err)
-		assert.Nil(t, untouched.LinkedFieldID)
+		require.NotNil(t, updated.LinkedFieldID)
+
+		disambiguated := templateByName(t, th, "department_"+seeded.ID)
+		assert.Equal(t, disambiguated.ID, *updated.LinkedFieldID)
+		assert.Equal(t, maxLengthDisplayName, disambiguated.Attrs[model.PropertyFieldAttrDisplayName],
+			"the ' (copy)' suffix must be skipped, not appended, since it would overflow the length limit")
 	})
 }
 
@@ -623,15 +632,13 @@ func TestMigrateCPAFieldsToGlobalAttributes_RefusesToReuseAnUnsafeMarkedTemplate
 		// Reproduces the "ambiguous sibling" state access_control_masking.go
 		// documents as having no DB-level uniqueness guard: two independent
 		// CPA fields must never end up linked to the same template. A name
-		// collision plus the "_copy" fallback can otherwise manufacture this
-		// -- e.g. a field literally named "budget_copy" (a realistic name,
-		// since the legacy "Duplicate attribute" UI mechanically produces
-		// "<name>_copy" fields) later reusing the template an unrelated
-		// "budget" field was already disambiguated into.
+		// collision plus the ID-suffixed fallback can otherwise manufacture
+		// this if a second, unrelated field happens to already be named
+		// exactly like the first field's disambiguated fallback name.
 		th := setupMigrationTestHelper(t)
 
-		// Unrelated, unmarked -- forces the "budget" CPA field below into the
-		// "_copy" fallback name.
+		// Unrelated, unmarked -- forces the "budget" CPA field below into a
+		// disambiguated fallback name.
 		unrelated := seedTemplate(t, th, "budget", model.PropertyFieldTypeText, nil)
 
 		budget := seedCPAField(t, th, "budget", nil)
@@ -642,24 +649,25 @@ func TestMigrateCPAFieldsToGlobalAttributes_RefusesToReuseAnUnsafeMarkedTemplate
 		require.Equal(t, 0, skipped)
 		require.Equal(t, 0, retryable)
 
-		copyTemplate := templateByName(t, th, "budget_copy")
+		disambiguatedName := "budget_" + budget.ID
+		disambiguated := templateByName(t, th, disambiguatedName)
 		updatedBudget, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, budget.ID)
 		require.NoError(t, err)
-		require.Equal(t, copyTemplate.ID, *updatedBudget.LinkedFieldID)
+		require.Equal(t, disambiguated.ID, *updatedBudget.LinkedFieldID)
 
-		// A second, independent CPA field that happens to share the
-		// disambiguated template's exact name.
-		budgetCopy := seedCPAField(t, th, "budget_copy", nil)
+		// A second, independent CPA field that happens to share the exact
+		// name budget's disambiguated template landed at.
+		collidingField := seedCPAField(t, th, disambiguatedName, nil)
 
 		migrated, skipped, retryable, err = th.service.MigrateCPAFieldsToGlobalAttributes(th.Context)
 		require.NoError(t, err)
 		assert.Equal(t, 0, migrated, "must not silently link a second field to a template another field already claimed")
-		assert.Equal(t, 2, skipped, "budget is now ineligible (already linked) and budget_copy is permanently skipped")
+		assert.Equal(t, 2, skipped, "budget is now ineligible (already linked) and the colliding field is permanently skipped")
 		assert.Equal(t, 0, retryable)
 
-		untouchedBudgetCopy, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, budgetCopy.ID)
+		untouchedColliding, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, collidingField.ID)
 		require.NoError(t, err)
-		assert.Nil(t, untouchedBudgetCopy.LinkedFieldID, "must not link to a template another field already claimed")
+		assert.Nil(t, untouchedColliding.LinkedFieldID, "must not link to a template another field already claimed")
 
 		unchangedUnrelated, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, unrelated.ID)
 		require.NoError(t, err)
