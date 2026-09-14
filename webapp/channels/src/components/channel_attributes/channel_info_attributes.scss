@@ -1,8 +1,8 @@
 .ChannelInfoAttributes {
     display: flex;
     flex-direction: column;
-    gap: 8px;
     margin-bottom: 12px;
+    gap: 8px;
 
     // Matches ChannelDescriptionHeading / proto group-title (11px, 0.75).
     &__heading {
@@ -28,10 +28,10 @@
 
     &__row {
         display: grid;
-        grid-template-columns: 152px minmax(0, 1fr);
         align-items: center;
-        gap: 10px;
         padding: 2px 0;
+        gap: 10px;
+        grid-template-columns: 152px minmax(0, 1fr);
     }
 
     &__label {
@@ -52,24 +52,24 @@
 
     &__value {
         display: flex;
+        width: 100%;
         min-width: 0;
         min-height: 28px;
-        width: 100%;
         align-items: center;
         justify-content: flex-start;
     }
 
     &__valueActive {
         display: flex;
+        width: 100%;
         min-width: 0;
         min-height: 28px;
-        width: 100%;
         flex: 1;
         align-items: center;
 
         > * {
-            min-width: 0;
             width: 100%;
+            min-width: 0;
         }
 
         &:hover .AttributeChip__remove,
@@ -82,9 +82,9 @@
 
     &__valueTrigger {
         display: inline-flex;
+        width: 100%;
         min-width: 0;
         min-height: 28px;
-        width: 100%;
         align-items: center;
         justify-content: flex-start;
         padding: 0 8px 0 4px;
@@ -115,9 +115,9 @@
     }
 
     &__textInput {
-        box-sizing: border-box;
         width: 100%;
         min-height: 28px;
+        box-sizing: border-box;
         padding: 4px 8px 4px 4px;
         border: none;
         border-radius: 4px;
@@ -168,9 +168,9 @@
     }
 
     &__error {
-        grid-column: 1 / -1;
         color: var(--error-text);
         font-size: 12px;
+        grid-column: 1 / -1;
         line-height: 16px;
     }
 

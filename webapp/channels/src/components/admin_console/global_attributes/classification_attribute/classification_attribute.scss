@@ -18,10 +18,10 @@
 .ClassificationAttribute {
     &__back {
         display: flex;
+        width: 64px;
         flex-shrink: 0;
         align-items: center;
         justify-content: center;
-        width: 64px;
         border-right: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
     }
 
@@ -47,16 +47,16 @@
         }
 
         &:focus-visible {
-            outline: none;
             box-shadow: 0 0 0 2px var(--button-bg);
+            outline: none;
         }
     }
 
     &__headerGroup {
         display: flex;
+        min-width: 0;
         flex: 1 1 auto;
         flex-direction: column;
-        min-width: 0;
         padding: 18px 20px;
         margin: 0;
         gap: 4px;
@@ -176,8 +176,8 @@
         }
 
         &:disabled {
-            cursor: not-allowed;
             background-color: rgba(var(--center-channel-color-rgb), 0.04);
+            cursor: not-allowed;
 
             .ClassificationAttribute__typeButtonInner,
             .icon {
@@ -239,9 +239,9 @@
     }
 
     &__markingsFooter {
-        margin-top: 8px;
         padding-top: 16px;
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        margin-top: 8px;
     }
 
     &__markingsCopy {

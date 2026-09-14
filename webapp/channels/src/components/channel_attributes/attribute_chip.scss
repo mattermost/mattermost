@@ -25,12 +25,12 @@
     }
 
     &--medium {
-        box-sizing: border-box;
         height: 22px;
-        gap: 2px;
+        box-sizing: border-box;
         padding: 4px 8px;
         border: 1px solid transparent;
         font-size: 10px;
+        gap: 2px;
         letter-spacing: 0.2px;
         line-height: 12px;
     }
@@ -50,11 +50,11 @@
 
     &__remove {
         display: inline-flex;
+        width: 14px;
+        height: 14px;
         flex-shrink: 0;
         align-items: center;
         justify-content: center;
-        width: 14px;
-        height: 14px;
         padding: 0;
         border: none;
         background: transparent;

@@ -29,18 +29,18 @@
     }
 
     .AttributeDetails__headerGroup {
-        flex: 1 1 auto;
         min-width: 0;
+        flex: 1 1 auto;
         padding: 18px 20px;
     }
 }
 
 .AttributeDetails__back {
     display: flex;
+    width: 64px;
     flex-shrink: 0;
     align-items: center;
     justify-content: center;
-    width: 64px;
     border-right: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
 }
 
@@ -66,8 +66,8 @@
     }
 
     &:focus-visible {
-        outline: none;
         box-shadow: 0 0 0 2px var(--button-bg);
+        outline: none;
     }
 }
 
@@ -245,8 +245,8 @@
     }
 
     &:disabled {
-        cursor: not-allowed;
         background-color: rgba(var(--center-channel-color-rgb), 0.04);
+        cursor: not-allowed;
 
         .AttributeDetails__typeButtonInner,
         .icon {

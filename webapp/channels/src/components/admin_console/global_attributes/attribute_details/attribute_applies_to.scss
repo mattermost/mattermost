@@ -36,8 +36,8 @@
 
 .AttributeAppliesTo__list {
     display: flex;
-    flex-direction: column;
     overflow: hidden;
+    flex-direction: column;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
     border-radius: 8px;
     background: var(--center-channel-bg);

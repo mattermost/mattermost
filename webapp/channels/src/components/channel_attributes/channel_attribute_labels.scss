@@ -82,9 +82,9 @@ $chip-gap: 4px; // keep in sync with CHIP_GAP in use_labels_overflow.ts
     &__popover {
         z-index: 1000;
         display: flex;
+        width: 282px; // 16px pad + 100px label + 150px value + 16px pad
         box-sizing: border-box;
         flex-direction: column;
-        width: 282px; // 16px pad + 100px label + 150px value + 16px pad
         padding: 8px 0;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
         border-radius: 4px;
@@ -94,15 +94,15 @@ $chip-gap: 4px; // keep in sync with CHIP_GAP in use_labels_overflow.ts
 
     &__popoverRow {
         display: grid;
-        grid-template-columns: 100px 150px;
-        align-items: center;
         min-width: 0;
+        align-items: center;
         padding: 8px 16px;
         gap: 0;
+        grid-template-columns: 100px 150px;
 
         .ChannelAttributeLabels__chipButton {
-            justify-self: start;
             max-width: 100%;
+            justify-self: start;
         }
     }
 
