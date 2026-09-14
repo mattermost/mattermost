@@ -82,7 +82,7 @@ export const searchableStrings = [
 ];
 
 class DataRetentionSettings extends React.PureComponent<Props, State> {
-    inputRef: RefObject<SelectInstance<OptionType>>;
+    inputRef: RefObject<SelectInstance<OptionType> | null>;
     constructor(props: Props) {
         super(props);
         this.inputRef = createRef();

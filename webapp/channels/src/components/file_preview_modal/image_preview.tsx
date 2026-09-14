@@ -84,7 +84,7 @@ export default function ImagePreview({fileInfo, canDownloadFiles, scale, transla
     if (!canDownloadFiles) {
         return (
             <span
-                ref={wrapperRef as React.RefObject<HTMLSpanElement>}
+                ref={wrapperRef as React.RefObject<HTMLSpanElement | null>}
                 className={wrapperClassName}
                 onMouseDown={onMouseDown}
             >
@@ -108,7 +108,7 @@ export default function ImagePreview({fileInfo, canDownloadFiles, scale, transla
 
     return (
         <a
-            ref={wrapperRef as React.RefObject<HTMLAnchorElement>}
+            ref={wrapperRef as React.RefObject<HTMLAnchorElement | null>}
             className={wrapperClassName}
             href='#'
             onMouseDown={onMouseDown}

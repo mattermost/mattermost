@@ -47,7 +47,7 @@ type State = {
 };
 
 export default class ThemeSetting extends React.PureComponent<Props, State> {
-    minRef: RefObject<SettingItemMinComponent>;
+    minRef: RefObject<SettingItemMinComponent | null>;
     originalTheme: Theme;
     constructor(props: Props) {
         super(props);
