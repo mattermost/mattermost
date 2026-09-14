@@ -202,13 +202,6 @@ function makeGetPluginSchema() {
             }
 
             const checkDisableSetting = (s: Partial<AdminDefinitionSetting>) => {
-                // buildBannerSetting renders nothing for a disabled setting rather
-                // than rendering it inert, so the predicate would hide the
-                // explanation from a read-only admin instead of just greying it out.
-                if (s.type === Constants.SettingsTypes.TYPE_BANNER) {
-                    return;
-                }
-
                 if (s.isDisabled) {
                     s.isDisabled = it.any(s.isDisabled, it.not(it.userHasWritePermissionOnResource('plugins')));
                 } else {
@@ -216,10 +209,15 @@ function makeGetPluginSchema() {
                 }
             };
 
-            if (sections.length > 0) {
-                sections.forEach((section) => section.settings.forEach(checkDisableSetting));
-            } else {
-                settings.forEach(checkDisableSetting);
+            // The unlicensed add-on page is a single banner, and buildBannerSetting
+            // renders nothing for a disabled setting, so disabling it would leave a
+            // read-only admin no toggle and no reason why.
+            if (!unlicensedAddOn) {
+                if (sections.length > 0) {
+                    sections.forEach((section) => section.settings.forEach(checkDisableSetting));
+                } else {
+                    settings.forEach(checkDisableSetting);
+                }
             }
 
             return {
