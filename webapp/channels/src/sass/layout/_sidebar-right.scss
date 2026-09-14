@@ -156,9 +156,8 @@
     .sidebar--right__title__channel {
         overflow: hidden;
         min-width: 0;
-        max-width: max-content;
         height: 2.4rem;
-        flex: 1 1 0;
+        flex: 0 1 auto;
         padding: 0 8px;
         border-left: var(--border-light);
         margin: 0 0 0 8px;
