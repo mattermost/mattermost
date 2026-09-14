@@ -976,6 +976,7 @@ export type MessageExportSettings = {
         CustomSMTPPort: string;
         CustomHeaderName: string;
         CustomHeaderValue: string;
+        SenderAddress: string;
     };
 };
 
