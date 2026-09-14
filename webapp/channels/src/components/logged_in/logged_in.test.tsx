@@ -81,7 +81,7 @@ describe('components/logged_in/LoggedIn', () => {
 
         expect(Redirect).toHaveBeenCalledWith(
             expect.objectContaining({to: '/mfa/setup'}),
-            {},
+            undefined,
         );
     });
 
@@ -126,7 +126,7 @@ describe('components/logged_in/LoggedIn', () => {
 
         expect(Redirect).toHaveBeenCalledWith(
             expect.objectContaining({to: '/terms_of_service?redirect_to=%2F'}),
-            {},
+            undefined,
         );
     });
 
