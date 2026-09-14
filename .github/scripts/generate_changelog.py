@@ -16,8 +16,8 @@ Expects these environment variables:
                       Auto-constructed from VERSION if not provided.
   ANTHROPIC_API_KEY - (optional) If set, release notes are polished by Claude
                       before being written to the changelog.
-  CHANGELOG_PATH    - (optional) Path to the changelog file to update. Defaults to
-                      "CHANGELOG.md". In mattermost/mattermost this should be
+  CHANGELOG_PATH    - (optional) Path to the changelog file to update. Defaults to the
+                      file for VERSION's major release, e.g. "v11.9.0" ->
                       "docs/main/product-overview/mattermost-v11-changelog.mdx".
 
 The target changelog is an MDX file: it opens with YAML frontmatter, imports MDX
@@ -448,9 +448,31 @@ Platform and OS scope reflects reported and tested environments and may not repr
 """
 
 
+# Directory holding the per-major changelog files in mattermost/mattermost.
+DOCS_DIR = "docs/main/product-overview"
+
+
 def major_version(version: str) -> str:
     """Return the major version number from a version label: "v12.0.0" -> "12"."""
-    return version.lstrip("v").split(".")[0]
+    match = re.match(r"v?(\d+)\.", version)
+    if not match:
+        raise RuntimeError(
+            f"Cannot parse a major version from {version!r}; expected a form like v12.0.0"
+        )
+    return match.group(1)
+
+
+def changelog_path_for_version(version: str, docs_dir: str = DOCS_DIR) -> str:
+    """Derive the changelog file path from the release version.
+
+    "v12.0.0" -> "docs/main/product-overview/mattermost-v12-changelog.mdx"
+
+    The workflow passes CHANGELOG_PATH explicitly, but a fixed fallback would make a
+    direct invocation of this script write a v12 entry into whatever file that default
+    named — the v11 changelog, or the repository-root CHANGELOG.md — with nothing to
+    warn about it. Deriving the default removes that failure mode entirely.
+    """
+    return os.path.join(docs_dir, f"mattermost-v{major_version(version)}-changelog.mdx")
 
 
 def previous_major_changelog_path(changelog_path: str) -> str | None:
@@ -515,6 +537,12 @@ def insert_changelog_entry(
             + existing[first_release.start():]
         )
 
+    # The first release of a new major version writes a file that does not exist yet,
+    # so its directory may not either when the script runs outside the repo root.
+    parent = os.path.dirname(changelog_path)
+    if parent:
+        os.makedirs(parent, exist_ok=True)
+
     with open(changelog_path, "w", encoding="utf-8") as f:
         f.write(new_content)
 
@@ -553,7 +581,10 @@ def main():
     release_type = os.environ.get("RELEASE_TYPE", "feature").strip().lower()
     release_date = os.environ.get("RELEASE_DATE", "").strip() or date.today().strftime("%Y-%m-%d")
     go_version = os.environ.get("GO_VERSION", "").strip()
-    changelog_path = os.environ.get("CHANGELOG_PATH", "CHANGELOG.md")
+    # Derived from VERSION by default so a new major version needs no edit here, and
+    # cannot land in the previous major's file. CHANGELOG_PATH overrides it.
+    changelog_path = os.environ.get("CHANGELOG_PATH") or changelog_path_for_version(VERSION)
+    print(f"📄 Changelog file: {changelog_path}")
 
     # Anchor slugs replace dots with dashes: "v11.9" → "v11-9"
     version_slug_anchor = version_short.replace(".", "-")
