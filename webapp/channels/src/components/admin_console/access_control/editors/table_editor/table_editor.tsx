@@ -455,6 +455,7 @@ function TableEditor({
 
             try {
                 const result = await validateExpressionAgainstRequester(value);
+
                 setUserWouldBeExcluded(!result.data?.requester_matches);
             } catch {
                 setUserWouldBeExcluded(false);
