@@ -1356,6 +1356,9 @@ describe('SuggestionBox', () => {
                     id='test-id'
                     className='test-class'
                     disabled={true}
+                    maxLength={64}
+                    tabIndex={0}
+                    spellCheck='false'
                 />,
             );
 
@@ -1363,6 +1366,11 @@ describe('SuggestionBox', () => {
             expect(input).toHaveAttribute('id', 'test-id');
             expect(input).toHaveClass('test-class');
             expect(input).toBeDisabled();
+
+            // These reach the DOM as attributes, so a wrong prop type silently drops them
+            expect(input).toHaveAttribute('maxlength', '64');
+            expect(input).toHaveAttribute('tabindex', '0');
+            expect(input).toHaveAttribute('spellcheck', 'false');
         });
 
         test('should not forward props used by SuggestionBox to the input element', () => {
