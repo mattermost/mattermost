@@ -146,9 +146,11 @@ var reservedTemplateNames = map[string]bool{
 // that's safe to reuse for cpaField: it must carry this migration's own
 // marker (PropertyAttrsMigratedToGlobal) — an unmarked, same-named template
 // belongs to someone else and must not be hijacked (errUnrelatedTemplateName)
-// — and it must be unprotected, not plugin/owner-managed, and type-matched,
-// since the link-write this feeds bypasses the validation that would
-// normally check all of that.
+// — it must be unprotected, not plugin/owner-managed, and type-matched, since
+// the link-write this feeds bypasses the validation that would normally check
+// all of that, and it must not already be linked from a different field: two
+// CPA fields sharing one template is the "ambiguous sibling" state
+// access_control_masking.go documents as having no DB-level uniqueness guard.
 //
 // Reads from master: also used as the post-create-failure fallback, so it
 // must see another HA node's just-committed row without replication lag.
@@ -177,6 +179,14 @@ func (ps *PropertyService) lookupReusableTemplate(rctx request.CTX, groupID, tem
 	}
 	if existing.Type != cpaField.Type {
 		return nil, true, fmt.Errorf("template name %q has type %q, which does not match field type %q; refusing to reuse", templateName, existing.Type, cpaField.Type)
+	}
+
+	linkedCount, countErr := ps.fieldStore.CountLinkedFields(existing.ID)
+	if countErr != nil {
+		return nil, false, fmt.Errorf("failed to check existing links for template %q: %w", templateName, countErr)
+	}
+	if linkedCount > 0 {
+		return nil, true, fmt.Errorf("template name %q is already linked from another field; refusing to create an ambiguous sibling link", templateName)
 	}
 
 	return existing, true, nil
@@ -297,11 +307,16 @@ func (ps *PropertyService) MigrateLinkCPAFieldToGlobalAttributeTemplate(rctx req
 		return nil, fmt.Errorf("MigrateLinkCPAFieldToGlobalAttributeTemplate: failed to get field %q: %w", fieldID, err)
 	}
 
+	// An HA rolling restart can have this node running the migration while
+	// another node is still live and serving an admin edit to this same
+	// field. expectedUpdateAts closes that TOCTOU window: if the row changed
+	// since the Get above, the store returns store.ErrConflict instead of
+	// blindly overwriting the concurrent write, and the caller retries the
+	// field on a later restart (see MigrateCPAFieldsToGlobalAttributes).
+	expectedUpdateAt := field.UpdateAt
 	field.LinkedFieldID = &templateID
 
-	// No expectedUpdateAts: runs synchronously at server startup before user
-	// traffic reaches these fields, so there's no concurrent writer to race.
-	updated, err := ps.fieldStore.Update(groupID, []*model.PropertyField{field}, nil)
+	updated, err := ps.fieldStore.Update(groupID, []*model.PropertyField{field}, map[string]int64{fieldID: expectedUpdateAt})
 	if err != nil {
 		return nil, fmt.Errorf("MigrateLinkCPAFieldToGlobalAttributeTemplate: failed to link field %q to template %q: %w", fieldID, templateID, err)
 	}

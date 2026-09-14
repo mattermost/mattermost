@@ -656,7 +656,18 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'system_attributes/user_attributes',
                 isDiscovery: true,
                 title: defineMessage({id: 'admin.sidebar.user_attributes', defaultMessage: 'User Attributes'}),
-                isHidden: it.minLicenseTier(LicenseSkus.Enterprise),
+
+                // Kept as the exact logical complement of system_properties'
+                // isHidden above so this URL is never left with no registered
+                // route (the admin console falls through to an unrelated
+                // default page when that happens). This still shows the
+                // Enterprise upsell to an already-Enterprise-licensed,
+                // Global-Attributes-enabled admin, which is stale copy for
+                // that one state — a smaller issue than a silent redirect.
+                isHidden: it.all(
+                    it.minLicenseTier(LicenseSkus.Enterprise),
+                    it.not(it.configIsTrue('FeatureFlags', 'GlobalAttributes')),
+                ),
                 schema: {
                     id: 'SystemProperties',
                     name: defineMessage({id: 'admin.sidebar.user_attributes', defaultMessage: 'User Attributes'}),

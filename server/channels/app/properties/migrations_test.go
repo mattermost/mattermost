@@ -9,9 +9,31 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+// raceInjectingFieldStore wraps a real store.PropertyFieldStore and, the
+// first time Get is called for a specific field ID, fires a caller-supplied
+// trigger immediately after the read -- simulating another HA node
+// committing a write to that same row in the narrow window between this
+// node's read and its own subsequent write.
+type raceInjectingFieldStore struct {
+	store.PropertyFieldStore
+	fieldID string
+	trigger func()
+	fired   bool
+}
+
+func (s *raceInjectingFieldStore) Get(rctx request.CTX, groupID, id string) (*model.PropertyField, error) {
+	field, err := s.PropertyFieldStore.Get(rctx, groupID, id)
+	if err == nil && !s.fired && id == s.fieldID {
+		s.fired = true
+		s.trigger()
+	}
+	return field, err
+}
 
 func TestDeepCopyAttrs(t *testing.T) {
 	t.Run("nil attrs returns an empty, non-nil map", func(t *testing.T) {
@@ -670,4 +692,152 @@ func TestMigrateCPAFieldsToGlobalAttributes_RefusesToReuseAnUnsafeMarkedTemplate
 		require.NoError(t, err)
 		assert.Equal(t, mismatchedTemplate.UpdateAt, unchangedTemplate.UpdateAt)
 	})
+
+	t.Run("marked template already linked from another field is not reused", func(t *testing.T) {
+		// Reproduces the "ambiguous sibling" state access_control_masking.go
+		// documents as having no DB-level uniqueness guard: two independent
+		// CPA fields must never end up linked to the same template. A name
+		// collision plus the "_copy" fallback can otherwise manufacture this
+		// -- e.g. a field literally named "budget_copy" (a realistic name,
+		// since the legacy "Duplicate attribute" UI mechanically produces
+		// "<name>_copy" fields) later reusing the template an unrelated
+		// "budget" field was already disambiguated into.
+		th := setupMigrationTestHelper(t)
+
+		unrelated := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:           th.CPAGroupID,
+			Name:              "budget",
+			Type:              model.PropertyFieldTypeText,
+			ObjectType:        model.PropertyFieldObjectTypeTemplate,
+			TargetType:        string(model.PropertyFieldTargetLevelSystem),
+			PermissionField:   model.NewPointer(model.PermissionLevelSysadmin),
+			PermissionValues:  model.NewPointer(model.PermissionLevelSysadmin),
+			PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
+			// Unrelated, unmarked -- forces the "budget" CPA field below into
+			// the "_copy" fallback name.
+		})
+
+		budget := seedCPAField(t, th, "budget", nil)
+
+		migrated, skipped, retryable, err := th.service.MigrateCPAFieldsToGlobalAttributes(th.Context)
+		require.NoError(t, err)
+		require.Equal(t, 1, migrated)
+		require.Equal(t, 0, skipped)
+		require.Equal(t, 0, retryable)
+
+		copyTemplate := templateByName(t, th, "budget_copy")
+		updatedBudget, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, budget.ID)
+		require.NoError(t, err)
+		require.Equal(t, copyTemplate.ID, *updatedBudget.LinkedFieldID)
+
+		// A second, independent CPA field that happens to share the
+		// disambiguated template's exact name.
+		budgetCopy := seedCPAField(t, th, "budget_copy", nil)
+
+		migrated, skipped, retryable, err = th.service.MigrateCPAFieldsToGlobalAttributes(th.Context)
+		require.NoError(t, err)
+		assert.Equal(t, 0, migrated, "must not silently link a second field to a template another field already claimed")
+		assert.Equal(t, 2, skipped, "budget is now ineligible (already linked) and budget_copy is permanently skipped")
+		assert.Equal(t, 0, retryable)
+
+		untouchedBudgetCopy, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, budgetCopy.ID)
+		require.NoError(t, err)
+		assert.Nil(t, untouchedBudgetCopy.LinkedFieldID, "must not link to a template another field already claimed")
+
+		unchangedUnrelated, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, unrelated.ID)
+		require.NoError(t, err)
+		assert.Nil(t, unchangedUnrelated.LinkedFieldID, "the original unrelated template must be left untouched")
+	})
+}
+
+func TestMigrateLinkCPAFieldToGlobalAttributeTemplate_ConcurrentEditIsNotClobbered(t *testing.T) {
+	th := setupMigrationTestHelper(t)
+
+	seeded := seedCPAField(t, th, "department", nil)
+
+	template := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+		GroupID:           th.CPAGroupID,
+		Name:              "department",
+		Type:              model.PropertyFieldTypeText,
+		ObjectType:        model.PropertyFieldObjectTypeTemplate,
+		TargetType:        string(model.PropertyFieldTargetLevelSystem),
+		PermissionField:   model.NewPointer(model.PermissionLevelSysadmin),
+		PermissionValues:  model.NewPointer(model.PermissionLevelSysadmin),
+		PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
+		Attrs: model.StringInterface{
+			model.PropertyAttrsMigratedToGlobal: true,
+		},
+	})
+
+	realStore := th.service.fieldStore
+	th.service.fieldStore = &raceInjectingFieldStore{
+		PropertyFieldStore: realStore,
+		fieldID:            seeded.ID,
+		trigger: func() {
+			// Simulate another HA node committing an admin edit to this same
+			// field in the window between this node's read (just above) and
+			// its own link-write below.
+			concurrentEdit := *seeded
+			concurrentEdit.Name = "department_renamed_concurrently"
+			_, updateErr := realStore.Update(th.CPAGroupID, []*model.PropertyField{&concurrentEdit}, nil)
+			require.NoError(t, updateErr)
+		},
+	}
+
+	_, linkErr := th.service.MigrateLinkCPAFieldToGlobalAttributeTemplate(th.Context, th.CPAGroupID, seeded.ID, template.ID)
+	assert.Error(t, linkErr, "a concurrent write between the read and the link-write must surface as an error, not be silently overwritten")
+
+	reloaded, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, seeded.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "department_renamed_concurrently", reloaded.Name, "the concurrent edit must survive the failed link attempt")
+	assert.Nil(t, reloaded.LinkedFieldID, "the field must not end up linked when the write lost the race")
+}
+
+func TestMigrateCPAFieldsToGlobalAttributes_ConcurrentEditIsRetryableAndSelfHeals(t *testing.T) {
+	th := setupMigrationTestHelper(t)
+
+	seeded := seedCPAField(t, th, "department", model.StringInterface{
+		model.PropertyFieldAttrLDAP: "dept",
+	})
+
+	realStore := th.service.fieldStore
+	th.service.fieldStore = &raceInjectingFieldStore{
+		PropertyFieldStore: realStore,
+		fieldID:            seeded.ID,
+		trigger: func() {
+			// Simulate a concurrent admin edit racing the migration's
+			// link-write for this field, on its first attempt only.
+			concurrentEdit := *seeded
+			concurrentEdit.Name = "department_renamed_concurrently"
+			_, updateErr := realStore.Update(th.CPAGroupID, []*model.PropertyField{&concurrentEdit}, nil)
+			require.NoError(t, updateErr)
+		},
+	}
+
+	migrated, skipped, retryable, err := th.service.MigrateCPAFieldsToGlobalAttributes(th.Context)
+	require.NoError(t, err)
+	assert.Equal(t, 0, migrated, "a field that loses the concurrency race must not count as migrated")
+	assert.Equal(t, 0, skipped, "a concurrency conflict is transient, not a permanent skip")
+	assert.Equal(t, 1, retryable)
+
+	raced, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, seeded.ID)
+	require.NoError(t, err)
+	assert.Nil(t, raced.LinkedFieldID, "the field must remain unlinked after losing the race")
+
+	// Restore the real store: the race only fires once, so a later restart
+	// (another call with no concurrent writer) must succeed.
+	th.service.fieldStore = realStore
+
+	migrated, skipped, retryable, err = th.service.MigrateCPAFieldsToGlobalAttributes(th.Context)
+	require.NoError(t, err)
+	assert.Equal(t, 1, migrated, "the field must self-heal on a later restart once nothing races it")
+	assert.Equal(t, 0, skipped)
+	assert.Equal(t, 0, retryable)
+
+	healed, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, seeded.ID)
+	require.NoError(t, err)
+	require.NotNil(t, healed.LinkedFieldID)
+
+	template := templateByName(t, th, "department_renamed_concurrently")
+	assert.Equal(t, template.ID, *healed.LinkedFieldID, "must migrate under the name the concurrent edit left in place")
 }
