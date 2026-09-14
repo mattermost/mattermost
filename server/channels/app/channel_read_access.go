@@ -265,20 +265,6 @@ func (a *App) FilterChannelListWithTeamDataByReadAccess(rctx request.CTX, userID
 	return filtered, len(channels) - len(filtered)
 }
 
-func (a *App) FilterChannelMembersWithTeamDataByReadAccess(rctx request.CTX, userID string, members model.ChannelMembersWithTeamData) model.ChannelMembersWithTeamData {
-	if len(members) == 0 || !a.channelReadAccessEnforcementActive() {
-		return members
-	}
-
-	filtered := make(model.ChannelMembersWithTeamData, 0, len(members))
-	for _, member := range members {
-		if a.HasChannelReadAccessByID(rctx, userID, member.ChannelId) {
-			filtered = append(filtered, member)
-		}
-	}
-	return filtered
-}
-
 func (a *App) HasChannelReadAccessByID(rctx request.CTX, userID, channelID string) bool {
 	if channelID == "" || !a.channelReadAccessEnforcementActive() {
 		return true

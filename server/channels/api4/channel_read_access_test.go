@@ -529,3 +529,56 @@ func TestChannelReadAccessMembersForUserFilterFollowsTheSession(t *testing.T) {
 		})
 	}
 }
+
+// A client pages until it sees a short page and then stops. Filtering denied rows out of
+// a client-visible page without refilling it makes a short page indistinguishable from the
+// end of the list, so every membership after the first denial would be silently lost.
+func TestChannelReadAccessMembersForUserPagesSurviveDenials(t *testing.T) {
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.ChannelAccessABACPermission = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+	})
+
+	// Read before the mock is installed, so the expectation is the real membership list
+	// rather than whatever the policy happens to let through.
+	before, _, err := th.Client.GetChannelMembersWithTeamData(context.Background(), th.BasicUser.Id, 0, 200)
+	require.NoError(t, err)
+	require.GreaterOrEqual(t, len(before), 2, "need more than one page worth of memberships at per_page=1")
+
+	// The first row of the first raw page: the worst case, where an unfilled page 0 comes
+	// back empty and a client stops before seeing anything at all.
+	denied := before[0].ChannelId
+
+	mockACS := installMockACS(t, th)
+	mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).Return(true, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+		return req.Action == model.AccessControlPolicyActionChannelReadAccess && req.Resource.ID == denied
+	})).Return(model.AccessDecision{Decision: false}, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+		Return(model.AccessDecision{Decision: true}, nil)
+
+	seen := make(map[string]bool, len(before))
+	for page := range len(before) + 2 {
+		members, resp, err := th.Client.GetChannelMembersWithTeamData(context.Background(), th.BasicUser.Id, page, 1)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		for _, member := range members {
+			seen[member.ChannelId] = true
+		}
+		if len(members) < 1 {
+			break
+		}
+	}
+
+	require.NotContains(t, seen, denied, "a denied channel must never reach the client")
+	for _, member := range before {
+		if member.ChannelId == denied {
+			continue
+		}
+		require.Contains(t, seen, member.ChannelId, "an allowed membership must survive paging past a denial")
+	}
+}
