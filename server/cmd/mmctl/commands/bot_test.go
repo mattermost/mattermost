@@ -7,8 +7,8 @@ import (
 	"context"
 	"errors"
 
-	gomock "github.com/golang/mock/gomock"
 	"github.com/mattermost/mattermost/server/public/model"
+	gomock "go.uber.org/mock/gomock"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
