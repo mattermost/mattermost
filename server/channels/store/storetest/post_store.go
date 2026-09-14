@@ -64,6 +64,7 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetPostsSinceCreateForSync", func(t *testing.T) { testGetPostsSinceCreateForSync(t, rctx, ss, s) })
 	t.Run("GetPostsSinceForSyncExcludeMetadata", func(t *testing.T) { testGetPostsSinceForSyncExcludeMetadata(t, rctx, ss, s) })
 	t.Run("GetPostsSinceForSyncExcludedPostTypes", func(t *testing.T) { testGetPostsSinceForSyncExcludedPostTypes(t, rctx, ss, s) })
+	t.Run("GetPostsExcludeMembershipSystemPosts", func(t *testing.T) { testPostStoreGetPostsExcludeMembershipSystemPosts(t, rctx, ss) })
 	t.Run("GetPostsForReporting", func(t *testing.T) { testGetPostsForReporting(t, rctx, ss, s) })
 	t.Run("SetPostReminder", func(t *testing.T) { testSetPostReminder(t, rctx, ss, s) })
 	t.Run("GetPostReminders", func(t *testing.T) { testGetPostReminders(t, rctx, ss, s) })
@@ -2859,11 +2860,11 @@ func testPostStoreGetPostBeforeAfter(t *testing.T, rctx request.CTX, ss store.St
 	_, err = ss.Post().Save(rctx, o2a)
 	require.NoError(t, err)
 
-	rPostID1, err := ss.Post().GetPostIdBeforeTime(channelID, o0a.CreateAt, false)
+	rPostID1, err := ss.Post().GetPostIdBeforeTime(channelID, o0a.CreateAt, false, false)
 	require.Equal(t, rPostID1, o1.Id, "should return before post o1")
 	require.NoError(t, err)
 
-	rPostID1, err = ss.Post().GetPostIdAfterTime(channelID, o0b.CreateAt, false)
+	rPostID1, err = ss.Post().GetPostIdAfterTime(channelID, o0b.CreateAt, false, false)
 	require.Equal(t, rPostID1, o2.Id, "should return before post o2")
 	require.NoError(t, err)
 
@@ -2871,11 +2872,11 @@ func testPostStoreGetPostBeforeAfter(t *testing.T, rctx request.CTX, ss store.St
 	require.Equal(t, rPost1.Id, o2.Id, "should return before post o2")
 	require.NoError(t, err)
 
-	rPostID2, err := ss.Post().GetPostIdBeforeTime(channelID, o0.CreateAt, false)
+	rPostID2, err := ss.Post().GetPostIdBeforeTime(channelID, o0.CreateAt, false, false)
 	require.Empty(t, rPostID2, "should return no post")
 	require.NoError(t, err)
 
-	rPostID2, err = ss.Post().GetPostIdAfterTime(channelID, o0.CreateAt, false)
+	rPostID2, err = ss.Post().GetPostIdAfterTime(channelID, o0.CreateAt, false, false)
 	require.Equal(t, rPostID2, o1.Id, "should return before post o1")
 	require.NoError(t, err)
 
@@ -2883,11 +2884,11 @@ func testPostStoreGetPostBeforeAfter(t *testing.T, rctx request.CTX, ss store.St
 	require.Equal(t, rPost2.Id, o1.Id, "should return before post o1")
 	require.NoError(t, err)
 
-	rPostID3, err := ss.Post().GetPostIdBeforeTime(channelID, o2a.CreateAt, false)
+	rPostID3, err := ss.Post().GetPostIdBeforeTime(channelID, o2a.CreateAt, false, false)
 	require.Equal(t, rPostID3, o2.Id, "should return before post o2")
 	require.NoError(t, err)
 
-	rPostID3, err = ss.Post().GetPostIdAfterTime(channelID, o2a.CreateAt, false)
+	rPostID3, err = ss.Post().GetPostIdAfterTime(channelID, o2a.CreateAt, false, false)
 	require.Empty(t, rPostID3, "should return no post")
 	require.NoError(t, err)
 
@@ -6379,5 +6380,127 @@ func testDeleteAllPostRemindersForPost(t *testing.T, rctx request.CTX, ss store.
 		err = s.GetMaster().Get(&count, `SELECT COUNT(*) FROM PostReminders WHERE PostId=?`, p1.Id)
 		require.NoError(t, err)
 		require.Equal(t, 0, count)
+	})
+}
+
+func testPostStoreGetPostsExcludeMembershipSystemPosts(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+	channel, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      teamID,
+		DisplayName: "DisplayName",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	userID := model.NewId()
+	now := model.GetMillis()
+
+	// Explicit, strictly increasing CreateAt values so GetPostsBefore's
+	// "CreateAt < anchor's CreateAt" predicate is deterministic even when
+	// the saves land in the same millisecond on fast hardware.
+	membershipPost, err := ss.Post().Save(rctx, &model.Post{
+		ChannelId: channel.Id,
+		UserId:    userID,
+		Message:   "joined",
+		Type:      model.PostTypeJoinChannel,
+		CreateAt:  now,
+	})
+	require.NoError(t, err)
+
+	normalPost, err := ss.Post().Save(rctx, &model.Post{
+		ChannelId: channel.Id,
+		UserId:    userID,
+		Message:   "hello",
+		CreateAt:  now + 1,
+	})
+	require.NoError(t, err)
+
+	t.Run("GetPostsBefore excludes membership posts", func(t *testing.T) {
+		postList, err := ss.Post().GetPostsBefore(rctx, model.GetPostsOptions{
+			ChannelId:                    channel.Id,
+			PostId:                       normalPost.Id,
+			Page:                         0,
+			PerPage:                      10,
+			ExcludeMembershipSystemPosts: true,
+		}, map[string]bool{})
+		require.NoError(t, err)
+		require.NotContains(t, postList.Posts, membershipPost.Id)
+	})
+
+	t.Run("GetPostsBefore includes membership posts when not excluded", func(t *testing.T) {
+		postList, err := ss.Post().GetPostsBefore(rctx, model.GetPostsOptions{
+			ChannelId: channel.Id,
+			PostId:    normalPost.Id,
+			Page:      0,
+			PerPage:   10,
+		}, map[string]bool{})
+		require.NoError(t, err)
+		require.Contains(t, postList.Posts, membershipPost.Id)
+	})
+
+	t.Run("GetPostsAfter excludes membership posts", func(t *testing.T) {
+		// Use a dedicated channel so post ordering is predictable.
+		ch2, saveErr := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "DisplayName2",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, saveErr)
+
+		now := model.GetMillis()
+		anchor, saveErr := ss.Post().Save(rctx, &model.Post{ChannelId: ch2.Id, UserId: userID, Message: "anchor", CreateAt: now})
+		require.NoError(t, saveErr)
+		memberPost, saveErr := ss.Post().Save(rctx, &model.Post{ChannelId: ch2.Id, UserId: userID, Message: "joined", Type: model.PostTypeJoinChannel, CreateAt: now + 1})
+		require.NoError(t, saveErr)
+		normalPost2, saveErr := ss.Post().Save(rctx, &model.Post{ChannelId: ch2.Id, UserId: userID, Message: "hello", CreateAt: now + 2})
+		require.NoError(t, saveErr)
+
+		postList, err := ss.Post().GetPostsAfter(rctx, model.GetPostsOptions{
+			ChannelId:                    ch2.Id,
+			PostId:                       anchor.Id,
+			Page:                         0,
+			PerPage:                      10,
+			ExcludeMembershipSystemPosts: true,
+		}, map[string]bool{})
+		require.NoError(t, err)
+		require.NotContains(t, postList.Posts, memberPost.Id)
+		require.Contains(t, postList.Posts, normalPost2.Id)
+	})
+
+	t.Run("GetPostsSince excludes membership posts", func(t *testing.T) {
+		postList, err := ss.Post().GetPostsSince(rctx, model.GetPostsSinceOptions{
+			ChannelId:                    channel.Id,
+			Time:                         membershipPost.CreateAt - 1,
+			ExcludeMembershipSystemPosts: true,
+		}, false, map[string]bool{})
+		require.NoError(t, err)
+		require.NotContains(t, postList.Posts, membershipPost.Id)
+		require.Contains(t, postList.Posts, normalPost.Id)
+	})
+
+	t.Run("all membership post types are excluded", func(t *testing.T) {
+		for i, postType := range model.MembershipSystemPostTypes() {
+			// Use an explicit CreateAt strictly after normalPost to ensure GetPostsAfter includes it.
+			typedPost, saveErr := ss.Post().Save(rctx, &model.Post{
+				ChannelId: channel.Id,
+				UserId:    userID,
+				Message:   "system message",
+				Type:      postType,
+				CreateAt:  normalPost.CreateAt + int64(i+1)*1000,
+			})
+			require.NoError(t, saveErr)
+
+			postList, listErr := ss.Post().GetPostsAfter(rctx, model.GetPostsOptions{
+				ChannelId:                    channel.Id,
+				PostId:                       normalPost.Id,
+				Page:                         0,
+				PerPage:                      100,
+				ExcludeMembershipSystemPosts: true,
+			}, map[string]bool{})
+			require.NoError(t, listErr)
+			require.NotContains(t, postList.Posts, typedPost.Id, "post type %q should be excluded", postType)
+		}
 	})
 }
