@@ -1095,6 +1095,7 @@ const SECURITY_GROUPS = {
 };
 
 const SECURITY_ROOT_ORDER = [
+  'security-updates',
   'secure-mattermost',
   'zero-trust',
   'mobile-security',
