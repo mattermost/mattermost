@@ -118,7 +118,7 @@ import type {
 import type {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics, PostInfo} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
-import type {NameMappedPropertyFields, PropertyField, PropertyFieldOption, PropertyValue} from '@mattermost/types/properties';
+import type {NameMappedPropertyFields, PropertyField, PropertyFieldOptionPage, PropertyValue} from '@mattermost/types/properties';
 import type {UserPropertyField, UserPropertyFieldPatch} from '@mattermost/types/properties_user';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {Recap, CreateRecapRequest, ScheduledRecap, ScheduledRecapInput, RecapLimitStatus} from '@mattermost/types/recaps';
@@ -2550,9 +2550,11 @@ export default class Client4 {
         );
     };
 
-    // One page of a property field's options, in creation order. Continue from
-    // the last option of a page by passing its id and create_at; a page shorter
-    // than perPage is the last one. The two cursor halves go together — the
+    // One page of a property field's options, in creation order. has_more is
+    // the only signal that ends a listing — a short page does not, and an
+    // empty page does not either. Resume from next_cursor_create_at and
+    // next_cursor_id, which name the last candidate examined, not the last
+    // option returned. The two request cursor halves go together — the
     // server refuses a request carrying only one of them.
     getPropertyFieldOptions = async (
         groupName: string,
@@ -2568,7 +2570,7 @@ export default class Client4 {
         if (options?.cursorCreateAt) {
             params.set('cursor_create_at', String(options.cursorCreateAt));
         }
-        return this.doFetch<PropertyFieldOption[]>(
+        return this.doFetch<PropertyFieldOptionPage>(
             `${this.getPropertyFieldOptionsRoute(groupName, objectType, fieldId)}?${params.toString()}`,
             {method: 'GET'},
         );

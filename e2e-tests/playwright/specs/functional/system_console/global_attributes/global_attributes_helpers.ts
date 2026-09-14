@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Client4} from '@mattermost/client';
-import type {PropertyField} from '@mattermost/types/properties';
+import type {PropertyField, PropertyFieldOptionPage} from '@mattermost/types/properties';
 
 import {getAdminClient, licenseTier, test} from '@mattermost/playwright-lib';
 import type {PlaywrightExtended} from '@mattermost/playwright-lib';
@@ -121,16 +121,46 @@ export async function getGlobalAttributeFieldByName(adminClient: Client4, name: 
  * Lists a field's options including graph parents. Field GET omits parents from
  * the inlined attrs.options list on purpose (a field read-modify-write must not
  * flatten the hierarchy); the dedicated options route is what reports them.
+ *
+ * The options route returns a page object. has_more is the only stop signal,
+ * and the cursor names the last candidate examined — not the last option
+ * returned — so this helper forwards the server cursor rather than deriving one.
  */
 export async function getGlobalAttributeFieldOptions(adminClient: Client4, fieldId: string) {
-    const url = `${adminClient.getPropertyFieldRoute(PROPERTY_GROUP, OBJECT_TYPE, fieldId)}/options?per_page=${MAX_PROPERTY_FIELDS_PER_PAGE}`;
-    const response = await fetch(url, {
-        headers: {Authorization: `Bearer ${adminClient.getToken()}`},
-    });
-    if (!response.ok) {
-        throw new Error(`Failed to list property field options: ${response.status}`);
+    const all: Array<{id: string; name: string; parents?: string[] | null}> = [];
+    let cursorId: string | undefined;
+    let cursorCreateAt: number | undefined;
+
+    for (;;) {
+        const params = new URLSearchParams({per_page: String(MAX_PROPERTY_FIELDS_PER_PAGE)});
+        if (cursorId) {
+            params.set('cursor_id', cursorId);
+        }
+        if (cursorCreateAt) {
+            params.set('cursor_create_at', String(cursorCreateAt));
+        }
+
+        const url = `${adminClient.getPropertyFieldRoute(PROPERTY_GROUP, OBJECT_TYPE, fieldId)}/options?${params.toString()}`;
+        const response = await fetch(url, {
+            headers: {Authorization: `Bearer ${adminClient.getToken()}`},
+        });
+        if (!response.ok) {
+            throw new Error(`Failed to list property field options: ${response.status}`);
+        }
+
+        const page = (await response.json()) as PropertyFieldOptionPage;
+        all.push(...page.options);
+
+        if (!page.has_more) {
+            return all;
+        }
+        if (!page.next_cursor_id || !page.next_cursor_create_at) {
+            throw new Error('Failed to list property field options: has_more without a cursor');
+        }
+
+        cursorId = page.next_cursor_id;
+        cursorCreateAt = page.next_cursor_create_at;
     }
-    return response.json() as Promise<Array<{id: string; name: string; parents?: string[] | null}>>;
 }
 
 /**

@@ -2142,10 +2142,13 @@ describe('AttributeDetails', () => {
                     options: [{id: 'opt-1', name: 'Air'}, {id: 'opt-2', name: 'Fighter'}],
                 },
             }));
-            jest.spyOn(Client4, 'getPropertyFieldOptions').mockResolvedValue([
-                {id: 'opt-1', name: 'Air', parents: []},
-                {id: 'opt-2', name: 'Fighter', parents: ['Air']},
-            ]);
+            jest.spyOn(Client4, 'getPropertyFieldOptions').mockResolvedValue({
+                options: [
+                    {id: 'opt-1', name: 'Air', parents: []},
+                    {id: 'opt-2', name: 'Fighter', parents: ['Air']},
+                ],
+                has_more: false,
+            });
 
             renderEdit();
             await waitForForm();
@@ -2163,10 +2166,13 @@ describe('AttributeDetails', () => {
                     options: [{id: 'opt-1', name: 'Air'}, {id: 'opt-2', name: 'Fighter'}],
                 },
             }));
-            const getPropertyFieldOptions = jest.spyOn(Client4, 'getPropertyFieldOptions').mockResolvedValue([
-                {id: 'opt-1', name: 'Air', parents: []},
-                {id: 'opt-2', name: 'Fighter', parents: ['Air']},
-            ]);
+            const getPropertyFieldOptions = jest.spyOn(Client4, 'getPropertyFieldOptions').mockResolvedValue({
+                options: [
+                    {id: 'opt-1', name: 'Air', parents: []},
+                    {id: 'opt-2', name: 'Fighter', parents: ['Air']},
+                ],
+                has_more: false,
+            });
 
             renderEdit(true);
             await waitForForm();

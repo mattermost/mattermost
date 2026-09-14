@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PropertyFieldOption} from '@mattermost/types/properties';
+import type {PropertyFieldOption, PropertyFieldOptionPage} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
 
@@ -24,17 +24,35 @@ function makeOptions(count: number): PropertyFieldOption[] {
     }));
 }
 
-// A canned page, for the tests that care about the shape of a page rather than
-// about walking a keyset. Always queued with the `...Once` mock forms so the
-// number of pages a test hands out is exactly the number it queued -- see the
-// exhaustion guard in `beforeEach`.
-function makePage(count: number, prefix: string): PropertyFieldOption[] {
+// Options-array builder for the tests that mutate rows or assemble a page
+// object by hand. `makePage` wraps this.
+function makePageRows(count: number, prefix: string): PropertyFieldOption[] {
     return Array.from({length: count}, (unused, i) => ({
         id: `${prefix}-${i}`,
         name: `${prefix} ${i}`,
         parents: [],
         create_at: 1000 + i,
     }));
+}
+
+// A canned page, for the tests that care about the shape of a page rather than
+// about walking a keyset. Always queued with the `...Once` mock forms so the
+// number of pages a test hands out is exactly the number it queued -- see the
+// exhaustion guard in `beforeEach`. A full page continues (has_more plus a
+// cursor from the last row); a short page ends the listing.
+function makePage(count: number, prefix: string, overrides: Partial<PropertyFieldOptionPage> = {}): PropertyFieldOptionPage {
+    const options = makePageRows(count, prefix);
+    const last = options[options.length - 1];
+    const hasMore = count >= PROPERTY_FIELD_OPTIONS_PER_PAGE;
+    return {
+        options,
+        has_more: hasMore,
+        ...(hasMore && last?.id && last.create_at ? {
+            next_cursor_id: last.id,
+            next_cursor_create_at: last.create_at,
+        } : {}),
+        ...overrides,
+    };
 }
 
 function deferred<T>() {
@@ -80,7 +98,7 @@ type KeysetServer = {
 
     // The pages handed back, in order, so a test can state the cursor it expects
     // in terms of what it was actually served rather than in terms of a guess.
-    served: PropertyFieldOption[][];
+    served: PropertyFieldOptionPage[];
 };
 
 /**
@@ -94,7 +112,7 @@ type KeysetServer = {
  * One instance per walk: a second walk legitimately re-requests the first page.
  */
 function makeKeysetServer(all: PropertyFieldOption[]): KeysetServer {
-    const served: PropertyFieldOption[][] = [];
+    const served: PropertyFieldOptionPage[] = [];
     const requested = new Set<string>();
 
     const spy = jest.spyOn(Client4, 'getPropertyFieldOptions').mockImplementation(
@@ -121,7 +139,17 @@ function makeKeysetServer(all: PropertyFieldOption[]): KeysetServer {
                 start = previous + 1;
             }
 
-            const page = all.slice(start, start + (options?.perPage ?? PROPERTY_FIELD_OPTIONS_PER_PAGE));
+            const rows = all.slice(start, start + (options?.perPage ?? PROPERTY_FIELD_OPTIONS_PER_PAGE));
+            const last = rows[rows.length - 1];
+            const hasMore = rows.length === (options?.perPage ?? PROPERTY_FIELD_OPTIONS_PER_PAGE);
+            const page: PropertyFieldOptionPage = {
+                options: rows,
+                has_more: hasMore,
+                ...(hasMore && last ? {
+                    next_cursor_id: last.id,
+                    next_cursor_create_at: last.create_at,
+                } : {}),
+            };
             served.push(page);
             return page;
         },
@@ -130,8 +158,8 @@ function makeKeysetServer(all: PropertyFieldOption[]): KeysetServer {
     return {spy, served};
 }
 
-// Every request after the first must carry both halves of the last option of the
-// page before it, and the first must carry neither.
+// Every request after the first must carry the cursor the previous page handed
+// back, and the first must carry neither half.
 function expectCursorChain(server: KeysetServer) {
     const {calls} = server.spy.mock;
 
@@ -143,12 +171,11 @@ function expectCursorChain(server: KeysetServer) {
 
     for (let i = 1; i < calls.length; i++) {
         const previousPage = server.served[i - 1];
-        const last = previousPage[previousPage.length - 1];
 
         expect(calls[i][3]).toStrictEqual({
             perPage: PROPERTY_FIELD_OPTIONS_PER_PAGE,
-            cursorId: last.id,
-            cursorCreateAt: last.create_at,
+            cursorId: previousPage.next_cursor_id,
+            cursorCreateAt: previousPage.next_cursor_create_at,
         });
     }
 }
@@ -185,7 +212,7 @@ describe('pageAllAccessControlFieldOptions', () => {
             expect(server.spy).toHaveBeenCalledTimes(1);
         });
 
-        it('stops after a page shorter than the page size', async () => {
+        it('stops when has_more is false', async () => {
             const all = makeOptions(PROPERTY_FIELD_OPTIONS_PER_PAGE + 5);
             const server = makeKeysetServer(all);
 
@@ -193,10 +220,11 @@ describe('pageAllAccessControlFieldOptions', () => {
 
             expect(result).toHaveLength(205);
             expect(server.spy).toHaveBeenCalledTimes(2);
+            expect(server.served[1].has_more).toBe(false);
             expectCursorChain(server);
         });
 
-        it('pages once more when the first page is exactly the page size and the second is empty', async () => {
+        it('pages once more when the first page has_more and the second does not', async () => {
             const all = makeOptions(PROPERTY_FIELD_OPTIONS_PER_PAGE);
             const server = makeKeysetServer(all);
 
@@ -204,7 +232,9 @@ describe('pageAllAccessControlFieldOptions', () => {
 
             expect(result).toHaveLength(PROPERTY_FIELD_OPTIONS_PER_PAGE);
             expect(server.spy).toHaveBeenCalledTimes(2);
-            expect(server.served[1]).toEqual([]);
+            expect(server.served[0].has_more).toBe(true);
+            expect(server.served[1].options).toEqual([]);
+            expect(server.served[1].has_more).toBe(false);
             expectCursorChain(server);
         });
 
@@ -276,17 +306,65 @@ describe('pageAllAccessControlFieldOptions', () => {
             });
         });
 
-        it('sends both cursor halves taken from the last option of the previous page', async () => {
+        it('sends both cursor halves taken from the server cursor of the previous page', async () => {
             const all = makeOptions(PROPERTY_FIELD_OPTIONS_PER_PAGE + 2);
             const server = makeKeysetServer(all);
 
             await pageAllAccessControlFieldOptions(FIELD);
 
-            const lastOfFirstPage = all[PROPERTY_FIELD_OPTIONS_PER_PAGE - 1];
             expect(server.spy.mock.calls[1][3]).toStrictEqual({
                 perPage: PROPERTY_FIELD_OPTIONS_PER_PAGE,
-                cursorId: lastOfFirstPage.id,
-                cursorCreateAt: lastOfFirstPage.create_at,
+                cursorId: server.served[0].next_cursor_id,
+                cursorCreateAt: server.served[0].next_cursor_create_at,
+            });
+        });
+
+        it('continues after a short page when has_more is true', async () => {
+            const spy = jest.spyOn(Client4, 'getPropertyFieldOptions').
+                mockResolvedValueOnce({
+                    options: makePageRows(5, 'p1'),
+                    has_more: true,
+                    next_cursor_id: 'examined-5',
+                    next_cursor_create_at: 2005,
+                }).
+                mockResolvedValueOnce({
+                    options: makePageRows(3, 'p2'),
+                    has_more: false,
+                });
+
+            const result = await pageAllAccessControlFieldOptions(FIELD);
+
+            expect(result).toHaveLength(8);
+            expect(result[0].id).toBe('p1-0');
+            expect(result[7].id).toBe('p2-2');
+            expect(spy).toHaveBeenCalledTimes(2);
+            expect(spy.mock.calls[1][3]).toMatchObject({
+                cursorId: 'examined-5',
+                cursorCreateAt: 2005,
+            });
+        });
+
+        it('continues after an empty page when has_more is true', async () => {
+            const spy = jest.spyOn(Client4, 'getPropertyFieldOptions').
+                mockResolvedValueOnce({
+                    options: [],
+                    has_more: true,
+                    next_cursor_id: 'examined-window',
+                    next_cursor_create_at: 3000,
+                }).
+                mockResolvedValueOnce({
+                    options: makePageRows(2, 'p2'),
+                    has_more: false,
+                });
+
+            const result = await pageAllAccessControlFieldOptions(FIELD);
+
+            expect(result).toHaveLength(2);
+            expect(result.map((option) => option.id)).toEqual(['p2-0', 'p2-1']);
+            expect(spy).toHaveBeenCalledTimes(2);
+            expect(spy.mock.calls[1][3]).toMatchObject({
+                cursorId: 'examined-window',
+                cursorCreateAt: 3000,
             });
         });
 
@@ -319,25 +397,24 @@ describe('pageAllAccessControlFieldOptions', () => {
     });
 
     describe('cursor hard stop', () => {
-        it('throws when the last option of a full page has no create_at', async () => {
+        it('throws when has_more is true and next_cursor_create_at is missing', async () => {
             const page = makePage(PROPERTY_FIELD_OPTIONS_PER_PAGE, 'p1');
-            delete page[page.length - 1].create_at;
+            delete page.next_cursor_create_at;
             const spy = jest.spyOn(Client4, 'getPropertyFieldOptions').mockResolvedValueOnce(page);
 
             await expect(pageAllAccessControlFieldOptions(FIELD)).rejects.toThrow(/has no create_at/);
             expect(spy).toHaveBeenCalledTimes(1);
         });
 
-        it('throws when the last option of a full page has create_at 0', async () => {
-            const page = makePage(PROPERTY_FIELD_OPTIONS_PER_PAGE, 'p1');
-            page[page.length - 1].create_at = 0;
+        it('throws when has_more is true and next_cursor_create_at is 0', async () => {
+            const page = makePage(PROPERTY_FIELD_OPTIONS_PER_PAGE, 'p1', {next_cursor_create_at: 0});
             const spy = jest.spyOn(Client4, 'getPropertyFieldOptions').mockResolvedValueOnce(page);
 
             await expect(pageAllAccessControlFieldOptions(FIELD)).rejects.toThrow(/has no create_at/);
             expect(spy).toHaveBeenCalledTimes(1);
         });
 
-        it('throws when a full page is served past the page cap', async () => {
+        it('throws when a has_more page is served past the page cap', async () => {
             const page = makePage(PROPERTY_FIELD_OPTIONS_PER_PAGE, 'stuck');
             const spy = jest.spyOn(Client4, 'getPropertyFieldOptions').mockResolvedValue(page);
 
@@ -347,23 +424,24 @@ describe('pageAllAccessControlFieldOptions', () => {
             expect(spy).toHaveBeenCalledTimes(PROPERTY_FIELD_OPTIONS_MAX_PAGES);
         });
 
-        it('throws when the last option of a full page has no id', async () => {
+        it('throws when has_more is true and next_cursor_id is missing', async () => {
             const page = makePage(PROPERTY_FIELD_OPTIONS_PER_PAGE, 'p1');
-            page[page.length - 1].id = '';
+            delete page.next_cursor_id;
             const spy = jest.spyOn(Client4, 'getPropertyFieldOptions').mockResolvedValueOnce(page);
 
-            // Names the half that is actually missing: this option has a perfectly
+            // Names the half that is actually missing: this page has a perfectly
             // good create_at, so reporting one would send the next reader hunting
             // for the wrong fault.
             await expect(pageAllAccessControlFieldOptions(FIELD)).rejects.toThrow(
-                /option \(no id\) of field field-1 has no id/,
+                /field field-1 has no id/,
             );
             expect(spy).toHaveBeenCalledTimes(1);
         });
 
-        it('does not throw when a short page\'s last option has no create_at', async () => {
+        it('does not throw when has_more is false and the cursor halves are missing', async () => {
             const page = makePage(5, 'p1');
-            delete page[page.length - 1].create_at;
+            delete page.next_cursor_id;
+            delete page.next_cursor_create_at;
             const spy = jest.spyOn(Client4, 'getPropertyFieldOptions').mockResolvedValueOnce(page);
 
             await expect(pageAllAccessControlFieldOptions(FIELD)).resolves.toHaveLength(5);
@@ -373,7 +451,7 @@ describe('pageAllAccessControlFieldOptions', () => {
 
     describe('in-flight dedupe', () => {
         it('two concurrent callers for the same field id share one walk', async () => {
-            const page = deferred<PropertyFieldOption[]>();
+            const page = deferred<PropertyFieldOptionPage>();
             const spy = jest.spyOn(Client4, 'getPropertyFieldOptions').mockReturnValueOnce(page.promise);
 
             const a = pageAllAccessControlFieldOptions(FIELD);
@@ -388,7 +466,7 @@ describe('pageAllAccessControlFieldOptions', () => {
         });
 
         it('two concurrent callers for the same field id receive the same array', async () => {
-            const page = deferred<PropertyFieldOption[]>();
+            const page = deferred<PropertyFieldOptionPage>();
             jest.spyOn(Client4, 'getPropertyFieldOptions').mockReturnValueOnce(page.promise);
 
             const a = pageAllAccessControlFieldOptions(FIELD);
@@ -445,7 +523,7 @@ describe('pageAllAccessControlFieldOptions', () => {
         });
 
         it('dedupes across a multi-page walk', async () => {
-            const firstPage = deferred<PropertyFieldOption[]>();
+            const firstPage = deferred<PropertyFieldOptionPage>();
             const spy = jest.spyOn(Client4, 'getPropertyFieldOptions').
                 mockReturnValueOnce(firstPage.promise).
                 mockResolvedValueOnce(makePage(3, 'p2'));
@@ -465,7 +543,7 @@ describe('pageAllAccessControlFieldOptions', () => {
 
     describe('abort', () => {
         it('rejects with AbortError when the signal aborts mid-walk', async () => {
-            const page = deferred<PropertyFieldOption[]>();
+            const page = deferred<PropertyFieldOptionPage>();
             jest.spyOn(Client4, 'getPropertyFieldOptions').mockReturnValueOnce(page.promise);
 
             const controller = new AbortController();
@@ -483,7 +561,7 @@ describe('pageAllAccessControlFieldOptions', () => {
         });
 
         it('never resolves an aborted caller with a partial list', async () => {
-            const secondPage = deferred<PropertyFieldOption[]>();
+            const secondPage = deferred<PropertyFieldOptionPage>();
             const spy = jest.spyOn(Client4, 'getPropertyFieldOptions').
                 mockResolvedValueOnce(makePage(PROPERTY_FIELD_OPTIONS_PER_PAGE, 'p1')).
                 mockReturnValueOnce(secondPage.promise);
@@ -511,7 +589,7 @@ describe('pageAllAccessControlFieldOptions', () => {
         });
 
         it('rejects immediately for a caller whose signal is already aborted', async () => {
-            const page = deferred<PropertyFieldOption[]>();
+            const page = deferred<PropertyFieldOptionPage>();
             jest.spyOn(Client4, 'getPropertyFieldOptions').mockReturnValueOnce(page.promise);
 
             // LOAD-BEARING, and the only test in this file that covers it.
@@ -543,7 +621,7 @@ describe('pageAllAccessControlFieldOptions', () => {
         });
 
         it('aborting one caller leaves the other caller\'s promise pending', async () => {
-            const page = deferred<PropertyFieldOption[]>();
+            const page = deferred<PropertyFieldOptionPage>();
             jest.spyOn(Client4, 'getPropertyFieldOptions').mockReturnValueOnce(page.promise);
 
             const controllerA = new AbortController();
@@ -563,7 +641,7 @@ describe('pageAllAccessControlFieldOptions', () => {
         });
 
         it('aborting one caller still delivers the complete list to the other', async () => {
-            const page = deferred<PropertyFieldOption[]>();
+            const page = deferred<PropertyFieldOptionPage>();
             const spy = jest.spyOn(Client4, 'getPropertyFieldOptions').mockReturnValueOnce(page.promise);
 
             const controllerA = new AbortController();
@@ -577,12 +655,12 @@ describe('pageAllAccessControlFieldOptions', () => {
             const complete = makePage(3, 'p1');
             page.resolve(complete);
 
-            await expect(b).resolves.toEqual(complete);
+            await expect(b).resolves.toEqual(complete.options);
             expect(spy).toHaveBeenCalledTimes(1);
         });
 
         it('aborting one caller does not abort the shared walk', async () => {
-            const firstPage = deferred<PropertyFieldOption[]>();
+            const firstPage = deferred<PropertyFieldOptionPage>();
             const spy = jest.spyOn(Client4, 'getPropertyFieldOptions').
                 mockReturnValueOnce(firstPage.promise).
                 mockResolvedValueOnce(makePage(2, 'p2'));
@@ -603,7 +681,7 @@ describe('pageAllAccessControlFieldOptions', () => {
         });
 
         it('an aborted caller does not receive the walk\'s later error', async () => {
-            const page = deferred<PropertyFieldOption[]>();
+            const page = deferred<PropertyFieldOptionPage>();
             jest.spyOn(Client4, 'getPropertyFieldOptions').mockReturnValueOnce(page.promise);
 
             const controller = new AbortController();
@@ -620,7 +698,7 @@ describe('pageAllAccessControlFieldOptions', () => {
         });
 
         it('does not attach an abort listener when no signal is given', async () => {
-            const page = deferred<PropertyFieldOption[]>();
+            const page = deferred<PropertyFieldOptionPage>();
             jest.spyOn(Client4, 'getPropertyFieldOptions').mockReturnValueOnce(page.promise);
 
             const controller = new AbortController();
@@ -677,7 +755,7 @@ describe('pageAllAccessControlFieldOptions', () => {
         });
 
         it('rejects both concurrent callers with the same error', async () => {
-            const page = deferred<PropertyFieldOption[]>();
+            const page = deferred<PropertyFieldOptionPage>();
             const spy = jest.spyOn(Client4, 'getPropertyFieldOptions').mockReturnValueOnce(page.promise);
 
             const a = pageAllAccessControlFieldOptions(FIELD);
@@ -698,7 +776,7 @@ describe('pageAllAccessControlFieldOptions', () => {
                 mockResolvedValueOnce(succeeded);
 
             await expect(pageAllAccessControlFieldOptions(FIELD)).rejects.toThrow('forbidden');
-            await expect(pageAllAccessControlFieldOptions(FIELD)).resolves.toEqual(succeeded);
+            await expect(pageAllAccessControlFieldOptions(FIELD)).resolves.toEqual(succeeded.options);
 
             expect(spy).toHaveBeenCalledTimes(2);
         });
@@ -726,7 +804,7 @@ describe('pageAllAccessControlFieldOptions', () => {
 
         it('clears the in-flight entry after the cursor hard stop', async () => {
             const badPage = makePage(PROPERTY_FIELD_OPTIONS_PER_PAGE, 'p1');
-            delete badPage[badPage.length - 1].create_at;
+            delete badPage.next_cursor_create_at;
 
             const spy = jest.spyOn(Client4, 'getPropertyFieldOptions').
                 mockResolvedValueOnce(badPage).

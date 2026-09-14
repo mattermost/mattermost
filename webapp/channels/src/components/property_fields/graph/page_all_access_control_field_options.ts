@@ -13,8 +13,10 @@ export const ACCESS_CONTROL_GROUP = 'access_control';
 // Endpoint default is 60; omit this and a hierarchy pages 60 at a time.
 export const PROPERTY_FIELD_OPTIONS_PER_PAGE = 200;
 
-// 100,000 options at 200 per page, plus the trailing short page. A walk that
-// needs more pages is not advancing.
+// Safety net for a walk that never sees has_more=false. Worst case is
+// unchanged: a full page advances by 200 returned options (500 pages for
+// GRAPH_MAX_OPTIONS), and a filter-shortened page advances past a 2000-row
+// candidate window (50 pages). Plus one for the trailing last page.
 export const PROPERTY_FIELD_OPTIONS_MAX_PAGES =
     Math.ceil(GRAPH_MAX_OPTIONS / PROPERTY_FIELD_OPTIONS_PER_PAGE) + 1;
 
@@ -58,25 +60,22 @@ async function walkPages(fieldId: string, objectType: string): Promise<PropertyF
             {perPage: PROPERTY_FIELD_OPTIONS_PER_PAGE, cursorId, cursorCreateAt},
         );
 
-        all.push(...page);
+        all.push(...page.options);
 
-        // Short page is last (including 200 []). A full page means there may be more.
-        if (page.length < PROPERTY_FIELD_OPTIONS_PER_PAGE) {
+        if (!page.has_more) {
             return all;
         }
 
-        const last = page[page.length - 1];
-
         // Cursor is both halves or neither; a missing half would re-request page 1.
-        if (!last.id || !last.create_at) {
-            const missingHalf = last.id ? 'create_at' : 'id';
+        if (!page.next_cursor_id || !page.next_cursor_create_at) {
+            const missingHalf = page.next_cursor_id ? 'create_at' : 'id';
             throw new Error(
-                `pageAllAccessControlFieldOptions: option ${last.id || '(no id)'} of field ${fieldId} has no ${missingHalf}, so the page after it cannot be asked for`,
+                `pageAllAccessControlFieldOptions: field ${fieldId} has no ${missingHalf}, so the page after it cannot be asked for`,
             );
         }
 
-        cursorId = last.id;
-        cursorCreateAt = last.create_at;
+        cursorId = page.next_cursor_id;
+        cursorCreateAt = page.next_cursor_create_at;
     }
 }
 

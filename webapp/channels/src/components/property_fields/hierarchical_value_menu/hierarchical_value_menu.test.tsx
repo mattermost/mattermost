@@ -953,7 +953,10 @@ describe('HierarchicalValueMenu', () => {
         });
 
         test('wires the real page-all helper to Client4 with the access_control group', async () => {
-            const spy = jest.spyOn(Client4, 'getPropertyFieldOptions').mockResolvedValue(hierarchy());
+            const spy = jest.spyOn(Client4, 'getPropertyFieldOptions').mockResolvedValue({
+                options: hierarchy(),
+                has_more: false,
+            });
             renderMenu();
 
             await openMenu();

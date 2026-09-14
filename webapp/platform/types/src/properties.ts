@@ -105,6 +105,28 @@ export type PropertyFieldOption = {
     create_at?: number;
 };
 
+/**
+ * One page of a field's options, mirroring model.PropertyFieldOptionPage.
+ *
+ * `has_more` is the only signal that ends a listing: a short page does not,
+ * and an empty page does not either. Loop while `has_more`, sending
+ * `next_cursor_create_at` and `next_cursor_id` back each time.
+ *
+ * The cursor names the last candidate the page query examined, not the last
+ * option it returned. Those differ when a coverage filter dropped rows at the
+ * end of the window. Resuming from the last option returned would re-examine
+ * the dropped rows, and a page that returns nothing would never advance.
+ *
+ * Cursor halves are omitempty on the wire, so both are optional. An empty
+ * page serializes `options` as [] rather than null.
+ */
+export type PropertyFieldOptionPage = {
+    options: PropertyFieldOption[];
+    has_more: boolean;
+    next_cursor_create_at?: number;
+    next_cursor_id?: string;
+};
+
 export type SelectPropertyField = PropertyField & {
     attrs?: {
         editable?: boolean;

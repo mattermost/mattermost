@@ -81,10 +81,11 @@ describe('Client4', () => {
 
         test('getPropertyFieldOptions should send per_page and both cursor halves', async () => {
             const options = [{id: 'opt-10', name: 'Program', parents: [], create_at: 1010}];
+            const page = {options, has_more: false};
             nock(client.getBaseRoute()).
                 get('/properties/groups/access_control/user/fields/field123/options').
                 query({per_page: '200', cursor_id: 'opt-9', cursor_create_at: '1009'}).
-                reply(200, options);
+                reply(200, page);
 
             const result = await client.getPropertyFieldOptions('access_control', 'user', 'field123', {
                 perPage: 200,
@@ -92,76 +93,101 @@ describe('Client4', () => {
                 cursorCreateAt: 1009,
             });
 
-            expect(result).toEqual(options);
+            expect(result).toEqual(page);
         });
 
         test('getPropertyFieldOptions should default per_page to 200 when called with no options argument', async () => {
+            const page = {options: [], has_more: false};
             nock(client.getBaseRoute()).
                 get('/properties/groups/access_control/user/fields/field123/options').
                 query({per_page: '200'}).
-                reply(200, []);
+                reply(200, page);
 
             const result = await client.getPropertyFieldOptions('access_control', 'user', 'field123');
-            expect(result).toEqual([]);
+            expect(result).toEqual(page);
         });
 
         test('getPropertyFieldOptions should send per_page and omit both cursor keys on the first request', async () => {
+            const page = {options: [], has_more: false};
             nock(client.getBaseRoute()).
                 get('/properties/groups/access_control/user/fields/field123/options').
                 query({per_page: '200'}).
-                reply(200, []);
+                reply(200, page);
 
             const result = await client.getPropertyFieldOptions('access_control', 'user', 'field123', {perPage: 200});
-            expect(result).toEqual([]);
+            expect(result).toEqual(page);
         });
 
         test('getPropertyFieldOptions should honour an explicit perPage', async () => {
+            const page = {options: [], has_more: false};
             nock(client.getBaseRoute()).
                 get('/properties/groups/access_control/user/fields/field123/options').
                 query({per_page: '25'}).
-                reply(200, []);
+                reply(200, page);
 
             const result = await client.getPropertyFieldOptions('access_control', 'user', 'field123', {perPage: 25});
-            expect(result).toEqual([]);
+            expect(result).toEqual(page);
         });
 
         test('getPropertyFieldOptions should omit cursor_create_at when it is 0', async () => {
+            const page = {options: [], has_more: false};
             nock(client.getBaseRoute()).
                 get('/properties/groups/access_control/user/fields/field123/options').
                 query({per_page: '200', cursor_id: 'opt-9'}).
-                reply(200, []);
+                reply(200, page);
 
             const result = await client.getPropertyFieldOptions('access_control', 'user', 'field123', {
                 cursorId: 'opt-9',
                 cursorCreateAt: 0,
             });
 
-            expect(result).toEqual([]);
+            expect(result).toEqual(page);
         });
 
         test('getPropertyFieldOptions should omit cursor_id when it is empty', async () => {
+            const page = {options: [], has_more: false};
             nock(client.getBaseRoute()).
                 get('/properties/groups/access_control/user/fields/field123/options').
                 query({per_page: '200', cursor_create_at: '1009'}).
-                reply(200, []);
+                reply(200, page);
 
             const result = await client.getPropertyFieldOptions('access_control', 'user', 'field123', {
                 cursorId: '',
                 cursorCreateAt: 1009,
             });
 
-            expect(result).toEqual([]);
+            expect(result).toEqual(page);
         });
 
         test('getPropertyFieldOptions should return options carrying read_only and create_at', async () => {
             const options = [{id: 'o1', name: 'F-18 Program', parents: [], read_only: true, create_at: 1700000000000}];
+            const page = {options, has_more: false};
             nock(client.getBaseRoute()).
                 get('/properties/groups/access_control/user/fields/field123/options').
                 query({per_page: '200'}).
-                reply(200, options);
+                reply(200, page);
 
             const result = await client.getPropertyFieldOptions('access_control', 'user', 'field123');
-            expect(result).toEqual(options);
+            expect(result).toEqual(page);
+        });
+
+        test('getPropertyFieldOptions should return has_more and both cursor halves', async () => {
+            const page = {
+                options: [{id: 'opt-10', name: 'Program', parents: [], create_at: 1010}],
+                has_more: true,
+                next_cursor_create_at: 5000,
+                next_cursor_id: 'examined-last',
+            };
+            nock(client.getBaseRoute()).
+                get('/properties/groups/access_control/user/fields/field123/options').
+                query({per_page: '200'}).
+                reply(200, page);
+
+            const result = await client.getPropertyFieldOptions('access_control', 'user', 'field123');
+            expect(result).toEqual(page);
+            expect(result.has_more).toBe(true);
+            expect(result.next_cursor_create_at).toBe(5000);
+            expect(result.next_cursor_id).toBe('examined-last');
         });
 
         test('getPropertyFieldOptions should throw ClientError on 403', async () => {
