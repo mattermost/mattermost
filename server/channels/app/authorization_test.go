@@ -2973,6 +2973,50 @@ func TestPropertyFieldAdminOnDirectAndGroupChannels(t *testing.T) {
 				assert.False(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, session(plainMember), channelField, otherDM.Id))
 				assert.False(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, session(plainMember), postField, otherPost.Id))
 			})
+
+			// Administering a DM/GM never extends to a field scoped elsewhere. The
+			// participation fallback is reachable from permission_values, which
+			// dispatches on the value's own target, but not from permission_field or
+			// permission_options: those resolve through hasPropertyFieldPermissionLevel,
+			// whose admin arm dispatches on field.TargetType. So a system-wide field
+			// stays with the system admins who defined it, and a participant cannot
+			// rename, retype, delete or re-option it by virtue of being in the
+			// conversation its values land on.
+			t.Run("system-scoped field is not administered by participants", func(t *testing.T) {
+				systemField := &model.PropertyField{
+					GroupID:           groupID,
+					Name:              "system scoped " + model.NewId(),
+					Type:              model.PropertyFieldTypeText,
+					ObjectType:        model.PropertyFieldObjectTypePost,
+					TargetType:        string(model.PropertyFieldTargetLevelSystem),
+					PermissionField:   model.NewPointer(model.PermissionLevelAdmin),
+					PermissionValues:  model.NewPointer(model.PermissionLevelAdmin),
+					PermissionOptions: model.NewPointer(model.PermissionLevelAdmin),
+				}
+
+				// Precondition: the participant really does administer this
+				// conversation, so the denials below are the TargetType dispatch and
+				// not a missing membership.
+				require.True(t, th.App.hasChannelPropertyAdmin(th.Context, plainMember.Id, tc.channel.Id))
+
+				assert.False(t, th.App.SessionHasPermissionToEditPropertyField(th.Context, session(plainMember), systemField))
+				assert.False(t, th.App.SessionHasPermissionToManagePropertyFieldOptions(th.Context, session(plainMember), systemField))
+
+				// The scope-admin helper agrees, so a participant cannot pin the
+				// levels on a system-wide field either.
+				assert.False(t, th.App.SessionHasPermissionToAdministerPropertyFieldScope(th.Context, session(plainMember), systemField))
+
+				// A system admin still administers it, which is what makes the
+				// denials above the permission level rather than an unreachable field.
+				adminSession := model.Session{UserId: th.SystemAdminUser.Id, Roles: model.SystemAdminRoleId}
+				assert.True(t, th.App.SessionHasPermissionToEditPropertyField(th.Context, adminSession, systemField))
+				assert.True(t, th.App.SessionHasPermissionToManagePropertyFieldOptions(th.Context, adminSession, systemField))
+
+				// The value level is the one place participation does apply: the
+				// participant may still set a value on a post in their own
+				// conversation, which is the behaviour the admin tier is for.
+				assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, session(plainMember), systemField, post.Id))
+			})
 		})
 	}
 
