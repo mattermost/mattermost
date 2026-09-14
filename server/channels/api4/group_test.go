@@ -2705,6 +2705,9 @@ func TestGetGroupsGroupConstrainedParentTeam(t *testing.T) {
 	require.Contains(t, apiGroups, groups[2])
 }
 
+// TestAddMembersToGroup verifies the addGroupMembers API endpoint, covering
+// authorization, input validation (invalid and duplicate user IDs), and
+// error handling for LDAP-synced groups.
 func TestAddMembersToGroup(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
