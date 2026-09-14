@@ -93,3 +93,74 @@
         grid-column: 1 / -1;
     }
 }
+
+// Profile display segmented control -- mirrors the segmented-toggle pattern in
+// access_control/modals/simulate_access/simulate_access_modal.scss, namespaced
+// under this component instead of a shared component (no reusable segmented
+// control exists in this codebase yet).
+.AttributeAppliesToItem__profileDisplaySegments {
+    display: inline-flex;
+    padding: 2px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 4px;
+    background: rgba(var(--center-channel-color-rgb), 0.04);
+    justify-self: start;
+}
+
+.AttributeAppliesToItem__profileDisplaySegment {
+    padding: 4px 12px;
+    border: 0;
+    border-radius: 3px;
+    background: transparent;
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+
+    &:hover:not(:disabled):not(.AttributeAppliesToItem__profileDisplaySegment--active) {
+        background: rgba(var(--center-channel-color-rgb), 0.06);
+        color: var(--center-channel-color);
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+    &--active {
+        background: var(--center-channel-bg);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        color: var(--center-channel-color);
+    }
+}
+
+.AttributeAppliesToItem__whoCanSet {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.AttributeAppliesToItem__radioList {
+    display: flex;
+    min-height: 32px;
+    align-items: center;
+    gap: 16px;
+}
+
+.AttributeAppliesToItem__radioOption {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: normal;
+    gap: 8px;
+    line-height: 20px;
+}
+
+.AttributeAppliesToItem__helpText {
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    font-size: 12px;
+    line-height: 1.4;
+}

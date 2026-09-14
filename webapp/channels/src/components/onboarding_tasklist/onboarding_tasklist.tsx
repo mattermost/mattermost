@@ -252,7 +252,9 @@ const OnBoardingTaskList = (): JSX.Element | null => {
             <CompletedAnimation completed={showAnimation}/>
             <Button
                 onClick={toggleTaskList}
-                ref={(element) => setTrigger(element)}
+                ref={(element) => {
+                    setTrigger(element);
+                }}
                 open={open}
                 data-cy='onboarding-task-list-action-button'
                 aria-label={formatMessage({id: 'onboardingTask.checklist.start_onboarding_process', defaultMessage: 'Start the onboarding process.'})}
