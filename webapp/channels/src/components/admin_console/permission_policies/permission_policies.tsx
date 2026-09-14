@@ -36,6 +36,7 @@ const ACTION_LABELS: Record<string, string> = {
     download_file_attachment: 'Download Files',
     upload_file_attachment: 'Upload Files',
     channel_read_access: 'Channel Read Access',
+    channel_write_access: 'Channel Write Access',
 };
 
 function getActionsLabel(policy: AccessControlPolicy): string {

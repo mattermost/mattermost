@@ -13,6 +13,8 @@ import {
     ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,
     ACCESS_CONTROL_ACTION_UPLOAD_FILE,
     ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
+    ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS,
+    ACCESS_CONTROL_CHANNEL_ACCESS_ACTIONS,
 } from '@mattermost/types/access_control';
 import type {AccessControlSettings} from '@mattermost/types/config';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
@@ -65,6 +67,8 @@ const permissionMessages = defineMessages({
     uploadDescription: {id: 'admin.permission_policies.permission.upload_file.description', defaultMessage: 'Allow users to upload files while sending a message'},
     channelReadAccessLabel: {id: 'admin.permission_policies.permission.channel_read_access.label', defaultMessage: 'Channel Read Access'},
     channelReadAccessDescription: {id: 'admin.permission_policies.permission.channel_read_access.description', defaultMessage: 'Allow users to read the channel and its content'},
+    channelWriteAccessLabel: {id: 'admin.permission_policies.permission.channel_write_access.label', defaultMessage: 'Channel Write Access'},
+    channelWriteAccessDescription: {id: 'admin.permission_policies.permission.channel_write_access.description', defaultMessage: 'Allow users to post in the channel and change its content'},
 });
 
 const AVAILABLE_PERMISSIONS: PermissionDefinition[] = [
@@ -82,6 +86,11 @@ const AVAILABLE_PERMISSIONS: PermissionDefinition[] = [
         value: ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
         label: permissionMessages.channelReadAccessLabel,
         description: permissionMessages.channelReadAccessDescription,
+    },
+    {
+        value: ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS,
+        label: permissionMessages.channelWriteAccessLabel,
+        description: permissionMessages.channelWriteAccessDescription,
     },
 ];
 
@@ -168,7 +177,7 @@ function PermissionPolicyDetails({
     // Hide the Channel Read Access row when the flag is off, since saving it would
     // 501. Rows already selected on a stored policy still render, so an admin
     // can remove one after the flag is turned off.
-    const channelReadAccessEnabled = useSelector(isChannelAccessABACPermissionEnabled);
+    const channelAccessEnabled = useSelector(isChannelAccessABACPermissionEnabled);
 
     // The autocomplete mixes the requesting user's attributes (user.attributes.*)
     // and the accessed channel's attributes (resource.attributes.*), tagged by
@@ -330,7 +339,7 @@ function PermissionPolicyDetails({
         // Only confirm when the save can actually succeed. With the flag off the
         // server returns 501, so confirming first would just add a scary dialog
         // in front of an error.
-        if (channelReadAccessEnabled && selectedPermissions.includes(ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS)) {
+        if (channelAccessEnabled && selectedPermissions.includes(ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS)) {
             setShowChannelReadAccessConfirmModal(true);
             return;
         }
@@ -374,7 +383,7 @@ function PermissionPolicyDetails({
     };
 
     const availableToAdd = AVAILABLE_PERMISSIONS.filter(
-        (p) => !selectedPermissions.includes(p.value) && (p.value !== ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS || channelReadAccessEnabled),
+        (p) => !selectedPermissions.includes(p.value) && (!ACCESS_CONTROL_CHANNEL_ACCESS_ACTIONS.includes(p.value) || channelAccessEnabled),
     );
 
     return (
@@ -885,6 +894,7 @@ function PermissionPolicyDetails({
                                 [ACCESS_CONTROL_ACTION_UPLOAD_FILE]: formatMessage(permissionMessages.uploadLabel),
                                 [ACCESS_CONTROL_ACTION_DOWNLOAD_FILE]: formatMessage(permissionMessages.downloadLabel),
                                 [ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS]: formatMessage(permissionMessages.channelReadAccessLabel),
+                                [ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS]: formatMessage(permissionMessages.channelWriteAccessLabel),
                             }}
                             targetRole={selectedRole}
                             targetScope='system'
