@@ -101,7 +101,7 @@ func (ch *Channels) syncPluginsActiveState() {
 				pluginEnabled = state.Enable
 			}
 
-			if hasOverride, value := ch.getPluginStateOverride(pluginID); hasOverride {
+			if hasOverride, value := ch.getPluginStateOverride(plugin.Manifest); hasOverride {
 				pluginEnabled = value
 			}
 
@@ -464,7 +464,7 @@ func (ch *Channels) enablePlugin(id string) *model.AppError {
 	// Reject up front rather than writing Enable: true and letting
 	// syncPluginsActiveState deactivate it again, reporting success for a plugin
 	// that cannot run. Scoped to add-ons; Apps keeps its existing behaviour.
-	if addOn, isAddOn := model.PluginRequiredAddOn(id); isAddOn && !ch.srv.License().HasAddOn(addOn) {
+	if addOn := manifest.RequiredAddOn; addOn != "" && !ch.srv.License().HasAddOn(addOn) {
 		return model.NewAppError("EnablePlugin", "app.plugin.addon_not_licensed.app_error", map[string]any{"AddOn": addOn}, "", http.StatusForbidden)
 	}
 
@@ -1289,8 +1289,8 @@ func addOnEntitlementsEqual(oldLicense, newLicense *model.License) bool {
 	return slices.Equal(normalize(oldLicense), normalize(newLicense))
 }
 
-func (ch *Channels) getPluginStateOverride(pluginID string) (bool, bool) {
-	switch pluginID {
+func (ch *Channels) getPluginStateOverride(manifest *model.Manifest) (bool, bool) {
+	switch manifest.Id {
 	case model.PluginIdApps:
 		// Tie Apps proxy disabled status to the feature flag.
 		if !ch.cfgSvc.Config().FeatureFlags.AppsEnabled {
@@ -1300,10 +1300,8 @@ func (ch *Channels) getPluginStateOverride(pluginID string) (bool, bool) {
 
 	// Overrides PluginStates, so an unlicensed add-on cannot be enabled by editing
 	// config.
-	if addOn, ok := model.PluginRequiredAddOn(pluginID); ok {
-		if !ch.srv.License().HasAddOn(addOn) {
-			return true, false
-		}
+	if addOn := manifest.RequiredAddOn; addOn != "" && !ch.srv.License().HasAddOn(addOn) {
+		return true, false
 	}
 
 	return false, false

@@ -548,56 +548,56 @@ func TestLicenseHasAddOn(t *testing.T) {
 		{
 			"nil license",
 			nil,
-			AddOnCrossGuard,
+			"crossguard",
 			false,
 		},
 		{
 			"nil add-ons slice",
 			&License{},
-			AddOnCrossGuard,
+			"crossguard",
 			false,
 		},
 		{
 			"empty add-ons slice",
 			&License{AddOns: []string{}},
-			AddOnCrossGuard,
+			"crossguard",
 			false,
 		},
 		{
 			"different add-on granted",
 			&License{AddOns: []string{"something-else"}},
-			AddOnCrossGuard,
+			"crossguard",
 			false,
 		},
 		{
 			"exact match",
-			&License{AddOns: []string{AddOnCrossGuard}},
-			AddOnCrossGuard,
+			&License{AddOns: []string{"crossguard"}},
+			"crossguard",
 			true,
 		},
 		{
 			"match among several",
-			&License{AddOns: []string{"something-else", AddOnCrossGuard, "another"}},
-			AddOnCrossGuard,
+			&License{AddOns: []string{"something-else", "crossguard", "another"}},
+			"crossguard",
 			true,
 		},
 		{
 			"case-insensitive match",
 			&License{AddOns: []string{"CrossGuard"}},
-			AddOnCrossGuard,
+			"crossguard",
 			true,
 		},
 		{
 			// A prefix must not satisfy the entitlement.
 			"longer name is not a match",
 			&License{AddOns: []string{"crossguard-premium"}},
-			AddOnCrossGuard,
+			"crossguard",
 			false,
 		},
 		{
 			"shorter name is not a match",
 			&License{AddOns: []string{"cross"}},
-			AddOnCrossGuard,
+			"crossguard",
 			false,
 		},
 	}
@@ -615,7 +615,7 @@ func TestLicenseAddOnsJSON(t *testing.T) {
 		err := json.Unmarshal([]byte(`{"add_ons": ["crossguard"]}`), &license)
 		require.NoError(t, err)
 		assert.Equal(t, []string{"crossguard"}, license.AddOns)
-		assert.True(t, license.HasAddOn(AddOnCrossGuard))
+		assert.True(t, license.HasAddOn("crossguard"))
 	})
 
 	t.Run("absent key yields no add-ons", func(t *testing.T) {
@@ -623,7 +623,7 @@ func TestLicenseAddOnsJSON(t *testing.T) {
 		err := json.Unmarshal([]byte(`{"sku_short_name": "advanced"}`), &license)
 		require.NoError(t, err)
 		assert.Nil(t, license.AddOns)
-		assert.False(t, license.HasAddOn(AddOnCrossGuard))
+		assert.False(t, license.HasAddOn("crossguard"))
 	})
 
 	t.Run("unrecognized add-on is ignored, not rejected", func(t *testing.T) {
@@ -632,49 +632,15 @@ func TestLicenseAddOnsJSON(t *testing.T) {
 		var license License
 		err := json.Unmarshal([]byte(`{"add_ons": ["not-a-real-addon"]}`), &license)
 		require.NoError(t, err)
-		assert.False(t, license.HasAddOn(AddOnCrossGuard))
+		assert.False(t, license.HasAddOn("crossguard"))
 	})
 
 	t.Run("NewTestLicenseWithAddOns grants the add-on", func(t *testing.T) {
-		license := NewTestLicenseWithAddOns(AddOnCrossGuard)
-		assert.True(t, license.HasAddOn(AddOnCrossGuard))
+		license := NewTestLicenseWithAddOns("crossguard")
+		assert.True(t, license.HasAddOn("crossguard"))
 		assert.False(t, license.HasAddOn("another"))
 
-		assert.False(t, NewTestLicense().HasAddOn(AddOnCrossGuard))
-	})
-}
-
-func TestPluginRequiredAddOn(t *testing.T) {
-	for pluginID, addOn := range pluginAddOnRequirements {
-		t.Run(pluginID, func(t *testing.T) {
-			assert.True(t, IsValidPluginId(pluginID), "plugin id must be valid")
-			assert.NotEmpty(t, addOn, "add-on name must not be empty")
-			assert.Equal(t, strings.ToLower(addOn), addOn, "add-on name should be lower case for consistency")
-			assert.Equal(t, strings.ToLower(pluginID), pluginID, "registry keys must be lower case so PluginRequiredAddOn can normalize")
-		})
-	}
-
-	t.Run("crossguard is registered", func(t *testing.T) {
-		addOn, ok := PluginRequiredAddOn(PluginIdCrossGuard)
-		assert.True(t, ok)
-		assert.Equal(t, AddOnCrossGuard, addOn)
-	})
-
-	t.Run("plugin id matching is case-insensitive", func(t *testing.T) {
-		// IsValidPluginId permits mixed case.
-		for _, id := range []string{"CrossGuard", "CROSSGUARD", "cRoSsGuArD"} {
-			addOn, ok := PluginRequiredAddOn(id)
-			assert.True(t, ok, "expected %q to require an add-on", id)
-			assert.Equal(t, AddOnCrossGuard, addOn)
-		}
-	})
-
-	t.Run("plugins outside the registry require nothing", func(t *testing.T) {
-		for _, id := range []string{PluginIdPlaybooks, "", "crossguard-premium", "cross"} {
-			addOn, ok := PluginRequiredAddOn(id)
-			assert.False(t, ok, "expected %q to require no add-on", id)
-			assert.Empty(t, addOn)
-		}
+		assert.False(t, NewTestLicense().HasAddOn("crossguard"))
 	})
 }
 

@@ -209,6 +209,19 @@ type Manifest struct {
 	// Minimum server version: 5.6
 	MinServerVersion string `json:"min_server_version,omitempty" yaml:"min_server_version,omitempty"`
 
+	// RequiredAddOn names the add-on the server license must grant before this plugin
+	// can be enabled or activated, matched case-insensitively against License.AddOns.
+	// Leave empty unless the plugin is sold as an add-on.
+	//
+	// A policy control, not a tamper boundary: the value comes from the bundle, so
+	// repacking without it evades the gate. What it guarantees is that an unlicensed
+	// add-on cannot be enabled through config, the API or the System Console.
+	// MM-70598 moves the check onto the plugin API surface the add-on uses, which a
+	// rename does not escape.
+	//
+	// Minimum server version: 12.0
+	RequiredAddOn string `json:"required_add_on,omitempty" yaml:"required_add_on,omitempty"`
+
 	// Server defines the server-side portion of your plugin.
 	Server *ManifestServer `json:"server,omitempty" yaml:"server,omitempty"`
 

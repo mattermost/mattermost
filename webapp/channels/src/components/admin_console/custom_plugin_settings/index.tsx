@@ -48,7 +48,7 @@ function makeGetPluginSchema() {
                 return null;
             }
 
-            const unlicensedAddOn = isUnlicensedAddOn(plugin.id, license);
+            const unlicensedAddOn = isUnlicensedAddOn(plugin.required_add_on, license);
 
             const escapedPluginId = escapePathPart(plugin.id);
             const pluginEnabledConfigKey = getPluginEnabledConfigKey(plugin.id);

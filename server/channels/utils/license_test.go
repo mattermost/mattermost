@@ -291,19 +291,19 @@ func TestGetClientLicenseAddOns(t *testing.T) {
 	})
 
 	t.Run("single add-on", func(t *testing.T) {
-		props := GetClientLicense(newLicense(model.AddOnCrossGuard))
+		props := GetClientLicense(newLicense("crossguard"))
 		require.Equal(t, "crossguard", props["AddOns"])
 	})
 
 	t.Run("multiple add-ons are comma separated", func(t *testing.T) {
-		props := GetClientLicense(newLicense(model.AddOnCrossGuard, "another"))
+		props := GetClientLicense(newLicense("crossguard", "another"))
 		require.Equal(t, "crossguard,another", props["AddOns"])
 	})
 
 	t.Run("survives sanitization", func(t *testing.T) {
 		// Anything stripped here disappears from the System Console after a license
 		// change. Do not add AddOns to the delete list.
-		props := GetClientLicense(newLicense(model.AddOnCrossGuard))
+		props := GetClientLicense(newLicense("crossguard"))
 		require.Equal(t, "crossguard", props["AddOns"])
 
 		sanitized := GetSanitizedClientLicense(props)

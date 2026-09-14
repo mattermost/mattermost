@@ -897,6 +897,7 @@ describe('custom plugin sections and settings', () => {
             ...plugin,
             id: 'crossguard',
             name: 'Cross Guard',
+            required_add_on: 'crossguard',
         };
 
         const renderAddOnPlugin = (license: Record<string, string>, consoleAccess = baseProps.consoleAccess) => {
@@ -963,6 +964,25 @@ describe('custom plugin sections and settings', () => {
             renderAddOnPlugin({IsLicensed: 'true', AddOns: 'crossguard-premium'});
 
             expect(screen.queryByTestId('PluginSettings.PluginStates.crossguard.Enable-button')).not.toBeInTheDocument();
+            expect(screen.getByText(addOnBannerText)).toBeInTheDocument();
+        });
+
+        it('gates on the manifest field rather than the plugin id', () => {
+            renderWithContext(
+                <CustomPluginSettings
+                    {...baseProps}
+                    license={{IsLicensed: 'true'}}
+                    patchConfig={jest.fn()}
+                />,
+                {
+                    entities: {
+                        admin: {plugins: {testplugin: {...plugin, required_add_on: 'crossguard'}}},
+                        general: {license: {IsLicensed: 'true'}},
+                    },
+                },
+            );
+
+            expect(screen.queryByTestId('PluginSettings.PluginStates.testplugin.Enable-button')).not.toBeInTheDocument();
             expect(screen.getByText(addOnBannerText)).toBeInTheDocument();
         });
 

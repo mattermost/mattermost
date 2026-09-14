@@ -383,7 +383,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
 
         // Enabling an unlicensed add-on only ever returns 403, and the settings list
         // already shows an explanation in place of the toggle.
-        const unlicensedAddOn = isUnlicensedAddOn(this.props.plugin.id, this.props.license);
+        const unlicensedAddOn = isUnlicensedAddOn(this.props.plugin.required_add_on, this.props.license);
 
         return (
             <div className='PluginMetadataPanel__settingsWrapper'>
