@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
+
 import {GeneralTypes, UserTypes, ChannelTypes} from 'mattermost-redux/action_types';
 
 import channelReducer from 'reducers/views/channel';
@@ -23,7 +25,7 @@ describe('Reducers.channel', () => {
     test('Initial state', () => {
         const nextState = channelReducer(
             {},
-            {},
+            {} as AnyAction,
         );
 
         expect(nextState).toEqual(initialState);

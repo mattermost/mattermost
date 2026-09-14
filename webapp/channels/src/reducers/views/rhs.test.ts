@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
+
 import {SearchTypes} from 'mattermost-redux/action_types';
 
 import rhsReducer from 'reducers/views/rhs';
@@ -36,7 +38,7 @@ describe('Reducers.RHS', () => {
     test('Initial state', () => {
         const nextState = rhsReducer(
             {},
-            {},
+            {} as AnyAction,
         );
 
         expect(nextState).toEqual(initialState);
