@@ -2842,6 +2842,17 @@ func TestIsOptionsOnlyPatch(t *testing.T) {
 		}
 		require.False(t, isOptionsOnlyPatch(patch))
 	})
+
+	t.Run("PermissionValues alongside an options-only attrs patch is not options-only", func(t *testing.T) {
+		memberLevel := model.PermissionLevelMember
+		patch := &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{
+				"options": []any{},
+			},
+			PermissionValues: &memberLevel,
+		}
+		require.False(t, isOptionsOnlyPatch(patch), "PermissionValues must always require the full-edit permission tier, never the weaker options-only one")
+	})
 }
 
 func TestGetPropertyValues(t *testing.T) {
@@ -5092,6 +5103,269 @@ func TestLinkedProperties(t *testing.T) {
 			opts := lf.Attrs[model.PropertyFieldAttributeOptions].([]any)
 			require.Len(t, opts, 2, "linked field %s should have 2 options after propagation", linkedID)
 		}
+	})
+
+	// A linked field (any object type) must NOT inherit PermissionValues from
+	// its (always-sysadmin) template -- it needs to be independently settable
+	// per resource. Standalone (non-linked) fields are untouched since the API
+	// only accepts permission_values when LinkedFieldID is set (see
+	// patchPropertyField).
+	t.Run("create linked user field via API defaults PermissionValues to member, not the sysadmin template", func(t *testing.T) {
+		sourceField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           group.ID,
+			ObjectType:        model.PropertyFieldObjectTypeTemplate,
+			TargetType:        "system",
+			PermissionField:   &sysadminLevel,
+			PermissionValues:  &sysadminLevel,
+			PermissionOptions: &sysadminLevel,
+		}
+		createdSource, appErr := th.App.CreatePropertyField(th.Context, sourceField, false, "")
+		require.Nil(t, appErr)
+
+		sourceID := createdSource.ID
+		linkedField := &model.PropertyField{
+			Name:          model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			TargetType:    "system",
+			LinkedFieldID: &sourceID,
+		}
+
+		createdLinked, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "user", linkedField)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		require.NotNil(t, createdLinked.PermissionValues)
+		require.Equal(t, model.PermissionLevelMember, *createdLinked.PermissionValues)
+		// PermissionField/PermissionOptions still inherit from the template unchanged.
+		require.NotNil(t, createdLinked.PermissionField)
+		require.Equal(t, model.PermissionLevelSysadmin, *createdLinked.PermissionField)
+	})
+
+	t.Run("create linked user field via API honors an explicit PermissionValues", func(t *testing.T) {
+		sourceField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           group.ID,
+			ObjectType:        model.PropertyFieldObjectTypeTemplate,
+			TargetType:        "system",
+			PermissionField:   &sysadminLevel,
+			PermissionValues:  &sysadminLevel,
+			PermissionOptions: &sysadminLevel,
+		}
+		createdSource, appErr := th.App.CreatePropertyField(th.Context, sourceField, false, "")
+		require.Nil(t, appErr)
+
+		sourceID := createdSource.ID
+		linkedField := &model.PropertyField{
+			Name:             model.NewId(),
+			Type:             model.PropertyFieldTypeText,
+			TargetType:       "system",
+			LinkedFieldID:    &sourceID,
+			PermissionValues: &sysadminLevel,
+		}
+
+		createdLinked, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "user", linkedField)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		require.NotNil(t, createdLinked.PermissionValues)
+		require.Equal(t, model.PermissionLevelSysadmin, *createdLinked.PermissionValues)
+	})
+
+	t.Run("create linked channel field via API also defaults PermissionValues to member, not the sysadmin template", func(t *testing.T) {
+		sourceField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           group.ID,
+			ObjectType:        model.PropertyFieldObjectTypeTemplate,
+			TargetType:        "system",
+			PermissionField:   &sysadminLevel,
+			PermissionValues:  &sysadminLevel,
+			PermissionOptions: &sysadminLevel,
+		}
+		createdSource, appErr := th.App.CreatePropertyField(th.Context, sourceField, false, "")
+		require.Nil(t, appErr)
+
+		sourceID := createdSource.ID
+		linkedField := &model.PropertyField{
+			Name:          model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			TargetType:    "system",
+			LinkedFieldID: &sourceID,
+		}
+
+		createdLinked, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "channel", linkedField)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		require.NotNil(t, createdLinked.PermissionValues)
+		require.Equal(t, model.PermissionLevelMember, *createdLinked.PermissionValues)
+	})
+
+	t.Run("patch linked user field PermissionValues both directions (lock and unlock)", func(t *testing.T) {
+		sourceField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           group.ID,
+			ObjectType:        model.PropertyFieldObjectTypeTemplate,
+			TargetType:        "system",
+			PermissionField:   &sysadminLevel,
+			PermissionValues:  &sysadminLevel,
+			PermissionOptions: &sysadminLevel,
+		}
+		createdSource, appErr := th.App.CreatePropertyField(th.Context, sourceField, false, "")
+		require.Nil(t, appErr)
+
+		sourceID := createdSource.ID
+		linkedField := &model.PropertyField{
+			Name:             model.NewId(),
+			Type:             model.PropertyFieldTypeText,
+			GroupID:          group.ID,
+			ObjectType:       "user",
+			TargetType:       "system",
+			LinkedFieldID:    &sourceID,
+			PermissionField:  &sysadminLevel,
+			PermissionValues: &sysadminLevel,
+		}
+		createdLinked, appErr := th.App.CreatePropertyField(th.Context, linkedField, false, "")
+		require.Nil(t, appErr)
+
+		// Lock -> unlock: previously a one-way ratchet (see enforceGroupPermissions),
+		// this must now actually take effect in both directions.
+		unlockPatch := &model.PropertyFieldPatch{PermissionValues: &memberLevel}
+		updated, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "user", createdLinked.ID, unlockPatch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, updated.PermissionValues)
+		require.Equal(t, model.PermissionLevelMember, *updated.PermissionValues)
+
+		lockPatch := &model.PropertyFieldPatch{PermissionValues: &sysadminLevel}
+		updated, resp, err = th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "user", createdLinked.ID, lockPatch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, updated.PermissionValues)
+		require.Equal(t, model.PermissionLevelSysadmin, *updated.PermissionValues)
+	})
+
+	t.Run("patch PermissionValues on a standalone (non-linked) user field is rejected", func(t *testing.T) {
+		standaloneField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           group.ID,
+			ObjectType:        "user",
+			TargetType:        "system",
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}
+		created, appErr := th.App.CreatePropertyField(th.Context, standaloneField, false, "")
+		require.Nil(t, appErr)
+
+		patch := &model.PropertyFieldPatch{PermissionValues: &sysadminLevel}
+		_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "user", created.ID, patch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("patch PermissionValues on a field with an empty (non-nil) LinkedFieldID is rejected", func(t *testing.T) {
+		// LinkedFieldID = &"" is a degenerate, non-linked state: IsValid only
+		// validates the ID format when non-empty, so this passes validation and
+		// can be persisted (e.g. a caller explicitly sending linked_field_id:
+		// "" on create). The guard must treat this the same as nil -- not doing
+		// so would let a caller bypass the "must be linked" restriction on any
+		// standalone field that happens to carry an empty LinkedFieldID.
+		standaloneField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           group.ID,
+			ObjectType:        "user",
+			TargetType:        "system",
+			LinkedFieldID:     model.NewPointer(""),
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}
+		created, appErr := th.App.CreatePropertyField(th.Context, standaloneField, false, "")
+		require.Nil(t, appErr)
+
+		patch := &model.PropertyFieldPatch{PermissionValues: &sysadminLevel}
+		_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "user", created.ID, patch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("patch PermissionValues on a linked post field also takes effect", func(t *testing.T) {
+		sourceField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           group.ID,
+			ObjectType:        model.PropertyFieldObjectTypeTemplate,
+			TargetType:        "system",
+			PermissionField:   &sysadminLevel,
+			PermissionValues:  &sysadminLevel,
+			PermissionOptions: &sysadminLevel,
+		}
+		createdSource, appErr := th.App.CreatePropertyField(th.Context, sourceField, false, "")
+		require.Nil(t, appErr)
+
+		sourceID := createdSource.ID
+		linkedField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           group.ID,
+			ObjectType:        "post",
+			TargetType:        "system",
+			LinkedFieldID:     &sourceID,
+			PermissionField:   &sysadminLevel,
+			PermissionValues:  &sysadminLevel,
+			PermissionOptions: &sysadminLevel,
+		}
+		createdLinked, appErr := th.App.CreatePropertyField(th.Context, linkedField, false, "")
+		require.Nil(t, appErr)
+
+		patch := &model.PropertyFieldPatch{PermissionValues: &memberLevel}
+		updated, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "post", createdLinked.ID, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, updated.PermissionValues)
+		require.Equal(t, model.PermissionLevelMember, *updated.PermissionValues)
+	})
+
+	t.Run("patch PermissionValues with a value other than member/sysadmin is rejected", func(t *testing.T) {
+		sourceField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           group.ID,
+			ObjectType:        model.PropertyFieldObjectTypeTemplate,
+			TargetType:        "system",
+			PermissionField:   &sysadminLevel,
+			PermissionValues:  &sysadminLevel,
+			PermissionOptions: &sysadminLevel,
+		}
+		createdSource, appErr := th.App.CreatePropertyField(th.Context, sourceField, false, "")
+		require.Nil(t, appErr)
+
+		sourceID := createdSource.ID
+		linkedField := &model.PropertyField{
+			Name:             model.NewId(),
+			Type:             model.PropertyFieldTypeText,
+			GroupID:          group.ID,
+			ObjectType:       "user",
+			TargetType:       "system",
+			LinkedFieldID:    &sourceID,
+			PermissionField:  &sysadminLevel,
+			PermissionValues: &sysadminLevel,
+		}
+		createdLinked, appErr := th.App.CreatePropertyField(th.Context, linkedField, false, "")
+		require.Nil(t, appErr)
+
+		invalidLevel := model.PermissionLevelAdmin
+		patch := &model.PropertyFieldPatch{PermissionValues: &invalidLevel}
+		_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "user", createdLinked.ID, patch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
 	})
 }
 
