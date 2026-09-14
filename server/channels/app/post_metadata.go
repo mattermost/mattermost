@@ -455,7 +455,7 @@ func (a *App) hasFileAttachmentAccess(rctx request.CTX, userID, channelID string
 		return true
 	}
 
-	user, err := a.GetUser(rctx, userID)
+	user, err := a.GetUser(userID)
 	if err != nil {
 		rctx.Logger().Warn("Failed to get user for file attachment authorization, denying access",
 			mlog.String("user_id", userID),
