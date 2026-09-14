@@ -60,7 +60,7 @@ type State = {
 
 export class AddGroupsToTeamModal extends React.PureComponent<Props, State> {
     private searchTimeoutId: number;
-    private readonly selectedItemRef: RefObject<HTMLDivElement>;
+    private readonly selectedItemRef: RefObject<HTMLDivElement | null>;
 
     constructor(props: Props) {
         super(props);

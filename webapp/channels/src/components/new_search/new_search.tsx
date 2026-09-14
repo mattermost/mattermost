@@ -134,7 +134,7 @@ const NewSearch = (): JSX.Element => {
         placement: 'bottom',
         middleware: [offset({mainAxis: -28})],
     });
-    const searchButtonRef = refs.reference as React.RefObject<HTMLDivElement>;
+    const searchButtonRef = refs.reference as React.RefObject<HTMLDivElement | null>;
 
     const clickInteractions = useClick(floatingContext);
     const dismissInteraction = useDismiss(floatingContext);
