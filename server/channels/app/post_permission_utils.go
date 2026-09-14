@@ -112,6 +112,14 @@ func userCreatePostPermissionCheckWithApp(rctx request.CTX, a *App, userId, chan
 		return model.MakePermissionErrorForUser(userId, []*model.Permission{model.PermissionCreatePost})
 	}
 
+	// As in the api4 twin: the create_post_public fallback bypasses the channel
+	// permission check, so the channel-access gate is applied here. This runs from
+	// the scheduled-post job, which has no session, so it uses the non-recording
+	// helper.
+	if !a.HasChannelWriteAccessByID(rctx, userId, channelId) {
+		return model.MakePermissionErrorForUser(userId, []*model.Permission{model.PermissionCreatePost})
+	}
+
 	return nil
 }
 

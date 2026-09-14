@@ -59,6 +59,13 @@ func requestJoinChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// This handler performs no channel permission check of its own, so the
+	// channel-access gate is the only thing standing between a denied session and
+	// a join request queued against the channel.
+	if !requireChannelWriteAccessByID(c, c.Params.ChannelId) {
+		return
+	}
+
 	auditRec := c.MakeAuditRecord(model.AuditEventCreateChannelJoinRequest, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)

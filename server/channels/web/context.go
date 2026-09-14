@@ -52,7 +52,9 @@ func (c *Context) LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level)
 	if c.Err != nil {
 		rec.AddErrorCode(c.Err.StatusCode)
 		rec.AddErrorDesc(c.Err.Error())
-		if c.Err.Id == "api.context.permissions.app_error" || c.Err.Id == "api.channel.channel_read_access.abac_denied.app_error" {
+		if c.Err.Id == "api.context.permissions.app_error" ||
+			c.Err.Id == app.ChannelAccessDeniedErrorID(model.AccessControlPolicyActionChannelReadAccess) ||
+			c.Err.Id == app.ChannelAccessDeniedErrorID(model.AccessControlPolicyActionChannelWriteAccess) {
 			level = app.LevelPerms
 		}
 		rec.Fail()
@@ -282,8 +284,8 @@ func NewJSONEncodingError(err error) *model.AppError {
 }
 
 func (c *Context) SetPermissionError(permissions ...*model.Permission) {
-	if channelID := app.ChannelReadAccessEnforcementDenial(c.AppContext); channelID != "" {
-		c.Err = model.NewAppError("Permissions", "api.channel.channel_read_access.abac_denied.app_error", nil,
+	if channelID, action := app.ChannelAccessEnforcementDenial(c.AppContext); channelID != "" {
+		c.Err = model.NewAppError("Permissions", app.ChannelAccessDeniedErrorID(action), nil,
 			"userId="+c.AppContext.Session().UserId+", channelId="+channelID, http.StatusForbidden)
 		return
 	}

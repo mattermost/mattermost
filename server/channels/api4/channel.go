@@ -1098,6 +1098,28 @@ func requireChannelReadAccess(c *Context, channel *model.Channel) bool {
 	return false
 }
 
+// requireChannelWriteAccess gates a write that reaches none of the channel
+// permission choke points. SetPermissionError reports whichever channel-access
+// policy refused, so the permission passed here only matters when the gate is
+// inactive.
+func requireChannelWriteAccess(c *Context, channel *model.Channel) bool {
+	if c.App.EnforceChannelWriteAccess(c.AppContext, c.AppContext.Session().UserId, channel) {
+		return true
+	}
+	c.SetPermissionError(model.PermissionCreatePost)
+	return false
+}
+
+// requireChannelWriteAccessByID is requireChannelWriteAccess for handlers that
+// hold only a channel id.
+func requireChannelWriteAccessByID(c *Context, channelID string) bool {
+	if c.App.EnforceChannelWriteAccessByID(c.AppContext, c.AppContext.Session().UserId, channelID) {
+		return true
+	}
+	c.SetPermissionError(model.PermissionCreatePost)
+	return false
+}
+
 // discoverableNonMemberView returns a sanitized non-member view of `channel`
 // when the calling user qualifies under the discoverable visibility rules,
 // or (nil, nil) when the channel must remain hidden — the caller should
@@ -2618,6 +2640,13 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Gated here rather than relying on the manage-members choke point below,
+	// because the public-channel self-add path is authorised on a team permission
+	// and never reaches it.
+	if !requireChannelWriteAccess(c, channel) {
+		return
+	}
+
 	canAddSelf := false
 	canAddOthers := false
 	if channel.Type == model.ChannelTypeOpen {
@@ -2794,6 +2823,13 @@ func setChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Require system admin
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	// Rewriting the member list is a write to the channel, and this handler never
+	// reaches a channel permission check. The channel-access policies bind system
+	// admins too, so the check above does not stand in for the gate.
+	if !requireChannelWriteAccessByID(c, c.Params.ChannelId) {
 		return
 	}
 

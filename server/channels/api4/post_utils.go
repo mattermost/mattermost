@@ -24,6 +24,13 @@ func userCreatePostPermissionCheckWithContext(c *Context, channelId string) {
 		c.SetPermissionError(model.PermissionCreatePost)
 		return
 	}
+
+	// The create_post_public fallback above never reaches
+	// SessionHasPermissionToChannel, so the channel-access gate has to be applied
+	// here rather than relying on the choke point.
+	if !requireChannelWriteAccessByID(c, channelId) {
+		return
+	}
 }
 
 func postHardenedModeCheckWithContext(where string, c *Context, props model.StringInterface) {
