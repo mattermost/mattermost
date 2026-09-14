@@ -83,6 +83,20 @@ jobs:
         with:
           token: ${{ steps.writeToken.outputs.token }}
 
+      # Derive the changelog file from the major version so a new major (v12, v13, ...)
+      # needs no workflow edit. v11.9.0 -> docs/main/product-overview/mattermost-v11-changelog.mdx
+      - name: Resolve changelog path
+        id: paths
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          MAJOR="$(printf '%s' "${VERSION#v}" | cut -d. -f1)"
+          if ! printf '%s' "$MAJOR" | grep -qE '^[0-9]+$'; then
+            echo "::error::Could not parse a major version from '$VERSION' (expected e.g. v11.9.0)"
+            exit 1
+          fi
+          echo "changelog=docs/main/product-overview/mattermost-v${MAJOR}-changelog.mdx" >> "$GITHUB_OUTPUT"
+
       - name: Set up Python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
@@ -102,9 +116,13 @@ jobs:
           RELEASE_DATE: ${{ inputs.release_date }}
           GO_VERSION: ${{ inputs.go_version }}
           BLOG_POST_URL: ${{ inputs.blog_post_url }}
-          CHANGELOG_PATH: docs/main/product-overview/mattermost-v11-changelog.mdx
+          CHANGELOG_PATH: ${{ steps.paths.outputs.changelog }}
         run: python .github/scripts/generate_changelog.py
 
+      # Dispatch inputs and repo variables are bound to environment variables rather than
+      # interpolated directly into the script body. Interpolated ${{ }} expressions are
+      # substituted before bash runs, so a value containing shell metacharacters would be
+      # executed as code alongside the write-scoped app token.
       - name: Create Pull Request
         env:
           GH_TOKEN: ${{ steps.writeToken.outputs.token }}
@@ -113,7 +131,7 @@ jobs:
           SERVER_REPOS: ${{ inputs.server_repos }}
           COMMIT_USER_NAME: ${{ vars.CHANGELOG_GIT_USERNAME }}
           COMMIT_USER_EMAIL: ${{ vars.CHANGELOG_GIT_EMAIL }}
-          CHANGELOG_FILE: docs/main/product-overview/mattermost-v11-changelog.mdx
+          CHANGELOG_FILE: ${{ steps.paths.outputs.changelog }}
         run: |
           git config user.name "$COMMIT_USER_NAME"
           git config user.email "$COMMIT_USER_EMAIL"
