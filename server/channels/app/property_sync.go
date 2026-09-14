@@ -6,6 +6,7 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"net/http"
 	"slices"
 	"sort"
@@ -23,7 +24,7 @@ const (
 	// provisioning re-reads a field after another writer changed it first.
 	propertySyncMaxOptionConflictRetries = 5
 
-	propertySyncUpdateConflictErrorID = "app.property_field.update.conflict.app_error"
+	propertySyncUpdateConflictErrorID  = "app.property_field.update.conflict.app_error"
 	propertySyncValueValidationErrorID = "app.property_value.validate.app_error"
 )
 
@@ -874,8 +875,6 @@ func sortOptionsByName(options model.PropertyOptions[*model.CustomProfileAttribu
 func copyPropertyField(field *model.PropertyField) *model.PropertyField {
 	cp := *field
 	cp.Attrs = make(model.StringInterface, len(field.Attrs))
-	for k, v := range field.Attrs {
-		cp.Attrs[k] = v
-	}
+	maps.Copy(cp.Attrs, field.Attrs)
 	return &cp
 }
