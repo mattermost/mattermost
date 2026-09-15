@@ -20,7 +20,7 @@ import PropertyTypes from 'mattermost-redux/action_types/properties';
 import {fetchPropertyFields} from 'mattermost-redux/actions/properties';
 import {getConfig as getAdminConfig} from 'mattermost-redux/selectors/entities/admin';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
-import {getPropertyFieldsForObjectTypeAndGroup, getPropertyGroupByName} from 'mattermost-redux/selectors/entities/properties';
+import {getPropertyGroupByName, makeGetPropertyFieldsForObjectTypeAndGroup} from 'mattermost-redux/selectors/entities/properties';
 import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
 
 import {getPluginDisplayName} from 'selectors/plugins';
@@ -422,17 +422,29 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
     const classificationAttributePageReachable = useClassificationAttributePageReachable();
     const isMobileView = useSelector(getIsMobileView);
 
+    const {
+        getTemplateFields,
+        getUserLinkedFields,
+        getChannelLinkedFields,
+        getPostLinkedFields,
+    } = useMemo(() => ({
+        getTemplateFields: makeGetPropertyFieldsForObjectTypeAndGroup(),
+        getUserLinkedFields: makeGetPropertyFieldsForObjectTypeAndGroup(),
+        getChannelLinkedFields: makeGetPropertyFieldsForObjectTypeAndGroup(),
+        getPostLinkedFields: makeGetPropertyFieldsForObjectTypeAndGroup(),
+    }), []);
+
     const fields = useSelector((state: GlobalState) =>
-        getPropertyFieldsForObjectTypeAndGroup(state, GLOBAL_ATTRIBUTES_OBJECT_TYPE, groupId),
+        getTemplateFields(state, GLOBAL_ATTRIBUTES_OBJECT_TYPE, groupId),
     );
     const userLinkedFields = useSelector((state: GlobalState) =>
-        getPropertyFieldsForObjectTypeAndGroup(state, 'user', groupId),
+        getUserLinkedFields(state, 'user', groupId),
     );
     const channelLinkedFields = useSelector((state: GlobalState) =>
-        getPropertyFieldsForObjectTypeAndGroup(state, 'channel', groupId),
+        getChannelLinkedFields(state, 'channel', groupId),
     );
     const postLinkedFields = useSelector((state: GlobalState) =>
-        getPropertyFieldsForObjectTypeAndGroup(state, 'post', groupId),
+        getPostLinkedFields(state, 'post', groupId),
     );
     const appliesToByTemplateId = useMemo(
         () => appliedResourceTypesByTemplateId([
