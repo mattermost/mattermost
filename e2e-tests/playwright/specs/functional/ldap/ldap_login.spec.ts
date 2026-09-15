@@ -48,42 +48,32 @@ test('logs in an existing LDAP admin through the standard login form', {tag: '@l
     await pw.ensureOpenldap();
 
     const {adminClient} = await pw.getAdminClient();
-    const originalConfig = await adminClient.getConfig();
     const ldapUser = pw.generateLdapUser('ldapadmin');
     await pw.createLdapUser(ldapUser);
 
-    try {
-        await adminClient.patchConfig({
-            LdapSettings: {EnableAdminFilter: true, AdminFilter: `(cn=${ldapUser.firstname})`},
-        });
+    await adminClient.patchConfig({
+        LdapSettings: {EnableAdminFilter: true, AdminFilter: `(cn=${ldapUser.firstname})`},
+    });
 
-        // # Log in once to provision the admin account
-        await pw.hasSeenLandingPage();
-        await pw.loginPage.goto();
-        await pw.loginPage.toBeVisible();
-        await pw.loginPage.submitCredentials(ldapUser.username, ldapUser.password);
-        await pw.loginPage.expectNotOnLoginPage();
+    // # Log in once to provision the admin account
+    await pw.hasSeenLandingPage();
+    await pw.loginPage.goto();
+    await pw.loginPage.toBeVisible();
+    await pw.loginPage.submitCredentials(ldapUser.username, ldapUser.password);
+    await pw.loginPage.expectNotOnLoginPage();
 
-        const provisionedUser = await adminClient.getUserByUsername(ldapUser.username);
-        expect(provisionedUser.roles.split(' ')).toContain('system_admin');
+    const provisionedUser = await adminClient.getUserByUsername(ldapUser.username);
+    expect(provisionedUser.roles.split(' ')).toContain('system_admin');
 
-        // # Log out and log in again as the same LDAP admin
-        await adminClient.revokeAllSessionsForUser(provisionedUser.id);
-        await pw.hasSeenLandingPage();
-        await pw.loginPage.goto();
-        await pw.loginPage.toBeVisible();
-        await pw.loginPage.submitCredentials(ldapUser.username, ldapUser.password);
+    // # Log out and log in again as the same LDAP admin
+    await adminClient.revokeAllSessionsForUser(provisionedUser.id);
+    await pw.hasSeenLandingPage();
+    await pw.loginPage.goto();
+    await pw.loginPage.toBeVisible();
+    await pw.loginPage.submitCredentials(ldapUser.username, ldapUser.password);
 
-        // * Verify the existing admin can log in again
-        await pw.loginPage.expectNotOnLoginPage();
-        const reloginUser = await adminClient.getUserByUsername(ldapUser.username);
-        expect(reloginUser.roles.split(' ')).toContain('system_admin');
-    } finally {
-        await adminClient.patchConfig({
-            LdapSettings: {
-                EnableAdminFilter: originalConfig.LdapSettings.EnableAdminFilter,
-                AdminFilter: originalConfig.LdapSettings.AdminFilter,
-            },
-        });
-    }
+    // * Verify the existing admin can log in again
+    await pw.loginPage.expectNotOnLoginPage();
+    const reloginUser = await adminClient.getUserByUsername(ldapUser.username);
+    expect(reloginUser.roles.split(' ')).toContain('system_admin');
 });
