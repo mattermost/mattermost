@@ -25,6 +25,13 @@ import type {GlobalState} from 'types/store';
 
 import GlobalAttributesTable, {getDisplayName, getSourceIcon, getSourceKind, getTypeIcon, isClassificationMarkingsField} from './global_attributes_table';
 
+const mockHistoryPush = jest.fn();
+jest.mock('utils/browser_history', () => ({
+    getHistory: () => ({
+        push: mockHistoryPush,
+    }),
+}));
+
 // The server keys every field under a real group UUID that differs from the
 // group name ('access_control'); fixtures mirror that so the resolve-by-name
 // path is exercised, matching the pattern used by the session_attributes tests.
@@ -79,14 +86,14 @@ type EntitiesPartial = NonNullable<DeepPartial<GlobalState>['entities']>;
 // route rule itself reads. Both conditions default to "reachable" but can be independently
 // overridden to exercise the AND logic off the all-true/all-false diagonal (e.g. license ok
 // but flag off, or vice versa).
-function getReachableState(overrides: {licenseSku?: string; classificationMarkingsFlagOn?: boolean} = {}): DeepPartial<GlobalState> {
-    const {licenseSku = 'enterprise', classificationMarkingsFlagOn = true} = overrides;
+function getReachableState(overrides: {licenseSku?: string; classificationMarkingsFlagOn?: boolean; channelAttributesFlagOn?: boolean} = {}): DeepPartial<GlobalState> {
+    const {licenseSku = 'advanced', classificationMarkingsFlagOn = true, channelAttributesFlagOn = true} = overrides;
     const state = getBaseState();
     state.entities!.general = {
         license: {IsLicensed: 'true', SkuShortName: licenseSku},
     } as EntitiesPartial['general'];
     state.entities!.admin = {
-        config: {FeatureFlags: {ClassificationMarkings: classificationMarkingsFlagOn}},
+        config: {FeatureFlags: {ClassificationMarkings: classificationMarkingsFlagOn, ChannelAttributes: channelAttributesFlagOn}},
     } as EntitiesPartial['admin'];
     return state;
 }
@@ -112,6 +119,7 @@ describe('GlobalAttributesTable', () => {
 
     beforeEach(() => {
         getPropertyFields.mockReset();
+        mockHistoryPush.mockReset();
     });
 
     it('shows the loading state before fields resolve', async () => {
@@ -457,7 +465,7 @@ describe('GlobalAttributesTable', () => {
     });
 
     describe('Actions column', () => {
-        it('opens the menu with Edit/Duplicate still visibly disabled and Delete enabled', async () => {
+        it('opens the menu with Edit enabled for a managed field, Duplicate still stubbed, and Delete enabled', async () => {
             getPropertyFields.mockResolvedValueOnce([makeField()]).mockResolvedValue([]);
 
             renderWithContext(<GlobalAttributesTable/>, getBaseState());
@@ -479,16 +487,73 @@ describe('GlobalAttributesTable', () => {
             expect(duplicate).toBeDefined();
             expect(del).toBeDefined();
 
-            expect(edit!).toHaveAttribute('aria-disabled', 'true');
+            expect(edit!).not.toHaveAttribute('aria-disabled', 'true');
+            expect(edit!).not.toHaveTextContent('Coming soon');
             expect(duplicate!).toHaveAttribute('aria-disabled', 'true');
-
-            // * Each still-stubbed item explains why, rather than silently doing nothing
-            expect(edit!).toHaveTextContent('Coming soon');
             expect(duplicate!).toHaveTextContent('Coming soon');
 
             // * Delete is live now, so it carries neither the disabled state nor the stub label
             expect(del!).not.toHaveAttribute('aria-disabled', 'true');
             expect(del!).not.toHaveTextContent('Coming soon');
+
+            await userEvent.click(edit!);
+            await waitFor(() => {
+                expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes/attribute_details/field-1');
+            });
+        });
+
+        it('enables View (not Edit) and navigates to the edit page for a plugin-owned row (the edit page itself now handles the read-only rendering)', async () => {
+            getPropertyFields.mockResolvedValueOnce([makeField({
+                attrs: {source_plugin_id: 'com.example.plugin', protected: true},
+            })]).mockResolvedValue([]);
+
+            const state = getBaseState();
+            state.entities!.admin = {
+                pluginStatuses: {'com.example.plugin': {id: 'com.example.plugin'}},
+            } as EntitiesPartial['admin'];
+
+            renderWithContext(<GlobalAttributesTable/>, state);
+
+            await userEvent.click(await screen.findByTestId('global-attribute-actions-field-1'));
+
+            const menuitems = screen.getAllByRole('menuitem');
+            expect(menuitems.find((el) => el.textContent?.includes('Edit attribute'))).toBeUndefined();
+
+            const view = menuitems.find((el) => el.textContent?.includes('View attribute'));
+            expect(view).not.toHaveAttribute('aria-disabled', 'true');
+            expect(view).not.toHaveTextContent('Coming soon');
+
+            await userEvent.click(view!);
+            await waitFor(() => {
+                expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes/attribute_details/field-1');
+            });
+        });
+
+        it('leaves Duplicate stubbed and Delete\'s orphan-aware gating unaffected on a plugin-owned row', async () => {
+            getPropertyFields.mockResolvedValueOnce([makeField({
+                attrs: {source_plugin_id: 'com.example.plugin', protected: true},
+            })]).mockResolvedValue([]);
+
+            const state = getBaseState();
+            state.entities!.admin = {
+                pluginStatuses: {'com.example.plugin': {id: 'com.example.plugin'}},
+            } as EntitiesPartial['admin'];
+
+            renderWithContext(<GlobalAttributesTable/>, state);
+
+            await userEvent.click(await screen.findByTestId('global-attribute-actions-field-1'));
+
+            const menuitems = screen.getAllByRole('menuitem');
+            const duplicate = menuitems.find((el) => el.textContent?.includes('Duplicate attribute'));
+            const del = menuitems.find((el) => el.textContent?.includes('Delete attribute'));
+
+            expect(duplicate).toHaveAttribute('aria-disabled', 'true');
+            expect(duplicate).toHaveTextContent('Coming soon');
+
+            // Plugin is installed (pluginStatuses has an entry) -- Delete stays
+            // plugin-managed/disabled, same as before this change.
+            expect(del).toHaveAttribute('aria-disabled', 'true');
+            expect(del).toHaveTextContent('Plugin-managed');
         });
     });
 
@@ -820,23 +885,34 @@ describe('GlobalAttributesTable', () => {
     });
 
     describe('Classification Markings row', () => {
-        it('renders the subtitle and an open-in-new link (not the dot-menu) when the field matches and the destination is reachable', async () => {
+        it('renders the subtitle, an open-in-new link and a menu carrying Edit when the field matches and the destination is reachable', async () => {
             getPropertyFields.mockResolvedValueOnce([makeClassificationField()]).mockResolvedValue([]);
 
             renderWithContext(<GlobalAttributesTable/>, getReachableState());
 
-            expect(await screen.findByTestId('global-attribute-classification-subtitle-field-1')).toHaveTextContent('Read-only');
+            // * The subtitle is scoped to the definition, not to the whole row
+            expect(await screen.findByTestId('global-attribute-classification-subtitle-field-1')).toHaveTextContent('Definition is read-only');
 
             const link = screen.getByTestId('global-attribute-classification-link-field-1');
             expect(link).toHaveAttribute('href', CLASSIFICATIONS_MARKINGS_ADMIN_URL);
             expect(link).toHaveAccessibleName('Open Classification Markings');
 
-            // * The dot-menu is not rendered for this row
-            expect(screen.queryByTestId('global-attribute-actions-field-1')).not.toBeInTheDocument();
+            // * Unlike every other row, this one's Edit is live: it is the only way to
+            // configure classification's resources outside the API
+            expect(screen.getByTestId('global-attribute-actions-field-1')).toBeInTheDocument();
 
             // * The Source column also identifies this row's true source, rather than the
             // generic "Managed here" every other native field gets
             expect(screen.getByTestId('global-attribute-source')).toHaveTextContent('Classification Markings');
+        });
+
+        it('offers the link alone when ChannelAttributes is off, since the attribute page is hidden then', async () => {
+            getPropertyFields.mockResolvedValueOnce([makeClassificationField()]).mockResolvedValue([]);
+
+            renderWithContext(<GlobalAttributesTable/>, getReachableState({channelAttributesFlagOn: false}));
+
+            expect(await screen.findByTestId('global-attribute-classification-link-field-1')).toBeInTheDocument();
+            expect(screen.queryByTestId('global-attribute-actions-field-1')).not.toBeInTheDocument();
         });
 
         it('renders the ordinary dot-menu, no subtitle, and the generic "Managed here" source when the field matches but the destination is not reachable (flag off / sub-Enterprise)', async () => {

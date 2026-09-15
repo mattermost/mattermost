@@ -67,6 +67,7 @@ import type {
     PatchDataRetentionCustomPolicy,
     GetDataRetentionCustomPoliciesRequest,
 } from '@mattermost/types/data_retention';
+import type {DeliveryTrackingConfig} from '@mattermost/types/delivery_tracking';
 import type {Draft} from '@mattermost/types/drafts';
 import type {CustomEmoji} from '@mattermost/types/emojis';
 import type {ServerError} from '@mattermost/types/errors';
@@ -576,6 +577,10 @@ export default class Client4 {
 
     getContentFlaggingRoute() {
         return `${this.getBaseRoute()}/content_flagging`;
+    }
+
+    getDeliveryTrackingRoute() {
+        return `${this.getBaseRoute()}/delivery_tracking`;
     }
 
     getCSRFFromCookie() {
@@ -4929,6 +4934,7 @@ export default class Client4 {
             server_error_id: data.id,
             status_code: data.status_code,
             detailed_error: data.detailed_error,
+            props: data.props,
             url,
         });
     };
@@ -5429,6 +5435,20 @@ export default class Client4 {
         );
     };
 
+    getDeliveryTrackingConfig = () => {
+        return this.doFetch<DeliveryTrackingConfig>(
+            `${this.getDeliveryTrackingRoute()}/config`,
+            {method: 'get'},
+        );
+    };
+
+    saveDeliveryTrackingConfig = (config: DeliveryTrackingConfig) => {
+        return this.doFetch<StatusOK>(
+            `${this.getDeliveryTrackingRoute()}/config`,
+            {method: 'put', body: JSON.stringify(config)},
+        );
+    };
+
     getFlaggedPostReportUrl = (postId: string) => {
         return `${this.getContentFlaggingRoute()}/post/${postId}/report`;
     };
@@ -5491,6 +5511,7 @@ export class ClientError extends Error implements ServerError {
     server_error_id?: string;
     status_code?: number;
     detailed_error?: string;
+    props?: Record<string, string>;
 
     constructor(baseUrl: string, data: ServerError, cause?: any) {
         super(data.message + ': ' + cleanUrlForLogging(baseUrl, data.url || ''), {cause});
@@ -5500,6 +5521,7 @@ export class ClientError extends Error implements ServerError {
         this.server_error_id = data.server_error_id;
         this.status_code = data.status_code;
         this.detailed_error = data.detailed_error;
+        this.props = data.props;
 
         // Ensure message is treated as a property of this class when object spreading. Without this,
         // copying the object by using `{...error}` would not include the message.

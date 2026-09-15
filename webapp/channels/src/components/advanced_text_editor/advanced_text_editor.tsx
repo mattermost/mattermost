@@ -125,7 +125,7 @@ export type Props = {
 const AdvancedTextEditor = ({
     location,
     channelId,
-    rootId,
+    rootId: rootIdProp,
     postId,
     isThreadView = false,
     placeholder,
@@ -133,6 +133,11 @@ const AdvancedTextEditor = ({
     afterSubmit,
     storageKey,
 }: Props) => {
+    // rootId is typed as required, but plugins reach this component through the untyped
+    // window.Components bridge and may omit it. Every draft carries '' rather than undefined
+    // for a non-thread composer, so an undefined prop desyncs the id comparisons below.
+    const rootId = rootIdProp ?? '';
+
     const {formatMessage} = useIntl();
 
     const dispatch = useDispatch();
@@ -218,8 +223,8 @@ const AdvancedTextEditor = ({
     const textboxRef = useRef<TextboxClass>(null);
     const wysiwygRef = useRef<WysiwygEditorHandle>(null);
     const formattingBarRef = useRef<FormattingBarHandle>(null);
-    const loggedInAriaLabelTimeout = useRef<NodeJS.Timeout>();
-    const saveDraftFrame = useRef<NodeJS.Timeout>();
+    const loggedInAriaLabelTimeout = useRef<NodeJS.Timeout>(undefined);
+    const saveDraftFrame = useRef<NodeJS.Timeout>(undefined);
     const draftRef = useRef(draftFromStore);
     const storedDrafts = useRef<Record<string, PostDraft | undefined>>({});
     const lastBlurAt = useRef(0);

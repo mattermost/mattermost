@@ -155,9 +155,7 @@ func TestSendMailUsingConfig(t *testing.T) {
 
 func TestSendMailPlainText(t *testing.T) {
 	cfg := getConfig()
-	emailTo := "test@example.com"
 	emailSubject := "Testing this email"
-	emailCC := "test@example.com"
 
 	tests := []struct {
 		name             string
@@ -197,6 +195,8 @@ func TestSendMailPlainText(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			emailTo := fmt.Sprintf("plain-text-%d@example.com", time.Now().UnixNano())
+			emailCC := emailTo
 			DeleteMailBox(emailTo)
 
 			err := SendMailUsingConfig(emailTo, emailSubject, test.emailBodyHTML, cfg, true, "", "", "", emailCC, "")

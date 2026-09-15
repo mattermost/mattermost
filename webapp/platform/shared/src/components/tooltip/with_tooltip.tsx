@@ -67,7 +67,7 @@ export interface WithTooltipProps {
     * Callback when the tooltip appears
    */
     onOpen?: () => void;
-    children: ReactElement;
+    children: ReactElement<any>;
 
     forcedPlacement?: Placement;
 }
@@ -154,13 +154,14 @@ export function WithTooltip({
         console.error('Children must be a valid React element for WithTooltip');
     }
 
-    const mergedRefs = useMergeRefs([setReference, (children as any)?.ref]);
+    // Since React 19, a child's ref is part of its props rather than being exposed as `element.ref`
+    const mergedRefs = useMergeRefs([setReference, children.props?.ref]);
 
     const trigger = cloneElement(
         children,
         getReferenceProps({
-            ref: mergedRefs,
             ...children.props,
+            ref: mergedRefs,
         }),
     );
 

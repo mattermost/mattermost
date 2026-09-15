@@ -11126,7 +11126,7 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 
 		user := th.CreateUser(t)
 
-		for i := 0; i < *maxAttempts; i++ {
+		for range *maxAttempts {
 			_, _, err := client.Login(context.Background(), user.Email, wrongPassword)
 			require.Error(t, err)
 		}
@@ -11205,7 +11205,7 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 
 		user := th.CreateUser(t)
 
-		for i := 0; i < *maxAttempts; i++ {
+		for range *maxAttempts {
 			_, _, err := client.Login(context.Background(), user.Email, wrongPassword)
 			require.Error(t, err)
 		}
@@ -11237,7 +11237,7 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 
 		user := th.CreateUser(t)
 
-		for i := 0; i < *maxAttempts; i++ {
+		for range *maxAttempts {
 			_, _, err := client.Login(context.Background(), user.Email, wrongPassword)
 			require.Error(t, err)
 		}
@@ -11273,7 +11273,7 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 		_, appErr := th.App.UpdateUserRoles(th.Context, sysadmin.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 		require.Nil(t, appErr)
 
-		for i := 0; i < *maxAttempts; i++ {
+		for range *maxAttempts {
 			_, _, err := client.Login(context.Background(), sysadmin.Email, wrongPassword)
 			require.Error(t, err)
 		}
@@ -11305,7 +11305,7 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 		_, appErr := th.App.UpdateUserRoles(th.Context, sysadmin.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 		require.Nil(t, appErr)
 
-		for i := 0; i < *maxAttempts; i++ {
+		for range *maxAttempts {
 			_, _, err := client.Login(context.Background(), sysadmin.Email, wrongPassword)
 			require.Error(t, err)
 		}
@@ -11375,6 +11375,47 @@ func TestSearchUsersWithMfaEnforced(t *testing.T) {
 			Term: "user",
 		})
 		CheckErrorID(t, err, "api.context.mfa_required.app_error")
+		CheckForbiddenStatus(t, resp)
+	})
+}
+
+func TestMeEndpointsWithMfaEnforced(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicense("mfa"))
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableMultifactorAuthentication = true
+		*cfg.ServiceSettings.EnforceMultifactorAuthentication = true
+	})
+
+	userWithoutMFA := th.BasicUser
+	err := th.Server.Store().User().UpdateMfaActive(userWithoutMFA.Id, false)
+	require.NoError(t, err)
+
+	client := th.CreateClient()
+	_, _, loginErr := client.Login(context.Background(), userWithoutMFA.Email, userWithoutMFA.Password)
+	require.NoError(t, loginErr)
+
+	t.Run("GET /users/me remains exempt from MFA enforcement", func(t *testing.T) {
+		me, _, getErr := client.GetMe(context.Background(), "")
+		require.NoError(t, getErr)
+		require.NotNil(t, me)
+	})
+
+	t.Run("PUT /users/me is blocked when MFA is not configured", func(t *testing.T) {
+		update := userWithoutMFA.DeepCopy()
+		update.Id = model.Me
+		update.Nickname = "new nickname"
+
+		_, resp, updateErr := client.UpdateUser(context.Background(), update)
+		CheckErrorID(t, updateErr, "api.context.mfa_required.app_error")
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("DELETE /users/me is blocked when MFA is not configured", func(t *testing.T) {
+		resp, deleteErr := client.DeleteUser(context.Background(), model.Me)
+		CheckErrorID(t, deleteErr, "api.context.mfa_required.app_error")
 		CheckForbiddenStatus(t, resp)
 	})
 }

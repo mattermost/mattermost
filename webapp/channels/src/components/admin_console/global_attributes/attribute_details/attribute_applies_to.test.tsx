@@ -8,6 +8,8 @@ import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing
 import AttributeAppliesTo from './attribute_applies_to';
 import type {ResourceObjectType} from './attribute_applies_to_constants';
 
+import {DEFAULT_CHANNEL_RESOURCE_CONFIG} from '../applies_to/channels';
+
 describe('AttributeAppliesTo', () => {
     const onAdd = jest.fn();
     const onRemove = jest.fn();
@@ -22,6 +24,8 @@ describe('AttributeAppliesTo', () => {
                 appliesTo={[]}
                 onAdd={onAdd}
                 onRemove={onRemove}
+                channelResource={DEFAULT_CHANNEL_RESOURCE_CONFIG}
+                onChannelResourceChange={jest.fn()}
                 {...props}
             />,
         );
@@ -93,5 +97,36 @@ describe('AttributeAppliesTo', () => {
         await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
         await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-remove'));
         expect(onRemove).toHaveBeenCalledWith('user');
+    });
+
+    describe('hideAddResource', () => {
+        it('hides both Add-resource triggers even when types are still available', () => {
+            renderComponent({hideAddResource: true});
+
+            expect(screen.queryByTestId('attributeAppliesToAddResourceButtonHeader')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('attributeAppliesToAddResourceButtonInline')).not.toBeInTheDocument();
+        });
+
+        it('hides the inline trigger next to already-applied rows too, not just the empty state', () => {
+            renderComponent({appliesTo: ['user'], hideAddResource: true});
+
+            expect(screen.queryByTestId('attributeAppliesToAddResourceButtonInline')).not.toBeInTheDocument();
+            expect(screen.getByTestId('attributeAppliesToRow-user')).toBeInTheDocument();
+        });
+
+        it('shows plugin-owned empty-state copy instead of the normal Add-a-resource copy', () => {
+            renderComponent({hideAddResource: true});
+
+            expect(screen.getByTestId('attributeAppliesToEmptyState')).toHaveTextContent("Resources for plugin-managed attributes can't be added here.");
+            expect(screen.getByTestId('attributeAppliesToEmptyState')).not.toHaveTextContent('Add a resource to apply this attribute');
+        });
+
+        it('preserves all existing behavior when hideAddResource is false (default)', () => {
+            renderComponent();
+
+            expect(screen.getByTestId('attributeAppliesToAddResourceButtonHeader')).toBeInTheDocument();
+            expect(screen.getByTestId('attributeAppliesToAddResourceButtonInline')).toBeInTheDocument();
+            expect(screen.getByTestId('attributeAppliesToEmptyState')).toHaveTextContent('Add a resource to apply this attribute');
+        });
     });
 });

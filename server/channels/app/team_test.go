@@ -5,12 +5,13 @@ package app
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"math/rand"
-	"sort"
+	"slices"
 	"strings"
 	"testing"
 
@@ -758,8 +759,8 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 		require.Nil(t, err)
 
 		// Sort the list of teams based on their creation date
-		sort.Slice(teamsList, func(i, j int) bool {
-			return teamsList[i].CreateAt < teamsList[j].CreateAt
+		slices.SortFunc(teamsList, func(a, b *model.Team) int {
+			return cmp.Compare(a.CreateAt, b.CreateAt)
 		})
 
 		for i := range teamsList {
@@ -825,8 +826,8 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 		require.Nil(t, err)
 
 		// Sort the list of teams based on their creation date
-		sort.Slice(teamsList, func(i, j int) bool {
-			return teamsList[i].CreateAt < teamsList[j].CreateAt
+		slices.SortFunc(teamsList, func(a, b *model.Team) int {
+			return cmp.Compare(a.CreateAt, b.CreateAt)
 		})
 
 		for i := range teamsList {
@@ -860,8 +861,8 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 		require.Nil(t, err)
 
 		// Sort the list of teams based on their creation date
-		sort.Slice(teamsList, func(i, j int) bool {
-			return teamsList[i].CreateAt < teamsList[j].CreateAt
+		slices.SortFunc(teamsList, func(a, b *model.Team) int {
+			return cmp.Compare(a.CreateAt, b.CreateAt)
 		})
 
 		require.NotEqual(t, int64(0), teamsList[0].DeleteAt)
@@ -1352,7 +1353,7 @@ func TestLeaveTeamPanic(t *testing.T) {
 	mockPreferenceStore.On("Get", "userID", model.PreferenceCategoryDisplaySettings, model.PreferenceNameCollapsedThreadsEnabled).Return(&model.Preference{Value: "on"}, nil)
 
 	mockPostStore := mocks.PostStore{}
-	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+	mockPostStore.On("GetMaxPostSize").Return(model.PostMessageMaxBytesV2, nil)
 
 	mockSystemStore := mocks.SystemStore{}
 	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
@@ -1611,6 +1612,67 @@ func TestGetThreadsForUser_ReadPathRejectsOrphanThreadMembership(t *testing.T) {
 	require.Zero(t, totalUnread, "GetTotalUnreadThreads must not count orphan ThreadMembership rows")
 }
 
+func TestGetThreadsForUserPreservesWebhookIdentity(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+		*cfg.ServiceSettings.EnablePostUsernameOverride = true
+		*cfg.ServiceSettings.EnableIncomingWebhooks = true
+	})
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+	hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{
+		ChannelId:   th.BasicChannel.Id,
+		DisplayName: "ThreadHook",
+	})
+	require.Nil(t, appErr)
+	defer func() {
+		appErr = th.App.DeleteIncomingWebhook(hook.Id)
+		require.Nil(t, appErr)
+	}()
+
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+
+	rootPost, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "root message",
+		"ThreadBot", "", "",
+		model.StringInterface{model.PostPropsWebhookDisplayName: hook.DisplayName},
+		model.PostTypeDefault, "", nil, false)
+	require.Nil(t, appErr)
+
+	// BasicUser2 replies, which auto-follows the thread under ThreadAutoFollow.
+	_, _, appErr = th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser2.Id,
+		ChannelId: th.BasicChannel.Id,
+		RootId:    rootPost.Id,
+		Message:   "a reply",
+	}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
+
+	threads, appErr := th.App.GetThreadsForUser(th.Context, th.BasicUser2.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
+	require.Nil(t, appErr)
+
+	var found *model.ThreadResponse
+	for _, thr := range threads.Threads {
+		if thr.PostId == rootPost.Id {
+			found = thr
+			break
+		}
+	}
+	require.NotNil(t, found, "sanity: root thread must be present in GetThreadsForUser results")
+
+	// Regression: SanitizeNonIdentityProps (not the stronger SanitizeProps) must
+	// be used on this read path, or a webhook post's display identity is wiped
+	// from the Threads response even though it's intact in the DB and the
+	// ordinary channel view.
+	assert.Equal(t, "true", found.Post.GetProp(model.PostPropsFromWebhook))
+	assert.Equal(t, "ThreadBot", found.Post.GetProp(model.PostPropsOverrideUsername))
+	assert.Equal(t, "ThreadHook", found.Post.GetProp(model.PostPropsWebhookDisplayName))
+}
+
 func TestPermanentDeleteChannelRemovesThreadMemberships(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -1745,8 +1807,8 @@ func TestGetTeamMembers(t *testing.T) {
 		require.Nil(t, err)
 
 		// Sort the users array by username
-		sort.Slice(users, func(i, j int) bool {
-			return users[i].Username < users[j].Username
+		slices.SortFunc(users, func(a, b model.User) int {
+			return cmp.Compare(a.Username, b.Username)
 		})
 
 		// We should have the same number of users in both users and members array as we have not excluded any deleted members
@@ -1789,8 +1851,8 @@ func TestGetTeamMembers(t *testing.T) {
 		}
 
 		// Sort our non deleted members by username
-		sort.Slice(usersNotDeleted, func(i, j int) bool {
-			return usersNotDeleted[i].Username < usersNotDeleted[j].Username
+		slices.SortFunc(usersNotDeleted, func(a, b model.User) int {
+			return cmp.Compare(a.Username, b.Username)
 		})
 
 		require.Equal(t, len(usersNotDeleted), len(members))
@@ -1801,8 +1863,8 @@ func TestGetTeamMembers(t *testing.T) {
 
 	t.Run("Ensure Sorted By User ID when no TeamMemberGetOptions is passed", func(t *testing.T) {
 		// Sort them by UserID because the result of GetTeamMembers() is also sorted
-		sort.Slice(users, func(i, j int) bool {
-			return users[i].Id < users[j].Id
+		slices.SortFunc(users, func(a, b model.User) int {
+			return cmp.Compare(a.Id, b.Id)
 		})
 
 		// Fetch team members multiple times

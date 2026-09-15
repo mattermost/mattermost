@@ -6,6 +6,7 @@ package app
 import (
 	"bufio"
 	"bytes"
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -13,7 +14,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"sort"
+	"slices"
 	"testing"
 	"time"
 
@@ -147,31 +148,22 @@ func TestCopyEmojiImages(t *testing.T) {
 		Id: model.NewId(),
 	}
 
-	// Creating a dir named `exported_emoji_test` in the root of the repo
-	pathToDir := "../exported_emoji_test"
+	tmpDir := t.TempDir()
+	pathToDir := tmpDir
 
-	err := os.Mkdir(pathToDir, 0777)
+	filePath := filepath.Join(tmpDir, "data", "emoji", emoji.Id)
+	emojiImagePath := filepath.Join(filePath, "image")
+
+	err := os.MkdirAll(filePath, 0777)
 	require.NoError(t, err)
-	defer os.RemoveAll(pathToDir)
 
-	filePath := "../data/emoji/" + emoji.Id
-	emojiImagePath := filePath + "/image"
-
-	_, err = os.Stat(filePath)
-	if os.IsNotExist(err) {
-		err = os.MkdirAll(filePath, 0777)
-		require.NoError(t, err)
-	}
-
-	// Creating a file with the name `image` to copy it to `exported_emoji_test`
-	_, err = os.OpenFile(filePath+"/image", os.O_RDONLY|os.O_CREATE, 0777)
+	_, err = os.OpenFile(emojiImagePath, os.O_RDONLY|os.O_CREATE, 0777)
 	require.NoError(t, err)
-	defer os.RemoveAll(filePath)
 
 	copyError := th.App.copyEmojiImages(th.Context, emoji.Id, emojiImagePath, pathToDir)
 	require.NoError(t, copyError)
 
-	_, err = os.Stat(pathToDir + "/" + emoji.Id + "/image")
+	_, err = os.Stat(filepath.Join(pathToDir, emoji.Id, "image"))
 	require.False(t, os.IsNotExist(err), "File should exist ")
 }
 
@@ -186,7 +178,6 @@ func TestExportCustomEmoji(t *testing.T) {
 	defer os.Remove(filePath)
 
 	dirNameToExportEmoji := "exported_emoji_test"
-	defer os.RemoveAll("../" + dirNameToExportEmoji)
 
 	outPath, err := filepath.Abs(filePath)
 	require.NoError(t, err)
@@ -516,7 +507,7 @@ func TestExportGMandDMChannels(t *testing.T) {
 	require.NoError(t, nErr)
 
 	// Adding some determinism so its possible to assert on slice index
-	sort.Slice(channels, func(i, j int) bool { return channels[i].Type > channels[j].Type })
+	slices.SortFunc(channels, func(a, b *model.DirectChannelForExport) int { return cmp.Compare(b.Type, a.Type) })
 	assert.Equal(t, 2, len(channels))
 	assert.ElementsMatch(t, []string{th1.BasicUser.Username, user1.Username, user2.Username}, []string{channels[0].Members[0].Username, channels[0].Members[1].Username, channels[0].Members[2].Username})
 	assert.ElementsMatch(t, []string{th1.BasicUser.Username, th1.BasicUser2.Username}, []string{channels[1].Members[0].Username, channels[1].Members[1].Username})
@@ -596,7 +587,7 @@ func TestExportDMandGMPost(t *testing.T) {
 	require.NoError(t, err)
 
 	// Adding some determinism so its possible to assert on slice index
-	sort.Slice(posts, func(i, j int) bool { return posts[i].Message > posts[j].Message })
+	slices.SortFunc(posts, func(a, b *model.DirectPostForExport) int { return cmp.Compare(b.Message, a.Message) })
 	assert.Equal(t, 4, len(posts))
 	assert.ElementsMatch(t, gmMembers, *posts[0].ChannelMembers)
 	assert.ElementsMatch(t, gmMembers, *posts[1].ChannelMembers)
@@ -671,7 +662,7 @@ func TestExportPostWithProps(t *testing.T) {
 	require.NoError(t, err)
 
 	// Adding some determinism so its possible to assert on slice index
-	sort.Slice(posts, func(i, j int) bool { return posts[i].Message > posts[j].Message })
+	slices.SortFunc(posts, func(a, b *model.DirectPostForExport) int { return cmp.Compare(b.Message, a.Message) })
 	assert.Len(t, posts, 2)
 	assert.ElementsMatch(t, gmMembers, *posts[0].ChannelMembers)
 	assert.ElementsMatch(t, dmMembers, *posts[1].ChannelMembers)

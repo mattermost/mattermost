@@ -37,7 +37,9 @@ func (ps *PropertyService) enforceFieldGroupVersionMatch(caller string, groupID 
 
 // Private implementation methods (database access)
 
-func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
+// callerPinnedValues reports whether the request itself carried
+// permission_values, decided before the hooks default-fill it.
+func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.PropertyField, callerPinnedValues bool) (*model.PropertyField, error) {
 	// Enforce version match between field and group
 	if err := ps.enforceFieldGroupVersionMatch("CreatePropertyField", field.GroupID, field); err != nil {
 		return nil, err
@@ -129,7 +131,10 @@ func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.Pr
 			)
 		}
 
-		// Copy type and options from source
+		// Copy type, options, and sync source from source. The sync source
+		// (ldap/saml) must match the template's, since it defines where the
+		// value comes from -- a linked field can't independently claim a
+		// different sync source than the definition it links to.
 		field.Type = source.Type
 		if field.Attrs == nil {
 			field.Attrs = make(model.StringInterface)
@@ -138,13 +143,21 @@ func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.Pr
 			if opts, ok := source.Attrs[model.PropertyFieldAttributeOptions]; ok {
 				field.Attrs[model.PropertyFieldAttributeOptions] = opts
 			}
+			if ldap, ok := source.Attrs[model.PropertyFieldAttrLDAP]; ok {
+				field.Attrs[model.PropertyFieldAttrLDAP] = ldap
+			}
+			if saml, ok := source.Attrs[model.PropertyFieldAttrSAML]; ok {
+				field.Attrs[model.PropertyFieldAttrSAML] = saml
+			}
 		}
 
 		// Inherit permission levels from source template
 		if source.PermissionField != nil {
 			field.PermissionField = source.PermissionField
 		}
-		if source.PermissionValues != nil {
+		// A caller pin wins over the template: a linked field may be writable
+		// at a lower level than the template it inherits its schema from.
+		if source.PermissionValues != nil && !callerPinnedValues {
 			field.PermissionValues = source.PermissionValues
 		}
 		if source.PermissionOptions != nil {
@@ -464,12 +477,16 @@ func (ps *PropertyService) deletePropertyField(rctx request.CTX, groupID, id str
 // Public methods
 
 func (ps *PropertyService) CreatePropertyField(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
+	// Captured before the hooks run: they default-fill PermissionValues, so
+	// afterwards an explicit pin is indistinguishable from a server default.
+	callerPinnedValues := field.PermissionValues != nil
+
 	field, err := ps.runPreCreatePropertyField(rctx, field)
 	if err != nil {
 		return nil, fmt.Errorf("CreatePropertyField: %w", err)
 	}
 
-	return ps.createPropertyField(rctx, field)
+	return ps.createPropertyField(rctx, field, callerPinnedValues)
 }
 
 func (ps *PropertyService) GetPropertyField(rctx request.CTX, groupID, id string) (*model.PropertyField, error) {

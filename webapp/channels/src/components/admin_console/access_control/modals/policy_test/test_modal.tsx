@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useRef, useState, useCallback} from 'react';
+import React, {useEffect, useRef, useState, useCallback, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
@@ -74,7 +74,8 @@ function TestResultsModal({
             return;
         }
         if (result?.data) {
-            const newUsers = result.data.users;
+            // Plugin RPC (gob) can turn an empty users slice into null on the wire.
+            const newUsers = result.data.users ?? [];
             if (reset) {
                 setUsers(newUsers);
             } else {
@@ -92,7 +93,7 @@ function TestResultsModal({
         // The picker step defers the initial fetch until a channel is chosen
         // (handled in handleChannelSelected).
         if (!requireChannel) {
-            fetchUsers('', '');
+            fetchUsers(term, '', true);
         }
     }, []);
 

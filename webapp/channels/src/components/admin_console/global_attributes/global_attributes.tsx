@@ -11,13 +11,13 @@ import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import {getHistory} from 'utils/browser_history';
 
-import {ATTRIBUTE_DETAILS_ROUTE} from './attribute_details';
+import {ATTRIBUTE_DETAILS_ROUTE} from './constants';
 import GlobalAttributesTable from './global_attributes_table';
 
 import './global_attributes.scss';
 
 const messages = defineMessages({
-    title: {id: 'admin.global_attributes.title', defaultMessage: 'Manage Attributes'},
+    title: {id: 'admin.global_attributes.title', defaultMessage: 'Attribute Management'},
     subtitle: {id: 'admin.global_attributes.subtitle', defaultMessage: 'Define an attribute once, then choose which resources can use it.'},
     newAttribute: {id: 'admin.global_attributes.new_attribute', defaultMessage: 'New attribute'},
 });

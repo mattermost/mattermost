@@ -9,6 +9,7 @@ import type {WrappedComponentProps} from 'react-intl';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
+import ChannelAttributeLabels from 'components/channel_attributes/channel_attribute_labels';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import CustomStatusText from 'components/custom_status/custom_status_text';
 import PopoutButton from 'components/popout_button';
@@ -43,7 +44,7 @@ const membersTooltipMessages = defineMessages({
 export type Props = WrappedComponentProps & PropsFromRedux;
 
 class ChannelHeader extends React.PureComponent<Props> {
-    toggleFavoriteRef: RefObject<HTMLButtonElement>;
+    toggleFavoriteRef: RefObject<HTMLButtonElement | null>;
 
     constructor(props: Props) {
         super(props);
@@ -420,6 +421,12 @@ class ChannelHeader extends React.PureComponent<Props> {
                                         channel={channel}
                                         channelMember={channelMember!}
                                     />
+                                    {!isDirect && !isGroup && (
+                                        <ChannelAttributeLabels
+                                            channelId={channel.id}
+                                            surface='info'
+                                        />
+                                    )}
                                 </div>
                                 <div
                                     id='channelHeaderDescription'
@@ -435,6 +442,14 @@ class ChannelHeader extends React.PureComponent<Props> {
                                     />
                                 </div>
                             </div>
+                            {!isDirect && !isGroup && (
+                                <div className='channel-header__attributes'>
+                                    <ChannelAttributeLabels
+                                        channelId={channel.id}
+                                        surface='header'
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
                     <ChannelHeaderPlug

@@ -101,6 +101,7 @@ type Store interface {
 	AutoTranslation() AutoTranslationStore
 	GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error)
 	ContentFlagging() ContentFlaggingStore
+	DeliveryTracking() DeliveryTrackingStore
 	Recap() RecapStore
 	ScheduledRecap() ScheduledRecapStore
 	ReadReceipt() ReadReceiptStore
@@ -404,9 +405,9 @@ type PostStore interface {
 	GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error)
 	GetPostsByThread(threadID string, since int64) ([]*model.Post, error)
 	GetPostAfterTime(channelID string, timestamp int64, collapsedThreads bool) (*model.Post, error)
-	GetPostIdAfterTime(channelID string, timestamp int64, collapsedThreads bool) (string, error)
-	GetPostIdBeforeTime(channelID string, timestamp int64, collapsedThreads bool) (string, error)
-	GetVisiblePostIdAroundTime(channelID string, timestamp int64, before bool, collapsedThreads bool, userID string) (string, error)
+	GetPostIdAfterTime(channelID string, timestamp int64, collapsedThreads bool, excludeMembershipSystemPosts bool) (string, error)
+	GetPostIdBeforeTime(channelID string, timestamp int64, collapsedThreads bool, excludeMembershipSystemPosts bool) (string, error)
+	GetVisiblePostIdAroundTime(channelID string, timestamp int64, before bool, collapsedThreads bool, userID string, excludeMembershipSystemPosts bool) (string, error)
 	GetEtag(channelID string, allowFromCache bool, collapsedThreads bool, includeTranslations bool) string
 	Search(teamID string, userID string, params *model.SearchParams) (*model.PostList, error)
 	AnalyticsUserCountsWithPostsByDay(teamID string) (model.AnalyticsRows, error)
@@ -1314,6 +1315,24 @@ type AutoTranslationStore interface {
 type ContentFlaggingStore interface {
 	SaveReviewerSettings(reviewerSettings model.ReviewerIDsSettings) error
 	GetReviewerSettings() (*model.ReviewerIDsSettings, error)
+	ClearCaches()
+}
+
+// DeliveryTrackingStore persists the explicit per-channel allow-list for post delivery
+// audit logging. The on/off and all-channels toggles live in
+// Config.DeliveryTrackingSettings; only the channel ids live here.
+//
+// IsChannelTracked and IsChannelTrackable are consulted once per recorded delivery, and their
+// cache layer memoizes them into bounded in-memory maps so that path never deserializes.
+type DeliveryTrackingStore interface {
+	// SaveTrackedChannelIDs replaces the entire stored set with channelIDs.
+	SaveTrackedChannelIDs(rctx request.CTX, channelIDs []string) error
+	GetTrackedChannelIDs(rctx request.CTX) ([]string, error)
+	// IsChannelTracked reports whether channelID is in the explicit allow-list.
+	IsChannelTracked(rctx request.CTX, channelID string) (bool, error)
+	// IsChannelTrackable reports whether channelID is eligible for tracking at all, which
+	// means it is not a DM or GM. Unknown channels are not trackable.
+	IsChannelTrackable(rctx request.CTX, channelID string) (bool, error)
 	ClearCaches()
 }
 

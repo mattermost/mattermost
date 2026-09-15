@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useRef} from 'react';
 import {CSSTransition} from 'react-transition-group';
 
 import {WizardSteps} from './steps';
@@ -15,7 +15,7 @@ type Props = {
     transitionSpeed: number;
 };
 
-export const Progress = (props: Props) => {
+export const Progress = React.forwardRef<HTMLDivElement, Props>((props, ref) => {
     // exclude transitioning out as a progress step
     const numSteps = props.stepOrder.length - 1;
     if (numSteps < 2) {
@@ -36,21 +36,33 @@ export const Progress = (props: Props) => {
         );
     });
 
-    return (<div className='PreparingWorkspaceProgress'>
-        <div className='PreparingWorkspaceProgress__circles'>{dots}</div>
-    </div>);
-};
+    return (
+        <div
+            ref={ref}
+            className='PreparingWorkspaceProgress'
+        >
+            <div className='PreparingWorkspaceProgress__circles'>{dots}</div>
+        </div>
+    );
+});
+Progress.displayName = 'Progress';
 
 export default function TransitionedProgress(props: Props) {
+    const nodeRef = useRef<HTMLDivElement>(null);
+
     return (
         <CSSTransition
             in={props.step !== WizardSteps.LaunchingWorkspace}
+            nodeRef={nodeRef}
             timeout={props.transitionSpeed}
             classNames={'OnboardingWizardProgress'}
             mountOnEnter={true}
             unmountOnExit={true}
         >
-            <Progress {...props}/>
+            <Progress
+                {...props}
+                ref={nodeRef}
+            />
         </CSSTransition>
     );
 }

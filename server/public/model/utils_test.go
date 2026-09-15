@@ -224,6 +224,20 @@ func TestAppErrorSerialize(t *testing.T) {
 		require.EqualError(t, berr, aerr.Error())
 	})
 
+	t.Run("Props survive WipeDetailed and round-trip to clients", func(t *testing.T) {
+		aerr := NewAppError("", "message", nil, "detail", http.StatusTeapot).Wrap(errors.New("wrapped"))
+		aerr.Props = StringMap{"plugin_id": "com.example", "version_direction": "downgrade"}
+		aerr.WipeDetailed()
+		js := aerr.ToJSON()
+		err := AppErrorFromJSON(strings.NewReader(js))
+		berr, ok := err.(*AppError)
+		require.True(t, ok)
+		require.Equal(t, "message", berr.Id)
+		require.Empty(t, berr.DetailedError, "WipeDetailed must still discard the detailed error")
+		require.Equal(t, StringMap{"plugin_id": "com.example", "version_direction": "downgrade"}, berr.Props)
+		require.Equal(t, http.StatusTeapot, berr.StatusCode)
+	})
+
 	t.Run("Where", func(t *testing.T) {
 		appErr := NewAppError("TestAppError", "message", nil, "", http.StatusInternalServerError)
 		json := appErr.ToJSON()
@@ -315,7 +329,7 @@ func TestNonSortedArrayFromJSON(t *testing.T) {
 	t.Run("Duplicate keys, returns one", func(t *testing.T) {
 		var ids []string
 		id := NewId()
-		for i := 0; i <= 10; i++ {
+		for range 11 {
 			ids = append(ids, id)
 		}
 		b, _ := json.Marshal(ids)
@@ -1107,7 +1121,7 @@ func checkNowhereNil(t *testing.T, name string, value any) bool {
 
 	case reflect.Struct:
 		nowhereNil := true
-		for i := 0; i < v.NumField(); i++ {
+		for i := range v.NumField() {
 			f := v.Field(i)
 			// Ignore unexported fields
 			if v.Type().Field(i).PkgPath != "" {
