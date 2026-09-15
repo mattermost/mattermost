@@ -1359,3 +1359,46 @@ func TestPropertyFieldRankGate(t *testing.T) {
 		assert.Equal(t, model.PropertyFieldTypeRank, updated.Type)
 	})
 }
+
+// The per-target cap for post attributes is configured in server.go, and nothing in the
+// properties package covers that wiring: a limit registered against the wrong group, or
+// added to the hook after AddHook, would leave every test there passing. This exercises the
+// real group and the real constant through the app layer.
+func TestCreatePropertyField_PostAttributesPerTargetLimit(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.PostAttributesPropertyGroupName)
+	require.Nil(t, appErr)
+
+	makeField := func(targetID string) *model.PropertyField {
+		return &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "attr-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypePost,
+			TargetType: string(model.PropertyFieldTargetLevelChannel),
+			TargetID:   targetID,
+		}
+	}
+
+	channelID := model.NewId()
+	for i := range model.PostAttributesMaxFieldsPerTarget {
+		_, appErr = th.App.CreatePropertyField(th.Context, makeField(channelID), false, "")
+		require.Nil(t, appErr, "field %d of %d should be allowed", i+1, model.PostAttributesMaxFieldsPerTarget)
+	}
+
+	t.Run("rejects the field past the cap", func(t *testing.T) {
+		_, appErr := th.App.CreatePropertyField(th.Context, makeField(channelID), false, "")
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.property_field.create.target_limit_reached.app_error", appErr.Id)
+		// Not 500: the caller asked for something the server can explain, so the sentinel
+		// must be mapped in mapPropertyServiceError.
+		assert.Equal(t, http.StatusUnprocessableEntity, appErr.StatusCode)
+	})
+
+	t.Run("a full channel does not consume another channel's allowance", func(t *testing.T) {
+		_, appErr := th.App.CreatePropertyField(th.Context, makeField(model.NewId()), false, "")
+		require.Nil(t, appErr)
+	})
+}
