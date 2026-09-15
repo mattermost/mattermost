@@ -43,26 +43,25 @@ const GlobalAttributes: React.FC = () => {
                         {...messages.subtitle}
                     />
                 </hgroup>
+                <Button
+                    className='GlobalAttributes__newAttribute'
+                    emphasis='primary'
+                    onClick={() => {
+                        getHistory().push(ATTRIBUTE_DETAILS_ROUTE);
+                    }}
+                    data-testid='newAttributeButton'
+                >
+                    <PlusIcon size={18}/>
+                    <span>
+                        <FormattedMessage {...messages.newAttribute}/>
+                    </span>
+                </Button>
             </AdminHeader>
             <div className='admin-console__wrapper'>
                 <div
                     className='admin-console__container'
                     data-testid='global_attributes'
                 >
-                    <div className='GlobalAttributes__actions'>
-                        <Button
-                            emphasis='primary'
-                            onClick={() => {
-                                getHistory().push(ATTRIBUTE_DETAILS_ROUTE);
-                            }}
-                            data-testid='newAttributeButton'
-                        >
-                            <PlusIcon size={18}/>
-                            <span>
-                                <FormattedMessage {...messages.newAttribute}/>
-                            </span>
-                        </Button>
-                    </div>
                     <GlobalAttributesTable/>
                 </div>
             </div>
