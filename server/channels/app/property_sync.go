@@ -24,8 +24,7 @@ const (
 	// provisioning re-reads a field after another writer changed it first.
 	propertySyncMaxOptionConflictRetries = 5
 
-	propertySyncUpdateConflictErrorID  = "app.property_field.update.conflict.app_error"
-	propertySyncValueValidationErrorID = "app.property_value.validate.app_error"
+	propertySyncUpdateConflictErrorID = "app.property_field.update.conflict.app_error"
 )
 
 // PropertySyncer applies the attribute values an identity source (AD/LDAP or
@@ -253,7 +252,7 @@ func (s *PropertySyncer) SyncUser(rctx request.CTX, userID string, attrs map[str
 		// the rest and so each field's outcome is accurate.
 		upserted = nil
 		for _, w := range writes {
-			single, singleErr := s.upsertSingleValue(rctx, userID, w.value)
+			single, singleErr := s.app.UpsertPropertyValues(rctx, []*model.PropertyValue{w.value}, model.PropertyFieldObjectTypeUser, userID, "")
 			if singleErr != nil {
 				result.Fields[w.outcomeIdx].Status = model.PropertySyncFieldError
 				result.Fields[w.outcomeIdx].Reason = singleErr.Error()
@@ -550,85 +549,6 @@ func (s *PropertySyncer) saveOptions(rctx request.CTX, field *model.PropertyFiel
 		return nil, appErr
 	}
 	return saved[0], nil
-}
-
-// upsertSingleValue writes one value. When the write is rejected because an
-// option the value references no longer exists (pruned by a concurrent sync
-// between provisioning and this write), the field is re-read, the options are
-// re-provisioned and the write retried once.
-func (s *PropertySyncer) upsertSingleValue(rctx request.CTX, userID string, value *model.PropertyValue) ([]*model.PropertyValue, *model.AppError) {
-	upserted, appErr := s.app.UpsertPropertyValues(rctx, []*model.PropertyValue{value}, model.PropertyFieldObjectTypeUser, userID, "")
-	if appErr == nil {
-		return upserted, nil
-	}
-
-	field, ok := s.fields[value.FieldID]
-	if !ok || appErr.Id != propertySyncValueValidationErrorID || !field.Type.SupportsOptions() {
-		return nil, appErr
-	}
-
-	names, err := s.optionNamesForValue(field, value.Value)
-	if err != nil || len(names) == 0 {
-		return nil, appErr
-	}
-	if refreshErr := s.refreshField(rctx, field.ID); refreshErr != nil {
-		return nil, refreshErr
-	}
-	if _, stillLinked := s.fields[field.ID]; !stillLinked {
-		return nil, appErr
-	}
-	ids, _, _, ensureErr := s.ensureOptions(rctx, field.ID, names)
-	if ensureErr != nil {
-		return nil, model.NewAppError("PropertySyncer.upsertSingleValue", "app.property_sync.ensure_options.app_error", nil, "", http.StatusInternalServerError).Wrap(ensureErr)
-	}
-
-	optionIDs := make([]string, 0, len(names))
-	for _, name := range names {
-		if id, ok := ids[name]; ok {
-			optionIDs = append(optionIDs, id)
-		}
-	}
-	var raw json.RawMessage
-	if field.Type == model.PropertyFieldTypeSelect {
-		if len(optionIDs) == 0 {
-			return nil, appErr
-		}
-		raw, err = json.Marshal(optionIDs[0])
-	} else {
-		s.sortOptionIDsByFieldOrder(field.ID, optionIDs)
-		raw, err = json.Marshal(optionIDs)
-	}
-	if err != nil {
-		return nil, appErr
-	}
-	value.Value = raw
-	return s.app.UpsertPropertyValues(rctx, []*model.PropertyValue{value}, model.PropertyFieldObjectTypeUser, userID, "")
-}
-
-// optionNamesForValue resolves the option IDs in a select/multiselect value
-// back to names using the syncer's cached field, so they can be re-provisioned
-// after the cache turned out to be stale.
-func (s *PropertySyncer) optionNamesForValue(field *model.PropertyField, raw json.RawMessage) ([]string, error) {
-	options, err := propertyFieldOptions(field)
-	if err != nil {
-		return nil, err
-	}
-	nameByID := make(map[string]string, len(options))
-	for _, opt := range options {
-		nameByID[opt.ID] = opt.Name
-	}
-
-	ids, err := optionIDsFromValue(raw)
-	if err != nil {
-		return nil, err
-	}
-	names := make([]string, 0, len(ids))
-	for _, id := range ids {
-		if name, ok := nameByID[id]; ok {
-			names = append(names, name)
-		}
-	}
-	return names, nil
 }
 
 func (s *PropertySyncer) loadFields(rctx request.CTX) *model.AppError {
