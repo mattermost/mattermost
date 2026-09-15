@@ -31,13 +31,24 @@ export async function createNewUserProfile(
     }
 
     if (options.disableOnboarding) {
-        await client.savePreferences(newUser.id, [
-            {user_id: newUser.id, category: 'onboarding_task_list', name: 'onboarding_task_list_show', value: 'false'},
-            {user_id: newUser.id, category: 'onboarding_task_list', name: 'onboarding_task_list_open', value: 'false'},
-        ]);
+        await setDefaultOnboardingPreferences(client, newUser.id);
     }
 
     return newUser;
+}
+
+/**
+ * Marks the tutorial and first-time onboarding task list as already seen for the given
+ * user, so they don't cover the UI on their first visit to a channel. Useful for users
+ * that aren't created via createNewUserProfile, e.g. SSO-provisioned accounts.
+ */
+export async function setDefaultOnboardingPreferences(client: Client4, userId: UserProfile['id']) {
+    await client.savePreferences(userId, [
+        {user_id: userId, category: 'tutorial_step', name: userId, value: '999'},
+        {user_id: userId, category: 'crt_thread_pane_step', name: userId, value: '999'},
+        {user_id: userId, category: 'onboarding_task_list', name: 'onboarding_task_list_show', value: 'false'},
+        {user_id: userId, category: 'onboarding_task_list', name: 'onboarding_task_list_open', value: 'false'},
+    ]);
 }
 
 export async function createRandomUser(prefix = 'user') {
