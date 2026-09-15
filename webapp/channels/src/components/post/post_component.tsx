@@ -185,6 +185,7 @@ function PostComponent(props: Props) {
     const postRef = useRef<HTMLDivElement>(null);
     const postHeaderRef = useRef<HTMLDivElement>(null);
     const pointerCoords = useRef<{x: number; y: number}>(undefined);
+    const wasPostMenuOpen = useRef(false);
     const teamId = props.team?.id ?? props.currentTeam?.id ?? '';
 
     const [hover, setHover] = useState(false);
@@ -397,33 +398,59 @@ function PostComponent(props: Props) {
     // resizes out from under a stationary pointer (for example when its link preview is removed)
     // never gets a mouseleave and would otherwise keep showing its quick actions.
     useEffect(() => {
+        const postMenuOpen = dropdownOpened || fileDropdownOpened;
+        const menuJustClosed = wasPostMenuOpen.current && !postMenuOpen;
+        wasPostMenuOpen.current = postMenuOpen;
+
         // While one of the post's own menus is open the pointer sits on a portalled overlay rather
-        // than on the post, so leave the hover state alone. Observing again once the menu closes
-        // re-checks the post, since ResizeObserver reports the current size as soon as it observes.
-        if (!hover || dropdownOpened || fileDropdownOpened || !postRef.current) {
+        // than on the post, so leave the hover state alone until the menu closes.
+        if (!hover || postMenuOpen || !postRef.current) {
             return undefined;
         }
 
         const postElement = postRef.current;
-        const observer = new ResizeObserver(() => {
+        const pointerLeftPost = () => {
             const coords = pointerCoords.current;
             if (!coords) {
-                return;
+                return false;
             }
 
             const {left, right, top, bottom} = postElement.getBoundingClientRect();
             if (coords.x >= left && coords.x <= right && coords.y >= top && coords.y <= bottom) {
-                return;
+                return false;
             }
 
             // While hovered the post is `overflow: visible`, so its quick actions menu is
             // hit-testable in the few pixels it overhangs the post's top edge.
             const elementUnderPointer = postElement.ownerDocument.elementFromPoint(coords.x, coords.y);
-            if (elementUnderPointer && postElement.contains(elementUnderPointer)) {
+            return !(elementUnderPointer && postElement.contains(elementUnderPointer));
+        };
+
+        const clearHoverIfPointerLeft = () => {
+            if (pointerLeftPost()) {
+                handleMouseLeave();
+            }
+        };
+
+        // Portalled menus do not resize the post, so re-check the pointer when they close.
+        if (menuJustClosed) {
+            clearHoverIfPointerLeft();
+        }
+
+        // Ignore observations that do not change size. ResizeObserver reports the current size as
+        // soon as it observes, which would otherwise clear hover from a synthetic mouseover whose
+        // coordinates do not land on the post.
+        const initialRect = postElement.getBoundingClientRect();
+        let previousWidth = initialRect.width;
+        let previousHeight = initialRect.height;
+        const observer = new ResizeObserver(() => {
+            const {width, height} = postElement.getBoundingClientRect();
+            if (width === previousWidth && height === previousHeight) {
                 return;
             }
-
-            handleMouseLeave();
+            previousWidth = width;
+            previousHeight = height;
+            clearHoverIfPointerLeft();
         });
         observer.observe(postElement);
 

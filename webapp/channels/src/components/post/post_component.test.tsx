@@ -25,7 +25,7 @@ import {Posts} from 'mattermost-redux/constants';
 import {compassIconForName} from 'components/channel_type_icon';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {act, fireEvent, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {getHistory} from 'utils/browser_history';
 import {Locations} from 'utils/constants';
 import * as PopoutWindows from 'utils/popouts/popout_windows';
@@ -827,6 +827,93 @@ describe('PostComponent', () => {
 
             // Default archive icon is present in the fallback path
             expect(document.querySelector('[data-is-default-archive]')).toBeInTheDocument();
+        });
+    });
+
+    describe('hover after the post resizes', () => {
+        const originalResizeObserver = global.ResizeObserver;
+        const originalElementFromPoint = document.elementFromPoint;
+        let resizeCallback: ResizeObserverCallback | undefined;
+
+        const hoveredRect = {
+            x: 0,
+            y: 0,
+            left: 0,
+            top: 0,
+            right: 200,
+            bottom: 100,
+            width: 200,
+            height: 100,
+            toJSON: () => ({}),
+        };
+
+        beforeEach(() => {
+            resizeCallback = undefined;
+            global.ResizeObserver = jest.fn((callback: ResizeObserverCallback) => {
+                resizeCallback = callback;
+                return {
+                    observe: jest.fn(),
+                    unobserve: jest.fn(),
+                    disconnect: jest.fn(),
+                };
+            }) as unknown as typeof ResizeObserver;
+            document.elementFromPoint = jest.fn().mockReturnValue(null);
+        });
+
+        afterEach(() => {
+            global.ResizeObserver = originalResizeObserver;
+            document.elementFromPoint = originalElementFromPoint;
+        });
+
+        function fireResize() {
+            act(() => {
+                resizeCallback?.([] as unknown as ResizeObserverEntry[], {} as ResizeObserver);
+            });
+        }
+
+        test('should keep hover when ResizeObserver fires without a size change', () => {
+            renderWithContext(<PostComponent {...baseProps}/>);
+            const post = screen.getByTestId('postView');
+            jest.spyOn(post, 'getBoundingClientRect').mockReturnValue(hoveredRect as DOMRect);
+
+            fireEvent.mouseOver(post, {clientX: 50, clientY: 50});
+            expect(post).toHaveClass('post--hovered');
+
+            fireResize();
+
+            expect(post).toHaveClass('post--hovered');
+        });
+
+        test('should clear hover when the post shrinks away from the pointer', () => {
+            renderWithContext(<PostComponent {...baseProps}/>);
+            const post = screen.getByTestId('postView');
+            const rect = {...hoveredRect};
+            jest.spyOn(post, 'getBoundingClientRect').mockImplementation(() => rect as DOMRect);
+
+            fireEvent.mouseOver(post, {clientX: 50, clientY: 50});
+            expect(post).toHaveClass('post--hovered');
+
+            rect.bottom = 20;
+            rect.height = 20;
+            fireResize();
+
+            expect(post).not.toHaveClass('post--hovered');
+        });
+
+        test('should keep hover when the post grows while the pointer is still over it', () => {
+            renderWithContext(<PostComponent {...baseProps}/>);
+            const post = screen.getByTestId('postView');
+            const rect = {...hoveredRect};
+            jest.spyOn(post, 'getBoundingClientRect').mockImplementation(() => rect as DOMRect);
+
+            fireEvent.mouseOver(post, {clientX: 50, clientY: 50});
+            expect(post).toHaveClass('post--hovered');
+
+            rect.bottom = 180;
+            rect.height = 180;
+            fireResize();
+
+            expect(post).toHaveClass('post--hovered');
         });
     });
 });

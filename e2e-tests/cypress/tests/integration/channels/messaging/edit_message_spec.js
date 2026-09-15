@@ -97,8 +97,12 @@ describe('Edit Message', () => {
                 // # Edit the post
                 cy.get('#edit_textbox').type('Some text {enter}', {delay: 100});
 
+                // # Wait for edit mode to finish so the post has settled at its new height
+                cy.get('#edit_textbox').should('not.exist');
+                cy.get(`#postMessageText_${postId}`).should('contain', 'Edited');
+
                 // # Mouseover the post again
-                cy.get(`#post_${postId}`).trigger('mouseover');
+                cy.get(`#post_${postId}`).trigger('mouseover', {force: true}).should('have.class', 'post--hovered');
 
                 // * Current post timestamp should have not been changed by edition
                 cy.get(`#CENTER_time_${postId}`).find('time').should('have.attr', 'dateTime').and('equal', originalTimeStamp);
