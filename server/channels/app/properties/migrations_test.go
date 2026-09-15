@@ -261,7 +261,7 @@ func TestWarnIfMaskedTemplateHasWritableHoldings(t *testing.T) {
 
 	buffer := captureMaskingFailureLog(t, th)
 	b := newPermissionsBackfill(th.service, th.CPAGroupID)
-	b.warnIfMaskedTemplateHasNonUserSiblings(th.Context, template, template.Permissions, true)
+	b.warnAboutMaskedTemplate(th.Context, template, template.Permissions, true)
 	requireWarnLogged(t, th, buffer, "widen their own masked view")
 }
 
@@ -312,7 +312,7 @@ func TestWarnIfMaskedTemplateHoldingsTheBackfillCloses(t *testing.T) {
 
 	buffer := captureMaskingFailureLog(t, th)
 	b := newPermissionsBackfill(th.service, th.CPAGroupID)
-	b.warnIfMaskedTemplateHasNonUserSiblings(th.Context, template, template.Permissions, true)
+	b.warnAboutMaskedTemplate(th.Context, template, template.Permissions, true)
 	requireWarnNotLogged(t, th, buffer, "widen their own masked view")
 }
 

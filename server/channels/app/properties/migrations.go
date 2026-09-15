@@ -309,19 +309,27 @@ func (b *permissionsBackfill) resolveTemplate(rctx request.CTX, groupID, templat
 	b.templates[templateID] = permissions
 
 	if permissions.Masking != nil {
-		b.warnIfMaskedTemplateHasNonUserSiblings(rctx, template, permissions, convertAttrs)
+		b.warnAboutMaskedTemplate(rctx, template, permissions, convertAttrs)
 	}
 
 	return permissions, nil
 }
 
-// warnIfMaskedTemplateHasNonUserSiblings logs once when template converts to
-// masked and a field linked to it is not object_type: user. Such a field
-// shows nobody anything, before this conversion and after it, until an
-// operator sets the template's mask_by_field_id -- the conversion cannot
-// infer that field from the template's linked fields, so this line is the
-// only thing that tells an operator the scheme is waiting on them.
-func (b *permissionsBackfill) warnIfMaskedTemplateHasNonUserSiblings(rctx request.CTX, template *model.PropertyField, permissions *model.Permissions, convertAttrs bool) {
+// warnAboutMaskedTemplate logs what an operator has to act on once template
+// converts to masked, across every field linked to it.
+//
+// A linked field that is not object_type: user shows nobody anything, before
+// this conversion and after it, until an operator sets the template's
+// mask_by_field_id -- the conversion cannot infer that field from the
+// template's linked fields, so this line is the only thing that tells an
+// operator the scheme is waiting on them.
+//
+// A holdings field the people it filters can write defeats the mask outright:
+// they set their own holdings to whatever they want the read to return. The
+// store's ValidateMaskByFieldID and the service's create and update gates
+// refuse that combination on a write, but neither reaches a row already
+// stored, so this line is the only signal for a scheme that is open today.
+func (b *permissionsBackfill) warnAboutMaskedTemplate(rctx request.CTX, template *model.PropertyField, permissions *model.Permissions, convertAttrs bool) {
 	linked, err := b.service.fieldStore.GetLinkedFields([]string{template.ID}, nil)
 	if err != nil {
 		rctx.Logger().Warn("Failed to check a masked template's linked fields for non-user object types",
