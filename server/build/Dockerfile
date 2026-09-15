@@ -5,6 +5,7 @@ FROM debian:12@sha256:6ebd97fa83deb272194a2cf015b3d26a4d538e9ad3a7a79d544c8af5b0
 RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
   poppler-utils \
+  poppler-data \
   && rm -rf /var/lib/apt/lists/*
 
 # First stage - Ubuntu with document processing dependencies and curl for downloading
@@ -59,6 +60,14 @@ COPY --from=builder --chown=2000:2000 /etc/ssl/certs /etc/ssl/certs
 
 # Copy document processing utilities and necessary support files
 COPY --from=poppler /usr/bin/pdftotext /usr/bin/pdftotext
+
+# CJK character data from poppler-data. Without these, a PDF that uses a
+# predefined CMap fails with "Missing language pack for 'Adobe-GB1' mapping" and
+# yields no text at all. cMap resolves the encoding to CIDs and cidToUnicode maps
+# those CIDs to Unicode; both are required. poppler-data's nameToUnicode and
+# unicodeMap are not copied because extraction does not consult them.
+COPY --from=poppler /usr/share/poppler/cMap /usr/share/poppler/cMap
+COPY --from=poppler /usr/share/poppler/cidToUnicode /usr/share/poppler/cidToUnicode
 COPY --from=builder /usr/bin/wvText /usr/bin/wvText
 COPY --from=builder /usr/bin/wvWare /usr/bin/wvWare
 COPY --from=builder /usr/bin/unrtf /usr/bin/unrtf
