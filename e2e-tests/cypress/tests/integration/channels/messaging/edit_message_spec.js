@@ -85,7 +85,7 @@ describe('Edit Message', () => {
 
         cy.getLastPostId().then((postId) => {
             // # Mouseover post to display the timestamp
-            cy.get(`#post_${postId}`).trigger('mouseover');
+            cy.get(`#post_${postId}`).trigger('mouseover', 'center', {force: true});
 
             cy.get(`#CENTER_time_${postId}`).find('time').invoke('attr', 'dateTime').then((originalTimeStamp) => {
                 // # Click dot menu
@@ -105,7 +105,7 @@ describe('Edit Message', () => {
                 cy.wait(TIMEOUTS.ONE_SEC);
 
                 // # Mouseover the post again
-                cy.get(`#post_${postId}`).trigger('mouseover', {force: true}).should('have.class', 'post--hovered');
+                cy.get(`#post_${postId}`).trigger('mouseover', 'center', {force: true}).should('have.class', 'post--hovered');
 
                 // * Current post timestamp should have not been changed by edition
                 cy.get(`#CENTER_time_${postId}`).find('time').should('have.attr', 'dateTime').and('equal', originalTimeStamp);

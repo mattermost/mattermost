@@ -900,6 +900,22 @@ describe('PostComponent', () => {
             expect(post).not.toHaveClass('post--hovered');
         });
 
+        test('should keep hover when the only recorded pointer position is 0,0', () => {
+            renderWithContext(<PostComponent {...baseProps}/>);
+            const post = screen.getByTestId('postView');
+            const rect = {...hoveredRect};
+            jest.spyOn(post, 'getBoundingClientRect').mockImplementation(() => rect as DOMRect);
+
+            fireEvent.mouseOver(post, {clientX: 0, clientY: 0});
+            expect(post).toHaveClass('post--hovered');
+
+            rect.bottom = 20;
+            rect.height = 20;
+            fireResize();
+
+            expect(post).toHaveClass('post--hovered');
+        });
+
         test('should keep hover when the post grows while the pointer is still over it', () => {
             renderWithContext(<PostComponent {...baseProps}/>);
             const post = screen.getByTestId('postView');
