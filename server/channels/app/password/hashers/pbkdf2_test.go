@@ -12,7 +12,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app/password/phcparser"
-	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/stretchr/testify/require"
 )
 
@@ -48,7 +48,7 @@ func TestPBKDF2Hash(t *testing.T) {
 }
 
 func TestPBKDF2CompareHashAndPassword(t *testing.T) {
-	passwordTooLong := utils.PseudoRandomBytes(PasswordMaxLengthBytes + 1)
+	passwordTooLong := testlib.PseudoRandomBytes(PasswordMaxLengthBytes + 1)
 
 	testCases := []struct {
 		testName    string

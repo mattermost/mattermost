@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/stretchr/testify/require"
 )
 
@@ -32,7 +32,7 @@ func prepareTestImages(tb testing.TB) {
 		image.Point{0, 0},
 		image.Point{2048, 2048},
 	})
-	rgba.Pix = utils.PseudoRandomBytes(len(rgba.Pix))
+	rgba.Pix = testlib.PseudoRandomBytes(len(rgba.Pix))
 
 	// Encode it as JPEG and GIF
 	buf := &bytes.Buffer{}
