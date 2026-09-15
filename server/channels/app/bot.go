@@ -98,6 +98,11 @@ func (a *App) CreateBot(rctx request.CTX, bot *model.Bot) (*model.Bot, *model.Ap
 		return nil, vErr
 	}
 
+	// Reserved for GetOrCreateSystemOwnedBot; blocks squatting the username to inherit system-bot exemptions.
+	if bot.IsSystemOwned() {
+		return nil, model.NewAppError("CreateBot", "app.bot.createbot.reserved_username.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	user, nErr := a.Srv().Store().User().Save(rctx, model.UserFromBot(bot))
 	if nErr != nil {
 		var appErr *model.AppError
@@ -271,7 +276,13 @@ func (a *App) PatchBot(rctx request.CTX, botUserId string, botPatch *model.BotPa
 		return bot, nil
 	}
 
+	wasSystemOwned := bot.IsSystemOwned()
 	bot.Patch(botPatch)
+
+	// Blocks renaming into a protected username; see CreateBot.
+	if !wasSystemOwned && bot.IsSystemOwned() {
+		return nil, model.NewAppError("PatchBot", "app.bot.patchbot.reserved_username.app_error", nil, "", http.StatusBadRequest)
+	}
 
 	user, nErr := a.Srv().Store().User().Get(rctx, botUserId)
 	if nErr != nil {
@@ -345,6 +356,32 @@ func (a *App) GetBot(rctx request.CTX, botUserId string, includeDeleted bool) (*
 	return bot, nil
 }
 
+// resolveBotOwner returns the bot and its owning user for a bot's user id.
+// owner is nil (with no error) when the bot is the system-owned bot or when its
+// owner is not a user account: a plugin-owned bot's OwnerId is a plugin ID, so
+// the user lookup returns not-found. Both cases mean there's no human owner
+// behind the bot.
+func (a *App) resolveBotOwner(rctx request.CTX, botUserId string) (owner *model.User, bot *model.Bot, appErr *model.AppError) {
+	bot, appErr = a.GetBot(rctx, botUserId, true)
+	if appErr != nil {
+		return nil, nil, appErr
+	}
+	if bot.IsSystemOwned() {
+		return nil, bot, nil
+	}
+
+	owner, err := a.Srv().Store().User().Get(rctx, bot.OwnerId)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(err, &nfErr) {
+			return nil, bot, nil
+		}
+		return nil, nil, model.NewAppError("resolveBotOwner", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return owner, bot, nil
+}
+
 // GetBots returns the requested page of bots.
 func (a *App) GetBots(rctx request.CTX, options *model.BotGetOptions) (model.BotList, *model.AppError) {
 	bots, err := a.Srv().Store().Bot().GetAll(options)
@@ -355,17 +392,19 @@ func (a *App) GetBots(rctx request.CTX, options *model.BotGetOptions) (model.Bot
 }
 
 // IsBotExemptFromDMRestrictions checks if the given user ID is a bot that is
-// exempt from the RestrictDirectMessage=team enforcement. This includes the
-// system bot, bots owned by the current session's user, and plugin-owned bots.
+// exempt from the RestrictDirectMessage=team enforcement. This includes
+// protected system-owned bots, bots owned by the current session's user, and
+// plugin-owned bots.
 func (a *App) IsBotExemptFromDMRestrictions(rctx request.CTX, userID string) (bool, *model.AppError) {
 	bot, appErr := a.GetBot(rctx, userID, false)
 	if appErr != nil {
 		return false, appErr
 	}
 
-	// The system bot must be able to send messages to any user regardless of
-	// team membership (e.g. push notification tests, post reminders, etc.)
-	if bot.Username == model.BotSystemBotUsername {
+	// Protected system-owned bots must be able to send messages to any user
+	// regardless of team membership (e.g. push notification tests, post
+	// reminders, content-flagging notifications, etc.)
+	if bot.IsSystemOwned() {
 		return true, nil
 	}
 
