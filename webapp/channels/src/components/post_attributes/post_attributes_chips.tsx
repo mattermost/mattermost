@@ -1,7 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import {
+    autoUpdate,
+    flip,
+    offset,
+    safePolygon,
+    shift,
+    useFloating,
+    useHover,
+    useInteractions,
+} from '@floating-ui/react';
+import React, {useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -27,6 +37,43 @@ function PostAttributesChips({post, channel}: Props) {
     const values = usePostAttributeValues(post.id);
 
     const visible = useVisibleAttributes(fields, values);
+
+    // Every hook has to run before the two early returns below, which is why the
+    // budget is spent here rather than next to the render that uses it.
+    const {shown, overflow} = allocateChipBudget(visible, MAX_VISIBLE_CHIPS);
+
+    const [open, setOpen] = useState(false);
+
+    const {refs, floatingStyles, context} = useFloating({
+        open,
+        onOpenChange: setOpen,
+        placement: 'bottom-start',
+        whileElementsMounted: autoUpdate,
+        middleware: [
+            offset(6),
+            flip({
+                fallbackPlacements: ['top-start'],
+                padding: 12,
+            }),
+            shift({
+                padding: 12,
+            }),
+        ],
+    });
+
+    const {getReferenceProps, getFloatingProps} = useInteractions([
+        useHover(context, {
+            mouseOnly: true,
+            delay: {
+                open: 300,
+                close: 0,
+            },
+            restMs: 100,
+            handleClose: safePolygon({
+                blockPointerEvents: false,
+            }),
+        }),
+    ]);
 
     // Ahead of every other check, including the one for fields. The server sets this
     // only when it was asked for a post's values and could not read them, and it never
@@ -57,50 +104,60 @@ function PostAttributesChips({post, channel}: Props) {
         return null;
     }
 
-    const {shown, overflow} = allocateChipBudget(visible, MAX_VISIBLE_CHIPS);
-
     return (
-        <div
-            className='PostAttributesChips'
-            data-testid='post-attributes-chips'
-        >
-            {shown.map(({field, value, maxItems}) => (
-                <PropertyValueRenderer
-                    key={field.id}
-                    field={field}
-                    value={value}
-                    maxItems={maxItems}
-                />
-            ))}
-            {overflow > 0 && (
-
-                /*
-                 * `role='img'` rather than a bare span, because a span maps to the
-                 * `generic` role, which ARIA prohibits naming — `aria-label` on one is
-                 * non-conforming and announced inconsistently. The role also makes the
-                 * badge opaque to assistive technology, so the label replaces "+2"
-                 * rather than being read alongside it.
-                 */
-                <span
-                    className='PostAttributesChips__overflow'
-                    data-testid='post-attributes-overflow'
-                    role='img'
-                    aria-label={formatMessage(
-                        {
-                            id: 'post_attributes.chips.overflow_description',
-                            defaultMessage: '{count, plural, one {# more attribute} other {# more attributes}}',
-                        },
-                        {count: overflow},
-                    )}
-                >
-                    <FormattedMessage
-                        id='post_attributes.chips.overflow'
-                        defaultMessage='+{count, number}'
-                        values={{count: overflow}}
+        <>
+            <div
+                className='PostAttributesChips'
+                data-testid='post-attributes-chips'
+                ref={refs.setReference}
+                {...getReferenceProps()}
+            >
+                {shown.map(({field, value, maxItems}) => (
+                    <PropertyValueRenderer
+                        key={field.id}
+                        field={field}
+                        value={value}
+                        maxItems={maxItems}
                     />
-                </span>
+                ))}
+                {overflow > 0 && (
+
+                    /*
+                     * `role='img'` rather than a bare span, because a span maps to the
+                     * `generic` role, which ARIA prohibits naming — `aria-label` on one is
+                     * non-conforming and announced inconsistently. The role also makes the
+                     * badge opaque to assistive technology, so the label replaces "+2"
+                     * rather than being read alongside it.
+                     */
+                    <span
+                        className='PostAttributesChips__overflow'
+                        data-testid='post-attributes-overflow'
+                        role='img'
+                        aria-label={formatMessage(
+                            {
+                                id: 'post_attributes.chips.overflow_description',
+                                defaultMessage: '{count, plural, one {# more attribute} other {# more attributes}}',
+                            },
+                            {count: overflow},
+                        )}
+                    >
+                        <FormattedMessage
+                            id='post_attributes.chips.overflow'
+                            defaultMessage='+{count, number}'
+                            values={{count: overflow}}
+                        />
+                    </span>
+                )}
+            </div>
+            {open && (
+                <div
+                    ref={refs.setFloating}
+                    style={floatingStyles}
+                    data-testid='post-attributes-card'
+                    {...getFloatingProps()}
+                />
             )}
-        </div>
+        </>
     );
 }
 

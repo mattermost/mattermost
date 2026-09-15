@@ -3,23 +3,15 @@
 
 .PostAttributesChips {
     display: flex;
+
+    width: fit-content;
     max-width: 100%;
     flex-wrap: wrap;
     align-items: center;
 
-    padding: 0;
-    border: none;
-    appearance: none;
-    background: transparent;
-    font: inherit;
     gap: 4px;
     margin-block: 4px;
     text-align: start;
-
-    &:focus-visible {
-        outline: 2px solid var(--sidebar-text-active-border);
-        outline-offset: 2px;
-    }
 
     .SelectProperty,
     .TextProperty {

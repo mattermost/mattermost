@@ -7,7 +7,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
 import type {FieldType, PropertyField, PropertyValue} from '@mattermost/types/properties';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {act, fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 
 import PostAttributesChips from './post_attributes_chips';
 
@@ -697,6 +697,78 @@ describe('PostAttributesChips', () => {
 
             expect(screen.queryByTestId('post-attributes-unavailable')).not.toBeInTheDocument();
             expect(screen.getByText('SECRET')).toBeInTheDocument();
+        });
+    });
+
+    describe('the hover trigger', () => {
+        // The open delay is 300ms, so nothing here happens without controlling time.
+        beforeEach(() => {
+            jest.useFakeTimers();
+        });
+
+        afterEach(() => {
+            act(() => {
+                jest.runOnlyPendingTimers();
+            });
+            jest.useRealTimers();
+        });
+
+        function renderRow(postOverride: Post = post) {
+            renderWithContext(
+                <PostAttributesChips
+                    post={postOverride}
+                    channel={channel}
+                />,
+                makeState([makeField()], [makeValue()]),
+            );
+        }
+
+        function rest() {
+            act(() => {
+                jest.advanceTimersByTime(300);
+            });
+        }
+
+        test('opens the card once the pointer has rested on the row', () => {
+            renderRow();
+
+            expect(screen.queryByTestId('post-attributes-card')).not.toBeInTheDocument();
+
+            fireEvent.mouseEnter(screen.getByTestId('post-attributes-chips'));
+
+            // Still shut: the delay is what keeps the card from flashing as the
+            // pointer crosses the message list on its way somewhere else.
+            expect(screen.queryByTestId('post-attributes-card')).not.toBeInTheDocument();
+
+            rest();
+
+            expect(screen.getByTestId('post-attributes-card')).toBeInTheDocument();
+        });
+
+        test('closes the card when the pointer leaves the row', () => {
+            renderRow();
+
+            const row = screen.getByTestId('post-attributes-chips');
+
+            fireEvent.mouseEnter(row);
+            rest();
+            expect(screen.getByTestId('post-attributes-card')).toBeInTheDocument();
+
+            fireEvent.mouseLeave(row);
+
+            expect(screen.queryByTestId('post-attributes-card')).not.toBeInTheDocument();
+        });
+
+        test('gives the unavailable row no card at all', () => {
+            renderRow({id: POST_ID, metadata: {property_values_unavailable: true}} as Post);
+
+            const row = screen.getByTestId('post-attributes-chips-unavailable');
+
+            fireEvent.mouseEnter(row);
+            fireEvent.mouseMove(row);
+            rest();
+
+            expect(screen.queryByTestId('post-attributes-card')).not.toBeInTheDocument();
         });
     });
 });
