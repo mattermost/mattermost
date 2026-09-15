@@ -68,6 +68,7 @@ describe('components/MessageExportSettings', () => {
                     EmailAddress: 'globalRelay@mattermost.com',
                     CustomSMTPServerName: '',
                     CustomSMTPPort: '25',
+                    SenderAddress: '',
                 },
             },
         };
@@ -95,6 +96,7 @@ describe('components/MessageExportSettings', () => {
                     EmailAddress: 'globalRelay@mattermost.com',
                     CustomSMTPServerName: '',
                     CustomSMTPPort: '25',
+                    SenderAddress: '',
                 },
             },
         };
@@ -124,6 +126,7 @@ describe('components/MessageExportSettings', () => {
                     CustomSMTPPort: '25',
                     CustomHeaderName: 'X-ProofpointArchiveMediaType',
                     CustomHeaderValue: 'Message',
+                    SenderAddress: 'compliance-export@mattermost.com',
                 },
             },
         };
@@ -153,6 +156,7 @@ describe('components/MessageExportSettings', () => {
                     CustomSMTPPort: '25',
                     CustomHeaderName: 'X-ProofpointArchiveMediaType',
                     CustomHeaderValue: 'Message',
+                    SenderAddress: 'compliance-export@mattermost.com',
                 },
             },
         };
@@ -165,6 +169,36 @@ describe('components/MessageExportSettings', () => {
 
         expect(screen.getByTestId('globalRelayCustomHeaderNameinput')).toHaveValue('X-ProofpointArchiveMediaType');
         expect(screen.getByTestId('globalRelayCustomHeaderValueinput')).toHaveValue('Message');
+        expect(screen.getByTestId('globalRelaySenderAddressinput')).toHaveValue('compliance-export@mattermost.com');
+    });
+
+    test('should render the sender address field for non-CUSTOM customer types', () => {
+        const config = {
+            MessageExportSettings: {
+                EnableExport: true,
+                ExportFormat: 'globalrelay',
+                DailyRunTime: '01:00',
+                ExportFromTimestamp: 12345678,
+                BatchSize: 10000,
+                GlobalRelaySettings: {
+                    CustomerType: 'A10',
+                    SMTPUsername: 'globalRelayUser',
+                    SMTPPassword: 'globalRelayPassword',
+                    EmailAddress: 'globalRelay@mattermost.com',
+                    CustomSMTPServerName: '',
+                    CustomSMTPPort: '25',
+                    SenderAddress: 'compliance-export@mattermost.com',
+                },
+            },
+        };
+
+        renderWithContext(
+            <MessageExportSettingsDefault
+                config={config}
+            />,
+        );
+
+        expect(screen.getByTestId('globalRelaySenderAddressinput')).toHaveValue('compliance-export@mattermost.com');
     });
 
     test('should not render the custom header fields for non-CUSTOM customer types', () => {
@@ -184,6 +218,7 @@ describe('components/MessageExportSettings', () => {
                     CustomSMTPPort: '25',
                     CustomHeaderName: 'X-ProofpointArchiveMediaType',
                     CustomHeaderValue: 'Message',
+                    SenderAddress: '',
                 },
             },
         };
@@ -215,6 +250,7 @@ describe('components/MessageExportSettings', () => {
                     CustomSMTPPort: '25',
                     CustomHeaderName: '',
                     CustomHeaderValue: '',
+                    SenderAddress: '',
                 },
             },
         } as unknown as AdminConfig;
@@ -230,10 +266,12 @@ describe('components/MessageExportSettings', () => {
 
         fireEvent.change(screen.getByTestId('globalRelayCustomHeaderNameinput'), {target: {value: 'X-ProofpointArchiveMediaType'}});
         fireEvent.change(screen.getByTestId('globalRelayCustomHeaderValueinput'), {target: {value: 'Message'}});
+        fireEvent.change(screen.getByTestId('globalRelaySenderAddressinput'), {target: {value: 'compliance-export@mattermost.com'}});
 
         const savedConfig = ref.current!.getConfigFromState(config);
         expect(savedConfig.MessageExportSettings.GlobalRelaySettings.CustomHeaderName).toBe('X-ProofpointArchiveMediaType');
         expect(savedConfig.MessageExportSettings.GlobalRelaySettings.CustomHeaderValue).toBe('Message');
+        expect(savedConfig.MessageExportSettings.GlobalRelaySettings.SenderAddress).toBe('compliance-export@mattermost.com');
     });
 });
 
