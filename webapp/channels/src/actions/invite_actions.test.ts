@@ -131,7 +131,6 @@ describe('actions/invite_actions', () => {
         },
     });
 
-    // An inviter who may invite guests but may not add members to the team.
     const guestOnlyInviterStore = mockStore({
         entities: {
             general: {
@@ -165,6 +164,47 @@ describe('actions/invite_actions', () => {
                 roles: {
                     system_user: {permissions: []},
                     team_user: {permissions: [Permissions.INVITE_GUEST]},
+                },
+            },
+        },
+    });
+
+    // Grants add_user_to_team through a team role rather than a system role, so
+    // haveITeamPermission cannot resolve it without the team id.
+    const teamScopedInviterStore = mockStore({
+        entities: {
+            general: {
+                config: {
+                    DefaultClientLocale: 'en',
+                },
+            },
+            teams: {
+                teams: {
+                    correct: {id: 'correct'},
+                },
+                membersInTeam: {},
+                myMembers: {
+                    correct: TestHelper.getTeamMembershipMock({user_id: 'inviter', team_id: 'correct', roles: 'team_user team_admin'}),
+                },
+            },
+            channels: {
+                myMembers: {},
+                channels: {},
+                membersInChannel: {},
+            },
+            users: {
+                currentUserId: 'inviter',
+                profiles: {
+                    inviter: {
+                        roles: 'system_user',
+                    },
+                },
+            },
+            roles: {
+                roles: {
+                    system_user: {permissions: []},
+                    team_user: {permissions: [Permissions.INVITE_GUEST]},
+                    team_admin: {permissions: [Permissions.ADD_USER_TO_TEAM]},
                 },
             },
         },
@@ -564,10 +604,82 @@ describe('actions/invite_actions', () => {
             });
         });
 
-        it('should tell an inviter who cannot add members to contact an administrator', async () => {
+        it('should generate a failure pointing to an administrator for regular users when the inviter cannot add members', async () => {
+            const channels = [{id: 'correct'}] as Channel[];
+            const users = [
+                {id: 'user1', roles: 'system_user'},
+                {id: 'other-user', roles: 'system_user'},
+                {id: 'guest1', roles: 'system_guest'},
+            ] as UserProfile[];
+            const response = await guestOnlyInviterStore.dispatch(sendGuestsInvites('correct', channels, users, [], 'message'));
+            expect(response).toEqual({
+                data: {
+                    sent: [
+                        {
+                            reason: {
+                                id: 'invite.guests.new-member',
+                                defaultMessage: 'This guest has been added to the team and {count, plural, one {channel} other {channels}}.',
+                                values: {count: channels.length},
+                            },
+                            user: {
+                                id: 'guest1',
+                                roles: 'system_guest',
+                            },
+                        },
+                    ],
+                    notSent: [
+                        {
+                            reason: {
+                                id: 'invite.members.user-is-not-guest-no-permission',
+                                defaultMessage: 'This person is already a member of the workspace and cannot be invited as a guest. Please contact your system administrator to invite them as a member.',
+                            },
+                            user: {
+                                id: 'user1',
+                                roles: 'system_user',
+                            },
+                        },
+                        {
+                            reason: {
+                                id: 'invite.members.user-is-not-guest-no-permission',
+                                defaultMessage: 'This person is already a member of the workspace and cannot be invited as a guest. Please contact your system administrator to invite them as a member.',
+                            },
+                            user: {
+                                id: 'other-user',
+                                roles: 'system_user',
+                            },
+                        },
+                    ],
+                },
+            });
+        });
+
+        it('should keep the invite-as-member advice when the inviter may add members to the team', async () => {
             const channels = [{id: 'correct'}] as Channel[];
             const users = [{id: 'user1', roles: 'system_user'}] as UserProfile[];
-            const response = await guestOnlyInviterStore.dispatch(sendGuestsInvites('correct', channels, users, [], 'message'));
+            const response = await teamScopedInviterStore.dispatch(sendGuestsInvites('correct', channels, users, [], 'message'));
+            expect(response).toEqual({
+                data: {
+                    sent: [],
+                    notSent: [
+                        {
+                            reason: {
+                                id: 'invite.members.user-is-not-guest',
+                                defaultMessage: 'This person is already a member of the workspace. Invite them as a member instead of a guest.',
+                            },
+                            user: {
+                                id: 'user1',
+                                roles: 'system_user',
+                            },
+                        },
+                    ],
+                },
+            });
+        });
+
+        it('should generate a failure pointing to an administrator when the inviter has no membership in the invited team', async () => {
+            const channels = [{id: 'correct'}] as Channel[];
+            const users = [{id: 'user1', roles: 'system_user'}] as UserProfile[];
+            const response = await teamScopedInviterStore.dispatch(sendGuestsInvites('other-team', channels, users, [], 'message'));
             expect(response).toEqual({
                 data: {
                     sent: [],
@@ -580,30 +692,6 @@ describe('actions/invite_actions', () => {
                             user: {
                                 id: 'user1',
                                 roles: 'system_user',
-                            },
-                        },
-                    ],
-                },
-            });
-        });
-
-        it('should still invite actual guests when the inviter cannot add members', async () => {
-            const channels = [{id: 'correct'}] as Channel[];
-            const users = [{id: 'guest1', roles: 'system_guest'}] as UserProfile[];
-            const response = await guestOnlyInviterStore.dispatch(sendGuestsInvites('correct', channels, users, [], 'message'));
-            expect(response).toEqual({
-                data: {
-                    notSent: [],
-                    sent: [
-                        {
-                            reason: {
-                                id: 'invite.guests.new-member',
-                                defaultMessage: 'This guest has been added to the team and {count, plural, one {channel} other {channels}}.',
-                                values: {count: 1},
-                            },
-                            user: {
-                                id: 'guest1',
-                                roles: 'system_guest',
                             },
                         },
                     ],
