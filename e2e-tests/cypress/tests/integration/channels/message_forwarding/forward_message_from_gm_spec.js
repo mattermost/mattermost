@@ -95,7 +95,7 @@ describe('Forward Message', () => {
         cy.clickPostDotMenu(testPost.id);
 
         // * Assert availability of the Forward menu-item
-        cy.findByText('Forward').type('{shift}F');
+        cy.findByText('Forward').click();
 
         // # Forward Post
         forwardPostFromGM();
@@ -118,7 +118,7 @@ describe('Forward Message', () => {
         cy.clickPostDotMenu(replyPost.id, 'RHS_COMMENT');
 
         // * Assert availability of the Forward menu-item
-        cy.findByText('Forward').type('{shift}F');
+        cy.findByText('Forward').click();
 
         // # Forward Post
         forwardPostFromGM({comment: commentMessage});
@@ -138,7 +138,7 @@ describe('Forward Message', () => {
         cy.clickPostDotMenu(testPost.id);
 
         // * Assert availability of the Forward menu-item
-        cy.findByText('Forward').type('{shift}F');
+        cy.findByText('Forward').click();
 
         // # Forward Post
         forwardPostFromGM({cancel: true});
