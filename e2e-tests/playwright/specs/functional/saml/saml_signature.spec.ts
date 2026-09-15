@@ -16,27 +16,22 @@ test('MM-T3281 SAML login succeeds with signature algorithm RSAwithSHA256', {tag
     await pw.ensureKeycloak();
 
     const {adminClient} = await pw.getAdminClient();
-    const originalAlgorithm = (await adminClient.getConfig()).SamlSettings.SignatureAlgorithm;
-    try {
-        await adminClient.patchConfig({SamlSettings: {SignatureAlgorithm: 'RSAwithSHA256'}});
+    await adminClient.patchConfig({SamlSettings: {SignatureAlgorithm: 'RSAwithSHA256'}});
 
-        const keycloakUser = pw.generateKeycloakUser('samlsig256');
-        await pw.createKeycloakUser(keycloakUser);
+    const keycloakUser = pw.generateKeycloakUser('samlsig256');
+    await pw.createKeycloakUser(keycloakUser);
 
-        // # Log in through the SAML SSO button
-        await pw.hasSeenLandingPage();
-        await pw.loginPage.goto();
-        await pw.loginPage.toBeVisible();
-        await pw.loginPage.samlLoginButton.click();
-        await pw.keycloakLoginPage.login(keycloakUser.username, keycloakUser.password);
+    // # Log in through the SAML SSO button
+    await pw.hasSeenLandingPage();
+    await pw.loginPage.goto();
+    await pw.loginPage.toBeVisible();
+    await pw.loginPage.samlLoginButton.click();
+    await pw.keycloakLoginPage.login(keycloakUser.username, keycloakUser.password);
 
-        // * Verify the login succeeded
-        await pw.loginPage.expectNotOnLoginPage();
-        const provisionedUser = await adminClient.getUserByUsername(keycloakUser.username);
-        expect(provisionedUser.auth_service).toBe('saml');
-    } finally {
-        await adminClient.patchConfig({SamlSettings: {SignatureAlgorithm: originalAlgorithm}});
-    }
+    // * Verify the login succeeded
+    await pw.loginPage.expectNotOnLoginPage();
+    const provisionedUser = await adminClient.getUserByUsername(keycloakUser.username);
+    expect(provisionedUser.auth_service).toBe('saml');
 });
 
 /**
@@ -52,25 +47,20 @@ test('MM-T3281_2 SAML login succeeds with signature algorithm RSAwithSHA512', {t
     await pw.ensureKeycloak();
 
     const {adminClient} = await pw.getAdminClient();
-    const originalAlgorithm = (await adminClient.getConfig()).SamlSettings.SignatureAlgorithm;
-    try {
-        await adminClient.patchConfig({SamlSettings: {SignatureAlgorithm: 'RSAwithSHA512'}});
+    await adminClient.patchConfig({SamlSettings: {SignatureAlgorithm: 'RSAwithSHA512'}});
 
-        const keycloakUser = pw.generateKeycloakUser('samlsig512');
-        await pw.createKeycloakUser(keycloakUser);
+    const keycloakUser = pw.generateKeycloakUser('samlsig512');
+    await pw.createKeycloakUser(keycloakUser);
 
-        // # Log in through the SAML SSO button
-        await pw.hasSeenLandingPage();
-        await pw.loginPage.goto();
-        await pw.loginPage.toBeVisible();
-        await pw.loginPage.samlLoginButton.click();
-        await pw.keycloakLoginPage.login(keycloakUser.username, keycloakUser.password);
+    // # Log in through the SAML SSO button
+    await pw.hasSeenLandingPage();
+    await pw.loginPage.goto();
+    await pw.loginPage.toBeVisible();
+    await pw.loginPage.samlLoginButton.click();
+    await pw.keycloakLoginPage.login(keycloakUser.username, keycloakUser.password);
 
-        // * Verify the login succeeded
-        await pw.loginPage.expectNotOnLoginPage();
-        const provisionedUser = await adminClient.getUserByUsername(keycloakUser.username);
-        expect(provisionedUser.auth_service).toBe('saml');
-    } finally {
-        await adminClient.patchConfig({SamlSettings: {SignatureAlgorithm: originalAlgorithm}});
-    }
+    // * Verify the login succeeded
+    await pw.loginPage.expectNotOnLoginPage();
+    const provisionedUser = await adminClient.getUserByUsername(keycloakUser.username);
+    expect(provisionedUser.auth_service).toBe('saml');
 });
