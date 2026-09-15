@@ -4894,9 +4894,7 @@ components:
           items:
             type: string
           description: |
-            Permission actions to simulate (e.g. `upload_file_attachment`,
-            `download_file_attachment`, `channel_read_access`). At least one action
-            is required —
+            Permission actions to simulate. At least one action is required —
             the picker UX only makes sense once an action is in scope. The
             backend rejects empty arrays with `app.pap.simulate.missing_actions`
             (HTTP 400); `minItems` lets OpenAPI tooling catch that earlier

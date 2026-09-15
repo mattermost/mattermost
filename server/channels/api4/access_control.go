@@ -136,10 +136,18 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// Allow channel read access action only if the corresponding feature flag is enabled
-	if policy.HasChannelReadAccessAction() && !c.App.Config().FeatureFlags.IsChannelAccessABACPermissionEnabled() {
-		c.Err = model.NewAppError("createAccessControlPolicy", "api.access_control_policy.channel_read_access.feature_disabled", nil, "", http.StatusNotImplemented)
-		return
+	// Allow the channel-access actions only if the corresponding feature flag is
+	// enabled. Both share ChannelAccessABACPermission but report separately so the
+	// error names the action the caller actually sent.
+	if !c.App.Config().FeatureFlags.IsChannelAccessABACPermissionEnabled() {
+		if policy.HasAction(model.AccessControlPolicyActionChannelReadAccess) {
+			c.Err = model.NewAppError("createAccessControlPolicy", "api.access_control_policy.channel_read_access.feature_disabled", nil, "", http.StatusNotImplemented)
+			return
+		}
+		if policy.HasAction(model.AccessControlPolicyActionChannelWriteAccess) {
+			c.Err = model.NewAppError("createAccessControlPolicy", "api.access_control_policy.channel_write_access.feature_disabled", nil, "", http.StatusNotImplemented)
+			return
+		}
 	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventCreateAccessControlPolicy, model.AuditStatusFail)

@@ -48,6 +48,14 @@ var renderableABACActions = map[string]renderableActionConfig{
 			return cfg.FeatureFlags.IsChannelAccessABACPermissionEnabled()
 		},
 	},
+	model.AccessControlPolicyActionChannelWriteAccess: {
+		ResourceType:        model.AccessControlPolicyTypeChannel,
+		DefaultWhenInactive: true,
+		FailClosedOnError:   true,
+		Enabled: func(cfg *model.Config) bool {
+			return cfg.FeatureFlags.IsChannelAccessABACPermissionEnabled()
+		},
+	},
 }
 
 // renderableActionEnabled reports whether the action is available right now.

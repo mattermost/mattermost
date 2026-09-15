@@ -65,11 +65,19 @@ export const ACCESS_CONTROL_ACTION_MEMBERSHIP = 'membership';
 export const ACCESS_CONTROL_ACTION_UPLOAD_FILE = 'upload_file_attachment';
 export const ACCESS_CONTROL_ACTION_DOWNLOAD_FILE = 'download_file_attachment';
 export const ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS = 'channel_read_access';
+export const ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS = 'channel_write_access';
 
 export const ACCESS_CONTROL_PERMISSION_ACTIONS: string[] = [
     ACCESS_CONTROL_ACTION_UPLOAD_FILE,
     ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,
     ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
+    ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS,
+];
+
+// The channel-access actions share one feature flag, so pickers filter them together.
+export const ACCESS_CONTROL_CHANNEL_ACCESS_ACTIONS: string[] = [
+    ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
+    ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS,
 ];
 
 export const ACCESS_CONTROL_CHANNEL_ROLE_GUEST = 'channel_guest';

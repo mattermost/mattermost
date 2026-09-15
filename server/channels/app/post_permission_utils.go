@@ -112,6 +112,10 @@ func userCreatePostPermissionCheckWithApp(rctx request.CTX, a *App, userId, chan
 		return model.MakePermissionErrorForUser(userId, []*model.Permission{model.PermissionCreatePost})
 	}
 
+	if !a.HasChannelWriteAccessByID(rctx, userId, channelId) {
+		return model.MakePermissionErrorForUser(userId, []*model.Permission{model.PermissionCreatePost})
+	}
+
 	return nil
 }
 

@@ -52,6 +52,10 @@ func upsertDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !requireChannelWriteAccessByID(c, draft.ChannelId) {
+		return
+	}
+
 	dt, err := c.App.UpsertDraft(c.AppContext, &draft, connectionID)
 	if err != nil {
 		c.Err = err
