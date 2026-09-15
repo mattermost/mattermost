@@ -7,11 +7,13 @@ title: "Migrate from Slack"
 
 Mattermost provides a migration path from Slack so you can bring collaboration history into a self-hosted Mattermost environment. The recommended flow is:
 
-1. Export data from Slack (using Slack’s tools and documentation).
-2. Understand which export format you have (single workspace vs Enterprise Grid).
-3. Review what migrates and what does not.
-4. Transform the Slack export into a Mattermost bulk import package with [`mmetl`](https://github.com/mattermost/mmetl/releases/).
-5. Import that package into Mattermost using the [bulk loading](/administration-guide/onboard/bulk-loading-data) documentation.
+1. [Prepare your Mattermost environment](#1-prepare-your-mattermost-environment).
+2. [Export data from Slack](#2-export-your-data-from-slack) using Slack’s tools and documentation.
+3. [Understand which Slack export format you have](#3-understand-your-slack-export-format) (single workspace vs Enterprise Grid).
+4. [Review what migrates and what does not](#what-migrates--what-doesnt).
+5. [Transform the Slack export into a Mattermost bulk import package with `mmetl`](#5-transform-the-export-with-mmetl).
+6. [Handle multiple exports](#6-handle-multiple-exports), if applicable.
+7. [Package and import the data into Mattermost](#7-package-and-import-into-mattermost) using the [bulk loading](/administration-guide/onboard/bulk-loading-data) documentation.
 
 This is a *best effort* migration. Mattermost tools preserve the majority of messages, files, and workspace structure, but Slack and Mattermost differ architecturally, and manual adjustments are often required. Plan for days to weeks depending on export size and complexity. Always run a trial migration in a development or staging environment first.
 
@@ -63,7 +65,7 @@ This guide assumes you already have a Mattermost Server ready to accept data. If
 - **Configuration** before import:
   - [`TeamSettings.MaxChannelsPerTeam`](/administration-guide/configure/site-configuration-settings#max-channels-per-team): higher than the number of channels you will import.
   - [`TeamSettings.MaxUsersPerTeam`](/administration-guide/configure/site-configuration-settings#max-users-per-team): higher than the number of users you will import.
-  - [**Team Settings > Allow any user with an account on this server to join this team**](/end-user-guide/collaborate/team-settings#users-on-this-server): enabled for the destination team.
+  - [**Team Settings > Allow any user with an account on this server to join this team**](/end-user-guide/collaborate/team-settings#discoverability): enabled for the destination team.
   - [`EmailSettings.EnableSignUpWithEmail`](/administration-guide/configure/authentication-configuration-settings#enable-account-creation-with-email) and [`EmailSettings.EnableSignInWithEmail`](/administration-guide/configure/authentication-configuration-settings#enable-sign-in-with-email): both `true`.
   - [`FileSettings.MaxFileSize`](/administration-guide/configure/environment-configuration-settings#maximum-file-size): higher than the largest attachment in the Slack export.
   - [`ElasticsearchSettings.EnableIndexing`](/administration-guide/configure/environment-configuration-settings#enable-elasticsearch-indexing), [`EnableSearching`](/administration-guide/configure/environment-configuration-settings#enable-elasticsearch-for-search-queries), and [`EnableAutocomplete`](/administration-guide/configure/environment-configuration-settings#enable-elasticsearch-for-autocomplete-queries): set to `false` during import. Purge and reindex after import if you use Elasticsearch.
@@ -81,7 +83,7 @@ Slack offers two common export types:
 1. **Public channels export**: Public channel messages and file links. Available on all Slack plans.
 2. **All channels and conversations export**: Public channels, private channels, DMs, and group messages. Available on Business+ (application required) and Enterprise Grid.
 
-Workspaces on the Slack Free plan can only export file links from the last 90 days.
+Slack Free plan exports include messages and file links from public channels, but only file links from the last 90 days are included.
 
 <Important>
 
@@ -174,7 +176,7 @@ Enterprise Grid Export/
 └── groups.json
 ```
 
-Shared channels often appear at the root; per-workspace data lives under `/teams/`. Grid migrations usually take more time because of manual team mapping. See [Transform an Enterprise Grid export](#transform-an-enterprise-grid-export).
+Shared channels often appear at the root; per-workspace data lives under `/teams/`. Grid migrations usually take more time because of manual team mapping. See [Transform an Enterprise Grid export](#transform-an-enterprise-grid-export-optional).
 
 ## 4. What migrates / What doesn’t \{#what-migrates--what-doesnt}
 
@@ -184,7 +186,7 @@ For basic content (posts, reactions, threads, attachments, and users), expect be
 
 | Content type | Migrates? | Notes |
 | --- | --- | --- |
-| Posts and threads | Yes | Most message types and thread replies migrate; some unsupported Slack subtypes are skipped, and some thread relationships may not preserve |
+| Posts and threads | Yes | Most message types and thread replies migrate; some unsupported Slack subtypes are skipped, and some thread relationships may not be preserved |
 | File attachments | Yes | Included unless you pass `--skip-attachments`. Oversized messages split into replies; more than five attachments on a post overflow into additional replies |
 | Reactions | Yes | Stored by emoji name. Custom emoji **images** are not imported automatically (see [Custom emoji](#custom-emoji)) |
 | Users | Yes | Created by the import. Missing emails: see [User emails](#user-emails). Guests: see [Guest users](#guest-users) |
@@ -581,7 +583,7 @@ Slack may have changed the export format. Update `mmetl` from [GitHub Releases](
 
 ### What additional considerations are there for Slack Enterprise Grid?
 
-Use `mmetl grid-transform` with a `teams.json` map, then transform each workspace archive separately. Shared channels must land in a single Mattermost team. See [Enterprise Grid exports](#enterprise-grid-exports).
+Use `mmetl grid-transform` to split the archive, then transform each workspace archive separately. `grid-transform` infers workspace IDs from the `teams/<name>/` folders; pass `--team-map-path teams.json` only if inference fails. Shared channels must land in a single Mattermost team. See [Enterprise Grid exports](#enterprise-grid-exports).
 
 ### Are there features of Slack that are not supported?
 
