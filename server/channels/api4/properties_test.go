@@ -357,7 +357,7 @@ func TestCreatePropertyField(t *testing.T) {
 		require.Equal(t, model.PermissionLevelMember, *createdField.PermissionOptions)
 	})
 
-	t.Run("admin should get default member permissions when not specified", func(t *testing.T) {
+	t.Run("admin should get sysadmin defaults on a system target when not specified", func(t *testing.T) {
 		field := &model.PropertyField{
 			Name:       model.NewId(),
 			Type:       model.PropertyFieldTypeText,
@@ -368,13 +368,60 @@ func TestCreatePropertyField(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 
-		// Admin with no permissions specified should get member defaults
+		// On a system target the member level means "any authenticated user",
+		// so all three slots default to sysadmin: a globally scoped field must
+		// not be renameable, retypeable, deletable or writable by everyone.
+		// A caller that wants members to write values pins permission_values
+		// explicitly.
+		require.NotNil(t, createdField.PermissionField)
+		require.Equal(t, model.PermissionLevelSysadmin, *createdField.PermissionField)
+		require.NotNil(t, createdField.PermissionValues)
+		require.Equal(t, model.PermissionLevelSysadmin, *createdField.PermissionValues)
+		require.NotNil(t, createdField.PermissionOptions)
+		require.Equal(t, model.PermissionLevelSysadmin, *createdField.PermissionOptions)
+	})
+
+	t.Run("admin should get member defaults on a channel target when not specified", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "channel",
+			TargetID:   th.BasicChannel.Id,
+		}
+
+		createdField, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "post", field)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		// A narrower target keeps the object type default on all three slots:
+		// the member level there resolves to channel membership, not everyone.
 		require.NotNil(t, createdField.PermissionField)
 		require.Equal(t, model.PermissionLevelMember, *createdField.PermissionField)
 		require.NotNil(t, createdField.PermissionValues)
 		require.Equal(t, model.PermissionLevelMember, *createdField.PermissionValues)
 		require.NotNil(t, createdField.PermissionOptions)
 		require.Equal(t, model.PermissionLevelMember, *createdField.PermissionOptions)
+	})
+
+	t.Run("explicit permission levels are not upgraded on a system target", func(t *testing.T) {
+		memberLevel := model.PermissionLevelMember
+		field := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeSelect,
+			TargetType:        "system",
+			PermissionOptions: &memberLevel,
+		}
+
+		createdField, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "post", field)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		// A sysadmin who deliberately pins a slot keeps it: the schema default
+		// only fills slots the caller left nil.
+		require.NotNil(t, createdField.PermissionOptions)
+		require.Equal(t, model.PermissionLevelMember, *createdField.PermissionOptions)
+		require.NotNil(t, createdField.PermissionField)
+		require.Equal(t, model.PermissionLevelSysadmin, *createdField.PermissionField)
 	})
 
 	t.Run("admin should keep custom permissions when specified", func(t *testing.T) {
@@ -424,6 +471,305 @@ func TestCreatePropertyField(t *testing.T) {
 		require.Equal(t, model.PermissionLevelAdmin, *createdField.PermissionValues)
 		require.NotNil(t, createdField.PermissionOptions)
 		require.Equal(t, model.PermissionLevelAdmin, *createdField.PermissionOptions)
+	})
+
+	t.Run("scope admin may pin permission levels", func(t *testing.T) {
+		// promote th.BasicUser to be a channel admin of th.BasicChannel
+		_, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser.Id,
+			model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
+		require.Nil(t, appErr)
+		t.Cleanup(func() {
+			_, _ = th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser.Id, model.ChannelUserRoleId)
+		})
+		th.LoginBasic(t)
+
+		adminLevel := model.PermissionLevelAdmin
+		memberLevel := model.PermissionLevelMember
+		sysadminLevel := model.PermissionLevelSysadmin
+		noneLevel := model.PermissionLevelNone
+
+		channelField := func() *model.PropertyField {
+			return &model.PropertyField{
+				Name:       model.NewId(),
+				Type:       model.PropertyFieldTypeText,
+				TargetType: "channel",
+				TargetID:   th.BasicChannel.Id,
+			}
+		}
+
+		t.Run("channel admin pins admin on a channel-scoped field", func(t *testing.T) {
+			field := channelField()
+			field.PermissionField = &adminLevel
+			field.PermissionValues = &memberLevel
+			field.PermissionOptions = &adminLevel
+
+			created, resp, err := th.Client.CreatePropertyField(context.Background(), group.Name, "post", field)
+			require.NoError(t, err)
+			CheckCreatedStatus(t, resp)
+
+			require.Equal(t, model.PermissionLevelAdmin, *created.PermissionField)
+			require.Equal(t, model.PermissionLevelMember, *created.PermissionValues)
+			require.Equal(t, model.PermissionLevelAdmin, *created.PermissionOptions)
+		})
+
+		t.Run("omitted slots are default-filled", func(t *testing.T) {
+			field := channelField()
+			field.PermissionField = &adminLevel
+
+			created, resp, err := th.Client.CreatePropertyField(context.Background(), group.Name, "post", field)
+			require.NoError(t, err)
+			CheckCreatedStatus(t, resp)
+
+			require.Equal(t, model.PermissionLevelAdmin, *created.PermissionField)
+			require.Equal(t, model.PermissionLevelMember, *created.PermissionValues)
+			require.Equal(t, model.PermissionLevelMember, *created.PermissionOptions)
+		})
+
+		t.Run("pinning sysadmin on permission_field is refused", func(t *testing.T) {
+			field := channelField()
+			field.PermissionField = &sysadminLevel
+
+			_, resp, err := th.Client.CreatePropertyField(context.Background(), group.Name, "post", field)
+			require.Error(t, err)
+			CheckForbiddenStatus(t, resp)
+			CheckErrorID(t, err, "api.property_field.create.creator_cannot_edit.app_error")
+		})
+
+		t.Run("sysadmin and none are allowed on the values and options slots", func(t *testing.T) {
+			for name, tc := range map[string]struct {
+				values  *model.PermissionLevel
+				options *model.PermissionLevel
+			}{
+				"values sysadmin":  {values: &sysadminLevel},
+				"options sysadmin": {options: &sysadminLevel},
+				"values none":      {values: &noneLevel},
+				"options none":     {options: &noneLevel},
+			} {
+				t.Run(name, func(t *testing.T) {
+					field := channelField()
+					field.PermissionField = &adminLevel
+					field.PermissionValues = tc.values
+					field.PermissionOptions = tc.options
+
+					created, resp, err := th.Client.CreatePropertyField(context.Background(), group.Name, "post", field)
+					require.NoError(t, err)
+					CheckCreatedStatus(t, resp)
+
+					if tc.values != nil {
+						require.Equal(t, *tc.values, *created.PermissionValues)
+					}
+					if tc.options != nil {
+						require.Equal(t, *tc.options, *created.PermissionOptions)
+					}
+				})
+			}
+		})
+
+		t.Run("permission_field none is refused", func(t *testing.T) {
+			// none means nobody can edit, so the anti-lockout check catches it
+			// and returns 403.
+			field := channelField()
+			field.PermissionField = &noneLevel
+
+			_, resp, err := th.Client.CreatePropertyField(context.Background(), group.Name, "post", field)
+			require.Error(t, err)
+			CheckForbiddenStatus(t, resp)
+			CheckErrorID(t, err, "api.property_field.create.creator_cannot_edit.app_error")
+		})
+
+		t.Run("sysadmin submitting permission_field none is refused the same way", func(t *testing.T) {
+			// Pins the status-code change for system admins too.
+			field := channelField()
+			field.TargetType = "system"
+			field.TargetID = ""
+			field.PermissionField = &noneLevel
+
+			_, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "post", field)
+			require.Error(t, err)
+			CheckForbiddenStatus(t, resp)
+			CheckErrorID(t, err, "api.property_field.create.creator_cannot_edit.app_error")
+		})
+	})
+
+	t.Run("plain channel member still has levels silently defaulted", func(t *testing.T) {
+		// th.BasicUser2 is a plain member of th.BasicChannel and is never
+		// promoted, so this pins the unchanged non-scope-admin behaviour.
+		th.LoginBasic2(t)
+		t.Cleanup(func() { th.LoginBasic(t) })
+
+		sysadminLevel := model.PermissionLevelSysadmin
+		field := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			TargetType:        "channel",
+			TargetID:          th.BasicChannel.Id,
+			PermissionField:   &sysadminLevel,
+			PermissionValues:  &sysadminLevel,
+			PermissionOptions: &sysadminLevel,
+		}
+
+		created, resp, err := th.Client.CreatePropertyField(context.Background(), group.Name, "post", field)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		require.Equal(t, model.PermissionLevelMember, *created.PermissionField)
+		require.Equal(t, model.PermissionLevelMember, *created.PermissionValues)
+		require.Equal(t, model.PermissionLevelMember, *created.PermissionOptions)
+	})
+
+	t.Run("team admin may pin on a team-scoped field", func(t *testing.T) {
+		th.LoginTeamAdmin(t)
+		t.Cleanup(func() { th.LoginBasic(t) })
+
+		adminLevel := model.PermissionLevelAdmin
+		field := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			TargetType:        "team",
+			TargetID:          th.BasicTeam.Id,
+			PermissionField:   &adminLevel,
+			PermissionValues:  &adminLevel,
+			PermissionOptions: &adminLevel,
+		}
+
+		created, resp, err := th.Client.CreatePropertyField(context.Background(), group.Name, "post", field)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		require.Equal(t, model.PermissionLevelAdmin, *created.PermissionField)
+		require.Equal(t, model.PermissionLevelAdmin, *created.PermissionValues)
+		require.Equal(t, model.PermissionLevelAdmin, *created.PermissionOptions)
+	})
+
+	t.Run("DM participants may pin on a DM-scoped field", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		dm, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+
+		adminLevel := model.PermissionLevelAdmin
+		sysadminLevel := model.PermissionLevelSysadmin
+
+		t.Run("admin is honoured", func(t *testing.T) {
+			field := &model.PropertyField{
+				Name:              model.NewId(),
+				Type:              model.PropertyFieldTypeText,
+				TargetType:        "channel",
+				TargetID:          dm.Id,
+				PermissionField:   &adminLevel,
+				PermissionValues:  &adminLevel,
+				PermissionOptions: &adminLevel,
+			}
+
+			created, resp, err := th.Client.CreatePropertyField(context.Background(), group.Name, "post", field)
+			require.NoError(t, err)
+			CheckCreatedStatus(t, resp)
+			require.Equal(t, model.PermissionLevelAdmin, *created.PermissionField)
+		})
+
+		t.Run("sysadmin is still refused", func(t *testing.T) {
+			field := &model.PropertyField{
+				Name:            model.NewId(),
+				Type:            model.PropertyFieldTypeText,
+				TargetType:      "channel",
+				TargetID:        dm.Id,
+				PermissionField: &sysadminLevel,
+			}
+
+			_, resp, err := th.Client.CreatePropertyField(context.Background(), group.Name, "post", field)
+			require.Error(t, err)
+			CheckForbiddenStatus(t, resp)
+			CheckErrorID(t, err, "api.property_field.create.creator_cannot_edit.app_error")
+		})
+	})
+
+	t.Run("linked fields inherit the source template's permission levels", func(t *testing.T) {
+		// The App layer replaces a linked field's levels with the source
+		// template's, so the submitted levels never take effect. That is why
+		// linked fields are exempt from the anti-lockout check: validating the
+		// caller against a level that will be discarded would be meaningless.
+		//
+		// th.BasicUser must be a channel admin here: the anti-lockout check
+		// only runs for callers who may pin, so a plain member would exercise
+		// the silent-default path instead of the exemption.
+		_, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser.Id,
+			model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
+		require.Nil(t, appErr)
+		t.Cleanup(func() {
+			_, _ = th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser.Id, model.ChannelUserRoleId)
+		})
+		th.LoginBasic(t)
+
+		adminLevel := model.PermissionLevelAdmin
+		memberLevel := model.PermissionLevelMember
+		sysadminLevel := model.PermissionLevelSysadmin
+
+		// Templates are created through the App layer, which applies no pin
+		// logic, so the source's levels are exactly as specified here.
+		newTemplate := func(t *testing.T, field, values, options model.PermissionLevel) string {
+			t.Helper()
+			source, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+				Name:              model.NewId(),
+				Type:              model.PropertyFieldTypeText,
+				GroupID:           group.ID,
+				ObjectType:        model.PropertyFieldObjectTypeTemplate,
+				TargetType:        "channel",
+				TargetID:          th.BasicChannel.Id,
+				PermissionField:   &field,
+				PermissionValues:  &values,
+				PermissionOptions: &options,
+			}, false, "")
+			require.Nil(t, appErr)
+			return source.ID
+		}
+
+		t.Run("a pin the caller cannot satisfy is accepted, not refused", func(t *testing.T) {
+			// sysadmin is a level this channel admin cannot satisfy, so a 201
+			// here can only mean the anti-lockout check was skipped.
+			sourceID := newTemplate(t, sysadminLevel, sysadminLevel, sysadminLevel)
+			created, resp, err := th.Client.CreatePropertyField(context.Background(), group.Name, "post", &model.PropertyField{
+				Name:              model.NewId(),
+				Type:              model.PropertyFieldTypeText,
+				TargetType:        "channel",
+				TargetID:          th.BasicChannel.Id,
+				LinkedFieldID:     &sourceID,
+				PermissionField:   &sysadminLevel,
+				PermissionValues:  &memberLevel,
+				PermissionOptions: &memberLevel,
+			})
+			require.NoError(t, err)
+			CheckCreatedStatus(t, resp)
+
+			// The creator is locked out by design: they cannot edit or delete
+			// the field they just created.
+			require.Equal(t, model.PermissionLevelSysadmin, *created.PermissionField)
+			require.Equal(t, model.PermissionLevelSysadmin, *created.PermissionValues)
+			require.Equal(t, model.PermissionLevelSysadmin, *created.PermissionOptions)
+		})
+
+		t.Run("every slot comes from the source, not the request", func(t *testing.T) {
+			// The three source levels are distinct from each other and each
+			// differs from what the request submits, so this fails if any slot
+			// is left as submitted, copied from the wrong slot, or collapsed to
+			// a single value.
+			sourceID := newTemplate(t, adminLevel, sysadminLevel, memberLevel)
+			created, resp, err := th.Client.CreatePropertyField(context.Background(), group.Name, "post", &model.PropertyField{
+				Name:              model.NewId(),
+				Type:              model.PropertyFieldTypeText,
+				TargetType:        "channel",
+				TargetID:          th.BasicChannel.Id,
+				LinkedFieldID:     &sourceID,
+				PermissionField:   &memberLevel,
+				PermissionValues:  &adminLevel,
+				PermissionOptions: &sysadminLevel,
+			})
+			require.NoError(t, err)
+			CheckCreatedStatus(t, resp)
+
+			require.Equal(t, model.PermissionLevelAdmin, *created.PermissionField)
+			require.Equal(t, model.PermissionLevelSysadmin, *created.PermissionValues)
+			require.Equal(t, model.PermissionLevelMember, *created.PermissionOptions)
+		})
 	})
 
 	t.Run("invalid group name should fail", func(t *testing.T) {
@@ -1990,6 +2336,165 @@ func TestPatchPropertyField(t *testing.T) {
 		CheckUnauthorizedStatus(t, resp)
 	})
 
+	// Regression: a field with object_type post + target_type system and
+	// omitted permission levels used to default all three slots to member, and
+	// member on a system target resolves to "any authenticated user". That let
+	// anyone rename, retype or re-option a globally scoped field, and a type
+	// change cascade-deletes every value through TypeChangeValueCleanupHook.
+	t.Run("plain member cannot edit a system-scoped field created with default levels", func(t *testing.T) {
+		created, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "post", &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, created.PermissionField)
+		require.Equal(t, model.PermissionLevelSysadmin, *created.PermissionField)
+
+		newName := model.NewId()
+		_, resp, err = th.Client.PatchPropertyField(context.Background(), group.Name, "post", created.ID, &model.PropertyFieldPatch{Name: &newName})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		// The sysadmin who administers the scope still can, so the denial above
+		// is the permission level and not a broken patch route.
+		patched, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "post", created.ID, &model.PropertyFieldPatch{Name: &newName})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, newName, patched.Name)
+	})
+
+	t.Run("plain member cannot manage options on a system-scoped field created with default levels", func(t *testing.T) {
+		// The options-only branch dispatches to
+		// SessionHasPermissionToManagePropertyFieldOptions rather than the
+		// field-edit check, so it needs covering separately.
+		created, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "post", &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			TargetType: "system",
+			Attrs: model.StringInterface{
+				"options": []map[string]any{{"id": model.NewId(), "name": "first", "color": "#111111"}},
+			},
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, created.PermissionOptions)
+		require.Equal(t, model.PermissionLevelSysadmin, *created.PermissionOptions)
+
+		patch := &model.PropertyFieldPatch{Attrs: &model.StringInterface{
+			"options": []map[string]any{
+				{"id": model.NewId(), "name": "first", "color": "#111111"},
+				{"id": model.NewId(), "name": "second", "color": "#222222"},
+			},
+		}}
+		_, resp, err = th.Client.PatchPropertyField(context.Background(), group.Name, "post", created.ID, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("DM participant can manage options on a field pinned to admin", func(t *testing.T) {
+		// A DM has no channel-admin tier, so admin resolves to participation.
+		// This covers the options-only branch specifically: it dispatches to
+		// SessionHasPermissionToManagePropertyFieldOptions rather than the
+		// field-edit check (see isOptionsOnlyPatch in properties.go).
+		dm, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+
+		adminLevel := model.PermissionLevelAdmin
+		field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			GroupID:    group.ID,
+			ObjectType: "post",
+			TargetType: "channel",
+			TargetID:   dm.Id,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []map[string]any{{"id": model.NewId(), "name": "first"}},
+			},
+			PermissionField:   &adminLevel,
+			PermissionValues:  &adminLevel,
+			PermissionOptions: &adminLevel,
+		}, false, "")
+		require.Nil(t, appErr)
+
+		optionsPatch := func() *model.PropertyFieldPatch {
+			return &model.PropertyFieldPatch{Attrs: &model.StringInterface{
+				model.PropertyFieldAttributeOptions: []map[string]any{{"id": model.NewId(), "name": model.NewId()}},
+			}}
+		}
+
+		th.LoginBasic(t)
+		_, resp, err := th.Client.PatchPropertyField(context.Background(), group.Name, "post", field.ID, optionsPatch())
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		nonParticipant := th.CreateUser(t)
+		th.LinkUserToTeam(t, nonParticipant, th.BasicTeam)
+		nonParticipantClient := th.CreateClient()
+		_, _, err = nonParticipantClient.Login(context.Background(), nonParticipant.Email, nonParticipant.Password)
+		require.NoError(t, err)
+
+		_, resp, err = nonParticipantClient.PatchPropertyField(context.Background(), group.Name, "post", field.ID, optionsPatch())
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("patch cannot move a field to another scope", func(t *testing.T) {
+		// A field's scope decides who may administer it, so if patch could
+		// reparent a field, a channel admin could pin levels on a channel they
+		// administer and then move the result somewhere they do not. The
+		// handler defends this by discarding patch.TargetID/TargetType
+		// outright; nothing else enforces it, so assert it directly.
+		_, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser.Id,
+			model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
+		require.Nil(t, appErr)
+		t.Cleanup(func() {
+			_, _ = th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser.Id, model.ChannelUserRoleId)
+		})
+		th.LoginBasic(t)
+
+		adminLevel := model.PermissionLevelAdmin
+		created, resp, err := th.Client.CreatePropertyField(context.Background(), group.Name, "post", &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			TargetType:        "channel",
+			TargetID:          th.BasicChannel.Id,
+			PermissionField:   &adminLevel,
+			PermissionValues:  &adminLevel,
+			PermissionOptions: &adminLevel,
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.Equal(t, model.PermissionLevelAdmin, *created.PermissionField)
+
+		// th.BasicChannel2 is a channel th.BasicUser belongs to but does not
+		// administer, which is the reparenting that would actually gain them
+		// something.
+		for name, patch := range map[string]*model.PropertyFieldPatch{
+			"to a channel they do not administer": {TargetID: model.NewPointer(th.BasicChannel2.Id)},
+			"to team scope":                       {TargetType: model.NewPointer("team"), TargetID: model.NewPointer(th.BasicTeam.Id)},
+			"to system scope":                     {TargetType: model.NewPointer("system"), TargetID: model.NewPointer("")},
+		} {
+			t.Run(name, func(t *testing.T) {
+				patched, resp, err := th.Client.PatchPropertyField(context.Background(), group.Name, "post", created.ID, patch)
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+
+				// The patch succeeds but the scope fields are ignored.
+				require.Equal(t, "channel", patched.TargetType)
+				require.Equal(t, th.BasicChannel.Id, patched.TargetID)
+			})
+		}
+
+		// Confirm the scope is unchanged in storage, not merely in the
+		// responses above.
+		stored, appErr := th.App.GetPropertyField(th.Context, group.ID, created.ID)
+		require.Nil(t, appErr)
+		require.Equal(t, "channel", stored.TargetType)
+		require.Equal(t, th.BasicChannel.Id, stored.TargetID)
+	})
+
 	t.Run("protected field update should fail", func(t *testing.T) {
 		protectedField := &model.PropertyField{
 			Name:              model.NewId(),
@@ -2637,6 +3142,30 @@ func TestDeletePropertyField(t *testing.T) {
 		CheckUnauthorizedStatus(t, resp)
 	})
 
+	// Regression: the member default on a system target let any authenticated
+	// user delete a globally scoped field. See the matching cases in
+	// TestPatchPropertyField and TestCreatePropertyField.
+	t.Run("plain member cannot delete a system-scoped field created with default levels", func(t *testing.T) {
+		created, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "post", &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, created.PermissionField)
+		require.Equal(t, model.PermissionLevelSysadmin, *created.PermissionField)
+
+		resp, err = th.Client.DeletePropertyField(context.Background(), group.Name, "post", created.ID)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		// The sysadmin who administers the scope still can.
+		resp, err = th.SystemAdminClient.DeletePropertyField(context.Background(), group.Name, "post", created.ID)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+
 	t.Run("protected field delete should fail", func(t *testing.T) {
 		protectedField := &model.PropertyField{
 			Name:              model.NewId(),
@@ -2699,6 +3228,47 @@ func TestDeletePropertyField(t *testing.T) {
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 		require.Equal(t, "app.property.not_found.app_error", err.(*model.AppError).Id)
+	})
+
+	t.Run("DM participant can delete a field pinned to admin", func(t *testing.T) {
+		// Delete is gated on PermissionField, so a DM participant who pins
+		// admin must still be able to remove their own field — this is the
+		// delete-and-recreate recovery path for a mis-provisioned field.
+		dm, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+
+		adminLevel := model.PermissionLevelAdmin
+		newDMField := func(t *testing.T) *model.PropertyField {
+			t.Helper()
+			field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+				Name:              model.NewId(),
+				Type:              model.PropertyFieldTypeText,
+				GroupID:           group.ID,
+				ObjectType:        "post",
+				TargetType:        "channel",
+				TargetID:          dm.Id,
+				PermissionField:   &adminLevel,
+				PermissionValues:  &adminLevel,
+				PermissionOptions: &adminLevel,
+			}, false, "")
+			require.Nil(t, appErr)
+			return field
+		}
+
+		nonParticipant := th.CreateUser(t)
+		th.LinkUserToTeam(t, nonParticipant, th.BasicTeam)
+		nonParticipantClient := th.CreateClient()
+		_, _, err := nonParticipantClient.Login(context.Background(), nonParticipant.Email, nonParticipant.Password)
+		require.NoError(t, err)
+
+		resp, err := nonParticipantClient.DeletePropertyField(context.Background(), group.Name, "post", newDMField(t).ID)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		th.LoginBasic(t)
+		resp, err = th.Client.DeletePropertyField(context.Background(), group.Name, "post", newDMField(t).ID)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 	})
 
 	t.Run("user without permission should not be able to delete", func(t *testing.T) {
@@ -3194,6 +3764,49 @@ func TestPatchPropertyValues(t *testing.T) {
 		_, resp, err := client.PatchPropertyValues(context.Background(), group.Name, "post", targetID, items)
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
+	})
+
+	// A system target defaults every slot to sysadmin, values included, so a
+	// field created with omitted levels is sysadmin-only end to end. Callers
+	// that want members to write values must pin permission_values themselves.
+	t.Run("member cannot set values on a system-scoped field created with default levels", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		created, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "post", &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, created.PermissionValues)
+		require.Equal(t, model.PermissionLevelSysadmin, *created.PermissionValues)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: created.ID, Value: json.RawMessage(`"annotated"`)},
+		}
+		_, resp, err = th.Client.PatchPropertyValues(context.Background(), group.Name, "post", targetID, items)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		// A field that pins permission_values to member stays writable, which
+		// is the shape a caller uses when members should annotate objects.
+		memberValues, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "post", &model.PropertyField{
+			Name:             model.NewId(),
+			Type:             model.PropertyFieldTypeText,
+			TargetType:       "system",
+			PermissionValues: &memberLevel,
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.Equal(t, model.PermissionLevelMember, *memberValues.PermissionValues)
+
+		values, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "post", targetID, []model.PropertyValuePatchItem{
+			{FieldID: memberValues.ID, Value: json.RawMessage(`"annotated"`)},
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, values, 1)
 	})
 
 	t.Run("member can set values on field with values permission member", func(t *testing.T) {
