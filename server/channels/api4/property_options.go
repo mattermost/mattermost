@@ -64,6 +64,28 @@ func propertyFieldForOptions(c *Context, callerName string) (*model.PropertyFiel
 		return nil, nil
 	}
 
+	// Best-effort: this catches a template a channel field links to directly.
+	// A linked field may not itself be a link target, so a chain cannot hide
+	// the template; dependents still come and go, so the answer is only as
+	// good as this moment.
+	if group.Name == model.AccessControlPropertyGroupName &&
+		field.ObjectType == model.PropertyFieldObjectTypeTemplate &&
+		!model.MinimumEnterpriseAdvancedLicense(c.App.License()) {
+		dependents, searchErr := c.App.SearchPropertyFields(rctx, group.ID, model.PropertyFieldSearchOpts{
+			ObjectTypes:   []string{model.PropertyFieldObjectTypeChannel},
+			LinkedFieldID: field.ID,
+			PerPage:       1,
+		})
+		if searchErr != nil {
+			c.Err = searchErr
+			return nil, nil
+		}
+		if len(dependents) > 0 {
+			c.Err = model.NewAppError(callerName, "api.property.channel_attributes.license.app_error", nil, "", http.StatusNotImplemented)
+			return nil, nil
+		}
+	}
+
 	return field, rctx
 }
 
