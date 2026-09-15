@@ -144,6 +144,28 @@ func (a *App) isUniqueToUsernames(val string) *model.AppError {
 	return nil
 }
 
+func (a *App) publishReceivedGroupEvent(group *model.Group) *model.AppError {
+	groupJSON, jsonErr := json.Marshal(group)
+	if jsonErr != nil {
+		return model.NewAppError("publishReceivedGroupEvent", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+	}
+
+	messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil, "")
+	messageWs.Add("group", string(groupJSON))
+
+	if !group.AllowReference {
+		restrictBroadcastToGroupReaders(messageWs.GetBroadcast())
+	}
+	a.Publish(messageWs)
+
+	return nil
+}
+
+func restrictBroadcastToGroupReaders(broadcast *model.WebsocketBroadcast) {
+	broadcast.RequiredPermissions = []string{model.PermissionSysconsoleReadUserManagementGroups.Id}
+	broadcast.ContainsSensitiveData = true
+}
+
 func (a *App) CreateGroupWithUserIds(group *model.GroupWithUserIds) (*model.Group, *model.AppError) {
 	if appErr := a.isUniqueToUsernames(group.GetName()); appErr != nil {
 		appErr.Where = "CreateGroupWithUserIds"
@@ -167,18 +189,16 @@ func (a *App) CreateGroupWithUserIds(group *model.GroupWithUserIds) (*model.Grou
 		}
 	}
 
-	messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil, "")
 	count, err := a.Srv().Store().Group().GetMemberCount(newGroup.Id)
 	if err != nil {
 		return nil, model.NewAppError("CreateGroupWithUserIds", "app.group.id.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 	newGroup.MemberCount = new(int(count))
-	groupJSON, jsonErr := json.Marshal(newGroup)
-	if jsonErr != nil {
-		return nil, model.NewAppError("CreateGroupWithUserIds", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+
+	if appErr := a.publishReceivedGroupEvent(newGroup); appErr != nil {
+		appErr.Where = "CreateGroupWithUserIds"
+		return nil, appErr
 	}
-	messageWs.Add("group", string(groupJSON))
-	a.Publish(messageWs)
 
 	return newGroup, nil
 }
@@ -212,14 +232,11 @@ func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
 	}
 
 	updatedGroup.MemberCount = new(int(count))
-	messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil, "")
 
-	groupJSON, err := json.Marshal(updatedGroup)
-	if err != nil {
-		return nil, model.NewAppError("UpdateGroup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	if appErr := a.publishReceivedGroupEvent(updatedGroup); appErr != nil {
+		appErr.Where = "UpdateGroup"
+		return nil, appErr
 	}
-	messageWs.Add("group", string(groupJSON))
-	a.Publish(messageWs)
 
 	return updatedGroup, nil
 }
@@ -243,14 +260,10 @@ func (a *App) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
 
 	deletedGroup.MemberCount = new(int(count))
 
-	messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil, "")
-
-	groupJSON, err := json.Marshal(deletedGroup)
-	if err != nil {
-		return nil, model.NewAppError("DeleteGroup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	if appErr := a.publishReceivedGroupEvent(deletedGroup); appErr != nil {
+		appErr.Where = "DeleteGroup"
+		return nil, appErr
 	}
-	messageWs.Add("group", string(groupJSON))
-	a.Publish(messageWs)
 
 	return deletedGroup, nil
 }
@@ -274,14 +287,10 @@ func (a *App) RestoreGroup(groupID string) (*model.Group, *model.AppError) {
 
 	restoredGroup.MemberCount = new(int(count))
 
-	messageWs := model.NewWebSocketEvent(model.WebsocketEventReceivedGroup, "", "", "", nil, "")
-
-	groupJSON, err := json.Marshal(restoredGroup)
-	if err != nil {
-		return nil, model.NewAppError("RestoreGroup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	if appErr := a.publishReceivedGroupEvent(restoredGroup); appErr != nil {
+		appErr.Where = "RestoreGroup"
+		return nil, appErr
 	}
-	messageWs.Add("group", string(groupJSON))
-	a.Publish(messageWs)
 
 	return restoredGroup, nil
 }
