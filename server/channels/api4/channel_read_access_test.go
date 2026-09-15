@@ -590,3 +590,32 @@ func TestChannelReadAccessMembersForUserPagesSurviveDenials(t *testing.T) {
 		require.Contains(t, seen, member.ChannelId, "an allowed membership must survive paging past a denial")
 	}
 }
+
+// The sibling of TestChannelReadAccessMembersForUserFilterFollowsTheSession, for the
+// endpoint that streams whole channel objects rather than memberships: the requester is
+// still the one receiving the response, so the filter follows the session.
+func TestChannelReadAccessChannelsForUserFilterFollowsTheSession(t *testing.T) {
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.ChannelAccessABACPermission = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+	})
+
+	// Denied for the admin doing the asking, allowed for the user being asked about.
+	mockACS := installMockACS(t, th)
+	mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).Return(true, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+		return req.Subject.ID == th.SystemAdminUser.Id
+	})).Return(model.AccessDecision{Decision: false}, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+		Return(model.AccessDecision{Decision: true}, nil)
+
+	channels, resp, err := th.SystemAdminClient.GetChannelsForUserWithLastDeleteAt(context.Background(), th.BasicUser.Id, 0)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+	require.Empty(t, channels,
+		"the queried user's channels must not expose ones the requester is denied")
+}

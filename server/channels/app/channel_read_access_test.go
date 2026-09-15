@@ -542,7 +542,7 @@ func TestGetFlaggedPostsFillsPagesPastDeniedChannels(t *testing.T) {
 				if post.Id == deniedPostID {
 					continue
 				}
-				require.True(t, seen[post.Id], "saved post %%q was lost while paginating", post.Id)
+				require.True(t, seen[post.Id], "saved post %q was lost while paginating", post.Id)
 			}
 		})
 	}
