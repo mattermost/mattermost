@@ -90,8 +90,8 @@ describe('property_field_updated withheld option lists', () => {
 
     test('an unmarked field is stored as received and triggers no refetch', () => {
         // No options_omitted marker: a genuinely option-less field is
-        // indistinguishable from a withheld one without it, so the marker is
-        // the only thing the repair may key on.
+        // indistinguishable from a withheld one without it, so the handler
+        // keys on the marker alone.
         const eventField = storedField({attrs: {}});
         const actions = dispatchEvent(eventField, {cachedField: storedField()});
 
