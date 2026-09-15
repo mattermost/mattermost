@@ -128,6 +128,18 @@ func (ps *PlatformService) SaveConfig(newCfg *model.Config, sendConfigChangeClus
 	return oldCfg, newCfg, nil
 }
 
+// ApplyConfigFromCluster applies a configuration change pushed by another
+// cluster node. Unlike SaveConfig it never re-notifies the cluster and skips
+// the ConfigurationWillBeSaved plugin hooks: the configuration was already
+// finalized and persisted by the sending node, so a local veto or mutation
+// would only make this node diverge.
+func (ps *PlatformService) ApplyConfigFromCluster(newCfg *model.Config) *model.AppError {
+	if err := ps.configStore.ApplyClusterConfig(newCfg); err != nil {
+		return model.NewAppError("ApplyConfigFromCluster", "app.save_config.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return nil
+}
+
 func (ps *PlatformService) ReloadConfig() error {
 	if err := ps.configStore.Load(); err != nil {
 		return err
