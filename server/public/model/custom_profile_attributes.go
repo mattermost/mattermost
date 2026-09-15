@@ -10,12 +10,13 @@
 package model
 
 import (
+	"cmp"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
-	"sort"
+	"slices"
 )
 
 // CPA-prefixed aliases for the canonical PropertyField* constants in
@@ -268,11 +269,11 @@ func CPAFieldsFromPropertyFields(pfs []*PropertyField) ([]*CPAField, error) {
 		cpaFields = append(cpaFields, cpaField)
 	}
 
-	sort.Slice(cpaFields, func(i, j int) bool {
-		if cpaFields[i].Attrs.SortOrder != cpaFields[j].Attrs.SortOrder {
-			return cpaFields[i].Attrs.SortOrder < cpaFields[j].Attrs.SortOrder
+	slices.SortFunc(cpaFields, func(a, b *CPAField) int {
+		if a.Attrs.SortOrder != b.Attrs.SortOrder {
+			return cmp.Compare(a.Attrs.SortOrder, b.Attrs.SortOrder)
 		}
-		return cpaFields[i].ID < cpaFields[j].ID
+		return cmp.Compare(a.ID, b.ID)
 	})
 
 	return cpaFields, nil
