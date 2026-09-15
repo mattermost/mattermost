@@ -4101,13 +4101,7 @@ func (s SqlChannelStore) GetChannelsBatchForIndexing(startTime int64, startChann
 	query := s.getQueryBuilder().
 		Select(channelSliceColumns(false)...).
 		From("Channels").
-		Where(sq.Or{
-			sq.Gt{"CreateAt": startTime},
-			sq.And{
-				sq.Eq{"CreateAt": startTime},
-				sq.Gt{"Id": startChannelID},
-			},
-		}).
+		Where("(CreateAt, Id) > (?, ?)", startTime, startChannelID).
 		OrderBy("CreateAt ASC", "Id ASC").
 		Limit(uint64(limit))
 

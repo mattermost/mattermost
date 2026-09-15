@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 // Shared / Global Components
+import AboutBuildModal from './about_build_modal';
 import Footer from './footer';
 import GlobalHeader from './global_header';
 import MainHeader from './main_header';
@@ -15,12 +16,14 @@ import ChannelsHeader from './channels/header';
 import ChannelsPost from './channels/post';
 import ChannelsPostCreate from './channels/post_create';
 import ChannelsPostEdit from './channels/post_edit';
+import ChannelNotificationPreferencesModal from './channels/channel_notification_preferences_modal';
 import ChannelSettingsModal from './channels/channel_settings/channel_settings_modal';
 import ChannelsSidebarLeft from './channels/sidebar_left';
 import ChannelsSidebarRight from './channels/sidebar_right';
 import DeletePostConfirmationDialog from './channels/delete_post_confirmation_dialog';
 import DeletePostModal from './channels/delete_post_modal';
 import DeleteScheduledPostModal from './channels/delete_scheduled_post_modal';
+import DirectChannelsModal from './channels/direct_channels_modal';
 import DraftPost from './channels/draft_post';
 import EmojiGifPicker from './channels/emoji_gif_picker';
 import FindChannelsModal from './channels/find_channels_modal';
@@ -70,6 +73,7 @@ import Users from './system_console/sections/user_management/users';
 
 const components = {
     // Shared / Global
+    AboutBuildModal,
     Footer,
     GlobalHeader,
     MainHeader,
@@ -79,6 +83,7 @@ const components = {
     ChannelsAppBar,
     ChannelsCenterView,
     CreateTeamForm,
+    ChannelNotificationPreferencesModal,
     ChannelsHeader,
     ChannelsPost,
     ChannelsPostCreate,
@@ -89,6 +94,7 @@ const components = {
     DeletePostConfirmationDialog,
     DeletePostModal,
     DeleteScheduledPostModal,
+    DirectChannelsModal,
     DraftPost,
     EmojiGifPicker,
     FindChannelsModal,
@@ -147,6 +153,7 @@ export {
     components,
 
     // Shared / Global
+    AboutBuildModal,
     Footer,
     GlobalHeader,
     MainHeader,
@@ -156,6 +163,7 @@ export {
     ChannelsAppBar,
     ChannelsCenterView,
     CreateTeamForm,
+    ChannelNotificationPreferencesModal,
     ChannelsHeader,
     ChannelsPost,
     ChannelsPostCreate,
@@ -166,6 +174,7 @@ export {
     DeletePostConfirmationDialog,
     DeletePostModal,
     DeleteScheduledPostModal,
+    DirectChannelsModal,
     DraftPost,
     EmojiGifPicker,
     FindChannelsModal,

@@ -37,6 +37,7 @@ import {
     ensureAzurite,
     listAzuriteBlobNames,
     ensureLocalFile,
+    listMattermostDataFiles,
     ensurePostgresSearch,
     ensureFeatureFlag,
     generateLdapUser,
@@ -47,7 +48,6 @@ import {
     ldapServerConfig,
     ensureOpenldap,
     makeClient,
-    mergeWithOnPremServerConfig,
     recapCompletion,
     resetAIBridgeMock,
     rewriteCompletion,
@@ -62,6 +62,8 @@ import {
     runMmctl,
     ensureMmctl,
     updateLdapUser,
+    upgradeServerImage,
+    saveUpgradePhaseLogs,
 } from './server';
 import {
     toBeFocusedWithFocusVisible,
@@ -72,7 +74,13 @@ import {
 } from './test_action';
 import {pages} from './ui/pages';
 import {matchSnapshot} from './visual';
-import {stubNotification, waitForNotification} from './mock_browser_api';
+import {
+    closeWebsockets,
+    connectWebsockets,
+    mockWebsockets,
+    stubNotification,
+    waitForNotification,
+} from './mock_browser_api';
 import {duration, getRandomId, newTestPassword, simpleEmailRe, wait} from './util';
 
 export {expect} from '@playwright/test';
@@ -122,7 +130,6 @@ export class PlaywrightExtended {
     // ./server
     readonly ensurePluginsLoaded;
     readonly getAdminClient;
-    readonly mergeWithOnPremServerConfig;
     readonly initSetup;
     readonly enableAIBridgeTestMode;
     readonly configureAIBridgeMock;
@@ -153,11 +160,17 @@ export class PlaywrightExtended {
     readonly ensureMinio;
     readonly ensureAzurite;
     readonly ensureLocalFile;
+    readonly listMattermostDataFiles;
     readonly ensurePostgresSearch;
     readonly ensureFeatureFlag;
     readonly listAzuriteBlobNames;
     readonly runMmctl;
     readonly ensureMmctl;
+
+    // ./server/version
+    readonly upgradeServerImage;
+    // ./server/upgrade_logs
+    readonly saveUpgradePhaseLogs;
 
     // ./test_action
     readonly toBeFocusedWithFocusVisible;
@@ -169,6 +182,9 @@ export class PlaywrightExtended {
     // ./mock_browser_api
     readonly stubNotification;
     readonly waitForNotification;
+    readonly mockWebsockets;
+    readonly connectWebsockets;
+    readonly closeWebsockets;
 
     // ./server
     readonly createNewUserProfile;
@@ -217,7 +233,6 @@ export class PlaywrightExtended {
         this.ensurePluginsLoaded = ensurePluginsLoaded;
         this.initSetup = initSetup;
         this.getAdminClient = getAdminClient;
-        this.mergeWithOnPremServerConfig = mergeWithOnPremServerConfig;
         this.enableAIBridgeTestMode = enableAIBridgeTestMode;
         this.configureAIBridgeMock = configureAIBridgeMock;
         this.getAIBridgeMock = getAIBridgeMock;
@@ -248,11 +263,17 @@ export class PlaywrightExtended {
         this.ensureMinio = ensureMinio;
         this.ensureAzurite = ensureAzurite;
         this.ensureLocalFile = ensureLocalFile;
+        this.listMattermostDataFiles = listMattermostDataFiles;
         this.ensurePostgresSearch = ensurePostgresSearch;
         this.ensureFeatureFlag = ensureFeatureFlag;
         this.listAzuriteBlobNames = listAzuriteBlobNames;
         this.runMmctl = runMmctl;
         this.ensureMmctl = ensureMmctl;
+
+        // ./server/version
+        this.upgradeServerImage = upgradeServerImage;
+        // ./server/upgrade_logs
+        this.saveUpgradePhaseLogs = saveUpgradePhaseLogs;
 
         // ./test_action
         this.toBeFocusedWithFocusVisible = toBeFocusedWithFocusVisible;
@@ -270,6 +291,9 @@ export class PlaywrightExtended {
         // ./mock_browser_api
         this.stubNotification = stubNotification;
         this.waitForNotification = waitForNotification;
+        this.mockWebsockets = mockWebsockets;
+        this.connectWebsockets = connectWebsockets;
+        this.closeWebsockets = closeWebsockets;
 
         // ./server
         this.createNewUserProfile = createNewUserProfile;
