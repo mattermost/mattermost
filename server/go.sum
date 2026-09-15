@@ -363,8 +363,6 @@ github.com/mattermost/gosaml2 v0.10.0 h1:yG7K6rHF0c46IoeA6LmKvVACte3bwoM0BcclCGU
 github.com/mattermost/gosaml2 v0.10.0/go.mod h1:1nMAdE2Psxaz+pj79Oytayi+hC3aZUi3SmJQlIe+sLM=
 github.com/mattermost/ldap v0.0.0-20231116144001-0f480c025956 h1:Y1Tu/swM31pVwwb2BTCsOdamENjjWCI6qmfHLbk6OZI=
 github.com/mattermost/ldap v0.0.0-20231116144001-0f480c025956/go.mod h1:SRl30Lb7/QoYyohYeVBuqYvvmXSZJxZgiV3Zf6VbxjI=
-github.com/mattermost/logr/v2 v2.0.22 h1:npFkXlkAWR9J8payh8ftPcCZvLbHSI125mAM5/r/lP4=
-github.com/mattermost/logr/v2 v2.0.22/go.mod h1:0sUKpO+XNMZApeumaid7PYaUZPBIydfuWZ0dqixXo+s=
 github.com/mattermost/logr/v2 v2.0.23 h1:BnOksEREt3xfKS1UdELEnlFgmG6GJlslLxU3OZKjVUM=
 github.com/mattermost/logr/v2 v2.0.23/go.mod h1:0sUKpO+XNMZApeumaid7PYaUZPBIydfuWZ0dqixXo+s=
 github.com/mattermost/mattermost-plugin-ai v1.14.2 h1:b29qPAKqC9khroVG7dTyUc8wgdNyKeNQxr6S/UCPZGM=
