@@ -271,6 +271,13 @@ export default class ChannelsPost {
     }
 
     /**
+     * Returns the post's reaction chip for the given emoji.
+     */
+    getReaction(emojiName: string) {
+        return this.container.locator(`[id$="-${emojiName}"].Reaction`);
+    }
+
+    /**
      * Hovers the post and opens the emoji reaction picker via the "add reaction" button.
      */
     async openReactionPicker() {
