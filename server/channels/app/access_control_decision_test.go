@@ -181,7 +181,7 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 			})
 			require.Nil(t, appErr)
 
-			enforced := th.App.HasPermissionToFileAction(rctx, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionUploadFileAttachment)
+			enforced := th.App.HasPermissionToChannelAction(rctx, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionUploadFileAttachment)
 			require.Equal(t, enforced, resp.Decisions[model.AccessControlPolicyActionUploadFileAttachment].Allowed)
 			require.Equal(t, want, enforced)
 		})
