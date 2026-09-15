@@ -85,6 +85,13 @@ func TestParseSVG(t *testing.T) {
 			expectedHeight: 600,
 		},
 		{
+			// Rounding these up to 1px would preview the SVG as a single pixel
+			name:           "sub-pixel width and height above the rounding boundary",
+			svg:            `<svg width="0.6" height="0.6" viewBox="0 0 800 600"></svg>`,
+			expectedWidth:  800,
+			expectedHeight: 600,
+		},
+		{
 			name:           "dimensions are only read from the root element",
 			svg:            `<?xml version="1.0"?><!DOCTYPE svg><!-- comment --><svg viewBox="0 0 800 600"><svg width="10" height="10"></svg></svg>`,
 			expectedWidth:  800,
@@ -152,18 +159,24 @@ func TestParseSVG(t *testing.T) {
 			expectError: true,
 		},
 		{
-			name:        "non-finite width and height",
-			svg:         `<svg width="NaN" height="Inf"></svg>`,
+			name:        "width and height that are not a number",
+			svg:         `<svg width="NaN" height="NaN"></svg>`,
 			expectError: true,
 		},
 		{
+			name:        "infinite width and height",
+			svg:         `<svg width="Inf" height="Inf"></svg>`,
+			expectError: true,
+		},
+		{
+			// FileInfo stores dimensions as a 32 bit integer, so a larger one cannot be persisted
 			name:        "width and height beyond the int range",
-			svg:         `<svg width="1e300" height="1e300"></svg>`,
+			svg:         `<svg width="3000000000" height="3000000000"></svg>`,
 			expectError: true,
 		},
 		{
 			name:        "viewBox beyond the int range",
-			svg:         `<svg viewBox="0 0 1e300 1e300"></svg>`,
+			svg:         `<svg viewBox="0 0 3000000000 3000000000"></svg>`,
 			expectError: true,
 		},
 		{

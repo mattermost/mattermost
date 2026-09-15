@@ -149,8 +149,9 @@ describe('components/view_image/ImagePreview', () => {
 
         render(<ImagePreview {...props}/>);
 
-        // Any width other than the SVG's own collapses or distorts it, so none may be applied
+        // Any width other than the SVG's own collapses or distorts it, so no sizing may be applied
         expect(screen.getByTestId('imagePreview').style.width).toBe('');
+        expect(screen.getByTestId('imagePreview').style.height).toBe('');
     });
 
     test('should not size a non-SVG image from its file dimensions', () => {

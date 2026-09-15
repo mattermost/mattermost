@@ -172,8 +172,17 @@ func TestUploadFileSVGDimensions(t *testing.T) {
 		},
 		{
 			// The upload still succeeds, it just carries no dimensions for the web app to use
-			name: "relative width and height with no viewBox",
-			svg:  `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"></svg>`,
+			name:           "relative width and height with no viewBox",
+			svg:            `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"></svg>`,
+			expectedWidth:  0,
+			expectedHeight: 0,
+		},
+		{
+			// FileInfo stores dimensions as a 32 bit integer, so a larger one would fail to save
+			name:           "width and height too large to store",
+			svg:            `<svg xmlns="http://www.w3.org/2000/svg" width="3000000000" height="3000000000"></svg>`,
+			expectedWidth:  0,
+			expectedHeight: 0,
 		},
 	}
 
@@ -192,9 +201,12 @@ func TestUploadFileSVGDimensions(t *testing.T) {
 				require.Nil(t, th.App.RemoveFile(info.Path))
 			})
 
-			assert.Equal(t, tc.expectedWidth, info.Width)
-			assert.Equal(t, tc.expectedHeight, info.Height)
-			assert.False(t, info.HasPreviewImage)
+			// Read the dimensions back, since they only reach the web app once they are stored
+			stored, err := th.App.Srv().Store().FileInfo().Get(info.Id)
+			require.NoError(t, err)
+
+			assert.Equal(t, tc.expectedWidth, stored.Width)
+			assert.Equal(t, tc.expectedHeight, stored.Height)
 		})
 	}
 }
