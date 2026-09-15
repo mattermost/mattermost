@@ -438,10 +438,19 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 const chipLabels = systemConsolePage.page.getByTestId('attributeOptionsRankValues__chipLabel');
                 await expect(chipLabels).toHaveText(['Low', 'High']);
 
-                // # Reorder "High" to position 1 via its popover's Rank submenu
+                // # Reorder "High" to position 1 via its popover's Rank submenu.
+                // The submenu opens on hover (components/menu/sub_menu.tsx) and closes
+                // as soon as the pointer leaves the "Rank" trigger -- a second .click()
+                // on the nested item would move the mouse off the trigger first, racing
+                // the close and detaching the item mid-click. Hover to open, then select
+                // with the keyboard so the pointer never leaves the trigger.
                 await chipLabels.filter({hasText: 'High'}).click();
-                await systemConsolePage.page.getByText('Rank', {exact: true}).click();
-                await systemConsolePage.page.getByRole('menuitemradio', {name: '1'}).click();
+                const rankTrigger = systemConsolePage.page.getByText('Rank', {exact: true});
+                await rankTrigger.hover();
+                const rankOneOption = systemConsolePage.page.getByRole('menuitemradio', {name: '1'});
+                await rankOneOption.waitFor();
+                await rankOneOption.focus();
+                await systemConsolePage.page.keyboard.press('Enter');
 
                 // * Reordered — "High" now renders first
                 await expect(chipLabels).toHaveText(['High', 'Low']);
