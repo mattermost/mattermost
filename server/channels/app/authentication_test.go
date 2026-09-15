@@ -775,6 +775,47 @@ func TestCheckUserPassword(t *testing.T) {
 	})
 }
 
+// TestCheckUserPasswordUnicodeNormalization exercises the fix for a
+// password containing a character with two different but canonically
+// equivalent Unicode representations: a precomposed codepoint (e.g. "e"
+// with an acute accent as the single rune U+00E9) vs a base letter
+// followed by a combining mark (plain "e" + the combining acute accent
+// U+0301). Before the fix, a password hashed from one form would fail to
+// verify against the other, even though it is the same password typed on
+// a different device/input method. See
+// https://github.com/mattermost/mattermost/issues/36877.
+//
+// This intentionally does not use Setup(t)/InitBasic(t): checkUserPassword
+// only touches a.Srv()/the database when migrating away from a non-latest
+// hasher, which never happens here because both hashes below are created
+// with the current hashers.GetLatestHasher(). That keeps this test fast
+// and independent of Postgres, unlike TestCheckUserPassword above.
+func TestCheckUserPasswordUnicodeNormalization(t *testing.T) {
+	const (
+		passwordNFC = "Sunrise-café-42"  // e-acute as one precomposed codepoint (U+00E9)
+		passwordNFD = "Sunrise-café-42" // "e" + combining acute accent (U+0301)
+	)
+	require.NotEqual(t, passwordNFC, passwordNFD, "the two forms must differ at the byte level for this test to be meaningful")
+
+	a := &App{}
+
+	t.Run("password set with NFC form, verified with NFD form", func(t *testing.T) {
+		user := &model.User{Id: model.NewId(), Password: passwordNFC}
+		require.Nil(t, user.PreSave(hashers.GetLatestHasher()))
+
+		appErr := a.checkUserPassword(user, passwordNFD)
+		require.Nil(t, appErr, "logging in with the NFD form of the same password must succeed")
+	})
+
+	t.Run("password set with NFD form, verified with NFC form", func(t *testing.T) {
+		user := &model.User{Id: model.NewId(), Password: passwordNFD}
+		require.Nil(t, user.PreSave(hashers.GetLatestHasher()))
+
+		appErr := a.checkUserPassword(user, passwordNFC)
+		require.Nil(t, appErr, "logging in with the NFC form of the same password must succeed")
+	})
+}
+
 func TestMigratePassword(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
