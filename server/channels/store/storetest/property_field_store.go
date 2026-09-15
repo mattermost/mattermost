@@ -4200,6 +4200,26 @@ func testPropertyFieldOptionEdges(t *testing.T, rctx request.CTX, ss store.Store
 		require.Equal(t, [][2]string{{ids["Fighter Jet Program"], ids["Air Program"]}}, asPairs(read))
 	})
 
+	t.Run("an option change on a deleted field is refused and leaves no live options", func(t *testing.T) {
+		ids := programIDs()
+		field := newField(t, model.PropertyFieldTypeMultiselect, ids)
+		require.NoError(t, ss.PropertyField().Delete(groupID, field.ID))
+
+		// expectedUpdateAt of 0 is "do not check the version". Without a live-field
+		// filter on the bump, the upsert's ON CONFLICT would still un-delete the row.
+		err := ss.PropertyField().MutateOptions(groupID, field.ID, 0, []*model.PropertyFieldOption{
+			{ID: ids["Air Program"], Name: "Air Program"},
+		}, nil, nil)
+		require.Error(t, err)
+		var notFoundErr *store.ErrNotFound
+		require.ErrorAs(t, err, &notFoundErr)
+
+		var live int
+		require.NoError(t, s.GetMaster().Get(&live,
+			"SELECT COUNT(*) FROM PropertyOptions WHERE FieldID = $1 AND DeleteAt = 0", field.ID))
+		require.Zero(t, live)
+	})
+
 	t.Run("every edge in a change belongs to the field being changed", func(t *testing.T) {
 		ids := programIDs()
 		field := newField(t, model.PropertyFieldTypeGraph, ids)
