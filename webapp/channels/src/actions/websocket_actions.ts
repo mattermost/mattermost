@@ -126,7 +126,7 @@ import {getConfig, getFeatureFlagValue, getLicense, isPermissionPoliciesEnabled}
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
 import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getPropertyGroupById} from 'mattermost-redux/selectors/entities/properties';
+import {getPropertyFieldById, getPropertyGroupById} from 'mattermost-redux/selectors/entities/properties';
 import {haveISystemPermission, haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getScheduledPostTeamId, isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {
@@ -1472,17 +1472,42 @@ export function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel):
     };
 }
 
-function handlePropertyFieldCreatedOrUpdated(
+export function handlePropertyFieldCreatedOrUpdated(
     msg:
     | WebSocketMessages.PropertyFieldCreated |
     WebSocketMessages.PropertyFieldUpdated,
 ): ThunkActionFunc<void> {
-    return (doDispatch) => {
+    return (doDispatch, doGetState) => {
         let field;
         try {
             field = JSON.parse(msg.data.property_field);
         } catch {
             return;
+        }
+
+        // A broadcast field carries no option list the sender considered
+        // caller-specific; options_omitted marks where the list was withheld.
+        // Storing it as received would empty the list for every client, so the
+        // cached options ride along on the dispatch and a refetch of the field's
+        // scope brings back the authoritative, per-caller-filtered list.
+        if (field.attrs?.options_omitted === true) {
+            const state = doGetState();
+            const cached = getPropertyFieldById(state, field.id);
+            if (cached) {
+                field = {
+                    ...field,
+                    attrs: {
+                        ...field.attrs,
+                        options: cached.attrs?.options,
+                        options_count: cached.attrs?.options_count,
+                    },
+                };
+            }
+
+            const groupName = getPropertyGroupById(state, field.group_id)?.name;
+            if (groupName) {
+                doDispatch(fetchPropertyFields(groupName, field.object_type, field.target_type, field.target_id));
+            }
         }
 
         doDispatch({
