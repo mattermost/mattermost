@@ -5874,18 +5874,14 @@ func TestChannelAttributesRequireEnterpriseAdvanced(t *testing.T) {
 	group, appErr := th.App.GetPropertyGroup(th.Context, groupName)
 	require.Nil(t, appErr)
 
-	memberLevel := model.PermissionLevelMember
 	createLinkedSelect := func(t *testing.T, objectType string) *model.PropertyField {
 		t.Helper()
 		template, createErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
-			Name:              celSafeName(),
-			Type:              model.PropertyFieldTypeSelect,
-			GroupID:           group.ID,
-			ObjectType:        model.PropertyFieldObjectTypeTemplate,
-			TargetType:        "system",
-			PermissionField:   &memberLevel,
-			PermissionValues:  &memberLevel,
-			PermissionOptions: &memberLevel,
+			Name:       celSafeName(),
+			Type:       model.PropertyFieldTypeSelect,
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: "system",
 			Attrs: model.StringInterface{
 				model.PropertyFieldAttributeOptions: []any{
 					map[string]any{"name": "alpha"},
@@ -5901,10 +5897,6 @@ func TestChannelAttributesRequireEnterpriseAdvanced(t *testing.T) {
 			ObjectType:    objectType,
 			TargetType:    "system",
 			LinkedFieldID: &template.ID,
-		}
-		if objectType == model.PropertyFieldObjectTypeChannel {
-			linked.PermissionField = &memberLevel
-			linked.PermissionValues = &memberLevel
 		}
 		_, createErr = th.App.CreatePropertyField(th.Context, linked, false, "")
 		require.Nil(t, createErr)
