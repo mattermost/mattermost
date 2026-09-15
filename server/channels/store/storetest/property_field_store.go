@@ -1431,7 +1431,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store, s Sql
 			// SinceUpdateAt is inclusive (>=). field4 is deleted after all
 			// six creates, so its tombstone UpdateAt lands past field5.UpdateAt
 			// and both rows are in range.
-			name: "filter by SinceUpdateAt timestamp - returns the boundary row",
+			name: "filter by SinceUpdateAt timestamp - returns the boundary row and the later tombstone",
 			opts: model.PropertyFieldSearchOpts{
 				GroupID:       groupID,
 				SinceUpdateAt: field5.UpdateAt,

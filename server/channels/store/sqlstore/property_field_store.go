@@ -569,7 +569,7 @@ func (s *SqlPropertyFieldStore) Delete(groupID string, id string) (err error) {
 	builder := s.getQueryBuilder().
 		Update("PropertyFields").
 		Set("DeleteAt", now).
-		Set("UpdateAt", sq.Expr("GREATEST(?, UpdateAt + 1)", model.GetMillis())).
+		Set("UpdateAt", sq.Expr("GREATEST(?, UpdateAt + 1)", now)).
 		Where(sq.Eq{"id": id})
 
 	if groupID != "" {
