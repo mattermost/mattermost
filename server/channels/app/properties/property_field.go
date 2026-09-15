@@ -154,6 +154,10 @@ func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.Pr
 			return nil, err
 		}
 
+		if err := refuseSelfWritableHoldings("CreatePropertyField", field, source); err != nil {
+			return nil, err
+		}
+
 		// A linked field serves its template's option list and owns none of its
 		// own. Refused rather than dropped: a caller that sent options would
 		// otherwise be told they were created, when the list actually saved is
@@ -310,6 +314,36 @@ func validateLinkedFieldOptionReadCeiling(caller string, field, template *model.
 		"app.property_field.linked_option_read_ceiling.app_error",
 		map[string]any{"FieldTier": string(fieldTier), "TemplateID": template.ID, "TemplateTier": string(templateTier)},
 		fmt.Sprintf("option.read tier %q exceeds template %q's tier %q", fieldTier, template.ID, templateTier),
+		http.StatusBadRequest,
+	)
+}
+
+// refuseSelfWritableHoldings rejects field when the masking on its template
+// resolves the caller's holdings to field itself and field's own value.write
+// admits member or everyone -- otherwise a caller could widen their own masked
+// view by writing their holdings. It shares holdingsFieldIDFor with
+// resolveFieldMasking so the write gate and the read filter cannot drift.
+//
+// A nil field.Permissions is safe and skipped: on update, updatePropertyFields
+// copies the stored permissions forward when none was submitted, so value.write
+// cannot have changed; on create, a field with none is defaulted from legacy
+// settings, which never yield a self-writable holdings field.
+func refuseSelfWritableHoldings(caller string, field, template *model.PropertyField) error {
+	if field.Permissions == nil || template == nil || template.Permissions == nil || template.Permissions.Masking == nil {
+		return nil
+	}
+	if holdingsFieldIDFor(field, template.Permissions.Masking) != field.ID {
+		return nil
+	}
+	w := field.Permissions.Restrictions.TierFor(model.PropertyActionValueWrite)
+	if w != model.PermissionLevelMember && w != model.PermissionLevelEveryone {
+		return nil
+	}
+	return model.NewAppError(
+		caller,
+		"app.property_field.self_writable_holdings.app_error",
+		map[string]any{"FieldID": field.ID, "ValueWrite": string(w)},
+		fmt.Sprintf("field %q is its masked template's holdings source, so its value.write may not be %q", field.ID, w),
 		http.StatusBadRequest,
 	)
 }
@@ -721,6 +755,10 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 			}
 
 			if err := validateLinkedFieldOptionReadCeiling("UpdatePropertyFields", field, template); err != nil {
+				return nil, nil, nil, err
+			}
+
+			if err := refuseSelfWritableHoldings("UpdatePropertyFields", field, template); err != nil {
 				return nil, nil, nil, err
 			}
 		}

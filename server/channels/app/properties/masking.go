@@ -164,16 +164,20 @@ func (h *AccessControlHook) resolveFieldMasking(rctx request.CTX, field *model.P
 	}
 
 	masking := target.Permissions.Masking
-	// Default to the field being read, not target -- target is the template
-	// when field links to one, and an unset mask_by_field_id means holdings
-	// live on field itself, never on the template consulted for the masking
-	// object.
-	holdingsFieldID := field.ID
-	if masking.MaskByFieldID != "" {
-		holdingsFieldID = masking.MaskByFieldID
-	}
+	return fieldMasking{masking: masking, holdingsFieldID: holdingsFieldIDFor(field, masking)}, nil
+}
 
-	return fieldMasking{masking: masking, holdingsFieldID: holdingsFieldID}, nil
+// holdingsFieldIDFor returns the field ID whose values masking treats as the
+// caller's holdings: the field masking.MaskByFieldID names when set, else field
+// itself -- an unset mask_by_field_id means holdings live on the field being read,
+// never on the template consulted for the masking object. Shared by
+// resolveFieldMasking (the read filter) and refuseSelfWritableHoldings (the write
+// gate) so the two cannot drift.
+func holdingsFieldIDFor(field *model.PropertyField, masking *model.Masking) string {
+	if masking.MaskByFieldID != "" {
+		return masking.MaskByFieldID
+	}
+	return field.ID
 }
 
 // exempt reports whether callerID is named in except. Exemption is explicit

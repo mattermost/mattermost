@@ -3047,7 +3047,95 @@ func TestLinkedPropertyFields(t *testing.T) {
 	})
 }
 
+func TestLinkedFieldSelfWritableHoldings(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	th.service.setPluginCheckerForTests(func(pluginID string) bool { return pluginID == "test-plugin" })
+	t.Cleanup(func() { th.service.setPluginCheckerForTests(nil) })
+	rctxPlugin := RequestContextWithCallerID(th.Context, "test-plugin")
+
+	// maskedTemplate creates a shared_only protected template as the source
+	// plugin -- shape 3: no mask_by_field_id, so a linked field falls back to
+	// itself for holdings. A masked template is "protected" regardless of its
+	// own restrictions (templateReadsAreRestricted), so only the source plugin
+	// may create a linked field from it -- both this and the linked field it
+	// backs must share rctxPlugin.
+	maskedTemplate := func(t *testing.T) *model.PropertyField {
+		t.Helper()
+		template, err := th.service.CreatePropertyField(rctxPlugin, &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeText,
+			Name:       "HoldingsTemplate-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyAttrsAccessMode: model.PropertyAccessModeSharedOnly,
+				model.PropertyAttrsProtected:  true,
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, template.Permissions)
+		require.NotNil(t, template.Permissions.Masking)
+		return template
+	}
+
+	t.Run("create refuses a self-writable holdings field", func(t *testing.T) {
+		template := maskedTemplate(t)
+		_, err := th.service.CreatePropertyField(rctxPlugin, &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "SelfWritableHoldings-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &template.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{Value: model.ReadWrite{Write: model.PermissionLevelMember}},
+			},
+		})
+		require.Error(t, err)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.Error(), "holdings source")
+	})
+
+	t.Run("update refuses raising a holdings field's own value.write to member", func(t *testing.T) {
+		template := maskedTemplate(t)
+		linked, err := th.service.CreatePropertyField(rctxPlugin, &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "CompliantHoldings-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &template.ID,
+			Permissions: &model.Permissions{
+				Restrictions: &model.Restrictions{
+					Value:  model.ReadWrite{Write: model.PermissionLevelNone},
+					Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
+				},
+				// The update below is a field.write, so the source plugin
+				// needs a grant admitting it -- without one the pre-update
+				// hook denies the caller before the holdings gate ever runs.
+				// (A linked field may not grant option.read, per IsValid.)
+				Grants: []model.Grant{{
+					Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "test-plugin"},
+					Allow:    []string{model.PropertyActionFieldWrite},
+				}},
+			},
+		})
+		require.NoError(t, err)
+
+		linked.Permissions.Restrictions.Value.Write = model.PermissionLevelMember
+		_, _, err = th.service.UpdatePropertyField(rctxPlugin, th.CPAGroupID, linked)
+		require.Error(t, err)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.Error(), "holdings source")
+	})
+}
+
 func TestOptionsChanged(t *testing.T) {
+
 	// attrsFromJSON simulates what arrives over the wire: JSON bytes
 	// deserialized into model.StringInterface, where options become
 	// []interface{} of map[string]interface{}.
