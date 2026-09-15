@@ -12,7 +12,7 @@ import (
 	"io"
 	"net/http"
 	"regexp"
-	"sort"
+	"slices"
 	"strings"
 	"unicode/utf8"
 )
@@ -619,7 +619,7 @@ func GetGroupDisplayNameFromUsers(users []*User, truncate bool) string {
 		usernames[index] = user.Username
 	}
 
-	sort.Strings(usernames)
+	slices.Sort(usernames)
 
 	name := strings.Join(usernames, ", ")
 
@@ -631,7 +631,7 @@ func GetGroupDisplayNameFromUsers(users []*User, truncate bool) string {
 }
 
 func GetGroupNameFromUserIds(userIds []string) string {
-	sort.Strings(userIds)
+	slices.Sort(userIds)
 
 	h := sha1.New()
 	for _, id := range userIds {
