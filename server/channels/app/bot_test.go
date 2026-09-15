@@ -292,6 +292,29 @@ func TestPatchBot(t *testing.T) {
 		require.Equal(t, "app.bot.patchbot.reserved_username.app_error", err.Id)
 	})
 
+	t.Run("patch bot to reserved username with different casing is still blocked", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		bot, err := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    "username",
+			Description: "a bot",
+			OwnerId:     th.BasicUser.Id,
+		})
+		require.Nil(t, err)
+		defer func() {
+			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			require.Nil(t, err)
+		}()
+
+		botPatch := &model.BotPatch{
+			Username: new("System-Bot"),
+		}
+
+		_, err = th.App.PatchBot(th.Context, bot.UserId, botPatch)
+		require.NotNil(t, err)
+		require.Equal(t, "app.bot.patchbot.reserved_username.app_error", err.Id)
+	})
+
 	t.Run("patch bot", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 

@@ -42,11 +42,17 @@ type Bot struct {
 	DeleteAt       int64  `json:"delete_at"`
 }
 
+// IsProtectedBotUsername returns whether username is one of the protected,
+// system-owned bot usernames. See ProtectedBotUsernames.
+func IsProtectedBotUsername(username string) bool {
+	_, ok := ProtectedBotUsernames[strings.ToLower(username)]
+	return ok
+}
+
 // IsSystemOwned returns whether the bot is one of the protected, system-owned
 // bots that must not be disabled. See ProtectedBotUsernames.
 func (b *Bot) IsSystemOwned() bool {
-	_, ok := ProtectedBotUsernames[b.Username]
-	return ok
+	return IsProtectedBotUsername(b.Username)
 }
 
 // MarshalJSON adds the computed system_owned field to the bot's JSON

@@ -713,6 +713,11 @@ func TestBotIsSystemOwned(t *testing.T) {
 		bot := &Bot{Username: "some-plugin-bot"}
 		assert.False(t, bot.IsSystemOwned())
 	})
+
+	t.Run("mixed-case username", func(t *testing.T) {
+		bot := &Bot{Username: "System-Bot"}
+		assert.True(t, bot.IsSystemOwned())
+	})
 }
 
 func TestBotMarshalJSON(t *testing.T) {
