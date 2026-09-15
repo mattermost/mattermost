@@ -800,6 +800,10 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         test('removes a pending resource locally with no confirm modal and no delete request', async ({pw}) => {
             const {adminUser} = await requireGlobalAttributesEnabled(pw);
 
+            // See the "offers only unselected types" test above: Channels requires the
+            // ChannelAttributes flag on top of the Enterprise-tier license.
+            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
             await systemConsolePage.page.getByTestId('newAttributeButton').click();
@@ -845,6 +849,10 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          */
         test('saves the template plus one linked field per selected resource', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            // See the "offers only unselected types" test above: Channels requires the
+            // ChannelAttributes flag on top of the Enterprise-tier license.
+            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
             const timestamp = Date.now();
             const displayName = `Playwright Applies To ${timestamp}`;
@@ -902,6 +910,10 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
          */
         test('rolls back a partial save and lets the admin retry successfully', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            // See the "offers only unselected types" test above: Channels requires the
+            // ChannelAttributes flag on top of the Enterprise-tier license.
+            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
             const timestamp = Date.now();
             const displayName = `Playwright Applies To Retry ${timestamp}`;
