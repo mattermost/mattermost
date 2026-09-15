@@ -127,4 +127,40 @@ describe('OperatorSelectorMenu', () => {
         const menuTexts = menuItems.map((item) => item.textContent);
         expect(menuTexts).toEqual(['younger than (days)']);
     });
+
+    test('shows advertised inCIDR operator for IP session attributes', () => {
+        renderWithContext(
+            <OperatorSelectorMenu
+                {...defaultProps}
+                currentOperator='in IP range'
+                attributeType='text'
+                allowedOperators={['is', 'in IP range']}
+            />,
+        );
+
+        fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+
+        const menuItems = screen.getAllByRole('menuitemradio');
+        const menuTexts = menuItems.map((item) => item.textContent);
+        expect(menuTexts).toEqual(['is', 'in IP range']);
+    });
+
+    test('shows advertised version operators for version session attributes', () => {
+        renderWithContext(
+            <OperatorSelectorMenu
+                {...defaultProps}
+                currentOperator='version is at least'
+                attributeType='text'
+                allowedOperators={['version is at least', 'version is greater than']}
+            />,
+        );
+
+        fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+
+        const menuItems = screen.getAllByRole('menuitemradio');
+        const menuTexts = menuItems.map((item) => item.textContent);
+        expect(menuTexts).toHaveLength(2);
+        expect(menuTexts[0]).toContain('version is at least');
+        expect(menuTexts[1]).toContain('version is greater than');
+    });
 });

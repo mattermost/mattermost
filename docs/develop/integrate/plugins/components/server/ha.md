@@ -9,7 +9,7 @@ It is important that all plugins consider HA environments when being built.
 
 Plugins are started as subprocesses of the main Mattermost process on each app server. This means a Mattermost deployment that has three app servers will have three separate copies of the same plugin running. Each running copy of the plugin will be isolated from one another on different servers. Therefore, to run properly in HA the plugin's server-side code must be stateless.
 
-To be stateless, the plugin must not retain any information or status in memory that may be needed across multiple events (e.g. HTTP requests or in other hooks). This data should instead be stored in a place that all running copies of the plugin have access to. For example, the [key-value store](/developers/integrate/reference/server/server-reference#API.KVSet) the plugin API provides.
+To be stateless, the plugin must not retain any information or status in memory that may be needed across multiple events (e.g. HTTP requests or in other hooks). This data should instead be stored in a place that all running copies of the plugin have access to. For example, the [key-value store](/developers/integrate/reference/server#API.KVSet) the plugin API provides.
 
 To better explain the problem with having a plugin store data in-memory, consider this case:
 

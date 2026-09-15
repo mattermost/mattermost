@@ -593,7 +593,7 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 			if appErr = a.updateUserNotifyProps(user.Id, user.NotifyProps); appErr != nil {
 				return appErr
 			}
-			if savedUser, appErr = a.GetUser(user.Id); appErr != nil {
+			if savedUser, appErr = a.GetUser(rctx, user.Id); appErr != nil {
 				return appErr
 			}
 		}
@@ -603,6 +603,21 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 			}
 		} else {
 			if hasUserAuthDataChanged {
+				// Revoke sessions issued under the user's current auth
+				// binding, and invalidate cached user data, before applying
+				// the auth data mutation below via the Store layer directly
+				// (bypassing the app-layer helper, UpdateUserAuth, that
+				// normally accompanies this mutation). Doing this first
+				// keeps the operation retryable: if revocation fails, the
+				// mutation never runs, so a retried import still sees
+				// hasUserAuthDataChanged and re-attempts revocation instead
+				// of silently skipping it because the auth data already
+				// matches the target.
+				if appErr := a.RevokeAllSessions(rctx, user.Id); appErr != nil {
+					return appErr
+				}
+				a.InvalidateCacheForUser(user.Id)
+
 				if _, nErr := a.Srv().Store().User().UpdateAuthData(user.Id, authService, authData, user.Email, false); nErr != nil {
 					var invErr *store.ErrInvalidInput
 					switch {
@@ -616,7 +631,7 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 		}
 		if emailVerified {
 			if hasUserEmailVerifiedChanged {
-				if err := a.VerifyUserEmail(user.Id, user.Email); err != nil {
+				if err := a.VerifyUserEmail(rctx, user.Id, user.Email); err != nil {
 					return err
 				}
 			}
@@ -922,6 +937,20 @@ func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bo
 				mlog.String("bot_username", *data.Username),
 				mlog.String("user_id", existingUser.Id))
 
+			// The existing user account is about to be linked to a bot
+			// record directly via the Store layer, bypassing the app-layer
+			// helpers that normally accompany this mutation. Revoke any
+			// sessions issued before this change and invalidate cached user
+			// data BEFORE that link is created (mirroring ConvertUserToBot,
+			// but reordered): if revocation fails, the bot record below is
+			// never created, so a retried import still hits this recovery
+			// branch and re-attempts revocation instead of silently
+			// skipping it because the bot record already exists.
+			if err := a.RevokeAllSessions(rctx, existingUser.Id); err != nil {
+				return err
+			}
+			a.InvalidateCacheForUser(existingUser.Id)
+
 			var saveErr error
 			savedBot, saveErr = a.Srv().Store().Bot().Save(bot)
 			if saveErr != nil {
@@ -954,7 +983,7 @@ func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bo
 	// so Bot().Update() alone doesn't persist it. Update the user record
 	// if the DisplayName has diverged.
 	if data.DisplayName != nil && savedBot.UserId != "" {
-		botUser, userErr := a.Srv().Store().User().Get(rctx.Context(), savedBot.UserId)
+		botUser, userErr := a.Srv().Store().User().Get(rctx, savedBot.UserId)
 		if userErr != nil {
 			rctx.Logger().Warn("Failed to fetch bot user for DisplayName update",
 				mlog.String("user_id", savedBot.UserId),
@@ -1113,7 +1142,7 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 			if appErr != nil {
 				return appErr
 			}
-			member.SchemeAdmin = userShouldBeAdmin
+			member.SchemeAdmin = member.SchemeAdmin || userShouldBeAdmin
 		}
 
 		if tdata.Channels != nil {
@@ -1170,7 +1199,7 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 			}
 		}
 
-		if _, appErr := a.UpdateTeamMemberSchemeRoles(rctx, member.TeamId, user.Id, isGuestByTeamID[member.TeamId], isUserByTeamId[member.TeamId], isAdminByTeamID[member.TeamId]); appErr != nil {
+		if _, appErr := a.UpdateTeamMemberSchemeRoles(rctx, member.TeamId, user.Id, isGuestByTeamID[member.TeamId], isUserByTeamId[member.TeamId], member.SchemeAdmin || isAdminByTeamID[member.TeamId]); appErr != nil {
 			rctx.Logger().Warn("Error updating team member scheme roles", mlog.String("team_id", member.TeamId), mlog.String("user_id", user.Id), mlog.Err(appErr))
 		}
 	}

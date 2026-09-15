@@ -4,7 +4,6 @@
 package sqlstore
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"strings"
@@ -13,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -58,7 +58,7 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 	return field, nil
 }
 
-func (s *SqlPropertyFieldStore) Get(ctx context.Context, groupID, id string) (*model.PropertyField, error) {
+func (s *SqlPropertyFieldStore) Get(rctx request.CTX, groupID, id string) (*model.PropertyField, error) {
 	builder := s.tableSelectQuery.Where(sq.Eq{"id": id})
 
 	if groupID != "" {
@@ -66,7 +66,7 @@ func (s *SqlPropertyFieldStore) Get(ctx context.Context, groupID, id string) (*m
 	}
 
 	var field model.PropertyField
-	if err := s.DBXFromContext(ctx).GetBuilder(&field, builder); err != nil {
+	if err := s.DBXFromContext(rctx.Context()).GetBuilder(&field, builder); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, store.NewErrNotFound("PropertyField", id)
 		}
@@ -84,17 +84,17 @@ func (s *SqlPropertyFieldStore) Get(ctx context.Context, groupID, id string) (*m
 // returns an arbitrary match (the query has no ORDER BY/LIMIT). Use
 // GetFieldByNameForObjectType for a deterministic result. Retained because it
 // is exposed on the (stable) plugin API.
-func (s *SqlPropertyFieldStore) GetFieldByName(ctx context.Context, groupID, targetID, name string) (*model.PropertyField, error) {
-	return s.getFieldByName(ctx, s.fieldByNameQuery(groupID, targetID, name), name)
+func (s *SqlPropertyFieldStore) GetFieldByName(rctx request.CTX, groupID, targetID, name string) (*model.PropertyField, error) {
+	return s.getFieldByName(rctx, s.fieldByNameQuery(groupID, targetID, name), name)
 }
 
 // GetFieldByNameForObjectType retrieves a single property field by group,
 // target, object type, and name. objectType is matched exactly — including the
 // empty string, which is itself a valid object type, not a match-any wildcard —
 // so together with the typed unique index the result is deterministic.
-func (s *SqlPropertyFieldStore) GetFieldByNameForObjectType(ctx context.Context, groupID, targetID, objectType, name string) (*model.PropertyField, error) {
+func (s *SqlPropertyFieldStore) GetFieldByNameForObjectType(rctx request.CTX, groupID, targetID, objectType, name string) (*model.PropertyField, error) {
 	builder := s.fieldByNameQuery(groupID, targetID, name).Where(sq.Eq{"ObjectType": objectType})
-	return s.getFieldByName(ctx, builder, name)
+	return s.getFieldByName(rctx, builder, name)
 }
 
 func (s *SqlPropertyFieldStore) fieldByNameQuery(groupID, targetID, name string) sq.SelectBuilder {
@@ -105,9 +105,9 @@ func (s *SqlPropertyFieldStore) fieldByNameQuery(groupID, targetID, name string)
 		Where(sq.Eq{"DeleteAt": 0})
 }
 
-func (s *SqlPropertyFieldStore) getFieldByName(ctx context.Context, builder sq.SelectBuilder, name string) (*model.PropertyField, error) {
+func (s *SqlPropertyFieldStore) getFieldByName(rctx request.CTX, builder sq.SelectBuilder, name string) (*model.PropertyField, error) {
 	var field model.PropertyField
-	if err := s.DBXFromContext(ctx).GetBuilder(&field, builder); err != nil {
+	if err := s.DBXFromContext(rctx.Context()).GetBuilder(&field, builder); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, store.NewErrNotFound("PropertyField", name)
 		}
@@ -117,7 +117,7 @@ func (s *SqlPropertyFieldStore) getFieldByName(ctx context.Context, builder sq.S
 	return &field, nil
 }
 
-func (s *SqlPropertyFieldStore) GetMany(ctx context.Context, groupID string, ids []string) ([]*model.PropertyField, error) {
+func (s *SqlPropertyFieldStore) GetMany(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyField, error) {
 	builder := s.tableSelectQuery.Where(sq.Eq{"id": ids})
 
 	if groupID != "" {
@@ -125,7 +125,7 @@ func (s *SqlPropertyFieldStore) GetMany(ctx context.Context, groupID string, ids
 	}
 
 	fields := []*model.PropertyField{}
-	if err := s.DBXFromContext(ctx).SelectBuilder(&fields, builder); err != nil {
+	if err := s.DBXFromContext(rctx.Context()).SelectBuilder(&fields, builder); err != nil {
 		return nil, errors.Wrap(err, "property_field_get_many_query")
 	}
 
@@ -190,13 +190,13 @@ func (s *SqlPropertyFieldStore) CountForTarget(groupID, targetType, targetID str
 	return count, nil
 }
 
-func (s *SqlPropertyFieldStore) GetForGroup(ctx context.Context, groupID string) ([]*model.PropertyField, error) {
+func (s *SqlPropertyFieldStore) GetForGroup(rctx request.CTX, groupID string) ([]*model.PropertyField, error) {
 	builder := s.tableSelectQuery.
 		Where(sq.Eq{"GroupID": groupID}).
 		Where(sq.Eq{"DeleteAt": 0})
 
 	fields := []*model.PropertyField{}
-	if err := s.DBXFromContext(ctx).SelectBuilder(&fields, builder); err != nil {
+	if err := s.DBXFromContext(rctx.Context()).SelectBuilder(&fields, builder); err != nil {
 		return nil, errors.Wrap(err, "property_field_get_for_group_query")
 	}
 

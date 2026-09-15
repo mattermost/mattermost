@@ -9,6 +9,7 @@ This package contains mattermost-specific go-vet rules that are used to maintain
 1. **license** - check the license header
 1. **openApiSync** - check for inconsistencies between OpenAPI spec and the source code
 1. **structuredLogging** - check invalid usage of logging (must use structured logging)
+1. **mlogFieldNaming** - check that mlog field keys are snake_case
 1. **tFatal** - check invalid usage of t.Fatal assertions (instead of testify methods)
 1. **apiAuditLogs** - check that audit records are properly created in the API layer
 1. **rawSql** - check invalid usage of raw SQL queries instead of using the squirrel lib

@@ -204,7 +204,7 @@ const useSubmit = (
                 response = await dispatch(editPost(submittingDraft as unknown as Post));
                 handleFileChange(submittingDraft);
             } else {
-                response = await dispatch(onSubmit(submittingDraft, options, schedulingInfo));
+                response = await dispatch(onSubmit(channelId, rootId, submittingDraft, options, schedulingInfo));
             }
             if (response?.error) {
                 throw response.error;

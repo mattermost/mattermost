@@ -1,13 +1,13 @@
 name: Load build environment
 description: >
   Loads build-server images uploaded by setup-buildenv into the local Docker
-  daemon, and resolves the image name from the Go version. Use in jobs that
-  run the container directly (test jobs). For jobs that only need a shell
-  inside the container, use run-in-buildenv instead.
+  daemon, and resolves the image name from the tag. Use in jobs that run the
+  container directly (test jobs). For jobs that only need a shell inside the
+  container, use run-in-buildenv instead.
 
 inputs:
-  go-version:
-    description: "Go version used to construct the image tag (e.g. 1.26.3)."
+  build-server-tag:
+    description: "Build image tag, from server/build/buildenv-tag.sh (e.g. go1.26.3-node24.11.1)"
     required: true
   fips-enabled:
     description: "Set to 'true' to resolve the FIPS build image"
@@ -16,7 +16,7 @@ inputs:
 
 outputs:
   image:
-    description: "Fully-qualified build image name (e.g. mattermost/mattermost-build-server:1.26.3)."
+    description: "Fully-qualified build image name (e.g. mattermost/mattermost-build-server:go1.26.3-node24.11.1)."
     value: ${{ steps.resolve.outputs.image }}
 
 runs:
@@ -57,10 +57,10 @@ runs:
       shell: bash
       env:
         FIPS: ${{ inputs.fips-enabled }}
-        GO_VERSION: ${{ inputs.go-version }}
+        TAG: ${{ inputs.build-server-tag }}
       run: |
         if [[ "${FIPS}" == 'true' ]]; then
-          echo "image=mattermost/mattermost-build-server-fips:${GO_VERSION}" >> "${GITHUB_OUTPUT}"
+          echo "image=mattermost/mattermost-build-server-fips:${TAG}" >> "${GITHUB_OUTPUT}"
         else
-          echo "image=mattermost/mattermost-build-server:${GO_VERSION}" >> "${GITHUB_OUTPUT}"
+          echo "image=mattermost/mattermost-build-server:${TAG}" >> "${GITHUB_OUTPUT}"
         fi

@@ -55,8 +55,10 @@ test(
         await hideJoinedCheckbox.click();
 
         // # Focus on Create Channel button and tab through elements
+        // Tab order: Close → Search → Channel type filter → Hide Archived → Hide Joined → first channel
         const createChannelButton = dialog.createNewChannelButton;
         await createChannelButton.focus();
+        await page.keyboard.press('Tab');
         await page.keyboard.press('Tab');
         await page.keyboard.press('Tab');
         await page.keyboard.press('Tab');
@@ -116,6 +118,7 @@ test(
                 - /status: \\d+ Results/
                 - status: Channel type filter set to All
                 - button "Channel type filter"
+                - checkbox "Hide archived channels" [checked]: Hide Archived
                 - checkbox "Hide joined channels": Hide Joined
                 - search
         `);

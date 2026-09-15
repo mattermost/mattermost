@@ -11,70 +11,66 @@ exports[`GenericModal should match snapshot for base case 1`] = `
       aria-hidden="true"
     />
     <div
-      role="none"
+      class="fade modal-backdrop in"
+    />
+    <div
+      aria-labelledby="genericModalLabel"
+      aria-modal="true"
+      class="fade in modal"
+      id="genericModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
     >
       <div
-        class="fade modal-backdrop in"
-      />
-      <div
-        aria-labelledby="genericModalLabel"
-        aria-modal="true"
-        class="fade in modal"
-        id="genericModal"
-        role="dialog"
-        style="display: block; padding-right: 0px;"
-        tabindex="-1"
+        class="GenericModal__location--center a11y__modal GenericModal modal-dialog"
       >
         <div
-          class="GenericModal__location--center a11y__modal GenericModal modal-dialog"
+          class="modal-content"
+          role="document"
         >
           <div
-            class="modal-content"
-            role="document"
+            class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
           >
             <div
-              class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
+              class="modal-header"
             >
               <div
-                class="modal-header"
+                class="GenericModal__header__text_container"
+              />
+              <button
+                aria-label="Close"
+                class="close"
+                type="button"
               >
-                <div
-                  class="GenericModal__header__text_container"
-                />
-                <button
-                  aria-label="Close"
-                  class="close"
-                  type="button"
+                <span
+                  aria-hidden="true"
                 >
-                  <span
-                    aria-hidden="true"
-                  >
-                    ×
-                  </span>
-                  <span
-                    class="sr-only"
-                  >
-                    Close
-                  </span>
-                </button>
+                  ×
+                </span>
+                <span
+                  class="sr-only"
+                >
+                  Close
+                </span>
+              </button>
+            </div>
+            <div
+              class="modal-body"
+            >
+              <div
+                class="GenericModal__header"
+              >
+                <h1
+                  class="modal-title"
+                  id="genericModalLabel"
+                >
+                  Modal Header Text
+                </h1>
               </div>
               <div
-                class="modal-body"
-              >
-                <div
-                  class="GenericModal__header"
-                >
-                  <h1
-                    class="modal-title"
-                    id="genericModalLabel"
-                  >
-                    Modal Header Text
-                  </h1>
-                </div>
-                <div
-                  class="GenericModal__body padding"
-                />
-              </div>
+                class="GenericModal__body padding"
+              />
             </div>
           </div>
         </div>

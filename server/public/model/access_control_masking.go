@@ -55,12 +55,17 @@ func (info *MaskingFieldInfo) IsValueHidden(lit string) bool {
 	}
 }
 
-// MaskingFieldResolver answers field-visibility questions for a named property
-// attribute (the suffix after "user.attributes.", e.g. "department").
+// MaskingFieldResolver answers field-visibility questions for a property
+// attribute identified by its CPA object type (PropertyFieldObjectTypeUser for
+// user.attributes.*, PropertyFieldObjectTypeChannel for resource.attributes.*)
+// and field name (the suffix after the ".attributes." segment, e.g.
+// "department"). The object type is required because a user field and a channel
+// field can share a name but differ in visibility, so each must be resolved
+// against its own CPA schema.
 //
 // Implementations must be fail-closed: return a non-nil error for any lookup
 // that cannot be proven safe. The walker treats any resolver error as a
 // reason to mask all literals for that field.
 type MaskingFieldResolver interface {
-	Resolve(fieldName string) (*MaskingFieldInfo, error)
+	Resolve(objectType, fieldName string) (*MaskingFieldInfo, error)
 }

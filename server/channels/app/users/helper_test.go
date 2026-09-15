@@ -94,15 +94,15 @@ func (th *TestHelper) InitBasic(tb testing.TB) *TestHelper {
 	var err error
 
 	th.SystemAdminUser = th.CreateUser(tb)
-	th.SystemAdminUser, err = th.service.GetUser(th.SystemAdminUser.Id)
+	th.SystemAdminUser, err = th.service.GetUser(th.Context, th.SystemAdminUser.Id)
 	require.NoError(tb, err)
 
 	th.BasicUser = th.CreateUser(tb)
-	th.BasicUser, err = th.service.GetUser(th.BasicUser.Id)
+	th.BasicUser, err = th.service.GetUser(th.Context, th.BasicUser.Id)
 	require.NoError(tb, err)
 
 	th.BasicUser2 = th.CreateUser(tb)
-	th.BasicUser2, err = th.service.GetUser(th.BasicUser2.Id)
+	th.BasicUser2, err = th.service.GetUser(th.Context, th.BasicUser2.Id)
 	require.NoError(tb, err)
 
 	return th

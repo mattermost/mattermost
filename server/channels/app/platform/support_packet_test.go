@@ -6,7 +6,6 @@ package platform
 import (
 	"bufio"
 	"bytes"
-	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -28,6 +27,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/config"
@@ -42,7 +42,7 @@ type fixedDBStatsStore struct {
 	replicaStats sql.DBStats
 }
 
-func (s *fixedDBStatsStore) GetDiagnostics(_ context.Context) (*store.DatabaseDiagnostics, error) {
+func (s *fixedDBStatsStore) GetDiagnostics(_ request.CTX) (*store.DatabaseDiagnostics, error) {
 	diagnostics := &store.DatabaseDiagnostics{
 		MasterConnectionsInUse:              s.masterStats.InUse,
 		MasterConnectionsIdle:               s.masterStats.Idle,

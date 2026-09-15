@@ -42,6 +42,12 @@
                 props:
                   description: A general JSON property bag to attach to the post
                   type: object
+                repeat_type:
+                  type: string
+                  description: Set to `weekly` for a recurring weekly schedule, or omit for a one-time schedule
+                repeat_timezone:
+                  type: string
+                  description: IANA timezone for weekly recurrence; required when `repeat_type` is `weekly`
       responses:
         "200":
           description: Created scheduled post
@@ -150,6 +156,12 @@
                 message:
                   type: string
                   description: The message contents, can be formatted with Markdown
+                repeat_type:
+                  type: string
+                  description: Set to `weekly` for a recurring weekly schedule, or empty for a one-time schedule
+                repeat_timezone:
+                  type: string
+                  description: IANA timezone for weekly recurrence; required when `repeat_type` is `weekly`
       responses:
         "200":
           description: Updated scheduled post

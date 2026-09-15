@@ -12,6 +12,7 @@ import CloudTrialAnnouncementBar from './cloud_trial_announcement_bar';
 import CloudTrialEndAnnouncementBar from './cloud_trial_ended_announcement_bar';
 import ConfigurationAnnouncementBar from './configuration_bar';
 import AnnouncementBar from './default_announcement_bar';
+import NonProductionLicenseAnnouncementBar from './non_production_license_bar';
 import NotificationPermissionBar from './notification_permission_bar';
 import OverageUsersBanner from './overage_users_banner';
 import PaymentAnnouncementBar from './payment_announcement_bar';
@@ -105,6 +106,8 @@ class AnnouncementBarController extends React.PureComponent<Props> {
         // If set with class 'admin-announcement', they will always be visible, stacked vertically.
         return (
             <>
+                {/* Lowest priority: urgent bars temporarily override it, and it reappears once they clear. */}
+                <NonProductionLicenseAnnouncementBar/>
                 <NotificationPermissionBar/>
                 {adminConfiguredAnnouncementBar}
                 {errorBar}

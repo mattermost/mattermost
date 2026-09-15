@@ -12,6 +12,7 @@ import (
 	"maps"
 	"net/http"
 	"regexp"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -73,7 +74,7 @@ const (
 	PostFilenamesMaxRunes = 4000
 	PostHashtagsMaxRunes  = 1000
 	PostMessageMaxRunesV1 = 4000
-	PostMessageMaxBytesV2 = 65535
+	PostMessageMaxBytesV2 = 1048576
 	PostMessageMaxRunesV2 = PostMessageMaxBytesV2 / 4 // Assume a worst-case representation
 
 	// Reporting API constants
@@ -421,16 +422,29 @@ type CreatePostFlags struct {
 	// AllowMmBlocksActions permits props.mm_blocks_actions on create. Set only
 	// by CreateWebhookPost — from_webhook is user-forgeable on the REST API.
 	AllowMmBlocksActions bool
+
+	// Display-identity overrides applied by trusted integration entry points
+	// (incoming webhooks, slash commands). SanitizeProps strips the matching
+	// post.Props keys by default so clients cannot forge them; the CreatePost
+	// handler re-injects these values onto the saved post only when
+	// FromIncomingWebhook is set — not for FromPlugin, bot, or OAuth-app
+	// authors, since no render path honors an override for those (see the
+	// reinjection block in CreatePost).
+	OverrideUsername   string
+	OverrideIconURL    string
+	OverrideIconEmoji  string
+	WebhookDisplayName string
 }
 
 type GetPostsSinceOptions struct {
-	UserId                   string
-	ChannelId                string
-	Time                     int64
-	SkipFetchThreads         bool
-	CollapsedThreads         bool
-	CollapsedThreadsExtended bool
-	SortAscending            bool
+	UserId                       string
+	ChannelId                    string
+	Time                         int64
+	SkipFetchThreads             bool
+	CollapsedThreads             bool
+	CollapsedThreadsExtended     bool
+	SortAscending                bool
+	ExcludeMembershipSystemPosts bool
 }
 
 type GetPostsSinceForSyncCursor struct {
@@ -454,21 +468,22 @@ type GetPostsSinceForSyncOptions struct {
 }
 
 type GetPostsOptions struct {
-	UserId                   string
-	ChannelId                string
-	PostId                   string
-	Page                     int
-	PerPage                  int
-	SkipFetchThreads         bool
-	CollapsedThreads         bool
-	CollapsedThreadsExtended bool
-	FromPost                 string // PostId after which to send the items
-	FromCreateAt             int64  // CreateAt after which to send the items
-	FromUpdateAt             int64  // UpdateAt after which to send the items. This cannot be used with FromCreateAt.
-	Direction                string // Only accepts up|down. Indicates the order in which to send the items.
-	UpdatesOnly              bool   // This flag is used to make the API work with the updateAt value.
-	IncludeDeleted           bool
-	IncludePostPriority      bool
+	UserId                       string
+	ChannelId                    string
+	PostId                       string
+	Page                         int
+	PerPage                      int
+	SkipFetchThreads             bool
+	CollapsedThreads             bool
+	CollapsedThreadsExtended     bool
+	FromPost                     string // PostId after which to send the items
+	FromCreateAt                 int64  // CreateAt after which to send the items
+	FromUpdateAt                 int64  // UpdateAt after which to send the items. This cannot be used with FromCreateAt.
+	Direction                    string // Only accepts up|down. Indicates the order in which to send the items.
+	UpdatesOnly                  bool   // This flag is used to make the API work with the updateAt value.
+	IncludeDeleted               bool
+	IncludePostPriority          bool
+	ExcludeMembershipSystemPosts bool
 	// ExcludeExpiredBurnOnReadPosts, when set, makes the query skip burn-on-read
 	// posts whose read receipt has already expired for UserId. It is only set by
 	// the app layer when the burn-on-read feature is enabled, so it adds no query
@@ -593,6 +608,11 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 	return nil
 }
 
+// SanitizeProps is for the create/update write path only — it strips
+// display-identity props unconditionally so a caller can re-inject them under
+// verified authority. Calling it on a read path that returns an
+// already-persisted post to a client wipes that legitimately-settled identity;
+// use SanitizeNonIdentityProps for reads instead.
 func (o *Post) SanitizeProps() {
 	if o == nil {
 		return
@@ -606,25 +626,42 @@ func (o *Post) SanitizeProps() {
 	// in the channel, so they must be stripped on every locally-originated post-
 	// creation path. The server re-injects them in app.CreatePost under verified
 	// authority: silent_notification via isIntegrationPostAuthor, force_notification
-	// via the server-set CreatePostFlags.ForceNotification flag. For posts that
-	// arrived through Shared Channels federation (RemoteId is set by the receiving
-	// cluster, never by an API caller — see SanitizeInput), the origin cluster has
-	// already enforced its own integration-prop authority, so we preserve them to
-	// keep notification semantics consistent across federation.
+	// via the server-set CreatePostFlags.ForceNotification flag.
 	//
 	// The from_* identity markers (from_webhook, from_bot, from_oauth_app,
-	// from_plugin) are render hints and remain user-settable under hardened-OFF
-	// (the default) for backward compatibility with the user-PAT-impersonation
-	// idiom (forge + override_username + override_icon_url). Hardened mode rejects
-	// from_webhook and from_plugin via ContainsIntegrationsReservedProps;
-	// from_bot and from_oauth_app are not currently in that reserved set. The
-	// full impersonation surface — these plus override_username/override_icon_url
-	// — is scheduled to default-strip in v12.
-	isFederated := o.RemoteId != nil && *o.RemoteId != ""
-	if !isFederated {
+	// from_plugin) are stripped here so a regular client cannot forge them;
+	// trusted integration entry points re-set from_bot/from_oauth_app/
+	// from_plugin/from_webhook directly in app.CreatePost based on user/session
+	// type or the FromIncomingWebhook/FromPlugin flag (see isIntegrationPostAuthor
+	// and the reinjection block in CreatePost).
+	//
+	// The display-identity overrides (override_username, override_icon_url,
+	// override_icon_emoji, webhook_display_name) are also stripped here, but
+	// re-injected only for FromIncomingWebhook — not the broader
+	// isIntegrationPostAuthor set — since override display has been an
+	// incoming-webhook-specific feature since 2015 and no render path honors it
+	// for bot/OAuth/plugin authors. This closes the user-PAT-impersonation idiom
+	// (forge from_webhook + override_username/override_icon_url) that
+	// previously rendered a post as another identity in thread lists, push
+	// notifications, edit history, and post previews.
+	//
+	// For posts that arrived through Shared Channels federation (RemoteId is set
+	// by the receiving cluster, never by an API caller — see SanitizeInput), the
+	// origin cluster has already enforced its own integration-prop authority, so
+	// we preserve all of these to keep notification and identity semantics
+	// consistent across federation.
+	if !o.IsRemote() {
 		membersToSanitize = append(membersToSanitize,
 			PostPropsForceNotification,
 			PostPropsSilentNotification,
+			PostPropsFromWebhook,
+			PostPropsFromBot,
+			PostPropsFromOAuthApp,
+			PostPropsFromPlugin,
+			PostPropsOverrideUsername,
+			PostPropsOverrideIconURL,
+			PostPropsOverrideIconEmoji,
+			PostPropsWebhookDisplayName,
 		)
 	}
 
@@ -638,14 +675,57 @@ func (o *Post) SanitizeProps() {
 	}
 }
 
+// SanitizeNonIdentityProps strips PropsAddChannelMember and, for
+// non-federated posts, the notification-policy markers (force_notification,
+// silent_notification) — the same set SanitizeProps stripped before v12 added
+// identity-marker stripping to it.
+//
+// Use this instead of SanitizeProps on read paths that return an
+// already-persisted post to a client (Threads, CRT notifications, etc.).
+// Those posts had their from_*/override_* props settled once already at
+// create/update time via SanitizeProps plus the server's verified-identity
+// re-injection — calling the stronger SanitizeProps again on read would wipe
+// that legitimately-stored identity from the response.
+func (o *Post) SanitizeNonIdentityProps() {
+	if o == nil {
+		return
+	}
+	membersToSanitize := []string{
+		PropsAddChannelMember,
+	}
+	if !o.IsRemote() {
+		membersToSanitize = append(membersToSanitize,
+			PostPropsForceNotification,
+			PostPropsSilentNotification,
+		)
+	}
+	for _, member := range membersToSanitize {
+		if _, ok := o.GetProps()[member]; ok {
+			o.DelProp(member)
+		}
+	}
+	for _, p := range o.Participants {
+		p.Sanitize(map[string]bool{})
+	}
+}
+
 // postIdentityPropsPreservedOnUpdate are server-controlled markers re-applied after
 // SanitizeProps during UpdatePost so edits cannot strip integration identity.
+// The display-identity overrides are restored from the prior post because v12
+// SanitizeProps strips them on every edit; the caller of UpdatePost typically
+// does not re-supply them, and PostActionRetainPropKeys also relies on this
+// path to carry override_username/override_icon_url through interactive action
+// updates (see app/integration_action.go).
 var postIdentityPropsPreservedOnUpdate = []string{
 	PostPropsSilentNotification,
 	PostPropsFromBot,
 	PostPropsFromWebhook,
 	PostPropsFromOAuthApp,
 	PostPropsFromPlugin,
+	PostPropsOverrideUsername,
+	PostPropsOverrideIconURL,
+	PostPropsOverrideIconEmoji,
+	PostPropsWebhookDisplayName,
 }
 
 func (o *Post) PreserveIdentityPropsFrom(old *Post) {
@@ -1054,8 +1134,14 @@ func (o *Post) propsIsValid() error {
 	return multiErr.ErrorOrNil()
 }
 
+// IsSystemMessagePostType reports whether the given post type string is reserved for
+// system-generated messages.
+func IsSystemMessagePostType(postType string) bool {
+	return strings.HasPrefix(postType, PostSystemMessagePrefix)
+}
+
 func (o *Post) IsSystemMessage() bool {
-	return len(o.Type) >= len(PostSystemMessagePrefix) && o.Type[:len(PostSystemMessagePrefix)] == PostSystemMessagePrefix
+	return IsSystemMessagePostType(o.Type)
 }
 
 // IsAccessControlTeamMembershipNotification reports whether the post is a team
@@ -1116,17 +1202,46 @@ func (o *Post) GetRemoteID() string {
 	return ""
 }
 
+// JoinLeaveMessagePostTypes returns the post types checked by IsJoinLeaveMessage.
+func JoinLeaveMessagePostTypes() []string {
+	return []string{
+		PostTypeJoinLeave,
+		PostTypeAddRemove,
+		PostTypeJoinChannel,
+		PostTypeLeaveChannel,
+		PostTypeJoinTeam,
+		PostTypeLeaveTeam,
+		PostTypeAddToChannel,
+		PostTypeRemoveFromChannel,
+		PostTypeAddToTeam,
+		PostTypeRemoveFromTeam,
+	}
+}
+
 func (o *Post) IsJoinLeaveMessage() bool {
-	return o.Type == PostTypeJoinLeave ||
-		o.Type == PostTypeAddRemove ||
-		o.Type == PostTypeJoinChannel ||
-		o.Type == PostTypeLeaveChannel ||
-		o.Type == PostTypeJoinTeam ||
-		o.Type == PostTypeLeaveTeam ||
-		o.Type == PostTypeAddToChannel ||
-		o.Type == PostTypeRemoveFromChannel ||
-		o.Type == PostTypeAddToTeam ||
-		o.Type == PostTypeRemoveFromTeam
+	return slices.Contains(JoinLeaveMessagePostTypes(), o.Type)
+}
+
+// MembershipSystemPostTypes is the superset of JoinLeaveMessagePostTypes that
+// additionally includes guest join/add types, used by the per-channel
+// disable-join-leave-messages read filter.
+func MembershipSystemPostTypes() []string {
+	return append(JoinLeaveMessagePostTypes(), PostTypeGuestJoinChannel, PostTypeAddGuestToChannel)
+}
+
+func IsMembershipSystemPost(post *Post) bool {
+	return post != nil && slices.Contains(MembershipSystemPostTypes(), post.Type)
+}
+
+// IsAddMembershipSystemPost returns true for posts that notify a user they were
+// added to a channel or team.
+func IsAddMembershipSystemPost(post *Post) bool {
+	if post == nil {
+		return false
+	}
+	return post.Type == PostTypeAddToChannel ||
+		post.Type == PostTypeAddGuestToChannel ||
+		post.Type == PostTypeAddToTeam
 }
 
 func (o *Post) Patch(patch *PostPatch) {
@@ -1437,6 +1552,30 @@ type UpdatePostOptions struct {
 	// the post-action integration response handler which has already
 	// validated the incoming value).
 	AllowMmBlocksActionsUpdate bool
+
+	// AllowIdentityPropsUpdate grants the caller permission to change the
+	// display-identity props (override_username, override_icon_url,
+	// override_icon_emoji, webhook_display_name) on edit. Without it,
+	// UpdatePost restores those props from the prior post — so a regular
+	// user editing a bot's post cannot strip or replace the bot's identity,
+	// but it also blocks the bot from updating its own identity. Shared
+	// Channels federation receive (the only production caller) sets this
+	// to true, paired with a genuine RemoteId, to forward the remote's new
+	// override values into the saved post. SanitizeProps still strips the
+	// props on the incoming payload for a non-federated post — UpdatePost
+	// captures the values BEFORE that strip and re-applies them after
+	// PreserveIdentityPropsFrom when this flag is set.
+	//
+	// Empty-string semantics: a captured value of "" is treated as "not
+	// supplied" and the prior post's value is preserved. This means a
+	// hypothetical non-federated opted-in caller cannot CLEAR an override
+	// via UpdatePost this way — only set it to a new non-empty value.
+	// The one real caller (federation receive) is not subject to this
+	// limitation: for a federated post, SanitizeProps leaves the remote's
+	// complete prop set untouched (including a prop's absence), so a
+	// remote genuinely clearing an override propagates via the payload
+	// itself, not through this empty-string mechanism.
+	AllowIdentityPropsUpdate bool
 }
 
 func DefaultUpdatePostOptions() *UpdatePostOptions {

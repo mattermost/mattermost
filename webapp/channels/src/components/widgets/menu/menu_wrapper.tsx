@@ -28,6 +28,12 @@ type Props = {
     isDisabled?: boolean;
     stopPropagationOnToggle?: boolean;
     open?: boolean;
+
+    /**
+     * Ref to a menu node rendered outside this wrapper in the DOM (e.g. through a portal). Clicks and
+     * focus changes inside it are treated as inside the menu so it isn't closed prematurely.
+     */
+    portalNodeRef?: React.RefObject<HTMLElement | null>;
 };
 
 type State = {
@@ -38,7 +44,7 @@ type State = {
  * @deprecated Use the "webapp/channels/src/components/menu" instead.
  */
 export default class MenuWrapper extends React.PureComponent<Props, State> {
-    private node: React.RefObject<HTMLDivElement>;
+    private node: React.RefObject<HTMLDivElement | null>;
 
     public static defaultProps = {
         className: '',
@@ -106,7 +112,13 @@ export default class MenuWrapper extends React.PureComponent<Props, State> {
     };
 
     private closeOnBlur = (e: Event) => {
-        if (this.node && this.node.current && e.target && this.node.current.contains(e.target as Node)) {
+        const target = e.target as Node;
+
+        if (target && this.node.current?.contains(target)) {
+            return;
+        }
+
+        if (target && this.props.portalNodeRef?.current?.contains(target)) {
             return;
         }
 

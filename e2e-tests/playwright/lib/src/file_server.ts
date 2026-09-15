@@ -8,6 +8,9 @@ import {test} from './test_fixture';
 
 import {testConfig} from '@/test_config';
 
+/** Hostname containers use to reach the Docker host. */
+export const DOCKER_HOST_INTERNAL = 'host.docker.internal';
+
 /**
  * Starts a server that serves files from ./asset. When run from the monorepo, this will serve files from
  * e2e-tests/playwright/asset.
@@ -63,10 +66,18 @@ export function setupFileServer(): Promise<string> {
     });
 }
 
-// localhost isn't reachable from inside the Mattermost container in `testcontainers` mode (it resolves to
-// the container's own loopback, not the host's). testcontainersNetworkGatewayIp is reachable
-// from both the container and the host-side browser, so it works as a single URL for both — this
-// server binds to 0.0.0.0, not just loopback, to accept the former.
-function fileServerHost(): string {
-    return testConfig.useTestContainers ? testConfig.testcontainersNetworkGatewayIp : 'localhost';
+/**
+ * Host used in file-server URLs embedded in posts. Must be reachable from both the host-side
+ * browser (Markdown images load directly) and the Mattermost container (link previews / metadata).
+ * On macOS/Windows the bridge gateway does not reach host listeners, so use host.docker.internal;
+ * on Linux use the bridge gateway IP (works both sides; host.docker.internal is often absent from host DNS).
+ */
+export function fileServerHost(): string {
+    if (!testConfig.useTestContainers) {
+        return 'localhost';
+    }
+    if (process.platform === 'darwin' || process.platform === 'win32') {
+        return DOCKER_HOST_INTERNAL;
+    }
+    return testConfig.testcontainersNetworkGatewayIp || DOCKER_HOST_INTERNAL;
 }

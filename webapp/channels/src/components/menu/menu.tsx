@@ -48,6 +48,13 @@ type MenuButtonProps = {
     class?: string;
     as?: 'button' | 'div';
     children: ReactNode;
+
+    /**
+     * Opt-in passthrough for callers that need to inspect or adjust the
+     * trigger before the click opens the menu. The menu itself does not
+     * depend on it.
+     */
+    onMouseDown?: (event: MouseEvent<HTMLElement>) => void;
 };
 
 type MenuButtonTooltipProps = {
@@ -267,6 +274,7 @@ export function Menu(props: Props) {
                 aria-label={props.menuButton?.['aria-label']}
                 aria-describedby={props.menuButton?.['aria-describedby']}
                 className={props.menuButton?.class ?? ''}
+                onMouseDown={props.menuButton?.onMouseDown}
                 onClick={handleMenuButtonClick}
             >
                 {props.menuButton.children}
@@ -337,12 +345,18 @@ export function Menu(props: Props) {
                             },
                         }}
                         slotProps={{
-                            backdrop: {
-                                id: ELEMENT_ID_FOR_MENU_BACKDROP,
+                            root: {
+                                slotProps: {
+                                    backdrop: {
+                                        id: ELEMENT_ID_FOR_MENU_BACKDROP,
+
+                                        // Popover normally sets this itself, but passing our own
+                                        // backdrop props replaces its defaults.
+                                        invisible: true,
+                                    },
+                                },
                             },
                         }}
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                        // @ts-expect-error This exists in source code of mui, but its types are missing
                         onTransitionExited={providerValue.handleClosed}
                     >
                         {props.menuHeader}

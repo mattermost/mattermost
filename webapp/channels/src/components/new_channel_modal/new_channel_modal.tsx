@@ -12,10 +12,10 @@ import type {Board} from '@mattermost/types/boards';
 import type {ChannelType, Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 import type {NewChannelFormResult, NewChannelFormState} from '@mattermost/types/plugins';
+import {isTextField, supportsOptions} from '@mattermost/types/properties';
 
 import {setNewChannelWithBoardPreference} from 'mattermost-redux/actions/boards';
 import {createChannel} from 'mattermost-redux/actions/channels';
-import {Client4} from 'mattermost-redux/client';
 import Permissions from 'mattermost-redux/constants/permissions';
 import Preferences from 'mattermost-redux/constants/preferences';
 import {areManagedCategoriesEnabled, isChannelCategorySortingEnabled, makeGetSidebarCategoryNamesForTeam} from 'mattermost-redux/selectors/entities/channel_categories';
@@ -24,22 +24,22 @@ import {get as getPreference} from 'mattermost-redux/selectors/entities/preferen
 import {haveICurrentChannelPermission, haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
+import {isPropertyFieldRequired} from 'mattermost-redux/utils/property_utils';
 
 import {switchToChannel} from 'actions/views/channel';
 import {closeModal} from 'actions/views/modals';
 
 import {ColorSwatch, LevelOptionLabel} from 'components/admin_console/classification_markings/classification_markings_styled';
-import {
-    CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
-    CLASSIFICATIONS_GROUP_NAME,
-} from 'components/admin_console/classification_markings/utils';
 import {classificationPresetDropdownStyles} from 'components/admin_console/classification_markings/utils/preset_dropdown_styles';
 import CategorySelector from 'components/category_selector/category_selector';
+import type {ChannelAttributeSelection} from 'components/channel_attributes/channel_attributes_form';
+import ChannelAttributesForm from 'components/channel_attributes/channel_attributes_form';
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
 import {
     CHANNEL_BANNER_MAX_CHARACTER_LIMIT,
     CHANNEL_BANNER_MIN_CHARACTER_LIMIT,
 } from 'components/channel_settings_modal/channel_settings_configuration_tab';
+import useChannelAttributes from 'components/common/hooks/useChannelAttributes';
 import useClassificationMarkings from 'components/common/hooks/useClassificationMarkings';
 import DropdownInput from 'components/dropdown_input';
 import type {ValueType} from 'components/dropdown_input';
@@ -128,7 +128,69 @@ const NewChannelModal = () => {
 
     const classification = useClassificationMarkings();
     const isSystemAdmin = useSelector(isCurrentUserSystemAdmin);
-    const canManageClassification = classification.available && isSystemAdmin;
+
+    const channelAttributes = useChannelAttributes();
+
+    // Superseded by the generic section while the flag is on, so classification has
+    // one control here rather than two.
+    const canManageClassification = classification.available && isSystemAdmin && !channelAttributes.enabled;
+    const [attributeValues, setAttributeValues] = useState<ChannelAttributeSelection>({});
+
+    // Required attributes, plus classification whether or not it is required: it has
+    // always been offered here, and its dedicated section below is suppressed once the
+    // flag is on, so leaving it out would take it off the dialog altogether. Every
+    // other optional attribute is added later from Channel Info.
+    //
+    // The setter tier cannot be evaluated without a channel, so this renders
+    // optimistically and the server stays authoritative. sysadmin is the exception:
+    // a required sysadmin-only attribute would disable Create for everyone else,
+    // which is a worse failure than an unset marking — the server skips the same
+    // tier for the same reason.
+    const classificationFieldId = classification.channelField?.id;
+    const assignableAttributeFields = useMemo(() => {
+        return channelAttributes.fields.filter((field) => {
+            if (!isPropertyFieldRequired(field) && field.id !== classificationFieldId) {
+                return false;
+            }
+            if (!supportsOptions(field) && !isTextField(field)) {
+                return false;
+            }
+            if (field.permission_values === 'none' || field.permission_values === undefined) {
+                return false;
+            }
+            if (field.permission_values === 'sysadmin' && !isSystemAdmin) {
+                return false;
+            }
+            return true;
+        });
+    }, [channelAttributes.fields, classificationFieldId, isSystemAdmin]);
+
+    // Reads attrs.required rather than membership of the list above, so an optional
+    // classification never blocks Create.
+    const missingRequiredAttributes = useMemo(() => {
+        return assignableAttributeFields.filter((field) => {
+            if (!isPropertyFieldRequired(field)) {
+                return false;
+            }
+            const value = attributeValues[field.id];
+            if (Array.isArray(value)) {
+                return value.length === 0;
+            }
+            return !value;
+        });
+    }, [assignableAttributeFields, attributeValues]);
+
+    const handleAttributeChange = useCallback((fieldId: string, value: string | string[] | undefined) => {
+        setAttributeValues((current) => {
+            const next = {...current};
+            if (value === undefined) {
+                Reflect.deleteProperty(next, fieldId);
+            } else {
+                next[fieldId] = value;
+            }
+            return next;
+        });
+    }, []);
     const [classificationEnabled, setClassificationEnabled] = useState(false);
     const [selectedClassificationId, setSelectedClassificationId] = useState('');
     const [bannerText, setBannerText] = useState('');
@@ -201,6 +263,16 @@ const NewChannelModal = () => {
         }
 
         if (isBuiltInType(type)) {
+            // Sent with the channel rather than written afterwards, so the server
+            // can refuse a channel that would not meet its own requirements.
+            const propertyValues = [
+                ...(classificationEnabled && selectedClassificationId && classification.channelField && bannerText ? [{
+                    field_id: classification.channelField.id,
+                    value: selectedClassificationId,
+                }] : []),
+                ...Object.entries(attributeValues).map(([fieldId, value]) => ({field_id: fieldId, value})),
+            ];
+
             const channel: Channel = {
                 team_id: currentTeamId,
                 name: url,
@@ -235,6 +307,7 @@ const NewChannelModal = () => {
                         background_color: selectedClassificationLevel?.color || '',
                     },
                 } : {}),
+                ...(propertyValues.length > 0 ? {property_values: propertyValues} : {}),
             };
 
             try {
@@ -242,19 +315,6 @@ const NewChannelModal = () => {
                 if (error) {
                     onCreateChannelError(error);
                     return;
-                }
-
-                if (classificationEnabled && selectedClassificationId && classification.channelField && bannerText) {
-                    try {
-                        await Client4.patchPropertyValues(
-                            CLASSIFICATIONS_GROUP_NAME,
-                            CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
-                            newChannel!.id,
-                            [{field_id: classification.channelField.id, value: selectedClassificationId}],
-                        );
-                    } catch {
-                        // Classification save failure should not block channel creation
-                    }
                 }
 
                 handleOnModalCancel();
@@ -412,7 +472,19 @@ const NewChannelModal = () => {
     const hasValidType = isBuiltInType(type) || Boolean(activePluginOption);
     const pluginCreateGate = isBuiltInType(type) ? canCreateFromPluggable : pluginCanCreate;
     const classificationValid = !classificationEnabled || (Boolean(selectedClassificationId) && bannerText.trim().length > 0);
-    const canCreate = displayName && !urlError && hasValidType && !purposeError && !serverError && pluginCreateGate && !channelInputError && classificationValid && !isSubmitting;
+
+    // Enforced by the dialog, not the server: POST /channels cannot carry values, so
+    // a failed write still leaves a channel short of its own requirement.
+    const requiredAttributesFilled = !isBuiltInType(type) || missingRequiredAttributes.length === 0;
+
+    const hasCompleteForm = Boolean(displayName) && hasValidType && classificationValid && requiredAttributesFilled;
+    const hasNoErrors = !urlError && !purposeError && !serverError && !channelInputError;
+
+    // Attribute definitions gate submission: until they load the form is missing
+    // controls the user may still need to fill in.
+    const canSubmit = pluginCreateGate && !isSubmitting && !channelAttributes.loading;
+
+    const canCreate = hasCompleteForm && hasNoErrors && canSubmit;
 
     const pluginOptions = useMemo<PluginOptionButtonProps[]>(() => availableOptions.map((o) => ({
         id: o.id,
@@ -456,11 +528,14 @@ const NewChannelModal = () => {
         </WithTooltip>
     );
 
-    const confirmButtonText = isSubmitting ? (
-        <LoadingSpinner
-            text={formatMessage({id: 'channel_modal.creating', defaultMessage: 'Creating...'})}
-        />
-    ) : (activePluginOption?.createButtonText ?? formatMessage({id: 'channel_modal.createNew', defaultMessage: 'Create channel'}));
+    let confirmButtonText: React.ReactNode = activePluginOption?.createButtonText ?? formatMessage({id: 'channel_modal.createNew', defaultMessage: 'Create channel'});
+    if (isSubmitting) {
+        confirmButtonText = (
+            <LoadingSpinner
+                text={formatMessage({id: 'channel_modal.creating', defaultMessage: 'Creating...'})}
+            />
+        );
+    }
 
     return (
         <GenericModal
@@ -676,6 +751,14 @@ const NewChannelModal = () => {
                             </div>
                         )}
                     </div>
+                )}
+                {isBuiltInType(type) && (
+                    <ChannelAttributesForm
+                        fields={assignableAttributeFields}
+                        values={attributeValues}
+                        onChange={handleAttributeChange}
+                        disabled={isSubmitting}
+                    />
                 )}
                 {activePluginOption?.extraContent && (
                     <activePluginOption.extraContent

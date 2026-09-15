@@ -27,14 +27,16 @@ const (
 	SendTimeout                   = time.Minute
 	SendFileTimeout               = time.Minute * 5
 	PingURL                       = "api/v4/remotecluster/ping"
-	PingFreq                      = time.Minute
-	PingTimeout                   = time.Second * 15
-	ConfirmInviteURL              = "api/v4/remotecluster/confirm_invite"
-	InvitationTopic               = "invitation"
-	PingTopic                     = "ping"
-	ResponseStatusOK              = model.StatusOk
-	ResponseStatusFail            = model.StatusFail
-	InviteExpiresAfter            = time.Hour * 48
+	// Raising PingFreq also raises the transport's IdleConnTimeout (PingFreq / 2),
+	// which must stay below peer idle timeouts (60s default). See MM-69982.
+	PingFreq           = time.Minute
+	PingTimeout        = time.Second * 15
+	ConfirmInviteURL   = "api/v4/remotecluster/confirm_invite"
+	InvitationTopic    = "invitation"
+	PingTopic          = "ping"
+	ResponseStatusOK   = model.StatusOk
+	ResponseStatusFail = model.StatusFail
+	InviteExpiresAfter = time.Hour * 48
 )
 
 type ServerIface interface {

@@ -314,7 +314,7 @@ func (a *App) UpdateViewedProductNoticesForNewUser(userID string) {
 		noticeIds = append(noticeIds, notice.ID)
 	}
 	if err := a.Srv().Store().ProductNotices().View(userID, noticeIds); err != nil {
-		mlog.Error("Cannot update product notices viewed state for user", mlog.String("userId", userID))
+		mlog.Error("Cannot update product notices viewed state for user", mlog.String("user_id", userID))
 	}
 }
 
