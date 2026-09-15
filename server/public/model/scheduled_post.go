@@ -80,6 +80,11 @@ func (s *ScheduledPost) BaseIsValid() *AppError {
 		if len(s.FileIds) > 0 {
 			return NewAppError("ScheduledPost.IsValid", "model.scheduled_post.is_valid.repeat_files.app_error", nil, "id="+s.Id, http.StatusBadRequest)
 		}
+		// Burn-on-read is authorised once, when the post is scheduled, and never again when it
+		// fires. A repeating series would send indefinitely on that single authorisation.
+		if s.Type == PostTypeBurnOnRead {
+			return NewAppError("ScheduledPost.IsValid", "model.scheduled_post.is_valid.repeat_burn_on_read.app_error", nil, "id="+s.Id, http.StatusBadRequest)
+		}
 		if s.RepeatTimezone == "" {
 			return NewAppError("ScheduledPost.IsValid", "model.scheduled_post.is_valid.repeat_timezone.app_error", nil, "id="+s.Id, http.StatusBadRequest)
 		}
