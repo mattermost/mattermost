@@ -4,6 +4,8 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 
 import type {JSX} from 'react';
+import * as reactJSXDevRuntime from 'react/jsx-dev-runtime';
+import * as reactJSXRuntime from 'react/jsx-runtime';
 
 import type {PublishedEditorUtils, PublishedModalId, PublishedModalIdCandidate, PublishedModalProps, PublishedModalUtils} from '@mattermost/shared/types/global';
 
@@ -56,6 +58,8 @@ const openPricingModalForPlugins = () => {
 
 interface WindowWithLibraries {
     React: typeof import('react');
+    ReactJSXRuntime: typeof import('react/jsx-runtime');
+    ReactJSXDevRuntime: typeof import('react/jsx-dev-runtime');
     ReactDOM: typeof import('react-dom') & typeof import('react-dom/client');
     ReactIntl: typeof import('react-intl');
     Redux: typeof import('redux');
@@ -133,6 +137,14 @@ declare let window: WindowWithLibraries;
 
 // Common libraries exposed on window for plugins to use as Webpack externals.
 window.React = require('react');
+
+// Production React 19 leaves jsxDEV undefined; use the host's jsx/jsxs helpers while preserving keys.
+const jsxDEV: typeof reactJSXDevRuntime.jsxDEV = reactJSXDevRuntime.jsxDEV ?? ((type, props, key, isStaticChildren) => (
+    isStaticChildren ? reactJSXRuntime.jsxs(type, props, key) : reactJSXRuntime.jsx(type, props, key)
+));
+
+window.ReactJSXRuntime = reactJSXRuntime;
+window.ReactJSXDevRuntime = {...reactJSXDevRuntime, jsxDEV};
 
 const reactDom = require('react-dom');
 const reactDomClient = require('react-dom/client');

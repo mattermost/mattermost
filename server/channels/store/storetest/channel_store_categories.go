@@ -2257,11 +2257,11 @@ func doTestSidebarCategoryConcurrentAccess(t *testing.T, rctx request.CTX, ss st
 	// Put them into a channel so that we can ensure they're evenly used across goroutines, and put 4x the number of
 	// goroutines in since that should ensure we have enough
 	channelChan := make(chan string, 4*numGoroutines)
-	for i := 0; i < cap(channelChan); i++ {
+	for i := range cap(channelChan) {
 		channelChan <- channels[i%len(channels)].Id
 	}
 	dmChannelChan := make(chan string, 4*numGoroutines)
-	for i := 0; i < cap(dmChannelChan); i++ {
+	for i := range cap(dmChannelChan) {
 		dmChannelChan <- dmChannels[i%len(dmChannels)].Id
 	}
 

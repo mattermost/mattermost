@@ -472,7 +472,7 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		fileInfos := make([]*model.FileInfo, 7)
-		for i := 0; i < cap(fileInfos); i++ {
+		for i := range cap(fileInfos) {
 			fileInfo, err := th.App.Srv().Store().FileInfo().Save(th.Context,
 				&model.FileInfo{
 					CreatorId: th.BasicUser.Id,
