@@ -111,6 +111,10 @@ test('logout invalidates a session created via OpenID', {tag: '@openid'}, async 
 
     const provisionedUser = await adminClient.getUserByUsername(keycloakUser.username);
     await adminClient.addToTeam(team.id, provisionedUser.id);
+
+    // # Dismiss the first-time onboarding tour so it doesn't cover the header
+    await pw.setDefaultOnboardingPreferences(adminClient, provisionedUser.id);
+
     await pw.channelsPage.goto(team.name);
     await pw.channelsPage.toBeVisible();
 
