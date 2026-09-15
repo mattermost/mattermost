@@ -90,18 +90,14 @@ func parseViewBox(value string) (int, int, bool) {
 }
 
 // parsePositiveNumber parses a number of pixels, rejecting anything that can't describe a
-// renderable size. A zero width or height means the SVG isn't rendered at all, so it is no more
-// usable than a missing one.
+// renderable size: a sub-pixel or zero dimension means the SVG isn't rendered at all, so it is no
+// more usable than a missing one, and converting a number beyond the int range would silently
+// produce a nonsense dimension.
 func parsePositiveNumber(value string) (int, bool) {
 	number, err := strconv.ParseFloat(value, 64)
-	if err != nil || math.IsNaN(number) || math.IsInf(number, 0) {
+	if err != nil || math.IsNaN(number) || number < 1 || number > math.MaxInt32 {
 		return 0, false
 	}
 
-	pixels := int(math.Round(number))
-	if pixels <= 0 {
-		return 0, false
-	}
-
-	return pixels, true
+	return int(math.Round(number)), true
 }

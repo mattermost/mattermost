@@ -26,7 +26,19 @@ func TestParseSVG(t *testing.T) {
 		},
 		{
 			name:           "width and height in px",
-			svg:            `<svg width="640px" height="480PX"></svg>`,
+			svg:            `<svg width="640px" height="480px"></svg>`,
+			expectedWidth:  640,
+			expectedHeight: 480,
+		},
+		{
+			name:           "width and height in uppercase px",
+			svg:            `<svg width="640PX" height="480PX"></svg>`,
+			expectedWidth:  640,
+			expectedHeight: 480,
+		},
+		{
+			name:           "fractional width and height",
+			svg:            `<svg width="640.4" height="479.6"></svg>`,
 			expectedWidth:  640,
 			expectedHeight: 480,
 		},
@@ -67,8 +79,14 @@ func TestParseSVG(t *testing.T) {
 			expectedHeight: 600,
 		},
 		{
+			name:           "sub-pixel width and height fall back to the viewBox",
+			svg:            `<svg width="0.4" height="0.4" viewBox="0 0 800 600"></svg>`,
+			expectedWidth:  800,
+			expectedHeight: 600,
+		},
+		{
 			name:           "dimensions are only read from the root element",
-			svg:            `<?xml version="1.0"?><!-- comment --><svg viewBox="0 0 800 600"><svg width="10" height="10"></svg></svg>`,
+			svg:            `<?xml version="1.0"?><!DOCTYPE svg><!-- comment --><svg viewBox="0 0 800 600"><svg width="10" height="10"></svg></svg>`,
 			expectedWidth:  800,
 			expectedHeight: 600,
 		},
@@ -78,8 +96,19 @@ func TestParseSVG(t *testing.T) {
 			expectError: true,
 		},
 		{
-			name:        "font and viewport relative width and height without a viewBox",
-			svg:         `<svg width="10em" height="50vh"></svg>`,
+			name:        "font relative width and height without a viewBox",
+			svg:         `<svg width="10em" height="20rem"></svg>`,
+			expectError: true,
+		},
+		{
+			name:        "viewport relative width and height without a viewBox",
+			svg:         `<svg width="50vw" height="50vh"></svg>`,
+			expectError: true,
+		},
+		{
+			// Absolute in CSS, but converting physical units is beyond what previews need
+			name:        "physical width and height without a viewBox",
+			svg:         `<svg width="10cm" height="5in"></svg>`,
 			expectError: true,
 		},
 		{
@@ -95,6 +124,16 @@ func TestParseSVG(t *testing.T) {
 		{
 			name:        "width without a height",
 			svg:         `<svg width="640"></svg>`,
+			expectError: true,
+		},
+		{
+			name:        "height without a width",
+			svg:         `<svg height="480"></svg>`,
+			expectError: true,
+		},
+		{
+			name:        "zero width",
+			svg:         `<svg width="0" height="480"></svg>`,
 			expectError: true,
 		},
 		{
@@ -118,8 +157,23 @@ func TestParseSVG(t *testing.T) {
 			expectError: true,
 		},
 		{
+			name:        "width and height beyond the int range",
+			svg:         `<svg width="1e300" height="1e300"></svg>`,
+			expectError: true,
+		},
+		{
+			name:        "viewBox beyond the int range",
+			svg:         `<svg viewBox="0 0 1e300 1e300"></svg>`,
+			expectError: true,
+		},
+		{
 			name:        "viewBox with too few values",
 			svg:         `<svg viewBox="0 0 800"></svg>`,
+			expectError: true,
+		},
+		{
+			name:        "viewBox with too many values",
+			svg:         `<svg viewBox="0 0 800 600 900"></svg>`,
 			expectError: true,
 		},
 		{

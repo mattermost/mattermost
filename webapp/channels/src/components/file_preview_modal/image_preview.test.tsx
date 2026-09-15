@@ -126,16 +126,31 @@ describe('components/view_image/ImagePreview', () => {
         expect(screen.getByTestId('imagePreview')).toHaveStyle({width: '800px', height: 'auto'});
     });
 
-    test('should leave an SVG without dimensions to be sized by the browser', () => {
+    test('should size an SVG when downloads are disabled', () => {
         const props = {
             ...baseProps,
-            fileInfo: svgFileInfo(0, 0),
+            canDownloadFiles: false,
+            fileInfo: svgFileInfo(800, 600),
+        };
+
+        const {container} = render(<ImagePreview {...props}/>);
+
+        expect(container.querySelector('img')).toHaveStyle({width: '800px', height: 'auto'});
+    });
+
+    test.each([
+        ['no dimensions', 0],
+        ['a negative width', -800],
+    ])('should leave an SVG with %s to be sized by the browser', (_, width) => {
+        const props = {
+            ...baseProps,
+            fileInfo: svgFileInfo(width, 600),
         };
 
         render(<ImagePreview {...props}/>);
 
-        // A width of 0 collapses the image, so no inline size may be applied at all
-        expect(screen.getByTestId('imagePreview').getAttribute('style') || '').toBe('');
+        // Any width other than the SVG's own collapses or distorts it, so none may be applied
+        expect(screen.getByTestId('imagePreview').style.width).toBe('');
     });
 
     test('should not size a non-SVG image from its file dimensions', () => {
@@ -151,7 +166,7 @@ describe('components/view_image/ImagePreview', () => {
 
         render(<ImagePreview {...props}/>);
 
-        expect(screen.getByTestId('imagePreview').getAttribute('style') || '').toBe('');
+        expect(screen.getByTestId('imagePreview').style.width).toBe('');
     });
 
     test('should apply both transform and SVG sizing together', () => {
@@ -166,6 +181,7 @@ describe('components/view_image/ImagePreview', () => {
         expect(screen.getByTestId('imagePreview')).toHaveStyle({
             transform: 'scale(2)',
             width: '800px',
+            height: 'auto',
         });
     });
 

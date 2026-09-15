@@ -148,6 +148,57 @@ func TestUploadFile(t *testing.T) {
 	assert.Equal(t, value, info1.Path, "Stored file at incorrect path")
 }
 
+func TestUploadFileSVGDimensions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	testCases := []struct {
+		name           string
+		svg            string
+		expectedWidth  int
+		expectedHeight int
+	}{
+		{
+			name:           "comma separated viewBox",
+			svg:            `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0,0,800,600"></svg>`,
+			expectedWidth:  800,
+			expectedHeight: 600,
+		},
+		{
+			name:           "absolute width and height",
+			svg:            `<svg xmlns="http://www.w3.org/2000/svg" width="640px" height="480px"></svg>`,
+			expectedWidth:  640,
+			expectedHeight: 480,
+		},
+		{
+			// The upload still succeeds, it just carries no dimensions for the web app to use
+			name: "relative width and height with no viewBox",
+			svg:  `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"></svg>`,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			info, appErr := th.App.UploadFileX(th.Context, th.BasicChannel.Id, "dimensions.svg",
+				bytes.NewReader([]byte(tc.svg)),
+				UploadFileSetTeamId(th.BasicTeam.Id),
+				UploadFileSetUserId(th.BasicUser.Id),
+				UploadFileSetTimestamp(time.Now()),
+				UploadFileSetContentLength(int64(len(tc.svg))))
+			require.Nil(t, appErr)
+
+			t.Cleanup(func() {
+				require.NoError(t, th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info.Id))
+				require.Nil(t, th.App.RemoveFile(info.Path))
+			})
+
+			assert.Equal(t, tc.expectedWidth, info.Width)
+			assert.Equal(t, tc.expectedHeight, info.Height)
+			assert.False(t, info.HasPreviewImage)
+		})
+	}
+}
+
 func TestParseOldFilenames(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
