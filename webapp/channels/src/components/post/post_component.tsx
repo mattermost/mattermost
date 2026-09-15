@@ -412,6 +412,7 @@ function PostComponent(props: Props) {
         const postElement = postRef.current;
         const pointerLeftPost = () => {
             const coords = pointerCoords.current;
+
             // Cypress trigger('mouseover') without a position often reports (0, 0), which is
             // never a real pointer over a post (channel header occupies the origin).
             if (!coords || (coords.x === 0 && coords.y === 0)) {
