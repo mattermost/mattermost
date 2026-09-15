@@ -309,7 +309,7 @@ func (b *permissionsBackfill) resolveTemplate(rctx request.CTX, groupID, templat
 	b.templates[templateID] = permissions
 
 	if permissions.Masking != nil {
-		b.warnIfMaskedTemplateHasNonUserSiblings(rctx, template)
+		b.warnIfMaskedTemplateHasNonUserSiblings(rctx, template, permissions.Masking)
 	}
 
 	return permissions, nil
@@ -321,7 +321,7 @@ func (b *permissionsBackfill) resolveTemplate(rctx request.CTX, groupID, templat
 // operator sets the template's mask_by_field_id -- the conversion cannot
 // infer that field from the template's linked fields, so this line is the
 // only thing that tells an operator the scheme is waiting on them.
-func (b *permissionsBackfill) warnIfMaskedTemplateHasNonUserSiblings(rctx request.CTX, template *model.PropertyField) {
+func (b *permissionsBackfill) warnIfMaskedTemplateHasNonUserSiblings(rctx request.CTX, template *model.PropertyField, masking *model.Masking) {
 	linked, err := b.service.fieldStore.GetLinkedFields([]string{template.ID}, nil)
 	if err != nil {
 		rctx.Logger().Warn("Failed to check a masked template's linked fields for non-user object types",
@@ -332,18 +332,33 @@ func (b *permissionsBackfill) warnIfMaskedTemplateHasNonUserSiblings(rctx reques
 	}
 
 	var nonUserFieldIDs []string
+	var writableHoldingsIDs []string
 	for _, field := range linked {
 		if field.ObjectType != model.PropertyFieldObjectTypeUser {
 			nonUserFieldIDs = append(nonUserFieldIDs, field.ID)
 		}
-	}
-	if len(nonUserFieldIDs) == 0 {
-		return
+		// A field the masking resolves its own holdings to -- mask_by_field_id names
+		// it, or the template sets none so it falls back to itself -- is open to the
+		// members it filters when its effective value.write admits them.
+		if holdingsFieldIDFor(field, masking) == field.ID && field.PermissionValues != nil &&
+			(*field.PermissionValues == model.PermissionLevelMember || *field.PermissionValues == model.PermissionLevelEveryone) {
+			writableHoldingsIDs = append(writableHoldingsIDs, field.ID)
+		}
 	}
 
-	rctx.Logger().Warn("A masked template has fields linked to it that are not object_type user; those fields show nobody anything until the template's mask_by_field_id is set",
-		mlog.String("template_id", template.ID),
-		mlog.String("template_name", template.Name),
-		mlog.Array("non_user_field_ids", nonUserFieldIDs),
-	)
+	if len(nonUserFieldIDs) > 0 {
+		rctx.Logger().Warn("A masked template has fields linked to it that are not object_type user; those fields show nobody anything until the template's mask_by_field_id is set",
+			mlog.String("template_id", template.ID),
+			mlog.String("template_name", template.Name),
+			mlog.Array("non_user_field_ids", nonUserFieldIDs),
+		)
+	}
+
+	if len(writableHoldingsIDs) > 0 {
+		rctx.Logger().Warn("A masked template's holdings field is writable by the members it filters, so they can widen their own masked view; tighten its value.write",
+			mlog.String("template_id", template.ID),
+			mlog.String("template_name", template.Name),
+			mlog.Array("writable_holdings_field_ids", writableHoldingsIDs),
+		)
+	}
 }

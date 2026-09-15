@@ -229,6 +229,42 @@ func TestPermissionsBackfillConvertBatch(t *testing.T) {
 // TestMigrateBackfillPropertyPermissions_Paging covers the driver on top of
 // convertBatch: paging across groups with no group filter, and idempotency on
 // a second run.
+func TestWarnIfMaskedTemplateHasWritableHoldings(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+
+	template := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+		GroupID:    th.CPAGroupID,
+		Name:       "MaskedTemplate-" + model.NewId(),
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	})
+	template.Permissions = &model.Permissions{Masking: &model.Masking{}}
+	updated, err := th.dbStore.PropertyField().Update(th.CPAGroupID, []*model.PropertyField{template}, nil)
+	require.NoError(t, err)
+	template = updated[0]
+
+	// A member-writable holdings field, seeded straight through the store -- the
+	// service's create/update gates would refuse it, which is the whole point.
+	linkedID := template.ID
+	th.CreatePropertyFieldDirect(t, &model.PropertyField{
+		GroupID:       th.CPAGroupID,
+		Name:          "WritableHoldings-" + model.NewId(),
+		Type:          model.PropertyFieldTypeText,
+		ObjectType:    model.PropertyFieldObjectTypeUser,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &linkedID,
+		Permissions: &model.Permissions{
+			Restrictions: &model.Restrictions{Value: model.ReadWrite{Write: model.PermissionLevelMember}},
+		},
+	})
+
+	buffer := captureMaskingFailureLog(t, th)
+	b := newPermissionsBackfill(th.service, th.CPAGroupID)
+	b.warnIfMaskedTemplateHasNonUserSiblings(th.Context, template, template.Permissions.Masking)
+	requireWarnLogged(t, th, buffer, "widen their own masked view")
+}
+
 func TestMigrateBackfillPropertyPermissions_Paging(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 	otherGroup := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
