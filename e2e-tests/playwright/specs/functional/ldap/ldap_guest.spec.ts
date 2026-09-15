@@ -19,36 +19,29 @@ test(
         await pw.ensureOpenldap();
 
         const {adminClient} = await pw.getAdminClient();
-        const originalConfig = await adminClient.getConfig();
         const team = await pw.createNewTeam(adminClient);
         const ldapUser = pw.generateLdapUser('ldapdemote');
         await pw.createLdapUser(ldapUser);
 
-        try {
-            await adminClient.patchConfig({GuestAccountsSettings: {Enable: true}});
+        await adminClient.patchConfig({GuestAccountsSettings: {Enable: true}});
 
-            // # Log in once as a regular member and grant team membership
-            await pw.hasSeenLandingPage();
-            await pw.loginPage.goto();
-            await pw.loginPage.toBeVisible();
-            await pw.loginPage.submitCredentials(ldapUser.username, ldapUser.password);
-            await pw.loginPage.expectNotOnLoginPage();
+        // # Log in once as a regular member and grant team membership
+        await pw.hasSeenLandingPage();
+        await pw.loginPage.goto();
+        await pw.loginPage.toBeVisible();
+        await pw.loginPage.submitCredentials(ldapUser.username, ldapUser.password);
+        await pw.loginPage.expectNotOnLoginPage();
 
-            const provisionedUser = await adminClient.getUserByUsername(ldapUser.username);
-            await adminClient.addToTeam(team.id, provisionedUser.id);
+        const provisionedUser = await adminClient.getUserByUsername(ldapUser.username);
+        await adminClient.addToTeam(team.id, provisionedUser.id);
 
-            // # Demote the user to guest
-            await adminClient.demoteUserToGuest(provisionedUser.id);
+        // # Demote the user to guest
+        await adminClient.demoteUserToGuest(provisionedUser.id);
 
-            // * Verify the role changed to guest while team membership is retained
-            const demotedUser = await adminClient.getUserByUsername(ldapUser.username);
-            expect(demotedUser.roles.split(' ')).toContain('system_guest');
-            const teamMembership = await adminClient.getTeamMember(team.id, provisionedUser.id);
-            expect(teamMembership.team_id).toBe(team.id);
-        } finally {
-            await adminClient.patchConfig({
-                GuestAccountsSettings: {Enable: originalConfig.GuestAccountsSettings.Enable},
-            });
-        }
+        // * Verify the role changed to guest while team membership is retained
+        const demotedUser = await adminClient.getUserByUsername(ldapUser.username);
+        expect(demotedUser.roles.split(' ')).toContain('system_guest');
+        const teamMembership = await adminClient.getTeamMember(team.id, provisionedUser.id);
+        expect(teamMembership.team_id).toBe(team.id);
     },
 );

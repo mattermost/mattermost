@@ -34,26 +34,22 @@ test('MM-T2699 AD/LDAP test connection succeeds against the configured directory
 test('MM-T2700 requires Username Attribute before saving AD/LDAP settings', {tag: '@ldap'}, async ({pw}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
-    const {adminUser, adminClient} = await pw.initSetup();
+    const {adminUser} = await pw.initSetup();
     await pw.ensureOpenldap();
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
-    try {
-        // # Clear Username Attribute and save
-        await systemConsolePage.gotoAdLdap();
-        await systemConsolePage.adLdap.usernameAttribute.clear();
-        await systemConsolePage.adLdap.save();
+    // # Clear Username Attribute and save
+    await systemConsolePage.gotoAdLdap();
+    await systemConsolePage.adLdap.usernameAttribute.clear();
+    await systemConsolePage.adLdap.save();
 
-        // * Verify the required-field error is shown
-        await expect(systemConsolePage.adLdap.usernameAttributeRequiredError).toBeVisible();
+    // * Verify the required-field error is shown
+    await expect(systemConsolePage.adLdap.usernameAttributeRequiredError).toBeVisible();
 
-        // # Restore Username Attribute and save
-        await systemConsolePage.adLdap.usernameAttribute.fill('uid');
-        await systemConsolePage.adLdap.save();
-        await systemConsolePage.adLdap.expectSaveComplete();
-    } finally {
-        await adminClient.patchConfig({LdapSettings: pw.ldapServerConfig()});
-    }
+    // # Restore Username Attribute and save
+    await systemConsolePage.adLdap.usernameAttribute.fill('uid');
+    await systemConsolePage.adLdap.save();
+    await systemConsolePage.adLdap.expectSaveComplete();
 });
 
 /**
@@ -65,19 +61,15 @@ test('MM-T2700 requires Username Attribute before saving AD/LDAP settings', {tag
 test('MM-T2701 requires Login ID Attribute before saving AD/LDAP settings', {tag: '@ldap'}, async ({pw}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
-    const {adminUser, adminClient} = await pw.initSetup();
+    const {adminUser} = await pw.initSetup();
     await pw.ensureOpenldap();
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
-    try {
-        // # Clear Login ID Attribute and save
-        await systemConsolePage.gotoAdLdap();
-        await systemConsolePage.adLdap.loginIdAttribute.clear();
-        await systemConsolePage.adLdap.save();
+    // # Clear Login ID Attribute and save
+    await systemConsolePage.gotoAdLdap();
+    await systemConsolePage.adLdap.loginIdAttribute.clear();
+    await systemConsolePage.adLdap.save();
 
-        // * Verify the required-field error is shown
-        await expect(systemConsolePage.adLdap.loginIdAttributeRequiredError).toBeVisible();
-    } finally {
-        await adminClient.patchConfig({LdapSettings: pw.ldapServerConfig()});
-    }
+    // * Verify the required-field error is shown
+    await expect(systemConsolePage.adLdap.loginIdAttributeRequiredError).toBeVisible();
 });
