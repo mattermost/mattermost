@@ -39,6 +39,10 @@ func propertyFieldForOptions(c *Context, callerName string) (*model.PropertyFiel
 		return nil, nil
 	}
 
+	if !requireChannelAttributeLicense(c, group, callerName, c.Params.ObjectType) {
+		return nil, nil
+	}
+
 	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
 
 	field, appErr := c.App.GetPropertyField(rctx, group.ID, c.Params.FieldId)
