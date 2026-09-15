@@ -271,7 +271,8 @@ export default class ChannelsPost {
     }
 
     /**
-     * Returns the post's reaction chip for the given emoji.
+     * Returns the post's reaction chip for the given emoji. Its accessible name is a localized
+     * sentence naming who reacted, so the id suffix is the stable handle.
      */
     getReaction(emojiName: string) {
         return this.container.locator(`[id$="-${emojiName}"].Reaction`);
