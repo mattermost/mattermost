@@ -1215,7 +1215,7 @@ func TestRemoveFlaggedPost(t *testing.T) {
 		require.Equal(t, "Updated message to create edit history", updatedPost.Message)
 
 		// Verify edit history exists
-		editHistory, appErr := th.App.GetEditHistoryForPost(post.Id)
+		editHistory, appErr := th.App.GetEditHistoryForPost(th.Context, post.Id)
 		require.Nil(t, appErr)
 		require.NotEmpty(t, editHistory)
 		editHistoryPostId := editHistory[0].Id
@@ -1237,7 +1237,7 @@ func TestRemoveFlaggedPost(t *testing.T) {
 		require.Empty(t, fileInfosAfter, "File attachments should be removed from database after removing flagged post")
 
 		// Verify edit history posts are removed from database
-		editHistoryAfter, appErr := th.App.GetEditHistoryForPost(post.Id)
+		editHistoryAfter, appErr := th.App.GetEditHistoryForPost(th.Context, post.Id)
 		require.NotNil(t, appErr)
 		require.Equal(t, http.StatusNotFound, appErr.StatusCode, "Edit history should be removed from database after removing flagged post")
 		require.Empty(t, editHistoryAfter)
@@ -1415,7 +1415,7 @@ func TestKeepFlaggedPost(t *testing.T) {
 		require.Equal(t, "Updated message to create edit history", updatedPost.Message)
 
 		// Verify edit history exists
-		editHistory, appErr := th.App.GetEditHistoryForPost(post.Id)
+		editHistory, appErr := th.App.GetEditHistoryForPost(th.Context, post.Id)
 		require.Nil(t, appErr)
 		require.NotEmpty(t, editHistory)
 		editHistoryPostId := editHistory[0].Id
@@ -1438,7 +1438,7 @@ func TestKeepFlaggedPost(t *testing.T) {
 		require.Equal(t, fileInfo.Id, fileInfosAfter[0].Id)
 
 		// Verify edit history is still present in database
-		editHistoryAfter, appErr := th.App.GetEditHistoryForPost(post.Id)
+		editHistoryAfter, appErr := th.App.GetEditHistoryForPost(th.Context, post.Id)
 		require.Nil(t, appErr, "Edit history should be preserved after keeping flagged post")
 		require.NotEmpty(t, editHistoryAfter)
 		require.Equal(t, editHistoryPostId, editHistoryAfter[0].Id)
