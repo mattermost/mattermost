@@ -5,6 +5,7 @@ package hashers
 
 import (
 	"crypto/pbkdf2"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
 	"strings"
@@ -12,7 +13,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app/password/phcparser"
-	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/stretchr/testify/require"
 )
 
@@ -48,7 +48,9 @@ func TestPBKDF2Hash(t *testing.T) {
 }
 
 func TestPBKDF2CompareHashAndPassword(t *testing.T) {
-	passwordTooLong := testlib.PseudoRandomBytes(PasswordMaxLengthBytes + 1)
+	passwordTooLong := make([]byte, PasswordMaxLengthBytes+1)
+	_, err := rand.Read(passwordTooLong)
+	require.NoError(t, err)
 
 	testCases := []struct {
 		testName    string
