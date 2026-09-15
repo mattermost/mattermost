@@ -54,11 +54,6 @@ export default class MessagePriority {
         await expect(this.dialogHeader).toBeVisible();
     }
 
-    async verifyPriorityMenuVisible() {
-        await expect(this.priorityMenu).toBeVisible();
-        await expect(this.dialogHeader).toBeVisible();
-    }
-
     async verifyStandardPrioritySelected() {
         await expect(this.priorityMenu).toBeVisible();
         await expect(this.standardPriorityOption).toHaveAttribute('aria-checked', 'true');
