@@ -81,7 +81,8 @@ func randomMessage(users []string) string {
 		if rand.Intn(2) == 0 {
 			message += fake.Sentence()
 		}
-		for i := 0; i < rand.Intn(4)+1; i++ {
+		lenList := rand.Intn(4) + 1
+		for range lenList {
 			message += "\n  * " + fake.Word()
 		}
 	default:
