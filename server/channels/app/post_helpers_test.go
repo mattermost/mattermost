@@ -324,6 +324,30 @@ func TestFilterInaccessiblePosts(t *testing.T) {
 			"post_d",
 		}, postList.Order)
 	})
+
+	t.Run("collapsed-thread UpdateAt ordering retains accessible posts via linear filtering", func(t *testing.T) {
+		// getPostsSinceCollapsedThreads orders roots by UpdateAt DESC, so PostList.Order
+		// is not monotonic in CreateAt. App.GetPostsSince filters those results with
+		// assumeSortedCreatedAt:false; a binary search would incorrectly drop post_c.
+		postList := &model.PostList{
+			Posts: map[string]*model.Post{
+				"post_a": postFromCreateAt(4),
+				"post_b": postFromCreateAt(0),
+				"post_c": postFromCreateAt(3),
+			},
+			Order: []string{"post_a", "post_b", "post_c"},
+		}
+		appErr := th.App.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: false})
+
+		require.Nil(t, appErr)
+
+		assert.Equal(t, map[string]*model.Post{
+			"post_a": postFromCreateAt(4),
+			"post_c": postFromCreateAt(3),
+		}, postList.Posts)
+
+		assert.Equal(t, []string{"post_a", "post_c"}, postList.Order)
+	})
 }
 
 func TestGetFilteredAccessiblePosts(t *testing.T) {
