@@ -1856,6 +1856,51 @@ func TestPluginPropertyOption(t *testing.T) {
 	})
 }
 
+func TestPropertyOptions_IsValid(t *testing.T) {
+	t.Run("a repeated option id is refused and named", func(t *testing.T) {
+		id := NewId()
+		options := PropertyOptions[*PropertyFieldOption]{
+			{ID: id, Name: "Option 1"},
+			{ID: id, Name: "Option 2"},
+		}
+
+		err := options.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), id)
+	})
+
+	t.Run("a repeated id is named even when the names also collide", func(t *testing.T) {
+		id := NewId()
+		options := PropertyOptions[*PropertyFieldOption]{
+			{ID: id, Name: "Option"},
+			{ID: id, Name: "Option"},
+		}
+
+		err := options.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "duplicate option id")
+		assert.Contains(t, err.Error(), id)
+	})
+
+	t.Run("distinct ids pass", func(t *testing.T) {
+		options := PropertyOptions[*PropertyFieldOption]{
+			{ID: NewId(), Name: "Option 1"},
+			{ID: NewId(), Name: "Option 2"},
+		}
+
+		assert.NoError(t, options.IsValid())
+	})
+
+	t.Run("blank ids are not duplicates", func(t *testing.T) {
+		options := PropertyOptions[*PropertyFieldOption]{
+			{Name: "Option 1"},
+			{Name: "Option 2"},
+		}
+
+		assert.NoError(t, options.IsValid())
+	})
+}
+
 func TestPropertyFieldType_SupportsOptions(t *testing.T) {
 	cases := map[PropertyFieldType]bool{
 		PropertyFieldTypeSelect:      true,
