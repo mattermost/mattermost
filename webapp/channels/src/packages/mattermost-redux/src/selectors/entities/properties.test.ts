@@ -122,7 +122,7 @@ describe('Field selectors', () => {
         test('keeps a stable array when two instances read different object types', () => {
             const postField = makeField({id: 'f1', object_type: 'post'});
             const userField = makeField({id: 'f2', object_type: 'user'});
-            const state = {
+            const state: DeepPartial<GlobalState> = {
                 entities: {
                     properties: {
                         fields: {
@@ -136,15 +136,15 @@ describe('Field selectors', () => {
                         groups: {byId: {}, byName: {}},
                     },
                 },
-            } as GlobalState;
+            };
 
             const getPostFields = makeGetPropertyFieldsForObjectTypeAndGroup();
             const getUserFields = makeGetPropertyFieldsForObjectTypeAndGroup();
 
-            const firstPost = getPostFields(state, 'post', 'group-1');
-            const firstUser = getUserFields(state, 'user', 'group-1');
-            expect(getPostFields(state, 'post', 'group-1')).toBe(firstPost);
-            expect(getUserFields(state, 'user', 'group-1')).toBe(firstUser);
+            const firstPost = getPostFields(state as GlobalState, 'post', 'group-1');
+            const firstUser = getUserFields(state as GlobalState, 'user', 'group-1');
+            expect(getPostFields(state as GlobalState, 'post', 'group-1')).toBe(firstPost);
+            expect(getUserFields(state as GlobalState, 'user', 'group-1')).toBe(firstUser);
         });
     });
 
