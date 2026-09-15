@@ -409,6 +409,7 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
 
     const [loaded, setLoaded] = useState(false);
     const [loadError, setLoadError] = useState(false);
+    const [failedAppliesToScopes, setFailedAppliesToScopes] = useState<ReadonlySet<ResourceObjectType>>(() => new Set());
     const [deleteError, setDeleteError] = useState<string | null>(null);
     const [deleteModalExited, setDeleteModalExited] = useState(false);
     const bannerRef = useRef<HTMLDivElement>(null);
@@ -434,8 +435,12 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
         getPropertyFieldsForObjectTypeAndGroup(state, 'post', groupId),
     );
     const appliesToByTemplateId = useMemo(
-        () => appliedResourceTypesByTemplateId([...userLinkedFields, ...channelLinkedFields, ...postLinkedFields]),
-        [channelLinkedFields, postLinkedFields, userLinkedFields],
+        () => appliedResourceTypesByTemplateId([
+            ...(failedAppliesToScopes.has('user') ? [] : userLinkedFields),
+            ...(failedAppliesToScopes.has('channel') ? [] : channelLinkedFields),
+            ...(failedAppliesToScopes.has('post') ? [] : postLinkedFields),
+        ]),
+        [channelLinkedFields, failedAppliesToScopes, postLinkedFields, userLinkedFields],
     );
 
     useEffect(() => {
@@ -450,15 +455,28 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                 setLoadError(false);
 
                 // Applies-to chips come from the per-resource linked fields. A
-                // failure here still leaves the listing usable — those cells
-                // fall back to the empty placeholder.
-                try {
-                    await Promise.all(ALL_RESOURCE_TYPES.map((objectType) =>
-                        dispatch(fetchPropertyFields(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, GLOBAL_ATTRIBUTES_TARGET_TYPE)),
-                    ));
-                } catch (error) {
-                    console.error('GlobalAttributesTable-load-applies-to: ', error); // eslint-disable-line no-console
+                // rejected fetch does not replace that scope in Redux, so
+                // suppress cached fields for failed scopes instead of showing
+                // stale assignments. Successful scopes still render.
+                const appliesToResults = await Promise.allSettled(ALL_RESOURCE_TYPES.map((objectType) =>
+                    dispatch(fetchPropertyFields(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, GLOBAL_ATTRIBUTES_TARGET_TYPE)),
+                ));
+                if (!active) {
+                    return;
                 }
+                const failedScopes = new Set<ResourceObjectType>();
+                appliesToResults.forEach((result, index) => {
+                    if (result.status === 'rejected') {
+                        failedScopes.add(ALL_RESOURCE_TYPES[index]);
+                        console.error('GlobalAttributesTable-load-applies-to: ', result.reason); // eslint-disable-line no-console
+                        return;
+                    }
+                    if (result.value?.error) {
+                        failedScopes.add(ALL_RESOURCE_TYPES[index]);
+                        console.error('GlobalAttributesTable-load-applies-to: ', result.value.error); // eslint-disable-line no-console
+                    }
+                });
+                setFailedAppliesToScopes(failedScopes);
             } catch (error) {
                 // Surface an error state instead of a misleading empty state.
                 console.error('GlobalAttributesTable-load: ', error); // eslint-disable-line no-console

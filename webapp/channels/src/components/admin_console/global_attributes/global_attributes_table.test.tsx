@@ -259,6 +259,110 @@ describe('GlobalAttributesTable', () => {
         expect(appliesTo).not.toHaveTextContent('—');
     });
 
+    it('does not render cached Applies-to chips after a resource fetch fails', async () => {
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        const template = makeField({id: 'template-1', name: 'department'});
+        const cachedUserLink = makeField({
+            id: 'user-1',
+            object_type: 'user',
+            linked_field_id: template.id,
+        });
+        getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
+            if (opts?.cursorId) {
+                return Promise.resolve([]);
+            }
+            if (objectType === 'template') {
+                return Promise.resolve([template]);
+            }
+            if (objectType === 'user') {
+                return Promise.reject(new Error('network'));
+            }
+            return Promise.resolve([]);
+        });
+
+        const state = getBaseState();
+        state.entities!.properties = {
+            fields: {
+                byId: {
+                    [template.id]: template,
+                    [cachedUserLink.id]: cachedUserLink,
+                },
+                byObjectType: {
+                    template: {[ACCESS_CONTROL_GROUP_UUID]: {[template.id]: template}},
+                    user: {[ACCESS_CONTROL_GROUP_UUID]: {[cachedUserLink.id]: cachedUserLink}},
+                },
+            },
+            groups: {
+                byId: {[ACCESS_CONTROL_GROUP_UUID]: {id: ACCESS_CONTROL_GROUP_UUID, name: 'access_control'}},
+                byName: {access_control: {id: ACCESS_CONTROL_GROUP_UUID, name: 'access_control'}},
+            },
+        };
+
+        renderWithContext(<GlobalAttributesTable/>, state);
+
+        const appliesTo = await screen.findByTestId('global-attribute-applies-to');
+        expect(appliesTo).toHaveTextContent('—');
+        expect(appliesTo).not.toHaveTextContent('Users');
+
+        consoleSpy.mockRestore();
+    });
+
+    it('still renders Applies-to chips for scopes that loaded after another resource fetch fails', async () => {
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        const template = makeField({id: 'template-1', name: 'department'});
+        const cachedChannelLink = makeField({
+            id: 'channel-1',
+            object_type: 'channel',
+            linked_field_id: template.id,
+        });
+        getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
+            if (opts?.cursorId) {
+                return Promise.resolve([]);
+            }
+            if (objectType === 'template') {
+                return Promise.resolve([template]);
+            }
+            if (objectType === 'user') {
+                return Promise.resolve([makeField({
+                    id: 'user-1',
+                    object_type: 'user',
+                    linked_field_id: template.id,
+                })]);
+            }
+            if (objectType === 'channel') {
+                return Promise.reject(new Error('network'));
+            }
+            return Promise.resolve([]);
+        });
+
+        const state = getBaseState();
+        state.entities!.properties = {
+            fields: {
+                byId: {
+                    [template.id]: template,
+                    [cachedChannelLink.id]: cachedChannelLink,
+                },
+                byObjectType: {
+                    template: {[ACCESS_CONTROL_GROUP_UUID]: {[template.id]: template}},
+                    channel: {[ACCESS_CONTROL_GROUP_UUID]: {[cachedChannelLink.id]: cachedChannelLink}},
+                },
+            },
+            groups: {
+                byId: {[ACCESS_CONTROL_GROUP_UUID]: {id: ACCESS_CONTROL_GROUP_UUID, name: 'access_control'}},
+                byName: {access_control: {id: ACCESS_CONTROL_GROUP_UUID, name: 'access_control'}},
+            },
+        };
+
+        renderWithContext(<GlobalAttributesTable/>, state);
+
+        const appliesTo = await screen.findByTestId('global-attribute-applies-to');
+        expect(appliesTo).toHaveTextContent('Users');
+        expect(appliesTo).not.toHaveTextContent('Channels');
+        expect(appliesTo).not.toHaveTextContent('—');
+
+        consoleSpy.mockRestore();
+    });
+
     it('renders an ordinary row\'s name without a classification subtitle', async () => {
         getPropertyFields.mockResolvedValueOnce([makeField()]).mockResolvedValue([]);
 

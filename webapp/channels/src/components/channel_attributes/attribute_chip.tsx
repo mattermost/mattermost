@@ -101,7 +101,6 @@ const AttributeChip = ({
                     className='AttributeChip__remove'
                     data-testid='attributeChipRemove'
                     data-chip-remove={true}
-                    tabIndex={-1}
                     aria-label={removeLabel}
                     onMouseDown={(event) => {
                         event.preventDefault();

@@ -63,7 +63,8 @@
         line-height: 0;
         opacity: 0.56;
 
-        &:hover {
+        &:hover,
+        &:focus-visible {
             opacity: 1;
         }
     }

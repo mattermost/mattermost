@@ -122,4 +122,22 @@ describe('AttributeChip', () => {
         await userEvent.click(remove);
         expect(onRemove).toHaveBeenCalledTimes(1);
     });
+
+    test('keeps the remove control in sequential keyboard order', async () => {
+        const onRemove = jest.fn();
+        renderWithContext(
+            <AttributeChip
+                label='Severity'
+                value='SEV 1'
+                onRemove={onRemove}
+                removeLabel='Clear Severity'
+            />,
+        );
+
+        await userEvent.tab();
+        expect(screen.getByRole('button', {name: 'Clear Severity'})).toHaveFocus();
+
+        await userEvent.keyboard('{Enter}');
+        expect(onRemove).toHaveBeenCalledTimes(1);
+    });
 });
