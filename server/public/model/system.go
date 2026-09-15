@@ -15,6 +15,7 @@ const (
 	SystemLastComplianceTime               = "LastComplianceTime"
 	SystemAsymmetricSigningKeyKey          = "AsymmetricSigningKey"
 	SystemPostActionCookieSecretKey        = "PostActionCookieSecret"
+	SystemSamlRelayStateSigningKeyKey      = "SamlRelayStateSigningKey"
 	SystemInstallationDateKey              = "InstallationDate"
 	SystemOrganizationName                 = "OrganizationName"
 	SystemFirstAdminRole                   = "FirstAdminRole"
@@ -57,6 +58,10 @@ type System struct {
 }
 
 type SystemPostActionCookieSecret struct {
+	Secret []byte `json:"key,omitempty"`
+}
+
+type SystemSamlRelayStateSigningKey struct {
 	Secret []byte `json:"key,omitempty"`
 }
 
