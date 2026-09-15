@@ -73,6 +73,11 @@ type propertyOptionRow struct {
 
 var propertyOptionColumns = []string{"ID", "GroupID", "FieldID", "Name", "Color", "Rank", "SortOrder", "Attrs", "CreateAt", "UpdateAt", "DeleteAt"}
 
+// maxPropertyOptionRowsPerQuery bounds how many PropertyOptions rows one
+// statement carries. Each row spends one parameter per column, so a bound in
+// identifiers (see maxOptionIDsPerQuery) is too large here.
+var maxPropertyOptionRowsPerQuery = 60000 / len(propertyOptionColumns)
+
 // insertValues returns the row in propertyOptionColumns order. Attrs is passed
 // as an untyped nil when empty so the column holds SQL NULL rather than a JSON
 // null, which keeps "has extra keys" a single test everywhere.
@@ -994,21 +999,23 @@ func (s *SqlPropertyFieldStore) upsertFieldOptions(transaction *sqlxTxWrapper, g
 		rows = append(rows, row)
 	}
 
-	builder := s.getQueryBuilder().
-		Insert("PropertyOptions").
-		Columns(propertyOptionColumns...)
-	for _, row := range rows {
-		builder = builder.Values(row.insertValues()...)
-	}
-	builder = builder.Suffix(`ON CONFLICT (FieldID, ID) DO UPDATE SET
+	for batch := range slices.Chunk(rows, maxPropertyOptionRowsPerQuery) {
+		builder := s.getQueryBuilder().
+			Insert("PropertyOptions").
+			Columns(propertyOptionColumns...)
+		for _, row := range batch {
+			builder = builder.Values(row.insertValues()...)
+		}
+		builder = builder.Suffix(`ON CONFLICT (FieldID, ID) DO UPDATE SET
 	Name = EXCLUDED.Name,
 	Color = EXCLUDED.Color,
 	Attrs = EXCLUDED.Attrs,
 	UpdateAt = EXCLUDED.UpdateAt,
 	DeleteAt = 0`)
 
-	if _, err := transaction.ExecBuilder(builder); err != nil {
-		return errors.Wrap(err, "property_options_upsert_exec")
+		if _, err := transaction.ExecBuilder(builder); err != nil {
+			return errors.Wrap(err, "property_options_upsert_exec")
+		}
 	}
 	return nil
 }
@@ -1460,14 +1467,16 @@ func (s *SqlPropertyFieldStore) syncPropertyFieldOptions(transaction *sqlxTxWrap
 	}
 
 	for fieldID, ids := range deletesByField {
-		builder := s.getQueryBuilder().
-			Update("PropertyOptions").
-			Set("DeleteAt", now).
-			Set("UpdateAt", now).
-			Where(sq.Eq{"FieldID": fieldID}).
-			Where(sq.Eq{"ID": ids})
-		if _, err := transaction.ExecBuilder(builder); err != nil {
-			return nil, errors.Wrap(err, "property_options_delete_exec")
+		for batch := range slices.Chunk(ids, maxPropertyOptionRowsPerQuery) {
+			builder := s.getQueryBuilder().
+				Update("PropertyOptions").
+				Set("DeleteAt", now).
+				Set("UpdateAt", now).
+				Where(sq.Eq{"FieldID": fieldID}).
+				Where(sq.Eq{"ID": batch})
+			if _, err := transaction.ExecBuilder(builder); err != nil {
+				return nil, errors.Wrap(err, "property_options_delete_exec")
+			}
 		}
 
 		// An option that is gone cannot be part of a hierarchy, and an edge has
@@ -1647,13 +1656,14 @@ func propertyOptionRowChanged(current, next *propertyOptionRow) bool {
 // re-submits under an ID the field already used keeps its identity and its
 // CreateAt, and a re-added option comes back from being soft-deleted.
 func (s *SqlPropertyFieldStore) upsertPropertyOptions(transaction *sqlxTxWrapper, rows []*propertyOptionRow) error {
-	builder := s.getQueryBuilder().
-		Insert("PropertyOptions").
-		Columns(propertyOptionColumns...)
-	for _, row := range rows {
-		builder = builder.Values(row.insertValues()...)
-	}
-	builder = builder.Suffix(`ON CONFLICT (FieldID, ID) DO UPDATE SET
+	for batch := range slices.Chunk(rows, maxPropertyOptionRowsPerQuery) {
+		builder := s.getQueryBuilder().
+			Insert("PropertyOptions").
+			Columns(propertyOptionColumns...)
+		for _, row := range batch {
+			builder = builder.Values(row.insertValues()...)
+		}
+		builder = builder.Suffix(`ON CONFLICT (FieldID, ID) DO UPDATE SET
 	Name = EXCLUDED.Name,
 	Color = EXCLUDED.Color,
 	Rank = EXCLUDED.Rank,
@@ -1662,8 +1672,9 @@ func (s *SqlPropertyFieldStore) upsertPropertyOptions(transaction *sqlxTxWrapper
 	UpdateAt = EXCLUDED.UpdateAt,
 	DeleteAt = 0`)
 
-	if _, err := transaction.ExecBuilder(builder); err != nil {
-		return errors.Wrap(err, "property_options_upsert_exec")
+		if _, err := transaction.ExecBuilder(builder); err != nil {
+			return errors.Wrap(err, "property_options_upsert_exec")
+		}
 	}
 	return nil
 }
