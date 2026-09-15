@@ -1,0 +1,54 @@
+# Copyright 2022 Mattermost, Inc.
+name: "test-with-db"
+description: This action used to runs tests with db integration
+
+runs:
+  using: "composite"
+  steps:
+    - name: ci/cache-node-modules
+      id: cache-node-modules
+      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+      with:
+        path: |
+          core-plugins/mattermost-plugin-playbooks/webapp/node_modules
+          core-plugins/mattermost-plugin-playbooks/e2e-tests/node_modules
+        key: ${{ runner.os }}-playbooks-node-modules-${{ hashFiles('core-plugins/mattermost-plugin-playbooks/webapp/package-lock.json') }}-${{ hashFiles('core-plugins/mattermost-plugin-playbooks/e2e-tests/package-lock.json') }}
+        restore-keys: ${{ runner.os }}-playbooks-node-modules-${{ hashFiles('core-plugins/mattermost-plugin-playbooks/webapp/package-lock.json') }}-${{ hashFiles('core-plugins/mattermost-plugin-playbooks/e2e-tests/package-lock.json') }}
+
+    - name: ci/setup-webapp-npm-deps
+      if: steps.cache-node-modules.outputs.cache-hit != 'true'
+      shell: bash
+      working-directory: ${{ github.workspace }}/core-plugins/mattermost-plugin-playbooks
+      env:
+        NODE_ENV: development
+      run: |
+        cd webapp
+        npm install --ignore-scripts --no-save --legacy-peer-deps
+
+    - name: ci/test-db-integration
+      shell: bash
+      working-directory: ${{ github.workspace }}/core-plugins/mattermost-plugin-playbooks
+      env:
+        IS_CI: true
+        POSTGRES_USER: mmuser
+        POSTGRES_DB: mattermost_test
+        MYSQL_ROOT_PASSWORD: mostest
+        MYSQL_DATABASE: mattermost_test
+        MYSQL_USER: mmuser
+        MYSQL_PASSWORD: mostest
+        MARIADB_ROOT_PASSWORD: mostest
+        MARIADB_DATABASE: mattermost_test
+        MARIADB_USER: mmuser
+        MARIADB_PASSWORD: mostest
+      run: make test
+
+    - name: ci/upload-test-results
+      if: always()
+      uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+      with:
+        name: ${{ github.job }}-results
+        path: |
+          core-plugins/mattermost-plugin-playbooks/report.xml
+          core-plugins/mattermost-plugin-playbooks/client/report.xml
+          core-plugins/mattermost-plugin-playbooks/build/report.xml
+        retention-days: 5 ## No need to keep test results for more than 5 days

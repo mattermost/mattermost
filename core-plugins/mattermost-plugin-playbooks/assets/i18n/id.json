@@ -1,0 +1,202 @@
+[
+    {
+        "id": "app.command.execute.error",
+        "translation": "Tidak dapat menjalankan perintah."
+    },
+    {
+        "id": "app.user.run.confirm_finish.submit_label",
+        "translation": "Selesai menjalankan"
+    },
+    {
+        "id": "app.user.run.confirm_finish.title",
+        "translation": "Konfirmasi selesai menjalankan"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.title",
+        "translation": "Menambahkan tugas baru"
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.zero_in_progress",
+        "translation": "Anda memiliki 0 run yang sedang berjalan saat ini."
+    },
+    {
+        "id": "app.user.digest.tasks.all_tasks_command",
+        "translation": "Gunakan `/playbook todo` untuk melihat semua tugas Anda."
+    },
+    {
+        "id": "app.user.digest.tasks.due_today",
+        "translation": "Jatuh tempo hari ini"
+    },
+    {
+        "id": "app.user.digest.tasks.due_yesterday",
+        "translation": "Karena kemarin"
+    },
+    {
+        "id": "app.user.digest.tasks.due_x_days_ago",
+        "translation": "Jatuh tempo {{.Count}} hari yang lalu"
+    },
+    {
+        "id": "app.user.digest.tasks.heading",
+        "translation": "Tugas yang Anda berikan"
+    },
+    {
+        "id": "app.user.digest.tasks.zero_assigned",
+        "translation": "Anda memiliki 0 tugas yang diberikan."
+    },
+    {
+        "id": "app.user.new_run.intro",
+        "translation": "**Pemilik** {{.Username}}"
+    },
+    {
+        "id": "app.user.new_run.playbook",
+        "translation": "Playbook"
+    },
+    {
+        "id": "app.user.new_run.run_name",
+        "translation": "Jalankan nama"
+    },
+    {
+        "id": "app.user.new_run.submit_label",
+        "translation": "Mulai jalankan"
+    },
+    {
+        "id": "app.user.new_run.title",
+        "translation": "Menjalankan buku pedoman"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.description",
+        "translation": "Deskripsi"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.name",
+        "translation": "Nama"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.submit_label",
+        "translation": "Tambahkan tugas"
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.heading",
+        "translation": "Pembaruan Status yang Terlambat"
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.zero_overdue",
+        "translation": "Anda memiliki 0 tunggakan."
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.heading",
+        "translation": "Berjalan dalam Proses"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.playbook_run",
+        "translation": "Playbook Run"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.submit_label",
+        "translation": "Menambahkan ke timeline yang sedang berjalan"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary",
+        "translation": "Ringkasan"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary.help",
+        "translation": "Maksimal 64 karakter"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary.placeholder",
+        "translation": "Rangkuman singkat yang ditampilkan di timeline"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.title",
+        "translation": "Menambahkan ke timeline yang sedang berjalan"
+    },
+    {
+        "id": "app.user.run.request_join_channel",
+        "translation": "@{{.Name}} adalah peserta lari dan ingin bergabung dengan saluran ini. Setiap anggota saluran dapat mengundang mereka.\n"
+    },
+    {
+        "id": "app.user.run.request_update",
+        "translation": "@here - @{{.Name}} meminta pembaruan status untuk [{{.RunName}}]({{.RunURL}}). \n"
+    },
+    {
+        "id": "app.user.run.status_disable",
+        "translation": "@{{.Username}} menonaktifkan pembaruan status untuk [{{.RunName}}]({{.RunURL}})"
+    },
+    {
+        "id": "app.user.run.status_enable",
+        "translation": "@{{.Username}} mengaktifkan pembaruan status untuk [{{.RunName}}]({{.RunURL}})"
+    },
+    {
+        "id": "app.user.run.update_status.change_since_last_update",
+        "translation": "Perubahan sejak pembaruan terakhir"
+    },
+    {
+        "id": "app.user.run.update_status.finish_run",
+        "translation": "Selesai menjalankan"
+    },
+    {
+        "id": "app.user.run.update_status.finish_run.placeholder",
+        "translation": "Juga tandai lari sebagai selesai"
+    },
+    {
+        "id": "app.user.run.update_status.reminder_for_next_update",
+        "translation": "Pengingat untuk pembaruan berikutnya"
+    },
+    {
+        "id": "app.user.run.update_status.submit_label",
+        "translation": "Perbarui status"
+    },
+    {
+        "id": "app.user.run.update_status.title",
+        "translation": "Pembaruan status"
+    },
+    {
+        "id": "app.user.run.confirm_finish.num_outstanding",
+        "translation": {
+            "other": "There is **{{.Count}} outstanding task**. Are you sure you want to finish the run *{{.RunName}}* for all participants?"
+        }
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.num_in_progress",
+        "translation": {
+            "other": "You have {{.Count}} run currently in progress:"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.due_in_x_days",
+        "translation": {
+            "other": "Due in {{.Count}} day"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.due_after_today",
+        "translation": {
+            "other": "You have **{{.Count}} assigned task due after today**."
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.num_assigned_due_until_today",
+        "translation": {
+            "other": "You have {{.Count}} assigned task that is now due:"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.num_assigned",
+        "translation": {
+            "other": "You have {{.Count}} assigned task:"
+        }
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.num_overdue",
+        "translation": {
+            "other": "You have {{.Count}} run overdue for a status update:"
+        }
+    },
+    {
+        "id": "app.user.run.update_status.num_channel",
+        "translation": {
+            "other": "Provide an update to the stakeholders. This post will be broadcasted to {{.Count}} channel."
+        }
+    }
+]
