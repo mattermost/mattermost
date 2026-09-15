@@ -98,8 +98,11 @@ export default function ImagePreview({fileInfo, canDownloadFiles, scale, transla
         );
     }
 
+    // An SVG declaring only a viewBox has no intrinsic size, so it needs the width the server
+    // derived to render at its declared size instead of the browser's 300px default. When no
+    // dimensions could be derived there is nothing to apply: a width of 0 would collapse it.
     const finalImgStyle: React.CSSProperties = {...imgStyle};
-    if (getFileType(fileInfo.extension) === FileTypes.SVG) {
+    if (getFileType(fileInfo.extension) === FileTypes.SVG && fileInfo.width) {
         finalImgStyle.width = fileInfo.width;
         finalImgStyle.height = 'auto';
     }

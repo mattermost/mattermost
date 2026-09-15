@@ -107,6 +107,68 @@ describe('components/view_image/ImagePreview', () => {
         expect(onWheel).toHaveBeenCalledTimes(1);
     });
 
+    const svgFileInfo = (width: number, height: number) => TestHelper.getFileInfoMock({
+        id: 'svg_file_id',
+        extension: 'svg',
+        width,
+        height,
+        has_preview_image: false,
+    });
+
+    test('should size an SVG from the dimensions the server derived', () => {
+        const props = {
+            ...baseProps,
+            fileInfo: svgFileInfo(800, 600),
+        };
+
+        render(<ImagePreview {...props}/>);
+
+        expect(screen.getByTestId('imagePreview')).toHaveStyle({width: '800px', height: 'auto'});
+    });
+
+    test('should leave an SVG without dimensions to be sized by the browser', () => {
+        const props = {
+            ...baseProps,
+            fileInfo: svgFileInfo(0, 0),
+        };
+
+        render(<ImagePreview {...props}/>);
+
+        // A width of 0 collapses the image, so no inline size may be applied at all
+        expect(screen.getByTestId('imagePreview').getAttribute('style') || '').toBe('');
+    });
+
+    test('should not size a non-SVG image from its file dimensions', () => {
+        const props = {
+            ...baseProps,
+            fileInfo: TestHelper.getFileInfoMock({
+                id: 'png_file_id',
+                extension: 'png',
+                width: 800,
+                height: 600,
+            }),
+        };
+
+        render(<ImagePreview {...props}/>);
+
+        expect(screen.getByTestId('imagePreview').getAttribute('style') || '').toBe('');
+    });
+
+    test('should apply both transform and SVG sizing together', () => {
+        const props = {
+            ...baseProps,
+            fileInfo: svgFileInfo(800, 600),
+            scale: 2,
+        };
+
+        render(<ImagePreview {...props}/>);
+
+        expect(screen.getByTestId('imagePreview')).toHaveStyle({
+            transform: 'scale(2)',
+            width: '800px',
+        });
+    });
+
     test('should not download link for external file', () => {
         fileInfo1.link = 'https://example.com/image.png';
         const props = {
