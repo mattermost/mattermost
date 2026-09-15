@@ -47,6 +47,16 @@ const (
 	// channel targets. The specific permission checked per scope is documented
 	// at hasPropertyFieldPermissionLevel in the app package.
 	PermissionLevelAdmin PermissionLevel = "admin"
+	// PermissionLevelCreator grants access to the creator of the entity the
+	// action concerns, plus everyone PermissionLevelAdmin grants. For values
+	// the entity is the value's target object: the post's UserId for
+	// post-object fields, the channel's CreatorId for channel-object fields.
+	// For the field and options slots the entity is the field itself, so the
+	// creator is its CreatedBy. Only valid on post- and channel-object fields;
+	// see IsValid. The specific checks per scope are documented at
+	// hasPropertyFieldPermissionLevel and hasPropertyFieldValuePermissionLevel
+	// in the app package.
+	PermissionLevelCreator PermissionLevel = "creator"
 
 	PropertyFieldObjectTypePost     = "post"
 	PropertyFieldObjectTypeChannel  = "channel"
@@ -63,6 +73,7 @@ var validPermissionLevels = []PermissionLevel{
 	PermissionLevelSysadmin,
 	PermissionLevelMember,
 	PermissionLevelAdmin,
+	PermissionLevelCreator,
 }
 
 // validPSAv2TargetTypes contains all valid TargetType values for PSAv2 properties.
@@ -96,6 +107,21 @@ var optionFieldTypes = []PropertyFieldType{
 // (select, multiselect, rank). Mirrors the webapp's supportsOptions helper.
 func (t PropertyFieldType) SupportsOptions() bool {
 	return slices.Contains(optionFieldTypes, t)
+}
+
+// creatorPermissionObjectTypes are the object types whose target entity has an
+// established creator, and therefore the only ones on which
+// PermissionLevelCreator is meaningful. Fields of any other object type reject
+// the level at validation rather than silently aliasing it to admin.
+var creatorPermissionObjectTypes = []string{
+	PropertyFieldObjectTypePost,
+	PropertyFieldObjectTypeChannel,
+}
+
+// SupportsCreatorPermissionLevel reports whether a field's object type can
+// carry PermissionLevelCreator in any of its permission slots.
+func (pf *PropertyField) SupportsCreatorPermissionLevel() bool {
+	return slices.Contains(creatorPermissionObjectTypes, pf.ObjectType)
 }
 
 type PropertyField struct {
@@ -310,6 +336,27 @@ func (pf *PropertyField) IsValid() error {
 
 	if pf.PermissionOptions != nil && !slices.Contains(validPermissionLevels, *pf.PermissionOptions) {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "permission_options", "Reason": "invalid permission level"}, "id="+pf.ID, http.StatusBadRequest)
+	}
+
+	// PermissionLevelCreator requires an object type with an established
+	// creator.
+	//
+	// Runs after the membership checks above so an unrecognized level still
+	// reports "invalid permission level", and before the protected rules below
+	// so a protected field is rejected on the protected/none rule instead.
+	if !pf.SupportsCreatorPermissionLevel() {
+		for _, slot := range []struct {
+			name  string
+			level *PermissionLevel
+		}{
+			{"permission_field", pf.PermissionField},
+			{"permission_values", pf.PermissionValues},
+			{"permission_options", pf.PermissionOptions},
+		} {
+			if slot.level != nil && *slot.level == PermissionLevelCreator {
+				return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": slot.name, "Reason": "creator permission level requires a post or channel object type"}, "id="+pf.ID, http.StatusBadRequest)
+			}
+		}
 	}
 
 	// Cross-validation: protected fields must have field permission set to "none"
