@@ -184,6 +184,7 @@ function PostComponent(props: Props) {
     const isModal = props.location === Locations.MODAL;
     const postRef = useRef<HTMLDivElement>(null);
     const postHeaderRef = useRef<HTMLDivElement>(null);
+    const pointerCoords = useRef<{x: number; y: number}>(undefined);
     const teamId = props.team?.id ?? props.currentTeam?.id ?? '';
 
     const [hover, setHover] = useState(false);
@@ -377,14 +378,57 @@ function PostComponent(props: Props) {
     }, [togglePostMenu]);
 
     const handleMouseOver = useCallback((e: MouseEvent<HTMLDivElement>) => {
+        pointerCoords.current = {x: e.clientX, y: e.clientY};
         setHover(true);
         setAlt(e.altKey);
     }, []);
 
+    const handleMouseMove = useCallback((e: MouseEvent<HTMLDivElement>) => {
+        pointerCoords.current = {x: e.clientX, y: e.clientY};
+    }, []);
+
     const handleMouseLeave = useCallback(() => {
+        pointerCoords.current = undefined;
         setHover(false);
         setAlt(false);
     }, []);
+
+    // Browsers only recompute which element is hovered once the pointer moves, so a post that
+    // resizes out from under a stationary pointer (for example when its link preview is removed)
+    // never gets a mouseleave and would otherwise keep showing its quick actions.
+    useEffect(() => {
+        // While one of the post's own menus is open the pointer sits on a portalled overlay rather
+        // than on the post, so leave the hover state alone. Observing again once the menu closes
+        // re-checks the post, since ResizeObserver reports the current size as soon as it observes.
+        if (!hover || dropdownOpened || fileDropdownOpened || !postRef.current) {
+            return undefined;
+        }
+
+        const postElement = postRef.current;
+        const observer = new ResizeObserver(() => {
+            const coords = pointerCoords.current;
+            if (!coords) {
+                return;
+            }
+
+            const {left, right, top, bottom} = postElement.getBoundingClientRect();
+            if (coords.x >= left && coords.x <= right && coords.y >= top && coords.y <= bottom) {
+                return;
+            }
+
+            // While hovered the post is `overflow: visible`, so its quick actions menu is
+            // hit-testable in the few pixels it overhangs the post's top edge.
+            const elementUnderPointer = postElement.ownerDocument.elementFromPoint(coords.x, coords.y);
+            if (elementUnderPointer && postElement.contains(elementUnderPointer)) {
+                return;
+            }
+
+            handleMouseLeave();
+        });
+        observer.observe(postElement);
+
+        return () => observer.disconnect();
+    }, [hover, dropdownOpened, fileDropdownOpened, handleMouseLeave]);
 
     const handleCardClick = (post?: Post) => {
         if (!post) {
@@ -781,6 +825,7 @@ function PostComponent(props: Props) {
                 style={props.preventClickInteraction ? preventInteractionStyle : undefined}
                 onClick={handlePostClick}
                 onMouseOver={handleMouseOver}
+                onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
                 autotranslated={props.isChannelAutotranslated}
             >
