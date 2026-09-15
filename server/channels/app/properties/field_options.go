@@ -326,7 +326,7 @@ func (ps *PropertyService) CreateFieldOptions(rctx request.CTX, groupID, fieldID
 	// Relax any one and these name lookups become a member-reachable oracle over
 	// exactly the names the read path withholds, and resolveOptionParents would
 	// graft an option under a hidden ancestor. No test would fail, because the
-	// safety is not local to the lookup -- which is why it is recorded here.
+	// safety is not local to the lookup.
 	// UpdateFieldOptions, resolveOptionParents and requireNamesFreeOfDependents
 	// resolve names against the same set on the same invariants.
 	names := make([]string, 0, len(options))
