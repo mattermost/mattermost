@@ -9,7 +9,6 @@ import (
 	"image"
 	"image/gif"
 	"image/jpeg"
-	"math/rand/v2"
 	"testing"
 	"time"
 
@@ -33,7 +32,7 @@ func prepareTestImages(tb testing.TB) {
 		image.Point{0, 0},
 		image.Point{2048, 2048},
 	})
-	utils.FillPseudoRandom(rand.New(rand.NewPCG(1, 1)), rgba.Pix)
+	rgba.Pix = utils.PseudoRandomBytes(len(rgba.Pix))
 
 	// Encode it as JPEG and GIF
 	buf := &bytes.Buffer{}
