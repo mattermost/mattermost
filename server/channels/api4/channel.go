@@ -1648,6 +1648,7 @@ func getChannelsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Filtered here rather than in the app layer: the cursor advance and the "short
 	// page means done" test below both have to see the raw page, or one denied
 	// channel would silently truncate the whole sidebar.
+	currentUserId := c.AppContext.Session().UserId
 	wroteAny := false
 	for {
 		channels, err := c.App.GetChannelsForUser(c.AppContext, c.Params.UserId, c.Params.IncludeDeleted, lastDeleteAt, pageSize, fromChannelID)
@@ -1668,7 +1669,9 @@ func getChannelsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		for _, ch := range channels {
-			if !c.App.HasChannelReadAccess(c.AppContext, c.Params.UserId, ch) {
+			// Evaluated for the session, not the queried user: a requester acting for
+			// someone else must not learn of a channel their own policy denies.
+			if !c.App.HasChannelReadAccess(c.AppContext, currentUserId, ch) {
 				continue
 			}
 			if wroteAny {
