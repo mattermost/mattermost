@@ -36,11 +36,13 @@ describe('components/admin_console/global_attributes/GlobalAttributes', () => {
     test('renders the header and section frame, and renders the attributes table', async () => {
         renderWithContext(<GlobalAttributes/>);
 
-        // * Title and subtitle both live inside the AdminHeader bar (not a separate
-        // boxed section below it) — the page has one title, not a repeated one.
+        // * Title, subtitle, and the create action all live inside the AdminHeader
+        // bar (not a separate boxed section below it) — the page has one title,
+        // not a repeated one, and the button sits top-right of that header.
         const header = within(screen.getByTestId('admin-console-header'));
         expect(header.getByText('Attribute Management')).toBeInTheDocument();
         expect(header.getByText('Define an attribute once, then choose which resources can use it.')).toBeInTheDocument();
+        expect(header.getByRole('button', {name: 'New attribute'})).toBeInTheDocument();
         expect(screen.getByRole('heading', {name: 'Attribute Management'})).toBeInTheDocument();
 
         await waitFor(() => {
