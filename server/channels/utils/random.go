@@ -4,7 +4,8 @@
 package utils
 
 import (
-	"math/rand"
+	"crypto/rand"
+	"math/big"
 )
 
 type Range struct {
@@ -16,5 +17,16 @@ func RandIntFromRange(r Range) int {
 	if r.End-r.Begin <= 0 {
 		return r.Begin
 	}
-	return rand.Intn((r.End-r.Begin)+1) + r.Begin
+	// Use big.Int for span calculation to avoid arithmetic overflow
+	begin := big.NewInt(int64(r.Begin))
+	end := big.NewInt(int64(r.End))
+	max := new(big.Int).Sub(end, begin)
+	max.Add(max, big.NewInt(1))
+	
+	n, err := rand.Int(rand.Reader, max)
+	if err != nil {
+		// Fallback to begin value if crypto/rand fails (rare)
+		return r.Begin
+	}
+	return int(n.Int64()) + r.Begin
 }
