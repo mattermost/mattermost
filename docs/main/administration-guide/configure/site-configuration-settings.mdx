@@ -2074,6 +2074,73 @@ Access the following configuration settings in the System Console by going to **
 </tbody>
 </table>
 
+From Mattermost v12.0, the following settings control post delivery audit logging, which records an audit log entry for each delivery of a message in an eligible channel. Delivery records require an audit log target that consumes the `audit-delivery` log level. See [Post delivery audit logging](/administration-guide/comply/post-delivery-audit-logging) for details.
+
+<Important>
+
+Post delivery audit logging is currently in [Beta](/administration-guide/manage/feature-labels#beta). It requires the [feature flag](https://developers.mattermost.com/contribute/more-info/server/feature-flags/#changing-feature-flag-values) `MM_FEATUREFLAGS_POSTDELIVERYTRACKING`, which is disabled by default, and a server restart after you enable it. It also requires an audit log target that consumes the `audit-delivery` log level.
+
+</Important>
+
+### Enable post delivery audit logging
+
+<table>
+<colgroup>
+<col style={{width: '35%'}} />
+<col style={{width: '64%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: An audit log entry is recorded each time a message is delivered to a user.</li><li><strong>false</strong>: <strong>(Default)</strong> Message deliveries aren't recorded.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Data Spillage Handling</strong></li><li><code>config.json</code> setting: <code>DeliveryTrackingSettings</code> &gt; <code>Enable</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_DELIVERYTRACKINGSETTINGS_ENABLE</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+Delivery records are written to the audit log only, and aren't surfaced anywhere in the Mattermost interface.
+
+<Warning>
+
+Delivery records are discarded unless an audit log target consumes the `audit-delivery` log level. Setting this to **true** without configuring such a target records nothing, and Mattermost doesn't block the configuration. See [Post delivery audit logging](/administration-guide/comply/post-delivery-audit-logging).
+
+</Warning>
+
+### Record deliveries in
+
+<table>
+<colgroup>
+<col style={{width: '35%'}} />
+<col style={{width: '64%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><ul><li><strong>true</strong>: <strong>(Default)</strong> Deliveries are recorded in all eligible channels.</li><li><strong>false</strong>: Deliveries are recorded only in the selected channels.</li></ul></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Data Spillage Handling</strong></li><li><code>config.json</code> setting: <code>DeliveryTrackingSettings</code> &gt; <code>EnableForAllChannels</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_DELIVERYTRACKINGSETTINGS_ENABLEFORALLCHANNELS</code></li></ul></td>
+</tr>
+</tbody>
+</table>
+
+<Note>
+
+Recording deliveries in all eligible channels is the most complete option, and also the most expensive. Direct and group messages are never eligible, regardless of this setting.
+
+</Note>
+
+### Channels to record deliveries in
+
+<table>
+<colgroup>
+<col style={{width: '35%'}} />
+<col style={{width: '64%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td><p>The channels in which message deliveries are recorded. Applies only when <strong>Record deliveries in</strong> is set to <strong>Selected channels</strong>, in which case at least one channel is required.</p><p>Stored in the database, so there's no <code>config.json</code> setting and no environment variable. Manage the list in the System Console, or through the <code>/api/v4/delivery_tracking/config</code> API endpoints.</p><p>Direct and group message channels can't be selected.</p></td>
+<td><ul><li>System Config path: <strong>Site Configuration &gt; Data Spillage Handling</strong></li><li><code>config.json</code> setting: N/A</li><li>Environment variable: N/A</li></ul></td>
+</tr>
+</tbody>
+</table>
+
 ------------------------------------------------------------------------------------------------------------------------
 
 ## File sharing and downloads
