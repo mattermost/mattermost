@@ -479,8 +479,6 @@ func keepRemoveFlaggedPostChecks(c *Context, r *http.Request) (*model.FlagConten
 		return nil, "", nil
 	}
 
-	// Keeping or removing a flagged post writes to the channel, and reviewers are
-	// not exempt from the channel-access policies.
 	if !requireChannelWriteAccess(c, channel) {
 		return nil, "", nil
 	}
@@ -640,11 +638,6 @@ func assignFlaggedPostReviewer(c *Context, w http.ResponseWriter, r *http.Reques
 	reviewerId := c.Params.ContentReviewerId
 	requireTeamContentReviewer(c, reviewerId, channel.TeamId)
 	if c.Err != nil {
-		return
-	}
-
-	// Assigning a reviewer writes to the channel's flagged content.
-	if !requireChannelWriteAccess(c, channel) {
 		return
 	}
 

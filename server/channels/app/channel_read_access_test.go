@@ -15,9 +15,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// channelAccessDenialChannelID is the channel half of the recorded denial. These
-// tests only ever provoke the read gate, so the action half is asserted by the
-// channel_write_access tests instead.
 func channelAccessDenialChannelID(rctx request.CTX) string {
 	channelID, _ := ChannelAccessEnforcementDenial(rctx)
 	return channelID

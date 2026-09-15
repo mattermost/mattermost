@@ -48,11 +48,6 @@ var renderableABACActions = map[string]renderableActionConfig{
 			return cfg.FeatureFlags.IsChannelAccessABACPermissionEnabled()
 		},
 	},
-	// Backs the composer's disabled state. The raw action evaluation is the right
-	// answer for the client: an ungoverned write allows vacuously, matching the
-	// gate. It does not fold in channel_read_access, which the gate also applies —
-	// but a session denied read access never renders the channel in the first
-	// place, and every write is re-checked on the request itself.
 	model.AccessControlPolicyActionChannelWriteAccess: {
 		ResourceType:        model.AccessControlPolicyTypeChannel,
 		DefaultWhenInactive: true,

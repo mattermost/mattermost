@@ -240,6 +240,20 @@ func TestChannelWriteAccessDoesNotGateReads(t *testing.T) {
 	}
 }
 
+// Assigning a reviewer is gated by neither channel-access policy. It writes to
+// the review record rather than the channel, and content review is a team-level
+// duty performed on channels the reviewer is deliberately not a member of — so
+// binding triage to either policy would leave flagged posts in a restricted
+// channel unassignable. Both actions deny here and the assignment still lands.
+func TestChannelAccessDoesNotGateReviewerAssignment(t *testing.T) {
+	f, _ := setupContentReviewerChannelAccess(t, false /* read */, false /* write */)
+
+	resp, err := f.reviewerClient.AssignContentFlaggingReviewer(context.Background(), f.post.Id, f.reviewerID)
+	require.NoError(t, err, "neither channel-access policy may gate reviewer assignment")
+	require.NotNil(t, resp)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+}
+
 // The truth table's third row: with a write policy in play, both channel-access
 // policies must allow. The denial reports the read action, because that is what
 // actually refused.

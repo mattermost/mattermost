@@ -52,8 +52,6 @@ func upsertDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// The create_post_public fallback above never reaches
-	// SessionHasPermissionToChannel, so the channel-access gate is applied here.
 	if !requireChannelWriteAccessByID(c, draft.ChannelId) {
 		return
 	}

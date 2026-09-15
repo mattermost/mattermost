@@ -1098,10 +1098,16 @@ func requireChannelReadAccess(c *Context, channel *model.Channel) bool {
 	return false
 }
 
-// requireChannelWriteAccess gates a write that reaches none of the channel
-// permission choke points. SetPermissionError reports whichever channel-access
-// policy refused, so the permission passed here only matters when the gate is
-// inactive.
+// requireChannelReadAccessByID is requireChannelReadAccess for handlers that
+// hold only a channel id.
+func requireChannelReadAccessByID(c *Context, channelID string) bool {
+	if c.App.EnforceChannelReadAccessByID(c.AppContext, c.AppContext.Session().UserId, channelID) {
+		return true
+	}
+	c.SetPermissionError(model.PermissionReadChannel)
+	return false
+}
+
 func requireChannelWriteAccess(c *Context, channel *model.Channel) bool {
 	if c.App.EnforceChannelWriteAccess(c.AppContext, c.AppContext.Session().UserId, channel) {
 		return true

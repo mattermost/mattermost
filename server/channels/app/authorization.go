@@ -256,9 +256,6 @@ func (a *App) SessionHasPermissionToGroup(session model.Session, groupID string,
 	return a.SessionHasPermissionTo(session, permission)
 }
 
-// SessionHasPermissionToChannelByPost resolves the channel from a post and answers
-// the RBAC question, then applies the channel-access gate. It takes rctx so the
-// gate can memoise its decision and record a denial for the handler to report.
 func (a *App) SessionHasPermissionToChannelByPost(rctx request.CTX, session model.Session, postID string, permission *model.Permission) bool {
 	if postID == "" {
 		return false

@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 )
 
 // setupDiscoverableTH spins up an api4 fixture with the discoverable channels
@@ -141,6 +142,75 @@ func TestGetChannelByName_VisibleForQualifyingNonMemberOnDiscoverable(t *testing
 	require.NotNil(t, got)
 	assert.Equal(t, channel.Id, got.Id)
 	assert.True(t, got.Discoverable)
+}
+
+// setupJoinRequestChannelAccess stands up a discoverable private channel and
+// signs in an off-channel requester, with the channel-access gates live and the
+// two channel-access actions answered as given. The channel is marked
+// discoverable before the mock is installed so the admin patch is not itself
+// gated by a decision under test.
+func setupJoinRequestChannelAccess(t *testing.T, readAllowed, writeAllowed bool) (*TestHelper, *model.Channel) {
+	t.Helper()
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.DiscoverableChannels = true
+		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.ChannelAccessABACPermission = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+	})
+
+	channel := markDiscoverableViaAdmin(t, th, th.CreatePrivateChannel(t))
+
+	other := th.CreateUser(t)
+	th.LinkUserToTeam(t, other, th.BasicTeam)
+	_, _, err := th.Client.Login(context.Background(), other.Email, other.Password)
+	require.NoError(t, err)
+
+	mockACS := installMockACS(t, th)
+	mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).Return(true, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, channelReadAccessEvaluation).
+		Return(model.AccessDecision{Decision: readAllowed}, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, channelWriteAccessEvaluation).
+		Return(model.AccessDecision{Decision: writeAllowed}, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+		Return(model.AccessDecision{Decision: true}, nil)
+
+	return th, channel
+}
+
+// Asking to join is the request that exists to obtain access, so the write
+// policy must not refuse it — a channel whose write rule excludes non-members
+// would otherwise be unjoinable through the very flow meant to let people in.
+func TestRequestJoinChannelAPI_NotGatedByChannelWriteAccess(t *testing.T) {
+	th, channel := setupJoinRequestChannelAccess(t, true /* read */, false /* write */)
+
+	resp, err := th.Client.DoAPIPost(context.Background(), "/channels/"+channel.Id+"/join_request", `{"message":"let me in"}`)
+	require.NoError(t, err)
+	defer closeBodyOrNil(resp)
+	require.Equal(t, http.StatusCreated, resp.StatusCode)
+
+	var req model.ChannelJoinRequest
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&req))
+	assert.Equal(t, model.ChannelJoinRequestStatusPending, req.Status)
+	assert.Equal(t, channel.Id, req.ChannelId)
+}
+
+// The read policy still gates the flow: a session that cannot see the channel
+// must not be able to queue a request against it.
+func TestRequestJoinChannelAPI_GatedByChannelReadAccess(t *testing.T) {
+	th, channel := setupJoinRequestChannelAccess(t, false /* read */, true /* write */)
+
+	resp, err := th.Client.DoAPIPost(context.Background(), "/channels/"+channel.Id+"/join_request", `{"message":"let me in"}`)
+	defer closeBodyOrNil(resp)
+	require.Error(t, err)
+	require.NotNil(t, resp)
+	assert.Equal(t, http.StatusForbidden, resp.StatusCode)
+	appErr, ok := err.(*model.AppError)
+	require.True(t, ok, "expected an AppError, got %T", err)
+	assert.Equal(t, abacDeniedErrorID, appErr.Id)
 }
 
 // closeBodyOrNil is a tiny helper so the negative-path tests don't need to

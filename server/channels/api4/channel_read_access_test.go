@@ -362,10 +362,17 @@ type contentReviewerFixture struct {
 	reviewerID     string
 }
 
+// setupContentReviewerChannelReadAccess isolates channel_read_access: the write
+// action allows, so a denial can only come from the action under test.
+func setupContentReviewerChannelReadAccess(t *testing.T, allow bool) (*contentReviewerFixture, *mocks.AccessControlServiceInterface) {
+	t.Helper()
+	return setupContentReviewerChannelAccess(t, allow, true /* write */)
+}
+
 // The mock goes in last on purpose: uploading the file, creating the post and
 // flagging it all pass through the same gates under test, so a denying PDP would fail
 // the fixture rather than the assertion.
-func setupContentReviewerChannelReadAccess(t *testing.T, allow bool) (*contentReviewerFixture, *mocks.AccessControlServiceInterface) {
+func setupContentReviewerChannelAccess(t *testing.T, readAllow, writeAllow bool) (*contentReviewerFixture, *mocks.AccessControlServiceInterface) {
 	t.Helper()
 
 	th := SetupConfig(t, func(cfg *model.Config) {
@@ -405,7 +412,9 @@ func setupContentReviewerChannelReadAccess(t *testing.T, allow bool) (*contentRe
 	mockACS := installMockACS(t, th)
 	mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).Return(true, nil)
 	mockACS.On("AccessEvaluation", mock.Anything, channelReadAccessEvaluation).
-		Return(model.AccessDecision{Decision: allow}, nil)
+		Return(model.AccessDecision{Decision: readAllow}, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, channelWriteAccessEvaluation).
+		Return(model.AccessDecision{Decision: writeAllow}, nil)
 	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
 		Return(model.AccessDecision{Decision: true}, nil)
 
