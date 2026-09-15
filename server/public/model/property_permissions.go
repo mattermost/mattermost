@@ -299,10 +299,18 @@ func (m *Masking) isValid(objectType string) error {
 	return nil
 }
 
-// validateMaskingForField enforces the self-writable rule: a masked
-// object_type:user field may not let a human write its own holdings, or a caller
+// validateMaskingForField enforces the self-writable rule for the one shape a
+// store cannot reach: a standalone object_type:user field (shape 1), which is its
+// own holdings source, may not let a human write its own holdings, or a caller
 // could widen their own view by editing their value. Runs after restrictions
 // normalization, so value.write is already filled.
+//
+// The template-routed shapes need a store to resolve their holdings, so they are
+// enforced elsewhere: a holdings field a template names via mask_by_field_id
+// (shape 2) is refused by the store's ValidateMaskByFieldID, and a linked field
+// that falls back to itself under a masked template (shape 3) -- or either shape
+// reached by raising the holdings field's own value.write -- is refused in the
+// property service's create and update paths.
 func (p *Permissions) validateMaskingForField(objectType string) error {
 	if objectType != PropertyFieldObjectTypeUser || p.Restrictions == nil {
 		return nil
