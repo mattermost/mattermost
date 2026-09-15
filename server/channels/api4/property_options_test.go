@@ -289,8 +289,9 @@ func TestPropertyFieldOptions(t *testing.T) {
 			require.Empty(t, options)
 			_, hasCount := announcement.field.Attrs[model.PropertyFieldAttributeOptionsCount]
 			require.False(t, hasCount, "field %s should carry no options_count", fieldID)
-			_, hasOmitted := announcement.field.Attrs[model.PropertyFieldAttributeOptionsOmitted]
-			require.False(t, hasOmitted, "field %s should carry no options_omitted", fieldID)
+			omitted, hasOmitted := announcement.field.Attrs[model.PropertyFieldAttributeOptionsOmitted]
+			require.True(t, hasOmitted, "field %s should carry the options_omitted marker", fieldID)
+			require.Equal(t, true, omitted, "field %s should mark its option list as withheld", fieldID)
 		}
 
 		// The rename landed -- the broadcast was masked, not the write rejected.

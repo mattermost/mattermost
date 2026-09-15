@@ -67,6 +67,12 @@ func (a *App) publishPropertyFieldEvent(rctx request.CTX, eventType model.Websoc
 		masked.Attrs = make(model.StringInterface, len(field.Attrs))
 		maps.Copy(masked.Attrs, field.Attrs)
 		masked.HideOptions()
+		// The broadcast withheld the list whatever the source field carried, so
+		// restore the withheld-options marker HideOptions deletes — a client
+		// must be able to tell "options withheld" from "field has no options".
+		// options_count stays deleted: on a non-public field the count is
+		// controlled information too.
+		masked.Attrs[model.PropertyFieldAttributeOptionsOmitted] = true
 		field = &masked
 	}
 	fieldJSON, err := json.Marshal(field)
