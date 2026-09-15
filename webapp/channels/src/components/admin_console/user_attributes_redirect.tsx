@@ -10,7 +10,7 @@ import type {RouteComponentProps} from 'react-router-dom';
 // the old bookmarked/linked URL working instead of falling through to the
 // admin console's unrelated default-page redirect.
 const UserAttributesRedirect: React.FC<RouteComponentProps> = ({match}) => (
-    <Redirect to={match.url.replace(/user_attributes$/, 'manage_attributes')}/>
+    <Redirect to={match.url.replace(/user_attributes\/?$/, 'manage_attributes')}/>
 );
 
 export default UserAttributesRedirect;

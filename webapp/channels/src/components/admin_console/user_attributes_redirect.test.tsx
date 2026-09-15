@@ -26,4 +26,21 @@ describe('UserAttributesRedirect', () => {
 
         expect(history.location.pathname).toBe('/admin_console/system_attributes/manage_attributes');
     });
+
+    test('redirects even with a trailing slash on the legacy URL', () => {
+        const history = createMemoryHistory({
+            initialEntries: ['/admin_console/system_attributes/user_attributes/'],
+        });
+
+        renderWithContext(
+            <Route
+                path='/admin_console/system_attributes/user_attributes'
+                component={UserAttributesRedirect}
+            />,
+            {},
+            {history},
+        );
+
+        expect(history.location.pathname).toBe('/admin_console/system_attributes/manage_attributes');
+    });
 });
