@@ -157,6 +157,21 @@ func (ps *PlatformService) InvalidateAllCachesSkipSend() *model.AppError {
 	return nil
 }
 
+// ReloadSamlClusterSend notifies peer nodes to rebuild their in-memory SAML
+// Service Provider. Rotating a certificate reuses the same filename, so the
+// config diff is empty and the config-change path never reaches the peers.
+func (ps *PlatformService) ReloadSamlClusterSend() {
+	if ps.clusterIFace == nil {
+		return
+	}
+
+	ps.clusterIFace.SendClusterMessage(&model.ClusterMessage{
+		Event:            model.ClusterEventReloadSaml,
+		SendType:         model.ClusterSendReliable,
+		WaitForAllToSend: false,
+	})
+}
+
 func (ps *PlatformService) InvalidateAllCaches() *model.AppError {
 	if err := ps.InvalidateAllCachesSkipSend(); err != nil {
 		return err
