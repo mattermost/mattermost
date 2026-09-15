@@ -522,11 +522,17 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 await systemConsolePage.page.getByTestId('newAttributeButton').click();
                 await systemConsolePage.page.getByTestId('attributeDisplayNameInput').fill(displayName);
 
-                // # Open the external source picker and link AD/LDAP
+                // # Open the external source picker and link AD/LDAP.
+                // A bare getByRole('textbox') is ambiguous -- it also matches the
+                // admin sidebar's "Find settings" filter and the Display name input
+                // already on the page -- so scope to the AttributeModal dialog once
+                // it's open, rather than the whole page.
                 await systemConsolePage.page.getByTestId('attributeExternalSourceTrigger').click();
                 await systemConsolePage.page.getByRole('menuitem', {name: /AD\/LDAP/}).click();
-                await systemConsolePage.page.getByRole('textbox').fill('employeeID');
-                await systemConsolePage.page.getByRole('button', {name: 'Save'}).click();
+                const ldapDialog = systemConsolePage.page.getByRole('dialog');
+                await expect(ldapDialog).toBeVisible();
+                await ldapDialog.getByRole('textbox').fill('employeeID');
+                await ldapDialog.getByRole('button', {name: 'Save'}).click();
 
                 // * A chip for AD/LDAP now appears on the Options line, prefixed by Synced with, and Type shows Text
                 await expect(systemConsolePage.page.getByTestId('attributeExternalSourceChip-ldap')).toBeVisible();
