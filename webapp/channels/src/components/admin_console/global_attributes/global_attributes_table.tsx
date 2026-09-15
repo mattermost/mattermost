@@ -456,7 +456,8 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                 // Applies-to chips come from the per-resource linked fields. A
                 // rejected fetch does not replace that scope in Redux, so
                 // suppress cached fields for failed scopes instead of showing
-                // stale assignments.
+                // stale assignments. Successful scopes still render, and the
+                // listing stays usable.
                 const appliesToResults = await Promise.allSettled(ALL_RESOURCE_TYPES.map((objectType) =>
                     dispatch(fetchPropertyFields(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, GLOBAL_ATTRIBUTES_TARGET_TYPE)),
                 ));
@@ -476,18 +477,16 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                     }
                 });
                 setFailedAppliesToScopes(failedScopes);
-                if (failedScopes.size > 0) {
-                    setLoadError(true);
-                    return;
-                }
-
                 setLoadError(false);
-                setLoaded(true);
             } catch (error) {
                 // Surface an error state instead of a misleading empty state.
                 console.error('GlobalAttributesTable-load: ', error); // eslint-disable-line no-console
                 if (active) {
                     setLoadError(true);
+                }
+            } finally {
+                if (active) {
+                    setLoaded(true);
                 }
             }
         };
@@ -674,6 +673,10 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
         enableColumnPinning: false,
     });
 
+    if (!loaded) {
+        return <LoadingScreen/>;
+    }
+
     if (loadError) {
         return (
             <div
@@ -683,10 +686,6 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                 <FormattedMessage {...messages.loadError}/>
             </div>
         );
-    }
-
-    if (!loaded) {
-        return <LoadingScreen/>;
     }
 
     if (rows.length === 0) {

@@ -68,8 +68,9 @@
         align-items: center;
 
         > .ChannelInfoAttributes__valueTrigger {
-            width: 100%;
+            width: auto;
             min-width: 0;
+            flex: 1;
         }
 
         &:hover .AttributeChip__remove,
