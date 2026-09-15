@@ -11,10 +11,14 @@ import (
 // nil-fill / non-admin-pin should use for this field. Templates and system
 // fields default to sysadmin (templates define the schema linked fields
 // inherit; system fields attach to the Mattermost instance and only an
-// administrator should write them). Other object types default to member.
+// administrator should write them), and so does a system TargetType: there the
+// member level resolves to "any authenticated user", which would expose a
+// globally scoped field's definition, options and values to everyone. Other
+// object types default to member.
 func DefaultPropertyFieldPermissionLevel(field *model.PropertyField) model.PermissionLevel {
 	if field.ObjectType == model.PropertyFieldObjectTypeTemplate ||
-		field.ObjectType == model.PropertyFieldObjectTypeSystem {
+		field.ObjectType == model.PropertyFieldObjectTypeSystem ||
+		field.TargetType == string(model.PropertyFieldTargetLevelSystem) {
 		return model.PermissionLevelSysadmin
 	}
 	return model.PermissionLevelMember
