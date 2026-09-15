@@ -18,7 +18,11 @@ type Props = {
 };
 
 const ExternalImage = (props: Props) => {
-    const shouldRenderImage = props.enableSVGs || !isSVGImage(props.imageMetadata, props.src);
+    // Allow rendering when:
+    // - EnableSVGs is true, OR
+    // - the image is not an SVG, OR
+    // - the image is proxied (the proxy will sanitize/serve a safe version)
+    const shouldRenderImage = props.enableSVGs || !isSVGImage(props.imageMetadata, props.src) || props.hasImageProxy;
     let src = getImageSrc(props.src, props.hasImageProxy);
     if (!shouldRenderImage) {
         src = '';
