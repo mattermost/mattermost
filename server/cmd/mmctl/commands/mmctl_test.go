@@ -6,6 +6,7 @@ package commands
 import (
 	"context"
 	"fmt"
+	"testing"
 	"time"
 
 	"github.com/golang/mock/gomock"
@@ -15,12 +16,40 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/mocks"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
 var EnableEnterpriseTests string
+
+// newTestCmd returns a cobra.Command whose context is bound to the test's
+// lifetime, mirroring the context cobra assigns to a command during real
+// execution (see Command.ExecuteContext). base is one of the package's real
+// command vars (e.g. SystemSupportPacketCmd, SystemGetBusyCmd), reusing its
+// already-registered flags instead of re-declaring them on a bare command.
+//
+// base's context and flag values are restored once the test completes, so
+// mutating the shared command in one test (e.g. via cmd.Flags().Set(...))
+// can't leak into a later test or into a real dispatch through cobra's
+// Execute/ExecuteContext, which only assigns a fresh context when one isn't
+// already set.
+func newTestCmd(t *testing.T, base *cobra.Command) *cobra.Command {
+	t.Cleanup(func() {
+		// A nil context is intentional here: it restores cobra's own "no
+		// context assigned yet" sentinel (see Command.ExecuteC), so the next
+		// real dispatch gets a fresh context instead of this test's.
+		base.SetContext(nil) //nolint:staticcheck
+		base.Flags().VisitAll(func(f *pflag.Flag) {
+			_ = f.Value.Set(f.DefValue)
+			f.Changed = false
+		})
+	})
+	base.SetContext(t.Context())
+	return base
+}
 
 type MmctlUnitTestSuite struct {
 	suite.Suite
@@ -104,10 +133,12 @@ func (s *MmctlE2ETestSuite) SetupMessageExportTestHelper() *api4.TestHelper {
 // helper facilitates checking both
 func (s *MmctlE2ETestSuite) RunForSystemAdminAndLocal(testName string, fn func(client.Client)) {
 	s.Run(testName+"/SystemAdminClient", func() {
+		printer.Clean()
 		fn(s.th.SystemAdminClient)
 	})
 
 	s.Run(testName+"/LocalClient", func() {
+		printer.Clean()
 		fn(s.th.LocalClient)
 	})
 }
@@ -116,14 +147,17 @@ func (s *MmctlE2ETestSuite) RunForSystemAdminAndLocal(testName string, fn func(c
 // registered in the TestHelper
 func (s *MmctlE2ETestSuite) RunForAllClients(testName string, fn func(client.Client)) {
 	s.Run(testName+"/Client", func() {
+		printer.Clean()
 		fn(s.th.Client)
 	})
 
 	s.Run(testName+"/SystemAdminClient", func() {
+		printer.Clean()
 		fn(s.th.SystemAdminClient)
 	})
 
 	s.Run(testName+"/LocalClient", func() {
+		printer.Clean()
 		fn(s.th.LocalClient)
 	})
 }
