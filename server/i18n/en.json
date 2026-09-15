@@ -8753,6 +8753,10 @@
     "translation": "Unable to search property fields."
   },
   {
+    "id": "app.property_field.self_writable_holdings.app_error",
+    "translation": "This field is the holdings source for its masked template, so its value write level cannot be '{{.ValueWrite}}'. The people the template filters could otherwise edit their own holdings and widen what they can see."
+  },
+  {
     "id": "app.property_field.update.app_error",
     "translation": "Unable to update property fields."
   },
