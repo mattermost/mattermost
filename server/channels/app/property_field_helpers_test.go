@@ -13,30 +13,33 @@ import (
 func TestDefaultPropertyFieldPermissionLevel(t *testing.T) {
 	t.Parallel()
 
-	t.Run("template defaults to sysadmin", func(t *testing.T) {
-		f := &model.PropertyField{ObjectType: model.PropertyFieldObjectTypeTemplate}
-		assert.Equal(t, model.PermissionLevelSysadmin, DefaultPropertyFieldPermissionLevel(f))
-	})
+	for _, tc := range []struct {
+		name       string
+		objectType string
+		targetType model.PropertyFieldTargetLevel
+		want       model.PermissionLevel
+	}{
+		// A system target makes the member level mean "any authenticated
+		// user", so a globally scoped field defaults to sysadmin outright.
+		{"post on a system target", model.PropertyFieldObjectTypePost, model.PropertyFieldTargetLevelSystem, model.PermissionLevelSysadmin},
+		{"channel on a system target", model.PropertyFieldObjectTypeChannel, model.PropertyFieldTargetLevelSystem, model.PermissionLevelSysadmin},
+		{"user on a system target", model.PropertyFieldObjectTypeUser, model.PropertyFieldTargetLevelSystem, model.PermissionLevelSysadmin},
 
-	t.Run("system defaults to sysadmin", func(t *testing.T) {
-		f := &model.PropertyField{ObjectType: model.PropertyFieldObjectTypeSystem}
-		assert.Equal(t, model.PermissionLevelSysadmin, DefaultPropertyFieldPermissionLevel(f))
-	})
+		// Narrower targets resolve member against real membership.
+		{"post on a channel target", model.PropertyFieldObjectTypePost, model.PropertyFieldTargetLevelChannel, model.PermissionLevelMember},
+		{"post on a team target", model.PropertyFieldObjectTypePost, model.PropertyFieldTargetLevelTeam, model.PermissionLevelMember},
+		{"channel on a channel target", model.PropertyFieldObjectTypeChannel, model.PropertyFieldTargetLevelChannel, model.PermissionLevelMember},
+		{"user on a team target", model.PropertyFieldObjectTypeUser, model.PropertyFieldTargetLevelTeam, model.PermissionLevelMember},
 
-	t.Run("user defaults to member", func(t *testing.T) {
-		f := &model.PropertyField{ObjectType: model.PropertyFieldObjectTypeUser}
-		assert.Equal(t, model.PermissionLevelMember, DefaultPropertyFieldPermissionLevel(f))
-	})
-
-	t.Run("channel defaults to member", func(t *testing.T) {
-		f := &model.PropertyField{ObjectType: model.PropertyFieldObjectTypeChannel}
-		assert.Equal(t, model.PermissionLevelMember, DefaultPropertyFieldPermissionLevel(f))
-	})
-
-	t.Run("post defaults to member", func(t *testing.T) {
-		f := &model.PropertyField{ObjectType: model.PropertyFieldObjectTypePost}
-		assert.Equal(t, model.PermissionLevelMember, DefaultPropertyFieldPermissionLevel(f))
-	})
+		// Templates and system objects are sysadmin on any target.
+		{"template on a channel target", model.PropertyFieldObjectTypeTemplate, model.PropertyFieldTargetLevelChannel, model.PermissionLevelSysadmin},
+		{"system on a channel target", model.PropertyFieldObjectTypeSystem, model.PropertyFieldTargetLevelChannel, model.PermissionLevelSysadmin},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			f := &model.PropertyField{ObjectType: tc.objectType, TargetType: string(tc.targetType)}
+			assert.Equal(t, tc.want, DefaultPropertyFieldPermissionLevel(f))
+		})
+	}
 }
 
 func TestCanonicalizeSystemObjectField(t *testing.T) {

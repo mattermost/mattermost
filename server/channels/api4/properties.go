@@ -169,8 +169,7 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	field.UpdatedBy = c.AppContext.Session().UserId
 
 	// Default permission levels: whoever administers the field's scope may
-	// configure them, everyone else has all three pinned to the object type's
-	// default.
+	// configure them, everyone else has all three pinned to the default.
 	canPin := c.App.SessionHasPermissionToAdministerPropertyFieldScope(c.AppContext, *c.AppContext.Session(), field)
 	defaultLevel := app.DefaultPropertyFieldPermissionLevel(field)
 	if !canPin {
