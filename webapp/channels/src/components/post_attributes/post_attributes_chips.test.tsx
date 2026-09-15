@@ -565,7 +565,7 @@ describe('PostAttributesChips', () => {
             expect(screen.queryByTestId('post-attributes-overflow')).not.toBeInTheDocument();
         });
 
-        test('hides the overflow badge from assistive technology', () => {
+        test('names the overflow badge', () => {
             const fields = [
                 makeField({id: 'f_a', name: 'alpha', attrs: {options: OPTIONS, sort_order: 10}}),
                 makeField({id: 'f_b', name: 'bravo', attrs: {options: OPTIONS, sort_order: 20}}),
@@ -581,7 +581,43 @@ describe('PostAttributesChips', () => {
                 makeState(fields, values),
             );
 
-            expect(screen.getByTestId('post-attributes-overflow')).toHaveAttribute('aria-hidden', 'true');
+            const badge = screen.getByTestId('post-attributes-overflow');
+
+            expect(badge).not.toHaveAttribute('aria-hidden');
+
+            // `role='img'` is what makes the label conforming: a bare span is `generic`,
+            // which ARIA prohibits naming.
+            expect(badge).toHaveAttribute('role', 'img');
+            expect(badge).toHaveAccessibleName('1 more attribute');
+
+            // The label replaces the visible text for assistive technology; it does not
+            // change what is drawn.
+            expect(badge).toHaveTextContent('+1');
+        });
+
+        // The count in the label has to track the badge, not the field total: four
+        // fields, two chips drawn, two hidden.
+        test('pluralises the label and counts hidden chips, not fields', () => {
+            const fields = [
+                makeField({id: 'f_a', name: 'alpha', attrs: {options: OPTIONS, sort_order: 10}}),
+                makeField({id: 'f_b', name: 'bravo', attrs: {options: OPTIONS, sort_order: 20}}),
+                makeField({id: 'f_c', name: 'charlie', attrs: {options: OPTIONS, sort_order: 30}}),
+                makeField({id: 'f_d', name: 'delta', attrs: {options: OPTIONS, sort_order: 40}}),
+            ];
+            const values = fields.map((f, i) => makeValue({id: `v_${i}`, field_id: f.id, value: 'opt_secret'}));
+
+            renderWithContext(
+                <PostAttributesChips
+                    post={post}
+                    channel={channel}
+                />,
+                makeState(fields, values),
+            );
+
+            const badge = screen.getByTestId('post-attributes-overflow');
+
+            expect(badge).toHaveAccessibleName('2 more attributes');
+            expect(badge).toHaveTextContent('+2');
         });
     });
 

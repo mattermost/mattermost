@@ -44,7 +44,8 @@ describe('Client4', () => {
                 query({target_type: 'system', per_page: '10', cursor_id: 'abc', cursor_create_at: '999'}).
                 reply(200, fields);
 
-            const result = await client.getPropertyFields('grp', 'user', {targetType: 'system', perPage: 10,
+            const result = await client.getPropertyFields('grp', 'user', {targetType: 'system',
+                perPage: 10,
                 cursorId: 'abc',
                 cursorCreateAt: 999});
 

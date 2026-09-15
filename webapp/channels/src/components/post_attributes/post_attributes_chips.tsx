@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
@@ -22,6 +22,7 @@ type Props = {
 };
 
 function PostAttributesChips({post, channel}: Props) {
+    const {formatMessage} = useIntl();
     const fields = usePostAttributeFields(channel);
     const values = usePostAttributeValues(post.id);
 
@@ -72,10 +73,25 @@ function PostAttributesChips({post, channel}: Props) {
                 />
             ))}
             {overflow > 0 && (
+
+                /*
+                 * `role='img'` rather than a bare span, because a span maps to the
+                 * `generic` role, which ARIA prohibits naming — `aria-label` on one is
+                 * non-conforming and announced inconsistently. The role also makes the
+                 * badge opaque to assistive technology, so the label replaces "+2"
+                 * rather than being read alongside it.
+                 */
                 <span
                     className='PostAttributesChips__overflow'
                     data-testid='post-attributes-overflow'
-                    aria-hidden='true'
+                    role='img'
+                    aria-label={formatMessage(
+                        {
+                            id: 'post_attributes.chips.overflow_description',
+                            defaultMessage: '{count, plural, one {# more attribute} other {# more attributes}}',
+                        },
+                        {count: overflow},
+                    )}
                 >
                     <FormattedMessage
                         id='post_attributes.chips.overflow'
