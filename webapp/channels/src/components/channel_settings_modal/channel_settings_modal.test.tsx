@@ -345,6 +345,18 @@ describe('ChannelSettingsModal', () => {
         baseProps.onExited.mockClear();
     });
 
+    it('closes instead of rendering when the channel leaves the store', async () => {
+        const testState = makeTestState();
+        testState.entities.channels.channels = {};
+
+        renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+
+        await waitFor(() => {
+            expect(baseProps.onExited).toHaveBeenCalled();
+        });
+        expect(screen.queryByText('Channel Settings')).not.toBeInTheDocument();
+    });
+
     it('should render the modal with correct header text', async () => {
         const testState = makeTestState();
 

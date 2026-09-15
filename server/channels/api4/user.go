@@ -19,6 +19,7 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	putils "github.com/mattermost/mattermost/server/public/utils"
 
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/app/email"
@@ -3747,23 +3748,58 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 
 	// For backward compatibility purposes
 	if c.Params.Page != -1 {
-		cursor := &model.ChannelMemberCursor{
-			Page:    c.Params.Page,
-			PerPage: c.Params.PerPage,
-		}
-		members, err := c.App.GetChannelMembersWithTeamDataForUserWithPagination(c.AppContext, c.Params.UserId, cursor)
+		currentUserId := c.AppContext.Session().UserId
+
+		// Filled rather than filtered after a single read: this page is client-visible,
+		// and a client that stops paging on a short page cannot tell "denied rows were
+		// dropped" from "end of the list", so one denial would truncate everything after
+		// it. The NDJSON branch below keeps its raw pages for the same reason.
+		page := c.Params.Page
+		members, truncated, err := putils.FetchUntil(page, c.Params.PerPage,
+			func(from int) ([]model.ChannelMemberWithTeamData, error) {
+				cursor := &model.ChannelMemberCursor{
+					Page:    from,
+					PerPage: c.Params.PerPage,
+				}
+				m, appErr := c.App.GetChannelMembersWithTeamDataForUserWithPagination(c.AppContext, c.Params.UserId, cursor)
+				if appErr != nil {
+					return nil, appErr
+				}
+				return m, nil
+			},
+			func(member model.ChannelMemberWithTeamData) bool {
+				// Evaluated for the session, not the queried user: a requester acting for
+				// someone else must not learn of a channel their own policy denies.
+				return c.App.HasChannelReadAccessByID(c.AppContext, currentUserId, member.ChannelId)
+			},
+			// Each round consumes a whole raw page, so the next one starts at the page
+			// after it. FetchUntil hands advance only the page it just read.
+			func(_ []model.ChannelMemberWithTeamData) int {
+				page++
+				return page
+			},
+		)
 		if err != nil {
-			c.Err = err
+			var appErr *model.AppError
+			if !errors.As(err, &appErr) {
+				appErr = model.NewAppError("getChannelMembersForUser", "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			c.Err = appErr
 			return
+		}
+		if truncated {
+			c.Logger.Warn("Gave up filling a page of channel members; the policy denies most of what this query returns",
+				mlog.String("user_id", c.Params.UserId),
+				mlog.Int("rounds", putils.FetchUntilMaxRounds),
+			)
 		}
 
 		// Sanitize members for current user
-		currentUserId := c.AppContext.Session().UserId
 		for i := range members {
 			members[i].SanitizeForCurrentUser(currentUserId)
 		}
 
-		if err := json.NewEncoder(w).Encode(members); err != nil {
+		if err := json.NewEncoder(w).Encode(model.ChannelMembersWithTeamData(members)); err != nil {
 			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
 		return
@@ -3798,6 +3834,13 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 
 		currentUserId := c.AppContext.Session().UserId
 		for _, member := range members {
+			// Filtered here, not in the app layer: the cursor advance and the
+			// short-page test below must see the raw page, or the whole list would
+			// truncate at the first denial. Evaluated for the session, not the
+			// queried user, for the same reason as the paginated branch above.
+			if !c.App.HasChannelReadAccessByID(c.AppContext, currentUserId, member.ChannelId) {
+				continue
+			}
 			// Sanitize each member before encoding in the stream
 			member.SanitizeForCurrentUser(currentUserId)
 			if err := enc.Encode(member); err != nil {

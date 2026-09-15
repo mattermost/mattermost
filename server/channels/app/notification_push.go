@@ -800,9 +800,24 @@ func (a *App) BuildPushNotificationMessage(rctx request.CTX, contentsConfig stri
 ) (*model.PushNotification, *model.AppError) {
 	var msg *model.PushNotification
 
+	// A push delivers the post's content without the recipient asking for it, so a
+	// denied recipient — including one with no cached session attributes — gets the
+	// notification downgraded rather than suppressed: the device fetches by id, and
+	// that fetch re-runs the gate live.
+	denied := !a.HasChannelReadAccess(rctx, user.Id, channel)
+	if denied {
+		contentsConfig = model.IdLoadedNotification
+	}
+
 	notificationInterface := a.ch.Notification
 	if (notificationInterface == nil || notificationInterface.CheckLicense() != nil) && contentsConfig == model.IdLoadedNotification {
-		contentsConfig = model.GenericNotification
+		// Without the id-loaded path the message is built in full, so a denied
+		// recipient needs the generic form that also withholds the channel name.
+		if denied {
+			contentsConfig = model.GenericNoChannelNotification
+		} else {
+			contentsConfig = model.GenericNotification
+		}
 	}
 
 	if contentsConfig == model.IdLoadedNotification {
