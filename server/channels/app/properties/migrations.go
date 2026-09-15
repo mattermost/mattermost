@@ -309,7 +309,7 @@ func (b *permissionsBackfill) resolveTemplate(rctx request.CTX, groupID, templat
 	b.templates[templateID] = permissions
 
 	if permissions.Masking != nil {
-		b.warnIfMaskedTemplateHasNonUserSiblings(rctx, template, permissions.Masking)
+		b.warnIfMaskedTemplateHasNonUserSiblings(rctx, template, permissions, convertAttrs)
 	}
 
 	return permissions, nil
@@ -321,7 +321,7 @@ func (b *permissionsBackfill) resolveTemplate(rctx request.CTX, groupID, templat
 // operator sets the template's mask_by_field_id -- the conversion cannot
 // infer that field from the template's linked fields, so this line is the
 // only thing that tells an operator the scheme is waiting on them.
-func (b *permissionsBackfill) warnIfMaskedTemplateHasNonUserSiblings(rctx request.CTX, template *model.PropertyField, masking *model.Masking) {
+func (b *permissionsBackfill) warnIfMaskedTemplateHasNonUserSiblings(rctx request.CTX, template *model.PropertyField, permissions *model.Permissions, convertAttrs bool) {
 	linked, err := b.service.fieldStore.GetLinkedFields([]string{template.ID}, nil)
 	if err != nil {
 		rctx.Logger().Warn("Failed to check a masked template's linked fields for non-user object types",
@@ -340,8 +340,22 @@ func (b *permissionsBackfill) warnIfMaskedTemplateHasNonUserSiblings(rctx reques
 		// A field the masking resolves its own holdings to -- mask_by_field_id names
 		// it, or the template sets none so it falls back to itself -- is open to the
 		// members it filters when its effective value.write admits them.
-		if holdingsFieldIDFor(field, masking) == field.ID && field.PermissionValues != nil &&
-			(*field.PermissionValues == model.PermissionLevelMember || *field.PermissionValues == model.PermissionLevelEveryone) {
+		if holdingsFieldIDFor(field, permissions.Masking) != field.ID {
+			continue
+		}
+		// Decide from the Permissions this field ends the backfill with, not from
+		// its stored column: the conversion drives value.write to none on a
+		// protected, owner-managed or synced field, so the raw column reports an
+		// open scheme the backfill is in the middle of closing.
+		converted := field.Permissions
+		if converted == nil {
+			converted = model.PermissionsFromLegacy(field, model.LegacyConversionOpts{
+				ConvertAttrs: convertAttrs,
+				Template:     permissions,
+			})
+		}
+		switch converted.Restrictions.TierFor(model.PropertyActionValueWrite) {
+		case model.PermissionLevelMember, model.PermissionLevelEveryone:
 			writableHoldingsIDs = append(writableHoldingsIDs, field.ID)
 		}
 	}

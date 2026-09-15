@@ -261,8 +261,59 @@ func TestWarnIfMaskedTemplateHasWritableHoldings(t *testing.T) {
 
 	buffer := captureMaskingFailureLog(t, th)
 	b := newPermissionsBackfill(th.service, th.CPAGroupID)
-	b.warnIfMaskedTemplateHasNonUserSiblings(th.Context, template, template.Permissions.Masking)
+	b.warnIfMaskedTemplateHasNonUserSiblings(th.Context, template, template.Permissions, true)
 	requireWarnLogged(t, th, buffer, "widen their own masked view")
+}
+
+// requireWarnNotLogged flushes th's logger and asserts buffer holds no warn
+// entry whose message contains substr.
+func requireWarnNotLogged(t *testing.T, th *TestHelper, buffer *mlog.Buffer, substr string) {
+	t.Helper()
+	logger, ok := th.Context.Logger().(*mlog.Logger)
+	require.True(t, ok)
+	require.NoError(t, logger.Flush())
+
+	logOutput := buffer.String()
+	for _, e := range testlib.ParseLogEntries(t, strings.NewReader(logOutput)) {
+		assert.NotContains(t, e.Msg, substr, "unexpected warn log entry, full log: %s", logOutput)
+	}
+}
+
+func TestWarnIfMaskedTemplateHoldingsTheBackfillCloses(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+
+	template := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+		GroupID:    th.CPAGroupID,
+		Name:       "MaskedTemplate-" + model.NewId(),
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	})
+	template.Permissions = &model.Permissions{Masking: &model.Masking{}}
+	updated, err := th.dbStore.PropertyField().Update(th.CPAGroupID, []*model.PropertyField{template}, nil)
+	require.NoError(t, err)
+	template = updated[0]
+
+	// A holdings field the backfill has not reached yet: no Permissions object,
+	// so the store keeps the legacy column exactly as submitted, and the
+	// protected attr is what drives the conversion's value.write to none.
+	linkedID := template.ID
+	member := model.PermissionLevelMember
+	th.CreatePropertyFieldDirect(t, &model.PropertyField{
+		GroupID:          th.CPAGroupID,
+		Name:             "ProtectedHoldings-" + model.NewId(),
+		Type:             model.PropertyFieldTypeText,
+		ObjectType:       model.PropertyFieldObjectTypeUser,
+		TargetType:       string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID:    &linkedID,
+		Attrs:            model.StringInterface{model.PropertyAttrsProtected: true},
+		PermissionValues: &member,
+	})
+
+	buffer := captureMaskingFailureLog(t, th)
+	b := newPermissionsBackfill(th.service, th.CPAGroupID)
+	b.warnIfMaskedTemplateHasNonUserSiblings(th.Context, template, template.Permissions, true)
+	requireWarnNotLogged(t, th, buffer, "widen their own masked view")
 }
 
 func TestMigrateBackfillPropertyPermissions_Paging(t *testing.T) {
