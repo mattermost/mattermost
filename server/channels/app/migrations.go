@@ -38,6 +38,7 @@ const (
 	boardsPropertySetupDoneKey                     = "boards_property_setup_done"
 	boardsPropertyMigrationVersion                 = "v2"
 	cpaDisplayNameBackfillKey                      = "cpa_display_name_backfill_done"
+	cpaToGlobalAttributesMigrationKey              = "cpa_to_global_attributes_migration_done"
 
 	contentFlaggingPropertyNameFlaggedPostId       = "flagged_post_id"
 	ContentFlaggingPropertyNameStatus              = "status"
@@ -1154,6 +1155,54 @@ func (s *Server) doSetupCPADisplayNameBackfill(rctx request.CTX) error {
 	return nil
 }
 
+// doSetupCPAToGlobalAttributesMigration migrates every eligible CPA field
+// into a Global Attributes template (PropertyService.MigrateCPAFieldsToGlobalAttributes).
+// Only runs when licensed, since touched fields may predate a lapsed
+// license; unlicensed is not an error — the "done" marker stays unset so a
+// later restart retries once licensed.
+func (s *Server) doSetupCPAToGlobalAttributesMigration(rctx request.CTX) error {
+	var nfErr *store.ErrNotFound
+	if _, err := s.Store().System().GetByName(cpaToGlobalAttributesMigrationKey); err == nil {
+		return nil
+	} else if !errors.As(err, &nfErr) {
+		return fmt.Errorf("could not query CPA-to-Global-Attributes migration: %w", err)
+	}
+
+	if !model.MinimumEnterpriseLicense(s.License()) {
+		mlog.Info("CPA-to-Global-Attributes migration skipped: server is not currently licensed")
+		return nil
+	}
+
+	migrated, skipped, retryable, err := s.propertyService.MigrateCPAFieldsToGlobalAttributes(rctx)
+	if err != nil {
+		return fmt.Errorf("failed to migrate CPA fields to Global Attributes: %w", err)
+	}
+
+	// Only write the "done" marker once no field needs a retry.
+	if retryable > 0 {
+		mlog.Warn("CPA-to-Global-Attributes migration incomplete: some fields will be retried on a later restart",
+			mlog.Int("migrated", migrated),
+			mlog.Int("skipped", skipped),
+			mlog.Int("retryable", retryable),
+		)
+		return nil
+	}
+
+	mlog.Info("CPA-to-Global-Attributes migration completed",
+		mlog.Int("migrated", migrated),
+		mlog.Int("skipped", skipped),
+	)
+
+	if err := s.Store().System().SaveOrUpdate(&model.System{
+		Name:  cpaToGlobalAttributesMigrationKey,
+		Value: "true",
+	}); err != nil {
+		return fmt.Errorf("failed to mark CPA-to-Global-Attributes migration as complete: %w", err)
+	}
+
+	return nil
+}
+
 func (s *Server) cacheManagedCategoryIDs() error {
 	group, err := s.propertyService.GetPropertyGroup(model.ManagedCategoryPropertyGroupName)
 	if err != nil {
@@ -1392,6 +1441,7 @@ func (s *Server) doAppMigrations() {
 		{"Delete Invalid Dms Preferences Migration", s.doDeleteDmsPreferencesMigration},
 		{"Access Control Policy V0.3 Migration", s.doAccessControlPolicyV0_3Migration},
 		{"CPA DisplayName Backfill", s.doSetupCPADisplayNameBackfill},
+		{"CPA To Global Attributes Migration", s.doSetupCPAToGlobalAttributesMigration},
 	}
 
 	for i := range m2 {
