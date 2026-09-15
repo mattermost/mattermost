@@ -8817,10 +8817,6 @@
     "translation": "Unable to register property group."
   },
   {
-    "id": "app.property_sync.ensure_options.app_error",
-    "translation": "Unable to provision options for the synced attribute."
-  },
-  {
     "id": "app.property_sync.invalid_options.app_error",
     "translation": "The synced attribute has invalid options."
   },
