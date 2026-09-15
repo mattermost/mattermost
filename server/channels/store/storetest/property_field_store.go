@@ -1024,6 +1024,7 @@ func testDeletePropertyField(t *testing.T, rctx request.CTX, ss store.Store, s S
 		deletedField, err := ss.PropertyField().Get(rctx, "", field.ID)
 		require.NoError(t, err)
 		require.NotZero(t, deletedField.DeleteAt)
+		require.Greater(t, deletedField.UpdateAt, field.UpdateAt)
 	})
 
 	t.Run("should be able to create a new field with the same details as the deleted one", func(t *testing.T) {
@@ -1427,17 +1428,16 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store, s Sql
 			expectedIDs: []string{field1.ID, field2.ID},
 		},
 		{
-			// SinceUpdateAt is inclusive (>=). With since=field5.UpdateAt
-			// the only row in groupID with UpdateAt >= field5.UpdateAt is
-			// field5 itself (delete does not touch UpdateAt, so field4
-			// stays behind in time order).
+			// SinceUpdateAt is inclusive (>=). field4 is deleted after all
+			// six creates, so its tombstone UpdateAt lands past field5.UpdateAt
+			// and both rows are in range.
 			name: "filter by SinceUpdateAt timestamp - returns the boundary row",
 			opts: model.PropertyFieldSearchOpts{
 				GroupID:       groupID,
 				SinceUpdateAt: field5.UpdateAt,
 				PerPage:       10,
 			},
-			expectedIDs: []string{field5.ID},
+			expectedIDs: []string{field4.ID, field5.ID},
 		},
 		{
 			// Using field1.UpdateAt+1 demonstrates the `>=` boundary excludes
