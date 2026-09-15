@@ -342,10 +342,11 @@ function PostComponent(props: Props) {
         return isPostHeaderVisibleToUser;
     };
 
+    const postLooksHovered =
+        hover || fileDropdownOpened || dropdownOpened || a11yActive || Boolean(props.isPostBeingEdited);
+
     const getClassName = () => {
         const isMeMessage = checkIsMeMessage(post);
-        const hovered =
-            hover || fileDropdownOpened || dropdownOpened || a11yActive || props.isPostBeingEdited;
         return classNames('a11y__section post', {
             'post--highlight': shouldHighlight && !fadeOutHighlight,
             'same--root': hasSameRoot(props),
@@ -357,7 +358,7 @@ function PostComponent(props: Props) {
             'post--root': props.hasReplies && !(post.root_id && post.root_id.length > 0),
             'post--comment': (post.root_id && post.root_id.length > 0 && !props.isCollapsedThreadsEnabled) || (props.location === Locations.RHS_COMMENT),
             'post--compact': props.compactDisplay,
-            'post--hovered': hovered,
+            'post--hovered': postLooksHovered,
             'same--user': props.isConsecutivePost && (!props.compactDisplay || props.location === Locations.RHS_COMMENT),
             'cursor--pointer': alt && !props.channelIsArchived,
             'post--hide-controls': post.failed || post.state === Posts.POST_DELETED,
@@ -657,7 +658,7 @@ function PostComponent(props: Props) {
     const hideProfileCase = !(props.location === Locations.RHS_COMMENT && props.compactDisplay && props.isConsecutivePost);
     const showTimestamp =
         (!hideProfilePicture && props.location === Locations.CENTER) ||
-        hover ||
+        postLooksHovered ||
         props.location !== Locations.CENTER;
 
     // For a consecutive non-compact post the host renders the timestamp in narrow

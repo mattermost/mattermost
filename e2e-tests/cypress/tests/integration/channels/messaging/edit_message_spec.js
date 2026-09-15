@@ -97,9 +97,12 @@ describe('Edit Message', () => {
                 // # Edit the post
                 cy.get('#edit_textbox').type('Some text {enter}', {delay: 100});
 
-                // # Wait for edit mode to finish so the post has settled at its new height
+                // # Wait until the post has left edit mode and finished its height animation so
+                // # a mouseover records coordinates on the settled post, not the in-transition one.
                 cy.get('#edit_textbox').should('not.exist');
+                cy.get(`#post_${postId}`).should('not.have.class', 'post--editing');
                 cy.get(`#postMessageText_${postId}`).should('contain', 'Edited');
+                cy.wait(TIMEOUTS.ONE_SEC);
 
                 // # Mouseover the post again
                 cy.get(`#post_${postId}`).trigger('mouseover', {force: true}).should('have.class', 'post--hovered');
