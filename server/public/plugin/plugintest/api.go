@@ -3910,6 +3910,24 @@ func (_m *API) HasPermissionToChannel(userID string, channelId string, permissio
 	return r0
 }
 
+// HasPermissionToFileAction provides a mock function with given fields: sessionID, fileID, action
+func (_m *API) HasPermissionToFileAction(sessionID string, fileID string, action string) bool {
+	ret := _m.Called(sessionID, fileID, action)
+
+	if len(ret) == 0 {
+		panic("no return value specified for HasPermissionToFileAction")
+	}
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string, string, string) bool); ok {
+		r0 = rf(sessionID, fileID, action)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // HasPermissionToTeam provides a mock function with given fields: userID, teamID, permission
 func (_m *API) HasPermissionToTeam(userID string, teamID string, permission *model.Permission) bool {
 	ret := _m.Called(userID, teamID, permission)
