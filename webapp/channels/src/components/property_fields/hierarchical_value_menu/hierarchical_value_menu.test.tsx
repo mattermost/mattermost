@@ -138,7 +138,7 @@ describe('HierarchicalValueMenu', () => {
             expect(maybeRow('Fighter Jet')).toBeNull();
         });
 
-        test('clicking the label selects a branch without expanding', async () => {
+        test('clicking the label expands a branch without selecting', async () => {
             mockPageAll.mockResolvedValue(hierarchy());
             const onSelectedIdsChange = jest.fn();
             renderMenu({onSelectedIdsChange});
@@ -147,8 +147,22 @@ describe('HierarchicalValueMenu', () => {
             await screen.findByRole('menuitemcheckbox', {name: 'Air Program'});
             await userEvent.click(labelOf('Air Program'));
 
-            expect(onSelectedIdsChange).toHaveBeenCalledWith(['opt-air']);
-            expect(maybeRow('Fighter Jet')).toBeNull();
+            expect(onSelectedIdsChange).not.toHaveBeenCalled();
+            expect(maybeRow('Fighter Jet')).not.toBeNull();
+        });
+
+        test('clicking the inside count expands a branch without selecting', async () => {
+            mockPageAll.mockResolvedValue(hierarchy());
+            const onSelectedIdsChange = jest.fn();
+            renderMenu({onSelectedIdsChange, selectedIds: ['opt-f18']});
+
+            await openMenu();
+            await screen.findByRole('menuitemcheckbox', {name: 'F-18 Program'});
+            await userEvent.click(chevronOf('Air Program'));
+            await userEvent.click(partOf(row('Air Program'), 'count'));
+
+            expect(onSelectedIdsChange).not.toHaveBeenCalled();
+            expect(maybeRow('Fighter Jet')).not.toBeNull();
         });
 
         test('clicking the chevron expands a branch without selecting', async () => {
@@ -199,7 +213,7 @@ describe('HierarchicalValueMenu', () => {
             expect(onSelectedIdsChange).toHaveBeenCalledWith(['opt-rotary']);
         });
 
-        test('clicking a branch row element itself selects rather than expands', async () => {
+        test('clicking a branch row element itself expands rather than selects', async () => {
             mockPageAll.mockResolvedValue(hierarchy());
             const onSelectedIdsChange = jest.fn();
             renderMenu({onSelectedIdsChange});
@@ -207,8 +221,8 @@ describe('HierarchicalValueMenu', () => {
             await openMenu();
             await userEvent.click(await screen.findByRole('menuitemcheckbox', {name: 'Air Program'}));
 
-            expect(onSelectedIdsChange).toHaveBeenCalledWith(['opt-air']);
-            expect(maybeRow('Fighter Jet')).toBeNull();
+            expect(onSelectedIdsChange).not.toHaveBeenCalled();
+            expect(maybeRow('Fighter Jet')).not.toBeNull();
         });
 
         test('unchecking a selected value removes only that id', async () => {

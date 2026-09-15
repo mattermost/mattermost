@@ -77,12 +77,17 @@ export default function HierarchicalValueRow({
         }
 
         const target = event.target as HTMLElement | null;
-        if (isBranch && target?.closest('[data-hit="expand"]')) {
+        if (target?.closest('[data-hit="select"]')) {
+            onToggleSelect();
+            return;
+        }
+
+        // Label, chevron, and the rest of a branch row expand. A leaf still selects.
+        if (isBranch) {
             onToggleExpand();
             return;
         }
 
-        // Checkbox, label, and the rest of the row select — same as Enter/Space.
         onToggleSelect();
     };
 
