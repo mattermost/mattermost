@@ -13,7 +13,7 @@ import {canMoveToOption, getPropertyFieldChangePolicy, getPropertyFieldLabel, is
 
 import * as Menu from 'components/menu';
 
-import AttributeChip from './attribute_chip';
+import AttributeChip, {AttributeChipRemoveButton} from './attribute_chip';
 import type {ChannelAttributeValue} from './set_channel_attribute_value';
 
 type Option = {label: string; value: string; color?: string};
@@ -131,12 +131,6 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
                         {id: 'channel_attributes.info.edit', defaultMessage: 'Edit {label}'},
                         {label},
                     ),
-                    onMouseDown: (event) => {
-                        if ((event.target as HTMLElement).closest('[data-chip-remove]')) {
-                            event.preventDefault();
-                            event.stopPropagation();
-                        }
-                    },
                     children: hasDisplay ? (
                         <AttributeChip
                             label={label}
@@ -144,8 +138,6 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
                             color={color}
                             size='medium'
                             announceLabel={false}
-                            onRemove={clearable ? () => onSubmit(null) : undefined}
-                            removeLabel={clearLabel}
                         />
                     ) : (
                         <span
@@ -205,6 +197,13 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
                     );
                 })}
             </Menu.Container>
+            {clearable && hasDisplay && (
+                <AttributeChipRemoveButton
+                    onRemove={() => onSubmit(null)}
+                    removeLabel={clearLabel}
+                    disabled={saving}
+                />
+            )}
         </span>
     );
 };

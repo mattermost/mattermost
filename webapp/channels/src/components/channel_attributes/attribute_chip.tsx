@@ -31,11 +31,39 @@ type Props = {
     // Channel Info and the channel header both use medium.
     size?: 'small' | 'medium';
 
-    onRemove?: (event: React.MouseEvent) => void;
-    removeLabel?: string;
-
     className?: string;
 };
+
+type RemoveButtonProps = {
+    onRemove: (event: React.MouseEvent) => void;
+    removeLabel: string;
+    disabled?: boolean;
+};
+
+export const AttributeChipRemoveButton = ({onRemove, removeLabel, disabled}: RemoveButtonProps) => (
+    <button
+        type='button'
+        className='AttributeChip__remove'
+        data-testid='attributeChipRemove'
+        aria-label={removeLabel}
+        disabled={disabled}
+        onMouseDown={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+        }}
+        onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            event.nativeEvent.stopImmediatePropagation();
+            onRemove(event);
+        }}
+    >
+        <CloseCircleIcon
+            size={14}
+            aria-hidden={true}
+        />
+    </button>
+);
 
 /**
  * A single channel attribute value, rendered as a chip. The value is always text:
@@ -53,8 +81,6 @@ const AttributeChip = ({
     color,
     announceLabel = true,
     size = 'small',
-    onRemove,
-    removeLabel,
     className,
 }: Props) => {
     const style = useMemo(() => {
@@ -78,7 +104,6 @@ const AttributeChip = ({
                 `AttributeChip--${size}`,
                 {
                     'AttributeChip--neutral': !style,
-                    'AttributeChip--removable': Boolean(onRemove),
                 },
                 className,
             )}
@@ -95,30 +120,6 @@ const AttributeChip = ({
                 </span>
             )}
             <span className='AttributeChip__value'>{value}</span>
-            {onRemove && (
-                <button
-                    type='button'
-                    className='AttributeChip__remove'
-                    data-testid='attributeChipRemove'
-                    data-chip-remove={true}
-                    aria-label={removeLabel}
-                    onMouseDown={(event) => {
-                        event.preventDefault();
-                        event.stopPropagation();
-                    }}
-                    onClick={(event) => {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        event.nativeEvent.stopImmediatePropagation();
-                        onRemove(event);
-                    }}
-                >
-                    <CloseCircleIcon
-                        size={14}
-                        aria-hidden={true}
-                    />
-                </button>
-            )}
         </span>
     );
 };

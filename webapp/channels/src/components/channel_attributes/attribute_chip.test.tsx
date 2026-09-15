@@ -5,7 +5,7 @@ import React from 'react';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
-import AttributeChip from './attribute_chip';
+import AttributeChip, {AttributeChipRemoveButton} from './attribute_chip';
 
 describe('AttributeChip', () => {
     test('renders the value as text, so colour is never the only carrier of meaning', () => {
@@ -105,19 +105,23 @@ describe('AttributeChip', () => {
         expect(chip).not.toHaveStyle({color: '#ffffff'});
     });
 
-    test('places the remove control inside the chip', async () => {
+    test('renders a remove control separately from the chip', async () => {
         const onRemove = jest.fn();
         renderWithContext(
-            <AttributeChip
-                label='Severity'
-                value='SEV 1'
-                onRemove={onRemove}
-                removeLabel='Clear Severity'
-            />,
+            <>
+                <AttributeChip
+                    label='Severity'
+                    value='SEV 1'
+                />
+                <AttributeChipRemoveButton
+                    onRemove={onRemove}
+                    removeLabel='Clear Severity'
+                />
+            </>,
         );
 
         const remove = screen.getByTestId('attributeChipRemove');
-        expect(screen.getByTestId('attributeChip')).toContainElement(remove);
+        expect(screen.getByTestId('attributeChip')).not.toContainElement(remove);
 
         await userEvent.click(remove);
         expect(onRemove).toHaveBeenCalledTimes(1);
@@ -126,9 +130,7 @@ describe('AttributeChip', () => {
     test('keeps the remove control in sequential keyboard order', async () => {
         const onRemove = jest.fn();
         renderWithContext(
-            <AttributeChip
-                label='Severity'
-                value='SEV 1'
+            <AttributeChipRemoveButton
                 onRemove={onRemove}
                 removeLabel='Clear Severity'
             />,

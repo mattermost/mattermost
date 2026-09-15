@@ -373,7 +373,12 @@ describe('ChannelInfoAttributes', () => {
             );
 
             await userEvent.hover(screen.getByTestId('channelInfoAttributeEdit-program'));
-            await userEvent.click(screen.getByTestId('attributeChipRemove'));
+            const trigger = screen.getByTestId('channelInfoAttributeEdit-program');
+            const remove = screen.getByTestId('attributeChipRemove');
+            expect(trigger).not.toContainElement(remove);
+            expect(trigger.parentElement).toBe(remove.parentElement);
+
+            await userEvent.click(remove);
 
             expect(screen.queryByRole('menu', {name: 'Program'})).not.toBeInTheDocument();
             await waitFor(() => expect(patchSpy).toHaveBeenCalledWith(

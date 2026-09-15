@@ -67,7 +67,7 @@
         flex: 1;
         align-items: center;
 
-        > * {
+        > .ChannelInfoAttributes__valueTrigger {
             width: 100%;
             min-width: 0;
         }
@@ -102,13 +102,6 @@
         &:focus-visible {
             outline: 2px solid var(--button-bg);
             outline-offset: 2px;
-        }
-
-        &:hover .AttributeChip__remove,
-        &:focus-visible .AttributeChip__remove,
-        &[aria-expanded='true'] .AttributeChip__remove {
-            opacity: 0.56;
-            pointer-events: auto;
         }
     }
 

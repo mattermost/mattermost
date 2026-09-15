@@ -259,7 +259,7 @@ describe('GlobalAttributesTable', () => {
         expect(appliesTo).not.toHaveTextContent('—');
     });
 
-    it('does not render cached Applies-to chips after a resource fetch fails', async () => {
+    it('shows an error instead of cached Applies-to chips after a resource fetch fails', async () => {
         const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
         const template = makeField({id: 'template-1', name: 'department'});
         const cachedUserLink = makeField({
@@ -300,14 +300,13 @@ describe('GlobalAttributesTable', () => {
 
         renderWithContext(<GlobalAttributesTable/>, state);
 
-        const appliesTo = await screen.findByTestId('global-attribute-applies-to');
-        expect(appliesTo).toHaveTextContent('—');
-        expect(appliesTo).not.toHaveTextContent('Users');
+        expect(await screen.findByTestId('global-attributes-error')).toBeInTheDocument();
+        expect(screen.queryByTestId('global-attribute-applies-to')).not.toBeInTheDocument();
 
         consoleSpy.mockRestore();
     });
 
-    it('still renders Applies-to chips for scopes that loaded after another resource fetch fails', async () => {
+    it('does not render successful Applies-to scopes when another resource fetch fails', async () => {
         const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
         const template = makeField({id: 'template-1', name: 'department'});
         const cachedChannelLink = makeField({
@@ -355,10 +354,8 @@ describe('GlobalAttributesTable', () => {
 
         renderWithContext(<GlobalAttributesTable/>, state);
 
-        const appliesTo = await screen.findByTestId('global-attribute-applies-to');
-        expect(appliesTo).toHaveTextContent('Users');
-        expect(appliesTo).not.toHaveTextContent('Channels');
-        expect(appliesTo).not.toHaveTextContent('—');
+        expect(await screen.findByTestId('global-attributes-error')).toBeInTheDocument();
+        expect(screen.queryByTestId('global-attribute-applies-to')).not.toBeInTheDocument();
 
         consoleSpy.mockRestore();
     });
