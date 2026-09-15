@@ -14,6 +14,7 @@ data/plugin-godocs.json.tmp
 data/plugin-jsdocs.json
 data/plugin-manifest-docs.json
 data/plugin-manifest-docs.json.tmp
+data/api-search-index.json
 
 # Misc
 .DS_Store
