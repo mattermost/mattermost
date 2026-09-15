@@ -112,20 +112,42 @@ export default class ChannelsSidebarLeft {
     }
 
     /**
+     * Locates the global Drafts sidebar link.
+     */
+    draftsLink(): Locator {
+        return this.container.locator('#sidebarItem_drafts');
+    }
+
+    /**
      * Verifies 'Drafts' as a sidebar link exists in LHS.
      */
     async draftsVisible() {
-        const draftSidebarLink = this.container.getByText('Drafts', {exact: true});
-        await draftSidebarLink.waitFor();
-        await expect(draftSidebarLink).toBeVisible();
+        await this.draftsLink().waitFor();
+        await expect(this.draftsLink()).toBeVisible();
     }
 
     /**
      * Verifies 'Drafts' as a sidebar link does not exist in LHS.
      */
     async draftsNotVisible() {
-        const channel = this.container.getByText('Drafts', {exact: true});
-        await expect(channel).not.toBeVisible();
+        await expect(this.draftsLink()).not.toBeVisible();
+    }
+
+    /**
+     * Opens the global Drafts page from the LHS.
+     */
+    async goToDrafts() {
+        await this.draftsVisible();
+        await this.draftsLink().click();
+    }
+
+    /**
+     * Returns the draft count badge next to the Drafts LHS link.
+     */
+    async getDraftsBadgeCount(): Promise<string> {
+        const badge = this.draftsLink().locator('#unreadMentions .unreadMentions');
+        await expect(badge).toBeVisible();
+        return (await badge.textContent()) ?? '';
     }
 
     /**
