@@ -116,16 +116,6 @@ func ChannelAccessEnforcementDenial(rctx request.CTX) (channelID string, action 
 	return denial.channelID, denial.action
 }
 
-// ChannelAccessDeniedErrorID maps a channel-access action to the error id its
-// denial reports. Clients switch on these to tell a policy denial from being
-// removed from the channel, and a read denial from a write denial.
-func ChannelAccessDeniedErrorID(action string) string {
-	if action == model.AccessControlPolicyActionChannelWriteAccess {
-		return "api.channel.channel_write_access.abac_denied.app_error"
-	}
-	return "api.channel.channel_read_access.abac_denied.app_error"
-}
-
 // isChannelReadPermission reports whether a channel permission means "read this
 // channel". Only reads are gated on channel_read_access; every other permission is a
 // write, and those are channel_write_access's question. A new read permission that is

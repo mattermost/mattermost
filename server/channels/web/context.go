@@ -53,8 +53,8 @@ func (c *Context) LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level)
 		rec.AddErrorCode(c.Err.StatusCode)
 		rec.AddErrorDesc(c.Err.Error())
 		if c.Err.Id == "api.context.permissions.app_error" ||
-			c.Err.Id == app.ChannelAccessDeniedErrorID(model.AccessControlPolicyActionChannelReadAccess) ||
-			c.Err.Id == app.ChannelAccessDeniedErrorID(model.AccessControlPolicyActionChannelWriteAccess) {
+			c.Err.Id == "api.channel.channel_read_access.abac_denied.app_error" ||
+			c.Err.Id == "api.channel.channel_write_access.abac_denied.app_error" {
 			level = app.LevelPerms
 		}
 		rec.Fail()
@@ -285,8 +285,17 @@ func NewJSONEncodingError(err error) *model.AppError {
 
 func (c *Context) SetPermissionError(permissions ...*model.Permission) {
 	if channelID, action := app.ChannelAccessEnforcementDenial(c.AppContext); channelID != "" {
-		c.Err = model.NewAppError("Permissions", app.ChannelAccessDeniedErrorID(action), nil,
-			"userId="+c.AppContext.Session().UserId+", channelId="+channelID, http.StatusForbidden)
+		// Both ids are spelled out rather than computed: mmgotool i18n extract only
+		// collects literals passed to NewAppError, so routing them through a helper
+		// drops them from en.json.
+		details := "userId=" + c.AppContext.Session().UserId + ", channelId=" + channelID
+		if action == model.AccessControlPolicyActionChannelWriteAccess {
+			c.Err = model.NewAppError("Permissions", "api.channel.channel_write_access.abac_denied.app_error", nil,
+				details, http.StatusForbidden)
+		} else {
+			c.Err = model.NewAppError("Permissions", "api.channel.channel_read_access.abac_denied.app_error", nil,
+				details, http.StatusForbidden)
+		}
 		return
 	}
 

@@ -190,8 +190,8 @@ func TestEnforceChannelWriteAccessRecordsTheDenyingAction(t *testing.T) {
 
 		channelID, action := ChannelAccessEnforcementDenial(h.rctx)
 		require.Equal(t, h.th.BasicChannel.Id, channelID)
-		require.Equal(t, model.AccessControlPolicyActionChannelWriteAccess, action)
-		require.Equal(t, "api.channel.channel_write_access.abac_denied.app_error", ChannelAccessDeniedErrorID(action))
+		require.Equal(t, model.AccessControlPolicyActionChannelWriteAccess, action,
+			"web.SetPermissionError switches on this to pick the write denial error id")
 	})
 
 	t.Run("read policy refuses", func(t *testing.T) {
@@ -204,8 +204,8 @@ func TestEnforceChannelWriteAccessRecordsTheDenyingAction(t *testing.T) {
 
 		channelID, action := ChannelAccessEnforcementDenial(h.rctx)
 		require.Equal(t, h.th.BasicChannel.Id, channelID)
-		require.Equal(t, model.AccessControlPolicyActionChannelReadAccess, action)
-		require.Equal(t, "api.channel.channel_read_access.abac_denied.app_error", ChannelAccessDeniedErrorID(action))
+		require.Equal(t, model.AccessControlPolicyActionChannelReadAccess, action,
+			"a write refused by the read policy must report the read denial, not the write one")
 	})
 
 	t.Run("records nothing when allowed", func(t *testing.T) {
