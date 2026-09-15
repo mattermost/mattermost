@@ -212,11 +212,6 @@ type Manifest struct {
 	// RequiredAddOn names the add-on the server license must grant before this plugin
 	// can be enabled or activated, matched case-insensitively against License.AddOns.
 	//
-	// A policy control, not a tamper boundary: the value comes from the bundle, so
-	// repacking without it evades the gate. What it guarantees is that an unlicensed
-	// add-on cannot be enabled through config, the API or the System Console.
-	// MM-70598 closes it at the plugin API surface.
-	//
 	// Minimum server version: 12.0
 	RequiredAddOn string `json:"required_add_on,omitempty" yaml:"required_add_on,omitempty"`
 
