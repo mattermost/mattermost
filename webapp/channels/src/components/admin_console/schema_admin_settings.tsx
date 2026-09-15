@@ -24,6 +24,7 @@ import DropdownSetting from 'components/admin_console/dropdown_setting';
 import FileUploadSetting from 'components/admin_console/file_upload_setting';
 import GeneratedSetting from 'components/admin_console/generated_setting';
 import JobsTable from 'components/admin_console/jobs';
+import ManagedExternally from 'components/admin_console/managed_externally';
 import MultiSelectSetting from 'components/admin_console/multiselect_settings';
 import RadioSetting from 'components/admin_console/radio_setting';
 import RemoveFileSetting from 'components/admin_console/remove_file_setting';
@@ -686,7 +687,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
             value = this.state[setting.key] ?? (typeof setting.default === 'function' ? setting.default(value, this.props.config, this.state) : setting.default || '');
         }
 
-        let footer = null;
+        let footer = setting.isManagedExternally ? <ManagedExternally/> : null;
         if (setting.validate) {
             const err = setting.validate(value).error(this.props.intl);
             footer = err ? (

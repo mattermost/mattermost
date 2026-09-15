@@ -373,6 +373,18 @@ See the [troubleshooting](/deployment-guide/server/troubleshooting#log-files-not
 
 ------------------------------------------------------------------------------------------------------------------------
 
+## Settings that can't be changed through the API
+
+The following settings can only be changed using `config.json`, an environment variable, or `mmctl --local`:
+
+- `LogSettings.AdvancedLoggingJSON`
+- `ExperimentalAuditSettings.AdvancedLoggingJSON`
+- `ExperimentalAuditSettings.FileName`
+
+They're read-only in the System Console. The REST API accepts a request that tries to change them but it silently keeps the stored value, so a remote `mmctl config set` on one of these settings reports success without changing anything.
+
+------------------------------------------------------------------------------------------------------------------------
+
 ## Advanced logging
 
 <PlanAvailability slug="entry-ent" />
