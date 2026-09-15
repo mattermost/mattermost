@@ -14,6 +14,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/web"
 )
@@ -84,6 +85,40 @@ func requireChannelAttributeLicense(c *Context, group *model.PropertyGroup, call
 	}
 
 	if !model.MinimumEnterpriseAdvancedLicense(c.App.License()) {
+		c.Err = model.NewAppError(callerName, "api.property.channel_attributes.license.app_error", nil, "", http.StatusNotImplemented)
+		return false
+	}
+
+	return true
+}
+
+// requireChannelAttributeLicenseForTemplate refuses a request against an
+// access_control template that a channel field links to, unless the license is
+// Enterprise Advanced. requireChannelAttributeLicense cannot catch this case:
+// it runs before any field is read and keys on the object type in the URL,
+// which is "template" here. Sets c.Err and returns false on refusal.
+//
+// Best-effort: this catches a template a channel field links to directly.
+// A linked field may not itself be a link target, so a chain cannot hide
+// the template; dependents still come and go, so the answer is only as
+// good as this moment.
+func requireChannelAttributeLicenseForTemplate(c *Context, rctx request.CTX, group *model.PropertyGroup, field *model.PropertyField, callerName string) bool {
+	if group.Name != model.AccessControlPropertyGroupName ||
+		field.ObjectType != model.PropertyFieldObjectTypeTemplate ||
+		model.MinimumEnterpriseAdvancedLicense(c.App.License()) {
+		return true
+	}
+
+	dependents, searchErr := c.App.SearchPropertyFields(rctx, group.ID, model.PropertyFieldSearchOpts{
+		ObjectTypes:   []string{model.PropertyFieldObjectTypeChannel},
+		LinkedFieldID: field.ID,
+		PerPage:       1,
+	})
+	if searchErr != nil {
+		c.Err = searchErr
+		return false
+	}
+	if len(dependents) > 0 {
 		c.Err = model.NewAppError(callerName, "api.property.channel_attributes.license.app_error", nil, "", http.StatusNotImplemented)
 		return false
 	}
@@ -518,6 +553,10 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !requireChannelAttributeLicenseForTemplate(c, rctx, group, existingField, "patchPropertyField") {
+		return
+	}
+
 	// PermissionValues is only patchable on a linked field (any object type),
 	// and only to Member or Sysadmin. Requiring LinkedFieldID keeps this off
 	// standalone fields, which can have a weaker (Member-level) PermissionField
@@ -611,6 +650,10 @@ func deletePropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if existingField.ObjectType != c.Params.ObjectType {
 		c.Err = model.NewAppError("deletePropertyField", "api.property_field.object_type_mismatch.app_error", nil, "", http.StatusNotFound)
+		return
+	}
+
+	if !requireChannelAttributeLicenseForTemplate(c, rctx, group, existingField, "deletePropertyField") {
 		return
 	}
 
