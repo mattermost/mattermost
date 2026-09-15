@@ -6,8 +6,6 @@ package api4
 import (
 	"net/http"
 
-	"github.com/klauspost/compress/gzhttp"
-
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
@@ -39,10 +37,8 @@ func (api *API) APIHandler(h handlerFunc, opts ...APIHandlerOption) http.Handler
 	}
 	setHandlerOpts(handler, opts...)
 
-	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gzhttp.GzipHandler(handler)
-	}
-	return handler
+	cfg := api.srv.Config().ServiceSettings
+	return compressionHandler(handler, cfg.CompressResponses(), cfg.CompressResponsesWithBrotli())
 }
 
 // APISessionRequired provides a handler for API endpoints which require the user to be logged in in order for access to
@@ -60,10 +56,8 @@ func (api *API) APISessionRequired(h handlerFunc, opts ...APIHandlerOption) http
 	}
 	setHandlerOpts(handler, opts...)
 
-	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gzhttp.GzipHandler(handler)
-	}
-	return handler
+	cfg := api.srv.Config().ServiceSettings
+	return compressionHandler(handler, cfg.CompressResponses(), cfg.CompressResponsesWithBrotli())
 }
 
 // CloudAPIKeyRequired provides a handler for webhook endpoints to access Cloud installations from CWS
@@ -81,10 +75,8 @@ func (api *API) CloudAPIKeyRequired(h handlerFunc, opts ...APIHandlerOption) htt
 	}
 	setHandlerOpts(handler, opts...)
 
-	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gzhttp.GzipHandler(handler)
-	}
-	return handler
+	cfg := api.srv.Config().ServiceSettings
+	return compressionHandler(handler, cfg.CompressResponses(), cfg.CompressResponsesWithBrotli())
 }
 
 // RemoteClusterTokenRequired provides a handler for remote cluster requests to /remotecluster endpoints.
@@ -103,10 +95,8 @@ func (api *API) RemoteClusterTokenRequired(h handlerFunc, opts ...APIHandlerOpti
 	}
 	setHandlerOpts(handler, opts...)
 
-	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gzhttp.GzipHandler(handler)
-	}
-	return handler
+	cfg := api.srv.Config().ServiceSettings
+	return compressionHandler(handler, cfg.CompressResponses(), cfg.CompressResponsesWithBrotli())
 }
 
 // APISessionRequiredMfa provides a handler for API endpoints which require a logged-in user session  but when accessed,
@@ -125,10 +115,8 @@ func (api *API) APISessionRequiredMfa(h handlerFunc, opts ...APIHandlerOption) h
 	}
 	setHandlerOpts(handler, opts...)
 
-	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gzhttp.GzipHandler(handler)
-	}
-	return handler
+	cfg := api.srv.Config().ServiceSettings
+	return compressionHandler(handler, cfg.CompressResponses(), cfg.CompressResponsesWithBrotli())
 }
 
 // APIHandlerTrustRequester provides a handler for API endpoints which do not require the user to be logged in and are
@@ -147,10 +135,8 @@ func (api *API) APIHandlerTrustRequester(h handlerFunc, opts ...APIHandlerOption
 	}
 	setHandlerOpts(handler, opts...)
 
-	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gzhttp.GzipHandler(handler)
-	}
-	return handler
+	cfg := api.srv.Config().ServiceSettings
+	return compressionHandler(handler, cfg.CompressResponses(), cfg.CompressResponsesWithBrotli())
 }
 
 // APISessionRequiredTrustRequester provides a handler for API endpoints which do require the user to be logged in and
@@ -168,10 +154,8 @@ func (api *API) APISessionRequiredTrustRequester(h handlerFunc, opts ...APIHandl
 	}
 	setHandlerOpts(handler, opts...)
 
-	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gzhttp.GzipHandler(handler)
-	}
-	return handler
+	cfg := api.srv.Config().ServiceSettings
+	return compressionHandler(handler, cfg.CompressResponses(), cfg.CompressResponsesWithBrotli())
 }
 
 // DisableWhenBusy provides a handler for API endpoints which should be disabled when the server is under load,
@@ -190,10 +174,8 @@ func (api *API) APISessionRequiredDisableWhenBusy(h handlerFunc, opts ...APIHand
 	}
 	setHandlerOpts(handler, opts...)
 
-	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gzhttp.GzipHandler(handler)
-	}
-	return handler
+	cfg := api.srv.Config().ServiceSettings
+	return compressionHandler(handler, cfg.CompressResponses(), cfg.CompressResponsesWithBrotli())
 }
 
 // APILocal provides a handler for API endpoints to be used in local
@@ -213,10 +195,8 @@ func (api *API) APILocal(h handlerFunc, opts ...APIHandlerOption) http.Handler {
 	}
 	setHandlerOpts(handler, opts...)
 
-	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gzhttp.GzipHandler(handler)
-	}
-	return handler
+	cfg := api.srv.Config().ServiceSettings
+	return compressionHandler(handler, cfg.CompressResponses(), cfg.CompressResponsesWithBrotli())
 }
 
 func (api *API) RateLimitedHandler(apiHandler http.Handler, settings model.RateLimitSettings) http.Handler {
