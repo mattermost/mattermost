@@ -8376,6 +8376,38 @@ func (s *TimerLayerPreferenceStore) DeleteOrphanedRows(limit int) (int64, error)
 	return result, err
 }
 
+func (s *TimerLayerPreferenceStore) DeletePreferenceDeletionsBefore(cutoff int64, limit int) (int64, error) {
+	start := time.Now()
+
+	result, err := s.PreferenceStore.DeletePreferenceDeletionsBefore(cutoff, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PreferenceStore.DeletePreferenceDeletionsBefore", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPreferenceStore) DeletePreferences(preferences model.Preferences) error {
+	start := time.Now()
+
+	err := s.PreferenceStore.DeletePreferences(preferences)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PreferenceStore.DeletePreferences", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerPreferenceStore) Get(userID string, category string, name string) (*model.Preference, error) {
 	start := time.Now()
 
@@ -8436,6 +8468,22 @@ func (s *TimerLayerPreferenceStore) GetCategoryAndName(category string, name str
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PreferenceStore.GetCategoryAndName", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPreferenceStore) GetDeletedSince(userID string, since int64) ([]model.PreferenceTombstone, error) {
+	start := time.Now()
+
+	result, err := s.PreferenceStore.GetDeletedSince(userID, since)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PreferenceStore.GetDeletedSince", success, elapsed)
 	}
 	return result, err
 }

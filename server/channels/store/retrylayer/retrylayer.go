@@ -10432,6 +10432,48 @@ func (s *RetryLayerPreferenceStore) DeleteOrphanedRows(limit int) (int64, error)
 
 }
 
+func (s *RetryLayerPreferenceStore) DeletePreferenceDeletionsBefore(cutoff int64, limit int) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.PreferenceStore.DeletePreferenceDeletionsBefore(cutoff, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPreferenceStore) DeletePreferences(preferences model.Preferences) error {
+
+	tries := 0
+	for {
+		err := s.PreferenceStore.DeletePreferences(preferences)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPreferenceStore) Get(userID string, category string, name string) (*model.Preference, error) {
 
 	tries := 0
@@ -10500,6 +10542,27 @@ func (s *RetryLayerPreferenceStore) GetCategoryAndName(category string, name str
 	tries := 0
 	for {
 		result, err := s.PreferenceStore.GetCategoryAndName(category, name)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPreferenceStore) GetDeletedSince(userID string, since int64) ([]model.PreferenceTombstone, error) {
+
+	tries := 0
+	for {
+		result, err := s.PreferenceStore.GetDeletedSince(userID, since)
 		if err == nil {
 			return result, nil
 		}

@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -16,6 +17,34 @@ import (
 
 func TestPreferenceStore(t *testing.T) {
 	StoreTestWithSqlStore(t, storetest.TestPreferenceStore)
+}
+
+func TestDeletePreferencesRollsBackOnFailure(t *testing.T) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
+		userId := model.NewId()
+		good := model.Preference{UserId: userId, Category: model.PreferenceCategoryDirectChannelShow, Name: model.NewId(), Value: "v"}
+		require.NoError(t, ss.Preference().Save(model.Preferences{good}))
+
+		// Category is varchar(32) and DeletePreferences skips IsValid(), so this
+		// fails inside the transaction, after `good` has already been deleted.
+		tooLong := model.Preference{
+			UserId:   userId,
+			Category: strings.Repeat("x", 40),
+			Name:     model.NewId(),
+			Value:    "v",
+		}
+
+		err := ss.Preference().DeletePreferences(model.Preferences{good, tooLong})
+		require.Error(t, err)
+
+		data, getErr := ss.Preference().Get(good.UserId, good.Category, good.Name)
+		require.NoError(t, getErr, "good preference should still exist: batch must roll back atomically")
+		require.Equal(t, good.Value, data.Value)
+
+		tombstones, tsErr := ss.Preference().GetDeletedSince(userId, 0)
+		require.NoError(t, tsErr)
+		require.Empty(t, tombstones)
+	})
 }
 
 func TestDeleteUnusedFeatures(t *testing.T) {
