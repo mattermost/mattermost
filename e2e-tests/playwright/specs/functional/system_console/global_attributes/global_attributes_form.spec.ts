@@ -747,6 +747,12 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         }) => {
             const {adminUser} = await requireGlobalAttributesEnabled(pw);
 
+            // The Channels resource type is additionally gated behind the ChannelAttributes
+            // flag (attribute_details.tsx) -- without this, an environment where it's off
+            // (e.g. an upgraded-from-older-release server whose config predates the flag)
+            // only offers Users and Posts, failing the 3-item assertion below.
+            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
             await systemConsolePage.page.getByTestId('newAttributeButton').click();
