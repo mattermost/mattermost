@@ -20,33 +20,25 @@ test(
         await pw.ensureKeycloak();
 
         const {adminClient} = await pw.getAdminClient();
-        const originalConfig = await adminClient.getConfig();
-        try {
-            await adminClient.patchConfig({
-                GuestAccountsSettings: {Enable: true},
-                SamlSettings: {GuestAttribute: 'username=no-such-user'},
-            });
+        await adminClient.patchConfig({
+            GuestAccountsSettings: {Enable: true},
+            SamlSettings: {GuestAttribute: 'username=no-such-user'},
+        });
 
-            const keycloakUser = pw.generateKeycloakUser('samlmember');
-            await pw.createKeycloakUser(keycloakUser);
+        const keycloakUser = pw.generateKeycloakUser('samlmember');
+        await pw.createKeycloakUser(keycloakUser);
 
-            // # Log in via SAML with a user that does not match the guest attribute
-            await pw.hasSeenLandingPage();
-            await pw.loginPage.goto();
-            await pw.loginPage.toBeVisible();
-            await pw.loginPage.samlLoginButton.click();
-            await pw.keycloakLoginPage.login(keycloakUser.username, keycloakUser.password);
+        // # Log in via SAML with a user that does not match the guest attribute
+        await pw.hasSeenLandingPage();
+        await pw.loginPage.goto();
+        await pw.loginPage.toBeVisible();
+        await pw.loginPage.samlLoginButton.click();
+        await pw.keycloakLoginPage.login(keycloakUser.username, keycloakUser.password);
 
-            // * Verify the user was provisioned as a regular member
-            await pw.loginPage.expectNotOnLoginPage();
-            const provisionedUser = await adminClient.getUserByUsername(keycloakUser.username);
-            expect(provisionedUser.roles.split(' ')).not.toContain('system_guest');
-        } finally {
-            await adminClient.patchConfig({
-                GuestAccountsSettings: {Enable: originalConfig.GuestAccountsSettings.Enable},
-                SamlSettings: {GuestAttribute: originalConfig.SamlSettings.GuestAttribute},
-            });
-        }
+        // * Verify the user was provisioned as a regular member
+        await pw.loginPage.expectNotOnLoginPage();
+        const provisionedUser = await adminClient.getUserByUsername(keycloakUser.username);
+        expect(provisionedUser.roles.split(' ')).not.toContain('system_guest');
     },
 );
 
@@ -66,28 +58,20 @@ test('MM-T1426_2 SAML guest attribute provisions the user as a guest', {tag: '@s
     const {adminClient} = await pw.getAdminClient();
     const keycloakUser = pw.generateKeycloakUser('samlguest');
     await pw.createKeycloakUser(keycloakUser);
-    const originalConfig = await adminClient.getConfig();
-    try {
-        await adminClient.patchConfig({
-            GuestAccountsSettings: {Enable: true},
-            SamlSettings: {GuestAttribute: `username=${keycloakUser.username}`},
-        });
+    await adminClient.patchConfig({
+        GuestAccountsSettings: {Enable: true},
+        SamlSettings: {GuestAttribute: `username=${keycloakUser.username}`},
+    });
 
-        // # Log in via SAML with a user that matches the guest attribute
-        await pw.hasSeenLandingPage();
-        await pw.loginPage.goto();
-        await pw.loginPage.toBeVisible();
-        await pw.loginPage.samlLoginButton.click();
-        await pw.keycloakLoginPage.login(keycloakUser.username, keycloakUser.password);
+    // # Log in via SAML with a user that matches the guest attribute
+    await pw.hasSeenLandingPage();
+    await pw.loginPage.goto();
+    await pw.loginPage.toBeVisible();
+    await pw.loginPage.samlLoginButton.click();
+    await pw.keycloakLoginPage.login(keycloakUser.username, keycloakUser.password);
 
-        // * Verify the user was provisioned as a guest
-        await pw.loginPage.expectNotOnLoginPage();
-        const provisionedUser = await adminClient.getUserByUsername(keycloakUser.username);
-        expect(provisionedUser.roles.split(' ')).toContain('system_guest');
-    } finally {
-        await adminClient.patchConfig({
-            GuestAccountsSettings: {Enable: originalConfig.GuestAccountsSettings.Enable},
-            SamlSettings: {GuestAttribute: originalConfig.SamlSettings.GuestAttribute},
-        });
-    }
+    // * Verify the user was provisioned as a guest
+    await pw.loginPage.expectNotOnLoginPage();
+    const provisionedUser = await adminClient.getUserByUsername(keycloakUser.username);
+    expect(provisionedUser.roles.split(' ')).toContain('system_guest');
 });
