@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -27,6 +28,13 @@ func TestPreferenceStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlSt
 	t.Run("PreferenceDeleteOrphanedRows", func(t *testing.T) { testPreferenceDeleteOrphanedRows(t, rctx, ss) })
 	t.Run("PreferenceCleanupFlagsBatch", func(t *testing.T) { testPreferenceCleanupFlagsBatch(t, rctx, ss) })
 	t.Run("PreferenceDeleteInvalidVisibleDmsGms", func(t *testing.T) { testDeleteInvalidVisibleDmsGms(t, rctx, ss, s) })
+	t.Run("PreferenceDeletePreferencesRecordsTombstones", func(t *testing.T) { testPreferenceDeletePreferencesRecordsTombstones(t, ss) })
+	t.Run("PreferenceGetDeletedSince", func(t *testing.T) { testPreferenceGetDeletedSince(t, ss) })
+	t.Run("PreferenceSaveClearsTombstones", func(t *testing.T) { testPreferenceSaveClearsTombstones(t, ss) })
+	t.Run("PreferenceDeletePreferenceDeletionsBefore", func(t *testing.T) { testPreferenceDeletePreferenceDeletionsBefore(t, ss, s) })
+	t.Run("PreferenceDeletePreferenceDeletionsBeforeRespectsLimit", func(t *testing.T) { testPreferenceDeletePreferenceDeletionsBeforeRespectsLimit(t, ss, s) })
+	t.Run("PreferenceDeletePreferencesWithDuplicateKeys", func(t *testing.T) { testPreferenceDeletePreferencesWithDuplicateKeys(t, ss) })
+	t.Run("PreferenceDeletePreferencesUnknownPreference", func(t *testing.T) { testPreferenceDeletePreferencesUnknownPreference(t, ss) })
 }
 
 func testPreferenceSave(t *testing.T, _ request.CTX, ss store.Store) {
@@ -642,4 +650,172 @@ func testDeleteInvalidVisibleDmsGms(t *testing.T, _ request.CTX, ss store.Store,
 	preference, err = ss.Preference().Get(userId4, category, name)
 	require.NoError(t, err)
 	require.Equal(t, &preferences[6], preference)
+}
+
+func testPreferenceDeletePreferencesRecordsTombstones(t *testing.T, ss store.Store) {
+	userID := model.NewId()
+	prefs := model.Preferences{
+		{UserId: userID, Category: "test_tombstone", Name: "key1", Value: "v"},
+		{UserId: userID, Category: "test_tombstone", Name: "key2", Value: "v"},
+	}
+
+	require.NoError(t, ss.Preference().Save(prefs))
+
+	before := model.GetMillis()
+	require.NoError(t, ss.Preference().DeletePreferences(prefs))
+
+	tombstones, err := ss.Preference().GetDeletedSince(userID, before-1)
+	require.NoError(t, err)
+	require.Len(t, tombstones, 2)
+
+	names := make([]string, 0, len(tombstones))
+	for _, ts := range tombstones {
+		names = append(names, ts.Name)
+		assert.Equal(t, userID, ts.UserId)
+		assert.Equal(t, "test_tombstone", ts.Category)
+		assert.GreaterOrEqual(t, ts.DeleteAt, before)
+	}
+	assert.ElementsMatch(t, []string{"key1", "key2"}, names)
+
+	remaining, err := ss.Preference().GetCategory(userID, "test_tombstone")
+	require.NoError(t, err)
+	assert.Empty(t, remaining)
+}
+
+func testPreferenceDeletePreferencesWithDuplicateKeys(t *testing.T, ss store.Store) {
+	userID := model.NewId()
+	pref := model.Preference{UserId: userID, Category: "test_tombstone", Name: "dup_key", Value: "v"}
+
+	require.NoError(t, ss.Preference().Save(model.Preferences{pref}))
+
+	before := model.GetMillis()
+	require.NoError(t, ss.Preference().DeletePreferences(model.Preferences{pref, pref}))
+
+	tombstones, err := ss.Preference().GetDeletedSince(userID, before-1)
+	require.NoError(t, err)
+	require.Len(t, tombstones, 1, "duplicate keys in the same batch should collapse to a single tombstone")
+	assert.Equal(t, "dup_key", tombstones[0].Name)
+}
+
+func testPreferenceDeletePreferencesUnknownPreference(t *testing.T, ss store.Store) {
+	userID := model.NewId()
+	pref := model.Preference{UserId: userID, Category: "test_tombstone", Name: "never_saved", Value: "v"}
+
+	before := model.GetMillis()
+	require.NoError(t, ss.Preference().DeletePreferences(model.Preferences{pref}), "deleting a preference that does not exist must not error")
+
+	tombstones, err := ss.Preference().GetDeletedSince(userID, before-1)
+	require.NoError(t, err)
+	require.Len(t, tombstones, 1, "a tombstone is recorded even when no row was deleted")
+	assert.Equal(t, "never_saved", tombstones[0].Name)
+}
+
+func testPreferenceGetDeletedSince(t *testing.T, ss store.Store) {
+	userID := model.NewId()
+	prefs := model.Preferences{
+		{UserId: userID, Category: "test_tombstone", Name: "a", Value: "v"},
+		{UserId: userID, Category: "test_tombstone", Name: "b", Value: "v"},
+	}
+	require.NoError(t, ss.Preference().Save(prefs))
+
+	before := model.GetMillis()
+	require.NoError(t, ss.Preference().DeletePreferences(prefs))
+
+	tombstones, err := ss.Preference().GetDeletedSince(userID, before-1)
+	require.NoError(t, err)
+	require.Len(t, tombstones, 2, "should return both tombstones deleted after cursor")
+
+	tombstonesNone, err := ss.Preference().GetDeletedSince(userID, model.GetMillis()+1000)
+	require.NoError(t, err)
+	assert.Empty(t, tombstonesNone, "should return no tombstones when cursor is in the future")
+
+	tombstonesOther, err := ss.Preference().GetDeletedSince(model.NewId(), before-1)
+	require.NoError(t, err)
+	assert.Empty(t, tombstonesOther, "should not return tombstones for a different user")
+}
+
+func testPreferenceSaveClearsTombstones(t *testing.T, ss store.Store) {
+	userID := model.NewId()
+	pref := model.Preference{UserId: userID, Category: "test_tombstone", Name: "revive_key", Value: "v1"}
+
+	require.NoError(t, ss.Preference().Save(model.Preferences{pref}))
+
+	before := model.GetMillis()
+	require.NoError(t, ss.Preference().DeletePreferences(model.Preferences{pref}))
+
+	tombstones, err := ss.Preference().GetDeletedSince(userID, before-1)
+	require.NoError(t, err)
+	require.Len(t, tombstones, 1, "tombstone should exist before re-save")
+
+	pref.Value = "v2"
+	require.NoError(t, ss.Preference().Save(model.Preferences{pref}))
+
+	tombstonesAfter, err := ss.Preference().GetDeletedSince(userID, before-1)
+	require.NoError(t, err)
+	assert.Empty(t, tombstonesAfter, "tombstone should be cleared after re-saving the preference")
+}
+
+func testPreferenceDeletePreferenceDeletionsBefore(t *testing.T, ss store.Store, s SqlStore) {
+	userID := model.NewId()
+	// The sweep has no UserId filter, so the cutoff must sit far in the past to
+	// avoid matching other tests' tombstones, which are stamped near "now".
+	cutoff := int64(1000000)
+
+	tombstones := []model.PreferenceTombstone{
+		{UserId: userID, Category: "test_tombstone", Name: "expired", DeleteAt: cutoff - 1000},
+		{UserId: userID, Category: "test_tombstone", Name: "at_cutoff", DeleteAt: cutoff},
+		{UserId: userID, Category: "test_tombstone", Name: "still_fresh", DeleteAt: cutoff + 1000},
+	}
+
+	_, execErr := s.GetMaster().NamedExec(`
+		INSERT INTO
+		    PreferenceDeletions(UserId, Category, Name, DeleteAt)
+		VALUES
+		    (:UserId, :Category, :Name, :DeleteAt);
+	`, tombstones)
+	require.NoError(t, execErr)
+
+	deleted, err := ss.Preference().DeletePreferenceDeletionsBefore(cutoff, 1000)
+	require.NoError(t, err)
+	assert.Equal(t, int64(1), deleted)
+
+	remaining, err := ss.Preference().GetDeletedSince(userID, 0)
+	require.NoError(t, err)
+
+	names := make([]string, 0, len(remaining))
+	for _, ts := range remaining {
+		names = append(names, ts.Name)
+	}
+	assert.ElementsMatch(t, []string{"at_cutoff", "still_fresh"}, names, "only tombstones strictly older than the cutoff should be removed")
+}
+
+func testPreferenceDeletePreferenceDeletionsBeforeRespectsLimit(t *testing.T, ss store.Store, s SqlStore) {
+	userID := model.NewId()
+	cutoff := int64(1000000)
+
+	tombstones := make([]model.PreferenceTombstone, 0, 5)
+	for i := range 5 {
+		tombstones = append(tombstones, model.PreferenceTombstone{
+			UserId:   userID,
+			Category: "test_tombstone",
+			Name:     "expired_" + strconv.Itoa(i),
+			DeleteAt: cutoff - 1000,
+		})
+	}
+
+	_, execErr := s.GetMaster().NamedExec(`
+		INSERT INTO
+		    PreferenceDeletions(UserId, Category, Name, DeleteAt)
+		VALUES
+		    (:UserId, :Category, :Name, :DeleteAt);
+	`, tombstones)
+	require.NoError(t, execErr)
+
+	deleted, err := ss.Preference().DeletePreferenceDeletionsBefore(cutoff, 2)
+	require.NoError(t, err)
+	assert.Equal(t, int64(2), deleted, "a single call must not delete more than the given limit")
+
+	remaining, err := ss.Preference().GetDeletedSince(userID, 0)
+	require.NoError(t, err)
+	assert.Len(t, remaining, 3, "rows beyond the limit must survive a single call")
 }
