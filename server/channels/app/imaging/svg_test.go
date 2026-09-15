@@ -43,6 +43,12 @@ func TestParseSVG(t *testing.T) {
 			expectedHeight: 480,
 		},
 		{
+			name:           "width and height padded with whitespace",
+			svg:            `<svg width=" 640 " height=" 480 "></svg>`,
+			expectedWidth:  640,
+			expectedHeight: 480,
+		},
+		{
 			name:           "absolute width and height take precedence over the viewBox",
 			svg:            `<svg viewBox="0 0 800 600" width="640" height="480"></svg>`,
 			expectedWidth:  640,
@@ -124,8 +130,9 @@ func TestParseSVG(t *testing.T) {
 			expectError: true,
 		},
 		{
-			name:        "no width, height or viewBox",
-			svg:         `<svg xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%"/></svg>`,
+			// A child's size is not the document's, so it must not stand in for a missing one
+			name:        "no width, height or viewBox on the root element",
+			svg:         `<svg xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100"/></svg>`,
 			expectError: true,
 		},
 		{
