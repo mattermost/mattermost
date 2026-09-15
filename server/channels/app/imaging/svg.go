@@ -71,12 +71,17 @@ func parseAbsoluteLength(value string) (int, bool) {
 }
 
 // parseViewBox returns the width and height declared by a viewBox attribute, whose four values may
-// be separated by whitespace, commas, or both.
+// be separated by whitespace, commas, or both. min-x and min-y may be negative, but they still have
+// to be finite numbers; browsers ignore a viewBox that fails to parse as a whole.
 func parseViewBox(value string) (int, int, bool) {
 	values := strings.FieldsFunc(value, func(r rune) bool {
 		return r == ',' || unicode.IsSpace(r)
 	})
 	if len(values) != 4 {
+		return 0, 0, false
+	}
+
+	if !isFiniteNumber(values[0]) || !isFiniteNumber(values[1]) {
 		return 0, 0, false
 	}
 
@@ -87,6 +92,13 @@ func parseViewBox(value string) (int, int, bool) {
 	}
 
 	return width, height, true
+}
+
+// isFiniteNumber reports whether value parses as a finite float. Unlike parsePositiveNumber it
+// allows negatives and values outside the stored pixel range, which is what viewBox origins need.
+func isFiniteNumber(value string) bool {
+	number, err := strconv.ParseFloat(value, 64)
+	return err == nil && !math.IsNaN(number) && !math.IsInf(number, 0)
 }
 
 // parsePositiveNumber parses a number of pixels, rejecting anything that can't describe a

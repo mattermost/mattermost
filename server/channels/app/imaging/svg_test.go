@@ -79,6 +79,18 @@ func TestParseSVG(t *testing.T) {
 			expectedHeight: 600,
 		},
 		{
+			name:           "viewBox with a negative origin",
+			svg:            `<svg viewBox="-10 -20 800 600"></svg>`,
+			expectedWidth:  800,
+			expectedHeight: 600,
+		},
+		{
+			name:           "viewBox with a negative origin separated by commas",
+			svg:            `<svg viewBox="-10,-20,800,600"></svg>`,
+			expectedWidth:  800,
+			expectedHeight: 600,
+		},
+		{
 			name:           "percentage width and height fall back to the viewBox",
 			svg:            `<svg width="100%" height="100%" viewBox="0 0 800 600"></svg>`,
 			expectedWidth:  800,
@@ -194,6 +206,26 @@ func TestParseSVG(t *testing.T) {
 		{
 			name:        "viewBox with too many values",
 			svg:         `<svg viewBox="0 0 800 600 900"></svg>`,
+			expectError: true,
+		},
+		{
+			name:        "viewBox with invalid min-x and min-y",
+			svg:         `<svg viewBox="invalid invalid 800 600"></svg>`,
+			expectError: true,
+		},
+		{
+			name:        "viewBox with invalid min-x and min-y separated by commas",
+			svg:         `<svg viewBox="invalid,invalid,800,600"></svg>`,
+			expectError: true,
+		},
+		{
+			name:        "viewBox with NaN min-x and min-y",
+			svg:         `<svg viewBox="NaN NaN 800 600"></svg>`,
+			expectError: true,
+		},
+		{
+			name:        "viewBox with infinite min-x and min-y",
+			svg:         `<svg viewBox="Inf Inf 800 600"></svg>`,
 			expectError: true,
 		},
 		{
