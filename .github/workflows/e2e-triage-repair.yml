@@ -1,0 +1,82 @@
+name: E2E Triage Repair
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+permissions: {}
+concurrency:
+  group: e2e-triage-repair
+  cancel-in-progress: false
+jobs:
+  discover:
+    if: vars.MM_TRIAGE_REPAIR_ENABLED == 'true' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: master
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238
+        with:
+          node-version: '24.11.1'
+      - run: node .github/scripts/triage-queue.mjs
+        env:
+          TSIO_URL: ${{ vars.MM_TRIAGE_TSIO_URL }}
+          TSIO_TRIAGE_API_KEY: ${{ secrets.TSIO_TRIAGE_API_KEY }}
+          GH_TOKEN: ${{ github.token }}
+  guardian:
+    needs: discover
+    if: vars.MM_TRIAGE_REPAIR_ENABLED == 'true' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    permissions:
+      contents: write
+      actions: read
+      pull-requests: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: master
+          persist-credentials: false
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238
+        with:
+          node-version: '24.11.1'
+      - name: Install trusted syntax checker
+        run: npm install --prefix "$RUNNER_TEMP/triage-policy" --ignore-scripts --no-audit --no-fund --save-exact typescript@6.0.3
+      - name: Prepare existing OpenLDAP harness
+        uses: ./.github/actions/runner-prep-openldap
+      - name: Claim, reproduce, diagnose, and verify
+        run: node .github/scripts/triage-guardian.mjs
+        env:
+          TSIO_URL: ${{ vars.MM_TRIAGE_TSIO_URL }}
+          TSIO_TRIAGE_API_KEY: ${{ secrets.TSIO_TRIAGE_API_KEY }}
+          GH_TOKEN: ${{ secrets.MM_TRIAGE_GITHUB_TOKEN || github.token }}
+          OPENAI_API_KEY: ${{ secrets.MM_TRIAGE_OPENAI_API_KEY }}
+          MM_TRIAGE_PROVIDER: ${{ vars.MM_TRIAGE_PROVIDER }}
+          MM_TRIAGE_MODEL: ${{ vars.MM_TRIAGE_MODEL }}
+          MM_TRIAGE_CLEAN_RUNS: ${{ vars.MM_TRIAGE_CLEAN_RUNS || '5' }}
+          MM_LICENSE: ${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}
+          TRIAGE_TYPESCRIPT_PATH: ${{ runner.temp }}/triage-policy/node_modules/typescript/lib/typescript.js
+          TRIAGE_ARTIFACTS: ${{ runner.temp }}/triage-artifacts
+      - name: Preserve reproduction and verification evidence
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        with:
+          name: guardian-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/triage-artifacts
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Observe actual repair PR states
+        if: always()
+        run: node .github/scripts/triage-metrics.mjs
+        env:
+          TSIO_URL: ${{ vars.MM_TRIAGE_TSIO_URL }}
+          TSIO_TRIAGE_API_KEY: ${{ secrets.TSIO_TRIAGE_API_KEY }}
+          GH_TOKEN: ${{ github.token }}

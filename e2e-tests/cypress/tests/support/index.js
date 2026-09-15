@@ -35,6 +35,7 @@ import './ui';
 import './ui_commands'; // soon to deprecate
 import {DEFAULT_TEAM} from './constants';
 import {getDefaultConfig} from './api/system';
+import recordTSIOAttempt from './tsio_attempts';
 
 Cypress.dayjs = dayjs;
 
@@ -89,7 +90,9 @@ Cypress.on('test:after:run', (test, runnable) => {
         // and consequently Cypress appends some text to the file name
         const hookName = test.hookName ? ' -- ' + test.hookName + ' hook' : '';
 
-        const filename = encodeURIComponent(`${parentNames}${testTitle}${hookName} (failed).png`);
+        const retry = runnable.currentRetry();
+        const retrySuffix = retry > 0 ? ` (attempt ${retry + 1})` : '';
+        const filename = encodeURIComponent(`${parentNames}${testTitle}${hookName} (failed)${retrySuffix}.png`);
 
         // Add context to the mochawesome report which includes the screenshot
         addContext({test}, {
@@ -97,6 +100,7 @@ Cypress.on('test:after:run', (test, runnable) => {
             value: 'screenshots/' + Cypress.spec.name + '/' + filename,
         });
     }
+    recordTSIOAttempt(test, runnable, addContext);
 });
 
 // Turn off all uncaught exception handling

@@ -2,6 +2,10 @@
 /server/channels/app/authentication.go @mattermost/product-security
 /server/channels/app/authorization.go @mattermost/product-security
 
+# Owner for verified autonomous E2E repair proposals.
+/e2e-tests/cypress/ @yasserfaraazkhan
+/e2e-tests/playwright/ @yasserfaraazkhan
+
 # Release-owned documentation. A review from either @mattermost/release-eng or
 # @mattermost/release-managers is required for changes to these pages.
 /docs/main/product-overview/*changelog.mdx @mattermost/release-eng @mattermost/release-managers

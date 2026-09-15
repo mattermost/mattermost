@@ -5,7 +5,33 @@ on:
   workflow_dispatch:
     inputs:
       pr_number:
-        description: "PR number to update status for"
+        description: "PR number whose exact failed checks the maintainer reviewed"
+        required: true
+        type: string
+      assessed_sha:
+        description: "Exact 40-character PR commit SHA reviewed by the maintainer"
+        required: true
+        type: string
+      diagnosis_kind:
+        description: "Maintainer approval, or a historical Cursor review/comment"
+        required: true
+        type: choice
+        default: maintainer
+        options: [maintainer, review, comment]
+      diagnosis_id:
+        description: "Cursor PR review ID (or issue comment ID)"
+        required: false
+        type: string
+      diagnosis_sha256:
+        description: "SHA-256 of the complete diagnosis body reviewed by the maintainer"
+        required: false
+        type: string
+      contexts_json:
+        description: "JSON array: context, numeric status_id, string gh_run_id and gh_run_attempt"
+        required: true
+        type: string
+      approval_reason:
+        description: "Evidence and reason for approving only these exact failed checks"
         required: true
         type: string
 
@@ -14,90 +40,33 @@ permissions: {}
 jobs:
   override-status:
     permissions:
+      actions: read
       contents: read
-      pull-requests: read
+      pull-requests: write
       statuses: write
     runs-on: ubuntu-24.04
     steps:
-      - name: Validate inputs
-        env:
-          PR_NUMBER: ${{ inputs.pr_number }}
-        run: |
-          if ! [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
-            echo "::error::Invalid PR number format. Must be numeric."
-            exit 1
-          fi
-      - name: Get PR head SHA
-        id: pr-info
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          PR_NUMBER: ${{ inputs.pr_number }}
-        run: |
-          PR_DATA=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}")
-          HEAD_SHA=$(echo "$PR_DATA" | jq -r '.head.sha')
-          echo "head_sha=$HEAD_SHA" >> $GITHUB_OUTPUT
-
-      - name: Override failed full test statuses
+      # The maintainer dispatches the reviewed workflow revision. Check out only
+      # its verifier; no product, test, npm or other PR code runs with this token.
+      - name: Check out the reviewed verification helper
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            .github/scripts/manual-e2e-verification.mjs
+            .github/scripts/manual-e2e-verification.test.mjs
+      - name: Verify status guard tests without the writer token
+        run: node --test .github/scripts/manual-e2e-verification.test.mjs
+      - name: Record maintainer approval and verify exact statuses
         env:
           GH_TOKEN: ${{ github.token }}
-          COMMIT_SHA: ${{ steps.pr-info.outputs.head_sha }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-        run: |
-          # Full suites + rolling-upgrade from-version contexts (smoke must still pass).
-          # Rolling contexts are dynamic (e.g. .../upgrade-from-release-11.9), so discover by pattern.
-          FULL_TEST_CONTEXTS=("e2e-test/playwright-full/enterprise" "e2e-test/cypress-full/enterprise" "e2e-test/playwright-full/fips" "e2e-test/cypress-full/fips")
-          while IFS= read -r ROLLING_CTX; do
-            [ -n "$ROLLING_CTX" ] && FULL_TEST_CONTEXTS+=("$ROLLING_CTX")
-          done < <(gh api "repos/${GITHUB_REPOSITORY}/commits/${COMMIT_SHA}/statuses" --paginate \
-            --jq '[.[] | select(.context | test("^e2e-test/playwright-full/[^/]+/upgrade-from-"))] | group_by(.context) | map(.[0].context) | .[]')
-
-          for CONTEXT_NAME in "${FULL_TEST_CONTEXTS[@]}"; do
-            echo "Checking: $CONTEXT_NAME"
-
-            # Get current status
-            STATUS_JSON=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${COMMIT_SHA}/statuses" --paginate --slurp \
-              --jq "[.[][] | select(.context == \"$CONTEXT_NAME\")] | first // empty")
-
-            if [ -z "$STATUS_JSON" ]; then
-              echo "  No status found, skipping"
-              continue
-            fi
-
-            CURRENT_DESC=$(echo "$STATUS_JSON" | jq -r '.description // ""')
-            CURRENT_URL=$(echo "$STATUS_JSON" | jq -r '.target_url // ""')
-            CURRENT_STATE=$(echo "$STATUS_JSON" | jq -r '.state // ""')
-
-            echo "  Current: $CURRENT_DESC ($CURRENT_STATE)"
-
-            # Only override if status is failure
-            if [ "$CURRENT_STATE" != "failure" ]; then
-              echo "  Not failed, skipping"
-              continue
-            fi
-
-            # Parse and construct new message
-            if [[ "$CURRENT_DESC" =~ ^([0-9]+)\ failed,\ ([0-9]+)\ passed$ ]]; then
-              FAILED="${BASH_REMATCH[1]}"
-              PASSED="${BASH_REMATCH[2]}"
-              NEW_MSG="${FAILED} failed (verified), ${PASSED} passed"
-            elif [[ "$CURRENT_DESC" =~ ^([0-9]+)\ failed\ \([^)]+\),\ ([0-9]+)\ passed$ ]]; then
-              FAILED="${BASH_REMATCH[1]}"
-              PASSED="${BASH_REMATCH[2]}"
-              NEW_MSG="${FAILED} failed (verified), ${PASSED} passed"
-            else
-              # Test System IO / rolling-upgrade style (image_tag:, from:, pass %)
-              NEW_MSG="${CURRENT_DESC} (verified)"
-            fi
-
-            echo "  New: $NEW_MSG"
-
-            # Update status via GitHub API
-            gh api "repos/${GITHUB_REPOSITORY}/statuses/${COMMIT_SHA}" \
-              -f state=success \
-              -f context="$CONTEXT_NAME" \
-              -f description="$NEW_MSG" \
-              -f target_url="$CURRENT_URL"
-
-            echo "  Updated to success"
-          done
+          PR_NUMBER: ${{ inputs.pr_number }}
+          ASSESSED_SHA: ${{ inputs.assessed_sha }}
+          DIAGNOSIS_KIND: ${{ inputs.diagnosis_kind }}
+          DIAGNOSIS_ID: ${{ inputs.diagnosis_id }}
+          DIAGNOSIS_SHA256: ${{ inputs.diagnosis_sha256 }}
+          CONTEXTS_JSON: ${{ inputs.contexts_json }}
+          APPROVAL_REASON: ${{ inputs.approval_reason }}
+        run: node .github/scripts/manual-e2e-verification.mjs

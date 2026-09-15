@@ -1,0 +1,36 @@
+name: E2E Mechanical Edit Policy
+on:
+  pull_request_target:
+    paths:
+      - 'e2e-tests/**'
+      - '.github/scripts/triage-*'
+      - '.github/workflows/e2e-triage-*'
+permissions:
+  contents: read
+jobs:
+  policy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238
+        with:
+          node-version: '24.11.1'
+      - run: npm install --prefix "$RUNNER_TEMP/triage-policy" --ignore-scripts --no-audit --no-fund --save-exact typescript@6.0.3
+      - name: Exercise adversarial policy and caller fixtures
+        run: node --test .github/scripts/triage-*.test.mjs
+        env:
+          TRIAGE_TYPESCRIPT_PATH: ${{ runner.temp }}/triage-policy/node_modules/typescript/lib/typescript.js
+      - name: Parse PR changes as data with the trusted base policy
+        run: |
+          [[ "$TRIAGE_HEAD_SHA" =~ ^[a-f0-9]{40}$ ]]
+          git fetch --no-tags origin "$TRIAGE_HEAD_SHA"
+          TRIAGE_BASE_SHA="$(git merge-base "$TRIAGE_BASE_SHA" "$TRIAGE_HEAD_SHA")" node .github/scripts/triage-policy.mjs
+        env:
+          TRIAGE_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          TRIAGE_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          TRIAGE_TYPESCRIPT_PATH: ${{ runner.temp }}/triage-policy/node_modules/typescript/lib/typescript.js
