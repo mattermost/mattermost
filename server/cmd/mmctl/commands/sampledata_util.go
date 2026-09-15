@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"math/rand"
 	"slices"
-	"sort"
 	"strings"
 	"time"
 
@@ -81,7 +80,8 @@ func randomMessage(users []string) string {
 		if rand.Intn(2) == 0 {
 			message += fake.Sentence()
 		}
-		for i := 0; i < rand.Intn(4)+1; i++ {
+		lenList := rand.Intn(4) + 1
+		for range lenList {
 			message += "\n  * " + fake.Word()
 		}
 	default:
@@ -196,7 +196,7 @@ func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndCh
 	for teamName := range teamsAndChannels {
 		possibleTeams = append(possibleTeams, teamName)
 	}
-	sort.Strings(possibleTeams)
+	slices.Sort(possibleTeams)
 	for range teamMemberships {
 		if len(possibleTeams) == 0 {
 			break

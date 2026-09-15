@@ -4,6 +4,7 @@
 package model
 
 import (
+	"cmp"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -13,13 +14,13 @@ import (
 	"net/http"
 	"regexp"
 	"slices"
-	"sort"
 	"strconv"
 	"strings"
 	"sync"
 	"unicode/utf8"
 
 	"github.com/hashicorp/go-multierror"
+
 	"github.com/mattermost/mattermost/server/public/shared/markdown"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
@@ -1419,8 +1420,8 @@ func RewriteImageURLs(message string, f func(string) string) string {
 		return message
 	}
 
-	sort.Slice(ranges, func(i, j int) bool {
-		return ranges[i].Position < ranges[j].Position
+	slices.SortFunc(ranges, func(a, b markdown.Range) int {
+		return cmp.Compare(a.Position, b.Position)
 	})
 
 	copyRanges := make([]markdown.Range, 0, len(ranges))

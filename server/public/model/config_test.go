@@ -45,7 +45,7 @@ func TestConfigDefaults(t *testing.T) {
 					recursivelyUninitialize(config, fmt.Sprintf("(*%s)", name), v.Elem())
 				}
 			} else if v.Type().Kind() == reflect.Struct {
-				for i := 0; i < v.NumField(); i++ {
+				for i := range v.NumField() {
 					recursivelyUninitialize(config, fmt.Sprintf("%s.%s", name, v.Type().Field(i).Name), v.Field(i))
 				}
 			}
