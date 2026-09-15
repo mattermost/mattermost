@@ -115,6 +115,14 @@ describe('components/app_bar/app_bar', () => {
         expect(asFragment()).toMatchSnapshot();
     });
 
+    test('plugin App Bar icon button should expose its tooltip as an accessible name', () => {
+        renderWithContext(
+            <AppBar/>,
+            initialState,
+        );
+        expect(screen.getByRole('button', {name: 'Playbooks Tooltip'})).toBeInTheDocument();
+    });
+
     test('should match snapshot on mount when App Bar is disabled', () => {
         const testState = mergeObjects(initialState, {
             entities: {
