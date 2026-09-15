@@ -73,9 +73,10 @@ type propertyOptionRow struct {
 
 var propertyOptionColumns = []string{"ID", "GroupID", "FieldID", "Name", "Color", "Rank", "SortOrder", "Attrs", "CreateAt", "UpdateAt", "DeleteAt"}
 
-// maxPropertyOptionRowsPerQuery bounds how many PropertyOptions rows one
-// statement carries. Each row spends one parameter per column, so a bound in
-// identifiers (see maxOptionIDsPerQuery) is too large here.
+// maxPropertyOptionRowsPerQuery is sized for one bind parameter per
+// PropertyOptions column. maxOptionIDsPerQuery assumes one parameter per
+// identifier, which would overflow the same Postgres ceiling on an INSERT
+// of whole rows.
 var maxPropertyOptionRowsPerQuery = 60000 / len(propertyOptionColumns)
 
 // insertValues returns the row in propertyOptionColumns order. Attrs is passed
@@ -1651,10 +1652,10 @@ func propertyOptionRowChanged(current, next *propertyOptionRow) bool {
 	return currentAttrs != nextAttrs
 }
 
-// upsertPropertyOptions writes new options and updates changed ones in a single
-// statement. The conflict target is the primary key, so an option a caller
-// re-submits under an ID the field already used keeps its identity and its
-// CreateAt, and a re-added option comes back from being soft-deleted.
+// upsertPropertyOptions writes new options and updates changed ones. The
+// conflict target is the primary key, so an option a caller re-submits under
+// an ID the field already used keeps its identity and its CreateAt, and a
+// re-added option comes back from being soft-deleted.
 func (s *SqlPropertyFieldStore) upsertPropertyOptions(transaction *sqlxTxWrapper, rows []*propertyOptionRow) error {
 	for batch := range slices.Chunk(rows, maxPropertyOptionRowsPerQuery) {
 		builder := s.getQueryBuilder().
