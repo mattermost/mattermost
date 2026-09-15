@@ -40,7 +40,7 @@ test.describe('ABAC resource.attributes - multiselect targets', {tag: ['@abac', 
     test('has any of syncs and enforces on list intersection', async ({pw}) => {
         test.setTimeout(120000);
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ResourceAttributesInPolicies', true);
+        await pw.ensureFeatureFlag('ResourceAttributesInPolicies', true);
 
         const {adminClient, team} = await pw.initSetup();
         await enableUserManagedAttributes(adminClient);
@@ -98,7 +98,7 @@ test.describe('ABAC resource.attributes - multiselect targets', {tag: ['@abac', 
     test('has all of syncs and enforces on channel-list subset', async ({pw}) => {
         test.setTimeout(120000);
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ResourceAttributesInPolicies', true);
+        await pw.ensureFeatureFlag('ResourceAttributesInPolicies', true);
 
         const {adminClient, team} = await pw.initSetup();
         await enableUserManagedAttributes(adminClient);

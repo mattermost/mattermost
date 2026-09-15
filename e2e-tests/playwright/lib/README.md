@@ -165,7 +165,11 @@ Selects `testcontainers` mode — Playwright brings up the server + dependencies
 | `PW_MINIO_URL`                       | Minio URL (only used when `minio` is started)                                                                                                                                                                         | `http://localhost:9000`                                      |
 | `PW_AZURITE_URL`                     | Azurite URL (only used when `azurite` is started)                                                                                                                                                                     | `http://localhost:10000`                                     |
 
-In `testcontainers` mode, these host/port defaults are never actually used — Testcontainers always assigns its own dynamic port or network alias per run, so a `testcontainers`-mode run can never collide with a same-machine `external`-mode session using the fixed defaults above. Tear a reused stack down explicitly with `npm run testcontainers:down` (from the `playwright/` package).
+In `testcontainers` mode, these host/port defaults above are never actually used — Testcontainers assigns its own dynamic port or network alias per run for every one of these services, so a `testcontainers`-mode run can never collide with a same-machine `external`-mode session using the fixed defaults above.
+
+The one exception is the **Mattermost server container itself**, which publishes to a **fixed host port, `8055`** (`MATTERMOST_FIXED_HOST_PORT` in `lib/src/containers/constants.ts`) rather than a dynamic one. This is deliberately not `8065` (the `external`-mode/`PW_BASE_URL` default above), so a `testcontainers`-mode run still doesn't collide with a locally-run dev server on the same machine. The fixed port exists so `testConfig.baseURL` stays stable across a `restartMattermostContainer()` call — some settings (e.g. `ServiceSettings.SiteURL`, via `pw.ensureSiteUrl()`) depend on that stability to converge at all; a dynamic port would go stale the instant a restart replaced the container. This assumes one Mattermost `testcontainers` stack per host at a time (already true of `PW_TESTCONTAINERS_REUSE`'s single-stack model); CI runs each matrix job on its own isolated runner, so it doesn't collide there either.
+
+Tear a reused stack down explicitly with `npm run testcontainers:down` (from the `playwright/` package).
 
 ## Accessibility Testing
 

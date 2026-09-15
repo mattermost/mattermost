@@ -37,6 +37,8 @@ PW_USE_TESTCONTAINERS=true MM_ENV=MM_LICENSE='<your-license-key>' npm run test
 
 Containers are reused across invocations by default (`PW_TESTCONTAINERS_REUSE=true`) instead of being recreated every run — tear the stack down explicitly when you're done with `npm run testcontainers:down`. Set `PW_TESTCONTAINERS_REUSE=false` for a one-off run that tears itself down when it finishes. Use `npm run testcontainers:up` to just bring the stack up (or confirm an existing one's still reachable) without running any tests.
 
+The Mattermost container itself publishes to a **fixed host port, `8055`**, not a random one like every other service here — see `lib/README.md`'s Testcontainers section for why.
+
 See `lib/README.md` for every available environment variable.
 
 #### 2. Install dependencies and run the test.
