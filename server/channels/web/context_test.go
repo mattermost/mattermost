@@ -83,7 +83,7 @@ func TestMfaRequired(t *testing.T) {
 		AppContext: th.Context,
 	}
 
-	c.MfaRequired()
+	c.MfaRequired(http.MethodGet)
 
 	assert.Equal(t, c.Err.Id, "api.context.get_user.app_error")
 }
