@@ -58,10 +58,10 @@ const maxOptionIDsPerQuery = 10000
 // paging on it need.
 //
 // A deleted field is refused even when expectedUpdateAt is zero. That argument
-// means "do not check the version", not "do not check that the field is still
-// there". The filter is on this UPDATE so a bump that blocked on the delete's
-// row lock re-evaluates the committed row; a prior SELECT would see the field
-// as it was before the delete.
+// means "do not check the version", not "do not check that the field is live".
+// The filter is on this UPDATE so a bump that blocked on the delete's row lock
+// re-evaluates the committed row; a prior SELECT would see DeleteAt as it was
+// before the delete.
 func (s *SqlPropertyFieldStore) bumpFieldForOptionChange(transaction *sqlxTxWrapper, groupID, fieldID string, expectedUpdateAt int64) error {
 	builder := s.getQueryBuilder().
 		Update("PropertyFields").

@@ -4205,8 +4205,8 @@ func testPropertyFieldOptionEdges(t *testing.T, rctx request.CTX, ss store.Store
 		field := newField(t, model.PropertyFieldTypeMultiselect, ids)
 		require.NoError(t, ss.PropertyField().Delete(groupID, field.ID))
 
-		// expectedUpdateAt of 0 is "do not check the version". Without a live-field
-		// filter on the bump, the upsert's ON CONFLICT would still un-delete the row.
+		// Zero skips the version check. DeleteAt still has to be 0 or the bump
+		// fails, which is what keeps ON CONFLICT from restoring a deleted option.
 		err := ss.PropertyField().MutateOptions(groupID, field.ID, 0, []*model.PropertyFieldOption{
 			{ID: ids["Air Program"], Name: "Air Program"},
 		}, nil, nil)
