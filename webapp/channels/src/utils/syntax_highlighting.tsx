@@ -109,6 +109,7 @@ async function registerLanguage(languageName: string) {
         handlebars: () => import('highlight.js/lib/languages/handlebars'),
         haskell: () => import('highlight.js/lib/languages/haskell'),
         haxe: () => import('highlight.js/lib/languages/haxe'),
+        hcl: () => import('./hcl_language'),
         java: () => import('highlight.js/lib/languages/java'),
         javascript: () => import('highlight.js/lib/languages/javascript'),
         json: () => import('highlight.js/lib/languages/json'),
