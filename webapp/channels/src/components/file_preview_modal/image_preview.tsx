@@ -75,9 +75,8 @@ export default function ImagePreview({fileInfo, canDownloadFiles, scale, transla
         imgStyle.cursor = 'grab';
     }
 
-    // An SVG declaring only a viewBox has no intrinsic size, so it needs the width the server
-    // derived to render at its declared size instead of the browser's 300px default. When no
-    // dimensions could be derived there is nothing to apply: a width of 0 would collapse it.
+    // An SVG declaring only a viewBox has no intrinsic size and renders at the browser's 300px
+    // default, so it needs the width the server derived. A width of 0 would collapse it instead.
     if (getFileType(fileInfo.extension) === FileTypes.SVG && fileInfo.width > 0) {
         imgStyle.width = fileInfo.width;
         imgStyle.height = 'auto';

@@ -55,8 +55,8 @@ func ParseSVG(svgReader io.Reader) (SVGInfo, error) {
 			return SVGInfo{Width: parsedWidth, Height: parsedHeight}, nil
 		}
 
-		if parsedWidth, parsedHeight, ok := parseViewBox(viewBox); ok {
-			return SVGInfo{Width: parsedWidth, Height: parsedHeight}, nil
+		if viewBoxWidth, viewBoxHeight, ok := parseViewBox(viewBox); ok {
+			return SVGInfo{Width: viewBoxWidth, Height: viewBoxHeight}, nil
 		}
 
 		return SVGInfo{}, errors.New("unable to extract SVG dimensions")
@@ -90,9 +90,8 @@ func parseViewBox(value string) (int, int, bool) {
 }
 
 // parsePositiveNumber parses a number of pixels, rejecting anything that can't describe a
-// renderable size: a sub-pixel or zero dimension means the SVG isn't rendered at all, so it is no
-// more usable than a missing one, and converting a number beyond the int range would silently
-// produce a nonsense dimension.
+// renderable size. A sub-pixel or zero dimension isn't rendered at all, so it is no more usable
+// than a missing one, and a number beyond the int range would convert into a nonsense dimension.
 func parsePositiveNumber(value string) (int, bool) {
 	number, err := strconv.ParseFloat(value, 64)
 	if err != nil || math.IsNaN(number) || number < 1 || number > math.MaxInt32 {
