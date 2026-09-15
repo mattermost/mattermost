@@ -4534,9 +4534,7 @@ func TestPatchPropertyValuesChannelTargetAccess(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
-	// DM/GM values are destined to be derived from the participants' attributes,
-	// so a participant may not hand-write one even at the member tier.
-	t.Run("DM channel - participant cannot write member-tier value", func(t *testing.T) {
+	t.Run("DM channel - participant can write member-tier value", func(t *testing.T) {
 		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
 		f := createField(t)
 		th.LoginBasic(t)
@@ -4544,12 +4542,13 @@ func TestPatchPropertyValuesChannelTargetAccess(t *testing.T) {
 		items := []model.PropertyValuePatchItem{
 			{FieldID: f.ID, Value: json.RawMessage(`"dm-val"`)},
 		}
-		_, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "channel", dmChannel.Id, items)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
+		values, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "channel", dmChannel.Id, items)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, values, 1)
 	})
 
-	t.Run("DM channel - participant cannot write admin-tier value", func(t *testing.T) {
+	t.Run("DM channel - participant can write admin-tier value", func(t *testing.T) {
 		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
 		f := createAdminField(t)
 		th.LoginBasic(t)
@@ -4557,9 +4556,10 @@ func TestPatchPropertyValuesChannelTargetAccess(t *testing.T) {
 		items := []model.PropertyValuePatchItem{
 			{FieldID: f.ID, Value: json.RawMessage(`"dm-admin-val"`)},
 		}
-		_, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "channel", dmChannel.Id, items)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
+		values, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "channel", dmChannel.Id, items)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, values, 1)
 	})
 
 	t.Run("DM channel - system admin can write member-tier value", func(t *testing.T) {
@@ -4627,7 +4627,7 @@ func TestPatchPropertyValuesChannelTargetAccess(t *testing.T) {
 		require.Len(t, values, 1)
 	})
 
-	t.Run("GM channel - participant cannot write member-tier value", func(t *testing.T) {
+	t.Run("GM channel - participant can write member-tier value", func(t *testing.T) {
 		gmChannel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, th.SystemAdminUser.Id}, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		f := createField(t)
@@ -4636,9 +4636,10 @@ func TestPatchPropertyValuesChannelTargetAccess(t *testing.T) {
 		items := []model.PropertyValuePatchItem{
 			{FieldID: f.ID, Value: json.RawMessage(`"gm-val"`)},
 		}
-		_, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "channel", gmChannel.Id, items)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
+		values, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "channel", gmChannel.Id, items)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, values, 1)
 	})
 
 	t.Run("GM channel - non-participant cannot write", func(t *testing.T) {
@@ -6393,6 +6394,149 @@ func TestPatchPropertyValuesChangePolicy(t *testing.T) {
 		CheckErrorID(t, err, "app.property_value.change_policy.raise_only.app_error")
 
 		resp, err = patch(t, field, fmt.Sprintf("%q", optionID(2)))
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+}
+
+// End-to-end proof of the DM/GM rule against the REAL access_control group,
+// which is the only group the attribute validation hook is registered for.
+// TestPatchPropertyValuesChannelTargetAccess is the sibling suite on a
+// throwaway group; it measures the generic default, not this restriction.
+func TestPatchPropertyValuesAccessControlDirectChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.ChannelAttributes = true
+		cfg.FeatureFlags.PostAttributes = true
+	}).InitBasic(t)
+
+	// The rule lives in the attribute validation hook, which sits behind the
+	// licence check hook; channel attributes need Enterprise Advanced.
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	createField := func(t *testing.T, objectType string, level model.PermissionLevel) *model.PropertyField {
+		t.Helper()
+		field, fieldErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			// Prefixed: a raw NewId may start with a digit, which the CEL
+			// identifier rule on channel attribute names rejects.
+			Name:              "attr_" + model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           group.ID,
+			ObjectType:        objectType,
+			TargetType:        "system",
+			PermissionField:   &level,
+			PermissionValues:  &level,
+			PermissionOptions: &level,
+		}, false, "")
+		require.Nil(t, fieldErr)
+		return field
+	}
+
+	patchAs := func(t *testing.T, client *model.Client4, field *model.PropertyField, objectType, targetID, raw string) (*model.Response, error) {
+		t.Helper()
+		items := []model.PropertyValuePatchItem{{FieldID: field.ID, Value: json.RawMessage(raw)}}
+		_, resp, err := client.PatchPropertyValues(context.Background(), group.Name, objectType, targetID, items)
+		return resp, err
+	}
+
+	const directErrorID = "app.property_value.direct_channel.app_error"
+
+	dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+	gmChannel, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.BasicUser2.Id, th.SystemAdminUser.Id}, th.BasicUser.Id)
+	require.Nil(t, appErr)
+	th.LoginBasic(t)
+
+	t.Run("participant cannot write a member-tier value on their own DM", func(t *testing.T) {
+		field := createField(t, model.PropertyFieldObjectTypeChannel, model.PermissionLevelMember)
+
+		resp, err := patchAs(t, th.Client, field, "channel", dmChannel.Id, `"dm-val"`)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, directErrorID)
+	})
+
+	t.Run("participant cannot write an admin-tier value on their own DM", func(t *testing.T) {
+		field := createField(t, model.PropertyFieldObjectTypeChannel, model.PermissionLevelAdmin)
+
+		resp, err := patchAs(t, th.Client, field, "channel", dmChannel.Id, `"dm-val"`)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, directErrorID)
+	})
+
+	t.Run("participant cannot write a member-tier value on their own GM", func(t *testing.T) {
+		field := createField(t, model.PropertyFieldObjectTypeChannel, model.PermissionLevelMember)
+
+		resp, err := patchAs(t, th.Client, field, "channel", gmChannel.Id, `"gm-val"`)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, directErrorID)
+	})
+
+	t.Run("participant cannot write an admin-tier value on their own GM", func(t *testing.T) {
+		field := createField(t, model.PropertyFieldObjectTypeChannel, model.PermissionLevelAdmin)
+
+		resp, err := patchAs(t, th.Client, field, "channel", gmChannel.Id, `"gm-val"`)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, directErrorID)
+	})
+
+	t.Run("a system admin can write on the same DM", func(t *testing.T) {
+		field := createField(t, model.PropertyFieldObjectTypeChannel, model.PermissionLevelMember)
+
+		resp, err := patchAs(t, th.SystemAdminClient, field, "channel", dmChannel.Id, `"admin-val"`)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+
+	// Regression guard: the rule must not leak to normal channels.
+	t.Run("a channel member can still write on a public channel", func(t *testing.T) {
+		field := createField(t, model.PropertyFieldObjectTypeChannel, model.PermissionLevelMember)
+
+		resp, err := patchAs(t, th.Client, field, "channel", th.BasicChannel.Id, `"pub-val"`)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+
+	// Clearing is an upsert of an empty value, not a DELETE -- there is no
+	// delete route for property values. A participant must not be able to
+	// launder a marking off a DM this way.
+	t.Run("participant cannot clear a value on their own DM", func(t *testing.T) {
+		field := createField(t, model.PropertyFieldObjectTypeChannel, model.PermissionLevelMember)
+
+		resp, err := patchAs(t, th.SystemAdminClient, field, "channel", dmChannel.Id, `"seeded"`)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		resp, err = patchAs(t, th.Client, field, "channel", dmChannel.Id, `""`)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, directErrorID)
+	})
+
+	// The recorded post-object decision, end to end: post attributes are the
+	// feature this branch serves, and a marking on a message in a DM stays
+	// writable by a participant.
+	t.Run("participant can write a post-object value on a DM post", func(t *testing.T) {
+		field := createField(t, model.PropertyFieldObjectTypePost, model.PermissionLevelMember)
+		post := th.CreatePostWithClient(t, th.Client, dmChannel)
+
+		resp, err := patchAs(t, th.Client, field, "post", post.Id, `"flagged"`)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+
+	// A participant administers posts in their own DM, and the hook does not
+	// take that back: its refusal is scoped to channel-object values.
+	t.Run("participant can write an admin-tier post-object value on a DM post", func(t *testing.T) {
+		field := createField(t, model.PropertyFieldObjectTypePost, model.PermissionLevelAdmin)
+		post := th.CreatePostWithClient(t, th.Client, dmChannel)
+
+		resp, err := patchAs(t, th.Client, field, "post", post.Id, `"flagged"`)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 	})

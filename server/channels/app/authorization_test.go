@@ -2616,22 +2616,18 @@ func TestSessionHasPermissionToSetPropertyFieldValues_PostMember(t *testing.T) {
 	assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, nonAuthorSession, field, post.Id))
 }
 
-// Member-level scope access on channel-object values normally means channel
-// membership, but DM/GM values are reserved for the system: they are meant to
-// be derived from the participants' own attributes rather than typed in by a
-// participant.
 func TestSessionHasPermissionToSetPropertyFieldValues_DirectAndGroupChannels(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	groupID := registerTestPropertyGroup(t, th)
 
-	fieldFor := func(level model.PermissionLevel) *model.PropertyField {
+	fieldFor := func(objectType string, level model.PermissionLevel) *model.PropertyField {
 		return &model.PropertyField{
 			GroupID:           groupID,
-			Name:              "channel values " + string(level),
+			Name:              objectType + " values " + string(level),
 			Type:              model.PropertyFieldTypeText,
-			ObjectType:        model.PropertyFieldObjectTypeChannel,
+			ObjectType:        objectType,
 			TargetType:        string(model.PropertyFieldTargetLevelSystem),
 			PermissionField:   model.NewPointer(model.PermissionLevelSysadmin),
 			PermissionValues:  model.NewPointer(level),
@@ -2639,8 +2635,9 @@ func TestSessionHasPermissionToSetPropertyFieldValues_DirectAndGroupChannels(t *
 		}
 	}
 
-	memberField := fieldFor(model.PermissionLevelMember)
-	adminField := fieldFor(model.PermissionLevelAdmin)
+	memberField := fieldFor(model.PropertyFieldObjectTypeChannel, model.PermissionLevelMember)
+	adminField := fieldFor(model.PropertyFieldObjectTypeChannel, model.PermissionLevelAdmin)
+	postMemberField := fieldFor(model.PropertyFieldObjectTypePost, model.PermissionLevelMember)
 
 	participant := model.Session{UserId: th.BasicUser.Id, Roles: model.SystemUserRoleId}
 	sysadmin := model.Session{UserId: th.SystemAdminUser.Id, Roles: model.SystemUserRoleId + " " + model.SystemAdminRoleId}
@@ -2648,16 +2645,55 @@ func TestSessionHasPermissionToSetPropertyFieldValues_DirectAndGroupChannels(t *
 	dmChannel := th.CreateDmChannel(t, th.BasicUser2)
 	gmChannel := th.CreateGroupChannel(t, th.BasicUser2, th.SystemAdminUser)
 
-	t.Run("DM: participant cannot set a member-tier value", func(t *testing.T) {
-		assert.False(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, participant, memberField, dmChannel.Id))
+	t.Run("DM: participant can set a member-tier value", func(t *testing.T) {
+		assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, participant, memberField, dmChannel.Id))
 	})
 
-	t.Run("GM: participant cannot set a member-tier value", func(t *testing.T) {
-		assert.False(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, participant, memberField, gmChannel.Id))
+	t.Run("GM: participant can set a member-tier value", func(t *testing.T) {
+		assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, participant, memberField, gmChannel.Id))
 	})
 
-	t.Run("DM: participant cannot set an admin-tier value", func(t *testing.T) {
-		assert.False(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, participant, adminField, dmChannel.Id))
+	t.Run("DM: participant can set an admin-tier value", func(t *testing.T) {
+		assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, participant, adminField, dmChannel.Id))
+	})
+
+	// A non-participant is denied without needing any DM/GM-specific rule:
+	// they hold no channel membership, a DM carries no TeamId to cascade
+	// through, and read_channel comes from channel_user rather than
+	// system_user.
+	t.Run("DM: non-participant cannot set a member-tier value", func(t *testing.T) {
+		outsider := th.CreateUser(t)
+		th.LinkUserToTeam(t, outsider, th.BasicTeam)
+		outsiderSession := model.Session{UserId: outsider.Id, Roles: model.SystemUserRoleId}
+
+		assert.False(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, outsiderSession, memberField, dmChannel.Id))
+	})
+
+	// The guest line sits between the tiers, and stating both halves together
+	// is the point: a guest participates, so the member tier is theirs, but
+	// does not administer, so the admin tier is not.
+	t.Run("DM: a guest participant sits between the tiers", func(t *testing.T) {
+		guest := th.CreateGuest(t)
+		guestDM, appErr := th.App.GetOrCreateDirectChannel(th.Context, guest.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		guestSession := model.Session{UserId: guest.Id, Roles: model.SystemUserRoleId}
+
+		// Precondition: the guest really is in the channel, so the admin
+		// denial below is the guest check and not a missing membership.
+		_, isMember := th.App.HasPermissionToChannel(th.Context, guest.Id, guestDM.Id, model.PermissionReadChannel)
+		require.True(t, isMember, "precondition: guest is a member of the DM")
+
+		assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, guestSession, memberField, guestDM.Id))
+		assert.False(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, guestSession, adminField, guestDM.Id))
+	})
+
+	// Mirrors _PostMember into the DM case, so the post-object decision is
+	// pinned at this layer too: the restriction never applied to post-object
+	// values, and after the split it still does not.
+	t.Run("DM: participant can set a member-tier value on a post", func(t *testing.T) {
+		post := th.CreatePost(t, dmChannel)
+
+		assert.True(t, th.App.SessionHasPermissionToSetPropertyFieldValues(th.Context, participant, postMemberField, post.Id))
 	})
 
 	t.Run("DM: sysadmin can set a member-tier value", func(t *testing.T) {

@@ -736,30 +736,19 @@ func (a *App) hasPropertyFieldValueAdmin(rctx request.CTX, userID string, field 
 
 // hasPropertyFieldValueScopeAccess reports whether the user can write the
 // value's target as a regular member. For channel-object fields this is
-// membership in the value's channel. For post-object fields this is
+// membership in the value's channel — including a DM or GM, where
+// participation is the membership. For post-object fields this is
 // membership in the post's channel — any channel member can set values on
 // any post in that channel. Both are checked via HasPermissionToChannel so
 // sysadmins and team admins cascade through. User/system/template fields
 // have no per-object membership and defer to the field's TargetType-based scope.
+//
+// This is the generic default. Restrictions that apply to one property group
+// only — such as the access_control group refusing hand-written values on a
+// DM or GM — live in that group's PropertyHook, not here.
 func (a *App) hasPropertyFieldValueScopeAccess(rctx request.CTX, userID string, field *model.PropertyField, valueTargetID string) bool {
 	switch field.ObjectType {
 	case model.PropertyFieldObjectTypeChannel:
-		channel, err := a.GetChannel(rctx, valueTargetID)
-		if err != nil {
-			rctx.Logger().Warn("Failed to look up channel for property value scope check",
-				mlog.String("channel_id", valueTargetID),
-				mlog.String("user_id", userID),
-				mlog.String("field_id", field.ID),
-				mlog.Err(err),
-			)
-			return false
-		}
-		// DM/GM values are meant to be derived from the participants' own
-		// attributes rather than typed in, so participation alone doesn't earn
-		// the write. Only the system-level path may set them.
-		if channel.IsGroupOrDirect() {
-			return a.HasPermissionTo(rctx, userID, model.PermissionManageSystem)
-		}
 		ok, _ := a.HasPermissionToChannel(rctx, userID, valueTargetID, model.PermissionReadChannel)
 		return ok
 	case model.PropertyFieldObjectTypePost:

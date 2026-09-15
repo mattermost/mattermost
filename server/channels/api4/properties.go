@@ -975,9 +975,11 @@ func hasTargetAccess(c *Context, objectType, targetID string, write bool) bool {
 				perm = model.PermissionManagePrivateChannelProperties
 			default:
 				// DM/GM channels have no manage_*_channel_properties permission, so
-				// this outer gate only checks membership. The per-field tier check in
-				// SessionHasPermissionToSetPropertyFieldValues is what actually keeps
-				// participants from setting DM/GM values.
+				// this outer gate only checks membership, and the per-field tier check
+				// in SessionHasPermissionToSetPropertyFieldValues resolves participation
+				// as membership too. Groups that need DM/GM values kept out of users'
+				// hands enforce that in their own PropertyHook — see
+				// AccessControlAttributeValidationHook for the access_control group.
 				perm = model.PermissionReadChannel
 			}
 			hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), targetID, perm)

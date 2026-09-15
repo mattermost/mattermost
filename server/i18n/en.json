@@ -8985,6 +8985,10 @@
     "translation": "Unable to delete property values for target."
   },
   {
+    "id": "app.property_value.direct_channel.app_error",
+    "translation": "Attributes on direct and group messages cannot be set directly."
+  },
+  {
     "id": "app.property_value.get.app_error",
     "translation": "Unable to get property value."
   },
