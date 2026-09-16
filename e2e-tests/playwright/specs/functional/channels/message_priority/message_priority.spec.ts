@@ -239,6 +239,7 @@ test(
         await postCreate.input.press('Shift+Tab');
 
         // * Verify keyboard focus lands on the remove-labels control, which is now opaque with its tooltip shown
+        // toBeFocusedWithFocusVisible returns the :focus-visible result rather than asserting it
         expect(await pw.toBeFocusedWithFocusVisible(removeLabelsButton)).toBe(true);
         await expect(removeLabelsButton).toHaveCSS('opacity', '1');
         await expect(removeLabelsTooltip).toBeVisible();
