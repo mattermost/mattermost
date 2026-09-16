@@ -261,35 +261,44 @@ func (a *App) SessionHasPermissionToChannelByPost(rctx request.CTX, session mode
 		return false
 	}
 
-	hasPermission := a.sessionHasPermissionToChannelByPostRBAC(session, postID, permission)
+	hasPermission, channel := a.sessionHasPermissionToChannelByPostRBAC(session, postID, permission)
 	if !hasPermission || !isChannelWritePermission(permission) {
 		return hasPermission
 	}
 
-	channel, err := a.Srv().Store().Channel().GetForPost(postID)
-	if err != nil {
-		// No channel to evaluate against, so granting on a system-wide permission
-		// would bypass the policy.
-		return !a.channelAccessEnforcementActive()
+	if channel == nil {
+		var err error
+		channel, err = a.Srv().Store().Channel().GetForPost(postID)
+		if err != nil {
+			// No channel to evaluate against, so granting on a system-wide permission
+			// would bypass the policy.
+			return !a.channelAccessEnforcementActive()
+		}
 	}
 
 	return a.EnforceChannelWriteAccess(rctx, session.UserId, channel)
 }
 
-func (a *App) sessionHasPermissionToChannelByPostRBAC(session model.Session, postID string, permission *model.Permission) bool {
+// sessionHasPermissionToChannelByPostRBAC also returns the channel it looked up along the
+// way, if any, so the write-access enforcement in SessionHasPermissionToChannelByPost can
+// reuse it instead of loading the same channel a second time.
+func (a *App) sessionHasPermissionToChannelByPostRBAC(session model.Session, postID string, permission *model.Permission) (bool, *model.Channel) {
 	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, session.UserId); err == nil {
 		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
-			return true
+			return true, nil
 		}
 	}
 
-	if channel, err := a.Srv().Store().Channel().GetForPost(postID); err == nil {
-		if channel.TeamId != "" {
-			return a.SessionHasPermissionToTeam(session, channel.TeamId, permission)
-		}
+	channel, err := a.Srv().Store().Channel().GetForPost(postID)
+	if err != nil {
+		return a.SessionHasPermissionTo(session, permission), nil
 	}
 
-	return a.SessionHasPermissionTo(session, permission)
+	if channel.TeamId != "" {
+		return a.SessionHasPermissionToTeam(session, channel.TeamId, permission), channel
+	}
+
+	return a.SessionHasPermissionTo(session, permission), channel
 }
 
 func (a *App) SessionHasPermissionToReadPost(rctx request.CTX, session model.Session, postID string) (hasPErmission bool, isMember bool) {
