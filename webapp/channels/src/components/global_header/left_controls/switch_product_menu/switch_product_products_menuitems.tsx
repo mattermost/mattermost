@@ -36,9 +36,6 @@ export default function ProductSwitcherProductsMenuItems(props: Props) {
             {products.map((product) => {
                 const link = getProductSwitcherLinkURL(product, currentTeam?.name);
                 if (link === null) {
-                    // eslint-disable-next-line no-console
-                    console.warn(`Product ${product.pluginId}:${product.id} is team-scoped, so it is hidden from the product switcher until a current team is loaded`);
-
                     return null;
                 }
 
