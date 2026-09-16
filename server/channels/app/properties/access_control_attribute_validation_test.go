@@ -1718,7 +1718,7 @@ func TestAccessControlAttributeValidationHookDuplicateOptionIDs(t *testing.T) {
 	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_duplicate_option_ids", Version: model.PropertyGroupVersionV2})
 	require.NoError(t, err)
 
-	hook := NewAccessControlAttributeValidationHook(th.service, nil, group.ID)
+	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, group.ID)
 	th.service.AddHook(hook)
 
 	selectField := func(options []any) *model.PropertyField {
@@ -2443,7 +2443,7 @@ func TestAccessControlAttributeValidationHookBatchesOptionLookups(t *testing.T) 
 	})
 	require.NoError(t, err)
 
-	hook := NewAccessControlAttributeValidationHook(ps, nil, groupID)
+	hook := NewAccessControlAttributeValidationHook(ps, AccessControlAttributeValidationHookConfig{}, groupID)
 
 	values := []*model.PropertyValue{
 		{GroupID: groupID, FieldID: fieldA.ID, Value: json.RawMessage(`"` + optionA1 + `"`)},
@@ -2481,7 +2481,7 @@ func TestAccessControlAttributeValidationHookDedupesOptionLookup(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	hook := NewAccessControlAttributeValidationHook(ps, nil, groupID)
+	hook := NewAccessControlAttributeValidationHook(ps, AccessControlAttributeValidationHookConfig{}, groupID)
 
 	values := []*model.PropertyValue{
 		{GroupID: groupID, FieldID: field.ID, Value: json.RawMessage(`"` + optionID + `"`)},
@@ -2520,7 +2520,7 @@ func TestAccessControlAttributeValidationHookOptionLookupStoreFailure(t *testing
 	})
 	require.NoError(t, err)
 
-	hook := NewAccessControlAttributeValidationHook(ps, nil, groupID)
+	hook := NewAccessControlAttributeValidationHook(ps, AccessControlAttributeValidationHookConfig{}, groupID)
 
 	values := []*model.PropertyValue{
 		{GroupID: groupID, FieldID: field.ID, Value: json.RawMessage(`"` + optionID + `"`)},
