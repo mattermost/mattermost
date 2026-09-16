@@ -303,13 +303,14 @@ $z-index-tour-tips-backdrop: 1250;
     }
 
     &__opt {
+        display: flex;
+        align-items: baseline;
         align-self: flex-end;
+        flex-wrap: wrap;
         margin-top: 1.2rem;
+        color: rgba(var(--button-color-rgb), 0.9);
         font-size: 12px;
-
-        span {
-            opacity: 0.9;
-        }
+        gap: 0.25em;
     }
 
     &__backdrop {

@@ -150,4 +150,12 @@ describe('TourTip', () => {
             transform: 'translate(5px, -8px)',
         });
     });
+
+    test('renders opt-out as an inverted link button', async () => {
+        renderTourTip({showOptOut: true});
+
+        const optOut = await screen.findByRole('button', {name: 'Opt out of these tips.'});
+
+        expect(optOut).toHaveClass('btn', 'btn-link', 'btn-inverted');
+    });
 });

@@ -242,15 +242,17 @@ export const TourTip = ({
                             id='tutorial_tip.seen'
                             defaultMessage='Seen this before? '
                         />
-                        <a
-                            href='#'
+                        <Button
+                            emphasis='link'
+                            variant='inverted'
+                            size='xs'
                             onClick={handleSkip}
                         >
                             <FormattedMessage
                                 id='tutorial_tip.out'
                                 defaultMessage='Opt out of these tips.'
                             />
-                        </a>
+                        </Button>
                     </div>
                 )}
             </div>
