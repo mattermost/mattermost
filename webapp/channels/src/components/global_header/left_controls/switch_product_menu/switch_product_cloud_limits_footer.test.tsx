@@ -3,12 +3,15 @@
 
 import React from 'react';
 
+import LHSNearingLimitsModal from 'components/cloud_usage_modal/lhs_nearing_limit_modal';
+
 import {
     renderWithContext,
     screen,
     userEvent,
     waitFor,
 } from 'tests/react_testing_utils';
+import {ActionTypes, ModalIdentifiers} from 'utils/constants';
 import {LimitTypes, limitThresholds} from 'utils/limits';
 
 import ProductSwitcherCloudLimitsFooter from './switch_product_cloud_limits_footer';
@@ -204,7 +207,11 @@ describe('ProductSwitcherCloudLimitsFooter', () => {
 
         // The modal opens only after the menu close animation completes.
         await waitFor(() => {
-            expect(mockDispatch).toHaveBeenCalled();
+            expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({
+                type: ActionTypes.MODAL_OPEN,
+                modalId: ModalIdentifiers.CLOUD_LIMITS,
+                dialogType: LHSNearingLimitsModal,
+            }));
         });
     });
 });

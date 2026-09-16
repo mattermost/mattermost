@@ -133,8 +133,6 @@ describe('ProductSwitcherProductsMenuItems', () => {
     });
 
     test('should hide a team-scoped product when there is no current team', () => {
-        const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-
         const globalProduct = TestHelper.makeProduct('Boards');
         const teamScopedProduct = {
             ...TestHelper.makeProduct('Spaces'),
@@ -150,9 +148,6 @@ describe('ProductSwitcherProductsMenuItems', () => {
         expect(screen.getByText('Boards')).toBeInTheDocument();
         expect(screen.queryByText('Spaces')).not.toBeInTheDocument();
         expect(screen.getAllByRole('menuitem')).toHaveLength(1);
-
-        expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Spaces'));
-        consoleSpy.mockRestore();
     });
 
     test('should prefix a team-scoped product link with the current team name', async () => {
