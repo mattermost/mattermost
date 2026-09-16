@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import type {PropertyField} from '@mattermost/types/properties';
+
 import {Client4} from 'mattermost-redux/client';
 
 import {renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
@@ -48,5 +50,56 @@ describe('components/admin_console/global_attributes/GlobalAttributes', () => {
         await waitFor(() => {
             expect(screen.getByTestId('global-attributes-empty')).toBeInTheDocument();
         });
+    });
+
+    test('renders a search field above the table that filters attributes', async () => {
+        const fields = [
+            {
+                id: 'field-clearance',
+                name: 'clearance',
+                type: 'select',
+                group_id: 'accesscontrolgroupuuid001',
+                object_type: 'template',
+                target_id: '',
+                target_type: 'system',
+                create_at: 1700000000000,
+                update_at: 0,
+                delete_at: 0,
+                created_by: '',
+                updated_by: '',
+                attrs: {display_name: 'Clearance'},
+            },
+            {
+                id: 'field-department',
+                name: 'department',
+                type: 'text',
+                group_id: 'accesscontrolgroupuuid001',
+                object_type: 'template',
+                target_id: '',
+                target_type: 'system',
+                create_at: 1700000000000,
+                update_at: 0,
+                delete_at: 0,
+                created_by: '',
+                updated_by: '',
+                attrs: {display_name: 'Department'},
+            },
+        ] as PropertyField[];
+        getPropertyFields.mockResolvedValueOnce(fields).mockResolvedValue([]);
+
+        renderWithContext(<GlobalAttributes/>);
+
+        expect(await screen.findByText('Clearance')).toBeInTheDocument();
+        expect(screen.getByText('Department')).toBeInTheDocument();
+
+        const header = within(screen.getByTestId('admin-console-header'));
+        expect(header.getByTestId('newAttributeButton')).toBeInTheDocument();
+        expect(header.queryByTestId('global-attributes-search')).not.toBeInTheDocument();
+
+        const search = screen.getByTestId('global-attributes-search');
+        await userEvent.type(search, 'clear');
+
+        expect(screen.getByText('Clearance')).toBeInTheDocument();
+        expect(screen.queryByText('Department')).not.toBeInTheDocument();
     });
 });

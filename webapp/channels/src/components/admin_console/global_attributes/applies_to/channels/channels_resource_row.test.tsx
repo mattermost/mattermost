@@ -130,7 +130,7 @@ describe('ChannelsResourceRow', () => {
         expect(screen.queryByText('Who can set the value')).not.toBeInTheDocument();
     });
 
-    it('names its icon-only disclosure control', async () => {
+    it('names its disclosure control', async () => {
         renderRow();
 
         expect(screen.getByRole('button', {name: 'Collapse channel settings'})).toBeInTheDocument();

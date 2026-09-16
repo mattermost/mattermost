@@ -4461,6 +4461,50 @@ func TestPropertyValuesUpdatedPayloadShapes(t *testing.T) {
 		require.Empty(t, event.GetBroadcast().ChannelId)
 		require.Empty(t, event.GetBroadcast().TeamId)
 	})
+
+	t.Run("shape 5: a non-public field's value is withheld", func(t *testing.T) {
+		withheldField := newChannelField(t)
+
+		// Flipping access_mode through the store, not the API, bypasses
+		// ValidatePropertyFieldAccessMode (which would demand protected: true).
+		// Leaving protected unset is a test-only posture: it keeps the field
+		// writable by a session caller so the test can provoke a broadcast,
+		// which no plugin-authored source_only field would allow.
+		if withheldField.Attrs == nil {
+			withheldField.Attrs = model.StringInterface{}
+		}
+		withheldField.Attrs[model.PropertyAttrsAccessMode] = model.PropertyAccessModeSourceOnly
+		_, err := th.App.Srv().Store().PropertyField().Update(group.ID, []*model.PropertyField{withheldField}, nil)
+		require.NoError(t, err)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: field.ID, Value: json.RawMessage(`"visible"`)},
+			{FieldID: withheldField.ID, Value: json.RawMessage(`"hidden"`)},
+		}
+		_, resp, patchErr := th.Client.PatchPropertyValues(context.Background(), group.Name, "channel", th.BasicChannel.Id, items)
+		require.NoError(t, patchErr)
+		CheckOKStatus(t, resp)
+
+		event := nextPropertyValuesEvent(t, webSocketClient)
+		values := decodeBroadcastValues(t, event)
+		require.Len(t, values, 2)
+
+		byFieldID := make(map[string]*model.PropertyValue, len(values))
+		for _, v := range values {
+			byFieldID[v.FieldID] = v
+		}
+
+		withheld := byFieldID[withheldField.ID]
+		require.Equal(t, json.RawMessage(model.PropertyValueWithheldJSON), withheld.Value)
+		require.NotEmpty(t, withheld.ID)
+		require.Equal(t, withheldField.ID, withheld.FieldID)
+		require.Equal(t, th.BasicChannel.Id, withheld.TargetID)
+
+		// The public field in the same batch keeps its real value: masking is
+		// decided per row, not per broadcast.
+		public := byFieldID[field.ID]
+		require.Equal(t, json.RawMessage(`"visible"`), public.Value)
+	})
 }
 
 func TestPatchPropertyValuesChannelObjectTypeBroadcast(t *testing.T) {
@@ -5784,6 +5828,156 @@ func TestChannelAttributesRequireEnterpriseAdvanced(t *testing.T) {
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			PerPage:    100,
 		})
+		require.NoError(t, err)
+	})
+
+	fieldID := model.NewId()
+
+	t.Run("listing channel field options is refused", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.GetPropertyFieldOptions(context.Background(), groupName, model.PropertyFieldObjectTypeChannel, fieldID, 0, "", model.PropertyFieldOptionsMaxPerRequest)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.property.channel_attributes.license.app_error")
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+	})
+
+	t.Run("creating channel field options is refused", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.CreatePropertyFieldOptions(context.Background(), groupName, model.PropertyFieldObjectTypeChannel, fieldID, []*model.PropertyFieldOption{
+			{Name: "x"},
+		})
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.property.channel_attributes.license.app_error")
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+	})
+
+	t.Run("patching channel field options is refused", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.PatchPropertyFieldOptions(context.Background(), groupName, model.PropertyFieldObjectTypeChannel, fieldID, []*model.PropertyFieldOption{
+			{Name: "x"},
+		})
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.property.channel_attributes.license.app_error")
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+	})
+
+	t.Run("deleting channel field options is refused", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.DeletePropertyFieldOptions(context.Background(), groupName, model.PropertyFieldObjectTypeChannel, fieldID, []string{model.NewId()})
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.property.channel_attributes.license.app_error")
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+	})
+
+	t.Run("listing user field options in the same group is not a license refusal", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.GetPropertyFieldOptions(context.Background(), groupName, model.PropertyFieldObjectTypeUser, fieldID, 0, "", model.PropertyFieldOptionsMaxPerRequest)
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotFound, resp.StatusCode)
+	})
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, groupName)
+	require.Nil(t, appErr)
+
+	createLinkedSelect := func(t *testing.T, objectType string) *model.PropertyField {
+		t.Helper()
+		template, createErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:       celSafeName(),
+			Type:       model.PropertyFieldTypeSelect,
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: "system",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "alpha"},
+				},
+			},
+		}, false, "")
+		require.Nil(t, createErr)
+
+		linked := &model.PropertyField{
+			Name:          celSafeName(),
+			Type:          model.PropertyFieldTypeSelect,
+			GroupID:       group.ID,
+			ObjectType:    objectType,
+			TargetType:    "system",
+			LinkedFieldID: &template.ID,
+		}
+		_, createErr = th.App.CreatePropertyField(th.Context, linked, false, "")
+		require.Nil(t, createErr)
+		return template
+	}
+
+	t.Run("options on a template serving a channel field are refused", func(t *testing.T) {
+		template := createLinkedSelect(t, model.PropertyFieldObjectTypeChannel)
+
+		_, resp, err := th.SystemAdminClient.GetPropertyFieldOptions(context.Background(), groupName, model.PropertyFieldObjectTypeTemplate, template.ID, 0, "", model.PropertyFieldOptionsMaxPerRequest)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.property.channel_attributes.license.app_error")
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+
+		_, resp, err = th.SystemAdminClient.CreatePropertyFieldOptions(context.Background(), groupName, model.PropertyFieldObjectTypeTemplate, template.ID, []*model.PropertyFieldOption{
+			{Name: "beta"},
+		})
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.property.channel_attributes.license.app_error")
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+	})
+
+	t.Run("options on a template serving only a user field are admitted", func(t *testing.T) {
+		template := createLinkedSelect(t, model.PropertyFieldObjectTypeUser)
+
+		listed, _, err := th.SystemAdminClient.GetPropertyFieldOptions(context.Background(), groupName, model.PropertyFieldObjectTypeTemplate, template.ID, 0, "", model.PropertyFieldOptionsMaxPerRequest)
+		require.NoError(t, err)
+		require.Equal(t, []string{"alpha"}, optionNames(listed.Options))
+	})
+
+	t.Run("Enterprise Advanced admits options on a template serving a channel field", func(t *testing.T) {
+		template := createLinkedSelect(t, model.PropertyFieldObjectTypeChannel)
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+		listed, _, err := th.SystemAdminClient.GetPropertyFieldOptions(context.Background(), groupName, model.PropertyFieldObjectTypeTemplate, template.ID, 0, "", model.PropertyFieldOptionsMaxPerRequest)
+		require.NoError(t, err)
+		require.Equal(t, []string{"alpha"}, optionNames(listed.Options))
+	})
+
+	optionsOnlyPatch := &model.PropertyFieldPatch{Attrs: &model.StringInterface{
+		model.PropertyFieldAttributeOptions: []any{map[string]any{"name": "beta"}},
+	}}
+
+	t.Run("patching a template serving a channel field is refused", func(t *testing.T) {
+		template := createLinkedSelect(t, model.PropertyFieldObjectTypeChannel)
+
+		_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), groupName, model.PropertyFieldObjectTypeTemplate, template.ID, optionsOnlyPatch)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.property.channel_attributes.license.app_error")
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+	})
+
+	t.Run("deleting a template serving a channel field is refused", func(t *testing.T) {
+		template := createLinkedSelect(t, model.PropertyFieldObjectTypeChannel)
+
+		resp, err := th.SystemAdminClient.DeletePropertyField(context.Background(), groupName, model.PropertyFieldObjectTypeTemplate, template.ID)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.property.channel_attributes.license.app_error")
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+	})
+
+	t.Run("patching a template serving only a user field is not a license refusal", func(t *testing.T) {
+		template := createLinkedSelect(t, model.PropertyFieldObjectTypeUser)
+
+		_, _, err := th.SystemAdminClient.PatchPropertyField(context.Background(), groupName, model.PropertyFieldObjectTypeTemplate, template.ID, optionsOnlyPatch)
+		if err != nil {
+			var appErr *model.AppError
+			require.ErrorAs(t, err, &appErr)
+			require.NotEqual(t, "api.property.channel_attributes.license.app_error", appErr.Id)
+		}
+	})
+
+	t.Run("Enterprise Advanced admits patching a template serving a channel field", func(t *testing.T) {
+		template := createLinkedSelect(t, model.PropertyFieldObjectTypeChannel)
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+		_, _, err := th.SystemAdminClient.PatchPropertyField(context.Background(), groupName, model.PropertyFieldObjectTypeTemplate, template.ID, optionsOnlyPatch)
 		require.NoError(t, err)
 	})
 }

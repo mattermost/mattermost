@@ -2,12 +2,14 @@ $chip-gap: 4px; // keep in sync with CHIP_GAP in use_labels_overflow.ts
 
 .ChannelAttributeLabels {
     display: flex;
+    overflow: hidden;
     min-width: 0;
 
     // Shrinkable, never growing: content-sized while there is room, squeezed to the
     // space left when there is not. That is what makes the row yield to the header
     // controls rather than displace them.
     flex: 0 1 auto;
+    flex-wrap: nowrap;
     align-items: center;
     gap: $chip-gap;
 
@@ -18,6 +20,7 @@ $chip-gap: 4px; // keep in sync with CHIP_GAP in use_labels_overflow.ts
         overflow: hidden;
         min-width: 0;
         flex: 1 1 auto;
+        flex-wrap: nowrap;
         align-items: center;
         gap: $chip-gap;
         white-space: nowrap;
@@ -25,22 +28,48 @@ $chip-gap: 4px; // keep in sync with CHIP_GAP in use_labels_overflow.ts
 
     &__item {
         display: inline-flex;
+        overflow: hidden;
         flex: 0 0 auto;
         line-height: 0;
+
+        // Only the remaining chip shrinks. Squeezing the last of several would
+        // keep extra chips on the row instead of moving them into +N.
+        &:only-child {
+            min-width: 0;
+            flex: 0 1 auto;
+        }
+    }
+
+    &__chipButton {
+        display: inline-flex;
+        overflow: hidden;
+        min-width: 0;
+        max-width: 100%;
+        padding: 0;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        line-height: 0;
+
+        .AttributeChip {
+            cursor: pointer;
+        }
     }
 
     &__overflow {
         display: inline-flex;
-        height: 16px;
+        height: 22px;
+        box-sizing: border-box;
         flex: 0 0 auto;
         align-items: center;
-        padding: 2px 6px;
-        border: none;
+        padding: 4px 8px;
+        border: 1px solid transparent;
         border-radius: 4px;
         background: rgba(var(--center-channel-color-rgb), 0.08);
         color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 10px;
         font-weight: 600;
+        letter-spacing: 0.2px;
         line-height: 12px;
 
         &:hover,
@@ -53,26 +82,67 @@ $chip-gap: 4px; // keep in sync with CHIP_GAP in use_labels_overflow.ts
     &__popover {
         z-index: 1000;
         display: flex;
-        max-width: 320px;
+        width: 282px; // 16px pad + 100px label + 150px value + 16px pad
+        box-sizing: border-box;
         flex-direction: column;
-        padding: 8px;
+        padding: 8px 0;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
         border-radius: 4px;
         background: var(--center-channel-bg);
         box-shadow: var(--elevation-4);
-        gap: 6px;
     }
 
     &__popoverRow {
-        display: flex;
+        display: grid;
+        min-width: 0;
         align-items: center;
-        justify-content: space-between;
-        gap: 12px;
+        padding: 8px 16px;
+        gap: 0;
+        grid-template-columns: 100px 150px;
+
+        .ChannelAttributeLabels__chipButton {
+            max-width: 100%;
+            justify-self: start;
+        }
     }
 
     &__popoverLabel {
+        overflow: hidden;
+        min-width: 0;
         color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 12px;
         line-height: 16px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__popoverDivider {
+        width: 100%;
+        flex-shrink: 0;
+        padding: 8px 0;
+
+        &::before {
+            display: block;
+            width: 100%;
+            border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+            content: '';
+        }
+    }
+
+    &__viewAll {
+        width: 100%;
+        padding: 6px 16px;
+        border: none;
+        background: transparent;
+        color: var(--center-channel-color);
+        cursor: pointer;
+        font-size: 12px;
+        line-height: 16px;
+        text-align: left;
+
+        &:hover,
+        &:focus {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+        }
     }
 }

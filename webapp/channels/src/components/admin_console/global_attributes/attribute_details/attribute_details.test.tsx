@@ -1353,7 +1353,7 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            expect(screen.getByRole('heading', {name: 'Edit attribute'})).toBeInTheDocument();
+            expect(screen.getByRole('heading', {name: 'Edit Department Attribute'})).toBeInTheDocument();
             expect(screen.getByTestId('attributeDisplayNameInput')).toHaveValue('Department');
             expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('department');
             expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Select');
@@ -1958,6 +1958,16 @@ describe('AttributeDetails', () => {
 
         it('redirects to the listing when the field is missing', async () => {
             jest.spyOn(Client4, 'getPropertyFields').mockResolvedValue([]);
+            renderEdit();
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes'));
+            expect(screen.queryByTestId('attributeDetails')).not.toBeInTheDocument();
+        });
+
+        // A graph field is plugin-owned, yet plugin-owned fields open here read-only
+        // rather than redirect (the plugin-owned block above). So a graph field proves
+        // it's the type, not plugin ownership, that this editor redirects on.
+        it('redirects to the listing when the field type is graph, which this editor cannot render', async () => {
+            mockLoadedField(makePluginOwnedTemplate({type: 'graph'}));
             renderEdit();
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes'));
             expect(screen.queryByTestId('attributeDetails')).not.toBeInTheDocument();

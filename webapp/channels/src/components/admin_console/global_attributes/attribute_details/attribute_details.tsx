@@ -9,6 +9,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {useParams} from 'react-router-dom';
 
 import type {ClientError} from '@mattermost/client';
+import {ChevronLeftIcon} from '@mattermost/compass-icons/components';
 import {buttonClassNames} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FieldVisibility, PropertyField, PropertyFieldOption, PropertyPermissionLevel} from '@mattermost/types/properties';
@@ -57,6 +58,7 @@ import {
     deleteLinkedAttributeField,
     fetchAttributeField,
     fetchLinkedFieldsForTemplate,
+    formatAttributeHeadingName,
     linkedFieldsByResourceType,
     patchLinkedAttributeField,
     updateAttributeField,
@@ -454,7 +456,16 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 }
                 if (
                     !field ||
-                    isClassificationMarkingsField(field, field.group_id)
+                    isClassificationMarkingsField(field, field.group_id) ||
+
+                    // A type this editor can't render (graph, whose options carry
+                    // parent links it has no way to show) or re-save (every save sends
+                    // `type`, so it would retype the field and drop its values). Plugin
+                    // ownership is deliberately not part of this condition: a
+                    // plugin-owned text/select/etc. field opens here read-only
+                    // (effectiveDisabled); only an unrenderable type redirects. A graph
+                    // field, always plugin-owned, is caught by its type.
+                    !isAttributeFieldType(field.type)
                 ) {
                     getHistory().push(LIST_ROUTE);
                     return;
@@ -468,14 +479,13 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 const linkedByType = linkedFieldsByResourceType(linkedFields);
                 persistedLinkedFieldsRef.current = linkedByType;
                 originalNameRef.current = field.name;
-                const loadedFieldType = isAttributeFieldType(field.type) ? field.type : 'text';
-                originalFieldTypeRef.current = loadedFieldType;
+                originalFieldTypeRef.current = field.type;
 
                 setSourcePluginId(getSourceKind(field) === 'plugin' ? (field.attrs?.source_plugin_id as string | undefined) : undefined);
                 setDisplayName((field.attrs?.display_name as string | undefined) || '');
                 setManualName(field.name);
                 setIsNameManuallyEdited(true);
-                setFieldType(loadedFieldType);
+                setFieldType(field.type);
                 setOptions(optionsFromField(field));
                 setLdapAttr(typeof field.attrs?.ldap === 'string' ? field.attrs.ldap : '');
                 setSamlAttr(typeof field.attrs?.saml === 'string' ? field.attrs.saml : '');
@@ -1176,16 +1186,24 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         >
             <AdminHeader withBackButton={true}>
                 <div>
-                    <BlockableLink
-                        to={LIST_ROUTE}
-                        className='fa fa-angle-left back'
-                        aria-label={formatMessage(messages.backLink)}
-                        data-testid='attributeDetailsBackLink'
-                    />
+                    <div className='AttributeDetails__back'>
+                        <BlockableLink
+                            to={LIST_ROUTE}
+                            className='AttributeDetails__backButton'
+                            aria-label={formatMessage(messages.backLink)}
+                            data-testid='attributeDetailsBackLink'
+                        >
+                            <ChevronLeftIcon
+                                size={20}
+                                aria-hidden={true}
+                            />
+                        </BlockableLink>
+                    </div>
                     <hgroup className='AttributeDetails__headerGroup'>
                         <FormattedMessage
                             tagName='h1'
                             {...(isEditMode ? messages.editTitle : messages.title)}
+                            values={isEditMode ? {name: formatAttributeHeadingName(displayName || currentName)} : undefined}
                         />
                         <FormattedMessage
                             tagName='p'
@@ -1491,7 +1509,7 @@ export default AttributeDetails;
 const messages = defineMessages({
     backLink: {id: 'admin.global_attributes.attribute_details.back_link', defaultMessage: 'Back to Attribute Management'},
     title: {id: 'admin.global_attributes.attribute_details.title', defaultMessage: 'New attribute'},
-    editTitle: {id: 'admin.global_attributes.attribute_details.edit_title', defaultMessage: 'Edit attribute'},
+    editTitle: {id: 'admin.global_attributes.attribute_details.edit_title', defaultMessage: 'Edit {name} Attribute'},
     subtitle: {id: 'admin.global_attributes.attribute_details.subtitle', defaultMessage: 'Add a display name, choose a type, and pick where it applies.'},
     definitionTitle: {id: 'admin.global_attributes.attribute_details.definition.title', defaultMessage: 'Definition'},
     definitionSubtitle: {id: 'admin.global_attributes.attribute_details.definition.subtitle', defaultMessage: 'Display name, type, and options.'},

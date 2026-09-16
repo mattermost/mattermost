@@ -5,6 +5,7 @@ package commands
 
 import (
 	"fmt"
+	"math/rand/v2"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -26,7 +27,8 @@ func TestCreateUserPasswordLength(t *testing.T) {
 			}
 			t.Run(fmt.Sprintf("%s/idx=%d", name, idx), func(t *testing.T) {
 				t.Parallel()
-				data := createUser(idx, 0, 0, map[string][]string{}, nil, userType)
+				r := rand.New(rand.NewPCG(uint64(idx), uint64(idx)))
+				data := createUser(r, idx, 0, 0, map[string][]string{}, nil, userType)
 				pwd := *data.User.Password
 				require.GreaterOrEqualf(t, len(pwd), minLen,
 					"password %q (userType=%q idx=%d) is shorter than FIPS minimum %d",

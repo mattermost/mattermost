@@ -22,16 +22,29 @@ function getPropertyFieldsById(state: GlobalState) {
     return state.entities.properties.fields.byId;
 }
 
-export const getPropertyFieldsForObjectTypeAndGroup = createSelector(
-    'getPropertyFieldsForObjectTypeAndGroup',
-    (state: GlobalState, objectType: string, groupId: string) => state.entities.properties.fields.byObjectType[objectType]?.[groupId],
-    (fields) => {
-        if (!fields) {
-            return [];
-        }
-        return Object.values(fields);
-    },
-);
+const EMPTY_FIELDS: PropertyField[] = [];
+
+/**
+ * A factory because Object.values() is a new array and the memoizer only
+ * keeps the last arguments. Four shared calls in one render (template /
+ * user / channel / post) evict each other and return fresh arrays on
+ * every Redux update. One instance per (objectType, consumer).
+ */
+export function makeGetPropertyFieldsForObjectTypeAndGroup(): (state: GlobalState, objectType: string, groupId: string) => PropertyField[] {
+    return createSelector(
+        'makeGetPropertyFieldsForObjectTypeAndGroup',
+        (state: GlobalState, objectType: string, groupId: string) => state.entities.properties.fields.byObjectType[objectType]?.[groupId],
+        (fields) => {
+            if (!fields) {
+                return EMPTY_FIELDS;
+            }
+            const values = Object.values(fields);
+            return values.length === 0 ? EMPTY_FIELDS : values;
+        },
+    );
+}
+
+export const getPropertyFieldsForObjectTypeAndGroup = makeGetPropertyFieldsForObjectTypeAndGroup();
 
 export function getPropertyFieldById(state: GlobalState, fieldId: string): PropertyField | undefined {
     return getPropertyFieldsById(state)[fieldId];
@@ -113,8 +126,6 @@ export const getPropertyValuesForField = createSelector(
 );
 
 // Channel attribute selectors
-
-const EMPTY_FIELDS: PropertyField[] = [];
 
 // Ties break on name, not create_at: chip order is something people are told to
 // read, so it must follow the configuration rather than insertion timing.
