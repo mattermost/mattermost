@@ -1261,7 +1261,9 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 await page.locator(`#global-attribute-actions-${field.id}-edit`).click();
 
                 await expect(page).toHaveURL(new RegExp(`attribute_details/${field.id}$`));
-                await expect(page.getByRole('heading', {name: 'Edit attribute'})).toBeVisible();
+                // Heading is "Edit {name} Attribute" (attribute_details.tsx's editTitle), not
+                // a static "Edit attribute" -- it includes the attribute's own display name.
+                await expect(page.getByRole('heading', {name: `Edit ${displayName} Attribute`})).toBeVisible();
                 await expect(page.getByTestId('attributeDisplayNameInput')).toHaveValue(displayName);
                 await expect(page.getByTestId('attributeUniqueNameValue')).toHaveText(name);
 
