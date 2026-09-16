@@ -311,16 +311,14 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const [sourcePluginId, setSourcePluginId] = useState<string | undefined>(undefined);
     const isPluginOwned = Boolean(sourcePluginId);
 
-    // Which object type Save PATCHes back to. Set once from the loaded field
-    // in load() below; create mode leaves it at the template type, since this
-    // page only edits existing fields and has no way to create a
-    // user/channel/post field directly.
+    // Defaults to the template type because this page cannot create a
+    // user/channel/post field; load() copies the fetched field's object_type
+    // so Save PATCHes that type.
     const [objectType, setObjectType] = useState<string>(GLOBAL_ATTRIBUTES_OBJECT_TYPE);
 
-    // True for a loaded user/channel/post field that owns no template of its
-    // own -- create mode and templates both leave objectType at
-    // GLOBAL_ATTRIBUTES_OBJECT_TYPE, so this is false for them without an
-    // extra isEditMode clause.
+    // Derived from objectType alone: create mode and templates both stay at
+    // GLOBAL_ATTRIBUTES_OBJECT_TYPE, so they are false here without an extra
+    // isEditMode check.
     const isNonTemplate = objectType !== GLOBAL_ATTRIBUTES_OBJECT_TYPE;
 
     // Substituted for the bare `disabled` prop everywhere else on this page --
@@ -485,9 +483,9 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
 
                 setObjectType(field.object_type);
 
-                // Only a template has linked fields to fetch -- an unlinked
-                // user/channel/post field has none, so Applies-to stays empty
-                // and there is no Channels config to parse for it.
+                // Only a template has linked fields. An unlinked user/channel/post
+                // field has none, so skip the fetch (there is also no Channels
+                // child to parse config from).
                 let linkedByType: Partial<Record<ResourceObjectType, PropertyField>> = {};
                 if (field.object_type === GLOBAL_ATTRIBUTES_OBJECT_TYPE) {
                     const linkedFields = await fetchLinkedFieldsForTemplate(fieldId);
@@ -509,22 +507,17 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 setLdapAttr(typeof field.attrs?.ldap === 'string' ? field.attrs.ldap : '');
                 setSamlAttr(typeof field.attrs?.saml === 'string' ? field.attrs.saml : '');
 
-                // A non-template field has no linked fields to seed from --
-                // its Applies-to is its own object type, fixed (the
-                // AttributeAppliesTo call below disables it via isNonTemplate).
+                // A non-template field has no linked children: Applies-to is its
+                // own object type, and AttributeAppliesTo locks it via isNonTemplate.
                 setAppliesTo(
                     field.object_type === GLOBAL_ATTRIBUTES_OBJECT_TYPE ?
                         ALL_RESOURCE_TYPES.filter((type) => Boolean(linkedByType[type])) :
                         ALL_RESOURCE_TYPES.filter((type) => type === field.object_type),
                 );
 
-                // Branches on whether a Users field exists at all, not on
-                // create-vs-edit mode -- this one rule correctly covers a brand-new
-                // attribute AND an existing attribute that doesn't currently have a
-                // Users row (e.g. adding Users for the first time to an attribute
-                // that today only applies to Channels), falling back to the same
-                // defaults in both cases. A non-template user field is itself the
-                // Users field, so it seeds its own settings.
+                // Seed from a Users field if one exists, not from create-vs-edit:
+                // a template with no Users child still gets the same defaults as
+                // create. A non-template user field is itself that Users field.
                 const userField = field.object_type === 'user' ? field : linkedByType.user;
                 const rawVisibility = userField?.attrs?.visibility;
                 const loadedVisibility: FieldVisibility = rawVisibility === 'always' || rawVisibility === 'when_set' || rawVisibility === 'hidden' ? rawVisibility : 'when_set';

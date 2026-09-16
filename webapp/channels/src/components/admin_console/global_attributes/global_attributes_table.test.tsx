@@ -294,7 +294,6 @@ describe('GlobalAttributesTable', () => {
         });
 
         it('keeps the listing usable when one resource-scope fetch fails, dropping only that scope', async () => {
-            // Suppress the expected console.error from the failed scope.
             const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
             const cachedChannelField = makeField({id: 'c1', name: 'cached_channel_field', object_type: 'channel'});

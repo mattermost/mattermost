@@ -188,10 +188,10 @@ export type UpdateAttributeFieldPatch = {
     samlAttr: string;
 };
 
-// PATCHes a field in the given object type. Attrs are merge-patched
-// (mergeAttrs=true on the server): ldap/saml send null to unlink, and Text
-// sends options: null so a leftover options array is dropped. name is omitted
-// when unchanged so the server skips uniqueness re-validation.
+// Attrs are merge-patched (mergeAttrs=true on the server): ldap/saml send
+// null to unlink, and Text sends options: null so a leftover options array
+// is dropped. name is omitted when unchanged so the server skips uniqueness
+// re-validation.
 export function updateAttributeField(
     objectType: string,
     fieldId: string,
@@ -209,8 +209,7 @@ export function updateAttributeField(
     });
 }
 
-// Deletes a field from the access_control group in its own object type. The
-// server returns 409 when the field still has active linked dependents
+// The server returns 409 when the field still has active linked dependents
 // (CountLinkedFields > 0); callers are expected to surface that case distinctly
 // (or, for a save-time rollback, to only delete linked fields first -- see
 // createLinkedAttributeField).

@@ -481,12 +481,11 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                     return;
                 }
 
-                // Both the non-template rows and the applies-to chips come from
-                // the per-resource fields. A rejected fetch does not replace that
-                // scope in Redux, and a scope this license can't fetch at all is
-                // never requested, so suppress cached fields for both instead of
-                // showing stale data. Fetched scopes still render, and the listing
-                // stays usable.
+                // Both non-template rows and applies-to chips come from the
+                // per-resource fields. A rejected fetch does not replace that
+                // scope in Redux, and a scope this license never requests stays
+                // cached, so drop those scopes from the table instead of showing
+                // stale data.
                 const scopeResults = await Promise.allSettled(resourceTypesToFetch.map((objectType) =>
                     dispatch(fetchPropertyFields(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, GLOBAL_ATTRIBUTES_TARGET_TYPE)),
                 ));
