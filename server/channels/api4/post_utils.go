@@ -4,6 +4,8 @@
 package api4
 
 import (
+	"net/http"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
@@ -48,11 +50,36 @@ func postCardTypeCheckWithContext(where string, c *Context, postType string) {
 	}
 }
 
+// postBurnOnReadCheckWithContext runs the channel/participant checks and then
+// the ABAC create_burn_on_read_post policy check.
+//
+// The policy check is here rather than inside PostBurnOnReadCheckWithApp
+// because the scheduled-post send job calls that function too: a post that was
+// allowed when the user scheduled it must still send, even if the policy has
+// since tightened.
+//
+// It must also stay after the create-post permission check that both callers
+// run first. A user who cannot post in the channel at all is refused on that
+// basis rather than told burn-on-read is unavailable, and a burn-on-read allow
+// must never override a create-post deny.
 func postBurnOnReadCheckWithContext(where string, c *Context, post *model.Post, channel *model.Channel) {
 	appErr := app.PostBurnOnReadCheckWithApp(where, c.App, c.AppContext, post.UserId, post.ChannelId, post.Type, channel)
 	if appErr != nil {
 		appErr.Where = where
 		c.Err = appErr
+		return
+	}
+
+	if post.Type != model.PostTypeBurnOnRead {
+		return
+	}
+
+	if !c.App.Config().FeatureFlags.IsBurnOnReadABACPermissionEnabled() {
+		return
+	}
+
+	if !c.App.HasPermissionToChannelAction(c.AppContext, post.UserId, c.AppContext.Session().Roles, post.ChannelId, model.AccessControlPolicyActionCreateBurnOnReadPost) {
+		c.Err = model.NewAppError(where, "api.post.create_post.burn_on_read.abac_denied.app_error", nil, "", http.StatusForbidden)
 	}
 }
 
