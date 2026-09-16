@@ -478,7 +478,7 @@ export type CPAFieldDeleted = BaseWebSocketMessage<WebSocketEvents.CPAFieldDelet
 
 export type CPAValuesUpdated = BaseWebSocketMessage<WebSocketEvents.CPAValuesUpdated, {
     user_id: string;
-    values: Array<PropertyValue<unknown>>;
+    values: Record<string, unknown>;
 }>;
 
 // Content flagging messages
