@@ -124,7 +124,7 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
                 menuButton={{
                     id: `channelInfoAttributeEdit-${field.name}`,
                     dataTestId: `channelInfoAttributeEdit-${field.name}`,
-                    as: 'div',
+                    as: 'button',
                     class: 'ChannelInfoAttributes__valueTrigger',
                     disabled: saving,
                     'aria-label': formatMessage(
