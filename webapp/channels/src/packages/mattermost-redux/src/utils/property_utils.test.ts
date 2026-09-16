@@ -93,6 +93,12 @@ describe('getPropertyFieldLabel', () => {
         expect(getPropertyFieldLabel(makeField({name: 'caveat', attrs: {display_name: ''}}))).toBe('caveat');
         expect(getPropertyFieldLabel(makeField({name: 'caveat', attrs: {display_name: 42}}))).toBe('caveat');
     });
+
+    test('title-cases the classification slug so Channel Info matches the attribute name', () => {
+        expect(getPropertyFieldLabel(makeField({name: 'classification'}))).toBe('Classification');
+        expect(getPropertyFieldLabel(makeField({name: 'classification', attrs: {display_name: ''}}))).toBe('Classification');
+        expect(getPropertyFieldLabel(makeField({name: 'classification', attrs: {display_name: 'Classification'}}))).toBe('Classification');
+    });
 });
 
 function makeRankField(policy?: string): PropertyField {

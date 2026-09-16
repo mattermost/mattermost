@@ -2,69 +2,99 @@
 // See LICENSE.txt for license information.
 
 .ChannelsResourceRow {
-    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-    border-radius: 4px;
-    background: var(--center-channel-bg);
+    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+
+    &:last-child {
+        border-bottom: none;
+    }
 }
 
 .ChannelsResourceRow__header {
     display: flex;
-    align-items: flex-start;
-    padding: 12px 16px;
-    background: rgba(var(--center-channel-color-rgb), 0.04);
+    min-height: 46px;
+    align-items: center;
+    padding: 12px;
+    background: transparent;
     gap: 8px;
+    transition: background 0.15s ease-in-out;
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+    }
 }
 
-.ChannelsResourceRow__disclosure,
-.ChannelsResourceRow__remove {
-    padding: 0;
-    border: none;
-    background: transparent;
-    color: rgba(var(--center-channel-color-rgb), 0.75);
-    cursor: pointer;
+.ChannelsResourceRow--open .ChannelsResourceRow__header {
+    background: rgba(var(--center-channel-color-rgb), 0.03);
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.06);
+    }
 }
 
 .ChannelsResourceRow__disclosure {
     display: flex;
-    height: 20px;
-    align-items: center;
+    min-width: 0;
+    flex: 1;
+    align-items: flex-start;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--center-channel-color);
+    cursor: pointer;
+    gap: 8px;
+    text-align: left;
+
+    > svg {
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    &:hover {
+        background: transparent;
+    }
 }
 
-.ChannelsResourceRow__remove {
-    margin-left: auto;
-    color: var(--error-text);
-    font-size: 12px;
-    font-weight: 600;
-    line-height: 20px;
-
-    &:disabled {
-        cursor: not-allowed;
-        opacity: 0.5;
-    }
+.btn.btn-sm.ChannelsResourceRow__remove {
+    height: 32px;
+    flex-shrink: 0;
+    align-self: center;
+    padding: 0 12px;
+    margin-left: 0;
 }
 
 .ChannelsResourceRow__heading {
     display: flex;
+    min-width: 0;
+    flex: 1;
     flex-direction: column;
+    align-items: flex-start;
     gap: 2px;
 }
 
 .ChannelsResourceRow__title {
-    display: flex;
+    display: inline-flex;
+    flex-shrink: 0;
     align-items: center;
     color: var(--center-channel-color);
     font-size: 14px;
     font-weight: 600;
-    gap: 6px;
+    gap: 4px;
     line-height: 20px;
 }
 
 .ChannelsResourceRow__summary {
-    color: rgba(var(--center-channel-color-rgb), 0.75);
+    display: block;
+    overflow: hidden;
+    width: 100%;
+    min-width: 0;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
     font-size: 12px;
+    font-weight: 400;
     line-height: 16px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .ChannelsResourceRow__body {
-    padding: 4px 16px 16px;
+    padding: 4px 20px 16px 36px;
 }

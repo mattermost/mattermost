@@ -6,13 +6,13 @@ import React, {useState, type JSX} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
-import {AccountOutlineIcon, ChevronDownIcon} from '@mattermost/compass-icons/components';
+import {ChevronDownIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FieldVisibility} from '@mattermost/types/properties';
 
-import {resourceTypeLabels} from './attribute_applies_to_constants';
-import type {AttributeAppliesToItemProps} from './attribute_applies_to_constants';
+import {resourceTypeLabels, type AttributeAppliesToItemProps} from './attribute_applies_to_constants';
+import ResourceTypeIcon from './resource_type_icon';
 
 import './attribute_applies_to_item.scss';
 
@@ -43,9 +43,8 @@ function AttributeAppliesToUserItem({
     const toggleLabel = formatMessage(isOpen ? messages.collapseLabel : messages.expandLabel, {label});
 
     const toggleButton = (
-        <Button
+        <button
             type='button'
-            emphasis='quaternary'
             className='AttributeAppliesToItem__toggle'
             onClick={() => setIsOpen((prev) => !prev)}
             disabled={disabled}
@@ -58,9 +57,11 @@ function AttributeAppliesToUserItem({
                 size={16}
                 className={classNames('AttributeAppliesToItem__chevron', {'AttributeAppliesToItem__chevron--open': isOpen})}
             />
-            <AccountOutlineIcon size={18}/>
-            <span className='AttributeAppliesToItem__label'>{label}</span>
-        </Button>
+            <span className='AttributeAppliesToItem__name'>
+                <ResourceTypeIcon type='user'/>
+                <span className='AttributeAppliesToItem__label'>{label}</span>
+            </span>
+        </button>
     );
 
     return (
