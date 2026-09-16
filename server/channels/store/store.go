@@ -354,6 +354,7 @@ type ChannelMemberHistoryStore interface {
 type ThreadStore interface {
 	GetThreadFollowers(threadID string, fetchOnlyActive bool) ([]string, error)
 	GetThreadMembershipsForExport(postID string) ([]*model.ThreadMembershipForExport, error)
+	GetThreadFollowerIDsForChannel(teamName string, channelName string, includeArchivedChannels bool) ([]string, error)
 
 	Get(id string) (*model.Thread, error)
 	GetTotalUnreadThreads(userID, teamID string, opts model.GetUserThreadsOpts) (int64, error)
@@ -426,7 +427,9 @@ type PostStore interface {
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 	GetOldest() (*model.Post, error)
 	GetMaxPostSize() int
-	GetParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.PostForExport, error)
+	GetParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool, teamName string, channelNameFilter string) ([]*model.PostForExport, error)
+	GetPostAuthorIDsForTeam(teamName string, includeArchivedChannels bool) ([]string, error)
+	GetPostAuthorIDsForChannel(teamName string, channelName string, includeArchivedChannels bool) ([]string, error)
 	GetRepliesForExport(parentID string) ([]*model.ReplyForExport, error)
 	GetDirectPostParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.DirectPostForExport, error)
 	SearchPostsForUser(rctx request.CTX, paramsList []*model.SearchParams, userID, teamID string, page, perPage int) (*model.PostSearchResults, error)
@@ -813,6 +816,7 @@ type ReactionStore interface {
 	Save(reaction *model.Reaction) (*model.Reaction, error)
 	Delete(reaction *model.Reaction) (*model.Reaction, error)
 	GetForPost(postID string, allowFromCache bool) ([]*model.Reaction, error)
+	GetReactionAuthorIDsForChannel(teamName string, channelName string, includeArchivedChannels bool) ([]string, error)
 	GetForPostSince(postID string, since int64, excludeRemoteID string, inclDeleted bool) ([]*model.Reaction, error)
 	GetUniqueCountForPost(postID string) (int, error)
 	ExistsOnPost(postID string, emojiName string) (bool, error)

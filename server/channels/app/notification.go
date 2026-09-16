@@ -6,7 +6,7 @@ package app
 import (
 	"encoding/json"
 	"net/http"
-	"sort"
+	"slices"
 	"strings"
 	"sync"
 
@@ -1656,7 +1656,7 @@ func (n *PostNotification) GetChannelName(userNameFormat, excludeId string) stri
 			}
 		}
 
-		sort.Strings(names)
+		slices.Sort(names)
 
 		return strings.Join(names, ", ")
 	default:
