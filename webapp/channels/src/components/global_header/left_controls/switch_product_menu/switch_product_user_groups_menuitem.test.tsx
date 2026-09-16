@@ -71,7 +71,6 @@ describe('ProductSwitcherUserGroupsMenuItem', () => {
 
         renderWithContext(
             <ProductSwitcherUserGroupsMenuItem
-                isUserAdmin={true}
                 isCloudLicensed={false}
                 isEnterpriseReady={true}
                 isFreeTrialSubscription={false}
@@ -102,7 +101,6 @@ describe('ProductSwitcherUserGroupsMenuItem', () => {
 
         renderWithContext(
             <ProductSwitcherUserGroupsMenuItem
-                isUserAdmin={true}
                 isCloudLicensed={true}
                 isEnterpriseReady={true}
                 isFreeTrialSubscription={false}
@@ -116,7 +114,6 @@ describe('ProductSwitcherUserGroupsMenuItem', () => {
     test('should show for self-hosted starter (unlicensed)', () => {
         renderWithContext(
             <ProductSwitcherUserGroupsMenuItem
-                isUserAdmin={true}
                 isCloudLicensed={false}
                 isEnterpriseReady={true}
                 isFreeTrialSubscription={false}
@@ -130,7 +127,6 @@ describe('ProductSwitcherUserGroupsMenuItem', () => {
     test('should disable menu item for self-hosted starter', () => {
         const {container} = renderWithContext(
             <ProductSwitcherUserGroupsMenuItem
-                isUserAdmin={true}
                 isCloudLicensed={false}
                 isEnterpriseReady={true}
                 isFreeTrialSubscription={false}
@@ -160,7 +156,6 @@ describe('ProductSwitcherUserGroupsMenuItem', () => {
 
         renderWithContext(
             <ProductSwitcherUserGroupsMenuItem
-                isUserAdmin={true}
                 isCloudLicensed={false}
                 isEnterpriseReady={true}
                 isFreeTrialSubscription={false}
@@ -174,7 +169,6 @@ describe('ProductSwitcherUserGroupsMenuItem', () => {
     test('should show for a cloud free trial', () => {
         renderWithContext(
             <ProductSwitcherUserGroupsMenuItem
-                isUserAdmin={true}
                 isCloudLicensed={true}
                 isEnterpriseReady={true}
                 isFreeTrialSubscription={true}
@@ -203,7 +197,6 @@ describe('ProductSwitcherUserGroupsMenuItem', () => {
 
         renderWithContext(
             <ProductSwitcherUserGroupsMenuItem
-                isUserAdmin={true}
                 isCloudLicensed={false}
                 isEnterpriseReady={false}
                 isFreeTrialSubscription={false}
@@ -214,10 +207,9 @@ describe('ProductSwitcherUserGroupsMenuItem', () => {
         expect(screen.getByText('User Groups')).toBeInTheDocument();
     });
 
-    test('should show the restricted indicator for an admin on starter', () => {
+    test('should show the restricted indicator on starter', () => {
         const {container} = renderWithContext(
             <ProductSwitcherUserGroupsMenuItem
-                isUserAdmin={true}
                 isCloudLicensed={false}
                 isEnterpriseReady={true}
                 isFreeTrialSubscription={false}
@@ -228,15 +220,55 @@ describe('ProductSwitcherUserGroupsMenuItem', () => {
         expect(container.querySelector('.RestrictedIndicator__icon-tooltip-container')).toBeInTheDocument();
     });
 
-    test('should hide the restricted indicator when the user is not an admin', () => {
+    test('should show the restricted indicator for a non-admin on starter', () => {
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                ...initialState.entities,
+                users: {
+                    currentUserId: 'user_id',
+                    profiles: {
+                        user_id: TestHelper.getUserMock({id: 'user_id', roles: 'system_user'}),
+                    },
+                },
+            },
+        };
+
         const {container} = renderWithContext(
             <ProductSwitcherUserGroupsMenuItem
-                isUserAdmin={false}
                 isCloudLicensed={false}
                 isEnterpriseReady={true}
                 isFreeTrialSubscription={false}
             />,
-            initialState,
+            state,
+        );
+
+        expect(screen.getByText('User Groups')).toBeInTheDocument();
+        expect(container.querySelector('.RestrictedIndicator__icon-tooltip-container')).toBeInTheDocument();
+    });
+
+    test('should hide the restricted indicator when custom user groups are licensed', () => {
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                ...initialState.entities,
+                general: {
+                    license: {
+                        IsLicensed: 'true',
+                        IsTrial: 'false',
+                    },
+                    config: {
+                        EnableCustomGroups: 'true',
+                    },
+                },
+            },
+        };
+
+        const {container} = renderWithContext(
+            <ProductSwitcherUserGroupsMenuItem
+                isCloudLicensed={false}
+                isEnterpriseReady={true}
+                isFreeTrialSubscription={false}
+            />,
+            state,
         );
 
         expect(screen.getByText('User Groups')).toBeInTheDocument();

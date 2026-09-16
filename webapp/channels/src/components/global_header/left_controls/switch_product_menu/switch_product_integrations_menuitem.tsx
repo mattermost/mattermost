@@ -33,11 +33,9 @@ export default function ProductSwitcherIntegrationsMenuItem(props: Props) {
     const havePermissionToManageOthersBots = useSelector((state: GlobalState) => haveISystemPermission(state, {permission: Permissions.MANAGE_OTHERS_BOTS}));
     const havePermissionToManageSomeBots = havePermissionToManageBots || havePermissionToManageOthersBots;
 
-    // We check some integrations are enabled because the integrations page lists all integrations, including those that are not enabled.
-    // further per integration permission check will be done in the integrations page.
-    const areSomeIntegrationsEnabled = props.haveEnabledIncomingWebhooks || props.haveEnabledOutgoingWebhooks || props.haveEnabledSlashCommands || props.haveEnabledOAuthServiceProvider || havePermissionToManageSomeBots;
-
-    // Next we check if user have permission to manage other's or own integrations one by one.
+    // We pair each integration's enablement with the permissions for that same integration,
+    // so that an enabled integration the user cannot manage doesn't unlock the menu item.
+    // Further per integration permission check will be done in the integrations page.
 
     // 1. Incoming Webhooks
     const havePermissionToManageIncomingWebhooks = useSelector((state: GlobalState) => haveICurrentTeamPermission(state, Permissions.MANAGE_INCOMING_WEBHOOKS));
@@ -57,9 +55,12 @@ export default function ProductSwitcherIntegrationsMenuItem(props: Props) {
     // 5. Bots
     // We already checked if user have permission to manage bots or others bots above.
 
-    const canManageSomeIntegrations = havePermissionToManageIncomingWebhooks || havePermissionToManageOwnIncomingWebhooks || havePermissionToManageOutgoingWebhooks || havePermissionToManageOwnOutgoingWebhooks || havePermissionToManageSlashCommands || havePermissionToManageOwnSlashCommands || havePermissionToManageOAuth || havePermissionToManageSomeBots;
-
-    const canVisitIntegrationsPage = areSomeIntegrationsEnabled && canManageSomeIntegrations;
+    const canVisitIntegrationsPage =
+        (props.haveEnabledIncomingWebhooks && (havePermissionToManageIncomingWebhooks || havePermissionToManageOwnIncomingWebhooks)) ||
+        (props.haveEnabledOutgoingWebhooks && (havePermissionToManageOutgoingWebhooks || havePermissionToManageOwnOutgoingWebhooks)) ||
+        (props.haveEnabledSlashCommands && (havePermissionToManageSlashCommands || havePermissionToManageOwnSlashCommands)) ||
+        (props.haveEnabledOAuthServiceProvider && havePermissionToManageOAuth) ||
+        havePermissionToManageSomeBots;
 
     if (!props.isChannelsProductActive) {
         return null;

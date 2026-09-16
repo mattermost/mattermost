@@ -21,7 +21,6 @@ import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
 import {CloudProducts, LicenseSkus, MattermostFeatures, ModalIdentifiers} from 'utils/constants';
 
 type Props = {
-    isUserAdmin: boolean;
     isCloudLicensed: boolean;
     isEnterpriseReady: boolean;
     isFreeTrialSubscription: boolean;
@@ -61,7 +60,7 @@ export default function ProductSwitcherUserGroupsMenuItem(props: Props) {
         return null;
     }
 
-    const showRestrictedIndicator = props.isUserAdmin && (isStarterFree || isFreeTrial);
+    const showRestrictedIndicator = isStarterFree || isFreeTrial;
 
     return (
         <Menu.Item

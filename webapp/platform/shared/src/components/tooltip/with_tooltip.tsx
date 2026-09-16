@@ -70,11 +70,15 @@ export interface WithTooltipProps {
 
     /**
      * The trigger element for the tooltip.
-     * Note: If this is a custom function component, it must use React.forwardRef()
-     * to properly receive the ref needed for tooltip positioning.
-     * Native elements (div, button, etc.) and class components work automatically.
-     * eg. <WithTooltip><span>{'Hello'}</span></WithTooltip> - No need to forwardRef
-     * eg. <WithTooltip><MyCustomComponent/></WithTooltip> - "MyCustomComponent" MUST forwardRef
+     * This element is cloned with a `ref` used for positioning, plus the interaction
+     * and accessibility props that open and describe the tooltip.
+     * Native elements (div, button, etc.) work automatically.
+     * A custom component must accept `ref` and forward it, along with the remaining
+     * props, to the DOM element it renders as the trigger.
+     * Class components do not work, because their `ref` resolves to the instance
+     * instead of a DOM element that can be measured.
+     * eg. <WithTooltip><span>{'Hello'}</span></WithTooltip> - works as is
+     * eg. <WithTooltip><MyCustomComponent/></WithTooltip> - "MyCustomComponent" MUST pass `ref` and props to its trigger element
      */
     children: ReactElement<any>;
 

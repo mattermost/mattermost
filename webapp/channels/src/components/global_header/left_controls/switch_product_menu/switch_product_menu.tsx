@@ -125,7 +125,6 @@ export function SwitchProductMenu(props: Props) {
             />
             <ProductSwitcherUserGroupsMenuItem
                 isEnterpriseReady={isEnterpriseReady}
-                isUserAdmin={isUserAdmin}
                 isCloudLicensed={isCloudLicensed}
                 isFreeTrialSubscription={isFreeTrialSubscription}
             />

@@ -45,7 +45,7 @@ export default function ProductSwitcherEditionFooter() {
         label = (
             <FormattedMessage
                 id='globalHeader.productSwitcherMenu.editionMenuitem.entry'
-                defaultMessage='Entry offers Enterprise Advance capabilities <b>with limits</b> designed to support evaluation. Learn more.'
+                defaultMessage='Entry offers Enterprise Advanced capabilities <b>with limits</b> designed to support evaluation. Learn more.'
                 values={{
                     b: (msg: React.ReactNode) => (
                         <b>

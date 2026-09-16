@@ -196,6 +196,19 @@ describe('ProductSwitcherIntegrationsMenuItem', () => {
         expect(screen.getByText('Integrations')).toBeInTheDocument();
     });
 
+    test('should not show when the enabled integration and the granted permission are for different integrations', () => {
+        renderWithContext(
+            <ProductSwitcherIntegrationsMenuItem
+                isChannelsProductActive={true}
+                {...noIntegrationsEnabled}
+                haveEnabledIncomingWebhooks={true}
+            />,
+            getStateWithPermissions([], [Permissions.MANAGE_OAUTH]),
+        );
+
+        expect(screen.queryByText('Integrations')).not.toBeInTheDocument();
+    });
+
     test('should show when atleast one integration is enabled and user has permission to manage it', () => {
         const state: DeepPartial<GlobalState> = {
             entities: {
