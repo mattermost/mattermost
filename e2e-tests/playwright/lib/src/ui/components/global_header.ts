@@ -20,9 +20,6 @@ export default class GlobalHeader {
     readonly helpButton;
     readonly searchBox;
     readonly userProfileMenu;
-    readonly appMarketplaceMenuItem;
-    readonly userGroupsMenuItem;
-    readonly aboutMenuItem;
 
     constructor(channelsPage: ChannelsPage, container: Locator) {
         this.channelsPage = channelsPage;
@@ -36,11 +33,6 @@ export default class GlobalHeader {
         this.helpButton = container.getByRole('button', {name: 'Help'});
         this.searchBox = container.locator('#searchFormContainer');
         this.userProfileMenu = container.locator('#userAccountMenuButton');
-
-        // Rendered in a portal at the page level once the product switch menu is open.
-        this.appMarketplaceMenuItem = container.page().getByRole('menuitem', {name: 'App Marketplace'});
-        this.userGroupsMenuItem = container.page().getByRole('menuitem', {name: 'User Groups'});
-        this.aboutMenuItem = container.page().getByRole('menuitem', {name: /^About /});
     }
 
     async toBeVisible(name: string) {
@@ -58,16 +50,16 @@ export default class GlobalHeader {
      * Opens the product switch menu and selects the "App Marketplace" item.
      */
     async openAppMarketplace() {
-        await this.switchProductMenuButton.click();
-        await this.appMarketplaceMenuItem.click();
+        const menu = await this.openSwitchProductMenu();
+        await menu.openMarketplace();
     }
 
     /**
      * Opens the product switch menu and selects the "User Groups" item.
      */
     async openUserGroups() {
-        await this.switchProductMenuButton.click();
-        await this.userGroupsMenuItem.click();
+        const menu = await this.openSwitchProductMenu();
+        await menu.openUserGroups();
     }
 
     async openSettings() {
@@ -121,8 +113,8 @@ export default class GlobalHeader {
      * Opens the product switch menu and selects "About {siteName}", returning the modal.
      */
     async openAbout(): Promise<AboutBuildModal> {
-        await this.switchProductMenuButton.click();
-        await this.aboutMenuItem.click();
+        const menu = await this.openSwitchProductMenu();
+        await menu.openAbout();
 
         const aboutModal = new AboutBuildModal(this.container.page().getByRole('dialog', {name: /^About /}));
         await aboutModal.toBeVisible();

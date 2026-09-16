@@ -20,8 +20,8 @@ export default class SwitchProductMenu {
         this.channelsMenuItem = container.getByRole('menuitem', {name: 'Channels'});
         this.systemConsoleMenuItem = container.getByRole('menuitem', {name: 'System Console'});
         this.integrationsMenuItem = container.getByRole('menuitem', {name: 'Integrations'});
-        this.userGroupsMenuItem = container.getByRole('menuitem', {name: 'User groups'});
-        this.marketplaceMenuItem = container.getByRole('menuitem', {name: 'Marketplace'});
+        this.userGroupsMenuItem = container.getByRole('menuitem', {name: 'User Groups'});
+        this.marketplaceMenuItem = container.getByRole('menuitem', {name: 'App Marketplace'});
         this.downloadMenuItem = container.getByRole('menuitem', {name: 'Download'});
         this.aboutMenuItem = container.getByRole('menuitem', {name: 'About'});
     }
