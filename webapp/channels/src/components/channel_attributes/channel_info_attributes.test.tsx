@@ -350,6 +350,10 @@ describe('ChannelInfoAttributes', () => {
             );
 
             await userEvent.tab();
+            const trigger = screen.getByRole('button', {name: 'Edit Program'});
+            expect(trigger).toHaveFocus();
+
+            await userEvent.tab();
             const remove = screen.getByRole('button', {name: 'Clear Program'});
             expect(remove).toHaveFocus();
 
