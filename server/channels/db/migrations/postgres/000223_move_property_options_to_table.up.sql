@@ -1,6 +1,6 @@
--- Move the options of select-style property fields (select, multiselect, rank)
--- out of the PropertyFields.Attrs->'options' JSON array and into a table of
--- their own.
+-- Move the options of option-bearing property fields (select, multiselect,
+-- rank, graph) out of the PropertyFields.Attrs->'options' JSON array and into
+-- a table of their own.
 --
 -- Inside the blob an option is not individually addressable: it cannot be paged,
 -- counted, or pointed at by a row-level relationship, and every edit rewrites
@@ -89,7 +89,7 @@ WITH exploded AS (
         opt.ordinality::int AS ord
     FROM PropertyFields pf
     CROSS JOIN LATERAL jsonb_array_elements(pf.Attrs->'options') WITH ORDINALITY AS opt(value, ordinality)
-    WHERE pf.Type IN ('select', 'multiselect', 'rank')
+    WHERE pf.Type IN ('select', 'multiselect', 'rank', 'graph')
       AND jsonb_typeof(pf.Attrs->'options') = 'array'
       AND jsonb_typeof(opt.value) = 'object'
 ),
@@ -197,7 +197,7 @@ BEGIN
         SELECT pf.ID AS fieldid, opt.value->>'id' AS optionid
         FROM PropertyFields pf
         CROSS JOIN LATERAL jsonb_array_elements(pf.Attrs->'options') AS opt(value)
-        WHERE pf.Type IN ('select', 'multiselect', 'rank')
+        WHERE pf.Type IN ('select', 'multiselect', 'rank', 'graph')
           AND jsonb_typeof(pf.Attrs->'options') = 'array'
           AND jsonb_typeof(opt.value) = 'object'
           AND jsonb_typeof(opt.value->'id') = 'string'
@@ -241,18 +241,92 @@ $$;
 -- The blob's removal is a migration of its own, in a later release, once
 -- every supported node reads options from PropertyOptions.
 
--- Both attribute views resolved option names out of the blob, so both have to
--- be redefined here or every policy referencing a select-style attribute
--- starts matching nothing.
+-- Parent links between the options of a single property field.
 --
--- Two changes from the previous definitions. The jsonb_to_recordset over
--- Attrs->'options' becomes a lookup against PropertyOptions, and the lookup is
--- scoped to the field's effective option set -- its own rows plus those of its
--- link source -- because a linked field no longer holds a copy of the source's
--- options. Soft-deleted options are excluded, matching the blob, where removing
--- an option removed it outright. Each type's projection is otherwise unchanged:
--- select yields the option name, multiselect an array of names in value order,
--- rank an object of name and rank.
+-- A `graph`-typed field's options form a hierarchy rather than a flat list: an
+-- option may have several parents and several children, and access rules ask
+-- whether one option is at or above another. Each row here is one such link,
+-- read in both directions -- upwards to find an option's ancestors, downwards to
+-- find its descendants.
+--
+-- Both endpoints always belong to the field named in FieldID. An edge never
+-- crosses fields, so a field's hierarchy is exactly the rows carrying its ID.
+
+CREATE TABLE IF NOT EXISTS PropertyOptionEdges (
+    FieldID varchar(26) NOT NULL,
+    -- text, and not varchar(N), because that is what PropertyOptions.ID is: the
+    -- option IDs these reference were backfilled from a JSON array that never
+    -- length- or format-checked them.
+    ChildOptionID text NOT NULL,
+    ParentOptionID text NOT NULL,
+    CreateAt bigint NOT NULL,
+    -- An option is identified by (FieldID, ID), so an endpoint of an edge is
+    -- too, and the same holds for the edge itself. Leading with FieldID also
+    -- makes this index the one that walks upwards: given a set of children in a
+    -- field, it finds their parents.
+    PRIMARY KEY (FieldID, ChildOptionID, ParentOptionID)
+);
+
+-- No DeleteAt column: an edge is a link between two options rather than an
+-- entity of its own, so re-parenting an option deletes rows outright, and
+-- deleting an option deletes every edge it appears in. There is nothing a
+-- tombstone would let a reader tell apart, and a soft-deleted edge would have to
+-- be excluded by every traversal.
+--
+-- No foreign key to PropertyOptions either, matching the rest of this schema.
+-- The store deletes an option's edges in the same transaction that deletes the
+-- option.
+
+-- The indexes come after the backfill: building each in one pass over the
+-- populated table is cheaper than maintaining it across the insert, and inside
+-- the migration's transaction there is no concurrent traffic CONCURRENTLY
+-- would serve.
+
+-- Load a field's live options in display order (also the keyset page key).
+-- Deliberately no UNIQUE constraint: rank uniqueness is an application
+-- invariant that may be relaxed.
+CREATE INDEX IF NOT EXISTS idx_propertyoptions_fieldid_createat_id ON PropertyOptions (FieldID, CreateAt, ID) WHERE DeleteAt = 0;
+
+-- Resolve a name within a field. Deliberately no UNIQUE constraint: name
+-- uniqueness spans a field and its link source, so it cannot be expressed as a
+-- single-table index.
+CREATE INDEX IF NOT EXISTS idx_propertyoptions_fieldid_name ON PropertyOptions (FieldID, Name) WHERE DeleteAt = 0;
+
+-- The downward walk, and the check that an option still has children (which is
+-- what stops an interior option from being deleted).
+--
+-- FieldID leads for correctness, not just for selectivity: option IDs are not
+-- unique across fields -- unlinking a field from its template deliberately
+-- duplicates them, since the field takes over the options it was deriving under
+-- the identifiers its property values already point at -- so a walk keyed on
+-- ParentOptionID alone would pull in another field's edges. Every query here is
+-- field-scoped, and the index has to lead with FieldID for that predicate to be
+-- usable.
+CREATE INDEX IF NOT EXISTS idx_propertyoptionedges_fieldid_parent_child ON PropertyOptionEdges (FieldID, ParentOptionID, ChildOptionID);
+
+-- Both attribute views resolved option names out of the blob, so both are
+-- redefined here or every policy referencing a select-style attribute starts
+-- matching nothing. The jsonb_to_recordset over Attrs->'options' becomes a
+-- lookup against PropertyOptions, scoped to the field's effective option set
+-- -- its own rows plus those of its link source -- because a linked field no
+-- longer holds a copy of the source's options. Soft-deleted options are
+-- excluded, matching the blob, where removing an option removed it outright.
+-- Select yields the option's name, multiselect an array of names in value
+-- order, rank an object of name and rank.
+--
+-- A graph value gets a branch of its own rather than falling through to the
+-- catch-all, which would project the stored value as it is. The branch yields
+-- the identifiers of the live options the object holds, and always an array:
+--
+--   * Identifiers rather than names, because a rule over a hierarchy is
+--     compiled against the identifiers of the options at or above the ones it
+--     names, and identifiers survive an option being renamed.
+--   * The held options only, with no ancestors mixed in, because that
+--     at-or-above set is computed when the rule is compiled. The view never
+--     has to walk PropertyOptionEdges.
+--   * An array even when nothing is held, so a rule can apply an array
+--     operator to it without testing the value's type first.
+
 DROP MATERIALIZED VIEW IF EXISTS UserAttributeView;
 DROP MATERIALIZED VIEW IF EXISTS ChannelAttributeView;
 
@@ -291,6 +365,26 @@ SELECT
                   AND po.DeleteAt = 0
                 LIMIT 1
             )
+            -- The identifiers the object holds, keeping only options that still
+            -- exist. Scoped to the field's effective option set -- its own
+            -- options plus those of the field it links to -- because a field
+            -- that links to a template holds none of the options it serves.
+            -- COALESCE, because an aggregate over no rows is NULL, and a JSON
+            -- null here would be a third case for every rule to handle: an
+            -- object that holds only deleted options holds nothing, so it
+            -- projects an empty array.
+            WHEN pf.Type = 'graph' AND jsonb_typeof(pv.Value) = 'array' THEN COALESCE((
+                SELECT jsonb_agg(po.ID)
+                FROM jsonb_array_elements_text(pv.Value) AS option_id
+                JOIN PropertyOptions po
+                  ON po.ID = option_id
+                 AND po.FieldID IN (pf.ID, COALESCE(NULLIF(pf.LinkedFieldID, ''), pf.ID))
+                 AND po.DeleteAt = 0
+            ), '[]'::jsonb)
+            -- A graph value that is not an array names no options. Projecting it
+            -- as it is would hand a rule a value to compare instead of a set to
+            -- intersect, so it projects as holding nothing.
+            WHEN pf.Type = 'graph' THEN '[]'::jsonb
             ELSE pv.Value
         END
     ) AS Attributes
@@ -336,6 +430,17 @@ SELECT
                   AND po.DeleteAt = 0
                 LIMIT 1
             )
+            -- As in UserAttributeView above: the identifiers the object holds,
+            -- live options only, always an array.
+            WHEN pf.Type = 'graph' AND jsonb_typeof(pv.Value) = 'array' THEN COALESCE((
+                SELECT jsonb_agg(po.ID)
+                FROM jsonb_array_elements_text(pv.Value) AS option_id
+                JOIN PropertyOptions po
+                  ON po.ID = option_id
+                 AND po.FieldID IN (pf.ID, COALESCE(NULLIF(pf.LinkedFieldID, ''), pf.ID))
+                 AND po.DeleteAt = 0
+            ), '[]'::jsonb)
+            WHEN pf.Type = 'graph' THEN '[]'::jsonb
             ELSE pv.Value
         END
     ) AS Attributes

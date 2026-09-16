@@ -1,5 +1,6 @@
--- Put the options of select-style property fields back inside
--- PropertyFields.Attrs->'options' and drop PropertyOptions.
+-- Put the options of option-bearing property fields back inside
+-- PropertyFields.Attrs->'options' and drop PropertyOptions and
+-- PropertyOptionEdges.
 --
 -- Each field gets its effective option set written into its own blob -- its own
 -- rows plus those of its link source -- which restores the state the blob was
@@ -20,7 +21,7 @@
 -- or one that was never backfilled, is left untouched.
 UPDATE PropertyFields
    SET Attrs = Attrs - 'options'
- WHERE Type IN ('select', 'multiselect', 'rank')
+ WHERE Type IN ('select', 'multiselect', 'rank', 'graph')
    AND jsonb_typeof(Attrs->'options') = 'array';
 
 WITH hydrated AS (
@@ -46,8 +47,11 @@ effective AS (
     JOIN hydrated h ON h.fieldid IN (pf.ID, COALESCE(NULLIF(pf.LinkedFieldID, ''), pf.ID))
     GROUP BY pf.ID
 )
+-- A field that only ever links to a template can hold a JSON null for Attrs --
+-- it owns nothing, so nothing was ever written -- and jsonb_set cannot set a
+-- path in a scalar.
 UPDATE PropertyFields pf
-   SET Attrs = jsonb_set(COALESCE(pf.Attrs, '{}'::jsonb), '{options}', e.options, true)
+   SET Attrs = jsonb_set(CASE WHEN jsonb_typeof(pf.Attrs) = 'object' THEN pf.Attrs ELSE '{}'::jsonb END, '{options}', e.options, true)
   FROM effective e
  WHERE pf.ID = e.fieldid;
 
@@ -138,3 +142,4 @@ WHERE (pv.DeleteAt = 0 OR pv.DeleteAt IS NULL)
 GROUP BY pv.GroupID, pv.TargetID, pv.TargetType;
 
 DROP TABLE IF EXISTS PropertyOptions;
+DROP TABLE IF EXISTS PropertyOptionEdges;
