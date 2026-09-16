@@ -192,6 +192,13 @@ const (
 	AuditEventRemoveTeamsFromPolicy    = "removeTeamsFromPolicy"    // remove teams from data retention policy
 )
 
+// Ephemeral Mode
+const (
+	AuditEventAutoCacheCleanupRun = "autoCacheCleanupRun" // automatic cache cleanup run
+	AuditEventOfflinePurge        = "offlinePurge"        // offline purge
+	AuditEventSessionWipe         = "sessionWipe"         // session wipe
+)
+
 // Emojis
 const (
 	AuditEventCreateEmoji = "createEmoji" // create emoji
@@ -542,4 +549,10 @@ const (
 	AuditEventSetReviewer                  = "setFlaggedPostReviewer"       // assign reviewer for flagged post
 	AuditEventGenerateFlaggedPostReport    = "generateFlaggedPostReport"    // generate flagged post data report
 	AuditEventGeneratePostExposureReport   = "generatePostExposureReport"   // generate flagged post exposure report
+)
+
+// Post Delivery Tracking
+const (
+	AuditEventUpdateDeliveryTrackingConfig = "updateDeliveryTrackingConfig" // update post delivery tracking configuration
+	AuditEventPostDelivered                = "postDelivered"                // a post's content was delivered to a user or integration
 )

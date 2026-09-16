@@ -9,7 +9,7 @@ import {PropertyTypes} from 'mattermost-redux/action_types';
 import useChannelClassificationBanner from 'components/common/hooks/useChannelClassificationBanner';
 import useClassificationMarkings from 'components/common/hooks/useClassificationMarkings';
 
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsConfigurationTab from './channel_settings_configuration_tab';
@@ -74,6 +74,7 @@ beforeEach(() => {
         classificationBanner: undefined,
         classificationId: undefined,
         bannerText: undefined,
+        classificationIsBannerDesignated: false,
     });
 });
 
@@ -240,6 +241,37 @@ describe('ChannelSettingsConfigurationTab', () => {
                 background_color: expect.any(String), // The exact color might be hard to test due to the mock
             },
         });
+    });
+
+    it('should call patchChannel only once when Save is clicked twice before the first save resolves', async () => {
+        const {patchChannel} = require('mattermost-redux/actions/channels');
+        let resolveSave: (value: unknown) => void = () => {};
+        patchChannel.mockImplementation(() => () => new Promise((resolve) => {
+            resolveSave = resolve;
+        }));
+
+        renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
+
+        await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
+
+        const textInput = screen.getByTestId('channel_banner_banner_text_textbox');
+        await userEvent.clear(textInput);
+        await userEvent.type(textInput, 'New banner text');
+
+        const colorInput = screen.getByTestId('color-inputColorValue');
+        await userEvent.clear(colorInput);
+        await userEvent.type(colorInput, '#AA00AA');
+
+        const saveButton = screen.getByRole('button', {name: 'Save'});
+
+        // Two clicks fired back-to-back, before the first save's promise settles.
+        fireEvent.click(saveButton);
+        fireEvent.click(saveButton);
+
+        resolveSave({type: 'MOCK_ACTION', data: {}});
+
+        await waitFor(() => expect(screen.queryByText('Saving...')).not.toBeInTheDocument());
+        expect(patchChannel).toHaveBeenCalledTimes(1);
     });
 
     it('should reset form when Reset button is clicked', async () => {
@@ -1113,6 +1145,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                 } : undefined,
                 classificationId: initialBanner.classificationId,
                 bannerText: initialBanner.bannerText,
+                classificationIsBannerDesignated: false,
             });
         }
 
@@ -1131,6 +1164,30 @@ describe('ChannelSettingsConfigurationTab', () => {
 
         it('does not render the Classification section when feature is unavailable', () => {
             renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
+
+            expect(screen.queryByText('Classification')).not.toBeInTheDocument();
+        });
+
+        it('does not render the Classification section once channel attributes own assignment', () => {
+            // Otherwise this control and Channel Info would both set the same value,
+            // and disagree the moment one of them changed.
+            mockManageChannelRolesPermission = true;
+            enableClassification();
+
+            renderWithContext(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    canManageSharedChannels={true}
+                />,
+                {
+                    entities: {
+                        general: {
+                            config: {FeatureFlagChannelAttributes: 'true'},
+                            license: {IsLicensed: 'true', SkuShortName: 'advanced'},
+                        },
+                    },
+                },
+            );
 
             expect(screen.queryByText('Classification')).not.toBeInTheDocument();
         });
@@ -1358,6 +1415,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                 classificationBanner: undefined,
                 classificationId: undefined,
                 bannerText: undefined,
+                classificationIsBannerDesignated: false,
             });
             rerender(
                 <ChannelSettingsConfigurationTab

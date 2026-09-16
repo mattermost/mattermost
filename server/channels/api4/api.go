@@ -98,6 +98,8 @@ type Routes struct {
 
 	DataRetention *mux.Router // 'api/v4/data_retention'
 
+	EphemeralMode *mux.Router // 'api/v4/ephemeral_mode'
+
 	Brand *mux.Router // 'api/v4/brand'
 
 	System *mux.Router // 'api/v4/system'
@@ -171,6 +173,8 @@ type Routes struct {
 	AccessControlDecisions *mux.Router // 'api/v4/access_control/decisions'
 
 	ContentFlagging *mux.Router // 'api/v4/content_flagging'
+
+	DeliveryTracking *mux.Router // 'api/v4/delivery_tracking'
 
 	Agents      *mux.Router // 'api/v4/agents'
 	LLMServices *mux.Router // 'api/v4/llmservices'
@@ -282,6 +286,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.ScheduledRecap = api.BaseRoutes.ScheduledRecaps.PathPrefix("/{scheduled_recap_id:[A-Za-z0-9]+}").Subrouter()
 	api.BaseRoutes.Elasticsearch = api.BaseRoutes.APIRoot.PathPrefix("/elasticsearch").Subrouter()
 	api.BaseRoutes.DataRetention = api.BaseRoutes.APIRoot.PathPrefix("/data_retention").Subrouter()
+	api.BaseRoutes.EphemeralMode = api.BaseRoutes.APIRoot.PathPrefix("/ephemeral_mode").Subrouter()
 
 	api.BaseRoutes.Emojis = api.BaseRoutes.APIRoot.PathPrefix("/emoji").Subrouter()
 	api.BaseRoutes.Emoji = api.BaseRoutes.APIRoot.PathPrefix("/emoji/{emoji_id:[A-Za-z0-9]+}").Subrouter()
@@ -339,6 +344,8 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.BaseRoutes.ContentFlagging = api.BaseRoutes.APIRoot.PathPrefix("/content_flagging").Subrouter()
 
+	api.BaseRoutes.DeliveryTracking = api.BaseRoutes.APIRoot.PathPrefix("/delivery_tracking").Subrouter()
+
 	api.BaseRoutes.Agents = api.BaseRoutes.APIRoot.PathPrefix("/agents").Subrouter()
 	api.BaseRoutes.LLMServices = api.BaseRoutes.APIRoot.PathPrefix("/llmservices").Subrouter()
 
@@ -370,6 +377,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitLdap()
 	api.InitElasticsearch()
 	api.InitDataRetention()
+	api.InitEphemeralMode()
 	api.InitBrand()
 	api.InitJob()
 	api.InitRecap()
@@ -409,6 +417,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitAuditLogging()
 	api.InitAccessControlPolicy()
 	api.InitContentFlagging()
+	api.InitDeliveryTracking()
 	api.InitAgents()
 	api.InitProperties()
 

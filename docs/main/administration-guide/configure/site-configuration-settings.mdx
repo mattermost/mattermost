@@ -597,32 +597,6 @@ Changing this configuration setting changes the default client language for user
 </tbody>
 </table>
 
-### Enable experimental locales
-
-Enable work in progress languages in Mattermost to review translations and identify translation gaps.
-
-<table>
-<colgroup>
-<col style={{width: '36%'}} />
-<col style={{width: '63%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td><ul><li><strong>true</strong>: Work in progress languages are available in Mattermost in addition to officially supported languages.</li><li><strong>false</strong>: <strong>(Default)</strong> Only officially supported languages are available in Mattermost.</li></ul></td>
-<td><ul><li>System Config path: <strong>Site Configuration &gt; Localization</strong></li><li><code>config.json</code> setting: <code>LocalizationSettings</code> &gt; <code>EnableExperimentalLocales</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_LOCALIZATIONETTINGS_ENABLEEXPERIMENTALLOCALES</code></li></ul></td>
-</tr>
-</tbody>
-</table>
-
-<Note>
-
-- Cloud system admins can request this configuration setting to be enabled for their instance by contacting their Mattermost Account Manager.
-- Work in progress languages may be incomplete. Strings missing translations display in US English.
-- Currently, only web and desktop app product strings are impacted by this configuration setting. Server and mobile product strings aren't impacted by this setting.
-- See the [language](/end-user-guide/preferences/manage-your-display-options#language) documentation for details on selecting a language preference in Mattermost.
-
-</Note>
-
 ------------------------------------------------------------------------------------------------------------------------
 
 ## Auto-translation
@@ -1678,7 +1652,7 @@ Disabling this feature prevents users from sending new burn-on-read messages. On
 
 <Important>
 
-The server must be connected to the internet to generate previews. This connection can be established through a [firewall or outbound proxy](/deployment-guide/server/preparations#outbound-proxy-configuration) if necessary.
+The server must be connected to the internet to generate previews. This connection can be established through a [firewall or outbound proxy](/deployment-guide/server/prepare-network#outbound-proxy-configuration) if necessary.
 
 </Important>
 

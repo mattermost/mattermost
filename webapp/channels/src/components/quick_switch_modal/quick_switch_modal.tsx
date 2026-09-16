@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
@@ -246,7 +246,7 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
                         onItemSelected={this.handleSubmit}
                         listComponent={SuggestionList}
                         listPosition='bottom'
-                        maxLength='64'
+                        maxLength={64}
                         providers={providers}
                         completeOnTab={false}
                         spellCheck='false'

@@ -61,7 +61,7 @@ function makeState(fields: PropertyField[], values: Array<PropertyValue<unknown>
         entities: {
             general: {
                 config: {FeatureFlagChannelAttributes: flag},
-                license: {IsLicensed: 'true', SkuShortName: 'enterprise'},
+                license: {IsLicensed: 'true', SkuShortName: 'advanced'},
             },
             properties: {
                 groups: {byId: {[GROUP_ID]: {id: GROUP_ID, name: 'access_control'}}, byName: {access_control: {id: GROUP_ID, name: 'access_control'}}},
@@ -103,6 +103,20 @@ describe('useChannelLabels', () => {
 
         const {result} = renderHookWithContext(() => useChannelLabels(CHANNEL_ID, 'header'), state);
         expect(result.current).toEqual([]);
+    });
+
+    test('returns fields from every requested surface, once, in display order', () => {
+        const state = makeState(
+            [
+                field('info_only', ['display_label_info']),
+                field('both', ['display_label_header', 'display_label_info']),
+                field('header_only', ['display_label_header']),
+            ],
+            [value('info_only', 'opt'), value('both', 'opt'), value('header_only', 'opt')],
+        );
+
+        const {result} = renderHookWithContext(() => useChannelLabels(CHANNEL_ID, ['info', 'header']), state);
+        expect(result.current.map((a) => a.field.id)).toEqual(['both', 'header_only', 'info_only']);
     });
 
     test('returns nothing when the feature flag is off', () => {

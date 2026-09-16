@@ -1,6 +1,6 @@
 {
   "name": "@mattermost/components",
-  "version": "11.11.0",
+  "version": "12.0.0",
   "private": true,
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
@@ -24,16 +24,16 @@
     "@rollup/plugin-typescript": "11.1.6",
     "@testing-library/jest-dom": "6.8.0",
     "@types/lodash": "^4.14.178",
-    "@types/react": "18.2.64",
+    "@types/react": "19.2.18",
     "@types/react-bootstrap": "^0.32.35",
-    "@types/react-dom": "18.2.25",
+    "@types/react-dom": "19.2.6",
     "@types/scheduler": "0.16.8",
     "@types/shallow-equals": "^1.0.0",
-    "@types/styled-components": "^5.1.19",
+    "@types/styled-components": "^5.1.36",
     "babel-plugin-styled-components": "2.1.4",
     "jest-environment-jsdom": "30.1.0",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
     "rollup": "^2.75.7",
     "rollup-plugin-scss": "4.0.0",
     "rollup-plugin-ts": "^2.0.5",
@@ -42,15 +42,14 @@
   "peerDependencies": {
     "@babel/runtime-corejs3": "^7.17.8",
     "@mattermost/compass-icons": "0.1.63",
-    "@mattermost/shared": "11.11.0",
+    "@mattermost/shared": "12.0.0",
     "classnames": "^2.3.1",
     "lodash": "^4.17.21",
     "react-intl": "*",
-    "shallow-equals": "^1.0.0",
-    "tippy.js": "^6.3.7"
+    "shallow-equals": "^1.0.0"
   },
   "dependencies": {
-    "@tippyjs/react": "4.2.6",
+    "@floating-ui/react": "0.27.20",
     "react-bootstrap": "github:mattermost/react-bootstrap#d693ec8082954f0e6d3e826ca6161979b29001cd",
     "styled-components": "5.3.7"
   }
