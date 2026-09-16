@@ -76,12 +76,41 @@ describe('ProductSwitcherCloudLimitsFooter', () => {
         mockUseGetUsage.mockReturnValue(defaultUsage);
     });
 
-    test('should not show when cloud licensed and not on free trial', () => {
+    function mockLimitNeedingAttention() {
+        mockUseGetHighestThresholdCloudLimit.mockReturnValue({
+            id: LimitTypes.messageHistory,
+            limit: messageLimit,
+            usage: warnMessageUsage,
+        });
+        mockUseWords.mockReturnValue({
+            title: 'Total messages',
+            description: "You're getting closer to the free limit.",
+            status: '8K',
+        });
+    }
+
+    test('should not show when not cloud licensed', () => {
+        mockLimitNeedingAttention();
+
+        renderWithContext(
+            <ProductSwitcherCloudLimitsFooter
+                isUserAdmin={true}
+                isCloudLicensed={false}
+                isFreeTrialSubscription={false}
+            />,
+        );
+
+        expect(screen.queryByText('Total messages')).not.toBeInTheDocument();
+    });
+
+    test('should not show when on a free trial', () => {
+        mockLimitNeedingAttention();
+
         renderWithContext(
             <ProductSwitcherCloudLimitsFooter
                 isUserAdmin={true}
                 isCloudLicensed={true}
-                isFreeTrialSubscription={false}
+                isFreeTrialSubscription={true}
             />,
         );
 
@@ -94,7 +123,7 @@ describe('ProductSwitcherCloudLimitsFooter', () => {
         renderWithContext(
             <ProductSwitcherCloudLimitsFooter
                 isUserAdmin={true}
-                isCloudLicensed={false}
+                isCloudLicensed={true}
                 isFreeTrialSubscription={false}
             />,
         );
@@ -102,22 +131,13 @@ describe('ProductSwitcherCloudLimitsFooter', () => {
         expect(screen.queryByText('Total messages')).not.toBeInTheDocument();
     });
 
-    test('should display the limit details when a limit needs attention', () => {
-        mockUseGetHighestThresholdCloudLimit.mockReturnValue({
-            id: LimitTypes.messageHistory,
-            limit: messageLimit,
-            usage: warnMessageUsage,
-        });
-        mockUseWords.mockReturnValue({
-            title: 'Total messages',
-            description: "You're getting closer to the free limit.",
-            status: '8K',
-        });
+    test('should display the limit details when cloud licensed, not on a free trial, and a limit needs attention', () => {
+        mockLimitNeedingAttention();
 
         renderWithContext(
             <ProductSwitcherCloudLimitsFooter
                 isUserAdmin={true}
-                isCloudLicensed={false}
+                isCloudLicensed={true}
                 isFreeTrialSubscription={false}
             />,
         );

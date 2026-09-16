@@ -37,7 +37,7 @@ export default function ProductSwitcherCloudLimitsFooter(props: Props) {
     const words = useWords(highestLimit, props.isUserAdmin);
 
     // Show only for cloud and not during free trial
-    if (props.isCloudLicensed && !props.isFreeTrialSubscription) {
+    if (!props.isCloudLicensed || props.isFreeTrialSubscription) {
         return null;
     }
 
