@@ -55,15 +55,15 @@ func TestBigBinaryFile(t *testing.T) {
 	require.Equal(t, "", extractedText)
 }
 
-// MM-70601: the extractor must never read more than maxPlainTextExtractionSize
+// MM-70601: the extractor must never read more than maxPlainTextExtractionBytes
 // into memory, regardless of the input size.
 func TestPlainFileIsBoundedRegardlessOfInputSize(t *testing.T) {
 	extractor := plainExtractor{}
-	content := bytes.Repeat([]byte("a"), maxPlainTextExtractionSize+1024)
+	content := bytes.Repeat([]byte("a"), maxPlainTextExtractionBytes+1024)
 	out, err := extractor.Extract(context.Background(), "test.txt", bytes.NewReader(content), 0)
 	require.NoError(t, err)
-	require.Equal(t, maxPlainTextExtractionSize, len(out))
-	require.Equal(t, string(content[:maxPlainTextExtractionSize]), out)
+	require.Equal(t, maxPlainTextExtractionBytes, len(out))
+	require.Equal(t, string(content[:maxPlainTextExtractionBytes]), out)
 }
 
 // MM-70601: when the caller passes a smaller maxFileSize, that bound wins
@@ -82,11 +82,11 @@ func TestPlainFileRespectsSmallerMaxFileSize(t *testing.T) {
 // cap does not widen it.
 func TestPlainFileIgnoresLargerMaxFileSize(t *testing.T) {
 	extractor := plainExtractor{}
-	content := bytes.Repeat([]byte("b"), maxPlainTextExtractionSize+10)
+	content := bytes.Repeat([]byte("b"), maxPlainTextExtractionBytes+10)
 	out, err := extractor.Extract(context.Background(), "test.txt",
-		bytes.NewReader(content), int64(maxPlainTextExtractionSize)*2)
+		bytes.NewReader(content), int64(maxPlainTextExtractionBytes)*2)
 	require.NoError(t, err)
-	require.Equal(t, maxPlainTextExtractionSize, len(out))
+	require.Equal(t, maxPlainTextExtractionBytes, len(out))
 }
 
 // MM-70601: truncating at maxFileSize must not split a multi-byte UTF-8
@@ -120,15 +120,15 @@ func (c *countingReadSeeker) Seek(offset int64, whence int) (int64, error) {
 	return c.r.Seek(offset, whence)
 }
 
-// MM-70601: the extractor must not read more than maxPlainTextExtractionSize
+// MM-70601: the extractor must not read more than maxPlainTextExtractionBytes
 // from the source when no (or a larger) maxFileSize is given.
 func TestPlainFileDoesNotOverreadPastDefaultCap(t *testing.T) {
 	extractor := plainExtractor{}
-	content := bytes.Repeat([]byte("a"), maxPlainTextExtractionSize*2)
+	content := bytes.Repeat([]byte("a"), maxPlainTextExtractionBytes*2)
 	counter := &countingReadSeeker{r: bytes.NewReader(content)}
 	_, err := extractor.Extract(context.Background(), "test.txt", counter, 0)
 	require.NoError(t, err)
-	require.LessOrEqual(t, counter.bytesRead, maxPlainTextExtractionSize)
+	require.LessOrEqual(t, counter.bytesRead, maxPlainTextExtractionBytes)
 }
 
 // MM-70601: a smaller maxFileSize must bound reads from the source from the

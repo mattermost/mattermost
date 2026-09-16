@@ -11,10 +11,10 @@ import (
 	"unicode/utf8"
 )
 
-// maxPlainTextExtractionSize bounds how much of a file this extractor reads
+// maxPlainTextExtractionBytes bounds how much of a file this extractor reads
 // into memory (1MB). Aligned with the caller's extraction cap so reading
 // further never yields usable extra content.
-const maxPlainTextExtractionSize = 1024 * 1024 // 1MB
+const maxPlainTextExtractionBytes = 1024 * 1024 // 1MB
 
 type plainExtractor struct{}
 
@@ -27,7 +27,7 @@ func (pe *plainExtractor) Match(filename string) bool {
 }
 
 func (pe *plainExtractor) Extract(_ context.Context, filename string, r io.ReadSeeker, maxFileSize int64) (string, error) {
-	limit := int64(maxPlainTextExtractionSize)
+	limit := int64(maxPlainTextExtractionBytes)
 	if maxFileSize > 0 && maxFileSize < limit {
 		limit = maxFileSize
 	}
