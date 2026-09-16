@@ -21,6 +21,7 @@ export default class ChannelsPostCreate {
     readonly priorityButton;
     readonly priorityLabel;
     readonly removeLabelsButton;
+    readonly removeLabelsTooltip;
     readonly suggestionList;
     readonly suggestionOptions;
     readonly selectedSuggestion;
@@ -50,6 +51,7 @@ export default class ChannelsPostCreate {
         this.priorityButton = container.getByLabel('Message priority');
         this.priorityLabel = container.getByTestId('post-priority-label');
         this.removeLabelsButton = container.getByRole('button', {name: 'Remove all labels'});
+        this.removeLabelsTooltip = container.page().getByRole('tooltip', {name: 'Remove all labels'});
         this.suggestionList = container.getByRole('listbox', {name: 'Suggestions'});
         this.suggestionOptions = this.suggestionList.getByRole('option');
         this.selectedSuggestion = this.suggestionList.getByTestId('suggestion-selected');

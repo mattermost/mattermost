@@ -187,9 +187,9 @@ test(
  * with the keyboard.
  */
 test(
-    'MM-62078 reveals the remove-labels control with a tooltip on hover and on keyboard focus',
+    'MM-62078 reveals the remove-labels control with a tooltip on hover and on keyboard focus, and removes the label on Enter',
     {tag: ['@message_priority', '@accessibility']},
-    async ({pw}) => {
+    async ({pw, isMobile}) => {
         // # Setup test environment
         const {user, team} = await pw.initSetup();
 
@@ -201,8 +201,7 @@ test(
         await channelsPage.toBeVisible();
 
         const {postCreate} = channelsPage.centerView;
-        const {removeLabelsButton} = postCreate;
-        const tooltip = channelsPage.page.getByRole('tooltip', {name: 'Remove all labels'});
+        const {removeLabelsButton, removeLabelsTooltip} = postCreate;
 
         // # Apply Important priority so the composer renders its labels row
         await postCreate.openPriorityMenu();
@@ -211,40 +210,49 @@ test(
         // * Verify the composer shows the Important label
         await channelsPage.messagePriority.verifyPriorityLabel(postCreate.container, 'Important');
 
-        // # Move the pointer away from the labels row
-        await channelsPage.page.mouse.move(0, 0);
+        // # Move the pointer into the message input, away from the labels row
+        await postCreate.input.hover();
 
         // * Verify the remove-labels control is transparent while it is neither hovered nor focused
         await expect(removeLabelsButton).toHaveCSS('opacity', '0');
-        await expect(tooltip).toHaveCount(0);
 
-        // # Hover the remove-labels control
+        // # Hover the labels row
+        await postCreate.priorityLabel.hover();
+
+        // * Verify hovering anywhere in the row reveals the remove-labels control
+        await expect(removeLabelsButton).toHaveCSS('opacity', '1');
+
+        // # Hover the revealed control
         await removeLabelsButton.hover();
 
-        // * Verify hovering makes it opaque and shows its tooltip
-        await expect(removeLabelsButton).toHaveCSS('opacity', '1');
-        await expect(tooltip).toBeVisible();
+        // * Verify its tooltip appears
+        await expect(removeLabelsTooltip).toBeVisible();
 
-        // # Move the pointer back into the message input, away from the labels row
+        // # Move the pointer back into the message input and put keyboard focus there
         await postCreate.input.click();
 
-        // * Verify the control is transparent again with no tooltip
+        // * Verify the control is transparent again and its tooltip is gone
         await expect(removeLabelsButton).toHaveCSS('opacity', '0');
-        await expect(tooltip).toHaveCount(0);
+        await expect(removeLabelsTooltip).toHaveCount(0);
 
         // # Tab backwards out of the message input
         await postCreate.input.press('Shift+Tab');
 
         // * Verify keyboard focus lands on the remove-labels control, which is now opaque with its tooltip shown
-        await expect(removeLabelsButton).toBeFocused();
+        expect(await pw.toBeFocusedWithFocusVisible(removeLabelsButton)).toBe(true);
         await expect(removeLabelsButton).toHaveCSS('opacity', '1');
-        await expect(tooltip).toBeVisible();
+        await expect(removeLabelsTooltip).toBeVisible();
 
         // # Activate the focused control with the keyboard
         await removeLabelsButton.press('Enter');
 
-        // * Verify the priority label is removed from the composer
+        // * Verify the priority label is removed
         await channelsPage.messagePriority.verifyNoPriorityLabelIn(postCreate.container);
         await expect(removeLabelsButton).toHaveCount(0);
+
+        // * Verify focus returns to the message input on non-mobile devices
+        if (!isMobile) {
+            await expect(postCreate.input).toBeFocused();
+        }
     },
 );
