@@ -217,7 +217,7 @@ func (s *SqlPropertyFieldStore) GetForGroup(rctx request.CTX, groupID string) ([
 // opts.IsValid(): either we search through the hierarchy (channel or team and up,
 // if ChannelID or TeamID are set) or we filter on a single target using
 // TargetType/TargetIDs.
-func (s *SqlPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
+func (s *SqlPropertyFieldStore) SearchPropertyFields(rctx request.CTX, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
 	if err := opts.IsValid(); err != nil {
 		return nil, fmt.Errorf("opts is invalid: %w", err)
 	}
@@ -332,7 +332,7 @@ func (s *SqlPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSea
 	}
 
 	fields := []*model.PropertyField{}
-	if err := s.GetReplica().SelectBuilder(&fields, builder); err != nil {
+	if err := s.DBXFromContext(rctx.Context()).SelectBuilder(&fields, builder); err != nil {
 		return nil, errors.Wrap(err, "property_field_search_query")
 	}
 

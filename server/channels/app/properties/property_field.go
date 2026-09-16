@@ -232,12 +232,12 @@ func (ps *PropertyService) countAllPropertyFieldsForTarget(groupID, targetType, 
 	return ps.fieldStore.CountForTarget(groupID, targetType, targetID, true)
 }
 
-func (ps *PropertyService) searchPropertyFields(groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
+func (ps *PropertyService) searchPropertyFields(rctx request.CTX, groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
 	// groupID is part of the search method signature to
 	// incentivize the use of the database indexes in searches
 	opts.GroupID = groupID
 
-	return ps.fieldStore.SearchPropertyFields(opts)
+	return ps.fieldStore.SearchPropertyFields(rctx, opts)
 }
 
 func (ps *PropertyService) updatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField) (*model.PropertyField, []string, error) {
@@ -567,7 +567,7 @@ func (ps *PropertyService) CountAllPropertyFieldsForTarget(rctx request.CTX, gro
 }
 
 func (ps *PropertyService) SearchPropertyFields(rctx request.CTX, groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
-	fields, err := ps.searchPropertyFields(groupID, opts)
+	fields, err := ps.searchPropertyFields(rctx, groupID, opts)
 	if err != nil {
 		return nil, fmt.Errorf("SearchPropertyFields: %w", err)
 	}

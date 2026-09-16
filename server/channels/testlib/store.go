@@ -196,7 +196,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	propertyGroupStore.On("Get", model.BoardsPropertyGroupName).Return(boardsGroup, nil)
 	propertyGroupStore.On("Get", model.SessionAttributesPropertyGroupName).Return(sessionAttributesGroup, nil)
 
-	propertyFieldStore.On("SearchPropertyFields", mock.Anything).Return([]*model.PropertyField{}, nil)
+	propertyFieldStore.On("SearchPropertyFields", mock.Anything, mock.Anything).Return([]*model.PropertyField{}, nil)
 	propertyFieldStore.On("CreatePropertyField", mock.Anything).Return(&model.PropertyField{}, nil)
 	propertyFieldStore.On("Create", mock.AnythingOfType("*model.PropertyField")).Return(&model.PropertyField{}, nil)
 	propertyFieldStore.On("CheckPropertyNameConflict", mock.AnythingOfType("*model.PropertyField"), mock.Anything).Return(model.PropertyFieldTargetLevel(""), nil)

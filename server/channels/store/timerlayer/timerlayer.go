@@ -8712,10 +8712,10 @@ func (s *TimerLayerPropertyFieldStore) GetMany(rctx request.CTX, groupID string,
 	return result, err
 }
 
-func (s *TimerLayerPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
+func (s *TimerLayerPropertyFieldStore) SearchPropertyFields(rctx request.CTX, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
 	start := time.Now()
 
-	result, err := s.PropertyFieldStore.SearchPropertyFields(opts)
+	result, err := s.PropertyFieldStore.SearchPropertyFields(rctx, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

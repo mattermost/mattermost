@@ -1163,7 +1163,7 @@ func testCountForGroup(t *testing.T, _ request.CTX, ss store.Store) {
 	})
 }
 
-func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store, s SqlStore) {
+func testSearchPropertyFields(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	groupID := model.NewId()
 	targetID := model.NewId()
 
@@ -1430,7 +1430,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store, s Sql
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			results, err := ss.PropertyField().SearchPropertyFields(tc.opts)
+			results, err := ss.PropertyField().SearchPropertyFields(rctx, tc.opts)
 			if tc.expectedError {
 				require.Error(t, err)
 				return
@@ -1495,7 +1495,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store, s Sql
 			// Get fields updated at-or-after field1: with `>=` semantics
 			// field1 itself is included, plus field3 and the
 			// post-update field2.
-			results, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+			results, err := ss.PropertyField().SearchPropertyFields(rctx, model.PropertyFieldSearchOpts{
 				GroupID:       groupID,
 				SinceUpdateAt: field1.UpdateAt,
 				PerPage:       10,
@@ -1513,7 +1513,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store, s Sql
 		t.Run("SinceUpdateAt with boundary condition", func(t *testing.T) {
 			// Get fields updated after just before field3's timestamp
 			// Should get both field3 and field2 (which was updated last and now has the most recent UpdateAt), so expect 2 results
-			results, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+			results, err := ss.PropertyField().SearchPropertyFields(rctx, model.PropertyFieldSearchOpts{
 				GroupID:       groupID,
 				SinceUpdateAt: field3.UpdateAt - 1, // Slightly before field3's timestamp
 				PerPage:       10,
@@ -1532,7 +1532,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store, s Sql
 		t.Run("SinceUpdateAt at the most recent update returns just that row", func(t *testing.T) {
 			// `>=` semantics: querying at the highest UpdateAt in the
 			// group returns the row at exactly that timestamp.
-			results, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+			results, err := ss.PropertyField().SearchPropertyFields(rctx, model.PropertyFieldSearchOpts{
 				GroupID:       groupID,
 				SinceUpdateAt: updatedField2.UpdateAt,
 				PerPage:       10,
@@ -1544,7 +1544,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store, s Sql
 
 		t.Run("SinceUpdateAt with very recent timestamp", func(t *testing.T) {
 			// Get fields updated since current time
-			results, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+			results, err := ss.PropertyField().SearchPropertyFields(rctx, model.PropertyFieldSearchOpts{
 				GroupID:       groupID,
 				SinceUpdateAt: model.GetMillis(),
 				PerPage:       10,
@@ -1584,7 +1584,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store, s Sql
 			require.Equal(t, tieUpdateAt, updated[2].UpdateAt)
 
 			// Page 1: include the boundary row at exactly tieUpdateAt.
-			page1, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+			page1, err := ss.PropertyField().SearchPropertyFields(rctx, model.PropertyFieldSearchOpts{
 				GroupID:       tieGroup,
 				SinceUpdateAt: tieUpdateAt,
 				PerPage:       2,
@@ -1595,7 +1595,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store, s Sql
 			// Page 2: cursor with the last row of page 1 must surface
 			// the third tied row — proving (UpdateAt, Id) disambiguates.
 			last := page1[len(page1)-1]
-			page2, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+			page2, err := ss.PropertyField().SearchPropertyFields(rctx, model.PropertyFieldSearchOpts{
 				GroupID:       tieGroup,
 				SinceUpdateAt: tieUpdateAt,
 				Cursor: model.PropertyFieldSearchCursor{
@@ -1683,7 +1683,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store, s Sql
 		}
 
 		t.Run("team-only scope returns system + team-A only", func(t *testing.T) {
-			results, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+			results, err := ss.PropertyField().SearchPropertyFields(rctx, model.PropertyFieldSearchOpts{
 				GroupID: groupID,
 				TeamID:  teamA,
 				PerPage: 50,
@@ -1698,7 +1698,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store, s Sql
 		})
 
 		t.Run("channel + team scope returns system + team-A + both channel-X rows", func(t *testing.T) {
-			results, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+			results, err := ss.PropertyField().SearchPropertyFields(rctx, model.PropertyFieldSearchOpts{
 				GroupID:   groupID,
 				TeamID:    teamA,
 				ChannelID: channelX,
@@ -1717,7 +1717,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store, s Sql
 		})
 
 		t.Run("ObjectTypes IN list returns rows of both kinds", func(t *testing.T) {
-			results, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+			results, err := ss.PropertyField().SearchPropertyFields(rctx, model.PropertyFieldSearchOpts{
 				GroupID:     groupID,
 				ObjectTypes: []string{model.PropertyFieldObjectTypeChannel, model.PropertyFieldObjectTypeSystem},
 				PerPage:     50,
@@ -1745,7 +1745,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store, s Sql
 		})
 
 		t.Run("ObjectType=system combined with ChannelID/TeamID still surfaces system rows", func(t *testing.T) {
-			results, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+			results, err := ss.PropertyField().SearchPropertyFields(rctx, model.PropertyFieldSearchOpts{
 				GroupID:    groupID,
 				ObjectType: model.PropertyFieldObjectTypeSystem,
 				TeamID:     teamA,
@@ -1770,7 +1770,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store, s Sql
 			// collapses to system → channel. Team-scoped rows must not
 			// leak in even though channelX itself happens to be in
 			// teamA in this fixture.
-			results, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+			results, err := ss.PropertyField().SearchPropertyFields(rctx, model.PropertyFieldSearchOpts{
 				GroupID:   groupID,
 				ChannelID: channelX,
 				PerPage:   50,
@@ -1788,7 +1788,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store, s Sql
 		})
 
 		t.Run("scope conflict (TeamID + TargetType) is rejected by IsValid", func(t *testing.T) {
-			_, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+			_, err := ss.PropertyField().SearchPropertyFields(rctx, model.PropertyFieldSearchOpts{
 				GroupID:    groupID,
 				TeamID:     teamA,
 				TargetType: string(model.PropertyFieldTargetLevelChannel),
@@ -1837,7 +1837,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store, s Sql
 		require.NoError(t, ss.PropertyField().Delete("", tombstoned.ID))
 
 		t.Run("since > 0 returns UpdateAt > since including soft-deleted rows", func(t *testing.T) {
-			results, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+			results, err := ss.PropertyField().SearchPropertyFields(rctx, model.PropertyFieldSearchOpts{
 				GroupID:       groupID,
 				SinceUpdateAt: beforeAnyCreate,
 				PerPage:       50,
@@ -1852,14 +1852,14 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store, s Sql
 		})
 
 		t.Run("since=0 and since absent behave identically and exclude tombstones", func(t *testing.T) {
-			withZeroSince, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+			withZeroSince, err := ss.PropertyField().SearchPropertyFields(rctx, model.PropertyFieldSearchOpts{
 				GroupID:       groupID,
 				SinceUpdateAt: 0,
 				PerPage:       50,
 			})
 			require.NoError(t, err)
 
-			withNoSince, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+			withNoSince, err := ss.PropertyField().SearchPropertyFields(rctx, model.PropertyFieldSearchOpts{
 				GroupID: groupID,
 				PerPage: 50,
 			})
@@ -1931,7 +1931,7 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store, s Sql
 		collected := []string{}
 		cursor := model.PropertyFieldSearchCursor{}
 		for range 5 { // hard cap to avoid runaway loop if the cursor never advances
-			batch, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+			batch, err := ss.PropertyField().SearchPropertyFields(rctx, model.PropertyFieldSearchOpts{
 				GroupID:       groupID,
 				SinceUpdateAt: beforeBucket,
 				Cursor:        cursor,
@@ -3367,7 +3367,7 @@ func testUpdateWithPropagation(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 }
 
-func testSearchByLinkedFieldID(t *testing.T, _ request.CTX, ss store.Store) {
+func testSearchByLinkedFieldID(t *testing.T, rctx request.CTX, ss store.Store) {
 	groupID := model.NewId()
 
 	// Create a source field
@@ -3407,7 +3407,7 @@ func testSearchByLinkedFieldID(t *testing.T, _ request.CTX, ss store.Store) {
 	}
 
 	t.Run("should find all linked fields by LinkedFieldID", func(t *testing.T) {
-		results, sErr := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+		results, sErr := ss.PropertyField().SearchPropertyFields(rctx, model.PropertyFieldSearchOpts{
 			LinkedFieldID: sourceField.ID,
 			PerPage:       10,
 		})
@@ -3416,7 +3416,7 @@ func testSearchByLinkedFieldID(t *testing.T, _ request.CTX, ss store.Store) {
 	})
 
 	t.Run("should return 0 results for non-existent LinkedFieldID", func(t *testing.T) {
-		results, sErr := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+		results, sErr := ss.PropertyField().SearchPropertyFields(rctx, model.PropertyFieldSearchOpts{
 			LinkedFieldID: model.NewId(),
 			PerPage:       10,
 		})

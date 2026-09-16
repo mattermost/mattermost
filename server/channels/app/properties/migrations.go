@@ -51,7 +51,7 @@ func (ps *PropertyService) MigrateBackfillCPADisplayName(rctx request.CTX) (back
 	// the caller is not the source plugin, which would corrupt the
 	// fields we then try to write back. CPA creation is capped at 20
 	// active fields, so a single page covers the full migration scope.
-	fields, searchErr := ps.searchPropertyFields(groupID, model.PropertyFieldSearchOpts{
+	fields, searchErr := ps.searchPropertyFields(rctx, groupID, model.PropertyFieldSearchOpts{
 		PerPage: cpaFieldLimit,
 	})
 	if searchErr != nil {
@@ -383,7 +383,10 @@ func (ps *PropertyService) MigrateCPAFieldsToGlobalAttributes(rctx request.CTX) 
 	// Don't trust the 20-field FieldLimitHook cap here: it postdates CPA's
 	// original release, so match the CPA listing endpoint's own defensive
 	// PerPage instead of risking a silently-truncated page.
-	fields, searchErr := ps.searchPropertyFields(groupID, model.PropertyFieldSearchOpts{
+	//
+	// Reads from master: this is a one-shot migration, so a field missed
+	// here due to replica lag is missed permanently, not just delayed.
+	fields, searchErr := ps.searchPropertyFields(store.RequestContextWithMaster(rctx), groupID, model.PropertyFieldSearchOpts{
 		ObjectType: model.PropertyFieldObjectTypeUser,
 		TargetType: string(model.PropertyFieldTargetLevelSystem),
 		PerPage:    model.AccessControlGroupFieldLimit + 5,

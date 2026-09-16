@@ -353,9 +353,9 @@ func (_m *PropertyFieldStore) GetMany(rctx request.CTX, groupID string, ids []st
 	return r0, r1
 }
 
-// SearchPropertyFields provides a mock function with given fields: opts
-func (_m *PropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
-	ret := _m.Called(opts)
+// SearchPropertyFields provides a mock function with given fields: rctx, opts
+func (_m *PropertyFieldStore) SearchPropertyFields(rctx request.CTX, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
+	ret := _m.Called(rctx, opts)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SearchPropertyFields")
@@ -363,19 +363,19 @@ func (_m *PropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSearc
 
 	var r0 []*model.PropertyField
 	var r1 error
-	if rf, ok := ret.Get(0).(func(model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)); ok {
-		return rf(opts)
+	if rf, ok := ret.Get(0).(func(request.CTX, model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)); ok {
+		return rf(rctx, opts)
 	}
-	if rf, ok := ret.Get(0).(func(model.PropertyFieldSearchOpts) []*model.PropertyField); ok {
-		r0 = rf(opts)
+	if rf, ok := ret.Get(0).(func(request.CTX, model.PropertyFieldSearchOpts) []*model.PropertyField); ok {
+		r0 = rf(rctx, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.PropertyField)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(model.PropertyFieldSearchOpts) error); ok {
-		r1 = rf(opts)
+	if rf, ok := ret.Get(1).(func(request.CTX, model.PropertyFieldSearchOpts) error); ok {
+		r1 = rf(rctx, opts)
 	} else {
 		r1 = ret.Error(1)
 	}
