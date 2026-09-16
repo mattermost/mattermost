@@ -307,8 +307,10 @@ def normalize_formatting(text: str) -> str:
 
       1. Strip horizontal rules (``---``), which must never appear in a changelog entry.
       2. Normalize bullet indentation to the changelog convention of one space for
-         top-level bullets and three for nested ones, relative to the shallowest
-         bullet present (models variously emit 0/2, 1/3 or 2/4).
+         top-level bullets and two more per nesting level (1/3/5). Models variously
+         emit 0/2, 1/3 or 2/4, so levels are ranked from the distinct indents within
+         each list block rather than measured against a fixed threshold or against a
+         single minimum taken across the whole fragment.
       3. Remove a blank line between the ``### Improvements`` heading and the blog
          post line that must immediately follow it.
 
@@ -328,20 +330,42 @@ def normalize_formatting(text: str) -> str:
     # 1. Remove standalone horizontal rules.
     text = re.sub(r"(?m)^[ \t]*(?:-{3,}|\*{3,}|_{3,})[ \t]*$\n?", "", text)
 
-    # 2. Normalize bullet indentation to the changelog's two levels: one space for
-    #    top-level bullets, three for nested ones. Models variously emit 0/2, 1/3 or
-    #    2/4, so the shallowest bullet present is treated as top level and anything
-    #    deeper as nested. A fixed threshold cannot work here: two spaces means
-    #    top-level in a 2/4 fragment but nested in a 0/2 one.
-    bullet_re = re.compile(r"(?m)^( *)(- )")
-    indents = [len(m.group(1)) for m in bullet_re.finditer(text)]
-    if indents:
-        base = min(indents)
+    # 2. Normalize bullet indentation to the changelog convention: one space for
+    #    top-level bullets and two more per nesting level (1/3/5). Models variously
+    #    emit 0/2, 1/3 or 2/4, so a level is derived from the distinct indents present
+    #    rather than from a fixed threshold: two spaces means top-level in a 2/4
+    #    fragment but nested in a 0/2 one.
+    #
+    #    Indents are ranked, not just compared against the shallowest, so a three-level
+    #    list stays three levels instead of collapsing its two deepest into one.
+    #
+    #    Ranking is per list block rather than across the whole fragment. Sections are
+    #    generated independently and can disagree on base indent; a fragment-wide
+    #    minimum would demote an already-correct top-level bullet to nested just
+    #    because some other section happened to start one space shallower.
+    bullet_re = re.compile(r"^( *)- ")
 
-        def _fix_indent(match: re.Match) -> str:
-            return (" " if len(match.group(1)) == base else "   ") + match.group(2)
+    def _starts_new_block(line: str) -> bool:
+        """True for a non-blank line that is neither a bullet nor a bullet continuation."""
+        return bool(line.strip()) and not bullet_re.match(line) and not line.startswith(" ")
 
-        text = bullet_re.sub(_fix_indent, text)
+    lines = text.split("\n")
+    block_start = 0
+    for index in range(len(lines) + 1):
+        if index < len(lines) and not _starts_new_block(lines[index]):
+            continue
+        block = lines[block_start:index]
+        indents = sorted({len(m.group(1)) for m in map(bullet_re.match, block) if m})
+        if indents:
+            level_of = {indent: level for level, indent in enumerate(indents)}
+            for offset, line in enumerate(block):
+                match = bullet_re.match(line)
+                if match:
+                    level = level_of[len(match.group(1))]
+                    block[offset] = " " * (1 + 2 * level) + line[match.end(1):]
+            lines[block_start:index] = block
+        block_start = index + 1
+    text = "\n".join(lines)
 
     # 3. Close the gap between ### Improvements and its blog post line.
     text = re.sub(r"(?m)^(### Improvements)[ \t]*\n\s*\n(?=See )", r"\1\n", text)
