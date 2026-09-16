@@ -83,4 +83,34 @@ describe('ProductSwitcherPluginMenuItems', () => {
 
         expect(screen.getByText('Plugin Item')).toBeInTheDocument();
     });
+
+    test('should pass the full Redux state to isHidden', () => {
+        const isHidden = jest.fn<boolean, [GlobalState]>().mockReturnValue(false);
+        const state = getState([getItemMock({isHidden})]);
+
+        renderWithContext(<ProductSwitcherPluginMenuItems/>, state);
+
+        expect(isHidden).toHaveBeenCalled();
+
+        // Plugins read their own plugin-scoped state, so they need the whole state tree.
+        const passedState = isHidden.mock.calls[0][0];
+        expect(passedState.plugins.components.ProductSwitcherMenuItem).toHaveLength(1);
+    });
+
+    test('should render a separator above the registered items', () => {
+        renderWithContext(<ProductSwitcherPluginMenuItems/>, getState([getItemMock()]));
+
+        expect(screen.getAllByRole('separator')).toHaveLength(1);
+    });
+
+    test('should not render a separator when every item is hidden', () => {
+        const items = [
+            getItemMock({id: 'item_1', isHidden: () => true}),
+            getItemMock({id: 'item_2', isHidden: () => true}),
+        ];
+
+        renderWithContext(<ProductSwitcherPluginMenuItems/>, getState(items));
+
+        expect(screen.queryAllByRole('separator')).toHaveLength(0);
+    });
 });

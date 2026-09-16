@@ -90,6 +90,112 @@ describe('ProductSwitcherIntegrationsMenuItem', () => {
         expect(screen.queryByText('Integrations')).not.toBeInTheDocument();
     });
 
+    function getStateWithPermissions(teamPermissions: string[], systemPermissions: string[] = []): DeepPartial<GlobalState> {
+        return {
+            entities: {
+                ...initialState.entities,
+                users: {
+                    currentUserId: 'user_id',
+
+                    // System permissions resolve through the current user's roles.
+                    profiles: {
+                        user_id: TestHelper.getUserMock({id: 'user_id', roles: 'system_user'}),
+                    },
+                },
+                roles: {
+                    roles: {
+                        system_user: {permissions: systemPermissions},
+                        team_user: {permissions: teamPermissions},
+                    },
+                },
+            },
+        };
+    }
+
+    const noIntegrationsEnabled = {
+        haveEnabledIncomingWebhooks: false,
+        haveEnabledOutgoingWebhooks: false,
+        haveEnabledSlashCommands: false,
+        haveEnabledOAuthServiceProvider: false,
+    };
+
+    test('should show when only incoming webhooks are enabled', () => {
+        renderWithContext(
+            <ProductSwitcherIntegrationsMenuItem
+                isChannelsProductActive={true}
+                {...noIntegrationsEnabled}
+                haveEnabledIncomingWebhooks={true}
+            />,
+            getStateWithPermissions([Permissions.MANAGE_INCOMING_WEBHOOKS]),
+        );
+
+        expect(screen.getByText('Integrations')).toBeInTheDocument();
+    });
+
+    test('should show when only outgoing webhooks are enabled', () => {
+        renderWithContext(
+            <ProductSwitcherIntegrationsMenuItem
+                isChannelsProductActive={true}
+                {...noIntegrationsEnabled}
+                haveEnabledOutgoingWebhooks={true}
+            />,
+            getStateWithPermissions([Permissions.MANAGE_OUTGOING_WEBHOOKS]),
+        );
+
+        expect(screen.getByText('Integrations')).toBeInTheDocument();
+    });
+
+    test('should show when only slash commands are enabled', () => {
+        renderWithContext(
+            <ProductSwitcherIntegrationsMenuItem
+                isChannelsProductActive={true}
+                {...noIntegrationsEnabled}
+                haveEnabledSlashCommands={true}
+            />,
+            getStateWithPermissions([Permissions.MANAGE_SLASH_COMMANDS]),
+        );
+
+        expect(screen.getByText('Integrations')).toBeInTheDocument();
+    });
+
+    test('should show when only the OAuth service provider is enabled', () => {
+        renderWithContext(
+            <ProductSwitcherIntegrationsMenuItem
+                isChannelsProductActive={true}
+                {...noIntegrationsEnabled}
+                haveEnabledOAuthServiceProvider={true}
+            />,
+            getStateWithPermissions([], [Permissions.MANAGE_OAUTH]),
+        );
+
+        expect(screen.getByText('Integrations')).toBeInTheDocument();
+    });
+
+    test('should show when the user can manage bots even with no integration enabled', () => {
+        renderWithContext(
+            <ProductSwitcherIntegrationsMenuItem
+                isChannelsProductActive={true}
+                {...noIntegrationsEnabled}
+            />,
+            getStateWithPermissions([], [Permissions.MANAGE_BOTS]),
+        );
+
+        expect(screen.getByText('Integrations')).toBeInTheDocument();
+    });
+
+    test('should show when the user can manage only their own integrations', () => {
+        renderWithContext(
+            <ProductSwitcherIntegrationsMenuItem
+                isChannelsProductActive={true}
+                {...noIntegrationsEnabled}
+                haveEnabledIncomingWebhooks={true}
+            />,
+            getStateWithPermissions([Permissions.MANAGE_OWN_INCOMING_WEBHOOKS]),
+        );
+
+        expect(screen.getByText('Integrations')).toBeInTheDocument();
+    });
+
     test('should show when atleast one integration is enabled and user has permission to manage it', () => {
         const state: DeepPartial<GlobalState> = {
             entities: {

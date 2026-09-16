@@ -43,6 +43,7 @@ export default function ProductSwitcherProductsMenuItems(props: Props) {
                 return (
                     <ProductSwitcherProductMenuItem
                         key={product.id}
+                        id={`product-menu-item-${product.pluginId || product.id}`}
                         icon={product.switcherIcon}
                         label={product.switcherText}
                         link={link}
@@ -55,6 +56,7 @@ export default function ProductSwitcherProductsMenuItems(props: Props) {
 }
 
 interface ProductSwitcherProductMenuItemProps {
+    id: string;
     icon: IconGlyphTypes | React.ReactNode;
     label: React.ReactNode;
     link: string;
@@ -83,6 +85,7 @@ function ProductSwitcherProductMenuItem(props: ProductSwitcherProductMenuItemPro
 
     return (
         <Menu.Item
+            id={props.id}
             className='globalHeader-leftControls-productSwitcherMenu-productMenuItem'
             leadingElement={Icon ? (
                 <Icon

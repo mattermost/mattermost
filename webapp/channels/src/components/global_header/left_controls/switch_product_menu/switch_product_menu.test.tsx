@@ -2,10 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {AnyAction} from 'redux';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {ActionTypes, ModalIdentifiers} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
@@ -59,5 +61,26 @@ describe('SwitchProductMenu', () => {
         await userEvent.click(screen.getByText('Channels'));
 
         expect(screen.getByRole('menu', {name: 'Product menu'})).toBeInTheDocument();
+    });
+
+    test('should run a menu item action when it is selected from the open menu', async () => {
+        const {store} = renderWithContext(
+            <SwitchProductMenu productId={null}/>,
+            initialState,
+            {useMockedStore: true},
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'Open product menu'}));
+
+        await userEvent.click(screen.getByText('About Mattermost'));
+
+        // The menu defers item actions until its close animation finishes.
+        await waitFor(() => {
+            const openedAboutModal = (store as any).getActions().some((action: AnyAction) => {
+                return action.type === ActionTypes.MODAL_OPEN && action.modalId === ModalIdentifiers.ABOUT;
+            });
+
+            expect(openedAboutModal).toBe(true);
+        });
     });
 });

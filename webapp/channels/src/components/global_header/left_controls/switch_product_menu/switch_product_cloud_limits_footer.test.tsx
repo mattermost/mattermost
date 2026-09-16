@@ -6,6 +6,8 @@ import React from 'react';
 import {
     renderWithContext,
     screen,
+    userEvent,
+    waitFor,
 } from 'tests/react_testing_utils';
 import {LimitTypes, limitThresholds} from 'utils/limits';
 
@@ -31,9 +33,11 @@ jest.mock('components/common/hooks/useWords', () => ({
     default: jest.fn(),
 }));
 
+const mockDispatch = jest.fn();
+
 jest.mock('react-redux', () => ({
     ...jest.requireActual('react-redux'),
-    useDispatch: jest.fn().mockReturnValue(jest.fn()),
+    useDispatch: () => mockDispatch,
 }));
 
 const mockUseGetHighestThresholdCloudLimit = require('components/common/hooks/useGetHighestThresholdCloudLimit').default;
@@ -43,6 +47,7 @@ const mockUseWords = require('components/common/hooks/useWords').default;
 
 const messageLimit = 10000;
 const warnMessageUsage = Math.ceil((limitThresholds.warn / 100) * messageLimit) + 1;
+const criticalMessageUsage = Math.ceil((limitThresholds.danger / 100) * messageLimit) + 1;
 
 describe('ProductSwitcherCloudLimitsFooter', () => {
     const defaultUsage = {
@@ -145,5 +150,61 @@ describe('ProductSwitcherCloudLimitsFooter', () => {
         expect(screen.getByText('Total messages')).toBeInTheDocument();
         expect(screen.getByText("You're getting closer to the free limit.")).toBeInTheDocument();
         expect(screen.getByText('8K')).toBeInTheDocument();
+    });
+
+    test('should not flag usage above the danger threshold for a warning level limit', () => {
+        mockLimitNeedingAttention();
+
+        renderWithContext(
+            <ProductSwitcherCloudLimitsFooter
+                isUserAdmin={true}
+                isCloudLicensed={true}
+                isFreeTrialSubscription={false}
+            />,
+        );
+
+        expect(screen.getByText('Total messages').closest('li')).not.toHaveClass('usageAboveDangerThreshold');
+    });
+
+    test('should flag usage above the danger threshold when a limit is nearly exhausted', () => {
+        mockUseGetHighestThresholdCloudLimit.mockReturnValue({
+            id: LimitTypes.messageHistory,
+            limit: messageLimit,
+            usage: criticalMessageUsage,
+        });
+        mockUseWords.mockReturnValue({
+            title: 'Total messages',
+            description: "You're close to hitting the free limit.",
+            status: '10K',
+        });
+
+        renderWithContext(
+            <ProductSwitcherCloudLimitsFooter
+                isUserAdmin={true}
+                isCloudLicensed={true}
+                isFreeTrialSubscription={false}
+            />,
+        );
+
+        expect(screen.getByText('Total messages').closest('li')).toHaveClass('usageAboveDangerThreshold');
+    });
+
+    test('should open the cloud limits modal from the info button', async () => {
+        mockLimitNeedingAttention();
+
+        renderWithContext(
+            <ProductSwitcherCloudLimitsFooter
+                isUserAdmin={true}
+                isCloudLicensed={true}
+                isFreeTrialSubscription={false}
+            />,
+        );
+
+        await userEvent.click(screen.getByLabelText('View limits'));
+
+        // The modal opens only after the menu close animation completes.
+        await waitFor(() => {
+            expect(mockDispatch).toHaveBeenCalled();
+        });
     });
 });

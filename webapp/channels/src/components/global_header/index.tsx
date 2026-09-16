@@ -31,14 +31,14 @@ const GlobalHeader = () => {
     }
 
     return (
-        <div
+        <header
             id='global-header'
             className='globalHeader'
         >
             <LeftControls productId={currentProductID}/>
             <CenterControls productId={currentProductID}/>
             <RightControls productId={currentProductID}/>
-        </div>
+        </header>
     );
 };
 

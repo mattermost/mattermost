@@ -17,6 +17,17 @@ jest.mock('utils/products', () => ({
     useProducts: jest.fn(),
 }));
 
+// The controls are mocked so these tests stay focused on the header shell.
+jest.mock('./left_controls/left_controls', () => ({productId}: {productId?: string | null}) => (
+    <div id='mock-left-controls'>{productId}</div>
+));
+jest.mock('./center_controls/center_controls', () => ({productId}: {productId?: string | null}) => (
+    <div id='mock-center-controls'>{productId}</div>
+));
+jest.mock('./right_controls/right_controls', () => ({productId}: {productId?: string | null}) => (
+    <div id='mock-right-controls'>{productId}</div>
+));
+
 describe('components/global/GlobalHeader', () => {
     const initialState = {
         entities: {
@@ -28,6 +39,21 @@ describe('components/global/GlobalHeader', () => {
             },
             preferences: {
                 myPreferences: {},
+            },
+        },
+    };
+
+    const user = TestHelper.getUserMock();
+
+    const loggedInState = {
+        ...initialState,
+        entities: {
+            ...initialState.entities,
+            users: {
+                currentUserId: user.id,
+                profiles: {
+                    [user.id]: user,
+                },
             },
         },
     };
@@ -55,18 +81,12 @@ describe('components/global/GlobalHeader', () => {
 
         renderWithContext(<GlobalHeader/>, state);
 
-        expect(screen.queryByTestId('global-header')).not.toBeInTheDocument();
+        expect(screen.queryByRole('banner')).not.toBeInTheDocument();
     });
 
     test('should not render in mobile view', () => {
         const state = {
-            ...initialState,
-            entities: {
-                ...initialState.entities,
-                users: {
-                    currentUserId: 'user1',
-                },
-            },
+            ...loggedInState,
             views: {
                 browser: {
                     windowSize: 'mobileView',
@@ -76,28 +96,21 @@ describe('components/global/GlobalHeader', () => {
 
         renderWithContext(<GlobalHeader/>, state);
 
-        expect(screen.queryByTestId('global-header')).not.toBeInTheDocument();
+        expect(screen.queryByRole('banner')).not.toBeInTheDocument();
     });
 
-    test('should render when user is logged in and not in mobile view', () => {
-        const user = TestHelper.getUserMock();
+    test('should render as a banner landmark when user is logged in and not in mobile view', () => {
+        renderWithContext(<GlobalHeader/>, loggedInState);
 
-        const state = {
-            ...initialState,
-            entities: {
-                ...initialState.entities,
-                users: {
-                    currentUserId: user.id,
-                    profiles: {
-                        [user.id]: user,
-                    },
-                },
-            },
-        };
+        expect(screen.getByRole('banner')).toBeInTheDocument();
+    });
 
-        renderWithContext(<GlobalHeader/>, state);
+    test('should pass the current product id to each of the controls', () => {
+        jest.spyOn(productUtils, 'useCurrentProductId').mockReturnValue('product_id');
 
-        // TODO: ENABLE THIS TEST WHEN THE PRODUCT SWITCHER MENU IS IMPLEMENTED
-        // expect(screen.queryByTestId('global-header')).toBeInTheDocument();
+        renderWithContext(<GlobalHeader/>, loggedInState);
+
+        expect(screen.getByRole('banner')).toBeInTheDocument();
+        expect(screen.getAllByText('product_id')).toHaveLength(3);
     });
 });

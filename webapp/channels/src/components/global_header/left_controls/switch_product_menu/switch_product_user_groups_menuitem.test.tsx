@@ -170,4 +170,76 @@ describe('ProductSwitcherUserGroupsMenuItem', () => {
 
         expect(screen.getByText('User Groups')).toBeInTheDocument();
     });
+
+    test('should show for a cloud free trial', () => {
+        renderWithContext(
+            <ProductSwitcherUserGroupsMenuItem
+                isUserAdmin={true}
+                isCloudLicensed={true}
+                isEnterpriseReady={true}
+                isFreeTrialSubscription={true}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('User Groups')).toBeInTheDocument();
+    });
+
+    test('should show when custom user groups are enabled', () => {
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                ...initialState.entities,
+                general: {
+                    license: {
+                        IsLicensed: 'true',
+                        IsTrial: 'false',
+                    },
+                    config: {
+                        EnableCustomGroups: 'true',
+                    },
+                },
+            },
+        };
+
+        renderWithContext(
+            <ProductSwitcherUserGroupsMenuItem
+                isUserAdmin={true}
+                isCloudLicensed={false}
+                isEnterpriseReady={false}
+                isFreeTrialSubscription={false}
+            />,
+            state,
+        );
+
+        expect(screen.getByText('User Groups')).toBeInTheDocument();
+    });
+
+    test('should show the restricted indicator for an admin on starter', () => {
+        const {container} = renderWithContext(
+            <ProductSwitcherUserGroupsMenuItem
+                isUserAdmin={true}
+                isCloudLicensed={false}
+                isEnterpriseReady={true}
+                isFreeTrialSubscription={false}
+            />,
+            initialState,
+        );
+
+        expect(container.querySelector('.RestrictedIndicator__icon-tooltip-container')).toBeInTheDocument();
+    });
+
+    test('should hide the restricted indicator when the user is not an admin', () => {
+        const {container} = renderWithContext(
+            <ProductSwitcherUserGroupsMenuItem
+                isUserAdmin={false}
+                isCloudLicensed={false}
+                isEnterpriseReady={true}
+                isFreeTrialSubscription={false}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText('User Groups')).toBeInTheDocument();
+        expect(container.querySelector('.RestrictedIndicator__icon-tooltip-container')).not.toBeInTheDocument();
+    });
 });
