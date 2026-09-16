@@ -70,10 +70,6 @@ export type CommandArgs = {
     root_id?: string;
 };
 
-export type DialogArgs = {
-    channel_id: string;
-};
-
 export type CommandResponse = {
     response_type: string;
     text: string;
@@ -141,7 +137,6 @@ export type IntegrationsState = {
     appsBotIDs: string[];
     systemCommands: IDMappedObjects<Command>;
     commands: IDMappedObjects<Command>;
-    dialogArguments?: DialogArgs;
     dialogTriggerId: string;
     dialogs: Record<string, OpenDialogRequest>;
 };
@@ -150,6 +145,11 @@ export type OpenDialogRequest = {
     trigger_id: string;
     url: string;
     dialog: Dialog;
+
+    // The channel this dialog belongs to. Always populated by the server from the
+    // signed trigger_id — the integration cannot override it. Absent when the dialog
+    // came from a server that predates this field.
+    channel_id?: string;
 };
 
 export type Dialog = {
@@ -207,6 +207,28 @@ export type DialogElement = {
         time_interval?: number;
         location_timezone?: string;
         manual_time_entry?: boolean;
+    };
+
+    // Collapsible section configuration. A "collapsible" element groups child
+    // elements behind an expandable title and contributes no value of its own.
+    collapsible_config?: {
+
+        // Child elements rendered inside the collapsible section.
+        elements?: DialogElement[];
+
+        // Initial open/closed state. Omitted/false means the section starts expanded.
+        collapsed?: boolean;
+
+        // Whether the section renders without a box outline. Omitted/false means bordered.
+        borderless?: boolean;
+    };
+
+    label_position?: 'before' | 'after';
+
+    matrix_config?: {
+        rows: Array<{text: string; value: string}>;
+        columns: Array<{text: string; value: string}>;
+        row_selection?: 'multiple' | 'single';
     };
 
     // Action button configuration (type "action_button")

@@ -16,6 +16,7 @@ exports[`UserAccountNameMenuItem should not break if no props are passed 1`] = `
         aria-hidden="true"
         class="Avatar Avatar-lg"
         loading="lazy"
+        src="test-file-stub"
       />
     </div>
     <div

@@ -16,6 +16,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// allowSelfInclusion stubs QueryUsersForExpression so checkSelfInclusion
+// succeeds for userID. Maybe() so tests whose expressions skip the check
+// ("true"/empty) still pass AssertExpectations.
+func allowSelfInclusion(mockACS *mocks.AccessControlServiceInterface, userID string) {
+	mockACS.On("QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything).
+		Return([]*model.User{{Id: userID}}, int64(1), nil).
+		Maybe()
+}
+
 // maskingOffTestConfig disables attribute-value masking for policy-endpoint
 // tests that do not cover masking. ABAC and other ABAC sub-flags default on.
 func maskingOffTestConfig(cfg *model.Config) {
@@ -146,6 +155,7 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
 		notFound := model.NewAppError("GetPolicy", "app.access_control.not_found.app_error", nil, "", http.StatusNotFound)
 		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), privateChannel.Id).Return(nil, notFound)
+		allowSelfInclusion(mockAccessControlService, channelAdmin.Id)
 		mockAccessControlService.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).Return(channelPolicy, nil).Times(1)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -270,6 +280,7 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		// Set up mock expectations
 		notFound := model.NewAppError("GetPolicy", "app.access_control.not_found.app_error", nil, "", http.StatusNotFound)
 		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), ch.Id).Return(nil, notFound)
+		allowSelfInclusion(mockAccessControlService, th.BasicUser.Id)
 		mockAccessControlService.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).Return(samplePolicy, nil).Times(1)
 
 		// Set the mock on the app
@@ -598,7 +609,9 @@ func TestCreateAccessControlPolicyPreservesSystemManagedFields(t *testing.T) {
 		_, _, err := client.Login(context.Background(), channelAdmin.Email, channelAdmin.Password)
 		require.NoError(t, err)
 
-		return privateChannel, client, enableABAC()
+		mockACS := enableABAC()
+		allowSelfInclusion(mockACS, channelAdmin.Id)
+		return privateChannel, client, mockACS
 	}
 
 	// Logs th.Client in as a team admin and stubs the per-rule self-inclusion check so the request
@@ -2027,6 +2040,7 @@ func setupTeamAdminABAC(t *testing.T, th *TestHelper) *mocks.AccessControlServic
 	})
 
 	th.AddPermissionToRole(t, model.PermissionManageTeamAccessRules.Id, model.TeamAdminRoleId)
+	allowSelfInclusion(mockACS, th.TeamAdminUser.Id)
 	return mockACS
 }
 
@@ -3281,6 +3295,110 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 		blame := out.Results[0].Decisions[model.AccessControlPolicyActionUploadFileAttachment].Blame[0]
 		require.NotNil(t, blame.EvaluationTree)
 		require.Equal(t, model.PolicySimulationEvaluationKindAnd, blame.EvaluationTree.Kind)
+	})
+}
+
+// TestGetFieldsAutocompleteResourceFields exercises the HTTP boundary of
+// GET /cel/autocomplete/fields for channel-object-type (resource.attributes.*)
+// fields: a channel scope or the include_resource_fields flag surfaces them
+// (tagged with their ObjectType), neither excludes them, and the permission
+// gating holds. This endpoint resolves fields from the property store directly
+// and does not go through the mocked AccessControl engine.
+func TestGetFieldsAutocompleteResourceFields(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	// Setup() only clears the read-only guard on feature flags when it is handed a
+	// config updater, so do it explicitly before flipping one.
+	th.ConfigStore.SetReadOnlyFF(false)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.ResourceAttributesInPolicies = true
+	})
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	mkField := func(objectType string) *model.PropertyField {
+		f, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "region" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: objectType,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}, false, "")
+		require.Nil(t, appErr)
+		return f
+	}
+	userField := mkField(model.PropertyFieldObjectTypeUser)
+	channelField := mkField(model.PropertyFieldObjectTypeChannel)
+
+	const base = "/access_control_policies/cel/autocomplete/fields"
+
+	get := func(t *testing.T, client *model.Client4, query string) []*model.PropertyField {
+		t.Helper()
+		resp, err := client.DoAPIGet(context.Background(), base+query, "")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		var fields []*model.PropertyField
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&fields))
+		return fields
+	}
+
+	find := func(fields []*model.PropertyField, id string) *model.PropertyField {
+		for _, f := range fields {
+			if f.ID == id {
+				return f
+			}
+		}
+		return nil
+	}
+
+	t.Run("channel scope surfaces channel fields tagged by object type", func(t *testing.T) {
+		fields := get(t, th.SystemAdminClient, "?limit=100&channelId="+th.BasicChannel.Id)
+		require.NotNil(t, find(fields, userField.ID), "user field must be present when channel-scoped")
+		ch := find(fields, channelField.ID)
+		require.NotNil(t, ch, "channel field must be present when channel-scoped")
+		require.Equal(t, model.PropertyFieldObjectTypeChannel, ch.ObjectType, "channel field must carry its ObjectType")
+	})
+
+	t.Run("include_resource_fields surfaces channel fields with no channel scope", func(t *testing.T) {
+		fields := get(t, th.SystemAdminClient, "?limit=100&include_resource_fields=true")
+		require.NotNil(t, find(fields, channelField.ID), "channel field must be present when include_resource_fields=true")
+	})
+
+	t.Run("channel fields excluded without a channel scope or the flag", func(t *testing.T) {
+		fields := get(t, th.SystemAdminClient, "?limit=100")
+		require.NotNil(t, find(fields, userField.ID), "user field must still be present")
+		require.Nil(t, find(fields, channelField.ID), "channel field must be excluded when neither channelId nor the flag is set")
+	})
+
+	t.Run("channel fields excluded on both paths while the feature is off", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ResourceAttributesInPolicies = false
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ResourceAttributesInPolicies = true
+		})
+
+		scoped := get(t, th.SystemAdminClient, "?limit=100&channelId="+th.BasicChannel.Id)
+		require.Nil(t, find(scoped, channelField.ID), "channel scope must not surface a channel field while off")
+		require.NotNil(t, find(scoped, userField.ID), "user fields must keep working while off")
+
+		asked := get(t, th.SystemAdminClient, "?limit=100&include_resource_fields=true")
+		require.Nil(t, find(asked, channelField.ID), "include_resource_fields must not surface a channel field while off")
+	})
+
+	t.Run("regular user without manage-system is denied when unscoped", func(t *testing.T) {
+		resp, err := th.Client.DoAPIGet(context.Background(), base+"?limit=100", "")
+		require.Error(t, err)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("regular user without channel-manage-access-rules is denied for a channel", func(t *testing.T) {
+		resp, err := th.Client.DoAPIGet(context.Background(), base+"?limit=100&channelId="+th.BasicChannel.Id, "")
+		require.Error(t, err)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 	})
 }
 

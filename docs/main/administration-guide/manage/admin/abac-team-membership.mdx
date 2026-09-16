@@ -379,7 +379,7 @@ A team sync batch runs in the following order:
 
 **Mass-removal guardrail**: If a sync pass would remove more than 50% of a team's current members, the job sets a warning flag visible in the Sync Job Details \> Teams tab. The job is not blocked — all removals proceed — but the warning is surfaced for admin review.
 
-Team sync also runs automatically on a schedule to handle attribute changes propagated from LDAP or SAML. The interval is set by `AccessControlSettings.SyncJobIntervalSeconds` and defaults to 3600 seconds (60 minutes). The minimum accepted value is 60 seconds, and a change requires a server restart to take effect. The same interval governs channel membership sync.
+Team sync also runs automatically on a schedule to handle attribute changes propagated from LDAP or SAML. The interval is set by `AccessControlSettings.SyncJobIntervalSeconds` and defaults to 3600 seconds (60 minutes). The minimum accepted value is 60 seconds, and a change requires a server restart to take effect. The same interval governs channel membership sync. User attributes used for access control evaluation are refreshed on a separate schedule controlled by `AccessControlSettings.AttributeRefreshIntervalSeconds`, which defaults to 30 seconds. Set this value to 0 to disable periodic attribute refresh.
 
 ## Mutual exclusivity with group sync
 
@@ -417,7 +417,7 @@ No. Group sync and ABAC are mutually exclusive on a per-team basis. If a team is
 
 ### How quickly are membership changes applied?
 
-Saving rules in Team Settings or the System Console triggers an immediate team sync — **including when auto-add is off**, because enforcement (removal on private teams) runs regardless of the auto-add setting. Changes are applied as soon as the sync completes. A scheduled sync also runs on the interval set by `AccessControlSettings.SyncJobIntervalSeconds` (60 minutes by default) to process attribute changes from LDAP or SAML.
+Saving rules in Team Settings or the System Console triggers an immediate team sync — **including when auto-add is off**, because enforcement (removal on private teams) runs regardless of the auto-add setting. Changes are applied as soon as the sync completes. A scheduled sync also runs on the interval set by `AccessControlSettings.SyncJobIntervalSeconds` (60 minutes by default) to process attribute changes from LDAP or SAML. User attributes used for access control evaluation are refreshed on the interval set by `AccessControlSettings.AttributeRefreshIntervalSeconds` (30 seconds by default).
 
 ### Does System Admin role bypass team ABAC enforcement?
 

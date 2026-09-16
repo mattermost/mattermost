@@ -813,7 +813,8 @@ func (wc *WebConn) IsMFAAuthenticated() bool {
 	c := request.EmptyContext(wc.Platform.logger).WithSession(session)
 
 	// Check if MFA is required and user has NOT completed MFA
-	if appErr := wc.Suite.MFARequired(c); appErr != nil {
+	// WebSocket connections are established via an HTTP GET upgrade request.
+	if appErr := wc.Suite.MFARequired(c, http.MethodGet); appErr != nil {
 		return false
 	}
 

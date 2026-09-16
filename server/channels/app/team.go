@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"cmp"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,7 +13,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/url"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -39,8 +40,8 @@ func (a *App) AdjustTeamsFromProductLimits(teamLimits *model.TeamsLimits) *model
 		return nil
 	}
 	// Sort the list of teams based on their creation date
-	sort.Slice(teams, func(i, j int) bool {
-		return teams[i].CreateAt < teams[j].CreateAt
+	slices.SortFunc(teams, func(a, b *model.Team) int {
+		return cmp.Compare(a.CreateAt, b.CreateAt)
 	})
 
 	var activeTeams []*model.Team
@@ -138,7 +139,7 @@ func (a *App) CreateTeam(rctx request.CTX, team *model.Team) (*model.Team, *mode
 }
 
 func (a *App) CreateTeamWithUser(rctx request.CTX, team *model.Team, userID string) (*model.Team, *model.AppError) {
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -875,7 +876,7 @@ func (a *App) JoinUserToTeam(rctx request.CTX, team *model.Team, user *model.Use
 
 	var actor *model.User
 	if userRequestorId != "" {
-		actor, _ = a.GetUser(userRequestorId)
+		actor, _ = a.GetUser(rctx, userRequestorId)
 	}
 
 	a.Srv().Go(func() {
@@ -1286,7 +1287,7 @@ func (a *App) RemoveUserFromTeam(rctx request.CTX, teamID string, userID string,
 func (a *App) postProcessTeamMemberLeave(rctx request.CTX, teamMember *model.TeamMember, requestorId string) *model.AppError {
 	var actor *model.User
 	if requestorId != "" {
-		actor, _ = a.GetUser(requestorId)
+		actor, _ = a.GetUser(rctx, requestorId)
 	}
 
 	a.Srv().Go(func() {

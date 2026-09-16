@@ -4,8 +4,9 @@
 package app
 
 import (
+	"cmp"
 	"net/http"
-	"sort"
+	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
@@ -66,8 +67,8 @@ func (a *App) SearchTeamAccessPolicies(rctx request.CTX, teamID, requesterID str
 			seen[p.ID] = true
 		}
 	}
-	sort.Slice(policies, func(i, j int) bool {
-		return policies[i].ID < policies[j].ID
+	slices.SortFunc(policies, func(a, b *model.AccessControlPolicy) int {
+		return cmp.Compare(a.ID, b.ID)
 	})
 
 	// Single batched Channel lookup for all policies' child_ids so we don't
@@ -86,7 +87,7 @@ func (a *App) SearchTeamAccessPolicies(rctx request.CTX, teamID, requesterID str
 	for id := range unionSet {
 		union = append(union, id)
 	}
-	sort.Strings(union)
+	slices.Sort(union)
 
 	var idToType map[string]model.ChannelType
 	batchLookupFailed := false
@@ -358,7 +359,7 @@ func (a *App) ValidateTeamAdminSelfInclusion(rctx request.CTX, userID, expressio
 // nil to have it resolved here.
 func (a *App) SendTeamAccessControlRemovalNotification(rctx request.CTX, systemBot *model.Bot, userID string, team *model.Team) *model.AppError {
 	locale := ""
-	if user, err := a.GetUser(userID); err == nil {
+	if user, err := a.GetUser(rctx, userID); err == nil {
 		locale = user.Locale
 	}
 	T := i18n.GetUserTranslations(locale)
@@ -377,7 +378,7 @@ func (a *App) SendTeamAccessControlAdditionNotification(rctx request.CTX, system
 	a.LogAuditRec(rctx, rec, nil)
 
 	locale := ""
-	if user, err := a.GetUser(userID); err == nil {
+	if user, err := a.GetUser(rctx, userID); err == nil {
 		locale = user.Locale
 	}
 	T := i18n.GetUserTranslations(locale)

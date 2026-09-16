@@ -42,7 +42,7 @@ export async function setGlobalAttributesFeatureFlag(adminClient: Client4, enabl
 }
 
 /**
- * Shared precondition for every test that needs the Manage Attributes page actually
+ * Shared precondition for every test that needs the Attribute Management page actually
  * reachable (as opposed to the flag-off gate test, which deliberately doesn't need this):
  * skips on a sub-Enterprise license, enables the GlobalAttributes flag, and skips if the
  * flag didn't actually take (e.g. env/SplitKey overrides). Returns the admin session.
@@ -58,7 +58,7 @@ export async function requireGlobalAttributesEnabled(pw: PlaywrightExtended) {
     const license = await adminClient.getClientLicenseOld();
     test.skip(
         licenseTier(license.SkuShortName) < 20,
-        'Manage Attributes requires Enterprise-tier license (SkuShortName enterprise, entry, or advanced). ' +
+        'Attribute Management requires Enterprise-tier license (SkuShortName enterprise, entry, or advanced). ' +
             'Professional is not sufficient—the admin route is hidden and redirects away.',
     );
 
@@ -109,9 +109,8 @@ export async function deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClien
 }
 
 /**
- * Creates an access_control/template property field (the same group/object type/target
- * this ticket's table lists) for E2E seeding. Ensures a clean slate first so reruns don't
- * collide with a field left over from a prior failed run.
+ * Creates an access_control/template property field for E2E seeding. Ensures a clean
+ * slate first so reruns don't collide with a field left over from a prior failed run.
  */
 export async function createGlobalAttributeField(
     adminClient: Client4,
@@ -145,6 +144,7 @@ export async function createLinkedDependentField(
     sourceFieldId: string,
     type: string,
     objectType: ResourceObjectType = 'user',
+    attrs?: Record<string, unknown>,
 ) {
     return adminClient.createPropertyField(PROPERTY_GROUP, objectType, {
         name,
@@ -152,6 +152,7 @@ export async function createLinkedDependentField(
         target_type: TARGET_TYPE,
         target_id: '',
         linked_field_id: sourceFieldId,
+        ...(attrs ? {attrs} : {}),
     } as Parameters<Client4['createPropertyField']>[2]);
 }
 

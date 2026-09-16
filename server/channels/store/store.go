@@ -6,7 +6,6 @@
 package store
 
 import (
-	"context"
 	"database/sql"
 	"time"
 
@@ -102,6 +101,7 @@ type Store interface {
 	AutoTranslation() AutoTranslationStore
 	GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error)
 	ContentFlagging() ContentFlaggingStore
+	DeliveryTracking() DeliveryTrackingStore
 	Recap() RecapStore
 	ScheduledRecap() ScheduledRecapStore
 	ReadReceipt() ReadReceiptStore
@@ -354,6 +354,7 @@ type ChannelMemberHistoryStore interface {
 type ThreadStore interface {
 	GetThreadFollowers(threadID string, fetchOnlyActive bool) ([]string, error)
 	GetThreadMembershipsForExport(postID string) ([]*model.ThreadMembershipForExport, error)
+	GetThreadFollowerIDsForChannel(teamName string, channelName string, includeArchivedChannels bool) ([]string, error)
 
 	Get(id string) (*model.Thread, error)
 	GetTotalUnreadThreads(userID, teamID string, opts model.GetUserThreadsOpts) (int64, error)
@@ -405,9 +406,9 @@ type PostStore interface {
 	GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error)
 	GetPostsByThread(threadID string, since int64) ([]*model.Post, error)
 	GetPostAfterTime(channelID string, timestamp int64, collapsedThreads bool) (*model.Post, error)
-	GetPostIdAfterTime(channelID string, timestamp int64, collapsedThreads bool) (string, error)
-	GetPostIdBeforeTime(channelID string, timestamp int64, collapsedThreads bool) (string, error)
-	GetVisiblePostIdAroundTime(channelID string, timestamp int64, before bool, collapsedThreads bool, userID string) (string, error)
+	GetPostIdAfterTime(channelID string, timestamp int64, collapsedThreads bool, excludeMembershipSystemPosts bool) (string, error)
+	GetPostIdBeforeTime(channelID string, timestamp int64, collapsedThreads bool, excludeMembershipSystemPosts bool) (string, error)
+	GetVisiblePostIdAroundTime(channelID string, timestamp int64, before bool, collapsedThreads bool, userID string, excludeMembershipSystemPosts bool) (string, error)
 	GetEtag(channelID string, allowFromCache bool, collapsedThreads bool, includeTranslations bool) string
 	Search(teamID string, userID string, params *model.SearchParams) (*model.PostList, error)
 	AnalyticsUserCountsWithPostsByDay(teamID string) (model.AnalyticsRows, error)
@@ -426,7 +427,9 @@ type PostStore interface {
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 	GetOldest() (*model.Post, error)
 	GetMaxPostSize() int
-	GetParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.PostForExport, error)
+	GetParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool, teamName string, channelNameFilter string) ([]*model.PostForExport, error)
+	GetPostAuthorIDsForTeam(teamName string, includeArchivedChannels bool) ([]string, error)
+	GetPostAuthorIDsForChannel(teamName string, channelName string, includeArchivedChannels bool) ([]string, error)
 	GetRepliesForExport(parentID string) ([]*model.ReplyForExport, error)
 	GetDirectPostParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.DirectPostForExport, error)
 	SearchPostsForUser(rctx request.CTX, paramsList []*model.SearchParams, userID, teamID string, page, perPage int) (*model.PostSearchResults, error)
@@ -813,11 +816,11 @@ type ReactionStore interface {
 	Save(reaction *model.Reaction) (*model.Reaction, error)
 	Delete(reaction *model.Reaction) (*model.Reaction, error)
 	GetForPost(postID string, allowFromCache bool) ([]*model.Reaction, error)
+	GetReactionAuthorIDsForChannel(teamName string, channelName string, includeArchivedChannels bool) ([]string, error)
 	GetForPostSince(postID string, since int64, excludeRemoteID string, inclDeleted bool) ([]*model.Reaction, error)
 	GetUniqueCountForPost(postID string) (int, error)
 	ExistsOnPost(postID string, emojiName string) (bool, error)
 	DeleteAllWithEmojiName(rctx request.CTX, emojiName string) error
-	BulkGetForPosts(postIds []string) ([]*model.Reaction, error)
 	GetSingle(userID, postID, remoteID, emojiName string) (*model.Reaction, error)
 	DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) (int64, error)
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
@@ -1190,11 +1193,11 @@ type PropertyGroupStore interface {
 
 type PropertyFieldStore interface {
 	Create(field *model.PropertyField) (*model.PropertyField, error)
-	Get(ctx context.Context, groupID, id string) (*model.PropertyField, error)
-	GetMany(ctx context.Context, groupID string, ids []string) ([]*model.PropertyField, error)
-	GetFieldByName(ctx context.Context, groupID, targetID, name string) (*model.PropertyField, error)
-	GetFieldByNameForObjectType(ctx context.Context, groupID, targetID, objectType, name string) (*model.PropertyField, error)
-	GetForGroup(ctx context.Context, groupID string) ([]*model.PropertyField, error)
+	Get(rctx request.CTX, groupID, id string) (*model.PropertyField, error)
+	GetMany(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyField, error)
+	GetFieldByName(rctx request.CTX, groupID, targetID, name string) (*model.PropertyField, error)
+	GetFieldByNameForObjectType(rctx request.CTX, groupID, targetID, objectType, name string) (*model.PropertyField, error)
+	GetForGroup(rctx request.CTX, groupID string) ([]*model.PropertyField, error)
 	CountForGroup(groupID string, includeDeleted bool) (int64, error)
 	CountForGroupObjectType(groupID, objectType string, includeDeleted bool) (int64, error)
 	CountForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error)
@@ -1240,14 +1243,40 @@ type AccessControlPolicyStore interface {
 	// channel-list reads to avoid an N+1 against AccessControlPolicies.
 	// Empty input returns an empty map and fires no SQL.
 	GetActionsForPolicies(rctx request.CTX, policyIDs []string) (map[string]map[string]bool, error)
+
+	// GetEtagEpoch returns an opaque epoch over the system-scoped permission policies plus the
+	// given channel's own policy row; an empty channelID covers only the former. Deletion-
+	// sensitive, so it moves even when the newest policy is not the one that changed.
+	GetEtagEpoch(rctx request.CTX, channelID string) (string, error)
+
+	// InvalidateEtagForChannel drops the cached render-ETag epoch for a single channel's policy.
+	// Call after that channel's policy changes. No-op outside the local cache layer.
+	InvalidateEtagForChannel(channelID string)
+
+	// ClearEtagCache drops all cached render-ETag epochs. Call after a system-scoped permission
+	// policy changes, since every channel's epoch aggregates the permission set. No-op outside
+	// the local cache layer.
+	ClearEtagCache()
 }
 
 type AttributesStore interface {
 	RefreshAttributes() error
-	GetSubject(rctx request.CTX, ID, groupID string) (*model.Subject, error)
+	GetSubject(rctx request.CTX, ID, groupID, objectType string) (*model.Subject, error)
 	SearchUsers(rctx request.CTX, opts model.SubjectSearchOptions) ([]*model.User, int64, error)
 	GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error)
+	// GetUserPropertyValuesEpoch returns the per-user epoch for ABAC-aware post-list ETags.
+	// Deletion-sensitive, so soft-deleting any value moves it.
+	GetUserPropertyValuesEpoch(rctx request.CTX, userID string) (string, error)
 	GetTeamMembersToRemove(rctx request.CTX, teamID string, opts model.SubjectSearchOptions) ([]*model.TeamMember, error)
+
+	// InvalidateUserPropertyValuesEpoch drops the cached property-values epoch for a single user.
+	// Call after that user's property values change. No-op outside the local cache layer.
+	InvalidateUserPropertyValuesEpoch(userID string)
+
+	// ClearUserPropertyValuesEpochCache drops all cached property-values epochs. Call after a
+	// change that can affect many users at once (e.g. deleting a field). No-op outside the local
+	// cache layer.
+	ClearUserPropertyValuesEpochCache()
 }
 
 type SessionAttributeStore interface {
@@ -1290,6 +1319,24 @@ type AutoTranslationStore interface {
 type ContentFlaggingStore interface {
 	SaveReviewerSettings(reviewerSettings model.ReviewerIDsSettings) error
 	GetReviewerSettings() (*model.ReviewerIDsSettings, error)
+	ClearCaches()
+}
+
+// DeliveryTrackingStore persists the explicit per-channel allow-list for post delivery
+// audit logging. The on/off and all-channels toggles live in
+// Config.DeliveryTrackingSettings; only the channel ids live here.
+//
+// IsChannelTracked and IsChannelTrackable are consulted once per recorded delivery, and their
+// cache layer memoizes them into bounded in-memory maps so that path never deserializes.
+type DeliveryTrackingStore interface {
+	// SaveTrackedChannelIDs replaces the entire stored set with channelIDs.
+	SaveTrackedChannelIDs(rctx request.CTX, channelIDs []string) error
+	GetTrackedChannelIDs(rctx request.CTX) ([]string, error)
+	// IsChannelTracked reports whether channelID is in the explicit allow-list.
+	IsChannelTracked(rctx request.CTX, channelID string) (bool, error)
+	// IsChannelTrackable reports whether channelID is eligible for tracking at all, which
+	// means it is not a DM or GM. Unknown channels are not trackable.
+	IsChannelTrackable(rctx request.CTX, channelID string) (bool, error)
 	ClearCaches()
 }
 

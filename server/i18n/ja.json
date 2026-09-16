@@ -1154,10 +1154,6 @@
     "translation": "あなたのシステムは{{.Count}}の重複のないユーザーが使ってます。このライセンスは{{.Users}}ユーザーのみサポートしています。重複のないユーザー数は、電子メールアドレスによって決められます。全ユーザー数は、サイトリポート->統計を見るを参照してください。"
   },
   {
-    "id": "api.license.client.old_format.app_error",
-    "translation": "クライアントのライセンスで新しい形式がまだサポートされていません。クエリー文字列に format=old を指定してください。"
-  },
-  {
     "id": "api.marshal_error",
     "translation": "変換できませんでした。"
   },
@@ -1474,78 +1470,6 @@
     "translation": "サーバー開始時にエラーになりました err:%v"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.unable_import",
-    "translation": "統合機能/SlackBot のユーザー {{.Username}} がインポートできませんでした。\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\r\nチャンネルが追加されました: \r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-    "translation": "チャンネルにSlackユーザー {{.Username}} を追加できませんでした。\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.import_failed",
-    "translation": "Slackチャンネル {{.DisplayName}} をインポートできませんでした。\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.merge",
-    "translation": "Slackチャンネル {{.DisplayName}} は有効なMattermostのチャンネルとして既に存在しています。両方のチャンネルがマージされます。\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.created",
-    "translation": "\r\n ユーザーが作成されました:\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "電子メールアドレス {{.Email}} とユーザー名 {{.Username}} を持つ既存のMattermostユーザーとSlackユーザーをマージしました。\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "電子メールアドレス {{.Email}} とユーザー名 {{.Username}} を持つ既存のMattermostユーザーとSlackユーザーをマージしましたが、そのユーザーをチームに追加できませんでした。\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "Slackエクスポートにユーザー {{.Username}} の電子メールアドレスが存在しません。プレースホルダーとして {{.Email}} が利用されます。システムにログインした時、そのユーザーは電子メールアドレスを更新する必要があります。\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.unable_import",
-    "translation": "Slackユーザーをインポートできません: {{.Username}}\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.log",
-    "translation": "Mattermost Slackインポートログ\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note1",
-    "translation": "- 投稿のうちいくつかはインポートされませんでした。このインポートプログラムではサポートされません。\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note2",
-    "translation": "- Slack botの投稿は現在サポートされていません。\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note3",
-    "translation": "- 詳細なエラーはサーバーログを確認してください。\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.notes",
-    "translation": "\r\n注意事項: \r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.open.app_error",
-    "translation": "ファイルを開けませんでした: {{.Filename}}。\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.team_fail",
-    "translation": "インポートするチームを取得できませんでした。\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.zip.app_error",
-    "translation": "Slackエクスポートのzipファイルを開けませんでした。\r\n"
-  },
-  {
     "id": "api.status.user_not_found.app_error",
     "translation": "ユーザーが見付かりません。"
   },
@@ -1568,34 +1492,6 @@
   {
     "id": "api.team.get_team_icon.read_file.app_error",
     "translation": "チームアイコンファイルを読み込めません。"
-  },
-  {
-    "id": "api.team.import_team.array.app_error",
-    "translation": "リクエストの'file'以下の配列が空です。"
-  },
-  {
-    "id": "api.team.import_team.integer.app_error",
-    "translation": "ファイルサイズが整数ではありません。"
-  },
-  {
-    "id": "api.team.import_team.no_file.app_error",
-    "translation": "リクエストの'file'以下にファイルがありません。"
-  },
-  {
-    "id": "api.team.import_team.no_import_from.app_error",
-    "translation": "不正なリクエスト: importFromが存在しません。"
-  },
-  {
-    "id": "api.team.import_team.open.app_error",
-    "translation": "ファイルを開けません。"
-  },
-  {
-    "id": "api.team.import_team.parse.app_error",
-    "translation": "マルチパートフォームを解析できません。"
-  },
-  {
-    "id": "api.team.import_team.unavailable.app_error",
-    "translation": "不正なリクエスト: ファイルサイズ項目が存在しません。"
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -3526,14 +3422,6 @@
     "translation": "サブドメインに対するクッキーを許可するには サイトURL の設定が必要です。"
   },
   {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "atmos/camoに対する不正な RemoteImageProxyOption です。共有キーを設定してください。"
-  },
-  {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
-    "translation": "atmos/camoに対する不正な RemoteImgeProxyURL です。共有キーを設定してください。"
-  },
-  {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "クラスタリングが有効化されている場合、電子メールバッチ処理は有効化できません。"
   },
@@ -3592,10 +3480,6 @@
   {
     "id": "model.config.is_valid.email_security.app_error",
     "translation": "電子メール設定の接続セキュリティーが不正です。''、'TLS'、'STARTTLS'のいずれかにしてください。"
-  },
-  {
-    "id": "model.config.is_valid.encrypt_sql.app_error",
-    "translation": "SQL設定のREST暗号化キーが不正です。32文字以上にしてください。"
   },
   {
     "id": "model.config.is_valid.file_driver.app_error",
@@ -5266,10 +5150,6 @@
     "translation": "ID-loadedプッシュ通知はこのサーバーで設定されていないか、サポートされていません。"
   },
   {
-    "id": "api.slackimport.slack_import.zip.file_too_large",
-    "translation": "ZIPアーカイブ内の {{.Filename}} が大きすぎるためSlackインポート処理を実行できません\r\n"
-  },
-  {
     "id": "api.push_notifications_ack.message.parse.app_error",
     "translation": "プッシュ通知応答メッセージを構築する際にエラーが発生しました。"
   },
@@ -5510,10 +5390,6 @@
     "translation": "この絵文字名のリアクションを取得できませんでした。"
   },
   {
-    "id": "app.reaction.bulk_get_for_post_ids.app_error",
-    "translation": "投稿へのリアクションを取得できませんでした。"
-  },
-  {
     "id": "app.emoji.get_by_name.no_result",
     "translation": "絵文字を見つけられませんでした。"
   },
@@ -5556,10 +5432,6 @@
   {
     "id": "api.user.autocomplete_users.missing_team_id.app_error",
     "translation": "チャンネルの自動補完にはチームIDパラメータが必要です。"
-  },
-  {
-    "id": "api.team.import_team.unknown_import_from.app_error",
-    "translation": "インポートソースが見つかりません。"
   },
   {
     "id": "api.push_notifications.session.expired",
@@ -8554,10 +8426,6 @@
     "translation": "ライセンスをアップロードする際の bytes が不正な値です。"
   },
   {
-    "id": "ent.elasticsearch.max_version.app_error",
-    "translation": "{{.Backend}} バージョン{{.Version}}は、サポートされている最新バージョン{{.MaxVersion}}より高いバージョンです"
-  },
-  {
     "id": "app.plugin.skip_installation.app_error",
     "translation": "プラグイン {{.Id}} は、既存のバージョンと同じかより新しいため、インストールをスキップします。"
   },
@@ -8656,30 +8524,6 @@
   {
     "id": "app.channel.update_member.notify_props_limit_exceeded.app_error",
     "translation": "チャンネルメンバーを更新できませんでした。notify propsのサイズが制限を超えています。"
-  },
-  {
-    "id": "app.eport.generate_presigned_url.link.app_error",
-    "translation": "Presigned URLを生成できませんでした。"
-  },
-  {
-    "id": "app.eport.generate_presigned_url.config.app_error",
-    "translation": "この操作には、専用のエクスポート保存先を使用する必要があります。"
-  },
-  {
-    "id": "app.eport.generate_presigned_url.driver.app_error",
-    "translation": "お使いのエクスポート保存先ドライバはPresign URLの生成をサポートしていません。"
-  },
-  {
-    "id": "app.eport.generate_presigned_url.featureflag.app_error",
-    "translation": "この機能はフィーチャーフラグによって制限されています。"
-  },
-  {
-    "id": "app.eport.generate_presigned_url.fileexist.app_error",
-    "translation": "ファイルの存在を確認できませんでした。"
-  },
-  {
-    "id": "app.eport.generate_presigned_url.notfound.app_error",
-    "translation": "エクスポートファイルが見つかりませんでした。"
   },
   {
     "id": "model.channel_member.is_valid.notify_props.app_error",
@@ -10608,14 +10452,6 @@
   {
     "id": "model.access_policy.inherit.already_imported.app_error",
     "translation": "親はすでにインポートされています。"
-  },
-  {
-    "id": "model.config.is_valid.client_side_cert_enable.app_error",
-    "translation": "証明書ベースの認証が削除されました。継続するにはClientSideCertEnableを無効にしてください。"
-  },
-  {
-    "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
-    "translation": "アーカイブ済みチャンネルを非表示にする機能はサポートされていません。これらのチャンネルを非公開にするか、メンバーを削除してください。"
   },
   {
     "id": "api.user.check_user_password.invalid_hash.app_error",

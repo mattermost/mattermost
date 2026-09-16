@@ -87,7 +87,7 @@ func requireFlaggedPost(c *Context, postId string) {
 		return
 	}
 
-	_, appErr := c.App.GetPostContentFlaggingPropertyValue(postId, app.ContentFlaggingPropertyNameStatus)
+	_, appErr := c.App.GetPostContentFlaggingPropertyValue(c.AppContext, postId, app.ContentFlaggingPropertyNameStatus)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -252,7 +252,7 @@ func getContentFlaggingFields(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	mappedFields, appErr := c.App.GetContentFlaggingMappedFields(groupId)
+	mappedFields, appErr := c.App.GetContentFlaggingMappedFields(c.AppContext, groupId)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -300,7 +300,7 @@ func getPostPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	propertyValues, appErr := c.App.GetPostContentFlaggingPropertyValues(postId)
+	propertyValues, appErr := c.App.GetPostContentFlaggingPropertyValues(c.AppContext, postId)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -374,6 +374,8 @@ func getFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("getFlaggedPost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
+
+	c.App.RecordPostDelivery(c.AppContext, c.AppContext.Session().UserId, post, model.DeliveryMechanismProduct)
 
 	if !isMemberForPreviews {
 		previewPost := post.GetPreviewPost()

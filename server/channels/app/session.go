@@ -10,6 +10,7 @@ import (
 	"math"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/mattermost/mattermost/server/public/model"
@@ -31,7 +32,7 @@ func (a *App) CreateSession(rctx request.CTX, session *model.Session) (*model.Se
 	// remote/synthetic users cannot create sessions. This lookup will already be cached.
 	// Some unit tests rely on sessions being created for users that don't exist, therefore
 	// missing users are allowed.
-	user, appErr := a.GetUser(session.UserId)
+	user, appErr := a.GetUser(rctx, session.UserId)
 	if appErr != nil && appErr.StatusCode != http.StatusNotFound {
 		return nil, appErr
 	}
@@ -217,6 +218,10 @@ func (a *App) sendMobileWipeSignal(rctx request.CTX, sessions ...*model.Session)
 		signature, signErr := jwt.NewWithClaims(jwt.SigningMethodES256, pushJWTClaims{
 			AckId:    msg.AckId,
 			DeviceId: msg.DeviceId,
+			UserId:   session.UserId,
+			RegisteredClaims: jwt.RegisteredClaims{
+				IssuedAt: jwt.NewNumericDate(time.Now()),
+			},
 		}).SignedString(a.AsymmetricSigningKey())
 		if signErr != nil {
 			rctx.Logger().Warn("Failed to sign session wipe push", mlog.String("session_id", session.Id), mlog.Err(signErr))

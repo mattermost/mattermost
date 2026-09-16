@@ -37,6 +37,65 @@ func (a *App) resolveValueBroadcastParams(rctx request.CTX, objectType, targetID
 	}
 }
 
+// invalidateUserPropertyValuesEpochs marks the AttributeView stale and drops the cached CPA epoch
+// for every distinct user the values target. It keys off each value's own TargetType/TargetID
+// rather than a caller-supplied object type, to stay correct for plugin callers that pass none.
+//
+// Both halves must move together: the epoch alone forces a refetch that renders from a stale view
+// and then caches that under the new ETag, and the view alone leaves the client 304ing on content
+// sanitized under the old attributes.
+func (a *App) invalidateUserPropertyValuesEpochs(values []*model.PropertyValue) {
+	seen := make(map[string]bool, len(values))
+	for _, v := range values {
+		if v == nil || v.TargetType != model.PropertyFieldObjectTypeUser || seen[v.TargetID] {
+			continue
+		}
+		seen[v.TargetID] = true
+	}
+	if len(seen) == 0 {
+		return
+	}
+
+	a.invalidateAttributeViewCache()
+
+	// Only the epoch half is gated: nothing reads it while ABAC is off, and each invalidation
+	// costs a cluster message. A flip clears both caches wholesale, so nothing skipped here
+	// survives as a stale entry.
+	if !a.attributeBasedAccessControlEnabled() {
+		return
+	}
+	for targetID := range seen {
+		a.Srv().Store().Attributes().InvalidateUserPropertyValuesEpoch(targetID)
+	}
+}
+
+// invalidateUserPropertyValuesEpoch is the single-target form, for delete paths that have a target
+// ID rather than a set of values. Same split gate as above.
+func (a *App) invalidateUserPropertyValuesEpoch(targetType, targetID string) {
+	if targetType != model.PropertyFieldObjectTypeUser {
+		return
+	}
+
+	a.invalidateAttributeViewCache()
+
+	if !a.attributeBasedAccessControlEnabled() {
+		return
+	}
+	a.Srv().Store().Attributes().InvalidateUserPropertyValuesEpoch(targetID)
+}
+
+// invalidateAllUserAttributeCaches marks the AttributeView stale and drops every cached CPA epoch.
+// For field mutations, which change what every subject resolves to without touching a single
+// PropertyValues row, and so are invisible to an epoch computed from that table.
+func (a *App) invalidateAllUserAttributeCaches() {
+	a.invalidateAttributeViewCache()
+
+	if !a.attributeBasedAccessControlEnabled() {
+		return
+	}
+	a.Srv().Store().Attributes().ClearUserPropertyValuesEpochCache()
+}
+
 // CreatePropertyValue creates a new property value.
 func (a *App) CreatePropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, *model.AppError) {
 	if value == nil {
@@ -51,6 +110,8 @@ func (a *App) CreatePropertyValue(rctx request.CTX, value *model.PropertyValue) 
 		}
 		return nil, model.NewAppError("CreatePropertyValue", "app.property_value.create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	a.invalidateUserPropertyValuesEpochs([]*model.PropertyValue{createdValue})
 	return createdValue, nil
 }
 
@@ -70,6 +131,8 @@ func (a *App) CreatePropertyValues(rctx request.CTX, values []*model.PropertyVal
 		}
 		return nil, model.NewAppError("CreatePropertyValues", "app.property_value.create_many.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	a.invalidateUserPropertyValuesEpochs(createdValues)
 	return createdValues, nil
 }
 
@@ -123,6 +186,8 @@ func (a *App) UpdatePropertyValue(rctx request.CTX, groupID string, value *model
 		}
 		return nil, model.NewAppError("UpdatePropertyValue", "app.property_value.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	a.invalidateUserPropertyValuesEpochs([]*model.PropertyValue{updatedValue})
 	return updatedValue, nil
 }
 
@@ -142,6 +207,8 @@ func (a *App) UpdatePropertyValues(rctx request.CTX, groupID string, values []*m
 		}
 		return nil, model.NewAppError("UpdatePropertyValues", "app.property_value.update_many.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	a.invalidateUserPropertyValuesEpochs(updatedValues)
 	return updatedValues, nil
 }
 
@@ -159,6 +226,8 @@ func (a *App) UpsertPropertyValue(rctx request.CTX, value *model.PropertyValue) 
 		}
 		return nil, model.NewAppError("UpsertPropertyValue", "app.property_value.upsert.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	a.invalidateUserPropertyValuesEpochs([]*model.PropertyValue{upsertedValue})
 	return upsertedValue, nil
 }
 
@@ -264,6 +333,8 @@ func (a *App) UpsertPropertyValues(rctx request.CTX, values []*model.PropertyVal
 		return nil, model.NewAppError("UpsertPropertyValues", "app.property_value.upsert_many.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	a.invalidateUserPropertyValuesEpochs(result)
+
 	// Only publish websocket events for PSAv2 properties (those with an ObjectType)
 	if objectType != "" {
 		teamID, channelID, appErr := a.resolveValueBroadcastParams(rctx, objectType, targetID)
@@ -300,6 +371,8 @@ func (a *App) DeletePropertyValue(rctx request.CTX, groupID, valueID string) *mo
 		return model.NewAppError("DeletePropertyValue", "app.property_value.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	a.invalidateUserPropertyValuesEpoch(value.TargetType, value.TargetID)
+
 	teamID, channelID, appErr := a.resolveValueBroadcastParams(rctx, value.TargetType, value.TargetID)
 	if appErr != nil {
 		rctx.Logger().Warn("Failed to resolve broadcast params for property value deletion", mlog.Err(appErr))
@@ -335,6 +408,8 @@ func (a *App) DeletePropertyValuesForTarget(rctx request.CTX, groupID, targetTyp
 		return model.NewAppError("DeletePropertyValuesForTarget", "app.property_value.delete_for_target.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	a.invalidateUserPropertyValuesEpoch(targetType, targetID)
+
 	teamID, channelID, appErr := a.resolveValueBroadcastParams(rctx, targetType, targetID)
 	if appErr != nil {
 		rctx.Logger().Warn("Failed to resolve broadcast params for property value deletion", mlog.Err(appErr))
@@ -357,6 +432,10 @@ func (a *App) DeletePropertyValuesForField(rctx request.CTX, groupID, fieldID st
 		}
 		return model.NewAppError("DeletePropertyValuesForField", "app.property_value.delete_for_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	// A field delete can drop values for many users at once, so clear the whole epoch cache
+	// rather than trying to enumerate the affected users.
+	a.invalidateAllUserAttributeCaches()
 
 	message := model.NewWebSocketEvent(model.WebsocketEventPropertyValuesUpdated, "", "", "", nil, "")
 	message.Add("field_id", fieldID)

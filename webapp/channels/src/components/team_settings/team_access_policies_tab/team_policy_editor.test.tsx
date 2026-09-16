@@ -52,6 +52,8 @@ describe('TeamPolicyEditor', () => {
             TrustProxyDeviceIdentityHeader: false,
             EnforceDeviceIDConsistency: false,
             EnableAccessControlAuditLogging: false,
+            SyncJobIntervalSeconds: 3600,
+            AttributeRefreshIntervalSeconds: 30,
         },
         onNavigateBack: jest.fn(),
         actions: {

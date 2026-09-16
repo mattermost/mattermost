@@ -162,31 +162,6 @@ func (s *SqlReactionStore) GetUniqueCountForPost(postId string) (int, error) {
 	return int(count), nil
 }
 
-func (s *SqlReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, error) {
-	placeholder, values := constructArrayArgs(postIds)
-	var reactions []*model.Reaction
-
-	if err := s.GetReplica().Select(&reactions,
-		`SELECT
-				UserId,
-				PostId,
-				EmojiName,
-				CreateAt,
-				COALESCE(UpdateAt, CreateAt) As UpdateAt,
-				COALESCE(DeleteAt, 0) As DeleteAt,
-				RemoteId,
-				ChannelId
-			FROM
-				Reactions
-			WHERE
-				PostId IN `+placeholder+` AND COALESCE(DeleteAt, 0) = 0
-			ORDER BY
-				CreateAt`, values...); err != nil {
-		return nil, errors.Wrap(err, "failed to get Reactions")
-	}
-	return reactions, nil
-}
-
 func (s *SqlReactionStore) GetSingle(userID, postID, remoteID, emojiName string) (*model.Reaction, error) {
 	query := s.getQueryBuilder().
 		Select("UserId", "PostId", "EmojiName", "CreateAt",
@@ -422,4 +397,28 @@ func updatePostForReactionsOnInsert(transaction *sqlxTxWrapper, postId string) e
 	)
 
 	return err
+}
+
+func (s *SqlReactionStore) GetReactionAuthorIDsForChannel(teamName string, channelName string, includeArchivedChannels bool) ([]string, error) {
+	userIDs := []string{}
+	channelFilter := "AND Channels.DeleteAt = 0"
+	if includeArchivedChannels {
+		channelFilter = ""
+	}
+	err := s.GetReplica().Select(&userIDs,
+		`SELECT DISTINCT Reactions.UserId
+		FROM Reactions
+		INNER JOIN Posts ON Reactions.PostId = Posts.Id
+		INNER JOIN Channels ON Posts.ChannelId = Channels.Id
+		INNER JOIN Teams ON Channels.TeamId = Teams.Id
+		WHERE Teams.Name = ?
+		  AND Channels.Name = ?
+		  AND Posts.DeleteAt = 0
+		  `+channelFilter+`
+		  AND Teams.DeleteAt = 0`,
+		teamName, channelName)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get reaction author IDs for channel")
+	}
+	return userIDs, nil
 }

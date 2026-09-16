@@ -92,6 +92,19 @@ describe('UserPropertyRankValues', () => {
         ]);
     });
 
+    it('locks the chips and hides the add input when the field is linked to a template', () => {
+        renderWithContext(
+            <UserPropertyRankValues
+                field={{...baseField(), linked_field_id: 'template-field-id'}}
+                updateField={jest.fn()}
+            />,
+        );
+
+        expect(screen.getByTestId('rank-chip-a')).toBeDisabled();
+        expect(screen.queryByTestId('rank-chip-a-remove')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('user-property-rank-values__add-input')).not.toBeInTheDocument();
+    });
+
     it('does not show the duplicate error while the label still matches the option\'s own name', async () => {
         renderWithContext(
             <UserPropertyRankValues
