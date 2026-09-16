@@ -27,6 +27,44 @@ describe('Edit Message', () => {
         cy.visit(offTopicUrl);
     });
 
+    // Runs first so this post is not consecutive. Consecutive posts hide the timestamp
+    // until hover, which is unrelated to "edit keeps the original post time".
+    it('MM-T102 Timestamp on edited post shows original post time', () => {
+        // # Post a message
+        cy.postMessage('Checking timestamp');
+
+        cy.getLastPostId().then((postId) => {
+            const postTimestamp = () => cy.get(`#post_${postId}`).find('.post__time').first();
+
+            postTimestamp().invoke('attr', 'dateTime').then((originalTimeStamp) => {
+                // # Click dot menu
+                cy.clickPostDotMenu(postId);
+
+                // # Click the edit button
+                cy.get(`#edit_post_${postId}`).click();
+
+                // # Edit the post
+                cy.get('#edit_textbox').type('Some text {enter}', {delay: 100});
+
+                // # Wait for the post to leave edit mode
+                cy.get('#edit_textbox').should('not.exist');
+                cy.get(`#postMessageText_${postId}`).should('contain', 'Edited');
+
+                // * Current post timestamp should have not been changed by edition
+                postTimestamp().should('have.attr', 'dateTime').and('equal', originalTimeStamp);
+
+                // # Open RHS by clicking the post comment icon
+                cy.clickPostCommentIcon(postId);
+
+                // * Check that the RHS is open
+                cy.get('#rhsContainer').should('be.visible');
+
+                // * Check that the center timestamp still equals the original post time
+                postTimestamp().invoke('attr', 'dateTime').should('equal', originalTimeStamp);
+            });
+        });
+    });
+
     it('MM-T121 Escape should not close modal when an autocomplete drop down is in use', () => {
         // # Post a message
         cy.postMessage('Hello World!');
@@ -77,49 +115,6 @@ describe('Edit Message', () => {
 
         // * Assert emoji picker is not visible
         cy.get('#emojiPicker').should('not.exist');
-    });
-
-    it('MM-T102 Timestamp on edited post shows original post time', () => {
-        // # Post a message
-        cy.postMessage('Checking timestamp');
-
-        cy.getLastPostId().then((postId) => {
-            // # Mouseover post to display the timestamp
-            cy.get(`#post_${postId}`).trigger('mouseover', 'center', {force: true});
-
-            cy.get(`#CENTER_time_${postId}`).find('time').invoke('attr', 'dateTime').then((originalTimeStamp) => {
-                // # Click dot menu
-                cy.clickPostDotMenu(postId);
-
-                // # Click the edit button
-                cy.get(`#edit_post_${postId}`).click();
-
-                // # Edit the post
-                cy.get('#edit_textbox').type('Some text {enter}', {delay: 100});
-
-                // # Wait until the post has left edit mode and finished its height animation so
-                // # a mouseover records coordinates on the settled post, not the in-transition one.
-                cy.get('#edit_textbox').should('not.exist');
-                cy.get(`#post_${postId}`).should('not.have.class', 'post--editing');
-                cy.get(`#postMessageText_${postId}`).should('contain', 'Edited');
-                cy.wait(TIMEOUTS.ONE_SEC);
-
-                // # Mouseover the post again
-                cy.get(`#post_${postId}`).trigger('mouseover', 'center', {force: true}).should('have.class', 'post--hovered');
-
-                // * Current post timestamp should have not been changed by edition
-                cy.get(`#CENTER_time_${postId}`).find('time').should('have.attr', 'dateTime').and('equal', originalTimeStamp);
-
-                // # Open RHS by clicking the post comment icon
-                cy.clickPostCommentIcon(postId);
-
-                // * Check that the RHS is open
-                cy.get('#rhsContainer').should('be.visible');
-
-                // * Check that the RHS timeStamp equals the original post timeStamp
-                cy.get(`#CENTER_time_${postId}`).find('time').invoke('attr', 'dateTime').should('equal', originalTimeStamp);
-            });
-        });
     });
 
     it('MM-T97 Open edit modal immediately after making a post', () => {
