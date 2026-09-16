@@ -78,6 +78,21 @@ CREATE TABLE IF NOT EXISTS PropertyOptions (
 -- first was ever resolvable. The second occurrence is minted a fresh ID so the
 -- option is kept rather than dropped, and reported by the postcondition check
 -- below because nothing can reference it under its old ID.
+--
+-- The backfill and the postcondition checks following it run once, guarded by
+-- a completion sentinel row in Systems, so re-executing this file against a
+-- database it has already migrated changes nothing. An unguarded re-run would
+-- not be one: the insert mints a fresh random ID for an option whose blob ID
+-- is missing or already taken, and those rows conflict with nothing, so they
+-- would be inserted again. The sentinel commits in the same transaction as
+-- the rows it vouches for.
+DO $$
+DECLARE
+    r record;
+    divergent int := 0;
+    unmatched int := 0;
+BEGIN
+    IF (SELECT COUNT(*) FROM Systems WHERE Name = 'PropertyOptionsBackfillComplete') = 0 THEN
 WITH exploded AS (
     SELECT
         pf.ID AS fieldid,
@@ -165,12 +180,6 @@ FROM owned o;
 -- indistinguishable from data loss. RAISE WARNING reaches the PostgreSQL server
 -- log (the Go driver does not forward notices), which is where an operator
 -- investigating a divergence would look.
-DO $$
-DECLARE
-    r record;
-    divergent int := 0;
-    unmatched int := 0;
-BEGIN
     FOR r IN
         SELECT po.FieldID AS fieldid, po.ID AS optionid, po.Name AS name, pf.LinkedFieldID AS sourceid
         FROM PropertyOptions po
@@ -215,6 +224,9 @@ BEGIN
     END LOOP;
     IF unmatched > 0 THEN
         RAISE WARNING 'PropertyOptions backfill: % option id(s) are no longer reachable from the field that used them', unmatched;
+    END IF;
+
+    INSERT INTO Systems VALUES('PropertyOptionsBackfillComplete', 'true');
     END IF;
 END
 $$;

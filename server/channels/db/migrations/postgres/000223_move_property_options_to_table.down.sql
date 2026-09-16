@@ -19,6 +19,15 @@
 -- policies had stopped matching. Scoped the same way the up migration's
 -- backfill selects its rows, so a field of a type that never carries options,
 -- or one that was never backfilled, is left untouched.
+--
+-- Both statements run only while the up migration's completion sentinel is
+-- present, so a second down -- which would find no PropertyOptions left to
+-- rehydrate from -- is a no-op rather than an error. Both stay inside the
+-- guard together: clearing the blob without rehydrating it would leave every
+-- option-bearing field optionless.
+DO $$
+BEGIN
+    IF (SELECT COUNT(*) FROM Systems WHERE Name = 'PropertyOptionsBackfillComplete') > 0 THEN
 UPDATE PropertyFields
    SET Attrs = Attrs - 'options'
  WHERE Type IN ('select', 'multiselect', 'rank', 'graph')
@@ -54,6 +63,9 @@ UPDATE PropertyFields pf
    SET Attrs = jsonb_set(CASE WHEN jsonb_typeof(pf.Attrs) = 'object' THEN pf.Attrs ELSE '{}'::jsonb END, '{options}', e.options, true)
   FROM effective e
  WHERE pf.ID = e.fieldid;
+    END IF;
+END
+$$;
 
 -- Restore the 000216 view bodies verbatim: option names come back out of the
 -- blob, and the effective-set scoping is unnecessary again because a linked
@@ -143,3 +155,6 @@ GROUP BY pv.GroupID, pv.TargetID, pv.TargetType;
 
 DROP TABLE IF EXISTS PropertyOptions;
 DROP TABLE IF EXISTS PropertyOptionEdges;
+
+-- Delete the sentinel last, so an up after this down backfills again.
+DELETE FROM Systems WHERE Name = 'PropertyOptionsBackfillComplete';

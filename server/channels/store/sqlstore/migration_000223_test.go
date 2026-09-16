@@ -446,6 +446,26 @@ func TestMigration000223(t *testing.T) {
 	downSQL := readMigrationSQL(t, "000223_move_property_options_to_table.down.sql")
 	upSQL := readMigrationSQL(t, "000223_move_property_options_to_table.up.sql")
 
+	// sentinelCount reads the backfill's completion sentinel: present exactly
+	// when the up migration has run and the down has not.
+	sentinelCount := func(t *testing.T) int {
+		t.Helper()
+		var count int
+		require.NoError(t, store.GetMaster().Get(&count,
+			"SELECT COUNT(*) FROM Systems WHERE Name = 'PropertyOptionsBackfillComplete'"))
+		return count
+	}
+
+	// optionsHash fingerprints every PropertyOptions row, so a re-executed
+	// backfill can be required to have touched nothing.
+	optionsHash := func(t *testing.T) string {
+		t.Helper()
+		var hash string
+		require.NoError(t, store.GetMaster().Get(&hash,
+			`SELECT COALESCE(md5(string_agg(FieldID || ID || COALESCE(Name,'') || SortOrder || DeleteAt, '|' ORDER BY FieldID, ID)), '') FROM PropertyOptions`))
+		return hash
+	}
+
 	// Down: the options go back into every field's own blob, including a copy in
 	// each linked field, the blob-reading view bodies come back, and both tables
 	// go away.
@@ -454,6 +474,7 @@ func TestMigration000223(t *testing.T) {
 	require.False(t, tableExists(t, store, "PropertyOptions"), "down should drop PropertyOptions")
 	require.False(t, tableExists(t, store, "PropertyOptionEdges"), "down should drop PropertyOptionEdges")
 	require.Empty(t, indexDefs(t, "propertyoptionedges"))
+	require.Zero(t, sentinelCount(t), "down should delete the backfill sentinel so an up after it backfills again")
 
 	var blobbedOptions int
 	require.NoError(t, store.GetMaster().Get(&blobbedOptions,
@@ -510,6 +531,18 @@ func TestMigration000223(t *testing.T) {
 	assertHeldIDs(t, "UserAttributeView", malformedUser, "user_programs", []string{},
 		"re-applying the migration stops the non-array value projecting again")
 	assertOtherTypesUnchanged(t, "after up migration")
+
+	// The up records its completion: exactly one sentinel row.
+	require.Equal(t, 1, sentinelCount(t), "up should record the backfill sentinel")
+
+	// Re-executing the up body against a database it has already migrated
+	// completes without error and leaves every PropertyOptions row untouched:
+	// the sentinel skips the backfill and its postcondition checks whole.
+	before := optionsHash(t)
+	_, err = store.GetMaster().ExecNoTimeout(upSQL)
+	require.NoError(t, err, "re-executing the up migration must not fail")
+	require.Equal(t, before, optionsHash(t), "re-executing the up migration must leave every PropertyOptions row untouched")
+	require.Equal(t, 1, sentinelCount(t), "re-executing the up migration must not add a second sentinel row")
 
 	// The option list a field reads back survives the round trip.
 	readLinked, err := store.PropertyField().Get(request.TestContext(t), groupID, linkedSelect.ID)
