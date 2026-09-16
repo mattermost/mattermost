@@ -684,11 +684,18 @@ func TestCreatePropertyField(t *testing.T) {
 		})
 	})
 
-	t.Run("linked fields inherit the source template's permission levels", func(t *testing.T) {
-		// The App layer replaces a linked field's levels with the source
-		// template's, so the submitted levels never take effect. That is why
-		// linked fields are exempt from the anti-lockout check: validating the
-		// caller against a level that will be discarded would be meaningless.
+	t.Run("linked fields take the source template's definition levels and the caller's values level", func(t *testing.T) {
+		// A linked field's permission_field and permission_options come from
+		// the source template, so the submitted ones never take effect. That is
+		// why linked fields are exempt from the anti-lockout check: validating
+		// the caller against a level that will be discarded is meaningless.
+		//
+		// permission_values is the exception, added with channel attributes: a
+		// caller pin wins over the template there, so a linked field can be
+		// writable at a lower level than the template it takes its schema
+		// from. Channel classification depends on it -- a sysadmin-governed
+		// template with a member-writable channel field. See callerPinnedValues
+		// in app/properties/property_field.go.
 		//
 		// th.BasicUser must be a channel admin here: the anti-lockout check
 		// only runs for callers who may pin, so a plain member would exercise
@@ -741,18 +748,20 @@ func TestCreatePropertyField(t *testing.T) {
 			require.NoError(t, err)
 			CheckCreatedStatus(t, resp)
 
-			// The creator is locked out by design: they cannot edit or delete
-			// the field they just created.
+			// The creator is locked out of the definition by design: they
+			// cannot edit or delete the field they just created.
 			require.Equal(t, model.PermissionLevelSysadmin, *created.PermissionField)
-			require.Equal(t, model.PermissionLevelSysadmin, *created.PermissionValues)
+			// Values keep the caller's pin rather than the template's sysadmin.
+			require.Equal(t, model.PermissionLevelMember, *created.PermissionValues)
 			require.Equal(t, model.PermissionLevelSysadmin, *created.PermissionOptions)
 		})
 
-		t.Run("every slot comes from the source, not the request", func(t *testing.T) {
+		t.Run("definition slots come from the source, values comes from the request", func(t *testing.T) {
 			// The three source levels are distinct from each other and each
-			// differs from what the request submits, so this fails if any slot
-			// is left as submitted, copied from the wrong slot, or collapsed to
-			// a single value.
+			// differs from what the request submits, so this fails if a
+			// definition slot is left as submitted, if values is overwritten by
+			// the template, or if any slot is copied from the wrong one or
+			// collapsed to a single value.
 			sourceID := newTemplate(t, adminLevel, sysadminLevel, memberLevel)
 			created, resp, err := th.Client.CreatePropertyField(context.Background(), group.Name, "post", &model.PropertyField{
 				Name:              model.NewId(),
@@ -768,7 +777,7 @@ func TestCreatePropertyField(t *testing.T) {
 			CheckCreatedStatus(t, resp)
 
 			require.Equal(t, model.PermissionLevelAdmin, *created.PermissionField)
-			require.Equal(t, model.PermissionLevelSysadmin, *created.PermissionValues)
+			require.Equal(t, model.PermissionLevelAdmin, *created.PermissionValues)
 			require.Equal(t, model.PermissionLevelMember, *created.PermissionOptions)
 		})
 	})
