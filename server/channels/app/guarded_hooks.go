@@ -411,6 +411,8 @@ func (a *App) runGuardedScheduledPostWillBeCreated(
 ) (*model.ScheduledPost, *model.AppError) {
 	// Plugins must never learn that a burn-on-read post happened, matching CreatePost. The hook
 	// is skipped outright rather than sanitized, so guard claimants cannot reject these either.
+	// Unlike CreatePost, which gates this at the call site before invoking the guarded hook, the
+	// check lives inside this method so callers can't accidentally run the hook for these posts.
 	if scheduledPost.Type == model.PostTypeBurnOnRead {
 		return scheduledPost, nil
 	}
