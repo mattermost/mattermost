@@ -754,6 +754,7 @@
         "EnableMFIPluginSignaturePublicKey": false,
         "RecurringScheduledPosts": false,
         "PostDeliveryTracking": false,
-        "HealthDashboard": false
+        "HealthDashboard": false,
+        "EnableExperienceAPI": false
     }
 }
