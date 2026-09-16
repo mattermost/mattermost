@@ -115,6 +115,27 @@ func TestNotifyExpiredAccessTokensDeleted(t *testing.T) {
 		require.Empty(t, dmPostsFromSystemBot(t, th, systemBot.UserId, bot.UserId))
 	})
 
+	t.Run("bot token with a deleted owner is skipped", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		systemBot, appErr := th.App.GetSystemBot(th.Context)
+		require.Nil(t, appErr)
+
+		owner := th.CreateUser(t)
+		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{
+			Username: "orphaned_expired_bot",
+			OwnerId:  owner.Id,
+		})
+		require.Nil(t, appErr)
+		require.Nil(t, th.App.PermanentDeleteUser(th.Context, owner))
+
+		th.App.NotifyExpiredAccessTokensDeleted(th.Context, []*model.UserAccessToken{
+			{Id: model.NewId(), UserId: bot.UserId, Description: "orphaned-bot-token", ExpiresAt: model.GetMillis()},
+		})
+
+		require.Empty(t, dmPostsFromSystemBot(t, th, systemBot.UserId, bot.UserId))
+	})
+
 	t.Run("deactivated user token is skipped", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 

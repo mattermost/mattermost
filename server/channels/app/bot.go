@@ -98,7 +98,7 @@ func (a *App) CreateBot(rctx request.CTX, bot *model.Bot) (*model.Bot, *model.Ap
 		return nil, vErr
 	}
 
-	// Reserved for GetOrCreateSystemOwnedBot; blocks squatting the username to inherit system-bot exemptions.
+	// Reserved for GetOrCreateSystemOwnedBot; blocks squatting the username to inherit the protection against being disabled.
 	if bot.IsSystemOwned() {
 		return nil, model.NewAppError("CreateBot", "app.bot.createbot.reserved_username.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -357,17 +357,14 @@ func (a *App) GetBot(rctx request.CTX, botUserId string, includeDeleted bool) (*
 }
 
 // resolveBotOwner returns the bot and its owning user for a bot's user id.
-// owner is nil (with no error) when the bot is the system-owned bot or when its
-// owner is not a user account: a plugin-owned bot's OwnerId is a plugin ID, so
-// the user lookup returns not-found. Both cases mean there's no human owner
-// behind the bot.
+// owner is nil (with no error) when OwnerId resolves to no user: either a
+// plugin-owned bot, whose OwnerId is a plugin ID the user lookup can never
+// find, or a bot whose owning account has since been deleted. Callers that must
+// tell those apart can use model.Bot.HasUserOwner.
 func (a *App) resolveBotOwner(rctx request.CTX, botUserId string) (owner *model.User, bot *model.Bot, appErr *model.AppError) {
 	bot, appErr = a.GetBot(rctx, botUserId, true)
 	if appErr != nil {
 		return nil, nil, appErr
-	}
-	if bot.IsSystemOwned() {
-		return nil, bot, nil
 	}
 
 	owner, err := a.Srv().Store().User().Get(rctx, bot.OwnerId)

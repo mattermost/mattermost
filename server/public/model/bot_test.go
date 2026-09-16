@@ -720,6 +720,26 @@ func TestBotIsSystemOwned(t *testing.T) {
 	})
 }
 
+func TestBotHasUserOwner(t *testing.T) {
+	t.Run("user owner", func(t *testing.T) {
+		assert.True(t, (&Bot{OwnerId: NewId()}).HasUserOwner())
+	})
+
+	t.Run("deleted user owner is still a user owner", func(t *testing.T) {
+		assert.True(t, (&Bot{OwnerId: "abcdefghijklmnopqrstuvwxyz"}).HasUserOwner())
+	})
+
+	for _, pluginID := range []string{"com.mattermost.calls", "playbooks", "focalboard"} {
+		t.Run(pluginID, func(t *testing.T) {
+			assert.False(t, (&Bot{OwnerId: pluginID}).HasUserOwner())
+		})
+	}
+
+	t.Run("empty owner", func(t *testing.T) {
+		assert.False(t, (&Bot{}).HasUserOwner())
+	})
+}
+
 func TestBotMarshalJSON(t *testing.T) {
 	t.Run("system-owned bot", func(t *testing.T) {
 		bot := &Bot{UserId: NewId(), Username: BotSystemBotUsername}

@@ -6,9 +6,6 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
-	"maps"
-	"slices"
-	"strings"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -17,11 +14,11 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-// protectedBotUsernames returns model.ProtectedBotUsernames as a sorted slice,
-// so callers get deterministic SQL placeholder ordering.
-func protectedBotUsernames() []string {
-	return slices.Sorted(maps.Keys(model.ProtectedBotUsernames))
-}
+// botHasUserOwnerSQL mirrors model.Bot.HasUserOwner: an id-shaped OwnerId is a
+// user id, possibly of a since-deleted user, while a plugin owner carries a
+// manifest id. Unlike model.IsValidId this matches ASCII only, which is all
+// model.NewId produces.
+const botHasUserOwnerSQL = "Bots.OwnerId ~ '^[0-9A-Za-z]{26}$'"
 
 type SqlUserAccessTokenStore struct {
 	*SqlStore
@@ -344,7 +341,6 @@ func (s SqlUserAccessTokenStore) GetExpiringTokens(now int64, thresholds []int, 
 
 	userOwnedBot := sq.And{
 		sq.NotEq{"Bots.UserId": nil},
-		sq.NotEq{"Users.Username": protectedBotUsernames()},
 		sq.NotEq{"BotOwners.Id": nil},
 		sq.Eq{"BotOwners.DeleteAt": 0},
 	}
@@ -382,14 +378,13 @@ func (s SqlUserAccessTokenStore) UpdateLastNotifiedAt(tokenId string, notifiedAt
 
 // CountNonCompliantExpiry returns the number of active user and user-owned bot
 // tokens that violate the maximum lifetime policy implied by maxExpiresAt.
-// Plugin-owned bot tokens are excluded.
+// Plugin-owned bot tokens are excluded. A bot whose owning account was deleted
+// still counts: it is user-owned, so the policy applies.
 func (s SqlUserAccessTokenStore) CountNonCompliantExpiry(maxExpiresAt int64) (int64, error) {
 	query := s.getQueryBuilder().
 		Select("COUNT(*)").
 		From("UserAccessTokens").
 		LeftJoin("Bots ON Bots.UserId = UserAccessTokens.UserId").
-		LeftJoin("Users BotOwners ON BotOwners.Id = Bots.OwnerId").
-		LeftJoin("Users BotUsers ON BotUsers.Id = Bots.UserId").
 		Where(sq.Or{
 			sq.Eq{"UserAccessTokens.ExpiresAt": 0},
 			sq.Gt{"UserAccessTokens.ExpiresAt": maxExpiresAt},
@@ -397,10 +392,7 @@ func (s SqlUserAccessTokenStore) CountNonCompliantExpiry(maxExpiresAt int64) (in
 		Where(sq.Eq{"UserAccessTokens.IsActive": true}).
 		Where(sq.Or{
 			sq.Eq{"Bots.UserId": nil},
-			sq.And{
-				sq.NotEq{"BotOwners.Id": nil},
-				sq.NotEq{"BotUsers.Username": protectedBotUsernames()},
-			},
+			sq.Expr(botHasUserOwnerSQL),
 		})
 
 	var count int64
@@ -420,25 +412,14 @@ func (s SqlUserAccessTokenStore) DeleteNonCompliantExpiry(maxExpiresAt int64, li
 		return nil, nil
 	}
 
-	usernames := protectedBotUsernames()
-	placeholders := make([]string, len(usernames))
-	args := make([]any, 0, len(usernames)+2)
-	args = append(args, maxExpiresAt, limit)
-	for i, username := range usernames {
-		placeholders[i] = fmt.Sprintf("$%d", len(args)+1)
-		args = append(args, username)
-	}
-
 	sql := fmt.Sprintf(`
 WITH to_delete AS (
     SELECT UserAccessTokens.Id, UserAccessTokens.Token, UserAccessTokens.UserId
     FROM UserAccessTokens
     LEFT JOIN Bots ON Bots.UserId = UserAccessTokens.UserId
-    LEFT JOIN Users BotOwners ON BotOwners.Id = Bots.OwnerId
-    LEFT JOIN Users BotUsers ON BotUsers.Id = Bots.UserId
     WHERE (UserAccessTokens.ExpiresAt = 0 OR UserAccessTokens.ExpiresAt > $1)
       AND UserAccessTokens.IsActive = true
-      AND (Bots.UserId IS NULL OR (BotOwners.Id IS NOT NULL AND BotUsers.Username NOT IN (%s)))
+      AND (Bots.UserId IS NULL OR %s)
     LIMIT $2
 ),
 deleted_sessions AS (
@@ -450,10 +431,10 @@ deleted_tokens AS (
     WHERE Id IN (SELECT Id FROM to_delete)
     RETURNING UserId
 )
-SELECT UserId FROM deleted_tokens`, strings.Join(placeholders, ", "))
+SELECT UserId FROM deleted_tokens`, botHasUserOwnerSQL)
 
 	var userIDs []string
-	if err := s.GetMaster().Select(&userIDs, sql, args...); err != nil {
+	if err := s.GetMaster().Select(&userIDs, sql, maxExpiresAt, limit); err != nil {
 		return nil, errors.Wrap(err, "failed to delete non-compliant UserAccessTokens")
 	}
 

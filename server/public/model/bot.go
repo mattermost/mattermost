@@ -55,6 +55,13 @@ func (b *Bot) IsSystemOwned() bool {
 	return IsProtectedBotUsername(b.Username)
 }
 
+// HasUserOwner reports whether OwnerId refers to a user account rather than a
+// plugin. A plugin owner carries a manifest id, which is never id-shaped, so an
+// id-shaped OwnerId means a user owner even when that user no longer exists.
+func (b *Bot) HasUserOwner() bool {
+	return IsValidId(b.OwnerId)
+}
+
 // MarshalJSON adds the computed system_owned field to the bot's JSON
 // representation without persisting it as a stored field.
 func (b *Bot) MarshalJSON() ([]byte, error) {

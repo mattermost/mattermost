@@ -557,18 +557,23 @@ func (a *App) validateUserAccessTokenExpiry(token *model.UserAccessToken) *model
 
 // userAccessTokenExpiryPolicyApplies reports whether the PAT expiry policy
 // applies to tokens owned by user. It applies to every non-bot user and to
-// user-owned bots; plugin-owned and system bots are exempt.
+// user-owned bots; only plugin-owned bots are exempt, because a plugin has no
+// inbox to warn and no human who can rotate the token.
 func (a *App) userAccessTokenExpiryPolicyApplies(rctx request.CTX, user *model.User) (bool, *model.AppError) {
 	if !user.IsBot {
 		return true, nil
 	}
 
-	owner, _, appErr := a.resolveBotOwner(rctx, user.Id)
+	owner, bot, appErr := a.resolveBotOwner(rctx, user.Id)
 	if appErr != nil {
 		return false, appErr
 	}
+	if owner != nil {
+		return true, nil
+	}
 
-	return owner != nil, nil
+	// A bot whose owning account was deleted must not inherit the plugin exemption.
+	return bot.HasUserOwner(), nil
 }
 
 // enforceUserAccessTokenExpiryPolicy validates candidate against the maximum

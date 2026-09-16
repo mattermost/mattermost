@@ -6340,6 +6340,53 @@ func TestCreateUserAccessToken(t *testing.T) {
 		assert.True(t, rtoken.IsActive)
 	})
 
+	t.Run("system bot tokens are subject to expiry enforcement", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableUserAccessTokens = true
+			*cfg.ServiceSettings.MaximumPersonalAccessTokenLifetimeDays = 30
+		})
+
+		systemBot, appErr := th.App.GetSystemBot(th.Context)
+		require.Nil(t, appErr)
+
+		_, resp, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), systemBot.UserId, "system bot token", 0)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "app.user_access_token.expires_at_required.app_error")
+	})
+
+	t.Run("bot tokens stay enforced once the owning account is deleted", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableUserAccessTokens = true
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+			*cfg.ServiceSettings.MaximumPersonalAccessTokenLifetimeDays = 30
+		})
+
+		owner := th.CreateUser(t)
+		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    GenerateTestUsername(),
+			DisplayName: "orphaned bot",
+			OwnerId:     owner.Id,
+		})
+		require.Nil(t, appErr)
+		defer func() {
+			require.Nil(t, th.App.PermanentDeleteBot(th.Context, bot.UserId))
+		}()
+
+		require.Nil(t, th.App.PermanentDeleteUser(th.Context, owner))
+
+		_, resp, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), bot.UserId, "orphaned bot token", 0)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "app.user_access_token.expires_at_required.app_error")
+	})
+
 	t.Run("plugin-owned bot tokens remain exempt from expiry enforcement", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)

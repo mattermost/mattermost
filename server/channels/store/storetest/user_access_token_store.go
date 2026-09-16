@@ -662,6 +662,13 @@ func testUserAccessTokenNonCompliant(t *testing.T, rctx request.CTX, ss store.St
 	_, err = ss.UserAccessToken().Save(pluginBotToken)
 	require.NoError(t, err)
 
+	// A bot whose owning account was deleted keeps its id-shaped OwnerId, so it
+	// stays user-owned and non-compliant rather than inheriting the exemption.
+	orphanBotUser := saveBotWithOwner(t, rctx, ss, "orphan_noncompliant_bot", model.NewId())
+	orphanBotToken := &model.UserAccessToken{Token: model.NewId(), UserId: orphanBotUser.Id, Description: "orphan bot token"}
+	_, err = ss.UserAccessToken().Save(orphanBotToken)
+	require.NoError(t, err)
+
 	// Two non-compliant tokens owned by the same user — verifies that the
 	// returned slice has one entry per deleted token row, not one per user.
 	sharedUserID := model.NewId()
@@ -686,20 +693,23 @@ func testUserAccessTokenNonCompliant(t *testing.T, rctx request.CTX, ss store.St
 		_ = ss.UserAccessToken().Delete(inactive.Id)
 		_ = ss.UserAccessToken().Delete(botToken.Id)
 		_ = ss.UserAccessToken().Delete(pluginBotToken.Id)
+		_ = ss.UserAccessToken().Delete(orphanBotToken.Id)
 		_ = ss.Bot().PermanentDelete(botUser.Id)
 		_ = ss.Bot().PermanentDelete(pluginBotUser.Id)
+		_ = ss.Bot().PermanentDelete(orphanBotUser.Id)
 		_ = ss.User().PermanentDelete(rctx, botUser.Id)
 		_ = ss.User().PermanentDelete(rctx, pluginBotUser.Id)
+		_ = ss.User().PermanentDelete(rctx, orphanBotUser.Id)
 		_ = ss.User().PermanentDelete(rctx, botOwner.Id)
 	})
 
-	// Against the 30-day cap, at least our five active user and user-owned bot
+	// Against the 30-day cap, at least our six active user and user-owned bot
 	// violators are counted.
 	// Use GreaterOrEqual to avoid flakiness from concurrent tests that may also
 	// hold non-compliant tokens when this test runs.
 	count, err := ss.UserAccessToken().CountNonCompliantExpiry(maxExpiresAt)
 	require.NoError(t, err)
-	require.GreaterOrEqual(t, count, baseline30+5)
+	require.GreaterOrEqual(t, count, baseline30+6)
 
 	// A non-positive limit is a no-op.
 	noop, err := ss.UserAccessToken().DeleteNonCompliantExpiry(maxExpiresAt, 0)
@@ -712,7 +722,7 @@ func testUserAccessTokenNonCompliant(t *testing.T, rctx request.CTX, ss store.St
 	// Use GreaterOrEqual for the same reason as the count check above.
 	userIDs, err := ss.UserAccessToken().DeleteNonCompliantExpiry(maxExpiresAt, 10000)
 	require.NoError(t, err)
-	require.GreaterOrEqual(t, len(userIDs), 5, "should return at least our five deleted tokens")
+	require.GreaterOrEqual(t, len(userIDs), 6, "should return at least our six deleted tokens")
 	// Verify sharedUserID appears exactly twice — once per token, not once per user.
 	// This specifically guards against a SELECT DISTINCT regression.
 	sharedOccurrences := 0
@@ -728,6 +738,7 @@ func testUserAccessTokenNonCompliant(t *testing.T, rctx request.CTX, ss store.St
 	require.True(t, gotUserIDs[farFuture.UserId], "user of far-future token should be returned")
 	require.True(t, gotUserIDs[sharedUserID], "shared user with multiple tokens should be returned")
 	require.True(t, gotUserIDs[botToken.UserId], "user-owned bot token should be returned")
+	require.True(t, gotUserIDs[orphanBotToken.UserId], "bot token with a deleted owner should be returned")
 	require.False(t, gotUserIDs[compliant.UserId], "compliant token user must not be returned")
 	require.False(t, gotUserIDs[inactive.UserId], "inactive token user must not be returned")
 	require.False(t, gotUserIDs[pluginBotToken.UserId], "plugin-owned bot token user must not be returned")
@@ -743,6 +754,8 @@ func testUserAccessTokenNonCompliant(t *testing.T, rctx request.CTX, ss store.St
 	require.Error(t, err, "shared-user token B should be deleted")
 	_, err = ss.UserAccessToken().Get(botToken.Id)
 	require.Error(t, err, "user-owned bot token should be deleted")
+	_, err = ss.UserAccessToken().Get(orphanBotToken.Id)
+	require.Error(t, err, "bot token with a deleted owner should be deleted")
 
 	// Sessions for deleted tokens are gone.
 	_, nErr = ss.Session().Get(rctx, noExpirySession.Token)
