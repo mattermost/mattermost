@@ -11,6 +11,7 @@ import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/typ
 import {
     ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,
     ACCESS_CONTROL_ACTION_UPLOAD_FILE,
+    ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ,
     ACCESS_CONTROL_CHANNEL_ROLE_ADMIN,
     ACCESS_CONTROL_CHANNEL_ROLE_GUEST,
     ACCESS_CONTROL_CHANNEL_ROLE_USER,
@@ -26,7 +27,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
-import {getFeatureFlagValue, isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getFeatureFlagValue, isBurnOnReadABACPermissionEnabled, isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {mergeSessionAttributes} from 'components/admin_console/access_control/editors/shared';
@@ -104,6 +105,14 @@ const actionMessages = defineMessages({
         id: 'channel_settings.permissions_policy.action.download.description',
         defaultMessage: 'Allow users to download attached files from this channel',
     },
+    createBorLabel: {
+        id: 'channel_settings.permissions_policy.action.create_bor',
+        defaultMessage: 'Create burn-on-read message',
+    },
+    createBorDescription: {
+        id: 'channel_settings.permissions_policy.action.create_bor.description',
+        defaultMessage: 'Allow users to send burn-on-read messages in this channel',
+    },
 });
 
 interface RoleDefinition {
@@ -127,11 +136,13 @@ const AVAILABLE_ROLES: RoleDefinition[] = [
 const AVAILABLE_PERMISSIONS: PermissionDefinition[] = [
     {value: ACCESS_CONTROL_ACTION_UPLOAD_FILE, label: actionMessages.uploadLabel, description: actionMessages.uploadDescription},
     {value: ACCESS_CONTROL_ACTION_DOWNLOAD_FILE, label: actionMessages.downloadLabel, description: actionMessages.downloadDescription},
+    {value: ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ, label: actionMessages.createBorLabel, description: actionMessages.createBorDescription},
 ];
 
 const ACTION_LABEL_IDS: Record<string, MessageDescriptor> = {
     [ACCESS_CONTROL_ACTION_UPLOAD_FILE]: actionMessages.uploadLabel,
     [ACCESS_CONTROL_ACTION_DOWNLOAD_FILE]: actionMessages.downloadLabel,
+    [ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ]: actionMessages.createBorLabel,
 };
 
 type EditableRule = {
@@ -182,6 +193,9 @@ function ChannelSettingsPermissionsPolicyTab({
     // hiding the UI here keeps the author from clicking a button
     // that would only surface a backend error.
     const policySimulationEnabled = useSelector(isPolicySimulationEnabled);
+
+    // Track the feature flag for allowing BoR permission action.
+    const burnOnReadPermissionEnabled = useSelector(isBurnOnReadABACPermissionEnabled);
 
     const actions = useChannelAccessControlActions(channel.id);
     const {policies: systemPolicies} = useChannelSystemPolicies(channel);
@@ -648,6 +662,7 @@ function ChannelSettingsPermissionsPolicyTab({
                 onCommit={commitDraft}
                 buildSimulationPolicy={buildSimulationPolicy}
                 policySimulationEnabled={policySimulationEnabled}
+                burnOnReadPermissionEnabled={burnOnReadPermissionEnabled}
             />
         );
     }
@@ -938,6 +953,11 @@ type PermissionRuleEditorProps = {
      * the modal would only ever surface a backend error.
      */
     policySimulationEnabled: boolean;
+
+    /**
+     * Whether create_burn_on_read permission policy is enabled.
+     */
+    burnOnReadPermissionEnabled: boolean;
 };
 
 function PermissionRuleEditor({
@@ -954,6 +974,7 @@ function PermissionRuleEditor({
     onCommit,
     buildSimulationPolicy,
     policySimulationEnabled,
+    burnOnReadPermissionEnabled,
 }: PermissionRuleEditorProps) {
     const {formatMessage} = useIntl();
 
@@ -985,7 +1006,11 @@ function PermissionRuleEditor({
     }, []);
 
     const selectedRoleDef = AVAILABLE_ROLES.find((r) => r.value === draft.role);
-    const availableToAdd = AVAILABLE_PERMISSIONS.filter((p) => !draft.actions.includes(p.value));
+    const availableToAdd = AVAILABLE_PERMISSIONS.filter(
+        (p) => !draft.actions.includes(p.value),
+    ).filter(
+        (p) => (p.value !== ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ) || burnOnReadPermissionEnabled,
+    );
 
     return (
         <div

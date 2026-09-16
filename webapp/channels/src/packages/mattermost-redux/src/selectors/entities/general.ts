@@ -93,6 +93,22 @@ export function isPolicySimulationEnabled(state: GlobalState): boolean {
         getConfig(state).FeatureFlagPolicySimulation === 'true';
 }
 
+/**
+ * Whether the "Create Burn-on-Read Message" permission row should be
+ * offered (System Console policy editor + Channel Settings tab).
+ *
+ * The sub-flag `BurnOnReadABACPermission` AND the umbrella
+ * `PermissionPolicies` must BOTH be on. Mirrors the server-side
+ * `FeatureFlags.IsBurnOnReadABACPermissionEnabled()` helper.
+ * `PUT /access_control_policies` returns 501 for any policy carrying
+ * the `create_burn_on_read_post` action while this is off, so hiding
+ * the row here also keeps an author out of a Save that cannot succeed.
+ */
+export function isBurnOnReadABACPermissionEnabled(state: GlobalState): boolean {
+    return isPermissionPoliciesEnabled(state) &&
+        getConfig(state).FeatureFlagBurnOnReadABACPermission === 'true';
+}
+
 export type PasswordConfig = {
     minimumLength: number;
     requireLowercase: boolean;

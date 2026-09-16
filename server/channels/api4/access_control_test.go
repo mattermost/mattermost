@@ -3618,3 +3618,86 @@ func TestGetChannelAccessControlAttributes(t *testing.T) {
 		mockACS.AssertCalled(t, "GetPolicyRuleAttributes", mock.Anything, th.BasicChannel.Id, model.AccessControlPolicyActionMembership)
 	})
 }
+
+// TestCreateAccessControlPolicyBurnOnRead covers the BurnOnReadABACPermission gate on
+// the policy-write endpoint. PUT /access_control_policies handles both create and
+// update, so one gate covers both. Every case asserts the error *id*, not just the
+// status: the no-ABAC-service path also returns 501, so a status-only assertion would
+// pass against the wrong rejection.
+func TestCreateAccessControlPolicyBurnOnRead(t *testing.T) {
+	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
+
+	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	require.True(t, ok, "SetLicense should return true")
+
+	borPermissionPolicy := func() *model.AccessControlPolicy {
+		return &model.AccessControlPolicy{
+			ID:       model.NewId(),
+			Name:     "bor-" + model.NewId(),
+			Type:     model.AccessControlPolicyTypePermission,
+			Version:  model.AccessControlPolicyVersionV0_3,
+			Revision: 1,
+			Roles:    []string{model.SystemUserRoleId},
+			Rules: []model.AccessControlPolicyRule{{
+				Expression: "user.attributes.department == 'engineering'",
+				Actions:    []string{model.AccessControlPolicyActionCreateBurnOnReadPost},
+			}},
+		}
+	}
+
+	t.Run("flag off rejects a permission policy carrying the action", func(t *testing.T) {
+		updateTestFeatureFlags(t, th, func(cfg *model.Config) {
+			restoreABACFeatureFlagDefaults(cfg)
+			cfg.FeatureFlags.BurnOnReadABACPermission = false
+		})
+
+		_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), borPermissionPolicy())
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+		CheckErrorID(t, err, "api.access_control_policy.create_burn_on_read_post.feature_disabled")
+	})
+
+	t.Run("flag off rejects a channel policy carrying the action", func(t *testing.T) {
+		updateTestFeatureFlags(t, th, func(cfg *model.Config) {
+			restoreABACFeatureFlagDefaults(cfg)
+			cfg.FeatureFlags.BurnOnReadABACPermission = false
+		})
+
+		channelPolicy := &model.AccessControlPolicy{
+			ID:       th.BasicChannel.Id,
+			Type:     model.AccessControlPolicyTypeChannel,
+			Version:  model.AccessControlPolicyVersionV0_4,
+			Revision: 1,
+			Rules: []model.AccessControlPolicyRule{{
+				Name:       "BoR for engineering",
+				Role:       model.ChannelUserRoleId,
+				Expression: "user.attributes.department == 'engineering'",
+				Actions:    []string{model.AccessControlPolicyActionCreateBurnOnReadPost},
+			}},
+		}
+
+		_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), channelPolicy)
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+		CheckErrorID(t, err, "api.access_control_policy.create_burn_on_read_post.feature_disabled")
+	})
+
+	t.Run("flag on allows a permission policy carrying the action", func(t *testing.T) {
+		updateTestFeatureFlags(t, th, func(cfg *model.Config) {
+			restoreABACFeatureFlagDefaults(cfg)
+			cfg.FeatureFlags.BurnOnReadABACPermission = true
+		})
+
+		policy := borPermissionPolicy()
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		mockACS.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).Return(policy, nil).Times(1)
+		original := th.App.Srv().Channels().AccessControl
+		th.App.Srv().Channels().AccessControl = mockACS
+		defer func() { th.App.Srv().Channels().AccessControl = original }()
+
+		_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), policy)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+}
