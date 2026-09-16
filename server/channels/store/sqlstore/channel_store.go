@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"cmp"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"slices"
 	"strconv"
@@ -2890,6 +2891,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 		From("Channels").
 		Where(sq.Eq{"Id": channelIds})
 
+	now := model.GetMillis()
 	with := query.Prefix("WITH c AS (").Suffix(") ,")
 	update := sq.StatementBuilder.PlaceholderFormat(sq.Question).
 		Update("ChannelMembers cm").
@@ -2899,7 +2901,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 		Set("MsgCount", sq.Expr("greatest(cm.MsgCount, c.TotalMsgCount)")).
 		Set("MsgCountRoot", sq.Expr("greatest(cm.MsgCountRoot, c.TotalMsgCountRoot)")).
 		Set("LastViewedAt", sq.Expr("greatest(cm.LastViewedAt, c.LastPostAt)")).
-		Set("LastUpdateAt", sq.Expr("greatest(cm.LastViewedAt, c.LastPostAt)")).
+		Set("LastUpdateAt", now).
 		SuffixExpr(sq.Expr("FROM c WHERE cm.UserId = ? AND c.Id = cm.ChannelId", userId))
 	updateWrap := update.Prefix("updated AS (").Suffix(")")
 	query = with.SuffixExpr(updateWrap).Suffix("SELECT Id, LastPostAt FROM c")
@@ -4091,6 +4093,93 @@ func (s SqlChannelStore) GetMembersInfoByChannelIds(channelIDs []string) (map[st
 	}
 
 	return userInfo, nil
+}
+
+// Deliberately does not filter by Channels.DeleteAt, so callers can detect
+// deactivated participants themselves.
+func (s SqlChannelStore) GetDMGMProfilesByChannelIds(channelIDs []string, userID string, since int64) (map[string][]*model.User, error) {
+	if len(channelIDs) == 0 {
+		return nil, nil
+	}
+
+	type rawRow struct {
+		ChannelId   string `db:"channelid"`
+		Id          string `db:"id"`
+		CreateAt    int64  `db:"createat"`
+		UpdateAt    int64  `db:"updateat"`
+		DeleteAt    int64  `db:"deleteat"`
+		Username    string `db:"username"`
+		Email       string `db:"email"`
+		Nickname    string `db:"nickname"`
+		FirstName   string `db:"firstname"`
+		LastName    string `db:"lastname"`
+		Position    string `db:"position"`
+		Props       []byte `db:"props"`
+		NotifyProps []byte `db:"notifyprops"`
+		Roles       string `db:"roles"`
+		Locale      string `db:"locale"`
+		Timezone    []byte `db:"timezone"`
+	}
+
+	qb := s.getQueryBuilder().
+		Select(
+			"cm.ChannelId AS ChannelId",
+			"u.Id", "u.CreateAt", "u.UpdateAt", "u.DeleteAt",
+			"u.Username", "u.Email", "u.Nickname",
+			"u.FirstName", "u.LastName", "u.Position",
+			"u.Props", "u.NotifyProps", "u.Roles",
+			"u.Locale", "u.Timezone",
+		).
+		From("ChannelMembers cm").
+		Join("Users u ON cm.UserId = u.Id").
+		Where(sq.Eq{"cm.ChannelId": channelIDs}).
+		Where(sq.NotEq{"u.Id": userID})
+
+	if since > 0 {
+		qb = qb.Where(sq.Or{
+			sq.Gt{"u.UpdateAt": since},
+			sq.Gt{"u.DeleteAt": since},
+		})
+	}
+
+	rawSQL, args, err := qb.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "GetDMGMProfilesByChannelIds_tosql")
+	}
+
+	var rows []*rawRow
+	if err := s.GetReplica().Select(&rows, rawSQL, args...); err != nil {
+		return nil, errors.Wrap(err, "GetDMGMProfilesByChannelIds_select")
+	}
+
+	result := make(map[string][]*model.User, len(channelIDs))
+	for _, row := range rows {
+		u := &model.User{
+			Id:        row.Id,
+			CreateAt:  row.CreateAt,
+			UpdateAt:  row.UpdateAt,
+			DeleteAt:  row.DeleteAt,
+			Username:  row.Username,
+			Email:     row.Email,
+			Nickname:  row.Nickname,
+			FirstName: row.FirstName,
+			LastName:  row.LastName,
+			Position:  row.Position,
+			Roles:     row.Roles,
+			Locale:    row.Locale,
+		}
+		if len(row.Props) > 0 {
+			_ = json.Unmarshal(row.Props, &u.Props)
+		}
+		if len(row.NotifyProps) > 0 {
+			_ = json.Unmarshal(row.NotifyProps, &u.NotifyProps)
+		}
+		if len(row.Timezone) > 0 {
+			_ = json.Unmarshal(row.Timezone, &u.Timezone)
+		}
+		result[row.ChannelId] = append(result[row.ChannelId], u)
+	}
+	return result, nil
 }
 
 func (s SqlChannelStore) GetChannelsByScheme(schemeId string, offset int, limit int) (model.ChannelList, error) {
