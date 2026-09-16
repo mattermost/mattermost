@@ -534,6 +534,10 @@ const AdvancedTextEditor = ({
     }, [draft, handleDraftChange, focusTextbox]);
 
     const handleSubmitWrapper = useCallback(() => {
+        if (readOnlyChannel) {
+            return;
+        }
+
         const isEmptyPost = isPostDraftEmpty(draft);
 
         if (isInEditMode && isEmptyPost) {
@@ -551,7 +555,7 @@ const AdvancedTextEditor = ({
         }
 
         handleSubmitWithErrorHandling();
-    }, [dispatch, draft, handleSubmitWithErrorHandling, isInEditMode, isRHS]);
+    }, [dispatch, draft, handleSubmitWithErrorHandling, isInEditMode, isRHS, readOnlyChannel]);
 
     const [handleKeyDown, postMsgKeyPress] = useKeyHandler(
         draft,
@@ -575,8 +579,11 @@ const AdvancedTextEditor = ({
 
     const handleSubmitWithEvent = useCallback((e: React.FormEvent) => {
         e.preventDefault();
+        if (readOnlyChannel) {
+            return;
+        }
         handleSubmitWithErrorHandling();
-    }, [handleSubmitWithErrorHandling]);
+    }, [handleSubmitWithErrorHandling, readOnlyChannel]);
 
     const handlePostError = useCallback((err: React.ReactNode) => {
         setPostError(err);
@@ -1042,6 +1049,7 @@ const AdvancedTextEditor = ({
                 <EditPostFooter
                     onSave={handleSubmitWrapper}
                     onCancel={handleCancel}
+                    disabled={readOnlyChannel}
                 />
             )}
             <div

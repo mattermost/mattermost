@@ -1563,10 +1563,6 @@ func moveThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !requireChannelWriteAccessByID(c, moveThreadParams.ChannelId) {
-		return
-	}
-
 	userHasEmailDomain := true
 	// Only check the user's email domain if a list of allowed domains is configured
 	if len(c.App.Config().WranglerSettings.AllowedEmailDomain) > 0 {
@@ -1585,6 +1581,10 @@ func moveThread(c *Context, w http.ResponseWriter, r *http.Request) {
 			w.Header().Set(model.HeaderFirstInaccessiblePostTime, "1")
 		}
 
+		return
+	}
+
+	if !requireChannelWriteAccessByID(c, sourcePost.ChannelId) || !requireChannelWriteAccessByID(c, moveThreadParams.ChannelId) {
 		return
 	}
 
