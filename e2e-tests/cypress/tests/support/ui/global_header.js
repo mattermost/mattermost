@@ -1,25 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-Cypress.Commands.add('uiGetProductMenuButton', () => {
-    return cy.findByRole('button', {name: 'Product switch menu'}).should('be.visible');
+Cypress.Commands.add('uiGetSwitchProductMenuButton', () => {
+    return cy.findByRole('button', {name: 'Switch product menu'}).should('be.visible');
 });
 
-Cypress.Commands.add('uiGetProductMenu', () => {
-    return cy.get('.product-switcher-menu').should('be.visible');
+Cypress.Commands.add('uiGetSwitchProductMenu', () => {
+    return cy.findByRole('menu', {name: 'Switch product menu'}).should('be.visible');
 });
 
-Cypress.Commands.add('uiOpenProductMenu', (item = '') => {
+Cypress.Commands.add('uiOpenSwitchProductMenu', (item = '') => {
     // # Click on product switch button
-    cy.uiGetProductMenuButton().click();
+    cy.uiGetSwitchProductMenuButton().click();
 
     if (!item) {
         // # Return the menu if no item is passed
-        return cy.uiGetProductMenu();
+        return cy.uiGetSwitchProductMenu();
     }
 
     // # Click on a particular item
-    return cy.uiGetProductMenu().
+    return cy.uiGetSwitchProductMenu().
         findByText(item).
         scrollIntoView().
         should('be.visible').

@@ -1,0 +1,14 @@
+@use "utils/variables";
+
+.globalHeader {
+    position: relative;
+    z-index: variables.$z-index-global-header;
+    display: flex;
+    height: 44px;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4px 0 8px;
+    color: rgba(var(--sidebar-text-rgb), 0.64);
+    gap: 12px;
+}
