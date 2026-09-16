@@ -212,16 +212,17 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	// configure them, everyone else has all three pinned to the default.
 	canPin := c.App.SessionHasPermissionToAdministerPropertyFieldScope(c.AppContext, *c.AppContext.Session(), field)
 	defaultLevel := app.DefaultPropertyFieldPermissionLevel(field)
+	defaultValuesLevel := app.DefaultPropertyFieldValuesPermissionLevel(field)
 	if !canPin {
 		field.PermissionField = &defaultLevel
-		field.PermissionValues = &defaultLevel
+		field.PermissionValues = &defaultValuesLevel
 		field.PermissionOptions = &defaultLevel
 	} else {
 		if field.PermissionField == nil {
 			field.PermissionField = &defaultLevel
 		}
 		if field.PermissionValues == nil {
-			field.PermissionValues = &defaultLevel
+			field.PermissionValues = &defaultValuesLevel
 		}
 		if field.PermissionOptions == nil {
 			field.PermissionOptions = &defaultLevel

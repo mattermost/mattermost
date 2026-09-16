@@ -24,6 +24,27 @@ func DefaultPropertyFieldPermissionLevel(field *model.PropertyField) model.Permi
 	return model.PermissionLevelMember
 }
 
+// DefaultPropertyFieldValuesPermissionLevel returns the PermissionValues level
+// a field should default to. It deliberately omits the system-TargetType
+// clause above.
+//
+// That clause exists because PermissionField and PermissionOptions resolve
+// through hasPropertyFieldScopeAccess, which reads the *field's* TargetType:
+// there a system target makes the member level mean "any authenticated user",
+// so a globally scoped field would be renameable, retypeable and deletable by
+// everyone. PermissionValues never resolves that way -- a value is gated by
+// its own target, via hasPropertyFieldValueScopeAccess and
+// hasPropertyFieldValueAdmin -- so the field's TargetType does not widen it
+// and there is nothing to close. Defaulting values to sysadmin only locks out
+// the member-writable system-scoped fields that linked properties rely on.
+func DefaultPropertyFieldValuesPermissionLevel(field *model.PropertyField) model.PermissionLevel {
+	if field.ObjectType == model.PropertyFieldObjectTypeTemplate ||
+		field.ObjectType == model.PropertyFieldObjectTypeSystem {
+		return model.PermissionLevelSysadmin
+	}
+	return model.PermissionLevelMember
+}
+
 // CanonicalizeSystemObjectField forces a system-object field to its only
 // valid shape: TargetType="system", TargetID="", and all three Permission*
 // pinned to sysadmin. A system field's TargetType makes member-level scope

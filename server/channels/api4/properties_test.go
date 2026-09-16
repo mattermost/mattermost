@@ -368,15 +368,16 @@ func TestCreatePropertyField(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 
-		// On a system target the member level means "any authenticated user",
-		// so all three slots default to sysadmin: a globally scoped field must
-		// not be renameable, retypeable, deletable or writable by everyone.
-		// A caller that wants members to write values pins permission_values
-		// explicitly.
+		// On a system target the member level means "any authenticated user"
+		// for the definition slots, so those default to sysadmin: a globally
+		// scoped field must not be renameable, retypeable or deletable by
+		// everyone. Values are the exception -- they are gated by the value's
+		// own target rather than the field's, so they keep the member default
+		// and stay writable by the people the value's target admits.
 		require.NotNil(t, createdField.PermissionField)
 		require.Equal(t, model.PermissionLevelSysadmin, *createdField.PermissionField)
 		require.NotNil(t, createdField.PermissionValues)
-		require.Equal(t, model.PermissionLevelSysadmin, *createdField.PermissionValues)
+		require.Equal(t, model.PermissionLevelMember, *createdField.PermissionValues)
 		require.NotNil(t, createdField.PermissionOptions)
 		require.Equal(t, model.PermissionLevelSysadmin, *createdField.PermissionOptions)
 	})
@@ -3769,7 +3770,7 @@ func TestPatchPropertyValues(t *testing.T) {
 	// A system target defaults every slot to sysadmin, values included, so a
 	// field created with omitted levels is sysadmin-only end to end. Callers
 	// that want members to write values must pin permission_values themselves.
-	t.Run("member cannot set values on a system-scoped field created with default levels", func(t *testing.T) {
+	t.Run("member can set values on a system-scoped field created with default levels", func(t *testing.T) {
 		th.LoginBasic(t)
 
 		created, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "post", &model.PropertyField{
@@ -3779,34 +3780,35 @@ func TestPatchPropertyValues(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
+		require.NotNil(t, created.PermissionField)
+		require.Equal(t, model.PermissionLevelSysadmin, *created.PermissionField)
 		require.NotNil(t, created.PermissionValues)
-		require.Equal(t, model.PermissionLevelSysadmin, *created.PermissionValues)
-
-		items := []model.PropertyValuePatchItem{
-			{FieldID: created.ID, Value: json.RawMessage(`"annotated"`)},
-		}
-		_, resp, err = th.Client.PatchPropertyValues(context.Background(), group.Name, "post", targetID, items)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-
-		// A field that pins permission_values to member stays writable, which
-		// is the shape a caller uses when members should annotate objects.
-		memberValues, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "post", &model.PropertyField{
-			Name:             model.NewId(),
-			Type:             model.PropertyFieldTypeText,
-			TargetType:       "system",
-			PermissionValues: &memberLevel,
-		})
-		require.NoError(t, err)
-		CheckCreatedStatus(t, resp)
-		require.Equal(t, model.PermissionLevelMember, *memberValues.PermissionValues)
+		require.Equal(t, model.PermissionLevelMember, *created.PermissionValues)
 
 		values, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "post", targetID, []model.PropertyValuePatchItem{
-			{FieldID: memberValues.ID, Value: json.RawMessage(`"annotated"`)},
+			{FieldID: created.ID, Value: json.RawMessage(`"annotated"`)},
 		})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.Len(t, values, 1)
+
+		// A caller that does want the values locked down pins it explicitly,
+		// and that pin is honoured over the default.
+		sysadminValues, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "post", &model.PropertyField{
+			Name:             model.NewId(),
+			Type:             model.PropertyFieldTypeText,
+			TargetType:       "system",
+			PermissionValues: &sysadminLevel,
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.Equal(t, model.PermissionLevelSysadmin, *sysadminValues.PermissionValues)
+
+		_, resp, err = th.Client.PatchPropertyValues(context.Background(), group.Name, "post", targetID, []model.PropertyValuePatchItem{
+			{FieldID: sysadminValues.ID, Value: json.RawMessage(`"annotated"`)},
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("member can set values on field with values permission member", func(t *testing.T) {
