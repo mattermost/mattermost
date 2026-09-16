@@ -1178,5 +1178,31 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 'You do not have permission to post in this channel.',
             )).toBeInTheDocument();
         });
+
+        it('disables the edit Save button when the policy denies write access', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    isInEditMode={true}
+                    rootId={'post_id_1'}
+                />,
+                withWriteDecision(false),
+            );
+
+            expect(screen.getByRole('button', {name: 'Save'})).toBeDisabled();
+        });
+
+        it('leaves the edit Save button enabled when the policy allows write access', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    isInEditMode={true}
+                    rootId={'post_id_1'}
+                />,
+                withWriteDecision(true),
+            );
+
+            expect(screen.getByRole('button', {name: 'Save'})).toBeEnabled();
+        });
     });
 });
