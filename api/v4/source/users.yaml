@@ -1056,6 +1056,67 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+  /api/v4/users/me/initial_load:
+    get:
+      tags:
+        - users
+      summary: Get aggregate data for cold start
+      description: >
+        Returns a single aggregate payload — the current user, their teams, the
+        resolved active team's channels/members/sidebar, unread badge counts,
+        preferences, roles, and group memberships — replacing the several
+        sequential REST calls a client otherwise makes on app cold start.
+
+
+        Pass `since` to get a delta response containing only what changed since
+        that cursor instead of a full snapshot; omit it (or pass `0`) for a full
+        cold-start response. Store the response's `timestamp` field and pass it
+        back as `since` on the next call.
+
+
+        This endpoint is rate limited per session.
+
+        ##### Permissions
+        Requires an active session but no other permissions.
+      operationId: GetInitialLoad
+      parameters:
+        - name: team_id
+          in: query
+          description: The client's currently known active team. When omitted, the
+            server resolves the active team from the user's `teams_order`
+            preference and the `ExperimentalPrimaryTeam` config setting.
+          schema:
+            type: string
+        - name: channel_id
+          in: query
+          description: The client's currently known active channel, used to keep it
+            from being dropped when the direct/group-message list is truncated
+            to the display limit.
+          schema:
+            type: string
+        - name: since
+          in: query
+          description: Cursor from a previous call's `timestamp` field. When provided,
+            the response contains only data that changed since that cursor.
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: Initial load data retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InitialLoadResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Feature disabled. Returned when the `EnableExperienceAPI`
+            feature flag is off.
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   "/api/v4/users/{user_id}":
     get:
       tags:

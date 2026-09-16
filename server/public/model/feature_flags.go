@@ -199,6 +199,9 @@ type FeatureFlags struct {
 	// already linked keep their link, and their values stay sync-locked and
 	// untouched.
 	OpenIdAttributeSync bool
+
+	// EnableExperienceAPI gates the DDIL experience surface area.
+	EnableExperienceAPI bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -277,6 +280,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableBrotliCompression = false
 
 	f.OpenIdAttributeSync = true
+
+	f.EnableExperienceAPI = false
 }
 
 // isValid rejects feature flag combinations that are no longer supported.
