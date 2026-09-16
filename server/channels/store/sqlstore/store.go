@@ -461,8 +461,9 @@ func (ss *SqlStore) GetSearchReplicaX() *sqlxDBWrapper {
 		return ss.GetReplica()
 	}
 
-	for i := 0; i < len(ss.searchReplicaXs); i++ {
-		rrNum := atomic.AddInt64(&ss.srCounter, 1) % int64(len(ss.searchReplicaXs))
+	lenReplicas := len(ss.searchReplicaXs)
+	for range lenReplicas {
+		rrNum := atomic.AddInt64(&ss.srCounter, 1) % int64(lenReplicas)
 		if ss.searchReplicaXs[rrNum].Load().Online() {
 			return ss.searchReplicaXs[rrNum].Load()
 		}
@@ -477,8 +478,9 @@ func (ss *SqlStore) GetReplica() *sqlxDBWrapper {
 		return ss.GetMaster()
 	}
 
-	for i := 0; i < len(ss.ReplicaXs); i++ {
-		rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(len(ss.ReplicaXs))
+	lenReplicas := len(ss.ReplicaXs)
+	for range lenReplicas {
+		rrNum := atomic.AddInt64(&ss.rrCounter, 1) % int64(lenReplicas)
 		if ss.ReplicaXs[rrNum].Load().Online() {
 			return ss.ReplicaXs[rrNum].Load()
 		}

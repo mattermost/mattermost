@@ -9,6 +9,7 @@ import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
 import {
     getPropertyFieldsForObjectTypeAndGroup,
+    makeGetPropertyFieldsForObjectTypeAndGroup,
     getPropertyFieldById,
     getPropertyFieldsByIds,
     getPropertyGroupById,
@@ -115,6 +116,36 @@ describe('Field selectors', () => {
             };
 
             expect(getPropertyFieldsForObjectTypeAndGroup(state as GlobalState, 'post', 'unknown')).toEqual([]);
+        });
+    });
+
+    describe('makeGetPropertyFieldsForObjectTypeAndGroup', () => {
+        test('keeps a stable array when two instances read different object types', () => {
+            const postField = makeField({id: 'f1', object_type: 'post'});
+            const userField = makeField({id: 'f2', object_type: 'user'});
+            const state: DeepPartial<GlobalState> = {
+                entities: {
+                    properties: {
+                        fields: {
+                            byObjectType: {
+                                post: {'group-1': {f1: postField}},
+                                user: {'group-1': {f2: userField}},
+                            },
+                            byId: {f1: postField, f2: userField},
+                        },
+                        values: {byTargetId: {}, byFieldId: {}},
+                        groups: {byId: {}, byName: {}},
+                    },
+                },
+            };
+
+            const getPostFields = makeGetPropertyFieldsForObjectTypeAndGroup();
+            const getUserFields = makeGetPropertyFieldsForObjectTypeAndGroup();
+
+            const firstPost = getPostFields(state as GlobalState, 'post', 'group-1');
+            const firstUser = getUserFields(state as GlobalState, 'user', 'group-1');
+            expect(getPostFields(state as GlobalState, 'post', 'group-1')).toBe(firstPost);
+            expect(getUserFields(state as GlobalState, 'user', 'group-1')).toBe(firstUser);
         });
     });
 
