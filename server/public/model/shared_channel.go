@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"net/http"
-	"sort"
+	"slices"
 	"unicode/utf8"
 
 	"github.com/pkg/errors"
@@ -377,7 +377,7 @@ func (sm *SyncMsg) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 		for k := range sm.Users {
 			keys = append(keys, k)
 		}
-		sort.Strings(keys)
+		slices.Sort(keys)
 
 		for _, k := range keys {
 			entry := xmlSyncMsgUser{ID: k, User: sm.Users[k]}
@@ -402,7 +402,7 @@ func (sm *SyncMsg) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 		for k := range sm.MentionTransforms {
 			keys = append(keys, k)
 		}
-		sort.Strings(keys)
+		slices.Sort(keys)
 
 		for _, k := range keys {
 			entry := xmlSyncMsgMentionTransform{Key: k, Value: sm.MentionTransforms[k]}

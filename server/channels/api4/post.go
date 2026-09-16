@@ -95,11 +95,6 @@ func createPostChecks(where string, c *Context, post *model.Post) {
 		}
 	}
 
-	postHardenedModeCheckWithContext(where, c, post.GetProps())
-	if c.Err != nil {
-		return
-	}
-
 	postPriorityCheckWithContext(where, c, post.GetPriority(), post.RootId)
 	if c.Err != nil {
 		return
@@ -331,7 +326,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if since > 0 {
 		list, err = c.App.GetPostsSince(c.AppContext, model.GetPostsSinceOptions{ChannelId: channelId, Time: since, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId})
 	} else if afterPost != "" {
-		etag = c.App.GetPostsEtag(channelId, c.AppContext.Session().UserId, collapsedThreads)
+		etag = c.App.GetPostsEtag(channel, c.AppContext.Session().UserId, collapsedThreads)
 
 		if c.HandleEtag(etag, "Get Posts After", w, r) {
 			return
@@ -339,7 +334,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		list, err = c.App.GetPostsAfterPost(c.AppContext, model.GetPostsOptions{ChannelId: channelId, PostId: afterPost, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
 	} else if beforePost != "" {
-		etag = c.App.GetPostsEtag(channelId, c.AppContext.Session().UserId, collapsedThreads)
+		etag = c.App.GetPostsEtag(channel, c.AppContext.Session().UserId, collapsedThreads)
 
 		if c.HandleEtag(etag, "Get Posts Before", w, r) {
 			return
@@ -347,7 +342,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		list, err = c.App.GetPostsBeforePost(c.AppContext, model.GetPostsOptions{ChannelId: channelId, PostId: beforePost, Page: page, PerPage: perPage, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId, IncludeDeleted: includeDeleted})
 	} else {
-		etag = c.App.GetPostsEtag(channelId, c.AppContext.Session().UserId, collapsedThreads)
+		etag = c.App.GetPostsEtag(channel, c.AppContext.Session().UserId, collapsedThreads)
 
 		if c.HandleEtag(etag, "Get Posts", w, r) {
 			return
@@ -435,7 +430,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 
 	etag := ""
 	if len(postList.Order) == 0 {
-		etag = c.App.GetPostsEtag(channelId, c.AppContext.Session().UserId, collapsedThreads)
+		etag = c.App.GetPostsEtag(channel, c.AppContext.Session().UserId, collapsedThreads)
 
 		if c.HandleEtag(etag, "Get Posts", w, r) {
 			return
@@ -744,7 +739,7 @@ func getEditHistoryForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postsList, err := c.App.GetEditHistoryForPost(c.Params.PostId)
+	postsList, err := c.App.GetEditHistoryForPost(c.AppContext, c.Params.PostId)
 	if err != nil {
 		c.Err = err
 		return
@@ -1120,11 +1115,6 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postHardenedModeCheckWithContext("UpdatePost", c, post.GetProps())
-	if c.Err != nil {
-		return
-	}
-
 	originalPost, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
 	if err != nil {
 		c.SetPermissionError(model.PermissionEditPost)
@@ -1235,13 +1225,6 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "id", c.Params.PostId)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "patch", &post)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
-
-	if post.Props != nil {
-		postHardenedModeCheckWithContext("patchPost", c, *post.Props)
-		if c.Err != nil {
-			return
-		}
-	}
 
 	isMember := postPatchChecks(c, auditRec, &post)
 	if c.Err != nil {

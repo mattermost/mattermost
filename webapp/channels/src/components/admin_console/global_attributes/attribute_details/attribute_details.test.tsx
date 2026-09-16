@@ -1353,7 +1353,7 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            expect(screen.getByRole('heading', {name: 'Edit attribute'})).toBeInTheDocument();
+            expect(screen.getByRole('heading', {name: 'Edit Department Attribute'})).toBeInTheDocument();
             expect(screen.getByTestId('attributeDisplayNameInput')).toHaveValue('Department');
             expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('department');
             expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Select');
