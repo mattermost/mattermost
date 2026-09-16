@@ -1,13 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS} from '@mattermost/types/access_control';
 import type {GroupMembership, GroupPermissions} from '@mattermost/types/groups';
 import type {Role} from '@mattermost/types/roles';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {General, Permissions} from 'mattermost-redux/constants';
+import {CHANNEL_WRITE_PERMISSIONS} from 'mattermost-redux/constants/permissions';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getCurrentChannelId, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
+import {getRenderDecision} from 'mattermost-redux/selectors/entities/render_permissions';
 import type {PermissionsOptions} from 'mattermost-redux/selectors/entities/roles_helpers';
 import {
     getMySystemPermissions as getMySystemPermissionsInternal,
@@ -213,20 +216,30 @@ export const haveIGroupPermission: (state: GlobalState, groupID: string, permiss
     },
 );
 
+export function isChannelWriteDenied(state: GlobalState, channelId: string): boolean {
+    const decision = getRenderDecision(state, {
+        resourceType: 'channel',
+        resourceId: channelId,
+        action: ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS,
+    });
+
+    return Boolean(decision?.evaluated && !decision.allowed);
+}
+
 export function haveIChannelPermission(state: GlobalState, teamId: string | undefined, channelId: string | undefined, permission: string): boolean {
-    if (getMySystemPermissions(state).has(permission)) {
-        return true;
+    const granted = getMySystemPermissions(state).has(permission) ||
+        Boolean(teamId && getMyPermissionsByTeam(state)[teamId]?.has(permission)) ||
+        Boolean(channelId && getMyPermissionsByChannel(state)[channelId]?.has(permission));
+
+    if (!granted) {
+        return false;
     }
 
-    if (teamId && getMyPermissionsByTeam(state)[teamId]?.has(permission)) {
-        return true;
+    if (channelId && CHANNEL_WRITE_PERMISSIONS.has(permission)) {
+        return !isChannelWriteDenied(state, channelId);
     }
 
-    if (channelId && getMyPermissionsByChannel(state)[channelId]?.has(permission)) {
-        return true;
-    }
-
-    return false;
+    return true;
 }
 
 export function haveICurrentTeamPermission(state: GlobalState, permission: string): boolean {

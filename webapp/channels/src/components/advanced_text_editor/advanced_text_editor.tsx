@@ -7,7 +7,6 @@ import React, {lazy, useCallback, useEffect, useMemo, useRef, useState} from 're
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS} from '@mattermost/types/access_control';
 import type {ServerError} from '@mattermost/types/errors';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
@@ -34,9 +33,9 @@ import WysiwygEditor from 'components/advanced_text_editor/wysiwyg_editor/wysiwy
 import type {WysiwygEditorHandle} from 'components/advanced_text_editor/wysiwyg_editor/wysiwyg_editor';
 import {makeAsyncComponent} from 'components/async_load';
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
+import {useChannelWriteAccess} from 'components/common/hooks/useChannelWriteAccess';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
-import {useRenderPermission} from 'components/common/hooks/useRenderPermission';
 import DeletePostModal from 'components/delete_post_modal';
 import {
     DropOverlayIdCreateComment,
@@ -200,9 +199,7 @@ const AdvancedTextEditor = ({
         return channel ? haveIChannelPermission(state, channel.team_id, channel.id, Permissions.CREATE_POST) : false;
     });
 
-    // Fail open while in flight: every write endpoint enforces the policy itself, and
-    // failing closed would grey the composer out on the first visit to every channel.
-    const writeAllowedByPolicy = useRenderPermission({resourceType: 'channel', resourceId: channelId, action: ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS}, true);
+    const writeAllowedByPolicy = useChannelWriteAccess(channelId);
     const useChannelMentions = useSelector((state: GlobalState) => {
         const channel = getChannel(state, channelId);
         return channel ? haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_CHANNEL_MENTIONS) : false;

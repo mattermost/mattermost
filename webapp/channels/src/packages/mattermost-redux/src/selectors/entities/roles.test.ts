@@ -284,3 +284,85 @@ describe('Selectors.Roles', () => {
         });
     });
 });
+
+describe('Selectors.Roles.channelWriteAccess', () => {
+    const teamId = 'team_id';
+    const channelId = 'channel_id';
+    const otherChannelId = 'other_channel_id';
+
+    function makeState(decision?: {allowed: boolean; evaluated: boolean}, decisionChannelId = channelId) {
+        const channelRoles: Record<string, Set<string>> = {
+            [channelId]: new Set(['channel_user']),
+            [otherChannelId]: new Set(['channel_user']),
+        };
+
+        return {
+            entities: {
+                users: {currentUserId: 'user_id', profiles: {user_id: {id: 'user_id', roles: ''}}},
+                teams: {currentTeamId: teamId, myMembers: {}},
+                channels: {currentChannelId: channelId, channels: {}, roles: channelRoles},
+                groups: {groups: {}, myGroups: []},
+                roles: {
+                    roles: {
+                        channel_user: {
+                            permissions: [
+                                Permissions.CREATE_POST,
+                                Permissions.DELETE_PUBLIC_CHANNEL,
+                                Permissions.READ_CHANNEL,
+                                Permissions.MANAGE_CHANNEL_ACCESS_RULES,
+                            ],
+                        },
+                    },
+                },
+                renderPermissions: decision ? {
+                    byResource: {
+                        channel: {
+                            [decisionChannelId]: {channel_write_access: {...decision, generation: 1}},
+                        },
+                    },
+                } : undefined,
+            },
+        } as unknown as Parameters<typeof Selectors.haveIChannelPermission>[0];
+    }
+
+    it('leaves permissions alone when no decision has been fetched', () => {
+        const state = makeState();
+
+        expect(Selectors.haveIChannelPermission(state, teamId, channelId, Permissions.CREATE_POST)).toBe(true);
+        expect(Selectors.isChannelWriteDenied(state, channelId)).toBe(false);
+    });
+
+    it('leaves permissions alone while the decision is still unevaluated', () => {
+        const state = makeState({allowed: false, evaluated: false});
+
+        expect(Selectors.haveIChannelPermission(state, teamId, channelId, Permissions.CREATE_POST)).toBe(true);
+    });
+
+    it('leaves permissions alone when the policy allows', () => {
+        const state = makeState({allowed: true, evaluated: true});
+
+        expect(Selectors.haveIChannelPermission(state, teamId, channelId, Permissions.CREATE_POST)).toBe(true);
+    });
+
+    it('denies write permissions when the policy denies', () => {
+        const state = makeState({allowed: false, evaluated: true});
+
+        expect(Selectors.isChannelWriteDenied(state, channelId)).toBe(true);
+        expect(Selectors.haveIChannelPermission(state, teamId, channelId, Permissions.CREATE_POST)).toBe(false);
+        expect(Selectors.haveIChannelPermission(state, teamId, channelId, Permissions.DELETE_PUBLIC_CHANNEL)).toBe(false);
+    });
+
+    it('leaves read permissions and policy administration alone when the policy denies', () => {
+        const state = makeState({allowed: false, evaluated: true});
+
+        expect(Selectors.haveIChannelPermission(state, teamId, channelId, Permissions.READ_CHANNEL)).toBe(true);
+        expect(Selectors.haveIChannelPermission(state, teamId, channelId, Permissions.MANAGE_CHANNEL_ACCESS_RULES)).toBe(true);
+    });
+
+    it('scopes the denial to the channel it was fetched for', () => {
+        const state = makeState({allowed: false, evaluated: true});
+
+        expect(Selectors.haveIChannelPermission(state, teamId, channelId, Permissions.CREATE_POST)).toBe(false);
+        expect(Selectors.haveIChannelPermission(state, teamId, otherChannelId, Permissions.CREATE_POST)).toBe(true);
+    });
+});

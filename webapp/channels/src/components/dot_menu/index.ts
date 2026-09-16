@@ -14,6 +14,7 @@ import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {isChannelWriteDenied} from 'mattermost-redux/selectors/entities/roles';
 import {
     getCurrentTeamId,
     getCurrentTeam,
@@ -128,7 +129,7 @@ function makeMapStateToProps() {
             timezone: getCurrentTimezone(state),
             isMilitaryTime,
             canMove: channel && !isBoRPost ? canWrangler(state, channel.type, threadReplyCount) : false,
-            canReply: !systemMessage && !isBoRPost && ownProps.location === Locations.CENTER,
+            canReply: !systemMessage && !isBoRPost && ownProps.location === Locations.CENTER && !isChannelWriteDenied(state, post.channel_id),
             canForward: !systemMessage && !isBoRPost,
             canFollowThread: !systemMessage && !isBoRPost && collapsedThreads && (
                 !ownProps.location ||
