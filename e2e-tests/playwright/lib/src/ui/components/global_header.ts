@@ -47,7 +47,7 @@ export default class GlobalHeader {
         await expect(this.container.getByRole('heading', {name})).toBeVisible();
     }
 
-    async openSwitchProductMenu(name: string) {
+    async openSwitchProductMenu() {
         await this.switchProductMenuButton.click();
         await this.channelsPage.switchProductMenu.toBeVisible();
 
