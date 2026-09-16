@@ -341,32 +341,8 @@ CREATE TABLE IF NOT EXISTS PropertyOptionEdges (
 -- The store deletes an option's edges in the same transaction that deletes the
 -- option.
 
--- The indexes come after the backfill: building each in one pass over the
--- populated table is cheaper than maintaining it across the insert, and inside
--- the migration's transaction there is no concurrent traffic CONCURRENTLY
--- would serve.
-
--- Load a field's live options in display order (also the keyset page key).
--- Deliberately no UNIQUE constraint: rank uniqueness is an application
--- invariant that may be relaxed.
-CREATE INDEX IF NOT EXISTS idx_propertyoptions_fieldid_createat_id ON PropertyOptions (FieldID, CreateAt, ID) WHERE DeleteAt = 0;
-
--- Resolve a name within a field. Deliberately no UNIQUE constraint: name
--- uniqueness spans a field and its link source, so it cannot be expressed as a
--- single-table index.
-CREATE INDEX IF NOT EXISTS idx_propertyoptions_fieldid_name ON PropertyOptions (FieldID, Name) WHERE DeleteAt = 0;
-
--- The downward walk, and the check that an option still has children (which is
--- what stops an interior option from being deleted).
---
--- FieldID leads for correctness, not just for selectivity: option IDs are not
--- unique across fields -- unlinking a field from its template deliberately
--- duplicates them, since the field takes over the options it was deriving under
--- the identifiers its property values already point at -- so a walk keyed on
--- ParentOptionID alone would pull in another field's edges. Every query here is
--- field-scoped, and the index has to lead with FieldID for that predicate to be
--- usable.
-CREATE INDEX IF NOT EXISTS idx_propertyoptionedges_fieldid_parent_child ON PropertyOptionEdges (FieldID, ParentOptionID, ChildOptionID);
+-- Secondary keys on these tables are built in 000224-000226. They have to use
+-- CONCURRENTLY, which cannot run inside this backfill's transaction.
 
 -- Both attribute views resolved option names out of the blob, so both are
 -- redefined here or every policy referencing a select-style attribute starts

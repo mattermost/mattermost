@@ -391,10 +391,23 @@ func TestMigration000223(t *testing.T) {
 		return defs
 	}
 
+	// applyOptionIndexes runs 000224-000226. CONCURRENTLY cannot run inside a
+	// transaction, so these have to be applied separately from 000223.
+	applyOptionIndexes := func(t *testing.T) {
+		t.Helper()
+		for _, name := range []string{
+			"000224_create_propertyoptions_fieldid_createat_id_index.up.sql",
+			"000225_create_propertyoptions_fieldid_name_index.up.sql",
+			"000226_create_propertyoptionedges_fieldid_parent_child_index.up.sql",
+		} {
+			_, iErr := store.GetMaster().ExecNoTimeout(readMigrationSQL(t, name))
+			require.NoError(t, iErr, "applying %s", name)
+		}
+	}
+
 	// assertOptionIndexes pins the two PropertyOptions secondary indexes as
-	// present and valid. The migration builds them in its own transaction rather
-	// than CONCURRENTLY, so validity is what tells them apart from the leftover
-	// of an interrupted concurrent build.
+	// present and valid. Validity is what tells a finished CONCURRENTLY build
+	// apart from the leftover of an interrupted one.
 	assertOptionIndexes := func(t *testing.T, stage string) {
 		t.Helper()
 		defs := indexDefs(t, "propertyoptions")
@@ -494,6 +507,11 @@ func TestMigration000223(t *testing.T) {
 
 	downSQL := readMigrationSQL(t, "000223_move_property_options_to_table.down.sql")
 	upSQL := readMigrationSQL(t, "000223_move_property_options_to_table.up.sql")
+	indexDownSQL := []string{
+		"000226_create_propertyoptionedges_fieldid_parent_child_index.down.sql",
+		"000225_create_propertyoptions_fieldid_name_index.down.sql",
+		"000224_create_propertyoptions_fieldid_createat_id_index.down.sql",
+	}
 
 	// sentinelCount reads the backfill's completion sentinel: present exactly
 	// when the up migration has run and the down has not.
@@ -515,9 +533,13 @@ func TestMigration000223(t *testing.T) {
 		return hash
 	}
 
-	// Down: the options go back into every field's own blob, including a copy in
-	// each linked field, the blob-reading view bodies come back, and both tables
-	// go away.
+	// Down: drop the CONCURRENTLY-built keys first, then the options go back
+	// into every field's own blob, including a copy in each linked field, the
+	// blob-reading view bodies come back, and both tables go away.
+	for _, name := range indexDownSQL {
+		_, err = store.GetMaster().ExecNoTimeout(readMigrationSQL(t, name))
+		require.NoError(t, err, "applying %s", name)
+	}
 	_, err = store.GetMaster().ExecNoTimeout(downSQL)
 	require.NoError(t, err)
 	require.False(t, tableExists(t, store, "PropertyOptions"), "down should drop PropertyOptions")
@@ -565,6 +587,7 @@ func TestMigration000223(t *testing.T) {
 	// which is the shape a real upgrade starts from.
 	_, err = store.GetMaster().ExecNoTimeout(upSQL)
 	require.NoError(t, err)
+	applyOptionIndexes(t)
 	require.True(t, tableExists(t, store, "PropertyOptions"), "up should recreate PropertyOptions")
 	require.True(t, tableExists(t, store, "PropertyOptionEdges"), "up should recreate PropertyOptionEdges")
 
