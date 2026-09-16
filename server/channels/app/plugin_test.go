@@ -1480,6 +1480,48 @@ func TestAddOnPluginLicenseGate(t *testing.T) {
 	})
 }
 
+// Covers the activation check in installExtractedPlugin, which runs when a plugin
+// is installed while config already has it enabled.
+func TestInstallAddOnPluginUnlicensed(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.RequirePluginSignature = false
+		cfg.PluginSettings.PluginStates[testAddOnPluginID] = &model.PluginState{Enable: true}
+	})
+	require.Nil(t, th.App.Srv().RemoveLicense())
+
+	env := th.App.GetPluginsEnvironment()
+	require.NotNil(t, env)
+
+	bundlePath := "webapp/testaddon_bundle.js"
+	manifest := &model.Manifest{
+		Id:            testAddOnPluginID,
+		Version:       "0.0.1",
+		RequiredAddOn: testAddOn,
+		Webapp:        &model.ManifestWebapp{BundlePath: bundlePath},
+	}
+	manifestJSON, jsonErr := json.Marshal(manifest)
+	require.NoError(t, jsonErr)
+
+	_, appErr := th.App.ch.installPluginLocally(
+		makeInMemoryGzipTarFile(t, []testFile{
+			{"plugin.json", string(manifestJSON)},
+			{bundlePath, "console.log('testaddon');"},
+		}),
+		installPluginLocallyOnlyIfNew,
+	)
+	checkNoError(t, appErr)
+
+	statuses, err := env.Statuses()
+	require.NoError(t, err)
+	require.Len(t, statuses, 1)
+	require.Equal(t, testAddOnPluginID, statuses[0].PluginId)
+	require.Equal(t, model.PluginStateNotRunning, statuses[0].State)
+}
+
 func TestEnablePluginAddOnLicenseCheck(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
