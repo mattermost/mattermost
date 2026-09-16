@@ -94,6 +94,52 @@ describe('OperatorSelectorMenu', () => {
         expect(menuTexts).not.toContain('has all of');
     });
 
+    test('shows the hierarchy predicates and the membership operators when attributeType is graph', () => {
+        renderWithContext(
+            <OperatorSelectorMenu
+                {...defaultProps}
+                currentOperator='coversAll'
+                attributeType='graph'
+            />,
+        );
+
+        expect(screen.getByTestId('operatorSelectorMenuButton')).toHaveTextContent('covers all of');
+
+        fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+
+        const menuTexts = screen.getAllByRole('menuitemradio').map((item) => item.textContent);
+        expect(menuTexts).toEqual([
+            'covers all of',
+            'covers any of',
+            'is within all of',
+            'is within any of',
+            'has any of',
+            'has all of',
+        ]);
+    });
+
+    test('hides the hierarchy predicates for non-graph attribute types', () => {
+        for (const attributeType of ['text', 'select', 'multiselect', 'rank']) {
+            const {unmount} = renderWithContext(
+                <OperatorSelectorMenu
+                    {...defaultProps}
+                    currentOperator='is'
+                    attributeType={attributeType}
+                />,
+            );
+
+            fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+
+            const menuTexts = screen.getAllByRole('menuitemradio').map((item) => item.textContent);
+            expect(menuTexts).not.toContain('covers all of');
+            expect(menuTexts).not.toContain('covers any of');
+            expect(menuTexts).not.toContain('is within all of');
+            expect(menuTexts).not.toContain('is within any of');
+
+            unmount();
+        }
+    });
+
     test('restricts the menu to allowedOperators when provided (native attribute)', () => {
         renderWithContext(
             <OperatorSelectorMenu

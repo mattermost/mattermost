@@ -7,16 +7,17 @@ import {useDispatch} from 'react-redux';
 import {Link} from 'react-router-dom';
 
 import type {ClientError} from '@mattermost/client';
+import {ChevronLeftIcon, OpenInNewIcon, SortAscendingIcon} from '@mattermost/compass-icons/components';
 import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
 import {ACCESS_CONTROL_PROPERTY_GROUP, CHANNEL_OBJECT_TYPE} from 'mattermost-redux/constants/properties';
+import {getContrastingSimpleColor} from 'mattermost-redux/utils/theme_utils';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
 import BlockableLink from 'components/admin_console/blockable_link';
-import {ColorSwatch, LevelOptionLabel} from 'components/admin_console/classification_markings/classification_markings_styled';
 import {
     CLASSIFICATIONS_MARKINGS_ADMIN_URL,
     fetchChannelClassificationField,
@@ -28,6 +29,7 @@ import Card from 'components/card/card';
 import LoadingScreen from 'components/loading_screen';
 import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import Input from 'components/widgets/inputs/input/input';
 
 import {useChannelResourceRemove} from './remove_channel_resource_modal';
 
@@ -35,6 +37,7 @@ import AppliesToCard from '../applies_to/applies_to_card';
 import {buildChannelFieldPatch, buildChannelFieldPayload, parseChannelFieldConfig} from '../applies_to/channels';
 import type {ChannelResourceConfig} from '../applies_to/channels';
 import {GLOBAL_ATTRIBUTES_LIST_ROUTE} from '../constants';
+import {formatAttributeHeadingName} from '../utils';
 
 import './classification_attribute.scss';
 
@@ -230,6 +233,9 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
         }
     }, [canSave, channelField, channelResource, markClean, template]);
 
+    const displayName = (template?.attrs?.display_name as string | undefined)?.trim() ||
+        formatAttributeHeadingName(template?.name ?? formatMessage(messages.nameFallback));
+
     return (
         <div
             className='wrapper--fixed ClassificationAttribute'
@@ -237,16 +243,24 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
         >
             <AdminHeader withBackButton={true}>
                 <div>
-                    <BlockableLink
-                        to={GLOBAL_ATTRIBUTES_LIST_ROUTE}
-                        className='fa fa-angle-left back'
-                        aria-label={formatMessage(messages.backLink)}
-                        data-testid='classificationAttributeBackLink'
-                    />
+                    <div className='ClassificationAttribute__back'>
+                        <BlockableLink
+                            to={GLOBAL_ATTRIBUTES_LIST_ROUTE}
+                            className='ClassificationAttribute__backButton'
+                            aria-label={formatMessage(messages.backLink)}
+                            data-testid='classificationAttributeBackLink'
+                        >
+                            <ChevronLeftIcon
+                                size={20}
+                                aria-hidden={true}
+                            />
+                        </BlockableLink>
+                    </div>
                     <hgroup className='ClassificationAttribute__headerGroup'>
                         <FormattedMessage
                             tagName='h1'
                             {...messages.title}
+                            values={{name: displayName}}
                         />
                         <FormattedMessage
                             tagName='p'
@@ -297,49 +311,111 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                                         <FormattedMessage
                                             tagName='p'
                                             {...messages.definitionSubtitle}
-                                            values={{link: (
-                                                <Link
-                                                    to={CLASSIFICATIONS_MARKINGS_ADMIN_URL}
-                                                    data-testid='classificationAttributeMarkingsLink'
-                                                >
-                                                    <FormattedMessage {...messages.markingsPageName}/>
-                                                </Link>
-                                            )}}
                                         />
                                     </div>
                                 </Card.Header>
                                 <Card.Body expanded={true}>
                                     <div className='ClassificationAttribute__row'>
-                                        <span className='ClassificationAttribute__label'>
-                                            <FormattedMessage {...messages.nameLabel}/>
-                                        </span>
-                                        <span data-testid='classificationAttributeName'>{template.name}</span>
+                                        <label
+                                            className='ClassificationAttribute__label'
+                                            htmlFor='input_display_name'
+                                        >
+                                            <FormattedMessage {...messages.displayNameLabel}/>
+                                        </label>
+                                        <div className='ClassificationAttribute__fieldControl'>
+                                            <Input
+                                                name='display_name'
+                                                type='text'
+                                                useLegend={false}
+                                                aria-label={formatMessage(messages.displayNameLabel)}
+                                                value={displayName}
+                                                disabled={true}
+                                                data-testid='classificationAttributeName'
+                                            />
+                                            <div className='ClassificationAttribute__uniqueName'>
+                                                <span className='ClassificationAttribute__uniqueNameCaption'>
+                                                    <span className='ClassificationAttribute__uniqueNamePrefix'>
+                                                        <FormattedMessage {...messages.uniqueNamePrefix}/>
+                                                    </span>
+                                                    <span data-testid='classificationAttributeUniqueName'>
+                                                        {template.name}
+                                                    </span>
+                                                </span>
+                                                <p className='ClassificationAttribute__helperText'>
+                                                    <FormattedMessage {...messages.helperText}/>
+                                                </p>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div className='ClassificationAttribute__row'>
                                         <span className='ClassificationAttribute__label'>
                                             <FormattedMessage {...messages.typeLabel}/>
                                         </span>
-                                        <span data-testid='classificationAttributeType'>
-                                            <FormattedMessage {...messages.typeRank}/>
-                                        </span>
+                                        <div className='ClassificationAttribute__fieldControl'>
+                                            <button
+                                                type='button'
+                                                className='ClassificationAttribute__typeButton'
+                                                disabled={true}
+                                                aria-label={formatMessage(messages.typeFieldAriaLabel, {value: formatMessage(messages.typeRanked)})}
+                                                data-testid='classificationAttributeType'
+                                            >
+                                                <span className='ClassificationAttribute__typeButtonInner'>
+                                                    <SortAscendingIcon size={18}/>
+                                                    <FormattedMessage {...messages.typeRanked}/>
+                                                </span>
+                                                <i className='icon icon-chevron-down'/>
+                                            </button>
+                                        </div>
                                     </div>
                                     <div className='ClassificationAttribute__row'>
                                         <span className='ClassificationAttribute__label'>
-                                            <FormattedMessage {...messages.levelsLabel}/>
+                                            <FormattedMessage {...messages.optionsLabel}/>
                                         </span>
-                                        <ul
-                                            className='ClassificationAttribute__levels'
-                                            data-testid='classificationAttributeLevels'
-                                        >
-                                            {levels.map((level) => (
-                                                <li key={level.id}>
-                                                    <LevelOptionLabel>
-                                                        <ColorSwatch style={{backgroundColor: level.color}}/>
-                                                        {level.name}
-                                                    </LevelOptionLabel>
-                                                </li>
-                                            ))}
-                                        </ul>
+                                        <div className='ClassificationAttribute__fieldControl'>
+                                            <ul
+                                                className='ClassificationAttribute__options'
+                                                data-testid='classificationAttributeLevels'
+                                            >
+                                                {levels.map((level) => (
+                                                    <li key={level.id}>
+                                                        <span
+                                                            className='ClassificationAttribute__optionChip'
+                                                            style={{
+                                                                backgroundColor: level.color,
+                                                                color: getContrastingSimpleColor(level.color) || '#FFFFFF',
+                                                            }}
+                                                        >
+                                                            <span
+                                                                className='ClassificationAttribute__optionRankShade'
+                                                                aria-hidden={true}
+                                                            />
+                                                            <span className='ClassificationAttribute__optionRank'>
+                                                                {level.rank}
+                                                            </span>
+                                                            <span className='ClassificationAttribute__optionLabel'>
+                                                                {level.name}
+                                                            </span>
+                                                        </span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                            <div className='ClassificationAttribute__markingsFooter'>
+                                                <p className='ClassificationAttribute__markingsCopy'>
+                                                    <FormattedMessage {...messages.markingsFooter}/>
+                                                    <Link
+                                                        to={CLASSIFICATIONS_MARKINGS_ADMIN_URL}
+                                                        className={buttonClassNames({emphasis: 'tertiary', size: 'sm'}, 'ClassificationAttribute__markingsOpen')}
+                                                        data-testid='classificationAttributeMarkingsLink'
+                                                    >
+                                                        <FormattedMessage {...messages.openMarkings}/>
+                                                        <OpenInNewIcon
+                                                            size={12}
+                                                            aria-hidden={true}
+                                                        />
+                                                    </Link>
+                                                </p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </Card.Body>
                             </Card>
@@ -387,24 +463,36 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
 
 const messages = defineMessages({
     backLink: {id: 'admin.global_attributes.classification.back_link', defaultMessage: 'Back to Attribute Management'},
-    title: {id: 'admin.global_attributes.classification.title', defaultMessage: 'Classification'},
+    title: {id: 'admin.global_attributes.attribute_details.edit_title', defaultMessage: 'Edit {name} Attribute'},
+    nameFallback: {id: 'admin.global_attributes.classification.name_fallback', defaultMessage: 'Classification'},
     subtitle: {
         id: 'admin.global_attributes.classification.subtitle',
-        defaultMessage: 'Choose the resources classification applies to, and how it behaves on each.',
+        defaultMessage: 'Choose the resources this attribute applies to, and how it behaves on each.',
     },
-    definitionTitle: {id: 'admin.global_attributes.classification.definition.title', defaultMessage: 'Definition'},
+    definitionTitle: {id: 'admin.global_attributes.attribute_details.definition.title', defaultMessage: 'Definition'},
     definitionSubtitle: {
-        id: 'admin.global_attributes.classification.definition.subtitle',
-        defaultMessage: 'Levels, colors and ranks are edited on the {link} page.',
+        id: 'admin.global_attributes.attribute_details.definition.subtitle',
+        defaultMessage: 'Display name, type, and options.',
     },
+    displayNameLabel: {id: 'admin.global_attributes.attribute_details.display_name.label', defaultMessage: 'Display name'},
+    uniqueNamePrefix: {id: 'admin.global_attributes.attribute_details.unique_name.prefix', defaultMessage: 'Unique name:'},
+    helperText: {
+        id: 'admin.global_attributes.attribute_details.unique_name.helper_text',
+        defaultMessage: 'Name is the internal identifier for policies and integrations. Display name is what admins and users see.',
+    },
+    typeLabel: {id: 'admin.global_attributes.attribute_details.type.label', defaultMessage: 'Type'},
+    typeRanked: {id: 'admin.global_attributes.table.type.rank', defaultMessage: 'Ranked'},
+    typeFieldAriaLabel: {id: 'admin.global_attributes.attribute_details.type.field_aria_label', defaultMessage: 'Type: {value}'},
+    optionsLabel: {id: 'admin.global_attributes.attribute_details.options.label', defaultMessage: 'Options'},
+    markingsFooter: {
+        id: 'admin.global_attributes.classification.markings_footer',
+        defaultMessage: 'Presets and marking colors are configured on Classification Markings.',
+    },
+    openMarkings: {id: 'admin.global_attributes.classification.open_markings', defaultMessage: 'Open'},
     markingsPageName: {
         id: 'admin.global_attributes.classification.markings_page_name',
         defaultMessage: 'Classification Markings',
     },
-    nameLabel: {id: 'admin.global_attributes.classification.name_label', defaultMessage: 'Name'},
-    typeLabel: {id: 'admin.global_attributes.classification.type_label', defaultMessage: 'Type'},
-    typeRank: {id: 'admin.global_attributes.classification.type_rank', defaultMessage: 'Rank'},
-    levelsLabel: {id: 'admin.global_attributes.classification.levels_label', defaultMessage: 'Levels'},
     notConfigured: {
         id: 'admin.global_attributes.classification.not_configured',
         defaultMessage: 'Classification is not set up yet. Enable it on the {link} page first.',

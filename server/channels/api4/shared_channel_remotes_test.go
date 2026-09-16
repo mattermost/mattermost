@@ -4,11 +4,12 @@
 package api4
 
 import (
+	"cmp"
 	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"sort"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -96,8 +97,8 @@ func TestGetSharedChannelRemotes(t *testing.T) {
 	require.Len(t, result, 2)
 
 	// Sort remote infos by display name for consistent testing
-	sort.Slice(result, func(i, j int) bool {
-		return result[i].DisplayName < result[j].DisplayName
+	slices.SortFunc(result, func(a, b *model.RemoteClusterInfo) int {
+		return cmp.Compare(a.DisplayName, b.DisplayName)
 	})
 
 	// Verify the RemoteClusterInfo objects contain the expected data

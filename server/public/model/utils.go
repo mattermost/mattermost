@@ -18,7 +18,6 @@ import (
 	"os"
 	"regexp"
 	"slices"
-	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -827,7 +826,7 @@ func RemoveDuplicateStrings(in []string) []string {
 	if len(in) == 0 {
 		return in
 	}
-	sort.Strings(in)
+	slices.Sort(in)
 	j := 0
 	for i := 1; i < len(in); i++ {
 		if in[j] == in[i] {
