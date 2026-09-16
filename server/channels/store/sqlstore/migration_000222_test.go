@@ -81,7 +81,6 @@ func TestMigration000222(t *testing.T) {
 		assert.True(t, propertyFieldTypeHasValue(t, store, "graph"),
 			"the down migration is a no-op, so 'graph' must survive it")
 
-		// And re-applying the up migration on top is harmless.
 		_, uErr := store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000222_add_graph_to_property_field_type.up.sql"))
 		require.NoError(t, uErr, "up migration should be re-appliable")
 		assert.True(t, propertyFieldTypeHasValue(t, store, "graph"))

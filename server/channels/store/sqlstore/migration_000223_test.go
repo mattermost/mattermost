@@ -16,8 +16,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-// tableExists reports whether a table of the given name exists in the current
-// schema.
 func tableExists(t *testing.T, s *SqlStore, name string) bool {
 	t.Helper()
 	var count int
@@ -309,8 +307,8 @@ func TestMigration000223(t *testing.T) {
 		`"`+airID+`"`, model.GetMillis(), model.GetMillis())
 	require.NoError(t, err)
 
-	// Soft-delete one of the template's options. Its identifier stays in the
-	// value that holds it, which is the case the graph branch exists to filter.
+	// A soft-deleted option's identifier stays in the value that holds it,
+	// which is the case the graph branch exists to filter.
 	_, err = store.GetMaster().Exec(
 		"UPDATE PropertyOptions SET DeleteAt = ? WHERE FieldID = ? AND ID = ?",
 		model.GetMillis(), graphTemplate.ID, retiredID)
@@ -340,9 +338,6 @@ func TestMigration000223(t *testing.T) {
 		return out
 	}
 
-	// assertProjections checks each type's projection: select yields the option
-	// name, multiselect an array of names in value order, rank an object of name
-	// and rank.
 	assertProjections := func(t *testing.T, stage string) {
 		t.Helper()
 		require.NoError(t, store.Attributes().RefreshAttributes())
@@ -542,8 +537,8 @@ func TestMigration000223(t *testing.T) {
 
 	assertProjections(t, "after down migration")
 
-	// Without the graph branch a graph value falls through to the catch-all
-	// again, which projects the stored array as it is: the deleted option's
+	// Without the graph branch a graph value falls through to the catch-all,
+	// which projects the stored array as it is: the deleted option's
 	// identifier included, and a value that is not an array left alone.
 	assertHeldIDs(t, "UserAttributeView", holderUser, "user_programs", []string{jetID, retiredID, airID},
 		"the catch-all projection keeps every identifier the value holds")
@@ -618,7 +613,6 @@ func TestMigration000223(t *testing.T) {
 	require.Equal(t, before, optionsHash(t), "re-executing the up migration must leave every PropertyOptions row untouched")
 	require.Equal(t, 1, sentinelCount(t), "re-executing the up migration must not add a second sentinel row")
 
-	// The option list a field reads back survives the round trip.
 	readLinked, err := store.PropertyField().Get(request.TestContext(t), groupID, linkedSelect.ID)
 	require.NoError(t, err)
 	options, ok := readLinked.Attrs["options"].([]any)
