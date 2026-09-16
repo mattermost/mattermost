@@ -113,6 +113,10 @@ func channelWriteAccessSurfaces() []channelWriteAccessSurface {
 			})
 			return resp, err
 		}),
+		write("delete draft", func(t *testing.T, f *channelWriteAccessFixture) (*model.Response, error) {
+			_, resp, err := f.th.Client.DeleteDraft(context.Background(), f.th.BasicUser.Id, f.th.BasicChannel.Id, "")
+			return resp, err
+		}),
 		write("create bookmark", func(t *testing.T, f *channelWriteAccessFixture) (*model.Response, error) {
 			_, resp, err := f.th.Client.CreateChannelBookmark(context.Background(), &model.ChannelBookmark{
 				ChannelId:   f.th.BasicChannel.Id,

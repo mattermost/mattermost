@@ -1098,8 +1098,6 @@ func requireChannelReadAccess(c *Context, channel *model.Channel) bool {
 	return false
 }
 
-// requireChannelReadAccessByID is requireChannelReadAccess for handlers that
-// hold only a channel id.
 func requireChannelReadAccessByID(c *Context, channelID string) bool {
 	if c.App.EnforceChannelReadAccessByID(c.AppContext, c.AppContext.Session().UserId, channelID) {
 		return true
@@ -1116,8 +1114,6 @@ func requireChannelWriteAccess(c *Context, channel *model.Channel) bool {
 	return false
 }
 
-// requireChannelWriteAccessByID is requireChannelWriteAccess for handlers that
-// hold only a channel id.
 func requireChannelWriteAccessByID(c *Context, channelID string) bool {
 	if c.App.EnforceChannelWriteAccessByID(c.AppContext, c.AppContext.Session().UserId, channelID) {
 		return true

@@ -29,20 +29,9 @@ type channelAccessDenial struct {
 }
 
 type channelAccessMemo struct {
-	mu        sync.Mutex
-	decisions map[channelAccessKey]bool
-
-	// writeGoverned caches, per channel, whether channel_write_access governs it
-	// at all. Answering that can cost a policy read, and the write gate asks on
-	// every write in the request.
-	writeGoverned map[string]bool
-
-	// enforcementDenial is the channel an *enforcement* gate denied for the
-	// requesting session, deliberately not the same thing as a false entry in
-	// decisions: filters and mention sanitisers record denials and still return
-	// 200, so a decision alone cannot say why a request is failing. The action is
-	// recorded with it because a write may be denied by either channel-access
-	// policy, and the client switches on which.
+	mu                sync.Mutex
+	decisions         map[channelAccessKey]bool
+	writeGoverned     map[string]bool
 	enforcementDenial channelAccessDenial
 }
 
@@ -104,9 +93,6 @@ func WithChannelAccessMemo(rctx request.CTX) request.CTX {
 	return rctx.WithContext(context.WithValue(rctx.Context(), channelAccessMemoKey{}, memo))
 }
 
-// ChannelAccessEnforcementDenial reports the channel an enforcement gate denied
-// on this request and the channel-access action that denied it. Both are empty
-// when no gate denied.
 func ChannelAccessEnforcementDenial(rctx request.CTX) (channelID string, action string) {
 	memo := getChannelAccessMemo(rctx)
 	if memo == nil {
@@ -116,11 +102,6 @@ func ChannelAccessEnforcementDenial(rctx request.CTX) (channelID string, action 
 	return denial.channelID, denial.action
 }
 
-// isChannelReadPermission reports whether a channel permission means "read this
-// channel". Only reads are gated on channel_read_access; every other permission is a
-// write, and those are channel_write_access's question. A new read permission that is
-// not listed here silently escapes the gate, which is what
-// TestChannelPermissionClassification exists to catch.
 func isChannelReadPermission(permission *model.Permission) bool {
 	switch permission.Id {
 	case model.PermissionReadChannel.Id,
@@ -133,19 +114,6 @@ func isChannelReadPermission(permission *model.Permission) bool {
 	}
 }
 
-// isChannelWritePermission reports whether a channel permission means "change
-// this channel or its content". It is a deliberate allowlist rather than "not a
-// read": a new channel permission must be classified by hand, and
-// TestChannelPermissionClassification fails until it is.
-//
-// Two permissions are on neither list:
-//
-//   - read_deleted_posts never reaches the channel gates. It only shapes an error
-//     payload behind an IsSystemAdmin check.
-//   - manage_channel_access_rules is policy administration, not channel content.
-//     Every call site already asks RBAC-only, and it must stay that way: gating it
-//     would make a policy that denies its own author unfixable, since the gate
-//     binds system admins too.
 func isChannelWritePermission(permission *model.Permission) bool {
 	switch permission.Id {
 	case model.PermissionAddBookmarkPrivateChannel.Id,
@@ -210,8 +178,6 @@ func (a *App) EnforceChannelReadAccessByID(rctx request.CTX, userID, channelID s
 	return false
 }
 
-// EnforceChannelWriteAccess denies the write and records why, so the handler's
-// SetPermissionError can report whether the read or the write policy refused.
 func (a *App) EnforceChannelWriteAccess(rctx request.CTX, userID string, channel *model.Channel) bool {
 	allowed, deniedAction := a.channelWriteAccessDecision(rctx, userID, channel)
 	if allowed {
@@ -253,19 +219,11 @@ func (a *App) HasChannelReadAccess(rctx request.CTX, userID string, channel *mod
 	return a.hasChannelAccess(rctx, userID, channel, model.AccessControlPolicyActionChannelReadAccess)
 }
 
-// HasChannelWriteAccess reports whether the user may write to the channel.
-//
-// Writes stay ungated unless a channel_write_access policy governs the channel:
-// a deployment that only restricts reading must not start refusing posts. Once
-// one does govern, both channel-access policies must allow — a session that may
-// not read the channel may not write to it either.
 func (a *App) HasChannelWriteAccess(rctx request.CTX, userID string, channel *model.Channel) bool {
 	allowed, _ := a.channelWriteAccessDecision(rctx, userID, channel)
 	return allowed
 }
 
-// channelWriteAccessDecision returns whether the write is allowed and, on a
-// denial, the channel-access action that refused it.
 func (a *App) channelWriteAccessDecision(rctx request.CTX, userID string, channel *model.Channel) (allowed bool, deniedAction string) {
 	if !a.channelAccessGateApplies(userID, channel) {
 		return true, ""
@@ -294,10 +252,6 @@ func (a *App) channelWriteAccessDecision(rctx request.CTX, userID string, channe
 	return true, ""
 }
 
-// channelWriteAccessGoverned reports whether any policy puts channel_write_access
-// in play for this channel. A channel policy that carries only a read rule does
-// not: evaluating the write action against it would allow vacuously, and then
-// the read half of the write gate would deny a write nothing asked to restrict.
 func (a *App) channelWriteAccessGoverned(rctx request.CTX, channel *model.Channel) bool {
 	memo := getChannelAccessMemo(rctx)
 	if memo != nil {
@@ -347,9 +301,6 @@ func (a *App) evaluateChannelWriteAccessGoverned(rctx request.CTX, channel *mode
 	return policy.HasAction(model.AccessControlPolicyActionChannelWriteAccess)
 }
 
-// channelAccessGateApplies reports whether the channel-access gates have anything
-// to say at all. DMs and GMs are out of scope for both actions, and the gates are
-// inert until the feature is licensed, enabled and flagged on.
 func (a *App) channelAccessGateApplies(userID string, channel *model.Channel) bool {
 	if channel == nil || userID == "" {
 		return false
@@ -502,10 +453,6 @@ func (a *App) HasChannelWriteAccessByID(rctx request.CTX, userID, channelID stri
 	})
 }
 
-// hasChannelAccessByID resolves the channel and hands it to check. Nothing to
-// gate — no channel id, an inactive gate, a channel that no longer exists —
-// allows; a channel that exists but cannot be loaded denies, because failing
-// open there would let a store error bypass the policy.
 func (a *App) hasChannelAccessByID(rctx request.CTX, userID, channelID string, check func(*model.Channel) bool) bool {
 	if channelID == "" || !a.channelAccessEnforcementActive() {
 		return true
@@ -526,8 +473,6 @@ func (a *App) hasChannelAccessByID(rctx request.CTX, userID, channelID string, c
 	return check(channel)
 }
 
-// channelWriteAccessDecisionByID is channelWriteAccessDecision for callers that
-// hold only a channel id.
 func (a *App) channelWriteAccessDecisionByID(rctx request.CTX, userID, channelID string) (allowed bool, deniedAction string) {
 	if channelID == "" || !a.channelAccessEnforcementActive() {
 		return true, ""

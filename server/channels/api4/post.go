@@ -1563,9 +1563,6 @@ func moveThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Moving a thread writes it into the destination channel. Wrangler roles and
-	// system admin are the only checks above, and the channel-access policies bind
-	// system admins too.
 	if !requireChannelWriteAccessByID(c, moveThreadParams.ChannelId) {
 		return
 	}
@@ -1985,8 +1982,6 @@ func burnPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Burning destroys a post for everyone; membership is the only other check
-	// this handler makes, so the channel-access gate is applied explicitly.
 	if !requireChannelWriteAccessByID(c, post.ChannelId) {
 		return
 	}
