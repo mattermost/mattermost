@@ -284,13 +284,15 @@ func (s *hooksRPCServer) Implemented(args struct{}, reply *[]string) error {
 			continue
 		}
 		match := true
-		for j := 0; j < method.Type.NumIn(); j++ {
+		numIn := method.Type.NumIn()
+		for j := range numIn {
 			if m.Type.In(j+1) != method.Type.In(j) {
 				match = false
 				break
 			}
 		}
-		for j := 0; j < method.Type.NumOut(); j++ {
+		numOut := method.Type.NumOut()
+		for j := range numOut {
 			if m.Type.Out(j) != method.Type.Out(j) {
 				match = false
 				break

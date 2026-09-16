@@ -13,7 +13,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -6564,7 +6564,7 @@ func main() {
 		require.Nil(t, th.App.RegisterChannelGuard(th.Context, th.BasicChannel.Id, id1))
 
 		sortedIDs := []string{id0, id1}
-		sort.Strings(sortedIDs)
+		slices.Sort(sortedIDs)
 		// Each plugin prepends its tag to whatever message it receives. Walking in
 		// sorted order: the first plugin sees "original" and produces "G?:original";
 		// the second plugin sees that and prepends its own tag. Build the expected
@@ -6640,7 +6640,7 @@ func main() {
 			pluginIDs[2]: g3CountFile.Name(),
 		}
 		sortedIDs := []string{pluginIDs[0], pluginIDs[1], pluginIDs[2]}
-		sort.Strings(sortedIDs)
+		slices.Sort(sortedIDs)
 
 		// Find rejecter's index in the sorted order.
 		rejecterIdx := -1

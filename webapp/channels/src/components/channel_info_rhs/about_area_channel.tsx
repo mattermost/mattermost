@@ -53,9 +53,9 @@ const ChannelDescriptionHeading = styled.div`
     font-style: normal;
     font-weight: 600;
     line-height: 16px;
-    letter-spacing: 0.24px;
+    letter-spacing: 0.11px;
     text-transform: uppercase;
-    padding: 4px 0px;
+    padding: 6px 0;
 `;
 
 const ChannelHeader = styled.div`

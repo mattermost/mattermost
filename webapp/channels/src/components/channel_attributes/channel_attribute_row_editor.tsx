@@ -2,71 +2,52 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useMemo, useState} from 'react';
-import {useIntl} from 'react-intl';
-import type {OnChangeValue} from 'react-select';
+import {FormattedMessage, useIntl} from 'react-intl';
 
+import {CheckIcon} from '@mattermost/compass-icons/components';
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import {supportsOptions} from '@mattermost/types/properties';
 
 import {PROPERTY_TEXT_VALUE_MAX_LENGTH} from 'mattermost-redux/constants/properties';
 import {canMoveToOption, getPropertyFieldChangePolicy, getPropertyFieldLabel, isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
 
-import {ColorSwatch, LevelOptionLabel} from 'components/admin_console/classification_markings/classification_markings_styled';
-import DropdownInput from 'components/dropdown_input';
-import Input from 'components/widgets/inputs/input/input';
+import * as Menu from 'components/menu';
 
+import AttributeChip, {AttributeChipRemoveButton} from './attribute_chip';
 import type {ChannelAttributeValue} from './set_channel_attribute_value';
 
 type Option = {label: string; value: string; color?: string};
-
-function formatColorOptionLabel(option: Option) {
-    if (!option.color) {
-        return <span>{option.label}</span>;
-    }
-    return (
-        <LevelOptionLabel>
-            <ColorSwatch style={{backgroundColor: option.color}}/>
-            <span>{option.label}</span>
-        </LevelOptionLabel>
-    );
-}
-
-// Portalled to the body to escape the RHS's overflow, matching the create-modal
-// form's reasoning.
-const dropdownStyles = {
-    menu: (provided: Record<string, unknown>) => ({...provided, zIndex: 100}),
-    menuPortal: (provided: Record<string, unknown>) => ({...provided, zIndex: 1100}),
-};
 
 function toOptions(field: PropertyField): Option[] {
     const options = (field.attrs?.options as PropertyFieldOption[] | undefined) ?? [];
     return options.map((option) => ({label: option.name, value: option.id, color: option.color}));
 }
 
-function currentSelection(field: PropertyField, raw: unknown): Option | undefined {
-    const options = toOptions(field);
+function selectedIds(raw: unknown): string[] {
     if (Array.isArray(raw)) {
-        return options.filter((option) => raw.includes(option.value)) as unknown as Option;
+        return raw.filter((id): id is string => typeof id === 'string');
     }
-    if (typeof raw === 'string') {
-        return options.find((option) => option.value === raw);
+    if (typeof raw === 'string' && raw) {
+        return [raw];
     }
-    return undefined;
+    return [];
 }
 
 type Props = {
     field: PropertyField;
     rawValue: unknown;
+    displayValue?: string;
+    color?: string;
     onSubmit: (value: ChannelAttributeValue) => void;
     onCancel: () => void;
     saving: boolean;
 };
 
 /**
- * The edit control for a single attribute row. A select commits on choice — a save
- * step on a one-field row is friction. Text commits on blur or Enter; Escape abandons.
+ * Option fields open a menu from the value itself. Text commits on blur or
+ * Enter; Escape abandons.
  */
-const ChannelAttributeRowEditor = ({field, rawValue, onSubmit, onCancel, saving}: Props) => {
+const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubmit, onCancel, saving}: Props) => {
     const {formatMessage} = useIntl();
 
     const label = getPropertyFieldLabel(field);
@@ -77,29 +58,28 @@ const ChannelAttributeRowEditor = ({field, rawValue, onSubmit, onCancel, saving}
     const initialText = typeof rawValue === 'string' && !supportsOptions(field) ? rawValue : '';
     const [text, setText] = useState(initialText);
 
-    const selected = useMemo(() => currentSelection(field, rawValue), [field, rawValue]);
+    const chosen = useMemo(() => selectedIds(rawValue), [rawValue]);
 
-    // A policy narrows the ladder rather than disabling the row: an option the
-    // server would refuse is left out instead of being offered and rejected.
     const options = useMemo(
         () => toOptions(field).filter((option) => canMoveToOption(field, rawValue, option.value)),
         [field, rawValue],
     );
 
-    const hasColoredOptions = useMemo(() => options.some((o) => Boolean(o.color)), [options]);
-
-    // Clearing is a change like any other, so every policy but "any" forbids it
-    // once a value exists.
     const clearable = getPropertyFieldChangePolicy(field) === 'any' || !isPropertyValueSet(rawValue);
+    const hasDisplay = Boolean(displayValue);
+    const clearLabel = formatMessage(
+        {id: 'channel_attributes.info.clear', defaultMessage: 'Clear {label}'},
+        {label},
+    );
 
-    const handleSelect = useCallback((next: OnChangeValue<Option, boolean>) => {
-        if (Array.isArray(next)) {
-            const ids = next.map((option) => option.value);
-            onSubmit(ids.length ? ids : null);
+    const handlePick = useCallback((optionId: string) => {
+        if (isMultiselect) {
+            const next = chosen.includes(optionId) ? chosen.filter((id) => id !== optionId) : [...chosen, optionId];
+            onSubmit(next.length ? next : null);
             return;
         }
-        onSubmit((next as Option | null)?.value ?? null);
-    }, [onSubmit]);
+        onSubmit(optionId);
+    }, [chosen, isMultiselect, onSubmit]);
 
     const handleTextKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === 'Enter') {
@@ -113,16 +93,15 @@ const ChannelAttributeRowEditor = ({field, rawValue, onSubmit, onCancel, saving}
 
     if (isText) {
         return (
-            <Input
+            <input
                 id={`channelAttributeEdit-${field.id}`}
                 name={`channelAttributeEdit-${field.name}`}
+                className='ChannelInfoAttributes__textInput'
                 type='text'
                 value={text}
                 maxLength={PROPERTY_TEXT_VALUE_MAX_LENGTH}
                 onChange={(e) => setText(e.target.value)}
                 onKeyDown={handleTextKeyDown}
-
-                // An abandoned edit is not a request to clear the value.
                 onBlur={() => {
                     if (text === initialText) {
                         onCancel();
@@ -133,7 +112,6 @@ const ChannelAttributeRowEditor = ({field, rawValue, onSubmit, onCancel, saving}
                 }}
                 disabled={saving}
                 autoFocus={true}
-                placeholder={formatMessage({id: 'channel_attributes.enter_value', defaultMessage: 'Enter a value'})}
                 aria-label={label}
                 data-testid={`channelAttributeEdit-${field.name}`}
             />
@@ -141,22 +119,92 @@ const ChannelAttributeRowEditor = ({field, rawValue, onSubmit, onCancel, saving}
     }
 
     return (
-        <DropdownInput
-            name={`channelAttributeEdit-${field.id}`}
-            testId={`channelAttributeEdit-${field.name}`}
-            options={options}
-            value={selected}
-            onChange={handleSelect}
-            isMulti={isMultiselect}
-            isClearable={clearable}
-            isDisabled={saving}
-            autoFocus={true}
-            placeholder={formatMessage({id: 'channel_attributes.select_value', defaultMessage: 'Select a value'})}
-            styles={dropdownStyles}
-            menuPortalTarget={document.body}
-            formatOptionLabel={hasColoredOptions ? formatColorOptionLabel : undefined}
-            aria-label={label}
-        />
+        <span className='ChannelInfoAttributes__valueActive'>
+            <Menu.Container
+                menuButton={{
+                    id: `channelInfoAttributeEdit-${field.name}`,
+                    dataTestId: `channelInfoAttributeEdit-${field.name}`,
+                    as: 'button',
+                    class: 'ChannelInfoAttributes__valueTrigger',
+                    disabled: saving,
+                    'aria-label': formatMessage(
+                        {id: 'channel_attributes.info.edit', defaultMessage: 'Edit {label}'},
+                        {label},
+                    ),
+                    children: hasDisplay ? (
+                        <AttributeChip
+                            label={label}
+                            value={displayValue!}
+                            color={color}
+                            size='medium'
+                            announceLabel={false}
+                        />
+                    ) : (
+                        <span
+                            className='ChannelInfoAttributes__empty'
+                            data-testid={`channelInfoAttributeUnset-${field.name}`}
+                        >
+                            <FormattedMessage
+                                id='channel_attributes.info.not_set'
+                                defaultMessage='Not set'
+                            />
+                        </span>
+                    ),
+                }}
+                menu={{
+                    id: `channelAttributeEdit-${field.name}`,
+                    'aria-label': label,
+                }}
+            >
+                {clearable && hasDisplay && (
+                    <Menu.Item
+                        id={`channelAttributeClear-${field.name}`}
+                        data-testid={`channelAttributeClear-${field.name}`}
+                        onClick={() => onSubmit(null)}
+                        labels={<span>{clearLabel}</span>}
+                    />
+                )}
+                {options.map((option) => {
+                    const selected = chosen.includes(option.value);
+                    return (
+                        <Menu.Item
+                            key={option.value}
+                            id={`channelAttributeEdit-${field.name}-${option.value}`}
+                            data-testid={option === options[0] ? `channelAttributeEdit-${field.name}` : undefined}
+                            labels={
+                                <span className='ChannelInfoAttributes__optionLabel'>
+                                    {option.color ? (
+                                        <AttributeChip
+                                            label={label}
+                                            value={option.label}
+                                            color={option.color}
+                                            size='medium'
+                                            announceLabel={false}
+                                        />
+                                    ) : (
+                                        option.label
+                                    )}
+                                </span>
+                            }
+                            trailingElements={selected ? (
+                                <CheckIcon
+                                    size={16}
+                                    aria-hidden={true}
+                                />
+                            ) : undefined}
+                            onClick={() => handlePick(option.value)}
+                        />
+                    );
+                })}
+            </Menu.Container>
+            {clearable && hasDisplay && (
+                <AttributeChipRemoveButton
+                    onRemove={() => onSubmit(null)}
+                    removeLabel={clearLabel}
+                    disabled={saving}
+                />
+            )}
+        </span>
     );
 };
 
