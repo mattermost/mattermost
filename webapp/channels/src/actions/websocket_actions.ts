@@ -120,7 +120,7 @@ import {
     hasAutotranslationBecomeEnabled,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
-import {getConfig, getFeatureFlagValue, getLicense, isPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getFeatureFlagValue, getLicense, isChannelAccessABACPermissionEnabled, isPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
 import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
@@ -299,9 +299,14 @@ export function reconnect() {
         }
 
         // Access can change while disconnected, and fetchAllMyTeamsChannels adds
-        // what is visible but never drops what no longer is.
-        dispatch(reconcileChannelReadAccess());
-        dispatch(fetchAllMyTeamsChannels());
+        // what is visible but never drops what no longer is. reconcileChannelReadAccess
+        // already fetches for ABAC-enabled users, so only fetch here otherwise to avoid
+        // starting two overlapping requests.
+        if (isChannelAccessABACPermissionEnabled(state)) {
+            dispatch(reconcileChannelReadAccess());
+        } else {
+            dispatch(fetchAllMyTeamsChannels());
+        }
         if (isScheduledPostsEnabled(state)) {
             dispatch(fetchTeamScheduledPosts(currentTeamId, true, true));
         }
