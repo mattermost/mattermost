@@ -10,20 +10,17 @@ import Inc0_common_esr_support_rst from './common-esr-support-rst.mdx';
 
 If you want to check that the version of Mattermost you are installing is the official, unmodified version, compare the SHA-256 checksum or the file's GPG signature with the one published in this version archive. To verify the GPG signature of a Mattermost release, use the public key stored at the following URL: [https://deb.packages.mattermost.com/pubkey.gpg](https://deb.packages.mattermost.com/pubkey.gpg).
 
-Each entry below links its checksum and signature files alongside the tarball. To check both for a release, substituting your own version and edition:
+Each entry below lists the SHA-256 checksum and links the GPG signature for its release. To check both, substituting your own version and edition, run these from the directory holding the downloaded tarball:
 
 ```sh
-# Checksum
-curl -sSO https://releases.mattermost.com/11.11.0/mattermost-11.11.0-linux-amd64.tar.gz.sha256
-sha256sum -c mattermost-11.11.0-linux-amd64.tar.gz.sha256
+# Checksum — paste the value listed for your release below
+echo "<sha-256-checksum>  mattermost-11.11.0-linux-amd64.tar.gz" | sha256sum -c -
 
 # GPG signature
 curl -sS https://deb.packages.mattermost.com/pubkey.gpg | gpg --import
 curl -sSO https://releases.mattermost.com/11.11.0/mattermost-11.11.0-linux-amd64.tar.gz.sig
 gpg --verify mattermost-11.11.0-linux-amd64.tar.gz.sig mattermost-11.11.0-linux-amd64.tar.gz
 ```
-
-Both commands must be run from the directory holding the downloaded tarball.
 
 <Note>
 
