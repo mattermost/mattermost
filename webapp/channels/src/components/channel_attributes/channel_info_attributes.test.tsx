@@ -368,6 +368,31 @@ describe('ChannelInfoAttributes', () => {
             ));
         });
 
+        test('opens the menu via keyboard and selects an option', async () => {
+            const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
+
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('program', {required: true})], [value('program', null)]),
+            );
+
+            await userEvent.tab();
+            const trigger = screen.getByRole('button', {name: 'Edit Program'});
+            expect(trigger).toHaveFocus();
+
+            await userEvent.keyboard('{Enter}');
+
+            expect(await screen.findByRole('menu', {name: 'Program'})).toBeInTheDocument();
+            await userEvent.click(screen.getByText('VALUE_PROGRAM'));
+
+            await waitFor(() => expect(patchSpy).toHaveBeenCalledWith(
+                'access_control',
+                'channel',
+                CHANNEL_ID,
+                [{field_id: 'program', value: 'opt_program'}],
+            ));
+        });
+
         test('clearing a chip does not open the option menu', async () => {
             const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
 
