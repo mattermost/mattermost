@@ -15,6 +15,13 @@ $menuWidth: 240px;
         gap: 1px;
     }
 
+    // The branding lives inside this button, so it needs to lay out as a row
+    // rather than as a square icon button.
+    &-productMenuButton {
+        padding: 3px 6px 3px 5px;
+        gap: 8px;
+    }
+
     &-productBranding {
         &-freeEdition {
             display: flex;
@@ -45,6 +52,10 @@ $menuWidth: 240px;
         &-licensedEdition {
             display: flex;
             align-items: center;
+
+            // Set explicitly so the branding keeps the header text colour
+            // instead of inheriting the dimmer icon-button colour.
+            color: rgba(var(--sidebar-text-rgb), 0.64);
             gap: 6px;
 
             &-heading {

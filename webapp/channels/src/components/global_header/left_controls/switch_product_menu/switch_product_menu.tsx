@@ -29,6 +29,8 @@ import ProductSwitcherProductsMenuItems from './switch_product_products_menuitem
 import ProductSwitcherSystemConsoleMenuItem from './switch_product_system_console_menuitem';
 import ProductSwitcherUserGroupsMenuItem from './switch_product_user_groups_menuitem';
 
+import ProductBranding from '../product_branding';
+
 export const ELEMENT_ID_FOR_SWITCH_PRODUCT_MENU = 'switchProductMenu';
 export const ELEMENT_ID_FOR_SWITCH_PRODUCT_MENU_BUTTON = 'switchProductMenuButton';
 
@@ -68,18 +70,28 @@ export function SwitchProductMenu(props: Props) {
         <Menu.Container
             menuButton={{
                 id: ELEMENT_ID_FOR_SWITCH_PRODUCT_MENU_BUTTON,
-                class: 'HeaderIconButton', // Its the same classname as the HeaderIconButton component
-                children: <i className='icon-products'/>,
-                'aria-label': formatMessage({id: 'globalHeader.productSwitcherMenu.ariaLabel', defaultMessage: 'Switch product menu'}),
+
+                // HeaderIconButton is the same classname as the HeaderIconButton component
+                class: 'HeaderIconButton globalHeader-leftControls-productMenuButton',
+
+                // The branding sits inside the button so that clicking the product
+                // name opens the menu too, not just the icon.
+                children: (
+                    <>
+                        <i className='icon-products'/>
+                        <ProductBranding/>
+                    </>
+                ),
+                'aria-label': formatMessage({id: 'globalHeader.productSwitcherMenu.menuButtonLabel', defaultMessage: 'Open product menu'}),
             }}
             menuButtonTooltip={{
-                text: formatMessage({id: 'globalHeader.productSwitcherMenu.menuButtonTooltip', defaultMessage: 'Switch product'}),
+                text: formatMessage({id: 'globalHeader.productSwitcherMenu.menuButtonLabel', defaultMessage: 'Open product menu'}),
             }}
             menu={{
                 id: ELEMENT_ID_FOR_SWITCH_PRODUCT_MENU,
                 width: '240px',
                 className: 'globalHeader-leftControls-productSwitcherMenu',
-                'aria-label': formatMessage({id: 'globalHeader.productSwitcherMenu.ariaLabel', defaultMessage: 'Switch product menu'}),
+                'aria-label': formatMessage({id: 'globalHeader.productSwitcherMenu.ariaLabel', defaultMessage: 'Product menu'}),
             }}
             menuFooter={
                 <ProductSwitcherCloudLimitsFooter

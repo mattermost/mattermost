@@ -12,6 +12,7 @@ import GlobalHeader from './index';
 
 jest.mock('utils/products', () => ({
     useCurrentProductId: jest.fn(),
+    useCurrentProduct: jest.fn(),
     isChannels: jest.fn(),
     useProducts: jest.fn(),
 }));
@@ -33,6 +34,7 @@ describe('components/global/GlobalHeader', () => {
 
     beforeEach(() => {
         jest.spyOn(productUtils, 'useCurrentProductId').mockReturnValue(null);
+        jest.spyOn(productUtils, 'useCurrentProduct').mockReturnValue(null);
         jest.spyOn(productUtils, 'isChannels').mockReturnValue(true);
     });
 

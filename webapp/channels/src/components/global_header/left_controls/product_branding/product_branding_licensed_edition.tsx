@@ -31,9 +31,6 @@ const ProductBranding = (): JSX.Element => {
     return (
         <span className='globalHeader-leftControls-productBranding-licensedEdition'>
             {renderIcon()}
-            <h1 className='sr-only'>
-                {productName}
-            </h1>
             <span className='globalHeader-leftControls-productBranding-licensedEdition-heading'>
                 {productName}
             </span>

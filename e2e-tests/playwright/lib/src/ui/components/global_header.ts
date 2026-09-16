@@ -29,7 +29,7 @@ export default class GlobalHeader {
         this.container = container;
 
         this.accountMenuButton = container.getByRole('button', {name: "'s account menu"});
-        this.switchProductMenuButton = container.getByRole('button', {name: 'Switch product menu'});
+        this.switchProductMenuButton = container.getByRole('button', {name: 'Open product menu'});
         this.recentMentionsButton = container.getByRole('button', {name: 'Recent mentions'});
         this.savedMessagesButton = container.getByRole('button', {name: 'Saved messages'});
         this.settingsButton = container.getByRole('button', {name: 'Settings'});
@@ -58,7 +58,7 @@ export default class GlobalHeader {
      * Opens the product switch menu and selects the "App Marketplace" item.
      */
     async openAppMarketplace() {
-        await this.productSwitchMenu.click();
+        await this.switchProductMenuButton.click();
         await this.appMarketplaceMenuItem.click();
     }
 
@@ -66,7 +66,7 @@ export default class GlobalHeader {
      * Opens the product switch menu and selects the "User Groups" item.
      */
     async openUserGroups() {
-        await this.productSwitchMenu.click();
+        await this.switchProductMenuButton.click();
         await this.userGroupsMenuItem.click();
     }
 
@@ -121,7 +121,7 @@ export default class GlobalHeader {
      * Opens the product switch menu and selects "About {siteName}", returning the modal.
      */
     async openAbout(): Promise<AboutBuildModal> {
-        await this.productSwitchMenu.click();
+        await this.switchProductMenuButton.click();
         await this.aboutMenuItem.click();
 
         const aboutModal = new AboutBuildModal(this.container.page().getByRole('dialog', {name: /^About /}));
