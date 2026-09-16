@@ -30,6 +30,12 @@ type Props = {
     ordered?: boolean;
 
     disabled?: boolean;
+
+    // The persisted linked channel field's ID (undefined in create mode) and
+    // the attribute's display name, forwarded to the Required toggle's
+    // missing-values banner (MM-70717).
+    channelFieldId?: string;
+    attributeDisplayName?: string;
 };
 
 /**
@@ -39,7 +45,7 @@ type Props = {
  * so this drops into a card owned by another team without either side owning
  * half a save.
  */
-const ChannelsResourceRow = ({value, onChange, onRemove, ordered, disabled}: Props) => {
+const ChannelsResourceRow = ({value, onChange, onRemove, ordered, disabled, channelFieldId, attributeDisplayName}: Props) => {
     const intl = useIntl();
     const {formatMessage} = intl;
     const [expanded, setExpanded] = useState(true);
@@ -101,6 +107,8 @@ const ChannelsResourceRow = ({value, onChange, onRemove, ordered, disabled}: Pro
                         onChange={onChange}
                         ordered={ordered}
                         disabled={disabled}
+                        channelFieldId={channelFieldId}
+                        attributeDisplayName={attributeDisplayName}
                     />
                 </div>
             )}

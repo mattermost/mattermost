@@ -3,6 +3,8 @@
 
 import type {Client4} from '@mattermost/client';
 
+import {backfillAndRequireChannelAttribute} from '../channel_attributes/helpers';
+
 const PROPERTY_GROUP = 'access_control';
 const TEMPLATE_OBJECT_TYPE = 'template';
 const CHANNEL_OBJECT_TYPE = 'channel';
@@ -87,10 +89,15 @@ export type SetupResult = {
 /**
  * Creates the full classification setup: template field + channel linked field.
  * Returns the created fields and the resolved levels (with server-assigned IDs).
+ *
+ * When `required` is requested, the helper follows the production rollout:
+ * create optional, backfill active local channels, then mark the channel field
+ * required.
  */
 export async function setupClassificationWithChannelField(
     adminClient: Client4,
     levels: Array<{name: string; color: string; rank: number}> = TEST_LEVELS,
+    required = false,
 ): Promise<SetupResult> {
     await deleteClassificationFieldsIfExist(adminClient);
 
@@ -125,5 +132,9 @@ export async function setupClassificationWithChannelField(
     const options = (templateField.attrs?.options ?? []) as ClassificationLevel[];
     const resolvedLevels = options.sort((a, b) => a.rank - b.rank);
 
-    return {templateFieldId: templateField.id, channelFieldId: channelField.id, levels: resolvedLevels};
+    const finalChannelField = required
+        ? await backfillAndRequireChannelAttribute(adminClient, channelField, resolvedLevels[0].id)
+        : channelField;
+
+    return {templateFieldId: templateField.id, channelFieldId: finalChannelField.id, levels: resolvedLevels};
 }

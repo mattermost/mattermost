@@ -123,6 +123,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
         searchUsersForExpression: jest.fn().mockResolvedValue({data: {users: [], total: 0}}),
         getChannelMembers: jest.fn().mockResolvedValue({data: []}),
         getProfilesByIds: jest.fn().mockResolvedValue({data: []}),
+        patchChannelAttributeValues: jest.fn().mockResolvedValue({data: []}),
     };
 
     test('should match snapshot', () => {

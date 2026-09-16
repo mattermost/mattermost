@@ -4,6 +4,9 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import ChannelsWithoutValueModal from './channels_without_value_modal';
+import NotifyChannelAdminsModal from './notify_channel_admins_modal';
+
 export const GLOBAL_ATTRIBUTES_PATH = '/admin_console/system_attributes/manage_attributes';
 export const ATTRIBUTE_DETAILS_PATH = `${GLOBAL_ATTRIBUTES_PATH}/attribute_details`;
 export const CLASSIFICATION_ATTRIBUTE_PATH = `${GLOBAL_ATTRIBUTES_PATH}/classification`;
@@ -11,7 +14,7 @@ export const CLASSIFICATION_ATTRIBUTE_PATH = `${GLOBAL_ATTRIBUTES_PATH}/classifi
 export type ChannelDisplayLocation = 'display_label_header' | 'display_label_info' | 'display_banner_top';
 
 async function setToggle(toggle: Locator, on: boolean) {
-    if (((await toggle.getAttribute('aria-pressed')) === 'true') !== on) {
+    if ((await toggle.isChecked()) !== on) {
         await toggle.click();
     }
 }
@@ -39,8 +42,54 @@ class ChannelResourceSettings {
         return this.container.getByTestId(`channelsResourceLocation-${location}`);
     }
 
+    /**
+     * The missing-values banner (MM-70717). Not shown at all while every
+     * active channel already has a value for this attribute.
+     */
+    get missingValuesBanner() {
+        return this.container.getByTestId('channelsMissingValuesBanner');
+    }
+
+    get notifyChannelAdminsButton() {
+        return this.missingValuesBanner.getByRole('button', {name: 'Notify all channel admins'});
+    }
+
+    get viewChannelListButton() {
+        return this.missingValuesBanner.getByRole('button', {name: 'View channel list'});
+    }
+
+    /**
+     * Clicks Required. Blocked (MM-70717) while any active channel lacks a
+     * value: the toggle stays off and the missing-values banner is what
+     * explains why. Callers that expect the block should assert on
+     * `missingValuesBanner`/`requiredToggle` themselves rather than calling
+     * this — `setRequired(true)` is for the happy path only.
+     */
     async setRequired(required: boolean) {
         await setToggle(this.requiredToggle, required);
+    }
+
+    /**
+     * Opens the "Channels without a value" modal via the banner's secondary
+     * button. Present in both create and edit mode.
+     */
+    async openChannelsWithoutValueModal(): Promise<ChannelsWithoutValueModal> {
+        await this.viewChannelListButton.click();
+        const modal = new ChannelsWithoutValueModal(this.container.page().getByTestId('channelsWithoutValueModal'));
+        await modal.toBeVisible();
+        return modal;
+    }
+
+    /**
+     * Opens the "Notify all channel admins?" confirmation via the banner's
+     * primary button. Only present in edit mode (the linked field has no ID
+     * yet in create mode, so there is nothing to notify admins about).
+     */
+    async openNotifyChannelAdminsModal(): Promise<NotifyChannelAdminsModal> {
+        await this.notifyChannelAdminsButton.click();
+        const modal = new NotifyChannelAdminsModal(this.container.page().getByTestId('notifyChannelAdminsModal'));
+        await modal.toBeVisible();
+        return modal;
     }
 
     /**
@@ -104,6 +153,17 @@ export class AttributeAppliesToChannels extends ChannelResourceSettings {
 
         // The settings live behind the row's own disclosure, so everything below
         // needs it open first.
+        await this.row.getByTestId('attributeAppliesToRow-channel-toggle').click();
+        await expect(this.container.getByTestId('channelsResourceSettings')).toBeVisible();
+    }
+
+    /**
+     * Opens the disclosure for a Channels resource that already exists (e.g.
+     * seeded via the API before navigating here), as opposed to `addResource()`,
+     * which drives the "Add resource" menu for a brand-new one. The row always
+     * starts collapsed on mount, regardless of whether the resource is new.
+     */
+    async expand() {
         await this.row.getByTestId('attributeAppliesToRow-channel-toggle').click();
         await expect(this.container.getByTestId('channelsResourceSettings')).toBeVisible();
     }

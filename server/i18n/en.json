@@ -3379,6 +3379,18 @@
     "translation": "Invalid property field patch."
   },
   {
+    "id": "api.property_field.missing_values.legacy_field.app_error",
+    "translation": "Cannot look up compliance data for a v1 property field via this API."
+  },
+  {
+    "id": "api.property_field.missing_values.no_permission.app_error",
+    "translation": "You do not have permission to view this property field's compliance data."
+  },
+  {
+    "id": "api.property_field.notify_missing_values.throttled.app_error",
+    "translation": "A reminder was sent for this attribute recently. Please try again later."
+  },
+  {
     "id": "api.property_field.object_type_mismatch.app_error",
     "translation": "Property field object type does not match URL."
   },
@@ -3413,6 +3425,10 @@
   {
     "id": "api.property_field.patch.permission_values_not_linked.app_error",
     "translation": "permission_values can only be set on a field linked to a template."
+  },
+  {
+    "id": "api.property_field.required.channels_missing_values.app_error",
+    "translation": "This attribute can't be marked as required yet because some active channels don't have a value for it. Notify the channel admins, then try again."
   },
   {
     "id": "api.property_field.update.no_field_permission.app_error",
@@ -5763,6 +5779,10 @@
     "translation": "Unable to get the channels for the provided scheme."
   },
   {
+    "id": "app.channel.get_channel_admins.app_error",
+    "translation": "Unable to look up channel admins."
+  },
+  {
     "id": "app.channel.get_channels.get.app_error",
     "translation": "Unable to get the channels."
   },
@@ -5915,6 +5935,30 @@
     "translation": "Failed to select the batch of channel members."
   },
   {
+    "id": "app.channel.missing_property_values.app_error",
+    "translation": "Unable to look up channels missing a value for this attribute."
+  },
+  {
+    "id": "app.channel.missing_property_values.count.app_error",
+    "translation": "Unable to count channels missing a value for this attribute."
+  },
+  {
+    "id": "app.channel.missing_property_values.count_all.app_error",
+    "translation": "Unable to count all channels missing a value for this attribute."
+  },
+  {
+    "id": "app.channel.missing_property_values.count_local.app_error",
+    "translation": "Unable to count local channels missing a value for this attribute."
+  },
+  {
+    "id": "app.channel.missing_property_values.list.app_error",
+    "translation": "Unable to list channels missing a value for this attribute."
+  },
+  {
+    "id": "app.channel.missing_property_values.remote_channels.app_error",
+    "translation": "Unable to look up remote channels missing a value for this attribute."
+  },
+  {
     "id": "app.channel.move_channel.members_do_not_match.error",
     "translation": "Unable to move a channel unless all its members are already members of the destination team."
   },
@@ -6057,6 +6101,34 @@
   {
     "id": "app.channel.user_belongs_to_channels.app_error",
     "translation": "Unable to determine if the user belongs to a list of channels."
+  },
+  {
+    "id": "app.channel_attributes.notify_assignment_counts.app_error",
+    "translation": "Unable to count the channel admins and channels affected by this attribute."
+  },
+  {
+    "id": "app.channel_attributes.notify_assignments.app_error",
+    "translation": "Unable to look up the channel admins to notify about this attribute."
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.dm",
+    "translation": "You're a channel admin for channels that are missing a required channel attribute.\n\nPlease set **{{.AttributeName}}** in the following channels:\n{{.ChannelList}}"
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.dm_channel_line",
+    "translation": "\n- [{{.ChannelDisplayName}}]({{.ChannelLink}})"
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.dm_more",
+    "translation": "\n- _and {{.Count}} more channels_"
+  },
+  {
+    "id": "app.channel_attributes.notify_missing_value.preview",
+    "translation": "Please set a value for **{{.AttributeName}}** on your channels. A system administrator needs every channel to have this attribute before it can be marked Required."
+  },
+  {
+    "id": "app.channel_attributes.notify_throttle_claim.app_error",
+    "translation": "Unable to claim the notification cooldown for this attribute."
   },
   {
     "id": "app.channel_guard.invalid_channel.app_error",

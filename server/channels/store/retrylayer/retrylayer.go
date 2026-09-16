@@ -1636,6 +1636,27 @@ func (s *RetryLayerChannelStore) ClearSidebarOnTeamLeave(userID string, teamID s
 
 }
 
+func (s *RetryLayerChannelStore) CountChannelAdminAssignmentsForChannelsMissingPropertyValue(groupID string, fieldID string) (int64, int64, error) {
+
+	tries := 0
+	for {
+		result, resultVar1, err := s.ChannelStore.CountChannelAdminAssignmentsForChannelsMissingPropertyValue(groupID, fieldID)
+		if err == nil {
+			return result, resultVar1, nil
+		}
+		if !isRepeatableError(err) {
+			return result, resultVar1, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, resultVar1, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerChannelStore) CountPostsAfter(channelID string, timestamp int64, excludedUserID string) (int, int, error) {
 
 	tries := 0
@@ -1819,6 +1840,27 @@ func (s *RetryLayerChannelStore) DeleteSidebarChannelsByPreferences(preferences 
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelStore) ExistsChannelMissingPropertyValue(groupID string, fieldID string) (bool, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.ExistsChannelMissingPropertyValue(groupID, fieldID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
@@ -2103,6 +2145,48 @@ func (s *RetryLayerChannelStore) GetByNamesIncludeDeleted(teamID string, names [
 	tries := 0
 	for {
 		result, err := s.ChannelStore.GetByNamesIncludeDeleted(teamID, names, allowFromCache)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelStore) GetChannelAdminsForChannelsMissingPropertyValue(groupID string, fieldID string, limit int, offset int) ([]*model.ChannelAttributeAdminAssignment, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetChannelAdminsForChannelsMissingPropertyValue(groupID, fieldID, limit, offset)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelStore) GetChannelAdminsInfoByChannelIds(channelIDs []string) (map[string][]*model.User, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetChannelAdminsInfoByChannelIds(channelIDs)
 		if err == nil {
 			return result, nil
 		}
@@ -14476,6 +14560,27 @@ func (s *RetryLayerSharedChannelStore) GetRemoteByIds(channelID string, remoteID
 
 }
 
+func (s *RetryLayerSharedChannelStore) GetRemoteChannelIds(channelIDs []string) ([]string, error) {
+
+	tries := 0
+	for {
+		result, err := s.SharedChannelStore.GetRemoteChannelIds(channelIDs)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerSharedChannelStore) GetRemoteForUser(remoteID string, userID string, includeDeleted bool) (*model.RemoteCluster, error) {
 
 	tries := 0
@@ -15043,6 +15148,27 @@ func (s *RetryLayerStatusStore) UpdateLastActivityAt(userID string, lastActivity
 
 }
 
+func (s *RetryLayerSystemStore) DeleteIfValueEquals(name string, expectedValue string) (bool, error) {
+
+	tries := 0
+	for {
+		result, err := s.SystemStore.DeleteIfValueEquals(name, expectedValue)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerSystemStore) Get() (model.StringMap, error) {
 
 	tries := 0
@@ -15205,6 +15331,27 @@ func (s *RetryLayerSystemStore) SaveOrUpdate(system *model.System) error {
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerSystemStore) TryClaimIfOlderThan(name string, value string, minAgeMillis int64) (bool, error) {
+
+	tries := 0
+	for {
+		result, err := s.SystemStore.TryClaimIfOlderThan(name, value, minAgeMillis)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}

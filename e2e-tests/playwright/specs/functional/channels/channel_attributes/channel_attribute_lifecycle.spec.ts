@@ -162,6 +162,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
             // The unset-required row and its edit path are admin-only in Channel Info,
             // so recovering it needs a channel admin, not a plain member.
             await adminClient.updateChannelMemberSchemeRoles(channel.id, user.id, true, true);
+            await adminClient.deleteChannel(channel.id);
 
             const required = await createAttribute(adminClient, attributeName('unfilled', suffix), {
                 options: ['RECOVERED'],
@@ -169,6 +170,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
                 required: true,
             });
             created.push(required);
+            await adminClient.unarchiveChannel(channel.id);
 
             const {page, channelsPage} = await pw.testBrowser.login(user);
             await channelsPage.goto(team.name, channel.name);

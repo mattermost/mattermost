@@ -119,18 +119,18 @@ test.describe(
         });
 
         /**
-         * @objective Verify classification is offered at channel creation while optional, and demanded once Required is on.
+         * @objective Verify classification is offered at channel creation while optional.
          *
          * Optional attributes are otherwise kept off the create dialog. Classification is
          * the exception: it has always been offered there, and its own control in that
          * dialog is suppressed once the ChannelAttributes flag is on, so the generic
          * section has to carry it either way.
          */
-        test('offers classification at channel creation, and demands it once Required is on', async ({pw}) => {
+        test('offers classification at channel creation while optional', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
             await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
-            const {levels} = await setupClassificationWithChannelField(adminClient);
+            await setupClassificationWithChannelField(adminClient);
             const {team} = await pw.initSetup();
 
             const {channelsPage} = await pw.testBrowser.login(adminUser);
@@ -138,29 +138,43 @@ test.describe(
             await channelsPage.toBeVisible();
 
             // * Offered while optional, and Create is not held up by leaving it empty
-            let modal = await channelsPage.openNewChannelModal();
+            const modal = await channelsPage.openNewChannelModal();
             await modal.fillDisplayName(`Optional Classification ${pw.random.id()}`);
             await expect(channelsPage.page.getByTestId('channelAttribute-classification')).toBeVisible();
             await expect(modal.createButton).toBeEnabled();
             await modal.cancel();
+        });
 
-            // # Mark it required on its attribute page
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            await systemConsolePage.globalAttributes.gotoClassificationAttribute();
-            await systemConsolePage.globalAttributes.appliesToChannels.setRequired(true);
-            await systemConsolePage.globalAttributes.saveInPlace();
+        /**
+         * @objective Verify a channel classification field already marked required (as
+         * opposed to flipped on afterward — see MM-70717's required_gate.spec.ts for that)
+         * demands a level before Create is enabled.
+         *
+         * `required` is seeded at field-creation time rather than toggled on afterward
+         * through the console: MM-70717 blocks that PATCH transition while any active
+         * channel on the server lacks a value for the field, which on a shared e2e server
+         * is effectively guaranteed for a brand-new field. Seeding it at creation exercises
+         * exactly the same create-time enforcement this test has always been about, without
+         * depending on every other channel already on the server being compliant.
+         */
+        test('demands a classification level at creation once the field is required', async ({pw}) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
-            const asAdmin = await pw.testBrowser.login(adminUser);
-            await asAdmin.channelsPage.goto(team.name);
-            await asAdmin.channelsPage.toBeVisible();
+            const {levels} = await setupClassificationWithChannelField(adminClient, undefined, true);
+            const {team} = await pw.initSetup();
 
-            modal = await asAdmin.channelsPage.openNewChannelModal();
+            const {channelsPage} = await pw.testBrowser.login(adminUser);
+            await channelsPage.goto(team.name);
+            await channelsPage.toBeVisible();
+
+            const modal = await channelsPage.openNewChannelModal();
             await modal.fillDisplayName(`Required Classification ${pw.random.id()}`);
 
-            // * Now it holds up Create until a level is chosen
+            // * Holds up Create until a level is chosen
             await expect(modal.createButton).toBeDisabled();
-            await asAdmin.channelsPage.page.getByTestId('channelAttribute-classification').click();
-            await asAdmin.channelsPage.page.getByText(levels[0].name, {exact: true}).click();
+            await channelsPage.page.getByTestId('channelAttribute-classification').click();
+            await channelsPage.page.getByText(levels[0].name, {exact: true}).click();
             await expect(modal.createButton).toBeEnabled();
         });
 
