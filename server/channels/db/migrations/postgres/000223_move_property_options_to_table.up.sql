@@ -91,6 +91,9 @@ DECLARE
     r record;
     divergent int := 0;
     unmatched int := 0;
+    divergent_fields text[] := '{}';
+    unmatched_fields text[] := '{}';
+    report jsonb;
 BEGIN
     IF (SELECT COUNT(*) FROM Systems WHERE Name = 'PropertyOptionsBackfillComplete') = 0 THEN
 WITH exploded AS (
@@ -188,6 +191,10 @@ FROM owned o;
         ORDER BY po.FieldID, po.SortOrder
     LOOP
         divergent := divergent + 1;
+        -- Ordered by fieldid, so a field enters the list once, in ascending order.
+        IF divergent_fields = '{}' OR divergent_fields[array_length(divergent_fields, 1)] <> r.fieldid THEN
+            divergent_fields := divergent_fields || r.fieldid;
+        END IF;
         IF divergent <= 50 THEN
             RAISE WARNING 'PropertyOptions backfill: option % (%) on field % is absent from its link source % and was kept as a local option owned by field %',
                 r.optionid, r.name, r.fieldid, r.sourceid, r.fieldid;
@@ -202,6 +209,15 @@ FROM owned o;
     -- was not carried over at all, or it was carried over under a minted ID
     -- because another field had claimed that one -- in both cases a property
     -- value pointing at the ID stops resolving.
+    --
+    -- The sentinel row below records only counts and field IDs; the per-option
+    -- detail stays in the server log. To reconstruct that detail later, re-run
+    -- this loop's SELECT. It keeps working for as long as the blob survives:
+    -- the migration leaves Attrs->'options' in place for the rolling-upgrade
+    -- window, but storedFieldAttrs erases a field's blob on the first write to
+    -- that field from upgraded code, so the detail is reliable immediately
+    -- after the upgrade and erodes field by field from then on. That erosion
+    -- is why the field IDs are in the row rather than left to the query.
     FOR r IN
         SELECT pf.ID AS fieldid, opt.value->>'id' AS optionid
         FROM PropertyFields pf
@@ -216,8 +232,12 @@ FROM owned o;
                 WHERE po.ID = opt.value->>'id'
                   AND po.FieldID IN (pf.ID, COALESCE(NULLIF(pf.LinkedFieldID, ''), pf.ID))
           )
+        ORDER BY pf.ID, opt.value->>'id'
     LOOP
         unmatched := unmatched + 1;
+        IF unmatched_fields = '{}' OR unmatched_fields[array_length(unmatched_fields, 1)] <> r.fieldid THEN
+            unmatched_fields := unmatched_fields || r.fieldid;
+        END IF;
         IF unmatched <= 50 THEN
             RAISE WARNING 'PropertyOptions backfill: field % has no option row under id %; property values referencing that id will no longer resolve', r.fieldid, r.optionid;
         END IF;
@@ -226,7 +246,39 @@ FROM owned o;
         RAISE WARNING 'PropertyOptions backfill: % option id(s) are no longer reachable from the field that used them', unmatched;
     END IF;
 
-    INSERT INTO Systems VALUES('PropertyOptionsBackfillComplete', 'true');
+    -- The sentinel is also the record of what the checks found, so an operator
+    -- can query the result of the upgrade instead of the server log. One row,
+    -- written once, in the transaction that did the work it describes:
+    -- broken_option_references is damage (a property value points at an option
+    -- ID with no row, so the attribute resolves to null and policies stop
+    -- matching); locally_owned_options is not (the option still resolves, but
+    -- its field owns it locally, so a later template edit will not reach it).
+    -- Each carries the true totals plus the IDs of the fields involved -- the
+    -- actionable unit, since a count cannot say where to look.
+    report := jsonb_build_object(
+        'broken_option_references', jsonb_build_object(
+            'options', unmatched,
+            'fields', COALESCE(array_length(unmatched_fields, 1), 0),
+            'field_ids', to_jsonb(unmatched_fields)),
+        'locally_owned_options', jsonb_build_object(
+            'options', divergent,
+            'fields', COALESCE(array_length(divergent_fields, 1), 0),
+            'field_ids', to_jsonb(divergent_fields)));
+
+    -- systems.value is varchar(1024). The totals stay exact whatever fits; the
+    -- ID lists give way from the end, locally_owned_options first, so damage
+    -- keeps its evidence longest. A reader who finds fewer IDs than fields
+    -- knows to go to the server log for the rest.
+    WHILE length(report::text) > 1024 AND jsonb_array_length(report #> '{locally_owned_options,field_ids}') > 0 LOOP
+        report := jsonb_set(report, '{locally_owned_options,field_ids}',
+            (report #> '{locally_owned_options,field_ids}') - (jsonb_array_length(report #> '{locally_owned_options,field_ids}') - 1));
+    END LOOP;
+    WHILE length(report::text) > 1024 AND jsonb_array_length(report #> '{broken_option_references,field_ids}') > 0 LOOP
+        report := jsonb_set(report, '{broken_option_references,field_ids}',
+            (report #> '{broken_option_references,field_ids}') - (jsonb_array_length(report #> '{broken_option_references,field_ids}') - 1));
+    END LOOP;
+
+    INSERT INTO Systems VALUES('PropertyOptionsBackfillComplete', report::text);
     END IF;
 END
 $$;

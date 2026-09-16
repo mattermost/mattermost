@@ -58,6 +58,31 @@ func TestMigration000223(t *testing.T) {
 	require.True(t, tableExists(t, store, "PropertyOptions"), "PropertyOptions should exist after migration")
 	require.True(t, tableExists(t, store, "PropertyOptionEdges"), "PropertyOptionEdges should exist after migration")
 
+	// The backfill's sentinel row doubles as the record of what its
+	// postcondition checks found: one JSON value naming both checks, each with
+	// the true totals and the IDs of the fields involved.
+	type sentinelReport struct {
+		Options  int      `json:"options"`
+		Fields   int      `json:"fields"`
+		FieldIDs []string `json:"field_ids"`
+	}
+	sentinelValue := func(t *testing.T) map[string]sentinelReport {
+		t.Helper()
+		var raw string
+		require.NoError(t, store.GetMaster().Get(&raw,
+			"SELECT Value FROM Systems WHERE Name = 'PropertyOptionsBackfillComplete'"))
+		report := map[string]sentinelReport{}
+		require.NoError(t, json.Unmarshal([]byte(raw), &report))
+		return report
+	}
+
+	// On a clean database both checks pass, and the row says so: zero counts
+	// and no field IDs. An absent row would mean the migration never ran; a
+	// present row with zeros is the record that it did.
+	clean := sentinelValue(t)
+	require.Equal(t, sentinelReport{Options: 0, Fields: 0, FieldIDs: []string{}}, clean["broken_option_references"])
+	require.Equal(t, sentinelReport{Options: 0, Fields: 0, FieldIDs: []string{}}, clean["locally_owned_options"])
+
 	group, err := store.PropertyGroup().Register(&model.PropertyGroup{Name: model.NewId(), Version: model.PropertyGroupVersionV1})
 	require.NoError(t, err)
 	groupID := group.ID
@@ -156,6 +181,33 @@ func TestMigration000223(t *testing.T) {
 		Attrs: model.StringInterface{
 			"options": []any{map[string]any{"id": resurrectionOptionID, "name": "Present"}},
 		},
+	})
+	require.NoError(t, err)
+
+	// Two fields that stage one failure of each postcondition check on the
+	// second up: brokenField's blob gains an option with an empty ID, which no
+	// property value can ever resolve, and divergentField's blob gains an
+	// option its link source does not have, which the backfill keeps as a
+	// locally owned row.
+	brokenField, err := store.PropertyField().Create(&model.PropertyField{
+		GroupID:    groupID,
+		Name:       "broken_select",
+		Type:       model.PropertyFieldTypeSelect,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs: model.StringInterface{
+			"options": []any{map[string]any{"id": model.NewId(), "name": "Fine"}},
+		},
+	})
+	require.NoError(t, err)
+
+	divergentField, err := store.PropertyField().Create(&model.PropertyField{
+		GroupID:       groupID,
+		Name:          "divergent_select",
+		Type:          model.PropertyFieldTypeSelect,
+		ObjectType:    model.PropertyFieldObjectTypeUser,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &template.ID,
 	})
 	require.NoError(t, err)
 
@@ -275,6 +327,8 @@ func TestMigration000223(t *testing.T) {
 		store.PropertyField().Delete(groupID, linkedSelect.ID)                         //nolint:errcheck
 		store.PropertyField().Delete(groupID, template.ID)                             //nolint:errcheck
 		store.PropertyField().Delete(groupID, resurrectionField.ID)                    //nolint:errcheck
+		store.PropertyField().Delete(groupID, brokenField.ID)                          //nolint:errcheck
+		store.PropertyField().Delete(groupID, divergentField.ID)                       //nolint:errcheck
 	})
 
 	attributeFor := func(t *testing.T, view, targetID, name string) string {
@@ -497,6 +551,21 @@ func TestMigration000223(t *testing.T) {
 		"the catch-all projection passes a non-array value through")
 	assertOtherTypesUnchanged(t, "after down migration")
 
+	// Stage one failure of each postcondition check for the second up to find.
+	// An empty ID fails the backfill's usable-ID test, so the option is kept
+	// under a minted ID while the check still finds no row under the ID the
+	// blob named.
+	_, err = store.GetMaster().Exec(
+		"UPDATE PropertyFields SET Attrs = jsonb_set(Attrs, '{options}', (Attrs->'options') || $1::jsonb) WHERE ID = $2",
+		`[{"id":"","name":"No ID"}]`, brokenField.ID)
+	require.NoError(t, err)
+	// An option ID the link source does not have survives the backfill as a row
+	// the linked field owns locally.
+	_, err = store.GetMaster().Exec(
+		"UPDATE PropertyFields SET Attrs = jsonb_set(Attrs, '{options}', (Attrs->'options') || $1::jsonb) WHERE ID = $2",
+		`[{"id":"`+model.NewId()+`","name":"Local Only"}]`, divergentField.ID)
+	require.NoError(t, err)
+
 	// Up again: this time the backfill reads the blob the down migration wrote,
 	// which is the shape a real upgrade starts from.
 	_, err = store.GetMaster().ExecNoTimeout(upSQL)
@@ -532,8 +601,13 @@ func TestMigration000223(t *testing.T) {
 		"re-applying the migration stops the non-array value projecting again")
 	assertOtherTypesUnchanged(t, "after up migration")
 
-	// The up records its completion: exactly one sentinel row.
+	// The up records its completion: exactly one sentinel row, carrying what its
+	// checks found -- each staged failure named under its own key, by the field
+	// an operator has to inspect.
 	require.Equal(t, 1, sentinelCount(t), "up should record the backfill sentinel")
+	report := sentinelValue(t)
+	assert.Equal(t, sentinelReport{Options: 1, Fields: 1, FieldIDs: []string{brokenField.ID}}, report["broken_option_references"])
+	assert.Equal(t, sentinelReport{Options: 1, Fields: 1, FieldIDs: []string{divergentField.ID}}, report["locally_owned_options"])
 
 	// Re-executing the up body against a database it has already migrated
 	// completes without error and leaves every PropertyOptions row untouched:
