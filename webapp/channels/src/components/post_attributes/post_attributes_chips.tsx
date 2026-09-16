@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {
+    FloatingPortal,
     autoUpdate,
     flip,
     offset,
@@ -20,11 +21,21 @@ import type {Post} from '@mattermost/types/posts';
 import {usePostAttributeFields, usePostAttributeValues} from 'components/common/hooks/usePostAttributes';
 import PropertyValueRenderer from 'components/properties_card_view/propertyValueRenderer/propertyValueRenderer';
 
+import {RootHtmlPortalId} from 'utils/constants';
+
+import PostAttributesHoverCard from './post_attributes_hover_card';
 import {allocateChipBudget, useVisibleAttributes} from './utils';
 
 import './post_attributes_chips.scss';
 
 const MAX_VISIBLE_CHIPS = 2;
+
+function handleEdit() {
+    // Phase 10 opens the post attributes modal from here. Inert until then:
+    // phase 9's permission data has to exist before the modal can decide which
+    // rows get an edit trigger, and a modal that renders every row as editable
+    // is a worse starting point than no modal.
+}
 
 type Props = {
     post: Post;
@@ -150,12 +161,20 @@ function PostAttributesChips({post, channel}: Props) {
                 )}
             </div>
             {open && (
-                <div
-                    ref={refs.setFloating}
-                    style={floatingStyles}
-                    data-testid='post-attributes-card'
-                    {...getFloatingProps()}
-                />
+                <FloatingPortal id={RootHtmlPortalId}>
+                    <div
+                        ref={refs.setFloating}
+                        className='PostAttributesHoverCard__anchor'
+                        style={floatingStyles}
+                        data-testid='post-attributes-card'
+                        {...getFloatingProps()}
+                    >
+                        <PostAttributesHoverCard
+                            attributes={visible}
+                            onEdit={handleEdit}
+                        />
+                    </div>
+                </FloatingPortal>
             )}
         </>
     );

@@ -29,6 +29,15 @@ const UNRENDERABLE_TYPES = new Set(['date', 'multiuser']);
 const MULTI_VALUED_TYPES = new Set(['multiselect']);
 
 /**
+ * The label a field carries on screen: the administrator-set display name,
+ * falling back to the field's name.
+ */
+export function fieldLabel(field: PropertyField): string {
+    const displayName = field.attrs?.display_name;
+    return typeof displayName === 'string' && displayName ? displayName : field.name;
+}
+
+/**
  * Whether a stored value counts as set, judged on the value alone.
  *
  * Necessary but not sufficient for a chip: an option-bearing field also needs the

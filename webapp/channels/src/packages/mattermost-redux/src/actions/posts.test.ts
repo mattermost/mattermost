@@ -7,6 +7,7 @@ import nock from 'nock';
 
 import {CollapsedThreads} from '@mattermost/types/config';
 import type {Post, PostList} from '@mattermost/types/posts';
+import type {PreferenceType} from '@mattermost/types/preferences';
 import type {GlobalState} from '@mattermost/types/store';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
@@ -1831,11 +1832,11 @@ describe('post attribute hydration', () => {
      */
     function sentGroups(): Array<string | undefined> {
         return Object.entries(spies).flatMap(([name, spy]) => spy.mock.calls.map((call: any[]) => {
-            return name === 'getPaginatedPostThread' ? call[1]?.includePropertyGroups : call[GROUP_ARGUMENT[name]];
+            return name === 'getPaginatedPostThread' ? call[1]?.propertyGroup : call[GROUP_ARGUMENT[name]];
         }));
     }
 
-    function storeWithFlag(enabled: boolean, preferences: Record<string, unknown> = {}) {
+    function storeWithFlag(enabled: boolean, preferences: Record<string, PreferenceType> = {}) {
         return configureStore({
             entities: {
                 general: {config: {FeatureFlagPostAttributes: enabled ? 'true' : 'false'}},
@@ -1900,6 +1901,7 @@ describe('post attribute hydration', () => {
     it('getPostsUnread asks on its recent-posts fallback too', async () => {
         const store = storeWithFlag(true, {
             [`${Preferences.CATEGORY_ADVANCED_SETTINGS}--${Preferences.UNREAD_SCROLL_POSITION}`]: {
+                user_id: userId,
                 category: Preferences.CATEGORY_ADVANCED_SETTINGS,
                 name: Preferences.UNREAD_SCROLL_POSITION,
                 value: Preferences.UNREAD_SCROLL_POSITION_START_FROM_NEWEST,

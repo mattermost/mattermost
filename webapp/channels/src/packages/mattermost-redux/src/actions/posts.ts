@@ -661,7 +661,7 @@ export function getPostThread(rootId: string, fetchThreads = true, lastUpdateAt 
         const options: FetchPaginatedThreadOptions = {
             fetchThreads,
             collapsedThreads: collapsedThreadsEnabled,
-            includePropertyGroups: getPostPropertyGroups(state),
+            propertyGroup: getPostPropertyGroups(state),
         };
         if (lastUpdateAt !== 0) {
             options.updatesOnly = true;
@@ -704,7 +704,7 @@ export function getNewestPostThread(rootId: string): ActionFuncAsync {
             direction: 'down',
             fromCreateAt: latestReply?.create_at,
             fromPost: latestReply?.id,
-            includePropertyGroups: getPostPropertyGroups(getState()),
+            propertyGroup: getPostPropertyGroups(getState()),
         };
 
         let posts;

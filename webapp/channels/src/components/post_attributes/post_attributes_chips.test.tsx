@@ -8,6 +8,7 @@ import type {Post} from '@mattermost/types/posts';
 import type {FieldType, PropertyField, PropertyValue} from '@mattermost/types/properties';
 
 import {act, fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
+import {RootHtmlPortalId} from 'utils/constants';
 
 import PostAttributesChips from './post_attributes_chips';
 
@@ -769,6 +770,151 @@ describe('PostAttributesChips', () => {
             rest();
 
             expect(screen.queryByTestId('post-attributes-card')).not.toBeInTheDocument();
+        });
+    });
+
+    describe('the hover card', () => {
+        beforeEach(() => {
+            jest.useFakeTimers();
+        });
+
+        afterEach(() => {
+            act(() => {
+                jest.runOnlyPendingTimers();
+            });
+            jest.useRealTimers();
+        });
+
+        function open(fields: PropertyField[], values: Array<PropertyValue<unknown>>) {
+            const rendered = renderWithContext(
+                <PostAttributesChips
+                    post={post}
+                    channel={channel}
+                />,
+                makeState(fields, values),
+            );
+
+            fireEvent.mouseEnter(screen.getByTestId('post-attributes-chips'));
+            act(() => {
+                jest.advanceTimersByTime(300);
+            });
+
+            return rendered;
+        }
+
+        function cardRows() {
+            return screen.getAllByRole('listitem').map((row) => row.textContent);
+        }
+
+        function chipLabels() {
+            return screen.queryAllByTestId('select-property').map((chip) => chip.textContent);
+        }
+
+        function overflowCount() {
+            const badge = screen.queryByTestId('post-attributes-overflow');
+            return badge ? Number(badge.textContent!.replace('+', '')) : 0;
+        }
+
+        const MANY_OPTIONS = [
+            {id: 'opt_a', name: 'ALPHA', color: 'blue'},
+            {id: 'opt_b', name: 'BRAVO', color: 'purple'},
+            {id: 'opt_c', name: 'CHARLIE', color: 'pink'},
+        ];
+
+        const FOUR_FIELDS = [
+            makeField({id: 'f_a', name: 'alpha', attrs: {options: OPTIONS, sort_order: 10}}),
+            makeField({id: 'f_b', name: 'bravo', attrs: {options: OPTIONS, sort_order: 20}}),
+            makeField({id: 'f_c', name: 'charlie', attrs: {options: OPTIONS, sort_order: 30}}),
+            makeField({id: 'f_d', name: 'delta', attrs: {options: OPTIONS, sort_order: 40}}),
+        ];
+        const FOUR_VALUES = [
+            makeValue({id: 'v_a', field_id: 'f_a', value: 'opt_secret'}),
+            makeValue({id: 'v_b', field_id: 'f_b', value: 'opt_unclassified'}),
+            makeValue({id: 'v_c', field_id: 'f_c', value: 'opt_secret'}),
+            makeValue({id: 'v_d', field_id: 'f_d', value: 'opt_unclassified'}),
+        ];
+
+        test('lists every attribute, including the ones the row could not fit', () => {
+            open(FOUR_FIELDS, FOUR_VALUES);
+
+            expect(chipLabels()).toEqual(['SECRET', 'UNCLASSIFIED']);
+            expect(screen.getByTestId('post-attributes-overflow')).toHaveTextContent('+2');
+
+            expect(cardRows()).toEqual([
+                'alphaSECRET',
+                'bravoUNCLASSIFIED',
+                'charlieSECRET',
+                'deltaUNCLASSIFIED',
+            ]);
+        });
+
+        // Catches any future divergence between the row's filter and the card's.
+        // Holds for single-valued fields, where one attribute is worth one chip.
+        test.each([
+            ['four attributes, two of them hidden behind the badge', FOUR_FIELDS, FOUR_VALUES, 4],
+            ['three attributes', FOUR_FIELDS.slice(0, 3), FOUR_VALUES.slice(0, 3), 3],
+            ['one attribute that fits', [makeField()], [makeValue()], 1],
+        ])('lists as many rows as the row shows chips plus its overflow, for %s', (_name, fields, values, expected) => {
+            open(fields, values);
+
+            expect(cardRows()).toHaveLength(expected);
+            expect(chipLabels().length + overflowCount()).toBe(expected);
+        });
+
+        // The one case where those two numbers part company, and it is not a
+        // divergence: the budget is spent on chips, so a multiselect holding
+        // three entries is worth three chips but is still one attribute.
+        test('counts a multiselect as one row and several chips', () => {
+            const fields = [
+                makeField({id: 'f_tags', name: 'tags', type: 'multiselect', attrs: {options: MANY_OPTIONS, sort_order: 10}}),
+            ];
+            const values = [
+                makeValue({id: 'v_tags', field_id: 'f_tags', value: ['opt_a', 'opt_b', 'opt_c']}),
+            ];
+
+            open(fields, values);
+
+            expect(cardRows()).toEqual(['tagsALPHA, BRAVO, and CHARLIE']);
+            expect(chipLabels()).toEqual(['ALPHA', 'BRAVO']);
+            expect(overflowCount()).toBe(1);
+        });
+
+        test('leaves out a value whose option no longer exists, exactly as the badge does', () => {
+            const fields = [
+                makeField({id: 'f_a', name: 'alpha', attrs: {options: OPTIONS, sort_order: 10}}),
+                makeField({id: 'f_stale', name: 'bravo', attrs: {options: OPTIONS, sort_order: 20}}),
+            ];
+            const values = [
+                makeValue({id: 'v_a', field_id: 'f_a', value: 'opt_secret'}),
+                makeValue({id: 'v_stale', field_id: 'f_stale', value: 'opt_deleted'}),
+            ];
+
+            open(fields, values);
+
+            expect(cardRows()).toEqual(['alphaSECRET']);
+            expect(screen.queryByTestId('post-attributes-overflow')).not.toBeInTheDocument();
+        });
+
+        test('carries no role and no accessible name', () => {
+            open([makeField()], [makeValue()]);
+
+            const card = screen.getByTestId('post-attributes-card');
+
+            expect(card).not.toHaveAttribute('role');
+            expect(card).not.toHaveAttribute('aria-label');
+            expect(card).not.toHaveAttribute('aria-labelledby');
+            expect(card).not.toHaveAttribute('aria-hidden');
+            expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        });
+
+        // Portalled so it escapes the post's stacking and overflow contexts.
+        test('mounts outside the chip row', () => {
+            open([makeField()], [makeValue()]);
+
+            const card = screen.getByTestId('post-attributes-card');
+
+            expect(screen.getByTestId('post-attributes-chips')).not.toContainElement(card);
+            expect(document.getElementById(RootHtmlPortalId)).toContainElement(card);
         });
     });
 });
