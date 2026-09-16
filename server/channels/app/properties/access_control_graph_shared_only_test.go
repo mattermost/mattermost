@@ -618,7 +618,7 @@ func TestGraphSharedOnly_OptionListPageWindowExhausted(t *testing.T) {
 	// in the first window.
 	total := model.PropertyFieldOptionCandidatesMaxPerRequest + 1
 	options := make([]any, 0, total)
-	for i := 0; i < total-1; i++ {
+	for i := range total - 1 {
 		options = append(options, map[string]any{"name": fmt.Sprintf("Filler %04d", i)})
 	}
 	options = append(options, map[string]any{"name": "Held Program"})
