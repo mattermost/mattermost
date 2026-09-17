@@ -1642,11 +1642,67 @@ func TestExecutePostCommandWithSuccessStatusOtherThanOK(t *testing.T) {
 	posts, _, err := client.GetPostsForChannel(context.Background(), channel.Id, 0, 60, "", false, false)
 	require.NoError(t, err)
 
-	var messages []string
+	var responsePost *model.Post
 	for _, post := range posts.Posts {
-		messages = append(messages, post.Message)
+		if post.Message == expectedCommandResponse.Text {
+			responsePost = post
+			break
+		}
 	}
-	require.Contains(t, messages, expectedCommandResponse.Text)
+	require.NotNil(t, responsePost, "the command response should have been posted to the channel")
+	require.Equal(t, th.BasicUser.Id, responsePost.UserId)
+}
+
+func TestExecutePostCommandWithNoContentStatus(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+	channel := th.BasicChannel
+
+	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
+	allowedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
+	siteURL := *th.App.Config().ServiceSettings.SiteURL
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
+		})
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SiteURL = &siteURL })
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.0/8" })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065" })
+
+	// A fire-and-forget integration acknowledges the request with an empty 204.
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer ts.Close()
+
+	postCmd := &model.Command{
+		CreatorId: th.BasicUser.Id,
+		TeamId:    th.BasicTeam.Id,
+		URL:       ts.URL,
+		Method:    model.CommandMethodPost,
+		Trigger:   "nocontentcommand",
+	}
+
+	_, appErr := th.App.CreateCommand(postCmd)
+	require.Nil(t, appErr, "failed to create post command")
+
+	postsBefore, _, err := client.GetPostsForChannel(context.Background(), channel.Id, 0, 60, "", false, false)
+	require.NoError(t, err)
+
+	commandResponse, _, err := client.ExecuteCommand(context.Background(), channel.Id, "/nocontentcommand")
+	require.NoError(t, err)
+	require.NotNil(t, commandResponse)
+	require.Empty(t, commandResponse.Text)
+
+	// The user sees neither an error nor an empty post.
+	postsAfter, _, err := client.GetPostsForChannel(context.Background(), channel.Id, 0, 60, "", false, false)
+	require.NoError(t, err)
+	require.Len(t, postsAfter.Posts, len(postsBefore.Posts))
 }
 
 func TestExecuteCommandAgainstChannelOnAnotherTeam(t *testing.T) {
