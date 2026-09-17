@@ -354,9 +354,10 @@ func TestMigrateCPAFieldsToGlobalAttributes_MigratesGraphFieldWithoutDuplicating
 	// This intentionally does not assert on hierarchy (AncestorsOrSelf):
 	// attemptCreateOrReuseTemplate deep-copies only Attrs, and a graph field's
 	// hierarchy lives in the separate PropertyOptionEdges table, which the
-	// migration never copies to the new template at all -- a distinct,
-	// pre-existing, more severe bug (total hierarchy loss, not duplication)
-	// than the one this fix addresses. Filed and fixed separately.
+	// migration never copies to the new template at all. That leaves a
+	// migrated graph field's hierarchy unreachable through the template it
+	// now derives from -- a distinct, more severe gap (hierarchy loss, not
+	// duplication) than the one covered here.
 	page, err := th.service.GetFieldOptions(th.Context, th.CPAGroupID, updatedField.ID, 0, "", 100)
 	require.NoError(t, err)
 	names := make([]string, 0, len(page.Options))
