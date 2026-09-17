@@ -198,7 +198,13 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
         }, ROW_HIGHLIGHT_TIMEOUT_MS);
     }, [closePane, occurrences]);
 
-    const promptDelete = useGraphNodeDelete(options, onOptionsChange, handleGoToOrphan);
+    const promptDeleteRaw = useGraphNodeDelete(options, onOptionsChange, handleGoToOrphan);
+
+    const promptDelete = useCallback((optionName: string) => {
+        // Menu backdrop sits above GenericModal; close the value popover before the delete dialog.
+        closePane();
+        promptDeleteRaw(optionName);
+    }, [closePane, promptDeleteRaw]);
 
     const handleExpandOccurrence = useCallback((key: string) => {
         setCollapsedKeys((current) => {

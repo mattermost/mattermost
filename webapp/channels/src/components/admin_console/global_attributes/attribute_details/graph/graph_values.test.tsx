@@ -703,6 +703,37 @@ describe('AttributeOptionsGraphValues delete wiring', () => {
         });
     });
 
+    it('closes the value popover before GRAPH_NODE_DELETE so the menu is not above the overlay', async () => {
+        const options = blockedOptions();
+        renderWithContext(
+            <AttributeOptionsGraphValues
+                options={options}
+                onOptionsChange={jest.fn()}
+            />,
+        );
+
+        await openItemMenu('X');
+        expect(await screen.findByTestId('attributeGraphParentsPane__nameInput')).toHaveValue('X');
+
+        await userEvent.click(screen.getByRole('menuitem', {name: 'Delete this value'}));
+
+        await waitFor(() => {
+            expect(openModal).toHaveBeenCalledWith({
+                modalId: ModalIdentifiers.GRAPH_NODE_DELETE,
+                dialogType: AttributeGraphDeleteModal,
+                dialogProps: {
+                    optionName: 'X',
+                    options,
+                    onConfirm: expect.any(Function),
+                    onExited: expect.any(Function),
+                },
+            });
+        });
+        expect(screen.queryByTestId('attributeGraphParentsPane__nameInput')).not.toBeInTheDocument();
+        expect(screen.queryByRole('menuitem', {name: 'Delete this value'})).not.toBeInTheDocument();
+        expect(document.querySelector('#backdropForMenuComponent')).not.toBeInTheDocument();
+    });
+
     it('focuses the first orphan row on Go-to after the modal exits, not on confirm', async () => {
         renderWithContext(
             <AttributeOptionsGraphValues
@@ -845,11 +876,12 @@ describe('AttributeOptionsGraphValues delete wiring', () => {
         });
 
         const orphanRow = getRow('Orphan', 'X');
+        expect(screen.queryByTestId('attributeGraphParentsPane__nameInput')).not.toBeInTheDocument();
         act(() => {
             dialogProps().onConfirm();
         });
         expect(document.activeElement).not.toBe(orphanRow);
-        expect(screen.getByTestId('attributeGraphParentsPane__nameInput')).toBeInTheDocument();
+        expect(screen.queryByTestId('attributeGraphParentsPane__nameInput')).not.toBeInTheDocument();
 
         act(() => {
             dialogProps().onExited();
