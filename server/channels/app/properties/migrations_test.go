@@ -155,7 +155,9 @@ func setupMigrationTestHelper(tb testing.TB) *TestHelper {
 	permChecker := func(_ request.CTX, userID string, _ *model.Permission) bool {
 		return userID == model.CallerIDLocalAdmin
 	}
-	th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, permChecker, th.CPAGroupID))
+	th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{
+		PermissionChecker: permChecker,
+	}, th.CPAGroupID))
 
 	fieldLimitHook := NewFieldLimitHook(th.service)
 	fieldLimitHook.AddGroupLimit(th.CPAGroupID, &FieldLimitConfig{
