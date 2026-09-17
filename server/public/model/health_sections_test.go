@@ -64,6 +64,21 @@ func TestNodeAndWorkspaceSectionsDoNotOverlap(t *testing.T) {
 	}
 }
 
+func TestAllWorkspaceSectionsComplete(t *testing.T) {
+	inAll := make(map[WorkspaceSection]struct{}, len(AllWorkspaceSections()))
+	for _, section := range AllWorkspaceSections() {
+		inAll[section] = struct{}{}
+	}
+
+	declared := []WorkspaceSection{
+		SectionStats, SectionJobs, SectionPlugins, SectionConfig, SectionVersion,
+	}
+	for _, section := range declared {
+		require.Contains(t, inAll, section, "constant %q missing from AllWorkspaceSections", section)
+	}
+	require.Len(t, AllWorkspaceSections(), len(declared), "update this test and AllWorkspaceSections when adding a WorkspaceSection")
+}
+
 func TestNodeAccessorSectionConstantsCoveredByAllNodeSections(t *testing.T) {
 	nodeSectionsByName := map[string]struct{}{
 		"SectionLicense":          {},
