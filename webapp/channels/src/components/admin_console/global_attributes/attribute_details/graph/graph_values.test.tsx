@@ -345,7 +345,7 @@ describe('AttributeOptionsGraphValues', () => {
         expect(badges[1]).toHaveTextContent('2 parents');
         expect(within(getRow('Falcon', 'Air')).queryByTestId('attributeOptionsGraphRow__parentsBadge')).not.toBeInTheDocument();
         const dualRow = getRow('Deepwater', 'Falcon');
-        expect(within(dualRow).getByTestId('attributeOptionsGraphRow__name').nextElementSibling).toBe(
+        expect(within(dualRow).getByTestId('attributeOptionsGraphRow__nameWrap').nextElementSibling).toBe(
             within(dualRow).getByTestId('attributeOptionsGraphRow__parentsBadge'),
         );
     });
