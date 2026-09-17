@@ -238,7 +238,11 @@ func prefixedTeamSliceColumns(isSelect bool, prefix string) []string {
 		// Type guard keeps team membership policies from colliding with channel/parent
 		// policies that happen to share an Id with a team.
 		columns = append(columns, fmt.Sprintf("EXISTS (SELECT 1 FROM AccessControlPolicies acp WHERE acp.ID = %s.Id AND acp.Type = 'team') AS PolicyEnforced", prefix))
-		columns = append(columns, fmt.Sprintf("COALESCE((SELECT acp.Active FROM AccessControlPolicies acp WHERE acp.ID = %s.Id AND acp.Type = 'team' AND acp.Active = TRUE LIMIT 1), false) AS PolicyIsActive", prefix))
+		autoAdd := fmt.Sprintf("COALESCE((SELECT %s FROM AccessControlPolicies acp WHERE acp.ID = %s.Id AND acp.Type = 'team' LIMIT 1), false)", autoAddMembersExpr("acp"), prefix)
+		columns = append(columns, autoAdd+" AS PolicyAutoAdd")
+		// PolicyIsActive is the deprecated alias for PolicyAutoAdd; both report
+		// whether the team's policy auto-adds members.
+		columns = append(columns, autoAdd+" AS PolicyIsActive")
 	}
 
 	return columns
