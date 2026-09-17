@@ -102,16 +102,12 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	// (createPropertyField in properties.go): without these, PermissionValues
 	// stays nil and SessionHasPermissionToSetPropertyFieldValues denies
 	// everyone -- including sysadmin -- from ever setting this field's value.
-	// Values uses its own default (DefaultPropertyFieldValuesPermissionLevel):
-	// unlike Field/Options, a value is gated by its own target rather than the
-	// field's TargetType, so the system-TargetType sysadmin clause doesn't apply.
 	defaultLevel := app.DefaultPropertyFieldPermissionLevel(field)
-	defaultValuesLevel := app.DefaultPropertyFieldValuesPermissionLevel(field)
 	if field.PermissionField == nil {
 		field.PermissionField = &defaultLevel
 	}
 	if field.PermissionValues == nil {
-		field.PermissionValues = &defaultValuesLevel
+		field.PermissionValues = &defaultLevel
 	}
 	if field.PermissionOptions == nil {
 		field.PermissionOptions = &defaultLevel
