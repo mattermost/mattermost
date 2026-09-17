@@ -202,6 +202,14 @@
         line-height: 16px;
     }
 
+    .attribute-options-graph-values__name-wrap {
+        position: relative;
+        display: inline-flex;
+        min-width: 0;
+        align-items: center;
+        margin-inline-start: -4px;
+    }
+
     .attribute-options-graph-values__name {
         min-width: 0;
         padding: 1px 4px;
@@ -213,7 +221,6 @@
         font-family: inherit;
         font-size: 14px;
         font-weight: 600;
-        margin-inline-start: -4px;
         text-align: left;
 
         &:hover {
@@ -307,7 +314,7 @@
         margin: 0;
         appearance: none;
         background: transparent;
-        inset-inline-end: 36px;
+        inset-inline-start: 0;
         opacity: 0;
         pointer-events: none;
     }

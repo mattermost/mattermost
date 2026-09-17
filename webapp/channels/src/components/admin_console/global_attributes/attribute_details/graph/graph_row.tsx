@@ -191,23 +191,68 @@ export const GraphRow = React.memo(({
                 </WithTooltip>
             </span>
 
-            {disabled ? (
-                <span
-                    className='attribute-options-graph-values__name attribute-options-graph-values__name--static'
-                    data-testid='attributeOptionsGraphRow__name'
-                >
-                    {occurrence.option.name}
-                </span>
-            ) : (
-                <button
-                    type='button'
-                    className='attribute-options-graph-values__name'
-                    onClick={() => toggleMenu('main')}
-                    data-testid='attributeOptionsGraphRow__name'
-                >
-                    {occurrence.option.name}
-                </button>
-            )}
+            <span
+                className='attribute-options-graph-values__name-wrap'
+                data-testid='attributeOptionsGraphRow__nameWrap'
+            >
+                {disabled ? (
+                    <span
+                        className='attribute-options-graph-values__name attribute-options-graph-values__name--static'
+                        data-testid='attributeOptionsGraphRow__name'
+                    >
+                        {occurrence.option.name}
+                    </span>
+                ) : (
+                    <button
+                        type='button'
+                        className='attribute-options-graph-values__name'
+                        onClick={() => toggleMenu('main')}
+                        data-testid='attributeOptionsGraphRow__name'
+                    >
+                        {occurrence.option.name}
+                    </button>
+                )}
+                {menuOpen && (
+                    <Menu.Container
+                        menuButton={{
+                            id: `attribute-options-graph-row-parents-${index}`,
+                            as: 'div',
+                            class: 'attribute-options-graph-values__parents-anchor',
+                            'aria-label': editValueLabel,
+                            dataTestId: 'attributeOptionsGraphRow__parentsAnchor',
+                            children: <span className='sr-only'>{editValueLabel}</span>,
+                        }}
+                        menu={{
+                            id: `attribute-options-graph-row-parents-menu-${index}`,
+                            className: 'attribute-graph-parents-pane',
+                            width: '368px',
+                            'aria-label': editValueLabel,
+                            isMenuOpen: true,
+                            onToggle: (open) => {
+                                if (!open) {
+                                    onCloseMenu();
+                                }
+                            },
+                        }}
+                        anchorOrigin={{vertical: 'bottom', horizontal: 'left'}}
+                        transformOrigin={{vertical: 'top', horizontal: 'left'}}
+                    >
+                        <AttributeGraphParentsPane
+                            key={`${occurrence.key}:${menuInitialView}`}
+                            options={options}
+                            optionName={occurrence.option.name}
+                            onOptionsChange={onPaneOptionsChange}
+                            onDelete={onDelete}
+                            onRename={onRename}
+                            onChildAdded={() => onExpandOccurrence(occurrence.key)}
+                            disabled={disabled}
+                            atMax={atMax}
+                            confirmGrant={confirmGrant}
+                            initialView={menuInitialView}
+                        />
+                    </Menu.Container>
+                )}
+            </span>
 
             {parentsBadge && (disabled ? parentsBadge : (
                 <WithTooltip
@@ -256,47 +301,6 @@ export const GraphRow = React.memo(({
                         </button>
                     </WithTooltip>
                 </div>
-            )}
-
-            {menuOpen && (
-                <Menu.Container
-                    menuButton={{
-                        id: `attribute-options-graph-row-parents-${index}`,
-                        as: 'div',
-                        class: 'attribute-options-graph-values__parents-anchor',
-                        'aria-label': editValueLabel,
-                        dataTestId: 'attributeOptionsGraphRow__parentsAnchor',
-                        children: <span className='sr-only'>{editValueLabel}</span>,
-                    }}
-                    menu={{
-                        id: `attribute-options-graph-row-parents-menu-${index}`,
-                        className: 'attribute-graph-parents-pane',
-                        width: '368px',
-                        'aria-label': editValueLabel,
-                        isMenuOpen: true,
-                        onToggle: (open) => {
-                            if (!open) {
-                                onCloseMenu();
-                            }
-                        },
-                    }}
-                    anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
-                    transformOrigin={{vertical: 'top', horizontal: 'right'}}
-                >
-                    <AttributeGraphParentsPane
-                        key={`${occurrence.key}:${menuInitialView}`}
-                        options={options}
-                        optionName={occurrence.option.name}
-                        onOptionsChange={onPaneOptionsChange}
-                        onDelete={onDelete}
-                        onRename={onRename}
-                        onChildAdded={() => onExpandOccurrence(occurrence.key)}
-                        disabled={disabled}
-                        atMax={atMax}
-                        confirmGrant={confirmGrant}
-                        initialView={menuInitialView}
-                    />
-                </Menu.Container>
             )}
             {isOver && (
                 <DropIndicator/>

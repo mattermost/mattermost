@@ -387,7 +387,10 @@ describe('AttributeOptionsGraphValues', () => {
         await userEvent.click(within(getRow('Deepwater', 'Falcon')).getByTestId('attributeOptionsGraphRow__parentsBadge'));
         expect(await screen.findByTestId('attributeGraphParentsPane__back')).toHaveTextContent('Parents of Deepwater');
         expect(screen.queryByText(/sits under/i)).not.toBeInTheDocument();
-        expect(screen.getByTestId('attributeOptionsGraphRow__parentsAnchor').tagName).toBe('DIV');
+        const nameWrap = within(getRow('Deepwater', 'Falcon')).getByTestId('attributeOptionsGraphRow__nameWrap');
+        const parentsAnchor = within(nameWrap).getByTestId('attributeOptionsGraphRow__parentsAnchor');
+        expect(parentsAnchor.tagName).toBe('DIV');
+        expect(parentsAnchor).toHaveClass('attribute-options-graph-values__parents-anchor');
     });
 
     it('indents dual occurrences by their own path depth, not maxDepth', () => {
@@ -430,6 +433,9 @@ describe('AttributeOptionsGraphValues', () => {
         expect(screen.getByTestId('attributeGraphParentsPane__openParents')).toHaveTextContent('Top level');
         expect(screen.getByTestId('attributeGraphParentsPane__openChildren')).toHaveTextContent('None');
         expect(screen.getByRole('menuitem', {name: 'Delete this value'})).toBeInTheDocument();
+        expect(within(row).getByTestId('attributeOptionsGraphRow__nameWrap')).toContainElement(
+            screen.getByTestId('attributeOptionsGraphRow__parentsAnchor'),
+        );
 
         await clickRowDelete('Root');
         expect(openModal).not.toHaveBeenCalled();
