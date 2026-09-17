@@ -126,7 +126,6 @@ import ServerLogs from './server_logs';
 import {searchableStrings as serverLogsSearchableStrings} from './server_logs/logs';
 import SessionAttributesPage, {searchableStrings as sessionAttributesSearchableStrings} from './session_attributes';
 import SessionLengthSettings, {searchableStrings as sessionLengthSearchableStrings} from './session_length_settings';
-import SystemProperties, {searchableStrings as systemPropertiesSearchableStrings} from './system_properties';
 import SystemRoles from './system_roles';
 import SystemRole from './system_roles/system_role';
 import SystemUserDetail from './system_user_detail';
@@ -138,6 +137,7 @@ import TeamSettings from './team_channel_settings/team';
 import TeamDetails from './team_channel_settings/team/details';
 import type {AdminDefinition as AdminDefinitionType} from './types';
 import UnlimitedNumberSetting from './unlimited_number_setting';
+import UserAttributesRedirect from './user_attributes_redirect';
 import ValidationResult from './validation';
 import WorkspaceOptimizationDashboard from './workspace-optimization/dashboard';
 
@@ -639,21 +639,6 @@ const AdminDefinition: AdminDefinitionType = {
         sectionTitle: defineMessage({id: 'admin.sidebar.systemAttributes', defaultMessage: 'System Attributes'}),
         isHidden: it.not(it.userHasReadPermissionOnSomeResources(RESOURCE_KEYS.USER_MANAGEMENT)),
         subsections: {
-            system_properties: {
-                url: 'system_attributes/user_attributes',
-                title: defineMessage({id: 'admin.sidebar.user_attributes', defaultMessage: 'User Attributes'}),
-                searchableStrings: systemPropertiesSearchableStrings,
-
-                // Replaced by Attribute Management when the GlobalAttributes flag is on.
-                isHidden: it.any(
-                    it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
-                    it.configIsTrue('FeatureFlags', 'GlobalAttributes'),
-                ),
-                schema: {
-                    id: 'SystemProperties',
-                    component: SystemProperties,
-                },
-            },
             user_attributes_feature_discovery: {
                 url: 'system_attributes/user_attributes',
                 isDiscovery: true,
@@ -672,6 +657,21 @@ const AdminDefinition: AdminDefinitionType = {
                     ],
                 },
                 restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.EnterpriseAdvanced),
+            },
+            user_attributes_redirect: {
+                url: 'system_attributes/user_attributes',
+
+                // Exact complement of user_attributes_feature_discovery's
+                // isHidden above: Enterprise+ has no page of its own here
+                // anymore (CPA fields now show in Manage Attributes as
+                // non-template fields), so this URL redirects there instead
+                // of falling through to the admin console's unrelated
+                // default-page redirect.
+                isHidden: it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
+                schema: {
+                    id: 'UserAttributesRedirect',
+                    component: UserAttributesRedirect,
+                },
             },
             session_attributes: {
                 url: 'system_attributes/session_attributes',
@@ -727,14 +727,11 @@ const AdminDefinition: AdminDefinitionType = {
             classification_attribute: {
                 url: 'system_attributes/manage_attributes/classification',
 
-                // Gated on ChannelAttributes as well: with that flag off the only
-                // editable thing on this page is the Channels resource, so there is
-                // nothing here that the Classification Markings page does not cover.
-                // That resource is also what sets the tier: channel attributes are
-                // Enterprise Advanced even though Global Attributes is not.
+                // Gated on ChannelAttributes: with that flag off the only editable
+                // thing on this page is the Channels resource, so there is nothing
+                // here the Classification Markings page does not already cover.
                 isHidden: it.not(it.all(
                     it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
-                    it.configIsTrue('FeatureFlags', 'GlobalAttributes'),
                     it.configIsTrue('FeatureFlags', 'ChannelAttributes'),
                 )),
                 isDisabled: it.not(it.isSystemAdmin),
@@ -745,10 +742,7 @@ const AdminDefinition: AdminDefinitionType = {
             },
             global_attribute_details_edit: {
                 url: `system_attributes/manage_attributes/attribute_details/:field_id(${ID_PATH_PATTERN})`,
-                isHidden: it.not(it.all(
-                    it.minLicenseTier(LicenseSkus.Enterprise),
-                    it.configIsTrue('FeatureFlags', 'GlobalAttributes'),
-                )),
+                isHidden: it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
                 isDisabled: it.not(it.isSystemAdmin),
                 schema: {
                     id: 'GlobalAttributeDetails',
@@ -757,10 +751,7 @@ const AdminDefinition: AdminDefinitionType = {
             },
             global_attribute_details: {
                 url: 'system_attributes/manage_attributes/attribute_details',
-                isHidden: it.not(it.all(
-                    it.minLicenseTier(LicenseSkus.Enterprise),
-                    it.configIsTrue('FeatureFlags', 'GlobalAttributes'),
-                )),
+                isHidden: it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
                 isDisabled: it.not(it.isSystemAdmin),
                 schema: {
                     id: 'GlobalAttributeDetails',
@@ -771,10 +762,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'system_attributes/manage_attributes',
                 title: defineMessage({id: 'admin.sidebar.global_attributes', defaultMessage: 'Attribute Management'}),
                 searchableStrings: globalAttributesSearchableStrings,
-                isHidden: it.not(it.all(
-                    it.minLicenseTier(LicenseSkus.Enterprise),
-                    it.configIsTrue('FeatureFlags', 'GlobalAttributes'),
-                )),
+                isHidden: it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
                 isDisabled: it.not(it.isSystemAdmin),
                 schema: {
                     id: 'GlobalAttributes',

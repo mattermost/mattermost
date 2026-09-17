@@ -11230,11 +11230,11 @@ func (s *RetryLayerPropertyFieldStore) MutateOptions(groupID string, fieldID str
 
 }
 
-func (s *RetryLayerPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
+func (s *RetryLayerPropertyFieldStore) SearchPropertyFields(rctx request.CTX, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyFieldStore.SearchPropertyFields(opts)
+		result, err := s.PropertyFieldStore.SearchPropertyFields(rctx, opts)
 		if err == nil {
 			return result, nil
 		}
