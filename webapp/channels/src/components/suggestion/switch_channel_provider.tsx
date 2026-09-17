@@ -31,7 +31,7 @@ import {
     getAllTeamsUnreadChannelIds,
     getMyPendingJoinRequestsByChannel,
 } from 'mattermost-redux/selectors/entities/channels';
-import {getConfig, isDiscoverableChannelsEnabled, developerModeEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, isDiscoverableChannelsEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getMyPreferences, isGroupChannelManuallyVisible, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {
     getActiveTeamsList,
@@ -604,65 +604,6 @@ function searchRank(wrapped: WrappedChannel, searchTerm: string) {
         penalties.hiddenInSidebar;
 }
 
-export type ChannelMatchField = 'nickname' | 'username' | 'full_name' | 'email_local' | 'email_full';
-export type ChannelMatchSource = 'display_name' | 'channel_name' | 'member';
-
-// One field that caused a channel to be kept in the quick-switcher candidate set. Used by the
-// developer-mode log to explain weak / non-obvious matches (e.g. a GM whose label does not contain
-// the search term but a member email or the current user's profile does).
-export type ChannelMatchAttribution = {
-    source: ChannelMatchSource;
-    field?: ChannelMatchField;
-    userId?: string;
-    username?: string;
-    isCurrentUser?: boolean;
-    value: string;
-    index: number;
-};
-
-function summarizeMatchAttributions(attributions: ChannelMatchAttribution[]): string {
-    return attributions.map((hit) => {
-        if (hit.source !== 'member') {
-            return hit.source;
-        }
-
-        const who = hit.isCurrentUser ? `${hit.username || hit.userId}(you)` : (hit.username || hit.userId || '?');
-        return `${hit.field}@${who}`;
-    }).join(', ');
-}
-
-// Builds the per-result ranking breakdown that the developer-mode debug log renders. Rank is
-// additive and lower sorts first; each field is the penalty that reason contributed, and
-// last_viewed_at is the recency tie-breaker used within a rank tier. matchedOn explains which
-// search fields kept a non-obvious result in the list.
-function rankingDebugRows(
-    searchTerm: string,
-    items: WrappedChannel[],
-    attributionsByChannelId?: Map<string, ChannelMatchAttribution[]>,
-) {
-    const normalizedTerm = normalizeSearchTerm(searchTerm);
-
-    return items.map((wrapped) => {
-        const penalties = rankPenalties(wrapped, normalizedTerm);
-        const attributions = attributionsByChannelId?.get(wrapped.channel.id) || [];
-
-        return {
-            name: wrapped.channel.display_name || wrapped.name,
-            term: getWrappedChannelTerm(wrapped),
-            type: wrapped.channel.type,
-            rank: searchRank(wrapped, normalizedTerm),
-            archived: penalties.archived,
-            deactivated: penalties.deactivated,
-            activity: penalties.activity,
-            nonPrefixMatch: penalties.nonPrefixMatch,
-            conversationType: penalties.type,
-            hiddenInSidebar: penalties.hiddenInSidebar,
-            matchedOn: summarizeMatchAttributions(attributions),
-            last_viewed_at: wrapped.last_viewed_at ? new Date(wrapped.last_viewed_at).toISOString() : 'never',
-        };
-    });
-}
-
 export function makeQuickSwitchSorter(searchTerm: string) {
     const normalizedTerm = normalizeSearchTerm(searchTerm);
 
@@ -677,100 +618,19 @@ export function makeQuickSwitchSorter(searchTerm: string) {
     };
 }
 
-function pushMatchAttribution(
-    attributions: ChannelMatchAttribution[] | undefined,
-    hit: Omit<ChannelMatchAttribution, 'index'> & {value: string},
-    term: string,
-) {
-    if (!attributions) {
-        return;
-    }
-
-    const index = hit.value.toLowerCase().indexOf(term);
-    if (index < 0) {
-        return;
-    }
-
-    attributions.push({...hit, index});
-}
-
-function memberSearchParts(user: UserProfile, channelPrefixLower: string) {
-    const {nickname, username, email} = user;
-    const includeEmail = channelPrefixLower.includes('@');
-    let emailPart = '';
-    let emailField: ChannelMatchField | undefined;
-    if (includeEmail && email) {
-        emailPart = email;
-        emailField = 'email_full';
-    } else if (email) {
-        emailPart = email.split('@')[0];
-        emailField = 'email_local';
-    }
-    const fullName = Utils.getFullName(user);
-    const searchParts = [nickname, username, fullName];
-    if (emailPart) {
-        searchParts.push(emailPart);
-    }
-
-    return {nickname, username, fullName, emailPart, emailField, searchParts};
-}
-
-function attributeMemberMatches(
-    attributions: ChannelMatchAttribution[],
-    user: UserProfile,
-    currentUserId: string,
-    channelPrefixLower: string,
-) {
-    const {nickname, username, fullName, emailPart, emailField} = memberSearchParts(user, channelPrefixLower);
-    const memberBase = {
-        source: 'member' as const,
-        userId: user.id,
-        username,
-        isCurrentUser: user.id === currentUserId,
-    };
-
-    pushMatchAttribution(attributions, {...memberBase, field: 'nickname', value: nickname || ''}, channelPrefixLower);
-    pushMatchAttribution(attributions, {...memberBase, field: 'username', value: username || ''}, channelPrefixLower);
-    pushMatchAttribution(attributions, {...memberBase, field: 'full_name', value: fullName || ''}, channelPrefixLower);
-    if (emailField && emailPart) {
-        pushMatchAttribution(attributions, {...memberBase, field: emailField, value: emailPart}, channelPrefixLower);
-    }
-}
-
-function makeChannelSearchFilter(
-    curState: GlobalState,
-    channelPrefix: string,
-    attributionsByChannelId?: Map<string, ChannelMatchAttribution[]>,
-) {
+function makeChannelSearchFilter(curState: GlobalState, channelPrefix: string) {
     const channelPrefixLower = channelPrefix.toLowerCase();
     const splitPrefixBySpace = channelPrefixLower.trim().split(/[ ,]+/);
     const usersInChannels = getUserIdsInChannels(curState);
     const userSearchStrings: RelationOneToOne<UserProfile, string> = {};
     const SEPARATOR = ';|;';
-    const currentUserId = getCurrentUserId(curState);
-    const collectAttributions = Boolean(attributionsByChannelId);
 
     return (channel: ChannelItem) => {
-        const channelAttributions = collectAttributions ? [] as ChannelMatchAttribution[] : undefined;
-
         // Direct and group channel names are opaque identifiers (userId__userId or a hex hash)
         // that are never shown in the UI. Matching the search term against them produces false
         // positives whenever the term happens to appear in the id (e.g. "ac" inside a GM hash).
         const isDirectOrGroup =
             channel.type === Constants.GM_CHANNEL || channel.type === Constants.DM_CHANNEL;
-
-        pushMatchAttribution(
-            channelAttributions,
-            {source: 'display_name', value: channel.display_name || ''},
-            channelPrefixLower,
-        );
-        if (!isDirectOrGroup) {
-            pushMatchAttribution(
-                channelAttributions,
-                {source: 'channel_name', value: channel.name || ''},
-                channelPrefixLower,
-            );
-        }
 
         let searchString = isDirectOrGroup ? (channel.display_name || '') : `${channel.display_name}${SEPARATOR}${channel.name}`;
         if (isDirectOrGroup) {
@@ -793,82 +653,40 @@ function makeChannelSearchFilter(
                     if (!user) {
                         continue;
                     }
-                    const {searchParts} = memberSearchParts(user, channelPrefixLower);
+                    const {nickname, username, email} = user;
+
+                    // Apply smart email search logic - include email based on whether @ is in search term
+                    const includeEmail = channelPrefixLower.includes('@');
+                    let emailPart = '';
+                    if (includeEmail && email) {
+                        emailPart = email;
+                    } else if (email) {
+                        emailPart = email.split('@')[0];
+                    }
+                    const searchParts = [nickname, username, Utils.getFullName(user)];
+                    if (emailPart) {
+                        searchParts.push(emailPart);
+                    }
                     userString = searchParts.join(SEPARATOR);
                     userSearchStrings[userId] = userString;
-                }
-
-                if (channelAttributions) {
-                    const user = getUser(curState, userId);
-                    if (user) {
-                        attributeMemberMatches(channelAttributions, user, currentUserId, channelPrefixLower);
-                    }
                 }
                 searchString += `${SEPARATOR}${userString}`;
             }
         }
 
-        let matched = false;
         if (splitPrefixBySpace.length > 1) {
             const lowerCaseSearch = searchString.toLowerCase();
-            matched = splitPrefixBySpace.every((searchPrefix) => {
+            return splitPrefixBySpace.every((searchPrefix) => {
                 return lowerCaseSearch.includes(searchPrefix);
             });
-        } else {
-            matched = searchString.toLowerCase().includes(channelPrefixLower);
         }
 
-        if (matched && attributionsByChannelId && channelAttributions) {
-            attributionsByChannelId.set(channel.id, channelAttributions);
-        }
-
-        return matched;
+        return searchString.toLowerCase().includes(channelPrefixLower);
     };
 }
 
 export default class SwitchChannelProvider extends Provider {
     store = globalStore;
-
-    // Logs why a result list is ranked the way it is, but only when developer mode is enabled so it
-    // stays out of the way for regular users. Reviewers use it to explain quick switcher ordering
-    // without stepping through a debugger. Non-prefix rows also get a match-detail table naming the
-    // field (and member) that kept them in the candidate set.
-    private logRankingDebug(
-        searchTerm: string,
-        items: WrappedChannel[],
-        source: string,
-        attributionsByChannelId?: Map<string, ChannelMatchAttribution[]>,
-    ) {
-        if (!developerModeEnabled(this.store.getState())) {
-            return;
-        }
-
-        const normalizedTerm = normalizeSearchTerm(searchTerm);
-        const rows = rankingDebugRows(searchTerm, items, attributionsByChannelId);
-
-        /* eslint-disable no-console */
-        console.groupCollapsed(`[QuickSwitcher] "${searchTerm}" — ${source} results (${rows.length}), ranked lowest first`);
-        console.table(rows);
-
-        for (const wrapped of items) {
-            if (startsWithSearchTerm(wrapped, normalizedTerm)) {
-                continue;
-            }
-
-            const attributions = attributionsByChannelId?.get(wrapped.channel.id);
-            if (!attributions?.length) {
-                continue;
-            }
-
-            const label = wrapped.channel.display_name || wrapped.name;
-            console.groupCollapsed(`[QuickSwitcher] match detail — ${label} (${wrapped.channel.type})`);
-            console.log(attributions);
-            console.groupEnd();
-        }
-
-        console.groupEnd();
-        /* eslint-enable no-console */
-    }
 
     /**
      * whenever this gets adjusted/refactored to not call the callback twice we need to adjust the behavior in
@@ -889,7 +707,6 @@ export default class SwitchChannelProvider extends Provider {
             const users = searchProfilesMatchingWithTerm(this.store.getState(), channelPrefix, false);
             const formattedData = this.formatGroup(channelPrefix, [ThreadsChannel, ...channels], users, true);
             if (formattedData) {
-                this.logRankingDebug(channelPrefix, formattedData.items, 'local', formattedData.matchAttributions);
                 resultsCallback(this.initialFilteredList(channelPrefix, formattedData));
             }
 
@@ -987,23 +804,6 @@ export default class SwitchChannelProvider extends Provider {
         const combinedItems = [...localFormattedData.items, ...remoteOnlyItems].sort(makeQuickSwitchSorter(channelPrefix));
         const combinedTerms = combinedItems.map(getWrappedChannelTerm);
 
-        const combinedAttributions = new Map<string, ChannelMatchAttribution[]>();
-        localFormattedData.matchAttributions?.forEach((hits, channelId) => {
-            combinedAttributions.set(channelId, hits);
-        });
-        remoteFormattedData.matchAttributions?.forEach((hits, channelId) => {
-            if (!combinedAttributions.has(channelId)) {
-                combinedAttributions.set(channelId, hits);
-            }
-        });
-
-        this.logRankingDebug(
-            channelPrefix,
-            combinedItems,
-            'local + remote',
-            combinedAttributions.size ? combinedAttributions : undefined,
-        );
-
         resultsCallback({
             matchedPretext: channelPrefix,
             groups: [{
@@ -1063,8 +863,7 @@ export default class SwitchChannelProvider extends Provider {
 
         const completedChannels: RelationOneToOne<Channel, boolean> = {};
 
-        const matchAttributions = developerModeEnabled(state) ? new Map<string, ChannelMatchAttribution[]>() : undefined;
-        const channelFilter = makeChannelSearchFilter(state, channelPrefix, matchAttributions);
+        const channelFilter = makeChannelSearchFilter(state, channelPrefix);
 
         const allUnreadChannelIds = getAllTeamsUnreadChannelIds(state);
         const allUnreadChannelIdsSet = new Set(allUnreadChannelIds);
@@ -1175,7 +974,6 @@ export default class SwitchChannelProvider extends Provider {
         return {
             items: channels,
             terms: channelNames,
-            matchAttributions,
         };
     }
 
