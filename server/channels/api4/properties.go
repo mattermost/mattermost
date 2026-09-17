@@ -204,28 +204,40 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Default permission levels: pin all three for non-admins, nil-fill for
-	// admins. Stays in API because it is session-bound.
-	isAdmin := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+	// Set before the permission levels are resolved.
+	field.CreatedBy = c.AppContext.Session().UserId
+	field.UpdatedBy = c.AppContext.Session().UserId
+
+	// Default permission levels: whoever administers the field's scope may
+	// configure them, everyone else has all three pinned to the default.
+	canPin := c.App.SessionHasPermissionToAdministerPropertyFieldScope(c.AppContext, *c.AppContext.Session(), field)
 	defaultLevel := app.DefaultPropertyFieldPermissionLevel(field)
-	if !isAdmin {
+	defaultValuesLevel := app.DefaultPropertyFieldValuesPermissionLevel(field)
+	if !canPin {
 		field.PermissionField = &defaultLevel
-		field.PermissionValues = &defaultLevel
+		field.PermissionValues = &defaultValuesLevel
 		field.PermissionOptions = &defaultLevel
 	} else {
 		if field.PermissionField == nil {
 			field.PermissionField = &defaultLevel
 		}
 		if field.PermissionValues == nil {
-			field.PermissionValues = &defaultLevel
+			field.PermissionValues = &defaultValuesLevel
 		}
 		if field.PermissionOptions == nil {
 			field.PermissionOptions = &defaultLevel
 		}
+
+		// Anti-lockout: an unlinked field must be editable by whoever creates
+		// it, or they could pin a level that leaves them unable to patch or
+		// delete their own field.
+		isLinked := field.LinkedFieldID != nil && *field.LinkedFieldID != ""
+		if !isLinked && !c.App.SessionHasPermissionToEditPropertyField(c.AppContext, *c.AppContext.Session(), field) {
+			c.Err = model.NewAppError("createPropertyField", "api.property_field.create.creator_cannot_edit.app_error", nil, "", http.StatusForbidden)
+			return
+		}
 	}
 
-	field.CreatedBy = c.AppContext.Session().UserId
-	field.UpdatedBy = c.AppContext.Session().UserId
 	connectionID := r.Header.Get(model.ConnectionId)
 
 	createdField, appErr := c.App.CreatePropertyField(rctx, field, false, connectionID)
@@ -964,9 +976,11 @@ func hasTargetAccess(c *Context, objectType, targetID string, write bool) bool {
 				perm = model.PermissionManagePrivateChannelProperties
 			default:
 				// DM/GM channels have no manage_*_channel_properties permission, so
-				// this outer gate only checks membership. The per-field tier check in
-				// SessionHasPermissionToSetPropertyFieldValues is what actually keeps
-				// participants from setting DM/GM values.
+				// this outer gate only checks membership, and the per-field tier check
+				// in SessionHasPermissionToSetPropertyFieldValues resolves participation
+				// as membership too. Groups that need DM/GM values kept out of users'
+				// hands enforce that in their own PropertyHook — see
+				// AccessControlAttributeValidationHook for the access_control group.
 				perm = model.PermissionReadChannel
 			}
 			hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), targetID, perm)
