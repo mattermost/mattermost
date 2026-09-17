@@ -82,9 +82,6 @@ type FeatureFlags struct {
 	// Enable classification markings for banners at the system and channel level
 	ClassificationMarkings bool
 
-	// Enable the Global Attributes management page in the System Console
-	GlobalAttributes bool
-
 	// Enable burn-on-read messages that automatically delete after viewing
 	BurnOnRead bool
 
@@ -130,6 +127,13 @@ type FeatureFlags struct {
 	// rejects creating a rank property field or converting an existing field to
 	// rank, and the admin console hides the rank type option.
 	PropertyFieldRank bool
+
+	// FEATURE_FLAG_REMOVAL: PropertyFieldGraph - Remove this when the feature is GA.
+	// Gates the "graph" property field type: when off, the app layer rejects
+	// creating a graph property field. Converting a field to or from graph is
+	// refused whatever this flag says — see App.graphPropertyFieldGate for what
+	// the flag does and does not restrict.
+	PropertyFieldGraph bool
 
 	TeamMembershipAccessControl bool
 
@@ -221,6 +225,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.MobileEphemeralMode = false
 
 	f.PropertyFieldRank = true
+
+	f.PropertyFieldGraph = false
 
 	f.ChannelAttributes = false
 

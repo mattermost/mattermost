@@ -12,6 +12,7 @@ import {
     enableTeamMembershipABACConfig,
     ensureDepartmentAttribute,
     getTeamAccessControlPolicy,
+    getTeamAutoAddMode,
     setUserAttribute,
     waitForAttributeViewToInclude,
 } from '../../../channels/team_settings/helpers';
@@ -1246,7 +1247,8 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
     /**
      * @objective A team governed only by an imported parent policy (no custom rule) can
      * still toggle auto-add — the rules-section checkbox is enabled even with an empty
-     * custom expression — and toggling it persists the team child policy's active flag.
+     * custom expression — and toggling it persists the auto-add mode on the team child
+     * policy's membership rule.
      */
     test('MM-68846-T22 - auto-add is interactive for a parent-only team and persists on save', async ({pw}) => {
         test.setTimeout(120000);
@@ -1290,13 +1292,13 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await confirmModal.getByRole('button', {name: 'Apply'}).click();
         await expect(confirmModal).not.toBeVisible({timeout: 10000});
 
-        // * The team child policy's active flag is now true on the server
+        // * The team child policy's membership rule now carries the auto-add mode
         await expect
-            .poll(async () => (await getTeamAccessControlPolicy(adminClient, team.id))?.policy?.active, {
+            .poll(async () => getTeamAutoAddMode(adminClient, team.id), {
                 timeout: 15000,
                 intervals: [500, 1000, 2000, 2000],
-                message: 'team child policy active should persist after enabling auto-add',
+                message: 'team child policy auto-add mode should persist after enabling auto-add',
             })
-            .toBe(true);
+            .toBe('always');
     });
 });
