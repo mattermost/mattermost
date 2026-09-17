@@ -98,6 +98,21 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	field.CreatedBy = c.AppContext.Session().UserId
 	field.UpdatedBy = c.AppContext.Session().UserId
 
+	// Nil-fill permission levels the generic property API would otherwise pin
+	// (createPropertyField in properties.go): without these, PermissionValues
+	// stays nil and SessionHasPermissionToSetPropertyFieldValues denies
+	// everyone -- including sysadmin -- from ever setting this field's value.
+	defaultLevel := app.DefaultPropertyFieldPermissionLevel(field)
+	if field.PermissionField == nil {
+		field.PermissionField = &defaultLevel
+	}
+	if field.PermissionValues == nil {
+		field.PermissionValues = &defaultLevel
+	}
+	if field.PermissionOptions == nil {
+		field.PermissionOptions = &defaultLevel
+	}
+
 	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
 	connectionID := r.Header.Get(model.ConnectionId)
 

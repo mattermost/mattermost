@@ -1637,6 +1637,7 @@
   "admin.global_attributes.table.actions.view": "View attribute",
   "admin.global_attributes.table.applies_to": "Applies to",
   "admin.global_attributes.table.attribute": "Attribute",
+  "admin.global_attributes.table.attribute.classification_subtitle": "Definition is read-only",
   "admin.global_attributes.table.empty": "No attributes yet. Click \"New attribute\" to create one.",
   "admin.global_attributes.table.empty_search": "No attributes match your search.",
   "admin.global_attributes.table.load_error": "There was an error while loading attributes.",
