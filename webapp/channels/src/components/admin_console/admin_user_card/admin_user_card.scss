@@ -31,10 +31,6 @@
     flex: 0 0 auto;
 }
 
-// The picker is opened programmatically from the edit menu, so the native control
-// must never surface its "No file chosen" affordance. The `input[type='file']`
-// qualifier keeps this specific enough to win over broader `input` rules, so a
-// generic admin-console style can't re-expose the control by overriding `display`.
 input.AdminUserCard__picture-input[type='file'] {
     display: none;
 }
