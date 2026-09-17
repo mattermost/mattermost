@@ -96,6 +96,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
     const menuItemIdPrefix = `actionMenuItem-${tableId}-${rowIndex}`;
 
     const isCurrentUserSystemAdmin = useMemo(() => isSystemAdmin(currentUser.roles), [currentUser.roles]);
+    const isGuestUser = isGuest(user.roles);
 
     // Disable if SystemAdmin being edited by non SystemAdmin eg. userManager with EditOtherUsers permissions
     const isNonSystemAdminEditingSystemAdmin = !isCurrentUserSystemAdmin && isSystemAdmin(user.roles);
@@ -387,7 +388,8 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                     onClick={handleActivateUserClick}
                 />
             )}
-            {isCurrentUserSystemAdmin &&
+            {/* Guests are promoted with "Promote to member", which also migrates their team and channel memberships. */}
+            {isCurrentUserSystemAdmin && !isGuestUser &&
                 <Menu.Item
                     id={`${menuItemIdPrefix}-manageRoles`}
                     labels={
@@ -493,7 +495,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                     onClick={handleUpdateEmailClick}
                 />
             }
-            {isGuest(user.roles) &&
+            {isGuestUser &&
                 <Menu.Item
                     id={`${menuItemIdPrefix}-promoteToMember`}
                     labels={
@@ -505,7 +507,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                     onClick={handlePromoteToMemberClick}
                 />
             }
-            {!isGuest(user.roles) && user.id !== currentUser.id && isLicensed && config.GuestAccountsSettings?.Enable &&
+            {!isGuestUser && user.id !== currentUser.id && isLicensed && config.GuestAccountsSettings?.Enable &&
                 <Menu.Item
                     id={`${menuItemIdPrefix}-demoteToGuest`}
                     labels={
