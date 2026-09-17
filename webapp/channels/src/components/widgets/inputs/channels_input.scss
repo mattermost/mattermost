@@ -94,18 +94,18 @@
 
     .channels-input__menu-notice {
         display: flex;
-        height: 44px;
+        min-height: 4rem;
         align-items: center;
         justify-content: center;
-        padding: 12px;
+        padding: 8px 2.4rem;
         border-radius: 4px 4px 0 0;
     }
 
     .channels-input__option {
         display: flex;
-        height: 44px;
+        min-height: 4rem;
         align-items: center;
-        padding: 12px;
+        padding: 8px 2.4rem;
         cursor: pointer;
         font-size: 14px;
 
@@ -155,16 +155,8 @@
         }
 
         .channel-name {
+            margin-left: 8px;
             color: rgba(var(--center-channel-color-rgb), 0.75);
-
-            &::before {
-                padding-left: 5px;
-                content: "(";
-            }
-
-            &::after {
-                content: ")";
-            }
         }
     }
 
