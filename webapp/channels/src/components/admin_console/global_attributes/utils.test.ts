@@ -200,9 +200,17 @@ describe('global_attributes/utils', () => {
         it('calls Client4.deletePropertyField against the template object type', async () => {
             const deletePropertyField = jest.spyOn(Client4, 'deletePropertyField').mockResolvedValue({status: 'OK'});
 
-            await deleteAttributeField('field-id');
+            await deleteAttributeField('template', 'field-id');
 
             expect(deletePropertyField).toHaveBeenCalledWith('access_control', 'template', 'field-id');
+        });
+
+        it.each((['user', 'channel', 'post'] as const))('passes %s through unchanged as the object_type path segment', async (objectType) => {
+            const deletePropertyField = jest.spyOn(Client4, 'deletePropertyField').mockResolvedValue({status: 'OK'});
+
+            await deleteAttributeField(objectType, 'field-id');
+
+            expect(deletePropertyField).toHaveBeenCalledWith('access_control', objectType, 'field-id');
         });
     });
 
@@ -263,7 +271,7 @@ describe('global_attributes/utils', () => {
         it('PATCHes the template and keeps option ids, sending null ldap/saml to unlink', async () => {
             const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue({} as PropertyField);
 
-            await updateAttributeField('field-id', {
+            await updateAttributeField('template', 'field-id', {
                 name: 'renamed',
                 type: 'select',
                 displayName: 'Renamed',
@@ -287,7 +295,7 @@ describe('global_attributes/utils', () => {
         it('omits name when it is not in the patch, and sends options: null for text', async () => {
             const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue({} as PropertyField);
 
-            await updateAttributeField('field-id', {
+            await updateAttributeField('template', 'field-id', {
                 type: 'text',
                 displayName: 'Cost center',
                 options: [{id: 'opt-1', name: ' leftover '}],
@@ -305,6 +313,73 @@ describe('global_attributes/utils', () => {
                 },
             });
         });
+
+        it('passes a non-template object type through as the PATCH path segment', async () => {
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue({} as PropertyField);
+
+            await updateAttributeField('user', 'field-id', {
+                type: 'text',
+                displayName: 'Cost center',
+                options: [],
+                ldapAttr: '',
+                samlAttr: '',
+            });
+
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'user', 'field-id', expect.anything());
+        });
+
+        it('preserves option metadata such as color when PATCHing a standalone channel select', async () => {
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue({} as PropertyField);
+
+            await updateAttributeField('channel', 'field-id', {
+                type: 'select',
+                displayName: 'Marking',
+                options: [
+                    {id: 'opt-1', name: 'DARKBG', color: '#1e325c'},
+                    {id: '', name: 'LIGHTBG', color: '#ffffff'},
+                ],
+                ldapAttr: '',
+                samlAttr: '',
+            });
+
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'channel', 'field-id', {
+                type: 'select',
+                attrs: {
+                    display_name: 'Marking',
+                    options: [
+                        {id: 'opt-1', name: 'DARKBG', color: '#1e325c'},
+                        {id: '', name: 'LIGHTBG', color: '#ffffff'},
+                    ],
+                    ldap: null,
+                    saml: null,
+                },
+            });
+        });
+
+        it('preserves option color on a rank PATCH and still sends rank', async () => {
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue({} as PropertyField);
+
+            await updateAttributeField('channel', 'field-id', {
+                type: 'rank',
+                displayName: 'Clearance',
+                options: [
+                    {id: 'opt-1', name: 'Low', rank: 1, color: '#007A33'},
+                    {id: 'opt-2', name: 'High', rank: 2, color: '#C8102E'},
+                ],
+                ldapAttr: '',
+                samlAttr: '',
+            });
+
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'channel', 'field-id', expect.objectContaining({
+                type: 'rank',
+                attrs: expect.objectContaining({
+                    options: [
+                        {id: 'opt-1', name: 'Low', rank: 1, color: '#007A33'},
+                        {id: 'opt-2', name: 'High', rank: 2, color: '#C8102E'},
+                    ],
+                }),
+            }));
+        });
     });
 
     describe('fetchAttributeField', () => {
@@ -313,19 +388,57 @@ describe('global_attributes/utils', () => {
         });
 
         it('returns the matching live template field and ignores deleted ones', async () => {
-            const live = {id: 'field-1', delete_at: 0} as PropertyField;
-            jest.spyOn(Client4, 'getPropertyFields').mockResolvedValue([
-                {id: 'field-1', delete_at: 1} as PropertyField,
-                live,
-            ]);
+            const live = {id: 'field-1', object_type: 'template', delete_at: 0} as PropertyField;
+            jest.spyOn(Client4, 'getPropertyFields').mockImplementation((_group, objectType) => {
+                if (objectType === 'template') {
+                    return Promise.resolve([
+                        {id: 'field-1', object_type: 'template', delete_at: 1} as PropertyField,
+                        live,
+                    ]);
+                }
+                return Promise.resolve([]);
+            });
 
-            await expect(fetchAttributeField('field-1')).resolves.toBe(live);
+            await expect(fetchAttributeField('field-1', true)).resolves.toBe(live);
         });
 
-        it('returns undefined when the id is not in the page', async () => {
+        it('returns a matching live user/channel/post field', async () => {
+            const live = {id: 'field-1', object_type: 'channel', delete_at: 0} as PropertyField;
+            jest.spyOn(Client4, 'getPropertyFields').mockImplementation((_group, objectType) => {
+                if (objectType === 'channel') {
+                    return Promise.resolve([live]);
+                }
+                return Promise.resolve([]);
+            });
+
+            await expect(fetchAttributeField('field-1', true)).resolves.toBe(live);
+        });
+
+        it('ignores a user/channel/post field that is a linked child of a template', async () => {
+            jest.spyOn(Client4, 'getPropertyFields').mockImplementation((_group, objectType) => {
+                if (objectType === 'channel') {
+                    return Promise.resolve([{id: 'field-1', object_type: 'channel', linked_field_id: 'template-id', delete_at: 0} as PropertyField]);
+                }
+                return Promise.resolve([]);
+            });
+
+            await expect(fetchAttributeField('field-1', true)).resolves.toBeUndefined();
+        });
+
+        it('returns undefined when the id is not in any object type', async () => {
             jest.spyOn(Client4, 'getPropertyFields').mockResolvedValue([{id: 'other', delete_at: 0} as PropertyField]);
 
-            await expect(fetchAttributeField('field-1')).resolves.toBeUndefined();
+            await expect(fetchAttributeField('field-1', true)).resolves.toBeUndefined();
+        });
+
+        it('does not query the channel scope when includeChannel is false', async () => {
+            const getPropertyFields = jest.spyOn(Client4, 'getPropertyFields').mockResolvedValue([]);
+
+            await fetchAttributeField('field-1', false);
+
+            const queriedObjectTypes = getPropertyFields.mock.calls.map((call) => call[1]);
+            expect(queriedObjectTypes).toEqual(expect.arrayContaining(['template', 'user', 'post']));
+            expect(queriedObjectTypes).not.toContain('channel');
         });
     });
 
@@ -350,12 +463,22 @@ describe('global_attributes/utils', () => {
                 return Promise.resolve([]);
             });
 
-            const fields = await fetchLinkedFieldsForTemplate('template-id');
+            const fields = await fetchLinkedFieldsForTemplate('template-id', true);
 
             expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'user', 'system', undefined, expect.objectContaining({perPage: 200}));
             expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'channel', 'system', undefined, expect.objectContaining({perPage: 200}));
             expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'post', 'system', undefined, expect.objectContaining({perPage: 200}));
             expect(fields.map((field) => field.id)).toEqual(['u1', 'c1']);
+        });
+
+        it('does not query the channel scope when includeChannel is false', async () => {
+            const getPropertyFields = jest.spyOn(Client4, 'getPropertyFields').mockResolvedValue([]);
+
+            await fetchLinkedFieldsForTemplate('template-id', false);
+
+            const queriedObjectTypes = getPropertyFields.mock.calls.map((call) => call[1]);
+            expect(queriedObjectTypes).toEqual(expect.arrayContaining(['user', 'post']));
+            expect(queriedObjectTypes).not.toContain('channel');
         });
     });
 

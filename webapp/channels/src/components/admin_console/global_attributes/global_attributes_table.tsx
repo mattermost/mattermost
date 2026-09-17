@@ -19,8 +19,8 @@ import {valueRefersToOptions} from '@mattermost/types/properties';
 import PropertyTypes from 'mattermost-redux/action_types/properties';
 import {fetchPropertyFields} from 'mattermost-redux/actions/properties';
 import {getConfig as getAdminConfig} from 'mattermost-redux/selectors/entities/admin';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
-import {getPropertyGroupByName, makeGetPropertyFieldsForObjectTypeAndGroup} from 'mattermost-redux/selectors/entities/properties';
+import {getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getPropertyGroupByName, getUnlinkedSystemFieldsForGroup, makeGetPropertyFieldsForObjectTypeAndGroup} from 'mattermost-redux/selectors/entities/properties';
 import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
 
 import {getPluginDisplayName} from 'selectors/plugins';
@@ -38,6 +38,7 @@ import * as Menu from 'components/menu';
 
 import {getHistory} from 'utils/browser_history';
 import {LicenseSkus} from 'utils/constants';
+import {isMinimumEnterpriseAdvancedLicense} from 'utils/license_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -271,7 +272,7 @@ function ActionsCell({field, isClassificationRow, canEditClassification, isMobil
         onDeleteError(null);
 
         try {
-            await deleteAttributeField(field.id);
+            await deleteAttributeField(field.object_type, field.id);
             dispatch({type: PropertyTypes.PROPERTY_FIELD_DELETED, data: {fieldId: field.id}});
         } catch (error) {
             onDeleteError(formatMessage(
@@ -398,7 +399,7 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
 
     const [loaded, setLoaded] = useState(false);
     const [loadError, setLoadError] = useState(false);
-    const [failedAppliesToScopes, setFailedAppliesToScopes] = useState<ReadonlySet<ResourceObjectType>>(() => new Set());
+    const [suppressedScopes, setSuppressedScopes] = useState<ReadonlySet<ResourceObjectType>>(() => new Set());
     const [deleteError, setDeleteError] = useState<string | null>(null);
     const [deleteModalExited, setDeleteModalExited] = useState(false);
     const bannerRef = useRef<HTMLDivElement>(null);
@@ -437,11 +438,26 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
     );
     const appliesToByTemplateId = useMemo(
         () => appliedResourceTypesByTemplateId([
-            ...(failedAppliesToScopes.has('user') ? [] : userLinkedFields),
-            ...(failedAppliesToScopes.has('channel') ? [] : channelLinkedFields),
-            ...(failedAppliesToScopes.has('post') ? [] : postLinkedFields),
+            ...(suppressedScopes.has('user') ? [] : userLinkedFields),
+            ...(suppressedScopes.has('channel') ? [] : channelLinkedFields),
+            ...(suppressedScopes.has('post') ? [] : postLinkedFields),
         ]),
-        [channelLinkedFields, failedAppliesToScopes, postLinkedFields, userLinkedFields],
+        [channelLinkedFields, suppressedScopes, postLinkedFields, userLinkedFields],
+    );
+    const unlinkedFields = useSelector((state: GlobalState) =>
+        getUnlinkedSystemFieldsForGroup(state, groupId),
+    );
+
+    // Same gate the details page applies. Channel is fetched only when channel
+    // attributes are licensed and enabled: the server 501s a channel-scoped
+    // access_control GET below Enterprise Advanced, and this page is reachable at
+    // plain Enterprise.
+    const channelAttributesEnabled = useSelector((state: GlobalState) =>
+        getFeatureFlagValue(state, 'ChannelAttributes') === 'true' && isMinimumEnterpriseAdvancedLicense(getLicense(state)));
+
+    const resourceTypesToFetch = useMemo(
+        () => ALL_RESOURCE_TYPES.filter((type) => channelAttributesEnabled || type !== 'channel'),
+        [channelAttributesEnabled],
     );
 
     useEffect(() => {
@@ -454,30 +470,30 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                     return;
                 }
 
-                // Applies-to chips come from the per-resource linked fields. A
-                // rejected fetch does not replace that scope in Redux, so
-                // suppress cached fields for failed scopes instead of showing
-                // stale assignments. Successful scopes still render, and the
-                // listing stays usable.
-                const appliesToResults = await Promise.allSettled(ALL_RESOURCE_TYPES.map((objectType) =>
+                // Both non-template rows and applies-to chips come from the
+                // per-resource fields. A rejected fetch does not replace that
+                // scope in Redux, and a scope this license never requests stays
+                // cached, so drop those scopes from the table instead of showing
+                // stale data.
+                const scopeResults = await Promise.allSettled(resourceTypesToFetch.map((objectType) =>
                     dispatch(fetchPropertyFields(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, GLOBAL_ATTRIBUTES_TARGET_TYPE)),
                 ));
                 if (!active) {
                     return;
                 }
-                const failedScopes = new Set<ResourceObjectType>();
-                appliesToResults.forEach((result, index) => {
+                const suppressed = new Set<ResourceObjectType>(ALL_RESOURCE_TYPES.filter((type) => !resourceTypesToFetch.includes(type)));
+                scopeResults.forEach((result, index) => {
                     if (result.status === 'rejected') {
-                        failedScopes.add(ALL_RESOURCE_TYPES[index]);
+                        suppressed.add(resourceTypesToFetch[index]);
                         console.error('GlobalAttributesTable-load-applies-to: ', result.reason); // eslint-disable-line no-console
                         return;
                     }
                     if (result.value?.error) {
-                        failedScopes.add(ALL_RESOURCE_TYPES[index]);
+                        suppressed.add(resourceTypesToFetch[index]);
                         console.error('GlobalAttributesTable-load-applies-to: ', result.value.error); // eslint-disable-line no-console
                     }
                 });
-                setFailedAppliesToScopes(failedScopes);
+                setSuppressedScopes(suppressed);
                 setLoadError(false);
             } catch (error) {
                 // Surface an error state instead of a misleading empty state.
@@ -497,13 +513,24 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
         return () => {
             active = false;
         };
-    }, [dispatch]);
+    }, [dispatch, resourceTypesToFetch]);
+
+    // getUnlinkedSystemFieldsForGroup reads every cached user/channel/post field.
+    // Channel fields can already be in the store (channel-header labels, a prior
+    // visit while licensed) after resourceTypesToFetch has dropped that scope, so
+    // keep the table in lockstep with what this page actually fetched.
+    const allRows = useMemo(
+        () => [...fields, ...unlinkedFields.filter((field) => !suppressedScopes.has(field.object_type as ResourceObjectType))].sort(
+            (a, b) => getDisplayName(a).localeCompare(getDisplayName(b)),
+        ),
+        [fields, unlinkedFields, suppressedScopes],
+    );
 
     // The Source column resolves plugin-owned rows to a plugin display name, but
     // server-only plugins are absent from the webapp manifest registry — their names
     // live in the admin plugin statuses, which nothing else on this page loads.
     // Fetched once, and only when a plugin-owned row is actually present.
-    const hasPluginOwnedFields = useMemo(() => fields.some((field) => Boolean(field.attrs?.source_plugin_id)), [fields]);
+    const hasPluginOwnedFields = useMemo(() => allRows.some((field) => Boolean(field.attrs?.source_plugin_id)), [allRows]);
 
     // Whether the plugin inventory is known yet. This gates the orphan check
     // rather than the Source column, which degrades harmlessly to the plugin ID:
@@ -550,14 +577,12 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
     }, [deleteError, deleteModalExited]);
 
     const rows = useMemo(
-        () => [...fields].
-            sort((a, b) => getDisplayName(a).localeCompare(getDisplayName(b))).
-            filter((field) => fieldMatchesSearch(field, searchQuery, formatMessage(getTypeLabel(field.type)))),
-        [fields, formatMessage, searchQuery],
+        () => allRows.filter((field) => fieldMatchesSearch(field, searchQuery, formatMessage(getTypeLabel(field.type)))),
+        [allRows, formatMessage, searchQuery],
     );
 
     const handleRowClick = useCallback((fieldId: string) => {
-        const field = fields.find((candidate) => candidate.id === fieldId);
+        const field = allRows.find((candidate) => candidate.id === fieldId);
         if (!field) {
             return;
         }
@@ -570,11 +595,18 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
         }
 
         getHistory().push(attributeDetailsRoute(field.id));
-    }, [classificationAttributePageReachable, classificationMarkingsReachable, fields, groupId]);
+    }, [classificationAttributePageReachable, classificationMarkingsReachable, allRows, groupId]);
 
     const columns = useMemo<Array<ColumnDef<PropertyField, any>>>(() => {
         const isClassificationRow = (field: PropertyField) =>
             isClassificationMarkingsField(field, groupId) && classificationMarkingsReachable;
+
+        // A non-template field is its own single resource, so it has no linked
+        // fields to derive chips from -- its object type *is* its applies-to,
+        // the same value its details page shows locked.
+        const appliesToFor = (field: PropertyField): ResourceObjectType[] =>
+            appliesToByTemplateId[field.id] ??
+            ALL_RESOURCE_TYPES.filter((type) => type === field.object_type);
 
         return [
             columnHelper.accessor((row) => getDisplayName(row), {
@@ -610,7 +642,7 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                 id: 'applies_to',
                 header: () => <FormattedMessage {...messages.appliesTo}/>,
                 cell: ({row}) => (
-                    <AppliesToCell types={appliesToByTemplateId[row.original.id] ?? []}/>
+                    <AppliesToCell types={appliesToFor(row.original)}/>
                 ),
                 enableHiding: false,
             }),
@@ -690,7 +722,7 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
     }
 
     if (rows.length === 0) {
-        const isSearchEmpty = fields.length > 0 && Boolean(searchQuery.trim());
+        const isSearchEmpty = allRows.length > 0 && Boolean(searchQuery.trim());
         return (
             <div
                 className='GlobalAttributesTable__empty'
