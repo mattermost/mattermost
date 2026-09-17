@@ -19,7 +19,6 @@ import 'katex/dist/katex.min.css';
 
 import '@mattermost/compass-icons/css/compass-icons.css';
 import '@mattermost/compass-ui/styles';
-import '@mattermost/compass-ui/component-styles';
 import '@mattermost/components/dist/index.esm.css';
 
 declare global {
