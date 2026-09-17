@@ -348,7 +348,10 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 		return app.HasPermissionTo(rctx, userID, perm)
 	}
-	attrValidationHook := properties.NewAccessControlAttributeValidationHook(s.propertyService, permChecker, cpaGroup.ID)
+	attrValidationHook := properties.NewAccessControlAttributeValidationHook(s.propertyService, permChecker, cpaGroup.ID).
+		WithRequiredAttributeEnforcement(func() bool {
+			return s.Config().FeatureFlags.IsChannelAttributesRequiredEnabled()
+		})
 	s.propertyService.AddHook(attrValidationHook)
 
 	// Generic property value audit hook — groups opt in with RegisterGroup.
