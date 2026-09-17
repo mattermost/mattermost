@@ -55,19 +55,13 @@ test(
         await pw.updateLdapUser(sharedUsername, {firstname: 'UpdatedFirstname', lastname: 'UpdatedLastname'});
         await runLdapSyncAndWait(adminClient);
 
-            // * Verify the profile picked up the new LDAP value
-            await expect(async () => {
-                const provisionedUser = await adminClient.getUserByUsername(sharedUsername);
-                expect(provisionedUser.auth_service).toBe('saml');
-                expect(provisionedUser.first_name).toBe('UpdatedFirstname');
-                expect(provisionedUser.last_name).toBe('UpdatedLastname');
-            }).toPass({timeout: duration.half_min});
-        } finally {
-            await adminClient.patchConfig({
-                LdapSettings: originalConfig.LdapSettings,
-                SamlSettings: originalConfig.SamlSettings,
-            });
-        }
+        // * Verify the profile picked up the new LDAP value
+        await expect(async () => {
+            const provisionedUser = await adminClient.getUserByUsername(sharedUsername);
+            expect(provisionedUser.auth_service).toBe('saml');
+            expect(provisionedUser.first_name).toBe('UpdatedFirstname');
+            expect(provisionedUser.last_name).toBe('UpdatedLastname');
+        }).toPass({timeout: duration.half_min});
     },
 );
 
@@ -118,19 +112,13 @@ test('MM-T3013_1 SAML login keeps SAML attributes when LDAP sync is disabled', {
     await pw.updateLdapUser(sharedUsername, {firstname: 'LdapFirstname', lastname: 'LdapLastname'});
     await runLdapSyncAndWait(adminClient);
 
-        // * Verify the profile still has the original SAML values
-        await expect(async () => {
-            const provisionedUser = await adminClient.getUserByUsername(sharedUsername);
-            expect(provisionedUser.auth_service).toBe('saml');
-            expect(provisionedUser.first_name).toBe('SamlFirstname');
-            expect(provisionedUser.last_name).toBe('SamlLastname');
-        }).toPass({timeout: duration.half_min});
-    } finally {
-        await adminClient.patchConfig({
-            LdapSettings: originalConfig.LdapSettings,
-            SamlSettings: originalConfig.SamlSettings,
-        });
-    }
+    // * Verify the profile still has the original SAML values
+    await expect(async () => {
+        const provisionedUser = await adminClient.getUserByUsername(sharedUsername);
+        expect(provisionedUser.auth_service).toBe('saml');
+        expect(provisionedUser.first_name).toBe('SamlFirstname');
+        expect(provisionedUser.last_name).toBe('SamlLastname');
+    }).toPass({timeout: duration.half_min});
 });
 
 /**
@@ -184,17 +172,11 @@ test('MM-T3666 SAML LDAP sync uses a custom ID Attribute mapping', {tag: '@saml'
     await pw.updateLdapUser(sharedUsername, {firstname: 'IdUpdatedFirst', lastname: 'IdUpdatedLast'});
     await runLdapSyncAndWait(adminClient);
 
-        // * Verify the profile picked up the new LDAP value via the custom ID mapping
-        await expect(async () => {
-            const provisionedUser = await adminClient.getUserByUsername(sharedUsername);
-            expect(provisionedUser.auth_service).toBe('saml');
-            expect(provisionedUser.first_name).toBe('IdUpdatedFirst');
-            expect(provisionedUser.last_name).toBe('IdUpdatedLast');
-        }).toPass({timeout: duration.half_min});
-    } finally {
-        await adminClient.patchConfig({
-            LdapSettings: originalConfig.LdapSettings,
-            SamlSettings: originalConfig.SamlSettings,
-        });
-    }
+    // * Verify the profile picked up the new LDAP value via the custom ID mapping
+    await expect(async () => {
+        const provisionedUser = await adminClient.getUserByUsername(sharedUsername);
+        expect(provisionedUser.auth_service).toBe('saml');
+        expect(provisionedUser.first_name).toBe('IdUpdatedFirst');
+        expect(provisionedUser.last_name).toBe('IdUpdatedLast');
+    }).toPass({timeout: duration.half_min});
 });

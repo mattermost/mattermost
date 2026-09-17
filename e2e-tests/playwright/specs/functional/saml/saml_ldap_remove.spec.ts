@@ -65,19 +65,10 @@ test(
         });
         await runLdapSyncAndWait(adminClient);
 
-            // * Verify the sync deactivated the account
-            await expect(async () => {
-                const syncedUser = await adminClient.getUser(provisionedUser.id);
-                expect(syncedUser.delete_at).toBeGreaterThan(0);
-            }).toPass({timeout: duration.half_min});
-        } finally {
-            if (keeper) {
-                await pw.deleteLdapUser(keeper.username).catch(() => undefined);
-            }
-            await adminClient.patchConfig({
-                LdapSettings: originalConfig.LdapSettings,
-                SamlSettings: originalConfig.SamlSettings,
-            });
-        }
+        // * Verify the sync deactivated the account
+        await expect(async () => {
+            const syncedUser = await adminClient.getUser(provisionedUser.id);
+            expect(syncedUser.delete_at).toBeGreaterThan(0);
+        }).toPass({timeout: duration.half_min});
     },
 );
