@@ -1338,7 +1338,7 @@ describe('components/new_channel_modal - channel attributes', () => {
 
     const state: DeepPartial<GlobalState> = {
         entities: {
-            general: {config: {UseAnonymousURLs: 'false', FeatureFlagChannelAttributes: 'true', FeatureFlagChannelAttributesRequiredDisabled: 'false'}},
+            general: {config: {UseAnonymousURLs: 'false', FeatureFlagChannelAttributes: 'true', FeatureFlagChannelAttributesRequired: 'true'}},
             channels: {currentChannelId: 'current_channel_id', channels: {}, roles: {}},
             teams: {
                 currentTeamId: 'current_team_id',
@@ -1468,12 +1468,12 @@ describe('components/new_channel_modal - channel attributes', () => {
         await waitFor(() => expect(screen.getByText('This channel is missing required attributes.')).toBeInTheDocument());
     });
 
-    test('hides required attributes and never blocks Create when ChannelAttributesRequiredDisabled is on', async () => {
+    test('hides required attributes and never blocks Create when ChannelAttributesRequired is off', async () => {
         const stateWithRequiredEnforcementOff: DeepPartial<GlobalState> = {
             ...state,
             entities: {
                 ...state.entities,
-                general: {config: {...state.entities?.general?.config, FeatureFlagChannelAttributesRequiredDisabled: 'true'}},
+                general: {config: {...state.entities?.general?.config, FeatureFlagChannelAttributesRequired: 'false'}},
             },
         };
 
@@ -1489,10 +1489,10 @@ describe('components/new_channel_modal - channel attributes', () => {
         expect((createChannel as jest.Mock).mock.calls[0][0]).not.toHaveProperty('property_values');
     });
 
-    test('still offers a required classification field, without the required marker, when ChannelAttributesRequiredDisabled is on', async () => {
+    test('still offers a required classification field, without the required marker, when ChannelAttributesRequired is off', async () => {
         // Classification is the one courtesy exception: the System Console hides
-        // the Required toggle for channel fields while the kill switch is on, so
-        // there is no admin path to freshly require anything during that window.
+        // the Required toggle for channel fields when ChannelAttributesRequired is off,
+        // so there is no admin path to freshly require anything during that window.
         // Classification keeps showing anyway (unconditionally), just without the
         // required marker and without blocking Create, since nothing enforces it.
         const classification = {
@@ -1513,7 +1513,7 @@ describe('components/new_channel_modal - channel attributes', () => {
             ...state,
             entities: {
                 ...state.entities,
-                general: {config: {...state.entities?.general?.config, FeatureFlagChannelAttributesRequiredDisabled: 'true'}},
+                general: {config: {...state.entities?.general?.config, FeatureFlagChannelAttributesRequired: 'false'}},
             },
         };
 
@@ -1531,7 +1531,7 @@ describe('components/new_channel_modal - channel attributes', () => {
         await waitFor(() => expect(createChannel).toHaveBeenCalled());
     });
 
-    test('does not offer classification when ChannelAttributesRequiredDisabled is on but classification markings are not enabled', async () => {
+    test('does not offer classification when ChannelAttributesRequired is off but classification markings are not enabled', async () => {
         // classification.available false (the "Enable classification markings"
         // radio in the Classification Markings page is off / not configured) means
         // there is no classification field to special-case in the first place.
@@ -1542,7 +1542,7 @@ describe('components/new_channel_modal - channel attributes', () => {
             ...state,
             entities: {
                 ...state.entities,
-                general: {config: {...state.entities?.general?.config, FeatureFlagChannelAttributesRequiredDisabled: 'true'}},
+                general: {config: {...state.entities?.general?.config, FeatureFlagChannelAttributesRequired: 'false'}},
             },
         };
 
@@ -1552,7 +1552,7 @@ describe('components/new_channel_modal - channel attributes', () => {
         expect(screen.queryByTestId('channelAttributeRow-program')).not.toBeInTheDocument();
     });
 
-    test('does not offer classification unconditionally when ChannelAttributes itself is off, even with the kill switch on', async () => {
+    test('does not offer classification unconditionally when ChannelAttributes itself is off, even with ChannelAttributesRequired off', async () => {
         // The exception is scoped to channelAttributes.enabled specifically —
         // if the umbrella feature itself is off, useChannelAttributes never
         // surfaces the classification field here at all, so nothing to special-case.
@@ -1563,7 +1563,7 @@ describe('components/new_channel_modal - channel attributes', () => {
             ...state,
             entities: {
                 ...state.entities,
-                general: {config: {...state.entities?.general?.config, FeatureFlagChannelAttributesRequiredDisabled: 'true'}},
+                general: {config: {...state.entities?.general?.config, FeatureFlagChannelAttributesRequired: 'false'}},
             },
         };
 
@@ -1573,8 +1573,8 @@ describe('components/new_channel_modal - channel attributes', () => {
     });
 
     test('a required classification field behaves like any other required field when enforcement is on', async () => {
-        // With the kill switch off (default), classification gets no special
-        // treatment: required + enforced blocks Create like any other field.
+        // With enforcement on (ChannelAttributesRequired = true), classification
+        // gets no special treatment: required + enforced blocks Create like any other field.
         const classification = {
             ...program,
             id: 'f_classification',

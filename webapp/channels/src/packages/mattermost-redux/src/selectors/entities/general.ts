@@ -47,27 +47,13 @@ export function isChannelAttributesEnabled(state: GlobalState): boolean {
  * create-channel modal. Classification gets one courtesy exception to the
  * latter — see new_channel_modal.tsx — but is not otherwise special-cased.
  *
- * The umbrella `ChannelAttributes` must be on AND the sub-flag
- * `ChannelAttributesRequiredDisabled` must not be set. Mirrors the
- * server-side `FeatureFlags.IsChannelAttributesRequiredEnabled()` helper —
- * see its doc comment for why the sub-flag defaults to false/"disabled off"
- * rather than true/"enabled on".
+ * Both the `ChannelAttributes` umbrella and the `ChannelAttributesRequired`
+ * sub-flag must be true. Mirrors the server-side
+ * `FeatureFlags.IsChannelAttributesRequiredEnabled()` helper.
  */
 export function isChannelAttributesRequiredEnabled(state: GlobalState): boolean {
     return isChannelAttributesEnabled(state) &&
-        getConfig(state).FeatureFlagChannelAttributesRequiredDisabled !== 'true';
-}
-
-/**
- * The raw kill-switch flag alone, independent of the `ChannelAttributes`
- * umbrella. For UI that only ever renders inside an already-ChannelAttributes-
- * gated context (e.g. the Channels-resource field editor, which only exists
- * because a channel-scoped attribute is being configured) — checking the
- * umbrella flag there too would just require every unrelated unit test of
- * that UI to also fake-enable ChannelAttributes for no reason.
- */
-export function isChannelAttributesRequiredDisabled(state: GlobalState): boolean {
-    return getConfig(state).FeatureFlagChannelAttributesRequiredDisabled === 'true';
+        getConfig(state).FeatureFlagChannelAttributesRequired === 'true';
 }
 
 export function isPermissionPoliciesEnabled(state: GlobalState): boolean {

@@ -13,10 +13,10 @@ import ChannelsResourceSettings from './channels_resource_settings';
 import {DEFAULT_CHANNEL_RESOURCE_CONFIG} from './types';
 
 describe('ChannelsResourceSettings', () => {
-    const killSwitchOnState: DeepPartial<GlobalState> = {
+    const requiredEnabledState: DeepPartial<GlobalState> = {
         entities: {
             general: {
-                config: {FeatureFlagChannelAttributesRequiredDisabled: 'true'},
+                config: {FeatureFlagChannelAttributesRequired: 'true'},
             },
         },
     };
@@ -35,22 +35,22 @@ describe('ChannelsResourceSettings', () => {
         return {onChange};
     };
 
-    it('shows the Required toggle by default (kill switch off)', () => {
+    it('hides the Required toggle by default (ChannelAttributesRequired off)', () => {
         renderSettings();
-
-        expect(screen.getByTestId('channelsResourceRequired-button')).toBeInTheDocument();
-        expect(screen.getByText('Required')).toBeInTheDocument();
-    });
-
-    it('hides the Required toggle entirely when ChannelAttributesRequiredDisabled is on', () => {
-        renderSettings(killSwitchOnState);
 
         expect(screen.queryByTestId('channelsResourceRequired-button')).not.toBeInTheDocument();
         expect(screen.queryByText('Required')).not.toBeInTheDocument();
     });
 
+    it('shows the Required toggle when ChannelAttributesRequired is on', () => {
+        renderSettings(requiredEnabledState);
+
+        expect(screen.getByTestId('channelsResourceRequired-button')).toBeInTheDocument();
+        expect(screen.getByText('Required')).toBeInTheDocument();
+    });
+
     it('still shows every other setting when the Required toggle is hidden', () => {
-        renderSettings(killSwitchOnState);
+        renderSettings();
 
         expect(screen.getByText('Display location')).toBeInTheDocument();
         expect(screen.getByText('Changing the value')).toBeInTheDocument();

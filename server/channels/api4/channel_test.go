@@ -337,6 +337,7 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.ChannelAttributes = true
+		cfg.FeatureFlags.ChannelAttributesRequired = true
 	}).InitBasic(t)
 
 	// The attribute validation hook is registered against the access_control
@@ -664,16 +665,16 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 	})
 
-	t.Run("a required attribute with no value is allowed when ChannelAttributesRequiredDisabled is on", func(t *testing.T) {
+	t.Run("a required attribute with no value is allowed when ChannelAttributesRequired is off", func(t *testing.T) {
 		createField(t, model.PropertyFieldTypeText, memberLevel, model.StringInterface{
 			model.PropertyFieldAttrRequired: true,
 		})
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.FeatureFlags.ChannelAttributesRequiredDisabled = true
+			cfg.FeatureFlags.ChannelAttributesRequired = false
 		})
 		defer th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.FeatureFlags.ChannelAttributesRequiredDisabled = false
+			cfg.FeatureFlags.ChannelAttributesRequired = true
 		})
 
 		req, _ := newRequest()
@@ -682,10 +683,10 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 	})
 
-	t.Run("a required classification value is not enforced either when ChannelAttributesRequiredDisabled is on", func(t *testing.T) {
-		// The field is authored first, kill switch still off -- a channel
-		// field cannot be newly marked required once the switch is engaged,
-		// so this mirrors the real scenario: configured before, disabled after.
+	t.Run("a required classification value is not enforced either when ChannelAttributesRequired is off", func(t *testing.T) {
+		// The field is authored first with enforcement on — a channel field
+		// cannot be newly marked required once enforcement is off, so this
+		// mirrors the real scenario: configured before, enforcement disabled after.
 		optionID := model.NewId()
 		templateField, fieldErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
 			Name:       "classification",
@@ -721,10 +722,10 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 		})
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.FeatureFlags.ChannelAttributesRequiredDisabled = true
+			cfg.FeatureFlags.ChannelAttributesRequired = false
 		})
 		defer th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.FeatureFlags.ChannelAttributesRequiredDisabled = false
+			cfg.FeatureFlags.ChannelAttributesRequired = true
 		})
 
 		req, _ := newRequest()

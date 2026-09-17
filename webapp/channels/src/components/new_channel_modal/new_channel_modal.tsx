@@ -139,13 +139,12 @@ const NewChannelModal = () => {
 
     const classificationFieldId = classification.channelField?.id;
 
-    // While ChannelAttributes is on and the kill switch has disabled required
-    // enforcement, the System Console hides the Required toggle for channel
-    // fields entirely, so there is no admin path left to freshly mark one
-    // required during that window. Classification is the one courtesy
-    // exception: it is still offered here, unconditionally, so web/desktop
-    // admins can keep classifying channels even though nothing enforces it —
-    // every other channel attribute stays hidden like normal.
+    // While ChannelAttributes is on but ChannelAttributesRequired is off,
+    // the System Console hides the Required toggle for channel fields entirely,
+    // so there is no admin path left to freshly mark one required during that
+    // window. Classification is the one courtesy exception: it is still offered
+    // here unconditionally, so admins can keep classifying channels even though
+    // nothing enforces it — every other channel attribute stays hidden like normal.
     const classificationOfferedUnconditionally = channelAttributes.enabled && !requiredAttributesEnforced && classification.available;
 
     // Required attributes only (classification's exception above aside).
@@ -177,8 +176,8 @@ const NewChannelModal = () => {
             }).
             map((field) => {
                 // Visually optional and never blocking: nothing enforces this
-                // value while the kill switch is on, so the required marker
-                // would be misleading.
+                // value when ChannelAttributesRequired is off, so the required
+                // marker would be misleading.
                 if (field.id === classificationFieldId && classificationOfferedUnconditionally && isPropertyFieldRequired(field)) {
                     return {...field, attrs: {...field.attrs, required: false}};
                 }

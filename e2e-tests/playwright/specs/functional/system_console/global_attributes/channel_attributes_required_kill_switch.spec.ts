@@ -2,13 +2,12 @@
 // See LICENSE.txt for license information.
 
 /**
- * The ChannelAttributesRequiredDisabled kill switch.
+ * The ChannelAttributesRequired feature flag.
  *
- * Ops can flip this flag to make required-attribute enforcement inert without a
- * redeploy (e.g. mobile cannot yet supply required values at creation time).
- * These specs cover the two surfaces the switch actually changes: whether the
- * create-channel dialog asks for a value, and whether the System Console still
- * offers the Required toggle at all while the switch is engaged.
+ * Ops can flip this flag to enable required-attribute enforcement without a
+ * redeploy. These specs cover the two surfaces the flag actually changes:
+ * whether the create-channel dialog asks for a value, and whether the System
+ * Console offers the Required toggle at all.
  */
 
 import type {Client4} from '@mattermost/client';
@@ -18,16 +17,16 @@ import {expect, test, getAdminClient} from '@mattermost/playwright-lib';
 import {configureChannelAttribute, deleteChannelFieldIfExists} from './applies_to_helpers';
 import {deleteGlobalAttributeFieldIfExists, requireGlobalAttributesEnabled} from './global_attributes_helpers';
 
-async function setRequiredEnforcementKillSwitch(adminClient: Client4, enabled: boolean) {
+async function setChannelAttributesRequired(adminClient: Client4, enabled: boolean) {
     await adminClient.patchConfig({
         FeatureFlags: {
-            ChannelAttributesRequiredDisabled: enabled,
+            ChannelAttributesRequired: enabled,
         },
     } as any);
 }
 
 test.describe(
-    'System Console - ChannelAttributesRequiredDisabled kill switch',
+    'System Console - ChannelAttributesRequired feature flag',
     {tag: ['@system_console', '@channel_attributes']},
     () => {
         // Shares the server-wide GlobalAttributes/ChannelAttributes flags with the
@@ -35,19 +34,19 @@ test.describe(
         test.describe.configure({mode: 'serial'});
 
         test.afterEach(async () => {
-            // Belt-and-suspenders: never leave the kill switch engaged for a later
-            // spec file, even if an assertion above threw mid-test.
+            // Belt-and-suspenders: always restore flag to default (false = off)
+            // so a later spec file doesn't inherit enforcement being on.
             const {adminClient} = await getAdminClient();
-            await setRequiredEnforcementKillSwitch(adminClient, false);
+            await setChannelAttributesRequired(adminClient, false);
         });
 
         /**
-         * @objective Ensure that with the kill switch engaged, a channel field already
-         * marked required is hidden from the create-channel dialog and no longer
-         * blocks creation — mirroring the QA scenario where the field was configured
-         * before an incident, and ops disables enforcement afterward.
+         * @objective Ensure that with ChannelAttributesRequired off, a channel field
+         * already marked required is hidden from the create-channel dialog and no
+         * longer blocks creation — mirroring the QA scenario where the field was
+         * configured while enforcement was on, and ops later disables enforcement.
          */
-        test('creating a channel succeeds with no value for a required attribute once the kill switch is on', async ({
+        test('creating a channel succeeds with no value for a required attribute when ChannelAttributesRequired is off', async ({
             pw,
         }) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
@@ -57,20 +56,23 @@ test.describe(
             let name = '';
 
             try {
-                // # Configure a required channel attribute the normal way, kill switch
-                // still off — this is the field an admin set up before any incident.
+                // # Enable enforcement so the Required toggle is visible, allowing
+                // # the attribute to be configured as required via the UI.
+                await setChannelAttributesRequired(adminClient, true);
+                await pw.skipIfFeatureFlagNotSet('ChannelAttributesRequired', true);
+
                 const {systemConsolePage} = await pw.testBrowser.login(adminUser);
                 name = await configureChannelAttribute(systemConsolePage, {
-                    displayName: `Killswitch ${suffix}`,
+                    displayName: `Required ${suffix}`,
                     type: 'Select',
                     options: ['ALPHA'],
                     required: true,
                     displayLocations: ['display_label_header'],
                 });
 
-                // # Ops engages the kill switch after the fact
-                await setRequiredEnforcementKillSwitch(adminClient, true);
-                await pw.skipIfFeatureFlagNotSet('ChannelAttributesRequiredDisabled', true);
+                // # Ops disables enforcement after the fact (e.g. mobile rollout issue)
+                await setChannelAttributesRequired(adminClient, false);
+                await pw.skipIfFeatureFlagNotSet('ChannelAttributesRequired', false);
 
                 // # A fresh session picks up the new config
                 const {team} = await pw.initSetup();
@@ -78,15 +80,14 @@ test.describe(
                 await channelsPage.goto(team.name);
                 await channelsPage.toBeVisible();
 
-                const displayName = `Attr Killswitch ${suffix}`;
+                const displayName = `Attr Required ${suffix}`;
                 const modal = await channelsPage.openNewChannelModal();
 
-                // * The field is no longer offered: nothing enforces it while the
-                // * switch is engaged, so asking for it would be misleading
+                // * The field is not offered — enforcement is off, so asking for it
+                // * would be misleading
                 await expect(channelsPage.page.getByTestId(`channelAttributeRow-${name}`)).toHaveCount(0);
 
-                // # Create the channel with no value for the (still nominally
-                // # required) attribute
+                // # Create the channel with no value for the (still nominally required) attribute
                 await modal.fillDisplayName(displayName);
                 await modal.create();
 
@@ -104,12 +105,12 @@ test.describe(
         });
 
         /**
-         * @objective Ensure the System Console hides the Required toggle for a
-         * channel-resource attribute entirely while the kill switch is engaged (there
-         * is no admin path to freshly mark one required during that window), and that
-         * the toggle comes back once the switch is disengaged again.
+         * @objective Ensure the System Console shows the Required toggle for a
+         * channel-resource attribute when ChannelAttributesRequired is on, and hides
+         * it when the flag is off (no admin path to freshly mark a field required
+         * while enforcement is disabled).
          */
-        test('hides the Required toggle for channel attributes while the kill switch is on, and restores it when off', async ({
+        test('shows the Required toggle for channel attributes when ChannelAttributesRequired is on, hides it when off', async ({
             pw,
         }) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
@@ -117,35 +118,35 @@ test.describe(
 
             const suffix = pw.random.id();
 
-            // # Engage the kill switch before opening the New attribute form
-            await setRequiredEnforcementKillSwitch(adminClient, true);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributesRequiredDisabled', true);
+            // # Enable enforcement before opening the New attribute form
+            await setChannelAttributesRequired(adminClient, true);
+            await pw.skipIfFeatureFlagNotSet('ChannelAttributesRequired', true);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             const {globalAttributes} = systemConsolePage;
             const {attributeAppliesToChannels} = globalAttributes;
 
             await globalAttributes.gotoNewAttribute();
-            await globalAttributes.setDisplayName(`Killswitch Toggle ${suffix}`);
+            await globalAttributes.setDisplayName(`Required Toggle ${suffix}`);
             await attributeAppliesToChannels.addResource();
 
-            // * No admin path to mark it required while the switch is engaged
-            await expect(attributeAppliesToChannels.requiredToggle).toHaveCount(0);
+            // * Required toggle is visible — enforcement is on
+            await expect(attributeAppliesToChannels.requiredToggle).toBeVisible();
 
-            // # Disengage the switch and load the form fresh
-            await setRequiredEnforcementKillSwitch(adminClient, false);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributesRequiredDisabled', false);
+            // # Disable enforcement and load the form fresh
+            await setChannelAttributesRequired(adminClient, false);
+            await pw.skipIfFeatureFlagNotSet('ChannelAttributesRequired', false);
 
             const {systemConsolePage: systemConsolePageAfter} = await pw.testBrowser.login(adminUser);
             const globalAttributesAfter = systemConsolePageAfter.globalAttributes;
             const attributeAppliesToChannelsAfter = globalAttributesAfter.attributeAppliesToChannels;
 
             await globalAttributesAfter.gotoNewAttribute();
-            await globalAttributesAfter.setDisplayName(`Killswitch Toggle Restored ${suffix}`);
+            await globalAttributesAfter.setDisplayName(`Required Toggle Off ${suffix}`);
             await attributeAppliesToChannelsAfter.addResource();
 
-            // * The toggle is back, confirming it works both ways
-            await expect(attributeAppliesToChannelsAfter.requiredToggle).toBeVisible();
+            // * Required toggle hidden — enforcement is off, no admin path to mark required
+            await expect(attributeAppliesToChannelsAfter.requiredToggle).toHaveCount(0);
 
             // Neither form was saved, so there is no attribute field to clean up.
         });
