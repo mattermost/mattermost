@@ -23,12 +23,15 @@
     }
 }
 
+.GlobalAttributes__newAttribute {
+    flex-shrink: 0;
+    margin-inline-start: 16px;
+}
+
 .GlobalAttributes__actions {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     padding: 24px;
-    gap: 12px;
 }
 
 .GlobalAttributes__search {
@@ -42,6 +45,8 @@
 }
 
 .GlobalAttributes__headerGroup {
+    min-width: 0;
+
     h1 {
         margin: 0;
         color: var(--center-channel-color);

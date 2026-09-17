@@ -409,6 +409,14 @@ func (a *App) runGuardedScheduledPostWillBeCreated(
 	callerName string,
 	buildRejectionErr func(reason string) *model.AppError,
 ) (*model.ScheduledPost, *model.AppError) {
+	// Plugins must never learn that a burn-on-read post happened, matching CreatePost. The hook
+	// is skipped outright rather than sanitized, so guard claimants cannot reject these either.
+	// Unlike CreatePost, which gates this at the call site before invoking the guarded hook, the
+	// check lives inside this method so callers can't accidentally run the hook for these posts.
+	if scheduledPost.Type == model.PostTypeBurnOnRead {
+		return scheduledPost, nil
+	}
+
 	// Channel the guard is resolved for; reused for the inactive-plugin log below.
 	originalChannelID := scheduledPost.ChannelId
 
