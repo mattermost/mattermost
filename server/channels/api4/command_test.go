@@ -1587,6 +1587,68 @@ func TestExecutePostCommand(t *testing.T) {
 	require.Equal(t, expectedCommandResponse, commandResponse)
 }
 
+func TestExecutePostCommandWithSuccessStatusOtherThanOK(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+	channel := th.BasicChannel
+
+	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
+	allowedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
+	siteURL := *th.App.Config().ServiceSettings.SiteURL
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
+		})
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SiteURL = &siteURL })
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.0/8" })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065" })
+
+	expectedCommandResponse := &model.CommandResponse{
+		Text:         "the remote integration accepted the request",
+		ResponseType: model.CommandResponseTypeInChannel,
+	}
+
+	// Integrations such as Tines answer a webhook with 201 Created on success.
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+		if err := json.NewEncoder(w).Encode(expectedCommandResponse); err != nil {
+			th.TestLogger.Warn("Error while writing response", mlog.Err(err))
+		}
+	}))
+	defer ts.Close()
+
+	postCmd := &model.Command{
+		CreatorId: th.BasicUser.Id,
+		TeamId:    th.BasicTeam.Id,
+		URL:       ts.URL,
+		Method:    model.CommandMethodPost,
+		Trigger:   "createdcommand",
+	}
+
+	_, appErr := th.App.CreateCommand(postCmd)
+	require.Nil(t, appErr, "failed to create post command")
+
+	commandResponse, _, err := client.ExecuteCommand(context.Background(), channel.Id, "/createdcommand")
+	require.NoError(t, err)
+	require.NotNil(t, commandResponse)
+	require.Equal(t, expectedCommandResponse.Text, commandResponse.Text)
+
+	// The response is posted into the channel rather than surfaced as an error to the user.
+	posts, _, err := client.GetPostsForChannel(context.Background(), channel.Id, 0, 60, "", false, false)
+	require.NoError(t, err)
+
+	var messages []string
+	for _, post := range posts.Posts {
+		messages = append(messages, post.Message)
+	}
+	require.Contains(t, messages, expectedCommandResponse.Text)
+}
+
 func TestExecuteCommandAgainstChannelOnAnotherTeam(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

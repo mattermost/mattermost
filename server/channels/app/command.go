@@ -630,7 +630,8 @@ func (a *App) DoCommandRequest(rctx request.CTX, cmd *model.Command, p url.Value
 	// Handle the response
 	body := io.LimitReader(resp.Body, MaxIntegrationResponseSize)
 
-	if resp.StatusCode != http.StatusOK {
+	// Any 2xx status is a success; integrations legitimately answer with 201, 202 or 204.
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
 		// Ignore the error below because the resulting string will just be the empty string if bodyBytes is nil
 		bodyBytes, _ := io.ReadAll(body)
 

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -471,6 +472,78 @@ func TestDoCommandRequest(t *testing.T) {
 
 		assert.NotNil(t, resp)
 		assert.Equal(t, "Hello, World!", resp.Text)
+	})
+
+	t.Run("with a valid json response and a non-200 success status", func(t *testing.T) {
+		for _, statusCode := range []int{
+			http.StatusOK,
+			http.StatusCreated,
+			http.StatusAccepted,
+			http.StatusNonAuthoritativeInfo,
+			http.StatusPartialContent,
+			299,
+		} {
+			t.Run(strconv.Itoa(statusCode), func(t *testing.T) {
+				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					w.Header().Add("Content-Type", "application/json")
+					w.WriteHeader(statusCode)
+
+					_, err := io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
+					require.NoError(t, err)
+				}))
+				t.Cleanup(server.Close)
+
+				_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
+				require.Nil(t, err)
+
+				require.NotNil(t, resp)
+				assert.Equal(t, "Hello, World!", resp.Text)
+			})
+		}
+	})
+
+	t.Run("with an empty 204 response", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusNoContent)
+		}))
+		t.Cleanup(server.Close)
+
+		_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
+		require.Nil(t, err)
+
+		require.NotNil(t, resp)
+		assert.Empty(t, resp.Text)
+	})
+
+	t.Run("with an unsuccessful response", func(t *testing.T) {
+		// 300 is returned to the caller as-is because there is no Location header for the
+		// client to follow, so it exercises the upper bound of the accepted range.
+		for statusCode, expectedStatus := range map[int]string{
+			http.StatusMultipleChoices:     "300 Multiple Choices",
+			http.StatusBadRequest:          "400 Bad Request",
+			http.StatusNotFound:            "404 Not Found",
+			http.StatusInternalServerError: "500 Internal Server Error",
+		} {
+			t.Run(strconv.Itoa(statusCode), func(t *testing.T) {
+				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					w.WriteHeader(statusCode)
+
+					_, err := io.Copy(w, strings.NewReader("the remote integration is unhappy"))
+					require.NoError(t, err)
+				}))
+				t.Cleanup(server.Close)
+
+				_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL, Trigger: "unhappy"}, url.Values{})
+				require.NotNil(t, err)
+				require.Nil(t, resp)
+
+				assert.Equal(t, "api.command.execute_command.failed_resp.app_error", err.Id)
+				assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
+				// The upstream status is surfaced to the user and its body kept for the admin.
+				assert.Equal(t, fmt.Sprintf("Command with a trigger of 'unhappy' returned response %s.", expectedStatus), err.Message)
+				assert.Equal(t, "the remote integration is unhappy", err.DetailedError)
+			})
+		}
 	})
 
 	t.Run("with a large text response", func(t *testing.T) {
