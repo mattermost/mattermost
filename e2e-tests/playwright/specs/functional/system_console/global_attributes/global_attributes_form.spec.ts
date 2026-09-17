@@ -916,8 +916,12 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
             await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
             const timestamp = Date.now();
-            const displayName = `Playwright Applies To Retry ${timestamp}`;
-            const expectedName = `playwright_applies_to_retry_${timestamp}`;
+            // Kept short: see the "saves Profile display..." test below -- a full
+            // "Playwright Applies To Retry <timestamp>" exceeds the Display name input's
+            // 40-char maxLength, so the server persists a silently truncated name that
+            // this test's own hand-computed expectedName then never matches.
+            const displayName = `PW Applies Retry ${timestamp}`;
+            const expectedName = `pw_applies_retry_${timestamp}`;
 
             try {
                 const {systemConsolePage} = await pw.testBrowser.login(adminUser);
