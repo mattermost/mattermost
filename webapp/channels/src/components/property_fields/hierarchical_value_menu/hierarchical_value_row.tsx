@@ -148,6 +148,7 @@ export default function HierarchicalValueRow({
             style={{paddingInlineStart: `${ROW_BASE_INSET + ((depth - 1) * ROW_DEPTH_INSET)}px`}}
             onClick={activate}
             onKeyDown={handleKeyDown}
+            isLabelsRowLayout={true}
             leadingElement={
                 <span
                     className={classNames('hierarchical-value-menu__checkbox', {
@@ -160,30 +161,32 @@ export default function HierarchicalValueRow({
                 </span>
             }
             labels={
-                <span className='hierarchical-value-menu__labels'>
-                    <span className='hierarchical-value-menu__label'>{label}</span>
-                    {hint ? <span className='hierarchical-value-menu__hint'>{hint}</span> : null}
-                </span>
-            }
-            trailingElements={
                 <span
-                    className='hierarchical-value-menu__trailing'
+                    className='hierarchical-value-menu__content'
                     data-hit={isBranch ? 'expand' : undefined}
                 >
-                    {showInsideCount ? (
-                        <span
-                            className='hierarchical-value-menu__count'
-                            id={insideCountId}
-                        >
-                            {formatMessage(messages.nInside, {count: insideCount})}
-                        </span>
-                    ) : null}
-                    {isBranch ? (
-                        <span
-                            className='hierarchical-value-menu__chevron'
-                            aria-hidden={true}
-                        >
-                            {isExpanded ? <ChevronDownIcon size={16}/> : <ChevronRightIcon size={16}/>}
+                    <span className='hierarchical-value-menu__labels'>
+                        <span className='hierarchical-value-menu__label'>{label}</span>
+                        {hint ? <span className='hierarchical-value-menu__hint'>{hint}</span> : null}
+                    </span>
+                    {(showInsideCount || isBranch) ? (
+                        <span className='hierarchical-value-menu__trailing'>
+                            {showInsideCount ? (
+                                <span
+                                    className='hierarchical-value-menu__count'
+                                    id={insideCountId}
+                                >
+                                    {formatMessage(messages.nInside, {count: insideCount})}
+                                </span>
+                            ) : null}
+                            {isBranch ? (
+                                <span
+                                    className='hierarchical-value-menu__chevron'
+                                    aria-hidden={true}
+                                >
+                                    {isExpanded ? <ChevronDownIcon size={16}/> : <ChevronRightIcon size={16}/>}
+                                </span>
+                            ) : null}
                         </span>
                     ) : null}
                 </span>

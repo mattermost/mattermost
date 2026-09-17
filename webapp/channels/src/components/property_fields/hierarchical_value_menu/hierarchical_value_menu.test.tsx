@@ -14,6 +14,7 @@ import {
     checkboxOf,
     chevronOf,
     closeMenu,
+    contentOf,
     deferred,
     diamond,
     everyRow,
@@ -211,6 +212,36 @@ describe('HierarchicalValueMenu', () => {
             await userEvent.click(await screen.findByRole('menuitemcheckbox', {name: 'Rotary'}));
 
             expect(onSelectedIdsChange).toHaveBeenCalledWith(['opt-rotary']);
+        });
+
+        test('checkbox and label+chevron are separate hover targets on a branch', async () => {
+            mockPageAll.mockResolvedValue(hierarchy());
+            renderMenu();
+
+            await openMenu();
+            await screen.findByRole('menuitemcheckbox', {name: 'Air Program'});
+
+            const checkbox = checkboxOf('Air Program');
+            const content = contentOf('Air Program');
+
+            expect(checkbox).toHaveAttribute('data-hit', 'select');
+            expect(content).toHaveAttribute('data-hit', 'expand');
+            expect(content).toContainElement(labelOf('Air Program'));
+            expect(content).toContainElement(chevronOf('Air Program'));
+            expect(content).not.toContainElement(checkbox);
+        });
+
+        test('a leaf keeps an independent checkbox target; label is not an expand hit', async () => {
+            mockPageAll.mockResolvedValue(twoRoots());
+            renderMenu();
+
+            await openMenu();
+            await screen.findByRole('menuitemcheckbox', {name: 'Rotary'});
+
+            expect(checkboxOf('Rotary')).toHaveAttribute('data-hit', 'select');
+            expect(contentOf('Rotary')).not.toHaveAttribute('data-hit');
+            expect(contentOf('Rotary')).toContainElement(labelOf('Rotary'));
+            expect(chevronOf('Rotary')).toBeNull();
         });
 
         test('clicking a branch row element itself expands rather than selects', async () => {

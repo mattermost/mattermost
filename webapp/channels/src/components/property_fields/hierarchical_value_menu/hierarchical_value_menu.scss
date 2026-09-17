@@ -124,26 +124,73 @@
     &__row {
         // padding-inline-start is set inline, from the row's depth.
         align-items: center;
+
+        // Menu.Item paints the whole <li> on hover (and when aria-expanded).
+        // Click is already split across checkbox vs label+chevron; the hover
+        // wash has to split the same way or the two targets look like one.
+        // Three classes beat MenuItemStyled's .css-hash.MuiMenuItem-root.
+        &.MuiButtonBase-root.MuiMenuItem-root {
+            &:hover,
+            &[aria-expanded],
+            &.Mui-active {
+                background-color: transparent;
+            }
+
+            > .leading-element {
+                overflow: visible;
+            }
+
+            > .label-elements {
+                min-width: 0;
+                flex: 1 1 auto;
+            }
+        }
     }
 
     // Fills MUI's 18px .leading-element slot so the whole checkbox column is the
-    // select hit target rather than just the glyph.
+    // select hit target rather than just the glyph. Negative margin grows a
+    // rounded hover behind the icon without shifting the 18px column.
     &__checkbox {
         display: inline-flex;
-        width: 100%;
-        height: 100%;
+        width: 28px;
+        height: 28px;
         align-items: center;
         justify-content: center;
+        margin: -5px;
+        border-radius: var(--radius-s);
         color: rgba(var(--center-channel-color-rgb), 0.64);
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.8);
+        }
 
         &--selected {
             color: var(--button-bg);
         }
     }
 
+    // Label + count + chevron share one hover, matching the expand hit target.
+    &__content {
+        display: flex;
+        width: 100%;
+        min-width: 0;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding-block: 2px;
+        padding-inline: 6px;
+        border-radius: var(--radius-s);
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+        }
+    }
+
     &__labels {
         display: flex;
         min-width: 0;
+        flex: 1;
         flex-direction: column;
         align-items: flex-start;
         gap: 2px;

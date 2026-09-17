@@ -100,6 +100,7 @@ export const partOf = (element: HTMLElement, className: string) =>
     element.querySelector(`.hierarchical-value-menu__${className}`) as HTMLElement;
 
 export const checkboxOf = (name: string) => partOf(row(name), 'checkbox');
+export const contentOf = (name: string) => partOf(row(name), 'content');
 export const labelOf = (name: string) => partOf(row(name), 'label');
 export const chevronOf = (name: string) => partOf(row(name), 'chevron');
 export const hintOf = (name: string) => partOf(row(name), 'hint');
