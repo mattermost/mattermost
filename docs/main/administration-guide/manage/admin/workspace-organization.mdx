@@ -11,84 +11,128 @@ Workspace organization comes down to 3 decisions:
 2.  How channels are named and grouped within those teams.
 3.  Who is allowed to create and manage teams and channels.
 
-These decisions depend on each other. A team structure that matches how people actually work makes channel organization easier, and a clear permission model is what makes your naming conventions stick.
+These decisions depend on each other. A team structure that matches how people actually work makes channel organization easier, and your permission model is what enforces the security boundaries that structure is meant to create.
 
 ## Choose a team structure
 
-Teams are the top-level organizational unit in Mattermost. Every channel belongs to a team, and users must be a member of a team to access its channels.
+Teams form the top level of organization in Mattermost. They define who collaborates together and what information they can access, which is how you maintain data sovereignty, compliance, and operational clarity across the deployment.
 
-The most useful question isn't how to organize your teams, it's how many teams you actually need. The answer is usually fewer than expected. Teams work best as hard boundaries between groups of people who shouldn't see each other's conversations. Channels handle nearly everything else.
+Each team is an independent workspace with its own members, channels, permissions, and integrations. That separation creates clear boundaries between groups that rarely collaborate, or that operate under different levels of data sensitivity or access control. Think of a team as a secure collaboration enclave: a contained environment where people can freely share information relevant to their work.
 
-| Organization profile | Recommended structure |
-|---|---|
-| Fewer than a few thousand users, single security boundary | A single team. Use channels, categories, and naming conventions for all organization. |
-| Multiple security boundaries or classification levels | One team per boundary. Don't mix populations from different boundaries in the same team. |
-| Large enterprise with independent business units | One team per business unit or subsidiary, with an optional organization-wide team for announcements. |
-| Regular collaboration with contractors or partners | A separate team for external collaboration, or [connected workspaces](/administration-guide/onboard/connected-workspaces) if your partners also run Mattermost. |
+The most useful question isn't how to organize your teams, it's how many you actually need. The answer is usually fewer than expected. Use teams to separate populations that shouldn't share data or that don't work together often.
 
-### Single team
-
-A single team suits organizations operating under one security boundary where no group needs to be hidden from another. Everyone shares one workspace, and channels, [categories](/end-user-guide/preferences/customize-your-channel-sidebar), and naming conventions carry all the structure. This model is the simplest to administer and gives people the broadest visibility across the organization.
-
-A single team is a poor fit when some groups shouldn't be able to see that other channels or people exist, or when the notification volume of the whole organization would overwhelm an individual.
-
-### Multiple teams by business unit
-
-Large organizations with business units, group companies, or subsidiaries that operate independently often give each unit its own team. An organization-wide team with read-only announcement channels can sit alongside them.
-
-This model limits sidebar noise for people who only need visibility into their own unit, and it lets each unit set its own channel structure and policies. Be aware of two trade-offs. First, users in separate teams can't share a channel, so cross-unit projects need either a shared team or [connected workspaces](/administration-guide/onboard/connected-workspaces). Second, the same sprawl problem that uncontrolled channel creation causes within a team can happen at the team level.
-
-### Multiple teams by security boundary
-
-Where separation is a security control rather than an organizational preference, teams enforce it. Populations in separate teams have no visibility into each other's channels, including public ones.
-
-Consider this model when your organization operates at multiple classification levels, when groups such as security operations, legal, or executives shouldn't see general workspace activity, or when compliance requires demonstrable access separation. Pair it with [attribute-based access control](/administration-guide/manage/admin/attribute-based-access-control) to keep membership synchronized with your identity provider.
-
-Avoid over-segmenting. Creating a team for every role fragments communication and is difficult to administer. Use teams for hard security boundaries and private channels for softer separation.
-
-### External collaboration
-
-Organizations that regularly work with contractors, partners, or customers usually keep that collaboration out of their main internal teams.
-
-[Guest accounts](/administration-guide/onboard/guest-accounts) restrict an external user to the specific channels and teams they're invited to. They can't browse the channel directory or join channels on their own. Guest accounts fit when your external collaborators don't run Mattermost themselves and the scope of collaboration is limited.
-
-[Connected workspaces](/administration-guide/onboard/connected-workspaces) let users on separate Mattermost servers share channels without either organization exposing its internal workspace. This is the better model when your partners run their own Mattermost deployment, or when your compliance posture requires that external users are never provisioned on your server.
+| Operational boundary | Recommended structure | Example teams |
+|---|---|---|
+| **None** | A single team. [Channel types](/end-user-guide/collaborate/channel-types) and [access controls](/administration-guide/manage/admin/user-management) still manage access to information within it, so one team doesn't mean everyone sees everything. | `Acme Company` |
+| **Security boundaries** | One team per boundary. Separation covers more than channels: it also limits which people and integrations each group can see, and lets you give each population the permission set your compliance policies require. | `Field Ops`, `R&D`, `Regulatory Compliance` |
+| **Business unit segmentation** | One team per business unit, subsidiary, or region, with an optional organization-wide team for announcements. Gives each unit autonomy and its own compliance posture within one deployment. | `Americas`, `EMEA`, `APAC` |
+| **External access control** | A separate team for external collaboration, isolating partners and contractors from internal systems. Use [connected workspaces](/administration-guide/onboard/connected-workspaces) instead when your partners also run Mattermost. | `Core Platform`, `Integration Partners`, `Customer Deployments` |
 
 <Note>
 
-**Watch for team sprawl.** Teams created without a clear policy accumulate into a list nobody can navigate. The warning signs are people who belong to many teams but use only a few, rising notification complaints, and admins who can't tell which teams are still active.
+**Watch for team sprawl.** Teams created without a clear policy accumulate into a list nobody can navigate. Warning signs include people who belong to many teams but use only a few, notification overload, and new users who can't tell which teams matter.
 
-To keep sprawl in check, decide what warrants a team before you need one. A distinct organizational unit, security boundary, or long-running program justifies a team; a temporary project or working group doesn't. Restrict the **Create Teams** permission through the [system scheme or a team override scheme](/administration-guide/onboard/advanced-permissions#permissions-structure), use [channel categories](#organize-the-sidebar-with-categories) for separation within a team, and [archive teams](/end-user-guide/collaborate/organize-using-teams#archive-a-team) that have gone quiet.
+If your deployment shows these signs, restrict who can create teams in **System Console \> User Management \> Permissions**, [archive inactive teams](/end-user-guide/collaborate/organize-using-teams#archive-a-team) in **System Console \> Teams**, and move structure into channels and [categories](#organize-the-sidebar).
 
 </Note>
 
-## Establish channel naming conventions
+### Single team
 
-Consistent channel names are what let people navigate a large workspace without training. For the product rules that constrain any name, such as length limits and allowed characters, see [create channels](/end-user-guide/collaborate/create-channels#channel-name-rules).
+Best for organizations with fewer than about 2,000 users under a single security boundary, with no need to isolate groups from one another. Everyone shares one workspace. Channels, [categories](/end-user-guide/preferences/customize-your-channel-sidebar), and naming conventions carry all the structure. This model is the easiest to administer and gives people the broadest visibility across the organization.
+
+A single team still gives you control over who sees what. Private channels limit membership, and [access control policies](/administration-guide/manage/admin/attribute-based-access-control) can gate channels on user attributes without splitting the workspace into separate teams.
+
+**Use a single team when:**
+
+- Your organization has a unified directory (one IdP, one LDAP/SAML source).
+- All users operate at the same classification level or sensitivity tier.
+- You want maximum visibility and searchability across the organization.
+- Your user count stays manageable within one channel list.
+
+**Avoid a single team when:**
+
+- You need to prevent certain groups from even seeing that other channels or users exist.
+- You have subsidiaries, partner organizations, or external users who shouldn't mix with your internal workspace.
+- Notification volume from the full organization would overwhelm individual users.
+
+### Multiple teams by security boundary
+
+Best for organizations where different populations must be separated by classification level, role, or data sensitivity — not just for organizational clarity, but as a security control. Populations in separate teams have no visibility into each other's channels, including public ones. A developer team and a security operations team, for example, wouldn't see each other's content at all.
+
+![A multi-team workspace with a classification banner and isolated teams for different security boundaries.](/images/workspace-org-security-boundary-teams.png)
+
+The boundary covers more than channels. Integrations such as webhooks and slash commands are created within a team and stay scoped to it, and a [team override scheme](/administration-guide/onboard/advanced-permissions#team-override-scheme) lets each population run under the permission set its compliance obligations call for.
+
+To keep people from discovering users outside their own team, do both of the following:
+
+1.  In **System Console \> Site Configuration \> Users and Teams**, set [Enable users to open direct message channels with](/administration-guide/configure/site-configuration-settings#enable-users-to-open-direct-message-channels-with) to **Any member of the team**. That restricts the Direct Messages menu and Find channel to people on the team currently being viewed.
+2.  Set each security-boundary team to [Private Team](/end-user-guide/collaborate/team-settings#discoverability), so users who aren't already members can't find or join it.
+
+**Use security-boundary teams when:**
+
+- Your organization operates at multiple classification levels (for example, FOUO, CUI, or classified).
+- Certain populations — such as security operations, legal, or executives — should have no visibility into general workspace activity.
+- Your compliance posture requires demonstrable access separation at the collaboration layer.
+
+Pair this pattern with [attribute-based access control](/administration-guide/manage/admin/attribute-based-access-control) to automate team and channel membership from identity-provider attributes.
+
+### Multiple teams by business unit
+
+Best for large organizations with distinct business units, group companies, or subsidiaries that operate independently but share a single Mattermost server. Each major unit gets its own team. An organization-wide team with announcement channels is optional. Within each team, people organize by project and function using channels and categories. Common examples include a financial services firm with a team per subsidiary, or a conglomerate whose group companies share infrastructure but operate independently.
+
+**Use multi-team by business unit when:**
+
+- Different parts of your organization need meaningfully different channel structures and policies.
+- You want to limit sidebar noise for people who only need visibility into their own unit.
+- Performance is a concern — multiple teams distribute database query load.
+
+**Watch out for:**
+
+- **Team sprawl.** Creating a team for every project or sub-group, rather than using channels, recreates the sprawl problem at the team level. Set a policy for what warrants a new team versus a new channel.
+- **Cross-team collaboration gaps.** Users in separate teams can't share a channel. For cross-unit projects, use a shared team that both populations can join.
+
+### Multiple teams for external access
+
+Best for organizations that regularly collaborate with contractors, partners, customers, or coalition partners who shouldn't have full access to the internal workspace. One approach is a dedicated team (or set of teams) for external collaboration. Internal users can belong to both internal and external-facing teams.
+
+Two alternatives avoid standing up a separate team:
+
+- [Guest accounts](/administration-guide/onboard/guest-accounts) restrict an external user to the specific channels and teams they're invited to. They can't browse the channel directory or join channels on their own. Guest accounts fit when your external collaborators don't run Mattermost themselves and the scope of collaboration is limited.
+- [Connected workspaces](/administration-guide/onboard/connected-workspaces) let users on separate Mattermost servers share channels without either organization exposing its internal workspace. This is the preferred model when your partners also run Mattermost, or when your compliance posture requires that external users are never provisioned on your server.
+
+## Establish a channel taxonomy
+
+Within each team, channels carry the organizational structure. A consistent taxonomy — a defined set of channel types, naming conventions, and sidebar categories — is what lets people navigate a large workspace without training.
+
+### Channel naming conventions
+
+Consistent channel names are what make the taxonomy navigable at scale. For the product rules that constrain any name, such as length limits and allowed characters, see [create channels](/end-user-guide/collaborate/create-channels#channel-name-rules).
 
 Good naming carries a team to several thousand channels without significant confusion. Every organization eventually hits a limit where an additional team is the better answer, but clear, short names postpone that point considerably.
 
-### Start broad, then narrow
+#### Start broad, then narrow
 
-It's natural to begin with broadly defined channels and let them divide as discussion grows. A single "Marketing" channel might become "Marketing: Website", "Marketing: Social Media", and "Marketing: General". As the organization grows, disciplines split across business units, products, and geographies, producing names like "US: Marketing" and "UK: Marketing".
+It's natural to begin with broadly defined channels and let them divide as discussion grows. A single "Marketing" channel might become "Marketing-Website", "Marketing-Social-Media", and "Marketing-General". As the organization grows, disciplines split across business units, products, and geographies, producing names like "US-Marketing" and "UK-Marketing".
 
-Hierarchies combine into formats like `[SUB-TEAM]: [TOPIC]: [SUB-TOPIC]`, giving names such as `US: Mrkt: Website` and `UK: Mrkt: Social Media`.
+Hierarchies combine into formats like `[SUB-TEAM]-[TOPIC]-[SUB-TOPIC]`, giving names such as `US-Mrkt-Website` and `UK-Mrkt-Social-Media`.
 
 <Tip>
 
-Use colons to separate sections of a channel's display name rather than `-` or `>`, which need more surrounding space to stay readable. Whichever separator you choose, use it consistently. A workspace where some channels use dashes, others underscores, and others spaces looks unmanaged.
+Pick one separator and use it consistently. Common separators include `-`, `:`, `|`, and `>`.
 
 </Tip>
 
 Shorten words, particularly category names, by removing vowels, word endings, and redundant letter sounds. "Marketing" becomes "Mrkt" and "Project" becomes "Prjt". For countries, use standard [2-letter country codes](https://www.nationsonline.org/oneworld/country_code_list.htm).
 
-### Group related channels with a shared prefix
+#### Group related channels with a shared prefix
 
 Channels that belong together should share a prefix, such as `ops-`, `proj-`, `inc-`, or `social-`. Shared prefixes group related channels in search results and in [Find channel](/end-user-guide/collaborate/navigate-between-channels), so typing the prefix surfaces the whole set.
 
+![Browsing channels filtered by the ops- prefix to find related operational channels.](/images/workspace-org-browse-channels-prefix.png)
+
 Prefer descriptive names over abbreviations for channels that new users and external collaborators will encounter. Abbreviations are efficient once someone knows the system and opaque before then. Reserve them for conventions that are standard and documented.
 
-### Prefix names with emojis
+#### Prefix names with emojis
 
 Emoji prefixes are a lightweight way to make a long channel list scannable, and they work alongside text prefixes rather than replacing them. Using the same emoji across every channel in a category reinforces that grouping visually, so people locate the channel they need at a glance instead of reading the whole sidebar.
 
@@ -96,19 +140,19 @@ The payoff is largest in big workspaces and during onboarding. New members infer
 
 For the steps to insert one, see [add an emoji to a channel name](/end-user-guide/collaborate/create-channels#add-an-emoji-to-a-channel-name).
 
-### Common channel patterns
+#### Common channel patterns
 
 Most workspaces end up with some mix of the following:
 
-- **Topic channels** organize broad subject areas, much like folders for email or documents. Examples: Recruiting, Interviews, Legal Reviews, Documentation. As the channel count grows, name topics in a hierarchy so related ones sort together: `Legal: Trademarks`, `Legal: Contracts`, `Legal: Licensing`.
-- **Announcement channels** broadcast from leadership or operations. Restrict posting to admins or designated roles by making them [read-only](/administration-guide/onboard/advanced-permissions#read-only-channels), so people receive the information without generating reply noise.
-- **Meeting channels** organize recurring meetings, where members post agenda items ahead of the meeting time. Examples: Monday Sales Update, All Hands Meeting. Number agenda items using [Markdown formatting](/end-user-guide/collaborate/format-messages#use-markdown), discuss each item in its own [thread](/end-user-guide/collaborate/organize-conversations#start-or-reply-to-threads) before and after the meeting, and keep the conferencing link in the [channel header](/end-user-guide/collaborate/channel-header-purpose#channel-header) so attendees can join from the channel.
-- **Sub-team channels** gather a discipline, a project team, or a manager's reports. Examples: Developers, Marketers, Offsite Organizing Committee. These subdivide as they outgrow a single channel, into `US: Developers` and `UK: Developers`.
-- **Project channels** are scoped to a specific outcome and are often private and time-bounded. Examples: Logo Design, Localization, Product Launch. Detailed work happens here, and summaries flow back to the larger channel the project came from.
-- **Location channels** help people in the same building, city, or region coordinate meetings and events. Examples: Building 10, Palo Alto, Toronto. They keep location-specific announcements out of everyone else's sidebar.
-- **Integration channels** receive automated posts from bots, webhooks, monitoring systems, ticketing systems, and news alerts. Examples: Bugs, Support Tickets, News Mentions. Some people read these like a daily newspaper; others configure them to notify only on a mention or keyword.
+- **Topic channels** organize broad subject areas, much like folders for email or documents. Examples: `Recruiting`, `Interviews`, `Legal-Reviews`, `Documentation`. As the channel count grows, name topics in a hierarchy so related ones sort together: `Legal-Trademarks`, `Legal-Contracts`, `Legal-Licensing`.
+- **Announcement channels** broadcast from leadership or operations. Restrict posting to admins or designated roles by making them [read-only](/administration-guide/onboard/advanced-permissions#read-only-channels), so people receive the information without generating reply noise. Examples: `Town-Square`, `Announcements`, `Security-Advisories`.
+- **Meeting channels** organize recurring meetings, where members post agenda items ahead of the meeting time. Examples: `Monday-Sales-Update`, `All-Hands-Meeting`. Number agenda items using [Markdown formatting](/end-user-guide/collaborate/format-messages#use-markdown), discuss each item in its own [thread](/end-user-guide/collaborate/organize-conversations#start-or-reply-to-threads) before and after the meeting, and keep the conferencing link in the [channel header](/end-user-guide/collaborate/channel-header-purpose#channel-header) so attendees can join from the channel.
+- **Sub-team channels** gather a discipline, a project team, or a manager's reports. Examples: `Developers`, `Marketers`, `Offsite-Organizing-Committee`. These subdivide as they outgrow a single channel, into `US-Developers` and `UK-Developers`.
+- **Project channels** are scoped to a specific outcome and are often private and time-bounded. Examples: `Logo-Design`, `Localization`, `Product-Launch`. Detailed work happens here, and summaries flow back to the larger channel the project came from.
+- **Location channels** help people in the same building, city, or region coordinate meetings and events. Examples: `Loc-Building-10`, `Loc-Palo-Alto`, `Loc-Toronto`. They keep location-specific announcements out of everyone else's sidebar.
+- **Integration channels** receive automated posts from bots, webhooks, monitoring systems, ticketing systems, and news alerts. Examples: `Bugs`, `Support-Tickets`, `News-Mentions`. Some people read these like a daily newspaper; others configure them to notify only on a mention or keyword.
 
-### Systematic and automated names
+#### Systematic and automated names
 
 Some organizations, particularly in defense, operations, and incident response, create channels programmatically when an event occurs: a mission is activated, an incident is declared, a project opens in a tracking system.
 
@@ -127,28 +171,15 @@ A few principles make generated names durable:
 
 <Tip>
 
-Where a channel should exist only for the life of a run, [playbooks](/end-user-guide/workflow-automation/learn-about-playbooks) can create and archive channels automatically, which removes much of the cleanup burden for incident and project channels.
+Where a channel should exist only for the life of a run, [playbooks](/end-user-guide/workflow-automation/learn-about-playbooks) can create and archive channels automatically. Configure a channel name template on the playbook so each [run](/end-user-guide/workflow-automation/work-with-playbooks#actions) starts with a consistently named channel, which removes much of the cleanup burden for incident and project channels.
 
 </Tip>
 
-### Naming examples
-
-The same role produces very different channel lists depending on the size of the organization. Both columns below belong to a marketer; the second works in the Palo Alto office of a large enterprise on a product called Pontoon.
-
-| | Small organization | Large enterprise |
-|---|---|---|
-| **Public channels** | Recruiting<br />Interviews<br />Marketing<br />Sales<br />All Hands Meeting<br />Town Square<br />Off-Topic | Geo: PA: Recruiting<br />Geo: PA: Interviews<br />US: Mrkt: General<br />US: Sales: West Coast<br />US: All Hands<br />Town Square<br />Off-Topic |
-| **Private channels** | Website<br />Twitter Marketing<br />Logo Design | Pontoon: Mrkt: Website<br />Pontoon: Mrkt: Twitter<br />Pontoon: Mrkt: Logo Design |
-
-In the small organization, a bare topic name is unambiguous. In the enterprise, the same channels carry a geography or product prefix, because "Website" alone would collide with a dozen other teams' website channels.
-
-### Document your conventions
-
-Publish your naming guide where people will find it, such as a pinned message in Town Square or your internal handbook. People who understand the conventions organize themselves. People who don't will create channels that break the system.
-
-## Organize the sidebar with categories
+### Organize the sidebar
 
 Channel names tell people what a channel is about. Categories tell them where to find it. In a well-organized workspace, a sidebar has four to six categories rather than a flat list of dozens of channels.
+
+![An operations workspace using shared channel prefixes and sidebar categories to keep channels discoverable.](/images/workspace-org-channel-taxonomy.png)
 
 A common starting structure:
 
@@ -161,11 +192,13 @@ A common starting structure:
 | Social | Community, off-topic, and culture channels | `social-off-topic`, `social-palo-alto`, `social-running-club` |
 | Reference | Low-traffic channels kept for reference rather than active work | `ref-docs-feedback`, `ref-archived-atlas` |
 
-Categories are personal to each user, so people can adapt them. Where [channel category sorting](/administration-guide/configure/experimental-configuration-settings#enable-channel-category-sorting) is enabled, the default from Mattermost v11.8, channel admins can set a default category when [creating a channel](/end-user-guide/collaborate/create-channels). New members then arrive to an organized sidebar instead of building one themselves. See [customize your channel sidebar](/end-user-guide/preferences/customize-your-channel-sidebar) for how people manage categories day to day.
+Categories are personal to each user, so people can adapt them. Where [channel category sorting](/administration-guide/configure/experimental-configuration-settings#enable-channel-category-sorting) is enabled, channel admins can set a default category when [creating a channel](/end-user-guide/collaborate/create-channels). New members then arrive to an organized sidebar instead of building one themselves.
 
-## Manage notification load
+See [customize your channel sidebar](/end-user-guide/preferences/customize-your-channel-sidebar) for how people manage categories day to day.
 
-Structure affects notification volume directly. Someone in 50 active channels across 10 teams hears from all of them unless they configure each one, and most people never do. The result is that they mute everything, miss what matters, and disengage.
+### Manage notification load
+
+Structure also affects notification volume. Someone in 50 active channels across 10 teams hears from all of them unless they configure each one, and most people never do. The result is that they mute everything, miss what matters, and disengage.
 
 Naming and structure decisions can reduce that load by design:
 
@@ -176,35 +209,38 @@ Naming and structure decisions can reduce that load by design:
 
 See [channel notification preferences](/end-user-guide/preferences/manage-your-channel-specific-notifications) for the per-channel settings people control themselves.
 
-## Decide who can create channels
+### Document your conventions
 
-Naming conventions only hold when channel creation is managed. Most organizations land on one of these models:
+Publish your naming and organization guide where people will find it, such as a pinned message in Town Square or your internal handbook. People who understand the conventions organize themselves. People who don't will create channels that break the system.
 
-| Model | How it works | Best for |
-|---|---|---|
-| Open creation | Any member creates channels. Conventions are guidance, corrected retroactively. | Smaller organizations with an existing open-creation culture. |
-| Delegated creation | Creation is restricted to team leads, project managers, or department heads. | Enterprises that want structure without an IT bottleneck. |
-| Admin-only creation | Only system or team admins create channels, in response to a request. | Highly regulated or air-gapped environments. |
-| Request and approve | Users submit a request; on approval the channel is created with the agreed name, category, and membership. | Organizations needing an audit trail for channel creation. |
+## Enforce permissions
 
-Delegated creation is the most common choice in enterprise deployments, because it keeps naming standards intact without making people wait on IT. To set it up, restrict the **Create Public Channels** and **Create Private Channels** permissions to specific roles. See [restrict who can create channels in specific teams](/administration-guide/onboard/advanced-permissions#restrict-who-can-create-channels-in-specific-teams).
+Permissions turn your structure from a convention into a boundary the server enforces. That includes who can create teams and channels — naming conventions only hold when creation is managed.
 
-Mattermost doesn't ship a channel request workflow, but you can build one with the [plugin framework](https://developers.mattermost.com/integrate/plugins/) and the [channel creation API](https://api.mattermost.com/#tag/channels/operation/CreateChannel). An approved request then produces a correctly named channel without manual admin work.
-
-## Set permissions that enforce your structure
-
-Your permission model is what makes the decisions above hold. As a starting point for enterprise deployments:
+As a starting point for enterprise deployments:
 
 - **Team creation:** system admins only. Creating a team is a structural decision that deserves deliberate authorization.
-- **Public channel creation:** team admins and designated roles such as team leads. Restricting this to system admins creates a bottleneck; opening it to everyone invites sprawl.
+- **Public channel creation:** team admins. Restricting this to system admins creates a bottleneck; opening it to everyone invites sprawl.
 - **Private channel creation:** all members. Private channels aren't visible to others and tend to be self-limiting.
 - **Channel deletion and archiving:** channel admins and system admins.
 
 Configure these in **System Console \> User Management \> Permissions**. See [advanced permissions](/administration-guide/onboard/advanced-permissions) for the full permission model and worked examples.
 
+Most organizations land on one of these channel-creation models:
+
+| Model | How it works | Best for |
+|---|---|---|
+| Open creation | Any member creates channels. Conventions are guidance, corrected retroactively. | Smaller organizations with an existing open-creation culture. |
+| Team-admin creation | Creation is restricted to team admins (and system admins). | Enterprises that want structure without an IT bottleneck. |
+| Request and approve | Users submit a request; on approval an admin creates the channel — or an automation creates it — with the agreed name, category, and membership. | Organizations needing an audit trail for channel creation, or highly regulated environments. |
+
+Team-admin creation is the most common choice in enterprise deployments, because it keeps naming standards intact without making people wait on system admins. To set it up, turn off **Create Channels** for All Members and leave it on for Team Administrators. See [restrict who can create channels in specific teams](/administration-guide/onboard/advanced-permissions#restrict-who-can-create-channels-in-specific-teams).
+
+Mattermost doesn't ship a channel request workflow. Many organizations handle requests through a form, ticket system, or other intake process people already use, then have an admin create the channel. You can also automate approval with the [plugin framework](https://developers.mattermost.com/integrate/plugins/) and the [channel creation API](https://api.mattermost.com/#tag/channels/operation/CreateChannel), so an approved request produces a correctly named channel without manual admin work.
+
 In larger deployments, [attribute-based access control](/administration-guide/manage/admin/attribute-based-access-control) ties team and channel membership to attributes from your identity provider. People are added to the right teams as they join, and lose access when their attributes change. Without it, keeping membership correct across many teams becomes a significant administrative burden.
 
-## Revisit your structure as you grow
+## Iterate as you scale
 
 Workspace organization isn't a one-time decision. Review your configuration when you see any of the following:
 
