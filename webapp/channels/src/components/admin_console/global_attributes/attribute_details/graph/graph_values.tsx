@@ -295,7 +295,7 @@ const AttributeOptionsGraphValues = ({options, onOptionsChange, disabled = false
         setChildDraftName('');
     }, []);
 
-    const addForm = (
+    const addForm = disabled ? null : (
         <AddTopLevelForm
             isEmptyCanvas={options.length === 0}
             draftName={draftName}

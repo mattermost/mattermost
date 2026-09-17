@@ -122,7 +122,7 @@ describe('AttributeOptionsGraphValues', () => {
         expect(screen.getByRole('alert')).toHaveTextContent('"ENGINEERING" already exists in this field.');
     });
 
-    it('disables the empty-state Add value control when disabled', () => {
+    it('hides the empty-state add-value field when the list is read-only', () => {
         renderWithContext(
             <AttributeOptionsGraphValues
                 options={[]}
@@ -131,8 +131,25 @@ describe('AttributeOptionsGraphValues', () => {
             />,
         );
 
-        expect(screen.getByTestId('attributeOptionsGraphEmpty__addButton')).toBeDisabled();
-        expect(screen.getByTestId('attributeOptionsGraphEmpty__nameInput')).toBeDisabled();
+        expect(screen.getByTestId('attributeOptionsGraphEmpty')).toBeInTheDocument();
+        expect(screen.getByText('Add the first value')).toBeInTheDocument();
+        expect(screen.queryByTestId('attributeOptionsGraphEmpty__nameInput')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('attributeOptionsGraphEmpty__addButton')).not.toBeInTheDocument();
+    });
+
+    it('hides the add-top-level field when the list is read-only', () => {
+        renderWithContext(
+            <AttributeOptionsGraphValues
+                options={[{id: '', name: 'Root', parents: []}]}
+                onOptionsChange={jest.fn()}
+                disabled={true}
+            />,
+        );
+
+        expect(screen.getByTestId('attributeOptionsGraphList')).toBeInTheDocument();
+        expect(getRow('Root')).toBeInTheDocument();
+        expect(screen.queryByTestId('attributeOptionsGraphAddTop__nameInput')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('attributeOptionsGraphAddTop__addButton')).not.toBeInTheDocument();
     });
 
     it('renders a root occurrence row with a placeholder drag handle after the first value', () => {
@@ -543,6 +560,8 @@ describe('AttributeOptionsGraphValues', () => {
         expect(within(row).queryByTestId('attributeOptionsGraphRow__addChild')).not.toBeInTheDocument();
         expect(within(row).queryByTestId('attributeOptionsGraphRow__parents')).not.toBeInTheDocument();
         expect(within(row).queryByTestId('attributeOptionsGraphRow__delete')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('attributeOptionsGraphAddTop__nameInput')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('attributeOptionsGraphAddTop__addButton')).not.toBeInTheDocument();
 
         const handle = within(row).getByTestId('attributeOptionsGraphRow__dragHandle');
         expect(handle).toHaveClass('attribute-options-graph-values__drag-handle--disabled');

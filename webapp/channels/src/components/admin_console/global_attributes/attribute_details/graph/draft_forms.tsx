@@ -52,6 +52,11 @@ export const AddTopLevelForm = ({
     const placeholder = formatMessage(isEmptyCanvas ? messages.namePlaceholder : messages.addTopLevel);
     const testIdPrefix = isEmptyCanvas ? 'attributeOptionsGraphEmpty' : 'attributeOptionsGraphAddTop';
 
+    // Read-only (plugin-synced) lists hide the add field; atMax still shows it disabled.
+    if (disabled) {
+        return null;
+    }
+
     return (
         <div className={isEmptyCanvas ? 'attribute-options-graph-values__empty-form' : 'attribute-options-graph-values__add-top'}>
             <Input
@@ -71,7 +76,7 @@ export const AddTopLevelForm = ({
                         }
                     }
                 }}
-                disabled={disabled || atMax}
+                disabled={atMax}
                 maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
                 hasError={isDuplicate}
                 customMessage={isDuplicate ?
