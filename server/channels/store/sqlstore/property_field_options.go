@@ -932,23 +932,6 @@ func (s *SqlPropertyFieldStore) DeleteOptions(groupID, fieldID string, expectedU
 	return nil
 }
 
-// PermanentDeleteOwnedOptions hard-deletes every option fieldID owns and the whole
-// hierarchy between them, without touching the field row itself. It exists for
-// a field that is staying alive but is newly linking to a template: it now
-// derives its options from the template, so its own pre-linking rows would
-// otherwise survive as orphans that optionOwnerIDs still unions in, doubling
-// every option the caller sees.
-//
-// Deliberately hard, not soft like deleteOwnedOptions (the field-deletion
-// cleanup below): a field linking to a template shares its template's option
-// IDs by construction (attemptCreateOrReuseTemplate deep-copies them), so a
-// soft-deleted row here is one syncPropertyFieldOptions will later find under
-// own[row.ID] on this same field's next write and resurrect via its upsert's
-// "ON CONFLICT ... DO UPDATE SET ... DeleteAt = 0" -- silently reintroducing
-// the exact duplication this method exists to remove, the next time anyone
-// edits the field at all (e.g. renaming it). Hard deletion leaves nothing to
-// collide with. Safe because nothing references PropertyOptions by foreign
-// key (see the option-table migration's own note to that effect).
 func (s *SqlPropertyFieldStore) PermanentDeleteOwnedOptions(groupID, fieldID string) (err error) {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
@@ -964,10 +947,7 @@ func (s *SqlPropertyFieldStore) PermanentDeleteOwnedOptions(groupID, fieldID str
 		return errors.Wrap(err, "property_options_delete_owned_exec")
 	}
 
-	// No GroupID column on PropertyOptionEdges (matches deletePropertyOptionEdgesForOptions
-	// and deleteOwnedOptions below, neither of which filters by it either) -- an edge is
-	// scoped to fieldID alone, and the options delete above already confirmed fieldID
-	// belongs to groupID.
+	// No GroupID column on PropertyOptionEdges.
 	edges := s.getQueryBuilder().
 		Delete("PropertyOptionEdges").
 		Where(sq.Eq{"FieldID": fieldID})
