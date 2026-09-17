@@ -5,8 +5,8 @@ import {waitFor, screen, within} from '@testing-library/react';
 import React from 'react';
 import '@testing-library/jest-dom';
 
-import type {DeepPartial} from '@mattermost/types/utilities';
 import type {UserProfile} from '@mattermost/types/users';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import General from 'mattermost-redux/constants/general';
 import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles_helpers';
@@ -165,7 +165,7 @@ describe('SystemUsersListAction Component', () => {
     });
 
     test('a user holding both the guest and system admin roles is treated as a guest', async () => {
-        renderComponent({...user, roles: `${General.SYSTEM_GUEST_ROLE} ${General.SYSTEM_ADMIN_ROLE}`} as UserProfile, guestAccountsEnabledState);
+        renderComponent({...user, roles: `${General.SYSTEM_GUEST_ROLE} ${General.SYSTEM_ADMIN_ROLE}`} as UserProfile);
 
         // The row button reports the higher-priority System Admin role, so the guest exclusion cannot key off the label.
         const menu = await openMenu('System Admin');
@@ -175,7 +175,7 @@ describe('SystemUsersListAction Component', () => {
     });
 
     test('a deactivated guest is not offered "Manage roles" either', async () => {
-        renderComponent({...guestUser, delete_at: 12345} as UserProfile, guestAccountsEnabledState);
+        renderComponent({...guestUser, delete_at: 12345} as UserProfile);
 
         const menu = await openMenu('Deactivated');
 
@@ -184,7 +184,7 @@ describe('SystemUsersListAction Component', () => {
     });
 
     test('"Manage roles" is hidden from a viewer who is not a system admin', async () => {
-        renderComponent(memberUser, guestAccountsEnabledState, userManager);
+        renderComponent(memberUser, undefined, userManager);
 
         const menu = await openMenu('Member');
 
@@ -193,7 +193,7 @@ describe('SystemUsersListAction Component', () => {
     });
 
     test('a guest can still be promoted by a viewer who is not a system admin', async () => {
-        renderComponent(guestUser, guestAccountsEnabledState, userManager);
+        renderComponent(guestUser, undefined, userManager);
 
         const menu = await openMenu('Guest');
 
@@ -210,7 +210,7 @@ describe('SystemUsersListAction Component', () => {
     });
 
     test('promoting a guest opens the promote confirmation, not the manage roles modal', async () => {
-        const {store} = renderComponent(guestUser, guestAccountsEnabledState);
+        const {store} = renderComponent(guestUser);
 
         const menu = await openMenu('Guest');
         await userEvent.click(within(menu).getByRole('menuitem', {name: /promote to member/i}));
@@ -221,7 +221,7 @@ describe('SystemUsersListAction Component', () => {
     });
 
     test('managing roles for a member opens the manage roles modal', async () => {
-        const {store} = renderComponent(memberUser, guestAccountsEnabledState);
+        const {store} = renderComponent(memberUser);
 
         const menu = await openMenu('Member');
         await userEvent.click(within(menu).getByRole('menuitem', {name: /manage roles/i}));
