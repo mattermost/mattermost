@@ -14,6 +14,11 @@ import (
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
+// borDeniedErrorID is asserted on every denial. A bare 403 is not enough: a plain
+// permission failure returns the same status, so a status-only assertion would pass
+// against a request rejected for some entirely different reason.
+const borDeniedErrorID = "api.post.create_post.burn_on_read.abac_denied.app_error"
+
 // setupBurnOnReadABAC returns a helper with burn-on-read, permission policies
 // and ABAC all enabled, plus a mock PDP installed in place of the real access
 // control service. The mock denies create_burn_on_read_post and allows every
@@ -87,12 +92,14 @@ func TestBurnOnReadABACEnforcementDenies(t *testing.T) {
 		})
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, borDeniedErrorID)
 	})
 
 	t.Run("createScheduledPost", func(t *testing.T) {
 		_, resp, err := th.Client.CreateScheduledPost(context.Background(), burnOnReadScheduledPost(th))
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, borDeniedErrorID)
 	})
 
 	t.Run("updateScheduledPost", func(t *testing.T) {
@@ -110,6 +117,7 @@ func TestBurnOnReadABACEnforcementDenies(t *testing.T) {
 		_, resp, err := allowed.Client.UpdateScheduledPost(context.Background(), created)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, borDeniedErrorID)
 	})
 
 	// The type is immutable, so the checks have to run against the stored one rather
@@ -129,12 +137,24 @@ func TestBurnOnReadABACEnforcementDenies(t *testing.T) {
 		_, resp, err := allowed.Client.UpdateScheduledPost(context.Background(), created)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, borDeniedErrorID)
 	})
 
 	// The action governs burn-on-read specifically. A deny must not stop the
 	// user posting normally in the same channel, which is the failure mode if
 	// the check is ever hoisted above the post-type test.
-	t.Run("ordinary post is unaffected", func(t *testing.T) {
+	// The type guard runs before the policy check, so an ordinary post must not reach
+	// the PDP at all. Asserting only that the post is created would still pass if the
+	// guard were removed and the PDP consulted for every post — the policy allows
+	// everything except this one action — so this asserts zero evaluations instead.
+	t.Run("ordinary post never consults the PDP", func(t *testing.T) {
+		countingACS := &mocks.AccessControlServiceInterface{}
+		countingACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+			Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil))
+		previous := th.App.Srv().Channels().AccessControl
+		th.App.Srv().Channels().AccessControl = countingACS
+		defer func() { th.App.Srv().Channels().AccessControl = previous }()
+
 		created, resp, err := th.Client.CreatePost(context.Background(), &model.Post{
 			ChannelId: th.BasicChannel.Id,
 			Message:   "ordinary message",
@@ -142,7 +162,31 @@ func TestBurnOnReadABACEnforcementDenies(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 		require.NotNil(t, created)
+
+		countingACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Action == model.AccessControlPolicyActionCreateBurnOnReadPost
+		}))
 	})
+}
+
+// A user who cannot post in the channel at all must be refused on that basis, not told
+// burn-on-read is unavailable: the create-post permission check runs first at both entry
+// points, and a burn-on-read allow must never override a create-post deny.
+func TestBurnOnReadABACEnforcementRunsAfterCreatePostCheck(t *testing.T) {
+	th := setupBurnOnReadABAC(t, false)
+
+	th.RemovePermissionFromRole(t, model.PermissionCreatePost.Id, model.ChannelUserRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionCreatePost.Id, model.ChannelAdminRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionCreatePost.Id, model.TeamUserRoleId)
+
+	_, resp, err := th.Client.CreatePost(context.Background(), &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		Message:   "burn on read message",
+		Type:      model.PostTypeBurnOnRead,
+	})
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
+	CheckErrorID(t, err, "api.context.permissions.app_error")
 }
 
 func TestBurnOnReadABACEnforcementAllows(t *testing.T) {
