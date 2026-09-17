@@ -529,8 +529,8 @@ func TestDoCommandRequest(t *testing.T) {
 	})
 
 	t.Run("with an unsuccessful response", func(t *testing.T) {
-		// 300 is returned to the caller as-is because there is no Location header for the
-		// client to follow, so it exercises the first status above the accepted 2xx range.
+		// 300 exercises the first status above the accepted 2xx range; Go's HTTP client
+		// does not treat it as a redirect, so it reaches DoCommandRequest as-is.
 		for _, tc := range []struct {
 			statusCode     int
 			expectedStatus string
@@ -554,7 +554,6 @@ func TestDoCommandRequest(t *testing.T) {
 
 				assert.Equal(t, "api.command.execute_command.failed_resp.app_error", err.Id)
 				assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
-				// The upstream status is surfaced to the user and its body kept for the admin.
 				assert.Contains(t, err.Message, tc.expectedStatus)
 				assert.Equal(t, "the remote integration is unhappy", err.DetailedError)
 			})
