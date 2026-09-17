@@ -148,20 +148,22 @@ describe('AttributeGraphParentsPane', () => {
         const chain = [opt('A'), opt('B', ['A']), opt('C', ['B'])];
         renderPane(chain, 'C');
         await openParentsView();
-        await openParentSearch();
 
+        const search = screen.getByTestId('attributeGraphParentsPane__search');
+        fireEvent.focus(search);
         expect(screen.getByTestId('attributeGraphParentsPane__suggestions')).toBeInTheDocument();
-        fireEvent.blur(screen.getByTestId('attributeGraphParentsPane__search'));
+
+        fireEvent.blur(search);
         expect(screen.queryByTestId('attributeGraphParentsPane__suggestions')).not.toBeInTheDocument();
 
-        await openParentSearch();
+        fireEvent.focus(search);
         expect(screen.getByTestId('attributeGraphParentsPane__suggestions')).toBeInTheDocument();
         fireEvent.pointerDown(document.body);
         expect(screen.queryByTestId('attributeGraphParentsPane__suggestions')).not.toBeInTheDocument();
 
-        await openParentSearch();
+        fireEvent.focus(search);
         expect(screen.getByTestId('attributeGraphParentsPane__suggestions')).toBeInTheDocument();
-        await userEvent.keyboard('{Escape}');
+        fireEvent.keyDown(search, {key: 'Escape'});
         expect(screen.queryByTestId('attributeGraphParentsPane__suggestions')).not.toBeInTheDocument();
     });
 
