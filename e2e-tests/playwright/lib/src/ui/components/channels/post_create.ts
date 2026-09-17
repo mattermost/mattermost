@@ -14,6 +14,7 @@ export default class ChannelsPostCreate {
     readonly container: Locator;
     readonly input;
 
+    readonly editorBody;
     readonly attachmentButton;
     readonly emojiButton;
     readonly sendMessageButton;
@@ -41,6 +42,9 @@ export default class ChannelsPostCreate {
         } else {
             this.input = container.getByTestId('post_textbox');
         }
+
+        // The editor body carries the greyed out styling when the user cannot post
+        this.editorBody = container.locator('.AdvancedTextEditor__body');
 
         this.attachmentButton = container.locator('#fileUploadButton');
         this.emojiButton = container.getByLabel('select an emoji');

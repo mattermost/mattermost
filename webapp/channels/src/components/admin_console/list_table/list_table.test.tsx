@@ -45,15 +45,16 @@ const columns = [
 
 type HarnessProps = {
     rows: Row[];
+    loadingState?: TableMeta['loadingState'];
     onReorder?: TableMeta['onReorder'];
     isRowDragDisabled?: TableMeta['isRowDragDisabled'];
     onRowClick?: TableMeta['onRowClick'];
 };
 
-function Harness({rows, onReorder, isRowDragDisabled, onRowClick}: HarnessProps) {
+function Harness({rows, loadingState = LoadingStates.Loaded, onReorder, isRowDragDisabled, onRowClick}: HarnessProps) {
     const meta: TableMeta = {
         tableId: 'test-table',
-        loadingState: LoadingStates.Loaded,
+        loadingState,
         onReorder,
         isRowDragDisabled,
         onRowClick,
@@ -107,6 +108,39 @@ describe('ListTable', () => {
             // Two interactive handles (rows 1 and 2), one disabled placeholder (row 0).
             expect(screen.getAllByRole('button', {name: /reorder row/i})).toHaveLength(2);
             expect(container.querySelectorAll('.dragHandle--disabled')).toHaveLength(1);
+        });
+    });
+
+    // `disabled` is only valid on form controls, so it must never reach a th or td.
+    describe('placeholder rows', () => {
+        test.each([
+            [LoadingStates.Loading, 'Loading'],
+            [LoadingStates.Loaded, 'No data'],
+            [LoadingStates.Failed, 'There was an error loading the data, please try again'],
+        ])('renders the %s placeholder cell without a disabled attribute', (loadingState, message) => {
+            const {container} = renderWithContext(
+                <Harness
+                    rows={[]}
+                    loadingState={loadingState}
+                />,
+            );
+
+            const cell = container.querySelector('td.noRows');
+            expect(cell).toHaveTextContent(message);
+            expect(cell).not.toHaveAttribute('disabled');
+        });
+
+        test('renders column headers without a disabled attribute while loading', () => {
+            const {container} = renderWithContext(
+                <Harness
+                    rows={makeRows(2)}
+                    loadingState={LoadingStates.Loading}
+                />,
+            );
+
+            const headers = container.querySelectorAll('thead th');
+            expect(headers).not.toHaveLength(0);
+            headers.forEach((header) => expect(header).not.toHaveAttribute('disabled'));
         });
     });
 
