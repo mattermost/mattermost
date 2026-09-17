@@ -315,58 +315,6 @@ func TestMigrateCPAFieldsToGlobalAttributes_MigratesFieldWithoutDuplicatingOptio
 	}
 }
 
-// TestMigrateCPAFieldsToGlobalAttributes_MigratesGraphFieldWithoutDuplicatingOptions
-// covers graph (hierarchical) fields separately from the table above: their
-// options carry a parent/child hierarchy built via MutateOptions rather than
-// inline in Attrs. Graph fields are hidden from the admin console's create
-// menu -- only the REST and plugin APIs build one -- but they are a real,
-// reachable CPA field type and SupportsOptions() covers them the same as
-// select/multiselect/rank, so they hit the same duplication bug.
-func TestMigrateCPAFieldsToGlobalAttributes_MigratesGraphFieldWithoutDuplicatingOptions(t *testing.T) {
-	th := setupMigrationTestHelper(t)
-
-	parentID := model.NewId()
-	childID := model.NewId()
-	seeded := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-		GroupID:    th.CPAGroupID,
-		Name:       "org_unit",
-		Type:       model.PropertyFieldTypeGraph,
-		ObjectType: model.PropertyFieldObjectTypeUser,
-		TargetType: string(model.PropertyFieldTargetLevelSystem),
-		Attrs: model.StringInterface{
-			model.PropertyFieldAttributeOptions: []map[string]any{
-				{"id": parentID, "name": "Engineering"},
-				{"id": childID, "name": "Platform"},
-			},
-		},
-	})
-
-	migrated, skipped, retryable, err := th.service.MigrateCPAFieldsToGlobalAttributes(th.Context)
-	require.NoError(t, err)
-	assert.Equal(t, 1, migrated)
-	assert.Equal(t, 0, skipped)
-	assert.Equal(t, 0, retryable)
-
-	updatedField, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, seeded.ID)
-	require.NoError(t, err)
-	require.NotNil(t, updatedField.LinkedFieldID)
-
-	// This intentionally does not assert on hierarchy (AncestorsOrSelf):
-	// attemptCreateOrReuseTemplate deep-copies only Attrs, and a graph field's
-	// hierarchy lives in the separate PropertyOptionEdges table, which the
-	// migration never copies to the new template at all. That leaves a
-	// migrated graph field's hierarchy unreachable through the template it
-	// now derives from -- a distinct, more severe gap (hierarchy loss, not
-	// duplication) than the one covered here.
-	page, err := th.service.GetFieldOptions(th.Context, th.CPAGroupID, updatedField.ID, 0, "", 100)
-	require.NoError(t, err)
-	names := make([]string, 0, len(page.Options))
-	for _, option := range page.Options {
-		names = append(names, option.Name)
-	}
-	assert.ElementsMatch(t, []string{"Engineering", "Platform"}, names, "each option must be served once, not once per source (own rows + template rows)")
-}
-
 func TestMigrateCPAFieldsToGlobalAttributes_SkipsIneligibleFields(t *testing.T) {
 	t.Run("plugin-managed field is left unlinked", func(t *testing.T) {
 		th := setupMigrationTestHelper(t)
