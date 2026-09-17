@@ -213,43 +213,15 @@ describe('AttributeGraphParentsPane', () => {
         expect(confirmGrantFalse).toHaveBeenCalled();
     });
 
-    it('makes a root when the last parent row is confirmed removed', async () => {
+    it('makes a root when the last parent row is removed', async () => {
         const options = [opt('A'), opt('B', ['A'])];
         const {onOptionsChange} = renderPane(options, 'B');
         await openParentsView();
         await userEvent.click(screen.getByTestId('attributeGraphParentsPane__parentRemove'));
-
-        expect(onOptionsChange).not.toHaveBeenCalled();
-        expect(screen.getByTestId('attributeGraphParentsPane__parentRemoveConfirm')).toHaveTextContent(
-            'Remove it? "B" will no longer sit under "A".',
-        );
-
-        await userEvent.click(screen.getByTestId('attributeGraphParentsPane__parentRemoveConfirmButton'));
 
         expect(onOptionsChange).toHaveBeenCalledWith(removeParentEdge(options, 'B', 'A'));
         expect(onOptionsChange.mock.calls[0][0].find((o: PropertyFieldOption) => o.name === 'B')?.parents).toEqual([]);
-    });
-
-    it('keeps the parent when the confirm is dismissed', async () => {
-        const options = [opt('A'), opt('B', ['A'])];
-        const {onOptionsChange} = renderPane(options, 'B');
-        await openParentsView();
-        await userEvent.click(screen.getByTestId('attributeGraphParentsPane__parentRemove'));
-        await userEvent.click(screen.getByTestId('attributeGraphParentsPane__parentRemoveKeep'));
-
-        expect(onOptionsChange).not.toHaveBeenCalled();
         expect(screen.queryByTestId('attributeGraphParentsPane__parentRemoveConfirm')).not.toBeInTheDocument();
-    });
-
-    it('mentions descendants when removing a parent of a value that has children', async () => {
-        const options = [opt('A'), opt('B', ['A']), opt('C', ['B'])];
-        renderPane(options, 'B');
-        await openParentsView();
-        await userEvent.click(screen.getByTestId('attributeGraphParentsPane__parentRemove'));
-
-        expect(screen.getByTestId('attributeGraphParentsPane__parentRemoveConfirm')).toHaveTextContent(
-            'Remove it? "B" will no longer sit under "A", or under anything above it. The 1 value below "B" goes with it.',
-        );
     });
 
     it('shows a Remove Parent tooltip on the parent-row close control', async () => {

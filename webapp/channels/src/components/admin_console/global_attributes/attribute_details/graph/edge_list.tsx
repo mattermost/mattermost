@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 
@@ -11,7 +10,6 @@ import {
     CloseIcon,
     PlusIcon,
 } from '@mattermost/compass-icons/components';
-import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import * as Menu from 'components/menu';
@@ -34,7 +32,6 @@ export type EdgeListLabels = {
     searchAria: MessageDescriptor;
     suggestionsTestId: string;
     createTestId: string;
-    confirmRemoval: boolean;
     removeTooltip?: MessageDescriptor;
     anchorIs: 'parent' | 'child';
 };
@@ -55,7 +52,6 @@ export function edgeListLabels(direction: EdgeDirection): EdgeListLabels {
             searchAria: messages.addChildAria,
             suggestionsTestId: 'attributeGraphParentsPane__childSuggestions',
             createTestId: 'attributeGraphParentsPane__createChild',
-            confirmRemoval: false,
             anchorIs: 'parent',
         };
     case 'parents':
@@ -72,7 +68,6 @@ export function edgeListLabels(direction: EdgeDirection): EdgeListLabels {
             searchAria: messages.addParentAria,
             suggestionsTestId: 'attributeGraphParentsPane__suggestions',
             createTestId: 'attributeGraphParentsPane__create',
-            confirmRemoval: true,
             removeTooltip: messages.removeParentTooltip,
             anchorIs: 'child',
         };
@@ -94,7 +89,6 @@ export type EdgeListProps = {
     alertRelatedName: string;
     disabled: boolean;
     atMax: boolean;
-    descendantCount: number;
     onBack: () => void;
     onQueryChange: (value: string) => void;
     onSearchOpen: () => void;
@@ -114,7 +108,6 @@ export function EdgeList({
     alertRelatedName,
     disabled,
     atMax,
-    descendantCount,
     onBack,
     onQueryChange,
     onSearchOpen,
@@ -123,7 +116,6 @@ export function EdgeList({
     onRemoveEdge,
 }: EdgeListProps) {
     const {formatMessage} = useIntl();
-    const [confirmingRelated, setConfirmingRelated] = useState<string | null>(null);
 
     const handleSearchKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
         event.stopPropagation();
@@ -175,7 +167,6 @@ export function EdgeList({
                     </p>
                 )}
                 {relatedNames.map((relatedName) => {
-                    const isConfirming = Boolean(labels.confirmRemoval && confirmingRelated === relatedName);
                     const removeAriaValues = labels.anchorIs === 'parent' ?
                         {parent: optionName, child: relatedName} :
                         {parent: relatedName, child: optionName};
@@ -187,10 +178,6 @@ export function EdgeList({
                             aria-label={formatMessage(labels.removeAria, removeAriaValues)}
                             disabled={disabled}
                             onClick={() => {
-                                if (labels.confirmRemoval) {
-                                    setConfirmingRelated(relatedName);
-                                    return;
-                                }
                                 const removeChildName = labels.anchorIs === 'parent' ? relatedName : optionName;
                                 const removeParentName = labels.anchorIs === 'parent' ? optionName : relatedName;
                                 onRemoveEdge(removeChildName, removeParentName);
@@ -206,9 +193,7 @@ export function EdgeList({
                     return (
                         <div
                             key={relatedName}
-                            className={classNames('attribute-graph-parents-pane__row', {
-                                'attribute-graph-parents-pane__row--confirming': isConfirming,
-                            })}
+                            className='attribute-graph-parents-pane__row'
                             data-testid={labels.rowTestId}
                         >
                             <div className='attribute-graph-parents-pane__row-top'>
@@ -219,48 +204,6 @@ export function EdgeList({
                                     </WithTooltip>
                                 ) : removeButton}
                             </div>
-                            {isConfirming && (
-                                <div
-                                    className='attribute-graph-parents-pane__confirm'
-                                    data-testid='attributeGraphParentsPane__parentRemoveConfirm'
-                                >
-                                    <p className='attribute-graph-parents-pane__confirm-text'>
-                                        <FormattedMessage
-                                            {...(descendantCount > 0 ? messages.removeConfirmWithDescendants : messages.removeConfirm)}
-                                            values={{
-                                                child: optionName,
-                                                parent: relatedName,
-                                                count: descendantCount,
-                                            }}
-                                        />
-                                    </p>
-                                    <div className='attribute-graph-parents-pane__confirm-actions'>
-                                        <Button
-                                            type='button'
-                                            emphasis='secondary'
-                                            size='sm'
-                                            variant='destructive'
-                                            disabled={disabled}
-                                            onClick={() => {
-                                                onRemoveEdge(optionName, relatedName);
-                                                setConfirmingRelated(null);
-                                            }}
-                                            data-testid='attributeGraphParentsPane__parentRemoveConfirmButton'
-                                        >
-                                            <FormattedMessage {...messages.removeTheParent}/>
-                                        </Button>
-                                        <Button
-                                            type='button'
-                                            emphasis='tertiary'
-                                            size='sm'
-                                            onClick={() => setConfirmingRelated(null)}
-                                            data-testid='attributeGraphParentsPane__parentRemoveKeep'
-                                        >
-                                            <FormattedMessage {...messages.keepIt}/>
-                                        </Button>
-                                    </div>
-                                </div>
-                            )}
                         </div>
                     );
                 })}
@@ -390,21 +333,5 @@ const messages = defineMessages({
     removeParentTooltip: {
         id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.remove_parent_tooltip',
         defaultMessage: 'Remove Parent',
-    },
-    removeConfirm: {
-        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.remove_confirm',
-        defaultMessage: 'Remove it? "{child}" will no longer sit under "{parent}".',
-    },
-    removeConfirmWithDescendants: {
-        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.remove_confirm_with_descendants',
-        defaultMessage: 'Remove it? "{child}" will no longer sit under "{parent}", or under anything above it. {count, plural, one {The # value below "{child}" goes with it.} other {The # values below "{child}" go with it.}}',
-    },
-    removeTheParent: {
-        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.remove_confirm_action',
-        defaultMessage: 'Remove the parent',
-    },
-    keepIt: {
-        id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.keep_it',
-        defaultMessage: 'Keep it',
     },
 });

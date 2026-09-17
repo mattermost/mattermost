@@ -64,13 +64,9 @@
         text-align: left;
         transition: background-color 0.15s ease;
 
-        &:hover:not(.attribute-graph-parents-pane__row--confirming) {
+        &:hover {
             background: rgba(var(--center-channel-color-rgb), 0.08);
         }
-    }
-
-    .attribute-graph-parents-pane__row--confirming {
-        background: color-mix(in srgb, var(--warning-text) 8%, transparent);
     }
 
     .attribute-graph-parents-pane__row-top {
@@ -114,28 +110,6 @@
             outline: 2px solid rgba(var(--button-bg-rgb), 0.72);
             outline-offset: 1px;
         }
-    }
-
-    .attribute-graph-parents-pane__confirm {
-        display: flex;
-        flex-direction: column;
-        padding: 8px 10px;
-        border-radius: 4px;
-        background: color-mix(in srgb, var(--warning-text) 8%, transparent);
-        gap: 6px;
-    }
-
-    .attribute-graph-parents-pane__confirm-text {
-        margin: 0;
-        color: var(--center-channel-color);
-        font-size: 12px;
-        line-height: 17px;
-    }
-
-    .attribute-graph-parents-pane__confirm-actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
     }
 
     .attribute-graph-parents-pane__empty {

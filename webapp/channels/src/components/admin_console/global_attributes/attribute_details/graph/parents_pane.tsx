@@ -9,7 +9,6 @@ import {buildSuggestions, enabledSuggestionNames} from './edge_candidates';
 import {EdgeList} from './edge_list';
 import {
     addTopLevelOption,
-    countDescendants,
     getChildren,
     isNameUnique,
     removeParentEdge,
@@ -158,7 +157,6 @@ function AttributeGraphParentsPane({
                 alertRelatedName={alertRelatedName}
                 disabled={disabled}
                 atMax={atMax}
-                descendantCount={countDescendants(options, optionName)}
                 onBack={() => goToView('main')}
                 onQueryChange={(value) => {
                     setQuery(value);
