@@ -682,7 +682,12 @@ func (a *App) hasPropertyFieldPermissionLevel(rctx request.CTX, userID string, f
 	case model.PermissionLevelCreator:
 		// The entity gated here is the field definition itself, so its creator
 		// is CreatedBy — not the creator of whatever the field is scoped to.
-		if field.CreatedBy != "" && field.CreatedBy == userID {
+		//
+		// Creating a field earns no standing to keep editing it after losing
+		// access to the scope it lives in, so the creator arm narrows the member
+		// arm rather than sitting beside it.
+		if field.CreatedBy != "" && field.CreatedBy == userID &&
+			a.hasPropertyFieldScopeAccess(rctx, userID, field) {
 			return true
 		}
 		// Falls back to the admin arm above rather than restating the

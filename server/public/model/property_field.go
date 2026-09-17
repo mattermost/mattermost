@@ -66,8 +66,11 @@ const (
 	// the entity is the value's target object: the post's UserId for
 	// post-object fields, the channel's CreatorId for channel-object fields.
 	// For the field and options slots the entity is the field itself, so the
-	// creator is its CreatedBy. Only valid on post- and channel-object fields;
-	// see IsValid. The specific checks per scope are documented at
+	// creator is its CreatedBy, and the creator must also still have access to
+	// the field's own scope — creating a field does not keep it editable once
+	// its creator is removed from the channel or team it is scoped to.
+	// Only valid on post- and channel-object fields; see IsValid. The specific
+	// checks per scope are documented at
 	// hasPropertyFieldPermissionLevel and hasPropertyFieldValuePermissionLevel
 	// in the app package.
 	PermissionLevelCreator PermissionLevel = "creator"

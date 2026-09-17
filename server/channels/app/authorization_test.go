@@ -3601,6 +3601,28 @@ func TestPropertyFieldCreatorLevel_FieldAndOptions(t *testing.T) {
 		model.TeamUserRoleId+" "+model.TeamAdminRoleId)
 	require.Nil(t, appErr)
 
+	// Creating a field earns no standing to keep editing it after losing access
+	// to the scope it lives in. These two created their fields while in scope
+	// and were then removed, which is the state the creator arm has to reject.
+	// They stay in their own fields so the in-scope rows above keep proving
+	// what they were written to prove.
+	removedFromChannel := th.CreateUser(t)
+	th.LinkUserToTeam(t, removedFromChannel, th.BasicTeam)
+	th.AddUserToChannel(t, removedFromChannel, th.BasicChannel)
+	require.Nil(t, th.RemoveUserFromChannel(t, removedFromChannel, th.BasicChannel))
+
+	removedFromTeam := th.CreateUser(t)
+	th.LinkUserToTeam(t, removedFromTeam, th.BasicTeam)
+	th.RemoveUserFromTeam(t, removedFromTeam, th.BasicTeam)
+
+	// Same creator as removedChannelField, but scoped to the team they are
+	// still a member of: the check follows the field's own scope, so losing the
+	// channel does not cost them a team-scoped field.
+	removedChannelField := fieldFor(model.PropertyFieldTargetLevelChannel, th.BasicChannel.Id, removedFromChannel.Id)
+	removedChannelCreatorTeamField := fieldFor(model.PropertyFieldTargetLevelTeam, th.BasicTeam.Id, removedFromChannel.Id)
+	removedTeamField := fieldFor(model.PropertyFieldTargetLevelTeam, th.BasicTeam.Id, removedFromTeam.Id)
+	removedTeamCreatorSystemField := fieldFor(model.PropertyFieldTargetLevelSystem, "", removedFromTeam.Id)
+
 	session := func(u *model.User) model.Session {
 		return model.Session{UserId: u.Id, Roles: model.SystemUserRoleId}
 	}
@@ -3668,7 +3690,7 @@ func TestPropertyFieldCreatorLevel_FieldAndOptions(t *testing.T) {
 			allowed: true,
 		},
 		{
-			name:    "field creator can edit their own system-scoped field",
+			name:    "field creator can edit their own system-scoped field without being an admin",
 			session: session(fieldCreator),
 			field:   systemField,
 			allowed: true,
@@ -3706,6 +3728,39 @@ func TestPropertyFieldCreatorLevel_FieldAndOptions(t *testing.T) {
 			session: model.Session{},
 			field:   orphanField,
 			allowed: false,
+		},
+		{
+			name:    "field creator removed from the channel can no longer edit their own channel-scoped field",
+			session: session(removedFromChannel),
+			field:   removedChannelField,
+			allowed: false,
+		},
+		{
+			name:    "field creator removed from the team can no longer edit their own team-scoped field",
+			session: session(removedFromTeam),
+			field:   removedTeamField,
+			allowed: false,
+		},
+		{
+			name:    "channel admin can still edit a field whose creator was removed from the channel",
+			session: session(channelAdmin),
+			field:   removedChannelField,
+			allowed: true,
+		},
+		{
+			name:    "field creator removed from the channel keeps their own team-scoped field",
+			session: session(removedFromChannel),
+			field:   removedChannelCreatorTeamField,
+			allowed: true,
+		},
+		{
+			// Pairs with the system row above: system scope is open to any
+			// authenticated user, so even a creator removed from the team keeps
+			// a system-scoped field.
+			name:    "field creator removed from the team keeps their own system-scoped field",
+			session: session(removedFromTeam),
+			field:   removedTeamCreatorSystemField,
+			allowed: true,
 		},
 	}
 
