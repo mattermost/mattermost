@@ -65,7 +65,7 @@ func attachAccessControlAuditCapture(t *testing.T, th *TestHelper) func() []map[
 func splitNonEmptyLines(s string) []string {
 	var lines []string
 	start := 0
-	for i := 0; i < len(s); i++ {
+	for i := range len(s) {
 		if s[i] != '\n' {
 			continue
 		}
