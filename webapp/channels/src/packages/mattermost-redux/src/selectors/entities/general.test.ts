@@ -506,6 +506,73 @@ describe('Selectors.General', () => {
         });
     });
 
+    describe('isChannelAttributesRequiredEnabled', () => {
+        const buildState = (config: Record<string, string>) => ({
+            entities: {
+                general: {
+                    config,
+                },
+            },
+        } as unknown as GlobalState);
+
+        test('enforced when ChannelAttributes is on and the kill switch is unset', () => {
+            const state = buildState({FeatureFlagChannelAttributes: 'true'});
+            expect(Selectors.isChannelAttributesRequiredEnabled(state)).toBe(true);
+        });
+
+        test('enforced when ChannelAttributes is on and the kill switch is explicitly off', () => {
+            const state = buildState({
+                FeatureFlagChannelAttributes: 'true',
+                FeatureFlagChannelAttributesRequiredDisabled: 'false',
+            });
+            expect(Selectors.isChannelAttributesRequiredEnabled(state)).toBe(true);
+        });
+
+        test('not enforced when the kill switch is on', () => {
+            const state = buildState({
+                FeatureFlagChannelAttributes: 'true',
+                FeatureFlagChannelAttributesRequiredDisabled: 'true',
+            });
+            expect(Selectors.isChannelAttributesRequiredEnabled(state)).toBe(false);
+        });
+
+        test('not enforced when ChannelAttributes itself is off, regardless of the kill switch', () => {
+            const state = buildState({
+                FeatureFlagChannelAttributes: 'false',
+                FeatureFlagChannelAttributesRequiredDisabled: 'false',
+            });
+            expect(Selectors.isChannelAttributesRequiredEnabled(state)).toBe(false);
+        });
+    });
+
+    describe('isChannelAttributesRequiredDisabled', () => {
+        const buildState = (config: Record<string, string>) => ({
+            entities: {
+                general: {
+                    config,
+                },
+            },
+        } as unknown as GlobalState);
+
+        test('reads the raw kill switch alone, independent of the ChannelAttributes umbrella flag', () => {
+            const state = buildState({
+                FeatureFlagChannelAttributes: 'false',
+                FeatureFlagChannelAttributesRequiredDisabled: 'true',
+            });
+            expect(Selectors.isChannelAttributesRequiredDisabled(state)).toBe(true);
+        });
+
+        test('returns false when the flag is unset', () => {
+            const state = buildState({});
+            expect(Selectors.isChannelAttributesRequiredDisabled(state)).toBe(false);
+        });
+
+        test('returns false when the flag is explicitly false', () => {
+            const state = buildState({FeatureFlagChannelAttributesRequiredDisabled: 'false'});
+            expect(Selectors.isChannelAttributesRequiredDisabled(state)).toBe(false);
+        });
+    });
+
     describe('firstAdminVisitMarketplaceStatus', () => {
         test('should return empty when status does not exist', () => {
             const state = {

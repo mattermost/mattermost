@@ -99,7 +99,8 @@ type AccessControlAttributeValidationHookConfig struct {
 	// it, refuseDirectChannelValueWrite does not run at all.
 	DirectChannelChecker DirectChannelChecker
 	// RequiredAttributeEnforcement reports whether required-attribute
-	// enforcement is active. A nil provider defaults to enforced.
+	// enforcement is active. A nil provider defaults to enforced. Applies to
+	// every required field in the group uniformly, classification included.
 	RequiredAttributeEnforcement RequiredAttributeEnforcementProvider
 }
 
@@ -130,16 +131,6 @@ func (h *AccessControlAttributeValidationHook) isGroupManaged(groupID string) bo
 // and callers that don't care about the flag don't need to supply one.
 func (h *AccessControlAttributeValidationHook) requiredEnforced() bool {
 	return h.requiredAttributeEnforcement == nil || h.requiredAttributeEnforcement()
-}
-
-// isClassificationLinkedField mirrors api4/channel.go's classification-field
-// identity check (field.Name == "classification" with a LinkedFieldID). A
-// channel-linked classification field predates ChannelAttributes and shares
-// this hook's group, but must not be gated by the ChannelAttributes-only
-// required-enforcement sub-flag — only by classification's own availability
-// gate, enforced upstream of this hook.
-func isClassificationLinkedField(field *model.PropertyField) bool {
-	return field.Name == "classification" && field.LinkedFieldID != nil && *field.LinkedFieldID != ""
 }
 
 // sanitizeAndValidateFieldAttrs trims string attrs, applies the visibility
@@ -917,7 +908,7 @@ func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, 
 		if err != nil {
 			return fmt.Errorf("field %s: %s: %w", value.FieldID, err.Error(), ErrInvalidValue)
 		}
-		if (isClassificationLinkedField(field) || h.requiredEnforced()) && model.IsPropertyFieldRequired(field) && model.IsEmptyPropertyValue(value.Value) {
+		if h.requiredEnforced() && model.IsPropertyFieldRequired(field) && model.IsEmptyPropertyValue(value.Value) {
 			return newRequiredValueError(field)
 		}
 		if len(optionIDs) == 0 {
@@ -1280,7 +1271,7 @@ func (h *AccessControlAttributeValidationHook) refuseGovernedDelete(rctx request
 		// Required is enforced for every target type, matching the write path
 		// in validateValues. change_policy stays channel-only -- see
 		// validateChangePolicy for why.
-		if (isClassificationLinkedField(field) || h.requiredEnforced()) && model.IsPropertyFieldRequired(field) {
+		if h.requiredEnforced() && model.IsPropertyFieldRequired(field) {
 			return newRequiredValueError(field)
 		}
 		if v.TargetType == model.PropertyValueTargetTypeChannel && model.GetPropertyFieldChangePolicy(field) != model.PropertyFieldChangePolicyAny {

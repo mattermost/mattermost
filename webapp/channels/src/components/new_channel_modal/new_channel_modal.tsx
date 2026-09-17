@@ -137,43 +137,55 @@ const NewChannelModal = () => {
     const canManageClassification = classification.available && isSystemAdmin && !channelAttributes.enabled;
     const [attributeValues, setAttributeValues] = useState<ChannelAttributeSelection>({});
 
-    // Required attributes, plus classification whether or not it is required: it has
-    // always been offered here, and its dedicated section below is suppressed once the
-    // flag is on, so leaving it out would take it off the dialog altogether. Every
-    // other optional attribute is added later from Channel Info.
+    const classificationFieldId = classification.channelField?.id;
+
+    // While ChannelAttributes is on and the kill switch has disabled required
+    // enforcement, the System Console hides the Required toggle for channel
+    // fields entirely, so there is no admin path left to freshly mark one
+    // required during that window. Classification is the one courtesy
+    // exception: it is still offered here, unconditionally, so web/desktop
+    // admins can keep classifying channels even though nothing enforces it —
+    // every other channel attribute stays hidden like normal.
+    const classificationOfferedUnconditionally = channelAttributes.enabled && !requiredAttributesEnforced && classification.available;
+
+    // Required attributes only (classification's exception above aside).
+    // Optional attributes, including an optional classification outside that
+    // exception, are added later from Channel Info.
     //
     // The setter tier cannot be evaluated without a channel, so this renders
     // optimistically and the server stays authoritative. sysadmin is the exception:
     // a required sysadmin-only attribute would disable Create for everyone else,
     // which is a worse failure than an unset marking — the server skips the same
     // tier for the same reason.
-    const classificationFieldId = classification.channelField?.id;
     const assignableAttributeFields = useMemo(() => {
-        return channelAttributes.fields.filter((field) => {
-            const isClassificationField = field.id === classificationFieldId;
-            if (!isClassificationField) {
-                // Required-attribute enforcement is a killable sub-flag, kept
-                // independent of classification, which predates it and isn't
-                // subject to it.
-                if (!requiredAttributesEnforced || !isPropertyFieldRequired(field)) {
+        return channelAttributes.fields.
+            filter((field) => {
+                const isClassificationException = field.id === classificationFieldId && classificationOfferedUnconditionally;
+                if (!isClassificationException && (!requiredAttributesEnforced || !isPropertyFieldRequired(field))) {
                     return false;
                 }
-            }
-            if (!supportsOptions(field) && !isTextField(field)) {
-                return false;
-            }
-            if (field.permission_values === 'none' || field.permission_values === undefined) {
-                return false;
-            }
-            if (field.permission_values === 'sysadmin' && !isSystemAdmin) {
-                return false;
-            }
-            return true;
-        });
-    }, [channelAttributes.fields, classificationFieldId, isSystemAdmin, requiredAttributesEnforced]);
+                if (!supportsOptions(field) && !isTextField(field)) {
+                    return false;
+                }
+                if (field.permission_values === 'none' || field.permission_values === undefined) {
+                    return false;
+                }
+                if (field.permission_values === 'sysadmin' && !isSystemAdmin) {
+                    return false;
+                }
+                return true;
+            }).
+            map((field) => {
+                // Visually optional and never blocking: nothing enforces this
+                // value while the kill switch is on, so the required marker
+                // would be misleading.
+                if (field.id === classificationFieldId && classificationOfferedUnconditionally && isPropertyFieldRequired(field)) {
+                    return {...field, attrs: {...field.attrs, required: false}};
+                }
+                return field;
+            });
+    }, [channelAttributes.fields, classificationFieldId, classificationOfferedUnconditionally, isSystemAdmin, requiredAttributesEnforced]);
 
-    // Reads attrs.required rather than membership of the list above, so an optional
-    // classification never blocks Create.
     const missingRequiredAttributes = useMemo(() => {
         return assignableAttributeFields.filter((field) => {
             if (!isPropertyFieldRequired(field)) {

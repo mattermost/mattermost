@@ -533,10 +533,10 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 		require.Equal(t, classificationField.ID, values[0].FieldID)
 	})
 
-	t.Run("a required classification value is still enforced when ChannelAttributes is off", func(t *testing.T) {
-		// The ChannelAttributesRequiredDisabled sub-flag only kills
-		// ChannelAttributes-governed enforcement; classification predates
-		// ChannelAttributes and stays gated solely by ClassificationMarkings.
+	t.Run("a required classification value is not enforced when ChannelAttributes is off", func(t *testing.T) {
+		// requiredAttributesEnforced folds the ChannelAttributes umbrella flag
+		// in, and classification gets no special treatment from it: it is
+		// enforced or not by the same single condition as every other field.
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.FeatureFlags.ChannelAttributes = false
 			cfg.FeatureFlags.ClassificationMarkings = true
@@ -579,12 +579,10 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 			require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, classificationField.ID, true, ""))
 		})
 
-		req, name := newRequest()
+		req, _ := newRequest()
 		_, resp, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
-		CheckErrorID(t, err, "api.channel.create_channel.missing_required_attributes.app_error")
-		requireNoSuchChannel(t, name)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
 	})
 
 	t.Run("a non-classification value is still refused when ChannelAttributes is off", func(t *testing.T) {
@@ -676,7 +674,7 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 	})
 
-	t.Run("a required classification value is still enforced when ChannelAttributesRequiredDisabled is on", func(t *testing.T) {
+	t.Run("a required classification value is not enforced either when ChannelAttributesRequiredDisabled is on", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.FeatureFlags.ChannelAttributesRequiredDisabled = true
 		})
@@ -718,12 +716,10 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 			require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, classificationField.ID, true, ""))
 		})
 
-		req, name := newRequest()
+		req, _ := newRequest()
 		_, resp, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
-		CheckErrorID(t, err, "api.channel.create_channel.missing_required_attributes.app_error")
-		requireNoSuchChannel(t, name)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
 	})
 }
 

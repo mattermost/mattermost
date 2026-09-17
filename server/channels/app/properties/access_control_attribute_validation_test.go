@@ -3150,13 +3150,17 @@ func TestAccessControlAttributeValidationHookRequiredEnforcementFlag(t *testing.
 	})
 }
 
-func TestAccessControlAttributeValidationHookRequiredEnforcementFlagClassificationBypass(t *testing.T) {
+// TestAccessControlAttributeValidationHookRequiredEnforcementFlagClassification
+// pins that classification gets no special treatment from the kill switch: a
+// required classification-linked field goes inert and comes back exactly like
+// any other required field under the same RequiredAttributeEnforcement flag.
+func TestAccessControlAttributeValidationHookRequiredEnforcementFlagClassification(t *testing.T) {
 	th := Setup(t)
 
 	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_required_flag_classification", Version: model.PropertyGroupVersionV2})
 	require.NoError(t, err)
 
-	enforced := false
+	enforced := true
 	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{
 		RequiredAttributeEnforcement: func() bool { return enforced },
 	}, group.ID)
@@ -3184,15 +3188,10 @@ func TestAccessControlAttributeValidationHookRequiredEnforcementFlagClassificati
 	})
 	require.NoError(t, createErr)
 
-	requireRefused := func(t *testing.T, err error) {
-		t.Helper()
-		require.Error(t, err)
-		var appErr *model.AppError
-		require.ErrorAs(t, err, &appErr)
-		assert.Equal(t, "app.property_value.required.app_error", appErr.Id)
-	}
+	t.Run("enforcement off: empty write on a required classification-linked field succeeds", func(t *testing.T) {
+		enforced = false
+		defer func() { enforced = true }()
 
-	t.Run("enforcement off: an empty write on a required classification-linked field is still refused", func(t *testing.T) {
 		_, err := th.service.UpsertPropertyValue(th.Context, &model.PropertyValue{
 			GroupID:    group.ID,
 			FieldID:    classificationField.ID,
@@ -3200,20 +3199,20 @@ func TestAccessControlAttributeValidationHookRequiredEnforcementFlagClassificati
 			TargetType: model.PropertyValueTargetTypeChannel,
 			Value:      json.RawMessage(`""`),
 		})
-		requireRefused(t, err)
+		require.NoError(t, err)
 	})
 
-	t.Run("enforcement off: deleting a set required classification-linked value is still refused", func(t *testing.T) {
-		channelID := model.NewId()
-		value, err := th.service.UpsertPropertyValue(th.Context, &model.PropertyValue{
+	t.Run("enforcement back on: empty write on a required classification-linked field is refused again", func(t *testing.T) {
+		_, err := th.service.UpsertPropertyValue(th.Context, &model.PropertyValue{
 			GroupID:    group.ID,
 			FieldID:    classificationField.ID,
-			TargetID:   channelID,
+			TargetID:   model.NewId(),
 			TargetType: model.PropertyValueTargetTypeChannel,
-			Value:      json.RawMessage(`"SECRET"`),
+			Value:      json.RawMessage(`""`),
 		})
-		require.NoError(t, err)
-
-		requireRefused(t, th.service.DeletePropertyValue(th.Context, group.ID, value.ID))
+		require.Error(t, err)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, "app.property_value.required.app_error", appErr.Id)
 	})
 }
