@@ -42,6 +42,7 @@ import SaveChangesPanel from 'components/widgets/modals/components/save_changes_
 
 import type {GlobalState} from 'types/store';
 
+import ChannelSettingsReadOnlyNotice from './channel_settings_read_only_notice';
 import ShareChannelWithWorkspaces from './share_channel_with_workspaces';
 import type {WorkspaceWithStatus} from './share_channel_with_workspaces/types';
 
@@ -63,6 +64,10 @@ type Props = {
     canManageChannelTranslation?: boolean;
     canManageBanner?: boolean;
     canManageSharedChannels?: boolean;
+
+    // The sections here stay visible under a channel_write_access denial (their
+    // permissions come from the RBAC-only check) and every control is disabled instead.
+    isReadOnly?: boolean;
 };
 
 function bannerHasChanges(originalBannerInfo: Channel['banner_info'], updatedBannerInfo: Channel['banner_info']): boolean {
@@ -99,6 +104,7 @@ function ChannelSettingsConfigurationTab({
     canManageChannelTranslation,
     canManageBanner,
     canManageSharedChannels = false,
+    isReadOnly = false,
 }: Props) {
     const {formatMessage, formatList} = useIntl();
     const dispatch = useDispatch();
@@ -107,7 +113,7 @@ function ChannelSettingsConfigurationTab({
     const [requireConfirm, setRequireConfirm] = useState(false);
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
     const [isSaving, setIsSaving] = useState(false);
-    const showSaveChangesPanel = requireConfirm || saveChangesPanelState === 'saved';
+    const showSaveChangesPanel = !isReadOnly && (requireConfirm || saveChangesPanelState === 'saved');
 
     const resetFormErrors = useCallback(() => {
         setFormError('');
@@ -732,6 +738,7 @@ function ChannelSettingsConfigurationTab({
             className={`ChannelSettingsModal__configurationTab${showSaveChangesPanel ? ' ChannelSettingsModal__configurationTab--with-save-panel' : ''}`}
             data-testid='channel-settings-configuration-tab'
         >
+            {isReadOnly && <ChannelSettingsReadOnlyNotice/>}
             {canManageSharedChannels && (
                 <>
                     <ConfirmModal
@@ -757,6 +764,7 @@ function ChannelSettingsConfigurationTab({
                         onRemotesChange={handleWorkspaceRemotesChange}
                         enabled={sharingEnabled}
                         onToggle={handleSharingToggle}
+                        disabled={isReadOnly}
                     />
                 </>
             )}
@@ -794,7 +802,7 @@ function ChannelSettingsConfigurationTab({
                                 id='channelClassificationToggle'
                                 ariaLabel={formatMessage({id: 'channel_settings.classification.title', defaultMessage: 'Classification'})}
                                 size='btn-md'
-                                disabled={false}
+                                disabled={isReadOnly}
                                 onToggle={handleClassificationToggle}
                                 toggled={classificationEnabled}
                                 tabIndex={0}
@@ -871,7 +879,7 @@ function ChannelSettingsConfigurationTab({
                                 id='channelBannerToggle'
                                 ariaLabel={bannerHeading}
                                 size='btn-md'
-                                disabled={bannerLockedByClassification || bannerRequiredByAttribute}
+                                disabled={isReadOnly || bannerLockedByClassification || bannerRequiredByAttribute}
                                 onToggle={handleBannerToggle}
                                 toggled={bannerLockedByClassification || bannerDrivenByAttribute || bannerRequiredByAttribute || updatedChannelBanner.enabled}
                                 tabIndex={0}
@@ -899,7 +907,7 @@ function ChannelSettingsConfigurationTab({
                                             attributes={resolvedAttributes}
                                             lockedTokens={lockedTokens}
                                             onChange={handleBannerTextChange}
-                                            disabled={bannerLockedByClassification}
+                                            disabled={isReadOnly || bannerLockedByClassification}
                                             hasError={characterLimitExceeded}
                                             maxLength={CHANNEL_BANNER_MAX_CHARACTER_LIMIT}
                                         />
@@ -918,6 +926,7 @@ function ChannelSettingsConfigurationTab({
                                             createMessage={bannerTextPlaceholder}
                                             maxLength={CHANNEL_BANNER_MAX_CHARACTER_LIMIT}
                                             minLength={CHANNEL_BANNER_MIN_CHARACTER_LIMIT}
+                                            readOnly={isReadOnly}
                                         />
                                     )}
                                 </div>
@@ -937,7 +946,7 @@ function ChannelSettingsConfigurationTab({
                                         id='channel_banner_banner_background_color_picker'
                                         onChange={handleBannerColorChange}
                                         value={previewBackgroundColor ?? ''}
-                                        isDisabled={bannerLockedByClassification || classificationIsBannerDesignated}
+                                        isDisabled={isReadOnly || bannerLockedByClassification || classificationIsBannerDesignated}
                                     />
                                 </div>
                             </div>
@@ -991,7 +1000,7 @@ function ChannelSettingsConfigurationTab({
                             id='channelTranslationToggle'
                             ariaLabel={autoTranslationHeading}
                             size='btn-md'
-                            disabled={false}
+                            disabled={isReadOnly}
                             onToggle={handleAutoTranslationToggle}
                             toggled={isChannelAutotranslated}
                             tabIndex={0}

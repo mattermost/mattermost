@@ -31,6 +31,7 @@ import type {GlobalState} from 'types/store';
 
 import ChannelAccessRulesConfirmModal from './channel_access_rules_confirm_modal';
 import ChannelActivityWarningModal from './channel_activity_warning_modal';
+import ChannelSettingsReadOnlyNotice from './channel_settings_read_only_notice';
 
 import './channel_settings_access_rules_tab.scss';
 
@@ -46,12 +47,16 @@ type ChannelSettingsAccessRulesTabProps = {
     channel: Channel;
     setAreThereUnsavedChanges?: (unsaved: boolean) => void;
     showTabSwitchError?: boolean;
+
+    /** A channel_write_access denial. The rules stay legible but nothing can be edited. */
+    isReadOnly?: boolean;
 };
 
 function ChannelSettingsAccessRulesTab({
     channel,
     setAreThereUnsavedChanges,
     showTabSwitchError,
+    isReadOnly = false,
 }: ChannelSettingsAccessRulesTabProps) {
     const {formatMessage} = useIntl();
 
@@ -699,11 +704,16 @@ function ChannelSettingsAccessRulesTab({
             expression !== originalExpression ||
             autoSyncMembers !== originalAutoSyncMembers;
 
+        if (isReadOnly) {
+            return false;
+        }
+
         return unsavedChanges || saveChangesPanelState === SAVE_RESULT_SAVED;
-    }, [expression, originalExpression, autoSyncMembers, originalAutoSyncMembers, saveChangesPanelState]);
+    }, [expression, originalExpression, autoSyncMembers, originalAutoSyncMembers, saveChangesPanelState, isReadOnly]);
 
     return (
         <div className='ChannelSettingsModal__accessRulesTab'>
+            {isReadOnly && <ChannelSettingsReadOnlyNotice/>}
             {/* Display system policies indicator if any are applied */}
             {!policiesLoading && systemPolicies.length > 0 && (
                 <div className='ChannelSettingsModal__systemPolicies'>
@@ -750,6 +760,7 @@ function ChannelSettingsAccessRulesTab({
                         actions={actions}
                         enableUserManagedAttributes={accessControlSettings?.EnableUserManagedAttributes || false}
                         isSystemAdmin={isSystemAdmin}
+                        disabled={isReadOnly}
 
                         // Suppress the live "you would be excluded" banner on
                         // public channels — public-channel ABAC is advisory and
@@ -772,7 +783,7 @@ function ChannelSettingsAccessRulesTab({
                         className='ChannelSettingsModal__autoSyncCheckbox'
                         checked={autoSyncMembers}
                         onChange={handleAutoSyncToggle}
-                        disabled={isEmptyRulesState}
+                        disabled={isReadOnly || isEmptyRulesState}
                         id='autoSyncMembersCheckbox'
                         name='autoSyncMembers'
                     />

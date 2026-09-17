@@ -359,6 +359,22 @@ describe('Selectors.Roles.channelWriteAccess', () => {
         expect(Selectors.haveIChannelPermission(state, teamId, channelId, Permissions.MANAGE_CHANNEL_ACCESS_RULES)).toBe(true);
     });
 
+    it('reports the role grant unchanged through the RBAC-only selector when the policy denies', () => {
+        // What the channel settings modal asks for tab visibility: a denial must make the
+        // tabs read-only, not hide them, so visibility has to see the role grant alone.
+        const state = makeState({allowed: false, evaluated: true});
+
+        expect(Selectors.haveIChannelPermissionRBACOnly(state, teamId, channelId, Permissions.CREATE_POST)).toBe(true);
+        expect(Selectors.haveIChannelPermissionRBACOnly(state, teamId, channelId, Permissions.DELETE_PUBLIC_CHANNEL)).toBe(true);
+        expect(Selectors.haveIChannelPermission(state, teamId, channelId, Permissions.CREATE_POST)).toBe(false);
+    });
+
+    it('still withholds a permission no role grants through the RBAC-only selector', () => {
+        const state = makeState();
+
+        expect(Selectors.haveIChannelPermissionRBACOnly(state, teamId, channelId, Permissions.MANAGE_SYSTEM)).toBe(false);
+    });
+
     it('scopes the denial to the channel it was fetched for', () => {
         const state = makeState({allowed: false, evaluated: true});
 

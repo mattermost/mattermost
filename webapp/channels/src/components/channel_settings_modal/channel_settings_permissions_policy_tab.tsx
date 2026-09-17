@@ -46,6 +46,8 @@ import {useEnabledSessionAttributeFields} from 'hooks/useEnabledSessionAttribute
 
 import type {GlobalState} from 'types/store';
 
+import ChannelSettingsReadOnlyNotice from './channel_settings_read_only_notice';
+
 import './channel_settings_access_rules_tab.scss';
 import './channel_settings_permissions_policy_tab.scss';
 
@@ -61,6 +63,16 @@ type ChannelSettingsPermissionsPolicyTabProps = {
     channel: Channel;
     setAreThereUnsavedChanges?: (unsaved: boolean) => void;
     showTabSwitchError?: boolean;
+
+    /**
+     * A channel_write_access denial. The rule list stays legible — name, role and
+     * permission count — but the editor never opens.
+     *
+     * Deliberately not "open the editor read-only": the editor has a name field, a role
+     * menu, a condition table, an add-permission menu, per-chip remove buttons and a save
+     * button, and one control left enabled there would be worse than not opening it.
+     */
+    isReadOnly?: boolean;
 };
 
 const roleMessages = defineMessages({
@@ -198,6 +210,7 @@ function ChannelSettingsPermissionsPolicyTab({
     channel,
     setAreThereUnsavedChanges,
     showTabSwitchError,
+    isReadOnly = false,
 }: ChannelSettingsPermissionsPolicyTabProps) {
     const {formatMessage} = useIntl();
     const accessControlSettings = useSelector((state: GlobalState) => getAccessControlSettings(state));
@@ -704,7 +717,7 @@ function ChannelSettingsPermissionsPolicyTab({
     }, [rules, originalRulesJSON]);
 
     const hasErrors = Boolean(formError) || Boolean(showTabSwitchError);
-    const shouldShowPanel = (hasUnsavedChanges || saveChangesPanelState === SAVE_RESULT_SAVED) && editingKey === null;
+    const shouldShowPanel = !isReadOnly && (hasUnsavedChanges || saveChangesPanelState === SAVE_RESULT_SAVED) && editingKey === null;
 
     // ── Render: load error (defensive — replaces both list and editor) ───
     // Block all editing affordances when the initial policy load failed
@@ -712,6 +725,21 @@ function ChannelSettingsPermissionsPolicyTab({
     // editor would let an author save an empty `rules` state on top of
     // an existing policy that simply couldn't be fetched.
     if (loadError) {
+        // A channel_write_access denial also refuses the policy fetch, so for a caller
+        // without manage_system the load "failure" is the gate working as intended, not a
+        // fault. Show the same notice the other tabs show rather than surfacing the raw
+        // 403 in an error style no other tab uses.
+        if (isReadOnly) {
+            return (
+                <div
+                    className='ChannelSettingsModal__permissionsPolicyTab'
+                    data-testid='permissions-policy-read-only'
+                >
+                    <ChannelSettingsReadOnlyNotice/>
+                </div>
+            );
+        }
+
         return (
             <div
                 className='ChannelSettingsModal__permissionsPolicyTab'
@@ -769,6 +797,8 @@ function ChannelSettingsPermissionsPolicyTab({
     // ── Render: list view ────────────────────────────────────────────────
     return (
         <div className='ChannelSettingsModal__permissionsPolicyTab'>
+            {isReadOnly && <ChannelSettingsReadOnlyNotice/>}
+
             {/* One-line system-policy banner: signal that policies defined
               * higher up may also influence file action decisions. */}
             {systemPolicies.length > 0 && (
@@ -796,7 +826,7 @@ function ChannelSettingsPermissionsPolicyTab({
                 <Button
                     className='ChannelSettingsModal__permissionsPolicyAddRule'
                     onClick={startNew}
-                    disabled={!attributesLoaded}
+                    disabled={!attributesLoaded || isReadOnly}
                     data-testid='permissions-policy-add-rule'
                 >
                     <i className='icon icon-plus'/>
@@ -892,7 +922,8 @@ function ChannelSettingsPermissionsPolicyTab({
                                     key={rule.key}
                                     data-testid={`permissions-policy-row-${rule.key}`}
                                     className='ChannelSettingsModal__permissionsPolicyRow'
-                                    onClick={() => startEdit(rule.key)}
+                                    onClick={isReadOnly ? undefined : () => startEdit(rule.key)}
+                                    aria-disabled={isReadOnly || undefined}
                                 >
                                     <td className='ChannelSettingsModal__permissionsPolicyRowName'>
                                         {rule.name || (
@@ -923,6 +954,7 @@ function ChannelSettingsPermissionsPolicyTab({
                                                     defaultMessage: 'Rule actions',
                                                 }),
                                                 class: 'ChannelSettingsModal__permissionsPolicyRowMenuButton',
+                                                disabled: isReadOnly,
                                                 children: <i className='icon icon-dots-horizontal'/>,
                                             }}
                                             menu={{

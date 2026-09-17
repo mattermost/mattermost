@@ -613,6 +613,39 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab'
         expect(screen.getByTestId('table-editor-value')).toHaveTextContent(newExpression);
         expect(screen.getByTestId(`permissions-policy-editor-action-${ACCESS_CONTROL_ACTION_UPLOAD_FILE}`)).toBeInTheDocument();
     });
+
+    describe('when the channel is read-only', () => {
+        // A channel_write_access denial refuses the policy fetch too, so this tab used to
+        // surface the raw 403 in an error style no other tab uses. It has to show the same
+        // notice the rest of the modal shows.
+        const writeDenied = {status_code: 403, message: 'You do not currently have permission to write in this channel.'};
+
+        it('shows the shared read-only notice instead of the refused fetch', async () => {
+            mockActions.getChannelPolicy.mockResolvedValue({error: writeDenied});
+
+            renderWithContext(
+                <ChannelSettingsPermissionsPolicyTab
+                    {...baseProps}
+                    isReadOnly={true}
+                />,
+                initialState,
+            );
+
+            expect(await screen.findByTestId('permissions-policy-read-only')).toBeInTheDocument();
+            expect(screen.getByText('Editing is restricted')).toBeInTheDocument();
+            expect(screen.queryByTestId('permissions-policy-load-error')).not.toBeInTheDocument();
+            expect(screen.queryByText(writeDenied.message)).not.toBeInTheDocument();
+        });
+
+        it('still reports a genuine load failure when not read-only', async () => {
+            mockActions.getChannelPolicy.mockResolvedValue({error: {status_code: 500, message: 'boom'}});
+
+            renderWithContext(<ChannelSettingsPermissionsPolicyTab {...baseProps}/>, initialState);
+
+            expect(await screen.findByTestId('permissions-policy-load-error')).toBeInTheDocument();
+            expect(screen.queryByTestId('permissions-policy-read-only')).not.toBeInTheDocument();
+        });
+    });
 });
 
 describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab — Channel Read Access', () => {

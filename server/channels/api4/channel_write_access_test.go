@@ -332,3 +332,178 @@ func TestChannelWriteAccessFeatureFlagOff(t *testing.T) {
 	_, _, err := th.Client.CreatePost(context.Background(), &model.Post{ChannelId: th.BasicChannel.Id, Message: "allowed"})
 	require.NoError(t, err, "the gate must be inert while ChannelAccessABACPermission is off")
 }
+
+// channelPolicyWriteSurface is one channel-scoped policy-administration call.
+type channelPolicyWriteSurface struct {
+	name string
+	call func(t *testing.T, th *TestHelper, client *model.Client4) (*model.Response, error)
+}
+
+// setupChannelPolicyWriteAccessAPI stands up a channel admin acting on their own
+// channel's ABAC policy, with channel_write_access governed and deciding `allow`.
+// channel_read_access allows, so any denial below is unambiguously the write action.
+//
+// Masking is off: it makes CreateOrUpdateAccessControlPolicy validate the caller's
+// attribute holdings, which has nothing to do with the gate under test.
+func setupChannelPolicyWriteAccessAPI(t *testing.T, allow bool, overrides ...func(*model.Config)) (*TestHelper, *mocks.AccessControlServiceInterface) {
+	t.Helper()
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.ChannelAccessABACPermission = true
+		cfg.FeatureFlags.AttributeValueMasking = false
+		for _, override := range overrides {
+			override(cfg)
+		}
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+	})
+
+	// Policy administration is authorized on manage_channel_access_rules. Without it
+	// every call below would fail RBAC before the write gate was ever consulted, and a
+	// 403 would prove nothing.
+	th.MakeUserChannelAdmin(t, th.BasicUser, th.BasicChannel)
+
+	mockACS := installMockACS(t, th)
+	mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).Return(true, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, channelWriteAccessEvaluation).
+		Return(model.AccessDecision{Decision: allow}, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+		Return(model.AccessDecision{Decision: true}, nil)
+
+	return th, mockACS
+}
+
+// channelPolicyForWriteAccess is the policy the Membership Policy tab saves. The
+// Permissions Policy tab posts a v0.4 body carrying permission-rule actions through the
+// same handler branch, so it rides the same gate.
+func channelPolicyForWriteAccess(channelID string) *model.AccessControlPolicy {
+	return &model.AccessControlPolicy{
+		ID:       channelID,
+		Type:     model.AccessControlPolicyTypeChannel,
+		Version:  model.AccessControlPolicyVersionV0_3,
+		Revision: 1,
+		Rules: []model.AccessControlPolicyRule{
+			{
+				Expression: "user.attributes.team == 'engineering'",
+				Actions:    []string{model.AccessControlPolicyActionMembership},
+			},
+		},
+	}
+}
+
+// stubChannelPolicyAdministration lets the policy-administration calls behind the gated
+// handlers succeed, so an allowed run reaches a real 200 rather than failing on an
+// unstubbed access control service.
+func stubChannelPolicyAdministration(t *testing.T, th *TestHelper, mockACS *mocks.AccessControlServiceInterface) {
+	t.Helper()
+
+	policy := channelPolicyForWriteAccess(th.BasicChannel.Id)
+	mockACS.On("GetPolicy", mock.Anything, th.BasicChannel.Id).Return(policy, nil)
+	mockACS.On("GetPolicy", mock.Anything, mock.Anything).
+		Return(nil, model.NewAppError("GetPolicy", "app.access_control.not_found.app_error", nil, "", http.StatusNotFound)).
+		Maybe()
+	mockACS.On("SavePolicy", mock.Anything, mock.AnythingOfType("*model.AccessControlPolicy")).Return(policy, nil)
+	mockACS.On("DeletePolicy", mock.Anything, th.BasicChannel.Id).Return(nil)
+	mockACS.On("CheckExpression", mock.Anything, mock.Anything).Return([]model.CELExpressionError{}, nil)
+	mockACS.On("NormalizePolicy", mock.Anything, mock.Anything).Return(policy, nil).Maybe()
+
+	// The caller must satisfy every rule they save, or checkSelfInclusion rejects the
+	// upsert before the handler's own gate can be observed.
+	allowSelfInclusion(mockACS, th.BasicUser.Id)
+}
+
+// Every way a channel's own policy can be inspected or changed. Editing a channel's
+// policies is a write to the channel, so a write denial must reach all of them.
+func channelPolicyWriteSurfaces() []channelPolicyWriteSurface {
+	surface := func(name string, fn func(t *testing.T, th *TestHelper, client *model.Client4) (*model.Response, error)) channelPolicyWriteSurface {
+		return channelPolicyWriteSurface{name: name, call: fn}
+	}
+
+	return []channelPolicyWriteSurface{
+		surface("policy upsert", func(t *testing.T, th *TestHelper, client *model.Client4) (*model.Response, error) {
+			_, resp, err := client.CreateAccessControlPolicy(context.Background(), channelPolicyForWriteAccess(th.BasicChannel.Id))
+			return resp, err
+		}),
+		surface("policy fetch", func(t *testing.T, th *TestHelper, client *model.Client4) (*model.Response, error) {
+			_, resp, err := client.GetAccessControlPolicy(context.Background(), th.BasicChannel.Id)
+			return resp, err
+		}),
+		surface("expression check", func(t *testing.T, th *TestHelper, client *model.Client4) (*model.Response, error) {
+			_, resp, err := client.CheckExpression(context.Background(), "user.attributes.team == 'engineering'", th.BasicChannel.Id)
+			return resp, err
+		}),
+		surface("policy activate", func(t *testing.T, th *TestHelper, client *model.Client4) (*model.Response, error) {
+			_, resp, err := client.SetAccessControlPolicyActive(context.Background(), model.AccessControlPolicyActiveUpdateRequest{
+				Entries: []model.AccessControlPolicyActiveUpdate{{ID: th.BasicChannel.Id, Active: true}},
+			})
+			return resp, err
+		}),
+		// Last: it removes the policy the surfaces above act on.
+		surface("policy delete", func(t *testing.T, th *TestHelper, client *model.Client4) (*model.Response, error) {
+			return client.DeleteAccessControlPolicy(context.Background(), th.BasicChannel.Id)
+		}),
+	}
+}
+
+func TestChannelWriteAccessDeniesChannelPolicyAdministration(t *testing.T) {
+	th, mockACS := setupChannelPolicyWriteAccessAPI(t, false)
+	stubChannelPolicyAdministration(t, th, mockACS)
+
+	for _, surface := range channelPolicyWriteSurfaces() {
+		t.Run(surface.name, func(t *testing.T) {
+			resp, err := surface.call(t, th, th.Client)
+			require.Error(t, err, "channel_write_access denied, so the call must fail")
+			require.NotNil(t, resp)
+			require.Equal(t, http.StatusForbidden, resp.StatusCode)
+			appErr, ok := err.(*model.AppError)
+			require.True(t, ok, "expected an AppError, got %T", err)
+			require.Equal(t, abacWriteDeniedErrorID, appErr.Id,
+				"the denial must name channel_write_access, not a generic permission error")
+		})
+	}
+}
+
+func TestChannelWriteAccessAllowsChannelPolicyAdministration(t *testing.T) {
+	th, mockACS := setupChannelPolicyWriteAccessAPI(t, true)
+	stubChannelPolicyAdministration(t, th, mockACS)
+
+	for _, surface := range channelPolicyWriteSurfaces() {
+		t.Run(surface.name, func(t *testing.T) {
+			_, err := surface.call(t, th, th.Client)
+			require.NoError(t, err)
+		})
+	}
+}
+
+// The gate exempts manage_system so a policy that denies a channel's own admins stays
+// repairable through the API — the System Console channel-level access rules page is that
+// repair path. The webapp still hides both Channel Settings tabs for a denied system
+// admin, so this exemption is not a visible affordance.
+func TestChannelWriteAccessDoesNotGateSystemAdminPolicyAdministration(t *testing.T) {
+	th, mockACS := setupChannelPolicyWriteAccessAPI(t, false)
+	stubChannelPolicyAdministration(t, th, mockACS)
+
+	for _, surface := range channelPolicyWriteSurfaces() {
+		t.Run(surface.name, func(t *testing.T) {
+			_, err := surface.call(t, th, th.SystemAdminClient)
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestChannelPolicyAdministrationUngatedWithoutTheFeatureFlag(t *testing.T) {
+	th, mockACS := setupChannelPolicyWriteAccessAPI(t, false, func(cfg *model.Config) {
+		cfg.FeatureFlags.ChannelAccessABACPermission = false
+	})
+	stubChannelPolicyAdministration(t, th, mockACS)
+
+	for _, surface := range channelPolicyWriteSurfaces() {
+		t.Run(surface.name, func(t *testing.T) {
+			_, err := surface.call(t, th, th.Client)
+			require.NoError(t, err)
+		})
+	}
+}

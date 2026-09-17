@@ -226,12 +226,19 @@ export function isChannelWriteDenied(state: GlobalState, channelId: string): boo
     return Boolean(decision?.evaluated && !decision.allowed);
 }
 
-export function haveIChannelPermission(state: GlobalState, teamId: string | undefined, channelId: string | undefined, permission: string): boolean {
-    const granted = getMySystemPermissions(state).has(permission) ||
+// The role grant alone, with no attribute-based policy applied. Mirrors the server's
+// HasPermissionToChannelRBACOnly, and exists for the same reason: a surface that needs to
+// stay visible under a policy denial — rendering its controls disabled rather than
+// vanishing — has to ask what the user's roles allow, separately from what a policy does.
+// Prefer haveIChannelPermission for anything that gates an actual action.
+export function haveIChannelPermissionRBACOnly(state: GlobalState, teamId: string | undefined, channelId: string | undefined, permission: string): boolean {
+    return getMySystemPermissions(state).has(permission) ||
         Boolean(teamId && getMyPermissionsByTeam(state)[teamId]?.has(permission)) ||
         Boolean(channelId && getMyPermissionsByChannel(state)[channelId]?.has(permission));
+}
 
-    if (!granted) {
+export function haveIChannelPermission(state: GlobalState, teamId: string | undefined, channelId: string | undefined, permission: string): boolean {
+    if (!haveIChannelPermissionRBACOnly(state, teamId, channelId, permission)) {
         return false;
     }
 

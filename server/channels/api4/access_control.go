@@ -44,6 +44,19 @@ func preserveSystemManagedFields(c *Context, policy *model.AccessControlPolicy) 
 	return nil
 }
 
+// requirePolicyChannelWriteAccess gates channel-scoped policy administration on the
+// channel's own channel_write_access policy, so a channel or team admin who may not
+// write in the channel can no longer add, edit or delete its membership and permission
+// policies.
+func requirePolicyChannelWriteAccess(c *Context, channelID string, hasManageSystem bool) bool {
+	// Permitting for `hasManageSystem` so allow creating policies from System Console
+	if hasManageSystem || channelID == "" {
+		return true
+	}
+
+	return requireChannelWriteAccessByID(c, channelID)
+}
+
 func (api *API) InitAccessControlPolicy() {
 	api.BaseRoutes.AccessControlPolicies.Handle("", api.APISessionRequired(createAccessControlPolicy)).Methods(http.MethodPut)
 	api.BaseRoutes.AccessControlPolicies.Handle("/search", api.APISessionRequired(searchAccessControlPolicies)).Methods(http.MethodPost)
@@ -212,6 +225,10 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 				return
 			}
 
+			if !requirePolicyChannelWriteAccess(c, policy.ID, hasManageSystem) {
+				return
+			}
+
 			// Now do the full validation (channel exists, is private, etc.)
 			if appErr := c.App.ValidateChannelAccessControlPolicyCreation(c.AppContext, c.AppContext.Session().UserId, &policy); appErr != nil {
 				c.Err = appErr
@@ -311,6 +328,16 @@ func getAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 				return
 			}
 		}
+
+		if channelPermErr == nil {
+			gatedChannelID := channelID
+			if gatedChannelID == "" {
+				gatedChannelID = policyID
+			}
+			if !requirePolicyChannelWriteAccess(c, gatedChannelID, hasSystemPermission) {
+				return
+			}
+		}
 	}
 
 	policy, appErr := c.App.GetAccessControlPolicy(c.AppContext, policyID)
@@ -379,6 +406,10 @@ func deleteAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 				}
 			}
 		}
+
+		if channelPermErr == nil && !requirePolicyChannelWriteAccess(c, policyID, hasSystemPermission) {
+			return
+		}
 	}
 
 	appErr := c.App.DeleteAccessControlPolicy(c.AppContext, policyID)
@@ -423,6 +454,10 @@ func checkExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
+	}
+
+	if !requirePolicyChannelWriteAccess(c, channelId, hasSystemPermission) {
+		return
 	}
 
 	errs, appErr := c.App.CheckExpression(c.AppContext, checkExpressionRequest.Expression)
@@ -474,6 +509,10 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionManageChannelAccessRules)
 			return
 		}
+	}
+
+	if !requirePolicyChannelWriteAccess(c, channelId, hasSystemPermission) {
+		return
 	}
 
 	var users []*model.User
@@ -700,6 +739,10 @@ func simulatePolicyForUsers(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	if !requirePolicyChannelWriteAccess(c, params.ChannelID, hasSystemPermission) {
+		return
+	}
+
 	// Cross-team consistency check: when both IDs are provided, the
 	// channel must actually belong to the named team. authorizeSimulatePolicy
 	// covers this for the team-admin shortcut, but a system admin's auth
@@ -796,6 +839,11 @@ func validateExpressionAgainstRequester(c *Context, w http.ResponseWriter, r *ht
 				return
 			}
 		}
+	}
+
+	// After the whole block above, so the gate binds the team-admin path too.
+	if !requirePolicyChannelWriteAccess(c, channelId, hasSystemPermission) {
+		return
 	}
 
 	// Direct validation against requester
@@ -922,6 +970,10 @@ func updateActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionManageSystem)
 			return
 		}
+
+		if !requirePolicyChannelWriteAccess(c, policyID, hasManageSystemPermission) {
+			return
+		}
 	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventUpdateActiveStatus, model.AuditStatusFail)
@@ -1004,6 +1056,10 @@ func setActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 					c.SetPermissionError(model.PermissionManageChannelAccessRules)
 					return
 				}
+			}
+
+			if channelPermErr == nil && !requirePolicyChannelWriteAccess(c, entry.ID, hasSystemPermission) {
+				return
 			}
 		}
 	}
@@ -1397,6 +1453,10 @@ func getFieldsAutocomplete(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if !requirePolicyChannelWriteAccess(c, channelId, hasSystemPermission) {
+		return
+	}
+
 	after := r.URL.Query().Get("after")
 	if after != "" && !model.IsValidId(after) {
 		c.SetInvalidParam("after")
@@ -1468,6 +1528,11 @@ func convertToVisualAST(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+
+	if !requirePolicyChannelWriteAccess(c, channelId, hasSystemPermission) {
+		return
+	}
+
 	var visualAST *model.VisualExpression
 	var appErr *model.AppError
 
