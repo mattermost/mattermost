@@ -69,6 +69,10 @@ type ParentPolicyOptions = {
  * Create a parent membership policy via the REST API. A parent is the reusable
  * rule-carrier: assign channels to it (assignChannelsToPolicy) to put those
  * channels under its rules. Returns the created policy id.
+ *
+ * Auto-add is switched on so the sync job's add pass pulls matching team
+ * members into assigned channels; a child created by assignment seeds its own
+ * auto-add setting from the parent.
  */
 export async function createParentPolicyViaAPI(adminClient: Client4, opts: ParentPolicyOptions): Promise<string> {
     // The version sent here is advisory: CreateOrUpdateAccessControlPolicy
@@ -81,8 +85,7 @@ export async function createParentPolicyViaAPI(adminClient: Client4, opts: Paren
         type: 'parent',
         version: opts.version ?? 'v0.3',
         revision: 0,
-        active: true,
-        rules: [{expression: opts.expression, actions: ['membership']}],
+        rules: [{expression: opts.expression, actions: ['membership'], metadata: {auto_add: 'always'}}],
     });
     return policy.id;
 }
