@@ -4,7 +4,7 @@
 package platform
 
 import (
-	"math/rand"
+	"math/rand/v2"
 	"net/http"
 	"os"
 	"strconv"
@@ -205,13 +205,12 @@ func TestShutdown(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should shutdown gracefully", func(t *testing.T) {
 		th := Setup(t)
-		rand.Seed(time.Now().UnixNano())
 
 		// we create plenty of go routines to make sure we wait for all of them
 		// to finish before shutting down
 		for range 1000 {
 			th.Service.Go(func() {
-				time.Sleep(time.Millisecond * time.Duration(rand.Intn(20)))
+				time.Sleep(time.Millisecond * time.Duration(rand.IntN(20)))
 			})
 		}
 

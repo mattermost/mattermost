@@ -26,6 +26,9 @@ const (
 	AuditEventTeamMembershipAdded        = "teamMembershipAdded"        // user auto-added to a team by its membership policy
 	AuditEventTeamMembershipRemoved      = "teamMembershipRemoved"      // user removed from a team by its membership policy
 	AuditEventTeamCascadedChannelRemoval = "teamCascadedChannelRemoval" // channel membership dropped as a cascade of a policy-driven team removal
+
+	AuditEventChannelMembershipAdded   = "channelMembershipAdded"   // user auto-added to a channel by its membership policy
+	AuditEventChannelMembershipRemoved = "channelMembershipRemoved" // user removed from a channel by its membership policy
 )
 
 // Audit & Certificates
@@ -173,6 +176,14 @@ const (
 	AuditEventDeletePropertyField = "deletePropertyField" // delete property field
 	AuditEventGetPropertyFields   = "getPropertyFields"   // list property fields
 	AuditEventPatchPropertyField  = "patchPropertyField"  // update property field
+)
+
+// Property Field Options
+const (
+	AuditEventCreatePropertyFieldOptions = "createPropertyFieldOptions" // add options to a property field
+	AuditEventDeletePropertyFieldOptions = "deletePropertyFieldOptions" // delete options of a property field
+	AuditEventGetPropertyFieldOptions    = "getPropertyFieldOptions"    // list the options of a property field
+	AuditEventPatchPropertyFieldOptions  = "patchPropertyFieldOptions"  // update options of a property field
 )
 
 // Property Values

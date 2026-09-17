@@ -36,15 +36,17 @@ function buildOptionsAttr(fieldType: AttributeFieldType, options: PropertyFieldO
 }
 
 // Patch keeps existing option IDs so stored values stay attached. New options
-// still send an empty id for the server to mint. Text sends null so mergeAttrs
-// drops a leftover options key when switching away from Select/Multiselect/Rank.
+// still send an empty id for the server to mint. Other option properties
+// (color, rank, …) are spread through: mergeAttrs replaces the whole options
+// array, so omitting them would drop chip colors on a standalone channel
+// select. Text sends null so mergeAttrs drops a leftover options key when
+// switching away from Select/Multiselect/Rank.
 function buildPatchOptionsAttr(fieldType: AttributeFieldType, options: PropertyFieldOption[]): PropertyFieldOption[] | null {
     switch (fieldType) {
     case 'select':
     case 'multiselect':
-        return options.map(({id, name}) => ({id: id || '', name}));
     case 'rank':
-        return options.map(({id, name, rank}) => ({id: id || '', name, rank}));
+        return options.map((option) => ({...option, id: option.id || ''}));
     default:
         return null;
     }
@@ -79,11 +81,26 @@ async function listPropertyFields(objectType: string): Promise<PropertyField[]> 
     return fields;
 }
 
-// There is no GET-by-id property-fields HTTP handler. List template fields and
-// find the one whose id matches. Returns undefined when it isn't in the group.
-export async function fetchAttributeField(fieldId: string): Promise<PropertyField | undefined> {
-    const fields = await listPropertyFields(GLOBAL_ATTRIBUTES_OBJECT_TYPE);
-    return fields.find((field) => field.id === fieldId && field.delete_at === 0);
+// There is no GET-by-id property-fields HTTP handler. List every object type a
+// field can live in and find the one whose id matches. A user/channel/post
+// field only counts when it isn't a template's linked child (linked_field_id
+// set) -- those aren't listed or edited on their own, so an id that only
+// resolves to one returns undefined and the details page redirects to the list.
+//
+// includeChannel is false below Enterprise Advanced (or with the ChannelAttributes
+// flag off): the server 501s a channel-scoped access_control GET there, and
+// fetching it unconditionally would reject the whole Promise.all and bounce every
+// details page to the list -- even one editing a user or template field.
+export async function fetchAttributeField(fieldId: string, includeChannel: boolean): Promise<PropertyField | undefined> {
+    const objectTypes = [GLOBAL_ATTRIBUTES_OBJECT_TYPE, ...ALL_RESOURCE_TYPES.filter((type) => includeChannel || type !== 'channel')];
+    const pages = await Promise.all(
+        objectTypes.map((objectType) => listPropertyFields(objectType)),
+    );
+    return pages.flat().find((field) => (
+        field.id === fieldId &&
+        field.delete_at === 0 &&
+        (field.object_type === GLOBAL_ATTRIBUTES_OBJECT_TYPE || !field.linked_field_id)
+    ));
 }
 
 function isResourceObjectType(value: string): value is ResourceObjectType {
@@ -92,15 +109,42 @@ function isResourceObjectType(value: string): value is ResourceObjectType {
 
 // Lists user/channel/post fields and keeps those pointing at the template.
 // There is no cross-object-type listing endpoint.
-export async function fetchLinkedFieldsForTemplate(templateFieldId: string): Promise<PropertyField[]> {
+//
+// includeChannel matches fetchAttributeField: false below Enterprise Advanced
+// (or with the ChannelAttributes flag off). That earlier fetch's own skip does
+// not protect this later Promise.all; a 501 on the channel scope would reject
+// the whole load and bounce the template details page to the list.
+export async function fetchLinkedFieldsForTemplate(templateFieldId: string, includeChannel: boolean): Promise<PropertyField[]> {
+    const objectTypes = ALL_RESOURCE_TYPES.filter((type) => includeChannel || type !== 'channel');
     const pages = await Promise.all(
-        ALL_RESOURCE_TYPES.map((objectType) => listPropertyFields(objectType)),
+        objectTypes.map((objectType) => listPropertyFields(objectType)),
     );
     return pages.flat().filter((field) => (
         field.linked_field_id === templateFieldId &&
         field.delete_at === 0 &&
         isResourceObjectType(field.object_type)
     ));
+}
+
+export function appliedResourceTypesByTemplateId(linkedFields: PropertyField[]): Record<string, ResourceObjectType[]> {
+    const present = new Map<string, Set<ResourceObjectType>>();
+    for (const field of linkedFields) {
+        if (!field.linked_field_id || field.delete_at !== 0 || !isResourceObjectType(field.object_type)) {
+            continue;
+        }
+        let types = present.get(field.linked_field_id);
+        if (!types) {
+            types = new Set();
+            present.set(field.linked_field_id, types);
+        }
+        types.add(field.object_type);
+    }
+
+    const byTemplate: Record<string, ResourceObjectType[]> = {};
+    for (const [templateId, types] of present) {
+        byTemplate[templateId] = ALL_RESOURCE_TYPES.filter((type) => types.has(type));
+    }
+    return byTemplate;
 }
 
 export function linkedFieldsByResourceType(fields: PropertyField[]): Partial<Record<ResourceObjectType, PropertyField>> {
@@ -152,15 +196,16 @@ export type UpdateAttributeFieldPatch = {
     samlAttr: string;
 };
 
-// PATCHes a template field. Attrs are merge-patched (mergeAttrs=true on the
-// server): ldap/saml send null to unlink, and Text sends options: null so a
-// leftover options array is dropped. name is omitted when unchanged so the
-// server skips uniqueness re-validation.
+// Attrs are merge-patched (mergeAttrs=true on the server): ldap/saml send
+// null to unlink, and Text sends options: null so a leftover options array
+// is dropped. name is omitted when unchanged so the server skips uniqueness
+// re-validation.
 export function updateAttributeField(
+    objectType: string,
     fieldId: string,
     patch: UpdateAttributeFieldPatch,
 ): Promise<PropertyField> {
-    return Client4.patchPropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, fieldId, {
+    return Client4.patchPropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, fieldId, {
         ...(patch.name === undefined ? {} : {name: patch.name}),
         type: patch.type as PropertyField['type'],
         attrs: {
@@ -172,12 +217,12 @@ export function updateAttributeField(
     });
 }
 
-// Deletes a template field from the access_control group. The server returns
-// 409 when the field still has active linked dependents (CountLinkedFields > 0);
-// callers are expected to surface that case distinctly (or, for a save-time
-// rollback, to only delete linked fields first -- see createLinkedAttributeField).
-export function deleteAttributeField(fieldId: string): Promise<unknown> {
-    return Client4.deletePropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, fieldId);
+// The server returns 409 when the field still has active linked dependents
+// (CountLinkedFields > 0); callers are expected to surface that case distinctly
+// (or, for a save-time rollback, to only delete linked fields first -- see
+// createLinkedAttributeField).
+export function deleteAttributeField(objectType: string, fieldId: string): Promise<unknown> {
+    return Client4.deletePropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, fieldId);
 }
 
 // Creates a linked field for one Applies-to resource. The server validates
@@ -250,4 +295,12 @@ export function patchLinkedAttributeField(
         ...(attrs ? {attrs} : {}),
         ...(permissionValues ? {permission_values: permissionValues} : {}),
     });
+}
+
+export function formatAttributeHeadingName(name: string): string {
+    const trimmed = name.trim();
+    if (!trimmed) {
+        return trimmed;
+    }
+    return trimmed.charAt(0).toLocaleUpperCase() + trimmed.slice(1);
 }

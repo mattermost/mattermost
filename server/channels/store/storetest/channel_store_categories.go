@@ -7,7 +7,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"math/rand"
+	"math/rand/v2"
 	"sync"
 	"testing"
 	"time"
@@ -2387,7 +2387,7 @@ func doTestSidebarCategoryConcurrentAccess(t *testing.T, rctx request.CTX, ss st
 				}
 			case 7:
 				// Update category properties
-				customCatIndex := rand.Intn(2)
+				customCatIndex := rand.IntN(2)
 				updatedCategories = []*model.SidebarCategoryWithChannels{
 					{
 						SidebarCategory: model.SidebarCategory{
@@ -2413,7 +2413,7 @@ func doTestSidebarCategoryConcurrentAccess(t *testing.T, rctx request.CTX, ss st
 		}(i)
 
 		// Small sleep to vary timing between iterations
-		time.Sleep(time.Millisecond * time.Duration(rand.Intn(3)))
+		time.Sleep(time.Millisecond * time.Duration(rand.IntN(3)))
 	}
 
 	// Wait with timeout to catch any deadlocks
