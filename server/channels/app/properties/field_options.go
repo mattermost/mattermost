@@ -309,6 +309,26 @@ func (ps *PropertyService) CreateFieldOptions(rctx request.CTX, groupID, fieldID
 	// Every name in the payload is new, so any option already carrying one is a
 	// collision. Checked against the effective set: a name that an inherited option
 	// already has would make the two indistinguishable as a reference.
+	//
+	// The effective set is the unmasked one, while the read path withholds
+	// options from callers who may not see them (maskedFieldCopy in
+	// access_control.go). Answering from the full set here is safe only because
+	// three invariants hold, each enforced elsewhere:
+	//
+	//  1. Option-list masking runs only for the access-control managed group,
+	//     and that group's option endpoints are pinned to sysadmin, so a member
+	//     is refused before any of these lookups runs.
+	//  2. A masked field is always protected.
+	//  3. A protected field is never owner-managed: its only writer is the
+	//     source plugin (requireWritableOptions), and the source plugin reads
+	//     unmasked.
+	//
+	// Relax any one and these name lookups become a member-reachable oracle over
+	// exactly the names the read path withholds, and resolveOptionParents would
+	// graft an option under a hidden ancestor. No test would fail, because the
+	// safety is not local to the lookup.
+	// UpdateFieldOptions, resolveOptionParents and requireNamesFreeOfDependents
+	// resolve names against the same set on the same invariants.
 	names := make([]string, 0, len(options))
 	for _, option := range options {
 		names = append(names, option.Name)
@@ -400,6 +420,8 @@ func (ps *PropertyService) UpdateFieldOptions(rctx request.CTX, groupID, fieldID
 		}
 	}
 	if len(renamed) > 0 {
+		// Unmasked on purpose -- see the invariant list at the GetOptionsByName
+		// call in CreateFieldOptions.
 		taken, tErr := ps.fieldStore.GetOptionsByName(field, renamed)
 		if tErr != nil {
 			return nil, nil, errors.Wrap(tErr, "failed to look up a property field's options by name")
@@ -607,6 +629,8 @@ func (ps *PropertyService) resolveOptionParents(field *model.PropertyField, opti
 		return nil, nil
 	}
 
+	// Unmasked on purpose -- see the invariant list at the GetOptionsByName
+	// call in CreateFieldOptions.
 	existing, err := ps.fieldStore.GetOptionsByName(field, names)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to look up a property field's options by name")
@@ -913,6 +937,8 @@ func (ps *PropertyService) requireNamesFreeOfDependents(field *model.PropertyFie
 		return nil
 	}
 
+	// Unmasked on purpose -- see the invariant list at the GetOptionsByName
+	// call in CreateFieldOptions.
 	taken, err := ps.fieldStore.GetLinkedFieldOptionNames(field.ID, names)
 	if err != nil {
 		return errors.Wrap(err, "failed to look up the options of the fields linking to a property field")

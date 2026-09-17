@@ -919,4 +919,88 @@ describe('components/PluginManagement', () => {
 
         expect(screen.getByText('Settings')).toBeInTheDocument();
     });
+
+    describe('plugins forced off by a state override', () => {
+        // getPluginStateOverride holds a plugin at NotRunning with Enable still
+        // true in config.
+        const renderWithPluginState = (configEnabled: boolean) => {
+            const props = {
+                ...defaultProps,
+                config: {
+                    ...defaultProps.config,
+                    PluginSettings: {
+                        ...defaultProps.config.PluginSettings,
+                        PluginStates: configEnabled ? {plugin_0: {Enable: true}} : {},
+                    },
+                },
+            };
+            const ref = React.createRef<InstanceType<typeof PluginManagement>>();
+            renderWithContext(
+                <PluginManagement
+                    {...props}
+                    ref={ref}
+                />,
+            );
+            act(() => {
+                ref.current!.setState({loading: false} as any);
+            });
+        };
+
+        test('offers Disable when config says enabled but the plugin is not running', () => {
+            renderWithPluginState(true);
+
+            const row = screen.getByTestId('plugin_0');
+            expect(row).toHaveTextContent('Disable');
+            expect(row).not.toHaveTextContent('Enable');
+        });
+
+        test('still offers Enable when config says disabled and the plugin is not running', () => {
+            renderWithPluginState(false);
+
+            const row = screen.getByTestId('plugin_0');
+            expect(row).toHaveTextContent('Enable');
+            expect(row).not.toHaveTextContent('Disable');
+        });
+    });
+
+    describe('unlicensed add-on plugins', () => {
+        const renderAddOn = (license: Record<string, string>) => {
+            const props = {
+                ...defaultProps,
+                license,
+                plugins: {
+                    plugin_0: {
+                        ...defaultProps.plugins.plugin_0,
+                        required_add_on: 'crossguard',
+                    },
+                },
+            };
+            const ref = React.createRef<InstanceType<typeof PluginManagement>>();
+            renderWithContext(
+                <PluginManagement
+                    {...props}
+                    ref={ref}
+                />,
+            );
+            act(() => {
+                ref.current!.setState({loading: false} as any);
+            });
+        };
+
+        test('replaces the Enable link with an explanation when the license lacks the add-on', () => {
+            renderAddOn({IsLicensed: 'true'});
+
+            const row = screen.getByTestId('plugin_0');
+            expect(row).toHaveTextContent('Not included in your license');
+            expect(row).not.toHaveTextContent('Enable');
+        });
+
+        test('offers Enable when the license grants the add-on', () => {
+            renderAddOn({IsLicensed: 'true', AddOns: 'crossguard'});
+
+            const row = screen.getByTestId('plugin_0');
+            expect(row).toHaveTextContent('Enable');
+            expect(row).not.toHaveTextContent('Not included in your license');
+        });
+    });
 });

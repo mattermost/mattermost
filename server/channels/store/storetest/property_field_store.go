@@ -1024,6 +1024,7 @@ func testDeletePropertyField(t *testing.T, rctx request.CTX, ss store.Store, s S
 		deletedField, err := ss.PropertyField().Get(rctx, "", field.ID)
 		require.NoError(t, err)
 		require.NotZero(t, deletedField.DeleteAt)
+		require.Greater(t, deletedField.UpdateAt, field.UpdateAt)
 	})
 
 	t.Run("should be able to create a new field with the same details as the deleted one", func(t *testing.T) {
@@ -1427,17 +1428,16 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store, s Sql
 			expectedIDs: []string{field1.ID, field2.ID},
 		},
 		{
-			// SinceUpdateAt is inclusive (>=). With since=field5.UpdateAt
-			// the only row in groupID with UpdateAt >= field5.UpdateAt is
-			// field5 itself (delete does not touch UpdateAt, so field4
-			// stays behind in time order).
-			name: "filter by SinceUpdateAt timestamp - returns the boundary row",
+			// SinceUpdateAt is inclusive (>=). field4 is deleted after all
+			// six creates, so its tombstone UpdateAt lands past field5.UpdateAt
+			// and both rows are in range.
+			name: "filter by SinceUpdateAt timestamp - returns the boundary row and the later tombstone",
 			opts: model.PropertyFieldSearchOpts{
 				GroupID:       groupID,
 				SinceUpdateAt: field5.UpdateAt,
 				PerPage:       10,
 			},
-			expectedIDs: []string{field5.ID},
+			expectedIDs: []string{field4.ID, field5.ID},
 		},
 		{
 			// Using field1.UpdateAt+1 demonstrates the `>=` boundary excludes
@@ -4198,6 +4198,26 @@ func testPropertyFieldOptionEdges(t *testing.T, rctx request.CTX, ss store.Store
 		read, err := ss.PropertyField().GetOptionEdges(field.ID)
 		require.NoError(t, err)
 		require.Equal(t, [][2]string{{ids["Fighter Jet Program"], ids["Air Program"]}}, asPairs(read))
+	})
+
+	t.Run("an option change on a deleted field is refused and leaves no live options", func(t *testing.T) {
+		ids := programIDs()
+		field := newField(t, model.PropertyFieldTypeMultiselect, ids)
+		require.NoError(t, ss.PropertyField().Delete(groupID, field.ID))
+
+		// Zero skips the version check. DeleteAt still has to be 0 or the bump
+		// fails, which is what keeps ON CONFLICT from restoring a deleted option.
+		err := ss.PropertyField().MutateOptions(groupID, field.ID, 0, []*model.PropertyFieldOption{
+			{ID: ids["Air Program"], Name: "Air Program"},
+		}, nil, nil)
+		require.Error(t, err)
+		var notFoundErr *store.ErrNotFound
+		require.ErrorAs(t, err, &notFoundErr)
+
+		var live int
+		require.NoError(t, s.GetMaster().Get(&live,
+			"SELECT COUNT(*) FROM PropertyOptions WHERE FieldID = $1 AND DeleteAt = 0", field.ID))
+		require.Zero(t, live)
 	})
 
 	t.Run("every edge in a change belongs to the field being changed", func(t *testing.T) {

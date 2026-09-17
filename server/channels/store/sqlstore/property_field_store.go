@@ -551,6 +551,12 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 // Nothing checks the field's type first: a field with no options runs two
 // statements that match nothing, which is cheaper than the read it would take to
 // find out, and both are served by a primary key leading with FieldID.
+//
+// UpdateAt is advanced with the same GREATEST(now, UpdateAt+1) expression as
+// an option change: a same-millisecond delete would otherwise leave the
+// timestamp a racing option write is holding, and that write would still win
+// the swap. The bump also puts the tombstone in front of delta-sync clients
+// already past the pre-delete UpdateAt.
 func (s *SqlPropertyFieldStore) Delete(groupID string, id string) (err error) {
 	now := model.GetMillis()
 
@@ -563,6 +569,7 @@ func (s *SqlPropertyFieldStore) Delete(groupID string, id string) (err error) {
 	builder := s.getQueryBuilder().
 		Update("PropertyFields").
 		Set("DeleteAt", now).
+		Set("UpdateAt", sq.Expr("GREATEST(?, UpdateAt + 1)", now)).
 		Where(sq.Eq{"id": id})
 
 	if groupID != "" {

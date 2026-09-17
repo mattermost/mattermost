@@ -1497,7 +1497,7 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            expect(screen.getByRole('heading', {name: 'Edit attribute'})).toBeInTheDocument();
+            expect(screen.getByRole('heading', {name: 'Edit Department Attribute'})).toBeInTheDocument();
             expect(screen.getByTestId('attributeDisplayNameInput')).toHaveValue('Department');
             expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('department');
             expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Select');
@@ -2153,7 +2153,7 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            expect(screen.getByRole('heading', {name: 'Edit attribute'})).toBeInTheDocument();
+            expect(screen.getByRole('heading', {name: 'Edit Org chart Attribute'})).toBeInTheDocument();
             expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Hierarchical');
             expect(mockHistoryPush).not.toHaveBeenCalled();
         });
@@ -2178,7 +2178,7 @@ describe('AttributeDetails', () => {
             await waitForForm();
 
             expect(getPropertyFieldOptions).toHaveBeenCalled();
-            expect(screen.getByRole('heading', {name: 'Edit attribute'})).toBeInTheDocument();
+            expect(screen.getByRole('heading', {name: 'Edit Org chart Attribute'})).toBeInTheDocument();
             expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Hierarchical');
             expect(screen.getByTestId('attributeOptionsGraphValues')).toBeInTheDocument();
             expect(screen.getAllByTestId('attributeOptionsGraphRow__name').map((el) => el.textContent)).toEqual(['Air', 'Fighter']);

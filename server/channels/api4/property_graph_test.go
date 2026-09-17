@@ -342,6 +342,23 @@ func TestGraphPropertyFieldAuthoring(t *testing.T) {
 		require.NoError(t, lErr)
 		assert.ElementsMatch(t, []string{airProgram, fighterJetProgram, f18Program, f35Program}, optionNames(listed.Options))
 	})
+
+	t.Run("a field whose inline options repeat an id is a 400, not a 500", func(t *testing.T) {
+		repeatedID := model.NewId()
+		_, resp, err := admin.CreatePropertyField(ctx, groupName, model.PropertyFieldObjectTypeTemplate, &model.PropertyField{
+			Name:       celSafeName(),
+			Type:       model.PropertyFieldTypeGraph,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []map[string]any{
+					{"id": repeatedID, "name": "One Program"},
+					{"id": repeatedID, "name": "Another Program"},
+				},
+			},
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 // TestGraphPropertyFieldAboveHydrationCutoff covers a graph field with more

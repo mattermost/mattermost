@@ -1708,6 +1708,71 @@ func TestAccessControlAttributeValidationHookRankOptions(t *testing.T) {
 	})
 }
 
+// TestAccessControlAttributeValidationHookDuplicateOptionIDs covers the
+// rejection of an inline option list that repeats an option ID. Without it the
+// store's upsert conflicts on (FieldID, ID) twice in one statement and the
+// caller gets a 500 for what is a client error.
+func TestAccessControlAttributeValidationHookDuplicateOptionIDs(t *testing.T) {
+	th := Setup(t)
+
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_duplicate_option_ids", Version: model.PropertyGroupVersionV2})
+	require.NoError(t, err)
+
+	hook := NewAccessControlAttributeValidationHook(th.service, nil, group.ID)
+	th.service.AddHook(hook)
+
+	selectField := func(options []any) *model.PropertyField {
+		return &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: options,
+			},
+		}
+	}
+
+	t.Run("create with a repeated option id is refused and names the id", func(t *testing.T) {
+		repeatedID := model.NewId()
+		_, createErr := th.service.CreatePropertyField(th.Context, selectField([]any{
+			map[string]any{"id": repeatedID, "name": "A"},
+			map[string]any{"id": repeatedID, "name": "B"},
+		}))
+		require.ErrorIs(t, createErr, ErrInvalidFieldAttrs)
+		assert.Contains(t, createErr.Error(), repeatedID)
+	})
+
+	t.Run("the id is named even when the names also collide", func(t *testing.T) {
+		repeatedID := model.NewId()
+		_, createErr := th.service.CreatePropertyField(th.Context, selectField([]any{
+			map[string]any{"id": repeatedID, "name": "A"},
+			map[string]any{"id": repeatedID, "name": "A"},
+		}))
+		require.ErrorIs(t, createErr, ErrInvalidFieldAttrs)
+		assert.Contains(t, createErr.Error(), "duplicate option id")
+		assert.Contains(t, createErr.Error(), repeatedID)
+	})
+
+	t.Run("update with a repeated option id is refused and names the id", func(t *testing.T) {
+		field, createErr := th.service.CreatePropertyField(th.Context, selectField([]any{
+			map[string]any{"name": "A"},
+			map[string]any{"name": "B"},
+		}))
+		require.NoError(t, createErr)
+
+		repeatedID := model.NewId()
+		field.Attrs[model.PropertyFieldAttributeOptions] = []any{
+			map[string]any{"id": repeatedID, "name": "A"},
+			map[string]any{"id": repeatedID, "name": "B"},
+		}
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.ErrorIs(t, updateErr, ErrInvalidFieldAttrs)
+		assert.Contains(t, updateErr.Error(), repeatedID)
+	})
+}
+
 // TestAccessControlAttributeValidationHookRankConversion covers the repair that
 // runs when a field is converted INTO rank from another type: arbitrary option
 // ranks (non-sequential, duplicated, or missing) are renumbered to a gap-free

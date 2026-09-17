@@ -105,6 +105,20 @@ describe('useChannelLabels', () => {
         expect(result.current).toEqual([]);
     });
 
+    test('returns fields from every requested surface, once, in display order', () => {
+        const state = makeState(
+            [
+                field('info_only', ['display_label_info']),
+                field('both', ['display_label_header', 'display_label_info']),
+                field('header_only', ['display_label_header']),
+            ],
+            [value('info_only', 'opt'), value('both', 'opt'), value('header_only', 'opt')],
+        );
+
+        const {result} = renderHookWithContext(() => useChannelLabels(CHANNEL_ID, ['info', 'header']), state);
+        expect(result.current.map((a) => a.field.id)).toEqual(['both', 'header_only', 'info_only']);
+    });
+
     test('returns nothing when the feature flag is off', () => {
         const state = makeState([field('program', ['display_label_header'])], [value('program', 'opt')], 'false');
 

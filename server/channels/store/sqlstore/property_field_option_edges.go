@@ -56,11 +56,18 @@ const maxOptionIDsPerQuery = 10000
 // hierarchy without the other is exactly the case the swap exists to refuse. The
 // value stays a timestamp that only moves forwards, which is all the clients
 // paging on it need.
+//
+// A deleted field is refused even when expectedUpdateAt is zero. That argument
+// means "do not check the version", not "do not check that the field is live".
+// The filter is on this UPDATE so a bump that blocked on the delete's row lock
+// re-evaluates the committed row; a prior SELECT would see DeleteAt as it was
+// before the delete.
 func (s *SqlPropertyFieldStore) bumpFieldForOptionChange(transaction *sqlxTxWrapper, groupID, fieldID string, expectedUpdateAt int64) error {
 	builder := s.getQueryBuilder().
 		Update("PropertyFields").
 		Set("UpdateAt", sq.Expr("GREATEST(?, UpdateAt + 1)", model.GetMillis())).
-		Where(sq.Eq{"ID": fieldID})
+		Where(sq.Eq{"ID": fieldID}).
+		Where(sq.Eq{"DeleteAt": 0})
 
 	if groupID != "" {
 		builder = builder.Where(sq.Eq{"GroupID": groupID})

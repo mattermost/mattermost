@@ -7,6 +7,7 @@ import {Client4} from 'mattermost-redux/client';
 
 import {
     ATTRIBUTE_FIELD_TYPES,
+    appliedResourceTypesByTemplateId,
     buildOptionsAttr,
     createAttributeField,
     createLinkedAttributeField,
@@ -14,6 +15,7 @@ import {
     deleteLinkedAttributeField,
     fetchAttributeField,
     fetchLinkedFieldsForTemplate,
+    formatAttributeHeadingName,
     isAttributeFieldType,
     linkedFieldsByResourceType,
     updateAttributeField,
@@ -456,6 +458,43 @@ describe('global_attributes/utils', () => {
             expect(isAttributeFieldType('date')).toBe(false);
             expect(isAttributeFieldType('user')).toBe(false);
             expect(isAttributeFieldType('')).toBe(false);
+        });
+    });
+
+    describe('formatAttributeHeadingName', () => {
+        it('title-cases the first letter so internal names read as headings', () => {
+            expect(formatAttributeHeadingName('classification')).toBe('Classification');
+            expect(formatAttributeHeadingName('  department')).toBe('Department');
+        });
+
+        it('leaves an already-capitalized display name unchanged', () => {
+            expect(formatAttributeHeadingName('Test Attribute')).toBe('Test Attribute');
+        });
+
+        it('returns an empty string when the name is blank', () => {
+            expect(formatAttributeHeadingName('   ')).toBe('');
+        });
+    });
+
+    describe('appliedResourceTypesByTemplateId', () => {
+        it('groups live linked fields by template and keeps Users, Channels, Posts order', () => {
+            const byTemplate = appliedResourceTypesByTemplateId([
+                {id: 'p1', object_type: 'post', linked_field_id: 't1', delete_at: 0} as PropertyField,
+                {id: 'u1', object_type: 'user', linked_field_id: 't1', delete_at: 0} as PropertyField,
+                {id: 'c1', object_type: 'channel', linked_field_id: 't2', delete_at: 0} as PropertyField,
+                {id: 'u2', object_type: 'user', linked_field_id: 't1', delete_at: 0} as PropertyField,
+                {id: 'dead', object_type: 'channel', linked_field_id: 't1', delete_at: 1} as PropertyField,
+            ]);
+
+            expect(byTemplate.t1).toEqual(['user', 'post']);
+            expect(byTemplate.t2).toEqual(['channel']);
+        });
+
+        it('ignores fields without a linked template or a known resource type', () => {
+            expect(appliedResourceTypesByTemplateId([
+                {id: 'orphan', object_type: 'user', delete_at: 0} as PropertyField,
+                {id: 'other', object_type: 'template', linked_field_id: 't1', delete_at: 0} as PropertyField,
+            ])).toEqual({});
         });
     });
 

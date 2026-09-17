@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -149,5 +150,70 @@ func TestPropertyFieldOptionsPage(t *testing.T) {
 			require.False(t, page.HasMore)
 			require.ElementsMatch(t, []string{"X", "Y", "Z", "A", "B", "C"}, named(ids, page.Options))
 		})
+	})
+}
+
+func TestPropertyFieldOptionsChunkedWrites(t *testing.T) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
+		groupID := model.NewId()
+		fieldStore := ss.PropertyField().(*SqlPropertyFieldStore)
+		n := maxPropertyOptionRowsPerQuery + 1
+		ids := make([]string, n)
+		options := make([]any, n)
+		for i := range n {
+			ids[i] = model.NewId()
+			options[i] = map[string]any{"id": ids[i], "name": fmt.Sprintf("opt-%d", i)}
+		}
+
+		field, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:    groupID,
+			Name:       "ChunkedWrites-" + model.NewId(),
+			Type:       model.PropertyFieldTypeGraph,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs:      model.StringInterface{"options": options},
+		})
+		require.NoError(t, err)
+
+		var count int
+		err = fieldStore.GetMaster().Get(&count,
+			"SELECT COUNT(*) FROM PropertyOptions WHERE FieldID = $1 AND DeleteAt = 0", field.ID)
+		require.NoError(t, err)
+		require.Equal(t, n, count)
+
+		var minSort, maxSort int
+		err = fieldStore.GetMaster().Get(&minSort,
+			"SELECT MIN(SortOrder) FROM PropertyOptions WHERE FieldID = $1 AND DeleteAt = 0", field.ID)
+		require.NoError(t, err)
+		err = fieldStore.GetMaster().Get(&maxSort,
+			"SELECT MAX(SortOrder) FROM PropertyOptions WHERE FieldID = $1 AND DeleteAt = 0", field.ID)
+		require.NoError(t, err)
+		require.Equal(t, 1, minSort)
+		require.Equal(t, n, maxSort)
+
+		var orderedIDs []string
+		err = fieldStore.GetMaster().Select(&orderedIDs,
+			"SELECT ID FROM PropertyOptions WHERE FieldID = $1 AND DeleteAt = 0 ORDER BY SortOrder", field.ID)
+		require.NoError(t, err)
+		require.Equal(t, ids, orderedIDs)
+
+		update := &model.PropertyField{
+			ID:         field.ID,
+			GroupID:    field.GroupID,
+			Name:       field.Name,
+			Type:       field.Type,
+			ObjectType: field.ObjectType,
+			TargetType: field.TargetType,
+			CreateAt:   field.CreateAt,
+			UpdateAt:   field.UpdateAt,
+			Attrs:      model.StringInterface{"options": []any{}},
+		}
+		_, err = ss.PropertyField().Update("", []*model.PropertyField{update}, nil)
+		require.NoError(t, err)
+
+		err = fieldStore.GetMaster().Get(&count,
+			"SELECT COUNT(*) FROM PropertyOptions WHERE FieldID = $1 AND DeleteAt = 0", field.ID)
+		require.NoError(t, err)
+		require.Equal(t, 0, count)
 	})
 }

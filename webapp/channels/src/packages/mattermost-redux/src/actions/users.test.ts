@@ -5,6 +5,7 @@ import fs from 'fs';
 
 import nock from 'nock';
 
+import {CollapsedThreads} from '@mattermost/types/config';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {GeneralTypes, UserTypes} from 'mattermost-redux/action_types';
@@ -30,7 +31,7 @@ describe('Actions.Users', () => {
             entities: {
                 general: {
                     config: {
-                        CollapsedThreads: 'always_on',
+                        CollapsedThreads: CollapsedThreads.ALWAYS_ON,
                     },
                 },
             },

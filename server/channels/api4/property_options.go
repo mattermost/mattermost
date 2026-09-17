@@ -39,6 +39,10 @@ func propertyFieldForOptions(c *Context, callerName string) (*model.PropertyFiel
 		return nil, nil
 	}
 
+	if !requireChannelAttributeLicense(c, group, callerName, c.Params.ObjectType) {
+		return nil, nil
+	}
+
 	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
 
 	field, appErr := c.App.GetPropertyField(rctx, group.ID, c.Params.FieldId)
@@ -57,6 +61,10 @@ func propertyFieldForOptions(c *Context, callerName string) (*model.PropertyFiel
 	// object type in the URL without leaking cross-bucket existence.
 	if field.ObjectType != c.Params.ObjectType {
 		c.Err = model.NewAppError(callerName, "api.property_field.object_type_mismatch.app_error", nil, "", http.StatusNotFound)
+		return nil, nil
+	}
+
+	if !requireChannelAttributeLicenseForTemplate(c, rctx, group, field, callerName) {
 		return nil, nil
 	}
 

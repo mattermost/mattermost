@@ -969,10 +969,20 @@ func (p PropertyOptions[T]) IsValid() error {
 		return errors.New("options list cannot be empty")
 	}
 
+	seenIDs := make(map[string]struct{})
 	seenNames := make(map[string]struct{})
 	for i, option := range p {
 		if err := option.IsValid(); err != nil {
 			return fmt.Errorf("invalid option at index %d: %w", i, err)
+		}
+
+		// Blank IDs are filled in before validation and are required to be
+		// blank on option-create payloads, so they are never duplicates.
+		if id := option.GetID(); id != "" {
+			if _, exists := seenIDs[id]; exists {
+				return fmt.Errorf("duplicate option id found at index %d: %s", i, id)
+			}
+			seenIDs[id] = struct{}{}
 		}
 
 		if _, exists := seenNames[option.GetName()]; exists {
