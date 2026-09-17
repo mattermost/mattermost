@@ -161,6 +161,12 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("scope", authRequest.Scope)
 	defer c.LogAuditRec(auditRec)
 
+	if c.AppContext.Session().IsOAuth {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		c.Err.DetailedError += ", attempted access by oauth app"
+		return
+	}
+
 	oauthApp, err := c.App.GetOAuthApp(authRequest.ClientId)
 	if err != nil {
 		utils.RenderWebAppError(c.App.Config(), w, r, err, c.App.AsymmetricSigningKey())
