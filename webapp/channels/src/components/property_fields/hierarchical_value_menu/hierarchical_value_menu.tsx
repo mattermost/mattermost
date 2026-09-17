@@ -253,6 +253,33 @@ export default function HierarchicalValueMenu({
         onMenuOpenChange?.(open);
     }, [onMenuOpenChange]);
 
+    // The modal root no longer captures clicks (allowTriggerInteraction), so
+    // outside clicks must close the menu here. Clicks on the trigger or the
+    // portaled paper are ignored — chip remove lives on the trigger.
+    useEffect(() => {
+        if (!isOpen) {
+            return undefined;
+        }
+
+        const handlePointerDown = (event: PointerEvent) => {
+            const target = event.target;
+            if (!(target instanceof Node)) {
+                return;
+            }
+            if (document.getElementById(buttonId)?.contains(target)) {
+                return;
+            }
+            const paper = document.getElementById(menuId)?.closest('.MuiPopover-paper');
+            if (paper?.contains(target)) {
+                return;
+            }
+            handleToggle(false);
+        };
+
+        document.addEventListener('pointerdown', handlePointerDown);
+        return () => document.removeEventListener('pointerdown', handlePointerDown);
+    }, [isOpen, buttonId, menuId, handleToggle]);
+
     const handleToggleSelect = useCallback((valueId: string) => {
         onSelectedIdsChange(
             selectedIds.includes(valueId) ? selectedIds.filter((id) => id !== valueId) : [...selectedIds, valueId],
@@ -433,8 +460,10 @@ export default function HierarchicalValueMenu({
                     id: menuId,
                     'aria-label': resolvedAriaLabel,
                     className: 'hierarchical-value-menu__menu',
+                    isMenuOpen: isOpen,
                     onToggle: handleToggle,
                     autoFocusItem: false,
+                    allowTriggerInteraction: true,
                 }}
                 menuHeader={
                     <HierarchicalMenuSearch

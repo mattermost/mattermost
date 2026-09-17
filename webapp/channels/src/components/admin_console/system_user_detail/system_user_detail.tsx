@@ -1009,22 +1009,51 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             }
         })();
 
+        const fieldName = (
+            <FormattedMessage
+                id='admin.userManagement.userDetail.cpaField'
+                defaultMessage='{fieldName}'
+                values={{fieldName: getUserPropertyFieldLabel(field)}}
+            />
+        );
+
+        const fieldBody = (
+            <>
+                {field.type === 'graph' ? (
+                    <label htmlFor={`cpa-graph-button-${field.id}`}>
+                        {fieldName}
+                    </label>
+                ) : fieldName}
+                {fieldContent}
+                <CpaFieldManagementIndicator
+                    field={field}
+                    omitLocksField={omitLocksField}
+                />
+            </>
+        );
+
+        // A graph picker is a button with chip-remove controls inside it. Wrapping
+        // that in <label> forwards chip clicks to the trigger, so the X opens the
+        // menu instead of removing the value. Point the name at the trigger instead.
+        if (field.type === 'graph') {
+            return (
+                <div
+                    key={field.id}
+                    className='cpa-field'
+                    data-testid={`user-detail-custom-attribute-label-${field.id}`}
+                >
+                    {fieldBody}
+                </div>
+            );
+        }
+
         return (
             <label
                 key={field.id}
                 className='cpa-field'
                 data-testid={`user-detail-custom-attribute-label-${field.id}`}
             >
-                <FormattedMessage
-                    id='admin.userManagement.userDetail.cpaField'
-                    defaultMessage='{fieldName}'
-                    values={{fieldName: getUserPropertyFieldLabel(field)}}
-                />
-                {fieldContent}
-                <CpaFieldManagementIndicator
-                    field={field}
-                    omitLocksField={omitLocksField}
-                />
+                {fieldBody}
             </label>
         );
     };

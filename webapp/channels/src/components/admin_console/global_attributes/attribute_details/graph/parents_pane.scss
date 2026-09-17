@@ -4,6 +4,21 @@
 .attribute-graph-parents-pane {
     overflow: visible;
 
+    // Prototype popover rule: 8px above/below a full-width 1px line.
+    .attribute-graph-parents-pane__divider.MuiDivider-root {
+        height: auto;
+        padding: 8px 0;
+        border: none;
+        margin: 0;
+
+        &::before {
+            display: block;
+            width: 100%;
+            border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+            content: '';
+        }
+    }
+
     .attribute-graph-parents-pane__name {
         padding: 12px 16px 8px;
         color: var(--center-channel-color);
@@ -131,6 +146,10 @@
 
         .Input_container {
             width: 100%;
+        }
+
+        .Input_wrapper {
+            padding: 0 12px;
         }
     }
 

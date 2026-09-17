@@ -45,7 +45,9 @@ function isFollowing(earlier: Node, later: Node) {
 
 function expectSeparatorBetween(before: HTMLElement, after: HTMLElement) {
     const separators = screen.getAllByRole('separator');
-    expect(separators.some((sep) => isFollowing(before, sep) && isFollowing(sep, after))).toBe(true);
+    const match = separators.find((sep) => isFollowing(before, sep) && isFollowing(sep, after));
+    expect(match).toBeTruthy();
+    expect(match).toHaveClass('attribute-graph-parents-pane__divider');
 }
 
 async function openParentSearch() {

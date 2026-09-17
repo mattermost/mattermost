@@ -144,9 +144,22 @@ export function SelectedValueChips({selectedIds, labelForId, disabled, onRemove,
                                 className='hierarchical-value-menu__chip-remove'
                                 role='button'
                                 tabIndex={0}
+                                data-option-id={id}
+                                data-menu-prevent-open={true}
                                 aria-label={state === 'named' ? formatMessage(messages.removeValue, {name: text}) : formatMessage(messages.removeUnnamedValue)}
 
-                                // Inside the trigger: without stopPropagation, remove also opens the menu.
+                                // Inside the trigger, and often inside a <label> that
+                                // points at that trigger: pointerdown must be canceled
+                                // or the label/button activates and the click never
+                                // reaches onRemove.
+                                onPointerDown={(event) => {
+                                    if (event.button !== 0) {
+                                        return;
+                                    }
+                                    event.stopPropagation();
+                                    event.preventDefault();
+                                    onRemove(id);
+                                }}
                                 onClick={(event) => {
                                     event.stopPropagation();
                                     event.preventDefault();

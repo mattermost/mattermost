@@ -1122,21 +1122,49 @@ describe('SystemUserDetail', () => {
             });
 
             test('G17: opens the menu when the field label is clicked', async () => {
-                // The trigger is a <button> inside <label class='cpa-field'>, so
-                // label activation opens an overlay where a multiselect in the
-                // same wrapper would only take focus. Nothing declares that --
-                // it follows from the trigger being the label's first labelable
-                // descendant -- so adding htmlFor, reordering the label's
-                // children, or moving the indicator out changes it silently.
+                // The field name is a <label htmlFor> pointing at the trigger,
+                // so clicking the name opens the menu. The picker itself is not
+                // wrapped in that label: chip-remove lives inside the trigger
+                // button, and a wrapping <label> would steal those clicks.
                 mockPageAll.mockResolvedValue(REGIME_1);
                 renderDetail(buildGraphField({options_omitted: true}), ['opt-1']);
 
                 await waitForLoadingToFinish();
                 expect(screen.queryByRole('menu')).not.toBeInTheDocument();
 
-                await userEvent.click(fieldContainer());
+                await userEvent.click(screen.getByText('department'));
 
                 expect(await screen.findByRole('menu')).toBeInTheDocument();
+            });
+
+            test('the chip X removes a selected graph option', async () => {
+                mockPageAll.mockResolvedValue(REGIME_1);
+                renderDetail(buildGraphField({options: REGIME_1}), ['opt-1']);
+
+                await waitForLoadingToFinish();
+                expect(trigger()).toHaveTextContent('Alpha');
+
+                await userEvent.click(screen.getByRole('button', {name: 'Remove Alpha'}));
+
+                expect(screen.queryByRole('button', {name: 'Remove Alpha'})).toBeNull();
+                expect(trigger()).not.toHaveTextContent('Alpha');
+            });
+
+            test('the chip X removes a graph option selected in this session', async () => {
+                mockPageAll.mockResolvedValue(REGIME_1);
+                renderDetail(buildGraphField({options: REGIME_1}), []);
+
+                await waitForLoadingToFinish();
+                await openMenu();
+                await userEvent.click(await screen.findByRole('menuitemcheckbox', {name: 'Alpha'}));
+                expect(trigger()).toHaveTextContent('Alpha');
+
+                // Menu stays open after select, so the trigger (and its chip X)
+                // is aria-hidden behind the popover. The X must still work.
+                await userEvent.click(screen.getByRole('button', {name: 'Remove Alpha', hidden: true}));
+
+                expect(screen.queryByRole('button', {name: 'Remove Alpha', hidden: true})).toBeNull();
+                expect(trigger()).not.toHaveTextContent('Alpha');
             });
 
             test('G18: names the picker trigger after the field, not the placeholder', async () => {

@@ -103,7 +103,7 @@ export function NodeMenu({
                     />
                 </div>
             )}
-            <Menu.Separator/>
+            <Menu.Separator className='attribute-graph-parents-pane__divider'/>
             <Menu.Item
                 id='attributeGraphParentsPane__openParents'
                 data-testid='attributeGraphParentsPane__openParents'
@@ -157,7 +157,7 @@ export function NodeMenu({
                     </>
                 )}
             />
-            <Menu.Separator/>
+            <Menu.Separator className='attribute-graph-parents-pane__divider'/>
             <Menu.Item
                 isDestructive={true}
                 disabled={disabled}

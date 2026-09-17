@@ -1,16 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import React from 'react';
+
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {act, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
+import HierarchicalValueMenu from './hierarchical_value_menu';
 import type {HierarchicalValueMenuProps} from './hierarchical_value_menu';
 import {
     COPY,
     allRows,
+    baseProps,
     checkboxOf,
     chevronOf,
     closeMenu,
@@ -888,6 +892,52 @@ describe('HierarchicalValueMenu', () => {
 
             expect(screen.queryByRole('menu')).toBeNull();
             expect(mockPageAll).not.toHaveBeenCalled();
+        });
+        test('the chip X removes a selected value', async () => {
+            const Host = () => {
+                const [ids, setIds] = React.useState(['opt-air']);
+                return (
+                    <HierarchicalValueMenu
+                        {...baseProps()}
+                        selectedIds={ids}
+                        onSelectedIdsChange={setIds}
+                        fallbackLabels={{'opt-air': 'Air Program'}}
+                    />
+                );
+            };
+            renderWithContext(<Host/>);
+
+            await userEvent.click(screen.getByRole('button', {name: 'Remove Air Program'}));
+
+            expect(screen.queryByRole('button', {name: 'Remove Air Program'})).toBeNull();
+            expect(trigger()).toHaveTextContent(COPY.placeholder);
+        });
+        test('the chip X removes a value selected in this session while the menu is open', async () => {
+            mockPageAll.mockResolvedValue(twoRoots());
+            const Host = () => {
+                const [ids, setIds] = React.useState<string[]>([]);
+                return (
+                    <HierarchicalValueMenu
+                        {...baseProps()}
+                        selectedIds={ids}
+                        onSelectedIdsChange={setIds}
+                    />
+                );
+            };
+            renderWithContext(<Host/>);
+
+            await openMenu();
+            await userEvent.click(checkboxOf('Air Program'));
+            expect(trigger()).toHaveTextContent('Air Program');
+            expect(screen.getByRole('menu')).toBeInTheDocument();
+
+            // The open modal aria-hides the trigger, which is where the chip
+            // lives — same as in the browser. hidden: true is how a pointer
+            // still reaches it now that the backdrop no longer captures clicks.
+            await userEvent.click(screen.getByRole('button', {name: 'Remove Air Program', hidden: true}));
+
+            expect(screen.queryByRole('button', {name: 'Remove Air Program', hidden: true})).toBeNull();
+            expect(screen.getByRole('menu')).toBeInTheDocument();
         });
         test('a stale selected id keeps its fallback label', async () => {
             mockPageAll.mockResolvedValue(hierarchy());

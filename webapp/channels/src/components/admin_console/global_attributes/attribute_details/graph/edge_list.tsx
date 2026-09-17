@@ -189,7 +189,7 @@ export function EdgeList({
                     values={{name: optionName}}
                 />
             </button>
-            <Menu.Separator/>
+            <Menu.Separator className='attribute-graph-parents-pane__divider'/>
             <div className='attribute-graph-parents-pane__rows'>
                 {relatedNames.length === 0 && (
                     <p
@@ -250,7 +250,7 @@ export function EdgeList({
                     testId='attributeGraphParentsPane__alert'
                 />
             )}
-            <Menu.Separator/>
+            <Menu.Separator className='attribute-graph-parents-pane__divider'/>
             <div
                 ref={comboboxRef}
                 className='attribute-graph-parents-pane__combobox'
