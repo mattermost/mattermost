@@ -14,6 +14,151 @@ Platform and OS scope reflects reported and tested environments and may not repr
 
 </Note>
 
+
+## Release v12.0 - [Feature Release](https://docs.mattermost.com/product-overview/release-policy.html#release-types) \{#release-v12-0-feature-release}
+
+**Release day: 2026-10-16**
+
+### Upgrade Impact
+
+#### Database Schema Changes
+  - Dropped the deprecated ``autotranslation`` column from the ``channelmembers`` table (superseded by ``autotranslationdisabled``).
+  - Added two new indexes to improve performance on the bulk-indexing process for Elasticsearch/Opensearch: ``idx_fileinfo_create_at_id`` on ``Fileinfo (CreateAt, Id)`` and ``idx_channels_create_at_id`` on ``Channels (CreateAt, Id)``.
+  - Raised the maximum post message size from ~16k characters (~65 KB) to ~262k characters (~1 MB). The database migration widens the message column on posts, drafts, scheduled posts, and burn-on-read messages.
+  - Added new ``PropertyOptions`` and ``PropertyOptionEdges`` tables for custom attribute options, which were previously stored in the ``PropertyFields.Attrs`` column.
+
+#### config.json
+New setting options were added to ``config.json``. Below is a list of the additions and their default values on install. The settings can be modified in ``config.json``, or the System Console when available.
+  - **Changes to All plans:**
+    - Added ``Config.DeliveryTrackingSettings`` configuration setting.
+    - Added ``GlobalRelayMessageExportSettings.SenderAddress`` configuration setting to optionally set a fixed From address for Global Relay EML compliance exports.
+    - Added ``ServiceSettings.EnableHardenedMode`` configuration setting. The Enable Hardened Mode setting has been moved from System Console > Experimental > Features to System Console > Environment > Web Server.
+    - Removed ``ImageProxySettings.RemoteImageProxyOptions`` configuration setting.
+    - Removed ``ImageProxySettings.RemoteImageProxyURL`` configuration setting.
+    - Removed ``EmailSettings.LoginButtonBorderColor`` configuration setting.
+    - Removed ``EmailSettings.LoginButtonColor`` configuration setting.
+    - Removed ``EmailSettings.LoginButtonTextColor`` configuration setting.
+    - Removed ``LocalizationSettings.EnableExperimentalLocales`` configuration setting and the work-in-progress translation catalogs it exposed. Only the 22 officially supported languages are now selectable. The setting is ignored if left in an existing ``config.json``.
+    - Removed the following configuration settings:
+      - ``ElasticsearchSettings.BulkIndexingTimeWindowSeconds``
+      - ``ClusterSettings.EnableExperimentalGossipEncryption``
+      - ``ExperimentalSettings.ClientSideCertEnable``
+      - ``TeamSettings.ExperimentalViewArchivedChannels``
+      - ``CloudSettings.CWSMock``
+      - ``PluginSettings.ChimeraOAuthProxyURL``
+      - ``DataRetentionSettings.EnableBoardsDeletion``
+      - ``DataRetentionSettings.BoardsRetentionDays``
+      - ``SqlSettings.AtRestEncryptKey``
+      - ``NativeAppSettings.EnableIntuneMAM``
+      - ``GuestAccountsSettings.AllowEmailAccounts``
+    - Moved the "Enable User Typing Messages" and "User Typing Timeout" settings from System Console > Experimental > Features to System Console > Site Configuration > Posts.
+    - Moved the Email Batching Buffer Size, Email Batching Interval, and Use Channel Name in Email Notifications settings from System Console > Experimental > Features to System Console > Site Configuration > Notifications.
+    - Moved the **Enable Account Deactivation** and **User Status Away Timeout** settings (``TeamSettings.EnableUserDeactivation`` and ``TeamSettings.UserStatusAwayTimeout``) from System Console > Experimental > Features to System Console > Site Configuration > Users and Teams.
+    - Moved the **Enable Channel Viewed WebSocket Messages** setting (``ServiceSettings.EnableChannelViewedMessages``) from System Console > Experimental > Features to System Console > Environment > Web Server.
+    - Moved the Enable Theme Selection, Allow Custom Themes, Default Theme, Enable Tutorial, and Enable Onboarding settings from System Console > Experimental > Features to System Console > Site Configuration > Customization. Also added ``ThemeSettings.AllowedThemes`` to System Console > Site Configuration > Customization; it was previously configurable only by editing ``config.json``.
+    - Removed the ``atmos/camo`` remote image proxy type. Deployments with ``ImageProxySettings.ImageProxyType`` set to ``atmos/camo`` must update their configuration to use ``local`` or disable the image proxy before upgrading to this release.
+
+#### Compatibility
+  - Dropped support for RHEL 7 and RHEL 8. The server binary now requires glibc 2.36 or later.
+  - Dropped support for OpenSearch 1.x. Mattermost now requires OpenSearch 2.x or newer, and logs an error on startup when connected to an unsupported version.
+  - The minimum supported PostgreSQL version is now v15. PostgreSQL v14 and earlier are no longer supported.
+  - Updated minimum macOS version to 15+ and minimum Safari version to 27+.
+  - The ``MoveThreadsEnabled`` feature flag is no longer supported; the server now fails to start if it is enabled. Use https://github.com/mattermost/mattermost-plugin-wrangler instead.
+  - The ``AppsEnabled`` feature flag is no longer supported and must be disabled. The server now fails to start if the ``AppsEnabled`` feature flag is set to ``true``.
+  - Removed the deprecated built-in Slack import API and CLI.
+  - Removed deprecated Slack compatibility type aliases and functions (``SlackAttachment``, ``SlackAttachmentField``, ``ParseSlackAttachment``, ``StringifySlackFieldValue``) from the Go package. Use ``MessageAttachment``, ``MessageAttachmentField``, ``ParseMessageAttachment``, and ``StringifyMessageAttachmentFieldValue`` instead.
+  - The ``POST /api/v4/logs/query`` API now returns HTTP 400 when ``date_from`` or ``date_to`` is a non-empty value that cannot be parsed with the layout ``"2006-01-02 15:04:05.999 -07:00"``. Previously such values were silently ignored and the request returned HTTP 200 with unfiltered results. Empty values continue to mean "unbounded".
+  - Removed the required ``format`` query parameter from the ``GET /api/v4/license/client`` endpoint. The endpoint now returns the client license information without requiring format specification.
+  - Removed the ``EnableConcurrentReact`` feature flag. The web app now always renders with concurrent React.
+  - **Breaking change:** Post identity and display-override props (``from_webhook``, ``from_bot``, ``from_oauth_app``, ``from_plugin``, ``override_username``, ``override_icon_url``, ``override_icon_emoji``, ``webhook_display_name``) are no longer accepted from regular user or personal access token sessions. They are stripped on create/update and only re-applied for verified integrations (incoming webhooks and slash commands for overrides; bots/OAuth/plugins for ``from_*`` markers). Scripts that forged ``from_webhook`` and ``override_*`` via a user personal access token to post under a custom name/icon must migrate to a bot account or an incoming webhook. ``ExperimentalEnableHardenedMode`` no longer rejects reserved post props with HTTP 400; it continues to control login/MFA/password-reset/5xx scrubbing only.
+  - **Breaking change:** Removed deprecated interactive dialog date/datetime fields. Top-level ``min_date``, ``max_date``, and ``time_interval``, and ``datetime_config.allow_manual_time_entry``, are no longer accepted; use ``datetime_config`` (with ``manual_time_entry``) instead. Legacy keys are silently ignored.
+
+### Improvements
+
+See [this blog post](https://mattermost.com/blog/mattermost-v12-0-is-now-available/) on the highlights in our latest release.
+
+#### User Interface
+  - Pre-packaged Dataminr plugin version v2.0.0.
+  - Pre-packaged Zoom plugin version [v1.13.1](https://github.com/mattermost/mattermost-plugin-zoom/releases/tag/v1.13.1).
+  - Updated the web app to React 19 with concurrent rendering enabled by default.
+  - Added copy buttons for newly generated personal access tokens and bot access tokens.
+  - Added accessible labels to hide and show OpenGraph image previews.
+  - Added two new interactive dialog element types: ``checkbox_group`` (a multi-select list of checkboxes) and ``checkbox_matrix`` (a grid of checkboxes with configurable rows, columns, and single- or multi-select per row). Both support a new ``label_position`` option, which is also available for radio and bool elements.
+  - Increased the maximum length of an interactive dialog's title from 24 to 80 characters.
+  - Capped single image previews in posts at 700px wide to match the design spec.
+  - Updated display settings to fall back to English when the configured locale was unavailable.
+  - Added an ``IMPORTED - INACTIVE`` tag to user profiles to identify accounts created by a scoped migration pending admin review.
+  - Channel admins can now hide join/leave system messages per channel via Channel Settings > Configuration. Posts are stored and reappear if the setting is re-enabled.
+  - Improved channel attribute chips in the channel header and thread right-hand sidebar, and polished the System Console attributes user interface.
+
+#### Plugins/Integrations
+  - Added plugin hook ``OnLicenseChanged``, invoked when the server license changes.
+  - Added a Plugin API method for session-scoped file action policy checks.
+  - Added request deadline and cancellation propagation for server-to-plugin and inter-plugin HTTP requests made by context-aware plugins.
+  - Added shared React JSX runtime exports for web app plugins, including support for development JSX on production hosts.
+  - Added support for licensed add-ons: plugins that are purchased alongside a Mattermost license and only run when the license grants them.
+  - Plugin-owned Global Attributes now render as a read-only Definition/Applies-to page instead of redirecting away, with a link to the owning plugin's settings.
+
+#### Administration
+  - Admins can now grant delegated (granular) administration roles directly from System Console > Users > Manage Roles modal.
+  - Added the ability for System Console admins to upload or remove a user's profile picture from the User Management user detail page.
+  - Added the ability to delete a Global Attribute from the Manage Attributes page in the System Console.
+  - Added a duplicate plugin upload confirmation modal that compares the installed plugin version with the uploaded plugin version before overwrite confirmation.
+  - Replaced the plugin settings page enable setting with immediate plugin action buttons, and added an uninstall option from plugin settings.
+  - Improved plugin upload UX in the System Console with an automatic upload dropzone, progress indicator, and clearer disabled-state messaging.
+  - Added stricter server config validation for export, SQL replica monitor, feature flag sync, burn-on-read, LDAP group filter, Elasticsearch index sizing, connected workspace batch size, push notification buffer, log level, file storage, email, session, data retention, TLS, and webserver settings.
+  - Added audit logging for new events caused by cached data deletion on mobile devices related to Mobile Ephemeral Mode settings.
+  - Access rules can now compare a user's attributes with attributes of the channel being accessed, including ``hasAnyOf`` and ``hasAllOf`` for multi-value attributes, behind the new ``ResourceAttributesInPolicies`` feature flag.
+  - Added four access policy functions for comparing graph custom attributes: ``coversAll``, ``coversAny``, ``withinAll``, and ``withinAny``.
+  - Extended personal access token lifetime enforcement, expiry notifications, and non-compliant token revocation to user-owned bot accounts. Plugin-owned and protected system bot accounts remain exempt.
+  - Added webapp support for personal access token expiry and regeneration on user-owned bot accounts.
+  - Added a new ``graph`` custom attribute type whose options form a hierarchy, gated by the ``PropertyFieldGraph`` feature flag (off by default). Values are shown as option names and set with an option picker on the profile and System Console user detail pages. Added REST endpoints and plugin API methods to list, create, update, and delete a custom attribute's options.
+  - System Console Manage Attributes now opens existing managed attributes for edit. Saving PATCHes the attribute definition and applies add/remove changes in the same action, including deleting a resource application and its stored values when that resource is removed.
+  - Moved the New attribute button on the Attribute Management listing page into the page header and removed the Duplicate attribute action from the row menu.
+  - Applied channel file download permission policies to content reviewers.
+  - Added a live Security Updates bulletin to the Security Guide that filters advisories by product, severity, issue ID, date, and affected version range.
+  - Hid the System Console Recaps page unless the ``EnableAIRecaps`` feature flag is enabled.
+
+#### mmctl
+  - Added ``--expires-in`` flag to ``mmctl bot create --with-token`` for personal access token lifetime enforcement on user-owned bot accounts.
+  - Added ``--team-name`` and ``--team-id`` flags to ``mmctl export create`` to export a single team or a comma-separated list of teams instead of the full server.
+  - Added ``--channel-name`` and ``--channel-id`` flags to ``mmctl export create`` to export a single channel or a comma-separated list of channels from a team.
+  - Scoped exports from ``mmctl export create`` omit custom emoji by default to avoid pulling the source server's entire emoji library into the destination. Pass ``--include-custom-emoji`` to include them; reactions referencing custom emoji absent from the destination will render as literal ``:name:`` text otherwise.
+  - Custom permission schemes assigned to exported teams are now preserved in the export.
+  - Added ``--destination-team-name`` and ``--destination-team-id`` flags to ``mmctl import process`` to remap the exported team to a different team on the destination.
+  - Added ``--destination-channel-name`` and ``--destination-channel-id`` flags to ``mmctl import process`` to remap the exported channel to a different channel on the destination.
+  - Added ``--skip-preflight`` flag to ``mmctl import process`` to bypass the LDAP/SAML configuration check that runs before importing SSO users.
+  - Import jobs now checkpoint progress and can be resumed after a crash or failure, including jobs interrupted by a hard process kill.
+  - All users brought over by a scoped import land deactivated and tagged ``IMPORTED - INACTIVE`` pending admin review. Users who already exist on the destination are matched to their existing account and remain active.
+  - When an imported user's username matches an existing destination account, their posts and reactions are attributed to that account instead of being dropped.
+  - Posts referencing a channel that does not exist on the destination are skipped instead of aborting the entire import.
+  - A role update that would demote the destination's only system admin is skipped instead of aborting the import.
+  - A source user's historical deactivation date is preserved rather than overwritten with the import timestamp.
+
+#### Performance
+  - Improved performance of the bulk-indexing job for Elasticsearch and Opensearch for very large ``FileInfo`` and ``Channels`` tables.
+  - Reduced database load by caching lookups of non-existent custom emoji names (e.g. emoji-like tokens in timestamps such as "11:11:11").
+
+### Bug Fixes
+  - Fixed an issue where link previews could render for restricted domains after following redirect chains.
+  - Fixed an issue where Direct Message and Group Message channels in the sidebar could render as blank rows or show a member count of zero until a channel was clicked.
+  - Fixed an issue where inline images and videos could flicker between two sizes when a media gallery was near the width at which a scrollbar appears.
+  - Fixed an issue with output formatting in ``mmctl``.
+  - Fixed an issue with bulk import handling for existing accounts.
+  - Fixed the channel member API endpoints returning an invalid ``last_viewed_at`` and ``last_update_at`` value of ``-1`` for other users' memberships. These fields are now omitted from the response when they belong to a user other than the requester.
+  - Fixed ABAC plugin policy saves to enforce self-inclusion and shared write guards, and hardened the policy editor/test user interface against null users and incomplete fields.
+  - Fixed rendering, navigation, validation, and search for section-based plugin settings.
+  - Fixed an issue where a disabled plugin with multiple custom settings sections and mixed ``fallback`` values hid the settings of fallback-enabled sections behind a single "enable the plugin" warning.
+  - Fixed an issue where a running plugin's settings could render read-only in the System Console when the plugin defined its settings using sections without a footer.
+  - Fixed an issue where the App Marketplace modal changed width when paging between plugin lists.
+  - Fixed an issue where the System Console Recaps page was hidden from system admins on upgraded servers because the AI Recaps sysconsole permissions were never applied to the ``system_admin`` role.
+  - Fixed a server startup crash where an app migration could read a row it had just written from a read replica that had not yet caught up, aborting startup. This affected servers that are both licensed and have ``SqlSettings.DataSourceR
+
+### Go Version
+ - v12.0 is built with Go ``v1.26.7``.
+
+
+
 ## Release v11.11 - [Feature Release](https://docs.mattermost.com/product-overview/release-policy.html#release-types) \{#release-v11-11-feature-release}
 
 **Release day: 2026-09-16**
