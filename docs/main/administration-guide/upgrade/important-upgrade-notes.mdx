@@ -21,8 +21,35 @@ We recommend reviewing the [additional upgrade notes](#additional-upgrade-notes)
 </thead>
 <tbody>
 <tr>
-<td>v12.0</td>
+<td rowspan="10">v12.0</td>
 <td><p>Mattermost Mobile App v2.45 (October 2026) raises the minimum supported mobile operating systems to iOS v18 and Android v11. Devices running iOS v17 or earlier, or Android v10 or earlier, no longer receive new versions of the app from the App Store or Google Play; the installed version continues to work but receives no further updates, including security fixes. Users on those devices should update their operating system to continue receiving mobile app updates. See the <a href="/product-overview/mobile-app-changelog#release-v2-45-0">mobile app changelog</a> for details.</p></td>
+</tr>
+<tr>
+<td><p>RHEL 7 and RHEL 8 are no longer supported deployment targets. The switch to a build environment with glibc 2.36 makes the v12.0 binaries incompatible with RHEL 7 (glibc 2.17) and RHEL 8 (glibc 2.28), and v11.11 was the last release to support them. Upgrade to RHEL 9, or migrate to Ubuntu 22.04/24.04 LTS, Debian Bookworm, or a container-based deployment, <em>before</em> upgrading the server. See the <a href="https://forum.mattermost.com/t/starting-with-mattermost-v12-0-october-2026-rhel-7-and-rhel-8-are-no-longer-supported-deployment-targets/25974">forum post</a> for migration options.</p></td>
+</tr>
+<tr>
+<td><p>OpenSearch 1.x is no longer a supported search backend; the minimum supported version is OpenSearch 2.x. Upgrade OpenSearch to 2.x or newer, or migrate to Elasticsearch 8.x/9.x, before upgrading. See the <a href="https://forum.mattermost.com/t/starting-with-mattermost-v12-0-october-2026-opensearch-1-x-is-no-longer-a-supported-search-backend/25979">forum post</a> for migration options.</p></td>
+</tr>
+<tr>
+<td><p><code>atmos/camo</code> is no longer supported as an image proxy. If <code>ImageProxySettings.ImageProxyType</code> is set to <code>atmos/camo</code>, the server logs a configuration error on startup and <strong>fails to start</strong>. Before upgrading, set <code>ImageProxySettings.ImageProxyType</code> to <code>local</code> to use the built-in proxy, or set <code>ImageProxySettings.Enable</code> to <code>false</code> to disable image proxying. The <code>RemoteImageProxyURL</code> and <code>RemoteImageProxyOptions</code> settings have been removed and are ignored. See the <a href="https://forum.mattermost.com/t/starting-with-mattermost-v12-0-october-2026-atmos-camo-is-no-longer-supported-as-an-image-proxy/25980">forum post</a> for migration options.</p></td>
+</tr>
+<tr>
+<td><p>User sessions and personal access tokens (PATs) can no longer set post identity or display-override props. The server strips props such as <code>from_webhook</code>, <code>override_username</code>, and <code>override_icon_url</code> from client and PAT payloads, re-applying them only under verified integration authority. Posts are still created, but forged props are silently removed and the message appears as the authenticating user, with no error returned. Incoming webhooks, slash commands, and bot accounts are unaffected. Migrate any scripts relying on PAT forging to an incoming webhook or bot account. See the <a href="https://forum.mattermost.com/t/starting-with-mattermost-v12-0-october-2026-user-and-personal-access-token-pat-sessions-can-no-longer-set-post-identity-or-display-override-props/26052">forum post</a> for migration options.</p></td>
+</tr>
+<tr>
+<td><p>The Mattermost web and desktop apps are built on <a href="https://react.dev/blog/2024/04/25/react-19-upgrade-guide">React 19</a>. Only plugins that register web app (frontend) components are affected; server-only plugins are unaffected. Plugins calling APIs removed in React 19 (<code>ReactDOM.findDOMNode</code>, <code>propTypes</code>/<code>defaultProps</code> on function components, legacy Context, string refs), or depending on legacy synchronous rendering, may break. Run <code>npx codemod@latest run react-19-migration-recipe</code> against affected plugins. See the <a href="https://forum.mattermost.com/t/starting-with-mattermost-v12-0-october-2026-the-mattermost-web-and-desktop-apps-are-built-on-react-19/26038">forum post</a> for full details.</p></td>
+</tr>
+<tr>
+<td><p>Deprecated interactive dialog <code>date</code>/<code>datetime</code> fields have been removed. Top-level <code>min_date</code>, <code>max_date</code>, and <code>time_interval</code>, and <code>datetime_config.allow_manual_time_entry</code>, are no longer accepted and are silently ignored. Use <code>datetime_config</code> with <code>manual_time_entry</code> instead.</p></td>
+</tr>
+<tr>
+<td><p>Deprecated Slack compatibility type aliases and functions have been removed from the go package: <code>SlackAttachment</code>, <code>SlackAttachmentField</code>, <code>ParseSlackAttachment</code>, and <code>StringifySlackFieldValue</code>. Use <code>MessageAttachment</code>, <code>MessageAttachmentField</code>, <code>ParseMessageAttachment</code>, and <code>StringifyMessageAttachmentFieldValue</code> instead.</p></td>
+</tr>
+<tr>
+<td><p>A set of unused configuration settings has been removed: <code>ElasticsearchSettings.BulkIndexingTimeWindowSeconds</code>, <code>ClusterSettings.EnableExperimentalGossipEncryption</code>, <code>ExperimentalSettings.ClientSideCertEnable</code>, <code>TeamSettings.ExperimentalViewArchivedChannels</code>, <code>CloudSettings.CWSMock</code>, <code>PluginSettings.ChimeraOAuthProxyURL</code>, <code>DataRetentionSettings.EnableBoardsDeletion</code>, <code>DataRetentionSettings.BoardsRetentionDays</code>, <code>SqlSettings.AtRestEncryptKey</code>, <code>NativeAppSettings.EnableIntuneMAM</code>, and <code>GuestAccountsSettings.AllowEmailAccounts</code>. Removed fields left in an existing <code>config.json</code> are ignored and the server starts normally, so no configuration changes are required. Use <code>IntuneSettings.Enable</code> in place of <code>NativeAppSettings.EnableIntuneMAM</code>.</p></td>
+</tr>
+<tr>
+<td><p>The <code>LocalizationSettings.EnableExperimentalLocales</code> configuration setting has been removed, along with the work-in-progress translation catalogs it exposed. Only the 22 officially supported languages are selectable. The setting is ignored if left in an existing <code>config.json</code>.</p></td>
 </tr>
 <tr>
 <td>v11.11</td>
