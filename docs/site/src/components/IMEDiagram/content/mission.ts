@@ -125,7 +125,7 @@ export const mission: IMEContent = {
             'Zero-Trust Mobility: MDM & ZT App-Level Controls',
           ],
           icon: 'lock',
-          to: '/security-guide/security-guide-index',
+          to: '/security-guide/zero-trust',
         },
         {
           title: 'Secure Federation & Interop',
