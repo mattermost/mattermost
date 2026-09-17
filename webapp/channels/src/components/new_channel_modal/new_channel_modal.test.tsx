@@ -1338,7 +1338,7 @@ describe('components/new_channel_modal - channel attributes', () => {
 
     const state: DeepPartial<GlobalState> = {
         entities: {
-            general: {config: {UseAnonymousURLs: 'false'}},
+            general: {config: {UseAnonymousURLs: 'false', FeatureFlagChannelAttributes: 'true', FeatureFlagChannelAttributesRequiredDisabled: 'false'}},
             channels: {currentChannelId: 'current_channel_id', channels: {}, roles: {}},
             teams: {
                 currentTeamId: 'current_team_id',
@@ -1470,5 +1470,56 @@ describe('components/new_channel_modal - channel attributes', () => {
         await userEvent.click(screen.getByText('Create channel'));
 
         await waitFor(() => expect(screen.getByText('This channel is missing required attributes.')).toBeInTheDocument());
+    });
+
+    test('hides required attributes and never blocks Create when ChannelAttributesRequiredDisabled is on', async () => {
+        const stateWithRequiredEnforcementOff: DeepPartial<GlobalState> = {
+            ...state,
+            entities: {
+                ...state.entities,
+                general: {config: {...state.entities?.general?.config, FeatureFlagChannelAttributesRequiredDisabled: 'true'}},
+            },
+        };
+
+        renderWithContext(<NewChannelModal/>, stateWithRequiredEnforcementOff);
+
+        expect(screen.queryByTestId('channelAttributeRow-program')).not.toBeInTheDocument();
+
+        await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
+        expect(screen.getByText('Create channel').closest('button')).toBeEnabled();
+
+        await userEvent.click(screen.getByText('Create channel'));
+        await waitFor(() => expect(createChannel).toHaveBeenCalled());
+        expect((createChannel as jest.Mock).mock.calls[0][0]).not.toHaveProperty('property_values');
+    });
+
+    test('still offers classification when ChannelAttributesRequiredDisabled is on', async () => {
+        // Classification is a separate legacy feature, not subject to this flag.
+        const classification = {
+            ...program,
+            id: 'f_classification',
+            name: 'classification',
+            attrs: {display_name: 'Classification', options: [{id: 'lvl1', name: 'SECRET'}]},
+        };
+        mockedUseClassificationMarkings.mockReturnValue({
+            available: true,
+            loading: false,
+            channelField: classification,
+            levels: [],
+        });
+        mockedUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [classification, program]});
+
+        const stateWithRequiredEnforcementOff: DeepPartial<GlobalState> = {
+            ...state,
+            entities: {
+                ...state.entities,
+                general: {config: {...state.entities?.general?.config, FeatureFlagChannelAttributesRequiredDisabled: 'true'}},
+            },
+        };
+
+        renderWithContext(<NewChannelModal/>, stateWithRequiredEnforcementOff);
+
+        expect(screen.getByTestId('channelAttributeRow-classification')).toBeInTheDocument();
+        expect(screen.queryByTestId('channelAttributeRow-program')).not.toBeInTheDocument();
     });
 });

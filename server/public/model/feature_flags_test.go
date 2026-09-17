@@ -4,6 +4,7 @@
 package model
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -165,6 +166,60 @@ func TestFeatureFlagsPermissionPoliciesDependencies(t *testing.T) {
 		f.PolicySimulation = true
 		require.False(t, f.IsChannelPermissionPoliciesEnabled())
 		require.True(t, f.IsPolicySimulationEnabled())
+	})
+}
+
+// TestFeatureFlagsChannelAttributesRequiredEnabled pins down the
+// ChannelAttributesRequiredDisabled kill-switch contract, including the
+// upgrade-safety property that motivated its inverted naming: a server with a
+// persisted, non-nil FeatureFlags block (e.g. from Split sync, or an admin who
+// has ever set any flag) skips FeatureFlags.SetDefaults() entirely on load
+// (see Config.SetDefaults, config.go), so an absent field decodes to its Go
+// zero value rather than this package's declared default. A default-false
+// "disabled" field degrades to its safe value (enforced) in that case; a
+// default-true field would have silently degraded to unenforced instead.
+func TestFeatureFlagsChannelAttributesRequiredEnabled(t *testing.T) {
+	t.Run("sub-flag defaults to not-disabled, i.e. enforced, once ChannelAttributes is on", func(t *testing.T) {
+		// ChannelAttributes itself defaults to false (opt-in umbrella), so
+		// this pins down only the sub-flag's own default, not the combinator
+		// on a bare SetDefaults() — see the umbrella-off case below for that.
+		var f FeatureFlags
+		f.SetDefaults()
+
+		require.False(t, f.ChannelAttributesRequiredDisabled)
+
+		f.ChannelAttributes = true
+		require.True(t, f.IsChannelAttributesRequiredEnabled())
+	})
+
+	t.Run("umbrella off disables enforcement regardless of the sub-flag", func(t *testing.T) {
+		f := FeatureFlags{ChannelAttributes: false, ChannelAttributesRequiredDisabled: false}
+		require.False(t, f.IsChannelAttributesRequiredEnabled())
+	})
+
+	t.Run("sub-flag disables enforcement even with the umbrella on", func(t *testing.T) {
+		f := FeatureFlags{ChannelAttributes: true, ChannelAttributesRequiredDisabled: true}
+		require.False(t, f.IsChannelAttributesRequiredEnabled())
+	})
+
+	t.Run("both on enables enforcement", func(t *testing.T) {
+		f := FeatureFlags{ChannelAttributes: true, ChannelAttributesRequiredDisabled: false}
+		require.True(t, f.IsChannelAttributesRequiredEnabled())
+	})
+
+	t.Run("a field absent from a persisted FeatureFlags block decodes to enforced, not disabled", func(t *testing.T) {
+		// Simulates upgrading a server that already persisted a FeatureFlags
+		// block (config.json, or Cloud/Dedicated Split sync) predating this
+		// flag's existence: Config.SetDefaults only backfills FeatureFlags
+		// when the whole struct is nil, so this field is never touched by
+		// SetDefaults here and must be safe at its raw zero value.
+		raw := []byte(`{"ChannelAttributes": true}`)
+		var f FeatureFlags
+		require.NoError(t, json.Unmarshal(raw, &f))
+
+		require.False(t, f.ChannelAttributesRequiredDisabled)
+		require.True(t, f.IsChannelAttributesRequiredEnabled(),
+			"a server upgrading with a persisted FeatureFlags block must keep required-attribute enforcement on")
 	})
 }
 

@@ -243,6 +243,7 @@ func channelAttributeValuesForCreate(c *Context, channel *model.Channel, license
 
 	channelAttributesAvailable := c.App.Config().FeatureFlags.ChannelAttributes && model.MinimumEnterpriseAdvancedLicense(license)
 	classificationAvailable := c.App.Config().FeatureFlags.ClassificationMarkings && model.MinimumEnterpriseLicense(license)
+	requiredAttributesEnforced := c.App.Config().FeatureFlags.IsChannelAttributesRequiredEnabled()
 
 	if !channelAttributesAvailable && !classificationAvailable {
 		if len(items) > 0 {
@@ -309,6 +310,13 @@ func channelAttributeValuesForCreate(c *Context, channel *model.Channel, license
 			continue
 		}
 		if !channelAttributeFieldAvailable(field, channelAttributesAvailable, classificationAvailable) {
+			continue
+		}
+		// The sub-flag only kills ChannelAttributes-governed enforcement.
+		// Classification predates it and stays gated solely by
+		// classificationAvailable above, matching the webapp's bypass in
+		// new_channel_modal.tsx's assignableAttributeFields.
+		if !isClassificationChannelField(field) && !requiredAttributesEnforced {
 			continue
 		}
 		if value, ok := supplied[field.ID]; !ok || model.IsEmptyPropertyValue(value) {

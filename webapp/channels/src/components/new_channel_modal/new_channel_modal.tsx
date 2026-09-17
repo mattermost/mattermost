@@ -19,7 +19,7 @@ import {createChannel} from 'mattermost-redux/actions/channels';
 import Permissions from 'mattermost-redux/constants/permissions';
 import Preferences from 'mattermost-redux/constants/preferences';
 import {areManagedCategoriesEnabled, isChannelCategorySortingEnabled, makeGetSidebarCategoryNamesForTeam} from 'mattermost-redux/selectors/entities/channel_categories';
-import {isDiscoverableChannelsEnabled} from 'mattermost-redux/selectors/entities/general';
+import {isChannelAttributesRequiredEnabled, isDiscoverableChannelsEnabled} from 'mattermost-redux/selectors/entities/general';
 import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {haveICurrentChannelPermission, haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
@@ -128,6 +128,7 @@ const NewChannelModal = () => {
 
     const classification = useClassificationMarkings();
     const isSystemAdmin = useSelector(isCurrentUserSystemAdmin);
+    const requiredAttributesEnforced = useSelector(isChannelAttributesRequiredEnabled);
 
     const channelAttributes = useChannelAttributes();
 
@@ -149,8 +150,14 @@ const NewChannelModal = () => {
     const classificationFieldId = classification.channelField?.id;
     const assignableAttributeFields = useMemo(() => {
         return channelAttributes.fields.filter((field) => {
-            if (!isPropertyFieldRequired(field) && field.id !== classificationFieldId) {
-                return false;
+            const isClassificationField = field.id === classificationFieldId;
+            if (!isClassificationField) {
+                // Required-attribute enforcement is a killable sub-flag, kept
+                // independent of classification, which predates it and isn't
+                // subject to it.
+                if (!requiredAttributesEnforced || !isPropertyFieldRequired(field)) {
+                    return false;
+                }
             }
             if (!supportsOptions(field) && !isTextField(field)) {
                 return false;
@@ -163,7 +170,7 @@ const NewChannelModal = () => {
             }
             return true;
         });
-    }, [channelAttributes.fields, classificationFieldId, isSystemAdmin]);
+    }, [channelAttributes.fields, classificationFieldId, isSystemAdmin, requiredAttributesEnforced]);
 
     // Reads attrs.required rather than membership of the list above, so an optional
     // classification never blocks Create.

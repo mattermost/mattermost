@@ -533,6 +533,60 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 		require.Equal(t, classificationField.ID, values[0].FieldID)
 	})
 
+	t.Run("a required classification value is still enforced when ChannelAttributes is off", func(t *testing.T) {
+		// The ChannelAttributesRequiredDisabled sub-flag only kills
+		// ChannelAttributes-governed enforcement; classification predates
+		// ChannelAttributes and stays gated solely by ClassificationMarkings.
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributes = false
+			cfg.FeatureFlags.ClassificationMarkings = true
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributes = true
+		})
+
+		optionID := model.NewId()
+		templateField, fieldErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:       "classification",
+			Type:       model.PropertyFieldTypeSelect,
+			GroupID:    group.ID,
+			ObjectType: "template",
+			TargetType: "system",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []map[string]any{{"id": optionID, "name": "SECRET"}},
+			},
+		}, false, "")
+		require.Nil(t, fieldErr)
+		t.Cleanup(func() {
+			require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, templateField.ID, true, ""))
+		})
+
+		classificationField, fieldErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:             "classification",
+			Type:             model.PropertyFieldTypeSelect,
+			GroupID:          group.ID,
+			ObjectType:       "channel",
+			TargetType:       "system",
+			PermissionField:  &memberLevel,
+			PermissionValues: &memberLevel,
+			LinkedFieldID:    &templateField.ID,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrRequired: true,
+			},
+		}, false, "")
+		require.Nil(t, fieldErr)
+		t.Cleanup(func() {
+			require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, classificationField.ID, true, ""))
+		})
+
+		req, name := newRequest()
+		_, resp, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.channel.create_channel.missing_required_attributes.app_error")
+		requireNoSuchChannel(t, name)
+	})
+
 	t.Run("a non-classification value is still refused when ChannelAttributes is off", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.FeatureFlags.ChannelAttributes = false
@@ -602,6 +656,74 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 		_, resp, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
+	})
+
+	t.Run("a required attribute with no value is allowed when ChannelAttributesRequiredDisabled is on", func(t *testing.T) {
+		createField(t, model.PropertyFieldTypeText, memberLevel, model.StringInterface{
+			model.PropertyFieldAttrRequired: true,
+		})
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributesRequiredDisabled = true
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributesRequiredDisabled = false
+		})
+
+		req, _ := newRequest()
+		_, resp, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
+
+	t.Run("a required classification value is still enforced when ChannelAttributesRequiredDisabled is on", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributesRequiredDisabled = true
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributesRequiredDisabled = false
+		})
+
+		optionID := model.NewId()
+		templateField, fieldErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:       "classification",
+			Type:       model.PropertyFieldTypeSelect,
+			GroupID:    group.ID,
+			ObjectType: "template",
+			TargetType: "system",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []map[string]any{{"id": optionID, "name": "SECRET"}},
+			},
+		}, false, "")
+		require.Nil(t, fieldErr)
+		t.Cleanup(func() {
+			require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, templateField.ID, true, ""))
+		})
+
+		classificationField, fieldErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:             "classification",
+			Type:             model.PropertyFieldTypeSelect,
+			GroupID:          group.ID,
+			ObjectType:       "channel",
+			TargetType:       "system",
+			PermissionField:  &memberLevel,
+			PermissionValues: &memberLevel,
+			LinkedFieldID:    &templateField.ID,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrRequired: true,
+			},
+		}, false, "")
+		require.Nil(t, fieldErr)
+		t.Cleanup(func() {
+			require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, classificationField.ID, true, ""))
+		})
+
+		req, name := newRequest()
+		_, resp, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.channel.create_channel.missing_required_attributes.app_error")
+		requireNoSuchChannel(t, name)
 	})
 }
 

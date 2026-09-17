@@ -143,6 +143,19 @@ type FeatureFlags struct {
 	// Enable channel attributes (Smart Labels, banners) powered by the Properties API.
 	ChannelAttributes bool
 
+	// ChannelAttributesRequiredDisabled is a kill switch for the "required
+	// attribute" enforcement sub-behavior of ChannelAttributes. Named and
+	// defaulted so its own zero value is the safe/enforced state: Config.SetDefaults
+	// only calls FeatureFlags.SetDefaults() when the whole FeatureFlags struct is
+	// nil (server/public/model/config.go), so any server with a persisted
+	// FeatureFlags block — from an admin-set flag, or Cloud/Dedicated Split sync —
+	// loads a field absent from that JSON as its Go zero value, not this
+	// package's declared default. A default-true field would silently flip to
+	// disabled (unenforced) on such an upgrade; a default-false "disabled" field
+	// degrades to its safe value (enforced) instead. See
+	// IsChannelAttributesRequiredEnabled.
+	ChannelAttributesRequiredDisabled bool
+
 	// FEATURE_FLAG_REMOVAL: ResourceAttributesInPolicies - Remove this when the
 	// feature is GA. Gates access rules that compare a user's attributes against
 	// the accessed channel's (resource.attributes.*): when off, the autocomplete
@@ -233,6 +246,8 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.ChannelAttributes = false
 
+	f.ChannelAttributesRequiredDisabled = false
+
 	f.MmBlocksEnabled = true
 
 	f.EnableMFIPluginSignaturePublicKey = true
@@ -278,6 +293,19 @@ func (f *FeatureFlags) IsChannelPermissionPoliciesEnabled() bool {
 // dependency check here keeps every call site honest.
 func (f *FeatureFlags) IsPolicySimulationEnabled() bool {
 	return f.PermissionPolicies && f.PolicySimulation
+}
+
+// IsChannelAttributesRequiredEnabled reports whether the server enforces
+// PropertyField.Attrs["required"] for channel attributes — refusing channel
+// creation without a value, refusing writes that clear a required value, and
+// refusing deletes of a set required value. The ChannelAttributes umbrella
+// must be on AND the sub-flag must not be disabled. Turning the sub-flag on
+// does not change or migrate stored required-attribute definitions or
+// values; it only makes enforcement inert, so ops can kill it without a
+// redeploy if a client (e.g. mobile) cannot yet supply required values at
+// creation time.
+func (f *FeatureFlags) IsChannelAttributesRequiredEnabled() bool {
+	return f.ChannelAttributes && !f.ChannelAttributesRequiredDisabled
 }
 
 // ToMap returns the feature flags as a map[string]string

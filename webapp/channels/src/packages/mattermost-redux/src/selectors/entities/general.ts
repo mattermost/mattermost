@@ -37,6 +37,26 @@ export function isDiscoverableChannelsEnabled(state: GlobalState): boolean {
     return getConfig(state).FeatureFlagDiscoverableChannels === 'true';
 }
 
+export function isChannelAttributesEnabled(state: GlobalState): boolean {
+    return getConfig(state).FeatureFlagChannelAttributes === 'true';
+}
+
+/**
+ * Whether required-attribute enforcement is active: hard-blocking channel
+ * creation without a value, and hiding generic attribute inputs from the
+ * create-channel modal (classification is unaffected).
+ *
+ * The umbrella `ChannelAttributes` must be on AND the sub-flag
+ * `ChannelAttributesRequiredDisabled` must not be set. Mirrors the
+ * server-side `FeatureFlags.IsChannelAttributesRequiredEnabled()` helper —
+ * see its doc comment for why the sub-flag defaults to false/"disabled off"
+ * rather than true/"enabled on".
+ */
+export function isChannelAttributesRequiredEnabled(state: GlobalState): boolean {
+    return isChannelAttributesEnabled(state) &&
+        getConfig(state).FeatureFlagChannelAttributesRequiredDisabled !== 'true';
+}
+
 export function isPermissionPoliciesEnabled(state: GlobalState): boolean {
     return getConfig(state).FeatureFlagPermissionPolicies === 'true';
 }

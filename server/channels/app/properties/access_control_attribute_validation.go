@@ -63,13 +63,20 @@ type DirectChannelChecker func(rctx request.CTX, channelID string) (bool, error)
 //     (see refuseDirectChannelValueWrite)
 //
 // The hook only applies to groups whose IDs are in managedGroupIDs.
+
+// RequiredAttributeEnforcementProvider reports whether required-attribute
+// enforcement is currently active. Backed by a closure over live config so a
+// flag flip takes effect without restarting the hook.
+type RequiredAttributeEnforcementProvider func() bool
+
 type AccessControlAttributeValidationHook struct {
 	BasePropertyHook
-	propertyService      *PropertyService
-	managedGroupIDs      map[string]struct{}
-	permissionChecker    PermissionChecker
-	pluginChecker        PluginChecker
-	directChannelChecker DirectChannelChecker
+	propertyService              *PropertyService
+	managedGroupIDs              map[string]struct{}
+	permissionChecker            PermissionChecker
+	pluginChecker                PluginChecker
+	directChannelChecker         DirectChannelChecker
+	requiredAttributeEnforcement RequiredAttributeEnforcementProvider
 }
 
 var _ PropertyHook = (*AccessControlAttributeValidationHook)(nil)
@@ -91,6 +98,9 @@ type AccessControlAttributeValidationHookConfig struct {
 	// DirectChannelChecker reports whether a channel is a DM or GM. Without
 	// it, refuseDirectChannelValueWrite does not run at all.
 	DirectChannelChecker DirectChannelChecker
+	// RequiredAttributeEnforcement reports whether required-attribute
+	// enforcement is active. A nil provider defaults to enforced.
+	RequiredAttributeEnforcement RequiredAttributeEnforcementProvider
 }
 
 // NewAccessControlAttributeValidationHook creates a hook that validates field attributes and
@@ -101,17 +111,35 @@ func NewAccessControlAttributeValidationHook(ps *PropertyService, cfg AccessCont
 		ids[id] = struct{}{}
 	}
 	return &AccessControlAttributeValidationHook{
-		propertyService:      ps,
-		managedGroupIDs:      ids,
-		permissionChecker:    cfg.PermissionChecker,
-		pluginChecker:        cfg.PluginChecker,
-		directChannelChecker: cfg.DirectChannelChecker,
+		propertyService:              ps,
+		managedGroupIDs:              ids,
+		permissionChecker:            cfg.PermissionChecker,
+		pluginChecker:                cfg.PluginChecker,
+		directChannelChecker:         cfg.DirectChannelChecker,
+		requiredAttributeEnforcement: cfg.RequiredAttributeEnforcement,
 	}
 }
 
 func (h *AccessControlAttributeValidationHook) isGroupManaged(groupID string) bool {
 	_, ok := h.managedGroupIDs[groupID]
 	return ok
+}
+
+// requiredEnforced reports whether required-attribute enforcement is active.
+// A nil provider defaults to enforced, matching pre-flag behavior, so tests
+// and callers that don't care about the flag don't need to supply one.
+func (h *AccessControlAttributeValidationHook) requiredEnforced() bool {
+	return h.requiredAttributeEnforcement == nil || h.requiredAttributeEnforcement()
+}
+
+// isClassificationLinkedField mirrors api4/channel.go's classification-field
+// identity check (field.Name == "classification" with a LinkedFieldID). A
+// channel-linked classification field predates ChannelAttributes and shares
+// this hook's group, but must not be gated by the ChannelAttributes-only
+// required-enforcement sub-flag — only by classification's own availability
+// gate, enforced upstream of this hook.
+func isClassificationLinkedField(field *model.PropertyField) bool {
+	return field.Name == "classification" && field.LinkedFieldID != nil && *field.LinkedFieldID != ""
 }
 
 // sanitizeAndValidateFieldAttrs trims string attrs, applies the visibility
@@ -889,7 +917,7 @@ func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, 
 		if err != nil {
 			return fmt.Errorf("field %s: %s: %w", value.FieldID, err.Error(), ErrInvalidValue)
 		}
-		if model.IsPropertyFieldRequired(field) && model.IsEmptyPropertyValue(value.Value) {
+		if (isClassificationLinkedField(field) || h.requiredEnforced()) && model.IsPropertyFieldRequired(field) && model.IsEmptyPropertyValue(value.Value) {
 			return newRequiredValueError(field)
 		}
 		if len(optionIDs) == 0 {
@@ -1252,7 +1280,7 @@ func (h *AccessControlAttributeValidationHook) refuseGovernedDelete(rctx request
 		// Required is enforced for every target type, matching the write path
 		// in validateValues. change_policy stays channel-only -- see
 		// validateChangePolicy for why.
-		if model.IsPropertyFieldRequired(field) {
+		if (isClassificationLinkedField(field) || h.requiredEnforced()) && model.IsPropertyFieldRequired(field) {
 			return newRequiredValueError(field)
 		}
 		if v.TargetType == model.PropertyValueTargetTypeChannel && model.GetPropertyFieldChangePolicy(field) != model.PropertyFieldChangePolicyAny {

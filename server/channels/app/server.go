@@ -364,6 +364,9 @@ func NewServer(options ...Option) (*Server, error) {
 			PermissionChecker:    permChecker,
 			PluginChecker:        pluginChecker,
 			DirectChannelChecker: directChannelChecker,
+			RequiredAttributeEnforcement: func() bool {
+				return s.Config().FeatureFlags.IsChannelAttributesRequiredEnabled()
+			},
 		}, cpaGroup.ID)
 	s.propertyService.AddHook(attrValidationHook)
 
