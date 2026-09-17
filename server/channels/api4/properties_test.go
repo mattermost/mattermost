@@ -3969,6 +3969,132 @@ func TestGetPropertyValues(t *testing.T) {
 	})
 }
 
+func TestPropertyFieldCreatorRemovedFromScope(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_field_creator_scope", Version: model.PropertyGroupVersionV2})
+	require.Nil(t, err)
+
+	creatorLevel := model.PermissionLevelCreator
+	sysadminLevel := model.PermissionLevelSysadmin
+
+	// Creating a field earns no standing to keep editing it after losing access
+	// to the channel it is scoped to. Field and option *reads* are scope-gated
+	// in resolveScopeAndCheckPermissions, so without the matching check on the
+	// write path a removed creator got 403 on GET and 200 on PATCH and DELETE
+	// of the same field.
+	removedCreator := th.CreateUser(t)
+	th.LinkUserToTeam(t, removedCreator, th.BasicTeam)
+	_, appErr := th.App.AddUserToChannel(th.Context, removedCreator, th.BasicChannel, false)
+	require.Nil(t, appErr)
+
+	// A channel admin who keeps their membership, to prove the fix denies the
+	// removed creator specifically rather than making the field unmanageable.
+	channelAdmin := th.CreateUser(t)
+	th.LinkUserToTeam(t, channelAdmin, th.BasicTeam)
+	_, appErr = th.App.AddUserToChannel(th.Context, channelAdmin, th.BasicChannel, false)
+	require.Nil(t, appErr)
+	_, appErr = th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, channelAdmin.Id,
+		model.ChannelUserRoleId+" "+model.ChannelAdminRoleId)
+	require.Nil(t, appErr)
+
+	createField := func(t *testing.T, fieldType model.PropertyFieldType, attrs model.StringInterface) *model.PropertyField {
+		t.Helper()
+		field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              fieldType,
+			GroupID:           group.ID,
+			ObjectType:        "post",
+			TargetType:        "channel",
+			TargetID:          th.BasicChannel.Id,
+			CreatedBy:         removedCreator.Id,
+			Attrs:             attrs,
+			PermissionField:   &creatorLevel,
+			PermissionValues:  &sysadminLevel,
+			PermissionOptions: &creatorLevel,
+		}, false, "")
+		require.Nil(t, appErr)
+		return field
+	}
+
+	login := func(u *model.User) *model.Client4 {
+		client := th.CreateClient()
+		_, _, err := client.Login(context.Background(), u.Email, u.Password)
+		require.NoError(t, err)
+		return client
+	}
+
+	creatorClient := login(removedCreator)
+	channelAdminClient := login(channelAdmin)
+
+	// Every field is built while the creator is still in the channel, so the
+	// control below establishes that the setup grants access and the removal is
+	// what takes it away.
+	inScopeField := createField(t, model.PropertyFieldTypeText, nil)
+	nameField := createField(t, model.PropertyFieldTypeText, nil)
+	typeField := createField(t, model.PropertyFieldTypeText, nil)
+	deleteField := createField(t, model.PropertyFieldTypeText, nil)
+	adminField := createField(t, model.PropertyFieldTypeText, nil)
+	optionsField := createField(t, model.PropertyFieldTypeSelect, nil)
+
+	t.Run("field creator still in the channel can patch their own field", func(t *testing.T) {
+		newName := model.NewId()
+		patched, resp, err := creatorClient.PatchPropertyField(context.Background(), group.Name, "post", inScopeField.ID, &model.PropertyFieldPatch{Name: &newName})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, newName, patched.Name)
+	})
+
+	require.Nil(t, th.App.RemoveUserFromChannel(th.Context, removedCreator.Id, "", th.BasicChannel))
+
+	t.Run("field creator removed from the channel cannot patch their own field", func(t *testing.T) {
+		newName := model.NewId()
+		_, resp, err := creatorClient.PatchPropertyField(context.Background(), group.Name, "post", nameField.ID, &model.PropertyFieldPatch{Name: &newName})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.property_field.update.no_field_permission.app_error")
+	})
+
+	t.Run("field creator removed from the channel cannot retype their own field", func(t *testing.T) {
+		// The sharpest of the four: a type change cascades through
+		// TypeChangeValueCleanupHook and clears every dependent property
+		// value, so this was a way to wipe values in a channel the caller can
+		// no longer read.
+		newType := model.PropertyFieldTypeSelect
+		_, resp, err := creatorClient.PatchPropertyField(context.Background(), group.Name, "post", typeField.ID, &model.PropertyFieldPatch{Type: &newType})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.property_field.update.no_field_permission.app_error")
+	})
+
+	t.Run("field creator removed from the channel cannot delete their own field", func(t *testing.T) {
+		resp, err := creatorClient.DeletePropertyField(context.Background(), group.Name, "post", deleteField.ID)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.property_field.delete.no_permission.app_error")
+	})
+
+	t.Run("field creator removed from the channel cannot add options to their own field", func(t *testing.T) {
+		// permission_options runs through the same dispatcher, so the option
+		// handlers inherited the same hole.
+		_, resp, err := creatorClient.CreatePropertyFieldOptions(context.Background(), group.Name, "post", optionsField.ID, []*model.PropertyFieldOption{
+			{Name: "added after removal"},
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		CheckErrorID(t, err, "api.property_field.options.no_permission.app_error")
+	})
+
+	t.Run("channel admin can still patch a field whose creator was removed", func(t *testing.T) {
+		newName := model.NewId()
+		patched, resp, err := channelAdminClient.PatchPropertyField(context.Background(), group.Name, "post", adminField.ID, &model.PropertyFieldPatch{Name: &newName})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, newName, patched.Name)
+	})
+}
+
 func TestPatchPropertyValuesPostCreator(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
