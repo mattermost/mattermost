@@ -360,7 +360,7 @@ const messages = defineMessages({
     },
     addChildPlaceholder: {
         id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.add_child',
-        defaultMessage: 'Grant another value, or type a new name…',
+        defaultMessage: 'Add a child, or type a new name…',
     },
     addChildAria: {
         id: 'admin.global_attributes.attribute_details.options.graph.parents_pane.add_child_aria',

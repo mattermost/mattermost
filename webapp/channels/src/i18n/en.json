@@ -1578,7 +1578,7 @@
   "admin.global_attributes.attribute_details.options.graph.parents_aria": "Parents of {name}",
   "admin.global_attributes.attribute_details.options.graph.parents_badge": "{n} parents",
   "admin.global_attributes.attribute_details.options.graph.parents_badge_tooltip": "Under {names}",
-  "admin.global_attributes.attribute_details.options.graph.parents_pane.add_child": "Grant another value, or type a new name…",
+  "admin.global_attributes.attribute_details.options.graph.parents_pane.add_child": "Add a child, or type a new name…",
   "admin.global_attributes.attribute_details.options.graph.parents_pane.add_child_aria": "Add a value granted by {name}",
   "admin.global_attributes.attribute_details.options.graph.parents_pane.add_parent": "Add a parent, or type a new name…",
   "admin.global_attributes.attribute_details.options.graph.parents_pane.add_parent_aria": "Add a parent of {name}",

@@ -302,6 +302,10 @@ describe('AttributeGraphParentsPane', () => {
 
         await userEvent.click(screen.getByTestId('attributeGraphParentsPane__openChildren'));
         expect(screen.getByTestId('attributeGraphParentsPane__back')).toHaveTextContent('Children of A');
+        expect(screen.getByTestId('attributeGraphParentsPane__childSearch')).toHaveAttribute(
+            'placeholder',
+            'Add a child, or type a new name…',
+        );
         expect(screen.getAllByTestId('attributeGraphParentsPane__childRow').map((row) => row.textContent)).toEqual(
             expect.arrayContaining(['B', 'C']),
         );
