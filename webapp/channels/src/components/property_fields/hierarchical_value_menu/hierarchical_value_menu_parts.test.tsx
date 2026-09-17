@@ -812,7 +812,16 @@ describe('HierarchicalValueMenu chrome (mounted)', () => {
         test('buttonClassName lands on the trigger', () => {
             renderMenu({buttonClassName: 'policy-row__value-trigger'});
 
+            expect(trigger()).toHaveClass('hierarchical-value-menu__button');
             expect(trigger()).toHaveClass('policy-row__value-trigger');
+        });
+
+        test('disabled marks the trigger disabled and adds the disabled class', () => {
+            renderMenu({disabled: true});
+
+            expect(trigger()).toBeDisabled();
+            expect(trigger()).toHaveClass('hierarchical-value-menu__button');
+            expect(trigger()).toHaveClass('disabled');
         });
 
         test('the trigger keeps its data-testid and the menu keeps its id', async () => {

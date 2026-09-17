@@ -1,13 +1,15 @@
-@use 'utils/mixins';
-
 // Self-contained on purpose: Account Settings renders this widget and must not
 // depend on the admin ABAC stylesheets. The chip rules mirror
 // table_editor/selector_menus.scss rather than importing it.
+//
+// The trigger is a Compass-like input (same 1px / 4px / 40px recipe as ranked
+// CPA and Compass Input), not the borderless policy-table cell.
 .hierarchical-value-menu {
     width: 100%;
 
     &__button {
         display: flex;
+        box-sizing: border-box;
         width: 100%;
 
         // A floor, not a height: chips wrap onto new lines and the trigger grows
@@ -15,22 +17,35 @@
         min-height: 40px;
         align-items: center;
         justify-content: start;
-        border: none;
-        background: transparent;
+        padding: 4px 12px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        background: var(--center-channel-bg);
+        color: inherit;
+        cursor: pointer;
         font-weight: normal;
+        text-align: left;
 
-        @include mixins.button-focus;
-
-        &:hover {
-            background: rgba(var(--center-channel-color-rgb), 0.04);
+        &:hover:not(.disabled) {
+            border-color: rgba(var(--center-channel-color-rgb), 0.24);
+            background: var(--center-channel-bg);
             color: inherit;
         }
 
-        &[aria-expanded='true'] {
-            background: rgba(var(--center-channel-color-rgb), 0.08);
+        // Open and keyboard focus use Compass Input's inset border, not a grey fill.
+        // Pointer :focus is ignored so a click does not leave a stuck highlight
+        // after the menu closes.
+        &[aria-expanded='true'],
+        &:focus-visible {
+            border-color: var(--button-bg);
+            background: var(--center-channel-bg);
+            box-shadow: inset 0 0 0 1px var(--button-bg);
+            outline: none;
         }
 
         &.disabled {
+            border-color: rgba(var(--center-channel-color-rgb), 0.16);
+            background: rgba(var(--center-channel-color-rgb), 0.04);
             cursor: not-allowed;
             opacity: 0.6;
         }
@@ -46,7 +61,6 @@
     &__placeholder {
         overflow: hidden;
         color: rgba(var(--center-channel-color-rgb), 0.64);
-        padding-inline-start: 10px;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
