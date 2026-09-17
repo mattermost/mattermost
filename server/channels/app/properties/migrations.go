@@ -455,6 +455,8 @@ func (ps *PropertyService) MigrateCPAFieldsToGlobalAttributes(rctx request.CTX) 
 					retryable++
 					continue
 				}
+				rctx.Logger().Info("CPA-to-Global-Attributes migration: cleared an already-linked field's own options",
+					mlog.String("field_id", field.ID), mlog.String("field_name", field.Name))
 			}
 			skipped++
 			continue
