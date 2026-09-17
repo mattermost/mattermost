@@ -90,6 +90,9 @@ on:
         required: false
       REPORT_WEBHOOK_URL:
         required: false
+      ANTHROPIC_API_KEY:
+        description: "Optional; enables the second judge in E2E triage"
+        required: false
 
 # Callers must grant: contents: read, statuses: write, id-token: write
 permissions:
@@ -351,6 +354,7 @@ jobs:
       contents: read
       id-token: write
       statuses: write
+      pull-requests: write
     outputs:
       commit_status_description: ${{ steps.summary.outputs.commit_status_description }}
       webhook_payload: ${{ steps.summary.outputs.webhook_payload }}
@@ -375,6 +379,20 @@ jobs:
           ref-branch: ${{ inputs.ref_branch }}
           commit-status-context: ${{ inputs.context_name }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+      # Is this red run the PR's fault? History rules plus a second judge with
+      # checkable evidence; writes the required status only in enforce mode.
+      - name: ci/e2e-triage
+        id: triage
+        if: inputs.report_type == 'PR' && inputs.pr_number != ''
+        continue-on-error: true
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-triage@3aca11f9576504261bd8cb40d702793f2de26e01 # actions/e2e-triage, branch e2e-triage
+        with:
+          composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
+          status-context: ${{ inputs.context_name }}
+          base-ref: ${{ inputs.ref_branch || 'master' }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          mode: ${{ vars.E2E_TRIAGE_MODE || 'report-only' }}
       - name: ci/publish-webhook
         if: inputs.enable_reporting && env.REPORT_WEBHOOK_URL != ''
         env:
@@ -385,5 +403,13 @@ jobs:
       - name: ci/assert-results
         env:
           SUMMARY_OUTCOME: ${{ steps.summary.outcome }}
+          TRIAGE_VERDICT: ${{ steps.triage.outputs.verdict }}
+          TRIAGE_MODE: ${{ vars.E2E_TRIAGE_MODE || 'report-only' }}
         run: |
-          [ "$SUMMARY_OUTCOME" = "success" ]
+          # In enforce mode the triage verdict is the required status; the job
+          # follows it. Otherwise the raw summary outcome decides, as before.
+          if [ "$TRIAGE_MODE" = "enforce" ] && [ -n "$TRIAGE_VERDICT" ]; then
+            [ "$TRIAGE_VERDICT" = "SUCCESS" ]
+          else
+            [ "$SUMMARY_OUTCOME" = "success" ]
+          fi
