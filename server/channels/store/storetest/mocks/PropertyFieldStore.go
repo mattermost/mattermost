@@ -805,6 +805,24 @@ func (_m *PropertyFieldStore) MutateOptions(groupID string, fieldID string, expe
 	return r0
 }
 
+// PermanentDeleteOwnedOptions provides a mock function with given fields: groupID, fieldID
+func (_m *PropertyFieldStore) PermanentDeleteOwnedOptions(groupID string, fieldID string) error {
+	ret := _m.Called(groupID, fieldID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PermanentDeleteOwnedOptions")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(groupID, fieldID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // SearchPropertyFields provides a mock function with given fields: rctx, opts
 func (_m *PropertyFieldStore) SearchPropertyFields(rctx request.CTX, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
 	ret := _m.Called(rctx, opts)

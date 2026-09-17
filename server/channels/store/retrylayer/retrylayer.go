@@ -11230,6 +11230,27 @@ func (s *RetryLayerPropertyFieldStore) MutateOptions(groupID string, fieldID str
 
 }
 
+func (s *RetryLayerPropertyFieldStore) PermanentDeleteOwnedOptions(groupID string, fieldID string) error {
+
+	tries := 0
+	for {
+		err := s.PropertyFieldStore.PermanentDeleteOwnedOptions(groupID, fieldID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPropertyFieldStore) SearchPropertyFields(rctx request.CTX, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
 
 	tries := 0
