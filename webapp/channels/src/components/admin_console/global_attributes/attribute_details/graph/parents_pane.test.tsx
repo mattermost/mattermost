@@ -144,6 +144,43 @@ describe('AttributeGraphParentsPane', () => {
         expect(screen.getByTestId('attributeGraphParentsPane__candidate-A')).toBeEnabled();
     });
 
+    it('closes suggestions when search blurs, on outside click, and on Escape', async () => {
+        const chain = [opt('A'), opt('B', ['A']), opt('C', ['B'])];
+        renderPane(chain, 'C');
+        await openParentsView();
+        await openParentSearch();
+
+        expect(screen.getByTestId('attributeGraphParentsPane__suggestions')).toBeInTheDocument();
+        fireEvent.blur(screen.getByTestId('attributeGraphParentsPane__search'));
+        expect(screen.queryByTestId('attributeGraphParentsPane__suggestions')).not.toBeInTheDocument();
+
+        await openParentSearch();
+        expect(screen.getByTestId('attributeGraphParentsPane__suggestions')).toBeInTheDocument();
+        fireEvent.pointerDown(document.body);
+        expect(screen.queryByTestId('attributeGraphParentsPane__suggestions')).not.toBeInTheDocument();
+
+        await openParentSearch();
+        expect(screen.getByTestId('attributeGraphParentsPane__suggestions')).toBeInTheDocument();
+        await userEvent.keyboard('{Escape}');
+        expect(screen.queryByTestId('attributeGraphParentsPane__suggestions')).not.toBeInTheDocument();
+    });
+
+    it('keeps suggestions open while a candidate is pressed so add and create still apply', async () => {
+        const options = [opt('A'), opt('B', ['A']), opt('C', ['B'])];
+        const {onOptionsChange} = renderPane(options, 'C');
+        await openParentsView();
+        await openParentSearch();
+
+        const candidate = screen.getByTestId('attributeGraphParentsPane__candidate-A');
+        fireEvent.mouseDown(candidate);
+        expect(screen.getByTestId('attributeGraphParentsPane__suggestions')).toBeInTheDocument();
+        await userEvent.click(candidate);
+
+        await waitFor(() => {
+            expect(onOptionsChange).toHaveBeenCalledWith(addParentEdge(options, 'C', 'A'));
+        });
+    });
+
     it('adds a parent immediately when newlyReachable is empty', async () => {
         const options = [opt('A'), opt('B', ['A']), opt('C', ['B'])];
         const {onOptionsChange} = renderPane(options, 'C');

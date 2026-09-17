@@ -163,6 +163,7 @@ function AttributeGraphParentsPane({
                     setSearchOpen(true);
                 }}
                 onSearchOpen={() => setSearchOpen(true)}
+                onSearchClose={() => setSearchOpen(false)}
                 onAddExisting={view === 'children' ? handleAddChild : handleAdd}
                 onCreate={view === 'children' ? handleCreateChild : handleCreate}
                 onRemoveEdge={(childName, parentName) => onOptionsChange(removeParentEdge(options, childName, parentName))}

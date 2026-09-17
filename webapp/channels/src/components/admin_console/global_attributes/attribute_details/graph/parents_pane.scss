@@ -2,6 +2,8 @@
 // See LICENSE.txt for license information.
 
 .attribute-graph-parents-pane {
+    overflow: visible;
+
     .attribute-graph-parents-pane__name {
         padding: 12px 16px 8px;
         color: var(--center-channel-color);
@@ -121,9 +123,10 @@
     }
 
     .attribute-graph-parents-pane__combobox {
+        position: relative;
         display: flex;
         flex-direction: column;
-        padding: 0 8px 8px;
+        padding: 0 12px 8px;
         gap: 4px;
 
         .Input_container {
@@ -132,14 +135,19 @@
     }
 
     .attribute-graph-parents-pane__suggestions {
+        position: absolute;
+        z-index: 2;
+        right: 12px;
+        bottom: 100%;
+        left: 12px;
         overflow: auto;
         max-height: 208px;
         padding: 4px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
         border-radius: 4px;
-        margin: 0;
+        margin: 0 0 4px;
         background: var(--center-channel-bg);
-        box-shadow: var(--elevation-1);
+        box-shadow: var(--elevation-2);
         list-style: none;
     }
 

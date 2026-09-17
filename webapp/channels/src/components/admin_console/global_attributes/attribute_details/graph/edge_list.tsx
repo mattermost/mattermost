@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 
@@ -92,6 +92,7 @@ export type EdgeListProps = {
     onBack: () => void;
     onQueryChange: (value: string) => void;
     onSearchOpen: () => void;
+    onSearchClose: () => void;
     onAddExisting: (name: string) => void;
     onCreate: (name: string) => void;
     onRemoveEdge: (childName: string, parentName: string) => void;
@@ -111,14 +112,46 @@ export function EdgeList({
     onBack,
     onQueryChange,
     onSearchOpen,
+    onSearchClose,
     onAddExisting,
     onCreate,
     onRemoveEdge,
 }: EdgeListProps) {
     const {formatMessage} = useIntl();
+    const comboboxRef = useRef<HTMLDivElement>(null);
+
+    const handleSearchBlur = useCallback((event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const next = event.relatedTarget;
+        if (next instanceof Node && comboboxRef.current?.contains(next)) {
+            return;
+        }
+        onSearchClose();
+    }, [onSearchClose]);
+
+    useEffect(() => {
+        if (!searchOpen) {
+            return undefined;
+        }
+
+        const handlePointerDown = (event: PointerEvent) => {
+            const target = event.target;
+            if (target instanceof Node && comboboxRef.current?.contains(target)) {
+                return;
+            }
+            onSearchClose();
+        };
+
+        document.addEventListener('pointerdown', handlePointerDown);
+        return () => document.removeEventListener('pointerdown', handlePointerDown);
+    }, [onSearchClose, searchOpen]);
 
     const handleSearchKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
         event.stopPropagation();
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            onSearchClose();
+            return;
+        }
         if (event.key !== 'Enter') {
             return;
         }
@@ -135,7 +168,7 @@ export function EdgeList({
         if (existing.length === 0 && create) {
             onCreate(create.name);
         }
-    }, [atMax, disabled, onAddExisting, onCreate, suggestions]);
+    }, [atMax, disabled, onAddExisting, onCreate, onSearchClose, suggestions]);
 
     const labels = edgeListLabels(direction);
     const showSuggestions = searchOpen && suggestions.length > 0 && !disabled;
@@ -218,7 +251,10 @@ export function EdgeList({
                 />
             )}
             <Menu.Separator/>
-            <div className='attribute-graph-parents-pane__combobox'>
+            <div
+                ref={comboboxRef}
+                className='attribute-graph-parents-pane__combobox'
+            >
                 <Input
                     name={labels.searchName}
                     type='text'
@@ -228,6 +264,7 @@ export function EdgeList({
                     value={query}
                     onChange={(event) => onQueryChange(event.target.value)}
                     onFocus={onSearchOpen}
+                    onBlur={handleSearchBlur}
                     onKeyDown={handleSearchKeyDown}
                     onKeyUp={(event) => event.stopPropagation()}
                     disabled={disabled || atMax}
