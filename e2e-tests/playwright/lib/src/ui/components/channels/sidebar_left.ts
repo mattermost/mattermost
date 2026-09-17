@@ -112,6 +112,14 @@ export default class ChannelsSidebarLeft {
     }
 
     /**
+     * Locates the draft pencil icon for the sidebar item with the given name.
+     * @param name
+     */
+    draftIcon(name: string): Locator {
+        return this.item(name).getByTestId('draftIcon');
+    }
+
+    /**
      * Locates the global Drafts sidebar link.
      */
     draftsLink(): Locator {

@@ -38,7 +38,9 @@ test('MM-T4410 Channel Drafts are scoped to current active team', {tag: '@messag
     expect(await channelsPage.sidebarLeft.getDraftsBadgeCount()).toBe('1');
 
     // * Town Square shows a pencil icon for the draft
-    await expect(channelsPage.sidebarLeft.item('town-square').getByTestId('draftIcon')).toHaveCount(1);
+    // (move the mouse off the sidebar first: the pencil is hidden while its row is hovered)
+    await channelsPage.centerView.postCreate.input.hover();
+    await expect(channelsPage.sidebarLeft.draftIcon('town-square')).toBeVisible();
 
     // # Switch to Team2 Off-Topic and leave a different channel draft
     await channelsPage.switchToTeam(team2.name);
@@ -55,7 +57,9 @@ test('MM-T4410 Channel Drafts are scoped to current active team', {tag: '@messag
     expect(await channelsPage.sidebarLeft.getDraftsBadgeCount()).toBe('1');
 
     // * Off-Topic on Team2 shows a pencil icon for the draft
-    await expect(channelsPage.sidebarLeft.item('off-topic').getByTestId('draftIcon')).toHaveCount(1);
+    // (move the mouse off the sidebar first: the pencil is hidden while its row is hovered)
+    await channelsPage.centerView.postCreate.input.hover();
+    await expect(channelsPage.sidebarLeft.draftIcon('off-topic')).toBeVisible();
 
     // # Open global Drafts on Team2
     await channelsPage.sidebarLeft.goToDrafts();
