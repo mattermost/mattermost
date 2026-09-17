@@ -2,8 +2,6 @@
 // See LICENSE.txt for license information.
 
 .attribute-graph-parents-pane {
-    overflow: visible;
-
     // Prototype popover rule: 8px above/below a full-width 1px line.
     .attribute-graph-parents-pane__divider.MuiDivider-root {
         height: auto;
@@ -138,7 +136,6 @@
     }
 
     .attribute-graph-parents-pane__combobox {
-        position: relative;
         display: flex;
         flex-direction: column;
         padding: 0 12px 8px;
@@ -154,19 +151,14 @@
     }
 
     .attribute-graph-parents-pane__suggestions {
-        position: absolute;
-        z-index: 2;
-        right: 12px;
-        bottom: 100%;
-        left: 12px;
         overflow: auto;
         max-height: 208px;
         padding: 4px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
         border-radius: 4px;
-        margin: 0 0 4px;
+        margin: 0;
         background: var(--center-channel-bg);
-        box-shadow: var(--elevation-2);
+        box-shadow: var(--elevation-1);
         list-style: none;
     }
 
