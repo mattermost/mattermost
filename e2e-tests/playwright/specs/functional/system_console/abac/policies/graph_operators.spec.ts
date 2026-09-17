@@ -51,7 +51,7 @@ test.describe('System Console - Membership Policy graph operators', () => {
         const clientInfo = await pw.getAdminClient();
         adminClient = clientInfo.adminClient;
         adminUser = clientInfo.adminUser!;
-        await skipIfNoGraphFields(adminClient);
+        await skipIfNoGraphFields(pw);
 
         // # Create a hierarchy of programs, plus the user and channel fields that
         //   serve it. Both fields link to the template, so they draw on one option

@@ -250,7 +250,7 @@ func TestOptionsOmitted_ReadMasking(t *testing.T) {
 func TestOptionsOmitted_ValueValidation(t *testing.T) {
 	th := Setup(t)
 	group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
-	th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, nil, group.ID))
+	th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, group.ID))
 
 	options := oversizedOptions(false)
 	field, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{

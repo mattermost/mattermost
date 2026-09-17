@@ -28,6 +28,11 @@ var (
 // This avoids a circular dependency between the properties and app packages.
 type PermissionChecker func(rctx request.CTX, userID string, permission *model.Permission) bool
 
+// DirectChannelChecker reports whether a channel is a direct or group message.
+// This avoids a circular dependency between the properties and app packages,
+// the same way PermissionChecker does.
+type DirectChannelChecker func(rctx request.CTX, channelID string) (bool, error)
+
 // AccessControlAttributeValidationHook validates and sanitizes property field attributes
 // and values for managed property groups. It owns the full attr pipeline
 // for these groups:
@@ -53,28 +58,54 @@ type PermissionChecker func(rctx request.CTX, userID string, permission *model.P
 //   - enforces that managed="admin" can only be set by callers with
 //     PermissionManageSystem, and keeps PermissionValues in sync with the
 //     managed attribute
+//   - refuses a human write to a channel-object value whose target is a DM or
+//     GM, at every permission tier, on both the upsert and the delete paths
+//     (see refuseDirectChannelValueWrite)
 //
 // The hook only applies to groups whose IDs are in managedGroupIDs.
 type AccessControlAttributeValidationHook struct {
 	BasePropertyHook
-	propertyService   *PropertyService
-	managedGroupIDs   map[string]struct{}
-	permissionChecker PermissionChecker
+	propertyService      *PropertyService
+	managedGroupIDs      map[string]struct{}
+	permissionChecker    PermissionChecker
+	pluginChecker        PluginChecker
+	directChannelChecker DirectChannelChecker
 }
 
 var _ PropertyHook = (*AccessControlAttributeValidationHook)(nil)
 
+// AccessControlAttributeValidationHookConfig carries the hook's callbacks into
+// the app package. A config struct rather than three positional callbacks ahead
+// of a variadic.
+//
+// Every callback is optional, and each rule that needs one guards on nil, so a
+// test can construct the hook with only the callbacks its assertions reach.
+type AccessControlAttributeValidationHookConfig struct {
+	// PermissionChecker resolves a permission for a caller. Without it, the
+	// manage_system bypasses are unavailable and those callers are treated as
+	// ordinary users.
+	PermissionChecker PermissionChecker
+	// PluginChecker reports whether a caller ID is an installed plugin.
+	// Without it, only the built-in sync services count as machine actors.
+	PluginChecker PluginChecker
+	// DirectChannelChecker reports whether a channel is a DM or GM. Without
+	// it, refuseDirectChannelValueWrite does not run at all.
+	DirectChannelChecker DirectChannelChecker
+}
+
 // NewAccessControlAttributeValidationHook creates a hook that validates field attributes and
 // values for the given property groups.
-func NewAccessControlAttributeValidationHook(ps *PropertyService, permChecker PermissionChecker, managedGroupIDs ...string) *AccessControlAttributeValidationHook {
+func NewAccessControlAttributeValidationHook(ps *PropertyService, cfg AccessControlAttributeValidationHookConfig, managedGroupIDs ...string) *AccessControlAttributeValidationHook {
 	ids := make(map[string]struct{}, len(managedGroupIDs))
 	for _, id := range managedGroupIDs {
 		ids[id] = struct{}{}
 	}
 	return &AccessControlAttributeValidationHook{
-		propertyService:   ps,
-		managedGroupIDs:   ids,
-		permissionChecker: permChecker,
+		propertyService:      ps,
+		managedGroupIDs:      ids,
+		permissionChecker:    cfg.PermissionChecker,
+		pluginChecker:        cfg.PluginChecker,
+		directChannelChecker: cfg.DirectChannelChecker,
 	}
 }
 
@@ -746,6 +777,61 @@ func (h *AccessControlAttributeValidationHook) validateValueAgainstField(field *
 	return nil, nil
 }
 
+// refuseDirectChannelValueWrite refuses a write to a channel-object value whose
+// target is a DM or GM unless the caller holds PermissionManageSystem or is a
+// machine actor. These values are meant to be derived from the participants'
+// own attributes rather than typed in, so participation alone does not earn the
+// write at any permission tier.
+//
+// Who passes, and why:
+//
+//   - callers with PermissionManageSystem -- sysadmins, and local-mode admins
+//     via the CallerIDLocalAdmin short-circuit inside permissionChecker.
+//   - machine actors: an installed plugin, or an LDAP/SAML sync service. These
+//     are the derivation path the rule reserves the write for.
+//
+// Everyone else is refused, including a participant of the DM or GM itself. An
+// untagged caller (empty caller ID) is refused too, failing closed.
+//
+// Ordering matters for cost: the caller checks come first, so a plugin or a
+// sysadmin pays no channel lookup and only an ordinary user triggers one.
+// Targets are deduped because a batch upsert normally addresses one channel.
+func (h *AccessControlAttributeValidationHook) refuseDirectChannelValueWrite(rctx request.CTX, values []*model.PropertyValue) error {
+	if h.directChannelChecker == nil {
+		return nil
+	}
+
+	callerID := h.propertyService.extractCallerID(rctx)
+	if isMachineCaller(h.pluginChecker, callerID) {
+		return nil
+	}
+	if callerID != "" && h.permissionChecker != nil &&
+		h.permissionChecker(rctx, callerID, model.PermissionManageSystem) {
+		return nil
+	}
+
+	seen := make(map[string]struct{}, len(values))
+	for _, value := range values {
+		if value.TargetType != model.PropertyValueTargetTypeChannel {
+			continue
+		}
+		if _, dup := seen[value.TargetID]; dup {
+			continue
+		}
+		seen[value.TargetID] = struct{}{}
+
+		isDirect, err := h.directChannelChecker(rctx, value.TargetID)
+		if err != nil {
+			return fmt.Errorf("failed to resolve channel %s for the direct-channel value check: %w", value.TargetID, err)
+		}
+		if isDirect {
+			return newDirectChannelValueError(value.TargetID)
+		}
+	}
+
+	return nil
+}
+
 func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, values []*model.PropertyValue) error {
 	if len(values) == 0 {
 		return nil
@@ -754,6 +840,12 @@ func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, 
 	groupID := values[0].GroupID
 	if !h.isGroupManaged(groupID) {
 		return nil
+	}
+
+	// Authorization precedes validation, and refusing here avoids the field
+	// round trip below.
+	if err := h.refuseDirectChannelValueWrite(rctx, values); err != nil {
+		return err
 	}
 
 	// Collect unique field IDs
@@ -975,6 +1067,13 @@ func newChangePolicyError(field *model.PropertyField, policy string) error {
 	}
 }
 
+// newDirectChannelValueError returns the refusal for a hand-written DM/GM
+// channel attribute value.
+func newDirectChannelValueError(channelID string) error {
+	details := fmt.Sprintf("channel %s: direct and group channel attribute values are derived, not set", channelID)
+	return model.NewAppError("UpsertPropertyValues", "app.property_value.direct_channel.app_error", nil, details, http.StatusForbidden)
+}
+
 // newRequiredValueError returns the refusal for writing or deleting an empty
 // value on a required field.
 func newRequiredValueError(field *model.PropertyField) error {
@@ -1080,6 +1179,11 @@ func (h *AccessControlAttributeValidationHook) PreDeletePropertyValue(rctx reque
 		// itself will fail downstream with the appropriate not-found error.
 		return nil
 	}
+	// A delete is a clear, so a participant must not be able to use it to strip
+	// a DM/GM marking that they could not have written in the first place.
+	if dcErr := h.refuseDirectChannelValueWrite(rctx, []*model.PropertyValue{value}); dcErr != nil {
+		return dcErr
+	}
 	return h.refuseGovernedDelete(rctx, groupID, []*model.PropertyValue{value})
 }
 
@@ -1089,6 +1193,14 @@ func (h *AccessControlAttributeValidationHook) PreDeletePropertyValue(rctx reque
 func (h *AccessControlAttributeValidationHook) PreDeletePropertyValuesForTarget(rctx request.CTX, groupID string, targetType string, targetID string) error {
 	if targetType != model.PropertyValueTargetTypeChannel || !h.isGroupManaged(groupID) {
 		return nil
+	}
+	// Checked against a synthetic value so a refusal costs no value load; the
+	// rule only reads TargetType and TargetID.
+	if err := h.refuseDirectChannelValueWrite(rctx, []*model.PropertyValue{{
+		TargetType: targetType,
+		TargetID:   targetID,
+	}}); err != nil {
+		return err
 	}
 	values, err := h.getValuesForTarget(groupID, targetType, targetID)
 	if err != nil {

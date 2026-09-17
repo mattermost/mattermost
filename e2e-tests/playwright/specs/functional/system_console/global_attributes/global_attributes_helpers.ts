@@ -70,21 +70,13 @@ export async function requireGlobalAttributesEnabled(pw: PlaywrightExtended) {
 
 /**
  * Hierarchical (graph) authoring is gated on PropertyFieldGraph, which cannot be
- * flipped through the config API — the config store restores feature flags on write,
- * so the server must boot with MM_FEATUREFLAGS_PROPERTYFIELDGRAPH=true. Skips rather
- * than failing on a server that has not opted in.
+ * flipped through the config API — the config store restores feature flags on write.
+ * ensureFeatureFlag restarts the testcontainers server with the boot-time env var
+ * when needed, and skips when the flag cannot be enabled.
  */
 export async function requireHierarchicalAttributesEnabled(pw: PlaywrightExtended) {
     const session = await requireGlobalAttributesEnabled(pw);
-    // Accept boolean or "true": getConfig() types FeatureFlags as booleans, but
-    // env-driven flags sometimes round-trip as strings. skipIfFeatureFlagNotSet is
-    // strict !==, which would skip a live graph server that returned "true".
-    const config = await session.adminClient.getConfig();
-    const enabled = config?.FeatureFlags?.PropertyFieldGraph;
-    test.skip(
-        enabled !== true && enabled !== 'true',
-        'Skipping test - PropertyFieldGraph feature flag is not enabled on the server',
-    );
+    await pw.ensureFeatureFlag('PropertyFieldGraph', true);
     return session;
 }
 

@@ -104,7 +104,7 @@ func (h *AccessControlHook) PreCreatePropertyField(rctx request.CTX, field *mode
 
 	callerID := h.extractCallerID(rctx)
 
-	if h.isCallerPlugin(callerID) {
+	if isCallerPlugin(h.pluginChecker, callerID) {
 		if field.Attrs == nil {
 			field.Attrs = make(model.StringInterface)
 		}
@@ -120,7 +120,7 @@ func (h *AccessControlHook) PreCreatePropertyField(rctx request.CTX, field *mode
 
 	// Owners are managed only by administrators via the REST API. Machine
 	// callers (plugins/sync) may not declare owners when creating a field.
-	if h.isMachineCaller(callerID) && model.HasPropertyFieldOwners(field) {
+	if isMachineCaller(h.pluginChecker, callerID) && model.HasPropertyFieldOwners(field) {
 		return nil, fmt.Errorf("owners can only be set by an administrator: %w", ErrAccessDenied)
 	}
 
@@ -798,16 +798,19 @@ func (h *AccessControlHook) extractActingAsScope(rctx request.CTX) string {
 }
 
 // isCallerPlugin checks whether the callerID corresponds to an installed plugin.
-func (h *AccessControlHook) isCallerPlugin(callerID string) bool {
-	return callerID != "" && h.pluginChecker != nil && h.pluginChecker(callerID)
+func isCallerPlugin(pluginChecker PluginChecker, callerID string) bool {
+	return callerID != "" && pluginChecker != nil && pluginChecker(callerID)
 }
 
 // isMachineCaller reports whether the caller is a machine actor (an installed
 // plugin or a built-in sync service) rather than a human. Owner-list
 // enforcement applies only to machine callers; human callers (session users
 // and local admins) are governed by the API-layer permission levels.
-func (h *AccessControlHook) isMachineCaller(callerID string) bool {
-	return h.isCallerPlugin(callerID) ||
+func isMachineCaller(pluginChecker PluginChecker, callerID string) bool {
+	if callerID == "" {
+		return false
+	}
+	return isCallerPlugin(pluginChecker, callerID) ||
 		callerID == model.CallerIDLDAPSync ||
 		callerID == model.CallerIDSAMLSync
 }
@@ -866,7 +869,7 @@ func (h *AccessControlHook) effectiveOwners(field *model.PropertyField) []model.
 // fields and is the sole write authority for owner-managed fields (their
 // PermissionValues are left at the normal default and are not consulted here).
 func (h *AccessControlHook) checkOwnerValueWriteAccess(field *model.PropertyField, callerID, scope string) error {
-	if !h.isMachineCaller(callerID) {
+	if !isMachineCaller(h.pluginChecker, callerID) {
 		return fmt.Errorf("field %s is owner-managed and cannot be modified by human caller %q: %w", field.ID, callerID, ErrAccessDenied)
 	}
 
@@ -905,13 +908,13 @@ func (h *AccessControlHook) isListedOwner(field *model.PropertyField, callerID s
 // protected / source_plugin_id rules continue to apply.
 func (h *AccessControlHook) enforceFieldUpdateAccess(existing, updated *model.PropertyField, callerID string) error {
 	if model.HasPropertyFieldOwners(existing) {
-		if h.isMachineCaller(callerID) && !h.isListedOwner(existing, callerID) {
+		if isMachineCaller(h.pluginChecker, callerID) && !h.isListedOwner(existing, callerID) {
 			return fmt.Errorf("field %s is owner-managed and can only be modified by an administrator or a listed owner: %w", existing.ID, ErrAccessDenied)
 		}
 		return nil
 	}
 
-	if h.isMachineCaller(callerID) && model.HasPropertyFieldOwners(updated) {
+	if isMachineCaller(h.pluginChecker, callerID) && model.HasPropertyFieldOwners(updated) {
 		return fmt.Errorf("owners can only be set by an administrator: %w", ErrAccessDenied)
 	}
 	return h.checkLegacyFieldWriteAccess(existing, callerID)
@@ -1011,7 +1014,7 @@ func (h *AccessControlHook) checkLegacyFieldWriteAccess(field *model.PropertyFie
 // IMPORTANT: Always pass the existing field fetched from the database, not a field provided by the caller.
 func (h *AccessControlHook) checkFieldDeleteAccess(field *model.PropertyField, callerID string) error {
 	if model.HasPropertyFieldOwners(field) {
-		if h.isMachineCaller(callerID) && !h.isListedOwner(field, callerID) {
+		if isMachineCaller(h.pluginChecker, callerID) && !h.isListedOwner(field, callerID) {
 			return fmt.Errorf("field %s is owner-managed and can only be deleted by an administrator or a listed owner: %w", field.ID, ErrAccessDenied)
 		}
 		return nil
