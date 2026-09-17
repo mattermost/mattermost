@@ -6,7 +6,7 @@ package healthcheck
 import (
 	"errors"
 	"fmt"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -35,8 +35,8 @@ func (r *Registry) Rules() []Rule {
 	rules := make([]Rule, len(r.rules))
 	copy(rules, r.rules)
 
-	sort.SliceStable(rules, func(i, j int) bool {
-		return rules[i].Code < rules[j].Code
+	slices.SortStableFunc(rules, func(a, b Rule) int {
+		return strings.Compare(a.Code, b.Code)
 	})
 
 	return rules
