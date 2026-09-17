@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import emojiRegex from 'emoji-regex';
-import type {Renderer} from 'marked';
 import {parsePhoneNumber, type CountryCode} from 'libphonenumber-js/min';
+import type {Renderer} from 'marked';
 
 import type {SystemEmoji} from '@mattermost/types/emojis';
 import {isRecordOf} from '@mattermost/types/utilities';
