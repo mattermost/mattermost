@@ -5,9 +5,8 @@ import classNames from 'classnames';
 import React, {useCallback, useEffect, useRef, useState, type JSX} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
-import {components} from 'react-select';
 
-import {PencilOutlineIcon, RefreshIcon, SyncIcon} from '@mattermost/compass-icons/components';
+import {CloseCircleIcon, PencilOutlineIcon, RefreshIcon, SyncIcon} from '@mattermost/compass-icons/components';
 import {buttonClassNames} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
@@ -208,6 +207,7 @@ function AttributeExternalSource({ldapAttr, samlAttr, fieldType, onLink, disable
                             <span
                                 // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child; without this the disabled trigger is unreachable by keyboard, so the tooltip explaining the lock is mouse-only
                                 tabIndex={0}
+                                className='AttributeExternalSource__triggerLockWrap'
                                 data-testid='attributeExternalSourceTriggerLockWrap'
                             >
                                 {trigger}
@@ -269,7 +269,10 @@ function ExternalSourceChip({source, value, onEdit, onRemove, disabled = false}:
                 disabled={disabled}
                 aria-label={removeLabel}
             >
-                <components.CrossIcon size={14}/>
+                <CloseCircleIcon
+                    size={12}
+                    aria-hidden={true}
+                />
             </button>
         </span>
     );

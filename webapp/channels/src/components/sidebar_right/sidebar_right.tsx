@@ -69,8 +69,8 @@ type State = {
 };
 
 export default class SidebarRight extends React.PureComponent<Props, State> {
-    sidebarRight: React.RefObject<HTMLDivElement>;
-    sidebarRightWidthHolder: React.RefObject<HTMLDivElement>;
+    sidebarRight: React.RefObject<HTMLDivElement | null>;
+    sidebarRightWidthHolder: React.RefObject<HTMLDivElement | null>;
     previous: Partial<Props> | undefined = undefined;
     focusSearchBar?: () => void;
     private previousActiveElement: HTMLElement | null = null;

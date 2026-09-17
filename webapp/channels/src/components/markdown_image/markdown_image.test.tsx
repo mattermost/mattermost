@@ -363,4 +363,79 @@ describe('components/MarkdownImage', () => {
         );
         expect(screen.getByText(props.alt)).toBeInTheDocument();
     });
+
+    test('should mount the expand control once a dimensionless image loads tall enough', () => {
+        // GIF picker posts are inline Markdown images without dimensions, and a post arriving
+        // live over the websocket often has no server image metadata yet, so the expand control
+        // must be driven by the height reported when the image loads.
+        const props = {...baseProps, imageMetadata: undefined, height: '', width: '', src: 'https://media.giphy.com/media/abc/giphy.gif'};
+        const {container} = renderWithContext(
+            <MarkdownImage {...props}/>,
+        );
+
+        expect(container.querySelector('.markdown-image-expand')).not.toBeInTheDocument();
+
+        const img = screen.getByRole('img', {hidden: true});
+        Object.defineProperty(img, 'naturalHeight', {value: 200, configurable: true});
+        Object.defineProperty(img, 'naturalWidth', {value: 200, configurable: true});
+        fireEvent.load(img!);
+
+        expect(container.querySelector('.markdown-image-expand')).toBeInTheDocument();
+    });
+
+    test('should not reuse a previous dimensionless image height after the source changes', () => {
+        const props = {...baseProps, imageMetadata: undefined, height: '', width: '', src: 'https://media.giphy.com/media/tall/giphy.gif'};
+        const {container, rerender} = renderWithContext(
+            <MarkdownImage {...props}/>,
+        );
+
+        let img = screen.getByRole('img', {hidden: true});
+        Object.defineProperty(img, 'naturalHeight', {value: 200, configurable: true});
+        Object.defineProperty(img, 'naturalWidth', {value: 200, configurable: true});
+        fireEvent.load(img!);
+
+        expect(container.querySelector('.markdown-image-expand')).toBeInTheDocument();
+
+        // Swapping to another dimensionless image must not carry over the previous image's height
+        const nextProps = {...props, src: 'https://media.giphy.com/media/short/giphy.gif'};
+        rerender(<MarkdownImage {...nextProps}/>);
+
+        expect(container.querySelector('.markdown-image-expand')).not.toBeInTheDocument();
+
+        // Once the replacement image reports its own (short) height, it stays uncollapsed
+        img = screen.getByRole('img', {hidden: true});
+        Object.defineProperty(img, 'naturalHeight', {value: 40, configurable: true});
+        Object.defineProperty(img, 'naturalWidth', {value: 40, configurable: true});
+        fireEvent.load(img!);
+
+        expect(container.querySelector('.markdown-image-expand')).not.toBeInTheDocument();
+    });
+
+    test('should collapse a dimensionless image on load when previews are collapsed', () => {
+        const props = {...baseProps, imageMetadata: undefined, height: '', width: '', src: 'https://media.giphy.com/media/abc/giphy.gif'};
+        const {container} = renderWithContext(
+            <MarkdownImage {...props}/>,
+            {
+                entities: {
+                    preferences: {
+                        myPreferences: {
+                            'display_settings--collapse_previews': {
+                                category: 'display_settings',
+                                name: 'collapse_previews',
+                                value: 'true',
+                            },
+                        },
+                    },
+                },
+            },
+        );
+
+        const img = screen.getByRole('img', {hidden: true});
+        Object.defineProperty(img, 'naturalHeight', {value: 200, configurable: true});
+        Object.defineProperty(img, 'naturalWidth', {value: 200, configurable: true});
+        fireEvent.load(img!);
+
+        expect(container.querySelector('.markdown-image-expand__expand-button')).toBeInTheDocument();
+        expect(container.querySelector('.markdown-image-expand--expanded')).not.toBeInTheDocument();
+    });
 });

@@ -24,15 +24,33 @@
     }
 }
 
-.GlobalAttributesTable__attribute {
+.GlobalAttributesTable__appliesTo {
     display: flex;
-    flex-direction: column;
-    gap: 2px;
+    flex-wrap: wrap;
+    padding: 0;
+    margin: 0;
+    gap: 8px;
+    list-style: none;
 }
 
-// Ellipsis-truncation lives here (not on the shared td rule in list_table.scss) so it applies
-// only to the name line — leaving every ordinary row's truncation behavior unchanged — while
-// the classification-only subtitle below is free to wrap onto its own line(s).
+// Compass Small chip (proto CatalogListing Applies-to): 20px tall,
+// 10/12 type, 4px radius, 4×8 padding.
+.GlobalAttributesTable__appliesToChip {
+    display: inline-flex;
+    overflow: hidden;
+    align-items: center;
+    padding: 4px 8px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background-color: rgba(var(--center-channel-color-rgb), 0.08);
+    color: var(--center-channel-color);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    line-height: 12px;
+    white-space: nowrap;
+}
+
 .GlobalAttributesTable__name {
     overflow: hidden;
     color: var(--center-channel-color);
@@ -41,18 +59,10 @@
     white-space: nowrap;
 }
 
-.GlobalAttributesTable__name--classification {
-    color: rgba(var(--center-channel-color-rgb), 0.56);
-}
-
-.GlobalAttributesTable__subtitle {
-    color: rgba(var(--center-channel-color-rgb), 0.64);
-    font-size: 12px;
-    white-space: normal;
-}
-
-.GlobalAttributesTable__subtitle--classification {
-    color: rgba(var(--center-channel-color-rgb), 0.56);
+.GlobalAttributesTable__actions--classification {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
 }
 
 .GlobalAttributesTable__link--classification {

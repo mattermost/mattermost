@@ -4,8 +4,9 @@
 package app
 
 import (
+	"cmp"
 	"net/http"
-	"sort"
+	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
@@ -66,8 +67,8 @@ func (a *App) SearchTeamAccessPolicies(rctx request.CTX, teamID, requesterID str
 			seen[p.ID] = true
 		}
 	}
-	sort.Slice(policies, func(i, j int) bool {
-		return policies[i].ID < policies[j].ID
+	slices.SortFunc(policies, func(a, b *model.AccessControlPolicy) int {
+		return cmp.Compare(a.ID, b.ID)
 	})
 
 	// Single batched Channel lookup for all policies' child_ids so we don't
@@ -86,7 +87,7 @@ func (a *App) SearchTeamAccessPolicies(rctx request.CTX, teamID, requesterID str
 	for id := range unionSet {
 		union = append(union, id)
 	}
-	sort.Strings(union)
+	slices.Sort(union)
 
 	var idToType map[string]model.ChannelType
 	batchLookupFailed := false
