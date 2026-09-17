@@ -429,7 +429,7 @@ describe('TableEditor - graph attributes with the hierarchy picker', () => {
         await userEvent.click(row.querySelector('[data-hit="select"]')!);
     };
 
-    // A click on the label span selects, matching the checkbox and keyboard.
+    // A click on the label span selects a leaf. On a branch it expands.
     const clickBody = async (name: string) => {
         const row = await treeRow(name);
         await userEvent.click(within(row).getByText(name));
@@ -522,7 +522,7 @@ describe('TableEditor - graph attributes with the hierarchy picker', () => {
         expect(onChange).toHaveBeenLastCalledWith('user.attributes.programs.coversAll(["F-18 Program"])');
     });
 
-    test('selects a branch when its row body is clicked', async () => {
+    test('expands a branch when its row body is clicked, without changing the selection', async () => {
         actions.getVisualAST.mockResolvedValue({data: {conditions: []}});
         mockPageAll.mockResolvedValue(hierarchyOptions);
 
@@ -534,8 +534,8 @@ describe('TableEditor - graph attributes with the hierarchy picker', () => {
         onChange.mockClear();
         await clickBody('Air Program');
 
-        expect(onChange).toHaveBeenLastCalledWith('user.attributes.programs.coversAll(["Air Program"])');
-        expect(screen.queryByRole('menuitemcheckbox', {name: 'Fighter Jet Program'})).not.toBeInTheDocument();
+        expect(onChange).not.toHaveBeenCalled();
+        expect(await treeRow('Fighter Jet Program')).toBeInTheDocument();
     });
 
     test('expands a branch by its chevron without changing the selection', async () => {

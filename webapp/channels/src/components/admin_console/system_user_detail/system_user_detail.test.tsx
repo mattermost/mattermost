@@ -983,7 +983,7 @@ describe('SystemUserDetail', () => {
                 expect(trigger()).toHaveTextContent('Gamma');
             });
 
-            test('clicking a branch option assigns it from the row, not only the checkbox', async () => {
+            test('clicking a branch row expands it; checking requires the checkbox', async () => {
                 const options = [
                     graphOption('opt-air', 'Air'),
                     graphOption('opt-fighter', 'Fighter', ['Air']),
@@ -994,10 +994,16 @@ describe('SystemUserDetail', () => {
                 await waitForLoadingToFinish();
                 await openMenu();
 
-                await userEvent.click(await screen.findByRole('menuitemcheckbox', {name: 'Air'}));
+                const airRow = await screen.findByRole('menuitemcheckbox', {name: 'Air'});
+                await userEvent.click(airRow);
+
+                expect(airRow).toHaveAttribute('aria-checked', 'false');
+                expect(screen.getByRole('menuitemcheckbox', {name: 'Fighter'})).toBeInTheDocument();
+                expect(trigger()).not.toHaveTextContent('Air');
+
+                await userEvent.click(airRow.querySelector('[data-hit="select"]')!);
 
                 expect(screen.getByRole('menuitemcheckbox', {name: 'Air'})).toHaveAttribute('aria-checked', 'true');
-                expect(screen.queryByRole('menuitemcheckbox', {name: 'Fighter'})).not.toBeInTheDocument();
                 expect(trigger()).toHaveTextContent('Air');
                 expect(screen.getByRole('menu')).toBeInTheDocument();
             });

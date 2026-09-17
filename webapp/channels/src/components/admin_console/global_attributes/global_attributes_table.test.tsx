@@ -633,7 +633,6 @@ describe('GlobalAttributesTable', () => {
             expect(cell).not.toHaveTextContent('Free Text');
         });
 
-
         it('renders a zero count for a graph field with no options loaded', async () => {
             getPropertyFields.mockResolvedValueOnce([makeField({type: 'graph', attrs: {}})]).mockResolvedValue([]);
 
