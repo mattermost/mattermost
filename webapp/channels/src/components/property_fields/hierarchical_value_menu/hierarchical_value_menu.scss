@@ -156,8 +156,8 @@
         height: 28px;
         align-items: center;
         justify-content: center;
-        margin: -5px;
         border-radius: var(--radius-s);
+        margin: -5px;
         color: rgba(var(--center-channel-color-rgb), 0.64);
 
         &:hover {
@@ -177,10 +177,10 @@
         min-width: 0;
         align-items: center;
         justify-content: space-between;
+        border-radius: var(--radius-s);
         gap: 8px;
         padding-block: 2px;
         padding-inline: 6px;
-        border-radius: var(--radius-s);
 
         &:hover {
             background: rgba(var(--center-channel-color-rgb), 0.08);
