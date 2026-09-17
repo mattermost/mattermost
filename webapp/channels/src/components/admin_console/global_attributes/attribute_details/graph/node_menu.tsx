@@ -103,6 +103,7 @@ export function NodeMenu({
                     />
                 </div>
             )}
+            <Menu.Separator/>
             <Menu.Item
                 id='attributeGraphParentsPane__openParents'
                 data-testid='attributeGraphParentsPane__openParents'

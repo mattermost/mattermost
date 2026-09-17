@@ -39,6 +39,15 @@ async function openParentsView() {
     await userEvent.click(screen.getByTestId('attributeGraphParentsPane__openParents'));
 }
 
+function isFollowing(earlier: Node, later: Node) {
+    return Boolean(earlier.compareDocumentPosition(later) & Node.DOCUMENT_POSITION_FOLLOWING);
+}
+
+function expectSeparatorBetween(before: HTMLElement, after: HTMLElement) {
+    const separators = screen.getAllByRole('separator');
+    expect(separators.some((sep) => isFollowing(before, sep) && isFollowing(sep, after))).toBe(true);
+}
+
 async function openParentSearch() {
     await userEvent.click(screen.getByTestId('attributeGraphParentsPane__search'));
 }
@@ -84,6 +93,14 @@ describe('AttributeGraphParentsPane', () => {
         expect(screen.getByTestId('attributeGraphParentsPane__back')).toHaveTextContent('Parents of B');
         expect(screen.getByTestId('attributeGraphParentsPane__parentRow')).toHaveTextContent('A');
         expect(screen.getByTestId('attributeGraphParentsPane__parentRow')).not.toHaveTextContent('sits under');
+        expectSeparatorBetween(
+            screen.getByTestId('attributeGraphParentsPane__back'),
+            screen.getByTestId('attributeGraphParentsPane__parentRow'),
+        );
+        expectSeparatorBetween(
+            screen.getByTestId('attributeGraphParentsPane__parentRow'),
+            screen.getByTestId('attributeGraphParentsPane__search'),
+        );
         expect(screen.getByTestId('attributeGraphParentsPane__search')).toHaveAttribute(
             'placeholder',
             'Add a parent, or type a new name…',
@@ -106,6 +123,14 @@ describe('AttributeGraphParentsPane', () => {
         expect(screen.queryByTestId('attributeGraphParentsPane__candidate-B')).not.toBeInTheDocument();
         expect(screen.queryByTestId('attributeGraphParentsPane__candidate-C')).not.toBeInTheDocument();
         expect(screen.getByTestId('attributeGraphParentsPane__empty')).toHaveTextContent('No parents yet.');
+        expectSeparatorBetween(
+            screen.getByTestId('attributeGraphParentsPane__back'),
+            screen.getByTestId('attributeGraphParentsPane__empty'),
+        );
+        expectSeparatorBetween(
+            screen.getByTestId('attributeGraphParentsPane__empty'),
+            screen.getByTestId('attributeGraphParentsPane__search'),
+        );
     });
 
     it('lists an eligible ancestor after focusing search', async () => {
@@ -253,6 +278,10 @@ describe('AttributeGraphParentsPane', () => {
         expect(screen.getByTestId('attributeGraphParentsPane__nameInput')).toHaveValue('A');
         expect(screen.getByTestId('attributeGraphParentsPane__openParents')).toHaveTextContent('Top level');
         expect(screen.getByTestId('attributeGraphParentsPane__openChildren')).toHaveTextContent('1');
+        expectSeparatorBetween(
+            screen.getByTestId('attributeGraphParentsPane__nameInput'),
+            screen.getByTestId('attributeGraphParentsPane__openParents'),
+        );
         expect(screen.getByRole('menuitem', {name: 'Delete this value'})).toBeInTheDocument();
         expect(screen.queryByTestId('attributeGraphParentsPane__children')).not.toBeInTheDocument();
     });
@@ -306,9 +335,12 @@ describe('AttributeGraphParentsPane', () => {
             'placeholder',
             'Add a child, or type a new name…',
         );
-        expect(screen.getAllByTestId('attributeGraphParentsPane__childRow').map((row) => row.textContent)).toEqual(
+        const childRows = screen.getAllByTestId('attributeGraphParentsPane__childRow');
+        expect(childRows.map((row) => row.textContent)).toEqual(
             expect.arrayContaining(['B', 'C']),
         );
+        expectSeparatorBetween(screen.getByTestId('attributeGraphParentsPane__back'), childRows[0]);
+        expectSeparatorBetween(childRows[childRows.length - 1], screen.getByTestId('attributeGraphParentsPane__childSearch'));
 
         await userEvent.click(screen.getAllByTestId('attributeGraphParentsPane__childRemove')[0]);
         expect(onOptionsChange).toHaveBeenCalledWith(removeParentEdge(options, 'B', 'A'));
@@ -320,6 +352,14 @@ describe('AttributeGraphParentsPane', () => {
 
         await userEvent.click(screen.getByTestId('attributeGraphParentsPane__openChildren'));
         expect(screen.getByTestId('attributeGraphParentsPane__childrenEmpty')).toHaveTextContent('No children yet.');
+        expectSeparatorBetween(
+            screen.getByTestId('attributeGraphParentsPane__back'),
+            screen.getByTestId('attributeGraphParentsPane__childrenEmpty'),
+        );
+        expectSeparatorBetween(
+            screen.getByTestId('attributeGraphParentsPane__childrenEmpty'),
+            screen.getByTestId('attributeGraphParentsPane__childSearch'),
+        );
         await userEvent.type(screen.getByTestId('attributeGraphParentsPane__childSearch'), 'Wing');
         await userEvent.click(screen.getByTestId('attributeGraphParentsPane__createChild'));
 

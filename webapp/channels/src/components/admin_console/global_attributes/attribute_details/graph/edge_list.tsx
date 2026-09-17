@@ -164,6 +164,7 @@ export function EdgeList({
                     values={{name: optionName}}
                 />
             </button>
+            <Menu.Separator/>
             <div className='attribute-graph-parents-pane__rows'>
                 {relatedNames.length === 0 && (
                     <p
