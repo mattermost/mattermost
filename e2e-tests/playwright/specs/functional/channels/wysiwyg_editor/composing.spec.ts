@@ -6,6 +6,10 @@ import {expect, setWysiwygUserPreference, test, WysiwygEditor} from '@mattermost
 const TAGS = {tag: ['@channels', '@wysiwyg_editor']};
 
 test.describe('WYSIWYG editor - composing and posting', TAGS, () => {
+    test.beforeEach(async ({pw}) => {
+        await pw.ensureFeatureFlag('WysiwygEditor', true);
+    });
+
     test('posts a plain-text message', async ({pw}) => {
         const {user, userClient, team} = await pw.initSetup();
         await setWysiwygUserPreference(userClient, user.id, true);
