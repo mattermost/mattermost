@@ -174,11 +174,13 @@ func TestCreateOAuthAppRespectsSessionOrigin(t *testing.T) {
 			require.Error(t, err)
 
 			// No application was registered for the requested name.
-			apps, _, err := th.SystemAdminClient.GetOAuthApps(context.Background(), 0, 1000)
-			require.NoError(t, err)
+			apps, appErr := th.App.GetOAuthApps(0, 1000)
+			require.Nil(t, appErr)
+			names := make([]string, 0, len(apps))
 			for _, a := range apps {
-				assert.NotEqual(t, appRequest.Name, a.Name, "no application should be registered for this name")
+				names = append(names, a.Name)
 			}
+			assert.NotContains(t, names, appRequest.Name)
 		})
 	}
 }
@@ -241,6 +243,147 @@ func TestCreateOAuthAppWithDirectSession(t *testing.T) {
 			} else {
 				assert.NotEmpty(t, rapp.ClientSecret, "a confidential client is issued a secret")
 			}
+		})
+	}
+}
+
+// setupOAuthAppOwner enables the OAuth service provider, grants manage_oauth to the system user
+// role, and registers a confidential app owned by the returned client's user.
+func setupOAuthAppOwner(t *testing.T, th *TestHelper) (*model.Client4, *model.OAuthApp) {
+	t.Helper()
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
+	t.Cleanup(func() {
+		th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuthServiceProvider })
+	})
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.AddPermissionToRole(t, model.PermissionManageOAuth.Id, model.SystemUserRoleId)
+
+	oapp, _, err := th.Client.CreateOAuthApp(context.Background(), &model.OAuthApp{
+		Name:         GenerateTestAppName(),
+		Homepage:     "https://nowhere.com",
+		Description:  "test",
+		CallbackUrls: []string{"https://nowhere.com"},
+	})
+	require.NoError(t, err)
+	require.NotEmpty(t, oapp.ClientSecret)
+
+	return th.Client, oapp
+}
+
+// delegateSession marks the client's session as one obtained through the OAuth2 authorization
+// flow, as an integration acting on the user's behalf holds.
+func delegateSession(t *testing.T, th *TestHelper, client *model.Client4) {
+	t.Helper()
+
+	session, appErr := th.App.GetSession(client.AuthToken)
+	require.Nil(t, appErr)
+	session.IsOAuth = true
+	th.App.AddSessionToCache(session)
+}
+
+func TestOAuthAppManagementDeniesOAuthSession(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	testCases := []struct {
+		name string
+		call func(client *model.Client4, oapp *model.OAuthApp) (*model.Response, error)
+	}{
+		{
+			name: "update registration",
+			call: func(client *model.Client4, oapp *model.OAuthApp) (*model.Response, error) {
+				updated := *oapp
+				updated.CallbackUrls = []string{"https://elsewhere.com"}
+				_, resp, err := client.UpdateOAuthApp(context.Background(), &updated)
+				return resp, err
+			},
+		},
+		{
+			name: "regenerate secret",
+			call: func(client *model.Client4, oapp *model.OAuthApp) (*model.Response, error) {
+				_, resp, err := client.RegenerateOAuthAppSecret(context.Background(), oapp.Id)
+				return resp, err
+			},
+		},
+		{
+			name: "delete registration",
+			call: func(client *model.Client4, oapp *model.OAuthApp) (*model.Response, error) {
+				return client.DeleteOAuthApp(context.Background(), oapp.Id)
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mainHelper.Parallel(t)
+			th := Setup(t)
+
+			client, oapp := setupOAuthAppOwner(t, th)
+			delegateSession(t, th, client)
+
+			resp, err := tc.call(client, oapp)
+			require.Error(t, err)
+			CheckForbiddenStatus(t, resp)
+
+			// The registration is still present and unaltered.
+			current, _, err := th.SystemAdminClient.GetOAuthApp(context.Background(), oapp.Id)
+			require.NoError(t, err)
+			assert.Equal(t, oapp.ClientSecret, current.ClientSecret)
+			assert.Equal(t, oapp.CallbackUrls, current.CallbackUrls)
+		})
+	}
+}
+
+func TestOAuthAppReadsOmitSecretForOAuthSession(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	testCases := []struct {
+		name string
+		// secrets returns every client secret the response carried, and nothing when the
+		// request was refused.
+		secrets func(client *model.Client4, oapp *model.OAuthApp) []string
+	}{
+		{
+			name: "read one registration",
+			secrets: func(client *model.Client4, oapp *model.OAuthApp) []string {
+				app, _, err := client.GetOAuthApp(context.Background(), oapp.Id)
+				if err != nil || app == nil {
+					return nil
+				}
+
+				return []string{app.ClientSecret}
+			},
+		},
+		{
+			name: "list registrations",
+			secrets: func(client *model.Client4, oapp *model.OAuthApp) []string {
+				apps, _, err := client.GetOAuthApps(context.Background(), 0, 1000)
+				if err != nil {
+					return nil
+				}
+
+				secrets := make([]string, 0, len(apps))
+				for _, app := range apps {
+					secrets = append(secrets, app.ClientSecret)
+				}
+
+				return secrets
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mainHelper.Parallel(t)
+			th := Setup(t)
+
+			client, oapp := setupOAuthAppOwner(t, th)
+			delegateSession(t, th, client)
+
+			assert.NotContains(t, tc.secrets(client, oapp), oapp.ClientSecret)
 		})
 	}
 }
