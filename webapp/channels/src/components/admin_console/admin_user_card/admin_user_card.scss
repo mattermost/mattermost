@@ -31,21 +31,12 @@
     flex: 0 0 auto;
 }
 
-.AdminUserCard__picture-input {
-    // The picker is opened programmatically from the edit menu, so the native
-    // control must never surface its "No file chosen" affordance. Hiding it via
-    // size + overflow (rather than only `display: none`) keeps it hidden even if a
-    // broader `input` rule overrides `display`, and pointer-events blocks any
-    // stray click while still allowing the programmatic `.click()`.
-    position: absolute;
-    overflow: hidden;
-    width: 0;
-    height: 0;
-    padding: 0;
-    border: 0;
-    margin: 0;
-    opacity: 0;
-    pointer-events: none;
+// The picker is opened programmatically from the edit menu, so the native control
+// must never surface its "No file chosen" affordance. The `input[type='file']`
+// qualifier keeps this specific enough to win over broader `input` rules, so a
+// generic admin-console style can't re-expose the control by overriding `display`.
+input.AdminUserCard__picture-input[type='file'] {
+    display: none;
 }
 
 .AdminUserCard__picture-edit {
