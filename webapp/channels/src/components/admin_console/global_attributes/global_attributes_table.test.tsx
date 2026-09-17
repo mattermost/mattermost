@@ -709,7 +709,7 @@ describe('GlobalAttributesTable', () => {
     });
 
     describe('Actions column', () => {
-        it('opens the menu with Edit enabled for a managed field, Duplicate still stubbed, and Delete enabled', async () => {
+        it('opens the menu with Edit and Delete enabled for a managed field', async () => {
             getPropertyFields.mockResolvedValueOnce([makeField()]).mockResolvedValue([]);
 
             renderWithContext(<GlobalAttributesTable/>, getBaseState());
@@ -724,21 +724,14 @@ describe('GlobalAttributesTable', () => {
 
             const menuitems = screen.getAllByRole('menuitem');
             const edit = menuitems.find((el) => el.textContent?.includes('Edit attribute'));
-            const duplicate = menuitems.find((el) => el.textContent?.includes('Duplicate attribute'));
             const del = menuitems.find((el) => el.textContent?.includes('Delete attribute'));
 
             expect(edit).toBeDefined();
-            expect(duplicate).toBeDefined();
             expect(del).toBeDefined();
+            expect(menuitems.find((el) => el.textContent?.includes('Duplicate attribute'))).toBeUndefined();
 
             expect(edit!).not.toHaveAttribute('aria-disabled', 'true');
-            expect(edit!).not.toHaveTextContent('Coming soon');
-            expect(duplicate!).toHaveAttribute('aria-disabled', 'true');
-            expect(duplicate!).toHaveTextContent('Coming soon');
-
-            // * Delete is live now, so it carries neither the disabled state nor the stub label
             expect(del!).not.toHaveAttribute('aria-disabled', 'true');
-            expect(del!).not.toHaveTextContent('Coming soon');
 
             await userEvent.click(edit!);
             await waitFor(() => {
@@ -763,7 +756,6 @@ describe('GlobalAttributesTable', () => {
 
             const view = menuitems.find((el) => el.textContent?.includes('View attribute'));
             expect(view).not.toHaveAttribute('aria-disabled', 'true');
-            expect(view).not.toHaveTextContent('Coming soon');
 
             await userEvent.click(view!);
             await waitFor(() => {
@@ -771,7 +763,7 @@ describe('GlobalAttributesTable', () => {
             });
         });
 
-        it('leaves Duplicate stubbed and Delete\'s orphan-aware gating unaffected on a plugin-owned row', async () => {
+        it('leaves Delete\'s orphan-aware gating unaffected on a plugin-owned row', async () => {
             getPropertyFields.mockResolvedValueOnce([makeField({
                 attrs: {source_plugin_id: 'com.example.plugin', protected: true},
             })]).mockResolvedValue([]);
@@ -784,11 +776,9 @@ describe('GlobalAttributesTable', () => {
             renderWithContext(<GlobalAttributesTable/>, state);
 
             const menuitems = await openActionsMenu();
-            const duplicate = menuitems.find((el) => el.textContent?.includes('Duplicate attribute'));
             const del = menuitems.find((el) => el.textContent?.includes('Delete attribute'));
 
-            expect(duplicate).toHaveAttribute('aria-disabled', 'true');
-            expect(duplicate).toHaveTextContent('Coming soon');
+            expect(menuitems.find((el) => el.textContent?.includes('Duplicate attribute'))).toBeUndefined();
 
             // Plugin is installed (pluginStatuses has an entry) -- Delete stays
             // plugin-managed/disabled, same as before this change.
