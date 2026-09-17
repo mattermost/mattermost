@@ -909,8 +909,9 @@ const AdvancedTextEditor = ({
                     </div>
                 )}
                 <div
-                    className={'AdvancedTextEditor__body'}
-                    disabled={isDisabled}
+                    className={classNames('AdvancedTextEditor__body', {
+                        'AdvancedTextEditor__body--disabled': isDisabled,
+                    })}
                 >
                     {fileUploadOverlay}
                     <div

@@ -3,7 +3,7 @@
 exports[`components/channel_members_dropdown should match snapshot for channel_members_dropdown 1`] = `
 <div>
   <div
-    class="MenuWrapper "
+    class="MenuWrapper"
   >
     <button
       class="dropdown-toggle theme color--link style--none"
@@ -28,7 +28,7 @@ exports[`components/channel_members_dropdown should match snapshot for channel_m
 exports[`components/channel_members_dropdown should match snapshot for dropdown with guest user 1`] = `
 <div>
   <div
-    class="MenuWrapper "
+    class="MenuWrapper"
   >
     <button
       class="dropdown-toggle theme color--link style--none"
@@ -63,7 +63,7 @@ exports[`components/channel_members_dropdown should match snapshot for group_con
 exports[`components/channel_members_dropdown should match snapshot for not dropdown with guest user 1`] = `
 <div>
   <div
-    class="MenuWrapper "
+    class="MenuWrapper"
   >
     <button
       class="dropdown-toggle theme color--link style--none"
@@ -88,7 +88,7 @@ exports[`components/channel_members_dropdown should match snapshot for not dropd
 exports[`components/channel_members_dropdown should match snapshot opening dropdown upwards 1`] = `
 <div>
   <div
-    class="MenuWrapper "
+    class="MenuWrapper"
   >
     <button
       class="dropdown-toggle theme color--link style--none"
@@ -113,7 +113,7 @@ exports[`components/channel_members_dropdown should match snapshot opening dropd
 exports[`components/channel_members_dropdown should match snapshot when user is current user 1`] = `
 <div>
   <div
-    class="MenuWrapper "
+    class="MenuWrapper"
   >
     <button
       class="dropdown-toggle theme color--link style--none"
@@ -138,7 +138,7 @@ exports[`components/channel_members_dropdown should match snapshot when user is 
 exports[`components/channel_members_dropdown should match snapshot with role change possible 1`] = `
 <div>
   <div
-    class="MenuWrapper "
+    class="MenuWrapper"
   >
     <button
       class="dropdown-toggle theme color--link style--none"

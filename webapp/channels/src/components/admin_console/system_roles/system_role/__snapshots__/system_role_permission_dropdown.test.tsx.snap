@@ -3,7 +3,7 @@
 exports[`admin_console/system_role_permission_dropdown should match snapshot 1`] = `
 <div>
   <div
-    class="MenuWrapper "
+    class="MenuWrapper"
   >
     <button
       aria-expanded="true"
@@ -33,8 +33,7 @@ exports[`admin_console/system_role_permission_dropdown should match snapshot 1`]
 exports[`admin_console/system_role_permission_dropdown should match snapshot with isDisabledTrue 1`] = `
 <div>
   <div
-    class="MenuWrapper "
-    disabled=""
+    class="MenuWrapper MenuWrapper--disabled"
   >
     <button
       aria-expanded="true"

@@ -45,7 +45,7 @@ exports[`components/search_results/MessagesOrFilesSelector should match snapshot
       class="FilesFilterMenu"
     >
       <div
-        class="MenuWrapper "
+        class="MenuWrapper"
       >
         <button
           class="IconContainer-hXitkr fFJEfD action-icon dots-icon"
@@ -149,7 +149,7 @@ exports[`components/search_results/MessagesOrFilesSelector should match snapshot
       class="FilesFilterMenu"
     >
       <div
-        class="MenuWrapper "
+        class="MenuWrapper"
       >
         <button
           class="IconContainer-hXitkr fFJEfD action-icon dots-icon"

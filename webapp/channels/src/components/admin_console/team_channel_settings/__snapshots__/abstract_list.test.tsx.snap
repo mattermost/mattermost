@@ -81,7 +81,7 @@ exports[`admin_console/team_channel_settings/AbstractList should match snapshot,
             class="group-description row-content roles"
           >
             <div
-              class="MenuWrapper "
+              class="MenuWrapper"
             >
               <div>
                 <a

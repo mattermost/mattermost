@@ -31,7 +31,7 @@ exports[`components/submenu_modal should match snapshot 1`] = `
           data-testid="SubMenuModalBody"
         >
           <div
-            class="MenuWrapper "
+            class="MenuWrapper"
           >
             <div
               aria-label="mobile submenu"

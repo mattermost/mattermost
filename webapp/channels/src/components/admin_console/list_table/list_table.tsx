@@ -289,7 +289,6 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                                         [SORTABLE_CLASS]: header.column.getCanSort(),
                                         [PINNED_CLASS]: header.column.getCanPin(),
                                     })}
-                                    disabled={header.column.getCanSort() && tableMeta.loadingState === LoadingStates.Loading}
                                     onClick={header.column.getToggleSortingHandler()}
                                     style={{width: header.column.getSize()}}
                                 >
@@ -341,7 +340,6 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                             <td
                                 colSpan={colCount}
                                 className='noRows'
-                                disabled={true}
                             >
                                 <LoadingSpinner
                                     text={formatMessage({id: 'adminConsole.list.table.genericLoading', defaultMessage: 'Loading'})}
@@ -356,7 +354,6 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                             <td
                                 colSpan={colCount}
                                 className='noRows'
-                                disabled={true}
                             >
                                 {tableMeta.emptyDataMessage || formatMessage({id: 'adminConsole.list.table.genericNoData', defaultMessage: 'No data'})}
                             </td>
@@ -369,7 +366,6 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                             <td
                                 colSpan={colCount}
                                 className='noRows'
-                                disabled={true}
                             >
                                 {formatMessage({id: 'adminConsole.list.table.genericError', defaultMessage: 'There was an error loading the data, please try again'})}
                             </td>

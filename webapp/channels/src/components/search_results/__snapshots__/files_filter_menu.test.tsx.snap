@@ -6,7 +6,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on all
     class="FilesFilterMenu"
   >
     <div
-      class="MenuWrapper "
+      class="MenuWrapper"
     >
       <button
         class="IconContainer-hXitkr fFJEfD action-icon dots-icon"
@@ -37,7 +37,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on aud
     class="FilesFilterMenu"
   >
     <div
-      class="MenuWrapper "
+      class="MenuWrapper"
     >
       <button
         class="IconContainer-hXitkr fFJEfD action-icon dots-icon"
@@ -71,7 +71,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on cod
     class="FilesFilterMenu"
   >
     <div
-      class="MenuWrapper "
+      class="MenuWrapper"
     >
       <button
         class="IconContainer-hXitkr fFJEfD action-icon dots-icon"
@@ -105,7 +105,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on doc
     class="FilesFilterMenu"
   >
     <div
-      class="MenuWrapper "
+      class="MenuWrapper"
     >
       <button
         class="IconContainer-hXitkr fFJEfD action-icon dots-icon"
@@ -139,7 +139,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on ima
     class="FilesFilterMenu"
   >
     <div
-      class="MenuWrapper "
+      class="MenuWrapper"
     >
       <button
         class="IconContainer-hXitkr fFJEfD action-icon dots-icon"
@@ -173,7 +173,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on pre
     class="FilesFilterMenu"
   >
     <div
-      class="MenuWrapper "
+      class="MenuWrapper"
     >
       <button
         class="IconContainer-hXitkr fFJEfD action-icon dots-icon"
@@ -207,7 +207,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on spr
     class="FilesFilterMenu"
   >
     <div
-      class="MenuWrapper "
+      class="MenuWrapper"
     >
       <button
         class="IconContainer-hXitkr fFJEfD action-icon dots-icon"
@@ -241,7 +241,7 @@ exports[`components/search_results/FilesFilterMenu should match snapshot, on vid
     class="FilesFilterMenu"
   >
     <div
-      class="MenuWrapper "
+      class="MenuWrapper"
     >
       <button
         class="IconContainer-hXitkr fFJEfD action-icon dots-icon"

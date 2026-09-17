@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 
 import Constants from 'utils/constants';
@@ -8,16 +9,6 @@ import Constants from 'utils/constants';
 import MenuWrapperAnimation from './menu_wrapper_animation';
 
 import './menu_wrapper.scss';
-
-declare module 'react' {
-
-    // This isn't a valid HTML attribute, but we use it in enough places now that it'll require some work to remove it
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    interface HTMLAttributes<T> {
-        disabled?: boolean;
-    }
-}
 
 type Props = {
     children?: React.ReactNode;
@@ -161,10 +152,12 @@ export default class MenuWrapper extends React.PureComponent<Props, State> {
         return (
             <div
                 id={this.props.id}
-                className={'MenuWrapper ' + this.props.className + (this.state.open ? ' MenuWrapper--open' : '')}
+                className={classNames('MenuWrapper', this.props.className, {
+                    'MenuWrapper--open': this.state.open,
+                    'MenuWrapper--disabled': this.props.isDisabled,
+                })}
                 onClick={this.toggle}
                 ref={this.node}
-                disabled={this.props.isDisabled}
             >
                 {children ? Object.values(children)[0] : {}}
                 <Animation show={this.state.open}>

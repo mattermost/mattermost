@@ -6,11 +6,11 @@
     *:first-child {
         @include functions.unselectable;
     }
-}
 
-div[disabled] {
-    opacity: 0.7;
-    pointer-events: none;
+    &--disabled {
+        opacity: 0.7;
+        pointer-events: none;
+    }
 }
 
 .MenuWrapperAnimation {

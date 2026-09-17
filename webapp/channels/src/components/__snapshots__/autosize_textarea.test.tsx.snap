@@ -18,7 +18,6 @@ exports[`components/AutosizeTextarea should match snapshot, init 1`] = `
       <div
         aria-hidden="true"
         dir="auto"
-        disabled=""
         id="autosize_textarea-reference"
         style="height: auto; width: auto; display: inline-block; position: relative; transform: translateY(-100%); word-break: break-word;"
       />

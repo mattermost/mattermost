@@ -56,10 +56,7 @@ const TeamPictureSection = ({team, file, teamName, disabled, onFileChange, onRem
                     aria-hidden={true}
                     tabIndex={-1}
                 />
-                <span
-                    disabled={disabled}
-                    onClick={handleInputFile}
-                >
+                <span onClick={handleInputFile}>
                     <EditIcon/>
                 </span>
             </>
