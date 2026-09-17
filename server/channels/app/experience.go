@@ -10,6 +10,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
@@ -374,7 +375,7 @@ func (a *App) GetInitialLoad(rctx request.CTX, userID string, activeTeamID strin
 
 	// activeSince is 0 when the active team changed, so a client with no local data
 	// for the resolved team always gets the full sidebar.
-	if activeSince > 0 && getSidebarVersion(prefs, resolvedTeamID) <= activeSince {
+	if activeSince > 0 && getSidebarVersion(baseData.allPrefs, resolvedTeamID) <= activeSince {
 		sidebarCats = nil
 	}
 
@@ -547,5 +548,399 @@ func (a *App) GetTeamLoad(rctx request.CTX, userID, teamID string, since int64) 
 		SidebarCategories: sidebarCats,
 		Roles:             toExperienceRoles(roles),
 		Timestamp:         model.GetMillis(),
+	}, nil
+}
+
+func (a *App) GetExperienceSync(rctx request.CTX, userID string, req *model.ExperienceSyncRequest) (*model.ExperienceSyncResponse, *model.AppError) {
+	since := req.Since
+	scope := req.Scope
+	isCRT := a.IsCRTEnabledForUser(rctx, userID)
+
+	baseData, appErr := a.loadExperienceSnapshot(rctx, userID, since, experienceLoadErrorKeys{
+		function:  "GetExperienceSync",
+		loadError: "app.sync.base_data.error",
+	})
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	me := baseData.me
+	teams := baseData.teams
+	deletedTeams := baseData.deletedTeams
+	teamMembers := baseData.teamMembers
+	prefs := baseData.prefs
+	prefTombstones := baseData.prefTombstones
+	groupMemberships := baseData.groupMemberships
+
+	if since > 0 && me != nil && me.UpdateAt <= since {
+		me = nil
+	}
+
+	tombstonedTeamIDs := buildTombstonedTeamIDs(teamMembers, deletedTeams)
+	removedTeamIDs := listTeamIDsFromSet(tombstonedTeamIDs)
+
+	validTeamIDs := make([]string, 0, len(scope.TeamIDs))
+	teamMemberSet := make(map[string]struct{}, len(teamMembers))
+	for _, tm := range teamMembers {
+		if tm.DeleteAt == 0 {
+			teamMemberSet[tm.TeamId] = struct{}{}
+		}
+	}
+	for _, id := range scope.TeamIDs {
+		if _, ok := teamMemberSet[id]; ok {
+			validTeamIDs = append(validTeamIDs, id)
+		}
+	}
+
+	if scope.GlobalThreadsTeamID != "" {
+		if _, ok := teamMemberSet[scope.GlobalThreadsTeamID]; !ok {
+			scope.GlobalThreadsTeamID = ""
+		}
+	}
+
+	type teamResult struct {
+		delta   *model.ExperienceSyncTeamDelta
+		members model.ChannelMembersWithTeamData
+	}
+	results := make([]teamResult, len(validTeamIDs))
+
+	var (
+		allChannelMembers   model.ChannelMembersWithTeamData
+		teamsUnread         []*model.TeamUnread
+		dmChannels          model.ChannelList
+		dmProfilesByChannel map[string][]*model.User
+		dmThreadHasUnreads  bool
+		dmThreadMentions    int64
+		dmThreadUrgent      int64
+	)
+
+	deltaDataGroup, deltaCtx := errgroup.WithContext(rctx.Context())
+
+	deltaDataGroup.Go(func() error {
+		var appErr *model.AppError
+		teamsUnread, appErr = a.GetTeamsUnreadForUserExperience("", userID, isCRT)
+		if appErr != nil {
+			return appErr
+		}
+		return nil
+	})
+
+	for i, teamID := range validTeamIDs {
+		if deltaCtx.Err() != nil {
+			break
+		}
+		deltaDataGroup.Go(func() error {
+			delta, members, appErr := a.buildSyncTeamDelta(rctx, userID, teamID, since, baseData.allPrefs)
+			if appErr != nil {
+				return appErr
+			}
+			results[i] = teamResult{delta: delta, members: members}
+			return nil
+		})
+	}
+
+	deltaDataGroup.Go(func() error {
+		chans, appErr := a.GetChannelsForUser(rctx, userID, since > 0, 0, -1, "")
+		if appErr != nil {
+			return appErr
+		}
+		dmOnly := make(model.ChannelList, 0)
+		for _, ch := range chans {
+			if ch.TeamId == "" {
+				dmOnly = append(dmOnly, ch)
+			}
+		}
+		if len(dmOnly) == 0 {
+			return nil
+		}
+
+		channelIDs := make([]string, 0, len(dmOnly))
+		for _, ch := range dmOnly {
+			channelIDs = append(channelIDs, ch.Id)
+		}
+
+		profiles, storeErr := a.Srv().Store().Channel().GetDMGMProfilesByChannelIds(channelIDs, userID, since)
+		if storeErr != nil {
+			return model.NewAppError("GetExperienceSync", "app.sync.dm_profiles.error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
+		}
+		dmProfilesByChannel = profiles
+
+		filtered := filterChannelsSince(dmOnly, dmProfilesByChannel, since)
+		nameFormat := effectiveNameFormat(prefs, a.Config())
+		enrichDMGMDisplayNames(userID, filtered, dmProfilesByChannel, nameFormat)
+		dmChannels = filtered
+		return nil
+	})
+
+	// DM/GM thread counts — queries ThreadTeamId = '' / NULL directly to avoid
+	// the tombstone-team subtraction bug in GetTotalUnreadMentions.
+	if isCRT {
+		deltaDataGroup.Go(func() error {
+			hasUnreads, mentions, urgent, err := a.Srv().Store().Thread().GetDMGMThreadCounts(userID, a.IsPostPriorityEnabled())
+			if err != nil {
+				return model.NewAppError("GetExperienceSync", "app.sync.dm_thread_counts.error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			dmThreadHasUnreads = hasUnreads
+			dmThreadMentions = mentions
+			dmThreadUrgent = urgent
+			return nil
+		})
+	}
+
+	if err := deltaDataGroup.Wait(); err != nil {
+		if appErr, ok := err.(*model.AppError); ok {
+			return nil, appErr
+		}
+		return nil, model.NewAppError("GetExperienceSync", "app.sync.delta_data.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	unreadByTeam := indexTeamUnreadsByTeamID(teamsUnread)
+	teamsByID := make(map[string]*model.Team, len(teams))
+	for _, t := range teams {
+		teamsByID[t.Id] = t
+	}
+
+	teamDeltas := make([]*model.ExperienceSyncTeamDelta, 0, len(results))
+	for i, r := range results {
+		if r.delta == nil {
+			continue
+		}
+		teamID := validTeamIDs[i]
+		if t, ok := teamsByID[teamID]; ok && t.UpdateAt > since {
+			r.delta.Team = toExperienceTeam(t)
+		}
+		teamDeltas = append(teamDeltas, r.delta)
+		allChannelMembers = append(allChannelMembers, r.members...)
+	}
+
+	dmChannelItems := make([]*model.ExperienceChannel, 0, len(dmChannels))
+	for _, ch := range dmChannels {
+		dmChannelItems = append(dmChannelItems, toExperienceChannel(ch))
+	}
+
+	dmMemberItems := make([]*model.ExperienceChannelMember, 0)
+	for i := range allChannelMembers {
+		m := &allChannelMembers[i]
+		if m.TeamName == "" && m.ChannelMember.LastUpdateAt > since {
+			dmMemberItems = append(dmMemberItems, toExperienceChannelMember(m))
+		}
+	}
+
+	roles, rolesErr := a.getRolesSince(me, teamMembers, allChannelMembers, since)
+	if rolesErr != nil {
+		return nil, model.NewAppError("GetExperienceSync", "app.sync.get_roles.app_error", nil, "", http.StatusInternalServerError).Wrap(rolesErr)
+	}
+
+	var (
+		activeChannelResult *model.ExperienceSyncActiveChannel
+		activeChannelPosts  *model.PostList
+		activeThreadResult  *model.ExperienceSyncActiveThread
+		activeThreadPosts   *model.PostList
+		threadsDelta        *model.ExperienceSyncThreadsDelta
+		threadParticipants  []*model.User
+	)
+
+	contextDataGroup, _ := errgroup.WithContext(rctx.Context())
+
+	if scope.ActiveChannelID != "" {
+		contextDataGroup.Go(func() error {
+			if ok, _ := a.SessionHasPermissionToChannel(rctx, *rctx.Session(), scope.ActiveChannelID, model.PermissionReadChannel); !ok {
+				rctx.Logger().Warn("GetExperienceSync: user lacks access to active_channel_id, skipping", mlog.String("channel_id", scope.ActiveChannelID))
+				return nil
+			}
+
+			ch, appErr := a.GetChannel(rctx, scope.ActiveChannelID)
+			if appErr != nil {
+				rctx.Logger().Warn("GetExperienceSync: active_channel_id not found, skipping", mlog.String("channel_id", scope.ActiveChannelID), mlog.Err(appErr))
+				return nil
+			}
+
+			postList, appErr := a.GetPostsSince(rctx, model.GetPostsSinceOptions{
+				ChannelId:        scope.ActiveChannelID,
+				Time:             since,
+				CollapsedThreads: true,
+			})
+			if appErr != nil {
+				return appErr
+			}
+			activeChannelPosts = postList
+
+			memberCount, appErr := a.GetChannelMemberCount(rctx, scope.ActiveChannelID)
+			if appErr != nil {
+				return appErr
+			}
+			guestCount, appErr := a.GetChannelGuestCount(rctx, scope.ActiveChannelID)
+			if appErr != nil {
+				return appErr
+			}
+			pinnedPostCount, appErr := a.GetChannelPinnedPostCount(rctx, scope.ActiveChannelID)
+			if appErr != nil {
+				return appErr
+			}
+			filesCount, appErr := a.GetChannelFileCount(rctx, scope.ActiveChannelID)
+			if appErr != nil {
+				return appErr
+			}
+
+			bookmarks, appErr := a.GetChannelBookmarks(scope.ActiveChannelID, since)
+			if appErr != nil {
+				return appErr
+			}
+
+			result := &model.ExperienceSyncActiveChannel{
+				ChannelID: scope.ActiveChannelID,
+				Stats: &model.ChannelStats{
+					ChannelId:       scope.ActiveChannelID,
+					MemberCount:     memberCount,
+					GuestCount:      guestCount,
+					PinnedPostCount: pinnedPostCount,
+					FilesCount:      filesCount,
+				},
+				Bookmarks: bookmarks,
+			}
+
+			// GroupChannels table (not UserGroups) has no delta-capable UpdateAt — always send full list.
+			if ch.GroupConstrained != nil && *ch.GroupConstrained {
+				groups, _, appErr := a.GetGroupsByChannel(scope.ActiveChannelID, model.GroupSearchOpts{})
+				if appErr != nil {
+					return appErr
+				}
+				result.ConstrainedGroups = groups
+			}
+
+			activeChannelResult = result
+			return nil
+		})
+	}
+
+	if scope.ActiveThreadID != "" {
+		contextDataGroup.Go(func() error {
+			if _, appErr, _ := a.GetPostIfAuthorized(rctx, scope.ActiveThreadID, rctx.Session(), true); appErr != nil {
+				rctx.Logger().Warn("GetExperienceSync: user lacks access to active_thread_id, skipping", mlog.String("thread_id", scope.ActiveThreadID), mlog.Err(appErr))
+				return nil
+			}
+
+			postList, appErr := a.GetPostThread(rctx, scope.ActiveThreadID, model.GetPostsOptions{
+				CollapsedThreads:         true,
+				CollapsedThreadsExtended: true,
+				FromCreateAt:             since,
+				Direction:                "down",
+				IncludeDeleted:           true,
+			}, userID)
+			if appErr != nil {
+				rctx.Logger().Warn("GetExperienceSync: failed to fetch active_thread_id, skipping", mlog.String("thread_id", scope.ActiveThreadID), mlog.Err(appErr))
+				return nil
+			}
+			activeThreadPosts = postList
+			activeThreadResult = &model.ExperienceSyncActiveThread{RootID: scope.ActiveThreadID}
+			return nil
+		})
+	}
+
+	if scope.GlobalThreadsTeamID != "" {
+		contextDataGroup.Go(func() error {
+			threads, appErr := a.GetThreadsForUser(rctx, userID, scope.GlobalThreadsTeamID, model.GetUserThreadsOpts{
+				Since:    uint64(since),
+				Deleted:  true,
+				Extended: true,
+			})
+			if appErr != nil {
+				return appErr
+			}
+			syncThreads := make([]*model.ExperienceSyncThread, 0, len(threads.Threads))
+			for _, t := range threads.Threads {
+				syncThreads = append(syncThreads, &model.ExperienceSyncThread{
+					ID:             t.PostId,
+					ReplyCount:     t.ReplyCount,
+					LastReplyAt:    t.LastReplyAt,
+					LastViewedAt:   t.LastViewedAt,
+					UnreadReplies:  t.UnreadReplies,
+					UnreadMentions: t.UnreadMentions,
+					IsFollowing:    t.Post != nil && t.Post.IsFollowing != nil && *t.Post.IsFollowing,
+					DeleteAt:       t.Post.DeleteAt,
+				})
+				threadParticipants = append(threadParticipants, t.Participants...)
+			}
+			threadsDelta = &model.ExperienceSyncThreadsDelta{
+				TeamID:              scope.GlobalThreadsTeamID,
+				Threads:             syncThreads,
+				Total:               threads.Total,
+				TotalUnreadMentions: threads.TotalUnreadMentions,
+				TotalUnreadThreads:  threads.TotalUnreadThreads,
+			}
+			return nil
+		})
+	}
+
+	if err := contextDataGroup.Wait(); err != nil {
+		if appErr, ok := err.(*model.AppError); ok {
+			return nil, appErr
+		}
+		return nil, model.NewAppError("GetExperienceSync", "app.sync.context_data.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	allPosts, chOrder, thOrder := deduplicateSyncPosts(activeChannelPosts, activeThreadPosts)
+	if activeChannelResult != nil {
+		activeChannelResult.PostsOrder = chOrder
+	}
+	if activeThreadResult != nil {
+		activeThreadResult.PostsOrder = thOrder
+	}
+
+	dmPartnerProfiles := make([]*model.User, 0)
+	for _, profiles := range dmProfilesByChannel {
+		dmPartnerProfiles = append(dmPartnerProfiles, profiles...)
+	}
+
+	authors, mentionedGroups := a.resolveSyncAuthorsAndGroups(rctx, allPosts, threadParticipants, dmPartnerProfiles)
+
+	dmChannelsByID := make(map[string]*model.Channel, len(dmChannels))
+	for _, ch := range dmChannels {
+		dmChannelsByID[ch.Id] = ch
+	}
+
+	directUnreads := buildDirectUnreads(userID, allChannelMembers, dmChannelsByID, dmProfilesByChannel, prefs, isCRT, dmThreadHasUnreads, dmThreadMentions, dmThreadUrgent)
+
+	// Include unreads for ALL teams (not just scoped ones) so the client's badge
+	// state stays accurate for teams not yet loaded in this session.
+	teamsUnreads := make([]*model.ExperienceUnreads, 0, len(teams))
+	for _, t := range teams {
+		if _, isTombstoned := tombstonedTeamIDs[t.Id]; isTombstoned {
+			continue
+		}
+		teamsUnreads = append(teamsUnreads, toExperienceTeamUnreads(t.Id, unreadByTeam[t.Id], isCRT))
+	}
+
+	// Collect user IDs for presence: all authors (post authors + thread participants
+	// + DM partners already resolved by resolveSyncAuthorsAndGroups).
+	statusUserIDs := make([]string, 0, len(authors))
+	for _, u := range authors {
+		statusUserIDs = append(statusUserIDs, u.Id)
+	}
+
+	return &model.ExperienceSyncResponse{
+		Config:         a.ClientConfig(),
+		License:        a.Srv().GetSanitizedClientLicense(),
+		Me:             toExperienceUser(me, true, true, true),
+		RemovedTeamIDs: removedTeamIDs,
+		TeamsUnreads:   teamsUnreads,
+		Teams:          teamDeltas,
+		DirectChannels: dmChannelItems,
+		DirectChannelMembers: model.ExperienceChannelMemberList{
+			Members: dmMemberItems,
+		},
+		DirectUnreads:        directUnreads,
+		Preferences:          prefs,
+		PreferenceTombstones: prefTombstones,
+		GroupMemberships:     toExperienceGroupMembershipList(groupMemberships),
+		Roles:                toExperienceRoles(roles),
+		Posts:                allPosts,
+		Authors:              authors,
+		Groups:               mentionedGroups,
+		ActiveChannel:        activeChannelResult,
+		ActiveThread:         activeThreadResult,
+		ThreadsDelta:         threadsDelta,
+		Statuses:             a.buildStatusSnapshot(statusUserIDs),
+		Timestamp:            model.GetMillis(),
 	}, nil
 }

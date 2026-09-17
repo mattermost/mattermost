@@ -7,6 +7,7 @@ import (
 	"cmp"
 	"maps"
 	"net/http"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -54,6 +55,7 @@ var experiencePreferenceCategories = []string{
 
 type experienceLoadSnapshot struct {
 	me               *model.User
+	allPrefs         model.Preferences
 	teams            []*model.Team
 	deletedTeams     []*model.Team
 	teamMembers      []*model.TeamMember
@@ -115,6 +117,7 @@ func (a *App) loadExperienceSnapshot(rctx request.CTX, userID string, since int6
 		if appErr != nil {
 			return appErr
 		}
+		res.allPrefs = allPrefs
 		res.prefs = filterExperiencePreferences(allPrefs)
 		return nil
 	})
@@ -1215,4 +1218,240 @@ func (a *App) buildStatusSnapshot(userIDs []string) map[string]*model.Status {
 		out[s.UserId] = s
 	}
 	return out
+}
+
+func (a *App) buildSyncTeamDelta(rctx request.CTX, userID, teamID string, since int64, prefs model.Preferences) (*model.ExperienceSyncTeamDelta, model.ChannelMembersWithTeamData, *model.AppError) {
+	var (
+		allChannels  model.ChannelList
+		members      model.ChannelMembersWithTeamData
+		removedChIDs []string
+		sidebarCats  *model.OrderedSidebarCategories
+	)
+
+	eg, _ := errgroup.WithContext(rctx.Context())
+
+	eg.Go(func() error {
+		chans, appErr := a.GetChannelsForTeamForUser(rctx, teamID, userID, &model.ChannelSearchOpts{IncludeDeleted: since > 0})
+		if appErr != nil {
+			return appErr
+		}
+		filtered := make(model.ChannelList, 0, len(chans))
+		for _, ch := range chans {
+			if ch.TeamId == teamID && ch.UpdateAt > since {
+				filtered = append(filtered, ch)
+			}
+		}
+		allChannels = filtered
+		return nil
+	})
+
+	eg.Go(func() error {
+		var appErr *model.AppError
+		members, appErr = a.getAllChannelMembersForUser(rctx, userID)
+		if appErr != nil {
+			return appErr
+		}
+		return nil
+	})
+
+	if since > 0 {
+		eg.Go(func() error {
+			ids, err := a.Srv().Store().ChannelMemberHistory().GetChannelsLeftInTeamSince(userID, teamID, since)
+			if err != nil {
+				return model.NewAppError("buildSyncTeamDelta", "app.sync.channel_history.error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+			removedChIDs = ids
+			return nil
+		})
+	}
+
+	if since <= 0 || getSidebarVersion(prefs, teamID) > since {
+		eg.Go(func() error {
+			cats, appErr := a.GetSidebarCategoriesForTeamForUser(rctx, userID, teamID)
+			if appErr != nil {
+				return appErr
+			}
+			sidebarCats = cats
+			return nil
+		})
+	}
+
+	if err := eg.Wait(); err != nil {
+		if appErr, ok := err.(*model.AppError); ok {
+			return nil, nil, appErr
+		}
+		return nil, nil, model.NewAppError("buildSyncTeamDelta", "app.sync.team_delta.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	chItems := make([]*model.ExperienceChannel, 0, len(allChannels))
+	for _, ch := range allChannels {
+		chItems = append(chItems, toExperienceChannel(ch))
+	}
+
+	channelIDSet := make(map[string]struct{}, len(allChannels))
+	for _, ch := range allChannels {
+		channelIDSet[ch.Id] = struct{}{}
+	}
+
+	memberItems := make([]*model.ExperienceChannelMember, 0, len(members))
+	for i := range members {
+		m := &members[i]
+		if _, inTeam := channelIDSet[m.ChannelId]; inTeam && m.LastUpdateAt > since {
+			memberItems = append(memberItems, toExperienceChannelMember(m))
+		}
+	}
+
+	return &model.ExperienceSyncTeamDelta{
+		TeamID:   teamID,
+		Channels: chItems,
+		ChannelMembers: model.ExperienceChannelMemberList{
+			Members:           memberItems,
+			RemovedChannelIds: removedChIDs,
+		},
+		SidebarCategories: sidebarCats,
+	}, members, nil
+}
+
+func deduplicateSyncPosts(chPosts, thPosts *model.PostList) ([]*model.Post, []string, []string) {
+	seen := make(map[string]struct{})
+	var merged []*model.Post
+
+	addPost := func(p *model.Post) {
+		if _, ok := seen[p.Id]; !ok {
+			seen[p.Id] = struct{}{}
+			merged = append(merged, p)
+		}
+	}
+
+	var chOrder, thOrder []string
+
+	if chPosts != nil {
+		for _, id := range chPosts.Order {
+			if p, ok := chPosts.Posts[id]; ok {
+				addPost(p)
+				if p.DeleteAt == 0 {
+					chOrder = append(chOrder, id)
+				}
+			}
+		}
+	}
+
+	if thPosts != nil {
+		for _, id := range thPosts.Order {
+			if p, ok := thPosts.Posts[id]; ok {
+				addPost(p)
+				if p.DeleteAt == 0 {
+					thOrder = append(thOrder, id)
+				}
+			}
+		}
+	}
+
+	return merged, chOrder, thOrder
+}
+
+func (a *App) resolveSyncAuthorsAndGroups(rctx request.CTX, posts []*model.Post, threadParticipants, dmPartnerProfiles []*model.User) ([]*model.User, []*model.Group) {
+	seenAuthors := make(map[string]*model.User)
+	mentionNames := make(map[string]struct{})
+
+	for _, u := range threadParticipants {
+		if u != nil {
+			seenAuthors[u.Id] = u
+		}
+	}
+	for _, u := range dmPartnerProfiles {
+		if u != nil {
+			seenAuthors[u.Id] = u
+		}
+	}
+
+	userIDs := make(map[string]struct{})
+	for _, p := range posts {
+		if p.UserId != "" {
+			userIDs[p.UserId] = struct{}{}
+		}
+		extractSyncAtMentions(p, mentionNames)
+	}
+
+	ids := make([]string, 0, len(userIDs))
+	for id := range userIDs {
+		if _, ok := seenAuthors[id]; !ok {
+			ids = append(ids, id)
+		}
+	}
+	if len(ids) > 0 {
+		profiles, err := a.Srv().Store().User().GetProfileByIds(rctx, ids, nil, false)
+		if err == nil {
+			for _, u := range profiles {
+				seenAuthors[u.Id] = u
+			}
+		}
+	}
+
+	authors := make([]*model.User, 0, len(seenAuthors))
+	authorNames := make(map[string]struct{}, len(seenAuthors))
+	for _, u := range seenAuthors {
+		authors = append(authors, u)
+		authorNames[u.Username] = struct{}{}
+	}
+	a.sanitizeProfiles(authors, false)
+
+	groupNames := make([]string, 0)
+	for name := range mentionNames {
+		if _, isUser := authorNames[name]; !isUser {
+			groupNames = append(groupNames, name)
+		}
+	}
+
+	var groups []*model.Group
+	if len(groupNames) > 0 {
+		fetchedGroups, err := a.Srv().Store().Group().GetByNames(groupNames, model.GroupSearchOpts{})
+		if err == nil {
+			groups = fetchedGroups
+		}
+	}
+
+	return authors, groups
+}
+
+func extractSyncAtMentions(post *model.Post, out map[string]struct{}) {
+	addMentions := func(s string) {
+		if !strings.Contains(s, "@") {
+			return
+		}
+		for _, m := range syncAtMentionRegexp.FindAllStringSubmatch(s, -1) {
+			name := strings.ToLower(m[1])
+			if _, special := syncSpecialMentions[name]; !special {
+				out[name] = struct{}{}
+			}
+		}
+	}
+
+	addMentions(post.Message)
+	for _, att := range post.Attachments() {
+		addMentions(att.Title)
+		addMentions(att.Text)
+		addMentions(att.Pretext)
+		for _, f := range att.Fields {
+			if v, ok := f.Value.(string); ok {
+				addMentions(v)
+			}
+		}
+	}
+}
+
+func listTeamIDsFromSet(ids map[string]struct{}) []string {
+	out := make([]string, 0, len(ids))
+	for id := range ids {
+		out = append(out, id)
+	}
+	return out
+}
+
+var syncAtMentionRegexp = regexp.MustCompile(`\B@([[:alnum:]][[:alnum:]\.\-_:]*)`)
+
+var syncSpecialMentions = map[string]struct{}{
+	"all":     {},
+	"channel": {},
+	"here":    {},
 }

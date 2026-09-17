@@ -1067,3 +1067,211 @@ func TestLimitDMChannelsForProfiles(t *testing.T) {
 		assert.True(t, hasActive, "the active channel must never be dropped")
 	})
 }
+
+func TestResolveSyncAuthorsAndGroups(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	post := func(userID, message string) *model.Post {
+		return &model.Post{Id: model.NewId(), UserId: userID, Message: message}
+	}
+
+	t.Run("thread participant already known is not fetched from DB again", func(t *testing.T) {
+		posts := []*model.Post{post(th.BasicUser.Id, "hello")}
+		authors, _ := th.App.resolveSyncAuthorsAndGroups(th.Context, posts, []*model.User{th.BasicUser}, nil)
+		found := false
+		for _, u := range authors {
+			if u.Id == th.BasicUser.Id {
+				found = true
+			}
+		}
+		assert.True(t, found)
+	})
+
+	t.Run("post author not in participants is fetched from DB", func(t *testing.T) {
+		// BasicUser2 not passed as participant but authors a post — must be fetched.
+		posts := []*model.Post{post(th.BasicUser2.Id, "hello")}
+		authors, _ := th.App.resolveSyncAuthorsAndGroups(th.Context, posts, nil, nil)
+		found := false
+		for _, u := range authors {
+			if u.Id == th.BasicUser2.Id {
+				found = true
+			}
+		}
+		assert.True(t, found)
+	})
+
+	t.Run("same user in participants and as post author appears exactly once", func(t *testing.T) {
+		posts := []*model.Post{post(th.BasicUser.Id, "hi")}
+		authors, _ := th.App.resolveSyncAuthorsAndGroups(th.Context, posts, []*model.User{th.BasicUser}, nil)
+		count := 0
+		for _, u := range authors {
+			if u.Id == th.BasicUser.Id {
+				count++
+			}
+		}
+		assert.Equal(t, 1, count)
+	})
+
+	t.Run("@mention matching an author username is not returned as a group", func(t *testing.T) {
+		posts := []*model.Post{post(th.BasicUser.Id, "@"+th.BasicUser.Username)}
+		_, groups := th.App.resolveSyncAuthorsAndGroups(th.Context, posts, []*model.User{th.BasicUser}, nil)
+		for _, g := range groups {
+			assert.NotEqual(t, th.BasicUser.Username, g.Name)
+		}
+	})
+
+	t.Run("@mention matching a real group name returns that group", func(t *testing.T) {
+		group := th.CreateGroup(t)
+		posts := []*model.Post{post(th.BasicUser.Id, "@"+*group.Name)}
+		_, groups := th.App.resolveSyncAuthorsAndGroups(th.Context, posts, []*model.User{th.BasicUser}, nil)
+		found := false
+		for _, g := range groups {
+			if g.Id == group.Id {
+				found = true
+			}
+		}
+		assert.True(t, found, "group mentioned in post should be returned")
+	})
+
+	t.Run("nil participant entries are safely ignored", func(t *testing.T) {
+		posts := []*model.Post{post(th.BasicUser.Id, "hi")}
+		assert.NotPanics(t, func() {
+			th.App.resolveSyncAuthorsAndGroups(th.Context, posts, []*model.User{nil, th.BasicUser}, []*model.User{nil})
+		})
+	})
+}
+
+// --- resolveActiveTeam ---
+
+func TestExtractSyncAtMentions(t *testing.T) {
+	out := func(p *model.Post) map[string]struct{} {
+		m := make(map[string]struct{})
+		extractSyncAtMentions(p, m)
+		return m
+	}
+
+	t.Run("extracts mention from message", func(t *testing.T) {
+		p := &model.Post{Message: "hello @alice how are you"}
+		assert.Contains(t, out(p), "alice")
+	})
+
+	t.Run("excludes special mentions: all, channel, here", func(t *testing.T) {
+		p := &model.Post{Message: "@all @channel @here @alice"}
+		result := out(p)
+		assert.NotContains(t, result, "all")
+		assert.NotContains(t, result, "channel")
+		assert.NotContains(t, result, "here")
+		assert.Contains(t, result, "alice")
+	})
+
+	t.Run("mention names are lowercased", func(t *testing.T) {
+		p := &model.Post{Message: "@Alice @BOB"}
+		result := out(p)
+		assert.Contains(t, result, "alice")
+		assert.Contains(t, result, "bob")
+		assert.NotContains(t, result, "Alice")
+	})
+
+	t.Run("no @ produces empty output", func(t *testing.T) {
+		assert.Empty(t, out(&model.Post{Message: "no mentions here"}))
+	})
+
+	t.Run("duplicate mentions appear once in map", func(t *testing.T) {
+		p := &model.Post{Message: "@alice and @alice again"}
+		assert.Len(t, out(p), 1)
+	})
+
+	t.Run("extracts mentions from attachment title and text", func(t *testing.T) {
+		p := &model.Post{
+			Message: "",
+			Props: model.StringInterface{
+				"attachments": []any{
+					map[string]any{
+						"title": "@carol",
+						"text":  "@dave is here",
+					},
+				},
+			},
+		}
+		result := out(p)
+		assert.Contains(t, result, "carol")
+		assert.Contains(t, result, "dave")
+	})
+
+	t.Run("extracts mentions from attachment pretext", func(t *testing.T) {
+		p := &model.Post{
+			Props: model.StringInterface{
+				"attachments": []any{
+					map[string]any{
+						"pretext": "@eve check this out",
+					},
+				},
+			},
+		}
+		assert.Contains(t, out(p), "eve")
+	})
+}
+
+// --- deduplicateSyncPosts ---
+
+func TestDeduplicateSyncPosts(t *testing.T) {
+	post := func(id string, deleted bool) *model.Post {
+		p := &model.Post{Id: id}
+		if deleted {
+			p.DeleteAt = 1
+		}
+		return p
+	}
+	postList := func(posts ...*model.Post) *model.PostList {
+		pl := model.NewPostList()
+		for _, p := range posts {
+			pl.AddPost(p)
+			pl.AddOrder(p.Id)
+		}
+		return pl
+	}
+
+	t.Run("post appearing in both lists is only in merged once", func(t *testing.T) {
+		p1 := post("p1", false)
+		p2 := post("p2", false)
+		// p1 is in both channel and thread lists
+		merged, chOrder, thOrder := deduplicateSyncPosts(postList(p1), postList(p1, p2))
+		// merged must contain exactly 2 unique posts, not 3
+		assert.Len(t, merged, 2)
+		// verify each ID appears exactly once
+		seen := map[string]int{}
+		for _, p := range merged {
+			seen[p.Id]++
+		}
+		assert.Equal(t, 1, seen["p1"], "p1 must appear exactly once in merged")
+		assert.Equal(t, 1, seen["p2"], "p2 must appear exactly once in merged")
+		// order slices are per-list and independent of dedup
+		assert.Equal(t, []string{"p1"}, chOrder)
+		assert.Equal(t, []string{"p1", "p2"}, thOrder)
+	})
+
+	t.Run("deleted post is excluded from order but present in merged", func(t *testing.T) {
+		p1 := post("p1", true)
+		merged, chOrder, _ := deduplicateSyncPosts(postList(p1), nil)
+		assert.Len(t, merged, 1)
+		assert.Empty(t, chOrder)
+	})
+
+	t.Run("nil post lists produce nil outputs", func(t *testing.T) {
+		merged, chOrder, thOrder := deduplicateSyncPosts(nil, nil)
+		assert.Nil(t, merged)
+		assert.Nil(t, chOrder)
+		assert.Nil(t, thOrder)
+	})
+
+	t.Run("post unique to thread list appears only in thOrder", func(t *testing.T) {
+		p1 := post("p1", false)
+		p2 := post("p2", false)
+		merged, chOrder, thOrder := deduplicateSyncPosts(postList(p1), postList(p2))
+		assert.Len(t, merged, 2)
+		assert.Equal(t, []string{"p1"}, chOrder)
+		assert.Equal(t, []string{"p2"}, thOrder)
+	})
+}
+
+// --- filterAutoclosedDMEntries ---

@@ -9643,6 +9643,38 @@
     "translation": "Too many ID-shaped values in the submission. Maximum allowed is {{.Max}}."
   },
   {
+    "id": "app.sync.base_data.error",
+    "translation": "Unable to load the base data for the sync."
+  },
+  {
+    "id": "app.sync.channel_history.error",
+    "translation": "Unable to get the channels the user has left since the given time."
+  },
+  {
+    "id": "app.sync.context_data.error",
+    "translation": "Unable to load the active channel, thread, or global threads context for the sync."
+  },
+  {
+    "id": "app.sync.delta_data.error",
+    "translation": "Unable to load the delta data for the sync."
+  },
+  {
+    "id": "app.sync.dm_profiles.error",
+    "translation": "Unable to get the profiles for the direct and group message channels."
+  },
+  {
+    "id": "app.sync.dm_thread_counts.error",
+    "translation": "Unable to get the unread thread counts for direct and group message channels."
+  },
+  {
+    "id": "app.sync.get_roles.app_error",
+    "translation": "Unable to get the roles for the sync."
+  },
+  {
+    "id": "app.sync.team_delta.error",
+    "translation": "Unable to load the changed data for the team."
+  },
+  {
     "id": "app.system.complete_onboarding_request.app_error",
     "translation": "Failed to decode the complete onboarding request."
   },
