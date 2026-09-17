@@ -44,7 +44,7 @@ export default class Menu extends React.PureComponent<Props> {
     public static StartTrial = MenuStartTrial;
     public static ItemCloudLimit = MenuItemCloudLimit;
 
-    public node: React.RefObject<HTMLUListElement>; //Public because it is used by tests
+    public node: React.RefObject<HTMLUListElement | null>; //Public because it is used by tests
     private observer: MutationObserver;
 
     public constructor(props: Props) {

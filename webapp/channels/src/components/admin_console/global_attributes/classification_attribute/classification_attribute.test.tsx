@@ -81,18 +81,45 @@ describe('ClassificationAttribute', () => {
 
         render();
 
-        expect(await screen.findByTestId('classificationAttributeName')).toHaveTextContent('classification');
-        expect(screen.getByTestId('classificationAttributeType')).toHaveTextContent('Rank');
+        expect(await screen.findByRole('heading', {name: 'Edit Classification Attribute'})).toBeInTheDocument();
+        expect(await screen.findByTestId('classificationAttributeName')).toHaveValue('Classification');
+        expect(screen.getByTestId('classificationAttributeName')).toBeDisabled();
+        expect(screen.getByTestId('classificationAttributeUniqueName')).toHaveTextContent('classification');
+        expect(screen.getByTestId('classificationAttributeType')).toHaveTextContent('Ranked');
+        expect(screen.getByTestId('classificationAttributeType')).toBeDisabled();
+        expect(screen.getByTestId('classificationAttributeLevels')).toHaveTextContent('1');
         expect(screen.getByTestId('classificationAttributeLevels')).toHaveTextContent('UNCLASSIFIED');
+        expect(screen.getByTestId('classificationAttributeLevels')).toHaveTextContent('2');
         expect(screen.getByTestId('classificationAttributeLevels')).toHaveTextContent('SECRET');
-
-        // Levels are edited on the Classification Markings page, so nothing here is
-        // an input.
-        expect(screen.queryAllByRole('textbox')).toHaveLength(0);
+        expect(screen.getByText('Presets and marking colors are configured on Classification Markings.')).toBeInTheDocument();
         expect(screen.getByTestId('classificationAttributeMarkingsLink')).toHaveAttribute(
             'href',
             '/admin_console/site_config/classification_markings',
         );
+        expect(screen.getByTestId('classificationAttributeMarkingsLink')).toHaveTextContent('Open');
+    });
+
+    it('paints option chips with contrasting text so a bright marking stays readable', async () => {
+        jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType) => {
+            if (objectType === 'template') {
+                return [{
+                    ...TEMPLATE,
+                    attrs: {
+                        options: [
+                            {id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1},
+                            {id: 'lvl2', name: 'TOP SECRET//SCI', color: '#FFCC00', rank: 2},
+                        ],
+                    },
+                } as PropertyField];
+            }
+            return [];
+        });
+
+        render();
+
+        const chips = await screen.findAllByText(/UNCLASSIFIED|TOP SECRET\/\/SCI/);
+        expect(chips[0].closest('.ClassificationAttribute__optionChip')).toHaveStyle({color: '#FFFFFF'});
+        expect(chips[1].closest('.ClassificationAttribute__optionChip')).toHaveStyle({color: '#000000'});
     });
 
     it('says so when classification has not been set up yet', async () => {

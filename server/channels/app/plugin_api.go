@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -903,6 +904,14 @@ func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError
 	}
 
 	silent := post.HasSilentNotification()
+	// Display-identity props (override_username/override_icon_url/
+	// override_icon_emoji/webhook_display_name) are not captured here: plugins
+	// don't get them re-injected by CreatePost (scoped to FromIncomingWebhook
+	// only — see the re-injection block in app/post.go), since no render path
+	// honors from_plugin the way it honors from_webhook. SanitizeProps below
+	// strips whatever the plugin set on post.Props like any other
+	// non-federated caller. Plugins are a trusted server surface (arbitrary
+	// UserId, system types, etc.); we do not clear RemoteId here.
 	post.SanitizeProps()
 
 	post, _, appErr = api.app.CreatePost(api.ctx, post, channel, model.CreatePostFlags{
@@ -1015,7 +1024,15 @@ func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError
 		}
 		allowMmBlocksActionsUpdate = true
 	}
-	post, _, appErr := api.app.UpdatePost(api.ctx, post, &model.UpdatePostOptions{SafeUpdate: false, AllowMmBlocksActionsUpdate: allowMmBlocksActionsUpdate})
+
+	// Display-identity props are not granted AllowIdentityPropsUpdate: no
+	// render path honors a plugin-authored override (see CreatePost above), so
+	// SanitizeProps' default strip-and-preserve-from-old behavior applies to
+	// plugin edits like any other non-federated caller.
+	post, _, appErr := api.app.UpdatePost(api.ctx, post, &model.UpdatePostOptions{
+		SafeUpdate:                 false,
+		AllowMmBlocksActionsUpdate: allowMmBlocksActionsUpdate,
+	})
 	if post != nil {
 		post = post.ForPlugin()
 	}
@@ -1367,6 +1384,13 @@ func (api *PluginAPI) PublishUserTyping(userID, channelID, parentId string) *mod
 }
 
 func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
+	if err := request.Context().Err(); err != nil {
+		if request.Body != nil {
+			_ = request.Body.Close()
+		}
+		return nil
+	}
+
 	split := strings.SplitN(request.URL.Path, "/", 3)
 	if len(split) != 3 {
 		return &http.Response{
@@ -1388,6 +1412,8 @@ func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 			Body:       io.NopCloser(bytes.NewBufferString(message)),
 		}
 	}
+	requestCtx, cancelRequest := context.WithCancel(request.Context())
+	request = request.WithContext(requestCtx)
 
 	// Create pipe for streaming response
 	pr, pw := io.Pipe()
@@ -1410,11 +1436,27 @@ func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 		}()
 		api.app.ServeInterPluginRequest(responseTransfer, request, api.id, destinationPluginId)
 	}()
+	abort := func(err error) {
+		cancelRequest()
+		if request.Body != nil {
+			_ = request.Body.Close()
+		}
+		_ = responseTransfer.CloseWithError(err)
+		_ = pr.CloseWithError(err)
+	}
 
-	// Wait for headers to be ready before returning response
-	<-responseTransfer.ResponseReady
-
-	return responseTransfer.GenerateResponse(pr)
+	select {
+	case <-responseTransfer.ResponseReady:
+		if err := request.Context().Err(); err != nil {
+			abort(err)
+			return nil
+		}
+		return responseTransfer.GenerateResponse(request.Context(), pr, cancelRequest)
+	case <-request.Context().Done():
+		err := request.Context().Err()
+		abort(err)
+		return nil
+	}
 }
 
 func (api *PluginAPI) CreateCommand(cmd *model.Command) (*model.Command, error) {
@@ -1804,6 +1846,45 @@ func (api *PluginAPI) CountPropertyFieldsForTarget(groupID, targetType, targetID
 		return 0, appErr
 	}
 	return count, nil
+}
+
+func (api *PluginAPI) GetPropertyFieldOptions(groupID, fieldID string, cursorCreateAt int64, cursorID string, perPage int) (*model.PropertyFieldOptionPage, error) {
+	rctx := api.psaPluginContext()
+	page, appErr := api.app.GetPropertyFieldOptions(rctx, groupID, fieldID, cursorCreateAt, cursorID, perPage)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return page, nil
+}
+
+func (api *PluginAPI) CreatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
+	rctx := api.psaPluginContext()
+	// No connection to exclude from the event a change publishes: a plugin is not
+	// one of the clients being told to read the field again.
+	created, appErr := api.app.CreatePropertyFieldOptions(rctx, groupID, fieldID, options, "")
+	if appErr != nil {
+		return nil, appErr
+	}
+	return created, nil
+}
+
+func (api *PluginAPI) UpdatePropertyFieldOptions(groupID, fieldID string, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
+	rctx := api.psaPluginContext()
+	// The options as they stood are dropped: they exist for the audit record the
+	// HTTP layer writes, and a plugin already knows what it sent.
+	updated, _, appErr := api.app.UpdatePropertyFieldOptions(rctx, groupID, fieldID, options, "")
+	if appErr != nil {
+		return nil, appErr
+	}
+	return updated, nil
+}
+
+func (api *PluginAPI) DeletePropertyFieldOptions(groupID, fieldID string, optionIDs []string) error {
+	rctx := api.psaPluginContext()
+	if _, appErr := api.app.DeletePropertyFieldOptions(rctx, groupID, fieldID, optionIDs, ""); appErr != nil {
+		return appErr
+	}
+	return nil
 }
 
 func (api *PluginAPI) CreatePropertyValue(value *model.PropertyValue) (*model.PropertyValue, error) {

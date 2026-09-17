@@ -4,13 +4,13 @@
 package properties
 
 import (
+	"cmp"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
 	"net/http"
 	"slices"
-	"sort"
 	"strings"
 	"unicode/utf8"
 
@@ -27,6 +27,11 @@ var (
 // PermissionChecker checks whether a user has a specific permission.
 // This avoids a circular dependency between the properties and app packages.
 type PermissionChecker func(rctx request.CTX, userID string, permission *model.Permission) bool
+
+// DirectChannelChecker reports whether a channel is a direct or group message.
+// This avoids a circular dependency between the properties and app packages,
+// the same way PermissionChecker does.
+type DirectChannelChecker func(rctx request.CTX, channelID string) (bool, error)
 
 // AccessControlAttributeValidationHook validates and sanitizes property field attributes
 // and values for managed property groups. It owns the full attr pipeline
@@ -53,28 +58,54 @@ type PermissionChecker func(rctx request.CTX, userID string, permission *model.P
 //   - enforces that managed="admin" can only be set by callers with
 //     PermissionManageSystem, and keeps PermissionValues in sync with the
 //     managed attribute
+//   - refuses a human write to a channel-object value whose target is a DM or
+//     GM, at every permission tier, on both the upsert and the delete paths
+//     (see refuseDirectChannelValueWrite)
 //
 // The hook only applies to groups whose IDs are in managedGroupIDs.
 type AccessControlAttributeValidationHook struct {
 	BasePropertyHook
-	propertyService   *PropertyService
-	managedGroupIDs   map[string]struct{}
-	permissionChecker PermissionChecker
+	propertyService      *PropertyService
+	managedGroupIDs      map[string]struct{}
+	permissionChecker    PermissionChecker
+	pluginChecker        PluginChecker
+	directChannelChecker DirectChannelChecker
 }
 
 var _ PropertyHook = (*AccessControlAttributeValidationHook)(nil)
 
+// AccessControlAttributeValidationHookConfig carries the hook's callbacks into
+// the app package. A config struct rather than three positional callbacks ahead
+// of a variadic.
+//
+// Every callback is optional, and each rule that needs one guards on nil, so a
+// test can construct the hook with only the callbacks its assertions reach.
+type AccessControlAttributeValidationHookConfig struct {
+	// PermissionChecker resolves a permission for a caller. Without it, the
+	// manage_system bypasses are unavailable and those callers are treated as
+	// ordinary users.
+	PermissionChecker PermissionChecker
+	// PluginChecker reports whether a caller ID is an installed plugin.
+	// Without it, only the built-in sync services count as machine actors.
+	PluginChecker PluginChecker
+	// DirectChannelChecker reports whether a channel is a DM or GM. Without
+	// it, refuseDirectChannelValueWrite does not run at all.
+	DirectChannelChecker DirectChannelChecker
+}
+
 // NewAccessControlAttributeValidationHook creates a hook that validates field attributes and
 // values for the given property groups.
-func NewAccessControlAttributeValidationHook(ps *PropertyService, permChecker PermissionChecker, managedGroupIDs ...string) *AccessControlAttributeValidationHook {
+func NewAccessControlAttributeValidationHook(ps *PropertyService, cfg AccessControlAttributeValidationHookConfig, managedGroupIDs ...string) *AccessControlAttributeValidationHook {
 	ids := make(map[string]struct{}, len(managedGroupIDs))
 	for _, id := range managedGroupIDs {
 		ids[id] = struct{}{}
 	}
 	return &AccessControlAttributeValidationHook{
-		propertyService:   ps,
-		managedGroupIDs:   ids,
-		permissionChecker: permChecker,
+		propertyService:      ps,
+		managedGroupIDs:      ids,
+		permissionChecker:    cfg.PermissionChecker,
+		pluginChecker:        cfg.PluginChecker,
+		directChannelChecker: cfg.DirectChannelChecker,
 	}
 }
 
@@ -113,6 +144,13 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 
 	if !isSelect {
 		delete(field.Attrs, model.PropertyFieldAttributeOptions)
+		// The two keys a read substitutes for an oversized option list go with it.
+		// Only a select-shaped field's attrs are stripped of them before storage,
+		// so converting an oversized field to text would otherwise persist them
+		// and every later read of that text field would claim its (non-existent)
+		// options were withheld.
+		delete(field.Attrs, model.PropertyFieldAttributeOptionsCount)
+		delete(field.Attrs, model.PropertyFieldAttributeOptionsOmitted)
 	}
 	if !isText {
 		delete(field.Attrs, model.PropertyFieldAttrLDAP)
@@ -430,8 +468,8 @@ func normalizeOptionRanks(options model.PropertyOptions[*model.CustomProfileAttr
 	for i := range options {
 		order[i] = i
 	}
-	sort.SliceStable(order, func(a, b int) bool {
-		return rankSortKey(options[order[a]].Rank) < rankSortKey(options[order[b]].Rank)
+	slices.SortStableFunc(order, func(a, b int) int {
+		return cmp.Compare(rankSortKey(options[a].Rank), rankSortKey(options[b].Rank))
 	})
 	for seq, idx := range order {
 		rank := seq + 1
@@ -613,113 +651,181 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyFields(rctx requ
 	return fields, nil
 }
 
-// extractOptionIDs extracts the set of valid option IDs from a
-// select or multiselect PropertyField's attrs. Returns nil if the
-// field has no options.
-func extractOptionIDs(field *model.PropertyField) (map[string]struct{}, error) {
-	if field.Attrs == nil {
-		return nil, nil
-	}
-
-	rawOptions, ok := field.Attrs[model.PropertyFieldAttributeOptions]
-	if !ok || rawOptions == nil {
-		return nil, nil
-	}
-
-	data, err := json.Marshal(rawOptions)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal options: %w", err)
-	}
-
-	var options []struct {
-		ID string `json:"id"`
-	}
-	if err := json.Unmarshal(data, &options); err != nil {
-		return nil, fmt.Errorf("invalid options format: %w", err)
-	}
-
-	ids := make(map[string]struct{}, len(options))
-	for _, opt := range options {
-		if opt.ID != "" {
-			ids[opt.ID] = struct{}{}
+// optionsMissing checks that every one of optionIDs is in existing, returning
+// an error naming the first one that is not. existing is normally the set of
+// IDs one GetExistingOptionIDs call returned, covering every value in a batch
+// that names options on the same field, so this itself never touches the
+// store.
+func optionsMissing(optionIDs []string, existing map[string]struct{}) error {
+	for _, id := range optionIDs {
+		if _, ok := existing[id]; !ok {
+			return fmt.Errorf("option %q does not exist", id)
 		}
 	}
-	return ids, nil
+	return nil
 }
 
 // validateValueAgainstField checks a property value against field-type
 // constraints:
 //   - text: max length, value_type format (email, url, phone)
-//   - select: option ID must exist in the field's options
+//   - select, rank: option ID must exist in the field's options
 //   - multiselect: all option IDs must exist
+//   - graph: all option IDs must exist, and none may be repeated
 //   - user: value must be a valid Mattermost ID
 //   - multiuser: all values must be valid Mattermost IDs
-func (h *AccessControlAttributeValidationHook) validateValueAgainstField(field *model.PropertyField, value *model.PropertyValue) error {
+//   - date: nothing
+//
+// Every field type the model allows has a case, and a type with none is refused
+// outright. Access rules in these groups are written against the values this
+// decides on, so a type falling through to "valid" would let anything at all be
+// stored under it -- the wrong shape, or option identifiers naming no option --
+// and every rule reading it would then decide from data nothing had checked.
+//
+// For an option-bearing type this does not itself check the options exist —
+// it returns the option IDs the value names, and leaves that check to the
+// caller. That lets validateValues batch the check into one store call per
+// field instead of one per value: the store call queries the option rows
+// rather than the option list inlined into field.Attrs, because a field with
+// more than model.PropertyFieldMaxHydratedOptions options reads back without
+// that list, and a check against the list cannot tell the absent list from a
+// field that has no options.
+func (h *AccessControlAttributeValidationHook) validateValueAgainstField(field *model.PropertyField, value *model.PropertyValue) ([]string, error) {
 	switch field.Type {
 	case model.PropertyFieldTypeText:
 		var str string
 		if err := json.Unmarshal(value.Value, &str); err != nil {
-			return fmt.Errorf("expected string value: %w", err)
+			return nil, fmt.Errorf("expected string value: %w", err)
 		}
 		if len(strings.TrimSpace(str)) > model.PropertyFieldValueTypeTextMaxLength {
-			return fmt.Errorf("text value exceeds maximum length of %d characters", model.PropertyFieldValueTypeTextMaxLength)
+			return nil, fmt.Errorf("text value exceeds maximum length of %d characters", model.PropertyFieldValueTypeTextMaxLength)
 		}
 
 		valueType := model.GetPropertyFieldValueType(field)
 		if valueType == "" {
-			return nil
+			return nil, nil
 		}
-		return model.ValidatePropertyValueForValueType(valueType, value.Value)
+		return nil, model.ValidatePropertyValueForValueType(valueType, value.Value)
 
 	case model.PropertyFieldTypeSelect, model.PropertyFieldTypeRank:
 		var str string
 		if err := json.Unmarshal(value.Value, &str); err != nil {
-			return fmt.Errorf("expected string value for select field: %w", err)
+			return nil, fmt.Errorf("expected string value for select field: %w", err)
 		}
 		if str == "" {
-			return nil
+			return nil, nil
 		}
-		optionIDs, err := extractOptionIDs(field)
-		if err != nil {
-			return fmt.Errorf("failed to extract options: %w", err)
-		}
-		if _, ok := optionIDs[str]; !ok {
-			return fmt.Errorf("option %q does not exist", str)
-		}
+		return []string{str}, nil
 
 	case model.PropertyFieldTypeMultiselect:
 		var values []string
 		if err := json.Unmarshal(value.Value, &values); err != nil {
-			return fmt.Errorf("expected string array value for multiselect field: %w", err)
+			return nil, fmt.Errorf("expected string array value for multiselect field: %w", err)
 		}
-		optionIDs, err := extractOptionIDs(field)
-		if err != nil {
-			return fmt.Errorf("failed to extract options: %w", err)
+		return values, nil
+
+	case model.PropertyFieldTypeGraph:
+		// The same shape as a multiselect value -- the options an object holds, in
+		// no particular order -- and checked the same way, against the option rows.
+		var values []string
+		if err := json.Unmarshal(value.Value, &values); err != nil {
+			return nil, fmt.Errorf("expected string array value for graph field: %w", err)
 		}
+
+		// Holding an option twice says nothing that holding it once does not, so a
+		// repeat is a mistake in the caller rather than something to quietly
+		// discard. Refused here and not for multiselect, where a repeat has always
+		// been accepted and refusing one now would reject values callers already
+		// send.
+		seen := make(map[string]bool, len(values))
 		for _, v := range values {
-			if _, ok := optionIDs[v]; !ok {
-				return fmt.Errorf("option %q does not exist", v)
+			if seen[v] {
+				return nil, fmt.Errorf("option %q is listed more than once", v)
 			}
+			seen[v] = true
 		}
+		return values, nil
 
 	case model.PropertyFieldTypeUser:
 		var str string
 		if err := json.Unmarshal(value.Value, &str); err != nil {
-			return fmt.Errorf("expected string value for user field: %w", err)
+			return nil, fmt.Errorf("expected string value for user field: %w", err)
 		}
 		if str != "" && !model.IsValidId(str) {
-			return fmt.Errorf("invalid user id")
+			return nil, fmt.Errorf("invalid user id")
 		}
 
 	case model.PropertyFieldTypeMultiuser:
 		var values []string
 		if err := json.Unmarshal(value.Value, &values); err != nil {
-			return fmt.Errorf("expected string array value for multiuser field: %w", err)
+			return nil, fmt.Errorf("expected string array value for multiuser field: %w", err)
 		}
 		for _, v := range values {
 			if !model.IsValidId(v) {
-				return fmt.Errorf("invalid user id: %s", v)
+				return nil, fmt.Errorf("invalid user id: %s", v)
 			}
+		}
+
+	case model.PropertyFieldTypeDate:
+		// Nothing to check. A date value's shape has never been constrained here,
+		// and constraining it now would refuse values already stored. Listed so
+		// that the case below is only reached by a type nobody has considered.
+
+	default:
+		return nil, fmt.Errorf("values of a %s field are not validated, so none may be written", field.Type)
+	}
+
+	return nil, nil
+}
+
+// refuseDirectChannelValueWrite refuses a write to a channel-object value whose
+// target is a DM or GM unless the caller holds PermissionManageSystem or is a
+// machine actor. These values are meant to be derived from the participants'
+// own attributes rather than typed in, so participation alone does not earn the
+// write at any permission tier.
+//
+// Who passes, and why:
+//
+//   - callers with PermissionManageSystem -- sysadmins, and local-mode admins
+//     via the CallerIDLocalAdmin short-circuit inside permissionChecker.
+//   - machine actors: an installed plugin, or an LDAP/SAML sync service. These
+//     are the derivation path the rule reserves the write for.
+//
+// Everyone else is refused, including a participant of the DM or GM itself. An
+// untagged caller (empty caller ID) is refused too, failing closed.
+//
+// Ordering matters for cost: the caller checks come first, so a plugin or a
+// sysadmin pays no channel lookup and only an ordinary user triggers one.
+// Targets are deduped because a batch upsert normally addresses one channel.
+func (h *AccessControlAttributeValidationHook) refuseDirectChannelValueWrite(rctx request.CTX, values []*model.PropertyValue) error {
+	if h.directChannelChecker == nil {
+		return nil
+	}
+
+	callerID := h.propertyService.extractCallerID(rctx)
+	if isMachineCaller(h.pluginChecker, callerID) {
+		return nil
+	}
+	if callerID != "" && h.permissionChecker != nil &&
+		h.permissionChecker(rctx, callerID, model.PermissionManageSystem) {
+		return nil
+	}
+
+	seen := make(map[string]struct{}, len(values))
+	for _, value := range values {
+		if value.TargetType != model.PropertyValueTargetTypeChannel {
+			continue
+		}
+		if _, dup := seen[value.TargetID]; dup {
+			continue
+		}
+		seen[value.TargetID] = struct{}{}
+
+		isDirect, err := h.directChannelChecker(rctx, value.TargetID)
+		if err != nil {
+			return fmt.Errorf("failed to resolve channel %s for the direct-channel value check: %w", value.TargetID, err)
+		}
+		if isDirect {
+			return newDirectChannelValueError(value.TargetID)
 		}
 	}
 
@@ -734,6 +840,12 @@ func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, 
 	groupID := values[0].GroupID
 	if !h.isGroupManaged(groupID) {
 		return nil
+	}
+
+	// Authorization precedes validation, and refusing here avoids the field
+	// round trip below.
+	if err := h.refuseDirectChannelValueWrite(rctx, values); err != nil {
+		return err
 	}
 
 	// Collect unique field IDs
@@ -756,16 +868,65 @@ func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, 
 		fieldMap[f.ID] = f
 	}
 
+	// A value whose field is option-bearing names option IDs to check against the
+	// store; held here rather than checked immediately so every value against the
+	// same field can be checked with one store call instead of one each.
+	type namedOptions struct {
+		fieldID   string
+		optionIDs []string
+	}
+	var pending []namedOptions
+
+	neededByField := make(map[string][]string)
+	seenByField := make(map[string]map[string]struct{})
+
 	for _, value := range values {
 		field, ok := fieldMap[value.FieldID]
 		if !ok {
 			return fmt.Errorf("field %s: %w", value.FieldID, ErrFieldNotFound)
 		}
-		if err := h.validateValueAgainstField(field, value); err != nil {
+		optionIDs, err := h.validateValueAgainstField(field, value)
+		if err != nil {
 			return fmt.Errorf("field %s: %s: %w", value.FieldID, err.Error(), ErrInvalidValue)
 		}
 		if model.IsPropertyFieldRequired(field) && model.IsEmptyPropertyValue(value.Value) {
 			return newRequiredValueError(field)
+		}
+		if len(optionIDs) == 0 {
+			continue
+		}
+		pending = append(pending, namedOptions{fieldID: value.FieldID, optionIDs: optionIDs})
+
+		seen, ok := seenByField[value.FieldID]
+		if !ok {
+			seen = make(map[string]struct{})
+			seenByField[value.FieldID] = seen
+		}
+		for _, id := range optionIDs {
+			if _, dup := seen[id]; dup {
+				continue
+			}
+			seen[id] = struct{}{}
+			neededByField[value.FieldID] = append(neededByField[value.FieldID], id)
+		}
+	}
+
+	existingByField := make(map[string]map[string]struct{}, len(neededByField))
+	for fieldID, optionIDs := range neededByField {
+		existing, err := h.propertyService.fieldStore.GetExistingOptionIDs(fieldMap[fieldID], optionIDs)
+		if err != nil {
+			return fmt.Errorf("failed to look up the options of field %s: %w", fieldID, err)
+		}
+		existingSet := make(map[string]struct{}, len(existing))
+		for _, id := range existing {
+			existingSet[id] = struct{}{}
+		}
+		existingByField[fieldID] = existingSet
+	}
+
+	for _, p := range pending {
+		if err := optionsMissing(p.optionIDs, existingByField[p.fieldID]); err != nil {
+			return fmt.Errorf("field %s: %s: %w", p.fieldID, err.Error(), ErrInvalidValue)
 		}
 	}
 
@@ -906,6 +1067,13 @@ func newChangePolicyError(field *model.PropertyField, policy string) error {
 	}
 }
 
+// newDirectChannelValueError returns the refusal for a hand-written DM/GM
+// channel attribute value.
+func newDirectChannelValueError(channelID string) error {
+	details := fmt.Sprintf("channel %s: direct and group channel attribute values are derived, not set", channelID)
+	return model.NewAppError("UpsertPropertyValues", "app.property_value.direct_channel.app_error", nil, details, http.StatusForbidden)
+}
+
 // newRequiredValueError returns the refusal for writing or deleting an empty
 // value on a required field.
 func newRequiredValueError(field *model.PropertyField) error {
@@ -1011,6 +1179,11 @@ func (h *AccessControlAttributeValidationHook) PreDeletePropertyValue(rctx reque
 		// itself will fail downstream with the appropriate not-found error.
 		return nil
 	}
+	// A delete is a clear, so a participant must not be able to use it to strip
+	// a DM/GM marking that they could not have written in the first place.
+	if dcErr := h.refuseDirectChannelValueWrite(rctx, []*model.PropertyValue{value}); dcErr != nil {
+		return dcErr
+	}
 	return h.refuseGovernedDelete(rctx, groupID, []*model.PropertyValue{value})
 }
 
@@ -1020,6 +1193,14 @@ func (h *AccessControlAttributeValidationHook) PreDeletePropertyValue(rctx reque
 func (h *AccessControlAttributeValidationHook) PreDeletePropertyValuesForTarget(rctx request.CTX, groupID string, targetType string, targetID string) error {
 	if targetType != model.PropertyValueTargetTypeChannel || !h.isGroupManaged(groupID) {
 		return nil
+	}
+	// Checked against a synthetic value so a refusal costs no value load; the
+	// rule only reads TargetType and TargetID.
+	if err := h.refuseDirectChannelValueWrite(rctx, []*model.PropertyValue{{
+		TargetType: targetType,
+		TargetID:   targetID,
+	}}); err != nil {
+		return err
 	}
 	values, err := h.getValuesForTarget(groupID, targetType, targetID)
 	if err != nil {

@@ -16,7 +16,7 @@ import {SyncIcon, PowerPlugOutlineIcon, CheckIcon, ChevronDownIcon} from '@matte
 import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ServerError} from '@mattermost/types/errors';
-import {supportsOptions, type PropertyFieldOption} from '@mattermost/types/properties';
+import {valueRefersToOptions, type PropertyFieldOption} from '@mattermost/types/properties';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
@@ -45,10 +45,10 @@ import EmailIcon from 'components/widgets/icons/email_icon';
 import ShieldOutlineIcon from 'components/widgets/icons/shield_outline_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
-import {Constants, ModalIdentifiers} from 'utils/constants';
+import {AcceptedProfileImageTypes, Constants, ModalIdentifiers} from 'utils/constants';
 import {getUserPropertyFieldLabel} from 'utils/properties';
 import {validHttpUrl} from 'utils/url';
-import {toTitleCase} from 'utils/utils';
+import {fileSizeToString, toTitleCase} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -288,6 +288,17 @@ const CpaFieldManagementIndicator: React.FC<CpaFieldManagementIndicatorProps> = 
         );
     }
 
+    if (field.attrs?.options_omitted) {
+        return (
+            <div className='user-property-field-values__sync-indicator'>
+                <FormattedMessage
+                    id='admin.userManagement.userDetail.field_options_omitted'
+                    defaultMessage='This field has too many options to be edited here.'
+                />
+            </div>
+        );
+    }
+
     return null;
 };
 
@@ -316,6 +327,8 @@ export type State = {
     isLoading: boolean;
     error: string | null;
     isSaving: boolean;
+    isUploadingPicture: boolean;
+    pictureError: string | null;
     teams: TeamMembership[];
     teamIds: Array<Team['id']>;
     refreshTeams: boolean;
@@ -346,6 +359,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             isLoading: false,
             error: null,
             isSaving: false,
+            isUploadingPicture: false,
+            pictureError: null,
             teams: [],
             teamIds: [],
             refreshTeams: true,
@@ -478,6 +493,20 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         return false;
     };
 
+    private canEditPicture = (state: State = this.state): boolean => {
+        if (!state.user) {
+            return false;
+        }
+
+        // Profile pictures synced from a login provider cannot be changed here;
+        // they would be overwritten on the next sync.
+        const authService = state.user.auth_service;
+        const isManagedByProvider = (authService === Constants.LDAP_SERVICE || authService === Constants.SAML_SERVICE) &&
+            this.props.ldapPictureAttributeSet;
+
+        return !isManagedByProvider;
+    };
+
     private isEditingOwnEmail = (state: State = this.state): boolean => {
         return Boolean(
             state.user &&
@@ -501,14 +530,14 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         });
     };
 
-    // Resolves option IDs to display names for select/multiselect/rank CPA fields.
+    // Resolves option IDs to display names for option-backed CPA fields.
     private resolveOptionNames = (field: UserPropertyField, value: string | string[] | undefined): string => {
         if (!value) {
             return this.formatEmptyValue();
         }
 
         const options = field.attrs?.options || [];
-        if (supportsOptions(field)) {
+        if (valueRefersToOptions(field)) {
             if (!Array.isArray(value)) {
                 // Select: resolve single ID to its name
                 const option = options.find((opt) => opt.id === value);
@@ -716,6 +745,66 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         });
     };
 
+    handleUploadPicture = async (file: File) => {
+        if (!this.state.user || this.state.isUploadingPicture) {
+            return;
+        }
+
+        const {formatMessage} = this.props.intl;
+
+        if (!AcceptedProfileImageTypes.includes(file.type)) {
+            this.setState({pictureError: formatMessage({
+                id: 'admin.userManagement.userDetail.picture.wrongType',
+                defaultMessage: 'Only BMP, JPG, JPEG, or PNG images are supported.',
+            })});
+            return;
+        }
+
+        if (this.props.maxFileSize && file.size > this.props.maxFileSize) {
+            this.setState({pictureError: formatMessage({
+                id: 'admin.userManagement.userDetail.picture.tooLarge',
+                defaultMessage: 'Unable to upload profile image. File is too large. Maximum file size: {max}',
+            }, {max: fileSizeToString(this.props.maxFileSize)})});
+            return;
+        }
+
+        const userId = this.state.user.id;
+        this.setState({isUploadingPicture: true, pictureError: null});
+
+        const {error} = await this.props.uploadProfileImage(userId, file);
+        if (error) {
+            this.setState({isUploadingPicture: false, pictureError: error.message});
+            return;
+        }
+
+        this.setState((prevState) => ({
+            isUploadingPicture: false,
+            pictureError: null,
+            user: prevState.user ? {...prevState.user, last_picture_update: Date.now()} : prevState.user,
+        }));
+    };
+
+    handleRemovePicture = async () => {
+        if (!this.state.user || this.state.isUploadingPicture || this.state.user.last_picture_update <= 0) {
+            return;
+        }
+
+        const userId = this.state.user.id;
+        this.setState({isUploadingPicture: true, pictureError: null});
+
+        const {error} = await this.props.setDefaultProfileImage(userId);
+        if (error) {
+            this.setState({isUploadingPicture: false, pictureError: error.message});
+            return;
+        }
+
+        this.setState((prevState) => ({
+            isUploadingPicture: false,
+            pictureError: null,
+            user: prevState.user ? {...prevState.user, last_picture_update: 0} : prevState.user,
+        }));
+    };
+
     handleAuthDataChange = (event: ChangeEvent<HTMLInputElement>) => {
         if (!this.state.user) {
             return;
@@ -756,10 +845,29 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         const isSynced = Boolean(field.attrs?.ldap || field.attrs?.saml);
         const isOwnerManaged = Boolean(field.attrs?.owners?.length);
         const isProtected = Boolean(field.attrs?.protected);
-        const isLockedFromEditing = isSynced || isProtected || isOwnerManaged;
+        const optionsOmitted = Boolean(field.attrs?.options_omitted);
+        const isLockedFromEditing = isSynced || isProtected || isOwnerManaged || optionsOmitted;
         const isDisabled = this.state.isSaving || this.state.isLoading || isLockedFromEditing;
 
         const fieldContent = (() => {
+            if (optionsOmitted && valueRefersToOptions(field)) {
+                const display = Array.isArray(value) ?
+                    value.join(this.props.intl.formatMessage({
+                        id: 'admin.userManagement.userDetail.arrayValueSeparator',
+                        defaultMessage: ', ',
+                    })) :
+                    String(value);
+                return (
+                    <input
+                        className='form-control'
+                        type='text'
+                        value={display}
+                        disabled={true}
+                        readOnly={true}
+                    />
+                );
+            }
+
             switch (field.type) {
             case 'select': {
                 const options = field.attrs?.options || [];
@@ -803,6 +911,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     />
                 );
             }
+            case 'graph':
             case 'multiselect': {
                 const options = field.attrs?.options || [];
                 const selectedValues = Array.isArray(value) ? value : [];
@@ -1689,8 +1798,20 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                         <AdminUserCard
                             user={this.state.user}
                             isLoading={this.state.isLoading}
+                            onUploadPicture={this.canEditPicture() ? this.handleUploadPicture : undefined}
+                            onRemovePicture={this.handleRemovePicture}
+                            canRemovePicture={(this.state.user?.last_picture_update ?? 0) > 0}
+                            isUploadingPicture={this.state.isUploadingPicture}
                             body={
                                 <>
+                                    {this.state.pictureError && (
+                                        <div
+                                            className='SystemUserDetail__pictureError'
+                                            role='alert'
+                                        >
+                                            <FormError error={this.state.pictureError}/>
+                                        </div>
+                                    )}
                                     <span>{this.state.user?.position ?? ''}</span>
                                     {this.renderTwoColumnLayout()}
                                 </>

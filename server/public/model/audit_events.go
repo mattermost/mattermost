@@ -175,6 +175,14 @@ const (
 	AuditEventPatchPropertyField  = "patchPropertyField"  // update property field
 )
 
+// Property Field Options
+const (
+	AuditEventCreatePropertyFieldOptions = "createPropertyFieldOptions" // add options to a property field
+	AuditEventDeletePropertyFieldOptions = "deletePropertyFieldOptions" // delete options of a property field
+	AuditEventGetPropertyFieldOptions    = "getPropertyFieldOptions"    // list the options of a property field
+	AuditEventPatchPropertyFieldOptions  = "patchPropertyFieldOptions"  // update options of a property field
+)
+
 // Property Values
 const (
 	AuditEventGetPropertyValues   = "getPropertyValues"   // get property values for target
@@ -190,6 +198,13 @@ const (
 	AuditEventPatchPolicy              = "patchPolicy"              // update data retention policy
 	AuditEventRemoveChannelsFromPolicy = "removeChannelsFromPolicy" // remove channels from data retention policy
 	AuditEventRemoveTeamsFromPolicy    = "removeTeamsFromPolicy"    // remove teams from data retention policy
+)
+
+// Ephemeral Mode
+const (
+	AuditEventAutoCacheCleanupRun = "autoCacheCleanupRun" // automatic cache cleanup run
+	AuditEventOfflinePurge        = "offlinePurge"        // offline purge
+	AuditEventSessionWipe         = "sessionWipe"         // session wipe
 )
 
 // Emojis
