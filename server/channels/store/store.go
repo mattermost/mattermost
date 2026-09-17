@@ -864,7 +864,7 @@ type UserAccessTokenStore interface {
 	GetByToken(tokenString string) (*model.UserAccessToken, error)
 	GetByUser(userID string, page, perPage int) ([]*model.UserAccessToken, error)
 	GetExpiredBefore(cutoff int64, limit int) ([]*model.UserAccessToken, error)
-	GetExpiringTokens(now int64, thresholds []int, limit int) ([]*model.UserAccessToken, error)
+	GetExpiringTokens(now int64, thresholds []int, limit int, includeUserOwnedTokens bool) ([]*model.UserAccessToken, error)
 	CountNonCompliantExpiry(maxExpiresAt int64) (int64, error)
 	DeleteNonCompliantExpiry(maxExpiresAt int64, limit int) ([]string, error)
 	Search(term string) ([]*model.UserAccessToken, error)
@@ -1218,7 +1218,7 @@ type PropertyFieldStore interface {
 	GetOptionAncestorsOrSelf(field *model.PropertyField, optionIDs []string) (map[string][]string, error)
 	GetOptionDescendantsOrSelf(field *model.PropertyField, optionIDs []string) (map[string][]string, error)
 	GetOptionChildren(field *model.PropertyField, optionIDs []string) (map[string][]string, error)
-	SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
+	SearchPropertyFields(rctx request.CTX, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
 	Update(groupID string, fields []*model.PropertyField, expectedUpdateAts map[string]int64) ([]*model.PropertyField, error)
 	Delete(groupID string, id string) error
 	CheckPropertyNameConflict(field *model.PropertyField, excludeID string) (model.PropertyFieldTargetLevel, error)
@@ -1240,8 +1240,7 @@ type PropertyValueStore interface {
 type AccessControlPolicyStore interface {
 	Save(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, error)
 	Delete(rctx request.CTX, id string) error
-	SetActiveStatus(rctx request.CTX, id string, active bool) (*model.AccessControlPolicy, error)
-	SetActiveStatusMultiple(rctx request.CTX, list []model.AccessControlPolicyActiveUpdate) ([]*model.AccessControlPolicy, error)
+	SetMembershipAutoAdd(rctx request.CTX, list []model.AccessControlPolicyAutoAddUpdate) ([]*model.AccessControlPolicy, error)
 	Get(rctx request.CTX, id string) (*model.AccessControlPolicy, error)
 	SearchPolicies(rctx request.CTX, opts model.AccessControlPolicySearch) ([]*model.AccessControlPolicy, int64, error)
 	GetPoliciesByFieldID(rctx request.CTX, fieldID string) ([]*model.AccessControlPolicy, error)

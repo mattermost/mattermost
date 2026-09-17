@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {createColumnHelper, getCoreRowModel, useReactTable, type ColumnDef} from '@tanstack/react-table';
+import classNames from 'classnames';
 import type {ComponentType} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {MessageDescriptor} from 'react-intl';
@@ -237,13 +238,28 @@ function OptionsCell({field}: {field: PropertyField}) {
     );
 }
 
-function AttributeCell({field}: {field: PropertyField}) {
+function classificationSubtitleId(fieldId: string): string {
+    return `global-attribute-classification-subtitle-${fieldId}`;
+}
+
+function AttributeCell({field, isClassificationRow}: ClassificationAwareCellProps) {
     return (
-        <span
-            className='GlobalAttributesTable__name'
-            data-testid='global-attribute-name'
-        >
-            {getDisplayName(field)}
+        <span className='GlobalAttributesTable__attribute'>
+            <span
+                className={classNames('GlobalAttributesTable__name', {'GlobalAttributesTable__name--classification': isClassificationRow})}
+                data-testid='global-attribute-name'
+            >
+                {getDisplayName(field)}
+            </span>
+            {isClassificationRow && (
+                <span
+                    id={classificationSubtitleId(field.id)}
+                    className='GlobalAttributesTable__subtitle GlobalAttributesTable__subtitle--classification'
+                    data-testid={`global-attribute-classification-subtitle-${field.id}`}
+                >
+                    <FormattedMessage {...messages.classificationSubtitle}/>
+                </span>
+            )}
         </span>
     );
 }
@@ -297,6 +313,7 @@ function ActionsCell({field, isClassificationRow, canEditClassification, isMobil
                     to={CLASSIFICATIONS_MARKINGS_ADMIN_URL}
                     className='GlobalAttributesTable__link--classification'
                     aria-label={classificationLinkLabel}
+                    aria-describedby={classificationSubtitleId(field.id)}
                     data-testid={`global-attribute-classification-link-${field.id}`}
                 >
                     <OpenInNewIcon
@@ -618,7 +635,10 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                 id: 'attribute',
                 header: () => <FormattedMessage {...messages.attribute}/>,
                 cell: ({row}) => (
-                    <AttributeCell field={row.original}/>
+                    <AttributeCell
+                        field={row.original}
+                        isClassificationRow={isClassificationRow(row.original)}
+                    />
                 ),
                 enableSorting: false,
                 enableHiding: false,
@@ -771,6 +791,13 @@ const messages = defineMessages({
     appliesTo: {id: 'admin.global_attributes.table.applies_to', defaultMessage: 'Applies to'},
     source: {id: 'admin.global_attributes.table.source', defaultMessage: 'Source'},
     options: {id: 'admin.global_attributes.table.options', defaultMessage: 'Options'},
+    classificationSubtitle: {
+        id: 'admin.global_attributes.table.attribute.classification_subtitle',
+
+        // Scoped to the definition on purpose: the resources it applies to are
+        // editable on its own page.
+        defaultMessage: 'Definition is read-only',
+    },
     empty: {
         id: 'admin.global_attributes.table.empty',
         defaultMessage: 'No attributes yet. Click "New attribute" to create one.',

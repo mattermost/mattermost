@@ -798,10 +798,10 @@ func (s *TimerLayerAccessControlPolicyStore) SearchPolicies(rctx request.CTX, op
 	return result, resultVar1, err
 }
 
-func (s *TimerLayerAccessControlPolicyStore) SetActiveStatus(rctx request.CTX, id string, active bool) (*model.AccessControlPolicy, error) {
+func (s *TimerLayerAccessControlPolicyStore) SetMembershipAutoAdd(rctx request.CTX, list []model.AccessControlPolicyAutoAddUpdate) ([]*model.AccessControlPolicy, error) {
 	start := time.Now()
 
-	result, err := s.AccessControlPolicyStore.SetActiveStatus(rctx, id, active)
+	result, err := s.AccessControlPolicyStore.SetMembershipAutoAdd(rctx, list)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -809,23 +809,7 @@ func (s *TimerLayerAccessControlPolicyStore) SetActiveStatus(rctx request.CTX, i
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("AccessControlPolicyStore.SetActiveStatus", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerAccessControlPolicyStore) SetActiveStatusMultiple(rctx request.CTX, list []model.AccessControlPolicyActiveUpdate) ([]*model.AccessControlPolicy, error) {
-	start := time.Now()
-
-	result, err := s.AccessControlPolicyStore.SetActiveStatusMultiple(rctx, list)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("AccessControlPolicyStore.SetActiveStatusMultiple", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("AccessControlPolicyStore.SetMembershipAutoAdd", success, elapsed)
 	}
 	return result, err
 }
@@ -9000,10 +8984,10 @@ func (s *TimerLayerPropertyFieldStore) MutateOptions(groupID string, fieldID str
 	return err
 }
 
-func (s *TimerLayerPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
+func (s *TimerLayerPropertyFieldStore) SearchPropertyFields(rctx request.CTX, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
 	start := time.Now()
 
-	result, err := s.PropertyFieldStore.SearchPropertyFields(opts)
+	result, err := s.PropertyFieldStore.SearchPropertyFields(rctx, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -15263,10 +15247,10 @@ func (s *TimerLayerUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit in
 	return result, err
 }
 
-func (s *TimerLayerUserAccessTokenStore) GetExpiringTokens(now int64, thresholds []int, limit int) ([]*model.UserAccessToken, error) {
+func (s *TimerLayerUserAccessTokenStore) GetExpiringTokens(now int64, thresholds []int, limit int, includeUserOwnedTokens bool) ([]*model.UserAccessToken, error) {
 	start := time.Now()
 
-	result, err := s.UserAccessTokenStore.GetExpiringTokens(now, thresholds, limit)
+	result, err := s.UserAccessTokenStore.GetExpiringTokens(now, thresholds, limit, includeUserOwnedTokens)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

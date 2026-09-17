@@ -1373,13 +1373,13 @@ describe('GlobalAttributesTable', () => {
     });
 
     describe('Classification Markings row', () => {
-        it('renders an open-in-new link and a menu carrying Edit when the field matches and the destination is reachable', async () => {
+        it('renders the subtitle, an open-in-new link and a menu carrying Edit when the field matches and the destination is reachable', async () => {
             getPropertyFields.mockResolvedValueOnce([makeClassificationField()]).mockResolvedValue([]);
 
             renderWithContext(<GlobalAttributesTable/>, getReachableState());
 
             expect(await screen.findByTestId('global-attribute-name')).toHaveTextContent('Classification');
-            expect(screen.queryByText('Definition is read-only')).not.toBeInTheDocument();
+            expect(await screen.findByTestId('global-attribute-classification-subtitle-field-1')).toHaveTextContent('Definition is read-only');
 
             const link = screen.getByTestId('global-attribute-classification-link-field-1');
             expect(link).toHaveAttribute('href', CLASSIFICATIONS_MARKINGS_ADMIN_URL);
