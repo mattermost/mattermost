@@ -50,7 +50,7 @@ describe('AttributeDetails', () => {
     });
 
     const CHANNEL_ATTRIBUTES_STATE = {entities: {general: {
-        config: {FeatureFlagChannelAttributes: 'true'},
+        config: {FeatureFlagChannelAttributes: 'true', FeatureFlagChannelAttributesRequired: 'true'},
         license: {IsLicensed: 'true', SkuShortName: 'advanced'},
     }}};
 

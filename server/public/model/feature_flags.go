@@ -140,6 +140,12 @@ type FeatureFlags struct {
 	// Enable channel attributes (Smart Labels, banners) powered by the Properties API.
 	ChannelAttributes bool
 
+	// ChannelAttributesRequired gates the "required attribute" enforcement
+	// sub-behavior of ChannelAttributes. Must be true for enforcement to be
+	// active. Default false = enforcement off until explicitly enabled, matching
+	// standard Mattermost feature flag lifecycle.
+	ChannelAttributesRequired bool
+
 	// FEATURE_FLAG_REMOVAL: ResourceAttributesInPolicies - Remove this when the
 	// feature is GA. Gates access rules that compare a user's attributes against
 	// the accessed channel's (resource.attributes.*): when off, the autocomplete
@@ -230,6 +236,8 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.ChannelAttributes = false
 
+	f.ChannelAttributesRequired = false
+
 	f.MmBlocksEnabled = true
 
 	f.EnableMFIPluginSignaturePublicKey = true
@@ -275,6 +283,15 @@ func (f *FeatureFlags) IsChannelPermissionPoliciesEnabled() bool {
 // dependency check here keeps every call site honest.
 func (f *FeatureFlags) IsPolicySimulationEnabled() bool {
 	return f.PermissionPolicies && f.PolicySimulation
+}
+
+// IsChannelAttributesRequiredEnabled reports whether the server enforces
+// PropertyField.Attrs["required"] for channel attributes — refusing channel
+// creation without a value, refusing writes that clear a required value, and
+// refusing deletes of a set required value. Both the ChannelAttributes umbrella
+// and the ChannelAttributesRequired sub-flag must be true.
+func (f *FeatureFlags) IsChannelAttributesRequiredEnabled() bool {
+	return f.ChannelAttributes && f.ChannelAttributesRequired
 }
 
 // ToMap returns the feature flags as a map[string]string
