@@ -1,5 +1,5 @@
 ---
-title: "Important Upgrade Notes"
+title: "Important upgrade notes"
 ---
 import Inc0_common_esr_support_rst from '../../product-overview/common-esr-support-rst.mdx';
 
@@ -20,6 +20,10 @@ We recommend reviewing the [additional upgrade notes](#additional-upgrade-notes)
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>v11.11</td>
+<td><p>The updated <code>glibc-openssl-fips</code> bundle includes a new OpenSSL build that enforces the FIPS minimum key length of 112 bits for HMAC operations. The PostgreSQL driver (lib/pq) passes the database password as the HMAC key during SCRAM authentication, so a password shorter than 112 bits, or 14 ASCII characters, now causes a panic on connect rather than a graceful failure. Before upgrading, FIPS deployments should verify that the password in <code>SqlSettings.DataSource</code> is at least 14 characters and rotate it in PostgreSQL if it is shorter. Standard, non-FIPS builds are unaffected.</p></td>
+</tr>
 <tr>
 <td rowspan="3">v11.10</td>
 <td><p>Starting with v11.10.1, the updated <code>glibc-openssl-fips</code> bundle includes a new OpenSSL build that enforces the FIPS minimum key length of 112 bits for HMAC operations. The PostgreSQL driver (lib/pq) passes the database password as the HMAC key during SCRAM authentication, so a password shorter than 112 bits, or 14 ASCII characters, now causes a panic on connect rather than a graceful failure. Before upgrading, FIPS deployments should verify that the password in <code>SqlSettings.DataSource</code> is at least 14 characters and rotate it in PostgreSQL if it is shorter. Standard, non-FIPS builds are unaffected.</p></td>
@@ -567,7 +571,7 @@ DELETE FROM threadmemberships WHERE (postid, userid) IN (
 <td>Experimental Bleve Search functionality has been retired. If Bleve is enabled, search will not work until <code>DisableDatabaseSearch</code> is set to <code>false</code>. See more details in <a href="https://forum.mattermost.com/t/transitioning-from-bleve-search-in-mattermost-v11/22982">this forum post</a>.</td>
 </tr>
 <tr>
-<td>Support for MySQL has ended. Our <a href="https://docs.mattermost.com/deployment-guide/postgres-migration.html">Migration Guide</a> outlines the steps, tools and support available for migrating to PostgreSQL. See more details in <a href="https://forum.mattermost.com/t/transition-to-postgresql/19551">this forum post</a>.</td>
+<td>Support for MySQL has ended. Our <a href="https://docs.mattermost.com/administration-guide/manage/admin/postgres-migration.html">Migration Guide</a> outlines the steps, tools and support available for migrating to PostgreSQL. See more details in <a href="https://forum.mattermost.com/t/transition-to-postgresql/19551">this forum post</a>.</td>
 </tr>
 <tr>
 <td>The <code>registerPostDropdownMenuComponent</code> hook in the web app’s plugin API has been removed in favour of <code>registerPostDropdownMenuAction</code>. See more details in <a href="https://forum.mattermost.com/t/deprecating-a-post-dropdown-menu-component-plugin-api-v11/25001">this forum post</a>.</td>

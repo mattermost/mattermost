@@ -101,6 +101,7 @@ type Store interface {
 	AutoTranslation() AutoTranslationStore
 	GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error)
 	ContentFlagging() ContentFlaggingStore
+	DeliveryTracking() DeliveryTrackingStore
 	Recap() RecapStore
 	ScheduledRecap() ScheduledRecapStore
 	ReadReceipt() ReadReceiptStore
@@ -353,6 +354,7 @@ type ChannelMemberHistoryStore interface {
 type ThreadStore interface {
 	GetThreadFollowers(threadID string, fetchOnlyActive bool) ([]string, error)
 	GetThreadMembershipsForExport(postID string) ([]*model.ThreadMembershipForExport, error)
+	GetThreadFollowerIDsForChannel(teamName string, channelName string, includeArchivedChannels bool) ([]string, error)
 
 	Get(id string) (*model.Thread, error)
 	GetTotalUnreadThreads(userID, teamID string, opts model.GetUserThreadsOpts) (int64, error)
@@ -404,9 +406,9 @@ type PostStore interface {
 	GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error)
 	GetPostsByThread(threadID string, since int64) ([]*model.Post, error)
 	GetPostAfterTime(channelID string, timestamp int64, collapsedThreads bool) (*model.Post, error)
-	GetPostIdAfterTime(channelID string, timestamp int64, collapsedThreads bool) (string, error)
-	GetPostIdBeforeTime(channelID string, timestamp int64, collapsedThreads bool) (string, error)
-	GetVisiblePostIdAroundTime(channelID string, timestamp int64, before bool, collapsedThreads bool, userID string) (string, error)
+	GetPostIdAfterTime(channelID string, timestamp int64, collapsedThreads bool, excludeMembershipSystemPosts bool) (string, error)
+	GetPostIdBeforeTime(channelID string, timestamp int64, collapsedThreads bool, excludeMembershipSystemPosts bool) (string, error)
+	GetVisiblePostIdAroundTime(channelID string, timestamp int64, before bool, collapsedThreads bool, userID string, excludeMembershipSystemPosts bool) (string, error)
 	GetEtag(channelID string, allowFromCache bool, collapsedThreads bool, includeTranslations bool) string
 	Search(teamID string, userID string, params *model.SearchParams) (*model.PostList, error)
 	AnalyticsUserCountsWithPostsByDay(teamID string) (model.AnalyticsRows, error)
@@ -425,7 +427,9 @@ type PostStore interface {
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 	GetOldest() (*model.Post, error)
 	GetMaxPostSize() int
-	GetParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.PostForExport, error)
+	GetParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool, teamName string, channelNameFilter string) ([]*model.PostForExport, error)
+	GetPostAuthorIDsForTeam(teamName string, includeArchivedChannels bool) ([]string, error)
+	GetPostAuthorIDsForChannel(teamName string, channelName string, includeArchivedChannels bool) ([]string, error)
 	GetRepliesForExport(parentID string) ([]*model.ReplyForExport, error)
 	GetDirectPostParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.DirectPostForExport, error)
 	SearchPostsForUser(rctx request.CTX, paramsList []*model.SearchParams, userID, teamID string, page, perPage int) (*model.PostSearchResults, error)
@@ -812,6 +816,7 @@ type ReactionStore interface {
 	Save(reaction *model.Reaction) (*model.Reaction, error)
 	Delete(reaction *model.Reaction) (*model.Reaction, error)
 	GetForPost(postID string, allowFromCache bool) ([]*model.Reaction, error)
+	GetReactionAuthorIDsForChannel(teamName string, channelName string, includeArchivedChannels bool) ([]string, error)
 	GetForPostSince(postID string, since int64, excludeRemoteID string, inclDeleted bool) ([]*model.Reaction, error)
 	GetUniqueCountForPost(postID string) (int, error)
 	ExistsOnPost(postID string, emojiName string) (bool, error)
@@ -859,7 +864,7 @@ type UserAccessTokenStore interface {
 	GetByToken(tokenString string) (*model.UserAccessToken, error)
 	GetByUser(userID string, page, perPage int) ([]*model.UserAccessToken, error)
 	GetExpiredBefore(cutoff int64, limit int) ([]*model.UserAccessToken, error)
-	GetExpiringTokens(now int64, thresholds []int, limit int) ([]*model.UserAccessToken, error)
+	GetExpiringTokens(now int64, thresholds []int, limit int, includeUserOwnedTokens bool) ([]*model.UserAccessToken, error)
 	CountNonCompliantExpiry(maxExpiresAt int64) (int64, error)
 	DeleteNonCompliantExpiry(maxExpiresAt int64, limit int) ([]string, error)
 	Search(term string) ([]*model.UserAccessToken, error)
@@ -1197,7 +1202,23 @@ type PropertyFieldStore interface {
 	CountForGroupObjectType(groupID, objectType string, includeDeleted bool) (int64, error)
 	CountForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error)
 	CountLinkedFields(fieldID string) (int64, error)
-	SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
+	GetLinkedFields(fieldIDs, excludeIDs []string) ([]*model.PropertyField, error)
+	GetExistingOptionIDs(field *model.PropertyField, optionIDs []string) ([]string, error)
+	GetFieldOptions(field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int, filter *model.PropertyFieldOptionPageFilter) (*model.PropertyFieldOptionPage, error)
+	GetOptionsByID(field *model.PropertyField, optionIDs []string) ([]*model.PropertyFieldOption, error)
+	GetOptionsByName(field *model.PropertyField, names []string) ([]*model.PropertyFieldOption, error)
+	GetLinkedFieldOptionNames(fieldID string, names []string) (map[string]string, error)
+	CountOptions(fieldID string) (int, error)
+	MutateOptions(groupID, fieldID string, expectedUpdateAt int64, upsert []*model.PropertyFieldOption, add, remove []*model.PropertyOptionEdge) error
+	DeleteOptions(groupID, fieldID string, expectedUpdateAt int64, optionIDs []string) error
+	GetOptionEdges(fieldID string) ([]*model.PropertyOptionEdge, error)
+	GetOptionChildEdges(fieldID string, parentOptionIDs []string) ([]*model.PropertyOptionEdge, error)
+	GetOptionParentEdges(fieldID string, childOptionIDs []string) ([]*model.PropertyOptionEdge, error)
+	CountOptionEdges(fieldID string) (int, error)
+	GetOptionAncestorsOrSelf(field *model.PropertyField, optionIDs []string) (map[string][]string, error)
+	GetOptionDescendantsOrSelf(field *model.PropertyField, optionIDs []string) (map[string][]string, error)
+	GetOptionChildren(field *model.PropertyField, optionIDs []string) (map[string][]string, error)
+	SearchPropertyFields(rctx request.CTX, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
 	Update(groupID string, fields []*model.PropertyField, expectedUpdateAts map[string]int64) ([]*model.PropertyField, error)
 	Delete(groupID string, id string) error
 	CheckPropertyNameConflict(field *model.PropertyField, excludeID string) (model.PropertyFieldTargetLevel, error)
@@ -1219,8 +1240,7 @@ type PropertyValueStore interface {
 type AccessControlPolicyStore interface {
 	Save(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, error)
 	Delete(rctx request.CTX, id string) error
-	SetActiveStatus(rctx request.CTX, id string, active bool) (*model.AccessControlPolicy, error)
-	SetActiveStatusMultiple(rctx request.CTX, list []model.AccessControlPolicyActiveUpdate) ([]*model.AccessControlPolicy, error)
+	SetMembershipAutoAdd(rctx request.CTX, list []model.AccessControlPolicyAutoAddUpdate) ([]*model.AccessControlPolicy, error)
 	Get(rctx request.CTX, id string) (*model.AccessControlPolicy, error)
 	SearchPolicies(rctx request.CTX, opts model.AccessControlPolicySearch) ([]*model.AccessControlPolicy, int64, error)
 	GetPoliciesByFieldID(rctx request.CTX, fieldID string) ([]*model.AccessControlPolicy, error)
@@ -1314,6 +1334,24 @@ type AutoTranslationStore interface {
 type ContentFlaggingStore interface {
 	SaveReviewerSettings(reviewerSettings model.ReviewerIDsSettings) error
 	GetReviewerSettings() (*model.ReviewerIDsSettings, error)
+	ClearCaches()
+}
+
+// DeliveryTrackingStore persists the explicit per-channel allow-list for post delivery
+// audit logging. The on/off and all-channels toggles live in
+// Config.DeliveryTrackingSettings; only the channel ids live here.
+//
+// IsChannelTracked and IsChannelTrackable are consulted once per recorded delivery, and their
+// cache layer memoizes them into bounded in-memory maps so that path never deserializes.
+type DeliveryTrackingStore interface {
+	// SaveTrackedChannelIDs replaces the entire stored set with channelIDs.
+	SaveTrackedChannelIDs(rctx request.CTX, channelIDs []string) error
+	GetTrackedChannelIDs(rctx request.CTX) ([]string, error)
+	// IsChannelTracked reports whether channelID is in the explicit allow-list.
+	IsChannelTracked(rctx request.CTX, channelID string) (bool, error)
+	// IsChannelTrackable reports whether channelID is eligible for tracking at all, which
+	// means it is not a DM or GM. Unknown channels are not trackable.
+	IsChannelTrackable(rctx request.CTX, channelID string) (bool, error)
 	ClearCaches()
 }
 

@@ -1472,6 +1472,74 @@ describe('postsInChannel', () => {
             });
         });
 
+        it('should mark the chronologically newest block as recent when no posts are received but the server confirms none are newer', () => {
+            const state = deepFreeze({
+                channel1: [
+                    {order: ['post1', 'post2'], recent: false},
+                    {order: ['post4', 'post3'], recent: false},
+                ],
+            });
+
+            const nextPosts = toPostsRecord({
+                post1: {id: 'post1', channel_id: 'channel1', create_at: 4000},
+                post2: {id: 'post2', channel_id: 'channel1', create_at: 3000},
+                post3: {id: 'post3', channel_id: 'channel1', create_at: 2000},
+                post4: {id: 'post4', channel_id: 'channel1', create_at: 1000},
+            });
+
+            const nextState = reducers.postsInChannel(state, {
+                type: PostTypes.RECEIVED_POSTS_IN_CHANNEL,
+                channelId: 'channel1',
+                data: {
+                    posts: {},
+                    order: [],
+                },
+                recent: true,
+            }, {}, nextPosts);
+
+            expect(nextState).not.toBe(state);
+            expect(nextState).toEqual({
+                channel1: [
+                    {order: ['post1', 'post2'], recent: true},
+                    {order: ['post4', 'post3'], recent: false},
+                ],
+            });
+        });
+
+        it('should mark the chronologically oldest block as oldest when no posts are received but the server confirms none are older', () => {
+            const state = deepFreeze({
+                channel1: [
+                    {order: ['post1', 'post2'], recent: true},
+                    {order: ['post4', 'post3'], recent: false},
+                ],
+            });
+
+            const nextPosts = toPostsRecord({
+                post1: {id: 'post1', channel_id: 'channel1', create_at: 4000},
+                post2: {id: 'post2', channel_id: 'channel1', create_at: 3000},
+                post3: {id: 'post3', channel_id: 'channel1', create_at: 2000},
+                post4: {id: 'post4', channel_id: 'channel1', create_at: 1000},
+            });
+
+            const nextState = reducers.postsInChannel(state, {
+                type: PostTypes.RECEIVED_POSTS_IN_CHANNEL,
+                channelId: 'channel1',
+                data: {
+                    posts: {},
+                    order: [],
+                },
+                oldest: true,
+            }, {}, nextPosts);
+
+            expect(nextState).not.toBe(state);
+            expect(nextState).toEqual({
+                channel1: [
+                    {order: ['post1', 'post2'], recent: true},
+                    {order: ['post4', 'post3'], recent: false, oldest: true},
+                ],
+            });
+        });
+
         it('should make entry for channel with no posts', () => {
             const state = deepFreeze({});
 
@@ -2386,6 +2454,37 @@ describe('postsInChannel', () => {
                 ],
             });
         });
+
+        it('should mark the block containing afterPostId as recent when no posts are received but the server confirms none are newer', () => {
+            const state = deepFreeze({
+                channel1: [
+                    {order: ['post1', 'post2'], recent: false},
+                ],
+            });
+
+            const nextPosts = toPostsRecord({
+                post1: {id: 'post1', channel_id: 'channel1', create_at: 4000},
+                post2: {id: 'post2', channel_id: 'channel1', create_at: 3000},
+            });
+
+            const nextState = reducers.postsInChannel(state, {
+                type: PostTypes.RECEIVED_POSTS_AFTER,
+                channelId: 'channel1',
+                data: {
+                    posts: {},
+                    order: [],
+                },
+                afterPostId: 'post1',
+                recent: true,
+            }, {}, nextPosts);
+
+            expect(nextState).not.toBe(state);
+            expect(nextState).toEqual({
+                channel1: [
+                    {order: ['post1', 'post2'], recent: true},
+                ],
+            });
+        });
     });
 
     describe('receiving posts before', () => {
@@ -2579,6 +2678,37 @@ describe('postsInChannel', () => {
             expect(nextState).toEqual({
                 channel1: [
                     {order: ['post1', 'post2'], recent: true},
+                ],
+            });
+        });
+
+        it('should mark the block containing beforePostId as oldest when no posts are received but the server confirms none are older', () => {
+            const state = deepFreeze({
+                channel1: [
+                    {order: ['post1', 'post2'], recent: true},
+                ],
+            });
+
+            const nextPosts = toPostsRecord({
+                post1: {id: 'post1', channel_id: 'channel1', create_at: 4000},
+                post2: {id: 'post2', channel_id: 'channel1', create_at: 3000},
+            });
+
+            const nextState = reducers.postsInChannel(state, {
+                type: PostTypes.RECEIVED_POSTS_BEFORE,
+                channelId: 'channel1',
+                data: {
+                    posts: {},
+                    order: [],
+                },
+                beforePostId: 'post2',
+                oldest: true,
+            }, {}, nextPosts);
+
+            expect(nextState).not.toBe(state);
+            expect(nextState).toEqual({
+                channel1: [
+                    {order: ['post1', 'post2'], recent: true, oldest: true},
                 ],
             });
         });

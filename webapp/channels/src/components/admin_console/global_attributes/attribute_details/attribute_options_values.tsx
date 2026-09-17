@@ -4,10 +4,9 @@
 import type {KeyboardEvent} from 'react';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
-import {components} from 'react-select';
 import {css} from 'styled-components';
 
-import {CheckIcon} from '@mattermost/compass-icons/components';
+import {CheckIcon, CloseCircleIcon} from '@mattermost/compass-icons/components';
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import * as Menu from 'components/menu';
@@ -251,7 +250,10 @@ const OptionChip = ({option, index, total, maxOptionNameLength, nameCollidesWith
                 aria-label={removeLabel}
                 disabled={disabled}
             >
-                <components.CrossIcon size={14}/>
+                <CloseCircleIcon
+                    size={12}
+                    aria-hidden={true}
+                />
             </button>
         </span>
     );

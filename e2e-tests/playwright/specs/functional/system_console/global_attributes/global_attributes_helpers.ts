@@ -29,23 +29,8 @@ const ALL_RESOURCE_OBJECT_TYPES: ResourceObjectType[] = ['user', 'channel', 'pos
 const MAX_PROPERTY_FIELDS_PER_PAGE = 200;
 
 /**
- * Toggle via System Console config API. On servers without SplitKey, feature flags are
- * read-only from config (see server/config/store.go); effective values come from env
- * (e.g. MM_FEATUREFLAGS_GLOBALATTRIBUTES).
- */
-export async function setGlobalAttributesFeatureFlag(adminClient: Client4, enabled: boolean) {
-    await adminClient.patchConfig({
-        FeatureFlags: {
-            GlobalAttributes: enabled,
-        },
-    } as any);
-}
-
-/**
- * Shared precondition for every test that needs the Manage Attributes page actually
- * reachable (as opposed to the flag-off gate test, which deliberately doesn't need this):
- * skips on a sub-Enterprise license, enables the GlobalAttributes flag, and skips if the
- * flag didn't actually take (e.g. env/SplitKey overrides). Returns the admin session.
+ * Shared precondition for every test that needs the Attribute Management page actually
+ * reachable: skips on a sub-Enterprise license. Returns the admin session.
  */
 export async function requireGlobalAttributesEnabled(pw: PlaywrightExtended) {
     await pw.skipIfNoLicense();
@@ -58,20 +43,17 @@ export async function requireGlobalAttributesEnabled(pw: PlaywrightExtended) {
     const license = await adminClient.getClientLicenseOld();
     test.skip(
         licenseTier(license.SkuShortName) < 20,
-        'Manage Attributes requires Enterprise-tier license (SkuShortName enterprise, entry, or advanced). ' +
+        'Attribute Management requires Enterprise-tier license (SkuShortName enterprise, entry, or advanced). ' +
             'Professional is not sufficient—the admin route is hidden and redirects away.',
     );
-
-    await setGlobalAttributesFeatureFlag(adminClient, true);
-    await pw.skipIfFeatureFlagNotSet('GlobalAttributes', true);
 
     return {adminUser, adminClient};
 }
 
 /**
  * Removes any access_control/template field with the given name (clean slate for E2E),
- * ignoring failures — the property routes may be unavailable when the feature flag is off,
- * or the field may simply not exist yet.
+ * ignoring failures — the property routes may be unavailable below Enterprise tier, or
+ * the field may simply not exist yet.
  */
 export async function deleteGlobalAttributeFieldIfExists(adminClient: Client4, name: string) {
     try {
@@ -103,15 +85,14 @@ export async function deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClien
             }
         }
     } catch {
-        // Listing may fail if the flag is off; still try the template delete below.
+        // Listing may fail below Enterprise tier; still try the template delete below.
     }
     await deleteGlobalAttributeFieldIfExists(adminClient, name);
 }
 
 /**
- * Creates an access_control/template property field (the same group/object type/target
- * this ticket's table lists) for E2E seeding. Ensures a clean slate first so reruns don't
- * collide with a field left over from a prior failed run.
+ * Creates an access_control/template property field for E2E seeding. Ensures a clean
+ * slate first so reruns don't collide with a field left over from a prior failed run.
  */
 export async function createGlobalAttributeField(
     adminClient: Client4,
@@ -145,6 +126,7 @@ export async function createLinkedDependentField(
     sourceFieldId: string,
     type: string,
     objectType: ResourceObjectType = 'user',
+    attrs?: Record<string, unknown>,
 ) {
     return adminClient.createPropertyField(PROPERTY_GROUP, objectType, {
         name,
@@ -152,6 +134,7 @@ export async function createLinkedDependentField(
         target_type: TARGET_TYPE,
         target_id: '',
         linked_field_id: sourceFieldId,
+        ...(attrs ? {attrs} : {}),
     } as Parameters<Client4['createPropertyField']>[2]);
 }
 

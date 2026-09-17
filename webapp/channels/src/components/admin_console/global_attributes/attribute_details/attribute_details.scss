@@ -21,12 +21,53 @@
     height: auto;
     min-height: 90px;
     flex: 0 0 auto;
-    align-items: flex-start;
-    padding: 18px 20px;
+    align-items: stretch;
+    padding: 0;
 
-    .back {
-        height: auto;
-        align-self: stretch;
+    > div {
+        align-items: stretch;
+    }
+
+    .AttributeDetails__headerGroup {
+        min-width: 0;
+        flex: 1 1 auto;
+        padding: 18px 20px;
+    }
+}
+
+.AttributeDetails__back {
+    display: flex;
+    width: 64px;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-right: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+}
+
+.AttributeDetails__backButton {
+    display: inline-flex;
+    width: 40px;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    text-decoration: none;
+
+    &:hover {
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+    }
+
+    &:active {
+        background-color: rgba(var(--button-bg-rgb), 0.08);
+        color: var(--link-color);
+    }
+
+    &:focus-visible {
+        box-shadow: 0 0 0 2px var(--button-bg);
+        outline: none;
     }
 }
 
@@ -44,6 +85,11 @@
         font-weight: 400;
         line-height: 20px;
     }
+}
+
+.AttributeDetails__typeLockWrap {
+    display: inline-flex;
+    max-width: 100%;
 }
 
 .AttributeDetails__blockTitle {
@@ -199,8 +245,13 @@
     }
 
     &:disabled {
-        cursor: default;
-        opacity: 0.64;
+        background-color: rgba(var(--center-channel-color-rgb), 0.04);
+        cursor: not-allowed;
+
+        .AttributeDetails__typeButtonInner,
+        .icon {
+            opacity: 0.6;
+        }
 
         &:hover {
             border-color: rgba(var(--center-channel-color-rgb), 0.16);

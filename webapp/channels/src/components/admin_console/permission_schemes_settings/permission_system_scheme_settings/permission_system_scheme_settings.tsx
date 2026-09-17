@@ -118,9 +118,11 @@ export class PermissionSystemSchemeSettings extends React.PureComponent<Props, S
         }
     }
 
-    UNSAFE_componentWillReceiveProps(nextProps: Props) {
-        if (!this.state.loaded && this.rolesNeeded.every((roleName) => nextProps.roles[roleName])) {
-            this.loadRolesIntoState(nextProps);
+    componentDidUpdate() {
+        // The roles requested on mount arrive asynchronously, so keep waiting for them until
+        // they're all in props. Guarded by `loaded` so the setState can't loop.
+        if (!this.state.loaded && this.rolesNeeded.every((roleName) => this.props.roles[roleName])) {
+            this.loadRolesIntoState(this.props);
         }
     }
 

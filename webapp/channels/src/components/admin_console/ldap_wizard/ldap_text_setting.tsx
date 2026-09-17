@@ -234,7 +234,7 @@ const ldapTestMessages = defineMessages({
     },
     groupAttributeTestSuccess: {
         id: 'admin.ldap.groupAttributeTestSuccess',
-        defaultMessage: 'Group attribute test successful: {countReturned, number} {countReturned, plural, one {result} other {results}} found out of {totalCount} {totalCount, plural, one {group} other {groups}} returned by the group filter',
+        defaultMessage: 'Group attribute test successful: {countReturned, plural, one {# result} other {# results}} found out of {totalCount, plural, one {# group} other {# groups}} returned by the group filter',
     },
     groupAttributeTestWarning: {
         id: 'admin.ldap.groupAttributeTestWarning',

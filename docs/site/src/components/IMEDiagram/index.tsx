@@ -236,7 +236,7 @@ export default function IMEDiagram() {
                 availability.
               </p>
             </div>
-            <Cell to="/deployment-guide/reference-architecture/reference-architecture-index" title="Tactical Edge to Strategic Core" icon={<IconServer />}>
+            <Cell to="/deployment-guide/deployment-scenarios/deployment-scenarios-index" title="Tactical Edge to Strategic Core" icon={<IconServer />}>
               Runs at the edge, in your data center, in sovereign clouds, and on global hyperscalers: Azure, AWS, Google Cloud, Oracle Cloud.
             </Cell>
             <Cell to="/for/air-gapped-operator" title="Mission-Ready Security & Resilience" icon={<IconShield />}>

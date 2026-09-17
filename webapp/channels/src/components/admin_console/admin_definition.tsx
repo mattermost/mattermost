@@ -98,6 +98,7 @@ import UserAttributesFeatureDiscovery from './feature_discovery/features/user_at
 import FeatureFlags, {messages as featureFlagsMessages} from './feature_flags';
 import GlobalAttributes, {searchableStrings as globalAttributesSearchableStrings} from './global_attributes';
 import AttributeDetails from './global_attributes/attribute_details';
+import ClassificationAttribute from './global_attributes/classification_attribute';
 import GroupDetails from './group_settings/group_details';
 import GroupSettings from './group_settings/group_settings';
 import IPFiltering from './ip_filtering';
@@ -125,7 +126,6 @@ import ServerLogs from './server_logs';
 import {searchableStrings as serverLogsSearchableStrings} from './server_logs/logs';
 import SessionAttributesPage, {searchableStrings as sessionAttributesSearchableStrings} from './session_attributes';
 import SessionLengthSettings, {searchableStrings as sessionLengthSearchableStrings} from './session_length_settings';
-import SystemProperties, {searchableStrings as systemPropertiesSearchableStrings} from './system_properties';
 import SystemRoles from './system_roles';
 import SystemRole from './system_roles/system_role';
 import SystemUserDetail from './system_user_detail';
@@ -137,6 +137,7 @@ import TeamSettings from './team_channel_settings/team';
 import TeamDetails from './team_channel_settings/team/details';
 import type {AdminDefinition as AdminDefinitionType} from './types';
 import UnlimitedNumberSetting from './unlimited_number_setting';
+import UserAttributesRedirect from './user_attributes_redirect';
 import ValidationResult from './validation';
 import WorkspaceOptimizationDashboard from './workspace-optimization/dashboard';
 
@@ -638,16 +639,6 @@ const AdminDefinition: AdminDefinitionType = {
         sectionTitle: defineMessage({id: 'admin.sidebar.systemAttributes', defaultMessage: 'System Attributes'}),
         isHidden: it.not(it.userHasReadPermissionOnSomeResources(RESOURCE_KEYS.USER_MANAGEMENT)),
         subsections: {
-            system_properties: {
-                url: 'system_attributes/user_attributes',
-                title: defineMessage({id: 'admin.sidebar.user_attributes', defaultMessage: 'User Attributes'}),
-                searchableStrings: systemPropertiesSearchableStrings,
-                isHidden: it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
-                schema: {
-                    id: 'SystemProperties',
-                    component: SystemProperties,
-                },
-            },
             user_attributes_feature_discovery: {
                 url: 'system_attributes/user_attributes',
                 isDiscovery: true,
@@ -666,6 +657,21 @@ const AdminDefinition: AdminDefinitionType = {
                     ],
                 },
                 restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.EnterpriseAdvanced),
+            },
+            user_attributes_redirect: {
+                url: 'system_attributes/user_attributes',
+
+                // Exact complement of user_attributes_feature_discovery's
+                // isHidden above: Enterprise+ has no page of its own here
+                // anymore (CPA fields now show in Manage Attributes as
+                // non-template fields), so this URL redirects there instead
+                // of falling through to the admin console's unrelated
+                // default-page redirect.
+                isHidden: it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
+                schema: {
+                    id: 'UserAttributesRedirect',
+                    component: UserAttributesRedirect,
+                },
             },
             session_attributes: {
                 url: 'system_attributes/session_attributes',
@@ -718,12 +724,34 @@ const AdminDefinition: AdminDefinitionType = {
                     component: BoardAttributes,
                 },
             },
+            classification_attribute: {
+                url: 'system_attributes/manage_attributes/classification',
+
+                // Gated on ChannelAttributes: with that flag off the only editable
+                // thing on this page is the Channels resource, so there is nothing
+                // here the Classification Markings page does not already cover.
+                isHidden: it.not(it.all(
+                    it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
+                    it.configIsTrue('FeatureFlags', 'ChannelAttributes'),
+                )),
+                isDisabled: it.not(it.isSystemAdmin),
+                schema: {
+                    id: 'ClassificationAttribute',
+                    component: ClassificationAttribute,
+                },
+            },
+            global_attribute_details_edit: {
+                url: `system_attributes/manage_attributes/attribute_details/:field_id(${ID_PATH_PATTERN})`,
+                isHidden: it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
+                isDisabled: it.not(it.isSystemAdmin),
+                schema: {
+                    id: 'GlobalAttributeDetails',
+                    component: AttributeDetails,
+                },
+            },
             global_attribute_details: {
                 url: 'system_attributes/manage_attributes/attribute_details',
-                isHidden: it.not(it.all(
-                    it.minLicenseTier(LicenseSkus.Enterprise),
-                    it.configIsTrue('FeatureFlags', 'GlobalAttributes'),
-                )),
+                isHidden: it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
                 isDisabled: it.not(it.isSystemAdmin),
                 schema: {
                     id: 'GlobalAttributeDetails',
@@ -732,12 +760,9 @@ const AdminDefinition: AdminDefinitionType = {
             },
             global_attributes: {
                 url: 'system_attributes/manage_attributes',
-                title: defineMessage({id: 'admin.sidebar.global_attributes', defaultMessage: 'Manage Attributes'}),
+                title: defineMessage({id: 'admin.sidebar.global_attributes', defaultMessage: 'Attribute Management'}),
                 searchableStrings: globalAttributesSearchableStrings,
-                isHidden: it.not(it.all(
-                    it.minLicenseTier(LicenseSkus.Enterprise),
-                    it.configIsTrue('FeatureFlags', 'GlobalAttributes'),
-                )),
+                isHidden: it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
                 isDisabled: it.not(it.isSystemAdmin),
                 schema: {
                     id: 'GlobalAttributes',
@@ -778,6 +803,7 @@ const AdminDefinition: AdminDefinitionType = {
                                 {
                                     type: 'bool',
                                     key: 'AccessControlSettings.EnableAccessControlAuditLogging',
+                                    isHidden: true, // TODO: Remove when the PR#37771 is merged
                                     label: defineMessage({id: 'admin.accesscontrol.enableAuditLogging.title', defaultMessage: 'Enable audit logging for access control decisions'}),
                                     help_text: defineMessage({id: 'admin.accesscontrol.enableAuditLogging.desc', defaultMessage: 'When enabled, attribute-based access control policy decisions are written to the server audit log. Requires server audit logging to be active.'}),
                                     disabled_help_text: defineMessage({id: 'admin.accesscontrol.enableAuditLogging.disabled', defaultMessage: 'When enabled, attribute-based access control policy decisions are written to the server audit log. This setting requires attribute-based access control to be enabled and server audit logging to be active (enable file audit logging or configure an advanced audit logging target).'}),
@@ -3197,6 +3223,30 @@ const AdminDefinition: AdminDefinitionType = {
                             isHidden: it.licensedForFeature('Cloud'),
                         },
                         {
+                            type: 'number',
+                            key: 'EmailSettings.EmailBatchingBufferSize',
+                            label: defineMessage({id: 'admin.environment.notifications.emailBatchingBufferSize.label', defaultMessage: 'Email Batching Buffer Size:'}),
+                            help_text: defineMessage({id: 'admin.environment.notifications.emailBatchingBufferSize.help', defaultMessage: 'Specify the maximum number of notifications batched into a single email.'}),
+                            placeholder: defineMessage({id: 'admin.environment.notifications.emailBatchingBufferSize.placeholder', defaultMessage: 'E.g.: "256"'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.NOTIFICATIONS)),
+                                it.stateIsFalse('EmailSettings.EnableEmailBatching'),
+                            ),
+                            isHidden: it.licensedForFeature('Cloud'),
+                        },
+                        {
+                            type: 'number',
+                            key: 'EmailSettings.EmailBatchingInterval',
+                            label: defineMessage({id: 'admin.environment.notifications.emailBatchingInterval.label', defaultMessage: 'Email Batching Interval:'}),
+                            help_text: defineMessage({id: 'admin.environment.notifications.emailBatchingInterval.help', defaultMessage: 'Specify the maximum frequency, in seconds, which the batching job checks for new notifications. Longer batching intervals will increase performance.'}),
+                            placeholder: defineMessage({id: 'admin.environment.notifications.emailBatchingInterval.placeholder', defaultMessage: 'E.g.: "30"'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.NOTIFICATIONS)),
+                                it.stateIsFalse('EmailSettings.EnableEmailBatching'),
+                            ),
+                            isHidden: it.licensedForFeature('Cloud'),
+                        },
+                        {
                             type: 'dropdown',
                             key: 'EmailSettings.EmailNotificationContentsType',
                             label: defineMessage({id: 'admin.environment.notifications.contents.label', defaultMessage: 'Email Notification Contents:'}),
@@ -3213,6 +3263,13 @@ const AdminDefinition: AdminDefinitionType = {
                                 },
                             ],
                             isHidden: it.not(it.licensedForFeature('EmailNotificationContents')),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.NOTIFICATIONS)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'EmailSettings.UseChannelInEmailNotifications',
+                            label: defineMessage({id: 'admin.environment.notifications.useChannelInEmailNotifications.label', defaultMessage: 'Use Channel Name in Email Notifications:'}),
+                            help_text: defineMessage({id: 'admin.environment.notifications.useChannelInEmailNotifications.help', defaultMessage: 'When true, channel and team name appears in email notification subject lines. Useful for servers using only one team. When false, only team name appears in email notification subject line.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.NOTIFICATIONS)),
                         },
                         {
@@ -3980,7 +4037,10 @@ const AdminDefinition: AdminDefinitionType = {
             recaps: {
                 url: 'site_config/recaps',
                 title: defineMessage({id: 'admin.sidebar.recaps', defaultMessage: 'Recaps'}),
-                isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
+                isHidden: it.any(
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
+                    it.configIsFalse('FeatureFlags', 'EnableAIRecaps'),
+                ),
                 schema: {
                     id: 'RecapSettings',
                     name: defineMessage({id: 'admin.site.recaps', defaultMessage: 'Recaps'}),
@@ -6050,7 +6110,7 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'ServiceSettings.DCRRedirectURIAllowlist',
                             multiple: true,
                             label: defineMessage({id: 'admin.oauth.dcrRedirectURIAllowlistTitle', defaultMessage: 'DCR Redirect URI Allowlist:'}),
-                            help_text: defineMessage({id: 'admin.oauth.dcrRedirectURIAllowlistDesc', defaultMessage: 'When Dynamic Client Registration is enabled, optionally restrict which redirect URIs can be registered. Enter comma-separated URL glob patterns (e.g. https://*.example.com/**). If empty, all valid redirect URIs are allowed. Wildcards are matched within URL components only: host wildcards apply to the host, path wildcards apply to the path, and query strings must be explicitly included if allowed.'}),
+                            help_text: defineMessage({id: 'admin.oauth.dcrRedirectURIAllowlistDesc', defaultMessage: 'When Dynamic Client Registration is enabled, optionally restrict which redirect URIs can be registered. Enter comma-separated URL glob patterns (e.g. https://*.example.com/**). Custom URI schemes used by desktop OAuth clients (e.g. cursor://app/callback) are supported in addition to http and https. If empty, all valid redirect URIs are allowed. Wildcards are matched within URL components only: host wildcards apply to the host, path wildcards apply to the path, and query strings must be explicitly included if allowed.'}),
                             help_text_markdown: false,
                             placeholder: defineMessage({id: 'admin.oauth.dcrRedirectURIAllowlistPlaceholder', defaultMessage: 'E.g.: https://*.example.com/**, https://app.example.com/callback'}),
                             isDisabled: it.any(
@@ -6150,7 +6210,7 @@ const AdminDefinition: AdminDefinitionType = {
                             component: RevokeNonCompliantTokensButton,
                             showTitle: true,
                             label: defineMessage({id: 'admin.service.revokeNonCompliantTokensTitle', defaultMessage: 'Revoke non-compliant tokens:'}),
-                            help_text: defineMessage({id: 'admin.service.revokeNonCompliantTokensDescription', defaultMessage: 'Permanently revokes all existing personal access tokens that do not comply with the maximum lifetime above (tokens that never expire or expire beyond the cap). The maximum lifetime only applies to newly created tokens, so use this to bring already-issued tokens into compliance. Bot account tokens are exempt. You will be shown how many tokens are affected before confirming.'}),
+                            help_text: defineMessage({id: 'admin.service.revokeNonCompliantTokensDescription', defaultMessage: 'Permanently revokes all existing personal access tokens that do not comply with the maximum lifetime above (tokens that never expire or expire beyond the cap), including tokens for user-owned bot accounts. Plugin-owned bot account tokens are exempt. The maximum lifetime only applies to newly created tokens, so use this to bring already-issued tokens into compliance. You will be shown how many tokens are affected before confirming.'}),
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.INTEGRATION_MANAGEMENT)),
                                 it.stateIsFalse('ServiceSettings.EnableUserAccessTokens'),
@@ -6661,24 +6721,6 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {
-                            type: 'number',
-                            key: 'EmailSettings.EmailBatchingBufferSize',
-                            label: defineMessage({id: 'admin.experimental.emailBatchingBufferSize.title', defaultMessage: 'Email Batching Buffer Size:'}),
-                            help_text: defineMessage({id: 'admin.experimental.emailBatchingBufferSize.desc', defaultMessage: 'Specify the maximum number of notifications batched into a single email.'}),
-                            help_text_markdown: false,
-                            placeholder: defineMessage({id: 'admin.experimental.emailBatchingBufferSize.example', defaultMessage: 'E.g.: "256"'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'number',
-                            key: 'EmailSettings.EmailBatchingInterval',
-                            label: defineMessage({id: 'admin.experimental.emailBatchingInterval.title', defaultMessage: 'Email Batching Interval:'}),
-                            help_text: defineMessage({id: 'admin.experimental.emailBatchingInterval.desc', defaultMessage: 'Specify the maximum frequency, in seconds, which the batching job checks for new notifications. Longer batching intervals will increase performance.'}),
-                            help_text_markdown: false,
-                            placeholder: defineMessage({id: 'admin.experimental.emailBatchingInterval.example', defaultMessage: 'E.g.: "30"'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
                             type: 'bool',
                             key: 'TeamSettings.ExperimentalEnableAutomaticReplies',
                             label: defineMessage({id: 'admin.experimental.experimentalEnableAutomaticReplies.title', defaultMessage: 'Enable Automatic Replies:'}),
@@ -6710,14 +6752,6 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: defineMessage({id: 'admin.experimental.experimentalPrimaryTeam.desc', defaultMessage: 'The primary team of which users on the server are members. When a primary team is set, the options to join other teams or leave the primary team are disabled.'}),
                             help_text_markdown: true,
                             placeholder: defineMessage({id: 'admin.experimental.experimentalPrimaryTeam.example', defaultMessage: 'E.g.: "teamname"'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'EmailSettings.UseChannelInEmailNotifications',
-                            label: defineMessage({id: 'admin.experimental.useChannelInEmailNotifications.title', defaultMessage: 'Use Channel Name in Email Notifications:'}),
-                            help_text: defineMessage({id: 'admin.experimental.useChannelInEmailNotifications.desc', defaultMessage: 'When true, channel and team name appears in email notification subject lines. Useful for servers using only one team. When false, only team name appears in email notification subject line.'}),
-                            help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {

@@ -108,7 +108,7 @@ func TestHandlerServeHTTPSecureTransport(t *testing.T) {
 	mockUserStore := mocks.UserStore{}
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 	mockPostStore := mocks.PostStore{}
-	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+	mockPostStore.On("GetMaxPostSize").Return(model.PostMessageMaxBytesV2, nil)
 	mockSystemStore := mocks.SystemStore{}
 	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
@@ -338,42 +338,6 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		assert.Equal(t, []string{"frame-ancestors 'self' " + *th.App.Config().ServiceSettings.FrameAncestors + "; script-src 'self'"}, response.Header()["Content-Security-Policy"])
 	})
 
-	t.Run("static, with EnableConcurrentReact enabled", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-
-		// Feature flags are read-only in the config store, so mutate the live config directly.
-		th.App.Config().FeatureFlags.EnableConcurrentReact = true
-
-		web := New(th.Server)
-
-		// NewStaticHandler computes the CSP SHA directive from the current config, so the
-		// concurrent React inline script's hash must be present in the script-src directive.
-		handler := web.NewStaticHandler(handlerForCSPHeader)
-
-		request := httptest.NewRequest("POST", "/", nil)
-		response := httptest.NewRecorder()
-		handler.ServeHTTP(response, request)
-		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, []string{"frame-ancestors 'self' " + *th.App.Config().ServiceSettings.FrameAncestors + "; script-src 'self' 'sha256-VKORZJUo6WeDwDHwpxEgzZDt8C1kBbDOmUq72sfrx8M='"}, response.Header()["Content-Security-Policy"])
-	})
-
-	t.Run("static, with EnableConcurrentReact disabled", func(t *testing.T) {
-		th := SetupWithStoreMock(t)
-
-		// Feature flags are read-only in the config store, so mutate the live config directly.
-		th.App.Config().FeatureFlags.EnableConcurrentReact = false
-
-		web := New(th.Server)
-
-		handler := web.NewStaticHandler(handlerForCSPHeader)
-
-		request := httptest.NewRequest("POST", "/", nil)
-		response := httptest.NewRecorder()
-		handler.ServeHTTP(response, request)
-		assert.Equal(t, 200, response.Code)
-		assert.Equal(t, []string{"frame-ancestors 'self' " + *th.App.Config().ServiceSettings.FrameAncestors + "; script-src 'self'"}, response.Header()["Content-Security-Policy"])
-	})
-
 	t.Run("static, with subpath and frame ancestors", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
 
@@ -381,7 +345,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		mockUserStore := mocks.UserStore{}
 		mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 		mockPostStore := mocks.PostStore{}
-		mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+		mockPostStore.On("GetMaxPostSize").Return(model.PostMessageMaxBytesV2, nil)
 		mockSystemStore := mocks.SystemStore{}
 		mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 		mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
@@ -756,7 +720,7 @@ func TestCheckCSRFToken(t *testing.T) {
 		mockUserStore := mocks.UserStore{}
 		mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 		mockPostStore := mocks.PostStore{}
-		mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+		mockPostStore.On("GetMaxPostSize").Return(model.PostMessageMaxBytesV2, nil)
 		mockSystemStore := mocks.SystemStore{}
 		mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 		mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
@@ -1035,7 +999,7 @@ func TestHandlerServeHTTPBasicSecurityChecks(t *testing.T) {
 		mockUserStore := mocks.UserStore{}
 		mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 		mockPostStore := mocks.PostStore{}
-		mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+		mockPostStore.On("GetMaxPostSize").Return(model.PostMessageMaxBytesV2, nil)
 		mockSystemStore := mocks.SystemStore{}
 		mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 		mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
@@ -1066,7 +1030,7 @@ func TestHandlerServeHTTPBasicSecurityChecks(t *testing.T) {
 		mockUserStore := mocks.UserStore{}
 		mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 		mockPostStore := mocks.PostStore{}
-		mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+		mockPostStore.On("GetMaxPostSize").Return(model.PostMessageMaxBytesV2, nil)
 		mockSystemStore := mocks.SystemStore{}
 		mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 		mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
@@ -1128,7 +1092,7 @@ func TestHandlerServeHTTPRequestPayloadLimit(t *testing.T) {
 		mockUserStore := mocks.UserStore{}
 		mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 		mockPostStore := mocks.PostStore{}
-		mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+		mockPostStore.On("GetMaxPostSize").Return(model.PostMessageMaxBytesV2, nil)
 		mockSystemStore := mocks.SystemStore{}
 		mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 		mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
@@ -1257,6 +1221,61 @@ func TestHandleContextErrorZeroStatusCode(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, c.Err.StatusCode)
 		assert.Equal(t, http.StatusBadRequest, response.Code)
+	})
+}
+
+func TestHandleContextErrorProps(t *testing.T) {
+	respondWith := func(t *testing.T, th *TestHelper, appErr *model.AppError) *model.AppError {
+		t.Helper()
+
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Logger:     th.App.Log(),
+			Err:        appErr,
+		}
+
+		request := httptest.NewRequest("POST", "/api/v4/test", nil)
+		response := httptest.NewRecorder()
+
+		h := Handler{Srv: th.Server}
+		h.handleContextError(c, response, request)
+
+		var responded model.AppError
+		require.NoError(t, json.Unmarshal(response.Body.Bytes(), &responded))
+
+		return &responded
+	}
+
+	t.Run("should wipe detailed error but keep props when developer mode is off", func(t *testing.T) {
+		th := Setup(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableDeveloper = false
+		})
+
+		appErr := model.NewAppError("TestFunction", "test.error", nil, "test details", http.StatusBadRequest)
+		appErr.Props = model.StringMap{"plugin_id": "com.example"}
+
+		responded := respondWith(t, th, appErr)
+		assert.Empty(t, responded.DetailedError, "developer mode off must still wipe the detailed error")
+		assert.Equal(t, model.StringMap{"plugin_id": "com.example"}, responded.Props)
+	})
+
+	t.Run("hardened mode should sanitize a 5xx including props", func(t *testing.T) {
+		th := Setup(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableDeveloper = false
+			*cfg.ServiceSettings.EnableHardenedMode = true
+		})
+
+		appErr := model.NewAppError("TestFunction", "test.error", nil, "test details", http.StatusInternalServerError)
+		appErr.Props = model.StringMap{"plugin_id": "com.example"}
+
+		responded := respondWith(t, th, appErr)
+		assert.Empty(t, responded.DetailedError)
+		assert.Empty(t, responded.Props, "hardened mode must scrub props on a sanitized 5xx")
+		assert.Equal(t, "Internal Server Error", responded.Message)
+		assert.Empty(t, responded.Id)
 	})
 }
 

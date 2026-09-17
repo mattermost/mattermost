@@ -311,6 +311,8 @@ func NewServer(options ...Option) (*Server, error) {
 	// After channel is initialized set it to the App object
 	app := New(ServerConnector(channels))
 
+	s.platform.SetPostDeliveryRecorder(app.RecordBroadcastDelivery)
+
 	// Register property-service hooks AFTER s.ch is populated. The
 	// access-control and attribute-validation hooks capture s and use
 	// s.ch for plugin-status and permission lookups; registering them
@@ -328,10 +330,12 @@ func NewServer(options ...Option) (*Server, error) {
 	}, cpaGroup.ID)
 	s.propertyService.AddHook(licenseCheckHook)
 
-	accessControlHook := properties.NewAccessControlHook(s.propertyService, func(pluginID string) bool {
+	pluginChecker := func(pluginID string) bool {
 		_, err := s.ch.GetPluginStatus(pluginID)
 		return err == nil
-	}, cpaGroup.ID)
+	}
+
+	accessControlHook := properties.NewAccessControlHook(s.propertyService, pluginChecker, cpaGroup.ID)
 	s.propertyService.AddHook(accessControlHook)
 
 	// Attribute validation hook — validates visibility, sort_order on fields,
@@ -346,7 +350,21 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 		return app.HasPermissionTo(rctx, userID, perm)
 	}
-	attrValidationHook := properties.NewAccessControlAttributeValidationHook(s.propertyService, permChecker, cpaGroup.ID)
+
+	directChannelChecker := func(rctx request.CTX, channelID string) (bool, error) {
+		channel, appErr := app.GetChannel(rctx, channelID)
+		if appErr != nil {
+			return false, appErr
+		}
+		return channel.IsGroupOrDirect(), nil
+	}
+
+	attrValidationHook := properties.NewAccessControlAttributeValidationHook(s.propertyService,
+		properties.AccessControlAttributeValidationHookConfig{
+			PermissionChecker:    permChecker,
+			PluginChecker:        pluginChecker,
+			DirectChannelChecker: directChannelChecker,
+		}, cpaGroup.ID)
 	s.propertyService.AddHook(attrValidationHook)
 
 	// Generic property value audit hook — groups opt in with RegisterGroup.
@@ -418,7 +436,11 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	s.pushNotificationClient = s.httpService.MakeClient(true)
+	// Slash commands and outgoing webhooks give each request a deadline derived from
+	// ServiceSettings.OutgoingIntegrationRequestsTimeout, so this client must not impose a
+	// timeout of its own that would cap a configured value above httpservice.RequestTimeout.
 	s.outgoingWebhookClient = s.httpService.MakeClient(false)
+	s.outgoingWebhookClient.Timeout = 0
 
 	if err2 := utils.TranslationsPreInit(); err2 != nil {
 		return nil, errors.Wrapf(err2, "unable to load Mattermost translation files")
@@ -468,6 +490,9 @@ func NewServer(options ...Option) (*Server, error) {
 		UserService:        s.userService,
 		Store:              s.GetStore(),
 		Logger:             s.Log(),
+		PostDeliveryRecorderFn: func(userID string, post *model.Post) {
+			app.RecordPostDelivery(request.EmptyContext(s.Log()), userID, post, model.DeliveryMechanismEmail)
+		},
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to initialize email service")
@@ -537,12 +562,21 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.Warn("AccessControlSettings.EnableAccessControlAuditLogging is enabled but no active audit log target is configured; ABAC policy-decision audit logging will have no effect. Enable ExperimentalAuditSettings.FileEnabled or configure an advanced audit logging target bound to an audit level.")
 	}
 
+	s.warnIfDeliveryAuditTargetMissing(s.platform.Config())
+	s.platform.AddConfigListener(func(oldCfg, newCfg *model.Config) {
+		if !deliveryAuditWarnInputsChanged(oldCfg, newCfg) {
+			return
+		}
+		s.warnIfDeliveryAuditTargetMissing(newCfg)
+	})
+
 	s.platform.RemoveUnlicensedLogTargets(license)
 	s.platform.EnableLoggingMetrics()
 
 	s.loggerLicenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
 		s.platform.RemoveUnlicensedLogTargets(newLicense)
 		s.platform.EnableLoggingMetrics()
+		s.warnIfDeliveryAuditTargetMissing(s.platform.Config())
 	})
 
 	// Keep the push notification server in sync with the license's HPNS entitlement, and let a
@@ -1171,6 +1205,8 @@ func (s *Server) Start() error {
 				tlsConfig.MinVersion = tls.VersionTLS10
 			case "1.1":
 				tlsConfig.MinVersion = tls.VersionTLS11
+			case "1.3":
+				tlsConfig.MinVersion = tls.VersionTLS13
 			default:
 				tlsConfig.MinVersion = tls.VersionTLS12
 			}

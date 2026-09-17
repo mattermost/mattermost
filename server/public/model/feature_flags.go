@@ -82,9 +82,6 @@ type FeatureFlags struct {
 	// Enable classification markings for banners at the system and channel level
 	ClassificationMarkings bool
 
-	// Enable the Global Attributes management page in the System Console
-	GlobalAttributes bool
-
 	// Enable burn-on-read messages that automatically delete after viewing
 	BurnOnRead bool
 
@@ -131,6 +128,13 @@ type FeatureFlags struct {
 	// rank, and the admin console hides the rank type option.
 	PropertyFieldRank bool
 
+	// FEATURE_FLAG_REMOVAL: PropertyFieldGraph - Remove this when the feature is GA.
+	// Gates the "graph" property field type: when off, the app layer rejects
+	// creating a graph property field. Converting a field to or from graph is
+	// refused whatever this flag says — see App.graphPropertyFieldGate for what
+	// the flag does and does not restrict.
+	PropertyFieldGraph bool
+
 	TeamMembershipAccessControl bool
 
 	// Enable channel attributes (Smart Labels, banners) powered by the Properties API.
@@ -155,17 +159,16 @@ type FeatureFlags struct {
 	// being unreachable.
 	ClusterGracefulDrain bool
 
-	ChannelBookmarks bool
-
-	// Enable React concurrent rendering
-	EnableConcurrentReact bool
-
 	// Enable verifying plugin signatures against the MFI public key, in addition to the
 	// existing hard-coded Mattermost public key and any admin-configured public keys.
 	EnableMFIPluginSignaturePublicKey bool
 
 	// FEATURE_FLAG_REMOVAL: RecurringScheduledPosts - Remove this when the feature is GA.
 	RecurringScheduledPosts bool
+
+	// Gates post delivery audit logging. Enabling it requires a server restart, since it
+	// controls whether the /api/v4/delivery_tracking routes are registered.
+	PostDeliveryTracking bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -223,17 +226,17 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.PropertyFieldRank = true
 
+	f.PropertyFieldGraph = false
+
 	f.ChannelAttributes = false
 
 	f.MmBlocksEnabled = true
 
-	f.ChannelBookmarks = true
-
-	f.EnableConcurrentReact = false
-
 	f.EnableMFIPluginSignaturePublicKey = true
 
 	f.RecurringScheduledPosts = false
+
+	f.PostDeliveryTracking = false
 }
 
 // isValid rejects feature flag combinations that are no longer supported.
@@ -280,7 +283,7 @@ func (f *FeatureFlags) ToMap() map[string]string {
 	refStructVal := reflect.ValueOf(*f)
 	refStructType := reflect.TypeFor[FeatureFlags]()
 	ret := make(map[string]string)
-	for i := 0; i < refStructVal.NumField(); i++ {
+	for i := range refStructVal.NumField() {
 		refFieldVal := refStructVal.Field(i)
 		if !refFieldVal.IsValid() {
 			continue
