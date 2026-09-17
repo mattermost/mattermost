@@ -753,19 +753,27 @@ function makeChannelSearchFilter(
     return (channel: ChannelItem) => {
         const channelAttributions = collectAttributions ? [] as ChannelMatchAttribution[] : undefined;
 
+        // Direct and group channel names are opaque identifiers (userId__userId or a hex hash)
+        // that are never shown in the UI. Matching the search term against them produces false
+        // positives whenever the term happens to appear in the id (e.g. "ac" inside a GM hash).
+        const isDirectOrGroup =
+            channel.type === Constants.GM_CHANNEL || channel.type === Constants.DM_CHANNEL;
+
         pushMatchAttribution(
             channelAttributions,
             {source: 'display_name', value: channel.display_name || ''},
             channelPrefixLower,
         );
-        pushMatchAttribution(
-            channelAttributions,
-            {source: 'channel_name', value: channel.name || ''},
-            channelPrefixLower,
-        );
+        if (!isDirectOrGroup) {
+            pushMatchAttribution(
+                channelAttributions,
+                {source: 'channel_name', value: channel.name || ''},
+                channelPrefixLower,
+            );
+        }
 
-        let searchString = `${channel.display_name}${SEPARATOR}${channel.name}`;
-        if (channel.type === Constants.GM_CHANNEL || channel.type === Constants.DM_CHANNEL) {
+        let searchString = isDirectOrGroup ? (channel.display_name || '') : `${channel.display_name}${SEPARATOR}${channel.name}`;
+        if (isDirectOrGroup) {
             const usersInChannel = usersInChannels[channel.id] || new Set([]);
 
             // In case the channel is a DM and the profilesInChannel is not populated
@@ -796,7 +804,7 @@ function makeChannelSearchFilter(
                         attributeMemberMatches(channelAttributions, user, currentUserId, channelPrefixLower);
                     }
                 }
-                searchString += userString;
+                searchString += `${SEPARATOR}${userString}`;
             }
         }
 

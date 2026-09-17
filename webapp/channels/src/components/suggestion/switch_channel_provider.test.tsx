@@ -1004,6 +1004,111 @@ describe('components/SwitchChannelProvider', () => {
         expect(results.terms).toEqual(expectedOrder);
     });
 
+    it('should not match a GM or DM solely because its opaque channel name contains the term', () => {
+        // GM names are hex hashes and DM names are userId__userId — neither is shown in the UI.
+        // Matching against them surfaces conversations that look unrelated to what the user typed.
+        const callsBot = TestHelper.getUserMock({
+            id: 'calls_bot_id',
+            username: 'calls',
+            email: 'calls@example.com',
+        });
+        const otherUser = TestHelper.getUserMock({
+            id: 'user_one_id',
+            username: 'user-1',
+            email: 'user-1@example.com',
+        });
+        const currentUser = TestHelper.getUserMock({
+            id: 'current_user_id',
+            username: 'current.user',
+            email: 'current.user@example.com',
+        });
+
+        const gmHashContainingAc = '28e2c55b230cfac24733c17b6996b65789b283bc';
+        const dmNameContainingAc = `current_user_id__${'b'.repeat(24)}ac${'c'.repeat(24)}`;
+
+        const modifiedState = {
+            ...defaultState,
+            entities: {
+                ...defaultState.entities,
+                channels: {
+                    ...defaultState.entities.channels,
+                    myMembers: {
+                        calls_gm: {channel_id: 'calls_gm', last_viewed_at: 3},
+                        dm_with_ac_in_name: {channel_id: 'dm_with_ac_in_name', last_viewed_at: 2},
+                    },
+                    channels: {
+                        calls_gm: TestHelper.getChannelMock({
+                            id: 'calls_gm',
+                            type: 'G',
+                            name: gmHashContainingAc,
+                            display_name: 'calls, user-1',
+                            delete_at: 0,
+                        }),
+                        dm_with_ac_in_name: TestHelper.getChannelMock({
+                            id: 'dm_with_ac_in_name',
+                            type: 'D',
+                            name: dmNameContainingAc,
+                            display_name: '',
+                            delete_at: 0,
+                        }),
+                    },
+                    channelsInTeam: {
+                        '': new Set(['calls_gm', 'dm_with_ac_in_name']),
+                    },
+                },
+                preferences: {
+                    myPreferences: {
+                        'display_settings--name_format': {
+                            category: 'display_settings',
+                            name: 'name_format',
+                            user_id: 'current_user_id',
+                            value: 'username',
+                        },
+                        'group_channel_show--calls_gm': {
+                            category: 'group_channel_show',
+                            value: 'true',
+                            name: 'calls_gm',
+                            user_id: 'current_user_id',
+                        },
+                    },
+                },
+                users: {
+                    ...defaultState.entities.users,
+                    currentUserId: 'current_user_id',
+                    profiles: {
+                        current_user_id: currentUser,
+                        [callsBot.id]: callsBot,
+                        [otherUser.id]: otherUser,
+                        other_user_with_ac_in_id: TestHelper.getUserMock({
+                            id: `${'b'.repeat(24)}ac${'c'.repeat(24)}`,
+                            username: 'nope',
+                            email: 'nope@example.com',
+                        }),
+                    },
+                    profilesInChannel: {
+                        calls_gm: new Set(['current_user_id', callsBot.id, otherUser.id]),
+                        dm_with_ac_in_name: new Set(['current_user_id', `${'b'.repeat(24)}ac${'c'.repeat(24)}`]),
+                    },
+                },
+            },
+        };
+
+        const switchProvider = new SwitchChannelProvider();
+        switchProvider.store = mockStore(modifiedState);
+
+        const channels = [
+            modifiedState.entities.channels.channels.calls_gm,
+            modifiedState.entities.channels.channels.dm_with_ac_in_name,
+        ];
+
+        // Users are already filtered by the caller; pass none so this only exercises channel filtering
+        switchProvider.startNewRequest('');
+        const results = switchProvider.formatGroup('ac', channels, []);
+
+        expect(results.items.some((item) => item.channel.id === 'calls_gm')).toBe(false);
+        expect(results.items.some((item) => item.channel.id === 'dm_with_ac_in_name')).toBe(false);
+    });
+
     it('should filter out channels belonging to archived teams', async () => {
         const modifiedState = {
             ...defaultState,
