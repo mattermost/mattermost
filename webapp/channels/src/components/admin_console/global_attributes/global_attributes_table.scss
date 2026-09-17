@@ -51,12 +51,32 @@
     white-space: nowrap;
 }
 
+.GlobalAttributesTable__attribute {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
 .GlobalAttributesTable__name {
     overflow: hidden;
     color: var(--center-channel-color);
     font-weight: variables.$font-weight--semibold;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.GlobalAttributesTable__name--classification {
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+}
+
+.GlobalAttributesTable__subtitle {
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    font-size: 12px;
+    white-space: normal;
+}
+
+.GlobalAttributesTable__subtitle--classification {
+    color: rgba(var(--center-channel-color-rgb), 0.56);
 }
 
 .GlobalAttributesTable__actions--classification {
