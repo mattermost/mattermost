@@ -10,13 +10,15 @@ import type {PostType} from '@mattermost/types/posts';
 
 import {PostTypes} from 'mattermost-redux/constants/posts';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {isBurnOnReadABACPermissionEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
 import {
     isBurnOnReadEnabled,
     getBurnOnReadDurationMinutes,
-    canUserSendBurnOnRead,
 } from 'selectors/burn_on_read';
+
+import {useRenderPermission} from 'components/common/hooks/useRenderPermission';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
@@ -27,11 +29,21 @@ import useBurnOnRead from './use_burn_on_read';
 jest.mock('selectors/burn_on_read', () => ({
     isBurnOnReadEnabled: jest.fn(),
     getBurnOnReadDurationMinutes: jest.fn(),
-    canUserSendBurnOnRead: jest.fn(),
 }));
 
 jest.mock('mattermost-redux/selectors/entities/channels', () => ({
     getChannel: jest.fn(),
+}));
+
+jest.mock('mattermost-redux/selectors/entities/general', () => ({
+    ...jest.requireActual('mattermost-redux/selectors/entities/general'),
+    isBurnOnReadABACPermissionEnabled: jest.fn(),
+}));
+
+// Mocked rather than driven through redux state: the hook's own test file covers the
+// fetch/cache plumbing, and what matters here is how this hook composes the decision.
+jest.mock('components/common/hooks/useRenderPermission', () => ({
+    useRenderPermission: jest.fn(),
 }));
 
 jest.mock('mattermost-redux/selectors/entities/users', () => ({
@@ -94,8 +106,9 @@ describe('useBurnOnRead', () => {
         jest.clearAllMocks();
         (isBurnOnReadEnabled as jest.Mock).mockReturnValue(true);
         (getBurnOnReadDurationMinutes as jest.Mock).mockReturnValue(10);
-        (canUserSendBurnOnRead as jest.Mock).mockReturnValue(true);
         (getCurrentUser as jest.Mock).mockReturnValue({id: 'user-id', is_bot: false});
+        (isBurnOnReadABACPermissionEnabled as jest.Mock).mockReturnValue(true);
+        (useRenderPermission as jest.Mock).mockReturnValue(true);
     });
 
     describe('button visibility in different channel types', () => {
@@ -273,10 +286,10 @@ describe('useBurnOnRead', () => {
             expect(result.current.additionalControl).toBeUndefined();
         });
 
-        it('should hide button when user cannot send burn-on-read', () => {
-            (canUserSendBurnOnRead as jest.Mock).mockReturnValue(false);
+        it('should hide button when the ABAC policy denies the action', () => {
             const publicChannel = createMockChannel('O');
             (getChannel as jest.Mock).mockReturnValue(publicChannel);
+            (useRenderPermission as jest.Mock).mockReturnValue(false);
 
             const {result} = renderHook(
                 () => useBurnOnRead(
@@ -290,6 +303,25 @@ describe('useBurnOnRead', () => {
             );
 
             expect(result.current.additionalControl).toBeUndefined();
+        });
+
+        it('should show button when the ABAC policy allows the action', () => {
+            const publicChannel = createMockChannel('O');
+            (getChannel as jest.Mock).mockReturnValue(publicChannel);
+            (useRenderPermission as jest.Mock).mockReturnValue(true);
+
+            const {result} = renderHook(
+                () => useBurnOnRead(
+                    createMockDraft(),
+                    mockHandleDraftChange,
+                    mockFocusTextbox,
+                    false,
+                    true,
+                ),
+                {wrapper},
+            );
+
+            expect(result.current.additionalControl).toBeDefined();
         });
 
         it('should show button when user is a bot (bots can send BoR for OTP, integrations)', () => {
@@ -398,6 +430,29 @@ describe('useBurnOnRead', () => {
             expect(result.current.labels).toBeDefined();
         });
 
+        // The policy gates the button but deliberately not the label. A draft already
+        // marked burn-on-read keeps showing it, and UnifiedLabelsWrapper's remove-all
+        // clears it, so a denied user is never stuck with an invisible marking.
+        it('should still show the label when the policy denies the action', () => {
+            const publicChannel = createMockChannel('O');
+            (getChannel as jest.Mock).mockReturnValue(publicChannel);
+            (useRenderPermission as jest.Mock).mockReturnValue(false);
+
+            const {result} = renderHook(
+                () => useBurnOnRead(
+                    createMockDraft(PostTypes.BURN_ON_READ),
+                    mockHandleDraftChange,
+                    mockFocusTextbox,
+                    false,
+                    true,
+                ),
+                {wrapper},
+            );
+
+            expect(result.current.additionalControl).toBeUndefined();
+            expect(result.current.labels).toBeDefined();
+        });
+
         it('should hide label in thread replies even if burn-on-read is active', () => {
             const publicChannel = createMockChannel('O');
             (getChannel as jest.Mock).mockReturnValue(publicChannel);
@@ -419,6 +474,49 @@ describe('useBurnOnRead', () => {
             );
 
             expect(result.current.labels).toBeUndefined();
+        });
+    });
+
+    // The flag drives both fall-back behaviours in one place, so pin the pair. With the
+    // flag off we must neither gate the control nor ask the server — the action is not
+    // registered for render decisions then, and asking would reject the whole batched
+    // request, taking file upload's decision down with it.
+    describe('feature flag coupling', () => {
+        const renderWithFlag = (flagEnabled: boolean) => {
+            (getChannel as jest.Mock).mockReturnValue(createMockChannel('O'));
+            (isBurnOnReadABACPermissionEnabled as jest.Mock).mockReturnValue(flagEnabled);
+
+            renderHook(
+                () => useBurnOnRead(
+                    createMockDraft(),
+                    mockHandleDraftChange,
+                    mockFocusTextbox,
+                    false,
+                    true,
+                ),
+                {wrapper},
+            );
+
+            return (useRenderPermission as jest.Mock).mock.calls[0];
+        };
+
+        it('fails closed and requests the decision when the flag is on', () => {
+            const [identifier, defaultAllowed, suppressRequest] = renderWithFlag(true);
+
+            expect(identifier).toEqual({
+                resourceType: 'channel',
+                resourceId: 'channel-id',
+                action: 'create_burn_on_read_post',
+            });
+            expect(defaultAllowed).toBe(false);
+            expect(suppressRequest).toBe(false);
+        });
+
+        it('fails open and suppresses the request when the flag is off', () => {
+            const [, defaultAllowed, suppressRequest] = renderWithFlag(false);
+
+            expect(defaultAllowed).toBe(true);
+            expect(suppressRequest).toBe(true);
         });
     });
 

@@ -4,20 +4,23 @@
 import React, {useCallback, useMemo} from 'react';
 import {useSelector} from 'react-redux';
 
+import {ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ} from '@mattermost/types/access_control';
+
 import {PostTypes} from 'mattermost-redux/constants/posts';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {isBurnOnReadABACPermissionEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUser, getUser} from 'mattermost-redux/selectors/entities/users';
 import {getDirectChannelName, getUserIdFromChannelName, isDirectChannel} from 'mattermost-redux/utils/channel_utils';
 
 import {
     isBurnOnReadEnabled,
     getBurnOnReadDurationMinutes,
-    canUserSendBurnOnRead,
 } from 'selectors/burn_on_read';
 
 import BurnOnReadButton from 'components/burn_on_read/burn_on_read_button';
 import BurnOnReadLabel from 'components/burn_on_read/burn_on_read_label';
 import BurnOnReadTourTip from 'components/burn_on_read/burn_on_read_tour_tip';
+import {useRenderPermission} from 'components/common/hooks/useRenderPermission';
 
 import 'components/burn_on_read/burn_on_read_control.scss';
 
@@ -46,8 +49,17 @@ const useBurnOnRead = (
     const rootId = draft.rootId;
     const channelId = draft.channelId;
     const isEnabled = useSelector(isBurnOnReadEnabled);
+    const borFeatureFlagEnabled = useSelector(isBurnOnReadABACPermissionEnabled);
+    const allowedByPolicy = useRenderPermission(
+        {
+            resourceType: 'channel',
+            resourceId: draft.channelId,
+            action: ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ,
+        },
+        !borFeatureFlagEnabled, // flag off => don't gate access.  flag on => fail closed
+        !borFeatureFlagEnabled, // suppress permission request if feature flag is not enabled
+    );
     const durationMinutes = useSelector(getBurnOnReadDurationMinutes);
-    const canSend = useSelector(canUserSendBurnOnRead);
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
     const currentUser = useSelector(getCurrentUser);
 
@@ -115,7 +127,7 @@ const useBurnOnRead = (
 
     // Button component with tour tip wrapper (in formatting bar)
     const additionalControl = useMemo(() =>
-        (!rootId && isEnabled && canSend && isAllowedInChannel ? (
+        (!rootId && isEnabled && allowedByPolicy && isAllowedInChannel ? (
             <div
                 key='burn-on-read-control-key'
                 className='BurnOnReadControl'
@@ -132,7 +144,7 @@ const useBurnOnRead = (
                     onTryItOut={() => handleBurnOnReadApply(true)}
                 />
             </div>
-        ) : undefined), [rootId, isEnabled, canSend, isAllowedInChannel, hasBurnOnReadSet, handleBurnOnReadApply, shouldShowPreview, durationMinutes]);
+        ) : undefined), [rootId, isEnabled, allowedByPolicy, isAllowedInChannel, hasBurnOnReadSet, handleBurnOnReadApply, shouldShowPreview, durationMinutes]);
 
     return {
         labels,

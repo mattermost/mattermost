@@ -24,15 +24,17 @@ const useRenderDecision = makeUseEntity<RenderPermissionEntry, RenderDecisionIde
 //
 // defaultAllowed is required rather than defaulted: silently failing open on a permissions
 // affordance is the mistake worth making impossible.
-export function useRenderPermission({resourceType, resourceId, action}: RenderDecisionIdentifier, defaultAllowed: boolean): boolean {
+//
+// suppressRequest is defaulted to false - to support feature flags of additional permissions, this can be used to avoid fetching a permission that isn't enabled
+export function useRenderPermission({resourceType, resourceId, action}: RenderDecisionIdentifier, defaultAllowed: boolean, suppressRequest: boolean = false): boolean {
     const enabled = useSelector(isPermissionPoliciesEnabled);
 
     // Undefined identifier means nothing to decide, and useEntity then neither selects nor fetches.
     // A channel-less surface is real: the editor is exported to plugins, which can render it
     // without one. Memoized because useEntity keys its fetch effect on the identifier.
     const identifier = useMemo(
-        () => (enabled && resourceId ? {resourceType, resourceId, action} : undefined),
-        [enabled, resourceType, resourceId, action],
+        () => (enabled && !suppressRequest && resourceId ? {resourceType, resourceId, action} : undefined),
+        [enabled, suppressRequest, resourceType, resourceId, action],
     );
 
     const decision = useRenderDecision(identifier as RenderDecisionIdentifier);
