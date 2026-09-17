@@ -8,10 +8,11 @@ import '@testing-library/jest-dom';
 import type {DeepPartial} from '@mattermost/types/utilities';
 import type {UserProfile} from '@mattermost/types/users';
 
+import General from 'mattermost-redux/constants/general';
 import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles_helpers';
 
 import {renderWithContext, userEvent} from 'tests/react_testing_utils';
-import Constants from 'utils/constants';
+import Constants, {ModalIdentifiers} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
@@ -50,7 +51,9 @@ describe('SystemUsersListAction Component', () => {
     const user = Object.assign(TestHelper.getUserMock(), {auth_service: 'email'}) as UserProfile;
     const ldapUser = {...user, auth_service: Constants.LDAP_SERVICE} as UserProfile;
     const deactivatedLDAPUser = {...user, auth_service: Constants.LDAP_SERVICE, delete_at: 12345} as UserProfile;
-    const guestUser = {...user, roles: 'system_guest'} as UserProfile;
+    const memberUser = {...user, roles: General.SYSTEM_USER_ROLE} as UserProfile;
+    const guestUser = {...user, roles: General.SYSTEM_GUEST_ROLE} as UserProfile;
+    const userManager = TestHelper.getUserMock({id: 'user_manager_id', roles: 'system_user_manager'});
 
     // Guest accounts have to be licensed and enabled for "Demote to guest" to be offered at all.
     const guestAccountsEnabledState: DeepPartial<GlobalState> = {
@@ -74,11 +77,11 @@ describe('SystemUsersListAction Component', () => {
         jest.clearAllMocks();
     });
 
-    const renderComponent = (authServiceUser: UserProfile, initialState?: DeepPartial<GlobalState>) => {
-        renderWithContext(
+    const renderComponent = (listedUser: UserProfile, initialState?: DeepPartial<GlobalState>, viewer = currentUser) => {
+        return renderWithContext(
             <SystemUsersListAction
-                user={authServiceUser}
-                currentUser={currentUser}
+                user={listedUser}
+                currentUser={viewer}
                 tableId='testing'
                 rowIndex={0}
                 onError={onError}
@@ -91,6 +94,10 @@ describe('SystemUsersListAction Component', () => {
     const openMenu = async (buttonText: string) => {
         await userEvent.click(screen.getByText(buttonText));
         return screen.findByRole('menu');
+    };
+
+    const getOpenModalIds = (state: GlobalState) => {
+        return Object.keys(state.views.modals.modalState).filter((modalId) => state.views.modals.modalState[modalId].open);
     };
 
     const openMenuAndFindItem = async (buttonText: string, itemText: RegExp) => {
@@ -148,7 +155,7 @@ describe('SystemUsersListAction Component', () => {
     });
 
     test('a member is still offered "Manage roles" and "Demote to guest"', async () => {
-        renderComponent(user, guestAccountsEnabledState);
+        renderComponent(memberUser, guestAccountsEnabledState);
 
         const menu = await openMenu('Member');
 
@@ -157,31 +164,70 @@ describe('SystemUsersListAction Component', () => {
         expect(within(menu).queryByRole('menuitem', {name: /promote to member/i})).not.toBeInTheDocument();
     });
 
-    test('a system admin who also holds the guest role is treated as a guest', async () => {
-        renderComponent({...user, roles: 'system_guest system_admin'} as UserProfile, guestAccountsEnabledState);
+    test('a user holding both the guest and system admin roles is treated as a guest', async () => {
+        renderComponent({...user, roles: `${General.SYSTEM_GUEST_ROLE} ${General.SYSTEM_ADMIN_ROLE}`} as UserProfile, guestAccountsEnabledState);
 
+        // The row button reports the higher-priority System Admin role, so the guest exclusion cannot key off the label.
         const menu = await openMenu('System Admin');
 
         expect(within(menu).queryByRole('menuitem', {name: /manage roles/i})).not.toBeInTheDocument();
         expect(within(menu).getByRole('menuitem', {name: /promote to member/i})).toBeInTheDocument();
     });
 
-    test('"Manage roles" stays hidden for a guest even when the current user is not a system admin', async () => {
-        renderWithContext(
-            <SystemUsersListAction
-                user={guestUser}
-                currentUser={TestHelper.getUserMock({id: 'user_manager_id', roles: 'system_user_manager'})}
-                tableId='testing'
-                rowIndex={0}
-                onError={onError}
-                updateUser={updateUser}
-            />,
-            guestAccountsEnabledState,
-        );
+    test('a deactivated guest is not offered "Manage roles" either', async () => {
+        renderComponent({...guestUser, delete_at: 12345} as UserProfile, guestAccountsEnabledState);
 
-        const menu = await openMenu('Guest');
+        const menu = await openMenu('Deactivated');
 
         expect(within(menu).queryByRole('menuitem', {name: /manage roles/i})).not.toBeInTheDocument();
         expect(within(menu).getByRole('menuitem', {name: /promote to member/i})).toBeInTheDocument();
+    });
+
+    test('"Manage roles" is hidden from a viewer who is not a system admin', async () => {
+        renderComponent(memberUser, guestAccountsEnabledState, userManager);
+
+        const menu = await openMenu('Member');
+
+        expect(within(menu).queryByRole('menuitem', {name: /manage roles/i})).not.toBeInTheDocument();
+        expect(within(menu).getByRole('menuitem', {name: /manage teams/i})).toBeInTheDocument();
+    });
+
+    test('a guest can still be promoted by a viewer who is not a system admin', async () => {
+        renderComponent(guestUser, guestAccountsEnabledState, userManager);
+
+        const menu = await openMenu('Guest');
+
+        expect(within(menu).getByRole('menuitem', {name: /promote to member/i})).toBeInTheDocument();
+    });
+
+    test('"Promote to member" remains available without a license or guest accounts enabled', async () => {
+        renderComponent(guestUser);
+
+        const menu = await openMenu('Guest');
+
+        expect(within(menu).getByRole('menuitem', {name: /promote to member/i})).toBeInTheDocument();
+        expect(within(menu).queryByRole('menuitem', {name: /manage roles/i})).not.toBeInTheDocument();
+    });
+
+    test('promoting a guest opens the promote confirmation, not the manage roles modal', async () => {
+        const {store} = renderComponent(guestUser, guestAccountsEnabledState);
+
+        const menu = await openMenu('Guest');
+        await userEvent.click(within(menu).getByRole('menuitem', {name: /promote to member/i}));
+
+        await waitFor(() => {
+            expect(getOpenModalIds(store.getState())).toEqual([ModalIdentifiers.PROMOTE_TO_MEMBER_MODAL]);
+        });
+    });
+
+    test('managing roles for a member opens the manage roles modal', async () => {
+        const {store} = renderComponent(memberUser, guestAccountsEnabledState);
+
+        const menu = await openMenu('Member');
+        await userEvent.click(within(menu).getByRole('menuitem', {name: /manage roles/i}));
+
+        await waitFor(() => {
+            expect(getOpenModalIds(store.getState())).toEqual([ModalIdentifiers.MANAGE_ROLES_MODAL]);
+        });
     });
 });
