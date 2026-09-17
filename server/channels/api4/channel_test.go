@@ -537,12 +537,13 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 		// requiredAttributesEnforced folds the ChannelAttributes umbrella flag
 		// in, and classification gets no special treatment from it: it is
 		// enforced or not by the same single condition as every other field.
+		//
+		// The field itself is authored first, under default (enforced)
+		// conditions -- a channel field cannot be newly marked required once
+		// enforcement is already off, so this mirrors the real scenario the
+		// flag exists for: a field configured before, disabled after.
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.FeatureFlags.ChannelAttributes = false
 			cfg.FeatureFlags.ClassificationMarkings = true
-		})
-		defer th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.FeatureFlags.ChannelAttributes = true
 		})
 
 		optionID := model.NewId()
@@ -577,6 +578,13 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 		require.Nil(t, fieldErr)
 		t.Cleanup(func() {
 			require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, classificationField.ID, true, ""))
+		})
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributes = false
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributes = true
 		})
 
 		req, _ := newRequest()
@@ -675,13 +683,9 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 	})
 
 	t.Run("a required classification value is not enforced either when ChannelAttributesRequiredDisabled is on", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.FeatureFlags.ChannelAttributesRequiredDisabled = true
-		})
-		defer th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.FeatureFlags.ChannelAttributesRequiredDisabled = false
-		})
-
+		// The field is authored first, kill switch still off -- a channel
+		// field cannot be newly marked required once the switch is engaged,
+		// so this mirrors the real scenario: configured before, disabled after.
 		optionID := model.NewId()
 		templateField, fieldErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
 			Name:       "classification",
@@ -714,6 +718,13 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 		require.Nil(t, fieldErr)
 		t.Cleanup(func() {
 			require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, classificationField.ID, true, ""))
+		})
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributesRequiredDisabled = true
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributesRequiredDisabled = false
 		})
 
 		req, _ := newRequest()

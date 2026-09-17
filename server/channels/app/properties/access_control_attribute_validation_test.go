@@ -3150,6 +3150,223 @@ func TestAccessControlAttributeValidationHookRequiredEnforcementFlag(t *testing.
 	})
 }
 
+// TestAccessControlAttributeValidationHookRequiredEnforcementFlagNonChannelScope
+// pins that the kill switch is scoped to channel-object-type fields only: a
+// required post or user field stays enforced on both the write and delete
+// paths even while RequiredAttributeEnforcement reports enforcement off.
+func TestAccessControlAttributeValidationHookRequiredEnforcementFlagNonChannelScope(t *testing.T) {
+	th := Setup(t)
+
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_required_flag_non_channel", Version: model.PropertyGroupVersionV2})
+	require.NoError(t, err)
+
+	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{
+		RequiredAttributeEnforcement: func() bool { return false },
+	}, group.ID)
+	th.service.AddHook(hook)
+
+	newRequiredField := func(t *testing.T, objectType string) *model.PropertyField {
+		t.Helper()
+		field, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "text_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: objectType,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrRequired: true,
+			},
+		})
+		require.NoError(t, createErr)
+		return field
+	}
+
+	requireRefused := func(t *testing.T, err error) {
+		t.Helper()
+		require.Error(t, err)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, "app.property_value.required.app_error", appErr.Id)
+	}
+
+	t.Run("a required post field write is still refused with enforcement off", func(t *testing.T) {
+		field := newRequiredField(t, model.PropertyFieldObjectTypePost)
+		_, err := th.service.UpsertPropertyValue(th.Context, &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   model.NewId(),
+			TargetType: model.PropertyValueTargetTypePost,
+			Value:      json.RawMessage(`""`),
+		})
+		requireRefused(t, err)
+	})
+
+	t.Run("deleting a required post field value is still refused with enforcement off", func(t *testing.T) {
+		field := newRequiredField(t, model.PropertyFieldObjectTypePost)
+		value, err := th.service.UpsertPropertyValue(th.Context, &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   model.NewId(),
+			TargetType: model.PropertyValueTargetTypePost,
+			Value:      json.RawMessage(`"SET"`),
+		})
+		require.NoError(t, err)
+
+		requireRefused(t, th.service.DeletePropertyValue(th.Context, group.ID, value.ID))
+	})
+
+	t.Run("a required user field write is still refused with enforcement off", func(t *testing.T) {
+		field := newRequiredField(t, model.PropertyFieldObjectTypeUser)
+		_, err := th.service.UpsertPropertyValue(th.Context, &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   model.NewId(),
+			TargetType: model.PropertyValueTargetTypeUser,
+			Value:      json.RawMessage(`""`),
+		})
+		requireRefused(t, err)
+	})
+
+	t.Run("deleting a required user field value is still refused with enforcement off", func(t *testing.T) {
+		field := newRequiredField(t, model.PropertyFieldObjectTypeUser)
+		value, err := th.service.UpsertPropertyValue(th.Context, &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   model.NewId(),
+			TargetType: model.PropertyValueTargetTypeUser,
+			Value:      json.RawMessage(`"SET"`),
+		})
+		require.NoError(t, err)
+
+		requireRefused(t, th.service.DeletePropertyValue(th.Context, group.ID, value.ID))
+	})
+}
+
+// TestAccessControlAttributeValidationHookRequiredAttrCreationGuard pins the
+// field-definition side of the kill switch: while enforcement is off, a
+// channel field cannot be newly marked required (create or update), a field
+// that predates the switch keeps its required=true untouched, and a
+// non-channel field is never gated by this at all.
+func TestAccessControlAttributeValidationHookRequiredAttrCreationGuard(t *testing.T) {
+	th := Setup(t)
+
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_required_creation_guard", Version: model.PropertyGroupVersionV2})
+	require.NoError(t, err)
+
+	enforced := true
+	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{
+		RequiredAttributeEnforcement: func() bool { return enforced },
+	}, group.ID)
+	th.service.AddHook(hook)
+
+	requireDisabledErr := func(t *testing.T, err error) {
+		t.Helper()
+		require.Error(t, err)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, "app.property_field.required_disabled.app_error", appErr.Id)
+	}
+
+	t.Run("creating a required channel field is refused while enforcement is off", func(t *testing.T) {
+		enforced = false
+		defer func() { enforced = true }()
+
+		_, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "text_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrRequired: true,
+			},
+		})
+		requireDisabledErr(t, createErr)
+	})
+
+	t.Run("creating a required post or user field succeeds while enforcement is off", func(t *testing.T) {
+		enforced = false
+		defer func() { enforced = true }()
+
+		for _, objectType := range []string{model.PropertyFieldObjectTypePost, model.PropertyFieldObjectTypeUser} {
+			_, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+				GroupID:    group.ID,
+				Name:       "text_" + model.NewId(),
+				Type:       model.PropertyFieldTypeText,
+				TargetType: "system",
+				ObjectType: objectType,
+				Attrs: model.StringInterface{
+					model.PropertyFieldAttrRequired: true,
+				},
+			})
+			require.NoError(t, createErr, "object type %s", objectType)
+		}
+	})
+
+	t.Run("marking an existing channel field required is refused while enforcement is off", func(t *testing.T) {
+		field, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "text_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+		})
+		require.NoError(t, createErr)
+
+		enforced = false
+		defer func() { enforced = true }()
+
+		field.Attrs[model.PropertyFieldAttrRequired] = true
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		requireDisabledErr(t, updateErr)
+	})
+
+	t.Run("a channel field already required before the switch keeps its attrs editable", func(t *testing.T) {
+		field, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "text_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrRequired: true,
+			},
+		})
+		require.NoError(t, createErr)
+
+		enforced = false
+		defer func() { enforced = true }()
+
+		// required stays true, untouched -- only an unrelated attr changes.
+		field.Attrs[model.PropertyFieldAttrDisplayName] = "Renamed"
+		updated, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.NoError(t, updateErr)
+		assert.True(t, model.IsPropertyFieldRequired(updated))
+	})
+
+	t.Run("turning required off on an existing channel field is allowed while enforcement is off", func(t *testing.T) {
+		field, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "text_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrRequired: true,
+			},
+		})
+		require.NoError(t, createErr)
+
+		enforced = false
+		defer func() { enforced = true }()
+
+		field.Attrs[model.PropertyFieldAttrRequired] = false
+		updated, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.NoError(t, updateErr)
+		assert.False(t, model.IsPropertyFieldRequired(updated))
+	})
+}
+
 // TestAccessControlAttributeValidationHookRequiredEnforcementFlagClassification
 // pins that classification gets no special treatment from the kill switch: a
 // required classification-linked field goes inert and comes back exactly like
