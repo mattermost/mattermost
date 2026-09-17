@@ -388,7 +388,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                     onClick={handleActivateUserClick}
                 />
             )}
-            {/* Guests are promoted with "Promote to member", which also migrates their team and channel memberships. */}
+            {/* Hidden for guests: setting the role here leaves their team and channel memberships behind, which "Promote to member" migrates. */}
             {isCurrentUserSystemAdmin && !isGuestUser &&
                 <Menu.Item
                     id={`${menuItemIdPrefix}-manageRoles`}

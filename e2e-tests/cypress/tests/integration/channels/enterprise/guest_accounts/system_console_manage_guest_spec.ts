@@ -71,8 +71,7 @@ describe('Guest Account - Verify Manage Guest Users', () => {
             cy.findByText(includeOption).should('be.visible');
         });
 
-        // * Verify the manage options which should not be displayed for Guest user.
-        // Guests are promoted with "Promote to member", which also migrates their team and channel memberships.
+        // * Verify the manage options which should not be displayed for Guest user
         const missingOptions = ['Manage roles', 'Demote to guest'];
         missingOptions.forEach((missingOption) => {
             cy.findByText(missingOption).should('not.exist');

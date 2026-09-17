@@ -55,7 +55,7 @@ describe('SystemUsersListAction Component', () => {
     const guestUser = {...user, roles: General.SYSTEM_GUEST_ROLE} as UserProfile;
     const userManager = TestHelper.getUserMock({id: 'user_manager_id', roles: 'system_user_manager'});
 
-    // Guest accounts have to be licensed and enabled for "Demote to guest" to be offered at all.
+    // "Demote to guest" is only offered when guest accounts are licensed and enabled.
     const guestAccountsEnabledState: DeepPartial<GlobalState> = {
         entities: {
             general: {
@@ -167,14 +167,14 @@ describe('SystemUsersListAction Component', () => {
     test('a user holding both the guest and system admin roles is treated as a guest', async () => {
         renderComponent({...user, roles: `${General.SYSTEM_GUEST_ROLE} ${General.SYSTEM_ADMIN_ROLE}`} as UserProfile);
 
-        // The row button reports the higher-priority System Admin role, so the guest exclusion cannot key off the label.
+        // The row button shows the highest-priority role, so a guest admin's menu opens from "System Admin".
         const menu = await openMenu('System Admin');
 
         expect(within(menu).queryByRole('menuitem', {name: /manage roles/i})).not.toBeInTheDocument();
         expect(within(menu).getByRole('menuitem', {name: /promote to member/i})).toBeInTheDocument();
     });
 
-    test('a deactivated guest is not offered "Manage roles" either', async () => {
+    test('a deactivated guest is not offered "Manage roles"', async () => {
         renderComponent({...guestUser, delete_at: 12345} as UserProfile);
 
         const menu = await openMenu('Deactivated');
