@@ -25,6 +25,7 @@ import {
     deleteGlobalAttributeFieldIfExists,
     deleteLinkedDependentField,
     requireGlobalAttributesEnabled,
+    requireHierarchicalAttributesEnabled,
 } from './global_attributes_helpers';
 
 test.describe('System Console - Global Attributes listing', {tag: '@system_console'}, () => {
@@ -400,6 +401,46 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
                 }
             },
         );
+
+        /**
+         * @objective Ensure a seeded graph field renders as Hierarchical with an options count,
+         * not as Free Text or an unknown type.
+         */
+        test('renders a seeded graph field as Hierarchical with its option count', async ({pw}) => {
+            const {adminUser, adminClient} = await requireHierarchicalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const name = `e2e_global_attribute_graph_${timestamp}`;
+            const displayName = `E2E Hierarchical Attribute ${timestamp}`;
+
+            try {
+                await createGlobalAttributeField(adminClient, name, {
+                    type: 'graph',
+                    attrs: {
+                        display_name: displayName,
+                        options: [
+                            {id: '', name: 'Air', parents: []},
+                            {id: '', name: 'Fighter', parents: ['Air']},
+                        ],
+                    },
+                });
+
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                const row = systemConsolePage.page.locator('tr', {
+                    has: systemConsolePage.page.getByTestId('global-attribute-name').filter({hasText: displayName}),
+                });
+
+                await expect(row.getByTestId('global-attribute-name')).toHaveText(displayName);
+                await expect(row.getByTestId('global-attribute-type')).toContainText('Hierarchical');
+                await expect(row.getByTestId('global-attribute-type').locator('svg')).toBeVisible();
+                await expect(row.getByTestId('global-attribute-source')).toContainText('Managed here');
+                await expect(row.getByTestId('global-attribute-options')).toContainText('2 options');
+            } finally {
+                await deleteGlobalAttributeFieldIfExists(adminClient, name);
+            }
+        });
 
         /**
          * @objective Verify each attribute's persisted sort_order propagates to profile settings
