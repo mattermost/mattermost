@@ -60,6 +60,15 @@ func (s LocalCachePropertyFieldStore) DeleteOptions(groupID, fieldID string, exp
 	return nil
 }
 
+func (s LocalCachePropertyFieldStore) PermanentDeleteOwnedOptions(groupID, fieldID string) error {
+	if err := s.PropertyFieldStore.PermanentDeleteOwnedOptions(groupID, fieldID); err != nil {
+		return err
+	}
+
+	s.invalidateForOptionChange(groupID)
+	return nil
+}
+
 // invalidateForOptionChange drops the cached fields of the group whose field
 // just had its options or their hierarchy changed. Neither kind of change writes
 // a column of the field, but both move its UpdateAt -- which is how clients hear

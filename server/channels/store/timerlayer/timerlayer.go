@@ -8984,6 +8984,22 @@ func (s *TimerLayerPropertyFieldStore) MutateOptions(groupID string, fieldID str
 	return err
 }
 
+func (s *TimerLayerPropertyFieldStore) PermanentDeleteOwnedOptions(groupID string, fieldID string) error {
+	start := time.Now()
+
+	err := s.PropertyFieldStore.PermanentDeleteOwnedOptions(groupID, fieldID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.PermanentDeleteOwnedOptions", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerPropertyFieldStore) SearchPropertyFields(rctx request.CTX, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
 	start := time.Now()
 

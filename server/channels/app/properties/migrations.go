@@ -103,6 +103,17 @@ func isEligibleForGlobalAttributesMigration(field *model.PropertyField) bool {
 	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
 		return false
 	}
+	return isPlainCPAField(field)
+}
+
+// isPlainCPAField reports whether field is one this migration may act on at
+// all: not plugin-managed, protected, or owner-managed. Shared by
+// isEligibleForGlobalAttributesMigration (an unlinked field) and the
+// already-linked cleanup below (an already-linked field) -- a field excluded
+// for any of these reasons may be linked for reasons that have nothing to do
+// with this migration, and its own option rows are not this migration's to
+// touch either way.
+func isPlainCPAField(field *model.PropertyField) bool {
 	if sourcePluginID, _ := field.Attrs[model.PropertyAttrsSourcePluginID].(string); sourcePluginID != "" {
 		return false
 	}
@@ -368,6 +379,18 @@ func (ps *PropertyService) MigrateLinkCPAFieldToGlobalAttributeTemplate(rctx req
 		return nil, fmt.Errorf("MigrateLinkCPAFieldToGlobalAttributeTemplate: failed to link field %q to template %q: %w", fieldID, templateID, err)
 	}
 
+	// The template was created with its own copy of this field's options
+	// (attemptCreateOrReuseTemplate deep-copies Attrs, IDs included), and a
+	// linked field derives its options from the template it links to rather
+	// than holding a copy. Its own rows are now redundant, and optionOwnerIDs
+	// unions a linked field's own rows with its template's, so leaving them
+	// live would double every option this field's options are read as.
+	if field.Type.SupportsOptions() {
+		if err := ps.fieldStore.PermanentDeleteOwnedOptions(groupID, fieldID); err != nil {
+			return nil, fmt.Errorf("MigrateLinkCPAFieldToGlobalAttributeTemplate: failed to clear field %q's own options after linking to template %q: %w", fieldID, templateID, err)
+		}
+	}
+
 	return updated[0], nil
 }
 
@@ -410,6 +433,31 @@ func (ps *PropertyService) MigrateCPAFieldsToGlobalAttributes(rctx request.CTX) 
 
 	for _, field := range fields {
 		if !isEligibleForGlobalAttributesMigration(field) {
+			// A field this migration itself linked derives its options from
+			// that template, but a prior version of the link step below left
+			// its own pre-linking option rows in place -- and optionOwnerIDs
+			// (property_field_options.go) unions a linked field's own rows
+			// with its template's, so every option it serves came back
+			// doubled. Clearing them here, on every pass over such a field,
+			// is what makes clearing this migration's own System-key marker
+			// and re-running it a genuine "fixes itself" for installs that
+			// already carry the duplication -- no separate migration or
+			// marker needed for it. isPlainCPAField excludes anything linked
+			// for reasons that have nothing to do with this migration (e.g. a
+			// plugin-managed field with its own, unrelated link).
+			if field.LinkedFieldID != nil && *field.LinkedFieldID != "" && field.Type.SupportsOptions() && isPlainCPAField(field) {
+				if clearErr := ps.fieldStore.PermanentDeleteOwnedOptions(groupID, field.ID); clearErr != nil {
+					// Counted toward retryable, not skipped: skipped would let the
+					// caller persist the "done" marker with this field's duplication
+					// still unfixed, and never retry it again.
+					rctx.Logger().Warn("CPA-to-Global-Attributes migration: field will be retried on a later restart",
+						mlog.String("field_id", field.ID), mlog.String("field_name", field.Name), mlog.Err(clearErr))
+					retryable++
+					continue
+				}
+				rctx.Logger().Info("CPA-to-Global-Attributes migration: cleared an already-linked field's own options",
+					mlog.String("field_id", field.ID), mlog.String("field_name", field.Name))
+			}
 			skipped++
 			continue
 		}

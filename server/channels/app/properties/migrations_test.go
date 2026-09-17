@@ -58,6 +58,25 @@ func (s *invalidFieldReturningStore) Get(rctx request.CTX, groupID, id string) (
 	return field, err
 }
 
+// optionsCleanupSpyStore wraps a real store.PropertyFieldStore and records
+// every PermanentDeleteOwnedOptions call, optionally failing the one made for
+// a specific field ID -- simulating a transient DB error during the
+// already-linked-field cleanup pass, and letting a test assert whether the
+// guard on an optionless field skipped calling it at all.
+type optionsCleanupSpyStore struct {
+	store.PropertyFieldStore
+	failForFieldID string
+	calledFor      []string
+}
+
+func (s *optionsCleanupSpyStore) PermanentDeleteOwnedOptions(groupID, fieldID string) error {
+	s.calledFor = append(s.calledFor, fieldID)
+	if fieldID == s.failForFieldID {
+		return errors.New("simulated transient DB error")
+	}
+	return s.PropertyFieldStore.PermanentDeleteOwnedOptions(groupID, fieldID)
+}
+
 func TestDeepCopyAttrs(t *testing.T) {
 	t.Run("nil attrs returns an empty, non-nil map", func(t *testing.T) {
 		clone, err := deepCopyAttrs(nil)
@@ -224,6 +243,74 @@ func TestMigrateCPAFieldsToGlobalAttributes_MigratesEligibleField(t *testing.T) 
 	require.NoError(t, err)
 	require.NotNil(t, updatedField.LinkedFieldID)
 	assert.Equal(t, template.ID, *updatedField.LinkedFieldID)
+}
+
+// TestMigrateCPAFieldsToGlobalAttributes_MigratesSelectFieldWithoutDuplicatingOptions
+// reproduces the bug fixed alongside this test: attemptCreateOrReuseTemplate
+// deep-copies a select/multiselect field's options (IDs included) onto the new
+// template, and optionOwnerIDs reads a linked field's options as the union of
+// its own rows and its template's. Leaving the original field's own rows in
+// place after linking therefore served every option twice.
+func TestMigrateCPAFieldsToGlobalAttributes_MigratesFieldWithoutDuplicatingOptions(t *testing.T) {
+	tests := []struct {
+		name    string
+		optType model.PropertyFieldType
+		options []map[string]any
+	}{
+		{
+			name:    "select",
+			optType: model.PropertyFieldTypeSelect,
+			options: []map[string]any{{"name": "a"}, {"name": "b"}, {"name": "c"}},
+		},
+		{
+			name:    "multiselect",
+			optType: model.PropertyFieldTypeMultiselect,
+			options: []map[string]any{{"name": "a"}, {"name": "b"}, {"name": "c"}},
+		},
+		{
+			name:    "rank",
+			optType: model.PropertyFieldTypeRank,
+			// A rank field's options each need a distinct rank -- see
+			// CreateFieldOptions' "rank field" validation error -- otherwise
+			// it never reaches the migration's link step at all.
+			options: []map[string]any{{"name": "a", "rank": 1}, {"name": "b", "rank": 2}, {"name": "c", "rank": 3}},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			th := setupMigrationTestHelper(t)
+
+			seeded := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+				GroupID:    th.CPAGroupID,
+				Name:       "roles",
+				Type:       tc.optType,
+				ObjectType: model.PropertyFieldObjectTypeUser,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				Attrs: model.StringInterface{
+					model.PropertyFieldAttributeOptions: tc.options,
+				},
+			})
+
+			migrated, skipped, retryable, err := th.service.MigrateCPAFieldsToGlobalAttributes(th.Context)
+			require.NoError(t, err)
+			assert.Equal(t, 1, migrated)
+			assert.Equal(t, 0, skipped)
+			assert.Equal(t, 0, retryable)
+
+			updatedField, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, seeded.ID)
+			require.NoError(t, err)
+			require.NotNil(t, updatedField.LinkedFieldID)
+
+			page, err := th.service.GetFieldOptions(th.Context, th.CPAGroupID, updatedField.ID, 0, "", 100)
+			require.NoError(t, err)
+			names := make([]string, 0, len(page.Options))
+			for _, option := range page.Options {
+				names = append(names, option.Name)
+			}
+			assert.ElementsMatch(t, []string{"a", "b", "c"}, names, "each option must be served once, not once per source (own rows + template rows)")
+		})
+	}
 }
 
 func TestMigrateCPAFieldsToGlobalAttributes_SkipsIneligibleFields(t *testing.T) {
@@ -860,4 +947,197 @@ func TestMigrateCPAFieldsToGlobalAttributes_DeterministicLinkFailureIsPermanentl
 	assert.Equal(t, 0, migrated)
 	assert.Equal(t, 1, skipped, "a deterministically-invalid link write must be a permanent skip, not retried forever")
 	assert.Equal(t, 0, retryable)
+}
+
+// TestMigrateCPAFieldsToGlobalAttributes_RerunClearsAlreadyLinkedFieldDuplicatedOptions
+// covers the actual remediation story for an install that already ran a
+// version of this migration that left an already-linked field's own option
+// rows in place (doubling every option it serves, since optionOwnerIDs unions
+// a linked field's own rows with its template's): clearing this same
+// migration's own existing System-key marker and running it again must clean
+// up that field too, not just link anything still unlinked. No separate
+// migration or marker for it.
+func TestMigrateCPAFieldsToGlobalAttributes_RerunClearsAlreadyLinkedFieldDuplicatedOptions(t *testing.T) {
+	tests := []struct {
+		name    string
+		optType model.PropertyFieldType
+		options []map[string]any
+	}{
+		{
+			name:    "select",
+			optType: model.PropertyFieldTypeSelect,
+			options: []map[string]any{{"name": "a"}, {"name": "b"}},
+		},
+		{
+			name:    "multiselect",
+			optType: model.PropertyFieldTypeMultiselect,
+			options: []map[string]any{{"name": "a"}, {"name": "b"}},
+		},
+		{
+			name:    "rank",
+			optType: model.PropertyFieldTypeRank,
+			options: []map[string]any{{"name": "a", "rank": 1}, {"name": "b", "rank": 2}},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			th := setupMigrationTestHelper(t)
+
+			template := seedTemplate(t, th, "roles", tc.optType, model.StringInterface{
+				model.PropertyFieldAttributeOptions: tc.options,
+			})
+
+			// Simulates the pre-fix broken state directly: a field already
+			// linked to its template, still carrying the own option rows the
+			// old migration never cleared after linking.
+			linked := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+				GroupID:       th.CPAGroupID,
+				Name:          "roles_linked",
+				Type:          tc.optType,
+				ObjectType:    model.PropertyFieldObjectTypeUser,
+				TargetType:    string(model.PropertyFieldTargetLevelSystem),
+				LinkedFieldID: &template.ID,
+				Attrs: model.StringInterface{
+					model.PropertyFieldAttributeOptions: tc.options,
+				},
+			})
+
+			// Simulates clearing the migration's own existing marker and
+			// letting it run again -- the template is ObjectType=Template, so
+			// this migration's own search (ObjectType=User) never sees it and
+			// it is left alone regardless.
+			migrated, skipped, retryable, err := th.service.MigrateCPAFieldsToGlobalAttributes(th.Context)
+			require.NoError(t, err)
+			assert.Equal(t, 0, migrated)
+			assert.Equal(t, 1, skipped, "already linked, so not re-migrated, but still reached for cleanup")
+			assert.Equal(t, 0, retryable)
+
+			page, err := th.service.GetFieldOptions(th.Context, th.CPAGroupID, linked.ID, 0, "", 100)
+			require.NoError(t, err)
+			names := make([]string, 0, len(page.Options))
+			for _, option := range page.Options {
+				names = append(names, option.Name)
+			}
+			assert.ElementsMatch(t, []string{"a", "b"}, names, "options must now come solely from the template, not doubled by the field's own cleared rows")
+
+			// The template's own options must survive the cleanup: only the
+			// linked field's rows are in scope, never the template's.
+			templatePage, err := th.service.GetFieldOptions(th.Context, th.CPAGroupID, template.ID, 0, "", 100)
+			require.NoError(t, err)
+			assert.Len(t, templatePage.Options, 2)
+		})
+	}
+}
+
+// TestMigrateCPAFieldsToGlobalAttributes_RerunSkipsAlreadyLinkedOptionlessField
+// covers the guard on the same rerun path: a linked field of a type that
+// carries no options (e.g. text) must not have PermanentDeleteOwnedOptions attempted
+// against it at all.
+func TestMigrateCPAFieldsToGlobalAttributes_RerunSkipsAlreadyLinkedOptionlessField(t *testing.T) {
+	th := setupMigrationTestHelper(t)
+
+	template := seedTemplate(t, th, "department", model.PropertyFieldTypeText, nil)
+	linkedText := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+		GroupID:       th.CPAGroupID,
+		Name:          "linked_text",
+		Type:          model.PropertyFieldTypeText,
+		ObjectType:    model.PropertyFieldObjectTypeUser,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &template.ID,
+	})
+
+	spy := &optionsCleanupSpyStore{PropertyFieldStore: th.service.fieldStore}
+	th.service.fieldStore = spy
+
+	migrated, skipped, retryable, err := th.service.MigrateCPAFieldsToGlobalAttributes(th.Context)
+	require.NoError(t, err)
+	assert.Equal(t, 0, migrated)
+	assert.Equal(t, 1, skipped)
+	assert.Equal(t, 0, retryable)
+	assert.Empty(t, spy.calledFor, "a text field carries no options and must not have PermanentDeleteOwnedOptions attempted against it at all")
+
+	updatedLinkedText, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, linkedText.ID)
+	require.NoError(t, err)
+	require.NotNil(t, updatedLinkedText.LinkedFieldID)
+}
+
+// TestMigrateCPAFieldsToGlobalAttributes_RerunCleanupFailureIsRetryableNotSkipped
+// covers the fix for the asymmetry found in review: a PermanentDeleteOwnedOptions
+// failure on an already-linked field must count toward retryable, the same way
+// the forward-link path already does, so a transient failure doesn't let the
+// caller persist the "done" marker with this field's duplication still unfixed.
+func TestMigrateCPAFieldsToGlobalAttributes_RerunCleanupFailureIsRetryableNotSkipped(t *testing.T) {
+	th := setupMigrationTestHelper(t)
+
+	template := seedTemplate(t, th, "roles", model.PropertyFieldTypeSelect, model.StringInterface{
+		model.PropertyFieldAttributeOptions: []map[string]any{{"name": "a"}, {"name": "b"}},
+	})
+	linked := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+		GroupID:       th.CPAGroupID,
+		Name:          "roles_linked",
+		Type:          model.PropertyFieldTypeSelect,
+		ObjectType:    model.PropertyFieldObjectTypeUser,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &template.ID,
+		Attrs: model.StringInterface{
+			model.PropertyFieldAttributeOptions: []map[string]any{{"name": "a"}, {"name": "b"}},
+		},
+	})
+
+	th.service.fieldStore = &optionsCleanupSpyStore{PropertyFieldStore: th.service.fieldStore, failForFieldID: linked.ID}
+
+	migrated, skipped, retryable, err := th.service.MigrateCPAFieldsToGlobalAttributes(th.Context)
+	require.NoError(t, err)
+	assert.Equal(t, 0, migrated)
+	assert.Equal(t, 0, skipped, "a failed cleanup must not be counted as skipped -- that would let the caller mark the migration done")
+	assert.Equal(t, 1, retryable)
+}
+
+// TestMigrateCPAFieldsToGlobalAttributes_RerunLeavesPluginManagedLinkedFieldAlone
+// covers a field that is already linked AND excluded from migration for an
+// unrelated reason (plugin-managed here; protected and owner-managed are the
+// same shape via isPlainCPAField): being linked and ineligible at the same
+// time does not mean this migration linked it, so its own options are not
+// this migration's to clear.
+func TestMigrateCPAFieldsToGlobalAttributes_RerunLeavesPluginManagedLinkedFieldAlone(t *testing.T) {
+	th := setupMigrationTestHelper(t)
+
+	template := seedTemplate(t, th, "roles", model.PropertyFieldTypeSelect, model.StringInterface{
+		model.PropertyFieldAttributeOptions: []map[string]any{{"name": "a"}, {"name": "b"}},
+	})
+	linked := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+		GroupID:       th.CPAGroupID,
+		Name:          "roles_plugin_linked",
+		Type:          model.PropertyFieldTypeSelect,
+		ObjectType:    model.PropertyFieldObjectTypeUser,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &template.ID,
+		Attrs: model.StringInterface{
+			model.PropertyAttrsSourcePluginID:   "com.mattermost.some-plugin",
+			model.PropertyFieldAttributeOptions: []map[string]any{{"name": "x"}, {"name": "y"}},
+		},
+	})
+
+	spy := &optionsCleanupSpyStore{PropertyFieldStore: th.service.fieldStore}
+	th.service.fieldStore = spy
+
+	migrated, skipped, retryable, err := th.service.MigrateCPAFieldsToGlobalAttributes(th.Context)
+	require.NoError(t, err)
+	assert.Equal(t, 0, migrated)
+	assert.Equal(t, 1, skipped)
+	assert.Equal(t, 0, retryable)
+	assert.NotContains(t, spy.calledFor, linked.ID, "a plugin-managed field must never have its own options cleared, even if it happens to already be linked")
+
+	// The field is (incidentally, for this fixture) also linked, so its
+	// effective option set includes the template's inherited "a"/"b" too --
+	// the assertion above (PermanentDeleteOwnedOptions never called for this
+	// field) is what actually proves its own rows were left alone.
+	page, err := th.service.GetFieldOptions(th.Context, th.CPAGroupID, linked.ID, 0, "", 100)
+	require.NoError(t, err)
+	names := make([]string, 0, len(page.Options))
+	for _, option := range page.Options {
+		names = append(names, option.Name)
+	}
+	assert.Subset(t, names, []string{"x", "y"}, "the plugin-owned field's own options must survive untouched")
 }
