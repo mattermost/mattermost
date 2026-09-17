@@ -1543,6 +1543,34 @@ describe('AttributeDetails', () => {
             expect(getPropertyFields.mock.calls.every((call) => call[1] !== 'channel')).toBe(true);
         });
 
+        it('loads a template with the channel scope skipped when channel attributes are unavailable', async () => {
+            // fetchAttributeField already skips channel, but a template still
+            // loads linked fields afterward. That later Promise.all used to
+            // include channel unconditionally; a 501 there bounced the page
+            // to the list. The channel reject below must never be reached.
+            const getPropertyFields = jest.spyOn(Client4, 'getPropertyFields').mockImplementation((_group, objectType) => {
+                if (objectType === 'channel') {
+                    return Promise.reject(new Error('channel 501'));
+                }
+                if (objectType === 'template') {
+                    return Promise.resolve([makeTemplate()]);
+                }
+                if (objectType === 'user') {
+                    return Promise.resolve([makeLinked('user', 'user-field')]);
+                }
+                return Promise.resolve([]);
+            });
+
+            renderEdit({entities: {general: {config: {FeatureFlagChannelAttributes: 'false'}, license: {SkuShortName: 'professional'}}}});
+            await waitForForm();
+
+            expect(screen.getByTestId('attributeDisplayNameInput')).toHaveValue('Department');
+            expect(screen.getByTestId('attributeAppliesToRow-user')).toBeInTheDocument();
+            expect(screen.queryByTestId('attributeAppliesToRow-channel')).not.toBeInTheDocument();
+            expect(mockHistoryPush).not.toHaveBeenCalled();
+            expect(getPropertyFields.mock.calls.every((call) => call[1] !== 'channel')).toBe(true);
+        });
+
         it('saves a non-template field with a PATCH to its own object type, not the template create/link path', async () => {
             mockLoadedNonTemplateField(makeNonTemplate('user'));
             const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue(makeNonTemplate('user'));

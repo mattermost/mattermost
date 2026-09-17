@@ -488,7 +488,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 // child to parse config from).
                 let linkedByType: Partial<Record<ResourceObjectType, PropertyField>> = {};
                 if (field.object_type === GLOBAL_ATTRIBUTES_OBJECT_TYPE) {
-                    const linkedFields = await fetchLinkedFieldsForTemplate(fieldId);
+                    const linkedFields = await fetchLinkedFieldsForTemplate(fieldId, channelAttributesEnabled);
                     if (cancelled) {
                         return;
                     }

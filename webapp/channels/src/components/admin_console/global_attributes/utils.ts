@@ -36,15 +36,17 @@ function buildOptionsAttr(fieldType: AttributeFieldType, options: PropertyFieldO
 }
 
 // Patch keeps existing option IDs so stored values stay attached. New options
-// still send an empty id for the server to mint. Text sends null so mergeAttrs
-// drops a leftover options key when switching away from Select/Multiselect/Rank.
+// still send an empty id for the server to mint. Other option properties
+// (color, rank, …) are spread through: mergeAttrs replaces the whole options
+// array, so omitting them would drop chip colors on a standalone channel
+// select. Text sends null so mergeAttrs drops a leftover options key when
+// switching away from Select/Multiselect/Rank.
 function buildPatchOptionsAttr(fieldType: AttributeFieldType, options: PropertyFieldOption[]): PropertyFieldOption[] | null {
     switch (fieldType) {
     case 'select':
     case 'multiselect':
-        return options.map(({id, name}) => ({id: id || '', name}));
     case 'rank':
-        return options.map(({id, name, rank}) => ({id: id || '', name, rank}));
+        return options.map((option) => ({...option, id: option.id || ''}));
     default:
         return null;
     }
@@ -107,9 +109,15 @@ function isResourceObjectType(value: string): value is ResourceObjectType {
 
 // Lists user/channel/post fields and keeps those pointing at the template.
 // There is no cross-object-type listing endpoint.
-export async function fetchLinkedFieldsForTemplate(templateFieldId: string): Promise<PropertyField[]> {
+//
+// includeChannel matches fetchAttributeField: false below Enterprise Advanced
+// (or with the ChannelAttributes flag off). That earlier fetch's own skip does
+// not protect this later Promise.all; a 501 on the channel scope would reject
+// the whole load and bounce the template details page to the list.
+export async function fetchLinkedFieldsForTemplate(templateFieldId: string, includeChannel: boolean): Promise<PropertyField[]> {
+    const objectTypes = ALL_RESOURCE_TYPES.filter((type) => includeChannel || type !== 'channel');
     const pages = await Promise.all(
-        ALL_RESOURCE_TYPES.map((objectType) => listPropertyFields(objectType)),
+        objectTypes.map((objectType) => listPropertyFields(objectType)),
     );
     return pages.flat().filter((field) => (
         field.linked_field_id === templateFieldId &&

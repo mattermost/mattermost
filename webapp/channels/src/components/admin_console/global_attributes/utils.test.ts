@@ -327,6 +327,59 @@ describe('global_attributes/utils', () => {
 
             expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'user', 'field-id', expect.anything());
         });
+
+        it('preserves option metadata such as color when PATCHing a standalone channel select', async () => {
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue({} as PropertyField);
+
+            await updateAttributeField('channel', 'field-id', {
+                type: 'select',
+                displayName: 'Marking',
+                options: [
+                    {id: 'opt-1', name: 'DARKBG', color: '#1e325c'},
+                    {id: '', name: 'LIGHTBG', color: '#ffffff'},
+                ],
+                ldapAttr: '',
+                samlAttr: '',
+            });
+
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'channel', 'field-id', {
+                type: 'select',
+                attrs: {
+                    display_name: 'Marking',
+                    options: [
+                        {id: 'opt-1', name: 'DARKBG', color: '#1e325c'},
+                        {id: '', name: 'LIGHTBG', color: '#ffffff'},
+                    ],
+                    ldap: null,
+                    saml: null,
+                },
+            });
+        });
+
+        it('preserves option color on a rank PATCH and still sends rank', async () => {
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue({} as PropertyField);
+
+            await updateAttributeField('channel', 'field-id', {
+                type: 'rank',
+                displayName: 'Clearance',
+                options: [
+                    {id: 'opt-1', name: 'Low', rank: 1, color: '#007A33'},
+                    {id: 'opt-2', name: 'High', rank: 2, color: '#C8102E'},
+                ],
+                ldapAttr: '',
+                samlAttr: '',
+            });
+
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'channel', 'field-id', expect.objectContaining({
+                type: 'rank',
+                attrs: expect.objectContaining({
+                    options: [
+                        {id: 'opt-1', name: 'Low', rank: 1, color: '#007A33'},
+                        {id: 'opt-2', name: 'High', rank: 2, color: '#C8102E'},
+                    ],
+                }),
+            }));
+        });
     });
 
     describe('fetchAttributeField', () => {
@@ -410,12 +463,22 @@ describe('global_attributes/utils', () => {
                 return Promise.resolve([]);
             });
 
-            const fields = await fetchLinkedFieldsForTemplate('template-id');
+            const fields = await fetchLinkedFieldsForTemplate('template-id', true);
 
             expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'user', 'system', undefined, expect.objectContaining({perPage: 200}));
             expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'channel', 'system', undefined, expect.objectContaining({perPage: 200}));
             expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'post', 'system', undefined, expect.objectContaining({perPage: 200}));
             expect(fields.map((field) => field.id)).toEqual(['u1', 'c1']);
+        });
+
+        it('does not query the channel scope when includeChannel is false', async () => {
+            const getPropertyFields = jest.spyOn(Client4, 'getPropertyFields').mockResolvedValue([]);
+
+            await fetchLinkedFieldsForTemplate('template-id', false);
+
+            const queriedObjectTypes = getPropertyFields.mock.calls.map((call) => call[1]);
+            expect(queriedObjectTypes).toEqual(expect.arrayContaining(['user', 'post']));
+            expect(queriedObjectTypes).not.toContain('channel');
         });
     });
 
