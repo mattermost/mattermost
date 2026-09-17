@@ -1095,3 +1095,51 @@ func TestMigrateCPAFieldsToGlobalAttributes_RerunCleanupFailureIsRetryableNotSki
 	assert.Equal(t, 0, skipped, "a failed cleanup must not be counted as skipped -- that would let the caller mark the migration done")
 	assert.Equal(t, 1, retryable)
 }
+
+// TestMigrateCPAFieldsToGlobalAttributes_RerunLeavesPluginManagedLinkedFieldAlone
+// covers a field that is already linked AND excluded from migration for an
+// unrelated reason (plugin-managed here; protected and owner-managed are the
+// same shape via isPlainCPAField): being linked and ineligible at the same
+// time does not mean this migration linked it, so its own options are not
+// this migration's to clear.
+func TestMigrateCPAFieldsToGlobalAttributes_RerunLeavesPluginManagedLinkedFieldAlone(t *testing.T) {
+	th := setupMigrationTestHelper(t)
+
+	template := seedTemplate(t, th, "roles", model.PropertyFieldTypeSelect, model.StringInterface{
+		model.PropertyFieldAttributeOptions: []map[string]any{{"name": "a"}, {"name": "b"}},
+	})
+	linked := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+		GroupID:       th.CPAGroupID,
+		Name:          "roles_plugin_linked",
+		Type:          model.PropertyFieldTypeSelect,
+		ObjectType:    model.PropertyFieldObjectTypeUser,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &template.ID,
+		Attrs: model.StringInterface{
+			model.PropertyAttrsSourcePluginID:   "com.mattermost.some-plugin",
+			model.PropertyFieldAttributeOptions: []map[string]any{{"name": "x"}, {"name": "y"}},
+		},
+	})
+
+	spy := &optionsCleanupSpyStore{PropertyFieldStore: th.service.fieldStore}
+	th.service.fieldStore = spy
+
+	migrated, skipped, retryable, err := th.service.MigrateCPAFieldsToGlobalAttributes(th.Context)
+	require.NoError(t, err)
+	assert.Equal(t, 0, migrated)
+	assert.Equal(t, 1, skipped)
+	assert.Equal(t, 0, retryable)
+	assert.NotContains(t, spy.calledFor, linked.ID, "a plugin-managed field must never have its own options cleared, even if it happens to already be linked")
+
+	// The field is (incidentally, for this fixture) also linked, so its
+	// effective option set includes the template's inherited "a"/"b" too --
+	// the assertion above (PermanentDeleteOwnedOptions never called for this
+	// field) is what actually proves its own rows were left alone.
+	page, err := th.service.GetFieldOptions(th.Context, th.CPAGroupID, linked.ID, 0, "", 100)
+	require.NoError(t, err)
+	names := make([]string, 0, len(page.Options))
+	for _, option := range page.Options {
+		names = append(names, option.Name)
+	}
+	assert.Subset(t, names, []string{"x", "y"}, "the plugin-owned field's own options must survive untouched")
+}

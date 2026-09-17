@@ -103,6 +103,17 @@ func isEligibleForGlobalAttributesMigration(field *model.PropertyField) bool {
 	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
 		return false
 	}
+	return isPlainCPAField(field)
+}
+
+// isPlainCPAField reports whether field is one this migration may act on at
+// all: not plugin-managed, protected, or owner-managed. Shared by
+// isEligibleForGlobalAttributesMigration (an unlinked field) and the
+// already-linked cleanup below (an already-linked field) -- a field excluded
+// for any of these reasons may be linked for reasons that have nothing to do
+// with this migration, and its own option rows are not this migration's to
+// touch either way.
+func isPlainCPAField(field *model.PropertyField) bool {
 	if sourcePluginID, _ := field.Attrs[model.PropertyAttrsSourcePluginID].(string); sourcePluginID != "" {
 		return false
 	}
@@ -422,17 +433,19 @@ func (ps *PropertyService) MigrateCPAFieldsToGlobalAttributes(rctx request.CTX) 
 
 	for _, field := range fields {
 		if !isEligibleForGlobalAttributesMigration(field) {
-			// A field already linked to a template derives its options from
+			// A field this migration itself linked derives its options from
 			// that template, but a prior version of the link step below left
 			// its own pre-linking option rows in place -- and optionOwnerIDs
 			// (property_field_options.go) unions a linked field's own rows
 			// with its template's, so every option it serves came back
-			// doubled. Clearing them here, on every pass over an already-
-			// linked field, is what makes clearing this migration's own
-			// System-key marker and re-running it a genuine "fixes itself"
-			// for installs that already carry the duplication -- no separate
-			// migration or marker needed for it.
-			if field.LinkedFieldID != nil && *field.LinkedFieldID != "" && field.Type.SupportsOptions() {
+			// doubled. Clearing them here, on every pass over such a field,
+			// is what makes clearing this migration's own System-key marker
+			// and re-running it a genuine "fixes itself" for installs that
+			// already carry the duplication -- no separate migration or
+			// marker needed for it. isPlainCPAField excludes anything linked
+			// for reasons that have nothing to do with this migration (e.g. a
+			// plugin-managed field with its own, unrelated link).
+			if field.LinkedFieldID != nil && *field.LinkedFieldID != "" && field.Type.SupportsOptions() && isPlainCPAField(field) {
 				if clearErr := ps.fieldStore.PermanentDeleteOwnedOptions(groupID, field.ID); clearErr != nil {
 					// Counted toward retryable, not skipped: skipped would let the
 					// caller persist the "done" marker with this field's duplication
