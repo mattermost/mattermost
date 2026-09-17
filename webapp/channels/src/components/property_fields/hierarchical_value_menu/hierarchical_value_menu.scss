@@ -1,7 +1,6 @@
 // Self-contained on purpose: Account Settings renders this widget and must not
 // depend on the admin ABAC stylesheets. The chip rules mirror
 // table_editor/selector_menus.scss rather than importing it.
-//
 // The trigger is a Compass-like input (same 1px / 4px / 40px recipe as ranked
 // CPA and Compass Input), not the borderless policy-table cell.
 .hierarchical-value-menu {
@@ -9,12 +8,12 @@
 
     &__button {
         display: flex;
-        box-sizing: border-box;
         width: 100%;
 
         // A floor, not a height: chips wrap onto new lines and the trigger grows
         // to fit them rather than clipping.
         min-height: 40px;
+        box-sizing: border-box;
         align-items: center;
         justify-content: start;
         padding: 4px 12px;
