@@ -150,7 +150,9 @@ export default function HierarchicalValueRow({
             onKeyDown={handleKeyDown}
             leadingElement={
                 <span
-                    className='hierarchical-value-menu__checkbox'
+                    className={classNames('hierarchical-value-menu__checkbox', {
+                        'hierarchical-value-menu__checkbox--selected': isSelected,
+                    })}
                     data-hit='select'
                     aria-hidden={true}
                 >

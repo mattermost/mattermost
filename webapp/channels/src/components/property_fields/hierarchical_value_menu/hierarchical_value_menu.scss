@@ -135,6 +135,10 @@
         align-items: center;
         justify-content: center;
         color: rgba(var(--center-channel-color-rgb), 0.64);
+
+        &--selected {
+            color: var(--button-bg);
+        }
     }
 
     &__labels {

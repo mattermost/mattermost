@@ -272,6 +272,8 @@ describe('HierarchicalValueMenu', () => {
 
             expect(row('Air Program')).toHaveAttribute('aria-checked', 'true');
             expect(row('Rotary')).toHaveAttribute('aria-checked', 'false');
+            expect(checkboxOf('Air Program')).toHaveClass('hierarchical-value-menu__checkbox--selected');
+            expect(checkboxOf('Rotary')).not.toHaveClass('hierarchical-value-menu__checkbox--selected');
         });
 
         test('the menu stays open after a selection', async () => {
