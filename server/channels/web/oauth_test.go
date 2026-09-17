@@ -371,8 +371,10 @@ func TestAuthorizePageRespectsSessionOrigin(t *testing.T) {
 
 			granted := accessTokenFromRedirect(t, response.Header.Get("Location"))
 			if tc.expectGrant {
+				assert.Equal(t, http.StatusFound, response.StatusCode)
 				assert.NotEmpty(t, granted, "signing in grants access to the trusted registration")
 			} else {
+				assert.Equal(t, http.StatusForbidden, response.StatusCode)
 				assert.Empty(t, granted)
 			}
 		})

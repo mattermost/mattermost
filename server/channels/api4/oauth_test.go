@@ -342,35 +342,20 @@ func TestOAuthAppReadsOmitSecretForOAuthSession(t *testing.T) {
 
 	testCases := []struct {
 		name string
-		// secrets returns every client secret the response carried, and nothing when the
-		// request was refused.
-		secrets func(client *model.Client4, oapp *model.OAuthApp) []string
+		call func(client *model.Client4, oapp *model.OAuthApp) (*model.Response, error)
 	}{
 		{
 			name: "read one registration",
-			secrets: func(client *model.Client4, oapp *model.OAuthApp) []string {
-				app, _, err := client.GetOAuthApp(context.Background(), oapp.Id)
-				if err != nil || app == nil {
-					return nil
-				}
-
-				return []string{app.ClientSecret}
+			call: func(client *model.Client4, oapp *model.OAuthApp) (*model.Response, error) {
+				_, resp, err := client.GetOAuthApp(context.Background(), oapp.Id)
+				return resp, err
 			},
 		},
 		{
 			name: "list registrations",
-			secrets: func(client *model.Client4, oapp *model.OAuthApp) []string {
-				apps, _, err := client.GetOAuthApps(context.Background(), 0, 1000)
-				if err != nil {
-					return nil
-				}
-
-				secrets := make([]string, 0, len(apps))
-				for _, app := range apps {
-					secrets = append(secrets, app.ClientSecret)
-				}
-
-				return secrets
+			call: func(client *model.Client4, oapp *model.OAuthApp) (*model.Response, error) {
+				_, resp, err := client.GetOAuthApps(context.Background(), 0, 1000)
+				return resp, err
 			},
 		},
 	}
@@ -383,7 +368,9 @@ func TestOAuthAppReadsOmitSecretForOAuthSession(t *testing.T) {
 			client, oapp := setupOAuthAppOwner(t, th)
 			delegateSession(t, th, client)
 
-			assert.NotContains(t, tc.secrets(client, oapp), oapp.ClientSecret)
+			resp, err := tc.call(client, oapp)
+			require.Error(t, err)
+			CheckForbiddenStatus(t, resp)
 		})
 	}
 }
