@@ -16,9 +16,9 @@ import {
 import * as Menu from 'components/menu';
 
 const messages = defineMessages({
-    nInside: {
-        id: 'property_fields.hierarchical_value_menu.n_inside',
-        defaultMessage: '{count} inside',
+    nSelected: {
+        id: 'property_fields.hierarchical_value_menu.n_selected',
+        defaultMessage: '{count} selected',
     },
 });
 
@@ -176,7 +176,7 @@ export default function HierarchicalValueRow({
                                     className='hierarchical-value-menu__count'
                                     id={insideCountId}
                                 >
-                                    {formatMessage(messages.nInside, {count: insideCount})}
+                                    {formatMessage(messages.nSelected, {count: insideCount})}
                                 </span>
                             ) : null}
                             {isBranch ? (

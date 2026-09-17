@@ -361,8 +361,8 @@ describe('HierarchicalValueMenu', () => {
         });
     });
 
-    describe('{n} inside and expand-to-selected', () => {
-        test('a collapsed ancestor shows {n} inside for its selected descendants', async () => {
+    describe('{n} selected and expand-to-selected', () => {
+        test('a collapsed ancestor shows {n} selected for its selected descendants', async () => {
             mockPageAll.mockResolvedValue(hierarchy());
             renderMenu({selectedIds: ['opt-f18']});
 
@@ -370,10 +370,10 @@ describe('HierarchicalValueMenu', () => {
             await screen.findByRole('menuitemcheckbox', {name: 'F-18 Program'});
             await userEvent.click(chevronOf('Air Program'));
 
-            expect(row('Air Program')).toHaveTextContent('1 inside');
+            expect(row('Air Program')).toHaveTextContent('1 selected');
         });
 
-        test('{n} inside counts by value id, not by occurrence', async () => {
+        test('{n} selected counts by value id, not by occurrence', async () => {
             mockPageAll.mockResolvedValue(diamond());
             renderMenu({selectedIds: ['opt-capsule']});
 
@@ -381,11 +381,11 @@ describe('HierarchicalValueMenu', () => {
             await screen.findAllByRole('menuitemcheckbox', {name: 'Crew Capsule'});
             await userEvent.click(chevronOf('Dragon'));
 
-            expect(row('Dragon')).toHaveTextContent('1 inside');
-            expect(row('Dragon')).not.toHaveTextContent('2 inside');
+            expect(row('Dragon')).toHaveTextContent('1 selected');
+            expect(row('Dragon')).not.toHaveTextContent('2 selected');
         });
 
-        test('{n} inside counts descendants across depth', async () => {
+        test('{n} selected counts descendants across depth', async () => {
             mockPageAll.mockResolvedValue(hierarchy());
             renderMenu({selectedIds: ['opt-f18', 'opt-rotary']});
 
@@ -393,39 +393,39 @@ describe('HierarchicalValueMenu', () => {
             await screen.findByRole('menuitemcheckbox', {name: 'F-18 Program'});
             await userEvent.click(chevronOf('Air Program'));
 
-            expect(row('Air Program')).toHaveTextContent('2 inside');
+            expect(row('Air Program')).toHaveTextContent('2 selected');
         });
 
-        test('{n} inside is not shown on an expanded branch', async () => {
+        test('{n} selected is not shown on an expanded branch', async () => {
             mockPageAll.mockResolvedValue(hierarchy());
             renderMenu({selectedIds: ['opt-f18']});
 
             await openMenu();
             await screen.findByRole('menuitemcheckbox', {name: 'F-18 Program'});
 
-            expect(row('Air Program')).not.toHaveTextContent('inside');
+            expect(row('Air Program')).not.toHaveTextContent('selected');
         });
 
-        test('{n} inside is not shown when no descendant is selected', async () => {
+        test('{n} selected is not shown when no descendant is selected', async () => {
             mockPageAll.mockResolvedValue(hierarchy());
             renderMenu();
 
             await openMenu();
             await screen.findByRole('menuitemcheckbox', {name: 'Air Program'});
 
-            expect(row('Air Program')).not.toHaveTextContent('inside');
+            expect(row('Air Program')).not.toHaveTextContent('selected');
         });
 
-        test('{n} inside is not shown on a leaf', async () => {
+        test('{n} selected is not shown on a leaf', async () => {
             mockPageAll.mockResolvedValue(hierarchy());
             renderMenu({selectedIds: ['opt-f18']});
 
             await openMenu();
 
-            expect(await screen.findByRole('menuitemcheckbox', {name: 'F-18 Program'})).not.toHaveTextContent('inside');
+            expect(await screen.findByRole('menuitemcheckbox', {name: 'F-18 Program'})).not.toHaveTextContent('selected');
         });
 
-        test('{n} inside is exposed to AT via aria-describedby', async () => {
+        test('{n} selected is exposed to AT via aria-describedby', async () => {
             mockPageAll.mockResolvedValue(hierarchy());
             renderMenu({selectedIds: ['opt-f18']});
 
@@ -435,7 +435,7 @@ describe('HierarchicalValueMenu', () => {
 
             const describedBy = row('Air Program').getAttribute('aria-describedby');
             expect(describedBy).not.toBeNull();
-            expect(document.getElementById(describedBy!)).toHaveTextContent('1 inside');
+            expect(document.getElementById(describedBy!)).toHaveTextContent('1 selected');
         });
 
         test('defaults to expanding the ancestors of a selected value', async () => {
