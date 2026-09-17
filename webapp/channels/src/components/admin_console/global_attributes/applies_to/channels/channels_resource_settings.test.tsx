@@ -16,7 +16,10 @@ describe('ChannelsResourceSettings', () => {
     const requiredEnabledState: DeepPartial<GlobalState> = {
         entities: {
             general: {
-                config: {FeatureFlagChannelAttributesRequired: 'true'},
+                config: {
+                    FeatureFlagChannelAttributes: 'true',
+                    FeatureFlagChannelAttributesRequired: 'true',
+                },
             },
         },
     };
