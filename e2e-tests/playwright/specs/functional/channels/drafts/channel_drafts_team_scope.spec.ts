@@ -44,6 +44,10 @@ test('MM-T4410 Channel Drafts are scoped to current active team', {tag: '@messag
 
     // # Switch to Team2 Off-Topic and leave a different channel draft
     await channelsPage.switchToTeam(team2.name);
+
+    // * Team1's Town Square draft icon is not carried over into Team2's sidebar
+    await expect(channelsPage.sidebarLeft.draftIcon('town-square')).not.toBeAttached();
+
     await channelsPage.sidebarLeft.goToItem('off-topic');
     await channelsPage.centerView.header.toHaveTitle('Off-Topic');
     await channelsPage.centerView.postCreate.writeMessage(team2Draft);
@@ -75,6 +79,9 @@ test('MM-T4410 Channel Drafts are scoped to current active team', {tag: '@messag
 
     // # Switch back to Team1
     await channelsPage.switchToTeam(team1.name);
+
+    // * Team2's Off-Topic draft icon is not carried over into Team1's sidebar
+    await expect(channelsPage.sidebarLeft.draftIcon('off-topic')).not.toBeAttached();
 
     // * Drafts remains visible with count scoped to Team1
     await channelsPage.sidebarLeft.draftsVisible();
