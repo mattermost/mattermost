@@ -99,7 +99,7 @@ func postHardenedModeCheck(hardenedModeEnabled, isIntegration bool, props model.
 
 func userCreatePostPermissionCheckWithApp(rctx request.CTX, a *App, userId, channelId string) *model.AppError {
 	hasPermission := false
-	if ok, _ := a.HasPermissionToChannel(rctx, userId, channelId, model.PermissionCreatePost); ok {
+	if ok, _ := a.HasPermissionToChannelRBACOnly(rctx, userId, channelId, model.PermissionCreatePost); ok {
 		hasPermission = true
 	} else if channel, err := a.GetChannel(rctx, channelId); err == nil {
 		// Temporary permission check method until advanced permissions, please do not copy
@@ -109,10 +109,6 @@ func userCreatePostPermissionCheckWithApp(rctx request.CTX, a *App, userId, chan
 	}
 
 	if !hasPermission {
-		return model.MakePermissionErrorForUser(userId, []*model.Permission{model.PermissionCreatePost})
-	}
-
-	if !a.EnforceChannelWriteAccessByID(rctx, userId, channelId) {
 		return model.MakePermissionErrorForUser(userId, []*model.Permission{model.PermissionCreatePost})
 	}
 
