@@ -25,9 +25,10 @@ export type FieldValueType =
     'phone' |
     '';
 
-// Mirrors model/property_field.go. Empty means the server fills in the default
-// for the field's object type.
-export type PropertyPermissionLevel = 'none' | 'sysadmin' | 'admin' | 'member' | '';
+// Mirrors model/property_field.go, including the creator level that grants the
+// author of the entity the action concerns. Empty means the server fills in the
+// default for the field's object type.
+export type PropertyPermissionLevel = 'none' | 'sysadmin' | 'admin' | 'member' | 'creator' | '';
 
 export type PropertyField = {
     id: string;
