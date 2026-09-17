@@ -16,6 +16,35 @@ Platform and OS scope reflects reported and tested environments and may not repr
 
 </Note>
 
+## 2.45.0 Release \{#release-v2-45-0}
+ - Release Date: October 16, 2026
+ - Server Versions Supported: Server v11.7.0+ is required. Self-Signed SSL certificates are not supported unless the user installs the CA certificate on their device.
+
+### Compatibility
+ - **Upgrade to Android 11 or later, or iOS 18 or later, is required.** The minimum supported operating system versions increased in this release. Devices running earlier operating system versions must remain on v2.44.
+ - **Upgrade to server version v11.7.0 or later is required.** Support for server [Extended Support Release](https://docs.mattermost.com/product-overview/release-policy.html#extended-support-releases) (ESR) v10.11.0 has ended and upgrading to server ESR v11.7.0 or later is required. As we innovate and offer newer versions of our mobile apps, we maintain backwards compatibility only with supported server versions. Users who upgrade to the newest mobile apps while being connected to an unsupported server version can be exposed to compatibility issues, which can cause crashes or severe bugs that break core functionality of the app.
+ - Android 11+ is required.
+ - iOS 18.0+ is required.
+
+### Improvements
+ - Improved the Direct Message call experience to behave more like a native phone call.
+ - Added tappable ``tel:`` links for phone numbers in posts, which open the device calling app.
+ - Added support for the automatic cache cleanup setting provided by the server, performing rolling cleanups of cached content to prevent it from accumulating.
+ - Added collapse and expand all checklists, and task filtering by state and assignee, to playbook runs.
+ - Updated onboarding and server connection welcome messaging.
+
+### Bug Fixes
+ - Fixed an issue where channel links ending in a channel ID failed to open.
+ - Fixed an issue where urgent mention badges used normal mention colors in the channel list.
+ - Fixed an issue where pasting a full server URL containing a path, such as a channel link, into **Add Server** showed a confusing error instead of connecting.
+ - Fixed an intermittent issue where answering an incoming call from the iOS lock screen immediately disconnected.
+ - Fixed an issue where the tool approval user interface briefly offered **Accept**/**Reject** for AI tool calls configured to run automatically, which could race with server-side auto-execution. Interrupted auto-run tool rounds now show a **Run tools** option instead of approval buttons.
+ - Fixed an issue with deeplink routing.
+
+### Known Issues
+ - Users are unable to adjust the font size via the OS font size setting.
+ - Some Google Pixel phones on Android 12+ might not continue past the login screen. This is a known issue with the OS, and the current workaround is to restart the device.
+
 ## 2.44.0 Release \{#release-v2-44-0}
  - Release Date: September 16, 2026
  - Server Versions Supported: Server v11.7.0+ is required. Self-Signed SSL certificates are not supported unless the user installs the CA certificate on their device.
