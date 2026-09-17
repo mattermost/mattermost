@@ -638,9 +638,9 @@ func (a *App) DoCommandRequest(rctx request.CTX, cmd *model.Command, p url.Value
 		return cmd, nil, model.NewAppError("command", "api.command.execute_command.failed_resp.app_error", map[string]any{"Trigger": cmd.Trigger, "Status": resp.Status}, string(bodyBytes), http.StatusInternalServerError)
 	}
 
-	// A 204 carries no body by definition, so there is nothing to parse even when the
+	// 204 and 205 carry no body by definition, so there is nothing to parse even when the
 	// integration still advertises a Content-Type. An empty response posts nothing.
-	if resp.StatusCode == http.StatusNoContent {
+	if resp.StatusCode == http.StatusNoContent || resp.StatusCode == http.StatusResetContent {
 		return cmd, &model.CommandResponse{}, nil
 	}
 

@@ -500,31 +500,36 @@ func TestDoCommandRequest(t *testing.T) {
 		}
 	})
 
-	t.Run("with an empty 204 response", func(t *testing.T) {
-		// A 204 carries no body, so an integration that nevertheless advertises a JSON
+	t.Run("with an empty bodyless 2xx response", func(t *testing.T) {
+		// 204 and 205 carry no body, so an integration that nevertheless advertises a JSON
 		// content type must still be an empty success rather than a parse failure.
-		for _, tc := range []struct {
-			name        string
-			contentType string
-		}{
-			{"without a content type", ""},
-			{"advertising a json content type", "application/json"},
+		for _, statusCode := range []int{
+			http.StatusNoContent,
+			http.StatusResetContent,
 		} {
-			t.Run(tc.name, func(t *testing.T) {
-				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					if tc.contentType != "" {
-						w.Header().Add("Content-Type", tc.contentType)
-					}
-					w.WriteHeader(http.StatusNoContent)
-				}))
-				t.Cleanup(server.Close)
+			for _, tc := range []struct {
+				name        string
+				contentType string
+			}{
+				{"without a content type", ""},
+				{"advertising a json content type", "application/json"},
+			} {
+				t.Run(strconv.Itoa(statusCode)+" "+tc.name, func(t *testing.T) {
+					server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+						if tc.contentType != "" {
+							w.Header().Add("Content-Type", tc.contentType)
+						}
+						w.WriteHeader(statusCode)
+					}))
+					t.Cleanup(server.Close)
 
-				_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
-				require.Nil(t, err)
+					_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
+					require.Nil(t, err)
 
-				require.NotNil(t, resp)
-				assert.Empty(t, resp.Text)
-			})
+					require.NotNil(t, resp)
+					assert.Empty(t, resp.Text)
+				})
+			}
 		}
 	})
 
