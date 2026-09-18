@@ -317,16 +317,18 @@ describe('property_field events for user attributes', () => {
         store.dispatch(handlePropertyFieldCreatedOrUpdated(createdEvent(userAttribute())));
 
         expect(attributeNames(store.getState())).toEqual(['clearance']);
+        expect(getCustomProfileAttributeFields).not.toHaveBeenCalled();
     });
 
-    test('the first user attribute is ignored while the access_control group is unknown', () => {
+    test('the first user attribute triggers a refetch while the access_control group is unknown', () => {
         // Nothing has resolved access_control to its UUID yet, so a user-object
-        // field cannot be told apart from one in some other group. The page's
-        // own fetch on mount covers this gap.
+        // field cannot be told apart from one in some other group. Refetch
+        // rather than cache the payload; the mock fetch leaves the slice empty.
         const store = makeStore({});
 
         store.dispatch(handlePropertyFieldCreatedOrUpdated(createdEvent(userAttribute())));
 
+        expect(getCustomProfileAttributeFields).toHaveBeenCalledTimes(1);
         expect(getCustomProfileAttributes(store.getState())).toEqual([]);
     });
 
@@ -359,6 +361,22 @@ describe('property_field events for user attributes', () => {
         store.dispatch(handlePropertyFieldCreatedOrUpdated(createdEvent(pluginField)));
 
         expect(attributeNames(store.getState())).toEqual(['clearance']);
+        expect(getCustomProfileAttributeFields).not.toHaveBeenCalled();
+    });
+
+    test('a user-object field from another group still refetches while the access_control group is unknown', () => {
+        // Extra network, but the plugin field must not land in the CPA slice.
+        const store = makeStore({});
+
+        const pluginField = userAttribute({
+            id: 'plugin_field_id',
+            name: 'plugin_owned',
+            group_id: OTHER_GROUP_ID,
+        });
+        store.dispatch(handlePropertyFieldCreatedOrUpdated(createdEvent(pluginField)));
+
+        expect(getCustomProfileAttributeFields).toHaveBeenCalledTimes(1);
+        expect(getCustomProfileAttributes(store.getState())).toEqual([]);
     });
 
     test('deleting an unrelated field removes it without touching the user attributes', () => {

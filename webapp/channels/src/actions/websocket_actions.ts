@@ -1488,13 +1488,18 @@ export function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel):
  * The access_control group lives under a server-generated UUID. The property
  * group cache only learns that mapping once something fetches the group by name,
  * so fall back to the cached definitions, which all come from that group.
+ * When neither is known, return undefined so the handler can refetch rather
+ * than guess.
  */
-function isUserAttributeField(state: GlobalState, field: PropertyField): boolean {
+function isUserAttributeField(state: GlobalState, field: PropertyField): boolean | undefined {
     if (field.object_type !== USER_OBJECT_TYPE) {
         return false;
     }
     const groupId = getPropertyGroupByName(state, ACCESS_CONTROL_PROPERTY_GROUP)?.id ?? getCustomProfileAttributes(state)[0]?.group_id;
-    return Boolean(groupId) && field.group_id === groupId;
+    if (!groupId) {
+        return undefined;
+    }
+    return field.group_id === groupId;
 }
 
 export function handlePropertyFieldCreatedOrUpdated(
@@ -1558,7 +1563,12 @@ export function handlePropertyFieldCreatedOrUpdated(
             data: {fields: [field]},
         });
 
-        if (isUserAttributeField(doGetState(), field)) {
+        const userAttributeField = isUserAttributeField(doGetState(), field);
+        if (userAttributeField === undefined) {
+            // Cannot tell a CPA field from a plugin field until the group is
+            // known, so refetch rather than cache the payload.
+            doDispatch(getCustomProfileAttributeFields());
+        } else if (userAttributeField) {
             if (optionsOmitted) {
                 // The cached options restored above come from the properties
                 // slice, which a session that only loaded user attributes never
