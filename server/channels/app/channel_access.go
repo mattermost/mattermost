@@ -219,11 +219,6 @@ func (a *App) HasChannelReadAccess(rctx request.CTX, userID string, channel *mod
 	return a.hasChannelAccess(rctx, userID, channel, model.AccessControlPolicyActionChannelReadAccess)
 }
 
-func (a *App) HasChannelWriteAccess(rctx request.CTX, userID string, channel *model.Channel) bool {
-	allowed, _ := a.channelWriteAccessDecision(rctx, userID, channel)
-	return allowed
-}
-
 func (a *App) channelWriteAccessDecision(rctx request.CTX, userID string, channel *model.Channel) (allowed bool, deniedAction string) {
 	if !a.channelAccessGateApplies(userID, channel) {
 		return true, ""
@@ -409,6 +404,23 @@ func (a *App) FilterChannelIDsByReadAccess(rctx request.CTX, userID string, chan
 	return filtered
 }
 
+// FilterChannelIDsByWriteAccess drops the channels the user may not write to. Like the
+// read filters it is deliberately non-recording: a filtered request succeeds, so there is
+// no denial for SetPermissionError to report.
+func (a *App) FilterChannelIDsByWriteAccess(rctx request.CTX, userID string, channelIDs []string) []string {
+	if len(channelIDs) == 0 || !a.channelAccessEnforcementActive() {
+		return channelIDs
+	}
+
+	filtered := make([]string, 0, len(channelIDs))
+	for _, channelID := range channelIDs {
+		if allowed, _ := a.channelWriteAccessDecisionByID(rctx, userID, channelID); allowed {
+			filtered = append(filtered, channelID)
+		}
+	}
+	return filtered
+}
+
 func (a *App) FilterChannelsByReadAccess(rctx request.CTX, userID string, channels []*model.Channel) []*model.Channel {
 	if len(channels) == 0 || !a.channelAccessEnforcementActive() {
 		return channels
@@ -444,12 +456,6 @@ func (a *App) FilterChannelListWithTeamDataByReadAccess(rctx request.CTX, userID
 func (a *App) HasChannelReadAccessByID(rctx request.CTX, userID, channelID string) bool {
 	return a.hasChannelAccessByID(rctx, userID, channelID, func(channel *model.Channel) bool {
 		return a.HasChannelReadAccess(rctx, userID, channel)
-	})
-}
-
-func (a *App) HasChannelWriteAccessByID(rctx request.CTX, userID, channelID string) bool {
-	return a.hasChannelAccessByID(rctx, userID, channelID, func(channel *model.Channel) bool {
-		return a.HasChannelWriteAccess(rctx, userID, channel)
 	})
 }
 

@@ -82,6 +82,14 @@ func createScheduledRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	recap.Enabled = true
 
+	if recap.ChannelMode == model.ChannelModeSpecific {
+		kept, ok := requireChannelReadAccessForIDs(c, recap.ChannelIds)
+		if !ok {
+			return
+		}
+		recap.ChannelIds = kept
+	}
+
 	auditRec := c.MakeAuditRecord(model.AuditEventCreateScheduledRecap, model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	auditRec.AddEventObjectType("scheduled_recap")
@@ -191,6 +199,16 @@ func updateScheduledRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 	recap.LastRunAt = existingRecap.LastRunAt
 	recap.RunCount = existingRecap.RunCount
 	recap.Enabled = existingRecap.Enabled
+
+	// Only "specific" mode names channels; "all_unreads" resolves them at run time and
+	// the job filters them there.
+	if recap.ChannelMode == model.ChannelModeSpecific {
+		kept, ok := requireChannelReadAccessForIDs(c, recap.ChannelIds)
+		if !ok {
+			return
+		}
+		recap.ChannelIds = kept
+	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventUpdateScheduledRecap, model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)

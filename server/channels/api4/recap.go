@@ -89,6 +89,12 @@ func createRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	kept, ok := requireChannelReadAccessForIDs(c, req.ChannelIds)
+	if !ok {
+		return
+	}
+	req.ChannelIds = kept
+
 	auditRec := c.MakeAuditRecord(model.AuditEventCreateRecap, model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	auditRec.AddEventObjectType("recap")

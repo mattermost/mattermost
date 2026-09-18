@@ -1122,6 +1122,22 @@ func requireChannelWriteAccessByID(c *Context, channelID string) bool {
 	return false
 }
 
+func requireChannelReadAccessForIDs(c *Context, channelIDs []string) (kept []string, ok bool) {
+	if len(channelIDs) == 0 {
+		return channelIDs, true
+	}
+
+	kept = c.App.FilterChannelIDsByReadAccess(c.AppContext, c.AppContext.Session().UserId, channelIDs)
+	if len(kept) == 0 {
+		// Nothing survived, so the first id is necessarily one of the denials; running it
+		// back through the enforcement gate records the witness SetPermissionError needs.
+		requireChannelReadAccessByID(c, channelIDs[0])
+		return nil, false
+	}
+
+	return kept, true
+}
+
 // discoverableNonMemberView returns a sanitized non-member view of `channel`
 // when the calling user qualifies under the discoverable visibility rules,
 // or (nil, nil) when the channel must remain hidden — the caller should

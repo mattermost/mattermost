@@ -27,6 +27,10 @@ type channelWriteAccessSurface struct {
 type channelWriteAccessFixture struct {
 	th   *TestHelper
 	post *model.Post
+	// A channel-scoped property field definition, for the patch/delete surfaces.
+	// Scope is immutable via patch, so the gate has to read it off the stored field.
+	propertyGroup string
+	propertyField *model.PropertyField
 }
 
 var channelWriteAccessEvaluation = mock.MatchedBy(func(req model.AccessRequest) bool {
@@ -56,6 +60,7 @@ func setupChannelWriteAccessAPI(t *testing.T, allow bool) (*channelWriteAccessFi
 	// Authored before the mock is installed, so creating it is not itself a surface
 	// under test.
 	post := th.CreatePost(t)
+	propertyGroup, propertyField := createChannelScopedPropertyField(t, th)
 
 	mockACS := installMockACS(t, th)
 	mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).Return(true, nil)
@@ -64,7 +69,42 @@ func setupChannelWriteAccessAPI(t *testing.T, allow bool) (*channelWriteAccessFi
 	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
 		Return(model.AccessDecision{Decision: true}, nil)
 
-	return &channelWriteAccessFixture{th: th, post: post}, mockACS
+	return &channelWriteAccessFixture{
+		th:            th,
+		post:          post,
+		propertyGroup: propertyGroup,
+		propertyField: propertyField,
+	}, mockACS
+}
+
+// createChannelScopedPropertyField registers a group and a channel-scoped field on
+// BasicChannel, outside the access_control group so the channel-attributes license
+// gate stays out of the way. Member-level permissions keep the per-field tier checks
+// satisfied, so a denial can only come from the channel gate.
+func createChannelScopedPropertyField(t *testing.T, th *TestHelper) (groupName string, field *model.PropertyField) {
+	t.Helper()
+
+	groupName = "test_channel_write_access_" + model.NewId()
+	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{
+		Name:    groupName,
+		Version: model.PropertyGroupVersionV2,
+	})
+	require.Nil(t, appErr)
+
+	memberLevel := model.PermissionLevelMember
+	field, resp, err := th.Client.CreatePropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeChannel, &model.PropertyField{
+		Name:              model.NewId(),
+		Type:              model.PropertyFieldTypeText,
+		TargetType:        string(model.PropertyFieldTargetLevelChannel),
+		TargetID:          th.BasicChannel.Id,
+		PermissionField:   &memberLevel,
+		PermissionValues:  &memberLevel,
+		PermissionOptions: &memberLevel,
+	})
+	require.NoError(t, err)
+	CheckCreatedStatus(t, resp)
+
+	return group.Name, field
 }
 
 // Every write the action governs. A denial must reach each of these, whether it
@@ -144,6 +184,22 @@ func channelWriteAccessSurfaces() []channelWriteAccessSurface {
 		write("upload file", func(t *testing.T, f *channelWriteAccessFixture) (*model.Response, error) {
 			_, resp, err := f.th.Client.UploadFile(context.Background(), []byte("data"), f.th.BasicChannel.Id, "test.txt")
 			return resp, err
+		}),
+		write("publish user typing", func(t *testing.T, f *channelWriteAccessFixture) (*model.Response, error) {
+			return f.th.Client.PublishUserTyping(context.Background(), f.th.BasicUser.Id, model.TypingRequest{
+				ChannelId: f.th.BasicChannel.Id,
+			})
+		}),
+		write("patch property field", func(t *testing.T, f *channelWriteAccessFixture) (*model.Response, error) {
+			name := model.NewId()
+			_, resp, err := f.th.Client.PatchPropertyField(context.Background(), f.propertyGroup, model.PropertyFieldObjectTypeChannel, f.propertyField.ID, &model.PropertyFieldPatch{
+				Name: &name,
+			})
+			return resp, err
+		}),
+		// After the patch: it removes the field the patch surface acts on.
+		write("delete property field", func(t *testing.T, f *channelWriteAccessFixture) (*model.Response, error) {
+			return f.th.Client.DeletePropertyField(context.Background(), f.propertyGroup, model.PropertyFieldObjectTypeChannel, f.propertyField.ID)
 		}),
 		// Last: it destroys the post the surfaces above act on, so anything after it
 		// would fail for the wrong reason on the allowed run.

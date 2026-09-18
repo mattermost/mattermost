@@ -180,23 +180,6 @@ func (a *App) SessionHasPermissionToChannels(rctx request.CTX, session model.Ses
 		return true
 	}
 
-	// Evaluated before the role short-circuits below, because the channel-access
-	// actions apply to unrestricted and system-admin sessions too.
-	if a.channelAccessEnforcementActive() {
-		for _, channelID := range channelIDs {
-			switch {
-			case isChannelReadPermission(permission):
-				if !a.EnforceChannelReadAccessByID(rctx, session.UserId, channelID) {
-					return false
-				}
-			case isChannelWritePermission(permission):
-				if !a.EnforceChannelWriteAccessByID(rctx, session.UserId, channelID) {
-					return false
-				}
-			}
-		}
-	}
-
 	if session.IsUnrestricted() || a.RolesGrantPermission(session.GetUserRoles(), model.PermissionManageSystem.Id) {
 		return true
 	}
@@ -400,6 +383,14 @@ func (a *App) HasPermissionToTeam(rctx request.CTX, askingUserId string, teamID 
 
 // HasPermissionToChannel determines if the specified user has the given permission on the provided channel.
 //
+// This answers an RBAC question only: it deliberately does NOT evaluate the channel
+// access policy. Policy belongs to the API layer, where the request has a session to
+// evaluate rules against -- see requireChannelReadAccess / requireChannelWriteAccess in
+// channels/api4/channel.go. Most of this function's callers are sessionless (the recap
+// job, incoming webhooks, invite-token signup) or ask about a third-party user, so a
+// gate here would either deny every one of them or evaluate against the wrong subject.
+// Do not reintroduce a channel-access check in this function; add one to the handler.
+//
 // Returns:
 //
 //	(hasPermission, isMember)
@@ -407,23 +398,6 @@ func (a *App) HasPermissionToTeam(rctx request.CTX, askingUserId string, teamID 
 // hasPermission: true if the user has the specified permission for the channel, otherwise false.
 // isMember: used for auditing access without membership. True if the user is a member of the channel, otherwise false.
 func (a *App) HasPermissionToChannel(rctx request.CTX, askingUserId string, channelID string, permission *model.Permission) (hasPermission bool, isMember bool) {
-	hasPermission, isMember = a.HasPermissionToChannelRBACOnly(rctx, askingUserId, channelID, permission)
-	if !hasPermission {
-		return hasPermission, isMember
-	}
-
-	// Suppression helpers: deliberately non-recording, see EnforceChannelReadAccess.
-	switch {
-	case isChannelReadPermission(permission):
-		return a.HasChannelReadAccessByID(rctx, askingUserId, channelID), isMember
-	case isChannelWritePermission(permission):
-		return a.HasChannelWriteAccessByID(rctx, askingUserId, channelID), isMember
-	}
-
-	return hasPermission, isMember
-}
-
-func (a *App) HasPermissionToChannelRBACOnly(rctx request.CTX, askingUserId string, channelID string, permission *model.Permission) (hasPermission bool, isMember bool) {
 	if channelID == "" || askingUserId == "" {
 		return false, false
 	}
@@ -560,7 +534,7 @@ func (a *App) HasPermissionToReadChannel(rctx request.CTX, userID string, channe
 }
 
 func (a *App) HasPermissionToReadChannelRBACOnly(rctx request.CTX, userID string, channel *model.Channel) (hasPermission bool, isMember bool) {
-	if ok, member := a.HasPermissionToChannelRBACOnly(rctx, userID, channel.Id, model.PermissionReadChannelContent); ok {
+	if ok, member := a.HasPermissionToChannel(rctx, userID, channel.Id, model.PermissionReadChannelContent); ok {
 		return true, member
 	}
 
@@ -588,7 +562,7 @@ func (a *App) HasPermissionToResolveChannelMention(rctx request.CTX, userID stri
 }
 
 func (a *App) hasPermissionToResolveChannelMentionRBAC(rctx request.CTX, userID string, channel *model.Channel) bool {
-	if ok, _ := a.HasPermissionToChannelRBACOnly(rctx, userID, channel.Id, model.PermissionReadChannelContent); ok {
+	if ok, _ := a.HasPermissionToChannel(rctx, userID, channel.Id, model.PermissionReadChannelContent); ok {
 		return true
 	}
 
@@ -605,7 +579,7 @@ func (a *App) HasPermissionToChannelMemberCount(rctx request.CTX, userID string,
 }
 
 func (a *App) hasPermissionToChannelMemberCountRBAC(rctx request.CTX, userID string, channel *model.Channel) bool {
-	if ok, _ := a.HasPermissionToChannelRBACOnly(rctx, userID, channel.Id, model.PermissionReadChannelContent); ok {
+	if ok, _ := a.HasPermissionToChannel(rctx, userID, channel.Id, model.PermissionReadChannelContent); ok {
 		return true
 	}
 
