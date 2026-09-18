@@ -41,8 +41,8 @@ Platform and OS scope reflects reported and tested environments and may not repr
 #### config.json
 New setting options were added to ``config.json``. Below is a list of the additions and their default values on install. The settings can be modified in ``config.json``, or the System Console when available.
  - **Changes to All plans:**
-   - Added ``Config.DeliveryTrackingSettings`` configuration setting.
-   - Added ``GlobalRelayMessageExportSettings.SenderAddress`` configuration setting to optionally set a fixed From address for Global Relay EML compliance exports.
+   - Added ``DeliveryTrackingSettings.Enable`` (default ``false``) and ``DeliveryTrackingSettings.EnableForAllChannels`` (default ``true``) configuration settings to control post delivery audit logging.
+   - Added ``MessageExportSettings.GlobalRelaySettings.SenderAddress`` configuration setting to optionally set a fixed From address for Global Relay EML compliance exports.
    - Added ``ServiceSettings.EnableHardenedMode`` configuration setting. The Enable Hardened Mode setting has been moved from System Console > Experimental > Features to System Console > Environment > Web Server.
    - Removed ``ImageProxySettings.RemoteImageProxyOptions`` configuration setting.
    - Removed ``ImageProxySettings.RemoteImageProxyURL`` configuration setting.
