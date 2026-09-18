@@ -120,6 +120,10 @@ func (a *App) UpdateDNDStatusOfUsers() {
 		return
 	}
 
+	// Restored statuses can be ooo (PrevStatus). Enrich before broadcast so clients
+	// receive auto_responder_message the same way as GetUserStatusesByIds.
+	a.enrichStatusesWithAutoResponderMessages(statuses)
+
 	scs, _ := a.getSharedChannelsService(false)
 	for i := range statuses {
 		a.Srv().Platform().AddStatusCache(statuses[i])

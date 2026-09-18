@@ -31,6 +31,8 @@ describe('OutOfOfficeWarning', () => {
             />,
         );
 
+        expect(screen.getByText('Norma Fletcher is Out of Office.').closest('.OutOfOfficeWarning__label')).toHaveAttribute('tabindex', '0');
+
         await userEvent.hover(screen.getByText('Norma Fletcher is Out of Office.'), {advanceTimers: jest.advanceTimersByTime});
 
         await waitFor(() => {
@@ -49,6 +51,7 @@ describe('OutOfOfficeWarning', () => {
         );
 
         expect(screen.getByText('Norma Fletcher is Out of Office.')).toBeInTheDocument();
+        expect(screen.getByText('Norma Fletcher is Out of Office.').closest('.OutOfOfficeWarning__label')).not.toHaveAttribute('tabindex');
         expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
     });
 });

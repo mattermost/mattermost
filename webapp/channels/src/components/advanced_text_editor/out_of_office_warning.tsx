@@ -37,7 +37,10 @@ type Props = {
 
 const OutOfOfficeWarning = ({displayName, autoReplyMessage}: Props) => {
     const label = (
-        <Label className='OutOfOfficeWarning__label'>
+        <Label
+            className='OutOfOfficeWarning__label'
+            tabIndex={autoReplyMessage ? 0 : undefined}
+        >
             <Icon
                 size={14}
                 aria-hidden={true}
