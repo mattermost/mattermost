@@ -4,12 +4,16 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
+	"slices"
 	"testing"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	einterfacesmocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -626,5 +630,190 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 	t.Run("change order of bookmarks error when bookmark not found", func(t *testing.T) {
 		_, appErr = th.App.UpdateChannelBookmarkSortOrder(model.NewId(), channelId, int64(0), "")
 		assert.NotNil(t, appErr)
+	})
+}
+
+func TestChannelBookmarkBroadcastsFileInfoABAC(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+	})
+
+	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
+	require.Nil(t, appErr)
+
+	th.Context.Session().UserId = th.BasicUser.Id
+
+	mockDownloadDecision := func(t *testing.T, allowed bool) {
+		t.Helper()
+
+		mockACS := &einterfacesmocks.AccessControlServiceInterface{}
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Action == model.AccessControlPolicyActionDownloadFileAttachment
+		})).Return(model.AccessDecision{Decision: allowed}, (*model.AppError)(nil))
+
+		original := th.App.Srv().Channels().AccessControl
+		th.App.Srv().Channels().AccessControl = mockACS
+		t.Cleanup(func() {
+			th.App.Srv().Channels().AccessControl = original
+		})
+	}
+
+	createFile := func(t *testing.T) *model.FileInfo {
+		t.Helper()
+
+		miniPreview := []byte{1, 2, 3, 4}
+		file := &model.FileInfo{
+			Id:              model.NewId(),
+			ChannelId:       th.BasicChannel.Id,
+			CreatorId:       model.BookmarkFileOwner,
+			Path:            "somepath",
+			ThumbnailPath:   "thumbpath",
+			PreviewPath:     "prevPath",
+			Name:            "bookmark-secret.png",
+			Extension:       "png",
+			MimeType:        "image/png",
+			Size:            873182,
+			Width:           3076,
+			Height:          2200,
+			HasPreviewImage: true,
+			MiniPreview:     &miniPreview,
+		}
+		_, err := th.App.Srv().Store().FileInfo().Save(th.Context, file)
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			require.NoError(t, th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file.Id))
+		})
+		return file
+	}
+
+	nextEvent := func(t *testing.T, messages chan *model.WebSocketEvent, eventType model.WebsocketEventType) *model.WebSocketEvent {
+		t.Helper()
+
+		for {
+			select {
+			case msg := <-messages:
+				if msg.EventType() == eventType {
+					return msg
+				}
+			case <-time.After(10 * time.Second):
+				t.Fatalf("timed out waiting for %s event", eventType)
+				return nil
+			}
+		}
+	}
+
+	// hasFileInfo reports whether any bookmark in the event payload still carries file info.
+	hasFileInfo := func(t *testing.T, msg *model.WebSocketEvent, field string) bool {
+		t.Helper()
+
+		raw, ok := msg.GetData()[field].(string)
+		require.True(t, ok, "event should carry a %s payload", field)
+
+		var decoded any
+		require.NoError(t, json.Unmarshal([]byte(raw), &decoded))
+
+		var walk func(value any) bool
+		walk = func(value any) bool {
+			switch typed := value.(type) {
+			case map[string]any:
+				if file, found := typed["file"]; found && file != nil {
+					return true
+				}
+				for key, nested := range typed {
+					if key == "file" {
+						continue
+					}
+					if walk(nested) {
+						return true
+					}
+				}
+			case []any:
+				return slices.ContainsFunc(typed, walk)
+			}
+			return false
+		}
+
+		return walk(decoded)
+	}
+
+	bookmarkEvents := []model.WebsocketEventType{
+		model.WebsocketEventChannelBookmarkCreated,
+		model.WebsocketEventChannelBookmarkUpdated,
+		model.WebsocketEventChannelBookmarkDeleted,
+		model.WebsocketEventChannelBookmarkSorted,
+	}
+
+	// exerciseBookmarkLifecycle drives the four bookmark broadcasts and reports, per event,
+	// whether the recipient received file info.
+	exerciseBookmarkLifecycle := func(t *testing.T) map[model.WebsocketEventType]bool {
+		t.Helper()
+
+		messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", bookmarkEvents)
+		defer closeWS()
+
+		file := createFile(t)
+		created, appErr := th.App.CreateChannelBookmark(th.Context, createBookmark("File bookmark", model.ChannelBookmarkFile, th.BasicChannel.Id, file.Id), "")
+		require.Nil(t, appErr)
+
+		result := map[model.WebsocketEventType]bool{}
+		result[model.WebsocketEventChannelBookmarkCreated] = hasFileInfo(t, nextEvent(t, messages, model.WebsocketEventChannelBookmarkCreated), "bookmark")
+
+		toUpdate := created.Clone()
+		toUpdate.DisplayName = "File bookmark renamed"
+		_, appErr = th.App.UpdateChannelBookmark(th.Context, toUpdate, "")
+		require.Nil(t, appErr)
+		result[model.WebsocketEventChannelBookmarkUpdated] = hasFileInfo(t, nextEvent(t, messages, model.WebsocketEventChannelBookmarkUpdated), "bookmarks")
+
+		otherFile := createFile(t)
+		_, appErr = th.App.CreateChannelBookmark(th.Context, createBookmark("Second file bookmark", model.ChannelBookmarkFile, th.BasicChannel.Id, otherFile.Id), "")
+		require.Nil(t, appErr)
+		nextEvent(t, messages, model.WebsocketEventChannelBookmarkCreated)
+
+		_, appErr = th.App.UpdateChannelBookmarkSortOrder(created.Id, th.BasicChannel.Id, 1, "")
+		require.Nil(t, appErr)
+		result[model.WebsocketEventChannelBookmarkSorted] = hasFileInfo(t, nextEvent(t, messages, model.WebsocketEventChannelBookmarkSorted), "bookmarks")
+
+		_, appErr = th.App.DeleteChannelBookmark(created.Id, "")
+		require.Nil(t, appErr)
+		result[model.WebsocketEventChannelBookmarkDeleted] = hasFileInfo(t, nextEvent(t, messages, model.WebsocketEventChannelBookmarkDeleted), "bookmark")
+
+		return result
+	}
+
+	t.Run("denied recipient receives no bookmark file info on any broadcast", func(t *testing.T) {
+		mockDownloadDecision(t, false)
+
+		for event, hasFile := range exerciseBookmarkLifecycle(t) {
+			assert.False(t, hasFile, "%s should not carry file info for a denied recipient", event)
+		}
+	})
+
+	t.Run("allowed recipient still receives bookmark file info on every broadcast", func(t *testing.T) {
+		mockDownloadDecision(t, true)
+
+		for event, hasFile := range exerciseBookmarkLifecycle(t) {
+			assert.True(t, hasFile, "%s should carry file info for an allowed recipient", event)
+		}
+	})
+
+	t.Run("link bookmarks are broadcast unchanged to a denied recipient", func(t *testing.T) {
+		mockDownloadDecision(t, false)
+
+		messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", bookmarkEvents)
+		defer closeWS()
+
+		created, appErr := th.App.CreateChannelBookmark(th.Context, createBookmark("Link bookmark", model.ChannelBookmarkLink, th.BasicChannel.Id, ""), "")
+		require.Nil(t, appErr)
+
+		msg := nextEvent(t, messages, model.WebsocketEventChannelBookmarkCreated)
+		raw, ok := msg.GetData()["bookmark"].(string)
+		require.True(t, ok)
+		assert.Contains(t, raw, created.Id)
+		assert.Contains(t, raw, "https://mattermost.com")
+		assert.False(t, hasFileInfo(t, msg, "bookmark"))
 	})
 }
