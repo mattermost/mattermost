@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PropertyFieldOption} from '@mattermost/types/properties';
+import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 
 import {GRAPH_MAX_DEPTH, GRAPH_MAX_SEARCH_ROWS} from './limits';
 import {expandOccurrences} from './occurrences';
 import type {GraphOccurrence, OccurrenceKeyOf} from './occurrences';
+import type {GraphFieldRef} from './page_all_access_control_field_options';
 
 export {expandOccurrences, expandToSelected, selectedDescendantCount, alsoUnderLabel} from './occurrences';
 export type {GraphOccurrence, OccurrenceKeyOf, ExpandOccurrencesOpts} from './occurrences';
@@ -36,6 +37,42 @@ export function asGraphValueIds(value: string | string[] | undefined): string[] 
         return value;
     }
     return value ? [value] : [];
+}
+
+// A PropertyField's attrs is `unknown` per key, so each declared GraphFieldRef
+// key passes through only when the stored value has the declared type; anything
+// else is dropped rather than cast, because the picker iterates options
+// directly.
+export function asGraphFieldRef(field: PropertyField): GraphFieldRef {
+    const ref: GraphFieldRef = {
+        id: field.id,
+        object_type: field.object_type,
+        type: field.type,
+    };
+
+    const attrs = field.attrs;
+    if (!attrs) {
+        return ref;
+    }
+
+    const graphAttrs: NonNullable<GraphFieldRef['attrs']> = {};
+    if (Array.isArray(attrs.options)) {
+        graphAttrs.options = attrs.options;
+    }
+    if (typeof attrs.options_omitted === 'boolean') {
+        graphAttrs.options_omitted = attrs.options_omitted;
+    }
+    if (typeof attrs.options_count === 'number') {
+        graphAttrs.options_count = attrs.options_count;
+    }
+    if (typeof attrs.access_mode === 'string') {
+        graphAttrs.access_mode = attrs.access_mode as NonNullable<GraphFieldRef['attrs']>['access_mode'];
+    }
+
+    if (Object.keys(graphAttrs).length > 0) {
+        ref.attrs = graphAttrs;
+    }
+    return ref;
 }
 
 export type GraphOptionJoin = {
