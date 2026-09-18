@@ -108,9 +108,10 @@ func TestSearchAccessControlDecisionActions(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		// upload_file_attachment, download_file_attachment and channel_read_access.
-		require.Len(t, out.Decisions, 3)
-		require.Len(t, out.Results, 3)
+		// upload_file_attachment, download_file_attachment, channel_read_access and
+		// channel_write_access.
+		require.Len(t, out.Decisions, 4)
+		require.Len(t, out.Results, 4)
 	})
 
 	t.Run("subject not matching session user returns 403", func(t *testing.T) {
