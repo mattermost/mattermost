@@ -232,6 +232,49 @@ class AdminUserCard {
         await this.openCpaRankPicker(labelText);
         await this.cpaRankMenu().getByText(optionName, {exact: true}).click();
     }
+
+    // ── Hierarchical (graph) CPA picker ─────────────────────────────────
+
+    /** The container of a hierarchical CPA field, located by its field id. */
+    getCpaGraphField(fieldId: string): Locator {
+        return this.body.getByTestId(`user-detail-custom-attribute-label-${fieldId}`);
+    }
+
+    /** The menu-button of a hierarchical CPA field. */
+    getCpaGraphPicker(fieldId: string): Locator {
+        return this.getCpaGraphField(fieldId).getByTestId(`cpa-graph-select-${fieldId}`);
+    }
+
+    /**
+     * Opens the picker from the trigger's leading padding. The chips sit inside
+     * the trigger, so a default click on its centre could land on a chip's
+     * remove control and drop a value instead of opening the menu.
+     */
+    async openCpaGraphPicker(fieldId: string): Promise<void> {
+        await this.getCpaGraphPicker(fieldId).click({position: {x: 8, y: 8}});
+    }
+
+    /** The chips the closed hierarchical picker shows for its selected values. */
+    cpaGraphChips(fieldId: string): Locator {
+        return this.getCpaGraphField(fieldId).locator('.hierarchical-value-menu__chip');
+    }
+
+    /** A single chip, located by the value name it displays. */
+    getCpaGraphChip(fieldId: string, valueName: string): Locator {
+        return this.cpaGraphChips(fieldId).filter({
+            has: this.body.page().getByText(valueName, {exact: true}),
+        });
+    }
+
+    /** The "x" control that removes a value from a hierarchical field. */
+    getCpaGraphChipRemove(fieldId: string, valueName: string): Locator {
+        return this.getCpaGraphChip(fieldId, valueName).getByRole('button', {name: `Remove ${valueName}`});
+    }
+
+    /** The open hierarchical-value menu (rendered at page level via portal). */
+    cpaGraphMenu(fieldId: string): Locator {
+        return this.body.page().locator(`#cpa-graph-menu-${fieldId}`);
+    }
 }
 
 class TeamMembershipPanel {
