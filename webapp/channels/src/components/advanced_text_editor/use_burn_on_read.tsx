@@ -4,11 +4,8 @@
 import React, {useCallback, useMemo} from 'react';
 import {useSelector} from 'react-redux';
 
-import {ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ} from '@mattermost/types/access_control';
-
 import {PostTypes} from 'mattermost-redux/constants/posts';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {isBurnOnReadABACPermissionEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUser, getUser} from 'mattermost-redux/selectors/entities/users';
 import {getDirectChannelName, getUserIdFromChannelName, isDirectChannel} from 'mattermost-redux/utils/channel_utils';
 
@@ -20,7 +17,7 @@ import {
 import BurnOnReadButton from 'components/burn_on_read/burn_on_read_button';
 import BurnOnReadLabel from 'components/burn_on_read/burn_on_read_label';
 import BurnOnReadTourTip from 'components/burn_on_read/burn_on_read_tour_tip';
-import {useRenderPermission} from 'components/common/hooks/useRenderPermission';
+import {useCreateBurnOnReadAccess} from 'components/common/hooks/useCreateBurnOnReadAccess';
 
 import 'components/burn_on_read/burn_on_read_control.scss';
 
@@ -49,16 +46,7 @@ const useBurnOnRead = (
     const rootId = draft.rootId;
     const channelId = draft.channelId;
     const isEnabled = useSelector(isBurnOnReadEnabled);
-    const borFeatureFlagEnabled = useSelector(isBurnOnReadABACPermissionEnabled);
-    const allowedByPolicy = useRenderPermission(
-        {
-            resourceType: 'channel',
-            resourceId: draft.channelId,
-            action: ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ,
-        },
-        !borFeatureFlagEnabled, // flag off => don't gate access.  flag on => fail closed
-        !borFeatureFlagEnabled, // suppress permission request if feature flag is not enabled
-    );
+    const allowedByPolicy = useCreateBurnOnReadAccess(draft.channelId);
     const durationMinutes = useSelector(getBurnOnReadDurationMinutes);
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
     const currentUser = useSelector(getCurrentUser);
@@ -114,6 +102,11 @@ const useBurnOnRead = (
         handleBurnOnReadApply(false);
     }, [handleBurnOnReadApply]);
 
+    // For the edge case where a draft was in Burn-on-Read and the policy was revoked, do not allow sending.
+    const isBurnOnReadSendable = useMemo(() => (
+        !(hasBurnOnReadSet && !allowedByPolicy)
+    ), [hasBurnOnReadSet, allowedByPolicy]);
+
     // Label component (shows above editor when active)
     const labels = useMemo(() => (
         (hasBurnOnReadSet && !rootId) ? (
@@ -151,6 +144,7 @@ const useBurnOnRead = (
         additionalControl,
         handleBurnOnReadApply,
         handleRemoveBurnOnRead,
+        isBurnOnReadSendable,
     };
 };
 

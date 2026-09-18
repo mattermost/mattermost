@@ -18,7 +18,7 @@ import {
     getBurnOnReadDurationMinutes,
 } from 'selectors/burn_on_read';
 
-import {useRenderPermission} from 'components/common/hooks/useRenderPermission';
+import {useCreateBurnOnReadAccess} from 'components/common/hooks/useCreateBurnOnReadAccess';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
@@ -42,8 +42,8 @@ jest.mock('mattermost-redux/selectors/entities/general', () => ({
 
 // Mocked rather than driven through redux state: the hook's own test file covers the
 // fetch/cache plumbing, and what matters here is how this hook composes the decision.
-jest.mock('components/common/hooks/useRenderPermission', () => ({
-    useRenderPermission: jest.fn(),
+jest.mock('components/common/hooks/useCreateBurnOnReadAccess', () => ({
+    useCreateBurnOnReadAccess: jest.fn(),
 }));
 
 jest.mock('mattermost-redux/selectors/entities/users', () => ({
@@ -108,7 +108,7 @@ describe('useBurnOnRead', () => {
         (getBurnOnReadDurationMinutes as jest.Mock).mockReturnValue(10);
         (getCurrentUser as jest.Mock).mockReturnValue({id: 'user-id', is_bot: false});
         (isBurnOnReadABACPermissionEnabled as jest.Mock).mockReturnValue(true);
-        (useRenderPermission as jest.Mock).mockReturnValue(true);
+        (useCreateBurnOnReadAccess as jest.Mock).mockReturnValue(true);
     });
 
     describe('button visibility in different channel types', () => {
@@ -289,7 +289,7 @@ describe('useBurnOnRead', () => {
         it('should hide button when the ABAC policy denies the action', () => {
             const publicChannel = createMockChannel('O');
             (getChannel as jest.Mock).mockReturnValue(publicChannel);
-            (useRenderPermission as jest.Mock).mockReturnValue(false);
+            (useCreateBurnOnReadAccess as jest.Mock).mockReturnValue(false);
 
             const {result} = renderHook(
                 () => useBurnOnRead(
@@ -308,7 +308,7 @@ describe('useBurnOnRead', () => {
         it('should show button when the ABAC policy allows the action', () => {
             const publicChannel = createMockChannel('O');
             (getChannel as jest.Mock).mockReturnValue(publicChannel);
-            (useRenderPermission as jest.Mock).mockReturnValue(true);
+            (useCreateBurnOnReadAccess as jest.Mock).mockReturnValue(true);
 
             const {result} = renderHook(
                 () => useBurnOnRead(
@@ -436,7 +436,7 @@ describe('useBurnOnRead', () => {
         it('should still show the label when the policy denies the action', () => {
             const publicChannel = createMockChannel('O');
             (getChannel as jest.Mock).mockReturnValue(publicChannel);
-            (useRenderPermission as jest.Mock).mockReturnValue(false);
+            (useCreateBurnOnReadAccess as jest.Mock).mockReturnValue(false);
 
             const {result} = renderHook(
                 () => useBurnOnRead(
@@ -477,14 +477,11 @@ describe('useBurnOnRead', () => {
         });
     });
 
-    // The flag drives both fall-back behaviours in one place, so pin the pair. With the
-    // flag off we must neither gate the control nor ask the server — the action is not
-    // registered for render decisions then, and asking would reject the whole batched
-    // request, taking file upload's decision down with it.
-    describe('feature flag coupling', () => {
-        const renderWithFlag = (flagEnabled: boolean) => {
+    // All this hook owes useCreateBurnOnReadAccess is the channel. The action, the feature
+    // flag and the fail-closed default are that hook's business — see its own tests.
+    describe('render permission request', () => {
+        it('asks about the draft channel', () => {
             (getChannel as jest.Mock).mockReturnValue(createMockChannel('O'));
-            (isBurnOnReadABACPermissionEnabled as jest.Mock).mockReturnValue(flagEnabled);
 
             renderHook(
                 () => useBurnOnRead(
@@ -497,26 +494,58 @@ describe('useBurnOnRead', () => {
                 {wrapper},
             );
 
-            return (useRenderPermission as jest.Mock).mock.calls[0];
+            expect(useCreateBurnOnReadAccess).toHaveBeenCalledWith('channel-id');
+        });
+    });
+
+    // isBurnOnReadSendable gates the send button and the Enter key. It must block only a
+    // burn-on-read draft the policy has denied — blocking whenever the policy denies would stop
+    // ordinary messages too, which is the plausible way to get this wrong.
+    describe('send gating', () => {
+        const renderSendable = (draftType?: PostType) => {
+            (getChannel as jest.Mock).mockReturnValue(createMockChannel('O'));
+
+            const {result} = renderHook(
+                () => useBurnOnRead(
+                    createMockDraft(draftType),
+                    mockHandleDraftChange,
+                    mockFocusTextbox,
+                    false,
+                    true,
+                ),
+                {wrapper},
+            );
+
+            return result.current.isBurnOnReadSendable;
         };
 
-        it('fails closed and requests the decision when the flag is on', () => {
-            const [identifier, defaultAllowed, suppressRequest] = renderWithFlag(true);
-
-            expect(identifier).toEqual({
-                resourceType: 'channel',
-                resourceId: 'channel-id',
-                action: 'create_burn_on_read_post',
-            });
-            expect(defaultAllowed).toBe(false);
-            expect(suppressRequest).toBe(false);
+        it('blocks a burn-on-read draft when the policy denies', () => {
+            (useCreateBurnOnReadAccess as jest.Mock).mockReturnValue(false);
+            expect(renderSendable(PostTypes.BURN_ON_READ)).toBe(false);
         });
 
-        it('fails open and suppresses the request when the flag is off', () => {
-            const [, defaultAllowed, suppressRequest] = renderWithFlag(false);
+        it('allows a burn-on-read draft when the policy allows', () => {
+            (useCreateBurnOnReadAccess as jest.Mock).mockReturnValue(true);
+            expect(renderSendable(PostTypes.BURN_ON_READ)).toBe(true);
+        });
 
-            expect(defaultAllowed).toBe(true);
-            expect(suppressRequest).toBe(true);
+        it('allows an ordinary draft even when the policy denies', () => {
+            (useCreateBurnOnReadAccess as jest.Mock).mockReturnValue(false);
+            expect(renderSendable(undefined)).toBe(true);
+        });
+
+        it('allows an ordinary draft when the policy allows', () => {
+            (useCreateBurnOnReadAccess as jest.Mock).mockReturnValue(true);
+            expect(renderSendable(undefined)).toBe(true);
+        });
+
+        // hasBurnOnReadSet is `isEnabled && draft.type === BURN_ON_READ`, so a burn-on-read draft
+        // with the feature switched off is sendable: submitPost drops the type and it posts as an
+        // ordinary message. Surprising enough to pin, so it is not "fixed" later.
+        it('allows a burn-on-read draft when the feature is disabled, despite the policy', () => {
+            (isBurnOnReadEnabled as jest.Mock).mockReturnValue(false);
+            (useCreateBurnOnReadAccess as jest.Mock).mockReturnValue(false);
+            expect(renderSendable(PostTypes.BURN_ON_READ)).toBe(true);
         });
     });
 
