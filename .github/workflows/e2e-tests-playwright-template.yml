@@ -383,9 +383,14 @@ jobs:
       # checkable evidence; writes the required status only in enforce mode.
       - name: ci/e2e-triage
         id: triage
-        if: inputs.report_type == 'PR' && inputs.pr_number != ''
+        # Runs on master as well as on PRs. On master the question changes from
+        # "is this the PR's fault" to "is master noisy or actually broken", and
+        # only intermittency clears a failure: a test that failed in the previous
+        # master run too is a streak, not a flake, and stays red. A master run has
+        # no PR to comment on, so the story lands in the job summary.
+        if: always()
         continue-on-error: true
-        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-triage@a66bed87b9b8de9353f12334656983f355342f58 # actions/e2e-triage, branch e2e-triage
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-triage@79ce57a8d54a42d37cd0707d1353b9980ff1a546 # actions/e2e-triage, branch e2e-triage
         with:
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
           status-context: ${{ inputs.context_name }}
