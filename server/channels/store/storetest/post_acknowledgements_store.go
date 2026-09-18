@@ -392,11 +392,9 @@ func testPostAcknowledgementsStoreBatchDelete(t *testing.T, rctx request.CTX, ss
 		require.NoError(t, err)
 		oldUpdateAt := currentPost.UpdateAt
 
-		// updatePost uses model.GetMillis() (1ms resolution). Wait for the clock
-		// to tick so BatchDelete cannot write the same UpdateAt as SaveWithModel.
-		for model.GetMillis() <= oldUpdateAt {
-			time.Sleep(time.Millisecond)
-		}
+		// updatePost uses model.GetMillis() (1ms resolution). Wait a millisecond
+		// so BatchDelete cannot write the same UpdateAt as SaveWithModel.
+		time.Sleep(time.Millisecond)
 
 		// Delete acknowledgements in batch
 		err = ss.PostAcknowledgement().BatchDelete([]*model.PostAcknowledgement{ack1, ack2})
