@@ -104,12 +104,15 @@ describe('Auto Response In DMs', () => {
         // * Verify off-hours notice is not shown alongside the OOO notice
         cy.get('.RemoteUserHour').should('not.exist');
 
-        // # Hover the OOO notice
-        cy.findByTestId('outOfOfficeWarning').trigger('mouseenter');
+        // * Wait until the auto-reply message is available (banner is focusable when tooltip is wrapped)
+        cy.findByTestId('outOfOfficeWarning').should('have.attr', 'tabindex', '0');
+
+        // # Focus the OOO banner (WithTooltip trigger; avoids Floating UI hover rest delay)
+        cy.findByTestId('outOfOfficeWarning').focus();
 
         // * Verify tooltip shows the auto-reply message
-        cy.findByRole('tooltip', {timeout: TIMEOUTS.FIVE_SEC}).
+        cy.get('.tooltipContainer', {timeout: TIMEOUTS.FIVE_SEC}).
             should('be.visible').
-            and('have.text', AUTO_RESPONSE_MESSAGE);
+            and('contain.text', AUTO_RESPONSE_MESSAGE);
     });
 });

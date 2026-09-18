@@ -25,20 +25,16 @@ const Icon = styled(CancelIcon)`
     flex-shrink: 0;
 `;
 
-const Label = styled.span`
-    display: inline-flex;
-    align-items: center;
-`;
-
 type Props = {
     displayName: string;
     autoReplyMessage?: string;
 };
 
 const OutOfOfficeWarning = ({displayName, autoReplyMessage}: Props) => {
-    const label = (
-        <Label
-            className='OutOfOfficeWarning__label'
+    const banner = (
+        <Container
+            className='OutOfOfficeWarning'
+            data-testid='outOfOfficeWarning'
             tabIndex={autoReplyMessage ? 0 : undefined}
         >
             <Icon
@@ -50,20 +46,17 @@ const OutOfOfficeWarning = ({displayName, autoReplyMessage}: Props) => {
                 defaultMessage='{displayName} is Out of Office.'
                 values={{displayName}}
             />
-        </Label>
+        </Container>
     );
 
+    if (!autoReplyMessage) {
+        return banner;
+    }
+
     return (
-        <Container
-            className='OutOfOfficeWarning'
-            data-testid='outOfOfficeWarning'
-        >
-            {autoReplyMessage ? (
-                <WithTooltip title={autoReplyMessage}>
-                    {label}
-                </WithTooltip>
-            ) : label}
-        </Container>
+        <WithTooltip title={autoReplyMessage}>
+            {banner}
+        </WithTooltip>
     );
 };
 

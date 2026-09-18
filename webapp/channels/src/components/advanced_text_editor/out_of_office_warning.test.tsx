@@ -31,9 +31,9 @@ describe('OutOfOfficeWarning', () => {
             />,
         );
 
-        expect(screen.getByText('Norma Fletcher is Out of Office.').closest('.OutOfOfficeWarning__label')).toHaveAttribute('tabindex', '0');
+        expect(screen.getByTestId('outOfOfficeWarning')).toHaveAttribute('tabindex', '0');
 
-        await userEvent.hover(screen.getByText('Norma Fletcher is Out of Office.'), {advanceTimers: jest.advanceTimersByTime});
+        await userEvent.hover(screen.getByTestId('outOfOfficeWarning'), {advanceTimers: jest.advanceTimersByTime});
 
         await waitFor(() => {
             expect(screen.getByText(message)).toBeInTheDocument();
@@ -51,7 +51,7 @@ describe('OutOfOfficeWarning', () => {
         );
 
         expect(screen.getByText('Norma Fletcher is Out of Office.')).toBeInTheDocument();
-        expect(screen.getByText('Norma Fletcher is Out of Office.').closest('.OutOfOfficeWarning__label')).not.toHaveAttribute('tabindex');
+        expect(screen.getByTestId('outOfOfficeWarning')).not.toHaveAttribute('tabindex');
         expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
     });
 });
