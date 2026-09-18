@@ -7,7 +7,10 @@ import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {renderHookWithContext} from 'tests/react_testing_utils';
+import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from 'components/property_fields/graph/page_all_access_control_field_options';
+import {clearGraphOptionNameCache, commitGraphOptionNames} from 'components/property_fields/graph/use_graph_option_names';
+
+import {act, renderHookWithContext} from 'tests/react_testing_utils';
 
 import useChannelClassificationBanner from './useChannelClassificationBanner';
 import * as ClassificationHook from './useClassificationMarkings';
@@ -16,6 +19,13 @@ jest.mock('react-redux', () => ({
     __esModule: true,
     ...jest.requireActual('react-redux'),
 }));
+
+jest.mock('components/property_fields/graph/page_all_access_control_field_options', () => ({
+    ...jest.requireActual('components/property_fields/graph/page_all_access_control_field_options'),
+    pageAllAccessControlFieldOptions: jest.fn(),
+}));
+
+const mockPageAll = jest.mocked(pageAllAccessControlFieldOptions);
 
 const CHANNEL_ID = 'channel1';
 const GROUP_ID = 'group_access_control';
@@ -112,6 +122,9 @@ describe('useChannelClassificationBanner — generic designated attributes', () 
         jest.spyOn(ReactRedux, 'useDispatch').mockImplementation(() => dispatchMock);
         jest.spyOn(Client4, 'getPropertyValues').mockResolvedValue([]);
         mockNoClassification();
+        clearPropertyFieldOptionWalks();
+        clearGraphOptionNameCache();
+        mockPageAll.mockResolvedValue([]);
     });
 
     afterEach(() => {
@@ -303,5 +316,88 @@ describe('useChannelClassificationBanner — generic designated attributes', () 
 
         await Promise.resolve();
         expect(fetchSpy).toHaveBeenCalledWith('access_control', 'channel', CHANNEL_ID);
+    });
+
+    test('renders no banner while any id of a designated graph value is unnamed', () => {
+        const graph = designatedField('program', 'display_banner_top', [], undefined, 'graph');
+        commitGraphOptionNames('program', {a: 'ALPHA'});
+
+        const {result} = renderHookWithContext(
+            () => useChannelClassificationBanner(CHANNEL_ID),
+            makeState([graph], [value('program', ['a', 'b'])]),
+        );
+
+        expect(result.current.hasClassification).toBe(false);
+        expect(result.current.bannerText).toBeUndefined();
+    });
+
+    test('a fully named graph value contributes its names comma-joined', () => {
+        const graph = designatedField('program', 'display_banner_top', [], undefined, 'graph');
+        commitGraphOptionNames('program', {a: 'ALPHA', b: 'BETA'});
+
+        const {result} = renderHookWithContext(
+            () => useChannelClassificationBanner(CHANNEL_ID),
+            makeState([graph], [value('program', ['a', 'b'])]),
+        );
+
+        expect(result.current.hasClassification).toBe(true);
+        expect(result.current.bannerText).toBe('ALPHA, BETA');
+    });
+
+    test('a designated select still banners on its own when a designated graph value is unnamed', async () => {
+        const marking = designatedField('marking', 'display_banner_top', [{id: 'opt1', name: 'RESTRICTED'}], 1);
+        const graph = designatedField('program', 'display_banner_top', [], 2, 'graph');
+
+        const {result} = renderHookWithContext(
+            () => useChannelClassificationBanner(CHANNEL_ID),
+            makeState([marking, graph], [value('marking', 'opt1'), value('program', ['a'])]),
+        );
+
+        // The unnamed id kicks off a name walk; let it settle before asserting.
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        expect(result.current.hasClassification).toBe(true);
+        expect(result.current.bannerText).toBe('RESTRICTED');
+    });
+
+    test('collapses an unnamed graph token in the banner template rather than rendering the raw id', async () => {
+        const marking = designatedField('marking', 'display_banner_top', [{id: 'opt1', name: 'RESTRICTED'}], 1);
+        const graph = designatedField('program', 'display_banner_top', [], 2, 'graph');
+
+        const {result} = renderHookWithContext(
+            () => useChannelClassificationBanner(CHANNEL_ID),
+            makeState(
+                [marking, graph],
+                [value('marking', 'opt1'), value('program', ['a'])],
+                {enabled: true, text: '{{marking}} · {{program}}'},
+            ),
+        );
+
+        // The unnamed id kicks off a name walk; let it settle before asserting.
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        expect(result.current.bannerText).toBe('RESTRICTED');
+        expect(result.current.bannerText).not.toContain('a');
+    });
+
+    test('substitutes a fully named graph value in the banner template', () => {
+        const marking = designatedField('marking', 'display_banner_top', [{id: 'opt1', name: 'RESTRICTED'}], 1);
+        const graph = designatedField('program', 'display_banner_top', [], 2, 'graph');
+        commitGraphOptionNames('program', {a: 'ALPHA'});
+
+        const {result} = renderHookWithContext(
+            () => useChannelClassificationBanner(CHANNEL_ID),
+            makeState(
+                [marking, graph],
+                [value('marking', 'opt1'), value('program', ['a'])],
+                {enabled: true, text: '{{marking}} · {{program}}'},
+            ),
+        );
+
+        expect(result.current.bannerText).toBe('RESTRICTED · ALPHA');
     });
 });
