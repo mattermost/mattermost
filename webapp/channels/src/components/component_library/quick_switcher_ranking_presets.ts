@@ -6,8 +6,7 @@ import type {Channel} from '@mattermost/types/channels';
 import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
-import type {RankableWrappedChannel, RankPenaltyWeights} from '../suggestion/quick_switch_ranking';
-import {DEFAULT_RANK_PENALTY_WEIGHTS} from '../suggestion/quick_switch_ranking';
+import type {RankableWrappedChannel} from '../suggestion/quick_switch_ranking';
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -45,67 +44,6 @@ export type RankingScenarioPreset = {
     now: number;
     channels: RankableWrappedChannel[];
 };
-
-export type RankingWeightPreset = {
-    id: string;
-    label: string;
-    description: string;
-    weights: RankPenaltyWeights;
-};
-
-export const WEIGHT_PRESETS: RankingWeightPreset[] = [
-    {
-        id: 'production',
-        label: 'Production defaults',
-        description: 'Current MM-70519 weights: prefix → type (DM>GM>channel) → activity',
-        weights: {...DEFAULT_RANK_PENALTY_WEIGHTS},
-    },
-    {
-        id: 'emphasize-activity',
-        label: 'Emphasize activity',
-        description: 'Earlier activity-first scale — a recent GM can bury a never-opened DM',
-        weights: {
-            ...DEFAULT_RANK_PENALTY_WEIGHTS,
-            archived: 72,
-            deactivated: 36,
-            nonPrefixMatch: 6,
-            groupMessage: 2,
-            channel: 4,
-            staleActivity: 12,
-            noActivity: 24,
-            hiddenInSidebar: 1,
-        },
-    },
-    {
-        id: 'emphasize-type',
-        label: 'Emphasize type (DM > GM)',
-        description: 'Larger gap between DM and GM so type dominates even more clearly',
-        weights: {
-            ...DEFAULT_RANK_PENALTY_WEIGHTS,
-            groupMessage: 16,
-            channel: 24,
-            nonPrefixMatch: 48,
-            deactivated: 96,
-            archived: 192,
-        },
-    },
-    {
-        id: 'broken-dominance',
-        label: 'Broken dominance (demo)',
-        description: 'Intentionally invalid scale so the warning banner appears',
-        weights: {
-            ...DEFAULT_RANK_PENALTY_WEIGHTS,
-            archived: 10,
-            deactivated: 10,
-            nonPrefixMatch: 2,
-            groupMessage: 1,
-            channel: 1,
-            noActivity: 50,
-            staleActivity: 25,
-            hiddenInSidebar: 1,
-        },
-    },
-];
 
 export const SCENARIO_PRESETS: RankingScenarioPreset[] = [
     {
