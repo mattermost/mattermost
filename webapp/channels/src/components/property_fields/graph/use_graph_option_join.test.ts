@@ -329,8 +329,11 @@ describe('useGraphOptionJoin', () => {
         });
 
         test('does not announce options loaded after the field names are cleared', async () => {
-            const walk = deferred<PropertyFieldOption[]>();
-            mockPageAll.mockReturnValue(walk.promise);
+            const first = deferred<PropertyFieldOption[]>();
+            const second = deferred<PropertyFieldOption[]>();
+            mockPageAll.
+                mockReturnValueOnce(first.promise).
+                mockReturnValueOnce(second.promise);
             const onOptionsLoaded = jest.fn();
             const field = fieldOf();
 
@@ -338,11 +341,40 @@ describe('useGraphOptionJoin', () => {
             await waitFor(() => expect(mockPageAll).toHaveBeenCalledTimes(1));
 
             clearGraphOptionNamesForField(field.id);
-            walk.resolve(hierarchy());
+            await waitFor(() => expect(mockPageAll).toHaveBeenCalledTimes(2));
+
+            first.resolve(hierarchy());
             await settle();
 
             expect(onOptionsLoaded).not.toHaveBeenCalled();
             expect(result.current.status).toBe('loading');
+
+            second.resolve(hierarchy());
+            await waitFor(() => expect(result.current.status).toBe('loaded'));
+            expect(onOptionsLoaded).toHaveBeenCalledTimes(1);
+        });
+
+        test('a field clear does not start a walk that was never requested', async () => {
+            renderJoin(fieldOf(), {open: false, prefetch: false});
+
+            clearGraphOptionNamesForField('field-1');
+            await settle();
+
+            expect(mockPageAll).not.toHaveBeenCalled();
+        });
+
+        test('a field clear while the menu is open starts a replacement walk without closing', async () => {
+            mockPageAll.mockResolvedValue(hierarchy());
+            const field = fieldOf();
+            const {result} = renderJoin(field, {open: true});
+            await waitFor(() => expect(result.current.status).toBe('loaded'));
+            expect(mockPageAll).toHaveBeenCalledTimes(1);
+
+            clearGraphOptionNamesForField(field.id);
+
+            await waitFor(() => expect(mockPageAll).toHaveBeenCalledTimes(2));
+            await waitFor(() => expect(result.current.status).toBe('loaded'));
+            expect(result.current.join.byId.has('opt-air')).toBe(true);
         });
     });
 });

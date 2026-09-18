@@ -220,15 +220,20 @@ describe('AssignmentGraphPicker', () => {
     });
 
     test('does not commit names from a prefetch that resolves after the field is cleared', async () => {
-        const walk = deferred<PropertyFieldOption[]>();
-        mockPageAll.mockReturnValue(walk.promise);
+        const first = deferred<PropertyFieldOption[]>();
+        const second = deferred<PropertyFieldOption[]>();
+        mockPageAll.
+            mockReturnValueOnce(first.promise).
+            mockReturnValueOnce(second.promise);
         const field = fieldOf({options_omitted: true});
 
         renderPicker({field, ids: ['opt1']});
         await waitFor(() => expect(mockPageAll).toHaveBeenCalledTimes(1));
 
         clearGraphOptionNamesForField(field.id);
-        walk.resolve(REGIME_1);
+        await waitFor(() => expect(mockPageAll).toHaveBeenCalledTimes(2));
+
+        first.resolve(REGIME_1);
         await settle();
 
         expect(getGraphOptionNames(field.id)).toEqual({names: {}, didResolve: false});

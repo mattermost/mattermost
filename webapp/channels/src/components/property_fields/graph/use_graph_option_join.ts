@@ -7,7 +7,7 @@ import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import {pageAllAccessControlFieldOptions} from './page_all_access_control_field_options';
 import type {GraphFieldRef} from './page_all_access_control_field_options';
-import {getGraphOptionNameGeneration} from './use_graph_option_names';
+import {getGraphOptionNameGeneration, subscribeGraphOptionNames} from './use_graph_option_names';
 
 import {joinGraphOptions} from '.';
 import type {GraphOptionJoin} from '.';
@@ -71,6 +71,7 @@ export function useGraphOptionJoin(
                     return;
                 }
                 if (getGraphOptionNameGeneration(field.id) !== generation) {
+                    refetch();
                     return;
                 }
                 const fetchedJoin = joinGraphOptions(fetched);
@@ -81,7 +82,11 @@ export function useGraphOptionJoin(
                 setStatus('loaded');
             },
             (error: unknown) => {
-                if (seqRef.current !== seq || getGraphOptionNameGeneration(field.id) !== generation) {
+                if (seqRef.current !== seq) {
+                    return;
+                }
+                if (getGraphOptionNameGeneration(field.id) !== generation) {
+                    refetch();
                     return;
                 }
 
@@ -116,6 +121,20 @@ export function useGraphOptionJoin(
         prefetchedRef.current = true;
         refetch();
     }, [prefetch, refetch]);
+
+    useEffect(() => {
+        let generation = getGraphOptionNameGeneration(field.id);
+        return subscribeGraphOptionNames(() => {
+            const next = getGraphOptionNameGeneration(field.id);
+            if (next === generation) {
+                return;
+            }
+            generation = next;
+            if (seqRef.current > 0) {
+                refetch();
+            }
+        });
+    }, [field.id, refetch]);
 
     useEffect(() => () => {
         abortRef.current?.abort();
