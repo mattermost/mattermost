@@ -87,9 +87,22 @@ func translateFindingText(t i18n.TranslateFunc, id string, args map[string]any) 
 	return t(id, args)
 }
 
+// MutedFilter selects which findings a List returns by mute state. The three
+// states are mutually exclusive, so the zero value is a valid default rather
+// than an unset flag needing validation.
+type MutedFilter string
+
+const (
+	// MutedExcluded returns only unmuted findings; it is the zero-value default.
+	MutedExcluded MutedFilter = ""
+	// MutedIncluded returns both muted and unmuted findings.
+	MutedIncluded MutedFilter = "included"
+	// MutedOnly returns only muted findings.
+	MutedOnly MutedFilter = "only"
+)
+
 type HealthFindingFilter struct {
 	Surfaces []string `json:"surfaces,omitempty"`
 
-	IncludeMuted bool `json:"include_muted,omitempty"`
-	MutedOnly    bool `json:"muted_only,omitempty"`
+	Muted MutedFilter `json:"muted,omitempty"`
 }
