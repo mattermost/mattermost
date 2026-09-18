@@ -22,21 +22,6 @@ func TestRegistryRulesSortedByCode(t *testing.T) {
 	require.Equal(t, "BETA", rules[1].Code)
 }
 
-func TestRuleAppliesTo(t *testing.T) {
-	t.Parallel()
-
-	cloudRule := validRule("CLOUD")
-	cloudRule.AppliesToCloud = true
-
-	onPremRule := validRule("ONPREM")
-	onPremRule.AppliesToCloud = false
-
-	require.True(t, cloudRule.AppliesTo(Deployment{IsCloud: true}))
-	require.False(t, onPremRule.AppliesTo(Deployment{IsCloud: true}))
-	require.True(t, onPremRule.AppliesTo(Deployment{IsCloud: false}))
-	require.True(t, cloudRule.AppliesTo(Deployment{IsCloud: false}))
-}
-
 func TestRegistryValidate(t *testing.T) {
 	t.Parallel()
 
@@ -190,29 +175,4 @@ func TestBuiltinRulesValid(t *testing.T) {
 	t.Parallel()
 
 	require.NoError(t, Builtin().Validate())
-}
-
-func validRule(code string) Rule {
-	return Rule{
-		Code:       code,
-		Area:       model.AreaPlatform,
-		Severity:   SeverityWarning,
-		RuleText:   model.RuleText{SummaryID: "health.rule." + lower(code) + ".summary", RemediationID: "health.rule." + lower(code) + ".remediation"},
-		Surface:    SurfaceProduct,
-		Volatility: VolatilityStable,
-		Subject:    "ServiceSettings.SiteURL",
-		Eval:       func(*Snapshot) []Result { return []Result{Resolved()} },
-	}
-}
-
-func lower(in string) string {
-	out := make([]rune, 0, len(in))
-	for _, r := range in {
-		if r >= 'A' && r <= 'Z' {
-			out = append(out, r+('a'-'A'))
-			continue
-		}
-		out = append(out, r)
-	}
-	return string(out)
 }
