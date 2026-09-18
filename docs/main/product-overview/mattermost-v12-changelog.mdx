@@ -109,8 +109,6 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-0-is-now-availab
  - Improved plugin upload UX in the System Console with an automatic upload dropzone, progress indicator, and clearer disabled-state messaging.
  - Added stricter server config validation for export, SQL replica monitor, feature flag sync, burn-on-read, LDAP group filter, Elasticsearch index sizing, connected workspace batch size, push notification buffer, log level, file storage, email, session, data retention, TLS, and webserver settings.
  - Added audit logging for new events caused by cached data deletion on mobile devices related to Mobile Ephemeral Mode settings.
- - Added ``AuditEventChannelMembershipAdded`` audit log event.
- - Added ``AuditEventChannelMembershipRemoved`` audit log event.
  - Access rules can now compare a user's attributes with attributes of the channel being accessed, including ``hasAnyOf`` and ``hasAllOf`` for multi-value attributes, behind the new ``ResourceAttributesInPolicies`` feature flag.
  - Added four access policy functions for comparing graph custom attributes: ``coversAll``, ``coversAny``, ``withinAll``, and ``withinAny``.
  - Extended personal access token lifetime enforcement, expiry notifications, and non-compliant token revocation to user-owned bot accounts. Plugin-owned and protected system bot accounts remain exempt.
@@ -159,6 +157,10 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-0-is-now-availab
  - Fixed an issue where the System Console Recaps page was hidden from system admins on upgraded servers because the AI Recaps sysconsole permissions were never applied to the ``system_admin`` role.
  - Fixed a server startup crash where an app migration could read a row it had just written from a read replica that had not yet caught up, aborting startup. This affected servers that are both licensed and have ``SqlSettings.DataSourceReplicas`` configured.
  - Fixed a bug where migrating a select, multiselect, or rank Custom Profile Attribute field into a Global Attributes template could leave the field with every option duplicated.
+
+### Audit Events
+ - Added ``AuditEventChannelMembershipAdded`` audit log event.
+ - Added ``AuditEventChannelMembershipRemoved`` audit log event.
 
 ### Go Version
  - v12.0 is built with Go ``v1.26.7``.
