@@ -1,0 +1,172 @@
+---
+title: "Channel read and write access actions"
+sidebar_label: "Channel read/write access"
+---
+<PlanAvailability slug="entry-adv" />
+
+From Mattermost v12.1, attribute-based [permission policies](/administration-guide/manage/admin/abac-system-wide-policies#permission-policies) can gate two more actions: **Channel Read Access** and **Channel Write Access**. A membership policy decides who belongs to a channel; these actions decide what a session can do in a channel the user already belongs to, and they're evaluated on every request rather than once per synchronization.
+
+Rules for these actions can reference session attributes such as IP address and user agent (`user.session.<name>`), so access can change from one session to the next without any change to the user's profile or channel membership. A channel can be made readable only from a managed device on the corporate network, for example, or readable but not writable for users holding a particular clearance attribute.
+
+## Prerequisites
+
+- [Attribute-based access controls (ABAC)](/administration-guide/manage/admin/attribute-based-access-control) require defined [user attributes](/administration-guide/manage/admin/user-attributes), and must be enabled in **System Console \> System Attributes \> Attribute-Based Access**. This functionality requires a Mattermost Enterprise Advanced license.
+- Enforcement is gated by the `PermissionPolicies` feature flag (`MM_FEATUREFLAGS_PERMISSIONPOLICIES`), which is **enabled by default**. Channel-scoped rules configured by Channel Admins additionally require the `ChannelPermissionPolicies` feature flag, and **Simulate rules** requires the `PolicySimulation` feature flag; both are also enabled by default and both depend on `PermissionPolicies`. If enforcement isn't working, confirm these flags haven't been disabled by checking **System Console \> Experimental \> Feature Flags** or the server configuration. See the Mattermost developer documentation for details on [feature flags in a self-hosted deployment](https://developers.mattermost.com/contribute/more-info/server/feature-flags/#self-hosted-and-local-development).
+- To use session attributes in rules, enable the attributes you need in **System Console \> System Attributes \> Session Attributes** first.
+
+## Available permission policy actions
+
+Permission policies can restrict the following actions. All four can be combined in a single policy. Policies created in the System Console apply to a system role, while rules created in Channel Settings apply to a channel role.
+
+| Action | System Console label | Channel Settings label | What a matching user is allowed to do |
+|----|----|----|----|
+| `channel_read_access` | **Channel Read Access** | **Channel read access** | Read the channel and its content |
+| `channel_write_access` | **Channel Write Access** | **Channel write access** | Post in the channel and change its content |
+| `upload_file_attachment` | **Upload Files** | **Upload files** | Upload file attachments |
+| `download_file_attachment` | **Download Files** | **Download files** | Download file attachments |
+
+A user who doesn't match a rule is denied the actions that rule governs. An action with no policy governing it is allowed, so a policy only ever takes access away.
+
+## What channel read access covers
+
+`channel_read_access` gates every surface through which channel content can be reached, not just opening the channel in the sidebar. When a session is denied read access to a channel:
+
+- **The channel itself** can't be fetched, and channel content requests are rejected.
+- **Channel lists** omit the channel. This includes the sidebar, **Browse Channels**, channel autocomplete, and channel switcher results.
+- **Search results** omit posts from the channel, including message search, saved posts, recent mentions, and flagged-post reports.
+- **Permalinks and direct URLs** to posts in the channel are rejected, including threads opened from search results.
+- **Files** in the channel can't be fetched — this covers file info, download, thumbnail, and preview requests.
+- **Channel member lists and member counts** aren't returned, and the channel's members aren't surfaced in user lists scoped to that channel.
+- **Real-time updates** stop: new posts in the channel are dropped from WebSocket fan-out for that connection before they reach the client.
+- **Push notifications** for the channel are downgraded rather than suppressed. The device receives an ID-only or generic notification without the message content or channel name, and the follow-up fetch from the device re-runs the gate.
+- **Recaps and scheduled recaps** exclude the channel.
+- **Marking the channel as read** is rejected.
+
+Joining a channel is treated as a read-tier action: self-joining a public channel and requesting to join a discoverable channel both require `channel_read_access`, not write access.
+
+## What channel write access covers
+
+`channel_write_access` gates the operations that change a channel or its content. When a session is denied write access:
+
+- **Posting** is blocked — creating posts and replies, editing and deleting posts (including others' posts), and moving threads into the channel.
+- **Drafts and typing indicators** for the channel are rejected.
+- **Reactions** can't be added or removed, including removing others' reactions.
+- **Channel bookmarks** can't be added, edited, reordered, or deleted.
+- **Channel properties** can't be changed — name, header, purpose, banner, auto-translation, discoverability, and channel conversion between public and private.
+- **Archiving the channel** is blocked.
+- **Membership management** is blocked: adding or removing other members, changing channel roles, and managing join requests. Bulk member replacement by a System Admin is gated too.
+- **File uploads** and file attachment edits are blocked.
+- **Channel-wide mentions** (`@channel`, `@here`, `@all`), **group mentions**, and **slash commands** can't be used in the channel.
+- **Content flagging** actions that write to the channel are blocked.
+
+In the webapp, denied write access is reflected before the request is made: the message box is disabled with **You do not have permission to post in this channel.**, reply and post menu actions are hidden or disabled, and **Channel Settings** is shown read-only with **Editing is restricted — An access policy prevents you from making changes in this channel. These settings are shown for reference only.** These client-side decisions are a convenience only; the server re-evaluates the policy on every request.
+
+<Note>
+
+**Write access implies read access.** A write request is denied if the session fails either the read rule or the write rule for the channel. Granting `channel_write_access` to a user who is denied `channel_read_access` has no effect.
+
+</Note>
+
+## What these actions don't cover
+
+- **Direct messages and group messages** are out of scope. The gate never applies to DM or GM channels, regardless of policy.
+- **Managing a channel's access rules** (`manage_channel_access_rules`) is deliberately outside the write gate, so a policy author who has restricted their own write access can still correct the policy.
+- **Reading deleted posts** isn't treated as a read-gated permission.
+- **Bots** are exempt from the write gate. A bot has no interactive session, so a rule over `user.session.*` has nothing to evaluate and would otherwise deny every bot post. Incoming webhooks and plugin writes never reach a channel permission check and are already exempt.
+- **Server-side jobs and other sessionless callers** evaluate role-based permissions only.
+
+## How the actions are evaluated
+
+For every request that touches a channel:
+
+1.  **Role-based permissions are evaluated first.** If the user's role or scheme doesn't grant the permission, the request is denied with the usual permissions error and no policy is evaluated.
+2.  **The channel access policy is evaluated second**, and only for permissions classified as read or write. Both the policy bound to the channel and the system permission policies for the user's system role must allow the action — if any rule that's evaluated denies it, the request is denied.
+3.  **If no policy governs the action** and the channel has no policy attached, the request is allowed without evaluation.
+
+System Admins are not exempt. The policies apply to every session, including `manage_system` roles, so a System Admin who doesn't satisfy a channel's read rule loses access to that channel like anyone else. The one exception is policy administration: a System Admin can still edit a channel's policy from the System Console when write access to the channel is denied.
+
+## Configure the actions
+
+### System Console: workspace-wide permission policies
+
+Use these for rules that should apply across every channel in the workspace.
+
+1.  Go to **System Console \> System Attributes \> Permission Policies** and select **Add policy**.
+2.  Enter a unique policy name and select the system role the policy applies to — **Guest users**, **Members**, or **System administrators**.
+3.  Under **What permissions are modified**, select **Add permission**, then select **Channel Read Access** and/or **Channel Write Access**.
+4.  Define the attribute conditions users must satisfy in Simple Mode or Advanced Mode (CEL), as described in [Define access control policies](/administration-guide/manage/admin/abac-system-wide-policies#define-access-control-policies).
+5.  Select **Save**. Policies that include **Channel Read Access** show a **Save this policy?** confirmation that states the scope of the change and recommends running **Simulate rules** first.
+
+The policy editor shows the evaluation order it participates in: *Permission policies (evaluated first) → System scheme / Team override scheme (fallback when no policy applies)*.
+
+<Important>
+
+A workspace-wide **Channel Read Access** policy applies to every channel in the workspace except direct messages and group messages. Any session that doesn't meet its conditions loses access to all of them. Always [simulate the policy](/administration-guide/manage/admin/abac-system-wide-policies#simulate-access) against real users before saving.
+
+</Important>
+
+### Channel Settings: channel-scoped permission rules
+
+Channel Admins with the `manage_channel_access_rules` permission can scope read and write rules to a single channel from **Channel Settings \> Permissions Policy**. Rules here are defined per channel role — **channel guest**, **channel member**, or **channel administrator** — so a channel can require a managed device for members while leaving channel admins unrestricted.
+
+The tab is available on public and private channels when ABAC is enabled system-wide and the `ChannelPermissionPolicies` feature flag is on. Default channels such as Town Square and Off-Topic, group-synced channels, and shared channels aren't eligible. See [Channel-specific access rules](/administration-guide/manage/admin/abac-channel-access-rules#channel-level-permission-policies) for the rest of the Channel Settings workflow.
+
+## Protection against locking yourself out
+
+Because these actions take effect immediately and apply to the admin who configures them, Mattermost blocks the most common self-lockout mistakes:
+
+- **On save, every rule that carries a condition must still match its author** unless the author has the `manage_system` permission. A policy that would exclude its own author is rejected with **You do not satisfy one or more conditions in this policy.**
+- **In Channel Settings**, rules that include channel read access are simulated against the current user before they're saved. If the simulation denies them, the save is blocked with **Cannot save permission rules — You cannot save these rules because they would remove your own access to this channel. Update the Channel read access rules so that you still satisfy them, then try again.**
+
+<Tip>
+
+Use **Simulate rules** to preview which users a draft policy allows and denies before saving it. Denied results that come from another policy are reported as such without exposing rules you aren't authorized to see.
+
+</Tip>
+
+## What users experience when access is denied
+
+| Situation | What the user sees |
+|----|----|
+| Reading a channel or its content is denied | **You do not currently have access to this channel.** |
+| Writing to a channel is denied | **You do not currently have permission to write in this channel.** |
+| Posting from the message box is denied | The message box is disabled with **You do not have permission to post in this channel.** |
+| Changing channel settings is denied | **Channel Settings** is read-only with **Editing is restricted** |
+| Read access is lost while the channel is open | **No longer available — You no longer have access to this channel. Your membership has not changed, and the channel will reappear if you regain access.** The user is returned to their default team. |
+| A channel the user can no longer read | The channel is silently absent from lists, search, and autocomplete |
+
+Requests that fetch a specific resource return an explicit error, while requests that return a list silently omit what the policy denies. This keeps the existence of a restricted channel from leaking through a list endpoint.
+
+The webapp reconciles access when the WebSocket reconnects and when a policy change is broadcast, so a session that loses access mid-use doesn't keep a stale channel in the sidebar.
+
+<Note>
+
+**Membership is never changed by these actions.** Losing read access removes a channel from view; it doesn't remove the user from the channel. When the user satisfies the rule again — for example, by reconnecting from a permitted network — the channel reappears with its membership and read state intact. Removing members based on attributes remains the job of a [membership policy](/administration-guide/manage/admin/abac-system-wide-policies).
+
+</Note>
+
+## Troubleshooting and FAQs
+
+### Why can a user see the channel but not post in it?
+
+The channel, or a workspace-wide policy for the user's system role, has a `channel_write_access` rule the user doesn't satisfy. Check both the channel's **Permissions Policy** tab and **System Console \> System Attributes \> Permission Policies**, and remember that a write request also has to pass the read rule.
+
+### Is it expected for a System Admin to lose access to a channel?
+
+Yes. Read and write access policies apply to System Admins on channel operations. The admin can still edit the channel's policy from **System Console \> System Attributes \> Permission Policies** to restore access.
+
+### Why does the same user have access from one device but not another?
+
+The rule most likely references a session attribute such as IP address or user agent. Session attributes are evaluated per session, so access legitimately differs between a managed device on the corporate network and a personal device elsewhere.
+
+### Does losing read access remove the user from the channel?
+
+No. Check the channel's member list — the membership is unchanged. Only a membership policy removes members.
+
+### Why did a user receive a push notification for a channel they can't read?
+
+That's by design. The notification is downgraded to an ID-only or generic form, and the device's follow-up fetch for the content re-runs the gate.
+
+### Why isn't anything being enforced?
+
+Enforcement requires all three of the Enterprise Advanced license, **Attribute-Based Access** enabled in **System Console \> System Attributes \> Attribute-Based Access**, and the `PermissionPolicies` feature flag. The feature flag is enabled by default, so check whether it has been disabled in **System Console \> Experimental \> Feature Flags** or the server configuration.
