@@ -250,7 +250,7 @@ There are three AD/LDAP attributes that apear to be similar but serve a differen
 If a user has logged into Mattermost through AD/LDAP, they're managed by your directory server. AD/LDAP users can't be deactivated manually from **System Console \> User Management \> Users** - the **Deactivate** action is rejected for AD/LDAP-managed accounts. Instead, deactivate them in one of two ways:
 
 1.  **User deletion:** If the user is completely removed from the AD/LDAP server, they will be deactivated in Mattermost on the next synchronization.
-2.  **User filter:** Set the [user filter](/administration-guide/configure/authentication-configuration-settings#user-filter) to only select the subset of AD/LDAP users you want to have access to Mattermost. When someone is removed from the selected group, they will be deactivated in Mattermost on the next synchronization.
+2.  **User filter:** Set the [user filter](/administration-guide/configure/authentication-configuration-settings#user-filter) to only select the subset of AD/LDAP users you want to have access to Mattermost. When someone no longer matches the configured user filter, they will be deactivated in Mattermost on the next synchronization.
 
 For AD/LDAP, to filter out deactivated users you must set the user filter to:
 
