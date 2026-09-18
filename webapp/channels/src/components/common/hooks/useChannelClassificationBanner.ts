@@ -70,6 +70,26 @@ function bannerAction(field: PropertyField): ChannelBannerPosition | undefined {
     return undefined;
 }
 
+// Tokens for unnamed options would otherwise render as raw ids.
+function attributesForBannerTemplate(attributes: ResolvedChannelAttribute[]): ResolvedChannelAttribute[] {
+    let rewritten: ResolvedChannelAttribute[] | undefined;
+
+    attributes.forEach((attribute, index) => {
+        if (!attribute.unresolvedOptionIds || attribute.unresolvedOptionIds.length === 0) {
+            return;
+        }
+
+        rewritten = rewritten ?? attributes.slice();
+        rewritten[index] = {
+            ...attribute,
+            displayValue: '',
+            displayValues: [],
+        };
+    });
+
+    return rewritten ?? attributes;
+}
+
 /**
  * Resolves the channel banner from whichever attribute designates one, taking
  * priority over the channel's native banner_info. The value holds only an option
@@ -190,6 +210,7 @@ export default function useChannelClassificationBanner(channelId: string): Chann
     }, [channelId, shouldLoadValues, hasAllDesignatedValues, dispatch]);
 
     return useMemo((): ChannelClassificationBannerState => {
+        const templateAttributes = attributesForBannerTemplate(namedAttributes);
         const noBanner: ChannelClassificationBannerState = {
             hasClassification: false,
             classificationBanner: undefined,
@@ -227,7 +248,7 @@ export default function useChannelClassificationBanner(channelId: string): Chann
             }
 
             const joinedText = contributions.map((resolved) => resolved.displayValue).join(' · ');
-            const bannerText = channelBannerInfo?.text ? renderBannerTemplate(channelBannerInfo.text, namedAttributes) : joinedText;
+            const bannerText = channelBannerInfo?.text ? renderBannerTemplate(channelBannerInfo.text, templateAttributes) : joinedText;
 
             if (!bannerText) {
                 return {...noBanner, classificationIsBannerDesignated};
@@ -281,7 +302,7 @@ export default function useChannelClassificationBanner(channelId: string): Chann
 
         // A literal with no tokens passes through untouched, keeping pre-existing
         // banners byte-identical.
-        const bannerText = channelBannerInfo?.text ? renderBannerTemplate(channelBannerInfo.text, namedAttributes) : `**${level.name}**`;
+        const bannerText = channelBannerInfo?.text ? renderBannerTemplate(channelBannerInfo.text, templateAttributes) : `**${level.name}**`;
 
         return {
             hasClassification: true,
