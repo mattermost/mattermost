@@ -19,7 +19,7 @@ import type {OpenDialogRequest} from '@mattermost/types/integrations';
 import type {Job} from '@mattermost/types/jobs';
 import type {Post, PostAcknowledgement} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
-import type {PropertyValue} from '@mattermost/types/properties';
+import {supportsHierarchy, type PropertyValue} from '@mattermost/types/properties';
 import {SESSION_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties_user';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {Role} from '@mattermost/types/roles';
@@ -174,6 +174,7 @@ import {
 import {EntityType, invalidateAccessControlAttributesCache} from 'components/common/hooks/useAccessControlAttributes';
 import DialogRouter from 'components/dialog_router';
 import InfoToast from 'components/info_toast/info_toast';
+import {clearGraphOptionNamesForField, commitGraphOptionNames} from 'components/property_fields/graph/use_graph_option_names';
 import RemovedFromChannelModal from 'components/removed_from_channel_modal';
 
 import WebSocketClient from 'client/web_websocket_client';
@@ -1494,7 +1495,8 @@ export function handlePropertyFieldCreatedOrUpdated(
         // Storing it as received would empty the list for every client, so the
         // cached options ride along on the dispatch and a refetch of the field's
         // scope brings back the authoritative, per-caller-filtered list.
-        if (field.attrs?.options_omitted === true) {
+        const optionsOmitted = field.attrs?.options_omitted === true;
+        if (optionsOmitted) {
             const state = doGetState();
             const cached = getPropertyFieldById(state, field.id);
             if (cached) {
@@ -1511,6 +1513,23 @@ export function handlePropertyFieldCreatedOrUpdated(
             const groupName = getPropertyGroupById(state, field.group_id)?.name;
             if (groupName) {
                 doDispatch(fetchPropertyFields(groupName, field.object_type, field.target_type, field.target_id));
+            }
+        }
+
+        // A renamed or added graph option would otherwise show its stale cached
+        // name. An inline option list is authoritative for this caller, so it
+        // replaces the cache; a withheld list is caller-specific, so the next
+        // display fetches the names itself.
+        if (supportsHierarchy(field)) {
+            clearGraphOptionNamesForField(field.id);
+            if (!optionsOmitted && Array.isArray(field.attrs?.options)) {
+                const names: Record<string, string> = {};
+                for (const option of field.attrs.options) {
+                    if (option.id) {
+                        names[option.id] = option.name;
+                    }
+                }
+                commitGraphOptionNames(field.id, names);
             }
         }
 

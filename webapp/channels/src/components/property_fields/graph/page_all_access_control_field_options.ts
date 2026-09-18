@@ -153,6 +153,18 @@ export function pageAllAccessControlFieldOptions(
 }
 
 /**
+ * Drops this field's in-flight walk so the next caller starts a new one.
+ * Does not reject the old promise.
+ */
+export function clearPropertyFieldOptionWalk(fieldId: string): void {
+    for (const key of [...inFlightWalks.keys()]) {
+        if (key === fieldId || key.endsWith(`:${fieldId}`)) {
+            inFlightWalks.delete(key);
+        }
+    }
+}
+
+/**
  * Drops every in-flight walk. A test seam: the map is module state and Jest keeps
  * one module instance for a whole test file. Production code must not call this.
  */
