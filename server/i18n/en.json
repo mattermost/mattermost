@@ -9317,6 +9317,10 @@
     "translation": "An error occurred saving the configuration."
   },
   {
+    "id": "app.save_config.log_path_outside_root.app_error",
+    "translation": "Invalid logging configuration: {{.Error}}"
+  },
+  {
     "id": "app.save_config.plugin_hook_error",
     "translation": "An error occurred running the plugin hook on configuration save."
   },

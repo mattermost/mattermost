@@ -4,7 +4,11 @@
 package platform
 
 import (
+	"encoding/json"
 	"errors"
+	"net/http"
+	"os"
+	"path/filepath"
 	"sync"
 	"testing"
 
@@ -14,6 +18,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	smocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
@@ -190,4 +195,106 @@ func TestIsFirstUserAccountThunderingHerd(t *testing.T) {
 			wg.Wait()
 		})
 	}
+}
+
+func TestSaveConfigLogPathEnforcement(t *testing.T) {
+	// root and outside are siblings so neither is a path prefix of the other
+	base := t.TempDir()
+	root := filepath.Join(base, "logs")
+	require.NoError(t, os.MkdirAll(root, 0700))
+	outside := filepath.Join(base, "evil")
+	require.NoError(t, os.MkdirAll(outside, 0700))
+
+	outOfRootTarget := json.RawMessage(`{"evil": {"type": "file", "format": "json", "levels": [{"id": 2, "name": "error"}], "options": {"filename": "` + filepath.Join(outside, "out.log") + `"}}}`)
+
+	// setup returns a minimal service whose log root is pinned to root and whose active config
+	// is clean, with enforcement set to enforce. It deliberately skips the full test helper:
+	// SaveConfig only needs a config store and a logger here, and registering no config
+	// listeners keeps the store mock out of the picture.
+	setup := func(t *testing.T, enforce bool) *PlatformService {
+		t.Helper()
+
+		configStore := config.NewTestMemoryStore()
+		// feature flag writes are dropped by the store unless read-only FF mode is disabled
+		configStore.SetReadOnlyFF(false)
+
+		ps := &PlatformService{configStore: configStore}
+		ps.SetLogRootPathOverride(root)
+
+		cfg := configStore.Get().Clone()
+		*cfg.LogSettings.EnableFile = true
+		*cfg.LogSettings.FileLocation = root
+		cfg.LogSettings.AdvancedLoggingJSON = nil
+		cfg.FeatureFlags.EnforceLogPathRoot = enforce
+
+		_, _, appErr := ps.SaveConfig(cfg, false)
+		require.Nil(t, appErr, "the baseline config must be accepted")
+		require.Equal(t, enforce, config.IsLogPathEnforcementEnabled(ps.Config()))
+
+		return ps
+	}
+
+	t.Run("flag on rejects an out-of-root advanced logging target", func(t *testing.T) {
+		ps := setup(t, true)
+		before := ps.Config().Clone()
+
+		cfg := ps.Config().Clone()
+		cfg.LogSettings.AdvancedLoggingJSON = outOfRootTarget
+
+		_, _, appErr := ps.SaveConfig(cfg, false)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.save_config.log_path_outside_root.app_error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.ErrorContains(t, appErr.Unwrap(), "outside logging root")
+
+		assert.Equal(t, before.LogSettings.AdvancedLoggingJSON, ps.Config().LogSettings.AdvancedLoggingJSON,
+			"the rejected config must not be persisted")
+	})
+
+	t.Run("flag on rejects an out-of-root audit file name", func(t *testing.T) {
+		ps := setup(t, true)
+
+		cfg := ps.Config().Clone()
+		*cfg.ExperimentalAuditSettings.FileEnabled = true
+		*cfg.ExperimentalAuditSettings.FileName = filepath.Join(outside, "audit.log")
+
+		_, _, appErr := ps.SaveConfig(cfg, false)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.save_config.log_path_outside_root.app_error", appErr.Id)
+	})
+
+	t.Run("flag on rejects an out-of-root file location", func(t *testing.T) {
+		ps := setup(t, true)
+
+		cfg := ps.Config().Clone()
+		*cfg.LogSettings.FileLocation = outside
+
+		_, _, appErr := ps.SaveConfig(cfg, false)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.save_config.log_path_outside_root.app_error", appErr.Id)
+	})
+
+	t.Run("flag off persists the out-of-root target", func(t *testing.T) {
+		ps := setup(t, false)
+
+		cfg := ps.Config().Clone()
+		cfg.LogSettings.AdvancedLoggingJSON = outOfRootTarget
+
+		_, _, appErr := ps.SaveConfig(cfg, false)
+		require.Nil(t, appErr)
+		assert.JSONEq(t, string(outOfRootTarget), string(ps.Config().LogSettings.AdvancedLoggingJSON))
+	})
+
+	t.Run("enforcement is read from the active config, not the incoming one", func(t *testing.T) {
+		ps := setup(t, true)
+
+		// a single patch must not be able to both disable enforcement and add a bad path
+		cfg := ps.Config().Clone()
+		cfg.FeatureFlags.EnforceLogPathRoot = false
+		cfg.LogSettings.AdvancedLoggingJSON = outOfRootTarget
+
+		_, _, appErr := ps.SaveConfig(cfg, false)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.save_config.log_path_outside_root.app_error", appErr.Id)
+	})
 }

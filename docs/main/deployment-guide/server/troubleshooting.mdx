@@ -65,6 +65,7 @@ From Mattermost v11.4, log file paths are validated to ensure they remain within
 
     - `LogSettings.FileLocation` - main server log file
     - `LogSettings.AdvancedLoggingJSON` - advanced logging file targets
+    - `ExperimentalAuditSettings.FileName` - audit log file
     - `ExperimentalAuditSettings.AdvancedLoggingJSON` - audit logging file targets
 
 2.  Choose one of these solutions:
@@ -88,6 +89,18 @@ From Mattermost v11.4, log file paths are validated to ensure they remain within
     - Generate a test support packet to verify logs are included
 
 See the [log path restrictions](/administration-guide/manage/logging#log-path-restrictions) documentation for detailed configuration examples.
+
+#### Server fails to start with a log path error
+
+If the `EnforceLogPathRoot` feature flag is enabled (`MM_FEATUREFLAGS_ENFORCELOGPATHROOT=true`), a log or audit file path resolving outside the logging root stops the server from starting instead of only logging an error. Startup fails with a message like:
+
+```
+failed to initialize logging: log file paths outside logging root: LogSettings.AdvancedLoggingJSON target "custom": path /var/log/custom.log is outside logging root /opt/mattermost/logs
+```
+
+With the flag enabled, configuration changes that introduce such a path are also rejected, and **System Console \> Environment \> Logging** returns an error instead of saving.
+
+To resolve, either set the `MM_LOG_PATH` environment variable to a parent directory that contains every configured log path, or move the log files into the existing logging root - then restart the server. The error message names the configuration setting and the offending path. Setting `MM_FEATUREFLAGS_ENFORCELOGPATHROOT=false` restores the warn-only behavior, but leave enforcement on where you can: it will become the default in a future release.
 
 ### Mattermost Desktop App logs
 

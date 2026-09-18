@@ -172,6 +172,13 @@ type FeatureFlags struct {
 	// Gates post delivery audit logging. Enabling it requires a server restart, since it
 	// controls whether the /api/v4/delivery_tracking routes are registered.
 	PostDeliveryTracking bool
+
+	// FEATURE_FLAG_REMOVAL: EnforceLogPathRoot - remove this once every supported
+	// release carries the flag and enforcement becomes unconditional (MM-70595).
+	// When on, a log or audit file path resolving outside the logging root
+	// (MM_LOG_PATH, or the default logs dir) aborts server startup and is rejected
+	// on config save. When off, the same paths only produce an error log line.
+	EnforceLogPathRoot bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -240,6 +247,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.RecurringScheduledPosts = false
 
 	f.PostDeliveryTracking = false
+
+	f.EnforceLogPathRoot = false
 }
 
 // isValid rejects feature flag combinations that are no longer supported.

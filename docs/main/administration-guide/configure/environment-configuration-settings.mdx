@@ -2895,8 +2895,9 @@ Typically set to **true** in a production environment.
 <Note>
 
 - The path you configure must exist, and Mattermost must have write permissions for this directory.
-- From Mattermost v11.4, you can use the `MM_LOG_PATH` environment variable to restrict log file locations to a designated root directory. This security enhancement ensures that all log files configured via `LogSettings.FileLocation` or `LogSettings.AdvancedLoggingJSON` remain within an authorized logging directory.
+- From Mattermost v11.4, you can use the `MM_LOG_PATH` environment variable to restrict log file locations to a designated root directory. This security enhancement ensures that all log files configured via `LogSettings.FileLocation`, `LogSettings.AdvancedLoggingJSON`, `ExperimentalAuditSettings.FileName`, or `ExperimentalAuditSettings.AdvancedLoggingJSON` remain within an authorized logging directory.
   - If `MM_LOG_PATH` isn't set, the default `logs` directory is used. Paths outside the root directory generate error logs and are excluded from [support packet](/administration-guide/manage/admin/generating-support-packet) downloads. See the [log path restrictions](/administration-guide/manage/logging#log-path-restrictions) documentation for details.
+  - By default, a path outside the root directory is only logged as an error and the configuration is still accepted. Set the `EnforceLogPathRoot` feature flag (`MM_FEATUREFLAGS_ENFORCELOGPATHROOT=true`) to reject it instead: the server refuses to start, and configuration changes that introduce such a path are rejected with an error. Enforcement is opt-in today and will become the default in a future release, so we recommend enabling it once you've confirmed every log path resolves inside `MM_LOG_PATH`.
 
 </Note>
 
