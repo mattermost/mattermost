@@ -172,6 +172,45 @@ describe('SystemUserDetail', () => {
         expect(container).toMatchSnapshot();
     });
 
+    const cachedCpaField = {
+        id: 'cpa-cached',
+        name: 'department',
+        type: 'text',
+        group_id: 'custom_profile_attributes',
+        create_at: 0,
+        update_at: 0,
+        delete_at: 0,
+        created_by: '',
+        updated_by: '',
+        target_id: '',
+        target_type: '',
+        object_type: 'user',
+        attrs: {sort_order: 0, visibility: 'when_set', value_type: ''},
+    } as UserPropertyField;
+
+    // Attribute Management can add or change a user attribute while this page is
+    // not mounted, and its websocket event skips the connection that made the
+    // change, so opening a user has to ask the server rather than trust whatever
+    // the last visit left behind.
+    test.each([
+        ['nothing is cached', [] as UserPropertyField[]],
+        ['definitions are already cached', [cachedCpaField]],
+    ])('should fetch CPA definitions on mount when %s', async (_label, customProfileAttributeFields) => {
+        const getCustomProfileAttributeFields = jest.fn().mockResolvedValue({data: []});
+
+        renderWithContext(
+            <SystemUserDetail
+                {...defaultProps}
+                customProfileAttributeFields={customProfileAttributeFields}
+                getCustomProfileAttributeFields={getCustomProfileAttributeFields}
+            />,
+        );
+
+        await waitForLoadingToFinish();
+
+        expect(getCustomProfileAttributeFields).toHaveBeenCalledTimes(1);
+    });
+
     describe('change detection', () => {
         test('should detect email changes and enable save', async () => {
             const userEventInstance = userEvent.setup();
