@@ -385,7 +385,7 @@ jobs:
         id: triage
         if: inputs.report_type == 'PR' && inputs.pr_number != ''
         continue-on-error: true
-        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-triage@3aca11f9576504261bd8cb40d702793f2de26e01 # actions/e2e-triage, branch e2e-triage
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-triage@0a96e17fa2aaab59951b836e7c6ac44bc162b680 # actions/e2e-triage, branch e2e-triage
         with:
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
           status-context: ${{ inputs.context_name }}
