@@ -57,7 +57,7 @@ func (n *NodeSnapshot) Has(section model.NodeSection) bool {
 }
 
 func (n *NodeSnapshot) SectionErr(section model.NodeSection) (bool, error) {
-	if n == nil || n.Diagnostics == nil || n.Sections == nil {
+	if n == nil || n.Sections == nil {
 		return false, nil
 	}
 

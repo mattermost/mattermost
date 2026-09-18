@@ -209,6 +209,19 @@ func TestSectionAvailabilityMethods(t *testing.T) {
 	require.Equal(t, nodeErr, err)
 }
 
+func TestNodeSectionErrReadsSectionsWithoutDiagnostics(t *testing.T) {
+	t.Parallel()
+
+	node := &NodeSnapshot{
+		Sections: model.SectionErrors{model.SectionLDAPProbe: nil},
+	}
+
+	ok, err := node.SectionErr(model.SectionLDAPProbe)
+	require.True(t, ok)
+	require.NoError(t, err)
+	require.True(t, node.Has(model.SectionLDAPProbe))
+}
+
 func TestCollectedJobTypes(t *testing.T) {
 	t.Parallel()
 
