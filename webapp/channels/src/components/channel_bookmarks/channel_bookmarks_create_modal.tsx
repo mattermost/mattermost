@@ -171,6 +171,7 @@ function ChannelBookmarkCreateModal({
             className='bookmark-create-file-input'
             ref={fileInputRef}
             onChange={handleFileChanged}
+            disabled={!canUploadFiles}
         />
     );
 
@@ -548,7 +549,6 @@ const FileInputContainer = styled.div`
     &.disabled {
         cursor: default;
         opacity: 0.7;
-        pointer-events: none;
     }
 
     input[type="file"] {
