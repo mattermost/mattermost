@@ -13,6 +13,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func TestConfigDefaults(t *testing.T) {
@@ -3649,6 +3651,83 @@ func TestConfigSanitizeDataSourceClone(t *testing.T) {
 			b, err := json.Marshal(clone)
 			require.NoError(t, err)
 			assert.NotContains(t, string(b), sanitizeSentinelPrefix)
+		})
+	}
+}
+
+// TestConfigSanitizeDataSourceReportedFailures covers what is reported when a
+// connection string cannot be partially redacted. The field itself is replaced
+// with the fully redacted setting, and the report of the failure names what went
+// wrong without quoting the connection string it came from — neither in the error
+// returned by [SanitizeDataSource] nor in the record [Config.Sanitize] emits for
+// it.
+func TestConfigSanitizeDataSourceReportedFailures(t *testing.T) {
+	testCases := []struct {
+		name       string
+		dataSource string
+		credential string
+	}{
+		{
+			name:       "invalid percent escape",
+			dataSource: "postgres://mmuser:sentinel_pw_alpha%zz@localhost:5432/mattermost?sslmode=disable",
+			credential: "sentinel_pw_alpha",
+		},
+		{
+			name:       "non-numeric port",
+			dataSource: "postgres://mmuser:sentinel_pw_bravo@localhost:notaport/mattermost",
+			credential: "sentinel_pw_bravo",
+		},
+		{
+			name:       "keyword/value",
+			dataSource: "user=mmuser password=sentinel_pw_charlie host=localhost dbname=mattermost sslmode=disable",
+			credential: "sentinel_pw_charlie",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// The returned error is what Config.Sanitize hands to the logger, so
+			// it carries the same expectation as the record itself.
+			_, err := SanitizeDataSource(DatabaseDriverPostgres, tc.dataSource)
+			require.Error(t, err)
+			assert.NotContains(t, err.Error(), tc.credential)
+			assert.NotContains(t, err.Error(), sanitizeSentinelPrefix)
+
+			// Config.Sanitize reports through the package-level logger, so the
+			// global logger is pointed at a buffer for the duration of the case.
+			logger, loggerErr := mlog.NewLogger()
+			require.NoError(t, loggerErr)
+
+			var buf mlog.Buffer
+			require.NoError(t, mlog.AddWriterTarget(logger, &buf, true, mlog.StdAll...))
+
+			mlog.InitGlobalLogger(logger)
+			t.Cleanup(func() {
+				mlog.InitGlobalLogger(nil)
+				require.NoError(t, logger.Shutdown())
+			})
+
+			cfg := &Config{}
+			cfg.SetDefaults()
+			cfg.SqlSettings.DriverName = NewPointer(DatabaseDriverPostgres)
+			cfg.SqlSettings.DataSource = NewPointer(tc.dataSource)
+			cfg.SqlSettings.DataSourceReplicas = []string{tc.dataSource}
+			cfg.SqlSettings.DataSourceSearchReplicas = []string{tc.dataSource}
+			cfg.SqlSettings.ReplicaLagSettings = []*ReplicaLagSettings{
+				{DataSource: NewPointer(tc.dataSource)},
+			}
+
+			cfg.Sanitize(nil, &SanitizeOptions{PartiallyRedactDataSources: true})
+
+			require.NoError(t, logger.Flush())
+			require.NotEmpty(t, buf.String())
+			assert.NotContains(t, buf.String(), tc.credential)
+			assert.NotContains(t, buf.String(), sanitizeSentinelPrefix)
+
+			assert.Equal(t, FakeSetting, *cfg.SqlSettings.DataSource)
+			assert.Equal(t, []string{FakeSetting}, cfg.SqlSettings.DataSourceReplicas)
+			assert.Equal(t, []string{FakeSetting}, cfg.SqlSettings.DataSourceSearchReplicas)
+			assert.Equal(t, FakeSetting, *cfg.SqlSettings.ReplicaLagSettings[0].DataSource)
 		})
 	}
 }

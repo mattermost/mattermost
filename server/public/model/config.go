@@ -5718,7 +5718,7 @@ func SanitizeDataSource(driverName, dataSource string) (string, error) {
 
 	u, err := url.Parse(dataSource)
 	if err != nil {
-		return "", err
+		return "", dataSourceParseError(err)
 	}
 	u.User = url.UserPassword(SanitizedPassword, SanitizedPassword)
 
@@ -5731,9 +5731,21 @@ func SanitizeDataSource(driverName, dataSource string) (string, error) {
 	// Unescape the URL to make it human-readable
 	out, err := url.QueryUnescape(u.String())
 	if err != nil {
-		return "", err
+		return "", dataSourceParseError(err)
 	}
 	return out, nil
+}
+
+// dataSourceParseError returns why a connection string could not be read as a URL,
+// on its own: the description reported by [url.Parse] is kept, the connection string
+// it was given is not. Errors reported in any other shape are described generically.
+func dataSourceParseError(err error) error {
+	var urlErr *url.Error
+	if errors.As(err, &urlErr) && urlErr.Err != nil {
+		return &url.Error{Op: urlErr.Op, Err: urlErr.Err}
+	}
+
+	return errors.New("invalid data source")
 }
 
 type FilterTag struct {
