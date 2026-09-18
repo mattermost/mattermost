@@ -13,14 +13,14 @@ import (
 
 func TestStatus(t *testing.T) {
 	status := Status{
-		UserId:                NewId(),
-		Status:                StatusOutOfOffice,
-		Manual:                true,
-		LastActivityAt:        0,
-		ActiveChannel:         "123",
-		DNDEndTime:            0,
-		AutoResponderMessage:  "I'm off today on PTO.",
-		PrevStatus:            "",
+		UserId:               NewId(),
+		Status:               StatusOutOfOffice,
+		Manual:               true,
+		LastActivityAt:       0,
+		ActiveChannel:        "123",
+		DNDEndTime:           0,
+		AutoResponderMessage: "I'm off today on PTO.",
+		PrevStatus:           "",
 	}
 	js, err := status.ToJSON()
 	assert.NoError(t, err)
