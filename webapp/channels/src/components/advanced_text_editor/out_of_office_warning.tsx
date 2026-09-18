@@ -21,6 +21,7 @@ const Container = styled.div`
 `;
 
 const Icon = styled(CancelIcon)`
+    color: var(--error-text);
     margin-right: 4px;
     flex-shrink: 0;
 `;
