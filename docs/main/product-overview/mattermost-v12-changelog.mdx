@@ -69,7 +69,10 @@ New setting options were added to ``config.json``. Below is a list of the additi
    - Moved the Enable Theme Selection, Allow Custom Themes, Default Theme, Enable Tutorial, and Enable Onboarding settings from System Console > Experimental > Features to System Console > Site Configuration > Customization. Also added ``ThemeSettings.AllowedThemes`` to System Console > Site Configuration > Customization; it was previously configurable only by editing ``config.json``.
    - Removed the ``atmos/camo`` remote image proxy type. Deployments with ``ImageProxySettings.ImageProxyType`` set to ``atmos/camo`` must update their configuration to use ``local`` or disable the image proxy before upgrading to this release.
 
-#### Compatibility
+#### Breaking Changes
+
+<Important>
+
  - Dropped support for RHEL 7 and RHEL 8. The server binary now requires glibc 2.34 or later.
  - Dropped support for OpenSearch 1.x. Mattermost now requires OpenSearch 2.x or newer, and logs an error on startup when connected to an unsupported version.
  - The minimum supported PostgreSQL version is now v15. PostgreSQL v14 and earlier are no longer supported.
@@ -81,12 +84,14 @@ New setting options were added to ``config.json``. Below is a list of the additi
  - The ``POST /api/v4/logs/query`` API now returns HTTP 400 when ``date_from`` or ``date_to`` is a non-empty value that cannot be parsed with the layout ``"2006-01-02 15:04:05.999 -07:00"``. Previously such values were silently ignored and the request returned HTTP 200 with unfiltered results. Empty values continue to mean "unbounded".
  - Removed the required ``format`` query parameter from the ``GET /api/v4/license/client`` endpoint. The endpoint now returns the client license information without requiring format specification.
  - Removed the ``EnableConcurrentReact`` feature flag. The web app now always renders with concurrent React.
- - **Breaking change:** Post identity and display-override props (``from_webhook``, ``from_bot``, ``from_oauth_app``, ``from_plugin``, ``override_username``, ``override_icon_url``, ``override_icon_emoji``, ``webhook_display_name``) are no longer accepted from regular user or personal access token sessions. They are stripped on create/update and only re-applied for verified integrations (incoming webhooks and slash commands for overrides; bots/OAuth/plugins for ``from_*`` markers). Scripts that forged ``from_webhook`` and ``override_*`` via a user personal access token to post under a custom name/icon must migrate to a bot account or an incoming webhook. ``ExperimentalEnableHardenedMode`` no longer rejects reserved post props with HTTP 400; it continues to control login/MFA/password-reset/5xx scrubbing only.
- - **Breaking change:** Removed deprecated interactive dialog date/datetime fields. Top-level ``min_date``, ``max_date``, and ``time_interval``, and ``datetime_config.allow_manual_time_entry``, are no longer accepted; use ``datetime_config`` (with ``manual_time_entry``) instead. Legacy keys are silently ignored.
+ - Post identity and display-override props (``from_webhook``, ``from_bot``, ``from_oauth_app``, ``from_plugin``, ``override_username``, ``override_icon_url``, ``override_icon_emoji``, ``webhook_display_name``) are no longer accepted from regular user or personal access token sessions. They are stripped on create/update and only re-applied for verified integrations (incoming webhooks and slash commands for overrides; bots/OAuth/plugins for ``from_*`` markers). Scripts that forged ``from_webhook`` and ``override_*`` via a user personal access token to post under a custom name/icon must migrate to a bot account or an incoming webhook. ``ExperimentalEnableHardenedMode`` no longer rejects reserved post props with HTTP 400; it continues to control login/MFA/password-reset/5xx scrubbing only.
+ - Removed deprecated interactive dialog date/datetime fields. Top-level ``min_date``, ``max_date``, and ``time_interval``, and ``datetime_config.allow_manual_time_entry``, are no longer accepted; use ``datetime_config`` (with ``manual_time_entry``) instead. Legacy keys are silently ignored.
  - Auto-adding members to a channel or team with an attribute-based access policy is now stored on the policy's membership rule instead of the policy's active flag, and is set per channel and per team. Existing settings are migrated automatically. Clients using ``PUT /api/v4/access_control_policies`` to set the ``active`` field to control auto-adding must set the membership rule's ``auto_add`` metadata instead; the ``/access_control_policies/activate`` endpoint continues to work unchanged.
  - Several pre-packaged plugins received major version updates in this release because they required changes to run on v12.0 without errors. Web app plugins that have not been rebuilt for v12.0 may have their activation suppressed to prevent runtime errors. Before upgrading, update community-built plugins to a release that supports v12.0, and rebuild and test any self-built plugins against v12.0. See [important upgrade notes](https://docs.mattermost.com/administration-guide/upgrade/important-upgrade-notes.html) for details.
  - A custom attribute field with more than 1000 options now serializes a count in place of its option list.
  - Removed the ``EmailLoginButtonColor``, ``EmailLoginButtonBorderColor``, and ``EmailLoginButtonTextColor`` client configuration fields alongside the ``EmailSettings`` login button color settings. These fields were never applied by any client.
+
+</Important>
 
 ### Improvements
 
