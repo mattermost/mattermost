@@ -30,7 +30,7 @@ const WEIGHT_FIELDS: Array<{key: WeightKey; label: string; description: string}>
     {key: 'groupMessage', label: 'groupMessage', description: 'Group message. DMs get 0 type penalty.'},
     {key: 'noActivity', label: 'noActivity', description: 'Never opened (no last_viewed_at).'},
     {key: 'staleActivity', label: 'staleActivity', description: 'Last viewed older than the recent window.'},
-    {key: 'hiddenInSidebar', label: 'hiddenInSidebar', description: 'GM (or similar) hidden from the sidebar.'},
+    {key: 'hiddenInSidebar', label: 'hiddenInSidebar', description: 'Group message not shown in the channel sidebar (user has not marked it visible). Still searchable in Find Channels, but ranked slightly below an otherwise equal visible GM.'},
 ];
 
 export default function QuickSwitcherRankingComponentLibrary({backgroundClass}: Props) {
