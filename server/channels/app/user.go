@@ -1573,6 +1573,11 @@ func (a *App) UpdateUser(rctx request.CTX, user *model.User, sendNotifications b
 			err.Where = "UpdateUser"
 			return nil, err
 		}
+
+		// Blocks renaming a bot's user into a protected username; see CreateBot/PatchBot.
+		if prev.IsBot && !model.IsProtectedBotUsername(prev.Username) && model.IsProtectedBotUsername(user.Username) {
+			return nil, model.NewAppError("UpdateUser", "app.user.update.reserved_username.app_error", nil, "", http.StatusBadRequest)
+		}
 	}
 
 	var newEmail string

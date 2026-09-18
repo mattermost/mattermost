@@ -29,6 +29,8 @@ type notificationType string
 type pushJWTClaims struct {
 	AckId    string `json:"ack_id"`
 	DeviceId string `json:"device_id"`
+	// set only for session wipe pushes; VerifyWipeSignature rejects signatures without it
+	UserId string `json:"user_id,omitempty"`
 	jwt.RegisteredClaims
 }
 
@@ -525,7 +527,7 @@ func (hub *PushNotificationsHub) start(rctx request.CTX) {
 
 func (hub *PushNotificationsHub) stop() {
 	// Drain the channel.
-	for i := 0; i < hub.buffer+1; i++ {
+	for range hub.buffer + 1 {
 		hub.notificationsChan <- PushNotification{
 			notificationType: notificationTypeDummy,
 		}

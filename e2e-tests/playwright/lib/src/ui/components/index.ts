@@ -278,3 +278,5 @@ export {
     UserDetail,
     Users,
 };
+
+export type {PriorityOption} from './channels/message_priority';

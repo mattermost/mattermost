@@ -50,7 +50,7 @@ type State = {
 
 export class TeamSelectorModal extends React.PureComponent<Props, State> {
     private searchTimeoutId?: number;
-    private selectedItemRef?: React.RefObject<HTMLDivElement> | undefined;
+    private selectedItemRef?: React.RefObject<HTMLDivElement | null> | undefined;
 
     constructor(props: Props) {
         super(props);

@@ -5,12 +5,12 @@ import classNames from 'classnames';
 import React, {useMemo, useState, type JSX} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
-import {ChevronDownIcon, ProductChannelsIcon} from '@mattermost/compass-icons/components';
+import {ChevronDownIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
-import {resourceTypeLabels} from './attribute_applies_to_constants';
-import type {AttributeAppliesToChannelItemProps} from './attribute_applies_to_constants';
+import {resourceTypeLabels, type AttributeAppliesToChannelItemProps} from './attribute_applies_to_constants';
+import ResourceTypeIcon from './resource_type_icon';
 
 import ChannelsResourceSettings from '../applies_to/channels/channels_resource_settings';
 import {summarizeChannelResource} from '../applies_to/channels/summary';
@@ -39,9 +39,8 @@ function AttributeAppliesToChannelItem({config, onConfigChange, ordered, disable
     const toggleLabel = formatMessage(isOpen ? messages.collapseLabel : messages.expandLabel, {label});
 
     const toggleButton = (
-        <Button
+        <button
             type='button'
-            emphasis='quaternary'
             className='AttributeAppliesToItem__toggle'
             onClick={() => setIsOpen((prev) => !prev)}
             disabled={disabled}
@@ -54,17 +53,19 @@ function AttributeAppliesToChannelItem({config, onConfigChange, ordered, disable
                 size={16}
                 className={classNames('AttributeAppliesToItem__chevron', {'AttributeAppliesToItem__chevron--open': isOpen})}
             />
-            <ProductChannelsIcon size={18}/>
-            <span className='AttributeAppliesToItem__label'>{label}</span>
-            {!isOpen && (
+            <span className='AttributeAppliesToItem__heading'>
+                <span className='AttributeAppliesToItem__name'>
+                    <ResourceTypeIcon type='channel'/>
+                    <span className='AttributeAppliesToItem__label'>{label}</span>
+                </span>
                 <span
                     className='AttributeAppliesToItem__summary'
                     data-testid='attributeAppliesToRow-channel-summary'
                 >
                     {summary}
                 </span>
-            )}
-        </Button>
+            </span>
+        </button>
     );
 
     return (
