@@ -3946,6 +3946,15 @@ func TestGetUsersNotInChannelAbacMatchOnly(t *testing.T) {
 		mock.Anything,
 	).Return([]*model.User{user1}, int64(1), nil).Maybe()
 
+	// Reading the target channel is now gated on channel_read_access, and these
+	// channels carry a policy, so the PDP is consulted before the dispatcher is
+	// reached. That gate has its own coverage; answer it permissively here so a
+	// denial cannot be mistaken for the unfiltered branch.
+	mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).
+		Return(false, nil).Maybe()
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+		Return(model.AccessDecision{Decision: true}, nil).Maybe()
+
 	listUsers := func(t *testing.T, channelID string, abacMatchOnly bool) []string {
 		t.Helper()
 		query := url.Values{}
