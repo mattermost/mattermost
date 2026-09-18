@@ -15,7 +15,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import {UserTypes} from 'mattermost-redux/action_types';
-import {fetchAllMyTeamsChannels, searchAllChannels} from 'mattermost-redux/actions/channels';
+import {fetchAllMyChannelMembers, fetchAllMyTeamsChannels, searchAllChannels} from 'mattermost-redux/actions/channels';
 import {logError} from 'mattermost-redux/actions/errors';
 import {Client4} from 'mattermost-redux/client';
 import {Preferences} from 'mattermost-redux/constants';
@@ -701,13 +701,17 @@ export default class SwitchChannelProvider extends Provider {
                 return false;
             }
 
-            // Dispatch suggestions for local data (filter out deleted and archived channels from local store data)
-            let channels = getChannelsInAllTeams(this.store.getState()).concat(getDirectAndGroupChannels(this.store.getState())).filter((c) => c.delete_at === 0);
-            channels = this.removeChannelsFromArchivedTeams(channels);
-            const users = searchProfilesMatchingWithTerm(this.store.getState(), channelPrefix, false);
-            const formattedData = this.formatGroup(channelPrefix, [ThreadsChannel, ...channels], users, true);
-            if (formattedData) {
-                resultsCallback(this.initialFilteredList(channelPrefix, formattedData));
+            // Recency ranking needs myMembers.last_viewed_at. Skip the local pass until that
+            // bulk load has finished, otherwise a GM the user has opened is treated as never
+            // viewed and lands below never-messaged people from autocomplete.
+            if (this.areChannelMembershipsLoaded()) {
+                let channels = getChannelsInAllTeams(this.store.getState()).concat(getDirectAndGroupChannels(this.store.getState())).filter((c) => c.delete_at === 0);
+                channels = this.removeChannelsFromArchivedTeams(channels);
+                const users = searchProfilesMatchingWithTerm(this.store.getState(), channelPrefix, false);
+                const formattedData = this.formatGroup(channelPrefix, [ThreadsChannel, ...channels], users, true);
+                if (formattedData) {
+                    resultsCallback(this.initialFilteredList(channelPrefix, formattedData));
+                }
             }
 
             // Fetch data from the server and dispatch
@@ -746,15 +750,27 @@ export default class SwitchChannelProvider extends Provider {
         };
     }
 
+    private areChannelMembershipsLoaded() {
+        return Boolean(this.store.getState().views?.channelSidebar?.initChannelMembershipsLoaded);
+    }
+
+    private async ensureChannelMembershipsLoaded() {
+        if (this.areChannelMembershipsLoaded()) {
+            return;
+        }
+
+        await this.store.dispatch(fetchAllMyChannelMembers());
+    }
+
     async fetchUsersAndChannels(channelPrefix: string, resultsCallback: ResultsCallback<WrappedChannel>) {
-        const state = this.store.getState();
-        const teamId = getCurrentTeamId(state);
+        const initialState = this.store.getState();
+        const teamId = getCurrentTeamId(initialState);
 
         if (!teamId) {
             return;
         }
 
-        const config = getConfig(state);
+        const config = getConfig(initialState);
         let usersAsync;
         if (config.RestrictDirectMessage === 'team') {
             usersAsync = Client4.autocompleteUsers(channelPrefix, teamId, '');
@@ -763,6 +779,7 @@ export default class SwitchChannelProvider extends Provider {
         }
 
         const channelsAsync = this.store.dispatch(searchAllChannels(channelPrefix, {nonAdminSearch: true}));
+        const membershipsAsync = this.ensureChannelMembershipsLoaded();
 
         let usersFromServer;
         let channelsFromServer;
@@ -771,6 +788,7 @@ export default class SwitchChannelProvider extends Provider {
             usersFromServer = await usersAsync;
             const channelsResponse = await channelsAsync;
             channelsFromServer = (channelsResponse as ActionResult).data;
+            await membershipsAsync;
         } catch (err) {
             this.store.dispatch(logError(err));
             return;
@@ -780,6 +798,10 @@ export default class SwitchChannelProvider extends Provider {
             return;
         }
 
+        // Re-read after the memberships load: TeamController fetches channels and members
+        // separately, so the snapshot from the start of this request can still be missing
+        // last_viewed_at (and even the channels themselves).
+        const state = this.store.getState();
         const currentUserId = getCurrentUserId(state);
 
         // filter out deleted and archived channels from local store data

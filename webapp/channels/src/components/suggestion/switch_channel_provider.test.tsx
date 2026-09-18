@@ -9,6 +9,7 @@ import type {PreferenceType} from '@mattermost/types/preferences';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {fetchAllMyChannelMembers} from 'mattermost-redux/actions/channels';
 import {Client4} from 'mattermost-redux/client';
 import {General, Preferences} from 'mattermost-redux/constants';
 
@@ -42,6 +43,7 @@ jest.mock('mattermost-redux/client', () => {
 
 jest.mock('mattermost-redux/actions/channels', () => ({
     ...jest.requireActual('mattermost-redux/actions/channels'),
+    fetchAllMyChannelMembers: jest.fn(() => () => Promise.resolve({data: []})),
     searchAllChannels: () => jest.fn().mockResolvedValue(Promise.resolve({
         data: [{
             id: 'channel_other_user1',
@@ -56,6 +58,10 @@ jest.mock('mattermost-redux/actions/channels', () => ({
 }));
 
 describe('components/SwitchChannelProvider', () => {
+    afterEach(() => {
+        jest.mocked(fetchAllMyChannelMembers).mockImplementation(() => () => Promise.resolve({data: []}));
+        jest.mocked(Client4.autocompleteUsers).mockResolvedValue([]);
+    });
     const defaultState = {
         entities: {
             general: {
@@ -140,6 +146,12 @@ describe('components/SwitchChannelProvider', () => {
                     ],
                 },
                 postsInThread: {},
+            },
+        },
+        views: {
+            channelSidebar: {
+                initChannelsLoaded: true,
+                initChannelMembershipsLoaded: true,
             },
         },
     };
@@ -717,6 +729,141 @@ describe('components/SwitchChannelProvider', () => {
                 }),
             ]),
         }));
+    });
+
+    it('should wait for channel memberships before ranking so a viewed GM is not treated as never opened', async () => {
+        const gmChannel = TestHelper.getChannelMock({
+            id: 'gm_a3a_a4b',
+            type: 'G',
+            name: 'gm_a3a_a4b',
+            display_name: 'a3a, a4b',
+            delete_at: 0,
+            team_id: '',
+        });
+        const neverMessagedUser = TestHelper.getUserMock({
+            id: 'a3b_id',
+            username: 'a3b',
+        });
+
+        // Mirrors TeamController's channels-before-members race: the GM is already in the
+        // store, but myMembers (and therefore last_viewed_at) has not landed yet. Without
+        // waiting, the GM takes the no-activity penalty and ranks below never-messaged
+        // autocomplete users that only pay that same penalty.
+        const stateWithoutMemberships = {
+            ...defaultState,
+            entities: {
+                ...defaultState.entities,
+                channels: {
+                    ...defaultState.entities.channels,
+                    myMembers: {
+                        current_channel_id: {
+                            channel_id: 'current_channel_id',
+                            user_id: 'current_user_id',
+                        },
+                    },
+                    channels: {
+                        [gmChannel.id]: gmChannel,
+                    },
+                    channelsInTeam: {
+                        '': new Set([gmChannel.id]),
+                    },
+                },
+                preferences: {
+                    myPreferences: {
+                        ...defaultState.entities.preferences.myPreferences,
+                        [`group_channel_show--${gmChannel.id}`]: {
+                            category: 'group_channel_show',
+                            name: gmChannel.id,
+                            user_id: 'current_user_id',
+                            value: 'true',
+                        },
+                    },
+                },
+                users: {
+                    ...defaultState.entities.users,
+                    profiles: {
+                        ...defaultState.entities.users.profiles,
+                        [neverMessagedUser.id]: neverMessagedUser,
+                    },
+                    profilesInChannel: {
+                        ...defaultState.entities.users.profilesInChannel,
+                        [gmChannel.id]: new Set(['current_user_id', 'a3a_id', 'a4b_id']),
+                    },
+                },
+            },
+            views: {
+                channelSidebar: {
+                    initChannelsLoaded: true,
+                    initChannelMembershipsLoaded: false,
+                },
+            },
+        };
+        const stateWithMemberships = {
+            ...stateWithoutMemberships,
+            entities: {
+                ...stateWithoutMemberships.entities,
+                channels: {
+                    ...stateWithoutMemberships.entities.channels,
+                    myMembers: {
+                        ...stateWithoutMemberships.entities.channels.myMembers,
+                        [gmChannel.id]: {
+                            channel_id: gmChannel.id,
+                            user_id: 'current_user_id',
+                            last_viewed_at: Date.now(),
+                        },
+                    },
+                },
+            },
+            views: {
+                channelSidebar: {
+                    initChannelsLoaded: true,
+                    initChannelMembershipsLoaded: true,
+                },
+            },
+        };
+
+        let currentState = stateWithoutMemberships;
+        const store = mockStore(stateWithoutMemberships);
+        store.getState = () => currentState;
+
+        jest.mocked(fetchAllMyChannelMembers).mockImplementation(() => () => {
+            currentState = stateWithMemberships;
+            return Promise.resolve({data: []});
+        });
+        jest.mocked(Client4.autocompleteUsers).mockResolvedValue({users: [neverMessagedUser]});
+
+        const switchProvider = new SwitchChannelProvider();
+        switchProvider.store = store;
+
+        const resultsCallback = jest.fn();
+        switchProvider.startNewRequest('');
+        await switchProvider.fetchUsersAndChannels('a3', resultsCallback);
+
+        expect(fetchAllMyChannelMembers).toHaveBeenCalled();
+        const rankedTerms = resultsCallback.mock.calls[0][0].groups[0].terms as string[];
+        expect(rankedTerms.indexOf(gmChannel.id)).toBeLessThan(rankedTerms.indexOf(neverMessagedUser.id));
+    });
+
+    it('should skip the immediate local ranking pass until channel memberships have loaded', () => {
+        const stateWithoutMemberships = {
+            ...defaultState,
+            views: {
+                channelSidebar: {
+                    initChannelsLoaded: true,
+                    initChannelMembershipsLoaded: false,
+                },
+            },
+        };
+
+        const switchProvider = new SwitchChannelProvider();
+        switchProvider.store = mockStore(stateWithoutMemberships);
+        const fetchSpy = jest.spyOn(switchProvider, 'fetchUsersAndChannels').mockImplementation(() => Promise.resolve());
+
+        const resultsCallback = jest.fn();
+        switchProvider.handlePretextChanged('a3', resultsCallback);
+
+        expect(resultsCallback).not.toHaveBeenCalled();
+        expect(fetchSpy).toHaveBeenCalledWith('a3', resultsCallback);
     });
 
     it('should start with DM (user name with dot) before GM"s if both DM & GM have last_viewed_at irrespective of value of last_viewed_at', async () => {
