@@ -209,6 +209,15 @@
           schema:
             type: boolean
             default: false
+        - name: includePropertyGroups
+          in: query
+          description: >
+            Comma-separated list of property group names whose values should be hydrated onto each
+            post's metadata. Only **PSAv2** groups are accepted; passing a legacy v1 group returns
+            404.
+          required: false
+          schema:
+            type: string
       responses:
         "200":
           description: Post retrieval successful
@@ -227,6 +236,8 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
     delete:
       tags:
         - posts
@@ -493,6 +504,15 @@
           schema:
             type: boolean
             default: false
+        - name: includePropertyGroups
+          in: query
+          description: >
+            Comma-separated list of property group names whose values should be hydrated onto each
+            post's metadata. Only **PSAv2** groups are accepted; passing a legacy v1 group returns
+            404.
+          required: false
+          schema:
+            type: string
       responses:
         "200":
           description: Post list retrieval successful
@@ -506,6 +526,8 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   "/api/v4/users/{user_id}/posts/flagged":
     get:
       tags:
@@ -737,6 +759,33 @@
           description: Filter posts by type.
           schema:
             type: string
+        - name: skipFetchThreads
+          in: query
+          description: Whether to skip fetching threads or not.
+          schema:
+            type: boolean
+            default: false
+        - name: collapsedThreads
+          in: query
+          description: Whether the client uses CRT or not.
+          schema:
+            type: boolean
+            default: false
+        - name: collapsedThreadsExtended
+          in: query
+          description: Whether to return the associated users as part of the response or not.
+          schema:
+            type: boolean
+            default: false
+        - name: includePropertyGroups
+          in: query
+          description: >
+            Comma-separated list of property group names whose values should be hydrated onto each
+            post's metadata. Only **PSAv2** groups are accepted; passing a legacy v1 group returns
+            404.
+          required: false
+          schema:
+            type: string
       responses:
         "200":
           description: Post list retrieval successful
@@ -750,6 +799,8 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   "/api/v4/users/{user_id}/channels/{channel_id}/posts/unread":
     get:
       tags:
@@ -815,6 +866,15 @@
           schema:
             type: boolean
             default: false
+        - name: includePropertyGroups
+          in: query
+          description: >
+            Comma-separated list of property group names whose values should be hydrated onto each
+            post's metadata. Only **PSAv2** groups are accepted; passing a legacy v1 group returns
+            404.
+          required: false
+          schema:
+            type: string
       responses:
         "200":
           description: Post list retrieval successful
@@ -828,6 +888,8 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   "/api/v4/teams/{team_id}/posts/search":
     post:
       tags:
