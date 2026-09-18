@@ -1561,6 +1561,98 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         });
 
         /**
+         * @objective Renaming a template's display_name also renames a linked channel
+         * field that still shares that label -- Channel Info reads the linked field's
+         * display_name, and the Save path cascades only when it still matches.
+         */
+        test('renames a matching linked channel display_name when the template display name changes', async ({pw}) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+
+            const timestamp = Date.now();
+            const name = `e2e_ga_dn_cascade_${timestamp}`;
+            const displayName = `PW DN Cascade ${timestamp}`;
+            const updatedDisplayName = `${displayName} Renamed`;
+
+            try {
+                const field = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
+                    attrs: {display_name: displayName},
+                });
+                await createLinkedDependentField(adminClient, name, field.id, 'text', 'channel', {
+                    display_name: displayName,
+                    actions: ['display_label_info'],
+                });
+
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                await page.getByTestId(`global-attribute-actions-${field.id}`).click();
+                await page.locator(`#global-attribute-actions-${field.id}-edit`).click();
+                await expect(page).toHaveURL(new RegExp(`attribute_details/${field.id}$`));
+                await expect(page.getByTestId('attributeAppliesToRow-channel')).toBeVisible();
+
+                await page.getByTestId('attributeDisplayNameInput').fill(updatedDisplayName);
+                await page.getByTestId('saveSetting').click();
+                await expect(page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+
+                const linkedFields = await fetchLinkedFieldsForTemplate(adminClient, field.id);
+                const channelField = linkedFields.find((f) => f.object_type === 'channel');
+                expect(channelField?.attrs?.display_name).toBe(updatedDisplayName);
+            } finally {
+                await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, name);
+            }
+        });
+
+        /**
+         * @objective A linked field whose display_name already diverged from the template
+         * must keep that custom label when the template is renamed.
+         */
+        test('does not overwrite a diverged linked channel display_name when renaming the template', async ({pw}) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+
+            const timestamp = Date.now();
+            const name = `e2e_ga_dn_diverge_${timestamp}`;
+            const displayName = `PW DN Diverge ${timestamp}`;
+            const customLinkedDisplayName = `PW DN Custom ${timestamp}`;
+            const updatedDisplayName = `${displayName} Renamed`;
+
+            try {
+                const field = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
+                    attrs: {display_name: displayName},
+                });
+                await createLinkedDependentField(adminClient, name, field.id, 'text', 'channel', {
+                    display_name: customLinkedDisplayName,
+                    actions: ['display_label_info'],
+                });
+
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                await page.getByTestId(`global-attribute-actions-${field.id}`).click();
+                await page.locator(`#global-attribute-actions-${field.id}-edit`).click();
+                await expect(page).toHaveURL(new RegExp(`attribute_details/${field.id}$`));
+
+                await page.getByTestId('attributeDisplayNameInput').fill(updatedDisplayName);
+                await page.getByTestId('saveSetting').click();
+                await expect(page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+
+                const linkedFields = await fetchLinkedFieldsForTemplate(adminClient, field.id);
+                const channelField = linkedFields.find((f) => f.object_type === 'channel');
+                expect(channelField?.attrs?.display_name).toBe(customLinkedDisplayName);
+
+                const template = await getGlobalAttributeFieldByName(adminClient, name);
+                expect(template?.attrs?.display_name).toBe(updatedDisplayName);
+            } finally {
+                await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, name);
+            }
+        });
+
+        /**
          * @objective Regression test: a no-op Edit/Done round-trip on the Unique name must not
          * unpin it, even when the loaded name happens to equal the current auto-slug of the
          * Display name -- Done's "did the committed value change from the auto-slug" check

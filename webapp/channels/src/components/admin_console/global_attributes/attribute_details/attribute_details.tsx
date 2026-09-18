@@ -121,6 +121,11 @@ function computeAutoSlugDisplay(displayName: string): string | null {
     return slug === '_copy' ? null : slug;
 }
 
+// Same normalization load and create use: missing/empty display_name → ''.
+function fieldDisplayName(field: PropertyField): string {
+    return (typeof field.attrs?.display_name === 'string' ? field.attrs.display_name : '') || '';
+}
+
 type ErrorKind =
     | 'name_conflict' |
     'invalid_charset' |
@@ -394,6 +399,11 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const persistedLinkedFieldsRef = useRef<Partial<Record<ResourceObjectType, PropertyField>>>({});
     const originalNameRef = useRef('');
 
+    // Template display_name as loaded (or last successfully saved). Used to decide
+    // whether a linked field still shares that label and should be renamed with
+    // the template on Save -- see shouldCascadeLinkedDisplayName below.
+    const originalDisplayNameRef = useRef('');
+
     // Users row config -- Profile display / Who can set the value, both stored
     // as attrs.visibility/attrs.managed on the Users linked field, matching
     // CPA's own value domain exactly rather than the PSAv2 PermissionValues
@@ -509,9 +519,11 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 persistedLinkedFieldsRef.current = linkedByType;
                 originalNameRef.current = field.name;
                 originalFieldTypeRef.current = field.type;
+                const loadedDisplayName = (field.attrs?.display_name as string | undefined) || '';
+                originalDisplayNameRef.current = loadedDisplayName;
 
                 setSourcePluginId(getSourceKind(field) === 'plugin' ? (field.attrs?.source_plugin_id as string | undefined) : undefined);
-                setDisplayName((field.attrs?.display_name as string | undefined) || '');
+                setDisplayName(loadedDisplayName);
                 setManualName(field.name);
                 setIsNameManuallyEdited(true);
                 setFieldType(field.type);
@@ -1077,33 +1089,55 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             // ordering relative to the delete loop above), already persisted, and
             // not in `toCreate` (that row's create call above already carries the
             // current values).
+            //
+            // Also PATCHes display_name when the linked field still shares the
+            // template's previous label -- Channel Info / profile UIs read the
+            // linked field's display_name, and the server does not cascade a
+            // template rename onto dependents.
+            const previousDisplayName = originalDisplayNameRef.current;
+            const nextDisplayName = displayName.trim();
+            const displayNameChanged = nextDisplayName !== previousDisplayName;
+            const displayNamePatchAttrs = {display_name: nextDisplayName || undefined};
+            const shouldCascadeLinkedDisplayName = (linked: PropertyField) => (
+                displayNameChanged && fieldDisplayName(linked) === previousDisplayName
+            );
+
             const userIsUpdateCandidate = appliesTo.includes('user') && !toCreate.includes('user') && Boolean(persistedLinkedFieldsRef.current.user);
             if (userIsUpdateCandidate) {
                 const visibilityChanged = userVisibility !== originalUserVisibilityRef.current;
                 const managedChanged = userManaged !== originalUserManagedRef.current;
-                if (visibilityChanged || managedChanged) {
-                    const existingUserField = persistedLinkedFieldsRef.current.user;
-                    if (existingUserField) {
-                        try {
-                            const updatedUserField = await patchLinkedAttributeField('user', existingUserField.id, userConfigAttrs, userConfigPermissionValues);
-                            persistedLinkedFieldsRef.current.user = updatedUserField;
+                const existingUserField = persistedLinkedFieldsRef.current.user;
+                const cascadeDisplayName = existingUserField ? shouldCascadeLinkedDisplayName(existingUserField) : false;
+                if (existingUserField && (visibilityChanged || managedChanged || cascadeDisplayName)) {
+                    try {
+                        const updatedUserField = await patchLinkedAttributeField(
+                            'user',
+                            existingUserField.id,
+                            {
+                                ...(visibilityChanged || managedChanged ? userConfigAttrs : {}),
+                                ...(cascadeDisplayName ? displayNamePatchAttrs : {}),
+                            },
+                            (visibilityChanged || managedChanged) ? userConfigPermissionValues : undefined,
+                        );
+                        persistedLinkedFieldsRef.current.user = updatedUserField;
+                        if (visibilityChanged || managedChanged) {
                             originalUserVisibilityRef.current = userVisibility;
                             originalUserManagedRef.current = userManaged;
-                        } catch {
-                            // Distinct from applies_to_partial_save -- the Users row is
-                            // already linked and persisted here (userIsUpdateCandidate
-                            // requires it), so "couldn't be applied to Users" would tell
-                            // the admin the linkage itself failed and risk them removing
-                            // and re-adding the row (a destructive, confirmation-gated
-                            // action) when a simple Save retry is all that's needed.
-                            finalizeSave({
-                                success: false,
-                                errorKind: 'applies_to_config_save_failed',
-                                serverErrorMessage: null,
-                                failedResourceTypes: ['user'],
-                            });
-                            return;
                         }
+                    } catch {
+                        // Distinct from applies_to_partial_save -- the Users row is
+                        // already linked and persisted here (userIsUpdateCandidate
+                        // requires it), so "couldn't be applied to Users" would tell
+                        // the admin the linkage itself failed and risk them removing
+                        // and re-adding the row (a destructive, confirmation-gated
+                        // action) when a simple Save retry is all that's needed.
+                        finalizeSave({
+                            success: false,
+                            errorKind: 'applies_to_config_save_failed',
+                            serverErrorMessage: null,
+                            failedResourceTypes: ['user'],
+                        });
+                        return;
                     }
                 }
             }
@@ -1111,11 +1145,19 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             // An existing Channels row's own settings (required, change policy,
             // display locations) are not part of the template patch above, so a
             // resource that was already applied still needs its own PATCH to
-            // pick up an edit to those settings.
+            // pick up an edit to those settings. Fold display_name into the same
+            // PATCH when the linked label still matches the template's previous one.
             const persistedChannelField = persistedLinkedFieldsRef.current.channel;
             if (persistedChannelField && appliesTo.includes('channel') && !toCreate.includes('channel')) {
                 try {
-                    const patchedChannelField = await patchLinkedAttributeField('channel', persistedChannelField.id, buildChannelFieldPatch(channelResource).attrs);
+                    const patchedChannelField = await patchLinkedAttributeField(
+                        'channel',
+                        persistedChannelField.id,
+                        {
+                            ...buildChannelFieldPatch(channelResource).attrs,
+                            ...(shouldCascadeLinkedDisplayName(persistedChannelField) ? displayNamePatchAttrs : {}),
+                        },
+                    );
                     persistedLinkedFieldsRef.current.channel = patchedChannelField;
                 } catch {
                     finalizeSave({
@@ -1128,6 +1170,29 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 }
             }
 
+            // Posts has no config panel yet; only cascade display_name when it still
+            // matches the template's previous label.
+            const persistedPostField = persistedLinkedFieldsRef.current.post;
+            if (persistedPostField && appliesTo.includes('post') && !toCreate.includes('post') && shouldCascadeLinkedDisplayName(persistedPostField)) {
+                try {
+                    const patchedPostField = await patchLinkedAttributeField(
+                        'post',
+                        persistedPostField.id,
+                        displayNamePatchAttrs,
+                    );
+                    persistedLinkedFieldsRef.current.post = patchedPostField;
+                } catch {
+                    finalizeSave({
+                        success: false,
+                        errorKind: 'applies_to_partial_save',
+                        serverErrorMessage: null,
+                        failedResourceTypes: ['post'],
+                    });
+                    return;
+                }
+            }
+
+            originalDisplayNameRef.current = nextDisplayName;
             finalizeSave({success: true});
             return;
         }
