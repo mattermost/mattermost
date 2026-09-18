@@ -26,8 +26,8 @@ const WEIGHT_FIELDS: Array<{key: WeightKey; label: string; description: string}>
     {key: 'archived', label: 'archived', description: 'Channel is archived (delete_at set).'},
     {key: 'deactivated', label: 'deactivated', description: 'DM peer account is deactivated.'},
     {key: 'nonPrefixMatch', label: 'nonPrefixMatch', description: 'Display name / name does not start with the search term.'},
-    {key: 'channel', label: 'channel (type)', description: 'Open/private/etc. channel (not DM/Threads/GM).'},
-    {key: 'groupMessage', label: 'groupMessage', description: 'Group message. DMs and Threads get 0 type penalty.'},
+    {key: 'channel', label: 'channel (type)', description: 'Open/private/etc. channel (not DM/GM).'},
+    {key: 'groupMessage', label: 'groupMessage', description: 'Group message. DMs get 0 type penalty.'},
     {key: 'noActivity', label: 'noActivity', description: 'Never opened (no last_viewed_at).'},
     {key: 'staleActivity', label: 'staleActivity', description: 'Last viewed older than the recent window.'},
     {key: 'hiddenInSidebar', label: 'hiddenInSidebar', description: 'GM (or similar) hidden from the sidebar.'},
@@ -102,7 +102,7 @@ export default function QuickSwitcherRankingComponentLibrary({backgroundClass}: 
             <p className='clJsonHint'>
                 {'Each match gets additive penalties (lower total ranks higher). '}
                 {'Only matching conditions apply — a recent prefix DM typically scores 0. '}
-                {'Type penalties are mutually exclusive (DM/Threads = 0, GM = groupMessage, else channel). '}
+                {'Type penalties are mutually exclusive (DM = 0, GM = groupMessage, else channel). '}
                 {'Activity is also exclusive (recent = 0, stale = staleActivity, never = noActivity).'}
             </p>
             <p>
