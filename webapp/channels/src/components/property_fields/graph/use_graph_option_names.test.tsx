@@ -219,6 +219,44 @@ describe('useGraphOptionNames', () => {
         expect(mockPageAll).not.toHaveBeenCalled();
     });
 
+    test('a failed walk is not retried when something else writes to the cache', async () => {
+        mockPageAll.mockRejectedValue(new Error('403'));
+
+        ensureGraphOptionNames(fieldOf('failing-field', {options_omitted: true}), ['a']);
+        await waitFor(() => expect(mockPageAll).toHaveBeenCalledTimes(1));
+
+        // What a picker selection on any other field does.
+        commitGraphOptionNames('other-field', {x: 'X'});
+        ensureGraphOptionNames(fieldOf('failing-field', {options_omitted: true}), ['a']);
+
+        expect(mockPageAll).toHaveBeenCalledTimes(1);
+    });
+
+    test('clearGraphOptionNamesForField lets a failed field walk again', async () => {
+        mockPageAll.mockRejectedValue(new Error('403'));
+
+        ensureGraphOptionNames(fieldOf('retry-field', {options_omitted: true}), ['a']);
+        await waitFor(() => expect(mockPageAll).toHaveBeenCalledTimes(1));
+
+        clearGraphOptionNamesForField('retry-field');
+        mockPageAll.mockResolvedValue(REGIME_1);
+        ensureGraphOptionNames(fieldOf('retry-field', {options_omitted: true}), ['a']);
+
+        await waitFor(() => expect(getGraphOptionNames('retry-field').didResolve).toBe(true));
+    });
+
+    test('an aborted walk is not a failure, so the next caller still walks', async () => {
+        mockPageAll.mockRejectedValueOnce(new DOMException('aborted', 'AbortError'));
+
+        ensureGraphOptionNames(fieldOf('abort-field', {options_omitted: true}), ['a']);
+        await waitFor(() => expect(mockPageAll).toHaveBeenCalledTimes(1));
+
+        mockPageAll.mockResolvedValueOnce(REGIME_1);
+        ensureGraphOptionNames(fieldOf('abort-field', {options_omitted: true}), ['a']);
+
+        await waitFor(() => expect(getGraphOptionNames('abort-field').didResolve).toBe(true));
+    });
+
     test('ensureGraphOptionNames does not fetch when every id is named inline and options_omitted is unset', () => {
         ensureGraphOptionNames(fieldOf('inline-only-field', {options: [opt('a', 'Alpha')]}), ['a']);
 

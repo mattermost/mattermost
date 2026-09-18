@@ -28,6 +28,14 @@ type FieldNameCache = {
 };
 
 const nameCache = new Map<string, FieldNameCache>();
+
+// Fields whose walk failed, so it is not started again. The success guard is
+// didResolve, which a failure never sets, and readers re-run their walk on every
+// write to this cache -- which the picker performs on each selection. Without
+// this a field that cannot be paged is re-walked for the rest of the session.
+// Cleared with the field's names, so a property_field_updated retries it once.
+const failedWalks = new Set<string>();
+
 const cacheListeners = new Set<() => void>();
 
 function notifyCacheListeners() {
@@ -57,11 +65,13 @@ export function commitGraphOptionNames(fieldId: string, names: Record<string, st
 
 export function clearGraphOptionNameCache(): void {
     nameCache.clear();
+    failedWalks.clear();
     notifyCacheListeners();
 }
 
 export function clearGraphOptionNamesForField(fieldId: string): void {
     nameCache.delete(fieldId);
+    failedWalks.delete(fieldId);
     notifyCacheListeners();
 }
 
@@ -81,7 +91,7 @@ export function getGraphOptionNames(fieldId: string): {names: Record<string, str
 }
 
 async function walkGraphOptionNames(field: GraphFieldRef, ids: readonly string[], signal?: AbortSignal): Promise<void> {
-    if (nameCache.get(field.id)?.didResolve || !computeAssignmentPrefetch(field, [...ids])) {
+    if (failedWalks.has(field.id) || nameCache.get(field.id)?.didResolve || !computeAssignmentPrefetch(field, [...ids])) {
         return;
     }
 
@@ -93,8 +103,13 @@ async function walkGraphOptionNames(field: GraphFieldRef, ids: readonly string[]
 
         const join = joinGraphOptions(options);
         commitGraphOptionNames(field.id, graphJoinNames(join));
-    } catch {
-        // Failed walk does not commit; didResolve stays false.
+    } catch (error) {
+        // Failed walk does not commit; didResolve stays false. An abort is this
+        // caller leaving rather than a walk that cannot succeed, so it is left
+        // unrecorded and the next caller may try again.
+        if (!(error instanceof DOMException && error.name === 'AbortError')) {
+            failedWalks.add(field.id);
+        }
     }
 }
 
