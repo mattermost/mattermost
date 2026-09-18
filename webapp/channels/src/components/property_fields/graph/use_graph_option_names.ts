@@ -4,7 +4,7 @@
 import {useCallback, useEffect, useMemo, useState} from 'react';
 
 import {assignmentFallbackLabels, computeAssignmentPrefetch} from './assignment_prefetch';
-import {pageAllAccessControlFieldOptions} from './page_all_access_control_field_options';
+import {clearPropertyFieldOptionWalk, pageAllAccessControlFieldOptions} from './page_all_access_control_field_options';
 import type {GraphFieldRef} from './page_all_access_control_field_options';
 
 import {joinGraphOptions, type GraphOptionJoin} from '.';
@@ -38,6 +38,13 @@ const failedWalks = new Set<string>();
 
 const cacheListeners = new Set<() => void>();
 
+// Bumped on clear so a walk started before the clear cannot commit.
+const fieldGenerations = new Map<string, number>();
+
+function currentGeneration(fieldId: string): number {
+    return fieldGenerations.get(fieldId) ?? 0;
+}
+
 function notifyCacheListeners() {
     for (const listener of cacheListeners) {
         listener();
@@ -66,12 +73,15 @@ export function commitGraphOptionNames(fieldId: string, names: Record<string, st
 export function clearGraphOptionNameCache(): void {
     nameCache.clear();
     failedWalks.clear();
+    fieldGenerations.clear();
     notifyCacheListeners();
 }
 
 export function clearGraphOptionNamesForField(fieldId: string): void {
+    fieldGenerations.set(fieldId, currentGeneration(fieldId) + 1);
     nameCache.delete(fieldId);
     failedWalks.delete(fieldId);
+    clearPropertyFieldOptionWalk(fieldId);
     notifyCacheListeners();
 }
 
@@ -96,8 +106,9 @@ async function walkGraphOptionNames(field: GraphFieldRef, ids: readonly string[]
     }
 
     try {
+        const generation = currentGeneration(field.id);
         const options = await pageAllAccessControlFieldOptions(field, {signal});
-        if (signal?.aborted) {
+        if (signal?.aborted || currentGeneration(field.id) !== generation) {
             return;
         }
 
