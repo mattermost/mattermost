@@ -3205,6 +3205,13 @@ components:
             The minimum Mattermost server version required for the plugin.
 
             Available as server version 5.6.
+        required_add_on:
+          type: string
+          description: |
+            The add-on the server license must grant before the plugin can be
+            enabled.
+
+            Available as server version 12.0.
         backend:
           type: object
           description: Deprecated in Mattermost 5.2 release.

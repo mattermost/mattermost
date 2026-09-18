@@ -163,6 +163,13 @@ function ChannelSettingsModalBody({channel, isOpen, onExited, focusOriginElement
     });
 
     const canManageBanner = channelBannerEnabled && hasManageChannelBannerPermission;
+    const canManageChannelProperties = useSelector((state: GlobalState) => {
+        if (isDMorGM) {
+            return true;
+        }
+        const permission = channel.type === Constants.PRIVATE_CHANNEL ? Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES : Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES;
+        return haveIChannelPermissionRBACOnly(state, channel.team_id, channel.id, permission);
+    });
     const canManageSharedChannels = useSelector((state: GlobalState) => {
         const config = getConfig(state);
         const connectedWorkspacesEnabled = config?.ExperimentalSharedChannels === 'true';
@@ -171,15 +178,8 @@ function ChannelSettingsModalBody({channel, isOpen, onExited, focusOriginElement
         }
         return haveISystemPermission(state, {permission: Permissions.MANAGE_SHARED_CHANNELS});
     });
-    const shouldShowConfigurationTab = canManageBanner || canManageChannelTranslation || canManageSharedChannels;
-
-    const canManageChannelProperties = useSelector((state: GlobalState) => {
-        if (isDMorGM) {
-            return true;
-        }
-        const permission = channel.type === Constants.PRIVATE_CHANNEL ? Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES : Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES;
-        return haveIChannelPermissionRBACOnly(state, channel.team_id, channel.id, permission);
-    });
+    const canManageJoinLeaveMessages = !isDMorGM && canManageChannelProperties;
+    const shouldShowConfigurationTab = canManageBanner || canManageChannelTranslation || canManageSharedChannels || canManageJoinLeaveMessages;
     const shouldShowInfoTab = canManageChannelProperties;
 
     const canArchivePrivateChannels = useSelector((state: GlobalState) =>
@@ -422,6 +422,7 @@ function ChannelSettingsModalBody({channel, isOpen, onExited, focusOriginElement
                 canManageChannelTranslation={canManageChannelTranslation}
                 canManageBanner={canManageBanner}
                 canManageSharedChannels={canManageSharedChannels}
+                canManageJoinLeaveMessages={canManageJoinLeaveMessages}
                 isReadOnly={isReadOnly}
             />
         );

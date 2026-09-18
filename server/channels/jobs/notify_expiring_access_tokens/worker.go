@@ -19,8 +19,8 @@ import (
 func MakeWorker(jobServer *jobs.JobServer, notifyExpiring func() error) *jobs.SimpleWorker {
 	const workerName = "NotifyExpiringAccessTokens"
 
-	isEnabled := func(cfg *model.Config) bool {
-		return *cfg.ServiceSettings.EnableUserAccessTokens
+	isEnabled := func(_ *model.Config) bool {
+		return true
 	}
 	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
 		defer jobServer.HandleJobPanic(logger, job)

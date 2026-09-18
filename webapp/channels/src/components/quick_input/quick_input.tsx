@@ -68,6 +68,7 @@ export type Props = {
     maxLength?: number;
     className?: string;
     placeholder?: string;
+    autoComplete?: string;
     autoFocus?: boolean;
     type?: string;
     id?: string;

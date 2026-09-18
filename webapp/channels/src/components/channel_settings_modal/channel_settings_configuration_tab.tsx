@@ -10,6 +10,7 @@ import type {ServerError} from '@mattermost/types/errors';
 
 import {PropertyTypes} from 'mattermost-redux/action_types';
 import {patchChannel} from 'mattermost-redux/actions/channels';
+import {resetReloadPostsInChannel} from 'mattermost-redux/actions/posts';
 import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
 import {Client4} from 'mattermost-redux/client';
 import {Permissions} from 'mattermost-redux/constants';
@@ -64,6 +65,7 @@ type Props = {
     canManageChannelTranslation?: boolean;
     canManageBanner?: boolean;
     canManageSharedChannels?: boolean;
+    canManageJoinLeaveMessages?: boolean;
 
     // The sections here stay visible under a channel_write_access denial (their
     // permissions come from the RBAC-only check) and every control is disabled instead.
@@ -104,6 +106,7 @@ function ChannelSettingsConfigurationTab({
     canManageChannelTranslation,
     canManageBanner,
     canManageSharedChannels = false,
+    canManageJoinLeaveMessages = false,
     isReadOnly = false,
 }: Props) {
     const {formatMessage, formatList} = useIntl();
@@ -334,6 +337,21 @@ function ChannelSettingsConfigurationTab({
         setIsChannelAutotranslated((prev) => !prev);
     }, []);
 
+    // Join/leave messages section
+    const joinLeaveMessagesHeading = formatMessage({id: 'channel_settings.join_leave_messages.label.name', defaultMessage: 'Join/Leave System Messages'});
+    const joinLeaveMessagesSubHeading = formatMessage({
+        id: 'channel_settings.join_leave_messages.label.subtext',
+        defaultMessage: 'When enabled, join and leave system messages are shown in this channel for all users. When disabled, they are hidden regardless of account-wide Advanced settings. Stored messages reappear if you turn this back on.',
+    });
+
+    const initialDisableJoinLeaveMessages = Boolean(channel.disable_join_leave_messages);
+    const [disableJoinLeaveMessages, setDisableJoinLeaveMessages] = useState(initialDisableJoinLeaveMessages);
+    const hasJoinLeaveMessagesChanges = disableJoinLeaveMessages !== initialDisableJoinLeaveMessages;
+
+    const handleJoinLeaveMessagesToggle = useCallback(() => {
+        setDisableJoinLeaveMessages((prev) => !prev);
+    }, []);
+
     // Shared channels section
     const initialRemotes = useSelector((state: GlobalState) => getRemotesForChannel(state, channel.id));
     const userEditedSharingRef = useRef(false);
@@ -437,6 +455,7 @@ function ChannelSettingsConfigurationTab({
     const hasUnsavedChanges = hasBannerChanges ||
         hasAutoTranslationChanges ||
         hasClassificationChanges ||
+        (canManageJoinLeaveMessages && hasJoinLeaveMessagesChanges) ||
         (canManageSharedChannels && hasWorkspaceChanges);
 
     useEffect(() => {
@@ -532,11 +551,19 @@ function ChannelSettingsConfigurationTab({
             };
         }
 
-        if (hasAutoTranslationChanges || hasBannerChanges || (canManageClassification && hasClassificationChanges && classificationEnabled && selectedClassificationId)) {
+        if (canManageJoinLeaveMessages && hasJoinLeaveMessagesChanges) {
+            updated.disable_join_leave_messages = disableJoinLeaveMessages;
+        }
+
+        if (hasAutoTranslationChanges || hasBannerChanges || (canManageClassification && hasClassificationChanges && classificationEnabled && selectedClassificationId) || (canManageJoinLeaveMessages && hasJoinLeaveMessagesChanges)) {
             const {error} = await dispatch(patchChannel(channel.id, updated));
             if (error) {
                 handleServerError(error as ServerError);
                 return false;
+            }
+
+            if (canManageJoinLeaveMessages && hasJoinLeaveMessagesChanges) {
+                await dispatch(resetReloadPostsInChannel(channel.id));
             }
         }
 
@@ -625,6 +652,7 @@ function ChannelSettingsConfigurationTab({
     }, [
         canManageClassification,
         canManageSharedChannels,
+        canManageJoinLeaveMessages,
         channel,
         channelAttributesEnabled,
         classification.channelField,
@@ -636,11 +664,13 @@ function ChannelSettingsConfigurationTab({
         hasAutoTranslationChanges,
         hasBannerChanges,
         hasClassificationChanges,
+        hasJoinLeaveMessagesChanges,
         hasWorkspaceChanges,
         initialBannerInfo,
         initialClassificationState.enabled,
         initialIsChannelAutotranslated,
         isChannelAutotranslated,
+        disableJoinLeaveMessages,
         selectedClassificationId,
         savedSharing,
         updatedChannelBanner,
@@ -708,6 +738,8 @@ function ChannelSettingsConfigurationTab({
         setShowBannerTextPreview(false);
 
         setUpdatedChannelBanner(initialBannerInfo);
+        setIsChannelAutotranslated(initialIsChannelAutotranslated);
+        setDisableJoinLeaveMessages(initialDisableJoinLeaveMessages);
         setFormError('');
         setSaveChangesPanelState(undefined);
         setCharacterLimitExceeded(false);
@@ -720,7 +752,7 @@ function ChannelSettingsConfigurationTab({
             setWorkspaceRemotes(copyRemotes(savedSharing.remotes));
             userEditedSharingRef.current = false;
         }
-    }, [canManageSharedChannels, initialBannerInfo, initialClassificationState, savedSharing]);
+    }, [canManageSharedChannels, initialBannerInfo, initialClassificationState, initialDisableJoinLeaveMessages, initialIsChannelAutotranslated, savedSharing]);
 
     const handleClose = useCallback(() => {
         setSaveChangesPanelState(undefined);
@@ -974,7 +1006,43 @@ function ChannelSettingsConfigurationTab({
                 </>
             )}
 
-            {(canManageSharedChannels || canManageBanner) && canManageChannelTranslation && (
+            {(canManageSharedChannels || canManageClassification || canManageBanner) && canManageJoinLeaveMessages && (
+                <div className='ChannelSettingsModal__configurationTab__configurationDivider'/>
+            )}
+
+            {canManageJoinLeaveMessages && (
+                <div className='channel_join_leave_messages_header'>
+                    <div className='channel_join_leave_messages_header__text'>
+                        <label
+                            className='Input_legend'
+                            aria-label={joinLeaveMessagesHeading}
+                        >
+                            {joinLeaveMessagesHeading}
+                        </label>
+                        <label
+                            className='Input_subheading'
+                            aria-label={joinLeaveMessagesSubHeading}
+                        >
+                            {joinLeaveMessagesSubHeading}
+                        </label>
+                    </div>
+
+                    <div className='channel_join_leave_messages_header__toggle'>
+                        <Toggle
+                            id='channelJoinLeaveMessagesToggle'
+                            ariaLabel={joinLeaveMessagesHeading}
+                            size='btn-md'
+                            disabled={isReadOnly}
+                            onToggle={handleJoinLeaveMessagesToggle}
+                            toggled={!disableJoinLeaveMessages}
+                            tabIndex={0}
+                            toggleClassName='btn-toggle-primary'
+                        />
+                    </div>
+                </div>
+            )}
+
+            {(canManageSharedChannels || canManageClassification || canManageBanner || canManageJoinLeaveMessages) && canManageChannelTranslation && (
                 <div className='ChannelSettingsModal__configurationTab__configurationDivider'/>
             )}
 

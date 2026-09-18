@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Client4} from '@mattermost/client';
-import type {PropertyField} from '@mattermost/types/properties';
+import type {PropertyField, PropertyFieldOptionPage} from '@mattermost/types/properties';
 
 import {getAdminClient, licenseTier, test} from '@mattermost/playwright-lib';
 import type {PlaywrightExtended} from '@mattermost/playwright-lib';
@@ -29,23 +29,8 @@ const ALL_RESOURCE_OBJECT_TYPES: ResourceObjectType[] = ['user', 'channel', 'pos
 const MAX_PROPERTY_FIELDS_PER_PAGE = 200;
 
 /**
- * Toggle via System Console config API. On servers without SplitKey, feature flags are
- * read-only from config (see server/config/store.go); effective values come from env
- * (e.g. MM_FEATUREFLAGS_GLOBALATTRIBUTES).
- */
-export async function setGlobalAttributesFeatureFlag(adminClient: Client4, enabled: boolean) {
-    await adminClient.patchConfig({
-        FeatureFlags: {
-            GlobalAttributes: enabled,
-        },
-    } as any);
-}
-
-/**
- * Shared precondition for every test that needs the Manage Attributes page actually
- * reachable (as opposed to the flag-off gate test, which deliberately doesn't need this):
- * skips on a sub-Enterprise license, enables the GlobalAttributes flag, and skips if the
- * flag didn't actually take (e.g. env/SplitKey overrides). Returns the admin session.
+ * Shared precondition for every test that needs the Attribute Management page actually
+ * reachable: skips on a sub-Enterprise license. Returns the admin session.
  */
 export async function requireGlobalAttributesEnabled(pw: PlaywrightExtended) {
     await pw.skipIfNoLicense();
@@ -58,20 +43,29 @@ export async function requireGlobalAttributesEnabled(pw: PlaywrightExtended) {
     const license = await adminClient.getClientLicenseOld();
     test.skip(
         licenseTier(license.SkuShortName) < 20,
-        'Manage Attributes requires Enterprise-tier license (SkuShortName enterprise, entry, or advanced). ' +
+        'Attribute Management requires Enterprise-tier license (SkuShortName enterprise, entry, or advanced). ' +
             'Professional is not sufficient—the admin route is hidden and redirects away.',
     );
-
-    await setGlobalAttributesFeatureFlag(adminClient, true);
-    await pw.skipIfFeatureFlagNotSet('GlobalAttributes', true);
 
     return {adminUser, adminClient};
 }
 
 /**
+ * Hierarchical (graph) authoring is gated on PropertyFieldGraph, which cannot be
+ * flipped through the config API — the config store restores feature flags on write.
+ * ensureFeatureFlag restarts the testcontainers server with the boot-time env var
+ * when needed, and skips when the flag cannot be enabled.
+ */
+export async function requireHierarchicalAttributesEnabled(pw: PlaywrightExtended) {
+    const session = await requireGlobalAttributesEnabled(pw);
+    await pw.ensureFeatureFlag('PropertyFieldGraph', true);
+    return session;
+}
+
+/**
  * Removes any access_control/template field with the given name (clean slate for E2E),
- * ignoring failures — the property routes may be unavailable when the feature flag is off,
- * or the field may simply not exist yet.
+ * ignoring failures — the property routes may be unavailable below Enterprise tier, or
+ * the field may simply not exist yet.
  */
 export async function deleteGlobalAttributeFieldIfExists(adminClient: Client4, name: string) {
     try {
@@ -83,6 +77,63 @@ export async function deleteGlobalAttributeFieldIfExists(adminClient: Client4, n
         }
     } catch {
         // May not exist, or routes unavailable; ignore.
+    }
+}
+
+/**
+ * Returns the live access_control/template field with the given name, or undefined
+ * if it is missing. Used to inspect the saved graph payload after a UI save.
+ */
+export async function getGlobalAttributeFieldByName(adminClient: Client4, name: string) {
+    const fields = await adminClient.getPropertyFields(PROPERTY_GROUP, OBJECT_TYPE, TARGET_TYPE, undefined, {
+        perPage: MAX_PROPERTY_FIELDS_PER_PAGE,
+    });
+    return fields.find((f) => f.name === name && f.delete_at === 0);
+}
+
+/**
+ * Lists a field's options including graph parents. Field GET omits parents from
+ * the inlined attrs.options list on purpose (a field read-modify-write must not
+ * flatten the hierarchy); the dedicated options route is what reports them.
+ *
+ * The options route returns a page object. has_more is the only stop signal,
+ * and the cursor names the last candidate examined — not the last option
+ * returned — so this helper forwards the server cursor rather than deriving one.
+ */
+export async function getGlobalAttributeFieldOptions(adminClient: Client4, fieldId: string) {
+    const all: Array<{id: string; name: string; parents?: string[] | null}> = [];
+    let cursorId: string | undefined;
+    let cursorCreateAt: number | undefined;
+
+    for (;;) {
+        const params = new URLSearchParams({per_page: String(MAX_PROPERTY_FIELDS_PER_PAGE)});
+        if (cursorId) {
+            params.set('cursor_id', cursorId);
+        }
+        if (cursorCreateAt) {
+            params.set('cursor_create_at', String(cursorCreateAt));
+        }
+
+        const url = `${adminClient.getPropertyFieldRoute(PROPERTY_GROUP, OBJECT_TYPE, fieldId)}/options?${params.toString()}`;
+        const response = await fetch(url, {
+            headers: {Authorization: `Bearer ${adminClient.getToken()}`},
+        });
+        if (!response.ok) {
+            throw new Error(`Failed to list property field options: ${response.status}`);
+        }
+
+        const page = (await response.json()) as PropertyFieldOptionPage;
+        all.push(...page.options);
+
+        if (!page.has_more) {
+            return all;
+        }
+        if (!page.next_cursor_id || !page.next_cursor_create_at) {
+            throw new Error('Failed to list property field options: has_more without a cursor');
+        }
+
+        cursorId = page.next_cursor_id;
+        cursorCreateAt = page.next_cursor_create_at;
     }
 }
 
@@ -103,7 +154,7 @@ export async function deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClien
             }
         }
     } catch {
-        // Listing may fail if the flag is off; still try the template delete below.
+        // Listing may fail below Enterprise tier; still try the template delete below.
     }
     await deleteGlobalAttributeFieldIfExists(adminClient, name);
 }
