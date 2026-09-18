@@ -390,11 +390,10 @@ jobs:
         # no PR to comment on, so the story lands in the job summary.
         if: always()
         continue-on-error: true
-        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-triage@2491f0691fe4613f52d7c92e2a59cd43eff31a5d # actions/e2e-triage, branch e2e-triage
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-triage@aefec4d336a46ced800b2afc13c500dc5cc69615 # actions/e2e-triage, branch e2e-triage
         with:
           composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
           status-context: ${{ inputs.context_name }}
-          base-ref: ${{ inputs.ref_branch || 'master' }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
           mode: ${{ vars.E2E_TRIAGE_MODE || 'report-only' }}
