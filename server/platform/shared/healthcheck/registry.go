@@ -85,13 +85,13 @@ func (r *Registry) Validate() error {
 			validationErrs = append(validationErrs, fmt.Errorf("rule %q has unknown area %q", rule.Code, rule.Area))
 		}
 
-		if !isValidSeverity(rule.Severity) {
+		if !rule.Severity.IsValid() {
 			validationErrs = append(validationErrs, fmt.Errorf("rule %q has unknown severity %q", rule.Code, rule.Severity))
 		}
-		if !isValidSurface(rule.Surface) {
+		if !rule.Surface.IsValid() {
 			validationErrs = append(validationErrs, fmt.Errorf("rule %q has unknown surface %q", rule.Code, rule.Surface))
 		}
-		if !isValidVolatility(rule.Volatility) {
+		if !rule.Volatility.IsValid() {
 			validationErrs = append(validationErrs, fmt.Errorf("rule %q has unknown volatility %q", rule.Code, rule.Volatility))
 		}
 
@@ -118,8 +118,8 @@ func Builtin() *Registry {
 	return builtinRegistry
 }
 
-func isValidSeverity(severity Severity) bool {
-	switch severity {
+func (s Severity) IsValid() bool {
+	switch s {
 	case SeverityCritical, SeverityWarning, SeverityInfo:
 		return true
 	default:
@@ -127,8 +127,8 @@ func isValidSeverity(severity Severity) bool {
 	}
 }
 
-func isValidSurface(surface Surface) bool {
-	switch surface {
+func (s Surface) IsValid() bool {
+	switch s {
 	case SurfaceProduct, SurfaceInternal:
 		return true
 	default:
@@ -136,8 +136,8 @@ func isValidSurface(surface Surface) bool {
 	}
 }
 
-func isValidVolatility(volatility Volatility) bool {
-	switch volatility {
+func (v Volatility) IsValid() bool {
+	switch v {
 	case VolatilityStable, VolatilityProbe, VolatilityTopology, VolatilityThreshold, VolatilityFeed:
 		return true
 	default:
