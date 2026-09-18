@@ -6,13 +6,11 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {
     PLAYGROUND_NOW,
     SCENARIO_PRESETS,
-    WEIGHT_PRESETS,
 } from './quick_switcher_ranking_presets';
 
 import {
     DEFAULT_RANK_PENALTY_WEIGHTS,
     rankingDebugRows,
-    validatePenaltyDominance,
 } from '../suggestion/quick_switch_ranking';
 import type {RankPenaltyWeights} from '../suggestion/quick_switch_ranking';
 
@@ -24,20 +22,19 @@ type Props = {
 
 type WeightKey = keyof Omit<RankPenaltyWeights, 'recentActivityWindowMs'>;
 
-const WEIGHT_FIELDS: Array<{key: WeightKey; label: string}> = [
-    {key: 'archived', label: 'archived'},
-    {key: 'deactivated', label: 'deactivated'},
-    {key: 'nonPrefixMatch', label: 'nonPrefixMatch'},
-    {key: 'channel', label: 'channel (type)'},
-    {key: 'groupMessage', label: 'groupMessage'},
-    {key: 'noActivity', label: 'noActivity'},
-    {key: 'staleActivity', label: 'staleActivity'},
-    {key: 'hiddenInSidebar', label: 'hiddenInSidebar'},
+const WEIGHT_FIELDS: Array<{key: WeightKey; label: string; description: string}> = [
+    {key: 'archived', label: 'archived', description: 'Channel is archived (delete_at set).'},
+    {key: 'deactivated', label: 'deactivated', description: 'DM peer account is deactivated.'},
+    {key: 'nonPrefixMatch', label: 'nonPrefixMatch', description: 'Display name / name does not start with the search term.'},
+    {key: 'channel', label: 'channel (type)', description: 'Open/private/etc. channel (not DM/Threads/GM).'},
+    {key: 'groupMessage', label: 'groupMessage', description: 'Group message. DMs and Threads get 0 type penalty.'},
+    {key: 'noActivity', label: 'noActivity', description: 'Never opened (no last_viewed_at).'},
+    {key: 'staleActivity', label: 'staleActivity', description: 'Last viewed older than the recent window.'},
+    {key: 'hiddenInSidebar', label: 'hiddenInSidebar', description: 'GM (or similar) hidden from the sidebar.'},
 ];
 
 export default function QuickSwitcherRankingComponentLibrary({backgroundClass}: Props) {
     const [scenarioId, setScenarioId] = useState(SCENARIO_PRESETS[0].id);
-    const [weightPresetId, setWeightPresetId] = useState(WEIGHT_PRESETS[0].id);
     const [searchTerm, setSearchTerm] = useState(SCENARIO_PRESETS[0].defaultSearch);
     const [weights, setWeights] = useState<RankPenaltyWeights>({...DEFAULT_RANK_PENALTY_WEIGHTS});
 
@@ -52,27 +49,17 @@ export default function QuickSwitcherRankingComponentLibrary({backgroundClass}: 
         setSearchTerm(next.defaultSearch);
     }, []);
 
-    const onSelectWeightPreset = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-        const next = WEIGHT_PRESETS.find((preset) => preset.id === e.target.value) || WEIGHT_PRESETS[0];
-        setWeightPresetId(next.id);
-        setWeights({...next.weights});
-    }, []);
-
     const onWeightChange = useCallback((key: WeightKey, value: string) => {
         const parsed = Number(value);
         if (Number.isNaN(parsed)) {
             return;
         }
-        setWeightPresetId('custom');
         setWeights((prev) => ({...prev, [key]: parsed}));
     }, []);
 
     const onResetWeights = useCallback(() => {
-        setWeightPresetId(WEIGHT_PRESETS[0].id);
         setWeights({...DEFAULT_RANK_PENALTY_WEIGHTS});
     }, []);
-
-    const warnings = useMemo(() => validatePenaltyDominance(weights), [weights]);
 
     const rows = useMemo(
         () => rankingDebugRows(searchTerm, scenario.channels, weights, scenario.now || PLAYGROUND_NOW),
@@ -111,44 +98,28 @@ export default function QuickSwitcherRankingComponentLibrary({backgroundClass}: 
                 />
             </label>
 
-            <label className='clInput'>
-                {'Weight preset: '}
-                <select
-                    value={weightPresetId}
-                    onChange={onSelectWeightPreset}
-                >
-                    {WEIGHT_PRESETS.map((preset) => (
-                        <option
-                            key={preset.id}
-                            value={preset.id}
-                        >
-                            {preset.label}
-                        </option>
-                    ))}
-                    {weightPresetId === 'custom' && (
-                        <option value='custom'>
-                            {'Custom'}
-                        </option>
-                    )}
-                </select>
-                {' '}
+            <h3>{'Penalty weights'}</h3>
+            <p className='clJsonHint'>
+                {'Each match gets additive penalties (lower total ranks higher). '}
+                {'Only matching conditions apply — a recent prefix DM typically scores 0. '}
+                {'Type penalties are mutually exclusive (DM/Threads = 0, GM = groupMessage, else channel). '}
+                {'Activity is also exclusive (recent = 0, stale = staleActivity, never = noActivity).'}
+            </p>
+            <p>
                 <button
                     type='button'
                     onClick={onResetWeights}
                 >
-                    {'Reset weights'}
+                    {'Reset to defaults'}
                 </button>
-            </label>
-
-            <p className='clJsonHint'>
-                {(WEIGHT_PRESETS.find((preset) => preset.id === weightPresetId) || WEIGHT_PRESETS[0]).description}
             </p>
 
             <div className='clWrapper'>
-                {WEIGHT_FIELDS.map(({key, label}) => (
+                {WEIGHT_FIELDS.map(({key, label, description}) => (
                     <label
                         key={key}
                         className='clInput'
+                        title={description}
                     >
                         {`${label}: `}
                         <input
@@ -156,9 +127,13 @@ export default function QuickSwitcherRankingComponentLibrary({backgroundClass}: 
                             value={weights[key]}
                             onChange={(e) => onWeightChange(key, e.target.value)}
                         />
+                        <span className='clJsonHint'>{` — ${description}`}</span>
                     </label>
                 ))}
-                <label className='clInput'>
+                <label
+                    className='clInput'
+                    title='Views within this many days count as recent (activity penalty 0).'
+                >
                     {'recent window (days): '}
                     <input
                         type='number'
@@ -168,26 +143,17 @@ export default function QuickSwitcherRankingComponentLibrary({backgroundClass}: 
                             if (Number.isNaN(days)) {
                                 return;
                             }
-                            setWeightPresetId('custom');
                             setWeights((prev) => ({
                                 ...prev,
                                 recentActivityWindowMs: days * DAY_MS,
                             }));
                         }}
                     />
+                    <span className='clJsonHint'>
+                        {' — Views within this window count as recent (activity penalty 0).'}
+                    </span>
                 </label>
             </div>
-
-            {warnings.length > 0 && (
-                <div className='clJsonError'>
-                    <strong>{'Dominance warnings'}</strong>
-                    <ul>
-                        {warnings.map((warning) => (
-                            <li key={warning}>{warning}</li>
-                        ))}
-                    </ul>
-                </div>
-            )}
 
             <h3>{`Ordered results (${rows.length})`}</h3>
             <table className='clTable'>
