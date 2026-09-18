@@ -164,7 +164,7 @@ PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.11.1
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.13.1
 PLUGIN_PACKAGES += mattermost-plugin-agents-v2.5.3
-PLUGIN_PACKAGES += mattermost-plugin-boards-v9.3.1
+PLUGIN_PACKAGES += mattermost-plugin-boards-v9.3.2
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.7.0
 PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.4.1
@@ -178,7 +178,7 @@ PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.3.0
 ifeq ($(FIPS_ENABLED),true)
 	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.11.1%2B329b65c-fips
 	PLUGIN_PACKAGES += mattermost-plugin-agents-v2.5.3%2Bf595e2f-fips
-	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.3.1%2B29b4688-fips
+	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.3.2%2B323d1d3-fips
 endif
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
