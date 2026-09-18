@@ -7,6 +7,7 @@ import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import {pageAllAccessControlFieldOptions} from './page_all_access_control_field_options';
 import type {GraphFieldRef} from './page_all_access_control_field_options';
+import {getGraphOptionNameGeneration} from './use_graph_option_names';
 
 import {joinGraphOptions} from '.';
 import type {GraphOptionJoin} from '.';
@@ -16,7 +17,7 @@ export type GraphJoinStatus = 'idle' | 'loading' | 'loaded' | 'error';
 export type UseGraphOptionJoinOpts = {
     prefetch?: boolean;
     open?: boolean;
-    onOptionsLoaded?: (join: GraphOptionJoin) => void;
+    onOptionsLoaded?: (join: GraphOptionJoin, generation: number) => void;
 };
 
 export type UseGraphOptionJoinResult = {
@@ -60,6 +61,7 @@ export function useGraphOptionJoin(
 
         setStatus('loading');
 
+        const generation = getGraphOptionNameGeneration(field.id);
         pageAllAccessControlFieldOptions(
             {id: field.id, object_type: field.object_type},
             {signal: controller.signal},
@@ -68,15 +70,18 @@ export function useGraphOptionJoin(
                 if (seqRef.current !== seq) {
                     return;
                 }
+                if (getGraphOptionNameGeneration(field.id) !== generation) {
+                    return;
+                }
                 const fetchedJoin = joinGraphOptions(fetched);
                 setLoaded({options: fetched, join: fetchedJoin});
 
                 // Same commit as the status flip so expand-to-selected seeds from the hydrated ids.
-                onOptionsLoaded?.(fetchedJoin);
+                onOptionsLoaded?.(fetchedJoin, generation);
                 setStatus('loaded');
             },
             (error: unknown) => {
-                if (seqRef.current !== seq) {
+                if (seqRef.current !== seq || getGraphOptionNameGeneration(field.id) !== generation) {
                     return;
                 }
 

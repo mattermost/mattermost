@@ -13,7 +13,7 @@ import type {GraphFieldRef} from './hierarchical_value_menu';
 
 import {assignmentFallbackLabels, computeAssignmentPrefetch} from '../graph/assignment_prefetch';
 import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from '../graph/page_all_access_control_field_options';
-import {clearGraphOptionNameCache, useGraphOptionNames} from '../graph/use_graph_option_names';
+import {clearGraphOptionNameCache, clearGraphOptionNamesForField, getGraphOptionNames, useGraphOptionNames} from '../graph/use_graph_option_names';
 
 jest.mock('../graph/page_all_access_control_field_options', () => ({
     ...jest.requireActual('../graph/page_all_access_control_field_options'),
@@ -217,6 +217,22 @@ describe('AssignmentGraphPicker', () => {
 
         expect(trigger()).not.toHaveTextContent('opt-f18');
         expect(document.querySelector('.hierarchical-value-menu__chip--pending')).not.toBeNull();
+    });
+
+    test('does not commit names from a prefetch that resolves after the field is cleared', async () => {
+        const walk = deferred<PropertyFieldOption[]>();
+        mockPageAll.mockReturnValue(walk.promise);
+        const field = fieldOf({options_omitted: true});
+
+        renderPicker({field, ids: ['opt1']});
+        await waitFor(() => expect(mockPageAll).toHaveBeenCalledTimes(1));
+
+        clearGraphOptionNamesForField(field.id);
+        walk.resolve(REGIME_1);
+        await settle();
+
+        expect(getGraphOptionNames(field.id)).toEqual({names: {}, didResolve: false});
+        expect(getGraphOptionNames(field.id).names).not.toHaveProperty('opt1');
     });
 
     test('commits an empty name map on a successful walk that names none of the held ids', async () => {

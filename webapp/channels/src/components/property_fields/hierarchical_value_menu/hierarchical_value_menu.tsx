@@ -70,7 +70,7 @@ export type HierarchicalValueMenuProps = {
     fallbackLabels?: Record<string, string>;
 
     // Successful fetches only. Caller must memoise: an unstable identity re-announces every render.
-    onOptionsLoaded?: (join: GraphOptionJoin) => void;
+    onOptionsLoaded?: (join: GraphOptionJoin, generation: number) => void;
 
     onMenuOpenChange?: (open: boolean) => void;
 

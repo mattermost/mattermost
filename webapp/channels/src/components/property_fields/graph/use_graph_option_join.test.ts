@@ -9,6 +9,7 @@ import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from '.
 import type {GraphFieldRef} from './page_all_access_control_field_options';
 import {useGraphOptionJoin} from './use_graph_option_join';
 import type {UseGraphOptionJoinOpts} from './use_graph_option_join';
+import {clearGraphOptionNameCache, clearGraphOptionNamesForField} from './use_graph_option_names';
 
 jest.mock('./page_all_access_control_field_options', () => ({
     ...jest.requireActual('./page_all_access_control_field_options'),
@@ -78,6 +79,7 @@ const renderJoin = (field: GraphFieldRef, opts?: UseGraphOptionJoinOpts) => {
 describe('useGraphOptionJoin', () => {
     beforeEach(() => {
         clearPropertyFieldOptionWalks();
+        clearGraphOptionNameCache();
         mockPageAll.mockResolvedValue([]);
     });
 
@@ -324,6 +326,23 @@ describe('useGraphOptionJoin', () => {
             await settle();
 
             expect(mockPageAll).toHaveBeenCalledTimes(1);
+        });
+
+        test('does not announce options loaded after the field names are cleared', async () => {
+            const walk = deferred<PropertyFieldOption[]>();
+            mockPageAll.mockReturnValue(walk.promise);
+            const onOptionsLoaded = jest.fn();
+            const field = fieldOf();
+
+            const {result} = renderJoin(field, {prefetch: true, onOptionsLoaded});
+            await waitFor(() => expect(mockPageAll).toHaveBeenCalledTimes(1));
+
+            clearGraphOptionNamesForField(field.id);
+            walk.resolve(hierarchy());
+            await settle();
+
+            expect(onOptionsLoaded).not.toHaveBeenCalled();
+            expect(result.current.status).toBe('loading');
         });
     });
 });
