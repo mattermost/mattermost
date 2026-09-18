@@ -1570,9 +1570,9 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
             await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
             const timestamp = Date.now();
-            const name = `e2e_ga_dn_cascade_${timestamp}`;
-            const displayName = `PW DN Cascade ${timestamp}`;
-            const updatedDisplayName = `${displayName} Renamed`;
+            const name = `business_unit_${timestamp}`;
+            const displayName = `Business Unit ${timestamp}`;
+            const updatedDisplayName = `Cost Center ${timestamp}`;
 
             try {
                 const field = await createGlobalAttributeField(adminClient, name, {
@@ -1614,10 +1614,10 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
             await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
             const timestamp = Date.now();
-            const name = `e2e_ga_dn_diverge_${timestamp}`;
-            const displayName = `PW DN Diverge ${timestamp}`;
-            const customLinkedDisplayName = `PW DN Custom ${timestamp}`;
-            const updatedDisplayName = `${displayName} Renamed`;
+            const name = `department_${timestamp}`;
+            const displayName = `Department ${timestamp}`;
+            const customLinkedDisplayName = `Org Unit ${timestamp}`;
+            const updatedDisplayName = `Division ${timestamp}`;
 
             try {
                 const field = await createGlobalAttributeField(adminClient, name, {
