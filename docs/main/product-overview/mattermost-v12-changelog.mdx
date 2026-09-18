@@ -38,7 +38,7 @@ Platform and OS scope reflects reported and tested environments and may not repr
  - A custom attribute field with more than 1000 options now serializes a count in place of its option list.
  - Removed the ``EmailLoginButtonColor``, ``EmailLoginButtonBorderColor``, and ``EmailLoginButtonTextColor`` client configuration fields alongside the ``EmailSettings`` login button color settings. These fields were never applied by any client.
 
-<Important>
+</Important>
 
 ### Upgrade Impact
 
@@ -63,8 +63,6 @@ Platform and OS scope reflects reported and tested environments and may not repr
 #### config.json
 New setting options were added to ``config.json``. Below is a list of the additions and their default values on install. The settings can be modified in ``config.json``, or the System Console when available.
  - **Changes to All plans:**
-   - Added ``DeliveryTrackingSettings.Enable`` (default ``false``) and ``DeliveryTrackingSettings.EnableForAllChannels`` (default ``true``) configuration settings to control post delivery audit logging.
-   - Added ``MessageExportSettings.GlobalRelaySettings.SenderAddress`` configuration setting to optionally set a fixed From address for Global Relay EML compliance exports.
    - Added ``ServiceSettings.EnableHardenedMode`` configuration setting. The Enable Hardened Mode setting has been moved from System Console > Experimental > Features to System Console > Environment > Web Server (reported on Linux and Chromium).
    - Removed ``ImageProxySettings.RemoteImageProxyOptions`` configuration setting.
    - Removed ``ImageProxySettings.RemoteImageProxyURL`` configuration setting.
@@ -73,23 +71,31 @@ New setting options were added to ``config.json``. Below is a list of the additi
    - Removed ``EmailSettings.LoginButtonTextColor`` configuration setting.
    - Removed ``LocalizationSettings.EnableExperimentalLocales`` configuration setting and the work-in-progress translation catalogs it exposed. Only the 22 officially supported languages are now selectable. The setting is ignored if left in an existing ``config.json``.
    - Removed the following configuration settings:
-     - ``ElasticsearchSettings.BulkIndexingTimeWindowSeconds``
-     - ``ClusterSettings.EnableExperimentalGossipEncryption``
-     - ``ExperimentalSettings.ClientSideCertEnable``
      - ``TeamSettings.ExperimentalViewArchivedChannels``
      - ``CloudSettings.CWSMock``
      - ``PluginSettings.ChimeraOAuthProxyURL``
-     - ``DataRetentionSettings.EnableBoardsDeletion``
-     - ``DataRetentionSettings.BoardsRetentionDays``
      - ``SqlSettings.AtRestEncryptKey``
-     - ``NativeAppSettings.EnableIntuneMAM``
      - ``GuestAccountsSettings.AllowEmailAccounts``
    - Moved the "Enable User Typing Messages" and "User Typing Timeout" settings from System Console > Experimental > Features to System Console > Site Configuration > Posts.
    - Moved the Email Batching Buffer Size, Email Batching Interval, and Use Channel Name in Email Notifications settings from System Console > Experimental > Features to System Console > Site Configuration > Notifications.
    - Moved the **Enable Account Deactivation** and **User Status Away Timeout** settings (``TeamSettings.EnableUserDeactivation`` and ``TeamSettings.UserStatusAwayTimeout``) from System Console > Experimental > Features to System Console > Site Configuration > Users and Teams.
    - Moved the **Enable Channel Viewed WebSocket Messages** setting (``ServiceSettings.EnableChannelViewedMessages``) from System Console > Experimental > Features to System Console > Environment > Web Server.
-   - Moved the Enable Theme Selection, Allow Custom Themes, Default Theme, Enable Tutorial, and Enable Onboarding settings from System Console > Experimental > Features to System Console > Site Configuration > Customization. Also added ``ThemeSettings.AllowedThemes`` to System Console > Site Configuration > Customization; it was previously configurable only by editing ``config.json``.
+   - Moved the Enable Theme Selection, Allow Custom Themes, Default Theme, Enable Tutorial, and Enable Onboarding settings from System Console > Experimental > Features to System Console > Site Configuration > Customization.
    - Removed the ``atmos/camo`` remote image proxy type. Deployments with ``ImageProxySettings.ImageProxyType`` set to ``atmos/camo`` must update their configuration to use ``local`` or disable the image proxy before upgrading to this release.
+ - **Changes to Professional, Enterprise, and Enterprise Advanced plans:**
+   - Added ``ThemeSettings.AllowedThemes`` to System Console > Site Configuration > Customization; it was previously configurable only by editing ``config.json``.
+ - **Changes to Entry and Enterprise Advanced plans:**
+   - Removed ``NativeAppSettings.EnableIntuneMAM`` configuration setting. Use ``IntuneSettings.Enable`` instead.
+ - **Changes to Enterprise and Enterprise Advanced plans:**
+   - Added ``MessageExportSettings.GlobalRelaySettings.SenderAddress`` configuration setting to optionally set a fixed From address for Global Relay EML compliance exports.
+   - Removed the following configuration settings:
+     - ``ElasticsearchSettings.BulkIndexingTimeWindowSeconds``
+     - ``ClusterSettings.EnableExperimentalGossipEncryption``
+     - ``ExperimentalSettings.ClientSideCertEnable``
+     - ``DataRetentionSettings.EnableBoardsDeletion``
+     - ``DataRetentionSettings.BoardsRetentionDays``
+ - **Changes to Enterprise Advanced plan:**
+   - Added ``DeliveryTrackingSettings.Enable`` (default ``false``) and ``DeliveryTrackingSettings.EnableForAllChannels`` (default ``true``) configuration settings to control post delivery audit logging.
 
 #### Compatibility
  - Updated the minimum supported macOS version to 15+ and the minimum supported Safari version to 27+. Earlier versions are no longer supported for the desktop and web apps. See the [software and hardware requirements](https://docs.mattermost.com/deployment-guide/software-hardware-requirements.html) documentation for details.
