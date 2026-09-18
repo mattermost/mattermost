@@ -186,6 +186,12 @@ func TestRegistryValidate(t *testing.T) {
 	}
 }
 
+func TestBuiltinRulesValid(t *testing.T) {
+	t.Parallel()
+
+	require.NoError(t, Builtin().Validate())
+}
+
 func validRule(code string) Rule {
 	return Rule{
 		Code:       code,
