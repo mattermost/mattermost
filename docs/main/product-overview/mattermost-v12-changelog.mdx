@@ -172,9 +172,20 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-0-is-now-availab
  - Fixed a server startup crash where an app migration could read a row it had just written from a read replica that had not yet caught up, aborting startup. This affected servers that are both licensed and have ``SqlSettings.DataSourceReplicas`` configured.
  - Fixed a bug where migrating a select, multiselect, or rank Custom Profile Attribute field into a Global Attributes template could leave the field with every option duplicated.
 
-### Audit Events
+### Audit Log Event Changes
+ - Added ``AuditEventAutoCacheCleanupRun`` audit log event.
  - Added ``AuditEventChannelMembershipAdded`` audit log event.
  - Added ``AuditEventChannelMembershipRemoved`` audit log event.
+ - Added ``AuditEventCreatePropertyFieldOptions`` audit log event.
+ - Added ``AuditEventDeletePropertyFieldOptions`` audit log event.
+ - Added ``AuditEventGetPropertyFieldOptions`` audit log event.
+ - Added ``AuditEventOfflinePurge`` audit log event.
+ - Added ``AuditEventPatchPropertyFieldOptions`` audit log event.
+ - Added ``AuditEventPostDelivered`` audit log event.
+ - Added ``AuditEventSessionWipe`` audit log event.
+ - Added ``AuditEventUpdateDeliveryTrackingConfig`` audit log event.
+ - Removed ``AuditEventImportTeam`` (``importTeam``) audit log event, along with the deprecated built-in Slack import API.
+ - Removed ``AuditEventSlackImport`` (``slackImport``) audit log event, along with the deprecated built-in Slack import CLI.
 
 ### Go Version
  - v12.0 is built with Go ``v1.26.7``.
