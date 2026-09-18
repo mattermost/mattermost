@@ -343,7 +343,7 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 		_, _, appErr = th.App.UpdatePost(th.Context, edited, &model.UpdatePostOptions{})
 		require.Nil(t, appErr)
 
-		editHistory, appErr := th.App.GetEditHistoryForPost(post.Id)
+		editHistory, appErr := th.App.GetEditHistoryForPost(th.Context, post.Id)
 		require.Nil(t, appErr)
 		require.NotEmpty(t, editHistory)
 		editID := editHistory[0].Id
@@ -477,7 +477,7 @@ func TestGenerateFlaggedPostReportAttachmentPolicy(t *testing.T) {
 		_, _, appErr := th.App.UpdatePost(th.Context, edited, &model.UpdatePostOptions{})
 		require.Nil(t, appErr)
 
-		editHistory, appErr := th.App.GetEditHistoryForPost(post.Id)
+		editHistory, appErr := th.App.GetEditHistoryForPost(th.Context, post.Id)
 		require.Nil(t, appErr)
 		require.NotEmpty(t, editHistory)
 		editID := editHistory[0].Id

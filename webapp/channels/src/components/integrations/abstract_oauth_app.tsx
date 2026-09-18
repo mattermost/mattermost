@@ -77,7 +77,7 @@ type State = {
 
 export default class AbstractOAuthApp extends React.PureComponent<Props, State> {
     private image: HTMLImageElement;
-    private icon_url: React.RefObject<HTMLInputElement>;
+    private icon_url: React.RefObject<HTMLInputElement | null>;
 
     constructor(props: Props) {
         super(props);
