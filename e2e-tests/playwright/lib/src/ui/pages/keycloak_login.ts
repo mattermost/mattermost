@@ -5,6 +5,7 @@ import type {Page} from '@playwright/test';
 
 import {KEYCLOAK_REALM} from '@/containers/constants';
 import {testConfig} from '@/test_config';
+import {duration} from '@/util';
 
 // Keycloak's own hosted login form (not part of the Mattermost webapp). Its element ids are
 // Keycloak's default theme, stable across releases, unlike its (locale-dependent) label text.
@@ -48,12 +49,12 @@ export default class KeycloakLoginPage {
      * IdP session is reused and the browser never lands on Keycloak.
      */
     async loginIfFormShown(username: string, password: string) {
-        await Promise.race([
-            this.usernameInput.waitFor({state: 'visible'}),
-            this.page.waitForURL((url) => !url.pathname.startsWith('/login') && !url.pathname.includes('/realms/')),
-        ]);
-        if (await this.usernameInput.isVisible()) {
-            await this.login(username, password);
+        try {
+            await this.usernameInput.waitFor({state: 'visible', timeout: duration.ten_sec});
+        } catch {
+            // IdP session reused; the browser never landed on Keycloak.
+            return;
         }
+        await this.login(username, password);
     }
 }
