@@ -139,6 +139,7 @@ type ErrorKind =
     'applies_to_remove_partial_save' |
     'applies_to_partial_save' |
     'applies_to_config_save_failed' |
+    'applies_to_display_name_save_failed' |
     'applies_to_rollback_failed' |
     'applies_to_name_conflict' |
     'applies_to_limit_reached';
@@ -153,6 +154,7 @@ const RESOURCE_INTERPOLATED_ERROR_KINDS = new Set<ErrorKind>([
     'applies_to_remove_partial_save',
     'applies_to_partial_save',
     'applies_to_config_save_failed',
+    'applies_to_display_name_save_failed',
 ]);
 
 function errorKindFromError(error: unknown): ErrorKind {
@@ -1131,9 +1133,13 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         // the admin the linkage itself failed and risk them removing
                         // and re-adding the row (a destructive, confirmation-gated
                         // action) when a simple Save retry is all that's needed.
+                        // Display-name-only failures get their own copy: the config
+                        // banner names Profile display / Who can set the value, which
+                        // is wrong when neither control was part of this PATCH.
+                        const configChanged = visibilityChanged || managedChanged;
                         finalizeSave({
                             success: false,
-                            errorKind: 'applies_to_config_save_failed',
+                            errorKind: configChanged ? 'applies_to_config_save_failed' : 'applies_to_display_name_save_failed',
                             serverErrorMessage: null,
                             failedResourceTypes: ['user'],
                         });
@@ -1868,6 +1874,10 @@ const errorMessages = defineMessages({
     applies_to_config_save_failed: {
         id: 'admin.global_attributes.attribute_details.save_error.applies_to_config_save_failed',
         defaultMessage: "The attribute was saved, but its {resources} settings (Profile display, Who can set the value) couldn't be updated. Please try again.",
+    },
+    applies_to_display_name_save_failed: {
+        id: 'admin.global_attributes.attribute_details.save_error.applies_to_display_name_save_failed',
+        defaultMessage: "The attribute was saved, but its {resources} display name couldn't be updated. Please try again.",
     },
     applies_to_rollback_failed: {
         id: 'admin.global_attributes.attribute_details.save_error.applies_to_rollback_failed',

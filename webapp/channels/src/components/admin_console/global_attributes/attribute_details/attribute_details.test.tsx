@@ -2191,6 +2191,26 @@ describe('AttributeDetails', () => {
             expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
         });
 
+        it('renders a display-name update banner (not Profile display / Who can set) when only the linked display_name cascade fails', async () => {
+            mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field')]);
+            jest.spyOn(Client4, 'patchPropertyField').mockImplementation((_group, objectType) => (
+                objectType === 'user' ? Promise.reject(new Error('boom')) : Promise.resolve(makeTemplate({attrs: {display_name: 'Department 2'}}))
+            ));
+
+            renderEdit();
+            await waitForForm();
+
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' 2');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            const banner = await screen.findByTestId('attributeSaveError');
+            expect(banner).toHaveTextContent('Users');
+            expect(banner).toHaveTextContent('display name');
+            expect(banner).not.toHaveTextContent('Profile display');
+            expect(banner).not.toHaveTextContent('be applied');
+            expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+        });
+
         it('DELETEs removed resources before PATCHing when type also changes', async () => {
             const callOrder: string[] = [];
             mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field')]);
