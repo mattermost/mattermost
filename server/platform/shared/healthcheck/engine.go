@@ -12,6 +12,7 @@ import (
 
 const ReasonRulePanicked = "health.reason.rule_panicked"
 
+// Evaluation names its rule by Code rather than copying the rule's metadata, which would be a second, staleable source of severity/area/surface.
 type Evaluation struct {
 	Code        string
 	Result      Result
@@ -22,7 +23,8 @@ type Evaluation struct {
 type EngineOpts struct {
 	Registry *Registry
 	Logger   mlog.LoggerIFace
-	Now      func() time.Time
+	// Now is injectable so tests get a fixed clock; defaults to time.Now.
+	Now func() time.Time
 }
 
 type Engine struct {
@@ -114,6 +116,7 @@ func (e *Engine) evaluateRule(s *Snapshot, rule Rule, evaluatedAt time.Time) []E
 	return evaluations
 }
 
+// callSafely contains a single rule's panic so one bad rule can't abort the whole evaluation; it degrades to an Unknown result.
 func (e *Engine) callSafely(code string, eval func() []Result) (results []Result) {
 	defer func() {
 		if recovered := recover(); recovered != nil {
@@ -127,6 +130,7 @@ func (e *Engine) callSafely(code string, eval func() []Result) (results []Result
 	return eval()
 }
 
+// stampScope overwrites Scope for node-scoped rules; a per-node result's scope is always the node hostname, not whatever the predicate set.
 func stampScope(results []Result, hostname string) []Result {
 	for i := range results {
 		results[i].Scope = hostname
