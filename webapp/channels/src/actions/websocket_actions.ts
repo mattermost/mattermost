@@ -19,11 +19,12 @@ import type {OpenDialogRequest} from '@mattermost/types/integrations';
 import type {Job} from '@mattermost/types/jobs';
 import type {Post, PostAcknowledgement} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
-import {supportsHierarchy, type PropertyValue} from '@mattermost/types/properties';
-import {SESSION_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties_user';
+import {supportsHierarchy, type PropertyField, type PropertyValue} from '@mattermost/types/properties';
+import {SESSION_ATTRIBUTES_OBJECT_TYPE, USER_OBJECT_TYPE} from '@mattermost/types/properties_user';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {Role} from '@mattermost/types/roles';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
+import type {GlobalState} from '@mattermost/types/store';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
 import type {UserThread} from '@mattermost/types/threads';
 
@@ -122,11 +123,11 @@ import {
     hasAutotranslationBecomeEnabled,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
-import {getConfig, getFeatureFlagValue, getLicense, isPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getCustomProfileAttributes, getFeatureFlagValue, getLicense, isPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
 import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getPropertyFieldById, getPropertyGroupById} from 'mattermost-redux/selectors/entities/properties';
+import {getPropertyFieldById, getPropertyGroupById, getPropertyGroupByName} from 'mattermost-redux/selectors/entities/properties';
 import {haveISystemPermission, haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getScheduledPostTeamId, isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {
@@ -1477,6 +1478,30 @@ export function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel):
     };
 }
 
+/**
+ * User attributes reach the server two ways: the custom profile attribute REST
+ * API, which emits custom_profile_attributes_field_*, and Attribute Management,
+ * which writes the same fields through the generic property-fields API and emits
+ * only property_field_*. Everything that renders user attributes reads the
+ * custom profile attribute slice, so the generic events have to land there too.
+ *
+ * The access_control group lives under a server-generated UUID. The property
+ * group cache only learns that mapping once something fetches the group by name,
+ * so fall back to the cached definitions, which all come from that group.
+ * When neither is known, return undefined so the handler can refetch rather
+ * than guess.
+ */
+function isUserAttributeField(state: GlobalState, field: PropertyField): boolean | undefined {
+    if (field.object_type !== USER_OBJECT_TYPE) {
+        return false;
+    }
+    const groupId = getPropertyGroupByName(state, ACCESS_CONTROL_PROPERTY_GROUP)?.id ?? getCustomProfileAttributes(state)[0]?.group_id;
+    if (!groupId) {
+        return undefined;
+    }
+    return field.group_id === groupId;
+}
+
 export function handlePropertyFieldCreatedOrUpdated(
     msg:
     | WebSocketMessages.PropertyFieldCreated |
@@ -1538,6 +1563,26 @@ export function handlePropertyFieldCreatedOrUpdated(
             data: {fields: [field]},
         });
 
+        const userAttributeField = isUserAttributeField(doGetState(), field);
+        if (userAttributeField === undefined) {
+            // Cannot tell a CPA field from a plugin field until the group is
+            // known, so refetch rather than cache the payload.
+            doDispatch(getCustomProfileAttributeFields());
+        } else if (userAttributeField) {
+            if (optionsOmitted) {
+                // The cached options restored above come from the properties
+                // slice, which a session that only loaded user attributes never
+                // populates. Read the authoritative list back rather than
+                // caching a definition whose options are missing.
+                doDispatch(getCustomProfileAttributeFields());
+            } else {
+                doDispatch({
+                    type: msg.event === WebSocketEvents.PropertyFieldCreated ? GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_CREATED : GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED,
+                    data: field,
+                });
+            }
+        }
+
         // Session attribute field changed; forward the updated field to the Desktop App.
         if (msg.data.object_type === SESSION_ATTRIBUTES_OBJECT_TYPE) {
             DesktopApp.updateSessionAttribute(field);
@@ -1545,13 +1590,21 @@ export function handlePropertyFieldCreatedOrUpdated(
     };
 }
 
-function handlePropertyFieldDeleted(
+export function handlePropertyFieldDeleted(
     msg: WebSocketMessages.PropertyFieldDeleted,
 ): ThunkActionFunc<void> {
     return (doDispatch) => {
         doDispatch({
             type: PropertyTypes.PROPERTY_FIELD_DELETED,
             data: {fieldId: msg.data.field_id},
+        });
+
+        // The payload carries no field, so the group it belonged to is unknown
+        // here. The reducer leaves the slice alone for an id it doesn't hold,
+        // which is the same membership test a group check would make.
+        doDispatch({
+            type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_DELETED,
+            data: msg.data.field_id,
         });
     };
 }

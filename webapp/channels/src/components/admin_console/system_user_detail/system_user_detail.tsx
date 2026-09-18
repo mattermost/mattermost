@@ -444,8 +444,10 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             this.getUser(userId);
         }
 
-        // Fetch CPA field definitions if not already available
-        if (this.props.customProfileAttributeEnabled && this.props.customProfileAttributeFields.length === 0) {
+        // Refetch on every mount, not just when nothing is cached: the websocket
+        // event for an attribute saved from Attribute Management skips the
+        // connection that saved it, so that admin arrives here with a stale list.
+        if (this.props.customProfileAttributeEnabled) {
             this.props.getCustomProfileAttributeFields();
         }
     }
