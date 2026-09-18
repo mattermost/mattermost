@@ -3,18 +3,18 @@
 
 import React, {useCallback, useMemo, useState} from 'react';
 
-import type {RankPenaltyWeights} from '../suggestion/quick_switch_ranking';
-import {
-    DEFAULT_RANK_PENALTY_WEIGHTS,
-    rankingDebugRows,
-    validatePenaltyDominance,
-} from '../suggestion/quick_switch_ranking';
-
 import {
     PLAYGROUND_NOW,
     SCENARIO_PRESETS,
     WEIGHT_PRESETS,
 } from './quick_switcher_ranking_presets';
+
+import {
+    DEFAULT_RANK_PENALTY_WEIGHTS,
+    rankingDebugRows,
+    validatePenaltyDominance,
+} from '../suggestion/quick_switch_ranking';
+import type {RankPenaltyWeights} from '../suggestion/quick_switch_ranking';
 
 import './component_library.scss';
 
