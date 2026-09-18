@@ -63,11 +63,11 @@ func TestFindingStore(t *testing.T, newStore func() FindingStore) {
 		require.Len(t, defaultList, 1)
 		require.Equal(t, "fp-unmuted", defaultList[0].Fingerprint)
 
-		withMuted, err := store.List(model.HealthFindingFilter{IncludeMuted: true})
+		withMuted, err := store.List(model.HealthFindingFilter{Muted: model.MutedIncluded})
 		require.NoError(t, err)
 		require.Len(t, withMuted, 2)
 
-		mutedOnly, err := store.List(model.HealthFindingFilter{MutedOnly: true})
+		mutedOnly, err := store.List(model.HealthFindingFilter{Muted: model.MutedOnly})
 		require.NoError(t, err)
 		require.Len(t, mutedOnly, 1)
 		require.Equal(t, "fp-muted", mutedOnly[0].Fingerprint)
@@ -112,7 +112,7 @@ func TestFindingStore(t *testing.T, newStore func() FindingStore) {
 		require.NoError(t, err)
 		require.Equal(t, int64(1), deleted)
 
-		remaining, err := store.List(model.HealthFindingFilter{IncludeMuted: true})
+		remaining, err := store.List(model.HealthFindingFilter{Muted: model.MutedIncluded})
 		require.NoError(t, err)
 		require.Len(t, remaining, 2)
 		require.Equal(t, "fp-equal", remaining[0].Fingerprint)

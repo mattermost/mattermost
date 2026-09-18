@@ -55,10 +55,10 @@ func (s *memoryStore) List(filter model.HealthFindingFilter) ([]*model.HealthFin
 		if !includesSurface(filter.Surfaces, finding.Surface) {
 			continue
 		}
-		if filter.MutedOnly && !finding.IsMuted() {
+		if filter.Muted == model.MutedOnly && !finding.IsMuted() {
 			continue
 		}
-		if !filter.MutedOnly && !filter.IncludeMuted && finding.IsMuted() {
+		if filter.Muted == model.MutedExcluded && finding.IsMuted() {
 			continue
 		}
 
