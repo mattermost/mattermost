@@ -110,7 +110,7 @@ export const seeder = {
 
     UPGRADE_PLUGIN_ID: 'com.mattermost.demo-plugin',
     UPGRADE_PLUGIN_BUNDLE_URL:
-        'https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.11.0/mattermost-plugin-demo-v0.11.0.tar.gz',
+        'https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.12.0/mattermost-plugin-demo-v0.12.0.tar.gz',
     UPGRADE_PLUGIN_BUNDLE_PATH: path.resolve(process.cwd(), '.upgrade_plugin_bundle.tar.gz'),
 };
 
