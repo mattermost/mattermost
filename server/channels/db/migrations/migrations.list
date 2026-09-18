@@ -453,3 +453,5 @@ channels/db/migrations/postgres/000228_add_access_control_policies_rules_index.d
 channels/db/migrations/postgres/000228_add_access_control_policies_rules_index.up.sql
 channels/db/migrations/postgres/000229_add_access_control_policies_imports_index.down.sql
 channels/db/migrations/postgres/000229_add_access_control_policies_imports_index.up.sql
+channels/db/migrations/postgres/000230_add_creator_to_permission_level.down.sql
+channels/db/migrations/postgres/000230_add_creator_to_permission_level.up.sql
