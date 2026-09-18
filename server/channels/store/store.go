@@ -107,6 +107,16 @@ type Store interface {
 	ReadReceipt() ReadReceiptStore
 	TemporaryPost() TemporaryPostStore
 	ChannelJoinRequest() ChannelJoinRequestStore
+	HealthFinding() HealthFindingStore
+}
+
+type HealthFindingStore interface {
+	GetByFingerprints(fingerprints []string) ([]*model.HealthFinding, error)
+	List(filter model.HealthFindingFilter) ([]*model.HealthFinding, error)
+	Upsert(findings []*model.HealthFinding) error
+	Mute(fingerprint, userID string, at int64) error
+	Unmute(fingerprint string) error
+	DeleteBefore(lastSeenBefore int64) (int64, error)
 }
 
 type RetentionPolicyStore interface {
