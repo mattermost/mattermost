@@ -657,6 +657,70 @@ func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks, mani
 	}
 }
 
+// RunMultiPluginHookConcurrent invokes hookRunnerFunc for each active plugin that implements the
+// given hookId, dispatching all hooks concurrently instead of serially so total latency is bounded
+// by the slowest plugin rather than the sum of all plugins.
+//
+// The call returns once every hook completes or waitLimit elapses, whichever comes first. Hooks
+// still running when waitLimit expires are abandoned by the caller but run to completion in the
+// background; the plugins still pending are logged. An abandoned hook can therefore overlap with a
+// later dispatch of the same hook to the same plugin. Unlike RunMultiPluginHook, hookRunnerFunc
+// cannot short-circuit the remaining plugins.
+func (env *Environment) RunMultiPluginHookConcurrent(hookRunnerFunc func(hooks Hooks, manifest *model.Manifest), hookId int, waitLimit time.Duration) {
+	startTime := time.Now()
+
+	var wg sync.WaitGroup
+	var pending sync.Map
+	env.registeredPlugins.Range(func(key, value any) bool {
+		rp := value.(registeredPlugin)
+
+		if rp.supervisor == nil || !rp.supervisor.Implements(hookId) || !env.IsActive(rp.BundleInfo.Manifest.Id) {
+			return true
+		}
+
+		pluginID := rp.BundleInfo.Manifest.Id
+		pending.Store(pluginID, struct{}{})
+		wg.Go(func() {
+			hookStartTime := time.Now()
+			hookRunnerFunc(rp.supervisor.Hooks(), rp.BundleInfo.Manifest)
+			pending.Delete(pluginID)
+
+			if env.metrics != nil {
+				elapsedTime := float64(time.Since(hookStartTime)) / float64(time.Second)
+				env.metrics.ObservePluginMultiHookIterationDuration(pluginID, elapsedTime)
+			}
+		})
+
+		return true
+	})
+
+	done := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(waitLimit):
+		var stragglers []string
+		pending.Range(func(key, _ any) bool {
+			stragglers = append(stragglers, key.(string))
+			return true
+		})
+		env.logger.Warn("Some plugin hooks did not complete in time; they will finish in the background",
+			mlog.Int("hook_id", hookId),
+			mlog.String("wait_limit", waitLimit.String()),
+			mlog.Array("plugin_ids", stragglers),
+		)
+	}
+
+	if env.metrics != nil {
+		elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
+		env.metrics.ObservePluginMultiHookDuration(elapsedTime)
+	}
+}
+
 // RunMultiPluginHookExcluding is like RunMultiPluginHook but skips plugins whose IDs appear in
 // excludePluginIDs, otherwise the semantics are the same as RunMultiPluginHook. The exclusion check
 // is a linear scan.
