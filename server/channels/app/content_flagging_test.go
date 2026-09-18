@@ -2875,7 +2875,7 @@ func TestKeepFlaggedPost(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify edit history exists before flagging
-		editHistoryBefore, appErr := th.App.GetEditHistoryForPost(post.Id)
+		editHistoryBefore, appErr := th.App.GetEditHistoryForPost(th.Context, post.Id)
 		require.Nil(t, appErr)
 		require.NotEmpty(t, editHistoryBefore)
 		editHistoryPostId := editHistoryBefore[0].Id
@@ -2909,7 +2909,7 @@ func TestKeepFlaggedPost(t *testing.T) {
 		require.Equal(t, model.ContentFlaggingStatusRetained, stringValue)
 
 		// Verify edit history is still present (not deleted)
-		editHistoryAfter, appErr := th.App.GetEditHistoryForPost(post.Id)
+		editHistoryAfter, appErr := th.App.GetEditHistoryForPost(th.Context, post.Id)
 		require.Nil(t, appErr, "Edit history should be preserved when keeping flagged post")
 		require.NotEmpty(t, editHistoryAfter)
 		require.Equal(t, editHistoryPostId, editHistoryAfter[0].Id)
