@@ -58,15 +58,15 @@ func (s *Snapshot) Leader() (*NodeSnapshot, bool) {
 }
 
 func (s *Snapshot) Has(section model.WorkspaceSection) bool {
-	err, ok := s.SectionErr(section)
+	ok, err := s.SectionErr(section)
 	return ok && err == nil
 }
 
-func (s *Snapshot) SectionErr(section model.WorkspaceSection) (error, bool) {
+func (s *Snapshot) SectionErr(section model.WorkspaceSection) (bool, error) {
 	if s == nil || s.Sections == nil {
-		return nil, false
+		return false, nil
 	}
 
 	err, ok := s.Sections[section]
-	return err, ok
+	return ok, err
 }

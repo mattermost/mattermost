@@ -3,7 +3,11 @@
 
 package healthcheck
 
-import "github.com/mattermost/mattermost/server/public/model"
+import (
+	"slices"
+
+	"github.com/mattermost/mattermost/server/public/model"
+)
 
 var collectedJobTypes = []string{
 	model.JobTypeLdapSync,
@@ -122,11 +126,5 @@ func (s *Snapshot) PluginEnabled(id string) (bool, bool) {
 }
 
 func isCollectedJobType(jobType string) bool {
-	for _, collected := range collectedJobTypes {
-		if collected == jobType {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(collectedJobTypes, jobType)
 }

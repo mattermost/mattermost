@@ -175,7 +175,6 @@ func TestRegistryValidate(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			registry := NewRegistry()
 			registry.Register(tc.rules...)

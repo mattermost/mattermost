@@ -23,7 +23,7 @@ func TestImportBoundary(t *testing.T) {
 		"github.com/mattermost/mattermost/server/public/shared/mlog": {},
 	}
 
-	for _, imported := range strings.Fields(string(output)) {
+	for imported := range strings.FieldsSeq(string(output)) {
 		if isStdLibImport(imported) {
 			continue
 		}

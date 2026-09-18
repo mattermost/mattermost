@@ -52,15 +52,15 @@ func (n *NodeSnapshot) ConfigHash() (string, bool) {
 }
 
 func (n *NodeSnapshot) Has(section model.NodeSection) bool {
-	err, ok := n.SectionErr(section)
+	ok, err := n.SectionErr(section)
 	return ok && err == nil
 }
 
-func (n *NodeSnapshot) SectionErr(section model.NodeSection) (error, bool) {
+func (n *NodeSnapshot) SectionErr(section model.NodeSection) (bool, error) {
 	if n == nil || n.Diagnostics == nil || n.Sections == nil {
-		return nil, false
+		return false, nil
 	}
 
 	err, ok := n.Sections[section]
-	return err, ok
+	return ok, err
 }

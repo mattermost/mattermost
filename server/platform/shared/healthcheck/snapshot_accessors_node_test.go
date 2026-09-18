@@ -17,8 +17,8 @@ func TestConfigStringAndDataSourceFakeSettingGuard(t *testing.T) {
 
 	t.Run("mysql sanitization yields unavailable config string", func(t *testing.T) {
 		cfg := &model.Config{}
-		cfg.SqlSettings.DriverName = strPtr("mysql")
-		cfg.SqlSettings.DataSource = strPtr("mysql://mmuser:secret@tcp(db.example.com:3306)/mattermost")
+		cfg.SqlSettings.DriverName = new("mysql")
+		cfg.SqlSettings.DataSource = new("mysql://mmuser:secret@tcp(db.example.com:3306)/mattermost")
 		cfg.Sanitize(nil, &model.SanitizeOptions{PartiallyRedactDataSources: true})
 
 		snapshot := &Snapshot{
@@ -35,8 +35,8 @@ func TestConfigStringAndDataSourceFakeSettingGuard(t *testing.T) {
 
 	t.Run("postgres partial redact keeps host and remains readable", func(t *testing.T) {
 		cfg := &model.Config{}
-		cfg.SqlSettings.DriverName = strPtr(model.DatabaseDriverPostgres)
-		cfg.SqlSettings.DataSource = strPtr("postgres://mmuser:secret@db.example.com:5432/mattermost?sslmode=disable&connect_timeout=10")
+		cfg.SqlSettings.DriverName = new(model.DatabaseDriverPostgres)
+		cfg.SqlSettings.DataSource = new("postgres://mmuser:secret@db.example.com:5432/mattermost?sslmode=disable&connect_timeout=10")
 		cfg.Sanitize(nil, &model.SanitizeOptions{PartiallyRedactDataSources: true})
 
 		snapshot := &Snapshot{
@@ -68,8 +68,8 @@ func TestAccessorsReturnFalseWhenSectionAbsent(t *testing.T) {
 	t.Parallel()
 
 	cfg := &model.Config{}
-	cfg.SqlSettings.Trace = boolPtr(true)
-	cfg.SqlSettings.MaxOpenConns = intPtr(25)
+	cfg.SqlSettings.Trace = new(true)
+	cfg.SqlSettings.MaxOpenConns = new(25)
 
 	snapshot := &Snapshot{
 		Config:   &model.SupportPacketConfig{Config: cfg},
@@ -189,7 +189,7 @@ func TestSectionAvailabilityMethods(t *testing.T) {
 
 	require.True(t, snapshot.Has(model.SectionConfig))
 	require.False(t, snapshot.Has(model.SectionJobs))
-	err, ok := snapshot.SectionErr(model.SectionJobs)
+	ok, err := snapshot.SectionErr(model.SectionJobs)
 	require.True(t, ok)
 	require.Equal(t, workspaceErr, err)
 
@@ -204,7 +204,7 @@ func TestSectionAvailabilityMethods(t *testing.T) {
 
 	require.True(t, node.Has(model.SectionLDAPProbe))
 	require.False(t, node.Has(model.SectionSAMLProbe))
-	err, ok = node.SectionErr(model.SectionSAMLProbe)
+	ok, err = node.SectionErr(model.SectionSAMLProbe)
 	require.True(t, ok)
 	require.Equal(t, nodeErr, err)
 }
@@ -221,7 +221,3 @@ func TestCollectedJobTypes(t *testing.T) {
 	require.Contains(t, strings.Join(jobTypes, ","), model.JobTypeElasticsearchPostAggregation)
 	require.Contains(t, strings.Join(jobTypes, ","), model.JobTypeMigrations)
 }
-
-func strPtr(s string) *string { return &s }
-func boolPtr(v bool) *bool    { return &v }
-func intPtr(v int) *int       { return &v }
