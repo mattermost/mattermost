@@ -1614,6 +1614,7 @@
   "admin.global_attributes.attribute_details.plugin_source.settings_link": "Plugin settings",
   "admin.global_attributes.attribute_details.save": "Save",
   "admin.global_attributes.attribute_details.save_error.applies_to_config_save_failed": "The attribute was saved, but its {resources} settings (Profile display, Who can set the value) couldn't be updated. Please try again.",
+  "admin.global_attributes.attribute_details.save_error.applies_to_display_name_save_failed": "The attribute was saved, but its {resources} display name couldn't be updated. Please try again.",
   "admin.global_attributes.attribute_details.save_error.applies_to_failed": "Couldn't apply this attribute to {resources}. Nothing was saved — please try again.",
   "admin.global_attributes.attribute_details.save_error.applies_to_limit_reached": "The maximum number of User Attributes has been reached. Delete an existing one before applying this attribute to Users.",
   "admin.global_attributes.attribute_details.save_error.applies_to_name_conflict": "This name is already used by a User Attribute. Please choose a different name.",
