@@ -172,6 +172,12 @@ func setupChannelReadAccessAPI(t *testing.T, allow bool) (*channelReadAccessFixt
 	post := th.CreatePost(t)
 
 	mockACS := installMockACS(t, th)
+	// Only channel_read_access is governed here. channel_write_access must stay
+	// ungoverned for TestChannelReadAccessDoesNotGateWrites to mean anything: the
+	// write gate is inert until a write policy exists, and that is exactly the
+	// condition under which a read denial leaves writes alone.
+	mockACS.On("ActionHasPermissionPolicy", mock.Anything, model.AccessControlPolicyActionChannelWriteAccess).
+		Return(false, nil)
 	mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).Return(true, nil)
 	mockACS.On("AccessEvaluation", mock.Anything, channelReadAccessEvaluation).
 		Return(model.AccessDecision{Decision: allow}, nil)
@@ -191,9 +197,17 @@ func installMockACS(t *testing.T, th *TestHelper) *mocks.AccessControlServiceInt
 	return mockACS
 }
 
-// channelReadAccessWriteSurfaces are the surfaces channel_write_access will govern.
-// Until that action exists they must not be gated by channel_read_access: a denial of
-// "may this session read the channel" has nothing to say about a write.
+// channelReadAccessWriteSurfaces are the surfaces channel_write_access governs.
+// With no write policy in play they must not be gated by channel_read_access: a
+// denial of "may this session read the channel" has nothing to say about a write
+// nobody asked to restrict.
+//
+// addChannelMember is deliberately absent: membership changes need read access to the
+// channel either way, so it is gated on read like requestJoinChannel. Its full matrix
+// lives in channel_write_access_test.go --
+// TestChannelReadAccessBlocksPublicChannelSelfAdd (read gates it),
+// TestChannelWriteAccessDoesNotBlockPublicChannelSelfAdd (write must not gate a join),
+// and the "add channel member" denied surface (write still gates adding others).
 func channelReadAccessWriteSurfaces() []channelReadAccessSurface {
 	write := func(name string, fn func(t *testing.T, f *channelReadAccessFixture) (*model.Response, error)) channelReadAccessSurface {
 		return channelReadAccessSurface{name: name, call: fn}
@@ -252,10 +266,6 @@ func channelReadAccessWriteSurfaces() []channelReadAccessSurface {
 			_, resp, err := f.th.Client.PatchChannel(context.Background(), f.th.BasicChannel.Id, &model.ChannelPatch{Purpose: &purpose})
 			return resp, err
 		}),
-		write("add channel member", func(t *testing.T, f *channelReadAccessFixture) (*model.Response, error) {
-			_, resp, err := f.th.Client.AddChannelMember(context.Background(), f.th.BasicChannel.Id, f.th.BasicUser2.Id)
-			return resp, err
-		}),
 		write("post delete", func(t *testing.T, f *channelReadAccessFixture) (*model.Response, error) {
 			resp, err := f.th.Client.DeletePost(context.Background(), f.post.Id)
 			return resp, err
@@ -263,8 +273,9 @@ func channelReadAccessWriteSurfaces() []channelReadAccessSurface {
 	}
 }
 
-// The inverse of TestChannelReadAccessDeniedSurfaces: with the policy denying, every
-// write must still get through, because writes moved to channel_write_access.
+// The inverse of TestChannelReadAccessDeniedSurfaces: with the read policy denying
+// and no channel_write_access policy governing, every write must still get through.
+// Writes are channel_write_access's question, and it is not being asked here.
 func TestChannelReadAccessDoesNotGateWrites(t *testing.T) {
 	f, _ := setupChannelReadAccessAPI(t, false)
 
@@ -322,10 +333,17 @@ type contentReviewerFixture struct {
 	reviewerID     string
 }
 
+// setupContentReviewerChannelReadAccess isolates channel_read_access: the write
+// action allows, so a denial can only come from the action under test.
+func setupContentReviewerChannelReadAccess(t *testing.T, allow bool) (*contentReviewerFixture, *mocks.AccessControlServiceInterface) {
+	t.Helper()
+	return setupContentReviewerChannelAccess(t, allow, true /* write */)
+}
+
 // The mock goes in last on purpose: uploading the file, creating the post and
 // flagging it all pass through the same gates under test, so a denying PDP would fail
 // the fixture rather than the assertion.
-func setupContentReviewerChannelReadAccess(t *testing.T, allow bool) (*contentReviewerFixture, *mocks.AccessControlServiceInterface) {
+func setupContentReviewerChannelAccess(t *testing.T, readAllow, writeAllow bool) (*contentReviewerFixture, *mocks.AccessControlServiceInterface) {
 	t.Helper()
 
 	th := SetupConfig(t, func(cfg *model.Config) {
@@ -364,7 +382,9 @@ func setupContentReviewerChannelReadAccess(t *testing.T, allow bool) (*contentRe
 	mockACS := installMockACS(t, th)
 	mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).Return(true, nil)
 	mockACS.On("AccessEvaluation", mock.Anything, channelReadAccessEvaluation).
-		Return(model.AccessDecision{Decision: allow}, nil)
+		Return(model.AccessDecision{Decision: readAllow}, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, channelWriteAccessEvaluation).
+		Return(model.AccessDecision{Decision: writeAllow}, nil)
 	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
 		Return(model.AccessDecision{Decision: true}, nil)
 

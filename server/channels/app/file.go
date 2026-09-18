@@ -1504,7 +1504,7 @@ func (a *App) SearchFilesInTeamForUser(rctx request.CTX, terms string, userId st
 		return nil, false, appErr
 	}
 
-	if !a.channelReadAccessEnforcementActive() {
+	if !a.channelAccessEnforcementActive() {
 		return fileInfoSearchResults, allFilesHaveMembership, nil
 	}
 

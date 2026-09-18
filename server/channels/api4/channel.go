@@ -1108,6 +1108,46 @@ func requireChannelReadAccess(c *Context, channel *model.Channel) bool {
 	return false
 }
 
+func requireChannelReadAccessByID(c *Context, channelID string) bool {
+	if c.App.EnforceChannelReadAccessByID(c.AppContext, c.AppContext.Session().UserId, channelID) {
+		return true
+	}
+	c.SetPermissionError(model.PermissionReadChannel)
+	return false
+}
+
+func requireChannelWriteAccess(c *Context, channel *model.Channel) bool {
+	if c.App.EnforceChannelWriteAccess(c.AppContext, c.AppContext.Session().UserId, channel) {
+		return true
+	}
+	c.SetPermissionError(model.PermissionCreatePost)
+	return false
+}
+
+func requireChannelWriteAccessByID(c *Context, channelID string) bool {
+	if c.App.EnforceChannelWriteAccessByID(c.AppContext, c.AppContext.Session().UserId, channelID) {
+		return true
+	}
+	c.SetPermissionError(model.PermissionCreatePost)
+	return false
+}
+
+func requireChannelReadAccessForIDs(c *Context, channelIDs []string) (kept []string, ok bool) {
+	if len(channelIDs) == 0 {
+		return channelIDs, true
+	}
+
+	kept = c.App.FilterChannelIDsByReadAccess(c.AppContext, c.AppContext.Session().UserId, channelIDs)
+	if len(kept) == 0 {
+		// Nothing survived, so the first id is necessarily one of the denials; running it
+		// back through the enforcement gate records the witness SetPermissionError needs.
+		requireChannelReadAccessByID(c, channelIDs[0])
+		return nil, false
+	}
+
+	return kept, true
+}
+
 // discoverableNonMemberView returns a sanitized non-member view of `channel`
 // when the calling user qualifies under the discoverable visibility rules,
 // or (nil, nil) when the channel must remain hidden — the caller should
@@ -2631,6 +2671,16 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Read rather than write, and gated here rather than at the manage-members choke
+	// point below, because the public-channel self-add path is authorised on a team
+	// permission and never reaches that point. Joining is a read-tier action: a write
+	// rule that excludes non-members would otherwise make a channel you can plainly
+	// see unjoinable. Adding *other* users still gets the write gate, from the
+	// manage_*_channel_members checks below. Matches requestJoinChannel.
+	if !requireChannelReadAccess(c, channel) {
+		return
+	}
+
 	canAddSelf := false
 	canAddOthers := false
 	if channel.Type == model.ChannelTypeOpen {
@@ -2807,6 +2857,13 @@ func setChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Require system admin
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	// Rewriting the member list is a write to the channel, and this handler never
+	// reaches a channel permission check. The channel-access policies bind system
+	// admins too, so the check above does not stand in for the gate.
+	if !requireChannelWriteAccessByID(c, c.Params.ChannelId) {
 		return
 	}
 

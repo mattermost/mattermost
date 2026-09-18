@@ -108,9 +108,10 @@ func TestSearchAccessControlDecisionActions(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		// upload_file_attachment, download_file_attachment and channel_read_access.
-		require.Len(t, out.Decisions, 3)
-		require.Len(t, out.Results, 3)
+		// upload_file_attachment, download_file_attachment, channel_read_access and
+		// channel_write_access.
+		require.Len(t, out.Decisions, 4)
+		require.Len(t, out.Results, 4)
 	})
 
 	t.Run("subject not matching session user returns 403", func(t *testing.T) {
@@ -199,4 +200,31 @@ func TestSearchAccessControlDecisionActionsChannelReadAccess(t *testing.T) {
 	require.NoError(t, err)
 	require.Contains(t, discovered.Decisions, model.AccessControlPolicyActionChannelReadAccess)
 	require.Contains(t, discovered.Decisions, model.AccessControlPolicyActionUploadFileAttachment)
+}
+
+// The composer resolves its disabled state through this endpoint, so
+// channel_write_access has to be evaluated and listed in discovery mode.
+func TestSearchAccessControlDecisionActionsChannelWriteAccess(t *testing.T) {
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+	}).InitBasic(t)
+
+	channelResource := model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: th.BasicChannel.Id}
+
+	targeted, _, err := th.Client.SearchAccessControlDecisionActions(context.Background(), model.ActionSearchRequest{
+		Resource: channelResource,
+		Actions:  []string{model.AccessControlPolicyActionChannelWriteAccess},
+	})
+	require.NoError(t, err)
+	require.Contains(t, targeted.Decisions, model.AccessControlPolicyActionChannelWriteAccess)
+	// ABAC is inactive in this fixture, so the registry default applies — the
+	// composer must not grey itself out on a server with the feature switched off.
+	require.True(t, targeted.Decisions[model.AccessControlPolicyActionChannelWriteAccess].Allowed)
+
+	discovered, _, err := th.Client.SearchAccessControlDecisionActions(context.Background(), model.ActionSearchRequest{
+		Resource: channelResource,
+	})
+	require.NoError(t, err)
+	require.Contains(t, discovered.Decisions, model.AccessControlPolicyActionChannelWriteAccess)
+	require.Contains(t, discovered.Decisions, model.AccessControlPolicyActionChannelReadAccess)
 }

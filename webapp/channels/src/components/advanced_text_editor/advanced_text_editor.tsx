@@ -33,6 +33,7 @@ import WysiwygEditor from 'components/advanced_text_editor/wysiwyg_editor/wysiwy
 import type {WysiwygEditorHandle} from 'components/advanced_text_editor/wysiwyg_editor/wysiwyg_editor';
 import {makeAsyncComponent} from 'components/async_load';
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
+import {useChannelWriteAccess} from 'components/common/hooks/useChannelWriteAccess';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
 import DeletePostModal from 'components/delete_post_modal';
@@ -197,6 +198,8 @@ const AdvancedTextEditor = ({
         const channel = getChannel(state, channelId);
         return channel ? haveIChannelPermission(state, channel.team_id, channel.id, Permissions.CREATE_POST) : false;
     });
+
+    const writeAllowedByPolicy = useChannelWriteAccess(channelId);
     const useChannelMentions = useSelector((state: GlobalState) => {
         const channel = getChannel(state, channelId);
         return channel ? haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_CHANNEL_MENTIONS) : false;
@@ -238,7 +241,7 @@ const AdvancedTextEditor = ({
     const [renderScrollbar, setRenderScrollbar] = useState(false);
     const [keepEditorInFocus, setKeepEditorInFocus] = useState(false);
 
-    const readOnlyChannel = !canPost;
+    const readOnlyChannel = !canPost || !writeAllowedByPolicy;
     const hasDraftMessage = Boolean(draft.message);
     const showFormattingBar = !isFormattingBarHidden && !readOnlyChannel;
     const enableSharedChannelsDMs = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true');
@@ -531,6 +534,10 @@ const AdvancedTextEditor = ({
     }, [draft, handleDraftChange, focusTextbox]);
 
     const handleSubmitWrapper = useCallback(() => {
+        if (readOnlyChannel) {
+            return;
+        }
+
         const isEmptyPost = isPostDraftEmpty(draft);
 
         if (isInEditMode && isEmptyPost) {
@@ -548,7 +555,7 @@ const AdvancedTextEditor = ({
         }
 
         handleSubmitWithErrorHandling();
-    }, [dispatch, draft, handleSubmitWithErrorHandling, isInEditMode, isRHS]);
+    }, [dispatch, draft, handleSubmitWithErrorHandling, isInEditMode, isRHS, readOnlyChannel]);
 
     const [handleKeyDown, postMsgKeyPress] = useKeyHandler(
         draft,
@@ -572,8 +579,11 @@ const AdvancedTextEditor = ({
 
     const handleSubmitWithEvent = useCallback((e: React.FormEvent) => {
         e.preventDefault();
+        if (readOnlyChannel) {
+            return;
+        }
         handleSubmitWithErrorHandling();
-    }, [handleSubmitWithErrorHandling]);
+    }, [handleSubmitWithErrorHandling, readOnlyChannel]);
 
     const handlePostError = useCallback((err: React.ReactNode) => {
         setPostError(err);
@@ -753,6 +763,13 @@ const AdvancedTextEditor = ({
                 defaultMessage: 'Write to {channelDisplayName}',
             },
             {channelDisplayName},
+        );
+    } else if (!writeAllowedByPolicy) {
+        createMessage = formatMessage(
+            {
+                id: 'create_post.write_access_denied',
+                defaultMessage: 'You do not have permission to post in this channel.',
+            },
         );
     } else if (readOnlyChannel) {
         createMessage = formatMessage(
@@ -1032,6 +1049,7 @@ const AdvancedTextEditor = ({
                 <EditPostFooter
                     onSave={handleSubmitWrapper}
                     onCancel={handleCancel}
+                    disabled={readOnlyChannel}
                 />
             )}
             <div

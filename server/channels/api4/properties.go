@@ -569,6 +569,10 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !requireFieldTargetChannelAccess(c, existingField) {
+		return
+	}
+
 	// PermissionValues is only patchable on a linked field (any object type),
 	// and only to Member or Sysadmin. Requiring LinkedFieldID keeps this off
 	// standalone fields, which can have a weaker (Member-level) PermissionField
@@ -666,6 +670,10 @@ func deletePropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !requireChannelAttributeLicenseForTemplate(c, rctx, group, existingField, "deletePropertyField") {
+		return
+	}
+
+	if !requireFieldTargetChannelAccess(c, existingField) {
 		return
 	}
 
@@ -947,6 +955,19 @@ func patchPropertyValuesCore(c *Context, w http.ResponseWriter, r *http.Request,
 	if err := json.NewEncoder(w).Encode(upserted); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+func requireFieldTargetChannelAccess(c *Context, field *model.PropertyField) bool {
+	if field.TargetType != string(model.PropertyFieldTargetLevelChannel) || field.TargetID == "" {
+		return true
+	}
+
+	if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), field.TargetID, model.PermissionCreatePost); !hasPermission {
+		c.SetPermissionError(model.PermissionCreatePost)
+		return false
+	}
+
+	return true
 }
 
 // hasTargetAccess checks that the caller has access to the target entity

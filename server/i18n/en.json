@@ -388,6 +388,10 @@
     "translation": "You do not currently have access to this channel."
   },
   {
+    "id": "api.channel.channel_write_access.abac_denied.app_error",
+    "translation": "You do not currently have permission to write in this channel."
+  },
+  {
     "id": "api.channel.create_channel.attribute_no_permission.app_error",
     "translation": "You do not have permission to set one of the submitted channel attributes."
   },
@@ -11541,6 +11545,10 @@
   {
     "id": "model.access_policy.is_valid.actions.channel_read_access_type.app_error",
     "translation": "The Channel Read Access action is only allowed on permission and channel policies."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_write_access_type.app_error",
+    "translation": "The Channel Write Access action is only allowed on permission and channel policies."
   },
   {
     "id": "model.access_policy.is_valid.actions.membership_combined.app_error",

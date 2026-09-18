@@ -3619,6 +3619,11 @@ func publishUserTyping(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !c.App.EnforceChannelWriteAccessByID(c.AppContext, c.Params.UserId, typingRequest.ChannelId) {
+		c.SetPermissionError(model.PermissionCreatePost)
+		return
+	}
+
 	if err := c.App.PublishUserTyping(c.Params.UserId, typingRequest.ChannelId, typingRequest.ParentId); err != nil {
 		c.Err = err
 		return
