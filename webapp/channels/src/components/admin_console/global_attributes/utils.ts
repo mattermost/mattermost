@@ -9,7 +9,13 @@ import {ALL_RESOURCE_TYPES} from './attribute_details/attribute_applies_to_const
 import type {ResourceObjectType} from './attribute_details/attribute_applies_to_constants';
 import {GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, GLOBAL_ATTRIBUTES_TARGET_TYPE} from './constants';
 
-export type AttributeFieldType = 'text' | 'select' | 'multiselect' | 'rank';
+export type AttributeFieldType = 'text' | 'select' | 'multiselect' | 'rank' | 'graph';
+
+export const ATTRIBUTE_FIELD_TYPES: readonly AttributeFieldType[] = ['text', 'select', 'multiselect', 'rank', 'graph'];
+
+export function isAttributeFieldType(value: string): value is AttributeFieldType {
+    return (ATTRIBUTE_FIELD_TYPES as readonly string[]).includes(value);
+}
 
 // Server clamps per_page to this max (web.PerPageMaximum). Directory-mode
 // listing with no cursor sorts CreateAt ASC, so a default 60-item page can
@@ -21,15 +27,18 @@ const MAX_PROPERTY_FIELDS_PER_PAGE = 200;
 // server always generates the real one -- EnsureOptionIDs /
 // sanitizeAndValidateOptions); {id: '', name, rank} for Rank, with rank always
 // explicitly present (never inferred from array position -- the server's
-// validateRankOptions hard-errors on create if it's missing). Text has no
-// options key at all.
-function buildOptionsAttr(fieldType: AttributeFieldType, options: PropertyFieldOption[]): PropertyFieldOption[] | undefined {
+// validateRankOptions hard-errors on create if it's missing); {id: '', name,
+// parents} for Graph, with parents always present (roots send [] — omitting
+// the key is a server no-op). Text has no options key at all.
+export function buildOptionsAttr(fieldType: AttributeFieldType, options: PropertyFieldOption[]): PropertyFieldOption[] | undefined {
     switch (fieldType) {
     case 'select':
     case 'multiselect':
         return options.map(({name}) => ({id: '', name}));
     case 'rank':
         return options.map(({name, rank}) => ({id: '', name, rank}));
+    case 'graph':
+        return options.map(({name, parents}) => ({id: '', name, parents: parents ?? []}));
     default:
         return undefined;
     }
@@ -39,16 +48,23 @@ function buildOptionsAttr(fieldType: AttributeFieldType, options: PropertyFieldO
 // still send an empty id for the server to mint. Other option properties
 // (color, rank, …) are spread through: mergeAttrs replaces the whole options
 // array, so omitting them would drop chip colors on a standalone channel
-// select. Text sends null so mergeAttrs drops a leftover options key when
-// switching away from Select/Multiselect/Rank.
+// select. Graph always sends parents (roots send [] — omitting the key is a
+// server no-op). Text sends null so mergeAttrs drops a leftover options key
+// when switching away from Select/Multiselect/Rank/Graph.
 function buildPatchOptionsAttr(fieldType: AttributeFieldType, options: PropertyFieldOption[]): PropertyFieldOption[] | null {
     switch (fieldType) {
     case 'select':
     case 'multiselect':
     case 'rank':
         return options.map((option) => ({...option, id: option.id || ''}));
-    default:
+    case 'graph':
+        return options.map((option) => ({...option, id: option.id || '', parents: option.parents ?? []}));
+    case 'text':
         return null;
+    default: {
+        const exhaustive: never = fieldType;
+        return exhaustive;
+    }
     }
 }
 
