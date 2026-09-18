@@ -245,7 +245,9 @@ func TestSaveConfigLogPathEnforcement(t *testing.T) {
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.save_config.log_path_outside_root.app_error", appErr.Id)
 		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
-		assert.ErrorContains(t, appErr.Unwrap(), "outside logging root")
+		assert.Nil(t, appErr.Unwrap())
+		assert.Empty(t, appErr.DetailedError)
+		assert.NotContains(t, appErr.ToJSON(), outside)
 
 		assert.Equal(t, before.LogSettings.AdvancedLoggingJSON, ps.Config().LogSettings.AdvancedLoggingJSON,
 			"the rejected config must not be persisted")
