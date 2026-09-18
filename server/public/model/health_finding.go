@@ -42,7 +42,7 @@ type HealthFinding struct {
 	// trend and must not move on a same-state cycle.
 	StateSince int64 `json:"state_since"`
 
-	// ConsecutiveHits is an internal debounce counter (PR09b); never serialized or shown.
+	// ConsecutiveHits is an internal debounce counter; never serialized or shown.
 	ConsecutiveHits int `json:"-"`
 
 	MutedAt int64  `json:"muted_at,omitempty"`
