@@ -8289,6 +8289,10 @@
     "translation": "Failed to evaluate permission policy."
   },
   {
+    "id": "app.pdp.action_has_permission_policy.app_error",
+    "translation": "Could not determine whether permission policies govern this action."
+  },
+  {
     "id": "app.plugin.addon_not_licensed.app_error",
     "translation": "This plugin requires the {{.AddOn}} add-on, which your license does not include."
   },
