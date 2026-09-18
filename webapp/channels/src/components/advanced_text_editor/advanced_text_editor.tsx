@@ -914,6 +914,7 @@ const AdvancedTextEditor = ({
                     teammateDisplayName={teammateDisplayName}
                     location={location}
                     postId={rootId}
+                    hideRemoteUserHour={showOooWarning}
                 />
             )}
             <div

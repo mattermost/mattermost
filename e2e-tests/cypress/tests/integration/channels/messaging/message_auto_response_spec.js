@@ -101,6 +101,9 @@ describe('Auto Response In DMs', () => {
             should('be.visible').
             and('contain.text', 'is Out of Office.');
 
+        // * Verify off-hours notice is not shown alongside the OOO notice
+        cy.get('.RemoteUserHour').should('not.exist');
+
         // # Hover the OOO notice
         cy.findByTestId('outOfOfficeWarning').trigger('mouseenter');
 
