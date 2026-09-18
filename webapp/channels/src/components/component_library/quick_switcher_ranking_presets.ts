@@ -47,6 +47,30 @@ export type RankingScenarioPreset = {
 
 export const SCENARIO_PRESETS: RankingScenarioPreset[] = [
     {
+        id: 'mixed-kitchen-sink',
+        label: 'Kitchen sink',
+        defaultSearch: 'a',
+        description: 'Compact set that exercises every penalty column.',
+        now: PLAYGROUND_NOW,
+        channels: [
+            wrap('alice-dm', Constants.DM_CHANNEL, PLAYGROUND_NOW, 'alice', {name: 'alice'}),
+            wrap('never-adam', Constants.DM_CHANNEL, undefined, 'adam', {name: 'adam'}),
+            wrap('gm-alice', Constants.GM_CHANNEL, PLAYGROUND_NOW - DAY, 'alice, bob'),
+            wrap('mid-gm', Constants.GM_CHANNEL, PLAYGROUND_NOW, 'bob, carol', {hiddenInSidebar: true}),
+            wrap('announcements', Constants.OPEN_CHANNEL, PLAYGROUND_NOW - (40 * DAY), 'Announcements', {
+                channelName: 'announcements',
+            }),
+            wrap('archived-alpha', Constants.OPEN_CHANNEL, PLAYGROUND_NOW, 'Alpha', {
+                channelName: 'alpha',
+                deleteAt: 1,
+            }),
+            wrap('deactivated-amy', Constants.DM_CHANNEL, PLAYGROUND_NOW, 'amy', {
+                name: 'amy',
+                deactivated: true,
+            }),
+        ],
+    },
+    {
         id: 'sysadmin-dm-vs-gm',
         label: 'sysadmin DM vs GM ("sys")',
         defaultSearch: 'sys',
@@ -159,30 +183,6 @@ export const SCENARIO_PRESETS: RankingScenarioPreset[] = [
             wrap('calls-dm', Constants.DM_CHANNEL, PLAYGROUND_NOW - (10 * 60 * 1000), 'calls', {name: 'calls'}),
             wrap('calls-gm', Constants.GM_CHANNEL, PLAYGROUND_NOW, 'calls, user-1', {
                 channelName: '28e2c55b230cfac24733c17b6996b65789b283bc',
-            }),
-        ],
-    },
-    {
-        id: 'mixed-kitchen-sink',
-        label: 'Kitchen sink',
-        defaultSearch: 'a',
-        description: 'Compact set that exercises every penalty column.',
-        now: PLAYGROUND_NOW,
-        channels: [
-            wrap('alice-dm', Constants.DM_CHANNEL, PLAYGROUND_NOW, 'alice', {name: 'alice'}),
-            wrap('never-adam', Constants.DM_CHANNEL, undefined, 'adam', {name: 'adam'}),
-            wrap('gm-alice', Constants.GM_CHANNEL, PLAYGROUND_NOW - DAY, 'alice, bob'),
-            wrap('mid-gm', Constants.GM_CHANNEL, PLAYGROUND_NOW, 'bob, carol', {hiddenInSidebar: true}),
-            wrap('announcements', Constants.OPEN_CHANNEL, PLAYGROUND_NOW - (40 * DAY), 'Announcements', {
-                channelName: 'announcements',
-            }),
-            wrap('archived-alpha', Constants.OPEN_CHANNEL, PLAYGROUND_NOW, 'Alpha', {
-                channelName: 'alpha',
-                deleteAt: 1,
-            }),
-            wrap('deactivated-amy', Constants.DM_CHANNEL, PLAYGROUND_NOW, 'amy', {
-                name: 'amy',
-                deactivated: true,
             }),
         ],
     },
