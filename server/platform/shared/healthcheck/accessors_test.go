@@ -89,3 +89,83 @@ func TestAccessorsReturnFalseWhenSectionAbsent(t *testing.T) {
 	_, ok = snapshot.PluginEnabled("com.mattermost.calls")
 	require.False(t, ok)
 }
+
+func TestLicenseFeature(t *testing.T) {
+	t.Parallel()
+
+	ldap := func(f *model.Features) *bool { return f.LDAP }
+
+	t.Run("nil snapshot", func(t *testing.T) {
+		var s *Snapshot
+		_, ok := s.LicenseFeature(ldap)
+		require.False(t, ok)
+	})
+
+	t.Run("nil license", func(t *testing.T) {
+		_, ok := (&Snapshot{}).LicenseFeature(ldap)
+		require.False(t, ok)
+	})
+
+	t.Run("nil features", func(t *testing.T) {
+		s := &Snapshot{License: &model.License{}}
+		_, ok := s.LicenseFeature(ldap)
+		require.False(t, ok)
+	})
+
+	t.Run("nil getter", func(t *testing.T) {
+		s := &Snapshot{License: &model.License{Features: &model.Features{}}}
+		_, ok := s.LicenseFeature(nil)
+		require.False(t, ok)
+	})
+
+	t.Run("unset feature value", func(t *testing.T) {
+		s := &Snapshot{License: &model.License{Features: &model.Features{}}}
+		_, ok := s.LicenseFeature(ldap)
+		require.False(t, ok)
+	})
+
+	t.Run("feature enabled", func(t *testing.T) {
+		s := &Snapshot{License: &model.License{Features: &model.Features{LDAP: model.NewPointer(true)}}}
+		value, ok := s.LicenseFeature(ldap)
+		require.True(t, ok)
+		require.True(t, value)
+	})
+
+	t.Run("feature disabled", func(t *testing.T) {
+		s := &Snapshot{License: &model.License{Features: &model.Features{LDAP: model.NewPointer(false)}}}
+		value, ok := s.LicenseFeature(ldap)
+		require.True(t, ok)
+		require.False(t, value)
+	})
+}
+
+func TestPluginEnabled(t *testing.T) {
+	t.Parallel()
+
+	newSnapshot := func() *Snapshot {
+		return &Snapshot{
+			Sections: map[model.WorkspaceSection]error{model.SectionPlugins: nil},
+			Plugins: &model.SupportPacketPluginList{
+				Enabled:  []model.Manifest{{Id: "com.enabled"}},
+				Disabled: []model.Manifest{{Id: "com.disabled"}},
+			},
+		}
+	}
+
+	t.Run("enabled plugin", func(t *testing.T) {
+		enabled, ok := newSnapshot().PluginEnabled("com.enabled")
+		require.True(t, ok)
+		require.True(t, enabled)
+	})
+
+	t.Run("disabled plugin", func(t *testing.T) {
+		enabled, ok := newSnapshot().PluginEnabled("com.disabled")
+		require.True(t, ok)
+		require.False(t, enabled)
+	})
+
+	t.Run("unknown plugin", func(t *testing.T) {
+		_, ok := newSnapshot().PluginEnabled("com.unknown")
+		require.False(t, ok)
+	})
+}

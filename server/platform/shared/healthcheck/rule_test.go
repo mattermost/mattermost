@@ -38,3 +38,13 @@ func validRule(code string) Rule {
 		Eval:       func(*Snapshot) []Result { return []Result{Resolved()} },
 	}
 }
+
+func TestRuleIsNodeScoped(t *testing.T) {
+	t.Parallel()
+
+	require.False(t, validRule("WORKSPACE").IsNodeScoped())
+
+	nodeRule := validRule("NODE")
+	nodeRule.EvalNode = func(*Snapshot, *NodeSnapshot) []Result { return nil }
+	require.True(t, nodeRule.IsNodeScoped())
+}

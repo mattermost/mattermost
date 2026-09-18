@@ -176,3 +176,27 @@ func TestBuiltinRulesValid(t *testing.T) {
 
 	require.NoError(t, Builtin().Validate())
 }
+
+func TestRegistryGet(t *testing.T) {
+	t.Parallel()
+
+	registry := NewRegistry()
+	registry.Register(validRule("FOUND"))
+
+	rule, ok := registry.Get("FOUND")
+	require.True(t, ok)
+	require.Equal(t, "FOUND", rule.Code)
+
+	_, ok = registry.Get("MISSING")
+	require.False(t, ok)
+}
+
+func TestRegistryLen(t *testing.T) {
+	t.Parallel()
+
+	registry := NewRegistry()
+	require.Equal(t, 0, registry.Len())
+
+	registry.Register(validRule("A"), validRule("B"))
+	require.Equal(t, 2, registry.Len())
+}

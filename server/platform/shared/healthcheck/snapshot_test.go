@@ -68,3 +68,26 @@ func TestSnapshotSectionAvailability(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, workspaceErr, err)
 }
+
+func TestLeader(t *testing.T) {
+	t.Parallel()
+
+	t.Run("returns the leader node", func(t *testing.T) {
+		leader := &NodeSnapshot{Hostname: "node-2", IsLeader: true}
+		snapshot := &Snapshot{nodes: []*NodeSnapshot{
+			{Hostname: "node-1"},
+			leader,
+			{Hostname: "node-3"},
+		}}
+
+		got, ok := snapshot.Leader()
+		require.True(t, ok)
+		require.Same(t, leader, got)
+	})
+
+	t.Run("no leader", func(t *testing.T) {
+		snapshot := &Snapshot{nodes: []*NodeSnapshot{{Hostname: "node-1"}}}
+		_, ok := snapshot.Leader()
+		require.False(t, ok)
+	})
+}

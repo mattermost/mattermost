@@ -41,3 +41,11 @@ func TestResultHelpers(t *testing.T) {
 		require.Equal(t, 73.2, *result.Value)
 	})
 }
+
+func TestResolvedSubject(t *testing.T) {
+	t.Parallel()
+
+	result := ResolvedSubject("ServiceSettings.SiteURL")
+	require.Equal(t, StateResolved, result.State)
+	require.Equal(t, "ServiceSettings.SiteURL", result.Subject)
+}
