@@ -279,26 +279,12 @@ func TestHasPermissionToChannelDoesNotEvaluatePolicy(t *testing.T) {
 	}
 }
 
-// Inert until the feature is flagged on, licensed and enabled — checked one
-// precondition at a time so a regression names which one broke.
+// Inert until ABAC is enabled and licensed — checked one precondition at a time
+// so a regression names which one broke.
 func TestChannelWriteAccessGateIsInertUntilEnabled(t *testing.T) {
-	t.Run("feature flag off", func(t *testing.T) {
-		th := SetupConfig(t, func(cfg *model.Config) {
-			cfg.FeatureFlags.PermissionPolicies = true
-			cfg.FeatureFlags.ChannelAccessABACPermission = false
-		}).InitBasic(t)
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
-		})
-
-		require.True(t, th.App.EnforceChannelWriteAccess(th.Context, th.BasicUser.Id, th.BasicChannel))
-	})
-
 	t.Run("attribute-based access control disabled", func(t *testing.T) {
 		th := SetupConfig(t, func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = true
-			cfg.FeatureFlags.ChannelAccessABACPermission = true
 		}).InitBasic(t)
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -311,7 +297,6 @@ func TestChannelWriteAccessGateIsInertUntilEnabled(t *testing.T) {
 	t.Run("licence below Enterprise Advanced", func(t *testing.T) {
 		th := SetupConfig(t, func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = true
-			cfg.FeatureFlags.ChannelAccessABACPermission = true
 		}).InitBasic(t)
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 		th.App.UpdateConfig(func(cfg *model.Config) {

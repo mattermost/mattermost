@@ -13,7 +13,6 @@ import {
     ACCESS_CONTROL_ACTION_UPLOAD_FILE,
     ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
     ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS,
-    ACCESS_CONTROL_CHANNEL_ACCESS_ACTIONS,
     ACCESS_CONTROL_CHANNEL_ROLE_ADMIN,
     ACCESS_CONTROL_CHANNEL_ROLE_GUEST,
     ACCESS_CONTROL_CHANNEL_ROLE_USER,
@@ -29,7 +28,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
-import {getFeatureFlagValue, isPolicySimulationEnabled, isChannelAccessABACPermissionEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getFeatureFlagValue, isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {mergeSessionAttributes} from 'components/admin_console/access_control/editors/shared';
@@ -222,7 +221,6 @@ function ChannelSettingsPermissionsPolicyTab({
     // hiding the UI here keeps the author from clicking a button
     // that would only surface a backend error.
     const policySimulationEnabled = useSelector(isPolicySimulationEnabled);
-    const channelAccessEnabled = useSelector(isChannelAccessABACPermissionEnabled);
 
     const currentUserId = useSelector(getCurrentUserId);
 
@@ -616,8 +614,7 @@ function ChannelSettingsPermissionsPolicyTab({
     }, [actions, buildFinalRules, originalImports, channel.id, channel.display_name, formatMessage]);
 
     const checkSelfChannelReadAccess = useCallback(async (): Promise<SelfAccessCheck> => {
-        const governsChannelReadAccess = channelAccessEnabled &&
-            rules.some((r) => r.actions.includes(ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS));
+        const governsChannelReadAccess = rules.some((r) => r.actions.includes(ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS));
         if (!governsChannelReadAccess) {
             return 'skipped';
         }
@@ -651,7 +648,7 @@ function ChannelSettingsPermissionsPolicyTab({
         }
 
         return decision.decision ? 'allowed' : 'denied';
-    }, [actions, buildCandidatePolicy, channelAccessEnabled, currentUserId, policySimulationEnabled, rules]);
+    }, [actions, buildCandidatePolicy, rules, policySimulationEnabled, currentUserId]);
 
     const commitSave = useCallback(async () => {
         if (saveInProgress.current) {
@@ -678,15 +675,12 @@ function ChannelSettingsPermissionsPolicyTab({
     }, [persistRules, rules, checkSelfChannelReadAccess]);
 
     const handleSaveChanges = useCallback(async () => {
-        // Only confirm when the save can actually succeed. With the flag off the
-        // server returns 501, so confirming first would just add a scary dialog
-        // in front of an error.
-        if (channelAccessEnabled && rules.some((r) => r.actions.includes(ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS))) {
+        if (rules.some((r) => r.actions.includes(ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS))) {
             setShowChannelReadAccessConfirmModal(true);
             return;
         }
         await commitSave();
-    }, [commitSave, rules, channelAccessEnabled]);
+    }, [commitSave, rules]);
 
     const handleCancel = useCallback(() => {
         try {
@@ -781,7 +775,6 @@ function ChannelSettingsPermissionsPolicyTab({
                 onCommit={commitDraft}
                 buildSimulationPolicy={buildSimulationPolicy}
                 policySimulationEnabled={policySimulationEnabled}
-                channelAccessEnabled={channelAccessEnabled}
             />
         );
     }
@@ -1123,12 +1116,6 @@ type PermissionRuleEditorProps = {
      * the modal would only ever surface a backend error.
      */
     policySimulationEnabled: boolean;
-
-    /**
-     * Whether the Channel Read Access row is offered. When false, saving a policy
-     * that carries channel_read_access would return 501.
-     */
-    channelAccessEnabled: boolean;
 };
 
 function PermissionRuleEditor({
@@ -1145,7 +1132,6 @@ function PermissionRuleEditor({
     onCommit,
     buildSimulationPolicy,
     policySimulationEnabled,
-    channelAccessEnabled,
 }: PermissionRuleEditorProps) {
     const {formatMessage} = useIntl();
 
@@ -1178,7 +1164,7 @@ function PermissionRuleEditor({
 
     const selectedRoleDef = AVAILABLE_ROLES.find((r) => r.value === draft.role);
     const availableToAdd = AVAILABLE_PERMISSIONS.filter(
-        (p) => !draft.actions.includes(p.value) && (!ACCESS_CONTROL_CHANNEL_ACCESS_ACTIONS.includes(p.value) || channelAccessEnabled),
+        (p) => !draft.actions.includes(p.value),
     );
 
     return (

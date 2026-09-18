@@ -20,8 +20,8 @@ func channelAccessDenialChannelID(rctx request.CTX) string {
 	return channelID
 }
 
-// The feature flag has to come from SetupConfig: UpdateConfig silently drops
-// FeatureFlags writes, which would leave every test here passing vacuously.
+// The umbrella feature flag has to come from SetupConfig: UpdateConfig silently
+// drops FeatureFlags writes, which would leave every test here passing vacuously.
 type channelReadAccessHarness struct {
 	th   *TestHelper
 	rctx request.CTX
@@ -32,7 +32,6 @@ func setupChannelReadAccessTest(t *testing.T) *channelReadAccessHarness {
 
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
-		cfg.FeatureFlags.ChannelAccessABACPermission = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -259,13 +258,6 @@ func TestHasChannelReadAccess(t *testing.T) {
 
 func TestHasChannelReadAccessShortCircuits(t *testing.T) {
 	cases := map[string]func(t *testing.T, h *channelReadAccessHarness) *model.Channel{
-		"feature flag off": func(t *testing.T, h *channelReadAccessHarness) *model.Channel {
-			h.th.App.Srv().platform.SetConfigReadOnlyFF(false)
-			h.th.App.UpdateConfig(func(cfg *model.Config) {
-				cfg.FeatureFlags.ChannelAccessABACPermission = false
-			})
-			return h.th.BasicChannel
-		},
 		"ABAC disabled": func(t *testing.T, h *channelReadAccessHarness) *model.Channel {
 			h.th.App.UpdateConfig(func(cfg *model.Config) {
 				*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = false

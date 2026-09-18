@@ -161,7 +161,6 @@ func setupChannelReadAccessAPI(t *testing.T, allow bool) (*channelReadAccessFixt
 
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
-		cfg.FeatureFlags.ChannelAccessABACPermission = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -325,37 +324,6 @@ func TestChannelReadAccessAllowedSurfaces(t *testing.T) {
 	}
 }
 
-// The file-attachment actions are still evaluated — they sit behind the umbrella
-// flag, not this one — so the assertion is scoped to our action, not the whole PDP.
-func TestChannelReadAccessFlagOffCostsNothing(t *testing.T) {
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.PermissionPolicies = true
-		cfg.FeatureFlags.ChannelAccessABACPermission = false
-	}).InitBasic(t)
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
-	})
-
-	mockACS := installMockACS(t, th)
-	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
-		Return(model.AccessDecision{Decision: true}, nil)
-
-	f := &channelReadAccessFixture{th: th, post: th.CreatePost(t)}
-	for _, surface := range channelReadAccessSurfaces() {
-		t.Run(surface.name, func(t *testing.T) {
-			_, err := surface.call(t, f)
-			if err != nil {
-				require.False(t, isChannelReadAccessDenial(err, abacDeniedErrorID),
-					"nothing should be denied by a flag that is off: %v", err)
-			}
-		})
-	}
-
-	mockACS.AssertNotCalled(t, "ActionHasPermissionPolicy", mock.Anything, mock.Anything)
-	mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, channelReadAccessEvaluation)
-}
-
 type contentReviewerFixture struct {
 	th             *TestHelper
 	reviewerClient *model.Client4
@@ -380,7 +348,6 @@ func setupContentReviewerChannelAccess(t *testing.T, readAllow, writeAllow bool)
 
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
-		cfg.FeatureFlags.ChannelAccessABACPermission = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -523,7 +490,6 @@ func TestChannelReadAccessPolicyAdminEndpointsStayGeneric(t *testing.T) {
 func TestChannelReadAccessMembersForUserFilterFollowsTheSession(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
-		cfg.FeatureFlags.ChannelAccessABACPermission = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -556,7 +522,6 @@ func TestChannelReadAccessMembersForUserFilterFollowsTheSession(t *testing.T) {
 func TestChannelReadAccessMembersForUserPagesSurviveDenials(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
-		cfg.FeatureFlags.ChannelAccessABACPermission = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -609,7 +574,6 @@ func TestChannelReadAccessMembersForUserPagesSurviveDenials(t *testing.T) {
 func TestChannelReadAccessChannelsForUserFilterFollowsTheSession(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
-		cfg.FeatureFlags.ChannelAccessABACPermission = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {

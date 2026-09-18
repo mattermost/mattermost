@@ -30,10 +30,10 @@ import {
  * governs channel_write_access everywhere. It is deleted in `finally`.
  */
 
-async function channelAccessABACPermissionEnabled(adminClient: any): Promise<boolean> {
+async function permissionPoliciesEnabled(adminClient: any): Promise<boolean> {
     const config = await adminClient.getConfig();
-    const on = (value: unknown) => value === true || value === 'true';
-    return on(config.FeatureFlags?.PermissionPolicies) && on(config.FeatureFlags?.ChannelAccessABACPermission);
+    const value = config.FeatureFlags?.PermissionPolicies;
+    return value === true || value === 'true';
 }
 
 test.describe(
@@ -46,11 +46,8 @@ test.describe(
 
             const {adminUser, adminClient, user, team} = await pw.initSetup();
 
-            // The flag is off by default and is environment-supplied, not test-supplied.
-            test.skip(
-                !(await channelAccessABACPermissionEnabled(adminClient)),
-                'requires the PermissionPolicies and ChannelAccessABACPermission feature flags',
-            );
+            // The flag is environment-supplied, not test-supplied.
+            test.skip(!(await permissionPoliciesEnabled(adminClient)), 'requires the PermissionPolicies feature flag');
 
             await ensureUserAttributes(adminClient);
 

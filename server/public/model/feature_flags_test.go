@@ -129,35 +129,28 @@ func TestFeatureFlagsPermissionPoliciesDependencies(t *testing.T) {
 
 		require.True(t, f.IsChannelPermissionPoliciesEnabled())
 		require.True(t, f.IsPolicySimulationEnabled())
-		require.False(t, f.IsChannelAccessABACPermissionEnabled(),
-			"ChannelAccessABACPermission must default to off")
 	})
 
 	t.Run("sub-flag alone is not enough — the umbrella must be on too", func(t *testing.T) {
 		f := FeatureFlags{
-			PermissionPolicies:          false,
-			ChannelPermissionPolicies:   true,
-			PolicySimulation:            true,
-			ChannelAccessABACPermission: true,
+			PermissionPolicies:        false,
+			ChannelPermissionPolicies: true,
+			PolicySimulation:          true,
 		}
 		require.False(t, f.IsChannelPermissionPoliciesEnabled(),
 			"ChannelPermissionPolicies sub-flag must be ignored when the PermissionPolicies umbrella is off")
 		require.False(t, f.IsPolicySimulationEnabled(),
 			"PolicySimulation sub-flag must be ignored when the PermissionPolicies umbrella is off")
-		require.False(t, f.IsChannelAccessABACPermissionEnabled(),
-			"ChannelAccessABACPermission sub-flag must be ignored when the PermissionPolicies umbrella is off")
 	})
 
 	t.Run("umbrella alone is not enough — the sub-flag must be on too", func(t *testing.T) {
 		f := FeatureFlags{
-			PermissionPolicies:          true,
-			ChannelPermissionPolicies:   false,
-			PolicySimulation:            false,
-			ChannelAccessABACPermission: false,
+			PermissionPolicies:        true,
+			ChannelPermissionPolicies: false,
+			PolicySimulation:          false,
 		}
 		require.False(t, f.IsChannelPermissionPoliciesEnabled())
 		require.False(t, f.IsPolicySimulationEnabled())
-		require.False(t, f.IsChannelAccessABACPermissionEnabled())
 	})
 
 	t.Run("both flags on enables each sub-feature independently", func(t *testing.T) {
@@ -173,15 +166,6 @@ func TestFeatureFlagsPermissionPoliciesDependencies(t *testing.T) {
 		f.PolicySimulation = true
 		require.False(t, f.IsChannelPermissionPoliciesEnabled())
 		require.True(t, f.IsPolicySimulationEnabled())
-
-		// ChannelAccessABACPermission and ChannelPermissionPolicies are
-		// independent, so neither may imply the other.
-		f.ChannelPermissionPolicies = false
-		f.PolicySimulation = false
-		f.ChannelAccessABACPermission = true
-		require.True(t, f.IsChannelAccessABACPermissionEnabled())
-		require.False(t, f.IsChannelPermissionPoliciesEnabled())
-		require.False(t, f.IsPolicySimulationEnabled())
 	})
 }
 

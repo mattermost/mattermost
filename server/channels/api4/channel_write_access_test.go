@@ -50,7 +50,6 @@ func setupChannelWriteAccessAPI(t *testing.T, allow bool) (*channelWriteAccessFi
 
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
-		cfg.FeatureFlags.ChannelAccessABACPermission = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -354,7 +353,6 @@ func TestChannelAccessDoesNotGateReviewerAssignment(t *testing.T) {
 func TestChannelWriteAccessRequiresReadAccess(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
-		cfg.FeatureFlags.ChannelAccessABACPermission = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -384,7 +382,6 @@ func TestChannelWriteAccessRequiresReadAccess(t *testing.T) {
 func TestChannelWriteAccessInertWithoutAWritePolicy(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
-		cfg.FeatureFlags.ChannelAccessABACPermission = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -403,26 +400,6 @@ func TestChannelWriteAccessInertWithoutAWritePolicy(t *testing.T) {
 	require.NoError(t, err, "no channel_write_access policy governs, so the write gate must not fire")
 }
 
-// While the flag is off the gate short-circuits to allow, whatever the policy says.
-func TestChannelWriteAccessFeatureFlagOff(t *testing.T) {
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.PermissionPolicies = true
-		cfg.FeatureFlags.ChannelAccessABACPermission = false
-	}).InitBasic(t)
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
-	})
-
-	mockACS := installMockACS(t, th)
-	mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).Return(true, nil)
-	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
-		Return(model.AccessDecision{Decision: false}, nil)
-
-	_, _, err := th.Client.CreatePost(context.Background(), &model.Post{ChannelId: th.BasicChannel.Id, Message: "allowed"})
-	require.NoError(t, err, "the gate must be inert while ChannelAccessABACPermission is off")
-}
-
 // channelPolicyWriteSurface is one channel-scoped policy-administration call.
 type channelPolicyWriteSurface struct {
 	name string
@@ -435,16 +412,12 @@ type channelPolicyWriteSurface struct {
 //
 // Masking is off: it makes CreateOrUpdateAccessControlPolicy validate the caller's
 // attribute holdings, which has nothing to do with the gate under test.
-func setupChannelPolicyWriteAccessAPI(t *testing.T, allow bool, overrides ...func(*model.Config)) (*TestHelper, *mocks.AccessControlServiceInterface) {
+func setupChannelPolicyWriteAccessAPI(t *testing.T, allow bool) (*TestHelper, *mocks.AccessControlServiceInterface) {
 	t.Helper()
 
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
-		cfg.FeatureFlags.ChannelAccessABACPermission = true
 		cfg.FeatureFlags.AttributeValueMasking = false
-		for _, override := range overrides {
-			override(cfg)
-		}
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -579,20 +552,6 @@ func TestChannelWriteAccessDoesNotGateSystemAdminPolicyAdministration(t *testing
 	for _, surface := range channelPolicyWriteSurfaces() {
 		t.Run(surface.name, func(t *testing.T) {
 			_, err := surface.call(t, th, th.SystemAdminClient)
-			require.NoError(t, err)
-		})
-	}
-}
-
-func TestChannelPolicyAdministrationUngatedWithoutTheFeatureFlag(t *testing.T) {
-	th, mockACS := setupChannelPolicyWriteAccessAPI(t, false, func(cfg *model.Config) {
-		cfg.FeatureFlags.ChannelAccessABACPermission = false
-	})
-	stubChannelPolicyAdministration(t, th, mockACS)
-
-	for _, surface := range channelPolicyWriteSurfaces() {
-		t.Run(surface.name, func(t *testing.T) {
-			_, err := surface.call(t, th, th.Client)
 			require.NoError(t, err)
 		})
 	}

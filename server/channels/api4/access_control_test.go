@@ -47,7 +47,6 @@ func restoreABACFeatureFlagDefaults(cfg *model.Config) {
 	cfg.FeatureFlags.PermissionPolicies = true
 	cfg.FeatureFlags.ChannelPermissionPolicies = true
 	cfg.FeatureFlags.PolicySimulation = true
-	cfg.FeatureFlags.ChannelAccessABACPermission = false
 	cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
 }
 
@@ -3620,22 +3619,21 @@ func TestGetChannelAccessControlAttributes(t *testing.T) {
 	})
 }
 
-// The ChannelAccessABACPermission gate on POST /access_control_policies is not
-// scoped to a policy type, so both system permission policies and channel
-// policies are rejected while the flag is off.
+// Policies carrying channel_read_access. The action is a permission action, so
+// a channel policy still has to clear the ChannelPermissionPolicies gate, while
+// a system permission policy only needs the PermissionPolicies umbrella.
 //
 // Every subtest installs a mock access-control service. Without one,
 // Srv().ch.AccessControl is nil and CreateOrUpdateAccessControlPolicy returns
 // its own 501 ("Policy Administration Point is not initialized"), which is
-// indistinguishable from the gate's 501 — a status-only assertion would then
+// indistinguishable from a gate's 501 — a status-only assertion would then
 // pass even with the gate deleted. So assert the error ID, not just the status.
-func TestCreateAccessControlPolicyChannelReadAccessFlag(t *testing.T) {
+func TestCreateAccessControlPolicyChannelReadAccess(t *testing.T) {
 	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
 
 	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	require.True(t, ok, "SetLicense should return true")
 
-	const channelReadAccessDisabledID = "api.access_control_policy.channel_read_access.feature_disabled"
 	const channelPermissionsDisabledID = "api.access_control_policy.channel_permission_policies.feature_disabled"
 
 	// installMockACS lets the ungated path reach a real 200, so any 501 can
@@ -3691,33 +3689,27 @@ func TestCreateAccessControlPolicyChannelReadAccessFlag(t *testing.T) {
 		}
 	}
 
-	t.Run("system permission policy rejected when the flag is off", func(t *testing.T) {
+	t.Run("both policy types are accepted by default", func(t *testing.T) {
 		installMockACS(t)
-		setFlags(t, func(cfg *model.Config) { cfg.FeatureFlags.ChannelAccessABACPermission = false })
+		setFlags(t, func(cfg *model.Config) {})
 
 		_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), systemPolicy())
-		CheckErrorID(t, err, channelReadAccessDisabledID)
-		CheckNotImplementedStatus(t, resp)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		_, resp, err = th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), channelPolicy())
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 	})
 
-	t.Run("channel policy rejected when the flag is off", func(t *testing.T) {
-		installMockACS(t)
-		setFlags(t, func(cfg *model.Config) { cfg.FeatureFlags.ChannelAccessABACPermission = false })
-
-		_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), channelPolicy())
-		CheckErrorID(t, err, channelReadAccessDisabledID)
-		CheckNotImplementedStatus(t, resp)
-	})
-
-	t.Run("umbrella off also rejects even with the sub-flag on", func(t *testing.T) {
+	t.Run("umbrella off rejects both policy types", func(t *testing.T) {
 		installMockACS(t)
 		setFlags(t, func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = false
-			cfg.FeatureFlags.ChannelAccessABACPermission = true
 		})
 
 		// A permission-type policy hits the umbrella gate at the top of the
-		// handler before it ever reaches the channel_read_access gate.
+		// handler.
 		_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), systemPolicy())
 		CheckErrorID(t, err, "api.access_control_policy.permission_policies.feature_disabled")
 		CheckNotImplementedStatus(t, resp)
@@ -3729,14 +3721,13 @@ func TestCreateAccessControlPolicyChannelReadAccessFlag(t *testing.T) {
 		CheckNotImplementedStatus(t, resp)
 	})
 
-	t.Run("channel policy still needs ChannelPermissionPolicies too", func(t *testing.T) {
-		// channel_read_access is a permission action, so the older channel-scope gate
-		// applies too. A channel policy needs both flags; a system permission
-		// policy only needs its own.
+	t.Run("channel policy still needs ChannelPermissionPolicies", func(t *testing.T) {
+		// channel_read_access is a permission action, so the channel-scope gate
+		// applies. A channel policy needs that flag; a system permission policy
+		// only needs the umbrella.
 		installMockACS(t)
 		setFlags(t, func(cfg *model.Config) {
 			cfg.FeatureFlags.ChannelPermissionPolicies = false
-			cfg.FeatureFlags.ChannelAccessABACPermission = true
 		})
 
 		_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), channelPolicy())
@@ -3747,103 +3738,5 @@ func TestCreateAccessControlPolicyChannelReadAccessFlag(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 	})
-
-	t.Run("both policy types are accepted when the flag is on", func(t *testing.T) {
-		installMockACS(t)
-		setFlags(t, func(cfg *model.Config) { cfg.FeatureFlags.ChannelAccessABACPermission = true })
-
-		_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), systemPolicy())
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-
-		_, resp, err = th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), channelPolicy())
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-	})
-
-	t.Run("membership-only policy is unaffected by the flag", func(t *testing.T) {
-		installMockACS(t)
-		setFlags(t, func(cfg *model.Config) { cfg.FeatureFlags.ChannelAccessABACPermission = false })
-
-		membershipOnly := &model.AccessControlPolicy{
-			ID:       th.BasicChannel.Id,
-			Type:     model.AccessControlPolicyTypeChannel,
-			Version:  model.AccessControlPolicyVersionV0_3,
-			Revision: 1,
-			Rules: []model.AccessControlPolicyRule{{
-				Expression: "user.attributes.team == 'engineering'",
-				Actions:    []string{model.AccessControlPolicyActionMembership},
-			}},
-		}
-
-		_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), membershipOnly)
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-	})
 }
 
-// The write action hides behind the same flag as the read one, and reports its
-// own error ID so the caller knows which action was refused. Same reasoning as
-// TestCreateAccessControlPolicyChannelReadAccessFlag: assert the ID, not just the
-// status, or a nil access-control service would satisfy the test on its own.
-func TestCreateAccessControlPolicyChannelWriteAccessFlag(t *testing.T) {
-	th := SetupConfig(t, maskingOffTestConfig).InitBasic(t)
-
-	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-	require.True(t, ok, "SetLicense should return true")
-
-	const channelWriteAccessDisabledID = "api.access_control_policy.channel_write_access.feature_disabled"
-
-	installMockACS := func(t *testing.T) {
-		t.Helper()
-		mockACS := &mocks.AccessControlServiceInterface{}
-		mockACS.On("SavePolicy", mock.Anything, mock.Anything).
-			Return(&model.AccessControlPolicy{ID: th.BasicChannel.Id}, (*model.AppError)(nil))
-		mockACS.On("NormalizePolicy", mock.Anything, mock.Anything).
-			Return(&model.AccessControlPolicy{ID: th.BasicChannel.Id}, (*model.AppError)(nil))
-		original := th.App.Srv().Channels().AccessControl
-		th.App.Srv().Channels().AccessControl = mockACS
-		t.Cleanup(func() { th.App.Srv().Channels().AccessControl = original })
-	}
-
-	setFlags := func(t *testing.T, fn func(cfg *model.Config)) {
-		t.Helper()
-		updateTestFeatureFlags(t, th, func(cfg *model.Config) {
-			restoreABACFeatureFlagDefaults(cfg)
-			fn(cfg)
-		})
-		t.Cleanup(func() { updateTestFeatureFlags(t, th, restoreABACFeatureFlagDefaults) })
-	}
-
-	systemPolicy := func() *model.AccessControlPolicy {
-		return &model.AccessControlPolicy{
-			ID:       model.NewId(),
-			Name:     "Channel write access policy " + model.NewId(),
-			Type:     model.AccessControlPolicyTypePermission,
-			Version:  model.AccessControlPolicyVersionV0_3,
-			Revision: 1,
-			Roles:    []string{model.SystemUserRoleId},
-			Rules: []model.AccessControlPolicyRule{{
-				Expression: "user.attributes.team == 'engineering'",
-				Actions:    []string{model.AccessControlPolicyActionChannelWriteAccess},
-			}},
-		}
-	}
-
-	t.Run("system permission policy rejected when the flag is off", func(t *testing.T) {
-		installMockACS(t)
-		setFlags(t, func(cfg *model.Config) { cfg.FeatureFlags.ChannelAccessABACPermission = false })
-
-		_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), systemPolicy())
-		CheckErrorID(t, err, channelWriteAccessDisabledID)
-		CheckNotImplementedStatus(t, resp)
-	})
-
-	t.Run("accepted when the flag is on", func(t *testing.T) {
-		installMockACS(t)
-		setFlags(t, func(cfg *model.Config) { cfg.FeatureFlags.ChannelAccessABACPermission = true })
-
-		_, _, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), systemPolicy())
-		require.NoError(t, err)
-	})
-}

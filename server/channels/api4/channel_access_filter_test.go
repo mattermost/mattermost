@@ -42,7 +42,6 @@ func setupRecapChannelAccess(t *testing.T) *recapAccessFixture {
 
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
-		cfg.FeatureFlags.ChannelAccessABACPermission = true
 		cfg.FeatureFlags.EnableAIRecaps = true
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))

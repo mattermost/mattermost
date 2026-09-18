@@ -185,10 +185,8 @@ func (p *AccessControlPolicy) HasPermissionRuleAction() bool {
 }
 
 // HasAction reports whether any rule on this policy carries the given action.
-// API4 uses it to gate the channel-access actions behind the
-// ChannelAccessABACPermission flag, for every policy type, and the write gate
-// uses it to decide whether a channel's own policy governs writes. Safe to call
-// on a nil policy.
+// The write gate uses it to decide whether a channel's own policy governs
+// writes. Safe to call on a nil policy.
 func (p *AccessControlPolicy) HasAction(action string) bool {
 	if p == nil {
 		return false
@@ -199,13 +197,6 @@ func (p *AccessControlPolicy) HasAction(action string) bool {
 		}
 	}
 	return false
-}
-
-// HasChannelAccessAction reports whether any rule on this policy carries either
-// of the channel-access actions, both of which share one feature flag.
-func (p *AccessControlPolicy) HasChannelAccessAction() bool {
-	return p.HasAction(AccessControlPolicyActionChannelReadAccess) ||
-		p.HasAction(AccessControlPolicyActionChannelWriteAccess)
 }
 
 // AccessControlAttribute represents a user attribute with its name and possible values
