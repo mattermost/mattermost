@@ -181,22 +181,6 @@ func (p *AccessControlPolicy) HasPermissionRuleAction() bool {
 	return false
 }
 
-// HasChannelReadAccessAction reports whether any rule on this policy carries the
-// channel_read_access action. API4 uses it to gate the action behind its own
-// ChannelAccessABACPermission flag, for every policy type. Safe to call on a
-// nil policy.
-func (p *AccessControlPolicy) HasChannelReadAccessAction() bool {
-	if p == nil {
-		return false
-	}
-	for i := range p.Rules {
-		if slices.Contains(p.Rules[i].Actions, AccessControlPolicyActionChannelReadAccess) {
-			return true
-		}
-	}
-	return false
-}
-
 // AccessControlAttribute represents a user attribute with its name and possible values
 type AccessControlAttribute struct {
 	Attribute PropertyField `json:"attribute"`

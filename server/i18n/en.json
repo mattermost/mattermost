@@ -60,10 +60,6 @@
     "translation": "Channel-level permission policies feature is not enabled."
   },
   {
-    "id": "api.access_control_policy.channel_read_access.feature_disabled",
-    "translation": "Channel Read Access permission policies feature is not enabled."
-  },
-  {
     "id": "api.access_control_policy.get_channels.limit.app_error",
     "translation": "Get channels limit is not valid."
   },
