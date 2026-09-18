@@ -1,17 +1,85 @@
-/* Intelligent Mission Environment diagram — v2.
+/* Intelligent Mission Environment diagram — content-driven renderer.
  *
- * Tighter visual match to the brand infographic:
- * - Application zone visibly contained in a denim wash + border
- * - Intro panels are NOT clickable cards; they're plain text columns
- *   (no left-edge accent bar — the surrounding denim wash/borders already
- *   signal the section boundary)
- * - Use Case cells use a soft denim-tinted background, not white-on-white
- * - All clickable cells share the same white-with-marigold-on-hover treatment
- * - Section titles get a thin marigold underline for visual rhythm
+ * All layout comes from the `IMEContent` model, so this stylesheet only
+ * carries visual affordances (colors, spacing, layer chrome, logo
+ * strips). The renderer sets `grid-template-columns` inline based on
+ * `layer.columns` and the footer count.
  */
 
-.diagram {
+.wrapper {
   margin: 2rem 0 2.5rem;
+}
+
+/* === Audience toggle above the diagram === */
+
+.toggleRow {
+  display: flex;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+  padding: 0.25rem;
+  background: var(--mm-denim-50, rgba(30, 50, 92, 0.06));
+  border-radius: 999px;
+  width: fit-content;
+}
+
+[data-theme='dark'] .toggleRow {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.toggleButton {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--mm-text-secondary, var(--mm-text-primary));
+  font-family: var(--mm-font-sans);
+  font-weight: 600;
+  font-size: 0.78rem;
+  letter-spacing: 0.01em;
+  padding: 0.4rem 0.95rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.toggleButton:hover {
+  color: var(--mm-color-denim, #1E325C);
+}
+
+.toggleButtonActive,
+.toggleButtonActive:hover {
+  background: var(--mm-color-denim, #1E325C);
+  color: var(--mm-color-white, #fff);
+}
+
+/* === Title / tagline header (mission variant) === */
+
+.header {
+  text-align: center;
+  margin-bottom: 0.9rem;
+}
+
+.headerTitle {
+  font-family: var(--mm-font-sans);
+  font-weight: 800;
+  color: var(--mm-color-denim, #1E325C);
+  font-size: 1.5rem;
+  line-height: 1.2;
+  margin: 0 0 0.25rem;
+}
+
+.headerTagline {
+  color: var(--mm-text-secondary, var(--mm-text-primary));
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+[data-theme='dark'] .headerTitle {
+  color: var(--mm-color-white);
+}
+
+/* === Diagram scaffold === */
+
+.diagram {
   border: 1px solid var(--mm-border-subtle, rgba(30, 50, 92, 0.18));
   border-radius: 8px;
   overflow: hidden;
@@ -23,8 +91,6 @@
   background: var(--mm-denim-700, #121E37);
   border-color: rgba(255, 255, 255, 0.1);
 }
-
-/* === Layer scaffold (vertical denim label on left + content area on right) === */
 
 .layer {
   display: grid;
@@ -60,49 +126,24 @@
   background: var(--mm-denim-800, #0C1424);
 }
 
-/* Application zone gets a stronger denim wash to visibly contain it,
-   matching the original infographic where the whole Application block
-   reads as one tinted panel. */
-.layerApplication .layerBody {
+/* Per-layer washes: Applications gets a subtle denim tint to visually
+   contain its intro + product grid + client-strip footers. */
+.layer_applications .layerBody,
+.layer_application .layerBody {
   background: var(--mm-denim-50, rgba(30, 50, 92, 0.05));
 }
-[data-theme='dark'] .layerApplication .layerBody {
+[data-theme='dark'] .layer_applications .layerBody,
+[data-theme='dark'] .layer_application .layerBody {
   background: rgba(255, 255, 255, 0.03);
 }
 
-/* === Use Cases row — 3 horizontal cells, soft grey-tinted === */
+/* === Intro column === */
 
-.useCaseRow {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.6rem;
-}
-
-.useCaseRow .cell {
-  background: var(--mm-denim-50, rgba(30, 50, 92, 0.045));
-  border-color: transparent;
-}
-.useCaseRow .cell:hover {
-  background: var(--mm-color-white, #fff);
-  border-color: var(--mm-color-marigold, #FFBC1F);
-}
-[data-theme='dark'] .useCaseRow .cell {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: transparent;
-}
-
-/* === Intro panels (Application / Integration / Deployment left column) ===
-   Not clickable — plain text columns, no left-edge accent bar. */
-
-.appIntro,
-.intIntro,
-.depIntro {
+.intro {
   padding: 0.25rem 0.6rem 0.25rem 0;
 }
 
-.appIntro h3,
-.intIntro h3,
-.depIntro h3 {
+.intro h3 {
   display: flex;
   align-items: center;
   gap: 0.45rem;
@@ -130,106 +171,60 @@
   height: 100%;
 }
 
-[data-theme='dark'] .appIntro .introIcon,
-[data-theme='dark'] .intIntro .introIcon,
-[data-theme='dark'] .depIntro .introIcon {
+[data-theme='dark'] .intro .introIcon {
   color: var(--mm-denim-300, #8499C5);
 }
 
-[data-theme='dark'] .appIntro h3,
-[data-theme='dark'] .intIntro h3,
-[data-theme='dark'] .depIntro h3 {
+[data-theme='dark'] .intro h3 {
   color: var(--mm-color-white);
 }
 
-.appIntro p,
-.intIntro p,
-.depIntro p {
+.intro p {
   font-size: 0.78rem;
   line-height: 1.5;
   color: var(--mm-text-secondary, var(--mm-text-primary));
   margin: 0;
 }
 
-/* === Application grid: intro + 5 product cards === */
+/* === Layer content: intro + cells === */
 
-.appGrid {
+.layerContentWithIntro {
   display: grid;
   grid-template-columns: minmax(190px, 1.1fr) 3.4fr;
   gap: 1rem;
   align-items: stretch;
 }
 
-.productGrid {
+.cellGrid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
   gap: 0.5rem;
+  /* grid-template-columns is set inline by the renderer */
 }
 
-.appFooter {
-  display: grid;
-  /* Footer strips read as standalone bands — balanced columns so neither
-   * label wraps mid-phrase. (The grid above intentionally mirrors the
-   * intro/products asymmetry; the footer doesn't need to.) */
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-top: 0.65rem;
+/* Use-case layer (no intro) — larger typography */
+.layer_use-cases .cellGrid {
+  gap: 0.6rem;
 }
-
-.footerCell {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.55rem 0.85rem;
-  font-size: 0.78rem;
-  font-weight: 600;
-  text-align: center;
-  border: 1px solid var(--mm-border-subtle, rgba(30, 50, 92, 0.15));
-  border-radius: 4px;
-  background: var(--mm-bg-page, #fff);
-  color: var(--mm-text-primary);
-  text-decoration: none;
-  transition: border-color 120ms ease, background 120ms ease;
+.layer_use-cases .cell {
+  background: var(--mm-denim-50, rgba(30, 50, 92, 0.045));
+  border-color: transparent;
 }
-
-.footerIcon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  width: 1.1rem;
-  height: 1.1rem;
-  color: var(--mm-color-marigold, #FFBC1F);
-}
-
-.footerIcon svg {
-  width: 100%;
-  height: 100%;
-}
-.footerCell:hover {
+.layer_use-cases .cell:hover {
+  background: var(--mm-color-white, #fff);
   border-color: var(--mm-color-marigold, #FFBC1F);
-  background: var(--mm-marigold-100, rgba(255, 188, 31, 0.08));
-  color: var(--mm-text-primary);
-  text-decoration: none;
+}
+[data-theme='dark'] .layer_use-cases .cell {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: transparent;
+}
+.layer_use-cases .cellTitle {
+  font-size: 0.95rem;
+}
+.layer_use-cases .cellText {
+  font-size: 0.78rem;
 }
 
-[data-theme='dark'] .footerCell {
-  background: var(--mm-denim-700, #121E37);
-  color: var(--mm-color-white);
-}
-
-/* === Integration & Deployment grids === */
-
-.intGrid,
-.depGrid {
-  display: grid;
-  grid-template-columns: minmax(190px, 1.1fr) 1.7fr 1.7fr;
-  gap: 1rem;
-  align-items: stretch;
-}
-
-/* === Cell — the reusable clickable unit === */
+/* === Cell === */
 
 .cell {
   display: flex;
@@ -243,7 +238,9 @@
   text-decoration: none;
   transition: border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
 }
-.cell:hover {
+
+/* Anchor variant reserves hover affordances; static (div) variant skips them. */
+a.cell:hover {
   border-color: var(--mm-color-marigold, #FFBC1F);
   box-shadow: 0 4px 14px -10px rgba(30, 50, 92, 0.35);
   text-decoration: none;
@@ -251,13 +248,14 @@
   transform: translateY(-1px);
 }
 
+.cellStatic {
+  cursor: default;
+}
+
 [data-theme='dark'] .cell {
   background: var(--mm-denim-700, #121E37);
   color: var(--mm-color-white);
   border-color: rgba(255, 255, 255, 0.1);
-}
-[data-theme='dark'] .cell:hover {
-  color: var(--mm-color-white);
 }
 
 .icon {
@@ -309,37 +307,118 @@
   margin: 0.08rem 0;
 }
 
-/* === Use Case cells get larger title + tighter sub-text — readable at row scale === */
+/* === Footer strips (Application, Deployment) === */
 
-.useCaseRow .cellTitle {
-  font-size: 0.95rem;
+.footerRow {
+  display: grid;
+  gap: 1rem;
+  margin-top: 0.65rem;
+  /* grid-template-columns is set inline by the renderer */
 }
-.useCaseRow .cellText {
+
+.footerCell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.85rem;
   font-size: 0.78rem;
+  font-weight: 600;
+  text-align: center;
+  border: 1px solid var(--mm-border-subtle, rgba(30, 50, 92, 0.15));
+  border-radius: 4px;
+  background: var(--mm-bg-page, #fff);
+  color: var(--mm-text-primary);
+  text-decoration: none;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.footerCellStatic {
+  cursor: default;
+}
+
+.footerIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--mm-color-marigold, #FFBC1F);
+}
+
+.footerIcon svg {
+  width: 100%;
+  height: 100%;
+}
+
+a.footerCell:hover {
+  border-color: var(--mm-color-marigold, #FFBC1F);
+  background: var(--mm-marigold-100, rgba(255, 188, 31, 0.08));
+  color: var(--mm-text-primary);
+  text-decoration: none;
+}
+
+[data-theme='dark'] .footerCell {
+  background: var(--mm-denim-700, #121E37);
+  color: var(--mm-color-white);
+}
+
+/* === Logo strips === */
+
+.logoStrip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+}
+
+.logoImg {
+  height: 1.1rem;
+  width: auto;
+  object-fit: contain;
+  opacity: 0.85;
+}
+
+.logoBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.45rem;
+  border: 1px solid var(--mm-border-subtle, rgba(30, 50, 92, 0.2));
+  border-radius: 3px;
+  background: var(--mm-bg-page, #fff);
+  color: var(--mm-color-denim, #1E325C);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.4;
+}
+
+[data-theme='dark'] .logoBadge {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--mm-color-white);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 /* === Responsive collapse === */
 
 @media (max-width: 980px) {
-  .appGrid,
-  .intGrid,
-  .depGrid {
+  .layerContentWithIntro {
     grid-template-columns: 1fr;
   }
-  .productGrid {
-    grid-template-columns: repeat(2, 1fr);
+  .cellGrid {
+    /* Two-column fallback keeps mission variant's 6 app tiles readable. */
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
-  .appFooter {
-    grid-template-columns: 1fr;
+  .footerRow {
+    grid-template-columns: 1fr !important;
   }
 }
 
 @media (max-width: 600px) {
-  .useCaseRow {
-    grid-template-columns: 1fr;
-  }
-  .productGrid {
-    grid-template-columns: 1fr;
+  .cellGrid {
+    grid-template-columns: 1fr !important;
   }
   .layer {
     grid-template-columns: 1fr;
