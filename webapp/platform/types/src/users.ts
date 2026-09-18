@@ -88,6 +88,7 @@ export type UsersState = {
     myUserAccessTokens: Record<string, UserAccessToken>;
     lastActivity: RelationOneToOne<UserProfile, number>;
     dndEndTimes: RelationOneToOne<UserProfile, number>;
+    autoResponderMessages: RelationOneToOne<UserProfile, string>;
 };
 
 export type UserTimezone = {
@@ -108,6 +109,11 @@ export type UserStatus = {
      * instead of milliseconds.
      */
     dnd_end_time?: number;
+
+    /**
+     * The user's automatic reply message when their status is out of office.
+     */
+    auto_responder_message?: string;
 };
 
 export enum CustomStatusDuration {

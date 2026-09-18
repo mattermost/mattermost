@@ -447,6 +447,10 @@ export function getDndEndTimeForUserId(state: GlobalState, userId: UserProfile['
     return state.entities.users.dndEndTimes[userId];
 }
 
+export function getAutoResponderMessageForUserId(state: GlobalState, userId: UserProfile['id']): string {
+    return state.entities.users.autoResponderMessages[userId] || '';
+}
+
 export function getTotalUsersStats(state: GlobalState) {
     return state.entities.users.stats;
 }

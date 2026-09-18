@@ -757,11 +757,37 @@ describe('Actions.Users', () => {
         const dndEndTimes = store.getState().entities.users.dndEndTimes;
         const lastActivity = store.getState().entities.users.lastActivity;
         const isManualStatus = store.getState().entities.users.isManualStatus;
+        const autoResponderMessages = store.getState().entities.users.autoResponderMessages;
 
         expect(statuses[TestHelper.basicUser!.id]).toBe('online');
         expect(dndEndTimes[TestHelper.basicUser!.id]).toBe(0);
         expect(lastActivity[TestHelper.basicUser!.id]).toBe(1507662212199);
         expect(isManualStatus[TestHelper.basicUser!.id]).toBe(false);
+        expect(autoResponderMessages[TestHelper.basicUser!.id]).toBe('');
+    });
+
+    it('getStatusesByIds stores auto responder message for ooo users', async () => {
+        const message = "I'm off today on PTO.";
+        nock(Client4.getBaseRoute()).
+            post('/users/status/ids').
+            reply(200, [{
+                user_id: TestHelper.basicUser!.id,
+                status: 'ooo',
+                manual: true,
+                last_activity_at: 1507662212199,
+                dnd_end_time: 0,
+                auto_responder_message: message,
+            }]);
+
+        await store.dispatch(Actions.getStatusesByIds(
+            [TestHelper.basicUser!.id],
+        ));
+
+        const statuses = store.getState().entities.users.statuses;
+        const autoResponderMessages = store.getState().entities.users.autoResponderMessages;
+
+        expect(statuses[TestHelper.basicUser!.id]).toBe('ooo');
+        expect(autoResponderMessages[TestHelper.basicUser!.id]).toBe(message);
     });
 
     it('getTotalUsersStats', async () => {
