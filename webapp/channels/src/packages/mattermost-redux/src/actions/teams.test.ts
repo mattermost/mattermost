@@ -5,7 +5,10 @@ import fs from 'fs';
 
 import nock from 'nock';
 
+import {CollapsedThreads} from '@mattermost/types/config';
 import type {Team, TeamsWithCount} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {RelationOneToManyUnique} from '@mattermost/types/utilities';
 
 import {UserTypes} from 'mattermost-redux/action_types';
 import * as Actions from 'mattermost-redux/actions/teams';
@@ -29,7 +32,7 @@ describe('Actions.Teams', () => {
             entities: {
                 general: {
                     config: {
-                        CollapsedThreads: 'always_on',
+                        CollapsedThreads: CollapsedThreads.ALWAYS_ON,
                     },
                 },
             },
@@ -515,10 +518,10 @@ describe('Actions.Teams', () => {
                         currentUserId: '',
                         profilesInTeam: {
                             [team.id]: [user.id],
-                        },
+                        } as unknown as RelationOneToManyUnique<Team, UserProfile>,
                         profilesNotInTeam: {
                             [team.id]: [],
-                        },
+                        } as unknown as RelationOneToManyUnique<Team, UserProfile>,
                     },
                 },
             });

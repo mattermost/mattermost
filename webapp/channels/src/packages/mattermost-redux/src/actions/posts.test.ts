@@ -5,8 +5,10 @@ import fs from 'fs';
 
 import nock from 'nock';
 
+import {CollapsedThreads} from '@mattermost/types/config';
 import type {Post, PostList} from '@mattermost/types/posts';
 import type {GlobalState} from '@mattermost/types/store';
+import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {PostTypes, UserTypes} from 'mattermost-redux/action_types';
 import {getChannelStats} from 'mattermost-redux/actions/channels';
@@ -42,7 +44,7 @@ describe('Actions.Posts', () => {
             entities: {
                 general: {
                     config: {
-                        CollapsedThreads: 'always_on',
+                        CollapsedThreads: CollapsedThreads.ALWAYS_ON,
                         EnableJoinLeaveMessageByDefault: 'true',
                     },
                 },
@@ -402,7 +404,7 @@ describe('Actions.Posts', () => {
             entities: {
                 general: {
                     config: {
-                        CollapsedThreads: 'always_on',
+                        CollapsedThreads: CollapsedThreads.ALWAYS_ON,
                     },
                 },
                 preferences: {
@@ -1171,7 +1173,7 @@ describe('Actions.Posts', () => {
                 posts: {
                     posts: {
                         [postId]: {id: postId, msg: 'test message', create_at: 123, delete_at: 0, channel_id: channelId},
-                    },
+                    } as unknown as IDMappedObjects<Post>,
                 },
             },
         });
@@ -1436,9 +1438,6 @@ describe('Actions.Posts', () => {
                         [postId]: {id: postId, channel_id: channelId},
                     },
                 },
-                integrations: {
-                    dialogArguments: {},
-                },
             },
         });
 
@@ -1452,11 +1451,8 @@ describe('Actions.Posts', () => {
         const state = store.getState();
         expect(data).toBeTruthy();
         expect(data).toEqual({trigger_id: triggerId});
-        expect(data).toBeTruthy();
 
-        expect(state.entities.integrations.dialogArguments).toBeTruthy();
         expect(state.entities.integrations.dialogTriggerId).toEqual(triggerId);
-        expect(state.entities.integrations.dialogArguments.channel_id).toEqual(channelId);
     });
 
     it('addMessageIntoHistory', async () => {

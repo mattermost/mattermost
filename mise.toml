@@ -1,0 +1,15 @@
+# Toolchain for developers using mise. CI does not read this file -- it installs
+# Node from .nvmrc -- so this exists to give a working tree the same Node that
+# CI, the buildenv images and webapp/package.json "engines" all agree on.
+#
+# npm is deliberately absent: it ships with Node, and 24.11.1 carries exactly
+# the npm 11.6.2 that "engines" requires. Pinning Node exactly is therefore what
+# pins npm exactly, and it is the same npm every CI job gets. Naming npm here
+# too would add a second version to hold in step, with nothing enforcing the
+# pairing, so a stale entry could hand you an npm that ships with no Node.
+#
+# A Node bump moves this alongside .nvmrc, both server/build/Dockerfile.buildenv*,
+# "engines"/"packageManager" and webapp/package-lock.json. buildenv-tag.sh fails
+# when this and .nvmrc disagree.
+[tools]
+node = "24.11.1"

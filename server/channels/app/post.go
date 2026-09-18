@@ -1470,6 +1470,10 @@ func (a *App) PatchPost(rctx request.CTX, postID string, patch *model.PostPatch,
 }
 
 func (a *App) GetPostsPage(rctx request.CTX, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+	if appErr := a.populateGetPostsOptionsMembershipFilter(rctx, &options); appErr != nil {
+		return nil, appErr
+	}
+
 	postList, err := a.Srv().Store().Post().GetPosts(rctx, options, false, a.Config().GetSanitizeOptions())
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -1500,6 +1504,10 @@ func (a *App) GetPostsPage(rctx request.CTX, options model.GetPostsOptions) (*mo
 // GetPostsForView returns posts for a specific view. Currently returns all channel posts.
 // TODO: In the future, this will filter posts based on the view's configuration (e.g., property values, sort order).
 func (a *App) GetPostsForView(rctx request.CTX, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+	if appErr := a.populateGetPostsOptionsMembershipFilter(rctx, &options); appErr != nil {
+		return nil, appErr
+	}
+
 	postList, err := a.Srv().Store().Post().GetPosts(rctx, options, false, a.Config().GetSanitizeOptions())
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -1527,7 +1535,11 @@ func (a *App) GetPostsForView(rctx request.CTX, options model.GetPostsOptions) (
 }
 
 func (a *App) GetPosts(rctx request.CTX, channelID string, offset int, limit int) (*model.PostList, *model.AppError) {
-	postList, err := a.Srv().Store().Post().GetPosts(rctx, model.GetPostsOptions{ChannelId: channelID, Page: offset, PerPage: limit}, true, a.Config().GetSanitizeOptions())
+	options := model.GetPostsOptions{ChannelId: channelID, Page: offset, PerPage: limit}
+	if appErr := a.populateGetPostsOptionsMembershipFilter(rctx, &options); appErr != nil {
+		return nil, appErr
+	}
+	postList, err := a.Srv().Store().Post().GetPosts(rctx, options, true, a.Config().GetSanitizeOptions())
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -1600,18 +1612,23 @@ func (a *App) AppendABACEtag(base string, userID string, channelID string) strin
 	return fmt.Sprintf("%s.%s.%s", base, policyEpoch, cpaEpoch)
 }
 
-func (a *App) GetPostsEtag(channelID string, userID string, collapsedThreads bool) string {
+func (a *App) GetPostsEtag(channel *model.Channel, userID string, collapsedThreads bool) string {
 	includeTranslations := false
 	if a.AutoTranslation() != nil && a.AutoTranslation().IsFeatureAvailable() {
-		if enabled, err := a.AutoTranslation().IsChannelEnabled(channelID); err == nil && enabled {
+		if enabled, err := a.AutoTranslation().IsChannelEnabled(channel.Id); err == nil && enabled {
 			includeTranslations = true
 		}
 	}
-	base := a.Srv().Store().Post().GetEtag(channelID, true, collapsedThreads, includeTranslations)
-	return a.AppendABACEtag(base, userID, channelID)
+	base := a.Srv().Store().Post().GetEtag(channel.Id, true, collapsedThreads, includeTranslations)
+	base = a.AppendABACEtag(base, userID, channel.Id)
+	return fmt.Sprintf("%v.%t", base, channel.DisableJoinLeaveMessages)
 }
 
 func (a *App) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions) (*model.PostList, *model.AppError) {
+	if appErr := a.populateGetPostsSinceOptionsMembershipFilter(rctx, &options); appErr != nil {
+		return nil, appErr
+	}
+
 	postList, err := a.Srv().Store().Post().GetPostsSince(rctx, options, true, a.Config().GetSanitizeOptions())
 	if err != nil {
 		return nil, model.NewAppError("GetPostsSince", "app.post.get_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -1726,6 +1743,15 @@ func (a *App) GetSinglePost(rctx request.CTX, postID string, includeDeleted bool
 		return nil, model.NewAppError("GetSinglePost", "app.post.cloud.get.app_error", nil, "", http.StatusForbidden)
 	}
 
+	filtered, appErr := a.filterSuppressedMembershipPostsFromSlice(rctx, []*model.Post{post})
+	if appErr != nil {
+		return nil, appErr
+	}
+	if len(filtered) == 0 {
+		return nil, model.NewAppError("GetSinglePost", "app.post.get.app_error", nil, "", http.StatusNotFound)
+	}
+	post = filtered[0]
+
 	a.applyPostWillBeConsumedHook(rctx, &post)
 
 	return post, nil
@@ -1764,6 +1790,10 @@ func (a *App) GetPostThread(rctx request.CTX, postID string, opts model.GetPosts
 		return nil, appErr
 	}
 
+	if appErr = a.filterSuppressedMembershipPosts(rctx, posts); appErr != nil {
+		return nil, appErr
+	}
+
 	a.applyPostsWillBeConsumedHook(rctx, posts.Posts)
 
 	return posts, nil
@@ -1783,6 +1813,10 @@ func (a *App) GetFlaggedPosts(rctx request.CTX, userID string, offset int, limit
 	}
 
 	if appErr = a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+		return nil, appErr
+	}
+
+	if appErr = a.filterSuppressedMembershipPosts(rctx, postList); appErr != nil {
 		return nil, appErr
 	}
 
@@ -1808,6 +1842,10 @@ func (a *App) GetFlaggedPostsForTeam(rctx request.CTX, userID, teamID string, of
 		return nil, appErr
 	}
 
+	if appErr = a.filterSuppressedMembershipPosts(rctx, postList); appErr != nil {
+		return nil, appErr
+	}
+
 	a.applyPostsWillBeConsumedHook(rctx, postList.Posts)
 
 	return postList, nil
@@ -1827,6 +1865,10 @@ func (a *App) GetFlaggedPostsForChannel(rctx request.CTX, userID, channelID stri
 	}
 
 	if appErr = a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+		return nil, appErr
+	}
+
+	if appErr = a.filterSuppressedMembershipPosts(rctx, postList); appErr != nil {
 		return nil, appErr
 	}
 
@@ -1856,6 +1898,10 @@ func (a *App) GetPermalinkPost(rctx request.CTX, postID string, userID string) (
 		return nil, appErr
 	}
 
+	if appErr := a.filterSuppressedMembershipPosts(rctx, list); appErr != nil {
+		return nil, appErr
+	}
+
 	if len(list.Order) != 1 {
 		return nil, model.NewAppError("getPermalinkTmp", "api.post_get_post_by_id.get.app_error", nil, "", http.StatusNotFound)
 	}
@@ -1880,6 +1926,10 @@ func (a *App) GetPermalinkPost(rctx request.CTX, postID string, userID string) (
 }
 
 func (a *App) GetPostsBeforePost(rctx request.CTX, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+	if appErr := a.populateGetPostsOptionsMembershipFilter(rctx, &options); appErr != nil {
+		return nil, appErr
+	}
+
 	options.ExcludeExpiredBurnOnReadPosts = a.isBurnOnReadEnabled()
 	postList, err := a.Srv().Store().Post().GetPostsBefore(rctx, options, a.Config().GetSanitizeOptions())
 	if err != nil {
@@ -1917,6 +1967,10 @@ func (a *App) GetPostsBeforePost(rctx request.CTX, options model.GetPostsOptions
 }
 
 func (a *App) GetPostsAfterPost(rctx request.CTX, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+	if appErr := a.populateGetPostsOptionsMembershipFilter(rctx, &options); appErr != nil {
+		return nil, appErr
+	}
+
 	options.ExcludeExpiredBurnOnReadPosts = a.isBurnOnReadEnabled()
 	postList, err := a.Srv().Store().Post().GetPostsAfter(rctx, options, a.Config().GetSanitizeOptions())
 	if err != nil {
@@ -1954,6 +2008,10 @@ func (a *App) GetPostsAfterPost(rctx request.CTX, options model.GetPostsOptions)
 }
 
 func (a *App) GetPostsAroundPost(rctx request.CTX, before bool, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
+	if appErr := a.populateGetPostsOptionsMembershipFilter(rctx, &options); appErr != nil {
+		return nil, appErr
+	}
+
 	var postList *model.PostList
 	var err error
 	options.ExcludeExpiredBurnOnReadPosts = a.isBurnOnReadEnabled()
@@ -2010,9 +2068,28 @@ func (a *App) GetPostAfterTime(rctx request.CTX, channelID string, time int64, c
 }
 
 func (a *App) GetPostIdAfterTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError) {
-	postID, err := a.Srv().Store().Post().GetPostIdAfterTime(channelID, time, collapsedThreads)
+	exclude, appErr := a.channelExcludeMembershipSystemPostsByID(request.EmptyContext(a.Log()), channelID)
+	if appErr != nil {
+		return "", appErr
+	}
+
+	postID, err := a.Srv().Store().Post().GetPostIdAfterTime(channelID, time, collapsedThreads, exclude)
 	if err != nil {
 		return "", model.NewAppError("GetPostIdAfterTime", "app.post.get_post_id_around.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return postID, nil
+}
+
+func (a *App) GetPostIdBeforeTime(channelID string, time int64, collapsedThreads bool) (string, *model.AppError) {
+	exclude, appErr := a.channelExcludeMembershipSystemPostsByID(request.EmptyContext(a.Log()), channelID)
+	if appErr != nil {
+		return "", appErr
+	}
+
+	postID, err := a.Srv().Store().Post().GetPostIdBeforeTime(channelID, time, collapsedThreads, exclude)
+	if err != nil {
+		return "", model.NewAppError("GetPostIdBeforeTime", "app.post.get_post_id_around.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return postID, nil
@@ -2041,17 +2118,22 @@ func (a *App) GetPrevPostIdFromPostList(postList *model.PostList, userID string,
 // stepped over in a single round trip and the cursor never references a post
 // that was filtered out of the response.
 func (a *App) getCursorPostId(channelID string, fromTime int64, userID string, collapsedThreads bool, before bool) string {
+	exclude, appErr := a.channelExcludeMembershipSystemPostsByID(request.EmptyContext(a.Log()), channelID)
+	if appErr != nil {
+		mlog.Warn("getCursorPostId: failed to determine membership post exclusion", mlog.Err(appErr))
+	}
+
 	var postId string
 	var err error
 	// Only the visibility-aware query (which carries the burn-on-read receipt
 	// subquery) is used when the feature is enabled; otherwise fall back to the
 	// plain lookups so there is no added query cost for instances not using it.
 	if a.isBurnOnReadEnabled() {
-		postId, err = a.Srv().Store().Post().GetVisiblePostIdAroundTime(channelID, fromTime, before, collapsedThreads, userID)
+		postId, err = a.Srv().Store().Post().GetVisiblePostIdAroundTime(channelID, fromTime, before, collapsedThreads, userID, exclude)
 	} else if before {
-		postId, err = a.Srv().Store().Post().GetPostIdBeforeTime(channelID, fromTime, collapsedThreads)
+		postId, err = a.Srv().Store().Post().GetPostIdBeforeTime(channelID, fromTime, collapsedThreads, exclude)
 	} else {
-		postId, err = a.Srv().Store().Post().GetPostIdAfterTime(channelID, fromTime, collapsedThreads)
+		postId, err = a.Srv().Store().Post().GetPostIdAfterTime(channelID, fromTime, collapsedThreads, exclude)
 	}
 	if err != nil {
 		mlog.Warn("getCursorPostId: failed to get post id", mlog.Err(err))
@@ -2484,6 +2566,10 @@ func (a *App) SearchPostsForUser(rctx request.CTX, terms string, userID string, 
 	}
 
 	if appErr := a.filterBurnOnReadPosts(postSearchResults.PostList); appErr != nil {
+		return nil, false, appErr
+	}
+
+	if appErr := a.filterSuppressedMembershipPosts(rctx, postSearchResults.PostList); appErr != nil {
 		return nil, false, appErr
 	}
 
@@ -2973,10 +3059,28 @@ func (a *App) GetPostsByIds(postIDs []string) ([]*model.Post, int64, *model.AppE
 		return nil, 0, appErr
 	}
 
+	posts, appErr = a.filterSuppressedMembershipPostsFromSlice(request.EmptyContext(a.Log()), posts)
+	if appErr != nil {
+		return nil, 0, appErr
+	}
+
 	return posts, firstInaccessiblePostTime, nil
 }
 
-func (a *App) GetEditHistoryForPost(postID string) ([]*model.Post, *model.AppError) {
+// GetEditHistoryForPost returns the historical versions of a post, redacting attachments the
+// requesting user is not allowed to download.
+func (a *App) GetEditHistoryForPost(rctx request.CTX, postID string) ([]*model.Post, *model.AppError) {
+	return a.getEditHistoryForPost(rctx, postID, rctx.Session().UserId)
+}
+
+// getEditHistoryForPostUnrestricted returns the historical versions with their attachment
+// metadata intact. Content flagging deletes and reports on this data on the system's behalf
+// rather than serving it to a reader, and enforces reviewer-facing policy itself.
+func (a *App) getEditHistoryForPostUnrestricted(rctx request.CTX, postID string) ([]*model.Post, *model.AppError) {
+	return a.getEditHistoryForPost(rctx, postID, "")
+}
+
+func (a *App) getEditHistoryForPost(rctx request.CTX, postID, requesterID string) ([]*model.Post, *model.AppError) {
 	posts, err := a.Srv().Store().Post().GetEditHistoryForPost(postID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -2988,14 +3092,17 @@ func (a *App) GetEditHistoryForPost(postID string) ([]*model.Post, *model.AppErr
 		}
 	}
 
-	if appErr := a.populateEditHistoryFileMetadata(posts); appErr != nil {
+	if appErr := a.populateEditHistoryFileMetadata(rctx, posts, requesterID); appErr != nil {
 		return nil, appErr
 	}
 
 	return posts, nil
 }
 
-func (a *App) populateEditHistoryFileMetadata(editHistoryPosts []*model.Post) *model.AppError {
+// populateEditHistoryFileMetadata attaches file metadata to each historical version,
+// redacting it when requesterID is denied the download_file_attachment action. An empty
+// requesterID means there is no reader to authorize and nothing is redacted.
+func (a *App) populateEditHistoryFileMetadata(rctx request.CTX, editHistoryPosts []*model.Post, requesterID string) *model.AppError {
 	for _, post := range editHistoryPosts {
 		fileInfos, err := a.Srv().Store().FileInfo().GetByIds(post.FileIds, true, true, false)
 		if err != nil {
@@ -3006,6 +3113,22 @@ func (a *App) populateEditHistoryFileMetadata(editHistoryPosts []*model.Post) *m
 
 		if post.Metadata == nil {
 			post.Metadata = &model.PostMetadata{}
+		}
+
+		// Historical versions must redact the same attachments the live post does.
+		// Gate on FileIds rather than the fetched infos so a version referencing a
+		// missing FileInfo row still has its ids cleared for a denied user.
+		if len(post.FileIds) > 0 && !a.hasFileAttachmentAccess(rctx, requesterID, post.ChannelId) {
+			rctx.Logger().Debug("Stripping file attachments from edit history due to ABAC permission policy",
+				mlog.String("user_id", requesterID),
+				mlog.String("post_id", post.Id),
+				mlog.String("channel_id", post.ChannelId),
+				mlog.Int("files_removed", len(post.FileIds)),
+			)
+			post.Metadata.RedactedFileCount = len(post.FileIds)
+			post.Metadata.Files = nil
+			post.FileIds = model.StringArray{}
+			continue
 		}
 
 		post.Metadata.Files = fileInfos
