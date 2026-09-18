@@ -71,12 +71,14 @@ New setting options were added to ``config.json``. Below is a list of the additi
  - Removed the ``EnableConcurrentReact`` feature flag. The web app now always renders with concurrent React.
  - **Breaking change:** Post identity and display-override props (``from_webhook``, ``from_bot``, ``from_oauth_app``, ``from_plugin``, ``override_username``, ``override_icon_url``, ``override_icon_emoji``, ``webhook_display_name``) are no longer accepted from regular user or personal access token sessions. They are stripped on create/update and only re-applied for verified integrations (incoming webhooks and slash commands for overrides; bots/OAuth/plugins for ``from_*`` markers). Scripts that forged ``from_webhook`` and ``override_*`` via a user personal access token to post under a custom name/icon must migrate to a bot account or an incoming webhook. ``ExperimentalEnableHardenedMode`` no longer rejects reserved post props with HTTP 400; it continues to control login/MFA/password-reset/5xx scrubbing only.
  - **Breaking change:** Removed deprecated interactive dialog date/datetime fields. Top-level ``min_date``, ``max_date``, and ``time_interval``, and ``datetime_config.allow_manual_time_entry``, are no longer accepted; use ``datetime_config`` (with ``manual_time_entry``) instead. Legacy keys are silently ignored.
+ - Auto-adding members to a channel or team with an attribute-based access policy is now stored on the policy's membership rule instead of the policy's active flag, and is set per channel and per team. Existing settings are migrated automatically. Clients using ``PUT /api/v4/access_control_policies`` to set the ``active`` field to control auto-adding must set the membership rule's ``auto_add`` metadata instead; the ``/access_control_policies/activate`` endpoint continues to work unchanged.
 
 ### Improvements
 
 See [this blog post](https://mattermost.com/blog/mattermost-v12-0-is-now-available/) on the highlights in our latest release.
 
 #### User Interface
+ - Pre-packaged Calls plugin version [v1.12.5](https://github.com/mattermost/mattermost-plugin-calls/releases/tag/v1.12.5).
  - Pre-packaged Dataminr plugin version [v2.0.0](https://github.com/mattermost/mattermost-plugin-dataminr/releases/tag/v2.0.0).
  - Pre-packaged Zoom plugin version [v1.13.1](https://github.com/mattermost/mattermost-plugin-zoom/releases/tag/v1.13.1).
  - Updated the web app to React 19 with concurrent rendering enabled by default.
@@ -107,11 +109,15 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-0-is-now-availab
  - Improved plugin upload UX in the System Console with an automatic upload dropzone, progress indicator, and clearer disabled-state messaging.
  - Added stricter server config validation for export, SQL replica monitor, feature flag sync, burn-on-read, LDAP group filter, Elasticsearch index sizing, connected workspace batch size, push notification buffer, log level, file storage, email, session, data retention, TLS, and webserver settings.
  - Added audit logging for new events caused by cached data deletion on mobile devices related to Mobile Ephemeral Mode settings.
+ - Added ``AuditEventChannelMembershipAdded`` audit log event.
+ - Added ``AuditEventChannelMembershipRemoved`` audit log event.
  - Access rules can now compare a user's attributes with attributes of the channel being accessed, including ``hasAnyOf`` and ``hasAllOf`` for multi-value attributes, behind the new ``ResourceAttributesInPolicies`` feature flag.
  - Added four access policy functions for comparing graph custom attributes: ``coversAll``, ``coversAny``, ``withinAll``, and ``withinAny``.
  - Extended personal access token lifetime enforcement, expiry notifications, and non-compliant token revocation to user-owned bot accounts. Plugin-owned and protected system bot accounts remain exempt.
  - Added webapp support for personal access token expiry and regeneration on user-owned bot accounts.
  - Added a new ``graph`` custom attribute type whose options form a hierarchy, gated by the ``PropertyFieldGraph`` feature flag (off by default). Values are shown as option names and set with an option picker on the profile and System Console user detail pages. Added REST endpoints and plugin API methods to list, create, update, and delete a custom attribute's options.
+ - Added a new Hierarchical attribute type in the Global Attributes management screen in the System Console.
+ - Existing Custom Profile Attributes (User Attributes) fields are now automatically migrated into Global Attributes templates on server startup. The legacy "User Attributes" admin console page has been removed.
  - System Console Manage Attributes now opens existing managed attributes for edit. Saving PATCHes the attribute definition and applies add/remove changes in the same action, including deleting a resource application and its stored values when that resource is removed.
  - Moved the New attribute button on the Attribute Management listing page into the page header and removed the Duplicate attribute action from the row menu.
  - Applied channel file download permission policies to content reviewers.
@@ -152,6 +158,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-0-is-now-availab
  - Fixed an issue where the App Marketplace modal changed width when paging between plugin lists.
  - Fixed an issue where the System Console Recaps page was hidden from system admins on upgraded servers because the AI Recaps sysconsole permissions were never applied to the ``system_admin`` role.
  - Fixed a server startup crash where an app migration could read a row it had just written from a read replica that had not yet caught up, aborting startup. This affected servers that are both licensed and have ``SqlSettings.DataSourceReplicas`` configured.
+ - Fixed a bug where migrating a select, multiselect, or rank Custom Profile Attribute field into a Global Attributes template could leave the field with every option duplicated.
 
 ### Go Version
  - v12.0 is built with Go ``v1.26.7``.
