@@ -245,7 +245,7 @@ func TestSaveConfigLogPathEnforcement(t *testing.T) {
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.save_config.log_path_outside_root.app_error", appErr.Id)
 		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
-		assert.Nil(t, appErr.Unwrap())
+		assert.NoError(t, appErr.Unwrap())
 		assert.Empty(t, appErr.DetailedError)
 		assert.NotContains(t, appErr.ToJSON(), outside)
 
