@@ -77,6 +77,7 @@
     }
 
     .channels-input__menu {
+        border-radius: 4px;
         margin-top: 0;
         background: var(--center-channel-bg);
         box-shadow: 0 0 0 0 hsla(0, 0%, 0%, 0.1), 0 4px 11px hsla(0, 0%, 0%, 0.1);
@@ -84,8 +85,10 @@
     }
 
     .channels-input__menu-list {
+        overflow: hidden;
         padding: 8px 0;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
 
         &:empty {
             display: none;
@@ -98,7 +101,6 @@
         align-items: center;
         justify-content: center;
         padding: 8px 2.4rem;
-        border-radius: 4px 4px 0 0;
     }
 
     .channels-input__option {
@@ -122,14 +124,6 @@
             }
         }
 
-        &:first-child {
-            border-radius: 4px 4px 0 0;
-        }
-
-        &:last-child {
-            border-radius: 0 0 4px 4px;
-        }
-
         &--is-focused {
             background: rgba(var(--button-bg-rgb), 0.08);
         }
@@ -142,14 +136,16 @@
         .public-channel-icon,
         .private-channel-icon {
             display: flex;
-            width: 18px;
-            height: 18px;
+            width: 2.4rem;
+            height: 2.4rem;
+            flex: 0 0 2.4rem;
             align-items: center;
-            margin-right: 8px;
+            justify-content: center;
+            margin-right: 12px;
 
             svg {
-                width: 18px;
-                height: 18px;
+                width: 14px;
+                height: 14px;
                 fill: rgba(var(--center-channel-color-rgb), 0.75);
             }
         }
