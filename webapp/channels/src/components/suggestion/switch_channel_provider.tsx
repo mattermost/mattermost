@@ -71,6 +71,7 @@ import type {GlobalState} from 'types/store';
 
 import Provider from './provider';
 import type {ResultsCallback} from './provider';
+import {makeQuickSwitchSorter} from './quick_switch_ranking';
 import {SuggestionContainer} from './suggestion';
 import type {SuggestionProps} from './suggestion';
 import type {ProviderResults} from './suggestion_results';
@@ -506,107 +507,7 @@ function sortChannelsByRecencyAndTypeAndDisplayName(wrappedA: WrappedChannel, wr
     return sortChannelsByTypeAndDisplayName('en', wrappedA.channel as Channel, wrappedB.channel as Channel);
 }
 
-// Results are ranked on one additive scale so that comparing any two of them is consistent with
-// comparing them through a third. Each weight is larger than the sum of every weaker one, so a
-// stronger reason to demote always outranks any combination of weaker reasons.
-const ARCHIVED_RANK_PENALTY = 96;
-const DEACTIVATED_RANK_PENALTY = 48;
-
-// A name the search term is a prefix of beats one that only contains it somewhere in the middle.
-const NON_PREFIX_MATCH_RANK_PENALTY = 24;
-
-// Within a match-quality tier a direct message outranks a group message, which outranks a channel.
-// Type sits above recency so typing "sys" prefers the sysadmin DM over a recently opened GM whose
-// display name also starts with "sys" (e.g. "sysadmin, user-1"), even when that DM was never opened.
-const GROUP_MESSAGE_RANK_PENALTY = 8;
-const CHANNEL_RANK_PENALTY = 12;
-
-// Within a match-quality and type tier, how recently the user engaged separates results.
-const RECENT_ACTIVITY_WINDOW = 30 * 24 * 60 * 60 * 1000;
-const STALE_ACTIVITY_RANK_PENALTY = 2;
-const NO_ACTIVITY_RANK_PENALTY = 4;
-
-const HIDDEN_IN_SIDEBAR_RANK_PENALTY = 1;
-
-// The search term is compared against lower cased display names and usernames, neither of which
-// carries the leading @ of a mention.
-function normalizeSearchTerm(searchTerm: string) {
-    const lowerCased = searchTerm.toLowerCase();
-    return lowerCased.startsWith('@') ? lowerCased.substring(1) : lowerCased;
-}
-
-function startsWithSearchTerm(wrapped: WrappedChannel, searchTerm: string) {
-    const channel = wrapped.channel;
-
-    let displayName = channel.display_name.toLowerCase();
-    if (channel.type === Constants.DM_CHANNEL && displayName.startsWith('@')) {
-        displayName = displayName.substring(1);
-    }
-
-    return displayName.startsWith(searchTerm) || wrapped.name.toLowerCase().startsWith(searchTerm);
-}
-
-function activityRankPenalty(wrapped: WrappedChannel) {
-    if (!wrapped.last_viewed_at) {
-        return NO_ACTIVITY_RANK_PENALTY;
-    }
-
-    if (Date.now() - wrapped.last_viewed_at > RECENT_ACTIVITY_WINDOW) {
-        return STALE_ACTIVITY_RANK_PENALTY;
-    }
-
-    return 0;
-}
-
-function typeRankPenalty(channel: ChannelItem) {
-    if (channel.type === Constants.DM_CHANNEL || channel.type === Constants.THREADS) {
-        return 0;
-    }
-
-    if (channel.type === Constants.GM_CHANNEL) {
-        return GROUP_MESSAGE_RANK_PENALTY;
-    }
-
-    return CHANNEL_RANK_PENALTY;
-}
-
-function rankPenalties(wrapped: WrappedChannel, searchTerm: string) {
-    const channel = wrapped.channel;
-
-    return {
-        archived: channel.delete_at ? ARCHIVED_RANK_PENALTY : 0,
-        deactivated: wrapped.deactivated ? DEACTIVATED_RANK_PENALTY : 0,
-        nonPrefixMatch: startsWithSearchTerm(wrapped, searchTerm) ? 0 : NON_PREFIX_MATCH_RANK_PENALTY,
-        type: typeRankPenalty(channel),
-        activity: activityRankPenalty(wrapped),
-        hiddenInSidebar: wrapped.hiddenInSidebar ? HIDDEN_IN_SIDEBAR_RANK_PENALTY : 0,
-    };
-}
-
-function searchRank(wrapped: WrappedChannel, searchTerm: string) {
-    const penalties = rankPenalties(wrapped, searchTerm);
-
-    return penalties.archived +
-        penalties.deactivated +
-        penalties.nonPrefixMatch +
-        penalties.type +
-        penalties.activity +
-        penalties.hiddenInSidebar;
-}
-
-export function makeQuickSwitchSorter(searchTerm: string) {
-    const normalizedTerm = normalizeSearchTerm(searchTerm);
-
-    return (wrappedA: WrappedChannel, wrappedB: WrappedChannel) => {
-        const rankDifference = searchRank(wrappedA, normalizedTerm) - searchRank(wrappedB, normalizedTerm);
-
-        if (rankDifference !== 0) {
-            return rankDifference;
-        }
-
-        return sortChannelsByRecencyAndTypeAndDisplayName(wrappedA, wrappedB);
-    };
-}
+export {makeQuickSwitchSorter} from './quick_switch_ranking';
 
 function makeChannelSearchFilter(curState: GlobalState, channelPrefix: string) {
     const channelPrefixLower = channelPrefix.toLowerCase();

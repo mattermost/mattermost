@@ -18,7 +18,7 @@ import Constants, {StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import type {WrappedChannel} from './switch_channel_provider';
-import SwitchChannelProvider, {ConnectedSwitchChannelSuggestion, makeQuickSwitchSorter} from './switch_channel_provider';
+import SwitchChannelProvider, {ConnectedSwitchChannelSuggestion} from './switch_channel_provider';
 
 const latestPost = TestHelper.getPostMock({
     id: 'latest_post_id',
@@ -1653,107 +1653,6 @@ describe('components/SwitchChannelProvider', () => {
             // results, which were appended rather than ranked
             expect(mergedResults.terms).toContain('hidden_gm_channel');
             expect(mergedResults.terms.indexOf('hidden_gm_channel')).toBeGreaterThan(mergedResults.terms.indexOf('gm_channel_0'));
-        });
-    });
-
-    describe('makeQuickSwitchSorter', () => {
-        function wrap(id: string, type: string, lastViewedAt: number, name: string): WrappedChannel {
-            return {
-                channel: TestHelper.getChannelMock({id, name, display_name: name, type: type as Channel['type'], delete_at: 0}),
-                name,
-                deactivated: false,
-                last_viewed_at: lastViewedAt,
-            };
-        }
-
-        function permutations<T>(items: T[]): T[][] {
-            if (items.length <= 1) {
-                return [items];
-            }
-
-            return items.flatMap((item, i) => (
-                permutations([...items.slice(0, i), ...items.slice(i + 1)]).map((rest) => [item, ...rest])
-            ));
-        }
-
-        const DAY = 24 * 60 * 60 * 1000;
-
-        it('orders a result set the same way no matter which order it is merged in', async () => {
-            // Ranking has to be consistent when compared through a third result, otherwise the
-            // order depends on how the local and server results happened to be concatenated
-            const results = [
-                wrap('dm', Constants.DM_CHANNEL, 1, 'sam.smith'),
-                wrap('gm', Constants.GM_CHANNEL, 1000, 'sam.smith, wanda.pryor'),
-                wrap('open', Constants.OPEN_CHANNEL, 500, 'project-sam'),
-            ];
-
-            const orderings = permutations(results).map((ordering) => (
-                [...ordering].sort(makeQuickSwitchSorter('sam')).map((result) => result.channel.id).join(',')
-            ));
-
-            // All three were last read long ago, so they share a recency band. The direct message is
-            // a prefix match on the term while the group message and channel only contain it, so the
-            // direct message leads and the remaining two sort by type: group message, then channel
-            expect(new Set(orderings)).toEqual(new Set(['dm,gm,open']));
-        });
-
-        it('ranks a prefix-matching direct message above more recently used non-prefix matches', () => {
-            const recent = Date.now();
-            const stale = Date.now() - (90 * DAY);
-
-            // "sam.stale" is a genuine prefix match even though it was last opened long ago, while
-            // the recent GM and channel only contain the term mid-string. Prefix quality outranks
-            // type and recency.
-            const results = [
-                wrap('stale-dm', Constants.DM_CHANNEL, stale, 'sam.stale'),
-                wrap('recent-gm', Constants.GM_CHANNEL, recent, 'wanda.pryor, sam.smith'),
-                wrap('recent-channel', Constants.OPEN_CHANNEL, recent, 'project-sam'),
-            ];
-
-            expect([...results].sort(makeQuickSwitchSorter('sam')).map((result) => result.channel.id)).
-                toEqual(['stale-dm', 'recent-gm', 'recent-channel']);
-        });
-
-        it('ranks a direct message above a group message and channel within the same recency band', () => {
-            const recent = Date.now();
-
-            const results = [
-                wrap('recent-gm', Constants.GM_CHANNEL, recent, 'sam.smith, wanda.pryor'),
-                wrap('recent-dm', Constants.DM_CHANNEL, recent, 'sam.smith'),
-                wrap('recent-channel', Constants.OPEN_CHANNEL, recent, 'project-sam'),
-            ];
-
-            expect([...results].sort(makeQuickSwitchSorter('sam')).map((result) => result.channel.id)).
-                toEqual(['recent-dm', 'recent-gm', 'recent-channel']);
-        });
-
-        it('ranks a channel the term is a prefix of above a direct message that only contains it', () => {
-            const recent = Date.now();
-
-            // Both were used just as recently, so recency does not separate them. "off" is a prefix
-            // of the channel's name but only appears mid-string in the person's, so the channel must
-            // not be buried under the direct message (MM-70519 review follow-up).
-            const results = [
-                wrap('midstring-dm', Constants.DM_CHANNEL, recent, 'geoffrey.hinton'),
-                wrap('prefix-channel', Constants.OPEN_CHANNEL, recent, 'off-topic'),
-            ];
-
-            expect([...results].sort(makeQuickSwitchSorter('off')).map((result) => result.channel.id)).
-                toEqual(['prefix-channel', 'midstring-dm']);
-        });
-
-        it('sorts a never-opened DM above a recently viewed GM when both are prefix matches', () => {
-            const recent = Date.now();
-
-            // Mirrors typing "sys" with an unopened sysadmin DM and a recently viewed
-            // "sysadmin, user-1" GM: both labels start with the term, but the DM must still lead.
-            const results = [
-                wrap('never-dm', Constants.DM_CHANNEL, 0, 'sysadmin'),
-                wrap('recent-gm', Constants.GM_CHANNEL, recent, 'sysadmin, user-1'),
-            ];
-
-            expect([...results].sort(makeQuickSwitchSorter('sys')).map((result) => result.channel.id)).
-                toEqual(['never-dm', 'recent-gm']);
         });
     });
 });
