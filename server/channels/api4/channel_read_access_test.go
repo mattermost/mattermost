@@ -202,6 +202,13 @@ func installMockACS(t *testing.T, th *TestHelper) *mocks.AccessControlServiceInt
 // With no write policy in play they must not be gated by channel_read_access: a
 // denial of "may this session read the channel" has nothing to say about a write
 // nobody asked to restrict.
+//
+// addChannelMember is deliberately absent: membership changes need read access to the
+// channel either way, so it is gated on read like requestJoinChannel. Its full matrix
+// lives in channel_write_access_test.go --
+// TestChannelReadAccessBlocksPublicChannelSelfAdd (read gates it),
+// TestChannelWriteAccessDoesNotBlockPublicChannelSelfAdd (write must not gate a join),
+// and the "add channel member" denied surface (write still gates adding others).
 func channelReadAccessWriteSurfaces() []channelReadAccessSurface {
 	write := func(name string, fn func(t *testing.T, f *channelReadAccessFixture) (*model.Response, error)) channelReadAccessSurface {
 		return channelReadAccessSurface{name: name, call: fn}
@@ -258,10 +265,6 @@ func channelReadAccessWriteSurfaces() []channelReadAccessSurface {
 		write("patch channel", func(t *testing.T, f *channelReadAccessFixture) (*model.Response, error) {
 			purpose := "patched purpose"
 			_, resp, err := f.th.Client.PatchChannel(context.Background(), f.th.BasicChannel.Id, &model.ChannelPatch{Purpose: &purpose})
-			return resp, err
-		}),
-		write("add channel member", func(t *testing.T, f *channelReadAccessFixture) (*model.Response, error) {
-			_, resp, err := f.th.Client.AddChannelMember(context.Background(), f.th.BasicChannel.Id, f.th.BasicUser2.Id)
 			return resp, err
 		}),
 		write("post delete", func(t *testing.T, f *channelReadAccessFixture) (*model.Response, error) {

@@ -282,6 +282,40 @@ func TestChannelWriteAccessAllowedSurfaces(t *testing.T) {
 	}
 }
 
+// Joining a public channel you can see is a read-tier action. The write policy must
+// not refuse it: the self-add path is authorised on the team's join_public_channels
+// permission and never reaches the manage-members check, so a write denial used to
+// turn a plainly visible channel into one nobody new could enter. Adding *another*
+// user stays write-gated -- that case is covered as a denied surface above.
+func TestChannelWriteAccessDoesNotBlockPublicChannelSelfAdd(t *testing.T) {
+	f, _ := setupChannelWriteAccessAPI(t, false)
+
+	// Created by the admin so the acting user is not already a member; self-adding an
+	// existing member short-circuits before the join is ever attempted.
+	channel := f.th.CreateChannelWithClientAndTeam(t, f.th.SystemAdminClient, model.ChannelTypeOpen, f.th.BasicTeam.Id)
+
+	member, resp, err := f.th.Client.AddChannelMember(context.Background(), channel.Id, f.th.BasicUser.Id)
+	require.NoError(t, err, "a write denial must not block joining a readable public channel")
+	require.Equal(t, http.StatusCreated, resp.StatusCode)
+	require.Equal(t, f.th.BasicUser.Id, member.UserId)
+	require.Equal(t, channel.Id, member.ChannelId)
+}
+
+// The read policy still gates the same path: a channel the session cannot see must
+// not be joinable.
+func TestChannelReadAccessBlocksPublicChannelSelfAdd(t *testing.T) {
+	f, _ := setupChannelReadAccessAPI(t, false)
+
+	channel := f.th.CreateChannelWithClientAndTeam(t, f.th.SystemAdminClient, model.ChannelTypeOpen, f.th.BasicTeam.Id)
+
+	_, resp, err := f.th.Client.AddChannelMember(context.Background(), channel.Id, f.th.BasicUser.Id)
+	require.Error(t, err)
+	require.NotNil(t, resp)
+	require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	require.True(t, isChannelReadAccessDenial(err, abacDeniedErrorID),
+		"expected the read denial, got %v", err)
+}
+
 // Reads are channel_read_access's question alone: a write denial must not hide a
 // channel or its content.
 func TestChannelWriteAccessDoesNotGateReads(t *testing.T) {

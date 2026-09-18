@@ -2661,10 +2661,13 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Gated here rather than relying on the manage-members choke point below,
-	// because the public-channel self-add path is authorised on a team permission
-	// and never reaches it.
-	if !requireChannelWriteAccess(c, channel) {
+	// Read rather than write, and gated here rather than at the manage-members choke
+	// point below, because the public-channel self-add path is authorised on a team
+	// permission and never reaches that point. Joining is a read-tier action: a write
+	// rule that excludes non-members would otherwise make a channel you can plainly
+	// see unjoinable. Adding *other* users still gets the write gate, from the
+	// manage_*_channel_members checks below. Matches requestJoinChannel.
+	if !requireChannelReadAccess(c, channel) {
 		return
 	}
 
