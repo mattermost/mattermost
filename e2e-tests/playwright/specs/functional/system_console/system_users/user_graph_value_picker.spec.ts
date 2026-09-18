@@ -186,6 +186,15 @@ test.describe('System Console - Hierarchical value picker', () => {
         await expect(userDetail.errorMessage).not.toBeVisible();
         await userDetail.waitForSaveComplete();
 
+        // # Reload the user detail page
+        await systemConsolePage.page.goto(`/admin_console/user_management/user/${testUser.id}`);
+        await systemConsolePage.page.waitForURL(`**/admin_console/user_management/user/${testUser.id}`);
+
+        // * The remaining chips are still shown and the removed value stays gone
+        await expect(userCard.getCpaGraphChip(fieldId, 'Red Fruits')).toBeVisible({timeout: 30_000});
+        await expect(userCard.getCpaGraphChip(fieldId, 'Green Fruits')).toBeVisible();
+        await expect(userCard.getCpaGraphChip(fieldId, 'Yellow Fruits')).toHaveCount(0);
+
         // * Only the remaining values persisted
         await expect
             .poll(async () => {
