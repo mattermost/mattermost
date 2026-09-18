@@ -1060,6 +1060,117 @@ func TestDatabaseStoreString(t *testing.T) {
 	assert.False(t, strings.Contains(maskedDSN, "mostest_password"))
 }
 
+// TestDatabaseStoreStringConnectionStringFormats covers the value reported for
+// each supported shape of connection string. Only URL-form connection strings
+// are partially redacted; anything else is reported without any part of the
+// original connection string.
+func TestDatabaseStoreStringConnectionStringFormats(t *testing.T) {
+	testCases := []struct {
+		name       string
+		dsn        string
+		credential string
+		// expected, when set, is the exact value reported for a connection
+		// string that can be partially redacted.
+		expected string
+	}{
+		{
+			name:       "URL",
+			dsn:        "postgres://mmuser:sentinel_pw_alpha@localhost:5432/mattermost?sslmode=disable",
+			credential: "sentinel_pw_alpha",
+			expected:   "postgres://" + model.SanitizedPassword + ":" + model.SanitizedPassword + "@localhost:5432/mattermost?sslmode=disable",
+		},
+		{
+			name:       "keyword/value",
+			dsn:        "user=mmuser password=sentinel_pw_bravo host=localhost dbname=mattermost sslmode=disable",
+			credential: "sentinel_pw_bravo",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ds := &DatabaseStore{
+				driverName:  model.DatabaseDriverPostgres,
+				originalDsn: tc.dsn,
+			}
+
+			maskedDSN := ds.String()
+			assert.NotContains(t, maskedDSN, tc.credential)
+			if tc.expected != "" {
+				assert.Equal(t, tc.expected, maskedDSN)
+			}
+		})
+	}
+}
+
+// TestParseDSNAcceptsOnlyDescribableConnectionStrings pins the property
+// [DatabaseStore.String] relies on: NewDatabaseStore only builds a store for a
+// connection string parseDSN takes, and every one of those is a connection URL
+// that model.SanitizeDataSource can describe. A store therefore always has a
+// description of its own connection string available, and it never carries the
+// credential.
+func TestParseDSNAcceptsOnlyDescribableConnectionStrings(t *testing.T) {
+	testCases := []struct {
+		name string
+		dsn  string
+		// accepted records whether parseDSN takes the connection string, which
+		// is what NewDatabaseStore requires of it.
+		accepted bool
+	}{
+		{
+			name:     "postgres scheme",
+			dsn:      "postgres://mmuser:sentinel_pw_alpha@localhost:5432/mattermost?sslmode=disable",
+			accepted: true,
+		},
+		{
+			name:     "postgresql scheme",
+			dsn:      "postgresql://mmuser:sentinel_pw_bravo@localhost:5432/mattermost?sslmode=disable",
+			accepted: true,
+		},
+		{
+			name:     "credentials in the query string",
+			dsn:      "postgres://localhost:5432/mattermost?user=mmuser&password=sentinel_pw_charlie",
+			accepted: true,
+		},
+		{
+			name:     "another scheme",
+			dsn:      "mysql://mmuser:sentinel_pw_delta@localhost/mattermost",
+			accepted: false,
+		},
+		{
+			name:     "upper case scheme",
+			dsn:      "POSTGRES://mmuser:sentinel_pw_echo@localhost/mattermost",
+			accepted: false,
+		},
+		{
+			name:     "keyword/value connection string",
+			dsn:      "user=mmuser password=sentinel_pw_foxtrot host=localhost dbname=mattermost",
+			accepted: false,
+		},
+		{
+			name:     "file path",
+			dsn:      "/opt/mattermost/config/config.json",
+			accepted: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, _, parseErr := parseDSN(tc.dsn)
+			assert.Equal(t, tc.accepted, parseErr == nil)
+			assert.Equal(t, tc.accepted, IsDatabaseDSN(tc.dsn))
+			if !tc.accepted {
+				return
+			}
+
+			// A store built from an accepted connection string always records
+			// the registered driver name, the only one the store can open.
+			described, err := model.SanitizeDataSource(model.DatabaseDriverPostgres, tc.dsn)
+			require.NoError(t, err)
+			assert.NotContains(t, described, "sentinel_pw_")
+		})
+	}
+}
+
 func TestCleanUp(t *testing.T) {
 	_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
 	defer tearDown()

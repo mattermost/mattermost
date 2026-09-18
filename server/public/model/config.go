@@ -5690,8 +5690,13 @@ func (o *Config) Sanitize(pluginManifests []*Manifest, opts *SanitizeOptions) {
 	o.PluginSettings.Sanitize(pluginManifests)
 }
 
-// SanitizeDataSource redacts sensitive information (username and password) from a PostgreSQL
-// connection string while preserving other connection parameters.
+// SanitizeDataSource redacts the username and password of a PostgreSQL connection URL
+// while preserving the other connection parameters.
+//
+// Only the URL form of a connection string is supported, that is one prefixed with
+// postgres:// or postgresql://. Any other value, including a keyword/value connection
+// string, returns an empty string and an error, leaving it to the caller to decide what
+// to report in its place. An empty dataSource returns an empty string and no error.
 //
 // Example:
 //
@@ -5705,9 +5710,15 @@ func SanitizeDataSource(driverName, dataSource string) (string, error) {
 		return "", errors.New("invalid drivername: only postgres is supported")
 	}
 
+	// These are the prefixes the PostgreSQL driver itself uses to tell a connection
+	// URL from a keyword/value connection string.
+	if !strings.HasPrefix(dataSource, "postgres://") && !strings.HasPrefix(dataSource, "postgresql://") {
+		return "", errors.New("invalid data source: only postgres connection URLs are supported")
+	}
+
 	u, err := url.Parse(dataSource)
 	if err != nil {
-		return "", err
+		return "", dataSourceParseError(err)
 	}
 	u.User = url.UserPassword(SanitizedPassword, SanitizedPassword)
 
@@ -5720,9 +5731,36 @@ func SanitizeDataSource(driverName, dataSource string) (string, error) {
 	// Unescape the URL to make it human-readable
 	out, err := url.QueryUnescape(u.String())
 	if err != nil {
-		return "", err
+		return "", dataSourceParseError(err)
 	}
 	return out, nil
+}
+
+// dataSourceParseError returns why a connection string could not be read as a URL,
+// on its own: the description reported by [url.Parse] is kept, the connection string
+// it was given is not. Errors reported in any other shape are described generically.
+func dataSourceParseError(err error) error {
+	var urlErr *url.Error
+	if errors.As(err, &urlErr) && urlErr.Err != nil {
+		return &dataSourceError{err: &url.Error{Op: urlErr.Op, Err: urlErr.Err}}
+	}
+
+	return errors.New("invalid data source")
+}
+
+// dataSourceError reports why a connection string could not be read as a URL. It
+// unwraps to the [url.Error] carrying that description, with the connection string
+// left out.
+type dataSourceError struct {
+	err *url.Error
+}
+
+func (e *dataSourceError) Error() string {
+	return "invalid data source: " + e.err.Err.Error()
+}
+
+func (e *dataSourceError) Unwrap() error {
+	return e.err
 }
 
 type FilterTag struct {
