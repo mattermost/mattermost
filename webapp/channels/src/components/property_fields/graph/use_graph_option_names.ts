@@ -45,6 +45,10 @@ function currentGeneration(fieldId: string): number {
     return fieldGenerations.get(fieldId) ?? 0;
 }
 
+export function getGraphOptionNameGeneration(fieldId: string): number {
+    return currentGeneration(fieldId);
+}
+
 function notifyCacheListeners() {
     for (const listener of cacheListeners) {
         listener();
@@ -105,8 +109,8 @@ async function walkGraphOptionNames(field: GraphFieldRef, ids: readonly string[]
         return;
     }
 
+    const generation = currentGeneration(field.id);
     try {
-        const generation = currentGeneration(field.id);
         const options = await pageAllAccessControlFieldOptions(field, {signal});
         if (signal?.aborted || currentGeneration(field.id) !== generation) {
             return;
@@ -117,7 +121,12 @@ async function walkGraphOptionNames(field: GraphFieldRef, ids: readonly string[]
     } catch (error) {
         // Failed walk does not commit; didResolve stays false. An abort is this
         // caller leaving rather than a walk that cannot succeed, so it is left
-        // unrecorded and the next caller may try again.
+        // unrecorded and the next caller may try again. A reject from a walk
+        // that started before the field was cleared is not a failure of the
+        // current generation, so it must not block the retry.
+        if (currentGeneration(field.id) !== generation) {
+            return;
+        }
         if (!(error instanceof DOMException && error.name === 'AbortError')) {
             failedWalks.add(field.id);
         }

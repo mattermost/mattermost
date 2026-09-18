@@ -29,10 +29,12 @@ const mockPageAll = jest.mocked(pageAllAccessControlFieldOptions);
 
 function deferred<T>() {
     let resolve!: (value: T) => void;
-    const promise = new Promise<T>((res) => {
+    let reject!: (reason?: unknown) => void;
+    const promise = new Promise<T>((res, rej) => {
         resolve = res;
+        reject = rej;
     });
-    return {promise, resolve};
+    return {promise, resolve, reject};
 }
 
 async function flushMicrotasks() {
@@ -368,5 +370,26 @@ describe('useGraphOptionNames', () => {
         await waitFor(() => expect(getGraphOptionNames(field.id).didResolve).toBe(true));
         expect(getGraphOptionNames(field.id).names).toEqual({a: 'NEW'});
         expect(getGraphOptionNames(field.id).names).not.toHaveProperty('gone');
+    });
+
+    test('a stale walk reject after clear does not block the next walk', async () => {
+        const first = deferred<PropertyFieldOption[]>();
+        mockPageAll.mockReturnValueOnce(first.promise);
+
+        const field = fieldOf('stale-reject-field', {options_omitted: true});
+        ensureGraphOptionNames(field, ['a']);
+
+        await waitFor(() => expect(mockPageAll).toHaveBeenCalledTimes(1));
+
+        clearGraphOptionNamesForField(field.id);
+        first.reject(new Error('403'));
+        await flushMicrotasks();
+
+        mockPageAll.mockResolvedValueOnce([opt('a', 'NEW')]);
+        ensureGraphOptionNames(field, ['a']);
+
+        await waitFor(() => expect(getGraphOptionNames(field.id).didResolve).toBe(true));
+        expect(getGraphOptionNames(field.id).names).toEqual({a: 'NEW'});
+        expect(mockPageAll).toHaveBeenCalledTimes(2);
     });
 });
