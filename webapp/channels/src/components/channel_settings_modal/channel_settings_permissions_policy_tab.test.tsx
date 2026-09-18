@@ -777,7 +777,6 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab 
                 general: {
                     config: {
                         FeatureFlagPermissionPolicies: 'true',
-                        FeatureFlagChannelAccessABACPermission: 'true',
                         FeatureFlagPolicySimulation: simulation ? 'true' : 'false',
                     },
                 },

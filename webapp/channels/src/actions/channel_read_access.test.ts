@@ -28,14 +28,13 @@ const deniedChannel = {id: 'denied1', team_id: 'team1', type: 'P', display_name:
 const dm = {id: 'dm1', team_id: '', type: 'D', display_name: 'A DM', delete_at: 0};
 const archived = {id: 'arch1', team_id: 'team1', type: 'O', display_name: 'Archived', delete_at: 12345};
 
-function makeState(overrides: {currentChannelId?: string; flagOn?: boolean} = {}) {
-    const {currentChannelId = '', flagOn = true} = overrides;
+function makeState(overrides: {currentChannelId?: string} = {}) {
+    const {currentChannelId = ''} = overrides;
     return () => ({
         entities: {
             general: {
                 config: {
                     FeatureFlagPermissionPolicies: 'true',
-                    FeatureFlagChannelAccessABACPermission: flagOn ? 'true' : 'false',
                 },
                 license: {},
             },
@@ -138,12 +137,5 @@ describe('reconcileChannelReadAccess', () => {
         await reconcileChannelReadAccess()(dispatch, makeState(), undefined);
 
         expect(droppedIds(dispatch)).toEqual([]);
-    });
-
-    it('does nothing at all while the feature flag is off', async () => {
-        await reconcileChannelReadAccess()(dispatch, makeState({flagOn: false}), undefined);
-
-        expect(fetchAllMyTeamsChannels).not.toHaveBeenCalled();
-        expect(dispatch).not.toHaveBeenCalled();
     });
 });

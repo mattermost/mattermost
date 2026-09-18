@@ -126,8 +126,7 @@ func (a *App) noteChannelReadAccessEnforcementDenial(rctx request.CTX, userID, c
 }
 
 func (a *App) channelReadAccessEnforcementActive() bool {
-	return a.Config().FeatureFlags.IsChannelAccessABACPermissionEnabled() &&
-		a.attributeBasedAccessControlEnabled() &&
+	return a.attributeBasedAccessControlEnabled() &&
 		model.MinimumEnterpriseAdvancedLicense(a.License()) &&
 		a.Srv().Channels().AccessControl != nil
 }

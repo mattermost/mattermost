@@ -28,7 +28,7 @@ import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
 import {getFeatureFlagValue, isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';
-import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {mergeSessionAttributes} from 'components/admin_console/access_control/editors/shared';
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
@@ -590,8 +590,7 @@ function ChannelSettingsPermissionsPolicyTab({
     }, [actions, buildFinalRules, originalImports, channel.id, channel.display_name, formatMessage]);
 
     const checkSelfChannelReadAccess = useCallback(async (): Promise<SelfAccessCheck> => {
-        const governsChannelReadAccess = channelReadAccessEnabled &&
-            rules.some((r) => r.actions.includes(ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS));
+        const governsChannelReadAccess = rules.some((r) => r.actions.includes(ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS));
         if (!governsChannelReadAccess) {
             return 'skipped';
         }
@@ -625,7 +624,7 @@ function ChannelSettingsPermissionsPolicyTab({
         }
 
         return decision.decision ? 'allowed' : 'denied';
-    }, [actions, buildCandidatePolicy, rules, channelReadAccessEnabled, policySimulationEnabled, currentUserId]);
+    }, [actions, buildCandidatePolicy, rules, policySimulationEnabled, currentUserId]);
 
     const commitSave = useCallback(async () => {
         if (saveInProgress.current) {
