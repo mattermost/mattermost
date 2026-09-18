@@ -126,6 +126,43 @@ func TestFindingStore(t *testing.T, newStore func() FindingStore) {
 		require.ErrorIs(t, store.Mute("missing", "user-1", 10), ErrFindingNotFound)
 		require.ErrorIs(t, store.Unmute("missing"), ErrFindingNotFound)
 	})
+
+	t.Run("upsert refresh preserves existing mute metadata", func(t *testing.T) {
+		t.Parallel()
+
+		store := newStore()
+		require.NoError(t, store.Upsert([]*model.HealthFinding{testFinding("fp1", "check_cluster_status", 100)}))
+		require.NoError(t, store.Mute("fp1", "user-1", 456))
+
+		refreshed := testFinding("fp1", "check_cluster_status", 200)
+		require.NoError(t, store.Upsert([]*model.HealthFinding{refreshed}))
+
+		got, err := store.GetByFingerprints([]string{"fp1"})
+		require.NoError(t, err)
+		require.Len(t, got, 1)
+		require.True(t, got[0].IsMuted())
+		require.Equal(t, int64(456), got[0].MutedAt)
+		require.Equal(t, "user-1", got[0].MutedBy)
+		require.Equal(t, int64(200), got[0].LastSeenAt)
+	})
+
+	t.Run("upsert does not persist rendered fields", func(t *testing.T) {
+		t.Parallel()
+
+		store := newStore()
+		finding := testFinding("fp1", "check_cluster_status", 100)
+		finding.Summary = "rendered summary"
+		finding.Remediation = "rendered remediation"
+		finding.Message = "rendered message"
+		require.NoError(t, store.Upsert([]*model.HealthFinding{finding}))
+
+		got, err := store.GetByFingerprints([]string{"fp1"})
+		require.NoError(t, err)
+		require.Len(t, got, 1)
+		require.Empty(t, got[0].Summary)
+		require.Empty(t, got[0].Remediation)
+		require.Empty(t, got[0].Message)
+	})
 }
 
 func testFinding(fingerprint, code string, lastSeenAt int64) *model.HealthFinding {
