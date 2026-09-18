@@ -932,6 +932,36 @@ func (s *SqlPropertyFieldStore) DeleteOptions(groupID, fieldID string, expectedU
 	return nil
 }
 
+func (s *SqlPropertyFieldStore) PermanentDeleteOwnedOptions(groupID, fieldID string) (err error) {
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return errors.Wrap(err, "property_options_delete_owned_begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	options := s.getQueryBuilder().
+		Delete("PropertyOptions").
+		Where(sq.Eq{"FieldID": fieldID}).
+		Where(sq.Eq{"GroupID": groupID})
+	if _, err = transaction.ExecBuilder(options); err != nil {
+		return errors.Wrap(err, "property_options_delete_owned_exec")
+	}
+
+	// No GroupID column on PropertyOptionEdges.
+	edges := s.getQueryBuilder().
+		Delete("PropertyOptionEdges").
+		Where(sq.Eq{"FieldID": fieldID})
+	if _, err = transaction.ExecBuilder(edges); err != nil {
+		return errors.Wrap(err, "property_option_edges_delete_owned_exec")
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return errors.Wrap(err, "property_options_delete_owned_commit_transaction")
+	}
+
+	return nil
+}
+
 // deleteOwnedOptions soft-deletes every live option a field owns and deletes the
 // whole hierarchy between them. It runs when the field itself is being deleted,
 // which is why it is told the field rather than a list of options: all of them
