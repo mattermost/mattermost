@@ -483,6 +483,12 @@ func TestGenerateFlaggedPostReportFileDownloadPolicy(t *testing.T) {
 		th.App.Srv().Channels().AccessControl = mockACS
 		t.Cleanup(func() { th.App.Srv().Channels().AccessControl = original })
 
+		// Reading the channel is gated on channel_read_access before the report is
+		// generated. That gate is covered elsewhere; report "not governed" so it
+		// cannot stand in for the file decision under test.
+		mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).
+			Return(false, nil).Maybe()
+
 		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
 			return req.Resource.ID == channelID && req.Action == model.AccessControlPolicyActionDownloadFileAttachment
 		})).Return(model.AccessDecision{Decision: allowed}, (*model.AppError)(nil))
@@ -572,6 +578,13 @@ func TestGenerateFlaggedPostReportAttachmentsOmittedAudit(t *testing.T) {
 		mockACS := &mocks.AccessControlServiceInterface{}
 		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
 			Return(model.AccessDecision{Decision: allowed}, (*model.AppError)(nil))
+
+		// Reading the channel is gated on channel_read_access before the report is
+		// generated. That gate is covered elsewhere; report "not governed" so a
+		// denying download decision is the only thing that omits the attachments.
+		mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).
+			Return(false, nil).Maybe()
+
 		th.App.Srv().Channels().AccessControl = mockACS
 	}
 
@@ -652,6 +665,12 @@ func TestGenerateFlaggedPostReportEvaluatesSessionAttributes(t *testing.T) {
 		original := th.App.Srv().Channels().AccessControl
 		th.App.Srv().Channels().AccessControl = mockACS
 		t.Cleanup(func() { th.App.Srv().Channels().AccessControl = original })
+
+		// Reading the channel is gated on channel_read_access before the report is
+		// generated. That gate is covered elsewhere; report "not governed" so it
+		// cannot stand in for the file decision under test.
+		mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).
+			Return(false, nil).Maybe()
 
 		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
 			return req.Action == model.AccessControlPolicyActionDownloadFileAttachment &&

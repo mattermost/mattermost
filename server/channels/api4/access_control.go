@@ -86,7 +86,7 @@ func searchAccessControlDecisionActions(c *Context, w http.ResponseWriter, r *ht
 	// today, so anything else is rejected rather than silently skipping the access check.
 	switch req.Resource.Type {
 	case model.AccessControlPolicyTypeChannel:
-		if hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), req.Resource.ID, model.PermissionReadChannel); !hasPermission {
+		if hasPermission, _ := c.App.SessionHasPermissionToChannelRBACOnly(c.AppContext, *c.AppContext.Session(), req.Resource.ID, model.PermissionReadChannel); !hasPermission {
 			c.SetPermissionError(model.PermissionReadChannel)
 			return
 		}
@@ -192,7 +192,7 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 				return
 			}
 
-			hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, policy.ID, model.PermissionManageChannelAccessRules)
+			hasChannelPermission, _ := c.App.HasPermissionToChannelRBACOnly(c.AppContext, c.AppContext.Session().UserId, policy.ID, model.PermissionManageChannelAccessRules)
 			if !hasChannelPermission {
 				c.SetPermissionError(model.PermissionManageChannelAccessRules)
 				return
@@ -403,7 +403,7 @@ func checkExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 				c.SetPermissionError(model.PermissionManageSystem)
 				return
 			}
-			hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
+			hasChannelPermission, _ := c.App.HasPermissionToChannelRBACOnly(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
 			if !hasChannelPermission {
 				c.SetPermissionError(model.PermissionManageChannelAccessRules)
 				return
@@ -455,7 +455,7 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionManageSystem)
 			return
 		}
-		hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
+		hasChannelPermission, _ := c.App.HasPermissionToChannelRBACOnly(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
 		if !hasChannelPermission {
 			c.SetPermissionError(model.PermissionManageChannelAccessRules)
 			return
@@ -592,9 +592,9 @@ func teamAdminCELContextOK(c *Context, channelID, teamID string) bool {
 //     resolves to a channel in that team. Without this guard a team
 //     admin could simulate a policy for any channel by pairing their
 //     team_id with a foreign channel_id; the cross-team check forces
-//     the auth to fall through to HasPermissionToChannel for any
+//     the auth to fall through to HasPermissionToChannelRBACOnly for any
 //     channel outside the admin's team.
-//   - channel admin: when channelID is set, via HasPermissionToChannel
+//   - channel admin: when channelID is set, via HasPermissionToChannelRBACOnly
 //     (which already covers the channel's actual team admins).
 //
 // On failure the function sets the appropriate permission error on `c`
@@ -613,7 +613,7 @@ func authorizeSimulatePolicy(c *Context, channelID, teamID string) (hasSystemPer
 		c.SetPermissionError(model.PermissionManageSystem)
 		return false, false
 	}
-	hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelID, model.PermissionManageChannelAccessRules)
+	hasChannelPermission, _ := c.App.HasPermissionToChannelRBACOnly(c.AppContext, c.AppContext.Session().UserId, channelID, model.PermissionManageChannelAccessRules)
 	if !hasChannelPermission {
 		c.SetPermissionError(model.PermissionManageChannelAccessRules)
 		return false, false
@@ -776,7 +776,7 @@ func validateExpressionAgainstRequester(c *Context, w http.ResponseWriter, r *ht
 				c.SetPermissionError(model.PermissionManageSystem)
 				return
 			}
-			hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
+			hasChannelPermission, _ := c.App.HasPermissionToChannelRBACOnly(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
 			if !hasChannelPermission {
 				c.SetPermissionError(model.PermissionManageChannelAccessRules)
 				return
@@ -1401,7 +1401,7 @@ func getFieldsAutocomplete(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
+			hasChannelPermission, _ := c.App.HasPermissionToChannelRBACOnly(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
 			if !hasChannelPermission {
 				c.SetPermissionError(model.PermissionManageChannelAccessRules)
 				return
@@ -1473,7 +1473,7 @@ func convertToVisualAST(c *Context, w http.ResponseWriter, r *http.Request) {
 				c.SetPermissionError(model.PermissionManageSystem)
 				return
 			}
-			hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
+			hasChannelPermission, _ := c.App.HasPermissionToChannelRBACOnly(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
 			if !hasChannelPermission {
 				c.SetPermissionError(model.PermissionManageChannelAccessRules)
 				return

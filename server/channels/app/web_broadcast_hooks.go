@@ -26,6 +26,7 @@ const (
 	broadcastBurnOnReadReaction = "burn_on_read_reaction"
 	broadcastAbacFiles          = "abac_files"
 	broadcastOnlyChannelAdmins  = "only_channel_admins"
+	broadcastChannelReadAccess  = "channel_read_access"
 )
 
 func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
@@ -39,6 +40,7 @@ func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
 		broadcastBurnOnReadReaction: &burnOnReadReactionBroadcastHook{},
 		broadcastAbacFiles:          &abacFilesBroadcastHook{},
 		broadcastOnlyChannelAdmins:  &onlyChannelAdminsBroadcastHook{},
+		broadcastChannelReadAccess:  &channelReadAccessBroadcastHook{},
 	}
 }
 
@@ -529,6 +531,41 @@ func (h *onlyChannelAdminsBroadcastHook) Process(msg *platform.HookedWebSocketEv
 	}
 
 	if !slices.Contains(adminUserIDs, webConn.UserId) {
+		msg.Event().Reject()
+	}
+	return nil
+}
+
+// channelReadAccessBroadcastHook drops a channel-scoped event for any recipient the ABAC
+// channel_read_access policy denies. The channel gates cover what a session can fetch, but
+// a post arriving over the websocket was never fetched, so without this a session
+// that has lost access keeps receiving the channel's traffic until it reloads.
+// Rejection lands before the event burns a sequence number or enters the reconnect
+// replay queue, so a dropped event leaves no gap for the client to notice.
+type channelReadAccessBroadcastHook struct{}
+
+func useChannelReadAccessHook(message *model.WebSocketEvent, channelID string) {
+	message.GetBroadcast().AddHook(broadcastChannelReadAccess, map[string]any{
+		"channel_id": channelID,
+	})
+}
+
+func (h *channelReadAccessBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
+	channelID, err := getTypedArg[string](args, "channel_id")
+	if err != nil {
+		return errors.Wrap(err, "Invalid channel_id value passed to channelReadAccessBroadcastHook")
+	}
+
+	// A rule may reference the session's device or network, so the evaluation needs
+	// this connection's session; without one there is nothing to evaluate.
+	session := webConn.GetSession()
+	if session == nil {
+		msg.Event().Reject()
+		return nil
+	}
+
+	rctx := request.EmptyContext(webConn.Platform.Log()).WithSession(session)
+	if !webConn.Suite.HasChannelReadAccessByID(rctx, webConn.UserId, channelID) {
 		msg.Event().Reject()
 	}
 	return nil

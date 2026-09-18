@@ -13,7 +13,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {ChannelTypes, CloudTypes, JobTypes, PostTypes, RenderPermissionTypes, TeamTypes} from 'mattermost-redux/action_types';
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
-import {fetchAllMyTeamsChannels, getChannelMember} from 'mattermost-redux/actions/channels';
+import {getChannelMember} from 'mattermost-redux/actions/channels';
 import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {getGroup} from 'mattermost-redux/actions/groups';
 import {getJobsByType} from 'mattermost-redux/actions/jobs';
@@ -28,6 +28,7 @@ import {getUser} from 'mattermost-redux/actions/users';
 import {getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
 import {getStatusForUserId, getUser as stateUser} from 'mattermost-redux/selectors/entities/users';
 
+import {reconcileChannelReadAccess} from 'actions/channel_read_access';
 import {handleNewPost} from 'actions/post_actions';
 import {syncPostsInChannel} from 'actions/views/channel';
 import {closeRightHandSide} from 'actions/views/rhs';
@@ -112,7 +113,12 @@ jest.mock('mattermost-redux/actions/channels', () => ({
     getChannelStats: jest.fn(() => ({type: 'GET_CHANNEL_STATS'})),
     getChannelMember: jest.fn(() => ({type: 'GET_CHANNEL_MEMBER'})),
     fetchAllMyChannelMembers: jest.fn(() => ({type: 'FETCH_ALL_MY_CHANNEL_MEMBERS'})),
-    fetchAllMyTeamsChannels: jest.fn(),
+}));
+
+// The reconciliation itself is covered by channel_read_access.test.ts; here only the
+// delegation matters, so it stands in as a single recognisable action.
+jest.mock('actions/channel_read_access', () => ({
+    reconcileChannelReadAccess: jest.fn(() => ({type: 'MOCK_RECONCILE_CHANNEL_READ_ACCESS'})),
 }));
 
 jest.mock('actions/post_actions', () => ({
@@ -946,9 +952,9 @@ describe('reconnect', () => {
         expect(fetchMyCategories).toHaveBeenCalledWith('currentTeamId');
     });
 
-    test('should call fetchAllMyTeamsChannels when socket reconnects', () => {
+    test('should reconcile channel read access when socket reconnects', () => {
         reconnect();
-        expect(fetchAllMyTeamsChannels).toHaveBeenCalled();
+        expect(reconcileChannelReadAccess).toHaveBeenCalled();
     });
 
     test('should reload custom profile attribute fields on reconnect', () => {
@@ -1154,6 +1160,9 @@ describe('handleChannelAccessControlUpdatedEvent', () => {
             {
                 type: PostTypes.RESET_POSTS_IN_CHANNEL,
                 channelId: 'channel-ac-1',
+            },
+            {
+                type: 'MOCK_RECONCILE_CHANNEL_READ_ACCESS',
             },
         ]);
         expect(invalidateAccessControlAttributesCache).toHaveBeenCalledTimes(1);
