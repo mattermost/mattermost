@@ -102,7 +102,6 @@ const (
 )
 
 type HealthFindingFilter struct {
-	Surfaces []string `json:"surfaces,omitempty"`
-
-	Muted MutedFilter `json:"muted,omitempty"`
+	Surfaces []string    `json:"surfaces,omitempty"`
+	Muted    MutedFilter `json:"muted,omitempty"`
 }
