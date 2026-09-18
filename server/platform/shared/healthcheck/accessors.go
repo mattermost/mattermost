@@ -86,12 +86,6 @@ func (s *Snapshot) JobsFor(jobType string) ([]*model.Job, bool) {
 	}
 }
 
-func CollectedJobTypes() []string {
-	jobTypes := make([]string, len(collectedJobTypes))
-	copy(jobTypes, collectedJobTypes)
-	return jobTypes
-}
-
 func (s *Snapshot) LicenseFeature(get func(*model.Features) *bool) (bool, bool) {
 	if get == nil || s == nil || s.License == nil || s.License.Features == nil {
 		return false, false

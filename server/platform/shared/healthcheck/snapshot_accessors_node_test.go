@@ -5,7 +5,6 @@ package healthcheck
 
 import (
 	"errors"
-	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -220,17 +219,4 @@ func TestNodeSectionErrReadsSectionsWithoutDiagnostics(t *testing.T) {
 	require.True(t, ok)
 	require.NoError(t, err)
 	require.True(t, node.Has(model.SectionLDAPProbe))
-}
-
-func TestCollectedJobTypes(t *testing.T) {
-	t.Parallel()
-
-	jobTypes := CollectedJobTypes()
-	require.Len(t, jobTypes, 6)
-	require.Contains(t, strings.Join(jobTypes, ","), model.JobTypeLdapSync)
-	require.Contains(t, strings.Join(jobTypes, ","), model.JobTypeDataRetention)
-	require.Contains(t, strings.Join(jobTypes, ","), model.JobTypeMessageExport)
-	require.Contains(t, strings.Join(jobTypes, ","), model.JobTypeElasticsearchPostIndexing)
-	require.Contains(t, strings.Join(jobTypes, ","), model.JobTypeElasticsearchPostAggregation)
-	require.Contains(t, strings.Join(jobTypes, ","), model.JobTypeMigrations)
 }
