@@ -96,11 +96,8 @@ describe('Guest Account - Verify Guest Access UI', () => {
         cy.get('#saveSetting').should('be.visible').click();
         cy.get('#confirmModalButton').should('be.visible').click().wait(TIMEOUTS.TWO_SEC);
 
-        // # Visit the chat facing application
-        cy.get('.header__info').should('be.visible').click();
-        cy.findByLabelText('Admin Console Menu').should('exist').within(() => {
-            cy.findByText('Switch to eligendi').click();
-        });
+        // # Return to the chat-facing application via BackstageNavbar
+        cy.findByTestId('backstage-navbar-back').should('be.visible').click();
 
         // # Open team menu and click 'Invite People'
         cy.uiOpenTeamMenu('Invite people');

@@ -352,8 +352,8 @@ function saveSetting() {
 }
 
 function verifySiteNameInAboutModal(siteName) {
-    // # Open the hamburger menu
-    cy.get('button > span[class="menu-icon"]').click();
+    // # Open the system console header menu
+    cy.findByRole('button', {name: 'Admin Console Menu'}).should('be.visible').click();
 
     // # Click to open about modal
     cy.findByText(`About ${siteName}`).click();
