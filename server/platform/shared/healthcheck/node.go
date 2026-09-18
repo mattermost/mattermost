@@ -21,7 +21,7 @@ func (n *NodeSnapshot) Diag() (*model.SupportPacketDiagnostics, bool) {
 }
 
 func (n *NodeSnapshot) NodeVersion() (string, bool) {
-	if diag, ok := n.Diag(); ok && diag.Server.Version != "" {
+	if diag, ok := n.Diag(); ok && diag.Server.Version != "" && n.sectionOK(model.SectionServerSoftware) {
 		return diag.Server.Version, true
 	}
 	if n != nil && n.ClusterInfo != nil && n.ClusterInfo.Version != "" {
@@ -35,11 +35,17 @@ func (n *NodeSnapshot) SchemaVersion() (string, bool) {
 	if n != nil && n.ClusterInfo != nil && n.ClusterInfo.SchemaVersion != "" {
 		return n.ClusterInfo.SchemaVersion, true
 	}
-	if diag, ok := n.Diag(); ok && diag.Database.SchemaVersion != "" {
+	if diag, ok := n.Diag(); ok && diag.Database.SchemaVersion != "" && n.sectionOK(model.SectionDatabaseIdentity) {
 		return diag.Database.SchemaVersion, true
 	}
 
 	return "", false
+}
+
+// An absent section entry counts as clean; only a recorded error makes its data unusable.
+func (n *NodeSnapshot) sectionOK(section model.NodeSection) bool {
+	_, err := n.SectionErr(section)
+	return err == nil
 }
 
 func (n *NodeSnapshot) ConfigHash() (string, bool) {

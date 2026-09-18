@@ -41,6 +41,51 @@ func TestNodeVersionParityLiveAndPacket(t *testing.T) {
 	require.Equal(t, liveVersion, packetVersion)
 }
 
+func TestSchemaVersion(t *testing.T) {
+	t.Parallel()
+
+	t.Run("prefers cluster info over diagnostics", func(t *testing.T) {
+		node := &NodeSnapshot{
+			ClusterInfo: &model.ClusterInfo{SchemaVersion: "cluster"},
+			Diagnostics: &model.NodeDiagnostics{
+				Diagnostics: &model.SupportPacketDiagnostics{},
+			},
+		}
+		node.Diagnostics.Diagnostics.Database.SchemaVersion = "diag"
+
+		version, ok := node.SchemaVersion()
+		require.True(t, ok)
+		require.Equal(t, "cluster", version)
+	})
+
+	t.Run("falls back to diagnostics when cluster info absent", func(t *testing.T) {
+		node := &NodeSnapshot{
+			Diagnostics: &model.NodeDiagnostics{
+				Diagnostics: &model.SupportPacketDiagnostics{},
+				Errors:      model.SectionErrors{model.SectionDatabaseIdentity: nil},
+			},
+		}
+		node.Diagnostics.Diagnostics.Database.SchemaVersion = "diag"
+
+		version, ok := node.SchemaVersion()
+		require.True(t, ok)
+		require.Equal(t, "diag", version)
+	})
+
+	t.Run("skips diagnostics when database identity section errored", func(t *testing.T) {
+		node := &NodeSnapshot{
+			Diagnostics: &model.NodeDiagnostics{
+				Diagnostics: &model.SupportPacketDiagnostics{},
+				Errors:      model.SectionErrors{model.SectionDatabaseIdentity: errors.New("collect failed")},
+			},
+		}
+		node.Diagnostics.Diagnostics.Database.SchemaVersion = "diag"
+
+		_, ok := node.SchemaVersion()
+		require.False(t, ok)
+	})
+}
+
 func TestPacketNodeConfigHashUnavailable(t *testing.T) {
 	t.Parallel()
 
