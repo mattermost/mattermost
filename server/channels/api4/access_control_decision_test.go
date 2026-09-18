@@ -108,8 +108,9 @@ func TestSearchAccessControlDecisionActions(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
-		require.Len(t, out.Decisions, 2)
-		require.Len(t, out.Results, 2)
+		// upload_file_attachment, download_file_attachment and channel_read_access.
+		require.Len(t, out.Decisions, 3)
+		require.Len(t, out.Results, 3)
 	})
 
 	t.Run("subject not matching session user returns 403", func(t *testing.T) {
@@ -174,57 +175,28 @@ func TestSearchAccessControlDecisionActions(t *testing.T) {
 	})
 }
 
-// The ChannelAccessABACPermission gate on the render-decision endpoint. Each
-// case needs its own TestHelper because SetupConfig is the only place a
-// feature flag sticks.
+// channel_read_access is evaluated by the render-decision endpoint and listed
+// in discovery mode.
 func TestSearchAccessControlDecisionActionsChannelReadAccess(t *testing.T) {
-	t.Run("flag off returns bad request and hides the action from discovery", func(t *testing.T) {
-		th := SetupConfig(t, func(cfg *model.Config) {
-			cfg.FeatureFlags.PermissionPolicies = true
-			cfg.FeatureFlags.ChannelAccessABACPermission = false
-		}).InitBasic(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+	}).InitBasic(t)
 
-		channelResource := model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: th.BasicChannel.Id}
+	channelResource := model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: th.BasicChannel.Id}
 
-		_, resp, err := th.Client.SearchAccessControlDecisionActions(context.Background(), model.ActionSearchRequest{
-			Resource: channelResource,
-			Actions:  []string{model.AccessControlPolicyActionChannelReadAccess},
-		})
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
-
-		discovered, _, err := th.Client.SearchAccessControlDecisionActions(context.Background(), model.ActionSearchRequest{
-			Resource: channelResource,
-		})
-		require.NoError(t, err)
-		require.NotContains(t, discovered.Decisions, model.AccessControlPolicyActionChannelReadAccess)
-		// Positive control: an empty decision set would otherwise satisfy the
-		// assertion above without proving anything.
-		require.Contains(t, discovered.Decisions, model.AccessControlPolicyActionUploadFileAttachment)
+	targeted, _, err := th.Client.SearchAccessControlDecisionActions(context.Background(), model.ActionSearchRequest{
+		Resource: channelResource,
+		Actions:  []string{model.AccessControlPolicyActionChannelReadAccess},
 	})
+	require.NoError(t, err)
+	require.Contains(t, targeted.Decisions, model.AccessControlPolicyActionChannelReadAccess)
+	// ABAC is inactive in this fixture, so the registry default applies.
+	require.True(t, targeted.Decisions[model.AccessControlPolicyActionChannelReadAccess].Allowed)
 
-	t.Run("flag on evaluates the action and lists it in discovery", func(t *testing.T) {
-		th := SetupConfig(t, func(cfg *model.Config) {
-			cfg.FeatureFlags.PermissionPolicies = true
-			cfg.FeatureFlags.ChannelAccessABACPermission = true
-		}).InitBasic(t)
-
-		channelResource := model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: th.BasicChannel.Id}
-
-		targeted, _, err := th.Client.SearchAccessControlDecisionActions(context.Background(), model.ActionSearchRequest{
-			Resource: channelResource,
-			Actions:  []string{model.AccessControlPolicyActionChannelReadAccess},
-		})
-		require.NoError(t, err)
-		require.Contains(t, targeted.Decisions, model.AccessControlPolicyActionChannelReadAccess)
-		// ABAC is inactive in this fixture, so the registry default applies.
-		require.True(t, targeted.Decisions[model.AccessControlPolicyActionChannelReadAccess].Allowed)
-
-		discovered, _, err := th.Client.SearchAccessControlDecisionActions(context.Background(), model.ActionSearchRequest{
-			Resource: channelResource,
-		})
-		require.NoError(t, err)
-		require.Contains(t, discovered.Decisions, model.AccessControlPolicyActionChannelReadAccess)
-		require.Contains(t, discovered.Decisions, model.AccessControlPolicyActionUploadFileAttachment)
+	discovered, _, err := th.Client.SearchAccessControlDecisionActions(context.Background(), model.ActionSearchRequest{
+		Resource: channelResource,
 	})
+	require.NoError(t, err)
+	require.Contains(t, discovered.Decisions, model.AccessControlPolicyActionChannelReadAccess)
+	require.Contains(t, discovered.Decisions, model.AccessControlPolicyActionUploadFileAttachment)
 }

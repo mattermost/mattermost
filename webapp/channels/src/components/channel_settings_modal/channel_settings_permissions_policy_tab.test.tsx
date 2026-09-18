@@ -631,12 +631,11 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab 
         showTabSwitchError: false,
     };
 
-    const stateWithFlag = (enabled: boolean) => ({
+    const baseState = {
         entities: {
             general: {
                 config: {
                     FeatureFlagPermissionPolicies: 'true',
-                    FeatureFlagChannelAccessABACPermission: enabled ? 'true' : 'false',
                 },
             },
             users: {
@@ -646,7 +645,7 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab 
                 },
             },
         },
-    });
+    };
 
     const mockActions = {
         getAccessControlFields: jest.fn(),
@@ -692,8 +691,8 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab 
         jest.restoreAllMocks();
     });
 
-    const openEditor = async (flagEnabled: boolean) => {
-        renderWithContext(<ChannelSettingsPermissionsPolicyTab {...baseProps}/>, stateWithFlag(flagEnabled));
+    const openEditor = async () => {
+        renderWithContext(<ChannelSettingsPermissionsPolicyTab {...baseProps}/>, baseState);
         const addRuleButton = await screen.findByTestId('permissions-policy-add-rule');
         await waitFor(() => expect(addRuleButton).toBeEnabled());
         await userEvent.click(addRuleButton);
@@ -701,21 +700,15 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab 
         await screen.findByTestId('table-editor');
     };
 
-    test('does not offer the Channel Read Access row when the flag is off', async () => {
-        await openEditor(false);
+    test('offers the Channel Read Access row in the permission picker', async () => {
+        await openEditor();
 
-        expect(screen.queryByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS}`)).not.toBeInTheDocument();
+        expect(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS}`)).toBeInTheDocument();
         expect(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_UPLOAD_FILE}`)).toBeInTheDocument();
     });
 
-    test('offers the Channel Read Access row when the flag is on', async () => {
-        await openEditor(true);
-
-        expect(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS}`)).toBeInTheDocument();
-    });
-
     test('a channel_read_access rule requires confirmation before saving', async () => {
-        await openEditor(true);
+        await openEditor();
 
         act(() => {
             const {calls} = (TableEditor as unknown as jest.Mock).mock;
@@ -741,7 +734,7 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab 
     });
 
     test('cancelling the confirmation leaves the policy unsaved', async () => {
-        await openEditor(true);
+        await openEditor();
 
         act(() => {
             const {calls} = (TableEditor as unknown as jest.Mock).mock;
@@ -759,7 +752,7 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab 
     });
 
     test('a file-only rule saves without the confirmation', async () => {
-        await openEditor(true);
+        await openEditor();
 
         act(() => {
             const {calls} = (TableEditor as unknown as jest.Mock).mock;

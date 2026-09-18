@@ -347,16 +347,15 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         },
     };
 
-    const stateWithFlag = (enabled: boolean) => ({
+    const baseState = {
         entities: {
             general: {
                 config: {
                     FeatureFlagPermissionPolicies: 'true',
-                    FeatureFlagChannelAccessABACPermission: enabled ? 'true' : 'false',
                 },
             },
         },
-    });
+    };
 
     beforeEach(() => {
         mockFetchPolicy.mockReset();
@@ -403,8 +402,8 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         jest.clearAllMocks();
     });
 
-    const renderAndOpenMenu = async (flagEnabled: boolean) => {
-        renderWithContext(<PermissionPolicyDetails {...baseProps}/>, stateWithFlag(flagEnabled));
+    const renderAndOpenMenu = async () => {
+        renderWithContext(<PermissionPolicyDetails {...baseProps}/>, baseState);
         await screen.findByText('Add permission');
         await userEvent.click(document.getElementById('pp-add-permission-btn')!);
     };
@@ -419,21 +418,15 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         });
     };
 
-    test('does not offer Channel Read Access when the flag is off', async () => {
-        await renderAndOpenMenu(false);
+    test('offers Channel Read Access in the permission menu', async () => {
+        await renderAndOpenMenu();
 
-        expect(document.getElementById('pp-add-permission-channel_read_access')).toBeNull();
+        expect(document.getElementById('pp-add-permission-channel_read_access')).not.toBeNull();
         expect(document.getElementById('pp-add-permission-upload_file_attachment')).not.toBeNull();
     });
 
-    test('offers Channel Read Access when the flag is on', async () => {
-        await renderAndOpenMenu(true);
-
-        expect(document.getElementById('pp-add-permission-channel_read_access')).not.toBeNull();
-    });
-
     test('confirms before saving a policy that carries channel_read_access', async () => {
-        await renderAndOpenMenu(true);
+        await renderAndOpenMenu();
         await pickPermission('Channel Read Access');
 
         await userEvent.click(screen.getByText('Save'));
@@ -452,7 +445,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
     });
 
     test('cancelling the confirmation leaves the policy unsaved', async () => {
-        await renderAndOpenMenu(true);
+        await renderAndOpenMenu();
         await pickPermission('Channel Read Access');
 
         await userEvent.click(screen.getByText('Save'));
@@ -462,34 +455,8 @@ describe('components/admin_console/permission_policies/policy_details/Permission
         expect(mockCreatePolicy).not.toHaveBeenCalled();
     });
 
-    test('does not confirm when the flag is off, even for a stored channel_read_access policy', async () => {
-        // The server would 501 the save, so the dialog would only be a scary
-        // prompt in front of an error.
-        mockFetchPolicy.mockResolvedValue({
-            data: {
-                id: 'policy1',
-                name: 'Policy 1',
-                roles: ['system_user'],
-                rules: [{
-                    actions: ['download_file_attachment', 'channel_read_access'],
-                    expression: 'user.attributes.teams == "engineering"',
-                }],
-            },
-        });
-
-        await renderAndOpenMenu(false);
-        await pickPermission('Upload Files');
-
-        await userEvent.click(screen.getByText('Save'));
-
-        await waitFor(() => {
-            expect(mockCreatePolicy).toHaveBeenCalledTimes(1);
-        });
-        expect(screen.queryByText('Save this policy?')).not.toBeInTheDocument();
-    });
-
     test('a file-only policy saves without the confirmation', async () => {
-        await renderAndOpenMenu(true);
+        await renderAndOpenMenu();
         await pickPermission('Upload Files');
 
         await userEvent.click(screen.getByText('Save'));

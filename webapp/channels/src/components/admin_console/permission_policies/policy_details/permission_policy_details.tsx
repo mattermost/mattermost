@@ -18,7 +18,7 @@ import type {AccessControlSettings} from '@mattermost/types/config';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {CHANNEL_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties_user';
 
-import {isPolicySimulationEnabled, isChannelAccessABACPermissionEnabled} from 'mattermost-redux/selectors/entities/general';
+import {isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import SimulateAccessModal from 'components/admin_console/access_control/modals/simulate_access/simulate_access_modal';
@@ -164,11 +164,6 @@ function PermissionPolicyDetails({
     // that would only surface a backend error. Mirror gate exists on
     // the channel-settings Permissions Policy tab.
     const policySimulationEnabled = useSelector(isPolicySimulationEnabled);
-
-    // Hide the Channel Read Access row when the flag is off, since saving it would
-    // 501. Rows already selected on a stored policy still render, so an admin
-    // can remove one after the flag is turned off.
-    const channelReadAccessEnabled = useSelector(isChannelAccessABACPermissionEnabled);
 
     // The autocomplete mixes the requesting user's attributes (user.attributes.*)
     // and the accessed channel's attributes (resource.attributes.*), tagged by
@@ -327,10 +322,7 @@ function PermissionPolicyDetails({
             return;
         }
 
-        // Only confirm when the save can actually succeed. With the flag off the
-        // server returns 501, so confirming first would just add a scary dialog
-        // in front of an error.
-        if (channelReadAccessEnabled && selectedPermissions.includes(ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS)) {
+        if (selectedPermissions.includes(ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS)) {
             setShowChannelReadAccessConfirmModal(true);
             return;
         }
@@ -374,7 +366,7 @@ function PermissionPolicyDetails({
     };
 
     const availableToAdd = AVAILABLE_PERMISSIONS.filter(
-        (p) => !selectedPermissions.includes(p.value) && (p.value !== ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS || channelReadAccessEnabled),
+        (p) => !selectedPermissions.includes(p.value),
     );
 
     return (

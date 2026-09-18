@@ -196,14 +196,15 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 			Resource: channelResource,
 		})
 		require.Nil(t, appErr)
-		require.Len(t, resp.Decisions, 2)
-		require.Len(t, resp.Results, 2)
+		require.Len(t, resp.Decisions, 3)
+		require.Len(t, resp.Results, 3)
 		resultNames := make(map[string]bool, len(resp.Results))
 		for _, r := range resp.Results {
 			resultNames[r.Action.Name] = true
 		}
 		require.True(t, resultNames[model.AccessControlPolicyActionUploadFileAttachment])
 		require.True(t, resultNames[model.AccessControlPolicyActionDownloadFileAttachment])
+		require.True(t, resultNames[model.AccessControlPolicyActionChannelReadAccess])
 	})
 
 	t.Run("discovery mode ABAC active permitted in results denied excluded", func(t *testing.T) {
@@ -216,12 +217,15 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
 			return req.Action == model.AccessControlPolicyActionDownloadFileAttachment
 		})).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Action == model.AccessControlPolicyActionChannelReadAccess
+		})).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
 
 		resp, appErr := th.App.SearchAllowedActionsForCurrentUser(rctx, model.ActionSearchRequest{
 			Resource: channelResource,
 		})
 		require.Nil(t, appErr)
-		require.Len(t, resp.Decisions, 2)
+		require.Len(t, resp.Decisions, 3)
 		require.Len(t, resp.Results, 1)
 		require.Equal(t, model.AccessControlPolicyActionUploadFileAttachment, resp.Results[0].Action.Name)
 	})
@@ -312,67 +316,12 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 	})
 }
 
-// With ChannelAccessABACPermission off, asking for channel_read_access is a 400 and
-// discovery mode must not list it. The flag has to be set through SetupConfig:
-// UpdateConfig silently drops FeatureFlags writes, so setting it there would
-// make this pass without testing anything.
-func TestSearchAllowedActionsChannelReadAccessFlagOff(t *testing.T) {
+// channel_read_access is queryable, appears in discovery, defaults to allowed
+// while ABAC is inactive, and fails closed on a PDP error.
+func TestSearchAllowedActionsChannelReadAccess(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
-		cfg.FeatureFlags.ChannelAccessABACPermission = false
-	}).InitBasic(t)
-
-	session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
-	require.Nil(t, appErr)
-	rctx := th.Context.WithSession(session)
-
-	channelResource := model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: th.BasicChannel.Id}
-
-	t.Run("targeted mode rejects the action", func(t *testing.T) {
-		_, appErr := th.App.SearchAllowedActionsForCurrentUser(rctx, model.ActionSearchRequest{
-			Resource: channelResource,
-			Actions:  []string{model.AccessControlPolicyActionChannelReadAccess},
-		})
-		require.NotNil(t, appErr)
-		require.Equal(t, 400, appErr.StatusCode)
-		require.Equal(t, "app.access_control_decision.unsupported_action.app_error", appErr.Id)
-	})
-
-	t.Run("a disabled action poisons the whole targeted request", func(t *testing.T) {
-		_, appErr := th.App.SearchAllowedActionsForCurrentUser(rctx, model.ActionSearchRequest{
-			Resource: channelResource,
-			Actions: []string{
-				model.AccessControlPolicyActionUploadFileAttachment,
-				model.AccessControlPolicyActionChannelReadAccess,
-			},
-		})
-		require.NotNil(t, appErr)
-		require.Equal(t, 400, appErr.StatusCode)
-	})
-
-	t.Run("discovery mode omits the action", func(t *testing.T) {
-		resp, appErr := th.App.SearchAllowedActionsForCurrentUser(rctx, model.ActionSearchRequest{
-			Resource: channelResource,
-		})
-		require.Nil(t, appErr)
-		require.NotContains(t, resp.Decisions, model.AccessControlPolicyActionChannelReadAccess)
-		// Positive control: an empty decision set would otherwise satisfy the
-		// assertion above without proving anything.
-		require.Contains(t, resp.Decisions, model.AccessControlPolicyActionUploadFileAttachment)
-		for _, r := range resp.Results {
-			require.NotEqual(t, model.AccessControlPolicyActionChannelReadAccess, r.Action.Name)
-		}
-	})
-}
-
-// With the flag on, channel_read_access is queryable, appears in discovery, defaults
-// to allowed while ABAC is inactive, and fails closed on a PDP error.
-func TestSearchAllowedActionsChannelReadAccessFlagOn(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.PermissionPolicies = true
-		cfg.FeatureFlags.ChannelAccessABACPermission = true
 	}).InitBasic(t)
 
 	session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})

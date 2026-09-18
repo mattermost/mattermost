@@ -1875,22 +1875,12 @@ func TestChannelReadAccessAction(t *testing.T) {
 		require.True(t, allowedActionsV0_3[AccessControlPolicyActionChannelReadAccess])
 	})
 
-	t.Run("HasChannelReadAccessAction", func(t *testing.T) {
-		var nilPolicy *AccessControlPolicy
-		require.False(t, nilPolicy.HasChannelReadAccessAction())
-
-		fileOnly := &AccessControlPolicy{Rules: []AccessControlPolicyRule{{
-			Actions: []string{AccessControlPolicyActionUploadFileAttachment},
-		}}}
-		require.False(t, fileOnly.HasChannelReadAccessAction())
-		require.True(t, fileOnly.HasPermissionRuleAction())
-
+	t.Run("counts as a permission-rule action on a policy", func(t *testing.T) {
 		// The action can be on any rule, and can share one with the file actions.
 		mixed := &AccessControlPolicy{Rules: []AccessControlPolicyRule{
 			{Actions: []string{AccessControlPolicyActionMembership}},
-			{Actions: []string{AccessControlPolicyActionUploadFileAttachment, AccessControlPolicyActionChannelReadAccess}},
+			{Actions: []string{AccessControlPolicyActionChannelReadAccess}},
 		}}
-		require.True(t, mixed.HasChannelReadAccessAction())
 		require.True(t, mixed.HasPermissionRuleAction())
 	})
 
