@@ -11,9 +11,10 @@ import type {Post} from '@mattermost/types/posts';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {setThreadFollow} from 'mattermost-redux/actions/threads';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getLicense, getConfig, isPostAttributesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {makeGetPostAttributeFields} from 'mattermost-redux/selectors/entities/properties';
 import {
     getCurrentTeamId,
     getCurrentTeam,
@@ -58,6 +59,7 @@ type Props = {
 function makeMapStateToProps() {
     const getThreadOrSynthetic = makeGetThreadOrSynthetic();
     const canWrangler = makeCanWrangler();
+    const getPostAttributeFields = makeGetPostAttributeFields();
 
     return function mapStateToProps(state: GlobalState, ownProps: Props) {
         const {post} = ownProps;
@@ -110,6 +112,12 @@ function makeMapStateToProps() {
         const isBoRPost = isBurnOnReadPost(state, post.id);
         const isPostSender = post.user_id === userId;
 
+        // Reduced to a boolean here on purpose. `dot_menu` renders once per post,
+        // and handing it the field array would subscribe every one of them to a
+        // reference that changes whenever any channel's fields are refetched.
+        const hasPostAttributes = isPostAttributesEnabled(state) &&
+            getPostAttributeFields(state, post.channel_id).length > 0;
+
         return {
             channelIsArchived: isArchivedChannel(channel),
             components: state.plugins.components,
@@ -140,6 +148,7 @@ function makeMapStateToProps() {
             canCopyText: !systemMessage && !isBoRPost,
             canCopyLink: !systemMessage && (!isBoRPost || isPostSender),
             canFlagContent,
+            hasPostAttributes,
             isBurnOnReadPost: isBoRPost,
             isUnrevealedBurnOnReadPost: shouldDisplayConcealedPlaceholder(state, post.id),
         };

@@ -3,6 +3,7 @@
 
 import type {PropertyField, PropertyFieldsScope, PropertyValue} from '@mattermost/types/properties';
 
+import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {Client4} from 'mattermost-redux/client';
 import {getPropertyGroupByName} from 'mattermost-redux/selectors/entities/properties';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
@@ -175,6 +176,41 @@ export function fetchPropertyValues<T = unknown>(
 ): ActionFuncAsync<Array<PropertyValue<T>>> {
     return async (dispatch) => {
         const values = await Client4.getPropertyValues<T>(groupName, objectType, targetId);
+
+        dispatch({
+            type: PropertyTypes.RECEIVED_PROPERTY_VALUES,
+            data: {values},
+        });
+
+        return {data: values};
+    };
+}
+
+/**
+ * Writes one or more property values for a single target and reconciles the
+ * server's answer into the Redux property values state.
+ *
+ * The response is authoritative and complete for the fields it names, so there
+ * is no refetch: `RECEIVED_PROPERTY_VALUES` merges each returned record over the
+ * one already held.
+ */
+export function patchPropertyValues<T = unknown>(
+    groupName: string,
+    objectType: string,
+    targetId: string,
+    items: Array<{field_id: string; value: T}>,
+): ActionFuncAsync<Array<PropertyValue<T>>> {
+    return async (dispatch, getState) => {
+        let values: Array<PropertyValue<T>>;
+        try {
+            values = await Client4.patchPropertyValues<T>(groupName, objectType, targetId, items);
+        } catch (error) {
+            // A 401 means the session died, not that the attribute is
+            // unwritable. Without this the modal shows "please try again" and
+            // the user retries forever against a dead session.
+            forceLogoutIfNecessary(error, dispatch, getState);
+            return {error};
+        }
 
         dispatch({
             type: PropertyTypes.RECEIVED_PROPERTY_VALUES,

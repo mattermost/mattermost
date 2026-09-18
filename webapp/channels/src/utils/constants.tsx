@@ -418,6 +418,7 @@ export const ModalIdentifiers = {
     ERROR_MODAL: 'error_modal',
     DND_CUSTOM_TIME_PICKER: 'dnd_custom_time_picker',
     POST_REMINDER_CUSTOM_TIME_PICKER: 'post_reminder_custom_time_picker',
+    POST_ATTRIBUTES: 'post_attributes',
     CUSTOM_STATUS: 'custom_status',
     COMMERCIAL_SUPPORT: 'commercial_support',
     NO_INTERNET_CONNECTION: 'no_internet_connection',

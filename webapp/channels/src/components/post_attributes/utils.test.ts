@@ -3,7 +3,7 @@
 
 import type {FieldType, PropertyField, PropertyValue} from '@mattermost/types/properties';
 
-import type {VisibleAttribute} from './utils';
+import type {PostAttribute} from './utils';
 import {allocateChipBudget, chipCount, hasValue, isChipVisible} from './utils';
 
 // Every name these tests store as a value. An option-bearing field only earns a
@@ -57,7 +57,7 @@ function makeValue(value: unknown, fieldId = 'field_1'): PropertyValue<unknown> 
     };
 }
 
-function visible(field: PropertyField, value: unknown): VisibleAttribute {
+function visible(field: PropertyField, value: unknown): PostAttribute {
     return {field, value: makeValue(value, field.id)};
 }
 

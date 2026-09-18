@@ -18,9 +18,10 @@ const POST_OBJECT_TYPE = 'post';
  * a `post`. Any other `object_type` is denied outright.
  *
  * A plain function rather than a hook: the edit modal calls it once per row
- * inside a `useMemo`, and a hook would force a fixed call order the row list
- * cannot guarantee. `isChannelPropertyAdmin` below is the selector that
- * produces the last argument; read it once per modal, not once per row.
+ * while mapping over a list whose length changes, and a hook would force a
+ * fixed call order that list cannot guarantee. `isChannelPropertyAdmin` below
+ * is the selector that produces the last argument; read it once per modal, not
+ * once per row.
  *
  * This only decides whether to *draw* the control. The server re-checks every
  * write in `SessionHasPermissionToSetPropertyFieldValues`

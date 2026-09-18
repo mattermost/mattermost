@@ -12,30 +12,27 @@ import {
     useHover,
     useInteractions,
 } from '@floating-ui/react';
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useDispatch} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
 
+import {openModal} from 'actions/views/modals';
+
 import {usePostAttributeFields, usePostAttributeValues} from 'components/common/hooks/usePostAttributes';
 import PropertyValueRenderer from 'components/properties_card_view/propertyValueRenderer/propertyValueRenderer';
 
-import {RootHtmlPortalId} from 'utils/constants';
+import {ModalIdentifiers, RootHtmlPortalId} from 'utils/constants';
 
 import PostAttributesHoverCard from './post_attributes_hover_card';
+import PostAttributesModal from './post_attributes_modal';
 import {allocateChipBudget, useVisibleAttributes} from './utils';
 
 import './post_attributes_chips.scss';
 
 const MAX_VISIBLE_CHIPS = 2;
-
-function handleEdit() {
-    // Phase 10 opens the post attributes modal from here. Inert until then:
-    // phase 9's permission data has to exist before the modal can decide which
-    // rows get an edit trigger, and a modal that renders every row as editable
-    // is a worse starting point than no modal.
-}
 
 type Props = {
     post: Post;
@@ -44,6 +41,7 @@ type Props = {
 
 function PostAttributesChips({post, channel}: Props) {
     const {formatMessage} = useIntl();
+    const dispatch = useDispatch();
     const fields = usePostAttributeFields(channel);
     const values = usePostAttributeValues(post.id);
 
@@ -54,6 +52,17 @@ function PostAttributesChips({post, channel}: Props) {
     const {shown, overflow} = allocateChipBudget(visible, MAX_VISIBLE_CHIPS);
 
     const [open, setOpen] = useState(false);
+
+    // The card is a hover surface; leaving it up behind the modal would leave two
+    // readings of the same values on screen at once.
+    const handleEdit = useCallback(() => {
+        setOpen(false);
+        dispatch(openModal({
+            modalId: ModalIdentifiers.POST_ATTRIBUTES,
+            dialogType: PostAttributesModal,
+            dialogProps: {post},
+        }));
+    }, [dispatch, post]);
 
     const {refs, floatingStyles, context} = useFloating({
         open,
@@ -123,7 +132,7 @@ function PostAttributesChips({post, channel}: Props) {
                 ref={refs.setReference}
                 {...getReferenceProps()}
             >
-                {shown.map(({field, value, maxItems}) => (
+                {shown.map(({field, value, maxItems}) => value && (
                     <PropertyValueRenderer
                         key={field.id}
                         field={field}

@@ -6,18 +6,29 @@ import {useMemo} from 'react';
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 import {supportsOptions} from '@mattermost/types/properties';
 
+import {toValueList} from 'components/properties_card_view/propertyValueRenderer/multi_value_utils';
+
 import {resolveOptionChips} from 'utils/property_options';
 
-export type VisibleAttribute = {
+/**
+ * A field paired with whatever the post stores for it.
+ *
+ * The value is optional, and that is the whole difference between the two
+ * surfaces this feeds: the chip row only ever holds attributes that have one
+ * (`isChipVisible` drops the rest), while an editable surface keeps an unset
+ * `always` field so there is something to act on (`isFieldValueVisible`). The
+ * filter decides; the shape is the same either way.
+ */
+export type PostAttribute = {
     field: PropertyField;
-    value: PropertyValue<unknown>;
+    value?: PropertyValue<unknown>;
 };
 
 /**
  * One entry of the chip row, with the number of values it is allowed to render.
  * `maxItems` is undefined for single-valued fields, which render exactly one.
  */
-export type ChipAllocation = VisibleAttribute & {
+export type ChipAllocation = PostAttribute & {
     maxItems?: number;
 };
 
@@ -55,6 +66,20 @@ export function hasValue(value?: PropertyValue<unknown>): boolean {
     }
 
     return !(Array.isArray(raw) && raw.length === 0);
+}
+
+/**
+ * A value's stored entries, as strings, with the empty ones dropped.
+ *
+ * Shared because two callers have to agree on what counts as an entry: the
+ * option menu decides which items carry a check mark from this, and
+ * `PostAttributeText` decides which names to render from it. If they disagreed,
+ * the menu would tick an option the card does not show.
+ */
+export function storedEntries(value?: PropertyValue<unknown>): string[] {
+    return toValueList(value?.value).
+        filter((entry) => entry !== null && entry !== undefined && entry !== '').
+        map(String);
 }
 
 /**
@@ -96,34 +121,77 @@ export function chipCount(field: PropertyField, value?: PropertyValue<unknown>):
 }
 
 /**
- * Zips a channel's fields with a post's values and drops everything that earns no
- * chip, in the order the fields already come in (`sort_order`, then name).
+ * Whether a field's value should be shown on a surface that can edit it.
+ *
+ * A field declared `always` is shown even with nothing stored, because an empty
+ * slot on an editable surface is something the user can act on. `hidden` is
+ * still hidden here. Everything else follows the chip.
+ */
+export function isFieldValueVisible(field: PropertyField, value?: PropertyValue<unknown>): boolean {
+    if (field.attrs?.visibility === 'hidden') {
+        return false;
+    }
+
+    return field.attrs?.visibility === 'always' || isChipVisible(field, value);
+}
+
+/**
+ * Zips a channel's fields with a post's values, in the order the fields already
+ * come in (`sort_order`, then name), keeping the entries `include` accepts.
  *
  * Driven by the field list, so a value whose field is unknown — which is what a field
  * deleted while this client was disconnected leaves behind — contributes nothing
  * rather than throwing.
  */
+function zipAttributes(
+    fields: PropertyField[],
+    values: Array<PropertyValue<unknown>>,
+    include: (field: PropertyField, value?: PropertyValue<unknown>) => boolean,
+): PostAttribute[] {
+    if (fields.length === 0) {
+        return [];
+    }
+
+    const valuesByFieldId = new Map(values.map((value) => [value.field_id, value]));
+
+    return fields.reduce<PostAttribute[]>((acc, field) => {
+        const value = valuesByFieldId.get(field.id);
+
+        if (include(field, value)) {
+            acc.push({field, value});
+        }
+
+        return acc;
+    }, []);
+}
+
+/**
+ * The attributes that earn a chip on the post, in field order.
+ */
 export function useVisibleAttributes(
     fields: PropertyField[],
     values: Array<PropertyValue<unknown>>,
-): VisibleAttribute[] {
+): PostAttribute[] {
     return useMemo(() => {
-        if (fields.length === 0 || values.length === 0) {
+        if (values.length === 0) {
             return [];
         }
 
-        const valuesByFieldId = new Map(values.map((value) => [value.field_id, value]));
-
-        return fields.reduce<VisibleAttribute[]>((acc, field) => {
-            const value = valuesByFieldId.get(field.id);
-
-            if (value && isChipVisible(field, value)) {
-                acc.push({field, value});
-            }
-
-            return acc;
-        }, []);
+        return zipAttributes(fields, values, isChipVisible);
     }, [fields, values]);
+}
+
+/**
+ * The attributes that earn a row in the edit modal, in field order.
+ *
+ * Differs from `useVisibleAttributes` in exactly one way — an unset `always`
+ * field is kept — which is why both go through the same traversal.
+ */
+export function useModalAttributes(
+    fields: PropertyField[],
+    values: Array<PropertyValue<unknown>>,
+): PostAttribute[] {
+    return useMemo(() => zipAttributes(fields, values, isFieldValueVisible), [fields, values]);
 }
 
 /**
@@ -138,7 +206,7 @@ export function useVisibleAttributes(
  * favour of a later one that would — the row has to read in the same order on every
  * post in the channel.
  */
-export function allocateChipBudget(visible: VisibleAttribute[], max: number): {
+export function allocateChipBudget(visible: PostAttribute[], max: number): {
     shown: ChipAllocation[];
     overflow: number;
 } {

@@ -12,7 +12,7 @@ import {TestHelper} from 'utils/test_helper';
 import type {GlobalState} from 'types/store';
 
 import PostAttributesHoverCard from './post_attributes_hover_card';
-import type {VisibleAttribute} from './utils';
+import type {PostAttribute} from './utils';
 
 const GROUP_ID = 'group_id';
 const CHANNEL_ID = 'channel_id';
@@ -84,7 +84,7 @@ function makeValue(overrides: Partial<PropertyValue<unknown>> = {}): PropertyVal
     };
 }
 
-function attribute(field: Partial<PropertyField>, value: unknown): VisibleAttribute {
+function attribute(field: Partial<PropertyField>, value: unknown): PostAttribute {
     const built = makeField(field);
     return {field: built, value: makeValue({field_id: built.id, value})};
 }
@@ -97,7 +97,7 @@ const CARD_MESSAGES = {
 };
 
 function renderCard(
-    attributes: VisibleAttribute[],
+    attributes: PostAttribute[],
     onEdit: () => void = jest.fn(),
     {locale = 'en', extraMessages}: {locale?: string; extraMessages?: Record<string, string>} = {},
 ) {

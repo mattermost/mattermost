@@ -11,9 +11,10 @@ import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {useUser} from 'components/common/hooks/useUser';
-import {toValueList} from 'components/properties_card_view/propertyValueRenderer/multi_value_utils';
 
 import {resolveOptionChips} from 'utils/property_options';
+
+import {storedEntries} from './utils';
 
 type Props = {
     field: PropertyField;
@@ -71,9 +72,7 @@ function UserName({userId}: {userId: string}) {
 }
 
 function MultiUserNames({value}: {value: PropertyValue<unknown>}) {
-    const userIds = toValueList(value.value).
-        filter((entry) => entry !== null && entry !== undefined && entry !== '').
-        map(String);
+    const userIds = storedEntries(value);
 
     // Each name needs its own `useUser`, so the entries handed to
     // `FormattedList` are components rather than strings. react-intl

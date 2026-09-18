@@ -5,13 +5,13 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import PostAttributeText from './post_attribute_text';
-import type {VisibleAttribute} from './utils';
+import type {PostAttribute} from './utils';
 import {fieldLabel} from './utils';
 
 import './post_attributes_hover_card.scss';
 
 type Props = {
-    attributes: VisibleAttribute[];
+    attributes: PostAttribute[];
     onEdit: () => void;
 };
 
@@ -44,7 +44,7 @@ export default function PostAttributesHoverCard({attributes, onEdit}: Props) {
                 aria-hidden='true'
             />
             <ul className='PostAttributesHoverCard__list'>
-                {attributes.map(({field, value}) => (
+                {attributes.map(({field, value}) => value && (
                     <li
                         key={field.id}
                         className='PostAttributesHoverCard__row'
