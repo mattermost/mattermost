@@ -21,7 +21,13 @@ We recommend reviewing the [additional upgrade notes](#additional-upgrade-notes)
 </thead>
 <tbody>
 <tr>
-<td rowspan="10">v12.0</td>
+<td rowspan="12">v12.0</td>
+<td><p>This release includes a database migration that increases the maximum message length from 16k to 262k characters (~1 MB of text). Although widening <code>VARCHAR</code> is metadata-only on supported PostgreSQL versions, the migration requires an <code>ACCESS EXCLUSIVE</code> lock on affected tables, including <code>posts</code>. Acquiring this lock can be delayed by active or idle-in-transaction database sessions and may temporarily block reads and writes. One deployment with approximately 12 million posts observed an upgrade delay of about 10 minutes. Actual duration depends primarily on database activity and lock contention, so large or busy deployments should test the migration and schedule a maintenance window.</p></td>
+</tr>
+<tr>
+<td><p>Several pre-packaged plugins received major version updates in v12.0 because they required changes to run on this release without errors. Web app plugins that have not been rebuilt for v12.0 may have their activation suppressed to prevent runtime errors. Before upgrading, update community-built plugins to a release that supports v12.0, and rebuild and test any self-built plugins against v12.0. See the React 19 note in this section for the APIs removed in that version and the codemod for updating a plugin.</p></td>
+</tr>
+<tr>
 <td><p>Mattermost Mobile App v2.45 (October 2026) raises the minimum supported mobile operating systems to iOS v18 and Android v11. Devices running iOS v17 or earlier, or Android v10 or earlier, no longer receive new versions of the app from the App Store or Google Play; the installed version continues to work but receives no further updates, including security fixes. Users on those devices should update their operating system to continue receiving mobile app updates. See the <a href="/product-overview/mobile-app-changelog#release-v2-45-0">mobile app changelog</a> for details.</p></td>
 </tr>
 <tr>
