@@ -19,8 +19,8 @@ type HealthFinding struct {
 	Severity string     `json:"severity"`
 	State    string     `json:"state"`
 	Area     HealthArea `json:"area"`
-	// Surface is the §4.9 leak boundary deciding which consumers may see this finding
-	// (product page vs. CLI/support packet), not a display field.
+	// Surface is an access boundary controlling which consumers may see this
+	// finding (product UI vs. CLI/support packet), not a display field.
 	Surface string `json:"surface"`
 
 	// MessageID is a translation id resolved at read time, never stored prose — evaluation
