@@ -5742,10 +5742,25 @@ func SanitizeDataSource(driverName, dataSource string) (string, error) {
 func dataSourceParseError(err error) error {
 	var urlErr *url.Error
 	if errors.As(err, &urlErr) && urlErr.Err != nil {
-		return &url.Error{Op: urlErr.Op, Err: urlErr.Err}
+		return &dataSourceError{err: &url.Error{Op: urlErr.Op, Err: urlErr.Err}}
 	}
 
 	return errors.New("invalid data source")
+}
+
+// dataSourceError reports why a connection string could not be read as a URL. It
+// unwraps to the [url.Error] carrying that description, with the connection string
+// left out.
+type dataSourceError struct {
+	err *url.Error
+}
+
+func (e *dataSourceError) Error() string {
+	return "invalid data source: " + e.err.Err.Error()
+}
+
+func (e *dataSourceError) Unwrap() error {
+	return e.err
 }
 
 type FilterTag struct {

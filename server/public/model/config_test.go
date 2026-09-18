@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"maps"
+	"net/url"
 	"reflect"
 	"strings"
 	"testing"
@@ -3730,6 +3731,138 @@ func TestConfigSanitizeDataSourceReportedFailures(t *testing.T) {
 			assert.Equal(t, FakeSetting, *cfg.SqlSettings.ReplicaLagSettings[0].DataSource)
 		})
 	}
+}
+
+// TestSanitizeDataSourceReportedErrorScope pins how much of a connection string
+// can appear in the error [SanitizeDataSource] returns for one it cannot read.
+// The description of what went wrong is kept; of the connection string itself,
+// nothing beyond a single short percent-escape sequence may survive, so the
+// assertions below also check that no longer run of a credential does.
+func TestSanitizeDataSourceReportedErrorScope(t *testing.T) {
+	// maxReportedRun is the longest run of a connection string the description of
+	// a parse failure is allowed to quote: a percent sign and the two bytes after
+	// it, which is what net/url names when it rejects an escape sequence.
+	const maxReportedRun = 3
+
+	t.Run("connection strings", func(t *testing.T) {
+		testCases := []struct {
+			name       string
+			dataSource string
+			// secret is the part of the connection string that must not be
+			// reported under any circumstances, in whole or in part.
+			secret string
+			// absent names further parts of the connection string that must not
+			// be reported, so a case can cover what it is specifically about.
+			absent []string
+		}{
+			{
+				name:       "unreadable escape in password",
+				dataSource: "postgres://mmuser:sentinel_pw_bravo%QXtailmarker@localhost:5432/mattermost?sslmode=disable",
+				secret:     "sentinel_pw_bravo",
+				absent:     []string{"tailmarker"},
+			},
+			{
+				name:       "password ends in a bare percent sign",
+				dataSource: "postgres://mmuser:sentinel_pw_charlie%@localhost/mattermost",
+				secret:     "sentinel_pw_charlie",
+			},
+			{
+				name:       "password ends mid-escape",
+				dataSource: "postgres://mmuser:sentinel_pw_delta%Z@localhost/mattermost",
+				secret:     "sentinel_pw_delta",
+			},
+			{
+				name:       "unreadable escape in username",
+				dataSource: "postgres://mmuser%QX:sentinel_pw_echo@localhost/mattermost",
+				secret:     "sentinel_pw_echo",
+				absent:     []string{"mmuser"},
+			},
+			{
+				name:       "port is not a number",
+				dataSource: "postgres://mmuser:sentinel_pw_foxtrot@localhost:notaport/mattermost",
+				secret:     "sentinel_pw_foxtrot",
+			},
+			{
+				name:       "unusable character in host",
+				dataSource: "postgres://mmuser:sentinel_pw_golf@marklocal^markhost/mattermost",
+				secret:     "sentinel_pw_golf",
+				absent:     []string{"marklocal", "markhost"},
+			},
+			{
+				name:       "unreadable escape in database name",
+				dataSource: "postgres://mmuser:sentinel_pw_hotel@localhost/matter%QXmost",
+				secret:     "sentinel_pw_hotel",
+				absent:     []string{"matter", "most"},
+			},
+			{
+				name:       "unreadable escape after a fragment marker",
+				dataSource: "postgres://mmuser:sentinel_pw_india@localhost/mattermost#marker%QX",
+				secret:     "sentinel_pw_india",
+				absent:     []string{"marker", "mattermost"},
+			},
+			{
+				name:       "keyword/value connection string",
+				dataSource: "user=mmuser password=sentinel_pw_juliett host=localhost dbname=mattermost",
+				secret:     "sentinel_pw_juliett",
+				absent:     []string{"mmuser", "localhost", "dbname"},
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				_, err := SanitizeDataSource(DatabaseDriverPostgres, tc.dataSource)
+				require.Error(t, err)
+
+				reported := err.Error()
+				assert.NotContains(t, reported, tc.dataSource)
+				assert.NotContains(t, reported, tc.secret)
+				assert.NotContains(t, reported, sanitizeSentinelPrefix)
+				for _, needle := range tc.absent {
+					assert.NotContains(t, reported, needle)
+				}
+
+				for i := 0; i+maxReportedRun < len(tc.secret); i++ {
+					run := tc.secret[i : i+maxReportedRun+1]
+					assert.NotContains(t, reported, run,
+						"more than %d consecutive bytes of the credential were reported", maxReportedRun)
+				}
+			})
+		}
+	})
+
+	// The two error values below describe themselves by quoting the input they
+	// were given, so they are only safe to report once that quote is dropped.
+	t.Run("errors that quote their input", func(t *testing.T) {
+		testCases := []struct {
+			name   string
+			err    error
+			secret string
+		}{
+			{
+				name:   "escape sequence",
+				err:    url.EscapeError("%" + sanitizeSentinelPrefix + "kilo"),
+				secret: sanitizeSentinelPrefix + "kilo",
+			},
+			{
+				name:   "host character",
+				err:    url.InvalidHostError(sanitizeSentinelPrefix + "lima"),
+				secret: sanitizeSentinelPrefix + "lima",
+			},
+			{
+				name:   "escape sequence behind a url error",
+				err:    &url.Error{Op: "parse", URL: "postgres://mmuser:" + sanitizeSentinelPrefix + "mike@localhost/mattermost", Err: url.EscapeError("%QX")},
+				secret: sanitizeSentinelPrefix + "mike",
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				reported := dataSourceParseError(tc.err).Error()
+				assert.NotContains(t, reported, tc.secret)
+				assert.NotContains(t, reported, sanitizeSentinelPrefix)
+			})
+		}
+	})
 }
 
 func TestConfigFilteredByTag(t *testing.T) {
