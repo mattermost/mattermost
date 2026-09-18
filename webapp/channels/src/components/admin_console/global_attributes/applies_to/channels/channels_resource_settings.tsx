@@ -3,8 +3,11 @@
 
 import React, {useCallback} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import {CheckIcon} from '@mattermost/compass-icons/components';
+
+import {isChannelAttributesRequiredEnabled} from 'mattermost-redux/selectors/entities/general';
 
 import * as Menu from 'components/menu';
 
@@ -40,6 +43,12 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled}: Props) =
     const intl = useIntl();
     const {formatMessage} = intl;
 
+    // ChannelAttributesRequired gates this toggle entirely rather than disabling
+    // it: while enforcement is off there is no way to act on setting it, and
+    // leaving it interactive would let an admin configure a state that quietly
+    // does nothing until the flag is enabled.
+    const requiredEnforcementEnabled = useSelector(isChannelAttributesRequiredEnabled);
+
     const handleRequiredToggle = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         onChange({...value, required: event.target.checked});
     }, [onChange, value]);
@@ -70,41 +79,43 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled}: Props) =
             className='ChannelsResourceSettings'
             data-testid='channelsResourceSettings'
         >
-            <div className='ChannelsResourceSettings__field'>
-                <span className='ChannelsResourceSettings__label'>
-                    <FormattedMessage {...messages.requiredLabel}/>
-                </span>
-                <div className='ChannelsResourceSettings__control'>
-                    <label
-                        className='ChannelsResourceSettings__switch'
-                        htmlFor='channelsResourceRequired'
-                    >
-                        <span className='ChannelsResourceSettings__switchLabel'>
-                            <FormattedMessage {...(value.required ? messages.on : messages.off)}/>
-                        </span>
-                        <span className='ChannelsResourceSettings__switchTrack'>
-                            <input
-                                id='channelsResourceRequired'
-                                type='checkbox'
-                                role='switch'
-                                className='ChannelsResourceSettings__switchInput'
-                                checked={value.required}
-                                disabled={disabled}
-                                onChange={handleRequiredToggle}
-                                aria-label={formatMessage(messages.requiredLabel)}
-                                data-testid='channelsResourceRequired-button'
-                            />
-                            <span
-                                className='ChannelsResourceSettings__switchKnob'
-                                aria-hidden={true}
-                            />
-                        </span>
-                    </label>
-                    <p className='ChannelsResourceSettings__help'>
-                        <FormattedMessage {...(value.required ? messages.requiredOnHelp : messages.requiredOffHelp)}/>
-                    </p>
+            {requiredEnforcementEnabled && (
+                <div className='ChannelsResourceSettings__field'>
+                    <span className='ChannelsResourceSettings__label'>
+                        <FormattedMessage {...messages.requiredLabel}/>
+                    </span>
+                    <div className='ChannelsResourceSettings__control'>
+                        <label
+                            className='ChannelsResourceSettings__switch'
+                            htmlFor='channelsResourceRequired'
+                        >
+                            <span className='ChannelsResourceSettings__switchLabel'>
+                                <FormattedMessage {...(value.required ? messages.on : messages.off)}/>
+                            </span>
+                            <span className='ChannelsResourceSettings__switchTrack'>
+                                <input
+                                    id='channelsResourceRequired'
+                                    type='checkbox'
+                                    role='switch'
+                                    className='ChannelsResourceSettings__switchInput'
+                                    checked={value.required}
+                                    disabled={disabled}
+                                    onChange={handleRequiredToggle}
+                                    aria-label={formatMessage(messages.requiredLabel)}
+                                    data-testid='channelsResourceRequired-button'
+                                />
+                                <span
+                                    className='ChannelsResourceSettings__switchKnob'
+                                    aria-hidden={true}
+                                />
+                            </span>
+                        </label>
+                        <p className='ChannelsResourceSettings__help'>
+                            <FormattedMessage {...(value.required ? messages.requiredOnHelp : messages.requiredOffHelp)}/>
+                        </p>
+                    </div>
                 </div>
-            </div>
+            )}
 
             <div className='ChannelsResourceSettings__field'>
                 <span
