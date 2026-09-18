@@ -98,12 +98,6 @@ func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "oauth_app_id", c.Params.AppId)
 	c.LogAudit("attempt")
 
-	if c.AppContext.Session().IsOAuth {
-		c.SetPermissionError(model.PermissionManageOAuth)
-		c.Err.DetailedError += ", attempted access by oauth app"
-		return
-	}
-
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOAuth) {
 		c.SetPermissionError(model.PermissionManageOAuth)
 		return
@@ -155,12 +149,6 @@ func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.AppContext.Session().IsOAuth {
-		c.SetPermissionError(model.PermissionManageOAuth)
-		c.Err.DetailedError += ", attempted access by oauth app"
-		return
-	}
-
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOAuth) {
 		c.Err = model.NewAppError("getOAuthApps", "api.command.admin_only.app_error", nil, "", http.StatusForbidden)
 		return
@@ -196,12 +184,6 @@ func getOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) {
 func getOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireAppId()
 	if c.Err != nil {
-		return
-	}
-
-	if c.AppContext.Session().IsOAuth {
-		c.SetPermissionError(model.PermissionManageOAuth)
-		c.Err.DetailedError += ", attempted access by oauth app"
 		return
 	}
 
@@ -255,12 +237,6 @@ func deleteOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "oauth_app_id", c.Params.AppId)
 	c.LogAudit("attempt")
 
-	if c.AppContext.Session().IsOAuth {
-		c.SetPermissionError(model.PermissionManageOAuth)
-		c.Err.DetailedError += ", attempted access by oauth app"
-		return
-	}
-
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOAuth) {
 		c.SetPermissionError(model.PermissionManageOAuth)
 		return
@@ -300,12 +276,6 @@ func regenerateOAuthAppSecret(c *Context, w http.ResponseWriter, r *http.Request
 	auditRec := c.MakeAuditRecord(model.AuditEventRegenerateOAuthAppSecret, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "oauth_app_id", c.Params.AppId)
-
-	if c.AppContext.Session().IsOAuth {
-		c.SetPermissionError(model.PermissionManageOAuth)
-		c.Err.DetailedError += ", attempted access by oauth app"
-		return
-	}
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOAuth) {
 		c.SetPermissionError(model.PermissionManageOAuth)
