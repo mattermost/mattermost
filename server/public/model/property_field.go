@@ -241,6 +241,9 @@ const PropertyFieldOptionKeyParents = "parents"
 // Run EnsureOptionIDs first. Every option's identifier is taken as given here,
 // and so is the field's, which the returned links belong to.
 func (pf *PropertyField) OptionParentLinks() (add []*PropertyOptionEdge, replacing []string, err error) {
+	if !pf.Type.SupportsOptions() {
+		return nil, nil, nil
+	}
 	options, err := pf.inlineOptions()
 	if err != nil || len(options) == 0 {
 		return nil, nil, err
