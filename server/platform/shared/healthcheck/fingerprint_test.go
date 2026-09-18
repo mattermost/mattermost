@@ -3,9 +3,11 @@
 
 package healthcheck
 
-import "testing"
+import (
+	"testing"
 
-import "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
+)
 
 func TestFingerprintStableValue(t *testing.T) {
 	t.Parallel()
