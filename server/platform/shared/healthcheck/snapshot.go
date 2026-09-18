@@ -26,8 +26,7 @@ type Snapshot struct {
 }
 
 type Deployment struct {
-	IsCloud        bool
-	ClusterEnabled bool
+	IsCloud bool
 }
 
 type VersionInfo struct {
