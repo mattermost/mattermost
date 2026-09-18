@@ -58,7 +58,7 @@ New setting options were added to ``config.json``. Below is a list of the additi
    - Removed the ``atmos/camo`` remote image proxy type. Deployments with ``ImageProxySettings.ImageProxyType`` set to ``atmos/camo`` must update their configuration to use ``local`` or disable the image proxy before upgrading to this release.
 
 #### Compatibility
- - Dropped support for RHEL 7 and RHEL 8. The server binary now requires glibc 2.36 or later.
+ - Dropped support for RHEL 7 and RHEL 8. The server binary now requires glibc 2.34 or later.
  - Dropped support for OpenSearch 1.x. Mattermost now requires OpenSearch 2.x or newer, and logs an error on startup when connected to an unsupported version.
  - The minimum supported PostgreSQL version is now v15. PostgreSQL v14 and earlier are no longer supported.
  - Updated minimum macOS version to 15+ and minimum Safari version to 27+.
