@@ -7,7 +7,7 @@ import {defineMessage} from 'react-intl';
 
 import {ChevronDownCircleOutlineIcon, EmailOutlineIcon, FormatListBulletedIcon, LinkVariantIcon, MenuVariantIcon, PoundIcon, SitemapIcon, SortAscendingIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
-import type {FieldValueType} from '@mattermost/types/properties';
+import type {FieldValueType, PropertyField} from '@mattermost/types/properties';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 // Server-persisted field.type values Global Attributes can create or edit.
@@ -92,7 +92,7 @@ export const ATTRIBUTE_TYPE_FALLBACK_LABEL: MessageDescriptor = defineMessage({
     defaultMessage: 'Other',
 });
 
-export function getAttributeTypeDescriptor(field: {type: string; attrs?: {value_type?: unknown}}): AttributeTypeDescriptor {
+export function getAttributeTypeDescriptor(field: Pick<PropertyField, 'type' | 'attrs'>): AttributeTypeDescriptor {
     const valueType = typeof field.attrs?.value_type === 'string' ? field.attrs.value_type : '';
     const descriptors = Object.values(ATTRIBUTE_TYPE_DESCRIPTOR);
 
@@ -115,7 +115,7 @@ export function getAttributeTypeDescriptor(field: {type: string; attrs?: {value_
     return ATTRIBUTE_TYPE_DESCRIPTOR.text;
 }
 
-export function getTypeLabelForField(field: {type: string; attrs?: {value_type?: unknown}}): MessageDescriptor {
+export function getTypeLabelForField(field: Pick<PropertyField, 'type' | 'attrs'>): MessageDescriptor {
     const descriptor = getAttributeTypeDescriptor(field);
     if (descriptor.fieldType === field.type) {
         return descriptor.label;
