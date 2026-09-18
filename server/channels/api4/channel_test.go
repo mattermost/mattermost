@@ -3794,8 +3794,14 @@ func TestSearchAllChannels(t *testing.T) {
 			[]string{openChannel.Id},
 		},
 		{
+			// The term has to contain a character model.NewId and
+			// model.NewRandomString cannot emit ('l' and 'v' are absent from
+			// their base32 alphabet). These cases assert an exact result count,
+			// so a term spelled only from that alphabet - "what" was one - is
+			// occasionally matched by a randomly generated Name or DisplayName
+			// belonging to another channel in the fixture.
 			"Name search",
-			&model.ChannelSearch{Term: "what"},
+			&model.ChannelSearch{Term: "whatev"},
 			[]string{openChannel.Id},
 		},
 		{

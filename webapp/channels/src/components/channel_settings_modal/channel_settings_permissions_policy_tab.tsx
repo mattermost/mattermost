@@ -626,7 +626,7 @@ function ChannelSettingsPermissionsPolicyTab({
         }
 
         return decision.decision ? 'allowed' : 'denied';
-    }, [actions, originalAllRules, originalMembershipExpression, originalImports, channel.id, channel.display_name, formatMessage]);
+    }, [actions, buildCandidatePolicy, rules, channelReadAccessEnabled, policySimulationEnabled, currentUserId]);
 
     const commitSave = useCallback(async () => {
         if (saveInProgress.current) {
