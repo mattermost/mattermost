@@ -43,10 +43,13 @@ exports[`components/widgets/inputs/ChannelsInput should match snapshot 1`] = `
                 />
               </svg>
             </span>
-            test channel 1
+            Off-Topic
             <span
               class="channel-name"
-            />
+            >
+              ~
+              off-topic
+            </span>
           </div>
           <div
             aria-label="Remove [object Object]"
@@ -114,10 +117,13 @@ exports[`components/widgets/inputs/ChannelsInput should match snapshot 1`] = `
                 </g>
               </svg>
             </span>
-            test channel 2
+            Offsite Planning
             <span
               class="channel-name"
-            />
+            >
+              ~
+              offsite-planning
+            </span>
           </div>
           <div
             aria-label="Remove [object Object]"

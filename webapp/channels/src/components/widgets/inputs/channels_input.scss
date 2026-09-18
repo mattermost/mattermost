@@ -77,6 +77,7 @@
     }
 
     .channels-input__menu {
+        border-radius: 4px;
         margin-top: 0;
         background: var(--center-channel-bg);
         box-shadow: 0 0 0 0 hsla(0, 0%, 0%, 0.1), 0 4px 11px hsla(0, 0%, 0%, 0.1);
@@ -84,8 +85,10 @@
     }
 
     .channels-input__menu-list {
+        overflow: hidden;
         padding: 8px 0;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
 
         &:empty {
             display: none;
@@ -94,18 +97,17 @@
 
     .channels-input__menu-notice {
         display: flex;
-        height: 44px;
+        min-height: 40px;
         align-items: center;
         justify-content: center;
-        padding: 12px;
-        border-radius: 4px 4px 0 0;
+        padding: 8px 24px;
     }
 
     .channels-input__option {
         display: flex;
-        height: 44px;
+        min-height: 40px;
         align-items: center;
-        padding: 12px;
+        padding: 8px 24px;
         cursor: pointer;
         font-size: 14px;
 
@@ -122,14 +124,6 @@
             }
         }
 
-        &:first-child {
-            border-radius: 4px 4px 0 0;
-        }
-
-        &:last-child {
-            border-radius: 0 0 4px 4px;
-        }
-
         &--is-focused {
             background: rgba(var(--button-bg-rgb), 0.08);
         }
@@ -142,29 +136,23 @@
         .public-channel-icon,
         .private-channel-icon {
             display: flex;
-            width: 18px;
-            height: 18px;
+            width: 24px;
+            height: 24px;
+            flex: 0 0 24px;
             align-items: center;
-            margin-right: 8px;
+            justify-content: center;
+            margin-right: 12px;
 
             svg {
-                width: 18px;
-                height: 18px;
+                width: 14px;
+                height: 14px;
                 fill: rgba(var(--center-channel-color-rgb), 0.75);
             }
         }
 
         .channel-name {
+            margin-left: 8px;
             color: rgba(var(--center-channel-color-rgb), 0.75);
-
-            &::before {
-                padding-left: 5px;
-                content: "(";
-            }
-
-            &::after {
-                content: ")";
-            }
         }
     }
 
