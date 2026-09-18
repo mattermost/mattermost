@@ -39,6 +39,7 @@ const state: GlobalState = {
             myUserAccessTokens: {},
             lastActivity: {},
             dndEndTimes: {},
+            autoResponderMessages: {},
         },
         limits: {
             serverLimits: {

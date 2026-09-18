@@ -33,6 +33,10 @@ type Status struct {
 	// is in seconds instead of milliseconds.
 	DNDEndTime int64 `json:"dnd_end_time" xml:"DNDEndTime"`
 
+	// AutoResponderMessage is the user's automatic reply message when their status is out of office.
+	// This is enriched at read/broadcast time from notify_props and is not persisted on the status row.
+	AutoResponderMessage string `json:"auto_responder_message,omitempty" db:"-" xml:"AutoResponderMessage,omitempty"`
+
 	PrevStatus string `json:"-" xml:"-"`
 }
 

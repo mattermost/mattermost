@@ -16,7 +16,7 @@ import {getChannel, makeGetChannel, getDirectChannel} from 'mattermost-redux/sel
 import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {get, getBool, getInt, getWysiwygEditorPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
-import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, getUser, getAutoResponderMessageForUserId, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
 
 import * as GlobalActions from 'actions/global_actions';
 import type {CreatePostOptions} from 'actions/post_actions';
@@ -72,6 +72,7 @@ import {draftHasAttachments, isPostDraftEmpty} from 'types/store/draft';
 import AIActionsMenu from './ai_actions_menu';
 import DoNotDisturbWarning from './do_not_disturb_warning';
 import EditPostFooter from './edit_post_footer';
+import OutOfOfficeWarning from './out_of_office_warning';
 import Footer from './footer';
 import FormattingBar from './formatting_bar';
 import {FormattingBarSpacer, Separator} from './formatting_bar/formatting_bar';
@@ -189,6 +190,25 @@ const AdvancedTextEditor = ({
     const teammateId = useSelector((state: GlobalState) => getDirectChannel(state, channelId)?.teammate_id || '');
     const teammateDisplayName = useSelector((state: GlobalState) => (teammateId ? getDisplayName(state, teammateId) : ''));
     const showDndWarning = useSelector((state: GlobalState) => (teammateId ? getStatusForUserId(state, teammateId) === UserStatuses.DND : false));
+    const showOooWarning = useSelector((state: GlobalState) => {
+        if (!teammateId) {
+            return false;
+        }
+        if (getConfig(state).ExperimentalEnableAutomaticReplies !== 'true') {
+            return false;
+        }
+        if (teammateId === getCurrentUserId(state)) {
+            return false;
+        }
+        const teammate = getUser(state, teammateId);
+        if (teammate?.is_bot) {
+            return false;
+        }
+        return getStatusForUserId(state, teammateId) === UserStatuses.OUT_OF_OFFICE;
+    });
+    const autoReplyMessage = useSelector((state: GlobalState) => (
+        showOooWarning && teammateId ? getAutoResponderMessageForUserId(state, teammateId) : ''
+    ));
     const selectedPostFocussedAt = useSelector((state: GlobalState) => getSelectedPostFocussedAt(state));
     const aiActionMenuItems = useSelector((state: GlobalState) => state.plugins.components.AIActionMenuItem);
     const {available: aiRewriteEnabled} = useGetAgentsBridgeEnabled();
@@ -882,6 +902,12 @@ const AdvancedTextEditor = ({
                 <FileLimitStickyBanner/>
             )}
             {showDndWarning && <DoNotDisturbWarning displayName={teammateDisplayName}/>}
+            {showOooWarning && (
+                <OutOfOfficeWarning
+                    displayName={teammateDisplayName}
+                    autoReplyMessage={autoReplyMessage}
+                />
+            )}
             {!isInEditMode && (
                 <PostBoxIndicator
                     channelId={channelId}

@@ -23,6 +23,7 @@ const emptyOtherUsersState: Omit<GlobalState['entities']['users'], 'profiles' | 
     myUserAccessTokens: {},
     lastActivity: {},
     dndEndTimes: {},
+    autoResponderMessages: {},
 };
 
 export const adminUsersState: () => GlobalState['entities']['users'] = () => ({

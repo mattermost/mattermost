@@ -1852,10 +1852,16 @@ function addedNewGmUser(preference: PreferenceType) {
 }
 
 export function handleStatusChangedEvent(msg: WebSocketMessages.StatusChanged) {
-    return {
-        type: UserTypes.RECEIVED_STATUSES,
-        data: {[msg.data.user_id]: msg.data.status},
-    };
+    return batchActions([
+        {
+            type: UserTypes.RECEIVED_STATUSES,
+            data: {[msg.data.user_id]: msg.data.status},
+        },
+        {
+            type: UserTypes.RECEIVED_AUTO_RESPONDER_MESSAGES,
+            data: {[msg.data.user_id]: msg.data.auto_responder_message ?? ''},
+        },
+    ], 'BATCHING_STATUS_CHANGE');
 }
 
 function handleHelloEvent(msg: WebSocketMessages.Hello) {

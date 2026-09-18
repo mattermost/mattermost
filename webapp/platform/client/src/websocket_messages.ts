@@ -341,6 +341,7 @@ export type UserRoleUpdated = BaseWebSocketMessage<WebSocketEvents.UserRoleUpdat
 export type StatusChanged = BaseWebSocketMessage<WebSocketEvents.StatusChange, {
     status: UserStatus['status'];
     user_id: string;
+    auto_responder_message?: string;
 }>;
 
 export type Typing = BaseWebSocketMessage<WebSocketEvents.Typing, {

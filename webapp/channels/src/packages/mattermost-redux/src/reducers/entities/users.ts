@@ -519,6 +519,27 @@ function dndEndTimes(state: UsersState['dndEndTimes'] = {}, action: MMReduxActio
     }
 }
 
+function autoResponderMessages(state: UsersState['autoResponderMessages'] = {}, action: MMReduxAction) {
+    switch (action.type) {
+    case UserTypes.RECEIVED_AUTO_RESPONDER_MESSAGES: {
+        return {...state, ...action.data};
+    }
+    case UserTypes.PROFILE_NO_LONGER_VISIBLE: {
+        if (state[action.data.user_id]) {
+            const newState = {...state};
+            delete newState[action.data.user_id];
+            return newState;
+        }
+        return state;
+    }
+
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+    default:
+        return state;
+    }
+}
+
 function statuses(state: RelationOneToOne<UserProfile, string> = {}, action: MMReduxAction) {
     switch (action.type) {
     case UserTypes.RECEIVED_STATUSES: {
@@ -699,6 +720,9 @@ export default combineReducers({
 
     // object where every key is the user id and has a value with the dnd end time of each user
     dndEndTimes,
+
+    // object where every key is the user id and has a value with the auto-responder message when OOO
+    autoResponderMessages,
 
     // object where every key is the user id and has a value with the current status of each user
     statuses,
