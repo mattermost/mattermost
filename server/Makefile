@@ -430,7 +430,7 @@ platform-mocks: setup-go-work install-mockery ## Creates mocks for platform inte
 
 .PHONY: install-mockgen
 install-mockgen:
-	$(GO) install github.com/golang/mock/mockgen@v1.6.0
+	$(GO) install go.uber.org/mock/mockgen@v0.6.0
 
 .PHONY: mmctl-mocks
 mmctl-mocks: setup-go-work install-mockgen ## Creates mocks for mmctl
