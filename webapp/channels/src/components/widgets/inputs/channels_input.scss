@@ -97,17 +97,17 @@
 
     .channels-input__menu-notice {
         display: flex;
-        min-height: 4rem;
+        min-height: 40px;
         align-items: center;
         justify-content: center;
-        padding: 8px 2.4rem;
+        padding: 8px 24px;
     }
 
     .channels-input__option {
         display: flex;
-        min-height: 4rem;
+        min-height: 40px;
         align-items: center;
-        padding: 8px 2.4rem;
+        padding: 8px 24px;
         cursor: pointer;
         font-size: 14px;
 
@@ -136,9 +136,9 @@
         .public-channel-icon,
         .private-channel-icon {
             display: flex;
-            width: 2.4rem;
-            height: 2.4rem;
-            flex: 0 0 2.4rem;
+            width: 24px;
+            height: 24px;
+            flex: 0 0 24px;
             align-items: center;
             justify-content: center;
             margin-right: 12px;
