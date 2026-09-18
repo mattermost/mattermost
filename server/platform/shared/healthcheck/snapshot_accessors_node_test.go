@@ -102,8 +102,8 @@ func TestNodesStandaloneAndClusterShapes(t *testing.T) {
 				ClusterInfo: nil,
 				Diagnostics: &model.NodeDiagnostics{
 					Diagnostics: &model.SupportPacketDiagnostics{},
+					Errors:      model.SectionErrors{model.SectionServerSoftware: nil},
 				},
-				Sections: model.SectionErrors{model.SectionServerSoftware: nil},
 			},
 		},
 	}
@@ -114,9 +114,9 @@ func TestNodesStandaloneAndClusterShapes(t *testing.T) {
 
 	cluster := &Snapshot{
 		nodes: []*NodeSnapshot{
-			{Hostname: "node-1", IsLeader: true, ClusterInfo: &model.ClusterInfo{Hostname: "node-1"}, Diagnostics: &model.NodeDiagnostics{Diagnostics: &model.SupportPacketDiagnostics{}}, Sections: model.SectionErrors{model.SectionServerSoftware: nil}},
-			{Hostname: "node-2", IsLeader: false, ClusterInfo: &model.ClusterInfo{Hostname: "node-2"}, Diagnostics: &model.NodeDiagnostics{Diagnostics: &model.SupportPacketDiagnostics{}}, Sections: model.SectionErrors{model.SectionServerSoftware: nil}},
-			{Hostname: "node-3", IsLeader: false, ClusterInfo: &model.ClusterInfo{Hostname: "node-3"}, Diagnostics: &model.NodeDiagnostics{Diagnostics: &model.SupportPacketDiagnostics{}}, Sections: model.SectionErrors{model.SectionServerSoftware: nil}},
+			{Hostname: "node-1", IsLeader: true, ClusterInfo: &model.ClusterInfo{Hostname: "node-1"}, Diagnostics: &model.NodeDiagnostics{Diagnostics: &model.SupportPacketDiagnostics{}, Errors: model.SectionErrors{model.SectionServerSoftware: nil}}},
+			{Hostname: "node-2", IsLeader: false, ClusterInfo: &model.ClusterInfo{Hostname: "node-2"}, Diagnostics: &model.NodeDiagnostics{Diagnostics: &model.SupportPacketDiagnostics{}, Errors: model.SectionErrors{model.SectionServerSoftware: nil}}},
+			{Hostname: "node-3", IsLeader: false, ClusterInfo: &model.ClusterInfo{Hostname: "node-3"}, Diagnostics: &model.NodeDiagnostics{Diagnostics: &model.SupportPacketDiagnostics{}, Errors: model.SectionErrors{model.SectionServerSoftware: nil}}},
 		},
 	}
 
@@ -140,16 +140,16 @@ func TestNodeVersionParityLiveAndPacket(t *testing.T) {
 		},
 		Diagnostics: &model.NodeDiagnostics{
 			Diagnostics: &model.SupportPacketDiagnostics{},
+			Errors:      model.SectionErrors{model.SectionServerSoftware: nil},
 		},
-		Sections: model.SectionErrors{model.SectionServerSoftware: nil},
 	}
 	liveNode.Diagnostics.Diagnostics.Server.Version = "10.4.0"
 
 	packetNode := &NodeSnapshot{
 		Diagnostics: &model.NodeDiagnostics{
 			Diagnostics: &model.SupportPacketDiagnostics{},
+			Errors:      model.SectionErrors{model.SectionServerSoftware: nil},
 		},
-		Sections: model.SectionErrors{model.SectionServerSoftware: nil},
 	}
 	packetNode.Diagnostics.Diagnostics.Server.Version = "10.4.0"
 
@@ -167,8 +167,8 @@ func TestPacketNodeConfigHashUnavailable(t *testing.T) {
 	packetNode := &NodeSnapshot{
 		Diagnostics: &model.NodeDiagnostics{
 			Diagnostics: &model.SupportPacketDiagnostics{},
+			Errors:      model.SectionErrors{model.SectionServerSoftware: nil},
 		},
-		Sections: model.SectionErrors{model.SectionServerSoftware: nil},
 	}
 
 	_, ok := packetNode.ConfigHash()
@@ -194,10 +194,12 @@ func TestSectionAvailabilityMethods(t *testing.T) {
 
 	nodeErr := errors.New("probe failed")
 	node := &NodeSnapshot{
-		Diagnostics: &model.NodeDiagnostics{Diagnostics: &model.SupportPacketDiagnostics{}},
-		Sections: model.SectionErrors{
-			model.SectionLDAPProbe: nil,
-			model.SectionSAMLProbe: nodeErr,
+		Diagnostics: &model.NodeDiagnostics{
+			Diagnostics: &model.SupportPacketDiagnostics{},
+			Errors: model.SectionErrors{
+				model.SectionLDAPProbe: nil,
+				model.SectionSAMLProbe: nodeErr,
+			},
 		},
 	}
 
@@ -208,15 +210,13 @@ func TestSectionAvailabilityMethods(t *testing.T) {
 	require.Equal(t, nodeErr, err)
 }
 
-func TestNodeSectionErrReadsSectionsWithoutDiagnostics(t *testing.T) {
+func TestNodeSectionErrUncoveredNodeReportsAbsent(t *testing.T) {
 	t.Parallel()
 
-	node := &NodeSnapshot{
-		Sections: model.SectionErrors{model.SectionLDAPProbe: nil},
-	}
+	node := &NodeSnapshot{}
 
 	ok, err := node.SectionErr(model.SectionLDAPProbe)
-	require.True(t, ok)
+	require.False(t, ok)
 	require.NoError(t, err)
-	require.True(t, node.Has(model.SectionLDAPProbe))
+	require.False(t, node.Has(model.SectionLDAPProbe))
 }

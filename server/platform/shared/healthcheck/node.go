@@ -10,7 +10,6 @@ type NodeSnapshot struct {
 	IsLeader    bool
 	ClusterInfo *model.ClusterInfo
 	Diagnostics *model.NodeDiagnostics
-	Sections    model.SectionErrors
 }
 
 func (n *NodeSnapshot) Diag() (*model.SupportPacketDiagnostics, bool) {
@@ -57,10 +56,10 @@ func (n *NodeSnapshot) Has(section model.NodeSection) bool {
 }
 
 func (n *NodeSnapshot) SectionErr(section model.NodeSection) (bool, error) {
-	if n == nil || n.Sections == nil {
+	if n == nil || n.Diagnostics == nil || n.Diagnostics.Errors == nil {
 		return false, nil
 	}
 
-	err, ok := n.Sections[section]
+	err, ok := n.Diagnostics.Errors[section]
 	return ok, err
 }
