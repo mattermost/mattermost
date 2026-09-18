@@ -65,8 +65,8 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
     const {formatMessage} = useIntl();
 
     // Date and user-valued attributes are storable through the API but have no
-    // assignment UI in this release, so they are skipped rather than rendered as
-    // something the user cannot fill in.
+    // assignment UI, so they are skipped rather than rendered as something the
+    // user cannot fill in.
     const supported = useMemo(() => fields.filter((field) => supportsOptions(field) || supportsHierarchy(field) || isTextField(field)), [fields]);
 
     // react-select hands back an array for isMulti and a single option otherwise,
