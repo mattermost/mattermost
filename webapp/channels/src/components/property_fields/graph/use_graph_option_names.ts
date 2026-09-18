@@ -60,6 +60,48 @@ export function clearGraphOptionNameCache(): void {
     notifyCacheListeners();
 }
 
+export function clearGraphOptionNamesForField(fieldId: string): void {
+    nameCache.delete(fieldId);
+    notifyCacheListeners();
+}
+
+export function subscribeGraphOptionNames(listener: () => void): () => void {
+    cacheListeners.add(listener);
+    return () => {
+        cacheListeners.delete(listener);
+    };
+}
+
+// Stable identity for a cache miss, so a caller memoizing on the result does
+// not see a new object every read.
+const EMPTY_FIELD_NAMES: FieldNameCache = {names: {}, didResolve: false};
+
+export function getGraphOptionNames(fieldId: string): {names: Record<string, string>; didResolve: boolean} {
+    return nameCache.get(fieldId) ?? EMPTY_FIELD_NAMES;
+}
+
+async function walkGraphOptionNames(field: GraphFieldRef, ids: readonly string[], signal?: AbortSignal): Promise<void> {
+    if (nameCache.get(field.id)?.didResolve || !computeAssignmentPrefetch(field, [...ids])) {
+        return;
+    }
+
+    try {
+        const options = await pageAllAccessControlFieldOptions(field, {signal});
+        if (signal?.aborted) {
+            return;
+        }
+
+        const join = joinGraphOptions(options);
+        commitGraphOptionNames(field.id, graphJoinNames(join));
+    } catch {
+        // Failed walk does not commit; didResolve stays false.
+    }
+}
+
+export function ensureGraphOptionNames(field: GraphFieldRef, ids: readonly string[]): void {
+    walkGraphOptionNames(field, ids);
+}
+
 export function useGraphOptionNames(
     field: GraphFieldRef,
     ids: readonly string[],
@@ -97,28 +139,12 @@ export function useGraphOptionNames(
     const idsKey = ids.join('\0');
 
     useEffect(() => {
-        if (!walk || didResolve || !computeAssignmentPrefetch(field, [...ids])) {
+        if (!walk) {
             return undefined;
         }
 
         const controller = new AbortController();
-
-        (async () => {
-            try {
-                const options = await pageAllAccessControlFieldOptions(
-                    {id: field.id, object_type: field.object_type},
-                    {signal: controller.signal},
-                );
-                if (controller.signal.aborted) {
-                    return;
-                }
-
-                const join = joinGraphOptions(options);
-                commitGraphOptionNames(field.id, graphJoinNames(join));
-            } catch {
-                // Failed walk does not commit; didResolve stays false.
-            }
-        })();
+        walkGraphOptionNames(field, ids, controller.signal);
 
         return () => controller.abort();
 

@@ -11,7 +11,11 @@ import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from '.
 import type {GraphFieldRef} from './page_all_access_control_field_options';
 import {
     clearGraphOptionNameCache,
+    clearGraphOptionNamesForField,
     commitGraphOptionNames,
+    ensureGraphOptionNames,
+    getGraphOptionNames,
+    subscribeGraphOptionNames,
     useGraphOptionNames,
 } from './use_graph_option_names';
 import type {UseGraphOptionNamesResult} from './use_graph_option_names';
@@ -195,6 +199,55 @@ describe('useGraphOptionNames', () => {
 
         expect(latest?.didResolve).toBe(true);
         expect(latest?.labelForId('ghost-1')).toEqual({kind: 'id', text: 'ghost-1'});
+    });
+
+    test('ensureGraphOptionNames on an options_omitted field pages once and commits', async () => {
+        mockPageAll.mockResolvedValue(REGIME_1);
+
+        ensureGraphOptionNames(fieldOf('ensure-field', {options_omitted: true}), ['a']);
+
+        await waitFor(() => expect(getGraphOptionNames('ensure-field').didResolve).toBe(true));
+        expect(getGraphOptionNames('ensure-field').names).toEqual({a: 'A', b: 'B', opt1: 'Option 1'});
+        expect(mockPageAll).toHaveBeenCalledTimes(1);
+    });
+
+    test('ensureGraphOptionNames does not fetch when the field already resolved', () => {
+        commitGraphOptionNames('resolved-field', {a: 'A'});
+
+        ensureGraphOptionNames(fieldOf('resolved-field', {options_omitted: true}), ['a', 'b']);
+
+        expect(mockPageAll).not.toHaveBeenCalled();
+    });
+
+    test('ensureGraphOptionNames does not fetch when every id is named inline and options_omitted is unset', () => {
+        ensureGraphOptionNames(fieldOf('inline-only-field', {options: [opt('a', 'Alpha')]}), ['a']);
+
+        expect(mockPageAll).not.toHaveBeenCalled();
+    });
+
+    test('subscribeGraphOptionNames fires on commit and the remover stops it', () => {
+        const listener = jest.fn();
+        const unsubscribe = subscribeGraphOptionNames(listener);
+
+        commitGraphOptionNames('sub-field', {a: 'A'});
+        expect(listener).toHaveBeenCalledTimes(1);
+
+        unsubscribe();
+        commitGraphOptionNames('sub-field', {b: 'B'});
+        expect(listener).toHaveBeenCalledTimes(1);
+    });
+
+    test('clearGraphOptionNamesForField drops only that field and notifies subscribers', () => {
+        commitGraphOptionNames('field-a', {x: 'X'});
+        commitGraphOptionNames('field-b', {y: 'Y'});
+        const listener = jest.fn();
+        subscribeGraphOptionNames(listener);
+
+        clearGraphOptionNamesForField('field-a');
+
+        expect(getGraphOptionNames('field-a')).toEqual({names: {}, didResolve: false});
+        expect(getGraphOptionNames('field-b')).toEqual({names: {y: 'Y'}, didResolve: true});
+        expect(listener).toHaveBeenCalledTimes(1);
     });
 
     test('two fields do not share a cache entry', () => {
