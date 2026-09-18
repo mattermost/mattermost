@@ -29,23 +29,31 @@ const EMPTY: ResolvedChannelAttribute[] = [];
  * Rendering is story 3; this exists so the data contract is defined and tested
  * alongside the assignment flow that produces the values.
  */
-export default function useChannelLabels(channelId: string, surface: ChannelLabelSurface): ResolvedChannelAttribute[] {
+export default function useChannelLabels(
+    channelId: string,
+    surface: ChannelLabelSurface | ChannelLabelSurface[],
+): ResolvedChannelAttribute[] {
     const {enabled} = useChannelAttributes();
     const getResolvedChannelAttributes = useMemo(() => makeGetResolvedChannelAttributes(), []);
     const resolved = useSelector((state: GlobalState) => getResolvedChannelAttributes(state, channelId));
+
+    // Join so an inline `['info', 'header']` from a class parent is a stable dep.
+    const surfacesKey = Array.isArray(surface) ? surface.join(',') : surface;
 
     return useMemo(() => {
         if (!enabled || !channelId) {
             return EMPTY;
         }
-        const action = ACTION_BY_SURFACE[surface];
+        const actions = new Set(
+            (surfacesKey.split(',') as ChannelLabelSurface[]).map((requested) => ACTION_BY_SURFACE[requested]),
+        );
         const labels = resolved.filter((attribute) => {
             if (!attribute.displayValue) {
                 return false;
             }
-            const actions = attribute.field.attrs?.actions;
-            return Array.isArray(actions) && actions.includes(action);
+            const fieldActions = attribute.field.attrs?.actions;
+            return Array.isArray(fieldActions) && fieldActions.some((action) => actions.has(action));
         });
         return labels.length === 0 ? EMPTY : labels;
-    }, [enabled, channelId, resolved, surface]);
+    }, [enabled, channelId, resolved, surfacesKey]);
 }

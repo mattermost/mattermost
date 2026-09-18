@@ -89,6 +89,13 @@ type MenuProps = {
     hideBackdrop?: boolean;
 
     /**
+     * When true, the modal root does not capture pointer events, so the
+     * trigger stays clickable while the menu is open (e.g. chip remove).
+     * The trigger toggles open/close. Escape still closes.
+     */
+    allowTriggerInteraction?: boolean;
+
+    /**
      * When true, MUI will not restore focus to the previously focused
      * element when the menu closes. Useful when the caller manages
      * focus itself (e.g. keyboard reordering).
@@ -235,6 +242,10 @@ export function Menu(props: Props) {
         event.preventDefault();
         event.stopPropagation();
 
+        if ((event.target as HTMLElement).closest?.('[data-menu-prevent-open]')) {
+            return;
+        }
+
         if (isMobileView) {
             dispatch(
                 openModal<MenuModalProps>({
@@ -253,6 +264,8 @@ export function Menu(props: Props) {
                     },
                 }),
             );
+        } else if (props.menu.allowTriggerInteraction) {
+            setIsMenuOpen((open) => !open);
         } else {
             setIsMenuOpen(true);
         }
@@ -304,6 +317,7 @@ export function Menu(props: Props) {
     }, [isMenuOpen]);
 
     const providerValue = useMenuContextValue(closeMenu, isMenuOpen);
+    const pointerEventsPassThrough = Boolean(props.menu.hideBackdrop || props.menu.allowTriggerInteraction);
 
     if (isMobileView) {
         // In mobile view, the menu is rendered as a modal
@@ -330,12 +344,12 @@ export function Menu(props: Props) {
                         hideBackdrop={props.menu.hideBackdrop}
                         disableRestoreFocus={props.menu.disableRestoreFocus}
 
-                        // When hideBackdrop is true (e.g. during drag-and-drop), the MUI
-                        // Modal root still covers the viewport with position:fixed;inset:0.
-                        // Making it pointer-events:none lets drag events pass through to
-                        // elements behind it, while the paper content stays interactive.
-                        style={props.menu.hideBackdrop ? {pointerEvents: 'none'} : undefined}
-                        PaperProps={props.menu.hideBackdrop ? {style: {pointerEvents: 'auto'}} : undefined}
+                        // hideBackdrop (DnD) and allowTriggerInteraction (chip
+                        // remove) both need the modal root to stop eating clicks
+                        // so the trigger behind it stays usable. Paper stays
+                        // interactive so the list itself still receives them.
+                        style={pointerEventsPassThrough ? {pointerEvents: 'none'} : undefined}
+                        PaperProps={pointerEventsPassThrough ? {style: {pointerEvents: 'auto'}} : undefined}
                         TransitionProps={{
                             mountOnEnter: true,
                             unmountOnExit: true,

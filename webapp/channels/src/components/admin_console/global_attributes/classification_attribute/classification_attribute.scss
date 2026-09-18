@@ -1,23 +1,80 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+// Same two-line with-back header as AttributeDetails: the shared
+// `.admin-console__header` rule fixes `height: 64px`, which clips the subtitle.
+.ClassificationAttribute .admin-console__header.with-back {
+    height: auto;
+    min-height: 90px;
+    flex: 0 0 auto;
+    align-items: stretch;
+    padding: 0;
+
+    > div {
+        align-items: stretch;
+    }
+}
+
 .ClassificationAttribute {
+    &__back {
+        display: flex;
+        width: 64px;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        border-right: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+    }
+
+    &__backButton {
+        display: inline-flex;
+        width: 40px;
+        height: 40px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        text-decoration: none;
+
+        &:hover {
+            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+        }
+
+        &:active {
+            background-color: rgba(var(--button-bg-rgb), 0.08);
+            color: var(--link-color);
+        }
+
+        &:focus-visible {
+            box-shadow: 0 0 0 2px var(--button-bg);
+            outline: none;
+        }
+    }
+
     &__headerGroup {
         display: flex;
+        min-width: 0;
+        flex: 1 1 auto;
         flex-direction: column;
+        padding: 18px 20px;
         margin: 0;
         gap: 4px;
 
         h1 {
             margin: 0;
+            color: var(--center-channel-color);
+
+            // Inherits .admin-console__header's Metropolis/600/22px title styling.
+            font: inherit;
         }
 
         p {
             margin: 0;
             color: rgba(var(--center-channel-color-rgb), 0.75);
-            font-size: 12px;
+            font-size: 14px;
             font-weight: 400;
-            line-height: 16px;
+            line-height: 20px;
         }
     }
 
@@ -29,8 +86,9 @@
         p {
             margin: 0;
             color: rgba(var(--center-channel-color-rgb), 0.75);
-            font-size: 12px;
-            line-height: 16px;
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 20px;
         }
     }
 
@@ -43,27 +101,164 @@
     }
 
     &__row {
-        display: flex;
-        align-items: flex-start;
-        padding: 12px 0;
-        gap: 16px;
+        display: grid;
+        align-items: start;
+        grid-template-columns: 176px 1fr;
+
+        &:not(:last-child) {
+            margin-bottom: 24px;
+        }
     }
 
     &__label {
-        min-width: 180px;
-        color: var(--center-channel-color);
+        display: flex;
+        min-height: 32px;
+        align-items: center;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 14px;
         font-weight: 600;
-        line-height: 20px;
     }
 
-    &__levels {
+    &__fieldControl {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        gap: 8px;
+
+        .Input_container {
+            width: 350px;
+            max-width: 100%;
+        }
+    }
+
+    &__uniqueName {
+        display: flex;
+        flex-direction: column;
+        margin-top: 8px;
+    }
+
+    &__uniqueNameCaption {
+        display: flex;
+        align-items: center;
+        font-size: 12px;
+        gap: 8px;
+    }
+
+    &__uniqueNamePrefix {
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    &__helperText {
+        margin: 8px 0 0;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    &__typeButton {
+        display: flex;
+        width: 350px;
+        max-width: 100%;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 16px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        background: var(--center-channel-bg);
+        color: var(--center-channel-color);
+        font-size: 14px;
+
+        .icon {
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+            font-size: 18px;
+        }
+
+        &:disabled {
+            background-color: rgba(var(--center-channel-color-rgb), 0.04);
+            cursor: not-allowed;
+
+            .ClassificationAttribute__typeButtonInner,
+            .icon {
+                opacity: 0.6;
+            }
+        }
+    }
+
+    &__typeButtonInner {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    &__options {
         display: flex;
         flex-wrap: wrap;
         padding: 0;
         margin: 0;
-        gap: 8px;
+        gap: 6px;
         list-style: none;
+    }
+
+    &__optionChip {
+        position: relative;
+        display: inline-flex;
+        overflow: hidden;
+        min-height: 24px;
+        align-items: center;
+        border-radius: 12px;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 16px;
+        white-space: nowrap;
+    }
+
+    &__optionRankShade {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 24px;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+    &__optionRank {
+        position: relative;
+        z-index: 1;
+        min-width: 24px;
+        padding: 0 7px;
+        text-align: center;
+    }
+
+    &__optionLabel {
+        position: relative;
+        z-index: 1;
+        padding: 0 8px 0 4px;
+    }
+
+    &__markingsFooter {
+        padding-top: 16px;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        margin-top: 8px;
+    }
+
+    &__markingsCopy {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        margin: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 12px;
+        gap: 8px;
+        line-height: 16px;
+    }
+
+    &__markingsOpen {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
     }
 
     &__notice {

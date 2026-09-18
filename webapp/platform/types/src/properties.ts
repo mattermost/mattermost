@@ -10,7 +10,12 @@ export type FieldType = (
     'date' |
     'user' |
     'multiuser' |
-    'rank'
+    'rank' |
+
+    // A multi-valued select whose options form a hierarchy. Manage Attributes
+    // create may write options (and parent edges) when PropertyFieldGraph is on.
+    // Other editors (CPA, board attributes) still do not author them.
+    'graph'
 );
 
 export type FieldVisibility = 'always' | 'hidden' | 'when_set';
@@ -84,17 +89,81 @@ export type PropertyFieldOption = {
     // Optional explicit ordering. When unset, consumers fall back to the
     // position of the option within `attrs.options`.
     rank?: number;
+
+    // Names of parent options. Graph-only. Empty array marks a root. Omitting
+    // the key on a graph write is a server no-op (leaves existing parents
+    // unchanged); create must therefore send [] for roots.
+    parents?: string[];
+
+    // Reported by the options endpoints, never accepted on a write. True for an
+    // option a field inherits from the template it links to.
+    read_only?: boolean;
+
+    // Reported by the options endpoints, never accepted on a write. Half of the
+    // keyset cursor the options listing pages on, alongside the id. Absent when
+    // zero, and zero is not a usable cursor value.
+    create_at?: number;
+};
+
+/**
+ * One page of a field's options, mirroring model.PropertyFieldOptionPage.
+ *
+ * `has_more` is the only signal that ends a listing: a short page does not,
+ * and an empty page does not either. Loop while `has_more`, sending
+ * `next_cursor_create_at` and `next_cursor_id` back each time.
+ *
+ * The cursor names the last candidate the page query examined, not the last
+ * option it returned. Those differ when a coverage filter dropped rows at the
+ * end of the window. Resuming from the last option returned would re-examine
+ * the dropped rows, and a page that returns nothing would never advance.
+ *
+ * Cursor halves are omitempty on the wire, so both are optional. An empty
+ * page serializes `options` as [] rather than null.
+ */
+export type PropertyFieldOptionPage = {
+    options: PropertyFieldOption[];
+    has_more: boolean;
+    next_cursor_create_at?: number;
+    next_cursor_id?: string;
 };
 
 export type SelectPropertyField = PropertyField & {
     attrs?: {
         editable?: boolean;
+
+        /**
+         * Absent both for a field with no options and for one whose list the
+         * server declined to inline because the field has too many. In the
+         * latter case `options_count` reports how many there are and
+         * `options_omitted` is true; check it before treating an absent list as
+         * "this field has no options".
+         *
+         * An editor that reads such a field holds no option list, so it must not
+         * send one back: the server rejects a non-empty list on a field whose
+         * options it withheld, because appending to the empty list the editor
+         * was given would ask it to delete the rest. Sending no list, or an
+         * empty one, leaves the options untouched and lets every other attr be
+         * patched normally.
+         */
         options?: PropertyFieldOption[];
+        options_count?: number;
+        options_omitted?: boolean;
     };
 };
 
-export const supportsOptions = (field: PropertyField) => {
+export const supportsOptions = (field: {type: FieldType}): boolean => {
     return field.type === 'select' || field.type === 'multiselect' || field.type === 'rank';
+};
+
+export const supportsHierarchy = (field: {type: FieldType}): boolean => field.type === 'graph';
+
+// Whether a field's stored value is a list of option ids that has to be resolved
+// against attrs.options before it is shown. supportsOptions answers a narrower
+// question -- whether the plain option-list editor can write this field's options
+// -- and excludes graph on purpose: a graph field's options carry parent links
+// that editor has no way to send back.
+export const valueRefersToOptions = (field: PropertyField) => {
+    return supportsOptions(field) || supportsHierarchy(field);
 };
 
 export const isTextField = (field: PropertyField) => {

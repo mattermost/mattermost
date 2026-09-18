@@ -56,6 +56,14 @@ export type Team = {
      * Prefer checking `policy_actions?.membership` over {@link policy_enforced}.
      */
     policy_actions?: Record<string, boolean>;
+
+    /**
+     * True when the team's policy opts into the membership sync job's add pass,
+     * i.e. matching users are added to the team automatically.
+     */
+    policy_auto_add?: boolean;
+
+    /** @deprecated Use {@link policy_auto_add}, which this now mirrors. */
     policy_is_active?: boolean;
 
     /**

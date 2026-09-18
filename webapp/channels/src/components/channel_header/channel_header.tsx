@@ -424,7 +424,7 @@ class ChannelHeader extends React.PureComponent<Props> {
                                     {!isDirect && !isGroup && (
                                         <ChannelAttributeLabels
                                             channelId={channel.id}
-                                            surface='info'
+                                            surface={['info', 'header']}
                                         />
                                     )}
                                 </div>
@@ -442,14 +442,6 @@ class ChannelHeader extends React.PureComponent<Props> {
                                     />
                                 </div>
                             </div>
-                            {!isDirect && !isGroup && (
-                                <div className='channel-header__attributes'>
-                                    <ChannelAttributeLabels
-                                        channelId={channel.id}
-                                        surface='header'
-                                    />
-                                </div>
-                            )}
                         </div>
                     </div>
                     <ChannelHeaderPlug
