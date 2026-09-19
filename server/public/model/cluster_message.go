@@ -61,6 +61,7 @@ const (
 	ClusterEventInvalidateCacheForUserPropertyValuesEpoch   ClusterEvent = "inv_user_property_values_epoch"
 	ClusterEventAutoTranslationTask                         ClusterEvent = "autotranslation_task"
 	ClusterEventBusyStateChanged                            ClusterEvent = "busy_state_change"
+	ClusterEventReloadSaml                                  ClusterEvent = "reload_saml"
 	// Note: if you are adding a new event, please also add it in the slice of
 	// m.ClusterEventMap in metrics/metrics.go file.
 
