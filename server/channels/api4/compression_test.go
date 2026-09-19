@@ -390,4 +390,23 @@ func TestCompressionHandlerBrotli(t *testing.T) {
 			"a ranged response must not be brotli-encoded, since the range refers to the uncompressed body")
 		assert.Len(t, resp.Body.Bytes(), 1100)
 	})
+
+	t.Run("Accept-Ranges is removed once compression starts", func(t *testing.T) {
+		seekableHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			var body [1400]byte
+			w.Header().Set("Accept-Ranges", "bytes")
+			_, err := w.Write(body[:])
+			require.NoError(t, err)
+		})
+		h := compressionHandler(seekableHandler, true, true)
+		resp := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/api/v4/test", nil)
+		req.Header.Set("Accept-Encoding", "br")
+
+		h.ServeHTTP(resp, req)
+
+		assert.Equal(t, "br", resp.Header().Get("Content-Encoding"))
+		assert.Empty(t, resp.Header().Get("Accept-Ranges"),
+			"a client must not be told ranges are supported on a response it received compressed")
+	})
 }

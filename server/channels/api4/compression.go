@@ -174,6 +174,11 @@ func (b *brotliResponseWriter) startCompression(remain []byte) error {
 	// it describes the uncompressed size and must not survive into a compressed
 	// response, or the client will misread the body boundary.
 	h.Del("Content-Length")
+	// http.ServeContent sets Accept-Ranges on any seekable response; once the
+	// body is compressed, a later byte-range request against it would have to
+	// be resolved against the compressed stream, which this writer doesn't
+	// support, so advertise no range support. Matches gzhttp's own default.
+	h.Del("Accept-Ranges")
 	b.ResponseWriter.WriteHeader(code)
 
 	if len(b.buf) > 0 {
