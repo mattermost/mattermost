@@ -81,10 +81,12 @@ export default function PostAttributesModalRow({field, value, canEdit, writing, 
                         onChange={onChange}
                     />
                 ) : value && (
-                    <PostAttributeText
-                        field={field}
-                        value={value}
-                    />
+                    <span className='PostAttributesModalRow__readOnly'>
+                        <PostAttributeText
+                            field={field}
+                            value={value}
+                        />
+                    </span>
                 )}
             </div>
 

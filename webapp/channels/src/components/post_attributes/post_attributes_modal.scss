@@ -170,11 +170,10 @@
         line-height: 16px;
     }
 
-    &__trigger {
-        display: flex;
+    &__trigger,
+    &__input {
         width: 100%;
         height: 28px;
-        align-items: center;
         padding: 0 8px;
         border: none;
         border-radius: var(--radius-s);
@@ -194,8 +193,23 @@
         }
     }
 
+    &__trigger {
+        display: flex;
+        align-items: center;
+    }
+
     &__input {
-        width: 100%;
+        min-width: 0;
+
+        &:focus {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            box-shadow: none;
+            outline: none;
+        }
+    }
+
+    &__readOnly {
+        padding: 0 8px;
     }
 
     &__users {
@@ -224,6 +238,11 @@
             .UserMultiSelector__input-container,
             .UserMultiSelector__input {
                 color: var(--center-channel-color);
+            }
+
+            &.singleSelect .UserProfilePill {
+                background: transparent;
+                padding-inline: 0;
             }
         }
     }

@@ -211,6 +211,20 @@ describe('PostAttributesModalRow', () => {
         expect(onChange).toHaveBeenCalledWith('field_text', 'after');
     });
 
+    test('a text field is a bare input, with none of the form widget chrome around it', () => {
+        const field = makeField({id: 'field_text', name: 'reason', type: 'text', attrs: {display_name: 'Reason'}});
+        renderRow({
+            field,
+            value: makeValue({field_id: 'field_text', value: 'before'}),
+        });
+
+        const input = screen.getByTestId('post-attribute-input-reason');
+
+        expect(input.tagName).toBe('INPUT');
+        expect(input.closest('.Input_fieldset')).toBeNull();
+        expect(input.closest('.Input_container')).toBeNull();
+    });
+
     /*
      * The `user` and `multiuser` controls. Rendered for real rather than
      * mocked: these assert that the row wires the stored value
@@ -239,6 +253,77 @@ describe('PostAttributesModalRow', () => {
             const control = screen.getByTestId('post-attribute-user-reviewers');
             expect(control).toHaveTextContent('alice');
             expect(control).toHaveTextContent('bob');
+        });
+
+        /*
+         * Backspace removes a name from the control and writes nothing, so
+         * another can be typed in its place; leaving the control writes what it
+         * is left showing. The two halves are one gesture — the same bargain the
+         * text control makes with its draft.
+         */
+        test('backspace empties a single user control without writing, and leaving it commits the empty value', async () => {
+            const onChange = renderRow({
+                field: userField(),
+                value: makeValue({field_id: 'field_user', value: alice.id}),
+            });
+
+            const picker = screen.getByTestId('post-attribute-user-reviewer');
+            expect(picker).toHaveTextContent('alice');
+
+            await userEvent.click(screen.getByRole('combobox'));
+            await userEvent.keyboard('{Backspace}');
+
+            // * Verify the control is empty and ready for a search term, with
+            // nothing written yet.
+            expect(picker).not.toHaveTextContent('alice');
+            expect(screen.getByText('Unassigned')).toBeInTheDocument();
+            expect(onChange).not.toHaveBeenCalled();
+
+            await userEvent.tab();
+
+            // * Verify leaving wrote the removal, as the trash button would
+            // have: an empty value rather than a deleted row.
+            expect(onChange).toHaveBeenCalledTimes(1);
+            expect(onChange).toHaveBeenCalledWith('field_user', '');
+        });
+
+        test('backspace on a multiuser control removes the last user without writing, and leaving it commits the rest', async () => {
+            const onChange = renderRow({
+                field: userField({id: 'field_multiuser', name: 'reviewers', type: 'multiuser', attrs: {display_name: 'Reviewers'}}),
+                value: makeValue({field_id: 'field_multiuser', value: [alice.id, bob.id]}),
+            });
+
+            // The names the control is showing, rather than the whole picker:
+            // react-select keeps a live region inside it that announces the
+            // focused option, so the name just removed is still spoken there.
+            const names = () => screen.getByTestId('post-attribute-user-reviewers').querySelector('.UserMultiSelector__value-container');
+
+            await userEvent.click(screen.getByRole('combobox'));
+            await userEvent.keyboard('{Backspace}');
+
+            // * Verify only the last name went, and nothing was written.
+            expect(names()).toHaveTextContent('alice');
+            expect(names()).not.toHaveTextContent('bob');
+            expect(onChange).not.toHaveBeenCalled();
+
+            await userEvent.tab();
+
+            expect(onChange).toHaveBeenCalledTimes(1);
+            expect(onChange).toHaveBeenCalledWith('field_multiuser', [alice.id]);
+        });
+
+        // Nothing was edited, so there is nothing to write. Without this, every
+        // pass over a picker on the way to another row would PATCH the post.
+        test('leaving a user control that was not edited writes nothing', async () => {
+            const onChange = renderRow({
+                field: userField(),
+                value: makeValue({field_id: 'field_user', value: alice.id}),
+            });
+
+            await userEvent.click(screen.getByRole('combobox'));
+            await userEvent.tab();
+
+            expect(onChange).not.toHaveBeenCalled();
         });
 
         test('an unset user row renders the picker with its placeholder and no trash button', () => {
