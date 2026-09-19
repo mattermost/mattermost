@@ -4,7 +4,7 @@ exports[`components/global/product_switcher should have an active button state w
 <div>
   <div>
     <div
-      class="MenuWrapper  MenuWrapper--open"
+      class="MenuWrapper MenuWrapper--open"
     >
       <nav
         class="ProductMenuContainer-kJFYWA bJxYdd"
@@ -204,7 +204,7 @@ exports[`components/global/product_switcher should match snapshot 1`] = `
 <div>
   <div>
     <div
-      class="MenuWrapper "
+      class="MenuWrapper"
     >
       <nav
         class="ProductMenuContainer-kJFYWA bJxYdd"
@@ -243,7 +243,7 @@ exports[`components/global/product_switcher should match snapshot for Entry lice
 <div>
   <div>
     <div
-      class="MenuWrapper "
+      class="MenuWrapper"
     >
       <nav
         class="ProductMenuContainer-kJFYWA bJxYdd"
@@ -282,7 +282,7 @@ exports[`components/global/product_switcher should match snapshot with a registe
 <div>
   <div>
     <div
-      class="MenuWrapper  MenuWrapper--open"
+      class="MenuWrapper MenuWrapper--open"
     >
       <nav
         class="ProductMenuContainer-kJFYWA bJxYdd"
@@ -514,7 +514,7 @@ exports[`components/global/product_switcher should match snapshot with product s
 <div>
   <div>
     <div
-      class="MenuWrapper  MenuWrapper--open"
+      class="MenuWrapper MenuWrapper--open"
     >
       <nav
         class="ProductMenuContainer-kJFYWA bJxYdd"
@@ -714,7 +714,7 @@ exports[`components/global/product_switcher should match snapshot without licens
 <div>
   <div>
     <div
-      class="MenuWrapper "
+      class="MenuWrapper"
     >
       <nav
         class="ProductMenuContainer-kJFYWA bJxYdd"
@@ -753,7 +753,7 @@ exports[`components/global/product_switcher should render once when there are no
 <div>
   <div>
     <div
-      class="MenuWrapper  MenuWrapper--open"
+      class="MenuWrapper MenuWrapper--open"
     >
       <nav
         class="ProductMenuContainer-kJFYWA bJxYdd"
@@ -953,7 +953,7 @@ exports[`components/global/product_switcher should render the correct amount of 
 <div>
   <div>
     <div
-      class="MenuWrapper  MenuWrapper--open"
+      class="MenuWrapper MenuWrapper--open"
     >
       <nav
         class="ProductMenuContainer-kJFYWA bJxYdd"

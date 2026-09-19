@@ -109,6 +109,11 @@
         &:hover {
             border: 2px solid rgba(var(--center-channel-color-rgb), 0.24);
         }
+
+        &--disabled {
+            opacity: 0.7;
+            pointer-events: none;
+        }
     }
 
     &__action-button {

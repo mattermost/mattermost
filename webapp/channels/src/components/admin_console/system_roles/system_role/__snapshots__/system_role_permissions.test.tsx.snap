@@ -64,7 +64,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
             class="PermissionSectionDropdown"
           >
             <div
-              class="MenuWrapper "
+              class="MenuWrapper"
             >
               <button
                 aria-expanded="true"
@@ -133,7 +133,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
             class="PermissionSectionDropdown"
           >
             <div
-              class="MenuWrapper "
+              class="MenuWrapper"
             >
               <button
                 aria-expanded="true"
@@ -202,7 +202,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
             class="PermissionSectionDropdown"
           >
             <div
-              class="MenuWrapper "
+              class="MenuWrapper"
             >
               <button
                 aria-expanded="true"
@@ -271,7 +271,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
             class="PermissionSectionDropdown"
           >
             <div
-              class="MenuWrapper "
+              class="MenuWrapper"
             >
               <button
                 aria-expanded="true"
@@ -340,7 +340,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
             class="PermissionSectionDropdown"
           >
             <div
-              class="MenuWrapper "
+              class="MenuWrapper"
             >
               <button
                 aria-expanded="true"
@@ -409,7 +409,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
             class="PermissionSectionDropdown"
           >
             <div
-              class="MenuWrapper "
+              class="MenuWrapper"
             >
               <button
                 aria-expanded="true"
@@ -465,7 +465,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
             class="PermissionSectionDropdown"
           >
             <div
-              class="MenuWrapper "
+              class="MenuWrapper"
             >
               <button
                 aria-expanded="true"
@@ -533,7 +533,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
             class="PermissionSectionDropdown"
           >
             <div
-              class="MenuWrapper "
+              class="MenuWrapper"
             >
               <button
                 aria-expanded="true"
@@ -602,7 +602,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
             class="PermissionSectionDropdown"
           >
             <div
-              class="MenuWrapper "
+              class="MenuWrapper"
             >
               <button
                 aria-expanded="true"
@@ -671,7 +671,7 @@ exports[`admin_console/system_role_permissions should match snapshot 1`] = `
             class="PermissionSectionDropdown"
           >
             <div
-              class="MenuWrapper "
+              class="MenuWrapper"
             >
               <button
                 aria-expanded="true"
@@ -768,7 +768,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
             class="PermissionSectionDropdown"
           >
             <div
-              class="MenuWrapper "
+              class="MenuWrapper"
             >
               <button
                 aria-expanded="true"
@@ -837,7 +837,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
             class="PermissionSectionDropdown"
           >
             <div
-              class="MenuWrapper "
+              class="MenuWrapper"
             >
               <button
                 aria-expanded="true"
@@ -906,7 +906,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
             class="PermissionSectionDropdown"
           >
             <div
-              class="MenuWrapper "
+              class="MenuWrapper"
             >
               <button
                 aria-expanded="true"
@@ -975,7 +975,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
             class="PermissionSectionDropdown"
           >
             <div
-              class="MenuWrapper "
+              class="MenuWrapper"
             >
               <button
                 aria-expanded="true"
@@ -1031,7 +1031,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
             class="PermissionSectionDropdown"
           >
             <div
-              class="MenuWrapper "
+              class="MenuWrapper"
             >
               <button
                 aria-expanded="true"
@@ -1099,7 +1099,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
             class="PermissionSectionDropdown"
           >
             <div
-              class="MenuWrapper "
+              class="MenuWrapper"
             >
               <button
                 aria-expanded="true"
@@ -1168,7 +1168,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
             class="PermissionSectionDropdown"
           >
             <div
-              class="MenuWrapper "
+              class="MenuWrapper"
             >
               <button
                 aria-expanded="true"
@@ -1237,7 +1237,7 @@ exports[`admin_console/system_role_permissions should match snapshot with isLice
             class="PermissionSectionDropdown"
           >
             <div
-              class="MenuWrapper "
+              class="MenuWrapper"
             >
               <button
                 aria-expanded="true"

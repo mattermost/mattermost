@@ -20,7 +20,6 @@ export const MenuItemLinkImpl = ({to, text, className, disabled, sibling}: Props
         <Link
             to={to}
             className={classNames(className, {'MenuItem__with-sibling': sibling, disabled})}
-            disabled={disabled}
         >
             <span className='MenuItem__primary-text'>{text}</span>
         </Link>

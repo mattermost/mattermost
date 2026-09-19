@@ -174,7 +174,6 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, Props>(({
                     className={otherProps.className}
                     style={styles.reference}
                     dir='auto'
-                    disabled={true}
                     aria-hidden={true}
                 >
                     {referenceValue}

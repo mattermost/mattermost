@@ -22,6 +22,32 @@ describe('components/MenuWrapper', () => {
         expect(container).toHaveTextContent('title');
     });
 
+    test('should mark a disabled wrapper with a class instead of a disabled attribute', () => {
+        const {container} = render(
+            <MenuWrapper isDisabled={true}>
+                <p>{'title'}</p>
+                <p>{'menu'}</p>
+            </MenuWrapper>,
+        );
+
+        const wrapper = container.querySelector('.MenuWrapper');
+        expect(wrapper).toHaveClass('MenuWrapper--disabled');
+        expect(wrapper).not.toHaveAttribute('disabled');
+    });
+
+    test('should not mark an enabled wrapper as disabled', () => {
+        const {container} = render(
+            <MenuWrapper isDisabled={false}>
+                <p>{'title'}</p>
+                <p>{'menu'}</p>
+            </MenuWrapper>,
+        );
+
+        const wrapper = container.querySelector('.MenuWrapper');
+        expect(wrapper).not.toHaveClass('MenuWrapper--disabled');
+        expect(wrapper).not.toHaveAttribute('disabled');
+    });
+
     test('should add open class when clicked', async () => {
         const {container} = render(
             <MenuWrapper>

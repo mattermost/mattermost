@@ -6,7 +6,7 @@ import React from 'react';
 
 import './header_icon_button.scss';
 
-type HeaderIconButtonProps = React.HTMLAttributes<HTMLButtonElement> & {
+type HeaderIconButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
     icon: string;
 
     active?: boolean;

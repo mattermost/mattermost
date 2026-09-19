@@ -162,7 +162,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                 class="group-profile-add-menu"
               >
                 <div
-                  class="MenuWrapper "
+                  class="MenuWrapper"
                 >
                   <button
                     class="btn btn-primary"
@@ -573,7 +573,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                 class="group-profile-add-menu"
               >
                 <div
-                  class="MenuWrapper "
+                  class="MenuWrapper"
                 >
                   <button
                     class="btn btn-primary"
@@ -982,7 +982,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                 class="group-profile-add-menu"
               >
                 <div
-                  class="MenuWrapper "
+                  class="MenuWrapper"
                 >
                   <button
                     class="btn btn-primary"
@@ -1391,7 +1391,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
                 class="group-profile-add-menu"
               >
                 <div
-                  class="MenuWrapper "
+                  class="MenuWrapper"
                 >
                   <button
                     class="btn btn-primary"

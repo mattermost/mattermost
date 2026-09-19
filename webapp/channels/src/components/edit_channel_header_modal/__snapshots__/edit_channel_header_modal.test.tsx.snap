@@ -107,7 +107,6 @@ exports[`components/EditChannelHeaderModal edit direct message channel 1`] = `
                           aria-hidden="true"
                           class="form-control custom-textarea textbox-edit-area"
                           dir="auto"
-                          disabled=""
                           id="edit_textbox-reference"
                           style="height: auto; width: auto; display: inline-block; position: relative; transform: translateY(-100%); word-break: break-word;"
                         >
@@ -300,7 +299,6 @@ exports[`components/EditChannelHeaderModal error with intl message 1`] = `
                           aria-hidden="true"
                           class="form-control custom-textarea textbox-edit-area"
                           dir="auto"
-                          disabled=""
                           id="edit_textbox-reference"
                           style="height: auto; width: auto; display: inline-block; position: relative; transform: translateY(-100%); word-break: break-word;"
                         >
@@ -503,7 +501,6 @@ exports[`components/EditChannelHeaderModal error without intl message 1`] = `
                           aria-hidden="true"
                           class="form-control custom-textarea textbox-edit-area"
                           dir="auto"
-                          disabled=""
                           id="edit_textbox-reference"
                           style="height: auto; width: auto; display: inline-block; position: relative; transform: translateY(-100%); word-break: break-word;"
                         >
@@ -706,7 +703,6 @@ exports[`components/EditChannelHeaderModal should match snapshot, init 1`] = `
                           aria-hidden="true"
                           class="form-control custom-textarea textbox-edit-area"
                           dir="auto"
-                          disabled=""
                           id="edit_textbox-reference"
                           style="height: auto; width: auto; display: inline-block; position: relative; transform: translateY(-100%); word-break: break-word;"
                         >
@@ -899,7 +895,6 @@ exports[`components/EditChannelHeaderModal submitted 1`] = `
                           aria-hidden="true"
                           class="form-control custom-textarea textbox-edit-area"
                           dir="auto"
-                          disabled=""
                           id="edit_textbox-reference"
                           style="height: auto; width: auto; display: inline-block; position: relative; transform: translateY(-100%); word-break: break-word;"
                         >

@@ -5,7 +5,7 @@ import React from 'react';
 
 import AutosizeTextarea from 'components/autosize_textarea';
 
-import {render} from 'tests/react_testing_utils';
+import {render, screen} from 'tests/react_testing_utils';
 
 describe('components/AutosizeTextarea', () => {
     test('should match snapshot, init', () => {
@@ -14,5 +14,14 @@ describe('components/AutosizeTextarea', () => {
         );
 
         expect(container).toMatchSnapshot();
+    });
+
+    test('should disable the textarea itself rather than the hidden measuring div', () => {
+        const {container} = render(
+            <AutosizeTextarea disabled={true}/>,
+        );
+
+        expect(screen.getByTestId('autosize_textarea')).toBeDisabled();
+        expect(container.querySelector('#autosize_textarea-reference')).not.toHaveAttribute('disabled');
     });
 });

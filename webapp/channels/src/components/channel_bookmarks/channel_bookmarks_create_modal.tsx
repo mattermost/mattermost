@@ -171,6 +171,7 @@ function ChannelBookmarkCreateModal({
             className='bookmark-create-file-input'
             ref={fileInputRef}
             onChange={handleFileChanged}
+            disabled={!canUploadFiles}
         />
     );
 
@@ -421,7 +422,7 @@ function ChannelBookmarkCreateModal({
                         <FileInputContainer
                             tabIndex={0}
                             role='button'
-                            disabled={!canUploadFiles}
+                            className={canUploadFiles ? undefined : 'disabled'}
                             onClick={(canUploadFiles && handleEditFileClick) || undefined}
                         >
                             {!pendingFile && fileInfo && (
@@ -539,17 +540,15 @@ const FileInputContainer = styled.div`
     border-radius: 8px;
     display: flex;
 
-    &:hover:not([disabled]) {
+    &:hover:not(.disabled) {
         background: rgba(var(--center-channel-color-rgb), 0.08);
         color: rgba(var(--center-channel-color-rgb), 0.72);
         cursor: pointer;
     }
 
-    &:disabled {
+    &.disabled {
         cursor: default;
-        ${VisualButton} {
-            opacity: 0.4;
-        }
+        opacity: 0.7;
     }
 
     input[type="file"] {

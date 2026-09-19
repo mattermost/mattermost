@@ -1035,6 +1035,44 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         });
     });
 
+    describe('read-only channels', () => {
+        const readOnlyState = mergeObjects(initialState, {
+            entities: {
+                roles: {
+                    roles: {
+                        user_roles: {permissions: []},
+                    },
+                },
+            },
+        });
+
+        it('marks the editor body with a class instead of a disabled attribute', () => {
+            const {container} = renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                readOnlyState,
+            );
+
+            const body = container.querySelector('.AdvancedTextEditor__body');
+            expect(body).toHaveClass('AdvancedTextEditor__body--disabled');
+            expect(body).not.toHaveAttribute('disabled');
+        });
+
+        it('leaves the editor body unmarked when the user can post', () => {
+            const {container} = renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                initialState,
+            );
+
+            const body = container.querySelector('.AdvancedTextEditor__body');
+            expect(body).not.toHaveClass('AdvancedTextEditor__body--disabled');
+            expect(body).not.toHaveAttribute('disabled');
+        });
+    });
+
     describe('composer placeholder', () => {
         const suffixState = {
             plugins: {

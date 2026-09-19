@@ -30,8 +30,7 @@ exports[`admin_console/system_role_permission should match snapshot 1`] = `
         class="PermissionSectionDropdown"
       >
         <div
-          class="MenuWrapper "
-          disabled=""
+          class="MenuWrapper MenuWrapper--disabled"
         >
           <button
             aria-expanded="true"

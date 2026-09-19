@@ -62,7 +62,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
             class="group-description row-content roles"
           >
             <div
-              class="MenuWrapper "
+              class="MenuWrapper"
             >
               <div>
                 <a
@@ -188,7 +188,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
             class="group-description row-content roles"
           >
             <div
-              class="MenuWrapper "
+              class="MenuWrapper"
             >
               <div>
                 <a
@@ -244,7 +244,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
             class="group-description row-content roles"
           >
             <div
-              class="MenuWrapper "
+              class="MenuWrapper"
             >
               <div>
                 <a
@@ -300,7 +300,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
             class="group-description row-content roles"
           >
             <div
-              class="MenuWrapper "
+              class="MenuWrapper"
             >
               <div>
                 <a
@@ -356,7 +356,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
             class="group-description row-content roles"
           >
             <div
-              class="MenuWrapper "
+              class="MenuWrapper"
             >
               <div>
                 <a
@@ -412,7 +412,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
             class="group-description row-content roles"
           >
             <div
-              class="MenuWrapper "
+              class="MenuWrapper"
             >
               <div>
                 <a
@@ -468,7 +468,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
             class="group-description row-content roles"
           >
             <div
-              class="MenuWrapper "
+              class="MenuWrapper"
             >
               <div>
                 <a
@@ -524,7 +524,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
             class="group-description row-content roles"
           >
             <div
-              class="MenuWrapper "
+              class="MenuWrapper"
             >
               <div>
                 <a
@@ -580,7 +580,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
             class="group-description row-content roles"
           >
             <div
-              class="MenuWrapper "
+              class="MenuWrapper"
             >
               <div>
                 <a
@@ -636,7 +636,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
             class="group-description row-content roles"
           >
             <div
-              class="MenuWrapper "
+              class="MenuWrapper"
             >
               <div>
                 <a
@@ -692,7 +692,7 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
             class="group-description row-content roles"
           >
             <div
-              class="MenuWrapper "
+              class="MenuWrapper"
             >
               <div>
                 <a
