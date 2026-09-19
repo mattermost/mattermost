@@ -130,7 +130,7 @@ test(
         await ensureABACEnabled(adminClient);
 
         // # Mark a draft as burn-on-read while still allowed
-        const {channelsPage} = await pw.testBrowser.login(adminUser);
+        const {channelsPage, draftsPage} = await pw.testBrowser.login(adminUser);
         await channelsPage.goto(team.name, 'town-square');
         await channelsPage.toBeVisible();
         await channelsPage.centerView.postCreate.writeMessage(message);
@@ -149,7 +149,26 @@ test(
         await channelsPage.centerView.postCreate.toHaveBurnOnReadLabel();
         await expect(channelsPage.centerView.postCreate.sendMessageButton).toBeDisabled();
 
-        // # Clear the burn-on-read label, the only way forward for this draft
+        // # The Drafts list is a second way to send the same draft, so check it too
+        await draftsPage.goto(team.name);
+        await draftsPage.toBeVisible();
+        const draft = await draftsPage.getLastPost();
+        await draft.hover();
+
+        // * Verify Send and Schedule are withdrawn there as well. Schedule goes with
+        // Send because creating a scheduled post is enforced the same way, so offering
+        // it would only move the rejection later.
+        await expect(draft.sendButton).toHaveCount(0);
+        await expect(draft.scheduleButton).toHaveCount(0);
+
+        // * Verify the ways out of the state are still offered — Edit returns to the
+        // composer, where the label can be cleared, and Delete discards the draft
+        await expect(draft.editButton).toBeVisible();
+        await expect(draft.deleteButton).toBeVisible();
+
+        // # Back to the composer, and clear the burn-on-read label
+        await channelsPage.goto(team.name, 'town-square');
+        await channelsPage.toBeVisible();
         await channelsPage.centerView.postCreate.removeAllLabelsButton.click();
 
         // * Verify sending is offered again once the draft is no longer burn-on-read
