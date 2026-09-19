@@ -453,3 +453,9 @@ channels/db/migrations/postgres/000228_add_access_control_policies_rules_index.d
 channels/db/migrations/postgres/000228_add_access_control_policies_rules_index.up.sql
 channels/db/migrations/postgres/000229_add_access_control_policies_imports_index.down.sql
 channels/db/migrations/postgres/000229_add_access_control_policies_imports_index.up.sql
+channels/db/migrations/postgres/000230_add_preference_deletions.down.sql
+channels/db/migrations/postgres/000230_add_preference_deletions.up.sql
+channels/db/migrations/postgres/000231_add_preference_deletions_index.down.sql
+channels/db/migrations/postgres/000231_add_preference_deletions_index.up.sql
+channels/db/migrations/postgres/000232_add_preference_deletions_deleteat_index.down.sql
+channels/db/migrations/postgres/000232_add_preference_deletions_deleteat_index.up.sql
