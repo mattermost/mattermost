@@ -120,8 +120,15 @@ export default class LoginPage {
     async expectOAuthLogin(name: string, path: string, color?: string) {
         const button = this.oauthLoginButton(name);
         await expect(button).toBeVisible();
-        const escapedPath = path.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        await expect(button).toHaveAttribute('href', new RegExp(`^${escapedPath}(?:\\?extra=expired)?$`));
+        // Buttons use absolute site URLs (e.g. http://localhost:8055/oauth/google/login).
+        await expect(async () => {
+            const href = await button.getAttribute('href');
+            expect(href).toBeTruthy();
+            const url = new URL(href!, this.page.url());
+            expect(url.origin).toBe(new URL(this.page.url()).origin);
+            expect(url.pathname).toBe(path);
+            expect(['', '?extra=expired']).toContain(url.search);
+        }).toPass();
         if (color) {
             const rgb = hexToRgb(color);
             await expect(button).toHaveCSS('color', rgb);
