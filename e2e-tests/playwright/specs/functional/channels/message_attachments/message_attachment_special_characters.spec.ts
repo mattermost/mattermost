@@ -3,36 +3,22 @@
 
 import type {Locator} from '@playwright/test';
 
-import {expect, test, testConfig} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 
-/**
- * Posts a JSON payload to an incoming webhook URL.
- */
-async function postToWebhook(webhookId: string, payload: Record<string, unknown>) {
-    const hookUrl = `${testConfig.baseURL}/hooks/${webhookId}`;
-    const resp = await fetch(hookUrl, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(payload),
-    });
-
-    if (!resp.ok) {
-        throw new Error(`Webhook POST failed: ${resp.status} ${await resp.text()}`);
-    }
-}
+import {postToWebhook} from '../webhook_helpers';
 
 /** Legacy attachments are translated to mm_blocks; author/title live in markdown text blocks. */
-function mmBlocks(lastPost: {container: Locator}) {
-    return lastPost.container.locator('.mm-blocks');
+function mmBlocks(lastPost: {mmBlocks: Locator}) {
+    return lastPost.mmBlocks;
 }
 
-async function expectMmBlocksAuthorName(lastPost: {container: Locator}, name: string) {
+async function expectMmBlocksAuthorName(lastPost: {mmBlocks: Locator}, name: string) {
     const blocks = mmBlocks(lastPost);
     // Attachment translation renders author before title; title <p> also contains the link text via hasText.
     await expect(blocks.locator('p').first()).toHaveText(name);
 }
 
-async function expectMmBlocksTitleLink(lastPost: {container: Locator}, title: string) {
+async function expectMmBlocksTitleLink(lastPost: {mmBlocks: Locator}, title: string) {
     await expect(mmBlocks(lastPost).getByRole('link', {name: title})).toBeVisible();
 }
 
@@ -45,7 +31,7 @@ test.describe('Message attachment special character decoding', () => {
     test(
         'decodes HTML entities in attachment title and author_name from an incoming webhook',
         {tag: ['@smoke', '@message_attachments']},
-        async ({pw}) => {
+        async ({pw, request}) => {
             const {team, user, adminClient} = await pw.initSetup();
 
             const channels = await adminClient.getMyChannels(team.id);
@@ -61,7 +47,7 @@ test.describe('Message attachment special character decoding', () => {
             });
 
             // # Post a webhook payload with HTML-encoded entities in title and author_name
-            await postToWebhook(webhook.id, {
+            await postToWebhook(request, webhook.id, {
                 attachments: [
                     {
                         author_name: 'Bot &#40;v2.1&#41; &amp; Integrations',
@@ -94,7 +80,7 @@ test.describe('Message attachment special character decoding', () => {
     test(
         'decodes numeric HTML entities in attachment title with a title_link',
         {tag: ['@message_attachments']},
-        async ({pw}) => {
+        async ({pw, request}) => {
             const {team, user, adminClient} = await pw.initSetup();
 
             const channels = await adminClient.getMyChannels(team.id);
@@ -109,7 +95,7 @@ test.describe('Message attachment special character decoding', () => {
             });
 
             // # Post with numeric entities: &#34; ("), &#39; ('), &#58; (:), &#91; ([), &#93; (])
-            await postToWebhook(webhook.id, {
+            await postToWebhook(request, webhook.id, {
                 attachments: [
                     {
                         title: '&#34;All Hands&#34; Meeting &#91;Q1&#93; &#45; 9&#58;00',
@@ -136,7 +122,7 @@ test.describe('Message attachment special character decoding', () => {
     test(
         'decodes named HTML entities (&lt; &gt; &quot; &apos;) in author_name',
         {tag: ['@message_attachments']},
-        async ({pw}) => {
+        async ({pw, request}) => {
             const {team, user, adminClient} = await pw.initSetup();
 
             const channels = await adminClient.getMyChannels(team.id);
@@ -150,7 +136,7 @@ test.describe('Message attachment special character decoding', () => {
                 display_name: 'E2E Named Entities Hook',
             });
 
-            await postToWebhook(webhook.id, {
+            await postToWebhook(request, webhook.id, {
                 attachments: [
                     {
                         author_name: 'CI &lt;Build&gt; &quot;System&quot; &apos;Owner&apos;',
@@ -176,7 +162,7 @@ test.describe('Message attachment special character decoding', () => {
     test(
         'does not double-decode already-encoded entities in attachment fields',
         {tag: ['@message_attachments']},
-        async ({pw}) => {
+        async ({pw, request}) => {
             const {team, user, adminClient} = await pw.initSetup();
 
             const channels = await adminClient.getMyChannels(team.id);
@@ -191,7 +177,7 @@ test.describe('Message attachment special character decoding', () => {
             });
 
             // &amp;lt; should decode only one level: &amp; → &, leaving &lt; as literal text
-            await postToWebhook(webhook.id, {
+            await postToWebhook(request, webhook.id, {
                 attachments: [
                     {
                         author_name: '&amp;lt;safe&amp;gt;',
@@ -220,7 +206,7 @@ test.describe('Message attachment special character decoding', () => {
     test(
         'renders plain text without entities unchanged in attachment title and author_name',
         {tag: ['@message_attachments']},
-        async ({pw}) => {
+        async ({pw, request}) => {
             const {team, user, adminClient} = await pw.initSetup();
 
             const channels = await adminClient.getMyChannels(team.id);
@@ -234,7 +220,7 @@ test.describe('Message attachment special character decoding', () => {
                 display_name: 'E2E Plain Text Hook',
             });
 
-            await postToWebhook(webhook.id, {
+            await postToWebhook(request, webhook.id, {
                 attachments: [
                     {
                         author_name: 'Simple Bot Name',
@@ -263,7 +249,7 @@ test.describe('Message attachment special character decoding', () => {
     test(
         'decodes realistic calendar plugin payload with parentheses and ampersands',
         {tag: ['@message_attachments']},
-        async ({pw}) => {
+        async ({pw, request}) => {
             const {team, user, adminClient} = await pw.initSetup();
 
             const channels = await adminClient.getMyChannels(team.id);
@@ -278,7 +264,7 @@ test.describe('Message attachment special character decoding', () => {
             });
 
             // Realistic payload from a Google Calendar-like plugin
-            await postToWebhook(webhook.id, {
+            await postToWebhook(request, webhook.id, {
                 attachments: [
                     {
                         author_name: 'Google Calendar &#124; via Plugin &#40;v1.0&#41;',

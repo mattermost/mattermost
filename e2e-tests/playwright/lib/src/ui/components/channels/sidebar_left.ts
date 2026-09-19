@@ -83,8 +83,8 @@ export default class ChannelsSidebarLeft {
      * Verifies the sidebar item with the given name is in the unread state.
      * @param name
      */
-    async assertItemUnread(name: string) {
-        await expect(this.item(name)).toHaveClass(/unread|unread-title/);
+    async assertItemUnread(name: string, timeout?: number) {
+        await expect(this.item(name)).toHaveClass(/unread|unread-title/, {timeout});
     }
 
     /**
@@ -93,6 +93,14 @@ export default class ChannelsSidebarLeft {
      */
     async assertItemRead(name: string) {
         await expect(this.item(name)).not.toHaveClass(/unread|unread-title/);
+    }
+
+    async assertItemMuted(name: string) {
+        await expect(this.item(name)).toHaveClass(/muted/);
+    }
+
+    async assertItemNotMuted(name: string) {
+        await expect(this.item(name)).not.toHaveClass(/muted/);
     }
 
     /**

@@ -13,6 +13,7 @@ export default class ChannelsHeader {
     readonly channelMenuDropdown;
     readonly callButton: Locator;
     readonly pinnedMessagesButton: Locator;
+    readonly unmuteButton: Locator;
     // Two chip slots, two accessors: 'attributes' is the row under the channel
     // name, 'infoAttributes' the inline strip beside the member count.
     readonly attributes: ChannelAttributeLabels;
@@ -26,6 +27,7 @@ export default class ChannelsHeader {
         this.channelMenuDropdown = container.locator('#channelHeaderDropdownButton');
         this.callButton = container.getByRole('button', {name: /call/i}).first();
         this.pinnedMessagesButton = container.locator('#channelHeaderPinButton');
+        this.unmuteButton = container.getByRole('button', {name: 'Unmute'});
         this.attributes = new ChannelAttributeLabels(container.getByTestId('channelAttributeLabels-header'), 'header');
         this.infoAttributes = new ChannelAttributeLabels(container.getByTestId('channelAttributeLabels-info'), 'info');
         this.addChannelHeaderButton = container.getByRole('button', {name: 'Add a channel header'});
@@ -65,6 +67,10 @@ export default class ChannelsHeader {
         await this.addChannelHeaderButton.click();
     }
 
+    getHeaderQuote(text: string) {
+        return this.container.getByRole('blockquote').filter({hasText: text});
+    }
+
     getHeaderText(text: string) {
         return this.container.getByText(text, {exact: false});
     }
@@ -77,7 +83,8 @@ export default class ChannelsHeader {
         return this.container.getByRole('button', {name});
     }
 
-    getHeaderTooltip(text: string) {
-        return this.container.page().getByRole('tooltip').filter({hasText: text});
+    getHeaderTooltip(text?: string) {
+        const tooltip = this.container.page().getByRole('tooltip');
+        return text ? tooltip.filter({hasText: text}) : tooltip;
     }
 }

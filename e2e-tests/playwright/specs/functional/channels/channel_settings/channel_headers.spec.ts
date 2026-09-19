@@ -29,7 +29,7 @@ test(
         await channelSettings.close();
 
         // * Verify the header bar shows the first line of the header
-        const headerText = channelsPage.centerView.header.container.getByText('Header text line one');
+        const headerText = channelsPage.centerView.header.getHeaderText('Header text line one');
         await expect(headerText).toBeVisible();
 
         // # Hover the header text to open the popover. Force the hover because opening the popover mounts a
@@ -37,7 +37,7 @@ test(
         await headerText.hover({force: true});
 
         // * Verify the popover opens with the full header and a link to the correct URL
-        const popover = page.getByRole('tooltip');
+        const popover = channelsPage.centerView.header.getHeaderTooltip();
         await expect(popover).toBeVisible();
         await expect(popover.getByText('Four')).toBeVisible();
         const link = popover.getByRole('link', {name: 'Google'});
@@ -51,6 +51,25 @@ test(
         await expect(popover).not.toBeVisible();
     },
 );
+
+/**
+ * @objective Verify a markdown quote in a channel header renders as a block quote without losing the header text.
+ */
+test('MM-T881_1 renders a markdown quote in the channel header', async ({pw}) => {
+    const {adminClient, team, user} = await pw.initSetup();
+    const channel = await adminClient.createPublicChannel(team.id, 'Markdown Header');
+    await adminClient.addToChannel(user.id, channel.id);
+    const header = `This is a quote in the header ${pw.random.id()}`;
+    await adminClient.patchChannel(channel.id, {header: `>${header}`});
+
+    // # Open the channel whose header starts with markdown quote syntax
+    const {channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+    await channelsPage.toBeVisible();
+
+    // * Verify the header renders the text inside a block quote
+    await expect(channelsPage.centerView.header.getHeaderQuote(header)).toBeVisible();
+});
 
 /**
  * @objective Verify a channel header can be added from the "Set header" link in a new channel's intro,
@@ -68,13 +87,13 @@ test('MM-T880 adds a channel header from the intro Set header link', {tag: '@cha
     await channelsPage.centerView.header.toHaveTitle(channelName);
 
     // # Open the Edit Header modal from the intro and cancel without entering text
-    await channelsPage.centerView.channelIntro.getByRole('button', {name: 'Set header'}).click();
+    await channelsPage.centerView.openSetHeader();
     await channelsPage.editChannelHeaderModal.toBeVisible();
     await channelsPage.editChannelHeaderModal.cancel();
 
     // # Reopen the Edit Header modal and save a header
     const header = 'this is the channel header';
-    await channelsPage.centerView.channelIntro.getByRole('button', {name: 'Set header'}).click();
+    await channelsPage.centerView.openSetHeader();
     await channelsPage.editChannelHeaderModal.toBeVisible();
     await channelsPage.editChannelHeaderModal.setHeader(header);
 
@@ -87,5 +106,5 @@ test('MM-T880 adds a channel header from the intro Set header link', {tag: '@cha
     await channelsPage.sidebarRight.toBeVisible();
 
     // * Verify the saved header appears in the channel info panel
-    await expect(channelsPage.sidebarRight.container.getByText(header)).toBeVisible();
+    await channelsPage.sidebarRight.toContainText(header);
 });
