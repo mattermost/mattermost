@@ -63,6 +63,14 @@ type FeatureFlags struct {
 	// PermissionPolicies dependency is enforced at every call site.
 	PolicySimulation bool
 
+	// Enable the create_burn_on_read_post action on ABAC policies, which gates
+	// who may send a burn-on-read message. Requires PermissionPolicies. Kept
+	// separate from ChannelPermissionPolicies (which gates the file actions)
+	// because denying burn-on-read withholds a message format whose content is
+	// deliberately kept out of search, not just an attachment. Read via
+	// IsBurnOnReadABACPermissionEnabled().
+	BurnOnReadABACPermission bool
+
 	ContentFlagging bool
 
 	EnableMattermostEntry bool
@@ -194,6 +202,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ResourceAttributesInPolicies = false
 	f.ChannelPermissionPolicies = true
 	f.PolicySimulation = true
+	f.BurnOnReadABACPermission = false
 	f.ContentFlagging = true
 	f.EnableMattermostEntry = true
 
@@ -292,6 +301,13 @@ func (f *FeatureFlags) IsPolicySimulationEnabled() bool {
 // and the ChannelAttributesRequired sub-flag must be true.
 func (f *FeatureFlags) IsChannelAttributesRequiredEnabled() bool {
 	return f.ChannelAttributes && f.ChannelAttributesRequired
+}
+
+// IsBurnOnReadABACPermissionEnabled reports whether policies may carry the
+// create_burn_on_read_post action. Both this sub-flag and the PermissionPolicies
+// umbrella must be on.
+func (f *FeatureFlags) IsBurnOnReadABACPermissionEnabled() bool {
+	return f.PermissionPolicies && f.BurnOnReadABACPermission
 }
 
 // ToMap returns the feature flags as a map[string]string

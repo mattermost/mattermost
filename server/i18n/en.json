@@ -60,6 +60,10 @@
     "translation": "Channel-level permission policies feature is not enabled."
   },
   {
+    "id": "api.access_control_policy.create_burn_on_read_post.feature_disabled",
+    "translation": "Burn-on-read permission policies feature is not enabled."
+  },
+  {
     "id": "api.access_control_policy.get_channels.limit.app_error",
     "translation": "Get channels limit is not valid."
   },
@@ -3015,6 +3019,10 @@
   {
     "id": "api.post.check_for_out_of_team_mentions.message.one",
     "translation": "@{{.Username}} didn't get notified by this mention because they aren't a member of this team."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
+    "translation": "You do not have permission to send burn-on-read messages in this channel."
   },
   {
     "id": "api.post.create_post.burn_on_read.app_error",

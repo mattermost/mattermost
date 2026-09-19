@@ -1613,7 +1613,7 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = filePostErr
 			return
 		}
-		if !c.App.HasPermissionToFileAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, filePost.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
+		if !c.App.HasPermissionToChannelAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, filePost.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
 			c.Err = model.NewAppError("getFileInfosForPost", "api.file.get_file.abac_denied.app_error", nil, "", http.StatusForbidden)
 			return
 		}

@@ -136,6 +136,17 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	// create_burn_on_read_post carries its own sub-flag, checked for every policy
+	// type rather than just the two the admin console authors: the action is
+	// meaningless while the flag is off, so storing a policy that claims to govern
+	// burn-on-read would mislead whoever reads it back. Deliberately last of the
+	// three gates, so the broader "permission policies are off entirely" and
+	// "channel permission rules are off" rejections win when they also apply.
+	if policy.HasCreateBurnOnReadPostAction() && !c.App.Config().FeatureFlags.IsBurnOnReadABACPermissionEnabled() {
+		c.Err = model.NewAppError("createAccessControlPolicy", "api.access_control_policy.create_burn_on_read_post.feature_disabled", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	auditRec := c.MakeAuditRecord(model.AuditEventCreateAccessControlPolicy, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "requested", &policy)

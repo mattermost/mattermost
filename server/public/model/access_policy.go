@@ -49,6 +49,7 @@ const (
 	AccessControlPolicyActionMembership             = "membership"
 	AccessControlPolicyActionUploadFileAttachment   = "upload_file_attachment"
 	AccessControlPolicyActionDownloadFileAttachment = "download_file_attachment"
+	AccessControlPolicyActionCreateBurnOnReadPost   = "create_burn_on_read_post"
 
 	AccessControlPolicyScopeTeam = "team"
 
@@ -87,6 +88,7 @@ var allowedActionsV0_3 = map[string]bool{
 	AccessControlPolicyActionMembership:             true,
 	AccessControlPolicyActionUploadFileAttachment:   true,
 	AccessControlPolicyActionDownloadFileAttachment: true,
+	AccessControlPolicyActionCreateBurnOnReadPost:   true,
 }
 
 // allowedChannelRolesV0_4 is the set of channel-scoped roles that may appear
@@ -98,11 +100,12 @@ var allowedChannelRolesV0_4 = map[string]bool{
 }
 
 // allowedPermissionActionsV0_4 is the set of non-membership actions that may
-// appear on a v0.4 channel resource policy rule. These rules govern per-action
-// behavior (file upload/download) and must carry a channel-scoped role.
+// appear on a v0.4 channel resource policy rule. Each such rule must carry a
+// channel-scoped role.
 var allowedPermissionActionsV0_4 = map[string]bool{
 	AccessControlPolicyActionUploadFileAttachment:   true,
 	AccessControlPolicyActionDownloadFileAttachment: true,
+	AccessControlPolicyActionCreateBurnOnReadPost:   true,
 }
 
 // IsPermissionAction reports whether the given action is a non-membership
@@ -175,6 +178,22 @@ func (p *AccessControlPolicy) HasPermissionRuleAction() bool {
 	}
 	for i := range p.Rules {
 		if slices.ContainsFunc(p.Rules[i].Actions, IsPermissionAction) {
+			return true
+		}
+	}
+	return false
+}
+
+// HasCreateBurnOnReadPostAction reports whether any rule on this policy carries
+// the create_burn_on_read_post action. API4 uses it to gate the action behind its
+// own BurnOnReadABACPermission flag, for every policy type. Safe to call on a nil
+// policy.
+func (p *AccessControlPolicy) HasCreateBurnOnReadPostAction() bool {
+	if p == nil {
+		return false
+	}
+	for i := range p.Rules {
+		if slices.Contains(p.Rules[i].Actions, AccessControlPolicyActionCreateBurnOnReadPost) {
 			return true
 		}
 	}

@@ -790,11 +790,13 @@ func (a *App) hasPropertyFieldScopeAccess(rctx request.CTX, userID string, field
 	return false
 }
 
-// HasPermissionToFileAction evaluates whether the user is allowed to perform the
-// given file action (e.g. upload_file_attachment, download_file_attachment) on
-// a channel, based on ABAC permission policies.
+// HasPermissionToChannelAction evaluates whether the user is allowed to perform
+// the given permission action against a channel, based on ABAC policies. The
+// action is passed through to the PDP untouched, so this serves every action
+// evaluated with a channel resource — the file actions, create_burn_on_read_post,
+// and any added later.
 // Returns true if allowed (or if ABAC is not active), false if denied.
-func (a *App) HasPermissionToFileAction(rctx request.CTX, userID string, roles string, channelID string, action string) bool {
+func (a *App) HasPermissionToChannelAction(rctx request.CTX, userID string, roles string, channelID string, action string) bool {
 	acs := a.Srv().Channels().AccessControl
 	if acs == nil {
 		return true
@@ -816,7 +818,7 @@ func (a *App) HasPermissionToFileAction(rctx request.CTX, userID string, roles s
 		subject, appErr = a.BuildAccessControlSubject(rctx, userID, roles, channelID)
 	}
 	if appErr != nil {
-		rctx.Logger().Info("Failed to build ABAC subject for file action evaluation",
+		rctx.Logger().Info("Failed to build ABAC subject for channel action evaluation",
 			mlog.String("user_id", userID),
 			mlog.String("action", action),
 			mlog.Err(appErr),
@@ -833,7 +835,7 @@ func (a *App) HasPermissionToFileAction(rctx request.CTX, userID string, roles s
 		Action: action,
 	})
 	if evalErr != nil {
-		rctx.Logger().Debug("ABAC file action evaluation failed, denying by default",
+		rctx.Logger().Debug("ABAC channel action evaluation failed, denying by default",
 			mlog.String("user_id", userID),
 			mlog.String("action", action),
 			mlog.String("channel_id", channelID),

@@ -1131,7 +1131,7 @@ func (api *PluginAPI) HasPermissionToFileAction(sessionID, fileID, action string
 	}
 
 	rctx := api.ctx.WithSession(session)
-	return api.app.HasPermissionToFileAction(rctx, session.UserId, session.Roles, fileInfo.ChannelId, action)
+	return api.app.HasPermissionToChannelAction(rctx, session.UserId, session.Roles, fileInfo.ChannelId, action)
 }
 
 func (api *PluginAPI) UploadFile(data []byte, channelID string, filename string) (*model.FileInfo, *model.AppError) {
