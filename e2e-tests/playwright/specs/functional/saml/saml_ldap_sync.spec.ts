@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {duration, expect, test} from '@mattermost/playwright-lib';
 
 import {runLdapSyncAndWait} from './ldap_sync_wait';
 
@@ -16,7 +16,6 @@ test(
     'MM-T3013_2 SAML login syncs profile attributes from the LDAP directory when enabled',
     {tag: '@saml'},
     async ({pw}) => {
-        test.setTimeout(180_000);
         await pw.ensureLicense();
         await pw.skipIfNoLicense();
 
@@ -62,7 +61,7 @@ test(
             expect(provisionedUser.auth_service).toBe('saml');
             expect(provisionedUser.first_name).toBe('UpdatedFirstname');
             expect(provisionedUser.last_name).toBe('UpdatedLastname');
-        }).toPass({timeout: 30_000});
+        }).toPass({timeout: duration.half_min});
     },
 );
 
@@ -74,7 +73,6 @@ test(
  * Keycloak and OpenLDAP running, with matching users in both directories.
  */
 test('MM-T3013_1 SAML login keeps SAML attributes when LDAP sync is disabled', {tag: '@saml'}, async ({pw}) => {
-    test.setTimeout(180_000);
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
 
@@ -120,7 +118,7 @@ test('MM-T3013_1 SAML login keeps SAML attributes when LDAP sync is disabled', {
         expect(provisionedUser.auth_service).toBe('saml');
         expect(provisionedUser.first_name).toBe('SamlFirstname');
         expect(provisionedUser.last_name).toBe('SamlLastname');
-    }).toPass({timeout: 30_000});
+    }).toPass({timeout: duration.half_min});
 });
 
 /**
@@ -131,7 +129,6 @@ test('MM-T3013_1 SAML login keeps SAML attributes when LDAP sync is disabled', {
  * Keycloak and OpenLDAP running, with matching users in both directories.
  */
 test('MM-T3666 SAML LDAP sync uses a custom ID Attribute mapping', {tag: '@saml'}, async ({pw}) => {
-    test.setTimeout(180_000);
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
 
@@ -181,5 +178,5 @@ test('MM-T3666 SAML LDAP sync uses a custom ID Attribute mapping', {tag: '@saml'
         expect(provisionedUser.auth_service).toBe('saml');
         expect(provisionedUser.first_name).toBe('IdUpdatedFirst');
         expect(provisionedUser.last_name).toBe('IdUpdatedLast');
-    }).toPass({timeout: 30_000});
+    }).toPass({timeout: duration.half_min});
 });
