@@ -7,7 +7,6 @@ require (
 	github.com/dyatlov/go-opengraph/opengraph v0.0.0-20220524092352-606d7b1e5f8a
 	github.com/francoispqt/gojay v1.2.13
 	github.com/goccy/go-yaml v1.19.2
-	github.com/golang/mock v1.6.0
 	github.com/gorilla/mux v1.8.1
 	github.com/gorilla/websocket v1.5.3
 	github.com/hashicorp/go-hclog v1.6.3
@@ -25,6 +24,7 @@ require (
 	github.com/stretchr/testify v1.12.1
 	github.com/tinylib/msgp v1.6.4
 	github.com/vmihailenco/msgpack/v5 v5.4.1
+	go.uber.org/mock v0.6.0
 	golang.org/x/crypto v0.55.0
 	golang.org/x/mod v0.40.0
 	golang.org/x/net v0.58.0

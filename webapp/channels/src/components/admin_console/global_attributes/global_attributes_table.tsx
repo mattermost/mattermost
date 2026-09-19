@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {createColumnHelper, getCoreRowModel, useReactTable, type ColumnDef} from '@tanstack/react-table';
+import classNames from 'classnames';
 import type {ComponentType} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {MessageDescriptor} from 'react-intl';
@@ -10,7 +11,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
 import type {ClientError} from '@mattermost/client';
-import {ChevronDownCircleOutlineIcon, DotsHorizontalIcon, EyeOutlineIcon, FormatListBulletedIcon, MenuVariantIcon, OpenInNewIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SortAscendingIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {ChevronDownCircleOutlineIcon, DotsHorizontalIcon, EyeOutlineIcon, FormatListBulletedIcon, MenuVariantIcon, OpenInNewIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SitemapIcon, SortAscendingIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FieldType, PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
@@ -62,6 +63,7 @@ const TYPE_ICONS: Partial<Record<FieldType, ComponentType<IconProps>>> = {
     select: ChevronDownCircleOutlineIcon,
     multiselect: FormatListBulletedIcon,
     rank: SortAscendingIcon,
+    graph: SitemapIcon,
 };
 
 export function getTypeIcon(fieldType: FieldType): ComponentType<IconProps> {
@@ -222,7 +224,11 @@ function OptionsCell({field}: {field: PropertyField}) {
         return <FormattedMessage {...optionsLabels.freeText}/>;
     }
 
-    const count = (field.attrs?.options as PropertyFieldOption[] | undefined)?.length ?? 0;
+    const attrs = field.attrs;
+    const omitted = Boolean(attrs?.options_omitted);
+    const count = omitted ?
+        ((attrs?.options_count as number | undefined) ?? 0) :
+        ((attrs?.options as PropertyFieldOption[] | undefined)?.length ?? 0);
 
     return (
         <FormattedMessage
@@ -232,13 +238,28 @@ function OptionsCell({field}: {field: PropertyField}) {
     );
 }
 
-function AttributeCell({field}: {field: PropertyField}) {
+function classificationSubtitleId(fieldId: string): string {
+    return `global-attribute-classification-subtitle-${fieldId}`;
+}
+
+function AttributeCell({field, isClassificationRow}: ClassificationAwareCellProps) {
     return (
-        <span
-            className='GlobalAttributesTable__name'
-            data-testid='global-attribute-name'
-        >
-            {getDisplayName(field)}
+        <span className='GlobalAttributesTable__attribute'>
+            <span
+                className={classNames('GlobalAttributesTable__name', {'GlobalAttributesTable__name--classification': isClassificationRow})}
+                data-testid='global-attribute-name'
+            >
+                {getDisplayName(field)}
+            </span>
+            {isClassificationRow && (
+                <span
+                    id={classificationSubtitleId(field.id)}
+                    className='GlobalAttributesTable__subtitle GlobalAttributesTable__subtitle--classification'
+                    data-testid={`global-attribute-classification-subtitle-${field.id}`}
+                >
+                    <FormattedMessage {...messages.classificationSubtitle}/>
+                </span>
+            )}
         </span>
     );
 }
@@ -292,6 +313,7 @@ function ActionsCell({field, isClassificationRow, canEditClassification, isMobil
                     to={CLASSIFICATIONS_MARKINGS_ADMIN_URL}
                     className='GlobalAttributesTable__link--classification'
                     aria-label={classificationLinkLabel}
+                    aria-describedby={classificationSubtitleId(field.id)}
                     data-testid={`global-attribute-classification-link-${field.id}`}
                 >
                     <OpenInNewIcon
@@ -613,7 +635,10 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                 id: 'attribute',
                 header: () => <FormattedMessage {...messages.attribute}/>,
                 cell: ({row}) => (
-                    <AttributeCell field={row.original}/>
+                    <AttributeCell
+                        field={row.original}
+                        isClassificationRow={isClassificationRow(row.original)}
+                    />
                 ),
                 enableSorting: false,
                 enableHiding: false,
@@ -766,6 +791,13 @@ const messages = defineMessages({
     appliesTo: {id: 'admin.global_attributes.table.applies_to', defaultMessage: 'Applies to'},
     source: {id: 'admin.global_attributes.table.source', defaultMessage: 'Source'},
     options: {id: 'admin.global_attributes.table.options', defaultMessage: 'Options'},
+    classificationSubtitle: {
+        id: 'admin.global_attributes.table.attribute.classification_subtitle',
+
+        // Scoped to the definition on purpose: the resources it applies to are
+        // editable on its own page.
+        defaultMessage: 'Definition is read-only',
+    },
     empty: {
         id: 'admin.global_attributes.table.empty',
         defaultMessage: 'No attributes yet. Click "New attribute" to create one.',
@@ -782,6 +814,7 @@ export const typeLabels = defineMessages({
     select: {id: 'admin.global_attributes.table.type.select', defaultMessage: 'Select'},
     multiselect: {id: 'admin.global_attributes.table.type.multiselect', defaultMessage: 'Multiselect'},
     rank: {id: 'admin.global_attributes.table.type.rank', defaultMessage: 'Ranked'},
+    graph: {id: 'admin.global_attributes.table.type.graph', defaultMessage: 'Hierarchical'},
     fallback: {id: 'admin.global_attributes.table.type.fallback', defaultMessage: 'Other'},
 });
 

@@ -88,6 +88,14 @@ export type Channel = {
      * attached" semantic.
      */
     policy_actions?: Record<string, boolean>;
+
+    /**
+     * True when the channel's policy opts into the membership sync job's add
+     * pass, i.e. matching users are added to the channel automatically.
+     */
+    policy_auto_add?: boolean;
+
+    /** @deprecated Use {@link policy_auto_add}, which this now mirrors. */
     policy_is_active?: boolean;
     default_category_name?: string;
     managed_category_name?: string;
