@@ -245,7 +245,7 @@ export default class ChannelsPost {
     }
 
     async toHaveReactionCount(name: string, count: number) {
-        await expect(this.getReaction(name)).toContainText(String(count));
+        await expect(this.getReaction(name).locator('.Reaction__number--display')).toHaveText(String(count));
     }
 
     getInlineImage(altText: string) {
