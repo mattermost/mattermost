@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Page} from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 import {expect} from '@playwright/test';
 
 export default class ShouldVerifyEmailPage {
     readonly page: Page;
-    readonly title: ReturnType<Page['getByText']>;
-    readonly message: ReturnType<Page['getByText']>;
-    readonly resendButton: ReturnType<Page['getByRole']>;
-    readonly sentConfirmation: ReturnType<Page['getByText']>;
+    readonly title: Locator;
+    readonly message: Locator;
+    readonly resendButton: Locator;
+    readonly sentConfirmation: Locator;
 
     constructor(page: Page) {
         this.page = page;
