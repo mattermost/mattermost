@@ -79,6 +79,7 @@ export default class IntlProvider extends React.PureComponent<Props> {
             <BaseIntlProvider
                 key={this.props.locale}
                 locale={this.props.locale}
+                defaultLocale={this.props.locale}
                 messages={this.props.translations}
                 textComponent='span'
                 wrapRichTextChunksInFragment={false}
