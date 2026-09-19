@@ -1,0 +1,8 @@
+dn: uid=e2etest.four,ou=e2etest,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: iNetOrgPerson
+sn: FourLDAP
+cn: TestLDAP
+uid: e2etest.four
+mail: e2etest.four@mmtest.com
+userPassword: Password1

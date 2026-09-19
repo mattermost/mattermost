@@ -1,0 +1,41 @@
+{
+  "name": "mattermost-plugin-playbooks-loadtest-browser",
+  "version": "2.4.3",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "package": "npm run build && npm pack --pack-destination ./pack",
+    "build": "npm run build:bundle && npm run types:generate",
+    "build:bundle": "node scripts/generate_bundle.mjs",
+    "types:check": "tsc --noEmit",
+    "types:generate": "node scripts/generate_types.mjs",
+    "lint:check": "eslint src --quiet && prettier --check \"src/**/*.ts\"",
+    "lint:fix": "eslint src --quiet --fix && prettier --write \"src/**/*.ts\"",
+    "clean": "rm -rf node_modules dist"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "@types/node": "^25.2.3",
+    "esbuild": "^0.27.3",
+    "eslint": "^9.39.2",
+    "prettier": "^3.8.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.55.0"
+  },
+  "peerDependencies": {
+    "@mattermost/loadtest-browser-lib": "^1.31.1",
+    "@mattermost/playwright-lib": "^11.4.0",
+    "@playwright/test": "^1.58.2"
+  }
+}

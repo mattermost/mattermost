@@ -1,0 +1,222 @@
+[
+    {
+        "id": "app.user.run.status_enable",
+        "translation": "@{{.Username}} zapnul aktualizace statusu pro [{{.RunName}}]({{.RunURL}})"
+    },
+    {
+        "id": "app.user.run.status_disable",
+        "translation": "@{{.Username}} vypnul aktualizace stavu pro běh [{{.RunName}}]({{.RunURL}})"
+    },
+    {
+        "id": "app.user.run.request_update",
+        "translation": "@here — @{{.Name}} vyžádal aktualizaci stavu pro [{{.RunName}}]({{.RunURL}}). \n"
+    },
+    {
+        "id": "app.user.run.request_join_channel",
+        "translation": "@{{.Name}} je účastník spuštění a chce se přidat k tomuto kanálu. Kterýkoliv člen kanálu ho může přizvat.\n"
+    },
+    {
+        "id": "app.user.digest.tasks.zero_assigned",
+        "translation": "Máte 0 přiřazených úkolů."
+    },
+    {
+        "id": "app.user.digest.tasks.num_assigned_due_until_today",
+        "translation": {
+            "one": "Máte {{.Count}} přiřazený úkol, který má být odevzdán:",
+            "few": "Máte {{.Count}} přiřazené úkoly, které mají být odevzdány:",
+            "other": "Máte {{.Count}} přiřazených úkolů, které mají být odevzdány:"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.num_assigned",
+        "translation": {
+            "one": "Máte {{.Count}} přiřazený úkol:",
+            "few": "Máte {{.Count}} přiřazených úkolů:",
+            "other": "Máte {{.Count}} přiřazených úkolů:"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.due_x_days_ago",
+        "translation": "K odevzdání před {{.Count}} dny"
+    },
+    {
+        "id": "app.user.digest.tasks.heading",
+        "translation": "Vaše přiřazené úkoly"
+    },
+    {
+        "id": "app.user.digest.tasks.due_yesterday",
+        "translation": "K odevzdání včera"
+    },
+    {
+        "id": "app.user.digest.tasks.due_today",
+        "translation": "K odevzdání dnes"
+    },
+    {
+        "id": "app.user.digest.tasks.due_in_x_days",
+        "translation": {
+            "one": "K odevzdání za {{.Count}} den",
+            "few": "K odevzdání za {{.Count}} dnů",
+            "other": "K odevzdání za {{.Count}} dnů"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.due_after_today",
+        "translation": {
+            "one": "Máte **{{.Count}} přiřazený úkol k odevzdání po dnešku**.",
+            "few": "Máte **{{.Count}} přiřazených úkolů k odevzdání po dnešku**.",
+            "other": "Máte **{{.Count}} přiřazených úkolů k odevzdání po dnešku**."
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.all_tasks_command",
+        "translation": "Prosím použijte `/playbook todo` k zobrazení všech Vašich úkolů."
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.zero_in_progress",
+        "translation": "Máte 0 aktuálních běhů."
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.num_in_progress",
+        "translation": {
+            "one": "Máte {{.Count}} aktuální běh:",
+            "few": "Máte {{.Count}} aktuální běhy:",
+            "other": "Máte {{.Count}} aktuálních běhů:"
+        }
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.heading",
+        "translation": "Aktuální běhy"
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.zero_overdue",
+        "translation": "Máte 0 běhů po termínu."
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.num_overdue",
+        "translation": {
+            "one": "Máte {{.Count}} běh po termínu pro aktualizaci statusu:",
+            "few": "Máte {{.Count}} běhů po termínu pro status update:",
+            "other": "Máte {{.Count}} běhů po termínu pro status update:"
+        }
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.heading",
+        "translation": "Aktualizace statusu po termínu"
+    },
+    {
+        "id": "app.command.execute.error",
+        "translation": "Není možné provést příkaz."
+    },
+    {
+        "id": "app.user.run.confirm_finish.submit_label",
+        "translation": "Dokončit"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary.placeholder",
+        "translation": "Krátký souhrn zobrazený na časové ose"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.title",
+        "translation": "Přidat do časové osy běhu"
+    },
+    {
+        "id": "app.user.run.confirm_finish.num_outstanding",
+        "translation": {
+            "one": "Existuje {{.Count}} nevyřízený úkol. Opravdu chcete dokončit *{{.RunName}} pro všechny účastníky?",
+            "few": "Existují **{{.Count}} nevyřízené úkoly**. Opravdu chcete dokončit *{{.RunName}}* pro všechny účastníky?",
+            "other": "Existuje **{{.Count}} nevyřízených úkoly**. Opravdu chcete dokončit *{{.RunName}}* pro všechny účastníky?"
+        }
+    },
+    {
+        "id": "app.user.new_run.intro",
+        "translation": "**Vlastník** {{.Username}}"
+    },
+    {
+        "id": "app.user.new_run.playbook",
+        "translation": "Playbook"
+    },
+    {
+        "id": "app.user.new_run.run_name",
+        "translation": "Název běhu"
+    },
+    {
+        "id": "app.user.new_run.submit_label",
+        "translation": "Spustit běh"
+    },
+    {
+        "id": "app.user.new_run.title",
+        "translation": "Spustit playbook"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.description",
+        "translation": "Popis"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.name",
+        "translation": "Název"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.submit_label",
+        "translation": "Přidat úkol"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.title",
+        "translation": "Přidat nový úkol"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.playbook_run",
+        "translation": "Playbook běh"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.submit_label",
+        "translation": "Přidat do časové osy běhu"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary",
+        "translation": "Souhrn"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary.help",
+        "translation": "Max. 64 znaků"
+    },
+    {
+        "id": "app.user.run.update_status.finish_run",
+        "translation": "Dokončit běh"
+    },
+    {
+        "id": "app.user.run.update_status.finish_run.placeholder",
+        "translation": "Také označit jako dokončené"
+    },
+    {
+        "id": "app.user.run.confirm_finish.title",
+        "translation": "Potvrdit dokončení"
+    },
+    {
+        "id": "app.user.run.update_status.change_since_last_update",
+        "translation": "Změn od poslední aktualizace stavu"
+    },
+    {
+        "id": "app.user.run.update_status.num_channel",
+        "translation": {
+            "one": "Poskytnout aktualizaci pro zúčastněné. Tato zpráva bude odeslána do {{.Count}} kanálu.",
+            "few": "Poskytnout aktualizaci pro zúčastněné. Tato zpráva bude odeslána do {{.Count}} kanálů.",
+            "other": "Poskytnout aktualizaci pro zúčastněné. Tato zpráva bude odeslána do {{.Count}} kanálů."
+        }
+    },
+    {
+        "id": "app.user.run.update_status.reminder_for_next_update",
+        "translation": "Připomínka pro další aktualizaci"
+    },
+    {
+        "id": "app.user.run.update_status.submit_label",
+        "translation": "Příspěvek"
+    },
+    {
+        "id": "app.user.run.update_status.title",
+        "translation": "Aktualizace stavu"
+    },
+    {
+        "id": "playbooks.checklist.condition.reason.modified",
+        "translation": "zobrazeno, protože úkol byl upraven"
+    }
+]
