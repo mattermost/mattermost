@@ -211,6 +211,24 @@ describe('PostAttributesModal', () => {
         expect(add).not.toBeDisabled();
     });
 
+    test('the add button keeps its tab stop', async () => {
+        patchSpy.mockResolvedValue([]);
+        renderModal([makeField()], [makeValue()]);
+
+        const add = screen.getByTestId('post-attributes-add');
+
+        // Native `disabled` would make this unreachable: jsdom skips disabled
+        // controls when tabbing, exactly as a browser and a screen reader do.
+        // The cap stops a control that is genuinely out of the tab order from
+        // looping forever.
+        for (let i = 0; i < 30 && document.activeElement !== add; i++) {
+            // eslint-disable-next-line no-await-in-loop
+            await userEvent.tab();
+        }
+
+        expect(add).toHaveFocus();
+    });
+
     test('lists every visible field in sort_order then name', () => {
         patchSpy.mockResolvedValue([]);
 
