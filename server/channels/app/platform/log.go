@@ -326,16 +326,17 @@ func isLogFilteredByDate(rctx request.CTX, logFilter *model.LogFilter, entry *mo
 		return false
 	}
 
-	dateFrom, err := time.Parse("2006-01-02 15:04:05.999 -07:00", logFilter.DateFrom)
+	// Keep parsing aligned with LogFilter.IsValid via the shared layout constant.
+	dateFrom, err := time.Parse(model.LogFilterDateLayout, logFilter.DateFrom)
 	if err != nil {
 		dateFrom = time.Time{}
 	}
-	dateTo, err := time.Parse("2006-01-02 15:04:05.999 -07:00", logFilter.DateTo)
+	dateTo, err := time.Parse(model.LogFilterDateLayout, logFilter.DateTo)
 	if err != nil {
 		dateTo = time.Now()
 	}
 
-	timestamp, err := time.Parse("2006-01-02 15:04:05.999 -07:00", entry.Timestamp)
+	timestamp, err := time.Parse(model.LogFilterDateLayout, entry.Timestamp)
 	if err != nil {
 		rctx.Logger().Debug("Cannot parse timestamp, skipping")
 		return false

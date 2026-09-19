@@ -147,3 +147,53 @@ describe('renderSystemMessage shared channel state (renderSharedChannelStateMess
         expect(container.firstChild).toBeEmptyDOMElement();
     });
 });
+
+describe('renderSystemMessage team access control posts', () => {
+    const minimalChannel = {
+        id: 'channel_id',
+        team_id: 'team_id',
+        type: 'D',
+    } as Channel;
+
+    function renderTeamAccessControlPost(post: Post) {
+        return renderWithContext(
+            <div>{renderSystemMessage(post, 'team', minimalChannel, false)}</div>,
+        );
+    }
+
+    it('renders the team membership removal message with the team name', () => {
+        const post: Partial<Post> = {
+            id: 'p1',
+            type: Posts.POST_TYPES.ACCESS_CONTROL_TEAM_REMOVAL,
+            message: 'server fallback text',
+            props: {team_name: 'Engineering'},
+        };
+
+        renderTeamAccessControlPost(post as Post);
+        expect(screen.getByText('You have been removed from Engineering because you no longer meet the membership requirements.')).toBeInTheDocument();
+    });
+
+    it('renders the team membership addition message with the team name', () => {
+        const post: Partial<Post> = {
+            id: 'p2',
+            type: Posts.POST_TYPES.ACCESS_CONTROL_TEAM_ADDITION,
+            message: 'server fallback text',
+            props: {team_name: 'Engineering'},
+        };
+
+        renderTeamAccessControlPost(post as Post);
+        expect(screen.getByText('You have been added to Engineering because you now meet the membership requirements.')).toBeInTheDocument();
+    });
+
+    it('returns null for an unrelated system post type so the raw message is used as fallback', () => {
+        const post: Partial<Post> = {
+            id: 'p3',
+            type: 'system_some_unhandled_type' as Post['type'],
+            message: 'raw message',
+            props: {},
+        };
+
+        const {container} = renderTeamAccessControlPost(post as Post);
+        expect(container.firstChild).toBeEmptyDOMElement();
+    });
+});

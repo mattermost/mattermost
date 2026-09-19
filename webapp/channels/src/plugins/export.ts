@@ -3,6 +3,12 @@
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 
+import type {JSX} from 'react';
+import * as reactJSXDevRuntime from 'react/jsx-dev-runtime';
+import * as reactJSXRuntime from 'react/jsx-runtime';
+
+import type {PublishedEditorUtils, PublishedModalId, PublishedModalIdCandidate, PublishedModalProps, PublishedModalUtils} from '@mattermost/shared/types/global';
+
 import {favoriteChannel, unfavoriteChannel} from 'mattermost-redux/actions/channels';
 import {isFavoriteChannel} from 'mattermost-redux/selectors/entities/channels';
 
@@ -23,7 +29,6 @@ import PostMessagePreview from 'components/post_view/post_message_preview';
 import StartTrialFormModal from 'components/start_trial_form_modal';
 import ThreadViewer from 'components/threading/thread_viewer';
 import Timestamp from 'components/timestamp';
-import UserSettingsModal from 'components/user_settings/modal';
 import BotTag from 'components/widgets/tag/bot_tag';
 import Avatar from 'components/widgets/users/avatar';
 
@@ -37,7 +42,11 @@ import {formatText} from 'utils/text_formatting';
 import {useWebSocket, useWebSocketClient, WebSocketContext} from 'utils/use_websocket';
 import {imageURLForUser} from 'utils/utils';
 
+import {AccessControlCELEditor, AccessControlTableEditor} from './access_control_editors';
 import {openInteractiveDialog} from './interactive_dialog'; // This import has intentional side effects. Do not remove without research.
+import {publishedEditorUtils} from './published_editor';
+import {canOpenPublishedModal, openPublishedModal} from './published_modals';
+import {wrapReactDOMRoot} from './react_dom_compatibility';
 import {loadSharedDependency} from './shared_dependencies';
 import Textbox from './textbox';
 
@@ -49,7 +58,9 @@ const openPricingModalForPlugins = () => {
 
 interface WindowWithLibraries {
     React: typeof import('react');
-    ReactDOM: typeof import('react-dom');
+    ReactJSXRuntime: typeof import('react/jsx-runtime');
+    ReactJSXDevRuntime: typeof import('react/jsx-dev-runtime');
+    ReactDOM: typeof import('react-dom') & typeof import('react-dom/client');
     ReactIntl: typeof import('react-intl');
     Redux: typeof import('redux');
     ReactRedux: typeof import('react-redux');
@@ -64,7 +75,7 @@ interface WindowWithLibraries {
     openInteractiveDialog: typeof openInteractiveDialog;
     useNotifyAdmin: typeof useNotifyAdmin;
     WebappUtils: {
-        modals: {
+        modals: PublishedModalUtils & {
             openModal: typeof openModal;
             ModalIdentifiers: typeof ModalIdentifiers;
         };
@@ -87,6 +98,7 @@ interface WindowWithLibraries {
             canPopout: typeof canPopout;
             popoutRhsPlugin: typeof popoutRhsPlugin;
         };
+        editor: PublishedEditorUtils;
     };
     loadSharedDependency(request: string): unknown;
     openPricingModal: () => void;
@@ -107,6 +119,8 @@ interface WindowWithLibraries {
         DatePicker: typeof DatePicker;
         MenuItem: typeof Menu.Item;
         MenuSeparator: typeof Menu.Separator;
+        AccessControlTableEditor: typeof AccessControlTableEditor;
+        AccessControlCELEditor: typeof AccessControlCELEditor;
     };
     ProductApi: {
         useWebSocket: typeof useWebSocket;
@@ -123,7 +137,32 @@ declare let window: WindowWithLibraries;
 
 // Common libraries exposed on window for plugins to use as Webpack externals.
 window.React = require('react');
-window.ReactDOM = require('react-dom');
+
+// Production React 19 leaves jsxDEV undefined; use the host's jsx/jsxs helpers while preserving keys.
+const jsxDEV: typeof reactJSXDevRuntime.jsxDEV = reactJSXDevRuntime.jsxDEV ?? ((type, props, key, isStaticChildren) => (
+    isStaticChildren ? reactJSXRuntime.jsxs(type, props, key) : reactJSXRuntime.jsx(type, props, key)
+));
+
+window.ReactJSXRuntime = reactJSXRuntime;
+window.ReactJSXDevRuntime = {...reactJSXDevRuntime, jsxDEV};
+
+const reactDom = require('react-dom');
+const reactDomClient = require('react-dom/client');
+const {__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED: legacyClientInternals} = reactDom;
+
+// React 19 serves createRoot and hydrateRoot only from react-dom/client, but plugins built against
+// React 18 reach them through react-dom's root entry, so keep exposing both surfaces as one object.
+window.ReactDOM = {
+    ...reactDom,
+    ...reactDomClient,
+    createRoot: wrapReactDOMRoot('createRoot', reactDomClient.createRoot),
+    hydrateRoot: wrapReactDOMRoot('hydrateRoot', reactDomClient.hydrateRoot),
+
+    // React 18 development client shims toggle this flag around root creation.
+    __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED: legacyClientInternals ?? {
+        usingClientEntryPoint: false,
+    },
+};
 window.ReactIntl = require('react-intl');
 window.Redux = require('redux');
 window.ReactRedux = require('react-redux');
@@ -151,18 +190,20 @@ window.PostUtils = {
 };
 window.openInteractiveDialog = openInteractiveDialog;
 window.useNotifyAdmin = useNotifyAdmin;
+
 window.WebappUtils = {
     get browserHistory() {
         return getHistory();
     },
-    modals: {openModal, ModalIdentifiers},
+    modals: {
+        openModal,
+        ModalIdentifiers,
+        openModalById: <K extends PublishedModalId>(modalId: K, dialogProps?: PublishedModalProps[K]) => openPublishedModal(modalId, dialogProps),
+        canOpenModalId: (modalId: PublishedModalIdCandidate) => canOpenPublishedModal(modalId),
+    },
     notificationSounds: {ring: NotificationSounds.ring, stopRing: NotificationSounds.stopRing},
     sendDesktopNotificationToMe: notifyMe,
-    openUserSettings: (dialogProps) => openModal({
-        modalId: ModalIdentifiers.USER_SETTINGS,
-        dialogType: UserSettingsModal,
-        dialogProps,
-    }),
+    openUserSettings: (dialogProps) => openPublishedModal('user_settings', dialogProps),
     channels: {favoriteChannel, unfavoriteChannel, isFavoriteChannel},
     popouts: {
         sendToParent,
@@ -171,6 +212,7 @@ window.WebappUtils = {
         canPopout,
         popoutRhsPlugin,
     },
+    editor: publishedEditorUtils,
 };
 window.loadSharedDependency = loadSharedDependency;
 
@@ -198,6 +240,8 @@ window.Components = {
     DatePicker,
     MenuItem: Menu.Item,
     MenuSeparator: Menu.Separator,
+    AccessControlTableEditor,
+    AccessControlCELEditor,
 };
 
 // This is a prototype of the Product API for use by internal plugins only while we transition to the proper architecture

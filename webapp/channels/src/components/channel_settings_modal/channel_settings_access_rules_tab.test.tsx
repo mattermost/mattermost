@@ -371,7 +371,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 isSystemAdmin: expect.any(Boolean),
                 validateExpressionAgainstRequester: mockActions.validateExpressionAgainstRequester,
             }),
-            expect.anything(),
+            undefined,
         );
     });
 
@@ -698,8 +698,9 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                     id: 'channel_id',
                     name: 'Test Channel',
                     type: 'channel',
-                    active: true, // Server has auto-sync enabled
-                    rules: [], // But no rules
+
+                    // Auto-add is on but there is no rule to apply it to.
+                    rules: [{actions: ['membership'], expression: '', metadata: {auto_add: 'always'}}],
                 },
             });
 
@@ -750,8 +751,9 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                     id: 'channel_id',
                     name: 'Test Channel',
                     type: 'channel',
-                    active: true, // Server has auto-sync enabled
-                    rules: [], // But no channel rules
+
+                    // Auto-add is on, carried by a rule with no channel expression.
+                    rules: [{actions: ['membership'], expression: '', metadata: {auto_add: 'always'}}],
                 },
             });
 
@@ -913,12 +915,12 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 id: 'channel_id',
                 name: 'Test Channel',
                 type: 'channel',
-                active: false, // Policy starts as inactive until job completes
                 revision: 1,
                 created_at: expect.any(Number),
                 rules: [{
                     actions: ['membership'],
                     expression: 'user.attributes.department == "Engineering"',
+                    metadata: {auto_add: 'always'},
                 }],
                 imports: [],
             });
@@ -1841,7 +1843,6 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 data: {
                     id: 'channel_id',
                     rules: [{actions: ['membership'], expression: 'user.department == "Engineering"'}],
-                    active: false,
                 },
             });
 
@@ -1884,7 +1885,6 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 data: {
                     id: 'channel_id',
                     rules: [{actions: ['membership'], expression: 'user.department == "Engineering"'}],
-                    active: false,
                 },
             });
 
@@ -1943,7 +1943,6 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 data: {
                     id: 'channel_id',
                     rules: [{actions: ['membership'], expression: 'user.department == "Engineering"'}],
-                    active: false,
                 },
             });
 
@@ -2003,8 +2002,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             mockActions.getChannelPolicy.mockResolvedValue({
                 data: {
                     id: 'channel_id',
-                    rules: [{actions: ['membership'], expression: 'user.department == "Engineering"'}],
-                    active: true,
+                    rules: [{actions: ['membership'], expression: 'user.department == "Engineering"', metadata: {auto_add: 'always'}}],
                 },
             });
 
@@ -2073,8 +2071,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             mockActions.getChannelPolicy.mockResolvedValue({
                 data: {
                     id: 'channel_id',
-                    rules: [{actions: ['membership'], expression: 'user.department == "Engineering"'}],
-                    active: true,
+                    rules: [{actions: ['membership'], expression: 'user.department == "Engineering"', metadata: {auto_add: 'always'}}],
                 },
             });
 
@@ -2127,8 +2124,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             mockActions.getChannelPolicy.mockResolvedValue({
                 data: {
                     id: 'channel_id',
-                    rules: [{actions: ['membership'], expression: 'user.department == "Engineering"'}],
-                    active: true,
+                    rules: [{actions: ['membership'], expression: 'user.department == "Engineering"', metadata: {auto_add: 'always'}}],
                 },
             });
 
@@ -2183,6 +2179,86 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             });
 
             expect(screen.queryByText('Exposing channel history')).not.toBeInTheDocument();
+        });
+    });
+
+    describe('session attributes', () => {
+        const sessionField = {
+            id: 'session1',
+            name: 'network_name',
+            type: 'text',
+            group_id: 'nkpkzni6yjrjt8uktpbwkagoth',
+            create_at: 0,
+            update_at: 0,
+            delete_at: 0,
+            created_by: '',
+            updated_by: '',
+            target_id: '',
+            target_type: 'system',
+            object_type: 'session',
+            attrs: {
+                sort_order: 2,
+                visibility: 'when_set',
+                value_type: '',
+                display_name: 'Network name',
+            },
+        } as unknown as UserPropertyField;
+
+        test('excludes session attributes from the attributes passed to the editor', async () => {
+            mockActions.getAccessControlFields.mockResolvedValue({
+                data: [...mockUserAttributes, sessionField],
+            });
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            const lastCall = MockedTableEditor.mock.calls[MockedTableEditor.mock.calls.length - 1][0];
+            const passedNames = lastCall.userAttributes.map((attr) => attr.name);
+            expect(passedNames).toContain('department');
+            expect(passedNames).not.toContain('network_name');
+        });
+
+        test('surfaces the server error message when saving fails', async () => {
+            const serverMessage = 'Membership rules cannot reference session attributes';
+            mockActions.saveChannelPolicy.mockResolvedValue({error: {message: serverMessage}});
+
+            const openChannelProps = {
+                ...baseProps,
+                channel: TestHelper.getChannelMock({
+                    id: 'channel_id',
+                    name: 'test-channel',
+                    display_name: 'Test Channel',
+                    type: 'O',
+                }),
+            };
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...openChannelProps}/>,
+                initialState,
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+            onChangeCallback('user.attributes.department == "Engineering"');
+
+            await waitFor(() => {
+                expect(screen.getByText('Save')).toBeInTheDocument();
+            });
+
+            await userEvent.click(screen.getByText('Save'));
+
+            await waitFor(() => {
+                expect(screen.getByText(serverMessage)).toBeInTheDocument();
+            });
         });
     });
 });

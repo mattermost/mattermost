@@ -39,10 +39,10 @@ type PropertyHook interface {
 	PreUpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error)
 	PreDeletePropertyField(rctx request.CTX, groupID string, id string) error
 
-	// PostUpdatePropertyFields runs after a successful field update (including
-	// the linked-field propagation pass). It receives the pre-update state of
-	// the requested fields (parallel to requested), the post-update requested
-	// fields, and the post-update propagated fields. Hooks may transform attrs
+	// PostUpdatePropertyFields runs after a successful field update. It receives
+	// the pre-update state of the requested fields (parallel to requested), the
+	// post-update requested fields, and the linked fields whose derived option
+	// list the update changed (the propagated bucket). Hooks may transform attrs
 	// on either bucket (e.g. redact information for the caller); the
 	// dispatcher enforces cardinality preservation on both buckets so a buggy
 	// hook that drops fields surfaces an error rather than silently truncating
@@ -70,6 +70,54 @@ type PropertyHook interface {
 	// return an error if a hook returns fewer fields than it received.
 	PostGetPropertyFields(rctx request.CTX, fields []*model.PropertyField) ([]*model.PropertyField, error)
 
+	// Field option hooks
+	//
+	// A field's options are rows of their own, addressable one at a time, and a
+	// change to one does not write the field's row — so none of the field hooks
+	// above sees it. These are that path's equivalents, and they exist so that
+	// the two ways of changing a field's options cannot answer differently: the
+	// same change stated as the field's inline option list goes through
+	// PreUpdatePropertyField, and a caller must not be able to pick the path
+	// that skips a check.
+	//
+	// Both receive the field as the store has it, so a decision is made against
+	// the field's real type, link, and access attributes rather than against a
+	// copy the caller supplied.
+
+	// PreChangePropertyFieldOptions runs before options are created, changed, or
+	// deleted on a field. One hook covers all three verbs because what they have
+	// in common — the caller's authority over this field's option set — is the
+	// whole of what there is to decide before the change is validated. Return an
+	// error to block it.
+	PreChangePropertyFieldOptions(rctx request.CTX, field *model.PropertyField) error
+
+	// PostGetPropertyFieldOptions is called after reading a page of a field's
+	// options. Implementations may drop entries; unlike the field post-hooks
+	// there is no cardinality rule, because a shorter page is the answer when a
+	// caller may not see all of them.
+	//
+	// filter is the answer PreGetPropertyFieldOptions gave for this listing, an
+	// optimisation of the read rather than its authority: a hook must be able to
+	// reach the same answer on its own when filter is nil or names nothing, the
+	// same way it would if this were the only hook registered.
+	PostGetPropertyFieldOptions(rctx request.CTX, field *model.PropertyField, filter *model.PropertyFieldOptionPageFilter, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error)
+
+	// PreGetPropertyFieldOptions answers, once per listing rather than once per
+	// page, which of a field's options this caller may ever see. It is asked
+	// before the scan that pages through them, so it takes no page: a hook that
+	// needed a page to answer could not tell "nothing on this page" from
+	// "nothing on any page", which is exactly what the listing needs told apart
+	// to stop early.
+	//
+	// filter is what the hook before this one decided, nil for the first hook;
+	// each hook returns what the listing should narrow to next, so a hook that
+	// has no opinion returns filter unchanged. ShowNothing must never be the
+	// answer for a caller who would be shown something -- the listing stops
+	// before looking. An error is the listing's own error, not a ShowNothing --
+	// "the answer could not be worked out" must not look like "there is nothing
+	// here".
+	PreGetPropertyFieldOptions(rctx request.CTX, field *model.PropertyField, filter *model.PropertyFieldOptionPageFilter) (*model.PropertyFieldOptionPageFilter, error)
+
 	// Value pre-hooks (write operations)
 
 	PreCreatePropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, error)
@@ -81,6 +129,22 @@ type PropertyHook interface {
 	PreDeletePropertyValue(rctx request.CTX, groupID string, id string) error
 	PreDeletePropertyValuesForTarget(rctx request.CTX, groupID string, targetType string, targetID string) error
 	PreDeletePropertyValuesForField(rctx request.CTX, groupID string, fieldID string) error
+
+	// Value post-hooks (write operations)
+	//
+	// These run after a successful store write. They are best-effort: the
+	// dispatcher logs and continues on a hook error, and the write is never
+	// rolled back; hooks must not mutate the values. Delete hooks receive the
+	// delete selector and, when available, the value's pre-delete snapshot.
+	PostCreatePropertyValue(rctx request.CTX, value *model.PropertyValue) error
+	PostCreatePropertyValues(rctx request.CTX, values []*model.PropertyValue) error
+	PostUpdatePropertyValue(rctx request.CTX, value *model.PropertyValue) error
+	PostUpdatePropertyValues(rctx request.CTX, values []*model.PropertyValue) error
+	PostUpsertPropertyValue(rctx request.CTX, value *model.PropertyValue) error
+	PostUpsertPropertyValues(rctx request.CTX, values []*model.PropertyValue) error
+	PostDeletePropertyValue(rctx request.CTX, groupID, valueID string, deleted *model.PropertyValue) error
+	PostDeletePropertyValuesForTarget(rctx request.CTX, groupID string, targetType string, targetID string) error
+	PostDeletePropertyValuesForField(rctx request.CTX, groupID string, fieldID string) error
 
 	// Value post-hooks (read operations)
 	//
@@ -121,6 +185,15 @@ func (BasePropertyHook) PostGetPropertyField(_ request.CTX, field *model.Propert
 func (BasePropertyHook) PostGetPropertyFields(_ request.CTX, fields []*model.PropertyField) ([]*model.PropertyField, error) {
 	return fields, nil
 }
+func (BasePropertyHook) PreChangePropertyFieldOptions(_ request.CTX, _ *model.PropertyField) error {
+	return nil
+}
+func (BasePropertyHook) PostGetPropertyFieldOptions(_ request.CTX, _ *model.PropertyField, _ *model.PropertyFieldOptionPageFilter, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
+	return options, nil
+}
+func (BasePropertyHook) PreGetPropertyFieldOptions(_ request.CTX, _ *model.PropertyField, filter *model.PropertyFieldOptionPageFilter) (*model.PropertyFieldOptionPageFilter, error) {
+	return filter, nil
+}
 func (BasePropertyHook) PreCreatePropertyValue(_ request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
 	return value, nil
 }
@@ -146,6 +219,33 @@ func (BasePropertyHook) PreDeletePropertyValuesForTarget(_ request.CTX, _ string
 	return nil
 }
 func (BasePropertyHook) PreDeletePropertyValuesForField(_ request.CTX, _ string, _ string) error {
+	return nil
+}
+func (BasePropertyHook) PostCreatePropertyValue(_ request.CTX, _ *model.PropertyValue) error {
+	return nil
+}
+func (BasePropertyHook) PostCreatePropertyValues(_ request.CTX, _ []*model.PropertyValue) error {
+	return nil
+}
+func (BasePropertyHook) PostUpdatePropertyValue(_ request.CTX, _ *model.PropertyValue) error {
+	return nil
+}
+func (BasePropertyHook) PostUpdatePropertyValues(_ request.CTX, _ []*model.PropertyValue) error {
+	return nil
+}
+func (BasePropertyHook) PostUpsertPropertyValue(_ request.CTX, _ *model.PropertyValue) error {
+	return nil
+}
+func (BasePropertyHook) PostUpsertPropertyValues(_ request.CTX, _ []*model.PropertyValue) error {
+	return nil
+}
+func (BasePropertyHook) PostDeletePropertyValue(_ request.CTX, _, _ string, _ *model.PropertyValue) error {
+	return nil
+}
+func (BasePropertyHook) PostDeletePropertyValuesForTarget(_ request.CTX, _ string, _ string, _ string) error {
+	return nil
+}
+func (BasePropertyHook) PostDeletePropertyValuesForField(_ request.CTX, _ string, _ string) error {
 	return nil
 }
 func (BasePropertyHook) PostGetPropertyValue(_ request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
@@ -304,6 +404,53 @@ func (ps *PropertyService) runPostGetPropertyFields(rctx request.CTX, fields []*
 	return fields, nil
 }
 
+// runPreChangePropertyFieldOptions runs all registered pre-hooks for a change to
+// a field's options. field must be the field as the store has it.
+func (ps *PropertyService) runPreChangePropertyFieldOptions(rctx request.CTX, field *model.PropertyField) error {
+	for _, hook := range ps.hooks {
+		if err := hook.PreChangePropertyFieldOptions(rctx, field); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// runPostGetPropertyFieldOptions runs all registered post-hooks for a page of a
+// field's options. A hook may return fewer options than it received, or none.
+// filter is what runPreGetPropertyFieldOptions decided for this listing.
+func (ps *PropertyService) runPostGetPropertyFieldOptions(rctx request.CTX, field *model.PropertyField, filter *model.PropertyFieldOptionPageFilter, options []*model.PropertyFieldOption) ([]*model.PropertyFieldOption, error) {
+	var err error
+	for _, hook := range ps.hooks {
+		options, err = hook.PostGetPropertyFieldOptions(rctx, field, filter, options)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return options, nil
+}
+
+// runPreGetPropertyFieldOptions asks all registered hooks which of a field's
+// options the caller may ever see, once for the whole listing rather than once
+// per page. It chains the hooks the way runPostGetPropertyFieldOptions chains
+// a page through them: each hook receives what the one before it returned,
+// starting from nil, and the chain stops as soon as one returns ShowNothing --
+// nothing after it can widen the answer back, the same reasoning
+// runPostGetPropertyFieldOptions relies on for a hook emptying a page.
+func (ps *PropertyService) runPreGetPropertyFieldOptions(rctx request.CTX, field *model.PropertyField) (*model.PropertyFieldOptionPageFilter, error) {
+	var filter *model.PropertyFieldOptionPageFilter
+	for _, hook := range ps.hooks {
+		var err error
+		filter, err = hook.PreGetPropertyFieldOptions(rctx, field, filter)
+		if err != nil {
+			return nil, err
+		}
+		if filter != nil && filter.ShowNothing {
+			return filter, nil
+		}
+	}
+	return filter, nil
+}
+
 // runPreCreatePropertyValue runs all registered pre-hooks for CreatePropertyValue.
 func (ps *PropertyService) runPreCreatePropertyValue(rctx request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
 	var err error
@@ -422,6 +569,96 @@ func (ps *PropertyService) runPreDeletePropertyValuesForField(rctx request.CTX, 
 		}
 	}
 	return nil
+}
+
+// runPostCreatePropertyValue runs all registered post-hooks for CreatePropertyValue.
+// Best-effort.
+func (ps *PropertyService) runPostCreatePropertyValue(rctx request.CTX, value *model.PropertyValue) {
+	for _, hook := range ps.hooks {
+		if err := hook.PostCreatePropertyValue(rctx, value); err != nil {
+			rctx.Logger().Error("PostCreatePropertyValue hook failed", mlog.Err(err))
+		}
+	}
+}
+
+// runPostCreatePropertyValues runs all registered post-hooks for CreatePropertyValues.
+// Best-effort.
+func (ps *PropertyService) runPostCreatePropertyValues(rctx request.CTX, values []*model.PropertyValue) {
+	for _, hook := range ps.hooks {
+		if err := hook.PostCreatePropertyValues(rctx, values); err != nil {
+			rctx.Logger().Error("PostCreatePropertyValues hook failed", mlog.Err(err))
+		}
+	}
+}
+
+// runPostUpdatePropertyValue runs all registered post-hooks for UpdatePropertyValue.
+// Best-effort.
+func (ps *PropertyService) runPostUpdatePropertyValue(rctx request.CTX, value *model.PropertyValue) {
+	for _, hook := range ps.hooks {
+		if err := hook.PostUpdatePropertyValue(rctx, value); err != nil {
+			rctx.Logger().Error("PostUpdatePropertyValue hook failed", mlog.Err(err))
+		}
+	}
+}
+
+// runPostUpdatePropertyValues runs all registered post-hooks for UpdatePropertyValues.
+// Best-effort.
+func (ps *PropertyService) runPostUpdatePropertyValues(rctx request.CTX, values []*model.PropertyValue) {
+	for _, hook := range ps.hooks {
+		if err := hook.PostUpdatePropertyValues(rctx, values); err != nil {
+			rctx.Logger().Error("PostUpdatePropertyValues hook failed", mlog.Err(err))
+		}
+	}
+}
+
+// runPostUpsertPropertyValue runs all registered post-hooks for UpsertPropertyValue.
+// Best-effort: hook errors are logged and skipped; the write is not rolled back.
+func (ps *PropertyService) runPostUpsertPropertyValue(rctx request.CTX, value *model.PropertyValue) {
+	for _, hook := range ps.hooks {
+		if err := hook.PostUpsertPropertyValue(rctx, value); err != nil {
+			rctx.Logger().Error("PostUpsertPropertyValue hook failed", mlog.Err(err))
+		}
+	}
+}
+
+// runPostUpsertPropertyValues runs all registered post-hooks for UpsertPropertyValues.
+// Best-effort.
+func (ps *PropertyService) runPostUpsertPropertyValues(rctx request.CTX, values []*model.PropertyValue) {
+	for _, hook := range ps.hooks {
+		if err := hook.PostUpsertPropertyValues(rctx, values); err != nil {
+			rctx.Logger().Error("PostUpsertPropertyValues hook failed", mlog.Err(err))
+		}
+	}
+}
+
+// runPostDeletePropertyValue runs all registered post-hooks for DeletePropertyValue.
+// deleted is the pre-delete snapshot. Best-effort.
+func (ps *PropertyService) runPostDeletePropertyValue(rctx request.CTX, groupID, valueID string, deleted *model.PropertyValue) {
+	for _, hook := range ps.hooks {
+		if err := hook.PostDeletePropertyValue(rctx, groupID, valueID, deleted); err != nil {
+			rctx.Logger().Error("PostDeletePropertyValue hook failed", mlog.Err(err))
+		}
+	}
+}
+
+// runPostDeletePropertyValuesForTarget runs all registered post-hooks for DeletePropertyValuesForTarget.
+// Best-effort.
+func (ps *PropertyService) runPostDeletePropertyValuesForTarget(rctx request.CTX, groupID, targetType, targetID string) {
+	for _, hook := range ps.hooks {
+		if err := hook.PostDeletePropertyValuesForTarget(rctx, groupID, targetType, targetID); err != nil {
+			rctx.Logger().Error("PostDeletePropertyValuesForTarget hook failed", mlog.Err(err))
+		}
+	}
+}
+
+// runPostDeletePropertyValuesForField runs all registered post-hooks for DeletePropertyValuesForField.
+// Best-effort.
+func (ps *PropertyService) runPostDeletePropertyValuesForField(rctx request.CTX, groupID, fieldID string) {
+	for _, hook := range ps.hooks {
+		if err := hook.PostDeletePropertyValuesForField(rctx, groupID, fieldID); err != nil {
+			rctx.Logger().Error("PostDeletePropertyValuesForField hook failed", mlog.Err(err))
+		}
+	}
 }
 
 // runPostGetPropertyValue runs all registered post-hooks for single value retrieval.

@@ -8,14 +8,14 @@ import {
     FloatingPortal,
     offset as floatingOffset,
     shift,
+    size as floatingSize,
     useClick,
     useDismiss,
     useFloating,
-    useId,
     useInteractions,
     useRole,
 } from '@floating-ui/react';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useId, useState, type JSX} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
@@ -58,7 +58,7 @@ export default function SessionAttributeEditorButton({userId, displayName, field
     // `aria-labelledby` points to it, removing the duplicate
     // aria-label on both the trigger and the panel — assistive tech
     // now reads the heading text rather than re-announcing the
-    // pencil button's label twice. Floating UI's useId guarantees
+    // pencil button's label twice. React's useId guarantees
     // uniqueness across simultaneously-open editors (one per row).
     const titleId = useId();
 
@@ -72,6 +72,18 @@ export default function SessionAttributeEditorButton({userId, displayName, field
             floatingOffset(6),
             flip({padding: 8}),
             shift({padding: 8}),
+
+            // Cap the popover to the space actually available on the
+            // chosen side so a long session-attribute list can't grow
+            // it past the viewport and hide the Apply / Cancel actions
+            // (MM-70142). The panel becomes a flex column and the field
+            // grid scrolls inside the cap.
+            floatingSize({
+                padding: 8,
+                apply({availableHeight, elements}) {
+                    elements.floating.style.maxHeight = `${Math.max(0, availableHeight)}px`;
+                },
+            }),
         ],
     });
 

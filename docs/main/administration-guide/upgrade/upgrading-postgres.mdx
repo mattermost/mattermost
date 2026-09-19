@@ -135,7 +135,7 @@ When running PostgreSQL in Docker, `pg_dump`/`pg_restore` is the recommended upg
 
 ## After the upgrade
 
-After upgrading PostgreSQL, run `ANALYZE VERBOSE` on the Mattermost database. This re-populates the `pg_statistics` table used by PostgreSQL to generate optimal query plans. Skipping this step can result in degraded database performance.
+After upgrading PostgreSQL, run `ANALYZE VERBOSE` on the Mattermost database. This re-populates the `pg_statistic` table used by PostgreSQL to generate optimal query plans. Skipping this step can result in degraded database performance.
 
 ``` sh
 sudo -u postgres psql -d mattermost -c "ANALYZE VERBOSE;"

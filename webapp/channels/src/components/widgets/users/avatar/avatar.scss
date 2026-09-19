@@ -1,5 +1,14 @@
 @use "sass:color";
 
+img.Avatar {
+    // A broken <img> is no longer a replaced element, so width/height stop applying and
+    // the alt text sizes the box. inline-block keeps the Avatar-* size tokens in effect,
+    // and overflow/color keep the alt text from spilling out of the circle.
+    display: inline-block;
+    overflow: hidden;
+    color: transparent;
+}
+
 .Avatar {
     &,
     &:focus,

@@ -3,16 +3,30 @@
 
 import {Client4} from '@mattermost/client';
 import type {Channel, ChannelType} from '@mattermost/types/channels';
+import type {ClientLicense} from '@mattermost/types/config';
+import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
+import type {PartialExcept} from '@mattermost/types/utilities';
 
 import {createRandomChannel} from './channel';
 import {createNewUserProfile} from './user';
 
+import {getFileFromAsset} from '@/file';
+
 /**
- * Client4 extended with Playwright test-setup helpers only.
- * These are not part of the Mattermost server API — do not add real API wrappers here.
+ * Client4 extended with Playwright test-setup helpers.
+ * Prefer not adding general Mattermost API wrappers here — keep those on Client4 —
+ * except for test-only compatibility shims needed against older server images.
  */
 export class PlaywrightClient4 extends Client4 {
+    /**
+     * Same as Client4.getClientLicenseOld, but keeps `format=old` for older from-images
+     * that still require it. Current servers ignore the parameter.
+     */
+    getClientLicenseOld = () => {
+        return this.doFetch<ClientLicense>(`${this.getBaseRoute()}/license/client?format=old`, {method: 'get'});
+    };
+
     private createChannelOfType(
         teamId: string,
         displayName: string,
@@ -46,5 +60,33 @@ export class PlaywrightClient4 extends Client4 {
             users.push(user);
         }
         return users;
+    }
+
+    /**
+     * Creates a post with a default message and any number of files from the assets folder.
+     */
+    async createTestPost(override: PartialExcept<Post, 'channel_id'>, files: string[] = []) {
+        const post = {
+            message: 'test post',
+            ...override,
+        };
+
+        if (!post.file_ids) {
+            post.file_ids = await Promise.all(
+                files.map((filename) => {
+                    return new Promise<string>((resolve) => {
+                        const formData = new FormData();
+                        formData.set('channel_id', post.channel_id);
+                        formData.set('files', getFileFromAsset(filename), filename);
+
+                        this.uploadFile(formData).then((data) => {
+                            resolve(data.file_infos[0].id);
+                        });
+                    });
+                }),
+            );
+        }
+
+        return this.createPost(post);
     }
 }

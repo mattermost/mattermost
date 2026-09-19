@@ -7,7 +7,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {Group} from '@mattermost/types/groups';
 import type {Scheme} from '@mattermost/types/schemes';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelDetails from './channel_details';
@@ -17,6 +17,15 @@ jest.mock('utils/browser_history', () => ({
 }));
 
 jest.mock('./channel_members', () => () => <div>{'ChannelMembers'}</div>);
+
+const mockChannelLevelAccessRules = jest.fn();
+jest.mock('./channel_level_access_rules', () => {
+    const reactLib = require('react');
+    return (props: any) => {
+        mockChannelLevelAccessRules(props);
+        return reactLib.createElement('div', {'data-testid': 'channel-level-access-rules'});
+    };
+});
 
 describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
     const groups: Group[] = [{
@@ -239,5 +248,47 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
             />,
         ));
         expect(container).toMatchSnapshot();
+    });
+
+    test('excludes session attributes from the channel-level access rules editor', async () => {
+        mockChannelLevelAccessRules.mockClear();
+
+        const getAccessControlFields = jest.fn().mockResolvedValue({
+            data: [
+                {id: 'u1', name: 'department', group_id: 'cpa9q4w7m2x5c8v1b6n3k0jr5h', object_type: 'user', attrs: {managed: 'admin'}},
+                {id: 's1', name: 'network_name', group_id: 'nkpkzni6yjrjt8uktpbwkagoth', object_type: 'session', target_type: 'system', attrs: {}},
+            ],
+        });
+
+        const enforcedChannel = {...testChannel, policy_enforced: true};
+
+        renderWithContext(
+            <ChannelDetails
+                teamScheme={teamScheme}
+                groups={groups}
+                team={team}
+                totalGroups={groups.length}
+                actions={{...actions, getAccessControlFields}}
+                channel={enforcedChannel}
+                channelID={enforcedChannel.id}
+                allGroups={allGroups}
+                channelPermissions={[]}
+                guestAccountsEnabled={true}
+                channelModerationEnabled={true}
+                channelGroupsEnabled={false}
+                abacSupported={true}
+                isDisabled={false}
+            />,
+        );
+
+        await waitFor(() => {
+            const calls = mockChannelLevelAccessRules.mock.calls;
+            const lastCall = calls[calls.length - 1][0];
+            expect(lastCall.userAttributes.map((attr: {name: string}) => attr.name)).toContain('department');
+        });
+
+        const calls = mockChannelLevelAccessRules.mock.calls;
+        const lastCall = calls[calls.length - 1][0];
+        expect(lastCall.userAttributes.map((attr: {name: string}) => attr.name)).not.toContain('network_name');
     });
 });

@@ -33,13 +33,6 @@ func TestConfigDefaults(t *testing.T) {
 		var recursivelyUninitialize func(*Config, string, reflect.Value)
 		recursivelyUninitialize = func(config *Config, name string, v reflect.Value) {
 			if v.Type().Kind() == reflect.Pointer {
-				// Ignoring these 2 settings.
-				// TODO: remove them completely in v8.0.
-				if name == "config.ElasticsearchSettings.BulkIndexingTimeWindowSeconds" ||
-					name == "config.ClusterSettings.EnableExperimentalGossipEncryption" {
-					return
-				}
-
 				// Set every pointer we find in the tree to nil
 				v.Set(reflect.Zero(v.Type()))
 				require.True(t, v.IsNil())
@@ -52,7 +45,7 @@ func TestConfigDefaults(t *testing.T) {
 					recursivelyUninitialize(config, fmt.Sprintf("(*%s)", name), v.Elem())
 				}
 			} else if v.Type().Kind() == reflect.Struct {
-				for i := 0; i < v.NumField(); i++ {
+				for i := range v.NumField() {
 					recursivelyUninitialize(config, fmt.Sprintf("%s.%s", name, v.Type().Field(i).Name), v.Field(i))
 				}
 			}
@@ -69,6 +62,12 @@ func TestConfigDefaults(t *testing.T) {
 		require.Equal(t, SupportSettingsDefaultReportAProblemLink, *c.SupportSettings.ReportAProblemLink)
 		require.Equal(t, "", *c.SupportSettings.ReportAProblemMail)
 		require.Equal(t, true, *c.SupportSettings.AllowDownloadLogs)
+	})
+	t.Run("access control audit logging default", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+		require.NotNil(t, c.AccessControlSettings.EnableAccessControlAuditLogging)
+		require.False(t, *c.AccessControlSettings.EnableAccessControlAuditLogging)
 	})
 }
 
@@ -108,6 +107,222 @@ func TestConfigIsValid(t *testing.T) {
 			require.Nil(t, c.IsValid())
 		})
 	})
+
+	t.Run("export settings", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+		*c.ExportSettings.Directory = ""
+
+		appErr := c.IsValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.export.directory.app_error", appErr.Id)
+	})
+}
+
+func TestSupportSettingsIsValid(t *testing.T) {
+	t.Run("defaults are valid", func(t *testing.T) {
+		settings := &SupportSettings{}
+		settings.SetDefaults()
+
+		require.Nil(t, settings.isValid())
+	})
+
+	t.Run("invalid support email", func(t *testing.T) {
+		settings := &SupportSettings{
+			SupportEmail: NewPointer("not-an-email"),
+		}
+		settings.SetDefaults()
+
+		appErr := settings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.email_address.app_error", appErr.Id)
+	})
+
+	t.Run("negative custom terms reacceptance period", func(t *testing.T) {
+		settings := &SupportSettings{
+			CustomTermsOfServiceReAcceptancePeriod: NewPointer(-1),
+		}
+		settings.SetDefaults()
+
+		appErr := settings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.non_negative_number.app_error", appErr.Id)
+	})
+
+	t.Run("report a problem mail requires valid email", func(t *testing.T) {
+		settings := &SupportSettings{
+			ReportAProblemType: new(string(SupportSettingsReportAProblemTypeMail)),
+			ReportAProblemMail: nil,
+		}
+		settings.SetDefaults()
+		settings.ReportAProblemMail = nil
+
+		appErr := settings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.report_a_problem_mail.missing.app_error", appErr.Id)
+
+		settings.ReportAProblemMail = new("invalid")
+		appErr = settings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.report_a_problem_mail.invalid.app_error", appErr.Id)
+
+		settings.ReportAProblemMail = new("valid@email.com")
+		require.Nil(t, settings.isValid())
+	})
+
+	t.Run("report a problem link requires valid url", func(t *testing.T) {
+		settings := &SupportSettings{
+			ReportAProblemType: new(string(SupportSettingsReportAProblemTypeLink)),
+			ReportAProblemLink: nil,
+		}
+		settings.SetDefaults()
+		settings.ReportAProblemLink = nil
+
+		appErr := settings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.report_a_problem_link.missing.app_error", appErr.Id)
+
+		settings.ReportAProblemLink = new("invalid")
+		appErr = settings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.report_a_problem_link.invalid.app_error", appErr.Id)
+
+		settings.ReportAProblemLink = new("http://valid.com")
+		require.Nil(t, settings.isValid())
+	})
+}
+
+func TestClusterSettingsIsValid(t *testing.T) {
+	t.Run("defaults are valid", func(t *testing.T) {
+		settings := &ClusterSettings{}
+		settings.SetDefaults()
+
+		require.Nil(t, settings.isValid())
+	})
+
+	t.Run("gossip port must be a valid port number", func(t *testing.T) {
+		settings := &ClusterSettings{
+			GossipPort: NewPointer(0),
+		}
+		settings.SetDefaults()
+
+		appErr := settings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.cluster_gossip_port.app_error", appErr.Id)
+
+		settings.GossipPort = NewPointer(65536)
+		appErr = settings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.cluster_gossip_port.app_error", appErr.Id)
+
+		settings.GossipPort = NewPointer(8074)
+		require.Nil(t, settings.isValid())
+	})
+}
+
+func TestAnnouncementSettingsIsValid(t *testing.T) {
+	t.Run("defaults are valid", func(t *testing.T) {
+		settings := &AnnouncementSettings{}
+		settings.SetDefaults()
+
+		require.Nil(t, settings.isValid())
+	})
+
+	t.Run("notices fetch frequency must be positive", func(t *testing.T) {
+		settings := &AnnouncementSettings{
+			NoticesFetchFrequency: NewPointer(0),
+		}
+		settings.SetDefaults()
+
+		appErr := settings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.positive_number.app_error", appErr.Id)
+	})
+}
+
+func TestFeatureFlagsIsValid(t *testing.T) {
+	t.Run("defaults are valid", func(t *testing.T) {
+		f := &FeatureFlags{}
+		f.SetDefaults()
+		require.Nil(t, f.isValid())
+	})
+
+	t.Run("AppsEnabled is rejected", func(t *testing.T) {
+		f := &FeatureFlags{}
+		f.SetDefaults()
+		f.AppsEnabled = true
+
+		appErr := f.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.feature_flags.apps_enabled.app_error", appErr.Id)
+	})
+
+	t.Run("MoveThreadsEnabled is rejected", func(t *testing.T) {
+		f := &FeatureFlags{}
+		f.SetDefaults()
+		f.MoveThreadsEnabled = true
+
+		appErr := f.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.feature_flags.move_threads_enabled.app_error", appErr.Id)
+	})
+}
+
+func TestConfigIsValidAppsEnabled(t *testing.T) {
+	c := Config{}
+	c.SetDefaults()
+	require.Nil(t, c.IsValid())
+
+	c.FeatureFlags.AppsEnabled = true
+	appErr := c.IsValid()
+	require.NotNil(t, appErr)
+	require.Equal(t, "model.config.is_valid.feature_flags.apps_enabled.app_error", appErr.Id)
+
+	// A nil FeatureFlags must not panic the validation chain.
+	c.FeatureFlags = nil
+	require.Nil(t, c.IsValid())
+}
+
+func TestConfigIsValidMoveThreadsEnabled(t *testing.T) {
+	c := Config{}
+	c.SetDefaults()
+	require.Nil(t, c.IsValid())
+
+	c.FeatureFlags.MoveThreadsEnabled = true
+	appErr := c.IsValid()
+	require.NotNil(t, appErr)
+	require.Equal(t, "model.config.is_valid.feature_flags.move_threads_enabled.app_error", appErr.Id)
+
+	// A nil FeatureFlags must not panic the validation chain.
+	c.FeatureFlags = nil
+	require.Nil(t, c.IsValid())
+}
+
+func TestAccessControlSettingsIsValid(t *testing.T) {
+	for name, test := range map[string]struct {
+		AccessControlSettings AccessControlSettings
+		ExpectError           bool
+	}{
+		"sync_job_interval_zero":                {AccessControlSettings: AccessControlSettings{SyncJobIntervalSeconds: new(0)}, ExpectError: true},
+		"sync_job_interval_negative":            {AccessControlSettings: AccessControlSettings{SyncJobIntervalSeconds: new(-1000)}, ExpectError: true},
+		"sync_job_interval_sub-minute rejected": {AccessControlSettings: AccessControlSettings{SyncJobIntervalSeconds: new(30)}, ExpectError: true},
+		"sync_job_interval_just below minimum":  {AccessControlSettings: AccessControlSettings{SyncJobIntervalSeconds: new(59)}, ExpectError: true},
+		"sync_job_interval_minimum":             {AccessControlSettings: AccessControlSettings{SyncJobIntervalSeconds: new(60)}, ExpectError: false},
+		"sync_job_interval_default":             {AccessControlSettings: AccessControlSettings{SyncJobIntervalSeconds: nil}, ExpectError: false}, // Test will set default
+		"attribute_refresh_interval_zero":       {AccessControlSettings: AccessControlSettings{AttributeRefreshIntervalSeconds: new(0)}, ExpectError: false},
+		"attribute_refresh_interval_negative":   {AccessControlSettings: AccessControlSettings{AttributeRefreshIntervalSeconds: new(-1)}, ExpectError: true},
+		"attribute_refresh_interval_default":    {AccessControlSettings: AccessControlSettings{AttributeRefreshIntervalSeconds: nil}, ExpectError: false}, // Test will set default
+	} {
+		t.Run(name, func(t *testing.T) {
+			test.AccessControlSettings.SetDefaults()
+
+			if test.ExpectError {
+				require.NotNil(t, test.AccessControlSettings.isValid())
+			} else {
+				require.Nil(t, test.AccessControlSettings.isValid())
+			}
+		})
+	}
 }
 
 func TestConfigEmptySiteName(t *testing.T) {
@@ -148,6 +363,138 @@ func TestServiceSettingsIsValid(t *testing.T) {
 			},
 			ExpectError: false,
 		},
+		"FeatureFlagSyncIntervalSeconds is zero": {
+			ServiceSettings: ServiceSettings{
+				FeatureFlagSyncIntervalSeconds: new(0),
+			},
+			ExpectError: true,
+		},
+		"FeatureFlagSyncIntervalSeconds is negative": {
+			ServiceSettings: ServiceSettings{
+				FeatureFlagSyncIntervalSeconds: new(-1),
+			},
+			ExpectError: true,
+		},
+		"RefreshPostStatsRunTime is invalid": {
+			ServiceSettings: ServiceSettings{
+				RefreshPostStatsRunTime: new("25:99"),
+			},
+			ExpectError: true,
+		},
+		"BurnOnReadDurationSeconds is zero": {
+			ServiceSettings: ServiceSettings{
+				BurnOnReadDurationSeconds: new(0),
+			},
+			ExpectError: true,
+		},
+		"BurnOnReadMaximumTimeToLiveSeconds is zero": {
+			ServiceSettings: ServiceSettings{
+				BurnOnReadMaximumTimeToLiveSeconds: new(0),
+			},
+			ExpectError: true,
+		},
+		"BurnOnReadSchedulerFrequencySeconds is zero": {
+			ServiceSettings: ServiceSettings{
+				BurnOnReadSchedulerFrequencySeconds: new(0),
+			},
+			ExpectError: true,
+		},
+		"TLSMinVer is invalid": {
+			ServiceSettings: ServiceSettings{
+				TLSMinVer: new("1.4"),
+			},
+			ExpectError: true,
+		},
+		"TLSStrictTransportMaxAge is negative": {
+			ServiceSettings: ServiceSettings{
+				TLSStrictTransportMaxAge: NewPointer(int64(-1)),
+			},
+			ExpectError: true,
+		},
+		"WebserverMode is invalid": {
+			ServiceSettings: ServiceSettings{
+				WebserverMode: new("brotli"),
+			},
+			ExpectError: true,
+		},
+		"WebsocketPort is out of range": {
+			ServiceSettings: ServiceSettings{
+				WebsocketPort: new(65536),
+			},
+			ExpectError: true,
+		},
+		"WebsocketSecurePort is negative": {
+			ServiceSettings: ServiceSettings{
+				WebsocketSecurePort: new(-1),
+			},
+			ExpectError: true,
+		},
+		"IdleTimeout is zero": {
+			ServiceSettings: ServiceSettings{
+				IdleTimeout: new(0),
+			},
+			ExpectError: true,
+		},
+		"SessionLengthMobileInDays is zero": {
+			ServiceSettings: ServiceSettings{
+				SessionLengthMobileInDays: new(0),
+			},
+			ExpectError: true,
+		},
+		"SessionLengthMobileInHours is zero": {
+			ServiceSettings: ServiceSettings{
+				SessionLengthMobileInHours: new(0),
+			},
+			ExpectError: true,
+		},
+		"SessionLengthSSOInDays is zero": {
+			ServiceSettings: ServiceSettings{
+				SessionLengthSSOInDays: new(0),
+			},
+			ExpectError: true,
+		},
+		"SessionLengthSSOInHours is zero": {
+			ServiceSettings: ServiceSettings{
+				SessionLengthSSOInHours: new(0),
+			},
+			ExpectError: true,
+		},
+		"SessionCacheInMinutes is zero": {
+			ServiceSettings: ServiceSettings{
+				SessionCacheInMinutes: new(0),
+			},
+			ExpectError: true,
+		},
+		"SessionIdleTimeoutInMinutes is zero": {
+			ServiceSettings: ServiceSettings{
+				SessionIdleTimeoutInMinutes: new(0),
+			},
+			ExpectError: false,
+		},
+		"SessionIdleTimeoutInMinutes is negative": {
+			ServiceSettings: ServiceSettings{
+				SessionIdleTimeoutInMinutes: new(-1),
+			},
+			ExpectError: true,
+		},
+		"MinimumHashtagLength is zero": {
+			ServiceSettings: ServiceSettings{
+				MinimumHashtagLength: new(0),
+			},
+			ExpectError: true,
+		},
+		"ClusterLogTimeoutMilliseconds is zero": {
+			ServiceSettings: ServiceSettings{
+				ClusterLogTimeoutMilliseconds: new(0),
+			},
+			ExpectError: true,
+		},
+		"AWSMeteringTimeoutSeconds is zero": {
+			ServiceSettings: ServiceSettings{
+				AWSMeteringTimeoutSeconds: new(0),
+			},
+			ExpectError: true,
+		},
 		"MaximumPersonalAccessTokenLifetimeDays zero (unlimited) is accepted": {
 			ServiceSettings: ServiceSettings{
 				MaximumPersonalAccessTokenLifetimeDays: new(0),
@@ -184,6 +531,148 @@ func TestServiceSettingsIsValid(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestSqlSettingsIsValid(t *testing.T) {
+	for name, test := range map[string]struct {
+		settings *SqlSettings
+		errorID  string
+	}{
+		"negative migrations statement timeout": {
+			settings: &SqlSettings{
+				MigrationsStatementTimeoutSeconds: NewPointer(-1),
+			},
+			errorID: "model.config.is_valid.sql_migrations_statement_timeout_seconds.app_error",
+		},
+		"zero replica monitor interval": {
+			settings: &SqlSettings{
+				ReplicaMonitorIntervalSeconds: NewPointer(0),
+			},
+			errorID: "model.config.is_valid.sql_replica_monitor_interval_seconds.app_error",
+		},
+		"negative replica monitor interval": {
+			settings: &SqlSettings{
+				ReplicaMonitorIntervalSeconds: NewPointer(-1),
+			},
+			errorID: "model.config.is_valid.sql_replica_monitor_interval_seconds.app_error",
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			test.settings.SetDefaults(false)
+
+			appErr := test.settings.isValid()
+			require.NotNil(t, appErr)
+			require.Equal(t, test.errorID, appErr.Id)
+		})
+	}
+
+	t.Run("zero migrations statement timeout is valid", func(t *testing.T) {
+		settings := &SqlSettings{
+			MigrationsStatementTimeoutSeconds: NewPointer(0),
+		}
+		settings.SetDefaults(false)
+
+		require.Nil(t, settings.isValid())
+	})
+}
+
+func TestEmailSettingsIsValid(t *testing.T) {
+	t.Run("default is valid", func(t *testing.T) {
+		settings := &EmailSettings{}
+		settings.SetDefaults(false)
+
+		require.Nil(t, settings.isValid())
+	})
+
+	for _, value := range []int{0, -1} {
+		t.Run(fmt.Sprintf("invalid push notification buffer %d", value), func(t *testing.T) {
+			settings := &EmailSettings{
+				PushNotificationBuffer: NewPointer(value),
+			}
+			settings.SetDefaults(false)
+
+			appErr := settings.isValid()
+			require.NotNil(t, appErr)
+			require.Equal(t, "model.config.is_valid.email_push_notification_buffer.app_error", appErr.Id)
+		})
+	}
+
+	for _, tc := range []struct {
+		name   string
+		mutate func(*EmailSettings)
+		errID  string
+	}{
+		{
+			name: "invalid feedback email",
+			mutate: func(settings *EmailSettings) {
+				settings.FeedbackEmail = NewPointer("not-an-email")
+			},
+			errID: "model.config.is_valid.email_address.app_error",
+		},
+		{
+			name: "invalid reply-to address",
+			mutate: func(settings *EmailSettings) {
+				settings.ReplyToAddress = NewPointer("not-an-email")
+			},
+			errID: "model.config.is_valid.email_address.app_error",
+		},
+		{
+			name: "invalid SMTP port",
+			mutate: func(settings *EmailSettings) {
+				settings.SMTPPort = NewPointer("65536")
+			},
+			errID: "model.config.is_valid.port.app_error",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			settings := &EmailSettings{}
+			settings.SetDefaults(false)
+			tc.mutate(settings)
+
+			appErr := settings.isValid()
+			require.NotNil(t, appErr)
+			require.Equal(t, tc.errID, appErr.Id)
+		})
+	}
+}
+
+func TestServiceSettingsHardenedModeMigration(t *testing.T) {
+	t.Run("defaults to disabled without the deprecated setting", func(t *testing.T) {
+		ss := ServiceSettings{}
+		ss.SetDefaults(false)
+
+		require.False(t, *ss.EnableHardenedMode)
+		require.False(t, *ss.ExperimentalEnableHardenedMode)
+		assert.Nil(t, ss.isValid())
+	})
+
+	t.Run("accepts the renamed setting", func(t *testing.T) {
+		ss := ServiceSettings{EnableHardenedMode: new(true)}
+		ss.SetDefaults(false)
+
+		assert.Nil(t, ss.isValid())
+	})
+
+	t.Run("migrates the deprecated setting to the renamed setting", func(t *testing.T) {
+		ss := ServiceSettings{ExperimentalEnableHardenedMode: new(true)}
+		ss.SetDefaults(false)
+
+		require.True(t, *ss.EnableHardenedMode)
+		require.True(t, *ss.ExperimentalEnableHardenedMode)
+		assert.Nil(t, ss.isValid())
+	})
+
+	t.Run("explicit new key wins over deprecated key", func(t *testing.T) {
+		ss := ServiceSettings{
+			EnableHardenedMode:             new(false),
+			ExperimentalEnableHardenedMode: new(true),
+		}
+		ss.SetDefaults(false)
+
+		require.False(t, *ss.EnableHardenedMode)
+		require.True(t, *ss.ExperimentalEnableHardenedMode)
+		assert.Nil(t, ss.isValid())
+	})
 }
 
 func TestConfigEnableDeveloper(t *testing.T) {
@@ -379,6 +868,46 @@ func TestFileSettingsExtractContentTimeout(t *testing.T) {
 	})
 }
 
+func TestFileSettingsLowerConfidenceBounds(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		mutate func(*FileSettings)
+		errID  string
+	}{
+		{
+			name: "MaxImageResolution zero",
+			mutate: func(settings *FileSettings) {
+				settings.MaxImageResolution = NewPointer(int64(0))
+			},
+			errID: "model.config.is_valid.positive_number.app_error",
+		},
+		{
+			name: "AmazonS3UploadPartSizeBytes below S3 minimum",
+			mutate: func(settings *FileSettings) {
+				settings.AmazonS3UploadPartSizeBytes = NewPointer(int64(FileSettingsDefaultS3UploadPartSizeBytes - 1))
+			},
+			errID: "model.config.is_valid.s3_upload_part_size.app_error",
+		},
+		{
+			name: "ExportAmazonS3UploadPartSizeBytes below S3 minimum",
+			mutate: func(settings *FileSettings) {
+				settings.ExportAmazonS3UploadPartSizeBytes = NewPointer(int64(FileSettingsDefaultS3UploadPartSizeBytes - 1))
+			},
+			errID: "model.config.is_valid.s3_upload_part_size.app_error",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := &Config{}
+			cfg.SetDefaults()
+			tc.mutate(&cfg.FileSettings)
+
+			appErr := cfg.FileSettings.isValid()
+			require.NotNil(t, appErr)
+			require.Equal(t, tc.errID, appErr.Id)
+		})
+	}
+}
+
 func TestFileSettingsAzureAuthMode(t *testing.T) {
 	t.Run("defaults to shared_key", func(t *testing.T) {
 		cfg := &Config{}
@@ -416,6 +945,31 @@ func TestFileSettingsAzureAuthMode(t *testing.T) {
 		err := cfg.FileSettings.isValid()
 		require.NotNil(t, err)
 		assert.Equal(t, "model.config.is_valid.export_azure_auth_mode.app_error", err.Id)
+	})
+}
+
+func TestFileSettingsExportDriverNameIsValid(t *testing.T) {
+	for _, driverName := range []string{ImageDriverLocal, ImageDriverS3, ImageDriverAzure} {
+		t.Run("valid "+driverName, func(t *testing.T) {
+			cfg := &Config{}
+			cfg.SetDefaults()
+			cfg.FileSettings.ExportDriverName = NewPointer(driverName)
+			if driverName == ImageDriverAzure {
+				cfg.FileSettings.ExportAzureStorageAccount = NewPointer("acmemattermost")
+			}
+
+			require.Nil(t, cfg.FileSettings.isValid())
+		})
+	}
+
+	t.Run("invalid", func(t *testing.T) {
+		cfg := &Config{}
+		cfg.SetDefaults()
+		cfg.FileSettings.ExportDriverName = NewPointer("garbage")
+
+		appErr := cfg.FileSettings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.export_file_driver.app_error", appErr.Id)
 	})
 }
 
@@ -858,6 +1412,30 @@ func TestTeamSettingsIsValidSiteNameEmpty(t *testing.T) {
 	require.Nil(t, c1.TeamSettings.isValid())
 }
 
+func TestTeamSettingsLockProfileFieldsForEmailUsersIsValid(t *testing.T) {
+	for name, testCase := range map[string]struct {
+		value        string
+		expectsError bool
+	}{
+		"none":              {value: TeamSettingsLockProfileFieldsNone},
+		"name and username": {value: TeamSettingsLockProfileFieldsNameAndUsername},
+		"all":               {value: TeamSettingsLockProfileFieldsAll},
+		"invalid":           {value: "invalid", expectsError: true},
+	} {
+		t.Run(name, func(t *testing.T) {
+			config := Config{}
+			config.SetDefaults()
+			config.TeamSettings.LockProfileFieldsForEmailUsers = new(testCase.value)
+
+			if testCase.expectsError {
+				require.NotNil(t, config.TeamSettings.isValid())
+			} else {
+				require.Nil(t, config.TeamSettings.isValid())
+			}
+		})
+	}
+}
+
 func TestTeamSettingsDefaultJoinLeaveMessage(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()
@@ -998,11 +1576,31 @@ func TestMessageExportSettingsIsValidGlobalRelaySettingsInvalidCustomerType(t *t
 }
 
 // func TestMessageExportSettingsIsValidGlobalRelaySettingsInvalidEmailAddress(t *testing.T) {
+func customRelaySettings(name, value string) *GlobalRelayMessageExportSettings {
+	return &GlobalRelayMessageExportSettings{
+		CustomerType:         new(GlobalrelayCustomerTypeCustom),
+		EmailAddress:         new("valid@mattermost.com"),
+		SMTPUsername:         new("SomeUsername"),
+		SMTPPassword:         new("SomePassword"),
+		CustomSMTPServerName: new("feeds.example.com"),
+		CustomSMTPPort:       new("25"),
+		CustomHeaderName:     new(name),
+		CustomHeaderValue:    new(value),
+	}
+}
+
+func customRelaySettingsWithPort(port string) *GlobalRelayMessageExportSettings {
+	settings := customRelaySettings("", "")
+	settings.CustomSMTPPort = new(port)
+	return settings
+}
+
 func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 	tests := []struct {
 		name    string
 		value   *GlobalRelayMessageExportSettings
 		success bool
+		errorId string
 	}{
 		{
 			"Invalid email address",
@@ -1013,6 +1611,30 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 				SMTPPassword: new("SomePassword"),
 			},
 			false,
+			"",
+		},
+		{
+			"Email address containing '@' but failing stricter validation",
+			&GlobalRelayMessageExportSettings{
+				CustomerType: new(GlobalrelayCustomerTypeA9),
+				EmailAddress: new("notanemail@"),
+				SMTPUsername: new("SomeUsername"),
+				SMTPPassword: new("SomePassword"),
+			},
+			false,
+			"model.config.is_valid.message_export.global_relay.email_address.app_error",
+		},
+		{
+			"Custom SMTP port out of range",
+			customRelaySettingsWithPort("65536"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_smtp_port.app_error",
+		},
+		{
+			"Custom SMTP port non-numeric",
+			customRelaySettingsWithPort("not-a-port"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_smtp_port.app_error",
 		},
 		{
 			"Missing smtp username",
@@ -1022,6 +1644,7 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 				SMTPPassword: new("SomePassword"),
 			},
 			false,
+			"",
 		},
 		{
 			"Invalid smtp username",
@@ -1032,6 +1655,7 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 				SMTPPassword: new("SomePassword"),
 			},
 			false,
+			"",
 		},
 		{
 			"Invalid smtp password",
@@ -1042,6 +1666,7 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 				SMTPPassword: new(""),
 			},
 			false,
+			"",
 		},
 		{
 			"Valid data",
@@ -1052,6 +1677,199 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 				SMTPPassword: new("SomePassword"),
 			},
 			true,
+			"",
+		},
+		{
+			"A9 with only custom header name set is ignored",
+			&GlobalRelayMessageExportSettings{
+				CustomerType:     new(GlobalrelayCustomerTypeA9),
+				EmailAddress:     new("valid@mattermost.com"),
+				SMTPUsername:     new("SomeUsername"),
+				SMTPPassword:     new("SomePassword"),
+				CustomHeaderName: new("X-Custom"),
+			},
+			true,
+			"",
+		},
+		{
+			"Valid custom header",
+			customRelaySettings("X-ProofpointArchiveMediaType", "Message"),
+			true,
+			"",
+		},
+		{
+			"Custom header name with CRLF",
+			customRelaySettings("X-Custom\r\nInjected", "Message"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+		},
+		{
+			"Custom header value with CRLF",
+			customRelaySettings("X-Custom", "Message\r\nInjected: evil"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_value.app_error",
+		},
+		{
+			"Custom header name with invalid character",
+			customRelaySettings("X-Custom:Header", "Message"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+		},
+		{
+			"Custom header name with a space",
+			customRelaySettings("X Custom", "Message"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+		},
+		{
+			"Custom header value may contain spaces and colons",
+			customRelaySettings("X-Custom", "some value: with punctuation"),
+			true,
+			"",
+		},
+		{
+			"Custom header name set without a value",
+			customRelaySettings("X-Custom", ""),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
+		},
+		{
+			"Custom header value set without a name",
+			customRelaySettings("", "Message"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
+		},
+		{
+			"Custom header both empty",
+			customRelaySettings("", ""),
+			true,
+			"",
+		},
+		{
+			"Custom header value may contain non-ASCII",
+			customRelaySettings("X-Custom", "Café Meeting"),
+			true,
+			"",
+		},
+		{
+			"Custom header name with a non-token character",
+			customRelaySettings("X-Custom(Foo)", "Message"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_name.app_error",
+		},
+		{
+			"Custom header name reserved: From",
+			customRelaySettings("From", "attacker@example.com"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+		},
+		{
+			"Custom header name reserved: to (case-insensitive)",
+			customRelaySettings("to", "attacker@example.com"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+		},
+		{
+			"Custom header name reserved: X-GlobalRelay-MsgType",
+			customRelaySettings(GlobalRelayMsgTypeHeader, "NotMattermost"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+		},
+		{
+			"Custom header name reserved: Content-Type",
+			customRelaySettings("Content-Type", "text/plain"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+		},
+		{
+			"Custom header name reserved: mixed-case fRoM",
+			customRelaySettings("fRoM", "attacker@example.com"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+		},
+		{
+			"Custom header name reserved: mixed-case x-globalrelay-MSGTYPE",
+			customRelaySettings("x-globalrelay-MSGTYPE", "NotMattermost"),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_reserved.app_error",
+		},
+		{
+			"Custom header value is whitespace-only",
+			customRelaySettings("X-Custom", "   "),
+			false,
+			"model.config.is_valid.message_export.global_relay.custom_header_incomplete.app_error",
+		},
+		{
+			"Empty sender address is valid",
+			&GlobalRelayMessageExportSettings{
+				CustomerType:  new(GlobalrelayCustomerTypeA9),
+				EmailAddress:  new("valid@mattermost.com"),
+				SMTPUsername:  new("SomeUsername"),
+				SMTPPassword:  new("SomePassword"),
+				SenderAddress: new(""),
+			},
+			true,
+			"",
+		},
+		{
+			"Valid sender address",
+			&GlobalRelayMessageExportSettings{
+				CustomerType:  new(GlobalrelayCustomerTypeA9),
+				EmailAddress:  new("valid@mattermost.com"),
+				SMTPUsername:  new("SomeUsername"),
+				SMTPPassword:  new("SomePassword"),
+				SenderAddress: new("compliance-export@mattermost.com"),
+			},
+			true,
+			"",
+		},
+		{
+			"Invalid sender address",
+			&GlobalRelayMessageExportSettings{
+				CustomerType:  new(GlobalrelayCustomerTypeA9),
+				EmailAddress:  new("valid@mattermost.com"),
+				SMTPUsername:  new("SomeUsername"),
+				SMTPPassword:  new("SomePassword"),
+				SenderAddress: new("not-an-email"),
+			},
+			false,
+			"model.config.is_valid.message_export.global_relay.sender_address.app_error",
+		},
+		{
+			"Sender address with multiple at-signs",
+			&GlobalRelayMessageExportSettings{
+				CustomerType:  new(GlobalrelayCustomerTypeA9),
+				EmailAddress:  new("valid@mattermost.com"),
+				SMTPUsername:  new("SomeUsername"),
+				SMTPPassword:  new("SomePassword"),
+				SenderAddress: new("invalid@@mattermost.com"),
+			},
+			false,
+			"model.config.is_valid.message_export.global_relay.sender_address.app_error",
+		},
+		{
+			"Sender address with trailing at-sign",
+			&GlobalRelayMessageExportSettings{
+				CustomerType:  new(GlobalrelayCustomerTypeA9),
+				EmailAddress:  new("valid@mattermost.com"),
+				SMTPUsername:  new("SomeUsername"),
+				SMTPPassword:  new("SomePassword"),
+				SenderAddress: new("sender@"),
+			},
+			false,
+			"model.config.is_valid.message_export.global_relay.sender_address.app_error",
+		},
+		{
+			"Sender address with surrounding whitespace",
+			&GlobalRelayMessageExportSettings{
+				CustomerType:  new(GlobalrelayCustomerTypeA9),
+				EmailAddress:  new("valid@mattermost.com"),
+				SMTPUsername:  new("SomeUsername"),
+				SMTPPassword:  new("SomePassword"),
+				SenderAddress: new(" compliance-export@mattermost.com "),
+			},
+			false,
+			"model.config.is_valid.message_export.global_relay.sender_address.app_error",
 		},
 	}
 
@@ -1069,7 +1887,11 @@ func TestMessageExportSettingsGlobalRelaySettings(t *testing.T) {
 			if tt.success {
 				require.Nil(t, mes.isValid())
 			} else {
-				require.NotNil(t, mes.isValid())
+				appErr := mes.isValid()
+				require.NotNil(t, appErr)
+				if tt.errorId != "" {
+					require.Equal(t, tt.errorId, appErr.Id)
+				}
 			}
 		})
 	}
@@ -1084,6 +1906,52 @@ func TestMessageExportSetDefaults(t *testing.T) {
 	require.Equal(t, int64(0), *mes.ExportFromTimestamp)
 	require.Equal(t, 10000, *mes.BatchSize)
 	require.Equal(t, ComplianceExportTypeActiance, *mes.ExportFormat)
+}
+
+func TestGlobalRelayMessageExportSetDefaultsCustomHeader(t *testing.T) {
+	grs := &GlobalRelayMessageExportSettings{}
+	grs.SetDefaults()
+
+	require.Equal(t, "", *grs.CustomHeaderName)
+	require.Equal(t, "", *grs.CustomHeaderValue)
+	require.Equal(t, "", *grs.SenderAddress)
+}
+
+func TestMessageExportSettingsGlobalRelayZipSenderAddress(t *testing.T) {
+	mes := &MessageExportSettings{
+		EnableExport:        new(true),
+		ExportFormat:        new(ComplianceExportTypeGlobalrelayZip),
+		ExportFromTimestamp: new(int64(0)),
+		DailyRunTime:        new("15:04"),
+		BatchSize:           new(100),
+		GlobalRelaySettings: &GlobalRelayMessageExportSettings{
+			CustomerType:  new(GlobalrelayCustomerTypeA9),
+			SenderAddress: new("not-an-email"),
+		},
+	}
+
+	appErr := mes.isValid()
+	require.NotNil(t, appErr)
+	require.Equal(t, "model.config.is_valid.message_export.global_relay.sender_address.app_error", appErr.Id)
+}
+
+func TestMessageExportSettingsGlobalRelayZipCustomHeader(t *testing.T) {
+	mes := &MessageExportSettings{
+		EnableExport:        new(true),
+		ExportFormat:        new(ComplianceExportTypeGlobalrelayZip),
+		ExportFromTimestamp: new(int64(0)),
+		DailyRunTime:        new("15:04"),
+		BatchSize:           new(100),
+		GlobalRelaySettings: &GlobalRelayMessageExportSettings{
+			CustomerType:      new(GlobalrelayCustomerTypeCustom),
+			CustomHeaderName:  new("X-Custom\r\nInjected"),
+			CustomHeaderValue: new("Message"),
+		},
+	}
+
+	appErr := mes.isValid()
+	require.NotNil(t, appErr)
+	require.Equal(t, "model.config.is_valid.message_export.global_relay.custom_header_name.app_error", appErr.Id)
 }
 
 func TestMessageExportSetDefaultsExportEnabledExportFromTimestampNil(t *testing.T) {
@@ -1297,21 +2165,15 @@ func TestImageProxySettingsSetDefaults(t *testing.T) {
 
 		assert.Equal(t, false, *ips.Enable)
 		assert.Equal(t, ImageProxyTypeLocal, *ips.ImageProxyType)
-		assert.Equal(t, "", *ips.RemoteImageProxyURL)
-		assert.Equal(t, "", *ips.RemoteImageProxyOptions)
 	})
 }
 
 func TestImageProxySettingsIsValid(t *testing.T) {
-	testHMACKey := NewTestPassword()
-
 	for _, test := range []struct {
-		Name                    string
-		Enable                  bool
-		ImageProxyType          string
-		RemoteImageProxyURL     string
-		RemoteImageProxyOptions string
-		ExpectError             bool
+		Name           string
+		Enable         bool
+		ImageProxyType string
+		ExpectError    bool
 	}{
 		{
 			Name:        "disabled",
@@ -1319,12 +2181,22 @@ func TestImageProxySettingsIsValid(t *testing.T) {
 			ExpectError: false,
 		},
 		{
-			Name:                    "disabled with bad values",
-			Enable:                  false,
-			ImageProxyType:          "garbage",
-			RemoteImageProxyURL:     "garbage",
-			RemoteImageProxyOptions: "garbage",
-			ExpectError:             false,
+			Name:           "disabled with bad values",
+			Enable:         false,
+			ImageProxyType: "garbage",
+			ExpectError:    false,
+		},
+		{
+			Name:           "atmos/camo, disabled",
+			Enable:         false,
+			ImageProxyType: ImageProxyTypeLegacyAtmosCamo,
+			ExpectError:    true,
+		},
+		{
+			Name:           "atmos/camo, enabled",
+			Enable:         true,
+			ImageProxyType: ImageProxyTypeLegacyAtmosCamo,
+			ExpectError:    true,
 		},
 		{
 			Name:           "missing type",
@@ -1333,52 +2205,16 @@ func TestImageProxySettingsIsValid(t *testing.T) {
 			ExpectError:    true,
 		},
 		{
-			Name:                    "local",
-			Enable:                  true,
-			ImageProxyType:          "local",
-			RemoteImageProxyURL:     "garbage",
-			RemoteImageProxyOptions: "garbage",
-			ExpectError:             false,
-		},
-		{
-			Name:                    "atmos/camo",
-			Enable:                  true,
-			ImageProxyType:          ImageProxyTypeAtmosCamo,
-			RemoteImageProxyURL:     "someurl",
-			RemoteImageProxyOptions: testHMACKey,
-			ExpectError:             false,
-		},
-		{
-			Name:                    "atmos/camo, missing url",
-			Enable:                  true,
-			ImageProxyType:          ImageProxyTypeAtmosCamo,
-			RemoteImageProxyURL:     "",
-			RemoteImageProxyOptions: "garbage",
-			ExpectError:             true,
-		},
-		{
-			Name:                    "atmos/camo, missing options",
-			Enable:                  true,
-			ImageProxyType:          ImageProxyTypeAtmosCamo,
-			RemoteImageProxyURL:     "someurl",
-			RemoteImageProxyOptions: "",
-			ExpectError:             true,
-		},
-		{
-			Name:                    "atmos/camo, short options under FIPS",
-			Enable:                  true,
-			ImageProxyType:          ImageProxyTypeAtmosCamo,
-			RemoteImageProxyURL:     "someurl",
-			RemoteImageProxyOptions: "foo",
-			ExpectError:             FIPSEnabled,
+			Name:           "local",
+			Enable:         true,
+			ImageProxyType: "local",
+			ExpectError:    false,
 		},
 	} {
 		t.Run(test.Name, func(t *testing.T) {
 			ips := &ImageProxySettings{
-				Enable:                  &test.Enable,
-				ImageProxyType:          &test.ImageProxyType,
-				RemoteImageProxyURL:     &test.RemoteImageProxyURL,
-				RemoteImageProxyOptions: &test.RemoteImageProxyOptions,
+				Enable:         &test.Enable,
+				ImageProxyType: &test.ImageProxyType,
 			}
 
 			appErr := ips.isValid()
@@ -1403,6 +2239,22 @@ func TestLdapSettingsIsValid(t *testing.T) {
 				Enable: new(false),
 			},
 			ExpectError: false,
+		},
+		{
+			Name: "invalid LDAP port",
+			LdapSettings: LdapSettings{
+				Enable:   new(false),
+				LdapPort: new(65536),
+			},
+			ExpectError: true,
+		},
+		{
+			Name: "invalid LDAP query timeout",
+			LdapSettings: LdapSettings{
+				Enable:       new(false),
+				QueryTimeout: new(0),
+			},
+			ExpectError: true,
 		},
 		{
 			Name: "missing server",
@@ -1728,6 +2580,34 @@ func TestLdapSettingsIsValid(t *testing.T) {
 			},
 			ExpectError: true,
 		},
+		{
+			Name: "valid group filter",
+			LdapSettings: LdapSettings{
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				GroupFilter:       new("(objectClass=group)"),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "invalid group filter",
+			LdapSettings: LdapSettings{
+				Enable:            new(true),
+				LdapServer:        new("server"),
+				BaseDN:            new("basedn"),
+				EmailAttribute:    new("email"),
+				UsernameAttribute: new("username"),
+				IdAttribute:       new("id"),
+				LoginIdAttribute:  new("loginid"),
+				GroupFilter:       new("("),
+			},
+			ExpectError: true,
+		},
 	} {
 		t.Run(test.Name, func(t *testing.T) {
 			test.LdapSettings.SetDefaults()
@@ -1900,6 +2780,24 @@ func TestLogSettingsIsValid(t *testing.T) {
 			},
 			ExpectError: false,
 		},
+		"invalid console level": {
+			LogSettings: LogSettings{
+				ConsoleLevel: new("verbose"),
+			},
+			ExpectError: true,
+		},
+		"invalid file level": {
+			LogSettings: LogSettings{
+				FileLevel: new("verbose"),
+			},
+			ExpectError: true,
+		},
+		"negative max field size": {
+			LogSettings: LogSettings{
+				MaxFieldSize: new(-1),
+			},
+			ExpectError: true,
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			test.LogSettings.SetDefaults()
@@ -1946,7 +2844,6 @@ func TestConfigSanitize(t *testing.T) {
 	assert.Equal(t, FakeSetting, *c.OpenIdSettings.Secret)
 	assert.Equal(t, FakeSetting, *c.AutoTranslationSettings.LibreTranslate.APIKey)
 	assert.Equal(t, FakeSetting, *c.SqlSettings.DataSource)
-	assert.Equal(t, FakeSetting, *c.SqlSettings.AtRestEncryptKey)
 	assert.Equal(t, FakeSetting, *c.ElasticsearchSettings.Password)
 	assert.Equal(t, FakeSetting, *c.ServiceSettings.GoogleDeveloperKey)
 	assert.Equal(t, FakeSetting, *c.ServiceSettings.GiphySdkKey)
@@ -1969,7 +2866,7 @@ func TestConfigSanitize(t *testing.T) {
 	t.Run("partially sanitize DataSource", func(t *testing.T) {
 		c := Config{}
 		c.SetDefaults()
-		*c.SqlSettings.DataSource = "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable"
+		*c.SqlSettings.DataSource = "postgres://mmuser:mostest_password@localhost:5432/mattermost_test?sslmode=disable"
 		c.Sanitize(nil, &SanitizeOptions{PartiallyRedactDataSources: true})
 
 		expectedURL := "postgres://" + SanitizedPassword + ":" + SanitizedPassword + "@localhost:5432/mattermost_test?sslmode=disable"
@@ -2251,15 +3148,15 @@ func TestSanitizeDataSource(t *testing.T) {
 				"",
 			},
 			{
-				"postgres://mmuser:mostest@localhost",
+				"postgres://mmuser:mostest_password@localhost",
 				"postgres://" + SanitizedPassword + ":" + SanitizedPassword + "@localhost",
 			},
 			{
-				"postgres://mmuser:mostest@localhost/dummy?sslmode=disable",
+				"postgres://mmuser:mostest_password@localhost/dummy?sslmode=disable",
 				"postgres://" + SanitizedPassword + ":" + SanitizedPassword + "@localhost/dummy?sslmode=disable",
 			},
 			{
-				"postgres://localhost/dummy?sslmode=disable&user=mmuser&password=mostest",
+				"postgres://localhost/dummy?sslmode=disable&user=mmuser&password=mostest_password",
 				"postgres://" + SanitizedPassword + ":" + SanitizedPassword + "@localhost/dummy?sslmode=disable",
 			},
 		}
@@ -2492,14 +3389,25 @@ func TestConfigServiceSettingsIsValid(t *testing.T) {
 		appErr := cfg.ServiceSettings.isValid()
 		require.Nil(t, appErr)
 
+		// Custom URI schemes used by desktop OAuth clients are accepted
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"cursor://anysphere.cursor-mcp/oauth/callback", "com.example.app://callback/**"}
+		appErr = cfg.ServiceSettings.isValid()
+		require.Nil(t, appErr)
+
 		// Empty/whitespace entry rejected
 		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"https://ok.com/**", "  ", "https://also.com/cb"}
 		appErr = cfg.ServiceSettings.isValid()
 		require.NotNil(t, appErr)
 		require.Equal(t, "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", appErr.Id)
 
-		// Non-http(s) scheme rejected
-		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"ftp://example.com/**"}
+		// Scheme without a host rejected
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"cursor://"}
+		appErr = cfg.ServiceSettings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", appErr.Id)
+
+		// Opaque URI without a host rejected
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"javascript:alert(1)"}
 		appErr = cfg.ServiceSettings.isValid()
 		require.NotNil(t, appErr)
 		require.Equal(t, "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", appErr.Id)
@@ -2686,6 +3594,46 @@ func TestConfigGetFileRetentionHours(t *testing.T) {
 	}
 }
 
+func TestDataRetentionSettingsIsValid(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		mutate func(*DataRetentionSettings)
+		errID  string
+	}{
+		{
+			name: "BatchSize zero",
+			mutate: func(settings *DataRetentionSettings) {
+				settings.BatchSize = NewPointer(0)
+			},
+			errID: "model.config.is_valid.positive_number.app_error",
+		},
+		{
+			name: "TimeBetweenBatchesMilliseconds negative",
+			mutate: func(settings *DataRetentionSettings) {
+				settings.TimeBetweenBatchesMilliseconds = NewPointer(-1)
+			},
+			errID: "model.config.is_valid.non_negative_number.app_error",
+		},
+		{
+			name: "RetentionIdsBatchSize zero",
+			mutate: func(settings *DataRetentionSettings) {
+				settings.RetentionIdsBatchSize = NewPointer(0)
+			},
+			errID: "model.config.is_valid.positive_number.app_error",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			settings := &DataRetentionSettings{}
+			settings.SetDefaults()
+			tc.mutate(settings)
+
+			appErr := settings.isValid()
+			require.NotNil(t, appErr)
+			require.Equal(t, tc.errID, appErr.Id)
+		})
+	}
+}
+
 func TestConfigDefaultConnectedWorkspacesSettings(t *testing.T) {
 	t.Run("if the config is new, default values should be established", func(t *testing.T) {
 		c := Config{}
@@ -2718,6 +3666,55 @@ func TestConfigDefaultConnectedWorkspacesSettings(t *testing.T) {
 		require.False(t, *c.ConnectedWorkspacesSettings.EnableSharedChannels)
 		require.True(t, *c.ConnectedWorkspacesSettings.EnableRemoteClusterService)
 	})
+}
+
+func TestConnectedWorkspacesSettingsIsValid(t *testing.T) {
+	t.Run("defaults are valid", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+
+		require.Nil(t, c.ConnectedWorkspacesSettings.isValid())
+	})
+
+	for _, tc := range []struct {
+		name   string
+		mutate func(*ConnectedWorkspacesSettings)
+	}{
+		{
+			name: "GlobalUserSyncBatchSize zero",
+			mutate: func(settings *ConnectedWorkspacesSettings) {
+				settings.GlobalUserSyncBatchSize = NewPointer(0)
+			},
+		},
+		{
+			name: "MaxPostsPerSync zero",
+			mutate: func(settings *ConnectedWorkspacesSettings) {
+				settings.MaxPostsPerSync = NewPointer(0)
+			},
+		},
+		{
+			name: "MemberSyncBatchSize zero",
+			mutate: func(settings *ConnectedWorkspacesSettings) {
+				settings.MemberSyncBatchSize = NewPointer(0)
+			},
+		},
+		{
+			name: "MemberSyncBatchSize negative",
+			mutate: func(settings *ConnectedWorkspacesSettings) {
+				settings.MemberSyncBatchSize = NewPointer(-1)
+			},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			c := Config{}
+			c.SetDefaults()
+			tc.mutate(&c.ConnectedWorkspacesSettings)
+
+			appErr := c.ConnectedWorkspacesSettings.isValid()
+			require.NotNil(t, appErr)
+			require.Equal(t, "model.config.is_valid.connected_workspaces.batch_size.app_error", appErr.Id)
+		})
+	}
 }
 
 func TestExperimentalAuditSettingsIsValid(t *testing.T) {
@@ -2799,6 +3796,29 @@ func TestExperimentalAuditSettingsIsValid(t *testing.T) {
 							{ "id": 101, "name": "audit-content" },
 							{ "id": 102, "name": "audit-permissions" },
 							{ "id": 103, "name": "audit-cli" }
+						],
+						"Options": {
+							"Out": "stdout"
+						},
+						"MaxQueueSize": 1000
+					}
+				}
+				`),
+			},
+			ExpectError: false,
+		},
+
+		// audit-delivery is not part of the default audit file target, but admins must be
+		// able to bind an advanced logging target to it.
+		"AdvancedLoggingJSON with the audit-delivery level is valid": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"delivery-log": {
+						"Type": "console",
+						"Format": "json",
+						"Levels": [
+							{ "id": 104, "name": "audit-delivery" }
 						],
 						"Options": {
 							"Out": "stdout"
@@ -3456,4 +4476,72 @@ func TestElasticsearchSettingsSetDefaults(t *testing.T) {
 		s.SetDefaults()
 		require.False(t, *s.EnableSearchPublicChannelsWithoutMembership)
 	})
+}
+
+func TestElasticsearchSettingsIsValid(t *testing.T) {
+	t.Run("defaults are valid", func(t *testing.T) {
+		s := ElasticsearchSettings{}
+		s.SetDefaults()
+
+		require.Nil(t, s.isValid())
+	})
+
+	for _, tc := range []struct {
+		name    string
+		mutate  func(*ElasticsearchSettings)
+		errorID string
+	}{
+		{
+			name: "PostIndexShards zero",
+			mutate: func(settings *ElasticsearchSettings) {
+				settings.PostIndexShards = NewPointer(0)
+			},
+			errorID: "model.config.is_valid.elastic_search.index_shards.app_error",
+		},
+		{
+			name: "ChannelIndexShards negative",
+			mutate: func(settings *ElasticsearchSettings) {
+				settings.ChannelIndexShards = NewPointer(-1)
+			},
+			errorID: "model.config.is_valid.elastic_search.index_shards.app_error",
+		},
+		{
+			name: "UserIndexShards zero",
+			mutate: func(settings *ElasticsearchSettings) {
+				settings.UserIndexShards = NewPointer(0)
+			},
+			errorID: "model.config.is_valid.elastic_search.index_shards.app_error",
+		},
+		{
+			name: "PostIndexReplicas negative",
+			mutate: func(settings *ElasticsearchSettings) {
+				settings.PostIndexReplicas = NewPointer(-1)
+			},
+			errorID: "model.config.is_valid.elastic_search.index_replicas.app_error",
+		},
+		{
+			name: "ChannelIndexReplicas negative",
+			mutate: func(settings *ElasticsearchSettings) {
+				settings.ChannelIndexReplicas = NewPointer(-1)
+			},
+			errorID: "model.config.is_valid.elastic_search.index_replicas.app_error",
+		},
+		{
+			name: "UserIndexReplicas negative",
+			mutate: func(settings *ElasticsearchSettings) {
+				settings.UserIndexReplicas = NewPointer(-1)
+			},
+			errorID: "model.config.is_valid.elastic_search.index_replicas.app_error",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			s := ElasticsearchSettings{}
+			s.SetDefaults()
+			tc.mutate(&s)
+
+			appErr := s.isValid()
+			require.NotNil(t, appErr)
+			require.Equal(t, tc.errorID, appErr.Id)
+		})
+	}
 }

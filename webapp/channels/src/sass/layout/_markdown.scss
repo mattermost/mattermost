@@ -54,7 +54,7 @@ h6.markdown__heading {
 #rhsContainer,
 .textbox-preview-area {
     .markdown-inline-img {
-        max-height: 500px;
+        max-height: 350px;
         border-radius: 4px;
         -moz-force-broken-image-icon: 1;
     }
@@ -75,14 +75,10 @@ h6.markdown__heading {
         }
     }
 
-    .markdown-inline-img,
-    .markdown-inline-img__container {
-        margin: 5px 2px;
-    }
-
     .markdown-inline-img__container {
         display: inline-block;
         width: calc(100% - 5px);
+        margin: 5px 2px;
 
         .markdown-image-expand__collapse-button {
             z-index: 3;
@@ -107,17 +103,11 @@ h6.markdown__heading {
     }
 
     .markdown-inline-img--hover {
-        border: 1px solid transparent;
-
         &:hover {
             z-index: 2;
             box-shadow: 0 2px 5px 0 rgba(variables.$black, 0.1), 0 2px 5px 0 rgba(variables.$black, 0.1);
             transition: all 0.1s linear;
         }
-    }
-
-    .markdown-inline-img--no-border {
-        border: unset;
     }
 
     .markdown-inline-img--scaled-down {

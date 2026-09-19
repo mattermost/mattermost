@@ -102,10 +102,15 @@
                 }
             }
 
-            #hideJoinedPreferenceCheckbox {
+            #hideJoinedPreferenceCheckbox,
+            #hideArchivedPreferenceCheckbox {
                 display: flex;
                 align-items: center;
                 cursor: pointer;
+            }
+
+            #hideArchivedPreferenceCheckbox {
+                margin-right: 16px;
             }
 
             #menuWrapper {
@@ -192,6 +197,16 @@
                         }
                     }
 
+                    .discoverableIndicatorContainer {
+                        display: flex;
+                        align-items: center;
+
+                        span,
+                        svg {
+                            color: var(--button-bg);
+                        }
+                    }
+
                     span {
                         margin: 0 4px;
                         font-size: 12px;
@@ -224,13 +239,15 @@
         }
 
         .more-modal__row:hover,
-        .more-modal__row:focus {
+        .more-modal__row:focus,
+        .more-modal__row:focus-within {
             background-color: rgba(var(--center-channel-color-rgb), 0.08);
             cursor: pointer;
 
             .more-modal__actions {
                 .primaryButton,
-                .outlineButton {
+                .outlineButton,
+                .btn-tertiary {
                     visibility: visible;
                 }
             }
@@ -283,5 +300,21 @@
         padding: 2px 4px;
         font-size: 14px;
         line-height: 20px;
+    }
+}
+
+// Mobile parity at 480px: the row's actions wrap below the channel name
+// so the touch targets do not get squeezed.
+@media (max-width: 480px) {
+    #moreChannelsList {
+        .more-modal__row {
+            flex-wrap: wrap;
+        }
+
+        .more-modal__actions {
+            width: 100%;
+            padding-left: 0;
+            margin-top: 8px;
+        }
     }
 }

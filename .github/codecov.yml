@@ -36,7 +36,4 @@ flags:
   webapp:
     after_n_builds: 1 # 1 merged webapp upload
 
-comment:
-  layout: "condensed_header,diff,flags"
-  behavior: default
-  require_changes: true
+comment: false

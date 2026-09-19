@@ -280,7 +280,7 @@ func TestGenerateTriggerId(t *testing.T) {
 		require.NoError(t, err)
 
 		userId := NewId()
-		clientTriggerId, triggerId, appErr := GenerateTriggerId(userId, key)
+		clientTriggerId, triggerId, appErr := GenerateTriggerId(userId, NewId(), key)
 		assert.Nil(t, appErr)
 		assert.NotEmpty(t, clientTriggerId)
 		assert.NotEmpty(t, triggerId)
@@ -291,7 +291,7 @@ func TestGenerateTriggerId(t *testing.T) {
 		badSigner := &failingSigner{err: assert.AnError}
 
 		userId := NewId()
-		_, _, appErr := GenerateTriggerId(userId, badSigner)
+		_, _, appErr := GenerateTriggerId(userId, NewId(), badSigner)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.generate_trigger_id.signing_failed", appErr.Id)
 		assert.NotEmpty(t, appErr.Error())
@@ -310,7 +310,7 @@ func TestGenerateTriggerId(t *testing.T) {
 		}
 
 		userId := NewId()
-		_, _, appErr := GenerateTriggerId(userId, invalidKey)
+		_, _, appErr := GenerateTriggerId(userId, NewId(), invalidKey)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.generate_trigger_id.signing_failed", appErr.Id)
 		assert.Contains(t, appErr.Error(), "invalid signing key")
@@ -326,7 +326,7 @@ func TestGenerateTriggerId(t *testing.T) {
 		}
 
 		userId := NewId()
-		_, _, appErr := GenerateTriggerId(userId, invalidKey)
+		_, _, appErr := GenerateTriggerId(userId, NewId(), invalidKey)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.generate_trigger_id.signing_failed", appErr.Id)
 	})
@@ -338,63 +338,83 @@ func TestTriggerIdDecodeAndVerification(t *testing.T) {
 
 	t.Run("should succeed decoding and validation", func(t *testing.T) {
 		userId := NewId()
-		clientTriggerId, triggerId, appErr := GenerateTriggerId(userId, key)
+		channelId := NewId()
+		clientTriggerId, triggerId, appErr := GenerateTriggerId(userId, channelId, key)
 		require.Nil(t, appErr)
-		decodedClientTriggerId, decodedUserId, appErr := DecodeAndVerifyTriggerId(triggerId, key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		decodedClientTriggerId, decodedUserId, decodedChannelId, appErr := DecodeAndVerifyTriggerId(triggerId, key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		assert.Nil(t, appErr)
 		assert.Equal(t, clientTriggerId, decodedClientTriggerId)
 		assert.Equal(t, userId, decodedUserId)
+		assert.Equal(t, channelId, decodedChannelId)
 	})
 
 	t.Run("should succeed decoding and validation through request structs", func(t *testing.T) {
 		actionReq := &PostActionIntegrationRequest{
-			UserId: NewId(),
+			UserId:    NewId(),
+			ChannelId: NewId(),
 		}
 		clientTriggerId, triggerId, appErr := actionReq.GenerateTriggerId(key)
 		require.Nil(t, appErr)
 		dialogReq := &OpenDialogRequest{TriggerId: triggerId}
-		decodedClientTriggerId, decodedUserId, appErr := dialogReq.DecodeAndVerifyTriggerId(key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		decodedClientTriggerId, decodedUserId, decodedChannelId, appErr := dialogReq.DecodeAndVerifyTriggerId(key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		assert.Nil(t, appErr)
 		assert.Equal(t, clientTriggerId, decodedClientTriggerId)
 		assert.Equal(t, actionReq.UserId, decodedUserId)
+		assert.Equal(t, actionReq.ChannelId, decodedChannelId)
+	})
+
+	t.Run("should reject a trigger whose channel was tampered with", func(t *testing.T) {
+		_, triggerId, appErr := GenerateTriggerId(NewId(), NewId(), key)
+		require.Nil(t, appErr)
+
+		raw, decErr := base64.StdEncoding.DecodeString(triggerId)
+		require.NoError(t, decErr)
+		parts := strings.Split(string(raw), ":")
+		require.Len(t, parts, 5)
+		parts[3] = NewId() // swap the channel, leave the signature alone
+
+		tampered := base64.StdEncoding.EncodeToString([]byte(strings.Join(parts, ":")))
+		_, _, _, appErr = DecodeAndVerifyTriggerId(tampered, key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "interactive_message.decode_trigger_id.verify_signature_failed", appErr.Id)
 	})
 
 	t.Run("should fail on base64 decode", func(t *testing.T) {
-		_, _, appErr := DecodeAndVerifyTriggerId("junk!", key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		_, _, _, appErr := DecodeAndVerifyTriggerId("junk!", key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.decode_trigger_id.base64_decode_failed", appErr.Id)
 	})
 
 	t.Run("should fail on trigger parsing", func(t *testing.T) {
-		_, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("junk!")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		_, _, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("junk!")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.decode_trigger_id.missing_data", appErr.Id)
 	})
 
 	t.Run("should fail on expired timestamp", func(t *testing.T) {
-		_, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("some-trigger-id:some-user-id:1234567890:junksignature")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		_, _, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("some-trigger-id:some-user-id:1234567890:some-channel-id:junksignature")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.decode_trigger_id.expired", appErr.Id)
 	})
 
 	t.Run("should fail on base64 decoding signature", func(t *testing.T) {
-		_, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("some-trigger-id:some-user-id:12345678900000:junk!")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		_, _, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("some-trigger-id:some-user-id:12345678900000:some-channel-id:junk!")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.decode_trigger_id.base64_decode_failed_signature", appErr.Id)
 	})
 
 	t.Run("should fail on bad signature", func(t *testing.T) {
-		_, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("some-trigger-id:some-user-id:12345678900000:junk")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		_, _, _, appErr := DecodeAndVerifyTriggerId(base64.StdEncoding.EncodeToString([]byte("some-trigger-id:some-user-id:12345678900000:some-channel-id:junk")), key, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.decode_trigger_id.signature_decode_failed", appErr.Id)
 	})
 
 	t.Run("should fail on bad key", func(t *testing.T) {
-		_, triggerId, appErr := GenerateTriggerId(NewId(), key)
+		_, triggerId, appErr := GenerateTriggerId(NewId(), NewId(), key)
 		require.Nil(t, appErr)
 		newKey, keyErr := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 		require.NoError(t, keyErr)
-		_, _, appErr = DecodeAndVerifyTriggerId(triggerId, newKey, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
+		_, _, _, appErr = DecodeAndVerifyTriggerId(triggerId, newKey, OutgoingIntegrationRequestsDefaultTimeout*time.Second)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "interactive_message.decode_trigger_id.verify_signature_failed", appErr.Id)
 	})
@@ -589,7 +609,7 @@ func TestOpenDialogRequestIsValid(t *testing.T) {
 	t.Run("should fail on wrong subtype and long dialog title", func(t *testing.T) {
 		request := getBaseOpenDialogRequest()
 		request.Dialog.Elements[0].SubType = "wrong SubType"
-		request.Dialog.Title = "Very very long Dialog Name"
+		request.Dialog.Title = strings.Repeat("Very very long Dialog Name ", 5)
 		err := request.IsValid()
 		assert.ErrorContains(t, err, "invalid subtype")
 		assert.ErrorContains(t, err, "invalid dialog title")
@@ -619,7 +639,7 @@ func TestOpenDialogRequestIsValid(t *testing.T) {
 		request.Dialog.Elements[0].MaxLength = 9
 		err := request.IsValid()
 		assert.ErrorContains(t, err, "field is not valid")
-		assert.ErrorContains(t, err, "min length should be less then max length")
+		assert.ErrorContains(t, err, "min length should be less than max length")
 	})
 
 	t.Run("should fail on wrong element type", func(t *testing.T) {
@@ -1122,6 +1142,20 @@ func TestIsMultiSelectDefaultInOptions(t *testing.T) {
 		assert.True(t, result)
 	})
 
+	t.Run("should preserve internal spaces in option values", func(t *testing.T) {
+		spacedOptions := []*PostActionOptions{
+			{Text: "High risk", Value: "high risk"},
+			{Text: "Low risk", Value: "low risk"},
+		}
+
+		// A default matching an option value that legitimately contains a space
+		// must validate — the trim only strips whitespace around the comma
+		// separators, not inside a value.
+		assert.True(t, isMultiSelectDefaultInOptions("high risk", spacedOptions))
+		assert.True(t, isMultiSelectDefaultInOptions("high risk, low risk", spacedOptions))
+		assert.False(t, isMultiSelectDefaultInOptions("highrisk", spacedOptions))
+	})
+
 	t.Run("should return false for single invalid default", func(t *testing.T) {
 		result := isMultiSelectDefaultInOptions("invalid", options)
 		assert.False(t, result)
@@ -1391,9 +1425,11 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 			DisplayName: "Test Date",
 			Name:        "test_date",
 			Type:        "date",
-			MinDate:     "2025-01-01",
-			MaxDate:     "2025-12-31",
-			Optional:    false,
+			DateTimeConfig: &DialogDateTimeConfig{
+				MinDate: "2025-01-01",
+				MaxDate: "2025-12-31",
+			},
+			Optional: false,
 		}
 		err := element.IsValid()
 		assert.NoError(t, err)
@@ -1401,13 +1437,15 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 
 	t.Run("should validate DialogElement with datetime type and time properties", func(t *testing.T) {
 		element := DialogElement{
-			DisplayName:  "Test DateTime",
-			Name:         "test_datetime",
-			Type:         "datetime",
-			MinDate:      "2025-01-01T00:00:00Z",
-			MaxDate:      "2025-12-31T23:59:59Z",
-			TimeInterval: 30,
-			Optional:     false,
+			DisplayName: "Test DateTime",
+			Name:        "test_datetime",
+			Type:        "datetime",
+			DateTimeConfig: &DialogDateTimeConfig{
+				MinDate:      "2025-01-01T00:00:00Z",
+				MaxDate:      "2025-12-31T23:59:59Z",
+				TimeInterval: 30,
+			},
+			Optional: false,
 		}
 		err := element.IsValid()
 		assert.NoError(t, err)
@@ -1415,13 +1453,15 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 
 	t.Run("should validate DialogElement with datetime type and relative min/max", func(t *testing.T) {
 		element := DialogElement{
-			DisplayName:  "Test DateTime",
-			Name:         "test_datetime",
-			Type:         "datetime",
-			MinDate:      "+2H",
-			MaxDate:      "+7d",
-			TimeInterval: 30,
-			Optional:     false,
+			DisplayName: "Test DateTime",
+			Name:        "test_datetime",
+			Type:        "datetime",
+			DateTimeConfig: &DialogDateTimeConfig{
+				MinDate:      "+2H",
+				MaxDate:      "+7d",
+				TimeInterval: 30,
+			},
+			Optional: false,
 		}
 		err := element.IsValid()
 		assert.NoError(t, err)
@@ -1429,13 +1469,15 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 
 	t.Run("should accept datetime DialogElement with date-only min/max for backward compatibility", func(t *testing.T) {
 		element := DialogElement{
-			DisplayName:  "Test DateTime",
-			Name:         "test_datetime",
-			Type:         "datetime",
-			MinDate:      "2025-01-01",
-			MaxDate:      "2025-12-31",
-			TimeInterval: 30,
-			Optional:     false,
+			DisplayName: "Test DateTime",
+			Name:        "test_datetime",
+			Type:        "datetime",
+			DateTimeConfig: &DialogDateTimeConfig{
+				MinDate:      "2025-01-01",
+				MaxDate:      "2025-12-31",
+				TimeInterval: 30,
+			},
+			Optional: false,
 		}
 		err := element.IsValid()
 		assert.NoError(t, err)
@@ -1446,8 +1488,10 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 			DisplayName: "Test Date",
 			Name:        "test_date",
 			Type:        "date",
-			MinDate:     "invalid-date",
-			Optional:    false,
+			DateTimeConfig: &DialogDateTimeConfig{
+				MinDate: "invalid-date",
+			},
+			Optional: false,
 		}
 		err := element.IsValid()
 		assert.Error(t, err)
@@ -1456,11 +1500,13 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 
 	t.Run("should reject DialogElement with invalid time_interval", func(t *testing.T) {
 		element := DialogElement{
-			DisplayName:  "Test DateTime",
-			Name:         "test_datetime",
-			Type:         "datetime",
-			TimeInterval: -1, // Invalid
-			Optional:     false,
+			DisplayName: "Test DateTime",
+			Name:        "test_datetime",
+			Type:        "datetime",
+			DateTimeConfig: &DialogDateTimeConfig{
+				TimeInterval: -1, // Invalid
+			},
+			Optional: false,
 		}
 		err := element.IsValid()
 		assert.Error(t, err)
@@ -1469,11 +1515,13 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 
 	t.Run("should reject DialogElement with time_interval that is not a divisor of 1440", func(t *testing.T) {
 		element := DialogElement{
-			DisplayName:  "Test DateTime",
-			Name:         "test_datetime",
-			Type:         "datetime",
-			TimeInterval: 729, // Invalid - not a divisor of 1440
-			Optional:     false,
+			DisplayName: "Test DateTime",
+			Name:        "test_datetime",
+			Type:        "datetime",
+			DateTimeConfig: &DialogDateTimeConfig{
+				TimeInterval: 729, // Invalid - not a divisor of 1440
+			},
+			Optional: false,
 		}
 		err := element.IsValid()
 		assert.Error(t, err)
@@ -1485,11 +1533,13 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 
 		for _, interval := range validIntervals {
 			element := DialogElement{
-				DisplayName:  "Test DateTime",
-				Name:         "test_datetime",
-				Type:         "datetime",
-				TimeInterval: interval,
-				Optional:     false,
+				DisplayName: "Test DateTime",
+				Name:        "test_datetime",
+				Type:        "datetime",
+				DateTimeConfig: &DialogDateTimeConfig{
+					TimeInterval: interval,
+				},
+				Optional: false,
 			}
 			err := element.IsValid()
 			assert.NoError(t, err, "time_interval %d should be valid", interval)
@@ -1501,11 +1551,13 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 
 		for _, interval := range invalidIntervals {
 			element := DialogElement{
-				DisplayName:  "Test DateTime",
-				Name:         "test_datetime",
-				Type:         "datetime",
-				TimeInterval: interval,
-				Optional:     false,
+				DisplayName: "Test DateTime",
+				Name:        "test_datetime",
+				Type:        "datetime",
+				DateTimeConfig: &DialogDateTimeConfig{
+					TimeInterval: interval,
+				},
+				Optional: false,
 			}
 			err := element.IsValid()
 			assert.Error(t, err, "time_interval %d should be invalid", interval)
@@ -1516,22 +1568,26 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 	t.Run("should use default time_interval of 60 minutes when zero", func(t *testing.T) {
 		// Valid with explicit 60-minute interval
 		element := DialogElement{
-			DisplayName:  "Test DateTime",
-			Name:         "test_datetime",
-			Type:         "datetime",
-			TimeInterval: DefaultTimeIntervalMinutes,
-			Optional:     false,
+			DisplayName: "Test DateTime",
+			Name:        "test_datetime",
+			Type:        "datetime",
+			DateTimeConfig: &DialogDateTimeConfig{
+				TimeInterval: DefaultTimeIntervalMinutes,
+			},
+			Optional: false,
 		}
 		err := element.IsValid()
 		assert.NoError(t, err)
 
 		// time_interval=0 means omitted — treated as default, should pass validation
 		element = DialogElement{
-			DisplayName:  "Test DateTime",
-			Name:         "test_datetime",
-			Type:         "datetime",
-			TimeInterval: 0,
-			Optional:     false,
+			DisplayName: "Test DateTime",
+			Name:        "test_datetime",
+			Type:        "datetime",
+			DateTimeConfig: &DialogDateTimeConfig{
+				TimeInterval: 0,
+			},
+			Optional: false,
 		}
 		err = element.IsValid()
 		assert.NoError(t, err)
@@ -1594,64 +1650,6 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 		assert.Contains(t, err.Error(), "divisor of 1440")
 	})
 
-	t.Run("DateTimeConfig should take precedence over legacy fields", func(t *testing.T) {
-		element := DialogElement{
-			DisplayName: "Test Date",
-			Name:        "test_date",
-			Type:        "date",
-			MinDate:     "invalid-date",
-			DateTimeConfig: &DialogDateTimeConfig{
-				MinDate: "2025-01-01",
-			},
-		}
-		cfg := element.EffectiveDateTimeConfig()
-		assert.Equal(t, "2025-01-01", cfg.MinDate)
-	})
-
-	t.Run("legacy fields used when DateTimeConfig not provided", func(t *testing.T) {
-		element := DialogElement{
-			DisplayName:  "Test DateTime",
-			Name:         "test_datetime",
-			Type:         "datetime",
-			MinDate:      "2025-01-01T00:00:00Z",
-			MaxDate:      "2025-12-31T23:59:59Z",
-			TimeInterval: 30,
-		}
-		cfg := element.EffectiveDateTimeConfig()
-		assert.Equal(t, "2025-01-01T00:00:00Z", cfg.MinDate)
-		assert.Equal(t, "2025-12-31T23:59:59Z", cfg.MaxDate)
-		assert.Equal(t, 30, cfg.TimeInterval)
-	})
-
-	t.Run("ManualTimeEntry resolves via OR across new and deprecated fields", func(t *testing.T) {
-		cases := []struct {
-			name     string
-			newField bool
-			oldField bool
-			expected bool
-		}{
-			{"both false", false, false, false},
-			{"only new true", true, false, true},
-			{"only deprecated true", false, true, true},
-			{"both true", true, true, true},
-		}
-		for _, tc := range cases {
-			t.Run(tc.name, func(t *testing.T) {
-				element := DialogElement{
-					DisplayName: "Test DateTime",
-					Name:        "test_datetime",
-					Type:        "datetime",
-					DateTimeConfig: &DialogDateTimeConfig{
-						ManualTimeEntry:      tc.newField,
-						AllowManualTimeEntry: tc.oldField,
-					},
-				}
-				cfg := element.EffectiveDateTimeConfig()
-				assert.Equal(t, tc.expected, cfg.ManualTimeEntry)
-			})
-		}
-	})
-
 	t.Run("ManualTimeEntry marshals under manual_time_entry JSON key", func(t *testing.T) {
 		cfg := DialogDateTimeConfig{ManualTimeEntry: true}
 		b, err := json.Marshal(cfg)
@@ -1659,22 +1657,31 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 		assert.Contains(t, string(b), `"manual_time_entry":true`)
 	})
 
-	t.Run("deprecated allow_manual_time_entry payload still enables manual entry end-to-end", func(t *testing.T) {
-		// Simulate a legacy integrator sending only the deprecated field.
-		payload := []byte(`{"allow_manual_time_entry":true}`)
+	t.Run("removed legacy top-level fields are silently ignored on unmarshal", func(t *testing.T) {
+		// MM-68396: min_date, max_date, and time_interval are no longer DialogElement
+		// fields (moved to DateTimeConfig). This documents the intended breaking-change
+		// behavior for integrations still sending them at the top level: encoding/json
+		// drops unrecognized keys, so the element ends up with no date/datetime config
+		// and IsValid() no longer applies constraints derived from them.
+		payload := []byte(`{
+			"display_name": "Test Date",
+			"name": "test_date",
+			"type": "date",
+			"min_date": "invalid-date",
+			"max_date": "2025-12-31"
+		}`)
+		var element DialogElement
+		require.NoError(t, json.Unmarshal(payload, &element))
+
+		assert.Nil(t, element.DateTimeConfig, "legacy top-level fields must not populate DateTimeConfig")
+		assert.NoError(t, element.IsValid(), "an invalid legacy min_date must no longer fail validation since the field is unrecognized")
+	})
+
+	t.Run("removed deprecated AllowManualTimeEntry is silently ignored on unmarshal", func(t *testing.T) {
+		payload := []byte(`{"allow_manual_time_entry": true}`)
 		var cfg DialogDateTimeConfig
 		require.NoError(t, json.Unmarshal(payload, &cfg))
-		require.False(t, cfg.ManualTimeEntry, "new field should remain zero-value after unmarshal")
-		require.True(t, cfg.AllowManualTimeEntry, "deprecated field should unmarshal under its legacy tag")
-
-		element := DialogElement{
-			DisplayName:    "Test",
-			Name:           "t",
-			Type:           "datetime",
-			DateTimeConfig: &cfg,
-		}
-		effective := element.EffectiveDateTimeConfig()
-		assert.True(t, effective.ManualTimeEntry, "deprecated field alone should enable manual entry after EffectiveDateTimeConfig")
+		assert.False(t, cfg.ManualTimeEntry, "the deprecated key must no longer populate ManualTimeEntry")
 	})
 }
 
@@ -2526,6 +2533,253 @@ func TestMmBlocksContextMap(t *testing.T) {
 		got := MmBlocksContextMap(`{"unclosed":`)
 		require.NotNil(t, got)
 		assert.Equal(t, `{"unclosed":`, got["context"])
+	})
+}
+
+// TestDialogElement_Collapsible_IsValid covers the "collapsible" element type and
+// the recursive depth/child validation added in validateCollapsible.
+func TestDialogElement_Collapsible_IsValid(t *testing.T) {
+	// validText returns a minimal valid leaf element usable as a collapsible child.
+	validText := func(name string) DialogElement {
+		return DialogElement{
+			DisplayName: "Text " + name,
+			Name:        name,
+			Type:        "text",
+		}
+	}
+
+	// collapsible builds a collapsible element wrapping the given children.
+	collapsible := func(name string, children ...DialogElement) DialogElement {
+		return DialogElement{
+			DisplayName: "Section " + name,
+			Name:        name,
+			Type:        "collapsible",
+			CollapsibleConfig: &DialogElementCollapsibleConfig{
+				Elements: children,
+			},
+		}
+	}
+
+	t.Run("valid collapsible with one child passes", func(t *testing.T) {
+		oneChildEx := collapsible("s1", validText("a"))
+		assert.NoError(t, oneChildEx.IsValid(), "collapsible with one child should be valid")
+	})
+
+	t.Run("collapsible with no children fails", func(t *testing.T) {
+		noElementsEx := collapsible("s1")
+		err := noElementsEx.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "at least one child element")
+	})
+
+	t.Run("nesting at max depth (3) passes", func(t *testing.T) {
+		threeLevels := collapsible("d1", collapsible("d2", collapsible("d3", validText("a"))))
+		assert.NoError(t, threeLevels.IsValid(), "collapsible at max depth should be valid")
+	})
+
+	t.Run("nesting beyond max depth (4) fails", func(t *testing.T) {
+		exceedDepth := collapsible("d1", collapsible("d2", collapsible("d3", collapsible("d4", validText("a")))))
+		err := exceedDepth.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "d4")
+	})
+
+	t.Run("invalid child propagates wrapped error", func(t *testing.T) {
+		invalidChild := collapsible("s1", collapsible("s2", DialogElement{DisplayName: "Bogus", Name: "b1", Type: "bogus"}))
+		err := invalidChild.IsValid()
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "child element is not valid")
+	})
+
+	t.Run("collapsed/borderless default and explicit values validate", func(t *testing.T) {
+		defaults := collapsible("s1", validText("a"))
+		assert.NoError(t, defaults.IsValid(), "collapsible with default Collapsed/Borderless should be valid")
+
+		collapsed := collapsible("s2", validText("b"))
+		collapsed.CollapsibleConfig.Collapsed = true
+		assert.NoError(t, collapsed.IsValid(), "collapsible with Collapsed=true should be valid")
+
+		borderless := collapsible("s3", validText("c"))
+		borderless.CollapsibleConfig.Borderless = true
+		assert.NoError(t, borderless.IsValid(), "collapsible with Borderless=true should be valid")
+	})
+}
+
+func TestDialogElementCheckboxGroupValidation(t *testing.T) {
+	validOptions := []*PostActionOptions{
+		{Text: "Reason 1", Value: "reason_1"},
+		{Text: "Reason 2", Value: "reason_2"},
+	}
+
+	t.Run("valid checkbox_group", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:   "Reasons",
+			Name:          "reasons",
+			Type:          "checkbox_group",
+			Options:       validOptions,
+			Default:       "reason_1,reason_2",
+			LabelPosition: DialogLabelPositionBefore,
+		}
+		assert.NoError(t, element.IsValid())
+	})
+
+	t.Run("checkbox_group accepts default value with internal spaces", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Risk",
+			Name:        "risk",
+			Type:        "checkbox_group",
+			Options: []*PostActionOptions{
+				{Text: "High risk", Value: "high risk"},
+				{Text: "Low risk", Value: "low risk"},
+			},
+			Default: "high risk,low risk",
+		}
+		assert.NoError(t, element.IsValid())
+	})
+
+	t.Run("checkbox_group rejects matrix_config", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Reasons",
+			Name:        "reasons",
+			Type:        "checkbox_group",
+			Options:     validOptions,
+			MatrixConfig: &DialogMatrixConfig{
+				Rows: validOptions,
+			},
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "matrix_config can only be used with checkbox_matrix")
+	})
+
+	t.Run("checkbox_group rejects invalid label_position on select", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:   "Department",
+			Name:          "department",
+			Type:          "select",
+			Options:       validOptions,
+			LabelPosition: DialogLabelPositionBefore,
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "label_position cannot be used with type")
+	})
+}
+
+func TestDialogElementCheckboxMatrixValidation(t *testing.T) {
+	matrixConfig := &DialogMatrixConfig{
+		Rows: []*PostActionOptions{
+			{Text: "Reason 1", Value: "reason_1"},
+			{Text: "Reason 2", Value: "reason_2"},
+		},
+		Columns: []*PostActionOptions{
+			{Text: "High", Value: "high"},
+			{Text: "Severe", Value: "severe"},
+		},
+		RowSelection: DialogMatrixRowSelectionMultiple,
+	}
+
+	t.Run("valid checkbox_matrix", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Severity",
+			Name:         "severity",
+			Type:         "checkbox_matrix",
+			MatrixConfig: matrixConfig,
+			Default:      "reason_1:high,severe;reason_2:high",
+		}
+		assert.NoError(t, element.IsValid())
+	})
+
+	t.Run("checkbox_matrix rejects colon in row value", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Severity",
+			Name:        "severity",
+			Type:        "checkbox_matrix",
+			MatrixConfig: &DialogMatrixConfig{
+				Rows: []*PostActionOptions{
+					{Text: "Bad", Value: "bad:row"},
+				},
+				Columns: matrixConfig.Columns,
+			},
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "must not contain")
+	})
+
+	t.Run("checkbox_matrix rejects default column not in columns", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Severity",
+			Name:         "severity",
+			Type:         "checkbox_matrix",
+			MatrixConfig: matrixConfig,
+			Default:      "reason_1:nonexistent",
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "is not in matrix_config.columns")
+	})
+
+	t.Run("checkbox_matrix rejects duplicate row in default string", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Severity",
+			Name:         "severity",
+			Type:         "checkbox_matrix",
+			MatrixConfig: matrixConfig,
+			Default:      "reason_1:high;reason_1:severe",
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "duplicate row")
+	})
+
+	t.Run("checkbox_matrix rejects multiple columns in one row when row_selection is single", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Severity",
+			Name:        "severity",
+			Type:        "checkbox_matrix",
+			MatrixConfig: &DialogMatrixConfig{
+				Rows:         matrixConfig.Rows,
+				Columns:      matrixConfig.Columns,
+				RowSelection: DialogMatrixRowSelectionSingle,
+			},
+			Default: "reason_1:high,severe",
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "row_selection is single")
+	})
+
+	t.Run("checkbox_matrix rejects semicolon in row value", func(t *testing.T) {
+		// ";" separates row entries in the default string, so a row value
+		// containing it would corrupt default parsing and must be rejected.
+		element := DialogElement{
+			DisplayName: "Severity",
+			Name:        "severity",
+			Type:        "checkbox_matrix",
+			MatrixConfig: &DialogMatrixConfig{
+				Rows: []*PostActionOptions{
+					{Text: "Bad", Value: "a;b"},
+				},
+				Columns: matrixConfig.Columns,
+			},
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "must not contain")
+	})
+
+	t.Run("checkbox_matrix rejects top-level options", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Severity",
+			Name:         "severity",
+			Type:         "checkbox_matrix",
+			MatrixConfig: matrixConfig,
+			Options:      matrixConfig.Rows,
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "cannot have options")
 	})
 }
 

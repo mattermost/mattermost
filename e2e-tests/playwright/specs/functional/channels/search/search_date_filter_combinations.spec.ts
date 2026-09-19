@@ -1,16 +1,52 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ChannelsPage} from '@mattermost/playwright-lib';
-import {expect, test} from '@mattermost/playwright-lib';
+import {test} from '@mattermost/playwright-lib';
 
-async function searchAndExpect(channelsPage: ChannelsPage, query: string, expectedMessages: string[]) {
-    await channelsPage.searchFor(query);
-    await expect(channelsPage.searchResultsPanel.getResultItems()).toHaveCount(expectedMessages.length);
-    for (const message of expectedMessages) {
-        await expect(channelsPage.searchResultsPanel.getResultByText(message)).toBeVisible();
-    }
-}
+import {searchAndValidate, searchFilterDates, setupSearchDateFilter} from './search_date_filter_helpers';
+
+/**
+ * @objective Verify on: returns posts created on the target date and omits posts from other dates.
+ */
+test('MM-T588 on: omits results before and after target date', {tag: '@search_date_filter'}, async ({pw}) => {
+    const {channelsPage, commonText, messages} = await setupSearchDateFilter(pw);
+
+    // # Search for matching posts on the second fixture date
+    // * Verify only posts from the target date appear in reverse chronological order
+    await searchAndValidate(channelsPage, `on:${searchFilterDates.second} ${commonText}`, [
+        messages.secondOffTopic,
+        messages.second,
+    ]);
+});
+
+/**
+ * @objective Verify before: and after: can constrain a search to the dates between them.
+ */
+test('MM-T589 before: and after: can be used together', {tag: '@search_date_filter'}, async ({pw}) => {
+    const {channelsPage, commonText, messages} = await setupSearchDateFilter(pw);
+
+    // # Search between the first and latest fixture dates
+    // * Verify only posts strictly between the dates appear in reverse chronological order
+    await searchAndValidate(
+        channelsPage,
+        `before:${searchFilterDates.latest} after:${searchFilterDates.first} ${commonText}`,
+        [messages.secondOffTopic, messages.second],
+    );
+});
+
+/**
+ * @objective Verify after: can be combined with in: to limit results by date and channel.
+ */
+test('MM-T592_1 after: can be used in conjunction with in:', {tag: '@search_date_filter'}, async ({pw}) => {
+    const {channelsPage, channel, commonText, messages} = await setupSearchDateFilter(pw);
+
+    // # Search after the first fixture date in the test channel
+    // * Verify only later posts from that channel appear
+    await searchAndValidate(channelsPage, `after:${searchFilterDates.first} in:${channel.name} ${commonText}`, [
+        messages.latest,
+        messages.second,
+    ]);
+});
 
 /**
  * @objective Verify the on: date filter combines correctly with in: and from: search filters.
@@ -52,11 +88,11 @@ test('MM-T3994_1 MM-T3994_2 MM-T3994_3 combines on: with in: and from: filters',
     await channelsPage.toBeVisible();
 
     // * Verify on: plus in: returns only the post from the selected channel
-    await searchAndExpect(channelsPage, `on:2018-10-15 in:${channel.name} ${identifier}`, [inChannelMessage]);
+    await searchAndValidate(channelsPage, `on:2018-10-15 in:${channel.name} ${identifier}`, [inChannelMessage]);
 
     // * Verify on: plus from: returns only the selected author's post
-    await searchAndExpect(channelsPage, `on:2018-10-15 from:${author.username} ${identifier}`, [fromAuthorMessage]);
+    await searchAndValidate(channelsPage, `on:2018-10-15 from:${author.username} ${identifier}`, [fromAuthorMessage]);
 
     // * Verify adding in: excludes that author's post from the other channel
-    await searchAndExpect(channelsPage, `on:2018-10-15 in:${channel.name} from:${author.username} ${identifier}`, []);
+    await searchAndValidate(channelsPage, `on:2018-10-15 in:${channel.name} from:${author.username} ${identifier}`, []);
 });

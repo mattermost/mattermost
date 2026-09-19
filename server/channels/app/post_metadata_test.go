@@ -15,6 +15,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -1035,9 +1036,7 @@ func TestPreparePostForClientWithImageProxy(t *testing.T) {
 			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
 			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
 			*cfg.ImageProxySettings.Enable = true
-			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
-			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
-			*cfg.ImageProxySettings.RemoteImageProxyOptions = model.NewTestPassword()
+			*cfg.ImageProxySettings.ImageProxyType = "local"
 		})
 
 		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server.platform, th.Server.HTTPService(), th.Server.Log())
@@ -2265,7 +2264,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		th := Setup(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1,::1"
 		})
 
 		err := platform.PurgeLinkCache()
@@ -2274,6 +2273,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		return th
 	}
 
+	var opengraphRequests atomic.Int32
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		params := r.URL.Query()
 
@@ -2306,6 +2306,7 @@ func TestGetLinkMetadata(t *testing.T) {
 
 			writeImage(int(height), int(width))
 		} else if strings.HasPrefix(r.URL.Path, "/opengraph") {
+			opengraphRequests.Add(1)
 			writeHTML(params["title"][0])
 		} else if strings.HasPrefix(r.URL.Path, "/json") {
 			w.Header().Set("Content-Type", "application/json")
@@ -2331,6 +2332,8 @@ func TestGetLinkMetadata(t *testing.T) {
 					writeHTML("mixed")
 				}
 			}
+		} else if strings.HasPrefix(r.URL.Path, "/redirect") {
+			http.Redirect(w, r, params.Get("target"), http.StatusFound)
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
@@ -2510,6 +2513,42 @@ func TestGetLinkMetadata(t *testing.T) {
 		assert.NotNil(t, og)
 		assert.Nil(t, img)
 		assert.NoError(t, err)
+	})
+
+	t.Run("should not get data when redirect target is restricted", func(t *testing.T) {
+		th := setup(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.RestrictLinkPreviews = "127.0.0.1"
+		})
+
+		require.Contains(t, server.URL, "127.0.0.1")
+		targetURL := strings.Replace(server.URL, "http://127.0.0.1", "http://@127.0.0.1", 1) + "/opengraph?title=RestrictedRedirect&name=" + t.Name()
+		requestURL := strings.Replace(server.URL, "127.0.0.1", "localhost", 1) + "/redirect?target=" + url.QueryEscape(targetURL)
+		timestamp := int64(1547510400000)
+		opengraphRequestsBefore := opengraphRequests.Load()
+
+		og, img, _, err := th.App.getLinkMetadata(th.Context, requestURL, timestamp, false, "")
+
+		assert.Nil(t, og)
+		assert.Nil(t, img)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "disabled for link previews")
+		assert.Equal(t, opengraphRequestsBefore, opengraphRequests.Load())
+	})
+
+	t.Run("should get data when redirect target is allowed", func(t *testing.T) {
+		th := setup(t)
+
+		targetURL := server.URL + "/opengraph?title=AllowedRedirect&name=" + t.Name()
+		requestURL := strings.Replace(server.URL, "127.0.0.1", "localhost", 1) + "/redirect?target=" + url.QueryEscape(targetURL)
+		timestamp := int64(1547510400000)
+
+		og, img, _, err := th.App.getLinkMetadata(th.Context, requestURL, timestamp, false, "")
+
+		require.NotNil(t, og)
+		assert.Nil(t, img)
+		assert.NoError(t, err)
+		assert.Equal(t, "AllowedRedirect", og.Title)
 	})
 
 	t.Run("should cache OpenGraph results", func(t *testing.T) {
@@ -3507,6 +3546,82 @@ func TestSanitizePostMetadataForUser(t *testing.T) {
 		previewData, ok := sanitizedPost.Metadata.Embeds[0].Data.(*model.PreviewPost)
 		require.True(t, ok)
 		assert.NotNil(t, previewData.Post.Metadata.Files, "embed files should not be stripped without ABAC")
+	})
+
+	t.Run("strips public permalink embed for non-member when compliance is enabled", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ComplianceSettings.Enable = model.NewPointer(true)
+		})
+
+		ch := th.CreateChannel(t, th.BasicTeam)
+		post := &model.Post{
+			Id:     model.NewId(),
+			UserId: th.BasicUser.Id,
+			Metadata: &model.PostMetadata{
+				Embeds: []*model.PostEmbed{
+					{
+						Type: model.PostEmbedPermalink,
+						Data: &model.PreviewPost{
+							PostID: "permalink_post_id",
+							Post: &model.Post{
+								Id:        "permalink_post_id",
+								Message:   "secret permalink message",
+								ChannelId: ch.Id,
+							},
+						},
+					},
+					{
+						Type: model.PostEmbedLink,
+						URL:  "https://mattermost.com",
+					},
+				},
+			},
+		}
+
+		sanitizedPost, _, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser2.Id)
+		require.Nil(t, err)
+		require.NotNil(t, sanitizedPost)
+		require.Len(t, sanitizedPost.Metadata.Embeds, 1)
+		require.Equal(t, model.PostEmbedLink, sanitizedPost.Metadata.Embeds[0].Type)
+	})
+
+	t.Run("keeps public permalink embed for non-member when compliance is disabled", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ComplianceSettings.Enable = model.NewPointer(false)
+		})
+
+		ch := th.CreateChannel(t, th.BasicTeam)
+		post := &model.Post{
+			Id:     model.NewId(),
+			UserId: th.BasicUser.Id,
+			Metadata: &model.PostMetadata{
+				Embeds: []*model.PostEmbed{
+					{
+						Type: model.PostEmbedPermalink,
+						Data: &model.PreviewPost{
+							PostID: "permalink_post_id",
+							Post: &model.Post{
+								Id:        "permalink_post_id",
+								Message:   "secret permalink message",
+								ChannelId: ch.Id,
+							},
+						},
+					},
+					{
+						Type: model.PostEmbedLink,
+						URL:  "https://mattermost.com",
+					},
+				},
+			},
+		}
+
+		sanitizedPost, _, err := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser2.Id)
+		require.Nil(t, err)
+		require.NotNil(t, sanitizedPost)
+		require.Len(t, sanitizedPost.Metadata.Embeds, 2)
+		require.Equal(t, model.PostEmbedPermalink, sanitizedPost.Metadata.Embeds[0].Type)
 	})
 }
 

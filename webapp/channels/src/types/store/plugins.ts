@@ -148,7 +148,9 @@ type BasePluggableProps = {
 
 export type PluggableText = string | React.ReactNode;
 
-export type AppBarChannelAction = (channel: Channel, member: ChannelMembership) => void;
+// The App Bar is rendered outside of channels too, such as in Threads and Drafts,
+// so these actions can run with no channel in context.
+export type AppBarChannelAction = (channel?: Channel, member?: ChannelMembership) => void;
 export type AppBarAction = PluginComponent & {
     iconUrl: string;
     supportedProductIds: ProductScope;
@@ -184,7 +186,7 @@ export type ChannelHeaderButtonAction = PluginComponent & {
     icon: React.ReactNode;
     dropdownText: PluggableText;
     tooltipText: PluggableText;
-    action: (channel: Channel, member?: ChannelMembership) => void;
+    action: AppBarChannelAction;
 };
 
 export type ChannelHeaderIconComponent = PluginComponent & {
@@ -338,6 +340,14 @@ export type ProductComponent = PluginComponent & {
      * @default true
      */
     wrapped: boolean;
+
+    /**
+     * When `true`, the host owns team handling for the product so the plugin doesn't have to:
+     * mounted under `/:team{baseURL}`, it resolves/selects the team and renders only once the
+     * current team matches the URL. When `false`, it mounts at `baseURL` globally.
+     * @default false
+     */
+    isTeamScoped: boolean;
 };
 
 export type NeedsTeamComponent = PluginComponent & {

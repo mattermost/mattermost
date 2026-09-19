@@ -21,22 +21,6 @@
     }
 }
 
-@media screen and (max-width: 1800px) {
-    .inner-wrap {
-        &.move--left {
-            .date-separator,
-            .new-separator {
-                &.hovered--comment {
-                    &::before,
-                    &::after {
-                        background: none;
-                    }
-                }
-            }
-        }
-    }
-}
-
 @media screen and (max-width: 1440px) {
     .inner-wrap {
         &.move--left {

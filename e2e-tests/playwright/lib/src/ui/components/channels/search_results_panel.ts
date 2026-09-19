@@ -4,6 +4,8 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import SearchTeamSelector from './search_team_selector';
+
 /**
  * The right-hand-side panel that renders search results, saved messages, and
  * recent mentions. All three share the `#searchContainer` region.
@@ -15,6 +17,7 @@ export default class SearchResultsPanel {
     readonly filesFilterButton: Locator;
     readonly filesFilterMenu: Locator;
     readonly noFilesFound: Locator;
+    readonly teamSelector: SearchTeamSelector;
 
     constructor(container: Locator) {
         this.container = container;
@@ -30,6 +33,7 @@ export default class SearchResultsPanel {
             .filter({has: container.page().getByRole('menuitem', {name: 'Documents'})});
         this.filesFilterMenu = namedFilesFilterMenu.or(unnamedFilesFilterMenu);
         this.noFilesFound = container.getByText('No files found', {exact: true});
+        this.teamSelector = new SearchTeamSelector(container.getByTestId('searchResultsTeamSelector'));
     }
 
     async toBeVisible() {

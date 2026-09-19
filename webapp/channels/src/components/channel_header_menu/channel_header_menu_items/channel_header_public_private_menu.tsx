@@ -37,7 +37,6 @@ interface Props extends Menu.FirstMenuItemProps {
     channel: Channel;
     user: UserProfile;
     isMuted: boolean;
-    isReadonly: boolean;
     isDefault: boolean;
     isMobile: boolean;
     isFavorite: boolean;

@@ -262,6 +262,12 @@ func (hooks *hooksTimerLayer) OnCloudLimitsUpdated(limits *model.ProductLimits) 
 	hooks.recordTime(startTime, "OnCloudLimitsUpdated", true)
 }
 
+func (hooks *hooksTimerLayer) OnLicenseChanged(oldLicense, newLicense *model.License) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.OnLicenseChanged(oldLicense, newLicense)
+	hooks.recordTime(startTime, "OnLicenseChanged", true)
+}
+
 func (hooks *hooksTimerLayer) ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := hooks.hooksImpl.ConfigurationWillBeSaved(newCfg)
@@ -550,6 +556,13 @@ func (hooks *hooksTimerLayer) OnCloudLimitsUpdatedWithRPCErr(limits *model.Produ
 	startTime := timePkg.Now()
 	_returnsRPCErr := hooks.hooksWithRPCErrImpl.OnCloudLimitsUpdatedWithRPCErr(limits)
 	hooks.recordTime(startTime, "OnCloudLimitsUpdatedWithRPCErr", _returnsRPCErr == nil)
+	return _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) OnLicenseChangedWithRPCErr(oldLicense, newLicense *model.License) error {
+	startTime := timePkg.Now()
+	_returnsRPCErr := hooks.hooksWithRPCErrImpl.OnLicenseChangedWithRPCErr(oldLicense, newLicense)
+	hooks.recordTime(startTime, "OnLicenseChangedWithRPCErr", _returnsRPCErr == nil)
 	return _returnsRPCErr
 }
 

@@ -14,14 +14,13 @@ import (
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
-// containsTeam reports whether teamID appears in the slice.
-func containsTeam(teams []*model.Team, teamID string) bool {
-	for _, tm := range teams {
-		if tm != nil && tm.Id == teamID {
-			return true
-		}
+// teamID returns a team's ID, tolerating nil entries so directory slices that
+// may carry gaps don't panic the membership lookups.
+func teamID(t *model.Team) string {
+	if t == nil {
+		return ""
 	}
-	return false
+	return t.Id
 }
 
 // TestTeamDirectoryABACVisibility pins the team-membership ABAC security boundary
@@ -84,7 +83,7 @@ func TestTeamDirectoryABACVisibility(t *testing.T) {
 
 		teams, _, err := th.Client.GetAllTeams(context.Background(), "", 0, 200)
 		require.NoError(t, err)
-		require.False(t, containsTeam(teams, team.Id), "a non-qualifying non-member must not see the governed team in the directory")
+		require.False(t, containsByID(teams, team.Id, teamID), "a non-qualifying non-member must not see the governed team in the directory")
 		// Response carries no policy metadata: PolicyEnforced is the only ABAC-derived
 		// field on the wire and it never names the policy/rules/attributes.
 		for _, tm := range teams {
@@ -98,7 +97,7 @@ func TestTeamDirectoryABACVisibility(t *testing.T) {
 
 		teams, _, err := th.Client.SearchTeams(context.Background(), &model.TeamSearch{Term: team.Name})
 		require.NoError(t, err)
-		require.False(t, containsTeam(teams, team.Id), "search must not surface the governed team to a non-qualifying user")
+		require.False(t, containsByID(teams, team.Id, teamID), "search must not surface the governed team to a non-qualifying user")
 	})
 
 	t.Run("qualifying regular user sees the governed team", func(t *testing.T) {
@@ -107,7 +106,7 @@ func TestTeamDirectoryABACVisibility(t *testing.T) {
 
 		teams, _, err := th.Client.GetAllTeams(context.Background(), "", 0, 200)
 		require.NoError(t, err)
-		require.True(t, containsTeam(teams, team.Id), "a qualifying user must see the governed team")
+		require.True(t, containsByID(teams, team.Id, teamID), "a qualifying user must see the governed team")
 	})
 
 	t.Run("system admin is exempt from directory hiding (visibility, not access)", func(t *testing.T) {
@@ -117,7 +116,7 @@ func TestTeamDirectoryABACVisibility(t *testing.T) {
 
 		teams, _, err := th.SystemAdminClient.GetAllTeams(context.Background(), "", 0, 200)
 		require.NoError(t, err)
-		require.True(t, containsTeam(teams, team.Id), "the System Console list must stay complete for admins")
+		require.True(t, containsByID(teams, team.Id, teamID), "the System Console list must stay complete for admins")
 		m.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
 	})
 
@@ -146,7 +145,7 @@ func TestTeamDirectoryABACVisibility(t *testing.T) {
 
 		teams, _, err := th.Client.GetAllTeams(context.Background(), "", 0, 200)
 		require.NoError(t, err)
-		require.False(t, containsTeam(teams, privateTeam.Id), "an ungoverned private team must never appear in a regular user's directory")
+		require.False(t, containsByID(teams, privateTeam.Id, teamID), "an ungoverned private team must never appear in a regular user's directory")
 	})
 
 	t.Run("public governed team stays visible to a non-qualifying regular user (advisory mode)", func(t *testing.T) {
@@ -163,6 +162,153 @@ func TestTeamDirectoryABACVisibility(t *testing.T) {
 
 		teams, _, err := th.Client.GetAllTeams(context.Background(), "", 0, 200)
 		require.NoError(t, err)
-		require.True(t, containsTeam(teams, publicTeam.Id), "a public governed team must remain visible regardless of qualification")
+		require.True(t, containsByID(teams, publicTeam.Id, teamID), "a public governed team must remain visible regardless of qualification")
+	})
+}
+
+// TestTeamSelfJoinABACAttributeGating pins that on an ABAC-governed team, a user's
+// self-join is authorized by attribute match (the JoinUserToTeam gate), not by the
+// join_private_teams role: a qualifying regular user can self-join a private
+// governed team even without that role. Non-governed private teams keep the role
+// gate exactly as on master, and the bypass is strictly conditional on team ABAC
+// being enabled (license + feature flag + config).
+func TestTeamSelfJoinABACAttributeGating(t *testing.T) {
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.TeamMembershipAccessControl = true
+	})
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+	})
+	require.True(t, th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)))
+	defer th.App.Srv().SetLicense(nil)
+
+	// Log in as BasicUser (a regular user without join_private_teams) so
+	// AddTeamMember(self) is a real self-join.
+	th.LoginBasic(t)
+	require.False(t, th.App.SessionHasPermissionTo(model.Session{Roles: model.SystemUserRoleId}, model.PermissionJoinPrivateTeams),
+		"the base system_user role must not hold join_private_teams, or this test is meaningless")
+
+	saveTeamPolicy := func(t *testing.T, teamID string) {
+		t.Helper()
+		policy := &model.AccessControlPolicy{
+			ID:       teamID,
+			Type:     model.AccessControlPolicyTypeTeam,
+			Name:     "policy-" + teamID,
+			Active:   true,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_3,
+			Imports:  []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: "true"},
+			},
+		}
+		_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+		require.NoError(t, err)
+		t.Cleanup(func() { _ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, teamID) })
+	}
+
+	// Admin-owned so BasicUser is a non-member.
+	newPrivateTeam := func(t *testing.T, governed bool) *model.Team {
+		t.Helper()
+		team := th.CreateTeamWithClient(t, th.SystemAdminClient)
+		require.False(t, team.AllowOpenInvite, "fixture must be a private/strict team")
+		if governed {
+			saveTeamPolicy(t, team.Id)
+		}
+		return team
+	}
+
+	setMockACS := func(t *testing.T) *mocks.AccessControlServiceInterface {
+		t.Helper()
+		m := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().Channels().AccessControl = m
+		t.Cleanup(func() { th.App.Srv().Channels().AccessControl = nil })
+		return m
+	}
+
+	t.Run("ABAC strict: qualifying regular user self-joins without join_private_teams", func(t *testing.T) {
+		team := newPrivateTeam(t, true)
+		m := setMockACS(t)
+		m.On("AccessEvaluation", mock.Anything, mock.Anything).Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil))
+
+		_, resp, err := th.Client.AddTeamMember(context.Background(), team.Id, th.BasicUser.Id)
+		require.NoError(t, err, "a qualifying regular user must be admitted by attribute match")
+		CheckCreatedStatus(t, resp)
+
+		_, appErr := th.App.GetTeamMember(th.Context, team.Id, th.BasicUser.Id)
+		require.Nil(t, appErr, "the user must actually be a member after a successful self-join")
+	})
+
+	t.Run("ABAC strict: non-qualifying regular user is denied by the policy", func(t *testing.T) {
+		team := newPrivateTeam(t, true)
+		m := setMockACS(t)
+		m.On("AccessEvaluation", mock.Anything, mock.Anything).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
+
+		_, resp, err := th.Client.AddTeamMember(context.Background(), team.Id, th.BasicUser.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("ABAC strict: admin with join_private_teams who fails the policy is still denied (no role bypass)", func(t *testing.T) {
+		team := newPrivateTeam(t, true)
+		// Creator is auto-joined; remove first so the gate runs on a real join.
+		_, err := th.SystemAdminClient.RemoveTeamMember(context.Background(), team.Id, th.SystemAdminUser.Id)
+		require.NoError(t, err)
+
+		m := setMockACS(t)
+		m.On("AccessEvaluation", mock.Anything, mock.Anything).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
+
+		_, resp, err := th.SystemAdminClient.AddTeamMember(context.Background(), team.Id, th.SystemAdminUser.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("non-ABAC private team: regular user still blocked by join_private_teams (master behavior)", func(t *testing.T) {
+		team := newPrivateTeam(t, false)
+
+		_, resp, err := th.Client.AddTeamMember(context.Background(), team.Id, th.BasicUser.Id)
+		require.Error(t, err, "a non-governed private team must still require the role")
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("non-ABAC private team: admin self-join still succeeds (master behavior)", func(t *testing.T) {
+		team := newPrivateTeam(t, false)
+		// The admin is auto-joined as creator; remove then re-add to exercise the gate.
+		_, err := th.SystemAdminClient.RemoveTeamMember(context.Background(), team.Id, th.SystemAdminUser.Id)
+		require.NoError(t, err)
+
+		_, resp, err := th.SystemAdminClient.AddTeamMember(context.Background(), team.Id, th.SystemAdminUser.Id)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
+
+	t.Run("governed team but ABAC disabled (no license): role gate applies, bypass is strictly gated", func(t *testing.T) {
+		team := newPrivateTeam(t, true)
+
+		// Feature off: the stored policy must not loosen the role gate.
+		th.App.Srv().SetLicense(nil)
+		defer func() {
+			require.True(t, th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)))
+		}()
+
+		_, resp, err := th.Client.AddTeamMember(context.Background(), team.Id, th.BasicUser.Id)
+		require.Error(t, err, "with team ABAC disabled the join_private_teams role must be required again")
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("public governed team (advisory): regular user joins via join_public_teams, PDP not consulted by the gate", func(t *testing.T) {
+		team := th.CreateTeamWithClient(t, th.SystemAdminClient)
+		allowOpen := true
+		_, appErr := th.App.PatchTeam(team.Id, &model.TeamPatch{AllowOpenInvite: &allowOpen})
+		require.Nil(t, appErr)
+		saveTeamPolicy(t, team.Id)
+
+		m := setMockACS(t)
+
+		_, resp, err := th.Client.AddTeamMember(context.Background(), team.Id, th.BasicUser.Id)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		m.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
 	})
 }

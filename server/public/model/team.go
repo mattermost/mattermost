@@ -47,7 +47,19 @@ type Team struct {
 	// Use HasMembershipPolicyAction for enforcement — this is a read-path signal only.
 	PolicyEnforced bool            `json:"policy_enforced"`
 	PolicyActions  map[string]bool `json:"policy_actions,omitempty"` // hydrated lazily; nil when not hydrated
-	PolicyIsActive bool            `json:"policy_is_active"`
+	// PolicyAutoAdd reports whether the team's policy auto-adds qualifying
+	// members, derived by the store from the policy's membership rule.
+	PolicyAutoAdd bool `json:"policy_auto_add"`
+	// PolicyIsActive carries the same value as PolicyAutoAdd.
+	//
+	// Deprecated: use PolicyAutoAdd. Auto-adding members is no longer tied to a
+	// policy's active flag.
+	PolicyIsActive bool `json:"policy_is_active"`
+
+	// Not persisted; a transient per-viewer hint set on public, policy-enforced
+	// teams the requesting user qualifies to join and is not already a member of.
+	// Never set on private teams. Carries no policy detail.
+	Recommended bool `json:"recommended,omitempty"`
 }
 
 // HasPolicyAction is nil-safe; returns false when PolicyActions is nil or empty.

@@ -1,0 +1,52 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+#requestJoinChannelModal {
+    .RequestJoinChannelModal__header {
+        display: inline-flex;
+        min-width: 0;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .RequestJoinChannelModal__header-title {
+        flex-shrink: 0;
+        color: var(--center-channel-color);
+        font-family: Metropolis, sans-serif;
+        font-size: 20px;
+        font-weight: 600;
+        line-height: 28px;
+    }
+
+    .RequestJoinChannelModal__header-separator {
+        width: 1px;
+        height: 20px;
+        flex-shrink: 0;
+        background: rgba(var(--center-channel-color-rgb), 0.16);
+    }
+
+    .RequestJoinChannelModal__header-channel {
+        overflow: hidden;
+        min-width: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-family: 'Open Sans', sans-serif;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 20px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .RequestJoinChannelModal__body {
+        padding: 0 4px;
+    }
+
+    .RequestJoinChannelModal__copy {
+        margin: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.78);
+        font-family: 'Open Sans', sans-serif;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 20px;
+    }
+}

@@ -3,10 +3,11 @@
 
 import type {PopoutViewProps} from '@mattermost/desktop-api';
 import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
+import type {ChannelType} from '@mattermost/types/channels';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {RHSStates} from 'utils/constants';
+import Constants, {RHSStates} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {getBasePath} from 'utils/url';
 
@@ -22,6 +23,13 @@ import {
 const pluginPopoutListeners: Map<string, (teamName: string, channelName: string | undefined, listeners: Partial<PopoutListeners>) => void> = new Map();
 export function registerRHSPluginPopoutListener(pluginId: string, onPopoutOpened: (teamName: string, channelName: string | undefined, listeners: Partial<PopoutListeners>) => void) {
     pluginPopoutListeners.set(pluginId, onPopoutOpened);
+}
+
+export function getPopoutChannelTitle(channelType?: ChannelType) {
+    if (channelType === Constants.DM_CHANNEL || channelType === Constants.GM_CHANNEL) {
+        return {id: 'channel_popout.title.dm', defaultMessage: '{channelName} - {serverName}'};
+    }
+    return {id: 'channel_popout.title', defaultMessage: '{channelName} - {teamName} - {serverName}'};
 }
 
 export const FOCUS_REPLY_POST = 'focus-reply-post';

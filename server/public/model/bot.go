@@ -4,6 +4,7 @@
 package model
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -11,12 +12,20 @@ import (
 )
 
 const (
-	BotDisplayNameMaxRunes   = UserFirstNameMaxRunes
-	BotDescriptionMaxRunes   = 1024
-	BotCreatorIdMaxRunes     = KeyValuePluginIdMaxRunes // UserId or PluginId
-	BotWarnMetricBotUsername = "mattermost-advisor"
-	BotSystemBotUsername     = "system-bot"
+	BotDisplayNameMaxRunes = UserFirstNameMaxRunes
+	BotDescriptionMaxRunes = 1024
+	BotCreatorIdMaxRunes   = KeyValuePluginIdMaxRunes // UserId or PluginId
+	BotSystemBotUsername   = "system-bot"
 )
+
+// ProtectedBotUsernames is the set of system-owned bots that must not be
+// disabled. These bots back core functionality (post reminders, reports,
+// channel notifications, content review), so disabling them silently breaks
+// features for the lifetime of the installation.
+var ProtectedBotUsernames = map[string]struct{}{
+	BotSystemBotUsername:       {},
+	ContentFlaggingBotUsername: {},
+}
 
 // Bot is a special type of User meant for programmatic interactions.
 // Note that the primary key of a bot is the UserId, and matches the primary key of the
@@ -31,6 +40,39 @@ type Bot struct {
 	CreateAt       int64  `json:"create_at"`
 	UpdateAt       int64  `json:"update_at"`
 	DeleteAt       int64  `json:"delete_at"`
+}
+
+// IsProtectedBotUsername returns whether username is one of the protected,
+// system-owned bot usernames. See ProtectedBotUsernames.
+func IsProtectedBotUsername(username string) bool {
+	_, ok := ProtectedBotUsernames[strings.ToLower(username)]
+	return ok
+}
+
+// IsSystemOwned returns whether the bot is one of the protected, system-owned
+// bots that must not be disabled. See ProtectedBotUsernames.
+func (b *Bot) IsSystemOwned() bool {
+	return IsProtectedBotUsername(b.Username)
+}
+
+// HasUserOwner reports whether OwnerId refers to a user account rather than a
+// plugin. A plugin owner carries a manifest id, which is never id-shaped, so an
+// id-shaped OwnerId means a user owner even when that user no longer exists.
+func (b *Bot) HasUserOwner() bool {
+	return IsValidId(b.OwnerId)
+}
+
+// MarshalJSON adds the computed system_owned field to the bot's JSON
+// representation without persisting it as a stored field.
+func (b *Bot) MarshalJSON() ([]byte, error) {
+	type Alias Bot
+	return json.Marshal(&struct {
+		SystemOwned bool `json:"system_owned"`
+		*Alias
+	}{
+		SystemOwned: b.IsSystemOwned(),
+		Alias:       (*Alias)(b),
+	})
 }
 
 func (b *Bot) Auditable() map[string]any {

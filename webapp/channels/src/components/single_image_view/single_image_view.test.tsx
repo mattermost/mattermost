@@ -50,11 +50,12 @@ describe('components/SingleImageView', () => {
             <SingleImageView {...baseProps}/>,
         );
 
-        const svgElement = container.querySelector('.image-loading__container > svg');
-        expect(svgElement).toBeInTheDocument();
-        expect(svgElement?.getAttribute('viewBox')).toEqual('0 0 350 200');
-        expect(container.querySelector('img')).not.toBeInTheDocument();
-        expect(container.querySelector('.file-preview__button')).not.toBeInTheDocument();
+        const placeholder = container.querySelector('.image-loading__container > img.image-loading__placeholder');
+        expect(placeholder).toBeInTheDocument();
+        expect(placeholder?.getAttribute('src')).toContain(encodeURIComponent('viewBox="0 0 350 200"'));
+
+        // The actual preview image is not rendered/loaded while the thumbnail check is pending
+        expect(container.querySelector('img:not(.image-loading__placeholder)')).not.toBeInTheDocument();
 
         await act(async () => {
             resolveFetch!({
@@ -78,8 +79,8 @@ describe('components/SingleImageView', () => {
             <SingleImageView {...baseProps}/>,
         );
 
-        expect(container.querySelector('.image-loading__container > svg')).toBeInTheDocument();
-        expect(container.querySelector('img')).not.toBeInTheDocument();
+        expect(container.querySelector('.image-loading__container > img.image-loading__placeholder')).toBeInTheDocument();
+        expect(container.querySelector('img:not(.image-loading__placeholder)')).not.toBeInTheDocument();
 
         await act(async () => {
             resolveFetch!({
@@ -125,7 +126,7 @@ describe('components/SingleImageView', () => {
         expect(container).toMatchSnapshot();
 
         // Simulate loaded state by triggering image load
-        const img = container.querySelector('img');
+        const img = screen.getByRole('img', {hidden: true});
         expect(img).toBeInTheDocument();
         Object.defineProperty(img, 'naturalHeight', {value: 100, configurable: true});
         Object.defineProperty(img, 'naturalWidth', {value: 100, configurable: true});
@@ -154,13 +155,42 @@ describe('components/SingleImageView', () => {
         expect(container).toMatchSnapshot();
 
         // Simulate loaded state by triggering image load
-        const img = container.querySelector('img');
+        const img = screen.getByRole('img', {hidden: true});
         expect(img).toBeInTheDocument();
         Object.defineProperty(img, 'naturalHeight', {value: 100, configurable: true});
         Object.defineProperty(img, 'naturalWidth', {value: 100, configurable: true});
 
         fireEvent.load(img!);
         expect(container).toMatchSnapshot();
+    });
+
+    test('should size a dimensionless SVG from the browser default instead of a fixed sliver', async () => {
+        const fileInfo = TestHelper.getFileInfoMock({
+            id: 'svg_file_info_id',
+            name: 'name_svg',
+            extension: 'svg',
+            width: 0,
+            height: 0,
+        });
+        const props = {...baseProps, fileInfo};
+        const {container} = renderWithContext(
+            <SingleImageView {...props}/>,
+        );
+
+        await waitFor(() => {
+            expect(container.querySelector('img:not(.image-loading__placeholder)')).toBeInTheDocument();
+        });
+
+        // The container shrinks to the rendered SVG rather than reserving a fixed 350px box.
+        const imageContainer = container.querySelector('.image-container') as HTMLElement;
+        expect(imageContainer.style.height).toBe('auto');
+        expect(imageContainer.style.width).toBe('100%');
+
+        // The SVG is left unsized so the browser renders it at its default, avoiding the tall,
+        // empty sliver that a forced MIN_IMAGE_SIZE width previously produced.
+        const img = container.querySelector('img:not(.image-loading__placeholder)') as HTMLElement;
+        expect(img.style.width).toBe('');
+        expect(img.style.height).toBe('');
     });
 
     test('should call openModal on handleImageClick', async () => {
@@ -173,7 +203,7 @@ describe('components/SingleImageView', () => {
             expect(container.querySelector('img')).toBeInTheDocument();
         });
 
-        const img = container.querySelector('img');
+        const img = screen.getByRole('img', {hidden: true});
         expect(img).toBeInTheDocument();
 
         // Simulate loaded state
@@ -225,7 +255,7 @@ describe('components/SingleImageView', () => {
         expect(imageLoadedDiv).not.toHaveClass('image-fade-in');
 
         // Simulate image loaded
-        const img = container.querySelector('img');
+        const img = screen.getByRole('img', {hidden: true});
         expect(img).toBeInTheDocument();
         Object.defineProperty(img, 'naturalHeight', {value: 100, configurable: true});
         Object.defineProperty(img, 'naturalWidth', {value: 100, configurable: true});

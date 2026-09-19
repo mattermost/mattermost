@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ReactNode} from 'react';
+import type {ReactNode, JSX} from 'react';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -15,7 +15,7 @@ export type Props = {
     teamURL?: string;
     nameError: string | JSX.Element;
     isLoading: boolean;
-    teamURLInput: React.RefObject<HTMLInputElement>;
+    teamURLInput: React.RefObject<HTMLInputElement | null>;
     onTeamURLChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onFocus: (e: React.FocusEvent<HTMLInputElement>) => void;
     onSubmit: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;

@@ -43,13 +43,12 @@ describe('Markdown', () => {
             cy.get(`#postMessageText_${postId}`).find('img').
                 should('have.class', 'markdown-inline-img').
                 and('have.class', 'markdown-inline-img--hover').
-                and('have.class', 'markdown-inline-img--no-border').
                 and('have.attr', 'alt', 'Build Status').
-                and('have.attr', 'src', `${baseUrl}/api/v4/image?url=https%3A%2F%2Fdocs.mattermost.com%2F_images%2Ficon-76x76.png`).
+                and('have.attr', 'src', `${baseUrl}/api/v4/image?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmattermost%2Fmattermost%2Fmaster%2Fe2e-tests%2Fcypress%2Ftests%2Ffixtures%2Fmattermost-icon_128x128.png`).
                 and((inlineImg) => {
-                    expect(inlineImg.height()).to.be.closeTo(76, 76);
+                    expect(inlineImg.height()).to.be.closeTo(128, 2);
                 }).
-                and('have.css', 'width', '76px');
+                and('have.css', 'width', '128px');
         });
     });
 
@@ -71,8 +70,8 @@ describe('Markdown', () => {
                 and('have.class', 'a11y--active').
                 and('have.attr', 'alt', 'Github').
                 and('have.attr', 'src', `${baseUrl}/api/v4/image?url=https%3A%2F%2Fgithub.githubassets.com%2Ffavicon.ico`).
-                and('have.css', 'height', '34px').
-                and('have.css', 'width', '34px');
+                and('have.css', 'height', '32px').
+                and('have.css', 'width', '32px');
         });
     });
 
@@ -108,8 +107,8 @@ describe('Markdown', () => {
         cy.uiGetPostBody().within(() => {
             cy.get('.markdown-inline-img').
                 should('be.visible').
-                and('have.css', 'height', '34px').
-                and('have.css', 'width', '34px').
+                and('have.css', 'height', '32px').
+                and('have.css', 'width', '32px').
                 click();
         });
 
@@ -152,14 +151,12 @@ describe('Markdown', () => {
 
         cy.get('@imageDiv').find('img.markdown-inline-img').
             should('have.class', 'markdown-inline-img--hover').
-            and('have.class', 'markdown-inline-img--no-border').
             and('have.css', 'height', '18px');
 
         // * Verify image in system message
         cy.uiGetPostBody().
-            find('img.markdown-inline-img--no-border').
+            find('img.markdown-inline-img').
             should('have.class', 'markdown-inline-img--hover').
-            and('have.class', 'markdown-inline-img').
             and('have.class', 'markdown-inline-img--scaled-down').
             and('have.css', 'height', '18px');
     });

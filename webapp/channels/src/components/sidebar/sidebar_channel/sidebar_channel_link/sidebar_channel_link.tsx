@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, {type JSX} from 'react';
 import {type WrappedComponentProps, defineMessages, injectIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
@@ -71,6 +71,7 @@ type Props = WrappedComponentProps & {
     rhsOpen?: boolean;
     isSharedChannel?: boolean;
     remoteNames: string[];
+    hasPendingJoinRequests: boolean;
 
     actions: {
         markMostRecentPostInChannelAsUnread: (channelId: string) => void;
@@ -89,7 +90,7 @@ type State = {
 };
 
 export class SidebarChannelLink extends React.PureComponent<Props, State> {
-    labelRef: React.RefObject<HTMLDivElement>;
+    labelRef: React.RefObject<HTMLDivElement | null>;
 
     constructor(props: Props) {
         super(props);
@@ -274,6 +275,15 @@ export class SidebarChannelLink extends React.PureComponent<Props, State> {
                     hasUrgent={hasUrgent}
                     tooltip={hasUrgent ? messages.urgentMentionTooltip : undefined}
                 />
+                {this.props.hasPendingJoinRequests && (
+                    <span
+                        className='SidebarChannelLink__join-request-dot'
+                        aria-label={this.props.intl.formatMessage({
+                            id: 'sidebar_channel.join_requests_pending',
+                            defaultMessage: 'Pending join requests',
+                        })}
+                    />
+                )}
                 <div
                     className={classNames(
                         'SidebarMenu',

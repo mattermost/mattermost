@@ -22,9 +22,9 @@ Organizations standardizing on Windows installations can choose between Windows 
 
 The location of the Mattermost desktop app configuration file depends on the platform where you're running Mattermost (and, in the case of macOS, how you've chosen to install the app):
 
-- Windows: `Users\&lt;username&gt;\AppData\Roaming\Mattermost`
-- macOS installer: `/Users/&lt;username&gt;/Library/Application Support/Mattermost`
-- macOS App Store: `/Users/&lt;username&gt;/Library/Containers/Mattermost.Desktop/Data/Library/Application Support/Mattermost` (via Finder: `~/Library/Application Support/Mattermost` as the extension is hidden)
+- Windows: `Users\<username>\AppData\Roaming\Mattermost`
+- macOS installer: `/Users/<username>/Library/Application Support/Mattermost`
+- macOS App Store: `/Users/<username>/Library/Containers/Mattermost.Desktop/Data/Library/Application Support/Mattermost` (via Finder: `~/Library/Application Support/Mattermost` as the extension is hidden)
 - Linux: `~/.config/Mattermost`
 
 <Note>
@@ -43,7 +43,7 @@ If you're not seeing in-app update notifications when new versions are available
 3.  **Verify update notifications are enabled**:
     - On Windows: Go to **… \> File \> Settings** and ensure **Automatically check for updates** is enabled.
     - On macOS: Go to **Mattermost \> Settings** and ensure **Automatically check for updates** is enabled.
-4.  **Check Group Policy settings** (Enterprise deployments): Your system administrator may have disabled update notifications via the `EnableAutoUpdates` Group Policy. Contact your IT department for clarification.
+4.  **Check Group Policy settings** (Enterprise deployments): Your system administrator may have disabled update notifications via the `EnableAutoUpdater` Group Policy. Contact your IT department for clarification.
 5.  **Version previously skipped**: If you selected **Skip This Version** for the current release, manually check for updates to see it again.
 
 ## Update required screen

@@ -515,6 +515,37 @@ describe('components/channel_invite_modal', () => {
         expect(screen.getByText('Attribute1: tag2')).toBeInTheDocument();
     });
 
+    test('does not request access control indicators when EnableChannelPolicyIndicators is disabled', () => {
+        const useAccessControlAttributesMock = require('components/common/hooks/useAccessControlAttributes').default;
+        useAccessControlAttributesMock.mockClear();
+
+        const props = {
+            ...baseProps,
+            channel: {
+                ...channel,
+                type: 'P' as ChannelType,
+                policy_enforced: true,
+            },
+        };
+
+        renderWithContext(
+            <ChannelInviteModal {...props}/>,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            EnableChannelPolicyIndicators: 'false',
+                        },
+                    },
+                },
+            },
+        );
+
+        // hasAccessControl is false so no attribute fetch is triggered for
+        // rendering policy tags.
+        expect(useAccessControlAttributesMock).toHaveBeenCalledWith('channel', channel.id, false);
+    });
+
     test('should not show AlertBanner when policy_enforced is false', () => {
         const channelWithoutPolicy = {
             ...channel,
@@ -629,6 +660,16 @@ describe('components/channel_invite_modal', () => {
             element?.tagName === 'SPAN' && text.trim() === user,
         ) as HTMLElement;
 
+    // Async variant for the private-ABAC search path. `Client4.searchUsers` resolving
+    // is two renders ahead of the option appearing: the resolution sets
+    // privateAbacSearchHits, and only the effect that mirrors the recomputed options
+    // into groupAndUserOptions actually feeds MultiSelect. Waiting on the call alone
+    // asserts against the pre-search DOM.
+    const findUserSpan = (user: string) =>
+        screen.findByText((text, element) =>
+            element?.tagName === 'SPAN' && text.trim() === user,
+        ) as Promise<HTMLElement>;
+
     test('should not include DM users when ABAC is enabled on a private channel', async () => {
         // Mock Client4 to return user-1 for ABAC channels
         const {Client4} = require('mattermost-redux/client');
@@ -659,7 +700,7 @@ describe('components/channel_invite_modal', () => {
         });
 
         // now only one visible <span> should match "user-1"
-        expect(getUserSpan('user-1')).toBeInTheDocument();
+        expect(await findUserSpan('user-1')).toBeInTheDocument();
 
         // and no <span> with "user-2"
         expect(screen.queryByText('user-2')).toBeNull();
@@ -866,7 +907,7 @@ describe('components/channel_invite_modal', () => {
         });
 
         // Should only show users, not groups when ABAC is enforced
-        expect(getUserSpan('user-1')).toBeInTheDocument();
+        expect(await findUserSpan('user-1')).toBeInTheDocument();
 
         // Groups should not appear in the dropdown
         expect(screen.queryByText('Developers')).toBeNull();
@@ -928,7 +969,7 @@ describe('components/channel_invite_modal', () => {
         });
 
         // Should only show clean ABAC data
-        expect(getUserSpan('user-1')).toBeInTheDocument();
+        expect(await findUserSpan('user-1')).toBeInTheDocument();
         expect(screen.queryByText('user-2')).toBeNull();
     });
 

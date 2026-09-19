@@ -4,6 +4,8 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
+import {ChannelAttributeLabels} from './channel_attributes';
+
 export default class ChannelsHeader {
     readonly container: Locator;
 
@@ -13,6 +15,11 @@ export default class ChannelsHeader {
     readonly pinnedMessagesButton: Locator;
     readonly unmuteButton: Locator;
     readonly channelFilesButton: Locator;
+    // Two chip slots, two accessors: 'attributes' is the row under the channel
+    // name, 'infoAttributes' the inline strip beside the member count.
+    readonly attributes: ChannelAttributeLabels;
+    readonly infoAttributes: ChannelAttributeLabels;
+    readonly addChannelHeaderButton: Locator;
 
     constructor(container: Locator) {
         this.container = container;
@@ -23,6 +30,9 @@ export default class ChannelsHeader {
         this.pinnedMessagesButton = container.locator('#channelHeaderPinButton');
         this.unmuteButton = container.getByRole('button', {name: 'Unmute', exact: true});
         this.channelFilesButton = container.getByRole('button', {name: 'Channel files'});
+        this.attributes = new ChannelAttributeLabels(container.getByTestId('channelAttributeLabels-header'), 'header');
+        this.infoAttributes = new ChannelAttributeLabels(container.getByTestId('channelAttributeLabels-info'), 'info');
+        this.addChannelHeaderButton = container.getByRole('button', {name: 'Add a channel header'});
     }
 
     async toBeVisible() {
@@ -34,8 +44,14 @@ export default class ChannelsHeader {
     }
 
     async openChannelMenu() {
-        await this.channelMenuDropdown.isVisible();
-        await this.channelMenuDropdown.click();
+        const page = this.container.page();
+        const mobileMenuButton = page.locator('#navbar #channelHeaderDropdownButton');
+        const mobileVisible = await mobileMenuButton.isVisible({timeout: 1000}).catch(() => false);
+        const menuButton = mobileVisible ? mobileMenuButton : this.channelMenuDropdown;
+
+        await expect(menuButton).toBeVisible();
+        await menuButton.scrollIntoViewIfNeeded();
+        await menuButton.click();
     }
 
     async openCalls() {
@@ -50,5 +66,26 @@ export default class ChannelsHeader {
 
     async openChannelFiles() {
         await this.channelFilesButton.click();
+    }
+
+    async openAddChannelHeader() {
+        await this.container.hover();
+        await this.addChannelHeaderButton.click();
+    }
+
+    getHeaderText(text: string) {
+        return this.container.getByText(text, {exact: false});
+    }
+
+    getHeaderLink(name: string) {
+        return this.container.getByRole('link', {name});
+    }
+
+    getHeaderMention(name: string) {
+        return this.container.getByRole('button', {name});
+    }
+
+    getHeaderTooltip(text: string) {
+        return this.container.page().getByRole('tooltip').filter({hasText: text});
     }
 }

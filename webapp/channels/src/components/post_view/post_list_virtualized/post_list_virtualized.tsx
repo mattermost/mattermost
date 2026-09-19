@@ -144,8 +144,8 @@ type State = {
 };
 
 export default class PostList extends React.PureComponent<Props, State> {
-    listRef: React.RefObject<DynamicVirtualizedList>;
-    postListRef: React.RefObject<HTMLDivElement>;
+    listRef: React.RefObject<DynamicVirtualizedList | null>;
+    postListRef: React.RefObject<HTMLDivElement | null>;
     scrollStopAction: DelayedAction | null = null;
     initRangeToRender: number[];
     showSearchHintThreshold: number;
@@ -682,6 +682,7 @@ export default class PostList extends React.PureComponent<Props, State> {
                         <div
                             id='postListContent'
                             className='post-list__content'
+                            data-channel-id={this.props.channelId}
                         >
                             <LatestPostReader
                                 postIds={this.props.postListIds}

@@ -13,12 +13,22 @@ const (
 	AuditEventUpdateActiveStatus        = "updateActiveStatus"        // update active/inactive status of access control policy
 	AuditEventSetActiveStatus           = "setActiveStatus"           // set active/inactive status of multiple access control policies
 
+	AuditEventSavePluginAccessControlPolicy   = "savePluginAccessControlPolicy"   // create/update plugin-owned access control policy (activation implicit)
+	AuditEventDeletePluginAccessControlPolicy = "deletePluginAccessControlPolicy" // delete plugin-owned access control policy
+
 	AuditEventCreateTeamAccessPolicy   = "createTeamAccessPolicy"   // create team-scoped access control policy
 	AuditEventUpdateTeamAccessPolicy   = "updateTeamAccessPolicy"   // update team-scoped access control policy
 	AuditEventDeleteTeamAccessPolicy   = "deleteTeamAccessPolicy"   // delete team-scoped access control policy
 	AuditEventAssignTeamAccessPolicy   = "assignTeamAccessPolicy"   // assign channels to team-scoped access control policy
 	AuditEventUnassignTeamAccessPolicy = "unassignTeamAccessPolicy" // remove channels from team-scoped access control policy
 	AuditEventTriggerTeamPolicySync    = "triggerTeamPolicySync"    // trigger sync for team-scoped access control policies
+
+	AuditEventTeamMembershipAdded        = "teamMembershipAdded"        // user auto-added to a team by its membership policy
+	AuditEventTeamMembershipRemoved      = "teamMembershipRemoved"      // user removed from a team by its membership policy
+	AuditEventTeamCascadedChannelRemoval = "teamCascadedChannelRemoval" // channel membership dropped as a cascade of a policy-driven team removal
+
+	AuditEventChannelMembershipAdded   = "channelMembershipAdded"   // user auto-added to a channel by its membership policy
+	AuditEventChannelMembershipRemoved = "channelMembershipRemoved" // user removed from a channel by its membership policy
 )
 
 // Audit & Certificates
@@ -135,15 +145,16 @@ const (
 
 // Configuration
 const (
-	AuditEventConfigReload         = "configReload"         // reload server configuration
-	AuditEventGetConfig            = "getConfig"            // get current server configuration
-	AuditEventLocalGetClientConfig = "localGetClientConfig" // get client configuration locally
-	AuditEventLocalGetConfig       = "localGetConfig"       // get server configuration locally
-	AuditEventLocalPatchConfig     = "localPatchConfig"     // update server configuration locally
-	AuditEventLocalUpdateConfig    = "localUpdateConfig"    // update server configuration locally
-	AuditEventMigrateConfig        = "migrateConfig"        // migrate configs with file values from one store to another
-	AuditEventPatchConfig          = "patchConfig"          // update server configuration
-	AuditEventUpdateConfig         = "updateConfig"         // update server configuration
+	AuditEventAutoSelectPushNotificationServer = "autoSelectPushNotificationServer" // automatically switch push notification server based on license entitlement
+	AuditEventConfigReload                     = "configReload"                     // reload server configuration
+	AuditEventGetConfig                        = "getConfig"                        // get current server configuration
+	AuditEventLocalGetClientConfig             = "localGetClientConfig"             // get client configuration locally
+	AuditEventLocalGetConfig                   = "localGetConfig"                   // get server configuration locally
+	AuditEventLocalPatchConfig                 = "localPatchConfig"                 // update server configuration locally
+	AuditEventLocalUpdateConfig                = "localUpdateConfig"                // update server configuration locally
+	AuditEventMigrateConfig                    = "migrateConfig"                    // migrate configs with file values from one store to another
+	AuditEventPatchConfig                      = "patchConfig"                      // update server configuration
+	AuditEventUpdateConfig                     = "updateConfig"                     // update server configuration
 )
 
 // Custom Profile Attributes
@@ -152,6 +163,11 @@ const (
 	AuditEventDeleteCPAField = "deleteCPAField" // delete custom profile attribute
 	AuditEventPatchCPAField  = "patchCPAField"  // update custom profile attribute field
 	AuditEventPatchCPAValues = "patchCPAValues" // update custom profile attribute values
+	// AuditEventCPAValueChange is emitted from the common app-layer value write
+	// path for every effective CPA value change, regardless of caller (session,
+	// local admin, plugin owner, or LDAP/SAML sync). It is the single place all
+	// owners converge, capturing the caller ID and acting-as scope.
+	AuditEventCPAValueChange = "cpaValueChange"
 )
 
 // Property Fields
@@ -160,6 +176,14 @@ const (
 	AuditEventDeletePropertyField = "deletePropertyField" // delete property field
 	AuditEventGetPropertyFields   = "getPropertyFields"   // list property fields
 	AuditEventPatchPropertyField  = "patchPropertyField"  // update property field
+)
+
+// Property Field Options
+const (
+	AuditEventCreatePropertyFieldOptions = "createPropertyFieldOptions" // add options to a property field
+	AuditEventDeletePropertyFieldOptions = "deletePropertyFieldOptions" // delete options of a property field
+	AuditEventGetPropertyFieldOptions    = "getPropertyFieldOptions"    // list the options of a property field
+	AuditEventPatchPropertyFieldOptions  = "patchPropertyFieldOptions"  // update options of a property field
 )
 
 // Property Values
@@ -177,6 +201,13 @@ const (
 	AuditEventPatchPolicy              = "patchPolicy"              // update data retention policy
 	AuditEventRemoveChannelsFromPolicy = "removeChannelsFromPolicy" // remove channels from data retention policy
 	AuditEventRemoveTeamsFromPolicy    = "removeTeamsFromPolicy"    // remove teams from data retention policy
+)
+
+// Ephemeral Mode
+const (
+	AuditEventAutoCacheCleanupRun = "autoCacheCleanupRun" // automatic cache cleanup run
+	AuditEventOfflinePurge        = "offlinePurge"        // offline purge
+	AuditEventSessionWipe         = "sessionWipe"         // session wipe
 )
 
 // Emojis
@@ -225,7 +256,6 @@ const (
 const (
 	AuditEventBulkImport   = "bulkImport"   // bulk import data from a file
 	AuditEventDeleteImport = "deleteImport" // delete import file
-	AuditEventSlackImport  = "slackImport"  // import data from Slack
 )
 
 // Jobs
@@ -328,6 +358,17 @@ const (
 	AuditEventDeleteRecap        = "deleteRecap"        // delete recap
 )
 
+// Scheduled Recaps
+const (
+	AuditEventCreateScheduledRecap = "createScheduledRecap" // create scheduled recap configuration
+	AuditEventGetScheduledRecap    = "getScheduledRecap"    // view a single scheduled recap
+	AuditEventGetScheduledRecaps   = "getScheduledRecaps"   // list user's scheduled recaps
+	AuditEventUpdateScheduledRecap = "updateScheduledRecap" // update scheduled recap configuration
+	AuditEventDeleteScheduledRecap = "deleteScheduledRecap" // delete scheduled recap
+	AuditEventPauseScheduledRecap  = "pauseScheduledRecap"  // pause scheduled recap execution
+	AuditEventResumeScheduledRecap = "resumeScheduledRecap" // resume paused scheduled recap
+)
+
 // Preferences
 const (
 	AuditEventDeletePreferences = "deletePreferences" // delete user preferences
@@ -410,7 +451,6 @@ const (
 	AuditEventAddUserToTeamFromInvite     = "addUserToTeamFromInvite"     // add user to team using invitation link
 	AuditEventCreateTeam                  = "createTeam"                  // create team
 	AuditEventDeleteTeam                  = "deleteTeam"                  // delete team
-	AuditEventImportTeam                  = "importTeam"                  // import team data from external source
 	AuditEventInvalidateAllEmailInvites   = "invalidateAllEmailInvites"   // invalidate all pending email invitations
 	AuditEventInviteGuestsToChannels      = "inviteGuestsToChannels"      // invite guest users to specific channels
 	AuditEventInviteUsersToTeam           = "inviteUsersToTeam"           // invite users to team
@@ -519,4 +559,11 @@ const (
 	AuditEventUpdateContentFlaggingConfig  = "updateContentFlaggingConfig"  // update content flagging configuration
 	AuditEventSetReviewer                  = "setFlaggedPostReviewer"       // assign reviewer for flagged post
 	AuditEventGenerateFlaggedPostReport    = "generateFlaggedPostReport"    // generate flagged post data report
+	AuditEventGeneratePostExposureReport   = "generatePostExposureReport"   // generate flagged post exposure report
+)
+
+// Post Delivery Tracking
+const (
+	AuditEventUpdateDeliveryTrackingConfig = "updateDeliveryTrackingConfig" // update post delivery tracking configuration
+	AuditEventPostDelivered                = "postDelivered"                // a post's content was delivered to a user or integration
 )

@@ -9,15 +9,11 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
 
 jobs:
   cleanup:
     name: Delete preview from S3
     runs-on: ubuntu-latest
-    # Fork PRs don't get secrets on plain pull_request events, so this would
-    # just fail for them -- a separate scheduled sweep handles fork preview
-    # cleanup instead of switching this to pull_request_target.
     if: github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - name: Configure AWS credentials
@@ -33,11 +29,3 @@ jobs:
           BUCKET_NAME: ${{ vars.DOCS_PREVIEW_BUCKET_NAME }}
         run: |
           aws s3 rm "s3://${BUCKET_NAME}/mattermost/pr-${PR_NUMBER}/" --recursive
-
-      - name: Comment on closed PR
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.number }}
-        run: |
-          gh pr comment "$PR_NUMBER" --repo "${{ github.repository }}" \
-            --body "Docs preview for PR #${PR_NUMBER} has been removed from S3."

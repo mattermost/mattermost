@@ -4,13 +4,15 @@
 package app
 
 import (
-	"context"
 	"encoding/json"
 	"maps"
 	"sync"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -346,7 +348,7 @@ func TestCPADisplayNameBackfill_BackfillsProtectedSourceOnlyField(t *testing.T) 
 
 	// Read back via the store directly to avoid any read-access filtering
 	// the AC layer might apply for a non-source-plugin caller.
-	got, err := th.Store.PropertyField().Get(context.Background(), groupID, created.ID)
+	got, err := th.Store.PropertyField().Get(th.Context, groupID, created.ID)
 	require.NoError(t, err)
 	require.Equal(t, "uas_employee_id", got.Attrs[model.CustomProfileAttributesPropertyAttrsDisplayName],
 		"display_name must be backfilled to the field name even on protected/source_only fields")
@@ -360,6 +362,239 @@ func TestCPADisplayNameBackfill_BackfillsProtectedSourceOnlyField(t *testing.T) 
 	require.NoError(t, sysErr)
 	require.NotNil(t, data)
 	require.Equal(t, "true", data.Value)
+}
+
+// clearCPAToGlobalAttributesMarker removes the System-key marker for the
+// CPA-to-Global-Attributes migration so the migration body actually executes
+// when called from a test, for the same reason clearCPABackfillMarker exists.
+func clearCPAToGlobalAttributesMarker(t *testing.T, th *TestHelper) {
+	t.Helper()
+	_, err := th.Store.System().PermanentDeleteByName(cpaToGlobalAttributesMigrationKey)
+	require.NoError(t, err, "failed to clear CPA-to-Global-Attributes marker for test isolation")
+}
+
+func TestCPAToGlobalAttributesMigration_UnlicensedSkipsAndRetriesOnceLicensed(t *testing.T) {
+	th := Setup(t)
+	clearCPAToGlobalAttributesMarker(t, th)
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	// Seed directly via the store: the server is unlicensed at this point, and
+	// LicenseCheckHook would reject a CreatePropertyField call to this group.
+	seeded, err := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "unlicensed_field",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	})
+	require.NoError(t, err)
+
+	err = th.Server.doSetupCPAToGlobalAttributesMigration(th.Context)
+	require.NoError(t, err)
+
+	_, sysErr := th.Store.System().GetByName(cpaToGlobalAttributesMigrationKey)
+	require.Error(t, sysErr, "marker must not be written when the server is unlicensed")
+
+	untouched, err := th.Store.PropertyField().Get(th.Context, group.ID, seeded.ID)
+	require.NoError(t, err)
+	assert.Nil(t, untouched.LinkedFieldID, "field must not be migrated while unlicensed")
+
+	// License the server and retry: the migration must now run to completion.
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	err = th.Server.doSetupCPAToGlobalAttributesMigration(th.Context)
+	require.NoError(t, err)
+
+	data, sysErr := th.Store.System().GetByName(cpaToGlobalAttributesMigrationKey)
+	require.NoError(t, sysErr)
+	require.Equal(t, "true", data.Value)
+
+	migratedField, appErr := th.App.GetPropertyField(th.Context, group.ID, seeded.ID)
+	require.Nil(t, appErr)
+	require.NotNil(t, migratedField.LinkedFieldID, "field must be migrated once licensed")
+}
+
+func TestCPAToGlobalAttributesMigration_NoExistingFields(t *testing.T) {
+	th := Setup(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	clearCPAToGlobalAttributesMarker(t, th)
+
+	err := th.Server.doSetupCPAToGlobalAttributesMigration(th.Context)
+	require.NoError(t, err)
+
+	data, sysErr := th.Store.System().GetByName(cpaToGlobalAttributesMigrationKey)
+	require.NoError(t, sysErr)
+	require.NotNil(t, data)
+	require.Equal(t, "true", data.Value)
+}
+
+func TestCPAToGlobalAttributesMigration_MigratesFieldAndSetsMarker(t *testing.T) {
+	th := Setup(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	clearCPAToGlobalAttributesMarker(t, th)
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	seeded, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "cost_center",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	}, false, "")
+	require.Nil(t, appErr)
+
+	err := th.Server.doSetupCPAToGlobalAttributesMigration(th.Context)
+	require.NoError(t, err)
+
+	updated, appErr := th.App.GetPropertyField(th.Context, group.ID, seeded.ID)
+	require.Nil(t, appErr)
+	require.NotNil(t, updated.LinkedFieldID)
+
+	template, appErr := th.App.GetPropertyField(th.Context, group.ID, *updated.LinkedFieldID)
+	require.Nil(t, appErr)
+	assert.Equal(t, model.PropertyFieldObjectTypeTemplate, template.ObjectType)
+	assert.Equal(t, true, template.Attrs[model.PropertyAttrsMigratedToGlobal])
+
+	data, sysErr := th.Store.System().GetByName(cpaToGlobalAttributesMigrationKey)
+	require.NoError(t, sysErr)
+	require.Equal(t, "true", data.Value)
+}
+
+// TestCPAToGlobalAttributesMigration_RerunClearsAlreadyLinkedFieldDuplicatedOptions
+// covers the actual remediation story for an install that already ran a
+// version of this migration that left an already-linked field's own option
+// rows in place (doubling every option it serves, since optionOwnerIDs unions
+// a linked field's own rows with its template's): clearing this same
+// migration's own existing marker and letting it run again must clean up that
+// field too, not just link anything still unlinked. No separate migration or
+// marker for it.
+func TestCPAToGlobalAttributesMigration_RerunClearsAlreadyLinkedFieldDuplicatedOptions(t *testing.T) {
+	th := Setup(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	clearCPAToGlobalAttributesMarker(t, th)
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	sysadmin := model.PermissionLevelSysadmin
+	template, err := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:           group.ID,
+		Name:              "roles",
+		Type:              model.PropertyFieldTypeSelect,
+		ObjectType:        model.PropertyFieldObjectTypeTemplate,
+		TargetType:        string(model.PropertyFieldTargetLevelSystem),
+		PermissionField:   &sysadmin,
+		PermissionValues:  &sysadmin,
+		PermissionOptions: &sysadmin,
+		Attrs: model.StringInterface{
+			model.PropertyFieldAttributeOptions: []map[string]any{{"name": "a"}, {"name": "b"}},
+		},
+	})
+	require.NoError(t, err)
+
+	// Simulates the pre-fix broken state: a field already linked to its
+	// template, still carrying the own option rows the old migration never
+	// cleared after linking.
+	linked, err := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:       group.ID,
+		Name:          "roles_linked",
+		Type:          model.PropertyFieldTypeSelect,
+		ObjectType:    model.PropertyFieldObjectTypeUser,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &template.ID,
+		Attrs: model.StringInterface{
+			model.PropertyFieldAttributeOptions: []map[string]any{{"name": "a"}, {"name": "b"}},
+		},
+	})
+	require.NoError(t, err)
+
+	err = th.Server.doSetupCPAToGlobalAttributesMigration(th.Context)
+	require.NoError(t, err)
+
+	page, appErr := th.App.GetPropertyFieldOptions(th.Context, group.ID, linked.ID, 0, "", 100)
+	require.Nil(t, appErr)
+	names := make([]string, 0, len(page.Options))
+	for _, option := range page.Options {
+		names = append(names, option.Name)
+	}
+	assert.ElementsMatch(t, []string{"a", "b"}, names, "duplicated options must be cleared down to the template's own set")
+
+	data, sysErr := th.Store.System().GetByName(cpaToGlobalAttributesMigrationKey)
+	require.NoError(t, sysErr)
+	require.Equal(t, "true", data.Value)
+
+	// A second run must be a no-op (idempotent): the marker short-circuits it,
+	// and there is nothing left to clear even if it ran again.
+	err = th.Server.doSetupCPAToGlobalAttributesMigration(th.Context)
+	require.NoError(t, err)
+
+	pageAgain, appErr := th.App.GetPropertyFieldOptions(th.Context, group.ID, linked.ID, 0, "", 100)
+	require.Nil(t, appErr)
+	assert.Len(t, pageAgain.Options, 2)
+}
+
+var expectedOSPlatformOptions = []string{"macos", "windows", "linux", "ios", "android"}
+
+func sessionAttributeFieldByName(t *testing.T, th *TestHelper, groupID, name string) *model.PropertyField {
+	t.Helper()
+
+	fields, appErr := th.App.SearchPropertyFields(th.Context, groupID, model.PropertyFieldSearchOpts{PerPage: 100})
+	require.Nil(t, appErr)
+	for _, field := range fields {
+		if field.Name == name {
+			return field
+		}
+	}
+
+	require.FailNowf(t, "session attribute field not found", "field %q was not seeded", name)
+	return nil
+}
+
+func sessionAttributeOptions(t *testing.T, field *model.PropertyField) model.PropertyOptions[*model.PluginPropertyOption] {
+	t.Helper()
+
+	options, err := model.NewPropertyOptionsFromFieldAttrs[*model.PluginPropertyOption](field.Attrs[model.PropertyFieldAttributeOptions])
+	require.NoError(t, err)
+	return options
+}
+
+func sessionAttributeOptionNames(t *testing.T, field *model.PropertyField) []string {
+	t.Helper()
+
+	options := sessionAttributeOptions(t, field)
+	names := make([]string, 0, len(options))
+	for _, option := range options {
+		names = append(names, option.GetName())
+	}
+	return names
+}
+
+func schemaSessionAttributeOptionNames(t *testing.T, groupID, name string) []string {
+	t.Helper()
+
+	for _, field := range model.SessionAttributeSystemFields(groupID) {
+		if field.Name == name {
+			return sessionAttributeOptionNames(t, field)
+		}
+	}
+
+	require.FailNowf(t, "session attribute field not found", "field %q is not declared by the schema", name)
+	return nil
+}
+
+func sessionAttributeOptionIDsByName(t *testing.T, field *model.PropertyField) map[string]string {
+	t.Helper()
+
+	options := sessionAttributeOptions(t, field)
+	idsByName := make(map[string]string, len(options))
+	for _, option := range options {
+		idsByName[option.GetName()] = option.GetID()
+	}
+	return idsByName
 }
 
 func TestDoSetupSessionAttributesProperties(t *testing.T) {
@@ -413,6 +648,102 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 		)
 	})
 
+	t.Run("os_platform seeds as a select with the known platform values", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+
+		field := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldOSPlatform)
+		require.Equal(t, model.PropertyFieldTypeSelect, field.Type)
+		require.Equal(t, expectedOSPlatformOptions, sessionAttributeOptionNames(t, field))
+		require.True(t, model.IsValidSessionAttributeValue(field, "windows"))
+		require.False(t, model.IsValidSessionAttributeValue(field, "darwin"))
+	})
+
+	t.Run("converts a legacy text os_platform field into a select", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+
+		// Restore the pre-conversion shape a server upgrade would find: free
+		// text with no options. Written with a system-caller context so
+		// SessionAttributesHook treats it as a system caller, the same way the
+		// seed itself does.
+		field := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldOSPlatform)
+		field.Type = model.PropertyFieldTypeText
+		delete(field.Attrs, model.PropertyFieldAttributeOptions)
+		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(properties.SystemCallerContext(th.Context), group.ID, []*model.PropertyField{field})
+		require.NoError(t, err)
+
+		require.NoError(t, th.Server.doSetupSessionAttributesProperties())
+
+		converted := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldOSPlatform)
+		require.Equal(t, model.PropertyFieldTypeSelect, converted.Type)
+		require.Equal(t, expectedOSPlatformOptions, sessionAttributeOptionNames(t, converted))
+		require.True(t, model.IsValidSessionAttributeValue(converted, "windows"))
+	})
+
+	t.Run("re-seeding preserves select option IDs", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+
+		before := sessionAttributeOptionIDsByName(t, sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldOSPlatform))
+		require.Len(t, before, len(expectedOSPlatformOptions))
+
+		require.NoError(t, th.Server.doSetupSessionAttributesProperties())
+
+		after := sessionAttributeOptionIDsByName(t, sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldOSPlatform))
+		require.Equal(t, before, after, "re-seeding must not regenerate option IDs")
+	})
+
+	t.Run("adds newly declared options to an already-seeded select", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+
+		// Restore what an upgrading server finds: the field as it was seeded
+		// before "Android" joined the schema.
+		field := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldUserAgentPlatform)
+		persisted := sessionAttributeOptions(t, field)
+		trimmed := make([]any, 0, len(persisted))
+		for _, option := range persisted {
+			if option.GetName() == "Android" {
+				continue
+			}
+			trimmed = append(trimmed, map[string]any{"id": option.GetID(), "name": option.GetName()})
+		}
+		require.Len(t, trimmed, len(persisted)-1)
+		field.Attrs[model.PropertyFieldAttributeOptions] = trimmed
+		// System-caller context, same as the seed and the sibling upgrade
+		// subtests: SessionAttributesHook otherwise reads the existing field
+		// through RequestContextWithMaster, which panics on a nil rctx.
+		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(properties.SystemCallerContext(th.Context), group.ID, []*model.PropertyField{field})
+		require.NoError(t, err)
+
+		before := sessionAttributeOptionIDsByName(t, sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldUserAgentPlatform))
+		require.NotContains(t, before, "Android")
+
+		require.NoError(t, th.Server.doSetupSessionAttributesProperties())
+
+		updated := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldUserAgentPlatform)
+		require.Equal(t,
+			schemaSessionAttributeOptionNames(t, group.ID, model.SessionAttributesPropertyFieldUserAgentPlatform),
+			sessionAttributeOptionNames(t, updated),
+		)
+		require.True(t, model.IsValidSessionAttributeValue(updated, "Android"))
+
+		after := sessionAttributeOptionIDsByName(t, updated)
+		require.NotEmpty(t, after["Android"], "the new option must be assigned an ID")
+		for name, id := range before {
+			require.Equal(t, id, after[name], "option %q must keep its ID", name)
+		}
+	})
+
 	t.Run("re-running is idempotent", func(t *testing.T) {
 		th := Setup(t)
 
@@ -429,6 +760,23 @@ func TestDoSetupSessionAttributesProperties(t *testing.T) {
 		after, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
 		require.Nil(t, appErr)
 		require.Len(t, after, expectedFieldCount, "re-running must not create duplicate fields")
+	})
+
+	t.Run("backfills operators on legacy fields missing attrs.operators", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+
+		field := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldIPAddress)
+		delete(field.Attrs, model.NativeAttributeAttrOperators)
+		_, _, _, err := th.Server.propertyService.UpdatePropertyFields(properties.SystemCallerContext(th.Context), group.ID, []*model.PropertyField{field})
+		require.NoError(t, err)
+
+		require.NoError(t, th.Server.doSetupSessionAttributesProperties())
+
+		updated := sessionAttributeFieldByName(t, th, group.ID, model.SessionAttributesPropertyFieldIPAddress)
+		require.NotNil(t, updated.Attrs[model.NativeAttributeAttrOperators])
 	})
 
 	t.Run("concurrent runs tolerate update conflicts", func(t *testing.T) {
@@ -637,4 +985,60 @@ func stripStatusColors(t *testing.T, attrs model.StringInterface) model.StringIn
 	maps.Copy(out, attrs)
 	out["options"] = options
 	return out
+}
+
+// lockToMasterSpyStore records when doAppMigrations locks and unlocks the store
+// relative to the store access the migrations themselves make.
+type lockToMasterSpyStore struct {
+	store.Store
+
+	mu     sync.Mutex
+	events []string
+}
+
+func (s *lockToMasterSpyStore) record(event string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.events = append(s.events, event)
+}
+
+func (s *lockToMasterSpyStore) snapshot() []string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return append([]string(nil), s.events...)
+}
+
+func (s *lockToMasterSpyStore) LockToMaster() {
+	s.record("lock")
+	s.Store.LockToMaster()
+}
+
+func (s *lockToMasterSpyStore) UnlockFromMaster() {
+	s.record("unlock")
+	s.Store.UnlockFromMaster()
+}
+
+func (s *lockToMasterSpyStore) System() store.SystemStore {
+	s.record("system")
+	return s.Store.System()
+}
+
+// Guard, not a reproduction: storetest configures no replicas, so GetReplica already
+// returns master and the race cannot be staged here. It pins that doAppMigrations
+// brackets its work in the master lock; it does not exercise the routing of individual
+// reads, as propertyService holds store handles captured before the spy wraps them.
+func TestDoAppMigrationsRunsLockedToMaster(t *testing.T) {
+	th := Setup(t)
+
+	spy := &lockToMasterSpyStore{Store: th.Server.Store()}
+	th.Server.SetStore(spy)
+	t.Cleanup(func() { th.Server.SetStore(spy.Store) })
+
+	th.Server.doAppMigrations()
+
+	events := spy.snapshot()
+	require.GreaterOrEqual(t, len(events), 3, "expected migrations to access the store between lock and unlock")
+	require.Equal(t, "lock", events[0], "migrations must lock to master before touching the store")
+	require.Equal(t, "unlock", events[len(events)-1], "migrations must release the lock once finished")
+	require.Contains(t, events[1:len(events)-1], "system", "migration store access must happen while locked to master")
 }

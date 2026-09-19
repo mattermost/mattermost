@@ -33,6 +33,7 @@ const (
 	NotifyMinimumDelay           = time.Second * 2
 	MaxUpsertRetries             = 25
 	ProfileImageSyncTimeout      = time.Second * 5
+	SyncRetryDelay               = time.Second * 15
 	// Default value for MaxMembersPerBatch is defined in config.go as ConnectedWorkspacesSettingsDefaultMemberSyncBatchSize
 )
 
@@ -280,7 +281,7 @@ func (scs *Service) onConnectionStateChange(rc *model.RemoteCluster, online bool
 
 	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Remote cluster connection status changed",
 		mlog.String("remote", rc.DisplayName),
-		mlog.String("remoteId", rc.RemoteId),
+		mlog.String("remote_id", rc.RemoteId),
 		mlog.Bool("online", online),
 	)
 }
@@ -454,7 +455,7 @@ func (scs *Service) scheduleGlobalUserSync(rc *model.RemoteCluster) {
 
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Scheduled global user sync task for remote",
 			mlog.String("remote", rc.DisplayName),
-			mlog.String("remoteId", rc.RemoteId),
+			mlog.String("remote_id", rc.RemoteId),
 		)
 	}()
 }

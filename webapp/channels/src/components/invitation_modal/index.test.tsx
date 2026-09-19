@@ -274,4 +274,22 @@ describe('mapStateToProps', () => {
         const props = mapStateToProps(testState, {});
         expect(props.canInviteGuestsWithMagicLink).toBe(false);
     });
+
+    test('normalizes an unknown profile lock setting to none', () => {
+        const testState = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                general: {
+                    ...initialState.entities.general,
+                    config: {
+                        ...initialState.entities.general.config,
+                        LockProfileFieldsForEmailUsers: 'unexpected',
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        expect(mapStateToProps(testState, {}).lockProfileFieldsForEmailUsers).toBe('none');
+    });
 });

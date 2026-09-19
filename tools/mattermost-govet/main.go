@@ -16,12 +16,14 @@ import (
 	"github.com/mattermost/mattermost/tools/mattermost-govet/immut"
 	"github.com/mattermost/mattermost/tools/mattermost-govet/inconsistentReceiverName"
 	"github.com/mattermost/mattermost/tools/mattermost-govet/license"
+	"github.com/mattermost/mattermost/tools/mattermost-govet/mlogFieldNaming"
 	"github.com/mattermost/mattermost/tools/mattermost-govet/mutexLock"
 	"github.com/mattermost/mattermost/tools/mattermost-govet/noSelectStar"
 	"github.com/mattermost/mattermost/tools/mattermost-govet/openApiSync"
 	"github.com/mattermost/mattermost/tools/mattermost-govet/pointerToSlice"
 	"github.com/mattermost/mattermost/tools/mattermost-govet/rawSql"
 	"github.com/mattermost/mattermost/tools/mattermost-govet/requestCtxNaming"
+	"github.com/mattermost/mattermost/tools/mattermost-govet/sortSlices"
 	"github.com/mattermost/mattermost/tools/mattermost-govet/structuredLogging"
 	"github.com/mattermost/mattermost/tools/mattermost-govet/tFatal"
 	"github.com/mattermost/mattermost/tools/mattermost-govet/wraperrors"
@@ -33,6 +35,7 @@ func main() {
 		license.Analyzer,
 		license.EEAnalyzer,
 		structuredLogging.Analyzer,
+		mlogFieldNaming.Analyzer,
 		// appErrorWhere.Analyzer,
 		tFatal.Analyzer,
 		equalLenAsserts.Analyzer,
@@ -53,5 +56,6 @@ func main() {
 		noSelectStar.Analyzer,
 		requestCtxNaming.Analyzer,
 		concurrentIndex.Analyzer,
+		sortSlices.Analyzer,
 	)
 }

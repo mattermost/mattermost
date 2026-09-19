@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import ReactDOM from 'react-dom';
 import ReactDOMClient from 'react-dom/client';
 
 import {logError, LogErrorBarMode} from 'mattermost-redux/actions/errors';
@@ -31,7 +30,9 @@ declare global {
 // This runs before we start to render anything.
 function preRenderSetup(onPreRenderSetupReady: () => void) {
     window.onerror = (msg, url, line, column, error) => {
-        if (msg === 'ResizeObserver loop limit exceeded') {
+        // Benign Chromium ResizeObserver noise (Monaco automaticLayout, etc.).
+        // Covers both "loop limit exceeded" and "loop completed with undelivered notifications."
+        if (typeof msg === 'string' && msg.startsWith('ResizeObserver loop')) {
             return;
         }
 
@@ -56,21 +57,7 @@ function preRenderSetup(onPreRenderSetupReady: () => void) {
 function renderReactRootComponent() {
     const container = document.getElementById('root')!;
 
-    if (localStorage.getItem('enable_concurrent_react_experimental') === 'true') {
-        // eslint-disable-next-line no-console
-        console.log(
-            'Enabling concurrent React 18. To disable this, go to Settings > Advanced > Enable Concurrent React ' +
-            '(Experimental) or clear your browser storage.',
-        );
-
-        // Enable this experimentally since it may cause other issues
-        ReactDOMClient.createRoot(container).render(<App/>);
-    } else {
-        // We're using React 18, but we're using the deprecated way of starting React because ReactDOM.createRoot enables
-        // new features such as automatic batching which breaks some components. This will need to be changed in the future
-        // because this method of starting the app will be removed in React 19.
-        ReactDOM.render(<App/>, container);
-    }
+    ReactDOMClient.createRoot(container).render(<App/>);
 }
 
 /**

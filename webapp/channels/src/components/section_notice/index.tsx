@@ -13,8 +13,9 @@ import type {SectionNoticeButtonProp} from './types';
 import './section_notice.scss';
 
 type Props = {
-    title: string | React.ReactElement;
+    title: string | React.ReactElement<any>;
     text?: string;
+    children?: React.ReactNode;
     primaryButton?: SectionNoticeButtonProp;
     secondaryButton?: SectionNoticeButtonProp;
     tertiaryButton?: SectionNoticeButtonProp;
@@ -37,6 +38,7 @@ const iconByType = {
 const SectionNotice = ({
     title,
     text,
+    children,
     primaryButton,
     secondaryButton,
     tertiaryButton,
@@ -57,6 +59,7 @@ const SectionNotice = ({
                 <div className='sectionNoticeBody'>
                     <h4 className={classNames('sectionNoticeTitle', {welcome: type === 'welcome', noText: !text})}>{title}</h4>
                     {text && <Markdown message={text}/>}
+                    {children}
                     {hasButtons && (
                         <div className='sectionNoticeActions'>
                             {primaryButton &&

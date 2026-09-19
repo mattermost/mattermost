@@ -148,6 +148,43 @@ describe('components/global/product_switcher', () => {
         expect(container).toMatchSnapshot();
     });
 
+    it('hides a team-scoped product when there is no current team', () => {
+        const state = {
+            ...baseState,
+            views: {...baseState.views, productMenu: {switcherOpen: true}},
+        };
+
+        const globalProduct = TestHelper.makeProduct('Boards');
+        const teamScopedProduct = {...TestHelper.makeProduct('Spaces'), switcherLinkURL: '/spaces', isTeamScoped: true};
+        jest.spyOn(productUtils, 'useProducts').mockReturnValue([globalProduct, teamScopedProduct]);
+
+        renderWithContext(<ProductMenu/>, state);
+
+        expect(screen.getByText('Boards')).toBeInTheDocument();
+        expect(screen.queryByText('Spaces')).not.toBeInTheDocument();
+        expect(screen.getAllByRole('menuitem')).toHaveLength(2);
+    });
+
+    it('shows a team-scoped product with a team-prefixed destination when there is a current team', () => {
+        const team = TestHelper.getTeamMock({id: 'team1', name: 'myteam'});
+        const state = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                teams: {currentTeamId: 'team1', teams: {team1: team}},
+            },
+            views: {...baseState.views, productMenu: {switcherOpen: true}},
+        };
+
+        const teamScopedProduct = {...TestHelper.makeProduct('Spaces'), switcherLinkURL: '/spaces', isTeamScoped: true};
+        jest.spyOn(productUtils, 'useProducts').mockReturnValue([teamScopedProduct]);
+
+        const {container} = renderWithContext(<ProductMenu/>, state);
+
+        expect(screen.getByText('Spaces')).toBeInTheDocument();
+        expect(container.querySelector('#product-menu-item-Spaces')).toHaveAttribute('href', '/myteam/spaces');
+    });
+
     it('should have an active button state when the switcher menu is open', () => {
         const state = {
             ...baseState,
