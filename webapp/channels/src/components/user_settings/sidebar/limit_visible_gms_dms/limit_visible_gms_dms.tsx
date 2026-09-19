@@ -42,6 +42,10 @@ const limits: Limit[] = [
     {value: 15, label: '15'},
     {value: 20, label: '20'},
     {value: 40, label: '40'},
+    {value: 60, label: '60'},
+    {value: 80, label: '80'},
+    {value: 100, label: '100'},
+    {value: 120, label: '120'},
 ];
 
 export default class LimitVisibleGMsDMs extends React.PureComponent<Props, State> {
