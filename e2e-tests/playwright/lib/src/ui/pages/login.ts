@@ -121,7 +121,7 @@ export default class LoginPage {
         const button = this.oauthLoginButton(name);
         await expect(button).toBeVisible();
         const escapedPath = path.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        await expect(button).toHaveAttribute('href', new RegExp(`${escapedPath}(?:\\?extra=expired)?$`));
+        await expect(button).toHaveAttribute('href', new RegExp(`^${escapedPath}(?:\\?extra=expired)?$`));
         if (color) {
             const rgb = hexToRgb(color);
             await expect(button).toHaveCSS('color', rgb);
