@@ -198,6 +198,54 @@
         width: 100%;
     }
 
+    &__users {
+        width: 100%;
+        min-width: 0;
+
+        .UserMultiSelector {
+            .UserMultiSelector__control {
+                min-height: 28px;
+                border: none !important;
+                background: transparent;
+                box-shadow: none !important;
+                color: var(--center-channel-color);
+            }
+
+            .UserMultiSelector__value-container {
+                padding: 0 8px;
+                gap: 4px;
+            }
+
+            .UserMultiSelector__indicators {
+                height: 28px;
+            }
+
+            .UserMultiSelector__single-value,
+            .UserMultiSelector__input-container,
+            .UserMultiSelector__input {
+                color: var(--center-channel-color);
+            }
+        }
+    }
+
+    &__userPlaceholder {
+        display: flex;
+        align-items: center;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        gap: 6px;
+
+        i.icon.icon-account-outline {
+            width: 20px;
+            min-width: 20px;
+            height: 20px;
+            padding: 0;
+            border-radius: 50%;
+            margin: 0;
+            background: rgba(var(--center-channel-color-rgb), 0.12);
+            font-size: 12px;
+        }
+    }
+
     &__trailing {
         display: flex;
         align-items: center;
@@ -253,4 +301,20 @@
             margin-block: 0;
         }
     }
+}
+
+/*
+ * react-select portals its menu to the body, so the menu leaves the modal's
+ * stacking context altogether and `z-index` is the only thing keeping it in
+ * front. `selectable_user_property_renderer.scss` pins every `UserSelector`
+ * menu at 22, which is far under the modal's 1050 (`--z-index-modal`) — left
+ * alone, the user picker's menu opens *behind* the modal it belongs to.
+ *
+ * Raised only while this modal is mounted, rather than globally, because the
+ * 22 is right for the surfaces that rule was written for. The direct
+ * equivalent is `channel_attributes_form.tsx:27-32`, which does it through
+ * react-select's `styles` prop; `UserSelector` does not expose one.
+ */
+body:has(.PostAttributesModal) .UserMultiSelector__menu-portal {
+    z-index: calc(var(--z-index-modal) + 1) !important;
 }

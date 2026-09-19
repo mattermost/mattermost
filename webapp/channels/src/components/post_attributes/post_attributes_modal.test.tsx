@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import type {Post} from '@mattermost/types/posts';
-import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
+import type {FieldType, PropertyField, PropertyValue} from '@mattermost/types/properties';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import PropertyTypes from 'mattermost-redux/action_types/properties';
@@ -17,6 +17,52 @@ import {TestHelper} from 'utils/test_helper';
 import type {GlobalState} from 'types/store';
 
 import PostAttributesModal from './post_attributes_modal';
+
+/*
+ * The user picker is stubbed, the way `content_reviewers.test.tsx` stubs it:
+ * react-select's async menu needs a debounce, a profile search and a portal to
+ * reach a selectable option, none of which says anything about what this modal
+ * writes. The stub keeps the real contract — `singleSelectOnChange` hands back
+ * one id, `multiSelectOnChange` hands back the whole array, and both read their
+ * current value from the `*InitialValue` props — and the row suite renders the
+ * real component to keep the stub honest about that wiring.
+ */
+type UserSelectorStubProps = {
+    id: string;
+    isMulti: boolean;
+    disabled?: boolean;
+    singleSelectInitialValue?: string;
+    singleSelectOnChange?: (userId: string) => void;
+    multiSelectInitialValue?: string[];
+    multiSelectOnChange?: (userIds: string[]) => void;
+};
+
+jest.mock('components/admin_console/content_flagging/user_multiselector/user_multiselector', () => ({
+    __esModule: true,
+    UserSelector: ({id, isMulti, disabled, singleSelectInitialValue, singleSelectOnChange, multiSelectInitialValue, multiSelectOnChange}: UserSelectorStubProps) => {
+        const stored = isMulti ? (multiSelectInitialValue ?? []) : [singleSelectInitialValue ?? ''];
+
+        return (
+            <div data-testid={`user-selector-${id}`}>
+                <span data-testid={`${id}-value`}>{stored.filter(Boolean).join(',')}</span>
+                <button
+                    data-testid={`${id}-pick`}
+                    disabled={disabled}
+                    onClick={() => (isMulti ? multiSelectOnChange?.([...(multiSelectInitialValue ?? []), 'user_carol']) : singleSelectOnChange?.('user_carol'))}
+                >
+                    {'pick'}
+                </button>
+                <button
+                    data-testid={`${id}-deselect`}
+                    disabled={disabled}
+                    onClick={() => (isMulti ? multiSelectOnChange?.((multiSelectInitialValue ?? []).slice(0, -1)) : singleSelectOnChange?.(''))}
+                >
+                    {'deselect'}
+                </button>
+            </div>
+        );
+    },
+}));
 
 const GROUP_ID = 'group_id';
 const CHANNEL_ID = 'channel_id';
@@ -442,6 +488,101 @@ describe('PostAttributesModal', () => {
         });
 
         await waitFor(() => expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveTextContent('UNCLASSIFIED'));
+    });
+
+    describe('the user controls', () => {
+        const userField = makeField({id: 'field_user', name: 'reviewer', type: 'user', attrs: {display_name: 'Reviewer'}});
+        const multiuserField = makeField({id: 'field_multiuser', name: 'reviewers', type: 'multiuser', attrs: {display_name: 'Reviewers'}});
+
+        test('picking a user writes one item carrying a single id', async () => {
+            patchSpy.mockResolvedValue([]);
+
+            renderModal([userField], [makeValue({field_id: 'field_user', value: 'user_alice'})]);
+
+            await userEvent.click(screen.getByTestId('postAttributeValueUser-field_user-pick'));
+
+            await waitFor(() => expect(patchSpy).toHaveBeenCalledTimes(1));
+            expect(patchSpy).toHaveBeenCalledWith(
+                'post_attributes',
+                'post',
+                POST_ID,
+                [{field_id: 'field_user', value: 'user_carol'}],
+            );
+        });
+
+        test('picking a user for a multiuser field writes one item carrying the whole array', async () => {
+            patchSpy.mockResolvedValue([]);
+
+            renderModal([multiuserField], [makeValue({field_id: 'field_multiuser', value: ['user_alice']})]);
+
+            await userEvent.click(screen.getByTestId('postAttributeValueUser-field_multiuser-pick'));
+
+            await waitFor(() => expect(patchSpy).toHaveBeenCalledTimes(1));
+            expect(patchSpy).toHaveBeenCalledWith(
+                'post_attributes',
+                'post',
+                POST_ID,
+                [{field_id: 'field_multiuser', value: ['user_alice', 'user_carol']}],
+            );
+        });
+
+        test('deselecting one user of a multiuser writes the remaining array', async () => {
+            patchSpy.mockResolvedValue([]);
+
+            renderModal([multiuserField], [makeValue({field_id: 'field_multiuser', value: ['user_alice', 'user_bob']})]);
+
+            await userEvent.click(screen.getByTestId('postAttributeValueUser-field_multiuser-deselect'));
+
+            await waitFor(() => expect(patchSpy).toHaveBeenCalledTimes(1));
+            expect(patchSpy).toHaveBeenCalledWith(
+                'post_attributes',
+                'post',
+                POST_ID,
+                [{field_id: 'field_multiuser', value: ['user_alice']}],
+            );
+        });
+
+        // No staged value, on the two controls that arrived last. The picker
+        // reads the slice, so an in-flight write leaves it showing what is
+        // stored — staging here would show `user_carol` before the server agreed.
+        test('the row stays disabled and the picker keeps the stored value while a write is in flight', async () => {
+            let resolveWrite: (values: Array<PropertyValue<unknown>>) => void = () => {};
+            patchSpy.mockReturnValue(new Promise((resolve) => {
+                resolveWrite = resolve;
+            }));
+
+            renderModal([userField], [makeValue({id: 'value_user', field_id: 'field_user', value: 'user_alice'})]);
+
+            await userEvent.click(screen.getByTestId('postAttributeValueUser-field_user-pick'));
+
+            await waitFor(() => expect(screen.getByTestId('postAttributeValueUser-field_user-pick')).toBeDisabled());
+            expect(screen.getByTestId('postAttributeValueUser-field_user-value')).toHaveTextContent('user_alice');
+            expect(screen.getByTestId('post-attribute-clear-reviewer')).toBeDisabled();
+
+            await act(async () => {
+                resolveWrite([makeValue({id: 'value_user', field_id: 'field_user', value: 'user_carol', update_at: 2})]);
+            });
+
+            await waitFor(() => expect(screen.getByTestId('postAttributeValueUser-field_user-value')).toHaveTextContent('user_carol'));
+            expect(screen.getByTestId('postAttributeValueUser-field_user-pick')).not.toBeDisabled();
+        });
+
+        // Omitted rather than disabled again, for the two types that could not
+        // reach a locked row until they had controls of their own.
+        test.each([
+            ['user', 'field_user', 'reviewer', 'user_alice'],
+            ['multiuser', 'field_multiuser', 'reviewers', ['user_alice', 'user_bob']],
+        ])('a locked %s row renders the padlock, no picker and no trash button', (type, fieldId, name, stored) => {
+            patchSpy.mockResolvedValue([]);
+
+            const field = makeField({id: fieldId, name, type: type as FieldType, attrs: {display_name: name}, permission_values: 'none'});
+
+            renderModal([field], [makeValue({field_id: fieldId, value: stored})]);
+
+            expect(screen.queryByTestId(`user-selector-postAttributeValueUser-${fieldId}`)).not.toBeInTheDocument();
+            expect(screen.queryByTestId(`post-attribute-clear-${name}`)).not.toBeInTheDocument();
+            expect(screen.getByRole('img', {name: 'This is a system-level property and cannot be modified.'})).toBeInTheDocument();
+        });
     });
 
     test('a multiselect toggles one option without closing the menu', async () => {

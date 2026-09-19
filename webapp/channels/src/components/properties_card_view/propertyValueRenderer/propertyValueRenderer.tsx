@@ -15,6 +15,7 @@ import type {
 } from 'components/properties_card_view/properties_card_view';
 
 import ChannelPropertyRenderer from './channel_property_renderer/channel_property_renderer';
+import {toValueList} from './multi_value_utils';
 import OptionPropertyRenderer from './option_property_renderer/option_property_renderer';
 import PostPreviewPropertyRenderer from './post_preview_property_renderer/post_preview_property_renderer';
 import TeamPropertyRenderer from './team_property_renderer/team_property_renderer';
@@ -48,6 +49,28 @@ export default function PropertyValueRenderer({field, value, metadata, maxItems}
                 value={value}
                 metadata={metadata as UserPropertyMetadata}
             />
+        );
+
+    // One `UserPropertyRenderer` per stored id, capped the same way the
+    // option-bearing family is. `toValueList` applies the cap and already
+    // normalises a bare value into a one-element list, so a `multiuser` field
+    // holding a single id behaves as `user` does.
+    case 'multiuser':
+        return (
+            <>
+                {toValueList(value.value, maxItems).map((userId, index) => (
+                    <UserPropertyRenderer
+
+                        // Indexed, because nothing stops a stored array naming
+                        // the same user twice and two identical keys would make
+                        // React drop one of the two slots the budget paid for.
+                        key={`${index}:${String(userId)}`}
+                        field={field}
+                        value={{...value, value: userId}}
+                        metadata={metadata as UserPropertyMetadata}
+                    />
+                ))}
+            </>
         );
 
     // The whole option-bearing family shares one renderer. `resolveOptionChips`

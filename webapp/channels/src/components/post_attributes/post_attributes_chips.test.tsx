@@ -9,6 +9,7 @@ import type {FieldType, PropertyField, PropertyValue} from '@mattermost/types/pr
 
 import {act, fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 import {RootHtmlPortalId} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
 
 import PostAttributesChips from './post_attributes_chips';
 
@@ -58,6 +59,9 @@ function makeValue(overrides: Partial<PropertyValue<unknown>> = {}): PropertyVal
     };
 }
 
+const alice = TestHelper.getUserMock({id: 'user_alice', username: 'alice'});
+const bob = TestHelper.getUserMock({id: 'user_bob', username: 'bob'});
+
 function makeState(fields: PropertyField[], values: Array<PropertyValue<unknown>>) {
     const byId: Record<string, PropertyField> = {};
     fields.forEach((f) => {
@@ -74,6 +78,14 @@ function makeState(fields: PropertyField[], values: Array<PropertyValue<unknown>
             channels: {
                 channels: {
                     [CHANNEL_ID]: {id: CHANNEL_ID, team_id: TEAM_ID},
+                },
+            },
+            general: {config: {}, license: {}},
+            preferences: {myPreferences: {}},
+            users: {
+                profiles: {
+                    [alice.id]: alice,
+                    [bob.id]: bob,
                 },
             },
             properties: {
@@ -354,16 +366,13 @@ describe('PostAttributesChips', () => {
         });
     });
 
-    // `PropertyValueRenderer` draws nothing for these a set value of either type
+    // `PropertyValueRenderer` draws nothing for `date`, so a set value of that type
     // must be indistinguishable from an unset one, right down to the row not mounting.
     // Otherwise the post carries an empty flex container with its own vertical margin.
     describe('a field type with no renderer', () => {
-        test.each([
-            ['date', 'date', 1642694400000],
-            ['multiuser', 'multiuser', ['user_1', 'user_2']],
-        ])('renders no row when a %s field is the post only attribute', (_label, type, raw) => {
-            const fields = [makeField({id: 'f_a', name: 'alpha', type: type as FieldType})];
-            const values = [makeValue({id: 'v_a', field_id: 'f_a', value: raw})];
+        test('renders no row when a date field is the post only attribute', () => {
+            const fields = [makeField({id: 'f_a', name: 'alpha', type: 'date' as FieldType})];
+            const values = [makeValue({id: 'v_a', field_id: 'f_a', value: 1642694400000})];
 
             renderWithContext(
                 <PostAttributesChips
@@ -399,6 +408,75 @@ describe('PostAttributesChips', () => {
             // Both selects fit. Counting the date would show only SECRET, with a
             // blank second slot and a +1 nobody could account for.
             expect(screen.getAllByTestId('select-property').map((chip) => chip.textContent)).toEqual(['SECRET', 'UNCLASSIFIED']);
+            expect(screen.queryByTestId('post-attributes-overflow')).not.toBeInTheDocument();
+        });
+    });
+
+    describe('a multiuser field', () => {
+        test('renders one chip per stored user', () => {
+            const fields = [makeField({id: 'f_rev', name: 'reviewers', type: 'multiuser' as FieldType, attrs: {}})];
+            const values = [makeValue({id: 'v_rev', field_id: 'f_rev', value: [alice.id, bob.id]})];
+
+            renderWithContext(
+                <PostAttributesChips
+                    post={post}
+                    channel={channel}
+                />,
+                makeState(fields, values),
+            );
+
+            expect(screen.getAllByTestId('user-property')).toHaveLength(2);
+            expect(screen.getByTestId('post-attributes-chips')).toHaveTextContent('alice');
+            expect(screen.getByTestId('post-attributes-chips')).toHaveTextContent('bob');
+        });
+
+        test('spends one slot per user and counts the rest into +N', () => {
+            const fields = [
+                makeField({id: 'f_class', name: 'classification', attrs: {options: OPTIONS, sort_order: 10}}),
+                makeField({id: 'f_rev', name: 'reviewers', type: 'multiuser' as FieldType, attrs: {sort_order: 20}}),
+            ];
+            const values = [
+                makeValue({id: 'v_class', field_id: 'f_class', value: 'opt_secret'}),
+                makeValue({id: 'v_rev', field_id: 'f_rev', value: [alice.id, bob.id, 'user_carol']}),
+            ];
+
+            renderWithContext(
+                <PostAttributesChips
+                    post={post}
+                    channel={channel}
+                />,
+                makeState(fields, values),
+            );
+
+            // One slot left after the select, so exactly one user is drawn —
+            // without `maxItems` all three would render inside that one slot.
+            expect(screen.getAllByTestId('select-property').map((chip) => chip.textContent)).toEqual(['SECRET']);
+            expect(screen.getAllByTestId('user-property')).toHaveLength(1);
+
+            // The two users nobody can see, counted as two.
+            expect(screen.getByTestId('post-attributes-overflow')).toHaveTextContent('+2');
+        });
+
+        // A user id resolves asynchronously, so a count taken at allocation
+        // time cannot tell a deleted user from an unfetched one. The
+        // slot is kept and the placeholder is drawn rather than the row shrinking
+        // under the user after the fact.
+        test('keeps the slot of a user that does not resolve, and renders the placeholder', () => {
+            const fields = [makeField({id: 'f_rev', name: 'reviewers', type: 'multiuser' as FieldType, attrs: {}})];
+            const values = [makeValue({id: 'v_rev', field_id: 'f_rev', value: [alice.id, 'user_deleted']})];
+
+            renderWithContext(
+                <PostAttributesChips
+                    post={post}
+                    channel={channel}
+                />,
+                makeState(fields, values),
+            );
+
+            expect(screen.getAllByTestId('user-property')).toHaveLength(2);
+            expect(screen.getByTestId('post-attributes-chips')).toHaveTextContent('alice');
+
+            expect(screen.getByText('Someone')).toBeInTheDocument();
             expect(screen.queryByTestId('post-attributes-overflow')).not.toBeInTheDocument();
         });
     });

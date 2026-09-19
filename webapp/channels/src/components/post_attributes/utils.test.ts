@@ -131,11 +131,29 @@ describe('chipCount', () => {
         expect(chipCount(makeField({type: 'rank'}), makeValue('WITHDRAWN'))).toBe(0);
     });
 
-    it.each([
-        ['date', 'date', 1642694400000],
-        ['multiuser', 'multiuser', ['user_1', 'user_2', 'user_3']],
-    ])('is zero for a set %s field, which has no renderer', (_label, type, raw) => {
-        expect(chipCount(makeField({type: type as FieldType}), makeValue(raw))).toBe(0);
+    it('is zero for a set date field, which has no renderer', () => {
+        expect(chipCount(makeField({type: 'date' as FieldType}), makeValue(1642694400000))).toBe(0);
+    });
+
+    /*
+     * One slot per stored id, where the option branch counts only the entries
+     * that still resolve. The asymmetry is deliberate: an option resolves
+     * synchronously against the field, a user id does not, so a count taken now
+     * cannot tell a deleted user from one whose profile has not arrived.
+     */
+    it('counts every stored entry of a multiuser, whether or not the user resolves', () => {
+        const field = makeField({type: 'multiuser' as FieldType});
+
+        expect(chipCount(field, makeValue(['user_1', 'user_2', 'user_3']))).toBe(3);
+        expect(chipCount(field, makeValue(['user_1']))).toBe(1);
+
+        // No profile fixture is loaded here at all, so all three ids are
+        // unresolvable — and all three still count.
+        expect(chipCount(field, makeValue(['nobody_1', 'nobody_2']))).toBe(2);
+
+        // A bare value normalises to a one-entry list; an empty one is unset.
+        expect(chipCount(field, makeValue('user_1'))).toBe(1);
+        expect(chipCount(field, makeValue([]))).toBe(0);
     });
 
     // A field with no options has no option to resolve against, so a set value is
@@ -182,12 +200,20 @@ describe('isChipVisible', () => {
         expect(isChipVisible(field, makeValue(['WITHDRAWN']))).toBe(false);
     });
 
-    it.each([
-        ['date', 'date', 1642694400000],
-        ['multiuser', 'multiuser', ['user_1', 'user_2']],
-    ])('hides a set %s field, which has no renderer', (_label, type, raw) => {
-        expect(isChipVisible(makeField({type: type as FieldType}), makeValue(raw))).toBe(false);
-        expect(isChipVisible(makeField({type: type as FieldType, attrs: {visibility: 'always'}}), makeValue(raw))).toBe(false);
+    it('hides a set date field, which has no renderer', () => {
+        expect(isChipVisible(makeField({type: 'date' as FieldType}), makeValue(1642694400000))).toBe(false);
+        expect(isChipVisible(makeField({type: 'date' as FieldType, attrs: {visibility: 'always'}}), makeValue(1642694400000))).toBe(false);
+    });
+
+    it('shows a set multiuser field, which now has a renderer', () => {
+        const field = makeField({type: 'multiuser' as FieldType});
+
+        expect(isChipVisible(field, makeValue(['user_1', 'user_2']))).toBe(true);
+        expect(isChipVisible(makeField({type: 'multiuser' as FieldType, attrs: {visibility: 'always'}}), makeValue(['user_1']))).toBe(true);
+
+        // Still nothing to show when nothing is stored, and `hidden` still wins.
+        expect(isChipVisible(field, makeValue([]))).toBe(false);
+        expect(isChipVisible(makeField({type: 'multiuser' as FieldType, attrs: {visibility: 'hidden'}}), makeValue(['user_1']))).toBe(false);
     });
 
     it('treats an unrecognised visibility as when_set', () => {
@@ -329,7 +355,25 @@ describe('allocateChipBudget', () => {
         expect(overflow).toBe(0);
     });
 
-    it('does not let a multiuser inflate the overflow count', () => {
+    it('does not let a date inflate the overflow count', () => {
+        const attributes = [
+            visible(makeField({id: 'a'}), 'SECRET'),
+            visible(makeField({id: 'b'}), 'INTERNAL'),
+            visible(makeField({id: 'due', type: 'date'}), 1642694400000),
+        ];
+
+        const {shown, overflow} = allocateChipBudget(attributes, 2);
+
+        expect(shown.map((entry) => entry.field.id)).toEqual(['a', 'b']);
+
+        // Not +1: that one would promise a chip that can never be rendered.
+        expect(overflow).toBe(0);
+    });
+
+    // The inverted half. Five users past a spent budget are five chips the user
+    // cannot see, so `+N` has to say five — one slot per user, the same arity
+    // `multiselect` has.
+    it('counts every user of an unshown multiuser into the overflow', () => {
         const attributes = [
             visible(makeField({id: 'a'}), 'SECRET'),
             visible(makeField({id: 'b'}), 'INTERNAL'),
@@ -339,9 +383,23 @@ describe('allocateChipBudget', () => {
         const {shown, overflow} = allocateChipBudget(attributes, 2);
 
         expect(shown.map((entry) => entry.field.id)).toEqual(['a', 'b']);
+        expect(overflow).toBe(5);
+    });
 
-        // Not +5: those five would promise chips that can never be rendered.
-        expect(overflow).toBe(0);
+    // Without `multiuser` in `MULTI_VALUED_TYPES` the allocation carries no
+    // `maxItems`, and the renderer would draw all three users inside the one
+    // slot the budget paid for.
+    it('caps a multiuser that only half fits and counts the rest as overflow', () => {
+        const attributes = [
+            visible(makeField({id: 'a'}), 'SECRET'),
+            visible(makeField({id: 'reviewers', type: 'multiuser'}), ['u1', 'u2', 'u3']),
+        ];
+
+        const {shown, overflow} = allocateChipBudget(attributes, 2);
+
+        expect(shown.map((entry) => entry.field.id)).toEqual(['a', 'reviewers']);
+        expect(shown.map((entry) => entry.maxItems)).toEqual([undefined, 1]);
+        expect(overflow).toBe(2);
     });
 
     it('shows nothing for an empty list', () => {

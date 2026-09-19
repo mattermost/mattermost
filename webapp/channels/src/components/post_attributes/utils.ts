@@ -32,12 +32,13 @@ export type ChipAllocation = PostAttribute & {
     maxItems?: number;
 };
 
-const UNRENDERABLE_TYPES = new Set(['date', 'multiuser']);
+const UNRENDERABLE_TYPES = new Set(['date']);
 
 // Field types that render one chip per stored entry rather than one per field.
-// Only `multiselect` qualifies for the time being; the set is what decides which
-// allocations carry a `maxItems` cap.
-const MULTI_VALUED_TYPES = new Set(['multiselect']);
+// `multiselect` and `multiuser` both qualify; the set is what decides which
+// allocations carry a `maxItems` cap. Without the cap a field granted one
+// remaining slot would render every entry it holds inside that one slot.
+const MULTI_VALUED_TYPES = new Set(['multiselect', 'multiuser']);
 
 /**
  * The label a field carries on screen: the administrator-set display name,
@@ -115,6 +116,23 @@ export function chipCount(field: PropertyField, value?: PropertyValue<unknown>):
 
     if (supportsOptions(field)) {
         return resolveOptionChips(field, value.value).length;
+    }
+
+    /*
+     * `multiuser` counts *stored* entries, where the option branch above counts
+     * *resolvable* ones. The difference is not an oversight. An option is
+     * resolved synchronously against the field definition, so a value naming a
+     * deleted option is known to be unrenderable at count time and is dropped,
+     * rather than spending a slot on a chip that draws nothing. A user id has
+     * no synchronous equivalent: `useUser`
+     * resolves asynchronously, so "this user was deleted" and "this profile has
+     * not arrived yet" are the same state when the count is taken. Counting
+     * resolvable users would make the chip count — and the row's width — change
+     * as profiles land. So every stored id keeps its slot, and one that never
+     * resolves renders `UserProfileComponent`'s `Someone` fallback.
+     */
+    if (field.type === 'multiuser') {
+        return toValueList(value.value).length;
     }
 
     return 1;

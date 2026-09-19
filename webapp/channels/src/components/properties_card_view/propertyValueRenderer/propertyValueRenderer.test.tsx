@@ -312,11 +312,60 @@ describe('PropertyValueRenderer', () => {
         });
     });
 
+    describe('multiuser field type', () => {
+        const multiuserField = {
+            id: 'field-1',
+            name: 'Reviewers',
+            type: 'multiuser',
+            attrs: {},
+        } as unknown as PropertyField;
+
+        it('should render one UserPropertyRenderer per stored id', () => {
+            renderWithContext(
+                <PropertyValueRenderer
+                    field={multiuserField}
+                    value={{value: ['user-id-1', 'user-id-2']} as PropertyValue<string[]>}
+                />,
+            );
+
+            expect(screen.getAllByTestId('mock-user-property').map((node) => node.textContent)).
+                toEqual(['user-id-1', 'user-id-2']);
+        });
+
+        // The chip row's budget stops at the field boundary otherwise, and one
+        // multiuser holding twelve ids renders twelve chips in one slot.
+        it('should cap the list at maxItems', () => {
+            renderWithContext(
+                <PropertyValueRenderer
+                    field={multiuserField}
+                    value={{value: ['user-id-1', 'user-id-2', 'user-id-3']} as PropertyValue<string[]>}
+                    maxItems={2}
+                />,
+            );
+
+            expect(screen.getAllByTestId('mock-user-property').map((node) => node.textContent)).
+                toEqual(['user-id-1', 'user-id-2']);
+        });
+
+        // `toValueList` normalises, so a field that holds one id without an array
+        // around it behaves as `user` does rather than rendering nothing.
+        it('should render a bare value as a single entry', () => {
+            renderWithContext(
+                <PropertyValueRenderer
+                    field={multiuserField}
+                    value={{value: 'user-id-1'} as PropertyValue<string>}
+                />,
+            );
+
+            expect(screen.getAllByTestId('mock-user-property').map((node) => node.textContent)).
+                toEqual(['user-id-1']);
+        });
+    });
+
     describe('unsupported field types', () => {
         it.each([
             ['an unrecognised type', 'unsupported', 'test value'],
             ['date', 'date', 1642694400000],
-            ['multiuser', 'multiuser', ['user-id-1', 'user-id-2']],
         ])('should return null for %s', (_label, type, raw) => {
             const field = {
                 id: 'field-1',

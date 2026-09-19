@@ -1,11 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
+import {useIntl} from 'react-intl';
 
 import {CheckIcon} from '@mattermost/compass-icons/components';
 import type {PropertyField, PropertyFieldOption, PropertyValue, SelectPropertyField} from '@mattermost/types/properties';
 
+import {UserSelector} from 'components/admin_console/content_flagging/user_multiselector/user_multiselector';
 import * as Menu from 'components/menu';
 import Input from 'components/widgets/inputs/input/input';
 
@@ -24,11 +26,6 @@ type Props = {
 /**
  * The field types this module can write.
  *
- * `user` and `multiuser` are part 2 of S12 — plan 10.4's last two rows, plus
- * 10.5's `multiuser` renderer, which has to land in the same slice or the modal
- * offers a control for a value the chip row cannot draw. `date` is out until its
- * wire encoding is decided (spec D8).
- *
  * The row reads this rather than `canEdit` alone, so an unwritable *type* shows
  * its value as read-only text with no trash button instead of an empty cell.
  *
@@ -36,7 +33,7 @@ type Props = {
  * and the switch's `default` arm is unreachable while they agree, because the
  * row only mounts the control when `hasValueControl` is true.
  */
-const EDITABLE_TYPES = new Set(['select', 'rank', 'multiselect', 'text']);
+const EDITABLE_TYPES = new Set(['select', 'rank', 'multiselect', 'text', 'user', 'multiuser']);
 
 export function hasValueControl(field: PropertyField): boolean {
     return EDITABLE_TYPES.has(field.type);
@@ -46,8 +43,10 @@ export function hasValueControl(field: PropertyField): boolean {
  * The control a modal row uses to write one attribute.
  *
  * Every shape calls the same `onChange(fieldId, next)`; none of them holds a copy
- * of the stored value for display (spec D15). The text control keeps a draft of
- * what is being typed, which is not the same thing — see `TextControl`.
+ * of the stored value for display, so there is never a staged value to reconcile
+ * against the write's response or against somebody else's edit arriving over the
+ * websocket — the row reads the store, always. The text control keeps a draft of
+ * what is being typed, which is not the same thing — see `TextInput`.
  */
 export default function PostAttributeValueControl({field, value, disabled, onChange}: Props) {
     switch (field.type) {
@@ -63,9 +62,20 @@ export default function PostAttributeValueControl({field, value, disabled, onCha
             />
         );
 
+    case 'user':
+    case 'multiuser':
+        return (
+            <UserPicker
+                field={field}
+                value={value}
+                disabled={disabled}
+                onChange={onChange}
+            />
+        );
+
     case 'text':
         return (
-            <TextControl
+            <TextInput
                 key={storedText(value)}
                 field={field}
                 value={value}
@@ -187,7 +197,7 @@ function OptionMenu({field, value, disabled, onChange}: Props) {
  * Enter blurs rather than writing directly, so blur stays the single commit path
  * and Enter cannot fire a second PATCH on the way out.
  */
-function TextControl({field, value, disabled, onChange}: Props) {
+function TextInput({field, value, disabled, onChange}: Props) {
     const stored = storedText(value);
     const [draft, setDraft] = useState(stored);
 
@@ -219,5 +229,66 @@ function TextControl({field, value, disabled, onChange}: Props) {
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}
         />
+    );
+}
+
+/**
+ * A user picker, single or multi, over the same `UserSelector` the content
+ * flagging admin screens and `SelectableUserPropertyRenderer` use.
+ *
+ * Despite the prop names, `UserSelector` is controlled: it derives what it
+ * displays from `*InitialValue` on every render, not from state of its own. So
+ * the stored ids are handed straight to it and nothing is mirrored here — while
+ * a write is in flight the row still shows what the store holds, and it changes
+ * when the store does. `SelectableUserPropertyRenderer` keeps a
+ * `useState` copy; that surface has no store to read back from, and this one
+ * must not copy it.
+ *
+ * `multiuser` writes an array of ids and `user` writes a single id string,
+ * which is the same split `storedEntries`, `MULTI_VALUED_TYPES` and `chipCount`
+ * already make.
+ *
+ * The search is deliberately **unscoped** — no `searchFunc`, so `UserSelector`
+ * searches every profile the current user may see rather than the channel's
+ * members. Naming someone in a post attribute is not a claim that they can read
+ * the channel, so membership is the wrong constraint.
+ */
+function UserPicker({field, value, disabled, onChange}: Props) {
+    const {formatMessage} = useIntl();
+    const isMulti = field.type === 'multiuser';
+
+    // Memoised on the stored value rather than recomputed per render:
+    // `UserSelector` keys an effect that fetches missing profiles off this
+    // array's identity, so a fresh array every render is a dispatch every
+    // render.
+    const entries = useMemo(() => storedEntries(value), [value]);
+
+    const handleSingleChange = useCallback((userId: string) => onChange(field.id, userId), [field.id, onChange]);
+    const handleMultiChange = useCallback((userIds: string[]) => onChange(field.id, userIds), [field.id, onChange]);
+
+    const placeholder = (
+        <span className='PostAttributesModalRow__userPlaceholder'>
+            <i className='icon icon-account-outline'/>
+            {formatMessage({id: 'generic.unassigned', defaultMessage: 'Unassigned'})}
+        </span>
+    );
+
+    return (
+        <div
+            className='PostAttributesModalRow__users'
+            data-testid={`post-attribute-user-${field.name}`}
+        >
+            <UserSelector
+                id={`postAttributeValueUser-${field.id}`}
+                isMulti={isMulti}
+                disabled={disabled}
+                showDropdownIndicator={true}
+                placeholder={placeholder}
+                singleSelectInitialValue={isMulti ? undefined : entries[0]}
+                singleSelectOnChange={isMulti ? undefined : handleSingleChange}
+                multiSelectInitialValue={isMulti ? entries : undefined}
+                multiSelectOnChange={isMulti ? handleMultiChange : undefined}
+            />
+        </div>
     );
 }

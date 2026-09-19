@@ -83,11 +83,7 @@ function renderText(field: Partial<PropertyField>, value: unknown, locale = 'en'
 }
 
 describe('PostAttributeText', () => {
-    // `multiuser` cannot reach the hover card yet: it is in `UNRENDERABLE_TYPES`,
-    // so `chipCount` returns 0 and `useVisibleAttributes` drops it before the
-    // card is built. No card fixture can cover this, so it is exercised here
-    // directly, against the day S12 takes the type out of that set.
-    describe('multiuser (unreachable through useVisibleAttributes until S12)', () => {
+    describe('multiuser', () => {
         test('renders every name, joined for the locale', () => {
             renderText({}, [alice.id, bob.id]);
 

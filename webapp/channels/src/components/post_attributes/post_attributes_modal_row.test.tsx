@@ -1,15 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import fs from 'fs';
-import path from 'path';
-
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
-import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
+import type {FieldType, PropertyField, PropertyValue} from '@mattermost/types/properties';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {TestHelper} from 'utils/test_helper';
+
+import type {GlobalState} from 'types/store';
 
 import PostAttributesModalRow from './post_attributes_modal_row';
 
@@ -59,6 +60,25 @@ function makeValue(overrides: Partial<PropertyValue<unknown>> = {}): PropertyVal
     };
 }
 
+const alice = TestHelper.getUserMock({id: 'user_alice', username: 'alice'});
+const bob = TestHelper.getUserMock({id: 'user_bob', username: 'bob'});
+
+// `UserSelector` reads profiles, the license and the team list, so the user
+// controls need a store even though the row itself does not.
+const baseState: DeepPartial<GlobalState> = {
+    entities: {
+        general: {config: {}, license: {}},
+        preferences: {myPreferences: {}},
+        teams: {teams: {}},
+        users: {
+            profiles: {
+                [alice.id]: alice,
+                [bob.id]: bob,
+            },
+        },
+    },
+};
+
 function renderRow(props: Partial<React.ComponentProps<typeof PostAttributesModalRow>> = {}) {
     const onChange = props.onChange ?? jest.fn();
 
@@ -70,9 +90,20 @@ function renderRow(props: Partial<React.ComponentProps<typeof PostAttributesModa
             writing={props.writing ?? false}
             onChange={onChange}
         />,
+        baseState,
     );
 
     return onChange;
+}
+
+function userField(overrides: Partial<PropertyField> = {}): PropertyField {
+    return makeField({
+        id: 'field_user',
+        name: 'reviewer',
+        type: 'user',
+        attrs: {display_name: 'Reviewer'},
+        ...overrides,
+    });
 }
 
 describe('PostAttributesModalRow', () => {
@@ -180,15 +211,82 @@ describe('PostAttributesModalRow', () => {
         expect(onChange).toHaveBeenCalledWith('field_text', 'after');
     });
 
-    test('a user field renders its value read-only and no trash button, pending part 2', () => {
-        const field = makeField({id: 'field_user', name: 'reviewer', type: 'user', attrs: {display_name: 'Reviewer'}});
+    /*
+     * The `user` and `multiuser` controls. Rendered for real rather than
+     * mocked: these assert that the row wires the stored value
+     * into `UserSelector` and that `disabled` reaches it, which is exactly what
+     * the modal suite's stub cannot say.
+     */
+    describe('the user controls', () => {
+        test('a writable user row renders a picker showing the stored user, and a trash button', () => {
+            renderRow({
+                field: userField(),
+                value: makeValue({field_id: 'field_user', value: alice.id}),
+            });
 
-        renderRow({
-            field,
-            value: makeValue({field_id: 'field_user', value: 'user_1'}),
+            expect(screen.getByTestId('post-attribute-user-reviewer')).toBeInTheDocument();
+            expect(screen.getByRole('combobox')).toBeInTheDocument();
+            expect(screen.getByTestId('post-attribute-user-reviewer')).toHaveTextContent('alice');
+            expect(screen.getByTestId('post-attribute-clear-reviewer')).toBeInTheDocument();
         });
 
-        expect(screen.queryByTestId('post-attribute-trigger-reviewer')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('post-attribute-clear-reviewer')).not.toBeInTheDocument();
+        test('a writable multiuser row renders every stored user', () => {
+            renderRow({
+                field: userField({id: 'field_multiuser', name: 'reviewers', type: 'multiuser', attrs: {display_name: 'Reviewers'}}),
+                value: makeValue({field_id: 'field_multiuser', value: [alice.id, bob.id]}),
+            });
+
+            const control = screen.getByTestId('post-attribute-user-reviewers');
+            expect(control).toHaveTextContent('alice');
+            expect(control).toHaveTextContent('bob');
+        });
+
+        test('an unset user row renders the picker with its placeholder and no trash button', () => {
+            renderRow({field: userField(), value: undefined});
+
+            expect(screen.getByTestId('post-attribute-user-reviewer')).toBeInTheDocument();
+            expect(screen.getByText('Unassigned')).toBeInTheDocument();
+            expect(screen.queryByTestId('post-attribute-clear-reviewer')).not.toBeInTheDocument();
+        });
+
+        test.each([
+            ['user', 'reviewer', alice.id],
+            ['multiuser', 'reviewers', [alice.id, bob.id]],
+        ])('a writing %s row disables the picker and the trash button', (type, name, stored) => {
+            renderRow({
+                field: userField({id: `field_${type}`, name, type: type as FieldType, attrs: {display_name: name}}),
+                value: makeValue({field_id: `field_${type}`, value: stored}),
+                writing: true,
+            });
+
+            const picker = screen.getByTestId(`post-attribute-user-${name}`);
+            expect(picker.querySelector('input')).toBeDisabled();
+            expect(picker.querySelector('.UserMultiSelector__control--is-disabled')).toBeInTheDocument();
+            expect(screen.getByTestId(`post-attribute-clear-${name}`)).toBeDisabled();
+        });
+
+        /*
+         * Absence, not `disabled`. A locked row has no write to make,
+         * so the picker and the trash button are omitted outright rather than
+         * drawn as controls the user has to learn to ignore. The value is still
+         * readable as text.
+         */
+        test.each([
+            ['user', 'reviewer', alice.id, 'alice'],
+            ['multiuser', 'reviewers', [alice.id, bob.id], 'alice and bob'],
+        ])('a locked %s row renders the padlock, read-only text, no picker and no trash button', (type, name, stored, text) => {
+            renderRow({
+                field: userField({id: `field_${type}`, name, type: type as FieldType, attrs: {display_name: name}}),
+                value: makeValue({field_id: `field_${type}`, value: stored}),
+                canEdit: false,
+            });
+
+            expect(screen.queryByTestId(`post-attribute-user-${name}`)).not.toBeInTheDocument();
+            expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+            expect(screen.queryByTestId(`post-attribute-clear-${name}`)).not.toBeInTheDocument();
+
+            expect(screen.getByRole('img', {name: 'This is a system-level property and cannot be modified.'})).toBeInTheDocument();
+            expect(screen.getByTestId(`post-attribute-row-${name}`)).toHaveTextContent(text as string);
+        });
     });
 });
