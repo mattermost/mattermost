@@ -21,9 +21,14 @@ export async function setupMultiform(pw: PlaywrightExtended, request: APIRequest
         `Webhook test server must be reachable at ${testConfig.webhookBaseUrl}`,
     ).toBe(true);
     await setupWebhookTestServer(request, {
-        mattermostBaseUrl: testConfig.baseURL,
+        mattermostBaseUrl: testConfig.internalBaseURL,
         adminUsername: testConfig.adminUsername,
         adminPassword: testConfig.adminPassword,
+        // The webhook sidecar stores this and stamps it onto the chained step 2/3 dialogs it
+        // builds itself (see onMultistepDialogRequest) — those submit URLs are dereferenced by
+        // the Mattermost server, so they need the container-internal alias, not the host-mapped
+        // address used by the browser/test process.
+        webhookBaseUrl: testConfig.webhookInternalUrl,
     });
 
     const {adminClient, team, user} = await pw.initSetup();
@@ -38,7 +43,7 @@ export async function setupMultiform(pw: PlaywrightExtended, request: APIRequest
         auto_complete_hint: '',
         display_name: 'Multiform Dialog Test',
         description: 'Step-by-step form submission test',
-        url: `${testConfig.webhookBaseUrl}/dialog/multistep`,
+        url: `${testConfig.webhookInternalUrl}/dialog/multistep`,
     } as Command);
 
     const {channelsPage, page} = await pw.testBrowser.login(user);
