@@ -1,0 +1,14 @@
+{
+  "name": "mattermost-docs-ai",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "AI review pipeline for docs/ — persona registry, router, persona review, report.",
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.40.0",
+    "js-yaml": "^4.1.0"
+  }
+}
