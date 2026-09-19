@@ -68,7 +68,7 @@ func testAPIHandlerNoGzipMode(t *testing.T, name string, h http.Handler, token s
 	})
 }
 
-func TestAPIHandlersWithGzip(t *testing.T) {
+func TestAPIHandlersWithCompression(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
@@ -146,6 +146,31 @@ func TestAPIHandlersWithGzip(t *testing.T) {
 				tc.handler.ServeHTTP(resp, req)
 				assert.Equal(t, http.StatusOK, resp.Code)
 				assert.Equal(t, "gzip", resp.Header().Get("Content-Encoding"), "handler %s should fall back to gzip", tc.name)
+			})
+		}
+	})
+
+	t.Run("with WebserverMode == \"brotli\", the Gzip handler variants never use brotli", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.WebserverMode = "brotli" })
+
+		for _, tc := range []struct {
+			name    string
+			handler http.Handler
+		}{
+			{"ApiSessionRequiredGzip", api.APISessionRequiredGzip(handlerForGzip(t))},
+			{"ApiSessionRequiredTrustRequesterGzip", api.APISessionRequiredTrustRequesterGzip(handlerForGzip(t))},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				resp := httptest.NewRecorder()
+				req := httptest.NewRequest(http.MethodGet, "/api/v4/test", nil)
+				req.Header.Set("Accept-Encoding", "br, gzip")
+				req.Header.Set(model.HeaderAuth, "Bearer "+session.Token)
+
+				tc.handler.ServeHTTP(resp, req)
+
+				assert.Equal(t, http.StatusOK, resp.Code)
+				assert.Equal(t, "gzip", resp.Header().Get("Content-Encoding"),
+					"handler %s must fall back to gzip even when the client accepts brotli", tc.name)
 			})
 		}
 	})

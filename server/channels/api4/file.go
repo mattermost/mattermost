@@ -32,10 +32,10 @@ const maxMultipartFormDataBytes = 10 * 1024 // 10Kb
 
 func (api *API) InitFile() {
 	api.BaseRoutes.Files.Handle("", api.APISessionRequired(uploadFileStream, handlerParamFileAPI)).Methods(http.MethodPost)
-	api.BaseRoutes.File.Handle("", api.APISessionRequiredTrustRequester(getFile)).Methods(http.MethodGet, http.MethodHead)
-	api.BaseRoutes.File.Handle("/thumbnail", api.APISessionRequiredTrustRequester(getFileThumbnail)).Methods(http.MethodGet, http.MethodHead)
+	api.BaseRoutes.File.Handle("", api.APISessionRequiredTrustRequesterGzip(getFile)).Methods(http.MethodGet, http.MethodHead)
+	api.BaseRoutes.File.Handle("/thumbnail", api.APISessionRequiredTrustRequesterGzip(getFileThumbnail)).Methods(http.MethodGet, http.MethodHead)
 	api.BaseRoutes.File.Handle("/link", api.APISessionRequired(getFileLink)).Methods(http.MethodGet)
-	api.BaseRoutes.File.Handle("/preview", api.APISessionRequiredTrustRequester(getFilePreview)).Methods(http.MethodGet, http.MethodHead)
+	api.BaseRoutes.File.Handle("/preview", api.APISessionRequiredTrustRequesterGzip(getFilePreview)).Methods(http.MethodGet, http.MethodHead)
 	api.BaseRoutes.File.Handle("/info", api.APISessionRequired(getFileInfo)).Methods(http.MethodGet)
 
 	api.BaseRoutes.Team.Handle("/files/search", api.APISessionRequiredDisableWhenBusy(searchFilesInTeam)).Methods(http.MethodPost)

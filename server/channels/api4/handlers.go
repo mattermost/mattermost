@@ -60,6 +60,27 @@ func (api *API) APISessionRequired(h handlerFunc, opts ...APIHandlerOption) http
 	return compressionHandler(handler, cfg.CompressResponses(), cfg.CompressResponsesWithBrotli())
 }
 
+// APISessionRequiredGzip is APISessionRequired without brotli: large file downloads
+// (e.g. log files, invoice PDFs) compress about as well under gzip as under brotli,
+// and brotli's memory footprint scales with response size, so these stay on gzip
+// rather than paying that cost.
+func (api *API) APISessionRequiredGzip(h handlerFunc, opts ...APIHandlerOption) http.Handler {
+	handler := &web.Handler{
+		Srv:            api.srv,
+		HandleFunc:     h,
+		HandlerName:    web.GetHandlerName(h),
+		RequireSession: true,
+		TrustRequester: false,
+		RequireMfa:     true,
+		IsStatic:       false,
+		IsLocal:        false,
+	}
+	setHandlerOpts(handler, opts...)
+
+	cfg := api.srv.Config().ServiceSettings
+	return compressionHandler(handler, cfg.CompressResponses(), false)
+}
+
 // CloudAPIKeyRequired provides a handler for webhook endpoints to access Cloud installations from CWS
 func (api *API) CloudAPIKeyRequired(h handlerFunc, opts ...APIHandlerOption) http.Handler {
 	handler := &web.Handler{
@@ -156,6 +177,27 @@ func (api *API) APISessionRequiredTrustRequester(h handlerFunc, opts ...APIHandl
 
 	cfg := api.srv.Config().ServiceSettings
 	return compressionHandler(handler, cfg.CompressResponses(), cfg.CompressResponsesWithBrotli())
+}
+
+// APISessionRequiredTrustRequesterGzip is APISessionRequiredTrustRequester without
+// brotli: large file downloads (e.g. files, thumbnails, previews, exports) compress
+// about as well under gzip as under brotli, and brotli's memory footprint scales
+// with response size, so these stay on gzip rather than paying that cost.
+func (api *API) APISessionRequiredTrustRequesterGzip(h handlerFunc, opts ...APIHandlerOption) http.Handler {
+	handler := &web.Handler{
+		Srv:            api.srv,
+		HandleFunc:     h,
+		HandlerName:    web.GetHandlerName(h),
+		RequireSession: true,
+		TrustRequester: true,
+		RequireMfa:     true,
+		IsStatic:       false,
+		IsLocal:        false,
+	}
+	setHandlerOpts(handler, opts...)
+
+	cfg := api.srv.Config().ServiceSettings
+	return compressionHandler(handler, cfg.CompressResponses(), false)
 }
 
 // DisableWhenBusy provides a handler for API endpoints which should be disabled when the server is under load,

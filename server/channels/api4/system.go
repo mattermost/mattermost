@@ -54,7 +54,7 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.APIRoot.Handle("/caches/invalidate", api.APISessionRequired(invalidateCaches)).Methods(http.MethodPost)
 
 	api.BaseRoutes.APIRoot.Handle("/logs", api.APISessionRequired(getLogs)).Methods(http.MethodGet)
-	api.BaseRoutes.APIRoot.Handle("/logs/download", api.APISessionRequired(downloadLogs)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/logs/download", api.APISessionRequiredGzip(downloadLogs)).Methods(http.MethodGet)
 	api.BaseRoutes.APIRoot.Handle("/logs/query", api.APISessionRequired(queryLogs)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/logs", api.APIHandler(postLog)).Methods(http.MethodPost)
 
