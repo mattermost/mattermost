@@ -34,8 +34,7 @@ func (a *App) GetInitialLoad(rctx request.CTX, userID string, activeTeamID strin
 	baseLoadGroup.Go(func() error {
 		var appErr *model.AppError
 		baseData, appErr = a.loadExperienceSnapshot(rctx, userID, since, experienceLoadErrorKeys{
-			function:  "GetInitialLoad",
-			loadError: "app.initial_load.base_data.error",
+			function: "GetInitialLoad",
 		})
 		if appErr != nil {
 			return appErr
@@ -557,8 +556,7 @@ func (a *App) GetExperienceSync(rctx request.CTX, userID string, req *model.Expe
 	isCRT := a.IsCRTEnabledForUser(rctx, userID)
 
 	baseData, appErr := a.loadExperienceSnapshot(rctx, userID, since, experienceLoadErrorKeys{
-		function:  "GetExperienceSync",
-		loadError: "app.sync.base_data.error",
+		function: "GetExperienceSync",
 	})
 	if appErr != nil {
 		return nil, appErr

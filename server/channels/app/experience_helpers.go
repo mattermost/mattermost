@@ -65,8 +65,7 @@ type experienceLoadSnapshot struct {
 }
 
 type experienceLoadErrorKeys struct {
-	function  string
-	loadError string
+	function string
 }
 
 func (a *App) loadExperienceSnapshot(rctx request.CTX, userID string, since int64, keys experienceLoadErrorKeys) (*experienceLoadSnapshot, *model.AppError) {
@@ -146,7 +145,14 @@ func (a *App) loadExperienceSnapshot(rctx request.CTX, userID string, since int6
 		if appErr, ok := err.(*model.AppError); ok {
 			return nil, appErr
 		}
-		return nil, model.NewAppError(keys.function, keys.loadError, nil, "", http.StatusInternalServerError).Wrap(err)
+		switch keys.function {
+		case "GetInitialLoad":
+			return nil, model.NewAppError(keys.function, "app.initial_load.base_data.error", nil, "", http.StatusInternalServerError).Wrap(err)
+		case "GetExperienceSync":
+			return nil, model.NewAppError(keys.function, "app.sync.base_data.error", nil, "", http.StatusInternalServerError).Wrap(err)
+		default:
+			return nil, model.NewAppError(keys.function, "app.initial_load.base_data.error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 	}
 
 	return res, nil
