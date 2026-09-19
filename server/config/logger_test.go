@@ -385,3 +385,224 @@ func TestIsAuditLevelActive(t *testing.T) {
 		})
 	}
 }
+
+func TestIsLogPathEnforcementEnabled(t *testing.T) {
+	t.Run("nil config", func(t *testing.T) {
+		assert.False(t, IsLogPathEnforcementEnabled(nil))
+	})
+
+	t.Run("nil feature flags", func(t *testing.T) {
+		assert.False(t, IsLogPathEnforcementEnabled(&model.Config{}))
+	})
+
+	t.Run("flag off", func(t *testing.T) {
+		cfg := &model.Config{FeatureFlags: &model.FeatureFlags{}}
+		cfg.FeatureFlags.SetDefaults()
+		assert.False(t, IsLogPathEnforcementEnabled(cfg))
+	})
+
+	t.Run("flag on", func(t *testing.T) {
+		cfg := &model.Config{FeatureFlags: &model.FeatureFlags{EnforceLogPathRoot: true}}
+		assert.True(t, IsLogPathEnforcementEnabled(cfg))
+	})
+}
+
+func TestValidateLogPaths(t *testing.T) {
+	// root and outside are siblings so that neither is a path prefix of the other
+	base := t.TempDir()
+	root := filepath.Join(base, "logs")
+	require.NoError(t, os.MkdirAll(root, 0700))
+	outside := filepath.Join(base, "evil")
+	require.NoError(t, os.MkdirAll(outside, 0700))
+
+	fileTargetJSON := func(name, path string) json.RawMessage {
+		raw, err := json.Marshal(map[string]any{
+			name: map[string]any{
+				"type":    "file",
+				"levels":  []map[string]any{{"id": 2, "name": "error"}},
+				"options": map[string]any{"filename": path},
+			},
+		})
+		require.NoError(t, err)
+		return raw
+	}
+
+	// baseCfg returns a config whose every log path is inside root.
+	baseCfg := func() *model.Config {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		cfg.LogSettings.EnableFile = new(true)
+		cfg.LogSettings.FileLocation = new(root)
+		cfg.ExperimentalAuditSettings.FileEnabled = new(false)
+		cfg.ExperimentalAuditSettings.FileName = new(filepath.Join(root, "audit.log"))
+		return cfg
+	}
+
+	t.Run("nil config", func(t *testing.T) {
+		assert.NoError(t, ValidateLogPaths(nil, root))
+	})
+
+	t.Run("clean config", func(t *testing.T) {
+		cfg := baseCfg()
+		cfg.ExperimentalAuditSettings.FileEnabled = new(true)
+		cfg.LogSettings.AdvancedLoggingJSON = fileTargetJSON("ok", filepath.Join(root, "adv.log"))
+		cfg.ExperimentalAuditSettings.AdvancedLoggingJSON = fileTargetJSON("ok-audit", filepath.Join(root, "adv-audit.log"))
+
+		assert.NoError(t, ValidateLogPaths(cfg, root))
+	})
+
+	t.Run("LogSettings.FileLocation outside root", func(t *testing.T) {
+		cfg := baseCfg()
+		cfg.LogSettings.FileLocation = new(outside)
+
+		err := ValidateLogPaths(cfg, root)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "LogSettings.FileLocation")
+		assert.Contains(t, err.Error(), GetLogFileLocation(outside))
+		assert.Contains(t, err.Error(), "outside logging root")
+	})
+
+	t.Run("LogSettings.FileLocation skipped when EnableFile is false", func(t *testing.T) {
+		cfg := baseCfg()
+		cfg.LogSettings.EnableFile = new(false)
+		cfg.LogSettings.FileLocation = new(outside)
+
+		assert.NoError(t, ValidateLogPaths(cfg, root))
+	})
+
+	t.Run("LogSettings.AdvancedLoggingJSON outside root", func(t *testing.T) {
+		cfg := baseCfg()
+		cfg.LogSettings.AdvancedLoggingJSON = fileTargetJSON("evil", filepath.Join(outside, "out.log"))
+
+		err := ValidateLogPaths(cfg, root)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), `LogSettings.AdvancedLoggingJSON target "evil"`)
+		assert.Contains(t, err.Error(), filepath.Join(outside, "out.log"))
+	})
+
+	t.Run("ExperimentalAuditSettings.FileName outside root", func(t *testing.T) {
+		cfg := baseCfg()
+		cfg.ExperimentalAuditSettings.FileEnabled = new(true)
+		cfg.ExperimentalAuditSettings.FileName = new(filepath.Join(outside, "audit.log"))
+
+		err := ValidateLogPaths(cfg, root)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "ExperimentalAuditSettings.FileName")
+		assert.Contains(t, err.Error(), filepath.Join(outside, "audit.log"))
+	})
+
+	t.Run("ExperimentalAuditSettings.FileName skipped when FileEnabled is false", func(t *testing.T) {
+		cfg := baseCfg()
+		cfg.ExperimentalAuditSettings.FileEnabled = new(false)
+		cfg.ExperimentalAuditSettings.FileName = new(filepath.Join(outside, "audit.log"))
+
+		assert.NoError(t, ValidateLogPaths(cfg, root))
+	})
+
+	t.Run("ExperimentalAuditSettings.AdvancedLoggingJSON outside root", func(t *testing.T) {
+		cfg := baseCfg()
+		cfg.ExperimentalAuditSettings.AdvancedLoggingJSON = fileTargetJSON("evil-audit", filepath.Join(outside, "out.log"))
+
+		err := ValidateLogPaths(cfg, root)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), `ExperimentalAuditSettings.AdvancedLoggingJSON target "evil-audit"`)
+	})
+
+	t.Run("non-file targets are ignored", func(t *testing.T) {
+		cfg := baseCfg()
+		cfg.LogSettings.AdvancedLoggingJSON = json.RawMessage(`{"console": {"type": "console", "levels": [{"id": 2, "name": "error"}], "options": {"out": "stdout"}}}`)
+
+		assert.NoError(t, ValidateLogPaths(cfg, root))
+	})
+
+	t.Run("malformed AdvancedLoggingJSON is skipped", func(t *testing.T) {
+		cfg := baseCfg()
+		cfg.LogSettings.AdvancedLoggingJSON = json.RawMessage(`{"broken": `)
+		cfg.ExperimentalAuditSettings.AdvancedLoggingJSON = json.RawMessage(`{"broken": `)
+
+		assert.NoError(t, ValidateLogPaths(cfg, root))
+	})
+
+	t.Run("reports the first offending field in config order", func(t *testing.T) {
+		cfg := baseCfg()
+		cfg.LogSettings.FileLocation = new(outside)
+		cfg.LogSettings.AdvancedLoggingJSON = fileTargetJSON("evil", filepath.Join(outside, "out.log"))
+		cfg.ExperimentalAuditSettings.FileEnabled = new(true)
+		cfg.ExperimentalAuditSettings.FileName = new(filepath.Join(outside, "audit.log"))
+
+		err := ValidateLogPaths(cfg, root)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "LogSettings.FileLocation")
+	})
+
+	t.Run("reports a deterministic target when several in one section are bad", func(t *testing.T) {
+		raw, err := json.Marshal(map[string]any{
+			"zeta":  map[string]any{"type": "file", "levels": []map[string]any{{"id": 2, "name": "error"}}, "options": map[string]any{"filename": filepath.Join(outside, "z.log")}},
+			"alpha": map[string]any{"type": "file", "levels": []map[string]any{{"id": 2, "name": "error"}}, "options": map[string]any{"filename": filepath.Join(outside, "a.log")}},
+		})
+		require.NoError(t, err)
+
+		cfg := baseCfg()
+		cfg.LogSettings.AdvancedLoggingJSON = raw
+
+		for range 20 {
+			err := ValidateLogPaths(cfg, root)
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), `target "alpha"`, "the alphabetically first bad target should always be reported")
+		}
+	})
+}
+
+func TestValidateLogFilePathSymlinkResolution(t *testing.T) {
+	t.Run("accepts an existing file under a symlinked root", func(t *testing.T) {
+		base := t.TempDir()
+
+		realRoot := filepath.Join(base, "real-logs")
+		require.NoError(t, os.MkdirAll(realRoot, 0700))
+
+		linkedRoot := filepath.Join(base, "linked-logs")
+		require.NoError(t, os.Symlink(realRoot, linkedRoot))
+
+		logFile := filepath.Join(realRoot, "mattermost.log")
+		require.NoError(t, os.WriteFile(logFile, []byte("ok"), 0600))
+
+		// the root is reached through the symlink, the file through the real path
+		assert.NoError(t, ValidateLogFilePath(logFile, linkedRoot))
+		// ...and the other way around
+		assert.NoError(t, ValidateLogFilePath(filepath.Join(linkedRoot, "mattermost.log"), realRoot))
+	})
+
+	t.Run("rejects a not-yet-created file whose parent symlinks out of the root", func(t *testing.T) {
+		base := t.TempDir()
+
+		root := filepath.Join(base, "logs")
+		require.NoError(t, os.MkdirAll(root, 0700))
+		outside := filepath.Join(base, "evil")
+		require.NoError(t, os.MkdirAll(outside, 0700))
+
+		// a symlink inside the root pointing out of it
+		require.NoError(t, os.Symlink(outside, filepath.Join(root, "escape")))
+
+		// the file does not exist yet, so only its parent can be resolved
+		err := ValidateLogFilePath(filepath.Join(root, "escape", "out.log"), root)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "outside logging root")
+	})
+
+	t.Run("accepts a not-yet-created file in a not-yet-created subdirectory of the root", func(t *testing.T) {
+		base := t.TempDir()
+
+		root := filepath.Join(base, "logs")
+		require.NoError(t, os.MkdirAll(root, 0700))
+
+		assert.NoError(t, ValidateLogFilePath(filepath.Join(root, "nested", "deeper", "out.log"), root))
+	})
+
+	t.Run("rejects a path outside a root that does not exist yet", func(t *testing.T) {
+		base := t.TempDir()
+
+		err := ValidateLogFilePath(filepath.Join(base, "evil", "out.log"), filepath.Join(base, "missing-root"))
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "outside logging root")
+	})
+}
