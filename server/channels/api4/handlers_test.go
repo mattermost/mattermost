@@ -157,6 +157,7 @@ func TestAPIHandlersWithCompression(t *testing.T) {
 			name    string
 			handler http.Handler
 		}{
+			{"ApiHandlerGzip", api.APIHandlerGzip(handlerForGzip(t))},
 			{"ApiSessionRequiredGzip", api.APISessionRequiredGzip(handlerForGzip(t))},
 			{"ApiSessionRequiredTrustRequesterGzip", api.APISessionRequiredTrustRequesterGzip(handlerForGzip(t))},
 		} {

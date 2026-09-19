@@ -41,6 +41,27 @@ func (api *API) APIHandler(h handlerFunc, opts ...APIHandlerOption) http.Handler
 	return compressionHandler(handler, cfg.CompressResponses(), cfg.CompressResponsesWithBrotli())
 }
 
+// APIHandlerGzip is APIHandler without brotli: large file downloads (e.g. public
+// file links) compress about as well under gzip as under brotli, and brotli's
+// memory footprint scales with response size, so these stay on gzip rather than
+// paying that cost.
+func (api *API) APIHandlerGzip(h handlerFunc, opts ...APIHandlerOption) http.Handler {
+	handler := &web.Handler{
+		Srv:            api.srv,
+		HandleFunc:     h,
+		HandlerName:    web.GetHandlerName(h),
+		RequireSession: false,
+		TrustRequester: false,
+		RequireMfa:     false,
+		IsStatic:       false,
+		IsLocal:        false,
+	}
+	setHandlerOpts(handler, opts...)
+
+	cfg := api.srv.Config().ServiceSettings
+	return compressionHandler(handler, cfg.CompressResponses(), false)
+}
+
 // APISessionRequired provides a handler for API endpoints which require the user to be logged in in order for access to
 // be granted.
 func (api *API) APISessionRequired(h handlerFunc, opts ...APIHandlerOption) http.Handler {
