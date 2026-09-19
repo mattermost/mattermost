@@ -4,7 +4,7 @@
 import type {Locator, Page} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-export default class ShouldVerifyEmailPage {
+export default class VerifyEmailPage {
     readonly page: Page;
     readonly title: Locator;
     readonly message: Locator;

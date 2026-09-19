@@ -230,7 +230,7 @@ export class PlaywrightExtended {
     readonly landingLoginPage;
     readonly signupPage;
     readonly selectTeamPage;
-    readonly shouldVerifyEmailPage;
+    readonly verifyEmailPage;
     readonly resetPasswordPage;
     readonly errorPage;
 
@@ -323,7 +323,7 @@ export class PlaywrightExtended {
         this.landingLoginPage = new pages.LandingLoginPage(page, isMobile);
         this.signupPage = new pages.SignupPage(page);
         this.selectTeamPage = new pages.SelectTeamPage(page);
-        this.shouldVerifyEmailPage = new pages.ShouldVerifyEmailPage(page);
+        this.verifyEmailPage = new pages.VerifyEmailPage(page);
         this.resetPasswordPage = new pages.ResetPasswordPage(page);
         this.errorPage = new pages.ErrorPage(page);
 

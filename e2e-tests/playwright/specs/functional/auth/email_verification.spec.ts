@@ -24,11 +24,11 @@ test(
 
             // # Log in after verification is required
             await pw.loginPage.submitCredentials(user.username, user.password);
-            await pw.shouldVerifyEmailPage.toBeVisible();
+            await pw.verifyEmailPage.toBeVisible();
 
             // # Resend the verification email
-            await pw.shouldVerifyEmailPage.resendButton.click();
-            await expect(pw.shouldVerifyEmailPage.sentConfirmation).toBeVisible();
+            await pw.verifyEmailPage.resendButton.click();
+            await expect(pw.verifyEmailPage.sentConfirmation).toBeVisible();
 
             const mail = await getRecentEmail(user.email, {receivedAfter: started});
             const permalink = extractEmailLink(mail, '/do_verify_email');
