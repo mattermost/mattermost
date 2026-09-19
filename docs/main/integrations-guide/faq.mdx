@@ -41,11 +41,11 @@ Mattermost doesn't currently support the ability to attach files to a post made 
 
 Mattermost Blocks are the structured format for rich, interactive integration posts. Integrations can extend messages with text, images, buttons, menus, collapsible sections, and different layout options.
 
-Starting in Mattermost v11.10, Mattermost Blocks are the recommended replacement for [message attachments](https://developers.mattermost.com/integrate/reference/message-attachments/). They are the preferred way to create interactive messages for integrations such as [incoming webhooks](/integrations-guide/incoming-webhooks), plugins, and bot accounts.
+Starting in Mattermost v11.10, Mattermost Blocks are the recommended replacement for [message attachments](https://docs.mattermost.com/developers/integrate/reference/message-attachments/). They are the preferred way to create interactive messages for integrations such as [incoming webhooks](/integrations-guide/incoming-webhooks), plugins, and bot accounts.
 
 Legacy message attachments and other interactive message formats continue to work; clients translate them into the Mattermost Blocks format at render time. We encourage new and updated integrations to use Mattermost Blocks instead.
 
-For payload structure, block types, action handling, migration guidance, and troubleshooting, see the [Mattermost Blocks reference](https://developers.mattermost.com/integrate/reference/mm-blocks/) in the developer documentation.
+For payload structure, block types, action handling, migration guidance, and troubleshooting, see the [Mattermost Blocks reference](https://docs.mattermost.com/developers/integrate/reference/mm-blocks/) in the developer documentation.
 
 ## Where can I find existing integrations?
 
@@ -65,7 +65,7 @@ Join our [Developers channel](https://community.mattermost.com/core/channels/dev
 
 ## Can I use webhooks to be notified when new integrations are available on the Mattermost Marketplace?
 
-Yes! A [bash script](https://gist.github.com/mickmister/543a49584146af18ba5e5f82dd86ea93) is available that checks for new integrations in the Mattermost Marketplace, and triggers a post through a Mattermost [incoming webhook](https://developers.mattermost.com/integrate/webhooks/incoming/) request. The script downloads the latest listing, compares it with a locally stored version of the listing, and, if a new plugin is identified, a notification is pushed to a Mattermost channel.
+Yes! A [bash script](https://gist.github.com/mickmister/543a49584146af18ba5e5f82dd86ea93) is available that checks for new integrations in the Mattermost Marketplace, and triggers a post through a Mattermost [incoming webhook](https://docs.mattermost.com/developers/integrate/webhooks/incoming/) request. The script downloads the latest listing, compares it with a locally stored version of the listing, and, if a new plugin is identified, a notification is pushed to a Mattermost channel.
 
 ## Can I use Mattermost to add messaging functionality to my proprietary SaaS service?
 
@@ -79,4 +79,4 @@ To learn more about why we strongly believe that users and customers should alwa
 
 Yes. As an open source project, we support your ability to modify the source code for the server or web app to make changes and customizations to meet your specific needs.
 
-Learn about [forking our open source repositories](https://developers.mattermost.com/integrate/other-integrations/customization/) and [customizing the Mattermost source code](https://developers.mattermost.com/integrate/customization/customization/) for your specific operational needs.
+Learn about [forking our open source repositories](https://docs.mattermost.com/developers/integrate/customization/customization/) and [customizing the Mattermost source code](https://docs.mattermost.com/developers/integrate/customization/customization/) for your specific operational needs.
