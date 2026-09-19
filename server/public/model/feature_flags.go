@@ -175,6 +175,9 @@ type FeatureFlags struct {
 	// Gates post delivery audit logging. Enabling it requires a server restart, since it
 	// controls whether the /api/v4/delivery_tracking routes are registered.
 	PostDeliveryTracking bool
+
+	// EnableExperienceAPI gates the DDIL experience surface area.
+	EnableExperienceAPI bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -245,6 +248,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.RecurringScheduledPosts = false
 
 	f.PostDeliveryTracking = false
+
+	f.EnableExperienceAPI = false
 }
 
 // isValid rejects feature flag combinations that are no longer supported.

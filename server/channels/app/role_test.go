@@ -13,6 +13,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
@@ -482,5 +483,41 @@ func TestSendUpdatedRoleEvent(t *testing.T) {
 		role := &model.Role{Name: roleName, BuiltIn: false, SchemeId: &schemeID}
 		appErr := th.App.sendUpdatedRoleEvent(role)
 		require.NotNil(t, appErr)
+	})
+}
+
+func TestGetRolesSince(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	teamMember, appErr := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, th.BasicUser.Id)
+	require.Nil(t, appErr)
+	channelMember, appErr := th.App.GetChannelMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
+	require.Nil(t, appErr)
+	channelMembers := model.ChannelMembersWithTeamData{{ChannelMember: *channelMember}}
+
+	t.Run("since<=0 returns every referenced role unfiltered", func(t *testing.T) {
+		roles, appErr := th.App.getRolesSince(th.BasicUser, []*model.TeamMember{teamMember}, channelMembers, 0)
+		require.Nil(t, appErr)
+
+		names := make(map[string]bool, len(roles))
+		for _, r := range roles {
+			names[r.Name] = true
+		}
+		assert.True(t, names[model.SystemUserRoleId])
+		assert.True(t, names[model.TeamUserRoleId])
+		assert.True(t, names[model.ChannelUserRoleId])
+	})
+
+	t.Run("since in the future filters out every role", func(t *testing.T) {
+		roles, appErr := th.App.getRolesSince(th.BasicUser, []*model.TeamMember{teamMember}, channelMembers, model.GetMillis()+3600000)
+		require.Nil(t, appErr)
+		assert.Empty(t, roles)
+	})
+
+	t.Run("nil me and empty team/channel members still resolves without error", func(t *testing.T) {
+		roles, appErr := th.App.getRolesSince(nil, nil, nil, 0)
+		require.Nil(t, appErr)
+		assert.Empty(t, roles)
 	})
 }
