@@ -1,0 +1,71 @@
+.AttributeChip {
+    display: inline-flex;
+    overflow: hidden;
+    min-width: 0;
+    max-width: 100%;
+    align-items: center;
+    border-radius: 4px;
+
+    // A marking is a fact about the channel, not a control. Nothing here may
+    // read as interactive — the remove control is the exception, and only when
+    // a parent passes onRemove.
+    cursor: default;
+    font-family: 'Open Sans', sans-serif;
+    font-style: normal;
+    font-weight: 600;
+    text-transform: uppercase;
+    white-space: nowrap;
+
+    &--small {
+        max-width: 160px;
+        padding: 2px 4px;
+        font-size: 10px;
+        letter-spacing: 0.02em;
+        line-height: 12px;
+    }
+
+    &--medium {
+        height: 22px;
+        box-sizing: border-box;
+        padding: 4px 8px;
+        border: 1px solid transparent;
+        font-size: 10px;
+        gap: 2px;
+        letter-spacing: 0.2px;
+        line-height: 12px;
+    }
+
+    &--neutral {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgb(var(--center-channel-color-rgb));
+    }
+
+    &__value {
+        overflow: hidden;
+        min-width: 0;
+        flex: 1 1 auto;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__remove {
+        display: inline-flex;
+        width: 14px;
+        height: 14px;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: none;
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+        line-height: 0;
+        opacity: 0.56;
+
+        &:hover,
+        &:focus-visible {
+            opacity: 1;
+        }
+    }
+}

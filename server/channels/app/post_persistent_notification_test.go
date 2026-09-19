@@ -239,7 +239,7 @@ func TestForEachPersistentNotificationPost(t *testing.T) {
 		*cfg.ServiceSettings.AllowPersistentNotifications = true
 
 		fnCalled := []string{}
-		err := th.App.forEachPersistentNotificationPost([]*model.Post{post1, post2}, func(post *model.Post, _ *model.Channel, _ *model.Team, _ *MentionResults, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
+		err := th.App.forEachPersistentNotificationPost(th.Context, []*model.Post{post1, post2}, func(post *model.Post, _ *model.Channel, _ *model.Team, _ *MentionResults, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
 			fnCalled = append(fnCalled, post.Id)
 			return nil
 		})
@@ -297,7 +297,7 @@ func TestForEachPersistentNotificationPost(t *testing.T) {
 		*cfg.ServiceSettings.AllowPersistentNotifications = true
 
 		fnCalled := []string{}
-		err := th.App.forEachPersistentNotificationPost([]*model.Post{post1, post2}, func(post *model.Post, _ *model.Channel, _ *model.Team, _ *MentionResults, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
+		err := th.App.forEachPersistentNotificationPost(th.Context, []*model.Post{post1, post2}, func(post *model.Post, _ *model.Channel, _ *model.Team, _ *MentionResults, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
 			fnCalled = append(fnCalled, post.Id)
 			return nil
 		})
@@ -346,7 +346,7 @@ func TestForEachPersistentNotificationPost(t *testing.T) {
 		*cfg.ServiceSettings.AllowPersistentNotifications = true
 
 		fnCalled := []string{}
-		err := th.App.forEachPersistentNotificationPost([]*model.Post{post1}, func(post *model.Post, _ *model.Channel, _ *model.Team, _ *MentionResults, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
+		err := th.App.forEachPersistentNotificationPost(th.Context, []*model.Post{post1}, func(post *model.Post, _ *model.Channel, _ *model.Team, _ *MentionResults, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
 			fnCalled = append(fnCalled, post.Id)
 			return nil
 		})
@@ -397,7 +397,7 @@ func TestForEachPersistentNotificationPost(t *testing.T) {
 		*cfg.ServiceSettings.AllowPersistentNotifications = true
 
 		fnCalled := []string{}
-		err := th.App.forEachPersistentNotificationPost([]*model.Post{post1}, func(post *model.Post, _ *model.Channel, _ *model.Team, _ *MentionResults, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
+		err := th.App.forEachPersistentNotificationPost(th.Context, []*model.Post{post1}, func(post *model.Post, _ *model.Channel, _ *model.Team, _ *MentionResults, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
 			fnCalled = append(fnCalled, post.Id)
 			return nil
 		})
@@ -449,7 +449,7 @@ func TestSendPersistentNotificationsBotSender(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 
 		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, botUser.Id, "")
@@ -501,7 +501,7 @@ func TestSendPersistentNotificationsBotSenderNotInChannel(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 
 		// Make the bot a system admin so it can post to channels it's not a member of

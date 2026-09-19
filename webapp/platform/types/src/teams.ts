@@ -56,7 +56,22 @@ export type Team = {
      * Prefer checking `policy_actions?.membership` over {@link policy_enforced}.
      */
     policy_actions?: Record<string, boolean>;
+
+    /**
+     * True when the team's policy opts into the membership sync job's add pass,
+     * i.e. matching users are added to the team automatically.
+     */
+    policy_auto_add?: boolean;
+
+    /** @deprecated Use {@link policy_auto_add}, which this now mirrors. */
     policy_is_active?: boolean;
+
+    /**
+     * Transient, per-viewer hint set by the server on public, policy-enforced
+     * teams the requesting user qualifies to join and is not already a member of.
+     * Never set on private teams; carries no policy detail.
+     */
+    recommended?: boolean;
 };
 
 export type TeamsState = {
@@ -134,4 +149,11 @@ export type TeamInviteWithError = {
         id: string;
         message: string;
     };
+};
+
+export type MemberInviteProfile = {
+    email: string;
+    username: string;
+    first_name: string;
+    last_name: string;
 };

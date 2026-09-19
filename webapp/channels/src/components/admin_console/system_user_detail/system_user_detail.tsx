@@ -7,7 +7,7 @@ import classNames from 'classnames';
 import React, {PureComponent} from 'react';
 import type {ChangeEvent, KeyboardEvent, MouseEvent} from 'react';
 import type {IntlShape, WrappedComponentProps} from 'react-intl';
-import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
+import {FormattedList, FormattedMessage, defineMessage, injectIntl, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 import type {RouteComponentProps} from 'react-router-dom';
 import ReactSelect from 'react-select';
@@ -16,7 +16,7 @@ import {SyncIcon, PowerPlugOutlineIcon, CheckIcon, ChevronDownIcon} from '@matte
 import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ServerError} from '@mattermost/types/errors';
-import {supportsOptions, type PropertyFieldOption} from '@mattermost/types/properties';
+import {valueRefersToOptions, type PropertyFieldOption} from '@mattermost/types/properties';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
@@ -35,6 +35,9 @@ import ConfirmManageUserSettingsModal from 'components/admin_console/system_user
 import ConfirmModal from 'components/confirm_modal';
 import FormError from 'components/form_error';
 import * as Menu from 'components/menu';
+import {asGraphValueIds} from 'components/property_fields/graph';
+import {useGraphOptionNames} from 'components/property_fields/graph/use_graph_option_names';
+import {AssignmentGraphPicker} from 'components/property_fields/hierarchical_value_menu';
 import SaveButton from 'components/save_button';
 import TeamSelectorModal from 'components/team_selector_modal';
 import UserSettingsModal from 'components/user_settings/modal';
@@ -45,10 +48,10 @@ import EmailIcon from 'components/widgets/icons/email_icon';
 import ShieldOutlineIcon from 'components/widgets/icons/shield_outline_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
-import {Constants, ModalIdentifiers} from 'utils/constants';
+import {AcceptedProfileImageTypes, Constants, ModalIdentifiers} from 'utils/constants';
 import {getUserPropertyFieldLabel} from 'utils/properties';
 import {validHttpUrl} from 'utils/url';
-import {toTitleCase} from 'utils/utils';
+import {fileSizeToString, toTitleCase} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -80,11 +83,11 @@ const CPAMultiSelect: React.FC<CPAMultiSelectProps> = ({
         label: option.name,
     }));
 
-    // Transform selected values to ReactSelect format
+    // Keep assigned ids even when the option is gone; dropping them shrinks the saved value.
     const selectedOptions = selectedValues.map((selectedId) => {
         const option = options.find((opt) => opt.id === selectedId);
-        return option ? {value: option.id, label: option.name} : null;
-    }).filter((opt): opt is {value: string; label: string} => opt !== null);
+        return {value: selectedId, label: option?.name ?? selectedId};
+    });
 
     return (
         <ReactSelect
@@ -188,6 +191,141 @@ const PluginDisplayName: React.FC<PluginDisplayNameProps> = ({pluginId}) => {
     return <>{displayName}</>;
 };
 
+function GraphConfirmLabels({field, ids}: {field: UserPropertyField; ids: string[]}) {
+    const {formatMessage, formatList} = useIntl();
+    const {labelForId} = useGraphOptionNames(field, ids, {walk: true});
+
+    return formatList(ids.map((id) => {
+        const label = labelForId(id);
+        if (label.kind === 'name') {
+            return label.text;
+        }
+        if (label.kind === 'id') {
+            return id;
+        }
+        return formatMessage({
+            id: 'property_fields.hierarchical_value_menu.unavailable_value',
+            defaultMessage: 'Value unavailable',
+        });
+    }));
+}
+
+type CpaFieldManagementIndicatorProps = {
+    field: UserPropertyField;
+
+    omitLocksField: boolean;
+};
+
+const CpaFieldManagementIndicator: React.FC<CpaFieldManagementIndicatorProps> = ({field, omitLocksField}) => {
+    const pluginsById = useSelector((state: GlobalState) => state.plugins?.plugins ?? {});
+    const owners = field.attrs?.owners ?? [];
+    const hasSyncedSources = Boolean(field.attrs?.ldap || field.attrs?.saml || owners.length > 0);
+    const isProtected = Boolean(field.attrs?.protected);
+
+    if (hasSyncedSources) {
+        const ownerPills = owners.map((owner, idx) => {
+            const provenance = owner.type === 'plugin' ? (pluginsById[owner.id]?.name || owner.id) : owner.id;
+            const key = `${field.name}-owner-${owner.type}-${owner.id}-${idx}`;
+
+            let content: React.ReactNode;
+            if (owner.scopes?.length) {
+                content = (
+                    <FormattedMessage
+                        id='admin.system_properties.user_properties.table.values.owner.scoped'
+                        defaultMessage='{provenance}: {scopes}'
+                        values={{provenance, scopes: owner.scopes.join(', ')}}
+                    />
+                );
+            } else {
+                content = provenance;
+            }
+
+            return (
+                <span
+                    className='user-detail-cpa-field__chip'
+                    key={key}
+                    data-testid={`user-detail-cpa-field__owner-${field.name}-${owner.id}`}
+                >
+                    {content}
+                </span>
+            );
+        });
+
+        const syncedProperties = [
+            field.attrs?.ldap && (
+                <span
+                    className='user-detail-cpa-field__chip'
+                    key={`${field.name}-ldap`}
+                    data-testid={`user-detail-cpa-field__ldap-${field.name}`}
+                >
+                    <FormattedMessage
+                        id='admin.userManagement.userDetail.ldap'
+                        defaultMessage='AD/LDAP: {propertyName}'
+                        values={{propertyName: field.attrs.ldap}}
+                    />
+                </span>
+            ),
+            field.attrs?.saml && (
+                <span
+                    className='user-detail-cpa-field__chip'
+                    key={`${field.name}-saml`}
+                    data-testid={`user-detail-cpa-field__saml-${field.name}`}
+                >
+                    <FormattedMessage
+                        id='admin.userManagement.userDetail.saml'
+                        defaultMessage='SAML: {propertyName}'
+                        values={{propertyName: field.attrs.saml}}
+                    />
+                </span>
+            ),
+            ...ownerPills,
+        ].filter(Boolean);
+
+        return (
+            <div className='user-property-field-values__sync-indicator'>
+                <SyncIcon size={18}/>
+                <span>
+                    <FormattedMessage
+                        id='admin.system_properties.user_properties.table.values.synced_with'
+                        defaultMessage='Synced with: {syncedProperties}'
+                        values={{syncedProperties: <FormattedList value={syncedProperties}/>}}
+                    />
+                </span>
+            </div>
+        );
+    }
+
+    if (isProtected) {
+        return (
+            <div className='user-property-field-values__sync-indicator'>
+                <PowerPlugOutlineIcon size={18}/>
+                <span>
+                    <FormattedMessage
+                        id='admin.userManagement.userDetail.managedByPlugin'
+                        defaultMessage='Managed by plugin: {pluginId}'
+                        values={{
+                            pluginId: <PluginDisplayName pluginId={field.attrs?.source_plugin_id}/>,
+                        }}
+                    />
+                </span>
+            </div>
+        );
+    }
+
+    if (omitLocksField) {
+        return (
+            <div className='user-property-field-values__sync-indicator'>
+                <FormattedMessage
+                    id='admin.userManagement.userDetail.field_options_omitted'
+                    defaultMessage='This field has too many options to be edited here.'
+                />
+            </div>
+        );
+    }
+
+    return null;
+};
+
 export type Params = {
     user_id?: UserProfile['id'];
 };
@@ -198,6 +336,8 @@ export type State = {
     user?: UserProfile;
     usernameField: string;
     usernameError: string | null;
+    firstNameField: string;
+    lastNameField: string;
     emailField: string;
     emailError: string | null;
     authDataField: string;
@@ -211,6 +351,8 @@ export type State = {
     isLoading: boolean;
     error: string | null;
     isSaving: boolean;
+    isUploadingPicture: boolean;
+    pictureError: string | null;
     teams: TeamMembership[];
     teamIds: Array<Team['id']>;
     refreshTeams: boolean;
@@ -226,6 +368,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         this.state = {
             usernameField: '',
             usernameError: null,
+            firstNameField: '',
+            lastNameField: '',
             emailField: '',
             emailError: null,
             authDataField: '',
@@ -239,6 +383,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             isLoading: false,
             error: null,
             isSaving: false,
+            isUploadingPicture: false,
+            pictureError: null,
             teams: [],
             teamIds: [],
             refreshTeams: true,
@@ -264,6 +410,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     user: userResult.data,
                     emailField: userResult.data.email, // Set emailField to the email of the user for editing purposes
                     usernameField: userResult.data.username,
+                    firstNameField: userResult.data.first_name,
+                    lastNameField: userResult.data.last_name,
                     authDataField: userResult.data.auth_data || '',
                     customProfileAttributeValues: cpaValues,
                     originalCpaValues: {...cpaValues}, // Deep copy for change tracking
@@ -337,10 +485,18 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
         const emailChanged = state.emailField !== state.user.email;
         const usernameChanged = state.usernameField !== state.user.username;
+        const nameChanged = this.hasNameChanges(state);
         const authDataChanged = state.authDataField !== (state.user.auth_data || '');
         const cpaChanged = this.hasCpaChanges(state);
 
-        return emailChanged || usernameChanged || authDataChanged || cpaChanged;
+        return emailChanged || usernameChanged || nameChanged || authDataChanged || cpaChanged;
+    };
+
+    private hasNameChanges = (state: State = this.state): boolean => {
+        if (!state.user) {
+            return false;
+        }
+        return state.firstNameField !== state.user.first_name || state.lastNameField !== state.user.last_name;
     };
 
     private hasCpaChanges = (state: State = this.state): boolean => {
@@ -361,6 +517,20 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         return false;
     };
 
+    private canEditPicture = (state: State = this.state): boolean => {
+        if (!state.user) {
+            return false;
+        }
+
+        // Profile pictures synced from a login provider cannot be changed here;
+        // they would be overwritten on the next sync.
+        const authService = state.user.auth_service;
+        const isManagedByProvider = (authService === Constants.LDAP_SERVICE || authService === Constants.SAML_SERVICE) &&
+            this.props.ldapPictureAttributeSet;
+
+        return !isManagedByProvider;
+    };
+
     private isEditingOwnEmail = (state: State = this.state): boolean => {
         return Boolean(
             state.user &&
@@ -377,29 +547,32 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         return currentValue !== originalValue;
     };
 
-    // Resolves option IDs to display names for select/multiselect/rank CPA fields.
+    private formatEmptyValue = (): string => {
+        return this.props.intl.formatMessage({
+            id: 'admin.userDetail.saveChangesModal.empty',
+            defaultMessage: '(empty)',
+        });
+    };
+
+    // Resolves option IDs to display names for option-backed CPA fields.
     private resolveOptionNames = (field: UserPropertyField, value: string | string[] | undefined): string => {
         if (!value) {
-            return '(empty)';
+            return this.formatEmptyValue();
         }
 
         const options = field.attrs?.options || [];
-        if (supportsOptions(field)) {
+        if (valueRefersToOptions(field)) {
             if (!Array.isArray(value)) {
-                // Select: resolve single ID to its name
                 const option = options.find((opt) => opt.id === value);
                 return option ? option.name : value;
             }
 
             // Multiselect: resolve each ID to its name
             if (value.length === 0) {
-                return '(empty)';
+                return this.formatEmptyValue();
             }
 
-            const names = value.map((id) => {
-                const option = options.find((opt) => opt.id === id);
-                return option ? option.name : id;
-            });
+            const names = value.map((id) => options.find((opt) => opt.id === id)?.name ?? id);
             return names.join(this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.arrayValueSeparator', defaultMessage: ', '}));
         }
 
@@ -570,6 +743,88 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         });
     };
 
+    handleFirstNameChange = (event: ChangeEvent<HTMLInputElement>) => {
+        if (!this.state.user) {
+            return;
+        }
+
+        this.setState({
+            firstNameField: event.target.value,
+            error: null, // Clear any errors when user starts editing
+        });
+    };
+
+    handleLastNameChange = (event: ChangeEvent<HTMLInputElement>) => {
+        if (!this.state.user) {
+            return;
+        }
+
+        this.setState({
+            lastNameField: event.target.value,
+            error: null, // Clear any errors when user starts editing
+        });
+    };
+
+    handleUploadPicture = async (file: File) => {
+        if (!this.state.user || this.state.isUploadingPicture) {
+            return;
+        }
+
+        const {formatMessage} = this.props.intl;
+
+        if (!AcceptedProfileImageTypes.includes(file.type)) {
+            this.setState({pictureError: formatMessage({
+                id: 'admin.userManagement.userDetail.picture.wrongType',
+                defaultMessage: 'Only BMP, JPG, JPEG, or PNG images are supported.',
+            })});
+            return;
+        }
+
+        if (this.props.maxFileSize && file.size > this.props.maxFileSize) {
+            this.setState({pictureError: formatMessage({
+                id: 'admin.userManagement.userDetail.picture.tooLarge',
+                defaultMessage: 'Unable to upload profile image. File is too large. Maximum file size: {max}',
+            }, {max: fileSizeToString(this.props.maxFileSize)})});
+            return;
+        }
+
+        const userId = this.state.user.id;
+        this.setState({isUploadingPicture: true, pictureError: null});
+
+        const {error} = await this.props.uploadProfileImage(userId, file);
+        if (error) {
+            this.setState({isUploadingPicture: false, pictureError: error.message});
+            return;
+        }
+
+        this.setState((prevState) => ({
+            isUploadingPicture: false,
+            pictureError: null,
+            user: prevState.user ? {...prevState.user, last_picture_update: Date.now()} : prevState.user,
+        }));
+    };
+
+    handleRemovePicture = async () => {
+        if (!this.state.user || this.state.isUploadingPicture || this.state.user.last_picture_update <= 0) {
+            return;
+        }
+
+        const userId = this.state.user.id;
+        this.setState({isUploadingPicture: true, pictureError: null});
+
+        const {error} = await this.props.setDefaultProfileImage(userId);
+        if (error) {
+            this.setState({isUploadingPicture: false, pictureError: error.message});
+            return;
+        }
+
+        this.setState((prevState) => ({
+            isUploadingPicture: false,
+            pictureError: null,
+            user: prevState.user ? {...prevState.user, last_picture_update: 0} : prevState.user,
+        }));
+    };
+
     handleAuthDataChange = (event: ChangeEvent<HTMLInputElement>) => {
         if (!this.state.user) {
             return;
@@ -608,37 +863,33 @@ export class SystemUserDetail extends PureComponent<Props, State> {
     renderCpaField = (field: UserPropertyField, error: string | undefined) => {
         const value = this.state.customProfileAttributeValues[field.id] || '';
         const isSynced = Boolean(field.attrs?.ldap || field.attrs?.saml);
+        const isOwnerManaged = Boolean(field.attrs?.owners?.length);
         const isProtected = Boolean(field.attrs?.protected);
-        const isLockedFromEditing = isSynced || isProtected;
+        const optionsOmitted = Boolean(field.attrs?.options_omitted);
+
+        const omitLocksField = optionsOmitted && field.type !== 'graph';
+        const isLockedFromEditing = isSynced || isProtected || isOwnerManaged || omitLocksField;
         const isDisabled = this.state.isSaving || this.state.isLoading || isLockedFromEditing;
 
-        // Render indicator if field is synced or protected
-        const syncIndicator = isLockedFromEditing ? (
-            <div className='user-property-field-values__sync-indicator'>
-                {isSynced ? <SyncIcon size={18}/> : <PowerPlugOutlineIcon size={18}/>}
-                <span>
-                    {isSynced ? (
-                        <FormattedMessage
-                            id='admin.userManagement.userDetail.syncedWith'
-                            defaultMessage='Synced with: {source}'
-                            values={{
-                                source: field.attrs?.ldap ? this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.ldap', defaultMessage: 'AD/LDAP: {propertyName}'}, {propertyName: field.attrs.ldap}) : this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.saml', defaultMessage: 'SAML: {propertyName}'}, {propertyName: field.attrs?.saml}),
-                            }}
-                        />
-                    ) : (
-                        <FormattedMessage
-                            id='admin.userManagement.userDetail.managedByPlugin'
-                            defaultMessage='Managed by plugin: {pluginId}'
-                            values={{
-                                pluginId: <PluginDisplayName pluginId={field.attrs?.source_plugin_id}/>,
-                            }}
-                        />
-                    )}
-                </span>
-            </div>
-        ) : null;
-
         const fieldContent = (() => {
+            if (omitLocksField && valueRefersToOptions(field)) {
+                const display = Array.isArray(value) ?
+                    value.join(this.props.intl.formatMessage({
+                        id: 'admin.userManagement.userDetail.arrayValueSeparator',
+                        defaultMessage: ', ',
+                    })) :
+                    String(value);
+                return (
+                    <input
+                        className='form-control'
+                        type='text'
+                        value={display}
+                        disabled={true}
+                        readOnly={true}
+                    />
+                );
+            }
+
             switch (field.type) {
             case 'select': {
                 const options = field.attrs?.options || [];
@@ -679,6 +930,25 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             id: 'admin.userManagement.userDetail.selectOption',
                             defaultMessage: 'Select an option',
                         })}
+                    />
+                );
+            }
+            case 'graph': {
+                const selectedValues = asGraphValueIds(value);
+                return (
+                    <AssignmentGraphPicker
+                        field={field}
+                        ids={selectedValues}
+                        onIdsChange={(values) => this.handleCpaValueChange(field.id, values)}
+                        disabled={isDisabled}
+                        menuId={`cpa-graph-menu-${field.id}`}
+                        buttonId={`cpa-graph-button-${field.id}`}
+                        buttonDataTestId={`cpa-graph-select-${field.id}`}
+                        placeholder={this.props.intl.formatMessage({
+                            id: 'admin.user.selectOptions',
+                            defaultMessage: 'Select options...',
+                        })}
+                        ariaLabel={getUserPropertyFieldLabel(field)}
                     />
                 );
             }
@@ -739,19 +1009,51 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             }
         })();
 
+        const fieldName = (
+            <FormattedMessage
+                id='admin.userManagement.userDetail.cpaField'
+                defaultMessage='{fieldName}'
+                values={{fieldName: getUserPropertyFieldLabel(field)}}
+            />
+        );
+
+        const fieldBody = (
+            <>
+                {field.type === 'graph' ? (
+                    <label htmlFor={`cpa-graph-button-${field.id}`}>
+                        {fieldName}
+                    </label>
+                ) : fieldName}
+                {fieldContent}
+                <CpaFieldManagementIndicator
+                    field={field}
+                    omitLocksField={omitLocksField}
+                />
+            </>
+        );
+
+        // A graph picker is a button with chip-remove controls inside it. Wrapping
+        // that in <label> forwards chip clicks to the trigger, so the X opens the
+        // menu instead of removing the value. Point the name at the trigger instead.
+        if (field.type === 'graph') {
+            return (
+                <div
+                    key={field.id}
+                    className='cpa-field'
+                    data-testid={`user-detail-custom-attribute-label-${field.id}`}
+                >
+                    {fieldBody}
+                </div>
+            );
+        }
+
         return (
             <label
                 key={field.id}
                 className='cpa-field'
                 data-testid={`user-detail-custom-attribute-label-${field.id}`}
             >
-                <FormattedMessage
-                    id='admin.userManagement.userDetail.cpaField'
-                    defaultMessage='{fieldName}'
-                    values={{fieldName: getUserPropertyFieldLabel(field)}}
-                />
-                {fieldContent}
-                {syncIndicator}
+                {fieldBody}
             </label>
         );
     };
@@ -883,6 +1185,73 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 )}
             </label>,
         );
+
+        const nameField = (fieldKey: 'firstNameField' | 'lastNameField', label: React.ReactNode, onChange: (event: ChangeEvent<HTMLInputElement>) => void, placeholder: string, maxLength: number) => (
+            <label key={fieldKey}>
+                {label}
+                {this.state.user?.auth_service ? (
+                    <WithTooltip
+                        title={this.props.intl.formatMessage({
+                            id: 'admin.userManagement.userDetail.managedByProvider.title',
+                            defaultMessage: 'Managed by login provider',
+                        })}
+                        hint={this.props.intl.formatMessage({
+                            id: 'admin.userManagement.userDetail.managedByProvider.name',
+                            defaultMessage: 'This name is managed by the {authService} login provider and cannot be changed here.',
+                        }, {
+                            authService: this.state.user.auth_service.toUpperCase(),
+                        })}
+                    >
+                        <input
+                            className='form-control'
+                            type='text'
+                            value={this.state[fieldKey]}
+                            disabled={true}
+                            readOnly={true}
+                            placeholder={placeholder}
+                        />
+                    </WithTooltip>
+                ) : (
+                    <input
+                        className='form-control'
+                        type='text'
+                        value={this.state[fieldKey]}
+                        onChange={onChange}
+                        disabled={this.state.isSaving}
+                        maxLength={maxLength}
+                        placeholder={placeholder}
+                    />
+                )}
+            </label>
+        );
+
+        fields.push(nameField(
+            'firstNameField',
+            <FormattedMessage
+                id='admin.userManagement.userDetail.firstName'
+                defaultMessage='First Name'
+            />,
+            this.handleFirstNameChange,
+            this.props.intl.formatMessage({
+                id: 'admin.userManagement.userDetail.firstName.input',
+                defaultMessage: 'Enter first name',
+            }),
+            Constants.MAX_FIRSTNAME_LENGTH,
+        ));
+
+        fields.push(nameField(
+            'lastNameField',
+            <FormattedMessage
+                id='admin.userManagement.userDetail.lastName'
+                defaultMessage='Last Name'
+            />,
+            this.handleLastNameChange,
+            this.props.intl.formatMessage({
+                id: 'admin.userManagement.userDetail.lastName.input',
+                defaultMessage: 'Enter last name',
+            }),
+            Constants.MAX_LASTNAME_LENGTH,
+        ));
 
         fields.push(
             <label key='authMethod'>
@@ -1049,14 +1418,40 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             );
         }
 
+        if (this.state.user && this.state.firstNameField !== this.state.user.first_name) {
+            fields.push(
+                <FormattedMessage
+                    id='admin.userDetail.saveChangesModal.firstNameChange'
+                    defaultMessage='First Name: {oldFirstName} → {newFirstName}'
+                    values={{
+                        oldFirstName: this.state.user.first_name || this.formatEmptyValue(),
+                        newFirstName: this.state.firstNameField || this.formatEmptyValue(),
+                    }}
+                />,
+            );
+        }
+
+        if (this.state.user && this.state.lastNameField !== this.state.user.last_name) {
+            fields.push(
+                <FormattedMessage
+                    id='admin.userDetail.saveChangesModal.lastNameChange'
+                    defaultMessage='Last Name: {oldLastName} → {newLastName}'
+                    values={{
+                        oldLastName: this.state.user.last_name || this.formatEmptyValue(),
+                        newLastName: this.state.lastNameField || this.formatEmptyValue(),
+                    }}
+                />,
+            );
+        }
+
         if (this.state.user && this.state.authDataField !== (this.state.user.auth_data || '')) {
             fields.push(
                 <FormattedMessage
                     id='admin.userDetail.saveChangesModal.authDataChange'
                     defaultMessage='Auth Data: {oldAuthData} → {newAuthData}'
                     values={{
-                        oldAuthData: this.state.user.auth_data || '(empty)',
-                        newAuthData: this.state.authDataField || '(empty)',
+                        oldAuthData: this.state.user.auth_data || this.formatEmptyValue(),
+                        newAuthData: this.state.authDataField || this.formatEmptyValue(),
                     }}
                 />,
             );
@@ -1069,9 +1464,21 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 if (field.id === fieldId) {
                     const fieldName = field.name;
                     const originalValue = this.state.originalCpaValues[fieldId];
-
-                    const oldValue = this.resolveOptionNames(field, originalValue);
-                    const newValue = this.resolveOptionNames(field, changes[1]);
+                    const nextValue = changes[1];
+                    const graphConfirm = (v: string | string[] | undefined) => {
+                        const ids = asGraphValueIds(v);
+                        if (!ids.length) {
+                            return this.formatEmptyValue();
+                        }
+                        return (
+                            <GraphConfirmLabels
+                                field={field}
+                                ids={ids}
+                            />
+                        );
+                    };
+                    const oldValue = field.type === 'graph' ? graphConfirm(originalValue) : this.resolveOptionNames(field, originalValue);
+                    const newValue = field.type === 'graph' ? graphConfirm(nextValue) : this.resolveOptionNames(field, nextValue);
 
                     fields.push(
                         <FormattedMessage
@@ -1159,6 +1566,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         this.setState({
             usernameField: this.state?.user?.username || '',
             usernameError: null,
+            firstNameField: this.state.user?.first_name || '',
+            lastNameField: this.state.user?.last_name || '',
             emailField: this.state.user?.email || '',
             emailError: null,
             authDataField: this.state.user?.auth_data || '',
@@ -1214,17 +1623,23 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             // Track what changes are being made
             const emailChanged = !this.state.user.auth_service && this.state.emailField !== this.state.user.email;
             const usernameChanged = !this.state.user.auth_service && this.state.usernameField !== this.state.user.username;
+            const nameChanged = !this.state.user.auth_service && this.hasNameChanges();
             const authDataChanged = this.state.authDataField !== (this.state.user.auth_data || '');
             const cpaChanged = this.hasCpaChanges();
 
-            // Update user profile if email or username changed
-            if (usernameChanged || emailChanged) {
+            // Update user profile if email, username or name changed
+            if (usernameChanged || emailChanged || nameChanged) {
                 if (emailChanged) {
                     updatedUser.email = this.state.emailField.trim().toLowerCase();
                 }
 
                 if (usernameChanged) {
                     updatedUser.username = this.state.usernameField.trim();
+                }
+
+                if (nameChanged) {
+                    updatedUser.first_name = this.state.firstNameField.trim();
+                    updatedUser.last_name = this.state.lastNameField.trim();
                 }
 
                 // If editing own email, include password for verification
@@ -1265,8 +1680,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             // Handle results
             let resultIndex = 0;
 
-            // Handle user update result if email or username changed
-            if (emailChanged || usernameChanged) {
+            // Handle user update result if email, username or name changed
+            if (emailChanged || usernameChanged || nameChanged) {
                 const userResult = results[resultIndex] as ActionResult<UserProfile, ServerError>;
                 if (userResult.data) {
                     updatedUser = userResult.data;
@@ -1327,6 +1742,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 user: updatedUser,
                 usernameField: updatedUser.username,
                 usernameError: null,
+                firstNameField: updatedUser.first_name,
+                lastNameField: updatedUser.last_name,
                 emailField: updatedUser.email,
                 emailError: null,
                 authDataField: updatedUser.auth_data || '',
@@ -1465,8 +1882,20 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                         <AdminUserCard
                             user={this.state.user}
                             isLoading={this.state.isLoading}
+                            onUploadPicture={this.canEditPicture() ? this.handleUploadPicture : undefined}
+                            onRemovePicture={this.handleRemovePicture}
+                            canRemovePicture={(this.state.user?.last_picture_update ?? 0) > 0}
+                            isUploadingPicture={this.state.isUploadingPicture}
                             body={
                                 <>
+                                    {this.state.pictureError && (
+                                        <div
+                                            className='SystemUserDetail__pictureError'
+                                            role='alert'
+                                        >
+                                            <FormError error={this.state.pictureError}/>
+                                        </div>
+                                    )}
                                     <span>{this.state.user?.position ?? ''}</span>
                                     {this.renderTwoColumnLayout()}
                                 </>

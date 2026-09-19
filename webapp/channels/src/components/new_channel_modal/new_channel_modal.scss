@@ -56,6 +56,30 @@
         margin-top: 24px;
     }
 
+    .Input_subheading {
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-family: Open Sans, sans-serif;
+        font-size: 12px;
+        font-weight: 400;
+    }
+
+    // Discoverable toggle — same header/toggle layout as Channel Settings Info
+    // and Channel Banner in Channel Settings Configuration.
+    .new-channel-modal-discoverable {
+        margin-top: 24px;
+
+        .channel_banner_header {
+            display: flex;
+        }
+
+        .channel_banner_header__text {
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            gap: 8px;
+        }
+    }
+
     .new-channel-modal-classification {
         padding-top: 16px;
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);

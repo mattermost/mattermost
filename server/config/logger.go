@@ -8,7 +8,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
+
+	"github.com/mattermost/logr/v2"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -77,8 +80,9 @@ func MloggerConfigFromAuditConfig(auditSettings model.ExperimentalAuditSettings,
 			return nil, err
 		}
 
-		// apply audit specific levels
-		targetCfg.Levels = []mlog.Level{mlog.LvlAuditAPI, mlog.LvlAuditContent, mlog.LvlAuditPerms, mlog.LvlAuditCLI}
+		// apply audit specific levels. Cloned so the target can never alias, and mutate,
+		// the package-level slice shared with auditLevelIDs and IsAuditLevelActive.
+		targetCfg.Levels = slices.Clone(basicAuditFileLevels)
 
 		// apply audit specific formatting
 		targetCfg.FormatOptions = json.RawMessage(`{"disable_timestamp": false, "disable_msg": true, "disable_stacktrace": true, "disable_level": true}`)
@@ -95,6 +99,91 @@ func MloggerConfigFromAuditConfig(auditSettings model.ExperimentalAuditSettings,
 	cfg.Append(cfgAdv)
 
 	return cfg, nil
+}
+
+// basicAuditFileLevels is the fixed set of levels bound to the built-in `_defAudit` file
+// target created from ExperimentalAuditSettings.FileEnabled.
+//
+// audit-delivery is deliberately excluded: it produces one record per post per recipient,
+// which is far too high volume for the basic single-file audit sink. An admin opts in by
+// adding a target for it via ExperimentalAuditSettings.AdvancedLoggingJSON.
+var basicAuditFileLevels = []mlog.Level{mlog.LvlAuditAPI, mlog.LvlAuditContent, mlog.LvlAuditPerms, mlog.LvlAuditCLI}
+
+// auditLevelIDs is the set of mlog level IDs the basic audit file target consumes
+// (audit-api, audit-content, audit-permissions, audit-cli).
+//
+// This is derived from basicAuditFileLevels rather than mlog.MLvlAuditAll on purpose: a
+// config whose only audit target is bound to audit-delivery is not emitting general audit
+// records, so IsAuditLoggingActive must still report false for it.
+var auditLevelIDs = func() map[logr.LevelID]struct{} {
+	m := make(map[logr.LevelID]struct{}, len(basicAuditFileLevels))
+	for _, l := range basicAuditFileLevels {
+		m[l.ID] = struct{}{}
+	}
+	return m
+}()
+
+// IsAuditLoggingActive reports whether the server is actually emitting audit logs to at
+// least one sink, given the audit settings and whether advanced logging is licensed.
+//
+// It returns true when basic file auditing is enabled, or when the advanced audit logging
+// config defines at least one target bound to an audit level. A valid advanced-logging
+// config that routes nothing to an audit level returns false.
+func IsAuditLoggingActive(auditSettings model.ExperimentalAuditSettings, allowAdvancedLogging bool) bool {
+	if auditSettings.FileEnabled != nil && *auditSettings.FileEnabled {
+		return true
+	}
+
+	if !allowAdvancedLogging {
+		return false
+	}
+
+	cfg := make(mlog.LoggerConfiguration)
+	if err := json.Unmarshal(auditSettings.GetAdvancedLoggingConfig(), &cfg); err != nil {
+		return false
+	}
+
+	for _, target := range cfg {
+		for _, level := range target.Levels {
+			if _, ok := auditLevelIDs[level.ID]; ok {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+// IsAuditLevelActive reports whether records logged at the given audit level would actually
+// reach a sink.
+//
+// Unlike IsAuditLoggingActive, basic file auditing only counts when the requested level is
+// one the built-in `_defAudit` target is bound to. Enabling
+// ExperimentalAuditSettings.FileEnabled does not make audit-delivery active, for example.
+func IsAuditLevelActive(auditSettings model.ExperimentalAuditSettings, allowAdvancedLogging bool, level mlog.Level) bool {
+	if auditSettings.FileEnabled != nil && *auditSettings.FileEnabled &&
+		slices.ContainsFunc(basicAuditFileLevels, func(l mlog.Level) bool { return l.ID == level.ID }) {
+		return true
+	}
+
+	if !allowAdvancedLogging {
+		return false
+	}
+
+	cfg := make(mlog.LoggerConfiguration)
+	if err := json.Unmarshal(auditSettings.GetAdvancedLoggingConfig(), &cfg); err != nil {
+		return false
+	}
+
+	for _, target := range cfg {
+		for _, targetLevel := range target.Levels {
+			if targetLevel.ID == level.ID {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 func GetLogFileLocation(fileLocation string) string {

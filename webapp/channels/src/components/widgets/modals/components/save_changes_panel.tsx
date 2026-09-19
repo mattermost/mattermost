@@ -8,6 +8,8 @@ import {FormattedMessage} from 'react-intl';
 import {AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/shared/components/button';
 
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
+
 import './save_changes_panel.scss';
 
 export type SaveChangesPanelState = 'editing' | 'saved' | 'error' | undefined;
@@ -24,6 +26,7 @@ type Props = {
     customSavedMessage?: string;
     saveButtonText?: React.ReactNode;
     cancelButtonText?: React.ReactNode;
+    saving?: boolean;
 };
 function SaveChangesPanel({
     handleSubmit,
@@ -35,6 +38,7 @@ function SaveChangesPanel({
     customSavedMessage,
     saveButtonText,
     cancelButtonText,
+    saving = false,
 }: Props) {
     const panelClassName = classNames('SaveChangesPanel', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
     const messageClassName = classNames('SaveChangesPanel__message', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
@@ -102,7 +106,7 @@ function SaveChangesPanel({
             );
         }
 
-        const saveButtonDisabled = tabChangeError || state === 'error';
+        const saveButtonDisabled = saving || tabChangeError || state === 'error';
 
         return (
             <div className='SaveChangesPanel__btn-ctr'>
@@ -112,6 +116,7 @@ function SaveChangesPanel({
                     size='sm'
                     className={classNames('SaveChangesPanel__cancel-btn', {error: tabChangeError || state === 'error'})}
                     onClick={handleCancel}
+                    disabled={saving}
                 >
                     {cancelButtonText || (
                         <FormattedMessage
@@ -124,16 +129,25 @@ function SaveChangesPanel({
                     data-testid='SaveChangesPanel__save-btn'
                     emphasis='primary'
                     size='sm'
-                    className={classNames('SaveChangesPanel__save-btn', {error: tabChangeError || state === 'error'})}
+                    className={classNames('SaveChangesPanel__save-btn', {error: tabChangeError || state === 'error', 'btn-force-disabled': saving})}
                     onClick={handleSubmit}
                     disabled={saveButtonDisabled}
                 >
-                    {saveButtonText || (
+                    {saving ? (
+                        <LoadingSpinner
+                            text={
+                                <FormattedMessage
+                                    id='saveChangesPanel.saving'
+                                    defaultMessage='Saving...'
+                                />
+                            }
+                        />
+                    ) : (saveButtonText || (
                         <FormattedMessage
                             id='saveChangesPanel.save'
                             defaultMessage='Save'
                         />
-                    )}
+                    ))}
                 </Button>
             </div>
         );

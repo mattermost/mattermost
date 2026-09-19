@@ -30,6 +30,14 @@ const ImageTile = ({fileInfo, index, total, width, height, enablePublicLink, onC
         onClick(index);
     }, [onClick, index]);
 
+    // Only fire on the image itself so the transparent tile padding around
+    // smaller-than-tile images falls through to the post (clicks there
+    // should not open the preview modal).
+    const handleImageClick = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        handleActivate();
+    }, [handleActivate]);
+
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
         if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
@@ -65,7 +73,6 @@ const ImageTile = ({fileInfo, index, total, width, height, enablePublicLink, onC
             data-testid='media-gallery-tile'
             data-file-name={fileInfo.name || ''}
             style={tileStyle}
-            onClick={handleActivate}
             onKeyDown={handleKeyDown}
         >
             <img
@@ -73,6 +80,7 @@ const ImageTile = ({fileInfo, index, total, width, height, enablePublicLink, onC
                 alt={fileInfo.name || ''}
                 loading='lazy'
                 style={imgStyle}
+                onClick={handleImageClick}
             />
             <TileUtilityButtons
                 fileInfo={fileInfo}

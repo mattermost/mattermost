@@ -3,7 +3,7 @@
 
 import isEmpty from 'lodash/isEmpty';
 import React from 'react';
-import type {ComponentType} from 'react';
+import type {ComponentType, JSX} from 'react';
 
 import type {Subscription} from '@mattermost/types/cloud';
 

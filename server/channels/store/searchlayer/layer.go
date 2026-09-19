@@ -69,7 +69,7 @@ func (s *SearchStore) User() store.UserStore {
 }
 
 func (s *SearchStore) indexUserFromID(rctx request.CTX, userId string) {
-	user, err := s.User().Get(rctx.Context(), userId)
+	user, err := s.User().Get(rctx, userId)
 	if err != nil {
 		return
 	}

@@ -14,6 +14,7 @@ import ExternalLink from 'components/external_link';
 import desktopImg from 'images/deep-linking/deeplinking-desktop-img.png';
 import mobileImg from 'images/deep-linking/deeplinking-mobile-img.png';
 import MattermostLogoSvg from 'images/logo.svg';
+import {navigateTo} from 'utils/browser_utils';
 import {LandingPreferenceTypes} from 'utils/constants';
 
 type Props = {
@@ -24,6 +25,7 @@ type Props = {
     siteName?: string;
     brandImageUrl?: string;
     enableCustomBrand: boolean;
+    enableDesktopLandingPage: boolean;
 };
 
 type State = {
@@ -89,7 +91,9 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
     }
 
     componentDidMount() {
-        if (this.checkLandingPreferenceApp()) {
+        // When the landing page is disabled, render() has already redirected to the browser, so a stale
+        // "open in app" preference must not navigate away from it.
+        if (this.props.enableDesktopLandingPage && this.checkLandingPreferenceApp()) {
             this.openMattermostApp();
         }
 
@@ -162,12 +166,12 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
     openMattermostApp = () => {
         this.setPreference(LandingPreferenceTypes.MATTERMOSTAPP);
         this.setState({redirectPage: true});
-        window.location.href = this.state.nativeLocation;
+        navigateTo(this.state.nativeLocation);
     };
 
     openInBrowser = () => {
         this.setPreference(LandingPreferenceTypes.BROWSER);
-        window.location.href = this.state.location;
+        navigateTo(this.state.location);
     };
 
     renderSystemDialogMessage = () => {
@@ -475,7 +479,7 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
     render() {
         const isMobile = UserAgent.isMobile();
 
-        if (this.checkLandingPreferenceBrowser() || this.isEmbedded()) {
+        if (!this.props.enableDesktopLandingPage || this.checkLandingPreferenceBrowser() || this.isEmbedded()) {
             this.openInBrowser();
             return null;
         }

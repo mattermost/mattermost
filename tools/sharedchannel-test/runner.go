@@ -74,6 +74,9 @@ func (tr *TestRunner) Run(ctx context.Context) error {
 	if err := tr.runReactionTests(ctx); err != nil {
 		tr.logger.Error("Reaction tests had errors", mlog.Err(err))
 	}
+	if err := tr.runOfflineRecoveryTests(ctx); err != nil {
+		tr.logger.Error("Offline recovery tests had errors", mlog.Err(err))
+	}
 
 	// Report
 	return tr.report()

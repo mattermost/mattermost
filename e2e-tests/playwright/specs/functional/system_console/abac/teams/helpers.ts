@@ -48,6 +48,51 @@ export async function createTeamMembershipParentPolicy(
 }
 
 /**
+ * Trigger an access_control_team_sync job and poll that specific job until it
+ * finishes. Polling by ID (not list position) avoids a race where older jobs
+ * occupy jobs[0] and the newly created one is never checked.
+ *
+ * Both `success` and `warning` are terminal completions: the worker reports
+ * `warning` (not `success`) whenever the mass-removal guardrail trips — i.e. a
+ * sync that drops >50% of a team. The sync still ran to completion, so callers
+ * that exercise removals must accept it. The final status is returned so a
+ * caller can assert on it (e.g. expecting the warning state).
+ */
+export async function triggerSyncJobAndPoll(
+    client: Client4,
+    policyId = '',
+    timeoutMs = 90_000,
+    pollIntervalMs = 3_000,
+): Promise<string> {
+    // Scope the sync to the team's policy (team policies are keyed by team id),
+    // mirroring the product trigger createAccessControlTeamSyncJob({policy_id}).
+    // A scoped sync also chains a scoped channel sync, so the chained job is
+    // created deterministically rather than skipped by the unscoped dedupe.
+    const body: {type: string; data?: {policy_id: string}} = {type: 'access_control_team_sync'};
+    if (policyId) {
+        body.data = {policy_id: policyId};
+    }
+    const job: any = await (client as any).doFetch(`${client.getBaseRoute()}/jobs`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+    });
+    const jobId: string = job.id;
+
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+        await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+        const current: any = await (client as any).doFetch(`${client.getBaseRoute()}/jobs/${jobId}`, {method: 'GET'});
+        if (current.status === 'success' || current.status === 'warning') {
+            return current.status;
+        }
+        if (current.status === 'error') {
+            throw new Error(`access_control_team_sync job failed: ${JSON.stringify(current)}`);
+        }
+    }
+    throw new Error('Timed out waiting for access_control_team_sync job to finish');
+}
+
+/**
  * Assign a parent policy to teams via the REST API (the `team_ids` field).
  * Mirrors `assignChannelsToPolicy` from team_settings/helpers — same endpoint,
  * different resource list.

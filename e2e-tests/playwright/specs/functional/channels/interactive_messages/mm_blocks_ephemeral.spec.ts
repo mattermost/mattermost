@@ -63,7 +63,7 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
             );
 
             await setupWebhookTestServer(request, {
-                mattermostBaseUrl: testConfig.baseURL,
+                mattermostBaseUrl: testConfig.internalBaseURL,
                 adminUsername: testConfig.adminUsername,
                 adminPassword: testConfig.adminPassword,
             });
@@ -89,7 +89,7 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
             });
 
             const ephemeralMarker = `E2E mm_blocks ephemeral action ${pw.random.id()}`;
-            const integrationUrl = `${testConfig.webhookBaseUrl}/mm_blocks_integration`;
+            const integrationUrl = `${testConfig.webhookInternalUrl}/mm_blocks_integration`;
 
             await adminClient.createPostEphemeral(user.id, {
                 channel_id: townSquare.id,
@@ -153,7 +153,7 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
             );
 
             await setupWebhookTestServer(request, {
-                mattermostBaseUrl: testConfig.baseURL,
+                mattermostBaseUrl: testConfig.internalBaseURL,
                 adminUsername: testConfig.adminUsername,
                 adminPassword: testConfig.adminPassword,
             });
@@ -177,7 +177,7 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
             });
 
             const ephemeralMarker = `E2E mm_blocks ephemeral update ${pw.random.id()}`;
-            const integrationUrl = `${testConfig.webhookBaseUrl}/mm_blocks_integration_update`;
+            const integrationUrl = `${testConfig.webhookInternalUrl}/mm_blocks_integration_update`;
 
             await adminClient.createPostEphemeral(user.id, {
                 channel_id: townSquare.id,
@@ -238,7 +238,7 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
             );
 
             await setupWebhookTestServer(request, {
-                mattermostBaseUrl: testConfig.baseURL,
+                mattermostBaseUrl: testConfig.internalBaseURL,
                 adminUsername: testConfig.adminUsername,
                 adminPassword: testConfig.adminPassword,
             });
@@ -264,7 +264,7 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
 
             const overrideAuthorName = 'Playwright mm_blocks eph override';
             const ephemeralMarker = `E2E mm_blocks ephemeral override ${pw.random.id()}`;
-            const integrationUrl = `${testConfig.webhookBaseUrl}/mm_blocks_integration_update`;
+            const integrationUrl = `${testConfig.webhookInternalUrl}/mm_blocks_integration_update`;
 
             await adminClient.createPostEphemeral(user.id, {
                 channel_id: townSquare.id,
@@ -331,7 +331,7 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
             );
 
             await setupWebhookTestServer(request, {
-                mattermostBaseUrl: testConfig.baseURL,
+                mattermostBaseUrl: testConfig.internalBaseURL,
                 adminUsername: testConfig.adminUsername,
                 adminPassword: testConfig.adminPassword,
             });
@@ -355,7 +355,7 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
             });
 
             const ephemeralMarker = `E2E mm_blocks eph query merge ${pw.random.id()}`;
-            const integrationUrl = `${testConfig.webhookBaseUrl}/mm_blocks_integration_echo_query`;
+            const integrationUrl = `${testConfig.webhookInternalUrl}/mm_blocks_integration_echo_query`;
 
             await adminClient.createPostEphemeral(user.id, {
                 channel_id: townSquare.id,
@@ -418,7 +418,7 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
             );
 
             await setupWebhookTestServer(request, {
-                mattermostBaseUrl: testConfig.baseURL,
+                mattermostBaseUrl: testConfig.internalBaseURL,
                 adminUsername: testConfig.adminUsername,
                 adminPassword: testConfig.adminPassword,
             });
@@ -442,7 +442,7 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
             });
 
             const ephemeralMarker = `E2E mm_blocks eph query override ${pw.random.id()}`;
-            const integrationUrl = `${testConfig.webhookBaseUrl}/mm_blocks_integration_echo_query`;
+            const integrationUrl = `${testConfig.webhookInternalUrl}/mm_blocks_integration_echo_query`;
 
             await adminClient.createPostEphemeral(user.id, {
                 channel_id: townSquare.id,
@@ -501,7 +501,7 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
             );
 
             await setupWebhookTestServer(request, {
-                mattermostBaseUrl: testConfig.baseURL,
+                mattermostBaseUrl: testConfig.internalBaseURL,
                 adminUsername: testConfig.adminUsername,
                 adminPassword: testConfig.adminPassword,
             });
@@ -525,7 +525,7 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
             });
 
             const ephemeralMarker = `E2E mm_blocks eph static_select query ${pw.random.id()}`;
-            const integrationUrl = `${testConfig.webhookBaseUrl}/mm_blocks_integration_echo_query`;
+            const integrationUrl = `${testConfig.webhookInternalUrl}/mm_blocks_integration_echo_query`;
 
             await adminClient.createPostEphemeral(user.id, {
                 channel_id: townSquare.id,
@@ -596,7 +596,7 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
             );
 
             await setupWebhookTestServer(request, {
-                mattermostBaseUrl: testConfig.baseURL,
+                mattermostBaseUrl: testConfig.internalBaseURL,
                 adminUsername: testConfig.adminUsername,
                 adminPassword: testConfig.adminPassword,
             });
@@ -620,7 +620,7 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
             });
 
             const ephemeralMarker = `E2E mm_blocks eph static_select users ${pw.random.id()}`;
-            const integrationUrl = `${testConfig.webhookBaseUrl}/mm_blocks_integration_static_select`;
+            const integrationUrl = `${testConfig.webhookInternalUrl}/mm_blocks_integration_static_select`;
 
             await adminClient.createPostEphemeral(user.id, {
                 channel_id: townSquare.id,
@@ -690,7 +690,7 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
             );
 
             await setupWebhookTestServer(request, {
-                mattermostBaseUrl: testConfig.baseURL,
+                mattermostBaseUrl: testConfig.internalBaseURL,
                 adminUsername: testConfig.adminUsername,
                 adminPassword: testConfig.adminPassword,
             });
@@ -714,7 +714,7 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
             });
 
             const ephemeralMarker = `E2E mm_blocks eph static_select channels ${pw.random.id()}`;
-            const integrationUrl = `${testConfig.webhookBaseUrl}/mm_blocks_integration_static_select`;
+            const integrationUrl = `${testConfig.webhookInternalUrl}/mm_blocks_integration_static_select`;
 
             await adminClient.createPostEphemeral(user.id, {
                 channel_id: townSquare.id,
@@ -783,7 +783,7 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
             );
 
             await setupWebhookTestServer(request, {
-                mattermostBaseUrl: testConfig.baseURL,
+                mattermostBaseUrl: testConfig.internalBaseURL,
                 adminUsername: testConfig.adminUsername,
                 adminPassword: testConfig.adminPassword,
             });
@@ -808,7 +808,7 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
 
             const contextMarker = `ctx_${pw.random.id()}`;
             const ephemeralMarker = `E2E mm_blocks eph action_context ${pw.random.id()}`;
-            const integrationUrl = `${testConfig.webhookBaseUrl}/mm_blocks_integration_echo_context`;
+            const integrationUrl = `${testConfig.webhookInternalUrl}/mm_blocks_integration_echo_context`;
 
             await adminClient.createPostEphemeral(user.id, {
                 channel_id: townSquare.id,

@@ -7,20 +7,26 @@ import {expect} from '@playwright/test';
 export default class InfoSettings {
     readonly container: Locator;
     readonly nameInput: Locator;
+    readonly purposeInput: Locator;
     readonly headerInput: Locator;
+    readonly urlLabel: Locator;
+    readonly urlEditButton: Locator;
     readonly urlInput: Locator;
-    readonly editUrlButton: Locator;
     readonly doneUrlButton: Locator;
     readonly duplicateUrlAlert: Locator;
+    readonly saveChangesPanel: Locator;
 
     constructor(container: Locator) {
         this.container = container;
         this.nameInput = container.locator('#input_channel-settings-name');
+        this.purposeInput = container.getByPlaceholder('Enter a purpose for this channel (optional)');
         this.headerInput = container.getByPlaceholder('Enter a header for this channel');
+        this.urlLabel = container.getByTestId('urlInputLabel');
+        this.urlEditButton = container.getByRole('button', {name: 'Edit'});
         this.urlInput = container.getByTestId('channelURLInput');
-        this.editUrlButton = container.getByRole('button', {name: 'Edit'});
         this.doneUrlButton = container.getByRole('button', {name: 'Done'});
         this.duplicateUrlAlert = container.getByRole('alert');
+        this.saveChangesPanel = container.locator('.SaveChangesPanel');
     }
 
     async toBeVisible() {
@@ -39,12 +45,21 @@ export default class InfoSettings {
     }
 
     async openUrlEditor() {
-        await this.editUrlButton.click();
+        await expect(this.urlEditButton).toBeVisible();
+        await this.urlEditButton.click();
         await expect(this.urlInput).toBeVisible();
     }
 
     async updateUrl(url: string) {
+        if (!(await this.urlInput.isVisible())) {
+            await this.openUrlEditor();
+        }
+        await this.urlInput.clear();
         await this.urlInput.fill(url);
-        await this.doneUrlButton.click();
+    }
+
+    async updatePurpose(purpose: string) {
+        await expect(this.purposeInput).toBeVisible();
+        await this.purposeInput.fill(purpose);
     }
 }

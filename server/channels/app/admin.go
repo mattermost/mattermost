@@ -186,7 +186,7 @@ func (a *App) TestEmail(rctx request.CTX, userID string, cfg *model.Config) *mod
 			return model.NewAppError("testEmail", "api.admin.test_email.reenter_password", nil, "", http.StatusBadRequest)
 		}
 	}
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		return err
 	}

@@ -4,9 +4,10 @@
 package slashcommands
 
 import (
+	"cmp"
 	"errors"
 	"fmt"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -72,7 +73,7 @@ func (rp *RemoteProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Co
 }
 
 func (rp *RemoteProvider) DoCommand(a *app.App, rctx request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
-	if !a.HasPermissionTo(args.UserId, model.PermissionManageSecureConnections) {
+	if !a.HasPermissionTo(rctx, args.UserId, model.PermissionManageSecureConnections) {
 		return response(args.T("api.command_remote.permission_required", map[string]any{"Permission": "manage_secure_connections"}))
 	}
 
@@ -97,7 +98,7 @@ func (rp *RemoteProvider) DoCommand(a *app.App, rctx request.CTX, args *model.Co
 }
 
 func (rp *RemoteProvider) GetAutoCompleteListItems(rctx request.CTX, a *app.App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error) {
-	if !a.HasPermissionTo(commandArgs.UserId, model.PermissionManageSecureConnections) {
+	if !a.HasPermissionTo(rctx, commandArgs.UserId, model.PermissionManageSecureConnections) {
 		return nil, errors.New("You require `manage_secure_connections` permission to manage secure connections.")
 	}
 
@@ -230,13 +231,16 @@ func (rp *RemoteProvider) doStatus(a *app.App, args *model.CommandArgs, _ map[st
 	}
 
 	// Show active connections first, then deleted ones, ordered by creation time within each group.
-	sort.SliceStable(list, func(i, j int) bool {
-		iDeleted := list[i].DeleteAt != 0
-		jDeleted := list[j].DeleteAt != 0
-		if iDeleted != jDeleted {
-			return !iDeleted
+	slices.SortStableFunc(list, func(a, b *model.RemoteCluster) int {
+		aDeleted := a.DeleteAt != 0
+		bDeleted := b.DeleteAt != 0
+		if aDeleted != bDeleted {
+			if aDeleted {
+				return 1
+			}
+			return -1
 		}
-		return list[i].CreateAt < list[j].CreateAt
+		return cmp.Compare(a.CreateAt, b.CreateAt)
 	})
 
 	var sb strings.Builder

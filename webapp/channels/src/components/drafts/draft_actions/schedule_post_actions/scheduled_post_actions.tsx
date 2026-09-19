@@ -7,7 +7,8 @@ import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
-import type {ScheduledPost} from '@mattermost/types/schedule_post';
+import {isRecurringScheduledPost} from '@mattermost/types/schedule_post';
+import type {ScheduledPost, SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import {fetchMissingChannels} from 'mattermost-redux/actions/channels';
 import {isDeactivatedDirectChannel} from 'mattermost-redux/selectors/entities/channels';
@@ -67,7 +68,7 @@ const copyTextTooltipText = (
 type Props = {
     scheduledPost: ScheduledPost;
     channel?: Channel;
-    onReschedule: (timestamp: number) => Promise<{error?: string}>;
+    onReschedule: (schedulingInfo: SchedulingInfo) => Promise<{error?: string}>;
     onDelete: (scheduledPostId: string) => Promise<{error?: string}>;
     onSend: (scheduledPostId: string) => void;
     onEdit: () => void;
@@ -79,6 +80,8 @@ function ScheduledPostActions({scheduledPost, channel, onReschedule, onDelete, o
     const userTimezone = useSelector(getCurrentTimezone);
     const myChannelsMemberships = useSelector((state: GlobalState) => getMyChannelMemberships(state));
     const isAdmin = useSelector((state: GlobalState) => isCurrentUserSystemAdmin(state));
+    const isWeeklyRecurringScheduledPost = isRecurringScheduledPost(scheduledPost);
+    const hasFiles = Boolean(scheduledPost.file_ids?.length || scheduledPost.metadata?.files?.length);
 
     useEffect(() => {
         // this ensures the DM is loaded in redux store and is available
@@ -101,9 +104,11 @@ function ScheduledPostActions({scheduledPost, channel, onReschedule, onDelete, o
                 channelId: scheduledPost.channel_id,
                 onConfirm: onReschedule,
                 initialTime,
+                initialRepeatWeekly: isWeeklyRecurringScheduledPost,
+                allowRecurring: !hasFiles,
             },
         }));
-    }, [dispatch, onReschedule, scheduledPost.channel_id, scheduledPost.scheduled_at, userTimezone]);
+    }, [dispatch, hasFiles, isWeeklyRecurringScheduledPost, onReschedule, scheduledPost.channel_id, scheduledPost.scheduled_at, userTimezone]);
 
     const handleDelete = useCallback(() => {
         dispatch(openModal({
@@ -136,8 +141,11 @@ function ScheduledPostActions({scheduledPost, channel, onReschedule, onDelete, o
 
     const showEditOption = !scheduledPost.error_code && userChannelMember && !isChannelArchived;
     const isDeactivatedDM = useSelector((state: GlobalState) => isDeactivatedDirectChannel(state, scheduledPost.channel_id));
-    const showSendNowOption = (!scheduledPost.error_code || scheduledPost.error_code === 'unknown' || scheduledPost.error_code === 'unable_to_send') && channel && !isChannelArchived && !isDeactivatedDM && userChannelMember;
-    const showRescheduleOption = (!scheduledPost.error_code || scheduledPost.error_code === 'unknown' || scheduledPost.error_code === 'unable_to_send') && userChannelMember && !isChannelArchived;
+    const canSendNow = (!scheduledPost.error_code || scheduledPost.error_code === 'unknown' || scheduledPost.error_code === 'unable_to_send') && channel && !isChannelArchived && !isDeactivatedDM && userChannelMember;
+    const showRescheduleOption = (!scheduledPost.error_code || scheduledPost.error_code === 'unknown' || scheduledPost.error_code === 'unable_to_send') && userChannelMember && !isChannelArchived && !isDeactivatedDM;
+
+    // Recurring scheduled posts can't be sent now: sending would either end the series or fork it.
+    const showSendNowOption = !isWeeklyRecurringScheduledPost && (isAdmin || canSendNow);
 
     return (
         <div className='ScheduledPostActions'>
@@ -181,7 +189,7 @@ function ScheduledPostActions({scheduledPost, channel, onReschedule, onDelete, o
             }
 
             {
-                (isAdmin || showSendNowOption) &&
+                showSendNowOption &&
                 <Action
                     icon='icon-send-outline'
                     id='sendNow'

@@ -1,0 +1,90 @@
+{
+    "sample-console": {
+        "type": "console",
+        "options": {
+            "out": "stdout"
+        },
+        "format": "plain",
+        "format_options": {
+            "delim": " | "
+        },
+        "levels": [
+            {"id": 5, "name": "debug"},
+            {"id": 4, "name": "info", "color": 36},
+            {"id": 3, "name": "warn"},
+            {"id": 2, "name": "error", "stacktrace": true, "color": 31},
+            {"id": 1, "name": "fatal", "stacktrace": true},
+            {"id": 0, "name": "panic", "stacktrace": true}
+        ],
+        "maxqueuesize": 1000
+    },
+    "sample-file": {
+        "type": "file",
+        "options": {
+            "filename": "test.log",
+            "max_size": 1000000,
+            "max_age": 1,
+            "max_backups": 10,
+            "compress": true
+        },
+        "format": "json",
+        "format_options": {
+        },
+        "levels": [
+            {"id": 5, "name": "debug"},
+            {"id": 4, "name": "info"},
+            {"id": 3, "name": "warn"},
+            {"id": 2, "name": "error", "stacktrace": true},
+            {"id": 1, "name": "fatal", "stacktrace": true},
+            {"id": 0, "name": "panic", "stacktrace": true}
+        ],
+        "maxqueuesize": 1000
+    },
+    "sample-tcp": {
+        "type": "tcp",
+        "options": {
+            "host": "localhost",
+            "port": 18066,
+            "tls": false,
+            "cert": "",
+            "insecure": false
+        },
+        "format": "gelf",
+        "format_options": {
+            "hostname": "server01"
+        },
+        "levels": [
+            {"id": 5, "name": "debug"},
+            {"id": 4, "name": "info"},
+            {"id": 3, "name": "warn"},
+            {"id": 2, "name": "error", "stacktrace": true},
+            {"id": 1, "name": "fatal", "stacktrace": true},
+            {"id": 0, "name": "panic", "stacktrace": true}
+        ],
+        "maxqueuesize": 1000
+    },
+    "sample-syslog": {
+        "type": "syslog",
+        "options": {
+            "host": "localhost",
+            "port": 18066,
+            "tls": false,
+            "cert": "",
+            "insecure": false,
+            "tag": "testapp"
+        },
+        "format": "plain",
+        "format_options": {
+            "delim": "  "
+        },
+        "levels": [
+            {"id": 5, "name": "debug"},
+            {"id": 4, "name": "info"},
+            {"id": 3, "name": "warn"},
+            {"id": 2, "name": "error", "stacktrace": true},
+            {"id": 1, "name": "fatal", "stacktrace": true},
+            {"id": 0, "name": "panic", "stacktrace": true}
+        ],
+        "maxqueuesize": 1000
+    }
+}

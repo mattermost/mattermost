@@ -21,7 +21,6 @@ test('MM-T882 validates channel URL changes', async ({pw}) => {
     await infoSettings.updateName('town-square');
 
     // # Explicitly edit the URL to use an existing channel URL
-    await infoSettings.openUrlEditor();
     await infoSettings.updateUrl('town-square');
     await channelSettings.save();
 

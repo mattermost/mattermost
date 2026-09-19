@@ -1,4 +1,8 @@
 
+# Tracked, not ignored: mise.toml pins the Node this repo builds with, and
+# it is common to ignore mise.toml globally for personal use elsewhere.
+!mise.toml
+
 logs
 .DS_Store
 node_modules
@@ -167,6 +171,10 @@ docker-compose.override.yaml
 **/CLAUDE.md
 .claude
 .cursorrules
+
+# Planning files (local only)
+.planning
+
 .cursor/*
 !.cursor/README.md
 !.cursor/cursor.md
@@ -189,7 +197,25 @@ docs/pdf/build/
 docs/pdf/node_modules/
 docs/site/openapi/
 
+# Agents docs, staged from the mattermost-plugin-agents submodule at build
+# time by docs/site/scripts/stage-agents-docs.mjs (see docs/vendor/) — never
+# tracked as source, regenerated on every prestart/prebuild.
+docs/main/agents/docs/
+docs/site/static/images/agents/
+
 # OpenAPI make build artifacts
 api/v4/html/static/mattermost-openapi-v4.yaml
 api/v4/html/index.html
 api/node_modules/
+
+# Local migration artifacts (export files, test reports, planning docs)
+backend_export.zip
+server/export.zip
+server/demo-commands.txt
+docs/channel_migration_*.md
+docs/channel_migration_*.pdf
+docs/display-name-fix-test-report.pdf
+server/docs/*.pdf
+server/docs/*.md
+server/data_dest/
+server/import/

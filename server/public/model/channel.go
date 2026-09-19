@@ -12,7 +12,7 @@ import (
 	"io"
 	"net/http"
 	"regexp"
-	"sort"
+	"slices"
 	"strings"
 	"unicode/utf8"
 )
@@ -29,6 +29,7 @@ const (
 	ChannelTypePrivate      ChannelType = "P"
 	ChannelTypeDirect       ChannelType = "D"
 	ChannelTypeGroup        ChannelType = "G"
+	ChannelTypeSpace        ChannelType = "S"
 	ChannelTypeOpenBoard    ChannelType = "BO"
 	ChannelTypePrivateBoard ChannelType = "BP"
 
@@ -113,11 +114,19 @@ type Channel struct {
 	// PolicyActions[action] and fall back to PolicyEnforced only when the
 	// stronger meaning is acceptable. Empty/nil means either no policy or
 	// no hydration was performed.
-	PolicyActions       map[string]bool `json:"policy_actions,omitempty"`
-	PolicyIsActive      bool            `json:"policy_is_active"`
-	DefaultCategoryName string          `json:"default_category_name"`
-	ManagedCategoryName string          `json:"managed_category_name"`
-	Discoverable        bool            `json:"discoverable"`
+	PolicyActions map[string]bool `json:"policy_actions,omitempty"`
+	// PolicyAutoAdd reports whether the channel's policy auto-adds qualifying
+	// members, derived by the store from the policy's membership rule.
+	PolicyAutoAdd bool `json:"policy_auto_add"`
+	// PolicyIsActive carries the same value as PolicyAutoAdd.
+	//
+	// Deprecated: use PolicyAutoAdd. Auto-adding members is no longer tied to a
+	// policy's active flag.
+	PolicyIsActive           bool   `json:"policy_is_active"`
+	DefaultCategoryName      string `json:"default_category_name"`
+	ManagedCategoryName      string `json:"managed_category_name"`
+	Discoverable             bool   `json:"discoverable"`
+	DisableJoinLeaveMessages bool   `json:"disable_join_leave_messages"`
 }
 
 // HasPolicyAction reports whether the channel's policy declares the given
@@ -141,27 +150,28 @@ func (o *Channel) HasMembershipPolicyAction() bool {
 
 func (o *Channel) Auditable() map[string]any {
 	return map[string]any{
-		"create_at":            o.CreateAt,
-		"creator_id":           o.CreatorId,
-		"delete_at":            o.DeleteAt,
-		"extra_group_at":       o.ExtraUpdateAt,
-		"group_constrained":    o.GroupConstrained,
-		"id":                   o.Id,
-		"last_post_at":         o.LastPostAt,
-		"last_root_post_at":    o.LastRootPostAt,
-		"policy_id":            o.PolicyID,
-		"props":                o.Props,
-		"scheme_id":            o.SchemeId,
-		"shared":               o.Shared,
-		"team_id":              o.TeamId,
-		"total_msg_count_root": o.TotalMsgCountRoot,
-		"type":                 o.Type,
-		"update_at":            o.UpdateAt,
-		"policy_enforced":      o.PolicyEnforced,
-		"policy_actions":       o.PolicyActions, // hydrated lazily; only populated on selected read paths
-		"autotranslation":      o.AutoTranslation,
-		"policy_is_active":     o.PolicyIsActive, // this field is only for logging purposes
-		"discoverable":         o.Discoverable,
+		"create_at":                   o.CreateAt,
+		"creator_id":                  o.CreatorId,
+		"delete_at":                   o.DeleteAt,
+		"extra_group_at":              o.ExtraUpdateAt,
+		"group_constrained":           o.GroupConstrained,
+		"id":                          o.Id,
+		"last_post_at":                o.LastPostAt,
+		"last_root_post_at":           o.LastRootPostAt,
+		"policy_id":                   o.PolicyID,
+		"props":                       o.Props,
+		"scheme_id":                   o.SchemeId,
+		"shared":                      o.Shared,
+		"team_id":                     o.TeamId,
+		"total_msg_count_root":        o.TotalMsgCountRoot,
+		"type":                        o.Type,
+		"update_at":                   o.UpdateAt,
+		"policy_enforced":             o.PolicyEnforced,
+		"policy_actions":              o.PolicyActions, // hydrated lazily; only populated on selected read paths
+		"autotranslation":             o.AutoTranslation,
+		"policy_auto_add":             o.PolicyAutoAdd, // this field is only for logging purposes
+		"discoverable":                o.Discoverable,
+		"disable_join_leave_messages": o.DisableJoinLeaveMessages,
 	}
 }
 
@@ -181,27 +191,38 @@ type ChannelsWithCount struct {
 	TotalCount int64                   `json:"total_count"`
 }
 
+// ChannelCreateRequest is the POST /channels body. The values ride the create
+// request rather than a second call so the server can refuse a channel that
+// would not satisfy its own required attributes; they are not part of Channel
+// itself because Channel maps to columns.
+type ChannelCreateRequest struct {
+	Channel
+	PropertyValues []PropertyValuePatchItem `json:"property_values"`
+}
+
 type ChannelPatch struct {
-	DisplayName         *string            `json:"display_name"`
-	Name                *string            `json:"name"`
-	Header              *string            `json:"header"`
-	Purpose             *string            `json:"purpose"`
-	GroupConstrained    *bool              `json:"group_constrained"`
-	BannerInfo          *ChannelBannerInfo `json:"banner_info"`
-	AutoTranslation     *bool              `json:"autotranslation"`
-	ManagedCategoryName *string            `json:"managed_category_name"`
-	DefaultCategoryName *string            `json:"default_category_name"`
-	Discoverable        *bool              `json:"discoverable"`
+	DisplayName              *string            `json:"display_name"`
+	Name                     *string            `json:"name"`
+	Header                   *string            `json:"header"`
+	Purpose                  *string            `json:"purpose"`
+	GroupConstrained         *bool              `json:"group_constrained"`
+	BannerInfo               *ChannelBannerInfo `json:"banner_info"`
+	AutoTranslation          *bool              `json:"autotranslation"`
+	ManagedCategoryName      *string            `json:"managed_category_name"`
+	DefaultCategoryName      *string            `json:"default_category_name"`
+	Discoverable             *bool              `json:"discoverable"`
+	DisableJoinLeaveMessages *bool              `json:"disable_join_leave_messages"`
 }
 
 func (c *ChannelPatch) Auditable() map[string]any {
 	return map[string]any{
-		"header":                c.Header,
-		"group_constrained":     c.GroupConstrained,
-		"purpose":               c.Purpose,
-		"default_category_name": c.DefaultCategoryName,
-		"managed_category_name": c.ManagedCategoryName,
-		"discoverable":          c.Discoverable,
+		"header":                      c.Header,
+		"group_constrained":           c.GroupConstrained,
+		"purpose":                     c.Purpose,
+		"default_category_name":       c.DefaultCategoryName,
+		"managed_category_name":       c.ManagedCategoryName,
+		"discoverable":                c.Discoverable,
+		"disable_join_leave_messages": c.DisableJoinLeaveMessages,
 	}
 }
 
@@ -329,7 +350,7 @@ func (o *Channel) IsValid() *AppError {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.1_or_more.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if !(o.Type == ChannelTypeOpen || o.Type == ChannelTypePrivate || o.Type == ChannelTypeDirect || o.Type == ChannelTypeGroup || o.Type == ChannelTypeOpenBoard || o.Type == ChannelTypePrivateBoard) {
+	if !(o.Type == ChannelTypeOpen || o.Type == ChannelTypePrivate || o.Type == ChannelTypeDirect || o.Type == ChannelTypeGroup || o.Type == ChannelTypeSpace || o.Type == ChannelTypeOpenBoard || o.Type == ChannelTypePrivateBoard) {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.type.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
@@ -439,6 +460,10 @@ func (o *Channel) IsBoard() bool {
 	return o.Type == ChannelTypeOpenBoard || o.Type == ChannelTypePrivateBoard
 }
 
+func (o *Channel) IsSpace() bool {
+	return o.Type == ChannelTypeSpace
+}
+
 // IsMessageChannel reports whether the channel is one of the message-bearing
 // types (open, private, direct, or group). Returns false for boards and any
 // future non-message channel types.
@@ -509,6 +534,19 @@ func (o *Channel) Patch(patch *ChannelPatch) {
 	if patch.Discoverable != nil {
 		o.Discoverable = *patch.Discoverable
 	}
+
+	if patch.DisableJoinLeaveMessages != nil {
+		o.DisableJoinLeaveMessages = *patch.DisableJoinLeaveMessages
+	}
+}
+
+// ShouldChannelExcludeMembershipSystemPosts reports whether membership system posts should be
+// hidden on end-user read paths for channel.
+func ShouldChannelExcludeMembershipSystemPosts(channel *Channel) bool {
+	if channel == nil || channel.IsGroupOrDirect() {
+		return false
+	}
+	return channel.DisableJoinLeaveMessages
 }
 
 func (o *Channel) MakeNonNil() {
@@ -588,7 +626,7 @@ func GetGroupDisplayNameFromUsers(users []*User, truncate bool) string {
 		usernames[index] = user.Username
 	}
 
-	sort.Strings(usernames)
+	slices.Sort(usernames)
 
 	name := strings.Join(usernames, ", ")
 
@@ -600,7 +638,7 @@ func GetGroupDisplayNameFromUsers(users []*User, truncate bool) string {
 }
 
 func GetGroupNameFromUserIds(userIds []string) string {
-	sort.Strings(userIds)
+	slices.Sort(userIds)
 
 	h := sha1.New()
 	for _, id := range userIds {

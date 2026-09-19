@@ -1300,3 +1300,568 @@ func TestInheritTeamType(t *testing.T) {
 		require.Equal(t, 400, err.StatusCode)
 	})
 }
+
+func TestIsMembershipRule(t *testing.T) {
+	t.Run("nil rule is not a membership rule", func(t *testing.T) {
+		var rule *AccessControlPolicyRule
+		require.False(t, rule.IsMembershipRule())
+	})
+
+	t.Run("named rule with membership action is not a membership rule", func(t *testing.T) {
+		// v0.4 permission rules always carry a Name; treat a non-empty Name as a
+		// permission rule even if its Actions happen to mention membership, so a
+		// rename can't accidentally collide with the membership slot.
+		rule := &AccessControlPolicyRule{
+			Name:    "Custom",
+			Actions: []string{AccessControlPolicyActionMembership},
+		}
+		require.False(t, rule.IsMembershipRule())
+	})
+
+	t.Run("unnamed rule without membership action is not a membership rule", func(t *testing.T) {
+		// Anonymous non-membership rules can't be safely identified across the
+		// submit boundary; mergeStoredPolicyExpressions deliberately skips them
+		// rather than mispair, so this helper must report false too.
+		rule := &AccessControlPolicyRule{
+			Actions: []string{AccessControlPolicyActionUploadFileAttachment},
+		}
+		require.False(t, rule.IsMembershipRule())
+	})
+
+	t.Run("unnamed rule with membership action is a membership rule", func(t *testing.T) {
+		rule := &AccessControlPolicyRule{
+			Actions: []string{AccessControlPolicyActionMembership},
+		}
+		require.True(t, rule.IsMembershipRule())
+	})
+
+	t.Run("legacy wildcard action anchors the membership slot", func(t *testing.T) {
+		rule := &AccessControlPolicyRule{Actions: []string{"*"}}
+		require.True(t, rule.IsMembershipRule())
+	})
+
+	t.Run("unnamed rule with membership action among others is a membership rule", func(t *testing.T) {
+		rule := &AccessControlPolicyRule{
+			Actions: []string{
+				AccessControlPolicyActionUploadFileAttachment,
+				AccessControlPolicyActionMembership,
+			},
+		}
+		require.True(t, rule.IsMembershipRule())
+	})
+
+	t.Run("empty actions list is not a membership rule", func(t *testing.T) {
+		rule := &AccessControlPolicyRule{}
+		require.False(t, rule.IsMembershipRule())
+	})
+}
+
+func TestAccessControlPolicyRuleAutoAdd(t *testing.T) {
+	t.Run("nil rule reports no mode", func(t *testing.T) {
+		var rule *AccessControlPolicyRule
+		require.Empty(t, rule.AutoAddMode())
+		require.False(t, rule.AutoAdd())
+		rule.SetAutoAddMode(AccessControlAutoAddAlways) // must not panic
+	})
+
+	t.Run("absent metadata reports no mode", func(t *testing.T) {
+		rule := &AccessControlPolicyRule{Actions: []string{AccessControlPolicyActionMembership}}
+		require.Empty(t, rule.AutoAddMode())
+		require.False(t, rule.AutoAdd())
+	})
+
+	t.Run("setting a mode then clearing it leaves no residue", func(t *testing.T) {
+		// The store filters on a jsonb containment predicate, so a lingering
+		// empty auto_add would be inert but would leave rows inconsistent.
+		rule := &AccessControlPolicyRule{Actions: []string{AccessControlPolicyActionMembership}}
+
+		rule.SetAutoAddMode(AccessControlAutoAddAlways)
+		require.Equal(t, AccessControlAutoAddAlways, rule.AutoAddMode())
+		require.True(t, rule.AutoAdd())
+		require.Equal(t, map[string]any{AccessControlRuleMetadataAutoAdd: AccessControlAutoAddAlways}, rule.Metadata)
+
+		rule.SetAutoAddMode("")
+		require.Empty(t, rule.AutoAddMode())
+		require.Nil(t, rule.Metadata, "an emptied metadata bag must be dropped entirely")
+	})
+
+	t.Run("clearing the mode preserves other metadata keys", func(t *testing.T) {
+		rule := &AccessControlPolicyRule{
+			Actions:  []string{AccessControlPolicyActionMembership},
+			Metadata: map[string]any{AccessControlRuleMetadataAutoAdd: AccessControlAutoAddAlways, "future_key": "v"},
+		}
+		rule.SetAutoAddMode("")
+		require.Equal(t, map[string]any{"future_key": "v"}, rule.Metadata)
+	})
+
+	t.Run("unrecognized mode reads and writes as off", func(t *testing.T) {
+		// Defensive: validation rejects these shapes on write, but a row from a
+		// newer server or a hand edit must degrade to "off" rather than to a
+		// mode this server cannot honour.
+		rule := &AccessControlPolicyRule{
+			Actions:  []string{AccessControlPolicyActionMembership},
+			Metadata: map[string]any{AccessControlRuleMetadataAutoAdd: "some_future_mode"},
+		}
+		require.Empty(t, rule.AutoAddMode())
+		require.False(t, rule.AutoAdd())
+
+		rule.SetAutoAddMode("some_future_mode")
+		require.Nil(t, rule.Metadata)
+	})
+
+	t.Run("non-string metadata value reports no mode", func(t *testing.T) {
+		// The setting used to be a boolean; a row that predates the mode
+		// migration must not read as on.
+		rule := &AccessControlPolicyRule{
+			Actions:  []string{AccessControlPolicyActionMembership},
+			Metadata: map[string]any{AccessControlRuleMetadataAutoAdd: true},
+		}
+		require.Empty(t, rule.AutoAddMode())
+		require.False(t, rule.AutoAdd())
+	})
+}
+
+func TestAccessControlPolicyAutoAddMembers(t *testing.T) {
+	t.Run("nil policy reports no mode", func(t *testing.T) {
+		var policy *AccessControlPolicy
+		require.Empty(t, policy.AutoAddMode())
+		require.False(t, policy.AutoAddMembers())
+		policy.SetAutoAddMode(AccessControlAutoAddAlways) // must not panic
+	})
+
+	t.Run("reads the existing membership rule", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			Rules: []AccessControlPolicyRule{
+				{Name: "Uploads", Role: ChannelUserRoleId, Actions: []string{AccessControlPolicyActionUploadFileAttachment}, Expression: "true"},
+				{Actions: []string{AccessControlPolicyActionMembership}, Expression: "true"},
+			},
+		}
+
+		policy.SetAutoAddMode(AccessControlAutoAddAlways)
+		require.Equal(t, AccessControlAutoAddAlways, policy.AutoAddMode())
+		require.True(t, policy.AutoAddMembers())
+		require.Len(t, policy.Rules, 2, "no carrier rule when a membership rule already exists")
+		require.Nil(t, policy.Rules[0].Metadata, "permission rules must not gain metadata")
+	})
+
+	t.Run("import-only policy gains an expression-less carrier rule", func(t *testing.T) {
+		// Children created by parent assignment carry no rules of their own, so
+		// the carrier is the only place their setting can live.
+		policy := &AccessControlPolicy{
+			Type:    AccessControlPolicyTypeChannel,
+			Imports: []string{NewId()},
+		}
+
+		policy.SetAutoAddMode(AccessControlAutoAddAlways)
+		require.True(t, policy.AutoAddMembers())
+		require.Len(t, policy.Rules, 1)
+		require.Empty(t, policy.Rules[0].Expression)
+		require.Equal(t, []string{AccessControlPolicyActionMembership}, policy.Rules[0].Actions)
+	})
+
+	t.Run("turning off on an import-only policy adds nothing", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			Type:    AccessControlPolicyTypeChannel,
+			Imports: []string{NewId()},
+		}
+
+		policy.SetAutoAddMode("")
+		require.False(t, policy.AutoAddMembers())
+		require.Empty(t, policy.Rules, "off is the default; it needs no carrier")
+	})
+
+	t.Run("auto-add is not inherited from an imported parent", func(t *testing.T) {
+		parent := &AccessControlPolicy{ID: NewId(), Type: AccessControlPolicyTypeParent}
+		parent.SetAutoAddMode(AccessControlAutoAddAlways)
+
+		child := &AccessControlPolicy{Type: AccessControlPolicyTypeChannel, Imports: []string{parent.ID}}
+		require.Empty(t, child.AutoAddMode(), "the child owns its own setting")
+	})
+}
+
+func TestPruneInertMembershipRule(t *testing.T) {
+	membershipWithAutoAdd := func() AccessControlPolicyRule {
+		rule := AccessControlPolicyRule{Actions: []string{AccessControlPolicyActionMembership}}
+		rule.SetAutoAddMode(AccessControlAutoAddAlways)
+		return rule
+	}
+
+	t.Run("nil policy does not panic", func(t *testing.T) {
+		var policy *AccessControlPolicy
+		policy.PruneInertMembershipRule()
+	})
+
+	t.Run("drops a membership rule with neither expression nor metadata", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			Rules: []AccessControlPolicyRule{
+				{Actions: []string{AccessControlPolicyActionMembership}},
+				{Name: "Uploads", Role: ChannelUserRoleId, Actions: []string{AccessControlPolicyActionUploadFileAttachment}, Expression: "true"},
+			},
+		}
+
+		policy.PruneInertMembershipRule()
+		require.Len(t, policy.Rules, 1)
+		require.Equal(t, "Uploads", policy.Rules[0].Name)
+	})
+
+	t.Run("keeps a carrier rule that still holds metadata", func(t *testing.T) {
+		policy := &AccessControlPolicy{Rules: []AccessControlPolicyRule{membershipWithAutoAdd()}}
+
+		policy.PruneInertMembershipRule()
+		require.Len(t, policy.Rules, 1)
+		require.True(t, policy.AutoAddMembers())
+	})
+
+	t.Run("keeps a membership rule that has an expression", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			Rules: []AccessControlPolicyRule{{Actions: []string{AccessControlPolicyActionMembership}, Expression: "true"}},
+		}
+
+		policy.PruneInertMembershipRule()
+		require.Len(t, policy.Rules, 1)
+	})
+}
+
+func TestAccessControlPolicyRuleMetadataValidation(t *testing.T) {
+	newPolicy := func(version string, rules ...AccessControlPolicyRule) *AccessControlPolicy {
+		return &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeChannel,
+			Version:  version,
+			Revision: 1,
+			Rules:    rules,
+		}
+	}
+
+	for _, version := range []string{AccessControlPolicyVersionV0_3, AccessControlPolicyVersionV0_4} {
+		t.Run(version, func(t *testing.T) {
+			t.Run("auto_add on a membership rule is valid", func(t *testing.T) {
+				rule := AccessControlPolicyRule{Actions: []string{AccessControlPolicyActionMembership}, Expression: "true"}
+				rule.SetAutoAddMode(AccessControlAutoAddAlways)
+				require.Nil(t, newPolicy(version, rule).IsValid())
+			})
+
+			t.Run("expression-less membership carrier rule is valid", func(t *testing.T) {
+				rule := AccessControlPolicyRule{Actions: []string{AccessControlPolicyActionMembership}}
+				rule.SetAutoAddMode(AccessControlAutoAddAlways)
+				require.Nil(t, newPolicy(version, rule).IsValid())
+			})
+
+			t.Run("an empty auto_add is accepted as off", func(t *testing.T) {
+				// Clients turn the setting off by sending an empty mode; the
+				// accessors canonicalize it away before it is stored.
+				rule := AccessControlPolicyRule{
+					Actions:    []string{AccessControlPolicyActionMembership},
+					Expression: "true",
+					Metadata:   map[string]any{AccessControlRuleMetadataAutoAdd: ""},
+				}
+				require.Nil(t, newPolicy(version, rule).IsValid())
+			})
+
+			t.Run("unknown metadata key is rejected", func(t *testing.T) {
+				rule := AccessControlPolicyRule{
+					Actions:    []string{AccessControlPolicyActionMembership},
+					Expression: "true",
+					Metadata:   map[string]any{"not_a_real_key": true},
+				}
+				appErr := newPolicy(version, rule).IsValid()
+				require.NotNil(t, appErr)
+				require.Equal(t, "model.access_policy.is_valid.rule_metadata_key.app_error", appErr.Id)
+			})
+
+			t.Run("non-string auto_add is rejected", func(t *testing.T) {
+				rule := AccessControlPolicyRule{
+					Actions:    []string{AccessControlPolicyActionMembership},
+					Expression: "true",
+					Metadata:   map[string]any{AccessControlRuleMetadataAutoAdd: true},
+				}
+				appErr := newPolicy(version, rule).IsValid()
+				require.NotNil(t, appErr)
+				require.Equal(t, "model.access_policy.is_valid.rule_metadata_auto_add_type.app_error", appErr.Id)
+			})
+
+			t.Run("unrecognized auto_add mode is rejected", func(t *testing.T) {
+				rule := AccessControlPolicyRule{
+					Actions:    []string{AccessControlPolicyActionMembership},
+					Expression: "true",
+					Metadata:   map[string]any{AccessControlRuleMetadataAutoAdd: "whenever"},
+				}
+				appErr := newPolicy(version, rule).IsValid()
+				require.NotNil(t, appErr)
+				require.Equal(t, "model.access_policy.is_valid.rule_metadata_auto_add_mode.app_error", appErr.Id)
+			})
+
+			t.Run("empty expression on a non-membership rule is rejected", func(t *testing.T) {
+				rule := AccessControlPolicyRule{
+					Name:    "Uploads",
+					Role:    ChannelUserRoleId,
+					Actions: []string{AccessControlPolicyActionUploadFileAttachment},
+				}
+				appErr := newPolicy(version, rule).IsValid()
+				require.NotNil(t, appErr)
+				require.Equal(t, "model.access_policy.is_valid.rule_expression.app_error", appErr.Id)
+			})
+		})
+	}
+
+	t.Run("auto_add on a permission rule is rejected", func(t *testing.T) {
+		// Only v0.4 allows permission rules on a channel policy at all.
+		rule := AccessControlPolicyRule{
+			Name:       "Uploads",
+			Role:       ChannelUserRoleId,
+			Actions:    []string{AccessControlPolicyActionUploadFileAttachment},
+			Expression: "true",
+			Metadata:   map[string]any{AccessControlRuleMetadataAutoAdd: AccessControlAutoAddAlways},
+		}
+		appErr := newPolicy(AccessControlPolicyVersionV0_4, rule).IsValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.access_policy.is_valid.rule_metadata_auto_add.app_error", appErr.Id)
+	})
+}
+
+// testPluginPolicyType is a well-formed plugin-owned policy type: the owning
+// plugin ID, a colon, then the plugin's own resource-type name.
+const testPluginPolicyType = "mattermost-ai:agent"
+
+func TestAccessPolicyVersionV0_5(t *testing.T) {
+	validPolicy := func(mutate func(p *AccessControlPolicy)) *AccessControlPolicy {
+		p := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     testPluginPolicyType,
+			Name:     "Agent policy",
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_5,
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{"use"},
+				Expression: "user.attributes.dept == \"eng\"",
+			}},
+		}
+		if mutate != nil {
+			mutate(p)
+		}
+		return p
+	}
+
+	for _, pluginType := range []string{
+		"mattermost-ai:agent",
+		"mattermost-ai:service",
+		"mattermost-ai:mcp",
+		"com.example.plugin:widget",
+	} {
+		t.Run("valid policy for "+pluginType, func(t *testing.T) {
+			p := validPolicy(func(p *AccessControlPolicy) { p.Type = pluginType })
+			require.Nil(t, p.IsValid())
+		})
+	}
+
+	t.Run("plugin-defined action accepted", func(t *testing.T) {
+		p := validPolicy(func(p *AccessControlPolicy) { p.Rules[0].Actions = []string{"invoke_tool"} })
+		require.Nil(t, p.IsValid())
+	})
+
+	t.Run("optional rule name accepted", func(t *testing.T) {
+		p := validPolicy(func(p *AccessControlPolicy) { p.Rules[0].Name = "Named rule" })
+		require.Nil(t, p.IsValid())
+	})
+
+	tests := []struct {
+		name       string
+		mutate     func(p *AccessControlPolicy)
+		expectedID string
+	}{
+		{"legacy channel type rejected", func(p *AccessControlPolicy) { p.Type = AccessControlPolicyTypeChannel }, "model.access_policy.is_valid.plugin_type.app_error"},
+		{"legacy parent type rejected", func(p *AccessControlPolicy) { p.Type = AccessControlPolicyTypeParent }, "model.access_policy.is_valid.plugin_type.app_error"},
+		{"legacy permission type rejected", func(p *AccessControlPolicy) { p.Type = AccessControlPolicyTypePermission }, "model.access_policy.is_valid.plugin_type.app_error"},
+		{"legacy team type rejected", func(p *AccessControlPolicy) { p.Type = AccessControlPolicyTypeTeam }, "model.access_policy.is_valid.plugin_type.app_error"},
+		{"unprefixed type rejected", func(p *AccessControlPolicy) { p.Type = "some-plugin.widget" }, "model.access_policy.is_valid.plugin_type.app_error"},
+		{"empty resource-type segment rejected", func(p *AccessControlPolicy) { p.Type = "mattermost-ai:" }, "model.access_policy.is_valid.plugin_type.app_error"},
+		{"empty plugin-ID segment rejected", func(p *AccessControlPolicy) { p.Type = ":agent" }, "model.access_policy.is_valid.plugin_type.app_error"},
+		{"resource-type segment with a separator rejected", func(p *AccessControlPolicy) { p.Type = "mattermost-ai:agent:v2" }, "model.access_policy.is_valid.plugin_type.app_error"},
+		{"oversized resource-type segment rejected", func(p *AccessControlPolicy) {
+			p.Type = "mattermost-ai:" + strings.Repeat("a", MaxPluginResourceTypeLength+1)
+		}, "model.access_policy.is_valid.plugin_type.app_error"},
+		{"invalid id", func(p *AccessControlPolicy) { p.ID = "short" }, "model.access_policy.is_valid.id.app_error"},
+		{"empty name", func(p *AccessControlPolicy) { p.Name = "" }, "model.access_policy.is_valid.name.app_error"},
+		{"oversized name", func(p *AccessControlPolicy) { p.Name = strings.Repeat("a", MaxPolicyNameLength+1) }, "model.access_policy.is_valid.name.app_error"},
+		{"negative revision", func(p *AccessControlPolicy) { p.Revision = -1 }, "model.access_policy.is_valid.revision.app_error"},
+		{"zero rules", func(p *AccessControlPolicy) { p.Rules = nil }, "model.access_policy.is_valid.rules.app_error"},
+		{"imports present", func(p *AccessControlPolicy) { p.Imports = []string{NewId()} }, "model.access_policy.is_valid.imports.app_error"},
+		{"roles present", func(p *AccessControlPolicy) { p.Roles = []string{SystemUserRoleId} }, "model.access_policy.is_valid.roles.app_error"},
+		{"empty actions", func(p *AccessControlPolicy) { p.Rules[0].Actions = nil }, "model.access_policy.is_valid.actions.app_error"},
+		{"wildcard action rejected", func(p *AccessControlPolicy) { p.Rules[0].Actions = []string{"*"} }, "model.access_policy.is_valid.actions.app_error"},
+		{"malformed action rejected", func(p *AccessControlPolicy) { p.Rules[0].Actions = []string{"Use It"} }, "model.access_policy.is_valid.actions.app_error"},
+		{"rule role rejected", func(p *AccessControlPolicy) { p.Rules[0].Role = ChannelUserRoleId }, "model.access_policy.is_valid.rule_role.app_error"},
+		{"oversized rule name", func(p *AccessControlPolicy) { p.Rules[0].Name = strings.Repeat("a", MaxPolicyNameLength+1) }, "model.access_policy.is_valid.rule_name.app_error"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			p := validPolicy(tc.mutate)
+			err := p.IsValid()
+			require.NotNil(t, err)
+			require.Equal(t, tc.expectedID, err.Id)
+		})
+	}
+
+	// Scope rejections go through the top-level IsValid because
+	// validateScope runs first for non-empty scopes.
+	t.Run("team scope rejected", func(t *testing.T) {
+		p := validPolicy(func(p *AccessControlPolicy) {
+			p.Scope = AccessControlPolicyScopeTeam
+			p.ScopeID = NewId()
+		})
+		err := p.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.scope.app_error", err.Id)
+	})
+
+	t.Run("scope id without scope rejected", func(t *testing.T) {
+		p := validPolicy(func(p *AccessControlPolicy) { p.ScopeID = NewId() })
+		err := p.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.scope_id_without_scope.app_error", err.Id)
+	})
+
+	t.Run("invalid semver rejected", func(t *testing.T) {
+		// A bad semver can't reach the v0.5 validator through the IsValid
+		// switch, so exercise the validator directly.
+		p := validPolicy(nil)
+		p.Version = "not-semver"
+		err := p.accessPolicyVersionV0_5()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.version.app_error", err.Id)
+	})
+}
+
+func TestSplitPluginAccessControlPolicyType(t *testing.T) {
+	valid := []struct {
+		policyType   string
+		pluginID     string
+		resourceType string
+	}{
+		{"mattermost-ai:agent", "mattermost-ai", "agent"},
+		{"com.example.plugin:widget", "com.example.plugin", "widget"},
+		{"my_plugin:some.nested-type", "my_plugin", "some.nested-type"},
+		{"mattermost-ai:" + strings.Repeat("a", MaxPluginResourceTypeLength), "mattermost-ai", strings.Repeat("a", MaxPluginResourceTypeLength)},
+		// Exactly the column width: a 63-char plugin ID + ":" + 64-char type.
+		{
+			strings.Repeat("p", MaxPolicyTypeLength-MaxPluginResourceTypeLength-1) + ":" + strings.Repeat("a", MaxPluginResourceTypeLength),
+			strings.Repeat("p", MaxPolicyTypeLength-MaxPluginResourceTypeLength-1),
+			strings.Repeat("a", MaxPluginResourceTypeLength),
+		},
+	}
+	for _, tc := range valid {
+		t.Run("valid "+tc.policyType, func(t *testing.T) {
+			pluginID, resourceType, ok := SplitPluginAccessControlPolicyType(tc.policyType)
+			require.True(t, ok)
+			require.Equal(t, tc.pluginID, pluginID)
+			require.Equal(t, tc.resourceType, resourceType)
+			require.True(t, IsPluginAccessControlPolicyType(tc.policyType))
+		})
+	}
+
+	invalid := []string{
+		AccessControlPolicyTypeParent,
+		AccessControlPolicyTypeChannel,
+		AccessControlPolicyTypePermission,
+		AccessControlPolicyTypeTeam,
+		"mattermost-ai.agent",
+		"mattermost-ai:",
+		":agent",
+		"ab:agent",                 // plugin ID shorter than MinIdLength
+		"mattermost ai:agent",      // space is not a valid plugin-ID character
+		"mattermost-ai:agent:v2",   // separator inside the resource type
+		"mattermost-ai:agent type", // space inside the resource type
+		"mattermost-ai:" + strings.Repeat("a", MaxPluginResourceTypeLength+1),
+		// One over the column width, with both segments individually valid.
+		strings.Repeat("p", MaxPolicyTypeLength-MaxPluginResourceTypeLength) + ":" + strings.Repeat("a", MaxPluginResourceTypeLength),
+		"",
+	}
+	for _, policyType := range invalid {
+		t.Run("invalid "+policyType, func(t *testing.T) {
+			_, _, ok := SplitPluginAccessControlPolicyType(policyType)
+			require.False(t, ok)
+			require.False(t, IsPluginAccessControlPolicyType(policyType))
+			require.False(t, PluginOwnsAccessControlPolicyType("mattermost-ai", policyType))
+		})
+	}
+}
+
+func TestPluginOwnsAccessControlPolicyType(t *testing.T) {
+	tests := []struct {
+		name       string
+		pluginID   string
+		policyType string
+		want       bool
+	}{
+		{"owner matches", "mattermost-ai", "mattermost-ai:agent", true},
+		{"foreign plugin", "other-plugin", "mattermost-ai:agent", false},
+		{"empty plugin ID", "", "mattermost-ai:agent", false},
+		{"core policy type", "mattermost-ai", AccessControlPolicyTypeChannel, false},
+		// The stored type is matched byte-for-byte on delete and during
+		// evaluation, so a case variant that could Get but never Delete would
+		// be a trap.
+		{"caller ID case mismatch", "Mattermost-AI", "mattermost-ai:agent", false},
+		{"stored prefix case mismatch", "mattermost-ai", "Mattermost-AI:agent", false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			require.Equal(t, tc.want, PluginOwnsAccessControlPolicyType(tc.pluginID, tc.policyType))
+		})
+	}
+}
+
+func TestIsValidPolicyAction(t *testing.T) {
+	for _, action := range []string{
+		AccessControlPolicyActionMembership,
+		AccessControlPolicyActionUploadFileAttachment,
+		"use",
+		"invoke_tool",
+		"read2",
+	} {
+		require.True(t, IsValidPolicyAction(action), action)
+	}
+
+	for _, action := range []string{
+		"",
+		"*",
+		"Use",
+		"use it",
+		"use-it",
+		"_use",
+		"use_",
+		"use__it",
+		strings.Repeat("a", MaxPolicyActionLength+1),
+	} {
+		require.False(t, IsValidPolicyAction(action), action)
+	}
+}
+
+func TestInheritV0_5Rejected(t *testing.T) {
+	parent := &AccessControlPolicy{
+		ID:       NewId(),
+		Type:     AccessControlPolicyTypeParent,
+		Name:     "Parent",
+		Version:  AccessControlPolicyVersionV0_3,
+		Revision: 0,
+		Rules: []AccessControlPolicyRule{{
+			Actions:    []string{AccessControlPolicyActionMembership},
+			Expression: "true",
+		}},
+	}
+	child := &AccessControlPolicy{
+		ID:       NewId(),
+		Type:     testPluginPolicyType,
+		Name:     "Agent policy",
+		Version:  AccessControlPolicyVersionV0_5,
+		Revision: 0,
+		Rules: []AccessControlPolicyRule{{
+			Actions:    []string{"use"},
+			Expression: "true",
+		}},
+	}
+	err := child.Inherit(parent)
+	require.NotNil(t, err)
+	require.Equal(t, "model.access_policy.inherit.version.app_error", err.Id)
+	require.Empty(t, child.Imports)
+}

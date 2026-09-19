@@ -42,9 +42,9 @@ func (c *captureClusterMock) snapshot() []*model.ClusterMessage {
 	return out
 }
 
-// reset drops everything captured so far. Call this after TestHelper setup
-// completes so the test only sees messages produced by the code under test
-// (TestHelper init produces ~1000 unrelated cluster messages).
+// reset drops everything captured so far. TestHelper setup produces many unrelated
+// cluster messages, and some setup work can finish asynchronously, so callers
+// must still filter for the event produced by the code under test.
 func (c *captureClusterMock) reset() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -86,6 +86,8 @@ func (c *captureClusterMock) GetWSQueues(userID, connectionID string, seqNum int
 	return nil, nil
 }
 
+func (c *captureClusterMock) Shutdown() {}
+
 func TestChannelGuardCacheBroadcastShape(t *testing.T) {
 	mainHelper.Parallel(t)
 	cluster := &captureClusterMock{}
@@ -94,9 +96,9 @@ func TestChannelGuardCacheBroadcastShape(t *testing.T) {
 
 	th.App.Channels().broadcastChannelGuardInvalidation()
 
-	captured := cluster.snapshot()
-	require.Len(t, captured, 1)
-	msg := captured[0]
+	guardEvents := filterGuardCacheEvents(cluster.snapshot())
+	require.Len(t, guardEvents, 1, "broadcast must produce exactly one guard-cache invalidation")
+	msg := guardEvents[0]
 	assert.Equal(t, clusterEventInvalidateChannelGuardCache, msg.Event)
 	assert.Equal(t, model.ClusterSendReliable, msg.SendType)
 	assert.Empty(t, msg.Data, "broadcast payload should be empty (D9: receiver does a full reload)")

@@ -10,12 +10,13 @@
 package model
 
 import (
+	"cmp"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
-	"sort"
+	"slices"
 )
 
 // CPA-prefixed aliases for the canonical PropertyField* constants in
@@ -101,6 +102,13 @@ type CustomProfileAttributesSelectOption struct {
 	Name  string `json:"name"`
 	Color string `json:"color"`
 	Rank  *int   `json:"rank,omitempty"`
+	// Parents carries the options directly above this one, by name, on a graph
+	// field. It is here only so that it survives: an option list written to a
+	// managed property group is normalized by decoding it into this type and
+	// encoding it again, which drops every key the type does not name. Nothing
+	// validates or stores it through this type -- PropertyField.OptionParentLinks
+	// is what reads it, from the option list itself.
+	Parents *[]string `json:"parents,omitempty"`
 }
 
 func (c CustomProfileAttributesSelectOption) GetID() string {
@@ -160,6 +168,8 @@ type CPAAttrs struct {
 	Visibility     string                                                `json:"visibility"`
 	SortOrder      float64                                               `json:"sort_order"`
 	Options        PropertyOptions[*CustomProfileAttributesSelectOption] `json:"options"`
+	OptionsCount   int                                                   `json:"options_count,omitempty"`
+	OptionsOmitted bool                                                  `json:"options_omitted,omitempty"`
 	ValueType      string                                                `json:"value_type"`
 	LDAP           string                                                `json:"ldap"`
 	SAML           string                                                `json:"saml"`
@@ -168,6 +178,11 @@ type CPAAttrs struct {
 	SourcePluginID string                                                `json:"source_plugin_id"`
 	AccessMode     string                                                `json:"access_mode"`
 	DisplayName    string                                                `json:"display_name,omitempty"` // omitempty applies only to direct JSON marshal of CPAAttrs; ToPropertyField always writes the key into the underlying StringInterface map.
+	// Owners, when set, declares the identities that own this field. A non-empty
+	// Owners list governs the field's write-access decision, superseding the
+	// legacy protected / SourcePluginID gating and the sync-lock. The list is
+	// managed only by an administrator via the REST API; see PropertyOwner.
+	Owners []PropertyOwner `json:"owners,omitempty"`
 }
 
 func (c *CPAField) IsSynced() bool {
@@ -204,6 +219,11 @@ func (c *CPAField) Patch(patch *PropertyFieldPatch) error {
 	return nil
 }
 
+// ToPropertyField rebuilds a PropertyField whose Attrs hold exactly the keys
+// CPAAttrs models. A field read above PropertyFieldMaxHydratedOptions carries
+// PropertyFieldAttributeOptionsOmitted and PropertyFieldAttributeOptionsCount
+// instead of an option list, and those two keys round-trip through CPAAttrs
+// like any other.
 func (c *CPAField) ToPropertyField() *PropertyField {
 	pf := c.PropertyField
 
@@ -219,6 +239,21 @@ func (c *CPAField) ToPropertyField() *PropertyField {
 		PropertyAttrsSourcePluginID:                     c.Attrs.SourcePluginID,
 		PropertyAttrsAccessMode:                         c.Attrs.AccessMode,
 		CustomProfileAttributesPropertyAttrsDisplayName: c.Attrs.DisplayName,
+	}
+
+	// Only write the owners key when the field declares owners, so existing
+	// fields keep their attrs blob unchanged and HasPropertyFieldOwners stays
+	// false for legacy-managed fields.
+	if len(c.Attrs.Owners) > 0 {
+		pf.Attrs[PropertyAttrsOwners] = c.Attrs.Owners
+	}
+
+	// Only write the withheld-options markers when the list was actually
+	// withheld, so a field with an inlined list keeps its attrs blob
+	// byte-for-byte unchanged.
+	if c.Attrs.OptionsOmitted {
+		pf.Attrs[PropertyFieldAttributeOptionsCount] = c.Attrs.OptionsCount
+		pf.Attrs[PropertyFieldAttributeOptionsOmitted] = c.Attrs.OptionsOmitted
 	}
 
 	return &pf
@@ -256,11 +291,11 @@ func CPAFieldsFromPropertyFields(pfs []*PropertyField) ([]*CPAField, error) {
 		cpaFields = append(cpaFields, cpaField)
 	}
 
-	sort.Slice(cpaFields, func(i, j int) bool {
-		if cpaFields[i].Attrs.SortOrder != cpaFields[j].Attrs.SortOrder {
-			return cpaFields[i].Attrs.SortOrder < cpaFields[j].Attrs.SortOrder
+	slices.SortFunc(cpaFields, func(a, b *CPAField) int {
+		if a.Attrs.SortOrder != b.Attrs.SortOrder {
+			return cmp.Compare(a.Attrs.SortOrder, b.Attrs.SortOrder)
 		}
-		return cpaFields[i].ID < cpaFields[j].ID
+		return cmp.Compare(a.ID, b.ID)
 	})
 
 	return cpaFields, nil

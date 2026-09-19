@@ -6,6 +6,8 @@ import {
     CPA_FIELD_NAME_RESERVED_WORDS,
     filterCELIdentifier,
     getUserPropertyFieldLabel,
+    isFieldOrphaned,
+    isWithheldPropertyValue,
     slugifyForCEL,
     validateCPAFieldName,
 } from './properties';
@@ -272,5 +274,55 @@ describe('filterCELIdentifier', () => {
 
     test.each(cases)('%s: %s → %s', (_label, input, expected) => {
         expect(filterCELIdentifier(input)).toBe(expected);
+    });
+});
+
+describe('isFieldOrphaned', () => {
+    const installed = new Set(['com.acme.plugin']);
+
+    it('reports a plugin-owned field whose plugin is gone', () => {
+        const field = {attrs: {source_plugin_id: 'com.acme.removed', protected: true}};
+        expect(isFieldOrphaned(field, installed)).toBe(true);
+    });
+
+    it('does not report a plugin-owned field whose plugin is still installed', () => {
+        const field = {attrs: {source_plugin_id: 'com.acme.plugin', protected: true}};
+        expect(isFieldOrphaned(field, installed)).toBe(false);
+    });
+
+    // An unprotected field is admin-managed regardless of where it came from, so it
+    // is never "orphaned" — it was always the admin's to delete.
+    it('does not report an unprotected field even when its plugin is gone', () => {
+        const field = {attrs: {source_plugin_id: 'com.acme.removed'}};
+        expect(isFieldOrphaned(field, installed)).toBe(false);
+    });
+
+    it('does not report a field with no source plugin at all', () => {
+        expect(isFieldOrphaned({attrs: {protected: true}}, installed)).toBe(false);
+        expect(isFieldOrphaned({attrs: {}}, installed)).toBe(false);
+        expect(isFieldOrphaned({}, installed)).toBe(false);
+    });
+});
+
+describe('isWithheldPropertyValue', () => {
+    it('reports the withheld marker', () => {
+        expect(isWithheldPropertyValue({withheld: true})).toBe(true);
+    });
+
+    // Every case below is a shape a real property value can legitimately have,
+    // so a false positive here would misread a genuine value as withheld.
+    const falseCases = [
+        ['null', null],
+        ['undefined', undefined],
+        ['a string value', 'AURORA'],
+        ['an array of options', ['opt1', 'opt2']],
+        ['an empty object', {}],
+        ['withheld: false', {withheld: false}],
+        ['withheld as a string', {withheld: 'true'}],
+        ['an array containing a withheld-shaped object', [{withheld: true}]],
+    ] as const;
+
+    test.each(falseCases)('%s -> false', (_label, value) => {
+        expect(isWithheldPropertyValue(value)).toBe(false);
     });
 });

@@ -27,6 +27,9 @@ describe('Upload Files', () => {
         // # Login as sysadmin
         cy.apiAdminLogin();
 
+        // # Ensure standard message display (download aria-label is omitted in compact)
+        cy.apiSaveMessageDisplayPreference('clean');
+
         // # Init setup
         cy.apiInitSetup().then((out) => {
             channelUrl = out.channelUrl;
@@ -263,9 +266,13 @@ describe('Upload Files', () => {
 
             // # Get the image preview div
             cy.get('.post-image.normal').then((imageDiv) => {
-                // # Filter out the url from the css background property
-                // url("https://imageurl") => https://imageurl
-                const imageURL = imageDiv.css('background-image').split('"')[1];
+                // # Filter out the url from the css background property.
+                // Chromium may return url("https://...") or url(https://...) depending
+                // on the version, so use a regex instead of splitting on quotes.
+                const bgImage = imageDiv.css('background-image');
+                const match = bgImage.match(/url\(["']?([^"')]+)["']?\)/);
+                expect(match, `unexpected background-image: ${bgImage}`).to.not.be.null;
+                const imageURL = match[1];
 
                 downloadAttachmentAndVerifyItsProperties(imageURL, imageFilename, 'inline');
             });
@@ -274,8 +281,13 @@ describe('Upload Files', () => {
         // # Now post with the message attachment
         cy.uiGetPostTextBox().clear().type('{enter}');
 
+        // # Wait for the posted image to finish loading. While loading, a data-URI placeholder
+        // # shares the same 'file thumbnail' aria-label as the real image, so reading the src too
+        // # early yields a data URI that has no content-disposition header.
+        cy.uiGetPostBody().find('.image-loading__container').should('not.exist');
+
         // * Check that the image in the post is with valid source link
-        cy.uiGetFileThumbnail(imageFilename).should('have.attr', 'src').then((src) => {
+        cy.uiGetFileThumbnail(imageFilename).should('have.attr', 'src').and('not.include', 'data:').then((src) => {
             downloadAttachmentAndVerifyItsProperties(src, imageFilename, 'inline');
         });
     });

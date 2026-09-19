@@ -4,7 +4,7 @@
 package utils
 
 import (
-	"math/rand"
+	"math/rand/v2"
 )
 
 type Range struct {
@@ -16,5 +16,5 @@ func RandIntFromRange(r Range) int {
 	if r.End-r.Begin <= 0 {
 		return r.Begin
 	}
-	return rand.Intn((r.End-r.Begin)+1) + r.Begin
+	return rand.IntN((r.End-r.Begin)+1) + r.Begin
 }

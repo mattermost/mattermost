@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test, testConfig} from '@mattermost/playwright-lib';
 
 test('should be able to enable mobile security settings when licensed', async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
@@ -266,8 +266,12 @@ test('should hide Intune MAM when Office365 is not configured', async ({pw}) => 
         throw new Error('Failed to create admin user');
     }
 
-    // # Ensure Office365 is disabled
+    // # Disable Office365, and Intune MAM in the same patch — the server rejects a config where
+    // # Intune MAM is on with AuthService 'office365' but Office365 is off
     await adminClient.patchConfig({
+        IntuneSettings: {
+            Enable: false,
+        },
         Office365Settings: {
             Enable: false,
         },
@@ -379,7 +383,7 @@ test('should configure new IntuneSettings with SAML auth provider', async ({pw})
     }
 
     // # Set server URL for fetch calls
-    const serverUrl = process.env.MM_SERVER_URL || 'http://localhost:8065';
+    const serverUrl = testConfig.baseURL;
 
     // # Upload a valid SAML IdP certificate using fetch
     const idpCert =
@@ -476,8 +480,11 @@ test('should disable Intune inputs when toggle is off', async ({pw}) => {
         throw new Error('Failed to create admin user');
     }
 
-    // # Configure Office365 settings
+    // # Configure Office365 settings, with the Intune MAM toggle off as this test requires
     await adminClient.patchConfig({
+        IntuneSettings: {
+            Enable: false,
+        },
         Office365Settings: {
             Enable: true,
             Id: 'test-client-id',

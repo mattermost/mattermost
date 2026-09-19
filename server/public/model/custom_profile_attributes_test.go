@@ -479,6 +479,52 @@ func TestCPAField_ToPropertyField_DisplayName(t *testing.T) {
 			"DisplayName must survive the ToPropertyField → NewCPAFieldFromPropertyField round-trip")
 	})
 
+	t.Run("Owners round-trip through ToPropertyField and NewCPAFieldFromPropertyField", func(t *testing.T) {
+		original := &CPAField{
+			PropertyField: PropertyField{
+				ID:      NewId(),
+				GroupID: AccessControlPropertyGroupName,
+				Name:    "department",
+				Type:    PropertyFieldTypeText,
+			},
+			Attrs: CPAAttrs{
+				Visibility: CustomProfileAttributesVisibilityAlways,
+				Owners: []PropertyOwner{
+					{ID: "com.mattermost.scim", Type: PropertyOwnerTypePlugin, Scopes: []string{"entra"}},
+				},
+			},
+		}
+
+		pf := original.ToPropertyField()
+		require.NotNil(t, pf)
+		require.Contains(t, pf.Attrs, PropertyAttrsOwners, "owners must be written into attrs when present")
+
+		roundTripped, err := NewCPAFieldFromPropertyField(pf)
+		require.NoError(t, err)
+		require.Len(t, roundTripped.Attrs.Owners, 1)
+		require.Equal(t, "com.mattermost.scim", roundTripped.Attrs.Owners[0].ID)
+		require.Equal(t, []string{"entra"}, roundTripped.Attrs.Owners[0].Scopes)
+	})
+
+	t.Run("absent Owners do not add the owners attr key", func(t *testing.T) {
+		field := &CPAField{
+			PropertyField: PropertyField{
+				ID:      NewId(),
+				GroupID: AccessControlPropertyGroupName,
+				Name:    "department",
+				Type:    PropertyFieldTypeText,
+			},
+			Attrs: CPAAttrs{Visibility: CustomProfileAttributesVisibilityWhenSet},
+		}
+
+		pf := field.ToPropertyField()
+		require.NotContains(t, pf.Attrs, PropertyAttrsOwners, "owners key must be omitted when no owners are set")
+
+		roundTripped, err := NewCPAFieldFromPropertyField(pf)
+		require.NoError(t, err)
+		require.Empty(t, roundTripped.Attrs.Owners)
+	})
+
 	t.Run("empty DisplayName round-trips as empty string", func(t *testing.T) {
 		field := &CPAField{
 			PropertyField: PropertyField{
@@ -498,6 +544,60 @@ func TestCPAField_ToPropertyField_DisplayName(t *testing.T) {
 		roundTripped, err := NewCPAFieldFromPropertyField(pf)
 		require.NoError(t, err)
 		require.Equal(t, "", roundTripped.Attrs.DisplayName)
+	})
+}
+
+func TestCPAField_ToPropertyField_WithheldOptions(t *testing.T) {
+	t.Run("withheld-options markers round-trip through ToPropertyField and NewCPAFieldFromPropertyField", func(t *testing.T) {
+		original := &CPAField{
+			PropertyField: PropertyField{
+				ID:      NewId(),
+				GroupID: AccessControlPropertyGroupName,
+				Name:    "department",
+				Type:    PropertyFieldTypeSelect,
+			},
+			Attrs: CPAAttrs{
+				Visibility:     CustomProfileAttributesVisibilityAlways,
+				OptionsCount:   1500,
+				OptionsOmitted: true,
+			},
+		}
+
+		pf := original.ToPropertyField()
+		require.NotNil(t, pf)
+		require.Equal(t, 1500, pf.Attrs[PropertyFieldAttributeOptionsCount])
+		require.Equal(t, true, pf.Attrs[PropertyFieldAttributeOptionsOmitted])
+
+		roundTripped, err := NewCPAFieldFromPropertyField(pf)
+		require.NoError(t, err)
+		require.Equal(t, 1500, roundTripped.Attrs.OptionsCount)
+		require.True(t, roundTripped.Attrs.OptionsOmitted)
+	})
+
+	t.Run("a normal option list adds neither withheld-options key", func(t *testing.T) {
+		field := &CPAField{
+			PropertyField: PropertyField{
+				ID:      NewId(),
+				GroupID: AccessControlPropertyGroupName,
+				Name:    "department",
+				Type:    PropertyFieldTypeSelect,
+			},
+			Attrs: CPAAttrs{
+				Visibility: CustomProfileAttributesVisibilityAlways,
+				Options: []*CustomProfileAttributesSelectOption{
+					{ID: NewId(), Name: "Option 1"},
+				},
+			},
+		}
+
+		pf := field.ToPropertyField()
+		require.NotContains(t, pf.Attrs, PropertyFieldAttributeOptionsCount)
+		require.NotContains(t, pf.Attrs, PropertyFieldAttributeOptionsOmitted)
+
+		roundTripped, err := NewCPAFieldFromPropertyField(pf)
+		require.NoError(t, err)
+		require.Equal(t, 0, roundTripped.Attrs.OptionsCount)
+		require.False(t, roundTripped.Attrs.OptionsOmitted)
 	})
 }
 

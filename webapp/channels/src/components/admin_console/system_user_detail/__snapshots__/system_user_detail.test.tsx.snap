@@ -33,24 +33,59 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
             class="AdminUserCard__header"
             data-testid="adminUserCard-header"
           >
-            <button
-              aria-expanded="false"
-              aria-haspopup="dialog"
-              class="status-wrapper style--none admin-user-card"
-              style="border-radius: 50%; width: 128px; height: 128px;"
+            <div
+              class="AdminUserCard__picture"
             >
-              <span
-                class="profile-icon "
-                data-testid="profile-icon"
+              <button
+                aria-expanded="false"
+                aria-haspopup="dialog"
+                class="status-wrapper style--none admin-user-card"
+                style="border-radius: 50%; width: 128px; height: 128px;"
+                type="button"
               >
-                <img
-                  alt="user profile image"
-                  class="Avatar Avatar-xxl"
-                  loading="lazy"
-                  src="/api/v4/users/user_id/image"
-                />
-              </span>
-            </button>
+                <span
+                  class="profile-icon "
+                  data-testid="profile-icon"
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-xxl"
+                    loading="lazy"
+                    src="/api/v4/users/user_id/image"
+                  />
+                </span>
+              </button>
+              <input
+                accept=".jpeg,.jpg,.png,.bmp"
+                aria-hidden="true"
+                class="AdminUserCard__picture-input"
+                data-testid="adminUserCardPictureInput"
+                tabindex="-1"
+                type="file"
+              />
+              <button
+                aria-controls="adminUserCardPictureMenu"
+                aria-expanded="false"
+                aria-haspopup="true"
+                aria-label="Edit profile picture"
+                class="AdminUserCard__picture-edit"
+                data-testid="adminUserCardPictureButton"
+                id="adminUserCardPictureButton"
+              >
+                <svg
+                  fill="currentColor"
+                  height="16"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="16"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M20,4H16.83L15,2H9L7.17,4H4A2,2 0 0,0 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6A2,2 0 0,0 20,4M20,18H4V6H8.05L9.88,4H14.12L15.95,6H20V18M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15Z"
+                  />
+                </svg>
+              </button>
+            </div>
             <div
               class="AdminUserCard__user-info"
               data-testid="adminUserCard-userInfo"
@@ -133,6 +168,41 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
                       aria-describedby="email-error"
                       aria-invalid="false"
                       class="form-control"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+                data-testid="fieldRow"
+              >
+                <div
+                  class="field-column left"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    First Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter first name"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+                <div
+                  class="field-column right"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    Last Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter last name"
                       type="text"
                       value=""
                     />
@@ -301,24 +371,59 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
             class="AdminUserCard__header"
             data-testid="adminUserCard-header"
           >
-            <button
-              aria-expanded="false"
-              aria-haspopup="dialog"
-              class="status-wrapper style--none admin-user-card"
-              style="border-radius: 50%; width: 128px; height: 128px;"
+            <div
+              class="AdminUserCard__picture"
             >
-              <span
-                class="profile-icon "
-                data-testid="profile-icon"
+              <button
+                aria-expanded="false"
+                aria-haspopup="dialog"
+                class="status-wrapper style--none admin-user-card"
+                style="border-radius: 50%; width: 128px; height: 128px;"
+                type="button"
               >
-                <img
-                  alt="user profile image"
-                  class="Avatar Avatar-xxl"
-                  loading="lazy"
-                  src="/api/v4/users/user_id/image"
-                />
-              </span>
-            </button>
+                <span
+                  class="profile-icon "
+                  data-testid="profile-icon"
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-xxl"
+                    loading="lazy"
+                    src="/api/v4/users/user_id/image"
+                  />
+                </span>
+              </button>
+              <input
+                accept=".jpeg,.jpg,.png,.bmp"
+                aria-hidden="true"
+                class="AdminUserCard__picture-input"
+                data-testid="adminUserCardPictureInput"
+                tabindex="-1"
+                type="file"
+              />
+              <button
+                aria-controls="adminUserCardPictureMenu"
+                aria-expanded="false"
+                aria-haspopup="true"
+                aria-label="Edit profile picture"
+                class="AdminUserCard__picture-edit"
+                data-testid="adminUserCardPictureButton"
+                id="adminUserCardPictureButton"
+              >
+                <svg
+                  fill="currentColor"
+                  height="16"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="16"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M20,4H16.83L15,2H9L7.17,4H4A2,2 0 0,0 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6A2,2 0 0,0 20,4M20,18H4V6H8.05L9.88,4H14.12L15.95,6H20V18M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15Z"
+                  />
+                </svg>
+              </button>
+            </div>
             <div
               class="AdminUserCard__user-info"
               data-testid="adminUserCard-userInfo"
@@ -401,6 +506,41 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
                       aria-describedby="email-error"
                       aria-invalid="false"
                       class="form-control"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+                data-testid="fieldRow"
+              >
+                <div
+                  class="field-column left"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    First Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter first name"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+                <div
+                  class="field-column right"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    Last Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter last name"
                       type="text"
                       value=""
                     />
@@ -569,24 +709,59 @@ exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
             class="AdminUserCard__header"
             data-testid="adminUserCard-header"
           >
-            <button
-              aria-expanded="false"
-              aria-haspopup="dialog"
-              class="status-wrapper style--none admin-user-card"
-              style="border-radius: 50%; width: 128px; height: 128px;"
+            <div
+              class="AdminUserCard__picture"
             >
-              <span
-                class="profile-icon "
-                data-testid="profile-icon"
+              <button
+                aria-expanded="false"
+                aria-haspopup="dialog"
+                class="status-wrapper style--none admin-user-card"
+                style="border-radius: 50%; width: 128px; height: 128px;"
+                type="button"
               >
-                <img
-                  alt="user profile image"
-                  class="Avatar Avatar-xxl"
-                  loading="lazy"
-                  src="/api/v4/users/user_id/image"
-                />
-              </span>
-            </button>
+                <span
+                  class="profile-icon "
+                  data-testid="profile-icon"
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-xxl"
+                    loading="lazy"
+                    src="/api/v4/users/user_id/image"
+                  />
+                </span>
+              </button>
+              <input
+                accept=".jpeg,.jpg,.png,.bmp"
+                aria-hidden="true"
+                class="AdminUserCard__picture-input"
+                data-testid="adminUserCardPictureInput"
+                tabindex="-1"
+                type="file"
+              />
+              <button
+                aria-controls="adminUserCardPictureMenu"
+                aria-expanded="false"
+                aria-haspopup="true"
+                aria-label="Edit profile picture"
+                class="AdminUserCard__picture-edit"
+                data-testid="adminUserCardPictureButton"
+                id="adminUserCardPictureButton"
+              >
+                <svg
+                  fill="currentColor"
+                  height="16"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="16"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M20,4H16.83L15,2H9L7.17,4H4A2,2 0 0,0 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6A2,2 0 0,0 20,4M20,18H4V6H8.05L9.88,4H14.12L15.95,6H20V18M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15Z"
+                  />
+                </svg>
+              </button>
+            </div>
             <div
               class="AdminUserCard__user-info"
               data-testid="adminUserCard-userInfo"
@@ -669,6 +844,41 @@ exports[`SystemUserDetail should not fetch CPA data if disabled 1`] = `
                       aria-describedby="email-error"
                       aria-invalid="false"
                       class="form-control"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+                data-testid="fieldRow"
+              >
+                <div
+                  class="field-column left"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    First Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter first name"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+                <div
+                  class="field-column right"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    Last Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter last name"
                       type="text"
                       value=""
                     />
@@ -837,24 +1047,59 @@ exports[`SystemUserDetail should not show manage user settings button when user 
             class="AdminUserCard__header"
             data-testid="adminUserCard-header"
           >
-            <button
-              aria-expanded="false"
-              aria-haspopup="dialog"
-              class="status-wrapper style--none admin-user-card"
-              style="border-radius: 50%; width: 128px; height: 128px;"
+            <div
+              class="AdminUserCard__picture"
             >
-              <span
-                class="profile-icon "
-                data-testid="profile-icon"
+              <button
+                aria-expanded="false"
+                aria-haspopup="dialog"
+                class="status-wrapper style--none admin-user-card"
+                style="border-radius: 50%; width: 128px; height: 128px;"
+                type="button"
               >
-                <img
-                  alt="user profile image"
-                  class="Avatar Avatar-xxl"
-                  loading="lazy"
-                  src="/api/v4/users/user_id/image"
-                />
-              </span>
-            </button>
+                <span
+                  class="profile-icon "
+                  data-testid="profile-icon"
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-xxl"
+                    loading="lazy"
+                    src="/api/v4/users/user_id/image"
+                  />
+                </span>
+              </button>
+              <input
+                accept=".jpeg,.jpg,.png,.bmp"
+                aria-hidden="true"
+                class="AdminUserCard__picture-input"
+                data-testid="adminUserCardPictureInput"
+                tabindex="-1"
+                type="file"
+              />
+              <button
+                aria-controls="adminUserCardPictureMenu"
+                aria-expanded="false"
+                aria-haspopup="true"
+                aria-label="Edit profile picture"
+                class="AdminUserCard__picture-edit"
+                data-testid="adminUserCardPictureButton"
+                id="adminUserCardPictureButton"
+              >
+                <svg
+                  fill="currentColor"
+                  height="16"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="16"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M20,4H16.83L15,2H9L7.17,4H4A2,2 0 0,0 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6A2,2 0 0,0 20,4M20,18H4V6H8.05L9.88,4H14.12L15.95,6H20V18M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15Z"
+                  />
+                </svg>
+              </button>
+            </div>
             <div
               class="AdminUserCard__user-info"
               data-testid="adminUserCard-userInfo"
@@ -937,6 +1182,41 @@ exports[`SystemUserDetail should not show manage user settings button when user 
                       aria-describedby="email-error"
                       aria-invalid="false"
                       class="form-control"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+                data-testid="fieldRow"
+              >
+                <div
+                  class="field-column left"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    First Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter first name"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+                <div
+                  class="field-column right"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    Last Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter last name"
                       type="text"
                       value=""
                     />
@@ -1105,24 +1385,59 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
             class="AdminUserCard__header"
             data-testid="adminUserCard-header"
           >
-            <button
-              aria-expanded="false"
-              aria-haspopup="dialog"
-              class="status-wrapper style--none admin-user-card"
-              style="border-radius: 50%; width: 128px; height: 128px;"
+            <div
+              class="AdminUserCard__picture"
             >
-              <span
-                class="profile-icon "
-                data-testid="profile-icon"
+              <button
+                aria-expanded="false"
+                aria-haspopup="dialog"
+                class="status-wrapper style--none admin-user-card"
+                style="border-radius: 50%; width: 128px; height: 128px;"
+                type="button"
               >
-                <img
-                  alt="user profile image"
-                  class="Avatar Avatar-xxl"
-                  loading="lazy"
-                  src="/api/v4/users/user_id/image"
-                />
-              </span>
-            </button>
+                <span
+                  class="profile-icon "
+                  data-testid="profile-icon"
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-xxl"
+                    loading="lazy"
+                    src="/api/v4/users/user_id/image"
+                  />
+                </span>
+              </button>
+              <input
+                accept=".jpeg,.jpg,.png,.bmp"
+                aria-hidden="true"
+                class="AdminUserCard__picture-input"
+                data-testid="adminUserCardPictureInput"
+                tabindex="-1"
+                type="file"
+              />
+              <button
+                aria-controls="adminUserCardPictureMenu"
+                aria-expanded="false"
+                aria-haspopup="true"
+                aria-label="Edit profile picture"
+                class="AdminUserCard__picture-edit"
+                data-testid="adminUserCardPictureButton"
+                id="adminUserCardPictureButton"
+              >
+                <svg
+                  fill="currentColor"
+                  height="16"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="16"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M20,4H16.83L15,2H9L7.17,4H4A2,2 0 0,0 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6A2,2 0 0,0 20,4M20,18H4V6H8.05L9.88,4H14.12L15.95,6H20V18M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15Z"
+                  />
+                </svg>
+              </button>
+            </div>
             <div
               class="AdminUserCard__user-info"
               data-testid="adminUserCard-userInfo"
@@ -1205,6 +1520,41 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
                       aria-describedby="email-error"
                       aria-invalid="false"
                       class="form-control"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+                data-testid="fieldRow"
+              >
+                <div
+                  class="field-column left"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    First Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter first name"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+                <div
+                  class="field-column right"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    Last Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter last name"
                       type="text"
                       value=""
                     />
@@ -1379,24 +1729,59 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
             class="AdminUserCard__header"
             data-testid="adminUserCard-header"
           >
-            <button
-              aria-expanded="false"
-              aria-haspopup="dialog"
-              class="status-wrapper style--none admin-user-card"
-              style="border-radius: 50%; width: 128px; height: 128px;"
+            <div
+              class="AdminUserCard__picture"
             >
-              <span
-                class="profile-icon "
-                data-testid="profile-icon"
+              <button
+                aria-expanded="false"
+                aria-haspopup="dialog"
+                class="status-wrapper style--none admin-user-card"
+                style="border-radius: 50%; width: 128px; height: 128px;"
+                type="button"
               >
-                <img
-                  alt="user profile image"
-                  class="Avatar Avatar-xxl"
-                  loading="lazy"
-                  src="/api/v4/users/user_id/image"
-                />
-              </span>
-            </button>
+                <span
+                  class="profile-icon "
+                  data-testid="profile-icon"
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-xxl"
+                    loading="lazy"
+                    src="/api/v4/users/user_id/image"
+                  />
+                </span>
+              </button>
+              <input
+                accept=".jpeg,.jpg,.png,.bmp"
+                aria-hidden="true"
+                class="AdminUserCard__picture-input"
+                data-testid="adminUserCardPictureInput"
+                tabindex="-1"
+                type="file"
+              />
+              <button
+                aria-controls="adminUserCardPictureMenu"
+                aria-expanded="false"
+                aria-haspopup="true"
+                aria-label="Edit profile picture"
+                class="AdminUserCard__picture-edit"
+                data-testid="adminUserCardPictureButton"
+                id="adminUserCardPictureButton"
+              >
+                <svg
+                  fill="currentColor"
+                  height="16"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="16"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M20,4H16.83L15,2H9L7.17,4H4A2,2 0 0,0 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6A2,2 0 0,0 20,4M20,18H4V6H8.05L9.88,4H14.12L15.95,6H20V18M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15Z"
+                  />
+                </svg>
+              </button>
+            </div>
             <div
               class="AdminUserCard__user-info"
               data-testid="adminUserCard-userInfo"
@@ -1479,6 +1864,41 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
                       aria-describedby="email-error"
                       aria-invalid="false"
                       class="form-control"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+                data-testid="fieldRow"
+              >
+                <div
+                  class="field-column left"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    First Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter first name"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+                <div
+                  class="field-column right"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    Last Name
+                    <input
+                      class="form-control"
+                      maxlength="64"
+                      placeholder="Enter last name"
                       type="text"
                       value=""
                     />
@@ -1647,24 +2067,59 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
             class="AdminUserCard__header"
             data-testid="adminUserCard-header"
           >
-            <button
-              aria-expanded="false"
-              aria-haspopup="dialog"
-              class="status-wrapper style--none admin-user-card"
-              style="border-radius: 50%; width: 128px; height: 128px;"
+            <div
+              class="AdminUserCard__picture"
             >
-              <span
-                class="profile-icon "
-                data-testid="profile-icon"
+              <button
+                aria-expanded="false"
+                aria-haspopup="dialog"
+                class="status-wrapper style--none admin-user-card"
+                style="border-radius: 50%; width: 128px; height: 128px;"
+                type="button"
               >
-                <img
-                  alt="user profile image"
-                  class="Avatar Avatar-xxl"
-                  loading="lazy"
-                  src="/api/v4/users/user_id/image"
-                />
-              </span>
-            </button>
+                <span
+                  class="profile-icon "
+                  data-testid="profile-icon"
+                >
+                  <img
+                    alt="user profile image"
+                    class="Avatar Avatar-xxl"
+                    loading="lazy"
+                    src="/api/v4/users/user_id/image"
+                  />
+                </span>
+              </button>
+              <input
+                accept=".jpeg,.jpg,.png,.bmp"
+                aria-hidden="true"
+                class="AdminUserCard__picture-input"
+                data-testid="adminUserCardPictureInput"
+                tabindex="-1"
+                type="file"
+              />
+              <button
+                aria-controls="adminUserCardPictureMenu"
+                aria-expanded="false"
+                aria-haspopup="true"
+                aria-label="Edit profile picture"
+                class="AdminUserCard__picture-edit"
+                data-testid="adminUserCardPictureButton"
+                id="adminUserCardPictureButton"
+              >
+                <svg
+                  fill="currentColor"
+                  height="16"
+                  version="1.1"
+                  viewBox="0 0 24 24"
+                  width="16"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M20,4H16.83L15,2H9L7.17,4H4A2,2 0 0,0 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6A2,2 0 0,0 20,4M20,18H4V6H8.05L9.88,4H14.12L15.95,6H20V18M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15Z"
+                  />
+                </svg>
+              </button>
+            </div>
             <div
               class="AdminUserCard__user-info"
               data-testid="adminUserCard-userInfo"
@@ -1749,6 +2204,43 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
                       disabled=""
                       readonly=""
                       style="cursor: not-allowed;"
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+              </div>
+              <div
+                class="field-row"
+                data-testid="fieldRow"
+              >
+                <div
+                  class="field-column left"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    First Name
+                    <input
+                      class="form-control"
+                      disabled=""
+                      placeholder="Enter first name"
+                      readonly=""
+                      type="text"
+                      value=""
+                    />
+                  </label>
+                </div>
+                <div
+                  class="field-column right"
+                  data-testid="fieldColumn"
+                >
+                  <label>
+                    Last Name
+                    <input
+                      class="form-control"
+                      disabled=""
+                      placeholder="Enter last name"
+                      readonly=""
                       type="text"
                       value=""
                     />

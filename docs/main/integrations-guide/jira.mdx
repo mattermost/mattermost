@@ -1,6 +1,9 @@
 ---
 title: "Connect Jira to Mattermost"
+sidebar_label: "Jira"
 ---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
 <PlanAvailability slug="all-commercial" />
 
 Minimize distractions, reduce context switching between your project management tool and your communication platform by integrating Jira with Mattermost. You control which events trigger notifications including issue creation, field-specific issue updates, reopened, resolved, or deleted issues, as well as new, updated, or deleted issue comments. Create Jira issues directly from Mattermost conversations, attach messages to Jira issues, transition and assign Jira issues, and follow up on action items in real-time, directly from Mattermost channel subscriptions.
@@ -27,7 +30,7 @@ A Mattermost system admin must perform the following steps in Mattermost.
 
 1.  Install the Jira integration from the in-product App Marketplace:
 
-> 1.  In Mattermost, from the Product menu <img src="/img/ui/products_E82F.svg" alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" />, select **App Marketplace**.
+> 1.  In Mattermost, from the Product menu <img src={useBaseUrl('/img/ui/products_E82F.svg')} alt="Navigate between Channels, collaborative playbooks, and boards using the product menu icon." className="theme-icon" />, select **App Marketplace**.
 > 2.  Search for or scroll to Jira, and select **Install**.
 > 3.  Once installed, select **Configure**. You're taken to the System Console.
 > 4.  On the Jira configuration page, enable and configure Jira interoperability as follows, and then select **Save**:
@@ -189,7 +192,7 @@ Use the `/jira issue create` slash command to create a Jira issue without leavin
 
 #### Transition Jira issues
 
-You can transition issues without leaving Mattermost by using the `/jira transition &lt;issue-key&gt; &lt;state&gt;` slash command. States and issue transitions are based on your Jira project workflow configuration. For example, `/jira transition EXT-20 done` transitions the issue key EXT-20 to a `done` state. Partial matches are supported. For example, running the `/jira transition EXT-20 in` slash command transitions the issue to an `in progress` state. However, if your Jira instance includes states of both `in review` and `in progress`, the Jira integration bot will prompt you to clarify which state you want.
+You can transition issues without leaving Mattermost by using the `/jira transition <issue-key> <state>` slash command. States and issue transitions are based on your Jira project workflow configuration. For example, `/jira transition EXT-20 done` transitions the issue key EXT-20 to a `done` state. Partial matches are supported. For example, running the `/jira transition EXT-20 in` slash command transitions the issue to an `in progress` state. However, if your Jira instance includes states of both `in review` and `in progress`, the Jira integration bot will prompt you to clarify which state you want.
 
 #### Assign Jira issues
 

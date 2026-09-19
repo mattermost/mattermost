@@ -361,6 +361,11 @@ func (_m *ClusterInterface) SendClusterMessageToNode(nodeID string, msg *model.C
 	return r0
 }
 
+// Shutdown provides a mock function with no fields
+func (_m *ClusterInterface) Shutdown() {
+	_m.Called()
+}
+
 // StartInterNodeCommunication provides a mock function with no fields
 func (_m *ClusterInterface) StartInterNodeCommunication() {
 	_m.Called()

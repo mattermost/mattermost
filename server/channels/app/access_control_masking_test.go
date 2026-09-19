@@ -5,6 +5,7 @@ package app
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -16,28 +17,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
-
-func TestExtractFieldName(t *testing.T) {
-	tests := []struct {
-		name      string
-		attribute string
-		expected  string
-	}{
-		{"standard attribute path", "user.attributes.Program", "Program"},
-		{"multi-word field", "user.attributes.Clearance Level", "Clearance Level"},
-		{"no prefix", "Program", ""},
-		{"partial prefix", "user.attributes.", ""},
-		{"empty string", "", ""},
-		{"different prefix", "team.attributes.Program", ""},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			result := extractFieldName(tc.attribute)
-			assert.Equal(t, tc.expected, result)
-		})
-	}
-}
 
 // Note: tests for field.GetAccessMode() live in model/property_access_test.go,
 // where the method is defined (TestPropertyFieldGetAccessMode).
@@ -389,6 +368,13 @@ func TestMaskConditionValues(t *testing.T) {
 		return &model.PropertyField{Type: fieldType, Attrs: attrs}
 	}
 
+	// hold wraps a field as its own holdings source with its own access mode —
+	// the direct-field case these unit tests exercise (channel-sibling access-mode
+	// resolution is covered by the store-backed tests).
+	hold := func(f *model.PropertyField) *maskingHoldings {
+		return &maskingHoldings{field: f, accessMode: f.GetAccessMode()}
+	}
+
 	options := []any{
 		map[string]any{"id": "id1", "name": "Alpha"},
 		map[string]any{"id": "id2", "name": "Bravo"},
@@ -411,7 +397,7 @@ func TestMaskConditionValues(t *testing.T) {
 			Value:     "Engineering",
 			ValueType: model.LiteralValue,
 		}
-		a.maskConditionValues(rctx, "caller", condition, "", map[string]*model.PropertyField{})
+		a.maskConditionValues(rctx, "caller", condition, "", map[string]*maskingHoldings{})
 		assert.Equal(t, "Engineering", condition.Value)
 		assert.False(t, condition.HasMaskedValues)
 	})
@@ -422,7 +408,7 @@ func TestMaskConditionValues(t *testing.T) {
 			Value:     "Alpha",
 			ValueType: model.LiteralValue,
 		}
-		a.maskConditionValues(rctx, "caller", condition, "", map[string]*model.PropertyField{})
+		a.maskConditionValues(rctx, "caller", condition, "", map[string]*maskingHoldings{})
 		assert.Nil(t, condition.Value)
 		assert.True(t, condition.HasMaskedValues)
 	})
@@ -433,8 +419,8 @@ func TestMaskConditionValues(t *testing.T) {
 			Value:     "Alpha",
 			ValueType: model.LiteralValue,
 		}
-		fields := map[string]*model.PropertyField{
-			"Program": makeField(model.PropertyAccessModePublic, model.PropertyFieldTypeSelect, options),
+		fields := map[string]*maskingHoldings{
+			"user/Program": hold(makeField(model.PropertyAccessModePublic, model.PropertyFieldTypeSelect, options)),
 		}
 		a.maskConditionValues(rctx, "caller", condition, "", fields)
 		assert.Equal(t, "Alpha", condition.Value)
@@ -447,8 +433,8 @@ func TestMaskConditionValues(t *testing.T) {
 			Value:     "Top Secret",
 			ValueType: model.LiteralValue,
 		}
-		fields := map[string]*model.PropertyField{
-			"Clearance": makeField(model.PropertyAccessModeSourceOnly, model.PropertyFieldTypeSelect, options),
+		fields := map[string]*maskingHoldings{
+			"user/Clearance": hold(makeField(model.PropertyAccessModeSourceOnly, model.PropertyFieldTypeSelect, options)),
 		}
 		a.maskConditionValues(rctx, "caller", condition, "", fields)
 		assert.Nil(t, condition.Value)
@@ -461,8 +447,8 @@ func TestMaskConditionValues(t *testing.T) {
 			Value:     "Alpha",
 			ValueType: model.LiteralValue,
 		}
-		fields := map[string]*model.PropertyField{
-			"Location": makeField(model.PropertyAccessModeSharedOnly, model.PropertyFieldTypeSelect, options),
+		fields := map[string]*maskingHoldings{
+			"user/Location": hold(makeField(model.PropertyAccessModeSharedOnly, model.PropertyFieldTypeSelect, options)),
 		}
 		a.maskConditionValues(rctx, "caller", condition, "", fields)
 		// "Alpha" is in the field options so it is visible
@@ -476,8 +462,8 @@ func TestMaskConditionValues(t *testing.T) {
 			Value:     "Charlie",
 			ValueType: model.LiteralValue,
 		}
-		fields := map[string]*model.PropertyField{
-			"Location": makeField(model.PropertyAccessModeSharedOnly, model.PropertyFieldTypeSelect, options),
+		fields := map[string]*maskingHoldings{
+			"user/Location": hold(makeField(model.PropertyAccessModeSharedOnly, model.PropertyFieldTypeSelect, options)),
 		}
 		a.maskConditionValues(rctx, "caller", condition, "", fields)
 		assert.Nil(t, condition.Value)
@@ -490,8 +476,8 @@ func TestMaskConditionValues(t *testing.T) {
 			Value:     []any{"Alpha", "Charlie"},
 			ValueType: model.LiteralValue,
 		}
-		fields := map[string]*model.PropertyField{
-			"Programs": makeField(model.PropertyAccessModeSharedOnly, model.PropertyFieldTypeMultiselect, options),
+		fields := map[string]*maskingHoldings{
+			"user/Programs": hold(makeField(model.PropertyAccessModeSharedOnly, model.PropertyFieldTypeMultiselect, options)),
 		}
 		a.maskConditionValues(rctx, "caller", condition, "", fields)
 		values, ok := condition.Value.([]any)
@@ -506,13 +492,54 @@ func TestMaskConditionValues(t *testing.T) {
 			Value:     "Alpha",
 			ValueType: model.LiteralValue,
 		}
-		fields := map[string]*model.PropertyField{
-			"Program": {
+		fields := map[string]*maskingHoldings{
+			"user/Program": hold(&model.PropertyField{
 				Type:  model.PropertyFieldTypeSelect,
 				Attrs: model.StringInterface{model.PropertyAttrsAccessMode: "future_unknown_mode"},
-			},
+			}),
 		}
 		a.maskConditionValues(rctx, "caller", condition, "", fields)
+		assert.Nil(t, condition.Value)
+		assert.True(t, condition.HasMaskedValues)
+	})
+
+	t.Run("resource attribute: keyed by channel object type, public passes through", func(t *testing.T) {
+		condition := &model.Condition{
+			Attribute: "resource.attributes.Sensitivity",
+			Value:     "Alpha",
+			ValueType: model.LiteralValue,
+		}
+		fields := map[string]*maskingHoldings{
+			"channel/Sensitivity": hold(makeField(model.PropertyAccessModePublic, model.PropertyFieldTypeSelect, options)),
+		}
+		a.maskConditionValues(rctx, "caller", condition, "", fields)
+		assert.Equal(t, "Alpha", condition.Value)
+		assert.False(t, condition.HasMaskedValues)
+	})
+
+	t.Run("resource attribute: shared_only value the caller does not hold is masked", func(t *testing.T) {
+		condition := &model.Condition{
+			Attribute: "resource.attributes.Sensitivity",
+			Value:     "secret",
+			ValueType: model.LiteralValue,
+		}
+		// The prefetched field is the holdings-bearing sibling; "secret" is not
+		// among the caller's visible options, so it masks.
+		fields := map[string]*maskingHoldings{
+			"channel/Sensitivity": hold(makeField(model.PropertyAccessModeSharedOnly, model.PropertyFieldTypeSelect, options)),
+		}
+		a.maskConditionValues(rctx, "caller", condition, "", fields)
+		assert.Nil(t, condition.Value)
+		assert.True(t, condition.HasMaskedValues)
+	})
+
+	t.Run("resource attribute missing from prefetch map: fail-closed", func(t *testing.T) {
+		condition := &model.Condition{
+			Attribute: "resource.attributes.Sensitivity",
+			Value:     "Alpha",
+			ValueType: model.LiteralValue,
+		}
+		a.maskConditionValues(rctx, "caller", condition, "", map[string]*maskingHoldings{})
 		assert.Nil(t, condition.Value)
 		assert.True(t, condition.HasMaskedValues)
 	})
@@ -564,7 +591,7 @@ func TestMaskConditionValues_SharedOnlyText(t *testing.T) {
 	})
 	require.Nil(t, appErr)
 
-	fieldsByName := map[string]*model.PropertyField{createdField.Name: createdField}
+	fieldsByName := map[string]*maskingHoldings{model.PropertyFieldObjectTypeUser + "/" + createdField.Name: {field: createdField, accessMode: createdField.GetAccessMode()}}
 
 	t.Run("caller's own value passes through", func(t *testing.T) {
 		condition := &model.Condition{
@@ -1253,4 +1280,603 @@ func TestMaskSimulationPolicyLiteralsForCaller_CompoundOrPreserved(t *testing.T)
 	// and the same absence of literal leaks.
 	assert.Equal(t, blame.EvaluationTree.Expression, blame.Expression)
 	mockACS.AssertExpectations(t)
+}
+
+// TestSplitCPAAttribute pins the CPA attribute-path splitter that routes a leaf
+// to the right object type. user.attributes.* → user, resource.attributes.* →
+// channel; everything else (native selectors, empty suffix) is not a CPA leaf.
+func TestSplitCPAAttribute(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	cases := []struct {
+		path       string
+		wantObject string
+		wantField  string
+		wantOK     bool
+	}{
+		{"user.attributes.Clearance", model.PropertyFieldObjectTypeUser, "Clearance", true},
+		{"resource.attributes.Sensitivity", model.PropertyFieldObjectTypeChannel, "Sensitivity", true},
+		{"user.email", "", "", false},
+		{"resource.id", "", "", false},
+		{"session.network_status", "", "", false},
+		{"user.attributes.", "", "", false},
+		{"resource.attributes.", "", "", false},
+		{"", "", "", false},
+	}
+	for _, c := range cases {
+		objectType, fieldName, ok := splitCPAAttribute(c.path)
+		assert.Equal(t, c.wantOK, ok, "ok mismatch for %q", c.path)
+		assert.Equal(t, c.wantObject, objectType, "objectType mismatch for %q", c.path)
+		assert.Equal(t, c.wantField, fieldName, "fieldName mismatch for %q", c.path)
+	}
+}
+
+// TestAppMaskingResolver_ChannelFieldUsesUserHoldings verifies the shared-template
+// bridge: a resource.attributes.<field> reference is masked by the caller's own
+// USER-side holdings for the linked template, since users never hold channel
+// values directly. A shared_only channel field whose user sibling the caller
+// partially holds must expose only the held option values.
+//
+// Run over both option-bearing types the clearance/classification pairing uses.
+// Rank is the one that regresses if the resolver spells its type list out instead
+// of asking Type.SupportsOptions(): a rank field would fall through to the
+// caller's raw text values, which hold the option ID rather than its name, so
+// every option would read as hidden.
+func TestAppMaskingResolver_ChannelFieldUsesUserHoldings(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	for _, fieldType := range []model.PropertyFieldType{model.PropertyFieldTypeSelect, model.PropertyFieldTypeRank} {
+		t.Run(string(fieldType), func(t *testing.T) {
+			assertChannelFieldUsesUserHoldings(t, fieldType)
+		})
+	}
+}
+
+func assertChannelFieldUsesUserHoldings(t *testing.T, fieldType model.PropertyFieldType) {
+	t.Helper()
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	rctx := request.TestContext(t)
+
+	cpaGroup, gErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, gErr)
+	groupID := cpaGroup.ID
+
+	callerID := model.NewId()
+
+	optA := model.NewId()
+	optB := model.NewId()
+	options := []any{
+		map[string]any{"id": optA, "name": "A", "rank": 1},
+		map[string]any{"id": optB, "name": "B", "rank": 2},
+	}
+
+	// Template field that both the user and channel fields link to.
+	tmpl, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:    groupID,
+		Name:       celSafeName(),
+		Type:       fieldType,
+		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs:      model.StringInterface{model.PropertyFieldAttributeOptions: options},
+	})
+	require.NoError(t, sErr)
+
+	linkedAttrs := func() model.StringInterface {
+		return model.StringInterface{
+			model.PropertyFieldAttributeOptions: options,
+			model.PropertyAttrsProtected:        true,
+			model.PropertyAttrsAccessMode:       model.PropertyAccessModeSharedOnly,
+			model.PropertyAttrsSourcePluginID:   "com.mattermost.uas-plugin",
+		}
+	}
+
+	// Store-level Create bypasses the CPA access-control layer so protected /
+	// shared_only linked fields can be written directly (the same shortcut the
+	// other shared_only masking tests take). Reads still filter per caller.
+	userField, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:       groupID,
+		Name:          celSafeName(),
+		Type:          fieldType,
+		ObjectType:    model.PropertyFieldObjectTypeUser,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &tmpl.ID,
+		Attrs:         linkedAttrs(),
+	})
+	require.NoError(t, sErr)
+
+	channelFieldName := celSafeName()
+	_, sErr = th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:       groupID,
+		Name:          channelFieldName,
+		Type:          fieldType,
+		ObjectType:    model.PropertyFieldObjectTypeChannel,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &tmpl.ID,
+		Attrs:         linkedAttrs(),
+	})
+	require.NoError(t, sErr)
+
+	// Caller holds option A on the USER field (users never hold channel values).
+	// Written store-level because the field is protected (app-layer writes to
+	// protected fields are plugin-only).
+	_, vErr := th.Store.PropertyValue().Create(&model.PropertyValue{
+		TargetID:   callerID,
+		TargetType: model.PropertyValueTargetTypeUser,
+		GroupID:    groupID,
+		FieldID:    userField.ID,
+		Value:      json.RawMessage(`"` + optA + `"`),
+	})
+	require.NoError(t, vErr)
+
+	resolver, rErr := newMaskingResolver(th.App, rctx, callerID)
+	require.Nil(t, rErr)
+
+	info, err := resolver.Resolve(model.PropertyFieldObjectTypeChannel, channelFieldName)
+	require.NoError(t, err)
+	require.Equal(t, model.MaskingFieldAccessSharedOnly, info.Access)
+	assert.False(t, info.IsValueHidden("A"), "value the caller holds user-side must be visible on the channel field")
+	assert.True(t, info.IsValueHidden("B"), "value the caller does not hold must be hidden on the channel field")
+}
+
+// TestAppMaskingResolver_AmbiguousUserSibling guards the fail-open hole where two
+// user fields link the same template. Nothing enforces LinkedFieldID uniqueness
+// at the DB level, so picking the "first" sibling would make channel-field
+// visibility depend on store order and could leak a value via the wrong sibling.
+// Resolution must error instead of guessing.
+func TestAppMaskingResolver_AmbiguousUserSibling(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	rctx := request.TestContext(t)
+
+	cpaGroup, gErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, gErr)
+	groupID := cpaGroup.ID
+
+	callerID := model.NewId()
+
+	optA := model.NewId()
+	options := []any{map[string]any{"id": optA, "name": "A"}}
+
+	tmpl, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:    groupID,
+		Name:       celSafeName(),
+		Type:       model.PropertyFieldTypeSelect,
+		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs:      model.StringInterface{model.PropertyFieldAttributeOptions: options},
+	})
+	require.NoError(t, sErr)
+
+	linkedAttrs := func() model.StringInterface {
+		return model.StringInterface{
+			model.PropertyFieldAttributeOptions: options,
+			model.PropertyAttrsProtected:        true,
+			model.PropertyAttrsAccessMode:       model.PropertyAccessModeSharedOnly,
+			model.PropertyAttrsSourcePluginID:   "com.mattermost.uas-plugin",
+		}
+	}
+
+	// Two user fields link the same template — the ambiguity this test triggers.
+	for range 2 {
+		_, sErr = th.Store.PropertyField().Create(&model.PropertyField{
+			GroupID:       groupID,
+			Name:          celSafeName(),
+			Type:          model.PropertyFieldTypeSelect,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &tmpl.ID,
+			Attrs:         linkedAttrs(),
+		})
+		require.NoError(t, sErr)
+	}
+
+	channelFieldName := celSafeName()
+	_, sErr = th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:       groupID,
+		Name:          channelFieldName,
+		Type:          model.PropertyFieldTypeSelect,
+		ObjectType:    model.PropertyFieldObjectTypeChannel,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &tmpl.ID,
+		Attrs:         linkedAttrs(),
+	})
+	require.NoError(t, sErr)
+
+	resolver, rErr := newMaskingResolver(th.App, rctx, callerID)
+	require.Nil(t, rErr)
+
+	// The Resolve path propagates the ambiguity error rather than guessing a
+	// sibling (the batch precompute path instead logs and fails the field closed).
+	_, err := resolver.Resolve(model.PropertyFieldObjectTypeChannel, channelFieldName)
+	require.Error(t, err)
+	var appErr *model.AppError
+	require.ErrorAs(t, err, &appErr)
+	require.Equal(t, "app.pap.masking.ambiguous_sibling.app_error", appErr.Id)
+}
+
+// TestAppMaskingResolver_ChannelFieldProtectedSiblingPublic guards the fail-open
+// hole where the channel field is protected (shared_only) but its user-side
+// sibling is public (the default when access mode is unset — linked fields do
+// NOT inherit access mode at creation). The access mode must come from the
+// channel field, not the sibling, and because a public sibling's options are
+// not held-filtered, the select values fail closed (all hidden) rather than
+// leaking every option name.
+func TestAppMaskingResolver_ChannelFieldProtectedSiblingPublic(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	rctx := request.TestContext(t)
+
+	cpaGroup, gErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, gErr)
+	groupID := cpaGroup.ID
+
+	callerID := model.NewId()
+
+	optA := model.NewId()
+	optB := model.NewId()
+	options := []any{
+		map[string]any{"id": optA, "name": "A"},
+		map[string]any{"id": optB, "name": "B"},
+	}
+
+	tmpl, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:    groupID,
+		Name:       celSafeName(),
+		Type:       model.PropertyFieldTypeSelect,
+		ObjectType: model.PropertyFieldObjectTypeTemplate,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs:      model.StringInterface{model.PropertyFieldAttributeOptions: options},
+	})
+	require.NoError(t, sErr)
+
+	// User sibling: PUBLIC (access mode unset) — the misconfiguration the
+	// resolver must not trust for access mode.
+	_, sErr = th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:       groupID,
+		Name:          celSafeName(),
+		Type:          model.PropertyFieldTypeSelect,
+		ObjectType:    model.PropertyFieldObjectTypeUser,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &tmpl.ID,
+		Attrs:         model.StringInterface{model.PropertyFieldAttributeOptions: options},
+	})
+	require.NoError(t, sErr)
+
+	// Channel field: shared_only (protected).
+	channelFieldName := celSafeName()
+	_, sErr = th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:       groupID,
+		Name:          channelFieldName,
+		Type:          model.PropertyFieldTypeSelect,
+		ObjectType:    model.PropertyFieldObjectTypeChannel,
+		TargetType:    string(model.PropertyFieldTargetLevelSystem),
+		LinkedFieldID: &tmpl.ID,
+		Attrs: model.StringInterface{
+			model.PropertyFieldAttributeOptions: options,
+			model.PropertyAttrsProtected:        true,
+			model.PropertyAttrsAccessMode:       model.PropertyAccessModeSharedOnly,
+		},
+	})
+	require.NoError(t, sErr)
+
+	resolver, rErr := newMaskingResolver(th.App, rctx, callerID)
+	require.Nil(t, rErr)
+
+	info, err := resolver.Resolve(model.PropertyFieldObjectTypeChannel, channelFieldName)
+	require.NoError(t, err)
+	require.Equal(t, model.MaskingFieldAccessSharedOnly, info.Access,
+		"access mode must come from the protected channel field, not the public sibling")
+	assert.True(t, info.IsValueHidden("A"), "protected channel field with a public sibling must fail closed, not leak option names")
+	assert.True(t, info.IsValueHidden("B"), "protected channel field with a public sibling must fail closed, not leak option names")
+}
+
+// TestAppMaskingResolver_HierarchyAndLadderUseOptionNames covers the two field
+// types whose values name an option but which are not select or multiselect. Both
+// were sent down the text path, which unmarshals the caller's stored value as a
+// string — a graph value is an array and fails outright, and a rank value is an
+// option identifier where a name is wanted. Either way nothing came back visible,
+// so every value in a policy condition against such a field masked, and a policy
+// written on a hierarchy rendered blank to the administrator reading it.
+func TestAppMaskingResolver_HierarchyAndLadderUseOptionNames(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	rctx := request.TestContext(t)
+
+	cpaGroup, gErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, gErr)
+	groupID := cpaGroup.ID
+
+	sharedOnly := func(options []any) model.StringInterface {
+		return model.StringInterface{
+			model.PropertyFieldAttributeOptions: options,
+			model.PropertyAttrsProtected:        true,
+			model.PropertyAttrsAccessMode:       model.PropertyAccessModeSharedOnly,
+		}
+	}
+
+	// Store-level writes throughout: a protected field cannot be created through
+	// the app layer by anything but its source plugin, and the value on it likewise.
+	// Reads still run the masking the test is about.
+	t.Run("a graph field reports the option names the caller covers", func(t *testing.T) {
+		air, jet, f18 := model.NewId(), model.NewId(), model.NewId()
+		field, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+			GroupID:    groupID,
+			Name:       celSafeName(),
+			Type:       model.PropertyFieldTypeGraph,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: sharedOnly([]any{
+				map[string]any{"id": air, "name": "Air Program"},
+				map[string]any{"id": jet, "name": "Fighter Jet Program"},
+				map[string]any{"id": f18, "name": "F-18 Program"},
+			}),
+		})
+		require.NoError(t, sErr)
+
+		//	Air Program ── Fighter Jet Program ── F-18 Program
+		require.NoError(t, th.Store.PropertyField().MutateOptions(groupID, field.ID, field.UpdateAt, nil, []*model.PropertyOptionEdge{
+			{FieldID: field.ID, ChildOptionID: jet, ParentOptionID: air},
+			{FieldID: field.ID, ChildOptionID: f18, ParentOptionID: jet},
+		}, nil))
+
+		callerID := model.NewId()
+		_, vErr := th.Store.PropertyValue().Create(&model.PropertyValue{
+			TargetID:   callerID,
+			TargetType: model.PropertyValueTargetTypeUser,
+			GroupID:    groupID,
+			FieldID:    field.ID,
+			Value:      json.RawMessage(`["` + jet + `"]`),
+		})
+		require.NoError(t, vErr)
+
+		resolver, rErr := newMaskingResolver(th.App, rctx, callerID)
+		require.Nil(t, rErr)
+
+		info, err := resolver.Resolve(model.PropertyFieldObjectTypeUser, field.Name)
+		require.NoError(t, err)
+		require.Equal(t, model.MaskingFieldAccessSharedOnly, info.Access)
+		assert.False(t, info.IsValueHidden("Fighter Jet Program"), "the option the caller holds")
+		assert.False(t, info.IsValueHidden("F-18 Program"), "an option below the one the caller holds")
+		assert.True(t, info.IsValueHidden("Air Program"), "an option above the one the caller holds")
+	})
+
+	t.Run("a rank field reports the option names at or below the caller's rank", func(t *testing.T) {
+		secret, confidential, public := model.NewId(), model.NewId(), model.NewId()
+		field, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+			GroupID:    groupID,
+			Name:       celSafeName(),
+			Type:       model.PropertyFieldTypeRank,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: sharedOnly([]any{
+				map[string]any{"id": public, "name": "Public", "rank": 1},
+				map[string]any{"id": confidential, "name": "Confidential", "rank": 2},
+				map[string]any{"id": secret, "name": "Secret", "rank": 3},
+			}),
+		})
+		require.NoError(t, sErr)
+
+		callerID := model.NewId()
+		_, vErr := th.Store.PropertyValue().Create(&model.PropertyValue{
+			TargetID:   callerID,
+			TargetType: model.PropertyValueTargetTypeUser,
+			GroupID:    groupID,
+			FieldID:    field.ID,
+			Value:      json.RawMessage(`"` + confidential + `"`),
+		})
+		require.NoError(t, vErr)
+
+		resolver, rErr := newMaskingResolver(th.App, rctx, callerID)
+		require.Nil(t, rErr)
+
+		info, err := resolver.Resolve(model.PropertyFieldObjectTypeUser, field.Name)
+		require.NoError(t, err)
+		require.Equal(t, model.MaskingFieldAccessSharedOnly, info.Access)
+		assert.False(t, info.IsValueHidden("Confidential"), "the caller's own rank")
+		assert.False(t, info.IsValueHidden("Public"), "a rank below the caller's")
+		assert.True(t, info.IsValueHidden("Secret"), "a rank above the caller's")
+	})
+}
+
+// TestAppMaskingResolver_GraphWithheldOptionList covers the graph field this
+// type exists for: one with more options than a read inlines, so the read hook
+// withholds the list entirely instead of handing back an inlined-but-filtered
+// one. extractVisibleOptionNames alone would then see no options at all and
+// mask every literal, including ones the caller does hold — the symptom this
+// resolves by answering each literal through PropertyService.CoveredBy instead
+// of the inlined list.
+func TestAppMaskingResolver_GraphWithheldOptionList(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	rctx := request.TestContext(t)
+
+	cpaGroup, gErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, gErr)
+	groupID := cpaGroup.ID
+
+	air, jet, f18 := model.NewId(), model.NewId(), model.NewId()
+	// One chain of three at the front, and filler past the cap behind it —
+	// the shape a real graph field is expected to have.
+	options := []any{
+		map[string]any{"id": air, "name": "Air Program"},
+		map[string]any{"id": jet, "name": "Fighter Jet Program"},
+		map[string]any{"id": f18, "name": "F-18 Program"},
+	}
+	for i := len(options); i <= model.PropertyFieldMaxHydratedOptions; i++ {
+		options = append(options, map[string]any{"id": model.NewId(), "name": fmt.Sprintf("Program %04d", i)})
+	}
+
+	field, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:    groupID,
+		Name:       celSafeName(),
+		Type:       model.PropertyFieldTypeGraph,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs: model.StringInterface{
+			model.PropertyFieldAttributeOptions: options,
+			model.PropertyAttrsProtected:        true,
+			model.PropertyAttrsAccessMode:       model.PropertyAccessModeSharedOnly,
+		},
+	})
+	require.NoError(t, sErr)
+
+	//	Air Program ── Fighter Jet Program ── F-18 Program
+	require.NoError(t, th.Store.PropertyField().MutateOptions(groupID, field.ID, field.UpdateAt, nil, []*model.PropertyOptionEdge{
+		{FieldID: field.ID, ChildOptionID: jet, ParentOptionID: air},
+		{FieldID: field.ID, ChildOptionID: f18, ParentOptionID: jet},
+	}, nil))
+
+	callerID := model.NewId()
+	_, vErr := th.Store.PropertyValue().Create(&model.PropertyValue{
+		TargetID:   callerID,
+		TargetType: model.PropertyValueTargetTypeUser,
+		GroupID:    groupID,
+		FieldID:    field.ID,
+		Value:      json.RawMessage(`["` + jet + `"]`),
+	})
+	require.NoError(t, vErr)
+
+	// Confirm the size actually pushed this read past the cap, rather than
+	// silently exercising the already-covered inlined path.
+	rctxWithCaller := RequestContextWithCallerID(rctx, callerID)
+	readField, appErr := th.App.GetPropertyFieldByNameForObjectType(rctxWithCaller, groupID, "", model.PropertyFieldObjectTypeUser, field.Name)
+	require.Nil(t, appErr)
+	require.True(t, model.PropertyFieldOptionsOmitted(readField.Attrs), "field must read back with its option list withheld")
+
+	resolver, rErr := newMaskingResolver(th.App, rctx, callerID)
+	require.Nil(t, rErr)
+
+	info, err := resolver.Resolve(model.PropertyFieldObjectTypeUser, field.Name)
+	require.NoError(t, err)
+	require.Equal(t, model.MaskingFieldAccessSharedOnly, info.Access)
+	assert.False(t, info.IsValueHidden("Fighter Jet Program"), "the option the caller holds")
+	assert.False(t, info.IsValueHidden("F-18 Program"), "an option below the one the caller holds")
+	assert.True(t, info.IsValueHidden("Air Program"), "an option above the one the caller holds")
+}
+
+// TestGetMaskedVisualAST_GraphWithheldOptionList covers the policy editor's
+// masking path (maskConditionValues -> graphConditionVisibleNames) for the
+// same withheld-option-list graph field TestAppMaskingResolver_GraphWithheldOptionList
+// covers on the resolver path. The two paths resolve the same question with
+// different code and can disagree, so both need their own coverage.
+func TestGetMaskedVisualAST_GraphWithheldOptionList(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	rctx := request.TestContext(t)
+
+	cpaGroup, gErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	require.Nil(t, gErr)
+	groupID := cpaGroup.ID
+
+	air, jet, f18 := model.NewId(), model.NewId(), model.NewId()
+	// One chain of three at the front, and filler past the cap behind it —
+	// the shape a real graph field is expected to have.
+	options := []any{
+		map[string]any{"id": air, "name": "Air Program"},
+		map[string]any{"id": jet, "name": "Fighter Jet Program"},
+		map[string]any{"id": f18, "name": "F-18 Program"},
+	}
+	for i := len(options); i <= model.PropertyFieldMaxHydratedOptions; i++ {
+		options = append(options, map[string]any{"id": model.NewId(), "name": fmt.Sprintf("Program %04d", i)})
+	}
+
+	fieldName := celSafeName()
+	field, sErr := th.Store.PropertyField().Create(&model.PropertyField{
+		GroupID:    groupID,
+		Name:       fieldName,
+		Type:       model.PropertyFieldTypeGraph,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs: model.StringInterface{
+			model.PropertyFieldAttributeOptions: options,
+			model.PropertyAttrsProtected:        true,
+			model.PropertyAttrsAccessMode:       model.PropertyAccessModeSharedOnly,
+		},
+	})
+	require.NoError(t, sErr)
+
+	//	Air Program ── Fighter Jet Program ── F-18 Program
+	require.NoError(t, th.Store.PropertyField().MutateOptions(groupID, field.ID, field.UpdateAt, nil, []*model.PropertyOptionEdge{
+		{FieldID: field.ID, ChildOptionID: jet, ParentOptionID: air},
+		{FieldID: field.ID, ChildOptionID: f18, ParentOptionID: jet},
+	}, nil))
+
+	callerID := model.NewId()
+	_, vErr := th.Store.PropertyValue().Create(&model.PropertyValue{
+		TargetID:   callerID,
+		TargetType: model.PropertyValueTargetTypeUser,
+		GroupID:    groupID,
+		FieldID:    field.ID,
+		Value:      json.RawMessage(`["` + jet + `"]`),
+	})
+	require.NoError(t, vErr)
+
+	// Confirm the size actually pushed this read past the cap, rather than
+	// silently exercising the already-covered inlined path.
+	rctxWithCaller := RequestContextWithCallerID(rctx, callerID)
+	readField, appErr := th.App.GetPropertyFieldByNameForObjectType(rctxWithCaller, groupID, "", model.PropertyFieldObjectTypeUser, fieldName)
+	require.Nil(t, appErr)
+	require.True(t, model.PropertyFieldOptionsOmitted(readField.Attrs), "field must read back with its option list withheld")
+
+	attribute := "user.attributes." + fieldName
+
+	t.Run("single-literal condition on the held option survives", func(t *testing.T) {
+		visualAST := &model.VisualExpression{
+			Conditions: []model.Condition{
+				{Attribute: attribute, Operator: "==", Value: "Fighter Jet Program", ValueType: model.LiteralValue},
+			},
+		}
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		mockACS.On("ExpressionToVisualAST", mock.Anything, mock.Anything).Return(visualAST, nil).Once()
+
+		result, err := th.App.GetMaskedVisualAST(rctx, "irrelevant", callerID)
+		require.Nil(t, err)
+		require.Len(t, result.Conditions, 1)
+		assert.Equal(t, "Fighter Jet Program", result.Conditions[0].Value)
+		assert.False(t, result.Conditions[0].HasMaskedValues)
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("single-literal condition on an option above the held one is removed", func(t *testing.T) {
+		visualAST := &model.VisualExpression{
+			Conditions: []model.Condition{
+				{Attribute: attribute, Operator: "==", Value: "Air Program", ValueType: model.LiteralValue},
+			},
+		}
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		mockACS.On("ExpressionToVisualAST", mock.Anything, mock.Anything).Return(visualAST, nil).Once()
+
+		result, err := th.App.GetMaskedVisualAST(rctx, "irrelevant", callerID)
+		require.Nil(t, err)
+		require.Len(t, result.Conditions, 1)
+		assert.Nil(t, result.Conditions[0].Value)
+		assert.True(t, result.Conditions[0].HasMaskedValues)
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("multi-literal condition partially masks", func(t *testing.T) {
+		visualAST := &model.VisualExpression{
+			Conditions: []model.Condition{
+				{Attribute: attribute, Operator: "in", Value: []any{"F-18 Program", "Air Program"}, ValueType: model.LiteralValue},
+			},
+		}
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		mockACS.On("ExpressionToVisualAST", mock.Anything, mock.Anything).Return(visualAST, nil).Once()
+
+		result, err := th.App.GetMaskedVisualAST(rctx, "irrelevant", callerID)
+		require.Nil(t, err)
+		require.Len(t, result.Conditions, 1)
+		assert.Equal(t, []any{"F-18 Program"}, result.Conditions[0].Value, "an option below the held one survives")
+		assert.True(t, result.Conditions[0].HasMaskedValues, "the option above the held one was removed")
+		mockACS.AssertExpectations(t)
+	})
 }

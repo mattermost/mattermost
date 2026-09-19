@@ -1,4 +1,12 @@
 .SystemUserDetail {
+    .SystemUserDetail__pictureError {
+        margin-top: 12px;
+
+        .has-error .control-label {
+            margin: 0;
+        }
+    }
+
     .AdminUserCard__body {
         .two-column-layout {
             .field-row {
@@ -64,6 +72,10 @@
             position: relative;
         }
 
+        .hierarchical-value-menu {
+            max-width: 320px;
+        }
+
         .cpa-rank-select__button {
             display: flex;
             width: 100%;
@@ -126,17 +138,29 @@
 
         .user-property-field-values__sync-indicator {
             display: flex;
+            flex-wrap: wrap;
             align-items: center;
             margin-top: 4px;
             color: rgba(var(--center-channel-color-rgb), 0.7);
             font-size: 11px;
+            gap: 4px;
             
             svg {
                 width: 14px;
                 height: 14px;
-                margin-right: 6px;
+                margin-right: 2px;
                 fill: rgba(var(--center-channel-color-rgb), 0.5);
             }
+        }
+
+        .user-detail-cpa-field__chip {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: var(--center-channel-color);
+            font-size: 11px;
+            font-weight: 600;
         }
 
         svg {

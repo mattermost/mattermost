@@ -28,18 +28,19 @@
         a {
             width: max-content;
             padding-top: 7px !important;
+            border-bottom-color: var(--button-bg) !important;
 
             svg,
             div {
                 color: var(--button-bg);
-                fill: var(--mention-bg-rgb);
+                fill: var(--mention-bg);
             }
 
             &:hover {
                 svg,
                 div {
                     color: var(--button-bg);
-                    fill: var(--mention-bg-rgb);
+                    fill: var(--mention-bg);
                 }
             }
         }

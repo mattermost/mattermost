@@ -150,6 +150,41 @@ describe('UserPropertyValues', () => {
         expect(option.closest('div[aria-disabled]')).toBeInTheDocument();
     });
 
+    it('is disabled when the field is linked to a template', () => {
+        renderComponent({...baseField, linked_field_id: 'template-field-id'});
+
+        const option = screen.getByText('Option 1');
+        expect(option.closest('div[aria-disabled]')).toBeInTheDocument();
+    });
+
+    it('renders a graph field read-only', () => {
+        // A graph field's options carry parent edges this cell knows nothing
+        // about, so it shows them and refuses every edit — the API is the only
+        // way to change them.
+        renderComponent({...baseField, type: 'graph'});
+
+        const option = screen.getByText('Option 1');
+        expect(option.closest('div[aria-disabled="true"]')).toBeInTheDocument();
+        expect(screen.getByText('Option 2')).toBeInTheDocument();
+    });
+
+    it('renders an omitted graph field as an option count instead of an empty picker', () => {
+        renderComponent({
+            ...baseField,
+            type: 'graph',
+            attrs: {
+                ...baseField.attrs,
+                options: [],
+                options_omitted: true,
+                options_count: 1500,
+            },
+        });
+
+        expect(screen.getByTestId('user-property-field-values__options-omitted').textContent).toBe('1,500 options');
+        expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+        expect(screen.queryByText('Add values… (required)')).not.toBeInTheDocument();
+    });
+
     it('shows LDAP sync information when field has LDAP attribute', () => {
         const ldapField = {
             ...baseField,
@@ -219,6 +254,95 @@ describe('UserPropertyValues', () => {
 
         const samlLinkElement = screen.getByTestId(`user-property-field-values__saml-${baseField.name}`);
         expect(samlLinkElement).toBeInTheDocument();
+    });
+
+    it('shows owner provenance and editable options for owner-managed select fields', () => {
+        const ownedField = {
+            ...baseField,
+            attrs: {
+                ...baseField.attrs,
+                owners: [
+                    {id: 'com.mattermost.scim', type: 'plugin' as const, scopes: ['entra']},
+                ],
+            },
+        };
+
+        renderComponent(ownedField);
+
+        expect(screen.getByText(/Synced with:/)).toBeInTheDocument();
+        expect(screen.getByTestId(`user-property-field-values__owner-${ownedField.name}-com.mattermost.scim`)).toBeInTheDocument();
+        expect(screen.getByText('com.mattermost.scim: entra')).toBeInTheDocument();
+
+        // Options remain visible and editable for owner-managed select fields.
+        expect(screen.getByText('Option 1')).toBeInTheDocument();
+        expect(screen.getByText('Option 2')).toBeInTheDocument();
+        expect(screen.getByRole('combobox')).toBeInTheDocument();
+    });
+
+    it('shows badge only for owner-managed text fields', () => {
+        const ownedTextField: UserPropertyField = {
+            ...baseField,
+            type: 'text',
+            attrs: {
+                ...baseField.attrs,
+                options: undefined,
+                owners: [
+                    {id: 'com.mattermost.scim', type: 'plugin' as const, scopes: ['entra']},
+                ],
+            },
+        };
+
+        renderComponent(ownedTextField);
+
+        expect(screen.getByText(/Synced with:/)).toBeInTheDocument();
+        expect(screen.getByText('com.mattermost.scim: entra')).toBeInTheDocument();
+        expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+        expect(screen.queryByText('-')).not.toBeInTheDocument();
+    });
+
+    it('hides options editor for LDAP-synced select fields', () => {
+        const ldapField = {
+            ...baseField,
+            attrs: {
+                ...baseField.attrs,
+                ldap: 'ldapAttribute',
+            },
+        };
+
+        renderComponent(ldapField);
+
+        expect(screen.getByText(/Synced with:/)).toBeInTheDocument();
+        expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+    });
+
+    it('allows adding options on owner-managed select fields', async () => {
+        const ownedField = {
+            ...baseField,
+            attrs: {
+                ...baseField.attrs,
+                owners: [
+                    {id: 'com.mattermost.scim', type: 'plugin' as const, scopes: ['entra']},
+                ],
+            },
+        };
+
+        renderComponent(ownedField);
+
+        const input = screen.getByRole('combobox');
+        await userEvent.clear(input);
+        await userEvent.type(input, 'New Option');
+        await userEvent.keyboard('{Enter}');
+
+        expect(updateField).toHaveBeenCalledWith({
+            ...ownedField,
+            attrs: {
+                ...ownedField.attrs,
+                options: [
+                    ...ownedField.attrs.options || [],
+                    {id: '', name: 'New Option'},
+                ],
+            },
+        });
     });
 
     it('applies autoFocus when prop is true', () => {

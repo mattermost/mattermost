@@ -27,10 +27,10 @@ exports[`components/audit_table/AuditTable should match snapshot with audits 1`]
     <tbody
       data-testid="auditTableBody"
     >
-      <tr>
-        <td
-          class="whitespace--nowrap word-break--all"
-        >
+      <tr
+        class="AuditRow"
+      >
+        <td>
           <div>
             <div>
               Aug 11, 1971
@@ -40,31 +40,25 @@ exports[`components/audit_table/AuditTable should match snapshot with audits 1`]
             </div>
           </div>
         </td>
-        <td
-          class="word-break--all"
-        >
+        <td>
           user_id_1
         </td>
         <td
-          class="word-break--all"
+          class="AuditRowDesc"
         >
           Channels yeye
         </td>
-        <td
-          class="whitespace--nowrap word-break--all"
-        >
+        <td>
           ::1
         </td>
-        <td
-          class="whitespace--nowrap word-break--all"
-        >
+        <td>
           hb8febm9ytdiz8zqaxj18efqhy
         </td>
       </tr>
-      <tr>
-        <td
-          class="whitespace--nowrap word-break--all"
-        >
+      <tr
+        class="AuditRow"
+      >
+        <td>
           <div>
             <div>
               Aug 14, 1971
@@ -74,24 +68,18 @@ exports[`components/audit_table/AuditTable should match snapshot with audits 1`]
             </div>
           </div>
         </td>
-        <td
-          class="word-break--all"
-        >
+        <td>
           user_id_1
         </td>
         <td
-          class="word-break--all"
+          class="AuditRowDesc"
         >
           Successfully logged in
         </td>
-        <td
-          class="whitespace--nowrap word-break--all"
-        >
+        <td>
           ::1
         </td>
-        <td
-          class="whitespace--nowrap word-break--all"
-        />
+        <td />
       </tr>
     </tbody>
   </table>

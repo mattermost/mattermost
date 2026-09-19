@@ -27,7 +27,7 @@ import {
 
 import {makeAsyncComponent} from 'components/async_load';
 
-import {Constants} from 'utils/constants';
+import {Constants, normalizeLockProfileFieldsSetting} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -70,6 +70,7 @@ export function mapStateToProps(state: GlobalState, props: OwnProps) {
     });
     const guestAccountsEnabled = config.EnableGuestAccounts === 'true';
     const emailInvitationsEnabled = config.EnableEmailInvitations === 'true';
+    const lockProfileFieldsForEmailUsers = normalizeLockProfileFieldsSetting(config.LockProfileFieldsForEmailUsers);
     const isEnterpriseReady = config.BuildEnterpriseReady === 'true';
     const isGroupConstrained = Boolean(currentTeam?.group_constrained);
     const calculatedCanInviteGuests = !isGroupConstrained && isEnterpriseReady && guestAccountsEnabled && haveICurrentTeamPermission(state, Permissions.INVITE_GUEST);
@@ -88,6 +89,7 @@ export function mapStateToProps(state: GlobalState, props: OwnProps) {
         canInviteGuests,
         canAddUsers,
         emailInvitationsEnabled,
+        lockProfileFieldsForEmailUsers,
         isCloud,
         isAdmin: isAdmin(getCurrentUser(state).roles),
         currentChannel,

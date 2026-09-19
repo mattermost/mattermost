@@ -250,7 +250,7 @@ function ForwardPostChannelSelect({onSelect, value, currentBodyHeight, validChan
             options = [
                 {
                     label: formatMessage({id: 'suggestion.mention.recent.channels', defaultMessage: 'Recent'}),
-                    options: flattenItems(res).filter((item) => item?.channel && isValidChannelType(item.channel) && !item.deactivated).map((item) => {
+                    options: flattenItems(res).filter((item) => item?.channel && isValidChannelType(item.channel) && !item.deactivated && !item.discoverableNonMember).map((item) => {
                         const {channel} = item;
                         return makeSelectedChannelOption(channel);
                     }),
@@ -277,7 +277,7 @@ function ForwardPostChannelSelect({onSelect, value, currentBodyHeight, validChan
              */
             const handleResults = async (res: ProviderResults<any>) => {
                 callCount++;
-                await flattenItems(res).filter((item) => item?.channel && isValidChannelType(item.channel) && !item.deactivated).forEach((item) => {
+                await flattenItems(res).filter((item) => item?.channel && isValidChannelType(item.channel) && !item.deactivated && !item.discoverableNonMember).forEach((item) => {
                     const {channel} = item;
 
                     if (options.findIndex((option) => option.value === channel.id) === -1) {

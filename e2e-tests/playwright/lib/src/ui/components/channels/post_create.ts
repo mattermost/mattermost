@@ -19,10 +19,17 @@ export default class ChannelsPostCreate {
     readonly sendMessageButton;
     readonly scheduleMessageButton;
     readonly priorityButton;
+    readonly priorityLabel;
+    readonly removeLabelsButton;
+    readonly removeLabelsTooltip;
     readonly suggestionList;
     readonly suggestionOptions;
     readonly selectedSuggestion;
     readonly filePreview;
+    readonly filePreviewItems;
+    readonly messageTooLongWarning;
+    readonly previewButton;
+    readonly previewArea;
 
     // Burn-on-Read elements
     readonly burnOnReadButton;
@@ -42,10 +49,18 @@ export default class ChannelsPostCreate {
         this.sendMessageButton = container.getByTestId('SendMessageButton');
         this.scheduleMessageButton = container.getByLabel('Schedule message');
         this.priorityButton = container.getByLabel('Message priority');
+        this.priorityLabel = container.getByTestId('post-priority-label');
+        this.removeLabelsButton = container.getByRole('button', {name: 'Remove all labels'});
+        // Tooltips render in a portal outside the post create container.
+        this.removeLabelsTooltip = container.page().getByRole('tooltip', {name: 'Remove all labels'});
         this.suggestionList = container.getByRole('listbox', {name: 'Suggestions'});
         this.suggestionOptions = this.suggestionList.getByRole('option');
         this.selectedSuggestion = this.suggestionList.getByTestId('suggestion-selected');
         this.filePreview = container.getByTestId('file-preview-container');
+        this.filePreviewItems = this.filePreview.getByTestId('file-preview-item');
+        this.messageTooLongWarning = container.getByText(/Your message is too long\. Character count:/);
+        this.previewButton = container.getByRole('button', {name: 'preview'});
+        this.previewArea = container.locator('.textbox-preview-area');
 
         // Burn-on-Read elements
         // Use a flexible locator that matches the aria-label pattern
@@ -69,6 +84,21 @@ export default class ChannelsPostCreate {
         await expect(this.input).toBeVisible();
 
         await this.input.fill(message);
+    }
+
+    /**
+     * Types the message into the input one keystroke at a time, the way a user does, without sending it.
+     * Prefer this over writeMessage when the behaviour under test depends on the input changing more than
+     * once, such as the autocomplete, which debounces each change before searching the server.
+     * @param message : Message to be typed into the input
+     * @param options.delay : Milliseconds to wait between keystrokes. Use a delay longer than the
+     * autocomplete's debounce when a search per keystroke is wanted.
+     */
+    async typeMessage(message: string, options?: {delay?: number}) {
+        await this.input.waitFor();
+        await expect(this.input).toBeVisible();
+
+        await this.input.pressSequentially(message, options);
     }
 
     /**
@@ -123,24 +153,19 @@ export default class ChannelsPostCreate {
 
         if (files) {
             const filePaths = files.map((file) => path.join(assetPath, file));
-            page.once('filechooser', async (fileChooser) => {
-                await fileChooser.setFiles(filePaths);
-            });
-
-            // Click on the attachment button
-            await this.attachmentButton.click();
-
-            // Wait until the file preview is displayed
+            await expect(this.attachmentButton).toBeVisible();
+            const fileInput = this.container.locator('input[type="file"]');
+            await expect(fileInput).toBeAttached();
+            await fileInput.setInputFiles(filePaths);
+            // Wait for the upload API first so the 10s preview asserts run after
+            // the file exists, instead of racing the default expect timeout.
+            if (uploadResponsePromise) {
+                await uploadResponsePromise;
+            }
             await this.waitUntilFilePreviewContains(files);
         }
 
         await this.sendMessage();
-
-        // Without this, tests can click Send before the upload finishes under CI load,
-        // producing posts with no attachments (flaky redacted-file / demo_plugin tests).
-        if (uploadResponsePromise) {
-            await uploadResponsePromise;
-        }
     }
 
     /**
@@ -192,6 +217,62 @@ export default class ChannelsPostCreate {
         await this.emojiButton.click();
     }
 
+    async selectFiles(files: File | File[]) {
+        const selectedFiles = Array.isArray(files) ? files : [files];
+        const fileChooserPromise = this.container.page().waitForEvent('filechooser');
+        await this.attachmentButton.click();
+        const fileChooser = await fileChooserPromise;
+        const payloads = await Promise.all(
+            selectedFiles.map(async (file) => ({
+                name: file.name,
+                mimeType: file.type,
+                buffer: Buffer.from(await file.arrayBuffer()),
+            })),
+        );
+        await fileChooser.setFiles(payloads);
+        await this.waitUntilFilePreviewContains(selectedFiles.map((file) => file.name));
+    }
+
+    getFilePreviewItem(fileName: string) {
+        return this.filePreviewItems.filter({hasText: fileName});
+    }
+
+    async toHaveFilePreview(fileName: string) {
+        const item = this.getFilePreviewItem(fileName);
+        await expect(item).toBeVisible();
+        await expect(item.getByLabel(/file thumbnail/i)).toBeVisible();
+    }
+
+    async removeFilePreview(fileName: string) {
+        await this.getFilePreviewItem(fileName).getByTestId('file-preview-remove').click();
+    }
+
+    async toHaveFilePreviewCount(count: number) {
+        await expect(this.filePreviewItems).toHaveCount(count);
+    }
+
+    async toNotHaveMessageTooLongWarning() {
+        await expect(this.messageTooLongWarning).not.toBeVisible();
+    }
+
+    async toHaveMessageTooLongWarning(characterCount: number, maximum: number) {
+        await expect(
+            this.container.getByText(`Your message is too long. Character count: ${characterCount}/${maximum}`, {
+                exact: true,
+            }),
+        ).toBeVisible();
+    }
+
+    async togglePreview() {
+        await expect(this.previewButton).toBeVisible();
+        await this.previewButton.click();
+    }
+
+    async clickMentionInPreview() {
+        await expect(this.previewArea).toBeVisible();
+        await this.previewArea.locator('.mention-link').click();
+    }
+
     async waitUntilFilePreviewContains(files: string[], timeout = duration.ten_sec) {
         await waitUntil(
             async () => {
@@ -199,8 +280,12 @@ export default class ChannelsPostCreate {
                 const details = this.filePreview.getByTestId('post-image-details');
 
                 const [previewsCount, detailsCount] = await Promise.all([previews.count(), details.count()]);
+                if (previewsCount !== files.length || detailsCount !== files.length) {
+                    return false;
+                }
 
-                return previewsCount === files.length && detailsCount === files.length;
+                const previewTexts = await previews.allTextContents();
+                return files.every((file) => previewTexts.some((text) => text.includes(file)));
             },
             {timeout},
         );
@@ -210,7 +295,8 @@ export default class ChannelsPostCreate {
      * Toggle the burn-on-read feature for the message
      */
     async toggleBurnOnRead() {
-        await expect(this.burnOnReadButton).toBeVisible();
+        await expect(this.burnOnReadButton).toBeAttached();
+        await expect(this.burnOnReadButton).toBeEnabled();
         await this.burnOnReadButton.click();
     }
 
@@ -220,5 +306,56 @@ export default class ChannelsPostCreate {
      */
     async isBurnOnReadEnabled(): Promise<boolean> {
         return this.burnOnReadLabel.isVisible();
+    }
+
+    /**
+     * Simulates pasting HTML (with a plain-text fallback) into the input, exercising Mattermost's
+     * own paste-formatting logic (e.g. an HTML table auto-converting to a markdown table) rather
+     * than just typing raw text.
+     *
+     * Dispatches a synthetic ClipboardEvent directly on the input: Playwright/CDP can't write
+     * arbitrary HTML to the real OS clipboard and have a genuinely OS-triggered paste read it back
+     * deterministically in CI, so this mirrors the technique this codebase's own unit tests use
+     * (`utils/paste.test.tsx`), just exercised through the real running app instead of a mock.
+     *
+     * When `withoutFormatting` is true, a Ctrl+Shift+V keydown is dispatched first to set the
+     * app's internal `isNonFormattedPaste` flag (see `advanced_text_editor/use_key_handler.tsx`),
+     * which makes the app's paste handler step aside instead of auto-converting the HTML.
+     *
+     * A synthetic (untrusted) paste event never triggers the browser's own default paste, so when
+     * the app steps aside (doesn't call `preventDefault`) the plain-text fallback is inserted here
+     * to mirror what a real, OS-triggered paste would do.
+     */
+    async pasteHtml(html: string, plainText: string, {withoutFormatting = false}: {withoutFormatting?: boolean} = {}) {
+        await expect(this.input).toBeVisible();
+        await this.input.focus();
+
+        await this.input.evaluate(
+            (el, {html, plainText, withoutFormatting}) => {
+                if (withoutFormatting) {
+                    el.dispatchEvent(
+                        new KeyboardEvent('keydown', {
+                            key: 'v',
+                            ctrlKey: true,
+                            shiftKey: true,
+                            bubbles: true,
+                            cancelable: true,
+                        }),
+                    );
+                }
+
+                const dataTransfer = new DataTransfer();
+                dataTransfer.setData('text/html', html);
+                dataTransfer.setData('text/plain', plainText);
+                const notCancelled = el.dispatchEvent(
+                    new ClipboardEvent('paste', {clipboardData: dataTransfer, bubbles: true, cancelable: true}),
+                );
+
+                if (notCancelled) {
+                    document.execCommand('insertText', false, plainText);
+                }
+            },
+            {html, plainText, withoutFormatting},
+        );
     }
 }
