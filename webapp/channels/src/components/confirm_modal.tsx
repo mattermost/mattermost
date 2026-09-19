@@ -4,8 +4,9 @@
 import React, {memo, useCallback, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import {GenericModal} from '@mattermost/components';
-import {Button, type ButtonVariant} from '@mattermost/shared/components/button';
+import type {ButtonVariant} from '@mattermost/shared/components/button';
 
 import {focusElement} from 'utils/a11y_utils';
 
@@ -234,7 +235,8 @@ const ConfirmModal = ({
                     {!hideConfirm && (
                         <Button
                             type='button'
-                            variant={confirmButtonVariant}
+                            emphasis='primary'
+                            destructive={confirmButtonVariant === 'destructive'}
                             onClick={handleConfirm}
                             id='confirmModalButton'
                             autoFocus={true}
