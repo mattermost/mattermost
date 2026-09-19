@@ -112,7 +112,10 @@ test(
             await expect(pw.signupPage.emailAddressLabel).toBeVisible();
             await expect(pw.signupPage.choosePasswordPlaceholder).toBeVisible();
         } finally {
-            await adminClient.patchConfig({TeamSettings: {RestrictCreationToDomains: ''}});
+ await adminClient.patchConfig({
+                EmailSettings: {EnableSignUpWithEmail: originalConfig.EmailSettings.EnableSignUpWithEmail},
+                LdapSettings: {Enable: originalConfig.LdapSettings.Enable},
+            });
         }
     },
 );
