@@ -79,7 +79,7 @@ describe('user utils', () => {
             const suggestions = nameSuggestionsForUser(userObj);
             const expectedSuggestions = [
                 'test.user', '.user', 'user',
-                'test', 'user name', 'test user name', 'tester',
+                'test', 'user name', 'test user name', 'user name test', 'tester',
                 'software engineer at mattermost', 'engineer at mattermost', 'at mattermost', 'mattermost',
                 'test.user_name',
             ];
@@ -90,12 +90,24 @@ describe('user utils', () => {
             const suggestions = nameSuggestionsForUser(userObj, true);
             const expectedSuggestions = [
                 'test.user', '.user', 'user',
-                'test', 'user name', 'test user name', 'tester',
+                'test', 'user name', 'test user name', 'user name test', 'tester',
                 'software engineer at mattermost', 'engineer at mattermost', 'at mattermost', 'mattermost',
                 'test.user_name',
                 'test.user_name@example.com',
             ];
             expect(suggestions).toEqual(expectedSuggestions);
+        });
+
+        it('should include "last first" order so server-order-independent search results are not dropped client-side', () => {
+            // Regression test for https://github.com/mattermost/mattermost/issues/37865:
+            // the server matches search tokens across first/last name in
+            // either order, but the client-side suggestion list only had
+            // "first last", so a "Last First" search that the server
+            // returned a match for could still show "Nothing found" in the
+            // UI once filtered client-side.
+            const suggestions = nameSuggestionsForUser(userObj);
+            expect(suggestions).toContain('test user name'); // first + ' ' + last
+            expect(suggestions).toContain('user name test'); // last + ' ' + first
         });
 
         it('should not include full email when includeFullEmail is true but email has no @ symbol', () => {
@@ -338,6 +350,16 @@ describe('user utils', () => {
 
         it('should match by fullname fully', () => {
             expect(filterProfilesMatchingWithTerm(users, 'First Last1')).toEqual([userA]);
+        });
+
+        it('should match by fullname fully in "last first" order', () => {
+            // https://github.com/mattermost/mattermost/issues/37865: the
+            // server already matches "Last First" the same as "First Last"
+            // (see generateSearchQuery in
+            // server/channels/store/sqlstore/user_store.go), so the client
+            // filter must not drop a "Last First" query the server would
+            // have returned a match for.
+            expect(filterProfilesMatchingWithTerm(users, 'Last1 First')).toEqual([userA]);
         });
 
         it('should match by fullname case-insensitive', () => {
