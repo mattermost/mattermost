@@ -3,7 +3,7 @@
 
 import type {Page, Request} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
-import type {FieldType, PropertyField} from '@mattermost/types/properties';
+import type {FieldType, PermissionLevel, PropertyField} from '@mattermost/types/properties';
 
 export const GROUP = 'post_attributes';
 export const OBJECT_TYPE = 'post';
@@ -36,6 +36,13 @@ type CreateOptions = {
 
     visibility?: 'always' | 'when_set' | 'hidden';
     sortOrder?: number;
+
+    // Who may write a value. Omitted means the server's default, which for a
+    // post-object field is `member` — so a field created without this is already
+    // writable by any member of the channel, and only a field that needs to render
+    // as read-only has to say anything here. `none` is the one level nobody
+    // satisfies, including a system admin over HTTP.
+    permissionValues?: PermissionLevel;
 };
 
 /**
@@ -48,7 +55,7 @@ type CreateOptions = {
 export async function createField(
     adminClient: Client4,
     name: string,
-    {type, options = [], channelId, visibility, sortOrder}: CreateOptions = {},
+    {type, options = [], channelId, visibility, sortOrder, permissionValues}: CreateOptions = {},
 ): Promise<PropertyField> {
     const attrs: Record<string, unknown> = {};
 
@@ -76,6 +83,10 @@ export async function createField(
         target_id: channelId ?? '',
         attrs,
     };
+
+    if (permissionValues) {
+        field.permission_values = permissionValues;
+    }
 
     return adminClient.createPropertyField(GROUP, OBJECT_TYPE, field as Parameters<Client4['createPropertyField']>[2]);
 }
