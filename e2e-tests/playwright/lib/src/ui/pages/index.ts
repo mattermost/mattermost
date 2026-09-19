@@ -8,6 +8,8 @@ import LoginPage from './login';
 import RecapsPage from './recaps';
 import ResetPasswordPage from './reset_password';
 import SignupPage from './signup';
+import SelectTeamPage from './select_team';
+import VerifyEmailPage from './verify_email';
 import SystemConsolePage from './system_console';
 import ScheduledPostsPage from './scheduled_posts';
 import DraftsPage from './drafts';
@@ -23,6 +25,8 @@ const pages = {
     RecapsPage,
     ResetPasswordPage,
     SignupPage,
+    SelectTeamPage,
+    VerifyEmailPage,
     ScheduledPostsPage,
     ContentReviewPage,
     SystemConsolePage,
@@ -43,6 +47,8 @@ export {
     RecapsPage,
     ResetPasswordPage,
     SignupPage,
+    SelectTeamPage,
+    VerifyEmailPage,
     ScheduledPostsPage,
     SystemConsolePage,
 };
