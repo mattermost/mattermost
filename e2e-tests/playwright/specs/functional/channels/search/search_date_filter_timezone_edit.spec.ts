@@ -117,11 +117,17 @@ test('MM-T604 Use "on:" to return only results from the selected day', async ({p
     const channel = await adminClient.getChannelByName(team.id, 'off-topic');
     const identifier = `date-boundary-${pw.random.id()}`;
     const posts = [
-        {message: `before ${identifier}`, create_at: Date.UTC(2018, 11, 24, 23, 59)},
+        {message: `before ${identifier}`, create_at: Date.UTC(2018, 11, 24, 23, 59, 59, 999)},
         {message: `target AM ${identifier}`, create_at: Date.UTC(2018, 11, 25, 0, 0)},
         {message: `target PM ${identifier}`, create_at: Date.UTC(2018, 11, 25, 23, 59, 59, 999)},
         {message: `after ${identifier}`, create_at: Date.UTC(2018, 11, 26, 0, 0)},
     ];
+
+    // # Pin the user's timezone to UTC so the day boundary matches the UTC timestamps above
+    await adminClient.patchUser({
+        id: user.id,
+        timezone: {automaticTimezone: '', manualTimezone: 'UTC', useAutomaticTimezone: 'false'},
+    });
 
     // # Create posts immediately before, at both ends of, and immediately after the selected day
     for (const post of posts) {
