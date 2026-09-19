@@ -11,7 +11,7 @@ import {postToWebhook} from '../webhook_helpers';
 test(
     'MM-T5672 displays attachment buttons correctly across premade themes',
     {tag: '@message_attachments'},
-    async ({pw}) => {
+    async ({pw, request}) => {
         // # Post an attachment containing primary, danger, and default buttons
         const {adminClient, team, user} = await pw.initSetup();
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
@@ -19,7 +19,7 @@ test(
             channel_id: channel.id,
             display_name: 'Theme buttons',
         });
-        await postToWebhook(webhook.id, {
+        await postToWebhook(request, webhook.id, {
             attachments: [
                 {
                     text: 'Theme button test',

@@ -25,7 +25,7 @@ test.describe('Silent notification webhook delivery', () => {
     test(
         'incoming webhook silent post is visible without unread or desktop notification',
         {tag: ['@notifications']},
-        async ({pw}) => {
+        async ({pw, request}) => {
             const {team, user, adminClient} = await pw.initSetup();
 
             const channel = await adminClient.createChannel(
@@ -55,7 +55,7 @@ test.describe('Silent notification webhook delivery', () => {
 
             // # Post a normal webhook message with @mention to verify unread + notification baseline
             const normalMessage = `normal webhook @${user.username} ${Date.now()}`;
-            await postToWebhook(webhook.id, {text: normalMessage});
+            await postToWebhook(request, webhook.id, {text: normalMessage});
             await channelsPage.sidebarLeft.assertItemUnread(channel.name, pw.duration.half_min);
             await expect
                 .poll(async () => (await page.evaluate(() => window.getNotifications())).length)
@@ -83,7 +83,7 @@ test.describe('Silent notification webhook delivery', () => {
 
             // # Post silent webhook, then a normal post on another channel to flush the WS pipeline (FIFO)
             const silentMessage = `silent webhook @${user.username} ${Date.now()}`;
-            await postToWebhook(webhook.id, {text: silentMessage, silent: true});
+            await postToWebhook(request, webhook.id, {text: silentMessage, silent: true});
 
             await expect
                 .poll(async () => channelHasMessage(await adminClient.getPosts(channel.id, 0, 30), silentMessage))
@@ -112,7 +112,7 @@ test.describe('Silent notification webhook delivery', () => {
     test(
         'silent webhook @mention does not desktop-notify the mentioned user',
         {tag: ['@notifications']},
-        async ({pw}) => {
+        async ({pw, request}) => {
             const {team, user, adminClient} = await pw.initSetup();
 
             const mentionedUser = await pw.createNewUserProfile(adminClient);
@@ -148,7 +148,7 @@ test.describe('Silent notification webhook delivery', () => {
 
             // # Baseline: normal @mention webhook should notify the mentioned user and mark channel unread
             const normalMessage = `normal mention @${mentionedUser.username} ${Date.now()}`;
-            await postToWebhook(webhook.id, {text: normalMessage});
+            await postToWebhook(request, webhook.id, {text: normalMessage});
             await mentioneeChannelsPage.sidebarLeft.assertItemUnread(channel.name, pw.duration.half_min);
             await expect
                 .poll(async () => (await mentioneePage.evaluate(() => window.getNotifications())).length)
@@ -165,7 +165,7 @@ test.describe('Silent notification webhook delivery', () => {
 
             // # Silent @mention should not notify the mentioned user nor mark the channel unread
             const silentMessage = `silent mention @${mentionedUser.username} ${Date.now()}`;
-            await postToWebhook(webhook.id, {text: silentMessage, silent: true});
+            await postToWebhook(request, webhook.id, {text: silentMessage, silent: true});
 
             await expect
                 .poll(async () => channelHasMessage(await adminClient.getPosts(channel.id, 0, 30), silentMessage))
