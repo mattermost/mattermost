@@ -95,6 +95,14 @@ export default class ChannelsSidebarLeft {
         await expect(this.item(name)).not.toHaveClass(/unread|unread-title/);
     }
 
+    async assertItemMuted(name: string) {
+        await expect(this.item(name)).toHaveClass(/muted/);
+    }
+
+    async assertItemNotMuted(name: string) {
+        await expect(this.item(name)).not.toHaveClass(/muted/);
+    }
+
     /**
      * Locates the unread-mentions count badge nested inside the sidebar item with the given name.
      * @param name

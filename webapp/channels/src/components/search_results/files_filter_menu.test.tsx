@@ -5,7 +5,7 @@ import React from 'react';
 
 import FilesFilterMenu from 'components/search_results/files_filter_menu';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 describe('components/search_results/FilesFilterMenu', () => {
     const filters = ['all', 'documents', 'spreadsheets', 'presentations', 'code', 'images', 'audio', 'video'];
@@ -21,4 +21,15 @@ describe('components/search_results/FilesFilterMenu', () => {
             expect(container).toMatchSnapshot();
         });
     }
+
+    test('should expose the filter button by name', () => {
+        renderWithContext(
+            <FilesFilterMenu
+                selectedFilter='all'
+                onFilter={jest.fn()}
+            />,
+        );
+
+        expect(screen.getByRole('button', {name: 'Filter'})).toBeInTheDocument();
+    });
 });

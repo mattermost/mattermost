@@ -48,6 +48,7 @@ exports[`components/search_results/MessagesOrFilesSelector should match snapshot
         class="MenuWrapper "
       >
         <button
+          aria-label="Filter"
           class="IconContainer-hXitkr fFJEfD action-icon dots-icon"
           id="filesFilterButton"
           type="button"
@@ -152,6 +153,7 @@ exports[`components/search_results/MessagesOrFilesSelector should match snapshot
         class="MenuWrapper "
       >
         <button
+          aria-label="Filter"
           class="IconContainer-hXitkr fFJEfD action-icon dots-icon"
           id="filesFilterButton"
           type="button"

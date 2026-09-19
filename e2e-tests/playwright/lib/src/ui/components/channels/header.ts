@@ -13,6 +13,8 @@ export default class ChannelsHeader {
     readonly channelMenuDropdown;
     readonly callButton: Locator;
     readonly pinnedMessagesButton: Locator;
+    readonly unmuteButton: Locator;
+    readonly channelFilesButton: Locator;
     // Two chip slots, two accessors: 'attributes' is the row under the channel
     // name, 'infoAttributes' the inline strip beside the member count.
     readonly attributes: ChannelAttributeLabels;
@@ -26,6 +28,8 @@ export default class ChannelsHeader {
         this.channelMenuDropdown = container.locator('#channelHeaderDropdownButton');
         this.callButton = container.getByRole('button', {name: /call/i}).first();
         this.pinnedMessagesButton = container.locator('#channelHeaderPinButton');
+        this.unmuteButton = container.getByRole('button', {name: 'Unmute', exact: true});
+        this.channelFilesButton = container.getByRole('button', {name: 'Channel files'});
         this.attributes = new ChannelAttributeLabels(container.getByTestId('channelAttributeLabels-header'), 'header');
         this.infoAttributes = new ChannelAttributeLabels(container.getByTestId('channelAttributeLabels-info'), 'info');
         this.addChannelHeaderButton = container.getByRole('button', {name: 'Add a channel header'});
@@ -58,6 +62,10 @@ export default class ChannelsHeader {
     async openPinnedMessages() {
         await expect(this.pinnedMessagesButton).toBeVisible();
         await this.pinnedMessagesButton.click();
+    }
+
+    async openChannelFiles() {
+        await this.channelFilesButton.click();
     }
 
     async openAddChannelHeader() {
