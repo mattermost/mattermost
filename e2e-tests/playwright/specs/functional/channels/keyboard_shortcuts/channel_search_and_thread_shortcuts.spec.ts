@@ -143,6 +143,7 @@ test(
 
         // * Verify RHS reply textbox is focused only
         await expect(userChannelsPage.sidebarRight.postCreate.input).toBeFocused();
+        await expect(userChannelsPage.centerView.postCreate.input).not.toBeFocused();
 
         // # Type a message to verify the textbox can receive input immediately
         await userPage.keyboard.type('Reply typed after Shift+Up');

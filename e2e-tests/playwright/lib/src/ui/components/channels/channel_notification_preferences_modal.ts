@@ -19,9 +19,11 @@ export default class ChannelNotificationPreferencesModal {
         this.ignoreMentionsCheckbox = container.getByRole('checkbox', {
             name: 'Ignore mentions for @channel, @here and @all',
         });
+        // Scope to Desktop Notifications; a second "Notify me about…" group exists for mobile.
         this.mentionsOnlyRadio = container
+            .locator('section')
+            .filter({hasText: 'Desktop Notifications'})
             .getByRole('group', {name: 'Notify me about…'})
-            .first()
             .getByRole('radio', {name: /Mentions, direct messages, and keywords only/});
         this.saveButton = container.getByRole('button', {name: 'Save'});
     }

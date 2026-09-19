@@ -47,6 +47,7 @@ test('MM-T350 Searching displays results in the RHS', async ({pw}) => {
 
     // * Verify the search results remain visible after clearing the query text
     await expect(channelsPage.searchResultsContainer).toBeVisible();
+    await expect(result).toBeVisible();
 });
 
 /**

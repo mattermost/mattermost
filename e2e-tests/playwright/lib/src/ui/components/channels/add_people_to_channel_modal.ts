@@ -25,13 +25,10 @@ export default class AddPeopleToChannelModal {
         await expect(this.container).toBeVisible();
     }
 
-    /**
-     * Types into the auto-focused react-select search input. The input is not a
-     * standard textbox, so type via the keyboard once the modal is visible.
-     */
     async search(text: string) {
         await this.toBeVisible();
-        await this.container.page().keyboard.type(text);
+        await this.searchInput.click();
+        await this.searchInput.pressSequentially(text);
     }
 
     getUserOption(username: string) {

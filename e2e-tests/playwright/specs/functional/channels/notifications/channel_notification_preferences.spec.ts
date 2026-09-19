@@ -37,10 +37,13 @@ test('MM-T885 Channel notifications: Desktop notifications mentions only', {tag:
     await channelsPage.toBeVisible();
     await pw.stubNotification(page, 'granted');
     await senderChannelsPage.postMessage(`ordinary message ${pw.random.id()}`);
-    await pw.wait(pw.duration.two_sec);
 
-    // * Verify the ordinary message does not create a desktop notification
-    expect(await page.evaluate(() => window.getNotifications())).toHaveLength(0);
+    // * Verify the ordinary message does not create a desktop notification over the wait window
+    const deadline = Date.now() + pw.duration.two_sec;
+    while (Date.now() < deadline) {
+        expect(await page.evaluate(() => window.getNotifications())).toHaveLength(0);
+        await pw.wait(100);
+    }
 
     // # Post a message that directly mentions the receiving user
     const mentionMessage = `random message with mention @${user.username} ${pw.random.id()}`;

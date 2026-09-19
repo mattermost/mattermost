@@ -64,6 +64,7 @@ export default class ChannelsCenterView {
     }
 
     async openSetHeader() {
+        await expect(this.setHeaderButton).toBeVisible();
         await this.setHeaderButton.click();
     }
 
