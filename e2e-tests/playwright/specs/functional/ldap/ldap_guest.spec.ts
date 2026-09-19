@@ -16,10 +16,9 @@ test(
     async ({pw}) => {
         await pw.ensureLicense();
         await pw.skipIfNoLicense();
+        const {adminClient, team} = await pw.initSetup();
         await pw.ensureOpenldap();
 
-        const {adminClient} = await pw.getAdminClient();
-        const team = await pw.createNewTeam(adminClient);
         const ldapUser = pw.generateLdapUser('ldapdemote');
         await pw.createLdapUser(ldapUser);
 

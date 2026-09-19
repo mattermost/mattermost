@@ -13,9 +13,9 @@ import {expect, test} from '@mattermost/playwright-lib';
 test('MM-T2821 LDAP admin filter grants the system admin role', {tag: '@ldap'}, async ({pw}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
+    const {adminClient} = await pw.initSetup();
     await pw.ensureOpenldap();
 
-    const {adminClient} = await pw.getAdminClient();
     const ldapUser = pw.generateLdapUser('ldapadmin');
     await pw.createLdapUser(ldapUser);
 
@@ -23,8 +23,6 @@ test('MM-T2821 LDAP admin filter grants the system admin role', {tag: '@ldap'}, 
         LdapSettings: {
             EnableAdminFilter: true,
             AdminFilter: `(cn=${ldapUser.firstname})`,
-            UserFilter: '(objectClass=inetOrgPerson)',
-            GuestFilter: '',
         },
     });
 
@@ -50,9 +48,9 @@ test('MM-T2821 LDAP admin filter grants the system admin role', {tag: '@ldap'}, 
 test('login is rejected when the user matches neither the user nor guest filter', {tag: '@ldap'}, async ({pw}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
+    const {adminClient} = await pw.initSetup();
     await pw.ensureOpenldap();
 
-    const {adminClient} = await pw.getAdminClient();
     const ldapUser = pw.generateLdapUser('ldapnomatch');
     await pw.createLdapUser(ldapUser);
 
@@ -81,9 +79,9 @@ test('login is rejected when the user matches neither the user nor guest filter'
 test('MM-T1422 LDAP guest filter provisions the user as a guest', {tag: '@ldap'}, async ({pw}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
+    const {adminClient} = await pw.initSetup();
     await pw.ensureOpenldap();
 
-    const {adminClient} = await pw.getAdminClient();
     const ldapUser = pw.generateLdapUser('ldapguest');
     await pw.createLdapUser(ldapUser);
 

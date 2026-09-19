@@ -13,10 +13,9 @@ import {expect, test} from '@mattermost/playwright-lib';
 test('LDAP member login with team invite lands on the invited team', {tag: '@ldap'}, async ({pw}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
+    const {adminClient, team} = await pw.initSetup();
     await pw.ensureOpenldap();
 
-    const {adminClient} = await pw.getAdminClient();
-    const team = await pw.createNewTeam(adminClient);
     const ldapUser = pw.generateLdapUser('ldapmember');
     await pw.createLdapUser(ldapUser);
 
@@ -51,10 +50,9 @@ test('LDAP member login with team invite lands on the invited team', {tag: '@lda
 test('LDAP guest login with team invite lands on the invited channel', {tag: '@ldap'}, async ({pw}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
+    const {adminClient, team} = await pw.initSetup();
     await pw.ensureOpenldap();
 
-    const {adminClient} = await pw.getAdminClient();
-    const team = await pw.createNewTeam(adminClient);
     const ldapUser = pw.generateLdapUser('ldapguestinv');
     await pw.createLdapUser(ldapUser);
 

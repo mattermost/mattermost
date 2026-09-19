@@ -13,9 +13,9 @@ import {expect, test} from '@mattermost/playwright-lib';
 test('MM-T2704 logs in a directory-only user through the standard login form', {tag: '@ldap'}, async ({pw}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
+    const {adminClient} = await pw.initSetup();
     await pw.ensureOpenldap();
 
-    const {adminClient} = await pw.getAdminClient();
     const ldapUser = pw.generateLdapUser();
     await pw.createLdapUser(ldapUser);
 
@@ -45,9 +45,9 @@ test('MM-T2704 logs in a directory-only user through the standard login form', {
 test('logs in an existing LDAP admin through the standard login form', {tag: '@ldap'}, async ({pw}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
+    const {adminClient} = await pw.initSetup();
     await pw.ensureOpenldap();
 
-    const {adminClient} = await pw.getAdminClient();
     const ldapUser = pw.generateLdapUser('ldapadmin');
     await pw.createLdapUser(ldapUser);
 
