@@ -308,7 +308,7 @@ Some legacy corporate proxy configurations may be incompatible with the requirem
 
 In this case, a post-proxy relay can be deployed to take messages from the Mattermost server passing through your corporate IT proxy in the incompatible format, e.g. HTTP/1.1, transform it to HTTP/2 and relay it to its final destination, either to the [Apple Push Notification Service (APNS)](https://developer.apple.com/documentation/usernotifications) and [Google Fire Cloud Messaging (FCM)](https://firebase.google.com/docs/cloud-messaging) services.
 
-Ths **post-proxy relay** [can be configured using the Mattermost Push Proxy installation guide](https://docs.mattermost.com/developers/contribute/more-info/mobile/push-notifications/service/) with connection restrictions to meet your custom security and compliance requirements.
+This **post-proxy relay** [can be configured using the Mattermost Push Proxy installation guide](https://docs.mattermost.com/developers/contribute/more-info/mobile/push-notifications/service/) with connection restrictions to meet your custom security and compliance requirements.
 
 In place of a DMZ, you can also host in a trusted cloud environment such as AWS or Azure depending on your internal approvals and policies.
 
