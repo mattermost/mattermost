@@ -32,6 +32,9 @@ export function formatWithRenderer(text: string, renderer: marked.Renderer) {
         gfm: true,
         tables: true,
         mangle: false,
+
+        // Split ordered vs bullet lists (and mixed bullets) so one blank line matches CommonMark.
+        smartLists: true,
         inlinelatex: config.EnableLatex === 'true' && config.EnableInlineLatex === 'true',
         urlFilter,
     };
