@@ -6070,6 +6070,32 @@ components:
           allOf:
             - $ref: "#/components/schemas/OrderedSidebarCategories"
           description: Absent when nothing changed since the request's cursor.
+    TeamLoadResponse:
+      description: >
+        Aggregate payload for a single team, returned by
+        `GET /api/v4/users/me/teams/{team_id}/load`. In delta mode a nil or empty
+        field means nothing changed since the cursor and the client should keep
+        its cached value.
+      type: object
+      properties:
+        channels:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExperienceChannel"
+        channel_members:
+          $ref: "#/components/schemas/ExperienceChannelMemberList"
+        sidebar_categories:
+          allOf:
+            - $ref: "#/components/schemas/OrderedSidebarCategories"
+          description: Absent when nothing changed since the request's cursor.
+        roles:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExperienceRole"
+        timestamp:
+          type: integer
+          format: int64
+          description: Cursor to pass back as `since` on the next call.
     InitialLoadResponse:
       description: >
         Aggregate response for `GET /users/me/initial_load`. In delta mode

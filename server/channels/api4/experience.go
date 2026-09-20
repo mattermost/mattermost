@@ -27,6 +27,7 @@ func experienceAPIRateLimit() model.RateLimitSettings {
 // endpoints elsewhere in the API.
 func (api *API) InitExperienceAPI() {
 	api.BaseRoutes.Users.Handle("/me/initial_load", api.RateLimitedHandler(api.APISessionRequired(getInitialLoad), experienceAPIRateLimit())).Methods(http.MethodGet)
+	api.BaseRoutes.Users.Handle("/me/teams/{team_id:[A-Za-z0-9]+}/load", api.RateLimitedHandler(api.APISessionRequired(getTeamLoad), experienceAPIRateLimit())).Methods(http.MethodGet)
 }
 
 func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -61,5 +62,41 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		c.Logger.Warn("Error writing initial_load response", mlog.Err(err))
+	}
+}
+
+func getTeamLoad(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.Config().FeatureFlags.EnableExperienceAPI {
+		http.NotFound(w, r)
+		return
+	}
+
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	teamID := c.Params.TeamId
+
+	var since int64
+	if sinceStr := r.URL.Query().Get("since"); sinceStr != "" {
+		v, err := strconv.ParseInt(sinceStr, 10, 64)
+		if err != nil {
+			c.SetInvalidURLParam("since")
+			return
+		}
+		since = v
+	}
+
+	userID := c.AppContext.Session().UserId
+
+	resp, appErr := c.App.GetTeamLoad(c.AppContext, userID, teamID, since)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		c.Logger.Warn("Error writing team_load response", mlog.Err(err))
 	}
 }
