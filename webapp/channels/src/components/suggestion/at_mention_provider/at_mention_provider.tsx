@@ -473,6 +473,9 @@ export default class AtMentionProvider extends Provider {
             }
             this.data = data;
             this.searchAssociatedGroupsForReference(prefix).then((groupsData) => {
+                if (this.shouldCancelDispatch(prefix)) {
+                    return;
+                }
                 if (this.data && groupsData && groupsData.data) {
                     this.data.groups = groupsData.data;
                 }

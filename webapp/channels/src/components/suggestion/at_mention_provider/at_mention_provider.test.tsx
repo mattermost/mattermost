@@ -762,6 +762,42 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         expect(autocompleteUsersInChannel).toHaveBeenCalledTimes(1);
     });
 
+    it('should ignore a stale group search response after the prefix has changed', async () => {
+        const autocompleteUsersInChannel = jest.fn().mockResolvedValue({data: {users: [], out_of_channel: []}});
+        let resolveStaleGroups: (value: {data: unknown[]}) => void = jest.fn();
+        const searchAssociatedGroupsForReference = jest.fn();
+        searchAssociatedGroupsForReference.mockReturnValueOnce(new Promise((resolve) => {
+            resolveStaleGroups = resolve;
+        }));
+        searchAssociatedGroupsForReference.mockReturnValue(new Promise(() => {})); // later prefixes never resolve
+        const provider = new AtMentionProvider({...baseParams, autocompleteUsersInChannel, searchAssociatedGroupsForReference});
+        jest.spyOn(provider, 'getProfilesWithLastViewAtInChannel').mockImplementation(() => [userid10, userid3, userid1, userid2]);
+        const resultCallback = jest.fn();
+
+        expect(provider.handlePretextChanged('@zzq', resultCallback)).toEqual(true);
+
+        // The server response for "zzq" arrives and its group search is now pending
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+        expect(searchAssociatedGroupsForReference).toHaveBeenCalledTimes(1);
+
+        // The user types another character before the group search returns
+        expect(provider.handlePretextChanged('@zzqx', resultCallback)).toEqual(true);
+
+        // The stale group search response for "zzq" arrives now
+        resolveStaleGroups({data: []});
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+
+        // It must not mark "zzqx" as having no results, so the next character still queries the server
+        expect(provider.handlePretextChanged('@zzqxy', resultCallback)).toEqual(true);
+        expect(autocompleteUsersInChannel).toHaveBeenLastCalledWith('zzqxy');
+    });
+
     it('should suggest for "@h"', async () => {
         const pretext = '@h';
         const matchedPretext = '@h';
