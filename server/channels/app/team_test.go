@@ -2724,3 +2724,79 @@ func TestTeamSendEvents(t *testing.T) {
 		require.Equal(t, "", teamFromEvent.InviteId)
 	}
 }
+
+func TestGetTeamsUnreadForUserMuteHandling(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	channel := th.CreateChannel(t, th.BasicTeam)
+	th.AddUserToChannel(t, th.BasicUser2, channel)
+
+	post := &model.Post{UserId: th.BasicUser2.Id, ChannelId: channel.Id, Message: "hello @" + th.BasicUser.Username}
+	_, _, appErr := th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.setChannelsMuted(th.Context, []string{channel.Id}, th.BasicUser.Id, true)
+	require.Nil(t, appErr)
+
+	t.Run("GetTeamsUnreadForUser still counts muted-channel mentions (existing public contract)", func(t *testing.T) {
+		unreads, appErr := th.App.GetTeamsUnreadForUser("", th.BasicUser.Id, false)
+		require.Nil(t, appErr)
+
+		unread := findTeamUnread(unreads, th.BasicTeam.Id)
+		require.NotNil(t, unread)
+		assert.Equal(t, int64(1), unread.MentionCount)
+	})
+
+	t.Run("GetTeamsUnreadForUserExperience excludes muted-channel mentions", func(t *testing.T) {
+		unreads, appErr := th.App.GetTeamsUnreadForUserExperience("", th.BasicUser.Id, false)
+		require.Nil(t, appErr)
+
+		unread := findTeamUnread(unreads, th.BasicTeam.Id)
+		require.NotNil(t, unread)
+		assert.Equal(t, int64(0), unread.MentionCount)
+	})
+}
+
+func TestGetTeamsUnreadForUserMutedMsgCount(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	channel := th.CreateChannel(t, th.BasicTeam)
+	th.AddUserToChannel(t, th.BasicUser2, channel)
+
+	read := func() *model.TeamUnread {
+		unreads, appErr := th.App.GetTeamsUnreadForUser("", th.BasicUser.Id, false)
+		require.Nil(t, appErr)
+		unread := findTeamUnread(unreads, th.BasicTeam.Id)
+		require.NotNil(t, unread)
+		return unread
+	}
+
+	baseline := read()
+
+	for range 3 {
+		post := &model.Post{UserId: th.BasicUser2.Id, ChannelId: channel.Id, Message: "plain message"}
+		_, _, appErr := th.App.CreatePost(th.Context, post, channel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+	}
+
+	withUnreads := read()
+	require.Equal(t, baseline.MsgCount+3, withUnreads.MsgCount, "unmuted channel must contribute its unread messages")
+
+	_, appErr := th.App.setChannelsMuted(th.Context, []string{channel.Id}, th.BasicUser.Id, true)
+	require.Nil(t, appErr)
+
+	muted := read()
+	assert.Equal(t, baseline.MsgCount, muted.MsgCount, "muting must exclude the channel's unread messages")
+	assert.Equal(t, baseline.MsgCountRoot, muted.MsgCountRoot, "muting must exclude the channel's unread root messages")
+}
+
+func findTeamUnread(unreads []*model.TeamUnread, teamID string) *model.TeamUnread {
+	for _, u := range unreads {
+		if u.TeamId == teamID {
+			return u
+		}
+	}
+	return nil
+}
