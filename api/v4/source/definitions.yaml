@@ -6070,6 +6070,223 @@ components:
           allOf:
             - $ref: "#/components/schemas/OrderedSidebarCategories"
           description: Absent when nothing changed since the request's cursor.
+    ExperienceSyncRequest:
+      description: Request body for `POST /api/v4/sync`.
+      type: object
+      required:
+        - since
+        - scope
+      properties:
+        since:
+          type: integer
+          format: int64
+          description: Cursor from a previous response's `timestamp` field. Must be
+            greater than zero.
+        scope:
+          $ref: "#/components/schemas/ExperienceSyncScope"
+    ExperienceSyncScope:
+      description: Describes what the client is currently looking at, so the response
+        can be limited to the data it needs.
+      type: object
+      required:
+        - team_ids
+      properties:
+        team_ids:
+          type: array
+          description: Teams to include deltas for. Must not be empty. Teams the user
+            is no longer a member of are skipped rather than rejected.
+          items:
+            type: string
+        active_channel_id:
+          type: string
+          description: When set, the response includes this channel's posts and stats.
+        active_thread_id:
+          type: string
+          description: When set, the response includes this thread's posts.
+        global_threads_team_id:
+          type: string
+          description: When set, the response includes the thread list for this team.
+            Cleared if the user is not a member.
+    ExperienceSyncThread:
+      description: Compact thread representation returned in a sync response.
+      type: object
+      properties:
+        id:
+          type: string
+        reply_count:
+          type: integer
+          format: int64
+        last_reply_at:
+          type: integer
+          format: int64
+        last_viewed_at:
+          type: integer
+          format: int64
+        unread_replies:
+          type: integer
+          format: int64
+        unread_mentions:
+          type: integer
+          format: int64
+        is_following:
+          type: boolean
+        delete_at:
+          type: integer
+          format: int64
+    ExperienceSyncThreadsDelta:
+      description: Thread list data for one team.
+      type: object
+      properties:
+        team_id:
+          type: string
+        threads:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExperienceSyncThread"
+        total:
+          type: integer
+          format: int64
+        total_unread_mentions:
+          type: integer
+          format: int64
+        total_unread_threads:
+          type: integer
+          format: int64
+    ExperienceSyncActiveChannel:
+      description: Context for the channel the user is currently viewing.
+      type: object
+      properties:
+        channel_id:
+          type: string
+        posts_order:
+          type: array
+          description: IDs of the returned posts, most recent first. The posts
+            themselves are in the response's top-level `posts` array.
+          items:
+            type: string
+        stats:
+          $ref: "#/components/schemas/ChannelStats"
+        bookmarks:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChannelBookmarkWithFileInfo"
+        constrained_groups:
+          type: array
+          items:
+            $ref: "#/components/schemas/GroupWithSchemeAdmin"
+    ExperienceSyncActiveThread:
+      description: Context for the thread the user is currently viewing.
+      type: object
+      properties:
+        root_id:
+          type: string
+        posts_order:
+          type: array
+          description: IDs of the returned posts. The posts themselves are in the
+            response's top-level `posts` array.
+          items:
+            type: string
+    ExperienceSyncTeamDelta:
+      description: What changed for one team since the request's cursor.
+      type: object
+      properties:
+        team_id:
+          type: string
+        team:
+          $ref: "#/components/schemas/ExperienceTeam"
+        memberships:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExperienceTeamMember"
+        channels:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExperienceChannel"
+        channel_members:
+          $ref: "#/components/schemas/ExperienceChannelMemberList"
+        sidebar_categories:
+          allOf:
+            - $ref: "#/components/schemas/OrderedSidebarCategories"
+          description: Absent when nothing changed since the request's cursor.
+    ExperienceSyncResponse:
+      description: >
+        Aggregate payload returned by `POST /api/v4/sync`. A nil or empty field
+        means nothing changed since the cursor and the client should keep its
+        cached value.
+      type: object
+      properties:
+        config:
+          type: object
+          additionalProperties:
+            type: string
+        license:
+          type: object
+          additionalProperties:
+            type: string
+        me:
+          $ref: "#/components/schemas/ExperienceUser"
+        removed_team_ids:
+          type: array
+          items:
+            type: string
+        teams_unreads:
+          type: array
+          description: Badge counts for all the user's teams, not only those in the
+            request scope.
+          items:
+            $ref: "#/components/schemas/ExperienceUnreads"
+        teams:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExperienceSyncTeamDelta"
+        direct_channels:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExperienceChannel"
+        direct_channel_members:
+          $ref: "#/components/schemas/ExperienceChannelMemberList"
+        direct_unreads:
+          $ref: "#/components/schemas/ExperienceUnreads"
+        preferences:
+          type: array
+          items:
+            $ref: "#/components/schemas/Preference"
+        preference_tombstones:
+          type: array
+          items:
+            $ref: "#/components/schemas/PreferenceTombstone"
+        group_memberships:
+          $ref: "#/components/schemas/ExperienceGroupMembershipList"
+        roles:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExperienceRole"
+        posts:
+          type: array
+          items:
+            $ref: "#/components/schemas/Post"
+        authors:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        groups:
+          type: array
+          items:
+            $ref: "#/components/schemas/Group"
+        active_channel:
+          $ref: "#/components/schemas/ExperienceSyncActiveChannel"
+        active_thread:
+          $ref: "#/components/schemas/ExperienceSyncActiveThread"
+        threads_delta:
+          $ref: "#/components/schemas/ExperienceSyncThreadsDelta"
+        statuses:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/Status"
+        timestamp:
+          type: integer
+          format: int64
+          description: Cursor to pass back as `since` on the next call.
     TeamLoadResponse:
       description: >
         Aggregate payload for a single team, returned by
