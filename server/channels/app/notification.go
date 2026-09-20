@@ -746,6 +746,16 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 		useAddFollowersHook(message, notificationsForCRT.Desktop)
 	}
 
+	if a.Config().FeatureFlags.EnableExperienceAPI {
+		mutedUsers := make(model.StringArray, 0)
+		for userID, props := range channelMemberNotifyPropsMap {
+			if props[model.MarkUnreadNotifyProp] == model.ChannelMarkUnreadMention {
+				mutedUsers = append(mutedUsers, userID)
+			}
+		}
+		useAddMutedUsersHook(message, mutedUsers)
+	}
+
 	// Collect user IDs of whom we want to acknowledge the websocket event for notification metrics
 	usersToAck := []string{}
 	for id, profile := range profileMap {
@@ -1028,6 +1038,7 @@ func (a *App) RemoveNotifications(rctx request.CTX, post *model.Post, channel *m
 				continue
 			}
 
+			previousUnreadMentions := threadMembership.UnreadMentions
 			threadMembership.UnreadMentions -= 1
 			if _, err := a.Srv().Store().Thread().UpdateMembership(threadMembership); err != nil {
 				return err
@@ -1039,7 +1050,6 @@ func (a *App) RemoveNotifications(rctx request.CTX, post *model.Post, channel *m
 			}
 
 			if userThread != nil {
-				previousUnreadMentions := int64(0)
 				previousUnreadReplies := int64(0)
 
 				a.sanitizeProfiles(userThread.Participants, false)
