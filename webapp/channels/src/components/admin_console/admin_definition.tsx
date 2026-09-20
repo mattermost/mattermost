@@ -1155,6 +1155,10 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: DefinitionConstants.WEBSERVER_MODE_HELP_TEXT,
                             options: [
                                 {
+                                    value: 'brotli',
+                                    display_name: defineMessage({id: 'admin.webserverModeBrotli', defaultMessage: 'brotli'}),
+                                },
+                                {
                                     value: 'gzip',
                                     display_name: defineMessage({id: 'admin.webserverModeGzip', defaultMessage: 'gzip'}),
                                 },

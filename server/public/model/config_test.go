@@ -413,9 +413,15 @@ func TestServiceSettingsIsValid(t *testing.T) {
 		},
 		"WebserverMode is invalid": {
 			ServiceSettings: ServiceSettings{
-				WebserverMode: new("brotli"),
+				WebserverMode: new("unknown"),
 			},
 			ExpectError: true,
+		},
+		"WebserverMode brotli is valid": {
+			ServiceSettings: ServiceSettings{
+				WebserverMode: new("brotli"),
+			},
+			ExpectError: false,
 		},
 		"WebsocketPort is out of range": {
 			ServiceSettings: ServiceSettings{
@@ -632,6 +638,25 @@ func TestEmailSettingsIsValid(t *testing.T) {
 			appErr := settings.isValid()
 			require.NotNil(t, appErr)
 			require.Equal(t, tc.errID, appErr.Id)
+		})
+	}
+}
+
+func TestServiceSettingsCompressResponses(t *testing.T) {
+	for mode, expected := range map[string]struct {
+		compress bool
+		brotli   bool
+	}{
+		"brotli":   {compress: true, brotli: true},
+		"gzip":     {compress: true, brotli: false},
+		"nogzip":   {compress: false, brotli: false},
+		"disabled": {compress: false, brotli: false},
+	} {
+		t.Run(mode, func(t *testing.T) {
+			ss := ServiceSettings{WebserverMode: new(mode)}
+
+			assert.Equal(t, expected.compress, ss.CompressResponses())
+			assert.Equal(t, expected.brotli, ss.CompressResponsesWithBrotli())
 		})
 	}
 }

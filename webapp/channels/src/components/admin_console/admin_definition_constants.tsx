@@ -103,6 +103,20 @@ export const WEBSERVER_MODE_HELP_TEXT = (
                 <tr>
                     <td>
                         <FormattedMessage
+                            id='admin.webserverModeBrotli'
+                            defaultMessage='brotli'
+                        />
+                    </td>
+                    <td>
+                        <FormattedMessage
+                            id='admin.webserverModeBrotliDescription'
+                            defaultMessage='The Mattermost server will serve static files compressed with gzip, and API responses compressed with Brotli to clients that support it.'
+                        />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <FormattedMessage
                             id='admin.webserverModeGzip'
                             defaultMessage='gzip'
                         />
@@ -147,7 +161,7 @@ export const WEBSERVER_MODE_HELP_TEXT = (
         <p className='help-text'>
             <FormattedMessage
                 id='admin.webserverModeHelpText'
-                defaultMessage='gzip compression applies to static content files. It is recommended to enable gzip to improve performance unless your environment has specific restrictions, such as a web proxy that distributes gzip files poorly.'
+                defaultMessage='gzip compression applies to static content files. Brotli additionally compresses API responses for clients that support it. It is recommended to enable compression to improve performance unless your environment has specific restrictions, such as a web proxy that distributes compressed files poorly.'
             />
         </p>
     </div>
