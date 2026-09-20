@@ -594,6 +594,9 @@ const ChannelInviteModalComponent = (props: Props) => {
                     className={'more-modal__row clickable ' + rowSelected}
                     onClick={() => onAdd(option)}
                     onMouseMove={() => onMouseMove(option)}
+                    role='option'
+                    aria-selected={isSelected}
+                    aria-label={option.username}
                 >
                     <ProfilePicture
                         src={Client4.getProfilePictureUrl(option.id, option.last_picture_update)}

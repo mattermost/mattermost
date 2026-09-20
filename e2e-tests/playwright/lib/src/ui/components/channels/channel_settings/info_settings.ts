@@ -12,6 +12,8 @@ export default class InfoSettings {
     readonly urlLabel: Locator;
     readonly urlEditButton: Locator;
     readonly urlInput: Locator;
+    readonly doneUrlButton: Locator;
+    readonly duplicateUrlAlert: Locator;
     readonly saveChangesPanel: Locator;
 
     constructor(container: Locator) {
@@ -22,6 +24,8 @@ export default class InfoSettings {
         this.urlLabel = container.getByTestId('urlInputLabel');
         this.urlEditButton = container.getByRole('button', {name: 'Edit'});
         this.urlInput = container.getByTestId('channelURLInput');
+        this.doneUrlButton = container.getByRole('button', {name: 'Done'});
+        this.duplicateUrlAlert = container.getByRole('alert');
         this.saveChangesPanel = container.locator('.SaveChangesPanel');
     }
 
@@ -40,10 +44,16 @@ export default class InfoSettings {
         await this.headerInput.fill(header);
     }
 
-    async updateUrl(url: string) {
+    async openUrlEditor() {
         await expect(this.urlEditButton).toBeVisible();
         await this.urlEditButton.click();
         await expect(this.urlInput).toBeVisible();
+    }
+
+    async updateUrl(url: string) {
+        if (!(await this.urlInput.isVisible())) {
+            await this.openUrlEditor();
+        }
         await this.urlInput.clear();
         await this.urlInput.fill(url);
     }

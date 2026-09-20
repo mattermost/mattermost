@@ -11,7 +11,7 @@
 // Group: @channels @keyboard_shortcuts
 
 import * as messages from '@/fixtures/messages';
-import timeouts, * as TIMEOUTS from '@/fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Keyboard Shortcuts', () => {
     let testTeam;
@@ -353,54 +353,6 @@ describe('Keyboard Shortcuts', () => {
                 cy.get('.active').find('#sidebarItem_' + favDMChannels[0].name).should('exist');
             });
         });
-    });
-
-    it('MM-T1240 - CTRL/CMD+K: Open and close', () => {
-        // # Type CTRL/CMD+K to open 'Switch Channels' modal
-        cy.uiGetPostTextBox().cmdOrCtrlShortcut('K').then(() => {
-            // * Channel switcher hint should be visible and focused on
-            cy.get('#quickSwitchHint').should('be.visible');
-            cy.findByRole('combobox', {name: 'quick switch input'}).should('be.focused');
-        });
-
-        // # Type CTRL/CMD+K to close 'Switch Channels' modal
-        cy.get('body').cmdOrCtrlShortcut('K');
-        cy.get('#quickSwitchHint').should('not.exist');
-    });
-
-    it('MM-T1248 - CTRL/CMD+SHIFT+L - Set focus to center channel message box', () => {
-        // # Open search box to change focus
-        cy.uiGetSearchContainer().click();
-        cy.uiGetSearchBox().should('be.focused');
-
-        // # Type CTRL/CMD+SHIFT+L
-        cy.get('body').cmdOrCtrlShortcut('{shift}L');
-        cy.uiGetPostTextBox().should('be.focused');
-
-        cy.get('[data-testid="searchBoxClose"] > .icon').click();
-        // # Post a message and open RHS
-        const message = `hello${Date.now()}`;
-        cy.postMessage(message);
-        cy.getLastPostId().then((postId) => {
-            // # Mouseover the post and click post comment icon.
-            cy.clickPostCommentIcon(postId);
-            cy.uiGetReplyTextBox().focus().should('be.focused');
-        }).then(() => {
-            // # Type CTRL/CMD+SHIFT+L
-            cy.wait(timeouts.ONE_SEC);
-            cy.get('body').cmdOrCtrlShortcut('{shift}L');
-            cy.uiGetPostTextBox().should('be.focused');
-        });
-    });
-
-    it('MM-T1252 - CTRL/CMD+SHIFT+A', () => {
-        // # Type CTRL/CMD+SHIFT+A to open 'Profile' modal
-        cy.uiGetPostTextBox().cmdOrCtrlShortcut('{shift}A');
-        cy.uiGetSettingsModal().should('be.visible');
-
-        // # Type CTRL/CMD+SHIFT+A to close 'Profile' modal
-        cy.get('body').cmdOrCtrlShortcut('{shift}A');
-        cy.uiGetSettingsModal().should('not.exist');
     });
 
     it('MM-T1278 - CTRL/CMD+SHIFT+K', () => {

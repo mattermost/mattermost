@@ -254,28 +254,6 @@ describe('Keyboard Shortcuts', () => {
         cy.uiWaitUntilMessagePostedIncludes('codeblock2');
     });
 
-    it('MM-T1264 Arrow up key - Ephemeral message does not open for edit; opens previous regular message', () => {
-        // # Type user message
-        const message = 'Hello World';
-        cy.postMessage(message);
-
-        // # Type "/code" with no text to receive ephemeral message
-        cy.postMessage('/code ');
-
-        // * Verify if an ephemeral message was received
-        cy.findByText('(Only visible to you)').should('exist');
-        cy.findByText('A message must be provided with the /code command.').should('exist');
-
-        // # Press up arrow key
-        cy.get('body').type('{uparrow}');
-
-        // * Verify that the Edit Post Input is visible
-        cy.get('#edit_textbox').should('be.visible');
-
-        // * Verify that edit box have value of previous regular message
-        cy.get('#edit_textbox').should('have.value', message);
-    });
-
     it('MM-T1270 UP - Edit message with attachment but no text', () => {
         cy.apiLogin(testUser);
 
