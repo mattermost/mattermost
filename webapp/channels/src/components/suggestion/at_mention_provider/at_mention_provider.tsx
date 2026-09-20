@@ -412,10 +412,14 @@ export default class AtMentionProvider extends Provider {
         return items;
     }
 
-    // updateMatches invokes the resultCallback with the metadata for rendering at mentions
-    updateMatches(resultCallback: ResultsCallback<unknown>, groups: Array<ProviderResultsGroup<UserProfile | Group | SpecialMention | Loading>>, matchedPretext: string) {
+    // updateMatches invokes the resultCallback with the metadata for rendering at mentions.
+    // isFinal must only be set once the server results have been merged in: an empty list of local
+    // results says nothing about what the server may still return for this prefix.
+    updateMatches(resultCallback: ResultsCallback<unknown>, groups: Array<ProviderResultsGroup<UserProfile | Group | SpecialMention | Loading>>, matchedPretext: string, isFinal = false) {
         if (groups.length === 0) {
-            this.lastPrefixWithNoResults = this.latestPrefix;
+            if (isFinal) {
+                this.lastPrefixWithNoResults = this.latestPrefix;
+            }
         } else if (this.lastPrefixWithNoResults === this.latestPrefix) {
             this.lastPrefixWithNoResults = '';
         }
@@ -472,7 +476,7 @@ export default class AtMentionProvider extends Provider {
                 if (this.data && groupsData && groupsData.data) {
                     this.data.groups = groupsData.data;
                 }
-                this.updateMatches(resultCallback, this.items(), matchedPretext);
+                this.updateMatches(resultCallback, this.items(), matchedPretext, true);
             });
         });
 

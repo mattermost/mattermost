@@ -728,6 +728,40 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         });
     });
 
+    it('should not give up on a longer prefix while server results for a shorter prefix are pending', () => {
+        const autocompleteUsersInChannel = jest.fn().mockReturnValue(new Promise(() => {})); // never resolves
+        const provider = new AtMentionProvider({...baseParams, autocompleteUsersInChannel});
+        jest.spyOn(provider, 'getProfilesWithLastViewAtInChannel').mockImplementation(() => [userid10, userid3, userid1, userid2]);
+        const resultCallback = jest.fn();
+
+        // Nothing matches locally, but the server has not answered yet
+        expect(provider.handlePretextChanged('@zzq', resultCallback)).toEqual(true);
+
+        // Typing another character must still query the server for the longer prefix
+        expect(provider.handlePretextChanged('@zzqx', resultCallback)).toEqual(true);
+        expect(autocompleteUsersInChannel).toHaveBeenCalledTimes(2);
+        expect(autocompleteUsersInChannel).toHaveBeenLastCalledWith('zzqx');
+    });
+
+    it('should skip longer prefixes once the server has returned no results for a shorter prefix', async () => {
+        const autocompleteUsersInChannel = jest.fn().mockResolvedValue({data: {users: [], out_of_channel: []}});
+        const searchAssociatedGroupsForReference = jest.fn().mockResolvedValue({data: []});
+        const provider = new AtMentionProvider({...baseParams, autocompleteUsersInChannel, searchAssociatedGroupsForReference});
+        jest.spyOn(provider, 'getProfilesWithLastViewAtInChannel').mockImplementation(() => [userid10, userid3, userid1, userid2]);
+        const resultCallback = jest.fn();
+
+        expect(provider.handlePretextChanged('@zzq', resultCallback)).toEqual(true);
+
+        // Let the server response and the group search resolve
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+
+        expect(provider.handlePretextChanged('@zzqx', resultCallback)).toEqual(false);
+        expect(autocompleteUsersInChannel).toHaveBeenCalledTimes(1);
+    });
+
     it('should suggest for "@h"', async () => {
         const pretext = '@h';
         const matchedPretext = '@h';
