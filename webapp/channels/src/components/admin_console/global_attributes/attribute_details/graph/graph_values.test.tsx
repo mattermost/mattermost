@@ -7,7 +7,7 @@ import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import {openModal} from 'actions/views/modals';
 
-import {act, renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
+import {act, fireEvent, renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
 
 import AttributeGraphDeleteModal from './delete_modal';
@@ -408,6 +408,38 @@ describe('AttributeOptionsGraphValues', () => {
         const parentsAnchor = within(nameWrap).getByTestId('attributeOptionsGraphRow__parentsAnchor');
         expect(parentsAnchor.tagName).toBe('DIV');
         expect(parentsAnchor).toHaveClass('attribute-options-graph-values__parents-anchor');
+    });
+
+    it('portals parent search suggestions outside the value menu and does not close on suggestion press', async () => {
+        renderWithContext(
+            <AttributeOptionsGraphValues
+                options={[
+                    {id: '', name: 'Air', parents: []},
+                    {id: '', name: 'Maritime', parents: []},
+                ]}
+                onOptionsChange={jest.fn()}
+            />,
+        );
+
+        await clickRowParents('Air');
+        expect(await screen.findByTestId('attributeGraphParentsPane__back')).toHaveTextContent('Parents of Air');
+
+        const search = screen.getByTestId('attributeGraphParentsPane__search');
+        const menuPaper = search.closest('.MuiPopover-paper');
+        expect(menuPaper).toBeTruthy();
+
+        await userEvent.click(search);
+        const suggestions = await screen.findByTestId('attributeGraphParentsPane__suggestions');
+        expect(suggestions.closest('.attribute-graph-parents-pane')).toBeNull();
+        expect(menuPaper).not.toContainElement(suggestions);
+        expect(suggestions.closest('.attribute-graph-parents-pane__suggestions-paper')).toBeTruthy();
+
+        const candidate = screen.getByTestId('attributeGraphParentsPane__candidate-Maritime');
+        fireEvent.mouseDown(candidate);
+        fireEvent.pointerDown(candidate);
+        expect(screen.getByTestId('attributeGraphParentsPane__back')).toHaveTextContent('Parents of Air');
+        expect(screen.getByTestId('attributeGraphParentsPane__suggestions')).toBeInTheDocument();
+        expect(screen.getByRole('menu', {name: 'Edit Air'})).toBeInTheDocument();
     });
 
     it('indents dual occurrences by their own path depth, not maxDepth', () => {

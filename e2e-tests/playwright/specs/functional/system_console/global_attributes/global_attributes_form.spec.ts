@@ -1159,6 +1159,66 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         });
 
         /**
+         * @objective Ensure Parents-of search suggestions float in their own popover so the
+         * value menu stays a fixed-height list, the candidate list is not clipped, and picking
+         * a candidate still applies.
+         */
+        test('keeps the Parents of menu fixed-height when search suggestions open', async ({pw}) => {
+            const {adminUser, adminClient} = await requireHierarchicalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const displayName = `Playwright Suggest ${timestamp}`;
+            const expectedName = `playwright_suggest_${timestamp}`;
+
+            try {
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+                await page.getByTestId('newAttributeButton').click();
+                await page.getByTestId('attributeDisplayNameInput').fill(displayName);
+
+                await page.getByTestId('attributeTypeMenuButton').click();
+                await page.getByRole('menuitemradio', {name: 'Hierarchical'}).click();
+
+                await page.getByTestId('attributeOptionsGraphEmpty__nameInput').fill('Air');
+                await page.getByTestId('attributeOptionsGraphEmpty__addButton').click();
+                await page.getByTestId('attributeOptionsGraphAddTop__nameInput').fill('Maritime');
+                await page.getByTestId('attributeOptionsGraphAddTop__addButton').click();
+
+                await openGraphRowParents(page, 'Air');
+                const valueMenu = page.getByRole('menu', {name: 'Edit Air'});
+                await expect(page.getByTestId('attributeGraphParentsPane__back')).toHaveText('Parents of Air');
+                await expect(valueMenu).toBeVisible();
+
+                const heightBeforeSearch = (await valueMenu.boundingBox())?.height ?? 0;
+                await page.getByTestId('attributeGraphParentsPane__search').click();
+
+                const suggestions = page.getByTestId('attributeGraphParentsPane__suggestions');
+                await expect(suggestions).toBeVisible();
+                await expect(page.getByTestId('attributeGraphParentsPane__candidate-Maritime')).toBeVisible();
+
+                const suggestionsAreInsideMenu = await suggestions.evaluate((el) => (
+                    Boolean(el.closest('.attribute-graph-parents-pane'))
+                ));
+                expect(suggestionsAreInsideMenu).toBe(false);
+
+                const listBox = await suggestions.boundingBox();
+                expect(listBox).toBeTruthy();
+                expect(listBox!.height).toBeGreaterThan(0);
+                expect(listBox!.y).toBeGreaterThanOrEqual(0);
+
+                const heightAfterSearch = (await valueMenu.boundingBox())?.height ?? 0;
+                expect(heightAfterSearch).toBeLessThan(heightBeforeSearch + 48);
+                await expect(valueMenu).toBeVisible();
+
+                await page.getByTestId('attributeGraphParentsPane__candidate-Maritime').click();
+                await expect(graphRow(page, 'Air', 'Maritime')).toBeVisible();
+            } finally {
+                await deleteGlobalAttributeFieldIfExists(adminClient, expectedName);
+            }
+        });
+
+        /**
          * @objective Ensure adding a second parent through the Parents pane asks Add
          * {parent} as a parent? and, once confirmed with Add, records both parent names.
          */
