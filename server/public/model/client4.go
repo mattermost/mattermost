@@ -3652,8 +3652,8 @@ func (c *Client4) GetPostWithOptions(ctx context.Context, postId string, etag st
 	if opts.IncludeDeleted {
 		values.Set("include_deleted", c.boolString(true))
 	}
-	if len(opts.IncludePropertyGroups) > 0 {
-		values.Set("includePropertyGroups", strings.Join(opts.IncludePropertyGroups, ","))
+	if opts.PropertyGroup != "" {
+		values.Set("propertyGroup", opts.PropertyGroup)
 	}
 	r, err := c.doAPIGetWithQuery(ctx, c.postRoute(postId), values, etag)
 	if err != nil {
@@ -3727,8 +3727,8 @@ func (c *Client4) GetPostThreadWithOpts(ctx context.Context, postID string, etag
 	if opts.Direction != "" {
 		values.Set("direction", opts.Direction)
 	}
-	if opts.IncludePropertyGroups != "" {
-		values.Set("includePropertyGroups", opts.IncludePropertyGroups)
+	if opts.PropertyGroup != "" {
+		values.Set("propertyGroup", opts.PropertyGroup)
 	}
 	r, err := c.doAPIGetWithQuery(ctx, c.postRoute(postID).Join("thread"), values, etag)
 	if err != nil {
@@ -3755,8 +3755,8 @@ func (c *Client4) GetPostsForChannelWithOpts(ctx context.Context, channelId, eta
 	if opts.IncludeDeleted {
 		values.Set("include_deleted", "true")
 	}
-	if opts.IncludePropertyGroups != "" {
-		values.Set("includePropertyGroups", opts.IncludePropertyGroups)
+	if opts.PropertyGroup != "" {
+		values.Set("propertyGroup", opts.PropertyGroup)
 	}
 	r, err := c.doAPIGetWithQuery(ctx, c.channelRoute(channelId).Join("posts"), values, etag)
 	if err != nil {

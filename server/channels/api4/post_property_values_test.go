@@ -67,7 +67,7 @@ func TestGetPostWithPropertyGroups(t *testing.T) {
 		th.setValue(t, th.groupID, th.BasicPost.Id, field.ID, `"confidential"`)
 
 		post, resp, err := th.Client.GetPostWithOptions(context.Background(), th.BasicPost.Id, "",
-			model.GetPostOptions{IncludePropertyGroups: []string{model.PostAttributesPropertyGroupName}})
+			model.GetPostOptions{PropertyGroup: model.PostAttributesPropertyGroupName})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.NotNil(t, post.Metadata)
@@ -77,7 +77,7 @@ func TestGetPostWithPropertyGroups(t *testing.T) {
 
 	t.Run("etags are served whether or not values are requested", func(t *testing.T) {
 		th := setupPostPropertyTest(t)
-		groups := []string{model.PostAttributesPropertyGroupName}
+		groupName := model.PostAttributesPropertyGroupName
 		field := th.createField(t, th.groupID, "sensitivity")
 		th.setValue(t, th.groupID, th.BasicPost.Id, field.ID, `"confidential"`)
 
@@ -86,13 +86,13 @@ func TestGetPostWithPropertyGroups(t *testing.T) {
 		require.NotEmpty(t, plainResp.Etag)
 
 		_, groupResp, err := th.Client.GetPostWithOptions(context.Background(), th.BasicPost.Id, "",
-			model.GetPostOptions{IncludePropertyGroups: groups})
+			model.GetPostOptions{PropertyGroup: groupName})
 		require.NoError(t, err)
 		assert.NotEmpty(t, groupResp.Etag)
 		assert.Equal(t, plainResp.Etag, groupResp.Etag)
 
 		post, resp, err := th.Client.GetPostWithOptions(context.Background(), th.BasicPost.Id, groupResp.Etag,
-			model.GetPostOptions{IncludePropertyGroups: groups})
+			model.GetPostOptions{PropertyGroup: groupName})
 		require.NoError(t, err)
 		CheckEtag(t, post, resp)
 	})
@@ -100,23 +100,23 @@ func TestGetPostWithPropertyGroups(t *testing.T) {
 	t.Run("parameter validation", func(t *testing.T) {
 		th := setupPostPropertyTest(t)
 
-		t.Run("more than one group is rejected before any lookup", func(t *testing.T) {
+		t.Run("a comma-separated value is treated as a single, invalid group name", func(t *testing.T) {
 			_, resp, err := th.Client.GetPostWithOptions(context.Background(), th.BasicPost.Id, "",
-				model.GetPostOptions{IncludePropertyGroups: []string{model.PostAttributesPropertyGroupName, model.BoardsPropertyGroupName}})
+				model.GetPostOptions{PropertyGroup: model.PostAttributesPropertyGroupName + "," + model.BoardsPropertyGroupName})
 			require.Error(t, err)
-			CheckBadRequestStatus(t, resp)
+			CheckNotFoundStatus(t, resp)
 		})
 
 		t.Run("unknown group is a 404", func(t *testing.T) {
 			_, resp, err := th.Client.GetPostWithOptions(context.Background(), th.BasicPost.Id, "",
-				model.GetPostOptions{IncludePropertyGroups: []string{"nope"}})
+				model.GetPostOptions{PropertyGroup: "nope"})
 			require.Error(t, err)
 			CheckNotFoundStatus(t, resp)
 		})
 
 		t.Run("session_attributes stays gated", func(t *testing.T) {
 			_, resp, err := th.Client.GetPostWithOptions(context.Background(), th.BasicPost.Id, "",
-				model.GetPostOptions{IncludePropertyGroups: []string{model.SessionAttributesPropertyGroupName}})
+				model.GetPostOptions{PropertyGroup: model.SessionAttributesPropertyGroupName})
 			require.Error(t, err)
 			CheckNotImplementedStatus(t, resp)
 		})
@@ -125,8 +125,8 @@ func TestGetPostWithPropertyGroups(t *testing.T) {
 	t.Run("combines include_deleted with property groups", func(t *testing.T) {
 		th := setupPostPropertyTest(t)
 		opts := model.GetPostOptions{
-			IncludeDeleted:        true,
-			IncludePropertyGroups: []string{model.PostAttributesPropertyGroupName},
+			IncludeDeleted: true,
+			PropertyGroup:  model.PostAttributesPropertyGroupName,
 		}
 
 		field := th.createField(t, th.groupID, "sensitivity")
@@ -158,7 +158,7 @@ func TestGetPostWithPropertyGroups(t *testing.T) {
 		th.setValue(t, boards.ID, th.BasicPost.Id, field.ID, `"in-progress"`)
 
 		post, resp, err := th.Client.GetPostWithOptions(context.Background(), th.BasicPost.Id, "",
-			model.GetPostOptions{IncludePropertyGroups: []string{model.BoardsPropertyGroupName}})
+			model.GetPostOptions{PropertyGroup: model.BoardsPropertyGroupName})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.Len(t, post.Metadata.PropertyValues, 1)
@@ -169,7 +169,7 @@ func TestGetPostWithPropertyGroups(t *testing.T) {
 		th := setupPostPropertyTest(t)
 
 		_, resp, err := th.Client.GetPostWithOptions(context.Background(), th.BasicPost.Id, "",
-			model.GetPostOptions{IncludePropertyGroups: []string{model.ContentFlaggingGroupName}})
+			model.GetPostOptions{PropertyGroup: model.ContentFlaggingGroupName})
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 
@@ -191,7 +191,7 @@ func TestGetPostListWithPropertyGroups(t *testing.T) {
 		th.setValue(t, th.groupID, th.BasicPost.Id, field.ID, `"high"`)
 
 		list, resp, err := th.Client.GetPostsForChannelWithOpts(context.Background(), th.BasicChannel.Id, "",
-			model.GetPostsOptions{Page: 0, PerPage: 60, IncludePropertyGroups: model.PostAttributesPropertyGroupName})
+			model.GetPostsOptions{Page: 0, PerPage: 60, PropertyGroup: model.PostAttributesPropertyGroupName})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
@@ -209,7 +209,7 @@ func TestGetPostListWithPropertyGroups(t *testing.T) {
 		th.setValue(t, th.groupID, th.BasicPost.Id, field.ID, `"urgent"`)
 
 		list, resp, err := th.Client.GetPostThreadWithOpts(context.Background(), th.BasicPost.Id, "",
-			model.GetPostsOptions{IncludePropertyGroups: model.PostAttributesPropertyGroupName})
+			model.GetPostsOptions{PropertyGroup: model.PostAttributesPropertyGroupName})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
@@ -224,23 +224,23 @@ func TestGetPostListWithPropertyGroups(t *testing.T) {
 	t.Run("parameter validation on list endpoint", func(t *testing.T) {
 		th := setupPostPropertyTest(t)
 
-		t.Run("more than one group is rejected", func(t *testing.T) {
+		t.Run("a comma-separated value is treated as a single, invalid group name", func(t *testing.T) {
 			_, resp, err := th.Client.GetPostsForChannelWithOpts(context.Background(), th.BasicChannel.Id, "",
-				model.GetPostsOptions{Page: 0, PerPage: 10, IncludePropertyGroups: model.PostAttributesPropertyGroupName + "," + model.BoardsPropertyGroupName})
+				model.GetPostsOptions{Page: 0, PerPage: 10, PropertyGroup: model.PostAttributesPropertyGroupName + "," + model.BoardsPropertyGroupName})
 			require.Error(t, err)
-			CheckBadRequestStatus(t, resp)
+			CheckNotFoundStatus(t, resp)
 		})
 
 		t.Run("unknown group is a 404", func(t *testing.T) {
 			_, resp, err := th.Client.GetPostsForChannelWithOpts(context.Background(), th.BasicChannel.Id, "",
-				model.GetPostsOptions{Page: 0, PerPage: 10, IncludePropertyGroups: "nope"})
+				model.GetPostsOptions{Page: 0, PerPage: 10, PropertyGroup: "nope"})
 			require.Error(t, err)
 			CheckNotFoundStatus(t, resp)
 		})
 
 		t.Run("a V1 group is rejected rather than returning nothing", func(t *testing.T) {
 			_, resp, err := th.Client.GetPostsForChannelWithOpts(context.Background(), th.BasicChannel.Id, "",
-				model.GetPostsOptions{Page: 0, PerPage: 10, IncludePropertyGroups: model.ContentFlaggingGroupName})
+				model.GetPostsOptions{Page: 0, PerPage: 10, PropertyGroup: model.ContentFlaggingGroupName})
 			require.Error(t, err)
 			CheckNotFoundStatus(t, resp)
 		})

@@ -474,9 +474,9 @@ type GetPostOptions struct {
 	// IncludeDeleted returns the post even if it is soft-deleted.
 	IncludeDeleted bool
 
-	// IncludePropertyGroups names the property groups whose values should be hydrated onto the
-	// post's metadata.
-	IncludePropertyGroups []string
+	// PropertyGroup names a single PSAv2 property group whose values should be hydrated
+	// onto the post's metadata. Empty means no hydration.
+	PropertyGroup string
 }
 
 type GetPostsOptions struct {
@@ -501,9 +501,9 @@ type GetPostsOptions struct {
 	// the app layer when the burn-on-read feature is enabled, so it adds no query
 	// overhead otherwise.
 	ExcludeExpiredBurnOnReadPosts bool
-	// IncludePropertyGroups names a single PSAv2 property group whose values should be hydrated
+	// PropertyGroup names a single PSAv2 property group whose values should be hydrated
 	// onto each post's metadata. Empty means no hydration.
-	IncludePropertyGroups string
+	PropertyGroup string
 }
 
 type PostCountOptions struct {

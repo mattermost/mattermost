@@ -3207,10 +3207,6 @@
     "translation": "The number of Post IDs received has exceeded the maximum size of {{.MaxLength}}"
   },
   {
-    "id": "api.post.property_groups.too_many.app_error",
-    "translation": "Only one property group can be requested at a time."
-  },
-  {
     "id": "api.post.reveal_post.cannot_reveal_own_post.app_error",
     "translation": "You cannot reveal your own burn-on-read post."
   },

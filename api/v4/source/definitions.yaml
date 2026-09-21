@@ -949,7 +949,7 @@ components:
           type: array
           description: >
             The property values attached to this post for the property group named in the
-            `includePropertyGroups` query parameter. Present only when that parameter was
+            `propertyGroup` query parameter. Present only when that parameter was
             supplied, the lookup succeeded, and the post has at least one value in that group.
           items:
             $ref: "#/components/schemas/PropertyValue"
