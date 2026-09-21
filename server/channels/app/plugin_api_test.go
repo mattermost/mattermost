@@ -2166,6 +2166,7 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 }
 
 func TestInterpluginPluginHTTPContext(t *testing.T) {
+	t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-70788")
 	mainHelper.Parallel(t)
 	th := Setup(t)
 	const testTimeout = 10 * time.Second
