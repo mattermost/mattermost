@@ -199,7 +199,7 @@ func (r *Reconciler) Reconcile(evals []Evaluation) ([]Transition, error) {
 }
 
 func (r *Reconciler) suppressDependentUnknowns(evals []Evaluation) []Evaluation {
-	unreachable := UnreachableScopes(evals)
+	unreachable := unreachableScopes(evals)
 	if len(unreachable) == 0 {
 		return evals
 	}
@@ -216,7 +216,7 @@ func (r *Reconciler) suppressDependentUnknowns(evals []Evaluation) []Evaluation 
 	return filtered
 }
 
-func UnreachableScopes(evals []Evaluation) map[string]bool {
+func unreachableScopes(evals []Evaluation) map[string]bool {
 	unreachable := map[string]bool{}
 	for _, eval := range evals {
 		if eval.Result.State != StateFiring || eval.Result.Details == nil {
