@@ -5,6 +5,8 @@ import type {PropertyField} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
 
+import {ALL_RESOURCE_TYPES} from './attribute_details/attribute_applies_to_constants';
+import type {ResourceObjectType} from './attribute_details/attribute_applies_to_constants';
 import {
     ATTRIBUTE_FIELD_TYPES,
     appliedResourceTypesByTemplateId,
@@ -486,7 +488,7 @@ describe('global_attributes/utils', () => {
                 return Promise.resolve([]);
             });
 
-            await expect(fetchAttributeField('field-1', true)).resolves.toBe(live);
+            await expect(fetchAttributeField('field-1', ALL_RESOURCE_TYPES)).resolves.toBe(live);
         });
 
         it('returns a matching live user/channel/post field', async () => {
@@ -498,7 +500,7 @@ describe('global_attributes/utils', () => {
                 return Promise.resolve([]);
             });
 
-            await expect(fetchAttributeField('field-1', true)).resolves.toBe(live);
+            await expect(fetchAttributeField('field-1', ALL_RESOURCE_TYPES)).resolves.toBe(live);
         });
 
         it('ignores a user/channel/post field that is a linked child of a template', async () => {
@@ -509,23 +511,27 @@ describe('global_attributes/utils', () => {
                 return Promise.resolve([]);
             });
 
-            await expect(fetchAttributeField('field-1', true)).resolves.toBeUndefined();
+            await expect(fetchAttributeField('field-1', ALL_RESOURCE_TYPES)).resolves.toBeUndefined();
         });
 
         it('returns undefined when the id is not in any object type', async () => {
             jest.spyOn(Client4, 'getPropertyFields').mockResolvedValue([{id: 'other', delete_at: 0} as PropertyField]);
 
-            await expect(fetchAttributeField('field-1', true)).resolves.toBeUndefined();
+            await expect(fetchAttributeField('field-1', ALL_RESOURCE_TYPES)).resolves.toBeUndefined();
         });
 
-        it('does not query the channel scope when includeChannel is false', async () => {
+        it.each([
+            [['user'], ['template', 'user']],
+
+            // Deliberately out of canonical order: the scopes are queried in
+            // ALL_RESOURCE_TYPES order, not in the order they were allowed.
+            [['post', 'user'], ['template', 'user', 'post']],
+        ])('queries the template scope plus the allowed resource scopes %p', async (allowedTypes, expected) => {
             const getPropertyFields = jest.spyOn(Client4, 'getPropertyFields').mockResolvedValue([]);
 
-            await fetchAttributeField('field-1', false);
+            await fetchAttributeField('field-1', allowedTypes as ResourceObjectType[]);
 
-            const queriedObjectTypes = getPropertyFields.mock.calls.map((call) => call[1]);
-            expect(queriedObjectTypes).toEqual(expect.arrayContaining(['template', 'user', 'post']));
-            expect(queriedObjectTypes).not.toContain('channel');
+            expect(getPropertyFields.mock.calls.map((call) => call[1])).toEqual(expected);
         });
     });
 
@@ -550,7 +556,7 @@ describe('global_attributes/utils', () => {
                 return Promise.resolve([]);
             });
 
-            const fields = await fetchLinkedFieldsForTemplate('template-id', true);
+            const fields = await fetchLinkedFieldsForTemplate('template-id', ALL_RESOURCE_TYPES);
 
             expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'user', 'system', undefined, expect.objectContaining({perPage: 200}));
             expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'channel', 'system', undefined, expect.objectContaining({perPage: 200}));
@@ -558,14 +564,15 @@ describe('global_attributes/utils', () => {
             expect(fields.map((field) => field.id)).toEqual(['u1', 'c1']);
         });
 
-        it('does not query the channel scope when includeChannel is false', async () => {
+        it.each([
+            [['user'], ['user']],
+            [['post', 'user'], ['user', 'post']],
+        ])('only queries the allowed resource scopes %p', async (allowedTypes, expected) => {
             const getPropertyFields = jest.spyOn(Client4, 'getPropertyFields').mockResolvedValue([]);
 
-            await fetchLinkedFieldsForTemplate('template-id', false);
+            await fetchLinkedFieldsForTemplate('template-id', allowedTypes as ResourceObjectType[]);
 
-            const queriedObjectTypes = getPropertyFields.mock.calls.map((call) => call[1]);
-            expect(queriedObjectTypes).toEqual(expect.arrayContaining(['user', 'post']));
-            expect(queriedObjectTypes).not.toContain('channel');
+            expect(getPropertyFields.mock.calls.map((call) => call[1])).toEqual(expected);
         });
     });
 

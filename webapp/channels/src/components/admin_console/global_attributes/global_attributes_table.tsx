@@ -20,7 +20,7 @@ import {valueRefersToOptions} from '@mattermost/types/properties';
 import PropertyTypes from 'mattermost-redux/action_types/properties';
 import {fetchPropertyFields} from 'mattermost-redux/actions/properties';
 import {getConfig as getAdminConfig} from 'mattermost-redux/selectors/entities/admin';
-import {getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getPropertyGroupByName, getUnlinkedSystemFieldsForGroup, makeGetPropertyFieldsForObjectTypeAndGroup} from 'mattermost-redux/selectors/entities/properties';
 import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
 
@@ -39,7 +39,6 @@ import * as Menu from 'components/menu';
 
 import {getHistory} from 'utils/browser_history';
 import {LicenseSkus} from 'utils/constants';
-import {isMinimumEnterpriseAdvancedLicense} from 'utils/license_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -48,6 +47,7 @@ import type {ResourceObjectType} from './attribute_details/attribute_applies_to_
 import {CLASSIFICATION_ATTRIBUTE_ROUTE} from './classification_attribute';
 import {attributeDetailsRoute, GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, GLOBAL_ATTRIBUTES_TARGET_TYPE} from './constants';
 import {useGlobalAttributeFieldDelete} from './global_attribute_delete_modal';
+import useAllowedResourceTypes from './use_allowed_resource_types';
 import {appliedResourceTypesByTemplateId, deleteAttributeField} from './utils';
 
 import {it} from '../admin_definition_helpers';
@@ -470,17 +470,9 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
         getUnlinkedSystemFieldsForGroup(state, groupId),
     );
 
-    // Same gate the details page applies. Channel is fetched only when channel
-    // attributes are licensed and enabled: the server 501s a channel-scoped
-    // access_control GET below Enterprise Advanced, and this page is reachable at
-    // plain Enterprise.
-    const channelAttributesEnabled = useSelector((state: GlobalState) =>
-        getFeatureFlagValue(state, 'ChannelAttributes') === 'true' && isMinimumEnterpriseAdvancedLicense(getLicense(state)));
-
-    const resourceTypesToFetch = useMemo(
-        () => ALL_RESOURCE_TYPES.filter((type) => channelAttributesEnabled || type !== 'channel'),
-        [channelAttributesEnabled],
-    );
+    // Same gate the details page applies, so a resource this server does not
+    // offer is never fetched or listed here either.
+    const resourceTypesToFetch = useAllowedResourceTypes();
 
     useEffect(() => {
         let active = true;
