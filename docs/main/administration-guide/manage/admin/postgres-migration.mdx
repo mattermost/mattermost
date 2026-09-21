@@ -57,11 +57,13 @@ Because of these reasons we also don't support migrations directly from MariaDB 
 If you are facing an error due to authentication with MySQL v8, it may be related to a [known issue](https://github.com/dimitri/pgloader/issues/782) with pgloader. The fix is to set the default authentication method to `mysql_native_password` in your MySQL configuration.
 
 - **MySQL 8.0 - 8.3**: add the `default-authentication-plugin=mysql_native_password` value to your `mysql.cnf` file.
-- **MySQL 8.4+**: `default-authentication-plugin` was removed. Set `authentication_policy` instead:
+- **MySQL 8.4**: `default-authentication-plugin` was removed, and the `mysql_native_password` plugin is disabled by default. Add `mysql_native_password=ON` under `[mysqld]` in your MySQL configuration and restart MySQL, then set `authentication_policy`:
 
 ``` sql
 SET PERSIST authentication_policy='mysql_native_password,,';
 ```
+
+This does not apply to MySQL 9.0+, which removes the `mysql_native_password` plugin entirely.
 
 Also, do not forget to update your user to use this authentication method.
 
