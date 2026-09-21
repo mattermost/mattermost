@@ -119,11 +119,19 @@ func (s *SqlHealthFindingStore) List(filter model.HealthFindingFilter) ([]*model
 }
 
 func (s *SqlHealthFindingStore) Upsert(findings []*model.HealthFinding) error {
+	// A single ON CONFLICT statement cannot touch the same fingerprint twice, so
+	// collapse duplicates to their last occurrence, matching the memory store's last-write-wins.
 	validFindings := make([]*model.HealthFinding, 0, len(findings))
+	indexByFingerprint := make(map[string]int, len(findings))
 	for _, finding := range findings {
 		if finding == nil || finding.Fingerprint == "" {
 			continue
 		}
+		if idx, ok := indexByFingerprint[finding.Fingerprint]; ok {
+			validFindings[idx] = finding
+			continue
+		}
+		indexByFingerprint[finding.Fingerprint] = len(validFindings)
 		validFindings = append(validFindings, finding)
 	}
 
@@ -166,17 +174,13 @@ consecutivehits = EXCLUDED.consecutivehits,
 mutedat = CASE WHEN EXCLUDED.mutedat = 0 AND EXCLUDED.mutedby = '' THEN healthfindings.mutedat ELSE EXCLUDED.mutedat END,
 mutedby = CASE WHEN EXCLUDED.mutedat = 0 AND EXCLUDED.mutedby = '' THEN healthfindings.mutedby ELSE EXCLUDED.mutedby END`
 
-	maxRowsPerInsert := max(s.getMaxInsertParams()/len(columns), 1)
-
-	for start := 0; start < len(validFindings); start += maxRowsPerInsert {
-		end := min(len(validFindings), start+maxRowsPerInsert)
-
+	for _, chunk := range chunkSlice(validFindings, len(columns), s.getMaxInsertParams()) {
 		query := s.getQueryBuilder().
 			Insert("healthfindings").
 			Columns(columns...).
 			Suffix(onConflictSet)
 
-		for _, finding := range validFindings[start:end] {
+		for _, finding := range chunk {
 			details := finding.Details
 			if details == nil {
 				details = map[string]string{}
