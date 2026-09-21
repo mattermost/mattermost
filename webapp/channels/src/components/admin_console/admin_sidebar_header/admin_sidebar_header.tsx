@@ -48,7 +48,7 @@ const SidebarHeader = ({currentUser: me}: Props) => {
                 id: 'admin-sidebar-header',
                 dataTestId: 'adminSidebarHeaderMenuButton',
                 class: 'AdminSidebarHeader',
-                'aria-label': formatMessage({id: 'admin.nav.menuAriaLabel', defaultMessage: 'Admin Console Menu'}),
+                'aria-label': formatMessage({id: 'admin.nav.menuAriaLabel', defaultMessage: 'System Console Menu'}),
                 children: (
                     <>
                         {profilePicture}
@@ -70,7 +70,7 @@ const SidebarHeader = ({currentUser: me}: Props) => {
             }}
             menu={{
                 id: 'adminConsoleMenu',
-                'aria-label': formatMessage({id: 'admin.nav.menuAriaLabel', defaultMessage: 'Admin Console Menu'}),
+                'aria-label': formatMessage({id: 'admin.nav.menuAriaLabel', defaultMessage: 'System Console Menu'}),
                 width: 'calc(var(--admin-sidebar-width) - 16px)',
             }}
             anchorOrigin={anchorOrigin}

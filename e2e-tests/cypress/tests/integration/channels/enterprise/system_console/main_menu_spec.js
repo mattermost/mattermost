@@ -19,7 +19,7 @@ describe('Main menu', () => {
         cy.visit('/admin_console');
 
         // # Open the system console header menu
-        cy.findByRole('button', {name: 'Admin Console Menu'}).should('be.visible').click();
+        cy.findByRole('button', {name: 'System Console Menu'}).should('be.visible').click();
     });
 
     it('MM-T913 About opens About modal', () => {

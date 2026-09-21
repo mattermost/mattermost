@@ -18,7 +18,7 @@ describe('Support Packet Generation', () => {
         // # Go to System Console
         cy.visit('/admin_console');
 
-        cy.findByRole('button', {name: 'Admin Console Menu'}).should('exist').click();
+        cy.findByRole('button', {name: 'System Console Menu'}).should('exist').click();
 
         // * Make sure the commercial support menu item is available for unlicensed installs
         cy.findByText('Commercial Support').should('be.visible');

@@ -353,7 +353,7 @@ function saveSetting() {
 
 function verifySiteNameInAboutModal(siteName) {
     // # Open the system console header menu
-    cy.findByRole('button', {name: 'Admin Console Menu'}).should('be.visible').click();
+    cy.findByRole('button', {name: 'System Console Menu'}).should('be.visible').click();
 
     // # Click to open about modal
     cy.findByText(`About ${siteName}`).click();

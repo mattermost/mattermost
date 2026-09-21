@@ -36,16 +36,16 @@ describe('Main menu', () => {
             cy.visit('/admin_console');
 
             // # Open the system console header menu
-            cy.findByRole('button', {name: 'Admin Console Menu'}).should('be.visible').click();
+            cy.findByRole('button', {name: 'System Console Menu'}).should('be.visible').click();
 
             // * With a single team, Switch teams is not shown in the header menu
-            cy.findByRole('menu', {name: 'Admin Console Menu'}).within(() => {
+            cy.findByRole('menu', {name: 'System Console Menu'}).within(() => {
                 cy.findByRole('menuitem', {name: 'Switch teams'}).should('not.exist');
             });
 
             // # Close the header menu so its backdrop does not cover BackstageNavbar
             cy.get('body').type('{esc}');
-            cy.findByRole('menu', {name: 'Admin Console Menu'}).should('not.exist');
+            cy.findByRole('menu', {name: 'System Console Menu'}).should('not.exist');
 
             // * Return to team via BackstageNavbar instead
             cy.findByTestId('backstage-navbar-back').should('be.visible').click();
@@ -58,7 +58,7 @@ describe('Main menu', () => {
             cy.visit('/admin_console');
 
             // # Open the system console header menu
-            cy.findByRole('button', {name: 'Admin Console Menu'}).should('be.visible').click();
+            cy.findByRole('button', {name: 'System Console Menu'}).should('be.visible').click();
         });
 
         it('MM-T910 Can open Administrators Guide', () => {
