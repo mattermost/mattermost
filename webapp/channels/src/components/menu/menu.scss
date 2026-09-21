@@ -1,5 +1,9 @@
 @use "utils/variables";
 
+a.MuiMenuItem-root {
+    text-decoration: none;
+}
+
 .MuiPopover-root.MuiModal-root.menu_menuStyled {
     z-index: variables.$z-index-menu;
 

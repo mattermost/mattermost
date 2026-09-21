@@ -5,7 +5,7 @@ import React, {useCallback, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {ChevronRightIcon, OpenInNewIcon} from '@mattermost/compass-icons/components';
+import {ChevronRightIcon} from '@mattermost/compass-icons/components';
 
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getMyTeams} from 'mattermost-redux/selectors/entities/teams';
@@ -18,7 +18,6 @@ import {getNavigationBlocked} from 'selectors/views/admin';
 
 import AboutBuildModal from 'components/about_build_modal';
 import CommercialSupportModal from 'components/commercial_support_modal';
-import ExternalLink from 'components/external_link';
 import * as Menu from 'components/menu';
 
 import {ModalIdentifiers} from 'utils/constants';
@@ -123,31 +122,29 @@ const AdminNavbarDropdown = () => {
         <>
             {switchTeamsMenuItem}
             {switchTeamsMenuItem && <Menu.Separator/>}
-            <Menu.Item
+            <Menu.ItemExternalLink
                 id='adminConsoleAdministratorsGuide'
-                component={ExternalLink}
                 href={adminGuideLink}
                 location='admin_navbar_dropdown'
+                showOpenInNewIcon={true}
                 labels={
                     <FormattedMessage
                         id='admin.nav.administratorsGuide'
                         defaultMessage="Administrator's Guide"
                     />
                 }
-                trailingElements={<OpenInNewIconTrailing/>}
             />
-            <Menu.Item
+            <Menu.ItemExternalLink
                 id='adminConsoleTroubleshootingForum'
-                component={ExternalLink}
                 href='https://forum.mattermost.com/t/how-to-use-the-troubleshooting-forum/150'
                 location='admin_navbar_dropdown'
+                showOpenInNewIcon={true}
                 labels={
                     <FormattedMessage
                         id='admin.nav.troubleshootingForum'
                         defaultMessage='Troubleshooting Forum'
                     />
                 }
-                trailingElements={<OpenInNewIconTrailing/>}
             />
             {isLicensed ? (
                 <Menu.Item
@@ -156,13 +153,12 @@ const AdminNavbarDropdown = () => {
                     labels={commercialSupportLabels}
                 />
             ) : (
-                <Menu.Item
+                <Menu.ItemExternalLink
                     id='adminConsoleCommercialSupport'
-                    component={ExternalLink}
                     href='https://mattermost.com/support/'
                     location='admin_navbar_dropdown'
+                    showOpenInNewIcon={true}
                     labels={commercialSupportLabels}
-                    trailingElements={<OpenInNewIconTrailing/>}
                 />
             )}
             <Menu.Item
@@ -192,12 +188,3 @@ const AdminNavbarDropdown = () => {
 };
 
 export default AdminNavbarDropdown;
-
-function OpenInNewIconTrailing() {
-    return (
-        <OpenInNewIcon
-            size={16}
-            aria-hidden={true}
-        />
-    );
-}

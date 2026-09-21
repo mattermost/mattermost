@@ -94,6 +94,12 @@ export interface Props extends MuiMenuItemProps {
     disableCloseOnSelect?: boolean;
 
     /**
+     * Used when rendering as an external link (component={ExternalLink}).
+     */
+    href?: string;
+    location?: string;
+
+    /**
      * ONLY to support submenus. Avoid passing children to this component. Support for children is only added to support submenus.
      */
     children?: ReactNode;
