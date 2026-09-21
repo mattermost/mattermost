@@ -13,7 +13,10 @@ import (
 )
 
 const detailKeyUnreachableNode = "unreachable_node"
-const DefaultMuteRetention = 30 * 24 * time.Hour
+
+// DefaultFindingRetention is how long a finding is kept after it was last seen; once it lapses,
+// GCFindings hard-deletes the finding along with any mute state attached to it.
+const DefaultFindingRetention = 30 * 24 * time.Hour
 
 type ReconcilerOpts struct {
 	Store    FindingStore

@@ -7021,6 +7021,18 @@
     "translation": "user with username \"{{.Username}}\" already exists."
   },
   {
+    "id": "app.health_finding.mute.app_error",
+    "translation": "Unable to mute health finding."
+  },
+  {
+    "id": "app.health_finding.mute.not_found.app_error",
+    "translation": "Health finding not found."
+  },
+  {
+    "id": "app.health_finding.unmute.app_error",
+    "translation": "Unable to unmute health finding."
+  },
+  {
     "id": "app.import.attachment.bad_file.error",
     "translation": "Error reading the file at: \"{{.FilePath}}\""
   },
@@ -14557,18 +14569,6 @@
   {
     "id": "web.incoming_webhook.text.app_error",
     "translation": "No text specified."
-  },
-  {
-    "id": "app.health_finding.mute.not_found.app_error",
-    "translation": "Health finding not found."
-  },
-  {
-    "id": "app.health_finding.mute.app_error",
-    "translation": "Unable to mute health finding."
-  },
-  {
-    "id": "app.health_finding.unmute.app_error",
-    "translation": "Unable to unmute health finding."
   },
   {
     "id": "web.incoming_webhook.user.app_error",
