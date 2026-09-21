@@ -5,6 +5,7 @@ package app
 
 import (
 	"encoding/json"
+	"strconv"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -284,5 +285,85 @@ func TestHydratePropertyValues(t *testing.T) {
 			require.Len(t, hydrated.Metadata.PropertyValues, 1)
 			assert.Equal(t, field.ID, hydrated.Metadata.PropertyValues[0].FieldID)
 		})
+	})
+}
+
+// createFieldsPastCap writes channel-scoped fields straight to the store. The per-target cap is
+// enforced by FieldLimitHook, which the property service runs on create, so the store is the way
+// to reach a field count that CreatePropertyField would refuse.
+func (th *propertyValuesTestHelper) createFieldsPastCap(t *testing.T, channelID string, n int) []*model.PropertyField {
+	t.Helper()
+	fields := make([]*model.PropertyField, n)
+	for i := range fields {
+		field, err := th.App.Srv().Store().PropertyField().Create(&model.PropertyField{
+			GroupID:    th.groupID,
+			Name:       "attr-" + strconv.Itoa(i),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypePost,
+			TargetType: string(model.PropertyFieldTargetLevelChannel),
+			TargetID:   channelID,
+		})
+		require.NoError(t, err)
+		fields[i] = field
+	}
+	return fields
+}
+
+func (th *propertyValuesTestHelper) setValues(t *testing.T, post *model.Post, fields []*model.PropertyField) {
+	t.Helper()
+	values := make([]*model.PropertyValue, len(fields))
+	for i, field := range fields {
+		values[i] = &model.PropertyValue{
+			TargetID:   post.Id,
+			TargetType: model.PropertyValueTargetTypePost,
+			GroupID:    th.groupID,
+			FieldID:    field.ID,
+			Value:      json.RawMessage(`"v"`),
+			CreatedBy:  th.BasicUser.Id,
+			UpdatedBy:  th.BasicUser.Id,
+		}
+	}
+	_, err := th.App.Srv().Store().PropertyValue().CreateMany(values)
+	require.NoError(t, err)
+}
+
+// hydrateChannelPropertyValues refuses to hydrate rather than hand back a possibly truncated page,
+// once either the applicable fields or the fetched values exceed their bound. Neither bound is
+// merely defensive: the field bound is sized for post_attributes (three targets, 50 each) but
+// applied to whatever PSAv2 group the caller names, and nothing caps the value count at all.
+//
+// What matters at each guard is that the caller still gets its posts, marked "attributes unknown"
+// rather than silently carrying none.
+func TestHydratePropertyValuesBoundGuards(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("more applicable fields than the bound", func(t *testing.T) {
+		th := setupPropertyValuesTest(t)
+		post := th.post(t, th.BasicChannel)
+		th.createFieldsPastCap(t, th.BasicChannel.Id, model.PostAttributesMaxApplicableFields+1)
+
+		hydrated := th.prepare(t, post, th.groupID)
+
+		require.NotNil(t, hydrated.Metadata)
+		assert.True(t, hydrated.Metadata.PropertyValuesUnavailable)
+		assert.Empty(t, hydrated.Metadata.PropertyValues)
+		// The post itself is unaffected: only its attributes are reported as unloadable.
+		assert.Equal(t, post.Message, hydrated.Message)
+	})
+
+	// Pins the comparison as strictly greater than the bound. A field count landing exactly on it
+	// is the designed maximum, not an overflow.
+	t.Run("exactly the field bound still hydrates", func(t *testing.T) {
+		th := setupPropertyValuesTest(t)
+		post := th.post(t, th.BasicChannel)
+		fields := th.createFieldsPastCap(t, th.BasicChannel.Id, model.PostAttributesMaxApplicableFields)
+		th.setValues(t, post, fields[:1])
+
+		hydrated := th.prepare(t, post, th.groupID)
+
+		require.NotNil(t, hydrated.Metadata)
+		assert.False(t, hydrated.Metadata.PropertyValuesUnavailable)
+		require.Len(t, hydrated.Metadata.PropertyValues, 1)
+		assert.Equal(t, fields[0].ID, hydrated.Metadata.PropertyValues[0].FieldID)
 	})
 }
