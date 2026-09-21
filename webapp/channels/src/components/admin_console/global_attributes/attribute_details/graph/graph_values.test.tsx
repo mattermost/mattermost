@@ -439,7 +439,8 @@ describe('AttributeOptionsGraphValues', () => {
         fireEvent.pointerDown(candidate);
         expect(screen.getByTestId('attributeGraphParentsPane__back')).toHaveTextContent('Parents of Air');
         expect(screen.getByTestId('attributeGraphParentsPane__suggestions')).toBeInTheDocument();
-        expect(screen.getByRole('menu', {name: 'Edit Air'})).toBeInTheDocument();
+        expect(screen.getByRole('menu', {name: 'Edit Air', hidden: true})).toBeInTheDocument();
+        expect(screen.getByTestId('attributeOptionsGraphRow__parentsAnchor')).toHaveAttribute('aria-expanded', 'true');
     });
 
     it('indents dual occurrences by their own path depth, not maxDepth', () => {
