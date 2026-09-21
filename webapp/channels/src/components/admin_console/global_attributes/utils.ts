@@ -105,12 +105,14 @@ async function listPropertyFields(objectType: string): Promise<PropertyField[]> 
 // set) -- those aren't listed or edited on their own, so an id that only
 // resolves to one returns undefined and the details page redirects to the list.
 //
-// includeChannel is false below Enterprise Advanced (or with the ChannelAttributes
-// flag off): the server 501s a channel-scoped access_control GET there, and
-// fetching it unconditionally would reject the whole Promise.all and bounce every
-// details page to the list -- even one editing a user or template field.
-export async function fetchAttributeField(fieldId: string, includeChannel: boolean): Promise<PropertyField | undefined> {
-    const objectTypes = [GLOBAL_ATTRIBUTES_OBJECT_TYPE, ...ALL_RESOURCE_TYPES.filter((type) => includeChannel || type !== 'channel')];
+// allowedTypes is what this server actually offers (see useAllowedResourceTypes):
+// a resource behind an off feature flag is not listed, and channel in particular
+// must not be, since the server 501s a channel-scoped access_control GET below
+// Enterprise Advanced -- fetching it unconditionally would reject the whole
+// Promise.all and bounce every details page to the list, even one editing a user
+// or template field.
+export async function fetchAttributeField(fieldId: string, allowedTypes: readonly ResourceObjectType[]): Promise<PropertyField | undefined> {
+    const objectTypes = [GLOBAL_ATTRIBUTES_OBJECT_TYPE, ...ALL_RESOURCE_TYPES.filter((type) => allowedTypes.includes(type))];
     const pages = await Promise.all(
         objectTypes.map((objectType) => listPropertyFields(objectType)),
     );
@@ -128,12 +130,11 @@ function isResourceObjectType(value: string): value is ResourceObjectType {
 // Lists user/channel/post fields and keeps those pointing at the template.
 // There is no cross-object-type listing endpoint.
 //
-// includeChannel matches fetchAttributeField: false below Enterprise Advanced
-// (or with the ChannelAttributes flag off). That earlier fetch's own skip does
+// allowedTypes matches fetchAttributeField. That earlier fetch's own skip does
 // not protect this later Promise.all; a 501 on the channel scope would reject
 // the whole load and bounce the template details page to the list.
-export async function fetchLinkedFieldsForTemplate(templateFieldId: string, includeChannel: boolean): Promise<PropertyField[]> {
-    const objectTypes = ALL_RESOURCE_TYPES.filter((type) => includeChannel || type !== 'channel');
+export async function fetchLinkedFieldsForTemplate(templateFieldId: string, allowedTypes: readonly ResourceObjectType[]): Promise<PropertyField[]> {
+    const objectTypes = ALL_RESOURCE_TYPES.filter((type) => allowedTypes.includes(type));
     const pages = await Promise.all(
         objectTypes.map((objectType) => listPropertyFields(objectType)),
     );
