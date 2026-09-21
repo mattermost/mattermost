@@ -570,8 +570,10 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             draggingUpload: false,
             uploadingPublicKey: false,
             publicKeyError: null,
-            signaturePublicKeyFiles: [],
         });
+        if (!this.state.signaturePublicKeyFiles) {
+            this.state = Object.assign(this.state, {signaturePublicKeyFiles: []});
+        }
         this.fileInput = React.createRef();
         this.signatureFileInput = React.createRef();
         this.publicKeyFileInput = React.createRef();
