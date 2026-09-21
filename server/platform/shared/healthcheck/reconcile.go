@@ -74,17 +74,11 @@ func (r *Reconciler) Reconcile(evals []Evaluation) ([]Transition, error) {
 
 	evals = r.suppressDependentUnknowns(evals)
 
-	seenFingerprints := make(map[string]struct{}, len(evals))
 	fingerprints := make([]string, 0, len(evals))
 	for _, eval := range evals {
-		if eval.Fingerprint == "" {
-			continue
+		if eval.Fingerprint != "" {
+			fingerprints = append(fingerprints, eval.Fingerprint)
 		}
-		if _, ok := seenFingerprints[eval.Fingerprint]; ok {
-			continue
-		}
-		seenFingerprints[eval.Fingerprint] = struct{}{}
-		fingerprints = append(fingerprints, eval.Fingerprint)
 	}
 
 	existing, err := r.store.GetByFingerprints(fingerprints)
