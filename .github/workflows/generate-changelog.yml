@@ -17,12 +17,13 @@ on:
         default: 'mattermost/mattermost,mattermost/enterprise'
         type: string
       release_type:
-        description: 'Release type: "feature" (default) or "esr" (Extended Support Release)'
+        description: 'Release type: "feature" (default), "major" (a vX.0 release), or "esr" (Extended Support Release)'
         required: false
         default: 'feature'
         type: choice
         options:
           - feature
+          - major
           - esr
       release_date:
         description: 'Release day date (e.g. 2026-07-16) — defaults to today if omitted'

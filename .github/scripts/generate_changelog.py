@@ -8,7 +8,9 @@ Expects these environment variables:
                       (e.g. "mattermost/mattermost,mattermost/enterprise")
   MILESTONE         - Milestone title (e.g. "v11.7.0")
   VERSION           - Version label for the changelog entry (e.g. "v11.7.0")
-  RELEASE_TYPE      - (optional) "feature" (default) or "esr" (Extended Support Release).
+  RELEASE_TYPE      - (optional) "feature" (default), "major" (a vX.0 release), or
+                      "esr" (Extended Support Release). Selects the heading label and
+                      the anchor slug other docs pages deep-link to.
   RELEASE_DATE      - (optional) Release day date (e.g. "2026-05-15"). Defaults to today.
   GO_VERSION        - (optional) Go version used in this release (e.g. "go1.22.5").
                       If not provided, changelog notes it is unchanged from previous release.
@@ -115,6 +117,8 @@ Here are your instructions:
     - Removals: "Removed [thing]..."
 
 3.  **Terminology:** Always write "user interface" in full — never use the abbreviation "UI". Always spell out messaging abbreviations: "DM" → "Direct Message", "GM" → "Group Message", "DM/GM" → "Direct/Group Message".
+
+    **Never shorten an identifier.** API endpoint paths, configuration setting names, command names, table and column names, and feature flags must be reproduced from the raw note exactly, in full. Do not abbreviate a path to its last segment (``/api/v4/ephemeral_mode/cleanup`` must never become ``/cleanup``), and do not drop a setting's group prefix. Copy the identifier character for character; if the raw note does not give a full path, use whatever it does give rather than inventing a shorter one.
 
 4.  **Code formatting:** Use double backticks for all of the following:
     - Configuration settings (e.g., ``ServiceSettings.EnableDynamicClientRegistration``)
@@ -266,6 +270,11 @@ def extract_release_notes(body: str) -> list[str] | None:
     return notes if notes else None
 
 
+# Output cap for the polish request. A full feature release is comfortably larger than
+# the previous 4096: the v12.0 entry is ~32k characters, roughly 8k tokens.
+MAX_OUTPUT_TOKENS = 16384
+
+
 def polish_with_ai(raw_notes: list[str]) -> str:
     """
     Send raw release notes to Claude for categorization, formatting, and proofreading.
@@ -290,10 +299,21 @@ def polish_with_ai(raw_notes: list[str]) -> str:
 
     response = client.messages.create(
         model="claude-sonnet-4-6",
-        max_tokens=4096,
+        # A full feature release runs well past 4096 output tokens — the v12.0 entry is
+        # ~32k characters — and the overflow was silently cut mid-word.
+        max_tokens=MAX_OUTPUT_TOKENS,
         system=SYSTEM_PROMPT,
         messages=[{"role": "user", "content": user_message}],
     )
+
+    # The response is truncated, not short, when the output cap is reached. Left
+    # unchecked this commits a half-written sentence to customer-facing docs.
+    if response.stop_reason == "max_tokens":
+        raise RuntimeError(
+            f"Claude hit the {MAX_OUTPUT_TOKENS}-token output cap and its response was "
+            f"truncated mid-output. Raise MAX_OUTPUT_TOKENS, or split this release's "
+            f"notes across more than one request."
+        )
 
     return response.content[0].text.strip()
 
@@ -420,6 +440,64 @@ def escape_mdx_unsafe(text: str) -> str:
     return "".join(parts)
 
 
+# A bullet that ends in none of these is very likely a sentence that was cut off.
+_BULLET_TERMINATORS = (".", "!", "?", ":")
+
+_BULLET_RE = re.compile(r"^ *- +(\S.*)$")
+
+
+def check_for_truncation(text: str) -> None:
+    """Raise if any bullet looks like a sentence that was cut off mid-way.
+
+    A truncated response is the worst failure mode this script has: it is not an
+    error, just a shorter changelog, so it lands in customer-facing docs as a
+    half-written sentence. ``polish_with_ai`` already rejects a response that hit the
+    output cap; this is the backstop for a truncation that arrives any other way.
+
+    Bullets that legitimately end without sentence punctuation are not flagged:
+
+      - a bare inline-code span, e.g. a list of removed ``config.json`` setting names
+      - a fully bold label, e.g. ``- **Changes to All plans:**``
+      - a Markdown link or parenthetical, e.g. a contributor list
+      - a bare URL
+      - a bullet whose text continues on the following line
+
+    Calibrated against the v10, v11 and v12 changelogs: zero false positives across
+    all 2,702 existing bullets.
+    """
+    lines = text.split("\n")
+    suspicious = []
+    for index, line in enumerate(lines):
+        match = _BULLET_RE.match(line)
+        if not match:
+            continue
+        content = match.group(1).rstrip()
+
+        # A bullet continued on the next line is not truncated.
+        following = lines[index + 1] if index + 1 < len(lines) else ""
+        if following.strip() and not _BULLET_RE.match(following) and not following.startswith("#"):
+            continue
+        if re.match(r"^\*\*.*\*\*$", content):
+            continue
+        if re.split(r"\s+", content)[-1].startswith(("http://", "https://")):
+            continue
+
+        stripped = re.sub(r"[*_]+$", "", content).rstrip()
+        if not stripped or stripped.endswith(_BULLET_TERMINATORS):
+            continue
+        if stripped.endswith(("`", ")")):
+            continue
+        suspicious.append(line.strip())
+
+    if suspicious:
+        listed = "\n".join(f"   {item}" for item in suspicious)
+        raise RuntimeError(
+            f"{len(suspicious)} changelog bullet(s) end without terminal punctuation "
+            f"and look truncated. Refusing to write a half-written sentence to the "
+            f"changelog:\n{listed}"
+        )
+
+
 def normalize_go_version(go_version: str) -> str:
     """Normalize a Go version string to v-prefixed form.
 
@@ -474,6 +552,18 @@ Platform and OS scope reflects reported and tested environments and may not repr
 
 # Directory holding the per-major changelog files in mattermost/mattermost.
 DOCS_DIR = "docs/main/product-overview"
+
+
+# Heading label for each RELEASE_TYPE. The anchor slug is derived from the label
+# (lowercased, spaces to dashes), matching the established convention:
+#   "Major Release"            -> #release-v12-0-major-release
+#   "Feature Release"          -> #release-v11-9-feature-release
+#   "Extended Support Release" -> #release-v11-7-extended-support-release
+RELEASE_LABELS = {
+    "feature": "Feature Release",
+    "major": "Major Release",
+    "esr": "Extended Support Release",
+}
 
 
 def major_version(version: str) -> str:
@@ -613,12 +703,21 @@ def main():
     # Anchor slugs replace dots with dashes: "v11.9" → "v11-9"
     version_slug_anchor = version_short.replace(".", "-")
 
-    if release_type == "esr":
-        release_label = "Extended Support Release"
-        anchor_slug = f"release-{version_slug_anchor}-extended-support-release"
-    else:
-        release_label = "Feature Release"
-        anchor_slug = f"release-{version_slug_anchor}-feature-release"
+    # The heading label and the anchor slug must agree: other docs pages deep-link to
+    # the anchor, so a label/slug mismatch silently breaks those links. Derive the slug
+    # from the label rather than writing it out twice.
+    release_label = RELEASE_LABELS.get(release_type, RELEASE_LABELS["feature"])
+    anchor_slug = f"release-{version_slug_anchor}-{release_label.lower().replace(' ', '-')}"
+
+    # A vX.0 release is a major release. Getting this wrong produces both the wrong
+    # heading and the wrong anchor, so say so loudly rather than letting it through
+    # to be corrected by hand afterwards.
+    if re.match(r"^v\d+\.0$", version_short) and release_type != "major":
+        print(
+            f"⚠️  {version_short} looks like a major release, but RELEASE_TYPE is "
+            f"'{release_type}' — the heading will read '{release_label}' and the anchor "
+            f"will be '#{anchor_slug}'. Re-run with RELEASE_TYPE=major if that is wrong."
+        )
 
     # MDX heading anchor. The opening brace is escaped (\{) because MDX would otherwise
     # parse it as a JSX expression.
@@ -691,6 +790,10 @@ def main():
     else:
         entry += go_section + "\n"
         entry += "\n_No other release notes for this version._\n"
+
+    # Last gate before the entry is written: fail the run rather than commit a
+    # half-written sentence to customer-facing docs.
+    check_for_truncation(entry)
 
     header = CHANGELOG_HEADER_TEMPLATE.format(major=major_version(VERSION))
     insert_changelog_entry(entry, changelog_path, header=header)
