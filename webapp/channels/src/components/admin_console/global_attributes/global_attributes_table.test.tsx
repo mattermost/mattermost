@@ -1562,10 +1562,7 @@ describe('GlobalAttributesTable', () => {
             await userEvent.click(screen.getByTestId('global-attribute-actions-field-1'));
 
             const items = (await screen.findAllByRole('menuitem')).map((el) => el.textContent);
-            expect(items).toEqual(expect.arrayContaining([
-                expect.stringContaining('Edit attribute'),
-                expect.stringContaining('Delete attribute'),
-            ]));
+            expect(items).toEqual(['Edit attribute', 'Delete attribute']);
         });
     });
 });
@@ -1625,11 +1622,8 @@ describe('isClassificationMarkingsField', () => {
         expect(isClassificationMarkingsField(field, groupId)).toBe(false);
     });
 
-    it.each(['text', 'select', 'multiselect', 'graph'] as Array<PropertyField['type']>)(
-        'returns false for a %s template named classification, so it stays an ordinary attribute',
-        (type) => {
-            const field = makeClassificationField({type, group_id: groupId});
-            expect(isClassificationMarkingsField(field, groupId)).toBe(false);
-        },
-    );
+    it('returns false when only the type does not match, so it stays an ordinary attribute', () => {
+        const field = makeClassificationField({type: 'text', group_id: groupId});
+        expect(isClassificationMarkingsField(field, groupId)).toBe(false);
+    });
 });

@@ -183,8 +183,9 @@ function isLinkedTo(field: PropertyField, templateFieldId: string): boolean {
 }
 
 /**
- * Finds the one live field with the given name in an object type. Names are
- * unique per object type, so the first match is the only one.
+ * Finds the one live field with the given name in an object type. The server
+ * enforces name uniqueness per (object type, group, target) on live fields, so
+ * the first match is the only one.
  */
 async function findLiveFieldByName(objectType: string, name: string): Promise<PropertyField | undefined> {
     const maxItems = 500;
@@ -355,6 +356,7 @@ export const CLEARANCE_FIELD_NAME = 'clearance';
 export const CLEARANCE_FIELD_DISPLAY_NAME = 'Clearance';
 
 export type ClearanceFieldLookup = {
+
     /**
      * Every live user field linked to the classification template. The
      * enforcement checkbox is on when this is non-empty, and disabling
@@ -364,10 +366,11 @@ export type ClearanceFieldLookup = {
     fields: PropertyField[];
 
     /**
-     * Live user fields holding the clearance name without being linked to the
-     * template. Creating the clearance field would collide with them.
+     * A live user field holding the clearance name without being linked to the
+     * template. Creating the clearance field would collide with it. At most one,
+     * since names are unique per object type.
      */
-    conflicts: PropertyField[];
+    conflict?: PropertyField;
 };
 
 export async function fetchUserLinkedFields(templateFieldId: string): Promise<ClearanceFieldLookup> {
@@ -375,7 +378,7 @@ export async function fetchUserLinkedFields(templateFieldId: string): Promise<Cl
     let fetched = 0;
     let cursorId: string | undefined;
     let cursorCreateAt: number | undefined;
-    const result: ClearanceFieldLookup = {fields: [], conflicts: []};
+    const result: ClearanceFieldLookup = {fields: []};
 
     while (fetched < maxItems) {
         const fields = await Client4.getPropertyFields( // eslint-disable-line no-await-in-loop
@@ -392,7 +395,7 @@ export async function fetchUserLinkedFields(templateFieldId: string): Promise<Cl
             if (isLinkedTo(f, templateFieldId)) {
                 result.fields.push(f);
             } else if (f.name === CLEARANCE_FIELD_NAME) {
-                result.conflicts.push(f);
+                result.conflict = f;
             }
         }
         if (fields.length === 0) {

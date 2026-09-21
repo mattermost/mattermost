@@ -237,7 +237,7 @@ export default function ClassificationMarkings({disabled}: Props) {
                         return;
                     }
                     hasClearance = clearance.fields.length > 0;
-                    setClearanceConflict(clearance.conflicts[0] ?? null);
+                    setClearanceConflict(clearance.conflict ?? null);
                 }
 
                 if (field) {

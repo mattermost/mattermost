@@ -2544,6 +2544,9 @@ describe('AttributeDetails', () => {
             renderEdit();
             expect(await screen.findByTestId('attributeDetails')).toBeInTheDocument();
             expect(mockHistoryPush).not.toHaveBeenCalled();
+
+            // Reachable is not enough: renaming it here is the repair itself.
+            expect(screen.getByTestId('attributeDisplayNameInput')).toBeEnabled();
         });
 
         it('redirects to the listing when the field is missing', async () => {
