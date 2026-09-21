@@ -1072,6 +1072,7 @@ func TestDatabaseStoreString(t *testing.T) {
 				name:       "postgresql scheme",
 				dsn:        "postgresql://mmuser:sentinel_pw_bravo@localhost:5432/mattermost?sslmode=disable",
 				credential: "sentinel_pw_bravo",
+				described:  "postgresql://" + model.SanitizedPassword + ":" + model.SanitizedPassword + "@localhost:5432/mattermost?sslmode=disable",
 				accepted:   true,
 			},
 			{
@@ -1130,6 +1131,7 @@ func TestDatabaseStoreString(t *testing.T) {
 				if !tc.accepted {
 					return
 				}
+				assert.NotEmpty(t, maskedDSN, "an accepted DSN must still be described")
 
 				described, err := model.SanitizeDataSource(model.DatabaseDriverPostgres, tc.dsn)
 				require.NoError(t, err)
