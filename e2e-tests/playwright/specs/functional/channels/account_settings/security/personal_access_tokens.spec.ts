@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Locator, Page} from '@playwright/test';
+import type {Client4} from '@mattermost/client';
 
 import {expect, test} from '@mattermost/playwright-lib';
 
@@ -29,6 +30,24 @@ function isoPlusDays(n: number): string {
     return `${d.getFullYear()}-${month}-${day}`;
 }
 
+// Enables tokens and sets the maximum lifetime, then waits for the server to report both. The
+// maximum is server-wide, so every test states the value it needs rather than inheriting one.
+async function setTokenPolicy(adminClient: Client4, maximumLifetimeDays: number) {
+    await adminClient.patchConfig({
+        ServiceSettings: {EnableUserAccessTokens: true, MaximumPersonalAccessTokenLifetimeDays: maximumLifetimeDays},
+    });
+
+    await expect
+        .poll(async () => {
+            const {ServiceSettings} = await adminClient.getConfig();
+            return {
+                enabled: ServiceSettings?.EnableUserAccessTokens,
+                maximumLifetimeDays: ServiceSettings?.MaximumPersonalAccessTokenLifetimeDays,
+            };
+        })
+        .toEqual({enabled: true, maximumLifetimeDays});
+}
+
 // Open Account Settings > Security and expand the Personal Access Tokens section.
 async function openTokensSection(page: Page): Promise<Locator> {
     await page.locator('#userAccountMenuButton').click();
@@ -47,12 +66,8 @@ test.describe('Personal Access Tokens expiry @personal_access_tokens', () => {
     test('shows the expiry picker with all presets and reveals the custom date input', async ({pw}) => {
         test.setTimeout(120000);
         const {user, adminClient} = await pw.initSetup();
-        await adminClient.patchConfig({ServiceSettings: {EnableUserAccessTokens: true}});
+        await setTokenPolicy(adminClient, 0);
         await adminClient.updateUserRoles(user.id, TOKEN_ROLES);
-        await pw.waitUntil(async () => {
-            const cfg = await adminClient.getConfig();
-            return cfg.ServiceSettings?.EnableUserAccessTokens === true;
-        });
 
         const {channelsPage} = await pw.testBrowser.login(user);
         await channelsPage.goto();
@@ -81,12 +96,8 @@ test.describe('Personal Access Tokens expiry @personal_access_tokens', () => {
     test('blocks submitting a custom expiry with no date chosen', async ({pw}) => {
         test.setTimeout(120000);
         const {user, adminClient} = await pw.initSetup();
-        await adminClient.patchConfig({ServiceSettings: {EnableUserAccessTokens: true}});
+        await setTokenPolicy(adminClient, 0);
         await adminClient.updateUserRoles(user.id, TOKEN_ROLES);
-        await pw.waitUntil(async () => {
-            const cfg = await adminClient.getConfig();
-            return cfg.ServiceSettings?.EnableUserAccessTokens === true;
-        });
 
         const {channelsPage} = await pw.testBrowser.login(user);
         await channelsPage.goto();
@@ -109,17 +120,8 @@ test.describe('Personal Access Tokens expiry @personal_access_tokens', () => {
     test('enforces expiry when a maximum lifetime is configured', async ({pw}) => {
         test.setTimeout(120000);
         const {user, adminClient} = await pw.initSetup();
-        await adminClient.patchConfig({
-            ServiceSettings: {EnableUserAccessTokens: true, MaximumPersonalAccessTokenLifetimeDays: 30},
-        });
+        await setTokenPolicy(adminClient, 30);
         await adminClient.updateUserRoles(user.id, TOKEN_ROLES);
-        await pw.waitUntil(async () => {
-            const cfg = await adminClient.getConfig();
-            return (
-                cfg.ServiceSettings?.EnableUserAccessTokens === true &&
-                cfg.ServiceSettings?.MaximumPersonalAccessTokenLifetimeDays === 30
-            );
-        });
 
         const {channelsPage} = await pw.testBrowser.login(user);
         await channelsPage.goto();
@@ -152,17 +154,8 @@ test.describe('Personal Access Tokens expiry @personal_access_tokens', () => {
     test('creates a token with the default preset under a maximum lifetime', async ({pw}) => {
         test.setTimeout(120000);
         const {user, adminClient} = await pw.initSetup();
-        await adminClient.patchConfig({
-            ServiceSettings: {EnableUserAccessTokens: true, MaximumPersonalAccessTokenLifetimeDays: 30},
-        });
+        await setTokenPolicy(adminClient, 30);
         await adminClient.updateUserRoles(user.id, TOKEN_ROLES);
-        await pw.waitUntil(async () => {
-            const cfg = await adminClient.getConfig();
-            return (
-                cfg.ServiceSettings?.EnableUserAccessTokens === true &&
-                cfg.ServiceSettings?.MaximumPersonalAccessTokenLifetimeDays === 30
-            );
-        });
 
         const {channelsPage} = await pw.testBrowser.login(user);
         await channelsPage.goto();
@@ -183,12 +176,8 @@ test.describe('Personal Access Tokens expiry @personal_access_tokens', () => {
     test('shows status and expiry for existing tokens', async ({pw}) => {
         test.setTimeout(120000);
         const {user, adminClient} = await pw.initSetup();
-        await adminClient.patchConfig({ServiceSettings: {EnableUserAccessTokens: true}});
+        await setTokenPolicy(adminClient, 0);
         await adminClient.updateUserRoles(user.id, TOKEN_ROLES);
-        await pw.waitUntil(async () => {
-            const cfg = await adminClient.getConfig();
-            return cfg.ServiceSettings?.EnableUserAccessTokens === true;
-        });
 
         // # Seed three tokens for the user: never-expiring, expiring soon, and disabled
         await adminClient.createUserAccessToken(user.id, 'never expires token');
@@ -220,12 +209,8 @@ test.describe('Personal Access Tokens expiry @personal_access_tokens', () => {
     test('regenerates a token and reveals the new secret', async ({pw}) => {
         test.setTimeout(120000);
         const {user, adminClient} = await pw.initSetup();
-        await adminClient.patchConfig({ServiceSettings: {EnableUserAccessTokens: true}});
+        await setTokenPolicy(adminClient, 0);
         await adminClient.updateUserRoles(user.id, TOKEN_ROLES);
-        await pw.waitUntil(async () => {
-            const cfg = await adminClient.getConfig();
-            return cfg.ServiceSettings?.EnableUserAccessTokens === true;
-        });
 
         // # Seed a token for the user
         const originalToken = await adminClient.createUserAccessToken(user.id, 'rotate me token');
@@ -259,12 +244,8 @@ test.describe('Personal Access Tokens expiry @personal_access_tokens', () => {
     test('lets the user pick a new expiry when regenerating', async ({pw}) => {
         test.setTimeout(120000);
         const {user, adminClient} = await pw.initSetup();
-        await adminClient.patchConfig({ServiceSettings: {EnableUserAccessTokens: true}});
+        await setTokenPolicy(adminClient, 0);
         await adminClient.updateUserRoles(user.id, TOKEN_ROLES);
-        await pw.waitUntil(async () => {
-            const cfg = await adminClient.getConfig();
-            return cfg.ServiceSettings?.EnableUserAccessTokens === true;
-        });
 
         // # Seed a never-expiring token for the user
         const originalToken = await adminClient.createUserAccessToken(user.id, 'expiring rotate token');
@@ -292,12 +273,8 @@ test.describe('Personal Access Tokens expiry @personal_access_tokens', () => {
     test('does not offer to regenerate a disabled token', async ({pw}) => {
         test.setTimeout(120000);
         const {user, adminClient} = await pw.initSetup();
-        await adminClient.patchConfig({ServiceSettings: {EnableUserAccessTokens: true}});
+        await setTokenPolicy(adminClient, 0);
         await adminClient.updateUserRoles(user.id, TOKEN_ROLES);
-        await pw.waitUntil(async () => {
-            const cfg = await adminClient.getConfig();
-            return cfg.ServiceSettings?.EnableUserAccessTokens === true;
-        });
 
         const disabledToken = await adminClient.createUserAccessToken(user.id, 'disabled token');
         await adminClient.disableUserAccessToken(disabledToken.id);

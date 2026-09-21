@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback} from 'react';
+import React, {useCallback, type JSX} from 'react';
 import {useIntl} from 'react-intl';
 
 import {CloseIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import './unified_labels_wrapper.scss';
 
@@ -23,6 +24,11 @@ const UnifiedLabelsWrapper = ({
 }: Props) => {
     const {formatMessage} = useIntl();
 
+    const removeAllLabel = formatMessage({
+        id: 'unified_labels.remove_all',
+        defaultMessage: 'Remove all labels',
+    });
+
     // Handle click and prevent form submission
     const handleClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
@@ -40,17 +46,16 @@ const UnifiedLabelsWrapper = ({
             {priorityLabels}
             {burnOnReadLabels}
             {canRemove && onRemoveAll && (
-                <button
-                    type='button'
-                    className='UnifiedLabelsWrapper__close'
-                    onClick={handleClick}
-                    aria-label={formatMessage({
-                        id: 'unified_labels.remove_all',
-                        defaultMessage: 'Remove all labels',
-                    })}
-                >
-                    <CloseIcon size={14}/>
-                </button>
+                <WithTooltip title={removeAllLabel}>
+                    <button
+                        type='button'
+                        className='UnifiedLabelsWrapper__close'
+                        onClick={handleClick}
+                        aria-label={removeAllLabel}
+                    >
+                        <CloseIcon size={14}/>
+                    </button>
+                </WithTooltip>
             )}
         </div>
     );

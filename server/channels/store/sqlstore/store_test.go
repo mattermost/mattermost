@@ -9,7 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"sort"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -360,10 +360,10 @@ func TestGetReplica(t *testing.T) {
 
 			dataSourceReplicas := []string{}
 			dataSourceSearchReplicas := []string{}
-			for i := 0; i < testCase.DataSourceReplicaNum; i++ {
+			for range testCase.DataSourceReplicaNum {
 				dataSourceReplicas = append(dataSourceReplicas, *settings.DataSource)
 			}
-			for i := 0; i < testCase.DataSourceSearchReplicaNum; i++ {
+			for range testCase.DataSourceSearchReplicaNum {
 				dataSourceSearchReplicas = append(dataSourceSearchReplicas, *settings.DataSource)
 			}
 
@@ -433,10 +433,10 @@ func TestGetReplica(t *testing.T) {
 
 			dataSourceReplicas := []string{}
 			dataSourceSearchReplicas := []string{}
-			for i := 0; i < testCase.DataSourceReplicaNum; i++ {
+			for range testCase.DataSourceReplicaNum {
 				dataSourceReplicas = append(dataSourceReplicas, *settings.DataSource)
 			}
-			for i := 0; i < testCase.DataSourceSearchReplicaNum; i++ {
+			for range testCase.DataSourceSearchReplicaNum {
 				dataSourceSearchReplicas = append(dataSourceSearchReplicas, *settings.DataSource)
 			}
 
@@ -541,28 +541,37 @@ func TestCheckVersion(t *testing.T) {
 			ver:            "110001",
 			wantLog:        "Unsupported Postgres version",
 			wantVersion:    "11.1",
-			wantMinVersion: "14.0",
+			wantMinVersion: "15.0",
 		},
 		{
 			ver:            "130001",
 			wantLog:        "Unsupported Postgres version",
 			wantVersion:    "13.1",
-			wantMinVersion: "14.0",
+			wantMinVersion: "15.0",
 		},
 		{
-			ver: "140000",
+			ver:            "140000",
+			wantLog:        "Unsupported Postgres version",
+			wantVersion:    "14.0",
+			wantMinVersion: "15.0",
 		},
 		{
-			ver: "140019",
+			ver:            "140019",
+			wantLog:        "Unsupported Postgres version",
+			wantVersion:    "14.19",
+			wantMinVersion: "15.0",
 		},
 		{
 			ver: "150000",
 		},
 		{
+			ver: "150019",
+		},
+		{
 			ver:            "90603",
 			wantLog:        "Unsupported Postgres version",
 			wantVersion:    "9.6.3",
-			wantMinVersion: "14.0",
+			wantMinVersion: "15.0",
 		},
 		{
 			ver:     "12.34.1",
@@ -621,7 +630,7 @@ func TestIsBinaryParamEnabled(t *testing.T) {
 			store: SqlStore{
 				settings: &model.SqlSettings{
 					DriverName: model.NewPointer(model.DatabaseDriverPostgres),
-					DataSource: new("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable\u0026binary_parameters=yes"),
+					DataSource: new("postgres://mmuser:mostest_password@localhost/loadtest?sslmode=disable\u0026binary_parameters=yes"),
 				},
 			},
 			expected: true,
@@ -630,7 +639,7 @@ func TestIsBinaryParamEnabled(t *testing.T) {
 			store: SqlStore{
 				settings: &model.SqlSettings{
 					DriverName: model.NewPointer(model.DatabaseDriverPostgres),
-					DataSource: new("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable&binary_parameters=yes"),
+					DataSource: new("postgres://mmuser:mostest_password@localhost/loadtest?sslmode=disable&binary_parameters=yes"),
 				},
 			},
 			expected: true,
@@ -639,7 +648,7 @@ func TestIsBinaryParamEnabled(t *testing.T) {
 			store: SqlStore{
 				settings: &model.SqlSettings{
 					DriverName: model.NewPointer(model.DatabaseDriverPostgres),
-					DataSource: new("postgres://mmuser:mostest@localhost/loadtest?sslmode=disable"),
+					DataSource: new("postgres://mmuser:mostest_password@localhost/loadtest?sslmode=disable"),
 				},
 			},
 			expected: false,
@@ -729,10 +738,10 @@ func TestGetAllConns(t *testing.T) {
 			}
 			dataSourceReplicas := []string{}
 			dataSourceSearchReplicas := []string{}
-			for i := 0; i < testCase.DataSourceReplicaNum; i++ {
+			for range testCase.DataSourceReplicaNum {
 				dataSourceReplicas = append(dataSourceReplicas, *settings.DataSource)
 			}
-			for i := 0; i < testCase.DataSourceSearchReplicaNum; i++ {
+			for range testCase.DataSourceSearchReplicaNum {
 				dataSourceSearchReplicas = append(dataSourceSearchReplicas, *settings.DataSource)
 			}
 
@@ -1010,7 +1019,7 @@ func TestGetDBSchemaVersion(t *testing.T) {
 			for _, entry := range assetsList {
 				assetNamesForDriver = append(assetNamesForDriver, entry.Name())
 			}
-			sort.Strings(assetNamesForDriver)
+			slices.Sort(assetNamesForDriver)
 
 			require.NotEmpty(t, assetNamesForDriver)
 			lastMigration := assetNamesForDriver[len(assetNamesForDriver)-1]

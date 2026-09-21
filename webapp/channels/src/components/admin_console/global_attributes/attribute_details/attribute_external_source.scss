@@ -4,18 +4,29 @@
 .AttributeExternalSource {
     display: flex;
     flex-direction: column;
-    margin-top: 12px;
     gap: 8px;
 }
 
-// The Divider is a section separator between the Options row above and this
-// whole external-source block (chips and/or the "add" trigger) -- it's a
-// real full-width element (components/divider) rather than a border on the
-// trigger button itself, so it always spans the full row width regardless
-// of the button's own (inline, content-sized) width, and still shows even
-// when only chips are rendered (both sources linked, no trigger).
+.AttributeExternalSource__synced {
+    display: flex;
+    min-height: 32px;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.AttributeExternalSource__syncedLabel {
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+    font-size: 14px;
+    line-height: 20px;
+    white-space: nowrap;
+}
+
+// Full-width hairline between the Options help/editor and the "add" trigger.
+// Hidden once a source is linked, since the chips then occupy the Options
+// line and the trigger sits directly under them.
 .AttributeExternalSource__divider {
-    margin-bottom: 12px;
+    margin-bottom: 4px;
 }
 
 .AttributeExternalSource__chips {
@@ -76,6 +87,15 @@
 // classes (not just .AttributeExternalSource__trigger alone) so this
 // selector's specificity reliably beats _buttons.scss's own same-named rule,
 // regardless of stylesheet load order.
+// WithTooltip clones this wrap as the floating-ui reference. A flex-column
+// child stretches to the full Options column, so the tooltip would sit over
+// empty space instead of the compact trigger. Size to the button.
+.AttributeExternalSource__triggerLockWrap {
+    display: inline-flex;
+    max-width: 100%;
+    align-self: flex-start;
+}
+
 .AttributeExternalSource__trigger {
     align-items: center;
     align-self: flex-start;

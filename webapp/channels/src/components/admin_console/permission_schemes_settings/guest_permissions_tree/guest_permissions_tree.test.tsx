@@ -57,7 +57,7 @@ describe('components/admin_console/permission_schemes_settings/guest_permissions
                 readOnly: true,
                 scope: 'team_scope',
             }),
-            expect.anything(),
+            undefined,
         );
     });
 

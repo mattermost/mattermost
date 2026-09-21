@@ -52,7 +52,7 @@ export class TestHelper {
             email: '',
             first_name: '',
             last_name: '',
-            locale: '',
+            locale: 'en',
             nickname: '',
             position: '',
             terms_of_service_create_at: 0,

@@ -67,6 +67,7 @@ import type {
     PatchDataRetentionCustomPolicy,
     GetDataRetentionCustomPoliciesRequest,
 } from '@mattermost/types/data_retention';
+import type {DeliveryTrackingConfig} from '@mattermost/types/delivery_tracking';
 import type {Draft} from '@mattermost/types/drafts';
 import type {CustomEmoji} from '@mattermost/types/emojis';
 import type {ServerError} from '@mattermost/types/errors';
@@ -117,11 +118,12 @@ import type {
 import type {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics, PostInfo} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
-import type {NameMappedPropertyFields, PropertyField, PropertyValue} from '@mattermost/types/properties';
+import type {NameMappedPropertyFields, PropertyField, PropertyFieldOptionPage, PropertyValue} from '@mattermost/types/properties';
 import type {UserPropertyField, UserPropertyFieldPatch} from '@mattermost/types/properties_user';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {Recap, CreateRecapRequest, ScheduledRecap, ScheduledRecapInput, RecapLimitStatus} from '@mattermost/types/recaps';
 import type {RemoteCluster, RemoteClusterAcceptInvite, RemoteClusterPatch, RemoteClusterWithPassword} from '@mattermost/types/remote_clusters';
+import type {ActionSearchRequest, ActionSearchResponse} from '@mattermost/types/render_permissions';
 import type {UserReport, UserReportFilter, UserReportOptions} from '@mattermost/types/reports';
 import type {Role} from '@mattermost/types/roles';
 import type {SamlCertificateStatus, SamlMetadataResponse} from '@mattermost/types/saml';
@@ -159,7 +161,7 @@ import type {
 import type {DeepPartial, PartialExcept, RelationOneToOne} from '@mattermost/types/utilities';
 
 import {cleanUrlForLogging} from './errors';
-import {buildQueryString} from './helpers';
+import {buildQueryString, extractFilenameFromContentDisposition} from './helpers';
 
 export enum LdapDiagnosticTestType {
     FILTERS = 'filters',
@@ -178,6 +180,13 @@ export const HEADER_X_VERSION_ID = 'X-Version-Id';
 const LOGS_PER_PAGE_DEFAULT = 10000;
 const AUTOCOMPLETE_LIMIT_DEFAULT = 25;
 const PER_PAGE_DEFAULT = 60;
+
+// The largest page the options endpoint serves (server
+// `model.PropertyFieldOptionsMaxPerRequest`). Sent on every options request:
+// the endpoint's own default is PER_PAGE_DEFAULT, which would page a hierarchy
+// 60 options at a time.
+const PROPERTY_FIELD_OPTIONS_PER_PAGE_DEFAULT = 200;
+
 export const DEFAULT_LIMIT_BEFORE = 30;
 export const DEFAULT_LIMIT_AFTER = 30;
 
@@ -363,6 +372,10 @@ export default class Client4 {
 
     getPropertyFieldRoute(groupName: string, objectType: string, fieldId: string) {
         return `${this.getPropertyFieldsRoute(groupName, objectType)}/${fieldId}`;
+    }
+
+    getPropertyFieldOptionsRoute(groupName: string, objectType: string, fieldId: string) {
+        return `${this.getPropertyFieldRoute(groupName, objectType, fieldId)}/options`;
     }
 
     getCustomProfileAttributeFieldsRoute() {
@@ -575,6 +588,10 @@ export default class Client4 {
 
     getContentFlaggingRoute() {
         return `${this.getBaseRoute()}/content_flagging`;
+    }
+
+    getDeliveryTrackingRoute() {
+        return `${this.getBaseRoute()}/delivery_tracking`;
     }
 
     getCSRFFromCookie() {
@@ -2529,6 +2546,32 @@ export default class Client4 {
         }
         return this.doFetch<PropertyField[]>(
             `${this.getPropertyFieldsRoute(groupName, objectType)}?${params.toString()}`,
+            {method: 'GET'},
+        );
+    };
+
+    // One page of a property field's options, in creation order. has_more is
+    // the only signal that ends a listing — a short page does not, and an
+    // empty page does not either. Resume from next_cursor_create_at and
+    // next_cursor_id, which name the last candidate examined, not the last
+    // option returned. The two request cursor halves go together — the
+    // server refuses a request carrying only one of them.
+    getPropertyFieldOptions = async (
+        groupName: string,
+        objectType: string,
+        fieldId: string,
+        options?: {perPage?: number; cursorId?: string; cursorCreateAt?: number},
+    ) => {
+        const params = new URLSearchParams();
+        params.set('per_page', String(options?.perPage ?? PROPERTY_FIELD_OPTIONS_PER_PAGE_DEFAULT));
+        if (options?.cursorId) {
+            params.set('cursor_id', options.cursorId);
+        }
+        if (options?.cursorCreateAt) {
+            params.set('cursor_create_at', String(options.cursorCreateAt));
+        }
+        return this.doFetch<PropertyFieldOptionPage>(
+            `${this.getPropertyFieldOptionsRoute(groupName, objectType, fieldId)}?${params.toString()}`,
             {method: 'GET'},
         );
     };
@@ -4883,7 +4926,7 @@ export default class Client4 {
                 const text = await response.text();
                 const objects = text.trim().split('\n');
                 data = objects.map((obj) => JSON.parse(obj));
-            } else if (contentType === 'application/zip') {
+            } else if (contentType === 'application/zip' || contentType?.startsWith('text/csv')) {
                 data = await response.blob();
             } else {
                 data = await response.text();
@@ -4928,6 +4971,7 @@ export default class Client4 {
             server_error_id: data.id,
             status_code: data.status_code,
             detailed_error: data.detailed_error,
+            props: data.props,
             url,
         });
     };
@@ -5120,6 +5164,17 @@ export default class Client4 {
         );
     };
 
+    searchAccessControlDecisionActions = (resourceType: string, resourceId: string, actions?: string[]) => {
+        const body: ActionSearchRequest = {resource: {type: resourceType, id: resourceId}};
+        if (actions && actions.length > 0) {
+            body.actions = actions;
+        }
+        return this.doFetch<ActionSearchResponse>(
+            `${this.getBaseRoute()}/access_control/decisions/actions/search`,
+            {method: 'post', body: JSON.stringify(body)},
+        );
+    };
+
     searchChildAccessControlPolicyChannels = (policyId: string, term: string, opts: ChannelSearchOpts, teamId?: string) => {
         const teamParam = teamId ? `?team_id=${encodeURIComponent(teamId)}` : '';
         return this.doFetch<ChannelsWithTotalCount>(
@@ -5208,13 +5263,19 @@ export default class Client4 {
         return this.createJob(job);
     };
 
-    getAccessControlFields = (after: string, limit: number, channelId?: string, teamId?: string) => {
+    getAccessControlFields = (after: string, limit: number, channelId?: string, teamId?: string, includeResourceFields?: boolean) => {
         const params = new URLSearchParams({after, limit: limit.toString()});
         if (channelId) {
             params.append('channelId', channelId);
         }
         if (teamId) {
             params.append('team_id', teamId);
+        }
+
+        // Parent policies reference resource.attributes.* (channel-object-type
+        // fields) without a single channel to scope by; ask for them explicitly.
+        if (includeResourceFields) {
+            params.append('include_resource_fields', 'true');
         }
 
         return this.doFetch<UserPropertyField[]>(
@@ -5411,6 +5472,20 @@ export default class Client4 {
         );
     };
 
+    getDeliveryTrackingConfig = () => {
+        return this.doFetch<DeliveryTrackingConfig>(
+            `${this.getDeliveryTrackingRoute()}/config`,
+            {method: 'get'},
+        );
+    };
+
+    saveDeliveryTrackingConfig = (config: DeliveryTrackingConfig) => {
+        return this.doFetch<StatusOK>(
+            `${this.getDeliveryTrackingRoute()}/config`,
+            {method: 'put', body: JSON.stringify(config)},
+        );
+    };
+
     getFlaggedPostReportUrl = (postId: string) => {
         return `${this.getContentFlaggingRoute()}/post/${postId}/report`;
     };
@@ -5424,6 +5499,28 @@ export default class Client4 {
                 signal,
             },
         );
+    };
+
+    getPostExposureReportUrl = (postId: string) => {
+        return `${this.getContentFlaggingRoute()}/post/${postId}/exposure_report`;
+    };
+
+    generatePostExposureReport = async (postId: string, signal?: AbortSignal): Promise<{blob: Blob; filename: string}> => {
+        const {data, headers} = await this.doFetchWithResponse<Blob>(
+            this.getPostExposureReportUrl(postId),
+            {
+                method: 'post',
+                signal,
+            },
+        );
+
+        return {
+            blob: data,
+            filename: extractFilenameFromContentDisposition(
+                headers.get('Content-Disposition'),
+                `post-exposure-${postId}-${Date.now()}.csv`,
+            ),
+        };
     };
 }
 
@@ -5451,6 +5548,7 @@ export class ClientError extends Error implements ServerError {
     server_error_id?: string;
     status_code?: number;
     detailed_error?: string;
+    props?: Record<string, string>;
 
     constructor(baseUrl: string, data: ServerError, cause?: any) {
         super(data.message + ': ' + cleanUrlForLogging(baseUrl, data.url || ''), {cause});
@@ -5460,6 +5558,7 @@ export class ClientError extends Error implements ServerError {
         this.server_error_id = data.server_error_id;
         this.status_code = data.status_code;
         this.detailed_error = data.detailed_error;
+        this.props = data.props;
 
         // Ensure message is treated as a property of this class when object spreading. Without this,
         // copying the object by using `{...error}` would not include the message.

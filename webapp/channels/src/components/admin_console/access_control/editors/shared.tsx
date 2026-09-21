@@ -1,21 +1,36 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {type JSX} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
+import type {AccessControlTestResult} from '@mattermost/types/access_control';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {isSessionAttributeField} from '@mattermost/types/properties_user';
 
+import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import Markdown from 'components/markdown';
+
+import TestResultsModal from '../modals/policy_test/test_modal';
 
 import './shared.scss';
 
 // Sentinel emitted by the server in masked CEL expressions for values the caller cannot see.
 export const MASKED_VALUE_TOKEN_LITERAL = '"--------"';
+
+// The accessed channel's attributes, the comparison target for a rule about the
+// requesting user (whose own attributes are USER_ATTRIBUTE_CEL_PREFIX, below).
+export const RESOURCE_ATTRIBUTES_PREFIX = 'resource.attributes.';
+
+// value_type on a visual-AST condition. Matches model.ValueType: 0 = literal,
+// 1 = attribute reference (the RHS is another attribute path, e.g. a
+// resource.attributes.* selector rather than a quoted constant).
+export const VISUAL_AST_ATTRIBUTE_VALUE_TYPE = 1;
 
 // CEL operator constants
 export enum CELOperator {
@@ -66,6 +81,18 @@ export enum OperatorLabel {
     VERSION_AT_LEAST = 'version is at least',
     VERSION_LESS_THAN = 'version is less than',
     VERSION_AT_MOST = 'version is at most',
+
+    // Hierarchy predicates, shown only for attributes of type 'graph', whose
+    // options form a hierarchy. The attribute holds a set of options; "covers"
+    // asks whether each held option is at or above a target, "within" whether it
+    // is at or below. The label is the CEL function name itself because the
+    // server reports the function as the condition's operator when it converts a
+    // saved expression back to rows — a second spelling would be one more thing
+    // to keep in step.
+    COVERS_ALL = 'coversAll',
+    COVERS_ANY = 'coversAny',
+    WITHIN_ALL = 'withinAll',
+    WITHIN_ANY = 'withinAny',
 }
 
 // Map from visual AST operator to UI label. The comparison symbols (>=, >, <, <=)
@@ -92,6 +119,15 @@ export const OPERATOR_LABELS: Record<string, string> = {
     [CELOperator.VERSION_LTE]: OperatorLabel.VERSION_AT_MOST,
     hasAnyOf: OperatorLabel.HAS_ANY_OF,
     hasAllOf: OperatorLabel.HAS_ALL_OF,
+
+    // The graph hierarchy predicates keep their CEL spelling as their label, so
+    // these entries are identities. They are listed anyway: this map is what
+    // parseExpression consults, and an operator missing from it silently falls
+    // back to "is".
+    coversAll: OperatorLabel.COVERS_ALL,
+    coversAny: OperatorLabel.COVERS_ANY,
+    withinAll: OperatorLabel.WITHIN_ALL,
+    withinAny: OperatorLabel.WITHIN_ANY,
 };
 
 // 'native_method' is a member call whose argument is emitted verbatim (e.g. an
@@ -126,11 +162,42 @@ export const OPERATOR_CONFIG: Record<string, {type: OperatorType; celOp: CELOper
 };
 
 export function isMultiValueOperator(op: string): boolean {
-    return op === OperatorLabel.IN || op === OperatorLabel.HAS_ANY_OF || op === OperatorLabel.HAS_ALL_OF;
+    return op === OperatorLabel.IN || op === OperatorLabel.HAS_ANY_OF || op === OperatorLabel.HAS_ALL_OF ||
+        isGraphOperator(op);
 }
 
 export function isMultiselectOperator(op: string): boolean {
     return op === OperatorLabel.HAS_ANY_OF || op === OperatorLabel.HAS_ALL_OF;
+}
+
+// The four hierarchy predicates, exclusive to attributes of type 'graph'. Each
+// is a member call taking one argument: a list of option names, or the accessed
+// channel's graph attribute. No OPERATOR_CONFIG entry can describe that — its
+// shapes each take a single literal or none at all — so the predicates are
+// deliberately absent from it and every site that would consult it asks here.
+export function isGraphOperator(op: string): boolean {
+    return op === OperatorLabel.COVERS_ALL ||
+        op === OperatorLabel.COVERS_ANY ||
+        op === OperatorLabel.WITHIN_ALL ||
+        op === OperatorLabel.WITHIN_ANY;
+}
+
+// Whether a row's right-hand side may be the accessed channel's attribute
+// (resource.attributes.*) rather than literal values, given the operator and the
+// attribute's type. The comparison operators and the graph hierarchy predicates
+// always may. The multiselect list operators may only on a multiselect
+// attribute: on a graph attribute they mean exact membership against literal
+// option names, and the policy engine has no live-versus-live form for a pair of
+// graph attributes, so offering a target there would build a rule that fails to
+// save.
+export function operatorSupportsChannelTarget(op: string, attributeType?: string): boolean {
+    if (isGraphOperator(op)) {
+        return true;
+    }
+    if (isMultiselectOperator(op)) {
+        return attributeType !== 'graph';
+    }
+    return OPERATOR_CONFIG[op]?.type === 'comparison';
 }
 
 // Ordinal comparison operators exclusive to ranked attributes. IS_NOT is
@@ -296,11 +363,31 @@ const CEL_STRING = String.raw`(?:"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')`;
 // unescaped quotes that the previous `\[.*?\]` matcher would accept.
 const CEL_STRING_LIST = String.raw`\[\s*(?:${CEL_STRING}(?:\s*,\s*${CEL_STRING})*)?\s*\]`;
 
+// A selector reading an attribute of the channel being accessed, which a
+// comparison may use in place of a literal.
+const RESOURCE_SELECTOR = String.raw`resource\.attributes\.\w+`;
+
 // The first pattern accepts ==, != and the ranked ordinal operators
-// (>=, <=, >, <) against a quoted value. >= / <= precede > / < in the
-// alternation so the two-char forms match before the one-char ones.
+// (>=, <=, >, <) against either a quoted value or a resource.attributes.*
+// selector (comparing the user attribute to the accessed channel's). >= / <=
+// precede > / < in the alternation so the two-char forms match before the
+// one-char ones.
 const SIMPLE_CONDITION_PATTERNS: RegExp[] = [
-    new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\s*(==|!=|>=|<=|>|<)\s*${CEL_STRING}$`),
+    new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\s*(==|!=|>=|<=|>|<)\s*(?:${CEL_STRING}|${RESOURCE_SELECTOR})$`),
+
+    // Multiselect list-vs-list against the accessed channel's attribute,
+    // stored verbatim as a member call: the receiver is the user's multiselect
+    // attribute and the single argument is a resource.attributes.* selector
+    // (never a literal — that form is the in-chain below).
+    new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\.(?:hasAnyOf|hasAllOf)\(${RESOURCE_SELECTOR}\)$`),
+
+    // A graph hierarchy predicate: a member call on the user's graph attribute
+    // whose single argument is a list of option names or the accessed channel's
+    // graph attribute. Only the custom-profile namespace, since a session
+    // attribute is never a graph field. Exact membership on a graph attribute is
+    // the `in` form matched below, unchanged.
+    new RegExp(String.raw`^user\.attributes\.\w+\.(?:coversAll|coversAny|withinAll|withinAny)\((?:${CEL_STRING_LIST}|${RESOURCE_SELECTOR})\)$`),
+
     new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\s+in\s+${CEL_STRING_LIST}$`),
     new RegExp(String.raw`^((${CEL_STRING_LIST})|${CEL_STRING})\s+in\s+user\.(?:attributes|session)\.\w+$`),
     new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\.startsWith\(${CEL_STRING}.*?\)$`),
@@ -449,6 +536,66 @@ export function TestButton({onClick, disabled, disabledTooltip, label}: TestButt
     }
 
     return button;
+}
+
+// True when an expression compares against the accessed channel's attributes.
+// Such a rule can only be tested against a concrete channel's values, so the
+// test modal must resolve one — the editor's own scope, or a channel picked in
+// the modal's first step.
+export function referencesResourceAttributes(expression: string): boolean {
+    // Strip quoted string literals first so a value like
+    // "resource.attributes.minClearance" is not mistaken for an actual
+    // attribute reference (which would wrongly force a test channel).
+    // Simple quote stripping; doesn't handle escaped quotes inside a literal,
+    // which these editors never emit — parse the AST if that ever changes.
+    const withoutLiterals = expression.replace(/'[^']*'|"[^"]*"/g, '');
+    return withoutLiterals.includes(RESOURCE_ATTRIBUTES_PREFIX);
+}
+
+interface TestResultsProps {
+    expression: string;
+
+    /** Channel to resolve resource.attributes.* against, when the editor has
+     *  one of its own (channel settings). When absent and the rule references
+     *  resource.attributes.*, the modal opens a channel-picker step first and
+     *  threads the chosen id into the search. */
+    channelId?: string;
+    teamId?: string;
+    isStacked?: boolean;
+    onExited: () => void;
+
+    /** Plugin override for the members search, forwarded from
+     *  CELEditorActions.searchUsers. When provided it replaces the built-in
+     *  searchUsersForExpression thunk. The picker's chosen channel id is
+     *  threaded in as the trailing arg so a resource.attributes.* rule can be
+     *  resolved against it (the override may ignore it if it resolves its own). */
+    searchUsers?: (expression: string, term: string, after: string, limit: number, channelId?: string) => Promise<ActionResult<AccessControlTestResult>>;
+}
+
+// The built-in expression test/simulate results modal.
+export function TestResults({expression, channelId, teamId, isStacked, onExited, searchUsers}: TestResultsProps): JSX.Element {
+    const requireChannel = !channelId && referencesResourceAttributes(expression);
+    return (
+        <TestResultsModal
+            onExited={onExited}
+            isStacked={isStacked}
+            requireChannel={requireChannel}
+            actions={{
+                openModal: () => {},
+                searchUsers: (term: string, after: string, limit: number, pickedChannelId?: string) => {
+                    if (searchUsers) {
+                        // Wrap in a thunk so TestResultsModal can dispatch it unchanged.
+                        // Thread the picker's channel (falling back to the editor's own
+                        // scope) so a resource.attributes.* rule resolves against it —
+                        // without this, such a rule tested here fails to sqlize server-side.
+                        const search = searchUsers;
+                        return () => search(expression, term, after, limit, pickedChannelId ?? channelId);
+                    }
+                    return searchUsersForExpression(expression, term, after, limit, pickedChannelId ?? channelId, teamId);
+                },
+            }}
+        />
+    );
 }
 
 export function AddAttributeButton({onClick, disabled}: AddAttributeButtonProps): JSX.Element {

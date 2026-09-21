@@ -4,7 +4,6 @@
 package properties
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -38,7 +37,13 @@ func (ps *PropertyService) enforceFieldGroupVersionMatch(caller string, groupID 
 
 // Private implementation methods (database access)
 
-func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*model.PropertyField, error) {
+// callerPinnedValues reports whether the request itself carried
+// permission_values, decided before the hooks default-fill it.
+func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.PropertyField, callerPinnedValues bool) (*model.PropertyField, error) {
+	// Whether the caller asked for options of its own, recorded before the linked
+	// field block below can replace the list with its link source's.
+	suppliedOptions := model.PropertyFieldSuppliesOptions(field.Attrs)
+
 	// Enforce version match between field and group
 	if err := ps.enforceFieldGroupVersionMatch("CreatePropertyField", field.GroupID, field); err != nil {
 		return nil, err
@@ -46,7 +51,7 @@ func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*mod
 
 	// Legacy properties (PSAv1) skip the conflict check.
 	if field.IsPSAv1() {
-		return ps.fieldStore.Create(field)
+		return ps.createFieldWithOptionLinks(rctx, field, suppliedOptions)
 	}
 
 	// If this field links to a source, validate the source and copy its schema
@@ -62,7 +67,7 @@ func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*mod
 			)
 		}
 
-		source, err := ps.fieldStore.Get(store.WithMaster(context.Background()), "", *field.LinkedFieldID)
+		source, err := ps.fieldStore.Get(store.RequestContextWithMaster(rctx), "", *field.LinkedFieldID)
 		if err != nil {
 			if store.IsErrNotFound(err) {
 				return nil, model.NewAppError(
@@ -130,7 +135,10 @@ func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*mod
 			)
 		}
 
-		// Copy type and options from source
+		// Copy type, options, and sync source from source. The sync source
+		// (ldap/saml) must match the template's, since it defines where the
+		// value comes from -- a linked field can't independently claim a
+		// different sync source than the definition it links to.
 		field.Type = source.Type
 		if field.Attrs == nil {
 			field.Attrs = make(model.StringInterface)
@@ -139,13 +147,21 @@ func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*mod
 			if opts, ok := source.Attrs[model.PropertyFieldAttributeOptions]; ok {
 				field.Attrs[model.PropertyFieldAttributeOptions] = opts
 			}
+			if ldap, ok := source.Attrs[model.PropertyFieldAttrLDAP]; ok {
+				field.Attrs[model.PropertyFieldAttrLDAP] = ldap
+			}
+			if saml, ok := source.Attrs[model.PropertyFieldAttrSAML]; ok {
+				field.Attrs[model.PropertyFieldAttrSAML] = saml
+			}
 		}
 
 		// Inherit permission levels from source template
 		if source.PermissionField != nil {
 			field.PermissionField = source.PermissionField
 		}
-		if source.PermissionValues != nil {
+		// A caller pin wins over the template: a linked field may be writable
+		// at a lower level than the template it inherits its schema from.
+		if source.PermissionValues != nil && !callerPinnedValues {
 			field.PermissionValues = source.PermissionValues
 		}
 		if source.PermissionOptions != nil {
@@ -169,19 +185,57 @@ func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*mod
 		)
 	}
 
+	return ps.createFieldWithOptionLinks(rctx, field, suppliedOptions)
+}
+
+// createFieldWithOptionLinks writes a new field once the hierarchy its option
+// list asks for has been checked.
+//
+// It is called after the schema a linked field takes from its template has been
+// copied over, which is what makes the type it reads the field's real one: a field
+// created by linking to a graph template arrives with no mention of the graph type
+// anywhere in the request. suppliedOptions says whether the caller asked for
+// options of the field's own, which that copy would otherwise have hidden. The
+// other call site is the legacy path above, which cannot link at all and so has
+// nothing copied over it.
+func (ps *PropertyService) createFieldWithOptionLinks(rctx request.CTX, field *model.PropertyField, suppliedOptions bool) (*model.PropertyField, error) {
+	if field.Type == model.PropertyFieldTypeGraph && field.LinkSourceID() != "" {
+		// A field linking to a graph template serves that template's hierarchy and
+		// owns no part of it. An option of its own could never be given a parent from
+		// that hierarchy -- an edge never crosses fields -- so it could only form a
+		// second hierarchy permanently disconnected from the one the field exists to
+		// serve: covered by nothing but itself, and so granting nothing.
+		//
+		// Refused rather than dropped, which is also the answer the options endpoints
+		// give: a caller that sent options would otherwise be told they were created.
+		if suppliedOptions {
+			return nil, optionsChangeRefused(
+				"a field linking to field %s serves that field's option hierarchy and cannot own options of its own; add them to field %s instead",
+				field.LinkSourceID(), field.LinkSourceID())
+		}
+
+		// Any list the field carries now is its template's, copied in above so a read
+		// of the new field shows what it serves. None of it is this field's to own,
+		// and the store leaves an option owned by the link source alone.
+		return ps.fieldStore.Create(field)
+	}
+
+	if err := ps.validateOptionBlobLinks(field, nil); err != nil {
+		return nil, err
+	}
 	return ps.fieldStore.Create(field)
 }
 
-func (ps *PropertyService) getPropertyField(groupID, id string) (*model.PropertyField, error) {
-	return ps.fieldStore.Get(context.Background(), groupID, id)
+func (ps *PropertyService) getPropertyField(rctx request.CTX, groupID, id string) (*model.PropertyField, error) {
+	return ps.fieldStore.Get(rctx, groupID, id)
 }
 
-func (ps *PropertyService) getPropertyFieldFromMaster(groupID, id string) (*model.PropertyField, error) {
-	return ps.fieldStore.Get(store.WithMaster(context.Background()), groupID, id)
+func (ps *PropertyService) getPropertyFieldFromMaster(rctx request.CTX, groupID, id string) (*model.PropertyField, error) {
+	return ps.fieldStore.Get(store.RequestContextWithMaster(rctx), groupID, id)
 }
 
-func (ps *PropertyService) getPropertyFields(groupID string, ids []string) ([]*model.PropertyField, error) {
-	fields, err := ps.fieldStore.GetMany(context.Background(), groupID, ids)
+func (ps *PropertyService) getPropertyFields(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyField, error) {
+	fields, err := ps.fieldStore.GetMany(rctx, groupID, ids)
 	if err != nil {
 		var resultsMismatchErr *store.ErrResultsMismatch
 		if errors.As(err, &resultsMismatchErr) {
@@ -192,12 +246,12 @@ func (ps *PropertyService) getPropertyFields(groupID string, ids []string) ([]*m
 	return fields, nil
 }
 
-func (ps *PropertyService) getPropertyFieldByName(groupID, targetID, name string) (*model.PropertyField, error) {
-	return ps.fieldStore.GetFieldByName(context.Background(), groupID, targetID, name)
+func (ps *PropertyService) getPropertyFieldByName(rctx request.CTX, groupID, targetID, name string) (*model.PropertyField, error) {
+	return ps.fieldStore.GetFieldByName(rctx, groupID, targetID, name)
 }
 
-func (ps *PropertyService) getPropertyFieldByNameForObjectType(groupID, targetID, objectType, name string) (*model.PropertyField, error) {
-	return ps.fieldStore.GetFieldByNameForObjectType(context.Background(), groupID, targetID, objectType, name)
+func (ps *PropertyService) getPropertyFieldByNameForObjectType(rctx request.CTX, groupID, targetID, objectType, name string) (*model.PropertyField, error) {
+	return ps.fieldStore.GetFieldByNameForObjectType(rctx, groupID, targetID, objectType, name)
 }
 
 func (ps *PropertyService) countActivePropertyFieldsForGroup(groupID string) (int64, error) {
@@ -220,12 +274,12 @@ func (ps *PropertyService) countAllPropertyFieldsForTarget(groupID, targetType, 
 	return ps.fieldStore.CountForTarget(groupID, targetType, targetID, true)
 }
 
-func (ps *PropertyService) searchPropertyFields(groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
+func (ps *PropertyService) searchPropertyFields(rctx request.CTX, groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
 	// groupID is part of the search method signature to
 	// incentivize the use of the database indexes in searches
 	opts.GroupID = groupID
 
-	return ps.fieldStore.SearchPropertyFields(opts)
+	return ps.fieldStore.SearchPropertyFields(rctx, opts)
 }
 
 func (ps *PropertyService) updatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField) (*model.PropertyField, []string, error) {
@@ -254,7 +308,7 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 	// Read from master to avoid replication lag between this read and the
 	// subsequent UPDATE (which also runs against master). This closes the
 	// TOCTOU window that a replica read would leave open.
-	existingFields, err := ps.fieldStore.GetMany(store.WithMaster(context.Background()), groupID, ids)
+	existingFields, err := ps.fieldStore.GetMany(store.RequestContextWithMaster(rctx), groupID, ids)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to get existing fields for update: %w", err)
 	}
@@ -277,6 +331,75 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 		existing, ok := existingByID[field.ID]
 		if !ok {
 			continue
+		}
+
+		// A field with more than model.PropertyFieldMaxHydratedOptions options
+		// reads back with its option list left out, so a caller that read it and
+		// is now writing it back has no idea what the field's options are. Any
+		// list it supplies is therefore built on nothing: the shape a UI produces
+		// by appending to the empty list it was given claims the field has one
+		// option and implicitly deletes the other thousand.
+		//
+		// Refuse rather than guess. Obeying the list destroys data the caller never
+		// saw; ignoring it reports success for a change that did not happen. A
+		// supplied *empty* list — a caller echoing back the absent list, which is
+		// what a read-modify-write of any other attr looks like — is not refused,
+		// because that would block renaming such a field; the store leaves the
+		// options alone for it, but only because the store's option reconciliation
+		// skips a field on the options_omitted marker, not on the list being empty.
+		// A write that has lost that marker is refused even with no supplied list,
+		// because nothing downstream can tell it apart from a caller asserting the
+		// field now has no options. Editing the options of a field this large needs
+		// an interface that addresses one option at a time.
+		//
+		// Checked before the PSAv1 skip below: a legacy field's options are just as
+		// destroyable.
+		if model.PropertyFieldOptionsOmitted(existing.Attrs) &&
+			(model.PropertyFieldSuppliesOptions(field.Attrs) || !model.PropertyFieldOptionsOmitted(field.Attrs)) {
+			return nil, nil, nil, model.NewAppError(
+				"UpdatePropertyFields",
+				"app.property_field.update.options_withheld.app_error",
+				map[string]any{"FieldID": existing.ID, "Max": model.PropertyFieldMaxHydratedOptions},
+				"cannot replace the option list of a field whose options were not loaded",
+				http.StatusBadRequest,
+			)
+		}
+
+		// The graph type is not interchangeable with any other, in either
+		// direction. Its option set is meant to carry a hierarchy that no other
+		// type has a notion of, so a conversion either way changes what the
+		// field's values mean without saying so: out of graph, options authored
+		// as a hierarchy become a flat list; into graph, a flat list becomes a
+		// hierarchy nobody wrote. Neither is worth supporting when creating a
+		// field of the type actually wanted and moving the values across is
+		// always available.
+		//
+		// Checked before the PSAv1 skip below: the type means the same thing
+		// whichever property generation the field belongs to.
+		if field.Type != existing.Type &&
+			(field.Type == model.PropertyFieldTypeGraph || existing.Type == model.PropertyFieldTypeGraph) {
+			return nil, nil, nil, model.NewAppError(
+				"UpdatePropertyFields",
+				"app.property_field.update.graph_type_change.app_error",
+				map[string]any{"FieldID": existing.ID},
+				"cannot convert a field to or from the graph type",
+				http.StatusBadRequest,
+			)
+		}
+
+		// What the submitted option list asks for: the hierarchy it states, the
+		// options it leaves out, and the names it introduces. All three are checked
+		// before the PSAv1 skip below, for the same reason the two checks above are:
+		// what an option list says is decided by the field's type, not by which
+		// property generation the field belongs to.
+		if err := ps.validateOptionBlobLinks(field, existing); err != nil {
+			return nil, nil, nil, err
+		}
+		if err := ps.requireDroppedOptionsAreLeaves(field, existing); err != nil {
+			return nil, nil, nil, err
+		}
+		if err := ps.requireNamesFreeOfDependents(existing, optionNamesAddedBy(field.Attrs, existing.Attrs)); err != nil {
+			return nil, nil, nil, err
 		}
 
 		// Legacy properties (PSAv1) skip the conflict check.
@@ -393,8 +516,10 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 		expectedUpdateAts[id] = ef.UpdateAt
 	}
 
-	// Update fields atomically. The store handles propagation of type and
-	// options to linked dependents automatically via a JOIN-based UPDATE.
+	// Update fields atomically. Along with the requested fields the store returns
+	// any linked dependents whose option list changed as a result: a dependent
+	// derives its options from the field it links to, so its own row does not
+	// change but what it serves does.
 	all, uErr := ps.fieldStore.Update(groupID, fields, expectedUpdateAts)
 	if uErr != nil {
 		return nil, nil, nil, uErr
@@ -432,10 +557,10 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 	return requested, propagated, clearedFieldIDs, nil
 }
 
-func (ps *PropertyService) deletePropertyField(groupID, id string) error {
+func (ps *PropertyService) deletePropertyField(rctx request.CTX, groupID, id string) error {
 	// if groupID is not empty, we need to check first that the field belongs to the group
 	if groupID != "" {
-		if _, err := ps.getPropertyField(groupID, id); err != nil {
+		if _, err := ps.getPropertyField(rctx, groupID, id); err != nil {
 			return fmt.Errorf("error getting property field %q for group %q: %w", id, groupID, err)
 		}
 	}
@@ -465,16 +590,20 @@ func (ps *PropertyService) deletePropertyField(groupID, id string) error {
 // Public methods
 
 func (ps *PropertyService) CreatePropertyField(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
+	// Captured before the hooks run: they default-fill PermissionValues, so
+	// afterwards an explicit pin is indistinguishable from a server default.
+	callerPinnedValues := field.PermissionValues != nil
+
 	field, err := ps.runPreCreatePropertyField(rctx, field)
 	if err != nil {
 		return nil, fmt.Errorf("CreatePropertyField: %w", err)
 	}
 
-	return ps.createPropertyField(field)
+	return ps.createPropertyField(rctx, field, callerPinnedValues)
 }
 
 func (ps *PropertyService) GetPropertyField(rctx request.CTX, groupID, id string) (*model.PropertyField, error) {
-	field, err := ps.getPropertyField(groupID, id)
+	field, err := ps.getPropertyField(rctx, groupID, id)
 	if err != nil {
 		return nil, fmt.Errorf("GetPropertyField: %w", err)
 	}
@@ -483,7 +612,7 @@ func (ps *PropertyService) GetPropertyField(rctx request.CTX, groupID, id string
 }
 
 func (ps *PropertyService) GetPropertyFields(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyField, error) {
-	fields, err := ps.getPropertyFields(groupID, ids)
+	fields, err := ps.getPropertyFields(rctx, groupID, ids)
 	if err != nil {
 		return nil, fmt.Errorf("GetPropertyFields: %w", err)
 	}
@@ -492,7 +621,7 @@ func (ps *PropertyService) GetPropertyFields(rctx request.CTX, groupID string, i
 }
 
 func (ps *PropertyService) GetPropertyFieldsForGroup(rctx request.CTX, groupID string) ([]*model.PropertyField, error) {
-	fields, err := ps.fieldStore.GetForGroup(context.Background(), groupID)
+	fields, err := ps.fieldStore.GetForGroup(rctx, groupID)
 	if err != nil {
 		return nil, fmt.Errorf("GetPropertyFieldsForGroup: %w", err)
 	}
@@ -505,7 +634,7 @@ func (ps *PropertyService) GetPropertyFieldsForGroup(rctx request.CTX, groupID s
 // Deprecated: name is not unique within a group when fields of different object
 // types share a name. Use GetPropertyFieldByNameForObjectType to disambiguate.
 func (ps *PropertyService) GetPropertyFieldByName(rctx request.CTX, groupID, targetID, name string) (*model.PropertyField, error) {
-	field, err := ps.getPropertyFieldByName(groupID, targetID, name)
+	field, err := ps.getPropertyFieldByName(rctx, groupID, targetID, name)
 	if err != nil {
 		return nil, fmt.Errorf("GetPropertyFieldByName: %w", err)
 	}
@@ -514,7 +643,7 @@ func (ps *PropertyService) GetPropertyFieldByName(rctx request.CTX, groupID, tar
 }
 
 func (ps *PropertyService) GetPropertyFieldByNameForObjectType(rctx request.CTX, groupID, targetID, objectType, name string) (*model.PropertyField, error) {
-	field, err := ps.getPropertyFieldByNameForObjectType(groupID, targetID, objectType, name)
+	field, err := ps.getPropertyFieldByNameForObjectType(rctx, groupID, targetID, objectType, name)
 	if err != nil {
 		return nil, fmt.Errorf("GetPropertyFieldByNameForObjectType: %w", err)
 	}
@@ -551,7 +680,7 @@ func (ps *PropertyService) CountAllPropertyFieldsForTarget(rctx request.CTX, gro
 }
 
 func (ps *PropertyService) SearchPropertyFields(rctx request.CTX, groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
-	fields, err := ps.searchPropertyFields(groupID, opts)
+	fields, err := ps.searchPropertyFields(rctx, groupID, opts)
 	if err != nil {
 		return nil, fmt.Errorf("SearchPropertyFields: %w", err)
 	}
@@ -575,9 +704,9 @@ func (ps *PropertyService) UpdatePropertyField(rctx request.CTX, groupID string,
 }
 
 // UpdatePropertyFields updates a batch of fields and returns the requested set,
-// any linked-property propagated fields, and the IDs of fields whose dependent
-// property values were cleared as a side effect. The caller is expected to
-// publish any value-cleanup WS events.
+// any linked fields whose derived option list the update changed, and the IDs of
+// fields whose dependent property values were cleared as a side effect. The
+// caller is expected to publish any value-cleanup WS events.
 func (ps *PropertyService) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) (requested []*model.PropertyField, propagated []*model.PropertyField, clearedFieldIDs []string, err error) {
 	fields, err = ps.runPreUpdatePropertyFields(rctx, groupID, fields)
 	if err != nil {
@@ -592,7 +721,7 @@ func (ps *PropertyService) DeletePropertyField(rctx request.CTX, groupID, id str
 		return fmt.Errorf("DeletePropertyField: %w", err)
 	}
 
-	return ps.deletePropertyField(groupID, id)
+	return ps.deletePropertyField(rctx, groupID, id)
 }
 
 // asOptionSlice extracts the options from an attrs map as []map[string]any
@@ -624,6 +753,11 @@ func asOptionSlice(attrs model.StringInterface) []map[string]any {
 // optionsChanged compares the options in two attrs maps and returns true if they differ.
 // Compares by building a map keyed on option ID and using reflect.DeepEqual for
 // value comparison, which correctly handles nested structures (maps, slices).
+//
+// Neither side needs a withheld-option-list branch: a non-empty list supplied
+// against a field whose list was withheld is refused outright before this runs
+// (see the option-list invariant in updatePropertyFields), and every remaining
+// shape has no list on either side and so compares unchanged.
 func optionsChanged(oldAttrs, newAttrs model.StringInterface) bool {
 	oldOpts := asOptionSlice(oldAttrs)
 	newOpts := asOptionSlice(newAttrs)

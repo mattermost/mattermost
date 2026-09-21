@@ -7,7 +7,7 @@ import useBaseUrl from '@docusaurus/useBaseUrl';
 
 **Technical complexity:** [Low-code](./faq#low-code)
 
-Outgoing webhooks can be used to create rich, interactive experiences in Mattermost by letting external services respond with rich message attachments, such as structured fields, buttons, and menus. Additionally, these responses can trigger interactive dialog forms where users provide additional input directly in Mattermost, or interactive messages that update dynamically based on user actions. Together, these capabilities turn simple keyword triggers into powerful in-product workflows that streamline how teams interact with external systems, all with minimal coding required.
+Outgoing webhooks can be used to create rich, interactive experiences in Mattermost by letting external services respond with [Mattermost Blocks](https://developers.mattermost.com/integrate/reference/mm-blocks/)—structured content with buttons, menus, and other interactive elements. Additionally, these responses can trigger interactive dialog forms where users provide additional input directly in Mattermost. Together, these capabilities turn simple keyword triggers into powerful in-product workflows that streamline how teams interact with external systems, all with minimal coding required.
 
 Outgoing webhooks require no coding to configure on in Mattermost, however the external service that receives the HTTP POST request needs to process the data, and then format and send a respond with a message back to Mattermost. This usually requires light coding to parse the request and format a JSON response payload, though many [automation platforms](/integrations-guide/integrations-guide-index#build-and-automate-workflows) handle this without writing custom code.
 
@@ -23,11 +23,11 @@ When a user types `bug` in a channel, an outgoing webhook sends the message to a
 
 **Knowledge base lookup**
 
-A keyword like `docs` triggers an outgoing webhook that queries a documentation service and returns a rich interactive message with a list of suggested articles, each with clickable buttons or menus. Users can refine their search or open links without leaving Mattermost.
+A keyword like `docs` triggers an outgoing webhook that queries a documentation service and returns a response with [Mattermost Blocks](https://developers.mattermost.com/integrate/reference/mm-blocks/) listing suggested articles, each with clickable buttons or menus. Users can refine their search or open links without leaving Mattermost.
 
 **Security incident enrichment**
 
-Typing a keyword like `ioc` (indicator of compromise) in a security channel can trigger an outgoing webhook that queries a threat intelligence platform. The response can return a formatted message attachment with reputation scores, related incidents, and quick-action buttons for escalating, investigating, or dismissing the alert.
+Typing a keyword like `ioc` (indicator of compromise) in a security channel can trigger an outgoing webhook that queries a threat intelligence platform. The response can return [Mattermost Blocks](https://developers.mattermost.com/integrate/reference/mm-blocks/) with reputation scores, related incidents, and quick-action buttons for escalating, investigating, or dismissing the alert.
 
 ## Create
 
@@ -168,7 +168,7 @@ The JSON response can contain the following parameters:
 <tbody>
 <tr>
 <td><code>text</code></td>
-<td>(Required if <code>attachments</code> is not set) <a href="/end-user-guide/collaborate/format-messages">Markdown-formatted</a> message.</td>
+<td>(Required unless <code>attachments</code> or <code>props.mm_blocks</code> is set) <a href="/end-user-guide/collaborate/format-messages">Markdown-formatted</a> message.</td>
 </tr>
 <tr>
 <td><code>response_type</code></td>
@@ -184,7 +184,7 @@ The JSON response can contain the following parameters:
 </tr>
 <tr>
 <td><code>attachments</code></td>
-<td>(Required if <code>text</code> is not set) An array of <a href="https://developers.mattermost.com/integrate/reference/message-attachments/">message attachment</a> objects.</td>
+<td>Legacy array of <a href="https://developers.mattermost.com/integrate/reference/message-attachments/">message attachment</a> objects. Use Mattermost Blocks for new integrations.</td>
 </tr>
 <tr>
 <td><code>type</code></td>
@@ -192,7 +192,7 @@ The JSON response can contain the following parameters:
 </tr>
 <tr>
 <td><code>props</code></td>
-<td>A JSON object for storing metadata.</td>
+<td>A JSON object for storing metadata. Use <a href="https://developers.mattermost.com/integrate/reference/mm-blocks/">Mattermost Blocks</a> for rich, interactive content.</td>
 </tr>
 <tr>
 <td><code>priority</code></td>
@@ -223,22 +223,21 @@ This response would produce a threaded reply to the original message that trigge
 
 <img src={useBaseUrl('/images/outgoing_webhooks_full_example.png')} width="400" alt="Example of a full response from an outgoing webhook." />
 
-You can also include [message attachments](https://developers.mattermost.com/integrate/reference/message-attachments/) and [interactive messages](https://developers.mattermost.com/integrate/plugins/interactive-messages/) in your response to create more advanced workflows.
+You can also include [Mattermost Blocks](https://developers.mattermost.com/integrate/reference/mm-blocks/) in your response to create more advanced workflows.
 
 ## Do More with Outgoing Webhooks
 
 Turn keyword-triggered callbacks into guided, in-channel workflows by returning buttons, menus, and other interactive elements in your webhook responses so users can act immediately.
 
-- [Message Attachments](https://developers.mattermost.com/integrate/reference/message-attachments/): Return rich, structured results (IDs, statuses, fields, links, images) for quick confirmation and follow-up.
-- [Interactive Messages](https://developers.mattermost.com/integrate/plugins/interactive-messages/): Present next-step actions (Acknowledge, Assign, Escalate) as buttons/menus directly in your response—no context switching.
+- [Mattermost Blocks](https://developers.mattermost.com/integrate/reference/mm-blocks/): Return structured, interactive content with text, buttons, and menus.
 - [Interactive Dialogs](https://developers.mattermost.com/integrate/plugins/interactive-dialogs/): When a button/menu click requires more info (e.g., “Acknowledge with note”, “Assign to user”), open a dialog to collect structured inputs with required fields, min/max lengths, server-driven user/channel pickers, validated defaults, inline field errors, placeholders, and help text.
 - [Message Priority](https://developers.mattermost.com/integrate/reference/message-priority/): Include `priority` in your response to mark critical updates and optionally request acknowledgements or persistent notifications.
 
 <Note>
 
-- Outgoing webhook responses support attachments and interactive actions. When a user clicks an action, your integration receives a signed trigger ID and can open an interactive dialog via the dialog API. You can also control visibility with the response type (in-channel vs ephemeral).
+- Outgoing webhook responses support Mattermost Blocks and interactive actions. The outgoing webhook <code>response_type</code> accepts <code>post</code> or <code>comment</code>. When a user clicks an action, the callback payload includes a <code>trigger_id</code> field that can be used to open an interactive dialog; the trigger ID isn't a request signature. Return <code>ephemeral_text</code> in the action response when feedback should be visible only to the user who clicked the action.
 - Need a dedicated identity, permissions scoping, or need to post outside of webhook/command flows? Use a [bot account](https://developers.mattermost.com/integrate/reference/bot-accounts/) if you need a more permanent solution than using overrides for simple branding.
 - If your command backend needs to call Mattermost APIs (e.g., posting messages, ephemeral posts, opening interactive dialogs, etc.), authenticate with a bot user [personal access token](https://developers.mattermost.com/integrate/reference/personal-access-token/). We recommend avoiding human/System Admin personal access tokens for automations and rotating and storing tokens securely.
-- Looking to support private channels, direct messages, and autocomplete? Use a [built-in slash command](/integrations-guide/built-in-slash-commands), or create a [custom slash command](https://developers.mattermost.com/integrate/slash-commands/custom/). You can additionally tegrate Mattermost with custom integrations hosted within your internal OAuth infrastructure [using the Client Credentials OAuth 2.0 grant type](https://developers.mattermost.com/integrate/slash-commands/outgoing-oauth-connections/). Mattermost also makes it easy to [migrate integrations written for Slack to Mattermost](https://developers.mattermost.com/integrate/slash-commands/slack/).
+- Looking to support private channels, direct messages, and autocomplete? Use a [built-in slash command](/integrations-guide/built-in-slash-commands), or create a [custom slash command](https://developers.mattermost.com/integrate/slash-commands/custom/). You can additionally integrate Mattermost with custom integrations hosted within your internal OAuth infrastructure [using the Client Credentials OAuth 2.0 grant type](https://developers.mattermost.com/integrate/slash-commands/outgoing-oauth-connections/). Mattermost also makes it easy to [migrate integrations written for Slack to Mattermost](https://developers.mattermost.com/integrate/slash-commands/slack/).
 
 </Note>

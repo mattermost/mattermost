@@ -233,7 +233,7 @@ func (a *App) CreateRecapFromSchedule(rctx request.CTX, sr *model.ScheduledRecap
 		err        error
 	)
 	if model.IsLimitEnabled(limits.MaxRecapsPerDay) {
-		startOfDayMillis, dayErr := a.getStartOfUserDayMillis(sr.UserId)
+		startOfDayMillis, dayErr := a.getStartOfUserDayMillis(rctx, sr.UserId)
 		if dayErr != nil {
 			return nil, dayErr
 		}

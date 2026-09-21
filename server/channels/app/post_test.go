@@ -24,6 +24,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
+	eMocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/mocks"
 )
@@ -877,7 +878,7 @@ func TestImageProxy(t *testing.T) {
 	mockUserStore := storemocks.UserStore{}
 	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
 	mockPostStore := storemocks.PostStore{}
-	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
+	mockPostStore.On("GetMaxPostSize").Return(model.PostMessageMaxBytesV2, nil)
 	mockSystemStore := storemocks.SystemStore{}
 	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
 	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
@@ -894,48 +895,12 @@ func TestImageProxy(t *testing.T) {
 
 	th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server.platform, th.Server.HTTPService(), th.Server.Log())
 
-	testHMACKey := model.NewTestPassword()
-
 	for name, tc := range map[string]struct {
 		ProxyType              string
-		ProxyURL               string
-		ProxyOptions           string
 		ImageURL               string
 		ProxiedImageURL        string
 		ProxiedRemovedImageURL string
 	}{
-		"atmos/camo": {
-			ProxyType:              model.ImageProxyTypeAtmosCamo,
-			ProxyURL:               "https://127.0.0.1",
-			ProxyOptions:           testHMACKey,
-			ImageURL:               "http://mydomain.com/myimage",
-			ProxiedRemovedImageURL: "http://mydomain.com/myimage",
-			ProxiedImageURL:        "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage",
-		},
-		"atmos/camo_SameSite": {
-			ProxyType:              model.ImageProxyTypeAtmosCamo,
-			ProxyURL:               "https://127.0.0.1",
-			ProxyOptions:           testHMACKey,
-			ImageURL:               "http://mymattermost.com/myimage",
-			ProxiedRemovedImageURL: "http://mymattermost.com/myimage",
-			ProxiedImageURL:        "http://mymattermost.com/myimage",
-		},
-		"atmos/camo_PathOnly": {
-			ProxyType:              model.ImageProxyTypeAtmosCamo,
-			ProxyURL:               "https://127.0.0.1",
-			ProxyOptions:           testHMACKey,
-			ImageURL:               "/myimage",
-			ProxiedRemovedImageURL: "http://mymattermost.com/myimage",
-			ProxiedImageURL:        "http://mymattermost.com/myimage",
-		},
-		"atmos/camo_EmptyImageURL": {
-			ProxyType:              model.ImageProxyTypeAtmosCamo,
-			ProxyURL:               "https://127.0.0.1",
-			ProxyOptions:           testHMACKey,
-			ImageURL:               "",
-			ProxiedRemovedImageURL: "",
-			ProxiedImageURL:        "",
-		},
 		"local": {
 			ProxyType:              model.ImageProxyTypeLocal,
 			ImageURL:               "http://mydomain.com/myimage",
@@ -965,8 +930,6 @@ func TestImageProxy(t *testing.T) {
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				cfg.ImageProxySettings.Enable = new(true)
 				cfg.ImageProxySettings.ImageProxyType = new(tc.ProxyType)
-				cfg.ImageProxySettings.RemoteImageProxyOptions = new(tc.ProxyOptions)
-				cfg.ImageProxySettings.RemoteImageProxyURL = new(tc.ProxyURL)
 			})
 
 			post := &model.Post{
@@ -1164,9 +1127,7 @@ func TestCreatePost(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
 			*cfg.ImageProxySettings.Enable = true
-			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
-			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
-			*cfg.ImageProxySettings.RemoteImageProxyOptions = model.NewTestPassword()
+			*cfg.ImageProxySettings.ImageProxyType = "local"
 		})
 
 		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server.platform, th.Server.HTTPService(), th.Server.Log())
@@ -1566,7 +1527,7 @@ func TestCreatePost(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 		th.LinkUserToTeam(t, botUser, th.BasicTeam)
 		_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -1611,7 +1572,7 @@ func TestCreatePost(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 		th.LinkUserToTeam(t, botUser, th.BasicTeam)
 		_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -1630,6 +1591,146 @@ func TestCreatePost(t *testing.T) {
 		updatedPost, _, err := th.App.UpdatePost(th.Context, createdPost, nil)
 		require.Nil(t, err)
 		require.Equal(t, "true", updatedPost.GetProp(model.PostPropsFromBot))
+	})
+
+	t.Run("v12: federated update propagates a remotely-cleared identity override", func(t *testing.T) {
+		// Federated posts skip identity-prop stripping in SanitizeProps, so
+		// receivedUpdatedPost.GetProps() already is the remote's complete,
+		// authoritative state. PreserveIdentityPropsFrom must not run for these
+		// posts, or a prop the origin cluster cleared would be silently
+		// resurrected from the stale local copy.
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		remoteID := "remote-cluster-1"
+		original := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "synced message",
+			UserId:    th.BasicUser.Id,
+			RemoteId:  &remoteID,
+			Props: model.StringInterface{
+				model.PostPropsOverrideUsername: "RemoteBot",
+			},
+		}
+		savedPost, nErr := th.App.Srv().Store().Post().Save(th.Context, original)
+		require.NoError(t, nErr)
+		require.Equal(t, "RemoteBot", savedPost.GetProp(model.PostPropsOverrideUsername))
+
+		// The remote cluster's sync now sends the post without
+		// override_username — it was cleared upstream.
+		synced := savedPost.Clone()
+		synced.Message = "synced message edited"
+		synced.DelProp(model.PostPropsOverrideUsername)
+
+		updated, _, appErr := th.App.UpdatePost(th.Context, synced, &model.UpdatePostOptions{AllowIdentityPropsUpdate: true})
+		require.Nil(t, appErr)
+		assert.Nil(t, updated.GetProp(model.PostPropsOverrideUsername), "federated update must propagate the remote's cleared override, not resurrect the stale local value")
+	})
+
+	t.Run("v12: RemoteId alone does not skip identity preservation without AllowIdentityPropsUpdate", func(t *testing.T) {
+		// Regression test: a post can carry a non-empty RemoteId without the
+		// caller being the trusted federation-sync path — e.g. PatchPost
+		// fetches the stored post (with its real RemoteId) and never clears
+		// it the way SanitizeInput does for the plain update endpoint. If the
+		// federated-skip check only looked at RemoteId, a caller that never
+		// opted into AllowIdentityPropsUpdate could still forge
+		// override_username into an already-synced post's Props and have it
+		// survive, since SanitizeProps also exempts federated posts from
+		// stripping. Preservation must still run whenever the caller hasn't
+		// been granted AllowIdentityPropsUpdate, federated or not.
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		remoteID := "remote-cluster-1"
+		original := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "synced message",
+			UserId:    th.BasicUser.Id,
+			RemoteId:  &remoteID,
+			Props: model.StringInterface{
+				model.PostPropsOverrideUsername: "RemoteBot",
+			},
+		}
+		savedPost, nErr := th.App.Srv().Store().Post().Save(th.Context, original)
+		require.NoError(t, nErr)
+
+		// Simulates a local caller (e.g. PatchPost) editing an already-synced
+		// post without going through federation receive: RemoteId survives on
+		// the object handed to UpdatePost, but AllowIdentityPropsUpdate is not
+		// set, and the payload attempts to forge a new override_username.
+		forged := savedPost.Clone()
+		forged.Message = "edited locally"
+		forged.AddProp(model.PostPropsOverrideUsername, "ForgedName")
+
+		updated, _, appErr := th.App.UpdatePost(th.Context, forged, &model.UpdatePostOptions{SafeUpdate: false})
+		require.Nil(t, appErr)
+		assert.Equal(t, "RemoteBot", updated.GetProp(model.PostPropsOverrideUsername), "without AllowIdentityPropsUpdate, a RemoteId-bearing post must still have its identity props preserved from the prior post, not overwritten by the caller's payload")
+	})
+
+	t.Run("v12: forged RemoteId on a post with no prior override cannot inject a new one", func(t *testing.T) {
+		// Deeper variant of the test above: PreserveIdentityPropsFrom only
+		// RESTORES a value oldPost already had — it never clears a forged one
+		// that SetProps just introduced. So if oldPost has no pre-existing
+		// override, the previous test's protection (restore the old value)
+		// does nothing, and the real defense has to be that SanitizeProps
+		// itself strips the forged prop in the first place. That only happens
+		// if RemoteId is cleared before SanitizeProps runs for callers lacking
+		// AllowIdentityPropsUpdate — e.g. an interactive-action response
+		// decoded straight from an integration's JSON body, which can carry
+		// an attacker-supplied remote_id with no SanitizeInput() to clear it.
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		createdPost, _, err := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "plain message",
+			UserId:    th.BasicUser.Id,
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, err)
+		require.Nil(t, createdPost.GetProp(model.PostPropsOverrideUsername), "sanity: no pre-existing override to preserve")
+
+		forgedRemoteID := "attacker-forged-remote-id"
+		forged := createdPost.Clone()
+		forged.Message = "edited via action response"
+		forged.RemoteId = &forgedRemoteID
+		forged.AddProp(model.PostPropsFromWebhook, "true")
+		forged.AddProp(model.PostPropsOverrideUsername, "CEO")
+
+		updated, _, appErr := th.App.UpdatePost(th.Context, forged, &model.UpdatePostOptions{SafeUpdate: false, AllowMmBlocksActionsUpdate: true})
+		require.Nil(t, appErr)
+		assert.Nil(t, updated.GetProp(model.PostPropsOverrideUsername), "a caller without AllowIdentityPropsUpdate must not be able to inject a new override by forging RemoteId, even when the original post had none to restore")
+		assert.Nil(t, updated.GetProp(model.PostPropsFromWebhook), "forged from_webhook must not survive either")
+	})
+
+	t.Run("v12: non-federated AllowIdentityPropsUpdate still preserves an omitted override", func(t *testing.T) {
+		// Contrast with the federated case above: a non-federated caller
+		// (PluginAPI.UpdatePost) that doesn't include override_username on its
+		// post at all must not have it wiped — SanitizeProps already stripped
+		// it from receivedUpdatedPost, so preservation from oldPost is the only
+		// thing standing between "caller didn't touch this field" and
+		// "caller's edit silently erased the bot's identity." Uses
+		// FromIncomingWebhook to set up the fixture post with an override,
+		// since FromPlugin no longer re-injects one at create time (see "v12:
+		// override_* stripped for FromPlugin flag" below) — this test is about
+		// UpdatePost's preservation behavior, not about which flag created it.
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		createdPost, _, err := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "webhook message",
+			UserId:    th.BasicUser.Id,
+		}, th.BasicChannel, model.CreatePostFlags{FromIncomingWebhook: true, OverrideUsername: "WebhookBot"})
+		require.Nil(t, err)
+		require.Equal(t, "WebhookBot", createdPost.GetProp(model.PostPropsOverrideUsername))
+
+		edit := createdPost.Clone()
+		edit.Message = "webhook message edited"
+		edit.DelProp(model.PostPropsOverrideUsername)
+
+		updated, _, appErr := th.App.UpdatePost(th.Context, edit, &model.UpdatePostOptions{AllowIdentityPropsUpdate: true})
+		require.Nil(t, appErr)
+		assert.Equal(t, "WebhookBot", updated.GetProp(model.PostPropsOverrideUsername), "non-federated caller omitting the prop must not wipe the existing override")
 	})
 
 	t.Run("should not promote post to silent via edit payload", func(t *testing.T) {
@@ -1721,10 +1822,9 @@ func TestCreatePost(t *testing.T) {
 		// silent_notification and force_notification are authorization-load-bearing
 		// (they change notification delivery for everyone in the channel) and must
 		// be stripped from non-integration callers regardless of hardened-mode
-		// setting. The from_* identity markers are not stripped by default in v11
-		// — they remain user-settable for backward compatibility. Hardened mode
-		// rejects from_webhook and from_plugin via ContainsIntegrationsReservedProps;
-		// from_bot and from_oauth_app are not currently in that reserved set.
+		// setting. The from_* identity markers are stripped by default in v12
+		// (see the "v12:" tests below) — hardened mode no longer plays any role
+		// in prop stripping; it only controls auth/error scrubbing.
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
@@ -1744,12 +1844,188 @@ func TestCreatePost(t *testing.T) {
 		require.Empty(t, createdPost.GetProp(model.PostPropsForceNotification))
 	})
 
+	t.Run("v12: override_* stripped from regular user post.Props", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+		th.AddUserToChannel(t, th.BasicUser, th.BasicChannel)
+
+		createdPost, _, err := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "forged identity",
+			UserId:    th.BasicUser.Id,
+			Props: model.StringInterface{
+				model.PostPropsOverrideUsername:   "Boss",
+				model.PostPropsOverrideIconURL:    "http://attacker/icon.png",
+				model.PostPropsOverrideIconEmoji:  ":imposter:",
+				model.PostPropsWebhookDisplayName: "ForgedHook",
+				model.PostPropsFromWebhook:        "true",
+			},
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, err)
+
+		require.Nil(t, createdPost.GetProp(model.PostPropsOverrideUsername))
+		require.Nil(t, createdPost.GetProp(model.PostPropsOverrideIconURL))
+		require.Nil(t, createdPost.GetProp(model.PostPropsOverrideIconEmoji))
+		require.Nil(t, createdPost.GetProp(model.PostPropsWebhookDisplayName))
+		require.Nil(t, createdPost.GetProp(model.PostPropsFromWebhook))
+	})
+
+	t.Run("v12: override_* stripped for PAT user session", func(t *testing.T) {
+		// PAT-holding humans are deliberately excluded from isIntegrationPostAuthor —
+		// this is the core of the impersonation closure. A regular user with a PAT
+		// must NOT be able to forge override_username via post.Props.
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+		th.AddUserToChannel(t, th.BasicUser, th.BasicChannel)
+
+		session := *th.Context.Session()
+		session.IsOAuth = false
+		session.AddProp(model.SessionPropIsBot, "")
+		session.Props[model.SessionPropType] = model.SessionTypeUserAccessToken
+		patCtx := th.Context.WithSession(&session)
+
+		createdPost, _, err := th.App.CreatePost(patCtx, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "PAT impersonation attempt",
+			UserId:    th.BasicUser.Id,
+			Props: model.StringInterface{
+				model.PostPropsOverrideUsername: "CEO",
+				model.PostPropsOverrideIconURL:  "http://example.com/ceo.png",
+				model.PostPropsFromWebhook:      "true",
+			},
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, err)
+
+		require.Nil(t, createdPost.GetProp(model.PostPropsOverrideUsername))
+		require.Nil(t, createdPost.GetProp(model.PostPropsOverrideIconURL))
+		require.Nil(t, createdPost.GetProp(model.PostPropsFromWebhook))
+	})
+
+	t.Run("v12: override_* stripped for bot user posting directly (no webhook/plugin flag)", func(t *testing.T) {
+		// Override display has been an incoming-webhook-specific feature since
+		// its 2015 introduction (paired with from_webhook and a "BOT" badge) —
+		// every render path still gates on from_webhook alone. A bot account
+		// already has its own account-level username/icon; re-injecting a
+		// per-post override here would just resurrect the from_webhook +
+		// override_username forgery idiom via a bot session instead of a
+		// forged prop, so isIntegrationPostAuthor's broader scope must not
+		// extend to this block.
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		bot := th.CreateBot(t)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
+		require.Nil(t, appErr)
+		th.LinkUserToTeam(t, botUser, th.BasicTeam)
+		_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
+		require.Nil(t, appErr)
+
+		createdPost, _, err := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "bot override via props",
+			UserId:    bot.UserId,
+			Props: model.StringInterface{
+				model.PostPropsOverrideUsername:  "BotName",
+				model.PostPropsOverrideIconURL:   "http://bot/icon.png",
+				model.PostPropsOverrideIconEmoji: ":bot:",
+			},
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, err)
+
+		require.Nil(t, createdPost.GetProp(model.PostPropsOverrideUsername))
+		require.Nil(t, createdPost.GetProp(model.PostPropsOverrideIconURL))
+		require.Nil(t, createdPost.GetProp(model.PostPropsOverrideIconEmoji))
+	})
+
+	t.Run("v12: override_* stripped for OAuth-app session posting directly (no webhook/plugin flag)", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		session := *th.Context.Session()
+		session.IsOAuth = true
+		oauthCtx := th.Context.WithSession(&session)
+
+		createdPost, _, err := th.App.CreatePost(oauthCtx, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "oauth override via props",
+			UserId:    th.BasicUser.Id,
+			Props: model.StringInterface{
+				model.PostPropsOverrideUsername: "OAuthBot",
+				model.PostPropsOverrideIconURL:  "http://oauth/icon.png",
+			},
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, err)
+
+		require.Nil(t, createdPost.GetProp(model.PostPropsOverrideUsername))
+		require.Nil(t, createdPost.GetProp(model.PostPropsOverrideIconURL))
+	})
+
+	t.Run("v12: override_* stripped for FromPlugin flag (no render path honors it)", func(t *testing.T) {
+		// Like bot/OAuth-authored posts, plugin-authored overrides are never
+		// re-injected: no render path (GetSenderName, user_profile.tsx,
+		// post_profile_picture.tsx, avatar.tsx, commented_on.tsx) checks
+		// from_plugin, only from_webhook. Re-injecting here would store an
+		// override that never displays anywhere, and plugins typically run as
+		// their own bot account with account-level identity already
+		// configured in System Console. from_plugin itself still gets set —
+		// it's used elsewhere (e.g. silent_notification authority) — only the
+		// display-identity re-injection is scoped out.
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+		th.AddUserToChannel(t, th.BasicUser, th.BasicChannel)
+
+		createdPost, _, err := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "plugin override",
+			UserId:    th.BasicUser.Id,
+		}, th.BasicChannel, model.CreatePostFlags{
+			FromPlugin:        true,
+			OverrideUsername:  "PluginBot",
+			OverrideIconURL:   "http://plugin/icon.png",
+			OverrideIconEmoji: ":plugin:",
+		})
+		require.Nil(t, err)
+
+		require.Equal(t, "true", createdPost.GetProp(model.PostPropsFromPlugin))
+		require.Nil(t, createdPost.GetProp(model.PostPropsOverrideUsername))
+		require.Nil(t, createdPost.GetProp(model.PostPropsOverrideIconURL))
+		require.Nil(t, createdPost.GetProp(model.PostPropsOverrideIconEmoji))
+	})
+
+	t.Run("v12: CreatePostFlags override values beat post.Props capture", func(t *testing.T) {
+		// Trusted server entry points (webhook.go, command.go, plugin_api.go) set
+		// the override values via CreatePostFlags from authoritative sources
+		// (hook.Username, command.Username). The flag must win over any value the
+		// caller also left on post.Props.
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+		th.AddUserToChannel(t, th.BasicUser, th.BasicChannel)
+
+		createdPost, _, err := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "flag precedence",
+			UserId:    th.BasicUser.Id,
+			Props: model.StringInterface{
+				model.PostPropsOverrideUsername: "FromProps",
+				model.PostPropsOverrideIconURL:  "http://props/icon.png",
+			},
+		}, th.BasicChannel, model.CreatePostFlags{
+			FromIncomingWebhook: true,
+			OverrideUsername:    "FromFlag",
+			OverrideIconURL:     "http://flag/icon.png",
+		})
+		require.Nil(t, err)
+
+		require.Equal(t, "FromFlag", createdPost.GetProp(model.PostPropsOverrideUsername))
+		require.Equal(t, "http://flag/icon.png", createdPost.GetProp(model.PostPropsOverrideIconURL))
+	})
+
 	t.Run("force notification wins over silent", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 		th.LinkUserToTeam(t, botUser, th.BasicTeam)
 		_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -1770,7 +2046,7 @@ func TestCreatePost(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 		th.LinkUserToTeam(t, botUser, th.BasicTeam)
 		_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -1797,7 +2073,7 @@ func TestCreatePost(t *testing.T) {
 		})
 
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 		th.LinkUserToTeam(t, botUser, th.BasicTeam)
 		_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -1825,7 +2101,7 @@ func TestCreatePost(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 
 		dm, appErr := th.App.createDirectChannel(th.Context, botUser.Id, th.BasicUser2.Id)
@@ -1854,7 +2130,7 @@ func TestCreatePost(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, botUser.Id, "")
 		require.Nil(t, appErr)
@@ -1886,7 +2162,7 @@ func TestCreatePost(t *testing.T) {
 
 		th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
 		bot := th.CreateBot(t)
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 		th.LinkUserToTeam(t, botUser, th.BasicTeam)
 		_, appErr = th.App.AddUserToChannel(th.Context, botUser, th.BasicChannel, false)
@@ -2029,9 +2305,7 @@ func TestPatchPost(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
 			*cfg.ImageProxySettings.Enable = true
-			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
-			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
-			*cfg.ImageProxySettings.RemoteImageProxyOptions = model.NewTestPassword()
+			*cfg.ImageProxySettings.ImageProxyType = "local"
 		})
 
 		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server.platform, th.Server.HTTPService(), th.Server.Log())
@@ -2224,7 +2498,7 @@ func TestCreatePostAsUser(t *testing.T) {
 
 		bot := th.CreateBot(t)
 
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 
 		th.LinkUserToTeam(t, botUser, th.BasicTeam)
@@ -2255,7 +2529,7 @@ func TestCreatePostAsUser(t *testing.T) {
 
 		bot := th.CreateBot(t)
 
-		botUser, appErr := th.App.GetUser(bot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 		require.Nil(t, appErr)
 
 		th.LinkUserToTeam(t, botUser, th.BasicTeam)
@@ -2490,9 +2764,7 @@ func TestUpdatePost(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
 			*cfg.ImageProxySettings.Enable = true
-			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
-			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
-			*cfg.ImageProxySettings.RemoteImageProxyOptions = model.NewTestPassword()
+			*cfg.ImageProxySettings.ImageProxyType = "local"
 		})
 
 		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server.platform, th.Server.HTTPService(), th.Server.Log())
@@ -2742,7 +3014,7 @@ func TestSearchPostsForUser(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		posts := make([]*model.Post, 7)
-		for i := 0; i < cap(posts); i++ {
+		for i := range cap(posts) {
 			post, _, err := th.App.CreatePost(th.Context, &model.Post{
 				UserId:    th.BasicUser.Id,
 				ChannelId: th.BasicChannel.Id,
@@ -3634,7 +3906,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
-		for i := 0; i < numPosts-1; i++ {
+		for range numPosts - 1 {
 			_, _, err = th.App.CreatePost(th.Context, &model.Post{
 				UserId:    user1.Id,
 				ChannelId: channel.Id,
@@ -4912,7 +5184,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 	require.Nil(t, err2)
 
 	t.Run("should return the edit history", func(t *testing.T) {
-		edits, err := th.App.GetEditHistoryForPost(post.Id)
+		edits, err := th.App.GetEditHistoryForPost(th.Context, post.Id)
 		require.Nil(t, err)
 
 		require.Len(t, edits, 2)
@@ -4921,7 +5193,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 	})
 
 	t.Run("should return an error if the post is not found", func(t *testing.T) {
-		edits, err := th.App.GetEditHistoryForPost("invalid-post-id")
+		edits, err := th.App.GetEditHistoryForPost(th.Context, "invalid-post-id")
 		require.NotNil(t, err)
 		require.Empty(t, edits)
 	})
@@ -4959,7 +5231,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 		_, _, appErr = th.App.PatchPost(th.Context, post.Id, patch, nil)
 		require.Nil(t, appErr)
 
-		edits, err := th.App.GetEditHistoryForPost(post.Id)
+		edits, err := th.App.GetEditHistoryForPost(th.Context, post.Id)
 		require.Nil(t, err)
 
 		require.Len(t, edits, 3)
@@ -5009,7 +5281,7 @@ func TestGetEditHistoryForPost(t *testing.T) {
 		_, err := th.App.Srv().Store().FileInfo().DeleteForPost(th.Context, post.Id)
 		require.NoError(t, err)
 
-		edits, appErr := th.App.GetEditHistoryForPost(post.Id)
+		edits, appErr := th.App.GetEditHistoryForPost(th.Context, post.Id)
 		require.Nil(t, appErr)
 
 		require.Len(t, edits, 3)
@@ -5020,6 +5292,70 @@ func TestGetEditHistoryForPost(t *testing.T) {
 			require.Len(t, edit.Metadata.Files, 1)
 			require.Equal(t, fileInfo.Id, edit.Metadata.Files[0].Id)
 			require.Greater(t, edit.Metadata.Files[0].DeleteAt, int64(0))
+		}
+	})
+}
+
+func TestGetEditHistoryForPostABACRedaction(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+	}).InitBasic(t)
+
+	fileInfo, appErr := th.App.UploadFile(th.Context, []byte("file contents"), th.BasicChannel.Id, "file.txt")
+	require.Nil(t, appErr)
+
+	post := &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		Message:   "message with an attachment",
+		UserId:    th.BasicUser.Id,
+		FileIds:   model.StringArray{fileInfo.Id},
+	}
+	_, _, appErr = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+	require.Nil(t, appErr)
+
+	_, _, appErr = th.App.PatchPost(th.Context, post.Id, &model.PostPatch{Message: new("edited")}, nil)
+	require.Nil(t, appErr)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+	})
+
+	mockACS := &eMocks.AccessControlServiceInterface{}
+	originalACS := th.App.Srv().ch.AccessControl
+	th.App.Srv().ch.AccessControl = mockACS
+	t.Cleanup(func() { th.App.Srv().ch.AccessControl = originalACS })
+
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+		Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
+
+	rctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id, Roles: th.BasicUser.Roles})
+
+	t.Run("redacts attachments for a reader denied the download action", func(t *testing.T) {
+		edits, appErr := th.App.GetEditHistoryForPost(rctx, post.Id)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, edits)
+
+		for _, edit := range edits {
+			require.Empty(t, edit.Metadata.Files)
+			require.Empty(t, edit.FileIds)
+			require.Equal(t, 1, edit.Metadata.RedactedFileCount)
+		}
+	})
+
+	// Content flagging deletes and reports on this data on the system's behalf rather than
+	// serving it to a reader, so it must keep the attachments regardless of the acting
+	// reviewer's own download policy.
+	t.Run("keeps attachments for content flagging", func(t *testing.T) {
+		edits, appErr := th.App.getEditHistoryForPostUnrestricted(rctx, post.Id)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, edits)
+
+		for _, edit := range edits {
+			require.Len(t, edit.Metadata.Files, 1)
+			require.Equal(t, fileInfo.Id, edit.Metadata.Files[0].Id)
+			require.Equal(t, model.StringArray{fileInfo.Id}, edit.FileIds)
+			require.Zero(t, edit.Metadata.RedactedFileCount)
 		}
 	})
 }
@@ -5074,6 +5410,43 @@ func TestCopyWranglerPostlist(t *testing.T) {
 	require.Nil(t, err)
 	require.Len(t, reactions, 1)
 	require.Equal(t, reaction.EmojiName, reactions[0].EmojiName)
+}
+
+func TestCopyWranglerPostlistPreservesWebhookIdentity(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableIncomingWebhooks = true
+		*cfg.ServiceSettings.EnablePostUsernameOverride = true
+		*cfg.ServiceSettings.EnablePostIconOverride = true
+	})
+
+	rootPost, appErr := th.App.CreateWebhookPost(th.Context, th.BasicUser.Id, th.BasicChannel, "test message", "DeployBot", "http://example.com/icon.png", "", nil, model.PostTypeDefault, "", nil, false)
+	require.Nil(t, appErr)
+	require.Equal(t, "true", rootPost.GetProp(model.PostPropsFromWebhook))
+	require.Equal(t, "DeployBot", rootPost.GetProp(model.PostPropsOverrideUsername))
+	require.Equal(t, "http://example.com/icon.png", rootPost.GetProp(model.PostPropsOverrideIconURL))
+
+	targetChannel := &model.Channel{
+		TeamId: th.BasicTeam.Id,
+		Name:   "test-channel-wrangler",
+		Type:   model.ChannelTypeOpen,
+	}
+	targetChannel, appErr = th.App.CreateChannel(th.Context, targetChannel, false)
+	require.Nil(t, appErr)
+
+	wpl := &model.WranglerPostList{
+		Posts: []*model.Post{rootPost},
+	}
+	newRootPost, _, appErr := th.App.CopyWranglerPostlist(th.Context, wpl, targetChannel)
+	require.Nil(t, appErr)
+
+	// v12: the copy must retain the original webhook identity — not silently
+	// re-attribute the content to whoever ran the move/copy.
+	assert.Equal(t, "true", newRootPost.GetProp(model.PostPropsFromWebhook))
+	assert.Equal(t, "DeployBot", newRootPost.GetProp(model.PostPropsOverrideUsername))
+	assert.Equal(t, "http://example.com/icon.png", newRootPost.GetProp(model.PostPropsOverrideIconURL))
 }
 
 func TestValidateMoveOrCopy(t *testing.T) {
@@ -5592,7 +5965,7 @@ func TestPopulateEditHistoryFileMetadata(t *testing.T) {
 			post.FileIds = model.StringArray{fileInfo2.Id}
 		})
 
-		appErr := th.App.populateEditHistoryFileMetadata([]*model.Post{post1, post2})
+		appErr := th.App.populateEditHistoryFileMetadata(th.Context, []*model.Post{post1, post2}, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
 		require.Len(t, post1.Metadata.Files, 1)
@@ -5631,7 +6004,7 @@ func TestPopulateEditHistoryFileMetadata(t *testing.T) {
 		_, appErr = th.App.DeletePost(th.Context, post2.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
-		appErr = th.App.populateEditHistoryFileMetadata([]*model.Post{post1, post2})
+		appErr = th.App.populateEditHistoryFileMetadata(th.Context, []*model.Post{post1, post2}, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
 		require.Len(t, post1.Metadata.Files, 1)
@@ -5670,7 +6043,7 @@ func TestPopulateEditHistoryFileMetadata(t *testing.T) {
 		_, err = th.App.Srv().Store().FileInfo().DeleteForPost(th.Context, post2.Id)
 		require.NoError(t, err)
 
-		appErr := th.App.populateEditHistoryFileMetadata([]*model.Post{post1, post2})
+		appErr := th.App.populateEditHistoryFileMetadata(th.Context, []*model.Post{post1, post2}, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
 		require.Len(t, post1.Metadata.Files, 1)
@@ -6454,7 +6827,7 @@ func TestBurnOnReadRestrictionsForDMsAndBots(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Get the bot user
-		botUser, appErr := th.App.GetUser(createdBot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, createdBot.UserId)
 		require.Nil(t, appErr)
 		require.True(t, botUser.IsBot)
 
@@ -6503,7 +6876,7 @@ func TestBurnOnReadRestrictionsForDMsAndBots(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Get the bot user
-		botUser, appErr := th.App.GetUser(createdBot.UserId)
+		botUser, appErr := th.App.GetUser(th.Context, createdBot.UserId)
 		require.Nil(t, appErr)
 		require.True(t, botUser.IsBot)
 
@@ -6807,5 +7180,75 @@ func TestGetPostsForView(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, postList)
 		assert.Empty(t, postList.Posts)
+	})
+}
+
+func TestAppendABACEtag(t *testing.T) {
+	const base = "16.2.3.abcdefghij.1700000000000"
+
+	setup := func(t *testing.T, abacEnabled bool) (*TestHelper, *storemocks.AccessControlPolicyStore, *storemocks.AttributesStore) {
+		th := SetupConfigWithStoreMock(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = true
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(abacEnabled)
+		})
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+
+		mockACP := &storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(mockACP).Maybe()
+
+		mockAttributes := &storemocks.AttributesStore{}
+		mockStore.On("Attributes").Return(mockAttributes).Maybe()
+
+		return th, mockACP, mockAttributes
+	}
+
+	t.Run("returns the base ETag untouched and reads no store when ABAC is off", func(t *testing.T) {
+		th, mockACP, mockAttributes := setup(t, false)
+
+		assert.Equal(t, base, th.App.AppendABACEtag(base, model.NewId(), model.NewId()))
+
+		mockACP.AssertNotCalled(t, "GetEtagEpoch", mock.Anything, mock.Anything)
+		mockAttributes.AssertNotCalled(t, "GetUserPropertyValuesEpoch", mock.Anything, mock.Anything)
+	})
+
+	t.Run("folds both epochs in when ABAC is on", func(t *testing.T) {
+		th, mockACP, mockAttributes := setup(t, true)
+		userID := model.NewId()
+		channelID := model.NewId()
+
+		mockACP.On("GetEtagEpoch", mock.Anything, channelID).Return("111-2", nil).Once()
+		mockAttributes.On("GetUserPropertyValuesEpoch", mock.Anything, userID).Return("222-3", nil).Once()
+
+		assert.Equal(t, base+".111-2.222-3", th.App.AppendABACEtag(base, userID, channelID))
+
+		mockACP.AssertExpectations(t)
+		mockAttributes.AssertExpectations(t)
+	})
+
+	t.Run("skips the attribute epoch when there is no user in scope", func(t *testing.T) {
+		th, mockACP, mockAttributes := setup(t, true)
+		channelID := model.NewId()
+
+		mockACP.On("GetEtagEpoch", mock.Anything, channelID).Return("111-2", nil).Once()
+
+		assert.Equal(t, base+".111-2."+unknownABACEtagEpoch, th.App.AppendABACEtag(base, "", channelID))
+
+		mockAttributes.AssertNotCalled(t, "GetUserPropertyValuesEpoch", mock.Anything, mock.Anything)
+	})
+
+	t.Run("a store failure yields an ETag that cannot match the healthy one", func(t *testing.T) {
+		th, mockACP, mockAttributes := setup(t, true)
+		userID := model.NewId()
+		channelID := model.NewId()
+
+		mockACP.On("GetEtagEpoch", mock.Anything, channelID).Return("", errors.New("boom")).Twice()
+		mockAttributes.On("GetUserPropertyValuesEpoch", mock.Anything, userID).Return("222-3", nil).Twice()
+
+		etag := th.App.AppendABACEtag(base, userID, channelID)
+
+		assert.NotEqual(t, base, etag, "a failed epoch lookup must not collapse back onto the ungated ETag")
+		assert.Contains(t, etag, unknownABACEtagEpoch)
+		assert.NotEqual(t, etag, th.App.AppendABACEtag(base, userID, channelID),
+			"two failed lookups must not produce the same ETag, or a policy change between them would 304")
 	})
 }

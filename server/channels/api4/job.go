@@ -4,11 +4,12 @@
 package api4
 
 import (
+	"cmp"
 	"encoding/json"
 	"net/http"
 	"path"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strconv"
 	"time"
 
@@ -221,7 +222,7 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 		for _, jType := range model.AllJobTypes {
 			hasPermission, permissionRequired := c.App.SessionHasPermissionToReadJob(*c.AppContext.Session(), jType)
 			if permissionRequired == nil {
-				c.Logger.Warn("The job types of a job you are trying to retrieve does not contain permissions", mlog.String("jobType", jType))
+				c.Logger.Warn("The job types of a job you are trying to retrieve does not contain permissions", mlog.String("job_type", jType))
 				continue
 			}
 			if hasPermission {
@@ -318,8 +319,8 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = appErr
 			return
 		}
-		sort.Slice(teamJobs, func(i, j int) bool {
-			return teamJobs[i].CreateAt > teamJobs[j].CreateAt
+		slices.SortFunc(teamJobs, func(a, b *model.Job) int {
+			return cmp.Compare(b.CreateAt, a.CreateAt)
 		})
 		start := c.Params.Page * c.Params.PerPage
 		if start >= len(teamJobs) {
@@ -341,8 +342,8 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = appErr
 			return
 		}
-		sort.Slice(policyJobs, func(i, j int) bool {
-			return policyJobs[i].CreateAt > policyJobs[j].CreateAt
+		slices.SortFunc(policyJobs, func(a, b *model.Job) int {
+			return cmp.Compare(b.CreateAt, a.CreateAt)
 		})
 		start := c.Params.Page * c.Params.PerPage
 		if start >= len(policyJobs) {

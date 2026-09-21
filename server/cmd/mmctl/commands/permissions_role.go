@@ -6,7 +6,7 @@ package commands
 import (
 	"context"
 	"fmt"
-	"sort"
+	"slices"
 	"strings"
 	"text/tabwriter"
 
@@ -76,7 +76,7 @@ func init() {
 }
 
 func prettyRole(role *model.Role) string {
-	sort.Strings(role.Permissions)
+	slices.Sort(role.Permissions)
 
 	consolePermissionMap := map[string]bool{}
 	for _, perm := range role.Permissions {

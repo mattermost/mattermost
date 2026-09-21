@@ -1572,62 +1572,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-  "/api/v4/teams/{team_id}/import":
-    post:
-      tags:
-        - teams
-      summary: Import a Team from other application
-      description: >
-        Import a team into a existing team. Import users, channels, posts,
-        hooks.
-
-        ##### Permissions
-
-        Must have `permission_import_team` permission.
-      operationId: ImportTeam
-      parameters:
-        - name: team_id
-          in: path
-          description: Team GUID
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                file:
-                  description: A file to be uploaded in zip format.
-                  type: string
-                  format: binary
-                filesize:
-                  description: The size of the zip file to be imported.
-                  type: integer
-                importFrom:
-                  description: String that defines from which application the team was
-                    exported to be imported into Mattermost.
-                  type: string
-              required:
-                - file
-                - filesize
-                - importFrom
-      responses:
-        "200":
-          description: JSON object containing a base64 encoded text file of the import logs
-            in its `results` property.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  results:
-                    type: string
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "403":
-          $ref: "#/components/responses/Forbidden"
   "/api/v4/teams/invite/{invite_id}":
     get:
       tags:
