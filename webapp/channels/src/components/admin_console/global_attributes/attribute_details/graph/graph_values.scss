@@ -321,20 +321,20 @@
 
     .attribute-options-graph-values__row--draft {
         align-items: center;
-        gap: 8px;
+        gap: 4px;
         padding-block: 6px;
-
-        .attribute-options-graph-values__draft-handle-spacer {
-            display: inline-block;
-            width: 16px;
-            flex-shrink: 0;
-        }
 
         .Input_container {
             width: 320px;
             min-width: 160px;
             max-width: 320px;
             flex: 0 1 320px;
+        }
+
+        // Chevron column only — a handle spacer pushed the field past sibling names.
+        .Input_wrapper {
+            padding: 0 12px;
+            margin: 0;
         }
 
         .btn + .btn {
