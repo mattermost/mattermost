@@ -235,11 +235,13 @@ export function rankingDebugRows(
 
 /**
  * Soft validation for playground experiments — flags when a stronger production tier can lose to
- * the sum of weaker ones on the activity-first scale.
+ * the sum of weaker ones on the activity-first scale. Activity bands are mutually exclusive, so
+ * only the largest activity penalty is counted among weaker tiers.
  */
 export function validatePenaltyDominance(weights: RankPenaltyWeights): string[] {
     const warnings: string[] = [];
     const maxType = weights.channel;
+    const maxActivity = Math.max(weights.noActivity, weights.staleActivity);
     const hidden = weights.hiddenInSidebar;
 
     if (weights.staleActivity <= weights.nonPrefixMatch + maxType + hidden) {
@@ -249,12 +251,13 @@ export function validatePenaltyDominance(weights: RankPenaltyWeights): string[] 
     }
 
     if (weights.noActivity <= weights.staleActivity + weights.nonPrefixMatch + maxType + hidden) {
+        // noActivity must beat a stale match that also has every weaker demotion
         warnings.push(
             `noActivity (${weights.noActivity}) should be greater than stale + nonPrefix + channel + hidden (${weights.staleActivity + weights.nonPrefixMatch + maxType + hidden})`,
         );
     }
 
-    const weakerThanDeactivated = weights.noActivity + weights.staleActivity + weights.nonPrefixMatch + maxType + hidden;
+    const weakerThanDeactivated = maxActivity + weights.nonPrefixMatch + maxType + hidden;
     if (weights.deactivated <= weakerThanDeactivated) {
         warnings.push(
             `deactivated (${weights.deactivated}) should be greater than activity + nonPrefix + type + hidden (${weakerThanDeactivated})`,
