@@ -909,6 +909,28 @@ func (a *App) RegenOutgoingWebhookToken(hook *model.OutgoingWebhook) (*model.Out
 	return webhook, nil
 }
 
+// checkIncomingWebhookDirectChannelTeamScope scopes DM/GM delivery to the webhook's
+// stored team while RestrictDirectMessage is team-only. Incoming webhooks always
+// persist a valid TeamId (IncomingWebhook.IsValid), including through local create,
+// so an empty id cannot match a common team and is denied.
+func (a *App) checkIncomingWebhookDirectChannelTeamScope(rctx request.CTX, hook *model.IncomingWebhook, channel *model.Channel) *model.AppError {
+	if *a.Config().TeamSettings.RestrictDirectMessage != model.DirectMessageTeam {
+		return nil
+	}
+	if channel.Type != model.ChannelTypeDirect && channel.Type != model.ChannelTypeGroup {
+		return nil
+	}
+
+	commonTeams, teamErr := a.GetDirectOrGroupMessageMembersCommonTeams(rctx, channel.Id)
+	if teamErr != nil {
+		return teamErr
+	}
+	if !slices.ContainsFunc(commonTeams, func(team *model.Team) bool { return team.Id == hook.TeamId }) {
+		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.permissions.app_error", map[string]any{"user": hook.UserId, "channel": channel.Id}, "", http.StatusForbidden)
+	}
+	return nil
+}
+
 func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.IncomingWebhookRequest) *model.AppError {
 	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -1058,19 +1080,8 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.permissions.app_error", map[string]any{"user": hook.UserId, "channel": channel.Id}, "", http.StatusForbidden)
 	}
 
-	// Direct and group channels carry no team of their own, so they resolve by name for every
-	// team. Incoming webhooks always persist a valid TeamId (IncomingWebhook.IsValid), including
-	// through local create, so this cannot match an empty id. While direct messages are
-	// restricted to team members, delivery to a DM/GM is scoped to that stored team.
-	if *a.Config().TeamSettings.RestrictDirectMessage == model.DirectMessageTeam &&
-		(channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup) {
-		commonTeams, teamErr := a.GetDirectOrGroupMessageMembersCommonTeams(rctx, channel.Id)
-		if teamErr != nil {
-			return teamErr
-		}
-		if !slices.ContainsFunc(commonTeams, func(team *model.Team) bool { return team.Id == hook.TeamId }) {
-			return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.permissions.app_error", map[string]any{"user": hook.UserId, "channel": channel.Id}, "", http.StatusForbidden)
-		}
+	if scopeErr := a.checkIncomingWebhookDirectChannelTeamScope(rctx, hook, channel); scopeErr != nil {
+		return scopeErr
 	}
 
 	threadRootID := ""
