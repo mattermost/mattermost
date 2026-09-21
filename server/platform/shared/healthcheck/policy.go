@@ -5,9 +5,6 @@ package healthcheck
 
 import "time"
 
-// Policy carries only UnknownAfter in Phase A. The debounce/hysteresis fields
-// (FireAfter/ClearAfter/ClearRatio) arrive with PR09b, where the reconciler starts reading
-// them; adding them back then is additive.
 type Policy struct {
 	UnknownAfter time.Duration
 }
