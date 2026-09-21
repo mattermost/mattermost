@@ -320,18 +320,19 @@ describe('AttributeDetails', () => {
         expect(screen.queryByTestId('attributeUniqueNameError')).not.toBeInTheDocument();
     });
 
-    it('opens the Type menu showing all four types selectable, Text checked by default', async () => {
+    it('opens the Type menu showing Text, Phone, URL, Select, Multiselect, and Ranked, with Text checked and Email hidden', async () => {
         renderComponent();
 
         await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
 
         expect(screen.getByRole('menuitemradio', {name: 'Text'})).toHaveAttribute('aria-checked', 'true');
 
-        for (const label of ['Text', 'Select', 'Multiselect', 'Ranked']) {
-            const item = screen.getByRole('menuitemradio', {name: new RegExp(label)});
+        for (const label of ['Text', 'Phone', 'URL', 'Select', 'Multiselect', 'Ranked']) {
+            const item = screen.getByRole('menuitemradio', {name: new RegExp(`^${label}$`)});
             expect(item).not.toHaveAttribute('aria-disabled', 'true');
             expect(item).not.toHaveTextContent('Coming soon');
         }
+        expect(screen.queryByRole('menuitemradio', {name: 'Email'})).not.toBeInTheDocument();
     });
 
     it('selecting Select from the Type menu updates the button label and swaps in the options chip editor', async () => {
@@ -352,6 +353,42 @@ describe('AttributeDetails', () => {
         await userEvent.click(screen.getByRole('menuitemradio', {name: /Ranked/}));
 
         expect(screen.getByTestId('attributeOptionsRankValues')).toBeInTheDocument();
+    });
+
+    it('selecting Phone or URL from the Type menu writes attrs.value_type on create and keeps the free-text options help', async () => {
+        const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
+
+        renderComponent();
+        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Work phone');
+        await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+        await userEvent.click(screen.getByRole('menuitemradio', {name: 'Phone'}));
+
+        expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Phone');
+        expect(screen.getByTestId('attributeOptionsHelp')).toBeInTheDocument();
+        expect(screen.queryByTestId('attributeOptionsValues')).not.toBeInTheDocument();
+
+        await userEvent.click(screen.getByTestId('saveSetting'));
+        await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+        expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
+            type: 'text',
+            attrs: {display_name: 'Work phone', value_type: 'phone'},
+        }));
+    });
+
+    it('saves a URL attribute as type text with attrs.value_type url', async () => {
+        const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
+
+        renderComponent();
+        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Homepage');
+        await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+        await userEvent.click(screen.getByRole('menuitemradio', {name: 'URL'}));
+        await userEvent.click(screen.getByTestId('saveSetting'));
+
+        await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+        expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
+            type: 'text',
+            attrs: {display_name: 'Homepage', value_type: 'url'},
+        }));
     });
 
     it('preserves already-entered options across a Select -> Text -> Select round-trip', async () => {
@@ -943,8 +980,8 @@ describe('AttributeDetails', () => {
             renderComponent(false);
             await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
             expect(screen.queryByRole('menuitemradio', {name: 'Hierarchical'})).not.toBeInTheDocument();
-            for (const label of ['Text', 'Select', 'Multiselect', 'Ranked']) {
-                expect(screen.getByRole('menuitemradio', {name: new RegExp(label)})).toBeInTheDocument();
+            for (const label of ['Text', 'Phone', 'URL', 'Select', 'Multiselect', 'Ranked']) {
+                expect(screen.getByRole('menuitemradio', {name: new RegExp(`^${label}$`)})).toBeInTheDocument();
             }
         });
 
@@ -1096,6 +1133,29 @@ describe('AttributeDetails', () => {
             expect(createPropertyField).toHaveBeenNthCalledWith(3, 'access_control', 'channel', expect.objectContaining({
                 linked_field_id: 'template-id',
                 attrs: {display_name: 'My Attribute'},
+            }));
+        });
+
+        it('copies attrs.value_type onto linked fields created for a Phone attribute', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').
+                mockResolvedValueOnce({id: 'template-id'} as PropertyField).
+                mockResolvedValueOnce({id: 'user-field-id'} as PropertyField);
+
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Work phone');
+            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByRole('menuitemradio', {name: 'Phone'}));
+            await addResource('Users', 'user');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            expect(createPropertyField).toHaveBeenNthCalledWith(1, 'access_control', 'template', expect.objectContaining({
+                type: 'text',
+                attrs: expect.objectContaining({value_type: 'phone'}),
+            }));
+            expect(createPropertyField).toHaveBeenNthCalledWith(2, 'access_control', 'user', expect.objectContaining({
+                type: 'text',
+                attrs: expect.objectContaining({value_type: 'phone'}),
             }));
         });
 
@@ -1532,6 +1592,51 @@ describe('AttributeDetails', () => {
             expect(screen.getByTestId('attributeAppliesToRow-user')).toBeInTheDocument();
             expect(screen.getByTestId('saveSetting')).toBeDisabled();
             expect(mockSetNavigationBlocked).not.toHaveBeenCalled();
+        });
+
+        it('prefills Phone or URL from attrs.value_type on a text field', async () => {
+            mockLoadedField(makeTemplate({
+                type: 'text',
+                attrs: {display_name: 'Work phone', value_type: 'phone'},
+            }));
+
+            renderEdit();
+            await waitForForm();
+
+            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Phone');
+            expect(screen.getByTestId('attributeOptionsHelp')).toBeInTheDocument();
+        });
+
+        it('names an API-created email field Email and does not offer Email in the type menu', async () => {
+            mockLoadedField(makeTemplate({
+                type: 'text',
+                attrs: {display_name: 'Work email', value_type: 'email'},
+            }));
+
+            renderEdit();
+            await waitForForm();
+
+            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Email');
+            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            expect(screen.queryByRole('menuitemradio', {name: 'Email'})).not.toBeInTheDocument();
+        });
+
+        it('PATCHes value_type when changing a text field to URL', async () => {
+            mockLoadedField(makeTemplate({attrs: {display_name: 'Department'}}));
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue(makeTemplate());
+
+            renderEdit();
+            await waitForForm();
+
+            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByRole('menuitemradio', {name: 'URL'}));
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'template', FIELD_ID, expect.objectContaining({
+                type: 'text',
+                attrs: expect.objectContaining({value_type: 'url'}),
+            }));
         });
 
         it('round-trips a saved Users row config: loading an attribute shows its previously-saved Profile display / Who can set the value', async () => {

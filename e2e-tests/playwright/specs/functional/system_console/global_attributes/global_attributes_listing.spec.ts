@@ -83,7 +83,7 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
         /**
          * @objective Ensure a real access_control/template attribute renders in the table with
          * its display name, type icon+label, source, and options count — across every field
-         * type the ticket's Type column has a mapping for (Text/Select/Multiselect/Ranked),
+         * type the Type column has a mapping for (Text/Phone/URL/Email/Select/Multiselect/Ranked),
          * plus one unmapped type (date) to prove the fallback also holds end-to-end.
          */
         test('renders one seeded field per type with correct Attribute/Type/Source/Options values', async ({pw}) => {
@@ -96,6 +96,8 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
             // unit-test-only since the admin API blocks source_plugin_id/protected from non-plugin
             // callers, and rank uses type: 'rank' directly (the same type Classification Markings'
             // own saveCreateField creates), not the select-based seeding some older e2e helpers use.
+            // Phone/URL/email are text-field subtypes (attrs.value_type); the create menu offers
+            // Phone and URL, while email is API-only (hidden in the Type menu, still listed).
             // displayName embeds the same per-run timestamp as name — required so the row locator
             // below can't collide with another concurrently-running browser project's seeded row
             // (this suite's projects share one server/worker pool; see playwright.config.ts).
@@ -106,6 +108,30 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
                     type: 'text',
                     attrs: {},
                     expectedType: 'Text',
+                    expectedOptions: 'Free Text',
+                },
+                {
+                    name: `e2e_global_attribute_phone_${timestamp}`,
+                    displayName: `E2E Phone Attribute ${timestamp}`,
+                    type: 'text',
+                    attrs: {value_type: 'phone'},
+                    expectedType: 'Phone',
+                    expectedOptions: 'Free Text',
+                },
+                {
+                    name: `e2e_global_attribute_url_${timestamp}`,
+                    displayName: `E2E URL Attribute ${timestamp}`,
+                    type: 'text',
+                    attrs: {value_type: 'url'},
+                    expectedType: 'URL',
+                    expectedOptions: 'Free Text',
+                },
+                {
+                    name: `e2e_global_attribute_email_${timestamp}`,
+                    displayName: `E2E Email Attribute ${timestamp}`,
+                    type: 'text',
+                    attrs: {value_type: 'email'},
+                    expectedType: 'Email',
                     expectedOptions: 'Free Text',
                 },
                 {
@@ -160,7 +186,7 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
 
             try {
                 // # Seed every field inside the try block — if creation fails partway
-                // through (e.g. field 3 of 5), the finally below still cleans up whatever
+                // through (e.g. field 3 of 8), the finally below still cleans up whatever
                 // was already created instead of leaving it orphaned on the shared server.
                 for (const seed of seeds) {
                     await createGlobalAttributeField(adminClient, seed.name, {
