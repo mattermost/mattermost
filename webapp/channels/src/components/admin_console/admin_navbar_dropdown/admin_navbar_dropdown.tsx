@@ -5,7 +5,7 @@ import React, {useCallback, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {ChevronRightIcon} from '@mattermost/compass-icons/components';
+import {ChevronRightIcon, OpenInNewIcon} from '@mattermost/compass-icons/components';
 
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getMyTeams} from 'mattermost-redux/selectors/entities/teams';
@@ -18,6 +18,7 @@ import {getNavigationBlocked} from 'selectors/views/admin';
 
 import AboutBuildModal from 'components/about_build_modal';
 import CommercialSupportModal from 'components/commercial_support_modal';
+import ExternalLink from 'components/external_link';
 import * as Menu from 'components/menu';
 
 import {ModalIdentifiers} from 'utils/constants';
@@ -53,21 +54,12 @@ const AdminNavbarDropdown = () => {
         }
     }, [dispatch, navigationBlocked]);
 
-    const handleOpenExternalLink = useCallback((url: string) => {
-        window.open(url, '_blank', 'noopener noreferrer');
-    }, []);
-
     const handleCommercialSupport = useCallback(() => {
-        if (isLicensed) {
-            dispatch(openModal({
-                modalId: ModalIdentifiers.COMMERCIAL_SUPPORT,
-                dialogType: CommercialSupportModal,
-            }));
-            return;
-        }
-
-        handleOpenExternalLink('https://mattermost.com/support/');
-    }, [dispatch, handleOpenExternalLink, isLicensed]);
+        dispatch(openModal({
+            modalId: ModalIdentifiers.COMMERCIAL_SUPPORT,
+            dialogType: CommercialSupportModal,
+        }));
+    }, [dispatch]);
 
     const handleAbout = useCallback(() => {
         dispatch(openModal({
@@ -79,6 +71,13 @@ const AdminNavbarDropdown = () => {
     const adminGuideLink = isCloud ?
         'https://docs.mattermost.com/guides/administration.html#cloud-workspace-management' :
         'https://docs.mattermost.com/guides/administration.html';
+
+    const commercialSupportLabels = (
+        <FormattedMessage
+            id='admin.nav.commercialSupport'
+            defaultMessage='Commercial Support'
+        />
+    );
 
     let switchTeamsMenuItem = null;
     if (sortedTeams.length === 0) {
@@ -126,34 +125,46 @@ const AdminNavbarDropdown = () => {
             {switchTeamsMenuItem && <Menu.Separator/>}
             <Menu.Item
                 id='adminConsoleAdministratorsGuide'
-                onClick={() => handleOpenExternalLink(adminGuideLink)}
+                component={ExternalLink}
+                href={adminGuideLink}
+                location='admin_navbar_dropdown'
                 labels={
                     <FormattedMessage
                         id='admin.nav.administratorsGuide'
                         defaultMessage="Administrator's Guide"
                     />
                 }
+                trailingElements={<OpenInNewIconTrailing/>}
             />
             <Menu.Item
                 id='adminConsoleTroubleshootingForum'
-                onClick={() => handleOpenExternalLink('https://forum.mattermost.com/t/how-to-use-the-troubleshooting-forum/150')}
+                component={ExternalLink}
+                href='https://forum.mattermost.com/t/how-to-use-the-troubleshooting-forum/150'
+                location='admin_navbar_dropdown'
                 labels={
                     <FormattedMessage
                         id='admin.nav.troubleshootingForum'
                         defaultMessage='Troubleshooting Forum'
                     />
                 }
+                trailingElements={<OpenInNewIconTrailing/>}
             />
-            <Menu.Item
-                id='adminConsoleCommercialSupport'
-                onClick={handleCommercialSupport}
-                labels={
-                    <FormattedMessage
-                        id='admin.nav.commercialSupport'
-                        defaultMessage='Commercial Support'
-                    />
-                }
-            />
+            {isLicensed ? (
+                <Menu.Item
+                    id='adminConsoleCommercialSupport'
+                    onClick={handleCommercialSupport}
+                    labels={commercialSupportLabels}
+                />
+            ) : (
+                <Menu.Item
+                    id='adminConsoleCommercialSupport'
+                    component={ExternalLink}
+                    href='https://mattermost.com/support/'
+                    location='admin_navbar_dropdown'
+                    labels={commercialSupportLabels}
+                    trailingElements={<OpenInNewIconTrailing/>}
+                />
+            )}
             <Menu.Item
                 id='adminConsoleAbout'
                 onClick={handleAbout}
@@ -181,3 +192,12 @@ const AdminNavbarDropdown = () => {
 };
 
 export default AdminNavbarDropdown;
+
+function OpenInNewIconTrailing() {
+    return (
+        <OpenInNewIcon
+            size={16}
+            aria-hidden={true}
+        />
+    );
+}
