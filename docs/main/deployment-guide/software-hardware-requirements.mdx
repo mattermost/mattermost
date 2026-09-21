@@ -269,12 +269,13 @@ MySQL 8.0.22 contains an [issue with JSON column types](https://bugs.mysql.com/b
 
 </Important>
 
-In MySQL 8.0.4, the default authentication plugin was changed from `mysql_native_password` to `caching_sha2_password`. Therefore, you will need to enable `mysql_native_password` by adding the following entry in your MySQL configuration file:
+In MySQL 8.0.4, the default authentication plugin was changed from `mysql_native_password` to `caching_sha2_password`. Mattermost's MySQL driver supports `caching_sha2_password` natively, so no configuration change is required to run the Mattermost server.
 
-> ``` text
-> [mysqld]
-> default-authentication-plugin=mysql_native_password
-> ```
+<Note>
+
+If you're migrating to PostgreSQL using `pgloader`, its MySQL driver doesn't support `caching_sha2_password`. See [Unsupported authentication for MySQL](/administration-guide/manage/admin/postgres-migration#unsupported-authentication-for-mysql) for the workaround, including the MySQL 8.4+ path via `authentication_policy`.
+
+</Note>
 
 In MySQL 8, the default collation changed to `utf8mb4_0900_ai_ci` ([https://dev.mysql.com/doc/mysqld-version-reference/en/optvar-changes-8-0.html](https://dev.mysql.com/doc/mysqld-version-reference/en/optvar-changes-8-0.html)). Therefore, if you update your MySQL installation to version 8, you'll need to convert your database tables to use the new default collation:
 
