@@ -275,21 +275,25 @@ def extract_release_notes(body: str) -> list[str] | None:
 MAX_OUTPUT_TOKENS = 16384
 
 
-def polish_with_ai(raw_notes: list[str]) -> str:
+def polish_with_ai(raw_notes: list[str]) -> tuple[str, bool]:
     """
     Send raw release notes to Claude for categorization, formatting, and proofreading.
     Falls back to a simple bullet list if ANTHROPIC_API_KEY is not set.
+
+    Returns the text and whether it was actually polished. The caller needs to know:
+    the truncation check only makes sense on polished prose, because raw notes are
+    written by PR authors and routinely arrive without a closing full stop.
     """
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
         print("ℹ️  ANTHROPIC_API_KEY not set — skipping AI polish, using raw notes")
-        return "\n".join(f"- {note}" for note in raw_notes)
+        return "\n".join(f"- {note}" for note in raw_notes), False
 
     try:
         import anthropic
     except ImportError:
         print("⚠️  anthropic package not installed — skipping AI polish")
-        return "\n".join(f"- {note}" for note in raw_notes)
+        return "\n".join(f"- {note}" for note in raw_notes), False
 
     print("✨ Sending notes to Claude for categorization and proofreading...")
     client = anthropic.Anthropic(api_key=api_key)
@@ -315,7 +319,7 @@ def polish_with_ai(raw_notes: list[str]) -> str:
             f"notes across more than one request."
         )
 
-    return response.content[0].text.strip()
+    return response.content[0].text.strip(), True
 
 
 def normalize_formatting(text: str) -> str:
@@ -453,6 +457,10 @@ def check_for_truncation(text: str) -> None:
     error, just a shorter changelog, so it lands in customer-facing docs as a
     half-written sentence. ``polish_with_ai`` already rejects a response that hit the
     output cap; this is the backstop for a truncation that arrives any other way.
+
+    Call this on AI-polished prose only. The no-API-key fallback emits PR authors' raw
+    notes verbatim, and those routinely end without a full stop — measured against the
+    v12.0.0 milestone, 4 of 71 do — so they are not truncation and must not fail a run.
 
     Bullets that legitimately end without sentence punctuation are not flagged:
 
@@ -754,10 +762,12 @@ def main():
         else:
             go_section = f"### Go Version\n - {version_short} uses the same Go version as the previous release."
 
+    ai_polished = False
     if all_notes:
         # normalize_formatting fixes layout; escape_mdx_unsafe makes the prose
         # MDX-safe. Both are applied to the AI fragment only, never to file contents.
-        polished = escape_mdx_unsafe(normalize_formatting(polish_with_ai(all_notes)))
+        raw_polished, ai_polished = polish_with_ai(all_notes)
+        polished = escape_mdx_unsafe(normalize_formatting(raw_polished))
         blog_url = os.environ.get("BLOG_POST_URL", "").strip()
         if not blog_url:
             # Auto-construct short URL (no patch suffix): v11.6.0 → mattermost-v11-6-is-now-available
@@ -793,7 +803,13 @@ def main():
 
     # Last gate before the entry is written: fail the run rather than commit a
     # half-written sentence to customer-facing docs.
-    check_for_truncation(entry)
+    #
+    # Only meaningful on AI-polished prose. The no-API-key fallback passes PR authors'
+    # raw notes straight through, and those routinely end without a full stop, so
+    # running the check there would block the run over notes that are not truncated
+    # at all.
+    if ai_polished:
+        check_for_truncation(entry)
 
     header = CHANGELOG_HEADER_TEMPLATE.format(major=major_version(VERSION))
     insert_changelog_entry(entry, changelog_path, header=header)
