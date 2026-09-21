@@ -12,6 +12,7 @@ import (
 	"maps"
 	"net/http"
 	"regexp"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -972,12 +973,21 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 			}
 			// Only allow a DM target the webhook owner shares a team with, so the stored
 			// user_id cannot be used to reach users the owner could not message directly.
-			if hook.UserId != result.Id {
+			// While direct messages are restricted to team members, that shared team has to
+			// be the webhook's own team, which is the team a #channel target resolves
+			// against below.
+			restrictedToTeam := *a.Config().TeamSettings.RestrictDirectMessage == model.DirectMessageTeam
+			if hook.UserId != result.Id || restrictedToTeam {
 				commonTeamIDs, teamErr := a.GetCommonTeamIDsForTwoUsers(hook.UserId, result.Id)
 				if teamErr != nil {
 					return teamErr
 				}
-				if len(commonTeamIDs) == 0 {
+
+				allowed := len(commonTeamIDs) > 0
+				if restrictedToTeam {
+					allowed = slices.Contains(commonTeamIDs, hook.TeamId)
+				}
+				if !allowed {
 					return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.permissions.app_error", map[string]any{"user": hook.UserId, "channel": channelName}, "", http.StatusForbidden)
 				}
 			}
@@ -1046,6 +1056,20 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 	}
 	if restrictedChannel {
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.permissions.app_error", map[string]any{"user": hook.UserId, "channel": channel.Id}, "", http.StatusForbidden)
+	}
+
+	// Direct and group channels carry no team of their own, so they resolve by name for every
+	// team. While direct messages are restricted to team members, delivery to one of them is
+	// scoped to the webhook's team: that team has to be common to the channel's members.
+	if *a.Config().TeamSettings.RestrictDirectMessage == model.DirectMessageTeam &&
+		(channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup) {
+		commonTeams, teamErr := a.GetDirectOrGroupMessageMembersCommonTeams(rctx, channel.Id)
+		if teamErr != nil {
+			return teamErr
+		}
+		if !slices.ContainsFunc(commonTeams, func(team *model.Team) bool { return team.Id == hook.TeamId }) {
+			return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.permissions.app_error", map[string]any{"user": hook.UserId, "channel": channel.Id}, "", http.StatusForbidden)
+		}
 	}
 
 	threadRootID := ""
