@@ -1192,7 +1192,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 await expect(page.getByTestId('attributeGraphParentsPane__back')).toHaveText('Parents of Air');
                 await expect(valueMenu).toBeVisible();
 
-                const heightBeforeSearch = (await valueMenu.boundingBox())?.height ?? 0;
+                const heightBeforeSearch = await valueMenu.evaluate((el) => el.getBoundingClientRect().height);
                 await page.getByTestId('attributeGraphParentsPane__search').click();
 
                 const suggestions = page.getByTestId('attributeGraphParentsPane__suggestions');
@@ -1218,7 +1218,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
 
                 // * Value menu stays mounted at the same height while the list is open
                 const heightAfterSearch = await mountedValueMenu.evaluate((el) => el.getBoundingClientRect().height);
-                expect(heightAfterSearch).toBeLessThan(heightBeforeSearch + 48);
+                expect(Math.abs(heightAfterSearch - heightBeforeSearch)).toBeLessThan(1);
                 await expect(mountedValueMenu).toBeAttached();
 
                 await page.getByTestId('attributeGraphParentsPane__candidate-Maritime').click();
