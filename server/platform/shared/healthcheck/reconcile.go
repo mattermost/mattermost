@@ -13,6 +13,7 @@ import (
 )
 
 const detailKeyUnreachableNode = "unreachable_node"
+const DefaultMuteRetention = 30 * 24 * time.Hour
 
 type ReconcilerOpts struct {
 	Store    FindingStore
@@ -202,6 +203,21 @@ func (r *Reconciler) Reconcile(evals []Evaluation) ([]Transition, error) {
 	}
 
 	return transitions, nil
+}
+
+func (r *Reconciler) GCFindings(retention time.Duration) (int64, error) {
+	if r == nil {
+		return 0, fmt.Errorf("reconciler is nil")
+	}
+	if r.store == nil {
+		return 0, fmt.Errorf("finding store is nil")
+	}
+	if retention <= 0 {
+		return 0, nil
+	}
+
+	cutoff := r.now().Add(-retention).UnixMilli()
+	return r.store.DeleteBefore(cutoff)
 }
 
 func suppressDependentUnknowns(evals []Evaluation, unreachable map[string]bool) []Evaluation {

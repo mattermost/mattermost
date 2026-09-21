@@ -14559,6 +14559,18 @@
     "translation": "No text specified."
   },
   {
+    "id": "app.health_finding.mute.not_found.app_error",
+    "translation": "Health finding not found."
+  },
+  {
+    "id": "app.health_finding.mute.app_error",
+    "translation": "Unable to mute health finding."
+  },
+  {
+    "id": "app.health_finding.unmute.app_error",
+    "translation": "Unable to unmute health finding."
+  },
+  {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Couldn't find the user {{.user}}"
   }
