@@ -13,7 +13,15 @@ import * as Menu from 'components/menu';
 import {resolveOption} from 'utils/property_options';
 
 import PostAttributeText from './post_attribute_text';
-import {fieldLabel, storedEntries} from './utils';
+import {fieldLabel, hasValueControl, storedEntries} from './utils';
+
+/*
+ * Re-exported for the row, which has imported it from here since before the
+ * picker needed it too. The definition moved to `utils.ts` so that
+ * `useAddableAttributes` can read it without this module and that one importing
+ * each other.
+ */
+export {hasValueControl};
 
 type Props = {
     field: PropertyField;
@@ -21,22 +29,6 @@ type Props = {
     disabled: boolean;
     onChange: (fieldId: string, next: unknown) => void;
 };
-
-/**
- * The field types this module can write.
- *
- * The row reads this rather than `canEdit` alone, so an unwritable *type* shows
- * its value as read-only text with no trash button instead of an empty cell.
- *
- * Kept in step with the switch below by hand: adding a type means editing both,
- * and the switch's `default` arm is unreachable while they agree, because the
- * row only mounts the control when `hasValueControl` is true.
- */
-const EDITABLE_TYPES = new Set(['select', 'rank', 'multiselect', 'text', 'user', 'multiuser']);
-
-export function hasValueControl(field: PropertyField): boolean {
-    return EDITABLE_TYPES.has(field.type);
-}
 
 /**
  * The control a modal row uses to write one attribute.

@@ -9,6 +9,7 @@ import {PlusIcon} from '@mattermost/compass-icons/components';
 import {GenericModal} from '@mattermost/components';
 import type {ServerError} from '@mattermost/types/errors';
 import type {Post} from '@mattermost/types/posts';
+import type {PropertyField} from '@mattermost/types/properties';
 import {
     POST_ATTRIBUTES_PROPERTY_GROUP_NAME,
     POST_ATTRIBUTES_PROPERTY_OBJECT_TYPE,
@@ -67,6 +68,23 @@ export default function PostAttributesModal({post, onExited}: Props) {
     const fields = usePostAttributeFields(channel);
     const values = usePostAttributeValues(post.id);
     const attributes = useModalAttributes(fields, values);
+
+    /*
+     * One permission answer, shared. The picker has to reach the same verdict
+     * for the same field as the row does, and the only way to guarantee that is
+     * to call the same function — a second call site is a second chance to drift
+     * on an argument, and the drift would be silent: the picker would offer a
+     * field whose row arrives locked.
+     *
+     * `useCallback` rather than an inline arrow because `useAddableAttributes`
+     * takes this as a dependency, and a fresh function per render would make its
+     * `useMemo` recompute every time.
+     */
+    const canEdit = useCallback(
+        (field: PropertyField) =>
+            canEditPostAttributeValue(field, post, currentUserId, isSystemAdmin, isChannelAdmin),
+        [post, currentUserId, isSystemAdmin, isChannelAdmin],
+    );
 
     /*
      * Field ids and error strings, never values. No copy of any value lives
@@ -147,7 +165,7 @@ export default function PostAttributesModal({post, onExited}: Props) {
                             <PostAttributesModalRow
                                 field={field}
                                 value={value}
-                                canEdit={canEditPostAttributeValue(field, post, currentUserId, isSystemAdmin, isChannelAdmin)}
+                                canEdit={canEdit(field)}
                                 writing={writing.has(field.id)}
                                 onChange={handleChange}
                             />

@@ -40,6 +40,22 @@ const UNRENDERABLE_TYPES = new Set(['date']);
 // remaining slot would render every entry it holds inside that one slot.
 const MULTI_VALUED_TYPES = new Set(['multiselect', 'multiuser']);
 
+const EDITABLE_TYPES = new Set(['select', 'rank', 'multiselect', 'text', 'user', 'multiuser']);
+
+// Whether a field has a control that can write it.
+export function hasValueControl(field: PropertyField): boolean {
+    return EDITABLE_TYPES.has(field.type);
+}
+
+/**
+ * The added set a caller that has none passes.
+ *
+ * Module-level and frozen on purpose. A `new Set()` default would be a fresh
+ * reference on every render, which defeats `useModalAttributes`'s `useMemo` for
+ * every caller that does not track added rows.
+ */
+const EMPTY_ADDED: ReadonlySet<string> = Object.freeze(new Set<string>());
+
 /**
  * The label a field carries on screen: the administrator-set display name,
  * falling back to the field's name.
@@ -142,15 +158,21 @@ export function chipCount(field: PropertyField, value?: PropertyValue<unknown>):
  * Whether a field's value should be shown on a surface that can edit it.
  *
  * A field declared `always` is shown even with nothing stored, because an empty
- * slot on an editable surface is something the user can act on. `hidden` is
- * still hidden here. Everything else follows the chip.
+ * slot on an editable surface is something the user can act on. Everything else
+ * is shown once there is something to show.
+ *
+ * **`hidden` is not consulted here**, which is the one place this parts company
+ * with `isChipVisible`. `visibility` says where an attribute is *advertised*,
+ * not who may see it: the server sends hidden fields and their values to every
+ * client that can read the post and redacts nothing. So `hidden` keeps an
+ * attribute off the message list and out of the hover card, and the edit modal
+ * shows it anyway.
+ *
+ * Note this reaches `chipCount` directly rather than going through
+ * `isChipVisible`, which carries a `hidden` guard of its own.
  */
 export function isFieldValueVisible(field: PropertyField, value?: PropertyValue<unknown>): boolean {
-    if (field.attrs?.visibility === 'hidden') {
-        return false;
-    }
-
-    return field.attrs?.visibility === 'always' || isChipVisible(field, value);
+    return field.attrs?.visibility === 'always' || chipCount(field, value) > 0;
 }
 
 /**
@@ -202,14 +224,52 @@ export function useVisibleAttributes(
 /**
  * The attributes that earn a row in the edit modal, in field order.
  *
- * Differs from `useVisibleAttributes` in exactly one way — an unset `always`
- * field is kept — which is why both go through the same traversal.
+ * Differs from `useVisibleAttributes` in two ways — an unset `always` field is
+ * kept, and so is any field the user asked for during this opening — which is
+ * why both go through the same traversal.
+ *
+ * `added` holds field ids and nothing else. It decides which rows exist, never
+ * what they display: every row still reads its value from the store.
+ *
+ * Nothing here consults `visibility` beyond what `isFieldValueVisible` does,
+ * `hidden` included — see its comment. This predicate did briefly carry a
+ * `hidden` guard of its own, from the days when `hidden` meant hidden in the
+ * modal too.
  */
 export function useModalAttributes(
     fields: PropertyField[],
     values: Array<PropertyValue<unknown>>,
+    added: ReadonlySet<string> = EMPTY_ADDED,
 ): PostAttribute[] {
-    return useMemo(() => zipAttributes(fields, values, isFieldValueVisible), [fields, values]);
+    return useMemo(
+        () => zipAttributes(
+            fields,
+            values,
+            (field, value) => isFieldValueVisible(field, value) || added.has(field.id),
+        ),
+        [fields, values, added],
+    );
+}
+
+/**
+ * The fields a picker may offer: everything the channel declares that is not
+ * already being shown and this user could actually fill in.
+ */
+export function useAddableAttributes(
+    fields: PropertyField[],
+    values: Array<PropertyValue<unknown>>,
+    added: ReadonlySet<string>,
+    canEdit: (field: PropertyField) => boolean,
+): PropertyField[] {
+    return useMemo(() => {
+        const valuesByFieldId = new Map(values.map((value) => [value.field_id, value]));
+
+        return fields.filter((field) =>
+            !isFieldValueVisible(field, valuesByFieldId.get(field.id)) &&
+            !added.has(field.id) &&
+            canEdit(field) &&
+            hasValueControl(field));
+    }, [fields, values, added, canEdit]);
 }
 
 /**

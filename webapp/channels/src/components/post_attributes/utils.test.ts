@@ -1,10 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {renderHook} from '@testing-library/react';
+
 import type {FieldType, PropertyField, PropertyValue} from '@mattermost/types/properties';
 
 import type {PostAttribute} from './utils';
-import {allocateChipBudget, chipCount, hasValue, isChipVisible} from './utils';
+import {
+    allocateChipBudget,
+    chipCount,
+    hasValue,
+    hasValueControl,
+    isChipVisible,
+    useAddableAttributes,
+    useModalAttributes,
+} from './utils';
 
 // Every name these tests store as a value. An option-bearing field only earns a
 // chip for a value that resolves to one of its options, so the fixture has to
@@ -418,5 +428,241 @@ describe('allocateChipBudget', () => {
 
         expect(shown.map((entry) => entry.field.id)).toEqual(['a']);
         expect(overflow).toBe(1);
+    });
+});
+
+describe('hasValueControl', () => {
+    it.each([
+        'select',
+        'rank',
+        'multiselect',
+        'text',
+        'user',
+        'multiuser',
+    ])('has a control for %s', (type) => {
+        expect(hasValueControl(makeField({type: type as FieldType}))).toBe(true);
+    });
+
+    // The tripwire for whoever adds a date control: this test and
+    // `UNRENDERABLE_TYPES`'s three go together, and the picker starts offering
+    // `date` the moment this one is updated.
+    it('has no control for date', () => {
+        expect(hasValueControl(makeField({type: 'date' as FieldType}))).toBe(false);
+    });
+});
+
+const ADDED_NONE: ReadonlySet<string> = new Set();
+
+// Hoisted because the hooks memoise on the identity of what they are given: a
+// `[]` written at the call site is a new array every render, which would make
+// the reference-stability tests below assert nothing.
+const NO_VALUES: Array<PropertyValue<unknown>> = [];
+
+// Always writable. The two hooks disagreeing about permissions has its own tests
+// below; everywhere else it would only be noise.
+const ALWAYS_EDITABLE = () => true;
+
+describe('useModalAttributes', () => {
+    /*
+     * The no-regression case, and the one that catches a `new Set()` default:
+     * a default constructed per call is a fresh reference every render, which
+     * defeats the `useMemo` for every caller that tracks no added rows — and
+     * that is every caller but the modal.
+     */
+    it('with nothing added, returns what an explicitly empty set returns, stably', () => {
+        const fields = [
+            makeField({id: 'set', name: 'set'}),
+            makeField({id: 'unset', name: 'unset'}),
+        ];
+        const values = [makeValue('SECRET', 'set')];
+
+        const implicit = renderHook(() => useModalAttributes(fields, values));
+        const explicit = renderHook(() => useModalAttributes(fields, values, ADDED_NONE));
+
+        expect(implicit.result.current.map((entry) => entry.field.id)).toEqual(['set']);
+        expect(explicit.result.current).toEqual(implicit.result.current);
+
+        const first = implicit.result.current;
+        implicit.rerender();
+        expect(implicit.result.current).toBe(first);
+    });
+
+    // The row lands where `zipAttributes` puts it, which is field order — so it
+    // can appear *above* the button that added it. The fixture sorts the added
+    // field first on purpose: appending would pass a fixture that sorted it last.
+    it('gives an added field a row with no value, in field order', () => {
+        const fields = [
+            makeField({id: 'added', name: 'added'}),
+            makeField({id: 'set', name: 'set'}),
+        ];
+        const values = [makeValue('SECRET', 'set')];
+
+        const {result} = renderHook(() => useModalAttributes(fields, values, new Set(['added'])));
+
+        expect(result.current.map((entry) => entry.field.id)).toEqual(['added', 'set']);
+        expect(result.current[0].value).toBeUndefined();
+    });
+
+    // The predicate is an `||`, which makes this obvious in the source and not at
+    // all obvious in a fixture where the added field is also `always`.
+    it('gives a field that is both visible and added exactly one row', () => {
+        const fields = [makeField({id: 'always', name: 'always', attrs: {visibility: 'always'}})];
+
+        const {result} = renderHook(() => useModalAttributes(fields, NO_VALUES, new Set(['always'])));
+
+        expect(result.current).toHaveLength(1);
+    });
+
+    /*
+     * `hidden` is a rule about the message list and the hover card, not about the
+     * modal: the server sends these fields and their values to every client that
+     * can read the post, so keeping them out of the edit surface would hide them
+     * from the one person who could change them. Set, or asked for, they get a
+     * row — and still no chip.
+     */
+    it('gives a hidden field a row once it is set, and when it is added', () => {
+        const fields = [makeField({id: 'secret', name: 'secret', attrs: {visibility: 'hidden'}})];
+
+        const set = renderHook(() => useModalAttributes(fields, [makeValue('SECRET', 'secret')]));
+        expect(set.result.current.map((entry) => entry.field.id)).toEqual(['secret']);
+
+        const added = renderHook(() => useModalAttributes(fields, NO_VALUES, new Set(['secret'])));
+        expect(added.result.current.map((entry) => entry.field.id)).toEqual(['secret']);
+
+        // Unset and not asked for, it waits for a value like any `when_set` field.
+        const untouched = renderHook(() => useModalAttributes(fields, NO_VALUES, ADDED_NONE));
+        expect(untouched.result.current).toEqual([]);
+
+        // And it still earns no chip — that is what `hidden` decides.
+        expect(isChipVisible(fields[0], makeValue('SECRET', 'secret'))).toBe(false);
+    });
+
+    it('returns the same array across renders with unchanged inputs', () => {
+        const fields = [makeField({id: 'set', name: 'set'})];
+        const values = [makeValue('SECRET', 'set')];
+        const added: ReadonlySet<string> = new Set(['other']);
+
+        const {result, rerender} = renderHook(() => useModalAttributes(fields, values, added));
+
+        const first = result.current;
+        rerender();
+
+        expect(result.current).toBe(first);
+    });
+});
+
+describe('useAddableAttributes', () => {
+    /*
+     * The single test that carries D20. One fixture holding every exclusion —
+     * already set, locked, no control, already added — and two fields that
+     * survive all of them, one of them `hidden`. If only one of this suite's
+     * tests survives review, keep this one.
+     */
+    it('offers the fields that are unset, writable and not already added, hidden ones included', () => {
+        const fields = [
+            makeField({id: 'set', name: 'set'}),
+            makeField({id: 'secret', name: 'secret', attrs: {visibility: 'hidden'}}),
+            makeField({id: 'locked', name: 'locked'}),
+            makeField({id: 'dated', name: 'dated', type: 'date' as FieldType}),
+            makeField({id: 'added', name: 'added'}),
+            makeField({id: 'open', name: 'open'}),
+        ];
+        const values = [makeValue('SECRET', 'set')];
+        const canEdit = (field: PropertyField) => field.id !== 'locked';
+
+        const {result} = renderHook(() => useAddableAttributes(fields, values, new Set(['added']), canEdit));
+
+        // `secret` is offered: `visibility` decides where an attribute is
+        // advertised, not who may set it. Setting it yields a value with no chip.
+        expect(result.current.map((field) => field.id)).toEqual(['secret', 'open']);
+    });
+
+    // A hidden field that is already set is a row, so the picker must not offer
+    // it a second time. The same "not already showing" rule as every other field.
+    it('stops offering a hidden field once it has a value', () => {
+        const fields = [makeField({id: 'secret', name: 'secret', attrs: {visibility: 'hidden'}})];
+
+        const {result} = renderHook(() => useAddableAttributes(fields, [makeValue('SECRET', 'secret')], ADDED_NONE, ALWAYS_EDITABLE));
+
+        expect(result.current).toEqual([]);
+    });
+
+    /*
+     * D17 and D20 disagree here by design, and the disagreement is the point: the
+     * modal row says "this channel declares this attribute on every post", which
+     * is true whether or not this user may write it; the picker offers what the
+     * user can act on. Without this, one rule gets refactored into the other and
+     * nothing fails.
+     */
+    it('keeps a locked always field as a modal row while refusing it as a candidate', () => {
+        const fields = [makeField({id: 'classification', name: 'classification', attrs: {visibility: 'always'}})];
+        const denied = () => false;
+
+        const rows = renderHook(() => useModalAttributes(fields, NO_VALUES, ADDED_NONE));
+        const candidates = renderHook(() => useAddableAttributes(fields, NO_VALUES, ADDED_NONE, denied));
+
+        expect(rows.result.current.map((entry) => entry.field.id)).toEqual(['classification']);
+        expect(candidates.result.current).toEqual([]);
+    });
+
+    // The guard against 14.2 growing its own permission call later: the answer has
+    // to come from the function the caller passed, which is the same one the rows
+    // use. A second call site is a second chance to drift on an argument, and the
+    // drift would be silent — the picker would offer a field whose row is locked.
+    it('asks the caller about every field, and obeys the answer', () => {
+        const fields = [makeField({id: 'open', name: 'open'})];
+        const canEdit = jest.fn().mockReturnValue(false);
+
+        const {result, rerender} = renderHook(() => useAddableAttributes(fields, NO_VALUES, ADDED_NONE, canEdit));
+
+        expect(canEdit).toHaveBeenCalledWith(fields[0]);
+        expect(result.current).toEqual([]);
+
+        // Same function reference, so the memo does not recompute and the new
+        // answer is not consulted. That is the contract, not a bug — it is why
+        // the caller owes a stable `canEdit` and why the modal lifts it into a
+        // `useCallback`.
+        canEdit.mockReturnValue(true);
+        rerender();
+        expect(result.current).toEqual([]);
+
+        const relaxed = renderHook(() => useAddableAttributes(fields, NO_VALUES, ADDED_NONE, ALWAYS_EDITABLE));
+        expect(relaxed.result.current.map((field) => field.id)).toEqual(['open']);
+    });
+
+    // The plain case, easy to lose among the exclusions: a `when_set` field with
+    // no value at all is what `+ Add attribute` exists for.
+    it('offers an unset when_set field and drops it once it is set', () => {
+        const fields = [makeField({id: 'open', name: 'open'})];
+
+        const unset = renderHook(() => useAddableAttributes(fields, NO_VALUES, ADDED_NONE, ALWAYS_EDITABLE));
+        expect(unset.result.current.map((field) => field.id)).toEqual(['open']);
+
+        const set = renderHook(() => useAddableAttributes(fields, [makeValue('SECRET', 'open')], ADDED_NONE, ALWAYS_EDITABLE));
+        expect(set.result.current).toEqual([]);
+    });
+
+    // A value naming an option the channel no longer defines renders nothing, so
+    // the field reads as unset everywhere else. The picker has to agree, or the
+    // attribute becomes unreachable — no chip, no row, and not offered.
+    it('offers a field whose only value names a deleted option', () => {
+        const fields = [makeField({id: 'open', name: 'open'})];
+        const values = [makeValue('WITHDRAWN', 'open')];
+
+        const {result} = renderHook(() => useAddableAttributes(fields, values, ADDED_NONE, ALWAYS_EDITABLE));
+
+        expect(result.current.map((field) => field.id)).toEqual(['open']);
+    });
+
+    it('returns the same array across renders with unchanged inputs', () => {
+        const fields = [makeField({id: 'open', name: 'open'})];
+        const added: ReadonlySet<string> = new Set();
+
+        const {result, rerender} = renderHook(() => useAddableAttributes(fields, NO_VALUES, added, ALWAYS_EDITABLE));
+
+        const first = result.current;
+        rerender();
+
+        expect(result.current).toBe(first);
     });
 });

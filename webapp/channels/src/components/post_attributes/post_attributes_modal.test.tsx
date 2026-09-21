@@ -250,7 +250,7 @@ describe('PostAttributesModal', () => {
         ]);
     });
 
-    test('an unset `always` field is a row; an unset `when_set` field is not; a `hidden` field is not', () => {
+    test('unset, only an `always` field is a row — `when_set` and `hidden` both wait for a value', () => {
         patchSpy.mockResolvedValue([]);
 
         const fields = [
@@ -266,14 +266,30 @@ describe('PostAttributesModal', () => {
         expect(screen.queryByTestId('post-attribute-row-hidden_field')).not.toBeInTheDocument();
     });
 
-    test('a `hidden` field stays hidden even when it has a value', () => {
+    /*
+     * The modal is an edit surface, and `visibility` says where an attribute is
+     * advertised rather than who may see it — the server sends hidden fields and
+     * their values to every client that can read the post. So a set `hidden`
+     * field is a row here and nothing on the message list, which is the whole
+     * point of marking it hidden. Same split as CPA's profile popover and its
+     * Settings form.
+     */
+    test('a set `hidden` field is a row, the same as a set `when_set` one', () => {
         patchSpy.mockResolvedValue([]);
 
-        const field = makeField({id: 'f_hidden', name: 'hidden_field', attrs: {options: OPTIONS, visibility: 'hidden'}});
+        const fields = [
+            makeField({id: 'f_hidden', name: 'hidden_field', attrs: {options: OPTIONS, visibility: 'hidden'}}),
+            makeField({id: 'f_when_set', name: 'when_set_field', attrs: {options: OPTIONS, visibility: 'when_set'}}),
+        ];
+        const values = [
+            makeValue({field_id: 'f_hidden'}),
+            makeValue({field_id: 'f_when_set'}),
+        ];
 
-        renderModal([field], [makeValue({field_id: 'f_hidden'})]);
+        renderModal(fields, values);
 
-        expect(screen.queryByTestId('post-attribute-row-hidden_field')).not.toBeInTheDocument();
+        expect(screen.getByTestId('post-attribute-row-hidden_field')).toBeInTheDocument();
+        expect(screen.getByTestId('post-attribute-row-when_set_field')).toBeInTheDocument();
     });
 
     test('opening on a post with no values shows the channel\'s `always` fields and no empty state', () => {
