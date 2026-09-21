@@ -3145,111 +3145,347 @@ func TestPluginSettingsSanitize(t *testing.T) {
 const sanitizeSentinelPrefix = "sentinel_pw_"
 
 func TestSanitizeDataSource(t *testing.T) {
-	t.Run(DatabaseDriverPostgres, func(t *testing.T) {
-		testCases := []struct {
-			Original  string
-			Sanitized string
-		}{
-			{
-				"",
-				"",
-			},
-			{
-				"postgres://mmuser:mostest_password@localhost",
-				"postgres://" + SanitizedPassword + ":" + SanitizedPassword + "@localhost",
-			},
-			{
-				"postgres://mmuser:mostest_password@localhost/dummy?sslmode=disable",
-				"postgres://" + SanitizedPassword + ":" + SanitizedPassword + "@localhost/dummy?sslmode=disable",
-			},
-			{
-				"postgres://localhost/dummy?sslmode=disable&user=mmuser&password=mostest_password",
-				"postgres://" + SanitizedPassword + ":" + SanitizedPassword + "@localhost/dummy?sslmode=disable",
-			},
-			{
-				"postgres://mmuser:sentinel_pw_alpha@localhost:5432/mattermost?sslmode=disable",
-				"postgres://" + SanitizedPassword + ":" + SanitizedPassword + "@localhost:5432/mattermost?sslmode=disable",
-			},
-			{
-				"postgresql://mmuser:sentinel_pw_bravo@localhost:5432/mattermost?sslmode=disable",
-				"postgresql://" + SanitizedPassword + ":" + SanitizedPassword + "@localhost:5432/mattermost?sslmode=disable",
-			},
-			{
-				"postgres://localhost/mattermost?user=mmuser&password=sentinel_pw_charlie&sslmode=disable",
-				"postgres://" + SanitizedPassword + ":" + SanitizedPassword + "@localhost/mattermost?sslmode=disable",
-			},
-		}
-		driver := DatabaseDriverPostgres
-		for _, tc := range testCases {
-			out, err := SanitizeDataSource(driver, tc.Original)
-			require.NoError(t, err)
-			assert.Equal(t, tc.Sanitized, out)
-			assert.NotContains(t, out, sanitizeSentinelPrefix)
-		}
-	})
-}
+	// maxReportedRun is the longest run of a connection string the description
+	// of a parse failure is allowed to quote: a percent sign and the two bytes
+	// after it, which is what net/url names when it rejects an escape sequence.
+	const maxReportedRun = 3
 
-// TestSanitizeDataSourceUnsupportedFormats covers the connection string forms
-// that are not PostgreSQL URLs. Only a PostgreSQL URL can be partially
-// redacted; every other form is reported as unsupported so that the caller
-// replaces the whole setting instead.
-func TestSanitizeDataSourceUnsupportedFormats(t *testing.T) {
+	redacted := SanitizedPassword + ":" + SanitizedPassword
+
 	testCases := []struct {
 		name       string
 		dataSource string
+		// sanitized is the value returned for a connection string that can be
+		// partially redacted.
+		sanitized string
+		// rejected marks a connection string reported as unsupported rather
+		// than described, so that the caller replaces the whole setting.
+		rejected bool
+		// credential is the part of the connection string that must not be
+		// reported, neither in the sanitized value nor in the error, and for a
+		// rejected one not in any run longer than maxReportedRun either.
 		credential string
+		// absent names further parts of the connection string that must not be
+		// reported, so a case can cover what it is specifically about.
+		absent []string
 	}{
+		{
+			name:      "empty",
+			sanitized: "",
+		},
+		{
+			name:       "user info",
+			dataSource: "postgres://mmuser:mostest_password@localhost",
+			sanitized:  "postgres://" + redacted + "@localhost",
+			credential: "mostest_password",
+		},
+		{
+			name:       "user info with a path and parameters",
+			dataSource: "postgres://mmuser:mostest_password@localhost/dummy?sslmode=disable",
+			sanitized:  "postgres://" + redacted + "@localhost/dummy?sslmode=disable",
+			credential: "mostest_password",
+		},
+		{
+			name:       "credentials after other query parameters",
+			dataSource: "postgres://localhost/dummy?sslmode=disable&user=mmuser&password=mostest_password",
+			sanitized:  "postgres://" + redacted + "@localhost/dummy?sslmode=disable",
+			credential: "mostest_password",
+		},
+		{
+			name:       "credentials before other query parameters",
+			dataSource: "postgres://localhost/mattermost?user=mmuser&password=sentinel_pw_charlie&sslmode=disable",
+			sanitized:  "postgres://" + redacted + "@localhost/mattermost?sslmode=disable",
+			credential: "sentinel_pw_charlie",
+		},
+		{
+			name:       "user info with an explicit port",
+			dataSource: "postgres://mmuser:sentinel_pw_alpha@localhost:5432/mattermost?sslmode=disable",
+			sanitized:  "postgres://" + redacted + "@localhost:5432/mattermost?sslmode=disable",
+			credential: "sentinel_pw_alpha",
+		},
+		{
+			name:       "user info and query parameters together",
+			dataSource: "postgres://mmuser:sentinel_pw_bravo@localhost/mattermost?user=other&password=sentinel_pw_charlie&sslmode=disable",
+			sanitized:  "postgres://" + redacted + "@localhost/mattermost?sslmode=disable",
+			credential: "sentinel_pw_bravo",
+		},
+		{
+			name:       "percent encoded parameter name",
+			dataSource: "postgres://localhost/mattermost?%70assword=sentinel_pw_delta&sslmode=disable",
+			sanitized:  "postgres://" + redacted + "@localhost/mattermost?sslmode=disable",
+			credential: "sentinel_pw_delta",
+		},
+		{
+			name:       "repeated password parameter",
+			dataSource: "postgres://localhost/mattermost?password=sentinel_pw_echo&password=sentinel_pw_foxtrot&sslmode=disable",
+			sanitized:  "postgres://" + redacted + "@localhost/mattermost?sslmode=disable",
+			credential: "sentinel_pw_echo",
+		},
+		{
+			name:       "percent encoded user info",
+			dataSource: "postgres://mmuser:sentinel%5Fpw%5Fgolf@localhost/mattermost",
+			sanitized:  "postgres://" + redacted + "@localhost/mattermost",
+			credential: "sentinel",
+		},
+		{
+			name:       "plus sign in user info",
+			dataSource: "postgres://mmuser:sentinel_pw_hotel+india@localhost/mattermost",
+			sanitized:  "postgres://" + redacted + "@localhost/mattermost",
+			credential: "sentinel_pw_hotel",
+		},
+		{
+			name:       "postgresql scheme",
+			dataSource: "postgresql://mmuser:sentinel_pw_juliett@localhost/mattermost",
+			sanitized:  "postgresql://" + redacted + "@localhost/mattermost",
+			credential: "sentinel_pw_juliett",
+		},
+		{
+			name:       "postgresql scheme with an explicit port",
+			dataSource: "postgresql://mmuser:sentinel_pw_bravo@localhost:5432/mattermost?sslmode=disable",
+			sanitized:  "postgresql://" + redacted + "@localhost:5432/mattermost?sslmode=disable",
+			credential: "sentinel_pw_bravo",
+		},
+		{
+			name:       "bracketed IPv6 host",
+			dataSource: "postgres://mmuser:sentinel_pw_kilo@[::1]:5432/mattermost",
+			sanitized:  "postgres://" + redacted + "@[::1]:5432/mattermost",
+			credential: "sentinel_pw_kilo",
+		},
+		{
+			name:       "trailing whitespace",
+			dataSource: "postgres://mmuser:sentinel_pw_lima@localhost/mattermost ",
+			sanitized:  "postgres://" + redacted + "@localhost/mattermost ",
+			credential: "sentinel_pw_lima",
+		},
 		{
 			name:       "keyword/value",
 			dataSource: "user=mmuser password=sentinel_pw_alpha host=localhost dbname=mattermost sslmode=disable",
+			rejected:   true,
 			credential: "sentinel_pw_alpha",
 		},
 		{
 			name:       "keyword/value with a quoted value",
 			dataSource: "host=localhost password='sentinel_pw_bravo with space' user=mmuser",
+			rejected:   true,
 			credential: "sentinel_pw_bravo with space",
+		},
+		{
+			name:       "keyword/value, none of it reported",
+			dataSource: "user=mmuser password=sentinel_pw_juliett host=localhost dbname=mattermost",
+			rejected:   true,
+			credential: "sentinel_pw_juliett",
+			absent:     []string{"mmuser", "localhost", "dbname"},
 		},
 		{
 			name:       "no scheme",
 			dataSource: "sentinel_pw_charlie",
+			rejected:   true,
 			credential: "sentinel_pw_charlie",
 		},
 		{
 			name:       "mysql scheme",
 			dataSource: "mysql://mmuser:sentinel_pw_delta@localhost/mattermost",
+			rejected:   true,
 			credential: "sentinel_pw_delta",
 		},
 		{
 			name:       "http scheme",
 			dataSource: "http://mmuser:sentinel_pw_echo@localhost/mattermost",
+			rejected:   true,
 			credential: "sentinel_pw_echo",
 		},
 		{
 			name:       "opaque postgres URL",
 			dataSource: "postgres:user=mmuser password=sentinel_pw_foxtrot host=localhost",
+			rejected:   true,
 			credential: "sentinel_pw_foxtrot",
+		},
+		{
+			name:       "upper case scheme",
+			dataSource: "POSTGRES://mmuser:sentinel_pw_alpha@localhost/mattermost",
+			rejected:   true,
+			credential: "sentinel_pw_alpha",
+		},
+		{
+			name:       "mixed case scheme",
+			dataSource: "PostgreSQL://mmuser:sentinel_pw_bravo@localhost/mattermost",
+			rejected:   true,
+			credential: "sentinel_pw_bravo",
+		},
+		{
+			name:       "leading whitespace before a URL",
+			dataSource: " postgres://mmuser:sentinel_pw_charlie@localhost/mattermost",
+			rejected:   true,
+			credential: "sentinel_pw_charlie",
+		},
+		{
+			name:       "leading whitespace before a keyword/value string",
+			dataSource: " user=mmuser password=sentinel_pw_delta host=localhost",
+			rejected:   true,
+			credential: "sentinel_pw_delta",
+		},
+		{
+			name:       "trailing whitespace after a keyword/value string",
+			dataSource: "user=mmuser password=sentinel_pw_echo host=localhost ",
+			rejected:   true,
+			credential: "sentinel_pw_echo",
+		},
+		{
+			name:       "scheme text away from the start",
+			dataSource: "options=postgres:// user=mmuser password=sentinel_pw_foxtrot host=localhost",
+			rejected:   true,
+			credential: "sentinel_pw_foxtrot",
+		},
+		{
+			name:       "invalid percent escape",
+			dataSource: "postgres://mmuser:sentinel_pw_golf%zz@localhost/mattermost",
+			rejected:   true,
+			credential: "sentinel_pw_golf",
+		},
+		{
+			name:       "unreadable escape in password",
+			dataSource: "postgres://mmuser:sentinel_pw_bravo%QXtailmarker@localhost:5432/mattermost?sslmode=disable",
+			rejected:   true,
+			credential: "sentinel_pw_bravo",
+			absent:     []string{"tailmarker"},
+		},
+		{
+			name:       "password ends in a bare percent sign",
+			dataSource: "postgres://mmuser:sentinel_pw_charlie%@localhost/mattermost",
+			rejected:   true,
+			credential: "sentinel_pw_charlie",
+		},
+		{
+			name:       "password ends mid-escape",
+			dataSource: "postgres://mmuser:sentinel_pw_delta%Z@localhost/mattermost",
+			rejected:   true,
+			credential: "sentinel_pw_delta",
+		},
+		{
+			name:       "unreadable escape in username",
+			dataSource: "postgres://mmuser%QX:sentinel_pw_echo@localhost/mattermost",
+			rejected:   true,
+			credential: "sentinel_pw_echo",
+			absent:     []string{"mmuser"},
+		},
+		{
+			name:       "non-numeric port",
+			dataSource: "postgres://mmuser:sentinel_pw_hotel@localhost:notaport/mattermost",
+			rejected:   true,
+			credential: "sentinel_pw_hotel",
+		},
+		{
+			name:       "port is not a number",
+			dataSource: "postgres://mmuser:sentinel_pw_foxtrot@localhost:notaport/mattermost",
+			rejected:   true,
+			credential: "sentinel_pw_foxtrot",
+		},
+		{
+			name:       "unusable character in host",
+			dataSource: "postgres://mmuser:sentinel_pw_golf@marklocal^markhost/mattermost",
+			rejected:   true,
+			credential: "sentinel_pw_golf",
+			absent:     []string{"marklocal", "markhost"},
+		},
+		{
+			name:       "unreadable escape in database name",
+			dataSource: "postgres://mmuser:sentinel_pw_hotel@localhost/matter%QXmost",
+			rejected:   true,
+			credential: "sentinel_pw_hotel",
+			absent:     []string{"matter", "most"},
+		},
+		{
+			name:       "unreadable escape after a fragment marker",
+			dataSource: "postgres://mmuser:sentinel_pw_india@localhost/mattermost#marker%QX",
+			rejected:   true,
+			credential: "sentinel_pw_india",
+			absent:     []string{"marker", "mattermost"},
 		},
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			out, err := SanitizeDataSource(DatabaseDriverPostgres, tc.dataSource)
-			assert.Error(t, err)
-			assert.NotContains(t, out, tc.credential)
-			assert.NotContains(t, out, sanitizeSentinelPrefix)
-		})
-	}
+	t.Run(DatabaseDriverPostgres, func(t *testing.T) {
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				out, err := SanitizeDataSource(DatabaseDriverPostgres, tc.dataSource)
+
+				if !tc.rejected {
+					require.NoError(t, err)
+					assert.Equal(t, tc.sanitized, out)
+					assert.NotContains(t, out, sanitizeSentinelPrefix)
+					if tc.credential != "" {
+						assert.NotContains(t, out, tc.credential)
+					}
+
+					return
+				}
+
+				require.Error(t, err)
+				assert.Empty(t, out)
+
+				// The error is what Config.Sanitize hands to the logger, so it
+				// carries the same expectation as the sanitized value.
+				reported := err.Error()
+				assert.NotContains(t, reported, tc.dataSource)
+				assert.NotContains(t, reported, tc.credential)
+				assert.NotContains(t, reported, sanitizeSentinelPrefix)
+				for _, needle := range tc.absent {
+					assert.NotContains(t, reported, needle)
+				}
+				for i := 0; i+maxReportedRun < len(tc.credential); i++ {
+					assert.NotContains(t, reported, tc.credential[i:i+maxReportedRun+1],
+						"more than %d consecutive bytes of the credential were reported", maxReportedRun)
+				}
+			})
+		}
+	})
+
+	// The error values below describe themselves by quoting the input they were
+	// given, so they are only safe to report once that quote is dropped.
+	t.Run("errors that quote their input", func(t *testing.T) {
+		testCases := []struct {
+			name       string
+			err        error
+			credential string
+		}{
+			{
+				name:       "escape sequence",
+				err:        url.EscapeError("%" + sanitizeSentinelPrefix + "kilo"),
+				credential: sanitizeSentinelPrefix + "kilo",
+			},
+			{
+				name:       "host character",
+				err:        url.InvalidHostError(sanitizeSentinelPrefix + "lima"),
+				credential: sanitizeSentinelPrefix + "lima",
+			},
+			{
+				name:       "escape sequence behind a url error",
+				err:        &url.Error{Op: "parse", URL: "postgres://mmuser:" + sanitizeSentinelPrefix + "mike@localhost/mattermost", Err: url.EscapeError("%QX")},
+				credential: sanitizeSentinelPrefix + "mike",
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				reported := dataSourceParseError(tc.err).Error()
+				assert.NotContains(t, reported, tc.credential)
+				assert.NotContains(t, reported, sanitizeSentinelPrefix)
+			})
+		}
+	})
 }
 
-// TestConfigSanitizeDataSourceFields exercises every SqlSettings field that
-// holds a connection string through [Config.Sanitize].
-func TestConfigSanitizeDataSourceFields(t *testing.T) {
-	keywordValueDataSource := func(credential string) string {
+// TestConfigSanitizeDataSource exercises every SqlSettings field that holds a
+// connection string through [Config.Sanitize]. Only a PostgreSQL connection URL
+// keeps its non-credential parameters, and only when partial redaction is asked
+// for; every other value is replaced with the fully redacted setting.
+func TestConfigSanitizeDataSource(t *testing.T) {
+	keywordValue := func(credential string) string {
 		return "user=mmuser password=" + credential + " host=localhost dbname=mattermost sslmode=disable"
 	}
-	urlDataSource := func(credential string) string {
+	connectionURL := func(credential string) string {
 		return "postgres://mmuser:" + credential + "@localhost:5432/mattermost?sslmode=disable"
 	}
+	redactedURL := "postgres://" + SanitizedPassword + ":" + SanitizedPassword + "@localhost:5432/mattermost?sslmode=disable"
 
 	// Each connection string field gets its own credential so that an assertion
 	// failure points at the field it came from.
@@ -3260,378 +3496,47 @@ func TestConfigSanitizeDataSourceFields(t *testing.T) {
 		replicaLagCredential    = "sentinel_pw_replicalag"
 	)
 
-	newConfig := func(dataSource func(credential string) string) *Config {
-		cfg := &Config{}
-		cfg.SetDefaults()
-		cfg.SqlSettings.DriverName = NewPointer(DatabaseDriverPostgres)
-		cfg.SqlSettings.DataSource = NewPointer(dataSource(masterCredential))
-		cfg.SqlSettings.DataSourceReplicas = []string{dataSource(replicaCredential)}
-		cfg.SqlSettings.DataSourceSearchReplicas = []string{dataSource(searchReplicaCredential)}
-		cfg.SqlSettings.ReplicaLagSettings = []*ReplicaLagSettings{
-			{
-				DataSource:       NewPointer(dataSource(replicaLagCredential)),
-				QueryAbsoluteLag: NewPointer("select 1"),
-				QueryTimeLag:     NewPointer("select 1"),
-			},
-		}
-
-		return cfg
-	}
-
-	// dataSources returns every connection string field of the config, so that a
-	// single assertion loop covers all of them.
-	dataSources := func(cfg *Config) []string {
-		out := []string{*cfg.SqlSettings.DataSource}
-		out = append(out, cfg.SqlSettings.DataSourceReplicas...)
-		out = append(out, cfg.SqlSettings.DataSourceSearchReplicas...)
-		for _, rls := range cfg.SqlSettings.ReplicaLagSettings {
-			out = append(out, *rls.DataSource)
-		}
-
-		return out
-	}
-
-	credentials := []string{masterCredential, replicaCredential, searchReplicaCredential, replicaLagCredential}
-
-	// assertMarshalsWithout checks the serialized form of the sanitized config,
+	// assertMarshalsClean checks the serialized form of the sanitized config,
 	// which is what ends up on disk. The config is far too large to include in a
 	// failure message, so only the unmet expectation is reported.
-	assertMarshalsWithout := func(t *testing.T, cfg *Config, needles ...string) {
+	assertMarshalsClean := func(t *testing.T, cfg *Config) {
 		t.Helper()
 
 		b, err := json.Marshal(cfg)
 		require.NoError(t, err)
-
-		for _, needle := range append(needles, sanitizeSentinelPrefix) {
-			assert.False(t, strings.Contains(string(b), needle), "marshalled config contains %q", needle)
-		}
-	}
-
-	t.Run("keyword/value connection strings are replaced wholesale", func(t *testing.T) {
-		cfg := newConfig(keywordValueDataSource)
-
-		cfg.Sanitize(nil, &SanitizeOptions{PartiallyRedactDataSources: true})
-
-		for _, dataSource := range dataSources(cfg) {
-			assert.Equal(t, FakeSetting, dataSource)
-		}
-
-		assertMarshalsWithout(t, cfg, credentials...)
-	})
-
-	t.Run("URL connection strings keep their non-credential parameters", func(t *testing.T) {
-		cfg := newConfig(urlDataSource)
-
-		cfg.Sanitize(nil, &SanitizeOptions{PartiallyRedactDataSources: true})
-
-		expected := "postgres://" + SanitizedPassword + ":" + SanitizedPassword + "@localhost:5432/mattermost?sslmode=disable"
-		for _, dataSource := range dataSources(cfg) {
-			assert.Equal(t, expected, dataSource)
-		}
-
-		assertMarshalsWithout(t, cfg, credentials...)
-	})
-
-	t.Run("without partial redaction every connection string is replaced wholesale", func(t *testing.T) {
-		for name, dataSource := range map[string]func(string) string{
-			"keyword/value": keywordValueDataSource,
-			"URL":           urlDataSource,
-		} {
-			t.Run(name, func(t *testing.T) {
-				cfg := newConfig(dataSource)
-
-				cfg.Sanitize(nil, &SanitizeOptions{PartiallyRedactDataSources: false})
-
-				for _, ds := range dataSources(cfg) {
-					assert.Equal(t, FakeSetting, ds)
-				}
-
-				assertMarshalsWithout(t, cfg)
-			})
-		}
-	})
-}
-
-// TestSanitizeDataSourceURLCredentialPlacements covers every place a PostgreSQL
-// connection URL can carry a username or a password, including the encodings
-// url.ParseQuery accepts for a parameter name.
-func TestSanitizeDataSourceURLCredentialPlacements(t *testing.T) {
-	redacted := SanitizedPassword + ":" + SanitizedPassword
-
-	testCases := []struct {
-		name       string
-		dataSource string
-		credential string
-		expected   string
-	}{
-		{
-			name:       "user info",
-			dataSource: "postgres://mmuser:sentinel_pw_alpha@localhost:5432/mattermost?sslmode=disable",
-			credential: "sentinel_pw_alpha",
-			expected:   "postgres://" + redacted + "@localhost:5432/mattermost?sslmode=disable",
-		},
-		{
-			name:       "user info and query parameters together",
-			dataSource: "postgres://mmuser:sentinel_pw_bravo@localhost/mattermost?user=other&password=sentinel_pw_charlie&sslmode=disable",
-			credential: "sentinel_pw_bravo",
-			expected:   "postgres://" + redacted + "@localhost/mattermost?sslmode=disable",
-		},
-		{
-			name:       "percent encoded parameter name",
-			dataSource: "postgres://localhost/mattermost?%70assword=sentinel_pw_delta&sslmode=disable",
-			credential: "sentinel_pw_delta",
-			expected:   "postgres://" + redacted + "@localhost/mattermost?sslmode=disable",
-		},
-		{
-			name:       "repeated password parameter",
-			dataSource: "postgres://localhost/mattermost?password=sentinel_pw_echo&password=sentinel_pw_foxtrot&sslmode=disable",
-			credential: "sentinel_pw_echo",
-			expected:   "postgres://" + redacted + "@localhost/mattermost?sslmode=disable",
-		},
-		{
-			name:       "percent encoded user info",
-			dataSource: "postgres://mmuser:sentinel%5Fpw%5Fgolf@localhost/mattermost",
-			credential: "sentinel",
-			expected:   "postgres://" + redacted + "@localhost/mattermost",
-		},
-		{
-			name:       "plus sign in user info",
-			dataSource: "postgres://mmuser:sentinel_pw_hotel+india@localhost/mattermost",
-			credential: "sentinel_pw_hotel",
-			expected:   "postgres://" + redacted + "@localhost/mattermost",
-		},
-		{
-			name:       "postgresql scheme",
-			dataSource: "postgresql://mmuser:sentinel_pw_juliett@localhost/mattermost",
-			credential: "sentinel_pw_juliett",
-			expected:   "postgresql://" + redacted + "@localhost/mattermost",
-		},
-		{
-			name:       "bracketed IPv6 host",
-			dataSource: "postgres://mmuser:sentinel_pw_kilo@[::1]:5432/mattermost",
-			credential: "sentinel_pw_kilo",
-			expected:   "postgres://" + redacted + "@[::1]:5432/mattermost",
-		},
-		{
-			name:       "trailing whitespace",
-			dataSource: "postgres://mmuser:sentinel_pw_lima@localhost/mattermost ",
-			credential: "sentinel_pw_lima",
-			expected:   "postgres://" + redacted + "@localhost/mattermost ",
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			out, err := SanitizeDataSource(DatabaseDriverPostgres, tc.dataSource)
-			require.NoError(t, err)
-			assert.Equal(t, tc.expected, out)
-			assert.NotContains(t, out, tc.credential)
-			assert.NotContains(t, out, sanitizeSentinelPrefix)
-		})
-	}
-}
-
-// TestSanitizeDataSourceRejectedURLForms covers the values that look like a
-// connection URL without being one the PostgreSQL driver would read as such, and
-// the ones net/url cannot parse. All of them are reported as unsupported so the
-// caller replaces the whole setting.
-func TestSanitizeDataSourceRejectedURLForms(t *testing.T) {
-	testCases := []struct {
-		name       string
-		dataSource string
-		credential string
-	}{
-		{
-			name:       "upper case scheme",
-			dataSource: "POSTGRES://mmuser:sentinel_pw_alpha@localhost/mattermost",
-			credential: "sentinel_pw_alpha",
-		},
-		{
-			name:       "mixed case scheme",
-			dataSource: "PostgreSQL://mmuser:sentinel_pw_bravo@localhost/mattermost",
-			credential: "sentinel_pw_bravo",
-		},
-		{
-			name:       "leading whitespace before a URL",
-			dataSource: " postgres://mmuser:sentinel_pw_charlie@localhost/mattermost",
-			credential: "sentinel_pw_charlie",
-		},
-		{
-			name:       "leading whitespace before a keyword/value string",
-			dataSource: " user=mmuser password=sentinel_pw_delta host=localhost",
-			credential: "sentinel_pw_delta",
-		},
-		{
-			name:       "trailing whitespace after a keyword/value string",
-			dataSource: "user=mmuser password=sentinel_pw_echo host=localhost ",
-			credential: "sentinel_pw_echo",
-		},
-		{
-			name:       "scheme text away from the start",
-			dataSource: "options=postgres:// user=mmuser password=sentinel_pw_foxtrot host=localhost",
-			credential: "sentinel_pw_foxtrot",
-		},
-		{
-			name:       "invalid percent escape",
-			dataSource: "postgres://mmuser:sentinel_pw_golf%zz@localhost/mattermost",
-			credential: "sentinel_pw_golf",
-		},
-		{
-			name:       "non-numeric port",
-			dataSource: "postgres://mmuser:sentinel_pw_hotel@localhost:notaport/mattermost",
-			credential: "sentinel_pw_hotel",
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			out, err := SanitizeDataSource(DatabaseDriverPostgres, tc.dataSource)
-			assert.Error(t, err)
-			assert.Empty(t, out)
-			assert.NotContains(t, out, tc.credential)
-			assert.NotContains(t, out, sanitizeSentinelPrefix)
-		})
-	}
-}
-
-// TestConfigSanitizeDataSourceDriverNames checks the connection string fields for
-// every value SqlSettings.DriverName can hold. Partial redaction only describes
-// PostgreSQL connection URLs, so any other driver name leaves the whole setting
-// to be replaced.
-func TestConfigSanitizeDataSourceDriverNames(t *testing.T) {
-	testCases := []struct {
-		name       string
-		driverName *string
-	}{
-		{
-			name:       "unset",
-			driverName: nil,
-		},
-		{
-			name:       "empty",
-			driverName: NewPointer(""),
-		},
-		{
-			name:       "not postgres",
-			driverName: NewPointer("mysql"),
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			cfg := &Config{}
-			cfg.SetDefaults()
-			cfg.SqlSettings.DriverName = tc.driverName
-			cfg.SqlSettings.DataSource = NewPointer("postgres://mmuser:sentinel_pw_master@localhost:5432/mattermost")
-			cfg.SqlSettings.DataSourceReplicas = []string{"user=mmuser password=sentinel_pw_replica host=localhost"}
-			cfg.SqlSettings.DataSourceSearchReplicas = []string{"postgres://mmuser:sentinel_pw_searchreplica@localhost/mattermost"}
-			cfg.SqlSettings.ReplicaLagSettings = []*ReplicaLagSettings{
-				{DataSource: NewPointer("postgres://mmuser:sentinel_pw_replicalag@localhost/mattermost")},
-			}
-
-			cfg.Sanitize(nil, &SanitizeOptions{PartiallyRedactDataSources: true})
-
-			assert.Equal(t, FakeSetting, *cfg.SqlSettings.DataSource)
-			assert.Equal(t, []string{FakeSetting}, cfg.SqlSettings.DataSourceReplicas)
-			assert.Equal(t, []string{FakeSetting}, cfg.SqlSettings.DataSourceSearchReplicas)
-			assert.Equal(t, FakeSetting, *cfg.SqlSettings.ReplicaLagSettings[0].DataSource)
-
-			b, err := json.Marshal(cfg)
-			require.NoError(t, err)
-			assert.NotContains(t, string(b), sanitizeSentinelPrefix)
-		})
-	}
-}
-
-// TestConfigSanitizeDataSourceFieldsIndependently checks that each connection
-// string field is described on its own: a field holding a PostgreSQL URL keeps
-// its non-credential parameters even when a neighbouring field holds a form that
-// cannot be described that way, and an absent value stays absent.
-func TestConfigSanitizeDataSourceFieldsIndependently(t *testing.T) {
-	redacted := "postgres://" + SanitizedPassword + ":" + SanitizedPassword + "@localhost:5432/mattermost?sslmode=disable"
-	connectionURL := func(credential string) string {
-		return "postgres://mmuser:" + credential + "@localhost:5432/mattermost?sslmode=disable"
-	}
-	keywordValue := func(credential string) string {
-		return "user=mmuser password=" + credential + " host=localhost dbname=mattermost sslmode=disable"
+		assert.False(t, strings.Contains(string(b), sanitizeSentinelPrefix),
+			"marshalled config carries a credential")
 	}
 
 	testCases := []struct {
 		name string
-		// dataSource of the master field, and the form expected of it once
-		// described.
-		dataSource         string
-		expectedDataSource string
-		// replicas gets the other form, so that the two fields are described
-		// independently of each other within the same config.
-		replica         string
-		expectedReplica string
-	}{
-		{
-			name:               "URL master with a keyword/value replica",
-			dataSource:         connectionURL("sentinel_pw_alpha"),
-			expectedDataSource: redacted,
-			replica:            keywordValue("sentinel_pw_bravo"),
-			expectedReplica:    FakeSetting,
-		},
-		{
-			name:               "keyword/value master with a URL replica",
-			dataSource:         keywordValue("sentinel_pw_charlie"),
-			expectedDataSource: FakeSetting,
-			replica:            connectionURL("sentinel_pw_delta"),
-			expectedReplica:    redacted,
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			cfg := &Config{}
-			cfg.SetDefaults()
-			cfg.SqlSettings.DriverName = NewPointer(DatabaseDriverPostgres)
-			cfg.SqlSettings.DataSource = NewPointer(tc.dataSource)
-			cfg.SqlSettings.DataSourceReplicas = []string{tc.replica}
-			// An empty search replica list and a replica lag entry without a
-			// connection string are both valid configurations.
-			cfg.SqlSettings.DataSourceSearchReplicas = []string{}
-			cfg.SqlSettings.ReplicaLagSettings = []*ReplicaLagSettings{
-				{DataSource: nil},
-				{DataSource: NewPointer("")},
-				{DataSource: NewPointer(connectionURL("sentinel_pw_echo"))},
-			}
-
-			cfg.Sanitize(nil, &SanitizeOptions{PartiallyRedactDataSources: true})
-
-			assert.Equal(t, tc.expectedDataSource, *cfg.SqlSettings.DataSource)
-			assert.Equal(t, []string{tc.expectedReplica}, cfg.SqlSettings.DataSourceReplicas)
-			assert.Empty(t, cfg.SqlSettings.DataSourceSearchReplicas)
-			assert.Nil(t, cfg.SqlSettings.ReplicaLagSettings[0].DataSource)
-			assert.Empty(t, *cfg.SqlSettings.ReplicaLagSettings[1].DataSource)
-			assert.Equal(t, redacted, *cfg.SqlSettings.ReplicaLagSettings[2].DataSource)
-
-			b, err := json.Marshal(cfg)
-			require.NoError(t, err)
-			assert.NotContains(t, string(b), sanitizeSentinelPrefix)
-		})
-	}
-}
-
-// TestConfigSanitizeDataSourceClone checks the connection string fields of the
-// clone the sanitizing callers work on: the clone carries the described values
-// and the config it was cloned from is left as it was.
-func TestConfigSanitizeDataSourceClone(t *testing.T) {
-	testCases := []struct {
-		name       string
-		dataSource string
+		// partiallyRedact is the [SanitizeOptions] flag under test.
+		partiallyRedact bool
+		// dataSource builds the value of every connection string field, and
+		// expected is what each of them holds afterwards.
+		dataSource func(credential string) string
 		expected   string
 	}{
 		{
-			name:       "URL",
-			dataSource: "postgres://mmuser:sentinel_pw_alpha@localhost:5432/mattermost?sslmode=disable",
-			expected:   "postgres://" + SanitizedPassword + ":" + SanitizedPassword + "@localhost:5432/mattermost?sslmode=disable",
+			name:            "keyword/value connection strings are replaced wholesale",
+			partiallyRedact: true,
+			dataSource:      keywordValue,
+			expected:        FakeSetting,
 		},
 		{
-			name:       "keyword/value",
-			dataSource: "user=mmuser password=sentinel_pw_bravo host=localhost dbname=mattermost",
+			name:            "URL connection strings keep their non-credential parameters",
+			partiallyRedact: true,
+			dataSource:      connectionURL,
+			expected:        redactedURL,
+		},
+		{
+			name:       "keyword/value connection strings without partial redaction",
+			dataSource: keywordValue,
+			expected:   FakeSetting,
+		},
+		{
+			name:       "URL connection strings without partial redaction",
+			dataSource: connectionURL,
 			expected:   FakeSetting,
 		},
 	}
@@ -3641,170 +3546,188 @@ func TestConfigSanitizeDataSourceClone(t *testing.T) {
 			cfg := &Config{}
 			cfg.SetDefaults()
 			cfg.SqlSettings.DriverName = NewPointer(DatabaseDriverPostgres)
-			cfg.SqlSettings.DataSource = NewPointer(tc.dataSource)
-
-			clone := cfg.Clone()
-			clone.Sanitize(nil, &SanitizeOptions{PartiallyRedactDataSources: true})
-
-			assert.Equal(t, tc.expected, *clone.SqlSettings.DataSource)
-			assert.Equal(t, tc.dataSource, *cfg.SqlSettings.DataSource)
-
-			b, err := json.Marshal(clone)
-			require.NoError(t, err)
-			assert.NotContains(t, string(b), sanitizeSentinelPrefix)
-		})
-	}
-}
-
-// TestConfigSanitizeDataSourceReportedFailures covers what is reported when a
-// connection string cannot be partially redacted. The field itself is replaced
-// with the fully redacted setting, and the report of the failure names what went
-// wrong without quoting the connection string it came from — neither in the error
-// returned by [SanitizeDataSource] nor in the record [Config.Sanitize] emits for
-// it.
-func TestConfigSanitizeDataSourceReportedFailures(t *testing.T) {
-	testCases := []struct {
-		name       string
-		dataSource string
-		credential string
-	}{
-		{
-			name:       "invalid percent escape",
-			dataSource: "postgres://mmuser:sentinel_pw_alpha%zz@localhost:5432/mattermost?sslmode=disable",
-			credential: "sentinel_pw_alpha",
-		},
-		{
-			name:       "non-numeric port",
-			dataSource: "postgres://mmuser:sentinel_pw_bravo@localhost:notaport/mattermost",
-			credential: "sentinel_pw_bravo",
-		},
-		{
-			name:       "keyword/value",
-			dataSource: "user=mmuser password=sentinel_pw_charlie host=localhost dbname=mattermost sslmode=disable",
-			credential: "sentinel_pw_charlie",
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			// The returned error is what Config.Sanitize hands to the logger, so
-			// it carries the same expectation as the record itself.
-			_, err := SanitizeDataSource(DatabaseDriverPostgres, tc.dataSource)
-			require.Error(t, err)
-			assert.NotContains(t, err.Error(), tc.credential)
-			assert.NotContains(t, err.Error(), sanitizeSentinelPrefix)
-
-			// Config.Sanitize reports through the package-level logger, so the
-			// global logger is pointed at a buffer for the duration of the case.
-			logger, loggerErr := mlog.NewLogger()
-			require.NoError(t, loggerErr)
-
-			var buf mlog.Buffer
-			require.NoError(t, mlog.AddWriterTarget(logger, &buf, true, mlog.StdAll...))
-
-			mlog.InitGlobalLogger(logger)
-			t.Cleanup(func() {
-				mlog.InitGlobalLogger(nil)
-				require.NoError(t, logger.Shutdown())
-			})
-
-			cfg := &Config{}
-			cfg.SetDefaults()
-			cfg.SqlSettings.DriverName = NewPointer(DatabaseDriverPostgres)
-			cfg.SqlSettings.DataSource = NewPointer(tc.dataSource)
-			cfg.SqlSettings.DataSourceReplicas = []string{tc.dataSource}
-			cfg.SqlSettings.DataSourceSearchReplicas = []string{tc.dataSource}
+			cfg.SqlSettings.DataSource = NewPointer(tc.dataSource(masterCredential))
+			cfg.SqlSettings.DataSourceReplicas = []string{tc.dataSource(replicaCredential)}
+			cfg.SqlSettings.DataSourceSearchReplicas = []string{tc.dataSource(searchReplicaCredential)}
 			cfg.SqlSettings.ReplicaLagSettings = []*ReplicaLagSettings{
-				{DataSource: NewPointer(tc.dataSource)},
+				{
+					DataSource:       NewPointer(tc.dataSource(replicaLagCredential)),
+					QueryAbsoluteLag: NewPointer("select 1"),
+					QueryTimeLag:     NewPointer("select 1"),
+				},
 			}
 
-			cfg.Sanitize(nil, &SanitizeOptions{PartiallyRedactDataSources: true})
+			cfg.Sanitize(nil, &SanitizeOptions{PartiallyRedactDataSources: tc.partiallyRedact})
 
-			require.NoError(t, logger.Flush())
-			require.NotEmpty(t, buf.String())
-			assert.NotContains(t, buf.String(), tc.credential)
-			assert.NotContains(t, buf.String(), sanitizeSentinelPrefix)
-
-			assert.Equal(t, FakeSetting, *cfg.SqlSettings.DataSource)
-			assert.Equal(t, []string{FakeSetting}, cfg.SqlSettings.DataSourceReplicas)
-			assert.Equal(t, []string{FakeSetting}, cfg.SqlSettings.DataSourceSearchReplicas)
-			assert.Equal(t, FakeSetting, *cfg.SqlSettings.ReplicaLagSettings[0].DataSource)
+			assert.Equal(t, tc.expected, *cfg.SqlSettings.DataSource)
+			assert.Equal(t, []string{tc.expected}, cfg.SqlSettings.DataSourceReplicas)
+			assert.Equal(t, []string{tc.expected}, cfg.SqlSettings.DataSourceSearchReplicas)
+			assert.Equal(t, tc.expected, *cfg.SqlSettings.ReplicaLagSettings[0].DataSource)
+			assertMarshalsClean(t, cfg)
 		})
 	}
-}
 
-// TestSanitizeDataSourceReportedErrorScope pins how much of a connection string
-// can appear in the error [SanitizeDataSource] returns for one it cannot read.
-// The description of what went wrong is kept; of the connection string itself,
-// nothing beyond a single short percent-escape sequence may survive, so the
-// assertions below also check that no longer run of a credential does.
-func TestSanitizeDataSourceReportedErrorScope(t *testing.T) {
-	// maxReportedRun is the longest run of a connection string the description of
-	// a parse failure is allowed to quote: a percent sign and the two bytes after
-	// it, which is what net/url names when it rejects an escape sequence.
-	const maxReportedRun = 3
+	// Partial redaction only describes PostgreSQL connection URLs, so any other
+	// driver name leaves every field to be replaced, whatever form it holds.
+	t.Run("driver name", func(t *testing.T) {
+		testCases := []struct {
+			name       string
+			driverName *string
+		}{
+			{
+				name:       "unset",
+				driverName: nil,
+			},
+			{
+				name:       "empty",
+				driverName: NewPointer(""),
+			},
+			{
+				name:       "not postgres",
+				driverName: NewPointer("mysql"),
+			},
+		}
 
-	t.Run("connection strings", func(t *testing.T) {
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				cfg := &Config{}
+				cfg.SetDefaults()
+				cfg.SqlSettings.DriverName = tc.driverName
+				cfg.SqlSettings.DataSource = NewPointer("postgres://mmuser:sentinel_pw_master@localhost:5432/mattermost")
+				cfg.SqlSettings.DataSourceReplicas = []string{"user=mmuser password=sentinel_pw_replica host=localhost"}
+				cfg.SqlSettings.DataSourceSearchReplicas = []string{"postgres://mmuser:sentinel_pw_searchreplica@localhost/mattermost"}
+				cfg.SqlSettings.ReplicaLagSettings = []*ReplicaLagSettings{
+					{DataSource: NewPointer("postgres://mmuser:sentinel_pw_replicalag@localhost/mattermost")},
+				}
+
+				cfg.Sanitize(nil, &SanitizeOptions{PartiallyRedactDataSources: true})
+
+				assert.Equal(t, FakeSetting, *cfg.SqlSettings.DataSource)
+				assert.Equal(t, []string{FakeSetting}, cfg.SqlSettings.DataSourceReplicas)
+				assert.Equal(t, []string{FakeSetting}, cfg.SqlSettings.DataSourceSearchReplicas)
+				assert.Equal(t, FakeSetting, *cfg.SqlSettings.ReplicaLagSettings[0].DataSource)
+				assertMarshalsClean(t, cfg)
+			})
+		}
+	})
+
+	// A field holding a connection URL keeps its non-credential parameters even
+	// when a neighbouring field holds a form that cannot be described that way,
+	// and a field without a value stays without one.
+	t.Run("every field is described on its own", func(t *testing.T) {
+		testCases := []struct {
+			name               string
+			dataSource         string
+			expectedDataSource string
+			replica            string
+			expectedReplica    string
+		}{
+			{
+				name:               "URL master with a keyword/value replica",
+				dataSource:         connectionURL("sentinel_pw_alpha"),
+				expectedDataSource: redactedURL,
+				replica:            keywordValue("sentinel_pw_bravo"),
+				expectedReplica:    FakeSetting,
+			},
+			{
+				name:               "keyword/value master with a URL replica",
+				dataSource:         keywordValue("sentinel_pw_charlie"),
+				expectedDataSource: FakeSetting,
+				replica:            connectionURL("sentinel_pw_delta"),
+				expectedReplica:    redactedURL,
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				cfg := &Config{}
+				cfg.SetDefaults()
+				cfg.SqlSettings.DriverName = NewPointer(DatabaseDriverPostgres)
+				cfg.SqlSettings.DataSource = NewPointer(tc.dataSource)
+				cfg.SqlSettings.DataSourceReplicas = []string{tc.replica}
+				// An empty search replica list and a replica lag entry without a
+				// connection string are both valid configurations.
+				cfg.SqlSettings.DataSourceSearchReplicas = []string{}
+				cfg.SqlSettings.ReplicaLagSettings = []*ReplicaLagSettings{
+					{DataSource: nil},
+					{DataSource: NewPointer("")},
+					{DataSource: NewPointer(connectionURL("sentinel_pw_echo"))},
+				}
+
+				cfg.Sanitize(nil, &SanitizeOptions{PartiallyRedactDataSources: true})
+
+				assert.Equal(t, tc.expectedDataSource, *cfg.SqlSettings.DataSource)
+				assert.Equal(t, []string{tc.expectedReplica}, cfg.SqlSettings.DataSourceReplicas)
+				assert.Empty(t, cfg.SqlSettings.DataSourceSearchReplicas)
+				assert.Nil(t, cfg.SqlSettings.ReplicaLagSettings[0].DataSource)
+				assert.Empty(t, *cfg.SqlSettings.ReplicaLagSettings[1].DataSource)
+				assert.Equal(t, redactedURL, *cfg.SqlSettings.ReplicaLagSettings[2].DataSource)
+				assertMarshalsClean(t, cfg)
+			})
+		}
+	})
+
+	// The sanitizing callers work on a clone, which carries the described values
+	// while the config it was cloned from is left as it was.
+	t.Run("the clone is described and the original is not", func(t *testing.T) {
 		testCases := []struct {
 			name       string
 			dataSource string
-			// secret is the part of the connection string that must not be
-			// reported under any circumstances, in whole or in part.
-			secret string
-			// absent names further parts of the connection string that must not
-			// be reported, so a case can cover what it is specifically about.
-			absent []string
+			expected   string
 		}{
 			{
-				name:       "unreadable escape in password",
-				dataSource: "postgres://mmuser:sentinel_pw_bravo%QXtailmarker@localhost:5432/mattermost?sslmode=disable",
-				secret:     "sentinel_pw_bravo",
-				absent:     []string{"tailmarker"},
+				name:       "URL",
+				dataSource: "postgres://mmuser:sentinel_pw_alpha@localhost:5432/mattermost?sslmode=disable",
+				expected:   redactedURL,
 			},
 			{
-				name:       "password ends in a bare percent sign",
-				dataSource: "postgres://mmuser:sentinel_pw_charlie%@localhost/mattermost",
-				secret:     "sentinel_pw_charlie",
+				name:       "keyword/value",
+				dataSource: "user=mmuser password=sentinel_pw_bravo host=localhost dbname=mattermost",
+				expected:   FakeSetting,
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				cfg := &Config{}
+				cfg.SetDefaults()
+				cfg.SqlSettings.DriverName = NewPointer(DatabaseDriverPostgres)
+				cfg.SqlSettings.DataSource = NewPointer(tc.dataSource)
+
+				clone := cfg.Clone()
+				clone.Sanitize(nil, &SanitizeOptions{PartiallyRedactDataSources: true})
+
+				assert.Equal(t, tc.expected, *clone.SqlSettings.DataSource)
+				assert.Equal(t, tc.dataSource, *cfg.SqlSettings.DataSource)
+				assertMarshalsClean(t, clone)
+			})
+		}
+	})
+
+	// A connection string that cannot be partially redacted is replaced with the
+	// fully redacted setting, and the failure is reported naming what went wrong
+	// without quoting the connection string it came from — neither in the error
+	// [SanitizeDataSource] returns nor in the record [Config.Sanitize] emits.
+	t.Run("failures are reported without the connection string", func(t *testing.T) {
+		testCases := []struct {
+			name       string
+			dataSource string
+			credential string
+		}{
+			{
+				name:       "invalid percent escape",
+				dataSource: "postgres://mmuser:sentinel_pw_alpha%zz@localhost:5432/mattermost?sslmode=disable",
+				credential: "sentinel_pw_alpha",
 			},
 			{
-				name:       "password ends mid-escape",
-				dataSource: "postgres://mmuser:sentinel_pw_delta%Z@localhost/mattermost",
-				secret:     "sentinel_pw_delta",
+				name:       "non-numeric port",
+				dataSource: "postgres://mmuser:sentinel_pw_bravo@localhost:notaport/mattermost",
+				credential: "sentinel_pw_bravo",
 			},
 			{
-				name:       "unreadable escape in username",
-				dataSource: "postgres://mmuser%QX:sentinel_pw_echo@localhost/mattermost",
-				secret:     "sentinel_pw_echo",
-				absent:     []string{"mmuser"},
-			},
-			{
-				name:       "port is not a number",
-				dataSource: "postgres://mmuser:sentinel_pw_foxtrot@localhost:notaport/mattermost",
-				secret:     "sentinel_pw_foxtrot",
-			},
-			{
-				name:       "unusable character in host",
-				dataSource: "postgres://mmuser:sentinel_pw_golf@marklocal^markhost/mattermost",
-				secret:     "sentinel_pw_golf",
-				absent:     []string{"marklocal", "markhost"},
-			},
-			{
-				name:       "unreadable escape in database name",
-				dataSource: "postgres://mmuser:sentinel_pw_hotel@localhost/matter%QXmost",
-				secret:     "sentinel_pw_hotel",
-				absent:     []string{"matter", "most"},
-			},
-			{
-				name:       "unreadable escape after a fragment marker",
-				dataSource: "postgres://mmuser:sentinel_pw_india@localhost/mattermost#marker%QX",
-				secret:     "sentinel_pw_india",
-				absent:     []string{"marker", "mattermost"},
-			},
-			{
-				name:       "keyword/value connection string",
-				dataSource: "user=mmuser password=sentinel_pw_juliett host=localhost dbname=mattermost",
-				secret:     "sentinel_pw_juliett",
-				absent:     []string{"mmuser", "localhost", "dbname"},
+				name:       "keyword/value",
+				dataSource: "user=mmuser password=sentinel_pw_charlie host=localhost dbname=mattermost sslmode=disable",
+				credential: "sentinel_pw_charlie",
 			},
 		}
 
@@ -3812,54 +3735,44 @@ func TestSanitizeDataSourceReportedErrorScope(t *testing.T) {
 			t.Run(tc.name, func(t *testing.T) {
 				_, err := SanitizeDataSource(DatabaseDriverPostgres, tc.dataSource)
 				require.Error(t, err)
+				assert.NotContains(t, err.Error(), tc.credential)
+				assert.NotContains(t, err.Error(), sanitizeSentinelPrefix)
 
-				reported := err.Error()
-				assert.NotContains(t, reported, tc.dataSource)
-				assert.NotContains(t, reported, tc.secret)
-				assert.NotContains(t, reported, sanitizeSentinelPrefix)
-				for _, needle := range tc.absent {
-					assert.NotContains(t, reported, needle)
+				// Config.Sanitize reports through the package-level logger, so
+				// the global logger is pointed at a buffer for the case.
+				logger, loggerErr := mlog.NewLogger()
+				require.NoError(t, loggerErr)
+
+				var buf mlog.Buffer
+				require.NoError(t, mlog.AddWriterTarget(logger, &buf, true, mlog.StdAll...))
+
+				mlog.InitGlobalLogger(logger)
+				t.Cleanup(func() {
+					mlog.InitGlobalLogger(nil)
+					require.NoError(t, logger.Shutdown())
+				})
+
+				cfg := &Config{}
+				cfg.SetDefaults()
+				cfg.SqlSettings.DriverName = NewPointer(DatabaseDriverPostgres)
+				cfg.SqlSettings.DataSource = NewPointer(tc.dataSource)
+				cfg.SqlSettings.DataSourceReplicas = []string{tc.dataSource}
+				cfg.SqlSettings.DataSourceSearchReplicas = []string{tc.dataSource}
+				cfg.SqlSettings.ReplicaLagSettings = []*ReplicaLagSettings{
+					{DataSource: NewPointer(tc.dataSource)},
 				}
 
-				for i := 0; i+maxReportedRun < len(tc.secret); i++ {
-					run := tc.secret[i : i+maxReportedRun+1]
-					assert.NotContains(t, reported, run,
-						"more than %d consecutive bytes of the credential were reported", maxReportedRun)
-				}
-			})
-		}
-	})
+				cfg.Sanitize(nil, &SanitizeOptions{PartiallyRedactDataSources: true})
 
-	// The two error values below describe themselves by quoting the input they
-	// were given, so they are only safe to report once that quote is dropped.
-	t.Run("errors that quote their input", func(t *testing.T) {
-		testCases := []struct {
-			name   string
-			err    error
-			secret string
-		}{
-			{
-				name:   "escape sequence",
-				err:    url.EscapeError("%" + sanitizeSentinelPrefix + "kilo"),
-				secret: sanitizeSentinelPrefix + "kilo",
-			},
-			{
-				name:   "host character",
-				err:    url.InvalidHostError(sanitizeSentinelPrefix + "lima"),
-				secret: sanitizeSentinelPrefix + "lima",
-			},
-			{
-				name:   "escape sequence behind a url error",
-				err:    &url.Error{Op: "parse", URL: "postgres://mmuser:" + sanitizeSentinelPrefix + "mike@localhost/mattermost", Err: url.EscapeError("%QX")},
-				secret: sanitizeSentinelPrefix + "mike",
-			},
-		}
+				require.NoError(t, logger.Flush())
+				require.NotEmpty(t, buf.String())
+				assert.NotContains(t, buf.String(), tc.credential)
+				assert.NotContains(t, buf.String(), sanitizeSentinelPrefix)
 
-		for _, tc := range testCases {
-			t.Run(tc.name, func(t *testing.T) {
-				reported := dataSourceParseError(tc.err).Error()
-				assert.NotContains(t, reported, tc.secret)
-				assert.NotContains(t, reported, sanitizeSentinelPrefix)
+				assert.Equal(t, FakeSetting, *cfg.SqlSettings.DataSource)
+				assert.Equal(t, []string{FakeSetting}, cfg.SqlSettings.DataSourceReplicas)
+				assert.Equal(t, []string{FakeSetting}, cfg.SqlSettings.DataSourceSearchReplicas)
+				assert.Equal(t, FakeSetting, *cfg.SqlSettings.ReplicaLagSettings[0].DataSource)
 			})
 		}
 	})
