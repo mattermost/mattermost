@@ -224,7 +224,7 @@ Upgrade the Operator first. Validate it’s stable before upgrading the Mattermo
 
 ### Do I need to upgrade the database separately?
 
-Mattermost does not upgrade the database schema by default. You must manually apply database schema updates if required by a newer Mattermost version. Review the [Mattermost Server changelog](/product-overview/mattermost-v10-changelog) for any migration steps.
+No manual action is required. The Mattermost Operator runs a pre-flight job with the new image to apply any pending database schema migrations before rolling out the upgrade. If the migration fails, the rollout is blocked; migrations already applied earlier in that run aren't automatically rolled back, so restore from backup before retrying (see [Rollback strategy](#rollback-strategy)). The Mattermost server binary also applies any pending migrations automatically on startup, so the schema stays current even if the pre-flight job is disabled (`spec.updateJob.disabled: true`).
 
 ### What if my pods don’t become ready after the upgrade?
 
