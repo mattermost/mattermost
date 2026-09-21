@@ -180,8 +180,6 @@ function resetPropertyFieldMocks() {
 }
 
 describe('detectPreset', () => {
-    beforeEach(resetPropertyFieldMocks);
-
     test('should match each built-in preset', () => {
         for (const preset of presets) {
             expect(detectPreset(preset.levels)).toBe(preset.id);
@@ -220,8 +218,6 @@ describe('detectPreset', () => {
 });
 
 describe('optionsToLevels', () => {
-    beforeEach(resetPropertyFieldMocks);
-
     test('should convert options to levels with explicit rank and color', () => {
         const options: PropertyFieldOption[] = [
             {id: 'a', name: 'Alpha', color: '#FF0000', rank: 2},
@@ -263,8 +259,6 @@ describe('optionsToLevels', () => {
 });
 
 describe('levelsToOptions', () => {
-    beforeEach(resetPropertyFieldMocks);
-
     test('should convert levels to options preserving name, color, rank', () => {
         const levels: ClassificationLevel[] = [
             {id: 'real_id', name: 'SECRET', color: '#C8102E', rank: 1},
@@ -291,8 +285,6 @@ describe('levelsToOptions', () => {
 });
 
 describe('processClassificationField', () => {
-    beforeEach(resetPropertyFieldMocks);
-
     test('should extract levels and detect preset from a field', () => {
         const usPreset = presets.find((p) => p.id === 'us')!;
         const field = makePropertyField({

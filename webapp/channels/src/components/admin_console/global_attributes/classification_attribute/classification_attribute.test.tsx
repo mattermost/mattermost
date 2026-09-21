@@ -152,7 +152,7 @@ describe('ClassificationAttribute', () => {
     it('refuses to adopt a channel field named classification that is linked elsewhere', async () => {
         // * Its options come from whatever template it is linked to, so the Applies-to
         // card would be editing another attribute's channel behaviour.
-        mockLoad({...channelField(), linked_field_id: 'some_other_template_id'} as PropertyField);
+        mockLoad({...channelField(), linked_field_id: 'some_other_template_id'});
 
         render();
 

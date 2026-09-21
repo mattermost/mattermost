@@ -39,7 +39,7 @@ export const CLASSIFICATIONS_TEMPLATE_FIELD_NAME = 'classification';
 
 // Classification levels are an ordered scale, so every field this feature owns is
 // rank-typed. A same-named field of any other type belongs to something else.
-export const CLASSIFICATIONS_FIELD_TYPE = 'rank' as PropertyField['type'];
+export const CLASSIFICATIONS_FIELD_TYPE: PropertyField['type'] = 'rank';
 
 // Returned by the server when a create would duplicate a live name within an
 // object type. Distinguishes a create conflict from the delete-dependents

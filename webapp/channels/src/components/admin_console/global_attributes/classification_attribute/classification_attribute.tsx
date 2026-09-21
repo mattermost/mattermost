@@ -7,7 +7,7 @@ import {useDispatch} from 'react-redux';
 import {Link} from 'react-router-dom';
 
 import type {ClientError} from '@mattermost/client';
-import {ChevronLeftIcon, OpenInNewIcon} from '@mattermost/compass-icons/components';
+import {ChevronLeftIcon, OpenInNewIcon, SortAscendingIcon} from '@mattermost/compass-icons/components';
 import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 
@@ -36,7 +36,6 @@ import {useChannelResourceRemove} from './remove_channel_resource_modal';
 import AppliesToCard from '../applies_to/applies_to_card';
 import {buildChannelFieldPatch, buildChannelFieldPayload, parseChannelFieldConfig} from '../applies_to/channels';
 import type {ChannelResourceConfig} from '../applies_to/channels';
-import {getAttributeTypeDescriptor, getTypeLabelForField} from '../attribute_type';
 import {GLOBAL_ATTRIBUTES_LIST_ROUTE} from '../constants';
 import {formatAttributeHeadingName} from '../utils';
 
@@ -58,30 +57,6 @@ function rethrowUnlessNotFound(error: unknown): undefined {
 type Props = {
     disabled?: boolean;
 };
-
-// Read off the field rather than hardcoded: a definition that is not rank-typed
-// never reaches the ready state, and deriving keeps the two from drifting.
-function DefinitionType({field}: {field: PropertyField}): JSX.Element {
-    const {formatMessage} = useIntl();
-    const {icon: Icon} = getAttributeTypeDescriptor(field);
-    const label = getTypeLabelForField(field);
-
-    return (
-        <button
-            type='button'
-            className='ClassificationAttribute__typeButton'
-            disabled={true}
-            aria-label={formatMessage(messages.typeFieldAriaLabel, {value: formatMessage(label)})}
-            data-testid='classificationAttributeType'
-        >
-            <span className='ClassificationAttribute__typeButtonInner'>
-                <Icon size={18}/>
-                <FormattedMessage {...label}/>
-            </span>
-            <i className='icon icon-chevron-down'/>
-        </button>
-    );
-}
 
 /**
  * Classification's own attribute page.
@@ -409,7 +384,19 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                                             <FormattedMessage {...messages.typeLabel}/>
                                         </span>
                                         <div className='ClassificationAttribute__fieldControl'>
-                                            <DefinitionType field={template}/>
+                                            <button
+                                                type='button'
+                                                className='ClassificationAttribute__typeButton'
+                                                disabled={true}
+                                                aria-label={formatMessage(messages.typeFieldAriaLabel, {value: formatMessage(messages.typeRanked)})}
+                                                data-testid='classificationAttributeType'
+                                            >
+                                                <span className='ClassificationAttribute__typeButtonInner'>
+                                                    <SortAscendingIcon size={18}/>
+                                                    <FormattedMessage {...messages.typeRanked}/>
+                                                </span>
+                                                <i className='icon icon-chevron-down'/>
+                                            </button>
                                         </div>
                                     </div>
                                     <div className='ClassificationAttribute__row'>
@@ -526,6 +513,7 @@ const messages = defineMessages({
         defaultMessage: 'Name is the internal identifier for policies and integrations. Display name is what admins and users see.',
     },
     typeLabel: {id: 'admin.global_attributes.attribute_details.type.label', defaultMessage: 'Type'},
+    typeRanked: {id: 'admin.global_attributes.table.type.rank', defaultMessage: 'Ranked'},
     typeFieldAriaLabel: {id: 'admin.global_attributes.attribute_details.type.field_aria_label', defaultMessage: 'Type: {value}'},
     optionsLabel: {id: 'admin.global_attributes.attribute_details.options.label', defaultMessage: 'Options'},
     markingsFooter: {
