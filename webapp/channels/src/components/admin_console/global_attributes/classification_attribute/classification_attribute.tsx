@@ -7,7 +7,7 @@ import {useDispatch} from 'react-redux';
 import {Link} from 'react-router-dom';
 
 import type {ClientError} from '@mattermost/client';
-import {ChevronLeftIcon, OpenInNewIcon, SortAscendingIcon} from '@mattermost/compass-icons/components';
+import {ChevronLeftIcon, OpenInNewIcon} from '@mattermost/compass-icons/components';
 import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 
@@ -36,6 +36,7 @@ import {useChannelResourceRemove} from './remove_channel_resource_modal';
 import AppliesToCard from '../applies_to/applies_to_card';
 import {buildChannelFieldPatch, buildChannelFieldPayload, parseChannelFieldConfig} from '../applies_to/channels';
 import type {ChannelResourceConfig} from '../applies_to/channels';
+import {getAttributeTypeDescriptor, getTypeLabelForField} from '../attribute_type';
 import {GLOBAL_ATTRIBUTES_LIST_ROUTE} from '../constants';
 import {formatAttributeHeadingName} from '../utils';
 
@@ -43,7 +44,7 @@ import './classification_attribute.scss';
 
 export const CLASSIFICATION_ATTRIBUTE_ROUTE = `${GLOBAL_ATTRIBUTES_LIST_ROUTE}/classification`;
 
-type LoadState = 'loading' | 'ready' | 'missing' | 'failed';
+type LoadState = 'loading' | 'ready' | 'missing' | 'failed' | 'conflict';
 
 // The property routes answer 404 for a field that does not exist, which both of this
 // page's loads treat as absent rather than broken.
@@ -57,6 +58,30 @@ function rethrowUnlessNotFound(error: unknown): undefined {
 type Props = {
     disabled?: boolean;
 };
+
+// Read off the field rather than hardcoded: a definition that is not rank-typed
+// never reaches the ready state, and deriving keeps the two from drifting.
+function DefinitionType({field}: {field: PropertyField}): JSX.Element {
+    const {formatMessage} = useIntl();
+    const {icon: Icon} = getAttributeTypeDescriptor(field);
+    const label = getTypeLabelForField(field);
+
+    return (
+        <button
+            type='button'
+            className='ClassificationAttribute__typeButton'
+            disabled={true}
+            aria-label={formatMessage(messages.typeFieldAriaLabel, {value: formatMessage(label)})}
+            data-testid='classificationAttributeType'
+        >
+            <span className='ClassificationAttribute__typeButtonInner'>
+                <Icon size={18}/>
+                <FormattedMessage {...label}/>
+            </span>
+            <i className='icon icon-chevron-down'/>
+        </button>
+    );
+}
 
 /**
  * Classification's own attribute page.
@@ -75,6 +100,10 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
 
     const [loadState, setLoadState] = useState<LoadState>('loading');
     const [template, setTemplate] = useState<PropertyField | null>(null);
+
+    // A same-named field classification does not own. Editing here would either
+    // describe it wrongly or collide with it on save, so the page stops.
+    const [conflictField, setConflictField] = useState<PropertyField | null>(null);
 
     // The field as the server currently holds it, so Save knows whether to create,
     // patch or delete rather than inferring it from the form.
@@ -102,17 +131,33 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                 // ordinary state for both of these: classification may not be set up,
                 // and it may be set up without applying to channels. Only a real
                 // failure gets the error state.
-                const [templateField, existingChannelField] = await Promise.all([
-                    fetchClassificationField().catch(rethrowUnlessNotFound),
-                    fetchChannelClassificationField().catch(rethrowUnlessNotFound),
-                ]);
+                const templateLookup = (await fetchClassificationField().catch(rethrowUnlessNotFound)) ?? {};
                 if (!isMountedRef.current) {
                     return;
                 }
+                if (templateLookup.conflict) {
+                    setConflictField(templateLookup.conflict);
+                    setLoadState('conflict');
+                    return;
+                }
+
+                const templateField = templateLookup.field;
                 if (!templateField) {
                     setLoadState('missing');
                     return;
                 }
+
+                const channelLookup = (await fetchChannelClassificationField(templateField.id).catch(rethrowUnlessNotFound)) ?? {};
+                if (!isMountedRef.current) {
+                    return;
+                }
+                if (channelLookup.conflict) {
+                    setConflictField(channelLookup.conflict);
+                    setLoadState('conflict');
+                    return;
+                }
+
+                const existingChannelField = channelLookup.field;
                 setTemplate(templateField);
                 setChannelField(existingChannelField ?? null);
                 setChannelResource(existingChannelField ? parseChannelFieldConfig(existingChannelField) : null);
@@ -287,6 +332,18 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                             />
                         </p>
                     )}
+                    {loadState === 'conflict' && conflictField && (
+                        <p
+                            className='ClassificationAttribute__notice'
+                            role='alert'
+                            data-testid='classificationAttributeConflict'
+                        >
+                            <FormattedMessage
+                                {...messages.nameConflict}
+                                values={{name: conflictField.name}}
+                            />
+                        </p>
+                    )}
                     {loadState === 'failed' && (
                         <p
                             className='ClassificationAttribute__notice'
@@ -352,19 +409,7 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                                             <FormattedMessage {...messages.typeLabel}/>
                                         </span>
                                         <div className='ClassificationAttribute__fieldControl'>
-                                            <button
-                                                type='button'
-                                                className='ClassificationAttribute__typeButton'
-                                                disabled={true}
-                                                aria-label={formatMessage(messages.typeFieldAriaLabel, {value: formatMessage(messages.typeRanked)})}
-                                                data-testid='classificationAttributeType'
-                                            >
-                                                <span className='ClassificationAttribute__typeButtonInner'>
-                                                    <SortAscendingIcon size={18}/>
-                                                    <FormattedMessage {...messages.typeRanked}/>
-                                                </span>
-                                                <i className='icon icon-chevron-down'/>
-                                            </button>
+                                            <DefinitionType field={template}/>
                                         </div>
                                     </div>
                                     <div className='ClassificationAttribute__row'>
@@ -481,7 +526,6 @@ const messages = defineMessages({
         defaultMessage: 'Name is the internal identifier for policies and integrations. Display name is what admins and users see.',
     },
     typeLabel: {id: 'admin.global_attributes.attribute_details.type.label', defaultMessage: 'Type'},
-    typeRanked: {id: 'admin.global_attributes.table.type.rank', defaultMessage: 'Ranked'},
     typeFieldAriaLabel: {id: 'admin.global_attributes.attribute_details.type.field_aria_label', defaultMessage: 'Type: {value}'},
     optionsLabel: {id: 'admin.global_attributes.attribute_details.options.label', defaultMessage: 'Options'},
     markingsFooter: {
@@ -496,6 +540,10 @@ const messages = defineMessages({
     notConfigured: {
         id: 'admin.global_attributes.classification.not_configured',
         defaultMessage: 'Classification is not set up yet. Enable it on the {link} page first.',
+    },
+    nameConflict: {
+        id: 'admin.global_attributes.classification.name_conflict',
+        defaultMessage: 'An attribute named "{name}" already exists but is not part of classification. Rename or remove it in Attribute Management, then reload this page.',
     },
     loadFailed: {
         id: 'admin.global_attributes.classification.load_failed',

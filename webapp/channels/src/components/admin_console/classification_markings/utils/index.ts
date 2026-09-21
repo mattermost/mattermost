@@ -37,6 +37,15 @@ export const CLASSIFICATIONS_FIELD_TARGET_ID = '';
 export const CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE = 'template';
 export const CLASSIFICATIONS_TEMPLATE_FIELD_NAME = 'classification';
 
+// Classification levels are an ordered scale, so every field this feature owns is
+// rank-typed. A same-named field of any other type belongs to something else.
+export const CLASSIFICATIONS_FIELD_TYPE = 'rank' as PropertyField['type'];
+
+// Returned by the server when a create would duplicate a live name within an
+// object type. Distinguishes a create conflict from the delete-dependents
+// conflict, which shares its HTTP status.
+export const PROPERTY_FIELD_NAME_CONFLICT_ERROR_ID = 'app.property_field.create.name_conflict.app_error';
+
 // Admin console path for the Classification Markings page (System Console > Site
 // Configuration). Used by the Attribute Management listing to link its read-only row here.
 export const CLASSIFICATIONS_MARKINGS_ADMIN_URL = '/admin_console/site_config/classification_markings';
@@ -150,9 +159,34 @@ export function processClassificationField(field: PropertyField): {levels: Class
     return {levels, presetId};
 }
 
-// --- Template field API ---
+// --- Field lookup ---
 
-export async function fetchClassificationField(): Promise<PropertyField | undefined> {
+/**
+ * Outcome of looking one of this feature's fields up by name.
+ *
+ * `field` is set only when the match also passes the ownership check for its role
+ * — rank type for the template, correct link target for the instances. A match
+ * that fails one is reported as `conflict` instead: names are unique per object
+ * type, so the feature can neither adopt it nor create its own alongside it.
+ */
+export type ClassificationFieldLookup = {
+    field?: PropertyField;
+    conflict?: PropertyField;
+};
+
+/**
+ * Whether an instance field belongs to the given template. An empty templateId
+ * means no template exists yet, which nothing can legitimately link to.
+ */
+function isLinkedTo(field: PropertyField, templateFieldId: string): boolean {
+    return templateFieldId !== '' && field.linked_field_id === templateFieldId;
+}
+
+/**
+ * Finds the one live field with the given name in an object type. Names are
+ * unique per object type, so the first match is the only one.
+ */
+async function findLiveFieldByName(objectType: string, name: string): Promise<PropertyField | undefined> {
     const maxItems = 500;
     let fetched = 0;
     let cursorId: string | undefined;
@@ -161,12 +195,12 @@ export async function fetchClassificationField(): Promise<PropertyField | undefi
     while (fetched < maxItems) {
         const fields = await Client4.getPropertyFields( // eslint-disable-line no-await-in-loop
             ACCESS_CONTROL_PROPERTY_GROUP,
-            CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
+            objectType,
             CLASSIFICATIONS_FIELD_TARGET_TYPE,
             CLASSIFICATIONS_FIELD_TARGET_ID,
             {cursorId, cursorCreateAt},
         );
-        const found = fields.find((f: PropertyField) => f.name === CLASSIFICATIONS_TEMPLATE_FIELD_NAME && f.delete_at === 0);
+        const found = fields.find((f: PropertyField) => f.name === name && f.delete_at === 0);
         if (found || fields.length === 0) {
             return found;
         }
@@ -180,11 +214,21 @@ export async function fetchClassificationField(): Promise<PropertyField | undefi
     return undefined;
 }
 
+// --- Template field API ---
+
+export async function fetchClassificationField(): Promise<ClassificationFieldLookup> {
+    const match = await findLiveFieldByName(CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE, CLASSIFICATIONS_TEMPLATE_FIELD_NAME);
+    if (!match) {
+        return {};
+    }
+    return match.type === CLASSIFICATIONS_FIELD_TYPE ? {field: match} : {conflict: match};
+}
+
 export async function saveCreateField(levels: ClassificationLevel[]): Promise<PropertyField> {
     const options = levelsToOptions(levels);
     return Client4.createPropertyField(ACCESS_CONTROL_PROPERTY_GROUP, CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE, {
         name: CLASSIFICATIONS_TEMPLATE_FIELD_NAME,
-        type: 'rank' as PropertyField['type'],
+        type: CLASSIFICATIONS_FIELD_TYPE,
         target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
         target_id: CLASSIFICATIONS_FIELD_TARGET_ID,
         attrs: {options},
@@ -207,38 +251,18 @@ export async function savePatchField(fieldId: string, levels: ClassificationLeve
 
 // --- System field API (drives the global banner) ---
 
-export async function fetchLinkedClassificationField(): Promise<PropertyField | undefined> {
-    const maxItems = 500;
-    let fetched = 0;
-    let cursorId: string | undefined;
-    let cursorCreateAt: number | undefined;
-
-    while (fetched < maxItems) {
-        const fields = await Client4.getPropertyFields( // eslint-disable-line no-await-in-loop
-            ACCESS_CONTROL_PROPERTY_GROUP,
-            CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
-            CLASSIFICATIONS_FIELD_TARGET_TYPE,
-            CLASSIFICATIONS_FIELD_TARGET_ID,
-            {cursorId, cursorCreateAt},
-        );
-        const found = fields.find((f: PropertyField) => f.name === CLASSIFICATIONS_SYSTEM_FIELD_NAME && f.delete_at === 0 && f.linked_field_id);
-        if (found || fields.length === 0) {
-            return found;
-        }
-
-        fetched += fields.length;
-        const last = fields[fields.length - 1];
-        cursorId = last.id;
-        cursorCreateAt = last.create_at;
+export async function fetchLinkedClassificationField(templateFieldId: string): Promise<ClassificationFieldLookup> {
+    const match = await findLiveFieldByName(CLASSIFICATIONS_SYSTEM_OBJECT_TYPE, CLASSIFICATIONS_SYSTEM_FIELD_NAME);
+    if (!match) {
+        return {};
     }
-
-    return undefined;
+    return isLinkedTo(match, templateFieldId) ? {field: match} : {conflict: match};
 }
 
 export async function saveCreateLinkedField(templateFieldId: string, config: GlobalBannerConfig): Promise<PropertyField> {
     return Client4.createPropertyField(ACCESS_CONTROL_PROPERTY_GROUP, CLASSIFICATIONS_SYSTEM_OBJECT_TYPE, {
         name: CLASSIFICATIONS_SYSTEM_FIELD_NAME,
-        type: 'rank' as PropertyField['type'],
+        type: CLASSIFICATIONS_FIELD_TYPE,
         target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
         target_id: CLASSIFICATIONS_FIELD_TARGET_ID,
         linked_field_id: templateFieldId,
@@ -288,38 +312,18 @@ export async function saveUpsertSystemValue(linkedFieldId: string, optionId: str
 
 // --- Channel field API (drives per-channel banners) ---
 
-export async function fetchChannelClassificationField(): Promise<PropertyField | undefined> {
-    const maxItems = 500;
-    let fetched = 0;
-    let cursorId: string | undefined;
-    let cursorCreateAt: number | undefined;
-
-    while (fetched < maxItems) {
-        const fields = await Client4.getPropertyFields( // eslint-disable-line no-await-in-loop
-            ACCESS_CONTROL_PROPERTY_GROUP,
-            CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
-            CLASSIFICATIONS_FIELD_TARGET_TYPE,
-            CLASSIFICATIONS_FIELD_TARGET_ID,
-            {cursorId, cursorCreateAt},
-        );
-        const found = fields.find((f: PropertyField) => f.name === CLASSIFICATIONS_CHANNEL_FIELD_NAME && f.delete_at === 0 && f.linked_field_id);
-        if (found || fields.length === 0) {
-            return found;
-        }
-
-        fetched += fields.length;
-        const last = fields[fields.length - 1];
-        cursorId = last.id;
-        cursorCreateAt = last.create_at;
+export async function fetchChannelClassificationField(templateFieldId: string): Promise<ClassificationFieldLookup> {
+    const match = await findLiveFieldByName(CLASSIFICATIONS_CHANNEL_OBJECT_TYPE, CLASSIFICATIONS_CHANNEL_FIELD_NAME);
+    if (!match) {
+        return {};
     }
-
-    return undefined;
+    return isLinkedTo(match, templateFieldId) ? {field: match} : {conflict: match};
 }
 
 export async function saveCreateChannelLinkedField(templateFieldId: string): Promise<PropertyField> {
     return Client4.createPropertyField(ACCESS_CONTROL_PROPERTY_GROUP, CLASSIFICATIONS_CHANNEL_OBJECT_TYPE, {
         name: CLASSIFICATIONS_CHANNEL_FIELD_NAME,
-        type: 'rank' as PropertyField['type'],
+        type: CLASSIFICATIONS_FIELD_TYPE,
         target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
         target_id: CLASSIFICATIONS_FIELD_TARGET_ID,
         linked_field_id: templateFieldId,
@@ -350,18 +354,28 @@ export const CLASSIFICATIONS_USER_OBJECT_TYPE = 'user';
 export const CLEARANCE_FIELD_NAME = 'clearance';
 export const CLEARANCE_FIELD_DISPLAY_NAME = 'Clearance';
 
-/**
- * Fetches every live user field linked to the given classification template.
- * The enforcement checkbox is on when this returns anything, and disabling
- * classification markings deletes all of them, so it returns the whole set
- * rather than just the first match.
- */
-export async function fetchUserLinkedFields(templateFieldId: string): Promise<PropertyField[]> {
+export type ClearanceFieldLookup = {
+    /**
+     * Every live user field linked to the classification template. The
+     * enforcement checkbox is on when this is non-empty, and disabling
+     * classification markings deletes all of them, so it is the whole set
+     * rather than just the first match.
+     */
+    fields: PropertyField[];
+
+    /**
+     * Live user fields holding the clearance name without being linked to the
+     * template. Creating the clearance field would collide with them.
+     */
+    conflicts: PropertyField[];
+};
+
+export async function fetchUserLinkedFields(templateFieldId: string): Promise<ClearanceFieldLookup> {
     const maxItems = 500;
     let fetched = 0;
     let cursorId: string | undefined;
     let cursorCreateAt: number | undefined;
-    const matches: PropertyField[] = [];
+    const result: ClearanceFieldLookup = {fields: [], conflicts: []};
 
     while (fetched < maxItems) {
         const fields = await Client4.getPropertyFields( // eslint-disable-line no-await-in-loop
@@ -372,12 +386,17 @@ export async function fetchUserLinkedFields(templateFieldId: string): Promise<Pr
             {cursorId, cursorCreateAt},
         );
         for (const f of fields) {
-            if (f.delete_at === 0 && f.linked_field_id === templateFieldId) {
-                matches.push(f);
+            if (f.delete_at !== 0) {
+                continue;
+            }
+            if (isLinkedTo(f, templateFieldId)) {
+                result.fields.push(f);
+            } else if (f.name === CLEARANCE_FIELD_NAME) {
+                result.conflicts.push(f);
             }
         }
         if (fields.length === 0) {
-            return matches;
+            return result;
         }
 
         fetched += fields.length;
@@ -386,13 +405,13 @@ export async function fetchUserLinkedFields(templateFieldId: string): Promise<Pr
         cursorCreateAt = last.create_at;
     }
 
-    return matches;
+    return result;
 }
 
 export async function saveCreateUserLinkedField(templateFieldId: string, name: string, displayName: string): Promise<PropertyField> {
     return Client4.createPropertyField(ACCESS_CONTROL_PROPERTY_GROUP, CLASSIFICATIONS_USER_OBJECT_TYPE, {
         name,
-        type: 'rank' as PropertyField['type'],
+        type: CLASSIFICATIONS_FIELD_TYPE,
         target_type: CLASSIFICATIONS_FIELD_TARGET_TYPE,
         target_id: CLASSIFICATIONS_FIELD_TARGET_ID,
         linked_field_id: templateFieldId,

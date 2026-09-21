@@ -1544,6 +1544,29 @@ describe('GlobalAttributesTable', () => {
 
             expect(screen.queryByTestId('global-attribute-classification-link-field-1')).not.toBeInTheDocument();
         });
+
+        it('treats a wrong-typed template named classification as an ordinary attribute, so it can be repaired', async () => {
+            // * An admin can create a text attribute called `classification` here, which
+            // the Classification Markings page then reports as a conflict. Deleting or
+            // renaming it in this table is the repair path that error points at, so the
+            // row must keep its Edit and Delete actions.
+            getPropertyFields.mockResolvedValueOnce([makeClassificationField({type: 'text', attrs: {}})]).mockResolvedValue([]);
+
+            renderWithContext(<GlobalAttributesTable/>, getReachableState());
+
+            expect(await screen.findByTestId('global-attribute-name')).toHaveTextContent('Classification');
+            expect(screen.queryByTestId('global-attribute-classification-subtitle-field-1')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('global-attribute-classification-link-field-1')).not.toBeInTheDocument();
+            expect(screen.getByTestId('global-attribute-source')).toHaveTextContent('Managed here');
+
+            await userEvent.click(screen.getByTestId('global-attribute-actions-field-1'));
+
+            const items = (await screen.findAllByRole('menuitem')).map((el) => el.textContent);
+            expect(items).toEqual(expect.arrayContaining([
+                expect.stringContaining('Edit attribute'),
+                expect.stringContaining('Delete attribute'),
+            ]));
+        });
     });
 });
 
@@ -1582,23 +1605,31 @@ describe('getSourceKind', () => {
 describe('isClassificationMarkingsField', () => {
     const groupId = 'accesscontrolgroupuuid001';
 
-    it('returns true only when name, object_type, and group_id all match', () => {
-        const field = makeField({name: CLASSIFICATIONS_TEMPLATE_FIELD_NAME, object_type: CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE, group_id: groupId});
+    it('returns true only when name, type, object_type, and group_id all match', () => {
+        const field = makeClassificationField({group_id: groupId});
         expect(isClassificationMarkingsField(field, groupId)).toBe(true);
     });
 
     it('returns false when the name matches but object_type does not', () => {
-        const field = makeField({name: CLASSIFICATIONS_TEMPLATE_FIELD_NAME, object_type: 'system', group_id: groupId});
+        const field = makeClassificationField({object_type: 'system', group_id: groupId});
         expect(isClassificationMarkingsField(field, groupId)).toBe(false);
     });
 
     it('returns false when the name and object_type match but group_id does not', () => {
-        const field = makeField({name: CLASSIFICATIONS_TEMPLATE_FIELD_NAME, object_type: CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE, group_id: 'some-other-group'});
+        const field = makeClassificationField({group_id: 'some-other-group'});
         expect(isClassificationMarkingsField(field, groupId)).toBe(false);
     });
 
     it('returns false when object_type and group_id match but the name does not', () => {
-        const field = makeField({name: 'not_classification', object_type: CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE, group_id: groupId});
+        const field = makeClassificationField({name: 'not_classification', group_id: groupId});
         expect(isClassificationMarkingsField(field, groupId)).toBe(false);
     });
+
+    it.each(['text', 'select', 'multiselect', 'graph'] as Array<PropertyField['type']>)(
+        'returns false for a %s template named classification, so it stays an ordinary attribute',
+        (type) => {
+            const field = makeClassificationField({type, group_id: groupId});
+            expect(isClassificationMarkingsField(field, groupId)).toBe(false);
+        },
+    );
 });
