@@ -5,7 +5,7 @@ import {act, screen, waitFor, within} from '@testing-library/react';
 import React from 'react';
 
 import {ClientError} from '@mattermost/client';
-import {ChevronDownCircleOutlineIcon, FormatListBulletedIcon, MenuVariantIcon, PowerPlugOutlineIcon, SitemapIcon, SortAscendingIcon, SyncIcon} from '@mattermost/compass-icons/components';
+import {ChevronDownCircleOutlineIcon, FormatListBulletedIcon, LinkVariantIcon, MenuVariantIcon, PoundIcon, PowerPlugOutlineIcon, SitemapIcon, SortAscendingIcon, SyncIcon} from '@mattermost/compass-icons/components';
 import type {PropertyField} from '@mattermost/types/properties';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
@@ -763,6 +763,20 @@ describe('GlobalAttributesTable', () => {
             expect(cell.querySelector('svg')).toBeInTheDocument();
         });
 
+        it.each([
+            ['phone', 'Phone'],
+            ['url', 'URL'],
+            ['email', 'Email'],
+        ])('renders a text field with value_type %s as %s', async (valueType, label) => {
+            getPropertyFields.mockResolvedValueOnce([makeField({type: 'text', attrs: {value_type: valueType}})]).mockResolvedValue([]);
+
+            renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+            const cell = await screen.findByTestId('global-attribute-type');
+            expect(cell).toHaveTextContent(label);
+            expect(cell.querySelector('svg')).toBeInTheDocument();
+        });
+
         it('renders a defined fallback (not a blank cell) for a FieldType outside text/select/multiselect/rank/graph', async () => {
             getPropertyFields.mockResolvedValueOnce([makeField({type: 'date'})]).mockResolvedValue([]);
 
@@ -783,6 +797,8 @@ describe('GlobalAttributesTable', () => {
             ['multiselect', FormatListBulletedIcon],
             ['rank', SortAscendingIcon],
             ['graph', SitemapIcon],
+            ['phone', PoundIcon],
+            ['url', LinkVariantIcon],
             ['date', MenuVariantIcon],
         ])('maps the %s field type to the expected icon component', (type, icon) => {
             expect(getTypeIcon(type as PropertyField['type'])).toBe(icon);
