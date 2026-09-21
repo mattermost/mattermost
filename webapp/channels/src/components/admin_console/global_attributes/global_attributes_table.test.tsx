@@ -100,7 +100,7 @@ function getReachableState(overrides: {licenseSku?: string; classificationMarkin
 
 // State where the table fetches every resource scope: Enterprise Advanced
 // license plus the ChannelAttributes and PostAttributes flags in client config
-// (where getFeatureFlagValue reads them), matching the gate the table applies
+// (where the flag selectors read them), matching the gate the table applies
 // before fetching. Without this those scopes are skipped and the *-channel-* /
 // *-post-* mocks below go unconsumed.
 function getAllScopesState(): DeepPartial<GlobalState> {

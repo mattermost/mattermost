@@ -6,7 +6,7 @@ import {useSelector} from 'react-redux';
 
 import type {GlobalState} from '@mattermost/types/store';
 
-import {getFeatureFlagValue, getLicense, isPostAttributesEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getLicense, isChannelAttributesEnabled, isPostAttributesEnabled} from 'mattermost-redux/selectors/entities/general';
 
 import {isMinimumEnterpriseAdvancedLicense} from 'utils/license_utils';
 
@@ -24,7 +24,7 @@ import type {ResourceObjectType} from './attribute_details/attribute_applies_to_
 // offered until the flag is on.
 export default function useAllowedResourceTypes(): ResourceObjectType[] {
     const channelAttributesEnabled = useSelector((state: GlobalState) =>
-        getFeatureFlagValue(state, 'ChannelAttributes') === 'true' && isMinimumEnterpriseAdvancedLicense(getLicense(state)));
+        isChannelAttributesEnabled(state) && isMinimumEnterpriseAdvancedLicense(getLicense(state)));
     const postAttributesEnabled = useSelector(isPostAttributesEnabled);
 
     return useMemo(() => ALL_RESOURCE_TYPES.filter((type) => {
