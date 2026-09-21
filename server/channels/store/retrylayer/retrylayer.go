@@ -853,6 +853,12 @@ func (s *RetryLayerAccessControlPolicyStore) SetMembershipAutoAdd(rctx request.C
 
 }
 
+func (s *RetryLayerAttributesStore) ClearUserAttributesCache() {
+
+	s.AttributesStore.ClearUserAttributesCache()
+
+}
+
 func (s *RetryLayerAttributesStore) ClearUserPropertyValuesEpochCache() {
 
 	s.AttributesStore.ClearUserPropertyValuesEpochCache()
@@ -940,6 +946,12 @@ func (s *RetryLayerAttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX,
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
+
+}
+
+func (s *RetryLayerAttributesStore) InvalidateUserAttributes(userID string) {
+
+	s.AttributesStore.InvalidateUserAttributes(userID)
 
 }
 
