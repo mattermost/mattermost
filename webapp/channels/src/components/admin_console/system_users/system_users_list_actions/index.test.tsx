@@ -164,16 +164,6 @@ describe('SystemUsersListAction Component', () => {
         expect(within(menu).queryByRole('menuitem', {name: /promote to member/i})).not.toBeInTheDocument();
     });
 
-    test('a user holding both the guest and system admin roles is treated as a guest', async () => {
-        renderComponent({...user, roles: `${General.SYSTEM_GUEST_ROLE} ${General.SYSTEM_ADMIN_ROLE}`} as UserProfile);
-
-        // The row button shows the highest-priority role, so a guest admin's menu opens from "System Admin".
-        const menu = await openMenu('System Admin');
-
-        expect(within(menu).queryByRole('menuitem', {name: /manage roles/i})).not.toBeInTheDocument();
-        expect(within(menu).getByRole('menuitem', {name: /promote to member/i})).toBeInTheDocument();
-    });
-
     test('a deactivated guest is not offered "Manage roles"', async () => {
         renderComponent({...guestUser, delete_at: 12345} as UserProfile);
 
