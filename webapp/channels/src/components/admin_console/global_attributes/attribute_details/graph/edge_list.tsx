@@ -295,6 +295,7 @@ export function EdgeList({
                         <MuiPopover
                             open={true}
                             anchorEl={searchAnchor}
+                            onClose={onSearchClose}
                             hideBackdrop={true}
                             disableAutoFocus={true}
                             disableEnforceFocus={true}

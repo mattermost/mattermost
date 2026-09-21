@@ -170,6 +170,20 @@ describe('AttributeGraphParentsPane', () => {
         expect(screen.queryByTestId('attributeGraphParentsPane__suggestions')).not.toBeInTheDocument();
     });
 
+    it('closes suggestions on Escape when a candidate is focused', async () => {
+        renderPane([opt('A'), opt('B', ['A']), opt('C', ['B'])], 'C');
+        await openParentsView();
+        await openParentSearch();
+
+        const candidate = screen.getByTestId('attributeGraphParentsPane__candidate-A');
+        candidate.focus();
+        expect(candidate).toHaveFocus();
+        await userEvent.keyboard('{Escape}');
+
+        expect(screen.queryByTestId('attributeGraphParentsPane__suggestions')).not.toBeInTheDocument();
+        expect(screen.getByTestId('attributeGraphParentsPane__back')).toHaveTextContent('Parents of C');
+    });
+
     it('portals the suggestion list outside the pane so search does not grow the menu', async () => {
         renderWithContext(
             <div
