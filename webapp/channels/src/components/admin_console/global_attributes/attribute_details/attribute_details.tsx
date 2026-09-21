@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import React, {useCallback, useEffect, useMemo, useRef, useState, type JSX} from 'react';
 import type {IntlShape, MessageDescriptor} from 'react-intl';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch} from 'react-redux';
 import {useParams} from 'react-router-dom';
 
 import type {ClientError} from '@mattermost/client';
@@ -14,9 +14,6 @@ import {buttonClassNames} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FieldVisibility, PropertyField, PropertyFieldOption, PropertyPermissionLevel} from '@mattermost/types/properties';
 import {supportsHierarchy, supportsOptions} from '@mattermost/types/properties';
-import type {GlobalState} from '@mattermost/types/store';
-
-import {getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
@@ -34,7 +31,6 @@ import Input from 'components/widgets/inputs/input/input';
 
 import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
-import {isMinimumEnterpriseAdvancedLicense} from 'utils/license_utils';
 import {CPA_FIELD_NAME_MAX_RUNES, filterCELIdentifier, slugifyForCEL, validateCPAFieldName} from 'utils/properties';
 import type {CPAFieldNameValidationError} from 'utils/properties';
 
@@ -54,6 +50,7 @@ import type {ChannelResourceConfig} from '../applies_to/channels';
 import {ATTRIBUTE_TYPE_DESCRIPTOR, getAttributeTypeDescriptor, toServerFieldType} from '../attribute_type';
 import {GLOBAL_ATTRIBUTES_LIST_ROUTE, GLOBAL_ATTRIBUTES_OBJECT_TYPE} from '../constants';
 import {getSourceKind, getTypeIcon, getTypeLabel, isClassificationMarkingsField} from '../global_attributes_table';
+import useAllowedResourceTypes from '../use_allowed_resource_types';
 import type {AttributeFieldType, AttributeTypeId, UpdateAttributeFieldPatch} from '../utils';
 import {
     createAttributeField,
@@ -383,14 +380,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const [ldapAttr, setLdapAttr] = useState('');
     const [samlAttr, setSamlAttr] = useState('');
 
-    // Global Attributes is Enterprise, but a channel attribute is refused below
-    // Enterprise Advanced, so Channels is not offered as a resource at all.
-    const channelAttributesEnabled = useSelector((state: GlobalState) =>
-        getFeatureFlagValue(state, 'ChannelAttributes') === 'true' && isMinimumEnterpriseAdvancedLicense(getLicense(state)));
-    const allowedResourceTypes = useMemo(
-        () => (channelAttributesEnabled ? ALL_RESOURCE_TYPES : ALL_RESOURCE_TYPES.filter((type) => type !== 'channel')),
-        [channelAttributesEnabled],
-    );
+    const allowedResourceTypes = useAllowedResourceTypes();
 
     // Pending Applies-to selection -- insertion order, not fixed Users/Channels/
     // Posts order (that fixed order only governs the picker's own offer list).
@@ -486,7 +476,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
 
         const load = async () => {
             try {
-                const field = await fetchAttributeField(fieldId, channelAttributesEnabled);
+                const field = await fetchAttributeField(fieldId, allowedResourceTypes);
                 if (cancelled) {
                     return;
                 }
@@ -519,7 +509,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 // child to parse config from).
                 let linkedByType: Partial<Record<ResourceObjectType, PropertyField>> = {};
                 if (field.object_type === GLOBAL_ATTRIBUTES_OBJECT_TYPE) {
-                    const linkedFields = await fetchLinkedFieldsForTemplate(fieldId, channelAttributesEnabled);
+                    const linkedFields = await fetchLinkedFieldsForTemplate(fieldId, allowedResourceTypes);
                     if (cancelled) {
                         return;
                     }
@@ -581,7 +571,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         return () => {
             cancelled = true;
         };
-    }, [fieldId, channelAttributesEnabled]);
+    }, [fieldId, allowedResourceTypes]);
 
     const autoSlugDisplay = useMemo(() => computeAutoSlugDisplay(displayName), [displayName]);
     const currentName = (isEditingName || isNameManuallyEdited) ? manualName : (autoSlugDisplay ?? '');

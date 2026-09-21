@@ -98,14 +98,15 @@ function getReachableState(overrides: {licenseSku?: string; classificationMarkin
     return state;
 }
 
-// State where the table fetches the channel scope: Enterprise Advanced license
-// plus the ChannelAttributes flag in client config (where getFeatureFlagValue
-// reads it), matching the gate the table applies before fetching channel. Without
-// this the channel scope is skipped and the *-channel-* mocks below go unconsumed.
-function getChannelScopeState(): DeepPartial<GlobalState> {
+// State where the table fetches every resource scope: Enterprise Advanced
+// license plus the ChannelAttributes and PostAttributes flags in client config
+// (where the flag selectors read them), matching the gate the table applies
+// before fetching. Without this those scopes are skipped and the *-channel-* /
+// *-post-* mocks below go unconsumed.
+function getAllScopesState(): DeepPartial<GlobalState> {
     const state = getBaseState();
     state.entities!.general = {
-        config: {FeatureFlagChannelAttributes: 'true'},
+        config: {FeatureFlagChannelAttributes: 'true', FeatureFlagPostAttributes: 'true'},
         license: {IsLicensed: 'true', SkuShortName: 'advanced'},
     } as EntitiesPartial['general'];
     return state;
@@ -249,7 +250,7 @@ describe('GlobalAttributesTable', () => {
                 post: [makeField({id: 'p1', name: 'post_field', object_type: 'post'})],
             });
 
-            renderWithContext(<GlobalAttributesTable/>, getChannelScopeState());
+            renderWithContext(<GlobalAttributesTable/>, getAllScopesState());
 
             expect(await screen.findByText('user_field')).toBeInTheDocument();
             expect(screen.getByText('channel_field')).toBeInTheDocument();
@@ -261,7 +262,7 @@ describe('GlobalAttributesTable', () => {
                 user: [makeField({id: 'u1', name: 'linked_field', object_type: 'user', linked_field_id: 'template-1'})],
             });
 
-            renderWithContext(<GlobalAttributesTable/>, getChannelScopeState());
+            renderWithContext(<GlobalAttributesTable/>, getAllScopesState());
 
             expect(await screen.findByTestId('global-attributes-empty')).toBeInTheDocument();
             expect(screen.queryByText('linked_field')).not.toBeInTheDocument();
@@ -277,7 +278,7 @@ describe('GlobalAttributesTable', () => {
                 channel: [makeField({id: 'c1', name: 'delta_channel', object_type: 'channel', attrs: {display_name: 'Delta'}})],
             });
 
-            renderWithContext(<GlobalAttributesTable/>, getChannelScopeState());
+            renderWithContext(<GlobalAttributesTable/>, getAllScopesState());
 
             await screen.findByText('Charlie');
             const names = screen.getAllByTestId('global-attribute-name').map((cell) => cell.textContent);
@@ -287,7 +288,7 @@ describe('GlobalAttributesTable', () => {
         it('does not show the empty state when only non-template fields exist', async () => {
             mockScopedFields({user: [makeField({id: 'u1', name: 'user_field', object_type: 'user'})]});
 
-            renderWithContext(<GlobalAttributesTable/>, getChannelScopeState());
+            renderWithContext(<GlobalAttributesTable/>, getAllScopesState());
 
             expect(await screen.findByText('user_field')).toBeInTheDocument();
             expect(screen.queryByTestId('global-attributes-empty')).not.toBeInTheDocument();
@@ -310,7 +311,7 @@ describe('GlobalAttributesTable', () => {
                 return Promise.resolve([]);
             });
 
-            const state = getChannelScopeState();
+            const state = getAllScopesState();
             state.entities!.properties = {
                 groups: {
                     byId: {[ACCESS_CONTROL_GROUP_UUID]: {id: ACCESS_CONTROL_GROUP_UUID, name: 'access_control'}},
@@ -379,6 +380,33 @@ describe('GlobalAttributesTable', () => {
             expect(await screen.findByText('user_field')).toBeInTheDocument();
             expect(screen.queryByText('cached_channel_field')).not.toBeInTheDocument();
         });
+
+        it('hides a cached post field when the PostAttributes flag is off', async () => {
+            // A prior visit while the flag was on can leave a post field in the
+            // store after this page has stopped fetching that scope.
+            const cachedPost = makeField({id: 'p1', name: 'cached_post_field', object_type: 'post'});
+            const userField = makeField({id: 'u1', name: 'user_field', object_type: 'user'});
+            mockScopedFields({user: [userField]});
+
+            const state = getBaseState();
+            state.entities!.properties = {
+                groups: {
+                    byId: {[ACCESS_CONTROL_GROUP_UUID]: {id: ACCESS_CONTROL_GROUP_UUID, name: 'access_control'}},
+                    byName: {access_control: {id: ACCESS_CONTROL_GROUP_UUID, name: 'access_control'}},
+                },
+                fields: {
+                    byId: {p1: cachedPost},
+                    byObjectType: {
+                        post: {[ACCESS_CONTROL_GROUP_UUID]: {p1: cachedPost}},
+                    },
+                },
+            };
+
+            renderWithContext(<GlobalAttributesTable/>, state);
+
+            expect(await screen.findByText('user_field')).toBeInTheDocument();
+            expect(screen.queryByText('cached_post_field')).not.toBeInTheDocument();
+        });
     });
 
     it('renders the Applies-to column as an explicit placeholder when nothing is linked', async () => {
@@ -415,13 +443,48 @@ describe('GlobalAttributesTable', () => {
             return Promise.resolve([]);
         });
 
-        renderWithContext(<GlobalAttributesTable/>, getBaseState());
+        renderWithContext(<GlobalAttributesTable/>, getAllScopesState());
 
         const appliesTo = await screen.findByTestId('global-attribute-applies-to');
         expect(appliesTo).toHaveTextContent('Users');
         expect(appliesTo).toHaveTextContent('Posts');
         expect(appliesTo).not.toHaveTextContent('Channels');
         expect(appliesTo).not.toHaveTextContent('—');
+    });
+
+    // Channels stays fully enabled so the missing Posts chip is attributable to
+    // the PostAttributes gate alone, not to every scope being off.
+    it('skips the post scope entirely when the PostAttributes flag is off', async () => {
+        const template = makeField({id: 'template-1', name: 'department'});
+        getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
+            if (opts?.cursorId) {
+                return Promise.resolve([]);
+            }
+            if (objectType === 'template') {
+                return Promise.resolve([template]);
+            }
+            if (objectType === 'user') {
+                return Promise.resolve([makeField({id: 'user-1', object_type: 'user', linked_field_id: template.id})]);
+            }
+            if (objectType === 'channel') {
+                return Promise.resolve([makeField({id: 'channel-1', object_type: 'channel', linked_field_id: template.id})]);
+            }
+            if (objectType === 'post') {
+                return Promise.resolve([makeField({id: 'post-1', object_type: 'post', linked_field_id: template.id})]);
+            }
+            return Promise.resolve([]);
+        });
+
+        const state = getAllScopesState();
+        state.entities!.general!.config!.FeatureFlagPostAttributes = 'false';
+
+        renderWithContext(<GlobalAttributesTable/>, state);
+
+        const appliesTo = await screen.findByTestId('global-attribute-applies-to');
+        expect(appliesTo).toHaveTextContent('Users');
+        expect(appliesTo).toHaveTextContent('Channels');
+        expect(appliesTo).not.toHaveTextContent('Posts');
+        expect(getPropertyFields.mock.calls.every((call) => call[1] !== 'post')).toBe(true);
     });
 
     it('does not render cached Applies-to chips after a resource fetch fails', async () => {
@@ -1127,7 +1190,7 @@ describe('GlobalAttributesTable', () => {
                     <GlobalAttributesTable/>
                     <ModalController/>
                 </div>,
-                getChannelScopeState(),
+                getAllScopesState(),
             );
 
             await openDeleteModal('c1');

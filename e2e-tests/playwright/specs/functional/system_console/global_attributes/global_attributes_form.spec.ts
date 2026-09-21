@@ -842,11 +842,12 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         }) => {
             const {adminUser} = await requireGlobalAttributesEnabled(pw);
 
-            // The Channels resource type is additionally gated behind the ChannelAttributes
-            // flag (attribute_details.tsx) -- without this, an environment where it's off
-            // (e.g. an upgraded-from-older-release server whose config predates the flag)
-            // only offers Users and Posts, failing the 3-item assertion below.
+            // Channels and Posts are each gated behind their own feature flag
+            // (use_allowed_resource_types.ts) -- Channels additionally needs the
+            // Enterprise Advanced tier. Without both flags on, the picker offers
+            // fewer types and the 3-item assertion below fails.
             await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.skipIfFeatureFlagNotSet('PostAttributes', true);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
@@ -1007,8 +1008,10 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
             // See the "offers only unselected types" test above: Channels requires the
-            // ChannelAttributes flag on top of the Enterprise-tier license.
+            // ChannelAttributes flag on top of the Enterprise-tier license, and Posts
+            // requires PostAttributes. This test adds all three resources.
             await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.skipIfFeatureFlagNotSet('PostAttributes', true);
 
             const timestamp = Date.now();
             // Kept short: see the "saves Profile display..." test below -- a full
