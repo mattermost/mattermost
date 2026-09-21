@@ -26,6 +26,7 @@ This page describes features that are removed from support for Mattermost, or wi
 - The built-in Slack import API and CLI have been removed. The ``POST /teams/{team_id}/import`` endpoint and the ``mattermost import slack`` command are no longer available. Use the [mmetl tool with mmctl import](https://docs.mattermost.com/administration-guide/onboard/migrate-from-slack.html) instead.
 - The ``MoveThreadsEnabled`` feature flag is no longer supported, and the server fails to start if it is enabled. Use the [Wrangler plugin](https://github.com/mattermost/mattermost-plugin-wrangler) to move threads between channels instead.
 - The ``AppsEnabled`` feature flag is no longer supported and must be disabled. The server fails to start if the flag is set to ``true``.
+- The required ``format`` query parameter has been removed from the ``GET /api/v4/license/client`` endpoint. The endpoint now returns the client license information without requiring format specification.
 
 ### Mattermost Mobile App v2.45 (October 2026)
 
