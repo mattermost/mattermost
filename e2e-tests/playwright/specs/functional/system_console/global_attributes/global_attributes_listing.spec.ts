@@ -303,8 +303,9 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
         /**
          * @objective Ensure a real Classification Markings field (name/object_type/group_id
          * matching production's saveCreateField) renders the read-only subtitle and an
-         * open-in-new link to its own admin page instead of the ordinary dot-menu, and that an
-         * unrelated field — including one that shares the same 'rank' type — is entirely unaffected.
+         * open-in-new link to its own admin page instead of the ordinary dot-menu, that its name
+         * still renders at the same contrast as any other row's, and that an unrelated field —
+         * including one that shares the same 'rank' type — is entirely unaffected.
          */
         test(
             'renders the Classification Markings row as a read-only open-in-new link, leaving an unrelated rank field unaffected',
@@ -419,6 +420,8 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
                     await unrelatedRow.waitFor();
                     await expect(unrelatedRow.getByRole('button', {name: 'More actions'})).toBeVisible();
                     await expect(unrelatedRow.getByText('Read-only')).toHaveCount(0);
+                    await expect(unrelatedRow.getByRole('link', {name: 'Open Classification Markings'})).toHaveCount(0);
+                    await expect(unrelatedRow.getByTestId('global-attribute-source')).toContainText('Managed here');
 
                     // * Classification's name renders at the same contrast as any other row's:
                     // a definition that lives on another page must not read as a disabled
@@ -431,9 +434,6 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
                         'color',
                         unrelatedNameColor,
                     );
-
-                    await expect(unrelatedRow.getByRole('link', {name: 'Open Classification Markings'})).toHaveCount(0);
-                    await expect(unrelatedRow.getByTestId('global-attribute-source')).toContainText('Managed here');
                 } finally {
                     await deleteClassificationMarkingsFieldIfExists(adminClient);
                     await deleteGlobalAttributeFieldIfExists(adminClient, unrelatedRankName);
