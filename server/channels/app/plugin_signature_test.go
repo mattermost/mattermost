@@ -38,7 +38,7 @@ func TestPluginPublicKeys(t *testing.T) {
 	mockStore.On("GetDBSchemaVersion").Return(1, nil)
 
 	path, _ := fileutils.FindDir("tests")
-	publicKeyFilename := "test-public-key.plugin.gpg"
+	publicKeyFilename := "development-public-key.asc"
 	publicKey, err := os.ReadFile(filepath.Join(path, publicKeyFilename))
 	require.NoError(t, err)
 	fileReader, err := os.Open(filepath.Join(path, publicKeyFilename))
@@ -53,6 +53,26 @@ func TestPluginPublicKeys(t *testing.T) {
 	require.NotNil(t, appErr)
 	_, appErr = th.App.GetPublicKey("wrong-file-name.plugin.gpg")
 	require.NotNil(t, appErr)
+
+	t.Run("rejects empty key", func(t *testing.T) {
+		appErr = th.App.AddPublicKey("empty-key.asc", bytes.NewReader(nil))
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.plugin.add_public_key.empty.app_error", appErr.Id)
+	})
+
+	t.Run("rejects invalid key", func(t *testing.T) {
+		appErr = th.App.AddPublicKey("bad-key.asc", bytes.NewReader([]byte("not-a-pgp-key")))
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.plugin.add_public_key.invalid.app_error", appErr.Id)
+	})
+
+	t.Run("sanitizes path in filename", func(t *testing.T) {
+		appErr = th.App.AddPublicKey("../escaped-key.asc", bytes.NewReader(publicKey))
+		require.Nil(t, appErr)
+		require.Contains(t, th.App.Config().PluginSettings.SignaturePublicKeyFiles, "escaped-key.asc")
+		appErr = th.App.DeletePublicKey("escaped-key.asc")
+		require.Nil(t, appErr)
+	})
 
 	appErr = th.App.DeletePublicKey("wrong file name")
 	require.Nil(t, appErr)

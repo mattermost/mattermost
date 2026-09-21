@@ -102,6 +102,9 @@ describe('components/PluginManagement', () => {
             getPluginStatuses: jest.fn().mockResolvedValue([]),
             enablePlugin: jest.fn(),
             disablePlugin: jest.fn(),
+            uploadPluginSignaturePublicKey: jest.fn().mockResolvedValue({data: true}),
+            removePluginSignaturePublicKey: jest.fn().mockResolvedValue({data: true}),
+            getConfig: jest.fn().mockResolvedValue({data: {}}),
         },
     };
 
@@ -294,6 +297,9 @@ describe('components/PluginManagement', () => {
                 getPluginStatuses: jest.fn().mockResolvedValue([]),
                 enablePlugin: jest.fn(),
                 disablePlugin: jest.fn(),
+                uploadPluginSignaturePublicKey: jest.fn().mockResolvedValue({data: true}),
+                removePluginSignaturePublicKey: jest.fn().mockResolvedValue({data: true}),
+                getConfig: jest.fn().mockResolvedValue({data: {}}),
             },
         };
         const ref = React.createRef<InstanceType<typeof PluginManagement>>();
@@ -401,6 +407,9 @@ describe('components/PluginManagement', () => {
                 getPluginStatuses: jest.fn().mockResolvedValue([]),
                 enablePlugin: jest.fn(),
                 disablePlugin: jest.fn(),
+                uploadPluginSignaturePublicKey: jest.fn().mockResolvedValue({data: true}),
+                removePluginSignaturePublicKey: jest.fn().mockResolvedValue({data: true}),
+                getConfig: jest.fn().mockResolvedValue({data: {}}),
             },
         };
         const ref = React.createRef<InstanceType<typeof PluginManagement>>();
@@ -467,6 +476,9 @@ describe('components/PluginManagement', () => {
                 getPluginStatuses: jest.fn().mockResolvedValue([]),
                 enablePlugin: jest.fn(),
                 disablePlugin: jest.fn(),
+                uploadPluginSignaturePublicKey: jest.fn().mockResolvedValue({data: true}),
+                removePluginSignaturePublicKey: jest.fn().mockResolvedValue({data: true}),
+                getConfig: jest.fn().mockResolvedValue({data: {}}),
             },
         };
         const ref = React.createRef<InstanceType<typeof PluginManagement>>();
@@ -533,6 +545,9 @@ describe('components/PluginManagement', () => {
                 getPluginStatuses: jest.fn().mockResolvedValue([]),
                 enablePlugin: jest.fn(),
                 disablePlugin: jest.fn(),
+                uploadPluginSignaturePublicKey: jest.fn().mockResolvedValue({data: true}),
+                removePluginSignaturePublicKey: jest.fn().mockResolvedValue({data: true}),
+                getConfig: jest.fn().mockResolvedValue({data: {}}),
             },
         };
         const ref = React.createRef<InstanceType<typeof PluginManagement>>();
@@ -601,6 +616,9 @@ describe('components/PluginManagement', () => {
                 getPluginStatuses: jest.fn().mockResolvedValue([]),
                 enablePlugin: jest.fn(),
                 disablePlugin: jest.fn(),
+                uploadPluginSignaturePublicKey: jest.fn().mockResolvedValue({data: true}),
+                removePluginSignaturePublicKey: jest.fn().mockResolvedValue({data: true}),
+                getConfig: jest.fn().mockResolvedValue({data: {}}),
             },
         };
         const ref = React.createRef<InstanceType<typeof PluginManagement>>();
