@@ -171,8 +171,8 @@ firstseenat = EXCLUDED.firstseenat,
 lastseenat = EXCLUDED.lastseenat,
 statesince = EXCLUDED.statesince,
 consecutivehits = EXCLUDED.consecutivehits,
-mutedat = CASE WHEN EXCLUDED.mutedat = 0 AND EXCLUDED.mutedby = '' THEN healthfindings.mutedat ELSE EXCLUDED.mutedat END,
-mutedby = CASE WHEN EXCLUDED.mutedat = 0 AND EXCLUDED.mutedby = '' THEN healthfindings.mutedby ELSE EXCLUDED.mutedby END`
+mutedat = CASE WHEN EXCLUDED.mutedat = 0 THEN healthfindings.mutedat ELSE EXCLUDED.mutedat END,
+mutedby = CASE WHEN EXCLUDED.mutedat = 0 THEN healthfindings.mutedby ELSE EXCLUDED.mutedby END`
 
 	for _, chunk := range chunkSlice(validFindings, len(columns), s.getMaxInsertParams()) {
 		query := s.getQueryBuilder().
