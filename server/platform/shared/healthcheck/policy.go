@@ -6,6 +6,10 @@ package healthcheck
 import "time"
 
 type Policy struct {
+	// UnknownAfter is how long a finding may go unevaluated before it ages to unknown.
+	// Aging is checked only once per collection cycle, so a value below the collection
+	// interval cannot age sooner than the first absent cycle; express it in whole ticks
+	// plus slack (sub-interval values carry no extra information). Tuned at the M5 soak.
 	UnknownAfter time.Duration
 }
 
