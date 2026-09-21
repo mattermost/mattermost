@@ -58,7 +58,7 @@ export function rowToCEL(row: TableRow): string {
     // operators below, which lower to a chain of `in` tests.
     if (isGraphOperator(row.operator)) {
         if (row.targetAttribute) {
-            return `${attributeExpr}.${row.operator}(channel.attributes.${row.targetAttribute})`;
+            return `${attributeExpr}.${row.operator}(${CHANNEL_ATTRIBUTES_PREFIX}${row.targetAttribute})`;
         }
         const targets = row.values.map((val: string) => celStringLiteral(val)).join(', ');
         return `${attributeExpr}.${row.operator}([${targets}])`;
@@ -73,13 +73,13 @@ export function rowToCEL(row: TableRow): string {
     // targetAttribute, or when the operator cannot carry one.
     if (row.targetAttribute && operatorSupportsChannelTarget(row.operator, row.attribute_type)) {
         if (config?.type === 'comparison') {
-            return `${attributeExpr} ${config.celOp} channel.attributes.${row.targetAttribute}`;
+            return `${attributeExpr} ${config.celOp} ${CHANNEL_ATTRIBUTES_PREFIX}${row.targetAttribute}`;
         }
 
         // What is left is a multiselect list-vs-list comparison, stored verbatim
         // as a member-function call the engine holds as-is.
         const fn = row.operator === OperatorLabel.HAS_ALL_OF ? 'hasAllOf' : 'hasAnyOf';
-        return `${attributeExpr}.${fn}(channel.attributes.${row.targetAttribute})`;
+        return `${attributeExpr}.${fn}(${CHANNEL_ATTRIBUTES_PREFIX}${row.targetAttribute})`;
     }
 
     // native_method (e.g. youngerThanDays) takes an unquoted integer argument.
