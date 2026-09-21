@@ -1212,10 +1212,14 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 expect(listBox!.height).toBeGreaterThan(0);
                 expect(listBox!.y).toBeGreaterThan(searchBox!.y);
 
-                // * Value menu height stays put while the list is open
-                const heightAfterSearch = (await valueMenu.boundingBox())?.height ?? 0;
+                // Nested MUI popover aria-hides the parent menu, so getByRole without
+                // includeHidden (and boundingBox visibility checks) cannot resolve it.
+                const mountedValueMenu = page.getByRole('menu', {name: 'Edit Air', includeHidden: true});
+
+                // * Value menu stays mounted at the same height while the list is open
+                const heightAfterSearch = await mountedValueMenu.evaluate((el) => el.getBoundingClientRect().height);
                 expect(heightAfterSearch).toBeLessThan(heightBeforeSearch + 48);
-                await expect(valueMenu).toBeVisible();
+                await expect(mountedValueMenu).toBeAttached();
 
                 await page.getByTestId('attributeGraphParentsPane__candidate-Maritime').click();
                 await expect(graphRow(page, 'Air', 'Maritime')).toBeVisible();
