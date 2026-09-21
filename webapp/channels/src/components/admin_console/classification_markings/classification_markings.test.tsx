@@ -34,7 +34,6 @@ import {
     CLASSIFICATIONS_USER_OBJECT_TYPE,
     CLEARANCE_FIELD_DISPLAY_NAME,
     CLEARANCE_FIELD_NAME,
-    PROPERTY_FIELD_NAME_CONFLICT_ERROR_ID,
 } from './utils';
 import type {ClassificationLevel} from './utils/presets';
 import {PRESET_CUSTOM, presets} from './utils/presets';
@@ -166,15 +165,18 @@ function mockFieldsByObjectType(byType: Partial<Record<string, PropertyField[]>>
     );
 }
 
-// jest.clearAllMocks() empties call history but leaves queued mockResolvedValueOnce
-// values in place, so an unconsumed one leaks into the next test.
+// The suite runs with clearMocks, which empties call history but leaves queued
+// mockResolvedValueOnce values and installed implementations in place, so an
+// unconsumed one leaks into the next test. restoreAllMocks drops the spies this
+// file puts on real modules (Utils); the resets cover the automocked Client4
+// methods, which restoring does not return to anything useful.
 function resetPropertyFieldMocks() {
-    jest.clearAllMocks();
-    (Client4.getPropertyFields as jest.Mock).mockReset?.();
-    (Client4.getSystemPropertyValues as jest.Mock).mockReset?.();
-    (Client4.createPropertyField as jest.Mock).mockReset?.();
-    (Client4.patchPropertyField as jest.Mock).mockReset?.();
-    (Client4.deletePropertyField as jest.Mock).mockReset?.();
+    jest.restoreAllMocks();
+    (Client4.getPropertyFields as jest.Mock).mockReset();
+    (Client4.getSystemPropertyValues as jest.Mock).mockReset();
+    (Client4.createPropertyField as jest.Mock).mockReset();
+    (Client4.patchPropertyField as jest.Mock).mockReset();
+    (Client4.deletePropertyField as jest.Mock).mockReset();
 }
 
 describe('detectPreset', () => {
@@ -700,19 +702,11 @@ describe('ClassificationMarkings component', () => {
         const clearance = makeUserLinkedField();
 
         // Clearance exists, so the levels are enforced and the notice is untrue.
-        // Second user-object-type page comes back empty to end pagination.
-        let userCalls = 0;
-        jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType) => {
-            switch (objectType) {
-            case CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE:
-                return [field];
-            case CLASSIFICATIONS_SYSTEM_OBJECT_TYPE:
-                return [linked];
-            case CLASSIFICATIONS_CHANNEL_OBJECT_TYPE:
-                return [channel];
-            default:
-                return (userCalls++ % 2 === 0) ? [clearance] : [];
-            }
+        mockFieldsByObjectType({
+            [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field],
+            [CLASSIFICATIONS_SYSTEM_OBJECT_TYPE]: [linked],
+            [CLASSIFICATIONS_CHANNEL_OBJECT_TYPE]: [channel],
+            [CLASSIFICATIONS_USER_OBJECT_TYPE]: [clearance],
         });
 
         renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
@@ -1435,6 +1429,59 @@ describe('Channel classification linked field branches', () => {
         }
     });
 
+    test('should patch rather than duplicate a system field the initial load missed', async () => {
+        // The load-time lookup can race a field that was already there, which is
+        // why save re-fetches. That re-fetch has to recognise the field as ours,
+        // or the save creates a second one and the server refuses it.
+        const field = makePropertyField({
+            attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
+        });
+        const linked = makeLinkedField({attrs: {actions: []}});
+
+        let systemLookups = 0;
+        jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType, _targetType, _targetId, cursor) => {
+            if (cursor?.cursorId) {
+                return [];
+            }
+            if (objectType === CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE) {
+                return [field];
+            }
+            if (objectType === CLASSIFICATIONS_SYSTEM_OBJECT_TYPE) {
+                // Invisible while the page loads, present by the time it saves.
+                systemLookups += 1;
+                return systemLookups === 1 ? [] : [linked];
+            }
+            return [];
+        });
+
+        const patchSpy = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue(field);
+        const createSpy = jest.spyOn(Client4, 'createPropertyField');
+
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
+        await screen.findByText('Classification levels');
+
+        const user = userEvent.setup();
+        const nameInput = screen.getByRole('textbox', {name: /Classification level name/i});
+        await user.clear(nameInput);
+        await user.type(nameInput, 'MODIFIED');
+        await user.tab();
+        await user.click(await screen.findByText('Save'));
+
+        await waitFor(() => {
+            expect(patchSpy).toHaveBeenCalledWith(
+                ACCESS_CONTROL_PROPERTY_GROUP,
+                CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
+                linked.id,
+                expect.anything(),
+            );
+        });
+        expect(createSpy).not.toHaveBeenCalledWith(
+            expect.anything(),
+            CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
+            expect.anything(),
+        );
+    });
+
     test('should not reinstate a channel-linked field that was removed while enabled', async () => {
         // The channel field is created on the transition into enabled, not on every
         // save. An admin who removed the Channels resource from the attribute page
@@ -1589,20 +1636,11 @@ describe('Channel classification linked field branches', () => {
         // while the saved state records it as off.
         const extraClearance = makeUserLinkedField({id: 'clearance_field2', name: 'clearance_dupe'});
 
-        // Clearance exists: return both on the first user-object-type page, then an
-        // empty page to end pagination (per fetchUserLinkedFields invocation).
-        let userCalls = 0;
-        jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType) => {
-            switch (objectType) {
-            case CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE:
-                return [field];
-            case CLASSIFICATIONS_SYSTEM_OBJECT_TYPE:
-                return [linked];
-            case CLASSIFICATIONS_CHANNEL_OBJECT_TYPE:
-                return [channel];
-            default:
-                return (userCalls++ % 2 === 0) ? [clearance, extraClearance] : [];
-            }
+        mockFieldsByObjectType({
+            [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field],
+            [CLASSIFICATIONS_SYSTEM_OBJECT_TYPE]: [linked],
+            [CLASSIFICATIONS_CHANNEL_OBJECT_TYPE]: [channel],
+            [CLASSIFICATIONS_USER_OBJECT_TYPE]: [clearance, extraClearance],
         });
         jest.spyOn(Client4, 'patchPropertyField').
             mockResolvedValueOnce(makePropertyField({attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]}})).
@@ -1751,18 +1789,10 @@ describe('Channel classification linked field branches', () => {
 
         // ABAC is off now, but the clearance field was created while it was on.
         // Skipping its deletion would leave a dependent and fail the template delete.
-        let userCalls = 0;
-        jest.spyOn(Client4, 'getPropertyFields').mockImplementation(async (_group, objectType) => {
-            switch (objectType) {
-            case CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE:
-                return [field];
-            case CLASSIFICATIONS_SYSTEM_OBJECT_TYPE:
-                return [linked];
-            case CLASSIFICATIONS_CHANNEL_OBJECT_TYPE:
-                return [];
-            default:
-                return (userCalls++ % 2 === 0) ? [clearance] : [];
-            }
+        mockFieldsByObjectType({
+            [CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field],
+            [CLASSIFICATIONS_SYSTEM_OBJECT_TYPE]: [linked],
+            [CLASSIFICATIONS_USER_OBJECT_TYPE]: [clearance],
         });
 
         const deletedIds: string[] = [];
@@ -2179,7 +2209,11 @@ describe('Save conflict error mapping', () => {
         jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue(existingTemplate);
         jest.spyOn(Client4, 'createPropertyField').mockRejectedValue(new ClientError('https://example.com', {
             message: 'Cannot create property "classification": a property with this name already exists at the system level.',
-            server_error_id: PROPERTY_FIELD_NAME_CONFLICT_ERROR_ID,
+
+            // Spelled out rather than taken from the constant production reads,
+            // so a typo in that constant cannot pass unnoticed. It comes from
+            // CreatePropertyField in server/channels/app/properties/property_field.go.
+            server_error_id: 'app.property_field.create.name_conflict.app_error',
             status_code: 409,
             url: '/api/v4/properties/groups/access_control/system/fields',
         }));

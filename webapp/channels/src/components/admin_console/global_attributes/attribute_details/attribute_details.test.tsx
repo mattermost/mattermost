@@ -2545,8 +2545,10 @@ describe('AttributeDetails', () => {
             expect(await screen.findByTestId('attributeDetails')).toBeInTheDocument();
             expect(mockHistoryPush).not.toHaveBeenCalled();
 
-            // Reachable is not enough: renaming it here is the repair itself.
+            // Reachable is not enough: the collision is on the unique name, so the
+            // repair is renaming that, not the display name.
             expect(screen.getByTestId('attributeDisplayNameInput')).toBeEnabled();
+            expect(screen.getByTestId('attributeNameEditLink')).toBeEnabled();
         });
 
         it('redirects to the listing when the field is missing', async () => {
