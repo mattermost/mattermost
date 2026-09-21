@@ -72,8 +72,10 @@ func (r *Reconciler) Reconcile(evals []Evaluation) ([]Transition, error) {
 		return nil, fmt.Errorf("registry is nil")
 	}
 
+	// Step 1: an unreachable node yields one node-down finding, not a derived unknown per section.
 	evals = r.suppressDependentUnknowns(evals)
 
+	// Step 2: load this cycle's prior state so transitions can be computed against it.
 	fingerprints := make([]string, 0, len(evals))
 	for _, eval := range evals {
 		if eval.Fingerprint != "" {
@@ -93,6 +95,8 @@ func (r *Reconciler) Reconcile(evals []Evaluation) ([]Transition, error) {
 		existingByFingerprint[finding.Fingerprint] = finding
 	}
 
+	// The whole finding set backs step 4 below: findings absent from this cycle are found by
+	// diffing this list against the fingerprints seen while applying evaluations.
 	allFindings, err := r.store.List(model.HealthFindingFilter{Muted: model.MutedIncluded})
 	if err != nil {
 		return nil, err
@@ -104,6 +108,8 @@ func (r *Reconciler) Reconcile(evals []Evaluation) ([]Transition, error) {
 	pending := map[string]*model.HealthFinding{}
 	transitions := []Transition{}
 
+	// Step 3: apply each evaluation to its finding. An unknown rule code is a programming
+	// error, so log and drop it — its finding then ages via step 4 rather than persisting stale.
 	for _, eval := range evals {
 		rule, ok := r.registry.Get(eval.Code)
 		if !ok {
@@ -123,6 +129,8 @@ func (r *Reconciler) Reconcile(evals []Evaluation) ([]Transition, error) {
 		if nextState == "" {
 			nextState = StateUnknown
 		}
+		// Assigning the eval's own state keeps unknown distinct from resolved: an unknown
+		// result becomes unknown, never a clear of a firing finding.
 		next.State = string(nextState)
 
 		if prevState != nextState {
@@ -138,6 +146,8 @@ func (r *Reconciler) Reconcile(evals []Evaluation) ([]Transition, error) {
 		existingByFingerprint[next.Fingerprint] = next
 	}
 
+	// Step 4: age findings that were NOT evaluated this cycle (and aren't already unknown) to
+	// unknown once they have gone unevaluated longer than their rule's UnknownAfter.
 	for _, finding := range allFindings {
 		if finding == nil || finding.Fingerprint == "" {
 			continue
@@ -175,6 +185,7 @@ func (r *Reconciler) Reconcile(evals []Evaluation) ([]Transition, error) {
 		})
 	}
 
+	// Step 5: one batched write so the whole cycle lands atomically for any reader.
 	toUpsert := make([]*model.HealthFinding, 0, len(pending))
 	for _, finding := range pending {
 		toUpsert = append(toUpsert, finding)
