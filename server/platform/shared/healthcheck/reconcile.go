@@ -140,9 +140,6 @@ func (r *Reconciler) Reconcile(evals []Evaluation) ([]Transition, error) {
 			})
 		}
 
-		// PR09 core resolves/clears immediately and does not carry over partial debounce state.
-		next.ConsecutiveHits = 0
-
 		pending[next.Fingerprint] = next
 		existingByFingerprint[next.Fingerprint] = next
 	}
@@ -176,7 +173,6 @@ func (r *Reconciler) Reconcile(evals []Evaluation) ([]Transition, error) {
 		aged := *finding
 		aged.State = string(StateUnknown)
 		aged.StateSince = nowUnixMilli
-		aged.ConsecutiveHits = 0
 		pending[aged.Fingerprint] = &aged
 		transitions = append(transitions, Transition{
 			Finding: &aged,
