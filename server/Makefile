@@ -160,12 +160,12 @@ TEMPLATES_DIR=templates
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
 PLUGIN_PACKAGES += mattermost-plugin-calls-v1.12.5
-PLUGIN_PACKAGES += mattermost-plugin-github-v2.8.0
-PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.13.0
+PLUGIN_PACKAGES += mattermost-plugin-github-v3.0.0
+PLUGIN_PACKAGES += mattermost-plugin-gitlab-v2.0.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v4.8.0
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.11.1
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.4.0
-PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.13.1
+PLUGIN_PACKAGES += mattermost-plugin-zoom-v2.0.0
 PLUGIN_PACKAGES += mattermost-plugin-agents-v2.6.1
 PLUGIN_PACKAGES += mattermost-plugin-boards-v9.4.0
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
@@ -430,7 +430,7 @@ platform-mocks: setup-go-work install-mockery ## Creates mocks for platform inte
 
 .PHONY: install-mockgen
 install-mockgen:
-	$(GO) install github.com/golang/mock/mockgen@v1.6.0
+	$(GO) install go.uber.org/mock/mockgen@v0.6.0
 
 .PHONY: mmctl-mocks
 mmctl-mocks: setup-go-work install-mockgen ## Creates mocks for mmctl

@@ -35,7 +35,7 @@ function optionColor(attribute: ResolvedChannelAttribute): string | undefined {
 // Date and user-valued attributes are storable through the API but have no editor
 // in this release, so they stay read-only rather than offering a dead affordance.
 function hasEditor(field: PropertyField): boolean {
-    return field.type === 'text' || field.type === 'select' || field.type === 'multiselect' || field.type === 'rank';
+    return field.type === 'text' || field.type === 'select' || field.type === 'multiselect' || field.type === 'rank' || field.type === 'graph';
 }
 
 // A directional policy can leave nothing to move to — already at the top rung

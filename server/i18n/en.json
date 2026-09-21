@@ -8905,6 +8905,10 @@
     "translation": "Rank property fields are not enabled."
   },
   {
+    "id": "app.property_field.required_disabled.app_error",
+    "translation": "This attribute cannot be marked required while required-attribute enforcement is disabled."
+  },
+  {
     "id": "app.property_field.search.app_error",
     "translation": "Unable to search property fields."
   },
