@@ -1203,9 +1203,11 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 expect(suggestionsAreInsideMenu).toBe(false);
 
                 const listBox = await suggestions.boundingBox();
+                const searchBox = await page.getByTestId('attributeGraphParentsPane__search').boundingBox();
                 expect(listBox).toBeTruthy();
+                expect(searchBox).toBeTruthy();
                 expect(listBox!.height).toBeGreaterThan(0);
-                expect(listBox!.y).toBeGreaterThanOrEqual(0);
+                expect(listBox!.y).toBeGreaterThan(searchBox!.y);
 
                 const heightAfterSearch = (await valueMenu.boundingBox())?.height ?? 0;
                 expect(heightAfterSearch).toBeLessThan(heightBeforeSearch + 48);

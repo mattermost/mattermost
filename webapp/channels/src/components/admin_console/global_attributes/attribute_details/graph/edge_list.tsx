@@ -301,8 +301,8 @@ export function EdgeList({
                             disableRestoreFocus={true}
                             disableScrollLock={true}
                             className={SUGGESTIONS_POPOVER_CLASS}
-                            anchorOrigin={{vertical: 'top', horizontal: 'left'}}
-                            transformOrigin={{vertical: 'bottom', horizontal: 'left'}}
+                            anchorOrigin={{vertical: 'bottom', horizontal: 'left'}}
+                            transformOrigin={{vertical: 'top', horizontal: 'left'}}
                             marginThreshold={0}
                             PaperProps={{
                                 className: SUGGESTIONS_PAPER_CLASS,
