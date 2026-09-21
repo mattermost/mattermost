@@ -10,7 +10,7 @@
  * Professional-only licenses hide this admin route (React Router redirects away).
  */
 
-import {expect, test, getAdminClient, licenseTier} from '@mattermost/playwright-lib';
+import {expect, test, getAdminClient} from '@mattermost/playwright-lib';
 
 import {
     CLASSIFICATION_MARKINGS_ADMIN_PATH,
@@ -313,17 +313,6 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
             async ({pw}) => {
                 const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
-                // Mirrors useClassificationAttributePageReachable (global_attributes_table.tsx):
-                // Enterprise Advanced tier + the ChannelAttributes flag together make the
-                // classification attribute page reachable, which adds a dot-menu (Edit there)
-                // alongside the row's always-present open-in-new link.
-                const [license, config] = await Promise.all([
-                    adminClient.getClientLicenseOld(),
-                    adminClient.getConfig(),
-                ]);
-                const classificationAttributePageReachable =
-                    licenseTier(license.SkuShortName) >= 30 && config.FeatureFlags.ChannelAttributes === true;
-
                 // # The link's destination page is gated by its own independent feature flag
                 // (ClassificationMarkings) — it must be on for the link to render.
                 // Tagged @classification_markings like every other spec that touches this same
@@ -392,17 +381,12 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
                         'Classification Markings',
                     );
 
-                    // * The rightmost cell always carries an open-in-new link to the
-                    // Classification Markings admin page
+                    // * The rightmost cell carries only an open-in-new link to the
+                    // Classification Markings admin page — no Edit/More-actions menu
                     const openInNewLink = classificationRow.getByRole('link', {name: 'Open Classification Markings'});
                     await expect(openInNewLink).toBeVisible();
                     await expect(openInNewLink).toHaveAttribute('href', CLASSIFICATION_MARKINGS_ADMIN_PATH);
-
-                    // * A dot-menu (offering Edit to the classification attribute page) appears
-                    // alongside the open-in-new link only when that page is actually reachable.
-                    await expect(classificationRow.getByRole('button', {name: 'More actions'})).toHaveCount(
-                        classificationAttributePageReachable ? 1 : 0,
-                    );
+                    await expect(classificationRow.getByRole('button', {name: 'More actions'})).toHaveCount(0);
 
                     // # Clicking the link actually navigates to the Classification Markings page
                     await openInNewLink.click();

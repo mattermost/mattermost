@@ -257,14 +257,13 @@ function AttributeCell({field, isClassificationRow}: ClassificationAwareCellProp
 }
 
 type ActionsCellProps = ClassificationAwareCellProps & {
-    canEditClassification: boolean;
     isMobileView: boolean;
     pluginInventoryLoaded: boolean;
     onDeleteError: (message: string | null) => void;
     onDeleteModalExited: () => void;
 };
 
-function ActionsCell({field, isClassificationRow, canEditClassification, isMobileView, pluginInventoryLoaded, onDeleteError, onDeleteModalExited}: ActionsCellProps) {
+function ActionsCell({field, isClassificationRow, isMobileView, pluginInventoryLoaded, onDeleteError, onDeleteModalExited}: ActionsCellProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const promptDelete = useGlobalAttributeFieldDelete();
@@ -294,9 +293,12 @@ function ActionsCell({field, isClassificationRow, canEditClassification, isMobil
         }
     }, [dispatch, field.id, formatMessage, onDeleteError]);
 
+    // Classification's definition lives on Classification Markings; this row only
+    // offers the open-in-new link there. Row click still opens the attribute page
+    // when that route is reachable.
     if (isClassificationRow) {
         const classificationLinkLabel = formatMessage(actionsLabels.classificationLink);
-        const externalLink = (
+        return (
             <WithTooltip
                 title={classificationLinkLabel}
                 disabled={isMobileView}
@@ -314,47 +316,6 @@ function ActionsCell({field, isClassificationRow, canEditClassification, isMobil
                     />
                 </Link>
             </WithTooltip>
-        );
-
-        if (!canEditClassification) {
-            return externalLink;
-        }
-
-        // Both destinations: Edit configures which resources classification applies
-        // to, the link goes to where its levels are defined.
-        return (
-            <div className='GlobalAttributesTable__actions--classification'>
-                <Menu.Container
-                    menuButton={{
-                        id: `${menuId}-button`,
-                        class: 'btn btn-transparent GlobalAttributesTable__actionsButton',
-                        children: <DotsHorizontalIcon size={18}/>,
-                        dataTestId: menuId,
-                        'aria-label': formatMessage(actionsLabels.tooltip),
-                    }}
-                    menuButtonTooltip={{text: formatMessage(actionsLabels.tooltip)}}
-                    menu={{
-                        id: `${menuId}-menu`,
-                        'aria-label': formatMessage(actionsLabels.menuLabel),
-                    }}
-                    anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
-                    transformOrigin={{vertical: 'top', horizontal: 'right'}}
-                >
-                    <Menu.LinkItem
-                        id={`${menuId}-edit`}
-                        to={CLASSIFICATION_ATTRIBUTE_ROUTE}
-                        leadingElement={<PencilOutlineIcon size={18}/>}
-                        labels={<span><FormattedMessage {...actionsLabels.edit}/></span>}
-                    />
-                    <Menu.LinkItem
-                        id={`${menuId}-markings`}
-                        to={CLASSIFICATIONS_MARKINGS_ADMIN_URL}
-                        leadingElement={<OpenInNewIcon size={18}/>}
-                        labels={<span><FormattedMessage {...actionsLabels.classificationLink}/></span>}
-                    />
-                </Menu.Container>
-                {externalLink}
-            </div>
         );
     }
 
@@ -593,8 +554,7 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
             return;
         }
 
-        // Same destinations as the row's Edit/View action: classification has
-        // its own page (or the markings page when that edit route is hidden).
+        // Classification has its own page (or the markings page when that edit route is hidden).
         if (isClassificationMarkingsField(field, groupId) && classificationMarkingsReachable) {
             getHistory().push(classificationAttributePageReachable ? CLASSIFICATION_ATTRIBUTE_ROUTE : CLASSIFICATIONS_MARKINGS_ADMIN_URL);
             return;
@@ -687,7 +647,6 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                         <ActionsCell
                             field={row.original}
                             isClassificationRow={isClassificationRow(row.original)}
-                            canEditClassification={classificationAttributePageReachable}
                             isMobileView={isMobileView}
                             pluginInventoryLoaded={pluginInventoryLoadedRef.current}
                             onDeleteError={setDeleteError}
@@ -698,7 +657,7 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                 enableHiding: false,
             }),
         ];
-    }, [appliesToByTemplateId, groupId, classificationMarkingsReachable, classificationAttributePageReachable, isMobileView, handleDeleteModalExited]);
+    }, [appliesToByTemplateId, groupId, classificationMarkingsReachable, isMobileView, handleDeleteModalExited]);
 
     const table = useReactTable<PropertyField>({
         data: rows,
