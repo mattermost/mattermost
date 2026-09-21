@@ -843,7 +843,7 @@ func isThisRuleScope(scope string) bool {
 const userAttributesPathPrefix = "user.attributes."
 
 // channelAttributesPathPrefix is the analogous prefix for the accessed
-// resource's custom attributes (e.g. `channel.attributes.Sensitivity`).
+// channel's custom attributes (e.g. `channel.attributes.Sensitivity`).
 // A simulator leaf carrying this prefix records the target channel's own
 // attribute value, which must be hidden when the channel field is
 // protected — separately from the user side, since a channel field's
@@ -1972,7 +1972,7 @@ func (a *App) GetAccessControlFieldsAutocomplete(rctx request.CTX, channelID str
 	}
 
 	// A policy references the requesting user (user.attributes.*) and the
-	// accessed resource (channel.attributes.*). Resource attributes are
+	// accessed channel (channel.attributes.*). The latter are
 	// channel-object-type CPA fields, so include them when a channel is in
 	// scope, or when the caller explicitly asks for them — a policy that many
 	// channels import has no single channel to scope by, and still needs the

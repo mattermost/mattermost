@@ -151,10 +151,9 @@ describe('CELEditor', () => {
             />,
             {},
         );
+        expect(await screen.findByText('Valid')).toBeInTheDocument();
 
-        await waitFor(() => expect(mockSchemasSeen.length).toBeGreaterThan(0));
-
-        const schemas = mockSchemasSeen[mockSchemasSeen.length - 1];
+        const schemas = mockSchemasSeen[0];
         expect(schemas.channel).toEqual(['attributes']);
         expect(schemas['channel.attributes']).toEqual(['minClearance']);
     });
@@ -164,10 +163,9 @@ describe('CELEditor', () => {
             <CELEditor {...baseProps}/>,
             {},
         );
+        expect(await screen.findByText('Valid')).toBeInTheDocument();
 
-        await waitFor(() => expect(mockSchemasSeen.length).toBeGreaterThan(0));
-
-        const schemas = mockSchemasSeen[mockSchemasSeen.length - 1];
+        const schemas = mockSchemasSeen[0];
         expect(schemas['user.attributes']).toEqual(['department']);
         expect(schemas.channel).toBeUndefined();
         expect(schemas['channel.attributes']).toBeUndefined();

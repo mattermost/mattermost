@@ -682,8 +682,8 @@ describe('isSimpleExpression / isSimpleCondition with channel attribute targets'
     });
 
     test('the resource.* spelling is not simple', () => {
-        // The accessed channel is `channel` in CEL. A resource.*-rooted rule no
-        // longer compiles server-side, so the table editor must not claim it
+        // The accessed channel is `channel` in CEL; a resource.*-rooted rule
+        // does not compile server-side, so the table editor must not claim it
         // either — it would build a row it cannot emit back.
         expect(isSimpleCondition('user.attributes.clearance >= resource.attributes.minClearance')).toBe(false);
         expect(isSimpleCondition('user.attributes.programs.hasAnyOf(resource.attributes.programs)')).toBe(false);
