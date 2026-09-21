@@ -27,7 +27,7 @@ import type {GlobalState} from 'types/store';
 
 import './admin_navbar_dropdown.scss';
 
-const AdminNavbarDropdown = () => {
+const AdminNavbarDropdown = (firstItemFocusProps: Menu.FirstMenuItemProps) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
@@ -82,6 +82,7 @@ const AdminNavbarDropdown = () => {
     if (sortedTeams.length === 0) {
         switchTeamsMenuItem = (
             <Menu.LinkItem
+                {...firstItemFocusProps}
                 id='adminConsoleSwitchTeams'
                 to='/select_team'
                 labels={
@@ -95,6 +96,7 @@ const AdminNavbarDropdown = () => {
     } else if (sortedTeams.length > 1) {
         switchTeamsMenuItem = (
             <Menu.SubMenu
+                {...firstItemFocusProps}
                 id='adminConsoleSwitchTeams'
                 labels={
                     <FormattedMessage
@@ -123,6 +125,7 @@ const AdminNavbarDropdown = () => {
             {switchTeamsMenuItem}
             {switchTeamsMenuItem && <Menu.Separator/>}
             <Menu.ItemExternalLink
+                {...(switchTeamsMenuItem ? {} : firstItemFocusProps)}
                 id='adminConsoleAdministratorsGuide'
                 href={adminGuideLink}
                 location='admin_navbar_dropdown'

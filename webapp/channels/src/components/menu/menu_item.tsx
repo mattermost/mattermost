@@ -170,6 +170,14 @@ export const MenuItem = forwardRef<HTMLLIElement, Props>((props, ref) => {
 
     function handleClick(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
         if (isCorrectKeyPressedOnMenuItem(event)) {
+            // Closing on keydown unmounts an <a> before the browser can follow href.
+            // Activate the link first; the resulting click event closes the menu.
+            if (event.type === EventTypes.KEY_DOWN && event.currentTarget instanceof HTMLAnchorElement && event.currentTarget.hasAttribute('href')) {
+                event.preventDefault();
+                event.currentTarget.click();
+                return;
+            }
+
             // If the menu item is a checkbox or radio button, we don't want to close the menu when it is clicked.
             // unless forceCloseOnSelect is set to true.
             // see https://www.w3.org/WAI/ARIA/apg/patterns/menubar/

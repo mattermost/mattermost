@@ -52,7 +52,6 @@ describe('components/admin_console/admin_navbar_dropdown', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        window.open = jest.fn();
     });
 
     function renderDropdown(
@@ -139,16 +138,15 @@ describe('components/admin_console/admin_navbar_dropdown', () => {
         expect(screen.getByText('Team Two')).toBeInTheDocument();
     });
 
-    test('should open external link for Administrator\'s Guide', async () => {
+    test('should render Administrator\'s Guide as an external link', () => {
         renderDropdown({[team1.id]: team1});
 
-        await clickMenuItem("Administrator's Guide");
+        const item = screen.getByRole('menuitem', {name: "Administrator's Guide"});
 
-        expect(window.open).toHaveBeenCalledWith(
-            'https://docs.mattermost.com/guides/administration.html',
-            '_blank',
-            'noopener noreferrer',
-        );
+        expect(item.tagName).toBe('A');
+        expect(item).toHaveAttribute('href', expect.stringContaining('https://docs.mattermost.com/guides/administration.html'));
+        expect(item).toHaveAttribute('target', '_blank');
+        expect(item).toHaveAttribute('rel', 'noopener noreferrer');
     });
 
     test('should open Commercial Support modal when licensed', async () => {
@@ -160,19 +158,17 @@ describe('components/admin_console/admin_navbar_dropdown', () => {
             modalId: ModalIdentifiers.COMMERCIAL_SUPPORT,
             dialogType: CommercialSupportModal,
         });
-        expect(window.open).not.toHaveBeenCalled();
     });
 
-    test('should open external Commercial Support link when unlicensed', async () => {
+    test('should render Commercial Support as an external link when unlicensed', () => {
         renderDropdown({[team1.id]: team1}, {isLicensed: false});
 
-        await clickMenuItem('Commercial Support');
+        const item = screen.getByRole('menuitem', {name: 'Commercial Support'});
 
-        expect(window.open).toHaveBeenCalledWith(
-            'https://mattermost.com/support/',
-            '_blank',
-            'noopener noreferrer',
-        );
+        expect(item.tagName).toBe('A');
+        expect(item).toHaveAttribute('href', expect.stringContaining('https://mattermost.com/support/'));
+        expect(item).toHaveAttribute('target', '_blank');
+        expect(item).toHaveAttribute('rel', 'noopener noreferrer');
         expect(openModalMock).not.toHaveBeenCalled();
     });
 
