@@ -473,6 +473,97 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         });
 
         /**
+         * @objective Ensure the Type menu lists Phone and URL alongside the other createable
+         * types, defaults to Text, and hides Email (CPA already hid it; the server still
+         * accepts value_type email via the API).
+         */
+        test('type menu lists Text, Phone, URL, Select, Multiselect, and Ranked, with Text checked and Email hidden', async ({
+            pw,
+        }) => {
+            const {adminUser} = await requireGlobalAttributesEnabled(pw);
+
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+            await systemConsolePage.page.getByTestId('newAttributeButton').click();
+            await expect(systemConsolePage.page).toHaveURL(/attribute_details/);
+
+            await systemConsolePage.page.getByTestId('attributeTypeMenuButton').click();
+
+            for (const label of ['Text', 'Phone', 'URL', 'Select', 'Multiselect', 'Ranked']) {
+                await expect(
+                    systemConsolePage.page.getByRole('menuitemradio', {name: label, exact: true}),
+                ).toBeVisible();
+            }
+            await expect(
+                systemConsolePage.page.getByRole('menuitemradio', {name: 'Text', exact: true}),
+            ).toHaveAttribute('aria-checked', 'true');
+            await expect(systemConsolePage.page.getByRole('menuitemradio', {name: 'Email', exact: true})).toHaveCount(
+                0,
+            );
+        });
+
+        for (const {uiType, valueType, displayPrefix, expectedNamePrefix} of [
+            {
+                uiType: 'Phone',
+                valueType: 'phone',
+                displayPrefix: 'Playwright Phone',
+                expectedNamePrefix: 'playwright_phone',
+            },
+            {uiType: 'URL', valueType: 'url', displayPrefix: 'Playwright Url', expectedNamePrefix: 'playwright_url'},
+        ] as const) {
+            /**
+             * @objective Ensure a Phone or URL attribute can be created end-to-end as type
+             * text with the matching attrs.value_type, and the list Type column shows that
+             * subtype rather than Text.
+             */
+            test(`creates a ${uiType} attribute as type text with attrs.value_type ${valueType}`, async ({pw}) => {
+                const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+                const timestamp = Date.now();
+                // Short prefix: see the 40-char Unique name cap noted in the bare-Text test above
+                const displayName = `${displayPrefix} ${timestamp}`;
+                const expectedName = `${expectedNamePrefix}_${timestamp}`;
+
+                try {
+                    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                    await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                    await systemConsolePage.page.getByTestId('newAttributeButton').click();
+                    await expect(systemConsolePage.page).toHaveURL(/attribute_details/);
+
+                    await systemConsolePage.page.getByTestId('attributeDisplayNameInput').fill(displayName);
+                    await expect(systemConsolePage.page.getByTestId('attributeUniqueNameValue')).toHaveText(
+                        expectedName,
+                    );
+
+                    await systemConsolePage.page.getByTestId('attributeTypeMenuButton').click();
+                    await systemConsolePage.page.getByRole('menuitemradio', {name: uiType, exact: true}).click();
+
+                    // * Phone/URL keep the free-text options help — they are text subtypes,
+                    // not option lists
+                    await expect(systemConsolePage.page.getByTestId('attributeOptionsHelp')).toBeVisible();
+                    await expect(systemConsolePage.page.getByTestId('attributeOptionsValues')).toHaveCount(0);
+                    await expect(systemConsolePage.page.getByTestId('attributeTypeMenuButton')).toContainText(uiType);
+
+                    await systemConsolePage.page.getByTestId('saveSetting').click();
+
+                    await expect(systemConsolePage.page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+                    const row = systemConsolePage.page.locator('tr', {
+                        has: systemConsolePage.page.getByTestId('global-attribute-name').filter({hasText: displayName}),
+                    });
+                    await expect(row.getByTestId('global-attribute-type')).toContainText(uiType);
+                    await expect(row.getByTestId('global-attribute-options')).toContainText('Free Text');
+
+                    const field = await getGlobalAttributeFieldByName(adminClient, expectedName);
+                    expect(field?.type).toBe('text');
+                    expect(field?.attrs?.value_type).toBe(valueType);
+                } finally {
+                    await deleteGlobalAttributeFieldIfExists(adminClient, expectedName);
+                }
+            });
+        }
+
+        /**
          * @objective Ensure switching type mid-form preserves already-entered options rather than
          * discarding them, per the ticket's "freely switch types" requirement.
          */
@@ -492,7 +583,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
 
             // # Switch to Text (options editor unmounts) and back to Select
             await systemConsolePage.page.getByTestId('attributeTypeMenuButton').click();
-            await systemConsolePage.page.getByRole('menuitemradio', {name: 'Text'}).click();
+            await systemConsolePage.page.getByRole('menuitemradio', {name: 'Text', exact: true}).click();
             await expect(systemConsolePage.page.getByTestId('attributeOptionsValues')).toHaveCount(0);
 
             await systemConsolePage.page.getByTestId('attributeTypeMenuButton').click();
