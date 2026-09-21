@@ -224,7 +224,7 @@ Upgrade the Operator first. Validate it’s stable before upgrading the Mattermo
 
 ### Do I need to upgrade the database separately?
 
-No manual action is required. The Mattermost Operator runs a pre-flight job with the new image to apply any pending database schema migrations before rolling out the upgrade. If the migration fails, the rollout is blocked; migrations already applied earlier in that run aren't automatically rolled back, so restore from backup before retrying (see [Rollback strategy](#rollback-strategy)). The Mattermost server binary also applies any pending migrations automatically on startup, so the schema stays current even if the pre-flight job is disabled (`spec.updateJob.disabled: true`).
+No manual action is required. The Mattermost Operator runs a pre-flight job with the new image to apply any pending database schema migrations before rolling out the upgrade. If the migration fails, the rollout is blocked; migrations already applied earlier in that run aren't automatically rolled back, and an individual migration can also opt out of transaction wrapping, so restore from backup before retrying (see [Rollback strategy](#rollback-strategy)). The Mattermost server binary also attempts any pending migrations on startup, even if the pre-flight job is disabled (`spec.updateJob.disabled: true`); if a migration fails there, server startup aborts and the pod does not become ready.
 
 ### What if my pods don’t become ready after the upgrade?
 
