@@ -505,7 +505,7 @@ func TestMaskConditionValues(t *testing.T) {
 
 	t.Run("resource attribute: keyed by channel object type, public passes through", func(t *testing.T) {
 		condition := &model.Condition{
-			Attribute: "resource.attributes.Sensitivity",
+			Attribute: "channel.attributes.Sensitivity",
 			Value:     "Alpha",
 			ValueType: model.LiteralValue,
 		}
@@ -519,7 +519,7 @@ func TestMaskConditionValues(t *testing.T) {
 
 	t.Run("resource attribute: shared_only value the caller does not hold is masked", func(t *testing.T) {
 		condition := &model.Condition{
-			Attribute: "resource.attributes.Sensitivity",
+			Attribute: "channel.attributes.Sensitivity",
 			Value:     "secret",
 			ValueType: model.LiteralValue,
 		}
@@ -535,7 +535,7 @@ func TestMaskConditionValues(t *testing.T) {
 
 	t.Run("resource attribute missing from prefetch map: fail-closed", func(t *testing.T) {
 		condition := &model.Condition{
-			Attribute: "resource.attributes.Sensitivity",
+			Attribute: "channel.attributes.Sensitivity",
 			Value:     "Alpha",
 			ValueType: model.LiteralValue,
 		}
@@ -1283,7 +1283,7 @@ func TestMaskSimulationPolicyLiteralsForCaller_CompoundOrPreserved(t *testing.T)
 }
 
 // TestSplitCPAAttribute pins the CPA attribute-path splitter that routes a leaf
-// to the right object type. user.attributes.* → user, resource.attributes.* →
+// to the right object type. user.attributes.* → user, channel.attributes.* →
 // channel; everything else (native selectors, empty suffix) is not a CPA leaf.
 func TestSplitCPAAttribute(t *testing.T) {
 	mainHelper.Parallel(t)
@@ -1295,12 +1295,12 @@ func TestSplitCPAAttribute(t *testing.T) {
 		wantOK     bool
 	}{
 		{"user.attributes.Clearance", model.PropertyFieldObjectTypeUser, "Clearance", true},
-		{"resource.attributes.Sensitivity", model.PropertyFieldObjectTypeChannel, "Sensitivity", true},
+		{"channel.attributes.Sensitivity", model.PropertyFieldObjectTypeChannel, "Sensitivity", true},
 		{"user.email", "", "", false},
-		{"resource.id", "", "", false},
+		{"channel.id", "", "", false},
 		{"session.network_status", "", "", false},
 		{"user.attributes.", "", "", false},
-		{"resource.attributes.", "", "", false},
+		{"channel.attributes.", "", "", false},
 		{"", "", "", false},
 	}
 	for _, c := range cases {
@@ -1312,7 +1312,7 @@ func TestSplitCPAAttribute(t *testing.T) {
 }
 
 // TestAppMaskingResolver_ChannelFieldUsesUserHoldings verifies the shared-template
-// bridge: a resource.attributes.<field> reference is masked by the caller's own
+// bridge: a channel.attributes.<field> reference is masked by the caller's own
 // USER-side holdings for the linked template, since users never hold channel
 // values directly. A shared_only channel field whose user sibling the caller
 // partially holds must expose only the held option values.

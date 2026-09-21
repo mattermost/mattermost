@@ -201,7 +201,7 @@ describe('TableEditor - graph attributes', () => {
         await userEvent.click(screen.getByTestId('valueSelectorMenuButton'));
         await userEvent.click(await screen.findByRole('menuitemradio', {name: /channelPrograms/}));
 
-        expect(onChange).toHaveBeenLastCalledWith('user.attributes.programs.coversAll(resource.attributes.channelPrograms)');
+        expect(onChange).toHaveBeenLastCalledWith('user.attributes.programs.coversAll(channel.attributes.channelPrograms)');
     });
 
     test('switching to a membership operator drops the channel target and lowers to an in-chain', async () => {
@@ -211,7 +211,7 @@ describe('TableEditor - graph attributes', () => {
                     {
                         attribute: 'user.attributes.programs',
                         operator: 'coversAll',
-                        value: 'resource.attributes.channelPrograms',
+                        value: 'channel.attributes.channelPrograms',
                         value_type: 1,
                         attribute_type: 'graph',
                     },
@@ -222,7 +222,7 @@ describe('TableEditor - graph attributes', () => {
         renderWithContext(
             <TableEditor
                 {...baseProps}
-                value='user.attributes.programs.coversAll(resource.attributes.channelPrograms)'
+                value='user.attributes.programs.coversAll(channel.attributes.channelPrograms)'
             />,
             {},
         );
@@ -307,7 +307,7 @@ describe('TableEditor - graph attributes', () => {
 
         await userEvent.click(screen.getByTestId('valueSelectorMenuButton'));
         await userEvent.click(await screen.findByRole('menuitemradio', {name: /channelPrograms/}));
-        expect(onChange).toHaveBeenLastCalledWith('user.attributes.programs.coversAny(resource.attributes.channelPrograms)');
+        expect(onChange).toHaveBeenLastCalledWith('user.attributes.programs.coversAny(channel.attributes.channelPrograms)');
 
         await userEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
         await userEvent.click(await screen.findByRole('menuitemradio', {name: 'has all of'}));
@@ -712,7 +712,7 @@ describe('TableEditor - graph attributes with the hierarchy picker', () => {
         await openValues();
         await userEvent.click(await screen.findByRole('menuitemradio', {name: /channelPrograms/}));
 
-        expect(onChange).toHaveBeenLastCalledWith('user.attributes.programs.coversAll(resource.attributes.channelPrograms)');
+        expect(onChange).toHaveBeenLastCalledWith('user.attributes.programs.coversAll(channel.attributes.channelPrograms)');
     });
 
     test('returns to the flat control once the row targets a channel attribute', async () => {
@@ -722,7 +722,7 @@ describe('TableEditor - graph attributes with the hierarchy picker', () => {
                     {
                         attribute: 'user.attributes.programs',
                         operator: 'coversAll',
-                        value: 'resource.attributes.channelPrograms',
+                        value: 'channel.attributes.channelPrograms',
                         value_type: 1,
                         attribute_type: 'graph',
                     },
@@ -733,7 +733,7 @@ describe('TableEditor - graph attributes with the hierarchy picker', () => {
         renderWithContext(
             <TableEditor
                 {...propsFor(programsHydrated)}
-                value='user.attributes.programs.coversAll(resource.attributes.channelPrograms)'
+                value='user.attributes.programs.coversAll(channel.attributes.channelPrograms)'
             />,
             graphEnabledState,
         );

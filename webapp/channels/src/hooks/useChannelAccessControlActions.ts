@@ -66,7 +66,7 @@ export const useChannelAccessControlActions = (channelId?: string, teamId?: stri
         },
 
         searchUsers: (expression: string, term: string, after: string, limit: number, channelIdOverride?: string) => {
-            // A channel picked in the test modal (for a resource.attributes.* rule
+            // A channel picked in the test modal (for a channel.attributes.* rule
             // in an editor with no channel scope of its own) takes precedence over
             // the hook's scoped channel.
             return dispatch(searchUsersForExpression(expression, term, after, limit, channelIdOverride ?? channelId, teamId));

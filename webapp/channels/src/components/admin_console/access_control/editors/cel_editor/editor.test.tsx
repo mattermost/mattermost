@@ -28,8 +28,15 @@ jest.mock('monaco-editor', () => ({
     KeyCode: {KeyF: 36},
 }));
 
+// Records every schema map handed to the autocomplete provider, so a test can
+// assert on the roots the editor offers.
+const mockSchemasSeen: Array<Record<string, string[]>> = [];
+
 jest.mock('./language_provider', () => ({
-    MonacoLanguageProvider: () => null,
+    MonacoLanguageProvider: ({schemas}: {schemas: Record<string, string[]>}) => {
+        mockSchemasSeen.push(schemas);
+        return null;
+    },
 }));
 
 jest.mock('mattermost-redux/actions/access_control', () => ({
@@ -50,6 +57,7 @@ describe('CELEditor', () => {
     let checkExpressionSpy: jest.SpyInstance;
 
     beforeEach(() => {
+        mockSchemasSeen.length = 0;
         checkExpressionSpy = jest.spyOn(Client4, 'checkAccessControlExpression').mockResolvedValue([]);
         (searchUsersForExpression as jest.Mock).mockImplementation(() => () => Promise.resolve({data: {users: [], total: 0}}));
     });
@@ -133,6 +141,36 @@ describe('CELEditor', () => {
             expect(mockSearch).toHaveBeenCalledWith(expression, '', '', 50, undefined);
         });
         expect(searchUsersForExpression).not.toHaveBeenCalled();
+    });
+
+    test('offers the channel.attributes autocomplete root for the channel fields in scope', async () => {
+        renderWithContext(
+            <CELEditor
+                {...baseProps}
+                resourceAttributes={[{attribute: 'minClearance'}]}
+            />,
+            {},
+        );
+
+        await waitFor(() => expect(mockSchemasSeen.length).toBeGreaterThan(0));
+
+        const schemas = mockSchemasSeen[mockSchemasSeen.length - 1];
+        expect(schemas.channel).toEqual(['attributes']);
+        expect(schemas['channel.attributes']).toEqual(['minClearance']);
+    });
+
+    test('offers no channel root when the editor has no channel fields in scope', async () => {
+        renderWithContext(
+            <CELEditor {...baseProps}/>,
+            {},
+        );
+
+        await waitFor(() => expect(mockSchemasSeen.length).toBeGreaterThan(0));
+
+        const schemas = mockSchemasSeen[mockSchemasSeen.length - 1];
+        expect(schemas['user.attributes']).toEqual(['department']);
+        expect(schemas.channel).toBeUndefined();
+        expect(schemas['channel.attributes']).toBeUndefined();
     });
 
     test('should fall back to the redux thunk for the test modal when searchUsers is not injected', async () => {

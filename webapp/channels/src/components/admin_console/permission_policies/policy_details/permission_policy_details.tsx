@@ -152,9 +152,9 @@ function PermissionPolicyDetails({
     const policySimulationEnabled = useSelector(isPolicySimulationEnabled);
 
     // The autocomplete mixes the requesting user's attributes (user.attributes.*)
-    // and the accessed channel's attributes (resource.attributes.*), tagged by
+    // and the accessed channel's attributes (channel.attributes.*), tagged by
     // object_type. Permission policies are channel-scoped, so they may reference
-    // resource.attributes.*; split so user fields drive rules and channel fields
+    // channel.attributes.*; split so user fields drive rules and channel fields
     // are comparison targets.
     const {userFields, resourceFields} = useMemo(() => {
         const uf: UserPropertyField[] = [];
@@ -190,7 +190,7 @@ function PermissionPolicyDetails({
     const loadPage = async (): Promise<void> => {
         setLoadFailed(false);
 
-        // Permission policies can reference resource.attributes.* (the accessed
+        // Permission policies can reference channel.attributes.* (the accessed
         // channel), so request channel fields too.
         const fieldsPromise = abacActions.getAccessControlFields('', 100, true).then((result) => {
             if (result.data) {

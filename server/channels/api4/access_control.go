@@ -472,7 +472,7 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 		Cursor: model.SubjectCursor{
 			TargetID: checkExpressionRequest.After,
 		},
-		// Carry the channel so a resource.attributes.* expression resolves
+		// Carry the channel so a channel.attributes.* expression resolves
 		// against that channel's values; ignored for resource-free expressions.
 		ResourceID: channelId,
 	}
@@ -1386,7 +1386,7 @@ func getFieldsAutocomplete(c *Context, w http.ResponseWriter, r *http.Request) {
 	teamID := r.URL.Query().Get("team_id")
 
 	// Pulls channel-object-type CPA fields — the ones a rule references as
-	// resource.attributes.* — for a caller with no single channel to scope by,
+	// channel.attributes.* — for a caller with no single channel to scope by,
 	// such as an editor for a policy that many channels import. Only meaningful
 	// without a channelId (a channel scope already includes them), and in that
 	// case the permission check below requires either ManageSystem or

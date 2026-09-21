@@ -192,7 +192,7 @@ type SubjectSearchOptions struct {
 	// used by privileged callers (e.g. the admin CEL tester).
 	ExcludeFullNames bool `json:"exclude_full_names,omitempty"`
 	// ResourceID is the channel whose custom attributes an ad-hoc expression test
-	// resolves resource.attributes.* against, so a resource-referencing expression
+	// resolves channel.attributes.* against, so a resource-referencing expression
 	// can be previewed against one specific channel's values. Set from the
 	// channelId on a cel/test request. Unused when the expression references no
 	// resource attributes. Stored-policy search paths derive the resource from

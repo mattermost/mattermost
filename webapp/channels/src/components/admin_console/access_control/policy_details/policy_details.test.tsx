@@ -324,7 +324,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         };
 
         test('shows as soon as a channel attribute is referenced, before any channel is assigned', async () => {
-            renderWithPolicy('user.attributes.clearance == resource.attributes.minClearance');
+            renderWithPolicy('user.attributes.clearance == channel.attributes.minClearance');
 
             expect(await screen.findByText(NOTICE_TITLE)).toBeInTheDocument();
         });
@@ -338,10 +338,10 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
             expect(screen.queryByText(NOTICE_TITLE)).not.toBeInTheDocument();
         });
 
-        test('stays hidden when resource.attributes appears only inside a string literal', async () => {
+        test('stays hidden when channel.attributes appears only inside a string literal', async () => {
             // referencesResourceAttributes strips quoted literals first, so a value
             // that happens to spell an attribute path is not a reference.
-            renderWithPolicy('user.attributes.name == "resource.attributes.minClearance"');
+            renderWithPolicy('user.attributes.name == "channel.attributes.minClearance"');
 
             await waitFor(() => {
                 expect(screen.getByTestId('table-editor')).toBeInTheDocument();

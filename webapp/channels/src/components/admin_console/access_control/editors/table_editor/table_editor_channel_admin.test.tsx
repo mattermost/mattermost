@@ -480,7 +480,7 @@ describe('TableEditor - injected searchUsers', () => {
     });
 
     test('should thread the editor channel into the injected searchUsers', async () => {
-        // A resource.attributes.* rule can only be tested against a concrete
+        // A channel.attributes.* rule can only be tested against a concrete
         // channel, so the channel (the editor's own scope here, or one picked in
         // the modal) has to reach the searchUsers override. Without it the server
         // cannot resolve the resource side and the test reports no users.

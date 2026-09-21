@@ -3458,7 +3458,7 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 }
 
 // TestGetFieldsAutocompleteResourceFields exercises the HTTP boundary of
-// GET /cel/autocomplete/fields for channel-object-type (resource.attributes.*)
+// GET /cel/autocomplete/fields for channel-object-type (channel.attributes.*)
 // fields: a channel scope or the include_resource_fields flag surfaces them
 // (tagged with their ObjectType), neither excludes them, and the permission
 // gating holds. This endpoint resolves fields from the property store directly

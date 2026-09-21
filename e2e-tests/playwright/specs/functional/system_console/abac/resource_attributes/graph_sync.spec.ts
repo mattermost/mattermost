@@ -56,7 +56,7 @@ import {
  * what is under test here is the two evaluation lanes, not the policy editor.
  * The editor half of the same feature is graph_operators.spec.ts.
  */
-test.describe('ABAC resource.attributes - graph hierarchy sync', {tag: ['@abac', '@abac_resource_attributes']}, () => {
+test.describe('ABAC channel.attributes - graph hierarchy sync', {tag: ['@abac', '@abac_resource_attributes']}, () => {
     const airProgram = 'Air Program';
     const fighterJetProgram = 'Fighter Jet Program';
     const f18Program = 'F-18 Program';
@@ -109,7 +109,7 @@ test.describe('ABAC resource.attributes - graph hierarchy sync', {tag: ['@abac',
 
             const policyId = await createParentPolicyViaAPI(adminClient, {
                 name: `CoversAll ${pw.random.id()}`,
-                expression: `user.attributes.${hierarchy.userFieldName}.coversAll(resource.attributes.${hierarchy.channelFieldName})`,
+                expression: `user.attributes.${hierarchy.userFieldName}.coversAll(channel.attributes.${hierarchy.channelFieldName})`,
             });
             createdPolicyId = policyId;
             governedChannelId = channel.id;
@@ -188,7 +188,7 @@ test.describe('ABAC resource.attributes - graph hierarchy sync', {tag: ['@abac',
 
             const policyId = await createParentPolicyViaAPI(adminClient, {
                 name: `CoversAll Regression ${pw.random.id()}`,
-                expression: `user.attributes.${hierarchy.userFieldName}.coversAll(resource.attributes.${hierarchy.channelFieldName})`,
+                expression: `user.attributes.${hierarchy.userFieldName}.coversAll(channel.attributes.${hierarchy.channelFieldName})`,
             });
             createdPolicyId = policyId;
             governedChannelId = channel.id;

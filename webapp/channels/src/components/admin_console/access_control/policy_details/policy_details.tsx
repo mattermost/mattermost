@@ -157,9 +157,9 @@ function PolicyDetails({
     ), []);
 
     // The autocomplete mixes the requesting user's attributes (user.attributes.*)
-    // and the accessed channel's attributes (resource.attributes.*), tagged by
+    // and the accessed channel's attributes (channel.attributes.*), tagged by
     // object_type. Split them: user fields drive the left picker and the
-    // user.attributes.* autocomplete; channel fields back resource.attributes.*.
+    // user.attributes.* autocomplete; channel fields back channel.attributes.*.
     const {userFields, resourceFields} = useMemo(() => {
         const uf: UserPropertyField[] = [];
         const rf: UserPropertyField[] = [];
@@ -193,7 +193,7 @@ function PolicyDetails({
 
     const loadPage = async (): Promise<void> => {
         // Fetch autocomplete fields first, as they are general and needed for both new and existing policies.
-        // Parent policies reference resource.attributes.* against many channels, so request channel fields too.
+        // Parent policies reference channel.attributes.* against many channels, so request channel fields too.
         const fieldsPromise = abacActions.getAccessControlFields('', 100, true).then((result) => {
             if (result.data) {
                 setAutocompleteResult(excludeSessionAttributes(result.data));
