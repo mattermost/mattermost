@@ -756,6 +756,12 @@ func (a *App) hasPropertyFieldValueAdmin(rctx request.CTX, userID string, field 
 // other object type. The creator arm is checked first so an author tagging
 // their own post resolves with a single store read and no role evaluation.
 func (a *App) hasPropertyFieldValueCreator(rctx request.CTX, userID string, field *model.PropertyField, valueTargetID string) bool {
+	// Each arm ends itself rather than falling out of the switch. A lookup
+	// failure returns false instead of deferring to the admin arm: if the
+	// target cannot be read here, the admin arm cannot resolve it either, so
+	// continuing would only buy a second failed lookup and a second warning.
+	// Every arm that does not match the creator must end in the admin call —
+	// a new object type that omits it is creator-only, not creator-or-admin.
 	switch field.ObjectType {
 	case model.PropertyFieldObjectTypePost:
 		post, err := a.Srv().Store().Post().GetSingle(rctx, valueTargetID, false)
@@ -771,6 +777,7 @@ func (a *App) hasPropertyFieldValueCreator(rctx request.CTX, userID string, fiel
 		if post.UserId != "" && post.UserId == userID {
 			return true
 		}
+		return a.hasPropertyFieldValueAdmin(rctx, userID, field, valueTargetID)
 	case model.PropertyFieldObjectTypeChannel:
 		channel, appErr := a.GetChannel(rctx, valueTargetID)
 		if appErr != nil {
@@ -788,16 +795,12 @@ func (a *App) hasPropertyFieldValueCreator(rctx request.CTX, userID string, fiel
 		if channel.CreatorId != "" && channel.CreatorId == userID {
 			return true
 		}
+		return a.hasPropertyFieldValueAdmin(rctx, userID, field, valueTargetID)
 	default:
-		// Unreachable via validated fields. Deny rather than fall through to
-		// the admin arm, so a future object type must opt in consciously.
+		// Unreachable via validated fields. Deny rather than deferring to the
+		// admin arm, so a future object type must opt in consciously.
 		return false
 	}
-
-	// A lookup failure above returns false rather than falling through: if the
-	// target cannot be read here, the admin arm cannot resolve it either, so
-	// continuing would only buy a second failed lookup and a second warning.
-	return a.hasPropertyFieldValueAdmin(rctx, userID, field, valueTargetID)
 }
 
 // hasPropertyFieldValueScopeAccess reports whether the user can write the
