@@ -39,7 +39,6 @@ A user who doesn't match a rule is denied the actions that rule governs. An acti
 - **Channel member lists and member counts** aren't returned, and the channel's members aren't surfaced in user lists scoped to that channel.
 - **Real-time updates** stop: new posts in the channel are dropped from WebSocket fan-out for that connection before they reach the client.
 - **Push notifications** for the channel are downgraded rather than suppressed. The device receives an ID-only or generic notification without the message content or channel name, and the follow-up fetch from the device re-runs the gate.
-- **Recaps and scheduled recaps** exclude the channel.
 - **Marking the channel as read** is rejected.
 
 Joining a channel is treated as a read-tier action: self-joining a public channel and requesting to join a discoverable channel both require `channel_read_access`, not write access.
@@ -74,6 +73,7 @@ In the webapp, denied write access is reflected before the request is made: the 
 - **Reading deleted posts** isn't treated as a read-gated permission.
 - **Bots** are exempt from the write gate. A bot has no interactive session, so a rule over `user.session.*` has nothing to evaluate and would otherwise deny every bot post. Incoming webhooks and plugin writes never reach a channel permission check and are already exempt.
 - **Server-side jobs and other sessionless callers** evaluate role-based permissions only.
+- **Recaps and scheduled recaps** aren't filtered by channel read access. A recap is assembled by a server-side job that has no user session, so it can only apply role-based permissions and never evaluates the session-based read policy. As a result, a recap — and the channel names, highlights, and post permalinks it returns — can include a channel the user's current session would be denied read access to. This is a known limitation of running the action's session-based evaluation against a sessionless job.
 
 ## How the actions are evaluated
 
@@ -166,6 +166,10 @@ No. Check the channel's member list — the membership is unchanged. Only a memb
 ### Why did a user receive a push notification for a channel they can't read?
 
 That's by design. The notification is downgraded to an ID-only or generic form, and the device's follow-up fetch for the content re-runs the gate.
+
+### Why did a recap include a channel the user can't read?
+
+Recaps and scheduled recaps are assembled by a server-side job that has no user session, so it can only evaluate role-based permissions and can't apply the session-based channel read policy. A recap can therefore include a channel the user's session would otherwise be denied, along with its channel name, highlights, and post permalinks. This is a known limitation of evaluating a session-based action from a sessionless job.
 
 ### Why isn't anything being enforced?
 
