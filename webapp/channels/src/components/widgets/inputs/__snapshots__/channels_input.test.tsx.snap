@@ -43,12 +43,12 @@ exports[`components/widgets/inputs/ChannelsInput should match snapshot 1`] = `
                 />
               </svg>
             </span>
-            Off-Topic
+            test channel 1
             <span
               class="channel-name"
             >
               ~
-              off-topic
+              test-channel-1
             </span>
           </div>
           <div
@@ -117,12 +117,12 @@ exports[`components/widgets/inputs/ChannelsInput should match snapshot 1`] = `
                 </g>
               </svg>
             </span>
-            Offsite Planning
+            test channel 2
             <span
               class="channel-name"
             >
               ~
-              offsite-planning
+              test-channel-2
             </span>
           </div>
           <div

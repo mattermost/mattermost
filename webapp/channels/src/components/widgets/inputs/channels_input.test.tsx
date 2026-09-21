@@ -12,15 +12,15 @@ import ChannelsInput from './channels_input';
 const publicChannel = {
     id: 'test-channel-1',
     type: 'O',
-    name: 'off-topic',
-    display_name: 'Off-Topic',
+    name: 'test-channel-1',
+    display_name: 'test channel 1',
 } as Channel;
 
 const privateChannel = {
     id: 'test-channel-2',
     type: 'P',
-    name: 'offsite-planning',
-    display_name: 'Offsite Planning',
+    name: 'test-channel-2',
+    display_name: 'test channel 2',
 } as Channel;
 
 describe('components/widgets/inputs/ChannelsInput', () => {
@@ -48,7 +48,7 @@ describe('components/widgets/inputs/ChannelsInput', () => {
                 onChange={jest.fn()}
                 channelsLoader={() => Promise.resolve([publicChannel, privateChannel])}
                 onInputChange={jest.fn()}
-                inputValue='off'
+                inputValue='test'
                 value={[]}
             />,
         );
@@ -58,7 +58,7 @@ describe('components/widgets/inputs/ChannelsInput', () => {
         const options = await screen.findAllByRole('option');
         expect(options).toHaveLength(2);
 
-        expect(options[0]).toHaveTextContent('Off-Topic~off-topic');
-        expect(options[1]).toHaveTextContent('Offsite Planning~offsite-planning');
+        expect(options[0]).toHaveTextContent('test channel 1~test-channel-1');
+        expect(options[1]).toHaveTextContent('test channel 2~test-channel-2');
     });
 });
