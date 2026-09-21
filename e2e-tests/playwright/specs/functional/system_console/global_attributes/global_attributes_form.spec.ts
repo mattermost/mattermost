@@ -1180,11 +1180,13 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 await page.getByTestId('attributeTypeMenuButton').click();
                 await page.getByRole('menuitemradio', {name: 'Hierarchical'}).click();
 
+                // # Air and Maritime as sibling roots
                 await page.getByTestId('attributeOptionsGraphEmpty__nameInput').fill('Air');
                 await page.getByTestId('attributeOptionsGraphEmpty__addButton').click();
                 await page.getByTestId('attributeOptionsGraphAddTop__nameInput').fill('Maritime');
                 await page.getByTestId('attributeOptionsGraphAddTop__addButton').click();
 
+                // # Open Air's Parents pane and focus the search field
                 await openGraphRowParents(page, 'Air');
                 const valueMenu = page.getByRole('menu', {name: 'Edit Air'});
                 await expect(page.getByTestId('attributeGraphParentsPane__back')).toHaveText('Parents of Air');
@@ -1197,9 +1199,10 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 await expect(suggestions).toBeVisible();
                 await expect(page.getByTestId('attributeGraphParentsPane__candidate-Maritime')).toBeVisible();
 
-                const suggestionsAreInsideMenu = await suggestions.evaluate((el) => (
-                    Boolean(el.closest('.attribute-graph-parents-pane'))
-                ));
+                // * Suggestions live in a portal below the field, not inside the pane
+                const suggestionsAreInsideMenu = await suggestions.evaluate((el) =>
+                    Boolean(el.closest('.attribute-graph-parents-pane')),
+                );
                 expect(suggestionsAreInsideMenu).toBe(false);
 
                 const listBox = await suggestions.boundingBox();
@@ -1209,6 +1212,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 expect(listBox!.height).toBeGreaterThan(0);
                 expect(listBox!.y).toBeGreaterThan(searchBox!.y);
 
+                // * Value menu height stays put while the list is open
                 const heightAfterSearch = (await valueMenu.boundingBox())?.height ?? 0;
                 expect(heightAfterSearch).toBeLessThan(heightBeforeSearch + 48);
                 await expect(valueMenu).toBeVisible();
