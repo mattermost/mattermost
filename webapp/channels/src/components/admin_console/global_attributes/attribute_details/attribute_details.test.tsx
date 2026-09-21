@@ -49,19 +49,20 @@ describe('AttributeDetails', () => {
         jest.restoreAllMocks();
     });
 
-    const CHANNEL_ATTRIBUTES_STATE = {entities: {general: {
-        config: {FeatureFlagChannelAttributes: 'true', FeatureFlagChannelAttributesRequired: 'true'},
+    const ALL_RESOURCES_STATE = {entities: {general: {
+        config: {FeatureFlagChannelAttributes: 'true', FeatureFlagChannelAttributesRequired: 'true', FeatureFlagPostAttributes: 'true'},
         license: {IsLicensed: 'true', SkuShortName: 'advanced'},
     }}};
 
-    // Channels is only offered with the flag on and an Enterprise Advanced
-    // licence, and most cases here exercise all three resources.
+    // Channels is only offered with its flag on and an Enterprise Advanced
+    // licence, Posts only with PostAttributes on, and most cases here exercise
+    // all three resources.
     const renderComponent = (graphEnabled = false) => renderWithContext(
         <div>
             <AttributeDetails/>
             <ModalController/>
         </div>,
-        mergeObjects(CHANNEL_ATTRIBUTES_STATE, {
+        mergeObjects(ALL_RESOURCES_STATE, {
             entities: {
                 general: {
                     config: {
@@ -509,6 +510,36 @@ describe('AttributeDetails', () => {
         }));
     });
 
+    describe('applying an attribute to posts', () => {
+        const withPostAttributes = (enabled: boolean) => renderWithContext(
+            <div>
+                <AttributeDetails/>
+                <ModalController/>
+            </div>,
+            {entities: {general: {config: {FeatureFlagPostAttributes: enabled ? 'true' : 'false'}}}},
+        );
+
+        it('is not offered without the PostAttributes feature flag', async () => {
+            withPostAttributes(false);
+
+            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+
+            expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Users']);
+        });
+
+        it('is offered with the PostAttributes feature flag, and adds a Posts row', async () => {
+            withPostAttributes(true);
+
+            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+            expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Users', 'Posts']);
+
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Posts'}));
+
+            expect(await screen.findByTestId('attributeAppliesToRow-post')).toBeInTheDocument();
+        });
+
+    });
+
     describe('applying an attribute to channels', () => {
         const withoutChannelAttributes = () => renderWithContext(
             <div>
@@ -530,7 +561,7 @@ describe('AttributeDetails', () => {
 
             await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
 
-            expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Users', 'Posts']);
+            expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).not.toContain('Channels');
         });
 
         it('creates only the template when Channels is not added', async () => {
@@ -1487,7 +1518,7 @@ describe('AttributeDetails', () => {
                 </Route>
                 <ModalController/>
             </div>,
-            mergeObjects(CHANNEL_ATTRIBUTES_STATE, mergeObjects({
+            mergeObjects(ALL_RESOURCES_STATE, mergeObjects({
                 entities: {
                     general: {
                         config: {
@@ -1713,6 +1744,28 @@ describe('AttributeDetails', () => {
             expect(screen.queryByTestId('attributeAppliesToRow-channel')).not.toBeInTheDocument();
             expect(mockHistoryPush).not.toHaveBeenCalled();
             expect(getPropertyFields.mock.calls.every((call) => call[1] !== 'channel')).toBe(true);
+        });
+
+        it('loads a template with the post scope skipped when the PostAttributes flag is off', async () => {
+            const getPropertyFields = jest.spyOn(Client4, 'getPropertyFields').mockImplementation((_group, objectType) => {
+                if (objectType === 'template') {
+                    return Promise.resolve([makeTemplate()]);
+                }
+                if (objectType === 'user') {
+                    return Promise.resolve([makeLinked('user', 'user-field')]);
+                }
+                if (objectType === 'post') {
+                    return Promise.resolve([makeLinked('post', 'post-field')]);
+                }
+                return Promise.resolve([]);
+            });
+
+            renderEdit({entities: {general: {config: {FeatureFlagPostAttributes: 'false'}}}});
+            await waitForForm();
+
+            expect(screen.getByTestId('attributeAppliesToRow-user')).toBeInTheDocument();
+            expect(screen.queryByTestId('attributeAppliesToRow-post')).not.toBeInTheDocument();
+            expect(getPropertyFields.mock.calls.every((call) => call[1] !== 'post')).toBe(true);
         });
 
         it('saves a non-template field with a PATCH to its own object type, not the template create/link path', async () => {
