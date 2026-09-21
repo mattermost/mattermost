@@ -12,6 +12,9 @@ const TARGET_TYPE = 'system';
 const SYSTEM_FIELD_TARGET_ID = ''; // target_type 'system' requires empty target_id on the field
 const CLASSIFICATION_FIELD_NAME = 'classification';
 const LINKED_CLASSIFICATION_FIELD_NAME = 'classification';
+// Must match CLASSIFICATIONS_FIELD_TYPE in the webapp utils. A select-typed
+// field with this name is treated as a foreign attribute, not adopted.
+const CLASSIFICATIONS_FIELD_TYPE = 'rank';
 const DISPLAY_BANNER_TOP = 'display_banner_top';
 const DISPLAY_BANNER_BOTTOM = 'display_banner_bottom';
 
@@ -96,7 +99,7 @@ export async function setupClassificationField(
 
     return adminClient.createPropertyField(PROPERTY_GROUP, OBJECT_TYPE, {
         name: CLASSIFICATION_FIELD_NAME,
-        type: 'select',
+        type: CLASSIFICATIONS_FIELD_TYPE,
         target_type: TARGET_TYPE,
         target_id: '',
         attrs: {
@@ -154,7 +157,7 @@ export async function setupClassificationFieldWithGlobalBanner(
     // type, options, and permissions are inherited from the source template by the server.
     const linkedField = await adminClient.createPropertyField(PROPERTY_GROUP, LINKED_OBJECT_TYPE, {
         name: LINKED_CLASSIFICATION_FIELD_NAME,
-        type: 'select',
+        type: CLASSIFICATIONS_FIELD_TYPE,
         target_type: TARGET_TYPE,
         target_id: SYSTEM_FIELD_TARGET_ID,
         linked_field_id: templateField.id,
