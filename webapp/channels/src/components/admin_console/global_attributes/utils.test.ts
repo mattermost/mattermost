@@ -6,6 +6,7 @@ import type {PropertyField} from '@mattermost/types/properties';
 import {Client4} from 'mattermost-redux/client';
 
 import {ALL_RESOURCE_TYPES} from './attribute_details/attribute_applies_to_constants';
+import type {ResourceObjectType} from './attribute_details/attribute_applies_to_constants';
 import {
     ATTRIBUTE_FIELD_TYPES,
     appliedResourceTypesByTemplateId,
@@ -519,13 +520,18 @@ describe('global_attributes/utils', () => {
             await expect(fetchAttributeField('field-1', ALL_RESOURCE_TYPES)).resolves.toBeUndefined();
         });
 
-        it('only queries the template scope and the allowed resource scopes', async () => {
+        it.each([
+            [['user'], ['template', 'user']],
+
+            // Deliberately out of canonical order: the scopes are queried in
+            // ALL_RESOURCE_TYPES order, not in the order they were allowed.
+            [['post', 'user'], ['template', 'user', 'post']],
+        ])('queries the template scope plus the allowed resource scopes %p', async (allowedTypes, expected) => {
             const getPropertyFields = jest.spyOn(Client4, 'getPropertyFields').mockResolvedValue([]);
 
-            await fetchAttributeField('field-1', ['user']);
+            await fetchAttributeField('field-1', allowedTypes as ResourceObjectType[]);
 
-            const queriedObjectTypes = getPropertyFields.mock.calls.map((call) => call[1]);
-            expect(queriedObjectTypes).toEqual(['template', 'user']);
+            expect(getPropertyFields.mock.calls.map((call) => call[1])).toEqual(expected);
         });
     });
 
@@ -558,13 +564,15 @@ describe('global_attributes/utils', () => {
             expect(fields.map((field) => field.id)).toEqual(['u1', 'c1']);
         });
 
-        it('only queries the allowed resource scopes', async () => {
+        it.each([
+            [['user'], ['user']],
+            [['post', 'user'], ['user', 'post']],
+        ])('only queries the allowed resource scopes %p', async (allowedTypes, expected) => {
             const getPropertyFields = jest.spyOn(Client4, 'getPropertyFields').mockResolvedValue([]);
 
-            await fetchLinkedFieldsForTemplate('template-id', ['user']);
+            await fetchLinkedFieldsForTemplate('template-id', allowedTypes as ResourceObjectType[]);
 
-            const queriedObjectTypes = getPropertyFields.mock.calls.map((call) => call[1]);
-            expect(queriedObjectTypes).toEqual(['user']);
+            expect(getPropertyFields.mock.calls.map((call) => call[1])).toEqual(expected);
         });
     });
 

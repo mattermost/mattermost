@@ -511,24 +511,27 @@ describe('AttributeDetails', () => {
     });
 
     describe('applying an attribute to posts', () => {
-        const withPostAttributes = (enabled: boolean) => renderWithContext(
+        const withState = (initialState: Record<string, unknown>) => renderWithContext(
             <div>
                 <AttributeDetails/>
                 <ModalController/>
             </div>,
-            {entities: {general: {config: {FeatureFlagPostAttributes: enabled ? 'true' : 'false'}}}},
+            initialState,
         );
 
+        // Channels stays fully enabled here so the assertion below pins the two
+        // gates as independent, rather than passing because everything is off.
         it('is not offered without the PostAttributes feature flag', async () => {
-            withPostAttributes(false);
+            withState(mergeObjects(ALL_RESOURCES_STATE, {entities: {general: {config: {FeatureFlagPostAttributes: 'false'}}}}));
 
             await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
 
-            expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Users']);
+            expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Users', 'Channels']);
         });
 
+        // No licence here: Posts is gated on its flag alone, unlike Channels.
         it('is offered with the PostAttributes feature flag, and adds a Posts row', async () => {
-            withPostAttributes(true);
+            withState({entities: {general: {config: {FeatureFlagPostAttributes: 'true'}}}});
 
             await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
             expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Users', 'Posts']);
@@ -537,7 +540,6 @@ describe('AttributeDetails', () => {
 
             expect(await screen.findByTestId('attributeAppliesToRow-post')).toBeInTheDocument();
         });
-
     });
 
     describe('applying an attribute to channels', () => {
@@ -561,7 +563,7 @@ describe('AttributeDetails', () => {
 
             await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
 
-            expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).not.toContain('Channels');
+            expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Users']);
         });
 
         it('creates only the template when Channels is not added', async () => {
@@ -1744,6 +1746,20 @@ describe('AttributeDetails', () => {
             expect(screen.queryByTestId('attributeAppliesToRow-channel')).not.toBeInTheDocument();
             expect(mockHistoryPush).not.toHaveBeenCalled();
             expect(getPropertyFields.mock.calls.every((call) => call[1] !== 'channel')).toBe(true);
+        });
+
+        it('redirects to the list for a non-template post field when the PostAttributes flag is off', async () => {
+            const getPropertyFields = jest.spyOn(Client4, 'getPropertyFields').mockImplementation((_group, objectType) => {
+                if (objectType === 'post') {
+                    return Promise.resolve([makeNonTemplate('post')]);
+                }
+                return Promise.resolve([]);
+            });
+
+            renderEdit({entities: {general: {config: {FeatureFlagPostAttributes: 'false'}}}});
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes'));
+            expect(getPropertyFields.mock.calls.every((call) => call[1] !== 'post')).toBe(true);
         });
 
         it('loads a template with the post scope skipped when the PostAttributes flag is off', async () => {

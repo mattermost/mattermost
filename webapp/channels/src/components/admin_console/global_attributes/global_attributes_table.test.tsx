@@ -380,6 +380,33 @@ describe('GlobalAttributesTable', () => {
             expect(await screen.findByText('user_field')).toBeInTheDocument();
             expect(screen.queryByText('cached_channel_field')).not.toBeInTheDocument();
         });
+
+        it('hides a cached post field when the PostAttributes flag is off', async () => {
+            // A prior visit while the flag was on can leave a post field in the
+            // store after this page has stopped fetching that scope.
+            const cachedPost = makeField({id: 'p1', name: 'cached_post_field', object_type: 'post'});
+            const userField = makeField({id: 'u1', name: 'user_field', object_type: 'user'});
+            mockScopedFields({user: [userField]});
+
+            const state = getBaseState();
+            state.entities!.properties = {
+                groups: {
+                    byId: {[ACCESS_CONTROL_GROUP_UUID]: {id: ACCESS_CONTROL_GROUP_UUID, name: 'access_control'}},
+                    byName: {access_control: {id: ACCESS_CONTROL_GROUP_UUID, name: 'access_control'}},
+                },
+                fields: {
+                    byId: {p1: cachedPost},
+                    byObjectType: {
+                        post: {[ACCESS_CONTROL_GROUP_UUID]: {p1: cachedPost}},
+                    },
+                },
+            };
+
+            renderWithContext(<GlobalAttributesTable/>, state);
+
+            expect(await screen.findByText('user_field')).toBeInTheDocument();
+            expect(screen.queryByText('cached_post_field')).not.toBeInTheDocument();
+        });
     });
 
     it('renders the Applies-to column as an explicit placeholder when nothing is linked', async () => {
@@ -425,6 +452,8 @@ describe('GlobalAttributesTable', () => {
         expect(appliesTo).not.toHaveTextContent('—');
     });
 
+    // Channels stays fully enabled so the missing Posts chip is attributable to
+    // the PostAttributes gate alone, not to every scope being off.
     it('skips the post scope entirely when the PostAttributes flag is off', async () => {
         const template = makeField({id: 'template-1', name: 'department'});
         getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
@@ -437,21 +466,24 @@ describe('GlobalAttributesTable', () => {
             if (objectType === 'user') {
                 return Promise.resolve([makeField({id: 'user-1', object_type: 'user', linked_field_id: template.id})]);
             }
+            if (objectType === 'channel') {
+                return Promise.resolve([makeField({id: 'channel-1', object_type: 'channel', linked_field_id: template.id})]);
+            }
             if (objectType === 'post') {
-                return Promise.resolve([
-                    makeField({id: 'post-1', object_type: 'post', linked_field_id: template.id}),
-                    makeField({id: 'post-2', name: 'unlinked_post_field', object_type: 'post'}),
-                ]);
+                return Promise.resolve([makeField({id: 'post-1', object_type: 'post', linked_field_id: template.id})]);
             }
             return Promise.resolve([]);
         });
 
-        renderWithContext(<GlobalAttributesTable/>, getBaseState());
+        const state = getAllScopesState();
+        state.entities!.general!.config!.FeatureFlagPostAttributes = 'false';
+
+        renderWithContext(<GlobalAttributesTable/>, state);
 
         const appliesTo = await screen.findByTestId('global-attribute-applies-to');
         expect(appliesTo).toHaveTextContent('Users');
+        expect(appliesTo).toHaveTextContent('Channels');
         expect(appliesTo).not.toHaveTextContent('Posts');
-        expect(screen.queryByText('unlinked_post_field')).not.toBeInTheDocument();
         expect(getPropertyFields.mock.calls.every((call) => call[1] !== 'post')).toBe(true);
     });
 
