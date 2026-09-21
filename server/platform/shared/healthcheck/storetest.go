@@ -29,6 +29,23 @@ func TestFindingStore(t *testing.T, newStore func(t *testing.T) FindingStore) {
 		require.Equal(t, fp2, got[1].Fingerprint)
 	})
 
+	t.Run("get by fingerprints treats input as a set", func(t *testing.T) {
+		t.Parallel()
+
+		store := newStore()
+		fp1, fp2 := model.NewId(), model.NewId()
+		require.NoError(t, store.Upsert([]*model.HealthFinding{
+			testFinding(fp1, "check_cluster_status", 100),
+			testFinding(fp2, "check_database_pool", 101),
+		}))
+
+		got, err := store.GetByFingerprints([]string{fp1, fp1, "", fp2})
+		require.NoError(t, err)
+		require.Len(t, got, 2)
+		assert.NotNil(t, findFinding(got, fp1))
+		assert.NotNil(t, findFinding(got, fp2))
+	})
+
 	t.Run("upsert idempotency", func(t *testing.T) {
 		store := newStore(t)
 		fp := model.NewId()
