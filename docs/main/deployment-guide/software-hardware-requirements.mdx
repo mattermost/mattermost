@@ -271,7 +271,7 @@ MySQL 8.0.22 contains an [issue with JSON column types](https://bugs.mysql.com/b
 
 <Note>
 
-In MySQL 8.0.4, the default authentication plugin was changed from `mysql_native_password` to `caching_sha2_password`. If you want to keep everything as is, or you're migrating to PostgreSQL, you'll need to switch the default authentication method back to `mysql_native_password`. See [Unsupported authentication for MySQL](/administration-guide/manage/admin/postgres-migration#unsupported-authentication-for-mysql) for the version-specific steps.
+In MySQL 8.0.4, the default authentication plugin was changed from `mysql_native_password` to `caching_sha2_password`. If you're migrating from MySQL 8.0-8.4 to PostgreSQL using `pgloader`, you'll need to switch the default authentication method back to `mysql_native_password`. See [Unsupported authentication for MySQL](/administration-guide/manage/admin/postgres-migration#unsupported-authentication-for-mysql) for the version-specific steps.
 
 </Note>
 
