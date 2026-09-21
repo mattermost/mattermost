@@ -2565,6 +2565,11 @@ describe('AttributeDetails', () => {
 
             expect(screen.getByRole('heading', {name: 'Edit Org chart Attribute'})).toBeInTheDocument();
             expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Hierarchical');
+
+            // The lock comes from the server constraint, not the flag, so
+            // turning PropertyFieldGraph off must not hand back a Type menu
+            // whose every entry the server would reject.
+            expect(screen.getByTestId('attributeTypeMenuButton')).toBeDisabled();
             expect(mockHistoryPush).not.toHaveBeenCalled();
         });
 
@@ -2594,6 +2599,131 @@ describe('AttributeDetails', () => {
             expect(screen.getAllByTestId('attributeOptionsGraphRow__name').map((el) => el.textContent)).toEqual(['Air', 'Fighter']);
             expect(screen.queryByTestId('attributeExternalSourceTrigger')).not.toBeInTheDocument();
             expect(mockHistoryPush).not.toHaveBeenCalled();
+        });
+
+        // The server rejects a PATCH that converts a field to or from the graph
+        // type outright (app.property_field.update.graph_type_change.app_error),
+        // so neither direction may be reachable from this page.
+        it('drops Hierarchical from the type menu of an existing non-graph field, even with PropertyFieldGraph on', async () => {
+            mockLoadedField(makeTemplate({
+                type: 'rank',
+                attrs: {
+                    display_name: 'Clearance Level',
+                    options: [{id: 'opt-1', name: 'Low', rank: 1}],
+                },
+            }));
+
+            renderEdit({}, true);
+            await waitForForm();
+
+            expect(screen.getByTestId('attributeTypeMenuButton')).not.toBeDisabled();
+            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+
+            expect(screen.queryByRole('menuitemradio', {name: 'Hierarchical'})).not.toBeInTheDocument();
+            expect(screen.getAllByRole('menuitemradio').map((item) => item.textContent)).toEqual(['Text', 'Phone', 'URL', 'Select', 'Multiselect', 'Ranked']);
+        });
+
+        it('leaves a non-graph field free to change to another non-graph type, PATCHing that type', async () => {
+            mockLoadedField(makeTemplate({
+                type: 'rank',
+                attrs: {
+                    display_name: 'Clearance Level',
+                    options: [{id: 'opt-1', name: 'Low', rank: 1}],
+                },
+            }));
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue(makeTemplate());
+
+            renderEdit({}, true);
+            await waitForForm();
+
+            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'template', FIELD_ID, expect.objectContaining({
+                type: 'select',
+                attrs: expect.objectContaining({
+                    options: [expect.objectContaining({id: 'opt-1', name: 'Low'})],
+                }),
+            }));
+        });
+
+        it('locks the Type control of an existing graph field, offering no type to convert to', async () => {
+            mockLoadedField(makeTemplate({
+                type: 'graph',
+                attrs: {
+                    display_name: 'Org chart',
+                    options: [{id: 'opt-1', name: 'Air'}],
+                },
+            }));
+            jest.spyOn(Client4, 'getPropertyFieldOptions').mockResolvedValue({
+                options: [{id: 'opt-1', name: 'Air', parents: []}],
+                has_more: false,
+            });
+
+            renderEdit({}, true);
+            await waitForForm();
+
+            const typeButton = screen.getByTestId('attributeTypeMenuButton');
+            expect(typeButton).toHaveTextContent('Hierarchical');
+            expect(typeButton).toBeDisabled();
+            expect(typeButton).toHaveAccessibleName('Type: Hierarchical. Locked because a hierarchical attribute cannot be converted to another type.');
+
+            await userEvent.hover(screen.getByTestId('attributeTypeLockWrap'));
+            const tooltip = await screen.findByRole('tooltip', {}, {timeout: 1000});
+            expect(tooltip).toHaveTextContent('Type cannot be changed — a hierarchical attribute cannot be converted to another type. Create a new attribute of the type you need instead.');
+        });
+
+        // The applies-to lock would otherwise win the reason chain here and tell
+        // the admin to remove the resource first -- an unlock that never arrives.
+        it('prefers the hierarchical Type lock reason over the applies-to one', async () => {
+            mockLoadedField(makeTemplate({
+                type: 'graph',
+                attrs: {
+                    display_name: 'Org chart',
+                    options: [{id: 'opt-1', name: 'Air'}],
+                },
+            }), [makeLinked('user', 'user-field', {type: 'graph'})]);
+            jest.spyOn(Client4, 'getPropertyFieldOptions').mockResolvedValue({
+                options: [{id: 'opt-1', name: 'Air', parents: []}],
+                has_more: false,
+            });
+
+            renderEdit({}, true);
+            await waitForForm();
+            await waitFor(() => expect(screen.getByTestId('attributeAppliesToRow-user')).toBeInTheDocument());
+
+            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveAccessibleName(/hierarchical attribute cannot be converted/);
+            expect(screen.getByTestId('attributeTypeMenuButton')).not.toHaveAccessibleName(/applies to a resource/);
+        });
+
+        it('keeps a graph field otherwise editable, PATCHing a renamed display name back as a graph field', async () => {
+            mockLoadedField(makeTemplate({
+                type: 'graph',
+                attrs: {
+                    display_name: 'Org chart',
+                    options: [{id: 'opt-1', name: 'Air'}],
+                },
+            }));
+            jest.spyOn(Client4, 'getPropertyFieldOptions').mockResolvedValue({
+                options: [{id: 'opt-1', name: 'Air', parents: []}],
+                has_more: false,
+            });
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue(makeTemplate({type: 'graph'}));
+
+            renderEdit({}, true);
+            await waitForForm();
+
+            await userEvent.clear(screen.getByTestId('attributeDisplayNameInput'));
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Reporting chart');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'template', FIELD_ID, expect.objectContaining({
+                type: 'graph',
+                attrs: expect.objectContaining({display_name: 'Reporting chart'}),
+            }));
         });
     });
 });
