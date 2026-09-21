@@ -26,21 +26,12 @@ func (a *App) MuteHealthFinding(rctx request.CTX, fingerprint string, userID str
 func (a *App) UnmuteHealthFinding(rctx request.CTX, fingerprint string) *model.AppError {
 	if err := a.Srv().Store().HealthFinding().Unmute(fingerprint); err != nil {
 		if errors.Is(err, healthcheck.ErrFindingNotFound) {
-			return model.NewAppError("UnmuteHealthFinding", "app.health_finding.mute.not_found.app_error", nil, "fingerprint="+fingerprint, http.StatusNotFound)
+			return model.NewAppError("UnmuteHealthFinding", "app.health_finding.unmute.not_found.app_error", nil, "fingerprint="+fingerprint, http.StatusNotFound)
 		}
 		return model.NewAppError("UnmuteHealthFinding", "app.health_finding.unmute.app_error", nil, "fingerprint="+fingerprint, http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
-}
-
-func (a *App) GetMutedHealthFindings(rctx request.CTX) ([]*model.HealthFinding, *model.AppError) {
-	findings, err := a.Srv().Store().HealthFinding().List(model.HealthFindingFilter{Muted: model.MutedOnly})
-	if err != nil {
-		return nil, model.NewAppError("GetMutedHealthFindings", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	return findings, nil
 }
 
 func (a *App) GetHealthFindings(rctx request.CTX, filter model.HealthFindingFilter) ([]*model.HealthFinding, *model.AppError) {

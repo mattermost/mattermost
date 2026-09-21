@@ -7033,6 +7033,10 @@
     "translation": "Unable to unmute health finding."
   },
   {
+    "id": "app.health_finding.unmute.not_found.app_error",
+    "translation": "Health finding not found."
+  },
+  {
     "id": "app.import.attachment.bad_file.error",
     "translation": "Error reading the file at: \"{{.FilePath}}\""
   },
