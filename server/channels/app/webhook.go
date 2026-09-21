@@ -1059,8 +1059,9 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 	}
 
 	// Direct and group channels carry no team of their own, so they resolve by name for every
-	// team. While direct messages are restricted to team members, delivery to one of them is
-	// scoped to the webhook's team: that team has to be common to the channel's members.
+	// team. Incoming webhooks always persist a valid TeamId (IncomingWebhook.IsValid), including
+	// through local create, so this cannot match an empty id. While direct messages are
+	// restricted to team members, delivery to a DM/GM is scoped to that stored team.
 	if *a.Config().TeamSettings.RestrictDirectMessage == model.DirectMessageTeam &&
 		(channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup) {
 		commonTeams, teamErr := a.GetDirectOrGroupMessageMembersCommonTeams(rctx, channel.Id)
