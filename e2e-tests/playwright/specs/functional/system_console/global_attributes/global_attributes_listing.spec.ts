@@ -419,6 +419,19 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
                     await unrelatedRow.waitFor();
                     await expect(unrelatedRow.getByRole('button', {name: 'More actions'})).toBeVisible();
                     await expect(unrelatedRow.getByText('Read-only')).toHaveCount(0);
+
+                    // * Classification's name renders at the same contrast as any other row's:
+                    // a definition that lives on another page must not read as a disabled
+                    // attribute. Compared against the sibling row rather than a literal colour
+                    // so it holds under every theme.
+                    const unrelatedNameColor = await unrelatedRow
+                        .getByTestId('global-attribute-name')
+                        .evaluate((el) => getComputedStyle(el).color);
+                    await expect(classificationRow.getByTestId('global-attribute-name')).toHaveCSS(
+                        'color',
+                        unrelatedNameColor,
+                    );
+
                     await expect(unrelatedRow.getByRole('link', {name: 'Open Classification Markings'})).toHaveCount(0);
                     await expect(unrelatedRow.getByTestId('global-attribute-source')).toContainText('Managed here');
                 } finally {
