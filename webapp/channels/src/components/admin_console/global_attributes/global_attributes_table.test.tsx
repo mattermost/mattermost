@@ -1534,6 +1534,25 @@ describe('GlobalAttributesTable', () => {
             expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
         });
 
+        it('styles the name and subtitle exactly like every other row, so a read-only definition does not read as a disabled attribute', async () => {
+            getPropertyFields.
+                mockResolvedValueOnce([makeClassificationField(), makeField({id: 'field-2', attrs: {display_name: 'Program'}})]).
+                mockResolvedValue([]);
+
+            renderWithContext(<GlobalAttributesTable/>, getReachableState());
+
+            const [classificationName, ordinaryName] = await screen.findAllByTestId('global-attribute-name');
+            expect(classificationName).toHaveTextContent('Classification');
+            expect(ordinaryName).toHaveTextContent('Program');
+
+            // * Classification's definition is edited on the Classification Markings page,
+            // which the subtitle says; dimming the row on top of that made a correctly
+            // configured attribute look disabled
+            expect(classificationName.className).toBe(ordinaryName.className);
+            expect(screen.getByTestId('global-attribute-classification-subtitle-field-1').className).
+                toBe('GlobalAttributesTable__subtitle');
+        });
+
         it('leaves an unrelated field (not matching name/object_type/group_id) entirely unaffected even when the destination is reachable', async () => {
             getPropertyFields.mockResolvedValueOnce([makeField({type: 'rank'})]).mockResolvedValue([]);
 

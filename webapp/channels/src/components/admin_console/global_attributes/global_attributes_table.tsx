@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {createColumnHelper, getCoreRowModel, useReactTable, type ColumnDef} from '@tanstack/react-table';
-import classNames from 'classnames';
 import type {ComponentType} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {MessageDescriptor} from 'react-intl';
@@ -239,7 +238,7 @@ function AttributeCell({field, isClassificationRow}: ClassificationAwareCellProp
     return (
         <span className='GlobalAttributesTable__attribute'>
             <span
-                className={classNames('GlobalAttributesTable__name', {'GlobalAttributesTable__name--classification': isClassificationRow})}
+                className='GlobalAttributesTable__name'
                 data-testid='global-attribute-name'
             >
                 {getDisplayName(field)}
@@ -247,7 +246,7 @@ function AttributeCell({field, isClassificationRow}: ClassificationAwareCellProp
             {isClassificationRow && (
                 <span
                     id={classificationSubtitleId(field.id)}
-                    className='GlobalAttributesTable__subtitle GlobalAttributesTable__subtitle--classification'
+                    className='GlobalAttributesTable__subtitle'
                     data-testid={`global-attribute-classification-subtitle-${field.id}`}
                 >
                     <FormattedMessage {...messages.classificationSubtitle}/>

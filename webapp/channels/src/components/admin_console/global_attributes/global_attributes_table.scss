@@ -65,18 +65,10 @@
     white-space: nowrap;
 }
 
-.GlobalAttributesTable__name--classification {
-    color: rgba(var(--center-channel-color-rgb), 0.56);
-}
-
 .GlobalAttributesTable__subtitle {
     color: rgba(var(--center-channel-color-rgb), 0.64);
     font-size: 12px;
     white-space: normal;
-}
-
-.GlobalAttributesTable__subtitle--classification {
-    color: rgba(var(--center-channel-color-rgb), 0.56);
 }
 
 .GlobalAttributesTable__actions--classification {
