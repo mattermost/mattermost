@@ -9,7 +9,6 @@ import type {PostAttribute} from './utils';
 import {
     allocateChipBudget,
     chipCount,
-    hasValue,
     hasValueControl,
     isChipVisible,
     useAddableAttributes,
@@ -70,32 +69,6 @@ function makeValue(value: unknown, fieldId = 'field_1'): PropertyValue<unknown> 
 function visible(field: PropertyField, value: unknown): PostAttribute {
     return {field, value: makeValue(value, field.id)};
 }
-
-describe('hasValue', () => {
-    it('treats a missing value as unset', () => {
-        expect(hasValue(undefined)).toBe(false);
-    });
-
-    it.each([
-        ['null', null],
-        ['undefined', undefined],
-        ['an empty string', ''],
-        ['an empty array', []],
-    ])('treats %s as unset', (_label, raw) => {
-        expect(hasValue(makeValue(raw))).toBe(false);
-    });
-
-    // Clearing an attribute stores an empty value rather than deleting the row, so
-    // these are the shapes an intentionally-cleared attribute arrives in.
-    it.each([
-        ['zero', 0],
-        ['false', false],
-        ['a string', 'SECRET'],
-        ['a populated array', ['SECRET']],
-    ])('treats %s as set', (_label, raw) => {
-        expect(hasValue(makeValue(raw))).toBe(true);
-    });
-});
 
 describe('chipCount', () => {
     it('is zero for a missing value', () => {

@@ -17,7 +17,6 @@ import {
     deleteLinkedAttributeField,
     fetchAttributeField,
     fetchLinkedFieldsForTemplate,
-    formatAttributeHeadingName,
     isAttributeFieldType,
     linkedFieldsByResourceType,
     updateAttributeField,
@@ -656,21 +655,6 @@ describe('global_attributes/utils', () => {
             expect(isAttributeFieldType('date')).toBe(false);
             expect(isAttributeFieldType('user')).toBe(false);
             expect(isAttributeFieldType('')).toBe(false);
-        });
-    });
-
-    describe('formatAttributeHeadingName', () => {
-        it('title-cases the first letter so internal names read as headings', () => {
-            expect(formatAttributeHeadingName('classification')).toBe('Classification');
-            expect(formatAttributeHeadingName('  department')).toBe('Department');
-        });
-
-        it('leaves an already-capitalized display name unchanged', () => {
-            expect(formatAttributeHeadingName('Test Attribute')).toBe('Test Attribute');
-        });
-
-        it('returns an empty string when the name is blank', () => {
-            expect(formatAttributeHeadingName('   ')).toBe('');
         });
     });
 

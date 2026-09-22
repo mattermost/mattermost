@@ -328,11 +328,3 @@ export function patchLinkedAttributeField(
         ...(permissionValues ? {permission_values: permissionValues} : {}),
     });
 }
-
-export function formatAttributeHeadingName(name: string): string {
-    const trimmed = name.trim();
-    if (!trimmed) {
-        return trimmed;
-    }
-    return trimmed.charAt(0).toLocaleUpperCase() + trimmed.slice(1);
-}

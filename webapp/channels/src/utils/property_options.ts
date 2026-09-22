@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PropertyField, PropertyFieldOption, SelectPropertyField} from '@mattermost/types/properties';
+import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
+
+import {getPropertyFieldOptions} from 'mattermost-redux/utils/property_utils';
 
 import {toValueList} from 'components/properties_card_view/propertyValueRenderer/multi_value_utils';
 
@@ -15,8 +17,6 @@ export type OptionChip = {
     color?: string;
 };
 
-const fieldOptions = (field: PropertyField): PropertyFieldOption[] | undefined => (field as SelectPropertyField).attrs?.options;
-
 /**
  * Whether a field carries its own list of options.
  *
@@ -28,16 +28,16 @@ const fieldOptions = (field: PropertyField): PropertyFieldOption[] | undefined =
  * meaningfully distinguishable on the wire.
  */
 export function hasOptions(field: PropertyField): boolean {
-    return Boolean(fieldOptions(field)?.length);
+    return getPropertyFieldOptions(field).length > 0;
 }
 
 /**
  * The option a stored value refers to.
  */
 export function resolveOption(field: PropertyField, value: unknown): PropertyFieldOption | undefined {
-    const options = fieldOptions(field);
+    const options = getPropertyFieldOptions(field);
 
-    if (!options?.length) {
+    if (options.length === 0) {
         return undefined;
     }
 

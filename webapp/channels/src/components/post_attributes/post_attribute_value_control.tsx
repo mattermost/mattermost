@@ -5,7 +5,9 @@ import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 
 import {CheckIcon} from '@mattermost/compass-icons/components';
-import type {PropertyField, PropertyFieldOption, PropertyValue, SelectPropertyField} from '@mattermost/types/properties';
+import type {PropertyField, PropertyFieldOption, PropertyValue} from '@mattermost/types/properties';
+
+import {getPropertyFieldOptions} from 'mattermost-redux/utils/property_utils';
 
 import {UserSelector} from 'components/admin_console/content_flagging/user_multiselector/user_multiselector';
 import * as Menu from 'components/menu';
@@ -80,10 +82,6 @@ export default function PostAttributeValueControl({field, value, disabled, onCha
     }
 }
 
-function fieldOptions(field: PropertyField): PropertyFieldOption[] {
-    return (field as SelectPropertyField).attrs?.options ?? [];
-}
-
 function storedText(value?: PropertyValue<unknown>): string {
     return typeof value?.value === 'string' ? value.value : '';
 }
@@ -100,7 +98,7 @@ function sameEntries(left: string[], right: string[]): boolean {
 function OptionMenu({field, value, disabled, onChange}: Props) {
     const label = fieldLabel(field);
     const isMulti = field.type === 'multiselect';
-    const options = fieldOptions(field);
+    const options = getPropertyFieldOptions(field);
     const entries = storedEntries(value);
 
     // A stored entry names an option by id or, for older data, by name — the same

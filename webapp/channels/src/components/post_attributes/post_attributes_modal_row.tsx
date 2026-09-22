@@ -7,9 +7,11 @@ import {useIntl} from 'react-intl';
 import {LockOutlineIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
+import {isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
+
 import PostAttributeText from './post_attribute_text';
 import PostAttributeValueControl, {hasValueControl} from './post_attribute_value_control';
-import {fieldLabel, hasValue} from './utils';
+import {fieldLabel} from './utils';
 
 type Props = {
     field: PropertyField;
@@ -41,7 +43,7 @@ export default function PostAttributesModalRow({field, value, canEdit, writing, 
 
     const label = fieldLabel(field);
     const editable = canEdit && hasValueControl(field);
-    const showClear = editable && hasValue(value);
+    const showClear = editable && isPropertyValueSet(value?.value);
 
     // Clearing writes an empty value rather than deleting the row.
     const handleClear = useCallback(() => onChange(field.id, ''), [field.id, onChange]);

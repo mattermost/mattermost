@@ -7,11 +7,10 @@ import type {PropertyField} from '@mattermost/types/properties';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {General, Permissions} from 'mattermost-redux/constants';
+import {POST_OBJECT_TYPE} from 'mattermost-redux/constants/properties';
 import {getMyChannelMember} from 'mattermost-redux/selectors/entities/channels';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {isCurrentUserGuestUser} from 'mattermost-redux/selectors/entities/users';
-
-const POST_OBJECT_TYPE = 'post';
 
 /**
  * Whether the current user may write a value for a post-object `field` on

@@ -15,6 +15,8 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FieldVisibility, PropertyField, PropertyFieldOption, PropertyPermissionLevel} from '@mattermost/types/properties';
 import {supportsHierarchy, supportsOptions} from '@mattermost/types/properties';
 
+import {formatPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
+
 import {setNavigationBlocked} from 'actions/admin_actions';
 
 import BlockableLink from 'components/admin_console/blockable_link';
@@ -59,7 +61,6 @@ import {
     deleteLinkedAttributeField,
     fetchAttributeField,
     fetchLinkedFieldsForTemplate,
-    formatAttributeHeadingName,
     isAttributeFieldType,
     linkedFieldsByResourceType,
     patchLinkedAttributeField,
@@ -1435,7 +1436,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         <FormattedMessage
                             tagName='h1'
                             {...(isEditMode ? messages.editTitle : messages.title)}
-                            values={isEditMode ? {name: formatAttributeHeadingName(displayName || currentName)} : undefined}
+                            values={isEditMode ? {name: formatPropertyFieldLabel(displayName || currentName)} : undefined}
                         />
                         <FormattedMessage
                             tagName='p'

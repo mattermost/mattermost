@@ -6,6 +6,8 @@ import {useMemo} from 'react';
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 import {supportsOptions} from '@mattermost/types/properties';
 
+import {isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
+
 import {toValueList} from 'components/properties_card_view/propertyValueRenderer/multi_value_utils';
 
 import {resolveOptionChips} from 'utils/property_options';
@@ -66,26 +68,6 @@ export function fieldLabel(field: PropertyField): string {
 }
 
 /**
- * Whether a stored value counts as set, judged on the value alone.
- *
- * Necessary but not sufficient for a chip: an option-bearing field also needs the
- * value to resolve to an option that still exists. `chipCount` is the whole answer.
- */
-export function hasValue(value?: PropertyValue<unknown>): boolean {
-    if (!value) {
-        return false;
-    }
-
-    const raw = value.value;
-
-    if (raw === null || raw === undefined || raw === '') {
-        return false;
-    }
-
-    return !(Array.isArray(raw) && raw.length === 0);
-}
-
-/**
  * A value's stored entries, as strings, with the empty ones dropped.
  *
  * Shared because two callers have to agree on what counts as an entry: the
@@ -126,7 +108,7 @@ export function isChipVisible(field: PropertyField, value?: PropertyValue<unknow
  * chip and inflate `+N` with an attribute the user can never see.
  */
 export function chipCount(field: PropertyField, value?: PropertyValue<unknown>): number {
-    if (!value || !hasValue(value) || UNRENDERABLE_TYPES.has(field.type)) {
+    if (!value || !isPropertyValueSet(value.value) || UNRENDERABLE_TYPES.has(field.type)) {
         return 0;
     }
 
