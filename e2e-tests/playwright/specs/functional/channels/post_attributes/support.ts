@@ -3,7 +3,7 @@
 
 import type {Page, Request} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
-import type {FieldType, PermissionLevel, PropertyField} from '@mattermost/types/properties';
+import type {FieldType, PropertyField, PropertyPermissionLevel} from '@mattermost/types/properties';
 
 export const GROUP = 'post_attributes';
 export const OBJECT_TYPE = 'post';
@@ -16,7 +16,7 @@ export const FIELD_PREFIX = 'postattr_e2e';
 export const VALUES_ROUTE = `/api/v4/properties/groups/${GROUP}/${OBJECT_TYPE}/values/`;
 
 // The query parameter that asks a posts endpoint to hydrate.
-export const HYDRATION_PARAM = `includePropertyGroups=${GROUP}`;
+export const HYDRATION_PARAM = `propertyGroup=${GROUP}`;
 
 export function fieldName(suffix: string, uniqueId: string): string {
     return `${FIELD_PREFIX}_${suffix}_${uniqueId}`;
@@ -42,7 +42,7 @@ type CreateOptions = {
     // writable by any member of the channel, and only a field that needs to render
     // as read-only has to say anything here. `none` is the one level nobody
     // satisfies, including a system admin over HTTP.
-    permissionValues?: PermissionLevel;
+    permissionValues?: PropertyPermissionLevel;
 };
 
 /**

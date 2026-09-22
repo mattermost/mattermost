@@ -7,7 +7,16 @@ import type {PropertyField} from '@mattermost/types/properties';
 import type {ChannelsPage, ChannelsPost} from '@mattermost/playwright-lib';
 import {expect, test} from '@mattermost/playwright-lib';
 
-import {VALUES_ROUTE, createField, deleteFields, fieldName, optionId, purgeFields, setPostValues} from './support';
+import {
+    VALUES_ROUTE,
+    createField,
+    deleteFields,
+    fieldName,
+    optionId,
+    purgeFields,
+    recordRequests,
+    setPostValues,
+} from './support';
 
 const CHIPS = 'post-attributes-chips';
 const CARD = 'post-attributes-card';
@@ -589,6 +598,217 @@ test('opens the modal on a post with no values, listing always fields', {tag: '@
         // a choice that changes nothing.
         await expect(pickerItemOf(page, caveat)).toBeVisible();
         await expect(pickerItemOf(page, classification)).toHaveCount(0);
+    } finally {
+        await deleteFields(adminClient, created);
+    }
+});
+
+/**
+ * @objective Verify the whole add route: a field with no row is offered by the picker,
+ * adding it draws an empty row without writing anything, setting a value on that row
+ * puts a chip on the post behind, and the row survives the modal — it comes back from
+ * the store on reopen, by which point the picker no longer offers the field.
+ *
+ * @precondition The PostAttributes feature flag is enabled.
+ */
+test('adds an attribute from the picker and gives it a first value', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.skipIfFeatureFlagNotSet('PostAttributes', true);
+
+    /*
+     * # Provision two `when_set` fields, neither of them set on the post
+     *
+     * Only the first is ever touched. The second exists so that the picker still has
+     * something to offer at the end: "the field left the picker" then reads against a
+     * picker that is still on screen, rather than against the whole control having
+     * been omitted — which is a different rule, and the next test's.
+     */
+    const {adminClient, user, userClient, team} = await pw.initSetup();
+    const suffix = pw.random.id();
+    const created: PropertyField[] = [];
+
+    try {
+        await purgeFields(adminClient);
+
+        const classification = await createField(adminClient, fieldName('classification', suffix), {
+            options: ['SECRET', 'UNCLASSIFIED'],
+            visibility: 'when_set',
+            sortOrder: 1,
+        });
+        const caveat = await createField(adminClient, fieldName('caveat', suffix), {
+            options: ['NOFORN'],
+            visibility: 'when_set',
+            sortOrder: 2,
+        });
+        created.push(classification, caveat);
+
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const post = await userClient.createTestPost({channel_id: channel.id, message: 'nothing set yet'});
+
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
+
+        const postOnScreen = await channelsPage.centerView.getPostById(post.id);
+        const chips = postOnScreen.container.getByTestId(CHIPS);
+
+        // * Verify the post starts with no chip row at all, so the chip asserted at the
+        // end arrived from this test's write rather than from the fixture
+        await expect(postOnScreen.container).toContainText('nothing set yet');
+        await expect(chips).toHaveCount(0);
+
+        const loads = countLoads(page);
+
+        // Every request this page makes to the values endpoint, collected so that
+        // "adding wrote nothing" can be asserted against the wire rather than against
+        // the absence of a control. Nothing reads values over HTTP either — they ride
+        // on the post — so this stays empty until the write below.
+        const writes = recordRequests(page, VALUES_ROUTE);
+
+        // # Open the modal
+        await openModalFromPostMenu(channelsPage, postOnScreen);
+
+        const modal = page.locator(MODAL);
+        await expect(modal).toBeVisible();
+
+        // * Verify neither unset `when_set` field has a row. There is nothing stored
+        // and nothing asked for, so the modal has nothing to draw.
+        await expect(rowOf(page, classification)).toHaveCount(0);
+        await expect(rowOf(page, caveat)).toHaveCount(0);
+
+        // # Add the first one from the picker
+        const add = page.getByTestId('post-attributes-add');
+
+        await add.click();
+        await pickerItemOf(page, classification).click();
+
+        // * Verify the row arrived with nothing in it
+        await expect(rowOf(page, classification)).toBeVisible();
+        await expect(triggerOf(page, classification)).toHaveText('');
+
+        // * Verify adding wrote nothing. The trash button appears only when there is
+        // something to clear, so its absence is the row saying it holds no value — an
+        // added row is a request for somewhere to type, not a value of its own.
+        await expect(clearOf(page, classification)).toHaveCount(0);
+
+        // * Verify that on the wire too. The row showing nothing to clear would also
+        // be true of a write that stored an empty value, and an empty value is a real
+        // row on the server that outlives this modal.
+        expect(writes).toEqual([]);
+
+        // * Verify the picker stopped offering the field the moment it gained a row,
+        // before any value exists to make it a row on its own
+        await add.click();
+        await expect(pickerItemOf(page, classification)).toHaveCount(0);
+        await expect(pickerItemOf(page, caveat)).toBeVisible();
+
+        // # Add the second one too, and leave it empty. It is the control for the
+        // reopen below: one added row gets a value and one does not, and only the
+        // first has any reason to come back.
+        await pickerItemOf(page, caveat).click();
+        await expect(rowOf(page, caveat)).toBeVisible();
+        await expect(triggerOf(page, caveat)).toHaveText('');
+
+        // # Set a value on the new row, waiting on the write itself rather than on
+        // elapsed time
+        const written = page.waitForResponse(
+            (response) =>
+                response.url().includes(`${VALUES_ROUTE}${post.id}`) && response.request().method() === 'PATCH',
+        );
+
+        await triggerOf(page, classification).click();
+        await page.getByRole('menuitemradio', {name: 'SECRET'}).click();
+        expect((await written).status()).toBe(200);
+
+        // # Close the modal
+        await page.keyboard.press('Escape');
+        await expect(modal).toBeHidden();
+
+        // * Verify the chip reached the post. The field is `when_set`, so the post had
+        // no chip row at all until this write gave it one.
+        await expect(chips.getByText('SECRET', {exact: true})).toBeVisible();
+
+        // # Reopen the modal
+        await openModalFromPostMenu(channelsPage, postOnScreen);
+        await expect(modal).toBeVisible();
+
+        // * Verify the row that was given a value is still there, carrying it. This
+        // row is store-derived: it exists because the post holds a value for the
+        // field, not because somebody once pressed Add.
+        await expect(rowOf(page, classification)).toBeVisible();
+        await expect(triggerOf(page, classification)).toHaveText('SECRET');
+
+        // * Verify the row that was added and left empty is gone. The added set is
+        // scoped to one opening of the modal and nothing was written, so there is
+        // nothing for the row to have been made of — which is also what makes the
+        // assertion above about the store rather than about the set.
+        await expect(rowOf(page, caveat)).toHaveCount(0);
+
+        // * Verify the picker offers the empty field again and still not the one with
+        // a value
+        await add.click();
+        await expect(pickerItemOf(page, caveat)).toBeVisible();
+        await expect(pickerItemOf(page, classification)).toHaveCount(0);
+
+        // * Verify nothing reloaded the page to get any of this
+        expect(loads()).toBe(0);
+    } finally {
+        await deleteFields(adminClient, created);
+    }
+});
+
+/**
+ * @objective Verify a modal with nothing left to offer omits the field picker
+ * altogether, rather than showing a control that can do nothing.
+ *
+ * @precondition The PostAttributes feature flag is enabled.
+ */
+test('omits the field picker when every field already has a row', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.skipIfFeatureFlagNotSet('PostAttributes', true);
+
+    // # Provision one `always` field, and nothing else. It is a `select` writable by
+    // any member, so it is a field the picker *would* offer; the only thing keeping it
+    // out of the candidate list is that it already has a row.
+    const {adminClient, user, userClient, team} = await pw.initSetup();
+    const suffix = pw.random.id();
+    const created: PropertyField[] = [];
+
+    try {
+        await purgeFields(adminClient);
+
+        const classification = await createField(adminClient, fieldName('classification', suffix), {
+            options: ['SECRET', 'UNCLASSIFIED'],
+            visibility: 'always',
+        });
+        created.push(classification);
+
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const post = await userClient.createTestPost({channel_id: channel.id, message: 'all fields on show'});
+
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
+
+        const postOnScreen = await channelsPage.centerView.getPostById(post.id);
+
+        // # Open the modal
+        await openModalFromPostMenu(channelsPage, postOnScreen);
+
+        const modal = page.locator(MODAL);
+        await expect(modal).toBeVisible();
+
+        // * Verify the field has its row, unset and waiting
+        await expect(rowOf(page, classification)).toBeVisible();
+        await expect(triggerOf(page, classification)).toHaveText('');
+
+        // * Verify the user may write it. Without this the picker's absence would have
+        // a second explanation — a field nobody may fill in is not a candidate either.
+        await expect(triggerOf(page, classification)).toHaveCount(1);
+
+        // * Verify there is no picker at all. Omitted rather than disabled: a channel
+        // that declares all its fields `always` would otherwise show a permanently dead
+        // `+ Add attribute` on every post, which is the only control those users see
+        // here.
+        await expect(page.getByTestId('post-attributes-add')).toHaveCount(0);
     } finally {
         await deleteFields(adminClient, created);
     }
