@@ -1452,7 +1452,7 @@ describe('GlobalAttributesTable', () => {
     });
 
     describe('Classification Markings row', () => {
-        it('renders the subtitle, an open-in-new link and a menu carrying Edit when the field matches and the destination is reachable', async () => {
+        it('renders the subtitle and an open-in-new link with no actions menu when the field matches and the destination is reachable', async () => {
             getPropertyFields.mockResolvedValueOnce([makeClassificationField()]).mockResolvedValue([]);
 
             renderWithContext(<GlobalAttributesTable/>, getReachableState());
@@ -1464,9 +1464,9 @@ describe('GlobalAttributesTable', () => {
             expect(link).toHaveAttribute('href', CLASSIFICATIONS_MARKINGS_ADMIN_URL);
             expect(link).toHaveAccessibleName('Open Classification Markings');
 
-            // * Unlike every other row, this one's Edit is live: it is the only way to
-            // configure classification's resources outside the API
-            expect(screen.getByTestId('global-attribute-actions-field-1')).toBeInTheDocument();
+            // * The definition is edited on Classification Markings; this row must not
+            // offer a duplicate Edit/More-actions menu next to the open-in-new link
+            expect(screen.queryByTestId('global-attribute-actions-field-1')).not.toBeInTheDocument();
 
             // * The Source column also identifies this row's true source, rather than the
             // generic "Managed here" every other native field gets
@@ -1532,6 +1532,24 @@ describe('GlobalAttributesTable', () => {
             await userEvent.hover(link);
             await new Promise((resolve) => setTimeout(resolve, 500));
             expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+        });
+
+        it('does not dim the name or subtitle, so a read-only definition does not read as a disabled attribute', async () => {
+            getPropertyFields.
+                mockResolvedValueOnce([makeClassificationField(), makeField({id: 'field-2', attrs: {display_name: 'Program'}})]).
+                mockResolvedValue([]);
+
+            renderWithContext(<GlobalAttributesTable/>, getReachableState());
+
+            const [classificationName, ordinaryName] = await screen.findAllByTestId('global-attribute-name');
+            expect(classificationName).toHaveTextContent('Classification');
+            expect(ordinaryName).toHaveTextContent('Program');
+
+            // * Dimming the row on top of its "Definition is read-only" subtitle made a
+            // correctly configured attribute look disabled
+            expect(classificationName.className).toBe(ordinaryName.className);
+            expect(screen.getByTestId('global-attribute-classification-subtitle-field-1').className).
+                toBe('GlobalAttributesTable__subtitle');
         });
 
         it('leaves an unrelated field (not matching name/object_type/group_id) entirely unaffected even when the destination is reachable', async () => {
