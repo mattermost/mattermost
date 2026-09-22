@@ -200,8 +200,6 @@ func updateScheduledRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 	recap.RunCount = existingRecap.RunCount
 	recap.Enabled = existingRecap.Enabled
 
-	// Only "specific" mode names channels; "all_unreads" resolves them at run time and
-	// the job filters them there.
 	if recap.ChannelMode == model.ChannelModeSpecific {
 		kept, ok := requireChannelReadAccessForIDs(c, recap.ChannelIds)
 		if !ok {
