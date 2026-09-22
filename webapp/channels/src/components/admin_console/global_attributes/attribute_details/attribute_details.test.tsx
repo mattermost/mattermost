@@ -49,19 +49,20 @@ describe('AttributeDetails', () => {
         jest.restoreAllMocks();
     });
 
-    const CHANNEL_ATTRIBUTES_STATE = {entities: {general: {
-        config: {FeatureFlagChannelAttributes: 'true', FeatureFlagChannelAttributesRequired: 'true'},
+    const ALL_RESOURCES_STATE = {entities: {general: {
+        config: {FeatureFlagChannelAttributes: 'true', FeatureFlagChannelAttributesRequired: 'true', FeatureFlagPostAttributes: 'true'},
         license: {IsLicensed: 'true', SkuShortName: 'advanced'},
     }}};
 
-    // Channels is only offered with the flag on and an Enterprise Advanced
-    // licence, and most cases here exercise all three resources.
+    // Channels is only offered with its flag on and an Enterprise Advanced
+    // licence, Posts only with PostAttributes on, and most cases here exercise
+    // all three resources.
     const renderComponent = (graphEnabled = false) => renderWithContext(
         <div>
             <AttributeDetails/>
             <ModalController/>
         </div>,
-        mergeObjects(CHANNEL_ATTRIBUTES_STATE, {
+        mergeObjects(ALL_RESOURCES_STATE, {
             entities: {
                 general: {
                     config: {
@@ -546,6 +547,38 @@ describe('AttributeDetails', () => {
         }));
     });
 
+    describe('applying an attribute to posts', () => {
+        const withState = (initialState: Record<string, unknown>) => renderWithContext(
+            <div>
+                <AttributeDetails/>
+                <ModalController/>
+            </div>,
+            initialState,
+        );
+
+        // Channels stays fully enabled here so the assertion below pins the two
+        // gates as independent, rather than passing because everything is off.
+        it('is not offered without the PostAttributes feature flag', async () => {
+            withState(mergeObjects(ALL_RESOURCES_STATE, {entities: {general: {config: {FeatureFlagPostAttributes: 'false'}}}}));
+
+            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+
+            expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Users', 'Channels']);
+        });
+
+        // No licence here: Posts is gated on its flag alone, unlike Channels.
+        it('is offered with the PostAttributes feature flag, and adds a Posts row', async () => {
+            withState({entities: {general: {config: {FeatureFlagPostAttributes: 'true'}}}});
+
+            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+            expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Users', 'Posts']);
+
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Posts'}));
+
+            expect(await screen.findByTestId('attributeAppliesToRow-post')).toBeInTheDocument();
+        });
+    });
+
     describe('applying an attribute to channels', () => {
         const withoutChannelAttributes = () => renderWithContext(
             <div>
@@ -567,7 +600,7 @@ describe('AttributeDetails', () => {
 
             await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
 
-            expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Users', 'Posts']);
+            expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Users']);
         });
 
         it('creates only the template when Channels is not added', async () => {
@@ -1547,7 +1580,7 @@ describe('AttributeDetails', () => {
                 </Route>
                 <ModalController/>
             </div>,
-            mergeObjects(CHANNEL_ATTRIBUTES_STATE, mergeObjects({
+            mergeObjects(ALL_RESOURCES_STATE, mergeObjects({
                 entities: {
                     general: {
                         config: {
@@ -1818,6 +1851,42 @@ describe('AttributeDetails', () => {
             expect(screen.queryByTestId('attributeAppliesToRow-channel')).not.toBeInTheDocument();
             expect(mockHistoryPush).not.toHaveBeenCalled();
             expect(getPropertyFields.mock.calls.every((call) => call[1] !== 'channel')).toBe(true);
+        });
+
+        it('redirects to the list for a non-template post field when the PostAttributes flag is off', async () => {
+            const getPropertyFields = jest.spyOn(Client4, 'getPropertyFields').mockImplementation((_group, objectType) => {
+                if (objectType === 'post') {
+                    return Promise.resolve([makeNonTemplate('post')]);
+                }
+                return Promise.resolve([]);
+            });
+
+            renderEdit({entities: {general: {config: {FeatureFlagPostAttributes: 'false'}}}});
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes'));
+            expect(getPropertyFields.mock.calls.every((call) => call[1] !== 'post')).toBe(true);
+        });
+
+        it('loads a template with the post scope skipped when the PostAttributes flag is off', async () => {
+            const getPropertyFields = jest.spyOn(Client4, 'getPropertyFields').mockImplementation((_group, objectType) => {
+                if (objectType === 'template') {
+                    return Promise.resolve([makeTemplate()]);
+                }
+                if (objectType === 'user') {
+                    return Promise.resolve([makeLinked('user', 'user-field')]);
+                }
+                if (objectType === 'post') {
+                    return Promise.resolve([makeLinked('post', 'post-field')]);
+                }
+                return Promise.resolve([]);
+            });
+
+            renderEdit({entities: {general: {config: {FeatureFlagPostAttributes: 'false'}}}});
+            await waitForForm();
+
+            expect(screen.getByTestId('attributeAppliesToRow-user')).toBeInTheDocument();
+            expect(screen.queryByTestId('attributeAppliesToRow-post')).not.toBeInTheDocument();
+            expect(getPropertyFields.mock.calls.every((call) => call[1] !== 'post')).toBe(true);
         });
 
         it('saves a non-template field with a PATCH to its own object type, not the template create/link path', async () => {
@@ -2139,22 +2208,119 @@ describe('AttributeDetails', () => {
             expect(createPropertyField).not.toHaveBeenCalled();
         });
 
-        it('issues no config patch for an already-persisted Users row when neither control changed', async () => {
-            mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field')]);
-            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue(makeTemplate());
+        it('issues no Users patch when display name and Users config are unchanged', async () => {
+            mockLoadedField(makeTemplate({
+                type: 'select',
+                attrs: {
+                    display_name: 'Department',
+                    options: [{id: 'opt-1', name: 'Engineering'}],
+                },
+            }), [makeLinked('user', 'user-field')]);
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue(makeTemplate({type: 'select'}));
 
             renderEdit();
             await waitForForm();
 
-            // Changes something else on the page (Display name), never touching
-            // Profile display/Who can set the value -- only the template PATCH
-            // should fire, never a 'user'-object-type patch.
+            // Dirty the page via Options only -- display name and Users config stay
+            // put, so the linked Users row must not be patched.
+            await userEvent.type(screen.getByTestId('attributeOptionsValues__addInput'), 'Sales{Enter}');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            expect(patchPropertyField).toHaveBeenCalledTimes(1);
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'template', FIELD_ID, expect.anything());
+            expect(patchPropertyField).not.toHaveBeenCalledWith('access_control', 'user', expect.anything(), expect.anything());
+        });
+
+        it('PATCHes matching linked Users display_name when the template display name changes', async () => {
+            mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field')]);
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockImplementation((_group, objectType) => (
+                Promise.resolve(objectType === 'user' ? makeLinked('user', 'user-field', {attrs: {display_name: 'Department 2'}}) : makeTemplate({attrs: {display_name: 'Department 2'}}))
+            ));
+
+            renderEdit();
+            await waitForForm();
+
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' 2');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'template', FIELD_ID, expect.objectContaining({
+                attrs: expect.objectContaining({display_name: 'Department 2'}),
+            }));
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'user', 'user-field', {
+                attrs: {display_name: 'Department 2'},
+            });
+        });
+
+        it('does not overwrite a linked Users display_name that already diverged from the template', async () => {
+            mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field', {attrs: {display_name: 'Custom Label'}})]);
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue(makeTemplate({attrs: {display_name: 'Department 2'}}));
+
+            renderEdit();
+            await waitForForm();
+
             await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' 2');
             await userEvent.click(screen.getByTestId('saveSetting'));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
             expect(patchPropertyField).toHaveBeenCalledTimes(1);
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'template', FIELD_ID, expect.anything());
             expect(patchPropertyField).not.toHaveBeenCalledWith('access_control', 'user', expect.anything(), expect.anything());
+        });
+
+        it('folds matching display_name into the existing Channels config PATCH', async () => {
+            mockLoadedField(makeTemplate(), [makeLinked('channel', 'channel-field')]);
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockImplementation((_group, objectType) => (
+                Promise.resolve(objectType === 'channel' ? makeLinked('channel', 'channel-field', {attrs: {display_name: 'Department 2'}}) : makeTemplate({attrs: {display_name: 'Department 2'}}))
+            ));
+
+            renderEdit();
+            await waitForForm();
+
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' 2');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'channel', 'channel-field', {
+                attrs: expect.objectContaining({display_name: 'Department 2'}),
+            });
+        });
+
+        it('does not overwrite a diverged Channels display_name when renaming the template', async () => {
+            mockLoadedField(makeTemplate(), [makeLinked('channel', 'channel-field', {attrs: {display_name: 'Custom Channel Label'}})]);
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockImplementation((_group, objectType) => (
+                Promise.resolve(objectType === 'channel' ? makeLinked('channel', 'channel-field', {attrs: {display_name: 'Custom Channel Label'}}) : makeTemplate({attrs: {display_name: 'Department 2'}}))
+            ));
+
+            renderEdit();
+            await waitForForm();
+
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' 2');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            const channelPatch = patchPropertyField.mock.calls.find((call) => call[1] === 'channel');
+            expect(channelPatch).toBeDefined();
+            expect(channelPatch?.[3]?.attrs).not.toHaveProperty('display_name');
+        });
+
+        it('PATCHes matching linked Posts display_name when the template display name changes', async () => {
+            mockLoadedField(makeTemplate(), [makeLinked('post', 'post-field')]);
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockImplementation((_group, objectType) => (
+                Promise.resolve(objectType === 'post' ? makeLinked('post', 'post-field', {attrs: {display_name: 'Department 2'}}) : makeTemplate({attrs: {display_name: 'Department 2'}}))
+            ));
+
+            renderEdit();
+            await waitForForm();
+
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' 2');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'post', 'post-field', {
+                attrs: {display_name: 'Department 2'},
+            });
         });
 
         it('issues exactly one config patch, carrying both values, for an already-persisted Users row whose config changed', async () => {
@@ -2195,6 +2361,26 @@ describe('AttributeDetails', () => {
             const banner = await screen.findByTestId('attributeSaveError');
             expect(banner).toHaveTextContent('Users');
             expect(banner).toHaveTextContent('settings');
+            expect(banner).not.toHaveTextContent('be applied');
+            expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+        });
+
+        it('renders a display-name update banner (not Profile display / Who can set) when only the linked display_name cascade fails', async () => {
+            mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field')]);
+            jest.spyOn(Client4, 'patchPropertyField').mockImplementation((_group, objectType) => (
+                objectType === 'user' ? Promise.reject(new Error('boom')) : Promise.resolve(makeTemplate({attrs: {display_name: 'Department 2'}}))
+            ));
+
+            renderEdit();
+            await waitForForm();
+
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' 2');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            const banner = await screen.findByTestId('attributeSaveError');
+            expect(banner).toHaveTextContent('Users');
+            expect(banner).toHaveTextContent('display name');
+            expect(banner).not.toHaveTextContent('Profile display');
             expect(banner).not.toHaveTextContent('be applied');
             expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
         });

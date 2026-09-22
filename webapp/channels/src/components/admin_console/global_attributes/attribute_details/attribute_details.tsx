@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import React, {useCallback, useEffect, useMemo, useRef, useState, type JSX} from 'react';
 import type {IntlShape, MessageDescriptor} from 'react-intl';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch} from 'react-redux';
 import {useParams} from 'react-router-dom';
 
 import type {ClientError} from '@mattermost/client';
@@ -14,9 +14,6 @@ import {buttonClassNames} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FieldVisibility, PropertyField, PropertyFieldOption, PropertyPermissionLevel} from '@mattermost/types/properties';
 import {supportsHierarchy, supportsOptions} from '@mattermost/types/properties';
-import type {GlobalState} from '@mattermost/types/store';
-
-import {getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
@@ -34,7 +31,6 @@ import Input from 'components/widgets/inputs/input/input';
 
 import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
-import {isMinimumEnterpriseAdvancedLicense} from 'utils/license_utils';
 import {CPA_FIELD_NAME_MAX_RUNES, filterCELIdentifier, slugifyForCEL, validateCPAFieldName} from 'utils/properties';
 import type {CPAFieldNameValidationError} from 'utils/properties';
 
@@ -54,6 +50,7 @@ import type {ChannelResourceConfig} from '../applies_to/channels';
 import {ATTRIBUTE_TYPE_DESCRIPTOR, getAttributeTypeDescriptor, toServerFieldType} from '../attribute_type';
 import {GLOBAL_ATTRIBUTES_LIST_ROUTE, GLOBAL_ATTRIBUTES_OBJECT_TYPE} from '../constants';
 import {getSourceKind, getTypeIcon, getTypeLabel, isClassificationMarkingsField} from '../global_attributes_table';
+import useAllowedResourceTypes from '../use_allowed_resource_types';
 import type {AttributeFieldType, AttributeTypeId, UpdateAttributeFieldPatch} from '../utils';
 import {
     createAttributeField,
@@ -121,6 +118,11 @@ function computeAutoSlugDisplay(displayName: string): string | null {
     return slug === '_copy' ? null : slug;
 }
 
+// Same normalization load and create use: missing/empty display_name → ''.
+function fieldDisplayName(field: PropertyField): string {
+    return (typeof field.attrs?.display_name === 'string' ? field.attrs.display_name : '') || '';
+}
+
 type ErrorKind =
     | 'name_conflict' |
     'invalid_charset' |
@@ -134,6 +136,7 @@ type ErrorKind =
     'applies_to_remove_partial_save' |
     'applies_to_partial_save' |
     'applies_to_config_save_failed' |
+    'applies_to_display_name_save_failed' |
     'applies_to_rollback_failed' |
     'applies_to_name_conflict' |
     'applies_to_limit_reached';
@@ -148,6 +151,7 @@ const RESOURCE_INTERPOLATED_ERROR_KINDS = new Set<ErrorKind>([
     'applies_to_remove_partial_save',
     'applies_to_partial_save',
     'applies_to_config_save_failed',
+    'applies_to_display_name_save_failed',
 ]);
 
 function errorKindFromError(error: unknown): ErrorKind {
@@ -376,14 +380,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const [ldapAttr, setLdapAttr] = useState('');
     const [samlAttr, setSamlAttr] = useState('');
 
-    // Global Attributes is Enterprise, but a channel attribute is refused below
-    // Enterprise Advanced, so Channels is not offered as a resource at all.
-    const channelAttributesEnabled = useSelector((state: GlobalState) =>
-        getFeatureFlagValue(state, 'ChannelAttributes') === 'true' && isMinimumEnterpriseAdvancedLicense(getLicense(state)));
-    const allowedResourceTypes = useMemo(
-        () => (channelAttributesEnabled ? ALL_RESOURCE_TYPES : ALL_RESOURCE_TYPES.filter((type) => type !== 'channel')),
-        [channelAttributesEnabled],
-    );
+    const allowedResourceTypes = useAllowedResourceTypes();
 
     // Pending Applies-to selection -- insertion order, not fixed Users/Channels/
     // Posts order (that fixed order only governs the picker's own offer list).
@@ -399,6 +396,11 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // successful DELETE/POST so a retry does not repeat a completed step.
     const persistedLinkedFieldsRef = useRef<Partial<Record<ResourceObjectType, PropertyField>>>({});
     const originalNameRef = useRef('');
+
+    // Template display_name as loaded (or last successfully saved). Used to decide
+    // whether a linked field still shares that label and should be renamed with
+    // the template on Save -- see shouldCascadeLinkedDisplayName below.
+    const originalDisplayNameRef = useRef('');
 
     // Users row config -- Profile display / Who can set the value, both stored
     // as attrs.visibility/attrs.managed on the Users linked field, matching
@@ -474,7 +476,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
 
         const load = async () => {
             try {
-                const field = await fetchAttributeField(fieldId, channelAttributesEnabled);
+                const field = await fetchAttributeField(fieldId, allowedResourceTypes);
                 if (cancelled) {
                     return;
                 }
@@ -507,7 +509,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 // child to parse config from).
                 let linkedByType: Partial<Record<ResourceObjectType, PropertyField>> = {};
                 if (field.object_type === GLOBAL_ATTRIBUTES_OBJECT_TYPE) {
-                    const linkedFields = await fetchLinkedFieldsForTemplate(fieldId, channelAttributesEnabled);
+                    const linkedFields = await fetchLinkedFieldsForTemplate(fieldId, allowedResourceTypes);
                     if (cancelled) {
                         return;
                     }
@@ -516,9 +518,11 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 persistedLinkedFieldsRef.current = linkedByType;
                 originalNameRef.current = field.name;
                 originalFieldTypeRef.current = field.type;
+                const loadedDisplayName = (field.attrs?.display_name as string | undefined) || '';
+                originalDisplayNameRef.current = loadedDisplayName;
 
                 setSourcePluginId(getSourceKind(field) === 'plugin' ? (field.attrs?.source_plugin_id as string | undefined) : undefined);
-                setDisplayName((field.attrs?.display_name as string | undefined) || '');
+                setDisplayName(loadedDisplayName);
                 setManualName(field.name);
                 setIsNameManuallyEdited(true);
                 setFieldType(getAttributeTypeDescriptor(field).id);
@@ -567,7 +571,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         return () => {
             cancelled = true;
         };
-    }, [fieldId, channelAttributesEnabled]);
+    }, [fieldId, allowedResourceTypes]);
 
     const autoSlugDisplay = useMemo(() => computeAutoSlugDisplay(displayName), [displayName]);
     const currentName = (isEditingName || isNameManuallyEdited) ? manualName : (autoSlugDisplay ?? '');
@@ -1086,33 +1090,59 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             // ordering relative to the delete loop above), already persisted, and
             // not in `toCreate` (that row's create call above already carries the
             // current values).
+            //
+            // Also PATCHes display_name when the linked field still shares the
+            // template's previous label -- Channel Info / profile UIs read the
+            // linked field's display_name, and the server does not cascade a
+            // template rename onto dependents.
+            const previousDisplayName = originalDisplayNameRef.current;
+            const nextDisplayName = displayName.trim();
+            const displayNameChanged = nextDisplayName !== previousDisplayName;
+            const displayNamePatchAttrs = {display_name: nextDisplayName || undefined};
+            const shouldCascadeLinkedDisplayName = (linked: PropertyField) => (
+                displayNameChanged && fieldDisplayName(linked) === previousDisplayName
+            );
+
             const userIsUpdateCandidate = appliesTo.includes('user') && !toCreate.includes('user') && Boolean(persistedLinkedFieldsRef.current.user);
             if (userIsUpdateCandidate) {
                 const visibilityChanged = userVisibility !== originalUserVisibilityRef.current;
                 const managedChanged = userManaged !== originalUserManagedRef.current;
-                if (visibilityChanged || managedChanged) {
-                    const existingUserField = persistedLinkedFieldsRef.current.user;
-                    if (existingUserField) {
-                        try {
-                            const updatedUserField = await patchLinkedAttributeField('user', existingUserField.id, userConfigAttrs, userConfigPermissionValues);
-                            persistedLinkedFieldsRef.current.user = updatedUserField;
+                const existingUserField = persistedLinkedFieldsRef.current.user;
+                const cascadeDisplayName = existingUserField ? shouldCascadeLinkedDisplayName(existingUserField) : false;
+                if (existingUserField && (visibilityChanged || managedChanged || cascadeDisplayName)) {
+                    try {
+                        const updatedUserField = await patchLinkedAttributeField(
+                            'user',
+                            existingUserField.id,
+                            {
+                                ...(visibilityChanged || managedChanged ? userConfigAttrs : {}),
+                                ...(cascadeDisplayName ? displayNamePatchAttrs : {}),
+                            },
+                            (visibilityChanged || managedChanged) ? userConfigPermissionValues : undefined,
+                        );
+                        persistedLinkedFieldsRef.current.user = updatedUserField;
+                        if (visibilityChanged || managedChanged) {
                             originalUserVisibilityRef.current = userVisibility;
                             originalUserManagedRef.current = userManaged;
-                        } catch {
-                            // Distinct from applies_to_partial_save -- the Users row is
-                            // already linked and persisted here (userIsUpdateCandidate
-                            // requires it), so "couldn't be applied to Users" would tell
-                            // the admin the linkage itself failed and risk them removing
-                            // and re-adding the row (a destructive, confirmation-gated
-                            // action) when a simple Save retry is all that's needed.
-                            finalizeSave({
-                                success: false,
-                                errorKind: 'applies_to_config_save_failed',
-                                serverErrorMessage: null,
-                                failedResourceTypes: ['user'],
-                            });
-                            return;
                         }
+                    } catch {
+                        // Distinct from applies_to_partial_save -- the Users row is
+                        // already linked and persisted here (userIsUpdateCandidate
+                        // requires it), so "couldn't be applied to Users" would tell
+                        // the admin the linkage itself failed and risk them removing
+                        // and re-adding the row (a destructive, confirmation-gated
+                        // action) when a simple Save retry is all that's needed.
+                        // Display-name-only failures get their own copy: the config
+                        // banner names Profile display / Who can set the value, which
+                        // is wrong when neither control was part of this PATCH.
+                        const configChanged = visibilityChanged || managedChanged;
+                        finalizeSave({
+                            success: false,
+                            errorKind: configChanged ? 'applies_to_config_save_failed' : 'applies_to_display_name_save_failed',
+                            serverErrorMessage: null,
+                            failedResourceTypes: ['user'],
+                        });
+                        return;
                     }
                 }
             }
@@ -1120,11 +1150,19 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             // An existing Channels row's own settings (required, change policy,
             // display locations) are not part of the template patch above, so a
             // resource that was already applied still needs its own PATCH to
-            // pick up an edit to those settings.
+            // pick up an edit to those settings. Fold display_name into the same
+            // PATCH when the linked label still matches the template's previous one.
             const persistedChannelField = persistedLinkedFieldsRef.current.channel;
             if (persistedChannelField && appliesTo.includes('channel') && !toCreate.includes('channel')) {
                 try {
-                    const patchedChannelField = await patchLinkedAttributeField('channel', persistedChannelField.id, buildChannelFieldPatch(channelResource).attrs);
+                    const patchedChannelField = await patchLinkedAttributeField(
+                        'channel',
+                        persistedChannelField.id,
+                        {
+                            ...buildChannelFieldPatch(channelResource).attrs,
+                            ...(shouldCascadeLinkedDisplayName(persistedChannelField) ? displayNamePatchAttrs : {}),
+                        },
+                    );
                     persistedLinkedFieldsRef.current.channel = patchedChannelField;
                 } catch {
                     finalizeSave({
@@ -1137,6 +1175,29 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 }
             }
 
+            // Posts has no config panel yet; only cascade display_name when it still
+            // matches the template's previous label.
+            const persistedPostField = persistedLinkedFieldsRef.current.post;
+            if (persistedPostField && appliesTo.includes('post') && !toCreate.includes('post') && shouldCascadeLinkedDisplayName(persistedPostField)) {
+                try {
+                    const patchedPostField = await patchLinkedAttributeField(
+                        'post',
+                        persistedPostField.id,
+                        displayNamePatchAttrs,
+                    );
+                    persistedLinkedFieldsRef.current.post = patchedPostField;
+                } catch {
+                    finalizeSave({
+                        success: false,
+                        errorKind: 'applies_to_partial_save',
+                        serverErrorMessage: null,
+                        failedResourceTypes: ['post'],
+                    });
+                    return;
+                }
+            }
+
+            originalDisplayNameRef.current = nextDisplayName;
             finalizeSave({success: true});
             return;
         }
@@ -1812,6 +1873,10 @@ const errorMessages = defineMessages({
     applies_to_config_save_failed: {
         id: 'admin.global_attributes.attribute_details.save_error.applies_to_config_save_failed',
         defaultMessage: "The attribute was saved, but its {resources} settings (Profile display, Who can set the value) couldn't be updated. Please try again.",
+    },
+    applies_to_display_name_save_failed: {
+        id: 'admin.global_attributes.attribute_details.save_error.applies_to_display_name_save_failed',
+        defaultMessage: "The attribute was saved, but its {resources} display name couldn't be updated. Please try again.",
     },
     applies_to_rollback_failed: {
         id: 'admin.global_attributes.attribute_details.save_error.applies_to_rollback_failed',
