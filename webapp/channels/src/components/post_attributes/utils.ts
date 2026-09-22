@@ -9,6 +9,7 @@ import {supportsOptions} from '@mattermost/types/properties';
 import {isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
 
 import {toValueList} from 'components/properties_card_view/propertyValueRenderer/multi_value_utils';
+import {canRenderPropertyValue} from 'components/properties_card_view/propertyValueRenderer/renderable';
 
 import {resolveOptionChips} from 'utils/property_options';
 
@@ -33,8 +34,6 @@ export type PostAttribute = {
 export type ChipAllocation = PostAttribute & {
     maxItems?: number;
 };
-
-const UNRENDERABLE_TYPES = new Set(['date']);
 
 // Field types that render one chip per stored entry rather than one per field.
 // `multiselect` and `multiuser` both qualify; the set is what decides which
@@ -99,7 +98,7 @@ export function isChipVisible(field: PropertyField, value?: PropertyValue<unknow
  * chip and inflate `+N` with an attribute the user can never see.
  */
 export function chipCount(field: PropertyField, value?: PropertyValue<unknown>): number {
-    if (!value || !isPropertyValueSet(value.value) || UNRENDERABLE_TYPES.has(field.type)) {
+    if (!value || !isPropertyValueSet(value.value) || !canRenderPropertyValue(field)) {
         return 0;
     }
 

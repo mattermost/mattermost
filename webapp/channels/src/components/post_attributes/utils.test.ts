@@ -118,6 +118,20 @@ describe('chipCount', () => {
         expect(chipCount(makeField({type: 'date' as FieldType}), makeValue(1642694400000))).toBe(0);
     });
 
+    // Every text subtype renders — the specialised ones through their own
+    // renderer, anything else as the stored string — so each earns its chip.
+    it.each([
+        ['plain', undefined],
+        ['post', 'post'],
+        ['channel', 'channel'],
+        ['team', 'team'],
+        ['timestamp', 'timestamp'],
+        ['one this client does not know', 'not_a_subtype'],
+    ])('is one for a %s text subtype', (_label, subType) => {
+        const field = makeField({type: 'text' as FieldType, attrs: subType ? {subType} : {}});
+        expect(chipCount(field, makeValue('MM-1'))).toBe(1);
+    });
+
     /*
      * One slot per stored id, where the option branch counts only the entries
      * that still resolve. The asymmetry is deliberate: an option resolves

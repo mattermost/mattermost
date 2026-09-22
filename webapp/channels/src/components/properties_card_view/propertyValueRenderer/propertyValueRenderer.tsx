@@ -18,6 +18,7 @@ import ChannelPropertyRenderer from './channel_property_renderer/channel_propert
 import {toValueList} from './multi_value_utils';
 import OptionPropertyRenderer from './option_property_renderer/option_property_renderer';
 import PostPreviewPropertyRenderer from './post_preview_property_renderer/post_preview_property_renderer';
+import {textSubtype} from './renderable';
 import TeamPropertyRenderer from './team_property_renderer/team_property_renderer';
 import TextPropertyRenderer from './text_property_renderer/textPropertyRenderer';
 import TimestampPropertyRenderer from './timestamp_property_renderer/timestamp_property_renderer';
@@ -97,15 +98,9 @@ function RenderTextSubtype({field, value, metadata}: Omit<Props, 'maxItems'>) {
         return null;
     }
 
-    const subType = field.attrs?.subType ?? 'text';
-    switch (subType) {
-    case 'text':
-        return (
-            <TextPropertyRenderer
-                value={value}
-                metadata={metadata as TextFieldMetadata}
-            />
-        );
+    // Keep the arms below in step with `SPECIALISED_TEXT_SUBTYPES`; a test
+    // asserts the two agree.
+    switch (textSubtype(field)) {
     case 'post':
         return (
             <PostPreviewPropertyRenderer
@@ -129,7 +124,17 @@ function RenderTextSubtype({field, value, metadata}: Omit<Props, 'maxItems'>) {
         );
     case 'timestamp':
         return <TimestampPropertyRenderer value={value}/>;
+
+    // A subtype this client does not know about still stores a string, so it
+    // renders as one. Returning nothing would blank the value and, on the post
+    // chip row, spend a slot drawing it.
+    case 'text':
     default:
-        return null;
+        return (
+            <TextPropertyRenderer
+                value={value}
+                metadata={metadata as TextFieldMetadata}
+            />
+        );
     }
 }

@@ -4,11 +4,12 @@
 import {screen} from '@testing-library/react';
 import React from 'react';
 
-import type {PropertyField, PropertyValue, SelectPropertyField} from '@mattermost/types/properties';
+import type {FieldType, PropertyField, PropertyValue, SelectPropertyField} from '@mattermost/types/properties';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 
 import PropertyValueRenderer from './propertyValueRenderer';
+import {SPECIALISED_TEXT_SUBTYPES, canRenderPropertyValue} from './renderable';
 
 // Mock all child components
 jest.mock('./text_property_renderer/textPropertyRenderer', () => {
@@ -209,7 +210,11 @@ describe('PropertyValueRenderer', () => {
             expect(screen.getByText('1642694400000')).toBeInTheDocument();
         });
 
-        it('should return null for unknown text subtype', () => {
+        // Falls back rather than blanking: a subtype added server-side before
+        // this client knows about it still stores a string, and a caller that
+        // budgeted a slot for it (the post chip row) would otherwise spend the
+        // slot on nothing.
+        it('should render an unknown text subtype as plain text', () => {
             const field = {
                 id: 'field-1',
                 name: 'Unknown Field',
@@ -223,14 +228,15 @@ describe('PropertyValueRenderer', () => {
                 value: 'test value',
             } as PropertyValue<string>;
 
-            const {container} = renderWithContext(
+            renderWithContext(
                 <PropertyValueRenderer
                     field={field}
                     value={value}
                 />,
             );
 
-            expect(container.firstChild).toBeNull();
+            expect(screen.getByTestId('mock-text-property')).toBeInTheDocument();
+            expect(screen.getByText('test value')).toBeInTheDocument();
         });
     });
 
@@ -475,5 +481,73 @@ describe('PropertyValueRenderer', () => {
             expect(screen.getByTestId('mock-text-property')).toBeInTheDocument();
             expect(screen.getByText('undefined')).toBeInTheDocument();
         });
+    });
+});
+
+describe('canRenderPropertyValue agrees with what PropertyValueRenderer draws', () => {
+    function makeField(type: FieldType, attrs: PropertyField['attrs']): PropertyField {
+        return {
+            id: 'field_1',
+            group_id: 'group_1',
+            name: 'attr',
+            type,
+            target_id: '',
+            target_type: 'system',
+            object_type: 'post',
+            create_at: 1,
+            update_at: 1,
+            delete_at: 0,
+            created_by: 'user_1',
+            updated_by: 'user_1',
+            attrs,
+        };
+    }
+
+    function drawsSomething(field: PropertyField, raw: unknown): boolean {
+        const {container, unmount} = renderWithContext(
+            <PropertyValueRenderer
+                field={field}
+                value={{value: raw} as PropertyValue<unknown>}
+            />,
+        );
+        const drawn = container.innerHTML !== '';
+        unmount();
+        return drawn;
+    }
+
+    /*
+     * A value shaped to suit each type, so no type reads as unrenderable merely
+     * because it was handed the wrong shape.
+     *
+     * Typed as a total Record, which is the point: adding a member to
+     * `FieldType` fails to compile here until it is given a sample value, and
+     * the case below then forces a decision about whether it renders.
+     */
+    const VALUE_BY_TYPE: Record<FieldType, unknown> = {
+        text: 'MM-1',
+        select: 'opt_1',
+        rank: 'opt_1',
+        multiselect: ['opt_1'],
+        user: 'user_1',
+        multiuser: ['user_1'],
+        date: 1700000000000,
+        graph: ['opt_1'],
+    };
+
+    const ALL_FIELD_TYPES = Object.keys(VALUE_BY_TYPE) as FieldType[];
+
+    it.each(ALL_FIELD_TYPES)('%s', (type) => {
+        const field = makeField(type, {options: [{id: 'opt_1', name: 'OPT'}]});
+
+        expect(canRenderPropertyValue(field)).toBe(drawsSomething(field, VALUE_BY_TYPE[type]));
+    });
+
+    // 'text' and an unknown subtype both fall back to the plain renderer, so
+    // every one of these draws something.
+    it.each([...SPECIALISED_TEXT_SUBTYPES, 'text', 'not_a_subtype'])('text subtype %s', (subType) => {
+        const field = makeField('text', {subType});
+
+        expect(canRenderPropertyValue(field)).toBe(true);
+        expect(drawsSomething(field, 'MM-1')).toBe(true);
     });
 });

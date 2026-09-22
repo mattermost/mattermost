@@ -11,9 +11,12 @@ import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {useUser} from 'components/common/hooks/useUser';
+import PropertyValueRenderer from 'components/properties_card_view/propertyValueRenderer/propertyValueRenderer';
+import {hasSpecialisedTextRenderer, textSubtype} from 'components/properties_card_view/propertyValueRenderer/renderable';
 
 import {resolveOptionChips} from 'utils/property_options';
 
+import {usePropertyValueMetadata} from './use_property_value_metadata';
 import {storedEntries} from './utils';
 
 type Props = {
@@ -39,11 +42,13 @@ export default function PostAttributeText({field, value}: Props) {
     case 'rank':
         return <FormattedList value={resolveOptionChips(field, value.value).map((chip) => chip.label)}/>;
 
-    // Only the plain subtype. The others (`post`, `channel`, `team`,
-    // `timestamp`) store an identifier rather than the text to show, so
-    // `String(value.value)` would print the identifier.
     case 'text':
-        return (field.attrs?.subType ?? 'text') === 'text' ? <>{String(value.value)}</> : null;
+        return (
+            <TextSubtype
+                field={field}
+                value={value}
+            />
+        );
 
     case 'user':
         return <UserName userId={String(value.value)}/>;
@@ -54,6 +59,35 @@ export default function PostAttributeText({field, value}: Props) {
     default:
         return null;
     }
+}
+
+/**
+ * A `text` field's value, by subtype.
+ *
+ * The plain subtype is the stored string. Every other subtype stores an
+ * *identifier* — a post, channel, team or timestamp — so it goes through the
+ * renderer that knows how to turn that id into something readable, rather than
+ * printing the id. `PropertyValueRenderer` already owns that mapping; going
+ * through it is what stops this file growing a second copy that can disagree.
+ *
+ * An unrecognised subtype falls back to the stored string, so a subtype added
+ * server-side before this client knows about it degrades to its raw value
+ * instead of blanking the row.
+ */
+function TextSubtype({field, value}: Props) {
+    const metadata = usePropertyValueMetadata(field, value);
+
+    if (!hasSpecialisedTextRenderer(textSubtype(field))) {
+        return <>{String(value.value)}</>;
+    }
+
+    return (
+        <PropertyValueRenderer
+            field={field}
+            value={value}
+            metadata={metadata}
+        />
+    );
 }
 
 /**

@@ -18,6 +18,7 @@ import {useDispatch} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
+import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
 import {openModal} from 'actions/views/modals';
 
@@ -28,6 +29,7 @@ import {ModalIdentifiers, RootHtmlPortalId} from 'utils/constants';
 
 import PostAttributesHoverCard from './post_attributes_hover_card';
 import PostAttributesModal from './post_attributes_modal';
+import {usePropertyValueMetadata} from './use_property_value_metadata';
 import {allocateChipBudget, useVisibleAttributes} from './utils';
 
 import './post_attributes_chips.scss';
@@ -133,7 +135,7 @@ function PostAttributesChips({post, channel}: Props) {
                 {...getReferenceProps()}
             >
                 {shown.map(({field, value, maxItems}) => value && (
-                    <PropertyValueRenderer
+                    <PostAttributeChip
                         key={field.id}
                         field={field}
                         value={value}
@@ -186,6 +188,27 @@ function PostAttributesChips({post, channel}: Props) {
                 </FloatingPortal>
             )}
         </>
+    );
+}
+
+/**
+ * One chip's worth of value.
+ *
+ * A component rather than an inline `PropertyValueRenderer` because the
+ * subtype metadata comes from a hook, and the row maps over a list whose
+ * length changes. The hover card resolves it through the same hook, so the two
+ * surfaces cannot name the same channel differently.
+ */
+function PostAttributeChip({field, value, maxItems}: {field: PropertyField; value: PropertyValue<unknown>; maxItems?: number}) {
+    const metadata = usePropertyValueMetadata(field, value);
+
+    return (
+        <PropertyValueRenderer
+            field={field}
+            value={value}
+            metadata={metadata}
+            maxItems={maxItems}
+        />
     );
 }
 
