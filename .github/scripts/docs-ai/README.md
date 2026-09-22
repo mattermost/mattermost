@@ -4,6 +4,27 @@ Advisory persona review of changes under `docs/main` and `docs/develop`. No verd
 a merge. `docs/api` is out of scope — its reference pages are generated from the OpenAPI
 spec, so corrections belong in `api/v4/source/`.
 
+## How to run it
+
+The workflow is manual while we tune personas. From the Actions tab, run
+**Docs AI Review** with the target PR number (same-repo branches only). That posts one
+sticky comment on the PR and produces a single workflow run — no checks appear on other
+PRs. When the output is trustworthy, add a `pull_request` trigger back onto the same
+single job so it becomes one check rather than a matrix of them.
+
+## This package
+
+`.github/scripts/docs-ai/` is a small Node module (ESM). Entry points:
+
+| Script | Role |
+| --- | --- |
+| `router.mjs` | Cheap model call that picks which personas apply |
+| `persona-review.mjs` | One persona → one JSON verdict |
+| `report.mjs` | Upserts the sticky PR comment |
+
+Shared helpers live in `lib/`. `npm test` (run from this directory) is the registry
+validator the workflow also runs before reviewing.
+
 ## Adding or changing a persona
 
 One file in `.github/prompts/personas/`. The filesystem is the registry; there is no list

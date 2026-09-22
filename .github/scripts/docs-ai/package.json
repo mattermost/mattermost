@@ -8,7 +8,7 @@
     "test": "node --test"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.40.0",
-    "js-yaml": "^4.1.0"
+    "@anthropic-ai/sdk": "0.127.0",
+    "js-yaml": "^4.3.2"
   }
 }
