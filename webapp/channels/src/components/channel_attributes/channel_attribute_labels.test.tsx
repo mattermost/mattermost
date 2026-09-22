@@ -4,20 +4,33 @@
 import {act, screen, waitFor} from '@testing-library/react';
 import React from 'react';
 
-import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
+import type {PropertyField, PropertyFieldOption, PropertyValue} from '@mattermost/types/properties';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
+import {Client4} from 'mattermost-redux/client';
+
 import * as rhsActions from 'actions/views/rhs';
+
+import {clearPropertyFieldOptionWalks, pageAllAccessControlFieldOptions} from 'components/property_fields/graph/page_all_access_control_field_options';
+import {clearGraphOptionNameCache} from 'components/property_fields/graph/use_graph_option_names';
 
 import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
 import ChannelAttributeLabels from './channel_attribute_labels';
+import {setChannelAttributeValue} from './set_channel_attribute_value';
 
 jest.mock('mattermost-redux/actions/properties', () => ({
     fetchPropertyFields: jest.fn(() => () => Promise.resolve({data: []})),
 }));
+
+jest.mock('components/property_fields/graph/page_all_access_control_field_options', () => ({
+    ...jest.requireActual('components/property_fields/graph/page_all_access_control_field_options'),
+    pageAllAccessControlFieldOptions: jest.fn(),
+}));
+
+const mockPageAll = jest.mocked(pageAllAccessControlFieldOptions);
 
 const GROUP_ID = 'group1';
 const CHANNEL_ID = 'channel1';
@@ -45,14 +58,25 @@ function field(id: string, {sortOrder, color = '#1e325c'}: {sortOrder?: number; 
     };
 }
 
-function value(fieldId: string): PropertyValue<unknown> {
+// Graph fields carry a truncated option list, so a chip shows the raw option id
+// until the picker's own fetch lands and names it.
+function graphField(id: string): PropertyField {
+    const graph = field(id);
+    return {
+        ...graph,
+        type: 'graph',
+        attrs: {...graph.attrs, options: undefined, options_omitted: true},
+    };
+}
+
+function value(fieldId: string, raw?: unknown): PropertyValue<unknown> {
     return {
         id: `value_${fieldId}`,
         target_id: CHANNEL_ID,
         target_type: 'channel',
         group_id: GROUP_ID,
         field_id: fieldId,
-        value: `opt_${fieldId}`,
+        value: raw === undefined ? `opt_${fieldId}` : raw,
         create_at: 1,
         update_at: 1,
         delete_at: 0,
@@ -64,7 +88,7 @@ function value(fieldId: string): PropertyValue<unknown> {
 function makeState(fields: PropertyField[], flag = 'true'): DeepPartial<GlobalState> {
     const byTargetId: Record<string, Record<string, PropertyValue<unknown>>> = {[CHANNEL_ID]: {}};
     for (const f of fields) {
-        byTargetId[CHANNEL_ID][f.id] = value(f.id);
+        byTargetId[CHANNEL_ID][f.id] = value(f.id, f.type === 'graph' ? [`opt_${f.id}`] : undefined);
     }
 
     return {
@@ -97,6 +121,14 @@ function stubWidths(containerWidth: number, chipWidth = 60) {
 }
 
 describe('ChannelAttributeLabels', () => {
+    beforeEach(() => {
+        clearPropertyFieldOptionWalks();
+        clearGraphOptionNameCache();
+        mockPageAll.mockImplementation(() => {
+            throw new Error('pageAllAccessControlFieldOptions called without an explicit mock for this test');
+        });
+    });
+
     afterEach(() => {
         jest.restoreAllMocks();
     });
@@ -416,6 +448,120 @@ describe('ChannelAttributeLabels', () => {
         );
 
         await waitFor(() => expect(screen.getAllByTestId('attributeChip')).toHaveLength(3));
+        expect(screen.queryByTestId('channelAttributeLabelsOverflow-header')).not.toBeInTheDocument();
+    });
+
+    // Regression: the row was hidden until re-measured whenever the chip id array
+    // was rebuilt, and it is rebuilt on every value change and every graph name
+    // that resolves. Editing one attribute blanked the whole row for a debounce.
+    describe('does not blank the row when the chips themselves are unchanged', () => {
+        test('while one attribute takes a new value', async () => {
+            stubWidths(1000);
+
+            const classification = field('classification');
+            classification.attrs = {
+                ...classification.attrs,
+                options: [
+                    {id: 'opt_classification', name: 'CONFIDENTIAL'},
+                    {id: 'opt_raised', name: 'PROTECTED B'},
+                ],
+            };
+
+            const {store} = renderWithContext(
+                <ChannelAttributeLabels
+                    channelId={CHANNEL_ID}
+                    surface='header'
+                />,
+                makeState([classification, field('vegetables')]),
+            );
+
+            const row = await screen.findByTestId('channelAttributeLabels-header');
+            await waitFor(() => expect(row).toBeVisible());
+
+            const raised = value('classification', 'opt_raised');
+            jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([raised]);
+
+            await act(async () => {
+                await setChannelAttributeValue(store.dispatch, CHANNEL_ID, classification.id, 'opt_raised');
+            });
+
+            expect(row).toBeVisible();
+            expect(screen.getAllByTestId('attributeChip').map((chip) => chip.textContent)).toEqual([
+                'CLASSIFICATION: PROTECTED B',
+                'VEGETABLES: VEGETABLES',
+            ]);
+        });
+
+        test('while a graph attribute resolves its option names', async () => {
+            stubWidths(1000);
+
+            let landOptions: (options: PropertyFieldOption[]) => void = () => {};
+            mockPageAll.mockReturnValue(new Promise((resolve) => {
+                landOptions = resolve;
+            }));
+
+            renderWithContext(
+                <ChannelAttributeLabels
+                    channelId={CHANNEL_ID}
+                    surface='header'
+                />,
+                makeState([graphField('programs'), field('vegetables')]),
+            );
+
+            const row = await screen.findByTestId('channelAttributeLabels-header');
+            await waitFor(() => expect(row).toBeVisible());
+            expect(screen.getAllByTestId('attributeChip').map((chip) => chip.textContent)).toEqual([
+                'PROGRAMS: opt_programs',
+                'VEGETABLES: VEGETABLES',
+            ]);
+
+            await act(async () => {
+                landOptions([{id: 'opt_programs', name: 'Apollo', parents: [], create_at: 1}]);
+            });
+
+            expect(row).toBeVisible();
+            expect(screen.getAllByTestId('attributeChip').map((chip) => chip.textContent)).toEqual([
+                'PROGRAMS: Apollo',
+                'VEGETABLES: VEGETABLES',
+            ]);
+        });
+    });
+
+    // The other direction: a chip the row has never measured must not be sized by
+    // the split left over from the smaller set, which would render a phantom +N.
+    test('blanks the row and re-measures when an attribute gains a chip', async () => {
+        stubWidths(1000);
+
+        const state = makeState([field('a'), field('b'), field('c'), field('d')]);
+        delete state.entities!.properties!.values!.byTargetId![CHANNEL_ID]!.d;
+
+        const {store} = renderWithContext(
+            <ChannelAttributeLabels
+                channelId={CHANNEL_ID}
+                surface='header'
+            />,
+            state,
+        );
+
+        const row = await screen.findByTestId('channelAttributeLabels-header');
+        await waitFor(() => expect(row).toBeVisible());
+        expect(screen.getAllByTestId('attributeChip')).toHaveLength(3);
+
+        jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([value('d')]);
+
+        await act(async () => {
+            await setChannelAttributeValue(store.dispatch, CHANNEL_ID, 'd', 'opt_d');
+        });
+
+        expect(row).not.toBeVisible();
+
+        await waitFor(() => expect(row).toBeVisible());
+        expect(screen.getAllByTestId('attributeChip').map((chip) => chip.textContent)).toEqual([
+            'A: A',
+            'B: B',
+            'C: C',
+            'D: D',
+        ]);
         expect(screen.queryByTestId('channelAttributeLabelsOverflow-header')).not.toBeInTheDocument();
     });
 
