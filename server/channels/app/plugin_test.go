@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"sort"
@@ -22,6 +23,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
@@ -1248,19 +1250,30 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 	})
 }
 
+const (
+	testAddOnPluginID = "testaddonplugin"
+	testAddOn         = "test-addon"
+)
+
 func TestGetPluginStateOverride(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
+	manifestFor := func(id string) *model.Manifest {
+		return &model.Manifest{Id: id}
+	}
+
+	addOnManifest := &model.Manifest{Id: testAddOnPluginID, RequiredAddOn: testAddOn}
+
 	t.Run("no override", func(t *testing.T) {
-		overrides, value := th.App.ch.getPluginStateOverride("focalboard")
+		overrides, value := th.App.ch.getPluginStateOverride(manifestFor("focalboard"))
 		require.False(t, overrides)
 		require.False(t, value)
 	})
 
 	t.Run("apps override", func(t *testing.T) {
 		t.Run("without enabled flag", func(t *testing.T) {
-			overrides, value := th.App.ch.getPluginStateOverride("com.mattermost.apps")
+			overrides, value := th.App.ch.getPluginStateOverride(manifestFor("com.mattermost.apps"))
 			require.True(t, overrides)
 			require.False(t, value)
 		})
@@ -1276,7 +1289,7 @@ func TestGetPluginStateOverride(t *testing.T) {
 				cfg.FeatureFlags.AppsEnabled = true
 			})
 
-			overrides, value := th2.App.ch.getPluginStateOverride("com.mattermost.apps")
+			overrides, value := th2.App.ch.getPluginStateOverride(manifestFor("com.mattermost.apps"))
 			require.False(t, overrides)
 			require.False(t, value)
 		})
@@ -1287,9 +1300,289 @@ func TestGetPluginStateOverride(t *testing.T) {
 				cfg.FeatureFlags.AppsEnabled = false
 			})
 
-			overrides, value := th2.App.ch.getPluginStateOverride("com.mattermost.apps")
+			overrides, value := th2.App.ch.getPluginStateOverride(manifestFor("com.mattermost.apps"))
 			require.True(t, overrides)
 			require.False(t, value)
 		})
+	})
+
+	t.Run("add-on override", func(t *testing.T) {
+		t.Run("without a license", func(t *testing.T) {
+			mainHelper.Parallel(t)
+			th2 := Setup(t)
+			require.Nil(t, th2.App.Srv().RemoveLicense())
+
+			overrides, value := th2.App.ch.getPluginStateOverride(addOnManifest)
+			require.True(t, overrides)
+			require.False(t, value)
+		})
+
+		t.Run("with a license that does not grant the add-on", func(t *testing.T) {
+			mainHelper.Parallel(t)
+			th2 := Setup(t)
+			th2.App.Srv().SetLicense(model.NewTestLicense())
+
+			overrides, value := th2.App.ch.getPluginStateOverride(addOnManifest)
+			require.True(t, overrides)
+			require.False(t, value)
+		})
+
+		t.Run("with a license granting a different add-on", func(t *testing.T) {
+			mainHelper.Parallel(t)
+			th2 := Setup(t)
+			th2.App.Srv().SetLicense(model.NewTestLicenseWithAddOns("some-other-addon"))
+
+			overrides, value := th2.App.ch.getPluginStateOverride(addOnManifest)
+			require.True(t, overrides)
+			require.False(t, value)
+		})
+
+		t.Run("with a license granting the add-on", func(t *testing.T) {
+			mainHelper.Parallel(t)
+			th2 := Setup(t)
+			th2.App.Srv().SetLicense(model.NewTestLicenseWithAddOns(testAddOn))
+
+			overrides, value := th2.App.ch.getPluginStateOverride(addOnManifest)
+			require.False(t, overrides)
+			require.False(t, value)
+		})
+
+		t.Run("plugins that declare no add-on are unaffected by add-on entitlements", func(t *testing.T) {
+			mainHelper.Parallel(t)
+			th2 := Setup(t)
+			th2.App.Srv().SetLicense(model.NewTestLicenseWithAddOns(testAddOn))
+
+			overrides, value := th2.App.ch.getPluginStateOverride(manifestFor("testplugin"))
+			require.False(t, overrides)
+			require.False(t, value)
+		})
+
+		t.Run("a mixed-case add-on name still matches the entitlement", func(t *testing.T) {
+			mainHelper.Parallel(t)
+			th2 := Setup(t)
+			th2.App.Srv().SetLicense(model.NewTestLicenseWithAddOns(testAddOn))
+
+			for _, addOn := range []string{"Test-AddOn", "TEST-ADDON"} {
+				manifest := &model.Manifest{Id: testAddOnPluginID, RequiredAddOn: addOn}
+				overrides, value := th2.App.ch.getPluginStateOverride(manifest)
+				require.False(t, overrides, "expected %q to be satisfied by the licensed add-on", addOn)
+				require.False(t, value)
+			}
+		})
+	})
+}
+
+func TestAddOnEntitlementsEqual(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	withAddOns := func(addOns ...string) *model.License {
+		return &model.License{AddOns: addOns}
+	}
+
+	testCases := []struct {
+		description string
+		oldLicense  *model.License
+		newLicense  *model.License
+		expected    bool
+	}{
+		{"both nil", nil, nil, true},
+		{"nil and no add-ons", nil, withAddOns(), true},
+		{"nil and an add-on", nil, withAddOns("crossguard"), false},
+		{"an add-on and nil", withAddOns("crossguard"), nil, false},
+		{"identical", withAddOns("crossguard"), withAddOns("crossguard"), true},
+		{"differing case", withAddOns("crossguard"), withAddOns("CrossGuard"), true},
+		{"differing order", withAddOns("a", "b"), withAddOns("b", "a"), true},
+		{"duplicates only", withAddOns("a"), withAddOns("a", "a"), true},
+		{"added", withAddOns("a"), withAddOns("a", "b"), false},
+		{"removed", withAddOns("a", "b"), withAddOns("a"), false},
+		{"replaced", withAddOns("a"), withAddOns("b"), false},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.description, func(t *testing.T) {
+			require.Equal(t, testCase.expected, addOnEntitlementsEqual(testCase.oldLicense, testCase.newLicense))
+		})
+	}
+}
+
+// Covers activation as the license changes with no accompanying config change,
+// which no config listener would ever fire for.
+func TestAddOnPluginLicenseGate(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.RequirePluginSignature = false
+	})
+
+	env := th.App.GetPluginsEnvironment()
+	require.NotNil(t, env)
+
+	// Without a server or webapp component the plugin parks in
+	// PluginStateFailedToStart and never reaches the gate.
+	bundlePath := "webapp/testaddon_bundle.js"
+	manifest := &model.Manifest{
+		Id:            testAddOnPluginID,
+		Version:       "0.0.1",
+		RequiredAddOn: testAddOn,
+		Webapp:        &model.ManifestWebapp{BundlePath: bundlePath},
+	}
+	manifestJSON, jsonErr := json.Marshal(manifest)
+	require.NoError(t, jsonErr)
+
+	_, appErr := th.App.ch.installPluginLocally(
+		makeInMemoryGzipTarFile(t, []testFile{
+			{"plugin.json", string(manifestJSON)},
+			{bundlePath, "console.log('testaddon');"},
+		}),
+		installPluginLocallyOnlyIfNew,
+	)
+	checkNoError(t, appErr)
+
+	requireState := func(t *testing.T, expected int) {
+		t.Helper()
+
+		statuses, err := env.Statuses()
+		require.NoError(t, err)
+		require.Len(t, statuses, 1)
+		require.Equal(t, testAddOnPluginID, statuses[0].PluginId)
+		require.Equal(t, expected, statuses[0].State)
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.PluginSettings.PluginStates[testAddOnPluginID] = &model.PluginState{Enable: true}
+	})
+	require.Nil(t, th.App.Srv().RemoveLicense())
+
+	t.Run("enabled in config but unlicensed stays inactive", func(t *testing.T) {
+		requireState(t, model.PluginStateNotRunning)
+	})
+
+	t.Run("a license without the add-on leaves it inactive", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense())
+		requireState(t, model.PluginStateNotRunning)
+	})
+
+	t.Run("granting the add-on activates it with no config change", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseWithAddOns(testAddOn))
+		requireState(t, model.PluginStateRunning)
+	})
+
+	t.Run("removing the license deactivates it", func(t *testing.T) {
+		require.Nil(t, th.App.Srv().RemoveLicense())
+		requireState(t, model.PluginStateNotRunning)
+	})
+
+	t.Run("re-granting the add-on reactivates it", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseWithAddOns(testAddOn))
+		requireState(t, model.PluginStateRunning)
+	})
+}
+
+// Covers the activation check in installExtractedPlugin, which runs when a plugin
+// is installed while config already has it enabled.
+func TestInstallAddOnPluginUnlicensed(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.RequirePluginSignature = false
+		cfg.PluginSettings.PluginStates[testAddOnPluginID] = &model.PluginState{Enable: true}
+	})
+	require.Nil(t, th.App.Srv().RemoveLicense())
+
+	env := th.App.GetPluginsEnvironment()
+	require.NotNil(t, env)
+
+	bundlePath := "webapp/testaddon_bundle.js"
+	manifest := &model.Manifest{
+		Id:            testAddOnPluginID,
+		Version:       "0.0.1",
+		RequiredAddOn: testAddOn,
+		Webapp:        &model.ManifestWebapp{BundlePath: bundlePath},
+	}
+	manifestJSON, jsonErr := json.Marshal(manifest)
+	require.NoError(t, jsonErr)
+
+	_, appErr := th.App.ch.installPluginLocally(
+		makeInMemoryGzipTarFile(t, []testFile{
+			{"plugin.json", string(manifestJSON)},
+			{bundlePath, "console.log('testaddon');"},
+		}),
+		installPluginLocallyOnlyIfNew,
+	)
+	checkNoError(t, appErr)
+
+	statuses, err := env.Statuses()
+	require.NoError(t, err)
+	require.Len(t, statuses, 1)
+	require.Equal(t, testAddOnPluginID, statuses[0].PluginId)
+	require.Equal(t, model.PluginStateNotRunning, statuses[0].State)
+}
+
+func TestEnablePluginAddOnLicenseCheck(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.RequirePluginSignature = false
+	})
+
+	bundlePath := "webapp/testaddon_bundle.js"
+	manifest := &model.Manifest{
+		Id:            testAddOnPluginID,
+		Version:       "0.0.1",
+		RequiredAddOn: testAddOn,
+		Webapp:        &model.ManifestWebapp{BundlePath: bundlePath},
+	}
+	manifestJSON, jsonErr := json.Marshal(manifest)
+	require.NoError(t, jsonErr)
+
+	_, appErr := th.App.ch.installPluginLocally(
+		makeInMemoryGzipTarFile(t, []testFile{
+			{"plugin.json", string(manifestJSON)},
+			{bundlePath, "console.log('testaddon');"},
+		}),
+		installPluginLocallyOnlyIfNew,
+	)
+	checkNoError(t, appErr)
+
+	t.Run("rejects an unlicensed add-on instead of reporting success", func(t *testing.T) {
+		require.Nil(t, th.App.Srv().RemoveLicense())
+
+		appErr := th.App.EnablePlugin(testAddOnPluginID)
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.plugin.addon_not_licensed.app_error", appErr.Id)
+		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+
+		// A stale Enable: true would activate the plugin on the next license change.
+		state := th.App.Config().PluginSettings.PluginStates[testAddOnPluginID]
+		require.True(t, state == nil || !state.Enable)
+
+		// An add-on name need not match the plugin id, so it is what tells the admin
+		// what to buy.
+		// A missing {{.AddOn}} placeholder drops the param silently.
+		appErr.Translate(i18n.GetUserTranslations("en"))
+		require.Contains(t, appErr.Message, testAddOn)
+	})
+
+	t.Run("allows a licensed add-on", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseWithAddOns(testAddOn))
+
+		appErr := th.App.EnablePlugin(testAddOnPluginID)
+		require.Nil(t, appErr)
+		require.True(t, th.App.Config().PluginSettings.PluginStates[testAddOnPluginID].Enable)
+	})
+
+	t.Run("disabling still works after the license lapses", func(t *testing.T) {
+		require.Nil(t, th.App.Srv().RemoveLicense())
+
+		// The gate must not block disabling, or a stale Enable: true is unclearable.
+		appErr := th.App.DisablePlugin(testAddOnPluginID)
+		require.Nil(t, appErr)
+		require.False(t, th.App.Config().PluginSettings.PluginStates[testAddOnPluginID].Enable)
 	})
 }
