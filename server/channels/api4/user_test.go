@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"image/png"
 	"io"
+	"maps"
 	"net/http"
 	"net/url"
 	"os"
@@ -4016,9 +4017,7 @@ func TestGetUsersNotInChannelTeamScope(t *testing.T) {
 			}
 
 			query := url.Values{}
-			for key, values := range tc.query {
-				query[key] = values
-			}
+			maps.Copy(query, tc.query)
 			query.Set("page", "0")
 			query.Set("per_page", "200")
 
