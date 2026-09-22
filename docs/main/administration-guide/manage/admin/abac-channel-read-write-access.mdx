@@ -69,8 +69,7 @@ In the webapp, denied write access is reflected before the request is made: the 
 ## What these actions don't cover
 
 - **Direct messages and group messages** are out of scope. The gate never applies to DM or GM channels, regardless of policy.
-- **Managing a channel's access rules** (`manage_channel_access_rules`) is deliberately outside the write gate, so a policy author who has restricted their own write access can still correct the policy.
-- **Reading deleted posts** isn't treated as a read-gated permission.
+- **Managing a channel's access rules** (`manage_channel_access_rules`) is deliberately outside the write gate, so a policy author who has restricted their own write access can still correct the policy. A System Admin can also correct it from **System Console \> System Attributes \> Permission Policies**.
 - **Bots** are exempt from the write gate. A bot has no interactive session, so a rule over `user.session.*` has nothing to evaluate and would otherwise deny every bot post. Incoming webhooks and plugin writes never reach a channel permission check and are already exempt.
 - **Server-side jobs and other sessionless callers** evaluate role-based permissions only.
 - **Recaps and scheduled recaps** aren't filtered by channel read access. A recap is assembled by a server-side job that has no user session, so it can only apply role-based permissions and never evaluates the session-based read policy. As a result, a recap — and the channel names, highlights, and post permalinks it returns — can include a channel the user's current session would be denied read access to. This is a known limitation of running the action's session-based evaluation against a sessionless job.
