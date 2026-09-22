@@ -69,6 +69,23 @@ func TestFindingStore(t *testing.T, newStore func() FindingStore) {
 		require.Equal(t, string(StateResolved), got[0].State)
 	})
 
+	t.Run("upsert with duplicate fingerprints keeps the last occurrence's mute state", func(t *testing.T) {
+		t.Parallel()
+
+		store := newStore()
+		fp := model.NewId()
+		muted := testFinding(fp, "check_cluster_status", 100)
+		muted.MutedAt, muted.MutedBy = 123, "user-1"
+		unmuted := testFinding(fp, "check_cluster_status", 200)
+		require.NoError(t, store.Upsert([]*model.HealthFinding{muted, unmuted}))
+
+		got, err := store.GetByFingerprints([]string{fp})
+		require.NoError(t, err)
+		require.Len(t, got, 1)
+		assert.Equal(t, int64(0), got[0].MutedAt)
+		assert.Empty(t, got[0].MutedBy)
+	})
+
 	t.Run("include muted and muted only policies", func(t *testing.T) {
 		t.Parallel()
 

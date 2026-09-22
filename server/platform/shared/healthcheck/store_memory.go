@@ -76,11 +76,17 @@ func (s *memoryStore) Upsert(findings []*model.HealthFinding) error {
 	s.mut.Lock()
 	defer s.mut.Unlock()
 
+	// Collapse duplicate fingerprints to their last occurrence before touching the
+	// map, so a duplicate never seeds a later one's mute retention. Matches the SQL store.
+	deduped := make(map[string]*model.HealthFinding, len(findings))
 	for _, finding := range findings {
 		if finding == nil || finding.Fingerprint == "" {
 			continue
 		}
+		deduped[finding.Fingerprint] = finding
+	}
 
+	for fp, finding := range deduped {
 		stored := cloneFinding(finding)
 		stored.PreSave()
 		// Summary/Remediation/Message are rendered at the read boundary; the store never holds them.
@@ -89,12 +95,12 @@ func (s *memoryStore) Upsert(findings []*model.HealthFinding) error {
 		stored.Message = ""
 
 		// Mute state is owned by Mute/Unmute; an evaluation refresh carries no mute and must not clear an existing mute.
-		if existing, ok := s.findings[finding.Fingerprint]; ok && stored.MutedAt == 0 {
+		if existing, ok := s.findings[fp]; ok && stored.MutedAt == 0 {
 			stored.MutedAt = existing.MutedAt
 			stored.MutedBy = existing.MutedBy
 		}
 
-		s.findings[finding.Fingerprint] = stored
+		s.findings[fp] = stored
 	}
 
 	return nil
