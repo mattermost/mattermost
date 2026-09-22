@@ -11,6 +11,9 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 import {Client4} from 'mattermost-redux/client';
 import {PROPERTY_TEXT_VALUE_MAX_LENGTH} from 'mattermost-redux/constants/properties';
 
+import {clearPropertyFieldOptionWalks} from 'components/property_fields/graph/page_all_access_control_field_options';
+import {clearGraphOptionNameCache} from 'components/property_fields/graph/use_graph_option_names';
+
 import {renderWithContext} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
@@ -657,6 +660,84 @@ describe('ChannelInfoAttributes', () => {
             expect(screen.queryByTestId('channelInfoAttributeEdit-program')).not.toBeInTheDocument();
             expect(screen.getByLabelText('This attribute cannot be changed after it is set')).toBeInTheDocument();
             expect(screen.queryByTestId('channelInfoAddAttributeButton')).not.toBeInTheDocument();
+        });
+    });
+
+    describe('graph attributes', () => {
+        const graphProgram = (overrides: FieldOptions = {}) => field('program', {type: 'graph', ...overrides});
+
+        beforeEach(() => {
+            // The picker pages the options endpoint and caches the walk and the
+            // option names at module level, so both outlive a single test.
+            clearPropertyFieldOptionWalks();
+            clearGraphOptionNameCache();
+            jest.spyOn(Client4, 'getPropertyFieldOptions').mockResolvedValue({
+                options: [{id: 'opt_program', name: 'VALUE_PROGRAM', create_at: 1}],
+                has_more: false,
+            });
+        });
+
+        test('saves a picked option as an array of ids', async () => {
+            const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
+
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([graphProgram({required: true})], [value('program', null)]),
+            );
+
+            await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-program'));
+            await userEvent.click(await screen.findByRole('menuitemcheckbox', {name: 'VALUE_PROGRAM'}));
+
+            await waitFor(() => expect(patchSpy).toHaveBeenCalledWith(
+                'access_control',
+                'channel',
+                CHANNEL_ID,
+                [{field_id: 'program', value: ['opt_program']}],
+            ));
+        });
+
+        test('deselecting the only selected value saves null', async () => {
+            const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
+
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([graphProgram()], [value('program', ['opt_program'])]),
+            );
+
+            await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-program'));
+            const option = await screen.findByRole('menuitemcheckbox', {name: 'VALUE_PROGRAM'});
+            expect(option).toHaveAttribute('aria-checked', 'true');
+
+            await userEvent.click(option);
+
+            await waitFor(() => expect(patchSpy).toHaveBeenCalledWith(
+                'access_control',
+                'channel',
+                CHANNEL_ID,
+                [{field_id: 'program', value: null}],
+            ));
+        });
+
+        test('offers an unset graph attribute in the Add attribute menu', async () => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('shown', {required: true}), graphProgram()], [value('shown', 'opt_shown')]),
+            );
+
+            await userEvent.click(screen.getByTestId('channelInfoAddAttributeButton'));
+
+            expect(await screen.findByTestId('channelInfoAddAttribute-program')).toBeInTheDocument();
+        });
+
+        test('a locked graph attribute renders the read-only chip and no picker', () => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([graphProgram({changePolicy: 'never'})], [value('program', ['opt_program'])]),
+            );
+
+            expect(screen.getByTestId('attributeChip')).toHaveTextContent('VALUE_PROGRAM');
+            expect(screen.getByTestId('channelInfoAttributeLock-program')).toBeInTheDocument();
+            expect(screen.queryByTestId('channelInfoAttributeEdit-program')).not.toBeInTheDocument();
         });
     });
 });

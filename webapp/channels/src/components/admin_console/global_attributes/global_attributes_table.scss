@@ -51,6 +51,12 @@
     white-space: nowrap;
 }
 
+.GlobalAttributesTable__attribute {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
 .GlobalAttributesTable__name {
     overflow: hidden;
     color: var(--center-channel-color);
@@ -59,10 +65,10 @@
     white-space: nowrap;
 }
 
-.GlobalAttributesTable__actions--classification {
-    display: inline-flex;
-    align-items: center;
-    justify-content: flex-end;
+.GlobalAttributesTable__subtitle {
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    font-size: 12px;
+    white-space: normal;
 }
 
 .GlobalAttributesTable__link--classification {

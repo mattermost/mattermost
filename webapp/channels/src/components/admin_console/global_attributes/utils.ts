@@ -7,9 +7,17 @@ import {Client4} from 'mattermost-redux/client';
 
 import {ALL_RESOURCE_TYPES} from './attribute_details/attribute_applies_to_constants';
 import type {ResourceObjectType} from './attribute_details/attribute_applies_to_constants';
+import type {AttributeFieldType, AttributeTypeId} from './attribute_type';
+import {toServerFieldType, toValueType} from './attribute_type';
 import {GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, GLOBAL_ATTRIBUTES_TARGET_TYPE} from './constants';
 
-export type AttributeFieldType = 'text' | 'select' | 'multiselect' | 'rank';
+export type {AttributeFieldType, AttributeTypeId} from './attribute_type';
+
+export const ATTRIBUTE_FIELD_TYPES: readonly AttributeFieldType[] = ['text', 'select', 'multiselect', 'rank', 'graph'];
+
+export function isAttributeFieldType(value: string): value is AttributeFieldType {
+    return (ATTRIBUTE_FIELD_TYPES as readonly string[]).includes(value);
+}
 
 // Server clamps per_page to this max (web.PerPageMaximum). Directory-mode
 // listing with no cursor sorts CreateAt ASC, so a default 60-item page can
@@ -21,32 +29,44 @@ const MAX_PROPERTY_FIELDS_PER_PAGE = 200;
 // server always generates the real one -- EnsureOptionIDs /
 // sanitizeAndValidateOptions); {id: '', name, rank} for Rank, with rank always
 // explicitly present (never inferred from array position -- the server's
-// validateRankOptions hard-errors on create if it's missing). Text has no
-// options key at all.
-function buildOptionsAttr(fieldType: AttributeFieldType, options: PropertyFieldOption[]): PropertyFieldOption[] | undefined {
+// validateRankOptions hard-errors on create if it's missing); {id: '', name,
+// parents} for Graph, with parents always present (roots send [] — omitting
+// the key is a server no-op). Text has no options key at all.
+export function buildOptionsAttr(fieldType: AttributeFieldType, options: PropertyFieldOption[]): PropertyFieldOption[] | undefined {
     switch (fieldType) {
     case 'select':
     case 'multiselect':
         return options.map(({name}) => ({id: '', name}));
     case 'rank':
         return options.map(({name, rank}) => ({id: '', name, rank}));
+    case 'graph':
+        return options.map(({name, parents}) => ({id: '', name, parents: parents ?? []}));
     default:
         return undefined;
     }
 }
 
 // Patch keeps existing option IDs so stored values stay attached. New options
-// still send an empty id for the server to mint. Text sends null so mergeAttrs
-// drops a leftover options key when switching away from Select/Multiselect/Rank.
+// still send an empty id for the server to mint. Other option properties
+// (color, rank, …) are spread through: mergeAttrs replaces the whole options
+// array, so omitting them would drop chip colors on a standalone channel
+// select. Graph always sends parents (roots send [] — omitting the key is a
+// server no-op). Text sends null so mergeAttrs drops a leftover options key
+// when switching away from Select/Multiselect/Rank/Graph.
 function buildPatchOptionsAttr(fieldType: AttributeFieldType, options: PropertyFieldOption[]): PropertyFieldOption[] | null {
     switch (fieldType) {
     case 'select':
     case 'multiselect':
-        return options.map(({id, name}) => ({id: id || '', name}));
     case 'rank':
-        return options.map(({id, name, rank}) => ({id: id || '', name, rank}));
-    default:
+        return options.map((option) => ({...option, id: option.id || ''}));
+    case 'graph':
+        return options.map((option) => ({...option, id: option.id || '', parents: option.parents ?? []}));
+    case 'text':
         return null;
+    default: {
+        const exhaustive: never = fieldType;
+        return exhaustive;
+    }
     }
 }
 
@@ -79,11 +99,28 @@ async function listPropertyFields(objectType: string): Promise<PropertyField[]> 
     return fields;
 }
 
-// There is no GET-by-id property-fields HTTP handler. List template fields and
-// find the one whose id matches. Returns undefined when it isn't in the group.
-export async function fetchAttributeField(fieldId: string): Promise<PropertyField | undefined> {
-    const fields = await listPropertyFields(GLOBAL_ATTRIBUTES_OBJECT_TYPE);
-    return fields.find((field) => field.id === fieldId && field.delete_at === 0);
+// There is no GET-by-id property-fields HTTP handler. List every object type a
+// field can live in and find the one whose id matches. A user/channel/post
+// field only counts when it isn't a template's linked child (linked_field_id
+// set) -- those aren't listed or edited on their own, so an id that only
+// resolves to one returns undefined and the details page redirects to the list.
+//
+// allowedTypes is what this server actually offers (see useAllowedResourceTypes):
+// a resource behind an off feature flag is not listed, and channel in particular
+// must not be, since the server 501s a channel-scoped access_control GET below
+// Enterprise Advanced -- fetching it unconditionally would reject the whole
+// Promise.all and bounce every details page to the list, even one editing a user
+// or template field.
+export async function fetchAttributeField(fieldId: string, allowedTypes: readonly ResourceObjectType[]): Promise<PropertyField | undefined> {
+    const objectTypes = [GLOBAL_ATTRIBUTES_OBJECT_TYPE, ...ALL_RESOURCE_TYPES.filter((type) => allowedTypes.includes(type))];
+    const pages = await Promise.all(
+        objectTypes.map((objectType) => listPropertyFields(objectType)),
+    );
+    return pages.flat().find((field) => (
+        field.id === fieldId &&
+        field.delete_at === 0 &&
+        (field.object_type === GLOBAL_ATTRIBUTES_OBJECT_TYPE || !field.linked_field_id)
+    ));
 }
 
 function isResourceObjectType(value: string): value is ResourceObjectType {
@@ -92,9 +129,14 @@ function isResourceObjectType(value: string): value is ResourceObjectType {
 
 // Lists user/channel/post fields and keeps those pointing at the template.
 // There is no cross-object-type listing endpoint.
-export async function fetchLinkedFieldsForTemplate(templateFieldId: string): Promise<PropertyField[]> {
+//
+// allowedTypes matches fetchAttributeField. That earlier fetch's own skip does
+// not protect this later Promise.all; a 501 on the channel scope would reject
+// the whole load and bounce the template details page to the list.
+export async function fetchLinkedFieldsForTemplate(templateFieldId: string, allowedTypes: readonly ResourceObjectType[]): Promise<PropertyField[]> {
+    const objectTypes = ALL_RESOURCE_TYPES.filter((type) => allowedTypes.includes(type));
     const pages = await Promise.all(
-        ALL_RESOURCE_TYPES.map((objectType) => listPropertyFields(objectType)),
+        objectTypes.map((objectType) => listPropertyFields(objectType)),
     );
     return pages.flat().filter((field) => (
         field.linked_field_id === templateFieldId &&
@@ -145,10 +187,12 @@ export function linkedFieldsByResourceType(fields: PropertyField[]): Partial<Rec
 export function createAttributeField(
     displayName: string,
     name: string,
-    fieldType: AttributeFieldType,
+    typeId: AttributeTypeId,
     options: PropertyFieldOption[],
     links?: {ldapAttr?: string; samlAttr?: string},
 ): Promise<PropertyField> {
+    const fieldType = toServerFieldType(typeId);
+    const valueType = toValueType(typeId);
     const optionsAttr = buildOptionsAttr(fieldType, options);
     return Client4.createPropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, {
         name,
@@ -158,6 +202,7 @@ export function createAttributeField(
         attrs: {
             display_name: displayName.trim() || undefined,
             ...(optionsAttr ? {options: optionsAttr} : {}),
+            ...(valueType ? {value_type: valueType} : {}),
             ...(links?.ldapAttr ? {ldap: links.ldapAttr} : {}),
             ...(links?.samlAttr ? {saml: links.samlAttr} : {}),
         },
@@ -166,47 +211,52 @@ export function createAttributeField(
 
 export type UpdateAttributeFieldPatch = {
     name?: string;
-    type: AttributeFieldType;
+    type: AttributeTypeId;
     displayName: string;
     options: PropertyFieldOption[];
     ldapAttr: string;
     samlAttr: string;
 };
 
-// PATCHes a template field. Attrs are merge-patched (mergeAttrs=true on the
-// server): ldap/saml send null to unlink, and Text sends options: null so a
-// leftover options array is dropped. name is omitted when unchanged so the
+// Attrs are merge-patched (mergeAttrs=true on the server): ldap/saml send
+// null to unlink, Text sends options: null so a leftover options array is
+// dropped, and value_type sends null so a leftover phone/url/email subtype
+// is dropped when switching away. name is omitted when unchanged so the
 // server skips uniqueness re-validation.
 export function updateAttributeField(
+    objectType: string,
     fieldId: string,
     patch: UpdateAttributeFieldPatch,
 ): Promise<PropertyField> {
-    return Client4.patchPropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, fieldId, {
+    const fieldType = toServerFieldType(patch.type);
+    const valueType = toValueType(patch.type);
+    return Client4.patchPropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, fieldId, {
         ...(patch.name === undefined ? {} : {name: patch.name}),
-        type: patch.type as PropertyField['type'],
+        type: fieldType as PropertyField['type'],
         attrs: {
             display_name: patch.displayName.trim() || undefined,
-            options: buildPatchOptionsAttr(patch.type, patch.options),
+            options: buildPatchOptionsAttr(fieldType, patch.options),
             ldap: patch.ldapAttr || null,
             saml: patch.samlAttr || null,
+            value_type: valueType || null,
         },
     });
 }
 
-// Deletes a template field from the access_control group. The server returns
-// 409 when the field still has active linked dependents (CountLinkedFields > 0);
-// callers are expected to surface that case distinctly (or, for a save-time
-// rollback, to only delete linked fields first -- see createLinkedAttributeField).
-export function deleteAttributeField(fieldId: string): Promise<unknown> {
-    return Client4.deletePropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, fieldId);
+// The server returns 409 when the field still has active linked dependents
+// (CountLinkedFields > 0); callers are expected to surface that case distinctly
+// (or, for a save-time rollback, to only delete linked fields first -- see
+// createLinkedAttributeField).
+export function deleteAttributeField(objectType: string, fieldId: string): Promise<unknown> {
+    return Client4.deletePropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, fieldId);
 }
 
 // Creates a linked field for one Applies-to resource. The server validates
-// linked_field_id against the template and copies its Type and attrs.options
-// onto the new field (server/channels/app/properties/property_field.go) --
-// display_name is NOT copied, so it's sent explicitly here. objectType is the
-// resource type ('user'/'channel'/'post'), a URL path segment on the generic
-// property-fields endpoint, not a separate route.
+// linked_field_id against the template and copies its Type, attrs.options,
+// and ldap/saml onto the new field (server/channels/app/properties/property_field.go)
+// -- display_name and value_type are NOT copied, so both are sent explicitly
+// here. objectType is the resource type ('user'/'channel'/'post'), a URL path
+// segment on the generic property-fields endpoint, not a separate route.
 //
 // `attrs` is what the resource's own settings contribute -- e.g. a Users row's
 // Profile display config, or a Channels row's required/change-policy attrs
@@ -224,12 +274,14 @@ export function deleteAttributeField(fieldId: string): Promise<unknown> {
 export function createLinkedAttributeField(
     objectType: ResourceObjectType,
     name: string,
-    fieldType: AttributeFieldType,
+    typeId: AttributeTypeId,
     displayName: string,
     linkedFieldId: string,
     attrs?: Record<string, unknown>,
     permissionValues?: PropertyPermissionLevel,
 ): Promise<PropertyField> {
+    const fieldType = toServerFieldType(typeId);
+    const valueType = toValueType(typeId);
     return Client4.createPropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, {
         name,
         type: fieldType as PropertyField['type'],
@@ -239,6 +291,7 @@ export function createLinkedAttributeField(
         ...(permissionValues ? {permission_values: permissionValues} : {}),
         attrs: {
             display_name: displayName.trim() || undefined,
+            ...(valueType ? {value_type: valueType} : {}),
             ...attrs,
         },
     });

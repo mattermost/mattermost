@@ -10,6 +10,7 @@ import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities
 import {makeGetResolvedChannelAttributes} from 'mattermost-redux/selectors/entities/properties';
 
 import useChannelAttributes from './useChannelAttributes';
+import useGraphAttributeNames from './useGraphAttributeNames';
 
 const EMPTY: ResolvedChannelAttribute[] = [];
 
@@ -22,11 +23,12 @@ export default function useResolvedChannelAttributes(channelId: string): Resolve
     const {enabled} = useChannelAttributes();
     const getResolvedChannelAttributes = useMemo(() => makeGetResolvedChannelAttributes(), []);
     const resolved = useSelector((state: GlobalState) => getResolvedChannelAttributes(state, channelId));
+    const named = useGraphAttributeNames(resolved);
 
     return useMemo(() => {
         if (!enabled || !channelId) {
             return EMPTY;
         }
-        return resolved;
-    }, [enabled, channelId, resolved]);
+        return named;
+    }, [enabled, channelId, named]);
 }

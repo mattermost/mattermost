@@ -197,7 +197,7 @@ test.describe('System Console - Session Attributes', () => {
         await expect(sa.saveButton).toBeEnabled();
 
         // # Attempt to navigate away via the sidebar while dirty
-        await systemConsolePage.sidebar.systemAttributes.userAttributes.click();
+        await systemConsolePage.sidebar.systemAttributes.attributeManagement.click();
 
         // * Verify the unsaved-changes navigation guard appears
         const discardModal = page.getByRole('dialog').filter({hasText: 'Discard Changes?'});

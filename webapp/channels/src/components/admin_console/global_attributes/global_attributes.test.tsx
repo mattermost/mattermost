@@ -38,11 +38,13 @@ describe('components/admin_console/global_attributes/GlobalAttributes', () => {
     test('renders the header and section frame, and renders the attributes table', async () => {
         renderWithContext(<GlobalAttributes/>);
 
-        // * Title and subtitle both live inside the AdminHeader bar (not a separate
-        // boxed section below it) — the page has one title, not a repeated one.
+        // * Title, subtitle, and the create action all live inside the AdminHeader
+        // bar (not a separate boxed section below it) — the page has one title,
+        // not a repeated one, and the button sits top-right of that header.
         const header = within(screen.getByTestId('admin-console-header'));
         expect(header.getByText('Attribute Management')).toBeInTheDocument();
         expect(header.getByText('Define an attribute once, then choose which resources can use it.')).toBeInTheDocument();
+        expect(header.getByRole('button', {name: 'New attribute'})).toBeInTheDocument();
         expect(screen.getByRole('heading', {name: 'Attribute Management'})).toBeInTheDocument();
 
         await waitFor(() => {
@@ -50,7 +52,7 @@ describe('components/admin_console/global_attributes/GlobalAttributes', () => {
         });
     });
 
-    test('renders a search field to the left of the new-attribute button that filters the table', async () => {
+    test('renders a search field above the table that filters attributes', async () => {
         const fields = [
             {
                 id: 'field-clearance',
@@ -90,8 +92,11 @@ describe('components/admin_console/global_attributes/GlobalAttributes', () => {
         expect(await screen.findByText('Clearance')).toBeInTheDocument();
         expect(screen.getByText('Department')).toBeInTheDocument();
 
+        const header = within(screen.getByTestId('admin-console-header'));
+        expect(header.getByTestId('newAttributeButton')).toBeInTheDocument();
+        expect(header.queryByTestId('global-attributes-search')).not.toBeInTheDocument();
+
         const search = screen.getByTestId('global-attributes-search');
-        expect(search.compareDocumentPosition(screen.getByTestId('newAttributeButton'))).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
         await userEvent.type(search, 'clear');
 
         expect(screen.getByText('Clearance')).toBeInTheDocument();
