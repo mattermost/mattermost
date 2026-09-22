@@ -74,6 +74,26 @@ func TestFindingStore(t *testing.T, newStore func() FindingStore) {
 		require.True(t, mutedOnly[0].IsMuted())
 	})
 
+	t.Run("list filters by surface", func(t *testing.T) {
+		t.Parallel()
+
+		store := newStore()
+		product := testFinding("fp-product", "check_cluster_status", 100)
+		product.Surface = string(SurfaceProduct)
+		internal := testFinding("fp-internal", "check_database_pool", 100)
+		internal.Surface = string(SurfaceInternal)
+		require.NoError(t, store.Upsert([]*model.HealthFinding{product, internal}))
+
+		productOnly, err := store.List(model.HealthFindingFilter{Surfaces: []string{string(SurfaceProduct)}})
+		require.NoError(t, err)
+		require.Len(t, productOnly, 1)
+		require.Equal(t, "fp-product", productOnly[0].Fingerprint)
+
+		both, err := store.List(model.HealthFindingFilter{})
+		require.NoError(t, err)
+		require.Len(t, both, 2)
+	})
+
 	t.Run("mute and unmute round trip", func(t *testing.T) {
 		t.Parallel()
 
