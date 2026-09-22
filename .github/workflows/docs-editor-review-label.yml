@@ -20,7 +20,6 @@ jobs:
       github.event.pull_request.draft == false
       && github.event.pull_request.head.repo.full_name == github.repository
     permissions:
-      issues: write
       pull-requests: write
     runs-on: ubuntu-24.04
     steps:
