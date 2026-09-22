@@ -1,18 +1,10 @@
 name: Docs AI Review
 
-# Reviews documentation changes through the persona registry in
-# .github/prompts/personas/ and posts one sticky comment per PR.
+# Persona review of docs changes → one sticky PR comment.
 #
-# Manual only for now: dispatch with a PR number so we can tune personas on
-# real diffs without attaching checks to every docs PR. Once the output is
-# trustworthy, restore a pull_request trigger on this same single job — one
-# job means one check, which is why validate / route / review / report are
-# steps rather than a matrix.
-#
-# Scripts and prompts come from the branch this workflow runs on (the ref
-# selected at dispatch time). Only the docs diff, title, and body are taken
-# from the target PR, so a same-repo branch cannot alter the pipeline that
-# reviews it.
+# workflow_dispatch only while tuning. Single job so a later pull_request
+# trigger stays one check. Scripts/prompts come from the workflow ref;
+# only the docs diff, title, and body come from the target PR.
 
 on:
   workflow_dispatch:
@@ -58,8 +50,7 @@ jobs:
             exit 1
           fi
 
-          # Title and body go to files, not GITHUB_OUTPUT: a PR body can contain
-          # the heredoc delimiter and would truncate the step outputs.
+          # Files, not GITHUB_OUTPUT — a PR body can contain the heredoc delimiter.
           echo "$DATA" | jq -r '.title' > .docs-ai/pr-title.txt
           echo "$DATA" | jq -r '.body // ""' > .docs-ai/pr-body.txt
 
@@ -84,10 +75,7 @@ jobs:
             ':(exclude)docs/main/agents/docs'
           )
 
-          # Prefer the PR merge ref (same shape as a pull_request checkout with
-          # fetch-depth: 2). Fall back to base...head if the merge ref is
-          # missing — typically a conflicted PR. Working tree stays on the
-          # workflow ref either way, so scripts stay trusted.
+          # Merge ref first; fall back when missing (usually a conflicted PR).
           if git fetch --no-tags --depth=2 origin \
               "pull/${PR_NUMBER}/merge:refs/docs-ai/pr-merge"; then
             LEFT="refs/docs-ai/pr-merge^1"
@@ -128,7 +116,6 @@ jobs:
       - name: Install dependencies
         if: steps.diff.outputs.reviewable == 'true'
         working-directory: .github/scripts/docs-ai
-        # No dependency here needs an install script, so refuse to run any.
         run: npm ci --ignore-scripts
 
       - name: Validate persona registry
@@ -159,8 +146,7 @@ jobs:
           mkdir -p .docs-ai/results
           PR_TITLE=$(cat .docs-ai/pr-title.txt)
 
-          # One process per persona, fail-soft: persona-review.mjs writes an
-          # ERROR verdict on failure so the report still posts.
+          # Fail-soft: persona-review.mjs writes ERROR on failure.
           pids=()
           while IFS= read -r PERSONA; do
             [ -n "$PERSONA" ] || continue

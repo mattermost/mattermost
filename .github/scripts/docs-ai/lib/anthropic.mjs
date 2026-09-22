@@ -6,9 +6,7 @@ function getClient() {
   if (!client) {
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) throw new Error('ANTHROPIC_API_KEY is not set');
-    // maxRetries: 0 — withRetry below owns the policy (and the log line).
-    // Leaving the SDK default of 2 would double every transient into six
-    // attempts before we surface the failure.
+    // Disable SDK retries — withRetry below owns the policy.
     client = new Anthropic({apiKey, maxRetries: 0});
   }
   return client;
