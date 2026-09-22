@@ -155,7 +155,7 @@ function PostAttributesChips({post, channel}: Props) {
                         role='img'
                         aria-label={formatMessage(
                             {
-                                id: 'post_attributes.chips.overflow_description',
+                                id: 'generic.more_attributes',
                                 defaultMessage: '{count, plural, one {# more attribute} other {# more attributes}}',
                             },
                             {count: overflow},

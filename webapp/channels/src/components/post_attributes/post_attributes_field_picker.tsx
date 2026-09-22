@@ -17,9 +17,9 @@ import {
 import type IconProps from '@mattermost/compass-icons/components/props';
 import type {FieldType, PropertyField} from '@mattermost/types/properties';
 
-import * as Menu from 'components/menu';
+import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
 
-import {fieldLabel} from './utils';
+import * as Menu from 'components/menu';
 
 type Props = {
     fields: PropertyField[];
@@ -68,7 +68,7 @@ export default function PostAttributesFieldPicker({fields, onSelect}: Props) {
                     id={`postAttributeAdd-${field.id}`}
                     data-testid={`post-attribute-add-${field.name}`}
                     leadingElement={<FieldTypeIcon type={field.type}/>}
-                    labels={<span>{fieldLabel(field)}</span>}
+                    labels={<span>{getPropertyFieldLabel(field)}</span>}
                     onClick={() => onSelect(field.id)}
                 />
             ))}

@@ -28,6 +28,22 @@ function getPropertyFieldsById(state: GlobalState) {
 
 const EMPTY_FIELDS: PropertyField[] = [];
 
+// Ties break on name, not create_at: chip order is something people are told to
+// read, so it must follow the configuration rather than insertion timing.
+function sortByFieldOrder(fields: PropertyField[]): PropertyField[] {
+    return [...fields].sort((a, b) => {
+        const rankA = typeof a.attrs?.sort_order === 'number' ? a.attrs.sort_order : Number.MAX_SAFE_INTEGER;
+        const rankB = typeof b.attrs?.sort_order === 'number' ? b.attrs.sort_order : Number.MAX_SAFE_INTEGER;
+        if (rankA !== rankB) {
+            return rankA - rankB;
+        }
+
+        // Fixed locale: the default is the viewer's, which would order equal-ranked
+        // chips differently per user. Names are ASCII slugs, so this is total.
+        return a.name.localeCompare(b.name, 'en');
+    });
+}
+
 /**
  * A factory because Object.values() is a new array and the memoizer only
  * keeps the last arguments. Four shared calls in one render (template /
@@ -142,16 +158,7 @@ export function makeGetPostAttributeFields(): (state: GlobalState, channelId: st
                 }
             });
 
-            return applicable.sort((a, b) => {
-                const aOrder = typeof a.attrs?.sort_order === 'number' ? a.attrs.sort_order : Number.MAX_SAFE_INTEGER;
-                const bOrder = typeof b.attrs?.sort_order === 'number' ? b.attrs.sort_order : Number.MAX_SAFE_INTEGER;
-
-                if (aOrder !== bOrder) {
-                    return aOrder - bOrder;
-                }
-
-                return a.name.localeCompare(b.name);
-            });
+            return sortByFieldOrder(applicable);
         },
     );
 }
@@ -194,22 +201,6 @@ export const getPropertyValuesForField = createSelector(
 );
 
 // Channel attribute selectors
-
-// Ties break on name, not create_at: chip order is something people are told to
-// read, so it must follow the configuration rather than insertion timing.
-function sortByFieldOrder(fields: PropertyField[]): PropertyField[] {
-    return [...fields].sort((a, b) => {
-        const rankA = typeof a.attrs?.sort_order === 'number' ? a.attrs.sort_order : Number.MAX_SAFE_INTEGER;
-        const rankB = typeof b.attrs?.sort_order === 'number' ? b.attrs.sort_order : Number.MAX_SAFE_INTEGER;
-        if (rankA !== rankB) {
-            return rankA - rankB;
-        }
-
-        // Fixed locale: the default is the viewer's, which would order equal-ranked
-        // chips differently per user. Names are ASCII slugs, so this is total.
-        return a.name.localeCompare(b.name, 'en');
-    });
-}
 
 /**
  * Channel-object fields in the access_control group, ordered by attrs.sort_order.

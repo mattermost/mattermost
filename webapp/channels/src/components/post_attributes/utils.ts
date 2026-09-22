@@ -59,15 +59,6 @@ export function hasValueControl(field: PropertyField): boolean {
 const EMPTY_ADDED: ReadonlySet<string> = Object.freeze(new Set<string>());
 
 /**
- * The label a field carries on screen: the administrator-set display name,
- * falling back to the field's name.
- */
-export function fieldLabel(field: PropertyField): string {
-    const displayName = field.attrs?.display_name;
-    return typeof displayName === 'string' && displayName ? displayName : field.name;
-}
-
-/**
  * A value's stored entries, as strings, with the empty ones dropped.
  *
  * Shared because two callers have to agree on what counts as an entry: the

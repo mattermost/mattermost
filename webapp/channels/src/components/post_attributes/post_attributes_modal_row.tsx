@@ -7,11 +7,10 @@ import {useIntl} from 'react-intl';
 import {LockOutlineIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
-import {isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
+import {getPropertyFieldLabel, isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
 
 import PostAttributeText from './post_attribute_text';
 import PostAttributeValueControl, {hasValueControl} from './post_attribute_value_control';
-import {fieldLabel} from './utils';
 
 type Props = {
     field: PropertyField;
@@ -41,7 +40,7 @@ type Props = {
 export default function PostAttributesModalRow({field, value, canEdit, writing, onChange}: Props) {
     const {formatMessage} = useIntl();
 
-    const label = fieldLabel(field);
+    const label = getPropertyFieldLabel(field);
     const editable = canEdit && hasValueControl(field);
     const showClear = editable && isPropertyValueSet(value?.value);
 

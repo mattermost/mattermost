@@ -7,7 +7,7 @@ import {useIntl} from 'react-intl';
 import {CheckIcon} from '@mattermost/compass-icons/components';
 import type {PropertyField, PropertyFieldOption, PropertyValue} from '@mattermost/types/properties';
 
-import {getPropertyFieldOptions} from 'mattermost-redux/utils/property_utils';
+import {getPropertyFieldLabel, getPropertyFieldOptions} from 'mattermost-redux/utils/property_utils';
 
 import {UserSelector} from 'components/admin_console/content_flagging/user_multiselector/user_multiselector';
 import * as Menu from 'components/menu';
@@ -15,7 +15,7 @@ import * as Menu from 'components/menu';
 import {resolveOption} from 'utils/property_options';
 
 import PostAttributeText from './post_attribute_text';
-import {fieldLabel, hasValueControl, storedEntries} from './utils';
+import {hasValueControl, storedEntries} from './utils';
 
 /*
  * Re-exported for the row, which has imported it from here since before the
@@ -96,7 +96,7 @@ function sameEntries(left: string[], right: string[]): boolean {
  * A menu of the field's options with a check on each chosen one.
  */
 function OptionMenu({field, value, disabled, onChange}: Props) {
-    const label = fieldLabel(field);
+    const label = getPropertyFieldLabel(field);
     const isMulti = field.type === 'multiselect';
     const options = getPropertyFieldOptions(field);
     const entries = storedEntries(value);
@@ -226,7 +226,7 @@ function TextInput({field, value, disabled, onChange}: Props) {
             className='PostAttributesModalRow__input'
             value={draft}
             disabled={disabled}
-            aria-label={fieldLabel(field)}
+            aria-label={getPropertyFieldLabel(field)}
             onChange={(event) => setDraft(event.target.value)}
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}

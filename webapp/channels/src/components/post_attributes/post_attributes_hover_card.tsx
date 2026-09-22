@@ -4,9 +4,10 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
+
 import PostAttributeText from './post_attribute_text';
 import type {PostAttribute} from './utils';
-import {fieldLabel} from './utils';
 
 import './post_attributes_hover_card.scss';
 
@@ -49,7 +50,7 @@ export default function PostAttributesHoverCard({attributes, onEdit}: Props) {
                         key={field.id}
                         className='PostAttributesHoverCard__row'
                     >
-                        <span className='PostAttributesHoverCard__name'>{fieldLabel(field)}</span>
+                        <span className='PostAttributesHoverCard__name'>{getPropertyFieldLabel(field)}</span>
                         <span className='PostAttributesHoverCard__value'>
                             <PostAttributeText
                                 field={field}

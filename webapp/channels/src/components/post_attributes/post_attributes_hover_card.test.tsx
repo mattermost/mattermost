@@ -122,7 +122,7 @@ describe('PostAttributesHoverCard', () => {
         const rows = screen.getAllByRole('listitem');
 
         expect(rows).toHaveLength(3);
-        expect(rows[0]).toHaveTextContent('classification');
+        expect(rows[0]).toHaveTextContent('Classification');
         expect(rows[0]).toHaveTextContent('SECRET');
         expect(rows[1]).toHaveTextContent('caveat');
         expect(rows[1]).toHaveTextContent('NOFORN');
@@ -143,9 +143,18 @@ describe('PostAttributesHoverCard', () => {
     });
 
     test('falls back to the field name when there is no display name', () => {
+        renderCard([attribute({name: 'caveat'}, 'opt_secret')]);
+
+        expect(screen.getByText('caveat')).toBeInTheDocument();
+    });
+
+    // Classification Markings stores its unique name as a lowercase slug and
+    // writes no display_name, so the shared label helper title-cases it.
+    test('title-cases the classification slug, as every other attribute surface does', () => {
         renderCard([attribute({name: 'classification'}, 'opt_secret')]);
 
-        expect(screen.getByText('classification')).toBeInTheDocument();
+        expect(screen.getByText('Classification')).toBeInTheDocument();
+        expect(screen.queryByText('classification')).not.toBeInTheDocument();
     });
 
     test('never runs the label through a translation lookup', () => {
@@ -175,7 +184,7 @@ describe('PostAttributesHoverCard', () => {
 
         // The label still renders because the card is handed the attribute;
         // the value resolves to nothing, exactly as `chipCount` counts it.
-        expect(row).toHaveTextContent('classification');
+        expect(row).toHaveTextContent('Classification');
         expect(row).not.toHaveTextContent('opt_deleted');
     });
 
