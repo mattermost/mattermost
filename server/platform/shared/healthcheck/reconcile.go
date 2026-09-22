@@ -73,7 +73,8 @@ func (r *Reconciler) Reconcile(evals []Evaluation) ([]Transition, error) {
 	}
 
 	// Step 1: an unreachable node yields one node-down finding, not a derived unknown per section.
-	evals = r.suppressDependentUnknowns(evals)
+	unreachable := unreachableScopes(evals)
+	evals = suppressDependentUnknowns(evals, unreachable)
 
 	// Step 2: load this cycle's prior state so transitions can be computed against it.
 	fingerprints := make([]string, 0, len(evals))
@@ -158,6 +159,11 @@ func (r *Reconciler) Reconcile(evals []Evaluation) ([]Transition, error) {
 		if finding.State == string(StateUnknown) {
 			continue
 		}
+		// The node-down finding already represents this scope; aging its dependents to unknown
+		// would resurrect the derived unknown step 1 suppressed.
+		if finding.Scope != "" && unreachable[finding.Scope] {
+			continue
+		}
 
 		rule, ok := r.registry.Get(finding.Code)
 		if !ok {
@@ -198,8 +204,7 @@ func (r *Reconciler) Reconcile(evals []Evaluation) ([]Transition, error) {
 	return transitions, nil
 }
 
-func (r *Reconciler) suppressDependentUnknowns(evals []Evaluation) []Evaluation {
-	unreachable := unreachableScopes(evals)
+func suppressDependentUnknowns(evals []Evaluation, unreachable map[string]bool) []Evaluation {
 	if len(unreachable) == 0 {
 		return evals
 	}

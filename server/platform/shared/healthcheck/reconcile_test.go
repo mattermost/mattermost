@@ -120,6 +120,46 @@ func TestReconcileSuppressesDependentUnknowns(t *testing.T) {
 	require.Len(t, gotNode3, 0)
 }
 
+func TestReconcileDoesNotAgeDependentsOfUnreachableNode(t *testing.T) {
+	t.Parallel()
+
+	baseTime := time.UnixMilli(2_500_000)
+	staleLastSeen := baseTime.Add(-3 * time.Hour).UnixMilli()
+
+	store := NewMemoryStore()
+	registry := testRegistry(
+		testRule("CHECK_NODE_DOWN", VolatilityTopology),
+		testRule("CHECK_NODE_RESOURCE", VolatilityStable),
+	)
+
+	// The dependent finding predates the outage and is already past its UnknownAfter window, so
+	// step 4 would age it if the unreachable scope did not exempt it.
+	dependent := testPersistedFinding("CHECK_NODE_RESOURCE", "disk", "node-3", StateFiring, staleLastSeen, staleLastSeen)
+	require.NoError(t, store.Upsert([]*model.HealthFinding{dependent}))
+
+	reconciler := NewReconciler(ReconcilerOpts{
+		Store:    store,
+		Registry: registry,
+		Now:      func() time.Time { return baseTime },
+	})
+
+	nodeDown := testEvaluation("CHECK_NODE_DOWN", "cluster", "", StateFiring, baseTime)
+	nodeDown.Result = nodeDown.Result.WithDetail(detailKeyUnreachableNode, "node-3")
+
+	// The node-scoped check emits nothing while node-3 is unreachable; only the node-down eval arrives.
+	transitions, err := reconciler.Reconcile([]Evaluation{nodeDown})
+	require.NoError(t, err)
+	require.Len(t, transitions, 1)
+	require.Equal(t, "CHECK_NODE_DOWN", transitions[0].Finding.Code)
+
+	fpDependent := Fingerprint("CHECK_NODE_RESOURCE", "disk", "node-3")
+	got, err := store.GetByFingerprints([]string{fpDependent})
+	require.NoError(t, err)
+	require.Len(t, got, 1)
+	require.Equal(t, string(StateFiring), got[0].State)
+	require.Equal(t, staleLastSeen, got[0].StateSince)
+}
+
 func TestReconcileStateSinceUnchangedOnSameState(t *testing.T) {
 	t.Parallel()
 
