@@ -48,36 +48,36 @@ func newHealthFindingsMigrationStore(t *testing.T) *SqlStore {
 	return store
 }
 
-func TestMigration000230(t *testing.T) {
+func TestMigration000231(t *testing.T) {
 	store := newHealthFindingsMigrationStore(t)
 
 	require.True(t, healthFindingsTableExists(t, store, "healthfindings"))
 
-	_, err := store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000230_create_health_findings.down.sql"))
+	_, err := store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000231_create_health_findings.down.sql"))
 	require.NoError(t, err)
 	assert.False(t, healthFindingsTableExists(t, store, "healthfindings"))
 
-	_, err = store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000230_create_health_findings.up.sql"))
+	_, err = store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000231_create_health_findings.up.sql"))
 	require.NoError(t, err)
 	assert.True(t, healthFindingsTableExists(t, store, "healthfindings"))
 }
 
-func TestMigration000231(t *testing.T) {
+func TestMigration000232(t *testing.T) {
 	store := newHealthFindingsMigrationStore(t)
 
 	require.True(t, healthFindingsIndexExists(t, store, "idx_healthfindings_lastseenat"))
 
 	// CONCURRENTLY cannot run inside a transaction; ExecNoTimeout runs unwrapped.
-	_, err := store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000231_create_healthfindings_lastseenat_index.down.sql"))
+	_, err := store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000232_create_healthfindings_lastseenat_index.down.sql"))
 	require.NoError(t, err)
 	assert.False(t, healthFindingsIndexExists(t, store, "idx_healthfindings_lastseenat"))
 
-	_, err = store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000231_create_healthfindings_lastseenat_index.up.sql"))
+	_, err = store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000232_create_healthfindings_lastseenat_index.up.sql"))
 	require.NoError(t, err)
 	assert.True(t, healthFindingsIndexExists(t, store, "idx_healthfindings_lastseenat"))
 
 	// IF NOT EXISTS makes a second up a safe no-op.
-	_, err = store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000231_create_healthfindings_lastseenat_index.up.sql"))
+	_, err = store.GetMaster().ExecNoTimeout(readMigrationSQL(t, "000232_create_healthfindings_lastseenat_index.up.sql"))
 	require.NoError(t, err)
 	assert.True(t, healthFindingsIndexExists(t, store, "idx_healthfindings_lastseenat"))
 }
