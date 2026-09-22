@@ -331,8 +331,27 @@
             flex: 0 1 320px;
         }
 
-        // Chevron column only — a handle spacer pushed the field past sibling names.
+        // Same compact Input treatment as the empty canvas: an outset ring, so
+        // zeroing the wrapper margin does not clip the default inset focus.
+        .Input_fieldset {
+            min-height: 32px;
+            padding: 0;
+            background: var(--center-channel-bg);
+            box-shadow: none;
+
+            &:focus-within {
+                border-color: var(--button-bg);
+                box-shadow: 0 0 0 1px var(--button-bg);
+            }
+
+            &.Input_fieldset___error:focus-within {
+                border-color: var(--error-text);
+                box-shadow: 0 0 0 1px var(--error-text);
+            }
+        }
+
         .Input_wrapper {
+            min-height: 30px;
             padding: 0 12px;
             margin: 0;
         }
