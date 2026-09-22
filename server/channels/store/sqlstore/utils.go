@@ -238,47 +238,36 @@ var numericTsQueryOperand = regexp.MustCompile(`^[0-9]+(:\*)?$`)
 // assembled tsquery to "(N|-N)".
 //
 // Postgres' text-search parser reads the hyphen in "flight-12345" as a minus
-// sign, so "check out flight-12345 today" indexes as
-// 'flight':3 '-12345':4 — the digits are their own lexeme, but they carry the
-// hyphen. Searching for "12345" therefore never matches. The extra branch
-// targets the lexeme that is already in the index, so no reindexing is needed.
+// sign, so "check out flight-12345 today" indexes as 'flight':3 '-12345':4.
+// Searching for "12345" therefore never matches. The extra branch targets the
+// lexeme that is already in the index, so no reindexing is needed.
 func expandNumericTsQueryOperands(tsQuery string) string {
 	var b strings.Builder
-	for rest := tsQuery; rest != ""; {
-		open := strings.IndexByte(rest, '"')
-		if open < 0 {
-			b.WriteString(expandNumericOperands(rest))
-			break
-		}
-		b.WriteString(expandNumericOperands(rest[:open]))
-
-		closing := strings.IndexByte(rest[open+1:], '"')
-		if closing < 0 {
-			b.WriteString(rest[open:])
-			break
-		}
-		closing += open + 1
+	last := 0
+	for _, quote := range quotedStringsRegex.FindAllStringIndex(tsQuery, -1) {
+		b.WriteString(expandUnquotedNumericOperands(tsQuery[last:quote[0]]))
 
 		// A parenthesised group is a syntax error inside a quoted operand, but
 		// Postgres parses "a<->b" and a<->b into the same tsquery, so the
 		// quotes can be dropped from a phrase that needs expanding.
-		quoted := rest[open+1 : closing]
-		if expanded := expandNumericOperands(quoted); expanded != quoted {
+		quoted := tsQuery[quote[0]+1 : quote[1]-1]
+		if expanded := expandUnquotedNumericOperands(quoted); expanded != quoted {
 			b.WriteString(expanded)
 		} else {
-			b.WriteString(rest[open : closing+1])
+			b.WriteString(tsQuery[quote[0]:quote[1]])
 		}
-		rest = rest[closing+1:]
+		last = quote[1]
 	}
+	b.WriteString(expandUnquotedNumericOperands(tsQuery[last:]))
 
 	return b.String()
 }
 
-// expandNumericOperands performs the rewrite on a quote-free stretch of an
-// assembled tsquery. Operands are maximal runs between tsquery operators, so
+// expandUnquotedNumericOperands performs the rewrite on a quote-free stretch of
+// an assembled tsquery. Operands are maximal runs between tsquery operators, so
 // "flight-12345" and "#12345" stay whole and are left alone, while the
 // standalone digits in "flight<->12345" are expanded.
-func expandNumericOperands(s string) string {
+func expandUnquotedNumericOperands(s string) string {
 	var b strings.Builder
 	for i := 0; i < len(s); {
 		if isTsQueryOperatorByte(s[i]) {
