@@ -55,29 +55,19 @@ const AppliesToCard = ({channelResource, onChannelResourceChange, onChannelResou
                             <FormattedMessage {...messages.subtitle}/>
                         </p>
                     </div>
-                    {!channelResource && (
-                        <button
-                            type='button'
-                            className={classNames(buttonClassNames({emphasis: 'quaternary'}), 'AppliesToCard__addResource')}
-                            onClick={() => onChannelResourceChange({...DEFAULT_CHANNEL_RESOURCE_CONFIG})}
-                            disabled={disabled}
-                            data-testid='appliesToAddResource'
-                        >
-                            <PlusIcon size={14}/>
-                            <FormattedMessage {...messages.addResource}/>
-                        </button>
-                    )}
                 </div>
             </Card.Header>
             <Card.Body expanded={true}>
                 {channelResource ? (
-                    <ChannelsResourceRow
-                        value={channelResource}
-                        onChange={onChannelResourceChange}
-                        onRemove={onChannelResourceRemove ?? (() => onChannelResourceChange(null))}
-                        ordered={ordered}
-                        disabled={disabled}
-                    />
+                    <div className='AppliesToCard__rows'>
+                        <ChannelsResourceRow
+                            value={channelResource}
+                            onChange={onChannelResourceChange}
+                            onRemove={onChannelResourceRemove ?? (() => onChannelResourceChange(null))}
+                            ordered={ordered}
+                            disabled={disabled}
+                        />
+                    </div>
                 ) : (
                     <p
                         className='AppliesToCard__empty'
@@ -85,6 +75,20 @@ const AppliesToCard = ({channelResource, onChannelResourceChange, onChannelResou
                     >
                         <FormattedMessage {...messages.empty}/>
                     </p>
+                )}
+                {!channelResource && (
+                    <div className='AppliesToCard__footer'>
+                        <button
+                            type='button'
+                            className={classNames(buttonClassNames({emphasis: 'tertiary'}), 'AppliesToCard__addResource')}
+                            onClick={() => onChannelResourceChange({...DEFAULT_CHANNEL_RESOURCE_CONFIG})}
+                            disabled={disabled}
+                            data-testid='appliesToAddResource'
+                        >
+                            <PlusIcon size={16}/>
+                            <FormattedMessage {...messages.addResource}/>
+                        </button>
+                    </div>
                 )}
             </Card.Body>
         </Card>

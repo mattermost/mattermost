@@ -36,7 +36,7 @@ type State = {
 };
 
 class AdminSidebar extends React.PureComponent<Props, State> {
-    searchRef: React.RefObject<HTMLInputElement>;
+    searchRef: React.RefObject<HTMLInputElement | null>;
     idx: Index | null;
 
     static defaultProps = {

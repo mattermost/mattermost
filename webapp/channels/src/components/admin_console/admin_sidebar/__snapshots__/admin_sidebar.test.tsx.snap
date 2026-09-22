@@ -2702,17 +2702,17 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                         >
                           <li
                             class="sidebar-section"
-                            data-testid="system_attributes.system_properties"
+                            data-testid="system_attributes.global_attributes"
                           >
                             <a
                               class="sidebar-section-title"
-                              href="/admin_console/system_attributes/user_attributes"
-                              id="system_attributes/user_attributes"
+                              href="/admin_console/system_attributes/manage_attributes"
+                              id="system_attributes/manage_attributes"
                             >
                               <span
                                 class="sidebar-section-title__text"
                               >
-                                User Attributes
+                                Attribute Management
                               </span>
                             </a>
                             <ul
@@ -4563,17 +4563,17 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                         >
                           <li
                             class="sidebar-section"
-                            data-testid="system_attributes.system_properties"
+                            data-testid="system_attributes.global_attributes"
                           >
                             <a
                               class="sidebar-section-title"
-                              href="/admin_console/system_attributes/user_attributes"
-                              id="system_attributes/user_attributes"
+                              href="/admin_console/system_attributes/manage_attributes"
+                              id="system_attributes/manage_attributes"
                             >
                               <span
                                 class="sidebar-section-title__text"
                               >
-                                User Attributes
+                                Attribute Management
                               </span>
                             </a>
                             <ul
