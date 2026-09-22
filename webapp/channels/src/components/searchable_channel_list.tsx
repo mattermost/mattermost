@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, {type JSX} from 'react';
 import {FormattedMessage, defineMessages, injectIntl, type WrappedComponentProps} from 'react-intl';
 
 import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIcon, AccountOutlineIcon, GlobeCheckedIcon, AccountPlusOutlineIcon, ClockOutlineIcon} from '@mattermost/compass-icons/components';
@@ -42,6 +42,8 @@ interface Props extends WrappedComponentProps {
     closeModal: (modalId: string) => void;
     hideJoinedChannelsPreference: (shouldHideJoinedChannels: boolean) => void;
     rememberHideJoinedChannelsChecked: boolean;
+    hideArchivedChannelsPreference: (shouldHideArchivedChannels: boolean) => void;
+    rememberHideArchivedChannelsChecked: boolean;
     loading?: boolean;
     channelsMemberCount?: Record<string, number>;
     showRecommendedFilter?: boolean;
@@ -68,8 +70,8 @@ type State = {
 
 export class SearchableChannelList extends React.PureComponent<Props, State> {
     private nextTimeoutId: number | NodeJS.Timeout;
-    private filter: React.RefObject<HTMLInputElement>;
-    private channelListScroll: React.RefObject<HTMLDivElement>;
+    private filter: React.RefObject<HTMLInputElement | null>;
+    private channelListScroll: React.RefObject<HTMLDivElement | null>;
 
     static getDerivedStateFromProps(props: Props, state: State) {
         return {isSearch: props.isSearch, page: props.isSearch && !state.isSearch ? 0 : state.page};
@@ -450,6 +452,9 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
         } else {
             this.props.hideJoinedChannelsPreference(true);
         }
+    };
+    handleArchivedChecked = () => {
+        this.props.hideArchivedChannelsPreference(!this.props.rememberHideArchivedChannelsChecked);
     };
     getEmptyStateMessage = () => {
         if (this.state.channelSearchValue.length > 0) {
@@ -851,6 +856,34 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             </div>
         );
 
+        // The archived filter explicitly asks for archived channels, so hiding
+        // them there would leave an empty list — only offer the toggle elsewhere.
+        const hideArchivedButtonClass = classNames('get-app__checkbox', {checked: this.props.rememberHideArchivedChannelsChecked});
+        const hideArchivedPreferenceCheckbox = this.props.filter === Filter.Archived ? null : (
+            <div
+                id={'hideArchivedPreferenceCheckbox'}
+                onClick={this.handleArchivedChecked}
+                onKeyDown={(e) => {
+                    e.stopPropagation();
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        this.handleArchivedChecked();
+                    }
+                }}
+                role='checkbox'
+                aria-checked={this.props.rememberHideArchivedChannelsChecked}
+                aria-label={this.props.intl.formatMessage({id: 'more_channels.hide_archived_channels', defaultMessage: 'Hide archived channels'})}
+                tabIndex={0}
+            >
+                <div className={hideArchivedButtonClass}>
+                    {this.props.rememberHideArchivedChannelsChecked ? <CheckboxCheckedIcon/> : null}
+                </div>
+                <FormattedMessage
+                    id='more_channels.hide_archived'
+                    defaultMessage='Hide Archived'
+                />
+            </div>
+        );
+
         let channelCountLabel;
         if (channels.length === 0) {
             channelCountLabel = this.props.intl.formatMessage({id: 'more_channels.count_zero', defaultMessage: '0 Results'});
@@ -874,6 +907,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 </span>
                 <div id='modalPreferenceContainer'>
                     {channelDropdown}
+                    {hideArchivedPreferenceCheckbox}
                     {hideJoinedPreferenceCheckbox}
                 </div>
             </div>

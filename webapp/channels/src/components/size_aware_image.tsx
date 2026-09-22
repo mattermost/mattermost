@@ -243,10 +243,14 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
 
         const fileType = getFileType(fileInfo?.extension ?? '');
 
+        // Size an SVG only when the server derived a real width. A dimensionless SVG (no width,
+        // height, or viewBox) has no intrinsic size, and forcing MIN_IMAGE_SIZE with an auto height
+        // left the browser to fall back to its 150px default, rendering the file as a tall, empty
+        // sliver. Leaving it unstyled lets the browser size it at its default instead.
         let conditionalSVGStyleAttribute: CSSProperties | undefined;
-        if (fileType === FileTypes.SVG) {
+        if (fileType === FileTypes.SVG && dimensions?.width) {
             conditionalSVGStyleAttribute = {
-                width: dimensions?.width || MIN_IMAGE_SIZE,
+                width: dimensions.width,
                 height: 'auto',
             };
         }
@@ -408,11 +412,6 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         } = this.props;
         const renderPlaceholderOnly = this.props.renderPlaceholderOnly ?? false;
 
-        let ariaLabelImage = this.props.intl.formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'});
-        if (fileInfo) {
-            ariaLabelImage += ` ${fileInfo.name}`.toLowerCase();
-        }
-
         let fallback;
 
         if (this.dimensionsAvailable(dimensions) && (!this.state.loaded || renderPlaceholderOnly)) {
@@ -432,7 +431,6 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                     {this.renderImageLoaderIfNeeded()}
                     <img
                         role='presentation'
-                        aria-label={ariaLabelImage}
                         className={classNames('image-loading__placeholder', this.props.className)}
                         src={fallbackSrc}
                         height={height}

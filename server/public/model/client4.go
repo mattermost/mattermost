@@ -269,10 +269,6 @@ func (c *Client4) teamStatsRoute(teamId string) clientRoute {
 	return c.teamRoute(teamId).Join("stats")
 }
 
-func (c *Client4) teamImportRoute(teamId string) clientRoute {
-	return c.teamRoute(teamId).Join("import")
-}
-
 func (c *Client4) channelsRoute() clientRoute {
 	return newClientRoute("channels")
 }
@@ -311,6 +307,10 @@ func (c *Client4) postsRoute() clientRoute {
 
 func (c *Client4) contentFlaggingRoute() clientRoute {
 	return newClientRoute("content_flagging")
+}
+
+func (c *Client4) deliveryTrackingRoute() clientRoute {
+	return newClientRoute("delivery_tracking")
 }
 
 func (c *Client4) postsEphemeralRoute() clientRoute {
@@ -690,6 +690,10 @@ func (c *Client4) propertyFieldRoute(groupName, objectType, fieldID string) clie
 	return c.propertyFieldsRoute(groupName, objectType).Join(fieldID)
 }
 
+func (c *Client4) propertyFieldOptionsRoute(groupName, objectType, fieldID string) clientRoute {
+	return c.propertyFieldRoute(groupName, objectType, fieldID).Join("options")
+}
+
 func (c *Client4) propertyFieldsSearchRoute(groupName string) clientRoute {
 	return newClientRoute("properties").Join("groups", groupName, "fields", "search")
 }
@@ -712,6 +716,10 @@ func (c *Client4) celRoute() clientRoute {
 
 func (c *Client4) accessControlPolicyRoute(policyID string) clientRoute {
 	return c.accessControlPoliciesRoute().Join(url.PathEscape(policyID))
+}
+
+func (c *Client4) accessControlDecisionsRoute() clientRoute {
+	return newClientRoute("access_control").Join("decisions")
 }
 
 func (c *Client4) logsRoute() clientRoute {
@@ -2629,50 +2637,6 @@ func (c *Client4) GetTeamUnread(ctx context.Context, teamId, userId string) (*Te
 	return DecodeJSONFromResponse[*TeamUnread](r)
 }
 
-// ImportTeam will import an exported team from other app into a existing team.
-func (c *Client4) ImportTeam(ctx context.Context, data []byte, filesize int, importFrom, filename, teamId string) (map[string]string, *Response, error) {
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-
-	part, err := writer.CreateFormFile("file", filename)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
-		return nil, nil, err
-	}
-
-	part, err = writer.CreateFormField("filesize")
-	if err != nil {
-		return nil, nil, err
-	}
-
-	if _, err = io.Copy(part, strings.NewReader(strconv.Itoa(filesize))); err != nil {
-		return nil, nil, err
-	}
-
-	part, err = writer.CreateFormField("importFrom")
-	if err != nil {
-		return nil, nil, err
-	}
-
-	if _, err = io.Copy(part, strings.NewReader(importFrom)); err != nil {
-		return nil, nil, err
-	}
-
-	if err = writer.Close(); err != nil {
-		return nil, nil, err
-	}
-
-	r, err := c.doAPIRequestReaderRoute(ctx, http.MethodPost, c.teamImportRoute(teamId), writer.FormDataContentType(), body, nil)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[map[string]string](r)
-}
-
 // InviteUsersToTeam invite users by email to the team.
 func (c *Client4) InviteUsersToTeam(ctx context.Context, teamId string, userEmails []string) (*Response, error) {
 	r, err := c.doAPIPostJSON(ctx, c.teamRoute(teamId).Join("invite", "email"), userEmails)
@@ -2877,6 +2841,18 @@ func (c *Client4) GetAllChannelsWithCount(ctx context.Context, page int, perPage
 // CreateChannel creates a channel based on the provided channel struct.
 func (c *Client4) CreateChannel(ctx context.Context, channel *Channel) (*Channel, *Response, error) {
 	r, err := c.doAPIPostJSON(ctx, c.channelsRoute(), channel)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Channel](r)
+}
+
+// CreateChannelWithPropertyValues creates a channel and its attribute values in
+// one request, which is what lets the server refuse a channel that would not
+// satisfy its own required attributes.
+func (c *Client4) CreateChannelWithPropertyValues(ctx context.Context, req *ChannelCreateRequest) (*Channel, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.channelsRoute(), req)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3670,6 +3646,23 @@ func (c *Client4) GetPostIncludeDeleted(ctx context.Context, postId string, etag
 	return DecodeJSONFromResponse[*Post](r)
 }
 
+// GetPostWithOptions gets a single post, applying every option the endpoint supports.
+func (c *Client4) GetPostWithOptions(ctx context.Context, postId string, etag string, opts GetPostOptions) (*Post, *Response, error) {
+	values := url.Values{}
+	if opts.IncludeDeleted {
+		values.Set("include_deleted", c.boolString(true))
+	}
+	if opts.PropertyGroup != "" {
+		values.Set("propertyGroup", opts.PropertyGroup)
+	}
+	r, err := c.doAPIGetWithQuery(ctx, c.postRoute(postId), values, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Post](r)
+}
+
 // DeletePost deletes a post from the provided post id string.
 func (c *Client4) DeletePost(ctx context.Context, postId string) (*Response, error) {
 	r, err := c.doAPIDelete(ctx, c.postRoute(postId))
@@ -3734,7 +3727,38 @@ func (c *Client4) GetPostThreadWithOpts(ctx context.Context, postID string, etag
 	if opts.Direction != "" {
 		values.Set("direction", opts.Direction)
 	}
+	if opts.PropertyGroup != "" {
+		values.Set("propertyGroup", opts.PropertyGroup)
+	}
 	r, err := c.doAPIGetWithQuery(ctx, c.postRoute(postID).Join("thread"), values, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PostList](r)
+}
+
+// GetPostsForChannelWithOpts gets a page of posts for a channel, applying every option the endpoint supports.
+func (c *Client4) GetPostsForChannelWithOpts(ctx context.Context, channelId, etag string, opts GetPostsOptions) (*PostList, *Response, error) {
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(opts.Page))
+	values.Set("per_page", strconv.Itoa(opts.PerPage))
+	if opts.CollapsedThreads {
+		values.Set("collapsedThreads", "true")
+	}
+	if opts.SkipFetchThreads {
+		values.Set("skipFetchThreads", "true")
+	}
+	if opts.CollapsedThreadsExtended {
+		values.Set("collapsedThreadsExtended", "true")
+	}
+	if opts.IncludeDeleted {
+		values.Set("include_deleted", "true")
+	}
+	if opts.PropertyGroup != "" {
+		values.Set("propertyGroup", opts.PropertyGroup)
+	}
+	r, err := c.doAPIGetWithQuery(ctx, c.channelRoute(channelId).Join("posts"), values, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -4018,6 +4042,24 @@ func (c *Client4) GetContentFlaggingSettings(ctx context.Context) (*ContentFlagg
 	return DecodeJSONFromResponse[*ContentFlaggingSettingsRequest](r)
 }
 
+func (c *Client4) GetDeliveryTrackingConfig(ctx context.Context) (*DeliveryTrackingConfig, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.deliveryTrackingRoute().Join("config"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*DeliveryTrackingConfig](r)
+}
+
+func (c *Client4) UpdateDeliveryTrackingConfig(ctx context.Context, config *DeliveryTrackingConfig) (*Response, error) {
+	r, err := c.doAPIPutJSON(ctx, c.deliveryTrackingRoute().Join("config"), config)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 func (c *Client4) AssignContentFlaggingReviewer(ctx context.Context, postId, reviewerId string) (*Response, error) {
 	r, err := c.doAPIPost(ctx, c.contentFlaggingRoute().Join("post", postId, "assign", reviewerId), "")
 	if err != nil {
@@ -4063,6 +4105,15 @@ func (c *Client4) KeepFlaggedPost(ctx context.Context, postId string, actionRequ
 // flagged post report for the given post.
 func (c *Client4) GenerateFlaggedPostReport(ctx context.Context, postId string, actionRequest *FlagContentActionRequest) ([]byte, *Response, error) {
 	r, err := c.doAPIPostJSON(ctx, c.contentFlaggingRoute().Join("post", postId, "report"), actionRequest)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return ReadBytesFromResponse(r)
+}
+
+func (c *Client4) GeneratePostExposureReport(ctx context.Context, postId string) ([]byte, *Response, error) {
+	r, err := c.doAPIPost(ctx, c.contentFlaggingRoute().Join("post", postId, "exposure_report"), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5512,6 +5563,20 @@ func (c *Client4) GetLogs(ctx context.Context, page, perPage int) ([]string, *Re
 	return DecodeJSONFromResponse[[]string](r)
 }
 
+// QueryLogs returns a page of logs, filtered by the given LogFilter, keyed by node id.
+func (c *Client4) QueryLogs(ctx context.Context, page, perPage int, filter *LogFilter) (map[string][]json.RawMessage, *Response, error) {
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("logs_per_page", strconv.Itoa(perPage))
+
+	r, err := c.doAPIPostJSONWithQuery(ctx, c.logsRoute().Join("query"), values, filter)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[map[string][]json.RawMessage](r)
+}
+
 // Download logs as mattermost.log file
 func (c *Client4) DownloadLogs(ctx context.Context) ([]byte, *Response, error) {
 	r, err := c.doAPIGet(ctx, c.logsRoute().Join("download"), "")
@@ -6356,16 +6421,6 @@ func (c *Client4) DeleteReaction(ctx context.Context, reaction *Reaction) (*Resp
 	}
 	defer closeBody(r)
 	return BuildResponse(r), nil
-}
-
-// FetchBulkReactions returns a map of postIds and corresponding reactions
-func (c *Client4) GetBulkReactions(ctx context.Context, postIds []string) (map[string][]*Reaction, *Response, error) {
-	r, err := c.doAPIPostJSON(ctx, c.postsRoute().Join("ids", "reactions"), postIds)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[map[string][]*Reaction](r)
 }
 
 // Timezone Section
@@ -8282,6 +8337,65 @@ func (c *Client4) DeletePropertyField(ctx context.Context, groupName, objectType
 	return BuildResponse(r), nil
 }
 
+// GetPropertyFieldOptions returns one page of a property field's options, in
+// creation order. Continue while the page's HasMore is true, passing its
+// NextCursorCreateAt and NextCursorID back on the next call: the page length
+// alone does not say whether the listing is over, and the cursor names the last
+// row the page query examined rather than the last option it returned.
+func (c *Client4) GetPropertyFieldOptions(ctx context.Context, groupName, objectType, fieldID string, cursorCreateAt int64, cursorID string, perPage int) (*PropertyFieldOptionPage, *Response, error) {
+	values := url.Values{}
+	if perPage > 0 {
+		values.Set("per_page", strconv.Itoa(perPage))
+	}
+	if cursorID != "" {
+		values.Set("cursor_id", cursorID)
+	}
+	if cursorCreateAt > 0 {
+		values.Set("cursor_create_at", strconv.FormatInt(cursorCreateAt, 10))
+	}
+	r, err := c.doAPIGetWithQuery(ctx, c.propertyFieldOptionsRoute(groupName, objectType, fieldID), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PropertyFieldOptionPage](r)
+}
+
+// CreatePropertyFieldOptions adds options to a property field. Each option may
+// name the options it sits below, by name, including others in the same call.
+func (c *Client4) CreatePropertyFieldOptions(ctx context.Context, groupName, objectType, fieldID string, options []*PropertyFieldOption) ([]*PropertyFieldOption, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.propertyFieldOptionsRoute(groupName, objectType, fieldID), options)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*PropertyFieldOption](r)
+}
+
+// PatchPropertyFieldOptions changes options a property field owns. Only the
+// options named are touched, and only the parts of each that the option
+// carries — except Name, which every option must carry, since it is how the
+// payload names the option to begin with.
+func (c *Client4) PatchPropertyFieldOptions(ctx context.Context, groupName, objectType, fieldID string, options []*PropertyFieldOption) ([]*PropertyFieldOption, *Response, error) {
+	r, err := c.doAPIPatchJSON(ctx, c.propertyFieldOptionsRoute(groupName, objectType, fieldID), options)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*PropertyFieldOption](r)
+}
+
+// DeletePropertyFieldOptions removes options a property field owns. The whole
+// list is judged together, so a branch of a hierarchy goes in one call.
+func (c *Client4) DeletePropertyFieldOptions(ctx context.Context, groupName, objectType, fieldID string, optionIDs []string) (*Response, error) {
+	r, err := c.doAPIDeleteJSON(ctx, c.propertyFieldOptionsRoute(groupName, objectType, fieldID), optionIDs)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 func (c *Client4) GetPropertyValues(ctx context.Context, groupName, objectType, targetID string, search PropertyValueSearch) ([]*PropertyValue, *Response, error) {
 	values := url.Values{}
 	if search.PerPage > 0 {
@@ -8428,6 +8542,18 @@ func (c *Client4) SearchAccessControlPolicies(ctx context.Context, options Acces
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[*AccessControlPoliciesWithCount](r)
+}
+
+// SearchAccessControlDecisionActions returns non-authoritative, render-time ABAC
+// decisions for the current session user on a resource. Results are for UI
+// rendering only; enforcement always re-evaluates the PDP server-side.
+func (c *Client4) SearchAccessControlDecisionActions(ctx context.Context, req ActionSearchRequest) (*ActionSearchResponse, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.accessControlDecisionsRoute().Join("actions", "search"), req)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*ActionSearchResponse](r)
 }
 
 func (c *Client4) AssignAccessControlPolicies(ctx context.Context, policyID string, resourceIDs []string) (*Response, error) {

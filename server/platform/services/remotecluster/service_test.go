@@ -83,6 +83,29 @@ func TestService_AddTopicListener(t *testing.T) {
 	assert.Empty(t, listeners)
 }
 
+func TestRemoteClusterTransportIdleConnTimeout(t *testing.T) {
+	mockServer := newMockServer(t, nil)
+	mockApp := newMockApp(t, nil)
+
+	service, err := NewRemoteClusterService(mockServer, mockApp)
+	require.NoError(t, err)
+
+	transport, ok := service.httpClient.Transport.(*http.Transport)
+	require.True(t, ok, "expected the remote cluster client to use an *http.Transport")
+
+	// Regression guard for MM-69982: the pooled-connection idle timeout must be
+	// strictly less than PingFreq. If it is >= PingFreq, a pooled connection
+	// survives from one ping to the next and every ping reuses a connection that
+	// the peer has likely already reaped (peers close idle keep-alives after their
+	// own IdleTimeout, default 60s), producing intermittent stale-connection ping
+	// failures. Keeping it below PingFreq means the pool discards the connection
+	// before the next ping, so each ping dials fresh and the race cannot occur.
+	require.Positive(t, transport.IdleConnTimeout, "IdleConnTimeout must be set")
+	assert.Less(t, transport.IdleConnTimeout, PingFreq,
+		"IdleConnTimeout (%s) must be strictly less than PingFreq (%s) to avoid stale keep-alive reuse on pings",
+		transport.IdleConnTimeout, PingFreq)
+}
+
 // leaderAwareMockServer is a mock server that supports toggling leader state
 // and firing leader-change listeners, allowing lifecycle tests to simulate
 // HA cluster leader transitions.

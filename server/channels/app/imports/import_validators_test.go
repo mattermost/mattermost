@@ -641,6 +641,24 @@ func TestImportValidateUserImportData(t *testing.T) {
 	data.NotifyProps.MentionKeys = new("valid")
 	checkNoError(t, ValidateUserImportData(&data))
 
+	// mention_keys byte-length limit
+	data.NotifyProps.MentionKeys = model.NewPointer(strings.Repeat("a", model.MentionKeysMaxLength+1))
+	checkError(t, ValidateUserImportData(&data))
+
+	// mention_keys count limit
+	keys := make([]string, model.MentionKeysMaxCount+1)
+	for i := range keys {
+		keys[i] = "k"
+	}
+	data.NotifyProps.MentionKeys = model.NewPointer(strings.Join(keys, ","))
+	checkError(t, ValidateUserImportData(&data))
+
+	// exactly at limits is fine
+	data.NotifyProps.MentionKeys = model.NewPointer(strings.Join(keys[:model.MentionKeysMaxCount], ","))
+	checkNoError(t, ValidateUserImportData(&data))
+
+	data.NotifyProps.MentionKeys = new("valid")
+
 	// Test the email batching interval validators
 	// Happy paths
 	data.EmailInterval = new("immediately")
@@ -1465,16 +1483,20 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 	require.Nil(t, err, "Validation should succeed with post flagged by members")
 
 	// Test with valid all optional parameters.
+	postCreateAt := model.GetMillis()
+	repliesCreateAt := postCreateAt + 1
+	reactionsCreateAt := postCreateAt + 2
+
 	reactions := []ReactionImportData{{
 		User:      new("username"),
 		EmojiName: new("emoji"),
-		CreateAt:  new(model.GetMillis()),
+		CreateAt:  new(reactionsCreateAt),
 	}}
 
 	replies := []ReplyImportData{{
 		User:     new("username"),
 		Message:  new("message"),
-		CreateAt: new(model.GetMillis()),
+		CreateAt: new(repliesCreateAt),
 	}}
 
 	data = DirectPostImportData{
@@ -1488,7 +1510,7 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 		},
 		User:      new("username"),
 		Message:   new("message"),
-		CreateAt:  new(model.GetMillis()),
+		CreateAt:  new(postCreateAt),
 		Reactions: &reactions,
 		Replies:   &replies,
 	}

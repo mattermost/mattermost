@@ -27,14 +27,16 @@ const (
 	SendTimeout                   = time.Minute
 	SendFileTimeout               = time.Minute * 5
 	PingURL                       = "api/v4/remotecluster/ping"
-	PingFreq                      = time.Minute
-	PingTimeout                   = time.Second * 15
-	ConfirmInviteURL              = "api/v4/remotecluster/confirm_invite"
-	InvitationTopic               = "invitation"
-	PingTopic                     = "ping"
-	ResponseStatusOK              = model.StatusOk
-	ResponseStatusFail            = model.StatusFail
-	InviteExpiresAfter            = time.Hour * 48
+	// Raising PingFreq also raises the transport's IdleConnTimeout (PingFreq / 2),
+	// which must stay below peer idle timeouts (60s default). See MM-69982.
+	PingFreq           = time.Minute
+	PingTimeout        = time.Second * 15
+	ConfirmInviteURL   = "api/v4/remotecluster/confirm_invite"
+	InvitationTopic    = "invitation"
+	PingTopic          = "ping"
+	ResponseStatusOK   = model.StatusOk
+	ResponseStatusFail = model.StatusFail
+	InviteExpiresAfter = time.Hour * 48
 )
 
 type ServerIface interface {
@@ -116,10 +118,14 @@ func NewRemoteClusterService(server ServerIface, app AppIface) (*Service, error)
 			KeepAlive: 30 * time.Second,
 			DualStack: true,
 		}).DialContext,
-		ForceAttemptHTTP2:     true,
-		MaxIdleConns:          200,
-		MaxIdleConnsPerHost:   2,
-		IdleConnTimeout:       90 * time.Second,
+		ForceAttemptHTTP2:   true,
+		MaxIdleConns:        200,
+		MaxIdleConnsPerHost: 2,
+		// Must stay strictly below PingFreq so the pool always discards a connection
+		// before the next ping reuses it. Otherwise pings race the peer reaping its own
+		// idle keep-alive connections (ServiceSettings.IdleTimeout, default 60s) and fail
+		// intermittently with stale-connection errors. See MM-69982.
+		IdleConnTimeout:       PingFreq / 2,
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
 		DisableCompression:    false,

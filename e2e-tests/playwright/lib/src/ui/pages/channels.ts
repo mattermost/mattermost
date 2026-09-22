@@ -13,8 +13,17 @@ import type {
     InvitePeopleModal,
     MembersInvitedModal,
 } from '@/ui/components';
-import {BrowseChannelsModal, ChannelSettingsModal, CreateTeamForm, NewChannelModal, components} from '@/ui/components';
+import {
+    BrowseChannelsModal,
+    ChannelsCenterView,
+    ChannelSettingsModal,
+    CreateTeamForm,
+    NewChannelModal,
+    components,
+    ChannelsSidebarLeft,
+} from '@/ui/components';
 import {duration} from '@/util';
+import {testConfig} from '@/test_config';
 export default class ChannelsPage {
     readonly channels = 'Channels';
 
@@ -41,6 +50,7 @@ export default class ChannelsPage {
     readonly browseChannelsModal;
     readonly directChannelsModal;
     readonly keyboardShortcutsModal;
+    readonly imagePreviewModal;
     public invitePeopleModal: InvitePeopleModal | undefined;
     public membersInvitedModal: MembersInvitedModal | undefined;
     readonly profileModal;
@@ -78,8 +88,8 @@ export default class ChannelsPage {
         this.globalHeader = new components.GlobalHeader(this, page.locator('#global-header'));
         this.mobileNavbar = new components.ChannelsMobileNavbar(page.locator('#navbar'));
         this.searchBox = new components.SearchBox(page.locator('#searchBox'));
-        this.centerView = new components.ChannelsCenterView(page.getByTestId('channel_view'), page);
-        this.sidebarLeft = new components.ChannelsSidebarLeft(page.locator('#SidebarContainer'));
+        this.centerView = new ChannelsCenterView(page.getByTestId('channel_view'), page);
+        this.sidebarLeft = new ChannelsSidebarLeft(page.locator('#SidebarContainer'));
         this.sidebarRight = new components.ChannelsSidebarRight(page.locator('#sidebar-right'));
         this.appBar = new components.ChannelsAppBar(page.getByTestId('app-bar'));
         this.messagePriority = new components.MessagePriority(page.locator('body'));
@@ -94,6 +104,9 @@ export default class ChannelsPage {
             page.getByRole('dialog', {name: /Edit Header/}),
         );
         this.keyboardShortcutsModal = page.getByRole('dialog', {name: /Keyboard shortcuts/});
+        this.imagePreviewModal = new components.ImagePreviewModal(
+            page.getByRole('dialog').filter({has: page.getByAltText('preview url image')}),
+        );
         this.createTeamForm = new CreateTeamForm(page.getByTestId('create-team-form'));
         this.deletePostModal = new components.DeletePostModal(page.locator('#deletePostModal'));
         this.findChannelsModal = new components.FindChannelsModal(page.getByRole('dialog', {name: 'Find Channels'}));
@@ -203,15 +216,22 @@ export default class ChannelsPage {
                 channelsUrl += `${prefix}/${channelName}`;
             }
         }
-        await this.page.goto(channelsUrl);
+        await this.page.goto(new URL(channelsUrl, testConfig.baseURL).href);
 
         return channelsUrl;
+    }
+
+    async expectOnTeamChannel(teamName: string, channelName = 'town-square') {
+        const escapedTeam = teamName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const escapedChannel = channelName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        await expect(this.page).toHaveURL(new RegExp(`/${escapedTeam}/channels/${escapedChannel}(?:/|\\?|#|$)`));
+        await this.toBeVisible();
     }
 
     // Force the /messages route for group-message slugs that do not start with '@'.
     async gotoMessage(teamName: string, channelName: string) {
         const channelsUrl = `/${teamName}/messages/${channelName}`;
-        await this.page.goto(channelsUrl);
+        await this.page.goto(new URL(channelsUrl, testConfig.baseURL).href);
 
         return channelsUrl;
     }
@@ -319,6 +339,27 @@ export default class ChannelsPage {
         return this.channelSettingsModal;
     }
 
+    /**
+     * Opens the Channel Info panel in the RHS, toggling it open if a different
+     * panel is already showing there.
+     */
+    async openChannelInfo() {
+        const infoButton = this.page.locator('#channel-info-btn');
+        await expect(infoButton).toBeVisible();
+
+        // The button toggles, so clicking it while Info is already showing would close it.
+        const infoHeading = this.sidebarRight.container.getByText('Info', {exact: true});
+        const alreadyOpen = await infoHeading.isVisible().catch(() => false);
+        if (!alreadyOpen) {
+            await infoButton.click();
+            await expect(infoHeading).toBeVisible();
+        }
+
+        await this.sidebarRight.toBeVisible();
+
+        return this.sidebarRight;
+    }
+
     async openChannelNotificationPreferences(): Promise<ChannelNotificationPreferencesModal> {
         const channelMenu = await this.openChannelMenu();
         await channelMenu.notificationPreferences.click();
@@ -398,6 +439,32 @@ export default class ChannelsPage {
         await teamButton.click();
     }
 
+    getTeamButton(teamDisplayName: string) {
+        const escapedName = teamDisplayName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        return this.page.getByRole('button', {name: new RegExp(`^${escapedName} team`, 'i')});
+    }
+
+    async switchToTeamByDisplayName(teamDisplayName: string) {
+        await this.getTeamButton(teamDisplayName).click();
+    }
+
+    async toHaveTeamMentionCount(teamDisplayName: string, count: number) {
+        await expect(this.getTeamButton(teamDisplayName)).toHaveAccessibleName(
+            `${teamDisplayName.toLowerCase()} team, ${count} mentions`,
+        );
+    }
+
+    async toHaveTeamNoUnread(teamDisplayName: string) {
+        await expect(this.getTeamButton(teamDisplayName)).toHaveAccessibleName(`${teamDisplayName.toLowerCase()} team`);
+    }
+
+    async toHaveTeamUnread(teamDisplayName: string, teamId: string) {
+        const teamButton = this.getTeamButton(teamDisplayName);
+        await expect(teamButton).toHaveAccessibleName(`${teamDisplayName.toLowerCase()} team unread`);
+        await expect(teamButton.getByTestId(`team-badge-${teamId}`)).toBeVisible();
+        await expect(teamButton.getByTestId(`team-badge-${teamId}`)).toHaveText('');
+    }
+
     /**
      * Switches to the given team and leaves it via the team menu, confirming the modal.
      */
@@ -435,7 +502,12 @@ export default class ChannelsPage {
         return popover;
     }
 
-    async scheduleMessage(message: string, dayFromToday: number = 0, timeOptionIndex: number = 0) {
+    async scheduleMessage(
+        message: string,
+        dayFromToday: number = 0,
+        timeOptionIndex: number = 0,
+        repeatWeekly?: boolean,
+    ) {
         await this.centerView.postCreate.writeMessage(message);
 
         await expect(this.centerView.postCreate.scheduleMessageButton).toBeVisible();
@@ -444,10 +516,15 @@ export default class ChannelsPage {
         await this.scheduleMessageMenu.toBeVisible();
         await this.scheduleMessageMenu.selectCustomTime();
 
-        return this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
+        return this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex, repeatWeekly);
     }
 
-    async scheduleMessageFromThread(message: string, dayFromToday: number = 0, timeOptionIndex: number = 0) {
+    async scheduleMessageFromThread(
+        message: string,
+        dayFromToday: number = 0,
+        timeOptionIndex: number = 0,
+        repeatWeekly?: boolean,
+    ) {
         await this.sidebarRight.postCreate.writeMessage(message);
 
         await expect(this.sidebarRight.postCreate.scheduleMessageButton).toBeVisible();
@@ -456,7 +533,7 @@ export default class ChannelsPage {
         await this.scheduleMessageMenu.toBeVisible();
         await this.scheduleMessageMenu.selectCustomTime();
 
-        return this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
+        return this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex, repeatWeekly);
     }
 
     async getFlaggedPostViewDetailButton(flaggedPostId: string) {

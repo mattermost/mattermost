@@ -16,6 +16,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 type SendProfileImageResultFunc func(userId string, rc *model.RemoteCluster, resp *Response, err error)
@@ -59,7 +60,7 @@ func (rcs *Service) sendProfileImage(task sendProfileImageTask) {
 	if err != nil {
 		rcs.server.Log().LogM(mlog.MlvlRemoteClusterServiceWarn, "Remote Cluster send profile image failed",
 			mlog.String("remote", task.rc.DisplayName),
-			mlog.String("UserId", task.userID),
+			mlog.String("user_id", task.userID),
 			mlog.Err(err),
 		)
 		response.Status = ResponseStatusFail
@@ -67,7 +68,7 @@ func (rcs *Service) sendProfileImage(task sendProfileImageTask) {
 	} else {
 		rcs.server.Log().Log(mlog.LvlRemoteClusterServiceDebug, "Remote Cluster profile image sent successfully",
 			mlog.String("remote", task.rc.DisplayName),
-			mlog.String("UserId", task.userID),
+			mlog.String("user_id", task.userID),
 		)
 		response.Status = ResponseStatusOK
 	}
@@ -88,10 +89,10 @@ func (rcs *Service) sendProfileImageToRemote(timeout time.Duration, task sendPro
 
 	rcs.server.Log().Log(mlog.LvlRemoteClusterServiceDebug, "sending profile image to remote...",
 		mlog.String("remote", task.rc.DisplayName),
-		mlog.String("UserId", task.userID),
+		mlog.String("user_id", task.userID),
 	)
 
-	user, err := rcs.server.GetStore().User().Get(context.Background(), task.userID)
+	user, err := rcs.server.GetStore().User().Get(request.EmptyContext(rcs.server.Log()), task.userID)
 	if err != nil {
 		return fmt.Errorf("error fetching user while sending profile image to remote %s: %w", task.rc.RemoteId, err)
 	}

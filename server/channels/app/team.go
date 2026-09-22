@@ -5,16 +5,15 @@ package app
 
 import (
 	"bytes"
-	"context"
+	"cmp"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"image"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"net/url"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -41,8 +40,8 @@ func (a *App) AdjustTeamsFromProductLimits(teamLimits *model.TeamsLimits) *model
 		return nil
 	}
 	// Sort the list of teams based on their creation date
-	sort.Slice(teams, func(i, j int) bool {
-		return teams[i].CreateAt < teams[j].CreateAt
+	slices.SortFunc(teams, func(a, b *model.Team) int {
+		return cmp.Compare(a.CreateAt, b.CreateAt)
 	})
 
 	var activeTeams []*model.Team
@@ -140,7 +139,7 @@ func (a *App) CreateTeam(rctx request.CTX, team *model.Team) (*model.Team, *mode
 }
 
 func (a *App) CreateTeamWithUser(rctx request.CTX, team *model.Team, userID string) (*model.Team, *model.AppError) {
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -163,11 +162,12 @@ func (a *App) CreateTeamWithUser(rctx request.CTX, team *model.Team, userID stri
 }
 
 func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
-	oldTeam, err := a.ch.srv.teamService.UpdateTeam(team, teams.UpdateOptions{Sanitized: true})
+	updatedTeam, err := a.ch.srv.teamService.UpdateTeam(team, teams.UpdateOptions{Sanitized: true})
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		var appErr *model.AppError
 		var domErr *teams.DomainError
+		var nameErr *teams.NameOccupiedError
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
@@ -178,58 +178,19 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 			return nil, appErr
 		case errors.As(err, &domErr):
 			return nil, model.NewAppError("UpdateTeam", "api.team.update_restricted_domains.mismatch.app_error", map[string]any{"Domain": domErr.Domain}, "", http.StatusBadRequest).Wrap(err)
+		case errors.As(err, &nameErr):
+			errbody := fmt.Sprintf("team with name %s already exists", nameErr.Name)
+			return nil, model.NewAppError("UpdateTeam", "app.team.rename_team.name_occupied", nil, errbody, http.StatusBadRequest).Wrap(err)
 		default:
 			return nil, model.NewAppError("UpdateTeam", "app.team.update.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
-	if appErr := a.sendTeamEvent(oldTeam, model.WebsocketEventUpdateTeam); appErr != nil {
+	if appErr := a.sendTeamEvent(updatedTeam, model.WebsocketEventUpdateTeam); appErr != nil {
 		return nil, appErr
 	}
 
-	return oldTeam, nil
-}
-
-// RenameTeam is used to rename the team Name and the DisplayName fields
-func (a *App) RenameTeam(team *model.Team, newTeamName string, newDisplayName string) (*model.Team, *model.AppError) {
-	// check if name is occupied
-	_, errnf := a.GetTeamByName(newTeamName)
-
-	// "-" can be used as a newTeamName if only DisplayName change is wanted
-	if errnf == nil && newTeamName != "-" {
-		errbody := fmt.Sprintf("team with name %s already exists", newTeamName)
-		return nil, model.NewAppError("RenameTeam", "app.team.rename_team.name_occupied", nil, errbody, http.StatusBadRequest)
-	}
-
-	if newTeamName != "-" {
-		team.Name = newTeamName
-	}
-
-	if newDisplayName != "" {
-		team.DisplayName = newDisplayName
-	}
-
-	newTeam, err := a.ch.srv.teamService.UpdateTeam(team, teams.UpdateOptions{})
-	if err != nil {
-		var invErr *store.ErrInvalidInput
-		var appErr *model.AppError
-		var domErr *teams.DomainError
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("RenameTeam", "app.team.get.find.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		case errors.As(err, &invErr):
-			return nil, model.NewAppError("RenameTeam", "app.team.update.find.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		case errors.As(err, &appErr):
-			return nil, appErr
-		case errors.As(err, &domErr):
-			return nil, model.NewAppError("RenameTeam", "api.team.update_restricted_domains.mismatch.app_error", map[string]any{"Domain": domErr.Domain}, "", http.StatusBadRequest).Wrap(err)
-		default:
-			return nil, model.NewAppError("RenameTeam", "app.team.update.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
-	}
-
-	return newTeam, nil
+	return updatedTeam, nil
 }
 
 func (a *App) UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError) {
@@ -479,6 +440,10 @@ func (a *App) updateTeamMemberRolesInternal(rctx request.CTX, teamID string, use
 		return nil, model.NewAppError("UpdateTeamMemberRoles", "api.team.update_team_member_roles.guest_and_user.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if member.SchemeGuest && member.SchemeAdmin {
+		return nil, model.NewAppError("UpdateTeamMemberRoles", "api.team.update_team_member_roles.guest_and_admin.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if prevSchemeGuestValue != member.SchemeGuest {
 		return nil, model.NewAppError("UpdateTeamMemberRoles", "api.channel.update_team_member_roles.changing_guest_role.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -580,7 +545,7 @@ func (a *App) AddUserToTeam(rctx request.CTX, teamID string, userID string, user
 
 	uchan := make(chan store.StoreResult[*model.User], 1)
 	go func() {
-		user, err := a.Srv().Store().User().Get(context.Background(), userID)
+		user, err := a.Srv().Store().User().Get(rctx, userID)
 		uchan <- store.StoreResult[*model.User]{Data: user, NErr: err}
 		close(uchan)
 	}()
@@ -666,7 +631,7 @@ func (a *App) AddUserToTeamWithToken(rctx request.CTX, userID string, token *mod
 
 	uchan := make(chan store.StoreResult[*model.User], 1)
 	go func() {
-		user, err := a.Srv().Store().User().Get(context.Background(), userID)
+		user, err := a.Srv().Store().User().Get(rctx, userID)
 		uchan <- store.StoreResult[*model.User]{Data: user, NErr: err}
 		close(uchan)
 	}()
@@ -706,6 +671,10 @@ func (a *App) AddUserToTeamWithToken(rctx request.CTX, userID string, token *mod
 		return nil, nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.invalid_invitation_type.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if emailFromToken := tokenData["email"]; emailFromToken != "" && !strings.EqualFold(emailFromToken, user.Email) {
+		return nil, nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.bad_token_email_data.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	teamMember, appErr := a.JoinUserToTeam(rctx, team, user, "")
 	if appErr != nil {
 		return nil, nil, appErr
@@ -742,7 +711,7 @@ func (a *App) AddUserToTeamByInviteId(rctx request.CTX, inviteId string, userID 
 
 	uchan := make(chan store.StoreResult[*model.User], 1)
 	go func() {
-		user, err := a.Srv().Store().User().Get(context.Background(), userID)
+		user, err := a.Srv().Store().User().Get(rctx, userID)
 		uchan <- store.StoreResult[*model.User]{Data: user, NErr: err}
 		close(uchan)
 	}()
@@ -907,7 +876,7 @@ func (a *App) JoinUserToTeam(rctx request.CTX, team *model.Team, user *model.Use
 
 	var actor *model.User
 	if userRequestorId != "" {
-		actor, _ = a.GetUser(userRequestorId)
+		actor, _ = a.GetUser(rctx, userRequestorId)
 	}
 
 	a.Srv().Go(func() {
@@ -1270,6 +1239,14 @@ func (a *App) GetTeamUnread(teamID, userID string) (*model.TeamUnread, *model.Ap
 }
 
 func (a *App) RemoveUserFromTeam(rctx request.CTX, teamID string, userID string, requestorId string) *model.AppError {
+	return a.removeUserFromTeam(rctx, teamID, userID, requestorId, nil)
+}
+
+// removeUserFromTeam is RemoveUserFromTeam with the ABAC membership sync's audit
+// context attached, so a policy-driven removal can stamp the job id and the
+// revision the sync evaluated against onto the audit records it emits. Callers
+// outside the membership sync pass a nil syncCtx.
+func (a *App) removeUserFromTeam(rctx request.CTX, teamID string, userID string, requestorId string, syncCtx *accessControlSyncContext) *model.AppError {
 	tchan := make(chan store.StoreResult[*model.Team], 1)
 	go func() {
 		team, err := a.Srv().Store().Team().Get(teamID)
@@ -1279,7 +1256,7 @@ func (a *App) RemoveUserFromTeam(rctx request.CTX, teamID string, userID string,
 
 	uchan := make(chan store.StoreResult[*model.User], 1)
 	go func() {
-		user, err := a.Srv().Store().User().Get(context.Background(), userID)
+		user, err := a.Srv().Store().User().Get(rctx, userID)
 		uchan <- store.StoreResult[*model.User]{Data: user, NErr: err}
 		close(uchan)
 	}()
@@ -1308,7 +1285,7 @@ func (a *App) RemoveUserFromTeam(rctx request.CTX, teamID string, userID string,
 	}
 	user := userChanResult.Data
 
-	if err := a.LeaveTeam(rctx, team, user, requestorId); err != nil {
+	if err := a.leaveTeam(rctx, team, user, requestorId, syncCtx); err != nil {
 		return err
 	}
 
@@ -1318,7 +1295,7 @@ func (a *App) RemoveUserFromTeam(rctx request.CTX, teamID string, userID string,
 func (a *App) postProcessTeamMemberLeave(rctx request.CTX, teamMember *model.TeamMember, requestorId string) *model.AppError {
 	var actor *model.User
 	if requestorId != "" {
-		actor, _ = a.GetUser(requestorId)
+		actor, _ = a.GetUser(rctx, requestorId)
 	}
 
 	a.Srv().Go(func() {
@@ -1329,7 +1306,7 @@ func (a *App) postProcessTeamMemberLeave(rctx request.CTX, teamMember *model.Tea
 		}, plugin.UserHasLeftTeamID)
 	})
 
-	user, nErr := a.Srv().Store().User().Get(context.Background(), teamMember.UserId)
+	user, nErr := a.Srv().Store().User().Get(rctx, teamMember.UserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -1361,6 +1338,12 @@ func (a *App) postProcessTeamMemberLeave(rctx request.CTX, teamMember *model.Tea
 }
 
 func (a *App) LeaveTeam(rctx request.CTX, team *model.Team, user *model.User, requestorId string) *model.AppError {
+	return a.leaveTeam(rctx, team, user, requestorId, nil)
+}
+
+// leaveTeam is LeaveTeam with the ABAC membership sync's audit context attached;
+// see removeUserFromTeam.
+func (a *App) leaveTeam(rctx request.CTX, team *model.Team, user *model.User, requestorId string, syncCtx *accessControlSyncContext) *model.AppError {
 	teamMember, err := a.GetTeamMember(rctx, team.Id, user.Id)
 	if err != nil {
 		return model.NewAppError("LeaveTeam", "api.team.remove_user_from_team.missing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
@@ -1387,9 +1370,32 @@ func (a *App) LeaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 	// a per-channel cascade record referencing it; an ordinary or non-policy
 	// leave records nothing here.
 	policyDriven := team.PolicyEnforced && requestorId == ""
-	var cascadeParentEventID string
+	var removalAudit accessControlTeamRemovalAudit
+	removalStatus := model.AuditStatusFail
 	if policyDriven {
-		cascadeParentEventID = model.NewId()
+		removalAudit = accessControlTeamRemovalAudit{
+			teamID:  team.Id,
+			userID:  user.Id,
+			eventID: model.NewId(),
+		}
+		switch {
+		case syncCtx != nil:
+			// The sync resolved the revision once for the whole team, so every
+			// user it removes in this run records the same one.
+			removalAudit.jobID = syncCtx.jobID
+			removalAudit.policyRevision = syncCtx.policyRevision
+		case a.accessControlAuditLoggingEnabled():
+			removalAudit.policyRevision = a.accessControlPolicyRevision(rctx, team.Id)
+		}
+
+		// Every cascade record below points at this one through parent_event_id,
+		// and the removal can still be abandoned at any of the failure exits in
+		// between. Defer the parent so it is written on all of them, leaving no
+		// cascade referencing a record that was never emitted. It stays a failure
+		// until the team membership is actually gone.
+		defer func() {
+			a.logAccessControlTeamRemoval(rctx, removalAudit, removalStatus)
+		}()
 	}
 
 	for _, channel := range channelList {
@@ -1399,12 +1405,7 @@ func (a *App) LeaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 				return appErr
 			}
 			if policyDriven {
-				rec := a.MakeAuditRecord(rctx, model.AuditEventTeamCascadedChannelRemoval, model.AuditStatusSuccess)
-				model.AddEventParameterToAuditRec(rec, "user_id", user.Id)
-				model.AddEventParameterToAuditRec(rec, "team_id", team.Id)
-				model.AddEventParameterToAuditRec(rec, "channel_id", channel.Id)
-				model.AddEventParameterToAuditRec(rec, "parent_event_id", cascadeParentEventID)
-				a.LogAuditRec(rctx, rec, nil)
+				a.logAccessControlTeamCascadedChannelRemoval(rctx, removalAudit, channel.Id)
 			}
 		}
 	}
@@ -1420,6 +1421,9 @@ func (a *App) LeaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 		a.invalidateCacheForChannelMembers(channel.Id)
 		if appErr := a.removeChannelMembership(rctx, user.Id, channel.Id, "LeaveTeam"); appErr != nil {
 			return appErr
+		}
+		if policyDriven {
+			a.logAccessControlTeamCascadedChannelRemoval(rctx, removalAudit, channel.Id)
 		}
 	}
 
@@ -1447,20 +1451,10 @@ func (a *App) LeaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 	}
 
 	removeErr := a.ch.srv.teamService.RemoveTeamMember(rctx, teamMember)
-	if policyDriven {
-		auditStatus := model.AuditStatusSuccess
-		if removeErr != nil {
-			auditStatus = model.AuditStatusFail
-		}
-		rec := a.MakeAuditRecord(rctx, model.AuditEventTeamMembershipRemoved, auditStatus)
-		model.AddEventParameterToAuditRec(rec, "event_id", cascadeParentEventID)
-		model.AddEventParameterToAuditRec(rec, "user_id", user.Id)
-		model.AddEventParameterToAuditRec(rec, "team_id", team.Id)
-		a.LogAuditRec(rctx, rec, nil)
-	}
 	if removeErr != nil {
 		return model.NewAppError("RemoveTeamMemberFromTeam", "app.team.save_member.save.app_error", nil, "", http.StatusInternalServerError).Wrap(removeErr)
 	}
+	removalStatus = model.AuditStatusSuccess
 
 	if err := a.postProcessTeamMemberLeave(rctx, teamMember, requestorId); err != nil {
 		return err
@@ -1505,7 +1499,7 @@ func (a *App) postRemoveFromTeamMessage(rctx request.CTX, user *model.User, chan
 	return nil
 }
 
-func (a *App) prepareInviteNewUsersToTeam(teamID, senderId string, channelIds []string) (*model.User, *model.Team, []*model.Channel, *model.AppError) {
+func (a *App) prepareInviteNewUsersToTeam(rctx request.CTX, teamID, senderId string, channelIds []string) (*model.User, *model.Team, []*model.Channel, *model.AppError) {
 	tchan := make(chan store.StoreResult[*model.Team], 1)
 	go func() {
 		team, err := a.Srv().Store().Team().Get(teamID)
@@ -1515,7 +1509,7 @@ func (a *App) prepareInviteNewUsersToTeam(teamID, senderId string, channelIds []
 
 	uchan := make(chan store.StoreResult[*model.User], 1)
 	go func() {
-		user, err := a.Srv().Store().User().Get(context.Background(), senderId)
+		user, err := a.Srv().Store().User().Get(rctx, senderId)
 		uchan <- store.StoreResult[*model.User]{Data: user, NErr: err}
 		close(uchan)
 	}()
@@ -1561,6 +1555,39 @@ func (a *App) prepareInviteNewUsersToTeam(teamID, senderId string, channelIds []
 	return user, team, channels, nil
 }
 
+func (a *App) IsDeactivatedUserEmail(email string) (bool, *model.AppError) {
+	existingUser, appErr := a.GetUserByEmail(email)
+	if appErr != nil {
+		if appErr.Id == MissingAccountError {
+			return false, nil
+		}
+		return false, appErr
+	}
+	return existingUser.DeleteAt != 0, nil
+}
+
+// CheckForDeactivatedInvites returns an error if any email belongs to a
+// deactivated account. where identifies the caller in the returned AppError.
+func (a *App) CheckForDeactivatedInvites(where string, emailList []string) *model.AppError {
+	var deactivatedEmailList []string
+	for _, email := range emailList {
+		deactivated, userErr := a.IsDeactivatedUserEmail(email)
+		if userErr != nil {
+			return userErr
+		}
+		if deactivated {
+			deactivatedEmailList = append(deactivatedEmailList, email)
+		}
+	}
+
+	if len(deactivatedEmailList) > 0 {
+		s := strings.Join(deactivatedEmailList, ", ")
+		return model.NewAppError(where, "api.team.invite_members.account_deactivated.app_error", map[string]any{"Addresses": s}, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
 // isPreSetUsernameAvailable reports whether a username pre-set on an invite is not
 // already taken by an existing user or group.
 func (a *App) isPreSetUsernameAvailable(username string) bool {
@@ -1581,7 +1608,7 @@ func (a *App) InviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite *mod
 		err := model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.no_one.app_error", nil, "", http.StatusBadRequest)
 		return nil, err
 	}
-	user, team, channels, err := a.prepareInviteNewUsersToTeam(teamID, senderId, memberInvite.ChannelIds)
+	user, team, channels, err := a.prepareInviteNewUsersToTeam(rctx, teamID, senderId, memberInvite.ChannelIds)
 	if err != nil {
 		return nil, err
 	}
@@ -1669,6 +1696,10 @@ func (a *App) sendInviteNewUsersToTeamGracefully(rctx request.CTX, memberInvite 
 		}
 		if !teams.IsEmailAddressAllowed(invitedEmail, allowedDomains) {
 			invite.Error = model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": invitedEmail}, "", http.StatusBadRequest)
+		} else if deactivated, userErr := a.IsDeactivatedUserEmail(invitedEmail); userErr != nil {
+			invite.Error = userErr
+		} else if deactivated {
+			invite.Error = model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.account_deactivated.app_error", map[string]any{"Addresses": invitedEmail}, "", http.StatusBadRequest)
 		} else if profile := profilesByEmail[invitedEmail]; profile != nil && !a.isPreSetUsernameAvailable(profile.Username) {
 			// Catch taken usernames at invite time so the invitee doesn't dead-end at signup.
 			invite.Error = model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.username_taken.app_error", map[string]any{"Username": profile.Username}, "", http.StatusBadRequest)
@@ -1739,7 +1770,7 @@ func (a *App) prepareInviteGuestsToChannels(rctx request.CTX, teamID string, gue
 	}()
 	uchan := make(chan store.StoreResult[*model.User], 1)
 	go func() {
-		user, err := a.Srv().Store().User().Get(context.Background(), senderId)
+		user, err := a.Srv().Store().User().Get(rctx, senderId)
 		uchan <- store.StoreResult[*model.User]{Data: user, NErr: err}
 		close(uchan)
 	}()
@@ -1818,6 +1849,10 @@ func (a *App) InviteGuestsToChannelsGracefully(rctx request.CTX, teamID string, 
 		}
 		if !users.CheckEmailDomain(email, *a.Config().GuestAccountsSettings.RestrictCreationToDomains) {
 			invite.Error = model.NewAppError("InviteGuestsToChannelsGracefully", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": email}, "", http.StatusBadRequest)
+		} else if deactivated, userErr := a.IsDeactivatedUserEmail(email); userErr != nil {
+			invite.Error = userErr
+		} else if deactivated {
+			invite.Error = model.NewAppError("InviteGuestsToChannelsGracefully", "api.team.invite_members.account_deactivated.app_error", map[string]any{"Addresses": email}, "", http.StatusBadRequest)
 		} else {
 			goodEmails = append(goodEmails, email)
 		}
@@ -1867,7 +1902,7 @@ func (a *App) InviteNewUsersToTeam(rctx request.CTX, emailList []string, teamID,
 		return err
 	}
 
-	user, team, _, err := a.prepareInviteNewUsersToTeam(teamID, senderId, []string{})
+	user, team, _, err := a.prepareInviteNewUsersToTeam(rctx, teamID, senderId, []string{})
 	if err != nil {
 		return err
 	}
@@ -1884,6 +1919,10 @@ func (a *App) InviteNewUsersToTeam(rctx request.CTX, emailList []string, teamID,
 	if len(invalidEmailList) > 0 {
 		s := strings.Join(invalidEmailList, ", ")
 		return model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": s}, "", http.StatusBadRequest)
+	}
+
+	if err = a.CheckForDeactivatedInvites("InviteNewUsersToTeam", emailList); err != nil {
+		return err
 	}
 
 	nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
@@ -1930,6 +1969,10 @@ func (a *App) InviteGuestsToChannels(rctx request.CTX, teamID string, guestsInvi
 	if len(invalidEmailList) > 0 {
 		s := strings.Join(invalidEmailList, ", ")
 		return model.NewAppError("InviteGuestsToChannels", "api.team.invite_members.invalid_email.app_error", map[string]any{"Addresses": s}, "", http.StatusBadRequest)
+	}
+
+	if err = a.CheckForDeactivatedInvites("InviteGuestsToChannels", guestsInvite.Emails); err != nil {
+		return err
 	}
 
 	nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
@@ -2354,8 +2397,10 @@ func (a *App) SetTeamIconFromMultiPartFile(rctx request.CTX, teamID string, file
 }
 
 func (a *App) SetTeamIconFromFile(rctx request.CTX, team *model.Team, file io.ReadSeeker) *model.AppError {
-	// Decode image into Image object
-	img, format, err := image.Decode(file)
+	// Decode image into Image object using the shared decoder so team icons
+	// are subject to the same concurrency and resolution safeguards as other
+	// user-uploaded images.
+	img, format, err := a.ch.imgDecoder.Decode(file)
 	if err != nil {
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.decode.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}

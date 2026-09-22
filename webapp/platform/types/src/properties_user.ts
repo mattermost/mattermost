@@ -27,6 +27,11 @@ export const SESSION_ATTRIBUTES_OBJECT_TYPE = 'session';
 // object type; session attributes are the exception (`session`).
 export const USER_OBJECT_TYPE = 'user';
 
+// Channel-targeted attributes. On the ABAC autocomplete these are the fields a
+// policy references as `resource.attributes.*` — the accessed channel's values,
+// as opposed to the requesting user's (`USER_OBJECT_TYPE`).
+export const CHANNEL_ATTRIBUTES_OBJECT_TYPE = 'channel';
+
 /**
  * Session attributes are the only property fields targeting the `session`
  * object type, so identity is keyed off `object_type` rather than the group
@@ -60,6 +65,8 @@ export type UserPropertyField = PropertyField & {
         visibility: FieldVisibility;
         value_type: FieldValueType;
         options?: PropertyFieldOption[];
+        options_omitted?: boolean;
+        options_count?: number;
         ldap?: string;
         saml?: string;
         managed?: string;

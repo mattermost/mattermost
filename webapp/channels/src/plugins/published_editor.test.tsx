@@ -22,6 +22,7 @@ jest.mock('components/advanced_text_editor/wysiwyg_editor/wysiwyg_editor', () =>
                 blur: () => {},
                 getInputBox: () => null,
                 getEditor: () => null,
+                hasContentError: () => false,
             }));
             return null;
         }),
@@ -89,6 +90,8 @@ describe('WysiwygEditor handle forwarding', () => {
         expect(typeof handle!.focus).toBe('function');
         expect(typeof handle!.blur).toBe('function');
         expect(typeof handle!.getInputBox).toBe('function');
+        expect(typeof handle!.getEditor).toBe('function');
+        expect(typeof handle!.hasContentError).toBe('function');
     });
 });
 

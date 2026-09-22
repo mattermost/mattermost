@@ -5,10 +5,70 @@ package utils
 
 import (
 	"reflect"
-	"sort"
+	"slices"
 	"testing"
 	"time"
 )
+
+func TestDedup(t *testing.T) {
+	t.Run("strings", func(t *testing.T) {
+		tests := []struct {
+			name     string
+			input    []string
+			expected []string
+		}{
+			{name: "nil stays nil", input: nil, expected: nil},
+			{name: "empty stays empty", input: []string{}, expected: []string{}},
+			{name: "no duplicates is unchanged", input: []string{"a", "b", "c"}, expected: []string{"a", "b", "c"}},
+			{name: "adjacent duplicates", input: []string{"a", "a", "b"}, expected: []string{"a", "b"}},
+			{name: "non-adjacent duplicates keep first occurrence order", input: []string{"b", "a", "b", "c", "a"}, expected: []string{"b", "a", "c"}},
+			{name: "all duplicates", input: []string{"a", "a", "a"}, expected: []string{"a"}},
+			{name: "empty string is a value like any other", input: []string{"", "a", ""}, expected: []string{"", "a"}},
+		}
+
+		for _, tc := range tests {
+			t.Run(tc.name, func(t *testing.T) {
+				result := Dedup(tc.input)
+				if !reflect.DeepEqual(result, tc.expected) {
+					t.Errorf("Dedup(%v) = %v, want %v", tc.input, result, tc.expected)
+				}
+				if tc.input == nil && result != nil {
+					t.Errorf("Dedup(nil) should stay nil, got %v", result)
+				}
+			})
+		}
+	})
+
+	t.Run("integers", func(t *testing.T) {
+		result := Dedup([]int{3, 1, 3, 2, 1})
+		expected := []int{3, 1, 2}
+		if !reflect.DeepEqual(result, expected) {
+			t.Errorf("Dedup() = %v, want %v", result, expected)
+		}
+	})
+
+	t.Run("structs", func(t *testing.T) {
+		type key struct {
+			Group string
+			ID    int
+		}
+
+		result := Dedup([]key{{"a", 1}, {"a", 1}, {"a", 2}, {"b", 1}})
+		expected := []key{{"a", 1}, {"a", 2}, {"b", 1}}
+		if !reflect.DeepEqual(result, expected) {
+			t.Errorf("Dedup() = %v, want %v", result, expected)
+		}
+	})
+
+	t.Run("does not modify the input", func(t *testing.T) {
+		input := []string{"a", "b", "a"}
+		Dedup(input)
+
+		if !reflect.DeepEqual(input, []string{"a", "b", "a"}) {
+			t.Errorf("Dedup mutated its input: %v", input)
+		}
+	})
+}
 
 func TestFindExclusives(t *testing.T) {
 	t.Run("integers", func(t *testing.T) {
@@ -102,12 +162,12 @@ func TestFindExclusives(t *testing.T) {
 			t.Run(tt.name, func(t *testing.T) {
 				exclusive1, exclusive2, common := FindExclusives(tt.arr1, tt.arr2)
 
-				sort.Ints(exclusive1)
-				sort.Ints(exclusive2)
-				sort.Ints(common)
-				sort.Ints(tt.expectedExclusive1)
-				sort.Ints(tt.expectedExclusive2)
-				sort.Ints(tt.expectedCommon)
+				slices.Sort(exclusive1)
+				slices.Sort(exclusive2)
+				slices.Sort(common)
+				slices.Sort(tt.expectedExclusive1)
+				slices.Sort(tt.expectedExclusive2)
+				slices.Sort(tt.expectedCommon)
 
 				if !reflect.DeepEqual(exclusive1, tt.expectedExclusive1) {
 					t.Errorf("Exclusive to arr1: expected %v, got %v", tt.expectedExclusive1, exclusive1)
@@ -213,12 +273,12 @@ func TestFindExclusives(t *testing.T) {
 			t.Run(tt.name, func(t *testing.T) {
 				exclusive1, exclusive2, common := FindExclusives(tt.arr1, tt.arr2)
 
-				sort.Strings(exclusive1)
-				sort.Strings(exclusive2)
-				sort.Strings(common)
-				sort.Strings(tt.expectedExclusive1)
-				sort.Strings(tt.expectedExclusive2)
-				sort.Strings(tt.expectedCommon)
+				slices.Sort(exclusive1)
+				slices.Sort(exclusive2)
+				slices.Sort(common)
+				slices.Sort(tt.expectedExclusive1)
+				slices.Sort(tt.expectedExclusive2)
+				slices.Sort(tt.expectedCommon)
 
 				if !reflect.DeepEqual(exclusive1, tt.expectedExclusive1) {
 					t.Errorf("Exclusive to arr1: expected %v, got %v", tt.expectedExclusive1, exclusive1)
@@ -417,24 +477,12 @@ func TestFindExclusives(t *testing.T) {
 			t.Run(tt.name, func(t *testing.T) {
 				exclusive1, exclusive2, common := FindExclusives(tt.arr1, tt.arr2)
 
-				sort.Slice(exclusive1, func(i, j int) bool {
-					return exclusive1[i].Before(exclusive1[j])
-				})
-				sort.Slice(exclusive2, func(i, j int) bool {
-					return exclusive2[i].Before(exclusive2[j])
-				})
-				sort.Slice(common, func(i, j int) bool {
-					return common[i].Before(common[j])
-				})
-				sort.Slice(tt.expectedExclusive1, func(i, j int) bool {
-					return tt.expectedExclusive1[i].Before(tt.expectedExclusive1[j])
-				})
-				sort.Slice(tt.expectedExclusive2, func(i, j int) bool {
-					return tt.expectedExclusive2[i].Before(tt.expectedExclusive2[j])
-				})
-				sort.Slice(tt.expectedCommon, func(i, j int) bool {
-					return tt.expectedCommon[i].Before(tt.expectedCommon[j])
-				})
+				slices.SortFunc(exclusive1, func(a, b time.Time) int { return a.Compare(b) })
+				slices.SortFunc(exclusive2, func(a, b time.Time) int { return a.Compare(b) })
+				slices.SortFunc(common, func(a, b time.Time) int { return a.Compare(b) })
+				slices.SortFunc(tt.expectedExclusive1, func(a, b time.Time) int { return a.Compare(b) })
+				slices.SortFunc(tt.expectedExclusive2, func(a, b time.Time) int { return a.Compare(b) })
+				slices.SortFunc(tt.expectedCommon, func(a, b time.Time) int { return a.Compare(b) })
 
 				if !reflect.DeepEqual(exclusive1, tt.expectedExclusive1) {
 					t.Errorf("Exclusive to arr1: expected %v, got %v", tt.expectedExclusive1, exclusive1)

@@ -147,8 +147,7 @@ describe('components/team_settings/TeamMembershipTab', () => {
             data: {
                 policy: {
                     id: 'team_id',
-                    active: true,
-                    rules: [{actions: ['membership'], expression: 'user.attributes.department in ["Engineering"]'}],
+                    rules: [{actions: ['membership'], expression: 'user.attributes.department in ["Engineering"]', metadata: {auto_add: 'always'}}],
                     imports: [],
                 },
                 enforced: true,
@@ -173,7 +172,6 @@ describe('components/team_settings/TeamMembershipTab', () => {
             data: {
                 policy: {
                     id: 'team_id',
-                    active: false,
                     rules: [{actions: ['membership'], expression: 'user.attributes.department in ["Engineering"]'}],
                     imports: [],
                 },
@@ -198,13 +196,12 @@ describe('components/team_settings/TeamMembershipTab', () => {
         expect(screen.queryByText(/who no longer match will be removed/i)).not.toBeInTheDocument();
     });
 
-    it('shows system policy indicator when parent policies are applied', async () => {
+    it('shows system policy indicator from parent_policies returned by the team policy endpoint', async () => {
         const parentPolicy = {
             id: 'parent_policy_id',
             name: 'Global Policy',
-            type: 'team',
-            active: true,
-            rules: [{actions: ['membership'], expression: 'user.attributes.location in ["US"]'}],
+            type: 'parent',
+            rules: [{actions: ['membership'], expression: 'user.attributes.location in ["US"]', metadata: {auto_add: 'always'}}],
             imports: [],
         };
 
@@ -213,23 +210,27 @@ describe('components/team_settings/TeamMembershipTab', () => {
             data: {
                 policy: {
                     id: 'team_id',
-                    active: false,
                     rules: [],
                     imports: ['parent_policy_id'],
                 },
                 enforced: true,
+
+                // The server resolves imported parent policies so team admins — who cannot
+                // fetch a parent policy directly — can still render the banner.
+                parent_policies: [parentPolicy],
             },
         }));
-        mockActions.getChannelPolicy.mockResolvedValue({data: parentPolicy});
 
         renderWithContext(
             <TeamMembershipTab {...baseProps}/>,
             initialState,
         );
 
+        // The banner renders the resolved parent policy name without any getChannelPolicy call.
         await waitFor(() => {
-            expect(mockActions.getChannelPolicy).toHaveBeenCalledWith('parent_policy_id');
+            expect(screen.getByText('Global Policy')).toBeInTheDocument();
         });
+        expect(mockActions.getChannelPolicy).not.toHaveBeenCalled();
     });
 
     it('triggers createAccessControlTeamSyncJob on a rule change even with auto-add off', async () => {
@@ -267,7 +268,6 @@ describe('components/team_settings/TeamMembershipTab', () => {
             data: {
                 policy: {
                     id: 'team_id',
-                    active: false,
                     rules: [{actions: ['membership'], expression: 'user.attributes.department in ["Engineering"]'}],
                     imports: [],
                 },
@@ -303,8 +303,7 @@ describe('components/team_settings/TeamMembershipTab', () => {
             data: {
                 policy: {
                     id: 'team_id',
-                    active: true,
-                    rules: [{actions: ['membership'], expression: 'user.attributes.department in ["Engineering"]'}],
+                    rules: [{actions: ['membership'], expression: 'user.attributes.department in ["Engineering"]', metadata: {auto_add: 'always'}}],
                     imports: [],
                 },
                 enforced: true,
@@ -341,8 +340,7 @@ describe('components/team_settings/TeamMembershipTab', () => {
             data: {
                 policy: {
                     id: 'team_id',
-                    active: true,
-                    rules: [{actions: ['membership'], expression: 'user.attributes.department in ["Engineering"]'}],
+                    rules: [{actions: ['membership'], expression: 'user.attributes.department in ["Engineering"]', metadata: {auto_add: 'always'}}],
                     imports: [],
                 },
                 enforced: true,
@@ -371,7 +369,6 @@ describe('components/team_settings/TeamMembershipTab', () => {
             data: {
                 policy: {
                     id: 'team_id',
-                    active: false,
                     rules: [{actions: ['membership'], expression: 'user.attributes.department in ["Engineering"]'}],
                     imports: [],
                 },
@@ -408,7 +405,6 @@ describe('components/team_settings/TeamMembershipTab', () => {
             data: {
                 policy: {
                     id: 'team_id',
-                    active: false,
                     rules: [{actions: ['membership'], expression: 'user.attributes.department in ["Engineering"]'}],
                     imports: ['parent_policy_id'],
                 },
@@ -441,7 +437,6 @@ describe('components/team_settings/TeamMembershipTab', () => {
             data: {
                 policy: {
                     id: 'team_id',
-                    active: false,
                     rules: [{actions: ['membership'], expression: 'user.attributes.department in ["Engineering"]'}],
                     imports: [],
                 },
@@ -505,7 +500,7 @@ describe('components/team_settings/TeamMembershipTab', () => {
     it('does not block self-exclusion on a public team (advisory: no removal)', async () => {
         const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');
         getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
-            data: {policy: {id: 'team_id', active: false, rules: [], imports: []}, enforced: false},
+            data: {policy: {id: 'team_id', rules: [], imports: []}, enforced: false},
         }));
         mockActions.validateExpressionAgainstRequester.mockResolvedValue({
             data: {requester_matches: false},
@@ -531,7 +526,7 @@ describe('components/team_settings/TeamMembershipTab', () => {
     it('blocks save with the strict self-exclusion message on a private team', async () => {
         const {getTeamAccessControlPolicy} = require('mattermost-redux/actions/access_control');
         getTeamAccessControlPolicy.mockImplementation(() => () => Promise.resolve({
-            data: {policy: {id: 'team_id', active: false, rules: [], imports: []}, enforced: false},
+            data: {policy: {id: 'team_id', rules: [], imports: []}, enforced: false},
         }));
         mockActions.validateExpressionAgainstRequester.mockResolvedValue({
             data: {requester_matches: false},
@@ -636,8 +631,7 @@ describe('components/team_settings/TeamMembershipTab', () => {
             id: 'parent_policy_id',
             name: 'Global Policy',
             type: 'team',
-            active: true,
-            rules: [{actions: ['membership'], expression: 'user.attributes.location in ["US"]'}],
+            rules: [{actions: ['membership'], expression: 'user.attributes.location in ["US"]', metadata: {auto_add: 'always'}}],
             imports: [],
         };
 
@@ -646,14 +640,13 @@ describe('components/team_settings/TeamMembershipTab', () => {
             data: {
                 policy: {
                     id: 'team_id',
-                    active: false,
                     rules: [],
                     imports: ['parent_policy_id'],
                 },
                 enforced: true,
+                parent_policies: [parentPolicy],
             },
         }));
-        mockActions.getChannelPolicy.mockResolvedValue({data: parentPolicy});
         mockActions.searchUsers.mockResolvedValue({data: {users: [], total: 3}});
 
         const privateTeam = TestHelper.getTeamMock({
@@ -668,8 +661,8 @@ describe('components/team_settings/TeamMembershipTab', () => {
             initialState,
         );
 
-        // Wait until the parent/system policy has been loaded into state.
-        await waitFor(() => expect(mockActions.getChannelPolicy).toHaveBeenCalledWith('parent_policy_id'));
+        // Wait until the parent/system policy has been loaded into state (banner renders its name).
+        await waitFor(() => expect(screen.getByText('Global Policy')).toBeInTheDocument());
 
         // Add a custom rule via the editor, then save to open the confirm modal.
         await userEvent.click(screen.getByTestId('table-editor-change'));
@@ -692,7 +685,6 @@ describe('components/team_settings/TeamMembershipTab', () => {
             data: {
                 policy: {
                     id: 'team_id',
-                    active: false,
                     rules: [{actions: ['membership'], expression: maskedExpression}],
                     imports: [],
                 },
@@ -710,7 +702,7 @@ describe('components/team_settings/TeamMembershipTab', () => {
         const TableEditorMock = TableEditor as jest.MockedFunction<typeof TableEditor>;
         expect(TableEditorMock).toHaveBeenCalledWith(
             expect.objectContaining({value: maskedExpression}),
-            expect.anything(),
+            undefined,
         );
     });
 });

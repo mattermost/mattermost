@@ -886,7 +886,7 @@ See [this walkthrough video](https://www.youtube.com/watch?v=b1M2BGGF578&feature
     - Added two new configuration settings, ``MessageRetentionHours`` and ``FileRetentionHours``, in order to support setting your global retention time in hours. ``DataRetentionSettings.MessageRetentionDays`` and ``DataRetentionSettings.FileRetentionDays`` are deprecated but we will continue to use their value until you set something for their hours equivalent. If Days are set then the hours configuration must be 0 and if hours is set then the days config must be 0. We do not support hours for granular retention policies. Due to how our Elasticsearch indexes are stored, Data retention will now also remove elastic search indexes equal to the day of the retention cut-off time.
 
 ### API Changes
- - Added a new API endpoint ``POST /api/v4/posts/&lt;post ID&gt;/move``.
+ - Added a new API endpoint ``POST /api/v4/posts/<post ID>/move``.
  - Added ``UpdateChannelMembersNotifications`` plugin API.
  - Added plugin APIs and hooks for accessing the **Shared Channels** service via plugins.
  - Added a limit to the payload size of API endpoints passing in arrays.
@@ -1331,8 +1331,8 @@ Multiple setting options were added to ``config.json``. Below is a list of the a
 ### API Changes
  - Added the ``X-Forwarded-For`` request header to the audit stream for all Rest API calls.
  - Added API endpoint ``POST /api/v4/user/login/desktop_login``. Modified OAuth/SAML flows to include ``desktop_login`` where applicable.
- - Added new API endpoint ``GET`` ``/api/v4/channels/&lt;channel-id&gt;/common_teams`` to fetch list of teams common between members of a group message.
- - Added new API endpoint ``POST`` ``/api/v4/channels/&lt;channel-id&gt;/convert_to_channel`` to convert a group message to a private channel.
+ - Added new API endpoint ``GET`` ``/api/v4/channels/<channel-id>/common_teams`` to fetch list of teams common between members of a group message.
+ - Added new API endpoint ``POST`` ``/api/v4/channels/<channel-id>/convert_to_channel`` to convert a group message to a private channel.
  - Added a new ``MessageHasBeenDeleted`` hook to the plugin API.
  - Moved the ``request`` package into the public shared folder.
 
@@ -2492,7 +2492,7 @@ Multiple setting options were added to ``config.json``. Below is a list of the a
  - Added two new URL parameters to the ``GET /api/v4/groups`` endpoint to get the ``ChannelMemberCount`` for a group.
  - Added new API endpoints ``POST /api/v4/users/:user_id/posts/:post_id/ack`` and ``DELETE /api/v4/users/:user_id/posts/:post_id/ack``.
  - Added a new API endpoint ``POST /api/v4/groups/:group_id:/restore``.
- - Added an allowed value ``sort=display_name`` to ``GET /api/v4/users?in_group=&lt;groupid&gt;``.
+ - Added an allowed value ``sort=display_name`` to ``GET /api/v4/users?in_group=<groupid>``.
  - Added a new endpoint ``api/v4/cloud/products/selfhosted``.
  - A new API method ``RegisterCollectionAndTopic(collectionType, topicType string) (error)`` was added to the Plugin API and the following hooks. This API method is in beta, subject to change, and not covered by our backwards compatibility guarantee.
     - ``UserHasPermissionToCollection(c *Context, userID, collectionType, collectionId string, permission *model.Permission) (bool, error)``
@@ -3730,7 +3730,7 @@ Mattermost v6.4.0 contains low severity level security fixes. [Upgrading](https:
 ### Important Upgrade Notes
  - A new schema migration system has been introduced, so we strongly recommend backing up the database before updating the server to this version. The new migration system will run through all existing migrations to record them to a new table. This will only happen for the first run in order to migrate the application to the new system. The table where migration information is stored is called ``db_migrations``. Additionally, a ``db_lock`` table is used to prevent multiple installations from running migrations in parallel. Any downtime depends on how many records the database has and whether there are missing migrations in the schema. In case of an error while applying the migrations, please check this table first. If you encounter an issue please file [an Issue](https://github.com/mattermost/mattermost-server/issues) by including the failing migration name, database driver/version, and the server logs. 
  - On MySQL, if you encounter an error "Failed to apply database migrations" when upgrading to v6.4.0, it means that there is a mismatch between the table collation and the default database collation. You can manually fix this by changing the database collation with ``ALTER DATABASE <YOUR_DB_NAME> COLLATE = 'utf8mb4_general_ci',``. Then do the server upgrade again and the migration will be successful. 
- - It has been commonly observed on MySQL 8+ systems to have an error ``Error 1267: Illegal mix of collations`` when upgrading due to changing the default collation. This is caused by the database and the tables having different collations. If you get this error, please change the collations to have the same value with, for example, ``ALTER DATABASE <db_name> COLLATE = '&lt;collation&gt;'``.
+ - It has been commonly observed on MySQL 8+ systems to have an error ``Error 1267: Illegal mix of collations`` when upgrading due to changing the default collation. This is caused by the database and the tables having different collations. If you get this error, please change the collations to have the same value with, for example, ``ALTER DATABASE <db_name> COLLATE = '<collation>'``.
  - The new migration system requires the MySQL database user to have additional *EXECUTE*, *CREATE ROUTINE*, *ALTER ROUTINE* and *REFERENCES* privileges to run schema migrations.                   
 
 <Important>
@@ -4311,9 +4311,9 @@ Multiple setting options were added to ``config.json``. Below is a list of the a
    2. Medium effort, medium downtime - This process will require SQL queries to be executed manually on the server. To avoid causing a table lock, a customer can choose to use the pt-online-schema-change tool for MySQL. For Postgres, the table locking is very minimal. The advantage is that since there are a lot of queries, the customer can take their own time to run individual queries during off-hours. All queries except #11 are safe to be executed this way. Then the usual method of (1) can be followed.
    3. High effort, low downtime - This process requires everything of (2), plus it tries to minimize the impact of query #11. We can do this by following step 2, and then starting v6 along with a running v5 server, and then monitor the application logs. As soon as the v6 application starts up, we need to bring down a v5 node. This minimizes the downtime to only a few seconds.
  - While trying to upgrade to a Mattermost version >= 6.0.x, you might encounter the following error: ``Failed to alter column type. It is likely you have invalid JSON values in the column. Please fix the values manually and run the migration again.`` This means that the particular column has some invalid JSON values which need to be fixed manually. A common fix that is known to work is to wipe out all \u0000 characters. Please follow these steps:
-   1. Check the affected values by: ``SELECT COUNT(*) FROM &lt;table&gt; WHERE &lt;column&gt; LIKE '%\u0000%';``
+   1. Check the affected values by: ``SELECT COUNT(*) FROM <table> WHERE <column> LIKE '%\u0000%';``
    2. If you get a count more than 0, check those values manually, and confirm they are okay to be removed.
-   3. Remove them by ``UPDATE &lt;table&gt; SET &lt;column&gt; = regexp_replace(&lt;column&gt;, '\\u0000', '', 'g') where &lt;column&gt; like '%\u0000%';``
+   3. Remove them by ``UPDATE <table> SET <column> = regexp_replace(<column>, '\\u0000', '', 'g') where <column> like '%\u0000%';``
    4. Then try to start Mattermost again.
  - Focalboard plugin has been renamed to Mattermost Boards, and v0.9.1 (released with Mattermost v6.0) is now enabled by default.
  - The advanced logging configuration schema changed. This is a breaking change relative to 5.x. See updated [documentation](https://docs.mattermost.com/comply/audit-log.html).
@@ -4731,7 +4731,7 @@ If you upgrade from a release earlier than v5.37, please read the other [Importa
  - Fixed an issue where admin advisor notifications were accidentally re-enabled in a previous release.
  - Fixed various bugs for the Collapsed Reply Threads (Beta) feature, including:
    - Fixed an issue where an error occurred while following a thread with no replies.
-   - Fixed an issue where ``reply_count`` of 0 was always returned for GET single Post on ``/posts/&lt;postid&gt;`` API.
+   - Fixed an issue where ``reply_count`` of 0 was always returned for GET single Post on ``/posts/<postid>`` API.
    - Fixed an issue where following a single message returned a status 500.
    - Fixed an issue where when replying in a thread after unfollowing it, the thread was not auto-followed again.
    - Fixed an issue where when enabling Collapsed Reply Threads, channels that had no new activity were showing as unread.
@@ -5565,7 +5565,7 @@ Multiple setting options were added to ``config.json``. Below is a list of the a
  - Added a new ``/users/&#123;user_id&#125;/teams/&#123;team_id&#125;/threads/mention_counts`` API endpoint.
  - Added a new ``GET /api/v4/cloud/subscription/stats`` API endpoint.
  - Added a new ``GET /api/v4/cloud/subscription/limitreached/invite`` API endpoint.
- - Added new ``PUT /api/v4/users/&lt;id&gt;/status/custom``, ``DELETE /api/v4/users/&lt;id&gt;/status/custom``, and ``DELETE /api/v4/users/&lt;id&gt;/status/custom/recent`` API endpoints.
+ - Added new ``PUT /api/v4/users/<id>/status/custom``, ``DELETE /api/v4/users/<id>/status/custom``, and ``DELETE /api/v4/users/<id>/status/custom/recent`` API endpoints.
  - The ``/api/v4/users/me/auth`` API endpoint can no longer be used to change passwords. This was a hidden feature that was not documented, but was nevertheless possible. We have removed this hidden feature.
  - Updated ``/users/&#123;user_id&#125;/teams/&#123;team_id&#125;/threads`` API to support the ``unread=true`` query parameter.
  - The ``/api/v4/users/&#123;user_id&#125;/teams/&#123;team_id&#125;/threads`` API endpoint now accepts "before" and "after" parameters instead of a page index.
@@ -6287,7 +6287,7 @@ Mattermost v5.27.0 contains a low level security fix. [Upgrading](https://docs.m
 
 ### Breaking Changes
  - In v5.26, Elasticsearch indexes needed to be recreated. Admins should re-index Elasticsearch using the **Purge index** and then **Index now** button so that all the changes will be included in the index. Systems may be left with a limited search during the indexing, so it should be done during a time when there is little to no activity because it may take several hours.
- - An ``EnableExperimentalGossipEncryption`` option was added under ``ClusterSettings``. If this is set to ``true``, and ``UseExperimentalGossip`` is also ``true``, all communication through the cluster using the gossip protocol will be encrypted. The encryption uses ``AES-256`` by default, and it is not kept configurable by design. However, if one wishes, they can set the value in Systems table manually for the ``ClusterEncryptionKey`` row. A key is a byte array converted to base64. It should be either 16, 24, or 32 bytes to select AES-128, AES-192, or AES-256. To update the key, one can execute ``UPDATE Systems SET Value='&lt;value&gt;' WHERE Name='ClusterEncryptionKey';`` in MySQL and ``UPDATE systems SET value='&lt;value&gt;' WHERE name='ClusterEncryptionKey'`` for PostgreSQL. For any change in this config setting to take effect, the whole cluster must be shutdown first. Then the config change made, and then restarted. In a cluster, all servers either will completely use encryption or not. There cannot be any partial usage.
+ - An ``EnableExperimentalGossipEncryption`` option was added under ``ClusterSettings``. If this is set to ``true``, and ``UseExperimentalGossip`` is also ``true``, all communication through the cluster using the gossip protocol will be encrypted. The encryption uses ``AES-256`` by default, and it is not kept configurable by design. However, if one wishes, they can set the value in Systems table manually for the ``ClusterEncryptionKey`` row. A key is a byte array converted to base64. It should be either 16, 24, or 32 bytes to select AES-128, AES-192, or AES-256. To update the key, one can execute ``UPDATE Systems SET Value='<value>' WHERE Name='ClusterEncryptionKey';`` in MySQL and ``UPDATE systems SET value='<value>' WHERE name='ClusterEncryptionKey'`` for PostgreSQL. For any change in this config setting to take effect, the whole cluster must be shutdown first. Then the config change made, and then restarted. In a cluster, all servers either will completely use encryption or not. There cannot be any partial usage.
 
 <Important>
 
@@ -7166,7 +7166,7 @@ If you upgrade from a release earlier than 5.18, please read the other [Importan
  - Fixed an issue where the Menu help text was truncated in English for Do Not Disturb status.
  - Fixed an issue where the height and width parameters in inline images didn't work.
  - Fixed an issue where the day picker in after/before search didn't honor the user's timezone override.
- - Fixed an issue where editing a post and hitting ``&lt;enter&gt;`` in code block saved the post automatically instead of adding a newline.
+ - Fixed an issue where editing a post and hitting ``<enter>`` in code block saved the post automatically instead of adding a newline.
  - Fixed an issue where users were unable to close the Edit Channel Header modal when opened from the Intro Message.
  - Fixed an issue where opening the channel picker using CTRL+K and then focusing on the message box using CTRL+SHIFT+L did not close the channel picker.
  - Fixed an issue where the at-mention suggestions still highlighted the previous search but not the first suggestion in the list.
@@ -12485,7 +12485,7 @@ Many thanks to all our contributors. In alphabetical order:
 
 ### Bug Fixes
 
-- Fixed an error where a channel would no longer load after using a GitLab built-in Mattermost slash command `/project issue show &lt;number&gt;`
+- Fixed an error where a channel would no longer load after using a GitLab built-in Mattermost slash command `/project issue show <number>`
 - Outdated results in modal searches are now properly discarded
 - Fixed order of channels on the sidebar
 - Fixed search highlighting for wildcard searches and hashtags

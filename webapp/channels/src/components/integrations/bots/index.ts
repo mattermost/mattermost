@@ -10,7 +10,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {loadBots, disableBot, enableBot} from 'mattermost-redux/actions/bots';
 import {getAppsBotIDs as fetchAppsBotIDs} from 'mattermost-redux/actions/integrations';
-import {createUserAccessToken, revokeUserAccessToken, enableUserAccessToken, disableUserAccessToken, getUserAccessTokensForUser, getUser} from 'mattermost-redux/actions/users';
+import {createUserAccessToken, revokeUserAccessToken, enableUserAccessToken, disableUserAccessToken, getUserAccessTokensForUser, getUser, rotateUserAccessToken} from 'mattermost-redux/actions/users';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {getExternalBotAccounts} from 'mattermost-redux/selectors/entities/bots';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
@@ -26,6 +26,7 @@ import Bots from './bots';
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
     const createBots = config.EnableBotAccountCreation === 'true';
+    const maxLifetimeDays = parseInt(config.MaximumPersonalAccessTokenLifetimeDays || '0', 10);
     const bots = getExternalBotAccounts(state);
     const botValues = Object.values(bots);
     const owners = botValues.
@@ -53,6 +54,7 @@ function mapStateToProps(state: GlobalState) {
         pluginDisplayNames,
         appsBotIDs: getAppsBotIDs(state),
         appsEnabled: appsEnabled(state),
+        maxLifetimeDays: Number.isFinite(maxLifetimeDays) ? maxLifetimeDays : 0,
     };
 }
 
@@ -66,6 +68,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             revokeUserAccessToken,
             enableUserAccessToken,
             disableUserAccessToken,
+            rotateUserAccessToken,
             getUser,
             disableBot,
             enableBot,

@@ -4,6 +4,7 @@
 package model
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -47,7 +48,13 @@ func TestNativeUserAttributeFields(t *testing.T) {
 			require.NotNil(t, f)
 			assert.Equal(t, PropertyFieldTypeSelect, f.Type)
 			assert.Equal(t, []string{"==", "!="}, f.Attrs[NativeAttributeAttrOperators])
-			assert.Equal(t, []map[string]string{{"name": "true"}, {"name": "false"}}, f.Attrs[PropertyFieldAttributeOptions])
+			// []any/map[string]any so the field survives the plugin RPC
+			// boundary; the JSON shape is pinned below.
+			assert.Equal(t, []any{map[string]any{"name": "true"}, map[string]any{"name": "false"}}, f.Attrs[PropertyFieldAttributeOptions])
+
+			data, err := json.Marshal(f.Attrs[PropertyFieldAttributeOptions])
+			require.NoError(t, err)
+			assert.JSONEq(t, `[{"name":"true"},{"name":"false"}]`, string(data))
 		})
 	}
 

@@ -5,7 +5,7 @@
  *   page.addStyleTag({ path: 'pdf/styles/print.css' })
  * before printing.
  *
- * Why this lives here instead of docs-site/src/css:
+ * Why this lives here instead of docs/site/src/css:
  *   The docs site is media-screen first; print is a publishing artifact
  *   produced by a separate pipeline. Keeping the print CSS next to the
  *   PDF builder makes the dependency obvious and lets us iterate on
@@ -13,7 +13,7 @@
  *
  * If you need to move it back into the docs site (e.g., to enable a
  * "Download PDF" button that does in-browser print-preview), drop it
- * into docs-site/src/css/ and add a `<link rel="stylesheet"
+ * into docs/site/src/css/ and add a `<link rel="stylesheet"
  * media="print" …>` reference.
  */
 
@@ -333,6 +333,33 @@ tbody tr { page-break-inside: avoid; }
 }
 [class*="card"] [class*="arrow"] { display: none !important; }
 [class*="card"] [class*="icon"]  { display: none !important; }
+
+/* CardGrid compact variant — hashed class names are `chip_*`, so the
+ * `[class*="card"]` rules above don't reach it. Collapse to the same
+ * list, one weight down. */
+[class*="chipRow"] {
+  display: block !important;
+}
+[class*="chip_"] {
+  display: block !important;
+  margin: 3pt 0 !important;
+  padding: 4pt 8pt !important;
+  border: 0.5pt solid #D6DDEC !important;
+  border-radius: 2pt !important;
+  background: #FFFFFF !important;
+  box-shadow: none !important;
+  page-break-inside: avoid;
+}
+[class*="chipTitle"] {
+  font-family: 'Archivo Black', system-ui, sans-serif;
+  font-size: 9.5pt;
+  color: #1E325C !important;
+}
+[class*="chipDescription"] {
+  font-size: 8.5pt;
+  color: #1B1D22 !important;
+}
+[class*="chipArrow"] { display: none !important; }
 
 /* ============================================================
  * OpenAPI plugin — print-specific overrides

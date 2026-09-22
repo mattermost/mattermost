@@ -26,12 +26,20 @@ describe('components/TeamSettings/OpenInvite', () => {
         );
         expect(screen.getByText(/members of this team are added and removed by linked groups/i)).toBeInTheDocument();
         expect(screen.getByText('Learn More')).toBeInTheDocument();
+        expect(screen.getByText(/Public teams appear on the server landing page/i)).toBeInTheDocument();
+        expect(screen.queryByText(/Switching a team from Public to Private/i)).not.toBeInTheDocument();
     });
 
     test('renders Public and Private option buttons when not group-constrained', () => {
         renderWithContext(<OpenInvite {...defaultProps}/>);
         expect(screen.getByText('Public Team')).toBeInTheDocument();
         expect(screen.getByText('Private Team')).toBeInTheDocument();
+    });
+
+    test('renders the updated discoverability help text, not the stale checkbox copy', () => {
+        renderWithContext(<OpenInvite {...defaultProps}/>);
+        expect(screen.getByText(/Switching a team from Public to Private regenerates its invitation code/i)).toBeInTheDocument();
+        expect(screen.queryByText(/Changing from 'Yes' to 'No'/i)).not.toBeInTheDocument();
     });
 
     test('calls onChange(true) when Public Team card is clicked while private', async () => {

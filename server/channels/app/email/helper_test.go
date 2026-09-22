@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -106,12 +107,14 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 	require.True(tb, ok)
 	htmlTemplates, err := templates.New(templatesDir)
 	require.NoError(tb, err)
+	logger := mlog.CreateConsoleTestLogger(tb)
 
 	service := &Service{
 		store:              s,
 		userService:        us,
 		license:            licenseFn,
 		config:             configStore.Get,
+		logger:             logger,
 		templatesContainer: htmlTemplates,
 	}
 
@@ -143,17 +146,17 @@ func (th *TestHelper) InitBasic(tb testing.TB) *TestHelper {
 	th.BasicTeam = th.CreateTeam(tb)
 
 	th.SystemAdminUser = th.CreateUser(tb)
-	th.SystemAdminUser, err = th.service.userService.GetUser(th.SystemAdminUser.Id)
+	th.SystemAdminUser, err = th.service.userService.GetUser(th.Context, th.SystemAdminUser.Id)
 	require.NoError(tb, err)
 	th.addUserToTeam(tb, th.BasicTeam, th.SystemAdminUser)
 
 	th.BasicUser = th.CreateUser(tb)
-	th.BasicUser, err = th.service.userService.GetUser(th.BasicUser.Id)
+	th.BasicUser, err = th.service.userService.GetUser(th.Context, th.BasicUser.Id)
 	require.NoError(tb, err)
 	th.addUserToTeam(tb, th.BasicTeam, th.BasicUser)
 
 	th.BasicUser2 = th.CreateUser(tb)
-	th.BasicUser2, err = th.service.userService.GetUser(th.BasicUser2.Id)
+	th.BasicUser2, err = th.service.userService.GetUser(th.Context, th.BasicUser2.Id)
 	require.NoError(tb, err)
 	th.addUserToTeam(tb, th.BasicTeam, th.BasicUser2)
 

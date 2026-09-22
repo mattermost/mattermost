@@ -9,6 +9,7 @@ This package contains mattermost-specific go-vet rules that are used to maintain
 1. **license** - check the license header
 1. **openApiSync** - check for inconsistencies between OpenAPI spec and the source code
 1. **structuredLogging** - check invalid usage of logging (must use structured logging)
+1. **mlogFieldNaming** - check that mlog field keys are snake_case
 1. **tFatal** - check invalid usage of t.Fatal assertions (instead of testify methods)
 1. **apiAuditLogs** - check that audit records are properly created in the API layer
 1. **rawSql** - check invalid usage of raw SQL queries instead of using the squirrel lib
@@ -18,6 +19,7 @@ This package contains mattermost-specific go-vet rules that are used to maintain
 1. **wrapError** - check for original errors being passed as details rather than wrapped
 1. **noSelectStar** - check for SQL queries using SELECT * which breaks forwards compatibility
 1. **requestCtxNaming** - check that request.CTX parameters are consistently named 'rctx'
+1. **sortSlices** - check for sort.Strings/sort.Ints/sort.Slice/sort.SliceStable calls, which should use the slices package instead
 
 ## Running Locally
 

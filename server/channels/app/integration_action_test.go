@@ -706,16 +706,123 @@ func TestPostActionProps(t *testing.T) {
 	assert.True(t, newPost.IsPinned)
 	assert.False(t, newPost.HasReactions)
 	assert.Nil(t, newPost.GetProp("B"))
-	assert.Nil(t, newPost.GetProp(model.PostPropsOverrideUsername))
 	assert.Equal(t, "AA", newPost.GetProp("A"))
-	assert.Equal(t, "old_override_icon", newPost.GetProp(model.PostPropsOverrideIconURL))
-	// from_webhook is NOT in the default SanitizeProps strip list under hardened-OFF (v11) — it
-	// remains user-settable for backward compatibility with the user-PAT-impersonation idiom.
-	// The client-supplied value survives sanitization. PostActionRetainPropKeys includes
-	// from_webhook, so the post-action update preserves it. (v12 will move the from_* markers
-	// into the default strip list — see SanitizeProps doc in public/model/post.go — and this
-	// assertion should flip back to nil.)
-	assert.Equal(t, "false", newPost.GetProp(model.PostPropsFromWebhook))
+	// v12: SanitizeProps strips from_*, override_*, and webhook_display_name by
+	// default. The test's original post is created via CreatePostAsUser (regular
+	// user, no integration flags), so the forged props ("override_icon_url",
+	// "from_webhook") never survive the initial CreatePost. PostActionRetainPropKeys
+	// then has nothing to carry forward — the retain map is empty and the values
+	// from the action responder are dropped through `remove`. The end state is a
+	// post that contains only the non-identity props the responder supplied.
+	assert.Nil(t, newPost.GetProp(model.PostPropsOverrideUsername))
+	assert.Nil(t, newPost.GetProp(model.PostPropsOverrideIconURL))
+	assert.Nil(t, newPost.GetProp(model.PostPropsFromWebhook))
+}
+
+// TestPostActionPropsRetainsIntegrationIdentity covers the v12 retain-on-update
+// contract: an interactive-action update on a post that was authored by a
+// trusted integration (incoming webhook here) must preserve the bot's display
+// identity. PostActionRetainPropKeys carries the values into the action
+// response, but UpdatePost's SanitizeProps strips them again — so the survival
+// relies on postIdentityPropsPreservedOnUpdate re-applying them from the prior
+// post. This is the regression test for that interaction.
+func TestPostActionPropsRetainsIntegrationIdentity(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+		*cfg.ServiceSettings.EnablePostUsernameOverride = true
+		*cfg.ServiceSettings.EnablePostIconOverride = true
+		*cfg.ServiceSettings.EnableIncomingWebhooks = true
+	})
+
+	hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{
+		ChannelId:   th.BasicChannel.Id,
+		DisplayName: "RetainHook",
+	})
+	require.Nil(t, appErr)
+	defer func() {
+		appErr = th.App.DeleteIncomingWebhook(hook.Id)
+		require.Nil(t, appErr)
+	}()
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var request model.PostActionIntegrationRequest
+		require.NoError(t, json.NewDecoder(r.Body).Decode(&request))
+		fmt.Fprintf(w, `{"update":{"message":"updated","props":{"A":"AA"}}}`)
+	}))
+	defer ts.Close()
+
+	attachments := []*model.MessageAttachment{
+		{
+			Text: "hello",
+			Actions: []*model.PostAction{
+				{
+					Name: "action",
+					Integration: &model.PostActionIntegration{
+						URL: ts.URL,
+					},
+				},
+			},
+		},
+	}
+
+	// override_icon_url is a hook-level fallback; override_icon_emoji is a
+	// per-message override that OverrideIconURLIfEmoji resolves into the actual
+	// displayable override_icon_url on the client-facing copy built after
+	// Store().Save (see post_metadata.go) — the persisted value, checked after
+	// the action update below, stays the raw fallback string.
+	expectedIconURL, appErr := th.App.GetEmojiStaticURL(th.Context, "robot")
+	require.Nil(t, appErr)
+
+	post, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "initial",
+		"OriginalBot", "http://example.com/icon.png", ":robot:",
+		model.StringInterface{
+			model.PostPropsAttachments:        attachments,
+			model.PostPropsWebhookDisplayName: hook.DisplayName,
+		},
+		model.PostTypeMessageAttachment, "", nil, false)
+	require.Nil(t, appErr)
+
+	// Sanity: CreatePost re-injected all four display-identity props under the
+	// FromIncomingWebhook authority.
+	require.Equal(t, "OriginalBot", post.GetProp(model.PostPropsOverrideUsername))
+	require.Equal(t, expectedIconURL, post.GetProp(model.PostPropsOverrideIconURL))
+	require.Equal(t, ":robot:", post.GetProp(model.PostPropsOverrideIconEmoji))
+	require.Equal(t, "RetainHook", post.GetProp(model.PostPropsWebhookDisplayName))
+
+	persistedAttachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
+	require.True(t, ok)
+
+	_, _, appErr = th.App.DoPostActionWithCookie(th.Context, post.Id, persistedAttachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
+	require.Nil(t, appErr)
+
+	newPost, nErr := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, false)
+	require.NoError(t, nErr)
+
+	assert.Equal(t, "updated", newPost.Message)
+	assert.Equal(t, "AA", newPost.GetProp("A"))
+
+	// All four display-identity props must survive the action update. Trace:
+	// DoPostActionWithCookie carries override_username/override_icon_url through
+	// PostActionRetainPropKeys into response.Update.Props; the action update then
+	// flows through UpdatePost, where SanitizeProps strips them again (v12 default)
+	// and postIdentityPropsPreservedOnUpdate restores all four from the prior
+	// post. The retain map adds nothing functional now that preservation covers
+	// the same keys, but it remains as the cookie-path carrier (where no oldPost
+	// is available — see DoPostActionWithCookie's cookie branch).
+	//
+	// newPost is read straight from the store, not from CreatePost's return
+	// value: OverrideIconURLIfEmoji resolves override_icon_emoji into the
+	// static emoji URL only on the client-facing copy built after Store().Save,
+	// so the persisted (and here, round-tripped) override_icon_url stays the
+	// raw fallback the webhook supplied.
+	assert.Equal(t, "OriginalBot", newPost.GetProp(model.PostPropsOverrideUsername))
+	assert.Equal(t, "http://example.com/icon.png", newPost.GetProp(model.PostPropsOverrideIconURL))
+	assert.Equal(t, ":robot:", newPost.GetProp(model.PostPropsOverrideIconEmoji))
+	assert.Equal(t, "RetainHook", newPost.GetProp(model.PostPropsWebhookDisplayName))
+	assert.Equal(t, "true", newPost.GetProp(model.PostPropsFromWebhook))
 }
 
 func TestSubmitInteractiveDialog(t *testing.T) {
@@ -1492,7 +1599,7 @@ func TestOpenInteractiveDialog(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	t.Run("should successfully open dialog with valid trigger ID", func(t *testing.T) {
-		_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.App.AsymmetricSigningKey())
+		_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.BasicChannel.Id, th.App.AsymmetricSigningKey())
 		require.Nil(t, err)
 
 		request := model.OpenDialogRequest{
@@ -1540,7 +1647,7 @@ func TestOpenInteractiveDialog(t *testing.T) {
 		})
 
 		// Generate trigger ID and wait for it to expire
-		_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.App.AsymmetricSigningKey())
+		_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.BasicChannel.Id, th.App.AsymmetricSigningKey())
 		require.Nil(t, err)
 
 		time.Sleep(2 * time.Second)
@@ -1560,7 +1667,7 @@ func TestOpenInteractiveDialog(t *testing.T) {
 	})
 
 	t.Run("should handle dialog with invalid elements", func(t *testing.T) {
-		_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.App.AsymmetricSigningKey())
+		_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.BasicChannel.Id, th.App.AsymmetricSigningKey())
 		require.Nil(t, err)
 
 		request := model.OpenDialogRequest{
@@ -1844,6 +1951,39 @@ func TestGetPostActionClient(t *testing.T) {
 			}
 		})
 	}
+
+	// DoActionRequest's callers put OutgoingIntegrationRequestsTimeout on the request context, so
+	// when a deadline is present the client must not add a timeout of its own that would cap a
+	// value configured above httpservice.RequestTimeout. A request without a deadline instead
+	// falls back to the configured timeout so it never runs unbounded.
+	t.Run("client timeout", func(t *testing.T) {
+		const configuredTimeout = 60 * time.Second
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://localhost:8065"
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = new(int64(configuredTimeout / time.Second))
+		})
+
+		deadlineCtx, cancel := context.WithTimeout(context.Background(), configuredTimeout)
+		defer cancel()
+
+		for _, rawURL := range []string{
+			"http://localhost:8065/plugins/myplugin/action", // trusted plugin route
+			"http://example.com/action",                     // untrusted external URL
+		} {
+			inURL, err := url.Parse(rawURL)
+			require.NoError(t, err)
+
+			req, err := http.NewRequest("POST", rawURL, nil)
+			require.NoError(t, err)
+
+			client := th.App.getPostActionClient(th.Context.WithContext(deadlineCtx), inURL, req)
+			assert.Zero(t, client.Timeout, "url: %s", rawURL)
+
+			client = th.App.getPostActionClient(th.Context, inURL, req)
+			assert.Equal(t, configuredTimeout, client.Timeout, "url: %s", rawURL)
+		}
+	})
 }
 
 func TestDoLocalRequest(t *testing.T) {
@@ -2056,6 +2196,133 @@ func TestCloneMmBlocksActionsProp(t *testing.T) {
 	})
 }
 
+// MM-60200: a slash command typed in a thread runs against the thread's channel, which is
+// not necessarily the one the client is displaying — and is empty in Threads, Drafts and
+// Recaps. The trigger must carry the channel the command executed against, so a dialog the
+// command opens submits there rather than wherever the client happens to be.
+//
+// This guards the single argument at command.go's GenerateTriggerId call: drop it and the
+// webapp tests still pass, because they only prove the client sent the channel.
+func TestExecuteCommandTriggerCarriesCommandChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableCommands = true
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+		*cfg.ServiceSettings.SiteURL = "http://localhost:8065"
+	})
+
+	// The command's integration receives the full trigger in the request form.
+	triggerIds := make(chan string, 1)
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// assert, not require: this runs on the server's goroutine, where FailNow would
+		// stop that goroutine instead of failing the test.
+		assert.NoError(t, r.ParseForm())
+		triggerIds <- r.FormValue("trigger_id")
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"text": "ok"}`))
+	}))
+	defer ts.Close()
+
+	_, appErr := th.App.CreateCommand(&model.Command{
+		CreatorId: th.BasicUser.Id,
+		TeamId:    th.BasicTeam.Id,
+		URL:       ts.URL,
+		Method:    model.CommandMethodPost,
+		Trigger:   "triggerchannelcmd",
+	})
+	require.Nil(t, appErr)
+
+	// Deliberately a different channel from th.BasicChannel: whatever channel the caller
+	// supplies is what must end up in the trigger.
+	commandChannel := th.CreateChannel(t, th.BasicTeam)
+
+	_, appErr = th.App.ExecuteCommand(th.Context, &model.CommandArgs{
+		Command:   "/triggerchannelcmd",
+		UserId:    th.BasicUser.Id,
+		TeamId:    th.BasicTeam.Id,
+		ChannelId: commandChannel.Id,
+	})
+	require.Nil(t, appErr)
+
+	var triggerId string
+	select {
+	case triggerId = <-triggerIds:
+	case <-time.After(5 * time.Second):
+		require.FailNow(t, "timed out waiting for the command's integration request")
+	}
+	require.NotEmpty(t, triggerId)
+
+	timeout := time.Duration(*th.App.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout) * time.Second
+	_, userID, channelID, appErr := model.DecodeAndVerifyTriggerId(triggerId, th.App.AsymmetricSigningKey(), timeout)
+	require.Nil(t, appErr)
+	assert.Equal(t, th.BasicUser.Id, userID)
+	assert.Equal(t, commandChannel.Id, channelID)
+}
+
+// MM-43351: an action button clicked from the global threads inbox has no current channel
+// on the client. The trigger must carry the post's own channel so the dialog it opens
+// submits against that channel instead of an empty one.
+func TestDoPostActionWithCookieTriggerCarriesPostChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	// The integration receives the full trigger, so capture it as sent upstream.
+	var received model.PostActionIntegrationRequest
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// assert, not require: this runs on the server's goroutine, where FailNow would
+		// stop that goroutine instead of failing the test.
+		assert.NoError(t, json.NewDecoder(r.Body).Decode(&received))
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{}`))
+	}))
+	defer ts.Close()
+
+	interactivePost := model.Post{
+		Message:       "Interactive post",
+		ChannelId:     th.BasicChannel.Id,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        th.BasicUser.Id,
+		Props: model.StringInterface{
+			model.PostPropsAttachments: []*model.MessageAttachment{
+				{
+					Text: "hello",
+					Actions: []*model.PostAction{
+						{
+							Type: model.PostActionTypeButton,
+							Name: "action",
+							Integration: &model.PostActionIntegration{
+								URL: ts.URL,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	post, _, err := th.App.CreatePostAsUser(th.Context, &interactivePost, "", true)
+	require.Nil(t, err)
+	attachments, ok := post.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
+	require.True(t, ok)
+	require.NotEmpty(t, attachments[0].Actions)
+
+	_, _, err = th.App.DoPostActionWithCookie(th.Context, post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil, nil, "")
+	require.Nil(t, err)
+	require.NotEmpty(t, received.TriggerId)
+
+	timeout := time.Duration(*th.App.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout) * time.Second
+	_, userID, channelID, appErr := model.DecodeAndVerifyTriggerId(received.TriggerId, th.App.AsymmetricSigningKey(), timeout)
+	require.Nil(t, appErr)
+	assert.Equal(t, th.BasicUser.Id, userID)
+	assert.Equal(t, th.BasicChannel.Id, channelID)
+}
+
 func TestDoPostActionWithCookie(t *testing.T) {
 	mainHelper.Parallel(t)
 
@@ -2261,7 +2528,7 @@ func TestDoPluginRequest(t *testing.T) {
 		import (
 			"net/http"
 			"reflect"
-			"sort"
+			"slices"
 
 			"github.com/mattermost/mattermost/server/public/plugin"
 		)
@@ -2284,7 +2551,7 @@ func TestDoPluginRequest(t *testing.T) {
 				_, _ = w.Write([]byte("param multiple should have 3 values"))
 				return
 			}
-			sort.Strings(multiple)
+			slices.Sort(multiple)
 			if !reflect.DeepEqual(multiple, []string{"1 first", "2 second", "3 third"}) {
 				w.WriteHeader(http.StatusInternalServerError)
 				_, _ = w.Write([]byte("param multiple not correct"))
@@ -2531,7 +2798,7 @@ func buildMmBlocksActionsProp(id, url string, context map[string]any) map[string
 func setupBotInChannel(t *testing.T, th *TestHelper) *model.User {
 	t.Helper()
 	bot := th.CreateBot(t)
-	botUser, appErr := th.App.GetUser(bot.UserId)
+	botUser, appErr := th.App.GetUser(th.Context, bot.UserId)
 	require.Nil(t, appErr)
 	_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, botUser.Id, "")
 	require.Nil(t, appErr)

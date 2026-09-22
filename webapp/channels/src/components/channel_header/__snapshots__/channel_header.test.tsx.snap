@@ -1445,7 +1445,7 @@ exports[`components/ChannelHeader should render properly when there are pending 
         id="channel-info-btn"
       >
         <i
-          class="Icon-esDcos cHAVtG icon-information-outline"
+          class="Icon-clPswv hCFmLO icon-information-outline"
         />
       </button>
     </div>

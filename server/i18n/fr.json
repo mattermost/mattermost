@@ -592,20 +592,8 @@
     "translation": "@[nom utilisateur 1],@[nom utilisateur 2] 'message'"
   },
   {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "many": "Impossible de trouver les utilisateurs : {{.Users}}",
-      "one": "Impossible de trouver l'utilisateur : {{.Users}}",
-      "other": ""
-    }
-  },
-  {
     "id": "api.command_groupmsg.max_users.app_error",
     "translation": "Les messages de groupe sont limités à maximum {{.MaxUsers}} utilisateurs."
-  },
-  {
-    "id": "api.command_groupmsg.min_users.app_error",
-    "translation": "Les messages de groupe sont limités à minimum {{.MaxUsers}} utilisateurs."
   },
   {
     "id": "api.command_groupmsg.name",
@@ -652,10 +640,6 @@
     "translation": "Nom d'utilisateur et/ou canal manquants."
   },
   {
-    "id": "api.command_invite.missing_user.app_error",
-    "translation": "Impossible de trouver l'utilisateur. Il peut avoir été désactivé par l'administrateur système."
-  },
-  {
     "id": "api.command_invite.name",
     "translation": "Inviter"
   },
@@ -664,20 +648,8 @@
     "translation": "Vous n'avez pas les permissions nécessaires pour ajouter {{.User}} dans {{.Channel}}."
   },
   {
-    "id": "api.command_invite.private_channel.app_error",
-    "translation": "Impossible de trouver le canal {{.Canal}}. Veuillez utiliser le [channel handle] (https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) pour identifier les canaux."
-  },
-  {
     "id": "api.command_invite.success",
     "translation": "{{.User}} a été ajouté dans {{.Channel}}."
-  },
-  {
-    "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": {
-      "many": "{{.User}} sont déjà membres de ce canal.",
-      "one": "{{.User}} est déjà membre de ce canal.",
-      "other": ""
-    }
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -972,14 +944,6 @@
     "translation": "L'envoi d'e-mails par lot a été désactivé par l'administrateur système."
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": {
-      "many": "[{{.SiteName}}] New Notifications for {{.Day}} {{.Month}}, {{.Year}}",
-      "one": "[{{.SiteName}}] New Notification for {{.Day}} {{.Month}}, {{.Year}}",
-      "other": ""
-    }
-  },
-  {
     "id": "api.emoji.create.duplicate.app_error",
     "translation": "Impossible de créer cette émoticône. Une autre émoticône du même nom existe déjà."
   },
@@ -1160,10 +1124,6 @@
     "translation": "Cette licence supporte jusqu'à {{.Users}} utilisateurs, mais votre système compte {{.Count}} utilisateurs uniques. Les utilisateurs uniques sont comptabilisés par adresse e-mail distincte. Vous pouvez voir le nombre d'utilisateurs uniques dans le menu « Rapports -> Statistiques »."
   },
   {
-    "id": "api.license.client.old_format.app_error",
-    "translation": "Le nouveau format pour la licence du client n'est pas encore supporté. Veuillez spécifier format=old dans la chaîne de requête (query string)"
-  },
-  {
     "id": "api.marshal_error",
     "translation": "Erreur lors de la transformation de données (marshalling)"
   },
@@ -1336,22 +1296,6 @@
     "translation": "Une erreur s'est produite lors de l'action de l'intégration"
   },
   {
-    "id": "api.post.get_message_for_notification.files_sent",
-    "translation": {
-      "many": "{{.Count}} fichiers envoyés : {{.Filenames}}",
-      "one": "{{.Count}} fichier envoyé : {{.Filenames}}",
-      "other": ""
-    }
-  },
-  {
-    "id": "api.post.get_message_for_notification.images_sent",
-    "translation": {
-      "many": "{{.Count}} images envoyées : {{.Filenames}}",
-      "one": "{{.Count}} image envoyée : {{.Filenames}}",
-      "other": ""
-    }
-  },
-  {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Can not update a post in a deleted channel."
   },
@@ -1484,78 +1428,6 @@
     "translation": "Une erreur s'est produite lors du démarrage du serveur, err : %v"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.unable_import",
-    "translation": "Impossible d'importer l'utilisateur du bot Integration/Slack {{.Username}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\nCanaux ajoutés :\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-    "translation": "Impossible d'ajouter l'utilisateur Slack {{.Username}} au canal.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.import_failed",
-    "translation": "Impossible d'importer le canal Slack {{.DisplayName}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_channels.merge",
-    "translation": "Le canal Slack {{.DisplayName}} existe déjà en tant que canal Mattermost actif. Les deux canaux ont été fusionnés.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.created",
-    "translation": "\r\nUtilisateurs créés :\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "L'utilisateur Slack a été fusionné avec un utilisateur Mattermost existant disposant de l'adresse e-mail {{.Email}} et du nom d'utilisateur {{.Username}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "L'utilisateur Slack a été fusionné avec un utilisateur Mattermost existant disposant de l'adresse e-mail {{.Email}} et du nom d'utilisateur {{.Username}}, mais il a été impossible d'ajouter l'utilisateur à son équipe.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "L'utilisateur {{.Username}} ne dispose pas d'une adresse e-mail dans l'export Slack. {{.Email}} a été utilisé comme substitut. L'utilisateur devra modifier son adresse e-mail une fois connecté au système.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_users.unable_import",
-    "translation": "Impossible d'importer l'utilisateur Slack : {{.Username}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.log",
-    "translation": "Journal d'importation de Slack dans Mattermost\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note1",
-    "translation": "- Certains messages peuvent ne pas avoir été importés, car ils ne sont pas supportés par cet outil d'importation.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note2",
-    "translation": "- Les messages du bot Slack ne sont actuellement pas supportés.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.note3",
-    "translation": "- D'autres erreurs peuvent être trouvées dans les journaux du serveur.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.notes",
-    "translation": "\r\nNotes :\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.open.app_error",
-    "translation": "Impossible d'ouvrir le fichier : {{.Filename}}.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.team_fail",
-    "translation": "Impossible de trouver l'équipe dans laquelle importer.\r\n"
-  },
-  {
-    "id": "api.slackimport.slack_import.zip.app_error",
-    "translation": "Impossible d'ouvrir le fichier zip d'export Slack.\r\n"
-  },
-  {
     "id": "api.status.user_not_found.app_error",
     "translation": "Utilisateur introuvable"
   },
@@ -1578,34 +1450,6 @@
   {
     "id": "api.team.get_team_icon.read_file.app_error",
     "translation": "Impossible de lire l'icône d'équipe."
-  },
-  {
-    "id": "api.team.import_team.array.app_error",
-    "translation": "Tableau vide pour les 'fichiers' dans la requête"
-  },
-  {
-    "id": "api.team.import_team.integer.app_error",
-    "translation": "La taille de fichier n'est pas un entier"
-  },
-  {
-    "id": "api.team.import_team.no_file.app_error",
-    "translation": "Aucun fichier dans le champ « fichier » de la requête."
-  },
-  {
-    "id": "api.team.import_team.no_import_from.app_error",
-    "translation": "Requête malformée : le champ importFrom n'est pas présent."
-  },
-  {
-    "id": "api.team.import_team.open.app_error",
-    "translation": "Impossible d'ouvrir le fichier"
-  },
-  {
-    "id": "api.team.import_team.parse.app_error",
-    "translation": "Impossible d'interpréter le formulaire multipart."
-  },
-  {
-    "id": "api.team.import_team.unavailable.app_error",
-    "translation": "Requête malformée : le champ de taille de fichier n'est pas présent."
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -2232,10 +2076,6 @@
     "translation": "Impossible d'interpréter les données du jeton contenues dans l'e-mail de vérification"
   },
   {
-    "id": "api.web_socket.connect.upgrade.app_error",
-    "translation": "Échec de la mise à niveau de la connexion WebSocket"
-  },
-  {
     "id": "api.web_socket_router.bad_action.app_error",
     "translation": "Action WebSocket inconnue."
   },
@@ -2820,10 +2660,6 @@
     "translation": "[{{.SiteName}}] Nouveau message personnel de @{{.SenderDisplayName}} du {{.Day}}/{{.Month}}/{{.Year}}"
   },
   {
-    "id": "app.notification.subject.group_message.full",
-    "translation": "[{{.SiteName}}] Nouveau message de groupe dans {{.TeamName}} du {{.Day}}/{{.Month}}/{{.Year}}"
-  },
-  {
     "id": "app.notification.subject.group_message.generic",
     "translation": "[{{.SiteName}}] Nouveau message de groupe du {{.Day}}/{{.Month}}/{{.Year}}"
   },
@@ -2980,60 +2816,12 @@
     "translation": "Votre licence actuelle ne supporte pas la rétention de données."
   },
   {
-    "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Le système d’agrégation Elasticsearch n'a pas pu créer la tâche d'indexation"
-  },
-  {
-    "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Le système d’agrégation Elasticsearch n'a pas pu supprimer les index."
-  },
-  {
-    "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Le système d’agrégation Elasticsearch n'a pas pu récupérer les index."
-  },
-  {
-    "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Le système d’agrégation Elasticsearch a échoué à cause de la tâche d'indexation qui a elle-même échoué"
-  },
-  {
-    "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "La configuration du client Elasticsearch a échoué"
-  },
-  {
-    "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "Impossible de supprimer l'index Elasticsearch"
-  },
-  {
-    "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Impossible de récupérer les index Elasticsearch"
-  },
-  {
     "id": "ent.elasticsearch.delete_post.error",
     "translation": "Impossible de supprimer le message"
   },
   {
-    "id": "ent.elasticsearch.generic.disabled",
-    "translation": "La recherche Elasticsearch est désactivée sur ce serveur"
-  },
-  {
     "id": "ent.elasticsearch.index_post.error",
     "translation": "Impossible d'indexer le message"
-  },
-  {
-    "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Le système d’agrégation Elasticsearch n'a pas pu interpréter l'heure de fin"
-  },
-  {
-    "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Le système d’agrégation Elasticsearch n'a pas pu interpréter l'heure de début"
-  },
-  {
-    "id": "ent.elasticsearch.not_started.error",
-    "translation": "Elasticsearch n'est pas démarré"
-  },
-  {
-    "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "La recherche Elasticsearch est désactivée sur ce serveur"
   },
   {
     "id": "ent.elasticsearch.search_posts.parse_matches_failed",
@@ -3046,10 +2834,6 @@
   {
     "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
     "translation": "Impossible de décoder les résultats de recherche"
-  },
-  {
-    "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch est désactivé."
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
@@ -3206,10 +2990,6 @@
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
     "translation": "Impossible de décoder en base 64 l'identifiant du déclencheur utilisé par la boite de dialogue interactive."
-  },
-  {
-    "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "Identifiant du déclencheur de dialogue interactive a expiré. Les identifiants de déclencheur sont valides pour au maximum {{.Seconds}} secondes."
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
@@ -3536,14 +3316,6 @@
     "translation": "Autoriser les cookies pour les sous-domaines requiert le paramètre SiteURL d'être défini."
   },
   {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "Paramètre RemoteImageProxyOptions invalide pour atmos/camo. Une clé partagée doit être définie."
-  },
-  {
-    "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
-    "translation": "Paramètre RemoteImageProxyURL invalide pour atmos/camo. Une clé partagée doit être définie."
-  },
-  {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Impossible d'activer l'envoi d'e-mails par lot lorsque le clustering est activé"
   },
@@ -3572,10 +3344,6 @@
     "translation": "Le paramètre ConnectionUrl d'ElasticSearch doit être spécifié lorsque l'indexation avec ElasticSearch est activée."
   },
   {
-    "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
-    "translation": "Le paramètre IndexingEnabled d'ElasticSearch doit être activé lorsque la propriété SearchEnabled d'ElasticSearch est activée."
-  },
-  {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
     "translation": "La taille du lot d'index en direct d'Elasticsearch (Elasticsearch Live Indexing Batch Size) doit être au moins de 1"
   },
@@ -3602,10 +3370,6 @@
   {
     "id": "model.config.is_valid.email_security.app_error",
     "translation": "Sécurité de connexion invalide pour les paramètres d'e-mail. Doit être « », « TLS » ou « STARTTLS »."
-  },
-  {
-    "id": "model.config.is_valid.encrypt_sql.app_error",
-    "translation": "Clé de chiffrement invalide pour les paramètres SQL pour les données au repos (les données stockées sur des disques dans ces centres de données sont appelées « au repos », au contraire de « en transit » soit lorsqu'elles sont transférées sur le réseau). Doit être égale ou supérieure à 32 caractères."
   },
   {
     "id": "model.config.is_valid.file_driver.app_error",
@@ -3958,10 +3722,6 @@
   {
     "id": "model.incoming_hook.icon_url.app_error",
     "translation": "Icône de message invalide"
-  },
-  {
-    "id": "model.incoming_hook.id.app_error",
-    "translation": "Id invalide"
   },
   {
     "id": "model.incoming_hook.parse_data.app_error",
@@ -4464,24 +4224,12 @@
     "translation": "Système"
   },
   {
-    "id": "web.command_webhook.command.app_error",
-    "translation": "Impossible de trouver la commande"
-  },
-  {
-    "id": "web.command_webhook.parse.app_error",
-    "translation": "Impossible d'interpréter les données entrantes"
-  },
-  {
     "id": "web.get_access_token.internal_saving.app_error",
     "translation": "Impossible de modifier les données d'accès de l'utilisateur."
   },
   {
     "id": "web.incoming_webhook.channel.app_error",
     "translation": "Impossible de trouver le canal"
-  },
-  {
-    "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "Ce webhook n'est pas autorisé à envoyer une publication dans le canal spécifié"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
@@ -4496,20 +4244,12 @@
     "translation": "Impossible d'interpréter les données entrantes"
   },
   {
-    "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Permissions insuffisantes pour ce canal"
-  },
-  {
     "id": "web.incoming_webhook.split_props_length.app_error",
     "translation": "Impossible de scinder les propriétés de webhook en {{.Max}} parties de caractères."
   },
   {
     "id": "web.incoming_webhook.text.app_error",
     "translation": "Aucun texte indiqué"
-  },
-  {
-    "id": "web.incoming_webhook.user.app_error",
-    "translation": "Utilisateur introuvable"
   },
   {
     "id": "model.group.name.invalid_length.app_error",
@@ -4736,10 +4476,6 @@
     "translation": "L'attribut « Admin » est invalide. Il doit être de la forme 'champ=valeur'."
   },
   {
-    "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Le paramètre IndexingEnabled d'Elasticsearch doit être activé lorsque la propriété AutocompleteEnabled d'Elasticsearch est activée."
-  },
-  {
     "id": "model.command.is_valid.autocomplete_data.app_error",
     "translation": "Invalid AutocompleteData"
   },
@@ -4776,14 +4512,6 @@
     "translation": "Votre licence ne prend pas en charge les notifications push chargées par identifiant."
   },
   {
-    "id": "ent.elasticsearch.start.parse_server_version.app_error",
-    "translation": "Impossible d'interpréter la version du serveur Elasticsearch."
-  },
-  {
-    "id": "ent.elasticsearch.start.get_server_version.app_error",
-    "translation": "Impossible de récupérer la version du serveur Elasticsearch."
-  },
-  {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
     "translation": "Impossible de décoder les résultats de recherche"
   },
@@ -4798,10 +4526,6 @@
   {
     "id": "ent.elasticsearch.search_channels.search_failed",
     "translation": "La recherche a échoué"
-  },
-  {
-    "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "La recherche Elasticsearch est désactivée sur ce serveur"
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
@@ -4826,18 +4550,6 @@
   {
     "id": "ent.elasticsearch.delete_channel.error",
     "translation": "Impossible de supprimer le canal"
-  },
-  {
-    "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Impossible de créer un modèle Elasticsearch pour les utilisateurs"
-  },
-  {
-    "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Impossible de créer un modèle Elasticsearch pour les messages"
-  },
-  {
-    "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Impossible de créer un modèle Elasticsearch pour les canaux"
   },
   {
     "id": "app.user_terms_of_service.save.app_error",
@@ -5084,14 +4796,6 @@
     "translation": "Impossible de récupérer tous les canaux"
   },
   {
-    "id": "app.channel.get.find.app_error",
-    "translation": "Une erreur s'est produite lors de la recherche du canal"
-  },
-  {
-    "id": "app.channel.get.existing.app_error",
-    "translation": "Impossible de trouver le canal existant"
-  },
-  {
     "id": "app.channel.delete.app_error",
     "translation": "Impossible de supprimer le canal."
   },
@@ -5216,10 +4920,6 @@
     "translation": "Impossible de créer le jeton de récupération de mot de passe"
   },
   {
-    "id": "api.templates.remove_expired_license.subject",
-    "translation": "Mattermost Enterprise license has been disabled."
-  },
-  {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} vous a invité à rejoindre l'équipe {{ .TeamDisplayName }} en tant qu'invité"
   },
@@ -5274,10 +4974,6 @@
   {
     "id": "api.system.id_loaded.not_available.app_error",
     "translation": "Les notifications push chargées à partir de leur identifiant ne sont pas configurées ou prises en charge sur ce serveur."
-  },
-  {
-    "id": "api.slackimport.slack_import.zip.file_too_large",
-    "translation": "Le fichier {{.Filename}} de l'archive zip est trop lourd à traiter pour l'importation de Slack\r\n"
   },
   {
     "id": "api.push_notifications_ack.message.parse.app_error",
@@ -5494,10 +5190,6 @@
   {
     "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
     "translation": "Impossible de récupérer toutes les réactions portant le nom d'émoticône spécifié"
-  },
-  {
-    "id": "app.reaction.bulk_get_for_post_ids.app_error",
-    "translation": "Impossible de récupérer les réactions du message spécifié"
   },
   {
     "id": "app.audit.save.saving.app_error",
@@ -6604,10 +6296,6 @@
     "translation": "Envoyez-nous un courriel à tout moment à "
   },
   {
-    "id": "api.templates.email_footer_v2",
-    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Deuxième étage, Palo Alto, CA, 94301"
-  },
-  {
     "id": "api.templates.cloud_welcome_email.title",
     "translation": "Votre espace de travail est prêt à fonctionner !"
   },
@@ -6668,10 +6356,6 @@
     "translation": "Le contenu de la requête est invalide ou manquant."
   },
   {
-    "id": "api.team.import_team.unknown_import_from.app_error",
-    "translation": "Source d'importation inconnue."
-  },
-  {
     "id": "app.upload.upload_data.move_file.app_error",
     "translation": "Impossible de déplacer le fichier téléchargé."
   },
@@ -6685,7 +6369,7 @@
   },
   {
     "id": "api.command_share.available_actions",
-    "translation": "Actions disponibles : {{.Action}}"
+    "translation": "Actions disponibles : {{.Actions}}"
   },
   {
     "id": "api.command_remote.unknown_action",
@@ -6761,7 +6445,7 @@
   },
   {
     "id": "api.command_remote.fetch_status.error",
-    "translation": "Impossible de récupérer les connexions sécurisées : {{.Erreur}}"
+    "translation": "Impossible de récupérer les connexions sécurisées : {{.Error}}"
   },
   {
     "id": "api.command_remote.encrypt_invitation.error",
@@ -6789,7 +6473,7 @@
   },
   {
     "id": "api.command_share.channel_remote_id_not_exists",
-    "translation": "La connexion sécurisée pour canal partagé `{{.RemoteID}}` n'existe pas pour ce canal."
+    "translation": "La connexion sécurisée pour canal partagé `{{.RemoteId}}` n'existe pas pour ce canal."
   },
   {
     "id": "api.command_remote.service_not_enabled",
@@ -7296,14 +6980,6 @@
     "translation": "Votre abonnement à Mattermost doit être renouvelé"
   },
   {
-    "id": "api.templates.license_up_for_renewal_subtitle",
-    "translation": "{{.UserName}}, votre abonnement doit expirer dans {{.Days}} jours. Nous espérons que vous profitez bien de la collaboration d'équipe flexible et sécurisée que permet Mattermost. Renouvelez votre abonnement rapidement pour que votre équipe puisse continuer à profiter de ces avantages."
-  },
-  {
-    "id": "api.templates.license_up_for_renewal_subject",
-    "translation": "Votre licence doit être renouvelée"
-  },
-  {
     "id": "api.templates.cloud_welcome_email.app_market_place",
     "translation": "place de marché des applications."
   },
@@ -7410,9 +7086,8 @@
   {
     "id": "api.email_batching.send_batched_email_notification.title",
     "translation": {
-      "many": "Vous avez des nouveaux messages",
       "one": "Vous avez un nouveau message",
-      "other": ""
+      "other": "Vous avez des nouveaux messages"
     }
   },
   {
@@ -7477,7 +7152,7 @@
   },
   {
     "id": "api.command_share.shared_channel_unshare.error",
-    "translation": "Impossible de supprimer le partage pour ce canal : {{.Erreur}}."
+    "translation": "Impossible de supprimer le partage pour ce canal : {{.Error}}."
   },
   {
     "id": "api.command_share.shared_channel_unavailable",
@@ -7493,7 +7168,7 @@
   },
   {
     "id": "api.command_share.share_channel.error",
-    "translation": "Impossible de partager ce canal : {{.Erreur}}"
+    "translation": "Impossible de partager ce canal : {{.Error}}"
   },
   {
     "id": "api.command_share.service_disabled",
@@ -7513,7 +7188,7 @@
   },
   {
     "id": "api.command_share.remote_id_invalid.error",
-    "translation": "L'identifiant de la connexion sécurisée n'est pas valide : {{.Erreur}}"
+    "translation": "L'identifiant de la connexion sécurisée n'est pas valide : {{.Error}}"
   },
   {
     "id": "api.command_share.remote_id.help",
@@ -7565,11 +7240,11 @@
   },
   {
     "id": "api.command_share.fetch_remote_status.error",
-    "translation": "Impossible de récupérer l'état des connexions sécurisées : {{.Erreur}}."
+    "translation": "Impossible de récupérer l'état des connexions sécurisées : {{.Error}}."
   },
   {
     "id": "api.command_share.fetch_remote.error",
-    "translation": "Une erreur s'est produite lors de la récupération des connexions sécurisées : {{.Erreur}}"
+    "translation": "Une erreur s'est produite lors de la récupération des connexions sécurisées : {{.Error}}"
   },
   {
     "id": "api.command_share.desc",
@@ -7578,10 +7253,6 @@
   {
     "id": "api.command_share.could_not_uninvite.error",
     "translation": "Impossible de désinviter `{{.RemoteId}}` : {{.Error}}"
-  },
-  {
-    "id": "api.command_share.check_channel_exist.error",
-    "translation": "Erreur lors de la vérification de l'existence d'un canal partagé : {{.Erreur}}"
   },
   {
     "id": "api.command_share.channel_status_id",
@@ -7593,7 +7264,7 @@
   },
   {
     "id": "api.command_share.channel_invite.error",
-    "translation": "Une erreur s'est produite lors de l'invitation de `{{.Name}}` à ce canal : {{.Erreur}}"
+    "translation": "Une erreur s'est produite lors de l'invitation de `{{.Name}}` à ce canal : {{.Error}}"
   },
   {
     "id": "api.command_remote.site_url_not_set",
@@ -7705,7 +7376,7 @@
   },
   {
     "id": "api.push_notification.title.collapsed_threads",
-    "translation": "Réponse dans {{.ChannelName}}"
+    "translation": "Réponse dans {{.channelName}}"
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_crt_thread_dm",
@@ -8004,10 +7675,6 @@
     "translation": "Déjà notifié à l'administrateur"
   },
   {
-    "id": "model.config.is_valid.image_decoder_concurrency.app_error",
-    "translation": " "
-  },
-  {
     "id": "model.config.is_valid.export.retention_days_too_low.app_error",
     "translation": " "
   },
@@ -8036,10 +7703,6 @@
     "translation": " "
   },
   {
-    "id": "model.session.is_valid.roles_limit.app_error",
-    "translation": " "
-  },
-  {
     "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",
     "translation": " "
   },
@@ -8062,18 +7725,6 @@
   {
     "id": "ent.ldap.do_login.key.app_error",
     "translation": "Erreur de chargement du fichier de clés LDAP TLS."
-  },
-  {
-    "id": "common.parse_error_int64",
-    "translation": " "
-  },
-  {
-    "id": "model.plugin_command_error.error.app_error",
-    "translation": " "
-  },
-  {
-    "id": "model.plugin_command_crash.error.app_error",
-    "translation": " "
   },
   {
     "id": "model.oauth.is_valid.mattermost_app_id.app_error",
@@ -8124,10 +7775,6 @@
     "translation": " "
   },
   {
-    "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.user.update.finding.app_error",
     "translation": " "
   },
@@ -8148,15 +7795,7 @@
     "translation": " "
   },
   {
-    "id": "model.team_member.is_valid.roles_limit.app_error",
-    "translation": " "
-  },
-  {
     "id": "import_process.worker.do_job.file_exists",
-    "translation": " "
-  },
-  {
-    "id": "sharedchannel.cannot_deliver_post",
     "translation": " "
   },
   {
@@ -8173,10 +7812,6 @@
   },
   {
     "id": "app.user.update.find.app_error",
-    "translation": " "
-  },
-  {
-    "id": "model.user.is_valid.roles_limit.app_error",
     "translation": " "
   },
   {
@@ -8212,10 +7847,6 @@
     "translation": " "
   },
   {
-    "id": "app.user.update_auth_data.email_exists.app_error",
-    "translation": " "
-  },
-  {
     "id": "app.user.update_thread_read_for_user_by_post.app_error",
     "translation": " "
   },
@@ -8233,10 +7864,6 @@
   },
   {
     "id": "ent.elasticsearch.delete_file.error",
-    "translation": " "
-  },
-  {
-    "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
     "translation": " "
   },
   {
@@ -8260,19 +7887,11 @@
     "translation": " "
   },
   {
-    "id": "model.channel_member.is_valid.roles_limit.app_error",
-    "translation": " "
-  },
-  {
     "id": "model.user.is_valid.marshal.app_error",
     "translation": " "
   },
   {
     "id": "store.sql_file_info.search.disabled",
-    "translation": " "
-  },
-  {
-    "id": "ent.elasticsearch.search_files.disabled",
     "translation": " "
   },
   {
@@ -8374,10 +7993,6 @@
   {
     "id": "api.command_exportlink.invalid.app_error",
     "translation": "Impossible de trouver le fichier demandé."
-  },
-  {
-    "id": "api.command_exportlink.link.text",
-    "translation": "Vous pouvez télécharger votre fichier ici : {{.Lien}}.\nCe lien expirera dans {{.Expiration}}."
   },
   {
     "id": "api.command_exportlink.list.app_error",

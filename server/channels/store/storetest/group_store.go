@@ -4,11 +4,11 @@
 package storetest
 
 import (
+	"cmp"
 	"errors"
 	"fmt"
 	"math"
 	"slices"
-	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -2348,7 +2348,7 @@ func testChannelMembersToAdd(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Empty(t, channelMembers)
 
 	// Leaving Channel (ChannelMemberHistory) should still not return result
-	nErr = ss.ChannelMemberHistory().LogLeaveEvent(user.Id, channel.Id, model.GetMillis())
+	nErr = ss.ChannelMemberHistory().LogLeaveEvent(rctx, user.Id, channel.Id, model.GetMillis())
 	require.NoError(t, nErr)
 	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil, false)
 	require.NoError(t, err)
@@ -2366,7 +2366,7 @@ func testChannelMembersToAdd(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Len(t, channelMembers, 1)
 
 	// If reAddRemovedMembers is set to true, removed members should be added back in
-	nErr = ss.ChannelMemberHistory().LogLeaveEvent(user.Id, channel.Id, model.GetMillis())
+	nErr = ss.ChannelMemberHistory().LogLeaveEvent(rctx, user.Id, channel.Id, model.GetMillis())
 	require.NoError(t, nErr)
 	channelMembers, err = ss.Group().ChannelMembersToAdd(0, nil, true)
 	require.NoError(t, err)
@@ -4435,8 +4435,8 @@ func testTeamMembersMinusGroupMembers(t *testing.T, rctx request.CTX, ss store.S
 		groups = append(groups, group)
 	}
 
-	sort.Slice(users, func(i, j int) bool {
-		return users[i].Username < users[j].Username
+	slices.SortFunc(users, func(a, b *model.User) int {
+		return cmp.Compare(a.Username, b.Username)
 	})
 
 	// Add even users to even group, and the inverse
@@ -4593,8 +4593,8 @@ func testChannelMembersMinusGroupMembers(t *testing.T, rctx request.CTX, ss stor
 		groups = append(groups, group)
 	}
 
-	sort.Slice(users, func(i, j int) bool {
-		return users[i].Username < users[j].Username
+	slices.SortFunc(users, func(a, b *model.User) int {
+		return cmp.Compare(a.Username, b.Username)
 	})
 
 	// Add even users to even group, and the inverse

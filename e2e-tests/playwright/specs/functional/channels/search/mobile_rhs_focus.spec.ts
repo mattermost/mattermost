@@ -74,6 +74,44 @@ test.describe('Mobile view RHS auto-focus', () => {
     });
 
     /**
+     * @objective Tapping the mobile menu backdrop should dismiss/close the modal
+     */
+    test('closes mobile menu when clicking the backdrop layer', {tag: '@mobile'}, async ({pw}) => {
+        const {user} = await pw.initSetup();
+
+        // # Log in as the test user and navigate to channels page
+        const {channelsPage, page} = await pw.testBrowser.login(user);
+        await channelsPage.goto();
+        await channelsPage.toBeVisible();
+
+        // # Wait for the mobile navbar's channel menu button to render. Right after page load
+        // the app can still be settling into mobile layout; opening the menu before that
+        // settles races the header page object's one-shot visibility check, which then falls
+        // back to the desktop header's copy of the button -- permanently hidden at this
+        // viewport width -- and times out.
+        await expect(page.locator('#navbar #channelHeaderDropdownButton')).toBeVisible();
+
+        // # Open the mobile channel header menu
+        await channelsPage.centerView.header.openChannelMenu();
+
+        // # Define the mobile menu modal locator
+        const menuModal = page.locator('.modal-dialog.menuModal');
+
+        // * Verify the menu modal is visible after the click
+        await expect(menuModal).toBeVisible();
+
+        // # Wait for the modal's entrance animation to finish. Until it does, the menu is still
+        // # sliding down through the top-left corner, so the click below would land on a menu item
+        await expect(menuModal.locator('..')).toHaveCSS('opacity', '1');
+
+        // # Click the modal's backdrop layer outside the menu content
+        await page.mouse.click(5, 5);
+
+        // * Verify the mobile menu modal is now successfully dismissed/hidden
+        await expect(menuModal).toBeHidden();
+    });
+
+    /**
      * @objective Verify that in narrow/mobile view, the channel header shows an icon-only Search
      * button; clicking it opens the RHS search panel where a search can be performed, and closing
      * the panel returns to the icon-only Search button.

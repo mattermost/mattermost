@@ -5,7 +5,7 @@ import {expect} from '@playwright/test';
 import type {TeamType} from '@mattermost/types/teams';
 
 import {makeClient} from './client';
-import {getOnPremServerConfig} from './default_config';
+import {getOnPremServerConfigPatch} from './default_config';
 import {createNewTeam} from './team';
 import {createNewUserProfile} from './user';
 
@@ -35,10 +35,10 @@ export async function initSetup({
             );
         }
 
-        // patchConfig gives us both: the baseline keys are idempotently applied,
-        // and anything NOT in the baseline (ABAC, anonymous URLs, autotranslation,
-        // etc.) is preserved across concurrent initSetup calls.
-        const adminConfig = await adminClient.patchConfig(getOnPremServerConfig() as any);
+        // The on-prem overrides only. Sending the full defaultServerConfig snapshot instead would
+        // 403 on PluginSettings.EnableUploads and replace the PluginStates map of concurrent specs.
+        // Settings outside this patch keep their current value, so specs patch what they depend on.
+        const adminConfig = await adminClient.patchConfig(getOnPremServerConfigPatch() as any);
 
         // Create new team
         const team = await createNewTeam(adminClient, teamsOptions);

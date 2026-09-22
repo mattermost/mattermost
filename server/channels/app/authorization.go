@@ -247,7 +247,7 @@ func (a *App) SessionHasPermissionToCategory(rctx request.CTX, session model.Ses
 	return err == nil && category != nil && category.UserId == session.UserId && category.UserId == userID && category.TeamId == teamID
 }
 
-func (a *App) SessionHasPermissionToUser(session model.Session, userID string) bool {
+func (a *App) SessionHasPermissionToUser(rctx request.CTX, session model.Session, userID string) bool {
 	if userID == "" {
 		return false
 	}
@@ -263,7 +263,7 @@ func (a *App) SessionHasPermissionToUser(session model.Session, userID string) b
 		return false
 	}
 
-	user, err := a.GetUser(userID)
+	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		return false
 	}
@@ -285,15 +285,15 @@ func (a *App) SessionHasPermissionToUserOrBot(rctx request.CTX, session model.Se
 		return true
 	}
 	if err.Id == "store.sql_bot.get.missing.app_error" && err.Where == "SqlBotStore.Get" {
-		if a.SessionHasPermissionToUser(session, userID) {
+		if a.SessionHasPermissionToUser(rctx, session, userID) {
 			return true
 		}
 	}
 	return false
 }
 
-func (a *App) HasPermissionTo(askingUserId string, permission *model.Permission) bool {
-	user, err := a.GetUser(askingUserId)
+func (a *App) HasPermissionTo(rctx request.CTX, askingUserId string, permission *model.Permission) bool {
+	user, err := a.GetUser(rctx, askingUserId)
 	if err != nil {
 		return false
 	}
@@ -313,7 +313,7 @@ func (a *App) HasPermissionToTeam(rctx request.CTX, askingUserId string, teamID 
 			return true
 		}
 	}
-	return a.HasPermissionTo(askingUserId, permission)
+	return a.HasPermissionTo(rctx, askingUserId, permission)
 }
 
 // HasPermissionToChannel determines if the specified user has the given permission on the provided channel.
@@ -351,7 +351,7 @@ func (a *App) HasPermissionToChannel(rctx request.CTX, askingUserId string, chan
 		return a.HasPermissionToTeam(rctx, askingUserId, channel.TeamId, permission), isMember
 	}
 
-	return a.HasPermissionTo(askingUserId, permission), isMember
+	return a.HasPermissionTo(rctx, askingUserId, permission), isMember
 }
 
 func (a *App) HasPermissionToChannelByPost(rctx request.CTX, askingUserId string, postID string, permission *model.Permission) bool {
@@ -365,15 +365,15 @@ func (a *App) HasPermissionToChannelByPost(rctx request.CTX, askingUserId string
 		return a.HasPermissionToTeam(rctx, askingUserId, channel.TeamId, permission)
 	}
 
-	return a.HasPermissionTo(askingUserId, permission)
+	return a.HasPermissionTo(rctx, askingUserId, permission)
 }
 
-func (a *App) HasPermissionToUser(askingUserId string, userID string) bool {
+func (a *App) HasPermissionToUser(rctx request.CTX, askingUserId string, userID string) bool {
 	if askingUserId == userID {
 		return true
 	}
 
-	if a.HasPermissionTo(askingUserId, model.PermissionEditOtherUsers) {
+	if a.HasPermissionTo(rctx, askingUserId, model.PermissionEditOtherUsers) {
 		return true
 	}
 
@@ -602,10 +602,63 @@ func (a *App) HasPermissionToManagePropertyFieldOptions(rctx request.CTX, userID
 	return a.hasPropertyFieldPermissionLevel(rctx, userID, field, *field.PermissionOptions)
 }
 
+// SessionHasPermissionToAdministerPropertyFieldScope reports whether the session
+// administers the scope the field is attached to: manage_system for system
+// targets, manage_team for team targets, and channel-property admin for channel
+// targets — see hasChannelPropertyAdmin, which resolves DMs and group channels
+// to non-guest membership.
+//
+// This is the same resolution as PermissionLevelAdmin, and delegates to it
+// rather than restating the cascade, so "who may configure a field's permission
+// levels" and "who the admin level grants" cannot drift apart.
+//
+// Returns false for a nil or protected field.
+func (a *App) SessionHasPermissionToAdministerPropertyFieldScope(rctx request.CTX, session model.Session, field *model.PropertyField) bool {
+	if field == nil || field.Protected {
+		return false
+	}
+	return a.hasPropertyFieldPermissionLevel(rctx, session.UserId, field, model.PermissionLevelAdmin)
+}
+
+// hasChannelPropertyAdmin reports whether the user administers a channel for
+// property purposes: manage_channel_roles normally, or non-guest membership on
+// a DM/GM. A DM/GM has no channel-admin tier and cannot acquire one — its
+// member rows are only ever SchemeUser/SchemeGuest, and with no TeamId there is
+// no team scheme to inherit from — so its participants are its administrators,
+// matching how header edits and channel bookmarks are gated there.
+//
+// Guests are excluded. Administering a field is a write capability — it gates
+// editing and deleting the field and managing its options. Guests keep read
+// access through the member level.
+func (a *App) hasChannelPropertyAdmin(rctx request.CTX, userID, channelID string) bool {
+	if hasPermission, _ := a.HasPermissionToChannel(rctx, userID, channelID, model.PermissionManageChannelRoles); hasPermission {
+		return true
+	}
+
+	channel, appErr := a.GetChannel(rctx, channelID)
+	if appErr != nil {
+		return false
+	}
+	if channel.Type != model.ChannelTypeDirect && channel.Type != model.ChannelTypeGroup {
+		return false
+	}
+
+	if _, isMember := a.HasPermissionToChannel(rctx, userID, channelID, model.PermissionReadChannel); !isMember {
+		return false
+	}
+
+	user, appErr := a.GetUser(rctx, userID)
+	if appErr != nil {
+		return false
+	}
+	return !user.IsGuest()
+}
+
 // hasPropertyFieldPermissionLevel checks if the user has the specified permission level for the field.
 // "admin" resolves against the field's target: manage_system on system targets,
-// manage_team on team targets, manage_channel_roles on channel targets — i.e.
-// the permission that the corresponding built-in admin role grants. Note this
+// manage_team on team targets, and channel-property admin on channel targets —
+// manage_channel_roles, or non-guest membership on a DM/GM, see hasChannelPropertyAdmin.
+// That is the permission the corresponding built-in admin role grants. Note this
 // is a stricter check than hasTargetAccess (which uses manage_*_channel_properties
 // for channel writes): hasTargetAccess is the outer "may write anything here"
 // gate, and PermissionLevelAdmin is the inner "is a channel admin" tier above it.
@@ -614,19 +667,32 @@ func (a *App) hasPropertyFieldPermissionLevel(rctx request.CTX, userID string, f
 	case model.PermissionLevelNone:
 		return false
 	case model.PermissionLevelSysadmin:
-		return a.HasPermissionTo(userID, model.PermissionManageSystem)
+		return a.HasPermissionTo(rctx, userID, model.PermissionManageSystem)
 	case model.PermissionLevelMember:
 		return a.hasPropertyFieldScopeAccess(rctx, userID, field)
 	case model.PermissionLevelAdmin:
 		switch field.TargetType {
 		case string(model.PropertyFieldTargetLevelSystem):
-			return a.HasPermissionTo(userID, model.PermissionManageSystem)
+			return a.HasPermissionTo(rctx, userID, model.PermissionManageSystem)
 		case string(model.PropertyFieldTargetLevelTeam):
 			return a.HasPermissionToTeam(rctx, userID, field.TargetID, model.PermissionManageTeam)
 		case string(model.PropertyFieldTargetLevelChannel):
-			hasPermission, _ := a.HasPermissionToChannel(rctx, userID, field.TargetID, model.PermissionManageChannelRoles)
-			return hasPermission
+			return a.hasChannelPropertyAdmin(rctx, userID, field.TargetID)
 		}
+	case model.PermissionLevelCreator:
+		// The entity gated here is the field definition itself, so its creator
+		// is CreatedBy — not the creator of whatever the field is scoped to.
+		//
+		// Creating a field earns no standing to keep editing it after losing
+		// access to the scope it lives in, so the creator arm narrows the member
+		// arm rather than sitting beside it.
+		if field.CreatedBy != "" && field.CreatedBy == userID &&
+			a.hasPropertyFieldScopeAccess(rctx, userID, field) {
+			return true
+		}
+		// Falls back to the admin arm above rather than restating the
+		// per-TargetType cascade. Terminates: the admin case never recurses.
+		return a.hasPropertyFieldPermissionLevel(rctx, userID, field, model.PermissionLevelAdmin)
 	}
 	return false
 }
@@ -640,9 +706,11 @@ func (a *App) hasPropertyFieldPermissionLevel(rctx request.CTX, userID string, f
 func (a *App) hasPropertyFieldValuePermissionLevel(rctx request.CTX, userID string, field *model.PropertyField, valueTargetID string, level model.PermissionLevel) bool {
 	switch level {
 	case model.PermissionLevelSysadmin:
-		return a.HasPermissionTo(userID, model.PermissionManageSystem)
+		return a.HasPermissionTo(rctx, userID, model.PermissionManageSystem)
 	case model.PermissionLevelAdmin:
 		return a.hasPropertyFieldValueAdmin(rctx, userID, field, valueTargetID)
+	case model.PermissionLevelCreator:
+		return a.hasPropertyFieldValueCreator(rctx, userID, field, valueTargetID)
 	case model.PermissionLevelMember:
 		return a.hasPropertyFieldValueScopeAccess(rctx, userID, field, valueTargetID)
 	case model.PermissionLevelNone:
@@ -652,16 +720,16 @@ func (a *App) hasPropertyFieldValuePermissionLevel(rctx request.CTX, userID stri
 }
 
 // hasPropertyFieldValueAdmin reports whether the user administers the
-// value's target. For channel/post-object fields, this is channel admin
-// (manage_channel_roles) on the value's channel (or the post's channel).
+// value's target. For channel/post-object fields, this is channel-property
+// admin on the value's channel (or the post's channel) — manage_channel_roles,
+// or non-guest membership on a DM/GM, see hasChannelPropertyAdmin.
 // For user/system/template fields the value's target has no admin concept,
 // so the check defers to the field's TargetType (sysadmin / team admin /
 // channel admin) via the field-level dispatch.
 func (a *App) hasPropertyFieldValueAdmin(rctx request.CTX, userID string, field *model.PropertyField, valueTargetID string) bool {
 	switch field.ObjectType {
 	case model.PropertyFieldObjectTypeChannel:
-		ok, _ := a.HasPermissionToChannel(rctx, userID, valueTargetID, model.PermissionManageChannelRoles)
-		return ok
+		return a.hasChannelPropertyAdmin(rctx, userID, valueTargetID)
 	case model.PropertyFieldObjectTypePost:
 		post, err := a.Srv().Store().Post().GetSingle(rctx, valueTargetID, false)
 		if err != nil {
@@ -673,8 +741,7 @@ func (a *App) hasPropertyFieldValueAdmin(rctx request.CTX, userID string, field 
 			)
 			return false
 		}
-		ok, _ := a.HasPermissionToChannel(rctx, userID, post.ChannelId, model.PermissionManageChannelRoles)
-		return ok
+		return a.hasChannelPropertyAdmin(rctx, userID, post.ChannelId)
 	case model.PropertyFieldObjectTypeUser,
 		model.PropertyFieldObjectTypeSystem,
 		model.PropertyFieldObjectTypeTemplate:
@@ -683,13 +750,71 @@ func (a *App) hasPropertyFieldValueAdmin(rctx request.CTX, userID string, field 
 	return false
 }
 
+// hasPropertyFieldValueCreator reports whether the user created the value's
+// target object, or otherwise administers it. Only post- and channel-object
+// fields reach here; model validation rejects PermissionLevelCreator on every
+// other object type. The creator arm is checked first so an author tagging
+// their own post resolves with a single store read and no role evaluation.
+func (a *App) hasPropertyFieldValueCreator(rctx request.CTX, userID string, field *model.PropertyField, valueTargetID string) bool {
+	// Each arm ends itself rather than falling out of the switch. A lookup
+	// failure returns false instead of deferring to the admin arm: if the
+	// target cannot be read here, the admin arm cannot resolve it either, so
+	// continuing would only buy a second failed lookup and a second warning.
+	// Every arm that does not match the creator must end in the admin call —
+	// a new object type that omits it is creator-only, not creator-or-admin.
+	switch field.ObjectType {
+	case model.PropertyFieldObjectTypePost:
+		post, err := a.Srv().Store().Post().GetSingle(rctx, valueTargetID, false)
+		if err != nil {
+			rctx.Logger().Warn("Failed to look up post for property value creator check",
+				mlog.String("post_id", valueTargetID),
+				mlog.String("user_id", userID),
+				mlog.String("field_id", field.ID),
+				mlog.Err(err),
+			)
+			return false
+		}
+		if post.UserId != "" && post.UserId == userID {
+			return true
+		}
+		return a.hasPropertyFieldValueAdmin(rctx, userID, field, valueTargetID)
+	case model.PropertyFieldObjectTypeChannel:
+		channel, appErr := a.GetChannel(rctx, valueTargetID)
+		if appErr != nil {
+			rctx.Logger().Warn("Failed to look up channel for property value creator check",
+				mlog.String("channel_id", valueTargetID),
+				mlog.String("user_id", userID),
+				mlog.String("field_id", field.ID),
+				mlog.Err(appErr),
+			)
+			return false
+		}
+		// Group channels carry no CreatorId, so an empty userID must never
+		// match it. Direct channels DO have one: the store stamps the
+		// initiating user.
+		if channel.CreatorId != "" && channel.CreatorId == userID {
+			return true
+		}
+		return a.hasPropertyFieldValueAdmin(rctx, userID, field, valueTargetID)
+	default:
+		// Unreachable via validated fields. Deny rather than deferring to the
+		// admin arm, so a future object type must opt in consciously.
+		return false
+	}
+}
+
 // hasPropertyFieldValueScopeAccess reports whether the user can write the
 // value's target as a regular member. For channel-object fields this is
-// membership in the value's channel. For post-object fields this is
+// membership in the value's channel — including a DM or GM, where
+// participation is the membership. For post-object fields this is
 // membership in the post's channel — any channel member can set values on
 // any post in that channel. Both are checked via HasPermissionToChannel so
 // sysadmins and team admins cascade through. User/system/template fields
 // have no per-object membership and defer to the field's TargetType-based scope.
+//
+// This is the generic default. Restrictions that apply to one property group
+// only — such as the access_control group refusing hand-written values on a
+// DM or GM — live in that group's PropertyHook, not here.
 func (a *App) hasPropertyFieldValueScopeAccess(rctx request.CTX, userID string, field *model.PropertyField, valueTargetID string) bool {
 	switch field.ObjectType {
 	case model.PropertyFieldObjectTypeChannel:

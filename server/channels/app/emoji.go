@@ -373,7 +373,7 @@ func (a *App) deleteEmojiImage(rctx request.CTX, id string) {
 }
 
 func (a *App) deleteReactionsForEmoji(rctx request.CTX, emojiName string) {
-	if err := a.Srv().Store().Reaction().DeleteAllWithEmojiName(emojiName); err != nil {
+	if err := a.Srv().Store().Reaction().DeleteAllWithEmojiName(rctx, emojiName); err != nil {
 		rctx.Logger().Warn("Unable to delete reactions when deleting emoji", mlog.String("emoji_name", emojiName), mlog.Err(err))
 	}
 }

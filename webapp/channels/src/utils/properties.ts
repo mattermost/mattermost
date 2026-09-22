@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {PropertyField} from '@mattermost/types/properties';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
 /**
@@ -126,4 +127,42 @@ export function slugifyForCEL(name: string): string {
     }
     slug = slug.replace(/_+/g, '_').replace(/_+$/, '');
     return slug || '_copy';
+}
+
+/**
+ * A plugin-owned attribute is "orphaned" once its source plugin is no longer
+ * installed. The server permits an admin to delete an orphaned field so the
+ * leftovers of an uninstalled plugin can be cleaned up, and refuses the delete
+ * while the plugin is still installed — see checkFieldDeleteAccess in
+ * server/channels/app/properties/access_control.go.
+ *
+ * An empty `installedPluginIds` means "nothing is installed", which reads every
+ * plugin-owned field as orphaned. Callers are responsible for having fetched the
+ * plugin list before acting on the result.
+ */
+export function isFieldOrphaned(
+    field: Pick<PropertyField, 'attrs'>,
+    installedPluginIds: ReadonlySet<string>,
+): boolean {
+    const sourcePluginId = field.attrs?.source_plugin_id as string | undefined;
+
+    if (!sourcePluginId || !field.attrs?.protected) {
+        return false;
+    }
+
+    return !installedPluginIds.has(sourcePluginId);
+}
+
+/**
+ * Mirrors server PropertyValueWithheldJSON (server/public/model/property_value.go).
+ * A websocket broadcast for a non-public field's value carries this marker in
+ * place of the value: the server withheld it, so the client should refetch the
+ * field through the read path. It does NOT mean the value was cleared or deleted.
+ */
+export function isWithheldPropertyValue(value: unknown): boolean {
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+        return false;
+    }
+
+    return (value as {withheld?: unknown}).withheld === true;
 }

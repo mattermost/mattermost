@@ -4,6 +4,7 @@
 package model
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -24,6 +25,14 @@ func TestFeatureFlagsSetDefaults(t *testing.T) {
 		f.ClassificationMarkings = false
 		m = f.ToMap()
 		require.Equal(t, "false", m["ClassificationMarkings"])
+	})
+
+	t.Run("ChannelAttributes should default to false and serialize correctly", func(t *testing.T) {
+		require.False(t, f.ChannelAttributes)
+		require.Equal(t, "false", f.ToMap()["ChannelAttributes"])
+
+		f.ChannelAttributes = true
+		require.Equal(t, "true", f.ToMap()["ChannelAttributes"])
 	})
 
 	t.Run("MmBlocksEnabled defaults to true", func(t *testing.T) {
@@ -64,12 +73,47 @@ func TestFeatureFlagsSetDefaults_AttributeValueMasking(t *testing.T) {
 	require.Equal(t, "true", flags.ToMap()["AttributeValueMasking"])
 }
 
+func TestFeatureFlagsSetDefaults_RecurringScheduledPosts(t *testing.T) {
+	var flags FeatureFlags
+	flags.SetDefaults()
+
+	require.False(t, flags.RecurringScheduledPosts, "RecurringScheduledPosts should default to false")
+	require.Equal(t, "false", flags.ToMap()["RecurringScheduledPosts"])
+
+	flags.RecurringScheduledPosts = true
+	require.Equal(t, "true", flags.ToMap()["RecurringScheduledPosts"])
+}
+
+func TestFeatureFlagsSetDefaults_PostAttributes(t *testing.T) {
+	var flags FeatureFlags
+	flags.SetDefaults()
+
+	require.False(t, flags.PostAttributes, "PostAttributes should default to false")
+	require.Equal(t, "false", flags.ToMap()["PostAttributes"])
+}
+
 func TestFeatureFlagsSetDefaults_PropertyFieldRank(t *testing.T) {
 	var flags FeatureFlags
 	flags.SetDefaults()
 
 	require.True(t, flags.PropertyFieldRank, "PropertyFieldRank should default to true")
 	require.Equal(t, "true", flags.ToMap()["PropertyFieldRank"])
+}
+
+func TestFeatureFlagsSetDefaults_PropertyFieldGraph(t *testing.T) {
+	var flags FeatureFlags
+	flags.SetDefaults()
+
+	require.False(t, flags.PropertyFieldGraph, "PropertyFieldGraph should default to false")
+	require.Equal(t, "false", flags.ToMap()["PropertyFieldGraph"])
+}
+
+func TestFeatureFlagsSetDefaults_TeamMembershipAccessControl(t *testing.T) {
+	var flags FeatureFlags
+	flags.SetDefaults()
+
+	require.True(t, flags.TeamMembershipAccessControl, "TeamMembershipAccessControl should default to true")
+	require.Equal(t, "true", flags.ToMap()["TeamMembershipAccessControl"])
 }
 
 // TestFeatureFlagsPermissionPoliciesDependencies pins down the
@@ -122,6 +166,48 @@ func TestFeatureFlagsPermissionPoliciesDependencies(t *testing.T) {
 		f.PolicySimulation = true
 		require.False(t, f.IsChannelPermissionPoliciesEnabled())
 		require.True(t, f.IsPolicySimulationEnabled())
+	})
+}
+
+// TestFeatureFlagsChannelAttributesRequiredEnabled pins down the
+// ChannelAttributesRequired flag contract.
+func TestFeatureFlagsChannelAttributesRequiredEnabled(t *testing.T) {
+	t.Run("sub-flag defaults to false (enforcement off) after SetDefaults", func(t *testing.T) {
+		var f FeatureFlags
+		f.SetDefaults()
+
+		require.False(t, f.ChannelAttributesRequired)
+
+		f.ChannelAttributes = true
+		require.False(t, f.IsChannelAttributesRequiredEnabled())
+	})
+
+	t.Run("umbrella off disables enforcement regardless of the sub-flag", func(t *testing.T) {
+		f := FeatureFlags{ChannelAttributes: false, ChannelAttributesRequired: true}
+		require.False(t, f.IsChannelAttributesRequiredEnabled())
+	})
+
+	t.Run("sub-flag false disables enforcement even with the umbrella on", func(t *testing.T) {
+		f := FeatureFlags{ChannelAttributes: true, ChannelAttributesRequired: false}
+		require.False(t, f.IsChannelAttributesRequiredEnabled())
+	})
+
+	t.Run("both on enables enforcement", func(t *testing.T) {
+		f := FeatureFlags{ChannelAttributes: true, ChannelAttributesRequired: true}
+		require.True(t, f.IsChannelAttributesRequiredEnabled())
+	})
+
+	t.Run("a field absent from a persisted FeatureFlags block decodes to false (enforcement off)", func(t *testing.T) {
+		// Simulates upgrading a server that already persisted a FeatureFlags
+		// block predating this flag's existence: absent field decodes to Go
+		// zero value (false = enforcement off), the safe default.
+		raw := []byte(`{"ChannelAttributes": true}`)
+		var f FeatureFlags
+		require.NoError(t, json.Unmarshal(raw, &f))
+
+		require.False(t, f.ChannelAttributesRequired)
+		require.False(t, f.IsChannelAttributesRequiredEnabled(),
+			"a server upgrading with a persisted FeatureFlags block leaves required-attribute enforcement off until explicitly enabled")
 	})
 }
 

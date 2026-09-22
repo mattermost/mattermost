@@ -4,10 +4,9 @@
 package app
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
-	"sort"
+	"slices"
 	"strings"
 	"sync"
 
@@ -31,15 +30,7 @@ func (a *App) canSendPushNotifications() bool {
 	}
 
 	pushServer := *a.Config().EmailSettings.PushNotificationServer
-	// Check for MHPNS servers (both current and legacy DNS aliases)
-	isMHPNSServer := pushServer == model.MHPNS ||
-		pushServer == model.MHPNSLegacyUS ||
-		pushServer == model.MHPNSLegacyDE ||
-		pushServer == model.MHPNSGlobal ||
-		pushServer == model.MHPNSUS ||
-		pushServer == model.MHPNSEU ||
-		pushServer == model.MHPNSAP
-	if license := a.Srv().License(); isMHPNSServer && (license == nil || !*license.Features.MHPNS) {
+	if model.IsMHPNSEndpoint(pushServer) && !a.Srv().License().HasMHPNS() {
 		a.Log().LogM(mlog.MlvlNotificationWarn, "Push notifications are disabled - license missing",
 			mlog.String("status", model.NotificationStatusNotSent),
 			mlog.String("reason", "push_disabled_license"),
@@ -57,13 +48,21 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 		return []string{}, nil
 	}
 
+	// Do not send any notification (push, email, websocket) for a membership
+	// system post in a channel where join/leave messages are suppressed.
+	// The mention count increment for add-type posts is handled synchronously in
+	// AddChannelMember before the HTTP response is sent.
+	if a.shouldSuppressMembershipSystemPost(rctx, channel, post) {
+		return []string{}, nil
+	}
+
 	suppressNotifications := post.IsNotificationSuppressed()
 
 	isCRTAllowed := *a.Config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled
 
 	pchan := make(chan store.StoreResult[map[string]*model.User], 1)
 	go func() {
-		props, err := a.Srv().Store().User().GetAllProfilesInChannel(context.Background(), channel.Id, true)
+		props, err := a.Srv().Store().User().GetAllProfilesInChannel(rctx, channel.Id, true)
 		pchan <- store.StoreResult[map[string]*model.User]{Data: props, NErr: err}
 		close(pchan)
 	}()
@@ -356,7 +355,6 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 		for id := range mentions.Mentions {
 			mentionedUsersList = append(mentionedUsersList, id)
 		}
-
 		nErr := a.Srv().Store().Channel().IncrementMentionCount(post.ChannelId, mentionedUsersList, post.RootId == "", post.IsUrgent())
 
 		if nErr != nil {
@@ -576,7 +574,12 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 
 				isExplicitlyMentioned := mentions.Mentions[id] > GMMention
 				isGM := channel.Type == model.ChannelTypeGroup
-				if a.ShouldSendPushNotification(rctx, profileMap[id], channelMemberNotifyPropsMap[id], isExplicitlyMentioned, status, post, isGM) {
+				// For add-type posts in suppressed channels the post is hidden from the timeline
+				// but the added user should still receive a push notification. ShouldSendPushNotification
+				// normally returns false for system messages, so bypass that check here.
+				suppressedAddPost := model.IsAddMembershipSystemPost(post) && model.ShouldChannelExcludeMembershipSystemPosts(channel)
+				shouldPush := suppressedAddPost || a.ShouldSendPushNotification(rctx, profileMap[id], channelMemberNotifyPropsMap[id], isExplicitlyMentioned, status, post, isGM)
+				if shouldPush {
 					mentionType := mentions.Mentions[id]
 
 					replyToThreadType := ""
@@ -697,7 +700,16 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 		mlog.String("post_id", post.Id),
 	)
 
-	message := model.NewWebSocketEvent(model.WebsocketEventPosted, "", post.ChannelId, "", nil, "")
+	// For add-type posts in suppressed channels, scope the WS event to the added user only.
+	// The post appears temporarily in their timeline until the next fetch (server-side
+	// filtering removes it then). Other channel members receive no WS event and see nothing.
+	var message *model.WebSocketEvent
+	if model.IsAddMembershipSystemPost(post) && model.ShouldChannelExcludeMembershipSystemPosts(channel) {
+		addedUserId, _ := post.GetProp(model.PostPropsAddedUserId).(string)
+		message = model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", addedUserId, nil, "")
+	} else {
+		message = model.NewWebSocketEvent(model.WebsocketEventPosted, "", post.ChannelId, "", nil, "")
+	}
 
 	message.Add("channel_type", channel.Type)
 	message.Add("channel_display_name", notification.GetChannelName(model.ShowUsername, ""))
@@ -705,6 +717,8 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 	message.Add("sender_name", notification.GetSenderName(model.ShowUsername, *a.Config().ServiceSettings.EnablePostUsernameOverride))
 	message.Add("team_id", team.Id)
 	message.Add("set_online", setOnline)
+
+	a.markPostDeliveryForBroadcast(rctx, message, post)
 
 	if len(post.FileIds) != 0 && fchan != nil {
 		message.Add("otherFile", "true")
@@ -744,8 +758,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 	}
 	usePostedAckHook(message, post.UserId, channel.Type, usersToAck)
 
-	appErr := a.publishWebsocketEventForPost(rctx, post, message)
-	if appErr != nil {
+	if appErr := a.publishWebsocketEventForPost(rctx, post, message); appErr != nil {
 		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeWebsocket, model.NotificationReasonFetchError, model.NotificationNoPlatform)
 		rctx.Logger().LogM(mlog.MlvlNotificationError, "Couldn't send websocket notification for permalink post",
 			mlog.String("type", model.NotificationTypeWebsocket),
@@ -860,7 +873,8 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 						userThread.UnreadReplies = 0
 					}
 					a.sanitizeProfiles(userThread.Participants, false)
-					userThread.Post.SanitizeProps()
+					userThread.Post.SanitizeNonIdentityProps()
+					userThread.Post.StripActionIntegrations()
 
 					sanitizedPost, isMemberForPreview, err := a.SanitizePostMetadataForUser(rctx, userThread.Post, uid)
 					if err != nil {
@@ -885,6 +899,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 					message.Add("thread", string(payload))
 					message.Add("previous_unread_mentions", previousUnreadMentions)
 					message.Add("previous_unread_replies", previousUnreadReplies)
+					a.markPostDeliveryForBroadcast(rctx, message, userThread.Post)
 
 					auditRec := a.MakeAuditRecord(rctx, model.AuditEventWebsocketPost, model.AuditStatusSuccess)
 					defer a.LogAuditRec(rctx, auditRec, nil)
@@ -932,7 +947,7 @@ func (a *App) RemoveNotifications(rctx request.CTX, post *model.Post, channel *m
 
 		pCh := make(chan store.StoreResult[map[string]*model.User], 1)
 		go func() {
-			props, err := a.Srv().Store().User().GetAllProfilesInChannel(context.Background(), channel.Id, true)
+			props, err := a.Srv().Store().User().GetAllProfilesInChannel(rctx, channel.Id, true)
 			pCh <- store.StoreResult[map[string]*model.User]{Data: props, NErr: err}
 			close(pCh)
 		}()
@@ -1028,7 +1043,8 @@ func (a *App) RemoveNotifications(rctx request.CTX, post *model.Post, channel *m
 				previousUnreadReplies := int64(0)
 
 				a.sanitizeProfiles(userThread.Participants, false)
-				userThread.Post.SanitizeProps()
+				userThread.Post.SanitizeNonIdentityProps()
+				userThread.Post.StripActionIntegrations()
 
 				sanitizedPost, isMemberForPreview, err1 := a.SanitizePostMetadataForUser(rctx, userThread.Post, userID)
 				if err1 != nil {
@@ -1057,6 +1073,7 @@ func (a *App) RemoveNotifications(rctx request.CTX, post *model.Post, channel *m
 				message.Add("thread", string(payload))
 				message.Add("previous_unread_mentions", previousUnreadMentions)
 				message.Add("previous_unread_replies", previousUnreadReplies)
+				a.markPostDeliveryForBroadcast(rctx, message, userThread.Post)
 
 				a.Publish(message)
 			}
@@ -1083,7 +1100,7 @@ func (a *App) getExplicitMentionsAndKeywords(rctx request.CTX, post *model.Post,
 			if _, ok := profileMap[user1]; ok {
 				mentions.addMention(user1, DMMention)
 			} else {
-				a.Log().Debug("missing profile: DM user not in profiles", mlog.String("userId", user1), mlog.String("channelId", channel.Id))
+				a.Log().Debug("missing profile: DM user not in profiles", mlog.String("user_id", user1), mlog.String("channel_id", channel.Id))
 			}
 		}
 
@@ -1092,7 +1109,7 @@ func (a *App) getExplicitMentionsAndKeywords(rctx request.CTX, post *model.Post,
 				if _, ok := profileMap[user2]; ok {
 					mentions.addMention(user2, DMMention)
 				} else {
-					a.Log().Debug("missing profile: DM user not in profiles", mlog.String("userId", user2), mlog.String("channelId", channel.Id))
+					a.Log().Debug("missing profile: DM user not in profiles", mlog.String("user_id", user2), mlog.String("channel_id", channel.Id))
 				}
 			}
 		}
@@ -1108,7 +1125,7 @@ func (a *App) getExplicitMentionsAndKeywords(rctx request.CTX, post *model.Post,
 				if _, ok := profileMap[id]; ok {
 					mentions.addMention(id, GMMention)
 				} else {
-					a.Log().Debug("missing profile: GM user not in profiles", mlog.String("userId", id), mlog.String("channelId", channel.Id))
+					a.Log().Debug("missing profile: GM user not in profiles", mlog.String("user_id", id), mlog.String("channel_id", channel.Id))
 				}
 			}
 		}
@@ -1117,11 +1134,17 @@ func (a *App) getExplicitMentionsAndKeywords(rctx request.CTX, post *model.Post,
 		// even if the user has set 'username mentions' to false in account settings.
 		if post.Type == model.PostTypeAddToChannel {
 			if addedUserId, ok := post.GetProp(model.PostPropsAddedUserId).(string); ok {
-				if _, ok := profileMap[addedUserId]; ok {
-					mentions.addMention(addedUserId, KeywordMention)
-				} else {
-					a.Log().Debug("missing profile: user added to channel not in profiles", mlog.String("userId", addedUserId), mlog.String("channelId", channel.Id))
+				if _, ok := profileMap[addedUserId]; !ok {
+					// The added user may have been missing from the cached profile map
+					// because they were just added to the channel. Load them directly so
+					// push/email notifications are sent even when the cache is stale.
+					if profile, err := a.Srv().Store().User().Get(rctx, addedUserId); err == nil {
+						profileMap[addedUserId] = profile
+					} else {
+						a.Log().Debug("missing profile: user added to channel not in profiles", mlog.String("user_id", addedUserId), mlog.String("channel_id", channel.Id))
+					}
 				}
+				mentions.addMention(addedUserId, KeywordMention)
 			}
 		}
 
@@ -1633,7 +1656,7 @@ func (n *PostNotification) GetChannelName(userNameFormat, excludeId string) stri
 			}
 		}
 
-		sort.Strings(names)
+		slices.Sort(names)
 
 		return strings.Join(names, ", ")
 	default:

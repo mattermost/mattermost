@@ -12,7 +12,6 @@ exports[`components/MarkdownImage should match snapshot 1`] = `
         class="image-loading__container"
       >
         <img
-          aria-label="file thumbnail"
           class="image-loading__placeholder markdown-inline-img markdown-inline-img--loading"
           height="90"
           role="presentation"
@@ -168,7 +167,6 @@ exports[`components/MarkdownImage should match snapshot for broken link 1`] = `
         class="image-loading__container"
       >
         <img
-          aria-label="file thumbnail"
           class="image-loading__placeholder markdown-inline-img markdown-inline-img--loading"
           height="10"
           role="presentation"
@@ -288,7 +286,7 @@ exports[`components/MarkdownImage should render a link if the source is unsafe 1
     <img
       alt="test image"
       class="markdown-inline-img broken-image"
-      src=""
+      src="test-file-stub"
     />
   </div>
 </div>

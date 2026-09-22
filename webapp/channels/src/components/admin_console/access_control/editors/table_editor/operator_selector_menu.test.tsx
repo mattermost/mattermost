@@ -94,6 +94,52 @@ describe('OperatorSelectorMenu', () => {
         expect(menuTexts).not.toContain('has all of');
     });
 
+    test('shows the hierarchy predicates and the membership operators when attributeType is graph', () => {
+        renderWithContext(
+            <OperatorSelectorMenu
+                {...defaultProps}
+                currentOperator='coversAll'
+                attributeType='graph'
+            />,
+        );
+
+        expect(screen.getByTestId('operatorSelectorMenuButton')).toHaveTextContent('covers all of');
+
+        fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+
+        const menuTexts = screen.getAllByRole('menuitemradio').map((item) => item.textContent);
+        expect(menuTexts).toEqual([
+            'covers all of',
+            'covers any of',
+            'is within all of',
+            'is within any of',
+            'has any of',
+            'has all of',
+        ]);
+    });
+
+    test('hides the hierarchy predicates for non-graph attribute types', () => {
+        for (const attributeType of ['text', 'select', 'multiselect', 'rank']) {
+            const {unmount} = renderWithContext(
+                <OperatorSelectorMenu
+                    {...defaultProps}
+                    currentOperator='is'
+                    attributeType={attributeType}
+                />,
+            );
+
+            fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+
+            const menuTexts = screen.getAllByRole('menuitemradio').map((item) => item.textContent);
+            expect(menuTexts).not.toContain('covers all of');
+            expect(menuTexts).not.toContain('covers any of');
+            expect(menuTexts).not.toContain('is within all of');
+            expect(menuTexts).not.toContain('is within any of');
+
+            unmount();
+        }
+    });
+
     test('restricts the menu to allowedOperators when provided (native attribute)', () => {
         renderWithContext(
             <OperatorSelectorMenu
@@ -126,5 +172,41 @@ describe('OperatorSelectorMenu', () => {
         const menuItems = screen.getAllByRole('menuitemradio');
         const menuTexts = menuItems.map((item) => item.textContent);
         expect(menuTexts).toEqual(['younger than (days)']);
+    });
+
+    test('shows advertised inCIDR operator for IP session attributes', () => {
+        renderWithContext(
+            <OperatorSelectorMenu
+                {...defaultProps}
+                currentOperator='in IP range'
+                attributeType='text'
+                allowedOperators={['is', 'in IP range']}
+            />,
+        );
+
+        fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+
+        const menuItems = screen.getAllByRole('menuitemradio');
+        const menuTexts = menuItems.map((item) => item.textContent);
+        expect(menuTexts).toEqual(['is', 'in IP range']);
+    });
+
+    test('shows advertised version operators for version session attributes', () => {
+        renderWithContext(
+            <OperatorSelectorMenu
+                {...defaultProps}
+                currentOperator='version is at least'
+                attributeType='text'
+                allowedOperators={['version is at least', 'version is greater than']}
+            />,
+        );
+
+        fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+
+        const menuItems = screen.getAllByRole('menuitemradio');
+        const menuTexts = menuItems.map((item) => item.textContent);
+        expect(menuTexts).toHaveLength(2);
+        expect(menuTexts[0]).toContain('version is at least');
+        expect(menuTexts[1]).toContain('version is greater than');
     });
 });

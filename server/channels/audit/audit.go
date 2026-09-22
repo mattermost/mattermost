@@ -10,7 +10,9 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
-const DefMaxQueueSize = 1000
+// DefMaxQueueSize is sized for the post delivery audit stream, which emits one record per post
+// per recipient and so bursts far above the volume of the other audit levels.
+const DefMaxQueueSize = 10000
 
 type Audit struct {
 	logger *mlog.Logger
@@ -73,7 +75,7 @@ func (a *Audit) onQueueFull(rec *mlog.LogRec, maxQueueSize int) bool {
 	if a.OnQueueFull != nil {
 		return a.OnQueueFull("main", maxQueueSize)
 	}
-	mlog.Error("Audit logging queue full, dropping record.", mlog.Int("queueSize", maxQueueSize))
+	mlog.Error("Audit logging queue full, dropping record.", mlog.Int("queue_size", maxQueueSize))
 	return true
 }
 
@@ -81,7 +83,7 @@ func (a *Audit) onTargetQueueFull(target mlog.Target, rec *mlog.LogRec, maxQueue
 	if a.OnQueueFull != nil {
 		return a.OnQueueFull(fmt.Sprintf("%v", target), maxQueueSize)
 	}
-	mlog.Error("Audit logging queue full for target, dropping record.", mlog.Any("target", target), mlog.Int("queueSize", maxQueueSize))
+	mlog.Error("Audit logging queue full for target, dropping record.", mlog.Any("target", target), mlog.Int("queue_size", maxQueueSize))
 	return true
 }
 

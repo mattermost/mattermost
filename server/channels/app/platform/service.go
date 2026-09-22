@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"context"
 	"crypto/ecdsa"
 	"errors"
 	"fmt"
@@ -17,6 +18,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/markdown"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app/featureflag"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
@@ -108,6 +110,12 @@ type PlatformService struct {
 	goroutineExitSignal chan struct{}
 	goroutineBuffered   chan struct{}
 
+	// goroutineCtx is cancelled when the server begins shutting down. Long-running background
+	// requests (e.g. outgoing integration requests) derive their context from it so shutdown can
+	// cancel them instead of blocking on their full configured timeout.
+	goroutineCtx    context.Context
+	goroutineCancel context.CancelFunc
+
 	// Document content extraction runs on a dedicated, bounded worker pool so
 	// that expensive extractions cannot saturate the generic worker pool and
 	// block the request goroutines that dispatch them.
@@ -135,6 +143,8 @@ type PlatformService struct {
 
 	// logRootPathOverride overrides MM_LOG_PATH for log root path validation.
 	logRootPathOverride string
+
+	postDeliveryRecorder func(marker *model.PostDeliveryMarker, userID string)
 }
 
 // SetInstallTypeOverride sets the install type override for support packet diagnostics.
@@ -174,6 +184,8 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		statusUpdateExitSignal:    make(chan struct{}),
 		statusUpdateDoneSignal:    make(chan struct{}),
 	}
+
+	ps.goroutineCtx, ps.goroutineCancel = context.WithCancel(context.Background())
 
 	// Assume the first user account has not been created yet. A call to the DB will later check if this is really the case.
 	ps.isFirstUserAccount.Store(true)
@@ -331,6 +343,10 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	if err != nil {
 		return nil, fmt.Errorf("cannot create store: %w", err)
 	}
+
+	// The markdown package needs to know what the maximum post size is, so we
+	// let it know once the store is created.
+	markdown.SetMaxPostRunes(ps.MaxPostSize())
 
 	// Step 7: initialize status and session cache.
 	// We need to do this because ps.LoadLicense() called in step 8, could
@@ -573,6 +589,16 @@ func (ps *PlatformService) TotalWebsocketConnections() int {
 }
 
 func (ps *PlatformService) Shutdown() error {
+	// Deferred so it still runs even if a later step below returns early
+	// (e.g. cacheProvider.Close failing). Must run last: every other step
+	// below (notably HubStop) is a candidate to still attempt a cluster send
+	// after StopInterNodeCommunication has already run, so the cluster
+	// interface's own shutdown accounting needs everything below to have
+	// already happened, which defer guarantees regardless of the early return.
+	if ps.clusterIFace != nil {
+		defer ps.clusterIFace.Shutdown()
+	}
+
 	ps.HubStop()
 
 	// Shutdown status processor.
@@ -586,6 +612,12 @@ func (ps *PlatformService) Shutdown() error {
 	// Stop the document extraction workers and wait for any in-flight
 	// extraction to finish before closing the store it depends on.
 	ps.stopExtractionWorkers()
+
+	// Cancel in-flight background requests (e.g. outgoing integration requests) derived from
+	// goroutineCtx so shutdown isn't blocked by their full configured timeout.
+	if ps.goroutineCancel != nil {
+		ps.goroutineCancel()
+	}
 
 	// we need to wait the goroutines to finish before closing the store
 	// and this needs to be called after hub stop because hub generates goroutines
@@ -629,6 +661,10 @@ func (ps *PlatformService) GetSharedChannelService() SharedChannelServiceIFace {
 
 func (ps *PlatformService) SetPluginsEnvironment(runner HookRunner) {
 	ps.pluginEnv = runner
+}
+
+func (ps *PlatformService) SetPostDeliveryRecorder(fn func(marker *model.PostDeliveryMarker, userID string)) {
+	ps.postDeliveryRecorder = fn
 }
 
 // GetPluginStatuses meant to be used by cluster implementation
