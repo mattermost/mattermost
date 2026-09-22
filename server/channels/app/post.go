@@ -1289,16 +1289,6 @@ func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, m
 	return nil
 }
 
-// setupBroadcastHookForChannelReadAccess registers channelReadAccessBroadcastHook so each
-// recipient's channel_read_access policy is evaluated before the event reaches them.
-func (a *App) setupBroadcastHookForChannelReadAccess(channelID string, message *model.WebSocketEvent) {
-	if channelID == "" || !a.channelReadAccessEnforcementActive() {
-		return
-	}
-
-	useChannelReadAccessHook(message, channelID)
-}
-
 // setupBroadcastHookForAbacFiles registers abacFilesBroadcastHook when ABAC is active and
 // the post has file attachments. Skipped for burn-on-read posts (handled by their own hook).
 func (a *App) setupBroadcastHookForAbacFiles(post *model.Post, message *model.WebSocketEvent) {

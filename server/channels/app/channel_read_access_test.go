@@ -4,6 +4,7 @@
 package app
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"testing"
@@ -11,6 +12,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	eMocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/stretchr/testify/require"
 )
@@ -704,4 +706,77 @@ func TestChannelReadPermissionClassification(t *testing.T) {
 			"classify %s as a channel read or a write, then add it here", permission.Id)
 		require.Equal(t, isRead, isChannelReadPermission(permission), permission.Id)
 	}
+}
+
+// TestChannelBookmarkEventsCarryTheReadAccessHook pins the websocket contract for
+// bookmarks. A denied user stays a channel member, so every bookmark broadcast still
+// names them as a recipient; without the hook the event hands them the link URL and
+// the attached file's metadata over a connection where post events are already cut off.
+func TestChannelBookmarkEventsCarryTheReadAccessHook(t *testing.T) {
+	// publishedBookmarkEvents runs one of each bookmark operation and returns the
+	// websocket events they published, keyed by event type.
+	publishedBookmarkEvents := func(t *testing.T, h *channelReadAccessHarness) map[model.WebsocketEventType]*model.WebSocketEvent {
+		t.Helper()
+
+		cluster := &testlib.FakeClusterInterface{}
+		h.th.Server.Platform().SetCluster(cluster)
+
+		created, appErr := h.th.App.CreateChannelBookmark(h.rctx,
+			createBookmark("Link bookmark", model.ChannelBookmarkLink, h.th.BasicChannel.Id, ""), "")
+		require.Nil(t, appErr)
+
+		created.DisplayName = "Renamed bookmark"
+		_, appErr = h.th.App.UpdateChannelBookmark(h.rctx, created, "")
+		require.Nil(t, appErr)
+
+		_, appErr = h.th.App.UpdateChannelBookmarkSortOrder(created.Id, h.th.BasicChannel.Id, 0, "")
+		require.Nil(t, appErr)
+
+		_, appErr = h.th.App.DeleteChannelBookmark(created.Id, "")
+		require.Nil(t, appErr)
+
+		events := map[model.WebsocketEventType]*model.WebSocketEvent{}
+		for _, msg := range cluster.SelectMessages(func(msg *model.ClusterMessage) bool {
+			return msg.Event == model.ClusterEventPublish
+		}) {
+			event, err := model.WebSocketEventFromJSON(bytes.NewReader(msg.Data))
+			require.NoError(t, err)
+			events[event.EventType()] = event
+		}
+		return events
+	}
+
+	bookmarkEvents := []model.WebsocketEventType{
+		model.WebsocketEventChannelBookmarkCreated,
+		model.WebsocketEventChannelBookmarkUpdated,
+		model.WebsocketEventChannelBookmarkSorted,
+		model.WebsocketEventChannelBookmarkDeleted,
+	}
+
+	t.Run("every bookmark event is evaluated per recipient", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		h.mockACS(t)
+
+		events := publishedBookmarkEvents(t, h)
+		for _, eventType := range bookmarkEvents {
+			event := events[eventType]
+			require.NotNil(t, event, "%s was not published", eventType)
+			require.Contains(t, event.GetBroadcast().BroadcastHooks, broadcastChannelReadAccess, "%s", eventType)
+			require.Contains(t, event.GetBroadcast().BroadcastHookArgs,
+				map[string]any{"channel_id": h.th.BasicChannel.Id}, "%s", eventType)
+		}
+	})
+
+	t.Run("no hook is registered when enforcement is inactive", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		h.mockACS(t)
+		h.th.App.Srv().SetLicense(nil)
+
+		events := publishedBookmarkEvents(t, h)
+		for _, eventType := range bookmarkEvents {
+			event := events[eventType]
+			require.NotNil(t, event, "%s was not published", eventType)
+			require.NotContains(t, event.GetBroadcast().BroadcastHooks, broadcastChannelReadAccess, "%s", eventType)
+		}
+	})
 }
