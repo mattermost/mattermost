@@ -713,10 +713,10 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
     }
 
     if (rows.length === 0) {
-        // Keep the loading screen whenever resource scopes are still in-flight:
-        // either no template fields exist yet, or a search query filters them all
-        // out while a resource row that would match is still pending.
-        if (!resourcesLoaded) {
+        // Template list can be empty while unlinked resource fields are still
+        // in flight — stay on the loading screen so the empty state does not
+        // flash before those rows arrive.
+        if (!resourcesLoaded && allRows.length === 0) {
             return <LoadingScreen/>;
         }
 

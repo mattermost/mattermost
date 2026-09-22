@@ -245,51 +245,6 @@ describe('GlobalAttributesTable', () => {
         expect(screen.queryByTestId('global-attributes-empty')).not.toBeInTheDocument();
     });
 
-    it('keeps the loading screen when a search query filters out template rows but resource rows are still pending', async () => {
-        let resolveUser: (value: PropertyField[]) => void;
-        const userPending = new Promise<PropertyField[]>((resolve) => {
-            resolveUser = resolve;
-        });
-
-        getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
-            if (opts?.cursorId) {
-                return Promise.resolve([]);
-            }
-            if (objectType === 'template') {
-                return Promise.resolve([makeField({id: 'template-1', name: 'other_attr', attrs: {display_name: 'Other Attr'}})]);
-            }
-            if (objectType === 'user') {
-                return userPending;
-            }
-            return Promise.resolve([]);
-        });
-
-        // Search term that matches the pending user field but NOT the template field.
-        renderWithContext(<GlobalAttributesTable searchQuery='department'/>, getBaseState());
-
-        // Template rows loaded but none match the query; resource rows still pending.
-        await waitFor(() => {
-            expect(getPropertyFields).toHaveBeenCalledWith(
-                'access_control',
-                'template',
-                'system',
-                undefined,
-                expect.anything(),
-            );
-        });
-        expect(screen.getByTestId('loading-screen')).toBeInTheDocument();
-        expect(screen.queryByTestId('global-attributes-empty-search')).not.toBeInTheDocument();
-
-        // Resource rows arrive — the matching user field now appears.
-        await act(async () => {
-            resolveUser!([makeField({id: 'u1', name: 'department', object_type: 'user', attrs: {display_name: 'Department'}})]);
-            await userPending;
-        });
-
-        expect(await screen.findByText('Department')).toBeInTheDocument();
-        expect(screen.queryByTestId('loading-screen')).not.toBeInTheDocument();
-    });
-
     it('fetches access_control/template fields scoped to the system target type', async () => {
         getPropertyFields.mockResolvedValueOnce([]).mockResolvedValue([]);
 
