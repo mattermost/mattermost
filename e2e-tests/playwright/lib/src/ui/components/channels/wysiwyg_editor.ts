@@ -53,6 +53,9 @@ export default class WysiwygEditor {
     }
 
     async sendByEnter() {
+        // Check for enabled SendMessageButton to ensure draft is ready to send
+        const btn = this.container.getByTestId('SendMessageButton');
+        await expect(btn).toBeEnabled();
         await this.input.press('Enter');
     }
 
