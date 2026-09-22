@@ -192,9 +192,9 @@ mutedby = CASE WHEN EXCLUDED.mutedat = 0 THEN healthfindings.mutedby ELSE EXCLUD
 			if details == nil {
 				details = map[string]string{}
 			}
-			serializedDetails, err := json.Marshal(details)
-			if err != nil {
-				return errors.Wrapf(err, "failed to serialize details for finding %s", finding.Fingerprint)
+			serializedDetails, marshalErr := json.Marshal(details)
+			if marshalErr != nil {
+				return errors.Wrapf(marshalErr, "failed to serialize details for finding %s", finding.Fingerprint)
 			}
 
 			query = query.Values(
