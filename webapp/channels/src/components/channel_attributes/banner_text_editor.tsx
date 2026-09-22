@@ -117,8 +117,8 @@ type Props = {
 
     onChange: (next: string) => void;
 
-    // Attributes the admin designated for the banner. Their chips carry no remove
-    // control: the channel may add to the banner, not drop what was mandated.
+    // Attributes whose chips should not offer a remove control. Unused by Channel
+    // Settings: system designation is a default, not a lock.
     lockedTokens?: string[];
 
     disabled?: boolean;

@@ -111,52 +111,6 @@ test.describe(
         });
 
         /**
-         * @objective Ensure the Channel Info display location puts the attribute in Channel Info only.
-         */
-        test('shows a Channel-Info-only attribute in Channel Info and not in the header', async ({pw}) => {
-            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
-
-            const suffix = pw.random.id();
-            let name = '';
-
-            try {
-                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-
-                name = await configureChannelAttribute(systemConsolePage, {
-                    displayName: `Info ${suffix}`,
-                    type: 'Select',
-                    options: ['INTERNAL'],
-                    required: true,
-                    displayLocations: ['display_label_info'],
-                });
-
-                const {team} = await pw.initSetup();
-                const {channelsPage} = await pw.testBrowser.login(adminUser);
-                await channelsPage.goto(team.name);
-                await channelsPage.toBeVisible();
-
-                const modal = await channelsPage.openNewChannelModal();
-                await modal.fillDisplayName(`Attr Info ${suffix}`);
-                await channelsPage.page.getByTestId(`channelAttribute-${name}`).click();
-                await channelsPage.page.getByText('INTERNAL', {exact: true}).click();
-                await modal.create();
-                await expect(modal.container).not.toBeVisible();
-
-                // * The inline header slot carries it, the row-below slot does not
-                await expect(channelsPage.centerView.header.infoAttributes.chip('INTERNAL')).toBeVisible();
-                await expect(channelsPage.centerView.header.attributes.chip('INTERNAL')).toHaveCount(0);
-
-                // * And Channel Info carries it, as it does for every attribute
-                const info = await channelsPage.openChannelInfo();
-                await expect(info.attributes.chip(name)).toHaveText('INTERNAL');
-            } finally {
-                await deleteChannelFieldIfExists(adminClient, name);
-                await deleteGlobalAttributeFieldIfExists(adminClient, name);
-            }
-        });
-
-        /**
          * @objective Ensure the Banner display location renders a banner and nothing else.
          */
         test('renders a Banner-only attribute as a banner, with no chip', async ({pw}) => {
@@ -274,7 +228,6 @@ test.describe(
                     options: ['FINAL'],
                     required: true,
                     changePolicy: 'Cannot be changed once set',
-                    displayLocations: ['display_label_info'],
                 });
 
                 // * The console wrote both keys: change_policy, and the editable key the
@@ -327,7 +280,6 @@ test.describe(
                     type: 'Select',
                     options: ['SET'],
                     required: true,
-                    displayLocations: ['display_label_info'],
                 });
 
                 const channelField = await findChannelField(adminClient, name);

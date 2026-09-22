@@ -127,20 +127,21 @@ function ChannelSettingsConfigurationTab({
 
     const {enabled: channelAttributesEnabled} = useChannelAttributes();
 
-    // Every attribute the admin designated for the banner.
+    // Every attribute the admin designated for the banner. Used as a default seed
+    // on an empty banner text, not as a lock — the channel may remove any of them.
     const bannerFields = useSelector(getChannelBannerFields);
-    const lockedTokens = useMemo(() => bannerFields.map((field) => field.name), [bannerFields]);
+    const defaultBannerTokens = useMemo(() => bannerFields.map((field) => field.name), [bannerFields]);
 
     const rawBannerInfo = channel.banner_info || DEFAULT_CHANNEL_BANNER;
 
-    // Normalised on both sides of the comparison, so the tokens seeded below are not
-    // read as an edit the moment the tab opens.
+    // Seed designated tokens only when the channel has no banner text yet. An
+    // existing template is the author's, including deliberate removals.
     const initialBannerInfo = useMemo(() => {
-        if (!channelAttributesEnabled || lockedTokens.length === 0) {
+        if (!channelAttributesEnabled || defaultBannerTokens.length === 0 || (rawBannerInfo.text ?? '').trim()) {
             return rawBannerInfo;
         }
-        return {...rawBannerInfo, text: withRequiredTokens(rawBannerInfo.text ?? '', lockedTokens)};
-    }, [channelAttributesEnabled, lockedTokens, rawBannerInfo]);
+        return {...rawBannerInfo, text: withRequiredTokens('', defaultBannerTokens)};
+    }, [channelAttributesEnabled, defaultBannerTokens, rawBannerInfo]);
 
     const [showBannerTextPreview, setShowBannerTextPreview] = useState(false);
     const [updatedChannelBanner, setUpdatedChannelBanner] = useState(initialBannerInfo);
@@ -148,16 +149,21 @@ function ChannelSettingsConfigurationTab({
     const hasBannerChanges = bannerHasChanges(initialBannerInfo, updatedChannelBanner);
 
     // The fields load after mount, so the initial state above may have been built
-    // before there were any tokens to seed. Once only: after that the text is the
-    // author's, and re-seeding would fight their edits.
+    // before there were any tokens to seed. Once only, and only while the text is
+    // still empty: after that the text is the author's.
     const seededTokensRef = useRef(false);
     useEffect(() => {
-        if (seededTokensRef.current || !channelAttributesEnabled || lockedTokens.length === 0) {
+        if (seededTokensRef.current || !channelAttributesEnabled || defaultBannerTokens.length === 0) {
             return;
         }
         seededTokensRef.current = true;
-        setUpdatedChannelBanner((prev) => ({...prev, text: withRequiredTokens(prev.text ?? '', lockedTokens)}));
-    }, [channelAttributesEnabled, lockedTokens]);
+        setUpdatedChannelBanner((prev) => {
+            if ((prev.text ?? '').trim()) {
+                return prev;
+            }
+            return {...prev, text: withRequiredTokens('', defaultBannerTokens)};
+        });
+    }, [channelAttributesEnabled, defaultBannerTokens]);
 
     const classificationBanner = useChannelClassificationBanner(channel.id);
 
@@ -503,7 +509,7 @@ function ChannelSettingsConfigurationTab({
             return false;
         }
 
-        if (updatedChannelBanner.enabled && !updatedChannelBanner.text?.trim()) {
+        if (updatedChannelBanner.enabled && !updatedChannelBanner.text?.trim() && !channelAttributesEnabled) {
             setFormError(formatMessage({
                 id: 'channel_settings.error_banner_text_required',
                 defaultMessage: 'Banner text is required',
@@ -523,11 +529,7 @@ function ChannelSettingsConfigurationTab({
 
         if (bannerHasChanges(initialBannerInfo, updatedChannelBanner)) {
             updated.banner_info = {
-
-                // A locked chip has no remove control, but backspace reaches it. The
-                // designated attributes are restored here rather than policed keystroke
-                // by keystroke.
-                text: withRequiredTokens(updatedChannelBanner.text?.trim() || '', channelAttributesEnabled ? lockedTokens : []),
+                text: updatedChannelBanner.text?.trim() || '',
                 background_color: updatedChannelBanner.background_color?.trim() || '',
                 enabled: updatedChannelBanner.enabled,
             };
@@ -652,7 +654,6 @@ function ChannelSettingsConfigurationTab({
         classification.channelField,
         classificationEnabled,
         dispatch,
-        lockedTokens,
         formatMessage,
         handleServerError,
         hasAutoTranslationChanges,
@@ -926,15 +927,22 @@ function ChannelSettingsConfigurationTab({
 
                                 <div className='setting_body'>
                                     {channelAttributesEnabled ? (
-                                        <BannerTextEditor
-                                            value={updatedChannelBanner.text ?? ''}
-                                            attributes={resolvedAttributes}
-                                            lockedTokens={lockedTokens}
-                                            onChange={handleBannerTextChange}
-                                            disabled={bannerLockedByClassification}
-                                            hasError={characterLimitExceeded}
-                                            maxLength={CHANNEL_BANNER_MAX_CHARACTER_LIMIT}
-                                        />
+                                        <>
+                                            <BannerTextEditor
+                                                value={updatedChannelBanner.text ?? ''}
+                                                attributes={resolvedAttributes}
+                                                onChange={handleBannerTextChange}
+                                                disabled={bannerLockedByClassification}
+                                                hasError={characterLimitExceeded}
+                                                maxLength={CHANNEL_BANNER_MAX_CHARACTER_LIMIT}
+                                            />
+                                            <p className='setting_help'>
+                                                <FormattedMessage
+                                                    id='channel_banner.banner_text.help'
+                                                    defaultMessage='Any single- or double-character symbols between attributes (such as · . / ?) will be removed if those attribute values are not set. Empty attributes will not appear in the banner or elsewhere in the channel. The banner is hidden if there is no text available.'
+                                                />
+                                            </p>
+                                        </>
                                     ) : (
                                         <AdvancedTextbox
                                             id='channel_banner_banner_text_textbox'

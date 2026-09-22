@@ -55,7 +55,7 @@ describe('BannerPreview', () => {
         expect(screen.getByTestId('bannerAttributePreview')).toHaveTextContent('Handle with care');
     });
 
-    test('says so when every referenced attribute is unset, rather than rendering an empty bar', () => {
+    test('shows a warning notice and hides the preview bar when nothing resolves', () => {
         renderWithContext(
             <BannerPreview
                 template='{{program}}'
@@ -63,7 +63,25 @@ describe('BannerPreview', () => {
             />,
         );
 
-        expect(screen.getByTestId('bannerAttributePreview')).toHaveTextContent('nothing yet');
+        expect(screen.queryByTestId('bannerAttributePreview')).not.toBeInTheDocument();
+        expect(screen.getByTestId('bannerPreviewEmptyNotice')).toHaveTextContent(
+            'The banner will not be displayed',
+        );
+        expect(screen.getByTestId('bannerPreviewEmptyNotice')).toHaveTextContent(
+            "There's nothing to display until the attributes in the banner text have values.",
+        );
+    });
+
+    test('hides the empty notice once the template resolves to text', () => {
+        renderWithContext(
+            <BannerPreview
+                template='Handle with care'
+                attributes={[]}
+            />,
+        );
+
+        expect(screen.queryByTestId('bannerPreviewEmptyNotice')).not.toBeInTheDocument();
+        expect(screen.getByTestId('bannerAttributePreview')).toBeInTheDocument();
     });
 
     test('paints itself in the banner colour, with contrasting text', () => {

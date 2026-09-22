@@ -8,7 +8,7 @@ export const GLOBAL_ATTRIBUTES_PATH = '/admin_console/system_attributes/manage_a
 export const ATTRIBUTE_DETAILS_PATH = `${GLOBAL_ATTRIBUTES_PATH}/attribute_details`;
 export const CLASSIFICATION_ATTRIBUTE_PATH = `${GLOBAL_ATTRIBUTES_PATH}/classification`;
 
-export type ChannelDisplayLocation = 'display_label_header' | 'display_label_info' | 'display_banner_top';
+export type ChannelDisplayLocation = 'display_label_header' | 'display_banner_top';
 
 async function setToggle(toggle: Locator, on: boolean) {
     if (((await toggle.getAttribute('aria-pressed')) === 'true') !== on) {

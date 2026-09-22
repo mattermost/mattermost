@@ -90,6 +90,25 @@ describe('renderBannerTemplate', () => {
             const attributes = [attribute('a', 'ONE'), attribute('b', ''), attribute('c', 'THREE')];
             expect(renderBannerTemplate('{{a}} · {{b}} · {{c}}', attributes)).toBe('ONE · THREE');
         });
+
+        test('cleans up ., /, and ? separators the same way', () => {
+            expect(renderBannerTemplate('{{gone}} . {{program}}', [attribute('program', 'AURORA')])).toBe('AURORA');
+            expect(renderBannerTemplate('{{gone}} / {{program}}', [attribute('program', 'AURORA')])).toBe('AURORA');
+            expect(renderBannerTemplate('{{gone}} ? {{program}}', [attribute('program', 'AURORA')])).toBe('AURORA');
+        });
+
+        test('cleans up a two-character separator run', () => {
+            expect(renderBannerTemplate('{{gone}} || {{program}}', [attribute('program', 'AURORA')])).toBe('AURORA');
+            expect(renderBannerTemplate('{{a}} .. {{b}} .. {{c}}', [
+                attribute('a', 'ONE'),
+                attribute('b', ''),
+                attribute('c', 'THREE'),
+            ])).toBe('ONE .. THREE');
+        });
+
+        test('leaves surrounding literal text when every attribute is unset', () => {
+            expect(renderBannerTemplate('{{gone}} · {{also}} Test', [])).toBe('Test');
+        });
     });
 });
 

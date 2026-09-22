@@ -11,9 +11,11 @@ import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
 // matchAll() read it — a shared instance makes the answer depend on who asked last.
 const tokenPattern = () => /\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g;
 
-// Excludes "-" and "/": a banner authored as "- {{classification}}" is a markdown
-// list, and stripping its marker would rewrite what the author wrote.
-const SEPARATORS = '·|';
+// Separators cleaned when an adjacent attribute collapses. "*" is excluded so
+// markdown emphasis survives; "-" is excluded so a leading markdown list marker
+// is not stripped from authored text. One or two of these in a row (e.g. "·",
+// ".", "/", "?", "||") count as a removable separator.
+const SEPARATOR_CHARS = '·|./?';
 
 export function attributeToken(fieldName: string): string {
     return `{{${fieldName}}}`;
@@ -83,26 +85,30 @@ export function renderBannerTemplate(template: string, attributes: ResolvedChann
 }
 
 // Collapses the punctuation a removed token leaves behind. Only touches the
-// separators the composer offers, so a hand-written banner keeps its own.
+// short separator symbols authors put between attributes.
 function tidySeparators(text: string): string {
-    const run = new RegExp(`(?:\\s*[${SEPARATORS}]\\s*){2,}`, 'g');
-    const leading = new RegExp(`^[\\s${SEPARATORS}]+`);
-    const trailing = new RegExp(`[\\s${SEPARATORS}]+$`);
+    const sep = `[${SEPARATOR_CHARS}]{1,2}`;
+    const unit = `(?:\\s*${sep}\\s*)`;
+    const run = new RegExp(`${unit}{2,}`, 'g');
+    const leading = new RegExp(`^(?:\\s*${sep}\\s*)+`);
+    const trailing = new RegExp(`(?:\\s*${sep}\\s*)+$`);
+    const firstSep = new RegExp(sep);
 
     return text.
-
-        replace(run, (match) => ` ${match.trim().charAt(0)} `).
+        replace(run, (match) => {
+            const found = match.match(firstSep);
+            return found ? ` ${found[0]} ` : ' ';
+        }).
         replace(leading, '').
         replace(trailing, '').
         replace(/\s{2,}/g, ' ');
 }
 
 /**
- * Guarantees a token for every attribute the admin designated for the banner.
+ * Seeds a template with tokens for every attribute designated for the banner.
  *
- * Designation is not a suggestion: an author may add to the banner and reorder what
- * is there, but may not drop a designated attribute. A missing one is appended rather
- * than the edit refused, so the composer never has to explain itself.
+ * Designation is a default, not an enforcement: missing tokens are appended so a
+ * fresh channel banner starts with them, but an author may remove any of them.
  */
 export function withRequiredTokens(template: string, fieldNames: string[]): string {
     if (fieldNames.length === 0) {

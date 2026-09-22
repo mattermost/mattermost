@@ -26,6 +26,7 @@ import {
 
 import ConvertConfirmModal from 'components/admin_console/team_channel_settings/convert_confirm_modal';
 import CategorySelector from 'components/category_selector/category_selector';
+import ChannelInfoAttributes from 'components/channel_attributes/channel_info_attributes';
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
 import type {TextboxElement} from 'components/textbox';
 import Toggle from 'components/toggle';
@@ -683,6 +684,13 @@ function ChannelSettingsInfoTab({
                 readOnly={!canManageChannelProperties}
                 name={formatMessage({id: 'channel_settings.header.label', defaultMessage: 'Channel Header'})}
             />
+
+            {/* Same attribute editor as Channel Info RHS; saves immediately. */}
+            {!isDMorGroupChannel && (
+                <div className='ChannelSettingsModal__attributesSection'>
+                    <ChannelInfoAttributes channelId={channel.id}/>
+                </div>
+            )}
 
             {/* SaveChangesPanel for unsaved changes */}
             {((canManageChannelProperties || canManageChannelRoles) && shouldShowPanel) && (

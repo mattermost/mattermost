@@ -1339,7 +1339,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                             data-testid='attributeDetailsBackLink'
                         >
                             <ChevronLeftIcon
-                                size={20}
+                                size={28}
                                 aria-hidden={true}
                             />
                         </BlockableLink>

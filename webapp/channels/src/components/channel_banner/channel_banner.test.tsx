@@ -219,6 +219,41 @@ describe('components/channel_banner', () => {
         expect(screen.queryByTestId('channel_banner_container')).not.toBeInTheDocument();
     });
 
+    test('should not render when banner text is empty', () => {
+        const channel = TestHelper.getChannelMock({
+            id: 'channel_id_1',
+            team_id: 'team_id',
+            display_name: 'Test Channel 1',
+            name: 'test-channel',
+            type: Constants.OPEN_CHANNEL as ChannelType,
+            banner_info: {
+                text: '   ',
+                background_color: '#FF0000',
+                enabled: true,
+            },
+        });
+
+        const emptyTextState = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                channels: {
+                    ...baseState.entities.channels,
+                    channels: {
+                        ...baseState.entities.channels.channels,
+                        [channel.id]: channel,
+                    },
+                },
+            },
+        };
+
+        renderWithContext(
+            <ChannelBanner channelId={'channel_id_1'}/>,
+            emptyTextState,
+        );
+        expect(screen.queryByTestId('channel_banner_container')).not.toBeInTheDocument();
+    });
+
     test('should render banner with correct text and styling', () => {
         renderWithContext(
             <ChannelBanner channelId={'channel_id_1'}/>,

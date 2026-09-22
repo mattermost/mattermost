@@ -270,9 +270,20 @@ describe('BannerTextEditor', () => {
             />,
         );
 
-        // Designation is the admin's call, so the channel may add to the banner but
-        // not drop what was mandated.
         expect(screen.queryByTestId('bannerTextEditorChipRemove-classification')).not.toBeInTheDocument();
+        expect(screen.getByTestId('bannerTextEditorChipRemove-program')).toBeInTheDocument();
+    });
+
+    test('offers a remove control for every chip when none are locked', () => {
+        renderWithContext(
+            <BannerTextEditor
+                value='{{classification}} · {{program}}'
+                attributes={ATTRIBUTES}
+                onChange={jest.fn()}
+            />,
+        );
+
+        expect(screen.getByTestId('bannerTextEditorChipRemove-classification')).toBeInTheDocument();
         expect(screen.getByTestId('bannerTextEditorChipRemove-program')).toBeInTheDocument();
     });
 

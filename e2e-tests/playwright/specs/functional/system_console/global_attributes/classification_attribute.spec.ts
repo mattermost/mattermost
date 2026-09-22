@@ -190,11 +190,11 @@ test.describe(
                 {field_id: channelFieldBefore!.id, value: levels[0].id},
             ] as Parameters<typeof adminClient.patchPropertyValues>[3]);
 
-            // # Configure Channel Info only — deliberately not the banner
+            // # Configure Header only — deliberately not the banner
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             const {globalAttributes} = systemConsolePage;
             await globalAttributes.gotoClassificationAttribute();
-            await globalAttributes.appliesToChannels.setDisplayLocations(['display_label_info']);
+            await globalAttributes.appliesToChannels.setDisplayLocations(['display_label_header']);
             await globalAttributes.saveInPlace();
 
             const {page, channelsPage} = await pw.testBrowser.login(user);
