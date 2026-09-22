@@ -2057,12 +2057,31 @@ func testSearchNumberInHyphenatedTerm(t *testing.T, th *SearchTestHelper) {
 		th.checkPostInSearchResults(t, p1.Id, results.Posts)
 	})
 
+	t.Run("Search for the number as one of several OR terms", func(t *testing.T) {
+		params := &model.SearchParams{Terms: "12345 67890", OrTerms: true}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 2)
+		th.checkPostInSearchResults(t, p1.Id, results.Posts)
+		th.checkPostInSearchResults(t, p3.Id, results.Posts)
+	})
+
 	t.Run("Search excluding the number", func(t *testing.T) {
 		params := &model.SearchParams{Terms: "flight", ExcludedTerms: "12345"}
 		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
 		require.NoError(t, err)
 
 		require.Len(t, results.Posts, 0)
+	})
+
+	t.Run("Search for the number while excluding another term", func(t *testing.T) {
+		params := &model.SearchParams{Terms: "12345", ExcludedTerms: "invoice"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, p1.Id, results.Posts)
 	})
 
 	t.Run("Search for a number the hyphenated term only contains part of", func(t *testing.T) {
@@ -2080,6 +2099,15 @@ func testSearchNumberInHyphenatedTerm(t *testing.T, th *SearchTestHelper) {
 
 		require.Len(t, results.Posts, 1)
 		th.checkPostInSearchResults(t, p3.Id, results.Posts)
+	})
+
+	t.Run("Search for the whole hyphenated term", func(t *testing.T) {
+		params := &model.SearchParams{Terms: "flight-12345"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, p1.Id, results.Posts)
 	})
 
 	t.Run("Search for a hyphenated compound word", func(t *testing.T) {
