@@ -1,0 +1,32 @@
+name: Docs Editor Review Label
+
+# Auto-apply "2: Editor Review" when a non-draft PR changes docs/**.
+# API OpenAPI changes are intentionally excluded; drafts are skipped until ready_for_review.
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - "docs/**"
+
+permissions: {}
+
+concurrency:
+  group: docs-editor-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  label:
+    if: |
+      github.event.pull_request.draft == false
+      && github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      issues: write
+      pull-requests: write
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Add Editor Review label
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          gh pr edit "$PR_NUMBER" --repo "${{ github.repository }}" --add-label "2: Editor Review"
