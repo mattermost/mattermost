@@ -3869,6 +3869,188 @@ func TestGetUsersNotInChannel(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// TestGetUsersNotInChannelTeamScope checks that the listing is scoped to teams
+// the caller can view, so the team given as in_team is evaluated against the
+// caller's own team access and not only against the supplied channel.
+func TestGetUsersNotInChannelTeamScope(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+
+	// A team the basic user is not a member of, with a member of its own so the
+	// listing would be non-empty if it were served.
+	otherTeam := th.CreateTeamWithClient(t, th.SystemAdminClient)
+	otherTeamUser := th.CreateUser(t)
+	th.LinkUserToTeam(t, otherTeamUser, otherTeam)
+
+	// The same shape as otherTeam, but archived.
+	archivedTeam := th.CreateTeamWithClient(t, th.SystemAdminClient)
+	th.LinkUserToTeam(t, th.CreateUser(t), archivedTeam)
+	_, err := th.SystemAdminClient.SoftDeleteTeam(context.Background(), archivedTeam.Id)
+	require.NoError(t, err)
+
+	// A member of the basic user's own team who is not in the basic channel:
+	// the expected result of the authorized listing.
+	basicTeamUser := th.CreateUser(t)
+	th.LinkUserToTeam(t, basicTeamUser, th.BasicTeam)
+
+	// A channel that belongs to no team and that the caller can always read.
+	dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+
+	// A guest of th.BasicTeam and th.BasicChannel.
+	_, guestClient := th.CreateGuestAndClient(t)
+
+	// A response tag issued for otherTeam to a caller who is allowed to see it,
+	// so a row below can replay it as a caller who is not.
+	otherTeamEtag := func() string {
+		query := url.Values{"not_in_team": {th.BasicTeam.Id}, "in_team": {otherTeam.Id}}
+		resp, respErr := th.SystemAdminClient.DoAPIGet(context.Background(), "/users?"+query.Encode(), "")
+		require.NoError(t, respErr)
+		defer resp.Body.Close()
+		return resp.Header.Get(model.HeaderEtagServer)
+	}()
+	require.NotEmpty(t, otherTeamEtag)
+
+	testCases := []struct {
+		name string
+		// client defaults to th.Client, a plain member of th.BasicTeam and
+		// th.BasicChannel, so channel access is never what decides the outcome.
+		client           *model.Client4
+		query            url.Values
+		etag             string
+		expectedStatus   int
+		expectedUserID   string
+		unexpectedUserID string
+	}{
+		{
+			name:           "team the caller is a member of",
+			query:          url.Values{"in_team": {th.BasicTeam.Id}, "not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus: http.StatusOK,
+			expectedUserID: basicTeamUser.Id,
+			// A member of the supplied channel is filtered out of the listing.
+			unexpectedUserID: th.BasicUser.Id,
+		},
+		{
+			name:           "team the caller is not a member of",
+			query:          url.Values{"in_team": {otherTeam.Id}, "not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus: http.StatusForbidden,
+		},
+		{
+			name:           "team the caller is not a member of, with a channel outside any team",
+			query:          url.Values{"in_team": {otherTeam.Id}, "not_in_channel": {dmChannel.Id}},
+			expectedStatus: http.StatusForbidden,
+		},
+		{
+			name:           "archived team the caller is not a member of",
+			query:          url.Values{"in_team": {archivedTeam.Id}, "not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus: http.StatusForbidden,
+		},
+		{
+			name:           "guest on a team they belong to",
+			client:         guestClient,
+			query:          url.Values{"in_team": {th.BasicTeam.Id}, "not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name:           "guest on a team they do not belong to",
+			client:         guestClient,
+			query:          url.Values{"in_team": {otherTeam.Id}, "not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus: http.StatusForbidden,
+		},
+		{
+			name:           "system admin",
+			client:         th.SystemAdminClient,
+			query:          url.Values{"in_team": {otherTeam.Id}, "not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus: http.StatusOK,
+			expectedUserID: otherTeamUser.Id,
+		},
+		{
+			name:             "repeated team filter, the caller's own team first",
+			query:            url.Values{"in_team": {th.BasicTeam.Id, otherTeam.Id}, "not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus:   http.StatusOK,
+			expectedUserID:   basicTeamUser.Id,
+			unexpectedUserID: otherTeamUser.Id,
+		},
+		{
+			name:           "repeated team filter, the caller's own team second",
+			query:          url.Values{"in_team": {otherTeam.Id, th.BasicTeam.Id}, "not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus: http.StatusForbidden,
+		},
+		{
+			name:           "team filter padded with whitespace",
+			query:          url.Values{"in_team": {" " + th.BasicTeam.Id + " "}, "not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus: http.StatusForbidden,
+		},
+		{
+			name:           "team filter in a different case",
+			query:          url.Values{"in_team": {strings.ToUpper(th.BasicTeam.Id)}, "not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus: http.StatusForbidden,
+		},
+		{
+			name:           "channel filter with no team filter",
+			query:          url.Values{"not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name:           "channel filter with an empty team filter",
+			query:          url.Values{"in_team": {""}, "not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			// The team filter also scopes the response tag on this combination,
+			// so replaying a tag issued to an allowed caller must not serve it.
+			name:           "team the caller is not a member of, alongside a team they are",
+			query:          url.Values{"not_in_team": {th.BasicTeam.Id}, "in_team": {otherTeam.Id}},
+			etag:           otherTeamEtag,
+			expectedStatus: http.StatusForbidden,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			client := tc.client
+			if client == nil {
+				client = th.Client
+			}
+
+			query := url.Values{}
+			for key, values := range tc.query {
+				query[key] = values
+			}
+			query.Set("page", "0")
+			query.Set("per_page", "200")
+
+			resp, err := client.DoAPIGet(context.Background(), "/users?"+query.Encode(), tc.etag)
+			require.NotNil(t, resp)
+			defer resp.Body.Close()
+			require.Equal(t, tc.expectedStatus, resp.StatusCode)
+
+			if tc.expectedStatus != http.StatusOK {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+
+			var users []*model.User
+			require.NoError(t, json.NewDecoder(resp.Body).Decode(&users))
+
+			userIDs := make([]string, 0, len(users))
+			for _, u := range users {
+				CheckUserSanitization(t, u)
+				userIDs = append(userIDs, u.Id)
+			}
+			if tc.expectedUserID != "" {
+				require.Contains(t, userIDs, tc.expectedUserID)
+			}
+			if tc.unexpectedUserID != "" {
+				require.NotContains(t, userIDs, tc.unexpectedUserID)
+			}
+		})
+	}
+}
+
 // TestGetUsersNotInChannelAbacMatchOnly exercises the dispatcher in
 // getUsers that decides whether to apply ABAC filtering based on the
 // channel type and the abac_match_only query parameter. The underlying
