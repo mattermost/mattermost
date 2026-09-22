@@ -708,32 +708,151 @@ func TestChannelReadPermissionClassification(t *testing.T) {
 	}
 }
 
-// TestChannelBookmarkEventsCarryTheReadAccessHook pins the websocket contract for
-// bookmarks. A denied user stays a channel member, so every bookmark broadcast still
-// names them as a recipient; without the hook the event hands them the link URL and
-// the attached file's metadata over a connection where post events are already cut off.
-func TestChannelBookmarkEventsCarryTheReadAccessHook(t *testing.T) {
-	// publishedBookmarkEvents runs one of each bookmark operation and returns the
-	// websocket events they published, keyed by event type.
-	publishedBookmarkEvents := func(t *testing.T, h *channelReadAccessHarness) map[model.WebsocketEventType]*model.WebSocketEvent {
+// TestChannelScopedEventsCarryTheReadAccessHook pins the websocket contract for every
+// publisher of channel content. A denied user stays a channel member, so the broadcast
+// still names them as a recipient; without the hook the event hands them content over a
+// connection where post events are already cut off.
+func TestChannelScopedEventsCarryTheReadAccessHook(t *testing.T) {
+	cases := []struct {
+		name string
+		// events the publisher is expected to emit; every one must carry the hook.
+		events []model.WebsocketEventType
+		// expectACS covers ACS calls the publisher makes for its own reasons, which
+		// would otherwise panic the mock before the assertions run.
+		expectACS func(mockACS *eMocks.AccessControlServiceInterface)
+		run       func(t *testing.T, h *channelReadAccessHarness)
+	}{
+		{
+			name: "bookmarks",
+			events: []model.WebsocketEventType{
+				model.WebsocketEventChannelBookmarkCreated,
+				model.WebsocketEventChannelBookmarkUpdated,
+				model.WebsocketEventChannelBookmarkSorted,
+				model.WebsocketEventChannelBookmarkDeleted,
+			},
+			run: func(t *testing.T, h *channelReadAccessHarness) {
+				created, appErr := h.th.App.CreateChannelBookmark(h.rctx,
+					createBookmark("Link bookmark", model.ChannelBookmarkLink, h.th.BasicChannel.Id, ""), "")
+				require.Nil(t, appErr)
+
+				created.DisplayName = "Renamed bookmark"
+				_, appErr = h.th.App.UpdateChannelBookmark(h.rctx, created, "")
+				require.Nil(t, appErr)
+
+				_, appErr = h.th.App.UpdateChannelBookmarkSortOrder(created.Id, h.th.BasicChannel.Id, 0, "")
+				require.Nil(t, appErr)
+
+				_, appErr = h.th.App.DeleteChannelBookmark(created.Id, "")
+				require.Nil(t, appErr)
+			},
+		},
+		{
+			name: "reactions",
+			events: []model.WebsocketEventType{
+				model.WebsocketEventReactionAdded,
+				model.WebsocketEventReactionRemoved,
+			},
+			run: func(t *testing.T, h *channelReadAccessHarness) {
+				reaction := &model.Reaction{
+					UserId:    h.th.BasicUser.Id,
+					PostId:    h.th.BasicPost.Id,
+					EmojiName: "smile",
+				}
+				_, appErr := h.th.App.SaveReactionForPost(h.rctx, reaction)
+				require.Nil(t, appErr)
+				require.Nil(t, h.th.App.DeleteReactionForPost(h.rctx, reaction))
+			},
+		},
+		{
+			name: "acknowledgements",
+			events: []model.WebsocketEventType{
+				model.WebsocketEventAcknowledgementAdded,
+				model.WebsocketEventAcknowledgementRemoved,
+			},
+			run: func(t *testing.T, h *channelReadAccessHarness) {
+				_, appErr := h.th.App.SaveAcknowledgementForPost(h.rctx, h.th.BasicPost.Id, h.th.BasicUser.Id)
+				require.Nil(t, appErr)
+				require.Nil(t, h.th.App.DeleteAcknowledgementForPost(h.rctx, h.th.BasicPost.Id, h.th.BasicUser.Id))
+			},
+		},
+		{
+			name: "views",
+			events: []model.WebsocketEventType{
+				model.WebsocketEventViewCreated,
+				model.WebsocketEventViewUpdated,
+				model.WebsocketEventViewSorted,
+				model.WebsocketEventViewDeleted,
+			},
+			run: func(t *testing.T, h *channelReadAccessHarness) {
+				created, appErr := h.th.App.CreateView(h.rctx, makeTestView(h.th.BasicChannel.Id, h.th.BasicUser.Id), "")
+				require.Nil(t, appErr)
+
+				_, appErr = h.th.App.UpdateView(h.rctx, created,
+					&model.ViewPatch{Title: model.NewPointer("Renamed view")}, "")
+				require.Nil(t, appErr)
+
+				_, appErr = h.th.App.UpdateViewSortOrder(h.rctx, created.Id, h.th.BasicChannel.Id, 0, "")
+				require.Nil(t, appErr)
+
+				require.Nil(t, h.th.App.DeleteView(h.rctx, created, ""))
+			},
+		},
+		{
+			name: "channel properties",
+			events: []model.WebsocketEventType{
+				model.WebsocketEventPropertyFieldCreated,
+				model.WebsocketEventPropertyValuesUpdated,
+				model.WebsocketEventPropertyFieldDeleted,
+			},
+			expectACS: func(mockACS *eMocks.AccessControlServiceInterface) {
+				mockACS.On("OnPropertyFieldOptionsChanged", mock.Anything, mock.Anything).Return()
+			},
+			run: func(t *testing.T, h *channelReadAccessHarness) {
+				groupID := registerTestPropertyGroup(t, h.th)
+				field, appErr := h.th.App.CreatePropertyField(h.rctx, &model.PropertyField{
+					GroupID:    groupID,
+					Name:       "board-field-" + model.NewId(),
+					Type:       model.PropertyFieldTypeText,
+					ObjectType: model.PropertyFieldObjectTypeChannel,
+					TargetType: string(model.PropertyFieldTargetLevelChannel),
+					TargetID:   h.th.BasicChannel.Id,
+				}, false, "")
+				require.Nil(t, appErr)
+
+				_, appErr = h.th.App.UpsertPropertyValues(h.rctx, []*model.PropertyValue{{
+					TargetID:   h.th.BasicChannel.Id,
+					TargetType: model.PropertyFieldObjectTypeChannel,
+					GroupID:    groupID,
+					FieldID:    field.ID,
+					Value:      []byte(`"v"`),
+					CreatedBy:  h.th.BasicUser.Id,
+					UpdatedBy:  h.th.BasicUser.Id,
+				}}, model.PropertyFieldObjectTypeChannel, h.th.BasicChannel.Id, "")
+				require.Nil(t, appErr)
+
+				require.Nil(t, h.th.App.DeletePropertyField(h.rctx, groupID, field.ID, false, ""))
+			},
+		},
+		{
+			name:   "channel update",
+			events: []model.WebsocketEventType{model.WebsocketEventChannelUpdated},
+			run: func(t *testing.T, h *channelReadAccessHarness) {
+				channel := h.th.BasicChannel.DeepCopy()
+				channel.Header = "Header revision " + model.NewId()
+				_, appErr := h.th.App.UpdateChannel(h.rctx, channel)
+				require.Nil(t, appErr)
+			},
+		},
+	}
+
+	// capture runs the publisher and returns the websocket events it published,
+	// keyed by event type.
+	capture := func(t *testing.T, h *channelReadAccessHarness, run func(*testing.T, *channelReadAccessHarness)) map[model.WebsocketEventType]*model.WebSocketEvent {
 		t.Helper()
 
 		cluster := &testlib.FakeClusterInterface{}
 		h.th.Server.Platform().SetCluster(cluster)
-
-		created, appErr := h.th.App.CreateChannelBookmark(h.rctx,
-			createBookmark("Link bookmark", model.ChannelBookmarkLink, h.th.BasicChannel.Id, ""), "")
-		require.Nil(t, appErr)
-
-		created.DisplayName = "Renamed bookmark"
-		_, appErr = h.th.App.UpdateChannelBookmark(h.rctx, created, "")
-		require.Nil(t, appErr)
-
-		_, appErr = h.th.App.UpdateChannelBookmarkSortOrder(created.Id, h.th.BasicChannel.Id, 0, "")
-		require.Nil(t, appErr)
-
-		_, appErr = h.th.App.DeleteChannelBookmark(created.Id, "")
-		require.Nil(t, appErr)
+		run(t, h)
 
 		events := map[model.WebsocketEventType]*model.WebSocketEvent{}
 		for _, msg := range cluster.SelectMessages(func(msg *model.ClusterMessage) bool {
@@ -746,37 +865,35 @@ func TestChannelBookmarkEventsCarryTheReadAccessHook(t *testing.T) {
 		return events
 	}
 
-	bookmarkEvents := []model.WebsocketEventType{
-		model.WebsocketEventChannelBookmarkCreated,
-		model.WebsocketEventChannelBookmarkUpdated,
-		model.WebsocketEventChannelBookmarkSorted,
-		model.WebsocketEventChannelBookmarkDeleted,
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			h := setupChannelReadAccessTest(t)
+			mockACS := h.mockACS(t)
+			if tc.expectACS != nil {
+				tc.expectACS(mockACS)
+			}
+
+			events := capture(t, h, tc.run)
+			for _, eventType := range tc.events {
+				event := events[eventType]
+				require.NotNil(t, event, "%s was not published", eventType)
+				require.Contains(t, event.GetBroadcast().BroadcastHooks, broadcastChannelReadAccess, "%s", eventType)
+				require.Contains(t, event.GetBroadcast().BroadcastHookArgs,
+					map[string]any{"channel_id": h.th.BasicChannel.Id}, "%s", eventType)
+			}
+
+			// Turning ABAC off rather than dropping the license, so that the
+			// publishers under test keep whatever licensing they need of their own.
+			h.th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = false
+			})
+
+			events = capture(t, h, tc.run)
+			for _, eventType := range tc.events {
+				event := events[eventType]
+				require.NotNil(t, event, "%s was not published", eventType)
+				require.NotContains(t, event.GetBroadcast().BroadcastHooks, broadcastChannelReadAccess, "%s", eventType)
+			}
+		})
 	}
-
-	t.Run("every bookmark event is evaluated per recipient", func(t *testing.T) {
-		h := setupChannelReadAccessTest(t)
-		h.mockACS(t)
-
-		events := publishedBookmarkEvents(t, h)
-		for _, eventType := range bookmarkEvents {
-			event := events[eventType]
-			require.NotNil(t, event, "%s was not published", eventType)
-			require.Contains(t, event.GetBroadcast().BroadcastHooks, broadcastChannelReadAccess, "%s", eventType)
-			require.Contains(t, event.GetBroadcast().BroadcastHookArgs,
-				map[string]any{"channel_id": h.th.BasicChannel.Id}, "%s", eventType)
-		}
-	})
-
-	t.Run("no hook is registered when enforcement is inactive", func(t *testing.T) {
-		h := setupChannelReadAccessTest(t)
-		h.mockACS(t)
-		h.th.App.Srv().SetLicense(nil)
-
-		events := publishedBookmarkEvents(t, h)
-		for _, eventType := range bookmarkEvents {
-			event := events[eventType]
-			require.NotNil(t, event, "%s was not published", eventType)
-			require.NotContains(t, event.GetBroadcast().BroadcastHooks, broadcastChannelReadAccess, "%s", eventType)
-		}
-	})
 }

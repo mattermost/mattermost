@@ -83,6 +83,7 @@ func (a *App) publishPropertyFieldEvent(rctx request.CTX, eventType model.Websoc
 	message := model.NewWebSocketEvent(eventType, teamID, channelID, "", nil, connectionID)
 	message.Add("property_field", string(fieldJSON))
 	message.Add("object_type", field.ObjectType)
+	a.setupBroadcastHookForChannelReadAccess(channelID, message)
 	a.Publish(message)
 }
 
@@ -566,6 +567,7 @@ func (a *App) DeletePropertyField(rctx request.CTX, groupID, id string, bypassPr
 			message := model.NewWebSocketEvent(model.WebsocketEventPropertyFieldDeleted, teamID, channelID, "", nil, connectionID)
 			message.Add("field_id", existing.ID)
 			message.Add("object_type", existing.ObjectType)
+			a.setupBroadcastHookForChannelReadAccess(channelID, message)
 			a.Publish(message)
 		}
 	}

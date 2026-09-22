@@ -123,6 +123,7 @@ func (a *App) DeleteView(rctx request.CTX, view *model.View, connectionID string
 	// to send the full view.
 	message := model.NewWebSocketEvent(model.WebsocketEventViewDeleted, "", view.ChannelId, "", nil, connectionID)
 	message.Add("view_id", view.Id)
+	a.setupBroadcastHookForChannelReadAccess(view.ChannelId, message)
 	a.Publish(message)
 
 	return nil
@@ -149,6 +150,7 @@ func (a *App) UpdateViewSortOrder(rctx request.CTX, viewID, channelID string, ne
 	} else {
 		message := model.NewWebSocketEvent(model.WebsocketEventViewSorted, "", channelID, "", nil, connectionID)
 		message.Add("views", string(viewsJSON))
+		a.setupBroadcastHookForChannelReadAccess(channelID, message)
 		a.Publish(message)
 	}
 
@@ -166,5 +168,6 @@ func (a *App) publishViewEvent(rctx request.CTX, eventType model.WebsocketEventT
 	}
 	message := model.NewWebSocketEvent(eventType, "", view.ChannelId, "", nil, connectionID)
 	message.Add("view", string(viewJSON))
+	a.setupBroadcastHookForChannelReadAccess(view.ChannelId, message)
 	a.Publish(message)
 }
