@@ -16,8 +16,6 @@ func TestFindingStore(t *testing.T, newStore func() FindingStore) {
 	t.Helper()
 
 	t.Run("upsert and get by fingerprints with partial hit", func(t *testing.T) {
-		t.Parallel()
-
 		store := newStore()
 		fp1, fp2 := model.NewId(), model.NewId()
 		first := testFinding(fp1, "check_cluster_status", 100)
@@ -32,8 +30,6 @@ func TestFindingStore(t *testing.T, newStore func() FindingStore) {
 	})
 
 	t.Run("upsert idempotency", func(t *testing.T) {
-		t.Parallel()
-
 		store := newStore()
 		fp := model.NewId()
 		original := testFinding(fp, "check_cluster_status", 100)
@@ -53,8 +49,6 @@ func TestFindingStore(t *testing.T, newStore func() FindingStore) {
 	})
 
 	t.Run("upsert with duplicate fingerprints in one batch keeps the last", func(t *testing.T) {
-		t.Parallel()
-
 		store := newStore()
 		fp := model.NewId()
 		first := testFinding(fp, "check_cluster_status", 100)
@@ -70,8 +64,6 @@ func TestFindingStore(t *testing.T, newStore func() FindingStore) {
 	})
 
 	t.Run("upsert with duplicate fingerprints keeps the last occurrence's mute state", func(t *testing.T) {
-		t.Parallel()
-
 		store := newStore()
 		fp := model.NewId()
 		muted := testFinding(fp, "check_cluster_status", 100)
@@ -87,8 +79,6 @@ func TestFindingStore(t *testing.T, newStore func() FindingStore) {
 	})
 
 	t.Run("include muted and muted only policies", func(t *testing.T) {
-		t.Parallel()
-
 		store := newStore()
 		unmutedFp, mutedFp := model.NewId(), model.NewId()
 		unmuted := testFinding(unmutedFp, "check_cluster_status", 100)
@@ -115,8 +105,6 @@ func TestFindingStore(t *testing.T, newStore func() FindingStore) {
 	})
 
 	t.Run("list filters by surface", func(t *testing.T) {
-		t.Parallel()
-
 		store := newStore()
 		product := testFinding("fp-product", "check_cluster_status", 100)
 		product.Surface = string(SurfaceProduct)
@@ -135,8 +123,6 @@ func TestFindingStore(t *testing.T, newStore func() FindingStore) {
 	})
 
 	t.Run("mute and unmute round trip", func(t *testing.T) {
-		t.Parallel()
-
 		store := newStore()
 		fp := model.NewId()
 		require.NoError(t, store.Upsert([]*model.HealthFinding{testFinding(fp, "check_cluster_status", 100)}))
@@ -159,9 +145,6 @@ func TestFindingStore(t *testing.T, newStore func() FindingStore) {
 		require.Equal(t, "", unmuted[0].MutedBy)
 	})
 
-	// Not parallel: DeleteBefore has no scoping and, on a shared-table backend,
-	// its deleted count reflects every row below the boundary, so it must run
-	// alone to assert an exact count.
 	t.Run("delete before boundary is exclusive", func(t *testing.T) {
 		store := newStore()
 		oldFp, equalFp, newFp := model.NewId(), model.NewId(), model.NewId()
@@ -183,8 +166,6 @@ func TestFindingStore(t *testing.T, newStore func() FindingStore) {
 	})
 
 	t.Run("mute and unmute unknown fingerprint return ErrFindingNotFound", func(t *testing.T) {
-		t.Parallel()
-
 		store := newStore()
 		missing := model.NewId()
 		require.ErrorIs(t, store.Mute(missing, "user-1", 10), ErrFindingNotFound)
@@ -192,8 +173,6 @@ func TestFindingStore(t *testing.T, newStore func() FindingStore) {
 	})
 
 	t.Run("upsert refresh preserves existing mute metadata", func(t *testing.T) {
-		t.Parallel()
-
 		store := newStore()
 		fp := model.NewId()
 		require.NoError(t, store.Upsert([]*model.HealthFinding{testFinding(fp, "check_cluster_status", 100)}))
@@ -212,8 +191,6 @@ func TestFindingStore(t *testing.T, newStore func() FindingStore) {
 	})
 
 	t.Run("upsert clears mutedby when not muted", func(t *testing.T) {
-		t.Parallel()
-
 		store := newStore()
 		fp := model.NewId()
 		finding := testFinding(fp, "check_cluster_status", 100)
@@ -229,8 +206,6 @@ func TestFindingStore(t *testing.T, newStore func() FindingStore) {
 	})
 
 	t.Run("upsert does not persist rendered fields", func(t *testing.T) {
-		t.Parallel()
-
 		store := newStore()
 		fp := model.NewId()
 		finding := testFinding(fp, "check_cluster_status", 100)
