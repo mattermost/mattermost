@@ -57,7 +57,7 @@ A single team still gives you control over who sees what. Private channels limit
 
 ### Multiple teams by security boundary
 
-Best for organizations where different populations must be separated by classification level, role, or data sensitivity — not just for organizational clarity, but as a security control. Populations in separate teams have no visibility into each other's channels, including public ones. A developer team and a security operations team, for example, wouldn't see each other's content at all.
+Best for organizations where different populations must be separated by classification level, role, or data sensitivity — not just for organizational clarity, but as a security control. Populations in separate teams have no visibility into each other's channels, including public ones. A red team and a blue team, for example, stay fully hidden from each other: planned attack methods on one side, detection rules and alert thresholds on the other.
 
 ![A multi-team workspace with a classification banner and isolated teams for different security boundaries.](/images/workspace-org-security-boundary-teams.png)
 
@@ -68,10 +68,11 @@ To keep people from discovering users outside their own team, do both of the fol
 1.  In **System Console \> Site Configuration \> Users and Teams**, set [Enable users to open direct message channels with](/administration-guide/configure/site-configuration-settings#enable-users-to-open-direct-message-channels-with) to **Any member of the team**. That restricts the Direct Messages menu and Find channel to people on the team currently being viewed.
 2.  Set each security-boundary team to [Private Team](/end-user-guide/collaborate/team-settings#discoverability), so users who aren't already members can't find or join it.
 
-**Use security-boundary teams when:**
+**Use multiple teams by security boundary when:**
 
 - Your organization operates at multiple classification levels (for example, FOUO, CUI, or classified).
-- Two distinct populations — such as a red team and blue team, or two separately compartmented program offices — must remain mutually invisible to preserve operational integrity.
+- Two populations must stay mutually invisible, such as separately compartmented program offices.
+- A small group must stay sealed off from the rest of the organization for regulatory reasons, such as a deal team running acquisition due diligence before an announcement.
 - Your compliance posture requires demonstrable access separation at the collaboration layer.
 
 Pair this pattern with [attribute-based access control](/administration-guide/manage/admin/attribute-based-access-control) to automate team and channel membership from identity-provider attributes.
@@ -80,7 +81,7 @@ Pair this pattern with [attribute-based access control](/administration-guide/ma
 
 Best for large organizations with distinct business units, group companies, or subsidiaries that operate independently but share a single Mattermost server. Each major unit gets its own team. An organization-wide team with announcement channels is optional. Within each team, people organize by project and function using channels and categories. Common examples include a financial services firm with a team per subsidiary, or a conglomerate whose group companies share infrastructure but operate independently.
 
-**Use multi-team by business unit when:**
+**Use multiple teams by business unit when:**
 
 - Different parts of your organization need meaningfully different channel structures and policies.
 - You want to limit sidebar noise for people who only need visibility into their own unit.
