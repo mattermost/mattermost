@@ -10,7 +10,7 @@
  * Professional-only licenses hide this admin route (React Router redirects away).
  */
 
-import {expect, test, getAdminClient, licenseTier} from '@mattermost/playwright-lib';
+import {expect, test, getAdminClient} from '@mattermost/playwright-lib';
 
 import {
     CLASSIFICATION_MARKINGS_ADMIN_PATH,
@@ -303,25 +303,15 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
         /**
          * @objective Ensure a real Classification Markings field (name/object_type/group_id
          * matching production's saveCreateField) renders the read-only subtitle and an
-         * open-in-new link to its own admin page instead of the ordinary dot-menu, and that an
-         * unrelated field — including one that shares the same 'rank' type — is entirely unaffected.
+         * open-in-new link to its own admin page instead of the ordinary dot-menu, that its name
+         * still renders at the same contrast as any other row's, and that an unrelated field —
+         * including one that shares the same 'rank' type — is entirely unaffected.
          */
         test(
             'renders the Classification Markings row as a read-only open-in-new link, leaving an unrelated rank field unaffected',
             {tag: ['@system_console', '@classification_markings']},
             async ({pw}) => {
                 const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-
-                // Mirrors useClassificationAttributePageReachable (global_attributes_table.tsx):
-                // Enterprise Advanced tier + the ChannelAttributes flag together make the
-                // classification attribute page reachable, which adds a dot-menu (Edit there)
-                // alongside the row's always-present open-in-new link.
-                const [license, config] = await Promise.all([
-                    adminClient.getClientLicenseOld(),
-                    adminClient.getConfig(),
-                ]);
-                const classificationAttributePageReachable =
-                    licenseTier(license.SkuShortName) >= 30 && config.FeatureFlags.ChannelAttributes === true;
 
                 // # The link's destination page is gated by its own independent feature flag
                 // (ClassificationMarkings) — it must be on for the link to render.
@@ -391,17 +381,12 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
                         'Classification Markings',
                     );
 
-                    // * The rightmost cell always carries an open-in-new link to the
-                    // Classification Markings admin page
+                    // * The rightmost cell carries only an open-in-new link to the
+                    // Classification Markings admin page — no Edit/More-actions menu
                     const openInNewLink = classificationRow.getByRole('link', {name: 'Open Classification Markings'});
                     await expect(openInNewLink).toBeVisible();
                     await expect(openInNewLink).toHaveAttribute('href', CLASSIFICATION_MARKINGS_ADMIN_PATH);
-
-                    // * A dot-menu (offering Edit to the classification attribute page) appears
-                    // alongside the open-in-new link only when that page is actually reachable.
-                    await expect(classificationRow.getByRole('button', {name: 'More actions'})).toHaveCount(
-                        classificationAttributePageReachable ? 1 : 0,
-                    );
+                    await expect(classificationRow.getByRole('button', {name: 'More actions'})).toHaveCount(0);
 
                     // # Clicking the link actually navigates to the Classification Markings page
                     await openInNewLink.click();
@@ -421,6 +406,18 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
                     await expect(unrelatedRow.getByText('Read-only')).toHaveCount(0);
                     await expect(unrelatedRow.getByRole('link', {name: 'Open Classification Markings'})).toHaveCount(0);
                     await expect(unrelatedRow.getByTestId('global-attribute-source')).toContainText('Managed here');
+
+                    // * Classification's name renders at the same contrast as any other row's:
+                    // a definition that lives on another page must not read as a disabled
+                    // attribute. Compared against the sibling row rather than a literal colour
+                    // so it holds under every theme.
+                    const unrelatedNameColor = await unrelatedRow
+                        .getByTestId('global-attribute-name')
+                        .evaluate((el) => getComputedStyle(el).color);
+                    await expect(classificationRow.getByTestId('global-attribute-name')).toHaveCSS(
+                        'color',
+                        unrelatedNameColor,
+                    );
                 } finally {
                     await deleteClassificationMarkingsFieldIfExists(adminClient);
                     await deleteGlobalAttributeFieldIfExists(adminClient, unrelatedRankName);
