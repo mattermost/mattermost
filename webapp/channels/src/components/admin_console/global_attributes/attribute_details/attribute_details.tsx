@@ -47,12 +47,12 @@ import {GraphValues, hasBlankTrimmedOptionName, hasCaseInsensitiveDuplicateNames
 
 import {CHANNEL_VALUE_SETTER, DEFAULT_CHANNEL_RESOURCE_CONFIG, buildChannelFieldAttrs, buildChannelFieldPatch, isOrderedChangePolicy, parseChannelFieldConfig} from '../applies_to/channels';
 import type {ChannelResourceConfig} from '../applies_to/channels';
+import {ATTRIBUTE_TYPE_DESCRIPTOR, getAttributeTypeDescriptor, toServerFieldType} from '../attribute_type';
 import {GLOBAL_ATTRIBUTES_LIST_ROUTE, GLOBAL_ATTRIBUTES_OBJECT_TYPE} from '../constants';
-import {getSourceKind, getTypeIcon, getTypeLabel, isClassificationMarkingsField, typeLabels} from '../global_attributes_table';
+import {getSourceKind, getTypeIcon, getTypeLabel, isClassificationMarkingsField} from '../global_attributes_table';
 import useAllowedResourceTypes from '../use_allowed_resource_types';
-import type {AttributeFieldType, UpdateAttributeFieldPatch} from '../utils';
+import type {AttributeFieldType, AttributeTypeId, UpdateAttributeFieldPatch} from '../utils';
 import {
-    ATTRIBUTE_FIELD_TYPES,
     createAttributeField,
     createLinkedAttributeField,
     deleteAttributeField,
@@ -306,7 +306,12 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
 
     const isGraphEnabled = useGetFeatureFlagValue('PropertyFieldGraph') === 'true';
     const ALL_TYPES = useMemo(
-        () => ATTRIBUTE_FIELD_TYPES.filter((type) => type !== 'graph' || isGraphEnabled),
+        () => Object.values(ATTRIBUTE_TYPE_DESCRIPTOR).filter((descriptor) => {
+            if (descriptor.hidden) {
+                return false;
+            }
+            return descriptor.id !== 'graph' || isGraphEnabled;
+        }),
         [isGraphEnabled],
     );
 
@@ -364,8 +369,9 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // Type and Options are independent for text/select/multiselect/rank — a
     // Text -> Select -> Text -> Select round-trip must restore names already
     // entered. Switching to or from graph clears options: DAG parents are
-    // incompatible with a flat chip list.
-    const [fieldType, setFieldType] = useState<AttributeFieldType>('text');
+    // incompatible with a flat chip list. Phone/URL are text subtypes
+    // (attrs.value_type) selected from this same Type menu.
+    const [fieldType, setFieldType] = useState<AttributeTypeId>('text');
     const [options, setOptions] = useState<PropertyFieldOption[]>([]);
 
     // Independent of fieldType/options -- both may be set at once (mirrors
@@ -410,12 +416,13 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const originalUserVisibilityRef = useRef<FieldVisibility>('when_set');
     const originalUserManagedRef = useRef<UserManagedValue>('');
 
-    // Compared against the live fieldType at Save time to pick which order
-    // DELETE/PATCH run in (see handleSave) -- the server rejects a type-changing
-    // PATCH while linked fields of the old type still exist
+    // Compared against the live *server* field type at Save time to pick which
+    // order DELETE/PATCH run in (see handleSave) -- the server rejects a type-
+    // changing PATCH while linked fields of the old type still exist
     // (type_change_with_dependents), so that case must delete first, but doing
     // so unconditionally would delete linked values on a PATCH failure that has
-    // nothing to do with type (e.g. a name conflict).
+    // nothing to do with type (e.g. a name conflict). Phone/URL keep type
+    // 'text', so switching among text subtypes is not a type change.
     const originalFieldTypeRef = useRef<AttributeFieldType>('text');
 
     const [saving, setSaving] = useState(false);
@@ -518,7 +525,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 setDisplayName(loadedDisplayName);
                 setManualName(field.name);
                 setIsNameManuallyEdited(true);
-                setFieldType(field.type);
+                setFieldType(getAttributeTypeDescriptor(field).id);
                 setOptions(loadedOptions);
                 setLdapAttr(typeof field.attrs?.ldap === 'string' ? field.attrs.ldap : '');
                 setSamlAttr(typeof field.attrs?.saml === 'string' ? field.attrs.saml : '');
@@ -699,7 +706,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // own handleTypeChange (user_properties_type_menu.tsx) exactly, and is
     // idempotent. Switching away from Rank leaves rank values sitting inert in
     // state (not stripped) -- harmless, since Select/Multiselect ignore it.
-    const handleTypeChange = useCallback((newType: AttributeFieldType) => {
+    const handleTypeChange = useCallback((newType: AttributeTypeId) => {
         if (newType === fieldType) {
             return;
         }
@@ -716,7 +723,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         // The server unconditionally strips attrs.ldap/attrs.saml from any
         // non-Text field on save (AccessControlAttributeValidationHook) --
         // clear both proactively here so the UI never shows a link that's
-        // about to silently vanish.
+        // about to silently vanish. Phone/URL are text subtypes that CPA
+        // also refuses to sync (canSync is only true for plain text).
         if (newType !== 'text') {
             setLdapAttr('');
             setSamlAttr('');
@@ -830,8 +838,9 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const showsExternalSource = !isNonTemplate || objectType === 'user';
     const typeLockedByAppliesTo = isEditMode && appliesTo.length > 0 && !isNonTemplate;
     const typeLocked = hasExternalSource || typeLockedByAppliesTo || isPluginOwned;
-    const typeChanged = isEditMode && fieldType !== originalFieldTypeRef.current;
-    const typeSupportsOptions = supportsOptions({type: fieldType});
+    const serverFieldType = toServerFieldType(fieldType);
+    const typeChanged = isEditMode && serverFieldType !== originalFieldTypeRef.current;
+    const typeSupportsOptions = supportsOptions({type: serverFieldType});
 
     // Unique name is the identifier policies and integrations bind to, and the
     // server does not copy it onto linked fields. Renaming while any resource
@@ -867,7 +876,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         return null;
     }, [typeSupportsOptions, options, fieldType]);
 
-    const isHierarchical = supportsHierarchy({type: fieldType});
+    const isHierarchical = supportsHierarchy({type: serverFieldType});
     const graphOptionsValid = useMemo(() => {
         if (!isHierarchical) {
             return true;
@@ -1282,20 +1291,20 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 'aria-label': formatMessage(messages.typeMenuAriaLabel),
             }}
         >
-            {ALL_TYPES.map((optionFieldType) => {
-                const ItemIcon = getTypeIcon(optionFieldType);
-                const isCurrentType = optionFieldType === fieldType;
+            {ALL_TYPES.map((descriptor) => {
+                const ItemIcon = descriptor.icon;
+                const isCurrentType = descriptor.id === fieldType;
 
                 return (
                     <Menu.Item
-                        id={`attribute-type-${optionFieldType}`}
-                        key={optionFieldType}
+                        id={`attribute-type-${descriptor.id}`}
+                        key={descriptor.id}
                         role='menuitemradio'
                         forceCloseOnSelect={true}
                         aria-checked={isCurrentType}
-                        onClick={() => handleTypeChange(optionFieldType)}
+                        onClick={() => handleTypeChange(descriptor.id)}
                         leadingElement={<ItemIcon size={18}/>}
-                        labels={<FormattedMessage {...typeLabels[optionFieldType]}/>}
+                        labels={<FormattedMessage {...descriptor.label}/>}
                     />
                 );
             })}

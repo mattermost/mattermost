@@ -11,7 +11,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
 import type {ClientError} from '@mattermost/client';
-import {ChevronDownCircleOutlineIcon, DotsHorizontalIcon, EyeOutlineIcon, FormatListBulletedIcon, MenuVariantIcon, OpenInNewIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SitemapIcon, SortAscendingIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {DotsHorizontalIcon, EyeOutlineIcon, MenuVariantIcon, OpenInNewIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FieldType, PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
@@ -44,6 +44,8 @@ import type {GlobalState} from 'types/store';
 
 import {ALL_RESOURCE_TYPES, resourceTypeLabels} from './attribute_details/attribute_applies_to_constants';
 import type {ResourceObjectType} from './attribute_details/attribute_applies_to_constants';
+import type {AttributeTypeId} from './attribute_type';
+import {ATTRIBUTE_TYPE_DESCRIPTOR, ATTRIBUTE_TYPE_FALLBACK_LABEL, getAttributeTypeDescriptor, getTypeLabelForField} from './attribute_type';
 import {CLASSIFICATION_ATTRIBUTE_ROUTE} from './classification_attribute';
 import {attributeDetailsRoute, GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, GLOBAL_ATTRIBUTES_TARGET_TYPE} from './constants';
 import {useGlobalAttributeFieldDelete} from './global_attribute_delete_modal';
@@ -57,17 +59,8 @@ import './global_attributes_table.scss';
 
 const columnHelper = createColumnHelper<PropertyField>();
 
-// Same set as the User Attributes page's type selector (user_properties_type_menu.tsx).
-const TYPE_ICONS: Partial<Record<FieldType, ComponentType<IconProps>>> = {
-    text: MenuVariantIcon,
-    select: ChevronDownCircleOutlineIcon,
-    multiselect: FormatListBulletedIcon,
-    rank: SortAscendingIcon,
-    graph: SitemapIcon,
-};
-
-export function getTypeIcon(fieldType: FieldType): ComponentType<IconProps> {
-    return TYPE_ICONS[fieldType] ?? MenuVariantIcon;
+export function getTypeIcon(typeId: AttributeTypeId | FieldType): ComponentType<IconProps> {
+    return ATTRIBUTE_TYPE_DESCRIPTOR[typeId as AttributeTypeId]?.icon ?? MenuVariantIcon;
 }
 
 export function getDisplayName(field: PropertyField): string {
@@ -112,8 +105,8 @@ function useClassificationAttributePageReachable(): boolean {
     });
 }
 
-export function getTypeLabel(fieldType: FieldType): MessageDescriptor {
-    return (typeLabels as Partial<Record<FieldType, MessageDescriptor>>)[fieldType] ?? typeLabels.fallback;
+export function getTypeLabel(typeId: AttributeTypeId | FieldType): MessageDescriptor {
+    return ATTRIBUTE_TYPE_DESCRIPTOR[typeId as AttributeTypeId]?.label ?? ATTRIBUTE_TYPE_FALLBACK_LABEL;
 }
 
 export function fieldMatchesSearch(field: PropertyField, query: string, typeLabel: string): boolean {
@@ -591,7 +584,7 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
     }, [deleteError, deleteModalExited]);
 
     const rows = useMemo(
-        () => allRows.filter((field) => fieldMatchesSearch(field, searchQuery, formatMessage(getTypeLabel(field.type)))),
+        () => allRows.filter((field) => fieldMatchesSearch(field, searchQuery, formatMessage(getTypeLabelForField(field)))),
         [allRows, formatMessage, searchQuery],
     );
 
@@ -638,9 +631,10 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
             columnHelper.accessor('type', {
                 id: 'type',
                 header: () => <FormattedMessage {...messages.type}/>,
-                cell: ({getValue}) => {
-                    const fieldType = getValue();
-                    const Icon = getTypeIcon(fieldType);
+                cell: ({row}) => {
+                    const descriptor = getAttributeTypeDescriptor(row.original);
+                    const label = getTypeLabelForField(row.original);
+                    const Icon = descriptor.fieldType === row.original.type ? descriptor.icon : MenuVariantIcon;
 
                     return (
                         <span
@@ -648,7 +642,7 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                             data-testid='global-attribute-type'
                         >
                             <Icon size={16}/>
-                            <FormattedMessage {...getTypeLabel(fieldType)}/>
+                            <FormattedMessage {...label}/>
                         </span>
                     );
                 },
@@ -801,14 +795,17 @@ const messages = defineMessages({
     loadError: {id: 'admin.global_attributes.table.load_error', defaultMessage: 'There was an error while loading attributes.'},
 });
 
-export const typeLabels = defineMessages({
-    text: {id: 'admin.global_attributes.table.type.text', defaultMessage: 'Text'},
-    select: {id: 'admin.global_attributes.table.type.select', defaultMessage: 'Select'},
-    multiselect: {id: 'admin.global_attributes.table.type.multiselect', defaultMessage: 'Multiselect'},
-    rank: {id: 'admin.global_attributes.table.type.rank', defaultMessage: 'Ranked'},
-    graph: {id: 'admin.global_attributes.table.type.graph', defaultMessage: 'Hierarchical'},
-    fallback: {id: 'admin.global_attributes.table.type.fallback', defaultMessage: 'Other'},
-});
+export const typeLabels = {
+    text: ATTRIBUTE_TYPE_DESCRIPTOR.text.label,
+    email: ATTRIBUTE_TYPE_DESCRIPTOR.email.label,
+    phone: ATTRIBUTE_TYPE_DESCRIPTOR.phone.label,
+    url: ATTRIBUTE_TYPE_DESCRIPTOR.url.label,
+    select: ATTRIBUTE_TYPE_DESCRIPTOR.select.label,
+    multiselect: ATTRIBUTE_TYPE_DESCRIPTOR.multiselect.label,
+    rank: ATTRIBUTE_TYPE_DESCRIPTOR.rank.label,
+    graph: ATTRIBUTE_TYPE_DESCRIPTOR.graph.label,
+    fallback: ATTRIBUTE_TYPE_FALLBACK_LABEL,
+};
 
 const sourceLabels = defineMessages({
     ldapAndSaml: {id: 'admin.global_attributes.table.source.ldap_and_saml', defaultMessage: 'AD/LDAP, SAML'},

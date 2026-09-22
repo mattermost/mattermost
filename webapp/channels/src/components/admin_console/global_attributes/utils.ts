@@ -7,9 +7,11 @@ import {Client4} from 'mattermost-redux/client';
 
 import {ALL_RESOURCE_TYPES} from './attribute_details/attribute_applies_to_constants';
 import type {ResourceObjectType} from './attribute_details/attribute_applies_to_constants';
+import type {AttributeFieldType, AttributeTypeId} from './attribute_type';
+import {toServerFieldType, toValueType} from './attribute_type';
 import {GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, GLOBAL_ATTRIBUTES_TARGET_TYPE} from './constants';
 
-export type AttributeFieldType = 'text' | 'select' | 'multiselect' | 'rank' | 'graph';
+export type {AttributeFieldType, AttributeTypeId} from './attribute_type';
 
 export const ATTRIBUTE_FIELD_TYPES: readonly AttributeFieldType[] = ['text', 'select', 'multiselect', 'rank', 'graph'];
 
@@ -185,10 +187,12 @@ export function linkedFieldsByResourceType(fields: PropertyField[]): Partial<Rec
 export function createAttributeField(
     displayName: string,
     name: string,
-    fieldType: AttributeFieldType,
+    typeId: AttributeTypeId,
     options: PropertyFieldOption[],
     links?: {ldapAttr?: string; samlAttr?: string},
 ): Promise<PropertyField> {
+    const fieldType = toServerFieldType(typeId);
+    const valueType = toValueType(typeId);
     const optionsAttr = buildOptionsAttr(fieldType, options);
     return Client4.createPropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, {
         name,
@@ -198,6 +202,7 @@ export function createAttributeField(
         attrs: {
             display_name: displayName.trim() || undefined,
             ...(optionsAttr ? {options: optionsAttr} : {}),
+            ...(valueType ? {value_type: valueType} : {}),
             ...(links?.ldapAttr ? {ldap: links.ldapAttr} : {}),
             ...(links?.samlAttr ? {saml: links.samlAttr} : {}),
         },
@@ -206,7 +211,7 @@ export function createAttributeField(
 
 export type UpdateAttributeFieldPatch = {
     name?: string;
-    type: AttributeFieldType;
+    type: AttributeTypeId;
     displayName: string;
     options: PropertyFieldOption[];
     ldapAttr: string;
@@ -214,22 +219,26 @@ export type UpdateAttributeFieldPatch = {
 };
 
 // Attrs are merge-patched (mergeAttrs=true on the server): ldap/saml send
-// null to unlink, and Text sends options: null so a leftover options array
-// is dropped. name is omitted when unchanged so the server skips uniqueness
-// re-validation.
+// null to unlink, Text sends options: null so a leftover options array is
+// dropped, and value_type sends null so a leftover phone/url/email subtype
+// is dropped when switching away. name is omitted when unchanged so the
+// server skips uniqueness re-validation.
 export function updateAttributeField(
     objectType: string,
     fieldId: string,
     patch: UpdateAttributeFieldPatch,
 ): Promise<PropertyField> {
+    const fieldType = toServerFieldType(patch.type);
+    const valueType = toValueType(patch.type);
     return Client4.patchPropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, fieldId, {
         ...(patch.name === undefined ? {} : {name: patch.name}),
-        type: patch.type as PropertyField['type'],
+        type: fieldType as PropertyField['type'],
         attrs: {
             display_name: patch.displayName.trim() || undefined,
-            options: buildPatchOptionsAttr(patch.type, patch.options),
+            options: buildPatchOptionsAttr(fieldType, patch.options),
             ldap: patch.ldapAttr || null,
             saml: patch.samlAttr || null,
+            value_type: valueType || null,
         },
     });
 }
@@ -243,11 +252,11 @@ export function deleteAttributeField(objectType: string, fieldId: string): Promi
 }
 
 // Creates a linked field for one Applies-to resource. The server validates
-// linked_field_id against the template and copies its Type and attrs.options
-// onto the new field (server/channels/app/properties/property_field.go) --
-// display_name is NOT copied, so it's sent explicitly here. objectType is the
-// resource type ('user'/'channel'/'post'), a URL path segment on the generic
-// property-fields endpoint, not a separate route.
+// linked_field_id against the template and copies its Type, attrs.options,
+// and ldap/saml onto the new field (server/channels/app/properties/property_field.go)
+// -- display_name and value_type are NOT copied, so both are sent explicitly
+// here. objectType is the resource type ('user'/'channel'/'post'), a URL path
+// segment on the generic property-fields endpoint, not a separate route.
 //
 // `attrs` is what the resource's own settings contribute -- e.g. a Users row's
 // Profile display config, or a Channels row's required/change-policy attrs
@@ -265,12 +274,14 @@ export function deleteAttributeField(objectType: string, fieldId: string): Promi
 export function createLinkedAttributeField(
     objectType: ResourceObjectType,
     name: string,
-    fieldType: AttributeFieldType,
+    typeId: AttributeTypeId,
     displayName: string,
     linkedFieldId: string,
     attrs?: Record<string, unknown>,
     permissionValues?: PropertyPermissionLevel,
 ): Promise<PropertyField> {
+    const fieldType = toServerFieldType(typeId);
+    const valueType = toValueType(typeId);
     return Client4.createPropertyField(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, {
         name,
         type: fieldType as PropertyField['type'],
@@ -280,6 +291,7 @@ export function createLinkedAttributeField(
         ...(permissionValues ? {permission_values: permissionValues} : {}),
         attrs: {
             display_name: displayName.trim() || undefined,
+            ...(valueType ? {value_type: valueType} : {}),
             ...attrs,
         },
     });
