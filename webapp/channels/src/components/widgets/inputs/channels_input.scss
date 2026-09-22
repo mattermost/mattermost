@@ -122,6 +122,11 @@
             strong {
                 font-weight: 600;
             }
+
+            .channels-input__menu-notice {
+                min-height: 0;
+                padding: 0;
+            }
         }
 
         &--is-focused {
