@@ -469,12 +469,7 @@ func (h *Hub) InvalidateUser(userID string) {
 }
 
 // InvalidateAll invalidates the cached session state of every WebConn
-// registered with this hub, and clears their session tokens so they can
-// never re-authenticate on this connection again. This is intentionally
-// destructive and should only be used when every session on the server is
-// actually being revoked (e.g. "revoke all sessions for all users"), since
-// clearing the token permanently prevents the WebConn from re-validating
-// against the store. Global counterpart of InvalidateUser.
+// registered with this hub. Global counterpart of InvalidateUser.
 func (h *Hub) InvalidateAll() {
 	select {
 	case h.invalidateAll <- struct{}{}:
@@ -482,14 +477,8 @@ func (h *Hub) InvalidateAll() {
 	}
 }
 
-// InvalidateAllCache resets the cached session state (but not the session
-// token) of every WebConn registered with this hub. Unlike InvalidateAll,
-// this does not clear the session token, so on next use each WebConn
-// re-validates its session against the store: unaffected/valid sessions
-// transparently re-authenticate, while sessions that were actually revoked
-// in the store correctly stop being treated as authenticated. Suitable for
-// routine, non-revocation cache purges that must not permanently break
-// unrelated connections.
+// InvalidateAllCache is like InvalidateAll but keeps session tokens, so
+// each WebConn reloads its session on next use.
 func (h *Hub) InvalidateAllCache() {
 	select {
 	case h.invalidateAllCache <- struct{}{}:
@@ -742,11 +731,6 @@ func (h *Hub) Start() {
 					connIndex.clearChannels()
 				}
 			case <-h.invalidateAllCache:
-				// Like invalidateAll, but leaves the session token intact
-				// so the next IsBasicAuthenticated check re-fetches the
-				// session from the store instead of permanently failing.
-				// Used for routine cache purges that aren't an actual
-				// mass session revocation.
 				for webConn := range connIndex.All() {
 					webConn.InvalidateCache()
 				}
