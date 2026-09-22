@@ -27,7 +27,10 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
@@ -8254,4 +8257,113 @@ func TestRewritePostRequiresReadAccessToRootThread(t *testing.T) {
 	require.Equalf(t, http.StatusForbidden, resp.StatusCode,
 		"rewrite with root_id in an unreadable channel must return forbidden before using thread content; status=%d body=%s", resp.StatusCode, string(bodyBytes))
 	assert.NotContains(t, string(bodyBytes), secretToken, "response must not leak private thread content")
+}
+
+// replicaLagPostStore simulates a read replica that has not yet received one
+// specific post. Any lookup of that post which is not pinned to the master DB
+// fails with a not-found, exactly as a lagging PostgreSQL hot standby would.
+// Every other lookup passes through to the real store.
+type replicaLagPostStore struct {
+	store.PostStore
+
+	mu            sync.Mutex
+	laggingPostID string
+}
+
+func (s *replicaLagPostStore) setLaggingPost(postID string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.laggingPostID = postID
+}
+
+func (s *replicaLagPostStore) missesPost(rctx request.CTX, postID string) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.laggingPostID != "" && s.laggingPostID == postID && !sqlstore.HasMaster(rctx.Context())
+}
+
+func (s *replicaLagPostStore) GetSingle(rctx request.CTX, id string, inclDeleted bool) (*model.Post, error) {
+	if s.missesPost(rctx, id) {
+		return nil, store.NewErrNotFound("Post", id)
+	}
+	return s.PostStore.GetSingle(rctx, id, inclDeleted)
+}
+
+func (s *replicaLagPostStore) Get(rctx request.CTX, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error) {
+	if s.missesPost(rctx, id) {
+		return nil, store.NewErrNotFound("Post", id)
+	}
+	return s.PostStore.Get(rctx, id, opts, userID, sanitizeOptions)
+}
+
+// replicaLagStore decorates a real Store, swapping Post() for the lagging
+// implementation above. All other store calls pass through.
+type replicaLagStore struct {
+	store.Store
+	posts *replicaLagPostStore
+}
+
+func (s *replicaLagStore) Post() store.PostStore {
+	return s.posts
+}
+
+// TestPostMutationHandlersReadFromMaster covers MM-70867. Handlers that mutate an
+// existing post must pin their lookups to the master DB: a user edits or deletes a post
+// milliseconds after creating it, so an unpinned read can be served by a replica that
+// has not received the row yet. The edit handlers turn that not-found into a 403 "You do
+// not have the appropriate permissions.", which is what the customer sees; deletePost
+// reports it as a 404.
+func TestPostMutationHandlersReadFromMaster(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	originalStore := th.App.Srv().Store()
+	lagging := &replicaLagPostStore{PostStore: originalStore.Post()}
+	th.App.Srv().SetStore(&replicaLagStore{Store: originalStore, posts: lagging})
+	t.Cleanup(func() { th.App.Srv().SetStore(originalStore) })
+
+	// createPostWithLaggingReplica creates a post and then makes every unpinned
+	// lookup of it miss, reproducing the read-after-write race.
+	createPostWithLaggingReplica := func(t *testing.T) *model.Post {
+		t.Helper()
+
+		post, _, err := th.Client.CreatePost(context.Background(), &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "original message",
+		})
+		require.NoError(t, err)
+
+		lagging.setLaggingPost(post.Id)
+		t.Cleanup(func() { lagging.setLaggingPost("") })
+
+		return post
+	}
+
+	t.Run("updatePost", func(t *testing.T) {
+		post := createPostWithLaggingReplica(t)
+
+		post.Message = "edited message"
+		updated, _, err := th.Client.UpdatePost(context.Background(), post.Id, post)
+		require.NoError(t, err, "editing a post the replica has not caught up on must not fail")
+		require.Equal(t, "edited message", updated.Message)
+	})
+
+	t.Run("patchPost", func(t *testing.T) {
+		post := createPostWithLaggingReplica(t)
+
+		patched, _, err := th.Client.PatchPost(context.Background(), post.Id, &model.PostPatch{
+			Message: model.NewPointer("patched message"),
+		})
+		require.NoError(t, err, "patching a post the replica has not caught up on must not fail")
+		require.Equal(t, "patched message", patched.Message)
+	})
+
+	// app.DeletePost already pins its own lookup, but the handler looks the post up
+	// first and that read raced. Unlike the edit handlers, deletePost reports the
+	// miss honestly as a 404 rather than relabelling it a 403.
+	t.Run("deletePost", func(t *testing.T) {
+		post := createPostWithLaggingReplica(t)
+
+		_, err := th.Client.DeletePost(context.Background(), post.Id)
+		require.NoError(t, err, "deleting a post the replica has not caught up on must not fail")
+	})
 }
