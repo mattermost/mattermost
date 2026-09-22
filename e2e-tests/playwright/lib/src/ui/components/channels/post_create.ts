@@ -318,7 +318,7 @@ export default class ChannelsPostCreate {
     }
 
     async toHaveBurnOnReadVisible() {
-        await expect(this.burnOnReadButton).toBeAttached();
+        await expect(this.burnOnReadButton).toBeVisible();
     }
 
     async toHaveBurnOnReadLabel() {
