@@ -37,6 +37,43 @@ func TestNeutralizeNonWordHyphens(t *testing.T) {
 	}
 }
 
+func TestExpandNumericTsQueryOperands(t *testing.T) {
+	testCases := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{"bare number", "12345", "(12345|-12345)"},
+		{"wildcard number", "12345:*", "(12345:*|-12345:*)"},
+		{"both sides of an AND", "12345&678", "(12345|-12345)&(678|-678)"},
+		{"OR operand", "flight|12345", "flight|(12345|-12345)"},
+		{"excluded operand", "message &!(12345)", "message &!((12345|-12345))"},
+		{"quoted phrase loses its quotes", `"flight<->12345"`, "flight<->(12345|-12345)"},
+		{"number in the middle of a phrase", `"flight<->12345<->today"`, "flight<->(12345|-12345)<->today"},
+		{"quoted phrase without digits keeps its quotes", `"t-shirt<->sale"`, `"t-shirt<->sale"`},
+		{"quoted phrase alongside a bare number", `12345&"flight<->one"`, `(12345|-12345)&"flight<->one"`},
+		// The hyphen is what Postgres glues onto the digits in the first
+		// place, so the term the user typed must reach to_tsquery unchanged.
+		{"hyphenated term", "flight-12345", "flight-12345"},
+		{"compound word", "t-shirt", "t-shirt"},
+		// A parenthesised group is only valid where an operand may start, so
+		// digits preceded by any other character have to stay part of it.
+		{"leading symbol", "$12345", "$12345"},
+		{"leading hash", "#12345", "#12345"},
+		{"dotted number", "a.12345", "a.12345"},
+		{"digits after a multi-byte rune", "café12345", "café12345"},
+		{"unbalanced quote left alone", `"flight<->12345`, `"flight<->12345`},
+		{"no digits", "flight&today", "flight&today"},
+		{"empty string", "", ""},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			require.Equal(t, tc.expected, expandNumericTsQueryOperands(tc.input))
+		})
+	}
+}
+
 func TestChunkSlice(t *testing.T) {
 	if enableFullyParallelTests {
 		t.Parallel()
