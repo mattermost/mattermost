@@ -127,6 +127,7 @@ func (s *SqlHealthFindingStore) Upsert(findings []*model.HealthFinding) error {
 		if finding == nil || finding.Fingerprint == "" {
 			continue
 		}
+		finding.PreSave()
 		if idx, ok := indexByFingerprint[finding.Fingerprint]; ok {
 			validFindings[idx] = finding
 			continue

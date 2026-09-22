@@ -194,6 +194,23 @@ func TestFindingStore(t *testing.T, newStore func() FindingStore) {
 		require.Equal(t, int64(200), got[0].LastSeenAt)
 	})
 
+	t.Run("upsert clears mutedby when not muted", func(t *testing.T) {
+		t.Parallel()
+
+		store := newStore()
+		fp := model.NewId()
+		finding := testFinding(fp, "check_cluster_status", 100)
+		finding.MutedBy = "user-1"
+		require.NoError(t, store.Upsert([]*model.HealthFinding{finding}))
+
+		got, err := store.GetByFingerprints([]string{fp})
+		require.NoError(t, err)
+		require.Len(t, got, 1)
+		require.False(t, got[0].IsMuted())
+		require.Equal(t, int64(0), got[0].MutedAt)
+		require.Empty(t, got[0].MutedBy)
+	})
+
 	t.Run("upsert does not persist rendered fields", func(t *testing.T) {
 		t.Parallel()
 

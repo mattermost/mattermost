@@ -82,13 +82,14 @@ func (s *memoryStore) Upsert(findings []*model.HealthFinding) error {
 		}
 
 		stored := cloneFinding(finding)
+		stored.PreSave()
 		// Summary/Remediation/Message are rendered at the read boundary; the store never holds them.
 		stored.Summary = ""
 		stored.Remediation = ""
 		stored.Message = ""
 
-		// Mute state is owned by Mute/Unmute; an evaluation refresh carries no mute fields and must not clear an existing mute.
-		if existing, ok := s.findings[finding.Fingerprint]; ok && stored.MutedAt == 0 && stored.MutedBy == "" {
+		// Mute state is owned by Mute/Unmute; an evaluation refresh carries no mute and must not clear an existing mute.
+		if existing, ok := s.findings[finding.Fingerprint]; ok && stored.MutedAt == 0 {
 			stored.MutedAt = existing.MutedAt
 			stored.MutedBy = existing.MutedBy
 		}
