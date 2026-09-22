@@ -175,6 +175,12 @@ consecutivehits = EXCLUDED.consecutivehits,
 mutedat = CASE WHEN EXCLUDED.mutedat = 0 THEN healthfindings.mutedat ELSE EXCLUDED.mutedat END,
 mutedby = CASE WHEN EXCLUDED.mutedat = 0 THEN healthfindings.mutedby ELSE EXCLUDED.mutedby END`
 
+	tx, err := s.GetMaster().Begin()
+	if err != nil {
+		return errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(tx, &err)
+
 	for _, chunk := range chunkSlice(validFindings, len(columns), s.getMaxInsertParams()) {
 		query := s.getQueryBuilder().
 			Insert("healthfindings").
@@ -211,9 +217,13 @@ mutedby = CASE WHEN EXCLUDED.mutedat = 0 THEN healthfindings.mutedby ELSE EXCLUD
 			)
 		}
 
-		if _, err := s.GetMaster().ExecBuilder(query); err != nil {
+		if _, err = tx.ExecBuilder(query); err != nil {
 			return errors.Wrap(err, "failed to upsert health findings")
 		}
+	}
+
+	if err = tx.Commit(); err != nil {
+		return errors.Wrap(err, "commit_transaction")
 	}
 
 	return nil
