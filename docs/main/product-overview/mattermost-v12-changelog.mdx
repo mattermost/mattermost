@@ -114,6 +114,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-0-is-now-availab
  - Pre-packaged GitLab plugin version [v2.0.0](https://github.com/mattermost/mattermost-plugin-gitlab/releases/tag/v2.0.0).
  - Pre-packaged Zoom plugin version [v2.0.0](https://github.com/mattermost/mattermost-plugin-zoom/releases/tag/v2.0.0).
  - Pre-packaged GitHub plugin version [v3.0.0](https://github.com/mattermost/mattermost-plugin-github/releases/tag/v3.0.0).
+ - Legal Hold plugin version [v1.1.6](https://github.com/mattermost/mattermost-plugin-legal-hold/releases/tag/v1.1.6) is now pre-packaged with server releases, and is available from the App Marketplace on servers without internet access.
  - Updated the web app to React 19 with concurrent rendering enabled by default.
  - Added copy buttons for newly generated personal access tokens and bot access tokens.
  - Added accessible labels to hide and show OpenGraph image previews.
@@ -151,6 +152,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-0-is-now-availab
  - Added a new Hierarchical attribute type in the Global Attributes management screen in the System Console.
  - Existing Custom Profile Attributes (User Attributes) fields are now automatically migrated into Global Attributes templates on server startup. The legacy "User Attributes" admin console page has been removed.
  - System Console Manage Attributes now opens existing managed attributes for edit. Saving PATCHes the attribute definition and applies add/remove changes in the same action, including deleting a resource application and its stored values when that resource is removed.
+ - Renaming a global attribute's display name in System Console now also updates linked resource fields that still share that label. Linked fields that were given a custom label keep it.
  - Moved the New attribute button on the Attribute Management listing page into the page header and removed the Duplicate attribute action from the row menu.
  - Applied channel file download permission policies to content reviewers.
  - Added a live Security Updates bulletin to the Security Guide that filters advisories by product, severity, issue ID, date, and affected version range.
@@ -213,6 +215,8 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-0-is-now-availab
  - Corrected English translation typos and fixed audit-log wording for users removed from channels.
  - Fixed an issue with user profile update handling.
  - Fixed a regression where a native "No file chosen" file-picker control could appear on the System Console user detail page.
+ - Fixed an issue where the Posts resource was offered in System Console global attributes while the ``PostAttributes`` feature flag was disabled.
+ - Fixed the spacing above the first field in the Applies-to accordion on the System Console attribute details page, so it matches the spacing between the fields below it.
 
 ### API Changes
  - Added ``POST /access_control/decisions/actions/search (searchAccessControlDecisionActions)`` API endpoint.
