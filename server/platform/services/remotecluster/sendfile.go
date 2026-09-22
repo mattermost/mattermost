@@ -123,13 +123,12 @@ func (rcs *Service) sendFileToRemote(timeout time.Duration, task sendFileTask) (
 	}
 	defer resp.Body.Close()
 
-	body, err := readRemoteResponse(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
+	body, readErr := readRemoteResponse(resp.Body)
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("unexpected response: %d - %s", resp.StatusCode, resp.Status)
+	}
+	if readErr != nil {
+		return nil, readErr
 	}
 
 	// body should be a FileInfo

@@ -430,6 +430,7 @@ func decodedReplyCases(prefix []byte, emptyReplyIsOK bool) []replyCase {
 			name:    "error status with a reply far longer than the caller reads",
 			reply:   replyBody{prefix: prefix, padLen: paddingBeyondRead, status: http.StatusInternalServerError},
 			wantErr: true,
+			errText: "500",
 		},
 		{
 			name:    "empty reply",
