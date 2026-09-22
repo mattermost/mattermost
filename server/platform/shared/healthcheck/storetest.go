@@ -12,11 +12,11 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-func TestFindingStore(t *testing.T, newStore func() FindingStore) {
+func TestFindingStore(t *testing.T, newStore func(t *testing.T) FindingStore) {
 	t.Helper()
 
 	t.Run("upsert and get by fingerprints with partial hit", func(t *testing.T) {
-		store := newStore()
+		store := newStore(t)
 		fp1, fp2 := model.NewId(), model.NewId()
 		first := testFinding(fp1, "check_cluster_status", 100)
 		second := testFinding(fp2, "check_database_pool", 101)
@@ -30,7 +30,7 @@ func TestFindingStore(t *testing.T, newStore func() FindingStore) {
 	})
 
 	t.Run("upsert idempotency", func(t *testing.T) {
-		store := newStore()
+		store := newStore(t)
 		fp := model.NewId()
 		original := testFinding(fp, "check_cluster_status", 100)
 		require.NoError(t, store.Upsert([]*model.HealthFinding{original}))
@@ -49,7 +49,7 @@ func TestFindingStore(t *testing.T, newStore func() FindingStore) {
 	})
 
 	t.Run("upsert with duplicate fingerprints in one batch keeps the last", func(t *testing.T) {
-		store := newStore()
+		store := newStore(t)
 		fp := model.NewId()
 		first := testFinding(fp, "check_cluster_status", 100)
 		last := testFinding(fp, "check_cluster_status", 200)
@@ -64,7 +64,7 @@ func TestFindingStore(t *testing.T, newStore func() FindingStore) {
 	})
 
 	t.Run("upsert with duplicate fingerprints keeps the last occurrence's mute state", func(t *testing.T) {
-		store := newStore()
+		store := newStore(t)
 		fp := model.NewId()
 		muted := testFinding(fp, "check_cluster_status", 100)
 		muted.MutedAt, muted.MutedBy = 123, "user-1"
@@ -79,7 +79,7 @@ func TestFindingStore(t *testing.T, newStore func() FindingStore) {
 	})
 
 	t.Run("include muted and muted only policies", func(t *testing.T) {
-		store := newStore()
+		store := newStore(t)
 		unmutedFp, mutedFp := model.NewId(), model.NewId()
 		unmuted := testFinding(unmutedFp, "check_cluster_status", 100)
 		muted := testFinding(mutedFp, "check_database_pool", 100)
@@ -105,7 +105,7 @@ func TestFindingStore(t *testing.T, newStore func() FindingStore) {
 	})
 
 	t.Run("list filters by surface", func(t *testing.T) {
-		store := newStore()
+		store := newStore(t)
 		product := testFinding("fp-product", "check_cluster_status", 100)
 		product.Surface = string(SurfaceProduct)
 		internal := testFinding("fp-internal", "check_database_pool", 100)
@@ -123,7 +123,7 @@ func TestFindingStore(t *testing.T, newStore func() FindingStore) {
 	})
 
 	t.Run("mute and unmute round trip", func(t *testing.T) {
-		store := newStore()
+		store := newStore(t)
 		fp := model.NewId()
 		require.NoError(t, store.Upsert([]*model.HealthFinding{testFinding(fp, "check_cluster_status", 100)}))
 		require.NoError(t, store.Mute(fp, "user-1", 456))
@@ -146,7 +146,7 @@ func TestFindingStore(t *testing.T, newStore func() FindingStore) {
 	})
 
 	t.Run("delete before boundary is exclusive", func(t *testing.T) {
-		store := newStore()
+		store := newStore(t)
 		oldFp, equalFp, newFp := model.NewId(), model.NewId(), model.NewId()
 		require.NoError(t, store.Upsert([]*model.HealthFinding{
 			testFinding(oldFp, "check_cluster_status", 99),
@@ -166,14 +166,14 @@ func TestFindingStore(t *testing.T, newStore func() FindingStore) {
 	})
 
 	t.Run("mute and unmute unknown fingerprint return ErrFindingNotFound", func(t *testing.T) {
-		store := newStore()
+		store := newStore(t)
 		missing := model.NewId()
 		require.ErrorIs(t, store.Mute(missing, "user-1", 10), ErrFindingNotFound)
 		require.ErrorIs(t, store.Unmute(missing), ErrFindingNotFound)
 	})
 
 	t.Run("upsert refresh preserves existing mute metadata", func(t *testing.T) {
-		store := newStore()
+		store := newStore(t)
 		fp := model.NewId()
 		require.NoError(t, store.Upsert([]*model.HealthFinding{testFinding(fp, "check_cluster_status", 100)}))
 		require.NoError(t, store.Mute(fp, "user-1", 456))
@@ -191,7 +191,7 @@ func TestFindingStore(t *testing.T, newStore func() FindingStore) {
 	})
 
 	t.Run("upsert clears mutedby when not muted", func(t *testing.T) {
-		store := newStore()
+		store := newStore(t)
 		fp := model.NewId()
 		finding := testFinding(fp, "check_cluster_status", 100)
 		finding.MutedBy = "user-1"
@@ -206,7 +206,7 @@ func TestFindingStore(t *testing.T, newStore func() FindingStore) {
 	})
 
 	t.Run("upsert does not persist rendered fields", func(t *testing.T) {
-		store := newStore()
+		store := newStore(t)
 		fp := model.NewId()
 		finding := testFinding(fp, "check_cluster_status", 100)
 		finding.Summary = "rendered summary"

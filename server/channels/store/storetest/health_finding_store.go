@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"math"
 	"sync"
 	"testing"
 
@@ -17,8 +18,13 @@ import (
 )
 
 func TestHealthFindingStore(t *testing.T, _ request.CTX, ss store.Store) {
-	healthcheck.TestFindingStore(t, func() healthcheck.FindingStore {
-		return ss.HealthFinding()
+	// The conformance suite assumes each newStore call yields an empty store, as
+	// the memory store does. The SQL store shares one table, so clear it each time.
+	healthcheck.TestFindingStore(t, func(t *testing.T) healthcheck.FindingStore {
+		fs := ss.HealthFinding()
+		_, err := fs.DeleteBefore(math.MaxInt64)
+		require.NoError(t, err)
+		return fs
 	})
 
 	t.Run("batch upsert persists 200 findings in one call", func(t *testing.T) {
