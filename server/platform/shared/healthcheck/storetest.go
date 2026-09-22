@@ -32,7 +32,7 @@ func TestFindingStore(t *testing.T, newStore func(t *testing.T) FindingStore) {
 	t.Run("get by fingerprints treats input as a set", func(t *testing.T) {
 		t.Parallel()
 
-		store := newStore()
+		store := newStore(t)
 		fp1, fp2 := model.NewId(), model.NewId()
 		require.NoError(t, store.Upsert([]*model.HealthFinding{
 			testFinding(fp1, "check_cluster_status", 100),
