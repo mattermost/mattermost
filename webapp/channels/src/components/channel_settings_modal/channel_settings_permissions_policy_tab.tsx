@@ -593,6 +593,14 @@ function ChannelSettingsPermissionsPolicyTab({
     const hasErrors = Boolean(formError) || Boolean(showTabSwitchError);
     const shouldShowPanel = (hasUnsavedChanges || saveChangesPanelState === SAVE_RESULT_SAVED) && editingKey === null;
 
+    // An open rule editor counts as unsaved changes, so the modal refuses
+    // section switches while it is open. The SaveChangesPanel that explains the
+    // refusal only renders in the list view, so surface it here instead.
+    const editorError = formError || (showTabSwitchError ? formatMessage({
+        id: 'channel_settings.permissions_policy.editor.tab_switch_error',
+        defaultMessage: 'You have unsaved changes. Save or cancel this rule to continue.',
+    }) : '');
+
     // ── Render: load error (defensive — replaces both list and editor) ───
     // Block all editing affordances when the initial policy load failed
     // for a reason other than 404. Falling through to the regular
@@ -643,7 +651,7 @@ function ChannelSettingsPermissionsPolicyTab({
                 attributesLoaded={attributesLoaded}
                 enableUserManagedAttributes={accessControlSettings?.EnableUserManagedAttributes || false}
                 isSystemAdmin={isSystemAdmin}
-                error={formError}
+                error={editorError}
                 onCancel={cancelEditor}
                 onCommit={commitDraft}
                 buildSimulationPolicy={buildSimulationPolicy}
@@ -1249,6 +1257,7 @@ function PermissionRuleEditor({
                 <div
                     className='ChannelSettingsModal__permissionsPolicyError'
                     data-testid='permissions-policy-editor-error'
+                    role='alert'
                 >
                     {error}
                 </div>
