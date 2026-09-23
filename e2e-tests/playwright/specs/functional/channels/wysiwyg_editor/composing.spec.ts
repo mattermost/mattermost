@@ -26,7 +26,7 @@ test.describe('WYSIWYG editor - composing and posting', TAGS, () => {
 
         const last = await channelsPage.getLastPost();
         await last.toContainText(msg);
-        expect(await editor.isEmpty()).toBe(true);
+        await expect(editor.input).toHaveText('');
     });
 
     test('posts a plain-text message with enter key', async ({pw}) => {
@@ -46,7 +46,7 @@ test.describe('WYSIWYG editor - composing and posting', TAGS, () => {
 
         const last = await channelsPage.getLastPost();
         await last.toContainText(msg);
-        expect(await editor.isEmpty()).toBe(true);
+        await expect(editor.input).toHaveText('');
     });
 
     test('placeholder shows when empty and hides after typing', async ({pw}) => {

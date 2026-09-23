@@ -176,27 +176,27 @@ func TestUpdateScheduledPost(t *testing.T) {
 	t.Run("updated post types are ignored", func(t *testing.T) {
 		testCases := []struct {
 			name            string
-			postType        string
+			initialPostType string
 			updatedPostType string
 		}{
 			{
 				name:            "generic system post type",
-				postType:        model.PostTypeDefault,
+				initialPostType: model.PostTypeDefault,
 				updatedPostType: model.PostTypeBurnOnRead,
 			},
 			{
 				name:            "structured system post type",
-				postType:        model.PostTypeDefault,
+				initialPostType: model.PostTypeDefault,
 				updatedPostType: model.PostTypeAddToTeam,
 			},
 			{
 				name:            "default post type",
-				postType:        model.PostTypeDefault,
+				initialPostType: model.PostTypeDefault,
 				updatedPostType: model.PostTypeSystemGeneric,
 			},
 			{
 				name:            "attachment post type",
-				postType:        model.PostTypeMessageAttachment,
+				initialPostType: model.PostTypeMessageAttachment,
 				updatedPostType: model.PostTypeDefault,
 			},
 		}
@@ -209,7 +209,7 @@ func TestUpdateScheduledPost(t *testing.T) {
 						UserId:    th.BasicUser.Id,
 						ChannelId: th.BasicChannel.Id,
 						Message:   "this is a scheduled post",
-						Type:      testCase.postType,
+						Type:      testCase.initialPostType,
 					},
 					ScheduledAt: model.GetMillis() + 100000,
 				}
@@ -226,7 +226,7 @@ func TestUpdateScheduledPost(t *testing.T) {
 
 				fetched, storeErr := th.App.Srv().Store().ScheduledPost().Get(th.Context, created.Id)
 				require.NoError(t, storeErr)
-				require.NotEqual(t, testCase.updatedPostType, fetched.Type, "a scheduled post must not allow its type to be updated")
+				require.Equal(t, testCase.initialPostType, fetched.Type, "a scheduled post must not allow its type to be updated")
 			})
 		}
 	})
