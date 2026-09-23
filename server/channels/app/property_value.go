@@ -303,7 +303,7 @@ func (a *App) UpsertPropertyValues(rctx request.CTX, values []*model.PropertyVal
 		}
 		for _, v := range values {
 			f, ok := fieldByID[v.FieldID]
-			if !ok {
+			if !ok || f.DeleteAt != 0 {
 				return nil, model.NewAppError(
 					"UpsertPropertyValues",
 					"app.property_value.upsert.field_not_found.app_error",
