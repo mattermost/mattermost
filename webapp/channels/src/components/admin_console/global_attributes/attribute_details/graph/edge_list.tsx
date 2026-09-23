@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import MuiPopover from '@mui/material/Popover';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -24,6 +24,7 @@ import {GraphParentEdgeAlert} from './edge_alert';
 import type {EdgeDirection, Suggestion} from './edge_candidates';
 import type {CheckParentEdgeInvalid} from './graph_utils';
 
+export const SEARCH_FIELD_CLASS = 'attribute-graph-parents-pane__search-field';
 export const SUGGESTIONS_PAPER_CLASS = 'attribute-graph-parents-pane__suggestions-paper';
 export const SUGGESTIONS_POPOVER_CLASS = 'attribute-graph-parents-pane__suggestions-popover';
 
@@ -136,8 +137,7 @@ export function EdgeList({
     const {formatMessage} = useIntl();
     const theme = useSelector(getTheme);
     const comboboxRef = useRef<HTMLDivElement>(null);
-    const [searchAnchor, setSearchAnchor] = useState<HTMLInputElement | HTMLTextAreaElement | null>(null);
-    const searchFieldBox = searchAnchor?.closest<HTMLElement>('.Input_fieldset') ?? searchAnchor;
+    const searchFieldBoxRef = useRef<HTMLDivElement>(null);
 
     const handleSearchBlur = useCallback((event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const next = event.relatedTarget;
@@ -191,6 +191,7 @@ export function EdgeList({
 
     const labels = edgeListLabels(direction);
     const showSuggestions = searchOpen && suggestions.length > 0 && !disabled;
+    const searchFieldBox = searchFieldBoxRef.current;
     const alertChildName = labels.anchorIs === 'parent' ? alertRelatedName : optionName;
     const alertParentName = labels.anchorIs === 'parent' ? optionName : alertRelatedName;
 
@@ -274,23 +275,27 @@ export function EdgeList({
                 ref={comboboxRef}
                 className='attribute-graph-parents-pane__combobox'
             >
-                <Input
-                    ref={setSearchAnchor}
-                    name={labels.searchName}
-                    type='text'
-                    useLegend={false}
-                    placeholder={formatMessage(labels.searchPlaceholder)}
-                    aria-label={formatMessage(labels.searchAria, {name: optionName})}
-                    value={query}
-                    onChange={(event) => onQueryChange(event.target.value)}
-                    onFocus={onSearchOpen}
-                    onBlur={handleSearchBlur}
-                    onKeyDown={handleSearchKeyDown}
-                    onKeyUp={(event) => event.stopPropagation()}
-                    disabled={disabled || atMax}
-                    autoComplete='off'
-                    data-testid={labels.searchTestId}
-                />
+                <div
+                    ref={searchFieldBoxRef}
+                    className={SEARCH_FIELD_CLASS}
+                >
+                    <Input
+                        name={labels.searchName}
+                        type='text'
+                        useLegend={false}
+                        placeholder={formatMessage(labels.searchPlaceholder)}
+                        aria-label={formatMessage(labels.searchAria, {name: optionName})}
+                        value={query}
+                        onChange={(event) => onQueryChange(event.target.value)}
+                        onFocus={onSearchOpen}
+                        onBlur={handleSearchBlur}
+                        onKeyDown={handleSearchKeyDown}
+                        onKeyUp={(event) => event.stopPropagation()}
+                        disabled={disabled || atMax}
+                        autoComplete='off'
+                        data-testid={labels.searchTestId}
+                    />
+                </div>
                 {showSuggestions && searchFieldBox && (
                     <CompassDesignProvider theme={theme}>
                         <MuiPopover

@@ -11,6 +11,7 @@ import {fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/re
 
 import {GraphParentEdgeAlert} from './edge_alert';
 import {classifyParentCandidate} from './edge_candidates';
+import {SEARCH_FIELD_CLASS} from './edge_list';
 import {addChildOption, addParentEdge, addTopLevelOption, removeParentEdge} from './graph_utils';
 import AttributeGraphParentsPane from './parents_pane';
 
@@ -199,8 +200,8 @@ describe('AttributeGraphParentsPane', () => {
             </div>,
         );
         await openParentsView();
-        const fieldset = document.querySelector('.Input_fieldset') as HTMLElement;
-        Object.defineProperty(fieldset, 'offsetWidth', {configurable: true, value: 240});
+        const searchField = document.querySelector(`.${SEARCH_FIELD_CLASS}`) as HTMLElement;
+        Object.defineProperty(searchField, 'offsetWidth', {configurable: true, value: 240});
         Object.defineProperty(screen.getByTestId('attributeGraphParentsPane__search'), 'offsetWidth', {
             configurable: true,
             value: 200,

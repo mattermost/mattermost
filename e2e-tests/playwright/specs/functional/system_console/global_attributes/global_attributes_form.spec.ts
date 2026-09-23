@@ -1216,7 +1216,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 expect(listBox!.height).toBeGreaterThan(0);
                 expect(listBox!.y).toBeGreaterThan(searchBox!.y);
 
-                const fieldBox = await page.locator('.attribute-graph-parents-pane .Input_fieldset').boundingBox();
+                const fieldBox = await page.locator('.attribute-graph-parents-pane__search-field').boundingBox();
                 const paperBox = await page.locator('.attribute-graph-parents-pane__suggestions-paper').boundingBox();
                 expect(fieldBox).toBeTruthy();
                 expect(paperBox).toBeTruthy();
