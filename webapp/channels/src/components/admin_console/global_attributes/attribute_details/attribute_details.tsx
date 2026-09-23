@@ -837,7 +837,15 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // fields only a user field qualifies.
     const showsExternalSource = !isNonTemplate || objectType === 'user';
     const typeLockedByAppliesTo = isEditMode && appliesTo.length > 0 && !isNonTemplate;
-    const typeLocked = hasExternalSource || typeLockedByAppliesTo || isPluginOwned;
+
+    // The server refuses to convert a field to or from the graph type
+    // (app.property_field.update.graph_type_change.app_error) -- a flat option
+    // list and a hierarchy do not describe the same values, so neither
+    // conversion has an answer. A graph field therefore has nowhere to go and its
+    // Type is locked outright; every other field keeps its menu but no longer
+    // offers Hierarchical (see selectableTypes below).
+    const typeLockedByGraph = isEditMode && originalFieldTypeRef.current === 'graph';
+    const typeLocked = hasExternalSource || typeLockedByAppliesTo || isPluginOwned || typeLockedByGraph;
     const serverFieldType = toServerFieldType(fieldType);
     const typeChanged = isEditMode && serverFieldType !== originalFieldTypeRef.current;
     const typeSupportsOptions = supportsOptions({type: serverFieldType});
@@ -1250,6 +1258,11 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
 
     const TypeIcon = getTypeIcon(fieldType);
 
+    // Hierarchical is create-only: an existing field cannot be converted into
+    // one (see typeLockedByGraph), so offering it here would only produce a 400
+    // at Save. A field that already is one never opens this menu.
+    const selectableTypes = isEditMode ? ALL_TYPES.filter((descriptor) => descriptor.id !== 'graph') : ALL_TYPES;
+
     // Reason derived once, then looked up for both the tooltip and the
     // aria-label below -- pluginOrphaned/plugin checked first: a plugin-owned
     // field with zero applied resources has typeLockedByAppliesTo === false and
@@ -1258,9 +1271,13 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // applies to nothing. pluginOrphaned (not plain "plugin") whenever the
     // field is also orphaned, so this tooltip doesn't contradict the
     // "(no longer installed)" copy the Managed-by panel shows one card up.
-    const typeLockReason = firstMatchingReason<'pluginOrphaned' | 'plugin' | 'externalSource' | 'appliesTo'>(
+    // graph outranks externalSource/appliesTo because it is the only one of the
+    // three the admin cannot undo: telling them to remove resources or unlink a
+    // source would promise an unlock that never arrives.
+    const typeLockReason = firstMatchingReason<'pluginOrphaned' | 'plugin' | 'graph' | 'externalSource' | 'appliesTo'>(
         ['pluginOrphaned', isPluginOwned && isOrphaned],
         ['plugin', isPluginOwned],
+        ['graph', typeLockedByGraph],
         ['externalSource', hasExternalSource],
         ['appliesTo', typeLockedByAppliesTo],
     );
@@ -1291,7 +1308,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 'aria-label': formatMessage(messages.typeMenuAriaLabel),
             }}
         >
-            {ALL_TYPES.map((descriptor) => {
+            {selectableTypes.map((descriptor) => {
                 const ItemIcon = descriptor.icon;
                 const isCurrentType = descriptor.id === fieldType;
 
@@ -1745,6 +1762,10 @@ const messages = defineMessages({
         id: 'admin.global_attributes.attribute_details.type.field_locked_plugin_orphaned_aria_label',
         defaultMessage: "Type: {value}. Locked because this attribute was managed by a plugin that's no longer installed.",
     },
+    typeFieldLockedGraphAriaLabel: {
+        id: 'admin.global_attributes.attribute_details.type.field_locked_graph_aria_label',
+        defaultMessage: 'Type: {value}. Locked because a hierarchical attribute cannot be converted to another type.',
+    },
     typeLockedAppliesToTooltip: {
         id: 'admin.global_attributes.attribute_details.type.locked_applies_to_tooltip',
         defaultMessage: 'Type cannot be changed while this attribute applies to a resource.',
@@ -1760,6 +1781,10 @@ const messages = defineMessages({
     typeLockedPluginOrphanedTooltip: {
         id: 'admin.global_attributes.attribute_details.type.locked_plugin_orphaned_tooltip',
         defaultMessage: "Type cannot be changed — this attribute was managed by a plugin that's no longer installed.",
+    },
+    typeLockedGraphTooltip: {
+        id: 'admin.global_attributes.attribute_details.type.locked_graph_tooltip',
+        defaultMessage: 'Type cannot be changed — a hierarchical attribute cannot be converted to another type. Create a new attribute of the type you need instead.',
     },
     appliesToLockedPluginTooltip: {
         id: 'admin.global_attributes.attribute_details.applies_to.locked_plugin_tooltip',
@@ -1793,9 +1818,10 @@ const messages = defineMessages({
 // One reason derived once (see typeLockReason above), looked up here for both
 // the tooltip and the aria-label -- a new lock reason becomes one entry in
 // this map instead of a fourth branch across two separate if/else chains.
-const TYPE_LOCK_MESSAGES: Record<'pluginOrphaned' | 'plugin' | 'externalSource' | 'appliesTo', {tooltip: MessageDescriptor; ariaLabel: MessageDescriptor}> = {
+const TYPE_LOCK_MESSAGES: Record<'pluginOrphaned' | 'plugin' | 'graph' | 'externalSource' | 'appliesTo', {tooltip: MessageDescriptor; ariaLabel: MessageDescriptor}> = {
     pluginOrphaned: {tooltip: messages.typeLockedPluginOrphanedTooltip, ariaLabel: messages.typeFieldLockedPluginOrphanedAriaLabel},
     plugin: {tooltip: messages.typeLockedPluginTooltip, ariaLabel: messages.typeFieldLockedPluginAriaLabel},
+    graph: {tooltip: messages.typeLockedGraphTooltip, ariaLabel: messages.typeFieldLockedGraphAriaLabel},
     externalSource: {tooltip: messages.typeLockedExternalSourceTooltip, ariaLabel: messages.typeFieldLockedAriaLabel},
     appliesTo: {tooltip: messages.typeLockedAppliesToTooltip, ariaLabel: messages.typeFieldLockedAppliesToAriaLabel},
 };
