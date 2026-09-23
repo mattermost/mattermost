@@ -6683,7 +6683,7 @@
   "post_attributes.modal.clear": "Clear {attribute}",
   "post_attributes.modal.error.forbidden": "You do not have permission to change this attribute",
   "post_attributes.modal.error.generic": "Could not update this attribute. Please try again.",
-  "post_attributes.modal.locked": "This is a system-level property and cannot be modified.",
+  "post_attributes.modal.locked": "You don't have permission to modify this attribute.",
   "post_attributes.modal.picker.label": "Add an attribute",
   "post_attributes.modal.subtitle": "{author} · {channel}",
   "post_attributes.modal.title": "Post attributes",

@@ -392,7 +392,7 @@ const EditableChip = ({option, options, setOptions, fieldId, readonly = false}: 
                     >
                         <CloseCircleIcon
                             size={14}
-                            color='rgba(var(--center-channel-color-rgb), 0.56)'
+                            color='currentColor'
                         />
                     </ChipDeleteButton>
                 )}

@@ -3,17 +3,11 @@
 
 import React from 'react';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import PostAttributesButton from './post_attributes_button';
 
 describe('PostAttributesButton', () => {
-    let fetchSpy: jest.SpyInstance;
-
-    beforeEach(() => {
-        fetchSpy = jest.spyOn(globalThis, 'fetch');
-    });
-
     afterEach(() => {
         jest.restoreAllMocks();
     });

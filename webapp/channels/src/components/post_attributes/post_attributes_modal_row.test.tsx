@@ -127,7 +127,7 @@ describe('PostAttributesModalRow', () => {
         expect(screen.queryByTestId('post-attribute-trigger-classification')).not.toBeInTheDocument();
         expect(screen.queryByTestId('post-attribute-clear-classification')).not.toBeInTheDocument();
 
-        expect(screen.getByRole('img', {name: 'This is a system-level property and cannot be modified.'})).toBeInTheDocument();
+        expect(screen.getByRole('img', {name: "You don't have permission to modify this attribute."})).toBeInTheDocument();
 
         // The value is still readable.
         expect(screen.getByText('SECRET')).toBeInTheDocument();
@@ -370,7 +370,7 @@ describe('PostAttributesModalRow', () => {
             expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
             expect(screen.queryByTestId(`post-attribute-clear-${name}`)).not.toBeInTheDocument();
 
-            expect(screen.getByRole('img', {name: 'This is a system-level property and cannot be modified.'})).toBeInTheDocument();
+            expect(screen.getByRole('img', {name: "You don't have permission to modify this attribute."})).toBeInTheDocument();
             expect(screen.getByTestId(`post-attribute-row-${name}`)).toHaveTextContent(text as string);
         });
     });

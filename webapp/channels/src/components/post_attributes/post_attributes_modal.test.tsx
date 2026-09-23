@@ -348,7 +348,7 @@ describe('PostAttributesModal', () => {
 
         expect(screen.queryByTestId('post-attribute-trigger-classification')).not.toBeInTheDocument();
         expect(screen.queryByTestId('post-attribute-clear-classification')).not.toBeInTheDocument();
-        expect(screen.getByRole('img', {name: 'This is a system-level property and cannot be modified.'})).toBeInTheDocument();
+        expect(screen.getByRole('img', {name: "You don't have permission to modify this attribute."})).toBeInTheDocument();
     });
 
     test('picking an option writes exactly one item, once', async () => {
@@ -792,7 +792,7 @@ describe('PostAttributesModal', () => {
 
             expect(screen.queryByTestId(`user-selector-postAttributeValueUser-${fieldId}`)).not.toBeInTheDocument();
             expect(screen.queryByTestId(`post-attribute-clear-${name}`)).not.toBeInTheDocument();
-            expect(screen.getByRole('img', {name: 'This is a system-level property and cannot be modified.'})).toBeInTheDocument();
+            expect(screen.getByRole('img', {name: "You don't have permission to modify this attribute."})).toBeInTheDocument();
         });
     });
 

@@ -49,7 +49,7 @@ export default function PostAttributesModalRow({field, value, canEdit, writing, 
 
     const lockedTitle = formatMessage({
         id: 'post_attributes.modal.locked',
-        defaultMessage: 'This is a system-level property and cannot be modified.',
+        defaultMessage: "You don't have permission to modify this attribute.",
     });
 
     return (

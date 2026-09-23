@@ -28,7 +28,7 @@ const MODAL = '#postAttributesModal';
 // The padlock's accessible name. It is the only thing that distinguishes the padlock
 // from the row's other glyphs: an `<svg>` resolves to `role='img'` too, so a bare role
 // query matches the trash icon as well.
-const LOCKED_REASON = 'This is a system-level property and cannot be modified.';
+const LOCKED_REASON = "You don't have permission to modify this attribute.";
 
 function rowOf(page: Page, field: PropertyField) {
     return page.getByTestId(`post-attribute-row-${field.name}`);
@@ -761,6 +761,11 @@ test('adds an attribute from the picker and gives it a first value', {tag: '@pos
  * altogether, rather than showing a control that can do nothing.
  *
  * @precondition The PostAttributes feature flag is enabled.
+ *
+ * @precondition No other spec is creating system-scoped post attribute fields at the
+ * same time. This is the one test here asserting the *absence* of candidates, and a
+ * system-scoped field applies to every channel, so another spec's field would bring
+ * the picker back. CI pins `PW_WORKERS: 1`, which holds it.
  */
 test('omits the field picker when every field already has a row', {tag: '@post_attributes'}, async ({pw}) => {
     await pw.skipIfFeatureFlagNotSet('PostAttributes', true);
