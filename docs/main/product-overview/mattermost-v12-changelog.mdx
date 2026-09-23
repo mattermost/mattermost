@@ -155,6 +155,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-0-is-now-availab
  - System Console Manage Attributes now opens existing managed attributes for edit. Saving PATCHes the attribute definition and applies add/remove changes in the same action, including deleting a resource application and its stored values when that resource is removed.
  - Renaming a global attribute's display name in System Console now also updates linked resource fields that still share that label. Linked fields that were given a custom label keep it.
  - Moved the New attribute button on the Attribute Management listing page into the page header and removed the Duplicate attribute action from the row menu.
+ - Improved Attribute Management load time by showing the attribute list as soon as template fields resolve, while Applies-to data loads in the background.
  - Applied channel file download permission policies to content reviewers.
  - Added a live Security Updates bulletin to the Security Guide that filters advisories by product, severity, issue ID, date, and affected version range.
  - Hid the System Console Recaps page unless the ``EnableAIRecaps`` feature flag is enabled.
@@ -220,6 +221,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-0-is-now-availab
  - Fixed an issue where the Posts resource was offered in System Console global attributes while the ``PostAttributes`` feature flag was disabled.
  - Fixed the spacing above the first field in the Applies-to accordion on the System Console attribute details page, so it matches the spacing between the fields below it.
  - Updated direct and group channel targeting for incoming webhooks while direct messages are scoped to team members.
+ - Fixed an issue where changing a channel attribute, or opening some attribute dropdowns, briefly blanked out every attribute chip in the channel header.
 
 ### API Changes
  - Added ``POST /access_control/decisions/actions/search (searchAccessControlDecisionActions)`` API endpoint.
