@@ -69,8 +69,6 @@ export function SwitchProductMenu(props: Props) {
 
     const isChannelsProductActive = isChannels(props.productId);
 
-    // The menu contents unmount when the menu closes, so this has to live on the
-    // always-mounted menu to stay a single fetch per session.
     useEffect(() => {
         dispatch(getPrevTrialLicense());
     }, [dispatch]);

@@ -88,7 +88,7 @@ function ProductSwitcherProductMenuItem(props: ProductSwitcherProductMenuItemPro
             className='globalHeader-leftControls-productSwitcherMenu-productMenuItem'
             leadingElement={Icon ? (
                 <Icon
-                    size={20}
+                    size={24}
                     aria-hidden='true'
                 />
             ) : props.icon}

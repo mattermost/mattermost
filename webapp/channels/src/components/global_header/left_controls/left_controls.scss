@@ -84,21 +84,24 @@ $menuWidth: 240px;
 }
 
 .globalHeader-leftControls-productSwitcherMenu {
-    &-channelsMenuItem,
-    &-productMenuItem {
-        // Plugins can register a product icon as an arbitrary React node, so the slot
-        // sizes and centres whatever it gets instead of trusting the icon to fit.
+    li.globalHeader-leftControls-productSwitcherMenu-productMenuItem {
+        // Adjustment to accomodate larger product icons
+        padding-left: 16px;
+
         &[role="menuitem"] > .leading-element {
+            // Adjustment to accomodate larger product icons
+            margin-inline-end: 6px;
+            
             display: flex;
-            width: 20px;
-            height: 20px;
+            width: 24px;
+            height: 24px;
             align-items: center;
             justify-content: center;
             color: var(--button-bg);
-
+            
             svg {
-                width: 20px;
-                height: 20px;
+                width: 24px;
+                height: 24px;
                 fill: var(--button-bg);
             }
         }
@@ -118,9 +121,7 @@ $menuWidth: 240px;
                 fill: var(--button-bg);
             }
         }
-    }
 
-    &-productMenuItem {
         // Revealed on hover/focus so the row stays visually clean at rest.
         .globalHeader-leftControls-productSwitcherMenu-openInNewTabButton {
             display: flex;

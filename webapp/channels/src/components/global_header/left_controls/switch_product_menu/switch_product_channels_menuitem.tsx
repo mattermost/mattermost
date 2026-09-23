@@ -21,10 +21,10 @@ export default function ProductChannelsMenuItem({isChannelsProductActive, ...fir
 
     return (
         <Menu.Item
-            className='globalHeader-leftControls-productSwitcherMenu-channelsMenuItem'
+            className='globalHeader-leftControls-productSwitcherMenu-productMenuItem'
             leadingElement={(
                 <ProductChannelsIcon
-                    size={20}
+                    size={24}
                     aria-hidden='true'
                 />
             )}
