@@ -749,6 +749,21 @@ describe('ChannelInfoAttributes', () => {
         ];
         const multiField = (overrides: FieldOptions = {}) => field('tags', {type: 'multiselect', options: multiOptions, ...overrides});
 
+        test('a read-only multiselect renders one chip per value, not a joined list', () => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([multiField({changePolicy: 'never'})], [value('tags', ['opt_a', 'opt_b'])]),
+            );
+
+            const chips = screen.getAllByTestId('attributeChip');
+            expect(chips).toHaveLength(2);
+            expect(chips[0]).toHaveTextContent('VALUE_A');
+            expect(chips[1]).toHaveTextContent('VALUE_B');
+
+            // The joined displayValue reads as one marking rather than two.
+            expect(screen.queryByText('VALUE_A, VALUE_B')).not.toBeInTheDocument();
+        });
+
         test('picking a second option adds a chip alongside the first', async () => {
             const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
 

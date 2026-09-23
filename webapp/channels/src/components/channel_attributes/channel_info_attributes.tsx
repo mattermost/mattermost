@@ -348,14 +348,34 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
                                 </button>
                             );
                         } else if (attribute.displayValue) {
-                            valueControl = (
+                            // One chip per value, as the header chips already do: a
+                            // multiselect's displayValue is its values joined with
+                            // commas, which reads as one marking rather than several.
+                            // Colour only when there is a single value — an array
+                            // value resolves no option, so there is none to take.
+                            const values = attribute.displayValues.length > 0 ? attribute.displayValues : [attribute.displayValue];
+                            valueControl = values.length === 1 ? (
                                 <AttributeChip
+                                    className='ChannelInfoAttributes__chip'
                                     label={label}
-                                    value={attribute.displayValue}
+                                    value={values[0]}
                                     color={optionColor(attribute)}
                                     announceLabel={false}
                                     size='medium'
                                 />
+                            ) : (
+                                <span className='ChannelInfoAttributes__chips'>
+                                    {values.map((value, index) => (
+                                        <AttributeChip
+                                            key={`${field.id}:${index}`}
+                                            className='ChannelInfoAttributes__chip'
+                                            label={label}
+                                            value={value}
+                                            announceLabel={false}
+                                            size='medium'
+                                        />
+                                    ))}
+                                </span>
                             );
                         } else {
                             valueControl = (
