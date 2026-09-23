@@ -223,6 +223,13 @@ export default class ChannelsPage {
         return channelsUrl;
     }
 
+    async expectOnTeamChannel(teamName: string, channelName = 'town-square') {
+        const escapedTeam = teamName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const escapedChannel = channelName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        await expect(this.page).toHaveURL(new RegExp(`/${escapedTeam}/channels/${escapedChannel}(?:/|\\?|#|$)`));
+        await this.toBeVisible();
+    }
+
     // Force the /messages route for group-message slugs that do not start with '@'.
     async gotoMessage(teamName: string, channelName: string) {
         const channelsUrl = `/${teamName}/messages/${channelName}`;

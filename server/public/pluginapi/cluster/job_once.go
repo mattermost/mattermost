@@ -2,7 +2,7 @@ package cluster
 
 import (
 	"encoding/json"
-	"math/rand"
+	"math/rand/v2"
 	"sync"
 	"time"
 
@@ -223,7 +223,7 @@ func (j *JobOnce) cancelWhileHoldingMutex() {
 }
 
 func addJitter() time.Duration {
-	return time.Duration(rand.Int63n(int64(scheduleOnceJitter)))
+	return time.Duration(rand.Int64N(int64(scheduleOnceJitter)))
 }
 
 func normalizeAppErr(appErr *model.AppError) error {

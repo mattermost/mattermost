@@ -107,6 +107,16 @@ type Store interface {
 	ReadReceipt() ReadReceiptStore
 	TemporaryPost() TemporaryPostStore
 	ChannelJoinRequest() ChannelJoinRequestStore
+	HealthFinding() HealthFindingStore
+}
+
+type HealthFindingStore interface {
+	GetByFingerprints(fingerprints []string) ([]*model.HealthFinding, error)
+	List(filter model.HealthFindingFilter) ([]*model.HealthFinding, error)
+	Upsert(findings []*model.HealthFinding) error
+	Mute(fingerprint, userID string, at int64) error
+	Unmute(fingerprint string) error
+	DeleteBefore(lastSeenBefore int64) (int64, error)
 }
 
 type RetentionPolicyStore interface {
@@ -864,7 +874,7 @@ type UserAccessTokenStore interface {
 	GetByToken(tokenString string) (*model.UserAccessToken, error)
 	GetByUser(userID string, page, perPage int) ([]*model.UserAccessToken, error)
 	GetExpiredBefore(cutoff int64, limit int) ([]*model.UserAccessToken, error)
-	GetExpiringTokens(now int64, thresholds []int, limit int) ([]*model.UserAccessToken, error)
+	GetExpiringTokens(now int64, thresholds []int, limit int, includeUserOwnedTokens bool) ([]*model.UserAccessToken, error)
 	CountNonCompliantExpiry(maxExpiresAt int64) (int64, error)
 	DeleteNonCompliantExpiry(maxExpiresAt int64, limit int) ([]string, error)
 	Search(term string) ([]*model.UserAccessToken, error)
@@ -1202,7 +1212,24 @@ type PropertyFieldStore interface {
 	CountForGroupObjectType(groupID, objectType string, includeDeleted bool) (int64, error)
 	CountForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error)
 	CountLinkedFields(fieldID string) (int64, error)
-	SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
+	GetLinkedFields(fieldIDs, excludeIDs []string) ([]*model.PropertyField, error)
+	GetExistingOptionIDs(field *model.PropertyField, optionIDs []string) ([]string, error)
+	GetFieldOptions(field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int, filter *model.PropertyFieldOptionPageFilter) (*model.PropertyFieldOptionPage, error)
+	GetOptionsByID(field *model.PropertyField, optionIDs []string) ([]*model.PropertyFieldOption, error)
+	GetOptionsByName(field *model.PropertyField, names []string) ([]*model.PropertyFieldOption, error)
+	GetLinkedFieldOptionNames(fieldID string, names []string) (map[string]string, error)
+	CountOptions(fieldID string) (int, error)
+	MutateOptions(groupID, fieldID string, expectedUpdateAt int64, upsert []*model.PropertyFieldOption, add, remove []*model.PropertyOptionEdge) error
+	DeleteOptions(groupID, fieldID string, expectedUpdateAt int64, optionIDs []string) error
+	PermanentDeleteOwnedOptions(groupID, fieldID string) error
+	GetOptionEdges(fieldID string) ([]*model.PropertyOptionEdge, error)
+	GetOptionChildEdges(fieldID string, parentOptionIDs []string) ([]*model.PropertyOptionEdge, error)
+	GetOptionParentEdges(fieldID string, childOptionIDs []string) ([]*model.PropertyOptionEdge, error)
+	CountOptionEdges(fieldID string) (int, error)
+	GetOptionAncestorsOrSelf(field *model.PropertyField, optionIDs []string) (map[string][]string, error)
+	GetOptionDescendantsOrSelf(field *model.PropertyField, optionIDs []string) (map[string][]string, error)
+	GetOptionChildren(field *model.PropertyField, optionIDs []string) (map[string][]string, error)
+	SearchPropertyFields(rctx request.CTX, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
 	Update(groupID string, fields []*model.PropertyField, expectedUpdateAts map[string]int64) ([]*model.PropertyField, error)
 	Delete(groupID string, id string) error
 	CheckPropertyNameConflict(field *model.PropertyField, excludeID string) (model.PropertyFieldTargetLevel, error)
@@ -1213,7 +1240,7 @@ type PropertyValueStore interface {
 	CreateMany(values []*model.PropertyValue) ([]*model.PropertyValue, error)
 	Get(groupID, id string) (*model.PropertyValue, error)
 	GetMany(groupID string, ids []string) ([]*model.PropertyValue, error)
-	SearchPropertyValues(opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error)
+	SearchPropertyValues(rctx request.CTX, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error)
 	Update(groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error)
 	Upsert(values []*model.PropertyValue) ([]*model.PropertyValue, error)
 	Delete(groupID string, id string) error
@@ -1224,8 +1251,7 @@ type PropertyValueStore interface {
 type AccessControlPolicyStore interface {
 	Save(rctx request.CTX, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, error)
 	Delete(rctx request.CTX, id string) error
-	SetActiveStatus(rctx request.CTX, id string, active bool) (*model.AccessControlPolicy, error)
-	SetActiveStatusMultiple(rctx request.CTX, list []model.AccessControlPolicyActiveUpdate) ([]*model.AccessControlPolicy, error)
+	SetMembershipAutoAdd(rctx request.CTX, list []model.AccessControlPolicyAutoAddUpdate) ([]*model.AccessControlPolicy, error)
 	Get(rctx request.CTX, id string) (*model.AccessControlPolicy, error)
 	SearchPolicies(rctx request.CTX, opts model.AccessControlPolicySearch) ([]*model.AccessControlPolicy, int64, error)
 	GetPoliciesByFieldID(rctx request.CTX, fieldID string) ([]*model.AccessControlPolicy, error)

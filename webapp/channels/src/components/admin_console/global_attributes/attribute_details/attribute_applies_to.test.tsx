@@ -129,4 +129,18 @@ describe('AttributeAppliesTo', () => {
             expect(screen.getByTestId('attributeAppliesToEmptyState')).toHaveTextContent('Add a resource to apply this attribute');
         });
     });
+
+    describe('lockedTooltip on the Channels row', () => {
+        it('wraps the toggle in the lock tooltip when lockedTooltip is given', () => {
+            renderComponent({appliesTo: ['channel'], lockedTooltip: 'Locked'});
+
+            expect(screen.getByTestId('attributeAppliesToRow-channel-toggleLockWrap')).toBeInTheDocument();
+        });
+
+        it('renders no lock wrapper when lockedTooltip is not given', () => {
+            renderComponent({appliesTo: ['channel']});
+
+            expect(screen.queryByTestId('attributeAppliesToRow-channel-toggleLockWrap')).not.toBeInTheDocument();
+        });
+    });
 });

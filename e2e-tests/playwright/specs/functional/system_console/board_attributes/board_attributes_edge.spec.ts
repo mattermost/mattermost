@@ -100,8 +100,8 @@ test.describe('Board Attributes - edge cases', {tag: '@board_attributes'}, () =>
         // * Save button is enabled (pending changes exist)
         await expect(ba.saveButton).toBeEnabled();
 
-        // # Click another sidebar entry (User Attributes)
-        await systemConsolePage.sidebar.systemAttributes.userAttributes.link.click();
+        // # Click another sidebar entry (Attribute Management)
+        await systemConsolePage.sidebar.systemAttributes.attributeManagement.link.click();
 
         // * The unsaved-changes modal appears
         await expect(systemConsolePage.page.getByText('Discard Changes?', {exact: true})).toBeVisible();

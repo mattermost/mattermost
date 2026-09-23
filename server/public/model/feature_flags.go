@@ -82,9 +82,6 @@ type FeatureFlags struct {
 	// Enable classification markings for banners at the system and channel level
 	ClassificationMarkings bool
 
-	// Enable the Global Attributes management page in the System Console
-	GlobalAttributes bool
-
 	// Enable burn-on-read messages that automatically delete after viewing
 	BurnOnRead bool
 
@@ -131,10 +128,23 @@ type FeatureFlags struct {
 	// rank, and the admin console hides the rank type option.
 	PropertyFieldRank bool
 
+	// FEATURE_FLAG_REMOVAL: PropertyFieldGraph - Remove this when the feature is GA.
+	// Gates the "graph" property field type: when off, the app layer rejects
+	// creating a graph property field. Converting a field to or from graph is
+	// refused whatever this flag says — see App.graphPropertyFieldGate for what
+	// the flag does and does not restrict.
+	PropertyFieldGraph bool
+
 	TeamMembershipAccessControl bool
 
 	// Enable channel attributes (Smart Labels, banners) powered by the Properties API.
 	ChannelAttributes bool
+
+	// ChannelAttributesRequired gates the "required attribute" enforcement
+	// sub-behavior of ChannelAttributes. Must be true for enforcement to be
+	// active. Default false = enforcement off until explicitly enabled, matching
+	// standard Mattermost feature flag lifecycle.
+	ChannelAttributesRequired bool
 
 	// FEATURE_FLAG_REMOVAL: ResourceAttributesInPolicies - Remove this when the
 	// feature is GA. Gates access rules that compare a user's attributes against
@@ -222,7 +232,11 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.PropertyFieldRank = true
 
+	f.PropertyFieldGraph = false
+
 	f.ChannelAttributes = false
+
+	f.ChannelAttributesRequired = false
 
 	f.MmBlocksEnabled = true
 
@@ -269,6 +283,15 @@ func (f *FeatureFlags) IsChannelPermissionPoliciesEnabled() bool {
 // dependency check here keeps every call site honest.
 func (f *FeatureFlags) IsPolicySimulationEnabled() bool {
 	return f.PermissionPolicies && f.PolicySimulation
+}
+
+// IsChannelAttributesRequiredEnabled reports whether the server enforces
+// PropertyField.Attrs["required"] for channel attributes — refusing channel
+// creation without a value, refusing writes that clear a required value, and
+// refusing deletes of a set required value. Both the ChannelAttributes umbrella
+// and the ChannelAttributesRequired sub-flag must be true.
+func (f *FeatureFlags) IsChannelAttributesRequiredEnabled() bool {
+	return f.ChannelAttributes && f.ChannelAttributesRequired
 }
 
 // ToMap returns the feature flags as a map[string]string
