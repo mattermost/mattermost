@@ -11660,11 +11660,11 @@ func (s *RetryLayerPropertyValueStore) GetMany(groupID string, ids []string) ([]
 
 }
 
-func (s *RetryLayerPropertyValueStore) GetReferencedOptionIDs(groupID string, fieldID string) ([]string, error) {
+func (s *RetryLayerPropertyValueStore) GetReferencedOptionIDs(groupID string, fieldIDs []string) ([]string, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyValueStore.GetReferencedOptionIDs(groupID, fieldID)
+		result, err := s.PropertyValueStore.GetReferencedOptionIDs(groupID, fieldIDs)
 		if err == nil {
 			return result, nil
 		}

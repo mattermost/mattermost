@@ -3,19 +3,21 @@
 
 package model
 
-// Sync sources for property fields. A field is synced from a source when the
-// matching attr (PropertyFieldAttrLDAP / PropertyFieldAttrSAML) names an
-// external attribute. These are also the values GetPropertyFieldSyncSource
-// returns and the sync lock keys on.
+// Sync sources for property fields. An attribute is synced from a source when
+// its definition -- the template a field links to, or the field itself when it
+// links to none -- names an external attribute under the matching attr
+// (PropertyFieldAttrLDAP / PropertyFieldAttrSAML). These are also the values
+// GetPropertyFieldSyncSource returns and the sync lock keys on.
 const (
 	PropertySyncSourceLDAP = "ldap"
 	PropertySyncSourceSAML = "saml"
 )
 
 // PropertySyncMaxOptionsPerField caps the number of options a sync may
-// provision on one select or multiselect field. Source values beyond the cap
-// are dropped and reported, never silently truncated into a different option.
-// The cap bounds the field's attrs payload, which every field list carries.
+// provision on one attribute's option list. Source values beyond the cap are
+// dropped and reported, never silently mapped to a different option. The cap
+// sits well below PropertyFieldMaxHydratedOptions so a synced attribute keeps
+// serving its option list inline wherever the field is read.
 const PropertySyncMaxOptionsPerField = 500
 
 // IsValidPropertySyncSource reports whether source names a known sync source.
@@ -50,7 +52,7 @@ func PropertySyncSourceAttr(source string) string {
 // PropertySyncOptions tunes a single SyncUser call.
 type PropertySyncOptions struct {
 	// PruneOrphanedOptions removes, after the user's values are written,
-	// every option of a field this sync shrank that no live value references
+	// every option this sync stopped referencing that no live value references
 	// any more. Per-user sources (SAML login) enable it so an option
 	// disappears with its last holder; batch sources (the AD/LDAP job) leave
 	// it off and call PropertySyncer.PruneOrphanedOptions once at the end.
@@ -85,11 +87,12 @@ type PropertySyncFieldOutcome struct {
 	// Reason explains a skipped or error status, or why values were dropped
 	// from an otherwise successful multiselect sync.
 	Reason string `json:"reason,omitempty"`
-	// OptionsCreated counts options provisioned on the field by this call.
+	// OptionsCreated counts options provisioned for the field by this call.
 	OptionsCreated int `json:"options_created,omitempty"`
 	// DroppedValues lists source values that were not synced because they
 	// exceed a limit or the option cap. For multiselect the remaining values
 	// are still synced; for text and select a dropped value skips the field.
+	// They are attribute values, so they are counted rather than logged.
 	DroppedValues []string `json:"dropped_values,omitempty"`
 }
 
@@ -127,12 +130,13 @@ func (r *PropertySyncResult) HasErrors() bool {
 	return r.Count(PropertySyncFieldError) > 0
 }
 
-// PropertySyncPrunedField lists the options removed from one field.
+// PropertySyncPrunedField lists the options removed from one option list,
+// identified by the field that owns it: the template a synced field links to,
+// or the synced field itself.
 type PropertySyncPrunedField struct {
-	FieldID     string   `json:"field_id"`
-	FieldName   string   `json:"field_name"`
-	OptionIDs   []string `json:"option_ids"`
-	OptionNames []string `json:"option_names"`
+	FieldID   string   `json:"field_id"`
+	FieldName string   `json:"field_name"`
+	OptionIDs []string `json:"option_ids"`
 }
 
 // PropertySyncPruneResult is the outcome of an orphaned-option prune.

@@ -282,19 +282,8 @@ func (ps *PropertyService) searchPropertyFields(rctx request.CTX, groupID string
 	return ps.fieldStore.SearchPropertyFields(rctx, opts)
 }
 
-// UpdatePropertyFieldsOpts tunes an update of property fields.
-type UpdatePropertyFieldsOpts struct {
-	// ExpectedUpdateAts extends optimistic concurrency to the caller's own
-	// read: for every field ID present, the update fails with
-	// *store.ErrConflict unless the stored field still has that UpdateAt.
-	// Without it, only the window between the service's read and its write
-	// is protected, so a caller doing read-modify-write on Attrs (such as
-	// appending options) could silently overwrite a concurrent change.
-	ExpectedUpdateAts map[string]int64
-}
-
 func (ps *PropertyService) updatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField) (*model.PropertyField, []string, error) {
-	fields, _, clearedIDs, err := ps.updatePropertyFields(rctx, groupID, []*model.PropertyField{field}, UpdatePropertyFieldsOpts{})
+	fields, _, clearedIDs, err := ps.updatePropertyFields(rctx, groupID, []*model.PropertyField{field})
 	if err != nil {
 		return nil, nil, err
 	}
@@ -302,7 +291,7 @@ func (ps *PropertyService) updatePropertyField(rctx request.CTX, groupID string,
 	return fields[0], clearedIDs, nil
 }
 
-func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField, opts UpdatePropertyFieldsOpts) (requested []*model.PropertyField, propagated []*model.PropertyField, clearedFieldIDs []string, err error) {
+func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) (requested []*model.PropertyField, propagated []*model.PropertyField, clearedFieldIDs []string, err error) {
 	if len(fields) == 0 {
 		return nil, nil, nil, nil
 	}
@@ -328,12 +317,6 @@ func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string
 	existingByID := make(map[string]*model.PropertyField, len(existingFields))
 	for _, ef := range existingFields {
 		existingByID[ef.ID] = ef
-	}
-
-	for id, expected := range opts.ExpectedUpdateAts {
-		if existing, ok := existingByID[id]; ok && existing.UpdateAt != expected {
-			return nil, nil, nil, store.NewErrConflict("PropertyField", nil, fmt.Sprintf("field %s was modified since it was read; retry the update", id))
-		}
 	}
 
 	// Enforce version match between field and group for each field
@@ -725,18 +708,12 @@ func (ps *PropertyService) UpdatePropertyField(rctx request.CTX, groupID string,
 // fields whose dependent property values were cleared as a side effect. The
 // caller is expected to publish any value-cleanup WS events.
 func (ps *PropertyService) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) (requested []*model.PropertyField, propagated []*model.PropertyField, clearedFieldIDs []string, err error) {
-	return ps.UpdatePropertyFieldsWithOpts(rctx, groupID, fields, UpdatePropertyFieldsOpts{})
-}
-
-// UpdatePropertyFieldsWithOpts is UpdatePropertyFields with caller-supplied
-// options; see UpdatePropertyFieldsOpts.
-func (ps *PropertyService) UpdatePropertyFieldsWithOpts(rctx request.CTX, groupID string, fields []*model.PropertyField, opts UpdatePropertyFieldsOpts) (requested []*model.PropertyField, propagated []*model.PropertyField, clearedFieldIDs []string, err error) {
 	fields, err = ps.runPreUpdatePropertyFields(rctx, groupID, fields)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("UpdatePropertyFields: %w", err)
 	}
 
-	return ps.updatePropertyFields(rctx, groupID, fields, opts)
+	return ps.updatePropertyFields(rctx, groupID, fields)
 }
 
 func (ps *PropertyService) DeletePropertyField(rctx request.CTX, groupID, id string) error {

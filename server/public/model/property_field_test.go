@@ -2037,6 +2037,7 @@ func TestPropertyFieldType_SupportsExternalSync(t *testing.T) {
 		PropertyFieldTypeSelect:      true,
 		PropertyFieldTypeMultiselect: true,
 		PropertyFieldTypeRank:        false,
+		PropertyFieldTypeGraph:       false,
 		PropertyFieldTypeDate:        false,
 		PropertyFieldTypeUser:        false,
 		PropertyFieldTypeMultiuser:   false,

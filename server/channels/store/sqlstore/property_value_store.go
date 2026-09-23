@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
+	"slices"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -384,9 +385,9 @@ func (s *SqlPropertyValueStore) DeleteForField(groupID, fieldID string) error {
 	return nil
 }
 
-func (s *SqlPropertyValueStore) GetReferencedOptionIDs(groupID, fieldID string) ([]string, error) {
-	if fieldID == "" {
-		return nil, store.NewErrInvalidInput("PropertyValue", "fieldID", fieldID)
+func (s *SqlPropertyValueStore) GetReferencedOptionIDs(groupID string, fieldIDs []string) ([]string, error) {
+	if len(fieldIDs) == 0 || slices.Contains(fieldIDs, "") {
+		return nil, store.NewErrInvalidInput("PropertyValue", "fieldIDs", fieldIDs)
 	}
 
 	// A select value is a JSON string and a multiselect value a JSON string
@@ -402,7 +403,7 @@ func (s *SqlPropertyValueStore) GetReferencedOptionIDs(groupID, fieldID string) 
 				ELSE '[]'::jsonb
 			END
 		) AS opt`).
-		Where(sq.Eq{"pv.FieldID": fieldID, "pv.DeleteAt": 0}).
+		Where(sq.Eq{"pv.FieldID": fieldIDs, "pv.DeleteAt": 0}).
 		Where("opt <> ''").
 		OrderBy("opt")
 

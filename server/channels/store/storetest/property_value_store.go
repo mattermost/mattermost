@@ -2153,21 +2153,23 @@ func testGetReferencedOptionIDs(t *testing.T, _ request.CTX, ss store.Store) {
 		return value
 	}
 
-	t.Run("should fail on empty field ID", func(t *testing.T) {
-		_, err := ss.PropertyValue().GetReferencedOptionIDs(groupID, "")
-		require.Error(t, err)
-		var invalidErr *store.ErrInvalidInput
-		require.ErrorAs(t, err, &invalidErr)
+	t.Run("should fail without field IDs or with an empty one", func(t *testing.T) {
+		for _, fieldIDs := range [][]string{nil, {fieldID, ""}} {
+			_, err := ss.PropertyValue().GetReferencedOptionIDs(groupID, fieldIDs)
+			var invalidErr *store.ErrInvalidInput
+			require.ErrorAs(t, err, &invalidErr)
+		}
 	})
 
 	t.Run("should return an empty slice when no values exist", func(t *testing.T) {
-		ids, err := ss.PropertyValue().GetReferencedOptionIDs(groupID, model.NewId())
+		ids, err := ss.PropertyValue().GetReferencedOptionIDs(groupID, []string{model.NewId()})
 		require.NoError(t, err)
 		require.Empty(t, ids)
 		require.NotNil(t, ids)
 	})
 
-	optA, optB, optC, optD := model.NewId(), model.NewId(), model.NewId(), model.NewId()
+	otherFieldID := model.NewId()
+	optA, optB, optC, optD, optE := model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId()
 	create(t, groupID, fieldID, `["`+optA+`", "`+optB+`"]`)
 	create(t, groupID, fieldID, `["`+optB+`"]`)
 	scalar := create(t, groupID, fieldID, `"`+optC+`"`)
@@ -2176,26 +2178,33 @@ func testGetReferencedOptionIDs(t *testing.T, _ request.CTX, ss store.Store) {
 	create(t, groupID, fieldID, `""`)
 	create(t, groupID, fieldID, `null`)
 	create(t, groupID, fieldID, `{"nested": "`+optD+`"}`)
+	create(t, groupID, otherFieldID, `["`+optB+`", "`+optE+`"]`)
 	create(t, groupID, model.NewId(), `["`+optD+`"]`)
 	create(t, model.NewId(), fieldID, `["`+optD+`"]`)
 
 	require.NoError(t, ss.PropertyValue().Delete(groupID, deleted.ID))
 
 	t.Run("should return distinct option IDs from array and string values of the field only", func(t *testing.T) {
-		ids, err := ss.PropertyValue().GetReferencedOptionIDs(groupID, fieldID)
+		ids, err := ss.PropertyValue().GetReferencedOptionIDs(groupID, []string{fieldID})
 		require.NoError(t, err)
 		require.ElementsMatch(t, []string{optA, optB, optC}, ids)
 	})
 
+	t.Run("should combine the values of every field asked for", func(t *testing.T) {
+		ids, err := ss.PropertyValue().GetReferencedOptionIDs(groupID, []string{fieldID, otherFieldID})
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{optA, optB, optC, optE}, ids)
+	})
+
 	t.Run("should ignore soft-deleted values", func(t *testing.T) {
 		require.NoError(t, ss.PropertyValue().Delete(groupID, scalar.ID))
-		ids, err := ss.PropertyValue().GetReferencedOptionIDs(groupID, fieldID)
+		ids, err := ss.PropertyValue().GetReferencedOptionIDs(groupID, []string{fieldID})
 		require.NoError(t, err)
 		require.ElementsMatch(t, []string{optA, optB}, ids)
 	})
 
 	t.Run("should match across groups when the group ID is empty", func(t *testing.T) {
-		ids, err := ss.PropertyValue().GetReferencedOptionIDs("", fieldID)
+		ids, err := ss.PropertyValue().GetReferencedOptionIDs("", []string{fieldID})
 		require.NoError(t, err)
 		require.ElementsMatch(t, []string{optA, optB, optD}, ids)
 	})
