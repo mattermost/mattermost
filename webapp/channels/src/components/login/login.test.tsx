@@ -429,12 +429,29 @@ describe('components/login/Login', () => {
     });
 
     describe('EnableGuestMagicLink', () => {
+        // The login type pre-check is only served by the server while guest accounts are
+        // licensed and enabled alongside magic links.
+        const magicLinkState = mergeObjects(baseState, {
+            entities: {
+                general: {
+                    config: {
+                        EnableSignInWithEmail: 'true',
+                        EnableGuestAccounts: 'true',
+                        EnableGuestMagicLink: 'true',
+                    },
+                    license: {
+                        IsLicensed: 'true',
+                        GuestAccounts: 'true',
+                    },
+                },
+            },
+        });
+
         it('should show password field when EnableGuestMagicLink is false', async () => {
-            const state = mergeObjects(baseState, {
+            const state = mergeObjects(magicLinkState, {
                 entities: {
                     general: {
                         config: {
-                            EnableSignInWithEmail: 'true',
                             EnableGuestMagicLink: 'false',
                         },
                     },
@@ -451,20 +468,9 @@ describe('components/login/Login', () => {
         });
 
         it('should hide password field initially when EnableGuestMagicLink is true', async () => {
-            const state = mergeObjects(baseState, {
-                entities: {
-                    general: {
-                        config: {
-                            EnableSignInWithEmail: 'true',
-                            EnableGuestMagicLink: 'true',
-                        },
-                    },
-                },
-            });
-
             renderWithContext(
                 <Login/>,
-                state,
+                magicLinkState,
             );
 
             // Password field should not be visible initially
@@ -472,17 +478,6 @@ describe('components/login/Login', () => {
         });
 
         it('should show GuestMagicLinkCard when user login type is guest_magic_link', async () => {
-            const state = mergeObjects(baseState, {
-                entities: {
-                    general: {
-                        config: {
-                            EnableSignInWithEmail: 'true',
-                            EnableGuestMagicLink: 'true',
-                        },
-                    },
-                },
-            });
-
             // Mock the getUserLoginType to return 'magic_link'
             const mockGetUserLoginType = jest.fn().mockReturnValue(async () => ({
                 data: {
@@ -494,7 +489,7 @@ describe('components/login/Login', () => {
 
             renderWithContext(
                 <Login/>,
-                state,
+                magicLinkState,
             );
 
             const emailInput = screen.getByLabelText('Email');
@@ -509,17 +504,6 @@ describe('components/login/Login', () => {
         });
 
         it('should show password field when user login type requires password', async () => {
-            const state = mergeObjects(baseState, {
-                entities: {
-                    general: {
-                        config: {
-                            EnableSignInWithEmail: 'true',
-                            EnableGuestMagicLink: 'true',
-                        },
-                    },
-                },
-            });
-
             // Mock the getUserLoginType to return empty string (requires password)
             const mockGetUserLoginType = jest.fn().mockReturnValue(async () => ({
                 data: {
@@ -531,7 +515,7 @@ describe('components/login/Login', () => {
 
             renderWithContext(
                 <Login/>,
-                state,
+                magicLinkState,
             );
 
             const emailInput = screen.getByLabelText('Email');
@@ -548,17 +532,6 @@ describe('components/login/Login', () => {
         });
 
         it('should show error when getUserLoginType fails', async () => {
-            const state = mergeObjects(baseState, {
-                entities: {
-                    general: {
-                        config: {
-                            EnableSignInWithEmail: 'true',
-                            EnableGuestMagicLink: 'true',
-                        },
-                    },
-                },
-            });
-
             // Mock the getUserLoginType to return an error
             const mockGetUserLoginType = jest.fn().mockReturnValue(async () => ({
                 error: {
@@ -569,7 +542,7 @@ describe('components/login/Login', () => {
 
             renderWithContext(
                 <Login/>,
-                state,
+                magicLinkState,
             );
 
             const emailInput = screen.getByLabelText('Email');
@@ -582,17 +555,6 @@ describe('components/login/Login', () => {
         });
 
         it('should focus password field after it appears when password is required', async () => {
-            const state = mergeObjects(baseState, {
-                entities: {
-                    general: {
-                        config: {
-                            EnableSignInWithEmail: 'true',
-                            EnableGuestMagicLink: 'true',
-                        },
-                    },
-                },
-            });
-
             // Mock the getUserLoginType to return empty string (requires password)
             const mockGetUserLoginType = jest.fn().mockReturnValue(async () => ({
                 data: {
@@ -604,7 +566,7 @@ describe('components/login/Login', () => {
 
             renderWithContext(
                 <Login/>,
-                state,
+                magicLinkState,
             );
 
             const emailInput = screen.getByLabelText('Email');
@@ -622,17 +584,6 @@ describe('components/login/Login', () => {
         });
 
         it('should submit with password when password field is shown', async () => {
-            const state = mergeObjects(baseState, {
-                entities: {
-                    general: {
-                        config: {
-                            EnableSignInWithEmail: 'true',
-                            EnableGuestMagicLink: 'true',
-                        },
-                    },
-                },
-            });
-
             const mockGetUserLoginType = jest.fn().mockReturnValue(async () => ({
                 data: {
                     auth_service: '',
@@ -648,7 +599,7 @@ describe('components/login/Login', () => {
 
             renderWithContext(
                 <Login/>,
-                state,
+                magicLinkState,
             );
 
             const emailInput = screen.getByLabelText('Email');
@@ -668,12 +619,10 @@ describe('components/login/Login', () => {
         });
 
         it('should not show forgot password link when EnableGuestMagicLink is true and password not required', async () => {
-            const state = mergeObjects(baseState, {
+            const state = mergeObjects(magicLinkState, {
                 entities: {
                     general: {
                         config: {
-                            EnableSignInWithEmail: 'true',
-                            EnableGuestMagicLink: 'true',
                             PasswordEnableForgotLink: 'true',
                         },
                     },
@@ -690,12 +639,10 @@ describe('components/login/Login', () => {
         });
 
         it('should show forgot password link when password field is displayed', async () => {
-            const state = mergeObjects(baseState, {
+            const state = mergeObjects(magicLinkState, {
                 entities: {
                     general: {
                         config: {
-                            EnableSignInWithEmail: 'true',
-                            EnableGuestMagicLink: 'true',
                             PasswordEnableForgotLink: 'true',
                         },
                     },
@@ -726,17 +673,6 @@ describe('components/login/Login', () => {
         });
 
         it('should hide password field when user starts typing in login ID after password field appeared', async () => {
-            const state = mergeObjects(baseState, {
-                entities: {
-                    general: {
-                        config: {
-                            EnableSignInWithEmail: 'true',
-                            EnableGuestMagicLink: 'true',
-                        },
-                    },
-                },
-            });
-
             // Mock the getUserLoginType to return empty string (requires password)
             const mockGetUserLoginType = jest.fn().mockReturnValue(async () => ({
                 data: {
@@ -748,7 +684,7 @@ describe('components/login/Login', () => {
 
             renderWithContext(
                 <Login/>,
-                state,
+                magicLinkState,
             );
 
             const emailInput = screen.getByLabelText('Email');
@@ -764,6 +700,70 @@ describe('components/login/Login', () => {
 
             // Password field should be hidden
             expect(screen.queryByLabelText('Password')).not.toBeInTheDocument();
+        });
+
+        it('should log in with a password when guest accounts are disabled but EnableGuestMagicLink is true', async () => {
+            const state = mergeObjects(magicLinkState, {
+                entities: {
+                    general: {
+                        config: {
+                            EnableGuestAccounts: 'false',
+                        },
+                    },
+                },
+            });
+
+            const mockGetUserLoginType = jest.fn();
+            jest.spyOn(loginActions, 'getUserLoginType').mockImplementation(mockGetUserLoginType);
+
+            const mockLogin = jest.fn().mockReturnValue(async () => ({
+                data: true,
+            }));
+            jest.spyOn(loginActions, 'login').mockImplementation(mockLogin);
+
+            renderWithContext(
+                <Login/>,
+                state,
+            );
+
+            await userEvent.type(screen.getByLabelText('Email'), 'user@example.com');
+            await userEvent.type(screen.getByLabelText('Password'), 'password123');
+            await userEvent.click(screen.getByRole('button', {name: 'Log in'}));
+
+            expect(mockLogin).toHaveBeenCalledWith('user@example.com', 'password123', undefined);
+            expect(mockGetUserLoginType).not.toHaveBeenCalled();
+        });
+
+        it('should log in with a password when the license does not include guest accounts', async () => {
+            const state = mergeObjects(magicLinkState, {
+                entities: {
+                    general: {
+                        license: {
+                            GuestAccounts: 'false',
+                        },
+                    },
+                },
+            });
+
+            const mockGetUserLoginType = jest.fn();
+            jest.spyOn(loginActions, 'getUserLoginType').mockImplementation(mockGetUserLoginType);
+
+            const mockLogin = jest.fn().mockReturnValue(async () => ({
+                data: true,
+            }));
+            jest.spyOn(loginActions, 'login').mockImplementation(mockLogin);
+
+            renderWithContext(
+                <Login/>,
+                state,
+            );
+
+            await userEvent.type(screen.getByLabelText('Email'), 'user@example.com');
+            await userEvent.type(screen.getByLabelText('Password'), 'password123');
+            await userEvent.click(screen.getByRole('button', {name: 'Log in'}));
+
+            expect(mockLogin).toHaveBeenCalledWith('user@example.com', 'password123', undefined);
+            expect(mockGetUserLoginType).not.toHaveBeenCalled();
         });
     });
 });

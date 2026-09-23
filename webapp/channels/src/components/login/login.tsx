@@ -80,6 +80,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const {
         EnableLdap,
         EnableSaml,
+        EnableGuestAccounts,
         EnableGuestMagicLink,
         EnableSignInWithEmail,
         EnableSignInWithUsername,
@@ -104,7 +105,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         ForgotPasswordLink,
         PasswordEnableForgotLink,
     } = useSelector(getConfig);
-    const {IsLicensed} = useSelector(getLicense);
+    const {IsLicensed, GuestAccounts} = useSelector(getLicense);
     const initializing = useSelector((state: GlobalState) => state.requests.users.logout.status === RequestStatus.SUCCESS || !state.storage.initialized);
     const currentUser = useSelector(getCurrentUser);
     const experimentalPrimaryTeam = useSelector((state: GlobalState) => (ExperimentalPrimaryTeam ? getTeamByName(state, ExperimentalPrimaryTeam) : undefined));
@@ -128,7 +129,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const [requiresPassword, setRequiresPassword] = useState(false);
 
     const enableCustomBrand = EnableCustomBrand === 'true';
-    const enableGuestMagicLink = EnableGuestMagicLink === 'true';
     const enableLdap = EnableLdap === 'true';
     const enableOpenServer = EnableOpenServer === 'true';
     const enableUserCreation = EnableUserCreation === 'true';
@@ -144,6 +144,11 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const ldapEnabled = isLicensed && enableLdap;
     const enableSignUpWithSaml = isLicensed && enableSaml;
     const siteName = SiteName ?? '';
+
+    // The server only answers the login type pre-check while guest accounts are licensed
+    // and enabled alongside magic links, so gating on less than that turns every login
+    // attempt into an error instead of prompting for a password.
+    const enableGuestMagicLink = isLicensed && GuestAccounts === 'true' && EnableGuestAccounts === 'true' && EnableGuestMagicLink === 'true';
 
     const enableBaseLogin = enableSignInWithEmail || enableSignInWithUsername || ldapEnabled;
     const enableExternalSignup = enableSignUpWithGitLab || enableSignUpWithOffice365 || enableSignUpWithGoogle || enableSignUpWithOpenId || enableSignUpWithSaml;
