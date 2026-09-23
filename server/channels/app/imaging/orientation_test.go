@@ -5,11 +5,13 @@ package imaging
 
 import (
 	"bytes"
+	"encoding/binary"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/stretchr/testify/require"
@@ -256,6 +258,192 @@ func TestGetImageOrientationEdgeCases(t *testing.T) {
 		_, err := GetImageOrientation(bytes.NewReader([]byte("data")), "gif")
 		require.EqualError(t, err, "unsupported image format: gif")
 	})
+}
+
+// nestedEXIF builds an EXIF payload — itself a TIFF stream — declaring a large
+// nested tag structure: several sub-directory pointer tags, each holding a long
+// array of offsets, all resolving to one sub-directory that holds many tags.
+// The Orientation tag is declared after those pointers, so reading it requires
+// walking past them: in the main directory, or in the thumbnail directory that
+// follows it when thumbnailDir is set.
+func nestedEXIF(tb testing.TB, offsetsPerPointer, subDirTags int, orientation uint16, thumbnailDir bool) []byte {
+	tb.Helper()
+
+	const (
+		typeShort      = uint16(3) // 2-byte unsigned integer
+		typeLong       = uint16(4) // 4-byte unsigned integer
+		orientationTag = uint16(0x0112)
+		headerLen      = 8  // byte order, magic number, offset of the first directory
+		entryLen       = 12 // tag ID, type, value count, value or offset
+		nextDirLen     = 4
+	)
+
+	// Tag IDs whose value points at a nested EXIF directory.
+	pointerTags := []uint16{0x014a, 0x8769, 0x8825, 0xa005}
+
+	mainDirTags := len(pointerTags)
+	if !thumbnailDir {
+		mainDirTags++
+	}
+
+	offsetsOff := uint32(headerLen + 2 + entryLen*mainDirTags + nextDirLen)
+	subDirOff := offsetsOff + uint32(4*offsetsPerPointer)
+	thumbnailDirOff := subDirOff + uint32(2+entryLen*subDirTags+nextDirLen)
+
+	var exif bytes.Buffer
+	write := func(v any) {
+		require.NoError(tb, binary.Write(&exif, binary.BigEndian, v))
+	}
+	writeOrientation := func() {
+		write(orientationTag)
+		write(typeShort)
+		write(uint32(1))   // value count
+		write(orientation) // the value fits inline
+		write(uint16(0))   // padding to the full four inline bytes
+	}
+
+	// TIFF header: big endian, first directory immediately after it.
+	exif.Write([]byte{'M', 'M', 0x00, 0x2a})
+	write(uint32(headerLen))
+
+	write(uint16(mainDirTags))
+	for _, id := range pointerTags {
+		write(id)
+		write(typeLong)
+		write(uint32(offsetsPerPointer)) // value count
+		write(offsetsOff)                // values are stored out of line
+	}
+	if thumbnailDir {
+		write(thumbnailDirOff) // the thumbnail directory follows
+	} else {
+		writeOrientation()
+		write(uint32(0)) // no directory follows
+	}
+
+	// The offset array shared by every pointer tag above.
+	for range offsetsPerPointer {
+		write(subDirOff)
+	}
+
+	// The sub-directory the offsets resolve to.
+	write(uint16(subDirTags))
+	for range subDirTags {
+		write(uint16(0x9999))
+		write(typeLong)
+		write(uint32(15000)) // value count
+		write(uint32(0))     // values are stored out of line
+	}
+	write(uint32(0)) // no directory follows
+
+	if thumbnailDir {
+		write(uint16(1))
+		writeOrientation()
+		write(uint32(0)) // no directory follows
+	}
+
+	return exif.Bytes()
+}
+
+// jpegWithEXIF, pngWithEXIF and webpWithEXIF wrap an EXIF payload in the
+// smallest container each format accepts. A TIFF needs no wrapper: its own
+// header is the start of the EXIF payload.
+func jpegWithEXIF(tb testing.TB, exif []byte) []byte {
+	tb.Helper()
+
+	const header = "Exif\x00\x00"
+	var buf bytes.Buffer
+	buf.Write([]byte{0xff, 0xd8, 0xff, 0xe1}) // start of image, APP1 marker
+	require.NoError(tb, binary.Write(&buf, binary.BigEndian, uint16(2+len(header)+len(exif))))
+	buf.WriteString(header)
+	buf.Write(exif)
+	buf.Write([]byte{0xff, 0xd9}) // end of image
+
+	return buf.Bytes()
+}
+
+func pngWithEXIF(tb testing.TB, exif []byte) []byte {
+	tb.Helper()
+
+	var buf bytes.Buffer
+	buf.Write([]byte{0x89, 'P', 'N', 'G', 0x0d, 0x0a, 0x1a, 0x0a}) // signature
+	require.NoError(tb, binary.Write(&buf, binary.BigEndian, uint32(len(exif))))
+	buf.WriteString("eXIf")
+	buf.Write(exif)
+	buf.Write(make([]byte, 4)) // chunk checksum
+
+	return buf.Bytes()
+}
+
+func webpWithEXIF(tb testing.TB, exif []byte) []byte {
+	tb.Helper()
+
+	var buf bytes.Buffer
+	buf.WriteString("RIFF")
+	require.NoError(tb, binary.Write(&buf, binary.LittleEndian, uint32(4+8+len(exif))))
+	buf.WriteString("WEBP")
+	buf.WriteString("EXIF")
+	require.NoError(tb, binary.Write(&buf, binary.LittleEndian, uint32(len(exif))))
+	buf.Write(exif)
+
+	return buf.Bytes()
+}
+
+func TestGetImageOrientationLargeMetadata(t *testing.T) {
+	// Reading the orientation of a small image stays within a bounded amount
+	// of work no matter how large a nested tag structure its EXIF metadata
+	// declares, and still reports the orientation that structure carries.
+	const bound = time.Second
+
+	exif := nestedEXIF(t, 2500, 4600, uint16(UpsideDown), false)
+	thumbnailDirEXIF := nestedEXIF(t, 2500, 4600, uint16(UpsideDown), true)
+
+	payloads := []struct {
+		name    string
+		format  string
+		payload []byte
+	}{
+		{"jpeg", "jpeg", jpegWithEXIF(t, exif)},
+		{"png", "png", pngWithEXIF(t, exif)},
+		{"tiff", "tiff", exif},
+		{"webp", "webp", webpWithEXIF(t, exif)},
+		{"jpeg, orientation in thumbnail directory", "jpeg", jpegWithEXIF(t, thumbnailDirEXIF)},
+	}
+
+	inputs := []struct {
+		name string
+		make func([]byte) io.Reader
+	}{
+		{"seekable input", func(b []byte) io.Reader { return bytes.NewReader(b) }},
+		{"reader input", func(b []byte) io.Reader {
+			return &io.LimitedReader{R: bytes.NewReader(b), N: 1024 * 1024}
+		}},
+	}
+
+	for _, p := range payloads {
+		require.Less(t, len(p.payload), 128*1024, "payload should stay a small image")
+
+		for _, in := range inputs {
+			t.Run(p.name+", "+in.name, func(t *testing.T) {
+				type result struct {
+					orientation int
+					err         error
+				}
+				done := make(chan result, 1)
+				go func() {
+					orientation, err := GetImageOrientation(in.make(p.payload), p.format)
+					done <- result{orientation: orientation, err: err}
+				}()
+
+				select {
+				case res := <-done:
+					require.NoError(t, res.err)
+					require.Equal(t, UpsideDown, res.orientation)
+				case <-time.After(bound):
+					t.Fatalf("GetImageOrientation did not return within %s for a %d byte image", bound, len(p.payload))
+				}
+			})
+		}
+	}
 }
 
 func TestMakeImageUpright(t *testing.T) {
