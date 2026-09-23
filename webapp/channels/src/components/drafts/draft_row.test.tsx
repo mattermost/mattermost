@@ -12,12 +12,11 @@ import {PostTypes} from 'mattermost-redux/constants/posts';
 
 import {useCreateBurnOnReadAccess} from 'components/common/hooks/useCreateBurnOnReadAccess';
 
-import DraftActions from './draft_actions';
-
 import {renderWithContext} from 'tests/react_testing_utils';
 
 import type {PostDraft} from 'types/store/draft';
 
+import DraftActions from './draft_actions';
 import DraftRow from './draft_row';
 
 jest.mock('components/advanced_text_editor/use_priority', () => () => ({onSubmitCheck: jest.fn()}));
