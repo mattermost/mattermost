@@ -734,9 +734,6 @@ func (h *Hub) Start() {
 				for webConn := range connIndex.All() {
 					webConn.InvalidateCache()
 				}
-				if *h.platform.Config().ServiceSettings.EnableWebHubChannelIteration {
-					connIndex.clearChannels()
-				}
 			case activity := <-h.activity:
 				for webConn := range connIndex.ForUser(activity.userID) {
 					if !webConn.Active.Load() {
