@@ -6,6 +6,8 @@ import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
+import * as ClassificationBannerHook from 'components/common/hooks/useChannelClassificationBanner';
+
 import {renderWithContext} from 'tests/react_testing_utils';
 import {LicenseSkus, Constants} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
@@ -174,6 +176,26 @@ describe('components/channel_banner', () => {
             baseState,
         );
         expect(screen.queryByTestId('channel_banner_container')).not.toBeInTheDocument();
+    });
+
+    test('uses resolved classification banner text without rendering it a second time', () => {
+        const classificationHook = jest.spyOn(ClassificationBannerHook, 'default').mockReturnValue({
+            hasClassification: true,
+            classificationBanner: {enabled: true, text: '{{missing}}', background_color: '#ff0000'},
+            bannerText: '{{missing}}',
+            classificationId: undefined,
+            classificationIsBannerDesignated: false,
+        });
+
+        try {
+            renderWithContext(
+                <ChannelBanner channelId='channel_id_1'/>,
+                baseState,
+            );
+            expect(screen.getByTestId('channel_banner_text')).toHaveTextContent('{{missing}}');
+        } finally {
+            classificationHook.mockRestore();
+        }
     });
 
     test('should not render when channel has no banner', () => {

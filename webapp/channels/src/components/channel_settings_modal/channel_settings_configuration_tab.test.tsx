@@ -4,6 +4,8 @@
 import React from 'react';
 import type {MockStoreEnhanced} from 'redux-mock-store';
 
+import type {PropertyField} from '@mattermost/types/properties';
+
 import {PropertyTypes} from 'mattermost-redux/action_types';
 
 import useChannelClassificationBanner from 'components/common/hooks/useChannelClassificationBanner';
@@ -1553,6 +1555,36 @@ describe('ChannelSettingsConfigurationTab', () => {
             },
         };
 
+        const bannerField: PropertyField = {
+            id: 'program',
+            group_id: 'access_control_id',
+            name: 'program',
+            type: 'text',
+            target_id: '',
+            target_type: 'system',
+            object_type: 'channel',
+            create_at: 1,
+            update_at: 1,
+            delete_at: 0,
+            created_by: '',
+            updated_by: '',
+            attrs: {actions: ['display_banner_top']},
+        };
+
+        const withBannerField = (required = false) => ({
+            entities: {
+                ...attributesEnabledState.entities,
+                properties: {
+                    groups: {byId: {access_control_id: {id: 'access_control_id', name: 'access_control'}}, byName: {access_control: {id: 'access_control_id', name: 'access_control'}}},
+                    fields: {
+                        byId: {program: bannerField},
+                        byObjectType: {channel: {access_control_id: {program: {...bannerField, attrs: {...bannerField.attrs, required}}}}},
+                    },
+                    values: {byTargetId: {}, byFieldId: {}},
+                },
+            },
+        });
+
         // The composer is contenteditable, so an edit is a DOM mutation followed by
         // the input event React listens for -- userEvent.clear() has nothing to clear.
         const clearComposer = () => {
@@ -1568,6 +1600,71 @@ describe('ChannelSettingsConfigurationTab', () => {
             />,
             attributesEnabledState,
         );
+
+        it('persists a separate opt-out when turning off an attribute-driven banner', async () => {
+            const {patchChannel} = require('mattermost-redux/actions/channels');
+            patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
+            mockedUseChannelClassificationBanner.mockReturnValue({
+                hasClassification: true,
+                classificationBanner: {enabled: true, text: 'Test banner text', background_color: '#ff0000'},
+                classificationId: undefined,
+                bannerText: 'Test banner text',
+                classificationIsBannerDesignated: false,
+            });
+
+            renderWithContext(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    channel={{...mockChannelWithBanner, banner_info: {...mockChannelWithBanner.banner_info, enabled: false}}}
+                />,
+                withBannerField(),
+            );
+
+            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            expect(patchChannel).toHaveBeenCalledWith('channel1', expect.objectContaining({
+                banner_info: expect.objectContaining({enabled: false, attribute_banner_disabled: true}),
+            }));
+        });
+
+        it('clears the persisted opt-out when turning the attribute banner back on', async () => {
+            const {patchChannel} = require('mattermost-redux/actions/channels');
+            patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
+
+            renderWithContext(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    channel={{...mockChannelWithBanner, banner_info: {...mockChannelWithBanner.banner_info, enabled: false, attribute_banner_disabled: true}}}
+                />,
+                withBannerField(),
+            );
+
+            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            expect(patchChannel).toHaveBeenCalledWith('channel1', expect.objectContaining({
+                banner_info: expect.objectContaining({enabled: true, attribute_banner_disabled: false}),
+            }));
+        });
+
+        it('rejects blank required banner text even if the native banner is disabled', async () => {
+            const {patchChannel} = require('mattermost-redux/actions/channels');
+            patchChannel.mockClear();
+
+            renderWithContext(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    channel={{...mockChannelWithBanner, banner_info: {...mockChannelWithBanner.banner_info, enabled: false}}}
+                />,
+                withBannerField(true),
+            );
+            clearComposer();
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            expect(screen.getByText('Banner text is required')).toBeInTheDocument();
+            expect(patchChannel).not.toHaveBeenCalled();
+        });
 
         it('says nothing until the author tries to save', async () => {
             renderTab();

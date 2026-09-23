@@ -62,6 +62,19 @@ describe('renderBannerTemplate', () => {
         expect(renderBannerTemplate('{{program}} / {{program}}', [attribute('program', 'AURORA')])).toBe('AURORA / AURORA');
     });
 
+    test('preserves authored punctuation and URLs when tokens resolve', () => {
+        expect(renderBannerTemplate('https://example.com/{{program}}?ref=1 // Note.. {{classification}}', [
+            attribute('program', 'aurora'),
+            attribute('classification', 'SECRET'),
+        ])).toBe('https://example.com/aurora?ref=1 // Note.. SECRET');
+    });
+
+    test('does not tidy unrelated punctuation when another token collapses', () => {
+        expect(renderBannerTemplate('https://example.com/a//b?ref=1 · {{missing}} · {{program}}', [
+            attribute('program', 'AURORA'),
+        ])).toBe('https://example.com/a//b?ref=1 · AURORA');
+    });
+
     // The regression that matters: everything written before this feature existed
     // is a literal, and must come back byte for byte.
     test('returns a literal with no tokens untouched', () => {

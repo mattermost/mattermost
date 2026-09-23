@@ -84,6 +84,18 @@ describe('BannerPreview', () => {
         expect(screen.getByTestId('bannerAttributePreview')).toBeInTheDocument();
     });
 
+    test('shows the empty notice when only whitespace resolves', () => {
+        renderWithContext(
+            <BannerPreview
+                template='  {{program}}  '
+                attributes={[attribute('program', '')]}
+            />,
+        );
+
+        expect(screen.getByTestId('bannerPreviewEmptyNotice')).toBeInTheDocument();
+        expect(screen.queryByTestId('bannerAttributePreview')).not.toBeInTheDocument();
+    });
+
     test('paints itself in the banner colour, with contrasting text', () => {
         renderWithContext(
             <BannerPreview

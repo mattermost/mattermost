@@ -5,7 +5,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import type {Channel} from '@mattermost/types/channels';
+import type {Channel, ChannelBanner} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 
 import {PropertyTypes} from 'mattermost-redux/action_types';
@@ -51,7 +51,7 @@ import './channel_settings_configuration_tab.scss';
 export const CHANNEL_BANNER_MAX_CHARACTER_LIMIT = 1024;
 export const CHANNEL_BANNER_MIN_CHARACTER_LIMIT = 0;
 
-const DEFAULT_CHANNEL_BANNER = {
+const DEFAULT_CHANNEL_BANNER: ChannelBanner = {
     enabled: false,
     background_color: '#DDDDDD',
     text: '',
@@ -70,7 +70,8 @@ type Props = {
 function bannerHasChanges(originalBannerInfo: Channel['banner_info'], updatedBannerInfo: Channel['banner_info']): boolean {
     return (originalBannerInfo?.text?.trim() || '') !== (updatedBannerInfo?.text?.trim() || '') ||
         (originalBannerInfo?.background_color?.trim() || '') !== (updatedBannerInfo?.background_color?.trim() || '') ||
-        originalBannerInfo?.enabled !== updatedBannerInfo?.enabled;
+        originalBannerInfo?.enabled !== updatedBannerInfo?.enabled ||
+        Boolean(originalBannerInfo?.attribute_banner_disabled) !== Boolean(updatedBannerInfo?.attribute_banner_disabled);
 }
 
 type SharingSnapshot = {
@@ -296,6 +297,7 @@ function ChannelSettingsConfigurationTab({
         const toUpdate = {
             ...updatedChannelBanner,
             enabled: newValue,
+            attribute_banner_disabled: channelAttributesEnabled && bannerFields.length > 0 ? !newValue : updatedChannelBanner.attribute_banner_disabled,
         };
 
         // Turning the banner off is how an author resolves "enabled but empty",
@@ -314,7 +316,7 @@ function ChannelSettingsConfigurationTab({
             resetFormErrors();
             setCharacterLimitExceeded(false);
         }
-    }, [bannerSectionOn, channelAttributesEnabled, initialBannerInfo, resetFormErrors, updatedChannelBanner]);
+    }, [bannerSectionOn, bannerFields.length, channelAttributesEnabled, initialBannerInfo, resetFormErrors, updatedChannelBanner]);
 
     const handleBannerTextChange = useCallback((newValue: string) => {
         setUpdatedChannelBanner((prev) => ({
@@ -549,7 +551,7 @@ function ChannelSettingsConfigurationTab({
         // for a value.
         const bannerText = updatedChannelBanner.text ?? '';
         const bannerTextInvalid = channelAttributesEnabled ? isBlankTemplate(bannerText) : !bannerText.trim();
-        if (updatedChannelBanner.enabled && bannerTextInvalid) {
+        if ((updatedChannelBanner.enabled || bannerRequiredByAttribute) && bannerTextInvalid) {
             // Naming the toggle as the way out is only honest while it can be reached.
             const canTurnBannerOff = channelAttributesEnabled && !bannerLockedByClassification && !bannerRequiredByAttribute;
             setFormError(canTurnBannerOff ? formatMessage({
@@ -577,6 +579,7 @@ function ChannelSettingsConfigurationTab({
                 text: updatedChannelBanner.text?.trim() || '',
                 background_color: updatedChannelBanner.background_color?.trim() || '',
                 enabled: updatedChannelBanner.enabled,
+                ...(updatedChannelBanner.attribute_banner_disabled !== undefined && {attribute_banner_disabled: updatedChannelBanner.attribute_banner_disabled}),
             };
         }
 
@@ -589,6 +592,7 @@ function ChannelSettingsConfigurationTab({
                 text: updatedChannelBanner.text?.trim() || '',
                 background_color: updatedChannelBanner.background_color?.trim() || '',
                 enabled: updatedChannelBanner.enabled,
+                ...(updatedChannelBanner.attribute_banner_disabled !== undefined && {attribute_banner_disabled: updatedChannelBanner.attribute_banner_disabled}),
             };
         }
 

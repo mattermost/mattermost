@@ -53,18 +53,18 @@ export default function ChannelBanner({channelId}: Props) {
 
     const showBanner = classificationBanner.hasClassification || showNativeBanner;
 
-    // Never surface raw "{{attribute}}" tokens: resolve them here as well as in the
-    // classification hook, so a native-banner fallback cannot leak the template.
+    // The classification hook has already resolved its banner. Only the native
+    // fallback still needs its attribute references resolved here.
     const bannerText = useMemo(() => {
         const raw = effectiveBanner?.text?.trim() ?? '';
-        if (!raw) {
-            return '';
+        if (!raw || classificationBanner.hasClassification) {
+            return raw;
         }
-        if (channelAttributesEnabled) {
-            return renderBannerTemplate(raw, resolvedAttributes).trim();
+        if (!channelAttributesEnabled) {
+            return raw;
         }
-        return raw;
-    }, [channelAttributesEnabled, effectiveBanner?.text, resolvedAttributes]);
+        return renderBannerTemplate(raw, resolvedAttributes).trim();
+    }, [channelAttributesEnabled, classificationBanner.hasClassification, effectiveBanner?.text, resolvedAttributes]);
 
     const textContainerRef = useRef<HTMLSpanElement>(null);
     const [tooltipNeeded, setTooltipNeeded] = React.useState<boolean>(false);

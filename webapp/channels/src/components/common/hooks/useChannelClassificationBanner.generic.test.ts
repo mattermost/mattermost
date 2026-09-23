@@ -73,7 +73,7 @@ type PartialState = Parameters<typeof renderHookWithContext>[1];
 function makeState(
     fields: PropertyField[],
     values: Array<PropertyValue<unknown>>,
-    bannerInfo?: {enabled?: boolean; text?: string; background_color?: string},
+    bannerInfo?: {enabled?: boolean; text?: string; background_color?: string; attribute_banner_disabled?: boolean},
     flag = 'true',
 ): PartialState {
     const byTargetId: Record<string, Record<string, PropertyValue<unknown>>> = {};
@@ -157,6 +157,41 @@ describe('useChannelClassificationBanner — generic designated attributes', () 
         );
 
         expect(result.current.bannerText).toBe('Operation Aurora — handle with care');
+    });
+
+    test('a persisted attribute banner opt-out suppresses even authored text', () => {
+        const field = designatedField('program', 'display_banner_top', [{id: 'opt1', name: 'AURORA'}]);
+
+        const {result} = renderHookWithContext(
+            () => useChannelClassificationBanner(CHANNEL_ID),
+            makeState([field], [value('program', 'opt1')], {enabled: false, text: '{{program}}', attribute_banner_disabled: true}),
+        );
+
+        expect(result.current.hasClassification).toBe(false);
+        expect(result.current.bannerText).toBeUndefined();
+    });
+
+    test('enabled false does not suppress an authored attribute banner without opt-out', () => {
+        const field = designatedField('program', 'display_banner_top', [{id: 'opt1', name: 'AURORA'}]);
+
+        const {result} = renderHookWithContext(
+            () => useChannelClassificationBanner(CHANNEL_ID),
+            makeState([field], [value('program', 'opt1')], {enabled: false, text: '{{program}}'}),
+        );
+
+        expect(result.current.bannerText).toBe('AURORA');
+    });
+
+    test('an authored empty template suppresses designated values without an opt-out', () => {
+        const field = designatedField('program', 'display_banner_top', [{id: 'opt1', name: 'AURORA'}]);
+
+        const {result} = renderHookWithContext(
+            () => useChannelClassificationBanner(CHANNEL_ID),
+            makeState([field], [value('program', 'opt1')], {enabled: false, text: ''}),
+        );
+
+        expect(result.current.hasClassification).toBe(false);
+        expect(result.current.bannerText).toBeUndefined();
     });
 
     // The composer previewed the resolved text while every member saw the raw

@@ -227,6 +227,10 @@ export default function useChannelClassificationBanner(channelId: string): Chann
         if (designated) {
             const classificationIsBannerDesignated = designatedFields.some((field) => field.name === CLASSIFICATIONS_CHANNEL_FIELD_NAME);
 
+            if (channelBannerInfo?.attribute_banner_disabled) {
+                return {...noBanner, classificationIsBannerDesignated};
+            }
+
             const contributions = designatedFields.
                 map((field) => namedAttributes.find((resolved) => resolved.field.id === field.id)).
                 filter((resolved): resolved is ResolvedChannelAttribute => {

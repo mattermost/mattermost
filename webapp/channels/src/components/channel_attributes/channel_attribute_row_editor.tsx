@@ -75,7 +75,6 @@ const RemovableChip = ({label, value, color, disabled, onRemove}: RemovableChipP
                         }
                         event.stopPropagation();
                         event.preventDefault();
-                        onRemove();
                     }}
                     onClick={(event) => {
                         event.stopPropagation();

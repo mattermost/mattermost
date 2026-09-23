@@ -83,7 +83,7 @@ test.describe('Channel attribute editing in Channel Settings', {tag: ['@channel_
 
             // * The row reflects the edit immediately, and the tab reports an unsaved
             // * change, but nothing has reached the server yet
-            await expect(infoSettings.attributes.chip(note.name)).toHaveText('drafted in modal');
+            await expect(infoSettings.attributes.editButton(note.name)).toHaveText('drafted in modal');
             await expect(channelSettings.container.getByText('You have unsaved changes')).toBeVisible();
             expect(valueFor(await readChannelValues(adminClient, channel.id), note)).toBeUndefined();
 
@@ -139,15 +139,15 @@ test.describe('Channel attribute editing in Channel Settings', {tag: ['@channel_
 
             const channelSettings = await channelsPage.openChannelSettings();
             const infoSettings = await channelSettings.openInfoTab();
-            await expect(infoSettings.attributes.chip(note.name)).toHaveText('original');
+            await expect(infoSettings.attributes.editButton(note.name)).toHaveText('original');
 
             // # Edit the attribute, then discard it with Reset instead of Save
             await infoSettings.attributes.setText(note.name, 'discarded', 'enter');
-            await expect(infoSettings.attributes.chip(note.name)).toHaveText('discarded');
+            await expect(infoSettings.attributes.editButton(note.name)).toHaveText('discarded');
             await infoSettings.resetChanges();
 
             // * The row reverts to the stored value, and the panel clears
-            await expect(infoSettings.attributes.chip(note.name)).toHaveText('original');
+            await expect(infoSettings.attributes.editButton(note.name)).toHaveText('original');
             await expect(infoSettings.saveChangesPanel).not.toBeVisible();
 
             // * The discarded edit never reached the server

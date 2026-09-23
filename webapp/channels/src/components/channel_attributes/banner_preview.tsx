@@ -42,7 +42,7 @@ const BannerPreview = ({template, attributes, backgroundColor}: Props) => {
         return {backgroundColor, color: getContrastingSimpleColor(backgroundColor)};
     }, [backgroundColor]);
 
-    if (!rendered) {
+    if (!rendered.trim()) {
         return (
             <div
                 className='BannerPreviewSection'

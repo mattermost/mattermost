@@ -65,7 +65,7 @@ export function isBlankTemplate(template: string): boolean {
     if (hasAttributeTokens(template)) {
         return false;
     }
-    return tidySeparators(template).trim() === '';
+    return template.replace(new RegExp(`[\\s${SEPARATOR_CHARS}]`, 'g'), '') === '';
 }
 
 export function referencedFieldNames(text: string): string[] {
@@ -95,31 +95,51 @@ export function renderBannerTemplate(template: string, attributes: ResolvedChann
         byName.set(attribute.field.name, attribute);
     }
 
+    const reservedText = [template, ...attributes.map((attribute) => attribute.displayValue)].join('');
+    let emptyTokenMarker = '\uE000';
+    while (reservedText.includes(emptyTokenMarker)) {
+        emptyTokenMarker += '\uE000';
+    }
+
+    let collapsed = false;
     const substituted = template.replace(tokenPattern(), (_full, name: string) => {
-        return byName.get(name)?.displayValue ?? '';
+        const value = byName.get(name)?.displayValue;
+        if (!value) {
+            collapsed = true;
+            return emptyTokenMarker;
+        }
+        return value;
     });
 
-    return tidySeparators(substituted);
+    return collapsed ? tidySeparators(substituted, emptyTokenMarker) : substituted;
 }
 
-// Collapses the punctuation a removed token leaves behind. Only touches the
-// short separator symbols authors put between attributes.
-function tidySeparators(text: string): string {
-    const sep = `[${SEPARATOR_CHARS}]{1,2}`;
-    const unit = `(?:\\s*${sep}\\s*)`;
-    const run = new RegExp(`${unit}{2,}`, 'g');
-    const leading = new RegExp(`^(?:\\s*${sep}\\s*)+`);
-    const trailing = new RegExp(`(?:\\s*${sep}\\s*)+$`);
-    const firstSep = new RegExp(sep);
+// Only a separator directly next to a collapsed token is removable. Keep the
+// separator on the left when both sides have one, preserving the author's choice.
+function tidySeparators(substituted: string, marker: string): string {
+    let text = substituted;
+    const leftSeparator = new RegExp(`(?:^|\\s)[${SEPARATOR_CHARS}]{1,2}\\s*$`);
+    const rightSeparator = new RegExp(`^\\s*[${SEPARATOR_CHARS}]{1,2}(?=\\s|$)\\s*`);
+    let index = text.indexOf(marker);
 
-    return text.
-        replace(run, (match) => {
-            const found = match.match(firstSep);
-            return found ? ` ${found[0]} ` : ' ';
-        }).
-        replace(leading, '').
-        replace(trailing, '').
-        replace(/\s{2,}/g, ' ');
+    while (index !== -1) {
+        let before = text.slice(0, index);
+        let after = text.slice(index + marker.length);
+        const left = before.match(leftSeparator);
+        const right = after.match(rightSeparator);
+
+        if (right) {
+            after = after.slice(right[0].length);
+        } else if (left) {
+            before = before.slice(0, -left[0].length);
+        }
+
+        const gap = before && after && ((/\s$/).test(before) || (/^\s/).test(after)) ? ' ' : '';
+        text = before.replace(/\s+$/, '') + gap + after.replace(/^\s+/, '');
+        index = text.indexOf(marker);
+    }
+
+    return text;
 }
 
 /**

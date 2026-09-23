@@ -370,6 +370,7 @@ describe('ChannelInfoAttributes', () => {
                 CHANNEL_ID,
                 [{field_id: 'program', value: null}],
             ));
+            expect(patchSpy).toHaveBeenCalledTimes(1);
         });
 
         test('opens the menu via keyboard and selects an option', async () => {
@@ -800,6 +801,7 @@ describe('ChannelInfoAttributes', () => {
                 CHANNEL_ID,
                 [{field_id: 'tags', value: ['opt_b']}],
             ));
+            expect(patchSpy).toHaveBeenCalledTimes(1);
         });
 
         test('removing the last chip saves null', async () => {
