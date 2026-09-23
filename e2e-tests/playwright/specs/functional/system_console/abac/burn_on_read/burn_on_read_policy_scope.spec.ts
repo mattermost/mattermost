@@ -214,6 +214,7 @@ test(
     {tag: '@abac_burn_on_read'},
     async ({pw}) => {
         test.setTimeout(pw.duration.four_min);
+        await requireFeatureFlag(pw, 'ChannelPermissionPolicies');
 
         const {adminClient, team} = await pw.initSetup();
         savedAdminClient = adminClient;
