@@ -1253,6 +1253,93 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         });
 
         /**
+         * @objective Ensure Parents-of search suggestions float in their own popover so the
+         * value menu stays a fixed-height list, the candidate list is not clipped, and picking
+         * a candidate still applies.
+         */
+        test('keeps the Parents of menu fixed-height when search suggestions open', async ({pw}) => {
+            const {adminUser, adminClient} = await requireHierarchicalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const displayName = `Playwright Suggest ${timestamp}`;
+            const expectedName = `playwright_suggest_${timestamp}`;
+
+            try {
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+                await page.getByTestId('newAttributeButton').click();
+                await page.getByTestId('attributeDisplayNameInput').fill(displayName);
+
+                await page.getByTestId('attributeTypeMenuButton').click();
+                await page.getByRole('menuitemradio', {name: 'Hierarchical'}).click();
+
+                // # Air and Maritime as sibling roots
+                await page.getByTestId('attributeOptionsGraphEmpty__nameInput').fill('Air');
+                await page.getByTestId('attributeOptionsGraphEmpty__addButton').click();
+                await page.getByTestId('attributeOptionsGraphAddTop__nameInput').fill('Maritime');
+                await page.getByTestId('attributeOptionsGraphAddTop__addButton').click();
+
+                // # Open Air's Parents pane and focus the search field
+                await openGraphRowParents(page, 'Air');
+                const valueMenu = page.getByRole('menu', {name: 'Edit Air'});
+                await expect(page.getByTestId('attributeGraphParentsPane__back')).toHaveText('Parents of Air');
+                await expect(valueMenu).toBeVisible();
+
+                // Measure the pane, not role=menu. Nested MUI Modal aria-hides the
+                // parent menu paper; its getBoundingClientRect can shift ~16px even
+                // when the suggestion list is portaled.
+                const pane = page.locator('.attribute-graph-parents-pane');
+                const heightBeforeSearch = await pane.evaluate((el) => el.getBoundingClientRect().height);
+                await page.getByTestId('attributeGraphParentsPane__search').click();
+
+                const suggestions = page.getByTestId('attributeGraphParentsPane__suggestions');
+                await expect(suggestions).toBeVisible();
+                await expect(page.getByTestId('attributeGraphParentsPane__candidate-Maritime')).toBeVisible();
+
+                // * Suggestions live in a portal below the field, not inside the pane
+                const suggestionsAreInsideMenu = await suggestions.evaluate((el) =>
+                    Boolean(el.closest('.attribute-graph-parents-pane')),
+                );
+                expect(suggestionsAreInsideMenu).toBe(false);
+
+                const listBox = await suggestions.boundingBox();
+                const searchBox = await page.getByTestId('attributeGraphParentsPane__search').boundingBox();
+                expect(listBox).toBeTruthy();
+                expect(searchBox).toBeTruthy();
+                expect(listBox!.height).toBeGreaterThan(0);
+                expect(listBox!.y).toBeGreaterThan(searchBox!.y);
+
+                // offsetWidth is the value we assign to the paper. boundingBox can
+                // disagree by 8–18px once the list is portaled onto document.body.
+                const widthDelta = await page.evaluate(() => {
+                    const field = document.querySelector('.attribute-graph-parents-pane__search-field');
+                    const paper = document.querySelector('.attribute-graph-parents-pane__suggestions-paper');
+                    if (!(field instanceof HTMLElement) || !(paper instanceof HTMLElement)) {
+                        return Number.POSITIVE_INFINITY;
+                    }
+                    return Math.abs(paper.offsetWidth - field.offsetWidth);
+                });
+                expect(widthDelta).toBeLessThan(1);
+
+                // Nested MUI popover aria-hides the parent menu, so getByRole without
+                // includeHidden (and boundingBox visibility checks) cannot resolve it.
+                const mountedValueMenu = page.getByRole('menu', {name: 'Edit Air', includeHidden: true});
+
+                // * Pane does not grow by a suggestion row (~36px). Focus and the
+                // nested modal can still shift getBoundingClientRect by ~6–16px.
+                const heightAfterSearch = await pane.evaluate((el) => el.getBoundingClientRect().height);
+                expect(Math.abs(heightAfterSearch - heightBeforeSearch)).toBeLessThan(24);
+                await expect(mountedValueMenu).toBeAttached();
+
+                await page.getByTestId('attributeGraphParentsPane__candidate-Maritime').click();
+                await expect(graphRow(page, 'Air', 'Maritime')).toBeVisible();
+            } finally {
+                await deleteGlobalAttributeFieldIfExists(adminClient, expectedName);
+            }
+        });
+
+        /**
          * @objective Ensure adding a second parent through the Parents pane asks Add
          * {parent} as a parent? and, once confirmed with Add, records both parent names.
          */
