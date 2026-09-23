@@ -3,15 +3,19 @@
 
 .AttributeAppliesToItem {
     overflow: hidden;
-    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-    border-radius: 4px;
+    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+
+    &:last-child {
+        border-bottom: none;
+    }
 }
 
 .AttributeAppliesToItem__header {
     display: flex;
+    min-height: 46px;
     align-items: center;
     justify-content: space-between;
-    padding: 0 4px 0 12px;
+    padding: 12px;
     background: transparent;
     gap: 8px;
     transition: background 0.15s ease-in-out;
@@ -26,23 +30,24 @@
     margin-left: 0;
 }
 
-// Compass Button always applies .btn.btn-quaternary (blue text, 40px height,
-// hover tint). Repeat those classes here so this accordion chrome wins on
-// specificity regardless of stylesheet order.
-.btn.btn-quaternary.AttributeAppliesToItem__toggle {
+.AttributeAppliesToItem__toggle {
+    display: flex;
     min-width: 0;
-    height: auto;
     flex: 1;
+    align-items: center;
     justify-content: flex-start;
-    padding: 10px 0;
+    padding: 0;
+    border: none;
     border-radius: 0;
     background: transparent;
     color: var(--center-channel-color);
+    cursor: pointer;
+    gap: 8px;
+    text-align: left;
+    white-space: normal;
 
-    &:hover:not(:disabled),
-    &:active:not(:disabled) {
-        background: transparent;
-        color: var(--center-channel-color);
+    &:has(.AttributeAppliesToItem__heading) {
+        align-items: flex-start;
     }
 
     &:disabled {
@@ -52,26 +57,65 @@
 }
 
 .AttributeAppliesToItem__chevron {
+    flex-shrink: 0;
     color: rgba(var(--center-channel-color-rgb), 0.56);
     transition: transform 150ms ease-in-out;
+}
+
+.AttributeAppliesToItem__toggle:has(.AttributeAppliesToItem__heading) .AttributeAppliesToItem__chevron {
+    margin-top: 2px;
 }
 
 .AttributeAppliesToItem__chevron--open {
     transform: rotate(-180deg);
 }
 
+.AttributeAppliesToItem__heading {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+}
+
+.AttributeAppliesToItem__name {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
 .AttributeAppliesToItem__label {
     font-size: 14px;
     font-weight: 600;
+    line-height: 20px;
 }
 
-.btn.AttributeAppliesToItem__remove {
+.AttributeAppliesToItem__summary {
+    display: block;
+    overflow: hidden;
+    width: 100%;
+    min-width: 0;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 16px;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.btn.btn-sm.AttributeAppliesToItem__remove {
+    height: 32px;
     flex-shrink: 0;
-    margin-right: 12px;
+    align-self: center;
+    padding: 0 12px;
 }
 
+// Top padding matches the 24px gap between fields, so the first field sits the
+// same distance from the header as the fields do from each other.
 .AttributeAppliesToItem__body {
-    padding: 0 12px 12px;
+    padding: 24px 20px 16px 36px;
     color: rgba(var(--center-channel-color-rgb), 0.72);
     font-size: 12px;
 }
@@ -79,14 +123,11 @@
 .AttributeAppliesToItem__row {
     display: grid;
     align-items: start;
-    padding: 12px 0;
-    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-    column-gap: 12px;
-    grid-template-columns: 176px 1fr;
+    column-gap: 16px;
+    grid-template-columns: 176px minmax(0, 1fr);
 
-    &:last-child {
-        padding-bottom: 0;
-        border-bottom: none;
+    &:not(:last-child) {
+        margin-bottom: 24px;
     }
 
     > :only-child {

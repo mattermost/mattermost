@@ -12,7 +12,7 @@ import (
 	"io"
 	"net/http"
 	"regexp"
-	"sort"
+	"slices"
 	"strings"
 	"unicode/utf8"
 )
@@ -114,12 +114,19 @@ type Channel struct {
 	// PolicyActions[action] and fall back to PolicyEnforced only when the
 	// stronger meaning is acceptable. Empty/nil means either no policy or
 	// no hydration was performed.
-	PolicyActions            map[string]bool `json:"policy_actions,omitempty"`
-	PolicyIsActive           bool            `json:"policy_is_active"`
-	DefaultCategoryName      string          `json:"default_category_name"`
-	ManagedCategoryName      string          `json:"managed_category_name"`
-	Discoverable             bool            `json:"discoverable"`
-	DisableJoinLeaveMessages bool            `json:"disable_join_leave_messages"`
+	PolicyActions map[string]bool `json:"policy_actions,omitempty"`
+	// PolicyAutoAdd reports whether the channel's policy auto-adds qualifying
+	// members, derived by the store from the policy's membership rule.
+	PolicyAutoAdd bool `json:"policy_auto_add"`
+	// PolicyIsActive carries the same value as PolicyAutoAdd.
+	//
+	// Deprecated: use PolicyAutoAdd. Auto-adding members is no longer tied to a
+	// policy's active flag.
+	PolicyIsActive           bool   `json:"policy_is_active"`
+	DefaultCategoryName      string `json:"default_category_name"`
+	ManagedCategoryName      string `json:"managed_category_name"`
+	Discoverable             bool   `json:"discoverable"`
+	DisableJoinLeaveMessages bool   `json:"disable_join_leave_messages"`
 }
 
 // HasPolicyAction reports whether the channel's policy declares the given
@@ -162,7 +169,7 @@ func (o *Channel) Auditable() map[string]any {
 		"policy_enforced":             o.PolicyEnforced,
 		"policy_actions":              o.PolicyActions, // hydrated lazily; only populated on selected read paths
 		"autotranslation":             o.AutoTranslation,
-		"policy_is_active":            o.PolicyIsActive, // this field is only for logging purposes
+		"policy_auto_add":             o.PolicyAutoAdd, // this field is only for logging purposes
 		"discoverable":                o.Discoverable,
 		"disable_join_leave_messages": o.DisableJoinLeaveMessages,
 	}
@@ -619,7 +626,7 @@ func GetGroupDisplayNameFromUsers(users []*User, truncate bool) string {
 		usernames[index] = user.Username
 	}
 
-	sort.Strings(usernames)
+	slices.Sort(usernames)
 
 	name := strings.Join(usernames, ", ")
 
@@ -631,7 +638,7 @@ func GetGroupDisplayNameFromUsers(users []*User, truncate bool) string {
 }
 
 func GetGroupNameFromUserIds(userIds []string) string {
-	sort.Strings(userIds)
+	slices.Sort(userIds)
 
 	h := sha1.New()
 	for _, id := range userIds {

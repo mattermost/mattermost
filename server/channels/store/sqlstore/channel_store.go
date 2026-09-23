@@ -4,10 +4,10 @@
 package sqlstore
 
 import (
+	"cmp"
 	"database/sql"
 	"fmt"
 	"slices"
-	"sort"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -190,7 +190,11 @@ func channelSliceColumns(isSelect bool, prefix ...string) []string {
 		}
 
 		columns = append(columns, fmt.Sprintf("EXISTS (SELECT 1 FROM AccessControlPolicies acp WHERE acp.ID = %sId AND acp.Type = 'channel') AS PolicyEnforced", p))
-		columns = append(columns, fmt.Sprintf("COALESCE((SELECT acp.Active FROM AccessControlPolicies acp WHERE acp.ID = %sId AND acp.Type = 'channel' AND acp.Active = TRUE LIMIT 1), false) AS PolicyIsActive", p))
+		autoAdd := fmt.Sprintf("COALESCE((SELECT %s FROM AccessControlPolicies acp WHERE acp.ID = %sId AND acp.Type = 'channel' LIMIT 1), false)", autoAddMembersExpr("acp"), p)
+		columns = append(columns, autoAdd+" AS PolicyAutoAdd")
+		// PolicyIsActive is the deprecated alias for PolicyAutoAdd; both report
+		// whether the channel's policy auto-adds members.
+		columns = append(columns, autoAdd+" AS PolicyIsActive")
 	}
 
 	return columns
@@ -3562,8 +3566,8 @@ func (s SqlChannelStore) AutocompleteInTeamForSearch(teamID string, userID strin
 
 	channels = append(channels, directChannels...)
 
-	sort.Slice(channels, func(a, b int) bool {
-		return strings.ToLower(channels[a].DisplayName) < strings.ToLower(channels[b].DisplayName)
+	slices.SortFunc(channels, func(a, b *model.Channel) int {
+		return cmp.Compare(strings.ToLower(a.DisplayName), strings.ToLower(b.DisplayName))
 	})
 
 	return channels, nil

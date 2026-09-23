@@ -159,28 +159,29 @@ TEMPLATES_DIR=templates
 
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
-PLUGIN_PACKAGES += mattermost-plugin-calls-v1.12.3
-PLUGIN_PACKAGES += mattermost-plugin-github-v2.8.0
-PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.13.0
+PLUGIN_PACKAGES += mattermost-plugin-calls-v1.12.5
+PLUGIN_PACKAGES += mattermost-plugin-github-v3.0.0
+PLUGIN_PACKAGES += mattermost-plugin-gitlab-v2.0.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v4.8.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.11.1
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.12.0
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.4.0
-PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.13.1
+PLUGIN_PACKAGES += mattermost-plugin-zoom-v2.0.0
 PLUGIN_PACKAGES += mattermost-plugin-agents-v2.6.1
 PLUGIN_PACKAGES += mattermost-plugin-boards-v9.4.0
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
-PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.7.0
+PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v2.0.0
 PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.4.1
 PLUGIN_PACKAGES += mattermost-plugin-metrics-v0.7.0
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-dataminr-v2.0.0
+PLUGIN_PACKAGES += mattermost-plugin-legal-hold-v1.1.6
 
 # Overwrite the definition of PLUGIN_PACKAGES with the list of FIPS-ready plugins
 # Note that the '+' in the file name is encoded as %2B for the URL we use to
 # download the package from to work. This will no longer be needed when we unify
 # the way we pre-package FIPS and non-FIPS plugins.
 ifeq ($(FIPS_ENABLED),true)
-	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.11.1%2B329b65c-fips
+	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.12.0%2B5cbbacb-fips
 	PLUGIN_PACKAGES += mattermost-plugin-agents-v2.6.1%2B0b1b771-fips
 	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.4.0%2B4b7dd4b-fips
 endif
@@ -430,7 +431,7 @@ platform-mocks: setup-go-work install-mockery ## Creates mocks for platform inte
 
 .PHONY: install-mockgen
 install-mockgen:
-	$(GO) install github.com/golang/mock/mockgen@v1.6.0
+	$(GO) install go.uber.org/mock/mockgen@v0.6.0
 
 .PHONY: mmctl-mocks
 mmctl-mocks: setup-go-work install-mockgen ## Creates mocks for mmctl
@@ -979,10 +980,11 @@ vet: setup-go-work install-govet ## Run mattermost go vet specific checks
 		-concurrentIndex \
 		-concurrentIndex.path=./channels/db/migrations/ \
 		-concurrentIndex.minMigration=166 \
+		-sortSlices \
 		./...
 ifeq ($(BUILD_ENTERPRISE_READY),true)
   ifneq ($(MM_NO_ENTERPRISE_LINT),true)
-	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -mlogFieldNaming -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -requestCtxNaming -enterpriseLicense $(BUILD_ENTERPRISE_DIR)/...
+	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -structuredLogging -mlogFieldNaming -inconsistentReceiverName -emptyStrCmp -tFatal -configtelemetry -errorAssertions -requestCtxNaming -sortSlices -enterpriseLicense $(BUILD_ENTERPRISE_DIR)/...
   endif
 endif
 

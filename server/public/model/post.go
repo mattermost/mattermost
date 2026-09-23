@@ -4,6 +4,7 @@
 package model
 
 import (
+	"cmp"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -13,13 +14,13 @@ import (
 	"net/http"
 	"regexp"
 	"slices"
-	"sort"
 	"strconv"
 	"strings"
 	"sync"
 	"unicode/utf8"
 
 	"github.com/hashicorp/go-multierror"
+
 	"github.com/mattermost/mattermost/server/public/shared/markdown"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
@@ -467,6 +468,17 @@ type GetPostsSinceForSyncOptions struct {
 	ExcludedPostTypes                 []string // post types to exclude from sync
 }
 
+// GetPostOptions are the options for fetching a single post. Its plural sibling
+// GetPostsOptions covers the list endpoints.
+type GetPostOptions struct {
+	// IncludeDeleted returns the post even if it is soft-deleted.
+	IncludeDeleted bool
+
+	// PropertyGroup names a single PSAv2 property group whose values should be hydrated
+	// onto the post's metadata. Empty means no hydration.
+	PropertyGroup string
+}
+
 type GetPostsOptions struct {
 	UserId                       string
 	ChannelId                    string
@@ -489,6 +501,9 @@ type GetPostsOptions struct {
 	// the app layer when the burn-on-read feature is enabled, so it adds no query
 	// overhead otherwise.
 	ExcludeExpiredBurnOnReadPosts bool
+	// PropertyGroup names a single PSAv2 property group whose values should be hydrated
+	// onto each post's metadata. Empty means no hydration.
+	PropertyGroup string
 }
 
 type PostCountOptions struct {
@@ -1419,8 +1434,8 @@ func RewriteImageURLs(message string, f func(string) string) string {
 		return message
 	}
 
-	sort.Slice(ranges, func(i, j int) bool {
-		return ranges[i].Position < ranges[j].Position
+	slices.SortFunc(ranges, func(a, b markdown.Range) int {
+		return cmp.Compare(a.Position, b.Position)
 	})
 
 	copyRanges := make([]markdown.Range, 0, len(ranges))
@@ -1591,6 +1606,11 @@ type PreparePostForClientOpts struct {
 	IncludePriority bool
 	RetainContent   bool
 	IncludeDeleted  bool
+
+	// PropertyGroupID, when set, hydrates each post's property values for that group onto
+	// Metadata.PropertyValues. Empty means no hydration, so the zero value is always safe and
+	// callers opt in rather than out.
+	PropertyGroupID string
 }
 
 // ReportPostOptions contains options for querying posts for reporting/compliance purposes

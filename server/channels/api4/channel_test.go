@@ -337,6 +337,7 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.ChannelAttributes = true
+		cfg.FeatureFlags.ChannelAttributesRequired = true
 	}).InitBasic(t)
 
 	// The attribute validation hook is registered against the access_control
@@ -533,6 +534,66 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 		require.Equal(t, classificationField.ID, values[0].FieldID)
 	})
 
+	t.Run("a required classification value is not enforced when ChannelAttributes is off", func(t *testing.T) {
+		// requiredAttributesEnforced folds the ChannelAttributes umbrella flag
+		// in, and classification gets no special treatment from it: it is
+		// enforced or not by the same single condition as every other field.
+		//
+		// The field itself is authored first, under default (enforced)
+		// conditions -- a channel field cannot be newly marked required once
+		// enforcement is already off, so this mirrors the real scenario the
+		// flag exists for: a field configured before, disabled after.
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ClassificationMarkings = true
+		})
+
+		optionID := model.NewId()
+		templateField, fieldErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:       "classification",
+			Type:       model.PropertyFieldTypeSelect,
+			GroupID:    group.ID,
+			ObjectType: "template",
+			TargetType: "system",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []map[string]any{{"id": optionID, "name": "SECRET"}},
+			},
+		}, false, "")
+		require.Nil(t, fieldErr)
+		t.Cleanup(func() {
+			require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, templateField.ID, true, ""))
+		})
+
+		classificationField, fieldErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:             "classification",
+			Type:             model.PropertyFieldTypeSelect,
+			GroupID:          group.ID,
+			ObjectType:       "channel",
+			TargetType:       "system",
+			PermissionField:  &memberLevel,
+			PermissionValues: &memberLevel,
+			LinkedFieldID:    &templateField.ID,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrRequired: true,
+			},
+		}, false, "")
+		require.Nil(t, fieldErr)
+		t.Cleanup(func() {
+			require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, classificationField.ID, true, ""))
+		})
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributes = false
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributes = true
+		})
+
+		req, _ := newRequest()
+		_, resp, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
+
 	t.Run("a non-classification value is still refused when ChannelAttributes is off", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.FeatureFlags.ChannelAttributes = false
@@ -596,6 +657,75 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 		})
 		defer th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.FeatureFlags.ChannelAttributes = true
+		})
+
+		req, _ := newRequest()
+		_, resp, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
+
+	t.Run("a required attribute with no value is allowed when ChannelAttributesRequired is off", func(t *testing.T) {
+		createField(t, model.PropertyFieldTypeText, memberLevel, model.StringInterface{
+			model.PropertyFieldAttrRequired: true,
+		})
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributesRequired = false
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributesRequired = true
+		})
+
+		req, _ := newRequest()
+		_, resp, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
+
+	t.Run("a required classification value is not enforced either when ChannelAttributesRequired is off", func(t *testing.T) {
+		// The field is authored first with enforcement on — a channel field
+		// cannot be newly marked required once enforcement is off, so this
+		// mirrors the real scenario: configured before, enforcement disabled after.
+		optionID := model.NewId()
+		templateField, fieldErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:       "classification",
+			Type:       model.PropertyFieldTypeSelect,
+			GroupID:    group.ID,
+			ObjectType: "template",
+			TargetType: "system",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []map[string]any{{"id": optionID, "name": "SECRET"}},
+			},
+		}, false, "")
+		require.Nil(t, fieldErr)
+		t.Cleanup(func() {
+			require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, templateField.ID, true, ""))
+		})
+
+		classificationField, fieldErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:             "classification",
+			Type:             model.PropertyFieldTypeSelect,
+			GroupID:          group.ID,
+			ObjectType:       "channel",
+			TargetType:       "system",
+			PermissionField:  &memberLevel,
+			PermissionValues: &memberLevel,
+			LinkedFieldID:    &templateField.ID,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrRequired: true,
+			},
+		}, false, "")
+		require.Nil(t, fieldErr)
+		t.Cleanup(func() {
+			require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, classificationField.ID, true, ""))
+		})
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributesRequired = false
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributesRequired = true
 		})
 
 		req, _ := newRequest()
