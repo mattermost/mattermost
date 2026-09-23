@@ -1,0 +1,66 @@
+ldap_sync_jobs:
+- id: job-ldap
+  type: ldap_sync
+  priority: 0
+  create_at: "1970-01-01T01:00:01.111+01:00"
+  start_at: "1970-01-01T01:00:02.222+01:00"
+  last_activity_at: "1970-01-01T01:00:03.333+01:00"
+  status: success
+  progress: 0
+  data:
+    result: ok
+data_retention_jobs:
+- id: job-retention
+  type: data_retention
+  priority: 0
+  create_at: "1970-01-01T01:00:01.111+01:00"
+  start_at: "1970-01-01T01:00:02.222+01:00"
+  last_activity_at: "1970-01-01T01:00:03.333+01:00"
+  status: success
+  progress: 0
+  data:
+    result: ok
+message_export_jobs:
+- id: job-export
+  type: message_export
+  priority: 0
+  create_at: "1970-01-01T01:00:01.111+01:00"
+  start_at: "1970-01-01T01:00:02.222+01:00"
+  last_activity_at: "1970-01-01T01:00:03.333+01:00"
+  status: success
+  progress: 0
+  data:
+    result: ok
+elastic_post_indexing_jobs:
+- id: job-index
+  type: elasticsearch_post_indexing
+  priority: 0
+  create_at: "1970-01-01T01:00:01.111+01:00"
+  start_at: "1970-01-01T01:00:02.222+01:00"
+  last_activity_at: "1970-01-01T01:00:03.333+01:00"
+  status: success
+  progress: 0
+  data:
+    result: ok
+elastic_post_aggregation_jobs:
+- id: job-agg
+  type: elasticsearch_post_aggregation
+  priority: 0
+  create_at: "1970-01-01T01:00:01.111+01:00"
+  start_at: "1970-01-01T01:00:02.222+01:00"
+  last_activity_at: "1970-01-01T01:00:03.333+01:00"
+  status: success
+  progress: 0
+  data:
+    result: ok
+migration_jobs:
+- id: job-migrate
+  type: migrations
+  priority: 0
+  create_at: "1970-01-01T01:00:01.111+01:00"
+  start_at: "1970-01-01T01:00:02.222+01:00"
+  last_activity_at: "1970-01-01T01:00:03.333+01:00"
+  status: success
+  progress: 0
+  data:
+    result: ok

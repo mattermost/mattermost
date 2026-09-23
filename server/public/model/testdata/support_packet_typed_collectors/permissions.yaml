@@ -1,0 +1,33 @@
+roles:
+- id: role-id
+  name: team_admin
+  display_name: ""
+  description: ""
+  create_at: "1970-01-01T01:00:00+01:00"
+  update_at: "1970-01-01T01:00:00+01:00"
+  delete_at: "1970-01-01T01:00:00+01:00"
+  permissions:
+  - manage_system
+  - manage_team
+  scheme_managed: false
+  built_in: false
+  scheme_id: null
+schemes:
+- id: scheme-id
+  name: scheme-name
+  display_name: Scheme Name
+  description: ""
+  create_at: "1970-01-01T01:00:00+01:00"
+  update_at: "1970-01-01T01:00:00+01:00"
+  delete_at: "1970-01-01T01:00:00+01:00"
+  scope: team
+  default_team_admin_role: ""
+  default_team_user_role: ""
+  default_channel_admin_role: ""
+  default_channel_user_role: ""
+  default_team_guest_role: ""
+  default_channel_guest_role: ""
+  default_playbook_admin_role: ""
+  default_playbook_member_role: ""
+  default_run_admin_role: ""
+  default_run_member_role: ""
