@@ -20,7 +20,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/goccy/go-yaml"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -234,15 +233,10 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 	getDiagnostics := func(t *testing.T) *model.SupportPacketDiagnostics {
 		t.Helper()
 
-		fileData, err := th.Service.getSupportPacketDiagnostics(th.Context)
-		require.NotNil(t, fileData)
-		assert.Equal(t, "diagnostics.yaml", fileData.Filename)
-		assert.Positive(t, len(fileData.Body))
+		d, err := th.Service.getSupportPacketDiagnostics(th.Context)
+		require.NotNil(t, d)
 		assert.NoError(t, err)
-
-		var d model.SupportPacketDiagnostics
-		require.NoError(t, yaml.Unmarshal(fileData.Body, &d))
-		return &d
+		return d
 	}
 
 	t.Run("Happy path", func(t *testing.T) {
@@ -1099,7 +1093,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 	})
 }
 
-func TestGetSanitizedConfigFile(t *testing.T) {
+func TestGetSupportPacketConfig(t *testing.T) {
 	// t.Setenv is correct here: this test verifies that feature flags set via
 	// environment variables (the production mechanism) appear in the sanitized
 	// config output. UpdateConfig won't work because SetDefaults() resets
@@ -1113,29 +1107,23 @@ func TestGetSanitizedConfigFile(t *testing.T) {
 	})
 
 	// Happy path where we have a sanitized config file with no err
-	fileData, err := th.Service.getSanitizedConfigFile(th.Context)
-	require.NotNil(t, fileData)
-	assert.Equal(t, "sanitized_config.json", fileData.Filename)
-	assert.Positive(t, len(fileData.Body))
+	config, err := th.Service.getSupportPacketConfig(th.Context)
+	require.NotNil(t, config)
 	assert.NoError(t, err)
 
-	var config model.Config
-	err = json.Unmarshal(fileData.Body, &config)
-	require.NoError(t, err)
-
 	// Ensure sensitive fields are redacted
-	assert.Equal(t, model.FakeSetting, *config.FileSettings.PublicLinkSalt)
+	assert.Equal(t, model.FakeSetting, *config.Config.FileSettings.PublicLinkSalt)
 
 	// Ensure non-sensitive fields are present
-	assert.Equal(t, "example.com", *config.ServiceSettings.AllowedUntrustedInternalConnections)
+	assert.Equal(t, "example.com", *config.Config.ServiceSettings.AllowedUntrustedInternalConnections)
 
 	// Ensure feature flags are present
 	assert.Equal(t, "true", config.FeatureFlags.TestFeature)
 
 	// Ensure DataSource is partially sanitized (not completely replaced with FakeSetting)
 	// The default test database connection string should have username/password redacted
-	assert.Contains(t, *config.SqlSettings.DataSource, "****:****")
-	assert.NotEqual(t, model.FakeSetting, *config.SqlSettings.DataSource)
+	assert.Contains(t, *config.Config.SqlSettings.DataSource, "****:****")
+	assert.NotEqual(t, model.FakeSetting, *config.Config.SqlSettings.DataSource)
 }
 
 func TestGetCPUProfile(t *testing.T) {
