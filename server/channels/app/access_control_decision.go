@@ -97,9 +97,12 @@ func (a *App) SearchAllowedActionsForCurrentUser(rctx request.CTX, req model.Act
 		}
 	}
 
-	// No active policy — return per-action defaults.
+	// Inactive ABAC, or permission policies disabled: return per-action defaults
+	// without evaluating. The feature flag is checked here, not inside
+	// attributeBasedAccessControlEnabled, so this stays in step with
+	// HasPermissionToFileAction without narrowing the shared ETag and cache gate.
 	acs := a.Srv().Channels().AccessControl
-	if acs == nil || !a.attributeBasedAccessControlEnabled() {
+	if acs == nil || !a.attributeBasedAccessControlEnabled() || !a.Config().FeatureFlags.PermissionPolicies {
 		for _, action := range candidates {
 			record(action, model.RenderPermissionDecision{
 				Allowed:   renderableABACActions[action].DefaultWhenInactive,

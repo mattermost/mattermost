@@ -6148,10 +6148,11 @@ func TestAttributeBasedAccessControlEnabled(t *testing.T) {
 		return cfg
 	}
 
-	assert.False(t, attributeBasedAccessControlEnabled(newConfig(false, model.NewPointer(true))), "flag off")
+	assert.True(t, attributeBasedAccessControlEnabled(newConfig(false, model.NewPointer(true))), "flag off, ABAC on")
 	assert.False(t, attributeBasedAccessControlEnabled(newConfig(true, model.NewPointer(false))), "ABAC off")
+	assert.False(t, attributeBasedAccessControlEnabled(newConfig(false, model.NewPointer(false))), "both off")
 	assert.False(t, attributeBasedAccessControlEnabled(newConfig(true, nil)), "ABAC unset")
-	assert.True(t, attributeBasedAccessControlEnabled(newConfig(true, model.NewPointer(true))), "both on")
+	assert.True(t, attributeBasedAccessControlEnabled(newConfig(true, model.NewPointer(true))), "ABAC on")
 }
 
 func TestClearABACRenderCachesOnFlip(t *testing.T) {

@@ -78,6 +78,31 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 		require.Equal(t, 400, appErr.StatusCode)
 	})
 
+	t.Run("PermissionPolicies off skips evaluation and allows", func(t *testing.T) {
+		enableABAC(t)
+		// Written on the live config so a save cannot put the flag back through the
+		// read-only feature-flag store or MM_FEATUREFLAGS_PERMISSIONPOLICIES.
+		th.App.Config().FeatureFlags.PermissionPolicies = false
+		t.Cleanup(func() {
+			th.App.Config().FeatureFlags.PermissionPolicies = true
+		})
+
+		mockACS := withMockACS(t)
+
+		resp, appErr := th.App.SearchAllowedActionsForCurrentUser(rctx, model.ActionSearchRequest{
+			Resource: channelResource,
+			Actions:  []string{model.AccessControlPolicyActionUploadFileAttachment},
+		})
+		require.Nil(t, appErr)
+		require.True(t, resp.Decisions[model.AccessControlPolicyActionUploadFileAttachment].Allowed)
+		require.True(t, resp.Decisions[model.AccessControlPolicyActionUploadFileAttachment].Evaluated)
+		mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
+
+		enforced := th.App.HasPermissionToFileAction(rctx, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id, model.AccessControlPolicyActionUploadFileAttachment)
+		require.True(t, enforced)
+		require.Equal(t, enforced, resp.Decisions[model.AccessControlPolicyActionUploadFileAttachment].Allowed)
+	})
+
 	t.Run("ABAC inactive returns allowed and evaluated", func(t *testing.T) {
 		disableABAC(t)
 		original := th.App.Srv().ch.AccessControl
