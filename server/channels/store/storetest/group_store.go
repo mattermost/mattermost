@@ -3089,6 +3089,15 @@ func testGetGroupsByChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 			TotalCount: new(int64(1)),
 		},
 		{
+			Name:       "Get group matching name prefixed with a mention",
+			ChannelId:  channel1.Id,
+			Opts:       model.GroupSearchOpts{Q: "@" + *group1.Name},
+			Page:       0,
+			PerPage:    100,
+			Result:     []*model.GroupWithSchemeAdmin{group1WSA},
+			TotalCount: new(int64(1)),
+		},
+		{
 			Name:       "Get group matching display name",
 			ChannelId:  channel1.Id,
 			Opts:       model.GroupSearchOpts{Q: "rouP-1"},
@@ -3323,6 +3332,14 @@ func testGetGroupsAssociatedToChannelsByTeam(t *testing.T, rctx request.CTX, ss 
 			Name:    "Get group matching name",
 			TeamId:  team1.Id,
 			Opts:    model.GroupSearchOpts{Q: string([]rune(*group1.Name)[2:10])}, // very low chance of a name collision
+			Page:    0,
+			PerPage: 100,
+			Result:  map[string][]*model.GroupWithSchemeAdmin{channel1.Id: {group1WSA}},
+		},
+		{
+			Name:    "Get group matching name prefixed with a mention",
+			TeamId:  team1.Id,
+			Opts:    model.GroupSearchOpts{Q: "@" + *group1.Name},
 			Page:    0,
 			PerPage: 100,
 			Result:  map[string][]*model.GroupWithSchemeAdmin{channel1.Id: {group1WSA}},
@@ -3572,6 +3589,15 @@ func testGetGroupsByTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 			Name:       "Get group matching name",
 			TeamId:     team1.Id,
 			Opts:       model.GroupSearchOpts{Q: string([]rune(*group1.Name)[2:10])}, // very low change of a name collision
+			Page:       0,
+			PerPage:    100,
+			Result:     []*model.GroupWithSchemeAdmin{group1WSA},
+			TotalCount: new(int64(1)),
+		},
+		{
+			Name:       "Get group matching name prefixed with a mention",
+			TeamId:     team1.Id,
+			Opts:       model.GroupSearchOpts{Q: "@" + *group1.Name},
 			Page:       0,
 			PerPage:    100,
 			Result:     []*model.GroupWithSchemeAdmin{group1WSA},
@@ -3930,12 +3956,25 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 			Page:    0,
 			PerPage: 100,
 			Resultf: func(groups []*model.Group) bool {
+				if len(groups) == 0 {
+					return false
+				}
 				for _, g := range groups {
 					if !strings.Contains(*g.Name, group2NameSubstring) && !strings.Contains(g.DisplayName, group2NameSubstring) {
 						return false
 					}
 				}
 				return true
+			},
+			Restrictions: nil,
+		},
+		{
+			Name:    "Get group matching name prefixed with a mention",
+			Opts:    model.GroupSearchOpts{Q: "@" + group2NameSubstring},
+			Page:    0,
+			PerPage: 100,
+			Resultf: func(groups []*model.Group) bool {
+				return len(groups) == 1 && groups[0].Id == group2.Id
 			},
 			Restrictions: nil,
 		},

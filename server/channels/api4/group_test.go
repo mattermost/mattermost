@@ -2009,6 +2009,16 @@ func TestGetGroups(t *testing.T) {
 		assert.Len(t, groups, 3)
 	})
 
+	t.Run("search with Q parameter written as a mention", func(t *testing.T) {
+		opts := baseOpts
+		opts.Q = "@" + *groupWithRef.Name
+		groups, resp, err := th.SystemAdminClient.GetGroups(context.Background(), opts)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, groups, 1)
+		assert.Equal(t, groupWithRef.Id, groups[0].Id)
+	})
+
 	t.Run("test FilterAllowReference for non-admin user", func(t *testing.T) {
 		opts := baseOpts
 		opts.FilterAllowReference = true
