@@ -127,6 +127,11 @@
         font-weight: 600;
         gap: 6px;
         line-height: 16px;
+
+        &:hover,
+        &:focus-visible {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+        }
     }
 }
 

@@ -33,6 +33,10 @@ function clearOf(page: Page, field: PropertyField) {
     return page.getByTestId(`post-attribute-clear-${field.name}`);
 }
 
+function pickerItemOf(page: Page, field: PropertyField) {
+    return page.getByTestId(`post-attribute-add-${field.name}`);
+}
+
 /**
  * Counts full page loads after the point it is called.
  *
@@ -574,13 +578,17 @@ test('opens the modal on a post with no values, listing always fields', {tag: '@
         // instruction to appear is one the channel has not asked the author to fill in.
         await expect(rowOf(page, caveat)).toHaveCount(0);
 
-        // * Verify the inert placeholder is drawn and announced as unavailable, rather
-        // than removed from the tab order by a native `disabled`
+        // # Open the field picker
         const add = page.getByTestId('post-attributes-add');
 
         await expect(add).toBeVisible();
-        await expect(add).toHaveAttribute('aria-disabled', 'true');
-        await expect(add).not.toHaveAttribute('disabled', /.*/);
+        await add.click();
+
+        // * Verify the picker offers the field the modal is not already showing, and
+        // only that one. The `always` field has a row above, so offering it would be
+        // a choice that changes nothing.
+        await expect(pickerItemOf(page, caveat)).toBeVisible();
+        await expect(pickerItemOf(page, classification)).toHaveCount(0);
     } finally {
         await deleteFields(adminClient, created);
     }

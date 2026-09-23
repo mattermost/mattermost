@@ -189,6 +189,25 @@ async function openMenu(fieldName: string) {
     await userEvent.click(screen.getByTestId(`post-attribute-trigger-${fieldName}`));
 }
 
+/*
+ * A field the picker will offer. `makeField`'s defaults already make one —
+ * unset, writable, and of a type that has a control — so this only gives it a
+ * name of its own. Several tests below need the `+ Add attribute` button to be
+ * on screen, which it is not when the channel has nothing left to offer.
+ */
+function spareField(): PropertyField {
+    return makeField({id: 'f_spare', name: 'spare', attrs: {options: OPTIONS, display_name: 'Spare'}});
+}
+
+async function addAttribute(fieldName: string) {
+    await userEvent.click(screen.getByTestId('post-attributes-add'));
+    await userEvent.click(screen.getByTestId(`post-attribute-add-${fieldName}`));
+
+    // The picker's items defer their `onClick` until the menu has finished
+    // closing, so the row is not there yet when the click returns.
+    await waitFor(() => expect(screen.getByTestId(`post-attribute-row-${fieldName}`)).toBeInTheDocument());
+}
+
 describe('PostAttributesModal', () => {
     let patchSpy: jest.SpyInstance;
 
@@ -200,20 +219,27 @@ describe('PostAttributesModal', () => {
         jest.restoreAllMocks();
     });
 
-    test('renders the post reprise and the inert add button', () => {
+    test('renders the post reprise and an add button that advertises a menu', () => {
         patchSpy.mockResolvedValue([]);
-        renderModal([makeField()], [makeValue()]);
+        renderModal([makeField(), spareField()], [makeValue()]);
 
         expect(screen.getByTestId('post-attributes-reprise')).toHaveTextContent('the post being marked');
 
         const add = screen.getByTestId('post-attributes-add');
-        expect(add).toHaveAttribute('aria-disabled', 'true');
+
+        /*
+         * Both of these come from the menu rather than from this component, and
+         * they are what the button says about itself now that it is live. ARIA
+         * reads `aria-haspopup='true'` as `menu`, which is what the menu emits.
+         */
+        expect(add).toHaveAttribute('aria-haspopup', 'true');
+        expect(add).toHaveAttribute('aria-expanded', 'false');
         expect(add).not.toBeDisabled();
     });
 
     test('the add button keeps its tab stop', async () => {
         patchSpy.mockResolvedValue([]);
-        renderModal([makeField()], [makeValue()]);
+        renderModal([makeField(), spareField()], [makeValue()]);
 
         const add = screen.getByTestId('post-attributes-add');
 
@@ -295,8 +321,12 @@ describe('PostAttributesModal', () => {
     test('opening on a post with no values shows the channel\'s `always` fields and no empty state', () => {
         patchSpy.mockResolvedValue([]);
 
+        // The spare field is what keeps the `+ Add attribute` assertion below
+        // meaningful: the button is drawn when there is something left to offer,
+        // and this channel has one unset `when_set` field.
         const fields = [
             makeField({id: 'f_always', name: 'always_field', attrs: {options: OPTIONS, display_name: 'Always', visibility: 'always'}}),
+            spareField(),
         ];
 
         renderModal(fields, []);
@@ -522,6 +552,153 @@ describe('PostAttributesModal', () => {
         });
 
         await waitFor(() => expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveTextContent('UNCLASSIFIED'));
+    });
+
+    describe('adding an attribute', () => {
+        test('gives the field a row with nothing in it, and writes nothing', async () => {
+            patchSpy.mockResolvedValue([]);
+
+            renderModal([spareField()], []);
+
+            expect(screen.queryByTestId('post-attribute-row-spare')).not.toBeInTheDocument();
+
+            await addAttribute('spare');
+
+            expect(screen.getByTestId('post-attribute-trigger-spare')).toHaveTextContent('');
+            expect(screen.queryByTestId('post-attribute-clear-spare')).not.toBeInTheDocument();
+
+            // Nothing is written.
+            expect(patchSpy).not.toHaveBeenCalled();
+        });
+
+        test('the added row reads the store, the same as every other row', async () => {
+            patchSpy.mockResolvedValue([]);
+
+            const {store} = renderModal([spareField()], []);
+
+            await addAttribute('spare');
+
+            /*
+             * This is the assertion that says the added set holds visibility and
+             * not values: the set decided the row exists, and the value the row
+             * shows arrived afterwards from somebody else's edit. If the set
+             * carried a copy of anything, this row would still be empty.
+             */
+            act(() => {
+                store.dispatch({
+                    type: PropertyTypes.RECEIVED_PROPERTY_VALUES,
+                    data: {values: [makeValue({id: 'value_spare', field_id: 'f_spare', value: 'opt_unclassified'})]},
+                });
+            });
+
+            await waitFor(() => expect(screen.getByTestId('post-attribute-trigger-spare')).toHaveTextContent('UNCLASSIFIED'));
+        });
+
+        test('the last candidate takes the button with it', async () => {
+            patchSpy.mockResolvedValue([]);
+
+            const fields = [
+                makeField({id: 'f_a', name: 'alpha', attrs: {options: OPTIONS, display_name: 'Alpha'}}),
+                makeField({id: 'f_b', name: 'beta', attrs: {options: OPTIONS, display_name: 'Beta'}}),
+            ];
+
+            renderModal(fields, []);
+
+            await addAttribute('alpha');
+
+            // One candidate left, so the button is still worth drawing.
+            expect(screen.getByTestId('post-attributes-add')).toBeInTheDocument();
+
+            await addAttribute('beta');
+
+            await waitFor(() => expect(screen.queryByTestId('post-attributes-add')).not.toBeInTheDocument());
+        });
+
+        test('a channel whose fields are all `always` never draws the button', async () => {
+            patchSpy.mockResolvedValue([]);
+
+            const fields = [
+                makeField({id: 'f_a', name: 'alpha', attrs: {options: OPTIONS, display_name: 'Alpha', visibility: 'always'}}),
+                makeField({id: 'f_b', name: 'beta', attrs: {options: OPTIONS, display_name: 'Beta', visibility: 'always'}}),
+            ];
+
+            renderModal(fields, []);
+
+            expect(screen.getByTestId('post-attribute-row-alpha')).toBeInTheDocument();
+            expect(screen.getByTestId('post-attribute-row-beta')).toBeInTheDocument();
+
+            /*
+             * Absent, not disabled. Such a channel shows every field it has from
+             * the first day, so its candidate list is empty on every post, and a
+             * disabled control would be the only `+ Add attribute` those users
+             * ever saw.
+             */
+            expect(screen.queryByTestId('post-attributes-add')).not.toBeInTheDocument();
+        });
+
+        test('clearing an added row leaves it; clearing a row that was never added removes it', async () => {
+            patchSpy.mockResolvedValue([]);
+
+            renderModal([makeField(), spareField()], [makeValue()]);
+
+            await addAttribute('spare');
+
+            patchSpy.mockResolvedValue([makeValue({id: 'value_spare', field_id: 'f_spare', value: 'opt_secret', update_at: 2})]);
+            await openMenu('spare');
+            await userEvent.click(screen.getByRole('menuitemradio', {name: /SECRET/}));
+
+            await waitFor(() => expect(screen.getByTestId('post-attribute-clear-spare')).toBeInTheDocument());
+
+            patchSpy.mockResolvedValue([makeValue({id: 'value_spare', field_id: 'f_spare', value: '', update_at: 3})]);
+            await userEvent.click(screen.getByTestId('post-attribute-clear-spare'));
+
+            await waitFor(() => expect(screen.queryByTestId('post-attribute-clear-spare')).not.toBeInTheDocument());
+
+            /*
+             * The two rules meet here and neither predicts it alone: clearing a
+             * `when_set` field takes its row away, and a field the user asked for
+             * during this opening keeps its row until the modal closes. Emptying
+             * a row you just added is an edit, not an undo of the add.
+             */
+            expect(screen.getByTestId('post-attribute-row-spare')).toBeInTheDocument();
+
+            patchSpy.mockResolvedValue([makeValue({value: '', update_at: 4})]);
+            await userEvent.click(screen.getByTestId('post-attribute-clear-classification'));
+
+            await waitFor(() => expect(screen.queryByTestId('post-attribute-row-classification')).not.toBeInTheDocument());
+        });
+
+        test('reopening drops an added row left empty and keeps one that was given a value', async () => {
+            patchSpy.mockResolvedValue([]);
+
+            const fields = [
+                makeField({id: 'f_empty', name: 'empty_field', attrs: {options: OPTIONS, display_name: 'Empty'}}),
+                makeField({id: 'f_kept', name: 'kept_field', attrs: {options: OPTIONS, display_name: 'Kept'}}),
+            ];
+            const kept = makeValue({id: 'value_kept', field_id: 'f_kept', value: 'opt_secret', update_at: 2});
+
+            const {unmount} = renderModal(fields, []);
+
+            await addAttribute('empty_field');
+            await addAttribute('kept_field');
+
+            patchSpy.mockResolvedValue([kept]);
+            await openMenu('kept_field');
+            await userEvent.click(screen.getByRole('menuitemradio', {name: /SECRET/}));
+
+            await waitFor(() => expect(screen.getByTestId('post-attribute-trigger-kept_field')).toHaveTextContent('SECRET'));
+
+            unmount();
+
+            // Reopened over exactly what the first opening left in the store: one
+            // value written, and nothing at all for the other field. The added
+            // set went with the modal, so only the value can bring a row back —
+            // which is the only thing that tells "added" from "set" apart.
+            renderModal(fields, [kept]);
+
+            expect(screen.getByTestId('post-attribute-row-kept_field')).toBeInTheDocument();
+            expect(screen.queryByTestId('post-attribute-row-empty_field')).not.toBeInTheDocument();
+        });
     });
 
     describe('the user controls', () => {

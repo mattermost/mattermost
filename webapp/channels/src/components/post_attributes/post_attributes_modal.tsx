@@ -5,7 +5,6 @@ import React, {Fragment, useCallback, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {PlusIcon} from '@mattermost/compass-icons/components';
 import {GenericModal} from '@mattermost/components';
 import type {ServerError} from '@mattermost/types/errors';
 import type {Post} from '@mattermost/types/posts';
@@ -32,8 +31,9 @@ import {imageURLForUser} from 'utils/utils';
 import type {GlobalState} from 'types/store';
 
 import {canEditPostAttributeValue, isChannelPropertyAdmin} from './permissions';
+import PostAttributesFieldPicker from './post_attributes_field_picker';
 import PostAttributesModalRow from './post_attributes_modal_row';
-import {useModalAttributes} from './utils';
+import {useAddableAttributes, useModalAttributes} from './utils';
 
 import './post_attributes_modal.scss';
 
@@ -67,7 +67,24 @@ export default function PostAttributesModal({post, onExited}: Props) {
 
     const fields = usePostAttributeFields(channel);
     const values = usePostAttributeValues(post.id);
-    const attributes = useModalAttributes(fields, values);
+
+    /*
+     * Field ids only. Not a second copy of anything the store holds: it decides
+     * which rows exist, never what they display, so there is nothing in it a
+     * `property_values_updated` event could contradict. It dies with the modal,
+     * so a field added and left empty leaves nothing behind — nothing was
+     * written.
+     */
+    const [added, setAdded] = useState<ReadonlySet<string>>(() => new Set());
+
+    // Adding a field writes nothing. An empty value would be treated as unset
+    // on the next render and the row would vanish again, so the row exists
+    // because the user asked for it and the first real value is the first write.
+    const handleAdd = useCallback((fieldId: string) => {
+        setAdded((current) => new Set(current).add(fieldId));
+    }, []);
+
+    const attributes = useModalAttributes(fields, values, added);
 
     /*
      * One permission answer, shared. The picker has to reach the same verdict
@@ -85,6 +102,8 @@ export default function PostAttributesModal({post, onExited}: Props) {
             canEditPostAttributeValue(field, post, currentUserId, isSystemAdmin, isChannelAdmin),
         [post, currentUserId, isSystemAdmin, isChannelAdmin],
     );
+
+    const addable = useAddableAttributes(fields, values, added, canEdit);
 
     /*
      * Field ids and error strings, never values. No copy of any value lives
@@ -183,24 +202,15 @@ export default function PostAttributesModal({post, onExited}: Props) {
                 </div>
 
                 {/*
-                  * Inert until the field picker lands, which is why it carries
-                  * no handler at all. `aria-disabled` rather than native
-                  * `disabled`: native would take it out of the tab order and out
-                  * of screen readers entirely, and this is a real control in a
-                  * modal the user opened deliberately.
+                  * Omitted rather than disabled when there is nothing left to
+                  * offer, the same rule the row's trash button follows.
                   */}
-                <button
-                    type='button'
-                    className='PostAttributesModal__add'
-                    data-testid='post-attributes-add'
-                    aria-disabled='true'
-                >
-                    <PlusIcon size={16}/>
-                    <FormattedMessage
-                        id='post_attributes.modal.add'
-                        defaultMessage='Add attribute'
+                {addable.length > 0 && (
+                    <PostAttributesFieldPicker
+                        fields={addable}
+                        onSelect={handleAdd}
                     />
-                </button>
+                )}
             </div>
         </GenericModal>
     );
