@@ -8926,7 +8926,7 @@
   },
   {
     "id": "app.property_field.synced_options_locked.app_error",
-    "translation": "The options of an attribute synced from AD/LDAP or SAML are managed by the sync. Only option colors can be edited."
+    "translation": "The options of an attribute synced from AD/LDAP or SAML are managed by the sync and cannot be added, renamed or removed."
   },
   {
     "id": "app.property_field.update.app_error",

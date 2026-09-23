@@ -942,7 +942,7 @@ func (h *AccessControlHook) getAccessMode(field *model.PropertyField) string {
 }
 
 // hasUnrestrictedFieldReadAccess checks if the given caller can read a PropertyField without restrictions.
-// Returns true if the caller has unrestricted read access (public field or source plugin).
+// Returns true if the caller has unrestricted read access (public field, source plugin, or the field's sync).
 func (h *AccessControlHook) hasUnrestrictedFieldReadAccess(field *model.PropertyField, callerID string) bool {
 	accessMode := h.getAccessMode(field)
 
@@ -955,9 +955,9 @@ func (h *AccessControlHook) hasUnrestrictedFieldReadAccess(field *model.Property
 		return true
 	}
 
-	// The sync that owns a field's values must see its full option list,
-	// otherwise it would match against a filtered view and provision
-	// duplicates of options that already exist.
+	// A field's sync matches source values to its options by name, so it has
+	// to see all of them: a filtered view would have it create options that
+	// already exist.
 	if syncCallerID := model.PropertySyncCallerID(model.GetPropertyFieldSyncSource(field)); syncCallerID != "" && syncCallerID == callerID {
 		return true
 	}
