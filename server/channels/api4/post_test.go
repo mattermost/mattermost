@@ -8366,4 +8366,37 @@ func TestPostMutationHandlersReadFromMaster(t *testing.T) {
 		_, err := th.Client.DeletePost(context.Background(), post.Id)
 		require.NoError(t, err, "deleting a post the replica has not caught up on must not fail")
 	})
+
+	// Pinning goes through app.PatchPost, so it raced in both the handler's own lookup
+	// and the app layer's.
+	t.Run("pinPost", func(t *testing.T) {
+		post := createPostWithLaggingReplica(t)
+
+		_, err := th.Client.PinPost(context.Background(), post.Id)
+		require.NoError(t, err, "pinning a post the replica has not caught up on must not fail")
+	})
+
+	// app.UpdatePost is reached by callers that never touch the api4 handlers - the
+	// plugin API, interactive action responses, shared channel sync - so it has to pin
+	// its own lookup rather than rely on the handler having done it.
+	t.Run("app.UpdatePost directly", func(t *testing.T) {
+		post := createPostWithLaggingReplica(t)
+
+		edited := post.Clone()
+		edited.Message = "edited via app layer"
+		updated, _, appErr := th.App.UpdatePost(th.Context, edited, &model.UpdatePostOptions{SafeUpdate: false})
+		require.Nil(t, appErr, "app.UpdatePost must not depend on its caller having pinned the context")
+		require.Equal(t, "edited via app layer", updated.Message)
+	})
+
+	// Same for app.PatchPost.
+	t.Run("app.PatchPost directly", func(t *testing.T) {
+		post := createPostWithLaggingReplica(t)
+
+		patched, _, appErr := th.App.PatchPost(th.Context, post.Id, &model.PostPatch{
+			Message: model.NewPointer("patched via app layer"),
+		}, nil)
+		require.Nil(t, appErr, "app.PatchPost must not depend on its caller having pinned the context")
+		require.Equal(t, "patched via app layer", patched.Message)
+	})
 }

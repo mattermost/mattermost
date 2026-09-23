@@ -803,14 +803,9 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 
-	// Force reads in this request to master. A post is often deleted moments after it
-	// was written to master, so an unpinned lookup can be served by a replica that does
-	// not have the row yet and the delete fails with a spurious not-found. app.DeletePost
-	// and app.PermanentDeletePost already pin their own lookups; this covers the
-	// handler's, which runs first (MM-70867).
-	c.AppContext = c.AppContext.With(app.RequestContextWithMaster)
-
-	post, appErr := c.App.GetSinglePost(c.AppContext, c.Params.PostId, includeDeleted)
+	// Pin this lookup to master: the post may have been created milliseconds ago and
+	// a lagging read replica would report it missing (MM-70867).
+	post, appErr := c.App.GetSinglePost(c.AppContext.With(app.RequestContextWithMaster), c.Params.PostId, includeDeleted)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -1145,13 +1140,9 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Force reads in this request to master. The post being edited was written to
-	// master milliseconds earlier, so an unpinned lookup can be served by a replica
-	// that does not have the row yet; the resulting not-found surfaces to the user
-	// as a spurious 403 (MM-70867).
-	c.AppContext = c.AppContext.With(app.RequestContextWithMaster)
-
-	originalPost, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
+	// Pin this lookup to master: the post may have been created milliseconds ago and
+	// a lagging read replica would report it missing (MM-70867).
+	originalPost, err := c.App.GetSinglePost(c.AppContext.With(app.RequestContextWithMaster), c.Params.PostId, false)
 	if err != nil {
 		c.SetPermissionError(model.PermissionEditPost)
 		return
@@ -1262,12 +1253,6 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterAuditableToAuditRec(auditRec, "patch", &post)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
-	// Force reads in this request to master. The post being edited was written to
-	// master milliseconds earlier, so an unpinned lookup can be served by a replica
-	// that does not have the row yet; the resulting not-found surfaces to the user
-	// as a spurious 403 (MM-70867).
-	c.AppContext = c.AppContext.With(app.RequestContextWithMaster)
-
 	isMember := postPatchChecks(c, auditRec, &post)
 	if c.Err != nil {
 		return
@@ -1277,7 +1262,9 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	originalPost, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
+	// Pin this lookup to master: the post may have been created milliseconds ago and
+	// a lagging read replica would report it missing (MM-70867).
+	originalPost, err := c.App.GetSinglePost(c.AppContext.With(app.RequestContextWithMaster), c.Params.PostId, false)
 	if err != nil {
 		c.SetPermissionError(model.PermissionEditPost)
 		return
@@ -1314,7 +1301,9 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func postPatchChecks(c *Context, auditRec *model.AuditRecord, patch *model.PostPatch) bool {
-	originalPost, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
+	// Pin this lookup to master: the post may have been created milliseconds ago and
+	// a lagging read replica would report it missing (MM-70867).
+	originalPost, err := c.App.GetSinglePost(c.AppContext.With(app.RequestContextWithMaster), c.Params.PostId, false)
 	if err != nil {
 		c.SetPermissionError(model.PermissionEditPost)
 		return false
@@ -1421,7 +1410,9 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 	model.AddEventParameterToAuditRec(auditRec, "post_id", c.Params.PostId)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 
-	post, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
+	// Pin this lookup to master: the post may have been created milliseconds ago and
+	// a lagging read replica would report it missing (MM-70867).
+	post, err := c.App.GetSinglePost(c.AppContext.With(app.RequestContextWithMaster), c.Params.PostId, false)
 	if err != nil {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
