@@ -99,7 +99,7 @@ $menuWidth: 240px;
             // Adjustment to accomodate larger product icons
             margin-inline-end: 6px;
 
-            svg {
+            > svg {
                 width: 24px;
                 height: 24px;
                 color: var(--button-bg);
