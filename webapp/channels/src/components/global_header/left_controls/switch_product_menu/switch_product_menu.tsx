@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useEffect} from 'react';
 import {useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import type {ProductIdentifier} from '@mattermost/types/products';
 
+import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {getCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig, isCloudLicense} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
@@ -41,6 +42,8 @@ type Props = {
 export function SwitchProductMenu(props: Props) {
     const {formatMessage} = useIntl();
 
+    const dispatch = useDispatch();
+
     const config = useSelector(getConfig);
 
     const appDownloadLink = config.AppDownloadLink;
@@ -65,6 +68,12 @@ export function SwitchProductMenu(props: Props) {
     const isFreeTrialSubscription = subscription?.is_free_trial === 'true';
 
     const isChannelsProductActive = isChannels(props.productId);
+
+    // The menu contents unmount when the menu closes, so this has to live on the
+    // always-mounted menu to stay a single fetch per session.
+    useEffect(() => {
+        dispatch(getPrevTrialLicense());
+    }, [dispatch]);
 
     return (
         <Menu.Container

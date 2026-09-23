@@ -2,13 +2,12 @@
 // See LICENSE.txt for license information.
 
 import moment from 'moment';
-import React, {useEffect} from 'react';
+import React from 'react';
 import {FormattedDate, FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {ArrowUpBoldCircleOutlineIcon} from '@mattermost/compass-icons/components';
 
-import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {
     getCloudSubscription,
     getSubscriptionProduct,
@@ -41,10 +40,6 @@ export default function ProductSwitcherCloudTrialMenuItem(props: Props) {
     const someLimitNeedsAttention = Boolean(useGetHighestThresholdCloudLimit(useGetUsage(), useGetLimits()[0]));
 
     const {openPricingModal, isAirGapped} = useOpenPricingModal();
-
-    useEffect(() => {
-        dispatch(getPrevTrialLicense());
-    }, [dispatch]);
 
     // Don't show if not cloud
     if (!props.isCloudLicensed) {
