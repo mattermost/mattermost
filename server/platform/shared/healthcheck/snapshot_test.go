@@ -109,7 +109,6 @@ func TestNewSnapshotCopiesNodes(t *testing.T) {
 	require.Same(t, leader, gotLeader)
 
 	original[0] = &NodeSnapshot{Hostname: "mutated", IsLeader: false}
-	original = append(original, &NodeSnapshot{Hostname: "node-3"})
 
 	nodes = snapshot.Nodes()
 	require.Len(t, nodes, 2)
