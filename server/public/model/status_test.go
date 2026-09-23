@@ -12,16 +12,7 @@ import (
 )
 
 func TestStatus(t *testing.T) {
-	status := Status{
-		UserId:               NewId(),
-		Status:               StatusOutOfOffice,
-		Manual:               true,
-		LastActivityAt:       0,
-		ActiveChannel:        "123",
-		DNDEndTime:           0,
-		AutoResponderMessage: "I'm off today on PTO.",
-		PrevStatus:           "",
-	}
+	status := Status{NewId(), StatusOutOfOffice, true, 0, "123", 0, ""}
 	js, err := status.ToJSON()
 	assert.NoError(t, err)
 	var status2 Status
@@ -32,31 +23,13 @@ func TestStatus(t *testing.T) {
 	assert.Equal(t, status.Status, status2.Status, "Status should have matched")
 	assert.Equal(t, status.LastActivityAt, status2.LastActivityAt, "LastActivityAt should have matched")
 	assert.Equal(t, status.Manual, status2.Manual, "Manual should have matched")
-	assert.Equal(t, status.AutoResponderMessage, status2.AutoResponderMessage, "AutoResponderMessage should have matched")
 	assert.Equal(t, "", status2.ActiveChannel)
 }
 
 func TestStatusListToJSON(t *testing.T) {
 	statuses := []*Status{
-		{
-			UserId:               NewId(),
-			Status:               StatusOutOfOffice,
-			Manual:               true,
-			LastActivityAt:       0,
-			ActiveChannel:        "123",
-			DNDEndTime:           0,
-			AutoResponderMessage: "I'm off today on PTO.",
-			PrevStatus:           "",
-		},
-		{
-			UserId:         NewId(),
-			Status:         StatusOffline,
-			Manual:         true,
-			LastActivityAt: 0,
-			ActiveChannel:  "",
-			DNDEndTime:     0,
-			PrevStatus:     "",
-		},
+		{NewId(), StatusOutOfOffice, true, 0, "123", 0, ""},
+		{NewId(), StatusOffline, true, 0, "", 0, ""},
 	}
 	jsonStatuses, err := StatusListToJSON(statuses)
 	assert.NoError(t, err)
@@ -71,8 +44,5 @@ func TestStatusListToJSON(t *testing.T) {
 	assert.False(t, ok)
 	assert.Equal(t, statuses[0].ActiveChannel, "123")
 	assert.Equal(t, statuses[0].UserId, dat[0]["user_id"])
-	assert.Equal(t, statuses[0].AutoResponderMessage, dat[0]["auto_responder_message"])
 	assert.Equal(t, statuses[1].UserId, dat[1]["user_id"])
-	_, ok = dat[1]["auto_responder_message"]
-	assert.False(t, ok)
 }

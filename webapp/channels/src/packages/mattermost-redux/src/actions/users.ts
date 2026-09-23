@@ -650,14 +650,12 @@ export function getStatusesByIds(userIds: Array<UserProfile['id']>): ActionFuncA
         const dndEndTimes: Record<UserProfile['id'], UserStatus['dnd_end_time']> = {};
         const isManualStatuses: Record<UserProfile['id'], UserStatus['manual']> = {};
         const lastActivity: Record<UserProfile['id'], UserStatus['last_activity_at']> = {};
-        const autoResponderMessages: Record<UserProfile['id'], UserStatus['auto_responder_message']> = {};
 
         for (const receivedStatus of receivedStatuses) {
             statuses[receivedStatus.user_id] = receivedStatus?.status ?? '';
             dndEndTimes[receivedStatus.user_id] = receivedStatus?.dnd_end_time ?? 0;
             isManualStatuses[receivedStatus.user_id] = receivedStatus?.manual ?? false;
             lastActivity[receivedStatus.user_id] = receivedStatus?.last_activity_at ?? 0;
-            autoResponderMessages[receivedStatus.user_id] = receivedStatus?.auto_responder_message ?? '';
         }
 
         dispatch(batchActions([
@@ -676,10 +674,6 @@ export function getStatusesByIds(userIds: Array<UserProfile['id']>): ActionFuncA
             {
                 type: UserTypes.RECEIVED_LAST_ACTIVITIES,
                 data: lastActivity,
-            },
-            {
-                type: UserTypes.RECEIVED_AUTO_RESPONDER_MESSAGES,
-                data: autoResponderMessages,
             },
         ],
         'BATCHING_STATUSES',
@@ -704,7 +698,6 @@ export function setStatus(status: UserStatus): ActionFuncAsync<UserStatus> {
         const dndEndTimes = {[receivedStatus.user_id]: receivedStatus?.dnd_end_time ?? 0};
         const isManualStatus = {[receivedStatus.user_id]: receivedStatus?.manual ?? false};
         const lastActivity = {[receivedStatus.user_id]: receivedStatus?.last_activity_at ?? 0};
-        const autoResponderMessages = {[receivedStatus.user_id]: receivedStatus?.auto_responder_message ?? ''};
 
         dispatch(batchActions([
             {
@@ -722,10 +715,6 @@ export function setStatus(status: UserStatus): ActionFuncAsync<UserStatus> {
             {
                 type: UserTypes.RECEIVED_LAST_ACTIVITIES,
                 data: lastActivity,
-            },
-            {
-                type: UserTypes.RECEIVED_AUTO_RESPONDER_MESSAGES,
-                data: autoResponderMessages,
             },
         ], 'BATCHING_STATUS'));
 

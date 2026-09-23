@@ -1191,7 +1191,6 @@ describe('Reducers.users', () => {
         let state: UsersState = {
             currentUserId: '',
             dndEndTimes: {},
-            autoResponderMessages: {},
             mySessions: [],
             myAudits: [],
             myUserAccessTokens: {},
@@ -1240,7 +1239,6 @@ describe('Reducers.users', () => {
         expect(nextState).toEqual({
             currentUserId: '',
             dndEndTimes: {},
-            autoResponderMessages: {},
             mySessions: [],
             myAudits: [],
             myUserAccessTokens: {},
@@ -1283,7 +1281,6 @@ describe('dndEndTimes', () => {
 
         const usersState1 = deepFreezeAndThrowOnMutation({
             dndEndTimes: {},
-            autoResponderMessages: {},
         }) as UsersState;
         expect(reducer(usersState1, {} as any).dndEndTimes).toBe(usersState1.dndEndTimes);
 
@@ -1556,49 +1553,6 @@ describe('lastActivity', () => {
             test_user_id_2: 20,
             test_user_id_3: 30,
             test_user_id_4: 4,
-        });
-    });
-});
-
-describe('autoResponderMessages', () => {
-    const initialState = {} as UsersState;
-
-    test('should return the initial state', () => {
-        expect(reducer(initialState, {} as any).autoResponderMessages).toEqual({});
-        expect(reducer(undefined, {} as any).autoResponderMessages).toEqual({});
-
-        const state = deepFreezeAndThrowOnMutation({
-            autoResponderMessages: {
-                test_user_id: 'Out of office',
-            },
-        }) as UsersState;
-        expect(reducer(state, {} as any).autoResponderMessages).toBe(state.autoResponderMessages);
-    });
-
-    test('should store auto responder messages', () => {
-        const action1 = {
-            type: UserTypes.RECEIVED_AUTO_RESPONDER_MESSAGES,
-            data: {
-                test_user_id: "I'm off today on PTO.",
-            },
-        };
-        expect(reducer(initialState, action1).autoResponderMessages).toEqual({
-            test_user_id: "I'm off today on PTO.",
-        });
-
-        const state = deepFreezeAndThrowOnMutation({
-            autoResponderMessages: {
-                test_user_id: "I'm off today on PTO.",
-            },
-        }) as UsersState;
-        const action2 = {
-            type: UserTypes.RECEIVED_AUTO_RESPONDER_MESSAGES,
-            data: {
-                test_user_id: '',
-            },
-        };
-        expect(reducer(state, action2).autoResponderMessages).toEqual({
-            test_user_id: '',
         });
     });
 });

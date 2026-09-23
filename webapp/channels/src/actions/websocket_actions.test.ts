@@ -26,7 +26,7 @@ import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
 import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/status_profile_polling';
 import {getUser} from 'mattermost-redux/actions/users';
 import {getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
-import {getAutoResponderMessageForUserId, getStatusForUserId, getUser as stateUser} from 'mattermost-redux/selectors/entities/users';
+import {getStatusForUserId, getUser as stateUser} from 'mattermost-redux/selectors/entities/users';
 
 import {handleNewPost} from 'actions/post_actions';
 import {syncPostsInChannel} from 'actions/views/channel';
@@ -1638,7 +1638,6 @@ describe('handleStatusChangedEvent', () => {
                     statuses: {
                         [currentUserId]: 'online',
                     },
-                    autoResponderMessages: {},
                 },
             },
         };
@@ -1678,34 +1677,6 @@ describe('handleStatusChangedEvent', () => {
         })));
 
         expect(getStatusForUserId(testStore.getState(), currentUserId)).toBe(UserStatuses.OFFLINE);
-    });
-
-    test('should store and clear auto responder message with status changes', () => {
-        const testStore = realConfigureStore(makeInitialState());
-        const message = "I'm off today on PTO.";
-
-        testStore.dispatch(handleStatusChangedEvent(wsMessage<WebSocketMessages.StatusChanged>({
-            event: WebSocketEvents.StatusChange,
-            data: {
-                user_id: currentUserId,
-                status: UserStatuses.OUT_OF_OFFICE,
-                auto_responder_message: message,
-            },
-        })));
-
-        expect(getStatusForUserId(testStore.getState(), currentUserId)).toBe(UserStatuses.OUT_OF_OFFICE);
-        expect(getAutoResponderMessageForUserId(testStore.getState(), currentUserId)).toBe(message);
-
-        testStore.dispatch(handleStatusChangedEvent(wsMessage<WebSocketMessages.StatusChanged>({
-            event: WebSocketEvents.StatusChange,
-            data: {
-                user_id: currentUserId,
-                status: UserStatuses.ONLINE,
-            },
-        })));
-
-        expect(getStatusForUserId(testStore.getState(), currentUserId)).toBe(UserStatuses.ONLINE);
-        expect(getAutoResponderMessageForUserId(testStore.getState(), currentUserId)).toBe('');
     });
 });
 

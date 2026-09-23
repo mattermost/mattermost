@@ -16,7 +16,7 @@ import {getChannel, makeGetChannel, getDirectChannel} from 'mattermost-redux/sel
 import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {get, getBool, getInt, getWysiwygEditorPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
-import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, getUser, getAutoResponderMessageForUserId, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, getUser, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
 
 import * as GlobalActions from 'actions/global_actions';
 import type {CreatePostOptions} from 'actions/post_actions';
@@ -206,9 +206,6 @@ const AdvancedTextEditor = ({
         }
         return getStatusForUserId(state, teammateId) === UserStatuses.OUT_OF_OFFICE;
     });
-    const autoReplyMessage = useSelector((state: GlobalState) => (
-        showOooWarning && teammateId ? getAutoResponderMessageForUserId(state, teammateId) : ''
-    ));
     const selectedPostFocussedAt = useSelector((state: GlobalState) => getSelectedPostFocussedAt(state));
     const aiActionMenuItems = useSelector((state: GlobalState) => state.plugins.components.AIActionMenuItem);
     const {available: aiRewriteEnabled} = useGetAgentsBridgeEnabled();
@@ -902,12 +899,7 @@ const AdvancedTextEditor = ({
                 <FileLimitStickyBanner/>
             )}
             {showDndWarning && <DoNotDisturbWarning displayName={teammateDisplayName}/>}
-            {showOooWarning && (
-                <OutOfOfficeWarning
-                    displayName={teammateDisplayName}
-                    autoReplyMessage={autoReplyMessage}
-                />
-            )}
+            {showOooWarning && <OutOfOfficeWarning displayName={teammateDisplayName}/>}
             {!isInEditMode && (
                 <PostBoxIndicator
                     channelId={channelId}

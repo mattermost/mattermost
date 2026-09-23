@@ -11,7 +11,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 )
@@ -211,9 +210,6 @@ func (ps *PlatformService) BroadcastStatus(status *model.Status) {
 	event := model.NewWebSocketEvent(model.WebsocketEventStatusChange, "", "", status.UserId, nil, "")
 	event.Add("status", status.Status)
 	event.Add("user_id", status.UserId)
-	if status.Status == model.StatusOutOfOffice && status.AutoResponderMessage != "" {
-		event.Add("auto_responder_message", status.AutoResponderMessage)
-	}
 	ps.Publish(event)
 }
 
@@ -582,13 +578,6 @@ func (ps *PlatformService) SetStatusOutOfOffice(userID string) {
 
 	status.Status = model.StatusOutOfOffice
 	status.Manual = true
-	status.AutoResponderMessage = ""
-
-	if user, userErr := ps.Store.User().Get(request.EmptyContext(ps.logger), userID); userErr == nil && user.NotifyProps != nil {
-		if user.NotifyProps[model.AutoResponderActiveNotifyProp] == "true" {
-			status.AutoResponderMessage = user.NotifyProps[model.AutoResponderMessageNotifyProp]
-		}
-	}
 
 	ps.SaveAndBroadcastStatus(status)
 	if ps.sharedChannelService != nil {

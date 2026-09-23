@@ -14,56 +14,7 @@ import (
 
 // GetUserStatusesByIds used by apiV4
 func (a *App) GetUserStatusesByIds(userIDs []string) ([]*model.Status, *model.AppError) {
-	statuses, err := a.Srv().Platform().GetUserStatusesByIds(userIDs)
-	if err != nil {
-		return nil, err
-	}
-
-	a.enrichStatusesWithAutoResponderMessages(statuses)
-	return statuses, nil
-}
-
-// enrichStatusesWithAutoResponderMessages attaches auto-reply text for users whose status is out of office.
-func (a *App) enrichStatusesWithAutoResponderMessages(statuses []*model.Status) {
-	oooUserIDs := make([]string, 0, len(statuses))
-	for _, status := range statuses {
-		if status == nil {
-			continue
-		}
-		if status.Status == model.StatusOutOfOffice {
-			oooUserIDs = append(oooUserIDs, status.UserId)
-		} else {
-			status.AutoResponderMessage = ""
-		}
-	}
-	if len(oooUserIDs) == 0 {
-		return
-	}
-
-	users, err := a.Srv().Store().User().GetMany(request.EmptyContext(a.Log()), oooUserIDs)
-	if err != nil {
-		a.Log().Warn("Failed to load users for out-of-office auto-responder enrichment", mlog.Err(err))
-		return
-	}
-
-	userMap := make(map[string]*model.User, len(users))
-	for _, user := range users {
-		userMap[user.Id] = user
-	}
-
-	for _, status := range statuses {
-		if status == nil || status.Status != model.StatusOutOfOffice {
-			continue
-		}
-
-		user := userMap[status.UserId]
-		if user == nil || user.NotifyProps == nil || user.NotifyProps[model.AutoResponderActiveNotifyProp] != "true" {
-			status.AutoResponderMessage = ""
-			continue
-		}
-
-		status.AutoResponderMessage = user.NotifyProps[model.AutoResponderMessageNotifyProp]
-	}
+	return a.Srv().Platform().GetUserStatusesByIds(userIDs)
 }
 
 // SetStatusLastActivityAt sets the last activity at for a user on the local app server and updates
@@ -119,10 +70,6 @@ func (a *App) UpdateDNDStatusOfUsers() {
 		mlog.Warn("Failed to fetch dnd statues from store", mlog.String("err", err.Error()))
 		return
 	}
-
-	// Restored statuses can be ooo (PrevStatus). Enrich before broadcast so clients
-	// receive auto_responder_message the same way as GetUserStatusesByIds.
-	a.enrichStatusesWithAutoResponderMessages(statuses)
 
 	scs, _ := a.getSharedChannelsService(false)
 	for i := range statuses {

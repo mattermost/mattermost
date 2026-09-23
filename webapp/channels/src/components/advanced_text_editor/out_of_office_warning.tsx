@@ -6,7 +6,6 @@ import {FormattedMessage} from 'react-intl';
 import styled from 'styled-components';
 
 import {CancelIcon} from '@mattermost/compass-icons/components';
-import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 const Container = styled.div`
     display: flex;
@@ -27,15 +26,13 @@ const Icon = styled(CancelIcon)`
 
 type Props = {
     displayName: string;
-    autoReplyMessage?: string;
 };
 
-const OutOfOfficeWarning = ({displayName, autoReplyMessage}: Props) => {
-    const banner = (
+const OutOfOfficeWarning = ({displayName}: Props) => {
+    return (
         <Container
             className='OutOfOfficeWarning'
             data-testid='outOfOfficeWarning'
-            tabIndex={autoReplyMessage ? 0 : undefined}
         >
             <Icon
                 size={14}
@@ -47,16 +44,6 @@ const OutOfOfficeWarning = ({displayName, autoReplyMessage}: Props) => {
                 values={{displayName}}
             />
         </Container>
-    );
-
-    if (!autoReplyMessage) {
-        return banner;
-    }
-
-    return (
-        <WithTooltip title={autoReplyMessage}>
-            {banner}
-        </WithTooltip>
     );
 };
 
