@@ -89,19 +89,20 @@ $menuWidth: 240px;
         padding-left: 16px;
 
         &[role="menuitem"] > .leading-element {
-            // Adjustment to accomodate larger product icons
-            margin-inline-end: 6px;
-            
             display: flex;
             width: 24px;
             height: 24px;
             align-items: center;
             justify-content: center;
             color: var(--button-bg);
-            
+
+            // Adjustment to accomodate larger product icons
+            margin-inline-end: 6px;
+
             svg {
                 width: 24px;
                 height: 24px;
+                color: var(--button-bg);
                 fill: var(--button-bg);
             }
         }
