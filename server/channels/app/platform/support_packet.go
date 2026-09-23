@@ -82,12 +82,10 @@ var diagnosticsYAMLComments = yaml.CommentMap{
 func (ps *PlatformService) GenerateSupportPacket(rctx request.CTX, options *model.SupportPacketOptions) ([]model.FileData, error) {
 	functions := map[string]func(request.CTX) (*model.FileData, error){
 		"diagnostics": func(rctx request.CTX) (*model.FileData, error) {
-			diagnostics, err := ps.getSupportPacketDiagnostics(rctx)
-			return YAMLFile("diagnostics.yaml", diagnostics, err, yaml.WithComment(diagnosticsYAMLComments))
+			return supportPacketDiagnosticsFile(ps.getSupportPacketDiagnostics(rctx))
 		},
 		"config": func(rctx request.CTX) (*model.FileData, error) {
-			config, err := ps.getSupportPacketConfig(rctx)
-			return JSONFile("sanitized_config.json", config, err)
+			return supportPacketConfigFile(ps.getSupportPacketConfig(rctx))
 		},
 		"heap profile": ps.getHeapProfile,
 		"goroutines":   ps.getGoroutineProfile,
@@ -140,6 +138,14 @@ func (ps *PlatformService) GenerateSupportPacket(rctx request.CTX, options *mode
 	}
 
 	return fileDatas, rErr.ErrorOrNil()
+}
+
+func supportPacketDiagnosticsFile(d *model.SupportPacketDiagnostics, err error) (*model.FileData, error) {
+	return YAMLFile("diagnostics.yaml", d, err, yaml.WithComment(diagnosticsYAMLComments))
+}
+
+func supportPacketConfigFile(c *model.SupportPacketConfig, err error) (*model.FileData, error) {
+	return JSONFile("sanitized_config.json", c, err)
 }
 
 func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model.SupportPacketDiagnostics, error) {
