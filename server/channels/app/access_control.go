@@ -26,9 +26,7 @@ const accessControlChildPolicySearchLimit = 1000
 // no license check, so the render-ETag and cache-invalidation gates can never be narrower than the
 // sanitization they keep in step with.
 func attributeBasedAccessControlEnabled(cfg *model.Config) bool {
-	return cfg.FeatureFlags.PermissionPolicies &&
-		cfg.AccessControlSettings.EnableAttributeBasedAccessControl != nil &&
-		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl
+	return model.SafeDereference(cfg.AccessControlSettings.EnableAttributeBasedAccessControl)
 }
 
 func (a *App) attributeBasedAccessControlEnabled() bool {
