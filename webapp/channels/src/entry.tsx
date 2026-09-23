@@ -26,15 +26,12 @@ declare global {
 // This runs before we start to render anything.
 function preRenderSetup(onPreRenderSetupReady: () => void) {
     registerGlobalErrorHandlers();
-
     setCSRFFromCookie();
-
     onPreRenderSetupReady();
 }
 
 function renderReactRootComponent() {
     const container = document.getElementById('root')!;
-
     ReactDOMClient.createRoot(container).render(<App/>);
 }
 

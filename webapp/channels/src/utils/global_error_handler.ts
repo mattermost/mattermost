@@ -53,8 +53,6 @@ function handleUnhandledRejection(event: PromiseRejectionEvent) {
     );
 }
 
-// Registered additively rather than via window.onerror so that a plugin or extension assigning to
-// that single global slot cannot silently disable all webapp error reporting.
 export function registerGlobalErrorHandlers() {
     window.addEventListener('error', handleError);
     window.addEventListener('unhandledrejection', handleUnhandledRejection);
