@@ -5401,7 +5401,7 @@ func TestGetLoginType(t *testing.T) {
 		return resp.StatusCode, body
 	}
 
-	t.Run("returns the login type when guest magic link is available", func(t *testing.T) {
+	t.Run("returns an empty login type for a password account when guest magic link is available", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicense("guest_accounts"))
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.GuestAccountsSettings.Enable = true

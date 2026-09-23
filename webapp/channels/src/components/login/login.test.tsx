@@ -2,10 +2,12 @@
 // See LICENSE.txt for license information.
 
 import {createMemoryHistory} from 'history';
+import nock from 'nock';
 import React from 'react';
 
 import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 
+import {Client4} from 'mattermost-redux/client';
 import {RequestStatus} from 'mattermost-redux/constants';
 
 import * as loginActions from 'actions/views/login';
@@ -14,7 +16,8 @@ import LocalStorageStore from 'stores/local_storage_store';
 import Login from 'components/login/login';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import TestHelper from 'packages/mattermost-redux/test/test_helper';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import Constants, {WindowSizes} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {showNotification} from 'utils/notifications';
@@ -111,6 +114,13 @@ describe('components/login/Login', () => {
 
     beforeEach(() => {
         LocalStorageStore.setWasLoggedIn(false);
+    });
+
+    afterEach(() => {
+        // Spies on the login actions would otherwise leak into tests that drive the real
+        // thunks over HTTP.
+        jest.restoreAllMocks();
+        nock.cleanAll();
     });
 
     it('should match snapshot', () => {
@@ -531,14 +541,15 @@ describe('components/login/Login', () => {
             expect(mockGetUserLoginType).toHaveBeenCalledWith('user@example.com');
         });
 
-        it('should show error when getUserLoginType fails', async () => {
-            // Mock the getUserLoginType to return an error
-            const mockGetUserLoginType = jest.fn().mockReturnValue(async () => ({
-                error: {
-                    message: 'Network error',
-                },
-            }));
-            jest.spyOn(loginActions, 'getUserLoginType').mockImplementation(mockGetUserLoginType);
+        it('should show the server error when the login type request fails', async () => {
+            TestHelper.initBasic(Client4);
+            nock(Client4.getBaseRoute()).
+                post('/users/login/type').
+                reply(404, {
+                    id: 'api.user.login.guest_magic_link.disabled.error',
+                    message: 'Login with magic link is disabled.',
+                    status_code: 404,
+                });
 
             renderWithContext(
                 <Login/>,
@@ -550,8 +561,27 @@ describe('components/login/Login', () => {
 
             await userEvent.click(screen.getByRole('button', {name: 'Log in'}));
 
-            // Should show error message
-            expect(await screen.findByText('Network error')).toBeVisible();
+            expect(await screen.findByText('Login with magic link is disabled.')).toBeVisible();
+        });
+
+        it('should show an invalid response error when the login type request returns an empty body', async () => {
+            TestHelper.initBasic(Client4);
+            nock(Client4.getBaseRoute()).
+                post('/users/login/type').
+                reply(404, '', {'Content-Type': 'application/json'});
+
+            renderWithContext(
+                <Login/>,
+                magicLinkState,
+            );
+
+            const emailInput = screen.getByLabelText('Email');
+            await userEvent.type(emailInput, 'user@example.com');
+
+            await userEvent.click(screen.getByRole('button', {name: 'Log in'}));
+
+            expect(await screen.findByText('Received invalid response from the server.')).toBeVisible();
+            expect(screen.queryByLabelText('Password')).not.toBeInTheDocument();
         });
 
         it('should focus password field after it appears when password is required', async () => {
@@ -578,9 +608,7 @@ describe('components/login/Login', () => {
             const passwordField = await screen.findByLabelText('Password');
             expect(passwordField).toBeVisible();
 
-            // Wait for focus to be set (setTimeout in the code)
-            await new Promise((resolve) => setTimeout(resolve, 150));
-            expect(passwordField).toHaveFocus();
+            await waitFor(() => expect(passwordField).toHaveFocus());
         });
 
         it('should submit with password when password field is shown', async () => {
@@ -683,8 +711,36 @@ describe('components/login/Login', () => {
             expect(screen.queryByLabelText('Password')).not.toBeInTheDocument();
         });
 
+        // The server serves the login type pre-check only while guest accounts are licensed
+        // and enabled, and answers a bare 404 otherwise. Leaving that response nocked but
+        // unconsumed is how these tests prove the pre-check is skipped rather than failing.
+        const expectPasswordLoginWithoutPreCheck = async (state: GlobalState) => {
+            TestHelper.initBasic(Client4);
+            const preCheck = nock(Client4.getBaseRoute()).
+                post('/users/login/type').
+                reply(404, '', {'Content-Type': 'application/json'});
+
+            const mockLogin = jest.fn().mockReturnValue(async () => ({
+                data: true,
+            }));
+            jest.spyOn(loginActions, 'login').mockImplementation(mockLogin);
+
+            renderWithContext(
+                <Login/>,
+                state,
+            );
+
+            await userEvent.type(screen.getByLabelText('Email'), 'user@example.com');
+            await userEvent.type(screen.getByLabelText('Password'), 'password123');
+            await userEvent.click(screen.getByRole('button', {name: 'Log in'}));
+
+            expect(mockLogin).toHaveBeenCalledWith('user@example.com', 'password123', undefined);
+            expect(screen.queryByText('Received invalid response from the server.')).not.toBeInTheDocument();
+            expect(preCheck.isDone()).toBe(false);
+        };
+
         it('should log in with a password when guest accounts are disabled but EnableGuestMagicLink is true', async () => {
-            const state = mergeObjects(magicLinkState, {
+            await expectPasswordLoginWithoutPreCheck(mergeObjects(magicLinkState, {
                 entities: {
                     general: {
                         config: {
@@ -692,32 +748,11 @@ describe('components/login/Login', () => {
                         },
                     },
                 },
-            });
-
-            const mockGetUserLoginType = jest.fn();
-            jest.spyOn(loginActions, 'getUserLoginType').mockImplementation(mockGetUserLoginType);
-
-            const mockLogin = jest.fn().mockReturnValue(async () => ({
-                data: true,
             }));
-            jest.spyOn(loginActions, 'login').mockImplementation(mockLogin);
-
-            renderWithContext(
-                <Login/>,
-                state,
-            );
-
-            await userEvent.type(screen.getByLabelText('Email'), 'user@example.com');
-            await userEvent.type(screen.getByLabelText('Password'), 'password123');
-            await userEvent.click(screen.getByRole('button', {name: 'Log in'}));
-
-            expect(mockLogin).toHaveBeenCalledWith('user@example.com', 'password123', undefined);
-            expect(mockGetUserLoginType).not.toHaveBeenCalled();
-            expect(screen.queryByRole('button', {name: 'Close'})).not.toBeInTheDocument();
         });
 
         it('should log in with a password when the license does not include guest accounts', async () => {
-            const state = mergeObjects(magicLinkState, {
+            await expectPasswordLoginWithoutPreCheck(mergeObjects(magicLinkState, {
                 entities: {
                     general: {
                         license: {
@@ -725,28 +760,7 @@ describe('components/login/Login', () => {
                         },
                     },
                 },
-            });
-
-            const mockGetUserLoginType = jest.fn();
-            jest.spyOn(loginActions, 'getUserLoginType').mockImplementation(mockGetUserLoginType);
-
-            const mockLogin = jest.fn().mockReturnValue(async () => ({
-                data: true,
             }));
-            jest.spyOn(loginActions, 'login').mockImplementation(mockLogin);
-
-            renderWithContext(
-                <Login/>,
-                state,
-            );
-
-            await userEvent.type(screen.getByLabelText('Email'), 'user@example.com');
-            await userEvent.type(screen.getByLabelText('Password'), 'password123');
-            await userEvent.click(screen.getByRole('button', {name: 'Log in'}));
-
-            expect(mockLogin).toHaveBeenCalledWith('user@example.com', 'password123', undefined);
-            expect(mockGetUserLoginType).not.toHaveBeenCalled();
-            expect(screen.queryByRole('button', {name: 'Close'})).not.toBeInTheDocument();
         });
     });
 });
