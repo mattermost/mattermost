@@ -1398,9 +1398,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 const templateFields = await adminClient.getPropertyFields(
                     'access_control',
                     'template',
-                    'system',
-                    undefined,
-                    {perPage: 200},
+                    {targetType: 'system', perPage: 200},
                 );
                 const templateField = templateFields.find((f) => f.name === expectedName && f.delete_at === 0);
                 expect(templateField).toBeDefined();
@@ -1848,11 +1846,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 const templates = await adminClient.getPropertyFields(
                     'access_control',
                     'template',
-                    'system',
-                    undefined,
-                    {
-                        perPage: 200,
-                    },
+                    {targetType: 'system', perPage: 200},
                 );
                 expect(templates.some((template) => template.id === field.id && template.delete_at === 0)).toBe(true);
             } finally {
@@ -2128,11 +2122,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 const templates = await adminClient.getPropertyFields(
                     'access_control',
                     'template',
-                    'system',
-                    undefined,
-                    {
-                        perPage: 200,
-                    },
+                    {targetType: 'system', perPage: 200},
                 );
                 const stillRenaming = templates.find((f) => f.id === renamingField.id);
                 expect(stillRenaming?.name).toBe(renamingName);
@@ -2214,11 +2204,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 const templates = await adminClient.getPropertyFields(
                     'access_control',
                     'template',
-                    'system',
-                    undefined,
-                    {
-                        perPage: 200,
-                    },
+                    {targetType: 'system', perPage: 200},
                 );
                 const updated = templates.find((f) => f.id === field.id);
                 const optionNames = (updated?.attrs?.options as Array<{name: string}> | undefined)
