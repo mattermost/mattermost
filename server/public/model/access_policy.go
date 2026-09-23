@@ -184,22 +184,6 @@ func (p *AccessControlPolicy) HasPermissionRuleAction() bool {
 	return false
 }
 
-// HasCreateBurnOnReadPostAction reports whether any rule on this policy carries
-// the create_burn_on_read_post action. API4 uses it to gate the action behind its
-// own BurnOnReadABACPermission flag, for every policy type. Safe to call on a nil
-// policy.
-func (p *AccessControlPolicy) HasCreateBurnOnReadPostAction() bool {
-	if p == nil {
-		return false
-	}
-	for i := range p.Rules {
-		if slices.Contains(p.Rules[i].Actions, AccessControlPolicyActionCreateBurnOnReadPost) {
-			return true
-		}
-	}
-	return false
-}
-
 // AccessControlAttribute represents a user attribute with its name and possible values
 type AccessControlAttribute struct {
 	Attribute PropertyField `json:"attribute"`

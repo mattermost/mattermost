@@ -435,43 +435,16 @@ describe('Selectors.General', () => {
             expect(Selectors.isPolicySimulationEnabled(state)).toBe(true);
         });
 
-        test('isBurnOnReadABACPermissionEnabled returns false when umbrella is off', () => {
-            const state = buildState({
-                FeatureFlagPermissionPolicies: 'false',
-                FeatureFlagBurnOnReadABACPermission: 'true',
-            });
-            expect(Selectors.isBurnOnReadABACPermissionEnabled(state)).toBe(false);
-        });
-
-        test('isBurnOnReadABACPermissionEnabled returns false when sub-flag is off', () => {
-            const state = buildState({
-                FeatureFlagPermissionPolicies: 'true',
-                FeatureFlagBurnOnReadABACPermission: 'false',
-            });
-            expect(Selectors.isBurnOnReadABACPermissionEnabled(state)).toBe(false);
-        });
-
-        test('isBurnOnReadABACPermissionEnabled returns true only when both flags are on', () => {
-            const state = buildState({
-                FeatureFlagPermissionPolicies: 'true',
-                FeatureFlagBurnOnReadABACPermission: 'true',
-            });
-            expect(Selectors.isBurnOnReadABACPermissionEnabled(state)).toBe(true);
-        });
-
-        test('the sub-flags toggle independently', () => {
-            // Enabling one sub-flag must not imply any of the others
-            // is on. Each governs a distinct surface, and the server
-            // rejects the corresponding request with 501 on its own.
+        test('the two sub-flags toggle independently', () => {
+            // Enabling channel-scope permission policies must not
+            // imply that simulation is on (and vice versa).
             const state = buildState({
                 FeatureFlagPermissionPolicies: 'true',
                 FeatureFlagChannelPermissionPolicies: 'true',
                 FeatureFlagPolicySimulation: 'false',
-                FeatureFlagBurnOnReadABACPermission: 'false',
             });
             expect(Selectors.isChannelPermissionPoliciesEnabled(state)).toBe(true);
             expect(Selectors.isPolicySimulationEnabled(state)).toBe(false);
-            expect(Selectors.isBurnOnReadABACPermissionEnabled(state)).toBe(false);
         });
     });
 

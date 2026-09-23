@@ -74,10 +74,6 @@ func postBurnOnReadCheckWithContext(where string, c *Context, post *model.Post, 
 		return
 	}
 
-	if !c.App.Config().FeatureFlags.IsBurnOnReadABACPermissionEnabled() {
-		return
-	}
-
 	if !c.App.HasPermissionToChannelAction(c.AppContext, post.UserId, c.AppContext.Session().Roles, post.ChannelId, model.AccessControlPolicyActionCreateBurnOnReadPost) {
 		c.Err = model.NewAppError(where, "api.post.create_post.burn_on_read.abac_denied.app_error", nil, "", http.StatusForbidden)
 	}

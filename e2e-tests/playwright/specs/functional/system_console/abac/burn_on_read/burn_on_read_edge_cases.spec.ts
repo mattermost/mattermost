@@ -45,7 +45,7 @@ test.beforeEach(async ({pw}) => {
     // Without this the allow-side assertions pass for the wrong reason: with the flag off
     // the client suppresses the decision request and defaults to allowed, so the control
     // is present regardless of policy.
-    await requireFeatureFlag(pw, 'BurnOnReadABACPermission');
+    await requireFeatureFlag(pw, 'PermissionPolicies');
 });
 
 test.afterEach(async () => {

@@ -125,25 +125,14 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 
 	// Channel-scope policies are always available, but a channel policy
 	// that carries a permission-rule action (upload_file_attachment,
-	// download_file_attachment) is gated behind the channel-level
-	// sub-flag — that's the toggle that exposes the Channel Settings →
-	// Permissions Policy tab on the frontend. Membership-only channel
-	// policies stay unaffected. Helper enforces the PermissionPolicies
-	// umbrella too, so a request slipping in with the sub-flag on but
-	// the umbrella off is also rejected here.
+	// download_file_attachment, create_burn_on_read_post) is gated behind
+	// the channel-level sub-flag — that's the toggle that exposes the
+	// Channel Settings → Permissions Policy tab on the frontend.
+	// Membership-only channel policies stay unaffected. Helper enforces the
+	// PermissionPolicies umbrella too, so a request slipping in with the
+	// sub-flag on but the umbrella off is also rejected here.
 	if policy.Type == model.AccessControlPolicyTypeChannel && policy.HasPermissionRuleAction() && !c.App.Config().FeatureFlags.IsChannelPermissionPoliciesEnabled() {
 		c.Err = model.NewAppError("createAccessControlPolicy", "api.access_control_policy.channel_permission_policies.feature_disabled", nil, "", http.StatusNotImplemented)
-		return
-	}
-
-	// create_burn_on_read_post carries its own sub-flag, checked for every policy
-	// type rather than just the two the admin console authors: the action is
-	// meaningless while the flag is off, so storing a policy that claims to govern
-	// burn-on-read would mislead whoever reads it back. Deliberately last of the
-	// three gates, so the broader "permission policies are off entirely" and
-	// "channel permission rules are off" rejections win when they also apply.
-	if policy.HasCreateBurnOnReadPostAction() && !c.App.Config().FeatureFlags.IsBurnOnReadABACPermissionEnabled() {
-		c.Err = model.NewAppError("createAccessControlPolicy", "api.access_control_policy.create_burn_on_read_post.feature_disabled", nil, "", http.StatusNotImplemented)
 		return
 	}
 

@@ -31,7 +31,6 @@ func setupBurnOnReadABAC(t *testing.T, borAllowed bool) *TestHelper {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.FeatureFlags.BurnOnRead = true
 		cfg.FeatureFlags.PermissionPolicies = true
-		cfg.FeatureFlags.BurnOnReadABACPermission = true
 		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
 		*cfg.ServiceSettings.ScheduledPosts = true
 	})
@@ -211,13 +210,13 @@ func TestBurnOnReadABACEnforcementAllows(t *testing.T) {
 	})
 }
 
-// With the sub-flag off the action is not evaluated at all, so a PDP that would
-// deny it has no effect. This is the client-side gate's counterpart: the webapp
-// hides the row, and the server behaves as though the action does not exist.
-func TestBurnOnReadABACEnforcementSkippedWhenFlagOff(t *testing.T) {
+// With PermissionPolicies off the action is not evaluated at all, so a PDP that
+// would deny it has no effect. This is the client-side gate's counterpart: the
+// webapp hides the row, and the server behaves as though the action does not exist.
+func TestBurnOnReadABACEnforcementSkippedWhenPermissionPoliciesOff(t *testing.T) {
 	th := setupBurnOnReadABAC(t, false)
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.FeatureFlags.BurnOnReadABACPermission = false
+		cfg.FeatureFlags.PermissionPolicies = false
 	})
 
 	created, resp, err := th.Client.CreatePost(context.Background(), &model.Post{

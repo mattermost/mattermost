@@ -10,7 +10,6 @@ import type {PostType} from '@mattermost/types/posts';
 
 import {PostTypes} from 'mattermost-redux/constants/posts';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {isBurnOnReadABACPermissionEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
 import {
@@ -33,11 +32,6 @@ jest.mock('selectors/burn_on_read', () => ({
 
 jest.mock('mattermost-redux/selectors/entities/channels', () => ({
     getChannel: jest.fn(),
-}));
-
-jest.mock('mattermost-redux/selectors/entities/general', () => ({
-    ...jest.requireActual('mattermost-redux/selectors/entities/general'),
-    isBurnOnReadABACPermissionEnabled: jest.fn(),
 }));
 
 // Mocked rather than driven through redux state: the hook's own test file covers the
@@ -107,7 +101,6 @@ describe('useBurnOnRead', () => {
         (isBurnOnReadEnabled as jest.Mock).mockReturnValue(true);
         (getBurnOnReadDurationMinutes as jest.Mock).mockReturnValue(10);
         (getCurrentUser as jest.Mock).mockReturnValue({id: 'user-id', is_bot: false});
-        (isBurnOnReadABACPermissionEnabled as jest.Mock).mockReturnValue(true);
         (useCreateBurnOnReadAccess as jest.Mock).mockReturnValue(true);
     });
 

@@ -13,7 +13,7 @@ import type {AccessControlSettings} from '@mattermost/types/config';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {CHANNEL_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties_user';
 
-import {isBurnOnReadABACPermissionEnabled, isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';
+import {isPolicySimulationEnabled} from 'mattermost-redux/selectors/entities/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import SimulateAccessModal from 'components/admin_console/access_control/modals/simulate_access/simulate_access_modal';
@@ -157,9 +157,6 @@ function PermissionPolicyDetails({
     // that would only surface a backend error. Mirror gate exists on
     // the channel-settings Permissions Policy tab.
     const policySimulationEnabled = useSelector(isPolicySimulationEnabled);
-
-    // Track the feature flag for allowing BoR permission action.
-    const burnOnReadPermissionEnabled = useSelector(isBurnOnReadABACPermissionEnabled);
 
     // The autocomplete mixes the requesting user's attributes (user.attributes.*)
     // and the accessed channel's attributes (resource.attributes.*), tagged by
@@ -341,8 +338,6 @@ function PermissionPolicyDetails({
 
     const availableToAdd = AVAILABLE_PERMISSIONS.filter(
         (p) => !selectedPermissions.includes(p.value),
-    ).filter(
-        (p) => p.value !== ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ || burnOnReadPermissionEnabled,
     );
 
     return (

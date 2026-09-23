@@ -129,7 +129,6 @@ export type ClientConfig = {
     FeatureFlagPermissionPolicies: string;
     FeatureFlagChannelPermissionPolicies: string;
     FeatureFlagPolicySimulation: string;
-    FeatureFlagBurnOnReadABACPermission: string;
     FeatureFlagContentFlagging: string;
     FeatureFlagPostDeliveryTracking: string;
     FeatureFlagClassificationMarkings: string;

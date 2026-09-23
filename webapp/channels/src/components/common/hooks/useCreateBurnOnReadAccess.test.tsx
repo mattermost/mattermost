@@ -11,13 +11,12 @@ import {useCreateBurnOnReadAccess} from './useCreateBurnOnReadAccess';
 
 const channelId = 'channelid1channelid1channelid1';
 
-function stateWith({umbrella = true, burnOnRead = true, byResource = {}}) {
+function stateWith({permissionFlag = true, byResource = {}}) {
     return {
         entities: {
             general: {
                 config: {
-                    FeatureFlagPermissionPolicies: umbrella ? 'true' : 'false',
-                    FeatureFlagBurnOnReadABACPermission: burnOnRead ? 'true' : 'false',
+                    FeatureFlagPermissionPolicies: permissionFlag ? 'true' : 'false',
                 },
                 license: {},
             },
@@ -75,30 +74,22 @@ describe('useCreateBurnOnReadAccess', () => {
         expect(result.current).toBe(false);
     });
 
-    // Flag off is not the same as pending: the action isn't registered for render decisions at
-    // all, so it is ungated rather than unknown. Asking anyway would be rejected, and the
-    // rejection would take every other action batched for this channel with it.
-    test('allows and asks nothing when the burn-on-read flag is off', () => {
-        const {result} = renderHookWithContext(() => useCreateBurnOnReadAccess(channelId), stateWith({burnOnRead: false}));
+    // Flag off is not the same as pending: no decision is ever asked for, so the fail-closed
+    // default would stick forever. Burn-on-read is ungated in that state, not unknown.
+    test('allows and asks nothing when permission policies are off', () => {
+        const {result} = renderHookWithContext(() => useCreateBurnOnReadAccess(channelId), stateWith({permissionFlag: false}));
 
         expect(result.current).toBe(true);
         expect(nock.pendingMocks()).toHaveLength(0);
     });
 
-    test('allows even a cached deny when the burn-on-read flag is off', () => {
+    test('allows even a cached deny when permission policies are off', () => {
         const {result} = renderHookWithContext(
             () => useCreateBurnOnReadAccess(channelId),
-            stateWith({burnOnRead: false, byResource: decisionIs(false)}),
+            stateWith({permissionFlag: false, byResource: decisionIs(false)}),
         );
 
         expect(result.current).toBe(true);
-    });
-
-    test('allows and asks nothing when the umbrella flag is off', () => {
-        const {result} = renderHookWithContext(() => useCreateBurnOnReadAccess(channelId), stateWith({umbrella: false}));
-
-        expect(result.current).toBe(true);
-        expect(nock.pendingMocks()).toHaveLength(0);
     });
 
     // Callers pass no channel where the question doesn't arise — an ordinary scheduled post, or

@@ -19,9 +19,6 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.PermissionPolicies = true
-		// On so create_burn_on_read_post is registered here too, which exercises every
-		// generic path below against a flag-gated action rather than only ungated ones.
-		cfg.FeatureFlags.BurnOnReadABACPermission = true
 	}).InitBasic(t)
 
 	// rctx carrying a real session for BasicUser, required by the
@@ -323,64 +320,5 @@ func TestSearchAllowedActionsForCurrentUser(t *testing.T) {
 		})
 		require.NotNil(t, appErr)
 		require.Equal(t, 400, appErr.StatusCode)
-	})
-}
-
-// With BurnOnReadABACPermission off, create_burn_on_read_post must not be queryable
-// through the render-decision API: targeted mode rejects it and discovery mode leaves
-// it out. The flag has to be set through SetupConfig — UpdateConfig drops FeatureFlags
-// writes unless something has flipped readOnlyFF, so setting it later would make this
-// pass without testing anything.
-func TestSearchAllowedActionsBurnOnReadFlagOff(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.PermissionPolicies = true
-		cfg.FeatureFlags.BurnOnReadABACPermission = false
-	}).InitBasic(t)
-
-	session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
-	require.Nil(t, appErr)
-	rctx := th.Context.WithSession(session)
-
-	channelResource := model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: th.BasicChannel.Id}
-
-	t.Run("targeted mode rejects the action", func(t *testing.T) {
-		_, appErr := th.App.SearchAllowedActionsForCurrentUser(rctx, model.ActionSearchRequest{
-			Resource: channelResource,
-			Actions:  []string{model.AccessControlPolicyActionCreateBurnOnReadPost},
-		})
-		require.NotNil(t, appErr)
-		require.Equal(t, 400, appErr.StatusCode)
-		require.Equal(t, "app.access_control_decision.unsupported_action.app_error", appErr.Id)
-	})
-
-	// The client batches every action for one channel into a single request, so a
-	// disabled action rejects the whole batch rather than being skipped. This is what
-	// the webapp's suppressRequest exists to avoid.
-	t.Run("a disabled action rejects the whole targeted request", func(t *testing.T) {
-		_, appErr := th.App.SearchAllowedActionsForCurrentUser(rctx, model.ActionSearchRequest{
-			Resource: channelResource,
-			Actions: []string{
-				model.AccessControlPolicyActionUploadFileAttachment,
-				model.AccessControlPolicyActionCreateBurnOnReadPost,
-			},
-		})
-		require.NotNil(t, appErr)
-		require.Equal(t, 400, appErr.StatusCode)
-	})
-
-	t.Run("discovery mode omits the action", func(t *testing.T) {
-		resp, appErr := th.App.SearchAllowedActionsForCurrentUser(rctx, model.ActionSearchRequest{
-			Resource: channelResource,
-		})
-		require.Nil(t, appErr)
-		require.NotContains(t, resp.Decisions, model.AccessControlPolicyActionCreateBurnOnReadPost)
-
-		// Positive control: an empty decision set would satisfy the assertion above
-		// without proving the omission was selective.
-		require.Contains(t, resp.Decisions, model.AccessControlPolicyActionUploadFileAttachment)
-		for _, r := range resp.Results {
-			require.NotEqual(t, model.AccessControlPolicyActionCreateBurnOnReadPost, r.Action.Name)
-		}
 	})
 }
