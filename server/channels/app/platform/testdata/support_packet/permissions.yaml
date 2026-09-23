@@ -3,9 +3,9 @@ roles:
   name: team_admin
   display_name: ""
   description: ""
-  create_at: "1970-01-01T01:00:00+01:00"
-  update_at: "1970-01-01T01:00:00+01:00"
-  delete_at: "1970-01-01T01:00:00+01:00"
+  create_at: "1970-01-01T00:00:00Z"
+  update_at: "1970-01-01T00:00:00Z"
+  delete_at: "1970-01-01T00:00:00Z"
   permissions:
   - manage_system
   - manage_team
@@ -17,9 +17,9 @@ schemes:
   name: scheme-name
   display_name: Scheme Name
   description: ""
-  create_at: "1970-01-01T01:00:00+01:00"
-  update_at: "1970-01-01T01:00:00+01:00"
-  delete_at: "1970-01-01T01:00:00+01:00"
+  create_at: "1970-01-01T00:00:00Z"
+  update_at: "1970-01-01T00:00:00Z"
+  delete_at: "1970-01-01T00:00:00Z"
   scope: team
   default_team_admin_role: ""
   default_team_user_role: ""
