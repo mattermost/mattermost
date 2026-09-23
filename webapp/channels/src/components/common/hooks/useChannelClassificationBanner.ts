@@ -30,6 +30,7 @@ import {renderBannerTemplate} from 'components/channel_attributes/banner_templat
 import {isMinimumEnterpriseAdvancedLicense} from 'utils/license_utils';
 
 import useClassificationMarkings from './useClassificationMarkings';
+import useGraphAttributeNames from './useGraphAttributeNames';
 
 export type ChannelBannerPosition = typeof DISPLAY_BANNER_TOP | typeof DISPLAY_BANNER_BOTTOM;
 
@@ -67,6 +68,26 @@ function bannerAction(field: PropertyField): ChannelBannerPosition | undefined {
         return DISPLAY_BANNER_BOTTOM;
     }
     return undefined;
+}
+
+// Tokens for unnamed options would otherwise render as raw ids.
+function attributesForBannerTemplate(attributes: ResolvedChannelAttribute[]): ResolvedChannelAttribute[] {
+    let rewritten: ResolvedChannelAttribute[] | undefined;
+
+    attributes.forEach((attribute, index) => {
+        if (!attribute.unresolvedOptionIds || attribute.unresolvedOptionIds.length === 0) {
+            return;
+        }
+
+        rewritten = rewritten ?? attributes.slice();
+        rewritten[index] = {
+            ...attribute,
+            displayValue: '',
+            displayValues: [],
+        };
+    });
+
+    return rewritten ?? attributes;
 }
 
 /**
@@ -138,6 +159,10 @@ export default function useChannelClassificationBanner(channelId: string): Chann
     const getResolvedChannelAttributes = useMemo(() => makeGetResolvedChannelAttributes(), []);
     const resolvedAttributes = useSelector((state: GlobalState) => getResolvedChannelAttributes(state, channelId));
 
+    // Graph values arrive as raw ids; the named list also marks the ones that
+    // could not be named, which is what keeps them out of the banner below.
+    const namedAttributes = useGraphAttributeNames(resolvedAttributes);
+
     // Loaded here too, so the banner works on surfaces that never mount the header
     // chips — a popout, or a channel where the label component is absent.
     useEffect(() => {
@@ -185,6 +210,7 @@ export default function useChannelClassificationBanner(channelId: string): Chann
     }, [channelId, shouldLoadValues, hasAllDesignatedValues, dispatch]);
 
     return useMemo((): ChannelClassificationBannerState => {
+        const templateAttributes = attributesForBannerTemplate(namedAttributes);
         const noBanner: ChannelClassificationBannerState = {
             hasClassification: false,
             classificationBanner: undefined,
@@ -202,7 +228,7 @@ export default function useChannelClassificationBanner(channelId: string): Chann
             const classificationIsBannerDesignated = designatedFields.some((field) => field.name === CLASSIFICATIONS_CHANNEL_FIELD_NAME);
 
             const contributions = designatedFields.
-                map((field) => resolvedAttributes.find((resolved) => resolved.field.id === field.id)).
+                map((field) => namedAttributes.find((resolved) => resolved.field.id === field.id)).
                 filter((resolved): resolved is ResolvedChannelAttribute => {
                     if (!resolved || resolved.displayValue === '') {
                         return false;
@@ -222,7 +248,7 @@ export default function useChannelClassificationBanner(channelId: string): Chann
             }
 
             const joinedText = contributions.map((resolved) => resolved.displayValue).join(' · ');
-            const bannerText = channelBannerInfo?.text ? renderBannerTemplate(channelBannerInfo.text, resolvedAttributes) : joinedText;
+            const bannerText = channelBannerInfo?.text ? renderBannerTemplate(channelBannerInfo.text, templateAttributes) : joinedText;
 
             if (!bannerText) {
                 return {...noBanner, classificationIsBannerDesignated};
@@ -276,7 +302,7 @@ export default function useChannelClassificationBanner(channelId: string): Chann
 
         // A literal with no tokens passes through untouched, keeping pre-existing
         // banners byte-identical.
-        const bannerText = channelBannerInfo?.text ? renderBannerTemplate(channelBannerInfo.text, resolvedAttributes) : `**${level.name}**`;
+        const bannerText = channelBannerInfo?.text ? renderBannerTemplate(channelBannerInfo.text, templateAttributes) : `**${level.name}**`;
 
         return {
             hasClassification: true,
@@ -292,5 +318,5 @@ export default function useChannelClassificationBanner(channelId: string): Chann
             bannerText,
             position,
         };
-    }, [propertyValue, classification.levels, channelBannerInfo, designatedFields, position, resolvedAttributes]);
+    }, [propertyValue, classification.levels, channelBannerInfo, designatedFields, position, namedAttributes]);
 }

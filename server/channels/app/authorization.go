@@ -760,6 +760,20 @@ func (a *App) hasPropertyFieldPermissionLevel(rctx request.CTX, userID string, f
 		case string(model.PropertyFieldTargetLevelChannel):
 			return a.hasChannelPropertyAdmin(rctx, userID, field.TargetID)
 		}
+	case model.PermissionLevelCreator:
+		// The entity gated here is the field definition itself, so its creator
+		// is CreatedBy — not the creator of whatever the field is scoped to.
+		//
+		// Creating a field earns no standing to keep editing it after losing
+		// access to the scope it lives in, so the creator arm narrows the member
+		// arm rather than sitting beside it.
+		if field.CreatedBy != "" && field.CreatedBy == userID &&
+			a.hasPropertyFieldScopeAccess(rctx, userID, field) {
+			return true
+		}
+		// Falls back to the admin arm above rather than restating the
+		// per-TargetType cascade. Terminates: the admin case never recurses.
+		return a.hasPropertyFieldPermissionLevel(rctx, userID, field, model.PermissionLevelAdmin)
 	}
 	return false
 }
@@ -776,6 +790,8 @@ func (a *App) hasPropertyFieldValuePermissionLevel(rctx request.CTX, userID stri
 		return a.HasPermissionTo(rctx, userID, model.PermissionManageSystem)
 	case model.PermissionLevelAdmin:
 		return a.hasPropertyFieldValueAdmin(rctx, userID, field, valueTargetID)
+	case model.PermissionLevelCreator:
+		return a.hasPropertyFieldValueCreator(rctx, userID, field, valueTargetID)
 	case model.PermissionLevelMember:
 		return a.hasPropertyFieldValueScopeAccess(rctx, userID, field, valueTargetID)
 	case model.PermissionLevelNone:
@@ -813,6 +829,59 @@ func (a *App) hasPropertyFieldValueAdmin(rctx request.CTX, userID string, field 
 		return a.hasPropertyFieldPermissionLevel(rctx, userID, field, model.PermissionLevelAdmin)
 	}
 	return false
+}
+
+// hasPropertyFieldValueCreator reports whether the user created the value's
+// target object, or otherwise administers it. Only post- and channel-object
+// fields reach here; model validation rejects PermissionLevelCreator on every
+// other object type. The creator arm is checked first so an author tagging
+// their own post resolves with a single store read and no role evaluation.
+func (a *App) hasPropertyFieldValueCreator(rctx request.CTX, userID string, field *model.PropertyField, valueTargetID string) bool {
+	// Each arm ends itself rather than falling out of the switch. A lookup
+	// failure returns false instead of deferring to the admin arm: if the
+	// target cannot be read here, the admin arm cannot resolve it either, so
+	// continuing would only buy a second failed lookup and a second warning.
+	// Every arm that does not match the creator must end in the admin call —
+	// a new object type that omits it is creator-only, not creator-or-admin.
+	switch field.ObjectType {
+	case model.PropertyFieldObjectTypePost:
+		post, err := a.Srv().Store().Post().GetSingle(rctx, valueTargetID, false)
+		if err != nil {
+			rctx.Logger().Warn("Failed to look up post for property value creator check",
+				mlog.String("post_id", valueTargetID),
+				mlog.String("user_id", userID),
+				mlog.String("field_id", field.ID),
+				mlog.Err(err),
+			)
+			return false
+		}
+		if post.UserId != "" && post.UserId == userID {
+			return true
+		}
+		return a.hasPropertyFieldValueAdmin(rctx, userID, field, valueTargetID)
+	case model.PropertyFieldObjectTypeChannel:
+		channel, appErr := a.GetChannel(rctx, valueTargetID)
+		if appErr != nil {
+			rctx.Logger().Warn("Failed to look up channel for property value creator check",
+				mlog.String("channel_id", valueTargetID),
+				mlog.String("user_id", userID),
+				mlog.String("field_id", field.ID),
+				mlog.Err(appErr),
+			)
+			return false
+		}
+		// Group channels carry no CreatorId, so an empty userID must never
+		// match it. Direct channels DO have one: the store stamps the
+		// initiating user.
+		if channel.CreatorId != "" && channel.CreatorId == userID {
+			return true
+		}
+		return a.hasPropertyFieldValueAdmin(rctx, userID, field, valueTargetID)
+	default:
+		// Unreachable via validated fields. Deny rather than deferring to the
+		// admin arm, so a future object type must opt in consciously.
+		return false
+	}
 }
 
 // hasPropertyFieldValueScopeAccess reports whether the user can write the

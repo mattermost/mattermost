@@ -39,6 +39,7 @@ type TimerLayer struct {
 	EmojiStore                      store.EmojiStore
 	FileInfoStore                   store.FileInfoStore
 	GroupStore                      store.GroupStore
+	HealthFindingStore              store.HealthFindingStore
 	JobStore                        store.JobStore
 	LicenseStore                    store.LicenseStore
 	LinkMetadataStore               store.LinkMetadataStore
@@ -164,6 +165,10 @@ func (s *TimerLayer) FileInfo() store.FileInfoStore {
 
 func (s *TimerLayer) Group() store.GroupStore {
 	return s.GroupStore
+}
+
+func (s *TimerLayer) HealthFinding() store.HealthFindingStore {
+	return s.HealthFindingStore
 }
 
 func (s *TimerLayer) Job() store.JobStore {
@@ -432,6 +437,11 @@ type TimerLayerFileInfoStore struct {
 
 type TimerLayerGroupStore struct {
 	store.GroupStore
+	Root *TimerLayer
+}
+
+type TimerLayerHealthFindingStore struct {
+	store.HealthFindingStore
 	Root *TimerLayer
 }
 
@@ -5978,6 +5988,102 @@ func (s *TimerLayerGroupStore) UpsertMembers(groupID string, userIDs []string) (
 	return result, err
 }
 
+func (s *TimerLayerHealthFindingStore) DeleteBefore(lastSeenBefore int64) (int64, error) {
+	start := time.Now()
+
+	result, err := s.HealthFindingStore.DeleteBefore(lastSeenBefore)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("HealthFindingStore.DeleteBefore", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerHealthFindingStore) GetByFingerprints(fingerprints []string) ([]*model.HealthFinding, error) {
+	start := time.Now()
+
+	result, err := s.HealthFindingStore.GetByFingerprints(fingerprints)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("HealthFindingStore.GetByFingerprints", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerHealthFindingStore) List(filter model.HealthFindingFilter) ([]*model.HealthFinding, error) {
+	start := time.Now()
+
+	result, err := s.HealthFindingStore.List(filter)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("HealthFindingStore.List", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerHealthFindingStore) Mute(fingerprint string, userID string, at int64) error {
+	start := time.Now()
+
+	err := s.HealthFindingStore.Mute(fingerprint, userID, at)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("HealthFindingStore.Mute", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerHealthFindingStore) Unmute(fingerprint string) error {
+	start := time.Now()
+
+	err := s.HealthFindingStore.Unmute(fingerprint)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("HealthFindingStore.Unmute", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerHealthFindingStore) Upsert(findings []*model.HealthFinding) error {
+	start := time.Now()
+
+	err := s.HealthFindingStore.Upsert(findings)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("HealthFindingStore.Upsert", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerJobStore) Cleanup(expiryTime int64, batchSize int) error {
 	start := time.Now()
 
@@ -9208,10 +9314,10 @@ func (s *TimerLayerPropertyValueStore) GetMany(groupID string, ids []string) ([]
 	return result, err
 }
 
-func (s *TimerLayerPropertyValueStore) SearchPropertyValues(opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
+func (s *TimerLayerPropertyValueStore) SearchPropertyValues(rctx request.CTX, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
 	start := time.Now()
 
-	result, err := s.PropertyValueStore.SearchPropertyValues(opts)
+	result, err := s.PropertyValueStore.SearchPropertyValues(rctx, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -16040,6 +16146,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.EmojiStore = &TimerLayerEmojiStore{EmojiStore: childStore.Emoji(), Root: &newStore}
 	newStore.FileInfoStore = &TimerLayerFileInfoStore{FileInfoStore: childStore.FileInfo(), Root: &newStore}
 	newStore.GroupStore = &TimerLayerGroupStore{GroupStore: childStore.Group(), Root: &newStore}
+	newStore.HealthFindingStore = &TimerLayerHealthFindingStore{HealthFindingStore: childStore.HealthFinding(), Root: &newStore}
 	newStore.JobStore = &TimerLayerJobStore{JobStore: childStore.Job(), Root: &newStore}
 	newStore.LicenseStore = &TimerLayerLicenseStore{LicenseStore: childStore.License(), Root: &newStore}
 	newStore.LinkMetadataStore = &TimerLayerLinkMetadataStore{LinkMetadataStore: childStore.LinkMetadata(), Root: &newStore}
