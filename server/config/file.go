@@ -161,10 +161,10 @@ func writeFileAtomically(path string, data []byte) error {
 	tmp, err := os.CreateTemp(filepath.Dir(target), "."+filepath.Base(target)+".tmp-*")
 	if err != nil {
 		// We can't create files in the directory, but the config file itself may still be
-		// writable (e.g. only config.json is mounted into a container). Fall back to the old
-		// in-place write rather than failing outright.
+		// writable (e.g. only config.json is mounted into a container). Write it in place
+		// rather than failing outright.
 		if errors.Is(err, os.ErrPermission) {
-			return os.WriteFile(target, data, perm)
+			return writeFileInPlace(target, data, perm)
 		}
 		return err
 	}
@@ -188,10 +188,11 @@ func writeFileAtomically(path string, data []byte) error {
 	}
 
 	if err = os.Rename(tmpName, target); err != nil {
-		// You can't rename over a file that is itself a mount point. We just wrote the whole
-		// temp file, so we know there's space, and writing in place is safe enough here.
+		// You can't rename over a file that is itself a mount point (e.g. a bind-mounted
+		// config.json), so write it in place instead. The temp file lives on a different
+		// filesystem here, so writing it doesn't tell us anything about space on the target.
 		if errors.Is(err, syscall.EBUSY) || errors.Is(err, syscall.EXDEV) {
-			return os.WriteFile(target, data, perm)
+			return writeFileInPlace(target, data, perm)
 		}
 		return err
 	}
@@ -204,6 +205,46 @@ func writeFileAtomically(path string, data []byte) error {
 	}
 
 	return nil
+}
+
+// writeFileInPlace overwrites path without truncating it first, for the cases where we can't
+// swap in a temp file. The part that grows the file is written first, because that's the only
+// part that needs new disk space. If it fails, we cut the file back to its old size and the old
+// config is still there. Only then do we overwrite the existing bytes and trim any leftovers.
+func writeFileInPlace(path string, data []byte, perm os.FileMode) error {
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, perm)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	info, err := f.Stat()
+	if err != nil {
+		return err
+	}
+	oldSize := info.Size()
+
+	if int64(len(data)) > oldSize {
+		if _, err = f.WriteAt(data[oldSize:], oldSize); err != nil {
+			_ = f.Truncate(oldSize)
+			return err
+		}
+		if err = f.Sync(); err != nil {
+			_ = f.Truncate(oldSize)
+			return err
+		}
+	}
+
+	if _, err = f.WriteAt(data, 0); err != nil {
+		return err
+	}
+	if err = f.Truncate(int64(len(data))); err != nil {
+		return err
+	}
+	if err = f.Sync(); err != nil {
+		return err
+	}
+	return f.Close()
 }
 
 // Load updates the current configuration from the backing store.
