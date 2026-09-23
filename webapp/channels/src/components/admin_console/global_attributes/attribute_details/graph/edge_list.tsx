@@ -137,6 +137,7 @@ export function EdgeList({
     const theme = useSelector(getTheme);
     const comboboxRef = useRef<HTMLDivElement>(null);
     const [searchAnchor, setSearchAnchor] = useState<HTMLInputElement | HTMLTextAreaElement | null>(null);
+    const searchFieldBox = searchAnchor?.closest<HTMLElement>('.Input_fieldset') ?? searchAnchor;
 
     const handleSearchBlur = useCallback((event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const next = event.relatedTarget;
@@ -290,11 +291,11 @@ export function EdgeList({
                     autoComplete='off'
                     data-testid={labels.searchTestId}
                 />
-                {showSuggestions && searchAnchor && (
+                {showSuggestions && searchFieldBox && (
                     <CompassDesignProvider theme={theme}>
                         <MuiPopover
                             open={true}
-                            anchorEl={searchAnchor}
+                            anchorEl={searchFieldBox}
                             onClose={onSearchClose}
                             hideBackdrop={true}
                             disableAutoFocus={true}
@@ -308,7 +309,7 @@ export function EdgeList({
                             PaperProps={{
                                 className: SUGGESTIONS_PAPER_CLASS,
                                 style: {
-                                    width: searchAnchor.offsetWidth,
+                                    width: searchFieldBox.offsetWidth,
                                     pointerEvents: 'auto',
                                 },
                                 onMouseDown: (event: React.MouseEvent<HTMLDivElement>) => {

@@ -199,13 +199,21 @@ describe('AttributeGraphParentsPane', () => {
             </div>,
         );
         await openParentsView();
+        const fieldset = document.querySelector('.Input_fieldset') as HTMLElement;
+        Object.defineProperty(fieldset, 'offsetWidth', {configurable: true, value: 240});
+        Object.defineProperty(screen.getByTestId('attributeGraphParentsPane__search'), 'offsetWidth', {
+            configurable: true,
+            value: 200,
+        });
         await openParentSearch();
 
         const suggestions = screen.getByTestId('attributeGraphParentsPane__suggestions');
         expect(document.body).toContainElement(suggestions);
         expect(suggestions.closest('[data-testid="attributeGraphParentsPane"]')).toBeNull();
         expect(suggestions.closest('.attribute-graph-parents-pane')).toBeNull();
-        expect(suggestions.closest('.attribute-graph-parents-pane__suggestions-paper')).toBeTruthy();
+        const paper = suggestions.closest('.attribute-graph-parents-pane__suggestions-paper');
+        expect(paper).toBeTruthy();
+        expect(paper).toHaveStyle({width: '240px'});
     });
 
     it('keeps suggestions open while a candidate is pressed so add and create still apply', async () => {
