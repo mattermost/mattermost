@@ -86,10 +86,25 @@ $menuWidth: 240px;
 .globalHeader-leftControls-productSwitcherMenu {
     &-channelsMenuItem,
     &-productMenuItem {
-        .leading-element {
+        // Plugins can register a product icon as an arbitrary React node, so the slot
+        // sizes and centres whatever it gets instead of trusting the icon to fit.
+        &[role="menuitem"] > .leading-element {
+            display: flex;
+            width: 20px;
+            height: 20px;
+            align-items: center;
+            justify-content: center;
+            color: var(--button-bg);
+
             svg {
+                width: 20px;
+                height: 20px;
                 fill: var(--button-bg);
             }
+        }
+
+        &[role="menuitem"]:hover > .leading-element {
+            color: var(--button-bg);
         }
 
         .label-elements {
