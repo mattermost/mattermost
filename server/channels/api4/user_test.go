@@ -5382,17 +5382,17 @@ func TestGetLoginType(t *testing.T) {
 	_, err := th.Client.Logout(context.Background())
 	require.NoError(t, err)
 
-	// Every API response is served as application/json, so the webapp decodes the body as
-	// JSON whatever the status code is. A response the decoder chokes on surfaces to the
-	// user as "Received invalid response from the server." instead of the real error.
+	// The webapp decodes every response body as JSON whatever the status code is, so a body
+	// it chokes on surfaces as "Received invalid response from the server." instead of the
+	// real error. Go through the raw client to assert on the body the webapp actually sees.
 	postLoginType := func(t *testing.T, loginID string) (int, map[string]any) {
 		t.Helper()
-		req, reqErr := http.NewRequest(http.MethodPost, th.Client.APIURL+"/users/login/type", strings.NewReader(model.MapToJSON(map[string]string{"login_id": loginID})))
-		require.NoError(t, reqErr)
+		req, err := http.NewRequest(http.MethodPost, th.Client.APIURL+"/users/login/type", strings.NewReader(model.MapToJSON(map[string]string{"login_id": loginID})))
+		require.NoError(t, err)
 		req.Header.Set("Content-Type", "application/json")
 
-		resp, respErr := th.Client.HTTPClient.Do(req)
-		require.NoError(t, respErr)
+		resp, err := th.Client.HTTPClient.Do(req)
+		require.NoError(t, err)
 		defer closeBody(resp)
 
 		var body map[string]any

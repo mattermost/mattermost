@@ -117,8 +117,7 @@ describe('components/login/Login', () => {
     });
 
     afterEach(() => {
-        // Spies on the login actions would otherwise leak into tests that drive the real
-        // thunks over HTTP.
+        // Spied login actions would otherwise leak into the tests that call the real thunks over HTTP
         jest.restoreAllMocks();
         nock.cleanAll();
     });
@@ -439,8 +438,7 @@ describe('components/login/Login', () => {
     });
 
     describe('EnableGuestMagicLink', () => {
-        // The login type pre-check is only served by the server while guest accounts are
-        // licensed and enabled alongside magic links.
+        // The server only answers the login type pre-check while guest accounts are licensed and enabled
         const magicLinkState = mergeObjects(baseState, {
             entities: {
                 general: {
@@ -711,9 +709,8 @@ describe('components/login/Login', () => {
             expect(screen.queryByLabelText('Password')).not.toBeInTheDocument();
         });
 
-        // The server serves the login type pre-check only while guest accounts are licensed
-        // and enabled, and answers a bare 404 otherwise. Leaving that response nocked but
-        // unconsumed is how these tests prove the pre-check is skipped rather than failing.
+        // The pre-check response is nocked but left unconsumed on purpose: an untouched
+        // interceptor is what proves the request was never made
         const expectPasswordLoginWithoutPreCheck = async (state: GlobalState) => {
             TestHelper.initBasic(Client4);
             const preCheck = nock(Client4.getBaseRoute()).
