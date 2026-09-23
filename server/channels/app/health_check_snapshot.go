@@ -15,6 +15,8 @@ import (
 // BuildHealthSnapshot assembles a health snapshot from live server state. A failed workspace
 // collector is recorded in Snapshot.Sections rather than failing the call; the error return
 // is for a snapshot that cannot be built at all.
+//
+// It must only be called on the cluster leader: the local node is reported as the leader.
 func (a *App) BuildHealthSnapshot(rctx request.CTX) (*healthcheck.Snapshot, error) {
 	return a.buildHealthSnapshotWithLatestVersionURL(rctx, LatestVersionURL)
 }
