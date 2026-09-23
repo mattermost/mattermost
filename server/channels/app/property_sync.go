@@ -336,9 +336,9 @@ func (s *PropertySyncer) pruneDefinitions(rctx request.CTX, definitions []*syncD
 // own read of the field, so an option another sync adds in between is never
 // removed unseen: the removal is refused and retried against a fresh read. What
 // this cannot rule out is a value naming an orphaned option being written
-// between the read of the references and the removal. That value is then
-// ignored like any value naming a missing option, until its user's next sync
-// provisions the option again and rewrites it.
+// between the read of the references and the removal. That value then names a
+// missing option, which every reader ignores: a user's is rewritten by the
+// user's next sync, a channel's stays unset until someone sets it again.
 func (s *PropertySyncer) pruneDefinition(rctx request.CTX, def *syncDefinition) (*model.PropertySyncPrunedField, *model.AppError) {
 	for attempt := 0; ; attempt++ {
 		current, dependents, err := s.app.Srv().propertyService.FieldWithDependents(rctx, s.groupID, def.field.ID)
