@@ -126,6 +126,25 @@ func requireChannelAttributeLicenseForTemplate(c *Context, rctx request.CTX, gro
 	return true
 }
 
+// resolvePropertyGroupParam reads the propertyGroup query parameter and resolves it to a
+// property group ID. Returns "" when the parameter is absent, which callers pass straight through to
+// PreparePostForClientOpts as "do not hydrate". On any validation failure it sets c.Err, so callers
+// check that rather than the returned value.
+func resolvePropertyGroupParam(c *Context, r *http.Request) string {
+	raw := strings.TrimSpace(r.URL.Query().Get("propertyGroup"))
+	if raw == "" {
+		return ""
+	}
+
+	c.Params.GroupName = raw
+	group := getV2Group(c, "resolvePropertyGroupParam")
+	if group == nil {
+		return ""
+	}
+
+	return group.ID
+}
+
 func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireGroupName().RequireObjectType()
 	if c.Err != nil {

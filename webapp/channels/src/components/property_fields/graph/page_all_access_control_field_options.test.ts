@@ -9,6 +9,7 @@ import {
     ACCESS_CONTROL_GROUP,
     PROPERTY_FIELD_OPTIONS_MAX_PAGES,
     PROPERTY_FIELD_OPTIONS_PER_PAGE,
+    clearPropertyFieldOptionWalk,
     clearPropertyFieldOptionWalks,
     pageAllAccessControlFieldOptions,
 } from './page_all_access_control_field_options';
@@ -538,6 +539,34 @@ describe('pageAllAccessControlFieldOptions', () => {
             expect(resultA).toHaveLength(203);
             expect(resultB).toHaveLength(203);
             expect(spy).toHaveBeenCalledTimes(2);
+        });
+
+        it('clearPropertyFieldOptionWalk lets a later caller start a new request', async () => {
+            const firstPage = deferred<PropertyFieldOptionPage>();
+            const secondPage = deferred<PropertyFieldOptionPage>();
+            const spy = jest.spyOn(Client4, 'getPropertyFieldOptions').
+                mockReturnValueOnce(firstPage.promise).
+                mockReturnValueOnce(secondPage.promise);
+
+            const a = pageAllAccessControlFieldOptions(FIELD);
+            const b = pageAllAccessControlFieldOptions(FIELD);
+
+            expect(spy).toHaveBeenCalledTimes(1);
+
+            clearPropertyFieldOptionWalk(FIELD.id);
+
+            const c = pageAllAccessControlFieldOptions(FIELD);
+
+            expect(spy).toHaveBeenCalledTimes(2);
+
+            firstPage.resolve(makePage(3, 'p1'));
+            secondPage.resolve(makePage(2, 'p2'));
+
+            const [resultA, resultB, resultC] = await Promise.all([a, b, c]);
+
+            expect(resultA).toEqual(resultB);
+            expect(resultA).toHaveLength(3);
+            expect(resultC).toHaveLength(2);
         });
     });
 
