@@ -269,12 +269,11 @@ MySQL 8.0.22 contains an [issue with JSON column types](https://bugs.mysql.com/b
 
 </Important>
 
-In MySQL 8.0.4, the default authentication plugin was changed from `mysql_native_password` to `caching_sha2_password`. Therefore, you will need to enable `mysql_native_password` by adding the following entry in your MySQL configuration file:
+<Note>
 
-> ``` text
-> [mysqld]
-> default-authentication-plugin=mysql_native_password
-> ```
+In MySQL 8.0.4, the default authentication plugin was changed from `mysql_native_password` to `caching_sha2_password`. If you're migrating from MySQL 8.0-8.4 to PostgreSQL using `pgloader`, you'll need to switch the default authentication method back to `mysql_native_password`. See [Unsupported authentication for MySQL](/administration-guide/manage/admin/postgres-migration#unsupported-authentication-for-mysql) for the version-specific steps.
+
+</Note>
 
 In MySQL 8, the default collation changed to `utf8mb4_0900_ai_ci` ([https://dev.mysql.com/doc/mysqld-version-reference/en/optvar-changes-8-0.html](https://dev.mysql.com/doc/mysqld-version-reference/en/optvar-changes-8-0.html)). Therefore, if you update your MySQL installation to version 8, you'll need to convert your database tables to use the new default collation:
 

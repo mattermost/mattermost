@@ -107,6 +107,16 @@ type Store interface {
 	ReadReceipt() ReadReceiptStore
 	TemporaryPost() TemporaryPostStore
 	ChannelJoinRequest() ChannelJoinRequestStore
+	HealthFinding() HealthFindingStore
+}
+
+type HealthFindingStore interface {
+	GetByFingerprints(fingerprints []string) ([]*model.HealthFinding, error)
+	List(filter model.HealthFindingFilter) ([]*model.HealthFinding, error)
+	Upsert(findings []*model.HealthFinding) error
+	Mute(fingerprint, userID string, at int64) error
+	Unmute(fingerprint string) error
+	DeleteBefore(lastSeenBefore int64) (int64, error)
 }
 
 type RetentionPolicyStore interface {
@@ -1230,7 +1240,7 @@ type PropertyValueStore interface {
 	CreateMany(values []*model.PropertyValue) ([]*model.PropertyValue, error)
 	Get(groupID, id string) (*model.PropertyValue, error)
 	GetMany(groupID string, ids []string) ([]*model.PropertyValue, error)
-	SearchPropertyValues(opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error)
+	SearchPropertyValues(rctx request.CTX, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error)
 	Update(groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error)
 	Upsert(values []*model.PropertyValue) ([]*model.PropertyValue, error)
 	Delete(groupID string, id string) error
