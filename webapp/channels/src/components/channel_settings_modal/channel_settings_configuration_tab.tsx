@@ -24,7 +24,7 @@ import {ColorSwatch, LevelOptionLabel} from 'components/admin_console/classifica
 import {CLASSIFICATIONS_CHANNEL_OBJECT_TYPE} from 'components/admin_console/classification_markings/utils';
 import {classificationPresetDropdownStyles} from 'components/admin_console/classification_markings/utils/preset_dropdown_styles';
 import BannerPreview from 'components/channel_attributes/banner_preview';
-import {withRequiredTokens} from 'components/channel_attributes/banner_template';
+import {isBlankTemplate, withRequiredTokens} from 'components/channel_attributes/banner_template';
 import BannerTextEditor from 'components/channel_attributes/banner_text_editor';
 import ColorInput from 'components/color_input';
 import useChannelAttributes from 'components/common/hooks/useChannelAttributes';
@@ -199,6 +199,20 @@ function ChannelSettingsConfigurationTab({
     const bannerRequiredByAttribute = channelAttributesEnabled &&
         bannerFields.some((f) => Boolean(f.attrs?.required));
 
+    // bannerDrivenByAttribute is computed from the saved banner, so it stays true
+    // through an edit that has not been saved yet. Without this the toggle springs
+    // back the instant it is clicked -- it would be reporting the stored world
+    // while the author is looking at the edited one.
+    const [bannerToggleTouched, setBannerToggleTouched] = useState(false);
+
+    // The single reading of "the banner section is on", used for the toggle's
+    // position, for what a click on it means, and for whether the body renders.
+    // Three expressions of that would eventually disagree.
+    const bannerSectionOn = bannerLockedByClassification ||
+        bannerRequiredByAttribute ||
+        updatedChannelBanner.enabled ||
+        (bannerDrivenByAttribute && !bannerToggleTouched);
+
     // Shown rather than stored: seeding it into form state would open the tab dirty.
     const attributeBannerColor = bannerDrivenByAttribute ? classificationBanner.classificationBanner?.background_color : undefined;
 
@@ -275,18 +289,32 @@ function ChannelSettingsConfigurationTab({
     }, [classification.levels]);
 
     const handleBannerToggle = useCallback(() => {
-        const newValue = !updatedChannelBanner.enabled;
+        // Flipped against what the toggle is showing, not against stored state:
+        // those differ while an attribute-driven banner is on screen, and a click
+        // has to move the control the author can see.
+        const newValue = !bannerSectionOn;
         const toUpdate = {
             ...updatedChannelBanner,
             enabled: newValue,
         };
-        if (!newValue) {
+
+        // Turning the banner off is how an author resolves "enabled but empty",
+        // so their deletions have to survive it. The legacy composer keeps the
+        // restore: there, off has always meant discard.
+        if (!newValue && !channelAttributesEnabled) {
             toUpdate.text = initialBannerInfo.text;
             toUpdate.background_color = initialBannerInfo.background_color;
         }
 
+        setBannerToggleTouched(true);
         setUpdatedChannelBanner(toUpdate);
-    }, [initialBannerInfo, updatedChannelBanner]);
+
+        // The banner text can no longer be wrong once there is no banner.
+        if (!newValue) {
+            resetFormErrors();
+            setCharacterLimitExceeded(false);
+        }
+    }, [bannerSectionOn, channelAttributesEnabled, initialBannerInfo, resetFormErrors, updatedChannelBanner]);
 
     const handleBannerTextChange = useCallback((newValue: string) => {
         setUpdatedChannelBanner((prev) => ({
@@ -300,7 +328,11 @@ function ChannelSettingsConfigurationTab({
                 defaultMessage: 'There are errors in the form above',
             }));
             setCharacterLimitExceeded(true);
-        } else if (newValue.trim().length <= CHANNEL_BANNER_MIN_CHARACTER_LIMIT) {
+        } else if (!channelAttributesEnabled && newValue.trim().length <= CHANNEL_BANNER_MIN_CHARACTER_LIMIT) {
+            // Stored, because the legacy composer has no other reading of empty.
+            // With attributes on, emptiness is derived below instead: an author
+            // clearing the text is on their way to turning the banner off, and a
+            // stored error would outlive the condition that raised it.
             setFormError(formatMessage({
                 id: 'channel_settings.save_changes_panel.banner_text.required_error',
                 defaultMessage: 'Channel banner text cannot be empty when enabled',
@@ -310,7 +342,7 @@ function ChannelSettingsConfigurationTab({
             resetFormErrors();
             setCharacterLimitExceeded(false);
         }
-    }, [formatMessage, resetFormErrors]);
+    }, [channelAttributesEnabled, formatMessage, resetFormErrors]);
 
     const handleBannerColorChange = useCallback((color: string) => {
         setUpdatedChannelBanner((prev) => ({
@@ -509,8 +541,21 @@ function ChannelSettingsConfigurationTab({
             return false;
         }
 
-        if (updatedChannelBanner.enabled && !updatedChannelBanner.text?.trim() && !channelAttributesEnabled) {
-            setFormError(formatMessage({
+        // Raised here rather than the moment the text goes empty: switching the
+        // banner on is the start of authoring it, and an error that lands before
+        // the author has had a chance to type is just noise. Channel.IsValid
+        // would reject this payload with a 400, so this is also the last gate.
+        // A template of unset tokens is not empty -- it is the banner waiting
+        // for a value.
+        const bannerText = updatedChannelBanner.text ?? '';
+        const bannerTextInvalid = channelAttributesEnabled ? isBlankTemplate(bannerText) : !bannerText.trim();
+        if (updatedChannelBanner.enabled && bannerTextInvalid) {
+            // Naming the toggle as the way out is only honest while it can be reached.
+            const canTurnBannerOff = channelAttributesEnabled && !bannerLockedByClassification && !bannerRequiredByAttribute;
+            setFormError(canTurnBannerOff ? formatMessage({
+                id: 'channel_settings.save_changes_panel.banner_text.empty_error',
+                defaultMessage: 'Add banner text, or turn off the channel banner.',
+            }) : formatMessage({
                 id: 'channel_settings.error_banner_text_required',
                 defaultMessage: 'Banner text is required',
             }));
@@ -733,6 +778,7 @@ function ChannelSettingsConfigurationTab({
         setShowBannerTextPreview(false);
 
         setUpdatedChannelBanner(initialBannerInfo);
+        setBannerToggleTouched(false);
         setIsChannelAutotranslated(initialIsChannelAutotranslated);
         setDisableJoinLeaveMessages(initialDisableJoinLeaveMessages);
         setFormError('');
@@ -906,7 +952,7 @@ function ChannelSettingsConfigurationTab({
                                 size='btn-md'
                                 disabled={bannerLockedByClassification || bannerRequiredByAttribute}
                                 onToggle={handleBannerToggle}
-                                toggled={bannerLockedByClassification || bannerDrivenByAttribute || bannerRequiredByAttribute || updatedChannelBanner.enabled}
+                                toggled={bannerSectionOn}
                                 tabIndex={0}
                                 toggleClassName='btn-toggle-primary'
                             />
@@ -914,7 +960,7 @@ function ChannelSettingsConfigurationTab({
                     </div>
 
                     {
-                        (bannerLockedByClassification || bannerDrivenByAttribute || bannerRequiredByAttribute || updatedChannelBanner.enabled) &&
+                        bannerSectionOn &&
                         <div className='channel_banner_section_body'>
                             {/*Banner text section*/}
                             <div className='setting_section'>
@@ -992,8 +1038,11 @@ function ChannelSettingsConfigurationTab({
                                     </span>
 
                                     <div className='setting_body'>
+                                        {/* ?? not ||: an emptied editor is a deliberate '', and falling back
+                                            to the saved banner there would preview something the author has
+                                            just deleted. */}
                                         <BannerPreview
-                                            template={updatedChannelBanner.text || classificationBanner.bannerText || ''}
+                                            template={updatedChannelBanner.text ?? classificationBanner.bannerText ?? ''}
                                             attributes={resolvedAttributes}
                                             backgroundColor={previewBackgroundColor}
                                         />

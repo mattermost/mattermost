@@ -19,6 +19,7 @@ import {renderWithContext} from 'tests/react_testing_utils';
 import type {GlobalState} from 'types/store';
 
 import ChannelInfoAttributes from './channel_info_attributes';
+import type {ChannelInfoAttributesHandle} from './channel_info_attributes';
 
 jest.mock('mattermost-redux/actions/properties', () => ({
     fetchPropertyFields: jest.fn(() => () => Promise.resolve({data: []})),
@@ -738,6 +739,186 @@ describe('ChannelInfoAttributes', () => {
             expect(screen.getByTestId('attributeChip')).toHaveTextContent('VALUE_PROGRAM');
             expect(screen.getByTestId('channelInfoAttributeLock-program')).toBeInTheDocument();
             expect(screen.queryByTestId('channelInfoAttributeEdit-program')).not.toBeInTheDocument();
+        });
+    });
+
+    describe('multiselect', () => {
+        const multiOptions = [
+            {id: 'opt_a', name: 'VALUE_A'},
+            {id: 'opt_b', name: 'VALUE_B'},
+        ];
+        const multiField = (overrides: FieldOptions = {}) => field('tags', {type: 'multiselect', options: multiOptions, ...overrides});
+
+        test('picking a second option adds a chip alongside the first', async () => {
+            const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
+
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([multiField()], [value('tags', ['opt_a'])]),
+            );
+
+            await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-tags'));
+            await userEvent.click(await screen.findByText('VALUE_B'));
+
+            await waitFor(() => expect(patchSpy).toHaveBeenCalledWith(
+                'access_control',
+                'channel',
+                CHANNEL_ID,
+                [{field_id: 'tags', value: ['opt_a', 'opt_b']}],
+            ));
+        });
+
+        test('removing one chip keeps the other, without opening the menu', async () => {
+            const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
+
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([multiField()], [value('tags', ['opt_a', 'opt_b'])]),
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: 'Remove VALUE_A'}));
+
+            expect(screen.queryByRole('menu', {name: 'Tags'})).not.toBeInTheDocument();
+            await waitFor(() => expect(patchSpy).toHaveBeenCalledWith(
+                'access_control',
+                'channel',
+                CHANNEL_ID,
+                [{field_id: 'tags', value: ['opt_b']}],
+            ));
+        });
+
+        test('removing the last chip saves null', async () => {
+            const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
+
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([multiField()], [value('tags', ['opt_a'])]),
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: 'Remove VALUE_A'}));
+
+            await waitFor(() => expect(patchSpy).toHaveBeenCalledWith(
+                'access_control',
+                'channel',
+                CHANNEL_ID,
+                [{field_id: 'tags', value: null}],
+            ));
+        });
+    });
+
+    describe('deferred mode', () => {
+        test('stages an edit locally, without writing through the property API', async () => {
+            const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
+
+            renderWithContext(
+                <ChannelInfoAttributes
+                    channelId={CHANNEL_ID}
+                    deferred={true}
+                />,
+                makeState([field('program', {required: true})], [value('program', null)]),
+            );
+
+            await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-program'));
+            expect(await screen.findByRole('menu', {name: 'Program'})).toBeInTheDocument();
+            await userEvent.click(screen.getByRole('menuitem', {name: 'VALUE_PROGRAM'}));
+
+            // The menu closes on pick, so this chip can only be the trigger's.
+            await waitFor(() => expect(screen.queryByRole('menu', {name: 'Program'})).not.toBeInTheDocument());
+            expect(await screen.findByTestId('attributeChip')).toHaveTextContent('VALUE_PROGRAM');
+            expect(patchSpy).not.toHaveBeenCalled();
+        });
+
+        test('reports pending state through onPendingChange as edits are staged and flushed', async () => {
+            const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
+            const onPendingChange = jest.fn();
+            const ref = React.createRef<ChannelInfoAttributesHandle>();
+
+            renderWithContext(
+                <ChannelInfoAttributes
+                    ref={ref}
+                    channelId={CHANNEL_ID}
+                    deferred={true}
+                    onPendingChange={onPendingChange}
+                />,
+                makeState([field('program', {required: true})], [value('program', null)]),
+            );
+
+            expect(onPendingChange).toHaveBeenLastCalledWith(false);
+
+            await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-program'));
+            expect(await screen.findByRole('menu', {name: 'Program'})).toBeInTheDocument();
+            await userEvent.click(screen.getByRole('menuitem', {name: 'VALUE_PROGRAM'}));
+
+            await waitFor(() => expect(onPendingChange).toHaveBeenLastCalledWith(true));
+            expect(ref.current?.hasPendingChanges()).toBe(true);
+
+            await act(async () => {
+                await ref.current?.flush();
+            });
+
+            expect(patchSpy).toHaveBeenCalledWith(
+                'access_control',
+                'channel',
+                CHANNEL_ID,
+                [{field_id: 'program', value: 'opt_program'}],
+            );
+            expect(ref.current?.hasPendingChanges()).toBe(false);
+            expect(onPendingChange).toHaveBeenLastCalledWith(false);
+        });
+
+        test('discard reverts a staged edit without ever saving it', async () => {
+            const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
+            const ref = React.createRef<ChannelInfoAttributesHandle>();
+
+            renderWithContext(
+                <ChannelInfoAttributes
+                    ref={ref}
+                    channelId={CHANNEL_ID}
+                    deferred={true}
+                />,
+                makeState([field('program', {required: true})], [value('program', null)]),
+            );
+
+            await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-program'));
+            expect(await screen.findByRole('menu', {name: 'Program'})).toBeInTheDocument();
+            await userEvent.click(screen.getByRole('menuitem', {name: 'VALUE_PROGRAM'}));
+            await waitFor(() => expect(ref.current?.hasPendingChanges()).toBe(true));
+
+            act(() => {
+                ref.current?.discard();
+            });
+
+            expect(screen.queryByTestId('attributeChip')).not.toBeInTheDocument();
+            expect(ref.current?.hasPendingChanges()).toBe(false);
+            expect(patchSpy).not.toHaveBeenCalled();
+        });
+
+        test('flush reports failure and keeps the edit staged for a retry', async () => {
+            jest.spyOn(Client4, 'patchPropertyValues').mockRejectedValue(new Error('403'));
+            const ref = React.createRef<ChannelInfoAttributesHandle>();
+
+            renderWithContext(
+                <ChannelInfoAttributes
+                    ref={ref}
+                    channelId={CHANNEL_ID}
+                    deferred={true}
+                />,
+                makeState([field('program', {required: true})], [value('program', null)]),
+            );
+
+            await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-program'));
+            expect(await screen.findByRole('menu', {name: 'Program'})).toBeInTheDocument();
+            await userEvent.click(screen.getByRole('menuitem', {name: 'VALUE_PROGRAM'}));
+            await waitFor(() => expect(ref.current?.hasPendingChanges()).toBe(true));
+
+            let flushed: boolean | undefined;
+            await act(async () => {
+                flushed = await ref.current?.flush();
+            });
+
+            expect(flushed).toBe(false);
+            expect(ref.current?.hasPendingChanges()).toBe(true);
+            expect(await screen.findByTestId('channelInfoAttributeError-program')).toBeInTheDocument();
         });
     });
 });

@@ -145,13 +145,13 @@ export class ChannelInfoAttributes {
     }
 
     /**
-     * Reopens the editor first: each pick commits and closes it.
+     * The trigger's own chip carries the remove control -- no need to reopen
+     * the menu first, and removing does not open it either.
      */
     async deselect(name: string, option: string) {
-        await this.startEditing(name);
-
-        const chip = this.editor(name).locator('.DropDown__multi-value', {hasText: option});
-        await chip.locator('.DropDown__multi-value__remove').click();
+        await this.row(name)
+            .getByRole('button', {name: `Remove ${option}`})
+            .click();
     }
 
     async add(name: string, option?: string) {

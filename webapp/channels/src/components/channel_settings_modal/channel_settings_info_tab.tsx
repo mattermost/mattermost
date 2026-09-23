@@ -27,6 +27,7 @@ import {
 import ConvertConfirmModal from 'components/admin_console/team_channel_settings/convert_confirm_modal';
 import CategorySelector from 'components/category_selector/category_selector';
 import ChannelInfoAttributes from 'components/channel_attributes/channel_info_attributes';
+import type {ChannelInfoAttributesHandle} from 'components/channel_attributes/channel_info_attributes';
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
 import type {TextboxElement} from 'components/textbox';
 import Toggle from 'components/toggle';
@@ -188,6 +189,11 @@ function ChannelSettingsInfoTab({
     // SaveChangesPanel state
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
 
+    // Channel attributes stage their own edits and flush/discard through this
+    // ref, on the tab's Save/Reset, rather than saving on every change.
+    const attributesRef = useRef<ChannelInfoAttributesHandle>(null);
+    const [hasAttributeChanges, setHasAttributeChanges] = useState(false);
+
     // Handler for channel name validation errors
     const handleChannelNameError = useCallback((isError: boolean, errorMessage?: string) => {
         setChannelNameError(errorMessage || '');
@@ -210,14 +216,15 @@ function ChannelSettingsInfoTab({
             return false;
         }
 
-        return hasTextChanged(displayName, channel.display_name) ||
+        return hasAttributeChanges ||
+            hasTextChanged(displayName, channel.display_name) ||
             hasTextChanged(channelUrl, channel.name) ||
             hasTextChanged(channelPurpose, channel.purpose) ||
             channelType !== channel.type ||
             (defaultCategoryName ?? '') !== (serverDefaultCategoryName ?? '') ||
             managedCategoryName !== serverManagedCategoryName ||
             (showDiscoverableToggle && discoverable !== Boolean(channel.discoverable));
-    }, [channel, isDMorGroupChannel, displayName, channelUrl, channelPurpose, channelHeader, channelType, defaultCategoryName, serverDefaultCategoryName, managedCategoryName, serverManagedCategoryName, discoverable, showDiscoverableToggle]);
+    }, [channel, isDMorGroupChannel, hasAttributeChanges, displayName, channelUrl, channelPurpose, channelHeader, channelType, defaultCategoryName, serverDefaultCategoryName, managedCategoryName, serverManagedCategoryName, discoverable, showDiscoverableToggle]);
 
     useEffect(() => {
         setAreThereUnsavedChanges?.(hasUnsavedChanges);
@@ -358,6 +365,19 @@ function ChannelSettingsInfoTab({
             }
         }
 
+        // Flushed before the channel patch: an attribute-only change (nothing
+        // else in `updated` below) must still reach the server on this Save.
+        const attributesSaved = await attributesRef.current?.flush() ?? true;
+        if (!attributesSaved) {
+            handleServerError({
+                message: formatMessage({
+                    id: 'channel_settings.error_attributes_save_failed',
+                    defaultMessage: "Couldn't save one or more channel attributes. Try again.",
+                }),
+            } as ServerError);
+            return false;
+        }
+
         const updated: Partial<Channel> = {};
         if (!isDMorGroupChannel && hasTextChanged(displayName, channel.display_name)) {
             updated.display_name = displayName.trim();
@@ -457,6 +477,8 @@ function ChannelSettingsInfoTab({
         setDefaultCategoryName(serverDefaultCategoryName);
         setManagedCategoryName(serverManagedCategoryName);
         setDiscoverable(Boolean(channel?.discoverable));
+        attributesRef.current?.discard();
+        setHasAttributeChanges(false);
 
         // Clear errors
         setUrlError('');
@@ -685,10 +707,17 @@ function ChannelSettingsInfoTab({
                 name={formatMessage({id: 'channel_settings.header.label', defaultMessage: 'Channel Header'})}
             />
 
-            {/* Same attribute editor as Channel Info RHS; saves immediately. */}
+            {/* Same attribute editor as Channel Info RHS, but staged here: edits
+                flush together with the rest of this tab on Save, through the
+                SaveChangesPanel below, instead of saving on every change. */}
             {!isDMorGroupChannel && (
                 <div className='ChannelSettingsModal__attributesSection'>
-                    <ChannelInfoAttributes channelId={channel.id}/>
+                    <ChannelInfoAttributes
+                        ref={attributesRef}
+                        channelId={channel.id}
+                        deferred={true}
+                        onPendingChange={setHasAttributeChanges}
+                    />
                 </div>
             )}
 

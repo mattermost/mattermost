@@ -13,7 +13,7 @@ import {getChannelBanner} from 'mattermost-redux/selectors/entities/channels';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getContrastingSimpleColor} from 'mattermost-redux/utils/theme_utils';
 
-import {hasAttributeTokens, renderBannerTemplate} from 'components/channel_attributes/banner_template';
+import {renderBannerTemplate} from 'components/channel_attributes/banner_template';
 import useChannelAttributes from 'components/common/hooks/useChannelAttributes';
 import useChannelClassificationBanner from 'components/common/hooks/useChannelClassificationBanner';
 import useResolvedChannelAttributes from 'components/common/hooks/useResolvedChannelAttributes';
@@ -60,7 +60,7 @@ export default function ChannelBanner({channelId}: Props) {
         if (!raw) {
             return '';
         }
-        if (channelAttributesEnabled && hasAttributeTokens(raw)) {
+        if (channelAttributesEnabled) {
             return renderBannerTemplate(raw, resolvedAttributes).trim();
         }
         return raw;

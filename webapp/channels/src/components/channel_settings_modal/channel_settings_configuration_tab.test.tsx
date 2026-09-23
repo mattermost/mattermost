@@ -1542,4 +1542,133 @@ describe('ChannelSettingsConfigurationTab', () => {
             });
         });
     });
+
+    describe('emptying the banner with channel attributes on', () => {
+        const attributesEnabledState = {
+            entities: {
+                general: {
+                    config: {FeatureFlagChannelAttributes: 'true'},
+                    license: {IsLicensed: 'true', SkuShortName: 'advanced'},
+                },
+            },
+        };
+
+        // The composer is contenteditable, so an edit is a DOM mutation followed by
+        // the input event React listens for -- userEvent.clear() has nothing to clear.
+        const clearComposer = () => {
+            const editor = screen.getByTestId('bannerTextEditor');
+            editor.textContent = '';
+            fireEvent.input(editor);
+        };
+
+        const renderTab = () => renderWithContext(
+            <ChannelSettingsConfigurationTab
+                {...baseProps}
+                channel={mockChannelWithBanner}
+            />,
+            attributesEnabledState,
+        );
+
+        it('says nothing until the author tries to save', async () => {
+            renderTab();
+            clearComposer();
+
+            // Clearing the text is the start of an edit, not a mistake to report.
+            expect(screen.queryByText(/Add banner text, or turn off the channel banner/)).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            const errorPanel = screen.getByText(/Add banner text, or turn off the channel banner/).closest('.SaveChangesPanel');
+            expect(errorPanel).toHaveClass('error');
+        });
+
+        it('lets the toggle go off once the text is gone, and clears the error with it', async () => {
+            renderTab();
+            clearComposer();
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
+
+            // Off means off: the section collapses and the blocking error is gone,
+            // rather than outliving the state that raised it.
+            expect(screen.queryByTestId('bannerTextEditor')).not.toBeInTheDocument();
+            expect(screen.queryByText(/Add banner text, or turn off the channel banner/)).not.toBeInTheDocument();
+            expect(screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
+        });
+
+        it('clears the error as soon as text is written back', async () => {
+            renderTab();
+            clearComposer();
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+            expect(screen.getByText(/Add banner text, or turn off the channel banner/)).toBeInTheDocument();
+
+            const editor = screen.getByTestId('bannerTextEditor');
+            editor.textContent = 'Restricted';
+            fireEvent.input(editor);
+
+            expect(screen.queryByText(/Add banner text, or turn off the channel banner/)).not.toBeInTheDocument();
+        });
+
+        it('saves the emptied text alongside the disabled banner', async () => {
+            const {patchChannel} = require('mattermost-redux/actions/channels');
+            patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
+            patchChannel.mockClear();
+
+            renderTab();
+            clearComposer();
+            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            await waitFor(() => {
+                expect(patchChannel).toHaveBeenCalledWith('channel1', expect.objectContaining({
+                    banner_info: {
+                        enabled: false,
+                        text: '',
+                        background_color: '#ff0000',
+                    },
+                }));
+            });
+        });
+
+        it('keeps the emptied text when the banner is switched back on', async () => {
+            renderTab();
+            clearComposer();
+
+            const toggle = screen.getByTestId('channelBannerToggle-button');
+            await userEvent.click(toggle);
+            await userEvent.click(toggle);
+
+            // Turning the banner off is how the author resolves "enabled but empty",
+            // so it must not quietly restore the text they just deleted.
+            expect(screen.getByTestId('bannerTextEditor')).toHaveTextContent('');
+        });
+
+        it('previews the emptied text rather than the saved banner', () => {
+            mockedUseChannelClassificationBanner.mockReturnValue({
+                hasClassification: false,
+                classificationBanner: undefined,
+                classificationId: undefined,
+                bannerText: 'Test banner text',
+                classificationIsBannerDesignated: false,
+            });
+
+            renderTab();
+            clearComposer();
+
+            expect(screen.getByTestId('bannerPreviewEmptyNotice')).toBeInTheDocument();
+            expect(screen.queryByTestId('bannerAttributePreview')).not.toBeInTheDocument();
+        });
+
+        it('treats the separators left behind by the last deleted attribute as empty', async () => {
+            renderTab();
+
+            const editor = screen.getByTestId('bannerTextEditor');
+            editor.textContent = ' · ';
+            fireEvent.input(editor);
+
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            expect(screen.getByText(/Add banner text, or turn off the channel banner/)).toBeInTheDocument();
+        });
+    });
 });

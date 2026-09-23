@@ -32,6 +32,10 @@ type Props = {
     size?: 'small' | 'medium';
 
     className?: string;
+
+    // Rendered inside the pill, after the value — a remove control belongs on the
+    // chip's own background, not floating beside it.
+    children?: React.ReactNode;
 };
 
 type RemoveButtonProps = {
@@ -82,6 +86,7 @@ const AttributeChip = ({
     announceLabel = true,
     size = 'small',
     className,
+    children,
 }: Props) => {
     const style = useMemo(() => {
         if (!color || !HEX_COLOR_PATTERN.test(color)) {
@@ -120,6 +125,7 @@ const AttributeChip = ({
                 </span>
             )}
             <span className='AttributeChip__value'>{value}</span>
+            {children}
         </span>
     );
 };

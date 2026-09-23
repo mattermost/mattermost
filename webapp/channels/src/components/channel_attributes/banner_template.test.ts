@@ -8,6 +8,7 @@ import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities
 import {
     attributeToken,
     hasAttributeTokens,
+    isBlankTemplate,
     referencedFieldNames,
     renderBannerTemplate,
     tokenSuggestions,
@@ -42,6 +43,10 @@ describe('renderBannerTemplate', () => {
     test('substitutes several attributes and keeps the separator the author typed', () => {
         const attributes = [attribute('classification', 'TOP SECRET'), attribute('program', 'AURORA')];
         expect(renderBannerTemplate('{{classification}} · {{program}}', attributes)).toBe('TOP SECRET · AURORA');
+    });
+
+    test('collapses a template that is nothing but separator residue', () => {
+        expect(renderBannerTemplate(' · ', [])).toBe('');
     });
 
     test('preserves surrounding literal text and markdown', () => {
@@ -109,6 +114,30 @@ describe('renderBannerTemplate', () => {
         test('leaves surrounding literal text when every attribute is unset', () => {
             expect(renderBannerTemplate('{{gone}} · {{also}} Test', [])).toBe('Test');
         });
+    });
+});
+
+describe('isBlankTemplate', () => {
+    test('an empty template is blank', () => {
+        expect(isBlankTemplate('')).toBe(true);
+        expect(isBlankTemplate('   ')).toBe(true);
+    });
+
+    test('the separators left behind by deleting every chip are blank', () => {
+        expect(isBlankTemplate('·')).toBe(true);
+        expect(isBlankTemplate(' · · ')).toBe(true);
+        expect(isBlankTemplate('/')).toBe(true);
+    });
+
+    test('a template still referencing an attribute is never blank', () => {
+        // It renders to nothing only until the value arrives, which is the feature.
+        expect(isBlankTemplate('{{classification}}')).toBe(false);
+        expect(isBlankTemplate('{{a}} · {{b}}')).toBe(false);
+    });
+
+    test('authored words are not blank, even next to a separator', () => {
+        expect(isBlankTemplate('Need help?')).toBe(false);
+        expect(isBlankTemplate('· Restricted')).toBe(false);
     });
 });
 

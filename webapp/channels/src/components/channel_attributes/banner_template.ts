@@ -52,6 +52,22 @@ export function parseBannerTemplate(template: string): BannerSegment[] {
     return segments;
 }
 
+/**
+ * True when a template can never put anything on screen: no attribute reference
+ * to fill in later, and nothing left but separators and whitespace.
+ *
+ * Deleting the last attribute chip leaves the separators that sat between them
+ * behind, so "· ·" reads as authored text to every length check. A template that
+ * still references an attribute is not blank whatever it renders to today —
+ * that is the banner waiting for a value, which is the point of the feature.
+ */
+export function isBlankTemplate(template: string): boolean {
+    if (hasAttributeTokens(template)) {
+        return false;
+    }
+    return tidySeparators(template).trim() === '';
+}
+
 export function referencedFieldNames(text: string): string[] {
     const names: string[] = [];
     for (const match of text.matchAll(tokenPattern())) {
@@ -69,7 +85,9 @@ export function referencedFieldNames(text: string): string[] {
  */
 export function renderBannerTemplate(template: string, attributes: ResolvedChannelAttribute[]): string {
     if (!template || !hasAttributeTokens(template)) {
-        return template;
+        // Separator residue is not content, but anything else an author typed is
+        // theirs and passes through untouched.
+        return isBlankTemplate(template) ? '' : template;
     }
 
     const byName = new Map<string, ResolvedChannelAttribute>();

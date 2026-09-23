@@ -1,15 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {LockOutlineIcon, PlusIcon} from '@mattermost/compass-icons/components';
-import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
+import type {PropertyField, PropertyFieldOption, PropertyValue} from '@mattermost/types/properties';
 import {supportsOptions} from '@mattermost/types/properties';
 
 import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities/properties';
+import {resolveDisplayValue} from 'mattermost-redux/selectors/entities/properties';
 import {canMoveToOption, getPropertyFieldChangePolicy, getPropertyFieldLabel, isPropertyFieldRequired, isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
 
 import useCanSetChannelAttributes from 'components/common/hooks/useCanSetChannelAttributes';
@@ -66,19 +67,56 @@ const lockReasons = defineMessages({
 
 type Props = {
     channelId: string;
+
+    // When true, edits are staged locally rather than saved on each change —
+    // the host (e.g. a SaveChangesPanel-driven tab) drives flush/discard through
+    // the ref handle and decides when a save actually reaches the server.
+    deferred?: boolean;
+    onPendingChange?: (hasPendingChanges: boolean) => void;
 };
+
+export type ChannelInfoAttributesHandle = {
+    hasPendingChanges: () => boolean;
+    flush: () => Promise<boolean>;
+    discard: () => void;
+};
+
+// Overlays a staged-but-unsaved value on top of the resolved attribute so a
+// deferred edit renders exactly as a saved one would, before it is saved.
+function withPendingValue(attribute: ResolvedChannelAttribute, raw: ChannelAttributeValue): ResolvedChannelAttribute {
+    const resolved = resolveDisplayValue(attribute.field, raw);
+    return {
+        ...attribute,
+        value: raw === null ? undefined : {...attribute.value, value: raw} as PropertyValue<unknown>,
+        ...resolved,
+    };
+}
 
 /**
  * The CHANNEL ATTRIBUTES block in Channel Info. A locked attribute is shown with
  * its reason rather than hidden: hiding it makes a correctly configured channel
  * look like one missing a marking.
  */
-const ChannelInfoAttributes = ({channelId}: Props) => {
+const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({channelId, deferred, onPendingChange}, ref) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
     // One resolved list, two views: a second hook would duplicate the fetch.
-    const allAttributes = useResolvedChannelAttributes(channelId);
+    const resolvedAttributes = useResolvedChannelAttributes(channelId);
+
+    // Staged edits, keyed by field id, only ever populated in deferred mode.
+    const [pendingValues, setPendingValues] = useState<Map<string, ChannelAttributeValue>>(() => new Map());
+
+    const allAttributes = useMemo(() => {
+        if (pendingValues.size === 0) {
+            return resolvedAttributes;
+        }
+        return resolvedAttributes.map((attribute) => (pendingValues.has(attribute.field.id) ? withPendingValue(attribute, pendingValues.get(attribute.field.id) ?? null) : attribute));
+    }, [resolvedAttributes, pendingValues]);
+
+    useEffect(() => {
+        onPendingChange?.(pendingValues.size > 0);
+    }, [pendingValues, onPendingChange]);
 
     // Gates editing on top of canSet rather than relying on it: a field carrying the
     // 'member' setter tier would otherwise hand a regular member a pencil, and this
@@ -128,6 +166,7 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
         setSavingFieldId(undefined);
         setFailedFieldId(undefined);
         setRevealedFieldIds([]);
+        setPendingValues(new Map());
     }, [channelId]);
 
     // The panel survives a channel switch, so a save started on one channel can
@@ -154,6 +193,20 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
     }, []);
 
     const handleSubmit = useCallback(async (field: PropertyField, value: ChannelAttributeValue) => {
+        if (deferred) {
+            // No network round trip here: the host flushes staged values together
+            // on its own Save, so a pick just updates the local map.
+            setFailedFieldId(undefined);
+            setPendingValues((prev) => {
+                const next = new Map(prev);
+                next.set(field.id, value);
+                return next;
+            });
+            setEditingFieldId(undefined);
+            setRevealedFieldIds((prev) => prev.filter((id) => id !== field.id));
+            return;
+        }
+
         const requestVisitToken = visitTokenRef.current;
         const requestSequence = ++saveSequenceRef.current;
         const isStale = () => !isMountedRef.current || visitTokenRef.current !== requestVisitToken || saveSequenceRef.current !== requestSequence;
@@ -177,7 +230,31 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
                 setSavingFieldId(undefined);
             }
         }
-    }, [dispatch, channelId]);
+    }, [dispatch, channelId, deferred]);
+
+    useImperativeHandle(ref, () => ({
+        hasPendingChanges: () => pendingValues.size > 0,
+        discard: () => {
+            setPendingValues(new Map());
+            setFailedFieldId(undefined);
+        },
+        flush: async () => {
+            if (pendingValues.size === 0) {
+                return true;
+            }
+            for (const [fieldId, value] of pendingValues) {
+                try {
+                    // eslint-disable-next-line no-await-in-loop
+                    await setChannelAttributeValue(dispatch, channelId, fieldId, value);
+                } catch {
+                    setFailedFieldId(fieldId);
+                    return false;
+                }
+            }
+            setPendingValues(new Map());
+            return true;
+        },
+    }), [pendingValues, dispatch, channelId]);
 
     const handleAdd = useCallback((fieldId: string) => {
         setRevealedFieldIds((prev) => (prev.includes(fieldId) ? prev : [...prev, fieldId]));
@@ -368,6 +445,8 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
             </div>
         </div>
     );
-};
+});
+
+ChannelInfoAttributes.displayName = 'ChannelInfoAttributes';
 
 export default ChannelInfoAttributes;
