@@ -474,31 +474,31 @@ func TestGetSupportPacketStats(t *testing.T) {
 	})
 
 	t.Run("single channel guests are counted when a guest is in exactly one channel", func(t *testing.T) {
-		th := Setup(t).InitBasic(t)
-		channel := th.CreateChannel(t, th.BasicTeam)
+		basicTh := Setup(t).InitBasic(t)
+		channel := basicTh.CreateChannel(t, basicTh.BasicTeam)
 
-		guest := th.CreateGuest(t)
-		th.LinkUserToTeam(t, guest, th.BasicTeam)
-		th.AddUserToChannel(t, guest, channel)
+		guest := basicTh.CreateGuest(t)
+		basicTh.LinkUserToTeam(t, guest, basicTh.BasicTeam)
+		basicTh.AddUserToChannel(t, guest, channel)
 
-		sp := generateStats(t, th.Context, th.App)
+		sp := generateStats(t, basicTh.Context, basicTh.App)
 		assertStatValue(t, sp.SingleChannelGuests, 1)
 	})
 
 	t.Run("post count should be present if number of users extends AnalyticsSettings.MaxUsersForStatistics", func(t *testing.T) {
 		// Setup a new test helper
-		th := Setup(t).InitBasic(t)
-		th.App.UpdateConfig(func(cfg *model.Config) {
+		basicTh := Setup(t).InitBasic(t)
+		basicTh.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.AnalyticsSettings.MaxUsersForStatistics = new(1)
 		})
 
 		for range 5 {
-			p := th.CreatePost(t, th.BasicChannel)
+			p := basicTh.CreatePost(t, basicTh.BasicChannel)
 			require.NotNil(t, p)
 		}
 
 		// InitBasic(t) already creats 5 posts
-		sp := generateStats(t, th.Context, th.App)
+		sp := generateStats(t, basicTh.Context, basicTh.App)
 		assertStatValue(t, sp.Posts, 10)
 	})
 
