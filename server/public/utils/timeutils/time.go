@@ -12,7 +12,7 @@ const (
 )
 
 func FormatMillis(millis int64) string {
-	return time.UnixMilli(millis).UTC().Format(RFC3339Milli)
+	return time.UnixMilli(millis).Format(RFC3339Milli)
 }
 
 func ParseFormatedMillis(s string) (millis int64, err error) {

@@ -920,7 +920,9 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 	cases := []struct {
 		name     string
 		filename string
-		marshal  func() (*model.FileData, error)
+		// Jobs and roles format their timestamps in server-local time, so their goldens are recorded in UTC.
+		localTime bool
+		marshal   func() (*model.FileData, error)
 	}{
 		{
 			name:     "metadata",
@@ -952,8 +954,9 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 			},
 		},
 		{
-			name:     "jobs",
-			filename: "jobs.yaml",
+			name:      "jobs",
+			filename:  "jobs.yaml",
+			localTime: true,
 			marshal: func() (*model.FileData, error) {
 				return supportPacketJobsFile(&model.SupportPacketJobList{
 					LDAPSyncJobs:               []*model.Job{jobFactory("job-ldap", model.JobTypeLdapSync)},
@@ -966,8 +969,9 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 			},
 		},
 		{
-			name:     "permissions",
-			filename: "permissions.yaml",
+			name:      "permissions",
+			filename:  "permissions.yaml",
+			localTime: true,
 			marshal: func() (*model.FileData, error) {
 				return supportPacketPermissionsFile(&model.SupportPacketPermissionInfo{
 					Roles:   []*model.Role{role},
@@ -993,6 +997,10 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
+			if _, offset := time.Unix(0, 0).Zone(); tc.localTime && offset != 0 {
+				t.Skip("golden recorded in UTC; run with TZ=UTC")
+			}
+
 			fileData, err := tc.marshal()
 			require.NoError(t, err)
 			require.NotNil(t, fileData)
