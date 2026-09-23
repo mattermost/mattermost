@@ -26,8 +26,8 @@ const browserHistory = {
     },
 };
 
-if (isDesktop && !window.__mmBrowserHistoryPushRegistered) {
-    window.__mmBrowserHistoryPushRegistered = true;
+if (isDesktop && !window.mmBrowserHistoryPushRegistered) {
+    window.mmBrowserHistoryPushRegistered = true;
     DesktopApp.onBrowserHistoryPush((pathName) => b.push(pathName));
 }
 

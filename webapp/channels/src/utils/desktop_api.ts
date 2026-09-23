@@ -12,7 +12,7 @@ declare global {
 
         // Guards the onBrowserHistoryPush registration in browser_history.tsx so that a
         // plugin bundling its own copy of that module cannot add a second listener.
-        __mmBrowserHistoryPushRegistered?: boolean;
+        mmBrowserHistoryPushRegistered?: boolean;
     }
 }
 

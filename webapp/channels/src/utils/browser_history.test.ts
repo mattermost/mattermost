@@ -49,7 +49,7 @@ jest.mock('utils/desktop_api', () => ({
 describe('browser_history', () => {
     beforeEach(() => {
         jest.resetModules();
-        delete (window as Window & {__mmBrowserHistoryPushRegistered?: boolean}).__mmBrowserHistoryPushRegistered;
+        delete (window as Window & {mmBrowserHistoryPushRegistered?: boolean}).mmBrowserHistoryPushRegistered;
     });
 
     describe('onBrowserHistoryPush registration', () => {
@@ -60,7 +60,7 @@ describe('browser_history', () => {
 
             const {default: DesktopApp} = require('utils/desktop_api');
             expect(DesktopApp.onBrowserHistoryPush).not.toHaveBeenCalled();
-            expect(window.__mmBrowserHistoryPushRegistered).toBeUndefined();
+            expect(window.mmBrowserHistoryPushRegistered).toBeUndefined();
         });
 
         it('registers the listener and sets the window flag on the first desktop load', () => {
@@ -70,14 +70,14 @@ describe('browser_history', () => {
 
             const {default: DesktopApp} = require('utils/desktop_api');
             expect(DesktopApp.onBrowserHistoryPush).toHaveBeenCalledTimes(1);
-            expect(window.__mmBrowserHistoryPushRegistered).toBe(true);
+            expect(window.mmBrowserHistoryPushRegistered).toBe(true);
         });
 
         it('does not register a second listener when the window flag is already set', () => {
             // Pre-set the flag to simulate the core web app having already loaded
             // browser_history and registered the listener. A plugin bundling its own
             // copy of this module would encounter this state on its own load.
-            (window as Window & {__mmBrowserHistoryPushRegistered?: boolean}).__mmBrowserHistoryPushRegistered = true;
+            (window as Window & {mmBrowserHistoryPushRegistered?: boolean}).mmBrowserHistoryPushRegistered = true;
             require('@mattermost/shared/utils/user_agent').isDesktopApp.mockReturnValue(true);
 
             require('utils/browser_history');
