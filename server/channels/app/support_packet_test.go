@@ -20,6 +20,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	smocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
@@ -882,5 +883,124 @@ func TestGetSupportPacketDatabaseSchema(t *testing.T) {
 
 			break
 		}
+	}
+}
+
+func TestSupportPacketMarshalGolden(t *testing.T) {
+	t.Parallel()
+
+	statsCount := int64(42)
+	dailyActive := int64(15)
+
+	jobFactory := func(id, jobType string) *model.Job {
+		return &model.Job{
+			Id:             id,
+			Type:           jobType,
+			CreateAt:       1111,
+			StartAt:        2222,
+			LastActivityAt: 3333,
+			Status:         model.JobStatusSuccess,
+			Data:           model.StringMap{"result": "ok"},
+		}
+	}
+
+	role := &model.Role{
+		Id:          "role-id",
+		Name:        "team_admin",
+		Permissions: []string{"manage_system", "manage_team"},
+	}
+
+	scheme := &model.Scheme{
+		Id:          "scheme-id",
+		Name:        "scheme-name",
+		DisplayName: "Scheme Name",
+		Scope:       model.SchemeScopeTeam,
+	}
+
+	cases := []struct {
+		name     string
+		filename string
+		marshal  func() (*model.FileData, error)
+	}{
+		{
+			name:     "metadata",
+			filename: "metadata.yaml",
+			marshal: func() (*model.FileData, error) {
+				return supportPacketMetadataFile(&model.PacketMetadata{
+					Version:       1,
+					Type:          model.SupportPacketType,
+					GeneratedAt:   1735689600000,
+					ServerVersion: "11.0.0",
+					ServerID:      "server-id-fixed",
+					LicenseID:     "license-id-fixed",
+					CustomerID:    "customer-id-fixed",
+					Extras: map[string]any{
+						"region": "us-east",
+						"tier":   "enterprise",
+					},
+				}, nil)
+			},
+		},
+		{
+			name:     "stats",
+			filename: "stats.yaml",
+			marshal: func() (*model.FileData, error) {
+				return supportPacketStatsFile(&model.SupportPacketStats{
+					RegisteredUsers:  &statsCount,
+					DailyActiveUsers: &dailyActive,
+				}, nil)
+			},
+		},
+		{
+			name:     "jobs",
+			filename: "jobs.yaml",
+			marshal: func() (*model.FileData, error) {
+				return supportPacketJobsFile(&model.SupportPacketJobList{
+					LDAPSyncJobs:               []*model.Job{jobFactory("job-ldap", model.JobTypeLdapSync)},
+					DataRetentionJobs:          []*model.Job{jobFactory("job-retention", model.JobTypeDataRetention)},
+					MessageExportJobs:          []*model.Job{jobFactory("job-export", model.JobTypeMessageExport)},
+					ElasticPostIndexingJobs:    []*model.Job{jobFactory("job-index", model.JobTypeElasticsearchPostIndexing)},
+					ElasticPostAggregationJobs: []*model.Job{jobFactory("job-agg", model.JobTypeElasticsearchPostAggregation)},
+					MigrationJobs:              []*model.Job{jobFactory("job-migrate", model.JobTypeMigrations)},
+				}, nil)
+			},
+		},
+		{
+			name:     "permissions",
+			filename: "permissions.yaml",
+			marshal: func() (*model.FileData, error) {
+				return supportPacketPermissionsFile(&model.SupportPacketPermissionInfo{
+					Roles:   []*model.Role{role},
+					Schemes: []*model.Scheme{scheme},
+				}, nil)
+			},
+		},
+		{
+			name:     "plugins",
+			filename: "plugins.json",
+			marshal: func() (*model.FileData, error) {
+				return supportPacketPluginsFile(&model.SupportPacketPluginList{
+					Enabled: []model.Manifest{
+						{Id: "com.mattermost.enabled", Name: "Enabled Plugin", Version: "1.2.3"},
+					},
+					Disabled: []model.Manifest{
+						{Id: "com.mattermost.disabled", Name: "Disabled Plugin", Version: "2.3.4"},
+					},
+				}, nil)
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			fileData, err := tc.marshal()
+			require.NoError(t, err)
+			require.NotNil(t, fileData)
+			require.Equal(t, tc.filename, fileData.Filename)
+
+			expected, err := os.ReadFile(filepath.Join(server.GetPackagePath(), "channels", "app", "testdata", "support_packet", tc.filename))
+			require.NoError(t, err)
+			require.Equal(t, string(expected), string(fileData.Body))
+		})
 	}
 }

@@ -22,24 +22,19 @@ import (
 func (a *App) GenerateSupportPacket(rctx request.CTX, options *model.SupportPacketOptions) []model.FileData {
 	functions := map[string]func(rctx request.CTX) (*model.FileData, error){
 		"metadata": func(rctx request.CTX) (*model.FileData, error) {
-			metadata, err := a.getSupportPacketMetadata(rctx)
-			return platform.YAMLFile(model.PacketMetadataFileName, metadata, err)
+			return supportPacketMetadataFile(a.getSupportPacketMetadata(rctx))
 		},
 		"stats": func(rctx request.CTX) (*model.FileData, error) {
-			stats, err := a.getSupportPacketStats(rctx)
-			return platform.YAMLFile("stats.yaml", stats, err)
+			return supportPacketStatsFile(a.getSupportPacketStats(rctx))
 		},
 		"jobs": func(rctx request.CTX) (*model.FileData, error) {
-			jobs, err := a.getSupportPacketJobList(rctx)
-			return platform.YAMLFile("jobs.yaml", jobs, err)
+			return supportPacketJobsFile(a.getSupportPacketJobList(rctx))
 		},
 		"permissions": func(rctx request.CTX) (*model.FileData, error) {
-			permissions, err := a.getSupportPacketPermissionsInfo(rctx)
-			return platform.YAMLFile("permissions.yaml", permissions, err)
+			return supportPacketPermissionsFile(a.getSupportPacketPermissionsInfo(rctx))
 		},
 		"plugins": func(rctx request.CTX) (*model.FileData, error) {
-			plugins, err := a.getPluginsList(rctx)
-			return platform.JSONFile("plugins.json", plugins, err)
+			return supportPacketPluginsFile(a.getPluginsList(rctx))
 		},
 		"schema": a.getSupportPacketDatabaseSchema,
 	}
@@ -149,6 +144,26 @@ func (a *App) GenerateSupportPacket(rctx request.CTX, options *model.SupportPack
 	}
 
 	return fileDatas
+}
+
+func supportPacketMetadataFile(m *model.PacketMetadata, err error) (*model.FileData, error) {
+	return platform.YAMLFile(model.PacketMetadataFileName, m, err)
+}
+
+func supportPacketStatsFile(s *model.SupportPacketStats, err error) (*model.FileData, error) {
+	return platform.YAMLFile("stats.yaml", s, err)
+}
+
+func supportPacketJobsFile(j *model.SupportPacketJobList, err error) (*model.FileData, error) {
+	return platform.YAMLFile("jobs.yaml", j, err)
+}
+
+func supportPacketPermissionsFile(p *model.SupportPacketPermissionInfo, err error) (*model.FileData, error) {
+	return platform.YAMLFile("permissions.yaml", p, err)
+}
+
+func supportPacketPluginsFile(p *model.SupportPacketPluginList, err error) (*model.FileData, error) {
+	return platform.JSONFile("plugins.json", p, err)
 }
 
 func (a *App) getSupportPacketStats(rctx request.CTX) (*model.SupportPacketStats, error) {

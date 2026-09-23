@@ -10,24 +10,9 @@ import (
 )
 
 func TestFormatMillis(t *testing.T) {
-	t.Run("zero time", func(t *testing.T) {
-		result := FormatMillis(0)
-		// The concrete time depends on the timezone, so we can't test the exact time
-		assert.Contains(t, result, "1970-01-01")
-		assert.Contains(t, result, "00:00")
-	})
-
-	t.Run("positive time", func(t *testing.T) {
-		result := FormatMillis(1609459200000) // 2021-01-01 00:00:00 UTC
-		assert.Contains(t, result, "2021-01-01")
-		assert.Contains(t, result, "00:00")
-	})
-
-	t.Run("negative time", func(t *testing.T) {
-		result := FormatMillis(-1609459200000) // 1919-01-01 00:00:00 UTC
-		assert.Contains(t, result, "1919-01-01")
-		assert.Contains(t, result, "00:00")
-	})
+	assert.Equal(t, "1970-01-01T00:00:00Z", FormatMillis(0))
+	assert.Equal(t, "2021-01-01T00:00:00.123Z", FormatMillis(1609459200123))
+	assert.Equal(t, "1919-01-01T00:00:00Z", FormatMillis(-1609459200000))
 }
 
 func TestParseFormatedMillis(t *testing.T) {

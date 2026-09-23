@@ -21,7 +21,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/goccy/go-yaml"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -1270,34 +1269,6 @@ func TestDetectSAMLProviderType(t *testing.T) {
 func TestSupportPacketMarshalGolden(t *testing.T) {
 	t.Parallel()
 
-	statsCount := int64(42)
-	dailyActive := int64(15)
-
-	jobFactory := func(id, jobType string) *model.Job {
-		return &model.Job{
-			Id:             id,
-			Type:           jobType,
-			CreateAt:       1111,
-			StartAt:        2222,
-			LastActivityAt: 3333,
-			Status:         model.JobStatusSuccess,
-			Data:           model.StringMap{"result": "ok"},
-		}
-	}
-
-	role := &model.Role{
-		Id:          "role-id",
-		Name:        "team_admin",
-		Permissions: []string{"manage_system", "manage_team"},
-	}
-
-	scheme := &model.Scheme{
-		Id:          "scheme-id",
-		Name:        "scheme-name",
-		DisplayName: "Scheme Name",
-		Scope:       model.SchemeScopeTeam,
-	}
-
 	cacheHitRatio := 0.99
 	deadlocks := int64(3)
 	tempFiles := int64(4)
@@ -1390,91 +1361,20 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 	cases := []struct {
 		name     string
 		filename string
-		// Jobs and roles format their timestamps in server-local time, so their goldens are recorded in UTC.
-		localTime bool
-		marshal   func() (*model.FileData, error)
+		marshal  func() (*model.FileData, error)
 	}{
-		{
-			name:     "metadata",
-			filename: "metadata.yaml",
-			marshal: func() (*model.FileData, error) {
-				return YAMLFile(model.PacketMetadataFileName, &model.PacketMetadata{
-					Version:       1,
-					Type:          model.SupportPacketType,
-					GeneratedAt:   1735689600000,
-					ServerVersion: "11.0.0",
-					ServerID:      "server-id-fixed",
-					LicenseID:     "license-id-fixed",
-					CustomerID:    "customer-id-fixed",
-					Extras: map[string]any{
-						"region": "us-east",
-						"tier":   "enterprise",
-					},
-				}, nil)
-			},
-		},
-		{
-			name:     "stats",
-			filename: "stats.yaml",
-			marshal: func() (*model.FileData, error) {
-				return YAMLFile("stats.yaml", &model.SupportPacketStats{
-					RegisteredUsers:  &statsCount,
-					DailyActiveUsers: &dailyActive,
-				}, nil)
-			},
-		},
-		{
-			name:      "jobs",
-			filename:  "jobs.yaml",
-			localTime: true,
-			marshal: func() (*model.FileData, error) {
-				return YAMLFile("jobs.yaml", &model.SupportPacketJobList{
-					LDAPSyncJobs:               []*model.Job{jobFactory("job-ldap", model.JobTypeLdapSync)},
-					DataRetentionJobs:          []*model.Job{jobFactory("job-retention", model.JobTypeDataRetention)},
-					MessageExportJobs:          []*model.Job{jobFactory("job-export", model.JobTypeMessageExport)},
-					ElasticPostIndexingJobs:    []*model.Job{jobFactory("job-index", model.JobTypeElasticsearchPostIndexing)},
-					ElasticPostAggregationJobs: []*model.Job{jobFactory("job-agg", model.JobTypeElasticsearchPostAggregation)},
-					MigrationJobs:              []*model.Job{jobFactory("job-migrate", model.JobTypeMigrations)},
-				}, nil)
-			},
-		},
-		{
-			name:      "permissions",
-			filename:  "permissions.yaml",
-			localTime: true,
-			marshal: func() (*model.FileData, error) {
-				return YAMLFile("permissions.yaml", &model.SupportPacketPermissionInfo{
-					Roles:   []*model.Role{role},
-					Schemes: []*model.Scheme{scheme},
-				}, nil)
-			},
-		},
-		{
-			name:     "plugins",
-			filename: "plugins.json",
-			marshal: func() (*model.FileData, error) {
-				return JSONFile("plugins.json", &model.SupportPacketPluginList{
-					Enabled: []model.Manifest{
-						{Id: "com.mattermost.enabled", Name: "Enabled Plugin", Version: "1.2.3"},
-					},
-					Disabled: []model.Manifest{
-						{Id: "com.mattermost.disabled", Name: "Disabled Plugin", Version: "2.3.4"},
-					},
-				}, nil)
-			},
-		},
 		{
 			name:     "diagnostics",
 			filename: "diagnostics.yaml",
 			marshal: func() (*model.FileData, error) {
-				return YAMLFile("diagnostics.yaml", diagnostics, nil, yaml.WithComment(diagnosticsYAMLComments))
+				return supportPacketDiagnosticsFile(diagnostics, nil)
 			},
 		},
 		{
 			name:     "config",
 			filename: "sanitized_config.json",
 			marshal: func() (*model.FileData, error) {
-				return JSONFile("sanitized_config.json", &model.SupportPacketConfig{
+				return supportPacketConfigFile(&model.SupportPacketConfig{
 					Config: &model.Config{
 						ServiceSettings: model.ServiceSettings{
 							SiteURL: model.NewPointer("https://example.test"),
@@ -1489,18 +1389,14 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			if _, offset := time.Unix(0, 0).Zone(); tc.localTime && offset != 0 {
-				t.Skip("golden recorded in UTC; run with TZ=UTC")
-			}
-
 			fileData, err := tc.marshal()
 			require.NoError(t, err)
 			require.NotNil(t, fileData)
-			actual := fileData.Body
+			require.Equal(t, tc.filename, fileData.Filename)
 
 			expected, err := os.ReadFile(filepath.Join(server.GetPackagePath(), "channels", "app", "platform", "testdata", "support_packet", tc.filename))
 			require.NoError(t, err)
-			require.Equal(t, string(expected), string(actual))
+			require.Equal(t, string(expected), string(fileData.Body))
 		})
 	}
 }
