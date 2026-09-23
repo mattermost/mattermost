@@ -121,3 +121,102 @@ func TestRecapChannelReadAccessDeniesWhenEveryChannelIsDenied(t *testing.T) {
 	require.True(t, isChannelReadAccessDenial(err, abacDeniedErrorID),
 		"nothing survived the filter, so the response must name the channel-access denial rather than fall back to a bare permission error: %v", err)
 }
+
+// sidebarAccessFixture governs channel_read_access for the two sidebar payloads that
+// carry channel references without carrying the channels themselves: the membership
+// list and the sidebar categories. Neither is self-filtering the way the channel list
+// is -- a denial suppresses the channel, it does not remove the membership row or
+// rewrite the user's categories -- so a client that keeps local channel records will
+// render whatever reference survives here.
+type sidebarAccessFixture struct {
+	th *TestHelper
+	// denied is consulted at evaluation time, so a test can pick its channels
+	// after the mock is installed.
+	denied map[string]bool
+}
+
+func (f *sidebarAccessFixture) deny(channelID string) {
+	f.denied[channelID] = true
+}
+
+func setupSidebarChannelAccess(t *testing.T) *sidebarAccessFixture {
+	t.Helper()
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+	})
+
+	f := &sidebarAccessFixture{th: th, denied: map[string]bool{}}
+
+	mockACS := installMockACS(t, th)
+	mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).Return(true, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+		return f.denied[req.Resource.ID]
+	})).Return(model.AccessDecision{Decision: false}, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+		Return(model.AccessDecision{Decision: true}, nil)
+
+	return f
+}
+
+func TestChannelReadAccessFiltersChannelMembersForTeamForUser(t *testing.T) {
+	f := setupSidebarChannelAccess(t)
+	th := f.th
+	f.deny(th.BasicChannel2.Id)
+
+	members, _, err := th.Client.GetChannelMembersForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, "")
+	require.NoError(t, err, "a partial denial filters the list rather than refusing the request")
+
+	channelIDs := make([]string, 0, len(members))
+	for _, member := range members {
+		channelIDs = append(channelIDs, member.ChannelId)
+	}
+
+	require.Contains(t, channelIDs, th.BasicChannel.Id, "the readable channel's membership must survive")
+	require.NotContains(t, channelIDs, th.BasicChannel2.Id,
+		"the membership row outlives the denial, so the handler has to drop it or the client keeps a channel the channel list no longer returns")
+}
+
+func TestChannelReadAccessFiltersSidebarCategories(t *testing.T) {
+	f := setupSidebarChannelAccess(t)
+	th := f.th
+	f.deny(th.BasicChannel2.Id)
+
+	categories, _, err := th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, "")
+	require.NoError(t, err)
+
+	var channelIDs []string
+	for _, category := range categories.Categories {
+		channelIDs = append(channelIDs, category.Channels...)
+	}
+
+	require.Contains(t, channelIDs, th.BasicChannel.Id, "the readable channel must still be placed in the sidebar")
+	require.NotContains(t, channelIDs, th.BasicChannel2.Id,
+		"a denied channel left in a category hands the client a sidebar row for a channel it may not read")
+}
+
+// The write paths keep the full membership: the filtered read must not be what a
+// category reorder or an add-to-category writes back, or the denial would drop the
+// hidden channels from the user's sidebar for good.
+func TestChannelReadAccessLeavesStoredSidebarCategoriesIntact(t *testing.T) {
+	f := setupSidebarChannelAccess(t)
+	th := f.th
+	f.deny(th.BasicChannel2.Id)
+
+	_, _, err := th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, "")
+	require.NoError(t, err)
+
+	stored, appErr := th.App.GetSidebarCategoriesForTeamForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
+	require.Nil(t, appErr)
+
+	var channelIDs []string
+	for _, category := range stored.Categories {
+		channelIDs = append(channelIDs, category.Channels...)
+	}
+	require.Contains(t, channelIDs, th.BasicChannel2.Id,
+		"the denied channel must still be stored in the user's categories so it returns intact once access does")
+}

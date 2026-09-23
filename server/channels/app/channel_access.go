@@ -295,12 +295,21 @@ func (a *App) evaluateChannelWriteAccessGoverned(rctx request.CTX, channel *mode
 	return policy.HasAction(model.AccessControlPolicyActionChannelWriteAccess)
 }
 
+func isChannelAccessAction(action string) bool {
+	return action == model.AccessControlPolicyActionChannelReadAccess ||
+		action == model.AccessControlPolicyActionChannelWriteAccess
+}
+
+func channelAccessExempt(channel *model.Channel) bool {
+	return channel.IsGroupOrDirect()
+}
+
 func (a *App) channelAccessGateApplies(userID string, channel *model.Channel) bool {
 	if channel == nil || userID == "" {
 		return false
 	}
 
-	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
+	if channelAccessExempt(channel) {
 		return false
 	}
 
@@ -415,6 +424,20 @@ func (a *App) FilterChannelIDsByWriteAccess(rctx request.CTX, userID string, cha
 	for _, channelID := range channelIDs {
 		if allowed, _ := a.channelWriteAccessDecisionByID(rctx, userID, channelID); allowed {
 			filtered = append(filtered, channelID)
+		}
+	}
+	return filtered
+}
+
+func (a *App) FilterChannelMembersByReadAccess(rctx request.CTX, userID string, members model.ChannelMembers) model.ChannelMembers {
+	if len(members) == 0 || !a.channelAccessEnforcementActive() {
+		return members
+	}
+
+	filtered := make(model.ChannelMembers, 0, len(members))
+	for _, member := range members {
+		if a.HasChannelReadAccessByID(rctx, userID, member.ChannelId) {
+			filtered = append(filtered, member)
 		}
 	}
 	return filtered

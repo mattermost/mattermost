@@ -2238,6 +2238,8 @@ func getChannelMembersForTeamForUser(c *Context, w http.ResponseWriter, r *http.
 		return
 	}
 
+	members = c.App.FilterChannelMembersByReadAccess(c.AppContext, c.Params.UserId, members)
+
 	// Sanitize members for current user
 	currentUserId := c.AppContext.Session().UserId
 	for i := range members {
