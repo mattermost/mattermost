@@ -2266,7 +2266,7 @@ func TestImportUsernamRemap(t *testing.T) {
 		destUser, appErr := th.App.CreateUser(th.Context, &model.User{
 			Username: renamedUsername,
 			Email:    model.NewId() + "@example.com",
-			Password: "Password1",
+			Password: model.NewTestPassword(),
 		})
 		require.Nil(t, appErr)
 		_, err := th.App.Srv().Store().User().UpdateAuthData(destUser.Id, model.UserAuthServiceLdap, &authData, "", false)
@@ -2355,7 +2355,7 @@ func TestImportUsernamRemap(t *testing.T) {
 		destUser, appErr := th.App.CreateUser(th.Context, &model.User{
 			Username: renamedUsername,
 			Email:    model.NewId() + "@example.com",
-			Password: "Password1",
+			Password: model.NewTestPassword(),
 		})
 		require.Nil(t, appErr)
 		_, err := th.App.Srv().Store().User().UpdateAuthData(destUser.Id, model.UserAuthServiceLdap, &authData, "", false)

@@ -12,7 +12,7 @@ import type {Board} from '@mattermost/types/boards';
 import type {ChannelType, Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 import type {NewChannelFormResult, NewChannelFormState} from '@mattermost/types/plugins';
-import {isTextField, supportsOptions} from '@mattermost/types/properties';
+import {isTextField, supportsHierarchy, supportsOptions} from '@mattermost/types/properties';
 
 import {setNewChannelWithBoardPreference} from 'mattermost-redux/actions/boards';
 import {createChannel} from 'mattermost-redux/actions/channels';
@@ -163,7 +163,7 @@ const NewChannelModal = () => {
                 if (!isClassificationException && (!requiredAttributesEnforced || !isPropertyFieldRequired(field))) {
                     return false;
                 }
-                if (!supportsOptions(field) && !isTextField(field)) {
+                if (!supportsOptions(field) && !supportsHierarchy(field) && !isTextField(field)) {
                     return false;
                 }
                 if (field.permission_values === 'none' || field.permission_values === undefined) {
