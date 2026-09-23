@@ -95,4 +95,29 @@ describe('registerGlobalErrorHandlers', () => {
             {errorBarMode: LogErrorBarMode.InDevMode},
         );
     });
+
+    test('should preserve every field of an object rejection reason', () => {
+        dispatchUnhandledRejection({message: 'request failed', code: 'EPIPE'});
+
+        expect(logError).toHaveBeenCalledWith(
+            expect.objectContaining({
+                message: 'An unhandled promise rejection in the webapp client has occurred. (reason: {"message":"request failed","code":"EPIPE"}).',
+            }),
+            {errorBarMode: LogErrorBarMode.InDevMode},
+        );
+    });
+
+    test('should fall back to the message of an unserializable object rejection reason', () => {
+        const reason: Record<string, unknown> = {message: 'circular failure'};
+        reason.self = reason;
+
+        dispatchUnhandledRejection(reason);
+
+        expect(logError).toHaveBeenCalledWith(
+            expect.objectContaining({
+                message: 'An unhandled promise rejection in the webapp client has occurred. (reason: circular failure).',
+            }),
+            {errorBarMode: LogErrorBarMode.InDevMode},
+        );
+    });
 });

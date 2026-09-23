@@ -39,9 +39,35 @@ function handleError(event: ErrorEvent) {
     );
 }
 
+// Rejections carry an arbitrary value, so recover a message from error-like objects and fall back to
+// JSON rather than letting String() flatten them to "[object Object]".
+function describeReason(reason: unknown) {
+    if (reason instanceof Error) {
+        return reason.message;
+    }
+
+    if (typeof reason === 'object' && reason !== null) {
+        try {
+            const serialized = JSON.stringify(reason);
+            if (serialized && serialized !== '{}') {
+                return serialized;
+            }
+        } catch {
+            // Circular or otherwise unserializable, so fall through.
+        }
+
+        const {message} = reason as {message?: unknown};
+        if (typeof message === 'string') {
+            return message;
+        }
+    }
+
+    return String(reason);
+}
+
 function handleUnhandledRejection(event: PromiseRejectionEvent) {
     const reason = event.reason;
-    const description = reason instanceof Error ? reason.message : String(reason);
+    const description = describeReason(reason);
 
     if (isBenign(description)) {
         return;
