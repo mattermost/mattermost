@@ -30,10 +30,20 @@ type Deployment struct {
 }
 
 type VersionInfo struct {
-	Current         string
-	Latest          string
-	LatestFetchedAt time.Time
-	BuildDate       time.Time
+	Current   string
+	Latest    string
+	BuildDate time.Time
+}
+
+// NewSnapshot returns a snapshot over nodes with a fixed node list.
+func NewSnapshot(nodes []*NodeSnapshot) *Snapshot {
+	snapshot := &Snapshot{}
+	if len(nodes) == 0 {
+		return snapshot
+	}
+
+	snapshot.nodes = append([]*NodeSnapshot(nil), nodes...)
+	return snapshot
 }
 
 func (s *Snapshot) Nodes() []*NodeSnapshot {
