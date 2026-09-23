@@ -14,9 +14,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8"
 )
-
-const supportPacketGoldenDir = "testdata/support_packet"
 
 func TestSupportPacketMarshalGolden(t *testing.T) {
 	t.Parallel()
@@ -241,7 +240,7 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 			require.NotNil(t, fileData)
 			actual := fileData.Body
 
-			expected, err := os.ReadFile(filepath.Join(supportPacketGoldenDir, tc.filename))
+			expected, err := os.ReadFile(filepath.Join(server.GetPackagePath(), "channels", "app", "platform", "testdata", "support_packet", tc.filename))
 			require.NoError(t, err)
 			require.Equal(t, string(expected), string(actual))
 		})
