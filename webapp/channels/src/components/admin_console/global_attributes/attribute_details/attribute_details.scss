@@ -40,8 +40,8 @@
     width: 64px;
     height: 64px;
     flex-shrink: 0;
-    align-self: center;
     align-items: stretch;
+    align-self: center;
     justify-content: center;
     border-right: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
 }
