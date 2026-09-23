@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package model_test
+package platform
 
 import (
 	"errors"
@@ -14,45 +14,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 )
 
-const supportPacketGoldenDir = "testdata/support_packet_typed_collectors"
-
-var diagnosticsComments = yaml.CommentMap{
-	"$.server.os":                                        {yaml.HeadComment(" Machine")},
-	"$.server.cpu_cores":                                 {yaml.HeadComment(" Capacity (hardware → effective quota)"), yaml.LineComment(" logical CPUs visible to the OS")},
-	"$.server.total_memory_mb":                           {yaml.LineComment(" host/VM total RAM; may exceed container limit")},
-	"$.server.container_cpu_limit":                       {yaml.LineComment(" cgroup v2 CPU quota in CPUs; Linux only, omitted if no limit set")},
-	"$.server.container_memory_limit_mb":                 {yaml.LineComment(" cgroup v2 memory quota in MB; Linux only, omitted if no limit set")},
-	"$.server.process_id":                                {yaml.HeadComment(" Process lifecycle")},
-	"$.server.started_at":                                {yaml.LineComment(" when Mattermost process started")},
-	"$.server.host_started_at":                           {yaml.LineComment(" when the host OS booted; omitted if unavailable")},
-	"$.server.open_file_descriptors":                     {yaml.LineComment(" current open FDs for this process")},
-	"$.server.max_file_descriptors":                      {yaml.LineComment(" system limit (ulimit -n)")},
-	"$.server.version":                                   {yaml.HeadComment(" Software")},
-	"$.database.master_pool_wait_count":                  {yaml.LineComment(" cumulative; total times a goroutine waited for a connection since process start")},
-	"$.database.master_pool_wait_duration_ms":            {yaml.LineComment(" cumulative wait time across all goroutines since process start")},
-	"$.database.master_connections_closed_max_idle":      {yaml.LineComment(" cumulative; connections closed because the idle pool was full")},
-	"$.database.master_connections_closed_max_lifetime":  {yaml.LineComment(" cumulative; connections closed for exceeding ConnMaxLifetime")},
-	"$.database.replica_pool_wait_count":                 {yaml.LineComment(" cumulative across all replicas; see master_pool_wait_count")},
-	"$.database.replica_pool_wait_duration_ms":           {yaml.LineComment(" cumulative across all replicas")},
-	"$.database.replica_connections_closed_max_idle":     {yaml.LineComment(" cumulative across all replicas")},
-	"$.database.replica_connections_closed_max_lifetime": {yaml.LineComment(" cumulative across all replicas")},
-	"$.database.cache_hit_ratio":                         {yaml.HeadComment(" PostgreSQL-only (these fields are omitted on MySQL)"), yaml.LineComment(" blks_hit / (blks_hit + blks_read) from pg_stat_database; cumulative since stats reset")},
-	"$.database.deadlocks":                               {yaml.LineComment(" cumulative since pg_stat_database reset")},
-	"$.database.temp_files":                              {yaml.LineComment(" cumulative count of temp files created since stats reset")},
-	"$.database.temp_bytes_mb":                           {yaml.LineComment(" cumulative bytes written to temp files, in MB")},
-	"$.database.rollbacks":                               {yaml.LineComment(" cumulative transaction rollbacks since stats reset")},
-	"$.database.idle_in_transaction_count":               {yaml.LineComment(" point-in-time count from pg_stat_activity")},
-	"$.database.longest_query_duration_seconds":          {yaml.LineComment(" point-in-time; max age of any active query right now")},
-	"$.database.waiting_for_lock_count":                  {yaml.LineComment(" point-in-time count of backends waiting on a Lock wait_event_type")},
-	"$.database.posts_dead_tuples":                       {yaml.LineComment(" n_dead_tup for the posts table from pg_stat_user_tables")},
-	"$.database.posts_last_autovacuum":                   {yaml.LineComment(" last autovacuum on posts; null if never autovacuumed (then omitted)")},
-	"$.file_store.filesystem_type":                       {yaml.LineComment(" local driver only (e.g. ext4, xfs); omitted for s3 and other remote drivers")},
-	"$.file_store.total_mb":                              {yaml.LineComment(" local driver only; capacity of the volume hosting FileSettings.Directory")},
-	"$.file_store.available_mb":                          {yaml.LineComment(" local driver only; free space remaining on that volume")},
-}
+const supportPacketGoldenDir = "testdata/support_packet"
 
 func TestSupportPacketMarshalGolden(t *testing.T) {
 	t.Parallel()
@@ -183,7 +147,7 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 			name:     "metadata",
 			filename: "metadata.yaml",
 			marshal: func() (*model.FileData, error) {
-				return platform.YAMLFile(model.PacketMetadataFileName, &model.PacketMetadata{
+				return YAMLFile(model.PacketMetadataFileName, &model.PacketMetadata{
 					Version:       1,
 					Type:          model.SupportPacketType,
 					GeneratedAt:   1735689600000,
@@ -202,7 +166,7 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 			name:     "stats",
 			filename: "stats.yaml",
 			marshal: func() (*model.FileData, error) {
-				return platform.YAMLFile("stats.yaml", &model.SupportPacketStats{
+				return YAMLFile("stats.yaml", &model.SupportPacketStats{
 					RegisteredUsers:  &statsCount,
 					DailyActiveUsers: &dailyActive,
 				}, nil)
@@ -212,7 +176,7 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 			name:     "jobs",
 			filename: "jobs.yaml",
 			marshal: func() (*model.FileData, error) {
-				return platform.YAMLFile("jobs.yaml", &model.SupportPacketJobList{
+				return YAMLFile("jobs.yaml", &model.SupportPacketJobList{
 					LDAPSyncJobs:               []*model.Job{jobFactory("job-ldap", model.JobTypeLdapSync)},
 					DataRetentionJobs:          []*model.Job{jobFactory("job-retention", model.JobTypeDataRetention)},
 					MessageExportJobs:          []*model.Job{jobFactory("job-export", model.JobTypeMessageExport)},
@@ -226,7 +190,7 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 			name:     "permissions",
 			filename: "permissions.yaml",
 			marshal: func() (*model.FileData, error) {
-				return platform.YAMLFile("permissions.yaml", &model.SupportPacketPermissionInfo{
+				return YAMLFile("permissions.yaml", &model.SupportPacketPermissionInfo{
 					Roles:   []*model.Role{role},
 					Schemes: []*model.Scheme{scheme},
 				}, nil)
@@ -236,7 +200,7 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 			name:     "plugins",
 			filename: "plugins.json",
 			marshal: func() (*model.FileData, error) {
-				return platform.JSONFile("plugins.json", &model.SupportPacketPluginList{
+				return JSONFile("plugins.json", &model.SupportPacketPluginList{
 					Enabled: []model.Manifest{
 						{Id: "com.mattermost.enabled", Name: "Enabled Plugin", Version: "1.2.3"},
 					},
@@ -250,14 +214,14 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 			name:     "diagnostics",
 			filename: "diagnostics.yaml",
 			marshal: func() (*model.FileData, error) {
-				return platform.YAMLFile("diagnostics.yaml", diagnostics, nil, yaml.WithComment(diagnosticsComments))
+				return YAMLFile("diagnostics.yaml", diagnostics, nil, yaml.WithComment(diagnosticsYAMLComments))
 			},
 		},
 		{
 			name:     "config",
 			filename: "sanitized_config.json",
 			marshal: func() (*model.FileData, error) {
-				return platform.JSONFile("sanitized_config.json", &model.SupportPacketConfig{
+				return JSONFile("sanitized_config.json", &model.SupportPacketConfig{
 					Config: &model.Config{
 						ServiceSettings: model.ServiceSettings{
 							SiteURL: model.NewPointer("https://example.test"),
@@ -277,13 +241,7 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 			require.NotNil(t, fileData)
 			actual := fileData.Body
 
-			goldenPath := filepath.Join(supportPacketGoldenDir, tc.filename)
-			if os.Getenv("MM_WRITE_SUPPORT_PACKET_GOLDEN") == "1" {
-				require.NoError(t, os.MkdirAll(filepath.Dir(goldenPath), 0o755))
-				require.NoError(t, os.WriteFile(goldenPath, actual, 0o644))
-			}
-
-			expected, err := os.ReadFile(goldenPath)
+			expected, err := os.ReadFile(filepath.Join(supportPacketGoldenDir, tc.filename))
 			require.NoError(t, err)
 			require.Equal(t, string(expected), string(actual))
 		})
@@ -299,7 +257,7 @@ func TestSupportPacketYAMLFileAndJSONFile(t *testing.T) {
 		}
 
 		collectorErr := errors.New("collector failed")
-		fileData, err := platform.YAMLFile("stats.yaml", &payload{Value: "ok"}, collectorErr)
+		fileData, err := YAMLFile("stats.yaml", &payload{Value: "ok"}, collectorErr)
 		require.NotNil(t, fileData)
 		require.Error(t, err)
 		require.ErrorContains(t, err, "collector failed")
@@ -313,7 +271,7 @@ func TestSupportPacketYAMLFileAndJSONFile(t *testing.T) {
 		}
 
 		collectorErr := errors.New("collector failed")
-		fileData, err := platform.JSONFile("plugins.json", &payload{Value: "ok"}, collectorErr)
+		fileData, err := JSONFile("plugins.json", &payload{Value: "ok"}, collectorErr)
 		require.NotNil(t, fileData)
 		require.Error(t, err)
 		require.ErrorContains(t, err, "collector failed")
@@ -327,7 +285,7 @@ func TestSupportPacketYAMLFileAndJSONFile(t *testing.T) {
 			Value string `yaml:"value"`
 		}
 
-		fileData, err := platform.YAMLFile[payload]("stats.yaml", nil, collectorErr)
+		fileData, err := YAMLFile[payload]("stats.yaml", nil, collectorErr)
 		require.Nil(t, fileData)
 		require.ErrorIs(t, err, collectorErr)
 	})
@@ -338,9 +296,8 @@ func TestSupportPacketYAMLFileAndJSONFile(t *testing.T) {
 		}
 
 		collectorErr := errors.New("collector failed")
-		fileData, err := platform.JSONFile("bad.json", &badPayload{Bad: make(chan int)}, collectorErr)
-		require.NotNil(t, fileData)
-		require.Error(t, err)
+		fileData, err := JSONFile("bad.json", &badPayload{Bad: make(chan int)}, collectorErr)
+		require.Nil(t, fileData)
 		require.ErrorContains(t, err, "collector failed")
 		require.ErrorContains(t, err, "failed to marshal bad.json into json")
 	})
@@ -351,9 +308,8 @@ func TestSupportPacketYAMLFileAndJSONFile(t *testing.T) {
 		}
 
 		collectorErr := errors.New("collector failed")
-		fileData, err := platform.YAMLFile("bad.yaml", &badPayload{Bad: make(chan int)}, collectorErr)
-		require.NotNil(t, fileData)
-		require.Error(t, err)
+		fileData, err := YAMLFile("bad.yaml", &badPayload{Bad: make(chan int)}, collectorErr)
+		require.Nil(t, fileData)
 		require.ErrorContains(t, err, "collector failed")
 		require.ErrorContains(t, err, "failed to marshal bad.yaml into yaml")
 	})
