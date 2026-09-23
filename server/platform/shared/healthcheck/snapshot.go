@@ -4,6 +4,7 @@
 package healthcheck
 
 import (
+	"slices"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -35,15 +36,10 @@ type VersionInfo struct {
 	BuildDate time.Time
 }
 
-// NewSnapshot returns a snapshot over nodes with a fixed node list.
+// NewSnapshot returns a snapshot over nodes. The node list is fixed at construction, so
+// Nodes() and Leader() are consistent for the snapshot's lifetime.
 func NewSnapshot(nodes []*NodeSnapshot) *Snapshot {
-	snapshot := &Snapshot{}
-	if len(nodes) == 0 {
-		return snapshot
-	}
-
-	snapshot.nodes = append([]*NodeSnapshot(nil), nodes...)
-	return snapshot
+	return &Snapshot{nodes: slices.Clone(nodes)}
 }
 
 func (s *Snapshot) Nodes() []*NodeSnapshot {

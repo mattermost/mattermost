@@ -22,9 +22,7 @@ var latestVersionCache = cache.NewLRU(&cache.CacheOptions{
 	Size: 1,
 })
 
-const latestVersionCacheKey = "latest_version_cache"
-
-// LatestVersionURL is the endpoint used to fetch the latest server release.
+// LatestVersionURL is the GitHub endpoint for the latest server release.
 const LatestVersionURL = "https://api.github.com/repos/mattermost/mattermost-server/releases/latest"
 
 func (s *Server) GetLogs(rctx request.CTX, page, perPage int) ([]string, *model.AppError) {
@@ -208,7 +206,7 @@ func (a *App) TestEmail(rctx request.CTX, userID string, cfg *model.Config) *mod
 
 func (a *App) GetLatestVersion(rctx request.CTX, latestVersionUrl string) (*model.GithubReleaseInfo, *model.AppError) {
 	var cachedLatestVersion *model.GithubReleaseInfo
-	if cacheErr := latestVersionCache.Get(latestVersionCacheKey, &cachedLatestVersion); cacheErr == nil {
+	if cacheErr := latestVersionCache.Get("latest_version_cache", &cachedLatestVersion); cacheErr == nil {
 		return cachedLatestVersion, nil
 	}
 
@@ -240,7 +238,7 @@ func (a *App) GetLatestVersion(rctx request.CTX, latestVersionUrl string) (*mode
 		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(validErr)
 	}
 
-	err = latestVersionCache.SetWithExpiry(latestVersionCacheKey, releaseInfoResponse, 24*time.Hour)
+	err = latestVersionCache.SetWithExpiry("latest_version_cache", releaseInfoResponse, 24*time.Hour)
 	if err != nil {
 		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -249,5 +247,5 @@ func (a *App) GetLatestVersion(rctx request.CTX, latestVersionUrl string) (*mode
 }
 
 func (a *App) clearLatestVersionCache() error {
-	return latestVersionCache.Remove(latestVersionCacheKey)
+	return latestVersionCache.Remove("latest_version_cache")
 }

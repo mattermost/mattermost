@@ -20,8 +20,8 @@ import (
 	emocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
+// Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
 func TestBuildHealthSnapshotNoDiagnosticsCollected(t *testing.T) {
-	mainHelper.Parallel(t)
 	th := Setup(t)
 
 	err := th.App.clearLatestVersionCache()
@@ -40,8 +40,8 @@ func TestBuildHealthSnapshotNoDiagnosticsCollected(t *testing.T) {
 	}
 }
 
+// Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
 func TestBuildHealthSnapshotSectionFailureIsolationWithPartialStats(t *testing.T) {
-	mainHelper.Parallel(t)
 	th := Setup(t)
 
 	err := th.App.clearLatestVersionCache()
@@ -95,8 +95,8 @@ func TestBuildHealthSnapshotSectionFailureIsolationWithPartialStats(t *testing.T
 	require.NoError(t, sectionErr)
 }
 
+// Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
 func TestBuildHealthSnapshotLatestVersionTimeout(t *testing.T) {
-	mainHelper.Parallel(t)
 	th := Setup(t)
 
 	err := th.App.clearLatestVersionCache()
@@ -209,7 +209,7 @@ func latestVersionServer(t *testing.T) *httptest.Server {
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, writeErr := w.Write(body)
-		require.NoError(t, writeErr)
+		assert.NoError(t, writeErr)
 	}))
 	t.Cleanup(server.Close)
 

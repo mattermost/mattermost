@@ -12,7 +12,9 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 )
 
-// BuildHealthSnapshot assembles a health snapshot from live server state.
+// BuildHealthSnapshot assembles a health snapshot from live server state. A failed workspace
+// collector is recorded in Snapshot.Sections rather than failing the call; the error return
+// is for a snapshot that cannot be built at all.
 func (a *App) BuildHealthSnapshot(rctx request.CTX) (*healthcheck.Snapshot, error) {
 	return a.buildHealthSnapshotWithLatestVersionURL(rctx, LatestVersionURL)
 }
@@ -46,16 +48,15 @@ func (a *App) buildHealthSnapshotWithLatestVersionURL(rctx request.CTX, latestVe
 	sections[model.SectionPlugins] = err
 
 	snapshot.Version.Current = model.CurrentVersion
-	snapshot.Version.BuildDate = parseBuildDate(model.BuildDate)
+	// The Makefile stamps BuildDate with `date -u`; dev builds leave the zero time.
+	snapshot.Version.BuildDate, _ = time.Parse(time.UnixDate, model.BuildDate)
 
 	release, appErr := a.GetLatestVersion(rctx, latestVersionURL)
 	if appErr != nil {
 		sections[model.SectionVersion] = appErr
 	} else {
 		sections[model.SectionVersion] = nil
-		if release != nil {
-			snapshot.Version.Latest = release.TagName
-		}
+		snapshot.Version.Latest = release.TagName
 	}
 
 	return snapshot, nil
@@ -90,19 +91,4 @@ func clusterNodes(cluster einterfaces.ClusterInterface) ([]*healthcheck.NodeSnap
 	}
 
 	return nodes, nil
-}
-
-func parseBuildDate(buildDate string) time.Time {
-	if buildDate == "" {
-		return time.Time{}
-	}
-
-	for _, layout := range []string{time.UnixDate, time.RFC3339} {
-		t, err := time.Parse(layout, buildDate)
-		if err == nil {
-			return t
-		}
-	}
-
-	return time.Time{}
 }
