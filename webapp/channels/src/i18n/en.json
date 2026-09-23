@@ -4250,6 +4250,7 @@
   "adminConsole.list.table.rowsCount.50": "50",
   "adminConsole.list.table.rowsCount.show(rowsPerPage)": "rows per page",
   "advanced_create_post.doNotDisturbWarning": "{displayName} is set to <b>Do Not Disturb</b>",
+  "advanced_create_post.outOfOfficeWarning": "{displayName} is Out of Office.",
   "advanced_text_editor.help_link": "Help",
   "advanced_text_editor.help_link.aria": "Messaging help",
   "advanced_text_editor.remote_user_hour": "The time for {user} is {time}",
