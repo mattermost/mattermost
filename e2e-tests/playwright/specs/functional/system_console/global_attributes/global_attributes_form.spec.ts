@@ -1192,7 +1192,11 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 await expect(page.getByTestId('attributeGraphParentsPane__back')).toHaveText('Parents of Air');
                 await expect(valueMenu).toBeVisible();
 
-                const heightBeforeSearch = await valueMenu.evaluate((el) => el.getBoundingClientRect().height);
+                // Measure the pane, not role=menu. Nested MUI Modal aria-hides the
+                // parent menu paper; its getBoundingClientRect can shift ~16px even
+                // when the suggestion list is portaled.
+                const pane = page.locator('.attribute-graph-parents-pane');
+                const heightBeforeSearch = await pane.evaluate((el) => el.getBoundingClientRect().height);
                 await page.getByTestId('attributeGraphParentsPane__search').click();
 
                 const suggestions = page.getByTestId('attributeGraphParentsPane__suggestions');
@@ -1212,12 +1216,18 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 expect(listBox!.height).toBeGreaterThan(0);
                 expect(listBox!.y).toBeGreaterThan(searchBox!.y);
 
+                const fieldBox = await page.locator('.attribute-graph-parents-pane .Input_fieldset').boundingBox();
+                const paperBox = await page.locator('.attribute-graph-parents-pane__suggestions-paper').boundingBox();
+                expect(fieldBox).toBeTruthy();
+                expect(paperBox).toBeTruthy();
+                expect(Math.abs(paperBox!.width - fieldBox!.width)).toBeLessThan(1);
+
                 // Nested MUI popover aria-hides the parent menu, so getByRole without
                 // includeHidden (and boundingBox visibility checks) cannot resolve it.
                 const mountedValueMenu = page.getByRole('menu', {name: 'Edit Air', includeHidden: true});
 
-                // * Value menu stays mounted at the same height while the list is open
-                const heightAfterSearch = await mountedValueMenu.evaluate((el) => el.getBoundingClientRect().height);
+                // * Pane stays the same height while the list is open
+                const heightAfterSearch = await pane.evaluate((el) => el.getBoundingClientRect().height);
                 expect(Math.abs(heightAfterSearch - heightBeforeSearch)).toBeLessThan(1);
                 await expect(mountedValueMenu).toBeAttached();
 
