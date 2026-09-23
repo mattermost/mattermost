@@ -186,13 +186,14 @@ func TestInvalidateUserPropertyValuesEpochs_GatedOnABAC(t *testing.T) {
 		{TargetType: model.PropertyFieldObjectTypePost, TargetID: model.NewId()},
 	}
 
-	t.Run("no invalidation when the feature flag is off", func(t *testing.T) {
+	t.Run("feature flag off still invalidates when ABAC is on", func(t *testing.T) {
 		thMock, mockAttributes := setup(t, false, true)
+		mockAttributes.On("InvalidateUserPropertyValuesEpoch", userID).Twice()
 
 		thMock.App.invalidateUserPropertyValuesEpochs(values)
 		thMock.App.invalidateUserPropertyValuesEpoch(model.PropertyFieldObjectTypeUser, userID)
 
-		mockAttributes.AssertNotCalled(t, "InvalidateUserPropertyValuesEpoch", mock.Anything)
+		mockAttributes.AssertExpectations(t)
 	})
 
 	t.Run("no invalidation when ABAC is off", func(t *testing.T) {
