@@ -36,11 +36,6 @@ With channel access rules, Channel and Team Admins can:
 You can also assign ABAC rules to a channel directly from a channel's details page in the System Console under **Channel Management** by enabling the **Enable attribute-based channel access** option. Under **Access policy**, select **Link to a policy** to select an existing policy.
 
 </Tip>
-<Important>
-
-**Changes aren't applied until you save the tab.** Editing rules in either the **Membership Policy** or **Permissions Policy** tab stages your changes locally - nothing reaches the channel until you select **Save** in the **Save Changes** panel at the bottom of the tab. Permission rules take one more step than membership rules: selecting **Add rule** or **Save rule** in the rule editor only commits the rule to the list, and you still need to save the tab afterwards.
-
-</Important>
 
 ## Configure access rules
 
@@ -57,6 +52,7 @@ Channel access rules use the same simple interface as system policies, allowing 
     - **Set values**: Enter the required attribute values
 3.  Add multiple conditions as needed. All conditions are combined with logical AND (all must be satisfied).
 4.  Select **Test access rules** to preview which users would be granted access based on your current rules.
+5.  Select **Save** at the bottom of the tab to apply your changes.
 
 ### Auto-sync membership
 
@@ -121,6 +117,8 @@ Public channels with membership policies may appear in **Browse Channels** under
 From Mattermost v11.8.0, channel admins can define channel-level permission rules for file upload and file download based on user attributes and channel role. Applicable roles include **channel admin**, **channel member**, and **channel guest**.
 
 For system-wide permission policies that restrict file upload and download actions, see [Permission policies](/administration-guide/manage/admin/abac-system-wide-policies#permission-policies).
+
+After adding or editing a rule in the **Permissions Policy** tab, select **Save** at the bottom of the tab to apply it.
 
 From Mattermost v12, permission rules can also use any [session attributes](/administration-guide/manage/admin/session-attributes) a System Admin has enabled, letting you restrict file actions by device or network rather than by who the user is.
 
