@@ -161,7 +161,20 @@ func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) er
 		cfg.Append(cfgAdditional)
 	}
 
-	return adt.Configure(cfg)
+	removedTargets := config.RemoveUnsafeLogTargets(cfg, s.platform.Config())
+
+	if err := adt.Configure(cfg); err != nil {
+		return err
+	}
+
+	for _, removed := range removedTargets {
+		s.Log().Error("Removed audit target with an invalid destination. Audit records will not be written to this file.",
+			mlog.String("target", removed.Name),
+			mlog.String("path", removed.Path),
+			mlog.String("reason", removed.Reason))
+	}
+
+	return nil
 }
 
 func (s *Server) onAuditTargetQueueFull(qname string, maxQSize int) bool {

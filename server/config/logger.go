@@ -6,6 +6,7 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
 	"slices"
@@ -20,6 +21,11 @@ import (
 )
 
 const (
+	// Directories the server resolves at runtime and manages itself.
+	prepackagedPluginsDir = "prepackaged_plugins"
+	templatesDir          = "templates"
+	i18nDir               = "i18n"
+
 	LogRotateSizeMB     = 100
 	LogCompress         = true
 	LogRotateMaxAge     = 0
@@ -284,7 +290,7 @@ func validateAdvancedLoggingConfig(loggingJSON json.RawMessage, configName strin
 	}
 
 	for targetName, target := range logCfg {
-		if target.Type != "file" {
+		if !strings.EqualFold(target.Type, "file") {
 			continue
 		}
 
@@ -414,4 +420,256 @@ func makeFileOptions(filename string) (json.RawMessage, error) {
 	}
 
 	return json.RawMessage(b), nil
+}
+
+// UnsafeLogTarget describes a file logging target whose destination the server must not write to.
+type UnsafeLogTarget struct {
+	Name   string
+	Path   string
+	Reason string
+}
+
+func (u UnsafeLogTarget) String() string {
+	return fmt.Sprintf("target %s (%s): %s", u.Name, u.Path, u.Reason)
+}
+
+// UnsafeLogTargets returns the file targets of a resolved logger configuration whose
+// destination resolves inside a directory the server manages itself.
+func UnsafeLogTargets(logCfg mlog.LoggerConfiguration, cfg *model.Config) []UnsafeLogTarget {
+	managed := managedDirs(cfg)
+
+	var unsafe []UnsafeLogTarget
+	for name, target := range logCfg {
+		if !strings.EqualFold(target.Type, "file") {
+			continue
+		}
+
+		filename := targetFilename(target)
+		if filename == "" {
+			continue
+		}
+
+		if reason := checkManagedDirs(filename, managed); reason != "" {
+			unsafe = append(unsafe, UnsafeLogTarget{Name: name, Path: filename, Reason: reason})
+		}
+	}
+
+	slices.SortFunc(unsafe, func(a, b UnsafeLogTarget) int {
+		return strings.Compare(a.Name, b.Name)
+	})
+	return unsafe
+}
+
+// RemoveUnsafeLogTargets removes from the resolved logger configuration every file target
+// whose destination resolves inside a directory the server manages itself, returning the
+// removed targets.
+func RemoveUnsafeLogTargets(logCfg mlog.LoggerConfiguration, cfg *model.Config) []UnsafeLogTarget {
+	unsafe := UnsafeLogTargets(logCfg, cfg)
+	for _, u := range unsafe {
+		delete(logCfg, u.Name)
+	}
+	return unsafe
+}
+
+// ValidateLogTargets returns an error describing every file logging destination newCfg
+// introduces that the server must not write to.
+//
+// Destinations already present in oldCfg are left alone, so a configuration save that does
+// not change where logs are written always succeeds. Advanced logging configuration is only
+// inspected when provided inline; destinations loaded indirectly are checked when the
+// targets themselves are created.
+func ValidateLogTargets(newCfg *model.Config, oldCfg *model.Config) error {
+	if newCfg == nil {
+		return nil
+	}
+
+	existing := make(map[string]bool)
+	for _, dest := range logFileDestinations(oldCfg) {
+		existing[absPath(dest.Path)] = true
+	}
+
+	managed := managedDirs(newCfg)
+
+	var unsafe []UnsafeLogTarget
+	for _, dest := range logFileDestinations(newCfg) {
+		if existing[absPath(dest.Path)] {
+			continue
+		}
+
+		if reason := checkManagedDirs(dest.Path, managed); reason != "" {
+			unsafe = append(unsafe, UnsafeLogTarget{Name: dest.Name, Path: dest.Path, Reason: reason})
+		}
+	}
+
+	if len(unsafe) == 0 {
+		return nil
+	}
+
+	reasons := make([]string, 0, len(unsafe))
+	for _, u := range unsafe {
+		reasons = append(reasons, u.String())
+	}
+	return fmt.Errorf("invalid logging destination: %s", strings.Join(reasons, "; "))
+}
+
+// logFileDestinations returns every file logging destination the given configuration
+// defines, including the built-in logging and audit targets.
+func logFileDestinations(cfg *model.Config) []UnsafeLogTarget {
+	if cfg == nil {
+		return nil
+	}
+
+	var dests []UnsafeLogTarget
+
+	s := cfg.LogSettings
+	if s.EnableFile != nil && *s.EnableFile && s.FileLocation != nil {
+		dests = append(dests, UnsafeLogTarget{Name: "_defFile", Path: GetLogFileLocation(*s.FileLocation)})
+	}
+
+	a := cfg.ExperimentalAuditSettings
+	if a.FileEnabled != nil && *a.FileEnabled && a.FileName != nil && *a.FileName != "" {
+		dests = append(dests, UnsafeLogTarget{Name: "_defAudit", Path: *a.FileName})
+	}
+
+	for _, loggingJSON := range []json.RawMessage{s.AdvancedLoggingJSON, a.AdvancedLoggingJSON} {
+		if utils.IsEmptyJSON(loggingJSON) {
+			continue
+		}
+
+		advCfg := make(mlog.LoggerConfiguration)
+		if err := json.Unmarshal(loggingJSON, &advCfg); err != nil {
+			continue
+		}
+
+		names := slices.Sorted(maps.Keys(advCfg))
+		for _, name := range names {
+			target := advCfg[name]
+			if !strings.EqualFold(target.Type, "file") {
+				continue
+			}
+			if filename := targetFilename(target); filename != "" {
+				dests = append(dests, UnsafeLogTarget{Name: name, Path: filename})
+			}
+		}
+	}
+
+	return dests
+}
+
+func targetFilename(target mlog.TargetCfg) string {
+	var fileOption struct {
+		Filename string `json:"filename"`
+	}
+	if err := json.Unmarshal(target.Options, &fileOption); err != nil {
+		return ""
+	}
+	return strings.TrimSpace(fileOption.Filename)
+}
+
+// checkManagedDirs returns a non-empty reason when the given path resolves inside one of
+// the directories the server manages itself.
+func checkManagedDirs(path string, managed []string) string {
+	resolved := resolveDeepestExisting(path)
+
+	for _, dir := range managed {
+		if isWithinDir(resolved, resolveDeepestExisting(dir)) {
+			return fmt.Sprintf("path is within a server managed directory (%s)", dir)
+		}
+	}
+
+	return ""
+}
+
+// isWithinDir reports whether path is dir itself or is contained in dir.
+func isWithinDir(path string, dir string) bool {
+	rel, err := filepath.Rel(dir, path)
+	if err != nil {
+		return false
+	}
+
+	return rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator))
+}
+
+// managedDirs returns the directories the server owns and manages itself.
+func managedDirs(cfg *model.Config) []string {
+	var candidates []string
+	if cfg != nil {
+		candidates = append(candidates,
+			derefStr(cfg.PluginSettings.Directory),
+			derefStr(cfg.PluginSettings.ClientDirectory),
+		)
+	}
+	candidates = append(candidates,
+		configDir(),
+		foundDir(fileutils.FindDir(model.ClientDir)),
+		foundDir(fileutils.FindDir(prepackagedPluginsDir)),
+		foundDir(fileutils.FindDir(templatesDir)),
+		foundDir(fileutils.FindDirRelBinary(i18nDir)),
+	)
+
+	dirs := make([]string, 0, len(candidates))
+	for _, dir := range candidates {
+		if strings.TrimSpace(dir) == "" {
+			continue
+		}
+		if !slices.Contains(dirs, dir) {
+			dirs = append(dirs, dir)
+		}
+	}
+	return dirs
+}
+
+// foundDir returns the directory only when the lookup actually found it. A lookup that
+// failed reports the working directory, which must never be treated as managed.
+func foundDir(dir string, found bool) string {
+	if !found {
+		return ""
+	}
+	return dir
+}
+
+func derefStr(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}
+
+// configDir returns the directory holding the configuration files.
+func configDir() string {
+	if path, err := resolveConfigFilePath("config.json"); err == nil {
+		return filepath.Dir(path)
+	}
+	if dir, found := fileutils.FindDir("config"); found {
+		return dir
+	}
+	return ""
+}
+
+func absPath(path string) string {
+	abs, err := filepath.Abs(path)
+	if err != nil {
+		return filepath.Clean(path)
+	}
+	return abs
+}
+
+// resolveDeepestExisting resolves symlinks on the deepest existing ancestor of path and
+// rejoins the remaining, not yet existing, components.
+func resolveDeepestExisting(path string) string {
+	abs := absPath(path)
+
+	current := abs
+	remainder := ""
+	for {
+		if resolved, err := filepath.EvalSymlinks(current); err == nil {
+			return filepath.Join(resolved, remainder)
+		}
+		parent := filepath.Dir(current)
+		if parent == current {
+			return abs
+		}
+		remainder = filepath.Join(filepath.Base(current), remainder)
+		current = parent
+	}
 }

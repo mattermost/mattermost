@@ -4,7 +4,11 @@
 package platform
 
 import (
+	"encoding/json"
 	"errors"
+	"net/http"
+	"os"
+	"path/filepath"
 	"sync"
 	"testing"
 
@@ -13,7 +17,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	smocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
@@ -190,4 +196,251 @@ func TestIsFirstUserAccountThunderingHerd(t *testing.T) {
 			wg.Wait()
 		})
 	}
+}
+
+func advancedLoggingJSON(t *testing.T, targetType string, filename string) json.RawMessage {
+	t.Helper()
+
+	opts, err := json.Marshal(map[string]string{"filename": filename})
+	require.NoError(t, err)
+
+	b, err := json.Marshal(mlog.LoggerConfiguration{
+		"custom": {
+			Type:    targetType,
+			Format:  "json",
+			Levels:  []mlog.Level{mlog.LvlInfo},
+			Options: opts,
+		},
+	})
+	require.NoError(t, err)
+
+	return b
+}
+
+func TestSaveConfigLogTargets(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	pluginDir := *th.Service.Config().PluginSettings.Directory
+	require.NoError(t, os.MkdirAll(pluginDir, 0750))
+
+	logDir := t.TempDir()
+	execFile := filepath.Join(logDir, "plugin-binary")
+	require.NoError(t, os.WriteFile(execFile, []byte("binary"), 0755))
+
+	dataDir := filepath.Join(t.TempDir(), "data")
+	require.NoError(t, os.MkdirAll(dataDir, 0750))
+
+	// Some network shares report every file as world writable and executable.
+	shareDir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(shareDir, config.LogFilename), []byte("log"), 0777))
+
+	linkedFile := filepath.Join(logDir, "linked.log")
+	require.NoError(t, os.Symlink(filepath.Join(logDir, "target.log"), linkedFile))
+
+	testCases := []struct {
+		name      string
+		mutate    func(cfg *model.Config)
+		expectErr bool
+	}{
+		{
+			name: "log file in a writable directory is accepted",
+			mutate: func(cfg *model.Config) {
+				cfg.LogSettings.EnableFile = new(true)
+				cfg.LogSettings.FileLocation = new(logDir)
+			},
+			expectErr: false,
+		},
+		{
+			name: "log file in the filestore directory is accepted",
+			mutate: func(cfg *model.Config) {
+				cfg.FileSettings.Directory = new(dataDir)
+				cfg.LogSettings.EnableFile = new(true)
+				cfg.LogSettings.FileLocation = new(dataDir)
+			},
+			expectErr: false,
+		},
+		{
+			name: "log file in the plugins directory is rejected",
+			mutate: func(cfg *model.Config) {
+				cfg.LogSettings.EnableFile = new(true)
+				cfg.LogSettings.FileLocation = new(pluginDir)
+			},
+			expectErr: true,
+		},
+		{
+			name: "new advanced logging target on an executable file is accepted",
+			mutate: func(cfg *model.Config) {
+				cfg.LogSettings.AdvancedLoggingJSON = advancedLoggingJSON(t, "file", execFile)
+			},
+			expectErr: false,
+		},
+		{
+			name: "log file in a directory holding a world writable log file is accepted",
+			mutate: func(cfg *model.Config) {
+				cfg.LogSettings.EnableFile = new(true)
+				cfg.LogSettings.FileLocation = new(shareDir)
+			},
+			expectErr: false,
+		},
+		{
+			name: "new advanced logging target on a symlinked log file is accepted",
+			mutate: func(cfg *model.Config) {
+				cfg.LogSettings.AdvancedLoggingJSON = advancedLoggingJSON(t, "file", linkedFile)
+			},
+			expectErr: false,
+		},
+		{
+			name: "new advanced logging target on a device file is accepted",
+			mutate: func(cfg *model.Config) {
+				cfg.LogSettings.AdvancedLoggingJSON = advancedLoggingJSON(t, "file", os.DevNull)
+			},
+			expectErr: false,
+		},
+		{
+			name: "advanced logging target with mixed case type is rejected",
+			mutate: func(cfg *model.Config) {
+				cfg.LogSettings.AdvancedLoggingJSON = advancedLoggingJSON(t, "File", filepath.Join(pluginDir, "com.example.plugin", "plugin"))
+			},
+			expectErr: true,
+		},
+		{
+			name: "advanced audit target in the plugins directory is rejected",
+			mutate: func(cfg *model.Config) {
+				cfg.ExperimentalAuditSettings.AdvancedLoggingJSON = advancedLoggingJSON(t, "file", filepath.Join(pluginDir, "audit.log"))
+			},
+			expectErr: true,
+		},
+		{
+			name: "audit file in a writable directory is accepted",
+			mutate: func(cfg *model.Config) {
+				cfg.ExperimentalAuditSettings.FileEnabled = new(true)
+				cfg.ExperimentalAuditSettings.FileName = new(filepath.Join(logDir, "audit.log"))
+			},
+			expectErr: false,
+		},
+		{
+			name: "audit file in the plugins directory is rejected",
+			mutate: func(cfg *model.Config) {
+				cfg.ExperimentalAuditSettings.FileEnabled = new(true)
+				cfg.ExperimentalAuditSettings.FileName = new(filepath.Join(pluginDir, "audit.log"))
+			},
+			expectErr: true,
+		},
+		{
+			name: "unrelated setting saves fine",
+			mutate: func(cfg *model.Config) {
+				cfg.TeamSettings.SiteName = new("saveconfiglogtargets")
+			},
+			expectErr: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := th.Service.Config().Clone()
+			tc.mutate(cfg)
+
+			_, _, appErr := th.Service.SaveConfig(cfg, false)
+			if tc.expectErr {
+				require.NotNil(t, appErr)
+				assert.Equal(t, "app.save_config.invalid_log_target.app_error", appErr.Id)
+				assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+				assert.NotContains(t, appErr.Error(), pluginDir)
+			} else {
+				require.Nil(t, appErr)
+			}
+		})
+	}
+}
+
+func TestSaveConfigLogTargetsGrandfathering(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	pluginDir := *th.Service.Config().PluginSettings.Directory
+	require.NoError(t, os.MkdirAll(pluginDir, 0750))
+
+	// Simulate a deployment that already logs to a destination that would not be
+	// accepted as a new value.
+	cfg := th.Service.Config().Clone()
+	cfg.LogSettings.AdvancedLoggingJSON = advancedLoggingJSON(t, "file", filepath.Join(pluginDir, "legacy.log"))
+	_, _, setErr := th.Service.configStore.Set(cfg)
+	require.NoError(t, setErr)
+
+	t.Run("an unrelated setting still saves", func(t *testing.T) {
+		newCfg := th.Service.Config().Clone()
+		newCfg.TeamSettings.SiteName = new("grandfathered")
+
+		_, _, appErr := th.Service.SaveConfig(newCfg, false)
+		require.Nil(t, appErr)
+		assert.Equal(t, "grandfathered", *th.Service.Config().TeamSettings.SiteName)
+	})
+
+	t.Run("changing the destination is checked again", func(t *testing.T) {
+		newCfg := th.Service.Config().Clone()
+		newCfg.LogSettings.AdvancedLoggingJSON = advancedLoggingJSON(t, "file", filepath.Join(pluginDir, "custom.log"))
+
+		_, _, appErr := th.Service.SaveConfig(newCfg, false)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.save_config.invalid_log_target.app_error", appErr.Id)
+	})
+}
+
+func TestConfigureLoggerDropsUnsafeTargets(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	pluginDir := *th.Service.Config().PluginSettings.Directory
+	require.NoError(t, os.MkdirAll(pluginDir, 0750))
+
+	logDir := t.TempDir()
+	pluginBinary := filepath.Join(pluginDir, "com.example.plugin", "plugin-linux-amd64")
+	require.NoError(t, os.MkdirAll(filepath.Dir(pluginBinary), 0750))
+	require.NoError(t, os.WriteFile(pluginBinary, []byte("binary"), 0755))
+
+	opts, err := json.Marshal(map[string]string{"filename": pluginBinary})
+	require.NoError(t, err)
+	safeOpts, err := json.Marshal(map[string]string{"filename": filepath.Join(logDir, "mattermost.log")})
+	require.NoError(t, err)
+	execOpts, err := json.Marshal(map[string]string{"filename": filepath.Join(logDir, "existing-exec.log")})
+	require.NoError(t, err)
+
+	// An existing executable destination outside the managed directories keeps working.
+	require.NoError(t, os.WriteFile(filepath.Join(logDir, "existing-exec.log"), []byte(""), 0777))
+
+	advCfg, err := json.Marshal(mlog.LoggerConfiguration{
+		"unsafe": {Type: "File", Format: "json", Levels: []mlog.Level{mlog.LvlInfo}, Options: opts},
+		"safe":   {Type: "file", Format: "json", Levels: []mlog.Level{mlog.LvlInfo}, Options: safeOpts},
+		"exec":   {Type: "file", Format: "json", Levels: []mlog.Level{mlog.LvlInfo}, Options: execOpts},
+	})
+	require.NoError(t, err)
+
+	logSettings := th.Service.Config().Clone().LogSettings
+	logSettings.EnableFile = new(false)
+	logSettings.EnableConsole = new(false)
+	logSettings.AdvancedLoggingJSON = advCfg
+
+	logger, err := mlog.NewLogger()
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		require.NoError(t, logger.Shutdown())
+	})
+
+	require.NoError(t, th.Service.ConfigureLogger("test", logger, &logSettings, config.GetLogFileLocation))
+
+	logger.Info("hello")
+	require.NoError(t, logger.Flush())
+
+	content, err := os.ReadFile(pluginBinary)
+	require.NoError(t, err)
+	assert.Equal(t, "binary", string(content))
+
+	safeContent, err := os.ReadFile(filepath.Join(logDir, "mattermost.log"))
+	require.NoError(t, err)
+	assert.Contains(t, string(safeContent), "hello")
+
+	execContent, err := os.ReadFile(filepath.Join(logDir, "existing-exec.log"))
+	require.NoError(t, err)
+	assert.Contains(t, string(execContent), "hello")
 }

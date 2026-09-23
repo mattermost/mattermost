@@ -9333,6 +9333,10 @@
     "translation": "An error occurred saving the configuration."
   },
   {
+    "id": "app.save_config.invalid_log_target.app_error",
+    "translation": "A logging target points to a directory managed by the server. Choose a different location for the log file."
+  },
+  {
     "id": "app.save_config.plugin_hook_error",
     "translation": "An error occurred running the plugin hook on configuration save."
   },
