@@ -5401,6 +5401,16 @@ func TestGetLoginType(t *testing.T) {
 		return resp.StatusCode, body
 	}
 
+	// The webapp renders body["message"], so the translated string is part of the contract
+	// and not just the error id.
+	assertMagicLinkUnavailable := func(t *testing.T, loginID string) {
+		t.Helper()
+		status, body := postLoginType(t, loginID)
+		assert.Equal(t, http.StatusNotFound, status)
+		assert.Equal(t, "api.user.login.guest_magic_link.disabled.error", body["id"])
+		assert.Equal(t, "Login with magic link is disabled.", body["message"])
+	}
+
 	t.Run("returns an empty login type for a password account when guest magic link is available", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicense("guest_accounts"))
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -5420,9 +5430,7 @@ func TestGetLoginType(t *testing.T) {
 			*cfg.GuestAccountsSettings.EnableGuestMagicLink = true
 		})
 
-		status, body := postLoginType(t, th.BasicUser.Email)
-		assert.Equal(t, http.StatusNotFound, status)
-		assert.Equal(t, "api.user.login.guest_magic_link.disabled.error", body["id"])
+		assertMagicLinkUnavailable(t, th.BasicUser.Email)
 	})
 
 	t.Run("returns a JSON error when guest magic link is disabled", func(t *testing.T) {
@@ -5432,9 +5440,7 @@ func TestGetLoginType(t *testing.T) {
 			*cfg.GuestAccountsSettings.EnableGuestMagicLink = false
 		})
 
-		status, body := postLoginType(t, th.BasicUser.Email)
-		assert.Equal(t, http.StatusNotFound, status)
-		assert.Equal(t, "api.user.login.guest_magic_link.disabled.error", body["id"])
+		assertMagicLinkUnavailable(t, th.BasicUser.Email)
 	})
 
 	t.Run("returns a JSON error when the license does not include guest accounts", func(t *testing.T) {
@@ -5444,9 +5450,7 @@ func TestGetLoginType(t *testing.T) {
 			*cfg.GuestAccountsSettings.EnableGuestMagicLink = true
 		})
 
-		status, body := postLoginType(t, th.BasicUser.Email)
-		assert.Equal(t, http.StatusNotFound, status)
-		assert.Equal(t, "api.user.login.guest_magic_link.disabled.error", body["id"])
+		assertMagicLinkUnavailable(t, th.BasicUser.Email)
 	})
 
 	t.Run("returns a JSON error when the server is unlicensed", func(t *testing.T) {
@@ -5456,9 +5460,7 @@ func TestGetLoginType(t *testing.T) {
 			*cfg.GuestAccountsSettings.EnableGuestMagicLink = true
 		})
 
-		status, body := postLoginType(t, th.BasicUser.Email)
-		assert.Equal(t, http.StatusNotFound, status)
-		assert.Equal(t, "api.user.login.guest_magic_link.disabled.error", body["id"])
+		assertMagicLinkUnavailable(t, th.BasicUser.Email)
 	})
 }
 
