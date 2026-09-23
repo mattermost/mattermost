@@ -215,6 +215,36 @@ describe('AttributeOptionsGraphValues', () => {
         expect(onOptionsChange).toHaveBeenCalledWith(addChildOption(options, 'Child', 'Root'));
     });
 
+    it('aligns a child draft with existing siblings at the same depth', async () => {
+        renderWithContext(
+            <AttributeOptionsGraphValues
+                options={[
+                    {id: '', name: 'newtop', parents: []},
+                    {id: '', name: 'newmiddle', parents: ['newtop']},
+                    {id: '', name: 'newmiddle2', parents: ['newtop']},
+                ]}
+                onOptionsChange={jest.fn()}
+            />,
+        );
+
+        await clickRowAddChild('newtop');
+        const draft = await screen.findByTestId('attributeOptionsGraphRow__childDraft');
+
+        expect(getRow('newtop')).toHaveAttribute('data-depth', '0');
+        expect(getRow('newmiddle', 'newtop')).toHaveAttribute('data-depth', '1');
+        expect(getRow('newmiddle2', 'newtop')).toHaveAttribute('data-depth', '1');
+        expect(draft).toHaveAttribute('data-depth', '1');
+        expect(draft.style.getPropertyValue('--attribute-options-graph-values-indent')).toBe(
+            getRow('newmiddle', 'newtop').style.getPropertyValue('--attribute-options-graph-values-indent'),
+        );
+        expect(within(draft).queryByTestId('attributeOptionsGraphRow__dragHandle')).not.toBeInTheDocument();
+        expect(draft.querySelector('.attribute-options-graph-values__draft-handle-spacer')).toBeNull();
+
+        const items = [...screen.getByTestId('attributeOptionsGraphList').querySelectorAll(':scope > li')];
+        expect(items[items.length - 2]).toHaveAttribute('data-option-name', 'newmiddle2');
+        expect(items[items.length - 1]).toBe(draft);
+    });
+
     it('cancels the child draft without adding a value', async () => {
         const onOptionsChange = jest.fn();
         const options: PropertyFieldOption[] = [{id: '', name: 'Root', parents: []}];
