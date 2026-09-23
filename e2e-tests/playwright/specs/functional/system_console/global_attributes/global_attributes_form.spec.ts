@@ -1216,11 +1216,17 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 expect(listBox!.height).toBeGreaterThan(0);
                 expect(listBox!.y).toBeGreaterThan(searchBox!.y);
 
-                const fieldBox = await page.locator('.attribute-graph-parents-pane__search-field').boundingBox();
-                const paperBox = await page.locator('.attribute-graph-parents-pane__suggestions-paper').boundingBox();
-                expect(fieldBox).toBeTruthy();
-                expect(paperBox).toBeTruthy();
-                expect(Math.abs(paperBox!.width - fieldBox!.width)).toBeLessThan(1);
+                // offsetWidth is the value we assign to the paper. boundingBox can
+                // disagree by 8–18px once the list is portaled onto document.body.
+                const widthDelta = await page.evaluate(() => {
+                    const field = document.querySelector('.attribute-graph-parents-pane__search-field');
+                    const paper = document.querySelector('.attribute-graph-parents-pane__suggestions-paper');
+                    if (!(field instanceof HTMLElement) || !(paper instanceof HTMLElement)) {
+                        return Number.POSITIVE_INFINITY;
+                    }
+                    return Math.abs(paper.offsetWidth - field.offsetWidth);
+                });
+                expect(widthDelta).toBeLessThan(1);
 
                 // Nested MUI popover aria-hides the parent menu, so getByRole without
                 // includeHidden (and boundingBox visibility checks) cannot resolve it.

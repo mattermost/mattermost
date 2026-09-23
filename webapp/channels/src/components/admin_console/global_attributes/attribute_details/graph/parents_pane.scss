@@ -173,6 +173,7 @@
 .attribute-graph-parents-pane__suggestions-paper.MuiPaper-root {
     overflow: auto;
     max-height: 208px;
+    box-sizing: border-box;
     padding: 4px;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
     border-radius: 4px;
