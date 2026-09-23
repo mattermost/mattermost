@@ -214,6 +214,16 @@ func (a *App) channelAccessEnforcementActive() bool {
 		a.Srv().Channels().AccessControl != nil
 }
 
+// setupBroadcastHookForChannelReadAccess registers channelReadAccessBroadcastHook so each
+// recipient's channel_read_access policy is evaluated before the event reaches them.
+func (a *App) setupBroadcastHookForChannelReadAccess(channelID string, message *model.WebSocketEvent) {
+	if channelID == "" || !a.channelAccessEnforcementActive() {
+		return
+	}
+
+	useChannelReadAccessHook(message, channelID)
+}
+
 func (a *App) HasChannelReadAccess(rctx request.CTX, userID string, channel *model.Channel) bool {
 	return a.hasChannelAccess(rctx, userID, channel, model.AccessControlPolicyActionChannelReadAccess)
 }
