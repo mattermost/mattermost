@@ -607,6 +607,7 @@ describe('components/login/Login', () => {
 
             // First submit - triggers getUserLoginType
             await userEvent.click(screen.getByRole('button', {name: 'Log in'}));
+            expect(mockGetUserLoginType).toHaveBeenCalledWith('user@example.com');
 
             // Password field should appear
             const passwordField = await screen.findByLabelText('Password');
@@ -619,19 +620,9 @@ describe('components/login/Login', () => {
         });
 
         it('should not show forgot password link when EnableGuestMagicLink is true and password not required', async () => {
-            const state = mergeObjects(magicLinkState, {
-                entities: {
-                    general: {
-                        config: {
-                            PasswordEnableForgotLink: 'true',
-                        },
-                    },
-                },
-            });
-
             renderWithContext(
                 <Login/>,
-                state,
+                magicLinkState,
             );
 
             // Forgot password link should not be visible when password field is hidden
@@ -639,16 +630,6 @@ describe('components/login/Login', () => {
         });
 
         it('should show forgot password link when password field is displayed', async () => {
-            const state = mergeObjects(magicLinkState, {
-                entities: {
-                    general: {
-                        config: {
-                            PasswordEnableForgotLink: 'true',
-                        },
-                    },
-                },
-            });
-
             const mockGetUserLoginType = jest.fn().mockReturnValue(async () => ({
                 data: {
                     auth_service: '',
@@ -659,7 +640,7 @@ describe('components/login/Login', () => {
 
             renderWithContext(
                 <Login/>,
-                state,
+                magicLinkState,
             );
 
             const emailInput = screen.getByLabelText('Email');
@@ -732,6 +713,7 @@ describe('components/login/Login', () => {
 
             expect(mockLogin).toHaveBeenCalledWith('user@example.com', 'password123', undefined);
             expect(mockGetUserLoginType).not.toHaveBeenCalled();
+            expect(screen.queryByRole('button', {name: 'Close'})).not.toBeInTheDocument();
         });
 
         it('should log in with a password when the license does not include guest accounts', async () => {
@@ -764,6 +746,7 @@ describe('components/login/Login', () => {
 
             expect(mockLogin).toHaveBeenCalledWith('user@example.com', 'password123', undefined);
             expect(mockGetUserLoginType).not.toHaveBeenCalled();
+            expect(screen.queryByRole('button', {name: 'Close'})).not.toBeInTheDocument();
         });
     });
 });

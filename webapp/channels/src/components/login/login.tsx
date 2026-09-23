@@ -148,7 +148,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     // The server only answers the login type pre-check while guest accounts are licensed
     // and enabled alongside magic links, so gating on less than that turns every login
     // attempt into an error instead of prompting for a password.
-    const enableGuestMagicLink = isLicensed && GuestAccounts === 'true' && EnableGuestAccounts === 'true' && EnableGuestMagicLink === 'true';
+    const enableGuestMagicLink = GuestAccounts === 'true' && EnableGuestAccounts === 'true' && EnableGuestMagicLink === 'true';
 
     const enableBaseLogin = enableSignInWithEmail || enableSignInWithUsername || ldapEnabled;
     const enableExternalSignup = enableSignUpWithGitLab || enableSignUpWithOffice365 || enableSignUpWithGoogle || enableSignUpWithOpenId || enableSignUpWithSaml;

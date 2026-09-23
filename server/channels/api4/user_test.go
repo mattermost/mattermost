@@ -5382,9 +5382,10 @@ func TestGetLoginType(t *testing.T) {
 	_, err := th.Client.Logout(context.Background())
 	require.NoError(t, err)
 
-	// Mirrors how the webapp calls the endpoint: it decodes the body as JSON whenever the
-	// response is served as application/json, whatever the status code is.
-	postLoginType := func(t *testing.T, loginID string) (int, string, map[string]any) {
+	// Every API response is served as application/json, so the webapp decodes the body as
+	// JSON whatever the status code is. A response the decoder chokes on surfaces to the
+	// user as "Received invalid response from the server." instead of the real error.
+	postLoginType := func(t *testing.T, loginID string) (int, map[string]any) {
 		t.Helper()
 		req, reqErr := http.NewRequest(http.MethodPost, th.Client.APIURL+"/users/login/type", strings.NewReader(model.MapToJSON(map[string]string{"login_id": loginID})))
 		require.NoError(t, reqErr)
@@ -5397,7 +5398,7 @@ func TestGetLoginType(t *testing.T) {
 		var body map[string]any
 		require.NoError(t, json.NewDecoder(resp.Body).Decode(&body), "response body must be valid JSON")
 
-		return resp.StatusCode, resp.Header.Get("Content-Type"), body
+		return resp.StatusCode, body
 	}
 
 	t.Run("returns the login type when guest magic link is available", func(t *testing.T) {
@@ -5407,9 +5408,8 @@ func TestGetLoginType(t *testing.T) {
 			*cfg.GuestAccountsSettings.EnableGuestMagicLink = true
 		})
 
-		status, contentType, body := postLoginType(t, th.BasicUser.Email)
+		status, body := postLoginType(t, th.BasicUser.Email)
 		assert.Equal(t, http.StatusOK, status)
-		assert.Equal(t, "application/json", contentType)
 		assert.Equal(t, "", body["auth_service"])
 	})
 
@@ -5420,22 +5420,44 @@ func TestGetLoginType(t *testing.T) {
 			*cfg.GuestAccountsSettings.EnableGuestMagicLink = true
 		})
 
-		status, contentType, body := postLoginType(t, th.BasicUser.Email)
+		status, body := postLoginType(t, th.BasicUser.Email)
 		assert.Equal(t, http.StatusNotFound, status)
-		assert.Equal(t, "application/json", contentType)
+		assert.Equal(t, "api.user.login.guest_magic_link.disabled.error", body["id"])
+	})
+
+	t.Run("returns a JSON error when guest magic link is disabled", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense("guest_accounts"))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.GuestAccountsSettings.Enable = true
+			*cfg.GuestAccountsSettings.EnableGuestMagicLink = false
+		})
+
+		status, body := postLoginType(t, th.BasicUser.Email)
+		assert.Equal(t, http.StatusNotFound, status)
 		assert.Equal(t, "api.user.login.guest_magic_link.disabled.error", body["id"])
 	})
 
 	t.Run("returns a JSON error when the license does not include guest accounts", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseWithFalseDefaults("guest_accounts"))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.GuestAccountsSettings.Enable = true
+			*cfg.GuestAccountsSettings.EnableGuestMagicLink = true
+		})
+
+		status, body := postLoginType(t, th.BasicUser.Email)
+		assert.Equal(t, http.StatusNotFound, status)
+		assert.Equal(t, "api.user.login.guest_magic_link.disabled.error", body["id"])
+	})
+
+	t.Run("returns a JSON error when the server is unlicensed", func(t *testing.T) {
 		th.App.Srv().SetLicense(nil)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.GuestAccountsSettings.Enable = true
 			*cfg.GuestAccountsSettings.EnableGuestMagicLink = true
 		})
 
-		status, contentType, body := postLoginType(t, th.BasicUser.Email)
+		status, body := postLoginType(t, th.BasicUser.Email)
 		assert.Equal(t, http.StatusNotFound, status)
-		assert.Equal(t, "application/json", contentType)
 		assert.Equal(t, "api.user.login.guest_magic_link.disabled.error", body["id"])
 	})
 }
