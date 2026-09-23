@@ -185,7 +185,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         caretPosition.current = target.selectionEnd;
     };
 
-    const handlePaste = useCallback((e: ClipboardEvent) => {
+    const handlePaste = useCallback((e: React.ClipboardEvent<TextboxElement>) => {
         const {clipboardData, target} = e;
         if (
             !clipboardData ||

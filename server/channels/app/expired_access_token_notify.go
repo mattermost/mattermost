@@ -4,11 +4,17 @@
 package app
 
 import (
+	"time"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
+
+// The cleanup job runs hourly, so an older expiry only surfaces when a backlog
+// is drained, where a DM about a long-dead token is noise rather than news.
+const expiredAccessTokenNotifyMaxAge = 7 * 24 * time.Hour
 
 // NotifyExpiredAccessTokensDeleted DMs the owner of each expired personal
 // access token that the cleanup_expired_access_tokens job is about to delete.
@@ -20,9 +26,9 @@ import (
 //
 // It is best-effort. It is invoked before the tokens are deleted so the
 // token→owner mapping is still available, and every failure is logged and
-// swallowed so it never blocks the cleanup. Bot-owned tokens and tokens owned
-// by deactivated users are skipped, matching pat_expiry_notify — GetExpiredBefore
-// returns those too because the cleanup job must still delete them.
+// swallowed so it never blocks the cleanup. User-owned bot tokens notify the
+// bot owner; plugin-owned bot tokens, tokens without an active human recipient,
+// and long-expired tokens are skipped. Skipping never affects deletion.
 func (a *App) NotifyExpiredAccessTokensDeleted(rctx request.CTX, tokens []*model.UserAccessToken) {
 	if len(tokens) == 0 {
 		return
@@ -34,43 +40,53 @@ func (a *App) NotifyExpiredAccessTokensDeleted(rctx request.CTX, tokens []*model
 		return
 	}
 
+	notifyFloor := model.GetMillis() - expiredAccessTokenNotifyMaxAge.Milliseconds()
 	for _, token := range tokens {
-		user, appErr := a.GetUser(rctx, token.UserId)
+		if token.ExpiresAt < notifyFloor {
+			continue
+		}
+
+		recipient, bot, appErr := a.resolveAccessTokenNotificationRecipient(rctx, token)
 		if appErr != nil {
-			rctx.Logger().Warn("Failed to get user for expired personal access token notification",
+			rctx.Logger().Warn("Failed to resolve recipient for expired personal access token notification",
 				mlog.String("user_id", token.UserId),
 				mlog.Err(appErr),
 			)
 			continue
 		}
-
-		// Skip bot accounts and deactivated users, matching pat_expiry_notify.
-		if user.IsBot || user.DeleteAt != 0 {
+		if recipient == nil {
 			continue
 		}
 
-		channel, appErr := a.GetOrCreateDirectChannel(rctx, token.UserId, systemBot.UserId)
+		channel, appErr := a.GetOrCreateDirectChannel(rctx, recipient.Id, systemBot.UserId)
 		if appErr != nil {
 			rctx.Logger().Warn("Failed to get direct channel for expired personal access token notification",
-				mlog.String("user_id", token.UserId),
+				mlog.String("user_id", recipient.Id),
 				mlog.Err(appErr),
 			)
 			continue
 		}
 
-		T := i18n.GetUserTranslations(user.Locale)
+		T := i18n.GetUserTranslations(recipient.Locale)
+		message := T("app.user_access_token.expired_deleted_notification", model.StringInterface{
+			"Description": token.Description,
+		})
+		if bot != nil {
+			message = T("app.user_access_token.bot_expired_deleted_notification", model.StringInterface{
+				"BotUsername": bot.Username,
+				"Description": token.Description,
+			})
+		}
 		post := &model.Post{
 			ChannelId: channel.Id,
-			Message: T("app.user_access_token.expired_deleted_notification", model.StringInterface{
-				"Description": token.Description,
-			}),
-			Type:   model.PostTypeDefault,
-			UserId: systemBot.UserId,
+			Message:   message,
+			Type:      model.PostTypeDefault,
+			UserId:    systemBot.UserId,
 		}
 
 		if _, _, appErr := a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true}); appErr != nil {
 			rctx.Logger().Warn("Failed to send expired personal access token notification",
-				mlog.String("user_id", token.UserId),
+				mlog.String("user_id", recipient.Id),
 				mlog.Err(appErr),
 			)
 		}

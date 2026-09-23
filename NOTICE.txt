@@ -2497,42 +2497,6 @@ SOFTWARE.
 
 ---
 
-## @tippyjs/react
-
-This product contains '@tippyjs/react' by atomiks.
-
-React component for Tippy.js
-
-* HOMEPAGE:
-  * https://github.com/atomiks/tippyjs-react#readme
-
-* LICENSE: MIT
-
-MIT License
-
-Copyright (c) 2018 atomiks
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-
----
-
 ## @tiptap/extension-code-block-lowlight
 
 This product contains '@tiptap/extension-code-block-lowlight'.
@@ -5965,140 +5929,14 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 ---
 
-## goccy/go-yaml
+## go.uber.org/mock
 
-This product contains 'goccy/go-yaml' by Masaaki Goshima.
-
-YAML support for the Go language
-
-* HOMEPAGE:
-  * https://goccy.github.io/go-yaml
-
-* LICENSE: MIT License
-
-MIT License
-
-Copyright (c) 2019 Masaaki Goshima
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-
----
-
-## golang-jwt/jwt
-
-This product contains 'golang-jwt/jwt' by golang-jwt maintainers.
-
-A go (or 'golang' for search engine friendliness) implementation of JSON Web Tokens.
-
-* HOMEPAGE:
-  * https://github.com/golang-jwt/jwt
-
-* LICENSE: MIT License
-
-Copyright (c) 2012 Dave Grijalva
-Copyright (c) 2021 golang-jwt maintainers
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-
-
----
-
-## golang-migrate/migrate
-
-This product contains 'golang-migrate/migrate' by golang-migrate.
-
-Database migrations. CLI and Golang library.
-
-* LICENSE: Other
-
-The MIT License (MIT)
-
-Original Work
-Copyright (c) 2016 Matthias Kadenbach
-https://github.com/mattes/migrate
-
-Modified Work
-Copyright (c) 2018 Dale Hui
-https://github.com/golang-migrate/migrate
-
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-
-
----
-
-## golang/freetype
-
-This product contains 'freetype' by Go.
-
-The Freetype font rasterizer in the Go programming language.
-
-* HOMEPAGE:
-  * https://github.com/golang/freetype
-
-* LICENSE: (FTL OR GPL-2.0)
-
-Use of the Freetype-Go software is subject to your choice of exactly one of
-the following two licenses:
-  * The FreeType License, which is similar to the original BSD license with
-    an advertising clause, or
-  * The GNU General Public License (GPL), version 2 or later.
-
-The text of these licenses are available in the licenses/ftl.txt and the
-licenses/gpl.txt files respectively. They are also available at
-http://freetype.sourceforge.net/license.html
-
-The Luxi fonts in the testdata directory are licensed separately. See the
-testdata/COPYING file for details.
-
----
-
-## golang/mock
-
-This product contains 'golang/mock' by Go.
+This product contains 'go.uber.org/mock' by Uber Go.
 
 GoMock is a mocking framework for the Go programming language.
 
 * HOMEPAGE:
-  * https://github.com/golang/mock
+  * https://github.com/uber-go/mock
 
 * LICENSE: Apache License 2.0
 
@@ -6305,6 +6143,132 @@ GoMock is a mocking framework for the Go programming language.
    See the License for the specific language governing permissions and
    limitations under the License.
 
+
+---
+
+## goccy/go-yaml
+
+This product contains 'goccy/go-yaml' by Masaaki Goshima.
+
+YAML support for the Go language
+
+* HOMEPAGE:
+  * https://goccy.github.io/go-yaml
+
+* LICENSE: MIT License
+
+MIT License
+
+Copyright (c) 2019 Masaaki Goshima
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+---
+
+## golang-jwt/jwt
+
+This product contains 'golang-jwt/jwt' by golang-jwt maintainers.
+
+A go (or 'golang' for search engine friendliness) implementation of JSON Web Tokens.
+
+* HOMEPAGE:
+  * https://github.com/golang-jwt/jwt
+
+* LICENSE: MIT License
+
+Copyright (c) 2012 Dave Grijalva
+Copyright (c) 2021 golang-jwt maintainers
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+
+---
+
+## golang-migrate/migrate
+
+This product contains 'golang-migrate/migrate' by golang-migrate.
+
+Database migrations. CLI and Golang library.
+
+* LICENSE: Other
+
+The MIT License (MIT)
+
+Original Work
+Copyright (c) 2016 Matthias Kadenbach
+https://github.com/mattes/migrate
+
+Modified Work
+Copyright (c) 2018 Dale Hui
+https://github.com/golang-migrate/migrate
+
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+
+---
+
+## golang/freetype
+
+This product contains 'freetype' by Go.
+
+The Freetype font rasterizer in the Go programming language.
+
+* HOMEPAGE:
+  * https://github.com/golang/freetype
+
+* LICENSE: (FTL OR GPL-2.0)
+
+Use of the Freetype-Go software is subject to your choice of exactly one of
+the following two licenses:
+  * The FreeType License, which is similar to the original BSD license with
+    an advertising clause, or
+  * The GNU General Public License (GPL), version 2 or later.
+
+The text of these licenses are available in the licenses/ftl.txt and the
+licenses/gpl.txt files respectively. They are also available at
+http://freetype.sourceforge.net/license.html
+
+The Luxi fonts in the testdata directory are licensed separately. See the
+testdata/COPYING file for details.
 
 ---
 
@@ -11862,7 +11826,43 @@ This product contains 'react'.
 React is a JavaScript library for building user interfaces.
 
 * HOMEPAGE:
-  * https://reactjs.org/
+  * https://react.dev/
+
+* LICENSE: MIT
+
+MIT License
+
+Copyright (c) Meta Platforms, Inc. and affiliates.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+---
+
+## react
+
+This product contains 'react'.
+
+React is a JavaScript library for building user interfaces.
+
+* HOMEPAGE:
+  * https://react.dev/
 
 * LICENSE: MIT
 
@@ -12006,7 +12006,43 @@ This product contains 'react-dom'.
 React package for working with the DOM.
 
 * HOMEPAGE:
-  * https://reactjs.org/
+  * https://react.dev/
+
+* LICENSE: MIT
+
+MIT License
+
+Copyright (c) Meta Platforms, Inc. and affiliates.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+---
+
+## react-dom
+
+This product contains 'react-dom'.
+
+React package for working with the DOM.
+
+* HOMEPAGE:
+  * https://react.dev/
 
 * LICENSE: MIT
 
