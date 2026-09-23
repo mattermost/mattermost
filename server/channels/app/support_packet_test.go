@@ -376,25 +376,31 @@ func TestGetSupportPacketStats(t *testing.T) {
 		return &packet
 	}
 
+	assertStatValue := func(t *testing.T, stat *int64, expected int64) {
+		t.Helper()
+		require.NotNil(t, stat)
+		assert.Equal(t, expected, *stat)
+	}
+
 	th := Setup(t)
 
 	t.Run("fresh server", func(t *testing.T) {
 		sp := generateStats(t, th.Context, th.App)
 
-		assert.Equal(t, int64(0), sp.RegisteredUsers)
-		assert.Equal(t, int64(0), sp.ActiveUsers)
-		assert.Equal(t, int64(0), sp.DailyActiveUsers)
-		assert.Equal(t, int64(0), sp.MonthlyActiveUsers)
-		assert.Equal(t, int64(0), sp.DeactivatedUsers)
-		assert.Equal(t, int64(0), sp.Guests)
-		assert.Equal(t, int64(0), sp.SingleChannelGuests)
-		assert.Equal(t, int64(0), sp.BotAccounts)
-		assert.Equal(t, int64(0), sp.Posts)
-		assert.Equal(t, int64(0), sp.Channels)
-		assert.Equal(t, int64(0), sp.Teams)
-		assert.Equal(t, int64(0), sp.SlashCommands)
-		assert.Equal(t, int64(0), sp.IncomingWebhooks)
-		assert.Equal(t, int64(0), sp.OutgoingWebhooks)
+		assertStatValue(t, sp.RegisteredUsers, 0)
+		assertStatValue(t, sp.ActiveUsers, 0)
+		assertStatValue(t, sp.DailyActiveUsers, 0)
+		assertStatValue(t, sp.MonthlyActiveUsers, 0)
+		assertStatValue(t, sp.DeactivatedUsers, 0)
+		assertStatValue(t, sp.Guests, 0)
+		assertStatValue(t, sp.SingleChannelGuests, 0)
+		assertStatValue(t, sp.BotAccounts, 0)
+		assertStatValue(t, sp.Posts, 0)
+		assertStatValue(t, sp.Channels, 0)
+		assertStatValue(t, sp.Teams, 0)
+		assertStatValue(t, sp.SlashCommands, 0)
+		assertStatValue(t, sp.IncomingWebhooks, 0)
+		assertStatValue(t, sp.OutgoingWebhooks, 0)
 	})
 
 	t.Run("Happy path", func(t *testing.T) {
@@ -451,20 +457,20 @@ func TestGetSupportPacketStats(t *testing.T) {
 
 		sp := generateStats(t, th.Context, th.App)
 
-		assert.Equal(t, int64(9), sp.RegisteredUsers)
-		assert.Equal(t, int64(6), sp.ActiveUsers)
-		assert.Equal(t, int64(0), sp.DailyActiveUsers)
-		assert.Equal(t, int64(0), sp.MonthlyActiveUsers)
-		assert.Equal(t, int64(3), sp.DeactivatedUsers)
-		assert.Equal(t, int64(2), sp.Guests)
-		assert.Equal(t, int64(0), sp.SingleChannelGuests)
-		assert.Equal(t, int64(1), sp.BotAccounts)
-		assert.Equal(t, int64(4), sp.Posts)    // 1 from the bot creation and 3 created directly
-		assert.Equal(t, int64(3), sp.Channels) // 2 from the team creation and 1 created directly
-		assert.Equal(t, int64(1), sp.Teams)
-		assert.Equal(t, int64(1), sp.SlashCommands)
-		assert.Equal(t, int64(1), sp.IncomingWebhooks)
-		assert.Equal(t, int64(1), sp.OutgoingWebhooks)
+		assertStatValue(t, sp.RegisteredUsers, 9)
+		assertStatValue(t, sp.ActiveUsers, 6)
+		assertStatValue(t, sp.DailyActiveUsers, 0)
+		assertStatValue(t, sp.MonthlyActiveUsers, 0)
+		assertStatValue(t, sp.DeactivatedUsers, 3)
+		assertStatValue(t, sp.Guests, 2)
+		assertStatValue(t, sp.SingleChannelGuests, 0)
+		assertStatValue(t, sp.BotAccounts, 1)
+		assertStatValue(t, sp.Posts, 4)    // 1 from the bot creation and 3 created directly
+		assertStatValue(t, sp.Channels, 3) // 2 from the team creation and 1 created directly
+		assertStatValue(t, sp.Teams, 1)
+		assertStatValue(t, sp.SlashCommands, 1)
+		assertStatValue(t, sp.IncomingWebhooks, 1)
+		assertStatValue(t, sp.OutgoingWebhooks, 1)
 	})
 
 	t.Run("single channel guests are counted when a guest is in exactly one channel", func(t *testing.T) {
@@ -476,7 +482,7 @@ func TestGetSupportPacketStats(t *testing.T) {
 		th.AddUserToChannel(t, guest, channel)
 
 		sp := generateStats(t, th.Context, th.App)
-		assert.Equal(t, int64(1), sp.SingleChannelGuests)
+		assertStatValue(t, sp.SingleChannelGuests, 1)
 	})
 
 	t.Run("post count should be present if number of users extends AnalyticsSettings.MaxUsersForStatistics", func(t *testing.T) {
@@ -493,7 +499,45 @@ func TestGetSupportPacketStats(t *testing.T) {
 
 		// InitBasic(t) already creats 5 posts
 		sp := generateStats(t, th.Context, th.App)
-		assert.Equal(t, int64(10), sp.Posts)
+		assertStatValue(t, sp.Posts, 10)
+	})
+
+	t.Run("channel count is omitted when a channel query fails and errors include every failed stat", func(t *testing.T) {
+		mockStore := smocks.Store{}
+		channelStore := &smocks.ChannelStore{}
+		postStore := &smocks.PostStore{}
+
+		channelStore.On("AnalyticsTypeCount", "", model.ChannelTypeOpen).Return(int64(0), errors.New("open query failed"))
+		postStore.On("AnalyticsPostCount", &model.PostCountOptions{}).Return(int64(0), errors.New("post query failed"))
+		postStore.On("RefreshPostStats").Return(nil)
+		postStore.On("ClearCaches")
+
+		mockStore.On("User").Return(th.App.Srv().Store().User())
+		mockStore.On("Post").Return(postStore)
+		mockStore.On("Channel").Return(channelStore)
+		mockStore.On("Team").Return(th.App.Srv().Store().Team())
+		mockStore.On("Command").Return(th.App.Srv().Store().Command())
+		mockStore.On("Webhook").Return(th.App.Srv().Store().Webhook())
+		mockStore.On("ClearCaches")
+		mockStore.On("Close").Return(nil)
+
+		oldStore := th.App.Srv().Store()
+		t.Cleanup(func() {
+			th.App.Srv().SetStore(oldStore)
+		})
+		th.App.Srv().SetStore(&mockStore)
+
+		fileData, err := th.App.getSupportPacketStats(th.Context)
+		require.NotNil(t, fileData)
+		require.Error(t, err)
+		assert.ErrorContains(t, err, "failed to get post count")
+		assert.ErrorContains(t, err, "failed to get channel count")
+
+		var packet model.SupportPacketStats
+		unmarshalErr := yaml.Unmarshal(fileData.Body, &packet)
+		require.NoError(t, unmarshalErr)
+		assert.Nil(t, packet.Channels)
+		assert.Nil(t, packet.Posts)
 	})
 }
 
