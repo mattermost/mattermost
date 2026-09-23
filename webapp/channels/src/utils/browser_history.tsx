@@ -26,7 +26,8 @@ const browserHistory = {
     },
 };
 
-if (isDesktop) {
+if (isDesktop && !window.__mmBrowserHistoryPushRegistered) {
+    window.__mmBrowserHistoryPushRegistered = true;
     DesktopApp.onBrowserHistoryPush((pathName) => b.push(pathName));
 }
 
