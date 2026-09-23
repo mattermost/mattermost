@@ -539,6 +539,38 @@ func TestGetSupportPacketStats(t *testing.T) {
 		assert.Nil(t, packet.Channels)
 		assert.Nil(t, packet.Posts)
 	})
+
+	t.Run("channel count is omitted when only the private channel query fails", func(t *testing.T) {
+		mockStore := smocks.Store{}
+		channelStore := &smocks.ChannelStore{}
+
+		channelStore.On("AnalyticsTypeCount", "", model.ChannelTypeOpen).Return(int64(5), nil)
+		channelStore.On("AnalyticsTypeCount", "", model.ChannelTypePrivate).Return(int64(0), errors.New("private query failed"))
+
+		mockStore.On("User").Return(th.App.Srv().Store().User())
+		mockStore.On("Post").Return(th.App.Srv().Store().Post())
+		mockStore.On("Channel").Return(channelStore)
+		mockStore.On("Team").Return(th.App.Srv().Store().Team())
+		mockStore.On("Command").Return(th.App.Srv().Store().Command())
+		mockStore.On("Webhook").Return(th.App.Srv().Store().Webhook())
+		mockStore.On("ClearCaches")
+		mockStore.On("Close").Return(nil)
+
+		oldStore := th.App.Srv().Store()
+		t.Cleanup(func() {
+			th.App.Srv().SetStore(oldStore)
+		})
+		th.App.Srv().SetStore(&mockStore)
+
+		fileData, err := th.App.getSupportPacketStats(th.Context)
+		require.NotNil(t, fileData)
+		require.ErrorContains(t, err, "failed to get channel count")
+
+		var packet model.SupportPacketStats
+		require.NoError(t, yaml.Unmarshal(fileData.Body, &packet))
+		assert.Nil(t, packet.Channels)
+		assert.NotNil(t, packet.Posts)
+	})
 }
 
 func TestGetSupportPacketJobList(t *testing.T) {
