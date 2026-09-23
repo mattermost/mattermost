@@ -4,7 +4,6 @@
 package app
 
 import (
-	"encoding/json"
 	"path/filepath"
 	"slices"
 	"sync"
@@ -17,16 +16,32 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 )
 
 func (a *App) GenerateSupportPacket(rctx request.CTX, options *model.SupportPacketOptions) []model.FileData {
 	functions := map[string]func(rctx request.CTX) (*model.FileData, error){
-		"metadata":    a.getSupportPacketMetadata,
-		"stats":       a.getSupportPacketStats,
-		"jobs":        a.getSupportPacketJobList,
-		"permissions": a.getSupportPacketPermissionsInfo,
-		"plugins":     a.getPluginsFile,
-		"schema":      a.getSupportPacketDatabaseSchema,
+		"metadata": func(rctx request.CTX) (*model.FileData, error) {
+			metadata, err := a.getSupportPacketMetadata(rctx)
+			return platform.YAMLFile(model.PacketMetadataFileName, metadata, err)
+		},
+		"stats": func(rctx request.CTX) (*model.FileData, error) {
+			stats, err := a.getSupportPacketStats(rctx)
+			return platform.YAMLFile("stats.yaml", stats, err)
+		},
+		"jobs": func(rctx request.CTX) (*model.FileData, error) {
+			jobs, err := a.getSupportPacketJobList(rctx)
+			return platform.YAMLFile("jobs.yaml", jobs, err)
+		},
+		"permissions": func(rctx request.CTX) (*model.FileData, error) {
+			permissions, err := a.getSupportPacketPermissionsInfo(rctx)
+			return platform.YAMLFile("permissions.yaml", permissions, err)
+		},
+		"plugins": func(rctx request.CTX) (*model.FileData, error) {
+			plugins, err := a.getPluginsList(rctx)
+			return platform.JSONFile("plugins.json", plugins, err)
+		},
+		"schema": a.getSupportPacketDatabaseSchema,
 	}
 
 	var (
@@ -136,7 +151,7 @@ func (a *App) GenerateSupportPacket(rctx request.CTX, options *model.SupportPack
 	return fileDatas
 }
 
-func (a *App) getSupportPacketStats(rctx request.CTX) (*model.FileData, error) {
+func (a *App) getSupportPacketStats(rctx request.CTX) (*model.SupportPacketStats, error) {
 	var (
 		rErr  *multierror.Error
 		stats model.SupportPacketStats
@@ -205,19 +220,10 @@ func (a *App) getSupportPacketStats(rctx request.CTX) (*model.FileData, error) {
 		return a.Srv().Store().Webhook().AnalyticsOutgoingCount("")
 	})
 
-	b, err := yaml.Marshal(&stats)
-	if err != nil {
-		rErr = multierror.Append(rErr, errors.Wrap(err, "failed to marshal Support Packet into yaml"))
-	}
-
-	fileData := &model.FileData{
-		Filename: "stats.yaml",
-		Body:     b,
-	}
-	return fileData, rErr.ErrorOrNil()
+	return &stats, rErr.ErrorOrNil()
 }
 
-func (a *App) getSupportPacketJobList(rctx request.CTX) (*model.FileData, error) {
+func (a *App) getSupportPacketJobList(rctx request.CTX) (*model.SupportPacketJobList, error) {
 	const numberOfJobsRuns = 5
 
 	var (
@@ -228,45 +234,35 @@ func (a *App) getSupportPacketJobList(rctx request.CTX) (*model.FileData, error)
 
 	jobs.LDAPSyncJobs, err = a.Srv().Store().Job().GetAllByTypePage(rctx, model.JobTypeLdapSync, 0, numberOfJobsRuns)
 	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting LDAP sync jobs"))
+		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting LDAP sync jobs"))
 	}
 	jobs.DataRetentionJobs, err = a.Srv().Store().Job().GetAllByTypePage(rctx, model.JobTypeDataRetention, 0, numberOfJobsRuns)
 	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting data retention jobs"))
+		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting data retention jobs"))
 	}
 	jobs.MessageExportJobs, err = a.Srv().Store().Job().GetAllByTypePage(rctx, model.JobTypeMessageExport, 0, numberOfJobsRuns)
 	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting message export jobs"))
+		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting message export jobs"))
 	}
 	jobs.ElasticPostIndexingJobs, err = a.Srv().Store().Job().GetAllByTypePage(rctx, model.JobTypeElasticsearchPostIndexing, 0, numberOfJobsRuns)
 	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting ES post indexing jobs"))
+		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting ES post indexing jobs"))
 	}
 	jobs.ElasticPostAggregationJobs, err = a.Srv().Store().Job().GetAllByTypePage(rctx, model.JobTypeElasticsearchPostAggregation, 0, numberOfJobsRuns)
 	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting ES post aggregation jobs"))
+		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting ES post aggregation jobs"))
 	}
 	jobs.MigrationJobs, err = a.Srv().Store().Job().GetAllByTypePage(rctx, model.JobTypeMigrations, 0, numberOfJobsRuns)
 	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "error while getting migration jobs"))
+		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting migration jobs"))
 	}
 
-	b, err := yaml.Marshal(&jobs)
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to marshal jobs list into yaml"))
-	}
-
-	fileData := &model.FileData{
-		Filename: "jobs.yaml",
-		Body:     b,
-	}
-	return fileData, rErr.ErrorOrNil()
+	return &jobs, rErr.ErrorOrNil()
 }
 
-func (a *App) getSupportPacketPermissionsInfo(_ request.CTX) (*model.FileData, error) {
+func (a *App) getSupportPacketPermissionsInfo(_ request.CTX) (*model.SupportPacketPermissionInfo, error) {
 	var (
 		rErr        *multierror.Error
-		err         error
 		permissions model.SupportPacketPermissionInfo
 	)
 
@@ -276,7 +272,7 @@ func (a *App) getSupportPacketPermissionsInfo(_ request.CTX) (*model.FileData, e
 	for {
 		schemes, appErr := a.GetSchemesPage("", page, perPage)
 		if appErr != nil {
-			rErr = multierror.Append(errors.Wrap(appErr, "failed to get list of schemes"))
+			rErr = multierror.Append(rErr, errors.Wrap(appErr, "failed to get list of schemes"))
 			break
 		}
 
@@ -294,7 +290,7 @@ func (a *App) getSupportPacketPermissionsInfo(_ request.CTX) (*model.FileData, e
 
 	roles, appErr := a.GetAllRoles()
 	if appErr != nil {
-		rErr = multierror.Append(errors.Wrap(appErr, "failed to get list of roles"))
+		rErr = multierror.Append(rErr, errors.Wrap(appErr, "failed to get list of roles"))
 	}
 
 	for _, r := range roles {
@@ -302,19 +298,10 @@ func (a *App) getSupportPacketPermissionsInfo(_ request.CTX) (*model.FileData, e
 	}
 	permissions.Roles = roles
 
-	b, err := yaml.Marshal(&permissions)
-	if err != nil {
-		rErr = multierror.Append(errors.Wrap(err, "failed to marshal permission info into yaml"))
-	}
-
-	fileData := &model.FileData{
-		Filename: "permissions.yaml",
-		Body:     b,
-	}
-	return fileData, rErr.ErrorOrNil()
+	return &permissions, rErr.ErrorOrNil()
 }
 
-func (a *App) getPluginsFile(_ request.CTX) (*model.FileData, error) {
+func (a *App) getPluginsList(_ request.CTX) (*model.SupportPacketPluginList, error) {
 	// Getting the plugins installed on the server, prettify it, and then add them to the file data array
 	plugins, appErr := a.GetPlugins()
 	if appErr != nil {
@@ -329,34 +316,16 @@ func (a *App) getPluginsFile(_ request.CTX) (*model.FileData, error) {
 		pluginList.Disabled = append(pluginList.Disabled, p.Manifest)
 	}
 
-	pluginsPrettyJSON, err := json.MarshalIndent(pluginList, "", "    ")
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal plugin list into json")
-	}
-
-	fileData := &model.FileData{
-		Filename: "plugins.json",
-		Body:     pluginsPrettyJSON,
-	}
-	return fileData, nil
+	return &pluginList, nil
 }
 
-func (a *App) getSupportPacketMetadata(_ request.CTX) (*model.FileData, error) {
+func (a *App) getSupportPacketMetadata(_ request.CTX) (*model.PacketMetadata, error) {
 	metadata, err := model.GeneratePacketMetadata(model.SupportPacketType, a.ServerId(), a.License(), nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate Packet metadata")
 	}
 
-	b, err := yaml.Marshal(metadata)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal Packet metadata into yaml")
-	}
-
-	fileData := &model.FileData{
-		Filename: model.PacketMetadataFileName,
-		Body:     b,
-	}
-	return fileData, nil
+	return metadata, nil
 }
 
 func (a *App) getSupportPacketDatabaseSchema(rctx request.CTX) (*model.FileData, error) {

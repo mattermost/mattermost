@@ -71,6 +71,16 @@ func TestGenerateSupportPacket(t *testing.T) {
 		return rFileNames
 	}
 
+	getFileDataByName := func(fileDatas []model.FileData, filename string) *model.FileData {
+		for _, fileData := range fileDatas {
+			if fileData.Filename == filename {
+				return &fileData
+			}
+		}
+
+		return nil
+	}
+
 	expectedFileNames := []string{
 		"metadata.yaml",
 		"stats.yaml",
@@ -175,6 +185,40 @@ func TestGenerateSupportPacket(t *testing.T) {
 		assert.Contains(t, rFileNames, "warning.txt")
 		assert.Contains(t, rFileNames, "stats.yaml")
 		assert.ElementsMatch(t, append(expectedFileNames, "warning.txt"), rFileNames)
+
+		statsFile := getFileDataByName(fileDatas, "stats.yaml")
+		require.NotNil(t, statsFile)
+		var stats model.SupportPacketStats
+		require.NoError(t, yaml.Unmarshal(statsFile.Body, &stats))
+		assert.Nil(t, stats.Posts)
+
+		warningsFile := getFileDataByName(fileDatas, "warning.txt")
+		require.NotNil(t, warningsFile)
+		assert.Contains(t, string(warningsFile.Body), "failed to get post count")
+	})
+
+	t.Run("collector nil result does not abort support packet generation", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = false
+		})
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.PluginSettings.Enable = true
+			})
+		})
+
+		fileDatas := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{
+			CPUProfileDuration: shortCPUProfileDuration,
+			IncludeLogs:        false,
+		})
+		rFileNames := getFileNames(t, fileDatas)
+		assert.NotContains(t, rFileNames, "plugins.json")
+		assert.Contains(t, rFileNames, "warning.txt")
+		assert.Contains(t, rFileNames, "stats.yaml")
+
+		warningsFile := getFileDataByName(fileDatas, "warning.txt")
+		require.NotNil(t, warningsFile)
+		assert.Contains(t, string(warningsFile.Body), "failed to get plugin list for Support Packet")
 	})
 
 	pluginID := "testplugin"
@@ -291,28 +335,21 @@ func TestGenerateSupportPacket(t *testing.T) {
 	})
 }
 
-func TestGetPluginsFile(t *testing.T) {
+func TestGetPluginsList(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	getJobList := func(t *testing.T) *model.SupportPacketPluginList {
+	getPluginList := func(t *testing.T) *model.SupportPacketPluginList {
 		t.Helper()
 
-		fileData, err := th.App.getPluginsFile(th.Context)
+		plugins, err := th.App.getPluginsList(th.Context)
 		assert.NoError(t, err)
-		require.NotNil(t, fileData)
-		assert.Equal(t, "plugins.json", fileData.Filename)
-		assert.Positive(t, len(fileData.Body))
-
-		var pl model.SupportPacketPluginList
-		err = json.Unmarshal(fileData.Body, &pl)
-		require.NoError(t, err)
-
-		return &pl
+		require.NotNil(t, plugins)
+		return plugins
 	}
 
 	t.Run("no errors if no plugins are installed", func(t *testing.T) {
-		pl := getJobList(t)
+		pl := getPluginList(t)
 		assert.Len(t, pl.Enabled, 0)
 		assert.Len(t, pl.Disabled, 0)
 	})
@@ -335,7 +372,7 @@ func TestGetPluginsFile(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Equal(t, "testplugin2", manifest2.Id)
 
-		pl := getJobList(t)
+		pl := getPluginList(t)
 		require.Len(t, pl.Enabled, 1)
 		assert.Equal(t, "testplugin", pl.Enabled[0].Id)
 		require.Len(t, pl.Disabled, 1)
@@ -349,8 +386,8 @@ func TestGetPluginsFile(t *testing.T) {
 		})
 
 		// Plugins off in settings so no fileData and we get a warning instead
-		fileData, err := th.App.getPluginsFile(th.Context)
-		assert.Nil(t, fileData)
+		plugins, err := th.App.getPluginsList(th.Context)
+		assert.Nil(t, plugins)
 		assert.ErrorContains(t, err, "failed to get plugin list for Support Packet")
 	})
 }
@@ -363,17 +400,11 @@ func TestGetSupportPacketStats(t *testing.T) {
 
 		require.NoError(t, a.Srv().Store().Post().RefreshPostStats())
 
-		fileData, err := a.getSupportPacketStats(rctx)
-		require.NotNil(t, fileData)
-		assert.Equal(t, "stats.yaml", fileData.Filename)
-		assert.Positive(t, len(fileData.Body))
+		packet, err := a.getSupportPacketStats(rctx)
+		require.NotNil(t, packet)
 		assert.NoError(t, err)
 
-		var packet model.SupportPacketStats
-		err = yaml.Unmarshal(fileData.Body, &packet)
-		require.NoError(t, err)
-
-		return &packet
+		return packet
 	}
 
 	assertStatValue := func(t *testing.T, stat *int64, expected int64) {
@@ -527,15 +558,11 @@ func TestGetSupportPacketStats(t *testing.T) {
 		})
 		th.App.Srv().SetStore(&mockStore)
 
-		fileData, err := th.App.getSupportPacketStats(th.Context)
-		require.NotNil(t, fileData)
+		packet, err := th.App.getSupportPacketStats(th.Context)
+		require.NotNil(t, packet)
 		require.Error(t, err)
 		assert.ErrorContains(t, err, "failed to get post count")
 		assert.ErrorContains(t, err, "failed to get channel count")
-
-		var packet model.SupportPacketStats
-		unmarshalErr := yaml.Unmarshal(fileData.Body, &packet)
-		require.NoError(t, unmarshalErr)
 		assert.Nil(t, packet.Channels)
 		assert.Nil(t, packet.Posts)
 	})
@@ -562,12 +589,9 @@ func TestGetSupportPacketStats(t *testing.T) {
 		})
 		th.App.Srv().SetStore(&mockStore)
 
-		fileData, err := th.App.getSupportPacketStats(th.Context)
-		require.NotNil(t, fileData)
+		packet, err := th.App.getSupportPacketStats(th.Context)
+		require.NotNil(t, packet)
 		require.ErrorContains(t, err, "failed to get channel count")
-
-		var packet model.SupportPacketStats
-		require.NoError(t, yaml.Unmarshal(fileData.Body, &packet))
 		assert.Nil(t, packet.Channels)
 		assert.NotNil(t, packet.Posts)
 	})
@@ -580,17 +604,10 @@ func TestGetSupportPacketJobList(t *testing.T) {
 	getJobList := func(t *testing.T) *model.SupportPacketJobList {
 		t.Helper()
 
-		fileData, err := th.App.getSupportPacketJobList(th.Context)
+		jobs, err := th.App.getSupportPacketJobList(th.Context)
 		require.NoError(t, err)
-		require.NotNil(t, fileData)
-		assert.Equal(t, "jobs.yaml", fileData.Filename)
-		assert.Positive(t, len(fileData.Body))
-
-		var jobs model.SupportPacketJobList
-		err = yaml.Unmarshal(fileData.Body, &jobs)
-		require.NoError(t, err)
-
-		return &jobs
+		require.NotNil(t, jobs)
+		return jobs
 	}
 
 	t.Run("no jobs run yet", func(t *testing.T) {
@@ -690,17 +707,10 @@ func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 	generatePermissionInfo := func(t *testing.T) *model.SupportPacketPermissionInfo {
 		t.Helper()
 
-		fileData, err := th.App.getSupportPacketPermissionsInfo(th.Context)
-		require.NotNil(t, fileData)
-		assert.Equal(t, "permissions.yaml", fileData.Filename)
-		assert.Positive(t, len(fileData.Body))
+		permissions, err := th.App.getSupportPacketPermissionsInfo(th.Context)
+		require.NotNil(t, permissions)
 		assert.NoError(t, err)
-
-		var permissions model.SupportPacketPermissionInfo
-		err = yaml.Unmarshal(fileData.Body, &permissions)
-		require.NoError(t, err)
-
-		return &permissions
+		return permissions
 	}
 
 	t.Run("No custom permissions", func(t *testing.T) {
@@ -771,19 +781,13 @@ func TestGetSupportPacketMetadata(t *testing.T) {
 	th := Setup(t)
 
 	t.Run("Happy path", func(t *testing.T) {
-		fileData, err := th.App.getSupportPacketMetadata(th.Context)
+		metadata, err := th.App.getSupportPacketMetadata(th.Context)
 		require.NoError(t, err)
-		require.NotNil(t, fileData)
-		assert.Equal(t, "metadata.yaml", fileData.Filename)
-		assert.Positive(t, len(fileData.Body))
-
-		metadate, err := model.ParsePacketMetadata(fileData.Body)
-		assert.NoError(t, err)
-		require.NotNil(t, metadate)
-		assert.Equal(t, model.SupportPacketType, metadate.Type)
-		assert.Equal(t, model.CurrentVersion, metadate.ServerVersion)
-		assert.NotEmpty(t, metadate.ServerID)
-		assert.NotEmpty(t, metadate.GeneratedAt)
+		require.NotNil(t, metadata)
+		assert.Equal(t, model.SupportPacketType, metadata.Type)
+		assert.Equal(t, model.CurrentVersion, metadata.ServerVersion)
+		assert.NotEmpty(t, metadata.ServerID)
+		assert.NotEmpty(t, metadata.GeneratedAt)
 	})
 }
 
