@@ -118,6 +118,8 @@ export const entadv: IMEContent = {
       columns: 2,
       cells: [
         {
+          // Deck: no leading icon above the title on Interoperability
+          // cards. Title + bullets only.
           title: 'Advanced Information Controls',
           bullets: [
             'ABAC: Attribute-Based Access Controls',
@@ -127,11 +129,9 @@ export const entadv: IMEContent = {
             'Crypto-Agile: Post-Quantum, Program-Based, BYOE',
             'Zero-Trust Mobility: MDM & ZT App-Level Controls',
           ],
-          icon: 'lock',
           to: '/security-guide/zero-trust',
         },
         {
-          // Deck: this box has no logo strip — bullet list only.
           title: 'Secure Federation & Interoperability',
           bullets: [
             'Standards Compatible: ACP 240',
@@ -141,7 +141,6 @@ export const entadv: IMEContent = {
             'Shared channels for inter-server communication',
             'Language translation in real-time, on-premise',
           ],
-          icon: 'users',
           to: '/administration-guide/onboard/connected-workspaces',
         },
       ],
@@ -162,9 +161,9 @@ export const entadv: IMEContent = {
       columnsTemplate: '1.2fr 1.1fr 0.9fr',
       cells: [
         {
+          // Deck: no leading icon above the title on Deployment cards.
           title: 'Enterprise to Edge with Sovereign AI',
           body: 'Runs at the edge, in your data center, in sovereign/gov & global cloud & AI',
-          icon: 'server',
           to: '/deployment-guide/deployment-scenarios/deployment-scenarios-index',
           // Deck: AI-vendor logos pinned to top-right corner.
           cornerLogos: [
@@ -192,7 +191,6 @@ export const entadv: IMEContent = {
             'Webhooks & Slash Commands',
             'Plugin Architecture',
           ],
-          icon: 'plug',
           to: '/integrations-guide/integrations-guide-index',
           // Deck: bullets on the left with a 4-column × 3-row matrix
           // of ecosystem logos sitting to the right (no separate
@@ -222,7 +220,6 @@ export const entadv: IMEContent = {
             'Scales to 200K+ concurrent users',
             'NATO & US PL3, IL4/5, 6/7 proven',
           ],
-          icon: 'shield',
           to: '/administration-guide/scale/high-availability-cluster-based-deployment',
         },
       ],
