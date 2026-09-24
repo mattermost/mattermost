@@ -71,6 +71,43 @@ async function main() {
         `[data-variant="${variant}"][data-ready="true"]`,
         {timeout: 15_000},
       );
+
+      // `data-ready` fires as soon as React commits the variant, but
+      // `<img>` elements and CSS background images (banner backdrop,
+      // vendor logos) may still be decoding. Screenshotting before
+      // they're painted produces a PNG with missing icons/backgrounds.
+      // Wait for every image inside the section to load + decode.
+      await el.evaluate(async (section) => {
+        const decodeImg = async (img) => {
+          if (!img.complete) {
+            await new Promise((resolve, reject) => {
+              img.addEventListener('load', resolve, {once: true});
+              img.addEventListener('error', reject, {once: true});
+            });
+          }
+          if (!img.naturalWidth) {
+            throw new Error(`Failed to load ${img.currentSrc || img.src}`);
+          }
+          await img.decode();
+        };
+
+        // Inline <img> elements.
+        const inlineImgs = Array.from(section.querySelectorAll('img'));
+        await Promise.all(inlineImgs.map(decodeImg));
+
+        // CSS background-image URLs across the section subtree.
+        const bgUrls = [section, ...section.querySelectorAll('*')].flatMap((node) => {
+          const bg = getComputedStyle(node).backgroundImage;
+          return [...bg.matchAll(/url\(["']?([^"')]+)["']?\)/g)].map((m) => m[1]);
+        });
+        await Promise.all([...new Set(bgUrls)].map((url) => new Promise((resolve, reject) => {
+          const probe = new Image();
+          probe.onload = () => probe.decode().then(resolve, reject);
+          probe.onerror = reject;
+          probe.src = url;
+        })));
+      });
+
       const out = path.join(OUT_DIR, `${variant}.png`);
       await el.screenshot({path: out, omitBackground: false});
       console.log(`  wrote ${path.relative(process.cwd(), out)}`);

@@ -25,7 +25,7 @@
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids",
     "typecheck": "tsc",
-    "render:ime": "node scripts/render-ime.mjs"
+    "render:ime": "playwright install chromium && node scripts/render-ime.mjs"
   },
   "dependencies": {
     "@docusaurus/core": "3.10.1",
