@@ -7,15 +7,33 @@
  */
 
 .wrapper {
-  /* Sit inside the reading column, capped at the deck's native width.
-   * `container-type: inline-size` lets `.cellGrid` / `.footerRow` /
-   * `.cellTitleSplit` collapse based on the wrapper's actual width
-   * rather than the viewport, so narrow reading columns (docs pages
-   * with a visible ToC) collapse the same way narrow viewports do. */
+  /* Fill the reading column by default; extend rightward on wider
+   * viewports (see the media query below) to preserve the deck's
+   * 16:9 proportions. `container-type: inline-size` lets `.cellGrid`
+   * / `.footerRow` / `.cellTitleSplit` collapse based on the
+   * wrapper's actual width rather than the viewport, so narrow
+   * reading columns (pages with a visible ToC, embedded contexts)
+   * collapse the same way narrow viewports do. */
   margin: 2rem 0 2.5rem;
   width: 100%;
   max-width: 1280px;
   container-type: inline-size;
+}
+
+@media (min-width: 1300px) {
+  .wrapper {
+    /* Break out of the reading column rightward into the ToC gutter
+     * so the diagram gets close to the deck's 16:9 shape. Landing
+     * pages hide their ToC via frontmatter; other pages that show a
+     * ToC will visually overlap it — move those to a wider layout
+     * or add `hide_table_of_contents` on that page.
+     *
+     * Capped by min(1280px, viewport - sidebar - gutters) so we
+     * never grow past the source slide's 1280px native width and
+     * always respect the sidebar. */
+    max-width: none;
+    width: min(1280px, calc(100vw - var(--doc-sidebar-width, 300px) - 4rem));
+  }
 }
 
 /* === Audience toggle above the diagram === */
