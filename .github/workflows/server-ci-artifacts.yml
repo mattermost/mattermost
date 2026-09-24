@@ -162,6 +162,15 @@ jobs:
           docker buildx build --no-cache --platform linux/amd64 --push --build-arg MM_PACKAGE=${MM_PACKAGE} -t mattermostdevelopment/mm-te-test:${TAG} -t mattermostdevelopment/mattermost-team-edition:${TAG} .
           echo "DOCKERHUB_IMAGE_DIGEST=$(cosign triangulate mattermostdevelopment/mattermost-team-edition:${TAG} | cut -d: -f2 | sed 's/\.sig$//' | tr '-' ':')" >> "${GITHUB_OUTPUT}"
 
+      # Guards regressions: pdftotext present and shared libs load in the runtime image.
+      - name: cd/smoke-pdf-extraction
+        env:
+          TAG: ${{ steps.set_tag.outputs.TAG }}
+        run: |
+          docker pull "mattermostdevelopment/mattermost-team-edition:${TAG}"
+          docker run --rm --entrypoint /usr/bin/pdftotext \
+            "mattermostdevelopment/mattermost-team-edition:${TAG}" -v
+
       - name: cd/generate-summary
         env:
           DOCKERHUB_IMAGE_DIGEST: ${{ steps.docker.outputs.DOCKERHUB_IMAGE_DIGEST }}
