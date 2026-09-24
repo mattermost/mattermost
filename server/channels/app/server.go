@@ -2002,34 +2002,40 @@ func (s *Server) ReadFile(path string) ([]byte, *model.AppError) {
 	return result, nil
 }
 
-func cancelTask(mut *sync.Mutex, taskPointer **model.ScheduledTask) {
-	mut.Lock()
-	defer mut.Unlock()
-	if *taskPointer != nil {
-		(*taskPointer).Cancel()
-		*taskPointer = nil
+// leaderTask is a recurring task that only runs on the cluster leader.
+type leaderTask struct {
+	mut  sync.Mutex
+	task *model.ScheduledTask
+}
+
+// start leaves a running task alone, since the leader-changed listener also fires on a
+// node that is already the leader.
+func (t *leaderTask) start(create func() *model.ScheduledTask) {
+	t.mut.Lock()
+	defer t.mut.Unlock()
+	if t.task == nil {
+		t.task = create()
 	}
 }
 
-// startTask leaves a running task alone, since the leader-changed listener also fires on a
-// node that is already the leader.
-func startTask(mut *sync.Mutex, taskPointer **model.ScheduledTask, create func() *model.ScheduledTask) {
-	mut.Lock()
-	defer mut.Unlock()
-	if *taskPointer == nil {
-		*taskPointer = create()
+func (t *leaderTask) cancel() {
+	t.mut.Lock()
+	defer t.mut.Unlock()
+	if t.task != nil {
+		t.task.Cancel()
+		t.task = nil
 	}
 }
 
 func startDNDStatusExpireTask(a *App) {
-	startTask(&a.ch.dndTaskMut, &a.ch.dndTask, func() *model.ScheduledTask {
+	a.ch.dndTask.start(func() *model.ScheduledTask {
 		return model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, model.DNDExpiryInterval)
 	})
 }
 
 func startPostReminderTask(a *App) {
 	rctx := request.EmptyContext(a.Log())
-	startTask(&a.ch.postReminderMut, &a.ch.postReminderTask, func() *model.ScheduledTask {
+	a.ch.postReminderTask.start(func() *model.ScheduledTask {
 		fn := func() { a.CheckPostReminders(rctx) }
 		return model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", fn, 5*time.Minute)
 	})
@@ -2048,7 +2054,7 @@ func runDNDStatusExpireJob(a *App) {
 			startDNDStatusExpireTask(a)
 		} else {
 			mlog.Debug("This is no longer leader node. Cancelling the unset DND status task", mlog.Bool("is_leader", a.IsLeader()))
-			cancelTask(&a.ch.dndTaskMut, &a.ch.dndTask)
+			a.ch.dndTask.cancel()
 		}
 	})
 }
@@ -2066,7 +2072,7 @@ func runPostReminderJob(a *App) {
 			startPostReminderTask(a)
 		} else {
 			mlog.Debug("This is no longer leader node. Cancelling the post reminder task", mlog.Bool("is_leader", a.IsLeader()))
-			cancelTask(&a.ch.postReminderMut, &a.ch.postReminderTask)
+			a.ch.postReminderTask.cancel()
 		}
 	})
 }
@@ -2084,7 +2090,7 @@ func runScheduledPostJob(a *App) {
 			doRunScheduledPostJob(a)
 		} else {
 			mlog.Debug("This is no longer leader node. Cancelling the scheduled post task", mlog.Bool("is_leader", a.IsLeader()))
-			cancelTask(&a.ch.scheduledPostMut, &a.ch.scheduledPostTask)
+			a.ch.scheduledPostTask.cancel()
 		}
 	})
 }
@@ -2098,7 +2104,7 @@ func doRunScheduledPostJob(a *App) {
 	}
 
 	rctx := request.EmptyContext(a.Log())
-	startTask(&a.ch.scheduledPostMut, &a.ch.scheduledPostTask, func() *model.ScheduledTask {
+	a.ch.scheduledPostTask.start(func() *model.ScheduledTask {
 		fn := func() { a.ProcessScheduledPosts(rctx) }
 		return model.CreateRecurringTaskFromNextIntervalTime("Process Scheduled Posts", fn, jobInterval)
 	})
