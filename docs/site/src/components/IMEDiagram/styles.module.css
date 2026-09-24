@@ -276,15 +276,6 @@
 .layer_use-cases .cellGrid {
   gap: 0.6rem;
 }
-/* First-lane trim: the Use Cases cells are tinted (denim-50) so the
- * default .layerBody top padding reads as a visible white frame under
- * the banner. Deployment (last lane) uses white cells that blend into
- * the .layerBody padding at the bottom, so there's no visible frame
- * there. Shrink Use Cases top padding to match the seamless bottom;
- * the reclaimed vertical space goes into the enlarged banner above. */
-.layer_use-cases .layerBody {
-  padding-top: 0.2rem;
-}
 .layer_use-cases .cell {
   background: var(--mm-denim-50, rgba(30, 50, 92, 0.045));
   border-color: transparent;
