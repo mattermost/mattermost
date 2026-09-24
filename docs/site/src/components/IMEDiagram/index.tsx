@@ -16,11 +16,19 @@ import {getVariant, variants} from './content';
 
 type CellProps = {data: CellData};
 
+function CellIcon({iconSrc, icon, alt}: {iconSrc?: string; icon?: import('./types').IconName; alt?: string}) {
+  if (iconSrc) {
+    return <span className={`${styles.icon} ${styles.iconImg}`} aria-hidden><img src={iconSrc} alt={alt ?? ''} /></span>;
+  }
+  const svg = getIcon(icon);
+  if (!svg) return null;
+  return <span className={styles.icon} aria-hidden>{svg}</span>;
+}
+
 function Cell({data}: CellProps) {
-  const icon = getIcon(data.icon);
   const body = (
     <>
-      {icon && <span className={styles.icon} aria-hidden>{icon}</span>}
+      <CellIcon iconSrc={data.iconSrc} icon={data.icon} alt={data.title} />
       <div className={styles.cellBody}>
         <strong className={styles.cellTitle}>{data.title}</strong>
         {(data.body || data.bullets) && (
@@ -45,11 +53,12 @@ function Cell({data}: CellProps) {
 }
 
 function IntroPanel({data}: {data: Intro}) {
-  const icon = getIcon(data.icon);
   return (
     <div className={styles.intro}>
       <h3>
-        {icon && <span className={styles.introIcon}>{icon}</span>}
+        {data.iconSrc
+          ? <span className={`${styles.introIcon} ${styles.introIconImg}`}><img src={data.iconSrc} alt="" /></span>
+          : (getIcon(data.icon) && <span className={styles.introIcon}>{getIcon(data.icon)}</span>)}
         {data.title}
       </h3>
       {data.body && <p>{data.body}</p>}

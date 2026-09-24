@@ -273,6 +273,32 @@ a.cell:hover {
   height: 100%;
 }
 
+/* Image-based icons (product cards on the mission variant). Sized a bit
+ * larger than the SVG icons because the source PNGs from the sales
+ * deck have padding baked in.
+ */
+.iconImg {
+  width: 2rem;
+  height: 2rem;
+}
+
+.iconImg img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.introIconImg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.introIconImg img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 .cellBody {
   display: flex;
   flex-direction: column;
@@ -370,15 +396,23 @@ a.footerCell:hover {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.4rem;
-  margin-top: 0.4rem;
+  gap: 0.5rem;
+  margin-top: 0.45rem;
 }
 
 .logoImg {
-  height: 1.1rem;
+  height: 1.4rem;
+  max-width: 3.2rem;
   width: auto;
   object-fit: contain;
-  opacity: 0.85;
+  /* Real brand marks read best without opacity dimming */
+}
+
+/* Footer strips have their own logo sizing so wordmarks like AWS/Oracle
+ * don't overwhelm the sentence text next to them. */
+.footerCell .logoImg {
+  height: 1.1rem;
+  max-width: 2.4rem;
 }
 
 .logoBadge {

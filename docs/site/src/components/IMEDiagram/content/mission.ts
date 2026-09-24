@@ -5,8 +5,8 @@ import type {IMEContent} from '../types';
  * infographic ("Mattermost Intelligent Mission Environment") targeted
  * at national security, defense, and critical-infrastructure buyers.
  *
- * Logo `src` paths point at `/img/logos/*.svg`; drop files there to
- * replace the text-badge fallback with real brand marks.
+ * Icons and logos are extracted from the FY27 Platform Pitch Sales
+ * Deck (slide 7) and live under `docs/site/static/img/ime/logos/`.
  */
 export const mission: IMEContent = {
   id: 'mission',
@@ -49,31 +49,31 @@ export const mission: IMEContent = {
         {
           title: 'Messaging Collaboration',
           body: 'Channels: ChatOps and automation',
-          icon: 'chat',
+          iconSrc: '/img/ime/logos/icon-chat.png',
           to: '/end-user-guide/collaborate/collaborate-index',
         },
         {
           title: 'Workflow & Automation',
           body: 'Integrations & Playbooks: Streamlining SOPs',
-          icon: 'checklist',
+          iconSrc: '/img/ime/logos/icon-workflow.png',
           to: '/end-user-guide/workflow-automation/workflow-automation-index',
         },
         {
           title: 'Audio, Screenshare & 1-1 Video',
           body: 'Calls: Live communication w/ transcription & summary',
-          icon: 'call',
+          iconSrc: '/img/ime/logos/icon-audio.png',
           to: '/end-user-guide/collaborate/audio-and-screensharing',
         },
         {
           title: 'Project Management',
           body: 'Boards: for Kanban & flexible issue tracking',
-          icon: 'target',
+          iconSrc: '/img/ime/logos/icon-project.png',
           to: '/end-user-guide/project-management/project-management-index',
         },
         {
           title: 'Human-Machine Teaming',
           body: 'Agents: Integration & Human-Machine Teaming',
-          icon: 'sparkles',
+          iconSrc: '/img/ime/logos/icon-agents.png',
           to: '/end-user-guide/agents',
         },
         {
@@ -86,21 +86,23 @@ export const mission: IMEContent = {
         {
           text: 'Web, Desktop, Mobile & MS Teams user experiences',
           logos: [
-            {alt: 'Microsoft Teams'},
-            {alt: 'Outlook'},
-            {alt: 'Slack'},
-            {alt: 'Mattermost'},
+            {alt: 'Windows', src: '/img/ime/logos/windows.png'},
+            {alt: 'macOS', src: '/img/ime/logos/macos.png'},
+            {alt: 'Linux', src: '/img/ime/logos/linux.png'},
+            {alt: 'iOS', src: '/img/ime/logos/ios.png'},
+            {alt: 'Android', src: '/img/ime/logos/android.png'},
+            {alt: 'Microsoft Teams', src: '/img/ime/logos/msteams.png'},
           ],
         },
         {
           text: 'Extensible, audited & hardened open-source supply chain',
           logos: [
-            {alt: 'PostgreSQL'},
-            {alt: 'React'},
-            {alt: 'Redis'},
-            {alt: 'Docker'},
-            {alt: 'GitHub'},
-            {alt: 'Go'},
+            {alt: 'PostgreSQL', src: '/img/ime/logos/postgresql.png'},
+            {alt: 'Kubernetes', src: '/img/ime/logos/kubernetes.png'},
+            {alt: 'React Native', src: '/img/ime/logos/react-native.png'},
+            {alt: 'GitHub', src: '/img/ime/logos/github.png'},
+            {alt: 'Go', src: '/img/ime/logos/go.png'},
+            {alt: 'Argo', src: '/img/ime/logos/argo.png'},
           ],
         },
       ],
@@ -118,8 +120,8 @@ export const mission: IMEContent = {
           title: 'Advanced Information Controls',
           bullets: [
             'ABAC: Attribute-Based Access Controls',
-            'Classification Labels w/ Data Spillage Mitigation',
-            'Tailored Data Controls: DLP, Expiry, Burn-On-Read',
+            'Classification Banners & Labels w/ Data Spillage Mitigation',
+            'Tailored data protection: DLP, Expiry, Burn-On-Read',
             'CDS-compatible: Cross-Domain Solution compliant',
             'Crypto-Agile: Post-Quantum, Program-Based, BYOE',
             'Zero-Trust Mobility: MDM & ZT App-Level Controls',
@@ -128,12 +130,12 @@ export const mission: IMEContent = {
           to: '/security-guide/zero-trust',
         },
         {
-          title: 'Secure Federation & Interop',
+          title: 'Secure Federation & Interoperability',
           bullets: [
             'Standards Compatible: ACP 240',
-            'Microsoft Teams embed for Enterprise-to-Edge',
+            'Microsoft Teams embedding for Enterprise-to-Edge',
             'MATRIX protocol Interoperability',
-            'Guest accounts for external collaboration',
+            'Guest accounts for controlled access',
             'Shared channels for inter-server communication',
             'Language translation in real-time, on-premise',
           ],
@@ -146,50 +148,49 @@ export const mission: IMEContent = {
       id: 'deployment',
       label: 'Deployment',
       intro: {
-        title: 'Deploy Air-Gapped & Sovereign',
+        title: 'Air-Gapped & Sovereign Deployment & Integration',
         icon: 'globe',
       },
       columns: 3,
       cells: [
         {
-          title: 'Enterprise to Edge w/ Sovereign AI',
-          body: 'Edge, Data Center, Sovereign/Gov & Global Cloud & AI',
+          title: 'Enterprise to Edge with Sovereign AI',
+          body: 'Runs at the edge, in your data center, in sovereign/gov & global cloud & AI',
           icon: 'server',
           to: '/deployment-guide/deployment-scenarios/deployment-scenarios-index',
           logos: [
-            {alt: 'Tactical Edge'},
-            {alt: 'Local Datacenter'},
-            {alt: 'Microsoft Azure'},
-            {alt: 'Oracle'},
-            {alt: 'AWS'},
+            {alt: 'Microsoft Azure', src: '/img/ime/logos/azure.png'},
+            {alt: 'Oracle', src: '/img/ime/logos/oracle.png'},
+            {alt: 'AWS', src: '/img/ime/logos/aws.png'},
+            {alt: 'Google Cloud Platform', src: '/img/ime/logos/gcp.png'},
           ],
         },
         {
           title: 'Layered Extensibility',
           bullets: [
-            'Packaged & Custom Integrations',
+            'Pre-packaged & Custom Integrations',
             'Webhooks & Slash Commands',
             'Plugin Architecture',
           ],
           icon: 'plug',
           to: '/integrations-guide/integrations-guide-index',
           logos: [
-            {alt: 'GitHub'},
-            {alt: 'GitLab'},
-            {alt: 'Jira'},
-            {alt: 'ServiceNow'},
-            {alt: 'M365'},
+            {alt: 'GitHub', src: '/img/ime/logos/github.png'},
+            {alt: 'GitLab', src: '/img/ime/logos/gitlab.png'},
+            {alt: 'Jira', src: '/img/ime/logos/jira.png'},
+            {alt: 'Confluence', src: '/img/ime/logos/confluence.png'},
+            {alt: 'Splunk', src: '/img/ime/logos/splunk.png'},
           ],
         },
         {
           title: 'High Availability & Scale',
           bullets: [
             'High & Ultra-High Availability',
-            'Scales to 200K+ users',
-            'NATO & US PL3, IL4/5, 6/7',
+            'Scales to 200K+ concurrent users',
+            'NATO & US PL3, IL4/5, 6/7 proven',
           ],
           icon: 'shield',
-          to: '/for/air-gapped-operator',
+          to: '/administration-guide/scale/high-availability-cluster-based-deployment',
         },
       ],
     },

@@ -40,7 +40,10 @@ export type Cell = {
   title: string;
   body?: string;
   bullets?: string[];
+  /** Named icon rendered as SVG (from `icons.tsx`). */
   icon?: IconName;
+  /** Image icon path (e.g. `/img/ime/logos/icon-chat.png`). Takes precedence over `icon` when set. */
+  iconSrc?: string;
   to?: string;
   /** Optional logo strip rendered below the body (used by Deployment cards in the mission variant). */
   logos?: Logo[];
@@ -51,6 +54,7 @@ export type Intro = {
   title: string;
   body?: string;
   icon?: IconName;
+  iconSrc?: string;
 };
 
 /** A footer strip inside a layer (e.g. "Web, Desktop, Mobile & MS Teams"). */
