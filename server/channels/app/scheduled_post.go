@@ -121,8 +121,8 @@ func (a *App) UpdateScheduledPost(rctx request.CTX, userId string, scheduledPost
 
 	// Re-checked here rather than relying on the IsValid above, which ran against the type the
 	// client sent. Only now is the type the one the post will actually be delivered with.
-	if appErr := scheduledPost.ValidateTypeCanRepeat(); appErr != nil {
-		return nil, appErr
+	if scheduledPost.RepeatType == model.ScheduledPostRepeatTypeWeekly && scheduledPost.Type == model.PostTypeBurnOnRead {
+		return nil, model.NewAppError("App.UpdateScheduledPost", "model.scheduled_post.is_valid.repeat_burn_on_read.app_error", nil, "id="+scheduledPost.Id, http.StatusBadRequest)
 	}
 
 	var appErr *model.AppError
