@@ -6,6 +6,8 @@ package storetest
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -13,6 +15,55 @@ import (
 
 func TestReadReceiptStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetReadCountForPost", func(t *testing.T) { testGetReadCountForPost(t, rctx, ss) })
+	t.Run("PermanentDeleteByUser", func(t *testing.T) { testReadReceiptPermanentDeleteByUser(t, rctx, ss) })
+}
+
+func testReadReceiptPermanentDeleteByUser(t *testing.T, rctx request.CTX, ss store.Store) {
+	rrStore := ss.ReadReceipt()
+
+	deletedUserID := model.NewId()
+	survivingUserID := model.NewId()
+	postID1 := model.NewId()
+	postID2 := model.NewId()
+
+	for _, receipt := range []*model.ReadReceipt{
+		{PostID: postID1, UserID: deletedUserID},
+		{PostID: postID2, UserID: deletedUserID},
+		{PostID: postID1, UserID: survivingUserID},
+	} {
+		_, err := rrStore.Save(rctx, receipt)
+		require.NoError(t, err)
+	}
+
+	// Read everything back first so that any caching layer is populated, and a stale entry
+	// would survive the delete below.
+	for _, postID := range []string{postID1, postID2} {
+		receipts, err := rrStore.GetByPost(rctx, postID)
+		require.NoError(t, err)
+		require.NotEmpty(t, receipts)
+	}
+	_, err := rrStore.Get(rctx, postID1, deletedUserID)
+	require.NoError(t, err)
+
+	require.NoError(t, rrStore.PermanentDeleteByUser(rctx, deletedUserID))
+
+	_, err = rrStore.Get(rctx, postID1, deletedUserID)
+	require.Error(t, err)
+	_, err = rrStore.Get(rctx, postID2, deletedUserID)
+	require.Error(t, err)
+
+	surviving, err := rrStore.Get(rctx, postID1, survivingUserID)
+	require.NoError(t, err)
+	require.Equal(t, survivingUserID, surviving.UserID)
+
+	receipts, err := rrStore.GetByPost(rctx, postID1)
+	require.NoError(t, err)
+	require.Len(t, receipts, 1)
+	require.Equal(t, survivingUserID, receipts[0].UserID)
+
+	receipts, err = rrStore.GetByPost(rctx, postID2)
+	require.NoError(t, err)
+	require.Empty(t, receipts)
 }
 
 func testGetReadCountForPost(t *testing.T, rctx request.CTX, ss store.Store) {

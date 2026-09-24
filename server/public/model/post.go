@@ -508,7 +508,9 @@ type GetPostsOptions struct {
 
 type PostCountOptions struct {
 	// Only include posts on a specific team. "" for any team.
-	TeamId             string
+	TeamId string
+	// Only include posts authored by a specific user. "" for any user.
+	UserId             string
 	MustHaveFile       bool
 	MustHaveHashtag    bool
 	ExcludeDeleted     bool

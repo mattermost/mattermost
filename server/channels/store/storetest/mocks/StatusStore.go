@@ -102,6 +102,24 @@ func (_m *StatusStore) GetTotalActiveUsersCount() (int64, error) {
 	return r0, r1
 }
 
+// PermanentDeleteByUser provides a mock function with given fields: userID
+func (_m *StatusStore) PermanentDeleteByUser(userID string) error {
+	ret := _m.Called(userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PermanentDeleteByUser")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ResetAll provides a mock function with no fields
 func (_m *StatusStore) ResetAll() error {
 	ret := _m.Called()

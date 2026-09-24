@@ -1195,11 +1195,12 @@ func (s *SqlPostStore) PermanentDeleteByUser(rctx request.CTX, userId string) er
 
 	// Now attempt to delete all the root posts for a user. This will also
 	// delete all the comments for each post
-	const maxLoops = 10
+	const postsPerLoop = 1000
+	const maxLoops = store.MaxPostsPerUserPermanentDelete / postsPerLoop
 	count := 0
 	for {
 		var ids []string
-		err := s.GetMaster().Select(&ids, "SELECT Id FROM Posts WHERE UserId = ? LIMIT 1000", userId)
+		err := s.GetMaster().Select(&ids, "SELECT Id FROM Posts WHERE UserId = ? LIMIT ?", userId, postsPerLoop)
 		if err != nil {
 			return errors.Wrapf(err, "failed to find Posts with userId=%s", userId)
 		}
@@ -1208,15 +1209,17 @@ func (s *SqlPostStore) PermanentDeleteByUser(rctx request.CTX, userId string) er
 			break
 		}
 
+		// This is a fail safe, callers are expected to reject users over the cap before
+		// deleting anything.
+		if count >= maxLoops {
+			return store.NewErrLimitExceeded("permanently deleting posts for user", store.MaxPostsPerUserPermanentDelete, "userId="+userId)
+		}
+
 		if err = s.permanentDelete(ids); err != nil {
 			return err
 		}
 
-		// This is a fail safe, give up if more than 10k messages
 		count++
-		if count >= maxLoops {
-			return store.NewErrLimitExceeded("permanently deleting posts for user", maxLoops*1000, "userId="+userId)
-		}
 	}
 
 	return nil
@@ -2567,6 +2570,10 @@ func (s *SqlPostStore) AnalyticsPostCount(options *model.PostCountOptions) (int6
 			Where(sq.Eq{"c.TeamId": options.TeamId})
 	}
 
+	if options.UserId != "" {
+		query = query.Where(sq.Eq{"p.UserId": options.UserId})
+	}
+
 	if options.UsersPostsOnly {
 		query = query.Where(sq.And{
 			sq.Eq{"p.Type": ""},
@@ -3446,6 +3453,14 @@ func (s *SqlPostStore) DeleteAllPostRemindersForPost(postId string) error {
 	_, err := s.GetMaster().Exec(`DELETE from PostReminders WHERE PostId = ?`, postId)
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete post reminders for postId %s", postId)
+	}
+	return nil
+}
+
+func (s *SqlPostStore) PermanentDeletePostRemindersByUser(userId string) error {
+	_, err := s.GetMaster().Exec(`DELETE from PostReminders WHERE UserId = ?`, userId)
+	if err != nil {
+		return errors.Wrapf(err, "failed to delete post reminders for userId %s", userId)
 	}
 	return nil
 }

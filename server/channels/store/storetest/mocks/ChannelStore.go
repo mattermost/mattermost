@@ -2689,6 +2689,24 @@ func (_m *ChannelStore) PermanentDeleteMembersByUser(rctx request.CTX, userID st
 	return r0
 }
 
+// PermanentDeleteSidebarByUser provides a mock function with given fields: userID
+func (_m *ChannelStore) PermanentDeleteSidebarByUser(userID string) error {
+	ret := _m.Called(userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PermanentDeleteSidebarByUser")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // RemoveAllDeactivatedMembers provides a mock function with given fields: rctx, channelID
 func (_m *ChannelStore) RemoveAllDeactivatedMembers(rctx request.CTX, channelID string) error {
 	ret := _m.Called(rctx, channelID)
