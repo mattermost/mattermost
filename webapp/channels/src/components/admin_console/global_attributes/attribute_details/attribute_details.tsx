@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import React, {useCallback, useEffect, useMemo, useRef, useState, type JSX} from 'react';
 import type {IntlShape, MessageDescriptor} from 'react-intl';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch} from 'react-redux';
 import {useParams} from 'react-router-dom';
 
 import type {ClientError} from '@mattermost/client';
@@ -14,9 +14,6 @@ import {buttonClassNames} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FieldVisibility, PropertyField, PropertyFieldOption, PropertyPermissionLevel} from '@mattermost/types/properties';
 import {supportsHierarchy, supportsOptions} from '@mattermost/types/properties';
-import type {GlobalState} from '@mattermost/types/store';
-
-import {getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
@@ -34,7 +31,6 @@ import Input from 'components/widgets/inputs/input/input';
 
 import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
-import {isMinimumEnterpriseAdvancedLicense} from 'utils/license_utils';
 import {CPA_FIELD_NAME_MAX_RUNES, filterCELIdentifier, slugifyForCEL, validateCPAFieldName} from 'utils/properties';
 import type {CPAFieldNameValidationError} from 'utils/properties';
 
@@ -51,11 +47,12 @@ import {GraphValues, hasBlankTrimmedOptionName, hasCaseInsensitiveDuplicateNames
 
 import {CHANNEL_VALUE_SETTER, DEFAULT_CHANNEL_RESOURCE_CONFIG, buildChannelFieldAttrs, buildChannelFieldPatch, isOrderedChangePolicy, parseChannelFieldConfig} from '../applies_to/channels';
 import type {ChannelResourceConfig} from '../applies_to/channels';
+import {ATTRIBUTE_TYPE_DESCRIPTOR, getAttributeTypeDescriptor, toServerFieldType} from '../attribute_type';
 import {GLOBAL_ATTRIBUTES_LIST_ROUTE, GLOBAL_ATTRIBUTES_OBJECT_TYPE} from '../constants';
-import {getSourceKind, getTypeIcon, getTypeLabel, isClassificationMarkingsField, typeLabels} from '../global_attributes_table';
-import type {AttributeFieldType, UpdateAttributeFieldPatch} from '../utils';
+import {getSourceKind, getTypeIcon, getTypeLabel, isClassificationMarkingsField} from '../global_attributes_table';
+import useAllowedResourceTypes from '../use_allowed_resource_types';
+import type {AttributeFieldType, AttributeTypeId, UpdateAttributeFieldPatch} from '../utils';
 import {
-    ATTRIBUTE_FIELD_TYPES,
     createAttributeField,
     createLinkedAttributeField,
     deleteAttributeField,
@@ -121,6 +118,11 @@ function computeAutoSlugDisplay(displayName: string): string | null {
     return slug === '_copy' ? null : slug;
 }
 
+// Same normalization load and create use: missing/empty display_name → ''.
+function fieldDisplayName(field: PropertyField): string {
+    return (typeof field.attrs?.display_name === 'string' ? field.attrs.display_name : '') || '';
+}
+
 type ErrorKind =
     | 'name_conflict' |
     'invalid_charset' |
@@ -134,6 +136,7 @@ type ErrorKind =
     'applies_to_remove_partial_save' |
     'applies_to_partial_save' |
     'applies_to_config_save_failed' |
+    'applies_to_display_name_save_failed' |
     'applies_to_rollback_failed' |
     'applies_to_name_conflict' |
     'applies_to_limit_reached';
@@ -148,6 +151,7 @@ const RESOURCE_INTERPOLATED_ERROR_KINDS = new Set<ErrorKind>([
     'applies_to_remove_partial_save',
     'applies_to_partial_save',
     'applies_to_config_save_failed',
+    'applies_to_display_name_save_failed',
 ]);
 
 function errorKindFromError(error: unknown): ErrorKind {
@@ -302,7 +306,12 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
 
     const isGraphEnabled = useGetFeatureFlagValue('PropertyFieldGraph') === 'true';
     const ALL_TYPES = useMemo(
-        () => ATTRIBUTE_FIELD_TYPES.filter((type) => type !== 'graph' || isGraphEnabled),
+        () => Object.values(ATTRIBUTE_TYPE_DESCRIPTOR).filter((descriptor) => {
+            if (descriptor.hidden) {
+                return false;
+            }
+            return descriptor.id !== 'graph' || isGraphEnabled;
+        }),
         [isGraphEnabled],
     );
 
@@ -360,8 +369,9 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // Type and Options are independent for text/select/multiselect/rank — a
     // Text -> Select -> Text -> Select round-trip must restore names already
     // entered. Switching to or from graph clears options: DAG parents are
-    // incompatible with a flat chip list.
-    const [fieldType, setFieldType] = useState<AttributeFieldType>('text');
+    // incompatible with a flat chip list. Phone/URL are text subtypes
+    // (attrs.value_type) selected from this same Type menu.
+    const [fieldType, setFieldType] = useState<AttributeTypeId>('text');
     const [options, setOptions] = useState<PropertyFieldOption[]>([]);
 
     // Independent of fieldType/options -- both may be set at once (mirrors
@@ -370,14 +380,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const [ldapAttr, setLdapAttr] = useState('');
     const [samlAttr, setSamlAttr] = useState('');
 
-    // Global Attributes is Enterprise, but a channel attribute is refused below
-    // Enterprise Advanced, so Channels is not offered as a resource at all.
-    const channelAttributesEnabled = useSelector((state: GlobalState) =>
-        getFeatureFlagValue(state, 'ChannelAttributes') === 'true' && isMinimumEnterpriseAdvancedLicense(getLicense(state)));
-    const allowedResourceTypes = useMemo(
-        () => (channelAttributesEnabled ? ALL_RESOURCE_TYPES : ALL_RESOURCE_TYPES.filter((type) => type !== 'channel')),
-        [channelAttributesEnabled],
-    );
+    const allowedResourceTypes = useAllowedResourceTypes();
 
     // Pending Applies-to selection -- insertion order, not fixed Users/Channels/
     // Posts order (that fixed order only governs the picker's own offer list).
@@ -394,6 +397,11 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const persistedLinkedFieldsRef = useRef<Partial<Record<ResourceObjectType, PropertyField>>>({});
     const originalNameRef = useRef('');
 
+    // Template display_name as loaded (or last successfully saved). Used to decide
+    // whether a linked field still shares that label and should be renamed with
+    // the template on Save -- see shouldCascadeLinkedDisplayName below.
+    const originalDisplayNameRef = useRef('');
+
     // Users row config -- Profile display / Who can set the value, both stored
     // as attrs.visibility/attrs.managed on the Users linked field, matching
     // CPA's own value domain exactly rather than the PSAv2 PermissionValues
@@ -408,12 +416,13 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const originalUserVisibilityRef = useRef<FieldVisibility>('when_set');
     const originalUserManagedRef = useRef<UserManagedValue>('');
 
-    // Compared against the live fieldType at Save time to pick which order
-    // DELETE/PATCH run in (see handleSave) -- the server rejects a type-changing
-    // PATCH while linked fields of the old type still exist
+    // Compared against the live *server* field type at Save time to pick which
+    // order DELETE/PATCH run in (see handleSave) -- the server rejects a type-
+    // changing PATCH while linked fields of the old type still exist
     // (type_change_with_dependents), so that case must delete first, but doing
     // so unconditionally would delete linked values on a PATCH failure that has
-    // nothing to do with type (e.g. a name conflict).
+    // nothing to do with type (e.g. a name conflict). Phone/URL keep type
+    // 'text', so switching among text subtypes is not a type change.
     const originalFieldTypeRef = useRef<AttributeFieldType>('text');
 
     const [saving, setSaving] = useState(false);
@@ -467,7 +476,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
 
         const load = async () => {
             try {
-                const field = await fetchAttributeField(fieldId, channelAttributesEnabled);
+                const field = await fetchAttributeField(fieldId, allowedResourceTypes);
                 if (cancelled) {
                     return;
                 }
@@ -500,7 +509,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 // child to parse config from).
                 let linkedByType: Partial<Record<ResourceObjectType, PropertyField>> = {};
                 if (field.object_type === GLOBAL_ATTRIBUTES_OBJECT_TYPE) {
-                    const linkedFields = await fetchLinkedFieldsForTemplate(fieldId, channelAttributesEnabled);
+                    const linkedFields = await fetchLinkedFieldsForTemplate(fieldId, allowedResourceTypes);
                     if (cancelled) {
                         return;
                     }
@@ -509,12 +518,14 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 persistedLinkedFieldsRef.current = linkedByType;
                 originalNameRef.current = field.name;
                 originalFieldTypeRef.current = field.type;
+                const loadedDisplayName = (field.attrs?.display_name as string | undefined) || '';
+                originalDisplayNameRef.current = loadedDisplayName;
 
                 setSourcePluginId(getSourceKind(field) === 'plugin' ? (field.attrs?.source_plugin_id as string | undefined) : undefined);
-                setDisplayName((field.attrs?.display_name as string | undefined) || '');
+                setDisplayName(loadedDisplayName);
                 setManualName(field.name);
                 setIsNameManuallyEdited(true);
-                setFieldType(field.type);
+                setFieldType(getAttributeTypeDescriptor(field).id);
                 setOptions(loadedOptions);
                 setLdapAttr(typeof field.attrs?.ldap === 'string' ? field.attrs.ldap : '');
                 setSamlAttr(typeof field.attrs?.saml === 'string' ? field.attrs.saml : '');
@@ -560,7 +571,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         return () => {
             cancelled = true;
         };
-    }, [fieldId, channelAttributesEnabled]);
+    }, [fieldId, allowedResourceTypes]);
 
     const autoSlugDisplay = useMemo(() => computeAutoSlugDisplay(displayName), [displayName]);
     const currentName = (isEditingName || isNameManuallyEdited) ? manualName : (autoSlugDisplay ?? '');
@@ -695,7 +706,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // own handleTypeChange (user_properties_type_menu.tsx) exactly, and is
     // idempotent. Switching away from Rank leaves rank values sitting inert in
     // state (not stripped) -- harmless, since Select/Multiselect ignore it.
-    const handleTypeChange = useCallback((newType: AttributeFieldType) => {
+    const handleTypeChange = useCallback((newType: AttributeTypeId) => {
         if (newType === fieldType) {
             return;
         }
@@ -712,7 +723,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         // The server unconditionally strips attrs.ldap/attrs.saml from any
         // non-Text field on save (AccessControlAttributeValidationHook) --
         // clear both proactively here so the UI never shows a link that's
-        // about to silently vanish.
+        // about to silently vanish. Phone/URL are text subtypes that CPA
+        // also refuses to sync (canSync is only true for plain text).
         if (newType !== 'text') {
             setLdapAttr('');
             setSamlAttr('');
@@ -825,9 +837,18 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // fields only a user field qualifies.
     const showsExternalSource = !isNonTemplate || objectType === 'user';
     const typeLockedByAppliesTo = isEditMode && appliesTo.length > 0 && !isNonTemplate;
-    const typeLocked = hasExternalSource || typeLockedByAppliesTo || isPluginOwned;
-    const typeChanged = isEditMode && fieldType !== originalFieldTypeRef.current;
-    const typeSupportsOptions = supportsOptions({type: fieldType});
+
+    // The server refuses to convert a field to or from the graph type
+    // (app.property_field.update.graph_type_change.app_error) -- a flat option
+    // list and a hierarchy do not describe the same values, so neither
+    // conversion has an answer. A graph field therefore has nowhere to go and its
+    // Type is locked outright; every other field keeps its menu but no longer
+    // offers Hierarchical (see selectableTypes below).
+    const typeLockedByGraph = isEditMode && originalFieldTypeRef.current === 'graph';
+    const typeLocked = hasExternalSource || typeLockedByAppliesTo || isPluginOwned || typeLockedByGraph;
+    const serverFieldType = toServerFieldType(fieldType);
+    const typeChanged = isEditMode && serverFieldType !== originalFieldTypeRef.current;
+    const typeSupportsOptions = supportsOptions({type: serverFieldType});
 
     // Unique name is the identifier policies and integrations bind to, and the
     // server does not copy it onto linked fields. Renaming while any resource
@@ -863,7 +884,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         return null;
     }, [typeSupportsOptions, options, fieldType]);
 
-    const isHierarchical = supportsHierarchy({type: fieldType});
+    const isHierarchical = supportsHierarchy({type: serverFieldType});
     const graphOptionsValid = useMemo(() => {
         if (!isHierarchical) {
             return true;
@@ -1077,33 +1098,59 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             // ordering relative to the delete loop above), already persisted, and
             // not in `toCreate` (that row's create call above already carries the
             // current values).
+            //
+            // Also PATCHes display_name when the linked field still shares the
+            // template's previous label -- Channel Info / profile UIs read the
+            // linked field's display_name, and the server does not cascade a
+            // template rename onto dependents.
+            const previousDisplayName = originalDisplayNameRef.current;
+            const nextDisplayName = displayName.trim();
+            const displayNameChanged = nextDisplayName !== previousDisplayName;
+            const displayNamePatchAttrs = {display_name: nextDisplayName || undefined};
+            const shouldCascadeLinkedDisplayName = (linked: PropertyField) => (
+                displayNameChanged && fieldDisplayName(linked) === previousDisplayName
+            );
+
             const userIsUpdateCandidate = appliesTo.includes('user') && !toCreate.includes('user') && Boolean(persistedLinkedFieldsRef.current.user);
             if (userIsUpdateCandidate) {
                 const visibilityChanged = userVisibility !== originalUserVisibilityRef.current;
                 const managedChanged = userManaged !== originalUserManagedRef.current;
-                if (visibilityChanged || managedChanged) {
-                    const existingUserField = persistedLinkedFieldsRef.current.user;
-                    if (existingUserField) {
-                        try {
-                            const updatedUserField = await patchLinkedAttributeField('user', existingUserField.id, userConfigAttrs, userConfigPermissionValues);
-                            persistedLinkedFieldsRef.current.user = updatedUserField;
+                const existingUserField = persistedLinkedFieldsRef.current.user;
+                const cascadeDisplayName = existingUserField ? shouldCascadeLinkedDisplayName(existingUserField) : false;
+                if (existingUserField && (visibilityChanged || managedChanged || cascadeDisplayName)) {
+                    try {
+                        const updatedUserField = await patchLinkedAttributeField(
+                            'user',
+                            existingUserField.id,
+                            {
+                                ...(visibilityChanged || managedChanged ? userConfigAttrs : {}),
+                                ...(cascadeDisplayName ? displayNamePatchAttrs : {}),
+                            },
+                            (visibilityChanged || managedChanged) ? userConfigPermissionValues : undefined,
+                        );
+                        persistedLinkedFieldsRef.current.user = updatedUserField;
+                        if (visibilityChanged || managedChanged) {
                             originalUserVisibilityRef.current = userVisibility;
                             originalUserManagedRef.current = userManaged;
-                        } catch {
-                            // Distinct from applies_to_partial_save -- the Users row is
-                            // already linked and persisted here (userIsUpdateCandidate
-                            // requires it), so "couldn't be applied to Users" would tell
-                            // the admin the linkage itself failed and risk them removing
-                            // and re-adding the row (a destructive, confirmation-gated
-                            // action) when a simple Save retry is all that's needed.
-                            finalizeSave({
-                                success: false,
-                                errorKind: 'applies_to_config_save_failed',
-                                serverErrorMessage: null,
-                                failedResourceTypes: ['user'],
-                            });
-                            return;
                         }
+                    } catch {
+                        // Distinct from applies_to_partial_save -- the Users row is
+                        // already linked and persisted here (userIsUpdateCandidate
+                        // requires it), so "couldn't be applied to Users" would tell
+                        // the admin the linkage itself failed and risk them removing
+                        // and re-adding the row (a destructive, confirmation-gated
+                        // action) when a simple Save retry is all that's needed.
+                        // Display-name-only failures get their own copy: the config
+                        // banner names Profile display / Who can set the value, which
+                        // is wrong when neither control was part of this PATCH.
+                        const configChanged = visibilityChanged || managedChanged;
+                        finalizeSave({
+                            success: false,
+                            errorKind: configChanged ? 'applies_to_config_save_failed' : 'applies_to_display_name_save_failed',
+                            serverErrorMessage: null,
+                            failedResourceTypes: ['user'],
+                        });
+                        return;
                     }
                 }
             }
@@ -1111,11 +1158,19 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             // An existing Channels row's own settings (required, change policy,
             // display locations) are not part of the template patch above, so a
             // resource that was already applied still needs its own PATCH to
-            // pick up an edit to those settings.
+            // pick up an edit to those settings. Fold display_name into the same
+            // PATCH when the linked label still matches the template's previous one.
             const persistedChannelField = persistedLinkedFieldsRef.current.channel;
             if (persistedChannelField && appliesTo.includes('channel') && !toCreate.includes('channel')) {
                 try {
-                    const patchedChannelField = await patchLinkedAttributeField('channel', persistedChannelField.id, buildChannelFieldPatch(channelResource).attrs);
+                    const patchedChannelField = await patchLinkedAttributeField(
+                        'channel',
+                        persistedChannelField.id,
+                        {
+                            ...buildChannelFieldPatch(channelResource).attrs,
+                            ...(shouldCascadeLinkedDisplayName(persistedChannelField) ? displayNamePatchAttrs : {}),
+                        },
+                    );
                     persistedLinkedFieldsRef.current.channel = patchedChannelField;
                 } catch {
                     finalizeSave({
@@ -1128,6 +1183,29 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 }
             }
 
+            // Posts has no config panel yet; only cascade display_name when it still
+            // matches the template's previous label.
+            const persistedPostField = persistedLinkedFieldsRef.current.post;
+            if (persistedPostField && appliesTo.includes('post') && !toCreate.includes('post') && shouldCascadeLinkedDisplayName(persistedPostField)) {
+                try {
+                    const patchedPostField = await patchLinkedAttributeField(
+                        'post',
+                        persistedPostField.id,
+                        displayNamePatchAttrs,
+                    );
+                    persistedLinkedFieldsRef.current.post = patchedPostField;
+                } catch {
+                    finalizeSave({
+                        success: false,
+                        errorKind: 'applies_to_partial_save',
+                        serverErrorMessage: null,
+                        failedResourceTypes: ['post'],
+                    });
+                    return;
+                }
+            }
+
+            originalDisplayNameRef.current = nextDisplayName;
             finalizeSave({success: true});
             return;
         }
@@ -1180,6 +1258,11 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
 
     const TypeIcon = getTypeIcon(fieldType);
 
+    // Hierarchical is create-only: an existing field cannot be converted into
+    // one (see typeLockedByGraph), so offering it here would only produce a 400
+    // at Save. A field that already is one never opens this menu.
+    const selectableTypes = isEditMode ? ALL_TYPES.filter((descriptor) => descriptor.id !== 'graph') : ALL_TYPES;
+
     // Reason derived once, then looked up for both the tooltip and the
     // aria-label below -- pluginOrphaned/plugin checked first: a plugin-owned
     // field with zero applied resources has typeLockedByAppliesTo === false and
@@ -1188,9 +1271,13 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // applies to nothing. pluginOrphaned (not plain "plugin") whenever the
     // field is also orphaned, so this tooltip doesn't contradict the
     // "(no longer installed)" copy the Managed-by panel shows one card up.
-    const typeLockReason = firstMatchingReason<'pluginOrphaned' | 'plugin' | 'externalSource' | 'appliesTo'>(
+    // graph outranks externalSource/appliesTo because it is the only one of the
+    // three the admin cannot undo: telling them to remove resources or unlink a
+    // source would promise an unlock that never arrives.
+    const typeLockReason = firstMatchingReason<'pluginOrphaned' | 'plugin' | 'graph' | 'externalSource' | 'appliesTo'>(
         ['pluginOrphaned', isPluginOwned && isOrphaned],
         ['plugin', isPluginOwned],
+        ['graph', typeLockedByGraph],
         ['externalSource', hasExternalSource],
         ['appliesTo', typeLockedByAppliesTo],
     );
@@ -1221,20 +1308,20 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 'aria-label': formatMessage(messages.typeMenuAriaLabel),
             }}
         >
-            {ALL_TYPES.map((optionFieldType) => {
-                const ItemIcon = getTypeIcon(optionFieldType);
-                const isCurrentType = optionFieldType === fieldType;
+            {selectableTypes.map((descriptor) => {
+                const ItemIcon = descriptor.icon;
+                const isCurrentType = descriptor.id === fieldType;
 
                 return (
                     <Menu.Item
-                        id={`attribute-type-${optionFieldType}`}
-                        key={optionFieldType}
+                        id={`attribute-type-${descriptor.id}`}
+                        key={descriptor.id}
                         role='menuitemradio'
                         forceCloseOnSelect={true}
                         aria-checked={isCurrentType}
-                        onClick={() => handleTypeChange(optionFieldType)}
+                        onClick={() => handleTypeChange(descriptor.id)}
                         leadingElement={<ItemIcon size={18}/>}
-                        labels={<FormattedMessage {...typeLabels[optionFieldType]}/>}
+                        labels={<FormattedMessage {...descriptor.label}/>}
                     />
                 );
             })}
@@ -1675,6 +1762,10 @@ const messages = defineMessages({
         id: 'admin.global_attributes.attribute_details.type.field_locked_plugin_orphaned_aria_label',
         defaultMessage: "Type: {value}. Locked because this attribute was managed by a plugin that's no longer installed.",
     },
+    typeFieldLockedGraphAriaLabel: {
+        id: 'admin.global_attributes.attribute_details.type.field_locked_graph_aria_label',
+        defaultMessage: 'Type: {value}. Locked because a hierarchical attribute cannot be converted to another type.',
+    },
     typeLockedAppliesToTooltip: {
         id: 'admin.global_attributes.attribute_details.type.locked_applies_to_tooltip',
         defaultMessage: 'Type cannot be changed while this attribute applies to a resource.',
@@ -1690,6 +1781,10 @@ const messages = defineMessages({
     typeLockedPluginOrphanedTooltip: {
         id: 'admin.global_attributes.attribute_details.type.locked_plugin_orphaned_tooltip',
         defaultMessage: "Type cannot be changed — this attribute was managed by a plugin that's no longer installed.",
+    },
+    typeLockedGraphTooltip: {
+        id: 'admin.global_attributes.attribute_details.type.locked_graph_tooltip',
+        defaultMessage: 'Type cannot be changed — a hierarchical attribute cannot be converted to another type. Create a new attribute of the type you need instead.',
     },
     appliesToLockedPluginTooltip: {
         id: 'admin.global_attributes.attribute_details.applies_to.locked_plugin_tooltip',
@@ -1723,9 +1818,10 @@ const messages = defineMessages({
 // One reason derived once (see typeLockReason above), looked up here for both
 // the tooltip and the aria-label -- a new lock reason becomes one entry in
 // this map instead of a fourth branch across two separate if/else chains.
-const TYPE_LOCK_MESSAGES: Record<'pluginOrphaned' | 'plugin' | 'externalSource' | 'appliesTo', {tooltip: MessageDescriptor; ariaLabel: MessageDescriptor}> = {
+const TYPE_LOCK_MESSAGES: Record<'pluginOrphaned' | 'plugin' | 'graph' | 'externalSource' | 'appliesTo', {tooltip: MessageDescriptor; ariaLabel: MessageDescriptor}> = {
     pluginOrphaned: {tooltip: messages.typeLockedPluginOrphanedTooltip, ariaLabel: messages.typeFieldLockedPluginOrphanedAriaLabel},
     plugin: {tooltip: messages.typeLockedPluginTooltip, ariaLabel: messages.typeFieldLockedPluginAriaLabel},
+    graph: {tooltip: messages.typeLockedGraphTooltip, ariaLabel: messages.typeFieldLockedGraphAriaLabel},
     externalSource: {tooltip: messages.typeLockedExternalSourceTooltip, ariaLabel: messages.typeFieldLockedAriaLabel},
     appliesTo: {tooltip: messages.typeLockedAppliesToTooltip, ariaLabel: messages.typeFieldLockedAppliesToAriaLabel},
 };
@@ -1803,6 +1899,10 @@ const errorMessages = defineMessages({
     applies_to_config_save_failed: {
         id: 'admin.global_attributes.attribute_details.save_error.applies_to_config_save_failed',
         defaultMessage: "The attribute was saved, but its {resources} settings (Profile display, Who can set the value) couldn't be updated. Please try again.",
+    },
+    applies_to_display_name_save_failed: {
+        id: 'admin.global_attributes.attribute_details.save_error.applies_to_display_name_save_failed',
+        defaultMessage: "The attribute was saved, but its {resources} display name couldn't be updated. Please try again.",
     },
     applies_to_rollback_failed: {
         id: 'admin.global_attributes.attribute_details.save_error.applies_to_rollback_failed',

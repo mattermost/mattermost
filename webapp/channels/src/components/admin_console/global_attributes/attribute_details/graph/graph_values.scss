@@ -321,20 +321,39 @@
 
     .attribute-options-graph-values__row--draft {
         align-items: center;
-        gap: 8px;
+        gap: 4px;
         padding-block: 6px;
-
-        .attribute-options-graph-values__draft-handle-spacer {
-            display: inline-block;
-            width: 16px;
-            flex-shrink: 0;
-        }
 
         .Input_container {
             width: 320px;
             min-width: 160px;
             max-width: 320px;
             flex: 0 1 320px;
+        }
+
+        // Same compact Input treatment as the empty canvas: an outset ring, so
+        // zeroing the wrapper margin does not clip the default inset focus.
+        .Input_fieldset {
+            min-height: 32px;
+            padding: 0;
+            background: var(--center-channel-bg);
+            box-shadow: none;
+
+            &:focus-within {
+                border-color: var(--button-bg);
+                box-shadow: 0 0 0 1px var(--button-bg);
+            }
+
+            &.Input_fieldset___error:focus-within {
+                border-color: var(--error-text);
+                box-shadow: 0 0 0 1px var(--error-text);
+            }
+        }
+
+        .Input_wrapper {
+            min-height: 30px;
+            padding: 0 12px;
+            margin: 0;
         }
 
         .btn + .btn {
