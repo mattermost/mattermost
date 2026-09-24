@@ -19,25 +19,32 @@ func TestLeaderTask(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	var lt leaderTask
+	leader := true
+	isLeader := func() bool { return leader }
 	create := func() *model.ScheduledTask {
 		return model.CreateRecurringTask("Test", func() {}, time.Hour)
 	}
 
-	lt.start(create)
+	lt.update(isLeader, create)
 	first := lt.task
 	require.NotNil(t, first)
 
-	lt.start(create)
+	lt.update(isLeader, create)
 	assert.Same(t, first, lt.task)
 
-	lt.cancel()
+	leader = false
+	lt.update(isLeader, create)
 	require.Nil(t, lt.task)
-	require.NotPanics(t, lt.cancel)
+	require.NotPanics(t, func() { lt.update(isLeader, create) })
 
-	lt.start(create)
-	assert.NotNil(t, lt.task)
+	leader = true
+	lt.update(isLeader, create)
+	require.NotNil(t, lt.task)
 	assert.NotSame(t, first, lt.task)
+
 	lt.cancel()
+	assert.Nil(t, lt.task)
+	require.NotPanics(t, lt.cancel)
 }
 
 func TestLeaderTaskRunOnLeader(t *testing.T) {
@@ -80,9 +87,10 @@ func TestChannelsStopCancelsTasks(t *testing.T) {
 	newTask := func() *model.ScheduledTask {
 		return model.CreateRecurringTask("Test", func() { calls.Add(1) }, 10*time.Millisecond)
 	}
-	ch.dndTask.start(newTask)
-	ch.postReminderTask.start(newTask)
-	ch.scheduledPostTask.start(newTask)
+	isLeader := func() bool { return true }
+	ch.dndTask.update(isLeader, newTask)
+	ch.postReminderTask.update(isLeader, newTask)
+	ch.scheduledPostTask.update(isLeader, newTask)
 	require.Eventually(t, func() bool { return calls.Load() >= 3 }, 5*time.Second, 10*time.Millisecond)
 
 	require.NoError(t, ch.Stop())

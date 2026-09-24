@@ -2006,11 +2006,16 @@ type leaderTask struct {
 	task *model.ScheduledTask
 }
 
-// start leaves a running task alone, since the leader-changed listener also fires on a
-// node that is already the leader.
-func (t *leaderTask) start(create func() *model.ScheduledTask) {
+// update starts or cancels the task to match isLeader. Leader-changed listeners run
+// concurrently, so leadership is read under the lock to let the last one win.
+func (t *leaderTask) update(isLeader func() bool, create func() *model.ScheduledTask) {
 	t.mut.Lock()
 	defer t.mut.Unlock()
+	if !isLeader() {
+		t.cancelLocked()
+		return
+	}
+	// The leader-changed listener also fires on a node that is already the leader.
 	if t.task == nil {
 		t.task = create()
 	}
@@ -2019,6 +2024,10 @@ func (t *leaderTask) start(create func() *model.ScheduledTask) {
 func (t *leaderTask) cancel() {
 	t.mut.Lock()
 	defer t.mut.Unlock()
+	t.cancelLocked()
+}
+
+func (t *leaderTask) cancelLocked() {
 	if t.task != nil {
 		t.task.Cancel()
 		t.task = nil
@@ -2027,18 +2036,11 @@ func (t *leaderTask) cancel() {
 
 // runOnLeader keeps the task running only while this node is the cluster leader.
 func (t *leaderTask) runOnLeader(a *App, name string, create func() *model.ScheduledTask) {
-	update := func() {
-		if a.IsLeader() {
-			t.start(create)
-		} else {
-			t.cancel()
-		}
-	}
-	update()
+	t.update(a.IsLeader, create)
 
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if task should be running", mlog.String("task", name), mlog.Bool("is_leader", a.IsLeader()))
-		update()
+		t.update(a.IsLeader, create)
 	})
 }
 
