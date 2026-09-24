@@ -205,12 +205,14 @@
   align-items: flex-start;
   gap: 0.4rem;
   font-family: var(--mm-font-sans);
-  font-size: 0.88rem;
+  /* Sized to fill the fixed 150px intro column — the three intro
+   * blocks used to leave a lot of vertical whitespace at ~0.88rem. */
+  font-size: 1.05rem;
   font-weight: 700;
   color: var(--mm-color-denim, #1E325C);
   margin: 0 0 0.4rem;
   letter-spacing: -0.005em;
-  line-height: 1.25;
+  line-height: 1.2;
 }
 
 .introIcon {

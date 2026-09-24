@@ -39,8 +39,8 @@ export const entadv: IMEContent = {
       id: 'applications',
       label: 'Applications',
       intro: {
+        // Deck: no leading icon — plain title text.
         title: 'Zero Trust Collaboration, Workflow & Automation',
-        iconSrc: '/img/ime/logos/ms-sync.png',
       },
       columns: 6,
       cells: [
