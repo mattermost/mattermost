@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 )
 
 func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
@@ -43,7 +44,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 
 	rsession, err = th.App.GetSession(session.Token)
 	require.NotNil(t, err)
-	assert.Equal(t, "api.context.invalid_token.error", err.Id)
+	assert.Equal(t, "api.context.invalid_session.error", err.Id)
 	assert.Equal(t, "idle timeout", err.DetailedError)
 	assert.Nil(t, rsession)
 
@@ -352,7 +353,7 @@ func TestGetCloudSession(t *testing.T) {
 		session, err := th.App.GetCloudSession("mytoken")
 		require.Nil(t, session)
 		require.NotNil(t, err)
-		require.Equal(t, "api.context.invalid_token.error", err.Id)
+		require.Equal(t, "api.context.invalid_session.error", err.Id)
 	})
 
 	t.Run("Mismatched env variable and token should return error", func(t *testing.T) {
@@ -361,7 +362,7 @@ func TestGetCloudSession(t *testing.T) {
 		session, err := th.App.GetCloudSession("myincorrecttoken")
 		require.Nil(t, session)
 		require.NotNil(t, err)
-		require.Equal(t, "api.context.invalid_token.error", err.Id)
+		require.Equal(t, "api.context.invalid_session.error", err.Id)
 	})
 }
 
@@ -747,4 +748,81 @@ func TestRevokeSessionSendsWipeSignal(t *testing.T) {
 	require.Nil(t, appErr)
 
 	require.Eventually(t, func() bool { return handler.numReqs() == 1 }, 5*time.Second, 100*time.Millisecond)
+}
+
+// A token presented for authentication must not survive into the error GetSession
+// returns: every caller that reports a session failure renders that error into the
+// server log. MM-70121.
+func TestGetSessionErrorDoesNotContainToken(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	// wantDetail guards against a vacuous assertion by pinning each case to the
+	// failure path it is named after.
+	assertRedacted := func(t *testing.T, token string, err *model.AppError, wantDetail string) {
+		t.Helper()
+		require.NotNil(t, err)
+		require.Contains(t, err.Error(), wantDetail)
+		assert.NotContains(t, err.Error(), token)
+		assert.NotContains(t, err.SystemMessage(i18n.T), token)
+		assert.NotContains(t, err.ToJSON(), token)
+	}
+
+	t.Run("unrecognized token", func(t *testing.T) {
+		token := model.NewId()
+
+		_, err := th.App.GetSession(token)
+		assertRedacted(t, token, err, `resource "UserAccessToken" not found`)
+	})
+
+	t.Run("expired session", func(t *testing.T) {
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{
+			UserId:    model.NewId(),
+			ExpiresAt: model.GetMillis() - 1000,
+		})
+		require.Nil(t, appErr)
+
+		_, err := th.App.GetSession(session.Token)
+		assertRedacted(t, session.Token, err, "session is either nil or expired")
+	})
+
+	t.Run("idle timeout", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense("compliance"))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SessionIdleTimeoutInMinutes = 5
+			*cfg.ServiceSettings.ExtendSessionLengthWithActivity = false
+		})
+
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: model.NewId()})
+		require.Nil(t, appErr)
+		require.NoError(t, th.App.Srv().Store().Session().UpdateLastActivityAt(session.Id, session.LastActivityAt-(1000*60*6)))
+		th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
+
+		_, err := th.App.GetSession(session.Token)
+		assertRedacted(t, session.Token, err, "idle timeout")
+	})
+
+	t.Run("cloud API key mismatch", func(t *testing.T) {
+		// t.Setenv prevents t.Parallel — env var has no config equivalent
+		t.Setenv("MM_CLOUD_API_KEY", model.NewId())
+		token := model.NewId()
+
+		_, err := th.App.GetCloudSession(token)
+		assertRedacted(t, token, err, "The provided token is invalid")
+	})
+
+	t.Run("remote cluster secret mismatch", func(t *testing.T) {
+		rc, appErr := th.App.AddRemoteCluster(&model.RemoteCluster{
+			RemoteId:  model.NewId(),
+			Name:      "test_redaction",
+			SiteURL:   "https://test.example.com",
+			Token:     model.NewId(),
+			CreatorId: model.NewId(),
+		})
+		require.Nil(t, appErr)
+		token := model.NewId()
+
+		_, err := th.App.GetRemoteClusterSession(token, rc.RemoteId)
+		assertRedacted(t, token, err, "The provided token is invalid")
+	})
 }

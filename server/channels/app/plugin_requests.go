@@ -39,9 +39,10 @@ func (ch *Channels) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 
 	hooks, err := pluginsEnvironment.HooksForPlugin(pluginID)
 	if err != nil {
+		// The query string is omitted because it can carry an access_token.
 		mlog.Debug("Access to route for non-existent plugin",
 			mlog.String("missing_plugin_id", pluginID),
-			mlog.String("url", r.URL.String()),
+			mlog.String("url", r.URL.Path),
 			mlog.Err(err))
 		http.NotFound(w, r)
 		return

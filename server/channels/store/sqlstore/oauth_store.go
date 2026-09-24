@@ -198,7 +198,7 @@ func (as SqlOAuthStore) GetAccessData(token string) (*model.AccessData, error) {
 	query := as.oAuthAccessDataQuery.Where(sq.Eq{"Token": token})
 
 	if err := as.GetReplica().GetBuilder(&accessData, query); err != nil {
-		return nil, errors.Wrapf(err, "failed to get OAuthAccessData with token=%s", token)
+		return nil, errors.Wrap(err, "failed to get OAuthAccessData by token")
 	}
 	return &accessData, nil
 }
@@ -220,7 +220,7 @@ func (as SqlOAuthStore) GetAccessDataByRefreshToken(token string) (*model.Access
 	query := as.oAuthAccessDataQuery.Where(sq.Eq{"RefreshToken": token})
 
 	if err := as.GetReplica().GetBuilder(&accessData, query); err != nil {
-		return nil, errors.Wrapf(err, "failed to find OAuthAccessData with refreshToken=%s", token)
+		return nil, errors.Wrap(err, "failed to find OAuthAccessData by refresh token")
 	}
 	return &accessData, nil
 }
@@ -254,7 +254,7 @@ func (as SqlOAuthStore) UpdateAccessData(accessData *model.AccessData) (*model.A
 
 func (as SqlOAuthStore) RemoveAccessData(token string) error {
 	if _, err := as.GetMaster().Exec("DELETE FROM OAuthAccessData WHERE Token = ?", token); err != nil {
-		return errors.Wrapf(err, "failed to delete OAuthAccessData with token=%s", token)
+		return errors.Wrap(err, "failed to delete OAuthAccessData by token")
 	}
 	return nil
 }

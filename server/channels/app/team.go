@@ -615,7 +615,7 @@ func (a *App) AddUserToTeamWithToken(rctx request.CTX, userID string, token *mod
 
 	if token.IsExpired() {
 		if err := a.DeleteToken(token); err != nil {
-			rctx.Logger().Warn("Error deleting expired team invitation token during team join", mlog.String("token_id", token.Token), mlog.String("token_type", token.Type), mlog.Err(err))
+			rctx.Logger().Warn("Error deleting expired team invitation token during team join", mlog.String("token_type", token.Type), mlog.Err(err))
 		}
 		return nil, nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -2305,7 +2305,7 @@ func (a *App) GetTeamIdFromQuery(rctx request.CTX, query url.Values) (string, *m
 
 		if token.IsExpired() {
 			if err := a.DeleteToken(token); err != nil {
-				rctx.Logger().Warn("Error deleting expired invitation token during team ID lookup", mlog.String("token_id", token.Token), mlog.String("token_type", token.Type), mlog.Err(err))
+				rctx.Logger().Warn("Error deleting expired invitation token during team ID lookup", mlog.String("token_type", token.Type), mlog.Err(err))
 			}
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.expired_link.app_error", nil, "", http.StatusBadRequest)
 		}

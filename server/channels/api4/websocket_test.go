@@ -14,6 +14,7 @@ import (
 
 	"github.com/dgryski/dgoogauth"
 	"github.com/gorilla/websocket"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -668,4 +669,26 @@ func TestWebSocketMFAEnforcement(t *testing.T) {
 			require.Fail(t, "Expected WebSocket response but got timeout")
 		}
 	})
+}
+
+// MM-70121: an unauthenticated client presenting a token over the websocket
+// authentication challenge must not have that token written to the log.
+func TestWebSocketAuthenticationChallengeDoesNotLogToken(t *testing.T) {
+	th := Setup(t)
+
+	token := model.NewId()
+	wsClient, err := model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port), token)
+	require.NoError(t, err)
+	defer wsClient.Close()
+
+	var logs string
+	require.Eventually(t, func() bool {
+		if flushErr := th.TestLogger.Flush(); flushErr != nil {
+			return false
+		}
+		logs = th.LogBuffer.String()
+		return strings.Contains(logs, "Error while getting session token")
+	}, 5*time.Second, 100*time.Millisecond, "the rejected challenge was never logged")
+
+	assert.NotContains(t, logs, token)
 }

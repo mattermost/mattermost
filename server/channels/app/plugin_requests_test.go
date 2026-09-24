@@ -744,3 +744,27 @@ func TestValidateCSRFForPluginRequest(t *testing.T) {
 		assert.False(t, result)
 	})
 }
+
+// MM-70121: a plugin id that does not resolve must not drag the request's query
+// string, which can carry an access_token, into the log.
+func TestServePluginRequestUnknownPluginDoesNotLogQueryString(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	buffer := &mlog.Buffer{}
+	require.NoError(t, mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...))
+
+	token := model.NewId()
+	req := httptest.NewRequest(http.MethodGet, "/plugins/unknownplugin/endpoint?access_token="+token, nil)
+	req = mux.SetURLVars(req, map[string]string{"plugin_id": "unknownplugin"})
+	rr := httptest.NewRecorder()
+
+	th.App.ch.ServePluginRequest(rr, req)
+	require.Equal(t, http.StatusNotFound, rr.Code)
+	require.NoError(t, th.TestLogger.Flush())
+
+	logs := buffer.String()
+	require.Contains(t, logs, "Access to route for non-existent plugin", "the unresolved plugin id was never logged")
+	assert.Contains(t, logs, `"url":"/plugins/unknownplugin/endpoint"`)
+	assert.NotContains(t, logs, token)
+}
