@@ -1,13 +1,5 @@
 import type {IMEContent} from '../types';
 
-/**
- * Enterprise Advanced IME diagram — mirrors the marketing infographic
- * ("Mattermost Intelligent Mission Environment") targeted at national
- * security, defense, and critical-infrastructure buyers.
- *
- * Icons and logos are extracted from the FY27 Platform Pitch Sales
- * Deck (slide 7) and live under `docs/site/static/img/ime/logos/`.
- */
 export const entadv: IMEContent = {
   id: 'entadv',
   title: 'Mattermost Intelligent Mission Environment',
@@ -18,7 +10,6 @@ export const entadv: IMEContent = {
       label: 'Use Cases',
       cells: [
         {
-          // Deck: no leading icon on Use Cases cards, larger title.
           title: 'Cybersecurity Operations',
           body: 'SOC/CERT ops, out-of-band incident response, Red Team',
           to: '/use-case-guide/integrated-security-operations',
@@ -39,7 +30,6 @@ export const entadv: IMEContent = {
       id: 'applications',
       label: 'Applications',
       intro: {
-        // Deck: no leading icon — plain title text.
         title: 'Zero Trust Collaboration, Workflow & Automation',
       },
       columns: 6,
@@ -77,7 +67,7 @@ export const entadv: IMEContent = {
           bodyLead: 'Agents',
           body: 'Integration & Human-Machine Teaming',
           iconSrc: '/img/ime/logos/icon-agents.png',
-          to: '/end-user-guide/agents',
+          to: '/administration-guide/configure/agents-admin-guide',
         },
         {
           title: 'Future Applications',
@@ -114,15 +104,11 @@ export const entadv: IMEContent = {
       id: 'interoperability',
       label: 'Interoperability',
       intro: {
-        // Deck slide 7 shows the intro column as plain title text with
-        // no leading icon and no logo constellation.
         title: 'Accelerates Classified & Mission Partner Operations',
       },
       columns: 2,
       cells: [
         {
-          // Deck: no leading icon above the title on Interoperability
-          // cards. Enlarged title on the left, bullets on the right.
           title: 'Advanced Information Controls',
           titlePlacement: 'left',
           bullets: [
@@ -154,23 +140,14 @@ export const entadv: IMEContent = {
       id: 'deployment',
       label: 'Deployment',
       intro: {
-        // Deck slide 7 shows the intro column as plain title text with
-        // no leading icon and no AI-vendor constellation. Those AI
-        // vendor logos live inside the Enterprise-to-Edge box in the
-        // deck; they've been moved there below.
         title: 'Air-Gapped & Sovereign Deployment & Integration',
       },
-      // Deck shows uneven card widths: E2E is the widest, Layered
-      // Extensibility is medium, HA is the narrowest. Approximate
-      // ratios from the slide.
       columnsTemplate: '1.2fr 1.1fr 0.9fr',
       cells: [
         {
-          // Deck: no leading icon above the title on Deployment cards.
           title: 'Enterprise to Edge with Sovereign AI',
           body: 'Runs Edge, Data Center, Sovereign/Gov & Global Cloud & AI',
           to: '/deployment-guide/deployment-scenarios/deployment-scenarios-index',
-          // Deck: AI-vendor logos pinned to top-right corner.
           cornerLogos: [
             {alt: 'OpenAI', src: '/img/ime/logos/openai.png'},
             {alt: 'Meta', src: '/img/ime/logos/meta.png'},
@@ -178,8 +155,6 @@ export const entadv: IMEContent = {
             {alt: 'Ask Sage', src: '/img/ime/logos/ask-sage.png'},
             {alt: 'Mattermost', src: '/img/ime/logos/mattermost.png'},
           ],
-          // Deck: deployment targets as text badges + wordmark logos
-          // sitting below the body copy.
           logos: [
             {alt: 'Tactical Edge'},
             {alt: 'Local Datacenter'},
@@ -197,9 +172,6 @@ export const entadv: IMEContent = {
             'Plugin Architecture',
           ],
           to: '/integrations-guide/integrations-guide-index',
-          // Deck: bullets on the left with a 4-column × 3-row matrix
-          // of ecosystem logos sitting to the right (no separate
-          // corner constellation on this card).
           bodyLayout: 'side-by-side',
           logoLayout: 'grid',
           logoColumns: 4,

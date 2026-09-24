@@ -7,26 +7,8 @@
  * new file that exports an `IMEContent` object — no JSX required.
  */
 
-/** Icon key that must exist in `icons.tsx`. */
-export type IconName =
-  | 'chat'
-  | 'checklist'
-  | 'call'
-  | 'target'
-  | 'sparkles'
-  | 'shield'
-  | 'code'
-  | 'server'
-  | 'compass'
-  | 'layers'
-  | 'plug'
-  | 'globe'
-  | 'devices'
-  | 'video'
-  | 'users'
-  | 'star'
-  | 'lock'
-  | 'network';
+/** Icon key that must exist in `icons.tsx`. Prefer `iconSrc` for product marks. */
+export type IconName = 'star';
 
 /** A single brand mark rendered inside a logo strip. */
 export type Logo = {
