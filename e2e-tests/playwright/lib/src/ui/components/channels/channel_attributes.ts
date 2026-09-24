@@ -6,9 +6,9 @@ import {expect} from '@playwright/test';
 
 /**
  * The test-id suffix of a chip strip. The channel header renders the header and
- * info designations as one merged strip, 'info-header'.
+ * info designations as one merged strip.
  */
-export type ChannelAttributeSurface = 'header' | 'info' | 'info-header';
+export type ChannelAttributeSurface = 'info-header';
 
 /**
  * The attribute chips in one channel header slot.
@@ -79,7 +79,7 @@ export class ChannelInfoAttributes {
     chip(name: string) {
         return this.row(name)
             .getByTestId('attributeChip')
-            .or(this.editButton(name).locator('.ChannelInfoAttributes__textValue'));
+            .or(this.row(name).getByTestId(`channelInfoAttributeTextValue-${name}`));
     }
 
     editButton(name: string) {
@@ -164,7 +164,7 @@ export class ChannelInfoAttributes {
      */
     async deselect(name: string, option: string) {
         await this.row(name)
-            .getByRole('button', {name: `Remove ${option}`})
+            .getByRole('button', {name: `Remove ${option}`, exact: true})
             .click();
     }
 

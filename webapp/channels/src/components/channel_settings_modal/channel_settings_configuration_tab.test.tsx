@@ -16,6 +16,9 @@ import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsConfigurationTab from './channel_settings_configuration_tab';
 
+// Fixture states name only the slices a test needs.
+type PartialState = Parameters<typeof renderWithContext>[1];
+
 // Mock the redux actions and selectors
 jest.mock('mattermost-redux/actions/channels', () => ({
     patchChannel: jest.fn(),
@@ -1801,7 +1804,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                     values: {byTargetId: {}, byFieldId: {}},
                 },
             },
-        };
+        } as PartialState;
 
         const emptiedChannel = {
             ...mockChannel,
@@ -1909,7 +1912,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                     values: {byTargetId: {channel1: {[classificationField.id]: classificationValue}}, byFieldId: {}},
                 },
             },
-        };
+        } as PartialState;
         const channelWithClassificationToken = {
             ...mockChannel,
             banner_info: {enabled: true, text: '{{classification}}', background_color: '#00ff00'},
@@ -2087,7 +2090,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                     values: {byTargetId: {}, byFieldId: {}},
                 },
             },
-        };
+        } as PartialState;
 
         // Shown on by the attribute while banner_info.enabled is still false.
         const drivenChannel = {
@@ -2159,6 +2162,21 @@ describe('ChannelSettingsConfigurationTab', () => {
             await waitFor(() => {
                 expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
             }, {timeout: 5000});
+        });
+
+        it('blocks saving an attribute-driven banner emptied without switching it off', async () => {
+            const {patchChannel} = require('mattermost-redux/actions/channels');
+            patchChannel.mockClear();
+
+            renderTab();
+            const editor = screen.getByTestId('bannerTextEditor');
+            editor.textContent = '';
+            fireEvent.input(editor);
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            // Still on as far as what would be stored, so empty text must not reach the server.
+            expect(screen.getByText(/Add banner text, or turn off the channel banner/)).toBeInTheDocument();
+            expect(patchChannel).not.toHaveBeenCalled();
         });
 
         it('saves the banner as on when only its text was edited', async () => {

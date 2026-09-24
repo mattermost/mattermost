@@ -108,11 +108,6 @@
     background: rgba(var(--away-indicator-rgb), 0.16);
 }
 
-// No remove control, so the right padding the button occupied has to come back.
-.BannerTextEditor__chip--locked {
-    padding-right: 8px;
-}
-
 .BannerTextEditor__chipRemove {
     display: flex;
     padding: 0;

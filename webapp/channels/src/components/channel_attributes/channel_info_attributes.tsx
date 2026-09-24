@@ -331,7 +331,10 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
                                     data-testid={`channelInfoAttributeEdit-${field.name}`}
                                 >
                                     {attribute.displayValue ? (
-                                        <span className='ChannelInfoAttributes__textValue'>
+                                        <span
+                                            className='ChannelInfoAttributes__textValue'
+                                            data-testid={`channelInfoAttributeTextValue-${field.name}`}
+                                        >
                                             {attribute.displayValue}
                                         </span>
                                     ) : (
@@ -365,9 +368,9 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
                                 />
                             ) : (
                                 <span className='ChannelInfoAttributes__chips'>
-                                    {values.map((value, index) => (
+                                    {values.map((value) => (
                                         <AttributeChip
-                                            key={`${field.id}:${index}`}
+                                            key={`${field.id}:${value}`}
                                             className='ChannelInfoAttributes__chip'
                                             label={label}
                                             value={value}

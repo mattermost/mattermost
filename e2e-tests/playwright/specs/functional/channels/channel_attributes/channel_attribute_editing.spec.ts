@@ -194,7 +194,7 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
                 })
                 .toEqual([optionId(caveats, 'NOFORN'), optionId(caveats, 'ORCON')]);
 
-            // # Remove the first one from the still-open editor
+            // # Remove the first one from its chip in the trigger
             await info.attributes.deselect(caveats.name, 'NOFORN');
 
             // * Only the remaining option survives, and the header agrees

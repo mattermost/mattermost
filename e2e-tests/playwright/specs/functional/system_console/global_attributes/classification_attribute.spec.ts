@@ -67,10 +67,9 @@ test.describe(
                 await expect(globalAttributes.classificationLevels).toContainText(level.name);
             }
             // The display name is shown, but as a disabled field.
-            const textboxes = await systemConsolePage.page.getByTestId('classificationAttribute').getByRole('textbox').all();
-            for (const textbox of textboxes) {
-                await expect(textbox).not.toBeEditable();
-            }
+            const displayName = systemConsolePage.page.getByTestId('classificationAttribute').getByRole('textbox');
+            await expect(displayName).toHaveCount(1);
+            await expect(displayName).not.toBeEditable();
 
             // * The one place levels can be changed is a link away
             await expect(globalAttributes.classificationMarkingsLink).toHaveAttribute(
@@ -202,7 +201,9 @@ test.describe(
             await channelsPage.goto(team.name, channel.name);
             await channelsPage.toBeVisible();
 
-            // * No banner, even though the channel has a classification
+            // * The Header location took effect, and there is no banner even though
+            // * the channel has a classification
+            await expect(channelsPage.centerView.header.attributes.chip(levels[0].name)).toBeVisible();
             await expect(page.getByTestId('channel_banner_container')).toHaveCount(0);
         });
 

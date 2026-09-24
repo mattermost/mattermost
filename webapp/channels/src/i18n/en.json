@@ -4603,6 +4603,7 @@
   "change_url.startAndEndWithLetter": "URLs must start and end with a lowercase letter or number.",
   "change_url.startWithLetter": "URLs must start with a lowercase letter or number.",
   "channel_attributes.banner.empty_notice": "There's nothing to display until the attributes in the banner text have values.",
+  "channel_attributes.banner.empty_notice.no_text": "Add banner text to display a banner.",
   "channel_attributes.banner.empty_notice.title": "The banner will not be displayed",
   "channel_attributes.banner.insert_attribute": "Attributes",
   "channel_attributes.banner.insert_attribute_aria": "Insert an attribute into the banner text",

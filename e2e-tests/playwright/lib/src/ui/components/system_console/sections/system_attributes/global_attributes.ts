@@ -15,6 +15,9 @@ export type ChannelDisplayLocation = 'display_label_header' | 'display_banner_to
 async function setToggle(toggle: Locator, on: boolean) {
     if ((await toggle.isChecked()) !== on) {
         const id = await toggle.getAttribute('id');
+        if (!id) {
+            throw new Error('setToggle: the switch has no id, so its label cannot be found');
+        }
         await toggle.page().locator(`label[for="${id}"]`).click();
     }
     await expect(toggle).toBeChecked({checked: on});

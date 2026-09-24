@@ -174,6 +174,19 @@ export function withRequiredTokens(template: string, fieldNames: string[]): stri
     return existing ? `${existing} · ${additions}` : additions;
 }
 
+/**
+ * Inserts a token at a template offset, padded with a space on whichever side
+ * would otherwise glue it to adjacent text or another token, so the rendered
+ * banner never reads "textSECRETmore".
+ */
+export function insertToken(template: string, at: number, token: string): {template: string; leadingSpace: boolean} {
+    const leadingSpace = at > 0 && !(/\s/).test(template[at - 1]);
+    const trailingSpace = at < template.length && !(/\s/).test(template[at]);
+    const inserted = `${leadingSpace ? ' ' : ''}${token}${trailingSpace ? ' ' : ''}`;
+
+    return {template: template.slice(0, at) + inserted + template.slice(at), leadingSpace};
+}
+
 // Token name plus the label to show for it. Callers decide which attributes to offer.
 export function tokenSuggestions(attributes: ResolvedChannelAttribute[]): Array<{name: string; label: string; value: string}> {
     return attributes.map((attribute) => ({

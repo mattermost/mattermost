@@ -8,6 +8,7 @@ import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities
 import {
     attributeToken,
     hasAttributeTokens,
+    insertToken,
     isBlankTemplate,
     referencedFieldNames,
     renderBannerTemplate,
@@ -221,5 +222,21 @@ describe('withRequiredTokens', () => {
 
     test('is a no-op when nothing is designated', () => {
         expect(withRequiredTokens('Handle with care', [])).toBe('Handle with care');
+    });
+});
+
+describe('insertToken', () => {
+    test('pads a token that would otherwise touch text on both sides', () => {
+        expect(insertToken('textmore', 4, '{{program}}')).toEqual({template: 'text {{program}} more', leadingSpace: true});
+    });
+
+    test('pads a token placed right after another token', () => {
+        expect(insertToken('{{classification}}', 18, '{{program}}').template).toBe('{{classification}} {{program}}');
+    });
+
+    test('adds nothing where whitespace or an edge already separates it', () => {
+        expect(insertToken('', 0, '{{program}}')).toEqual({template: '{{program}}', leadingSpace: false});
+        expect(insertToken('text ', 5, '{{program}}').template).toBe('text {{program}}');
+        expect(insertToken(' more', 0, '{{program}}').template).toBe('{{program}} more');
     });
 });

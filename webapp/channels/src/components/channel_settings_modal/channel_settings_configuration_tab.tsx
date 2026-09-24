@@ -150,8 +150,8 @@ function ChannelSettingsConfigurationTab({
     const [characterLimitExceeded, setCharacterLimitExceeded] = useState(false);
 
     // The fields load after mount, so the initial state above may have been built
-    // before there were any tokens to seed. Once only, and only while the text is
-    // still empty: after that the text is the author's.
+    // before there were any tokens to seed. Once only, and never after the author
+    // has edited the text: from then on it is theirs, even while empty.
     const seededTokensRef = useRef(false);
     useEffect(() => {
         if (seededTokensRef.current || !channelAttributesEnabled || defaultBannerTokens.length === 0 || !bannerTextNeverAuthored) {
@@ -351,6 +351,7 @@ function ChannelSettingsConfigurationTab({
     }, [bannerSectionOn, bannerFields.length, channelAttributesEnabled, initialBannerInfo, resetFormErrors, updatedChannelBanner]);
 
     const handleBannerTextChange = useCallback((newValue: string) => {
+        seededTokensRef.current = true;
         setUpdatedChannelBanner((prev) => ({
             ...prev,
             text: newValue,
@@ -599,7 +600,7 @@ function ChannelSettingsConfigurationTab({
             return false;
         }
 
-        if (updatedChannelBanner.enabled && !updatedChannelBanner.background_color?.trim()) {
+        if (bannerEnabledOnSave && !updatedChannelBanner.background_color?.trim()) {
             setFormError(formatMessage({
                 id: 'channel_settings.error_banner_color_required',
                 defaultMessage: 'Banner color is required',
@@ -733,6 +734,8 @@ function ChannelSettingsConfigurationTab({
         canManageClassification,
         canManageSharedChannels,
         canManageJoinLeaveMessages,
+        bannerLockedByClassification,
+        bannerRequiredByAttribute,
         bannerSectionOn,
         channel,
         channelAttributesEnabled,

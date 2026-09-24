@@ -296,21 +296,7 @@ describe('BannerTextEditor', () => {
         expect(screen.getByTestId('bannerTextEditor')).toHaveAttribute('contenteditable', 'false');
     });
 
-    test('offers no remove control for a locked token, but still one for the rest', () => {
-        renderWithContext(
-            <BannerTextEditor
-                value='{{classification}} · {{program}}'
-                attributes={ATTRIBUTES}
-                lockedTokens={['classification']}
-                onChange={jest.fn()}
-            />,
-        );
-
-        expect(screen.queryByTestId('bannerTextEditorChipRemove-classification')).not.toBeInTheDocument();
-        expect(screen.getByTestId('bannerTextEditorChipRemove-program')).toBeInTheDocument();
-    });
-
-    test('offers a remove control for every chip when none are locked', () => {
+    test('offers a remove control on every chip', () => {
         renderWithContext(
             <BannerTextEditor
                 value='{{classification}} · {{program}}'

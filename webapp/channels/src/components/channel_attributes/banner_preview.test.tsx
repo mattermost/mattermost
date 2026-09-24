@@ -85,6 +85,17 @@ describe('BannerPreview', () => {
         expect(screen.getByTestId('bannerPreviewEmptyNotice')).toBeInTheDocument();
     });
 
+    test('asks for text, rather than values, when the template has no attributes', () => {
+        renderWithContext(
+            <BannerPreview
+                template=' · '
+                attributes={[]}
+            />,
+        );
+
+        expect(screen.getByTestId('bannerPreviewEmptyNotice')).toHaveTextContent('Add banner text to display a banner.');
+    });
+
     test('hides the empty notice once the template resolves to text', () => {
         renderWithContext(
             <BannerPreview

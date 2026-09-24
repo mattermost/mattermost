@@ -39,13 +39,9 @@ test.describe('Channel attribute banner settings', {tag: ['@channel_attributes']
         const {adminClient, adminUser, team} = await pw.initSetup();
         const suffix = pw.random.id();
 
-        const {channelFieldId, levels} = await setupClassificationWithChannelField(adminClient);
-        const level = levels.find((l) => l.color);
-        if (!level) {
-            throw new Error('setupClassificationWithChannelField did not return a coloured level');
-        }
-
         try {
+            const {channelFieldId, levels} = await setupClassificationWithChannelField(adminClient);
+            const level = levels[0];
             await purgeAttributes(adminClient);
             await adminClient.patchPropertyField('access_control', 'channel', channelFieldId, {
                 attrs: {actions: [DISPLAY_BANNER_TOP]},
@@ -86,6 +82,7 @@ test.describe('Channel attribute banner settings', {tag: ['@channel_attributes']
             await settings.close();
 
             // * Members see the channel's colour, not the classification's
+            await expect(channelsPage.centerView.channelBanner).toHaveText('Handle with care');
             await channelsPage.centerView.assertChannelBanner('Handle with care', CUSTOM_COLOR);
 
             // # Put classification back
@@ -152,7 +149,10 @@ test.describe('Channel attribute banner settings', {tag: ['@channel_attributes']
             configuration = await settings.openConfigurationTab();
             await configuration.enableChannelBanner();
 
-            // * The designated attribute is not seeded back in
+            // * The designated attribute is not seeded back in. Anchored on the
+            // * attributes menu: once it is offered the fields have loaded, which is
+            // * when seeding would have happened.
+            await expect(configuration.bannerTokenButton).toBeVisible();
             await expect(configuration.bannerTextEditor).toHaveText('');
             await expect(configuration.bannerTokenChip(marking.name)).toHaveCount(0);
         } finally {

@@ -90,8 +90,9 @@ const BannerTokenControls = ({attributes, onInsertToken, disabled}: Props) => {
                                     <span>
                                         {suggestion.label}
 
-                                        {/* The icon is not the only carrier of the state. */}
-                                        <span className='sr-only'>{valueStatus}</span>
+                                        {/* The icon is not the only carrier of the state. The
+                                            space keeps the label and status apart when read. */}
+                                        <span className='sr-only'>{` ${valueStatus}`}</span>
                                     </span>
                                 </span>
                             }

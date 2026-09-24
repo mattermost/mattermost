@@ -10,7 +10,7 @@ import {getContrastingSimpleColor} from 'mattermost-redux/utils/theme_utils';
 import Markdown from 'components/markdown';
 import SectionNotice from 'components/section_notice';
 
-import {renderBannerTemplate} from './banner_template';
+import {hasAttributeTokens, renderBannerTemplate} from './banner_template';
 
 import './banner_preview.scss';
 
@@ -45,40 +45,42 @@ const BannerPreview = ({template, attributes, backgroundColor}: Props) => {
         return {backgroundColor, color: getContrastingSimpleColor(backgroundColor)};
     }, [backgroundColor]);
 
-    if (!rendered) {
-        return (
-            <div
-                className='BannerPreviewSection'
-                data-testid='bannerPreviewEmptyNotice'
-            >
-                <SectionNotice
-                    type='warning'
-                    title={formatMessage({
-                        id: 'channel_attributes.banner.empty_notice.title',
-                        defaultMessage: 'The banner will not be displayed',
-                    })}
-                    text={formatMessage({
-                        id: 'channel_attributes.banner.empty_notice',
-                        defaultMessage: 'There\'s nothing to display until the attributes in the banner text have values.',
-                    })}
-                />
-            </div>
-        );
-    }
-
+    // One live region for both states, so switching between them is announced; a
+    // region mounted with its content is often not.
     return (
-        <div className='BannerPreviewSection'>
-            <div
-                className='BannerPreview'
-                style={style}
-                data-testid='bannerAttributePreview'
-                aria-live='polite'
-            >
-                <Markdown
-                    message={rendered}
-                    options={markdownRenderingOptions}
-                />
-            </div>
+        <div
+            className='BannerPreviewSection'
+            aria-live='polite'
+        >
+            {rendered ? (
+                <div
+                    className='BannerPreview'
+                    style={style}
+                    data-testid='bannerAttributePreview'
+                >
+                    <Markdown
+                        message={rendered}
+                        options={markdownRenderingOptions}
+                    />
+                </div>
+            ) : (
+                <div data-testid='bannerPreviewEmptyNotice'>
+                    <SectionNotice
+                        type='warning'
+                        title={formatMessage({
+                            id: 'channel_attributes.banner.empty_notice.title',
+                            defaultMessage: 'The banner will not be displayed',
+                        })}
+                        text={hasAttributeTokens(template) ? formatMessage({
+                            id: 'channel_attributes.banner.empty_notice',
+                            defaultMessage: 'There\'s nothing to display until the attributes in the banner text have values.',
+                        }) : formatMessage({
+                            id: 'channel_attributes.banner.empty_notice.no_text',
+                            defaultMessage: 'Add banner text to display a banner.',
+                        })}
+                    />
+                </div>
+            )}
         </div>
     );
 };

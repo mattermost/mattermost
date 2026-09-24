@@ -6,12 +6,6 @@ import type {PropertyField} from '@mattermost/types/properties';
 import {expect, test} from '@mattermost/playwright-lib';
 
 import {
-    TEST_LEVELS,
-    deleteClassificationFieldsIfExist,
-    setupClassificationWithChannelField,
-} from '../channel_classification/helpers';
-
-import {
     DISPLAY_BANNER_TOP,
     DISPLAY_LABEL_INFO,
     assertNoForeignRequiredAttributes,
@@ -82,7 +76,7 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
      * @objective Verify every banner-designated attribute shares one banner, and that
      * Channel Settings seeds them as removable defaults rather than locked chips.
      */
-    test('composes one banner from every designated attribute and lets the channel remove them', async ({pw}) => {
+    test('composes one banner from every designated attribute and offers to remove them', async ({pw}) => {
         await pw.skipIfNoLicense();
         await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
@@ -497,60 +491,6 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
             await expect(configuration.container.getByTestId('channelBannerToggle-button')).not.toBeDisabled();
         } finally {
             await deleteAttributes(adminClient, created);
-        }
-    });
-
-    /**
-     * @objective Verify that when classification is banner-designated, Channel Settings
-     * locks the color picker to the selected level's color and the user cannot override it.
-     */
-    test('color picker is locked to the classification level color when classification is banner-designated', async ({
-        pw,
-    }) => {
-        await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
-
-        const {adminClient, adminUser, team} = await pw.initSetup();
-        const suffix = pw.random.id();
-
-        // Provision the classification template + channel-linked field ourselves:
-        // this test must not depend on state left behind by other spec files.
-        const {channelFieldId, levels} = await setupClassificationWithChannelField(adminClient, TEST_LEVELS);
-        const level = levels.find((l) => l.color);
-        if (!level) {
-            throw new Error('setupClassificationWithChannelField did not return a coloured level');
-        }
-
-        try {
-            // Designate classification for the banner
-            await adminClient.patchPropertyField('access_control', 'channel', channelFieldId, {
-                attrs: {actions: ['display_banner_top']},
-            } as never);
-
-            const channel = await createChannelForAttributes(adminClient, team, `class-banner-${suffix}`);
-            await adminClient.addToChannel(adminUser.id, channel.id);
-            await adminClient.patchPropertyValues('access_control', 'channel', channel.id, [
-                {field_id: channelFieldId, value: level.id},
-            ] as never);
-
-            const {channelsPage} = await pw.testBrowser.login(adminUser);
-            await channelsPage.goto(team.name, channel.name);
-            await channelsPage.toBeVisible();
-
-            const settings = await channelsPage.openChannelSettings();
-            const configuration = await settings.openConfigurationTab();
-
-            const colorInput = configuration.container.locator(
-                '#channel_banner_banner_background_color_picker-inputColorValue',
-            );
-
-            // * Color picker is disabled — the level colour is authoritative
-            await expect(colorInput).toBeDisabled();
-
-            // * It shows the classification level's colour
-            await expect(colorInput).toHaveValue(level.color.toUpperCase());
-        } finally {
-            await deleteClassificationFieldsIfExist(adminClient);
         }
     });
 

@@ -89,7 +89,10 @@ const RemovableChip = ({label, value, color, disabled, onRemove}: RemovableChipP
                         }
                     }}
                 >
-                    <CloseIcon size={12}/>
+                    <CloseIcon
+                        size={12}
+                        aria-hidden={true}
+                    />
                 </span>
             )}
         </AttributeChip>

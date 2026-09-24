@@ -1,9 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// Matches the banner text field's width, and truncates like the real banner. The
-// nowrap lives on the child, not here: a nowrap flex container reports its full text
-// as its minimum width and drags the modal wide with it.
 .BannerPreviewSection {
     display: flex;
     flex-direction: column;
@@ -34,6 +31,9 @@
     }
 }
 
+// Matches the banner text field's width, and truncates like the real banner. The
+// nowrap lives here, not on the section: a nowrap flex container reports its full
+// text as its minimum width and drags the modal wide with it.
 .BannerPreview {
     display: flex;
     overflow: hidden;

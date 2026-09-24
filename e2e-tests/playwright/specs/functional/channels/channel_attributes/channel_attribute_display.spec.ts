@@ -65,13 +65,11 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
             await channelsPage.goto(team.name, channel.name);
             await channelsPage.toBeVisible();
 
-            // Visible to an ordinary member, not just whoever set it. Designated for
-            // both slots, so it renders in both.
-            const {attributes, infoAttributes} = channelsPage.centerView.header;
+            // Visible to an ordinary member, not just whoever set it. Undesignated
+            // values never become chips.
+            const {attributes} = channelsPage.centerView.header;
             await expect(attributes.chip('AURORA')).toBeVisible();
-            await expect(infoAttributes.chip('AURORA')).toBeVisible();
             await expect(attributes.chip('QUIET')).toHaveCount(0);
-            await expect(infoAttributes.chip('QUIET')).toHaveCount(0);
 
             // Channel Info lists what the channel holds regardless of display
             // designation -- it is the only surface a value can be edited from, so a
@@ -143,9 +141,8 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
             await channelsPage.goto(team.name, channel.name);
             await channelsPage.toBeVisible();
 
-            // * No chips on either header slot, because nothing was designated
+            // * No chips in the header, because nothing was designated
             await expect(channelsPage.centerView.header.attributes.container).toHaveCount(0);
-            await expect(channelsPage.centerView.header.infoAttributes.container).toHaveCount(0);
 
             // * But the row is there, saying the channel is incomplete, and it can be filled
             const info = await channelsPage.openChannelInfo();
@@ -189,8 +186,8 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
             await adminClient.addToChannel(user.id, channel.id);
 
             for (let i = 0; i < 5; i++) {
-                // The inline slot: the one that shares its row with the header controls,
-                // so it is the only one where yielding space is an invariant.
+                // The chip strip shares its row with the header controls, so yielding
+                // space rather than pushing them is the invariant under test.
                 const field = await createAttribute(adminClient, attributeName(`overflow${i}`, suffix), {
                     options: [`LONG_VALUE_NUMBER_${i}`],
                     actions: [DISPLAY_LABEL_INFO],
@@ -205,7 +202,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
             await channelsPage.toBeVisible();
 
             const infoButton = page.locator('#channel-info-btn');
-            const labels = channelsPage.centerView.header.infoAttributes;
+            const labels = channelsPage.centerView.header.attributes;
             const row = labels.visibleRow;
 
             await expect(page.getByTestId('attributeChip').first()).toBeVisible();
@@ -219,10 +216,11 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
 
             await expect(labels.overflowButton).toBeVisible();
 
-            // Fewer chips shown than exist, and the remainder is reachable.
-            const shown = await page.getByTestId('attributeChip').count();
-            expect(shown).toBeGreaterThan(0);
-            expect(shown).toBeLessThan(5);
+            // Fewer chips shown than exist, and the remainder is reachable. Polled:
+            // the strip re-measures after the resize.
+            const visibleChips = row.getByTestId('attributeChip');
+            await expect.poll(() => visibleChips.count()).toBeLessThan(5);
+            await expect.poll(() => visibleChips.count()).toBeGreaterThan(0);
 
             // The row yields space rather than claiming it, so the controls after it
             // are not pushed further right as the window narrows.
@@ -339,13 +337,8 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
             await modal.create();
             await expect(modal.container).not.toBeVisible();
 
-            await page.locator('#channel-info-btn').click();
-            await page.getByTestId('channelInfoAddAttributeButton').click();
-            await page.getByText(optional.name, {exact: false}).last().click();
-
-            // A select lands as a closed row once added; open its menu to pick.
-            await page.getByTestId(`channelInfoAttributeEdit-${optional.name}`).click();
-            await page.getByRole('menuitem', {name: 'LATER', exact: true}).click();
+            const info = await channelsPage.openChannelInfo();
+            await info.attributes.add(optional.name, 'LATER');
 
             await expect(page.getByTestId(`channelInfoAttributeRow-${optional.name}`)).toContainText('LATER');
 

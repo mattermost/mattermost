@@ -195,7 +195,6 @@ test.describe(
 
                 // * And is rendered on no display surface
                 await expect(channelsPage.centerView.header.attributes.chip('QUIET')).toHaveCount(0);
-                await expect(channelsPage.centerView.header.infoAttributes.chip('QUIET')).toHaveCount(0);
                 await expect(channelsPage.page.getByTestId('channel_banner_container')).toHaveCount(0);
 
                 // * Channel Info still lists it: the display locations govern the

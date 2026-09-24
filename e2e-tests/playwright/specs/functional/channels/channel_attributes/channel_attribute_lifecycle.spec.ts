@@ -184,7 +184,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
             await expect(page.getByTestId('attributeChip')).toHaveCount(0);
 
             await page.getByTestId(`channelInfoAttributeEdit-${required.name}`).click();
-            await page.getByRole('menuitem', {name: 'RECOVERED'}).click();
+            await page.getByRole('menuitem', {name: 'RECOVERED', exact: true}).click();
 
             await expect(row).toContainText('RECOVERED');
 
