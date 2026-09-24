@@ -7,22 +7,15 @@
  */
 
 .wrapper {
-  margin: 2rem 0 2.5rem;
-  /* Match the source slide aspect (1280x720, 16:9). On wide screens
-   * we break out of Docusaurus' content column *rightward* so the
-   * diagram gets closer to slide dimensions and reduces the vertical
-   * whitespace inside each cell. Never extend leftward — that would
-   * overlap the docs sidebar. */
-  width: min(1280px, 100%);
-}
-
-@media (min-width: 1200px) {
-  .wrapper {
-    /* Expand rightward: total width up to 1280px, capped by viewport
-     * minus room for the docs sidebar (~300px) and page gutters. */
-    max-width: none;
-    width: min(1280px, calc(100vw - var(--doc-sidebar-width, 300px) - 4rem));
-  }
+  /* Aligned to the reading column on both sides so the diagram's
+   * left/right margins match the surrounding paragraphs. Earlier
+   * revisions broke out to the right for a 16:9 slide feel, but that
+   * left the diagram asymmetric relative to the text; keeping it
+   * centered on the text is more important than matching the source
+   * slide's exact width. */
+  margin: 2rem auto 2.5rem;
+  width: 100%;
+  max-width: 1280px;
 }
 
 /* === Audience toggle above the diagram === */

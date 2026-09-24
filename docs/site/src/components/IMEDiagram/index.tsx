@@ -185,10 +185,12 @@ export default function IMEDiagram({variant, content, toggle}: IMEDiagramProps) 
 
   // When the parent supplies `variant` or `content`, the diagram is
   // fully controlled — clicking the toggle would otherwise mutate
-  // local state without changing what renders. Force it off regardless
-  // of the `toggle` prop.
+  // local state without changing what renders. Also hide the toggle
+  // when there is only a single variant registered (nothing to switch
+  // to). Force it off regardless of the `toggle` prop.
   const isControlled = Boolean(content || variant);
-  const showToggle = !isControlled && !urlOverride.hideToggle && (toggle ?? true);
+  const hasMultipleVariants = variants.length > 1;
+  const showToggle = !isControlled && !urlOverride.hideToggle && hasMultipleVariants && (toggle ?? true);
 
   return (
     <div className={styles.wrapper}>
