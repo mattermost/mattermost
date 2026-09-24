@@ -176,10 +176,10 @@
 
 .intro h3 {
   display: flex;
-  align-items: center;
-  gap: 0.45rem;
+  align-items: flex-start;
+  gap: 0.4rem;
   font-family: var(--mm-font-sans);
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   font-weight: 700;
   color: var(--mm-color-denim, #1E325C);
   margin: 0 0 0.4rem;
@@ -221,8 +221,12 @@
 
 .layerContentWithIntro {
   display: grid;
-  grid-template-columns: minmax(190px, 1.1fr) 3.4fr;
-  gap: 1rem;
+  /* Fixed-width intro column so the cell grid gets every remaining
+   * pixel. The intro copy is short (2–3 short lines) and the earlier
+   * fractional split (1.1fr : 3.4fr) starved the 6-tile Applications
+   * row when the diagram fits inside the reading column. */
+  grid-template-columns: 150px 1fr;
+  gap: 0.85rem;
   align-items: stretch;
 }
 
