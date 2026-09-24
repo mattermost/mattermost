@@ -659,8 +659,17 @@ a.footerCell:hover {
 }
 
 @media (max-width: 600px) {
-  .cellGrid {
-    grid-template-columns: 1fr;
+  /* Match the container-query rule's `!important` so this override
+   * wins for multi-column layers too. Without it, the earlier
+   * `.cellGrid:not([data-cols="1"])` rule keeps two-column layouts
+   * two-column on phones. */
+  .cellGrid,
+  .cellGrid:not([data-cols="1"]) {
+    grid-template-columns: 1fr !important;
+  }
+  .footerRow,
+  .footerRow:not([data-cols="1"]) {
+    grid-template-columns: 1fr !important;
   }
   .layer {
     grid-template-columns: 1fr;
