@@ -15,7 +15,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"reflect"
-	"sort"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -2622,7 +2622,7 @@ func TestPatchPost(t *testing.T) {
 		require.NoError(t, err)
 		fileIDs[i] = fileResp.FileInfos[0].Id
 	}
-	sort.Strings(fileIDs)
+	slices.Sort(fileIDs)
 
 	post := &model.Post{
 		ChannelId:    channel.Id,
@@ -4059,6 +4059,50 @@ func TestGetPostsBefore(t *testing.T) {
 	})
 }
 
+func TestGetPostsExcludeMembershipSystemPosts(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+
+	membershipPost := &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "user joined the channel",
+		Type:      model.PostTypeJoinChannel,
+		Props: model.StringInterface{
+			"username": th.BasicUser.Username,
+		},
+	}
+	createdMembershipPost, _, appErr := th.App.CreatePost(th.Context, membershipPost, th.BasicChannel, model.CreatePostFlags{})
+	require.Nil(t, appErr)
+
+	normalPost := th.CreatePost(t)
+
+	disableJoinLeave := true
+	_, resp, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, &model.ChannelPatch{
+		DisableJoinLeaveMessages: &disableJoinLeave,
+	})
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	posts, _, err := client.GetPostsBefore(context.Background(), th.BasicChannel.Id, normalPost.Id, 0, 60, "", false, false)
+	require.NoError(t, err)
+	_, found := posts.Posts[createdMembershipPost.Id]
+	require.False(t, found)
+
+	disableJoinLeave = false
+	_, resp, err = client.PatchChannel(context.Background(), th.BasicChannel.Id, &model.ChannelPatch{
+		DisableJoinLeaveMessages: &disableJoinLeave,
+	})
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	posts, _, err = client.GetPostsBefore(context.Background(), th.BasicChannel.Id, normalPost.Id, 0, 60, "", false, false)
+	require.NoError(t, err)
+	require.Contains(t, posts.Posts, createdMembershipPost.Id)
+}
+
 func TestGetPostsAfter(t *testing.T) {
 	mainHelper.Parallel(t)
 
@@ -4270,7 +4314,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 		for postId := range posts {
 			namedPostIds = append(namedPostIds, namePost(postId))
 		}
-		sort.Strings(namedPostIds)
+		slices.Sort(namedPostIds)
 
 		return namedPostIds
 	}

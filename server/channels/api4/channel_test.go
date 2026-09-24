@@ -337,6 +337,7 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.ChannelAttributes = true
+		cfg.FeatureFlags.ChannelAttributesRequired = true
 	}).InitBasic(t)
 
 	// The attribute validation hook is registered against the access_control
@@ -533,6 +534,66 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 		require.Equal(t, classificationField.ID, values[0].FieldID)
 	})
 
+	t.Run("a required classification value is not enforced when ChannelAttributes is off", func(t *testing.T) {
+		// requiredAttributesEnforced folds the ChannelAttributes umbrella flag
+		// in, and classification gets no special treatment from it: it is
+		// enforced or not by the same single condition as every other field.
+		//
+		// The field itself is authored first, under default (enforced)
+		// conditions -- a channel field cannot be newly marked required once
+		// enforcement is already off, so this mirrors the real scenario the
+		// flag exists for: a field configured before, disabled after.
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ClassificationMarkings = true
+		})
+
+		optionID := model.NewId()
+		templateField, fieldErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:       "classification",
+			Type:       model.PropertyFieldTypeSelect,
+			GroupID:    group.ID,
+			ObjectType: "template",
+			TargetType: "system",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []map[string]any{{"id": optionID, "name": "SECRET"}},
+			},
+		}, false, "")
+		require.Nil(t, fieldErr)
+		t.Cleanup(func() {
+			require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, templateField.ID, true, ""))
+		})
+
+		classificationField, fieldErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:             "classification",
+			Type:             model.PropertyFieldTypeSelect,
+			GroupID:          group.ID,
+			ObjectType:       "channel",
+			TargetType:       "system",
+			PermissionField:  &memberLevel,
+			PermissionValues: &memberLevel,
+			LinkedFieldID:    &templateField.ID,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrRequired: true,
+			},
+		}, false, "")
+		require.Nil(t, fieldErr)
+		t.Cleanup(func() {
+			require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, classificationField.ID, true, ""))
+		})
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributes = false
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributes = true
+		})
+
+		req, _ := newRequest()
+		_, resp, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
+
 	t.Run("a non-classification value is still refused when ChannelAttributes is off", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.FeatureFlags.ChannelAttributes = false
@@ -596,6 +657,75 @@ func TestCreateChannelWithPropertyValues(t *testing.T) {
 		})
 		defer th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.FeatureFlags.ChannelAttributes = true
+		})
+
+		req, _ := newRequest()
+		_, resp, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
+
+	t.Run("a required attribute with no value is allowed when ChannelAttributesRequired is off", func(t *testing.T) {
+		createField(t, model.PropertyFieldTypeText, memberLevel, model.StringInterface{
+			model.PropertyFieldAttrRequired: true,
+		})
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributesRequired = false
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributesRequired = true
+		})
+
+		req, _ := newRequest()
+		_, resp, err := th.Client.CreateChannelWithPropertyValues(context.Background(), req)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
+
+	t.Run("a required classification value is not enforced either when ChannelAttributesRequired is off", func(t *testing.T) {
+		// The field is authored first with enforcement on — a channel field
+		// cannot be newly marked required once enforcement is off, so this
+		// mirrors the real scenario: configured before, enforcement disabled after.
+		optionID := model.NewId()
+		templateField, fieldErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:       "classification",
+			Type:       model.PropertyFieldTypeSelect,
+			GroupID:    group.ID,
+			ObjectType: "template",
+			TargetType: "system",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []map[string]any{{"id": optionID, "name": "SECRET"}},
+			},
+		}, false, "")
+		require.Nil(t, fieldErr)
+		t.Cleanup(func() {
+			require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, templateField.ID, true, ""))
+		})
+
+		classificationField, fieldErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:             "classification",
+			Type:             model.PropertyFieldTypeSelect,
+			GroupID:          group.ID,
+			ObjectType:       "channel",
+			TargetType:       "system",
+			PermissionField:  &memberLevel,
+			PermissionValues: &memberLevel,
+			LinkedFieldID:    &templateField.ID,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrRequired: true,
+			},
+		}, false, "")
+		require.Nil(t, fieldErr)
+		t.Cleanup(func() {
+			require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, classificationField.ID, true, ""))
+		})
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributesRequired = false
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.ChannelAttributesRequired = true
 		})
 
 		req, _ := newRequest()
@@ -7231,6 +7361,83 @@ func TestGetChannelModerations(t *testing.T) {
 
 		_, _, err := th.SystemAdminClient.GetChannelModerations(context.Background(), channel.Id, "")
 		require.NoError(t, err)
+	})
+}
+
+func TestPatchChannelDisableJoinLeaveMessages(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+
+	t.Run("patch only disable_join_leave_messages succeeds", func(t *testing.T) {
+		disableJoinLeave := true
+		patch := &model.ChannelPatch{
+			DisableJoinLeaveMessages: &disableJoinLeave,
+		}
+
+		channel, resp, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.True(t, channel.DisableJoinLeaveMessages)
+	})
+
+	t.Run("patch can re-enable join/leave messages", func(t *testing.T) {
+		disableJoinLeave := false
+		patch := &model.ChannelPatch{
+			DisableJoinLeaveMessages: &disableJoinLeave,
+		}
+
+		channel, resp, err := client.PatchChannel(context.Background(), th.BasicChannel.Id, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.False(t, channel.DisableJoinLeaveMessages)
+	})
+
+	t.Run("cannot patch on direct channel", func(t *testing.T) {
+		dm, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+
+		disableJoinLeave := true
+		patch := &model.ChannelPatch{
+			DisableJoinLeaveMessages: &disableJoinLeave,
+		}
+
+		_, resp, err := client.PatchChannel(context.Background(), dm.Id, patch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("cannot patch on group channel", func(t *testing.T) {
+		user3 := th.CreateUser(t)
+		gm, _, gmErr := th.SystemAdminClient.CreateGroupChannel(context.Background(), []string{th.BasicUser.Id, th.BasicUser2.Id, user3.Id})
+		require.NoError(t, gmErr)
+
+		disableJoinLeave := true
+		patch := &model.ChannelPatch{
+			DisableJoinLeaveMessages: &disableJoinLeave,
+		}
+
+		_, resp, err := client.PatchChannel(context.Background(), gm.Id, patch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("non-member cannot patch", func(t *testing.T) {
+		// manage_public_channel_properties is in the default channel_user role,
+		// so any channel member can change this setting. Test with a non-member.
+		nonMember := th.CreateUser(t)
+		nonMemberClient := th.CreateClient()
+		_, _, loginErr := nonMemberClient.Login(context.Background(), nonMember.Email, nonMember.Password)
+		require.NoError(t, loginErr)
+
+		disableJoinLeave := true
+		patch := &model.ChannelPatch{
+			DisableJoinLeaveMessages: &disableJoinLeave,
+		}
+
+		_, resp, err := nonMemberClient.PatchChannel(context.Background(), th.BasicChannel.Id, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 	})
 }
 

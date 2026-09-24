@@ -15,15 +15,18 @@ type Props = {
     teammateDisplayName: string;
     location: string;
     postId: string;
+    hideRemoteUserHour?: boolean;
 };
 
-export default function PostBoxIndicator({channelId, teammateDisplayName, location, postId}: Props) {
+export default function PostBoxIndicator({channelId, teammateDisplayName, location, postId, hideRemoteUserHour = false}: Props) {
     const {
-        showRemoteUserHour,
+        showRemoteUserHour: showRemoteUserHourFromHook,
         isScheduledPostEnabled,
         currentUserTimesStamp,
         teammateTimezone,
     } = useTimePostBoxIndicator(channelId);
+
+    const showRemoteUserHour = showRemoteUserHourFromHook && !hideRemoteUserHour;
 
     return (
         <div className='postBoxIndicator'>

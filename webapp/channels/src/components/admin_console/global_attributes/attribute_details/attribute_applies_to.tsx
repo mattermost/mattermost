@@ -15,10 +15,11 @@ import Card from 'components/card/card';
 import * as Menu from 'components/menu';
 
 import AttributeAppliesToChannelItem from './attribute_applies_to_channel_item';
-import {ALL_RESOURCE_TYPES, ATTRIBUTE_APPLIES_TO_ADD_HEADER_TRIGGER_ID, RESOURCE_TYPE_ICONS, resourceTypeLabels} from './attribute_applies_to_constants';
+import {ALL_RESOURCE_TYPES, ATTRIBUTE_APPLIES_TO_ADD_HEADER_TRIGGER_ID, resourceTypeLabels} from './attribute_applies_to_constants';
 import type {AttributeAppliesToItemProps, ResourceObjectType, UserManagedValue} from './attribute_applies_to_constants';
 import AttributeAppliesToPostItem from './attribute_applies_to_post_item';
 import AttributeAppliesToUserItem from './attribute_applies_to_user_item';
+import ResourceTypeIcon from './resource_type_icon';
 
 import type {ChannelResourceConfig} from '../applies_to/channels/types';
 
@@ -125,12 +126,11 @@ function AttributeAppliesTo({
             }}
         >
             {availableTypes.map((type) => {
-                const ItemIcon = RESOURCE_TYPE_ICONS[type];
                 return (
                     <Menu.Item
                         id={`${triggerId}-${type}`}
                         key={type}
-                        leadingElement={<ItemIcon size={18}/>}
+                        leadingElement={<ResourceTypeIcon type={type}/>}
                         onClick={() => onAdd(type)}
                         labels={<FormattedMessage {...resourceTypeLabels[type]}/>}
                     />
@@ -194,6 +194,7 @@ function AttributeAppliesTo({
                                                 onConfigChange={onChannelResourceChange}
                                                 ordered={ordered}
                                                 disabled={disabled}
+                                                lockedTooltip={lockedTooltip}
                                                 onRemove={() => onRemove(type)}
                                             />
                                         );

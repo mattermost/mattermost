@@ -4,6 +4,7 @@
 package model
 
 import (
+	"cmp"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -12,13 +13,14 @@ import (
 	"maps"
 	"net/http"
 	"regexp"
-	"sort"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
 	"unicode/utf8"
 
 	"github.com/hashicorp/go-multierror"
+
 	"github.com/mattermost/mattermost/server/public/shared/markdown"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
@@ -436,13 +438,14 @@ type CreatePostFlags struct {
 }
 
 type GetPostsSinceOptions struct {
-	UserId                   string
-	ChannelId                string
-	Time                     int64
-	SkipFetchThreads         bool
-	CollapsedThreads         bool
-	CollapsedThreadsExtended bool
-	SortAscending            bool
+	UserId                       string
+	ChannelId                    string
+	Time                         int64
+	SkipFetchThreads             bool
+	CollapsedThreads             bool
+	CollapsedThreadsExtended     bool
+	SortAscending                bool
+	ExcludeMembershipSystemPosts bool
 }
 
 type GetPostsSinceForSyncCursor struct {
@@ -465,27 +468,42 @@ type GetPostsSinceForSyncOptions struct {
 	ExcludedPostTypes                 []string // post types to exclude from sync
 }
 
+// GetPostOptions are the options for fetching a single post. Its plural sibling
+// GetPostsOptions covers the list endpoints.
+type GetPostOptions struct {
+	// IncludeDeleted returns the post even if it is soft-deleted.
+	IncludeDeleted bool
+
+	// PropertyGroup names a single PSAv2 property group whose values should be hydrated
+	// onto the post's metadata. Empty means no hydration.
+	PropertyGroup string
+}
+
 type GetPostsOptions struct {
-	UserId                   string
-	ChannelId                string
-	PostId                   string
-	Page                     int
-	PerPage                  int
-	SkipFetchThreads         bool
-	CollapsedThreads         bool
-	CollapsedThreadsExtended bool
-	FromPost                 string // PostId after which to send the items
-	FromCreateAt             int64  // CreateAt after which to send the items
-	FromUpdateAt             int64  // UpdateAt after which to send the items. This cannot be used with FromCreateAt.
-	Direction                string // Only accepts up|down. Indicates the order in which to send the items.
-	UpdatesOnly              bool   // This flag is used to make the API work with the updateAt value.
-	IncludeDeleted           bool
-	IncludePostPriority      bool
+	UserId                       string
+	ChannelId                    string
+	PostId                       string
+	Page                         int
+	PerPage                      int
+	SkipFetchThreads             bool
+	CollapsedThreads             bool
+	CollapsedThreadsExtended     bool
+	FromPost                     string // PostId after which to send the items
+	FromCreateAt                 int64  // CreateAt after which to send the items
+	FromUpdateAt                 int64  // UpdateAt after which to send the items. This cannot be used with FromCreateAt.
+	Direction                    string // Only accepts up|down. Indicates the order in which to send the items.
+	UpdatesOnly                  bool   // This flag is used to make the API work with the updateAt value.
+	IncludeDeleted               bool
+	IncludePostPriority          bool
+	ExcludeMembershipSystemPosts bool
 	// ExcludeExpiredBurnOnReadPosts, when set, makes the query skip burn-on-read
 	// posts whose read receipt has already expired for UserId. It is only set by
 	// the app layer when the burn-on-read feature is enabled, so it adds no query
 	// overhead otherwise.
 	ExcludeExpiredBurnOnReadPosts bool
+	// PropertyGroup names a single PSAv2 property group whose values should be hydrated
+	// onto each post's metadata. Empty means no hydration.
+	PropertyGroup string
 }
 
 type PostCountOptions struct {
@@ -1199,17 +1217,46 @@ func (o *Post) GetRemoteID() string {
 	return ""
 }
 
+// JoinLeaveMessagePostTypes returns the post types checked by IsJoinLeaveMessage.
+func JoinLeaveMessagePostTypes() []string {
+	return []string{
+		PostTypeJoinLeave,
+		PostTypeAddRemove,
+		PostTypeJoinChannel,
+		PostTypeLeaveChannel,
+		PostTypeJoinTeam,
+		PostTypeLeaveTeam,
+		PostTypeAddToChannel,
+		PostTypeRemoveFromChannel,
+		PostTypeAddToTeam,
+		PostTypeRemoveFromTeam,
+	}
+}
+
 func (o *Post) IsJoinLeaveMessage() bool {
-	return o.Type == PostTypeJoinLeave ||
-		o.Type == PostTypeAddRemove ||
-		o.Type == PostTypeJoinChannel ||
-		o.Type == PostTypeLeaveChannel ||
-		o.Type == PostTypeJoinTeam ||
-		o.Type == PostTypeLeaveTeam ||
-		o.Type == PostTypeAddToChannel ||
-		o.Type == PostTypeRemoveFromChannel ||
-		o.Type == PostTypeAddToTeam ||
-		o.Type == PostTypeRemoveFromTeam
+	return slices.Contains(JoinLeaveMessagePostTypes(), o.Type)
+}
+
+// MembershipSystemPostTypes is the superset of JoinLeaveMessagePostTypes that
+// additionally includes guest join/add types, used by the per-channel
+// disable-join-leave-messages read filter.
+func MembershipSystemPostTypes() []string {
+	return append(JoinLeaveMessagePostTypes(), PostTypeGuestJoinChannel, PostTypeAddGuestToChannel)
+}
+
+func IsMembershipSystemPost(post *Post) bool {
+	return post != nil && slices.Contains(MembershipSystemPostTypes(), post.Type)
+}
+
+// IsAddMembershipSystemPost returns true for posts that notify a user they were
+// added to a channel or team.
+func IsAddMembershipSystemPost(post *Post) bool {
+	if post == nil {
+		return false
+	}
+	return post.Type == PostTypeAddToChannel ||
+		post.Type == PostTypeAddGuestToChannel ||
+		post.Type == PostTypeAddToTeam
 }
 
 func (o *Post) Patch(patch *PostPatch) {
@@ -1387,8 +1434,8 @@ func RewriteImageURLs(message string, f func(string) string) string {
 		return message
 	}
 
-	sort.Slice(ranges, func(i, j int) bool {
-		return ranges[i].Position < ranges[j].Position
+	slices.SortFunc(ranges, func(a, b markdown.Range) int {
+		return cmp.Compare(a.Position, b.Position)
 	})
 
 	copyRanges := make([]markdown.Range, 0, len(ranges))
@@ -1559,6 +1606,11 @@ type PreparePostForClientOpts struct {
 	IncludePriority bool
 	RetainContent   bool
 	IncludeDeleted  bool
+
+	// PropertyGroupID, when set, hydrates each post's property values for that group onto
+	// Metadata.PropertyValues. Empty means no hydration, so the zero value is always safe and
+	// callers opt in rather than out.
+	PropertyGroupID string
 }
 
 // ReportPostOptions contains options for querying posts for reporting/compliance purposes

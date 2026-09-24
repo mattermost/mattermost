@@ -3014,7 +3014,7 @@ func TestSearchPostsForUser(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		posts := make([]*model.Post, 7)
-		for i := 0; i < cap(posts); i++ {
+		for i := range cap(posts) {
 			post, _, err := th.App.CreatePost(th.Context, &model.Post{
 				UserId:    th.BasicUser.Id,
 				ChannelId: th.BasicChannel.Id,
@@ -3906,7 +3906,7 @@ func TestCountMentionsFromPost(t *testing.T) {
 		}, channel, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, err)
 
-		for i := 0; i < numPosts-1; i++ {
+		for range numPosts - 1 {
 			_, _, err = th.App.CreatePost(th.Context, &model.Post{
 				UserId:    user1.Id,
 				ChannelId: channel.Id,
