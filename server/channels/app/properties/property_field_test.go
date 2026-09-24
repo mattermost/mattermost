@@ -951,7 +951,6 @@ func TestLinkedPropertyFields(t *testing.T) {
 			model.PropertyFieldObjectTypeChannel,
 			model.PropertyFieldObjectTypePost,
 		} {
-			objectType := objectType
 			t.Run(objectType, func(t *testing.T) {
 				linked, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
 					GroupID:       group.ID,
