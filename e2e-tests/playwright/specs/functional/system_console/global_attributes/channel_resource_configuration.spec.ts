@@ -390,6 +390,7 @@ test.describe(
             try {
                 // # Create a template with ldap and saml attrs via API
                 const template = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
                     attrs: {ldap: 'sAMAccountName', saml: 'employeeID'},
                 });
                 templateId = template.id;

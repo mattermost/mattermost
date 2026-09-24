@@ -154,6 +154,11 @@ func (ps *PropertyService) createPropertyField(rctx request.CTX, field *model.Pr
 				if saml, ok := source.Attrs[model.PropertyFieldAttrSAML]; ok {
 					field.Attrs[model.PropertyFieldAttrSAML] = saml
 				}
+			} else {
+				// Strip any caller-supplied sync attrs: checkSyncLock treats their
+				// presence as a lock regardless of where they came from.
+				delete(field.Attrs, model.PropertyFieldAttrLDAP)
+				delete(field.Attrs, model.PropertyFieldAttrSAML)
 			}
 		}
 
