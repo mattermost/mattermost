@@ -17,9 +17,12 @@ import {join} from 'node:path';
 import {renderPrompt} from './lib/gap-prompt.mjs';
 import {block} from './lib/untrusted.mjs';
 
-// The docs side is the smaller half of the question and the code side is where
-// a monorepo diff runs away, so they are not capped alike.
-const CAP = {code: 200_000, docs: 120_000, files: 20_000};
+// Sized for ~80 characters per unified-diff / path line.
+const CAP = {
+  code: 800_000, // ~10k LoC
+  docs: 80_000, // ~1k LoC
+  files: 10_000, // ~100 paths
+};
 
 function arg(name) {
   const i = process.argv.indexOf(`--${name}`);

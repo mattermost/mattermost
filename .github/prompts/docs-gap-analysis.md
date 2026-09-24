@@ -31,16 +31,18 @@ page closes nothing.
 | `docs/main/integrations-guide/` | Webhooks, slash commands, plugins, bots, API usage |
 | `docs/main/security-guide/` | Authentication, permissions, compliance frameworks |
 | `docs/main/get-help/` | Troubleshooting |
-| `docs/main/product-overview/` | Product overview, plans, feature descriptions |
+| `docs/main/product-overview/` | Product overview, plans, feature descriptions, release updates |
 | `docs/main/use-case-guide/` | Use-case guides |
-| `docs/develop/` | Contributor and extension developer documentation |
+| `docs/develop/` | Developer documentation — how to contribute, integrate, and extend Mattermost |
 
-Two trees are **out of scope**. Never name a path in either as an action:
+Two trees are **out of scope** as hand-edit targets. Never name a path under either as
+an action:
 
-- `docs/api/reference/**` is generated from the OpenAPI spec. Changes under
-  `api/v4/source/` are part of this pull request and publish automatically to
-  api.mattermost.com. Note them in `impacts` as already handled if you like, but they are
-  never an action item.
+- `docs/api/reference/**` is generated from the OpenAPI spec at build time
+  (`docs-cd.yml` regenerates it from `api/v4/source/` and publishes to
+  https://docs.mattermost.com). Changes under `api/v4/source/` are part of this pull
+  request and publish with the site. Note them in `impacts` as already handled if you
+  like, but the action is never "edit the generated page" — fix the OpenAPI source.
 - `docs/main/agents/docs/**` is synced from another repository.
 
 ## Code paths that imply documentation
