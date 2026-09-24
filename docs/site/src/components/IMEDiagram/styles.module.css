@@ -517,6 +517,47 @@ a.footerCell:hover {
   margin-top: 0;
 }
 
+/* Title-on-the-left layout (used by the two Interoperability cells).
+ * The title fills the left column at deck-scale size, bullets fill
+ * the right. The narrow title column keeps ~2–3 lines of wrap so the
+ * bullet list gets the majority of the horizontal space. */
+.cellTitleLeft {
+  padding: 0.7rem 0.85rem;
+}
+.cellTitleSplit {
+  display: grid;
+  grid-template-columns: minmax(7rem, 0.9fr) minmax(0, 2.4fr);
+  gap: 0.9rem;
+  align-items: start;
+  width: 100%;
+}
+.cellTitleAside {
+  display: flex;
+  align-items: flex-start;
+}
+.cellTitleLeft .cellTitle {
+  font-size: 1.1rem;
+  line-height: 1.15;
+  letter-spacing: -0.005em;
+}
+/* Tighten bullet spacing so the right column reads as a dense list
+ * rather than a body-copy paragraph. */
+.cellTitleLeft .cellText ul {
+  padding-left: 1rem;
+}
+.cellTitleLeft .cellText li {
+  margin: 0.12rem 0;
+  line-height: 1.35;
+}
+
+@media (max-width: 600px) {
+  /* Stack title above bullets on narrow viewports. */
+  .cellTitleSplit {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+}
+
 /* Corner logo constellation — small AI/vendor icons pinned to the
  * top-right of the cell (e.g. Enterprise-to-Edge on the mission
  * variant). Positioned absolutely so they don't push the title down. */

@@ -72,6 +72,15 @@ export type Cell = {
    */
   bodyLayout?: 'stack' | 'side-by-side';
   /**
+   * Where the title sits relative to the body.
+   * - `'top'` (default): title above body copy / bullets.
+   * - `'left'`: enlarged title fills the left column, body/bullets
+   *   fill the right column. Used for the two Interoperability
+   *   cells on the entadv variant so they match the deck's
+   *   "big title | bullet list" layout.
+   */
+  titlePlacement?: 'top' | 'left';
+  /**
    * Extra logo constellation absolutely positioned in the top-right
    * corner of the cell. Used for the AI-vendor icons on the
    * Enterprise-to-Edge card in the entadv variant.

@@ -124,8 +124,9 @@ export const entadv: IMEContent = {
       cells: [
         {
           // Deck: no leading icon above the title on Interoperability
-          // cards. Title + bullets only.
+          // cards. Enlarged title on the left, bullets on the right.
           title: 'Advanced Information Controls',
+          titlePlacement: 'left',
           bullets: [
             'ABAC: Attribute-Based Access Controls',
             'Classification Banners & Labels w/ Data Spillage Mitigation',
@@ -138,6 +139,7 @@ export const entadv: IMEContent = {
         },
         {
           title: 'Secure Federation & Interoperability',
+          titlePlacement: 'left',
           bullets: [
             'Standards Compatible: ACP 240',
             'Microsoft Teams embedding for Enterprise-to-Edge',

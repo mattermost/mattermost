@@ -35,6 +35,7 @@ function CellIcon({iconSrc, icon, alt}: {iconSrc?: string; icon?: IconName; alt?
 
 function Cell({data}: {data: CellData}) {
   const isSideBySide = data.bodyLayout === 'side-by-side' && data.logos;
+  const isTitleLeft = data.titlePlacement === 'left';
 
   const textBlock = (data.body || data.bullets || data.bodyLead) && (
     <div className={styles.cellText}>
@@ -57,20 +58,35 @@ function Cell({data}: {data: CellData}) {
     <LogoStrip logos={data.logos} layout={data.logoLayout} columns={data.logoColumns} />
   );
 
-  const body = (
+  const corner = data.cornerLogos && (
+    <div className={styles.cornerLogos} aria-hidden>
+      {data.cornerLogos.map((logo) => (
+        logo.src
+          ? <Img key={logo.alt} src={logo.src} alt={logo.alt} className={styles.cornerLogo} />
+          : <span key={logo.alt} className={styles.logoBadge}>{logo.alt}</span>
+      ))}
+    </div>
+  );
+
+  const title = <strong className={styles.cellTitle}>{data.title}</strong>;
+
+  const body = isTitleLeft ? (
     <>
-      {data.cornerLogos && (
-        <div className={styles.cornerLogos} aria-hidden>
-          {data.cornerLogos.map((logo) => (
-            logo.src
-              ? <Img key={logo.alt} src={logo.src} alt={logo.alt} className={styles.cornerLogo} />
-              : <span key={logo.alt} className={styles.logoBadge}>{logo.alt}</span>
-          ))}
+      {corner}
+      <div className={styles.cellTitleSplit}>
+        <div className={styles.cellTitleAside}>{title}</div>
+        <div className={styles.cellBody}>
+          {textBlock}
+          {logoBlock}
         </div>
-      )}
+      </div>
+    </>
+  ) : (
+    <>
+      {corner}
       <CellIcon iconSrc={data.iconSrc} icon={data.icon} alt={data.title} />
       <div className={styles.cellBody}>
-        <strong className={styles.cellTitle}>{data.title}</strong>
+        {title}
         {isSideBySide ? (
           <div className={styles.cellSplit}>
             {textBlock}
@@ -86,10 +102,11 @@ function Cell({data}: {data: CellData}) {
     </>
   );
 
+  const cls = `${styles.cell}${isTitleLeft ? ` ${styles.cellTitleLeft}` : ''}`;
   if (data.to) {
-    return <Link to={data.to} className={styles.cell}>{body}</Link>;
+    return <Link to={data.to} className={cls}>{body}</Link>;
   }
-  return <div className={`${styles.cell} ${styles.cellStatic}`}>{body}</div>;
+  return <div className={`${cls} ${styles.cellStatic}`}>{body}</div>;
 }
 
 function IntroPanel({data}: {data: Intro}) {
