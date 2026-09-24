@@ -168,7 +168,7 @@ export const entadv: IMEContent = {
         {
           // Deck: no leading icon above the title on Deployment cards.
           title: 'Enterprise to Edge with Sovereign AI',
-          body: 'Runs at the edge, in your data center, in sovereign/gov & global cloud & AI',
+          body: 'Runs Edge, Data Center, Sovereign/Gov & Global Cloud & AI',
           to: '/deployment-guide/deployment-scenarios/deployment-scenarios-index',
           // Deck: AI-vendor logos pinned to top-right corner.
           cornerLogos: [
