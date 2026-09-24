@@ -1,6 +1,6 @@
 name: Docs Editor Review Label
 
-# Auto-apply "2: Editor Review" when a non-draft PR changes docs/**.
+# Auto-apply "2. Editor review" when a non-draft PR changes docs/**.
 # API OpenAPI changes are intentionally excluded; drafts are skipped until ready_for_review.
 on:
   pull_request:
@@ -31,4 +31,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          gh pr edit "$PR_NUMBER" --repo "${{ github.repository }}" --add-label "2: Editor Review"
+          gh pr edit "$PR_NUMBER" --repo "${{ github.repository }}" --add-label "2. Editor review"
