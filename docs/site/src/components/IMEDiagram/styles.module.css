@@ -87,7 +87,7 @@
   background-size: cover;
   background-position: center;
   color: var(--mm-color-white, #fff);
-  padding: 0.7rem 1.25rem;
+  padding: 1rem 1.25rem;
   text-align: center;
   border-bottom: 3px solid var(--mm-color-marigold, #FFBC1F);
 }
@@ -106,9 +106,9 @@
   font-family: var(--mm-font-sans);
   font-weight: 800;
   color: var(--mm-color-white, #fff);
-  font-size: 1.4rem;
+  font-size: 1.55rem;
   line-height: 1.15;
-  margin: 0 0 0.25rem !important;
+  margin: 0 0 0.3rem !important;
   padding: 0 !important;
   position: relative;
   letter-spacing: -0.005em;
@@ -121,8 +121,8 @@
 
 .bannerTagline {
   color: rgba(255, 255, 255, 0.92);
-  font-size: 0.82rem;
-  line-height: 1.35;
+  font-size: 0.88rem;
+  line-height: 1.4;
   margin: 0;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
@@ -275,6 +275,15 @@
 /* Use-case layer (no intro) — larger typography */
 .layer_use-cases .cellGrid {
   gap: 0.6rem;
+}
+/* First-lane trim: the Use Cases cells are tinted (denim-50) so the
+ * default .layerBody top padding reads as a visible white frame under
+ * the banner. Deployment (last lane) uses white cells that blend into
+ * the .layerBody padding at the bottom, so there's no visible frame
+ * there. Shrink Use Cases top padding to match the seamless bottom;
+ * the reclaimed vertical space goes into the enlarged banner above. */
+.layer_use-cases .layerBody {
+  padding-top: 0.2rem;
 }
 .layer_use-cases .cell {
   background: var(--mm-denim-50, rgba(30, 50, 92, 0.045));
