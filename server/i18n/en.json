@@ -11387,6 +11387,78 @@
     "translation": "Unsupported syncable type '{{.Value}}'."
   },
   {
+    "id": "health.reason.config_unavailable",
+    "translation": "Config section unavailable."
+  },
+  {
+    "id": "health.reason.rule_panicked",
+    "translation": "The rule failed unexpectedly and could not be evaluated."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.http",
+    "translation": "PushNotificationServer {{.url}} uses http://, so push notifications are sent in cleartext."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.missing",
+    "translation": "PushNotificationServer {{.url}} has an invalid scheme. Mobile users will not receive notifications."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.remediation",
+    "translation": "Prefix PushNotificationServer with https:// and verify reachability from the app node."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.title",
+    "translation": "PushNotificationServer does not use https://"
+  },
+  {
+    "id": "health.rule.push_empty_url.message",
+    "translation": "Every push attempt will fail with 'unsupported protocol scheme'."
+  },
+  {
+    "id": "health.rule.push_empty_url.remediation",
+    "translation": "Point PushNotificationServer to https://push.mattermost.com or a self-hosted push proxy."
+  },
+  {
+    "id": "health.rule.push_empty_url.title",
+    "translation": "Push notifications enabled but PushNotificationServer is blank"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message",
+    "translation": "push-test.mattermost.com is the Mattermost test push proxy. It has no SLA, limited throughput, and is not intended for production use. Mobile push delivery will be unreliable for anything beyond small-scale testing."
+  },
+  {
+    "id": "health.rule.push_test_proxy.remediation",
+    "translation": "Switch to https://push.mattermost.com (the production Hosted Push Notification Service included with Enterprise) or to a self-hosted push proxy."
+  },
+  {
+    "id": "health.rule.push_test_proxy.title",
+    "translation": "PushNotificationServer points at push-test.mattermost.com"
+  },
+  {
+    "id": "health.rule.site_url_empty.message",
+    "translation": "SiteURL is required for webhook URLs, OAuth callbacks, mobile push payloads, and email links. Integrations are broken while it is empty."
+  },
+  {
+    "id": "health.rule.site_url_empty.remediation",
+    "translation": "Set SiteURL to the public HTTPS URL of the server."
+  },
+  {
+    "id": "health.rule.site_url_empty.title",
+    "translation": "ServiceSettings.SiteURL is empty"
+  },
+  {
+    "id": "health.rule.site_url_http.message",
+    "translation": "SiteURL is {{.url}}. Session cookies and auth tokens traverse cleartext."
+  },
+  {
+    "id": "health.rule.site_url_http.remediation",
+    "translation": "Serve via HTTPS and update SiteURL accordingly."
+  },
+  {
+    "id": "health.rule.site_url_http.title",
+    "translation": "SiteURL uses http:// (not https)"
+  },
+  {
     "id": "humanize.list_join",
     "translation": "{{.OtherItems}} and {{.LastItem}}"
   },
