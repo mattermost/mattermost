@@ -79,6 +79,12 @@
     align-self: stretch;
     padding-left: 8px;
     border-left: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+
+    // The controls render nothing when there is no attribute to insert, and a
+    // divider in front of nothing reads as a broken field.
+    &:empty {
+        display: none;
+    }
 }
 
 .BannerTextEditor__chip {
@@ -94,6 +100,12 @@
     line-height: 20px;
     vertical-align: baseline;
     white-space: nowrap;
+}
+
+// No value on this channel yet: the chip renders nothing in the banner, so it is
+// tinted in the warning colour and explains itself on hover.
+.BannerTextEditor__chip--unset {
+    background: rgba(var(--away-indicator-rgb), 0.16);
 }
 
 // No remove control, so the right padding the button occupied has to come back.

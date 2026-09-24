@@ -15,7 +15,7 @@ import * as Menu from 'components/menu';
 import {asGraphFieldRef} from 'components/property_fields/graph';
 import AssignmentGraphPicker from 'components/property_fields/hierarchical_value_menu/assignment_picker';
 
-import AttributeChip, {AttributeChipRemoveButton} from './attribute_chip';
+import AttributeChip from './attribute_chip';
 import type {ChannelAttributeValue} from './set_channel_attribute_value';
 
 type Option = {label: string; value: string; color?: string};
@@ -217,8 +217,7 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
     }
 
     // Multiselect renders one removable chip per value, boxed like the graph
-    // attribute picker; single-select keeps its one-chip-plus-sibling-remove
-    // layout, which the keyboard-only clear flow below is written against.
+    // attribute picker; single-select shows its one chip and clears from the menu.
     const triggerChildren = isMultiselect ? (
         <span className='ChannelInfoAttributes__triggerInner'>
             {chosen.length > 0 ? (
@@ -343,13 +342,6 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
                     );
                 })}
             </Menu.Container>
-            {!isMultiselect && clearable && hasDisplay && (
-                <AttributeChipRemoveButton
-                    onRemove={() => onSubmit(null)}
-                    removeLabel={clearLabel}
-                    disabled={saving}
-                />
-            )}
         </span>
     );
 };

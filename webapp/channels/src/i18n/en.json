@@ -4608,6 +4608,8 @@
   "channel_attributes.banner.insert_attribute_aria": "Insert an attribute into the banner text",
   "channel_attributes.banner.insert_attribute_menu": "Channel attributes",
   "channel_attributes.banner.remove_attribute": "Remove {label}",
+  "channel_attributes.banner.token_value_set": "Value on this channel: {value}",
+  "channel_attributes.banner.token_value_unset": "The attribute has no value set and won't render in the banner, but will appear automatically the moment a value is set.",
   "channel_attributes.chip.label_prefix": "{label}: ",
   "channel_attributes.description": "Configure attributes and values for this channel.",
   "channel_attributes.enter_value": "Enter a value",

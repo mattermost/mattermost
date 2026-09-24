@@ -191,12 +191,12 @@ describe('attributeToken', () => {
 describe('tokenSuggestions', () => {
     test('offers the display name as the label and the machine name as the token', () => {
         expect(tokenSuggestions([attribute('caveat', 'NOFORN', 'Caveat / Releasability')])).toEqual([
-            {name: 'caveat', label: 'Caveat / Releasability'},
+            {name: 'caveat', label: 'Caveat / Releasability', value: 'NOFORN'},
         ]);
     });
 
     test('falls back to the machine name when there is no display name', () => {
-        expect(tokenSuggestions([attribute('program', 'AURORA')])).toEqual([{name: 'program', label: 'program'}]);
+        expect(tokenSuggestions([attribute('program', 'AURORA')])).toEqual([{name: 'program', label: 'program', value: 'AURORA'}]);
     });
 });
 

@@ -345,7 +345,7 @@ describe('ChannelInfoAttributes', () => {
             ));
         });
 
-        test('clears a chip with the keyboard without opening the option menu', async () => {
+        test('clears a single-select value with the keyboard from the options menu', async () => {
             const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
 
             renderWithContext(
@@ -354,16 +354,12 @@ describe('ChannelInfoAttributes', () => {
             );
 
             await userEvent.tab();
-            const trigger = screen.getByRole('button', {name: 'Edit Program'});
-            expect(trigger).toHaveFocus();
-
-            await userEvent.tab();
-            const remove = screen.getByRole('button', {name: 'Clear Program'});
-            expect(remove).toHaveFocus();
+            expect(screen.getByRole('button', {name: 'Edit Program'})).toHaveFocus();
 
             await userEvent.keyboard('{Enter}');
+            expect(await screen.findByRole('menuitem', {name: 'Clear Program'})).toHaveFocus();
+            await userEvent.keyboard('{Enter}');
 
-            expect(screen.queryByRole('menu', {name: 'Program'})).not.toBeInTheDocument();
             await waitFor(() => expect(patchSpy).toHaveBeenCalledWith(
                 'access_control',
                 'channel',
@@ -398,29 +394,14 @@ describe('ChannelInfoAttributes', () => {
             ));
         });
 
-        test('clearing a chip does not open the option menu', async () => {
-            const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
-
+        test('renders no remove control beside a single-select value', () => {
             renderWithContext(
                 <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
                 makeState([field('program')], [value('program', 'opt_program')]),
             );
 
-            await userEvent.hover(screen.getByTestId('channelInfoAttributeEdit-program'));
-            const trigger = screen.getByTestId('channelInfoAttributeEdit-program');
-            const remove = screen.getByTestId('attributeChipRemove');
-            expect(trigger).not.toContainElement(remove);
-            expect(trigger.parentElement).toBe(remove.parentElement);
-
-            await userEvent.click(remove);
-
-            expect(screen.queryByRole('menu', {name: 'Program'})).not.toBeInTheDocument();
-            await waitFor(() => expect(patchSpy).toHaveBeenCalledWith(
-                'access_control',
-                'channel',
-                CHANNEL_ID,
-                [{field_id: 'program', value: null}],
-            ));
+            expect(screen.getByTestId('channelInfoAttributeEdit-program')).toHaveTextContent('VALUE_PROGRAM');
+            expect(screen.queryByRole('button', {name: 'Clear Program'})).not.toBeInTheDocument();
         });
 
         test('clears a value from the options menu without requiring the chip remove control', async () => {

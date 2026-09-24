@@ -329,10 +329,15 @@ test.describe('Channel attribute banner composition', {tag: ['@channel_attribute
             const settings = await channelsPage.openChannelSettings();
             const configuration = await settings.openConfigurationTab();
             await configuration.enableChannelBanner();
+
+            // The designated attribute is seeded already; start from a known template.
+            await configuration.clearBannerText();
             await configuration.insertBannerToken(marking.name);
 
-            // * The preview names the empty result instead of rendering nothing
-            await expect(configuration.bannerTokenPreview).toContainText('no values are set');
+            // * The preview says the banner will not show instead of rendering nothing
+            const emptyNotice = configuration.container.getByTestId('bannerPreviewEmptyNotice');
+            await expect(emptyNotice).toContainText('The banner will not be displayed');
+            await expect(configuration.bannerTokenPreview).toHaveCount(0);
 
             await settings.close();
 

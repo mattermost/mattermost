@@ -77,9 +77,11 @@ test.describe('Channel attribute editing in Channel Settings', {tag: ['@channel_
             const channelSettings = await channelsPage.openChannelSettings();
             const infoSettings = await channelSettings.openInfoTab();
 
-            // # Edit the attribute in the modal, committing with Enter as the inline
-            // # editor expects
-            await infoSettings.attributes.setText(note.name, 'drafted in modal', 'enter');
+            // # Add the unset attribute in the modal and commit with Enter, as the
+            // # inline editor expects. An unset optional attribute has no row until added.
+            await infoSettings.attributes.add(note.name);
+            await infoSettings.attributes.editor(note.name).fill('drafted in modal');
+            await infoSettings.attributes.editor(note.name).press('Enter');
 
             // * The row reflects the edit immediately, and the tab reports an unsaved
             // * change, but nothing has reached the server yet

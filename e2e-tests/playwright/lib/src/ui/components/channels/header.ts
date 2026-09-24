@@ -26,8 +26,13 @@ export default class ChannelsHeader {
         this.channelMenuDropdown = container.locator('#channelHeaderDropdownButton');
         this.callButton = container.getByRole('button', {name: /call/i}).first();
         this.pinnedMessagesButton = container.locator('#channelHeaderPinButton');
-        this.attributes = new ChannelAttributeLabels(container.getByTestId('channelAttributeLabels-header'), 'header');
-        this.infoAttributes = new ChannelAttributeLabels(container.getByTestId('channelAttributeLabels-info'), 'info');
+        // Header and info designations share one strip in the channel header, so
+        // both names address it.
+        this.attributes = new ChannelAttributeLabels(
+            container.getByTestId('channelAttributeLabels-info-header'),
+            'info-header',
+        );
+        this.infoAttributes = this.attributes;
         this.addChannelHeaderButton = container.getByRole('button', {name: 'Add a channel header'});
     }
 

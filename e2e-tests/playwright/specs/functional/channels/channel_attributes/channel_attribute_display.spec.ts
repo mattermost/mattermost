@@ -205,7 +205,8 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
             await channelsPage.toBeVisible();
 
             const infoButton = page.locator('#channel-info-btn');
-            const row = channelsPage.centerView.header.infoAttributes.visibleRow;
+            const labels = channelsPage.centerView.header.infoAttributes;
+            const row = labels.visibleRow;
 
             await expect(page.getByTestId('attributeChip').first()).toBeVisible();
             const wideX = (await infoButton.boundingBox())?.x ?? 0;
@@ -216,7 +217,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
             // layout and the icon row is not rendered at all.
             await page.setViewportSize({width: 800, height: 800});
 
-            await expect(page.getByTestId('channelAttributeLabelsOverflow-info')).toBeVisible();
+            await expect(labels.overflowButton).toBeVisible();
 
             // Fewer chips shown than exist, and the remainder is reachable.
             const shown = await page.getByTestId('attributeChip').count();
@@ -236,8 +237,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
             });
             expect(spill).toBeLessThanOrEqual(1);
 
-            await page.getByTestId('channelAttributeLabelsOverflow-info').click();
-            await expect(page.getByTestId('channelAttributeLabelsPopover-info')).toBeVisible();
+            await labels.openOverflow();
         } finally {
             await deleteAttributes(adminClient, created);
         }
@@ -343,8 +343,9 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
             await page.getByTestId('channelInfoAddAttributeButton').click();
             await page.getByText(optional.name, {exact: false}).last().click();
 
-            await page.getByTestId(`channelAttributeEdit-${optional.name}`).click();
-            await page.getByText('LATER', {exact: true}).click();
+            // A select lands as a closed row once added; open its menu to pick.
+            await page.getByTestId(`channelInfoAttributeEdit-${optional.name}`).click();
+            await page.getByRole('menuitem', {name: 'LATER', exact: true}).click();
 
             await expect(page.getByTestId(`channelInfoAttributeRow-${optional.name}`)).toContainText('LATER');
 
@@ -582,8 +583,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
             await channelsPage.toBeVisible();
 
             // The value stays in the database; only the surfaces disappear.
-            await expect(page.getByTestId('channelAttributeLabels-header')).toHaveCount(0);
-            await expect(page.getByTestId('channelAttributeLabels-info')).toHaveCount(0);
+            await expect(page.getByTestId('channelAttributeLabels-info-header')).toHaveCount(0);
             await expect(page.getByText('HIDDEN')).toHaveCount(0);
 
             await page.locator('#channel-info-btn').click();

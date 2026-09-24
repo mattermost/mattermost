@@ -6,6 +6,7 @@ import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useStat
 import {useIntl} from 'react-intl';
 
 import {CloseCircleIcon} from '@mattermost/compass-icons/components';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities/properties';
 import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
@@ -13,6 +14,7 @@ import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
 import type {BannerSegment} from './banner_template';
 import {attributeToken, parseBannerTemplate} from './banner_template';
 import BannerTokenControls from './banner_token_controls';
+import {unsetValueMessage} from './unset_value_indicator';
 
 import './banner_text_editor.scss';
 
@@ -168,6 +170,13 @@ const BannerTextEditor = ({value, attributes, onChange, lockedTokens, disabled, 
         }
         return byName;
     }, [attributes]);
+
+    // Known attributes with no value on this channel: their chips render nothing in
+    // the banner yet. A token for an attribute that no longer exists is not flagged,
+    // since no value can ever arrive for it.
+    const unset = useMemo(() => new Set(
+        attributes.filter((attribute) => !attribute.displayValue).map((attribute) => attribute.field.name),
+    ), [attributes]);
 
     const {segments} = snapshot;
 
@@ -357,12 +366,14 @@ const BannerTextEditor = ({value, attributes, onChange, lockedTokens, disabled, 
 
                         const label = labels.get(segment.name) ?? segment.name;
                         const isLocked = locked.has(segment.name);
+                        const isUnset = unset.has(segment.name);
 
-                        return (
+                        const chip = (
                             <span
                                 key={chipKeys[index]}
                                 className={classNames('BannerTextEditor__chip', {
                                     'BannerTextEditor__chip--locked': isLocked,
+                                    'BannerTextEditor__chip--unset': isUnset,
                                 })}
                                 contentEditable={false}
                                 data-token={segment.name}
@@ -386,6 +397,17 @@ const BannerTextEditor = ({value, attributes, onChange, lockedTokens, disabled, 
                                 )}
                             </span>
                         );
+
+                        // The tooltip clones the chip and portals out of the editor, so
+                        // it adds nothing to the text the editor serializes.
+                        return isUnset ? (
+                            <WithTooltip
+                                key={chipKeys[index]}
+                                title={formatMessage(unsetValueMessage)}
+                            >
+                                {chip}
+                            </WithTooltip>
+                        ) : chip;
                     })}
                 </div>
 

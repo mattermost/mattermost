@@ -435,4 +435,80 @@ describe('useChannelClassificationBanner — generic designated attributes', () 
 
         expect(result.current.bannerText).toBe('RESTRICTED · ALPHA');
     });
+
+    describe('classification colour', () => {
+        const classificationField = () => designatedField('classification', 'display_banner_top', [{id: 'secret', name: 'SECRET', color: '#c8102e'}], 0);
+        const programField = () => designatedField('program', 'display_banner_top', [{id: 'opt1', name: 'AURORA', color: '#1e325c'}], 1);
+
+        test('uses the classification colour while its token is in the banner text', () => {
+            const {result} = renderHookWithContext(
+                () => useChannelClassificationBanner(CHANNEL_ID),
+                makeState(
+                    [classificationField(), programField()],
+                    [value('classification', 'secret'), value('program', 'opt1')],
+                    {enabled: true, text: '{{classification}} · {{program}}', background_color: '#00ff00'},
+                ),
+            );
+
+            expect(result.current.classificationBanner?.background_color).toBe('#c8102e');
+        });
+
+        test('uses the classification colour on a channel that never authored banner text', () => {
+            const {result} = renderHookWithContext(
+                () => useChannelClassificationBanner(CHANNEL_ID),
+                makeState([classificationField()], [value('classification', 'secret')]),
+            );
+
+            expect(result.current.classificationBanner?.background_color).toBe('#c8102e');
+        });
+
+        test('hands the colour back to the channel once the classification token is removed', () => {
+            const {result} = renderHookWithContext(
+                () => useChannelClassificationBanner(CHANNEL_ID),
+                makeState(
+                    [classificationField(), programField()],
+                    [value('classification', 'secret'), value('program', 'opt1')],
+                    {enabled: true, text: '{{program}}', background_color: '#00ff00'},
+                ),
+            );
+
+            expect(result.current.bannerText).toBe('AURORA');
+            expect(result.current.classificationBanner?.background_color).toBe('#00ff00');
+        });
+    });
+
+    describe('banner toggle', () => {
+        const programField = (attrs: Record<string, unknown> = {}) => {
+            const f = designatedField('program', 'display_banner_top', [{id: 'opt1', name: 'AURORA', color: '#1e325c'}]);
+            return {...f, attrs: {...f.attrs, ...attrs}};
+        };
+
+        test('shows no banner once the channel switches its authored banner off', () => {
+            const {result} = renderHookWithContext(
+                () => useChannelClassificationBanner(CHANNEL_ID),
+                makeState([programField()], [value('program', 'opt1')], {enabled: false, text: '{{program}}', background_color: '#00ff00'}),
+            );
+
+            expect(result.current.hasClassification).toBe(false);
+            expect(result.current.classificationBanner).toBeUndefined();
+        });
+
+        test('still shows the designated default on a channel that never authored a banner', () => {
+            const {result} = renderHookWithContext(
+                () => useChannelClassificationBanner(CHANNEL_ID),
+                makeState([programField()], [value('program', 'opt1')], {enabled: false, background_color: '#00ff00'}),
+            );
+
+            expect(result.current.bannerText).toBe('AURORA');
+        });
+
+        test('keeps the banner when a required attribute mandates it', () => {
+            const {result} = renderHookWithContext(
+                () => useChannelClassificationBanner(CHANNEL_ID),
+                makeState([programField({required: true})], [value('program', 'opt1')], {enabled: false, text: '{{program}}', background_color: '#00ff00'}),
+            );
+
+            expect(result.current.bannerText).toBe('AURORA');
+        });
+    });
 });

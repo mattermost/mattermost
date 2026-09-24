@@ -184,8 +184,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
             await expect(page.getByTestId('attributeChip')).toHaveCount(0);
 
             await page.getByTestId(`channelInfoAttributeEdit-${required.name}`).click();
-            await page.getByTestId(`channelAttributeEdit-${required.name}`).click();
-            await page.getByText('RECOVERED', {exact: true}).click();
+            await page.getByRole('menuitem', {name: 'RECOVERED'}).click();
 
             await expect(row).toContainText('RECOVERED');
 
@@ -301,8 +300,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
             await channelsPage.toBeVisible();
             await page.goto(`/${team.name}/messages/@${other.username}`);
 
-            await expect(page.getByTestId('channelAttributeLabels-header')).toHaveCount(0);
-            await expect(page.getByTestId('channelAttributeLabels-info')).toHaveCount(0);
+            await expect(page.getByTestId('channelAttributeLabels-info-header')).toHaveCount(0);
             await expect(page.getByText('PRIVATE')).toHaveCount(0);
         } finally {
             await deleteAttributes(adminClient, created);

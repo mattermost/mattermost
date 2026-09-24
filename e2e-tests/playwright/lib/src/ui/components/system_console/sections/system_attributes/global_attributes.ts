@@ -10,10 +10,14 @@ export const CLASSIFICATION_ATTRIBUTE_PATH = `${GLOBAL_ATTRIBUTES_PATH}/classifi
 
 export type ChannelDisplayLocation = 'display_label_header' | 'display_banner_top';
 
+// The switch is a visually hidden checkbox under its <label>, which takes the
+// pointer, so the click goes to the label.
 async function setToggle(toggle: Locator, on: boolean) {
-    if (((await toggle.getAttribute('aria-pressed')) === 'true') !== on) {
-        await toggle.click();
+    if ((await toggle.isChecked()) !== on) {
+        const id = await toggle.getAttribute('id');
+        await toggle.page().locator(`label[for="${id}"]`).click();
     }
+    await expect(toggle).toBeChecked({checked: on});
 }
 
 /**

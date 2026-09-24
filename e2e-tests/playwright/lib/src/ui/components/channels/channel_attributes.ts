@@ -5,11 +5,10 @@ import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
 /**
- * Which of the channel header's two chip slots to address: 'header' is the row
- * under the channel name, 'info' the inline strip beside the member count. Each
- * slot carries its own test ids, since both can be on screen at once.
+ * The test-id suffix of a chip strip. The channel header renders the header and
+ * info designations as one merged strip, 'info-header'.
  */
-export type ChannelAttributeSurface = 'header' | 'info';
+export type ChannelAttributeSurface = 'header' | 'info' | 'info-header';
 
 /**
  * The attribute chips in one channel header slot.
@@ -73,16 +72,24 @@ export class ChannelInfoAttributes {
         return this.container.getByTestId(`channelInfoAttributeRow-${name}`);
     }
 
+    /**
+     * The displayed value. An editable text value renders as plain text inside its
+     * edit button; every other value, and a read-only text one, renders as a chip.
+     */
     chip(name: string) {
-        return this.row(name).getByTestId('attributeChip');
+        return this.row(name)
+            .getByTestId('attributeChip')
+            .or(this.editButton(name).locator('.ChannelInfoAttributes__textValue'));
     }
 
     editButton(name: string) {
         return this.row(name).getByTestId(`channelInfoAttributeEdit-${name}`);
     }
 
+    // Page-wide: a select's options render in a menu portalled to the body, outside
+    // the row. The test id is unique either way.
     editor(name: string) {
-        return this.row(name).getByTestId(`channelAttributeEdit-${name}`);
+        return this.container.page().getByTestId(`channelAttributeEdit-${name}`);
     }
 
     error(name: string) {
@@ -138,10 +145,17 @@ export class ChannelInfoAttributes {
         }
     }
 
+    /**
+     * editor(name) on a select field is the first menu option, not a combobox, so
+     * clicking it would pick that option. Options are picked by name instead.
+     */
     async select(name: string, option: string) {
         await this.startEditing(name);
-        await this.editor(name).click();
-        await this.container.page().getByText(option, {exact: true}).click();
+        await this.pickOption(option);
+    }
+
+    async pickOption(option: string) {
+        await this.container.page().getByRole('menuitem', {name: option, exact: true}).click();
     }
 
     /**
@@ -154,14 +168,21 @@ export class ChannelInfoAttributes {
             .click();
     }
 
+    /**
+     * A text attribute opens its input as soon as it is added; a select one lands as
+     * a closed "Not set" row, so its menu is opened here.
+     */
     async add(name: string, option?: string) {
         await this.addButton.click();
         await this.addMenuItem(name).click();
+        await expect(this.editor(name).or(this.unset(name))).toBeVisible();
+        if (!(await this.editor(name).isVisible())) {
+            await this.editButton(name).click();
+        }
         await expect(this.editor(name)).toBeVisible();
 
         if (option !== undefined) {
-            await this.editor(name).click();
-            await this.container.page().getByText(option, {exact: true}).click();
+            await this.pickOption(option);
         }
     }
 }

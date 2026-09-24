@@ -5,8 +5,6 @@ import classNames from 'classnames';
 import React, {useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {CloseCircleIcon} from '@mattermost/compass-icons/components';
-
 import {getContrastingSimpleColor} from 'mattermost-redux/utils/theme_utils';
 
 import './attribute_chip.scss';
@@ -37,37 +35,6 @@ type Props = {
     // chip's own background, not floating beside it.
     children?: React.ReactNode;
 };
-
-type RemoveButtonProps = {
-    onRemove: (event: React.MouseEvent) => void;
-    removeLabel: string;
-    disabled?: boolean;
-};
-
-export const AttributeChipRemoveButton = ({onRemove, removeLabel, disabled}: RemoveButtonProps) => (
-    <button
-        type='button'
-        className='AttributeChip__remove'
-        data-testid='attributeChipRemove'
-        aria-label={removeLabel}
-        disabled={disabled}
-        onMouseDown={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-        }}
-        onClick={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            event.nativeEvent.stopImmediatePropagation();
-            onRemove(event);
-        }}
-    >
-        <CloseCircleIcon
-            size={14}
-            aria-hidden={true}
-        />
-    </button>
-);
 
 /**
  * A single channel attribute value, rendered as a chip. The value is always text:

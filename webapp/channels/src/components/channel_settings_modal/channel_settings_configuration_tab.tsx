@@ -21,10 +21,10 @@ import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles'
 import {getRemotesForChannel} from 'mattermost-redux/selectors/entities/shared_channels';
 
 import {ColorSwatch, LevelOptionLabel} from 'components/admin_console/classification_markings/classification_markings_styled';
-import {CLASSIFICATIONS_CHANNEL_OBJECT_TYPE} from 'components/admin_console/classification_markings/utils';
+import {CLASSIFICATIONS_CHANNEL_FIELD_NAME, CLASSIFICATIONS_CHANNEL_OBJECT_TYPE} from 'components/admin_console/classification_markings/utils';
 import {classificationPresetDropdownStyles} from 'components/admin_console/classification_markings/utils/preset_dropdown_styles';
 import BannerPreview from 'components/channel_attributes/banner_preview';
-import {isBlankTemplate, withRequiredTokens} from 'components/channel_attributes/banner_template';
+import {hasAttributeToken, isBlankTemplate, renderBannerTemplate, withRequiredTokens} from 'components/channel_attributes/banner_template';
 import BannerTextEditor from 'components/channel_attributes/banner_text_editor';
 import ColorInput from 'components/color_input';
 import useChannelAttributes from 'components/common/hooks/useChannelAttributes';
@@ -135,26 +135,26 @@ function ChannelSettingsConfigurationTab({
 
     const rawBannerInfo = channel.banner_info || DEFAULT_CHANNEL_BANNER;
 
-    // Seed designated tokens only when the channel has no banner text yet. An
-    // existing template is the author's, including deliberate removals.
+    // Seed designated tokens only when the channel has never written banner text.
+    // A saved empty string is a deliberate removal and must not be refilled.
+    const bannerTextNeverAuthored = typeof channel.banner_info?.text !== 'string';
     const initialBannerInfo = useMemo(() => {
-        if (!channelAttributesEnabled || defaultBannerTokens.length === 0 || (rawBannerInfo.text ?? '').trim()) {
+        if (!channelAttributesEnabled || defaultBannerTokens.length === 0 || !bannerTextNeverAuthored) {
             return rawBannerInfo;
         }
         return {...rawBannerInfo, text: withRequiredTokens('', defaultBannerTokens)};
-    }, [channelAttributesEnabled, defaultBannerTokens, rawBannerInfo]);
+    }, [channelAttributesEnabled, defaultBannerTokens, rawBannerInfo, bannerTextNeverAuthored]);
 
     const [showBannerTextPreview, setShowBannerTextPreview] = useState(false);
     const [updatedChannelBanner, setUpdatedChannelBanner] = useState(initialBannerInfo);
     const [characterLimitExceeded, setCharacterLimitExceeded] = useState(false);
-    const hasBannerChanges = bannerHasChanges(initialBannerInfo, updatedChannelBanner);
 
     // The fields load after mount, so the initial state above may have been built
     // before there were any tokens to seed. Once only, and only while the text is
     // still empty: after that the text is the author's.
     const seededTokensRef = useRef(false);
     useEffect(() => {
-        if (seededTokensRef.current || !channelAttributesEnabled || defaultBannerTokens.length === 0) {
+        if (seededTokensRef.current || !channelAttributesEnabled || defaultBannerTokens.length === 0 || !bannerTextNeverAuthored) {
             return;
         }
         seededTokensRef.current = true;
@@ -164,7 +164,7 @@ function ChannelSettingsConfigurationTab({
             }
             return {...prev, text: withRequiredTokens('', defaultBannerTokens)};
         });
-    }, [channelAttributesEnabled, defaultBannerTokens]);
+    }, [channelAttributesEnabled, defaultBannerTokens, bannerTextNeverAuthored]);
 
     const classificationBanner = useChannelClassificationBanner(channel.id);
 
@@ -185,9 +185,23 @@ function ChannelSettingsConfigurationTab({
     // it. Flag off keeps the shipped lock.
     const bannerLockedByClassification = !channelAttributesEnabled && classificationEnabled && Boolean(selectedClassificationId);
 
-    // When classification is banner-designated its level colour is authoritative:
-    // the picker is locked so the channel cannot override it.
+    // Classification's level colour is authoritative only while classification is
+    // on the banner: designated, valued on this channel, and its token still in the
+    // text being edited. Removing the token hands the colour back to the channel.
     const classificationIsBannerDesignated = classificationBanner.classificationIsBannerDesignated;
+    const classificationBannerColor = useMemo(() => {
+        if (!classificationIsBannerDesignated) {
+            return undefined;
+        }
+        const resolved = resolvedAttributes.find((attr) => attr.field.name === CLASSIFICATIONS_CHANNEL_FIELD_NAME);
+        return resolved?.displayValue ? resolved.option?.color : undefined;
+    }, [classificationIsBannerDesignated, resolvedAttributes]);
+    const bannerColorLockedByClassification = Boolean(classificationBannerColor) &&
+        hasAttributeToken(updatedChannelBanner.text ?? '', CLASSIFICATIONS_CHANNEL_FIELD_NAME);
+
+    // Nothing to colour: the text resolves to nothing, so no banner would show.
+    const bannerWillNotDisplay = channelAttributesEnabled &&
+        !renderBannerTemplate(updatedChannelBanner.text ?? '', resolvedAttributes).trim();
 
     // An attribute-designated banner renders off the property value, so banner_info
     // stays disabled by design. The section still has to read as on, or the toggle
@@ -214,6 +228,18 @@ function ChannelSettingsConfigurationTab({
         updatedChannelBanner.enabled ||
         (bannerDrivenByAttribute && !bannerToggleTouched);
 
+    // With channel attributes on, what gets compared and saved is the toggle as
+    // shown: an attribute-driven banner reads as on while banner_info.enabled is
+    // still false, so switching it off moves nothing in form state, and an edit
+    // saved without touching the toggle would store the banner as off.
+    const initialBannerSectionOn = bannerLockedByClassification ||
+        bannerRequiredByAttribute ||
+        Boolean(initialBannerInfo.enabled) ||
+        bannerDrivenByAttribute;
+    const hasBannerChanges = channelAttributesEnabled ? (
+        bannerHasChanges({...initialBannerInfo, enabled: initialBannerSectionOn}, {...updatedChannelBanner, enabled: bannerSectionOn})
+    ) : bannerHasChanges(initialBannerInfo, updatedChannelBanner);
+
     // Shown rather than stored: seeding it into form state would open the tab dirty.
     const attributeBannerColor = bannerDrivenByAttribute ? classificationBanner.classificationBanner?.background_color : undefined;
 
@@ -226,8 +252,8 @@ function ChannelSettingsConfigurationTab({
     let previewBackgroundColor: string | undefined;
     if (bannerLockedByClassification) {
         previewBackgroundColor = selectedClassificationColor || undefined;
-    } else if (classificationIsBannerDesignated) {
-        previewBackgroundColor = classificationBanner.classificationBanner?.background_color || undefined;
+    } else if (bannerColorLockedByClassification) {
+        previewBackgroundColor = classificationBannerColor;
     } else {
         previewBackgroundColor = updatedChannelBanner.background_color || attributeBannerColor || undefined;
     }
@@ -257,8 +283,14 @@ function ChannelSettingsConfigurationTab({
         classificationId: classificationBanner.classificationId || '',
     }), [classificationBanner.hasClassification, classificationBanner.classificationId]);
 
-    const hasClassificationChanges = classificationEnabled !== initialClassificationState.enabled ||
-        (classificationEnabled && selectedClassificationId !== initialClassificationState.classificationId);
+    // Only an edit while the classification section is shown. With channel
+    // attributes on it is hidden, and hasClassification then tracks the attribute
+    // banner, which flips as values load and saves land: counting that would hold
+    // the tab dirty, and the save panel only reopens on a clean-to-dirty change.
+    const hasClassificationChanges = canManageClassification && (
+        classificationEnabled !== initialClassificationState.enabled ||
+        (classificationEnabled && selectedClassificationId !== initialClassificationState.classificationId)
+    );
 
     const handleClassificationToggle = useCallback(() => {
         setClassificationEnabled((prev) => {
@@ -549,9 +581,12 @@ function ChannelSettingsConfigurationTab({
         // would reject this payload with a 400, so this is also the last gate.
         // A template of unset tokens is not empty -- it is the banner waiting
         // for a value.
+        // Validated against what will be stored: with attributes on, the banner can
+        // read as on through an attribute while banner_info.enabled is still false.
+        const bannerEnabledOnSave = channelAttributesEnabled ? bannerSectionOn : updatedChannelBanner.enabled;
         const bannerText = updatedChannelBanner.text ?? '';
         const bannerTextInvalid = channelAttributesEnabled ? isBlankTemplate(bannerText) : !bannerText.trim();
-        if ((updatedChannelBanner.enabled || bannerRequiredByAttribute) && bannerTextInvalid) {
+        if (bannerEnabledOnSave && bannerTextInvalid) {
             // Naming the toggle as the way out is only honest while it can be reached.
             const canTurnBannerOff = channelAttributesEnabled && !bannerLockedByClassification && !bannerRequiredByAttribute;
             setFormError(canTurnBannerOff ? formatMessage({
@@ -574,12 +609,12 @@ function ChannelSettingsConfigurationTab({
 
         const updated: Partial<Channel> = {};
 
-        if (bannerHasChanges(initialBannerInfo, updatedChannelBanner)) {
+        if (hasBannerChanges) {
             updated.banner_info = {
+                ...(updatedChannelBanner.attribute_banner_disabled !== undefined && {attribute_banner_disabled: updatedChannelBanner.attribute_banner_disabled}),
                 text: updatedChannelBanner.text?.trim() || '',
                 background_color: updatedChannelBanner.background_color?.trim() || '',
-                enabled: updatedChannelBanner.enabled,
-                ...(updatedChannelBanner.attribute_banner_disabled !== undefined && {attribute_banner_disabled: updatedChannelBanner.attribute_banner_disabled}),
+                enabled: bannerEnabledOnSave,
             };
         }
 
@@ -698,6 +733,7 @@ function ChannelSettingsConfigurationTab({
         canManageClassification,
         canManageSharedChannels,
         canManageJoinLeaveMessages,
+        bannerSectionOn,
         channel,
         channelAttributesEnabled,
         classification.channelField,
@@ -734,17 +770,22 @@ function ChannelSettingsConfigurationTab({
         isSavingRef.current = true;
         setIsSaving(true);
         try {
+            const savedBannerEnabled = hasBannerChanges && channelAttributesEnabled ? bannerSectionOn : undefined;
             const success = await handleSave();
             if (!success) {
                 setSaveChangesPanelState('error');
                 return;
             }
 
-            // Update local state with trimmed values after successful save
+            // Update local state with trimmed values after successful save. With
+            // attributes on, enabled is synced to what was stored: the section can
+            // read as on through the attribute alone, and once the stored banner
+            // stops being attribute-driven it would fall back to a stale false.
             setUpdatedChannelBanner((prev) => ({
                 ...prev,
                 text: prev.text?.trim() || '',
                 background_color: prev.background_color?.trim() || '',
+                enabled: savedBannerEnabled ?? prev.enabled,
             }));
 
             resetFormErrors();
@@ -753,7 +794,7 @@ function ChannelSettingsConfigurationTab({
             isSavingRef.current = false;
             setIsSaving(false);
         }
-    }, [handleSave, resetFormErrors]);
+    }, [bannerSectionOn, channelAttributesEnabled, handleSave, hasBannerChanges, resetFormErrors]);
 
     const handleSaveChanges = useCallback(async () => {
         if (canManageSharedChannels && hasWorkspaceChanges) {
@@ -1027,7 +1068,7 @@ function ChannelSettingsConfigurationTab({
                                         id='channel_banner_banner_background_color_picker'
                                         onChange={handleBannerColorChange}
                                         value={previewBackgroundColor ?? ''}
-                                        isDisabled={bannerLockedByClassification || classificationIsBannerDesignated}
+                                        isDisabled={bannerLockedByClassification || bannerColorLockedByClassification || bannerWillNotDisplay}
                                     />
                                 </div>
                             </div>

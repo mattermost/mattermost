@@ -25,6 +25,15 @@ export function hasAttributeTokens(text: string): boolean {
     return tokenPattern().test(text);
 }
 
+export function hasAttributeToken(text: string, fieldName: string): boolean {
+    for (const match of text.matchAll(tokenPattern())) {
+        if (match[1] === fieldName) {
+            return true;
+        }
+    }
+    return false;
+}
+
 export type BannerSegment = {type: 'text'; text: string} | {type: 'token'; name: string};
 
 /**
@@ -166,9 +175,12 @@ export function withRequiredTokens(template: string, fieldNames: string[]): stri
 }
 
 // Token name plus the label to show for it. Callers decide which attributes to offer.
-export function tokenSuggestions(attributes: ResolvedChannelAttribute[]): Array<{name: string; label: string}> {
+export function tokenSuggestions(attributes: ResolvedChannelAttribute[]): Array<{name: string; label: string; value: string}> {
     return attributes.map((attribute) => ({
         name: attribute.field.name,
         label: getPropertyFieldLabel(attribute.field),
+
+        // This channel's value, empty when unset: an unset token renders nothing.
+        value: attribute.displayValue,
     }));
 }

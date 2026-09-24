@@ -83,6 +83,42 @@ const ATTRIBUTES = [
 ];
 
 describe('BannerTextEditor', () => {
+    test('tints a chip whose attribute has no value on this channel, and only that one', () => {
+        renderWithContext(
+            <BannerTextEditor
+                value='{{classification}} · {{program}} · {{deleted}}'
+                attributes={[attribute('classification', '', 'Classification'), attribute('program', 'AURORA', 'Program')]}
+                onChange={jest.fn()}
+            />,
+        );
+
+        expect(screen.getByTestId('bannerTextEditorChip-classification')).toHaveClass('BannerTextEditor__chip--unset');
+        expect(screen.getByTestId('bannerTextEditorChip-program')).not.toHaveClass('BannerTextEditor__chip--unset');
+
+        // An attribute that no longer exists can never get a value, so it is not flagged.
+        expect(screen.getByTestId('bannerTextEditorChip-deleted')).not.toHaveClass('BannerTextEditor__chip--unset');
+    });
+
+    test('explains an unset chip on hover without changing the text it saves', async () => {
+        const onChange = jest.fn();
+        renderWithContext(
+            <BannerTextEditor
+                value='{{classification}}'
+                attributes={[attribute('classification', '', 'Classification')]}
+                onChange={onChange}
+            />,
+        );
+
+        await userEvent.hover(screen.getByTestId('bannerTextEditorChip-classification'));
+        expect(await screen.findByText(/has no value set and won't render in the banner/)).toBeInTheDocument();
+
+        const editor = screen.getByTestId('bannerTextEditor');
+        editor.appendChild(document.createTextNode(' - Team'));
+        fireEvent.input(editor);
+
+        expect(onChange).toHaveBeenLastCalledWith('{{classification}} - Team');
+    });
+
     test('renders a token as a chip labelled with the display name, not the machine name', () => {
         renderWithContext(
             <BannerTextEditor

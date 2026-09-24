@@ -33,7 +33,10 @@ type Props = {
  */
 const BannerPreview = ({template, attributes, backgroundColor}: Props) => {
     const {formatMessage} = useIntl();
-    const rendered = useMemo(() => renderBannerTemplate(template, attributes), [template, attributes]);
+
+    // Trimmed as channel_banner.tsx does: unresolved tokens can leave only the
+    // whitespace between them, which renders as an empty strip, not a banner.
+    const rendered = useMemo(() => renderBannerTemplate(template, attributes).trim(), [template, attributes]);
 
     const style = useMemo(() => {
         if (!backgroundColor) {
@@ -42,7 +45,7 @@ const BannerPreview = ({template, attributes, backgroundColor}: Props) => {
         return {backgroundColor, color: getContrastingSimpleColor(backgroundColor)};
     }, [backgroundColor]);
 
-    if (!rendered.trim()) {
+    if (!rendered) {
         return (
             <div
                 className='BannerPreviewSection'

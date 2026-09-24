@@ -459,7 +459,7 @@ describe('useChannelClassificationBanner', () => {
 
             const {result} = renderHookWithContext(
                 () => useChannelClassificationBanner(CHANNEL_ID),
-                designatedState({enabled: false, text: '{{marking}}', background_color: '#ED1010'}),
+                designatedState({enabled: true, text: '{{marking}}', background_color: '#ED1010'}),
             );
 
             expect(result.current.classificationBanner?.background_color).toBe('#ED1010');

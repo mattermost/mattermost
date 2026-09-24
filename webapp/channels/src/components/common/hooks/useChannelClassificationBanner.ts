@@ -25,7 +25,7 @@ import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities
 import {getChannelAttributeFields, getChannelBannerFields, getPropertyValueForTargetField, makeGetResolvedChannelAttributes} from 'mattermost-redux/selectors/entities/properties';
 
 import {CLASSIFICATIONS_CHANNEL_FIELD_NAME, CLASSIFICATIONS_CHANNEL_OBJECT_TYPE} from 'components/admin_console/classification_markings/utils';
-import {renderBannerTemplate} from 'components/channel_attributes/banner_template';
+import {hasAttributeToken, renderBannerTemplate} from 'components/channel_attributes/banner_template';
 
 import {isMinimumEnterpriseAdvancedLicense} from 'utils/license_utils';
 
@@ -252,6 +252,15 @@ export default function useChannelClassificationBanner(channelId: string): Chann
             // leftover literal text may remain). Only channels with no text key yet
             // fall back to joining whatever still has a value.
             const authoredText = channelBannerInfo?.text;
+
+            // Switched off by the channel, unless a required attribute mandates the
+            // banner. enabled alone cannot say this: a channel that never authored a
+            // banner carries false and still shows the designated default.
+            const bannerRequired = designatedFields.some((field) => Boolean(field.attrs?.required));
+            if (typeof authoredText === 'string' && !channelBannerInfo?.enabled && !bannerRequired) {
+                return {...noBanner, classificationIsBannerDesignated};
+            }
+
             let bannerText: string;
             if (typeof authoredText === 'string') {
                 bannerText = authoredText ? renderBannerTemplate(authoredText, templateAttributes) : '';
@@ -265,19 +274,25 @@ export default function useChannelClassificationBanner(channelId: string): Chann
                 return {...noBanner, classificationIsBannerDesignated};
             }
 
-            // Classification colour wins unconditionally: it is locked at the UI level
-            // so authored background_color is never written when classification is
-            // designated. Otherwise an authored colour takes priority, and only a
-            // single contributing attribute can otherwise speak for the banner.
+            // Classification colour wins while classification is actually on the
+            // banner: it has a value here and, for an authored template, its token is
+            // still in it. Once the channel removes the token the colour is theirs.
+            // Otherwise an authored colour takes priority, and only a single
+            // contributing attribute can otherwise speak for the banner.
+            const classificationContribution = contributions.find((resolved) => resolved.field.name === CLASSIFICATIONS_CHANNEL_FIELD_NAME);
+            const classificationColor = classificationContribution?.option?.color;
+            const classificationInBanner = Boolean(classificationColor) &&
+                (typeof authoredText !== 'string' || hasAttributeToken(authoredText, CLASSIFICATIONS_CHANNEL_FIELD_NAME));
+
             let backgroundColor: string;
             let classificationId: string | undefined;
-            if (classificationIsBannerDesignated) {
-                const classificationContribution = contributions.find((resolved) => resolved.field.name === CLASSIFICATIONS_CHANNEL_FIELD_NAME);
-                backgroundColor = classificationContribution?.option?.color || channelBannerInfo?.background_color || DEFAULT_BANNER_COLOR;
+            if (classificationInBanner) {
+                backgroundColor = classificationColor || DEFAULT_BANNER_COLOR;
                 classificationId = classificationContribution?.value?.value as string | undefined;
             } else {
+                const colorContributions = contributions.filter((resolved) => resolved !== classificationContribution);
                 const authoredColor = channelBannerInfo?.background_color;
-                backgroundColor = authoredColor || (contributions.length === 1 ? contributions[0].option?.color : undefined) || DEFAULT_BANNER_COLOR;
+                backgroundColor = authoredColor || (colorContributions.length === 1 ? colorContributions[0].option?.color : undefined) || DEFAULT_BANNER_COLOR;
                 classificationId = contributions.length === 1 ? contributions[0].value?.value as string | undefined : undefined;
             }
 

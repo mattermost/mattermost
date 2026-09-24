@@ -72,6 +72,19 @@ describe('BannerPreview', () => {
         );
     });
 
+    // Two tokens that resolve to nothing leave the space between them behind.
+    test('shows the empty notice when unresolved tokens leave only whitespace', () => {
+        renderWithContext(
+            <BannerPreview
+                template='{{graph_option}} {{classification}}'
+                attributes={[]}
+            />,
+        );
+
+        expect(screen.queryByTestId('bannerAttributePreview')).not.toBeInTheDocument();
+        expect(screen.getByTestId('bannerPreviewEmptyNotice')).toBeInTheDocument();
+    });
+
     test('hides the empty notice once the template resolves to text', () => {
         renderWithContext(
             <BannerPreview
