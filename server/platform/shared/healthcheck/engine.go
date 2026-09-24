@@ -10,7 +10,10 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
-const ReasonRulePanicked = "health.reason.rule_panicked"
+var (
+	ReasonRulePanicked      = TranslationId("health.reason.rule_panicked")
+	ReasonConfigUnavailable = TranslationId("health.reason.config_unavailable")
+)
 
 // Evaluation names its rule by Code rather than copying the rule's metadata, which would be a second, staleable source of severity/area/surface.
 type Evaluation struct {

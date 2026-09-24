@@ -30,9 +30,9 @@ type HealthFinding struct {
 	// Details is render context and doubles as the interpolation params for MessageID.
 	Details map[string]string `json:"details,omitempty"`
 
-	// Summary, Remediation and Message are filled only at the API/mmctl boundary from the
+	// Title, Remediation and Message are filled only at the API/mmctl boundary from the
 	// request locale; they are always empty in a store result.
-	Summary     string `json:"summary,omitempty"`
+	Title       string `json:"title,omitempty"`
 	Remediation string `json:"remediation,omitempty"`
 	Message     string `json:"message,omitempty"`
 
@@ -73,7 +73,7 @@ func (f *HealthFinding) Render(t i18n.TranslateFunc, text RuleText) *HealthFindi
 	}
 
 	rendered := *f
-	rendered.Summary = translateFindingText(t, text.SummaryID, args)
+	rendered.Title = translateFindingText(t, text.TitleID, args)
 	rendered.Remediation = translateFindingText(t, text.RemediationID, args)
 	rendered.Message = translateFindingText(t, f.MessageID, args)
 
