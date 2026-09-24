@@ -101,6 +101,9 @@ type Channels struct {
 	postReminderTask  leaderTask
 	scheduledPostTask leaderTask
 
+	healthCheck     *HealthCheckService
+	healthCheckTask leaderTask
+
 	interruptQuitChan chan struct{}
 }
 
@@ -113,6 +116,7 @@ func NewChannels(s *Server) (*Channels, error) {
 		exportFilestore:   s.ExportFileBackend(),
 		cfgSvc:            s.Platform(),
 		interruptQuitChan: make(chan struct{}),
+		healthCheck:       NewHealthCheckService(s.Store(), s.Log()),
 	}
 	ch.guardCache.Store(&sync.Map{})
 
@@ -327,6 +331,7 @@ func (ch *Channels) Stop() error {
 	ch.dndTask.stop()
 	ch.postReminderTask.stop()
 	ch.scheduledPostTask.stop()
+	ch.healthCheckTask.stop()
 
 	close(ch.interruptQuitChan)
 
