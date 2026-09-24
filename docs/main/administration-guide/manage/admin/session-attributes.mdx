@@ -15,13 +15,57 @@ Session attributes can only be used in permission policies, not membership polic
 
 </Note>
 
-## Prerequisites
+## How session attributes work
+
+### Collection
+
+Session attributes come from two sources:
+
+- **Server-derived attributes** are measured by the Mattermost server from the request itself: the connection's IP address and the `User-Agent` header.
+- **Client-reported attributes** are collected by the Desktop App or mobile app using native operating system APIs and sent to the server in an `X-MM-Session-Attributes` request header.
+
+Clients only collect what you've enabled. When a client connects, the server tells it which attributes apply to its platform and how often to refresh each one. The server ignores any value it doesn't expect, such as one for a disabled attribute or for an attribute that platform can't support.
+
+Reported values are held in the session's in-memory cache. They aren't written to the database, aren't included in compliance exports, and are discarded when the user logs out or the session is revoked or expires.
+
+### Platform availability
+
+Not every client can report every attribute. The **Platforms** column in the System Console and in the [Session attribute reference](#session-attribute-reference) shows which clients support each one.
+
+- **Web browsers** can't report device or network attributes such as `os_platform`, `vpn_active`, or `client_ip_address`, because a browser can't access the operating system APIs needed to measure them. If you only want to allow managed desktop and mobile clients, this is the desired behavior. If you want to check posture only where it can be measured, write the rule so browser sessions are handled deliberately.
+- **Desktop** native device and network collection is only implemented on Windows and macOS. These attributes are absent on desktop sessions on other platforms.
+- **Mobile** users are prompted for location access when `ssid` is enabled, because iOS and Android put Wi-Fi network information behind that permission. Mattermost only reads the current network's name and doesn't collect device location, but a user who declines reports no SSID and is denied by any rule that requires it. See [Session attribute collection](/deployment-guide/mobile/mobile-security-features#session-attribute-collection).
+
+### TTL and grace period
+
+Each attribute has two timers that control how fresh its value must be:
+
+- **TTL (time-to-live)**: How long a client waits before reporting the attribute again. A short TTL keeps the value current at the cost of slightly larger requests; a long TTL reduces overhead but lets the value go stale.
+- **Grace period**: How long after the TTL elapses Mattermost still uses the last reported value. Once TTL plus grace period passes without a fresh report, the attribute is treated as absent and rules referencing it deny access.
+
+Defaults vary by attribute; see the [Session attribute reference](#session-attribute-reference). Both timers offer presets of 15 seconds, 30 seconds, 1 minute, 5 minutes, 1 hour, and 24 hours. Server-derived attributes aren't affected by these timers, because Mattermost measures them on every request.
+
+<Tip>
+
+Grace periods absorb brief network interruptions. A very short grace period can intermittently deny users on unstable connections while their client catches up.
+
+</Tip>
+
+### Privacy
+
+Collection is opt-in on the server and on by default in the client. No attribute is collected unless a System Admin enables it.
+
+Desktop App users can stop reporting attributes by clearing **Settings \> Advanced \> Enable session attributes**, after which any rule that depends on a client-reported attribute denies that user. While the setting is enabled, the Desktop App shows users every attribute it can collect and the value it currently reports. See [Session attribute collection](/deployment-guide/desktop/desktop-app-deployment#session-attribute-collection) for how to communicate this to your users.
+
+## Set up session attributes
+
+### Prerequisites
 
 - A Mattermost Enterprise Advanced license.
 - [Attribute-based access control](/administration-guide/manage/admin/attribute-based-access-control) must be enabled in **System Console \> System Attributes \> Attribute-Based Access**.
 - Client-reported attributes require Mattermost Desktop App v6.3 or later, or Mattermost mobile app v2.44 or later. Web browsers and older apps can only report a subset of attributes. See [Platform availability](#platform-availability).
 
-## Set up session attributes
+### Steps
 
 1. **Enable the attributes you need.** In the System Console, go to **System Attributes \> Session Attributes**. Every attribute is disabled by default. For each attribute you plan to use, select **More** <img src={useBaseUrl('/img/ui/dots-horizontal_F01D8.svg')} alt="Use the More icon to access additional message options." className="theme-icon" />, then select **Enable**.
 2. **Adjust the timers (optional).** From the same **More** menu, you can change how often clients report the attribute and how long a reported value stays usable. See [TTL and grace period](#ttl-and-grace-period).
@@ -29,7 +73,7 @@ Session attributes can only be used in permission policies, not membership polic
 4. **Simulate access.** Use [Simulate access](#simulate-access-with-session-attributes) to check the result for real users on the clients they actually use.
 5. **Save the policy.**
 
-## Before you write a rule
+### Before you write a rule
 
 - **A missing attribute denies access.** If a rule references an attribute the session doesn't have, the user is denied. This applies whether the attribute was never reported, is disabled, isn't supported on the user's client, or has gone stale past its TTL and grace period. This is deliberate: otherwise a rule such as `user.session.jailbreak_detected != "true"` would pass for any client that omits the attribute, including one that omits it on purpose.
 - **Every rule is also a client requirement.** Web browsers can't report device or network attributes, so a rule using one of them denies all browser users, including users of the web app. For example:
@@ -40,6 +84,12 @@ Session attributes can only be used in permission policies, not membership polic
 - **Boolean values are strings.** `vpn_active`, `mdm_enrolled`, and `jailbreak_detected` are reported as the strings `"true"` and `"false"`, so compare them as strings: `user.session.mdm_enrolled == "true"`.
 - **Disabling an attribute breaks rules that use it.** Mattermost blocks saving a policy that references a disabled or unknown attribute, but disabling an attribute that an existing policy already uses doesn't invalidate that policy. The policy then denies everyone.
 - **Client-reported values are self-attested.** Treat them as posture signals rather than proof. See [Can users spoof session attributes?](#can-users-spoof-session-attributes).
+
+### Simulate access with session attributes
+
+[Simulate access](/administration-guide/manage/admin/abac-system-wide-policies#simulate-access) evaluates draft policies against selected users before you save. When the rules reference `user.session.*` and the selected user has no cached session attributes, Mattermost shows a neutral **No recent session** result instead of allow or deny.
+
+**No recent session** means there was no session data to evaluate, not that the user would be denied. It usually means the user hasn't connected recently from a client that reports the attributes your rules use. Have the user connect from the client you're targeting, then re-run the simulation.
 
 ## Write session attribute rules
 
@@ -103,12 +153,6 @@ When `ServiceSettings.TrustedProxyIPHeader` is configured, Mattermost takes `ip_
 
 </Warning>
 
-## Simulate access with session attributes
-
-[Simulate access](/administration-guide/manage/admin/abac-system-wide-policies#simulate-access) evaluates draft policies against selected users before you save. When the rules reference `user.session.*` and the selected user has no cached session attributes, Mattermost shows a neutral **No recent session** result instead of allow or deny.
-
-**No recent session** means there was no session data to evaluate, not that the user would be denied. It usually means the user hasn't connected recently from a client that reports the attributes your rules use. Have the user connect from the client you're targeting, then re-run the simulation.
-
 ## Session attribute reference
 
 The **Session Attributes** list in the System Console shows each attribute's name, type, supported platforms, TTL, grace period, and status. Attributes marked **Server** are measured by the Mattermost server rather than reported by the client.
@@ -134,48 +178,6 @@ The **Session Attributes** list in the System Console shows each attribute's nam
 | `tls_device_id` | A device identity asserted by your reverse proxy, typically derived from a client TLS certificate. | Desktop, browser | Read from the `X-Mattermost-Session-Attribute-Device-Id` header, and only when `TrustProxyDeviceIdentityHeader` is enabled. Any caller that can set that header can set this value, so it's only trustworthy when clients can't bypass your proxy - see [Trust proxy device identity header](#trust-proxy-device-identity-header). | 300s / 300s |
 | `server_fqdn` | The hostname of the Mattermost server the client is connected to. Useful when a client connects to multiple servers. | Desktop, mobile | Derived by the client from the configured server URL. | 300s / 300s |
 | `client_fqdn` | The device's own fully qualified domain name. | Desktop | macOS: local hostname combined with the primary DNS search domain. Windows: `GetComputerNameExW`. | 300s / 300s |
-
-## How session attributes work
-
-### Collection
-
-Session attributes come from two sources:
-
-- **Server-derived attributes** are measured by the Mattermost server from the request itself: the connection's IP address and the `User-Agent` header.
-- **Client-reported attributes** are collected by the Desktop App or mobile app using native operating system APIs and sent to the server in an `X-MM-Session-Attributes` request header.
-
-Clients only collect what you've enabled. When a client connects, the server tells it which attributes apply to its platform and how often to refresh each one. The server ignores any value it doesn't expect, such as one for a disabled attribute or for an attribute that platform can't support.
-
-Reported values are held in the session's in-memory cache. They aren't written to the database, aren't included in compliance exports, and are discarded when the user logs out or the session is revoked or expires.
-
-### Platform availability
-
-Not every client can report every attribute. The **Platforms** column in the System Console and in the [Session attribute reference](#session-attribute-reference) shows which clients support each one.
-
-- **Web browsers** can't report device or network attributes such as `os_platform`, `vpn_active`, or `client_ip_address`, because a browser can't access the operating system APIs needed to measure them. If you only want to allow managed desktop and mobile clients, this is the desired behavior. If you want to check posture only where it can be measured, write the rule so browser sessions are handled deliberately.
-- **Desktop** native device and network collection is only implemented on Windows and macOS. These attributes are absent on desktop sessions on other platforms.
-- **Mobile** users are prompted for location access when `ssid` is enabled, because iOS and Android put Wi-Fi network information behind that permission. Mattermost only reads the current network's name and doesn't collect device location, but a user who declines reports no SSID and is denied by any rule that requires it. See [Session attribute collection](/deployment-guide/mobile/mobile-security-features#session-attribute-collection).
-
-### TTL and grace period
-
-Each attribute has two timers that control how fresh its value must be:
-
-- **TTL (time-to-live)**: How long a client waits before reporting the attribute again. A short TTL keeps the value current at the cost of slightly larger requests; a long TTL reduces overhead but lets the value go stale.
-- **Grace period**: How long after the TTL elapses Mattermost still uses the last reported value. Once TTL plus grace period passes without a fresh report, the attribute is treated as absent and rules referencing it deny access.
-
-Defaults vary by attribute; see the [Session attribute reference](#session-attribute-reference). Both timers offer presets of 15 seconds, 30 seconds, 1 minute, 5 minutes, 1 hour, and 24 hours. Server-derived attributes aren't affected by these timers, because Mattermost measures them on every request.
-
-<Tip>
-
-Grace periods absorb brief network interruptions. A very short grace period can intermittently deny users on unstable connections while their client catches up.
-
-</Tip>
-
-### Privacy
-
-Collection is opt-in on the server and on by default in the client. No attribute is collected unless a System Admin enables it.
-
-Desktop App users can stop reporting attributes by clearing **Settings \> Advanced \> Enable session attributes**, after which any rule that depends on a client-reported attribute denies that user. While the setting is enabled, the Desktop App shows users every attribute it can collect and the value it currently reports. See [Session attribute collection](/deployment-guide/desktop/desktop-app-deployment#session-attribute-collection) for how to communicate this to your users.
 
 ## Configuration settings
 
