@@ -40,7 +40,7 @@ type Props = {
 
     stats?: AnalyticsState;
     actions: {
-        getPrevTrialLicense: () => void;
+        tryGetPrevTrialLicense: () => void;
         getCloudSubscription: () => void;
         openModal: <P>(modalData: ModalData<P>) => void;
     };
@@ -72,7 +72,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
     }
 
     componentDidMount() {
-        this.props.actions.getPrevTrialLicense();
+        this.props.actions.tryGetPrevTrialLicense();
     }
 
     contactSalesFunc = () => {
