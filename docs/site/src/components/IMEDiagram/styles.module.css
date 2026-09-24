@@ -160,11 +160,14 @@
   font-family: var(--mm-font-sans);
   font-weight: 800;
   font-size: 0.62rem;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   writing-mode: vertical-rl;
   transform: rotate(180deg);
-  padding: 0.85rem 0;
+  /* Small vertical padding — anything larger forces the row taller
+   * than the tile content on short lanes (notably Use Cases), which
+   * shows up as extra white space below the tiles. */
+  padding: 0.15rem 0;
 }
 
 .layerBody {
@@ -276,12 +279,12 @@
 .layer_use-cases .cellGrid {
   gap: 0.6rem;
 }
-/* Shrink the padding between the marigold banner rule and the first
- * (tinted) Use Cases row. The default .layerBody top padding read
- * as a visible white frame here because the tiles use denim-50 while
- * later lanes use white tiles that blend into the layer background. */
+/* Use Cases tiles are tinted (denim-50) so the default .layerBody
+ * padding reads as a visible white frame on all four sides. Symmetric
+ * vertical trim so the buffer above and below the tiles matches. */
 .layer_use-cases .layerBody {
   padding-top: 0.35rem;
+  padding-bottom: 0.35rem;
 }
 .layer_use-cases .cell {
   background: var(--mm-denim-50, rgba(30, 50, 92, 0.045));
