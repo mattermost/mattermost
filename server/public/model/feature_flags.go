@@ -222,7 +222,7 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.ManagedChannelCategories = false
 
-	f.SessionAttributes = false
+	f.SessionAttributes = true
 
 	f.PostAttributes = false
 
