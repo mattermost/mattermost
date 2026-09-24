@@ -4,7 +4,6 @@
 package app
 
 import (
-	"errors"
 	"io"
 	"sync"
 	"sync/atomic"
@@ -128,46 +127,6 @@ func TestHealthCheckTaskLeaderOnly(t *testing.T) {
 
 		updateHealthCheckTask(th.App, false)
 		assert.Nil(t, th.App.ch.healthCheckTask)
-	})
-}
-
-func TestHealthCheckTaskFunc(t *testing.T) {
-	newBufferedLogger := func(t *testing.T) (*mlog.Logger, *mlog.Buffer) {
-		logger, err := mlog.NewLogger()
-		require.NoError(t, err)
-		t.Cleanup(func() {
-			assert.NoError(t, logger.Shutdown())
-		})
-
-		buffer := &mlog.Buffer{}
-		require.NoError(t, mlog.AddWriterTarget(logger, buffer, true, mlog.StdAll...))
-		return logger, buffer
-	}
-
-	t.Run("a panicking cycle is logged and the next tick still runs", func(t *testing.T) {
-		logger, buffer := newBufferedLogger(t)
-
-		var calls atomic.Int32
-		fn := healthCheckTaskFunc(logger, func() error {
-			calls.Add(1)
-			panic("boom")
-		})
-		task := model.CreateRecurringTask("Health Check", fn, 10*time.Millisecond)
-
-		require.Eventually(t, func() bool { return calls.Load() >= 2 }, 5*time.Second, 10*time.Millisecond)
-		task.Cancel()
-
-		require.NoError(t, logger.Flush())
-		testlib.AssertLog(t, buffer, mlog.LvlError.Name, "Health check panicked")
-	})
-
-	t.Run("a failing cycle is logged", func(t *testing.T) {
-		logger, buffer := newBufferedLogger(t)
-
-		healthCheckTaskFunc(logger, func() error { return errors.New("cycle failed") })()
-
-		require.NoError(t, logger.Flush())
-		testlib.AssertLog(t, buffer, mlog.LvlError.Name, "Health check failed")
 	})
 }
 

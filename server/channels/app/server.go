@@ -2070,25 +2070,13 @@ func runLeaderTasks(a *App) {
 	})
 
 	a.ch.healthCheckTask.runOnLeader(a, "Health Check", func() *model.ScheduledTask {
-		fn := healthCheckTaskFunc(a.Log(), func() error { return a.RunHealthCheck(rctx) })
+		fn := func() {
+			if err := a.RunHealthCheck(rctx); err != nil {
+				a.Log().Error("Health check failed", mlog.Err(err))
+			}
+		}
 		return model.CreateRecurringTask("Health Check", fn, healthCheckInterval)
 	})
-}
-
-// healthCheckTaskFunc recovers panics because ScheduledTask does not, and a panic in its
-// goroutine would crash the server.
-func healthCheckTaskFunc(logger mlog.LoggerIFace, cycle func() error) func() {
-	return func() {
-		defer func() {
-			if r := recover(); r != nil {
-				logger.Error("Health check panicked", mlog.Any("panic", r))
-			}
-		}()
-
-		if err := cycle(); err != nil {
-			logger.Error("Health check failed", mlog.Err(err))
-		}
-	}
 }
 
 func (a *App) GetAppliedSchemaMigrations() ([]model.AppliedMigration, *model.AppError) {
