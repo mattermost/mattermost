@@ -532,13 +532,12 @@ a.footerCell:hover {
   width: 100%;
 }
 .cellTitleAside {
-  /* Center the title in the left column both vertically (against the
-   * bullet list on the right) and horizontally (within its own
-   * column), matching the deck. */
+  /* Vertically centered against the bullet list on the right, but
+   * left-aligned horizontally within the title column. */
   display: flex;
   align-items: center;
-  justify-content: center;
-  text-align: center;
+  justify-content: flex-start;
+  text-align: left;
   height: 100%;
 }
 .cellTitleLeft .cellTitle {
