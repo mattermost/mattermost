@@ -837,6 +837,37 @@ func TestCheckSelfInclusionRoleScopedRules(t *testing.T) {
 		require.NotContains(t, appErr.DetailedError, model.AccessControlPolicyActionUploadFileAttachment)
 	})
 
+	t.Run("each action of a multi-action rule is covered separately", func(t *testing.T) {
+		th, caller, _ := setup(t, model.ChannelUserRoleId)
+
+		// The permissions editor adds actions onto a single rule, so one rule
+		// governing both file actions is the shape it produces. The member
+		// author is covered for upload, but the guest rule's second action
+		// governs a download no member rule covers.
+		policy := channelPolicy(th,
+			model.AccessControlPolicyRule{
+				Name:       "Members upload",
+				Role:       model.ChannelUserRoleId,
+				Actions:    []string{model.AccessControlPolicyActionUploadFileAttachment},
+				Expression: engineering,
+			},
+			model.AccessControlPolicyRule{
+				Name: "Guests upload and download",
+				Role: model.ChannelGuestRoleId,
+				Actions: []string{
+					model.AccessControlPolicyActionUploadFileAttachment,
+					model.AccessControlPolicyActionDownloadFileAttachment,
+				},
+				Expression: engineering,
+			},
+		)
+
+		appErr := th.App.checkSelfInclusion(th.Context, policy, caller.Id, false)
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.pap.save_policy.self_exclusion_role", appErr.Id)
+		require.Contains(t, appErr.DetailedError, model.AccessControlPolicyActionDownloadFileAttachment)
+	})
+
 	t.Run("the first uncovered action in authoring order is the one reported", func(t *testing.T) {
 		th, caller, _ := setup(t, model.ChannelUserRoleId)
 
