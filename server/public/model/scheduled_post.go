@@ -80,10 +80,8 @@ func (s *ScheduledPost) BaseIsValid() *AppError {
 		if len(s.FileIds) > 0 {
 			return NewAppError("ScheduledPost.IsValid", "model.scheduled_post.is_valid.repeat_files.app_error", nil, "id="+s.Id, http.StatusBadRequest)
 		}
-		// Burn-on-read is authorised once, when the post is scheduled, and never again when it
-		// fires. A repeating series would send indefinitely on that single authorisation.
-		if s.Type == PostTypeBurnOnRead {
-			return NewAppError("ScheduledPost.IsValid", "model.scheduled_post.is_valid.repeat_burn_on_read.app_error", nil, "id="+s.Id, http.StatusBadRequest)
+		if appErr := s.ValidateTypeCanRepeat(); appErr != nil {
+			return appErr
 		}
 		if s.RepeatTimezone == "" {
 			return NewAppError("ScheduledPost.IsValid", "model.scheduled_post.is_valid.repeat_timezone.app_error", nil, "id="+s.Id, http.StatusBadRequest)
@@ -96,6 +94,25 @@ func (s *ScheduledPost) BaseIsValid() *AppError {
 		if _, err := time.LoadLocation(s.RepeatTimezone); err != nil {
 			return NewAppError("ScheduledPost.IsValid", "model.scheduled_post.is_valid.repeat_timezone_invalid.app_error", nil, "id="+s.Id+", repeat_timezone="+s.RepeatTimezone+", "+err.Error(), http.StatusBadRequest)
 		}
+	}
+
+	return nil
+}
+
+// ValidateTypeCanRepeat rejects post types that must not be sent as a recurring series. It is
+// deliberately separate from BaseIsValid so the update path can re-check it after the immutable
+// type has been restored from the stored record.
+func (s *ScheduledPost) ValidateTypeCanRepeat() *AppError {
+	if s.RepeatType != ScheduledPostRepeatTypeWeekly {
+		return nil
+	}
+
+	// Burn-on-read is authorized once, when the post is scheduled, and never again when it
+	// fires. A repeating series would send indefinitely on that single authorization.
+	// Burn-on-read is also meant for messages that do not live indefinitely on the server - saving
+	// a weekly recurring version of that content is contradictory to the purpose of that feature.
+	if s.Type == PostTypeBurnOnRead {
+		return NewAppError("ScheduledPost.IsValid", "model.scheduled_post.is_valid.repeat_burn_on_read.app_error", nil, "id="+s.Id, http.StatusBadRequest)
 	}
 
 	return nil

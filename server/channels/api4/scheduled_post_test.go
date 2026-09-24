@@ -607,4 +607,25 @@ func TestScheduledPostBurnOnReadRecurrence(t *testing.T) {
 		require.NoError(t, storeErr)
 		require.Equal(t, model.ScheduledPostRepeatTypeNone, fetched.RepeatType)
 	})
+
+	t.Run("converting to recurring is rejected when the update does not send the post type", func(t *testing.T) {
+		created, _, err := th.Client.CreateScheduledPost(context.Background(), newScheduledPost(model.ScheduledPostRepeatTypeNone))
+		require.NoError(t, err)
+
+		// The type is immutable and restored from the stored record, so a client that does not
+		// send it back is still updating a burn-on-read post.
+		created.Type = ""
+		created.RepeatType = model.ScheduledPostRepeatTypeWeekly
+		created.RepeatTimezone = "UTC"
+
+		_, resp, err := th.Client.UpdateScheduledPost(context.Background(), created)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "model.scheduled_post.is_valid.repeat_burn_on_read.app_error")
+
+		fetched, storeErr := th.App.Srv().Store().ScheduledPost().Get(th.Context, created.Id)
+		require.NoError(t, storeErr)
+		require.Equal(t, model.ScheduledPostRepeatTypeNone, fetched.RepeatType)
+		require.Equal(t, model.PostTypeBurnOnRead, fetched.Type)
+	})
 }
