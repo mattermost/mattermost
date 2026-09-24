@@ -16,7 +16,7 @@
    * collapse the same way narrow viewports do. */
   margin: 2rem 0 2.5rem;
   width: 100%;
-  max-width: 1200px;
+  max-width: 1240px;
   container-type: inline-size;
 }
 
@@ -28,12 +28,12 @@
      * ToC will visually overlap it — move those to a wider layout
      * or add `hide_table_of_contents` on that page.
      *
-     * Capped by min(1200px, viewport - sidebar - gutters). 1200 is a
-     * touch under the deck's 1280 native width so we overflow the
-     * reading column less on the right without losing the 16:9 shape
-     * (paired with the tighter internal padding below). */
+     * Capped by min(1240px, viewport - sidebar - gutters). 1240 is
+     * chosen so the resulting height (with the internal padding
+     * trims and label-height fix) lands close to the deck's 16:9
+     * aspect at typical desktop widths. */
     max-width: none;
-    width: min(1200px, calc(100vw - var(--doc-sidebar-width, 300px) - 4rem));
+    width: min(1240px, calc(100vw - var(--doc-sidebar-width, 300px) - 4rem));
   }
 }
 
@@ -87,7 +87,7 @@
   background-size: cover;
   background-position: center;
   color: var(--mm-color-white, #fff);
-  padding: 1rem 1.25rem;
+  padding: 1.1rem 1.25rem;
   text-align: center;
   border-bottom: 3px solid var(--mm-color-marigold, #FFBC1F);
 }
