@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
+	_ "github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules"
 )
 
 const healthCheckInterval = time.Hour
