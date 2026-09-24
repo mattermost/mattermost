@@ -483,14 +483,13 @@ describe('useChannelClassificationBanner — generic designated attributes', () 
             return {...f, attrs: {...f.attrs, ...attrs}};
         };
 
-        test('shows no banner once the channel switches its authored banner off', () => {
+        test('keeps an authored banner when legacy banner info reports disabled', () => {
             const {result} = renderHookWithContext(
                 () => useChannelClassificationBanner(CHANNEL_ID),
                 makeState([programField()], [value('program', 'opt1')], {enabled: false, text: '{{program}}', background_color: '#00ff00'}),
             );
 
-            expect(result.current.hasClassification).toBe(false);
-            expect(result.current.classificationBanner).toBeUndefined();
+            expect(result.current.bannerText).toBe('AURORA');
         });
 
         test('still shows the designated default on a channel that never authored a banner', () => {

@@ -253,14 +253,6 @@ export default function useChannelClassificationBanner(channelId: string): Chann
             // fall back to joining whatever still has a value.
             const authoredText = channelBannerInfo?.text;
 
-            // Switched off by the channel, unless a required attribute mandates the
-            // banner. enabled alone cannot say this: a channel that never authored a
-            // banner carries false and still shows the designated default.
-            const bannerRequired = designatedFields.some((field) => Boolean(field.attrs?.required));
-            if (typeof authoredText === 'string' && !channelBannerInfo?.enabled && !bannerRequired) {
-                return {...noBanner, classificationIsBannerDesignated};
-            }
-
             let bannerText: string;
             if (typeof authoredText === 'string') {
                 bannerText = authoredText ? renderBannerTemplate(authoredText, templateAttributes) : '';
