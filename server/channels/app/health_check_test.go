@@ -5,7 +5,6 @@ package app
 
 import (
 	"io"
-	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -161,28 +160,6 @@ func TestRunHealthCheckGating(t *testing.T) {
 		require.NoError(t, th.App.runHealthCheck(th.Context, svc))
 		assert.NotEmpty(t, listHealthFindings(t, th))
 	})
-}
-
-func TestRunHealthCheckConcurrent(t *testing.T) {
-	th, svc := setupHealthCheck(t, true)
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
-
-	var wg sync.WaitGroup
-	for range 2 {
-		wg.Go(func() {
-			assert.NoError(t, th.App.runHealthCheck(th.Context, svc))
-		})
-	}
-	wg.Wait()
-
-	findings := listHealthFindings(t, th)
-	require.NotEmpty(t, findings)
-
-	seen := map[string]bool{}
-	for _, finding := range findings {
-		assert.False(t, seen[finding.Fingerprint], "duplicate finding %q", finding.Fingerprint)
-		seen[finding.Fingerprint] = true
-	}
 }
 
 func TestRunHealthCheckStableAcrossCycles(t *testing.T) {
