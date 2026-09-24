@@ -196,26 +196,26 @@ export type IMEDiagramProps = {
  */
 export default function IMEDiagram({variant, content, toggle}: IMEDiagramProps) {
   const [activeId, setActiveId] = useState<string>(variant ?? variants[0].id);
-  const [urlOverride, setUrlOverride] = useState<{variant?: string; hideToggle?: boolean}>({});
+  const [hideToggleFromUrl, setHideToggleFromUrl] = useState<boolean>(false);
 
   // Allow the PNG renderer (and deep links) to pick a variant via query
   // string: ?imeVariant=<id>&imeExport=1 hides the toggle for capture.
+  // The URL variant seeds `activeId` once — from then on, `activeId` is
+  // the single source of truth so tab clicks can override the URL
+  // choice without the resolve chain snapping it back.
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
-    const v = params.get('imeVariant') ?? undefined;
-    const hide = params.get('imeExport') === '1';
-    if (v || hide) {
-      setUrlOverride({variant: v, hideToggle: hide});
-      if (v) setActiveId(v);
-    }
+    const v = params.get('imeVariant');
+    if (v) setActiveId(v);
+    if (params.get('imeExport') === '1') setHideToggleFromUrl(true);
   }, []);
 
-  // Normalize every possible variant source (prop, URL, state) through
+  // Normalize every possible variant source (prop, state) through
   // `getVariant` so unknown IDs fall back to the default. `active` and
   // `aria-selected` share the same resolved variant, so the toggle can
   // never claim a tab that doesn't match the rendered diagram.
-  const resolvedVariant = getVariant(variant ?? urlOverride.variant ?? activeId);
+  const resolvedVariant = getVariant(variant ?? activeId);
   const active = content ?? resolvedVariant.content;
 
   // When the parent supplies `variant` or `content`, the diagram is
@@ -225,7 +225,7 @@ export default function IMEDiagram({variant, content, toggle}: IMEDiagramProps) 
   // to). Force it off regardless of the `toggle` prop.
   const isControlled = Boolean(content || variant);
   const hasMultipleVariants = variants.length > 1;
-  const showToggle = !isControlled && !urlOverride.hideToggle && hasMultipleVariants && (toggle ?? true);
+  const showToggle = !isControlled && !hideToggleFromUrl && hasMultipleVariants && (toggle ?? true);
 
   return (
     <div className={styles.wrapper}>
