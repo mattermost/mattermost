@@ -678,6 +678,7 @@ func (s *Server) runJobs() {
 		appInstance := New(ServerConnector(s.Channels()))
 		runDNDStatusExpireJob(appInstance)
 		runPostReminderJob(appInstance)
+		runHealthCheckTask(appInstance)
 		runScheduledPostJob(appInstance)
 	})
 	s.Go(func() {
@@ -2062,6 +2063,35 @@ func runPostReminderJob(a *App) {
 			mlog.Debug("This is no longer leader node. Cancelling the post reminder task", mlog.Bool("is_leader", a.IsLeader()))
 			cancelTask(&a.ch.postReminderMut, &a.ch.postReminderTask)
 		}
+	})
+}
+
+func runHealthCheckTask(a *App) {
+	updateHealthCheckTask(a, a.IsLeader())
+
+	a.ch.srv.AddClusterLeaderChangedListener(func() {
+		mlog.Info("Cluster leader changed. Determining if health check task should be running", mlog.Bool("is_leader", a.IsLeader()))
+		updateHealthCheckTask(a, a.IsLeader())
+	})
+}
+
+func updateHealthCheckTask(a *App, isLeader bool) {
+	if !isLeader {
+		cancelTask(&a.ch.healthCheckTaskMut, &a.ch.healthCheckTask)
+		return
+	}
+
+	withMut(&a.ch.healthCheckTaskMut, func() {
+		if a.ch.healthCheckTask != nil {
+			return
+		}
+		rctx := request.EmptyContext(a.Log())
+		fn := func() {
+			if err := a.RunHealthCheck(rctx); err != nil {
+				a.Log().Error("Health check failed", mlog.Err(err))
+			}
+		}
+		a.ch.healthCheckTask = model.CreateRecurringTask("Health Check", fn, healthCheckInterval)
 	})
 }
 

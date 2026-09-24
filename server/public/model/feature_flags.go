@@ -175,6 +175,10 @@ type FeatureFlags struct {
 	// Gates post delivery audit logging. Enabling it requires a server restart, since it
 	// controls whether the /api/v4/delivery_tracking routes are registered.
 	PostDeliveryTracking bool
+
+	// HealthDashboard replaces the Workspace Optimization dashboard with the rules-driven
+	// Health Dashboard. Off by default.
+	HealthDashboard bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -245,6 +249,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.RecurringScheduledPosts = false
 
 	f.PostDeliveryTracking = false
+
+	f.HealthDashboard = false
 }
 
 // isValid rejects feature flag combinations that are no longer supported.

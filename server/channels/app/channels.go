@@ -103,6 +103,9 @@ type Channels struct {
 	postReminderMut  sync.Mutex
 	postReminderTask *model.ScheduledTask
 
+	healthCheckTaskMut sync.Mutex
+	healthCheckTask    *model.ScheduledTask
+
 	interruptQuitChan chan struct{}
 	scheduledPostMut  sync.Mutex
 	scheduledPostTask *model.ScheduledTask
@@ -333,6 +336,8 @@ func (ch *Channels) Stop() error {
 		ch.dndTask.Cancel()
 	}
 	ch.dndTaskMut.Unlock()
+
+	cancelTask(&ch.healthCheckTaskMut, &ch.healthCheckTask)
 
 	close(ch.interruptQuitChan)
 
