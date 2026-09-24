@@ -44,7 +44,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 
 	rsession, err = th.App.GetSession(session.Token)
 	require.NotNil(t, err)
-	assert.Equal(t, "api.context.invalid_session.error", err.Id)
+	assert.Equal(t, "api.context.invalid_token.error", err.Id)
 	assert.Equal(t, "idle timeout", err.DetailedError)
 	assert.Nil(t, rsession)
 
@@ -353,7 +353,7 @@ func TestGetCloudSession(t *testing.T) {
 		session, err := th.App.GetCloudSession("mytoken")
 		require.Nil(t, session)
 		require.NotNil(t, err)
-		require.Equal(t, "api.context.invalid_session.error", err.Id)
+		require.Equal(t, "api.context.invalid_token.error", err.Id)
 	})
 
 	t.Run("Mismatched env variable and token should return error", func(t *testing.T) {
@@ -362,7 +362,7 @@ func TestGetCloudSession(t *testing.T) {
 		session, err := th.App.GetCloudSession("myincorrecttoken")
 		require.Nil(t, session)
 		require.NotNil(t, err)
-		require.Equal(t, "api.context.invalid_session.error", err.Id)
+		require.Equal(t, "api.context.invalid_token.error", err.Id)
 	})
 }
 
@@ -754,8 +754,14 @@ func TestRevokeSessionSendsWipeSignal(t *testing.T) {
 // returns: every caller that reports a session failure renders that error into the
 // server log. MM-70121.
 func TestGetSessionErrorDoesNotContainToken(t *testing.T) {
-	mainHelper.Parallel(t)
+	// t.Setenv below prevents mainHelper.Parallel — env var has no config equivalent
 	th := Setup(t)
+
+	// Renders the translation params rather than the en.json template, so the token
+	// is caught even when the current template has nowhere to interpolate it.
+	echoParams := func(id string, args ...any) string {
+		return fmt.Sprintf("%s %v", id, args)
+	}
 
 	// wantDetail guards against a vacuous assertion by pinning each case to the
 	// failure path it is named after.
@@ -765,7 +771,7 @@ func TestGetSessionErrorDoesNotContainToken(t *testing.T) {
 		require.Contains(t, err.Error(), wantDetail)
 		assert.NotContains(t, err.Error(), token)
 		assert.NotContains(t, err.SystemMessage(i18n.T), token)
-		assert.NotContains(t, err.ToJSON(), token)
+		assert.NotContains(t, err.SystemMessage(echoParams), token)
 	}
 
 	t.Run("unrecognized token", func(t *testing.T) {
@@ -773,6 +779,19 @@ func TestGetSessionErrorDoesNotContainToken(t *testing.T) {
 
 		_, err := th.App.GetSession(token)
 		assertRedacted(t, token, err, `resource "UserAccessToken" not found`)
+	})
+
+	t.Run("token does not match the stored session", func(t *testing.T) {
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{
+			UserId:    model.NewId(),
+			ExpiresAt: model.GetMillis() + 100000,
+		})
+		require.Nil(t, appErr)
+
+		// Session().Get resolves either an id or a token, so presenting the id
+		// reaches the branch where the stored token differs from the presented one.
+		_, err := th.App.GetSession(session.Id)
+		assertRedacted(t, session.Id, err, "session token is different from the one in DB")
 	})
 
 	t.Run("expired session", func(t *testing.T) {

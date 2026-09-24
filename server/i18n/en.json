@@ -2010,8 +2010,8 @@
     "translation": "Invalid {{.Name}} parameter."
   },
   {
-    "id": "api.context.invalid_session.error",
-    "translation": "Invalid session."
+    "id": "api.context.invalid_token.error",
+    "translation": "Invalid session token={{.Token}}, err={{.Error}}"
   },
   {
     "id": "api.context.invalid_url_param.app_error",

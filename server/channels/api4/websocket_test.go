@@ -692,3 +692,32 @@ func TestWebSocketAuthenticationChallengeDoesNotLogToken(t *testing.T) {
 
 	assert.NotContains(t, logs, token)
 }
+
+// MM-70121: a session that expires while its websocket is still connected is
+// re-resolved on the next frame, and that failure must not log the token.
+func TestWebSocketExpiredSessionDoesNotLogToken(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	wsClient := th.CreateConnectedWebSocketClient(t)
+	defer wsClient.Close()
+
+	token := th.Client.AuthToken
+	session, appErr := th.App.GetSession(token)
+	require.Nil(t, appErr)
+
+	require.NoError(t, th.App.Srv().Store().Session().UpdateExpiresAt(session.Id, model.GetMillis()-1000))
+	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
+
+	wsClient.GetStatuses()
+
+	var logs string
+	require.Eventually(t, func() bool {
+		if flushErr := th.TestLogger.Flush(); flushErr != nil {
+			return false
+		}
+		logs = th.LogBuffer.String()
+		return strings.Contains(logs, "Invalid session.")
+	}, 5*time.Second, 100*time.Millisecond, "the expired session was never reported")
+
+	assert.NotContains(t, logs, token)
+}

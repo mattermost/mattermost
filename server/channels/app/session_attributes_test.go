@@ -432,7 +432,7 @@ func TestProcessSessionAttributesRequest(t *testing.T) {
 
 		_, getErr := th.App.GetSession(session.Token)
 		require.NotNil(t, getErr)
-		assert.Equal(t, "api.context.invalid_session.error", getErr.Id)
+		assert.Equal(t, "api.context.invalid_token.error", getErr.Id)
 	})
 
 	t.Run("does not revoke session when no device ID is passed up", func(t *testing.T) {

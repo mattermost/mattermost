@@ -18,6 +18,8 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	platform_mocks "github.com/mattermost/mattermost/server/v8/channels/app/platform/mocks"
 )
 
 type hookRunner struct {
@@ -281,5 +283,44 @@ func TestWebConnRejectBinaryFrameUnauthenticated(t *testing.T) {
 	case <-readPumpDone:
 	case <-time.After(5 * time.Second):
 		require.Fail(t, "readPump did not exit after receiving binary frame")
+	}
+}
+
+// MM-70121: re-resolving the session behind a live websocket logs on both the
+// rejected and the failed-lookup branch, and neither may carry the token.
+func TestWebConnIsBasicAuthenticatedDoesNotLogToken(t *testing.T) {
+	th := Setup(t)
+
+	logBuffer := &mlog.Buffer{}
+	require.NoError(t, mlog.AddWriterTarget(th.Service.Logger(), logBuffer, true, mlog.StdAll...))
+
+	testCases := []struct {
+		name       string
+		statusCode int
+		wantLog    string
+	}{
+		{"session rejected", http.StatusUnauthorized, "Invalid session."},
+		{"session lookup failed", http.StatusInternalServerError, "Could not get session"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			token := model.NewId()
+
+			suite := &platform_mocks.SuiteIFace{}
+			suite.On("GetSession", token).Return(nil, model.NewAppError("GetSession", "api.context.invalid_token.error", nil, "", tc.statusCode))
+
+			wc := th.Service.NewWebConn(&WebConnConfig{
+				WebSocket: &websocket.Conn{},
+				Session:   model.Session{Token: token, ExpiresAt: model.GetMillis() - 1000},
+			}, suite, &hookRunner{})
+
+			assert.False(t, wc.IsBasicAuthenticated())
+			require.NoError(t, th.Service.Logger().Flush())
+
+			logs := logBuffer.String()
+			require.Contains(t, logs, tc.wantLog)
+			assert.NotContains(t, logs, token)
+		})
 	}
 }
