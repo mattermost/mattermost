@@ -103,8 +103,6 @@ type Channels struct {
 	postReminderMut  sync.Mutex
 	postReminderTask *model.ScheduledTask
 
-	healthCheckOnce    sync.Once
-	healthCheck        *HealthCheckService
 	healthCheckTaskMut sync.Mutex
 	healthCheckTask    *model.ScheduledTask
 
