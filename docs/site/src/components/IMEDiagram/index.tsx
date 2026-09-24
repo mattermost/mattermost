@@ -62,6 +62,7 @@ function IntroPanel({data}: {data: Intro}) {
         {data.title}
       </h3>
       {data.body && <p>{data.body}</p>}
+      {data.logos && <LogoStrip logos={data.logos} />}
     </div>
   );
 }
@@ -178,13 +179,15 @@ export default function IMEDiagram({variant, content, toggle}: IMEDiagramProps) 
           ))}
         </div>
       )}
-      {(active.title || active.tagline) && (
-        <header className={styles.header}>
-          {active.title && <h2 className={styles.headerTitle}>{active.title}</h2>}
-          {active.tagline && <p className={styles.headerTagline}>{active.tagline}</p>}
-        </header>
-      )}
       <section className={styles.diagram} aria-label={`${active.title ?? 'Intelligent Mission Environment'} overview`}>
+        {(active.title || active.tagline) && (
+          <header className={styles.banner}>
+            <div className={styles.bannerInner}>
+              {active.title && <h2 className={styles.bannerTitle}>{active.title}</h2>}
+              {active.tagline && <p className={styles.bannerTagline}>{active.tagline}</p>}
+            </div>
+          </header>
+        )}
         {active.layers.map((layer) => <LayerBlock key={layer.id} layer={layer} />)}
       </section>
     </div>

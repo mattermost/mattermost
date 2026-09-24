@@ -42,7 +42,7 @@ export const mission: IMEContent = {
       label: 'Applications',
       intro: {
         title: 'Zero Trust Collaboration, Workflow & Automation',
-        icon: 'layers',
+        iconSrc: '/img/ime/logos/ms-sync.png',
       },
       columns: 6,
       cells: [
@@ -112,7 +112,7 @@ export const mission: IMEContent = {
       label: 'Interoperability',
       intro: {
         title: 'Accelerates Classified & Mission Partner Operations',
-        icon: 'network',
+        iconSrc: '/img/ime/logos/ms-defender.png',
       },
       columns: 2,
       cells: [
@@ -141,6 +141,12 @@ export const mission: IMEContent = {
           ],
           icon: 'users',
           to: '/administration-guide/onboard/connected-workspaces',
+          logos: [
+            {alt: 'Microsoft Teams', src: '/img/ime/logos/msteams.png'},
+            {alt: 'Microsoft Entra ID', src: '/img/ime/logos/ms-entra.png'},
+            {alt: 'Element (Matrix)', src: '/img/ime/logos/enterprise-o.png'},
+            {alt: 'Global Relay', src: '/img/ime/logos/global-relay.png'},
+          ],
         },
       ],
     },
@@ -149,7 +155,16 @@ export const mission: IMEContent = {
       label: 'Deployment',
       intro: {
         title: 'Air-Gapped & Sovereign Deployment & Integration',
-        icon: 'globe',
+        iconSrc: '/img/ime/logos/mattermost.png',
+        // AI vendor constellation shown next to the intro on the deck.
+        logos: [
+          {alt: 'OpenAI', src: '/img/ime/logos/openai.png'},
+          {alt: 'Meta', src: '/img/ime/logos/meta.png'},
+          {alt: 'Elastic', src: '/img/ime/logos/elastic.png'},
+          {alt: 'Perplexity', src: '/img/ime/logos/perplexity.png'},
+          {alt: 'Ask Sage', src: '/img/ime/logos/ask-sage.png'},
+          {alt: 'Mistral', src: '/img/ime/logos/mistral.png'},
+        ],
       },
       columns: 3,
       cells: [
@@ -180,6 +195,10 @@ export const mission: IMEContent = {
             {alt: 'Jira', src: '/img/ime/logos/jira.png'},
             {alt: 'Confluence', src: '/img/ime/logos/confluence.png'},
             {alt: 'Splunk', src: '/img/ime/logos/splunk.png'},
+            {alt: 'Microsoft Defender', src: '/img/ime/logos/ms-defender.png'},
+            {alt: 'Tines', src: '/img/ime/logos/tines.png'},
+            {alt: 'Webhook', src: '/img/ime/logos/webhook.png'},
+            {alt: 'Add integration', src: '/img/ime/logos/plus.png'},
           ],
         },
         {

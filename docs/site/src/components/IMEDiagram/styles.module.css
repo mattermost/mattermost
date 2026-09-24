@@ -8,6 +8,21 @@
 
 .wrapper {
   margin: 2rem 0 2.5rem;
+  /* Match the source slide aspect (1280x720, 16:9). On wide screens
+   * we break out of Docusaurus' content column *rightward* so the
+   * diagram gets closer to slide dimensions and reduces the vertical
+   * whitespace inside each cell. Never extend leftward — that would
+   * overlap the docs sidebar. */
+  width: min(1280px, 100%);
+}
+
+@media (min-width: 1200px) {
+  .wrapper {
+    /* Expand rightward: total width up to 1280px, capped by viewport
+     * minus room for the docs sidebar (~300px) and page gutters. */
+    max-width: none;
+    width: min(1280px, calc(100vw - var(--doc-sidebar-width, 300px) - 4rem));
+  }
 }
 
 /* === Audience toggle above the diagram === */
@@ -51,30 +66,41 @@
   color: var(--mm-color-white, #fff);
 }
 
-/* === Title / tagline header (mission variant) === */
+/* === Banner (mission variant) — dark denim with camo backdrop === */
 
-.header {
+.banner {
+  background-color: var(--mm-color-denim, #1E325C);
+  background-image: url('/img/ime/banner-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  color: var(--mm-color-white, #fff);
+  padding: 1rem 1.5rem;
   text-align: center;
-  margin-bottom: 0.9rem;
+  border-bottom: 3px solid var(--mm-color-marigold, #FFBC1F);
 }
 
-.headerTitle {
+.bannerInner {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.bannerTitle {
   font-family: var(--mm-font-sans);
   font-weight: 800;
-  color: var(--mm-color-denim, #1E325C);
-  font-size: 1.5rem;
-  line-height: 1.2;
-  margin: 0 0 0.25rem;
+  color: var(--mm-color-white, #fff);
+  font-size: 1.6rem;
+  line-height: 1.15;
+  margin: 0 0 0.35rem;
+  letter-spacing: -0.005em;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
 }
 
-.headerTagline {
-  color: var(--mm-text-secondary, var(--mm-text-primary));
+.bannerTagline {
+  color: rgba(255, 255, 255, 0.92);
   font-size: 0.9rem;
+  line-height: 1.4;
   margin: 0;
-}
-
-[data-theme='dark'] .headerTitle {
-  color: var(--mm-color-white);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 /* === Diagram scaffold === */

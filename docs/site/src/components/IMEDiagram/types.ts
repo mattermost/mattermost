@@ -55,6 +55,8 @@ export type Intro = {
   body?: string;
   icon?: IconName;
   iconSrc?: string;
+  /** Optional logo constellation shown below the intro title (mirrors the deck's decorative badge rows). */
+  logos?: Logo[];
 };
 
 /** A footer strip inside a layer (e.g. "Web, Desktop, Mobile & MS Teams"). */
