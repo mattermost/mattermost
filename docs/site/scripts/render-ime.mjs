@@ -15,7 +15,7 @@
  * Usage:
  *   npm run docusaurus start &          # or `serve` against a built site
  *   node scripts/render-ime.mjs         # renders every variant
- *   node scripts/render-ime.mjs mission # renders one variant
+ *   node scripts/render-ime.mjs entadv  # renders one variant
  *
  * Playwright is a transitive dep of some Docusaurus plugins on some
  * setups; if not present, install with `npm i -D playwright` and run
@@ -29,7 +29,7 @@ import {fileURLToPath} from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUT_DIR = path.resolve(__dirname, '..', 'static', 'img', 'ime');
 const BASE_URL = process.env.IME_BASE_URL || 'http://localhost:3000';
-const VARIANTS = ['general', 'mission'];
+const VARIANTS = ['entadv'];
 
 async function main() {
   const filter = process.argv[2];

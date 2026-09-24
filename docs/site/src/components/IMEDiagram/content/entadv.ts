@@ -1,15 +1,15 @@
 import type {IMEContent} from '../types';
 
 /**
- * Mission / National-Security IME diagram — mirrors the marketing
- * infographic ("Mattermost Intelligent Mission Environment") targeted
- * at national security, defense, and critical-infrastructure buyers.
+ * Enterprise Advanced IME diagram — mirrors the marketing infographic
+ * ("Mattermost Intelligent Mission Environment") targeted at national
+ * security, defense, and critical-infrastructure buyers.
  *
  * Icons and logos are extracted from the FY27 Platform Pitch Sales
  * Deck (slide 7) and live under `docs/site/static/img/ime/logos/`.
  */
-export const mission: IMEContent = {
-  id: 'mission',
+export const entadv: IMEContent = {
+  id: 'entadv',
   title: 'Mattermost Intelligent Mission Environment',
   tagline: 'Self-managed collaborative workflow and AI automation for national security and critical infrastructure enterprises',
   layers: [
@@ -194,26 +194,26 @@ export const mission: IMEContent = {
           ],
           icon: 'plug',
           to: '/integrations-guide/integrations-guide-index',
-          // Deck: integration logos pinned to top-right corner…
+          // Deck: dev-tool logos pinned to top-right corner.
           cornerLogos: [
             {alt: 'Jira', src: '/img/ime/logos/jira.png'},
             {alt: 'GitHub', src: '/img/ime/logos/github.png'},
             {alt: 'GitLab', src: '/img/ime/logos/gitlab.png'},
-            {alt: 'Microsoft Defender', src: '/img/ime/logos/ms-defender.png'},
+            {alt: 'Element (Matrix)', src: '/img/ime/logos/enterprise-o.png'},
             {alt: 'Splunk', src: '/img/ime/logos/splunk.png'},
           ],
-          // …plus a 4-column matrix of ecosystem logos below the
-          // bullets (deck shows a ~3-row × 4-col grid).
+          // Deck: 4-column × 2-row grid of ecosystem logos below the
+          // bullets — SIEM/observability, collab, security, workflow.
           logoLayout: 'grid',
           logoColumns: 4,
           logos: [
-            {alt: 'Confluence', src: '/img/ime/logos/confluence.png'},
+            {alt: 'Elastic', src: '/img/ime/logos/elastic.png'},
+            {alt: 'Microsoft Defender', src: '/img/ime/logos/ms-defender.png'},
             {alt: 'Microsoft Teams', src: '/img/ime/logos/msteams.png'},
-            {alt: 'Microsoft Sync', src: '/img/ime/logos/ms-sync.png'},
             {alt: 'Microsoft Entra ID', src: '/img/ime/logos/ms-entra.png'},
-            {alt: 'Tines', src: '/img/ime/logos/tines.png'},
-            {alt: 'Argo', src: '/img/ime/logos/argo.png'},
-            {alt: 'Webhook', src: '/img/ime/logos/webhook.png'},
+            {alt: 'Microsoft Sync', src: '/img/ime/logos/ms-sync.png'},
+            {alt: 'Global Relay', src: '/img/ime/logos/global-relay.png'},
+            {alt: 'Confluence', src: '/img/ime/logos/confluence.png'},
             {alt: 'Add integration', src: '/img/ime/logos/plus.png'},
           ],
         },
