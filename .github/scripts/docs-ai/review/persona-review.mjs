@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import {readFileSync, writeFileSync, mkdirSync, existsSync} from 'node:fs';
 import {dirname} from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {complete, parseJson, usageLine} from '../lib/anthropic.mjs';
 import {getPersona, reviewSystemBlocks} from '../lib/personas.mjs';
 import {DATA_NOTICE, block} from '../lib/untrusted.mjs';
@@ -19,7 +20,7 @@ function readIfSet(name) {
   return path && existsSync(path) ? readFileSync(path, 'utf8') : null;
 }
 
-function buildUserPrompt({diff, prTitle, prBody}) {
+export function buildReviewUserPrompt({diff, prTitle, prBody}) {
   const parts = [DATA_NOTICE, ''];
 
   if (prTitle) parts.push(block('pull-request-title', prTitle, {maxChars: 500}), '');
@@ -34,7 +35,7 @@ function buildUserPrompt({diff, prTitle, prBody}) {
   return parts.join('\n');
 }
 
-function normalize(parsed, persona) {
+export function normalizeReview(parsed, persona, model = MODEL) {
   const verdict = VERDICTS.includes(parsed?.verdict) ? parsed.verdict : 'COMMENT';
 
   const feedback = (Array.isArray(parsed?.feedback) ? parsed.feedback : [])
@@ -47,7 +48,39 @@ function normalize(parsed, persona) {
       ? parsed.summary.trim().slice(0, 500)
       : 'No summary returned.';
 
-  return {persona: persona.id, label: persona.label, verdict, summary, feedback, model: MODEL};
+  return {persona: persona.id, label: persona.label, verdict, summary, feedback, model};
+}
+
+export async function reviewPersona({
+  personaId,
+  diff,
+  prTitle,
+  prBody,
+  model = MODEL,
+  completeFn = complete,
+}) {
+  const persona = getPersona(personaId);
+  try {
+    const {text, usage} = await completeFn({
+      model,
+      system: reviewSystemBlocks(personaId),
+      userPrompt: buildReviewUserPrompt({diff, prTitle, prBody}),
+      maxTokens: 2048,
+      temperature: 0.2,
+    });
+    console.error(`[${personaId}] ${model} ${usageLine(usage)}`);
+    return normalizeReview(parseJson(text), persona, model);
+  } catch (e) {
+    console.error(`[${personaId}] review failed: ${e.message}`);
+    return {
+      persona: persona.id,
+      label: persona.label,
+      verdict: 'ERROR',
+      summary: `Review did not complete: ${e.message}`.slice(0, 500),
+      feedback: [],
+      model,
+    };
+  }
 }
 
 async function main() {
@@ -58,41 +91,21 @@ async function main() {
   const out = arg('out');
   if (!out) throw new Error('--out <file> is required');
 
-  const persona = getPersona(id);
-  let result;
-
-  try {
-    const {text, usage} = await complete({
-      model: MODEL,
-      system: reviewSystemBlocks(id),
-      userPrompt: buildUserPrompt({
-        diff: readFileSync(diffPath, 'utf8'),
-        prTitle: arg('pr-title'),
-        prBody: readIfSet('pr-body-file'),
-      }),
-      maxTokens: 2048,
-      temperature: 0.2,
-    });
-    console.error(`[${id}] ${MODEL} ${usageLine(usage)}`);
-    result = normalize(parseJson(text), persona);
-  } catch (e) {
-    console.error(`[${id}] review failed: ${e.message}`);
-    result = {
-      persona: persona.id,
-      label: persona.label,
-      verdict: 'ERROR',
-      summary: `Review did not complete: ${e.message}`.slice(0, 500),
-      feedback: [],
-      model: MODEL,
-    };
-  }
+  const result = await reviewPersona({
+    personaId: id,
+    diff: readFileSync(diffPath, 'utf8'),
+    prTitle: arg('pr-title'),
+    prBody: readIfSet('pr-body-file'),
+  });
 
   mkdirSync(dirname(out), {recursive: true});
   writeFileSync(out, `${JSON.stringify(result, null, 2)}\n`);
   console.error(`[${id}] ${result.verdict} — ${result.summary}`);
 }
 
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  main().catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });
+}
