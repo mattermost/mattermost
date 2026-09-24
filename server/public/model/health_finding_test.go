@@ -12,7 +12,7 @@ import (
 
 func TestHealthFindingRender(t *testing.T) {
 	text := RuleText{
-		TitleID:     "health.rule.title",
+		TitleID:       "health.rule.title",
 		RemediationID: "health.rule.remediation",
 	}
 
