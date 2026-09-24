@@ -67,8 +67,7 @@ describe('getScheduledPostRepeatDisabledReason', () => {
         expect(getScheduledPostRepeatDisabledReason(makeScheduledPost())).toBeUndefined();
     });
 
-    // A scheduled post arriving over the websocket carries file_ids but no metadata, since the
-    // server only fills in file infos when the list is fetched.
+    // We need to test both formats in which a Scheduled Post may contain attachments.
     it('should block repeating when only file ids are present', () => {
         expect(getScheduledPostRepeatDisabledReason(makeScheduledPost({file_ids: ['file_id']}))).toBe('attachments');
     });

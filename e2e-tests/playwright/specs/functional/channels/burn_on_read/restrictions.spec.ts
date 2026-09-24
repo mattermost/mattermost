@@ -303,8 +303,8 @@ test.describe('Burn-on-Read Restrictions', () => {
             await channelsPage.centerView.postCreate.writeMessage(`Plain draft ${pw.random.id()}`);
             const plainDraftModal = await channelsPage.openScheduleMessageModal();
 
-            // * Verify recurrence is offered for a message that has nothing preventing it, which
-            // * proves the assertion below is about burn-on-read and not about the flag or the modal
+            // * Verify recurrence is offered here, so the assertion below cannot pass merely
+            // * because the flag was off or the modal never rendered
             await expect(plainDraftModal.repeatWeeklyCheckbox).toBeEnabled();
 
             // # Discard the modal and turn the same draft into a burn-on-read message

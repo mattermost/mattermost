@@ -17,9 +17,8 @@ function scheduledPostHasAttachments(scheduledPost: ScheduledPost): boolean {
     return Boolean(scheduledPost.file_ids?.length || scheduledPost.metadata?.files?.length);
 }
 
-// Drafts and scheduled posts only differ in where they keep their attachments. Both apply the
-// same two rules in the same order, so a message with an attachment and burn-on-read reports the
-// attachment either way.
+// The two functions below apply the same rules in the same order, so a message that is both
+// burn-on-read and carries an attachment reports the attachment whichever shape it arrives in.
 export function getDraftRepeatDisabledReason(draft: Pick<PostDraft, 'fileInfos' | 'uploadsInProgress' | 'type'>): RepeatDisabledReason | undefined {
     if (draftHasAttachments(draft)) {
         return 'attachments';

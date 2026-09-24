@@ -46,7 +46,6 @@ type Props = {
     initialTime?: Moment;
     initialRepeatWeekly?: boolean;
 
-    // Undefined when nothing stops the post from repeating.
     repeatDisabledReason?: RepeatDisabledReason;
 };
 
