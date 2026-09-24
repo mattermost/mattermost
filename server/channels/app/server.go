@@ -2030,6 +2030,7 @@ func (t *leaderTask) stop() {
 	t.cancelLocked()
 }
 
+// cancelLocked cancels the running task, if any. The caller must hold t.mut.
 func (t *leaderTask) cancelLocked() {
 	if t.task != nil {
 		t.task.Cancel()
