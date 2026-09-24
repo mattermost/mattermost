@@ -1485,21 +1485,24 @@ export function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel):
  * only property_field_*. Everything that renders user attributes reads the
  * custom profile attribute slice, so the generic events have to land there too.
  *
+ * property_field_* events for a system-targeted field fan out to every connected
+ * client, not just admins, and the custom profile attribute slice only exists
+ * under an Enterprise license. Gate on the license the same way the reconnect
+ * refresh does so unlicensed servers never touch the slice off these events.
+ *
  * The access_control group lives under a server-generated UUID. The property
  * group cache only learns that mapping once something fetches the group by name,
- * so fall back to the cached definitions, which all come from that group.
- * When neither is known, return undefined so the handler can refetch rather
- * than guess.
+ * so fall back to the cached definitions, which all come from that group. While
+ * neither is known a user-object field cannot be told apart from a plugin's own,
+ * so treat it as not-a-CPA-field; the mount and reconnect fetches pick up
+ * anything missed rather than refetch on every unrelated event.
  */
-function isUserAttributeField(state: GlobalState, field: PropertyField): boolean | undefined {
-    if (field.object_type !== USER_OBJECT_TYPE) {
+function isUserAttributeField(state: GlobalState, field: PropertyField): boolean {
+    if (field.object_type !== USER_OBJECT_TYPE || !isEnterpriseLicense(getLicense(state))) {
         return false;
     }
     const groupId = getPropertyGroupByName(state, ACCESS_CONTROL_PROPERTY_GROUP)?.id ?? getCustomProfileAttributes(state)[0]?.group_id;
-    if (!groupId) {
-        return undefined;
-    }
-    return field.group_id === groupId;
+    return Boolean(groupId) && field.group_id === groupId;
 }
 
 export function handlePropertyFieldCreatedOrUpdated(
@@ -1563,18 +1566,31 @@ export function handlePropertyFieldCreatedOrUpdated(
             data: {fields: [field]},
         });
 
-        const userAttributeField = isUserAttributeField(doGetState(), field);
-        if (userAttributeField === undefined) {
-            // Cannot tell a CPA field from a plugin field until the group is
-            // known, so refetch rather than cache the payload.
-            doDispatch(getCustomProfileAttributeFields());
-        } else if (userAttributeField) {
+        if (isUserAttributeField(doGetState(), field)) {
             if (optionsOmitted) {
-                // The cached options restored above come from the properties
-                // slice, which a session that only loaded user attributes never
-                // populates. Read the authoritative list back rather than
-                // caching a definition whose options are missing.
-                doDispatch(getCustomProfileAttributeFields());
+                // The broadcast withheld this field's option list. The cached
+                // options restored above come from the properties slice, which a
+                // session that only loaded user attributes never populates, so
+                // restore them from the field's own custom profile attribute
+                // entry instead and patch it in place. Caching the stripped
+                // definition would blank the options for every reader; only fall
+                // back to a refetch when the slice has no prior copy to draw on.
+                const cached = doGetState().entities.general.customProfileAttributes[field.id];
+                if (cached) {
+                    doDispatch({
+                        type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED,
+                        data: {
+                            ...field,
+                            attrs: {
+                                ...field.attrs,
+                                options: cached.attrs?.options,
+                                options_count: cached.attrs?.options_count,
+                            },
+                        },
+                    });
+                } else {
+                    doDispatch(getCustomProfileAttributeFields());
+                }
             } else {
                 doDispatch({
                     type: msg.event === WebSocketEvents.PropertyFieldCreated ? GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_CREATED : GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED,

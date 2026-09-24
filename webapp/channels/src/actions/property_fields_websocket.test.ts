@@ -222,11 +222,18 @@ describe('property_field events for user attributes', () => {
 
     function makeStore(
         customProfileAttributes: Record<string, UserPropertyField>,
-        {groupCachedByName = false, cachedPropertyFields = [] as PropertyField[]} = {},
+        {groupCachedByName = false, cachedPropertyFields = [] as PropertyField[], licensed = true} = {},
     ) {
         return realConfigureStore({
             entities: {
-                general: {customProfileAttributes},
+                general: {
+                    customProfileAttributes,
+
+                    // property_field_* events fan out to every client; the CPA
+                    // slice only exists under an Enterprise license, so the
+                    // handler ignores these events without one.
+                    license: licensed ? {IsLicensed: 'true', SkuShortName: 'enterprise'} : {},
+                },
                 properties: {
                     fields: {
                         byId: Object.fromEntries(cachedPropertyFields.map((field) => [field.id, field])),
@@ -320,16 +327,28 @@ describe('property_field events for user attributes', () => {
         expect(getCustomProfileAttributeFields).not.toHaveBeenCalled();
     });
 
-    test('the first user attribute triggers a refetch while the access_control group is unknown', () => {
+    test('a user attribute is ignored while the access_control group is unknown', () => {
         // Nothing has resolved access_control to its UUID yet, so a user-object
-        // field cannot be told apart from one in some other group. Refetch
-        // rather than cache the payload; the mock fetch leaves the slice empty.
+        // field cannot be told apart from one in some other group. Ignore it
+        // rather than refetch on every such event -- the mount and reconnect
+        // fetches pick up anything missed.
         const store = makeStore({});
 
         store.dispatch(handlePropertyFieldCreatedOrUpdated(createdEvent(userAttribute())));
 
-        expect(getCustomProfileAttributeFields).toHaveBeenCalledTimes(1);
+        expect(getCustomProfileAttributeFields).not.toHaveBeenCalled();
         expect(getCustomProfileAttributes(store.getState())).toEqual([]);
+    });
+
+    test('an unlicensed server ignores user-object field events', () => {
+        // The group is resolvable here, so only the license gate keeps the field
+        // out of the slice.
+        const store = makeStore({}, {groupCachedByName: true, licensed: false});
+
+        store.dispatch(handlePropertyFieldCreatedOrUpdated(createdEvent(userAttribute())));
+
+        expect(attributeNames(store.getState())).toEqual([]);
+        expect(getCustomProfileAttributeFields).not.toHaveBeenCalled();
     });
 
     test('a channel attribute from the same group is not a user attribute', () => {
@@ -364,8 +383,9 @@ describe('property_field events for user attributes', () => {
         expect(getCustomProfileAttributeFields).not.toHaveBeenCalled();
     });
 
-    test('a user-object field from another group still refetches while the access_control group is unknown', () => {
-        // Extra network, but the plugin field must not land in the CPA slice.
+    test('a user-object field from another group is ignored while the access_control group is unknown', () => {
+        // The plugin field must not land in the CPA slice, and with nothing to
+        // tell the groups apart yet the event is simply dropped.
         const store = makeStore({});
 
         const pluginField = userAttribute({
@@ -375,7 +395,7 @@ describe('property_field events for user attributes', () => {
         });
         store.dispatch(handlePropertyFieldCreatedOrUpdated(createdEvent(pluginField)));
 
-        expect(getCustomProfileAttributeFields).toHaveBeenCalledTimes(1);
+        expect(getCustomProfileAttributeFields).not.toHaveBeenCalled();
         expect(getCustomProfileAttributes(store.getState())).toEqual([]);
     });
 
@@ -391,11 +411,11 @@ describe('property_field events for user attributes', () => {
     });
 
     // The generic scope refetch only fires when the group name is resolvable, so
-    // it varies with the cache while the user attribute read back does not.
+    // it varies with the cache while the user attribute options restore does not.
     test.each([
         ['the access_control group is not cached', false, 0],
         ['the access_control group is cached', true, 1],
-    ])('a user attribute whose options were withheld is read back instead of cached stripped, when %s', (_label, groupCachedByName, scopeRefetches) => {
+    ])('a user attribute whose options were withheld is restored from the cached definition, when %s', (_label, groupCachedByName, scopeRefetches) => {
         const existing = userAttribute({
             type: 'select',
             attrs: {options: [{id: 'option_id_1', name: 'AURORA'}]},
@@ -405,8 +425,21 @@ describe('property_field events for user attributes', () => {
         const withheld = userAttribute({type: 'select', attrs: {options_omitted: true}});
         store.dispatch(handlePropertyFieldCreatedOrUpdated(updatedEvent(withheld)));
 
+        // Patched in place from the field's own cached entry rather than dropping
+        // the whole map and reloading it.
         expect(getCustomProfileAttributes(store.getState())[0].attrs.options).toEqual([{id: 'option_id_1', name: 'AURORA'}]);
-        expect(getCustomProfileAttributeFields).toHaveBeenCalledTimes(1);
+        expect(getCustomProfileAttributeFields).not.toHaveBeenCalled();
         expect(fetchPropertyFields).toHaveBeenCalledTimes(scopeRefetches);
+    });
+
+    test('a user attribute whose options were withheld with nothing cached is read back from the server', () => {
+        // No prior entry to restore the options from, so a stripped definition
+        // would blank them for every reader -- read the authoritative list back.
+        const store = makeStore({}, {groupCachedByName: true});
+
+        const withheld = userAttribute({type: 'select', attrs: {options_omitted: true}});
+        store.dispatch(handlePropertyFieldCreatedOrUpdated(updatedEvent(withheld)));
+
+        expect(getCustomProfileAttributeFields).toHaveBeenCalledTimes(1);
     });
 });

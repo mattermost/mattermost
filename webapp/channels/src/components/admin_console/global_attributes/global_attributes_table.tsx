@@ -48,7 +48,7 @@ import type {ResourceObjectType} from './attribute_details/attribute_applies_to_
 import {CLASSIFICATION_ATTRIBUTE_ROUTE} from './classification_attribute';
 import {attributeDetailsRoute, GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, GLOBAL_ATTRIBUTES_TARGET_TYPE} from './constants';
 import {useGlobalAttributeFieldDelete} from './global_attribute_delete_modal';
-import {appliedResourceTypesByTemplateId, deleteAttributeField} from './utils';
+import {appliedResourceTypesByTemplateId, deleteAttributeField, syncUserAttributeFieldDelete} from './utils';
 
 import {it} from '../admin_definition_helpers';
 import {AdminConsoleListTable, type TableMeta} from '../list_table';
@@ -295,12 +295,13 @@ function ActionsCell({field, isClassificationRow, canEditClassification, isMobil
         try {
             await deleteAttributeField(field.object_type, field.id);
             dispatch({type: PropertyTypes.PROPERTY_FIELD_DELETED, data: {fieldId: field.id}});
+            syncUserAttributeFieldDelete(dispatch, field.object_type, field.id);
         } catch (error) {
             onDeleteError(formatMessage(
                 (error as ClientError)?.status_code === 409 ? actionsLabels.deleteErrorHasDependents : actionsLabels.deleteErrorGeneric,
             ));
         }
-    }, [dispatch, field.id, formatMessage, onDeleteError]);
+    }, [dispatch, field.id, field.object_type, formatMessage, onDeleteError]);
 
     if (isClassificationRow) {
         const classificationLinkLabel = formatMessage(actionsLabels.classificationLink);

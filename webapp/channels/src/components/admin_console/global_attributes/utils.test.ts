@@ -3,6 +3,7 @@
 
 import type {PropertyField} from '@mattermost/types/properties';
 
+import {GeneralTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 
 import {
@@ -18,6 +19,8 @@ import {
     formatAttributeHeadingName,
     isAttributeFieldType,
     linkedFieldsByResourceType,
+    syncUserAttributeFieldDelete,
+    syncUserAttributeFieldUpsert,
     updateAttributeField,
 } from './utils';
 
@@ -632,6 +635,52 @@ describe('global_attributes/utils', () => {
             expect(byType.user?.id).toBe('u1');
             expect(byType.channel?.id).toBe('c1');
             expect(byType.post).toBeUndefined();
+        });
+    });
+
+    describe('syncUserAttributeFieldUpsert', () => {
+        it('dispatches a created action for a user-object field', () => {
+            const dispatch = jest.fn();
+            const field = {id: 'f1', object_type: 'user'} as PropertyField;
+
+            syncUserAttributeFieldUpsert(dispatch, field, true);
+
+            expect(dispatch).toHaveBeenCalledWith({type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_CREATED, data: field});
+        });
+
+        it('dispatches a patched action when the write is an update', () => {
+            const dispatch = jest.fn();
+            const field = {id: 'f1', object_type: 'user'} as PropertyField;
+
+            syncUserAttributeFieldUpsert(dispatch, field, false);
+
+            expect(dispatch).toHaveBeenCalledWith({type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED, data: field});
+        });
+
+        it.each(['channel', 'post', 'template'])('ignores a %s-object field', (objectType) => {
+            const dispatch = jest.fn();
+
+            syncUserAttributeFieldUpsert(dispatch, {id: 'f1', object_type: objectType} as PropertyField, true);
+
+            expect(dispatch).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('syncUserAttributeFieldDelete', () => {
+        it('dispatches a deleted action keyed by field id for a user-object field', () => {
+            const dispatch = jest.fn();
+
+            syncUserAttributeFieldDelete(dispatch, 'user', 'f1');
+
+            expect(dispatch).toHaveBeenCalledWith({type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_DELETED, data: 'f1'});
+        });
+
+        it.each(['channel', 'post', 'template'])('ignores a %s-object field', (objectType) => {
+            const dispatch = jest.fn();
+
+            syncUserAttributeFieldDelete(dispatch, objectType, 'f1');
+
+            expect(dispatch).not.toHaveBeenCalled();
         });
     });
 });

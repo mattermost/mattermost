@@ -188,14 +188,14 @@ describe('SystemUserDetail', () => {
         attrs: {sort_order: 0, visibility: 'when_set', value_type: ''},
     } as UserPropertyField;
 
-    // Attribute Management can add or change a user attribute while this page is
-    // not mounted, and its websocket event skips the connection that made the
-    // change, so opening a user has to ask the server rather than trust whatever
-    // the last visit left behind.
+    // Attribute Management mirrors its own writes into the CPA slice in the
+    // originating tab and property_field_* events keep other sessions current,
+    // so a populated cache is trustworthy: fetch only when nothing is cached,
+    // and leave an existing list untouched.
     test.each([
-        ['nothing is cached', [] as UserPropertyField[]],
-        ['definitions are already cached', [cachedCpaField]],
-    ])('should fetch CPA definitions on mount when %s', async (_label, customProfileAttributeFields) => {
+        ['nothing is cached', [] as UserPropertyField[], 1],
+        ['definitions are already cached', [cachedCpaField], 0],
+    ])('should fetch CPA definitions on mount only when %s', async (_label, customProfileAttributeFields, expectedCalls) => {
         const getCustomProfileAttributeFields = jest.fn().mockResolvedValue({data: []});
 
         renderWithContext(
@@ -208,7 +208,7 @@ describe('SystemUserDetail', () => {
 
         await waitForLoadingToFinish();
 
-        expect(getCustomProfileAttributeFields).toHaveBeenCalledTimes(1);
+        expect(getCustomProfileAttributeFields).toHaveBeenCalledTimes(expectedCalls);
     });
 
     describe('change detection', () => {
