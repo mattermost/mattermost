@@ -2,7 +2,8 @@ import {mkdirSync, writeFileSync} from 'node:fs';
 import {dirname} from 'node:path';
 import {resolveAllowed} from './paths.mjs';
 
-const BLOCK_RE = /```(?:\w+)?\s+path=([^\s`]+)\s*\n([\s\S]*?)\n```/g;
+// Outer fence length must match so nested ``` code samples do not truncate the page.
+const BLOCK_RE = /^(`{3,})(?:\w+)?[ \t]+path=([^\s`]+)[ \t]*\n([\s\S]*?)\n\1[ \t]*$/gm;
 
 export const VERSION_ANCHOR_RE = /From Mattermost v\d+\.\d+/;
 export const HUMAN_JUDGMENT_MARKER = '[NOT PRESENT — REQUIRES HUMAN JUDGMENT]';
@@ -10,9 +11,9 @@ export const HUMAN_JUDGMENT_MARKER = '[NOT PRESENT — REQUIRES HUMAN JUDGMENT]'
 export function parseFileBlocks(text) {
   const blocks = [];
   let m;
-  const re = new RegExp(BLOCK_RE.source, 'g');
+  const re = new RegExp(BLOCK_RE);
   while ((m = re.exec(text)) !== null) {
-    blocks.push({path: m[1].trim(), content: m[2]});
+    blocks.push({path: m[2].trim(), content: m[3]});
   }
   return blocks;
 }
@@ -23,15 +24,17 @@ export function versionFromMilestone(title) {
   return m ? `v${m[1]}` : null;
 }
 
-export function hasVersionAnchor(content) {
-  return VERSION_ANCHOR_RE.test(content) || content.includes(HUMAN_JUDGMENT_MARKER);
+export function hasVersionAnchor(content, version) {
+  if (content.includes(HUMAN_JUDGMENT_MARKER)) return true;
+  if (version) return content.includes(`From Mattermost ${version}`);
+  return VERSION_ANCHOR_RE.test(content);
 }
 
 // Reject pages that document capability without an anchor when a milestone was supplied.
 export function assertVersionAnchors(files, {milestoneVersion, required = true} = {}) {
   if (!required || !milestoneVersion) return;
   for (const f of files) {
-    if (!hasVersionAnchor(f.content)) {
+    if (!hasVersionAnchor(f.content, milestoneVersion)) {
       throw new Error(
         `${f.path}: missing version anchor (expected "From Mattermost ${milestoneVersion}" or ${HUMAN_JUDGMENT_MARKER})`,
       );

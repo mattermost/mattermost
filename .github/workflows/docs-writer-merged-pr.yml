@@ -6,6 +6,11 @@ name: Docs Writer (Merged PR)
 #
 # Requires DOCS_AI_APP_CLIENT_ID (variable) + DOCS_AI_APP_PRIVATE_KEY (secret)
 # so the opened PR triggers docs-review.yml (GITHUB_TOKEN PRs do not).
+#
+# Fork merges soft-skip: pull_request from a fork gets no secrets (same posture
+# as docs-gap.yml). Re-run via workflow_dispatch after merge if needed. Do not
+# switch this to pull_request_target — the sync job must not run on forged
+# fork heads named docs/pr-*.
 
 on:
   pull_request:
@@ -62,6 +67,10 @@ jobs:
           client-id: ${{ vars.DOCS_AI_APP_CLIENT_ID }}
           private-key: ${{ secrets.DOCS_AI_APP_PRIVATE_KEY }}
           repositories: mattermost
+          # Narrow below the App installation grant (cannot exceed it).
+          permission-contents: write
+          permission-pull-requests: write
+          permission-issues: write
 
       - name: Checkout
         if: steps.gate.outputs.run == 'true'

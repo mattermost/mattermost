@@ -23,11 +23,19 @@ import {MARKER} from '../gap/gap.mjs';
 import {REPO_ROOT as DEFAULT_ROOT} from '../lib/personas.mjs';
 import {authorLoop, renderPrBody} from './author-loop.mjs';
 import {versionFromMilestone, writeFiles} from './files.mjs';
-import {briefFromGapResult, parseGapBrief} from './gap-brief.mjs';
+import {briefFromGapResult, briefFromPrEvidence, parseGapBrief} from './gap-brief.mjs';
 
 function arg(name) {
   const i = process.argv.indexOf(`--${name}`);
   return i === -1 ? null : process.argv[i + 1];
+}
+
+function readPrEvidence() {
+  const prBodyFile = process.env.PR_BODY_FILE;
+  return {
+    prTitle: process.env.PR_TITLE || '',
+    prBody: prBodyFile && existsSync(prBodyFile) ? readFileSync(prBodyFile, 'utf8') : '',
+  };
 }
 
 async function loadBrief({repo, pr}) {
@@ -45,12 +53,19 @@ async function loadBrief({repo, pr}) {
 
   const sticky = await findStickyComment(repo, pr, {marker: MARKER});
   if (!sticky?.body) {
-    throw new Error(`no docs-gap sticky comment on PR #${pr}; re-run gap analysis or supply --brief-file`);
+    console.error(
+      `[writer] no docs-gap sticky on #${pr}; falling back to PR title/body/diff as the brief`,
+    );
+    return briefFromPrEvidence(readPrEvidence());
   }
   const brief = parseGapBrief(sticky.body);
-  if (!brief) throw new Error('gap sticky comment could not be parsed');
+  if (!brief) {
+    console.error(`[writer] gap sticky on #${pr} unparseable; falling back to PR evidence`);
+    return briefFromPrEvidence(readPrEvidence());
+  }
   if (!brief.actions.length && !brief.targetPaths.length) {
-    throw new Error('gap sticky comment has no recommended actions or docs paths');
+    console.error(`[writer] gap sticky on #${pr} has no actions/paths; falling back to PR evidence`);
+    return briefFromPrEvidence(readPrEvidence());
   }
   return brief;
 }

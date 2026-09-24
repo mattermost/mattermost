@@ -53,3 +53,19 @@ export function briefFromGapResult(result) {
     targetPaths: [...new Set([...extractDocsPaths(actions.join('\n')), ...fromImpacts])],
   };
 }
+
+// Human-applied Docs/Needed (or a missing sticky) — draft from PR evidence alone.
+export function briefFromPrEvidence({prTitle, prBody} = {}) {
+  const blob = [prTitle, prBody].filter(Boolean).join('\n');
+  return {
+    state: null,
+    assessment: 'required',
+    summary:
+      (prTitle && String(prTitle).trim()) ||
+      'Docs/Needed was present without a docs-gap sticky comment; draft from the merged PR evidence.',
+    actions: [
+      'Draft documentation for the merged change using the PR title, description, and code diff as evidence.',
+    ],
+    targetPaths: extractDocsPaths(blob),
+  };
+}
