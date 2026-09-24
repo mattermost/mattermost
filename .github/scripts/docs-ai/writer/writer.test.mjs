@@ -8,7 +8,7 @@ import {
   parseFileBlocks,
   versionFromMilestone,
 } from './files.mjs';
-import {briefFromGapResult, parseGapBrief} from './gap-brief.mjs';
+import {briefFromGapResult, briefFromPrEvidence, parseGapBrief} from './gap-brief.mjs';
 import {DENY_PREFIXES, extractDocsPaths, isAllowedPath} from './paths.mjs';
 import {sourcePrFrom} from './sync.mjs';
 import {MARKER, buildComment, decide} from '../gap/gap.mjs';
@@ -50,11 +50,28 @@ test('hasVersionAnchor accepts the convention or the human marker', () => {
   assert.equal(hasVersionAnchor('No version at all.'), false);
 });
 
+test('hasVersionAnchor requires the milestone version when supplied', () => {
+  assert.equal(hasVersionAnchor('From Mattermost v9.5, legacy…', 'v11.7'), false);
+  assert.equal(hasVersionAnchor('From Mattermost v11.7, new…', 'v11.7'), true);
+  assert.equal(hasVersionAnchor('[NOT PRESENT — REQUIRES HUMAN JUDGMENT]', 'v11.7'), true);
+});
+
 test('assertVersionAnchors rejects capability pages without an anchor', () => {
   assert.throws(
     () =>
       assertVersionAnchors(
         [{path: 'docs/main/x.mdx', content: '---\ntitle: X\n---\n\nHello.\n'}],
+        {milestoneVersion: 'v11.7'},
+      ),
+    /missing version anchor/,
+  );
+});
+
+test('assertVersionAnchors rejects a stale anchor that is not the milestone', () => {
+  assert.throws(
+    () =>
+      assertVersionAnchors(
+        [{path: 'docs/main/x.mdx', content: '---\ntitle: X\n---\n\nFrom Mattermost v9.5, …\n'}],
         {milestoneVersion: 'v11.7'},
       ),
     /missing version anchor/,
@@ -83,6 +100,30 @@ test('parseFileBlocks reads path= fences', () => {
   assert.equal(files.length, 2);
   assert.equal(files[0].path, 'docs/main/end-user-guide/a.mdx');
   assert.match(files[1].content, /title: B/);
+});
+
+test('parseFileBlocks preserves nested three-backtick samples inside a longer fence', () => {
+  const text = [
+    '````mdx path=docs/main/administration-guide/example.mdx',
+    '---',
+    'title: Example',
+    '---',
+    '',
+    'From Mattermost v11.7, run:',
+    '',
+    '```bash',
+    'mmctl config get ServiceSettings.SiteURL',
+    '```',
+    '',
+    'Done.',
+    '````',
+  ].join('\n');
+  const files = parseFileBlocks(text);
+  assert.equal(files.length, 1);
+  assert.equal(files[0].path, 'docs/main/administration-guide/example.mdx');
+  assert.match(files[0].content, /```bash/);
+  assert.match(files[0].content, /mmctl config get/);
+  assert.match(files[0].content, /Done\./);
 });
 
 test('additionsDiff synthesises a reviewable unified diff', () => {
@@ -150,6 +191,17 @@ test('briefFromGapResult uses impact docs_location', () => {
     impacts: [{docs_location: 'docs/main/security-guide/x.mdx'}],
   });
   assert.deepEqual(brief.targetPaths, ['docs/main/security-guide/x.mdx']);
+});
+
+test('briefFromPrEvidence drafts from title/body when no sticky exists', () => {
+  const brief = briefFromPrEvidence({
+    prTitle: 'Add EnableFoo',
+    prBody: 'See docs/main/administration-guide/configure/foo.mdx',
+  });
+  assert.equal(brief.assessment, 'required');
+  assert.equal(brief.actions.length, 1);
+  assert.ok(brief.targetPaths.includes('docs/main/administration-guide/configure/foo.mdx'));
+  assert.match(brief.summary, /EnableFoo/);
 });
 
 test('sourcePrFrom reads branch and body marker', () => {

@@ -37,15 +37,22 @@ brief names a path that already exists.
 Return one or more fenced code blocks, each preceded by a `path=` attribute naming the
 destination relative to the repository root. No prose between blocks.
 
-```mdx path=docs/main/administration-guide/configure/example.mdx
+Use a **four-backtick** outer fence so any three-backtick code samples inside the page
+do not close the block early:
+
+````mdx path=docs/main/administration-guide/configure/example.mdx
 ---
 title: "Example setting"
 ---
 
 From Mattermost v11.7, …
 
-…
+```bash
+mmctl config get ServiceSettings.SiteURL
 ```
+
+…
+````
 
 Include only files you create or modify. Every `path=` must be under `docs/main/`,
 `docs/develop/`, or be exactly `docs/api/examples.mdx` / `docs/api/index.mdx`.
