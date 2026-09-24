@@ -394,19 +394,38 @@ func TestGetImageOrientationLargeMetadata(t *testing.T) {
 	// declares, and still reports the orientation that structure carries.
 	const bound = time.Second
 
+	// Pointer arrays this long, and directories this large, exceed the tag-size
+	// limit and are skipped wholesale before any of their entries are visited.
 	exif := nestedEXIF(t, 2500, 4600, uint16(UpsideDown), false)
 	thumbnailDirEXIF := nestedEXIF(t, 2500, 4600, uint16(UpsideDown), true)
+
+	// The most expensive input the tag-size limit still allows: every pointer
+	// tag keeps the two offsets that fit under the limit, and each offset
+	// resolves to the largest directory a 16-bit tag count can declare, so a
+	// single read walks all of them before reaching the orientation tag. JPEG
+	// can't build this because its EXIF segment is capped at ~64KB by the
+	// container, but PNG, TIFF and WebP have no such cap.
+	worstCase := nestedEXIF(t, 2, 65535, uint16(UpsideDown), false)
+
+	const (
+		smallImage  = 128 * 1024
+		readerLimit = 1024 * 1024
+	)
 
 	payloads := []struct {
 		name    string
 		format  string
 		payload []byte
+		maxSize int
 	}{
-		{"jpeg", "jpeg", jpegWithEXIF(t, exif)},
-		{"png", "png", pngWithEXIF(t, exif)},
-		{"tiff", "tiff", exif},
-		{"webp", "webp", webpWithEXIF(t, exif)},
-		{"jpeg, orientation in thumbnail directory", "jpeg", jpegWithEXIF(t, thumbnailDirEXIF)},
+		{"jpeg", "jpeg", jpegWithEXIF(t, exif), smallImage},
+		{"png", "png", pngWithEXIF(t, exif), smallImage},
+		{"tiff", "tiff", exif, smallImage},
+		{"webp", "webp", webpWithEXIF(t, exif), smallImage},
+		{"jpeg, orientation in thumbnail directory", "jpeg", jpegWithEXIF(t, thumbnailDirEXIF), smallImage},
+		{"png, worst case within tag-size limit", "png", pngWithEXIF(t, worstCase), readerLimit},
+		{"tiff, worst case within tag-size limit", "tiff", worstCase, readerLimit},
+		{"webp, worst case within tag-size limit", "webp", webpWithEXIF(t, worstCase), readerLimit},
 	}
 
 	inputs := []struct {
@@ -415,12 +434,12 @@ func TestGetImageOrientationLargeMetadata(t *testing.T) {
 	}{
 		{"seekable input", func(b []byte) io.Reader { return bytes.NewReader(b) }},
 		{"reader input", func(b []byte) io.Reader {
-			return &io.LimitedReader{R: bytes.NewReader(b), N: 1024 * 1024}
+			return &io.LimitedReader{R: bytes.NewReader(b), N: readerLimit}
 		}},
 	}
 
 	for _, p := range payloads {
-		require.Less(t, len(p.payload), 128*1024, "payload should stay a small image")
+		require.Less(t, len(p.payload), p.maxSize, "payload should stay within the reader limit")
 
 		for _, in := range inputs {
 			t.Run(p.name+", "+in.name, func(t *testing.T) {
