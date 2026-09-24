@@ -11,7 +11,7 @@ import {
 import {briefFromGapResult, briefFromPrEvidence, parseGapBrief} from './gap-brief.mjs';
 import {DENY_PREFIXES, extractDocsPaths, isAllowedPath} from './paths.mjs';
 import {sourcePrFrom, assertWriterProvenance} from './sync.mjs';
-import {groupPathAllowlist, normalizeDocsPath} from './author-loop.mjs';
+import {groupPathAllowlist, missingGroupTargets, normalizeDocsPath} from './author-loop.mjs';
 import {MARKER, buildComment, decide} from '../gap/gap.mjs';
 
 test('allowlist accepts hand-authored content roots', () => {
@@ -262,4 +262,26 @@ test('groupPathAllowlist keeps only concrete docs/ targets', () => {
   assert.ok(allow.has('docs/main/administration-guide/a.mdx'));
   assert.ok(allow.has('docs/main/b.mdx'));
   assert.equal(normalizeDocsPath('./docs/main/x.mdx'), 'docs/main/x.mdx');
+});
+
+test('missingGroupTargets requires every concrete target to be authored', () => {
+  const targets = [
+    'docs/main/administration-guide/a.mdx',
+    'docs/main/administration-guide/b.mdx',
+  ];
+  assert.deepEqual(
+    missingGroupTargets([{path: 'docs/main/administration-guide/a.mdx', content: 'x'}], targets),
+    ['docs/main/administration-guide/b.mdx'],
+  );
+  assert.deepEqual(
+    missingGroupTargets(
+      [
+        {path: 'docs/main/administration-guide/a.mdx', content: 'x'},
+        {path: 'docs/main/administration-guide/b.mdx', content: 'y'},
+      ],
+      targets,
+    ),
+    [],
+  );
+  assert.deepEqual(missingGroupTargets([{path: 'docs/main/a.mdx', content: 'x'}], ['(unspecified)']), []);
 });
