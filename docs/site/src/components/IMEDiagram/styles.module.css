@@ -7,30 +7,15 @@
  */
 
 .wrapper {
-  /* Default: fill the reading column. Small viewports get a normal
-   * flow child; wider viewports break out rightward (see below). */
+  /* Sit inside the reading column, capped at the deck's native width.
+   * `container-type: inline-size` lets `.cellGrid` / `.footerRow` /
+   * `.cellTitleSplit` collapse based on the wrapper's actual width
+   * rather than the viewport, so narrow reading columns (docs pages
+   * with a visible ToC) collapse the same way narrow viewports do. */
   margin: 2rem 0 2.5rem;
   width: 100%;
   max-width: 1280px;
-}
-
-@media (min-width: 1200px) {
-  .wrapper {
-    /* Break out of the reading column and extend rightward into the
-     * space Docusaurus reserves for the right-hand table of contents.
-     * The landing page hides its ToC in frontmatter, so that band is
-     * empty on the pages this diagram currently ships on. We never
-     * extend leftward — the docs sidebar owns that space.
-     *
-     * Capped by `min(1280px, viewport - sidebar - gutters)` so we
-     * respect the sidebar on smaller viewports and never grow past
-     * the source slide's 1280px width. If the diagram is ever placed
-     * on a page that shows a ToC, the diagram will visually overlap
-     * that ToC; move it to a wider layout or add `hide_table_of_contents`
-     * on that page. */
-    max-width: none;
-    width: min(1280px, calc(100vw - var(--doc-sidebar-width, 300px) - 4rem));
-  }
+  container-type: inline-size;
 }
 
 /* === Audience toggle above the diagram === */
@@ -620,22 +605,21 @@ a.footerCell:hover {
 
 /* === Responsive collapse ===
  *
- * Threshold matches the wrapper's breakout media query (>= 1200px):
- * anything narrower than the breakout kicks in must use the
- * collapsed layout, otherwise the 6-tile grid + intro column tries
- * to render inside a ~700px reading column and text overlaps. */
+ * Container-query based so the diagram collapses when its own width
+ * is narrow, whether the cause is a small viewport or a wide viewport
+ * with a visible ToC squeezing the reading column. */
 
-@media (max-width: 1199px) {
+@container (max-width: 900px) {
   .layerContentWithIntro {
     grid-template-columns: 1fr;
   }
   /* Two-column fallback keeps the Applications row's 6 tiles readable
    * while preserving single-column layers (data-cols="1"). */
   .cellGrid:not([data-cols="1"]) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
   .footerRow:not([data-cols="1"]) {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
   }
   /* Interoperability tiles stack title above bullets when the two
    * tiles are forced to share a narrow row width. */

@@ -20,17 +20,17 @@ export const entadv: IMEContent = {
         {
           // Deck: no leading icon on Use Cases cards, larger title.
           title: 'Cybersecurity Operations',
-          body: 'SOC/CERT ops, out-of-band incident response, Red Team/pen test, cyber ops, threat hunting/intel sharing',
+          body: 'SOC/CERT ops, out-of-band incident response, Red Team',
           to: '/use-case-guide/integrated-security-operations',
         },
         {
           title: 'DevSecOps',
-          body: 'Build, secure & operate vital digital systems. Developer productivity, CI/CD, platform engineering, emergency comms',
+          body: 'Dev productivity, CI/CD, platform eng, emergency comms',
           to: '/use-case-guide/devops-collaboration',
         },
         {
           title: 'Real-World & Mission Operations',
-          body: 'Zero Trust controls & mobility, C2-to-edge, joint operations, cross-domain operations',
+          body: 'Zero Trust mobility, C2 to tactical edge, joint operations',
           to: '/use-case-guide/secure-command-and-control',
         },
       ],
