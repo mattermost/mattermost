@@ -4,7 +4,7 @@
  */
 
 import {MARKER, parseState} from '../gap/gap.mjs';
-import {extractDocsPaths} from './paths.mjs';
+import {extractDocsPaths, isAllowedPath} from './paths.mjs';
 
 const ACTIONS_RE = /^\- \[ \] (.+)$/gm;
 
@@ -44,7 +44,9 @@ export function briefFromGapResult(result) {
   const actions = result.actions ?? [];
   const fromImpacts = (result.impacts ?? [])
     .map((r) => r.docsLocation || r.docs_location)
-    .filter(Boolean);
+    .filter((p) => typeof p === 'string')
+    .map((p) => p.trim().replace(/^\.\//, ''))
+    .filter((p) => /\.(?:md|mdx)$/.test(p) && isAllowedPath(p));
   return {
     state: null,
     assessment: result.assessment,

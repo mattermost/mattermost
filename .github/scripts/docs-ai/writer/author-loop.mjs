@@ -15,7 +15,15 @@ import {isAllowedPath} from './paths.mjs';
 const WRITER_MODEL = process.env.DOCS_AI_WRITER_MODEL || 'claude-sonnet-4-6';
 const REVIEW_MODEL = process.env.DOCS_AI_REVIEW_MODEL || 'claude-sonnet-4-5-20250929';
 const ROUTER_MODEL = process.env.DOCS_AI_ROUTER_MODEL || 'claude-haiku-4-5-20251001';
-const MAX_REVISIONS = Number(process.env.DOCS_AI_MAX_REVISIONS || 2);
+
+/** Accept only non-negative integers; fall back when missing or malformed. */
+export function parseMaxRevisions(raw, fallback = 2) {
+  if (raw == null || raw === '') return fallback;
+  const n = Number(raw);
+  return Number.isInteger(n) && n >= 0 ? n : fallback;
+}
+
+const MAX_REVISIONS = parseMaxRevisions(process.env.DOCS_AI_MAX_REVISIONS);
 
 export function normalizeDocsPath(p) {
   return String(p || '')
@@ -260,8 +268,21 @@ export async function authorLoop({brief, input, completeFn = complete} = {}) {
         });
         break;
       }
+      try {
+        assertVersionAnchors(revised, {milestoneVersion: input.milestoneVersion});
+      } catch (e) {
+        // Dropped anchor must not replace a complete, anchored prior pass.
+        console.error(
+          `[author-loop] revision failed anchor check (${e.message}); keeping prior files`,
+        );
+        trail.openConcerns.push({
+          persona: group.personaId ?? 'neutral',
+          summary: `Revision rejected: ${e.message}`,
+          feedback: [],
+        });
+        break;
+      }
       groupFiles = revised;
-      assertVersionAnchors(groupFiles, {milestoneVersion: input.milestoneVersion});
     }
 
     files = mergeFiles(files, groupFiles);

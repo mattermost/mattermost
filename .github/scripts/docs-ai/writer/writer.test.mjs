@@ -11,7 +11,7 @@ import {
 import {briefFromGapResult, briefFromPrEvidence, parseGapBrief} from './gap-brief.mjs';
 import {DENY_PREFIXES, extractDocsPaths, isAllowedPath} from './paths.mjs';
 import {sourcePrFrom, assertWriterProvenance} from './sync.mjs';
-import {groupPathAllowlist, missingGroupTargets, normalizeDocsPath} from './author-loop.mjs';
+import {groupPathAllowlist, missingGroupTargets, normalizeDocsPath, parseMaxRevisions, authorLoop} from './author-loop.mjs';
 import {MARKER, buildComment, decide} from '../gap/gap.mjs';
 
 test('allowlist accepts hand-authored content roots', () => {
@@ -216,6 +216,35 @@ test('briefFromGapResult uses impact docs_location', () => {
   assert.deepEqual(brief.targetPaths, ['docs/main/security-guide/x.mdx']);
 });
 
+test('briefFromGapResult drops directory, denied, and non-string impact locations', () => {
+  const brief = briefFromGapResult({
+    assessment: 'required',
+    summary: 's',
+    actions: [],
+    impacts: [
+      {docs_location: 'docs/main/administration-guide/'},
+      {docs_location: 'docs/site/foo.mdx'},
+      {docs_location: 'docs/api/reference/openapi.mdx'},
+      {docsLocation: 42},
+      {docs_location: '  ./docs/main/administration-guide/configure/foo.mdx  '},
+      {docs_location: null},
+    ],
+  });
+  assert.deepEqual(brief.targetPaths, ['docs/main/administration-guide/configure/foo.mdx']);
+});
+
+test('parseMaxRevisions accepts non-negative integers and rejects malformed values', () => {
+  assert.equal(parseMaxRevisions(undefined), 2);
+  assert.equal(parseMaxRevisions(''), 2);
+  assert.equal(parseMaxRevisions('two'), 2);
+  assert.equal(parseMaxRevisions('2.5'), 2);
+  assert.equal(parseMaxRevisions('2abc'), 2);
+  assert.equal(parseMaxRevisions('0'), 0);
+  assert.equal(parseMaxRevisions('3'), 3);
+  assert.equal(parseMaxRevisions('-1'), 2);
+  assert.equal(parseMaxRevisions(null, 5), 5);
+});
+
 test('briefFromPrEvidence drafts from title/body when no sticky exists', () => {
   const brief = briefFromPrEvidence({
     prTitle: 'Add EnableFoo',
@@ -284,4 +313,44 @@ test('missingGroupTargets requires every concrete target to be authored', () => 
     [],
   );
   assert.deepEqual(missingGroupTargets([{path: 'docs/main/a.mdx', content: 'x'}], ['(unspecified)']), []);
+});
+
+test('authorLoop keeps prior files when a revision drops the version anchor', async () => {
+  const path = 'docs/main/administration-guide/configure/foo.mdx';
+  const fileBlock = (body) =>
+    ['````mdx path=' + path, '---', 'title: Foo', '---', '', body, '````'].join('\n');
+
+  let authorCalls = 0;
+  const completeFn = async ({userPrompt}) => {
+    const prompt = String(userPrompt || '');
+    if (prompt.includes('Which reviewers apply?')) {
+      return {text: '{"personas": ["system-admin"]}', usage: {}};
+    }
+    if (prompt.includes('Review the diff above')) {
+      return {
+        text: JSON.stringify({
+          verdict: 'REQUEST_CHANGES',
+          summary: 'Needs a clearer lead.',
+          feedback: ['Clarify the lead sentence.'],
+        }),
+        usage: {},
+      };
+    }
+    authorCalls += 1;
+    if (prompt.includes('Revise the pages')) {
+      return {text: fileBlock('Foo is available.'), usage: {}};
+    }
+    return {text: fileBlock('From Mattermost v11.7, Foo is available.'), usage: {}};
+  };
+
+  const {files, trail} = await authorLoop({
+    brief: {summary: 's', actions: [], targetPaths: [path]},
+    input: {milestoneVersion: 'v11.7', milestoneTitle: 'v11.7.0', prTitle: 'Add Foo'},
+    completeFn,
+  });
+
+  assert.equal(authorCalls, 2);
+  assert.equal(files.length, 1);
+  assert.match(files[0].content, /From Mattermost v11\.7/);
+  assert.ok(trail.openConcerns.some((c) => /Revision rejected/.test(c.summary)));
 });
