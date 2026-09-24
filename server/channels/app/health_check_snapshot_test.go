@@ -51,6 +51,8 @@ func TestBuildHealthSnapshotOnlyLeaderHasDiagnostics(t *testing.T) {
 	require.NoError(t, err)
 
 	cluster := &emocks.ClusterInterface{}
+	// Setup's background config publishes reach whichever cluster is installed.
+	cluster.On("SendClusterMessage", mock.Anything).Return().Maybe()
 	cluster.On("GetClusterId").Return("id-2")
 	cluster.On("GetClusterInfos").Return([]*model.ClusterInfo{
 		{Id: "id-1", Hostname: "node-1"},
