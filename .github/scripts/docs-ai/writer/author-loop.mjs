@@ -33,6 +33,14 @@ export function groupPathAllowlist(groupPaths) {
   );
 }
 
+/** Targets in the group allowlist that are absent from the authored files. */
+export function missingGroupTargets(files, groupPaths) {
+  const allow = groupPathAllowlist(groupPaths);
+  if (allow.size === 0) return [];
+  const have = new Set((files || []).map((f) => normalizeDocsPath(f.path)));
+  return [...allow].filter((t) => !have.has(t)).sort();
+}
+
 function buildAuthorUserPrompt({brief, groupPaths, input, revisionFeedback}) {
   const parts = [
     DATA_NOTICE,
@@ -184,6 +192,12 @@ export async function authorLoop({brief, input, completeFn = complete} = {}) {
       input,
       completeFn,
     });
+    const initialMissing = missingGroupTargets(groupFiles, group.paths);
+    if (initialMissing.length) {
+      throw new Error(
+        `author ${group.personaId ?? 'neutral'} omitted required targets: ${initialMissing.join(', ')}`,
+      );
+    }
     assertVersionAnchors(groupFiles, {milestoneVersion: input.milestoneVersion});
 
     let revision = 0;
@@ -225,7 +239,7 @@ export async function authorLoop({brief, input, completeFn = complete} = {}) {
       }
 
       revision += 1;
-      groupFiles = await authorPass({
+      const revised = await authorPass({
         personaId: group.personaId,
         groupPaths: group.paths,
         brief,
@@ -233,6 +247,20 @@ export async function authorLoop({brief, input, completeFn = complete} = {}) {
         revisionFeedback: blocking,
         completeFn,
       });
+      const revisedMissing = missingGroupTargets(revised, group.paths);
+      if (revisedMissing.length) {
+        // Incomplete revision must not replace a complete prior pass.
+        console.error(
+          `[author-loop] revision omitted targets (${revisedMissing.join(', ')}); keeping prior files`,
+        );
+        trail.openConcerns.push({
+          persona: group.personaId ?? 'neutral',
+          summary: `Revision omitted required targets: ${revisedMissing.join(', ')}`,
+          feedback: [],
+        });
+        break;
+      }
+      groupFiles = revised;
       assertVersionAnchors(groupFiles, {milestoneVersion: input.milestoneVersion});
     }
 
