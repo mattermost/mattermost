@@ -111,8 +111,9 @@ export const mission: IMEContent = {
       id: 'interoperability',
       label: 'Interoperability',
       intro: {
+        // Deck slide 7 shows the intro column as plain title text with
+        // no leading icon and no logo constellation.
         title: 'Accelerates Classified & Mission Partner Operations',
-        iconSrc: '/img/ime/logos/ms-defender.png',
       },
       columns: 2,
       cells: [
@@ -130,6 +131,7 @@ export const mission: IMEContent = {
           to: '/security-guide/zero-trust',
         },
         {
+          // Deck: this box has no logo strip — bullet list only.
           title: 'Secure Federation & Interoperability',
           bullets: [
             'Standards Compatible: ACP 240',
@@ -141,12 +143,6 @@ export const mission: IMEContent = {
           ],
           icon: 'users',
           to: '/administration-guide/onboard/connected-workspaces',
-          logos: [
-            {alt: 'Microsoft Teams', src: '/img/ime/logos/msteams.png'},
-            {alt: 'Microsoft Entra ID', src: '/img/ime/logos/ms-entra.png'},
-            {alt: 'Element (Matrix)', src: '/img/ime/logos/enterprise-o.png'},
-            {alt: 'Global Relay', src: '/img/ime/logos/global-relay.png'},
-          ],
         },
       ],
     },
@@ -154,17 +150,11 @@ export const mission: IMEContent = {
       id: 'deployment',
       label: 'Deployment',
       intro: {
+        // Deck slide 7 shows the intro column as plain title text with
+        // no leading icon and no AI-vendor constellation. Those AI
+        // vendor logos live inside the Enterprise-to-Edge box in the
+        // deck; they've been moved there below.
         title: 'Air-Gapped & Sovereign Deployment & Integration',
-        iconSrc: '/img/ime/logos/mattermost.png',
-        // AI vendor constellation shown next to the intro on the deck.
-        logos: [
-          {alt: 'OpenAI', src: '/img/ime/logos/openai.png'},
-          {alt: 'Meta', src: '/img/ime/logos/meta.png'},
-          {alt: 'Elastic', src: '/img/ime/logos/elastic.png'},
-          {alt: 'Perplexity', src: '/img/ime/logos/perplexity.png'},
-          {alt: 'Ask Sage', src: '/img/ime/logos/ask-sage.png'},
-          {alt: 'Mistral', src: '/img/ime/logos/mistral.png'},
-        ],
       },
       columns: 3,
       cells: [
@@ -173,7 +163,19 @@ export const mission: IMEContent = {
           body: 'Runs at the edge, in your data center, in sovereign/gov & global cloud & AI',
           icon: 'server',
           to: '/deployment-guide/deployment-scenarios/deployment-scenarios-index',
+          // Deck shows AI-vendor and Mattermost logos as a small
+          // constellation in this box's top-right, and deployment
+          // targets ("Tactical Edge", "Local Datacenter", Azure,
+          // Oracle, AWS, GCP) as a strip below the body. Rendered
+          // together here — the strip splits naturally by width.
           logos: [
+            {alt: 'OpenAI', src: '/img/ime/logos/openai.png'},
+            {alt: 'Meta', src: '/img/ime/logos/meta.png'},
+            {alt: 'Elastic', src: '/img/ime/logos/elastic.png'},
+            {alt: 'Ask Sage', src: '/img/ime/logos/ask-sage.png'},
+            {alt: 'Mattermost', src: '/img/ime/logos/mattermost.png'},
+            {alt: 'Tactical Edge'},
+            {alt: 'Local Datacenter'},
             {alt: 'Microsoft Azure', src: '/img/ime/logos/azure.png'},
             {alt: 'Oracle', src: '/img/ime/logos/oracle.png'},
             {alt: 'AWS', src: '/img/ime/logos/aws.png'},

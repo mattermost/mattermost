@@ -7,15 +7,30 @@
  */
 
 .wrapper {
-  /* Aligned to the reading column on both sides so the diagram's
-   * left/right margins match the surrounding paragraphs. Earlier
-   * revisions broke out to the right for a 16:9 slide feel, but that
-   * left the diagram asymmetric relative to the text; keeping it
-   * centered on the text is more important than matching the source
-   * slide's exact width. */
-  margin: 2rem auto 2.5rem;
+  /* Default: fill the reading column. Small viewports get a normal
+   * flow child; wider viewports break out rightward (see below). */
+  margin: 2rem 0 2.5rem;
   width: 100%;
   max-width: 1280px;
+}
+
+@media (min-width: 1200px) {
+  .wrapper {
+    /* Break out of the reading column and extend rightward into the
+     * space Docusaurus reserves for the right-hand table of contents.
+     * The landing page hides its ToC in frontmatter, so that band is
+     * empty on the pages this diagram currently ships on. We never
+     * extend leftward — the docs sidebar owns that space.
+     *
+     * Capped by `min(1280px, viewport - sidebar - gutters)` so we
+     * respect the sidebar on smaller viewports and never grow past
+     * the source slide's 1280px width. If the diagram is ever placed
+     * on a page that shows a ToC, the diagram will visually overlap
+     * that ToC; move it to a wider layout or add `hide_table_of_contents`
+     * on that page. */
+    max-width: none;
+    width: min(1280px, calc(100vw - var(--doc-sidebar-width, 300px) - 4rem));
+  }
 }
 
 /* === Audience toggle above the diagram === */
