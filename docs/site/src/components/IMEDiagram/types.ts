@@ -45,8 +45,22 @@ export type Cell = {
   /** Image icon path (e.g. `/img/ime/logos/icon-chat.png`). Takes precedence over `icon` when set. */
   iconSrc?: string;
   to?: string;
-  /** Optional logo strip rendered below the body (used by Deployment cards in the mission variant). */
+  /** Logo strip rendered below the body. Layout controlled by `logoLayout`. */
   logos?: Logo[];
+  /**
+   * How to arrange the `logos` array below the body.
+   * - `'strip'` (default): wrap horizontally in reading order.
+   * - `'grid'`: fixed-column CSS grid (see `logoColumns`).
+   */
+  logoLayout?: 'strip' | 'grid';
+  /** Column count when `logoLayout === 'grid'`. Defaults to 3. */
+  logoColumns?: number;
+  /**
+   * Extra logo constellation absolutely positioned in the top-right
+   * corner of the cell. Used for the AI-vendor icons on the
+   * Enterprise-to-Edge card in the mission variant.
+   */
+  cornerLogos?: Logo[];
 };
 
 /** A non-clickable intro column (left-most in Application / Interoperability / Deployment layers). */
@@ -76,6 +90,12 @@ export type Layer = {
   footers?: FooterStrip[];
   /** Column count for the primary cell grid. Defaults to `cells.length` when omitted. */
   columns?: number;
+  /**
+   * Explicit `grid-template-columns` value for the cell grid — e.g.
+   * `'1.2fr 1fr 0.85fr'` for uneven card widths. Overrides `columns`
+   * when set.
+   */
+  columnsTemplate?: string;
 };
 
 /** Top-level content for one variant of the diagram. */

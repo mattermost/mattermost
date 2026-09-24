@@ -281,6 +281,7 @@
 /* === Cell === */
 
 .cell {
+  position: relative; /* anchor for .cornerLogos */
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
@@ -460,6 +461,44 @@ a.footerCell:hover {
   width: auto;
   object-fit: contain;
   /* Real brand marks read best without opacity dimming */
+}
+
+/* Grid layout for cell logo strips (e.g. Layered Extensibility on
+ * the mission variant). `--ime-logo-cols` is set inline by the
+ * renderer via `logoColumns`. */
+.logoGrid {
+  display: grid;
+  grid-template-columns: repeat(var(--ime-logo-cols, 3), minmax(0, 1fr));
+  justify-items: center;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+}
+.logoGrid .logoImg {
+  max-width: 100%;
+  height: 1.3rem;
+}
+
+/* Corner logo constellation — small AI/vendor icons pinned to the
+ * top-right of the cell (e.g. Enterprise-to-Edge on the mission
+ * variant). Positioned absolutely so they don't push the title down. */
+.cornerLogos {
+  position: absolute;
+  top: 0.45rem;
+  right: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  max-width: 55%;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+
+.cornerLogo {
+  height: 0.9rem;
+  max-width: 1.2rem;
+  width: auto;
+  object-fit: contain;
 }
 
 /* Footer strips have their own logo sizing so wordmarks like AWS/Oracle

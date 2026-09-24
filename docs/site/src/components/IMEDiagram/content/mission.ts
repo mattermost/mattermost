@@ -156,24 +156,27 @@ export const mission: IMEContent = {
         // deck; they've been moved there below.
         title: 'Air-Gapped & Sovereign Deployment & Integration',
       },
-      columns: 3,
+      // Deck shows uneven card widths: E2E is the widest, Layered
+      // Extensibility is medium, HA is the narrowest. Approximate
+      // ratios from the slide.
+      columnsTemplate: '1.2fr 1.1fr 0.9fr',
       cells: [
         {
           title: 'Enterprise to Edge with Sovereign AI',
           body: 'Runs at the edge, in your data center, in sovereign/gov & global cloud & AI',
           icon: 'server',
           to: '/deployment-guide/deployment-scenarios/deployment-scenarios-index',
-          // Deck shows AI-vendor and Mattermost logos as a small
-          // constellation in this box's top-right, and deployment
-          // targets ("Tactical Edge", "Local Datacenter", Azure,
-          // Oracle, AWS, GCP) as a strip below the body. Rendered
-          // together here — the strip splits naturally by width.
-          logos: [
+          // Deck: AI-vendor logos pinned to top-right corner.
+          cornerLogos: [
             {alt: 'OpenAI', src: '/img/ime/logos/openai.png'},
             {alt: 'Meta', src: '/img/ime/logos/meta.png'},
             {alt: 'Elastic', src: '/img/ime/logos/elastic.png'},
             {alt: 'Ask Sage', src: '/img/ime/logos/ask-sage.png'},
             {alt: 'Mattermost', src: '/img/ime/logos/mattermost.png'},
+          ],
+          // Deck: deployment targets as text badges + wordmark logos
+          // sitting below the body copy.
+          logos: [
             {alt: 'Tactical Edge'},
             {alt: 'Local Datacenter'},
             {alt: 'Microsoft Azure', src: '/img/ime/logos/azure.png'},
@@ -191,14 +194,25 @@ export const mission: IMEContent = {
           ],
           icon: 'plug',
           to: '/integrations-guide/integrations-guide-index',
-          logos: [
+          // Deck: integration logos pinned to top-right corner…
+          cornerLogos: [
+            {alt: 'Jira', src: '/img/ime/logos/jira.png'},
             {alt: 'GitHub', src: '/img/ime/logos/github.png'},
             {alt: 'GitLab', src: '/img/ime/logos/gitlab.png'},
-            {alt: 'Jira', src: '/img/ime/logos/jira.png'},
-            {alt: 'Confluence', src: '/img/ime/logos/confluence.png'},
-            {alt: 'Splunk', src: '/img/ime/logos/splunk.png'},
             {alt: 'Microsoft Defender', src: '/img/ime/logos/ms-defender.png'},
+            {alt: 'Splunk', src: '/img/ime/logos/splunk.png'},
+          ],
+          // …plus a 4-column matrix of ecosystem logos below the
+          // bullets (deck shows a ~3-row × 4-col grid).
+          logoLayout: 'grid',
+          logoColumns: 4,
+          logos: [
+            {alt: 'Confluence', src: '/img/ime/logos/confluence.png'},
+            {alt: 'Microsoft Teams', src: '/img/ime/logos/msteams.png'},
+            {alt: 'Microsoft Sync', src: '/img/ime/logos/ms-sync.png'},
+            {alt: 'Microsoft Entra ID', src: '/img/ime/logos/ms-entra.png'},
             {alt: 'Tines', src: '/img/ime/logos/tines.png'},
+            {alt: 'Argo', src: '/img/ime/logos/argo.png'},
             {alt: 'Webhook', src: '/img/ime/logos/webhook.png'},
             {alt: 'Add integration', src: '/img/ime/logos/plus.png'},
           ],

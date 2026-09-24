@@ -36,6 +36,15 @@ function CellIcon({iconSrc, icon, alt}: {iconSrc?: string; icon?: IconName; alt?
 function Cell({data}: {data: CellData}) {
   const body = (
     <>
+      {data.cornerLogos && (
+        <div className={styles.cornerLogos} aria-hidden>
+          {data.cornerLogos.map((logo) => (
+            logo.src
+              ? <Img key={logo.alt} src={logo.src} alt={logo.alt} className={styles.cornerLogo} />
+              : <span key={logo.alt} className={styles.logoBadge}>{logo.alt}</span>
+          ))}
+        </div>
+      )}
       <CellIcon iconSrc={data.iconSrc} icon={data.icon} alt={data.title} />
       <div className={styles.cellBody}>
         <strong className={styles.cellTitle}>{data.title}</strong>
@@ -49,7 +58,7 @@ function Cell({data}: {data: CellData}) {
             )}
           </div>
         )}
-        {data.logos && <LogoStrip logos={data.logos} />}
+        {data.logos && <LogoStrip logos={data.logos} layout={data.logoLayout} columns={data.logoColumns} />}
       </div>
     </>
   );
@@ -75,9 +84,12 @@ function IntroPanel({data}: {data: Intro}) {
   );
 }
 
-function LogoStrip({logos}: {logos: Logo[]}) {
+function LogoStrip({logos, layout, columns}: {logos: Logo[]; layout?: 'strip' | 'grid'; columns?: number}) {
+  const isGrid = layout === 'grid';
+  const cls = isGrid ? `${styles.logoStrip} ${styles.logoGrid}` : styles.logoStrip;
+  const style = isGrid ? {['--ime-logo-cols' as string]: columns ?? 3} : undefined;
   return (
-    <div className={styles.logoStrip} aria-label="Related brands">
+    <div className={cls} style={style} aria-label="Related brands">
       {logos.map((logo) => (
         logo.src
           ? <Img key={logo.alt} src={logo.src} alt={logo.alt} className={styles.logoImg} />
@@ -105,15 +117,21 @@ function FooterCell({data}: {data: FooterStrip}) {
 function LayerBlock({layer}: {layer: Layer}) {
   const cols = layer.columns ?? layer.cells.length;
 
+  // `--ime-cols` drives grid-template-columns in the stylesheet so we
+  // can override it in media queries without fighting inline style
+  // specificity. `data-cols` lets the tablet breakpoint keep single-
+  // column layers single-column instead of collapsing them to two.
+  // When `columnsTemplate` is set (uneven widths), it takes precedence
+  // via an explicit inline `grid-template-columns` value.
+  const gridStyle: React.CSSProperties = layer.columnsTemplate
+    ? {gridTemplateColumns: layer.columnsTemplate}
+    : {['--ime-cols' as string]: cols};
+
   const cells = (
-    // `--ime-cols` drives grid-template-columns in the stylesheet so we
-    // can override it in media queries without fighting inline style
-    // specificity. `data-cols` lets the tablet breakpoint keep single-
-    // column layers single-column instead of collapsing them to two.
     <div
       className={styles.cellGrid}
-      data-cols={cols}
-      style={{['--ime-cols' as string]: cols}}
+      data-cols={layer.columnsTemplate ? 'custom' : cols}
+      style={gridStyle}
     >
       {layer.cells.map((c) => <Cell key={c.title} data={c} />)}
     </div>
