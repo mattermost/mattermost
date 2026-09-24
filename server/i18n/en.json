@@ -8217,6 +8217,10 @@
     "translation": "You do not satisfy one or more conditions in this policy."
   },
   {
+    "id": "app.pap.save_policy.self_exclusion_role",
+    "translation": "This policy would remove your own access because none of its rules apply to your role in this channel. Add a rule that covers your role for each permission the policy governs."
+  },
+  {
     "id": "app.pap.save_policy.team_resource_attributes",
     "translation": "This access rule uses channel attributes, which teams do not have. Access rules with channel attributes can only be applied to channels."
   },

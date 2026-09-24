@@ -6,6 +6,7 @@ package app
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"slices"
 	"strings"
@@ -561,28 +562,156 @@ func (a *App) enforceAccessControlPolicyWriteGuards(
 	return policy, nil
 }
 
-// checkSelfInclusion verifies the caller satisfies all policy rules after their edit.
+// checkSelfInclusion verifies the caller is still granted everything the policy
+// governs after their edit.
+//
+// Unscoped rules (membership, legacy, plugin) bind every subject, so the caller
+// must satisfy each of them.
+//
+// Role-scoped permission rules only bind subjects whose channel role they cover,
+// and the PDP denies a governed action outright when no rule covers the
+// subject's role. Matching an expression is therefore not enough on its own:
+// checkRoleScopedSelfInclusion also requires that the caller's own role be
+// covered for every action the policy governs.
+//
 // When mergedHidden is true (hidden values were re-injected), a self-exclusion failure
 // returns the generic forbidden error; otherwise the specific self_exclusion error is used.
 func (a *App) checkSelfInclusion(rctx request.CTX, policy *model.AccessControlPolicy, callerID string, mergedHidden bool) *model.AppError {
+	// Only channel policies may carry role-scoped rules; anywhere else a Role is
+	// not a coverage signal, so the rule keeps binding the caller unconditionally.
+	roleScopingApplies := policy.Type == model.AccessControlPolicyTypeChannel
+
+	var scoped []model.AccessControlPolicyRule
 	for _, rule := range policy.Rules {
-		if rule.Expression == "" || rule.Expression == "true" {
+		if roleScopingApplies && rule.Role != "" {
+			scoped = append(scoped, rule)
 			continue
 		}
-
-		matches, appErr := a.ValidateExpressionAgainstRequester(rctx, rule.Expression, callerID)
-		if appErr != nil {
+		if appErr := a.requireRequesterMatch(rctx, rule.Expression, callerID, mergedHidden); appErr != nil {
 			return appErr
 		}
-		if !matches {
-			if mergedHidden {
-				return saveForbiddenError(rctx, "checkSelfInclusion", "self_exclusion: you do not satisfy one or more conditions in this policy")
+	}
+
+	if len(scoped) == 0 {
+		return nil
+	}
+
+	return a.checkRoleScopedSelfInclusion(rctx, policy, scoped, callerID, mergedHidden)
+}
+
+// checkRoleScopedSelfInclusion applies the self-inclusion guard to the
+// role-scoped permission rules of a channel policy, mirroring how the PDP
+// resolves them: rules are bucketed by (role, action), the caller's own channel
+// role selects a bucket through the channel_admin -> channel_user fallback, and
+// rules sharing a bucket are OR'd together.
+//
+// An action the policy governs but leaves uncovered for the caller's role is a
+// denial at evaluation time, so the save is refused even when the caller
+// satisfies every expression they wrote.
+//
+// Callers with no resolvable channel role (e.g. a team admin editing a channel
+// they are not a member of) have no role to reason about, so they fall back to
+// requiring a match on every scoped rule.
+func (a *App) checkRoleScopedSelfInclusion(rctx request.CTX, policy *model.AccessControlPolicy, scoped []model.AccessControlPolicyRule, callerID string, mergedHidden bool) *model.AppError {
+	callerRole, appErr := a.GetSubjectChannelRole(rctx, callerID, policy.ID)
+	if appErr != nil {
+		return appErr
+	}
+
+	if callerRole == "" {
+		for _, rule := range scoped {
+			if appErr := a.requireRequesterMatch(rctx, rule.Expression, callerID, mergedHidden); appErr != nil {
+				return appErr
 			}
-			return model.NewAppError("checkSelfInclusion", "app.pap.save_policy.self_exclusion", nil, "", http.StatusForbidden)
+		}
+		return nil
+	}
+
+	// A channel admin falls back to the channel member rules when the policy
+	// carries none of their own; members and guests are standalone lanes.
+	roleChain := []string{callerRole}
+	if callerRole == model.ChannelAdminRoleId {
+		roleChain = append(roleChain, model.ChannelUserRoleId)
+	}
+
+	// Actions are visited in authoring order so repeated saves of the same
+	// policy are refused for the same reason.
+	var actions []string
+	buckets := make(map[string][]string)
+	for _, rule := range scoped {
+		for _, action := range rule.Actions {
+			if !slices.Contains(actions, action) {
+				actions = append(actions, action)
+			}
+			key := rule.Role + ":" + action
+			buckets[key] = append(buckets[key], rule.Expression)
+		}
+	}
+
+	for _, action := range actions {
+		var covering []string
+		for _, role := range roleChain {
+			if exprs, ok := buckets[role+":"+action]; ok {
+				covering = exprs
+				break
+			}
+		}
+
+		if len(covering) == 0 {
+			// Unlike an expression mismatch, this failure reveals nothing the
+			// author cannot already see, so it stays specific even when hidden
+			// values were merged into the submission.
+			return model.NewAppError("checkRoleScopedSelfInclusion", "app.pap.save_policy.self_exclusion_role", nil, fmt.Sprintf("no rule for action %q covers role %q", action, callerRole), http.StatusForbidden)
+		}
+
+		matched := false
+		for _, expression := range covering {
+			satisfied, appErr := a.requesterMatchesExpression(rctx, expression, callerID)
+			if appErr != nil {
+				return appErr
+			}
+			if satisfied {
+				matched = true
+				break
+			}
+		}
+		if !matched {
+			return selfExclusionError(rctx, mergedHidden)
 		}
 	}
 
 	return nil
+}
+
+// requireRequesterMatch rejects the save unless the caller satisfies expression.
+func (a *App) requireRequesterMatch(rctx request.CTX, expression, callerID string, mergedHidden bool) *model.AppError {
+	matches, appErr := a.requesterMatchesExpression(rctx, expression, callerID)
+	if appErr != nil {
+		return appErr
+	}
+	if !matches {
+		return selfExclusionError(rctx, mergedHidden)
+	}
+	return nil
+}
+
+// requesterMatchesExpression reports whether the caller satisfies expression,
+// treating an unconditional expression as a match without querying.
+func (a *App) requesterMatchesExpression(rctx request.CTX, expression, callerID string) (bool, *model.AppError) {
+	if expression == "" || expression == "true" {
+		return true, nil
+	}
+	return a.ValidateExpressionAgainstRequester(rctx, expression, callerID)
+}
+
+// selfExclusionError returns the specific self_exclusion error, or the generic
+// forbidden error when hidden values were re-injected into the submission (the
+// caller cannot see what they failed to satisfy, so the reason stays internal).
+func selfExclusionError(rctx request.CTX, mergedHidden bool) *model.AppError {
+	if mergedHidden {
+		return saveForbiddenError(rctx, "checkSelfInclusion", "self_exclusion: you do not satisfy one or more conditions in this policy")
+	}
+	return model.NewAppError("checkSelfInclusion", "app.pap.save_policy.self_exclusion", nil, "", http.StatusForbidden)
 }
 
 func (a *App) DeleteAccessControlPolicy(rctx request.CTX, id string) *model.AppError {

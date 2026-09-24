@@ -704,6 +704,362 @@ func TestCheckSelfInclusion(t *testing.T) {
 	})
 }
 
+// TestCheckSelfInclusionRoleScopedRules covers the role-aware half of the guard.
+// A role-scoped permission rule only governs the channel roles it covers, and the
+// PDP denies a governed action outright when no rule covers the subject's role, so
+// satisfying the expression you wrote is not enough to keep your own access.
+func TestCheckSelfInclusionRoleScopedRules(t *testing.T) {
+	const (
+		engineering = `user.attributes.department == "Engineering"`
+		sales       = `user.attributes.department == "Sales"`
+	)
+
+	// setup returns a helper whose BasicUser holds the given channel role in
+	// BasicChannel, plus a mocked PDP whose expression queries are stubbed so
+	// that only `engineering` matches the caller.
+	setup := func(t *testing.T, channelRole string) (*TestHelper, *mocks.AccessControlServiceInterface) {
+		t.Helper()
+		th := Setup(t).InitBasic(t)
+
+		_, appErr := th.App.UpdateChannelMemberSchemeRoles(
+			th.Context, th.BasicChannel.Id, th.BasicUser.Id,
+			channelRole == model.ChannelGuestRoleId,
+			channelRole != model.ChannelGuestRoleId,
+			channelRole == model.ChannelAdminRoleId,
+		)
+		require.Nil(t, appErr)
+
+		resolved, appErr := th.App.GetSubjectChannelRole(th.Context, th.BasicUser.Id, th.BasicChannel.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, channelRole, resolved, "test setup must produce the intended channel role")
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		mockACS.On("QueryUsersForExpression", mock.Anything, engineering, mock.Anything).
+			Return([]*model.User{{Id: th.BasicUser.Id}}, int64(1), nil).Maybe()
+		mockACS.On("QueryUsersForExpression", mock.Anything, sales, mock.Anything).
+			Return([]*model.User{}, int64(0), nil).Maybe()
+
+		return th, mockACS
+	}
+
+	channelPolicy := func(th *TestHelper, rules ...model.AccessControlPolicyRule) *model.AccessControlPolicy {
+		return &model.AccessControlPolicy{
+			ID:      th.BasicChannel.Id,
+			Type:    model.AccessControlPolicyTypeChannel,
+			Version: model.AccessControlPolicyVersionV0_4,
+			Rules:   rules,
+		}
+	}
+
+	t.Run("guest-scoped rule the caller satisfies still leaves a member's role uncovered", func(t *testing.T) {
+		th, mockACS := setup(t, model.ChannelUserRoleId)
+
+		policy := channelPolicy(th, model.AccessControlPolicyRule{
+			Name:       "Guests download",
+			Role:       model.ChannelGuestRoleId,
+			Actions:    []string{model.AccessControlPolicyActionDownloadFileAttachment},
+			Expression: engineering,
+		})
+
+		appErr := th.App.checkSelfInclusion(th.Context, policy, th.BasicUser.Id, false)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		require.Equal(t, "app.pap.save_policy.self_exclusion_role", appErr.Id)
+		// Coverage is decided before any expression is evaluated, so the caller
+		// matching their own rule cannot mask the uncovered role.
+		mockACS.AssertNotCalled(t, "QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything)
+	})
+
+	t.Run("uncovered role is refused for every governed action, including one of several", func(t *testing.T) {
+		th, _ := setup(t, model.ChannelUserRoleId)
+
+		policy := channelPolicy(th,
+			model.AccessControlPolicyRule{
+				Name:       "Members upload",
+				Role:       model.ChannelUserRoleId,
+				Actions:    []string{model.AccessControlPolicyActionUploadFileAttachment},
+				Expression: engineering,
+			},
+			model.AccessControlPolicyRule{
+				Name:       "Guests download",
+				Role:       model.ChannelGuestRoleId,
+				Actions:    []string{model.AccessControlPolicyActionDownloadFileAttachment},
+				Expression: engineering,
+			},
+		)
+
+		appErr := th.App.checkSelfInclusion(th.Context, policy, th.BasicUser.Id, false)
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.pap.save_policy.self_exclusion_role", appErr.Id)
+	})
+
+	t.Run("uncovered role is refused even when hidden values were merged", func(t *testing.T) {
+		th, _ := setup(t, model.ChannelUserRoleId)
+
+		policy := channelPolicy(th, model.AccessControlPolicyRule{
+			Name:       "Guests download",
+			Role:       model.ChannelGuestRoleId,
+			Actions:    []string{model.AccessControlPolicyActionDownloadFileAttachment},
+			Expression: engineering,
+		})
+
+		appErr := th.App.checkSelfInclusion(th.Context, policy, th.BasicUser.Id, true)
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.pap.save_policy.self_exclusion_role", appErr.Id)
+	})
+
+	t.Run("adding a rule for the caller's own role makes the same policy saveable", func(t *testing.T) {
+		th, _ := setup(t, model.ChannelUserRoleId)
+
+		policy := channelPolicy(th,
+			model.AccessControlPolicyRule{
+				Name:       "Guests download",
+				Role:       model.ChannelGuestRoleId,
+				Actions:    []string{model.AccessControlPolicyActionDownloadFileAttachment},
+				Expression: sales,
+			},
+			model.AccessControlPolicyRule{
+				Name:       "Members download",
+				Role:       model.ChannelUserRoleId,
+				Actions:    []string{model.AccessControlPolicyActionDownloadFileAttachment},
+				Expression: engineering,
+			},
+		)
+
+		appErr := th.App.checkSelfInclusion(th.Context, policy, th.BasicUser.Id, false)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("a channel admin is covered by a member rule through the role fallback", func(t *testing.T) {
+		th, _ := setup(t, model.ChannelAdminRoleId)
+
+		policy := channelPolicy(th, model.AccessControlPolicyRule{
+			Name:       "Members download",
+			Role:       model.ChannelUserRoleId,
+			Actions:    []string{model.AccessControlPolicyActionDownloadFileAttachment},
+			Expression: engineering,
+		})
+
+		appErr := th.App.checkSelfInclusion(th.Context, policy, th.BasicUser.Id, false)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("an admin-scoped rule wins over an unsatisfied member rule", func(t *testing.T) {
+		th, _ := setup(t, model.ChannelAdminRoleId)
+
+		policy := channelPolicy(th,
+			model.AccessControlPolicyRule{
+				Name:       "Members download",
+				Role:       model.ChannelUserRoleId,
+				Actions:    []string{model.AccessControlPolicyActionDownloadFileAttachment},
+				Expression: sales,
+			},
+			model.AccessControlPolicyRule{
+				Name:       "Admins download",
+				Role:       model.ChannelAdminRoleId,
+				Actions:    []string{model.AccessControlPolicyActionDownloadFileAttachment},
+				Expression: engineering,
+			},
+		)
+
+		// The fallback stops at channel_admin, so the unsatisfied member rule
+		// never binds the caller.
+		appErr := th.App.checkSelfInclusion(th.Context, policy, th.BasicUser.Id, false)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("rules sharing a role and action are satisfied by matching any one of them", func(t *testing.T) {
+		th, _ := setup(t, model.ChannelUserRoleId)
+
+		policy := channelPolicy(th,
+			model.AccessControlPolicyRule{
+				Name:       "Sales download",
+				Role:       model.ChannelUserRoleId,
+				Actions:    []string{model.AccessControlPolicyActionDownloadFileAttachment},
+				Expression: sales,
+			},
+			model.AccessControlPolicyRule{
+				Name:       "Engineering download",
+				Role:       model.ChannelUserRoleId,
+				Actions:    []string{model.AccessControlPolicyActionDownloadFileAttachment},
+				Expression: engineering,
+			},
+		)
+
+		appErr := th.App.checkSelfInclusion(th.Context, policy, th.BasicUser.Id, false)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("a covering rule the caller does not satisfy is still refused as self_exclusion", func(t *testing.T) {
+		th, _ := setup(t, model.ChannelUserRoleId)
+
+		policy := channelPolicy(th, model.AccessControlPolicyRule{
+			Name:       "Members download",
+			Role:       model.ChannelUserRoleId,
+			Actions:    []string{model.AccessControlPolicyActionDownloadFileAttachment},
+			Expression: sales,
+		})
+
+		appErr := th.App.checkSelfInclusion(th.Context, policy, th.BasicUser.Id, false)
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.pap.save_policy.self_exclusion", appErr.Id)
+	})
+
+	t.Run("the membership rule still binds the caller alongside a covering permission rule", func(t *testing.T) {
+		th, _ := setup(t, model.ChannelUserRoleId)
+
+		policy := channelPolicy(th,
+			model.AccessControlPolicyRule{
+				Actions:    []string{model.AccessControlPolicyActionMembership},
+				Expression: sales,
+			},
+			model.AccessControlPolicyRule{
+				Name:       "Members download",
+				Role:       model.ChannelUserRoleId,
+				Actions:    []string{model.AccessControlPolicyActionDownloadFileAttachment},
+				Expression: engineering,
+			},
+		)
+
+		appErr := th.App.checkSelfInclusion(th.Context, policy, th.BasicUser.Id, false)
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.pap.save_policy.self_exclusion", appErr.Id)
+	})
+
+	t.Run("a caller with no channel role falls back to matching every scoped rule", func(t *testing.T) {
+		th, _ := setup(t, model.ChannelUserRoleId)
+
+		// BasicUser2 is a team member but not a member of BasicChannel, so no
+		// channel role resolves and there is no coverage to reason about.
+		resolved, appErr := th.App.GetSubjectChannelRole(th.Context, th.BasicUser2.Id, th.BasicChannel.Id)
+		require.Nil(t, appErr)
+		require.Empty(t, resolved)
+
+		// Re-point the stubbed matches at BasicUser2, who is the caller here.
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		mockACS.On("QueryUsersForExpression", mock.Anything, engineering, mock.Anything).
+			Return([]*model.User{{Id: th.BasicUser2.Id}}, int64(1), nil).Maybe()
+		mockACS.On("QueryUsersForExpression", mock.Anything, sales, mock.Anything).
+			Return([]*model.User{}, int64(0), nil).Maybe()
+
+		satisfied := channelPolicy(th, model.AccessControlPolicyRule{
+			Name:       "Guests download",
+			Role:       model.ChannelGuestRoleId,
+			Actions:    []string{model.AccessControlPolicyActionDownloadFileAttachment},
+			Expression: engineering,
+		})
+		require.Nil(t, th.App.checkSelfInclusion(th.Context, satisfied, th.BasicUser2.Id, false))
+
+		unsatisfied := channelPolicy(th, model.AccessControlPolicyRule{
+			Name:       "Guests download",
+			Role:       model.ChannelGuestRoleId,
+			Actions:    []string{model.AccessControlPolicyActionDownloadFileAttachment},
+			Expression: sales,
+		})
+		appErr = th.App.checkSelfInclusion(th.Context, unsatisfied, th.BasicUser2.Id, false)
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.pap.save_policy.self_exclusion", appErr.Id)
+	})
+}
+
+// TestCreateOrUpdateAccessControlPolicy_ChannelRoleScopedSelfInclusion drives the
+// role-aware guard through the real channel save path, so it also pins that the
+// rejection happens before SavePolicy and that system admins stay exempt.
+func TestCreateOrUpdateAccessControlPolicy_ChannelRoleScopedSelfInclusion(t *testing.T) {
+	const engineering = `user.attributes.department == "Engineering"`
+
+	guestRule := model.AccessControlPolicyRule{
+		Name:       "Guests download",
+		Role:       model.ChannelGuestRoleId,
+		Actions:    []string{model.AccessControlPolicyActionDownloadFileAttachment},
+		Expression: engineering,
+	}
+	memberRule := model.AccessControlPolicyRule{
+		Name:       "Members download",
+		Role:       model.ChannelUserRoleId,
+		Actions:    []string{model.AccessControlPolicyActionDownloadFileAttachment},
+		Expression: engineering,
+	}
+
+	setup := func(t *testing.T, callerRoles string) (*TestHelper, request.CTX, *mocks.AccessControlServiceInterface) {
+		t.Helper()
+		th := SetupConfig(t, func(cfg *model.Config) {
+			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+			cfg.FeatureFlags.AttributeValueMasking = false // keep the masking path out of scope
+		}).InitBasic(t)
+
+		rctx := th.Context.WithSession(&model.Session{
+			UserId: th.BasicUser.Id,
+			Id:     model.NewId(),
+			Roles:  callerRoles,
+		})
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		originalACS := th.App.Srv().ch.AccessControl
+		th.App.Srv().ch.AccessControl = mockACS
+		t.Cleanup(func() {
+			th.App.Srv().ch.AccessControl = originalACS
+			mockACS.AssertExpectations(t)
+		})
+
+		// BasicUser is a channel member of BasicChannel and satisfies `engineering`.
+		mockACS.On("QueryUsersForExpression", mock.Anything, engineering, mock.Anything).
+			Return([]*model.User{{Id: th.BasicUser.Id}}, int64(1), nil).Maybe()
+
+		return th, rctx, mockACS
+	}
+
+	channelPolicy := func(th *TestHelper, rules ...model.AccessControlPolicyRule) *model.AccessControlPolicy {
+		return &model.AccessControlPolicy{
+			ID:      th.BasicChannel.Id,
+			Type:    model.AccessControlPolicyTypeChannel,
+			Version: model.AccessControlPolicyVersionV0_4,
+			Rules:   rules,
+		}
+	}
+
+	t.Run("channel admin cannot save a guest-only permission rule", func(t *testing.T) {
+		th, rctx, mockACS := setup(t, model.SystemUserRoleId)
+
+		result, appErr := th.App.CreateOrUpdateAccessControlPolicy(rctx, channelPolicy(th, guestRule))
+		require.NotNil(t, appErr)
+		require.Nil(t, result)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.Equal(t, "app.pap.save_policy.self_exclusion_role", appErr.Id)
+		mockACS.AssertNotCalled(t, "SavePolicy", mock.Anything, mock.Anything)
+	})
+
+	t.Run("the same policy saves once a rule covers the caller's own role", func(t *testing.T) {
+		th, rctx, mockACS := setup(t, model.SystemUserRoleId)
+
+		policy := channelPolicy(th, guestRule, memberRule)
+		mockACS.On("SavePolicy", mock.Anything, mock.MatchedBy(func(p *model.AccessControlPolicy) bool {
+			return p.ID == th.BasicChannel.Id && len(p.Rules) == 2
+		})).Return(policy, (*model.AppError)(nil)).Once()
+
+		result, appErr := th.App.CreateOrUpdateAccessControlPolicy(rctx, policy)
+		require.Nil(t, appErr)
+		require.NotNil(t, result)
+	})
+
+	t.Run("system admins remain exempt from the role-coverage guard", func(t *testing.T) {
+		th, rctx, mockACS := setup(t, model.SystemUserRoleId+" "+model.SystemAdminRoleId)
+
+		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
+		require.Nil(t, appErr)
+
+		policy := channelPolicy(th, guestRule)
+		mockACS.On("SavePolicy", mock.Anything, mock.Anything).
+			Return(policy, (*model.AppError)(nil)).Once()
+
+		result, appErr := th.App.CreateOrUpdateAccessControlPolicy(rctx, policy)
+		require.Nil(t, appErr)
+		require.NotNil(t, result)
+	})
+}
+
 func TestValidateExpressionAgainstRequesterExcludesNativeAttributes(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	requesterID := th.BasicUser.Id
