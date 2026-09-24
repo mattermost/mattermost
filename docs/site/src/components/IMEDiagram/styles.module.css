@@ -283,7 +283,10 @@
   border-color: transparent;
 }
 .layer_use-cases .cellTitle {
-  font-size: 0.95rem;
+  /* Deck: Use Cases titles read as the largest per-tile heading. */
+  font-size: 1.15rem;
+  line-height: 1.2;
+  margin-bottom: 0.15rem;
 }
 .layer_use-cases .cellText {
   font-size: 0.78rem;
