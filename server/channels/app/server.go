@@ -678,6 +678,7 @@ func (s *Server) runJobs() {
 		appInstance := New(ServerConnector(s.Channels()))
 		runDNDStatusExpireJob(appInstance)
 		runPostReminderJob(appInstance)
+		runHealthCheckTask(appInstance)
 		runScheduledPostJob(appInstance)
 	})
 	s.Go(func() {
@@ -2063,6 +2064,47 @@ func runPostReminderJob(a *App) {
 			cancelTask(&a.ch.postReminderMut, &a.ch.postReminderTask)
 		}
 	})
+}
+
+func runHealthCheckTask(a *App) {
+	updateHealthCheckTask(a, a.IsLeader())
+
+	a.ch.srv.AddClusterLeaderChangedListener(func() {
+		mlog.Info("Cluster leader changed. Determining if health check task should be running", mlog.Bool("is_leader", a.IsLeader()))
+		updateHealthCheckTask(a, a.IsLeader())
+	})
+}
+
+func updateHealthCheckTask(a *App, isLeader bool) {
+	if !isLeader {
+		cancelTask(&a.ch.healthCheckTaskMut, &a.ch.healthCheckTask)
+		return
+	}
+
+	withMut(&a.ch.healthCheckTaskMut, func() {
+		if a.ch.healthCheckTask != nil {
+			return
+		}
+		rctx := request.EmptyContext(a.Log())
+		fn := healthCheckTaskFunc(a.Log(), func() error { return a.RunHealthCheck(rctx) })
+		a.ch.healthCheckTask = model.CreateRecurringTask("Health Check", fn, healthCheckInterval)
+	})
+}
+
+// healthCheckTaskFunc recovers panics because ScheduledTask does not, and a panic in its
+// goroutine would crash the server.
+func healthCheckTaskFunc(logger mlog.LoggerIFace, cycle func() error) func() {
+	return func() {
+		defer func() {
+			if r := recover(); r != nil {
+				logger.Error("Health check panicked", mlog.Any("panic", r))
+			}
+		}()
+
+		if err := cycle(); err != nil {
+			logger.Error("Health check failed", mlog.Err(err))
+		}
+	}
 }
 
 func runScheduledPostJob(a *App) {

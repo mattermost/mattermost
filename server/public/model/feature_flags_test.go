@@ -39,6 +39,11 @@ func TestFeatureFlagsSetDefaults(t *testing.T) {
 		require.True(t, f.MmBlocksEnabled)
 		require.Equal(t, "true", f.ToMap()["MmBlocksEnabled"])
 	})
+
+	t.Run("HealthDashboard defaults to false", func(t *testing.T) {
+		require.False(t, f.HealthDashboard)
+		require.Equal(t, "false", f.ToMap()["HealthDashboard"])
+	})
 }
 
 func TestFeatureFlagsToMap(t *testing.T) {
