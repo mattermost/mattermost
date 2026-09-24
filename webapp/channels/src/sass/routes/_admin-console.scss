@@ -816,7 +816,7 @@
             color: var(--sys-sidebar-text);
             font-size: 12px;
             font-weight: 600;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.05em;
             line-height: 16px;
             text-transform: uppercase;
 
@@ -894,7 +894,6 @@
         border-radius: var(--radius-s);
         margin: 0 12px;
         color: rgba(var(--sys-sidebar-text-rgb), 0.75);
-        letter-spacing: 0.01em;
         transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
 
         &:focus {
