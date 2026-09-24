@@ -1231,6 +1231,8 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 
 	t.Run("cluster infos fail", func(t *testing.T) {
 		cluster := emocks.NewClusterInterface(t)
+		// Setup's background config publishes reach whichever cluster is installed.
+		cluster.On("SendClusterMessage", mock.Anything).Return().Maybe()
 		cluster.On("GetClusterId").Return("cluster-id")
 		cluster.On("GetClusterInfos").Return(nil, errors.New("gossip down"))
 		originalCluster := th.Service.clusterIFace
