@@ -8,11 +8,10 @@ import type {ServerLimits} from '@mattermost/types/limits';
 
 import {getServerLimits as getServerLimitsAction} from 'mattermost-redux/actions/limits';
 import {getServerLimits as getServerLimitsSelector} from 'mattermost-redux/selectors/entities/limits';
-
-import {useIsLoggedIn} from 'components/global_header/hooks';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
 export default function useGetServerLimits(): [ServerLimits, boolean] {
-    const isLoggedIn = useIsLoggedIn();
+    const isLoggedIn = Boolean(useSelector(getCurrentUser));
     const serverLimits = useSelector(getServerLimitsSelector);
     const dispatch = useDispatch();
     const [requested, setRequested] = useState(false);

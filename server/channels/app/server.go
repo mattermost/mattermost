@@ -330,10 +330,12 @@ func NewServer(options ...Option) (*Server, error) {
 	}, cpaGroup.ID)
 	s.propertyService.AddHook(licenseCheckHook)
 
-	accessControlHook := properties.NewAccessControlHook(s.propertyService, func(pluginID string) bool {
+	pluginChecker := func(pluginID string) bool {
 		_, err := s.ch.GetPluginStatus(pluginID)
 		return err == nil
-	}, cpaGroup.ID)
+	}
+
+	accessControlHook := properties.NewAccessControlHook(s.propertyService, pluginChecker, cpaGroup.ID)
 	s.propertyService.AddHook(accessControlHook)
 
 	// Attribute validation hook — validates visibility, sort_order on fields,
@@ -348,7 +350,24 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 		return app.HasPermissionTo(rctx, userID, perm)
 	}
-	attrValidationHook := properties.NewAccessControlAttributeValidationHook(s.propertyService, permChecker, cpaGroup.ID)
+
+	directChannelChecker := func(rctx request.CTX, channelID string) (bool, error) {
+		channel, appErr := app.GetChannel(rctx, channelID)
+		if appErr != nil {
+			return false, appErr
+		}
+		return channel.IsGroupOrDirect(), nil
+	}
+
+	attrValidationHook := properties.NewAccessControlAttributeValidationHook(s.propertyService,
+		properties.AccessControlAttributeValidationHookConfig{
+			PermissionChecker:    permChecker,
+			PluginChecker:        pluginChecker,
+			DirectChannelChecker: directChannelChecker,
+			RequiredAttributeEnforcement: func() bool {
+				return s.Config().FeatureFlags.IsChannelAttributesRequiredEnabled()
+			},
+		}, cpaGroup.ID)
 	s.propertyService.AddHook(attrValidationHook)
 
 	// Generic property value audit hook — groups opt in with RegisterGroup.
@@ -369,6 +388,18 @@ func NewServer(options ...Option) (*Server, error) {
 		},
 		GlobalLimit: model.AccessControlGroupFieldLimit,
 	})
+
+	// Post attributes are capped per target (the system, one team, or one channel) rather
+	// than group-wide, so one busy channel cannot exhaust every other channel's allowance.
+	// This cap is also what bounds the post hydration value lookup, so the two cannot drift.
+	postAttrGroup, err := s.propertyService.Group(model.PostAttributesPropertyGroupName)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to look up post attributes property group")
+	}
+	fieldLimitHook.AddGroupLimit(postAttrGroup.ID, &properties.FieldLimitConfig{
+		PerTarget: model.PostAttributesMaxFieldsPerTarget,
+	})
+
 	s.propertyService.AddHook(fieldLimitHook)
 
 	// Session attributes schema guard — blocks deletion and restricts edits to the tunable Attrs.
@@ -420,7 +451,11 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	s.pushNotificationClient = s.httpService.MakeClient(true)
+	// Slash commands and outgoing webhooks give each request a deadline derived from
+	// ServiceSettings.OutgoingIntegrationRequestsTimeout, so this client must not impose a
+	// timeout of its own that would cap a configured value above httpservice.RequestTimeout.
 	s.outgoingWebhookClient = s.httpService.MakeClient(false)
+	s.outgoingWebhookClient.Timeout = 0
 
 	if err2 := utils.TranslationsPreInit(); err2 != nil {
 		return nil, errors.Wrapf(err2, "unable to load Mattermost translation files")
@@ -1185,6 +1220,8 @@ func (s *Server) Start() error {
 				tlsConfig.MinVersion = tls.VersionTLS10
 			case "1.1":
 				tlsConfig.MinVersion = tls.VersionTLS11
+			case "1.3":
+				tlsConfig.MinVersion = tls.VersionTLS13
 			default:
 				tlsConfig.MinVersion = tls.VersionTLS12
 			}

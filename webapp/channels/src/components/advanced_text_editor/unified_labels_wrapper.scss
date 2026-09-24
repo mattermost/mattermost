@@ -23,7 +23,8 @@
         }
     }
 
-    &:hover &__close {
+    &:hover &__close,
+    &:focus-within &__close {
         opacity: 1;
     }
 

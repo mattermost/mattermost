@@ -21,7 +21,6 @@ exports[`components/widgets/inputs/Input should match snapshot 1`] = `
         <input
           class="Input form-control medium"
           id="input_"
-          value=""
         />
       </div>
     </div>

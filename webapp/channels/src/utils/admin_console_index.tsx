@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import FlexSearch from 'flexsearch/dist/flexsearch.es5';
+import type {JSX} from 'react';
 import type {IntlShape, MessageDescriptor} from 'react-intl';
 
 import type {PluginRedux} from '@mattermost/types/plugins';

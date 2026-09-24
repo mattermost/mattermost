@@ -11,12 +11,14 @@ import type {PluginRedux, PluginSetting, PluginSettingSection} from '@mattermost
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {appsFeatureFlagEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getRoles} from 'mattermost-redux/selectors/entities/roles';
 
 import {getAdminConsoleCustomComponents, getAdminConsoleCustomSections} from 'selectors/admin_console';
 
 import usePluginStatusesSync from 'components/common/hooks/usePluginStatusesSync';
 
+import {isUnlicensedAddOn} from 'utils/addons';
 import {appsPluginID} from 'utils/apps';
 import {Constants} from 'utils/constants';
 
@@ -40,10 +42,13 @@ function makeGetPluginSchema() {
         (state: GlobalState, pluginId: string) => getAdminConsoleCustomSections(state, pluginId),
         (state) => appsFeatureFlagEnabled(state),
         isCurrentLicenseCloud,
-        (plugin: PluginRedux | undefined, customComponents: Record<string, AdminConsolePluginComponent>, customSections: Record<string, AdminConsolePluginCustomSection>, appsFeatureFlagIsEnabled, isCloudLicense) => {
+        getLicense,
+        (plugin: PluginRedux | undefined, customComponents: Record<string, AdminConsolePluginComponent>, customSections: Record<string, AdminConsolePluginCustomSection>, appsFeatureFlagIsEnabled, isCloudLicense, license) => {
             if (!plugin) {
                 return null;
             }
+
+            const unlicensedAddOn = isUnlicensedAddOn(plugin.required_add_on, license);
 
             const escapedPluginId = escapePathPart(plugin.id);
             const pluginEnabledConfigKey = getPluginEnabledConfigKey(plugin.id);
@@ -140,7 +145,21 @@ function makeGetPluginSchema() {
                 settings = parsePluginSettings(plugin.settings_schema.settings);
             }
 
-            if (plugin.id !== appsPluginID || appsFeatureFlagIsEnabled) {
+            if (unlicensedAddOn) {
+                // Without this the page renders with no toggle at all.
+                const addOnBanner = {
+                    key: 'admin.plugin.addOn.notLicensedWarning',
+                    type: Constants.SettingsTypes.TYPE_BANNER,
+                    label: defineMessage({id: 'admin.plugin.addOn.notLicensedWarning', defaultMessage: 'This plugin is a licensed add-on. Your license does not include it, so it cannot be enabled. Contact your Mattermost account team to purchase it.'}),
+                    banner_type: 'warning' as const,
+                };
+
+                sections = [{
+                    key: pluginEnabledConfigKey + '.Section',
+                    settings: [addOnBanner],
+                }];
+                settings = [];
+            } else if (plugin.id !== appsPluginID || appsFeatureFlagIsEnabled) {
                 const pluginEnableSetting = getEnablePluginSetting(plugin) as AdminDefinitionSetting;
 
                 const hasAllCustomSectionsDisabled = Boolean(plugin.settings_schema?.sections?.length) && plugin.settings_schema?.sections?.every((s) => s.custom && !customSections[s.key.toLowerCase()]);
@@ -161,13 +180,11 @@ function makeGetPluginSchema() {
                     }];
                     settings = [];
                 } else if (sections.length > 0) {
-                    // Keep a lightweight top section only when the schema still has a footer to show; the footer text itself renders generically for the whole sections list.
-                    if (plugin.settings_schema?.footer) {
-                        sections.unshift({
-                            key: pluginEnabledConfigKey + '.Section',
-                            settings: [pluginEnableSetting],
-                        });
-                    }
+                    // The enable setting is hidden but must still be part of the schema so its config value seeds the form state; otherwise stateIsFalse(pluginEnabledConfigKey) reads undefined and disables every setting.
+                    sections.unshift({
+                        key: pluginEnabledConfigKey + '.Section',
+                        settings: [pluginEnableSetting],
+                    });
                 } else {
                     // Otherwise we retain existing behaviour and add the setting in front.
                     settings.unshift(pluginEnableSetting);
@@ -190,10 +207,15 @@ function makeGetPluginSchema() {
                 }
             };
 
-            if (sections.length > 0) {
-                sections.forEach((section) => section.settings.forEach(checkDisableSetting));
-            } else {
-                settings.forEach(checkDisableSetting);
+            // The unlicensed add-on page is a single banner, and buildBannerSetting
+            // renders nothing for a disabled setting, so disabling it would leave a
+            // read-only admin no toggle and no reason why.
+            if (!unlicensedAddOn) {
+                if (sections.length > 0) {
+                    sections.forEach((section) => section.settings.forEach(checkDisableSetting));
+                } else {
+                    settings.forEach(checkDisableSetting);
+                }
             }
 
             return {
@@ -202,6 +224,7 @@ function makeGetPluginSchema() {
                 stateKey: plugin.id,
                 name: plugin.name,
                 header: undefined,
+                footer: unlicensedAddOn ? undefined : plugin.settings_schema?.footer,
                 settings: sections.length > 0 ? undefined : settings,
                 sections: sections.length > 0 ? sections : undefined,
                 translate: Boolean(plugin.translate),

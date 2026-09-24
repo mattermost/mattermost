@@ -6,6 +6,10 @@ import {expect, setWysiwygUserPreference, test, WysiwygEditor} from '@mattermost
 const TAGS = {tag: ['@channels', '@wysiwyg_editor']};
 
 test.describe('WYSIWYG editor - paste', TAGS, () => {
+    test.beforeEach(async ({pw}) => {
+        await pw.ensureFeatureFlag('WysiwygEditor', true);
+    });
+
     test('pasting plain markdown parses into formatted content', async ({pw}) => {
         const {user, userClient, team} = await pw.initSetup();
         await setWysiwygUserPreference(userClient, user.id, true);

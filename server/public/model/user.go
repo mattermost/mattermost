@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"regexp"
 	"slices"
-	"sort"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -74,6 +73,8 @@ const (
 	DesktopTokenTTL = time.Minute * 3
 
 	UserAuthServiceMagicLink = "magic_link"
+
+	UserPropsKeyImportedInactive = "importedInactive"
 )
 
 // ErrPasswordTooLong is returned when the password exceeds
@@ -288,7 +289,7 @@ func (r *ViewUsersRestrictions) Hash() string {
 		return ""
 	}
 	ids := append(r.Teams, r.Channels...)
-	sort.Strings(ids)
+	slices.Sort(ids)
 	hash := sha256.New()
 	hash.Write([]byte(strings.Join(ids, "")))
 	return fmt.Sprintf("%x", hash.Sum(nil))
@@ -302,7 +303,7 @@ func (u UserSlice) Usernames() []string {
 	for _, user := range u {
 		usernames = append(usernames, user.Username)
 	}
-	sort.Strings(usernames)
+	slices.Sort(usernames)
 	return usernames
 }
 

@@ -152,3 +152,17 @@ export function isFieldOrphaned(
 
     return !installedPluginIds.has(sourcePluginId);
 }
+
+/**
+ * Mirrors server PropertyValueWithheldJSON (server/public/model/property_value.go).
+ * A websocket broadcast for a non-public field's value carries this marker in
+ * place of the value: the server withheld it, so the client should refetch the
+ * field through the read path. It does NOT mean the value was cleared or deleted.
+ */
+export function isWithheldPropertyValue(value: unknown): boolean {
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+        return false;
+    }
+
+    return (value as {withheld?: unknown}).withheld === true;
+}

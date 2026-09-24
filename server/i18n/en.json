@@ -384,6 +384,14 @@
     "translation": "Your license does not support groups"
   },
   {
+    "id": "api.channel.create_channel.attribute_no_permission.app_error",
+    "translation": "You do not have permission to set one of the submitted channel attributes."
+  },
+  {
+    "id": "api.channel.create_channel.attributes_feature_disabled.app_error",
+    "translation": "Channel attributes are not enabled on this server."
+  },
+  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Must use createDirectChannel API service for direct message channel creation."
   },
@@ -396,12 +404,20 @@
     "translation": "A direct channel cannot be created between these users because they do not share a team in common."
   },
   {
+    "id": "api.channel.create_channel.invalid_attribute.app_error",
+    "translation": "One of the submitted channel attributes is not valid for this channel."
+  },
+  {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
     "translation": "Unable to create more than {{.MaxChannelsPerTeam}} channels for current team."
   },
   {
     "id": "api.channel.create_channel.missing_display_name.error",
     "translation": "Missing display_name in request body"
+  },
+  {
+    "id": "api.channel.create_channel.missing_required_attributes.app_error",
+    "translation": "This channel is missing required attributes."
   },
   {
     "id": "api.channel.create_channel.missing_team_id.error",
@@ -2649,6 +2665,10 @@
     "translation": "Invalid test type: {{.TestType}}"
   },
   {
+    "id": "api.ldap.test.reenter_password",
+    "translation": "The AD/LDAP connection settings have changed. Please re-enter the bind password to test the connection."
+  },
+  {
     "id": "api.ldap_group.not_found",
     "translation": "ldap group not found"
   },
@@ -3299,12 +3319,20 @@
     "translation": "Unable to update sidebar to match updated preferences"
   },
   {
+    "id": "api.property.channel_attributes.license.app_error",
+    "translation": "Channel attributes require an Enterprise Advanced license."
+  },
+  {
     "id": "api.property.session_attributes.license.app_error",
     "translation": "Session attributes require an Enterprise Advanced license."
   },
   {
     "id": "api.property.v2_group_not_found.app_error",
     "translation": "The specified property group was not found."
+  },
+  {
+    "id": "api.property_field.create.creator_cannot_edit.app_error",
+    "translation": "You cannot create a property field with permission levels that would prevent you from editing it."
   },
   {
     "id": "api.property_field.create.invalid_target_type.app_error",
@@ -3355,8 +3383,36 @@
     "translation": "Property field object type does not match URL."
   },
   {
+    "id": "api.property_field.options.empty_body.app_error",
+    "translation": "No property field options were provided."
+  },
+  {
+    "id": "api.property_field.options.invalid_cursor.app_error",
+    "translation": "A property field option cursor must give both cursor_id and cursor_create_at."
+  },
+  {
+    "id": "api.property_field.options.legacy_field.app_error",
+    "translation": "The options of this property field cannot be managed individually."
+  },
+  {
+    "id": "api.property_field.options.no_permission.app_error",
+    "translation": "You do not have permission to manage options for this property field."
+  },
+  {
+    "id": "api.property_field.options.too_many_items.request_error",
+    "translation": "Unable to change that many property field options. Only {{.Max}} options can be changed at once."
+  },
+  {
     "id": "api.property_field.patch.legacy_field.app_error",
     "translation": "Cannot patch a v1 property field via this API."
+  },
+  {
+    "id": "api.property_field.patch.permission_values_invalid.app_error",
+    "translation": "permission_values must be either member or sysadmin."
+  },
+  {
+    "id": "api.property_field.patch.permission_values_not_linked.app_error",
+    "translation": "permission_values can only be set on a field linked to a template."
   },
   {
     "id": "api.property_field.update.no_field_permission.app_error",
@@ -5487,6 +5543,10 @@
     "translation": "Unable to save the bot."
   },
   {
+    "id": "app.bot.createbot.reserved_username.app_error",
+    "translation": "This username is reserved for a system-owned bot."
+  },
+  {
     "id": "app.bot.get_disable_bot_sysadmin_message",
     "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} was deactivated. They managed the following bot accounts which have now been disabled.\n\n{{.BotNames}}{{else}}{{.UserName}} was deactivated. They managed {{.NumBots}} bot accounts which have now been disabled, including the following:\n\n{{.BotNames}}{{end}}You can take ownership of each bot by enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).{{else}}{{if .printAllBots}}{{.UserName}} was deactivated. They managed the following bot accounts which are still enabled.\n\n{{.BotNames}}\n{{else}}{{.UserName}} was deactivated. They managed {{.NumBots}} bot accounts which are still enabled, including the following:\n\n{{.BotNames}}{{end}}We strongly recommend you to take ownership of each bot by re-enabling it at **Integrations > Bot Accounts** and creating new tokens for the bot.\n\nFor more information, see our [documentation](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled).\n\nIf you want bot accounts to disable automatically after owner deactivation, set “Disable bot accounts when owner is deactivated” in **System Console > Integrations > Bot Accounts** to true.{{end}}"
   },
@@ -5505,6 +5565,10 @@
   {
     "id": "app.bot.patchbot.internal_error",
     "translation": "Unable to update the bot."
+  },
+  {
+    "id": "app.bot.patchbot.reserved_username.app_error",
+    "translation": "This username is reserved for a system-owned bot."
   },
   {
     "id": "app.bot.permanent_delete.internal_error",
@@ -5683,6 +5747,10 @@
     "translation": "Unable to get all the direct channels."
   },
   {
+    "id": "app.channel.get_by_name.app_error",
+    "translation": "Unable to find the channel by name."
+  },
+  {
     "id": "app.channel.get_by_name.existing.app_error",
     "translation": "Unable to find the existing channel."
   },
@@ -5769,6 +5837,10 @@
   {
     "id": "app.channel.get_member_count.app_error",
     "translation": "Unable to get the channel member count."
+  },
+  {
+    "id": "app.channel.get_member_ids.app_error",
+    "translation": "Unable to get channel member IDs."
   },
   {
     "id": "app.channel.get_members.app_error",
@@ -6375,6 +6447,14 @@
     "translation": "Failed to update flagged post status when permanently deleting flagged post."
   },
   {
+    "id": "app.data_spillage.report.attachments_omitted.file_text",
+    "translation": "The attachments on this message were omitted from this report because you do not comply with the channel's file download policy."
+  },
+  {
+    "id": "app.data_spillage.report.attachments_omitted.notification",
+    "translation": "The report you generated did not include the quarantined message's file attachments, because you do not comply with the channel's file download policy."
+  },
+  {
     "id": "app.data_spillage.report.cleared",
     "translation": "Cleared"
   },
@@ -6539,6 +6619,10 @@
   {
     "id": "app.data_spillage.report.total_steps",
     "translation": "Total Steps:"
+  },
+  {
+    "id": "app.data_spillage.report.write_attachments_omitted.app_error",
+    "translation": "Failed to write the omitted attachments notice to the flagged post report."
   },
   {
     "id": "app.data_spillage.report.write_edit_yaml.app_error",
@@ -6733,6 +6817,22 @@
     "translation": "Unable to get the emoji."
   },
   {
+    "id": "app.export.channel_requires_team.error",
+    "translation": "A channel name requires a team name to be specified."
+  },
+  {
+    "id": "app.export.export_all_channels.channel_not_found.error",
+    "translation": "The specified channel was not found in any of the specified teams."
+  },
+  {
+    "id": "app.export.export_all_teams.team_deleted.error",
+    "translation": "The specified team has been deleted."
+  },
+  {
+    "id": "app.export.export_all_teams.team_not_found.error",
+    "translation": "The specified team was not found."
+  },
+  {
     "id": "app.export.export_attachment.copy_file.error",
     "translation": "Failed to copy file during export."
   },
@@ -6755,6 +6855,10 @@
   {
     "id": "app.export.export_custom_emoji.mkdir.error",
     "translation": "Unable to create a directory for custom emoji images"
+  },
+  {
+    "id": "app.export.export_version.scope_marshal.error",
+    "translation": "Failed to write the team and channel scope into the export. Aborting rather than producing an archive that would import as a full-instance restore."
   },
   {
     "id": "app.export.export_write_line.io_writer.error",
@@ -6917,6 +7021,22 @@
     "translation": "user with username \"{{.Username}}\" already exists."
   },
   {
+    "id": "app.health_finding.mute.app_error",
+    "translation": "Unable to mute health finding."
+  },
+  {
+    "id": "app.health_finding.mute.not_found.app_error",
+    "translation": "Health finding not found."
+  },
+  {
+    "id": "app.health_finding.unmute.app_error",
+    "translation": "Unable to unmute health finding."
+  },
+  {
+    "id": "app.health_finding.unmute.not_found.app_error",
+    "translation": "Health finding not found."
+  },
+  {
     "id": "app.import.attachment.bad_file.error",
     "translation": "Error reading the file at: \"{{.FilePath}}\""
   },
@@ -6933,8 +7053,28 @@
     "translation": "Error seeking the file: \"{{.FilePath}}\""
   },
   {
+    "id": "app.import.bulk_import.destination_channel_requires_channel_scope.error",
+    "translation": "--destination-channel-name requires a channel-scoped export."
+  },
+  {
+    "id": "app.import.bulk_import.destination_channel_requires_single_channel_scope.error",
+    "translation": "--destination-channel-name requires a single-channel export; this export contains multiple channels."
+  },
+  {
+    "id": "app.import.bulk_import.destination_channel_requires_single_team_scope.error",
+    "translation": "--destination-channel-name requires an export scoped to exactly one team, otherwise the channel name is ambiguous."
+  },
+  {
+    "id": "app.import.bulk_import.destination_team_requires_single_team_scope.error",
+    "translation": "--destination-team-name requires a single-team export; this export contains multiple teams."
+  },
+  {
     "id": "app.import.bulk_import.file_scan.error",
     "translation": "Error reading import data file."
+  },
+  {
+    "id": "app.import.bulk_import.imported_users_choice_required.error",
+    "translation": "This is a scoped export, so --imported-users must be set to either \"active\" or \"inactive\"; there is no safe default. Use --imported-users=active when importing into a new instance that these users are moving to, so they can sign in — otherwise every account the import creates is deactivated and nobody, including SSO users, can log in until an administrator reactivates them one by one. Use --imported-users=inactive when importing into an existing instance that already holds other people's content, so accounts created from weak username or email matches stay deactivated until an administrator reviews them. Either way, users who were deactivated on the source server stay deactivated, and accounts that already exist on the destination are matched rather than created and so are not affected by this choice."
   },
   {
     "id": "app.import.bulk_import.json_decode.error",
@@ -7003,6 +7143,10 @@
   {
     "id": "app.import.import_direct_channel.get_channel_members.error",
     "translation": "Failed to get channel members for direct channel"
+  },
+  {
+    "id": "app.import.import_direct_channel.get_ever_members.error",
+    "translation": "Failed to get the history of members who have ever belonged to the direct channel"
   },
   {
     "id": "app.import.import_direct_channel.no_members.error",
@@ -7119,6 +7263,14 @@
   {
     "id": "app.import.import_user_teams.save_preferences.error",
     "translation": "Unable to save the team theme preferences"
+  },
+  {
+    "id": "app.import.pre_create_sso_user.missing_fields.app_error",
+    "translation": "SSO user import data is missing required fields (username or email)."
+  },
+  {
+    "id": "app.import.preflight.auth_provider_not_configured.error",
+    "translation": "The {{.Service}} auth provider is not configured on this server: {{.Detail}}"
   },
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
@@ -7805,6 +7957,14 @@
     "translation": "Unable to send notification post."
   },
   {
+    "id": "app.notify_expiring_access_tokens.bot_dm",
+    "translation": "The personal access token \"{{.Description}}\" for bot account @{{.BotUsername}} will expire in {{.Days}} days or less. Open **Integrations > Bot Accounts** to regenerate it before it stops working."
+  },
+  {
+    "id": "app.notify_expiring_access_tokens.bot_dm_final",
+    "translation": "The personal access token \"{{.Description}}\" for bot account @{{.BotUsername}} will expire within 24 hours. Open **Integrations > Bot Accounts** to regenerate it before it stops working."
+  },
+  {
     "id": "app.notify_expiring_access_tokens.dm",
     "translation": "Your personal access token \"{{.Description}}\" will expire in {{.Days}} days or less. Open **Profile > Security** to regenerate it before it stops working."
   },
@@ -7985,6 +8145,10 @@
     "translation": "Multiple user attributes link the same template, so channel-attribute visibility cannot be determined unambiguously."
   },
   {
+    "id": "app.pap.masking.graph_value_unmarshal.app_error",
+    "translation": "Could not read the caller's graph field value."
+  },
+  {
     "id": "app.pap.masking.unknown_object_type.app_error",
     "translation": "Cannot resolve attribute visibility for an unknown object type."
   },
@@ -8131,6 +8295,10 @@
   {
     "id": "app.pdp.access_evaluation.permission_policy.app_error",
     "translation": "Failed to evaluate permission policy."
+  },
+  {
+    "id": "app.plugin.addon_not_licensed.app_error",
+    "translation": "This plugin requires the {{.AddOn}} add-on, which your license does not include."
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -8369,6 +8537,14 @@
     "translation": "Unable to get the post."
   },
   {
+    "id": "app.post.get_author_ids_for_channel.app_error",
+    "translation": "Unable to get post author IDs for the channel."
+  },
+  {
+    "id": "app.post.get_author_ids_for_team.app_error",
+    "translation": "Unable to get post author IDs for the team."
+  },
+  {
     "id": "app.post.get_direct_posts.app_error",
     "translation": "Unable to get direct posts."
   },
@@ -8467,6 +8643,14 @@
   {
     "id": "app.post.permanent_delete_post.error",
     "translation": "Failed to permanently delete post."
+  },
+  {
+    "id": "app.post.property_values.field_bound_exceeded.app_error",
+    "translation": "The number of attributes that apply to this post exceeds the supported limit."
+  },
+  {
+    "id": "app.post.property_values.value_bound_exceeded.app_error",
+    "translation": "The number of attribute values for these posts exceeds the supported limit."
   },
   {
     "id": "app.post.restore_post_version.get_single.app_error",
@@ -8585,6 +8769,10 @@
     "translation": "The access_mode attribute is invalid."
   },
   {
+    "id": "app.property.invalid_input.app_error",
+    "translation": "The property change was rejected."
+  },
+  {
     "id": "app.property.license_error",
     "translation": "Your license does not support this property group."
   },
@@ -8653,6 +8841,10 @@
     "translation": "Cannot create a protected property field."
   },
   {
+    "id": "app.property_field.create.target_limit_reached.app_error",
+    "translation": "The maximum number of property fields for this target has been reached."
+  },
+  {
     "id": "app.property_field.create.template_cannot_be_linked.app_error",
     "translation": "Template fields cannot have a linked field."
   },
@@ -8693,6 +8885,10 @@
     "translation": "Unable to get property fields."
   },
   {
+    "id": "app.property_field.graph_disabled.app_error",
+    "translation": "Graph property fields are not enabled."
+  },
+  {
     "id": "app.property_field.invalid_attrs.app_error",
     "translation": "Invalid property field attributes."
   },
@@ -8709,8 +8905,36 @@
     "translation": "The specified property field does not exist."
   },
   {
+    "id": "app.property_field.options.create.app_error",
+    "translation": "Unable to add the property field options."
+  },
+  {
+    "id": "app.property_field.options.delete.app_error",
+    "translation": "Unable to delete the property field options."
+  },
+  {
+    "id": "app.property_field.options.get.app_error",
+    "translation": "Unable to get the property field options."
+  },
+  {
+    "id": "app.property_field.options.invalid.app_error",
+    "translation": "The property field options were rejected: {{.Reason}}."
+  },
+  {
+    "id": "app.property_field.options.invalid_item.app_error",
+    "translation": "The property field option at index {{.Index}} {{.Reason}}."
+  },
+  {
+    "id": "app.property_field.options.update.app_error",
+    "translation": "Unable to update the property field options."
+  },
+  {
     "id": "app.property_field.rank_disabled.app_error",
     "translation": "Rank property fields are not enabled."
+  },
+  {
+    "id": "app.property_field.required_disabled.app_error",
+    "translation": "This attribute cannot be marked required while required-attribute enforcement is disabled."
   },
   {
     "id": "app.property_field.search.app_error",
@@ -8737,6 +8961,10 @@
     "translation": "Unable to get property fields for update."
   },
   {
+    "id": "app.property_field.update.graph_type_change.app_error",
+    "translation": "Cannot convert a property field to or from the graph type. Create a field of the type you need instead."
+  },
+  {
     "id": "app.property_field.update.linked_options_change.app_error",
     "translation": "Cannot modify options of a linked field. Options are inherited from the source."
   },
@@ -8747,6 +8975,10 @@
   {
     "id": "app.property_field.update.name_conflict.app_error",
     "translation": "Cannot update property to \"{{.Name}}\": a property with this name already exists at the {{.ConflictLevel}} level."
+  },
+  {
+    "id": "app.property_field.update.options_withheld.app_error",
+    "translation": "This property has more than {{.Max}} options, so its option list was not loaded and cannot be replaced. Edit its options individually instead."
   },
   {
     "id": "app.property_field.update.protected.app_error",
@@ -8769,6 +9001,18 @@
     "translation": "Unable to register property group."
   },
   {
+    "id": "app.property_value.change_policy.lower_only.app_error",
+    "translation": "This attribute can only be lowered, never raised."
+  },
+  {
+    "id": "app.property_value.change_policy.never.app_error",
+    "translation": "This attribute cannot be changed after it is set."
+  },
+  {
+    "id": "app.property_value.change_policy.raise_only.app_error",
+    "translation": "This attribute can only be raised, never lowered."
+  },
+  {
     "id": "app.property_value.create.app_error",
     "translation": "Unable to create property value."
   },
@@ -8789,6 +9033,10 @@
     "translation": "Unable to delete property values for target."
   },
   {
+    "id": "app.property_value.direct_channel.app_error",
+    "translation": "Attributes on direct and group messages cannot be set directly."
+  },
+  {
     "id": "app.property_value.get.app_error",
     "translation": "Unable to get property value."
   },
@@ -8799,6 +9047,10 @@
   {
     "id": "app.property_value.invalid_input.app_error",
     "translation": "Invalid input provided."
+  },
+  {
+    "id": "app.property_value.required.app_error",
+    "translation": "This attribute is required and cannot be left empty."
   },
   {
     "id": "app.property_value.resolve_broadcast_params.unknown_object_type.app_error",
@@ -8855,6 +9107,10 @@
   {
     "id": "app.reaction.delete_all_with_emoji_name.get_reactions.app_error",
     "translation": "Unable to get all reactions with this emoji name."
+  },
+  {
+    "id": "app.reaction.get_author_ids_for_channel.app_error",
+    "translation": "Unable to get reaction author IDs for the channel."
   },
   {
     "id": "app.reaction.get_for_post.app_error",
@@ -9639,6 +9895,10 @@
     "translation": "No terms of service found."
   },
   {
+    "id": "app.thread.get_follower_ids_for_channel.app_error",
+    "translation": "Unable to get thread follower IDs for the channel."
+  },
+  {
     "id": "app.thread.get_threadmembers_for_export.app_error",
     "translation": "Unable to get thread members for export."
   },
@@ -9791,6 +10051,10 @@
     "translation": "We could not get the badge count for the user."
   },
   {
+    "id": "app.user.get_by_auth.app_error",
+    "translation": "Unable to find the user by authentication data."
+  },
+  {
     "id": "app.user.get_by_auth.missing_account.app_error",
     "translation": "Unable to find an existing account matching your authentication type for this team. This team may require an invite from the team owner to join."
   },
@@ -9923,6 +10187,10 @@
     "translation": "Cannot demote last System Admin."
   },
   {
+    "id": "app.user.update.reserved_username.app_error",
+    "translation": "This username is reserved for a system-owned bot."
+  },
+  {
     "id": "app.user.update_active.license_user_limit.exceeded",
     "translation": "Can't activate user. Server exceeds maximum licensed users. ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
   },
@@ -9969,6 +10237,10 @@
   {
     "id": "app.user.verify_email.app_error",
     "translation": "Unable to update verify email field."
+  },
+  {
+    "id": "app.user_access_token.bot_expired_deleted_notification",
+    "translation": "The personal access token \"{{.Description}}\" for bot account @{{.BotUsername}} has expired and been removed. Open **Integrations > Bot Accounts** to create a new token."
   },
   {
     "id": "app.user_access_token.count_non_compliant.app_error",
@@ -10835,6 +11107,10 @@
     "translation": "Invalid AD/LDAP Filter."
   },
   {
+    "id": "ent.ldap.validate_group_filter.app_error",
+    "translation": "Invalid AD/LDAP Group Filter."
+  },
+  {
     "id": "ent.ldap.validate_guest_filter.app_error",
     "translation": "Invalid AD/LDAP Guest Filter."
   },
@@ -11313,6 +11589,26 @@
   {
     "id": "model.access_policy.is_valid.roles.app_error",
     "translation": "Permission policies must be applied to exactly one role."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_expression.app_error",
+    "translation": "Only a membership rule may omit its expression."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_metadata_auto_add.app_error",
+    "translation": "Automatically adding members can only be set on the policy's membership rule."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_metadata_auto_add_mode.app_error",
+    "translation": "\"{{.Mode}}\" is not a supported way of automatically adding members."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_metadata_auto_add_type.app_error",
+    "translation": "The way members are automatically added must be given as text."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_metadata_key.app_error",
+    "translation": "Rule metadata contains an unrecognized key."
   },
   {
     "id": "model.access_policy.is_valid.rule_name.app_error",
@@ -11967,12 +12263,20 @@
     "translation": "Unable to enable email batching when clustering is enabled."
   },
   {
+    "id": "model.config.is_valid.cluster_gossip_port.app_error",
+    "translation": "ClusterSettings.GossipPort must be a valid port number."
+  },
+  {
     "id": "model.config.is_valid.collapsed_threads.app_error",
     "translation": "CollapsedThreads setting must be either disabled,default_on or default_off"
   },
   {
     "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
     "translation": "ThreadAutoFollow must be true to enable CollapsedThreads"
+  },
+  {
+    "id": "model.config.is_valid.connected_workspaces.batch_size.app_error",
+    "translation": "{{.Setting}} must be a positive number."
   },
   {
     "id": "model.config.is_valid.content_flagging.common_reviewers_not_set.app_error",
@@ -12079,6 +12383,14 @@
     "translation": "GlobalSearchPrefix {{.GlobalSearchPrefix}} should be a prefix of IndexPrefix {{.IndexPrefix}}."
   },
   {
+    "id": "model.config.is_valid.elastic_search.index_replicas.app_error",
+    "translation": "{{.Setting}} must be greater than or equal to 0."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.index_shards.app_error",
+    "translation": "{{.Setting}} must be greater than or equal to 1."
+  },
+  {
     "id": "model.config.is_valid.elastic_search.invalid_backend.app_error",
     "translation": "Invalid search backend. Must be either elasticsearch or opensearch."
   },
@@ -12095,6 +12407,10 @@
     "translation": "Search Request Timeout must be at least 1 second."
   },
   {
+    "id": "model.config.is_valid.email_address.app_error",
+    "translation": "{{.Setting}} must be a valid email address."
+  },
+  {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
     "translation": "Invalid email batching buffer size for email settings. Must be zero or a positive number."
   },
@@ -12105,6 +12421,10 @@
   {
     "id": "model.config.is_valid.email_notification_contents_type.app_error",
     "translation": "Invalid email notification contents type for email settings. Must be one of either 'full' or 'generic'."
+  },
+  {
+    "id": "model.config.is_valid.email_push_notification_buffer.app_error",
+    "translation": "Invalid push notification buffer size for email settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.email_security.app_error",
@@ -12137,6 +12457,10 @@
   {
     "id": "model.config.is_valid.export_azure_timeout.app_error",
     "translation": "Invalid timeout value {{.Value}}. Should be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.export_file_driver.app_error",
+    "translation": "Invalid export driver name for file settings. Must be 'local', 'amazons3', or 'azureblob'."
   },
   {
     "id": "model.config.is_valid.extract_content_timeout.app_error",
@@ -12287,6 +12611,10 @@
     "translation": "Invalid format: {{.Error}}"
   },
   {
+    "id": "model.config.is_valid.log_level.app_error",
+    "translation": "Invalid log level {{.Value}} for {{.Setting}}."
+  },
+  {
     "id": "model.config.is_valid.login_attempts.app_error",
     "translation": "Invalid maximum login attempts for service settings. Must be a positive number."
   },
@@ -12363,6 +12691,10 @@
     "translation": "Message export GlobalRelaySettings.CustomHeaderValue must not contain control characters or line breaks."
   },
   {
+    "id": "model.config.is_valid.message_export.global_relay.custom_smtp_port.app_error",
+    "translation": "Message export job GlobalRelaySettings.CustomSMTPPort must be a valid port number."
+  },
+  {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
     "translation": "Message export GlobalRelaySettings.CustomerType must be set to one of either 'A9', 'A10' or 'CUSTOM'."
   },
@@ -12373,6 +12705,10 @@
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
     "translation": "Message export job GlobalRelaySettings.EmailAddress must be set to a valid email address."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.sender_address.app_error",
+    "translation": "Message export GlobalRelaySettings.SenderAddress must be empty or a valid email address."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.smtp_password.app_error",
@@ -12415,6 +12751,10 @@
     "translation": "One or more app download links are not valid URLs."
   },
   {
+    "id": "model.config.is_valid.non_negative_number.app_error",
+    "translation": "{{.Setting}} must be a non-negative number."
+  },
+  {
     "id": "model.config.is_valid.notification_settings.invalid_event",
     "translation": "Invalid flagging event specified."
   },
@@ -12447,6 +12787,14 @@
     "translation": "Invalid maximum number of recipients for persistent notifications. Must be a positive number."
   },
   {
+    "id": "model.config.is_valid.port.app_error",
+    "translation": "{{.Setting}} must be a valid port."
+  },
+  {
+    "id": "model.config.is_valid.positive_number.app_error",
+    "translation": "{{.Setting}} must be a positive number."
+  },
+  {
     "id": "model.config.is_valid.rate_mem.app_error",
     "translation": "Invalid memory store size for rate limit settings. Must be a positive number."
   },
@@ -12477,6 +12825,10 @@
   {
     "id": "model.config.is_valid.restrict_direct_message.app_error",
     "translation": "Invalid direct message restriction. Must be 'any', or 'team'."
+  },
+  {
+    "id": "model.config.is_valid.s3_upload_part_size.app_error",
+    "translation": "{{.Setting}} must be at least {{.Min}} bytes."
   },
   {
     "id": "model.config.is_valid.saml_admin_attribute.app_error",
@@ -12531,6 +12883,26 @@
     "translation": "Invalid Username attribute. Must be set."
   },
   {
+    "id": "model.config.is_valid.service_settings.burn_on_read_duration_seconds.app_error",
+    "translation": "BurnOnReadDurationSeconds must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.service_settings.burn_on_read_maximum_time_to_live_seconds.app_error",
+    "translation": "BurnOnReadMaximumTimeToLiveSeconds must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.service_settings.burn_on_read_scheduler_frequency_seconds.app_error",
+    "translation": "BurnOnReadSchedulerFrequencySeconds must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.service_settings.feature_flag_sync_interval.app_error",
+    "translation": "FeatureFlagSyncIntervalSeconds must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.service_settings.refresh_post_stats_run_time.app_error",
+    "translation": "RefreshPostStatsRunTime must be a time in the format \"hh:mm\"."
+  },
+  {
     "id": "model.config.is_valid.site_url.app_error",
     "translation": "Site URL must be a valid URL and start with http:// or https://."
   },
@@ -12571,8 +12943,16 @@
     "translation": "Invalid maximum open connection for SQL settings. Must be a positive number."
   },
   {
+    "id": "model.config.is_valid.sql_migrations_statement_timeout_seconds.app_error",
+    "translation": "Invalid migrations statement timeout for SQL settings. Must be a non-negative number."
+  },
+  {
     "id": "model.config.is_valid.sql_query_timeout.app_error",
     "translation": "Invalid query timeout for SQL settings. Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.sql_replica_monitor_interval_seconds.app_error",
+    "translation": "Invalid replica monitor interval for SQL settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.storage_class.app_error",
@@ -12595,12 +12975,20 @@
     "translation": "Invalid value for TLS key file - Either use LetsEncrypt or set path to existing key file."
   },
   {
+    "id": "model.config.is_valid.tls_min_ver.app_error",
+    "translation": "Invalid TLS minimum version {{.Value}}. Must be '1.0', '1.1', '1.2', or '1.3'."
+  },
+  {
     "id": "model.config.is_valid.tls_overwrite_cipher.app_error",
     "translation": "Invalid value passed for TLS overwrite cipher - Please refer to the documentation for valid values."
   },
   {
     "id": "model.config.is_valid.user_status_away_timeout.app_error",
     "translation": "Invalid value for user status away timeout. Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.webserver_mode.app_error",
+    "translation": "Invalid webserver mode {{.Value}}. Must be 'gzip', 'nogzip', or 'disabled'."
   },
   {
     "id": "model.config.is_valid.webserver_security.app_error",
@@ -14068,11 +14456,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 26.2+"
+    "translation": "Version 27+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 14+"
+    "translation": "macOS 15+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",

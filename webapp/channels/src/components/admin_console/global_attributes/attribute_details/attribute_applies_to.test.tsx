@@ -8,6 +8,8 @@ import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing
 import AttributeAppliesTo from './attribute_applies_to';
 import type {ResourceObjectType} from './attribute_applies_to_constants';
 
+import {DEFAULT_CHANNEL_RESOURCE_CONFIG} from '../applies_to/channels';
+
 describe('AttributeAppliesTo', () => {
     const onAdd = jest.fn();
     const onRemove = jest.fn();
@@ -22,6 +24,8 @@ describe('AttributeAppliesTo', () => {
                 appliesTo={[]}
                 onAdd={onAdd}
                 onRemove={onRemove}
+                channelResource={DEFAULT_CHANNEL_RESOURCE_CONFIG}
+                onChannelResourceChange={jest.fn()}
                 {...props}
             />,
         );
@@ -123,6 +127,20 @@ describe('AttributeAppliesTo', () => {
             expect(screen.getByTestId('attributeAppliesToAddResourceButtonHeader')).toBeInTheDocument();
             expect(screen.getByTestId('attributeAppliesToAddResourceButtonInline')).toBeInTheDocument();
             expect(screen.getByTestId('attributeAppliesToEmptyState')).toHaveTextContent('Add a resource to apply this attribute');
+        });
+    });
+
+    describe('lockedTooltip on the Channels row', () => {
+        it('wraps the toggle in the lock tooltip when lockedTooltip is given', () => {
+            renderComponent({appliesTo: ['channel'], lockedTooltip: 'Locked'});
+
+            expect(screen.getByTestId('attributeAppliesToRow-channel-toggleLockWrap')).toBeInTheDocument();
+        });
+
+        it('renders no lock wrapper when lockedTooltip is not given', () => {
+            renderComponent({appliesTo: ['channel']});
+
+            expect(screen.queryByTestId('attributeAppliesToRow-channel-toggleLockWrap')).not.toBeInTheDocument();
         });
     });
 });
