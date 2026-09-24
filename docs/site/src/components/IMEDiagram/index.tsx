@@ -1,7 +1,8 @@
 import React, {useEffect, useState} from 'react';
 import Link from '@docusaurus/Link';
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import styles from './styles.module.css';
-import type {Cell as CellData, FooterStrip, IMEContent, Intro, Layer, Logo} from './types';
+import type {Cell as CellData, FooterStrip, IconName, IMEContent, Intro, Layer, Logo} from './types';
 import {getIcon} from './icons';
 import {getVariant, variants} from './content';
 
@@ -14,18 +15,25 @@ import {getVariant, variants} from './content';
  * between variants at read time.
  */
 
-type CellProps = {data: CellData};
+/**
+ * `<img>` wrapper that resolves `src` against Docusaurus' configured
+ * `baseUrl`, so mission assets keep working when the site is deployed
+ * under a subpath (e.g. staging previews) rather than the domain root.
+ */
+function Img({src, alt, className}: {src: string; alt: string; className?: string}) {
+  return <img src={useBaseUrl(src)} alt={alt} className={className} />;
+}
 
-function CellIcon({iconSrc, icon, alt}: {iconSrc?: string; icon?: import('./types').IconName; alt?: string}) {
+function CellIcon({iconSrc, icon, alt}: {iconSrc?: string; icon?: IconName; alt?: string}) {
   if (iconSrc) {
-    return <span className={`${styles.icon} ${styles.iconImg}`} aria-hidden><img src={iconSrc} alt={alt ?? ''} /></span>;
+    return <span className={`${styles.icon} ${styles.iconImg}`} aria-hidden><Img src={iconSrc} alt={alt ?? ''} /></span>;
   }
   const svg = getIcon(icon);
   if (!svg) return null;
   return <span className={styles.icon} aria-hidden>{svg}</span>;
 }
 
-function Cell({data}: CellProps) {
+function Cell({data}: {data: CellData}) {
   const body = (
     <>
       <CellIcon iconSrc={data.iconSrc} icon={data.icon} alt={data.title} />
@@ -57,7 +65,7 @@ function IntroPanel({data}: {data: Intro}) {
     <div className={styles.intro}>
       <h3>
         {data.iconSrc
-          ? <span className={`${styles.introIcon} ${styles.introIconImg}`}><img src={data.iconSrc} alt="" /></span>
+          ? <span className={`${styles.introIcon} ${styles.introIconImg}`}><Img src={data.iconSrc} alt="" /></span>
           : (getIcon(data.icon) && <span className={styles.introIcon}>{getIcon(data.icon)}</span>)}
         {data.title}
       </h3>
@@ -72,7 +80,7 @@ function LogoStrip({logos}: {logos: Logo[]}) {
     <div className={styles.logoStrip} aria-label="Related brands">
       {logos.map((logo) => (
         logo.src
-          ? <img key={logo.alt} src={logo.src} alt={logo.alt} className={styles.logoImg} />
+          ? <Img key={logo.alt} src={logo.src} alt={logo.alt} className={styles.logoImg} />
           : <span key={logo.alt} className={styles.logoBadge}>{logo.alt}</span>
       ))}
     </div>
@@ -96,10 +104,17 @@ function FooterCell({data}: {data: FooterStrip}) {
 
 function LayerBlock({layer}: {layer: Layer}) {
   const cols = layer.columns ?? layer.cells.length;
-  const gridStyle = {gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`};
 
   const cells = (
-    <div className={styles.cellGrid} style={gridStyle}>
+    // `--ime-cols` drives grid-template-columns in the stylesheet so we
+    // can override it in media queries without fighting inline style
+    // specificity. `data-cols` lets the tablet breakpoint keep single-
+    // column layers single-column instead of collapsing them to two.
+    <div
+      className={styles.cellGrid}
+      data-cols={cols}
+      style={{['--ime-cols' as string]: cols}}
+    >
       {layer.cells.map((c) => <Cell key={c.title} data={c} />)}
     </div>
   );
@@ -118,7 +133,11 @@ function LayerBlock({layer}: {layer: Layer}) {
       <div className={styles.layerBody}>
         {body}
         {layer.footers && (
-          <div className={styles.footerRow} style={{gridTemplateColumns: `repeat(${layer.footers.length}, minmax(0, 1fr))`}}>
+          <div
+            className={styles.footerRow}
+            data-cols={layer.footers.length}
+            style={{['--ime-cols' as string]: layer.footers.length}}
+          >
             {layer.footers.map((f) => <FooterCell key={f.text} data={f} />)}
           </div>
         )}
@@ -132,7 +151,7 @@ export type IMEDiagramProps = {
   variant?: string;
   /** Override the entire content model — useful for tests and the PNG renderer. */
   content?: IMEContent;
-  /** Show/hide the audience toggle. Defaults to true when neither prop is set. */
+  /** Show/hide the audience toggle. Ignored (forced false) when `variant` or `content` is set. */
   toggle?: boolean;
 };
 
@@ -157,9 +176,19 @@ export default function IMEDiagram({variant, content, toggle}: IMEDiagramProps) 
     }
   }, []);
 
-  const effectiveVariant = variant ?? urlOverride.variant ?? activeId;
-  const active = content ?? getVariant(effectiveVariant).content;
-  const showToggle = toggle ?? (!content && !variant && !urlOverride.hideToggle);
+  // Normalize every possible variant source (prop, URL, state) through
+  // `getVariant` so unknown IDs fall back to the default. `active` and
+  // `aria-selected` share the same resolved variant, so the toggle can
+  // never claim a tab that doesn't match the rendered diagram.
+  const resolvedVariant = getVariant(variant ?? urlOverride.variant ?? activeId);
+  const active = content ?? resolvedVariant.content;
+
+  // When the parent supplies `variant` or `content`, the diagram is
+  // fully controlled — clicking the toggle would otherwise mutate
+  // local state without changing what renders. Force it off regardless
+  // of the `toggle` prop.
+  const isControlled = Boolean(content || variant);
+  const showToggle = !isControlled && !urlOverride.hideToggle && (toggle ?? true);
 
   return (
     <div className={styles.wrapper}>
@@ -170,8 +199,8 @@ export default function IMEDiagram({variant, content, toggle}: IMEDiagramProps) 
               key={v.id}
               type="button"
               role="tab"
-              aria-selected={activeId === v.id}
-              className={`${styles.toggleButton} ${activeId === v.id ? styles.toggleButtonActive : ''}`}
+              aria-selected={resolvedVariant.id === v.id}
+              className={`${styles.toggleButton} ${resolvedVariant.id === v.id ? styles.toggleButtonActive : ''}`}
               onClick={() => setActiveId(v.id)}
             >
               {v.label}
@@ -179,17 +208,29 @@ export default function IMEDiagram({variant, content, toggle}: IMEDiagramProps) 
           ))}
         </div>
       )}
-      <section className={styles.diagram} aria-label={`${active.title ?? 'Intelligent Mission Environment'} overview`}>
+      <section
+        className={styles.diagram}
+        data-variant={active.id}
+        data-ready="true"
+        aria-label={`${active.title ?? 'Intelligent Mission Environment'} overview`}
+      >
         {(active.title || active.tagline) && (
-          <header className={styles.banner}>
-            <div className={styles.bannerInner}>
-              {active.title && <h2 className={styles.bannerTitle}>{active.title}</h2>}
-              {active.tagline && <p className={styles.bannerTagline}>{active.tagline}</p>}
-            </div>
-          </header>
+          <BannerHeader title={active.title} tagline={active.tagline} />
         )}
         {active.layers.map((layer) => <LayerBlock key={layer.id} layer={layer} />)}
       </section>
     </div>
+  );
+}
+
+function BannerHeader({title, tagline}: {title?: string; tagline?: string}) {
+  const bgUrl = useBaseUrl('/img/ime/banner-bg.jpg');
+  return (
+    <header className={styles.banner} style={{backgroundImage: `url(${bgUrl})`}}>
+      <div className={styles.bannerInner}>
+        {title && <h2 className={styles.bannerTitle}>{title}</h2>}
+        {tagline && <p className={styles.bannerTagline}>{tagline}</p>}
+      </div>
+    </header>
   );
 }

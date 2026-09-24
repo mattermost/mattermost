@@ -61,7 +61,16 @@ async function main() {
       const page = await context.newPage();
       await page.goto(url, {waitUntil: 'networkidle'});
 
-      const el = await page.waitForSelector('[aria-label$="overview"]', {timeout: 15_000});
+      // Wait for the *specific* variant to be committed to the DOM.
+      // The initial paint is General, and networkidle can fire before
+      // React commits the useEffect that switches to the URL-requested
+      // variant, so a generic `[aria-label$="overview"]` selector would
+      // capture the wrong diagram. `[data-variant]` is set on the
+      // rendered variant's `<section>` by the component itself.
+      const el = await page.waitForSelector(
+        `[data-variant="${variant}"][data-ready="true"]`,
+        {timeout: 15_000},
+      );
       const out = path.join(OUT_DIR, `${variant}.png`);
       await el.screenshot({path: out, omitBackground: false});
       console.log(`  wrote ${path.relative(process.cwd(), out)}`);

@@ -70,7 +70,8 @@
 
 .banner {
   background-color: var(--mm-color-denim, #1E325C);
-  background-image: url('/img/ime/banner-bg.jpg');
+  /* background-image is set inline via useBaseUrl so the URL respects
+   * Docusaurus' configured baseUrl on non-root deployments. */
   background-size: cover;
   background-position: center;
   color: var(--mm-color-white, #fff);
@@ -84,15 +85,26 @@
   margin: 0 auto;
 }
 
-.bannerTitle {
+/* Escape hatch for `.markdown h2` in `src/css/custom.css` which adds
+ * a 3rem top margin, 1.4rem top padding, and a decorative marigold
+ * ::before bar to every h2 inside a doc page. Same idiom the OpenAPI
+ * reset uses further down that file. */
+.bannerTitle,
+.bannerTitle:not([class*="openapi"]) {
   font-family: var(--mm-font-sans);
   font-weight: 800;
   color: var(--mm-color-white, #fff);
   font-size: 1.6rem;
   line-height: 1.15;
-  margin: 0 0 0.35rem;
+  margin: 0 0 0.35rem !important;
+  padding: 0 !important;
+  position: relative;
   letter-spacing: -0.005em;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+.bannerTitle::before,
+.bannerTitle:not([class*="openapi"])::before {
+  content: none !important;
 }
 
 .bannerTagline {
@@ -224,7 +236,11 @@
 .cellGrid {
   display: grid;
   gap: 0.5rem;
-  /* grid-template-columns is set inline by the renderer */
+  /* Column count comes from `--ime-cols` (set inline by the renderer)
+   * so responsive rules can override without fighting inline-style
+   * specificity. `data-cols` lets breakpoints keep single-column
+   * layers single-column. */
+  grid-template-columns: repeat(var(--ime-cols, 1), minmax(0, 1fr));
 }
 
 /* Use-case layer (no intro) — larger typography */
@@ -365,7 +381,7 @@ a.cell:hover {
   display: grid;
   gap: 1rem;
   margin-top: 0.65rem;
-  /* grid-template-columns is set inline by the renderer */
+  grid-template-columns: repeat(var(--ime-cols, 1), minmax(0, 1fr));
 }
 
 .footerCell {
@@ -467,18 +483,19 @@ a.footerCell:hover {
   .layerContentWithIntro {
     grid-template-columns: 1fr;
   }
-  .cellGrid {
-    /* Two-column fallback keeps mission variant's 6 app tiles readable. */
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  /* Two-column fallback keeps mission variant's 6 app tiles readable
+   * while preserving single-column layers (data-cols="1"). */
+  .cellGrid:not([data-cols="1"]) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .footerRow {
-    grid-template-columns: 1fr !important;
+  .footerRow:not([data-cols="1"]) {
+    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 600px) {
   .cellGrid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: 1fr;
   }
   .layer {
     grid-template-columns: 1fr;
