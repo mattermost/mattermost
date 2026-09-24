@@ -75,11 +75,12 @@ test.describe('System Console - Session Attributes', () => {
             // * Verify a seeded-but-client-native field does NOT carry the Server label
             await expect(sa.serverLabel(clientIpAddress.id)).toHaveCount(0);
 
-            // * Verify the derived Type column maps text/select fields correctly
-            await expect(sa.type(ipAddress.id)).toContainText('IP');
+            // * Verify the derived Type column maps text/select fields correctly.
+            // Non-select fields display as String (IP/Version labels were removed).
+            await expect(sa.type(ipAddress.id)).toContainText('String');
             await expect(sa.type(vpnActive.id)).toContainText('Boolean');
             await expect(sa.type(networkInterfaceType.id)).toContainText('Enum');
-            await expect(sa.type(osVersion.id)).toContainText('Version');
+            await expect(sa.type(osVersion.id)).toContainText('String');
 
             // * Verify seeded fields render as Disabled by default
             await expect(sa.status(ipAddress.id)).toContainText('Disabled');
@@ -183,7 +184,9 @@ test.describe('System Console - Session Attributes', () => {
         const sa = systemConsolePage.sessionAttributes;
         const page = systemConsolePage.page;
 
-        const field = findFieldByName(fields, 'ssid');
+        // Use a top-of-table field so the TTL submenu is not clipped by the
+        // save bar the way lower rows (e.g. ssid) are in this listing.
+        const field = findFieldByName(fields, 'ip_address');
 
         // # Navigate to Session Attributes page
         await sa.goto();
