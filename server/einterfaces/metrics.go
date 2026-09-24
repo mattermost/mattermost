@@ -10,6 +10,20 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
+// The decisions reported to IncrementAccessControlDecision. A deny names the lane
+// that denied, since the permission-policy lane only runs when the resource-policy
+// lane allows.
+const (
+	AccessControlDecisionAllow                = "allow"
+	AccessControlDecisionDenyResourcePolicy   = "deny_resource_policy"
+	AccessControlDecisionDenyPermissionPolicy = "deny_permission_policy"
+	AccessControlDecisionError                = "error"
+)
+
+// AccessControlDecisionActionPlugin is the action reported for every plugin-defined
+// action, so plugins cannot grow the metric's label cardinality.
+const AccessControlDecisionActionPlugin = "plugin"
+
 type MetricsInterface interface {
 	Register()
 	RegisterDBCollector(db *sql.DB, name string)
@@ -140,6 +154,7 @@ type MetricsInterface interface {
 	ObserveAccessControlSearchQueryDuration(value float64)
 	ObserveAccessControlExpressionCompileDuration(value float64)
 	ObserveAccessControlEvaluateDuration(value float64)
+	IncrementAccessControlDecision(action, decision string)
 	IncrementAccessControlCacheInvalidation()
 
 	// Auto-translation metrics
