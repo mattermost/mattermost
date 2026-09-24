@@ -184,9 +184,9 @@ test.describe('System Console - Session Attributes', () => {
         const sa = systemConsolePage.sessionAttributes;
         const page = systemConsolePage.page;
 
-        // Use a top-of-table field so the TTL submenu is not clipped by the
-        // save bar the way lower rows (e.g. ssid) are in this listing.
-        const field = findFieldByName(fields, 'ip_address');
+        // Use a non-server-sourced field near the top of the table so the TTL
+        // submenu exists (server-sourced rows omit it) and is not clipped.
+        const field = findFieldByName(fields, 'client_ip_address');
 
         // # Navigate to Session Attributes page
         await sa.goto();

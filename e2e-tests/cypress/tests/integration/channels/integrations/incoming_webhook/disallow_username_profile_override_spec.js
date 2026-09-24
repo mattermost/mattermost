@@ -68,9 +68,13 @@ describe('Incoming webhook', () => {
             // * Verify that the username is overridden per webhook payload
             cy.get('.post__header').find('.user-popover').should('have.text', payload1.username);
 
-            // * Verify that the user icon is overridden per webhook payload
+            // * Verify that the user icon is overridden (image proxy URL, or a
+            // locally cached file when the proxy stores the fetched image).
             const encodedIconUrl = encodeURIComponent(payload1.icon_url);
-            cy.get('.profile-icon > img').should('have.attr', 'src', `${Cypress.config('baseUrl')}/api/v4/image?url=${encodedIconUrl}`);
+            const proxySrc = `${Cypress.config('baseUrl')}/api/v4/image?url=${encodedIconUrl}`;
+            cy.get('.profile-icon > img').invoke('attr', 'src').should((src) => {
+                expect(src === proxySrc || (typeof src === 'string' && src.includes('/static/files/')), `unexpected icon src ${src}`).to.eq(true);
+            });
         });
 
         // # Disable username and icon override
