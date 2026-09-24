@@ -220,3 +220,136 @@ func TestChannelReadAccessLeavesStoredSidebarCategoriesIntact(t *testing.T) {
 	require.Contains(t, channelIDs, th.BasicChannel2.Id,
 		"the denied channel must still be stored in the user's categories so it returns intact once access does")
 }
+
+// saveRecapWithChannels stores a completed recap for the basic user with one summary per
+// channel, the way the worker leaves it, so a test can apply a policy after the fact.
+func saveRecapWithChannels(t *testing.T, th *TestHelper, channelIDs ...string) *model.Recap {
+	t.Helper()
+
+	recap, err := th.App.Srv().Store().Recap().SaveRecap(&model.Recap{
+		Id:       model.NewId(),
+		UserId:   th.BasicUser.Id,
+		Title:    "policy filter",
+		CreateAt: model.GetMillis(),
+		UpdateAt: model.GetMillis(),
+		Status:   model.RecapStatusCompleted,
+		BotID:    "test-agent-id",
+	})
+	require.NoError(t, err)
+
+	for _, channelID := range channelIDs {
+		require.NoError(t, th.App.Srv().Store().Recap().SaveRecapChannel(&model.RecapChannel{
+			Id:            model.NewId(),
+			RecapId:       recap.Id,
+			ChannelId:     channelID,
+			ChannelName:   channelID,
+			Highlights:    []string{"highlight from " + channelID},
+			SourcePostIds: []string{model.NewId()},
+			CreateAt:      model.GetMillis(),
+		}))
+	}
+
+	return recap
+}
+
+func decodeRecapChannelIDs(t *testing.T, res *http.Response) []string {
+	t.Helper()
+	defer res.Body.Close()
+
+	var recap model.Recap
+	require.NoError(t, json.NewDecoder(res.Body).Decode(&recap))
+
+	channelIDs := make([]string, 0, len(recap.Channels))
+	for _, channel := range recap.Channels {
+		channelIDs = append(channelIDs, channel.ChannelId)
+	}
+	return channelIDs
+}
+
+// A recap is summarized once and stored, so a policy that starts denying a channel
+// afterwards has to be applied when the recap is served, not only when it is created.
+func TestRecapChannelReadAccessFiltersStoredSummaries(t *testing.T) {
+	f := setupRecapChannelAccess(t)
+
+	allowed := f.th.CreatePublicChannel(t)
+	denied := f.th.CreatePublicChannel(t)
+	recap := saveRecapWithChannels(t, f.th, allowed.Id, denied.Id)
+	f.deny(denied.Id)
+
+	t.Run("get recap", func(t *testing.T) {
+		res, err := f.th.Client.DoAPIGet(context.Background(), "/recaps/"+recap.Id, "")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, res.StatusCode)
+		require.Equal(t, []string{allowed.Id}, decodeRecapChannelIDs(t, res),
+			"the denied channel's summary must not be served, and the allowed one must survive")
+	})
+
+	t.Run("mark recap as read", func(t *testing.T) {
+		res, err := f.th.Client.DoAPIPost(context.Background(), "/recaps/"+recap.Id+"/read", "")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, res.StatusCode)
+		require.Equal(t, []string{allowed.Id}, decodeRecapChannelIDs(t, res),
+			"marking a recap read returns it too, so it must be filtered the same way")
+	})
+
+	t.Run("every channel denied", func(t *testing.T) {
+		f.deny(allowed.Id)
+		t.Cleanup(func() { delete(f.denied, allowed.Id) })
+
+		res, err := f.th.Client.DoAPIGet(context.Background(), "/recaps/"+recap.Id, "")
+		require.NoError(t, err, "the recap is still the user's own, so it is returned empty rather than refused")
+		require.Equal(t, http.StatusOK, res.StatusCode)
+		require.Empty(t, decodeRecapChannelIDs(t, res))
+	})
+
+	stored, appErr := f.th.App.GetRecap(f.th.Context, recap.Id)
+	require.Nil(t, appErr)
+	require.Len(t, stored.Channels, 2,
+		"the filter shapes the response only; the summaries must be intact once access returns")
+}
+
+// Regenerating re-summarizes the recap's channels, so it is gated like creation.
+func TestRecapChannelReadAccessRegenerateDropsDeniedChannels(t *testing.T) {
+	f := setupRecapChannelAccess(t)
+
+	allowed := f.th.CreatePublicChannel(t)
+	denied := f.th.CreatePublicChannel(t)
+	recap := saveRecapWithChannels(t, f.th, allowed.Id, denied.Id)
+	f.deny(denied.Id)
+
+	// The seeded recap counts as the last one created, so the default cooldown would
+	// refuse the regenerate before it reaches the job.
+	f.th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.AIRecapSettings.EnforceCooldown = model.NewPointer(false)
+	})
+
+	res, err := f.th.Client.DoAPIPost(context.Background(), "/recaps/"+recap.Id+"/regenerate", "")
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, res.StatusCode)
+	res.Body.Close()
+
+	require.Equal(t, []string{allowed.Id}, recapJobChannelIDs(t, f.th),
+		"the denied channel must not be re-summarized, and the allowed one must survive")
+}
+
+func TestRecapChannelReadAccessRegenerateDeniesWhenEveryChannelIsDenied(t *testing.T) {
+	f := setupRecapChannelAccess(t)
+
+	denied := f.th.CreatePublicChannel(t)
+	recap := saveRecapWithChannels(t, f.th, denied.Id)
+	f.deny(denied.Id)
+
+	res, err := f.th.Client.DoAPIPost(context.Background(), "/recaps/"+recap.Id+"/regenerate", "")
+	require.Error(t, err)
+	require.Equal(t, http.StatusForbidden, res.StatusCode)
+	require.True(t, isChannelReadAccessDenial(err, abacDeniedErrorID),
+		"nothing survived the filter, so the response must name the channel-access denial: %v", err)
+
+	jobs, jobErr := f.th.App.Srv().Store().Job().GetAllByType(f.th.Context, model.JobTypeRecap)
+	require.NoError(t, jobErr)
+	require.Empty(t, jobs, "a refused regenerate must not enqueue a job")
+
+	stored, appErr := f.th.App.GetRecap(f.th.Context, recap.Id)
+	require.Nil(t, appErr)
+	require.Len(t, stored.Channels, 1, "a refused regenerate must not delete the stored summaries")
+}

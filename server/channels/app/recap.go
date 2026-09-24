@@ -190,10 +190,13 @@ func (a *App) RegenerateRecap(rctx request.CTX, userID string, recap *model.Reca
 
 	recapID := recap.Id
 
-	// Get existing recap channels to extract channel IDs
-	channels, err := a.Srv().Store().Recap().GetRecapChannelsByRecapId(recapID)
-	if err != nil {
-		return nil, model.NewAppError("RegenerateRecap", "app.recap.get_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	channels := recap.Channels
+	if channels == nil {
+		var err error
+		channels, err = a.Srv().Store().Recap().GetRecapChannelsByRecapId(recapID)
+		if err != nil {
+			return nil, model.NewAppError("RegenerateRecap", "app.recap.get_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 	}
 
 	// Extract channel IDs
