@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {impactPersonaContext, renderPrompt} from './gap-prompt.mjs';
-import {personasWithScope} from './personas.mjs';
+import {impactPersonaContext, renderPrompt} from './prompt.mjs';
+import {personasWithScope} from '../lib/personas.mjs';
 
 const INPUTS = '- `code-diff.txt` — the code side of the diff';
 

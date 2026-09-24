@@ -1,6 +1,6 @@
 # Docs AI
 
-Two pipelines, one persona registry.
+Two pipelines, one persona registry, one package.
 
 | Workflow | Question | Runs on |
 | --- | --- | --- |
@@ -10,6 +10,19 @@ Two pipelines, one persona registry.
 Both are advisory. No verdict blocks a merge. `docs/api` is out of scope for review — its
 reference pages are generated from the OpenAPI spec, so corrections belong in
 `api/v4/source/` — and out of scope as a gap action for the same reason.
+
+## Layout
+
+```
+docs-ai/
+  review/     # persona review entry points (router, persona-review, report)
+  gap/        # gap analysis entry points (prepare, report) + lifecycle helpers
+  lib/        # shared (anthropic, github, untrusted, personas)
+  package.json
+  README.md
+```
+
+One `package.json`. Separate packages would only duplicate the lockfile and CI install.
 
 ## How to run it
 
@@ -25,14 +38,14 @@ single job so it becomes one check rather than a matrix of them.
 
 | Script | Role |
 | --- | --- |
-| `router.mjs` | Cheap model call that picks which personas apply |
-| `persona-review.mjs` | One persona → one JSON verdict |
-| `report.mjs` | Upserts the sticky review comment |
-| `gap-prepare.mjs` | Collects diffs and renders the gap prompt |
-| `gap-report.mjs` | Posts the sticky gap comment and owns `Docs/Needed` |
+| `review/router.mjs` | Cheap model call that picks which personas apply |
+| `review/persona-review.mjs` | One persona → one JSON verdict |
+| `review/report.mjs` | Upserts the sticky review comment |
+| `gap/prepare.mjs` | Collects diffs and renders the gap prompt |
+| `gap/report.mjs` | Posts the sticky gap comment and owns `Docs/Needed` |
 
-Shared helpers live in `lib/`. `npm test` (run from this directory) is the registry
-validator the workflow also runs before reviewing.
+`npm test` (run from this directory) is the registry validator the workflow also runs
+before reviewing.
 
 ## Adding or changing a persona
 
@@ -71,12 +84,12 @@ for, what to look for and in what order.
 `brand-voice` is always selected and cannot be dropped by the router.
 
 An `impact` persona's `docs_paths` and `code_signals` are rendered into the gap prompt by
-`lib/gap-prompt.mjs`, so the two pipelines cannot disagree about who reads what. Moving a
+`gap/prompt.mjs`, so the two pipelines cannot disagree about who reads what. Moving a
 persona's paths updates both in one edit.
 
 ## The Docs/Needed lifecycle
 
-`gap-report.mjs` is the only writer of the label. It reads prior state back out of the
+`gap/report.mjs` is the only writer of the label. It reads prior state back out of the
 comment it wrote last time, so it can tell its own label from a human's:
 
 ```
@@ -103,7 +116,7 @@ Three constraints to preserve if you change this:
 Every branch renders locally without touching a PR:
 
 ```bash
-node gap-report.mjs --dry-run --result-file <json> \
+node gap/report.mjs --dry-run --result-file <json> \
   --labels 'Docs/Needed' --prior-state '{"applied_by":"bot"}'
 ```
 

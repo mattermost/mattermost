@@ -104,7 +104,7 @@ jobs:
         id: prompt
         if: steps.diff.outputs.analyzable == 'true'
         run: |
-          node .github/scripts/docs-ai/gap-prepare.mjs \
+          node .github/scripts/docs-ai/gap/prepare.mjs \
             --files .docs-ai/gap/files.raw \
             --code-diff .docs-ai/gap/code.raw \
             --docs-diff .docs-ai/gap/docs.raw \
@@ -156,4 +156,4 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           GAP_RESULT: ${{ needs.analyze.outputs.result }}
           GAP_OUTCOME: ${{ needs.analyze.outputs.outcome }}
-        run: node .github/scripts/docs-ai/gap-report.mjs
+        run: node .github/scripts/docs-ai/gap/report.mjs

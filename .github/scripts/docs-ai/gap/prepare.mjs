@@ -7,15 +7,15 @@
  * as files it opens with the Read tool rather than as prompt text, which keeps
  * an unbounded diff out of the workflow's expression context entirely.
  *
- *   node gap-prepare.mjs --code-diff <f> --docs-diff <f> --files <f> --out-dir <d>
+ *   node gap/prepare.mjs --code-diff <f> --docs-diff <f> --files <f> --out-dir <d>
  *                        [--prompt <f>]
  */
 
 import {mkdirSync, readFileSync, writeFileSync, appendFileSync} from 'node:fs';
 import {randomUUID} from 'node:crypto';
 import {join} from 'node:path';
-import {renderPrompt} from './lib/gap-prompt.mjs';
-import {block} from './lib/untrusted.mjs';
+import {renderPrompt} from './prompt.mjs';
+import {block} from '../lib/untrusted.mjs';
 
 // Sized for ~80 characters per unified-diff / path line.
 const CAP = {
@@ -96,7 +96,7 @@ function main() {
     appendFileSync(process.env.GITHUB_OUTPUT, `prompt<<${delimiter}\n${prompt}\n${delimiter}\n`);
     appendFileSync(
       process.env.GITHUB_OUTPUT,
-      `schema=${JSON.stringify(JSON.parse(readFileSync(new URL('./gap-schema.json', import.meta.url), 'utf8')))}\n`,
+      `schema=${JSON.stringify(JSON.parse(readFileSync(new URL('./schema.json', import.meta.url), 'utf8')))}\n`,
     );
   }
 

@@ -9,8 +9,8 @@
 
 import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
-import {PROMPTS_DIR, personasWithScope} from './personas.mjs';
-import {DATA_NOTICE} from './untrusted.mjs';
+import {PROMPTS_DIR, personasWithScope} from '../lib/personas.mjs';
+import {DATA_NOTICE} from '../lib/untrusted.mjs';
 
 export const TEMPLATE = join(PROMPTS_DIR, 'docs-gap-analysis.md');
 

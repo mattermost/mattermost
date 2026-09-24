@@ -131,7 +131,7 @@ jobs:
           DOCS_AI_ROUTER_MODEL: ${{ vars.DOCS_AI_ROUTER_MODEL }}
         run: |
           set -euo pipefail
-          PERSONAS=$(node .github/scripts/docs-ai/router.mjs --diff .docs-ai/pr.diff)
+          PERSONAS=$(node .github/scripts/docs-ai/review/router.mjs --diff .docs-ai/pr.diff)
           echo "personas=${PERSONAS}" >> "$GITHUB_OUTPUT"
           echo "Routed personas: ${PERSONAS}"
 
@@ -150,7 +150,7 @@ jobs:
           pids=()
           while IFS= read -r PERSONA; do
             [ -n "$PERSONA" ] || continue
-            node .github/scripts/docs-ai/persona-review.mjs \
+            node .github/scripts/docs-ai/review/persona-review.mjs \
               --persona "$PERSONA" \
               --diff .docs-ai/pr.diff \
               --pr-title "$PR_TITLE" \
@@ -169,4 +169,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
           PR_HEAD_SHA: ${{ steps.pr.outputs.head_sha }}
-        run: node .github/scripts/docs-ai/report.mjs --results-dir .docs-ai/results
+        run: node .github/scripts/docs-ai/review/report.mjs --results-dir .docs-ai/results

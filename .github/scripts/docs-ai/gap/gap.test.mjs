@@ -14,7 +14,7 @@ import {
   parseState,
 } from './gap.mjs';
 
-const SCHEMA = JSON.parse(readFileSync(new URL('../gap-schema.json', import.meta.url), 'utf8'));
+const SCHEMA = JSON.parse(readFileSync(new URL('./schema.json', import.meta.url), 'utf8'));
 
 const RESULT = {
   assessment: 'required',

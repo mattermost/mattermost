@@ -13,9 +13,9 @@
  */
 
 import {readFileSync, writeFileSync} from 'node:fs';
-import {complete, parseJson, usageLine} from './lib/anthropic.mjs';
-import {alwaysOnPersonaIds, personasWithScope} from './lib/personas.mjs';
-import {DATA_NOTICE, block} from './lib/untrusted.mjs';
+import {complete, parseJson, usageLine} from '../lib/anthropic.mjs';
+import {alwaysOnPersonaIds, personasWithScope} from '../lib/personas.mjs';
+import {DATA_NOTICE, block} from '../lib/untrusted.mjs';
 
 const MODEL = process.env.DOCS_AI_ROUTER_MODEL || 'claude-haiku-4-5-20251001';
 

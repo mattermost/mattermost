@@ -7,8 +7,8 @@
  * label write fails the next run sees state without a label and re-applies it,
  * whereas a label written without state would read as human-applied forever.
  *
- *   node gap-report.mjs [--result-file <f>]
- *   node gap-report.mjs --dry-run [--result-file <f>] [--labels a,b] [--prior-state <json>]
+ *   node gap/report.mjs [--result-file <f>]
+ *   node gap/report.mjs --dry-run [--result-file <f>] [--labels a,b] [--prior-state <json>]
  *
  * --dry-run renders the comment to stdout and touches nothing. It takes the
  * labels and the prior state as arguments because there is no pull request to
@@ -23,8 +23,8 @@ import {
   issueLabels,
   removeLabel,
   updateComment,
-} from './lib/github.mjs';
-import {LABEL, MARKER, buildComment, buildFailureComment, clampResult, decide, parseState} from './lib/gap.mjs';
+} from '../lib/github.mjs';
+import {LABEL, MARKER, buildComment, buildFailureComment, clampResult, decide, parseState} from './gap.mjs';
 
 function arg(name) {
   const i = process.argv.indexOf(`--${name}`);
