@@ -103,6 +103,7 @@ type Channels struct {
 	postReminderMut  sync.Mutex
 	postReminderTask *model.ScheduledTask
 
+	healthCheckOnce    sync.Once
 	healthCheck        *HealthCheckService
 	healthCheckTaskMut sync.Mutex
 	healthCheckTask    *model.ScheduledTask
@@ -121,7 +122,6 @@ func NewChannels(s *Server) (*Channels, error) {
 		exportFilestore:   s.ExportFileBackend(),
 		cfgSvc:            s.Platform(),
 		interruptQuitChan: make(chan struct{}),
-		healthCheck:       NewHealthCheckService(s.Store(), s.Log()),
 	}
 	ch.guardCache.Store(&sync.Map{})
 

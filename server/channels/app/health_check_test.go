@@ -31,7 +31,6 @@ func setupHealthCheck(t *testing.T, flagEnabled bool) *TestHelper {
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.HealthDashboard = flagEnabled
 	})
-	require.NotNil(t, th.App.ch.healthCheck)
 
 	registry := healthcheck.NewRegistry()
 	registry.Register(
