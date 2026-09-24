@@ -282,6 +282,10 @@ jobs:
       - name: Sync labels on source PR
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Provenance: trusted event fields only (not branch/body/label).
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          PR_USER: ${{ github.event.pull_request.user.login }}
+          DOCS_AI_BOT_LOGIN: ${{ vars.DOCS_AI_BOT_LOGIN }}
           HEAD_REF: ${{ github.event.pull_request.head.ref }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |

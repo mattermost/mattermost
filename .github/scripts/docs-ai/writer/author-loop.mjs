@@ -17,6 +17,22 @@ const REVIEW_MODEL = process.env.DOCS_AI_REVIEW_MODEL || 'claude-sonnet-4-5-2025
 const ROUTER_MODEL = process.env.DOCS_AI_ROUTER_MODEL || 'claude-haiku-4-5-20251001';
 const MAX_REVISIONS = Number(process.env.DOCS_AI_MAX_REVISIONS || 2);
 
+export function normalizeDocsPath(p) {
+  return String(p || '')
+    .trim()
+    .replace(/^\.\//, '')
+    .replace(/\/+$/, '');
+}
+
+/** Concrete docs/ targets for this author group; empty means "no path filter". */
+export function groupPathAllowlist(groupPaths) {
+  return new Set(
+    (groupPaths || [])
+      .map(normalizeDocsPath)
+      .filter((p) => p.startsWith('docs/')),
+  );
+}
+
 function buildAuthorUserPrompt({brief, groupPaths, input, revisionFeedback}) {
   const parts = [
     DATA_NOTICE,
@@ -74,13 +90,20 @@ async function authorPass({personaId, groupPaths, brief, input, revisionFeedback
   });
   console.error(`[author:${personaId ?? 'neutral'}] ${WRITER_MODEL} ${usageLine(usage)}`);
 
-  const files = parseFileBlocks(text).filter((f) => {
-    if (!isAllowedPath(f.path)) {
-      console.error(`[author] dropping disallowed path ${f.path}`);
-      return false;
-    }
-    return true;
-  });
+  const allow = groupPathAllowlist(groupPaths);
+  const files = parseFileBlocks(text)
+    .map((f) => ({...f, path: normalizeDocsPath(f.path)}))
+    .filter((f) => {
+      if (!isAllowedPath(f.path)) {
+        console.error(`[author] dropping disallowed path ${f.path}`);
+        return false;
+      }
+      if (allow.size > 0 && !allow.has(f.path)) {
+        console.error(`[author] dropping path outside group targets: ${f.path}`);
+        return false;
+      }
+      return true;
+    });
 
   if (files.length === 0) {
     throw new Error(`author ${personaId ?? 'neutral'} emitted no allowed file blocks`);
@@ -179,6 +202,13 @@ export async function authorLoop({brief, input, completeFn = complete} = {}) {
           feedback: r.feedback,
         })),
       });
+
+      const errors = results.filter((r) => r.verdict === 'ERROR');
+      if (errors.length) {
+        throw new Error(
+          `pre-open review failed (${errors.map((r) => r.persona).join(', ')}): ${errors.map((r) => r.summary).join('; ')}`,
+        );
+      }
 
       const blocking = results.filter((r) => r.verdict === 'REQUEST_CHANGES');
       if (blocking.length === 0 || revision >= MAX_REVISIONS) {
