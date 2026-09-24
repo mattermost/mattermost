@@ -274,4 +274,24 @@ func TestPostStoreCache(t *testing.T) {
 		assert.Equal(t, int64(2), count)
 		mockStore.Post().(*mocks.PostStore).AssertNumberOfCalls(t, "AnalyticsPostCount", 2)
 	})
+
+	t.Run("UseMaster bypasses the server-wide cache", func(t *testing.T) {
+		mockStore := getMockStore(t)
+		mockCacheProvider := getMockCacheProvider()
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
+		require.NoError(t, err)
+
+		masterOpts := serverWidePostCountOptions
+		masterOpts.UseMaster = true
+		mockStore.Post().(*mocks.PostStore).On("AnalyticsPostCount", &masterOpts).Return(int64(9), nil)
+
+		count, err := cachedStore.Post().AnalyticsPostCount(&serverWidePostCountOptions)
+		require.NoError(t, err)
+		assert.Equal(t, int64(7), count)
+
+		count, err = cachedStore.Post().AnalyticsPostCount(&masterOpts)
+		require.NoError(t, err)
+		assert.Equal(t, int64(9), count)
+		mockStore.Post().(*mocks.PostStore).AssertNumberOfCalls(t, "AnalyticsPostCount", 2)
+	})
 }

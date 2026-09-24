@@ -3260,6 +3260,11 @@ func testPostCounts(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 	assert.Equal(t, int64(2), c)
 
+	// UseMaster is a routing flag; the count itself is unchanged
+	c, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{UserId: p4.UserId, UseMaster: true})
+	require.NoError(t, err)
+	assert.Equal(t, int64(2), c)
+
 	// for a single author within a team
 	c, err = ss.Post().AnalyticsPostCount(&model.PostCountOptions{TeamId: t1.Id, UserId: p4.UserId})
 	require.NoError(t, err)

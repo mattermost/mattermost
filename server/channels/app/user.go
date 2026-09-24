@@ -2142,7 +2142,9 @@ func (a *App) PermanentDeleteUser(rctx request.CTX, user *model.User) *model.App
 	}
 
 	// Reject the account up front rather than leaving it half-deleted.
-	postCount, nErr := a.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{UserId: user.Id})
+	// Count on master so replica lag cannot pass the gate and then fail
+	// inside PermanentDeleteByUser after other rows were already deleted.
+	postCount, nErr := a.Srv().Store().Post().AnalyticsPostCount(&model.PostCountOptions{UserId: user.Id, UseMaster: true})
 	if nErr != nil {
 		return model.NewAppError("PermanentDeleteUser", "app.post.analytics_post_count.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}

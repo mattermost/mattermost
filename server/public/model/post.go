@@ -518,6 +518,9 @@ type PostCountOptions struct {
 	UsersPostsOnly     bool
 	// AllowFromCache looks up cache only when ExcludeDeleted and UsersPostsOnly are true and rest are falsy.
 	AllowFromCache bool
+	// UseMaster reads from the writer instead of a replica. Set this for
+	// preflight checks that must not observe replica lag.
+	UseMaster bool
 
 	// retrieves posts in the inclusive range: [SinceUpdateAt + LastPostId, UntilUpdateAt]
 	SincePostID   string

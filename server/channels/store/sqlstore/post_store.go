@@ -2611,8 +2611,13 @@ func (s *SqlPostStore) AnalyticsPostCount(options *model.PostCountOptions) (int6
 		query = query.Where(sq.LtOrEq{"p.UpdateAt": options.UntilUpdateAt})
 	}
 
+	db := s.GetReplica()
+	if options.UseMaster {
+		db = s.GetMaster()
+	}
+
 	var v int64
-	err := s.GetReplica().GetBuilder(&v, query)
+	err := db.GetBuilder(&v, query)
 	if err != nil {
 		return 0, fmt.Errorf("failed to count Posts: %w", err)
 	}
