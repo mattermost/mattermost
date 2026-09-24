@@ -676,9 +676,7 @@ func (s *Server) runJobs() {
 
 	s.Go(func() {
 		appInstance := New(ServerConnector(s.Channels()))
-		runDNDStatusExpireJob(appInstance)
-		runPostReminderJob(appInstance)
-		runScheduledPostJob(appInstance)
+		runLeaderTasks(appInstance)
 	})
 	s.Go(func() {
 		runSecurityJob(s)
@@ -2027,84 +2025,40 @@ func (t *leaderTask) cancel() {
 	}
 }
 
-func startDNDStatusExpireTask(a *App) {
-	a.ch.dndTask.start(func() *model.ScheduledTask {
-		return model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, model.DNDExpiryInterval)
+// runOnLeader keeps the task running only while this node is the cluster leader.
+func (t *leaderTask) runOnLeader(a *App, name string, create func() *model.ScheduledTask) {
+	update := func() {
+		if a.IsLeader() {
+			t.start(create)
+		} else {
+			t.cancel()
+		}
+	}
+	update()
+
+	a.ch.srv.AddClusterLeaderChangedListener(func() {
+		mlog.Info("Cluster leader changed. Determining if task should be running", mlog.String("task", name), mlog.Bool("is_leader", a.IsLeader()))
+		update()
 	})
 }
 
-func startPostReminderTask(a *App) {
+func runLeaderTasks(a *App) {
 	rctx := request.EmptyContext(a.Log())
-	a.ch.postReminderTask.start(func() *model.ScheduledTask {
+
+	a.ch.dndTask.runOnLeader(a, "Unset DND Statuses", func() *model.ScheduledTask {
+		return model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, model.DNDExpiryInterval)
+	})
+
+	a.ch.postReminderTask.runOnLeader(a, "Check Post reminders", func() *model.ScheduledTask {
 		fn := func() { a.CheckPostReminders(rctx) }
 		return model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", fn, 5*time.Minute)
 	})
-}
 
-func runDNDStatusExpireJob(a *App) {
-	if a.IsLeader() {
-		startDNDStatusExpireTask(a)
-	} else {
-		mlog.Debug("Skipping unset DND status job startup since this is not the leader node")
-	}
-
-	a.ch.srv.AddClusterLeaderChangedListener(func() {
-		mlog.Info("Cluster leader changed. Determining if unset DNS status task should be running", mlog.Bool("is_leader", a.IsLeader()))
-		if a.IsLeader() {
-			startDNDStatusExpireTask(a)
-		} else {
-			mlog.Debug("This is no longer leader node. Cancelling the unset DND status task", mlog.Bool("is_leader", a.IsLeader()))
-			a.ch.dndTask.cancel()
+	a.ch.scheduledPostTask.runOnLeader(a, "Process Scheduled Posts", func() *model.ScheduledTask {
+		jobInterval := scheduledPostJobInterval
+		if *a.Config().ServiceSettings.EnableTesting {
+			jobInterval = debugScheduledPostJobInterval
 		}
-	})
-}
-
-func runPostReminderJob(a *App) {
-	if a.IsLeader() {
-		startPostReminderTask(a)
-	} else {
-		mlog.Debug("Skipping post reminder job startup since this is not the leader node")
-	}
-
-	a.ch.srv.AddClusterLeaderChangedListener(func() {
-		mlog.Info("Cluster leader changed. Determining if post reminder task should be running", mlog.Bool("is_leader", a.IsLeader()))
-		if a.IsLeader() {
-			startPostReminderTask(a)
-		} else {
-			mlog.Debug("This is no longer leader node. Cancelling the post reminder task", mlog.Bool("is_leader", a.IsLeader()))
-			a.ch.postReminderTask.cancel()
-		}
-	})
-}
-
-func runScheduledPostJob(a *App) {
-	if a.IsLeader() {
-		doRunScheduledPostJob(a)
-	} else {
-		mlog.Debug("Skipping scheduled posts job startup since this is not the leader node")
-	}
-
-	a.ch.srv.AddClusterLeaderChangedListener(func() {
-		mlog.Info("Cluster leader changed. Determining if scheduled posts task should be running", mlog.Bool("is_leader", a.IsLeader()))
-		if a.IsLeader() {
-			doRunScheduledPostJob(a)
-		} else {
-			mlog.Debug("This is no longer leader node. Cancelling the scheduled post task", mlog.Bool("is_leader", a.IsLeader()))
-			a.ch.scheduledPostTask.cancel()
-		}
-	})
-}
-
-func doRunScheduledPostJob(a *App) {
-	var jobInterval time.Duration
-	if *a.Config().ServiceSettings.EnableTesting {
-		jobInterval = debugScheduledPostJobInterval
-	} else {
-		jobInterval = scheduledPostJobInterval
-	}
-
-	rctx := request.EmptyContext(a.Log())
-	a.ch.scheduledPostTask.start(func() *model.ScheduledTask {
 		fn := func() { a.ProcessScheduledPosts(rctx) }
 		return model.CreateRecurringTaskFromNextIntervalTime("Process Scheduled Posts", fn, jobInterval)
 	})

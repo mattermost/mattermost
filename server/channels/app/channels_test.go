@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
 func TestLeaderTask(t *testing.T) {
@@ -37,6 +38,37 @@ func TestLeaderTask(t *testing.T) {
 	assert.NotNil(t, lt.task)
 	assert.NotSame(t, first, lt.task)
 	lt.cancel()
+}
+
+func TestLeaderTaskRunOnLeader(t *testing.T) {
+	create := func() *model.ScheduledTask {
+		return model.CreateRecurringTask("Test", func() {}, time.Hour)
+	}
+
+	t.Run("the leader starts the task", func(t *testing.T) {
+		th := Setup(t)
+		require.True(t, th.App.IsLeader())
+
+		var lt leaderTask
+		lt.runOnLeader(th.App, "Test", create)
+		t.Cleanup(lt.cancel)
+
+		assert.NotNil(t, lt.task)
+	})
+
+	t.Run("a follower does not start the task", func(t *testing.T) {
+		th := SetupWithClusterMock(t, &testlib.FakeClusterInterface{})
+		th.App.Srv().SetLicense(model.NewTestLicense("cluster"))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ClusterSettings.Enable = true
+		})
+		require.False(t, th.App.IsLeader())
+
+		var lt leaderTask
+		lt.runOnLeader(th.App, "Test", create)
+
+		assert.Nil(t, lt.task)
+	})
 }
 
 func TestChannelsStopCancelsTasks(t *testing.T) {
