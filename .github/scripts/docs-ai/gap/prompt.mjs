@@ -1,10 +1,6 @@
 /*
- * Renders the gap-analysis prompt.
- *
- * The audience personas are rendered from the same frontmatter the review
- * pipeline routes on, rather than restated in the prompt. That is the mechanism
- * that keeps the two halves of the pipeline consistent: a persona whose
- * docs_paths or code_signals move updates the gap prompt in the same edit.
+ * Render docs-gap-analysis.md. PERSONAS comes from impact-scope frontmatter
+ * so moving a persona's paths updates review routing and the gap prompt together.
  */
 
 import {readFileSync} from 'node:fs';

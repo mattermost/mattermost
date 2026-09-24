@@ -1,15 +1,7 @@
 #!/usr/bin/env node
 /*
- * Persona router.
- *
- * Runs one cheap call to pick which personas a diff actually warrants, so the
- * expensive per-persona reviews only run where they have something to say.
- *
- * Emits a JSON array of persona ids on stdout, for the workflow's matrix.
- * Fails open to every review persona: a router outage should degrade cost,
- * not coverage.
- *
- *   node router.mjs --diff <file> [--out <file>]
+ * Cheap persona pick for a docs diff. Fails open to every review persona.
+ *   node review/router.mjs --diff <file> [--out <file>]
  */
 
 import {readFileSync, writeFileSync} from 'node:fs';

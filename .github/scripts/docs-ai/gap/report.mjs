@@ -1,18 +1,10 @@
 #!/usr/bin/env node
 /*
- * The only writer of the Docs/Needed label.
- *
- * Reads the assessment, reads back the state this script recorded on its own
- * sticky comment last time, then decides. Comment first, label second: if the
- * label write fails the next run sees state without a label and re-applies it,
- * whereas a label written without state would read as human-applied forever.
+ * Only writer of Docs/Needed. Comment before label: a bare label reads as
+ * human-applied forever; state without a label re-applies on the next run.
  *
  *   node gap/report.mjs [--result-file <f>]
  *   node gap/report.mjs --dry-run [--result-file <f>] [--labels a,b] [--prior-state <json>]
- *
- * --dry-run renders the comment to stdout and touches nothing. It takes the
- * labels and the prior state as arguments because there is no pull request to
- * read them from, which is how each branch of the lifecycle is checked locally.
  */
 
 import {readFileSync, appendFileSync} from 'node:fs';
@@ -72,10 +64,7 @@ async function main() {
   try {
     result = readResult();
   } catch (e) {
-    // Advisory automation: a model or API outage should not turn every check in
-    // the repository red, and it must not open a comment on a pull request that
-    // never had one. It warns, leaves the label alone, and refreshes an
-    // existing comment so a stale verdict is not read as current.
+    // Soft-fail: warn, leave the label, refresh an existing sticky only.
     console.error(`::warning title=Docs gap analysis::${e.message}`);
     const comment = buildFailureComment({priorState, runUrl});
     emit(comment);

@@ -1,15 +1,7 @@
 name: Docs Gap Analysis
 
-# Decides whether a pull request changes product behaviour without documenting
-# it, and owns the Docs/Needed label.
-#
-# Unlike docs-review.yml this carries no paths: filter, deliberately. It has to
-# run on every push to a pull request, because a docs-only push is exactly what
-# closes a gap and clears the label.
-#
-# Two jobs so the model run and the label write are separated: analyze holds the
-# API key and a read-only token with a Read,Glob,Grep tool grant; report is
-# deterministic and is the only writer of the label and the comment.
+# Owns Docs/Needed. No paths: filter — must run on docs-only pushes that close a gap.
+# analyze (model, read-only) and report (label/comment writer) are separate jobs.
 
 on:
   pull_request:
@@ -27,8 +19,7 @@ concurrency:
 jobs:
   analyze:
     name: Analyze documentation impact
-    # Forks have neither the API key nor a writable token, so there is nothing
-    # for them to run. Docs/Not Needed and Docs/Done are the human opt-outs.
+    # Skip forks (no key/token) and human opt-outs.
     if: >-
       github.event.pull_request.draft == false &&
       github.event.pull_request.head.repo.full_name == github.repository &&
@@ -53,9 +44,8 @@ jobs:
           fetch-depth: 2
           persist-credentials: false
 
-      # analyzable folds in the key check, so an unconfigured checkout degrades
-      # to a no-op: report gates on this output too, and a job-level if cannot
-      # read the secrets context.
+      # Job-level if cannot read secrets; fold the key check into analyzable so
+      # report skips when unset.
       - name: Collect both sides of the diff
         id: diff
         run: |
@@ -97,9 +87,6 @@ jobs:
         working-directory: .github/scripts/docs-ai
         run: npm ci --ignore-scripts
 
-      # Escapes and wraps both diffs, then renders the prompt from
-      # docs-gap-analysis.md with the audience personas taken from the same
-      # frontmatter the review router reads.
       - name: Build the prompt
         id: prompt
         if: steps.diff.outputs.analyzable == 'true'
@@ -110,9 +97,7 @@ jobs:
             --docs-diff .docs-ai/gap/docs.raw \
             --out-dir .docs-ai/gap
 
-      # continue-on-error so the outcome reaches report rather than failing the
-      # job: an outage should leave the label untouched, not turn every check in
-      # the repository red.
+      # Soft-fail so report can leave the label alone on outage.
       - name: Assess the gap
         id: gap
         if: steps.diff.outputs.analyzable == 'true'

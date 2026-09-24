@@ -1,11 +1,7 @@
 #!/usr/bin/env node
 /*
- * Prepares everything the gap analyst reads.
- *
- * The diffs are author-controlled, so they are escaped and wrapped before the
- * model sees them, exactly as they are on the review path. They reach the model
- * as files it opens with the Read tool rather than as prompt text, which keeps
- * an unbounded diff out of the workflow's expression context entirely.
+ * Wrap the PR diffs/files for the model (as files to Read, not prompt text —
+ * keeps an unbounded diff out of GITHUB_OUTPUT) and render docs-gap-analysis.md.
  *
  *   node gap/prepare.mjs --code-diff <f> --docs-diff <f> --files <f> --out-dir <d>
  *                        [--prompt <f>]
@@ -17,7 +13,7 @@ import {join} from 'node:path';
 import {renderPrompt} from './prompt.mjs';
 import {block} from '../lib/untrusted.mjs';
 
-// Sized for ~80 characters per unified-diff / path line.
+// ~80 chars per unified-diff / path line.
 const CAP = {
   code: 800_000, // ~10k LoC
   docs: 80_000, // ~1k LoC
@@ -90,8 +86,7 @@ function main() {
   if (out) writeFileSync(out, prompt);
 
   if (process.env.GITHUB_OUTPUT) {
-    // A random delimiter: the prompt is composed from repository files, and a
-    // fixed one would be a value a file could contain.
+    // Random delimiter: the prompt is repo-derived and could contain a fixed one.
     const delimiter = `EOF_${randomUUID()}`;
     appendFileSync(process.env.GITHUB_OUTPUT, `prompt<<${delimiter}\n${prompt}\n${delimiter}\n`);
     appendFileSync(

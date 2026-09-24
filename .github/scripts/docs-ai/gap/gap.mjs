@@ -1,21 +1,14 @@
 /*
- * Gap-analysis reporting: clamp the model's assessment, decide what happens to
- * the label, and compose the sticky comment that carries both.
- *
- * Deliberately dependency-free so the report job runs on a bare checkout.
- *
- * The label lifecycle lives here because it is the only part of the pipeline
- * that writes to a pull request's labels. Prior state is read back out of the
- * comment this module wrote last time, which is what stops the bot removing a
- * label a human applied on purpose.
+ * Clamp the model result, decide Docs/Needed, compose the sticky comment.
+ * Dependency-free so the report job runs on a bare checkout.
+ * Prior state lives in the sticky comment — that is how we tell bot vs human labels.
  */
 
 export const ASSESSMENTS = ['required', 'recommended', 'none'];
 export const CONFIDENCES = ['high', 'medium', 'low'];
 
 export const LABEL = 'Docs/Needed';
-// Both are humans saying "stop": one before the fact, one after.
-export const SUPPRESSING_LABELS = ['Docs/Not Needed', 'Docs/Done'];
+export const SUPPRESSING_LABELS = ['Docs/Not Needed', 'Docs/Done']; // human opt-outs
 
 export const MARKER = '<!-- docs-gap:v1 -->';
 const STATE_TAG = 'docs-gap-state';
@@ -29,12 +22,7 @@ const HEADLINE = {
   none: 'No documentation changes needed',
 };
 
-/*
- * Everything the model produced passes through here before it reaches a
- * comment. Stripping HTML comment delimiters is load-bearing rather than
- * cosmetic: a summary containing a `docs-gap-state` block would forge the
- * state the next run reads back.
- */
+// Strip HTML comment delimiters so model text cannot forge docs-gap-state.
 function text(value, max) {
   if (typeof value !== 'string') return '';
   return value.replaceAll('<!--', '').replaceAll('-->', '').replace(/\s+/g, ' ').trim().slice(0, max);
@@ -48,8 +36,7 @@ export function clampResult(raw) {
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
     throw new Error('gap result was not a JSON object');
   }
-  // Unlike a review verdict, this one moves a label, so it aborts rather than
-  // defaulting to the harmless value.
+  // Moves a label — abort rather than defaulting.
   if (!ASSESSMENTS.includes(parsed.assessment)) {
     throw new Error(
       `assessment must be one of ${ASSESSMENTS.join(', ')}; got ${text(String(parsed.assessment), 40)}`,
@@ -96,11 +83,8 @@ function serializeState({appliedBy, assessment, sha}) {
   return `<!-- ${STATE_TAG} ${JSON.stringify(state)} -->`;
 }
 
-/*
- * The label follows the verdict, not the presence of a docs diff — a push that
- * touches docs/ without covering the change leaves it in place, or clearing it
- * becomes an escape hatch anyone can take by editing an unrelated page.
- */
+// Label follows the verdict, not "touched docs/" — otherwise an unrelated
+// docs edit would clear Docs/Needed.
 export function decide({assessment, labels, priorState}) {
   const suppressed = SUPPRESSING_LABELS.find((l) => labels.includes(l));
   if (suppressed) return {skip: suppressed};
@@ -111,8 +95,7 @@ export function decide({assessment, labels, priorState}) {
   if (assessment !== 'none') {
     return {
       label: hasLabel ? 'keep' : 'add',
-      // A label already there without our state on it was applied by hand.
-      // Recording that is what makes it survive a later `none`.
+      // Label present without our state → human; record that so a later none keeps it.
       appliedBy: hasLabel && !botApplied ? 'human' : 'bot',
       create: true,
     };
@@ -124,8 +107,7 @@ export function decide({assessment, labels, priorState}) {
   if (hasLabel) {
     return {label: 'keep', appliedBy: 'human', humanOverride: true, create: false};
   }
-  // Nothing to say and nothing said before: do not open a comment thread on
-  // every pull request in the repository.
+  // Clean PR: do not open a sticky on every push.
   return {label: 'keep', appliedBy: null, create: false};
 }
 
@@ -203,10 +185,7 @@ export function buildComment({result, decision, sha, runUrl}) {
   return body.join('\n');
 }
 
-/*
- * A failed run must not erase the state block, or a label this pipeline applied
- * would read as human-applied from then on and never clear itself.
- */
+// Keep prior state on failure so a bot label does not start looking human-applied.
 export function buildFailureComment({priorState, runUrl}) {
   const body = [MARKER];
   if (priorState) {
