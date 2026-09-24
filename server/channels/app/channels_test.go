@@ -42,9 +42,12 @@ func TestLeaderTask(t *testing.T) {
 	require.NotNil(t, lt.task)
 	assert.NotSame(t, first, lt.task)
 
-	lt.cancel()
+	lt.stop()
 	assert.Nil(t, lt.task)
-	require.NotPanics(t, lt.cancel)
+	require.NotPanics(t, lt.stop)
+
+	lt.update(isLeader, create)
+	assert.Nil(t, lt.task)
 }
 
 func TestLeaderTaskRunOnLeader(t *testing.T) {
@@ -58,7 +61,7 @@ func TestLeaderTaskRunOnLeader(t *testing.T) {
 
 		var lt leaderTask
 		lt.runOnLeader(th.App, "Test", create)
-		t.Cleanup(lt.cancel)
+		t.Cleanup(lt.stop)
 
 		assert.NotNil(t, lt.task)
 	})

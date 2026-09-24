@@ -324,9 +324,9 @@ func (ch *Channels) Start() error {
 func (ch *Channels) Stop() error {
 	ch.ShutDownPlugins()
 
-	ch.dndTask.cancel()
-	ch.postReminderTask.cancel()
-	ch.scheduledPostTask.cancel()
+	ch.dndTask.stop()
+	ch.postReminderTask.stop()
+	ch.scheduledPostTask.stop()
 
 	close(ch.interruptQuitChan)
 

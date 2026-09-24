@@ -2002,8 +2002,9 @@ func (s *Server) ReadFile(path string) ([]byte, *model.AppError) {
 
 // leaderTask is a recurring task that only runs on the cluster leader.
 type leaderTask struct {
-	mut  sync.Mutex
-	task *model.ScheduledTask
+	mut     sync.Mutex
+	task    *model.ScheduledTask
+	stopped bool
 }
 
 // update starts or cancels the task to match isLeader. Leader-changed listeners run
@@ -2011,7 +2012,7 @@ type leaderTask struct {
 func (t *leaderTask) update(isLeader func() bool, create func() *model.ScheduledTask) {
 	t.mut.Lock()
 	defer t.mut.Unlock()
-	if !isLeader() {
+	if t.stopped || !isLeader() {
 		t.cancelLocked()
 		return
 	}
@@ -2021,9 +2022,11 @@ func (t *leaderTask) update(isLeader func() bool, create func() *model.Scheduled
 	}
 }
 
-func (t *leaderTask) cancel() {
+// stop cancels the task for good, so a listener that runs during shutdown cannot restart it.
+func (t *leaderTask) stop() {
 	t.mut.Lock()
 	defer t.mut.Unlock()
+	t.stopped = true
 	t.cancelLocked()
 }
 
