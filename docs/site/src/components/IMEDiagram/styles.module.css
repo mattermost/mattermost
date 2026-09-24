@@ -464,7 +464,7 @@ a.footerCell:hover {
 }
 
 /* Grid layout for cell logo strips (e.g. Layered Extensibility on
- * the mission variant). `--ime-logo-cols` is set inline by the
+ * the entadv variant). `--ime-logo-cols` is set inline by the
  * renderer via `logoColumns`. */
 .logoGrid {
   display: grid;
@@ -476,6 +476,22 @@ a.footerCell:hover {
 .logoGrid .logoImg {
   max-width: 100%;
   height: 1.3rem;
+}
+
+/* Side-by-side cell body: bullet text on the left, ecosystem logo
+ * grid on the right. Used by Layered Extensibility so the 3×4 logo
+ * matrix sits next to the bullets, matching the source slide. */
+.cellSplit {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: center;
+}
+/* Compact the logo grid gutters when it's sitting alongside text —
+ * the column is roughly half the cell width. */
+.cellSplit .logoGrid {
+  gap: 0.35rem 0.45rem;
+  margin-top: 0;
 }
 
 /* Corner logo constellation — small AI/vendor icons pinned to the

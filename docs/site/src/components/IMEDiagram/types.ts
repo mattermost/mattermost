@@ -56,9 +56,18 @@ export type Cell = {
   /** Column count when `logoLayout === 'grid'`. Defaults to 3. */
   logoColumns?: number;
   /**
+   * How to arrange the cell body relative to the logo grid.
+   * - `'stack'` (default): logos render below the bullets/body text.
+   * - `'side-by-side'`: bullets/body on the left, logos on the right.
+   *   Used by Layered Extensibility on the entadv variant so the
+   *   ecosystem grid sits next to the bullet list rather than under
+   *   it, matching the source slide.
+   */
+  bodyLayout?: 'stack' | 'side-by-side';
+  /**
    * Extra logo constellation absolutely positioned in the top-right
    * corner of the cell. Used for the AI-vendor icons on the
-   * Enterprise-to-Edge card in the mission variant.
+   * Enterprise-to-Edge card in the entadv variant.
    */
   cornerLogos?: Logo[];
 };

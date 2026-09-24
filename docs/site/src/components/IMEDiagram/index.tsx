@@ -34,6 +34,23 @@ function CellIcon({iconSrc, icon, alt}: {iconSrc?: string; icon?: IconName; alt?
 }
 
 function Cell({data}: {data: CellData}) {
+  const isSideBySide = data.bodyLayout === 'side-by-side' && data.logos;
+
+  const textBlock = (data.body || data.bullets) && (
+    <div className={styles.cellText}>
+      {data.body}
+      {data.bullets && (
+        <ul>
+          {data.bullets.map((b) => <li key={b}>{b}</li>)}
+        </ul>
+      )}
+    </div>
+  );
+
+  const logoBlock = data.logos && (
+    <LogoStrip logos={data.logos} layout={data.logoLayout} columns={data.logoColumns} />
+  );
+
   const body = (
     <>
       {data.cornerLogos && (
@@ -48,17 +65,17 @@ function Cell({data}: {data: CellData}) {
       <CellIcon iconSrc={data.iconSrc} icon={data.icon} alt={data.title} />
       <div className={styles.cellBody}>
         <strong className={styles.cellTitle}>{data.title}</strong>
-        {(data.body || data.bullets) && (
-          <div className={styles.cellText}>
-            {data.body}
-            {data.bullets && (
-              <ul>
-                {data.bullets.map((b) => <li key={b}>{b}</li>)}
-              </ul>
-            )}
+        {isSideBySide ? (
+          <div className={styles.cellSplit}>
+            {textBlock}
+            {logoBlock}
           </div>
+        ) : (
+          <>
+            {textBlock}
+            {logoBlock}
+          </>
         )}
-        {data.logos && <LogoStrip logos={data.logos} layout={data.logoLayout} columns={data.logoColumns} />}
       </div>
     </>
   );

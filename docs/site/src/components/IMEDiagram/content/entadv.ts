@@ -194,26 +194,24 @@ export const entadv: IMEContent = {
           ],
           icon: 'plug',
           to: '/integrations-guide/integrations-guide-index',
-          // Deck: dev-tool logos pinned to top-right corner.
-          cornerLogos: [
+          // Deck: bullets on the left with a 4-column × 3-row matrix
+          // of ecosystem logos sitting to the right (no separate
+          // corner constellation on this card).
+          bodyLayout: 'side-by-side',
+          logoLayout: 'grid',
+          logoColumns: 4,
+          logos: [
             {alt: 'Jira', src: '/img/ime/logos/jira.png'},
             {alt: 'GitHub', src: '/img/ime/logos/github.png'},
             {alt: 'GitLab', src: '/img/ime/logos/gitlab.png'},
             {alt: 'Element (Matrix)', src: '/img/ime/logos/enterprise-o.png'},
             {alt: 'Splunk', src: '/img/ime/logos/splunk.png'},
-          ],
-          // Deck: 4-column × 2-row grid of ecosystem logos below the
-          // bullets — SIEM/observability, collab, security, workflow.
-          logoLayout: 'grid',
-          logoColumns: 4,
-          logos: [
             {alt: 'Elastic', src: '/img/ime/logos/elastic.png'},
             {alt: 'Microsoft Defender', src: '/img/ime/logos/ms-defender.png'},
             {alt: 'Microsoft Teams', src: '/img/ime/logos/msteams.png'},
             {alt: 'Microsoft Entra ID', src: '/img/ime/logos/ms-entra.png'},
             {alt: 'Microsoft Sync', src: '/img/ime/logos/ms-sync.png'},
             {alt: 'Global Relay', src: '/img/ime/logos/global-relay.png'},
-            {alt: 'Confluence', src: '/img/ime/logos/confluence.png'},
             {alt: 'Add integration', src: '/img/ime/logos/plus.png'},
           ],
         },
