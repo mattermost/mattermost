@@ -179,7 +179,9 @@ export function buildComment({result, decision, sha, runUrl}) {
     body.push('**Recommended actions**', '', ...result.actions.map((a) => `- [ ] ${a}`), '');
   }
 
-  const labelled = decision.label === 'add' || (decision.label === 'keep' && decision.appliedBy);
+  // Opt-out text is wrong on none: the next push will not re-add the label.
+  const labelled =
+    result.assessment !== 'none' && (decision.label === 'add' || decision.label === 'keep');
   body.push(...footer({confidence: result.confidence, sha, runUrl, labelled}));
 
   return body.join('\n');

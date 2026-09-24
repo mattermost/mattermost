@@ -91,8 +91,21 @@ async function main() {
     await createComment(repo, pr, comment);
   }
 
-  if (decision.label === 'add') await addLabel(repo, pr, LABEL);
-  if (decision.label === 'remove') await removeLabel(repo, pr, LABEL);
+  try {
+    if (decision.label === 'add') await addLabel(repo, pr, LABEL);
+    if (decision.label === 'remove') await removeLabel(repo, pr, LABEL);
+  } catch (e) {
+    // Comment already wrote applied_by: null; leave the prior body so the next
+    // run still sees a bot label and can retry the remove.
+    if (decision.label === 'remove' && existing) {
+      try {
+        await updateComment(repo, existing.id, existing.body);
+      } catch (restoreError) {
+        console.error('[gap-report] failed to restore sticky state', restoreError);
+      }
+    }
+    throw e;
+  }
 
   return undefined;
 }

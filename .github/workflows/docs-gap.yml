@@ -116,7 +116,8 @@ jobs:
   report:
     name: Post comment and manage label
     needs: analyze
-    if: always() && needs.analyze.outputs.analyzable == 'true'
+    # !cancelled (not always): skip superseded concurrency cancels; still run after soft-fail.
+    if: ${{ !cancelled() && needs.analyze.outputs.analyzable == 'true' }}
     runs-on: ubuntu-24.04
     permissions:
       contents: read

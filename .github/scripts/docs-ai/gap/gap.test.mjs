@@ -227,11 +227,12 @@ test('recommended actions render as a checklist', () => {
   assert.match(render('required', []), /- \[ \] Document EnableFoo/);
 });
 
-test('the footer names the opt-out only when the label is on', () => {
+test('the footer names the opt-out only when the label is on for a needs-docs verdict', () => {
   assert.match(render('required', []), /Docs\/Not Needed/);
   assert.doesNotMatch(render('none', []), /Docs\/Not Needed/);
+  // Human label + none keeps the label but must not claim the next push re-adds it.
+  assert.doesNotMatch(render('none', [LABEL]), /Docs\/Not Needed/);
 });
-
 test('the footer carries the analysed sha, confidence and run link', () => {
   const footer = render('required', []).split('\n').at(-1);
   assert.match(footer, /analysed `abc1234` /, 'the sha is abbreviated for the reader');

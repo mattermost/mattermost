@@ -116,7 +116,7 @@ Three constraints to preserve if you change this:
 Every branch renders locally without touching a PR:
 
 ```bash
-node gap/report.mjs --dry-run --result-file <json> \
+node gap/report.mjs --dry-run --result-file ./result.json \
   --labels 'Docs/Needed' --prior-state '{"applied_by":"bot"}'
 ```
 
