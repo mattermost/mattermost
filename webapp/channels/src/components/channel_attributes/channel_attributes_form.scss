@@ -1,6 +1,7 @@
 .channel-attributes-form {
     padding-top: 24px;
     border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    margin-top: 24px;
 
     &__title {
         margin: 0 0 4px;
@@ -27,10 +28,19 @@
         &:last-child {
             margin-bottom: 0;
         }
+
+        .DropdownInput.Input_container {
+            margin-top: 0;
+        }
     }
 
     // Matches the classification rows above: a long attribute name wraps rather
     // than being clipped, since the name is the only thing identifying the row.
+    &__required {
+        margin-left: 2px;
+        color: var(--error-text);
+    }
+
     &__label {
         width: 140px;
         flex-shrink: 0;
@@ -49,7 +59,7 @@
         // Bootstrap's .form-control carries its own border, which paints a second
         // box inside the fieldset's. Same override the purpose textarea needs.
         .Input_wrapper input.form-control {
-            border: none;
+            border: none !important;
         }
     }
 }

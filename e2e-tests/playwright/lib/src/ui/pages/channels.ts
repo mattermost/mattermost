@@ -66,6 +66,7 @@ export default class ChannelsPage {
     readonly userGroupsModal;
     readonly leaveTeamModal;
     readonly archivedChannelMessage;
+    readonly switchProductMenu;
 
     readonly postContainer;
     readonly channelMenu;
@@ -138,6 +139,7 @@ export default class ChannelsPage {
         this.userAccountMenu = new components.UserAccountMenu(page.locator('#userAccountMenu'));
         this.scheduleMessageMenu = new components.ScheduleMessageMenu(page.locator('#dropdown_send_post_options'));
         this.teamMenu = new components.TeamMenu(page.locator('#sidebarTeamMenu'));
+        this.switchProductMenu = new components.SwitchProductMenu(page.locator('#switchProductMenu'));
 
         // Popovers
         this.emojiGifPickerPopup = new components.EmojiGifPicker(page.locator('#emojiGifPicker'));
@@ -219,6 +221,13 @@ export default class ChannelsPage {
         await this.page.goto(new URL(channelsUrl, testConfig.baseURL).href);
 
         return channelsUrl;
+    }
+
+    async expectOnTeamChannel(teamName: string, channelName = 'town-square') {
+        const escapedTeam = teamName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const escapedChannel = channelName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        await expect(this.page).toHaveURL(new RegExp(`/${escapedTeam}/channels/${escapedChannel}(?:/|\\?|#|$)`));
+        await this.toBeVisible();
     }
 
     // Force the /messages route for group-message slugs that do not start with '@'.
@@ -330,6 +339,27 @@ export default class ChannelsPage {
         await this.channelSettingsModal.toBeVisible();
 
         return this.channelSettingsModal;
+    }
+
+    /**
+     * Opens the Channel Info panel in the RHS, toggling it open if a different
+     * panel is already showing there.
+     */
+    async openChannelInfo() {
+        const infoButton = this.page.locator('#channel-info-btn');
+        await expect(infoButton).toBeVisible();
+
+        // The button toggles, so clicking it while Info is already showing would close it.
+        const infoHeading = this.sidebarRight.container.getByText('Info', {exact: true});
+        const alreadyOpen = await infoHeading.isVisible().catch(() => false);
+        if (!alreadyOpen) {
+            await infoButton.click();
+            await expect(infoHeading).toBeVisible();
+        }
+
+        await this.sidebarRight.toBeVisible();
+
+        return this.sidebarRight;
     }
 
     async openChannelNotificationPreferences(): Promise<ChannelNotificationPreferencesModal> {

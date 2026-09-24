@@ -120,7 +120,7 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
         this.setState({lineChartsDataLoaded: true});
     };
 
-    private handleLineChartsToggle = (e: React.MouseEvent<HTMLDetailsElement>) => {
+    private handleLineChartsToggle = (e: React.ToggleEvent<HTMLDetailsElement>) => {
         const details = e.currentTarget;
         const isExpanding = details.open;
 

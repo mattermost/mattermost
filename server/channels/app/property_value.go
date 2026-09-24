@@ -66,6 +66,7 @@ func (a *App) invalidateUserPropertyValuesEpochs(values []*model.PropertyValue) 
 	}
 	for targetID := range seen {
 		a.Srv().Store().Attributes().InvalidateUserPropertyValuesEpoch(targetID)
+		a.Srv().Store().Attributes().InvalidateUserAttributes(targetID)
 	}
 }
 
@@ -82,6 +83,7 @@ func (a *App) invalidateUserPropertyValuesEpoch(targetType, targetID string) {
 		return
 	}
 	a.Srv().Store().Attributes().InvalidateUserPropertyValuesEpoch(targetID)
+	a.Srv().Store().Attributes().InvalidateUserAttributes(targetID)
 }
 
 // invalidateAllUserAttributeCaches marks the AttributeView stale and drops every cached CPA epoch.
@@ -94,6 +96,7 @@ func (a *App) invalidateAllUserAttributeCaches() {
 		return
 	}
 	a.Srv().Store().Attributes().ClearUserPropertyValuesEpochCache()
+	a.Srv().Store().Attributes().ClearUserAttributesCache()
 }
 
 // CreatePropertyValue creates a new property value.
@@ -289,13 +292,15 @@ func (a *App) UpsertPropertyValues(rctx request.CTX, values []*model.PropertyVal
 
 	// ObjectType-mismatch check is gated on a non-empty objectType argument.
 	// Plugin API today always passes objectType="" and keeps its loose
-	// contract on this specific check.
+	// contract on this specific check. fieldByID is hoisted so the broadcast
+	// below can read each field's access mode.
+	var fieldByID map[string]*model.PropertyField
 	if objectType != "" {
 		fields, fieldsErr := a.GetPropertyFields(rctx, groupID, fieldIDs)
 		if fieldsErr != nil {
 			return nil, fieldsErr
 		}
-		fieldByID := make(map[string]*model.PropertyField, len(fields))
+		fieldByID = make(map[string]*model.PropertyField, len(fields))
 		for _, f := range fields {
 			fieldByID[f.ID] = f
 		}
@@ -341,7 +346,15 @@ func (a *App) UpsertPropertyValues(rctx request.CTX, values []*model.PropertyVal
 		if appErr != nil {
 			rctx.Logger().Warn("Failed to resolve broadcast params for property values", mlog.Err(appErr))
 		} else {
-			valuesJSON, jsonErr := json.Marshal(result)
+			// Broadcast copies, never result: result is what the caller who
+			// just wrote these values gets back over HTTP, and that caller is
+			// allowed to see them.
+			broadcastValues := make([]model.PropertyValue, len(result))
+			for i, v := range result {
+				broadcastValues[i] = *v
+				broadcastValues[i].Value = model.BroadcastValue(fieldByID[v.FieldID], v.Value)
+			}
+			valuesJSON, jsonErr := json.Marshal(broadcastValues)
 			if jsonErr != nil {
 				rctx.Logger().Warn("Failed to encode property values to JSON", mlog.Err(jsonErr))
 			} else {
