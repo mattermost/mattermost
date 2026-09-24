@@ -746,4 +746,29 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab'
 
         expect(screen.getByTestId('permissions-policy-editor-error')).toHaveTextContent('Each permission rule needs a unique name.');
     });
+
+    test('scrolls the blocked section switch warning into view', async () => {
+        const scrollIntoView = jest.fn();
+        const originalScrollIntoView = HTMLElement.prototype.scrollIntoView;
+        HTMLElement.prototype.scrollIntoView = scrollIntoView;
+
+        try {
+            const {rerender} = await openExistingRuleEditor();
+            expect(scrollIntoView).not.toHaveBeenCalled();
+
+            rerender(
+                <ChannelSettingsPermissionsPolicyTab
+                    {...baseProps}
+                    showTabSwitchError={true}
+                />,
+            );
+
+            await screen.findByRole('alert');
+            await waitFor(() => {
+                expect(scrollIntoView).toHaveBeenCalledWith({behavior: 'smooth', block: 'nearest'});
+            });
+        } finally {
+            HTMLElement.prototype.scrollIntoView = originalScrollIntoView;
+        }
+    });
 });

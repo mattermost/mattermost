@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -971,6 +971,13 @@ function PermissionRuleEditor({
     // that rebuilds `initial` (e.g. surfacing a validation error on save).
     const [draft, setDraft] = useState<EditableRule>(initial);
     const [showTest, setShowTest] = useState(false);
+    const errorRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (error) {
+            errorRef.current?.scrollIntoView?.({behavior: 'smooth', block: 'nearest'});
+        }
+    }, [error]);
 
     const actionLabels = useMemo(() => {
         const labels: Record<string, string> = {};
@@ -1255,6 +1262,7 @@ function PermissionRuleEditor({
 
             {error && (
                 <div
+                    ref={errorRef}
                     className='ChannelSettingsModal__permissionsPolicyError'
                     data-testid='permissions-policy-editor-error'
                     role='alert'
