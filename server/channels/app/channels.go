@@ -328,11 +328,9 @@ func (ch *Channels) Start() error {
 func (ch *Channels) Stop() error {
 	ch.ShutDownPlugins()
 
-	ch.dndTaskMut.Lock()
-	if ch.dndTask != nil {
-		ch.dndTask.Cancel()
-	}
-	ch.dndTaskMut.Unlock()
+	cancelTask(&ch.dndTaskMut, &ch.dndTask)
+	cancelTask(&ch.postReminderMut, &ch.postReminderTask)
+	cancelTask(&ch.scheduledPostMut, &ch.scheduledPostTask)
 
 	close(ch.interruptQuitChan)
 

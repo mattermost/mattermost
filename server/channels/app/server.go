@@ -2002,12 +2002,6 @@ func (s *Server) ReadFile(path string) ([]byte, *model.AppError) {
 	return result, nil
 }
 
-func withMut(mut *sync.Mutex, f func()) {
-	mut.Lock()
-	defer mut.Unlock()
-	f()
-}
-
 func cancelTask(mut *sync.Mutex, taskPointer **model.ScheduledTask) {
 	mut.Lock()
 	defer mut.Unlock()
@@ -2017,11 +2011,33 @@ func cancelTask(mut *sync.Mutex, taskPointer **model.ScheduledTask) {
 	}
 }
 
+// startTask leaves a running task alone, since the leader-changed listener also fires on a
+// node that is already the leader.
+func startTask(mut *sync.Mutex, taskPointer **model.ScheduledTask, create func() *model.ScheduledTask) {
+	mut.Lock()
+	defer mut.Unlock()
+	if *taskPointer == nil {
+		*taskPointer = create()
+	}
+}
+
+func startDNDStatusExpireTask(a *App) {
+	startTask(&a.ch.dndTaskMut, &a.ch.dndTask, func() *model.ScheduledTask {
+		return model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, model.DNDExpiryInterval)
+	})
+}
+
+func startPostReminderTask(a *App) {
+	rctx := request.EmptyContext(a.Log())
+	startTask(&a.ch.postReminderMut, &a.ch.postReminderTask, func() *model.ScheduledTask {
+		fn := func() { a.CheckPostReminders(rctx) }
+		return model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", fn, 5*time.Minute)
+	})
+}
+
 func runDNDStatusExpireJob(a *App) {
 	if a.IsLeader() {
-		withMut(&a.ch.dndTaskMut, func() {
-			a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, model.DNDExpiryInterval)
-		})
+		startDNDStatusExpireTask(a)
 	} else {
 		mlog.Debug("Skipping unset DND status job startup since this is not the leader node")
 	}
@@ -2029,9 +2045,7 @@ func runDNDStatusExpireJob(a *App) {
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if unset DNS status task should be running", mlog.Bool("is_leader", a.IsLeader()))
 		if a.IsLeader() {
-			withMut(&a.ch.dndTaskMut, func() {
-				a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, model.DNDExpiryInterval)
-			})
+			startDNDStatusExpireTask(a)
 		} else {
 			mlog.Debug("This is no longer leader node. Cancelling the unset DND status task", mlog.Bool("is_leader", a.IsLeader()))
 			cancelTask(&a.ch.dndTaskMut, &a.ch.dndTask)
@@ -2041,11 +2055,7 @@ func runDNDStatusExpireJob(a *App) {
 
 func runPostReminderJob(a *App) {
 	if a.IsLeader() {
-		rctx := request.EmptyContext(a.Log())
-		withMut(&a.ch.postReminderMut, func() {
-			fn := func() { a.CheckPostReminders(rctx) }
-			a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", fn, 5*time.Minute)
-		})
+		startPostReminderTask(a)
 	} else {
 		mlog.Debug("Skipping post reminder job startup since this is not the leader node")
 	}
@@ -2053,11 +2063,7 @@ func runPostReminderJob(a *App) {
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if post reminder task should be running", mlog.Bool("is_leader", a.IsLeader()))
 		if a.IsLeader() {
-			rctx := request.EmptyContext(a.Log())
-			withMut(&a.ch.postReminderMut, func() {
-				fn := func() { a.CheckPostReminders(rctx) }
-				a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", fn, 5*time.Minute)
-			})
+			startPostReminderTask(a)
 		} else {
 			mlog.Debug("This is no longer leader node. Cancelling the post reminder task", mlog.Bool("is_leader", a.IsLeader()))
 			cancelTask(&a.ch.postReminderMut, &a.ch.postReminderTask)
@@ -2092,9 +2098,9 @@ func doRunScheduledPostJob(a *App) {
 	}
 
 	rctx := request.EmptyContext(a.Log())
-	withMut(&a.ch.scheduledPostMut, func() {
+	startTask(&a.ch.scheduledPostMut, &a.ch.scheduledPostTask, func() *model.ScheduledTask {
 		fn := func() { a.ProcessScheduledPosts(rctx) }
-		a.ch.scheduledPostTask = model.CreateRecurringTaskFromNextIntervalTime("Process Scheduled Posts", fn, jobInterval)
+		return model.CreateRecurringTaskFromNextIntervalTime("Process Scheduled Posts", fn, jobInterval)
 	})
 }
 
