@@ -83,11 +83,7 @@ func (ps *PlatformService) GenerateSupportPacket(rctx request.CTX, options *mode
 	functions := map[string]func(request.CTX) (*model.FileData, error){
 		"diagnostics": func(rctx request.CTX) (*model.FileData, error) {
 			nodeDiagnostics, err := ps.GetSupportPacketDiagnostics(rctx)
-			var d *model.SupportPacketDiagnostics
-			if nodeDiagnostics != nil {
-				d = nodeDiagnostics.Diagnostics
-			}
-			return supportPacketDiagnosticsFile(d, err)
+			return supportPacketDiagnosticsFile(nodeDiagnostics.Diagnostics, err)
 		},
 		"config": func(rctx request.CTX) (*model.FileData, error) {
 			return supportPacketConfigFile(ps.GetSupportPacketConfig(rctx))
