@@ -230,77 +230,22 @@ func isWordRune(r rune) bool {
 	return unicode.IsLetter(r) || unicode.IsDigit(r) || unicode.IsMark(r)
 }
 
-// numericTsQueryOperand matches an operand made up entirely of digits,
-// optionally carrying the ":*" suffix that wildcard searches append.
-var numericTsQueryOperand = regexp.MustCompile(`^[0-9]+(:\*)?$`)
+var numericTermRegex = regexp.MustCompile(`^[0-9]+(:\*)?$`)
 
-// expandNumericTsQueryOperands rewrites every all-digit operand N of an
-// assembled tsquery to "(N|-N)".
-//
-// Postgres' text-search parser reads the hyphen in "flight-12345" as a minus
-// sign, so "check out flight-12345 today" indexes as 'flight':3 '-12345':4.
-// Searching for "12345" therefore never matches. The extra branch targets the
-// lexeme that is already in the index, so no reindexing is needed.
-func expandNumericTsQueryOperands(tsQuery string) string {
-	var b strings.Builder
-	last := 0
-	for _, quote := range quotedStringsRegex.FindAllStringIndex(tsQuery, -1) {
-		b.WriteString(expandUnquotedNumericOperands(tsQuery[last:quote[0]]))
-
-		// A parenthesised group is a syntax error inside a quoted operand, but
-		// Postgres parses "a<->b" and a<->b into the same tsquery, so the
-		// quotes can be dropped from a phrase that needs expanding.
-		quoted := tsQuery[quote[0]+1 : quote[1]-1]
-		if expanded := expandUnquotedNumericOperands(quoted); expanded != quoted {
-			b.WriteString(expanded)
-		} else {
-			b.WriteString(tsQuery[quote[0]:quote[1]])
+// expandNumericTerms rewrites each unquoted all-digit term N to "(N|-N)",
+// because Postgres indexes the digits of "flight-12345" as the lexeme "-12345".
+func expandNumericTerms(terms string) string {
+	fields := strings.Fields(terms)
+	inQuote := false
+	for i, f := range fields {
+		if !inQuote && numericTermRegex.MatchString(f) {
+			fields[i] = "(" + f + "|-" + f + ")"
 		}
-		last = quote[1]
-	}
-	b.WriteString(expandUnquotedNumericOperands(tsQuery[last:]))
-
-	return b.String()
-}
-
-// expandUnquotedNumericOperands performs the rewrite on a quote-free stretch of
-// an assembled tsquery. Operands are maximal runs between tsquery operators, so
-// "flight-12345" and "#12345" stay whole and are left alone, while the
-// standalone digits in "flight<->12345" are expanded.
-func expandUnquotedNumericOperands(s string) string {
-	var b strings.Builder
-	for i := 0; i < len(s); {
-		if isTsQueryOperatorByte(s[i]) {
-			b.WriteByte(s[i])
-			i++
-			continue
-		}
-
-		start := i
-		for i < len(s) && !isTsQueryOperatorByte(s[i]) {
-			i++
-		}
-
-		operand := s[start:i]
-		if numericTsQueryOperand.MatchString(operand) {
-			b.WriteString("(" + operand + "|-" + operand + ")")
-		} else {
-			b.WriteString(operand)
+		if strings.Count(f, `"`)%2 == 1 {
+			inQuote = !inQuote
 		}
 	}
-
-	return b.String()
-}
-
-// isTsQueryOperatorByte reports whether c separates two operands of an
-// assembled tsquery. All of them are ASCII, so a multi-byte rune can never be
-// mistaken for one.
-func isTsQueryOperatorByte(c byte) bool {
-	switch c {
-	case '&', '|', '!', '<', '>', '(', ')', ' ':
-		return true
-	}
-	return false
+	return strings.Join(fields, " ")
 }
 
 // scanRowsIntoMap scans SQL rows into a map, using a provided scanner function to extract key-value pairs

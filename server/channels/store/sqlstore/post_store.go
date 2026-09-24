@@ -2338,6 +2338,9 @@ func (s *SqlPostStore) search(logger mlog.LoggerIFace, teamId string, userId str
 		terms = wildCardRegex.ReplaceAllLiteralString(terms, ":* ")
 		excludedTerms = wildCardRegex.ReplaceAllLiteralString(excludedTerms, ":* ")
 
+		terms = expandNumericTerms(terms)
+		excludedTerms = expandNumericTerms(excludedTerms)
+
 		// Replace spaces with to_tsquery symbols
 		replaceSpaces := func(input string, excludedInput bool) string {
 			if input == "" {
@@ -2367,11 +2370,6 @@ func (s *SqlPostStore) search(logger mlog.LoggerIFace, teamId string, userId str
 		if excludedClause != "" {
 			tsQueryClause += " &!(" + excludedClause + ")"
 		}
-
-		// Done on the assembled clause so that the exclusions are covered too:
-		// excluding "12345" then also excludes the "-12345" lexeme Postgres
-		// indexes for "flight-12345".
-		tsQueryClause = expandNumericTsQueryOperands(tsQueryClause)
 
 		textSearchCfg := s.pgDefaultTextSearchConfig
 		searchClause := fmt.Sprintf("to_tsvector('%[1]s', %[2]s) @@  to_tsquery('%[1]s', ?)", textSearchCfg, searchType)

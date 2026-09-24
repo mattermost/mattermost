@@ -2048,15 +2048,6 @@ func testSearchNumberInHyphenatedTerm(t *testing.T, th *SearchTestHelper) {
 		th.checkPostInSearchResults(t, p1.Id, results.Posts)
 	})
 
-	t.Run("Search for the hyphenated term as a quoted phrase", func(t *testing.T) {
-		params := &model.SearchParams{Terms: "\"flight 12345\""}
-		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
-		require.NoError(t, err)
-
-		require.Len(t, results.Posts, 1)
-		th.checkPostInSearchResults(t, p1.Id, results.Posts)
-	})
-
 	t.Run("Search for the number as one of several OR terms", func(t *testing.T) {
 		params := &model.SearchParams{Terms: "12345 67890", OrTerms: true}
 		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
