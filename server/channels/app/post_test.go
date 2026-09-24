@@ -21,7 +21,9 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	eMocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
@@ -7250,5 +7252,107 @@ func TestAppendABACEtag(t *testing.T) {
 		assert.Contains(t, etag, unknownABACEtagEpoch)
 		assert.NotEqual(t, etag, th.App.AppendABACEtag(base, userID, channelID),
 			"two failed lookups must not produce the same ETag, or a policy change between them would 304")
+	})
+}
+
+// replicaLagPostStore simulates a read replica that has not yet received one specific
+// post. Any lookup of that post which is not pinned to the master DB fails with a
+// not-found, exactly as a lagging PostgreSQL hot standby would. Every other lookup
+// passes through to the real store.
+type replicaLagPostStore struct {
+	store.PostStore
+
+	mu            sync.Mutex
+	laggingPostID string
+}
+
+func (s *replicaLagPostStore) setLaggingPost(postID string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.laggingPostID = postID
+}
+
+func (s *replicaLagPostStore) missesPost(rctx request.CTX, postID string) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.laggingPostID != "" && s.laggingPostID == postID && !sqlstore.HasMaster(rctx.Context())
+}
+
+func (s *replicaLagPostStore) GetSingle(rctx request.CTX, id string, inclDeleted bool) (*model.Post, error) {
+	if s.missesPost(rctx, id) {
+		return nil, store.NewErrNotFound("Post", id)
+	}
+	return s.PostStore.GetSingle(rctx, id, inclDeleted)
+}
+
+func (s *replicaLagPostStore) Get(rctx request.CTX, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error) {
+	if s.missesPost(rctx, id) {
+		return nil, store.NewErrNotFound("Post", id)
+	}
+	return s.PostStore.Get(rctx, id, opts, userID, sanitizeOptions)
+}
+
+// replicaLagStore decorates a real Store, swapping Post() for the lagging implementation
+// above. All other store calls pass through.
+type replicaLagStore struct {
+	store.Store
+	posts *replicaLagPostStore
+}
+
+func (s *replicaLagStore) Post() store.PostStore {
+	return s.posts
+}
+
+// TestPostMutationsReadFromMaster covers MM-70867 at the app layer. UpdatePost, PatchPost
+// and DeletePost each read the row they are about to mutate, and that read must come from
+// master: the post may have been written milliseconds earlier, so a lagging replica would
+// report it missing. These entry points are reached by callers that never pass through the
+// api4 handlers - the plugin API, interactive action responses, post restore - so they
+// cannot rely on the caller having pinned the context.
+func TestPostMutationsReadFromMaster(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	originalStore := th.App.Srv().Store()
+	lagging := &replicaLagPostStore{PostStore: originalStore.Post()}
+	th.App.Srv().SetStore(&replicaLagStore{Store: originalStore, posts: lagging})
+	t.Cleanup(func() { th.App.Srv().SetStore(originalStore) })
+
+	// createPostWithLaggingReplica creates a post and then makes every unpinned lookup
+	// of it miss, reproducing the read-after-write race.
+	createPostWithLaggingReplica := func(t *testing.T) *model.Post {
+		t.Helper()
+
+		post := th.CreatePost(t, th.BasicChannel)
+		lagging.setLaggingPost(post.Id)
+		t.Cleanup(func() { lagging.setLaggingPost("") })
+
+		return post
+	}
+
+	t.Run("UpdatePost", func(t *testing.T) {
+		post := createPostWithLaggingReplica(t)
+
+		edited := post.Clone()
+		edited.Message = "edited message"
+		updated, _, appErr := th.App.UpdatePost(th.Context, edited, &model.UpdatePostOptions{SafeUpdate: false})
+		require.Nil(t, appErr, "UpdatePost must not depend on its caller having pinned the context")
+		require.Equal(t, "edited message", updated.Message)
+	})
+
+	t.Run("PatchPost", func(t *testing.T) {
+		post := createPostWithLaggingReplica(t)
+
+		patched, _, appErr := th.App.PatchPost(th.Context, post.Id, &model.PostPatch{
+			Message: model.NewPointer("patched message"),
+		}, nil)
+		require.Nil(t, appErr, "PatchPost must not depend on its caller having pinned the context")
+		require.Equal(t, "patched message", patched.Message)
+	})
+
+	t.Run("DeletePost", func(t *testing.T) {
+		post := createPostWithLaggingReplica(t)
+
+		_, appErr := th.App.DeletePost(th.Context, post.Id, th.BasicUser.Id)
+		require.Nil(t, appErr, "DeletePost must not depend on its caller having pinned the context")
 	})
 }
