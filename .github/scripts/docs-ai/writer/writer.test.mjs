@@ -10,7 +10,8 @@ import {
 } from './files.mjs';
 import {briefFromGapResult, briefFromPrEvidence, parseGapBrief} from './gap-brief.mjs';
 import {DENY_PREFIXES, extractDocsPaths, isAllowedPath} from './paths.mjs';
-import {sourcePrFrom} from './sync.mjs';
+import {sourcePrFrom, assertWriterProvenance} from './sync.mjs';
+import {groupPathAllowlist, normalizeDocsPath} from './author-loop.mjs';
 import {MARKER, buildComment, decide} from '../gap/gap.mjs';
 
 test('allowlist accepts hand-authored content roots', () => {
@@ -135,22 +136,44 @@ test('additionsDiff synthesises a reviewable unified diff', () => {
   assert.match(diff, /\+Body/);
 });
 
-test('authorForPath reverse-looks up docs_paths', () => {
+test('authorForPath matches an exact docs_paths prefix and paths under it', () => {
+  assert.equal(authorForPath('docs/main/administration-guide')?.id, 'system-admin');
   assert.equal(authorForPath('docs/main/administration-guide/configure/x.mdx')?.id, 'system-admin');
   assert.equal(authorForPath('docs/main/end-user-guide/collaborate/y.mdx')?.id, 'end-user');
   assert.equal(authorForPath('docs/develop/api/foo.mdx')?.id, 'developer-dx');
-  assert.equal(authorForPath('docs/main/unknown-section/x.mdx'), null);
 });
 
-test('groupPathsByAuthor batches by persona', () => {
+test('authorForPath prefers the longest matching docs_paths prefix', () => {
+  // security-compliance owns administration-guide/comply; system-admin owns administration-guide.
+  assert.equal(
+    authorForPath('docs/main/administration-guide/comply/compliance-export.mdx')?.id,
+    'security-compliance',
+  );
+  assert.equal(
+    authorForPath('docs/main/administration-guide/onboard/ad-ldap.mdx')?.id,
+    'security-compliance',
+  );
+});
+
+test('authorForPath returns null when nothing matches', () => {
+  assert.equal(authorForPath('docs/main/unknown-section/x.mdx'), null);
+  assert.equal(authorForPath('server/channels/app/foo.go'), null);
+});
+
+test('groupPathsByAuthor batches by persona and keeps unmatched paths neutral', () => {
   const groups = groupPathsByAuthor([
     'docs/main/administration-guide/a.mdx',
     'docs/main/deployment-guide/b.mdx',
     'docs/main/end-user-guide/c.mdx',
+    'docs/main/orphan/page.mdx',
   ]);
-  const byId = Object.fromEntries(groups.map((g) => [g.personaId, g.paths.length]));
-  assert.equal(byId['system-admin'], 2);
-  assert.equal(byId['end-user'], 1);
+  const byId = Object.fromEntries(groups.map((g) => [g.personaId, g.paths]));
+  assert.deepEqual(byId['system-admin'], [
+    'docs/main/administration-guide/a.mdx',
+    'docs/main/deployment-guide/b.mdx',
+  ]);
+  assert.deepEqual(byId['end-user'], ['docs/main/end-user-guide/c.mdx']);
+  assert.deepEqual(byId[null], ['docs/main/orphan/page.mdx']);
 });
 
 test('parseGapBrief recovers actions and paths from a sticky comment', () => {
@@ -209,4 +232,34 @@ test('sourcePrFrom reads branch and body marker', () => {
   assert.equal(sourcePrFrom({body: '<!-- docs-ai-source-pr:99 -->\nhello'}), '99');
   assert.equal(sourcePrFrom({explicit: '12', headRef: 'docs/pr-99'}), '12');
   assert.equal(sourcePrFrom({headRef: 'feature/x'}), null);
+});
+
+test('assertWriterProvenance requires same-repo head and exact bot author', () => {
+  assert.throws(
+    () => assertWriterProvenance({repo: 'o/r', headRepo: 'fork/r', prUser: 'bot[bot]', botLogin: 'bot[bot]'}),
+    /head repo/,
+  );
+  assert.throws(
+    () => assertWriterProvenance({repo: 'o/r', headRepo: 'o/r', prUser: 'human', botLogin: 'bot[bot]'}),
+    /PR author/,
+  );
+  assert.throws(
+    () => assertWriterProvenance({repo: 'o/r', headRepo: 'o/r', prUser: 'bot[bot]', botLogin: ''}),
+    /DOCS_AI_BOT_LOGIN/,
+  );
+  assert.doesNotThrow(() =>
+    assertWriterProvenance({repo: 'o/r', headRepo: 'o/r', prUser: 'bot[bot]', botLogin: 'bot[bot]'}),
+  );
+});
+
+test('groupPathAllowlist keeps only concrete docs/ targets', () => {
+  const allow = groupPathAllowlist([
+    'docs/main/administration-guide/a.mdx',
+    './docs/main/b.mdx/',
+    '(unspecified — derive from the gap brief)',
+  ]);
+  assert.equal(allow.size, 2);
+  assert.ok(allow.has('docs/main/administration-guide/a.mdx'));
+  assert.ok(allow.has('docs/main/b.mdx'));
+  assert.equal(normalizeDocsPath('./docs/main/x.mdx'), 'docs/main/x.mdx');
 });

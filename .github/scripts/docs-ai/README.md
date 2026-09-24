@@ -138,6 +138,11 @@ PRs it opens would not re-trigger `docs-review.yml`. Soft-skip when unset.
 The milestone on the merged PR is mandatory: it is the only source of the
 `From Mattermost vX.Y` version anchor.
 
+`docs-writer-merged-pr.yml`'s sync job also needs `DOCS_AI_BOT_LOGIN` (the App's
+`{slug}[bot]` login). Label flips run only when the closed PR's head repo is this
+repository and its author matches that login — branch name and body markers are not
+provenance.
+
 ## Where a rule belongs
 
 Anything that does not vary by audience goes in the shared prompts, stated once:

@@ -6,10 +6,15 @@
 export function additionsDiff(files) {
   const chunks = [];
   for (const {path, content} of files) {
-    const body = content.endsWith('\n') ? content : `${content}\n`;
-    const lines = body.split('\n');
-    // Trailing empty from the final newline — drop it so +++ counts match.
-    if (lines.at(-1) === '') lines.pop();
+    const lines = content === ''
+      ? []
+      : (() => {
+          const body = content.endsWith('\n') ? content : `${content}\n`;
+          const parts = body.split('\n');
+          // Trailing empty from the final newline — drop it so +++ counts match.
+          if (parts.at(-1) === '') parts.pop();
+          return parts;
+        })();
 
     const n = lines.length;
     chunks.push(
@@ -17,7 +22,7 @@ export function additionsDiff(files) {
       `new file mode 100644`,
       `--- /dev/null`,
       `+++ b/${path}`,
-      `@@ -0,0 +1,${n} @@`,
+      n === 0 ? `@@ -0,0 +0,0 @@` : `@@ -0,0 +1,${n} @@`,
       ...lines.map((l) => `+${l}`),
     );
   }
