@@ -45,6 +45,17 @@ func NewHealthCheckService(s store.Store, logger mlog.LoggerIFace) *HealthCheckS
 	}
 }
 
+// healthCheckService builds the service on first use, so servers that never run a health
+// check never resolve the finding store.
+func (ch *Channels) healthCheckService() *HealthCheckService {
+	ch.healthCheckOnce.Do(func() {
+		if ch.healthCheck == nil {
+			ch.healthCheck = NewHealthCheckService(ch.srv.Store(), ch.srv.Log())
+		}
+	})
+	return ch.healthCheck
+}
+
 // RunHealthCheck performs one evaluation cycle and stores the resulting findings. It is a
 // no-op unless the HealthDashboard feature flag is on and the license is at least Enterprise.
 // It must only be called on the cluster leader.
@@ -58,7 +69,7 @@ func (a *App) RunHealthCheck(rctx request.CTX) error {
 		return fmt.Errorf("failed to build health snapshot: %w", err)
 	}
 
-	svc := a.ch.healthCheck
+	svc := a.ch.healthCheckService()
 	transitions, err := svc.reconciler.Reconcile(svc.engine.Evaluate(snapshot))
 	if err != nil {
 		return fmt.Errorf("failed to reconcile health findings: %w", err)
