@@ -618,19 +618,30 @@ a.footerCell:hover {
   border-color: rgba(255, 255, 255, 0.12);
 }
 
-/* === Responsive collapse === */
+/* === Responsive collapse ===
+ *
+ * Threshold matches the wrapper's breakout media query (>= 1200px):
+ * anything narrower than the breakout kicks in must use the
+ * collapsed layout, otherwise the 6-tile grid + intro column tries
+ * to render inside a ~700px reading column and text overlaps. */
 
-@media (max-width: 980px) {
+@media (max-width: 1199px) {
   .layerContentWithIntro {
     grid-template-columns: 1fr;
   }
-  /* Two-column fallback keeps mission variant's 6 app tiles readable
+  /* Two-column fallback keeps the Applications row's 6 tiles readable
    * while preserving single-column layers (data-cols="1"). */
   .cellGrid:not([data-cols="1"]) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .footerRow:not([data-cols="1"]) {
     grid-template-columns: 1fr;
+  }
+  /* Interoperability tiles stack title above bullets when the two
+   * tiles are forced to share a narrow row width. */
+  .cellTitleSplit {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
   }
 }
 
