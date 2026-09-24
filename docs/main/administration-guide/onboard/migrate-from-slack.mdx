@@ -33,7 +33,7 @@ Consider [talking to a Mattermost expert](https://mattermost.com/contact-sales/)
 | [2. Export from Slack](#2-export-your-data-from-slack) | Generate a Slack export zip | Raw Slack archive |
 | [3. Understand the format](#3-understand-your-slack-export-format) | Identify single-workspace vs Enterprise Grid | Correct transform path |
 | [4. Review coverage](#what-migrates--what-doesnt) | Know gaps (emoji, guests, emails, MPIMs, integrations) | Realistic expectations |
-| [5. Transform with mmetl](#5-transform-the-export-with-mmetl) | `mmetl check` to `mmetl transform` (or `grid-transform`) | `.jsonl` + `data/` attachments |
+| [5. Transform with mmetl](#5-transform-the-export-with-mmetl) | `grid-transform` for Enterprise Grid, then `transform slack --dry-run` and `transform slack` | `.jsonl` + `data/` attachments |
 | [6. Multiple dumps](#6-handle-multiple-exports) | Process phased or split exports safely | Combined history without duplicates |
 | [7. Import into Mattermost](#7-package-and-import-into-mattermost) | Zip the package; follow bulk loading docs | Live Mattermost data |
 
@@ -93,7 +93,7 @@ Avoid unzipping and rezipping the Slack export. That can change the archive layo
 
 <Note>
 
-Slack periodically changes its export format without notice. Before a large migration, [download the latest mmetl release](https://github.com/mattermost/mmetl/releases/). If `mmetl check` or `mmetl transform` fails with unexpected parse errors after a Slack-side change, check the [mmetl changelog](https://github.com/mattermost/mmetl/releases/) or [file an issue](https://github.com/mattermost/mmetl/issues); it may be a format change rather than a mistake in your process.
+Slack periodically changes its export format without notice. Before a large migration, [download the latest mmetl release](https://github.com/mattermost/mmetl/releases/). If `mmetl transform slack --dry-run` or the full transform fails with unexpected parse errors after a Slack-side change, check the [mmetl changelog](https://github.com/mattermost/mmetl/releases/) or [file an issue](https://github.com/mattermost/mmetl/issues); it may be a format change rather than a mistake in your process.
 
 </Note>
 
@@ -264,16 +264,8 @@ Search the JSONL for your `--default-email-domain` value or `@local`, correct ad
 
 [`mmetl`](https://github.com/mattermost/mmetl) converts a Slack export into Mattermost’s bulk import format: a [JSONL](https://jsonlines.org/) file plus a `data/` directory of attachments.
 
-1. [Download the latest release](https://github.com/mattermost/mmetl/releases/) for your OS and architecture.
+1. [Download the latest mmetl release](https://github.com/mattermost/mmetl/releases/) for your OS and architecture.
 2. Run `mmetl help` (or `./mmetl help`) to explore commands.
-
-### Validate the Slack export
-
-``` sh
-./mmetl check slack --file slack_export.zip
-```
-
-Fix any reported structural issues before transforming.
 
 ### Transform an Enterprise Grid export (optional)
 Skip this subsection unless you have a Slack **Enterprise Grid** export. Grid archives must be split into per-workspace exports with `mmetl grid-transform` **before** you run `mmetl transform slack` on each team.
@@ -287,7 +279,7 @@ Skip this subsection unless you have a Slack **Enterprise Grid** export. Grid ar
 
 `grid-transform` infers each Slack workspace ID from the `teams/<name>/` folders already in the archive and prints the mapping. Shared channels at the archive root are moved into the workspace named on the first post that has a `team` field.
 
-3. Run `mmetl check slack` on each resulting archive, then continue with [Run the transform](#run-the-transform) using `--team` for the Mattermost team (that flag is independent of Slack's folder names).
+3. [Validate](#validate-the-slack-export) each resulting archive with `transform slack --dry-run`, then transform each one using `--team` for its Mattermost team (that flag is independent of Slack's folder names).
 
 If inference fails, pass `--team-map-path teams.json`:
 
@@ -300,6 +292,21 @@ If inference fails, pass `--team-map-path teams.json`:
 
 - **Key**: Slack workspace ID as it appears in a message's `team` field (typically `T...`).
 - **Value**: The existing `teams/<name>/` folder in the export. Must match Slack's folder name exactly. This is the output zip name, not the Mattermost `--team` value.
+
+### Validate the Slack export
+
+For a single-workspace export, use the original zip. For Enterprise Grid, use each per-workspace zip produced by `grid-transform`. Set `--team` to the destination Mattermost team and use the same transform flags you plan to use for the full run (including `--bot-owner` if the export contains bots):
+
+``` sh
+./mmetl transform slack \
+  --team my-team \
+  --file slack_export.zip \
+  --output mattermost_import.jsonl \
+  --bot-owner admin \
+  --dry-run
+```
+
+Dry-run parses and transforms the export without writing JSONL or copying attachments. It logs warnings and errors to the terminal and exits non-zero if it finds problems, including missing attachments that a full transform would skip. Fix reported issues before the full run. Use `--skip-attachments` only if you intend to skip attachment checks and copying in the full run.
 
 ### Run the transform
 
@@ -579,7 +586,7 @@ By default (`--guest-handling=guest`), Slack guests are exported as Mattermost g
 
 ### What if mmetl suddenly fails to parse an export that used to work?
 
-Slack may have changed the export format. Update `mmetl` from [GitHub Releases](https://github.com/mattermost/mmetl/releases/), re-run `mmetl check slack`, and file an issue if a new format break is confirmed.
+Slack may have changed the export format. Update `mmetl` from [GitHub Releases](https://github.com/mattermost/mmetl/releases/), re-run `mmetl transform slack --dry-run` with the same flags you plan to use for the full transform, and file an issue if a new format break is confirmed.
 
 ### What additional considerations are there for Slack Enterprise Grid?
 
