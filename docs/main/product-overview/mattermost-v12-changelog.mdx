@@ -127,6 +127,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-0-is-now-availab
  - Added an ``IMPORTED - INACTIVE`` tag to user profiles to identify accounts created by a scoped migration pending admin review.
  - Channel admins can now hide join/leave system messages per channel via Channel Settings > Configuration. Posts are stored and reappear if the setting is re-enabled.
  - Improved channel attribute chips in the channel header and thread right-hand sidebar, and polished the System Console attributes user interface.
+ - Displayed selected Hierarchical attribute values in the user profile popover.
 
 #### Plugins/Integrations
  - Added plugin hook ``OnLicenseChanged``, invoked when the server license changes.
@@ -152,6 +153,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-0-is-now-availab
  - Added webapp support for personal access token expiry and regeneration on user-owned bot accounts.
  - Added a new ``graph`` custom attribute type whose options form a hierarchy, gated by the ``PropertyFieldGraph`` feature flag (off by default). Values are shown as option names and set with an option picker on the profile and System Console user detail pages. Added REST endpoints and plugin API methods to list, create, update, and delete a custom attribute's options.
  - Added a new Hierarchical attribute type in the Global Attributes management screen in the System Console.
+ - Aligned the new Hierarchical attribute value field with siblings at the same level so it no longer looks nested under the last child.
  - Existing Custom Profile Attributes (User Attributes) fields are now automatically migrated into Global Attributes templates on server startup. The legacy "User Attributes" admin console page has been removed.
  - System Console Manage Attributes now opens existing managed attributes for edit. Saving PATCHes the attribute definition and applies add/remove changes in the same action, including deleting a resource application and its stored values when that resource is removed.
  - Renaming a global attribute's display name in System Console now also updates linked resource fields that still share that label. Linked fields that were given a custom label keep it.
@@ -223,6 +225,8 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-0-is-now-availab
  - Fixed the spacing above the first field in the Applies-to accordion on the System Console attribute details page, so it matches the spacing between the fields below it.
  - Updated direct and group channel targeting for incoming webhooks while direct messages are scoped to team members.
  - Fixed an issue where changing a channel attribute, or opening some attribute dropdowns, briefly blanked out every attribute chip in the channel header.
+ - Fixed an issue where the System Console's Attribute Management page let an admin change an existing attribute's type to or from Hierarchical, which always failed to save.
+ - Fixed Hierarchical attribute parent/child search suggestions expanding or clipping the value menu.
 
 ### API Changes
  - Added ``POST /access_control/decisions/actions/search (searchAccessControlDecisionActions)`` API endpoint.
