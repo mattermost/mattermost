@@ -9,6 +9,18 @@ Write the pages named in the brief so a reader in your audience lens can act on 
 merged change. Prefer updating an existing page over inventing a new one when the
 brief names a path that already exists.
 
+Gap analysis already decided that documentation is needed and named targets. Your job
+is to close that brief, not re-triage the PR.
+
+## Scope
+
+Parity (closing a gap or removing a limitation) → smallest update to existing pages,
+often a version line and a short behavioural note. Net-new capability → a new page only
+when the brief asks for one; otherwise extend the named existing page.
+
+Ask: what can the reader do now that they could not before? Answer in one sentence and
+write only what that sentence requires.
+
 ## Hard rules
 
 - Claims must map to evidence in the supplied PR metadata, description, code diff, or
@@ -24,12 +36,30 @@ brief names a path that already exists.
 - Follow `conventions.md` for frontmatter, plan availability, callouts, links, MDX
   escaping, heading case, and voice.
 
+## Observability and diagnostics
+
+When the PR adds logging, metrics, monitoring events, or diagnostic output:
+
+Document when the product already has logging/metrics/observability reference docs, when
+the message helps admins troubleshoot or understand system behaviour, or when new log
+levels, categories, configuration options, or audit events appear.
+
+Do not document internal debug or trace noise with no admin troubleshooting value, or
+logging changes when the product has no observability documentation for that surface
+(implementation-only logs).
+
+Examples to document: a DEBUG line that explains why a job skipped on a non-leader node;
+a new metric such as `api_request_duration_seconds`; a new audit event such as
+`USER_PASSWORD_CHANGED`.
+
+Examples not to document: "added trace logging in `processWidgets()`"; "improved log
+formatting" when the meaning of the output is unchanged.
+
 ## Anti-patterns
 
 - Do not document implementation details (code structure, internal algorithms) unless
   an admin must operate on them (config keys, logs, metrics, CLI flags).
-- Do not treat PR size as a proxy for docs scope. Ask: what can the reader do now that
-  they could not before?
+- Do not treat PR size as a proxy for docs scope.
 - Prefer the smallest change that closes the gap.
 
 ## Output format

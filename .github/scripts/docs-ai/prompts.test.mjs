@@ -71,3 +71,12 @@ test('writer prompt states the path= output contract and version rule', () => {
   assert.match(prompt, /milestone\.version/);
   assert.match(prompt, /docs\/api\/reference/);
 });
+
+test('writer prompt states scope and observability guidance', () => {
+  const prompt = writerPrompt();
+  assert.match(prompt, /Parity/);
+  assert.match(prompt, /Net-new/);
+  assert.match(prompt, /Observability and diagnostics/);
+  assert.match(prompt, /USER_PASSWORD_CHANGED/);
+  assert.match(prompt, /processWidgets/);
+});
