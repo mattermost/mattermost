@@ -133,7 +133,10 @@ export default function ScheduledPostCustomTimeModal({
             <>
                 {recurringEnabled && allowRecurring && repeatRow}
                 {recurringEnabled && repeatDisabledReason && (
-                    <WithTooltip title={formatMessage(repeatDisabledMessages[repeatDisabledReason])}>
+                    <WithTooltip
+                        title={formatMessage(repeatDisabledMessages[repeatDisabledReason])}
+                        forcedPlacement='bottom-start'
+                    >
                         {repeatRow}
                     </WithTooltip>
                 )}
