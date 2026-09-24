@@ -583,7 +583,11 @@ func (a *App) checkSelfInclusion(rctx request.CTX, policy *model.AccessControlPo
 
 	var scoped []model.AccessControlPolicyRule
 	for _, rule := range policy.Rules {
-		if roleScopingApplies && rule.Role != "" {
+		// A membership rule cannot carry a role — the model validator rejects
+		// that shape, but it runs after this guard, so drop the role the way the
+		// PDP compiler does rather than reporting an uncovered role for a rule
+		// that in fact binds everyone.
+		if roleScopingApplies && rule.Role != "" && !rule.IsMembershipRule() {
 			scoped = append(scoped, rule)
 			continue
 		}
