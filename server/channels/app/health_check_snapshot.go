@@ -16,7 +16,8 @@ import (
 // collector is recorded in Snapshot.Sections rather than failing the call; the error return
 // is for a snapshot that cannot be built at all.
 //
-// It must only be called on the cluster leader: the local node is reported as the leader.
+// It must only be called on the cluster leader: the local node is reported as the leader and
+// is the only node that carries diagnostics.
 func (a *App) BuildHealthSnapshot(rctx request.CTX) (*healthcheck.Snapshot, error) {
 	return a.buildHealthSnapshotWithLatestVersionURL(rctx, LatestVersionURL)
 }
@@ -25,6 +26,14 @@ func (a *App) buildHealthSnapshotWithLatestVersionURL(rctx request.CTX, latestVe
 	nodes, err := clusterNodes(a.Cluster())
 	if err != nil {
 		return nil, err
+	}
+
+	// Failures are already recorded per section in the envelope.
+	diagnostics, _ := a.Srv().Platform().GetSupportPacketDiagnostics(rctx)
+	for _, node := range nodes {
+		if node.IsLeader {
+			node.Diagnostics = diagnostics
+		}
 	}
 
 	sections := map[model.WorkspaceSection]error{}
