@@ -43,27 +43,27 @@ func TestBuildHealthSnapshotStandaloneLeaderDiagnostics(t *testing.T) {
 	}
 }
 
-// Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
-func TestBuildHealthSnapshotOnlyLeaderHasDiagnostics(t *testing.T) {
-	th := Setup(t)
+// threeNodeCluster reports this node as id-2 of three.
+type threeNodeCluster struct {
+	captureClusterMock
+}
 
-	err := th.App.clearLatestVersionCache()
-	require.NoError(t, err)
+func (c *threeNodeCluster) GetClusterId() string { return "id-2" }
 
-	cluster := &emocks.ClusterInterface{}
-	// Setup's background config publishes reach whichever cluster is installed.
-	cluster.On("SendClusterMessage", mock.Anything).Return().Maybe()
-	cluster.On("GetClusterId").Return("id-2")
-	cluster.On("GetClusterInfos").Return([]*model.ClusterInfo{
+func (c *threeNodeCluster) GetClusterInfos() ([]*model.ClusterInfo, error) {
+	return []*model.ClusterInfo{
 		{Id: "id-1", Hostname: "node-1"},
 		{Id: "id-2", Hostname: "node-2"},
 		{Id: "id-3", Hostname: "node-3"},
-	}, nil)
-	originalCluster := th.Server.Platform().Cluster()
-	t.Cleanup(func() {
-		th.Server.Platform().SetCluster(originalCluster)
-	})
-	th.Server.Platform().SetCluster(cluster)
+	}, nil
+}
+
+// Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
+func TestBuildHealthSnapshotOnlyLeaderHasDiagnostics(t *testing.T) {
+	th := SetupWithClusterMock(t, &threeNodeCluster{})
+
+	err := th.App.clearLatestVersionCache()
+	require.NoError(t, err)
 
 	snapshot, buildErr := th.App.buildHealthSnapshotWithLatestVersionURL(th.Context, latestVersionServer(t).URL)
 	require.NoError(t, buildErr)
