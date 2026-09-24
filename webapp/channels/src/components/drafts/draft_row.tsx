@@ -39,11 +39,12 @@ import PlaceholderScheduledPostsTitle
 import EditScheduledPost from 'components/edit_scheduled_post';
 
 import Constants, {StoragePrefixes} from 'utils/constants';
+import {getDraftRepeatDisabledReason} from 'utils/scheduled_post_repeat';
 import {copyToClipboard} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
-import {draftHasAttachments, scheduledPostToPostDraft} from 'types/store/draft';
+import {scheduledPostToPostDraft} from 'types/store/draft';
 
 import DraftActions from './draft_actions';
 import DraftTitle from './draft_title';
@@ -238,7 +239,7 @@ function DraftRow({
                 canEdit={canEdit}
                 canSend={canSend}
                 onSchedule={onScheduleDraft}
-                allowRecurring={!draftHasAttachments(item)}
+                repeatDisabledReason={getDraftRepeatDisabledReason(item)}
             />
         );
     }, [

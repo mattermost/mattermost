@@ -26,6 +26,7 @@ import DeleteScheduledPostModal
 import SendDraftModal from 'components/drafts/draft_actions/send_draft_modal';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
+import {getScheduledPostRepeatDisabledReason} from 'utils/scheduled_post_repeat';
 
 import './style.scss';
 import type {GlobalState} from 'types/store';
@@ -81,7 +82,6 @@ function ScheduledPostActions({scheduledPost, channel, onReschedule, onDelete, o
     const myChannelsMemberships = useSelector((state: GlobalState) => getMyChannelMemberships(state));
     const isAdmin = useSelector((state: GlobalState) => isCurrentUserSystemAdmin(state));
     const isWeeklyRecurringScheduledPost = isRecurringScheduledPost(scheduledPost);
-    const hasFiles = Boolean(scheduledPost.file_ids?.length || scheduledPost.metadata?.files?.length);
 
     useEffect(() => {
         // this ensures the DM is loaded in redux store and is available
@@ -105,10 +105,10 @@ function ScheduledPostActions({scheduledPost, channel, onReschedule, onDelete, o
                 onConfirm: onReschedule,
                 initialTime,
                 initialRepeatWeekly: isWeeklyRecurringScheduledPost,
-                allowRecurring: !hasFiles,
+                repeatDisabledReason: getScheduledPostRepeatDisabledReason(scheduledPost),
             },
         }));
-    }, [dispatch, hasFiles, isWeeklyRecurringScheduledPost, onReschedule, scheduledPost.channel_id, scheduledPost.scheduled_at, userTimezone]);
+    }, [dispatch, isWeeklyRecurringScheduledPost, onReschedule, scheduledPost, userTimezone]);
 
     const handleDelete = useCallback(() => {
         dispatch(openModal({

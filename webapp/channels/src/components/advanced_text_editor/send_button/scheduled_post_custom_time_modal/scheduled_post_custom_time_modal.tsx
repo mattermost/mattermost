@@ -4,7 +4,7 @@
 import moment from 'moment';
 import type {Moment} from 'moment-timezone';
 import React, {useCallback, useMemo, useState} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
@@ -22,10 +22,22 @@ import {
 import DateTimePickerModal from 'components/date_time_picker_modal/date_time_picker_modal';
 
 import {scheduledPosts} from 'utils/constants';
+import type {RepeatDisabledReason} from 'utils/scheduled_post_repeat';
 
 import './scheduled_post_custom_time_modal.scss';
 
 const SCHEDULED_POST_CUSTOM_TIME_INTERVAL = 15; // minutes
+
+const repeatDisabledMessages = defineMessages({
+    attachments: {
+        id: 'schedule_post.custom_time_modal.repeat_weekly.attachments_tooltip',
+        defaultMessage: "Messages with attachments can't repeat",
+    },
+    burn_on_read: {
+        id: 'schedule_post.custom_time_modal.repeat_weekly.burn_on_read_tooltip',
+        defaultMessage: "Burn-on-read messages can't repeat",
+    },
+});
 
 type Props = {
     channelId: string;
@@ -34,8 +46,8 @@ type Props = {
     initialTime?: Moment;
     initialRepeatWeekly?: boolean;
 
-    // Recurring posts can't carry file attachments, since files bind to the first post they're sent with.
-    allowRecurring?: boolean;
+    // Undefined when nothing stops the post from repeating.
+    repeatDisabledReason?: RepeatDisabledReason;
 };
 
 export default function ScheduledPostCustomTimeModal({
@@ -44,8 +56,9 @@ export default function ScheduledPostCustomTimeModal({
     onConfirm,
     initialTime,
     initialRepeatWeekly = false,
-    allowRecurring = true,
+    repeatDisabledReason,
 }: Props) {
+    const allowRecurring = !repeatDisabledReason;
     const {formatMessage} = useIntl();
     const [errorMessage, setErrorMessage] = useState<string>();
     const userTimezone = useSelector(getCurrentTimezone);
@@ -119,13 +132,8 @@ export default function ScheduledPostCustomTimeModal({
         return (
             <>
                 {recurringEnabled && allowRecurring && repeatRow}
-                {recurringEnabled && !allowRecurring && (
-                    <WithTooltip
-                        title={formatMessage({
-                            id: 'schedule_post.custom_time_modal.repeat_weekly.attachments_tooltip',
-                            defaultMessage: "Messages with attachments can't repeat",
-                        })}
-                    >
+                {recurringEnabled && repeatDisabledReason && (
+                    <WithTooltip title={formatMessage(repeatDisabledMessages[repeatDisabledReason])}>
                         {repeatRow}
                     </WithTooltip>
                 )}
@@ -135,7 +143,7 @@ export default function ScheduledPostCustomTimeModal({
                 />
             </>
         );
-    }, [channelId, selectedDateTime, recurringEnabled, allowRecurring, repeatWeekly, formatMessage]);
+    }, [channelId, selectedDateTime, recurringEnabled, allowRecurring, repeatDisabledReason, repeatWeekly, formatMessage]);
 
     const label = formatMessage({id: 'schedule_post.custom_time_modal.title', defaultMessage: 'Schedule message'});
 
