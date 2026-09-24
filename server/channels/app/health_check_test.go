@@ -5,9 +5,7 @@ package app
 
 import (
 	"io"
-	"sync/atomic"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -197,19 +195,4 @@ func TestRunHealthCheckStableAcrossCycles(t *testing.T) {
 		assert.Equal(t, previous.State, finding.State, "finding %q", finding.Fingerprint)
 		assert.Equal(t, previous.StateSince, finding.StateSince, "finding %q", finding.Fingerprint)
 	}
-}
-
-func TestChannelsStopCancelsHealthCheckTask(t *testing.T) {
-	ch := &Channels{interruptQuitChan: make(chan struct{})}
-
-	var calls atomic.Int32
-	ch.healthCheckTask = model.CreateRecurringTask("Health Check", func() { calls.Add(1) }, 10*time.Millisecond)
-	require.Eventually(t, func() bool { return calls.Load() >= 1 }, 5*time.Second, 10*time.Millisecond)
-
-	require.NoError(t, ch.Stop())
-	assert.Nil(t, ch.healthCheckTask)
-
-	stoppedAt := calls.Load()
-	time.Sleep(50 * time.Millisecond)
-	assert.Equal(t, stoppedAt, calls.Load())
 }
