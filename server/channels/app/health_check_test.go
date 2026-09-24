@@ -23,9 +23,9 @@ import (
 // Tests in this file are not parallel: they toggle the license and use the process-wide
 // latest-version cache that BuildHealthSnapshot reads.
 
-// setupHealthCheck swaps in a service over test rules, since no built-in rules exist yet.
+// setupHealthCheck returns a service over test rules, since no built-in rules exist yet.
 // Feature flags cannot be changed after setup, so the flag is set here.
-func setupHealthCheck(t *testing.T, flagEnabled bool) *TestHelper {
+func setupHealthCheck(t *testing.T, flagEnabled bool) (*TestHelper, *HealthCheckService) {
 	t.Helper()
 
 	th := SetupConfig(t, func(cfg *model.Config) {
@@ -59,7 +59,7 @@ func setupHealthCheck(t *testing.T, flagEnabled bool) *TestHelper {
 			},
 		},
 	)
-	th.App.ch.healthCheck = &HealthCheckService{
+	svc := &HealthCheckService{
 		engine: healthcheck.NewEngine(healthcheck.EngineOpts{Registry: registry, Logger: th.TestLogger}),
 		reconciler: healthcheck.NewReconciler(healthcheck.ReconcilerOpts{
 			Store:    th.App.Srv().Store().HealthFinding(),
@@ -75,7 +75,7 @@ func setupHealthCheck(t *testing.T, flagEnabled bool) *TestHelper {
 	_, appErr := th.App.GetLatestVersion(th.Context, latestVersionServer(t).URL)
 	require.Nil(t, appErr)
 
-	return th
+	return th, svc
 }
 
 func listHealthFindings(t *testing.T, th *TestHelper) []*model.HealthFinding {
@@ -173,45 +173,45 @@ func TestHealthCheckTaskFunc(t *testing.T) {
 
 func TestRunHealthCheckGating(t *testing.T) {
 	t.Run("flag off writes nothing", func(t *testing.T) {
-		th := setupHealthCheck(t, false)
+		th, svc := setupHealthCheck(t, false)
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
-		require.NoError(t, th.App.RunHealthCheck(th.Context))
+		require.NoError(t, th.App.runHealthCheck(th.Context, svc))
 		assert.Empty(t, listHealthFindings(t, th))
 	})
 
-	th := setupHealthCheck(t, true)
+	th, svc := setupHealthCheck(t, true)
 
 	t.Run("no license writes nothing", func(t *testing.T) {
 		th.App.Srv().SetLicense(nil)
 
-		require.NoError(t, th.App.RunHealthCheck(th.Context))
+		require.NoError(t, th.App.runHealthCheck(th.Context, svc))
 		assert.Empty(t, listHealthFindings(t, th))
 	})
 
 	t.Run("license below Enterprise writes nothing", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
-		require.NoError(t, th.App.RunHealthCheck(th.Context))
+		require.NoError(t, th.App.runHealthCheck(th.Context, svc))
 		assert.Empty(t, listHealthFindings(t, th))
 	})
 
 	t.Run("an Enterprise license applied at runtime takes effect on the next call", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
-		require.NoError(t, th.App.RunHealthCheck(th.Context))
+		require.NoError(t, th.App.runHealthCheck(th.Context, svc))
 		assert.NotEmpty(t, listHealthFindings(t, th))
 	})
 }
 
 func TestRunHealthCheckConcurrent(t *testing.T) {
-	th := setupHealthCheck(t, true)
+	th, svc := setupHealthCheck(t, true)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	var wg sync.WaitGroup
 	for range 2 {
 		wg.Go(func() {
-			assert.NoError(t, th.App.RunHealthCheck(th.Context))
+			assert.NoError(t, th.App.runHealthCheck(th.Context, svc))
 		})
 	}
 	wg.Wait()
@@ -227,10 +227,10 @@ func TestRunHealthCheckConcurrent(t *testing.T) {
 }
 
 func TestRunHealthCheckStableAcrossCycles(t *testing.T) {
-	th := setupHealthCheck(t, true)
+	th, svc := setupHealthCheck(t, true)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
-	require.NoError(t, th.App.RunHealthCheck(th.Context))
+	require.NoError(t, th.App.runHealthCheck(th.Context, svc))
 	first := listHealthFindings(t, th)
 	require.Len(t, first, 2)
 	for _, finding := range first {
@@ -244,7 +244,7 @@ func TestRunHealthCheckStableAcrossCycles(t *testing.T) {
 	_, err := io.Copy(io.Discard, th.LogBuffer)
 	require.NoError(t, err)
 
-	require.NoError(t, th.App.RunHealthCheck(th.Context))
+	require.NoError(t, th.App.runHealthCheck(th.Context, svc))
 	second := listHealthFindings(t, th)
 
 	require.NoError(t, th.TestLogger.Flush())

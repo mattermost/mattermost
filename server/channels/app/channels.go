@@ -101,8 +101,6 @@ type Channels struct {
 	postReminderTask  leaderTask
 	scheduledPostTask leaderTask
 
-	healthCheckOnce sync.Once
-	healthCheck     *HealthCheckService
 	healthCheckTask leaderTask
 
 	interruptQuitChan chan struct{}
