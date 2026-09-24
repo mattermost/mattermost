@@ -177,8 +177,7 @@ type FeatureFlags struct {
 	PostDeliveryTracking bool
 
 	// HealthDashboard replaces the Workspace Optimization dashboard with the rules-driven
-	// Health Dashboard. Off by default: it has no badge or notification yet, so admins
-	// opt in deliberately and navigate to the page themselves.
+	// Health Dashboard. Off by default.
 	HealthDashboard bool
 }
 
