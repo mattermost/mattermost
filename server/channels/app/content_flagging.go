@@ -666,7 +666,7 @@ func (a *App) PermanentDeletePostDataRetainStub(rctx request.CTX, post *model.Po
 	// 7. Hard delete post reminders - missing
 	// 8. Scrub the post's content - message, props - missing
 
-	editHistories, appErr := a.GetEditHistoryForPost(post.Id)
+	editHistories, appErr := a.getEditHistoryForPostUnrestricted(rctx, post.Id)
 	if appErr != nil {
 		if appErr.StatusCode != http.StatusNotFound {
 			rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to get edit history for post", mlog.Err(appErr), mlog.String("post_id", post.Id))
