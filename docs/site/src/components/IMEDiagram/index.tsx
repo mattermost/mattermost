@@ -36,9 +36,15 @@ function CellIcon({iconSrc, icon, alt}: {iconSrc?: string; icon?: IconName; alt?
 function Cell({data}: {data: CellData}) {
   const isSideBySide = data.bodyLayout === 'side-by-side' && data.logos;
 
-  const textBlock = (data.body || data.bullets) && (
+  const textBlock = (data.body || data.bullets || data.bodyLead) && (
     <div className={styles.cellText}>
-      {data.body}
+      {(data.bodyLead || data.body) && (
+        <span>
+          {data.bodyLead && <u className={styles.bodyLead}>{data.bodyLead}</u>}
+          {data.bodyLead && data.body ? ': ' : ''}
+          {data.body}
+        </span>
+      )}
       {data.bullets && (
         <ul>
           {data.bullets.map((b) => <li key={b}>{b}</li>)}

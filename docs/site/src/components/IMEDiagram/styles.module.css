@@ -183,6 +183,17 @@
   background: rgba(255, 255, 255, 0.03);
 }
 
+/* Applications tiles: center-align icon, title, and body copy to match
+ * the deck's Applications row. Scoped to this layer so Use Cases and
+ * Deployment cards keep their default left-aligned reading rhythm. */
+.layer_applications .cell {
+  align-items: center;
+  text-align: center;
+}
+.layer_applications .cellBody {
+  align-items: center;
+}
+
 /* === Intro column === */
 
 .intro {
@@ -376,6 +387,18 @@ a.cell:hover {
   font-size: 0.74rem;
   line-height: 1.4;
   color: var(--mm-text-secondary, var(--mm-text-primary));
+  /* Explicit normal weight so nothing inherits bold from surrounding
+   * markdown/`<strong>` contexts — only `.cellTitle` should be bold. */
+  font-weight: 400;
+}
+
+/* Underlined product name that leads each Applications tile body
+ * (e.g. "Channels" in "Channels: ChatOps and automation"), mirroring
+ * the source slide. Stays normal weight; the underline is the accent. */
+.bodyLead {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-weight: 400;
 }
 
 .cellText ul {

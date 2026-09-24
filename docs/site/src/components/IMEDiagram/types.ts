@@ -38,6 +38,13 @@ export type Logo = {
 /** A clickable card. `to` is optional so non-navigational cards can render as plain panels. */
 export type Cell = {
   title: string;
+  /**
+   * Optional leading term rendered underlined immediately before `body`
+   * (e.g. "Channels" in "Channels: ChatOps and automation"). Mirrors
+   * the deck's convention of underlining the product name inside each
+   * Applications tile.
+   */
+  bodyLead?: string;
   body?: string;
   bullets?: string[];
   /** Named icon rendered as SVG (from `icons.tsx`). */
