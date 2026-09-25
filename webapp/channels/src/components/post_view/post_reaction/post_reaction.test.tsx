@@ -76,4 +76,40 @@ describe('components/post_view/PostReaction', () => {
         expect(baseProps.actions.toggleReaction).toHaveBeenCalledWith('post_id_1', 'grinning');
         expect(baseProps.setShowEmojiPicker).toHaveBeenCalledWith(false);
     });
+
+    describe('channel_write_access policy', () => {
+        const withWriteDecision = (allowed: boolean) => ({
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                renderPermissions: {
+                    byResource: {
+                        channel: {
+                            [baseProps.channelId]: {
+                                channel_write_access: {allowed, evaluated: true, generation: 1},
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        test('should render the reaction button when the policy allows', () => {
+            renderWithContext(
+                <PostReaction {...baseProps}/>,
+                withWriteDecision(true),
+            );
+
+            expect(screen.getByTestId('post-reaction-emoji-icon')).toBeInTheDocument();
+        });
+
+        test('should not render the reaction button when the policy denies', () => {
+            renderWithContext(
+                <PostReaction {...baseProps}/>,
+                withWriteDecision(false),
+            );
+
+            expect(screen.queryByTestId('post-reaction-emoji-icon')).not.toBeInTheDocument();
+        });
+    });
 });

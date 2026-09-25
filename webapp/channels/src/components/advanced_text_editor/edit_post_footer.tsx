@@ -13,6 +13,7 @@ import {isSendOnCtrlEnter} from 'selectors/preferences';
 type Props = {
     onSave: () => void;
     onCancel?: () => void;
+    disabled?: boolean;
 };
 
 export default function EditPostFooter(props: Props) {
@@ -31,6 +32,7 @@ export default function EditPostFooter(props: Props) {
             <button
                 onClick={props.onSave}
                 className='save'
+                disabled={props.disabled}
             >
                 <FormattedMessage
                     id='edit_post.action_buttons.save'

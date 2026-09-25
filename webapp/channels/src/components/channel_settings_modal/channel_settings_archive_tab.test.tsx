@@ -27,6 +27,7 @@ jest.mock('utils/browser_history', () => ({
 jest.mock('mattermost-redux/selectors/entities/roles', () => ({
     haveITeamPermission: jest.fn().mockReturnValue(true),
     haveIChannelPermission: jest.fn().mockReturnValue(true),
+    haveISystemPermission: jest.fn().mockReturnValue(false),
     getRoles: jest.fn().mockReturnValue({}),
 }));
 
@@ -212,5 +213,28 @@ describe('ChannelSettingsArchiveTab', () => {
             // Clean up - remove the mock backdrop
             document.body.removeChild(mockBackdrop);
         }
+    });
+
+    describe('when the channel is read-only', () => {
+        // A channel_write_access denial. The tab stays visible so the modal is not empty,
+        // but archiving is a write and has to be refused.
+        it('disables the archive button and explains why', () => {
+            renderWithContext(
+                <ChannelSettingsArchiveTab
+                    {...baseProps}
+                    isReadOnly={true}
+                />,
+            );
+
+            expect(screen.getByText('Archive this channel').closest('button')).toBeDisabled();
+            expect(screen.getByText('Editing is restricted')).toBeInTheDocument();
+        });
+
+        it('leaves the archive button enabled otherwise', () => {
+            renderWithContext(<ChannelSettingsArchiveTab {...baseProps}/>);
+
+            expect(screen.getByText('Archive this channel').closest('button')).toBeEnabled();
+            expect(screen.queryByText('Editing is restricted')).not.toBeInTheDocument();
+        });
     });
 });

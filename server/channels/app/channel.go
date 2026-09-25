@@ -109,6 +109,7 @@ func (a *App) JoinDefaultChannels(rctx request.CTX, teamID string, user *model.U
 		message := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, "", nil, "")
 		message.Add("user_id", user.Id)
 		message.Add("team_id", channel.TeamId)
+		a.setupBroadcastHookForChannelReadAccess(channel.Id, message)
 		a.Publish(message)
 	}
 
@@ -2036,6 +2037,7 @@ func (a *App) AddUserToChannel(rctx request.CTX, user *model.User, channel *mode
 	message := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, "", map[string]bool{user.Id: true}, "")
 	message.Add("user_id", user.Id)
 	message.Add("team_id", channel.TeamId)
+	a.setupBroadcastHookForChannelReadAccess(channel.Id, message)
 	a.Publish(message)
 
 	userMessage := model.NewWebSocketEvent(model.WebsocketEventUserAdded, "", channel.Id, user.Id, nil, "")
@@ -2544,7 +2546,7 @@ func (a *App) GetAllChannelsCount(rctx request.CTX, opts model.ChannelSearchOpts
 }
 
 func (a *App) fillChannelPage(rctx request.CTX, userID string, offset, limit int, fetch func(offset, limit int) (model.ChannelList, error)) (model.ChannelList, error) {
-	if !a.channelReadAccessEnforcementActive() {
+	if !a.channelAccessEnforcementActive() {
 		return fetch(offset, limit)
 	}
 
@@ -3191,9 +3193,11 @@ func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 	message := model.NewWebSocketEvent(model.WebsocketEventUserRemoved, "", channel.Id, "", nil, "")
 	message.Add("user_id", userIDToRemove)
 	message.Add("remover_id", removerUserId)
+	a.setupBroadcastHookForChannelReadAccess(channel.Id, message)
 	a.Publish(message)
 
-	// because the removed user no longer belongs to the channel we need to send a separate websocket event
+	// because the removed user no longer belongs to the channel we need to send a separate websocket event.
+	// Not gated on channel_read_access: it is how their client drops the channel.
 	userMsg := model.NewWebSocketEvent(model.WebsocketEventUserRemoved, "", "", userIDToRemove, nil, "")
 	userMsg.Add("channel_id", channel.Id)
 	userMsg.Add("remover_id", removerUserId)
@@ -3678,7 +3682,7 @@ func (a *App) MarkTeamChannelsAndThreadsViewed(rctx request.CTX, teamID string, 
 	// Dropping a hidden channel here leaves its unread and mention counts intact, so
 	// they are waiting when access returns. times feeds the thread update, the
 	// websocket payload and the response, so filtering it covers all three.
-	if a.channelReadAccessEnforcementActive() {
+	if a.channelAccessEnforcementActive() {
 		channelsToView = a.FilterChannelIDsByReadAccess(rctx, userID, channelsToView)
 		channelsToClearPushNotifications = a.FilterChannelIDsByReadAccess(rctx, userID, channelsToClearPushNotifications)
 		for channelID := range times {

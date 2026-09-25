@@ -12,14 +12,18 @@ import {deleteChannel} from 'actions/views/channel';
 
 import ConfirmationModal from 'components/confirm_modal';
 
+import ChannelSettingsReadOnlyNotice from './channel_settings_read_only_notice';
+
 type ChannelSettingsArchiveTabProps = {
     channel: Channel;
     onHide: () => void;
+    isReadOnly?: boolean;
 };
 
 function ChannelSettingsArchiveTab({
     channel,
     onHide,
+    isReadOnly = false,
 }: ChannelSettingsArchiveTabProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -40,6 +44,7 @@ function ChannelSettingsArchiveTab({
 
     return (
         <div className='ChannelSettingsModal__archiveTab'>
+            {isReadOnly && <ChannelSettingsReadOnlyNotice/>}
             <FormattedMessage
                 id='channel_settings.archive.warning'
                 defaultMessage="Archiving a channel removes it from the user interface, but doesn't permanently delete the channel. New messages can't be posted to archived channels."
@@ -48,6 +53,7 @@ function ChannelSettingsArchiveTab({
                 type='button'
                 variant='destructive'
                 onClick={handleArchiveChannel}
+                disabled={isReadOnly}
                 id='channelSettingsArchiveChannelButton'
                 aria-label={`Archive channel ${channel.display_name}`}
             >

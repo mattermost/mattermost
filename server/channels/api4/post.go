@@ -1607,6 +1607,10 @@ func moveThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !requireChannelWriteAccessByID(c, sourcePost.ChannelId) || !requireChannelWriteAccessByID(c, moveThreadParams.ChannelId) {
+		return
+	}
+
 	err = c.App.MoveThread(c.AppContext, c.Params.PostId, sourcePost.ChannelId, moveThreadParams.ChannelId, user)
 	if err != nil {
 		c.Err = err
@@ -1998,6 +2002,10 @@ func burnPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			c.Err = err
 		}
+		return
+	}
+
+	if !requireChannelWriteAccessByID(c, post.ChannelId) {
 		return
 	}
 

@@ -1806,7 +1806,7 @@ func (a *App) GetPostThread(rctx request.CTX, postID string, opts model.GetPosts
 // is filled or the store runs dry. A short page would otherwise tell the client it had
 // reached the end, hiding every saved post past the first denied one.
 func (a *App) fillFlaggedPostPage(rctx request.CTX, userID string, offset, limit int, fetch func(offset, limit int) (*model.PostList, error)) (*model.PostList, error) {
-	if !a.channelReadAccessEnforcementActive() {
+	if !a.channelAccessEnforcementActive() {
 		return fetch(offset, limit)
 	}
 
@@ -2602,7 +2602,7 @@ func (a *App) SearchPostsForUser(rctx request.CTX, terms string, userID string, 
 		return nil, false, appErr
 	}
 
-	if !a.channelReadAccessEnforcementActive() {
+	if !a.channelAccessEnforcementActive() {
 		return postSearchResults, allPostHaveMembership, nil
 	}
 
