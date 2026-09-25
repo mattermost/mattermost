@@ -10,7 +10,10 @@
 // Stage: @prod
 // Group: @channels @notifications
 
-import {changeDesktopNotificationAs} from './helper';
+import {
+    changeDesktopNotificationAs,
+    changeTeammateNameDisplayAs,
+} from './helper';
 
 import * as MESSAGES from '@/fixtures/messages';
 import * as TIMEOUTS from '@/fixtures/timeouts';
