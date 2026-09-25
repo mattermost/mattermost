@@ -107,10 +107,15 @@
         font-style: italic;
     }
 
+    // The chip centers its children, so this control would be only as tall as
+    // its 12px glyph and both the hover wash and the hit target would read as a
+    // strip through the middle of the chip. Stretching spans the chip's height.
     &__chip-remove {
         display: flex;
         align-items: center;
+        align-self: stretch;
         padding: 0 4px;
+        border-radius: 0 4px 4px 0;
         cursor: pointer;
 
         &:hover {
