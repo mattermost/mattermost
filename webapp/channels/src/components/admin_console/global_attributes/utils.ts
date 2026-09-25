@@ -48,6 +48,9 @@ export function syncUserAttributeFieldUpsert(dispatch: Dispatch, field: Property
             }
             commitGraphOptionNames(field.id, names);
         }
+        // Withheld lists leave the cache empty. User Detail and the profile
+        // popover pass {walk: true}; Account Settings shows a count until an
+        // editable picker mounts and must not walk from this helper.
     }
     dispatch({
         type: created ? GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_CREATED : GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED,
