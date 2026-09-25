@@ -7,9 +7,9 @@ title: "Migrate from Slack"
 
 Mattermost provides a migration path from Slack so you can bring collaboration history into a self-hosted Mattermost environment. The recommended flow is:
 
-1. [Prepare your Mattermost environment](#1-prepare-your-mattermost-environment).
-2. [Export data from Slack](#2-export-your-data-from-slack) using Slack’s tools and documentation. Identify whether you have a single-workspace or Enterprise Grid export.
-3. [Review what migrates and what does not](#what-migrates--what-doesnt).
+1. [Understand Slack to Mattermost feature mapping](#what-migrates--what-doesnt) so you can plan for migration gaps.
+2. [Prepare your Mattermost environment](#2-prepare-your-mattermost-environment).
+3. [Export data from Slack](#3-export-your-data-from-slack) using Slack’s tools and documentation. Identify whether you have a single-workspace or Enterprise Grid export.
 4. [Transform the Slack export into a Mattermost bulk import package with `mmetl`](#4-transform-the-export-with-mmetl).
    - For Enterprise Grid, split the export with `grid-transform` first. Run `transform slack --dry-run` before the full transform, which produces a JSONL file and `data/` attachments directory.
 5. [Handle multiple exports](#5-handle-multiple-exports), if applicable.
@@ -25,7 +25,98 @@ Consider [talking to a Mattermost expert](https://mattermost.com/contact-sales/)
 
 </Note>
 
-## 1. Prepare your Mattermost environment
+## 1. Understand Slack to Mattermost feature mapping \{#what-migrates--what-doesnt}
+
+The Slack path focuses on core collaboration data: posts, threads, reactions, file attachments, users, and channels. Bot users and bot messages also migrate when you configure `--bot-owner`. Slash commands, workflows, webhooks, and other integrations do not migrate and must be rebuilt in Mattermost.
+
+For basic content (posts, reactions, threads, attachments, and users), expect better than about 70% fidelity (often higher), excluding integrations.
+
+### Channels and conversations
+
+| Content type | Migrates? | Notes |
+| --- | --- | --- |
+| Public / private channels | Yes | Archived Slack channels import as archived when timestamps are available |
+| 1:1 DMs | Yes | Map directly to Mattermost direct messages |
+| Multi-party DMs (MPIMs) | Yes (converted) | Up to 8 members become Mattermost Group Messages; larger groups become private channels |
+| Slack Connect | No | Not migrated as Connect. `mmetl` does not detect or skip these channels; if present in the export they may import as ordinary channels without external org members. For Mattermost interoperability afterward, see [Connected workspaces](/administration-guide/onboard/connected-workspaces) |
+| Starred conversations | No | |
+
+### Posts and content
+
+| Content type | Migrates? | Notes |
+| --- | --- | --- |
+| Posts and threads | Yes | Most message types and thread replies migrate; some unsupported Slack subtypes are skipped, and some thread relationships may not be preserved |
+| File attachments | Yes | Included unless you pass `--skip-attachments`. Oversized messages split into replies; more than five attachments on a post overflow into additional replies |
+| Reactions | Yes | Stored by emoji name. Custom emoji **images** are not imported automatically (see [Custom emoji](#custom-emoji)) |
+| Channel mentions (embedded) | Best effort | Slack `<#CHANNEL_ID>` mentions become Mattermost `~channel` mentions when the channel is in the export |
+| Links to specific posts | Preserved as-is | Original Slack URLs kept; they work while Slack remains accessible |
+| External links | Preserved as-is | |
+| Custom emoji images | No (separate step) | `mmetl` does not import emoji images; recreate or bulk-import with matching names (see [Custom emoji](#custom-emoji)) |
+| Emoji skin tone modifiers | No | Stripped (for example `+1::skin-tone-3` to `+1`) |
+| Canvases | No | |
+
+### Users and bots
+
+| Content type | Migrates? | Notes |
+| --- | --- | --- |
+| Users | Yes | Created by the import. Missing emails: see [User emails](#user-emails). Guests: see [Guest users](#guest-users) |
+| Deactivated or deleted Slack users | Yes | Imported as deactivated Mattermost users (`DeleteAt` set), including public/private channel memberships |
+| Bots | Yes | Requires `--bot-owner <MATTERMOST_USERNAME>` on `mmetl transform slack` |
+| User groups | No | Recreate with [Custom Groups](/end-user-guide/collaborate/organize-using-custom-user-groups) |
+| Presence, profile pictures, custom profile fields | No | Name, email, and title/position migrate; images and presence do not |
+
+### Integrations
+
+| Content type | Migrates? | Notes |
+| --- | --- | --- |
+| Slash commands / workflows / webhooks | No | Rebuild with [Mattermost integrations](/integrations-guide/integrations-guide-index) |
+
+### Custom emoji \{#custom-emoji}
+
+`mmetl` does **not** import Slack custom emoji images or definitions. Reaction names are still attached to posts in the bulk import file, so those reactions are present on the imported posts but stay invisible until matching custom emoji are created on the Mattermost server.
+
+- Standard/system emoji reactions (for example `thumbsup`, `heart`) work without extra setup.
+- Custom emoji reactions are stored by name only (for example `shipit`, without surrounding colons). Bulk import saves those reactions even if the custom emoji does not exist yet.
+- Until a custom emoji with that name exists in Mattermost, the reaction does not render in the UI (no image is shown). After you add a matching custom emoji, historical reactions appear automatically because the client resolves emoji by name at display time.
+- Custom emoji names in Mattermost are lowercase (`alphanumeric`, `_`, `-`, `+`). Recreate Slack custom emoji using the same base name.
+- Skin-tone and similar modifiers are not preserved. `mmetl` strips Slack names at `::` (for example `+1::skin-tone-3` becomes `+1`).
+- Add custom emoji after (or before) message import via the [custom emoji UI](/end-user-guide/collaborate/react-with-emojis-gifs#upload-custom-emojis), or include [`emoji` objects](/administration-guide/onboard/bulk-loading-data#emoji-object) in a bulk import package (emoji lines must appear after the version line and before team lines). Enable custom emoji in System Console if needed: [Enable custom emoji](/administration-guide/configure/site-configuration-settings#enable-custom-emoji).
+
+### Guest users \{#guest-users}
+
+Slack marks guests with `is_restricted` (multi-channel guest) or `is_ultra_restricted` (single-channel guest; Slack also sets `is_restricted` on those accounts). Control how `mmetl` migrates them with `mmetl transform slack --guest-handling`:
+
+| Mode | Behavior |
+| --- | --- |
+| `guest` (default; or omit the flag) | Export them as Mattermost guests (`system_guest` / `team_guest` / `channel_guest`). For correct guest behavior, the destination server needs Guest Accounts [enabled](/administration-guide/configure/authentication-configuration-settings#enable-guest-access) and licensed (see [guest accounts](/administration-guide/onboard/guest-accounts)). Without that, the import can still succeed, but the accounts will not behave as guests; use `user` mode instead. |
+| `user` | Export them as regular Mattermost users (full member permissions). |
+| `skip` | Drop guest users entirely, along with their memberships, authored posts, and reactions. |
+
+Additional behavior in `guest` mode:
+
+- Guests are added only to the **public and private channels** they belonged to in the Slack export. Mattermost scopes guest access through those memberships; guests cannot freely discover or join other channels, so Slack’s channel-scoped access is effectively preserved.
+- A guest with **no** public or private channel membership (for example, present only in a DM or MPIM) cannot be imported as a Mattermost guest. `mmetl` **skips** that user and drops their memberships and authored posts/reactions, and logs a warning. Use `--guest-handling=user` to import those accounts as regular members instead.
+- On later bulk imports, Mattermost matches existing users by username, so the same guest is updated rather than duplicated; additional channel memberships from a later batch can be applied on re-import.
+
+### User emails \{#user-emails}
+
+If a Slack user has no email in the export, `mmetl transform slack` does not invent an address by default. Without one of the flags below, transform exits with an error naming that user.
+
+| Transform choice | JSONL edit needed? |
+| --- | --- |
+| Neither flag (transform fails) | No: fix the Slack export or re-run with a flag |
+| `--default-email-domain <DOMAIN>` | Optional: only if the synthesized `username@DOMAIN` addresses are wrong or temporary |
+| `--skip-empty-emails` | **Required**: blank emails fail Mattermost import validation; set a real email on each affected `user` line |
+| Placeholder users with `@local` (user ID missing from `users.json`) | Recommended: replace `<userid>@local` with real addresses before import |
+
+**Flags**
+
+- `--default-email-domain <DOMAIN>`: sets missing emails to `username@<DOMAIN>` (for example `--default-email-domain example.com` yields `jane@example.com`). Prefer your organization domain when possible.
+- `--skip-empty-emails`: leaves the email blank and keeps the user in the JSONL.
+
+Search the JSONL for your `--default-email-domain` value or `@local`, correct addresses, then re-validate with `mmctl import validate`. If you leave temporary placeholders in place, update those users in Mattermost after import.
+
+## 2. Prepare your Mattermost environment
 
 This guide assumes you already have a Mattermost Server ready to accept data. If not, use the [deployment documentation](/deployment-guide/server/deploy-server#deployment-options) together with the guidance below to make informed decisions about your database and file storage infrastructure.
 
@@ -59,7 +150,7 @@ This guide assumes you already have a Mattermost Server ready to accept data. If
   - [`ElasticsearchSettings.EnableIndexing`](/administration-guide/configure/environment-configuration-settings#enable-elasticsearch-indexing), [`EnableSearching`](/administration-guide/configure/environment-configuration-settings#enable-elasticsearch-for-search-queries), and [`EnableAutocomplete`](/administration-guide/configure/environment-configuration-settings#enable-elasticsearch-for-autocomplete-queries): set to `false` during import. Purge and reindex after import if you use Elasticsearch.
 - **Guest Accounts**: If you will keep Slack guests as Mattermost guests (default `mmetl` behavior), ensure Guest Accounts are licensed and [enabled](/administration-guide/configure/authentication-configuration-settings#enable-guest-access) ([`GuestAccountsSettings.Enable`](/administration-guide/configure/authentication-configuration-settings#enable-guest-access)).
 
-## 2. Export your data from Slack
+## 3. Export your data from Slack
 
 Mattermost does not export data from Slack for you. Use Slack’s own export tools and documentation:
 
@@ -127,8 +218,7 @@ Slack Enterprise Grid combines multiple workspaces in one management plane. The 
 - Slack **workspaces** roughly correspond to Mattermost **teams**.
 - Channels in Grid belong to individual workspaces. Shared channels across workspaces must be mapped to a **single** Mattermost team. Mattermost does not support shared channels between teams the way Slack does.
 - For most customers, importing into **one Mattermost team** is simplest. Use **multiple teams** only when you intentionally want workspace separation.
-- Multi-party DMs need special attention; see [Direct messages and multi-party DMs](#direct-messages-and-multi-party-dms). Org-wide DMs that span workspaces are assigned to a single team, and cross-workspace participants import as placeholder accounts; see [What happens to org-wide DMs in an Enterprise Grid export?](#org-wide-dms).
-- **Slack Connect** channels are not migrated as Connect. `mmetl` has no Connect-specific handling; if a Connect channel appears in the export it may transform as an ordinary channel with only your workspace’s members, without external org participants. For cross-organization collaboration in Mattermost after migration, see [Connected workspaces](/administration-guide/onboard/connected-workspaces). See also [What migrates](#what-migrates--what-doesnt).
+- Org-wide DMs that span workspaces are assigned to a single team, and cross-workspace participants import as placeholder accounts; see [What happens to org-wide DMs in an Enterprise Grid export?](#org-wide-dms).
 
 **Typical Grid layout**
 
@@ -163,88 +253,6 @@ Enterprise Grid Export/
 ```
 
 Shared channels often appear at the root; per-workspace data lives under `/teams/`. Grid migrations usually take more time because of manual team mapping. See [Transform an Enterprise Grid export](#transform-an-enterprise-grid-export-optional).
-
-## 3. What migrates / What doesn’t \{#what-migrates--what-doesnt}
-
-The Slack path focuses on core collaboration data: posts, threads, reactions, file attachments, users, and channels. Bot users and bot messages also migrate when you configure `--bot-owner`. Slash commands, workflows, webhooks, and other integrations do not migrate and must be rebuilt in Mattermost.
-
-For basic content (posts, reactions, threads, attachments, and users), expect better than about 70% fidelity (often higher), excluding integrations.
-
-| Content type | Migrates? | Notes |
-| --- | --- | --- |
-| Posts and threads | Yes | Most message types and thread replies migrate; some unsupported Slack subtypes are skipped, and some thread relationships may not be preserved |
-| File attachments | Yes | Included unless you pass `--skip-attachments`. Oversized messages split into replies; more than five attachments on a post overflow into additional replies |
-| Reactions | Yes | Stored by emoji name. Custom emoji **images** are not imported automatically (see [Custom emoji](#custom-emoji)) |
-| Users | Yes | Created by the import. Missing emails: see [User emails](#user-emails). Guests: see [Guest users](#guest-users) |
-| Deactivated or deleted Slack users | Yes | Imported as deactivated Mattermost users (`DeleteAt` set), including public/private channel memberships |
-| Public / private channels | Yes | Archived Slack channels import as archived when timestamps are available |
-| Multi-party DMs | Yes (converted) | Become Mattermost Group Messages (see [Direct messages and multi-party DMs](#direct-messages-and-multi-party-dms)) |
-| 1:1 DMs | Yes | Map directly to Mattermost direct messages |
-| Bots | Yes | Requires `--bot-owner <MATTERMOST_USERNAME>` on `mmetl transform slack` |
-| Channel mentions (embedded) | Best effort | Slack `<#CHANNEL_ID>` mentions become Mattermost `~channel` mentions when the channel is in the export |
-| Links to specific posts | Preserved as-is | Original Slack URLs kept; they work while Slack remains accessible |
-| External links | Preserved as-is | |
-| Slash commands / workflows / webhooks | No | Rebuild with [Mattermost integrations](/integrations-guide/integrations-guide-index) |
-| Slack Connect | No | Not migrated as Connect. `mmetl` does not detect or skip these channels; if present in the export they may import as ordinary channels without external org members. For Mattermost interoperability afterward, see [Connected workspaces](/administration-guide/onboard/connected-workspaces) |
-| Custom emoji images | No (separate step) | `mmetl` does not import emoji images; recreate or bulk-import with matching names (see [Custom emoji](#custom-emoji)) |
-| Emoji skin tone modifiers | No | Stripped (for example `+1::skin-tone-3` to `+1`) |
-| Starred conversations | No | |
-| User groups | No | Recreate with [Custom Groups](/end-user-guide/collaborate/organize-using-custom-user-groups) |
-| Canvases | No | |
-| Presence, profile pictures, custom profile fields | No | Name, email, and title/position migrate; images and presence do not |
-
-### Direct messages and multi-party DMs \{#direct-messages-and-multi-party-dms}
-
-Mattermost does not use Slack’s "multi-party DM" terminology.
-
-- **1:1 DMs** map to Mattermost direct messages and behave the same way.
-- **Multi-party DMs (MPIMs)** become **Group Messages**: a conversation scoped to those members. Functionally equivalent for most teams; the product label differs.
-- MPIMs larger than Mattermost’s group-channel limit (8 members) are converted to **private channels** so the history can still import.
-
-### Custom emoji \{#custom-emoji}
-
-`mmetl` does **not** import Slack custom emoji images or definitions. Reaction names are still attached to posts in the bulk import file, so those reactions are present on the imported posts but stay invisible until matching custom emoji are created on the Mattermost server.
-
-- Standard/system emoji reactions (for example `thumbsup`, `heart`) work without extra setup.
-- Custom emoji reactions are stored by name only (for example `shipit`, without surrounding colons). Bulk import saves those reactions even if the custom emoji does not exist yet.
-- Until a custom emoji with that name exists in Mattermost, the reaction does not render in the UI (no image is shown). After you add a matching custom emoji, historical reactions appear automatically because the client resolves emoji by name at display time.
-- Custom emoji names in Mattermost are lowercase (`alphanumeric`, `_`, `-`, `+`). Recreate Slack custom emoji using the same base name.
-- Skin-tone and similar modifiers are not preserved. `mmetl` strips Slack names at `::` (for example `+1::skin-tone-3` becomes `+1`).
-- Add custom emoji after (or before) message import via the [custom emoji UI](/end-user-guide/collaborate/react-with-emojis-gifs#upload-custom-emojis), or include [`emoji` objects](/administration-guide/onboard/bulk-loading-data#emoji-object) in a bulk import package (emoji lines must appear after the version line and before team lines). Enable custom emoji in System Console if needed: [Enable custom emoji](/administration-guide/configure/site-configuration-settings#enable-custom-emoji).
-
-### Guest users \{#guest-users}
-
-Slack marks guests with `is_restricted` (multi-channel guest) or `is_ultra_restricted` (single-channel guest; Slack also sets `is_restricted` on those accounts). Control how `mmetl` migrates them with `mmetl transform slack --guest-handling`:
-
-| Mode | Behavior |
-| --- | --- |
-| `guest` (default; or omit the flag) | Export them as Mattermost guests (`system_guest` / `team_guest` / `channel_guest`). For correct guest behavior, the destination server needs Guest Accounts [enabled](/administration-guide/configure/authentication-configuration-settings#enable-guest-access) and licensed (see [guest accounts](/administration-guide/onboard/guest-accounts)). Without that, the import can still succeed, but the accounts will not behave as guests; use `user` mode instead. |
-| `user` | Export them as regular Mattermost users (full member permissions). |
-| `skip` | Drop guest users entirely, along with their memberships, authored posts, and reactions. |
-
-Additional behavior in `guest` mode:
-
-- Guests are added only to the **public and private channels** they belonged to in the Slack export. Mattermost scopes guest access through those memberships; guests cannot freely discover or join other channels, so Slack’s channel-scoped access is effectively preserved.
-- A guest with **no** public or private channel membership (for example, present only in a DM or MPIM) cannot be imported as a Mattermost guest. `mmetl` **skips** that user and drops their memberships and authored posts/reactions, and logs a warning. Use `--guest-handling=user` to import those accounts as regular members instead.
-- On later bulk imports, Mattermost matches existing users by username, so the same guest is updated rather than duplicated; additional channel memberships from a later batch can be applied on re-import.
-
-### User emails \{#user-emails}
-
-If a Slack user has no email in the export, `mmetl transform slack` does not invent an address by default. Without one of the flags below, transform exits with an error naming that user.
-
-| Transform choice | JSONL edit needed? |
-| --- | --- |
-| Neither flag (transform fails) | No: fix the Slack export or re-run with a flag |
-| `--default-email-domain <DOMAIN>` | Optional: only if the synthesized `username@DOMAIN` addresses are wrong or temporary |
-| `--skip-empty-emails` | **Required**: blank emails fail Mattermost import validation; set a real email on each affected `user` line |
-| Placeholder users with `@local` (user ID missing from `users.json`) | Recommended: replace `<userid>@local` with real addresses before import |
-
-**Flags**
-
-- `--default-email-domain <DOMAIN>`: sets missing emails to `username@<DOMAIN>` (for example `--default-email-domain example.com` yields `jane@example.com`). Prefer your organization domain when possible.
-- `--skip-empty-emails`: leaves the email blank and keeps the user in the JSONL.
-
-Search the JSONL for your `--default-email-domain` value or `@local`, correct addresses, then re-validate with `mmctl import validate`. If you leave temporary placeholders in place, update those users in Mattermost after import.
 
 ## 4. Transform the export with mmetl
 
@@ -553,10 +561,6 @@ Package with `mmetl`, copy the zip to the Mattermost server, and use `mmctl impo
 
 Channel mentions are translated to Mattermost `~channel` form when possible. Links to specific Slack posts remain Slack URLs and work while Slack is accessible.
 
-### How are multi-party DMs represented in Mattermost?
-
-They become Group Messages (or private channels if over the group size limit). See [Direct messages and multi-party DMs](#direct-messages-and-multi-party-dms).
-
 ### What happens to org-wide DMs in an Enterprise Grid export? \{#org-wide-dms}
 
 `mmetl grid-transform` has no special handling for org-wide conversations. Root-level `dms.json` and `mpims.json` entries follow the same path as every other conversation: `grid-transform` reads the conversation's post files and assigns the whole conversation to the workspace named on the first post that carries a `team` field. A DM that spans two workspaces therefore lands in exactly **one** Mattermost team — it is never split across teams or duplicated into both. Two consequences to plan for:
@@ -580,4 +584,4 @@ Use `mmetl grid-transform` to split the archive, then transform each workspace a
 
 ### Are there features of Slack that are not supported?
 
-See [What migrates / What doesn’t](#what-migrates--what-doesnt). Core collaboration data can be migrated subject to that table; apps, workflows, and similar integrations must be rebuilt using [Mattermost integrations](/integrations-guide/integrations-guide-index).
+See [Slack to Mattermost feature mapping](#what-migrates--what-doesnt). Core collaboration data can be migrated subject to those tables; apps, workflows, and similar integrations must be rebuilt using [Mattermost integrations](/integrations-guide/integrations-guide-index).
