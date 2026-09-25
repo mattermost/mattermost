@@ -131,10 +131,15 @@ export default class SessionAttributes {
         const option = this.page.getByTestId(`session-attribute-${kind}-option-${fieldId}-${seconds}`);
 
         await expect(async () => {
-            await this.page.keyboard.press('Escape');
-            await expect(this.dotMenu(fieldId)).toBeHidden({timeout: 2000});
+            // Reuse an already-open row menu. Escape-then-reopen races when the
+            // submenu is mid-transition: toBeHidden fails while it is still
+            // visible, and a fresh click then stacks a second popover.
+            if (!(await this.dotMenu(fieldId).isVisible())) {
+                await this.page.keyboard.press('Escape');
+                await expect(this.dotMenu(fieldId)).toBeHidden({timeout: 5000});
+                await this.dotMenuButton(fieldId).click();
+            }
 
-            await this.dotMenuButton(fieldId).click();
             await expect(trigger).toBeVisible({timeout: 2000});
             await trigger.press('ArrowRight');
             await expect(option).toBeVisible({timeout: 2000});
