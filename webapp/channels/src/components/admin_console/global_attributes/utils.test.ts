@@ -754,7 +754,7 @@ describe('global_attributes/utils', () => {
                 object_type: 'user',
                 type: 'graph',
                 attrs: {options: [{id: 'option_id_1', name: 'BOREALIS'}, {id: 'option_id_2', name: 'CIRRUS'}]},
-            } as PropertyField;
+            } as unknown as PropertyField;
 
             syncUserAttributeFieldUpsert(dispatch, field, false);
 
@@ -773,7 +773,7 @@ describe('global_attributes/utils', () => {
                 object_type: 'user',
                 type: 'graph',
                 attrs: {options_omitted: true},
-            } as PropertyField;
+            } as unknown as PropertyField;
 
             syncUserAttributeFieldUpsert(dispatch, field, false);
 
@@ -802,7 +802,7 @@ describe('global_attributes/utils', () => {
                 object_type: objectType,
                 type: 'graph',
                 attrs: {options: [{id: 'option_id_1', name: 'BOREALIS'}]},
-            } as PropertyField;
+            } as unknown as PropertyField;
 
             syncUserAttributeFieldUpsert(dispatch, field, false);
 
