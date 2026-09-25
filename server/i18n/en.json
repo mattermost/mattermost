@@ -3279,10 +3279,6 @@
     "translation": "Cannot update post in restricted direct message channel."
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Unable to find the existing post or comment to update."
-  },
-  {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "Already deleted id={{.PostId}}."
   },
