@@ -78,23 +78,24 @@ var hubSemaphoreCount = runtime.NumCPU() * 4
 type Hub struct {
 	// connectionCount should be kept first.
 	// See https://github.com/mattermost/mattermost-server/pull/7281
-	connectionCount int64
-	platform        *PlatformService
-	connectionIndex int
-	register        chan *webConnRegisterMessage
-	unregister      chan *WebConn
-	broadcast       chan *model.WebSocketEvent
-	stop            chan struct{}
-	didStop         chan struct{}
-	invalidateUser  chan string
-	invalidateAll   chan struct{}
-	activity        chan *webConnActivityMessage
-	directMsg       chan *webConnDirectMessage
-	explicitStop    bool
-	checkRegistered chan *webConnSessionMessage
-	checkConn       chan *webConnCheckMessage
-	connCount       chan *webConnCountMessage
-	broadcastHooks  map[string]BroadcastHook
+	connectionCount    int64
+	platform           *PlatformService
+	connectionIndex    int
+	register           chan *webConnRegisterMessage
+	unregister         chan *WebConn
+	broadcast          chan *model.WebSocketEvent
+	stop               chan struct{}
+	didStop            chan struct{}
+	invalidateUser     chan string
+	invalidateAll      chan struct{}
+	invalidateAllCache chan struct{}
+	activity           chan *webConnActivityMessage
+	directMsg          chan *webConnDirectMessage
+	explicitStop       bool
+	checkRegistered    chan *webConnSessionMessage
+	checkConn          chan *webConnCheckMessage
+	connCount          chan *webConnCountMessage
+	broadcastHooks     map[string]BroadcastHook
 
 	// Hub-specific semaphore for limiting concurrent goroutines
 	hubSemaphore chan struct{}
@@ -103,20 +104,21 @@ type Hub struct {
 // newWebHub creates a new Hub.
 func newWebHub(ps *PlatformService) *Hub {
 	return &Hub{
-		platform:        ps,
-		register:        make(chan *webConnRegisterMessage),
-		unregister:      make(chan *WebConn),
-		broadcast:       make(chan *model.WebSocketEvent, broadcastQueueSize),
-		stop:            make(chan struct{}),
-		didStop:         make(chan struct{}),
-		invalidateUser:  make(chan string),
-		invalidateAll:   make(chan struct{}),
-		activity:        make(chan *webConnActivityMessage),
-		directMsg:       make(chan *webConnDirectMessage),
-		checkRegistered: make(chan *webConnSessionMessage),
-		checkConn:       make(chan *webConnCheckMessage),
-		connCount:       make(chan *webConnCountMessage),
-		hubSemaphore:    make(chan struct{}, hubSemaphoreCount),
+		platform:           ps,
+		register:           make(chan *webConnRegisterMessage),
+		unregister:         make(chan *WebConn),
+		broadcast:          make(chan *model.WebSocketEvent, broadcastQueueSize),
+		stop:               make(chan struct{}),
+		didStop:            make(chan struct{}),
+		invalidateUser:     make(chan string),
+		invalidateAll:      make(chan struct{}),
+		invalidateAllCache: make(chan struct{}),
+		activity:           make(chan *webConnActivityMessage),
+		directMsg:          make(chan *webConnDirectMessage),
+		checkRegistered:    make(chan *webConnSessionMessage),
+		checkConn:          make(chan *webConnCheckMessage),
+		connCount:          make(chan *webConnCountMessage),
+		hubSemaphore:       make(chan struct{}, hubSemaphoreCount),
 	}
 }
 
@@ -475,6 +477,15 @@ func (h *Hub) InvalidateAll() {
 	}
 }
 
+// InvalidateAllCache is like InvalidateAll but keeps session tokens, so
+// each WebConn reloads its session on next use.
+func (h *Hub) InvalidateAllCache() {
+	select {
+	case h.invalidateAllCache <- struct{}{}:
+	case <-h.stop:
+	}
+}
+
 // UpdateActivity sets the LastUserActivityAt field for the connection
 // of the user.
 func (h *Hub) UpdateActivity(userID, sessionToken string, activityAt int64) {
@@ -687,6 +698,10 @@ func (h *Hub) Start() {
 				}
 				if *h.platform.Config().ServiceSettings.EnableWebHubChannelIteration {
 					connIndex.clearChannels()
+				}
+			case <-h.invalidateAllCache:
+				for webConn := range connIndex.All() {
+					webConn.InvalidateCache()
 				}
 			case activity := <-h.activity:
 				for webConn := range connIndex.ForUser(activity.userID) {
