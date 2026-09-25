@@ -5,26 +5,6 @@ name: docs-ime-render
 # component, its content, its render script, or the assets it uses.
 # The fresh PNG is committed back to the PR's own branch, so the author
 # sees it in their diff and it lands via the same merge as the code.
-#
-# The live docs site renders `<IMEDiagram />` at page-view time — this
-# PNG exists only for external use (marketing decks, PR descriptions,
-# emails, GitHub issues) where a live React component can't be
-# embedded. Being shipped by docs-cd means it lives at the stable URL
-# https://docs.mattermost.com/img/ime/entadv.png, which survives
-# branch deletion (unlike raw.githubusercontent.com feature-branch
-# links).
-#
-# Why PR CI and not a master-triggered job:
-#   - Master is protected by org rulesets that reject direct pushes
-#     from the default GITHUB_TOKEN (bypass list is admins + a single
-#     integration app), so a post-merge auto-commit to master is not
-#     possible without provisioning a new GitHub App.
-#   - Pushing to the PR's own branch is unrestricted (contents: write
-#     on the built-in token is enough) and makes the PNG part of the
-#     normal review + merge flow.
-#
-# Trigger paths intentionally exclude the PNG output itself so that
-# the auto-commit does not re-fire this workflow on itself.
 
 on:
   pull_request:
