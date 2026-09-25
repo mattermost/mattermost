@@ -180,21 +180,21 @@ test.describe('System Console - Session Attributes', () => {
      * prompt, and that Cancel reverts the staged change.
      */
     test('blocks navigation while dirty and reverts on cancel', {tag: '@session_attributes'}, async ({pw}) => {
-        const {systemConsolePage, fields} = await setupSessionAttributesTest(pw);
+        const {adminClient, systemConsolePage, fields} = await setupSessionAttributesTest(pw);
         const sa = systemConsolePage.sessionAttributes;
         const page = systemConsolePage.page;
 
         const field = findFieldByName(fields, 'ssid');
 
-        // # Navigate to Session Attributes page
+        // Stage dirtiness with Enable (one click) instead of the TTL submenu,
+        // which opens on hover and is racy under Playwright.
+        await patchSessionAttribute(adminClient, field.id, {enabled: false});
         await sa.goto();
+        await expect(sa.status(field.id)).toContainText('Disabled');
 
-        // # Capture the rendered TTL, then stage a different TTL (24h)
-        const beforeTtl = (await sa.ttl(field.id).textContent())?.trim() ?? '';
-        await sa.setTtlPreset(field.id, 86400);
+        await sa.enable(field.id);
 
-        // * Verify the edit is staged and Save is enabled
-        await expect(sa.ttl(field.id)).toHaveText('24h');
+        await expect(sa.status(field.id)).toContainText('Enabled');
         await expect(sa.saveButton).toBeEnabled();
 
         // # Attempt to navigate away via the sidebar while dirty
@@ -212,8 +212,7 @@ test.describe('System Console - Session Attributes', () => {
         // # Cancel the staged edit via the Save Changes panel
         await sa.cancel();
 
-        // * Verify the TTL reverted and Save returned to disabled
-        await expect(sa.ttl(field.id)).toHaveText(beforeTtl);
+        await expect(sa.status(field.id)).toContainText('Disabled');
         await expect(sa.saveButton).toBeDisabled();
     });
 
