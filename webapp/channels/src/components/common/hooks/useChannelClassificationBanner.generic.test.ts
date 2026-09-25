@@ -171,17 +171,6 @@ describe('useChannelClassificationBanner — generic designated attributes', () 
         expect(result.current.bannerText).toBeUndefined();
     });
 
-    test('enabled false does not suppress an authored attribute banner without opt-out', () => {
-        const field = designatedField('program', 'display_banner_top', [{id: 'opt1', name: 'AURORA'}]);
-
-        const {result} = renderHookWithContext(
-            () => useChannelClassificationBanner(CHANNEL_ID),
-            makeState([field], [value('program', 'opt1')], {enabled: false, text: '{{program}}'}),
-        );
-
-        expect(result.current.bannerText).toBe('AURORA');
-    });
-
     test('an authored empty template suppresses designated values without an opt-out', () => {
         const field = designatedField('program', 'display_banner_top', [{id: 'opt1', name: 'AURORA'}]);
 

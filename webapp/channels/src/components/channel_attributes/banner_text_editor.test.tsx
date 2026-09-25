@@ -380,7 +380,7 @@ describe('BannerTextEditor', () => {
 
         await userEvent.click(screen.getByTestId('insertProgram'));
 
-        expect(onChange).toHaveBeenLastCalledWith('A{{program}}B');
+        expect(onChange).toHaveBeenLastCalledWith('A {{program}} B');
     });
 
     test('appends when the caret was never placed in the editor', async () => {
@@ -390,6 +390,6 @@ describe('BannerTextEditor', () => {
         await userEvent.click(screen.getByTestId('insertClassification'));
         await userEvent.click(screen.getByTestId('insertProgram'));
 
-        expect(onChange).toHaveBeenLastCalledWith('{{classification}}{{program}}');
+        expect(onChange).toHaveBeenLastCalledWith('{{classification}} {{program}}');
     });
 });

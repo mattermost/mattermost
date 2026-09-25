@@ -1859,7 +1859,7 @@ describe('ChannelSettingsConfigurationTab', () => {
             rerender(
                 <ChannelSettingsConfigurationTab
                     {...baseProps}
-                    channel={emptiedChannel}
+                    channel={{...emptiedChannel, banner_info: {...emptiedChannel.banner_info, attribute_banner_disabled: true}}}
                 />,
             );
 

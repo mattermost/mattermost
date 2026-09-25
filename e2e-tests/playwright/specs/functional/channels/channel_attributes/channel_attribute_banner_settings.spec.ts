@@ -5,7 +5,10 @@ import type {PropertyField} from '@mattermost/types/properties';
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-import {deleteClassificationFieldsIfExist, setupClassificationWithChannelField} from '../channel_classification/helpers';
+import {
+    deleteClassificationFieldsIfExist,
+    setupClassificationWithChannelField,
+} from '../channel_classification/helpers';
 
 import {
     DISPLAY_BANNER_TOP,
