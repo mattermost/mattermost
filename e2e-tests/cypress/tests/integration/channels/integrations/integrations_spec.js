@@ -187,7 +187,7 @@ describe('Integrations page', () => {
         cy.visit(`/${testTeam.name}/channels/town-square`);
 
         // # Open product menu and click 'Integrations'
-        cy.uiOpenProductMenu('Integrations');
+        cy.uiOpenSwitchProductMenu('Integrations');
 
         cy.get('.integration-option__title').contains('Incoming Webhooks').click();
 
@@ -203,7 +203,7 @@ describe('Integrations page', () => {
         cy.visit(`/${testTeam.name}/channels/town-square`);
 
         // # Click 'Integrations' at product menu
-        cy.uiOpenProductMenu('Integrations');
+        cy.uiOpenSwitchProductMenu('Integrations');
 
         // * Verify we are at integrations page URL
         cy.url().should('include', '/integrations');
@@ -273,7 +273,7 @@ describe('Integrations page', () => {
         cy.visit(`/${testTeam.name}/channels/town-square`);
 
         // # Click 'Integrations' at product menu
-        cy.uiOpenProductMenu('Integrations');
+        cy.uiOpenSwitchProductMenu('Integrations');
 
         // * Verify we are at integrations page URL
         cy.url().should('include', '/integrations');
@@ -361,7 +361,7 @@ describe('Integrations page', () => {
         cy.visit(`/${testTeam.name}/channels/town-square`);
 
         // # Click 'Integrations' at product menu
-        cy.uiOpenProductMenu('Integrations');
+        cy.uiOpenSwitchProductMenu('Integrations');
 
         // * Verify we are at integrations page URL
         cy.url().should('include', '/integrations');

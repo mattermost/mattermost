@@ -156,70 +156,22 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		}
 	}
 
-	// Defense in depth: a team admin must remain within their own team policy's
-	// rules. The api4 handler enforces this for the request path, but guard here
-	// so any internal caller saving a team policy is held to the same invariant
-	// regardless of the masking flag. System admins and sessionless internal
-	// callers may intentionally set rules they don't match, mirroring the
-	// masking self-inclusion exemption below.
-	if policy.Type == model.AccessControlPolicyTypeTeam {
-		if session := rctx.Session(); session != nil && session.UserId != "" && !a.HasPermissionTo(rctx, session.UserId, model.PermissionManageSystem) {
-			for _, rule := range policy.Rules {
-				if appErr := a.ValidateTeamAdminSelfInclusion(rctx, session.UserId, rule.Expression); appErr != nil {
-					return nil, appErr
-				}
-			}
-		}
+	callerID := ""
+	if session := rctx.Session(); session != nil {
+		callerID = session.UserId
 	}
-
-	// ABAC is gated at route registration; only check masking here. Masking is
-	// attribute-based: edits are allowed with masked values present as long as
-	// the caller doesn't drop a condition holding values they couldn't see.
-	if a.Config().FeatureFlags.AttributeValueMasking {
-		session := rctx.Session()
-		if session == nil {
-			return nil, model.NewAppError("CreateOrUpdateAccessControlPolicy", "api.context.session_expired.app_error", nil, "session required for masking validation", http.StatusUnauthorized)
-		}
-		callerID := session.UserId
-
-		resolver, appErr := newMaskingResolver(a, rctx, callerID)
-		if appErr != nil {
-			return nil, model.NewAppError("CreateOrUpdateAccessControlPolicy", "app.pap.save_policy.resolver_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
-		}
-
-		// Validate submitted values BEFORE merge: only the values the caller
-		// actually submitted should be checked against their holdings. Running
-		// validation after merge would reject the re-injected hidden values
-		// (e.g. Bravo, Charlie) that the caller legitimately cannot see.
-		appErr = a.validatePolicyExpressionValues(rctx, policy, resolver)
-		if appErr != nil {
-			return nil, appErr
-		}
-
-		// Merge hidden values back in and block deletion of masked conditions.
-		mergedHidden, appErr := a.mergeStoredPolicyExpressions(rctx, policy, resolver)
-		if appErr != nil {
-			return nil, appErr
-		}
-
-		// Guard against persisting the sentinel as a real value.
-		if appErr := rejectMaskedTokens(policy); appErr != nil {
-			return nil, appErr
-		}
-
-		// Self-inclusion check applies only to non-admins. System admins may
-		// legitimately set conditions for attributes they do not personally hold
-		// (e.g., creating a "Clearance == Top Secret" rule without holding that
-		// clearance themselves). Masking and write-path value validation still
-		// apply to system admins above.
-		if !a.HasPermissionTo(rctx, callerID, model.PermissionManageSystem) {
-			if appErr := a.checkSelfInclusion(rctx, policy, callerID, mergedHidden); appErr != nil {
-				return nil, appErr
-			}
-		}
-	}
-
+	// Channel/team UI GET masks values the caller cannot see, so mergeFromStore
+	// re-injects those hidden literals before persist.
 	var appErr *model.AppError
+	policy, appErr = a.enforceAccessControlPolicyWriteGuards(rctx, policy, callerID, true)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if appErr = a.reconcileServerOwnedPolicyFields(rctx, policy); appErr != nil {
+		return nil, appErr
+	}
+
 	policy, appErr = acs.SavePolicy(rctx, policy)
 	if appErr != nil {
 		return nil, appErr
@@ -238,6 +190,109 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 	}
 
 	return policy, nil
+}
+
+// reconcileServerOwnedPolicyFields resolves the two fields on an incoming policy
+// that the client does not own.
+//
+// Active is reserved: it is always taken from the stored row (false on create) so
+// the policy PUT can never write it.
+//
+// auto_add is tri-state on the wire. An explicit mode wins; an absent metadata
+// bag means "not specified", and the stored mode carries forward. Absence has to
+// mean preserve because a client built before this field existed round-trips the
+// policy without it, and treating that as off would silently stop membership sync.
+func (a *App) reconcileServerOwnedPolicyFields(rctx request.CTX, policy *model.AccessControlPolicy) *model.AppError {
+	var storedActive bool
+	var storedAutoAdd string
+
+	stored, err := a.Srv().Store().AccessControlPolicy().Get(rctx, policy.ID)
+	switch {
+	case err == nil:
+		storedActive = stored.Active
+		storedAutoAdd = stored.AutoAddMode()
+	case errors.As(err, new(*store.ErrNotFound)):
+		// Creating: there is nothing to preserve, so both default to off.
+	default:
+		return model.NewAppError("CreateOrUpdateAccessControlPolicy", "app.pap.get_policy.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	policy.Active = storedActive
+
+	rule := policy.MembershipRule()
+	if rule == nil {
+		// The submission carries no membership rule to read a mode off, so the
+		// stored setting lives on through a carrier rule.
+		policy.SetAutoAddMode(storedAutoAdd)
+		return nil
+	}
+
+	mode := storedAutoAdd
+	if raw, specified := rule.Metadata[model.AccessControlRuleMetadataAutoAdd]; specified {
+		requested, appErr := requestedAutoAddMode(raw)
+		if appErr != nil {
+			return appErr
+		}
+		mode = requested
+	}
+
+	if mode == "" && storedAutoAdd != "" {
+		if appErr := a.guardAutoAddDisable(rctx, stored); appErr != nil {
+			return appErr
+		}
+	}
+
+	// SetAutoAddMode canonicalizes "off" into the absence of the key.
+	rule.SetAutoAddMode(mode)
+
+	policy.PruneInertMembershipRule()
+
+	return nil
+}
+
+// requestedAutoAddMode reads the auto_add value as it arrived on the wire. The
+// empty string is how a client turns auto-adding off; any other unrecognized
+// value is a client error rather than a silent downgrade to off, so a client
+// asking for a mode this server does not implement hears about it.
+func requestedAutoAddMode(raw any) (string, *model.AppError) {
+	mode, ok := raw.(string)
+	if !ok {
+		return "", model.NewAppError("CreateOrUpdateAccessControlPolicy", "model.access_policy.is_valid.rule_metadata_auto_add_type.app_error", nil, "auto_add must be a string", http.StatusBadRequest)
+	}
+
+	if mode != "" && !model.IsValidAccessControlAutoAddMode(mode) {
+		return "", model.NewAppError("CreateOrUpdateAccessControlPolicy", "model.access_policy.is_valid.rule_metadata_auto_add_mode.app_error", map[string]any{"Mode": mode}, "", http.StatusBadRequest)
+	}
+
+	return mode, nil
+}
+
+// guardAutoAddDisable rejects turning auto-add off on a policy holding values
+// the caller cannot see. Stopping the sync job from maintaining membership is
+// enforcement-equivalent to deleting the policy, so both ways of doing it — the
+// policy save and the bulk auto-add endpoint — answer to the delete-path guard.
+//
+// It is a no-op unless masking is on, and tolerates a sessionless internal
+// caller, which has nothing to be blind to.
+func (a *App) guardAutoAddDisable(rctx request.CTX, stored *model.AccessControlPolicy) *model.AppError {
+	if !a.Config().FeatureFlags.AttributeValueMasking {
+		return nil
+	}
+
+	session := rctx.Session()
+	if session == nil || session.UserId == "" {
+		return nil
+	}
+
+	hasMasked, appErr := a.policyHasMaskedValuesForCaller(rctx, stored, session.UserId)
+	if appErr != nil {
+		return appErr
+	}
+	if hasMasked {
+		return model.NewAppError("guardAutoAddDisable", "app.pap.delete_policy.masked_values", nil, "", http.StatusForbidden)
+	}
+
+	return nil
 }
 
 // policyHasMaskedValuesForCaller returns true if policy contains any attribute values
@@ -304,7 +359,7 @@ func (a *App) mergeStoredPolicyExpressions(rctx request.CTX, policy *model.Acces
 		switch {
 		case r.Name != "":
 			storedByName[r.Name] = r
-		case isMembershipRule(r):
+		case r.IsMembershipRule():
 			if storedMembership == nil {
 				storedMembership = r
 			}
@@ -324,7 +379,7 @@ func (a *App) mergeStoredPolicyExpressions(rctx request.CTX, policy *model.Acces
 			if stored != nil {
 				pairedNames[rule.Name] = true
 			}
-		case isMembershipRule(rule):
+		case rule.IsMembershipRule():
 			if !membershipPaired {
 				stored = storedMembership
 				membershipPaired = true
@@ -376,7 +431,7 @@ func (a *App) mergeStoredPolicyExpressions(rctx request.CTX, policy *model.Acces
 			if pairedNames[stored.Name] {
 				continue
 			}
-		case isMembershipRule(stored):
+		case stored.IsMembershipRule():
 			if membershipPaired {
 				continue
 			}
@@ -399,20 +454,6 @@ func (a *App) mergeStoredPolicyExpressions(rctx request.CTX, policy *model.Acces
 	}
 
 	return mergedHidden, nil
-}
-
-// isMembershipRule reports whether a rule fills the policy's
-// membership slot for the merge-time pairing logic. v0.4 membership
-// rules carry no Name and the membership action; legacy v0.1/v0.2
-// channel policies used the wildcard "*" (rejected at v0.3+ IsValid)
-// for the same role, so both anchor the same single storedMembership
-// pairing slot.
-func isMembershipRule(rule *model.AccessControlPolicyRule) bool {
-	if rule == nil || rule.Name != "" {
-		return false
-	}
-	return slices.Contains(rule.Actions, model.AccessControlPolicyActionMembership) ||
-		slices.Contains(rule.Actions, "*")
 }
 
 // expressionHasMaskedValuesForCaller reports whether storedExpr contains any value the caller cannot see.
@@ -450,6 +491,74 @@ func saveForbiddenError(rctx request.CTX, where, internalReason string) *model.A
 		mlog.String("internal_reason", internalReason),
 	)
 	return model.NewAppError(where, "app.pap.save_policy.forbidden", nil, "", http.StatusForbidden)
+}
+
+// enforceAccessControlPolicyWriteGuards runs shared save-path invariants for
+// channel/team (CreateOrUpdateAccessControlPolicy) and plugin-owned policies
+// (SavePluginAccessControlPolicy).
+//
+// When AttributeValueMasking is on (applies to all callers, including system
+// admins):
+//  1. validatePolicyExpressionValues — submitted literals must be held by caller
+//  2. mergeStoredPolicyExpressions — only when mergeFromStore is true
+//     (channel/team UI round-trips masked GET responses; plugin GET is unmasked,
+//     so plugin saves pass mergeFromStore=false)
+//  3. rejectMaskedTokens — never persist the masking sentinel
+//
+// Self-inclusion always runs for non-sysadmins with a non-empty callerID, even
+// when AttributeValueMasking is off. That matches product intent (a non-sysadmin
+// cannot save a policy that excludes them) and keeps the plugin path from
+// weakening when masking is disabled. Sessionless/internal callers with an empty
+// callerID skip self-inclusion. System admins are exempt from self-inclusion but
+// remain subject to value-holding validation when masking is on.
+//
+// Masking with an empty callerID is rejected (session required), matching the
+// historical CreateOrUpdateAccessControlPolicy contract.
+func (a *App) enforceAccessControlPolicyWriteGuards(
+	rctx request.CTX,
+	policy *model.AccessControlPolicy,
+	callerID string,
+	mergeFromStore bool,
+) (*model.AccessControlPolicy, *model.AppError) {
+	mergedHidden := false
+
+	if a.Config().FeatureFlags.AttributeValueMasking {
+		if callerID == "" {
+			return nil, model.NewAppError("enforceAccessControlPolicyWriteGuards", "api.context.session_expired.app_error", nil, "session required for masking validation", http.StatusUnauthorized)
+		}
+
+		resolver, appErr := newMaskingResolver(a, rctx, callerID)
+		if appErr != nil {
+			return nil, model.NewAppError("enforceAccessControlPolicyWriteGuards", "app.pap.save_policy.resolver_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+		}
+
+		// Validate submitted values BEFORE merge: only the values the caller
+		// actually submitted should be checked against their holdings. Running
+		// validation after merge would reject the re-injected hidden values
+		// (e.g. Bravo, Charlie) that the caller legitimately cannot see.
+		if appErr = a.validatePolicyExpressionValues(rctx, policy, resolver); appErr != nil {
+			return nil, appErr
+		}
+
+		if mergeFromStore {
+			mergedHidden, appErr = a.mergeStoredPolicyExpressions(rctx, policy, resolver)
+			if appErr != nil {
+				return nil, appErr
+			}
+		}
+
+		if appErr := rejectMaskedTokens(policy); appErr != nil {
+			return nil, appErr
+		}
+	}
+
+	if callerID != "" && !a.HasPermissionTo(rctx, callerID, model.PermissionManageSystem) {
+		if appErr := a.checkSelfInclusion(rctx, policy, callerID, mergedHidden); appErr != nil {
+			return nil, appErr
+		}
+	}
+
+	return policy, nil
 }
 
 // checkSelfInclusion verifies the caller satisfies all policy rules after their edit.
@@ -846,7 +955,8 @@ func (a *App) RedactSimulationAttributesForCaller(rctx request.CTX, resp *model.
 // caller. The set includes both `visibility: hidden` fields and any field
 // whose `access_mode` is not public (source_only / shared_only). The
 // simulator's UserAttributeView populates its per-user map keyed by
-// `pf.Name` (see db/migrations/postgres/000216_split_attribute_view_by_object_type.up.sql),
+// `pf.Name` (see db/migrations/postgres/000223_move_property_options_to_table.up.sql,
+// which recreates the views 000216 split by object type),
 // and the evaluation-tree walker likewise records `user.attributes.<name>`
 // on each leaf — so matching by name is correct for the user set. Channel
 // fields are matched the same way, by name, against their own set: the
@@ -1574,6 +1684,10 @@ func (a *App) AssignAccessControlPolicyToChannels(rctx request.CTX, parentID str
 				CreateAt: model.GetMillis(),
 				Props:    map[string]any{},
 			}
+			// The parent's auto-add setting seeds a brand-new child only. An
+			// existing channel policy keeps whatever its admin chose, since
+			// auto-add is owned per resource once it exists.
+			child.SetAutoAddMode(policy.AutoAddMode())
 		}
 		child.Version = model.AccessControlPolicyVersionV0_3
 
@@ -1627,8 +1741,9 @@ func (a *App) UnassignPoliciesFromChannels(rctx request.CTX, policyID string, ch
 		child.Imports = slices.DeleteFunc(child.Imports, func(importID string) bool {
 			return importID == policyID
 		})
-		if len(child.Imports) == 0 && len(child.Rules) == 0 {
-			// If the policy has no imports and no rules, we can delete it
+		if len(child.Imports) == 0 && !child.HasEffectiveRules() {
+			// If the policy has no imports and no rules of its own, we can
+			// delete it. A lone auto-add carrier rule is not a rule of its own.
 			if err := acs.DeletePolicy(rctx, child.ID); err != nil {
 				return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
@@ -1684,6 +1799,10 @@ func (a *App) AssignAccessControlPolicyToTeams(rctx request.CTX, parentID string
 				CreateAt: model.GetMillis(),
 				Props:    map[string]any{},
 			}
+			// The parent's auto-add setting seeds a brand-new child only. An
+			// existing team policy keeps whatever its admin chose, since
+			// auto-add is owned per resource once it exists.
+			child.SetAutoAddMode(policy.AutoAddMode())
 		}
 		child.Version = model.AccessControlPolicyVersionV0_3
 
@@ -1737,10 +1856,11 @@ func (a *App) UnassignPoliciesFromTeams(rctx request.CTX, policyID string, teamI
 		child.Imports = slices.DeleteFunc(child.Imports, func(importID string) bool {
 			return importID == policyID
 		})
-		if len(child.Imports) == 0 && len(child.Rules) == 0 {
+		if len(child.Imports) == 0 && !child.HasEffectiveRules() {
 			// No imports and no custom rules left — the child only existed to
 			// carry this parent assignment, so remove it. A child with custom
 			// rules is kept (a team admin's rules must survive an unassign).
+			// A lone auto-add carrier rule doesn't count as custom rules.
 			if err := acs.DeletePolicy(rctx, child.ID); err != nil {
 				return model.NewAppError("UnassignPoliciesFromTeams", "app.pap.unassign_access_control_policy_from_teams.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
@@ -1892,39 +2012,40 @@ func (a *App) GetAccessControlFieldsAutocomplete(rctx request.CTX, channelID str
 	return fields, nil
 }
 
-func (a *App) UpdateAccessControlPoliciesActive(rctx request.CTX, updates []model.AccessControlPolicyActiveUpdate) ([]*model.AccessControlPolicy, *model.AppError) {
+func (a *App) UpdateAccessControlPoliciesAutoAdd(rctx request.CTX, updates []model.AccessControlPolicyAutoAddUpdate) ([]*model.AccessControlPolicy, *model.AppError) {
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {
-		return nil, model.NewAppError("UpdateAccessControlPoliciesActive", "app.pap.update_access_control_policies_active.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
+		return nil, model.NewAppError("UpdateAccessControlPoliciesAutoAdd", "app.pap.update_access_control_policies_active.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
 	}
 
-	// Deactivating a policy is enforcement-equivalent to deleting it: the policy stops
-	// filtering membership. Mirror the delete-path guard so a caller blocked from
-	// deleting a policy with hidden values cannot achieve the same effect via deactivation.
+	// Reject an unknown mode up front: the store canonicalizes anything it does
+	// not recognize to off, which would turn a typo into a silent disable.
+	for _, u := range updates {
+		if u.AutoAdd != "" && !model.IsValidAccessControlAutoAddMode(u.AutoAdd) {
+			return nil, model.NewAppError("UpdateAccessControlPoliciesAutoAdd", "model.access_policy.is_valid.rule_metadata_auto_add_mode.app_error", map[string]any{"Mode": u.AutoAdd}, "", http.StatusBadRequest)
+		}
+	}
+
+	// Fetch a policy only when masking can actually block the change; the guard
+	// itself is a no-op with the flag off.
 	if a.Config().FeatureFlags.AttributeValueMasking {
-		session := rctx.Session()
-		if session != nil {
-			callerID := session.UserId
-			for _, u := range updates {
-				if u.Active {
-					continue // activation never widens access
-				}
-				policy, appErr := acs.GetPolicy(rctx, u.ID)
-				if appErr != nil {
-					return nil, appErr
-				}
-				if hasMasked, appErr := a.policyHasMaskedValuesForCaller(rctx, policy, callerID); appErr != nil {
-					return nil, appErr
-				} else if hasMasked {
-					return nil, model.NewAppError("UpdateAccessControlPoliciesActive", "app.pap.delete_policy.masked_values", nil, "", http.StatusForbidden)
-				}
+		for _, u := range updates {
+			if u.AutoAdd != "" {
+				continue // enabling auto-add never widens access
+			}
+			policy, appErr := acs.GetPolicy(rctx, u.ID)
+			if appErr != nil {
+				return nil, appErr
+			}
+			if appErr := a.guardAutoAddDisable(rctx, policy); appErr != nil {
+				return nil, appErr
 			}
 		}
 	}
 
-	policies, err := a.Srv().Store().AccessControlPolicy().SetActiveStatusMultiple(rctx, updates)
+	policies, err := a.Srv().Store().AccessControlPolicy().SetMembershipAutoAdd(rctx, updates)
 	if err != nil {
-		return nil, model.NewAppError("UpdateAccessControlPoliciesActive", "app.pap.update_access_control_policies_active.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("UpdateAccessControlPoliciesAutoAdd", "app.pap.update_access_control_policies_active.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	permissionPolicyChanged := false

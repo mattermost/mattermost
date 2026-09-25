@@ -1,5 +1,5 @@
 ---
-title: "Audit Log JSON Schema"
+title: "Audit log JSON schema"
 ---
 <PlanAvailability slug="entry-ent" />
 
@@ -32,6 +32,7 @@ An outline of the JSON audit logging schema is provided below. See the [JSON dat
         "api_path": "",                    // API endpoint interacted with for event or activity
         "cluster_id": ""                   // Unique identifier of the cluster in use by the event user
         "non_channel_member_access": false // true if user accessed channel content without being a member (v11.5.0+)
+        "user_access_token_id": ""         // Unique identifier of the Personal Access Token used to authenticate the request (v11.11.0+)
     }
 }
 ```
@@ -561,6 +562,8 @@ The following tables list the comprehensive audit event types (`event_name` valu
 <Note>
 
 From Mattermost v11.5.0, audit log entries for posts and content access events include a `non_channel_member_access` field in the `meta` object. When a user accesses posts or content in a channel they are not a member of, this field is set to `true`. Admins can use this indicator to identify and review unauthorized or unexpected content access in their audit logs.
+
+From Mattermost v11.11.0, audit log entries for requests authenticated via a Personal Access Token include a `user_access_token_id` field in the `meta` object, identifying the token used. This lets admins trace which token was used for a given request without cross-referencing the `Sessions` database table.
 
 </Note>
 
@@ -1964,6 +1967,11 @@ This comprehensive list includes all audit events captured by Mattermost across 
 <td>non_channel_member_access</td>
 <td>boolean</td>
 <td>(Optional) Available from v11.5.0. Set to <code>true</code> when a user | accesses posts or content in a channel they are not a member of.</td>
+</tr>
+<tr>
+<td>user_access_token_id</td>
+<td>string</td>
+<td>(Optional) Available from v11.11.0. Unique identifier of the Personal Access Token used to authenticate the request. Present only when the session is authenticated via a Personal Access Token (human or bot).</td>
 </tr>
 </tbody>
 </table>

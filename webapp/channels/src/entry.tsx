@@ -2,16 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import ReactDOM from 'react-dom';
 import ReactDOMClient from 'react-dom/client';
-
-import {logError, LogErrorBarMode} from 'mattermost-redux/actions/errors';
-
-import store from 'stores/redux_store';
 
 import App from 'components/app';
 
-import {AnnouncementBarTypes} from 'utils/constants';
+import {registerGlobalErrorHandlers} from 'utils/global_error_handler';
 import {setCSRFFromCookie} from 'utils/utils';
 
 // Import our styles
@@ -24,51 +19,20 @@ import '@mattermost/components/dist/index.esm.css';
 declare global {
     interface Window {
         publicPath?: string;
-        enableConcurrentReact?: boolean;
     }
 }
 
 // This is for anything that needs to be done for ALL react components.
 // This runs before we start to render anything.
 function preRenderSetup(onPreRenderSetupReady: () => void) {
-    window.onerror = (msg, url, line, column, error) => {
-        if (msg === 'ResizeObserver loop limit exceeded') {
-            return;
-        }
-
-        store.dispatch(
-            logError(
-                {
-                    type: AnnouncementBarTypes.DEVELOPER,
-                    message: 'A JavaScript error in the webapp client has occurred. (msg: ' + msg + ', row: ' + line + ', col: ' + column + ').',
-                    stack: error?.stack,
-                    url,
-                },
-                {errorBarMode: LogErrorBarMode.InDevMode},
-            ),
-        );
-    };
-
+    registerGlobalErrorHandlers();
     setCSRFFromCookie();
-
     onPreRenderSetupReady();
 }
 
 function renderReactRootComponent() {
     const container = document.getElementById('root')!;
-
-    if (window.enableConcurrentReact) {
-        // eslint-disable-next-line no-console
-        console.log('Enabling concurrent React 18 due to server-wide feature flag');
-
-        // Enable this experimentally since it may cause other issues
-        ReactDOMClient.createRoot(container).render(<App/>);
-    } else {
-        // We're using React 18, but we're using the deprecated way of starting React because ReactDOM.createRoot enables
-        // new features such as automatic batching which breaks some components. This will need to be changed in the future
-        // because this method of starting the app will be removed in React 19.
-        ReactDOM.render(<App/>, container);
-    }
+    ReactDOMClient.createRoot(container).render(<App/>);
 }
 
 /**

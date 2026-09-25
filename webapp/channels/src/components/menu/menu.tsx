@@ -37,7 +37,7 @@ import './menu.scss';
 export const ELEMENT_ID_FOR_MENU_BACKDROP = 'backdropForMenuComponent';
 
 const MENU_OPEN_ANIMATION_DURATION = 150;
-const MENU_CLOSE_ANIMATION_DURATION = 100;
+export const MENU_CLOSE_ANIMATION_DURATION = 100;
 
 type MenuButtonProps = {
     id: string;
@@ -80,6 +80,8 @@ type MenuProps = {
     onToggle?: (isOpen: boolean) => void;
     onKeyDown?: (event: KeyboardEvent<HTMLDivElement>, forceCloseMenu?: () => void) => void;
     width?: string;
+    minWidth?: string;
+    maxWidth?: string;
     isMenuOpen?: boolean;
 
     /**
@@ -87,6 +89,13 @@ type MenuProps = {
      * menu remain interactive (e.g. during drag-and-drop).
      */
     hideBackdrop?: boolean;
+
+    /**
+     * When true, the modal root does not capture pointer events, so the
+     * trigger stays clickable while the menu is open (e.g. chip remove).
+     * The trigger toggles open/close. Escape still closes.
+     */
+    allowTriggerInteraction?: boolean;
 
     /**
      * When true, MUI will not restore focus to the previously focused
@@ -235,6 +244,10 @@ export function Menu(props: Props) {
         event.preventDefault();
         event.stopPropagation();
 
+        if ((event.target as HTMLElement).closest?.('[data-menu-prevent-open]')) {
+            return;
+        }
+
         if (isMobileView) {
             dispatch(
                 openModal<MenuModalProps>({
@@ -253,6 +266,8 @@ export function Menu(props: Props) {
                     },
                 }),
             );
+        } else if (props.menu.allowTriggerInteraction) {
+            setIsMenuOpen((open) => !open);
         } else {
             setIsMenuOpen(true);
         }
@@ -304,6 +319,7 @@ export function Menu(props: Props) {
     }, [isMenuOpen]);
 
     const providerValue = useMenuContextValue(closeMenu, isMenuOpen);
+    const pointerEventsPassThrough = Boolean(props.menu.hideBackdrop || props.menu.allowTriggerInteraction);
 
     if (isMobileView) {
         // In mobile view, the menu is rendered as a modal
@@ -330,12 +346,12 @@ export function Menu(props: Props) {
                         hideBackdrop={props.menu.hideBackdrop}
                         disableRestoreFocus={props.menu.disableRestoreFocus}
 
-                        // When hideBackdrop is true (e.g. during drag-and-drop), the MUI
-                        // Modal root still covers the viewport with position:fixed;inset:0.
-                        // Making it pointer-events:none lets drag events pass through to
-                        // elements behind it, while the paper content stays interactive.
-                        style={props.menu.hideBackdrop ? {pointerEvents: 'none'} : undefined}
-                        PaperProps={props.menu.hideBackdrop ? {style: {pointerEvents: 'auto'}} : undefined}
+                        // hideBackdrop (DnD) and allowTriggerInteraction (chip
+                        // remove) both need the modal root to stop eating clicks
+                        // so the trigger behind it stays usable. Paper stays
+                        // interactive so the list itself still receives them.
+                        style={pointerEventsPassThrough ? {pointerEvents: 'none'} : undefined}
+                        PaperProps={pointerEventsPassThrough ? {style: {pointerEvents: 'auto'}} : undefined}
                         TransitionProps={{
                             mountOnEnter: true,
                             unmountOnExit: true,
@@ -345,12 +361,18 @@ export function Menu(props: Props) {
                             },
                         }}
                         slotProps={{
-                            backdrop: {
-                                id: ELEMENT_ID_FOR_MENU_BACKDROP,
+                            root: {
+                                slotProps: {
+                                    backdrop: {
+                                        id: ELEMENT_ID_FOR_MENU_BACKDROP,
+
+                                        // Popover normally sets this itself, but passing our own
+                                        // backdrop props replaces its defaults.
+                                        invisible: true,
+                                    },
+                                },
                             },
                         }}
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                        // @ts-expect-error This exists in source code of mui, but its types are missing
                         onTransitionExited={providerValue.handleClosed}
                     >
                         {props.menuHeader}
@@ -361,6 +383,8 @@ export function Menu(props: Props) {
                             className={props.menu.className}
                             style={{
                                 width: props.menu.width,
+                                minWidth: props.menu.minWidth,
+                                maxWidth: props.menu.maxWidth,
                             }}
                             autoFocusItem={(props.menu.autoFocusItem ?? true) && isMenuOpen}
                             onKeyDown={handleMenuListKeyDown}

@@ -216,6 +216,9 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockContentFlaggingStore := mocks.ContentFlaggingStore{}
 	mockStore.On("ContentFlagging").Return(&mockContentFlaggingStore)
 
+	mockDeliveryTrackingStore := mocks.DeliveryTrackingStore{}
+	mockStore.On("DeliveryTracking").Return(&mockDeliveryTrackingStore)
+
 	mockSessionAttributeStore := mocks.SessionAttributeStore{}
 	mockStore.On("SessionAttribute").Return(&mockSessionAttributeStore)
 
@@ -225,6 +228,7 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockPropertyFieldStore.On("Create", &fakeField).Return(&fakeField, nil)
 	mockPropertyFieldStore.On("Update", "group-id", []*model.PropertyField{&fakeField}, map[string]int64(nil)).Return([]*model.PropertyField{&fakeField}, nil)
 	mockPropertyFieldStore.On("Delete", "group-id", "field-id").Return(nil)
+	mockPropertyFieldStore.On("MutateOptions", "group-id", "field-id", int64(0), []*model.PropertyFieldOption(nil), []*model.PropertyOptionEdge(nil), []*model.PropertyOptionEdge(nil)).Return(nil)
 	mockStore.On("PropertyField").Return(&mockPropertyFieldStore)
 
 	mockAccessControlPolicyStore := mocks.AccessControlPolicyStore{}
@@ -233,6 +237,10 @@ func getMockStore(t *testing.T) *mocks.Store {
 
 	mockAttributesStore := mocks.AttributesStore{}
 	mockAttributesStore.On("GetUserPropertyValuesEpoch", mock.Anything, "user-id").Return("200-1", nil)
+	fakeSubject := model.Subject{ID: "user-id", Type: "user", Attributes: map[string]any{"department": "Engineering"}}
+	mockAttributesStore.On("GetSubject", mock.Anything, "user-id", "group-id", model.PropertyFieldObjectTypeUser).Return(&fakeSubject, nil)
+	fakeChannelSubject := model.Subject{ID: "channel-id", Type: "channel", Attributes: map[string]any{"public": true}}
+	mockAttributesStore.On("GetSubject", mock.Anything, "channel-id", "group-id", model.PropertyFieldObjectTypeChannel).Return(&fakeChannelSubject, nil)
 	mockStore.On("Attributes").Return(&mockAttributesStore)
 
 	mockReadReceiptStore := &mocks.ReadReceiptStore{}

@@ -29,13 +29,15 @@ import (
 // See [github.com/mattermost/mattermost/server/public/shared/mlog.LvlAuditAPI],
 // [github.com/mattermost/mattermost/server/public/shared/mlog.LvlAuditContent],
 // [github.com/mattermost/mattermost/server/public/shared/mlog.LvlAuditPerms],
-// [github.com/mattermost/mattermost/server/public/shared/mlog.LvlAuditCLI]
+// [github.com/mattermost/mattermost/server/public/shared/mlog.LvlAuditCLI],
+// [github.com/mattermost/mattermost/server/public/shared/mlog.LvlAuditDelivery]
 // for detailed documentation on when to use each level.
 var (
-	LevelAPI     = mlog.LvlAuditAPI
-	LevelContent = mlog.LvlAuditContent
-	LevelPerms   = mlog.LvlAuditPerms
-	LevelCLI     = mlog.LvlAuditCLI
+	LevelAPI      = mlog.LvlAuditAPI
+	LevelContent  = mlog.LvlAuditContent
+	LevelPerms    = mlog.LvlAuditPerms
+	LevelCLI      = mlog.LvlAuditCLI
+	LevelDelivery = mlog.LvlAuditDelivery
 )
 
 const (

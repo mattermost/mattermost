@@ -17,7 +17,7 @@ import {
 import {getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getChannelAttributeFields} from 'mattermost-redux/selectors/entities/properties';
 
-import {isEnterpriseLicense} from 'utils/license_utils';
+import {isMinimumEnterpriseAdvancedLicense} from 'utils/license_utils';
 
 export type ChannelAttributesState = {
     enabled: boolean;
@@ -28,8 +28,9 @@ export type ChannelAttributesState = {
 
 /**
  * Loads the channel attribute definitions and reports whether the feature is
- * usable at all. Gated on the ChannelAttributes flag and an Enterprise licence,
- * matching the server, which rejects access_control writes without one.
+ * usable at all. Gated on the ChannelAttributes flag and Enterprise Advanced,
+ * matching the server, which refuses channel-scoped access_control objects
+ * below that tier.
  *
  * Fetching is unconditional on mount rather than skipped when fields are already
  * cached: fetchPropertyFields does an authoritative scoped replace, so this is
@@ -46,8 +47,8 @@ export default function useChannelAttributes(): ChannelAttributesState {
     const dispatch = useDispatch();
 
     const enabled = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'ChannelAttributes') === 'true');
-    const hasEnterpriseLicense = isEnterpriseLicense(useSelector(getLicense));
-    const available = enabled && hasEnterpriseLicense;
+    const hasAdvancedLicense = isMinimumEnterpriseAdvancedLicense(useSelector(getLicense));
+    const available = enabled && hasAdvancedLicense;
 
     const fields = useSelector(getChannelAttributeFields);
 

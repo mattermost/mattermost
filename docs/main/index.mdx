@@ -13,7 +13,7 @@ The secure, self-hosted collaboration platform for defense, intelligence, securi
 
 <CardGrid columns={4} cards={[
   {title: 'For End Users', to: '/for/end-user', description: 'Messaging, Playbooks, Calls, Boards — day-to-day collaboration.'},
-  {title: 'For Administrators', to: '/for/administrator', description: 'User provisioning, SSO, RBAC, configuration, billing.'},
+  {title: 'For Administrators', to: '/for/administrator', description: 'User provisioning, SSO, ABAC, configuration, billing.'},
   {title: 'For Developers', to: '/for/developer', description: 'Plugins, the REST API, webhooks, slash commands.'},
   {title: 'For Security Architects', to: '/for/security-architect', description: 'Compliance frameworks, FIPS, audit logging, hardening.'},
 ]} />
@@ -53,7 +53,7 @@ Built on an extensible open-core architecture, Mattermost offers an array of col
 - [Public](/end-user-guide/collaborate/channel-types#public-channels) and [private](/end-user-guide/collaborate/channel-types#private-channels) channels, [direct messages](/end-user-guide/collaborate/channel-types#direct-message-channels), and [threaded conversations](/end-user-guide/collaborate/organize-conversations) for structured operational coordination.
 - [Role-based access controls](/end-user-guide/collaborate/learn-about-roles) and [audit logs](/administration-guide/manage/logging#audit-logging) to support need-to-know enforcement.
 - Configurable [notifications](/end-user-guide/preferences/manage-your-notifications) (e.g., [alerts](/end-user-guide/preferences/manage-your-notifications#default-notifications), [keyword triggers](/end-user-guide/preferences/manage-your-mentions-keywords-notifications), [muting](/end-user-guide/preferences/manage-your-channel-specific-notifications)) to surface high-priority activity.
-- Integrated ChatOps capabilities via [slash commands](/integrations-guide/run-slash-commands), [bots](https://developers.mattermost.com/integrate/reference/bot-accounts/), and [webhooks](/integrations-guide/webhook-integrations) for real-time automation and system alerts.
+- Integrated ChatOps capabilities via [slash commands](/integrations-guide/run-slash-commands), [bots](https://docs.mattermost.com/developers/integrate/reference/bot-accounts/), and [webhooks](/integrations-guide/webhook-integrations) for real-time automation and system alerts.
 - [Pinning](/end-user-guide/collaborate/save-pin-messages#pin-messages), [bookmarking](/end-user-guide/collaborate/manage-channel-bookmarks), and [advanced search](/end-user-guide/collaborate/search-for-messages) to maintain continuity and context in high-volume environments.
 - Cross-platform support on web, desktop, and mobile clients for flexible field to command and control access.
 
@@ -122,7 +122,7 @@ Key capabilities include:
 - Secure video integrations: Embed secure video platforms such as [Pexip](https://mattermost.com/marketplace/pexip-video-connect/), [Webex](https://mattermost.com/marketplace/webex-cloud/), and Jitsi for sovereign mission collaboration.
 - Pre-packaged and custom integrations: Quickly connect with systems like [GitHub](/integrations-guide/github), [GitLab](/integrations-guide/gitlab), [Jira](/integrations-guide/jira), [ServiceNow](/integrations-guide/servicenow), [Jenkins](https://mattermost.com/marketplace/jenkins-plugin-2/), and [PagerDuty](https://mattermost.com/marketplace/pagerduty/).
 - [Webhooks](/integrations-guide/webhook-integrations) and [slash commands](/integrations-guide/run-slash-commands): Enable real-time, event-driven automation and user-triggered actions directly from chat.
-- Plugin architecture: Extend the Mattermost core with [custom UI components, server-side logic, and third-party services](https://developers.mattermost.com/integrate/customization/).
+- Plugin architecture: Extend the Mattermost core with [custom UI components, server-side logic, and third-party services](https://docs.mattermost.com/developers/integrate/customization/).
 
 Learn more in our [Integrations Guide](/integrations-guide/integrations-guide-index).
 
@@ -148,7 +148,7 @@ IME runs on lightweight, ruggedized, or mobile infrastructure, optimized for dis
 
 - Supports [single-node Linux binaries](/deployment-guide/server/deploy-linux) and [containerized deployments in local Kubernetes environments](/deployment-guide/server/deploy-containers) for rapid, lightweight setup.
 - Enables flexible deployment on compact, portable compute platforms—ideal for ships, forward operating bases, mobile command units, or disconnected kits.
-- Operates fully [air-gapped](/deployment-guide/reference-architecture/deployment-scenarios/air-gapped-deployment) without reliance on internet, Domain Name System (DNS), or external authentication systems.
+- Operates fully [air-gapped](/deployment-guide/deployment-scenarios/air-gapped-deployment) without reliance on internet, Domain Name System (DNS), or external authentication systems.
 - Delivers secure communications, screen sharing, and workflow automation in isolated or DDIL conditions.
 
 ### Private Cloud & sovereign datacenter
@@ -156,8 +156,8 @@ IME runs on lightweight, ruggedized, or mobile infrastructure, optimized for dis
 For high-security environments requiring full infrastructure control, IME supports scalable, highly available deployment within sovereign datacenters.
 
 - [Kubernetes-native architecture](/deployment-guide/server/deploy-kubernetes) enables containerized services, self-healing workloads, and zero-downtime updates.
-- [High availability](/deployment-guide/reference-architecture/scale/high-availability-cluster-based-deployment) through clustering across application, database, and proxy layers.
-- [Horizontal scalability](/deployment-guide/reference-architecture/scale/scaling-for-enterprise) to tens of thousands of users per instance.
+- [High availability](/deployment-guide/server/high-availability-cluster-based-deployment) through clustering across application, database, and proxy layers.
+- [Horizontal scalability](/deployment-guide/scale/scaling-for-enterprise) to tens of thousands of users per instance.
 - Complies with Security Technical Implementation Guide (STIG), Federal Information Processing Standard 140-3 (FIPS 140-3), and Federal Risk and Authorization Management Program (FedRAMP)-aligned security standards.
 
 ### Hyperscaler & sovereign Cloud support

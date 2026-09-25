@@ -51,7 +51,11 @@ func (s *Server) initPostMetadata() {
 	})
 }
 
-func (a *App) PreparePostListForClient(rctx request.CTX, originalList *model.PostList) *model.PostList {
+func (a *App) PreparePostListForClient(rctx request.CTX, originalList *model.PostList, opts *model.PreparePostForClientOpts) *model.PostList {
+	if opts == nil {
+		opts = &model.PreparePostForClientOpts{}
+	}
+
 	list := &model.PostList{
 		Posts:                     make(map[string]*model.Post, len(originalList.Posts)),
 		Order:                     originalList.Order,
@@ -61,10 +65,13 @@ func (a *App) PreparePostListForClient(rctx request.CTX, originalList *model.Pos
 		FirstInaccessiblePostTime: originalList.FirstInaccessiblePostTime,
 	}
 
+	withheld := make(map[string]bool)
 	for id, originalPost := range originalList.Posts {
-		post := a.PreparePostForClientWithEmbedsAndImages(rctx, originalPost, &model.PreparePostForClientOpts{})
-
+		post, blanked := a.preparePostForClientWithEmbedsAndImages(rctx, originalPost, &model.PreparePostForClientOpts{})
 		list.Posts[id] = post
+		if blanked {
+			withheld[id] = true
+		}
 	}
 
 	if a.IsPostPriorityEnabled() {
@@ -82,6 +89,16 @@ func (a *App) PreparePostListForClient(rctx request.CTX, originalList *model.Pos
 	}
 
 	a.populatePostListTranslations(rctx, list)
+
+	if opts.PropertyGroupID != "" {
+		ordered := make([]*model.Post, 0, len(list.Order))
+		for _, id := range list.Order {
+			if p := list.Posts[id]; p != nil && !withheld[id] {
+				ordered = append(ordered, p)
+			}
+		}
+		a.hydratePropertyValues(rctx, ordered, opts.PropertyGroupID)
+	}
 
 	return list
 }
@@ -185,6 +202,13 @@ func (a *App) OverrideIconURLIfEmoji(rctx request.CTX, post *model.Post) {
 }
 
 func (a *App) PreparePostForClient(rctx request.CTX, originalPost *model.Post, opts *model.PreparePostForClientOpts) *model.Post {
+	post, _ := a.preparePostForClient(rctx, originalPost, opts)
+	return post
+}
+
+// preparePostForClient additionally reports whether a prepare step deliberately blanked the post's
+// metadata, which callers that batch work across a page need in order to skip those posts.
+func (a *App) preparePostForClient(rctx request.CTX, originalPost *model.Post, opts *model.PreparePostForClientOpts) (*model.Post, bool) {
 	post := originalPost.Clone()
 
 	// Proxy image links before constructing metadata so that requests go through the proxy
@@ -195,11 +219,15 @@ func (a *App) PreparePostForClient(rctx request.CTX, originalPost *model.Post, o
 		post.Metadata = &model.PostMetadata{}
 	}
 
+	// Set when a prepare step deliberately blanks the metadata without returning, so later steps
+	// can tell "nothing to show yet" from "nothing there".
+	metadataWithheld := false
+
 	if post.DeleteAt > 0 && !opts.RetainContent {
 		// For deleted posts we don't fill out metadata nor do we return the post content
 		post.Message = ""
 		post.Metadata = &model.PostMetadata{}
-		return post
+		return post, true
 	}
 
 	// Emojis and reaction counts
@@ -232,6 +260,7 @@ func (a *App) PreparePostForClient(rctx request.CTX, originalPost *model.Post, o
 				// if the post is a scheduled post, we don't reset the metadata
 			} else {
 				post.Metadata = &model.PostMetadata{}
+				metadataWithheld = true
 			}
 		}
 	}
@@ -252,7 +281,11 @@ func (a *App) PreparePostForClient(rctx request.CTX, originalPost *model.Post, o
 		}
 	}
 
-	return post
+	if opts.PropertyGroupID != "" && !metadataWithheld {
+		a.hydratePropertyValues(rctx, []*model.Post{post}, opts.PropertyGroupID)
+	}
+
+	return post, metadataWithheld
 }
 
 func (a *App) preparePostFilesForClient(rctx request.CTX, post *model.Post, opts *model.PreparePostForClientOpts) *model.Post {
@@ -266,10 +299,15 @@ func (a *App) preparePostFilesForClient(rctx request.CTX, post *model.Post, opts
 }
 
 func (a *App) PreparePostForClientWithEmbedsAndImages(rctx request.CTX, originalPost *model.Post, opts *model.PreparePostForClientOpts) *model.Post {
-	post := a.PreparePostForClient(rctx, originalPost, opts)
+	post, _ := a.preparePostForClientWithEmbedsAndImages(rctx, originalPost, opts)
+	return post
+}
+
+func (a *App) preparePostForClientWithEmbedsAndImages(rctx request.CTX, originalPost *model.Post, opts *model.PreparePostForClientOpts) (*model.Post, bool) {
+	post, metadataWithheld := a.preparePostForClient(rctx, originalPost, opts)
 	post = a.getEmbedsAndImages(rctx, post, opts.IsNewPost)
 	post = a.preparePostFilesForClient(rctx, post, opts)
-	return post
+	return post, metadataWithheld
 }
 
 func (a *App) getEmbedsAndImages(rctx request.CTX, post *model.Post, isNewPost bool) *model.Post {
@@ -346,6 +384,8 @@ func (a *App) SanitizePostMetadataForUser(rctx request.CTX, post *model.Post, us
 					removePermalinkMetadataFromPost(post)
 					// Since we remove the permalink metadata, we return true for isMember
 					isMemberForPreviews = true
+				} else {
+					a.RecordPermalinkPreviewDelivery(rctx, userID, previewPost.Post, post)
 				}
 			}
 		}
@@ -354,6 +394,10 @@ func (a *App) SanitizePostMetadataForUser(rctx request.CTX, post *model.Post, us
 	// Sanitize channel mentions based on permissions
 	// sanitizeChannelMentionsForUser returns immediately if no channel mentions exist
 	post = a.sanitizeChannelMentionsForUser(rctx, post, userID)
+
+	// Permalink previews embed the referenced post verbatim, so its channel mentions
+	// need the same treatment as the parent post's.
+	a.sanitizeEmbeddedChannelMentionsForUser(rctx, post, userID)
 
 	// Strip file attachments denied by ABAC — covers both the post and permalink embeds.
 	if post.Metadata != nil {
@@ -424,19 +468,81 @@ func (a *App) sanitizeChannelMentionsForUser(rctx request.CTX, post *model.Post,
 	return post
 }
 
-// sanitizeFileAttachmentsForUser strips file metadata from the post and from any embedded
-// permalink preview posts if the user is denied the download_file_attachment action.
-func (a *App) sanitizeFileAttachmentsForUser(rctx request.CTX, post *model.Post, userID string) {
-	if a.Srv().Channels().AccessControl == nil {
+// sanitizeEmbeddedChannelMentionsForUser filters the channel mentions of posts embedded as
+// permalink previews, so that a preview cannot disclose channels the viewer may not resolve.
+func (a *App) sanitizeEmbeddedChannelMentionsForUser(rctx request.CTX, post *model.Post, userID string) {
+	if post.Metadata == nil {
 		return
+	}
+
+	for _, embed := range post.Metadata.Embeds {
+		if embed == nil || embed.Type != model.PostEmbedPermalink {
+			continue
+		}
+
+		previewPost, ok := embed.Data.(*model.PreviewPost)
+		if !ok || previewPost == nil || previewPost.Post == nil {
+			continue
+		}
+
+		if previewPost.Post.GetProp(model.PostPropsChannelMentions) == nil {
+			continue
+		}
+
+		// Clone both the inner Post and the outer PreviewPost before mutating.
+		// embed.Data points into the global link-metadata cache; writing through the
+		// shared *PreviewPost pointer would corrupt it for concurrent requests.
+		previewPostCopy := *previewPost
+		previewPostCopy.Post = a.sanitizeChannelMentionsForUser(rctx, previewPost.Post.Clone(), userID)
+		embed.Data = &previewPostCopy
+	}
+}
+
+// fileAttachmentPoliciesActive reports whether ABAC file-download policies are in effect.
+func (a *App) fileAttachmentPoliciesActive() bool {
+	if a.Srv().Channels().AccessControl == nil {
+		return false
 	}
 
 	cfg := a.Config().AccessControlSettings.EnableAttributeBasedAccessControl
 	if cfg == nil || !*cfg {
-		return
+		return false
 	}
 
-	if !a.Config().FeatureFlags.PermissionPolicies {
+	return a.Config().FeatureFlags.PermissionPolicies
+}
+
+// hasFileAttachmentAccess reports whether the user may be served file metadata for a
+// channel, applying the same download_file_attachment check as
+// sanitizeFileAttachmentsForUser. Callers that build PostMetadata.Files themselves must
+// gate on this so every path serving file metadata enforces the policy.
+func (a *App) hasFileAttachmentAccess(rctx request.CTX, userID, channelID string) bool {
+	if !a.fileAttachmentPoliciesActive() {
+		return true
+	}
+
+	// No requesting user (e.g. a background job with no session). There is nobody to
+	// authorize, so skip; a genuine reader is checked with their own session id.
+	if userID == "" {
+		return true
+	}
+
+	user, err := a.GetUser(rctx, userID)
+	if err != nil {
+		rctx.Logger().Warn("Failed to get user for file attachment authorization, denying access",
+			mlog.String("user_id", userID),
+			mlog.Err(err),
+		)
+		return false
+	}
+
+	return a.HasPermissionToFileAction(rctx, userID, user.Roles, channelID, model.AccessControlPolicyActionDownloadFileAttachment)
+}
+
+// sanitizeFileAttachmentsForUser strips file metadata from the post and from any embedded
+// permalink preview posts if the user is denied the download_file_attachment action.
+func (a *App) sanitizeFileAttachmentsForUser(rctx request.CTX, post *model.Post, userID string) {
+	if !a.fileAttachmentPoliciesActive() {
 		return
 	}
 
@@ -952,8 +1058,7 @@ func (a *App) getLinkMetadataFromOEmbed(rctx request.CTX, requestURL string, pro
 	request.Header.Add("Accept", "application/json")
 	request.Header.Add("Accept-Language", *a.Config().LocalizationSettings.DefaultServerLocale)
 
-	client := a.HTTPService().MakeClient(false)
-	client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeoutMilliseconds) * time.Millisecond
+	client := a.makeLinkMetadataClient(rctx)
 
 	res, err := client.Do(request)
 	if err != nil {
@@ -990,16 +1095,13 @@ func (a *App) getLinkMetadataForURL(rctx request.CTX, requestURL string) (*openg
 		request.Header.Add("Accept", "text/html;q=0.8")
 		request.Header.Add("Accept-Language", *a.Config().LocalizationSettings.DefaultServerLocale)
 
-		client := a.HTTPService().MakeClient(false)
-		client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeoutMilliseconds) * time.Millisecond
+		client := a.makeLinkMetadataClient(rctx)
 
 		var res *http.Response
 		res, err = client.Do(request)
 		if err != nil {
 			rctx.Logger().Warn("error fetching OG image data", mlog.Err(err))
-		}
-
-		if res != nil {
+		} else if res != nil {
 			body = res.Body
 			contentType = res.Header.Get("Content-Type")
 		}
@@ -1024,6 +1126,24 @@ func (a *App) getLinkMetadataForURL(rctx request.CTX, requestURL string) (*openg
 	og = model.TruncateOpenGraph(og) // remove unwanted length of texts
 
 	return og, image, err
+}
+
+func (a *App) makeLinkMetadataClient(rctx request.CTX) *http.Client {
+	client := a.HTTPService().MakeClient(false)
+	client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeoutMilliseconds) * time.Millisecond
+	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		if len(via) >= 10 {
+			return fmt.Errorf("stopped after %d redirects", len(via))
+		}
+
+		if !a.isLinkAllowedForPreview(rctx, req.URL.String()) {
+			return fmt.Errorf("redirect target %q is disabled for link previews", req.URL.Redacted())
+		}
+
+		return nil
+	}
+
+	return client
 }
 
 // resolveMetadataURL resolves a given URL relative to the server's site URL.

@@ -17,6 +17,9 @@ export const DialogElementTypes = {
     RADIO: 'radio',
     DATE: 'date',
     DATETIME: 'datetime',
+    COLLAPSIBLE: 'collapsible',
+    CHECKBOX_GROUP: 'checkbox_group',
+    CHECKBOX_MATRIX: 'checkbox_matrix',
     FILE: 'file',
     ACTION_BUTTON: 'action_button',
 } as const;
@@ -140,8 +143,8 @@ export function validateDialogElement(element: DialogElement, index: number, opt
         });
     }
 
-    // Validation for select/radio options
-    if ((element.type === DialogElementTypes.SELECT || element.type === DialogElementTypes.RADIO) && element.options) {
+    // Validation for select/radio/checkbox_group options
+    if ((element.type === DialogElementTypes.SELECT || element.type === DialogElementTypes.RADIO || element.type === DialogElementTypes.CHECKBOX_GROUP) && element.options) {
         for (let optIndex = 0; optIndex < element.options.length; optIndex++) {
             const option = element.options[optIndex];
 
@@ -233,6 +236,12 @@ export function getFieldType(element: DialogElement): string | null {
         return AppFieldTypes.DATE;
     case DialogElementTypes.DATETIME:
         return AppFieldTypes.DATETIME;
+    case DialogElementTypes.COLLAPSIBLE:
+        return AppFieldTypes.COLLAPSIBLE;
+    case DialogElementTypes.CHECKBOX_GROUP:
+        return AppFieldTypes.CHECKBOX_GROUP;
+    case DialogElementTypes.CHECKBOX_MATRIX:
+        return AppFieldTypes.CHECKBOX_MATRIX;
     case DialogElementTypes.FILE:
         return AppFieldTypes.FILE;
     case DialogElementTypes.ACTION_BUTTON:
@@ -247,7 +256,14 @@ export function getFieldType(element: DialogElement): string | null {
  */
 export function getDefaultValue(element: DialogElement): AppFormValue {
     if (element.default === null || element.default === undefined) {
+        if (element.type === DialogElementTypes.CHECKBOX_GROUP || element.type === DialogElementTypes.CHECKBOX_MATRIX) {
+            return [];
+        }
         return null;
+    }
+
+    if (element.default === '' && (element.type === DialogElementTypes.CHECKBOX_GROUP || element.type === DialogElementTypes.CHECKBOX_MATRIX)) {
+        return [];
     }
 
     switch (element.type) {
@@ -349,6 +365,18 @@ export function getDefaultValue(element: DialogElement): AppFormValue {
         return testMoment?.isValid() ? stringValue : null;
     }
 
+    case DialogElementTypes.CHECKBOX_GROUP:
+        return String(element.default).
+            split(',').
+            map((val) => val.trim()).
+            filter((val) => val.length > 0);
+
+    case DialogElementTypes.CHECKBOX_MATRIX:
+        return String(element.default).
+            split(';').
+            map((val) => val.trim()).
+            filter((val) => val.length > 0);
+
     default:
         return String(element.default);
     }
@@ -366,6 +394,21 @@ export function getOptions(element: DialogElement): AppSelectOption[] | undefine
         label: String(option.text || ''),
         value: option.value || '',
     }));
+}
+
+function getMatrixConfig(element: DialogElement) {
+    if (!element.matrix_config) {
+        return undefined;
+    }
+    const mapOptions = (options: Array<{text: string; value: string}>) => options.map((option) => ({
+        label: String(option.text || ''),
+        value: option.value || '',
+    }));
+    return {
+        rows: mapOptions(element.matrix_config.rows || []),
+        columns: mapOptions(element.matrix_config.columns || []),
+        row_selection: element.matrix_config.row_selection || 'multiple',
+    };
 }
 
 /**
@@ -406,6 +449,30 @@ export function convertElement(element: DialogElement, options: ConversionOption
         return {field: fallbackField, errors};
     }
 
+    // Collapsible: convert children recursively; the section itself has no value.
+    if (element.type === DialogElementTypes.COLLAPSIBLE) {
+        const childFields: AppField[] = [];
+        (element.collapsible_config?.elements || []).forEach((child) => {
+            const {field: childField, errors: childErrors} = convertElement(child, options);
+            errors.push(...childErrors);
+            if (childField) {
+                childFields.push(childField);
+            }
+        });
+
+        const collapsibleField: AppField = {
+            name: String(element.name),
+            type: AppFieldTypes.COLLAPSIBLE,
+            label: String(element.display_name),
+            collapsible_config: {
+                fields: childFields,
+                expanded: !element.collapsible_config?.collapsed,
+                bordered: !element.collapsible_config?.borderless,
+            },
+        };
+        return {field: collapsibleField, errors};
+    }
+
     const appField: AppField = {
         name: String(element.name),
         type: fieldType,
@@ -416,6 +483,10 @@ export function convertElement(element: DialogElement, options: ConversionOption
         readonly: false,
         value: getDefaultValue(element),
     };
+
+    if (element.label_position === 'before' || element.label_position === 'after') {
+        appField.label_position = element.label_position;
+    }
 
     // Add type-specific properties
     if (element.type === DialogElementTypes.TEXTAREA) {
@@ -439,8 +510,8 @@ export function convertElement(element: DialogElement, options: ConversionOption
         }
     }
 
-    // Add options for select and radio fields
-    if (element.type === DialogElementTypes.SELECT || element.type === DialogElementTypes.RADIO) {
+    // Add options for select, radio, and checkbox_group fields
+    if (element.type === DialogElementTypes.SELECT || element.type === DialogElementTypes.RADIO || element.type === DialogElementTypes.CHECKBOX_GROUP) {
         appField.options = getOptions(element);
 
         // Add multiselect support for select fields
@@ -457,6 +528,13 @@ export function convertElement(element: DialogElement, options: ConversionOption
         }
 
         // Copy refresh property for dynamic field updates
+        if (element.refresh !== undefined) {
+            appField.refresh = element.refresh;
+        }
+    }
+
+    if (element.type === DialogElementTypes.CHECKBOX_MATRIX) {
+        appField.matrix_config = getMatrixConfig(element);
         if (element.refresh !== undefined) {
             appField.refresh = element.refresh;
         }
@@ -604,7 +682,7 @@ export function convertDialogToAppForm(
     };
 
     // Set source if sourceUrl is provided or if any fields have refresh enabled
-    const hasRefreshFields = convertedFields.some((field) => field.refresh === true);
+    const hasRefreshFields = flattenAppFields(convertedFields).some((field) => field.refresh === true);
     if ((sourceUrl && sourceUrl.trim()) || hasRefreshFields) {
         form.source = {
             path: sourceUrl || '/refresh',
@@ -675,6 +753,41 @@ export function convertServerDialogResponseToAppForm(
 }
 
 /**
+ * Flatten a tree of items, expanding collapsible containers into their children.
+ * Shared by flattenDialogElements (DialogElement) and flattenFields (AppField)
+ * so the two stay in sync.
+ */
+export function flattenCollapsible<T>(
+    items: T[],
+    isCollapsible: (item: T) => boolean,
+    getChildren: (item: T) => T[] | undefined,
+): T[] {
+    return items.flatMap((item) => (isCollapsible(item) ? flattenCollapsible(getChildren(item) || [], isCollapsible, getChildren) : [item]));
+}
+
+/**
+ * Flatten elements, expanding collapsible sections into their children.
+ */
+export function flattenDialogElements(elements: DialogElement[]): DialogElement[] {
+    return flattenCollapsible(
+        elements,
+        (element) => element.type === DialogElementTypes.COLLAPSIBLE,
+        (element) => element.collapsible_config?.elements,
+    );
+}
+
+/**
+ * Flatten AppFields, expanding collapsible sections into their leaf fields.
+ */
+export function flattenAppFields(fields: AppField[]): AppField[] {
+    return flattenCollapsible(
+        fields,
+        (field) => field.type === AppFieldTypes.COLLAPSIBLE,
+        (field) => field.collapsible_config?.fields,
+    );
+}
+
+/**
  * Convert Apps Form values back to Interactive Dialog submission format
  */
 export function convertAppFormValuesToDialogSubmission(
@@ -689,7 +802,8 @@ export function convertAppFormValuesToDialogSubmission(
         return {submission, errors};
     }
 
-    elements.forEach((element) => {
+    // Flatten collapsibles so child values are collected and the containers are excluded.
+    flattenDialogElements(elements).forEach((element) => {
         // Action buttons are non-input elements — they never contribute a
         // submission value, so skip them before the required/null validation
         // (otherwise an unset action_button could raise a false required error).
@@ -706,6 +820,8 @@ export function convertAppFormValuesToDialogSubmission(
                     message: `"${element.name}" field is not valid: Required field has null/undefined value`,
                     code: ValidationErrorCode.REQUIRED,
                 });
+            } else if (element.type === DialogElementTypes.CHECKBOX_GROUP || element.type === DialogElementTypes.CHECKBOX_MATRIX) {
+                submission[element.name] = [];
             }
             return;
         }
@@ -810,6 +926,24 @@ export function convertAppFormValuesToDialogSubmission(
             // Date and datetime values should be passed through as strings (ISO format)
             submission[element.name] = String(value);
             break;
+
+        case DialogElementTypes.CHECKBOX_GROUP:
+        case DialogElementTypes.CHECKBOX_MATRIX: {
+            const arrayValue = Array.isArray(value) ? value.map(String) : [String(value)];
+
+            // An empty array is a distinct "nothing selected" state that the
+            // null/undefined guard above does not catch, so enforce required here.
+            if (arrayValue.length === 0 && !element.optional && options.enhanced) {
+                errors.push({
+                    field: element.name,
+                    message: `"${element.name}" field is not valid: Required field has no selected values`,
+                    code: ValidationErrorCode.REQUIRED,
+                });
+            }
+            submission[element.name] = arrayValue;
+            break;
+        }
+
         case DialogElementTypes.FILE:
             // File elements store file IDs as strings
             submission[element.name] = String(value || '');
@@ -817,6 +951,7 @@ export function convertAppFormValuesToDialogSubmission(
 
         case DialogElementTypes.ACTION_BUTTON:
             break;
+
         default:
             submission[element.name] = String(value);
         }

@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 
-export type ButtonEmphasis = 'primary' | 'secondary' | 'tertiary' | 'quaternary';
+export type ButtonEmphasis = 'primary' | 'secondary' | 'tertiary' | 'quaternary' | 'link';
 export type ButtonSize = 'xs' | 'sm' | 'md' | 'lg';
 export type ButtonVariant = '' | 'destructive' | 'inverted';
 
@@ -12,6 +12,7 @@ const emphasisClasses = {
     secondary: 'btn-secondary',
     tertiary: 'btn-tertiary',
     quaternary: 'btn-quaternary',
+    link: 'btn-link',
 };
 const sizeClasses = {
     xs: 'btn-xs',

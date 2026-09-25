@@ -82,9 +82,6 @@ type FeatureFlags struct {
 	// Enable classification markings for banners at the system and channel level
 	ClassificationMarkings bool
 
-	// Enable the Global Attributes management page in the System Console
-	GlobalAttributes bool
-
 	// Enable burn-on-read messages that automatically delete after viewing
 	BurnOnRead bool
 
@@ -131,10 +128,23 @@ type FeatureFlags struct {
 	// rank, and the admin console hides the rank type option.
 	PropertyFieldRank bool
 
+	// FEATURE_FLAG_REMOVAL: PropertyFieldGraph - Remove this when the feature is GA.
+	// Gates the "graph" property field type: when off, the app layer rejects
+	// creating a graph property field. Converting a field to or from graph is
+	// refused whatever this flag says — see App.graphPropertyFieldGate for what
+	// the flag does and does not restrict.
+	PropertyFieldGraph bool
+
 	TeamMembershipAccessControl bool
 
 	// Enable channel attributes (Smart Labels, banners) powered by the Properties API.
 	ChannelAttributes bool
+
+	// ChannelAttributesRequired gates the "required attribute" enforcement
+	// sub-behavior of ChannelAttributes. Must be true for enforcement to be
+	// active. Default false = enforcement off until explicitly enabled, matching
+	// standard Mattermost feature flag lifecycle.
+	ChannelAttributesRequired bool
 
 	// FEATURE_FLAG_REMOVAL: ResourceAttributesInPolicies - Remove this when the
 	// feature is GA. Gates access rules that compare a user's attributes against
@@ -155,17 +165,16 @@ type FeatureFlags struct {
 	// being unreachable.
 	ClusterGracefulDrain bool
 
-	ChannelBookmarks bool
-
-	// Enable React concurrent rendering
-	EnableConcurrentReact bool
-
 	// Enable verifying plugin signatures against the MFI public key, in addition to the
 	// existing hard-coded Mattermost public key and any admin-configured public keys.
 	EnableMFIPluginSignaturePublicKey bool
 
 	// FEATURE_FLAG_REMOVAL: RecurringScheduledPosts - Remove this when the feature is GA.
 	RecurringScheduledPosts bool
+
+	// Gates post delivery audit logging. Enabling it requires a server restart, since it
+	// controls whether the /api/v4/delivery_tracking routes are registered.
+	PostDeliveryTracking bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -213,7 +222,7 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.ManagedChannelCategories = false
 
-	f.SessionAttributes = false
+	f.SessionAttributes = true
 
 	f.PostAttributes = false
 
@@ -223,17 +232,19 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.PropertyFieldRank = true
 
+	f.PropertyFieldGraph = false
+
 	f.ChannelAttributes = false
 
+	f.ChannelAttributesRequired = false
+
 	f.MmBlocksEnabled = true
-
-	f.ChannelBookmarks = true
-
-	f.EnableConcurrentReact = false
 
 	f.EnableMFIPluginSignaturePublicKey = true
 
 	f.RecurringScheduledPosts = false
+
+	f.PostDeliveryTracking = false
 }
 
 // isValid rejects feature flag combinations that are no longer supported.
@@ -274,13 +285,22 @@ func (f *FeatureFlags) IsPolicySimulationEnabled() bool {
 	return f.PermissionPolicies && f.PolicySimulation
 }
 
+// IsChannelAttributesRequiredEnabled reports whether the server enforces
+// PropertyField.Attrs["required"] for channel attributes — refusing channel
+// creation without a value, refusing writes that clear a required value, and
+// refusing deletes of a set required value. Both the ChannelAttributes umbrella
+// and the ChannelAttributesRequired sub-flag must be true.
+func (f *FeatureFlags) IsChannelAttributesRequiredEnabled() bool {
+	return f.ChannelAttributes && f.ChannelAttributesRequired
+}
+
 // ToMap returns the feature flags as a map[string]string
 // Supports boolean and string feature flags.
 func (f *FeatureFlags) ToMap() map[string]string {
 	refStructVal := reflect.ValueOf(*f)
 	refStructType := reflect.TypeFor[FeatureFlags]()
 	ret := make(map[string]string)
-	for i := 0; i < refStructVal.NumField(); i++ {
+	for i := range refStructVal.NumField() {
 		refFieldVal := refStructVal.Field(i)
 		if !refFieldVal.IsValid() {
 			continue
