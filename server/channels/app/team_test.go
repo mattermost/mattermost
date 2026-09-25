@@ -30,6 +30,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 )
 
 func TestCreateTeam(t *testing.T) {
@@ -2723,4 +2724,32 @@ func TestTeamSendEvents(t *testing.T) {
 		require.Equal(t, "", teamFromEvent.Email)
 		require.Equal(t, "", teamFromEvent.InviteId)
 	}
+}
+
+func TestSetTeamIconFromFileEXIFOrientation(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// quadrants-orientation-8.png: 128×128 color quadrants with EXIF orientation 8.
+	// quadrants-orientation-1.png: same visual content already rotated, EXIF orientation 1.
+	rotated, err := testutils.ReadTestFile("exif_samples/quadrants-orientation-8.png")
+	require.NoError(t, err)
+	normal, err := testutils.ReadTestFile("exif_samples/quadrants-orientation-1.png")
+	require.NoError(t, err)
+
+	rotatedTeam := th.CreateTeam(t)
+	normalTeam := th.CreateTeam(t)
+
+	appErr := th.App.SetTeamIconFromFile(th.Context, rotatedTeam, bytes.NewReader(rotated))
+	require.Nil(t, appErr)
+	appErr = th.App.SetTeamIconFromFile(th.Context, normalTeam, bytes.NewReader(normal))
+	require.Nil(t, appErr)
+
+	rotatedIcon, appErr := th.App.GetTeamIcon(rotatedTeam)
+	require.Nil(t, appErr)
+	normalIcon, appErr := th.App.GetTeamIcon(normalTeam)
+	require.Nil(t, appErr)
+
+	assert.Equal(t, normalIcon, rotatedIcon,
+		"EXIF-rotated image should produce the same team icon as the normally-oriented one")
 }
