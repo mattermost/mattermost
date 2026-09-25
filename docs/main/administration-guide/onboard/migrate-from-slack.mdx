@@ -12,8 +12,8 @@ Mattermost provides a migration path from Slack so you can bring collaboration h
 3. [Export data from Slack](#3-export-your-data-from-slack) using Slack’s tools and documentation. Identify whether you have a single-workspace or Enterprise Grid export.
 4. [Transform the Slack export into a Mattermost bulk import package with `mmetl`](#4-transform-the-export-with-mmetl).
    - For Enterprise Grid, split the export with `grid-transform` first. Run `transform slack --dry-run` before the full transform, which produces a JSONL file and `data/` attachments directory.
-5. [Handle multiple exports](#5-handle-multiple-exports), if applicable.
-6. [Package and import the data into Mattermost](#6-package-and-import-into-mattermost) using the [bulk loading](/administration-guide/onboard/bulk-loading-data) documentation.
+   - For multiple exports, transform each archive separately and import them chronologically.
+5. [Package and import the data into Mattermost](#5-package-and-import-into-mattermost) using the [bulk loading](/administration-guide/onboard/bulk-loading-data) documentation.
 
 This is a *best effort* migration. Mattermost tools preserve the majority of messages, files, and workspace structure, but Slack and Mattermost differ architecturally, and manual adjustments are often required. Plan for days to weeks depending on export size and complexity. Always run a trial migration in a development or staging environment first.
 
@@ -350,6 +350,18 @@ If any Slack user is missing an email, transform fails unless you pass `--defaul
 
 Bulk import into Mattermost is **idempotent**: re-importing the same posts does not create duplicates. That makes iterative testing safe. Weekly export/transform/import cycles during a phased cutover are a supported pattern.
 
+### 4.4 Handle multiple exports \{#5-handle-multiple-exports}
+
+Customers often receive several Slack dumps (for example, six archives covering six months each) or run weekly exports during cutover.
+
+**Recommendations**
+
+- Transform each archive separately into its own `.jsonl` + `data/` tree (or merge carefully only if you understand the bulk format).
+- Import chronologically when practical (newest first).
+- Rely on Mattermost bulk import **idempotency**: overlapping posts with the same author and `create_at` are not duplicated.
+- Keep team names and `--guest-handling` / `--bot-owner` choices consistent across batches.
+- For very large histories, prefer several medium imports over one multi-hundred-GB upload (see [Package and import](#5-package-and-import-into-mattermost)).
+
 ### Useful transform flags
 
 - `--skip-attachments` / `-a`: Skip copying attachments (faster trials).
@@ -416,30 +428,18 @@ Large transforms move through four phases. Watch `transform-slack.log` (and cons
    {"level":"info","msg":"Slack Import: Converted markdown"}
    ```
 
-## 5. Handle multiple exports
-
-Customers often receive several Slack dumps (for example, six archives covering six months each) or run weekly exports during cutover.
-
-**Recommendations**
-
-- Transform each archive separately into its own `.jsonl` + `data/` tree (or merge carefully only if you understand the bulk format).
-- Import chronologically when practical (oldest first).
-- Rely on Mattermost bulk import **idempotency**: overlapping posts with the same author and `create_at` are not duplicated.
-- Keep team names and `--guest-handling` / `--bot-owner` choices consistent across batches.
-- For very large histories, prefer several medium imports over one multi-hundred-GB upload (see [Package and import](#6-package-and-import-into-mattermost)).
-
-## 6. Package and import into Mattermost
+## 5. Package and import into Mattermost
 
 When `mmetl` finishes, you should have:
 
 - A `.jsonl` bulk import file
 - A `data/` directory of attachments
 
-### 6.1 Review the import data \{#before-you-import}
+### 5.1 Review the import data \{#before-you-import}
 
 In some cases, depending on the transform configuration, you may need to review or edit the JSONL before you zip and upload. For missing or synthesized emails (`--default-email-domain`, `--skip-empty-emails`, or `@local` placeholders), see [User emails](#user-emails).
 
-### 6.2 Package the import \{#package-the-import}
+### 5.2 Package the import \{#package-the-import}
 
 Zip them together:
 
@@ -455,7 +455,7 @@ mmctl import validate ./mattermost-bulk-import.zip
 
 Then follow the Mattermost **[Bulk loading data](/administration-guide/onboard/bulk-loading-data)** guide to import the zip with `mmctl`. That guide covers authentication, job status, and the full import data format.
 
-### 6.3 Choose an upload method \{#choose-an-upload-method}
+### 5.3 Choose an upload method \{#choose-an-upload-method}
 
 | Situation | Recommended method |
 | --- | --- |
