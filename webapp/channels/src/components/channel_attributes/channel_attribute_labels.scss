@@ -40,7 +40,8 @@ $chip-gap: 4px; // keep in sync with CHIP_GAP in use_labels_overflow.ts
         }
     }
 
-    &__chipButton {
+    &__chipButton,
+    &__chipStatic {
         display: inline-flex;
         overflow: hidden;
         min-width: 0;
@@ -48,8 +49,11 @@ $chip-gap: 4px; // keep in sync with CHIP_GAP in use_labels_overflow.ts
         padding: 0;
         border: none;
         background: transparent;
-        cursor: pointer;
         line-height: 0;
+    }
+
+    &__chipButton {
+        cursor: pointer;
 
         .AttributeChip {
             cursor: pointer;

@@ -4,7 +4,7 @@
 import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
-import {ChannelInfoAttributes} from './channel_attributes';
+import {ChannelAttributeLabels, ChannelInfoAttributes} from './channel_attributes';
 import ChannelsPostCreate from './post_create';
 import ChannelsPostEdit from './post_edit';
 import ChannelsPost from './post';
@@ -35,11 +35,18 @@ export default class ChannelsSidebarRight {
     readonly notificationSeparator;
     readonly mobileSearchInput;
     readonly attributes: ChannelInfoAttributes;
+    readonly threadAttributes: ChannelAttributeLabels;
 
     constructor(container: Locator) {
         this.container = container;
 
         this.attributes = new ChannelInfoAttributes(container.getByTestId('channelInfoAttributes'));
+
+        // The chips on the thread header, which merges the info and header slots.
+        this.threadAttributes = new ChannelAttributeLabels(
+            container.getByTestId('channelAttributeLabels-info-header'),
+            'info-header',
+        );
 
         this.scheduledPostIndicator = new ScheduledPostIndicator(container.getByTestId('scheduledPostIndicator'));
         this.scheduledDraftChannelInfoMessage = container.getByTestId('scheduledPostIndicator').locator('span');

@@ -20,6 +20,16 @@
 
         .left {
             display: flex;
+            min-width: 0;
+
+            // Takes the row's free space so the attribute chips measure against
+            // everything up to the controls, rather than collapsing to +N while
+            // the spacer holds the room.
+            flex: 1 1 auto;
+        }
+
+        .spacer {
+            flex: 0 1 auto;
         }
 
         .back {
@@ -41,6 +51,11 @@
 
         h3 {
             display: inline-grid;
+            overflow: hidden;
+
+            // Yields to the chips beside it: the channel name ellipsizes rather
+            // than leaving them no width to be measured against.
+            min-width: 0;
             align-items: center;
             margin: 0 10px 0 0;
             color: rgba(var(--center-channel-color-rgb), 1);
