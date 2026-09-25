@@ -11559,6 +11559,10 @@
     "translation": "Action(s) is not valid."
   },
   {
+    "id": "model.access_policy.is_valid.actions.channel_read_access_type.app_error",
+    "translation": "The Channel Read Access action is only allowed on permission and channel policies."
+  },
+  {
     "id": "model.access_policy.is_valid.actions.membership_combined.app_error",
     "translation": "Membership cannot be combined with other actions in the same rule."
   },
