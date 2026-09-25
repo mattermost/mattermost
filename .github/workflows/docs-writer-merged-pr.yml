@@ -222,9 +222,6 @@ jobs:
           PR_AUTHOR: ${{ steps.pr.outputs.pr_author }}
         run: |
           set -euo pipefail
-          gh label create "Docs/AI-Drafted" --force \
-            --description "AI-authored documentation draft" --color "0E8A16" || true
-
           EXISTING=$(gh pr list --head "$BRANCH" --state open --json number,url --jq 'first // empty')
           TITLE="docs: AI draft for #${PR_NUMBER}"
 
@@ -238,8 +235,7 @@ jobs:
               --head "$BRANCH" \
               --title "$TITLE" \
               --body-file .docs-ai/writer/pr-body.md \
-              --draft \
-              --label "Docs/AI-Drafted")
+              --draft)
             NUM=$(gh pr view "$BRANCH" --json number --jq .number)
             gh pr edit "$NUM" --add-reviewer "$PR_AUTHOR" || true
           fi

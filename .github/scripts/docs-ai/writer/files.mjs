@@ -7,6 +7,8 @@ const BLOCK_RE = /^(`{3,})(?:\w+)?[ \t]+path=([^\s`]+)[ \t]*\n([\s\S]*?)\n\1[ \t
 
 export const VERSION_ANCHOR_RE = /From Mattermost v\d+\.\d+/;
 export const HUMAN_JUDGMENT_MARKER = '[NOT PRESENT — REQUIRES HUMAN JUDGMENT]';
+/** Escape hatch when the release is unknown — keeps the "From Mattermost …" frame. */
+export const HUMAN_JUDGMENT_VERSION_ANCHOR = `From Mattermost ${HUMAN_JUDGMENT_MARKER}`;
 
 export function parseFileBlocks(text) {
   const blocks = [];
@@ -25,7 +27,7 @@ export function versionFromMilestone(title) {
 }
 
 export function hasVersionAnchor(content, version) {
-  if (content.includes(HUMAN_JUDGMENT_MARKER)) return true;
+  if (content.includes(HUMAN_JUDGMENT_VERSION_ANCHOR)) return true;
   if (version) return content.includes(`From Mattermost ${version}`);
   return VERSION_ANCHOR_RE.test(content);
 }
@@ -36,7 +38,7 @@ export function assertVersionAnchors(files, {milestoneVersion, required = true} 
   for (const f of files) {
     if (!hasVersionAnchor(f.content, milestoneVersion)) {
       throw new Error(
-        `${f.path}: missing version anchor (expected "From Mattermost ${milestoneVersion}" or ${HUMAN_JUDGMENT_MARKER})`,
+        `${f.path}: missing version anchor (expected "From Mattermost ${milestoneVersion}" or "${HUMAN_JUDGMENT_VERSION_ANCHOR}")`,
       );
     }
   }

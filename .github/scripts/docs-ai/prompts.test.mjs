@@ -68,6 +68,7 @@ test('writer prompt states the path= output contract and version rule', () => {
   const prompt = writerPrompt();
   assert.match(prompt, /path=/);
   assert.match(prompt, /From Mattermost vX\.Y/);
+  assert.match(prompt, /From Mattermost \[NOT PRESENT — REQUIRES HUMAN JUDGMENT\]/);
   assert.match(prompt, /milestone\.version/);
   assert.match(prompt, /docs\/api\/reference/);
 });

@@ -45,16 +45,24 @@ test('versionFromMilestone reads vMAJOR.MINOR', () => {
   assert.equal(versionFromMilestone('no version here'), null);
 });
 
-test('hasVersionAnchor accepts the convention or the human marker', () => {
+test('hasVersionAnchor accepts the convention or the framed human marker', () => {
   assert.equal(hasVersionAnchor('From Mattermost v11.7, users can…'), true);
-  assert.equal(hasVersionAnchor('See [NOT PRESENT — REQUIRES HUMAN JUDGMENT].'), true);
+  assert.equal(
+    hasVersionAnchor('From Mattermost [NOT PRESENT — REQUIRES HUMAN JUDGMENT], users can…'),
+    true,
+  );
+  assert.equal(hasVersionAnchor('See [NOT PRESENT — REQUIRES HUMAN JUDGMENT].'), false);
   assert.equal(hasVersionAnchor('No version at all.'), false);
 });
 
 test('hasVersionAnchor requires the milestone version when supplied', () => {
   assert.equal(hasVersionAnchor('From Mattermost v9.5, legacy…', 'v11.7'), false);
   assert.equal(hasVersionAnchor('From Mattermost v11.7, new…', 'v11.7'), true);
-  assert.equal(hasVersionAnchor('[NOT PRESENT — REQUIRES HUMAN JUDGMENT]', 'v11.7'), true);
+  assert.equal(
+    hasVersionAnchor('From Mattermost [NOT PRESENT — REQUIRES HUMAN JUDGMENT]', 'v11.7'),
+    true,
+  );
+  assert.equal(hasVersionAnchor('[NOT PRESENT — REQUIRES HUMAN JUDGMENT]', 'v11.7'), false);
 });
 
 test('assertVersionAnchors rejects capability pages without an anchor', () => {
