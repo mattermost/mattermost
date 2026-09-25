@@ -112,9 +112,15 @@ export default class SessionAttributes {
     /**
      * Open a duration submenu and pick a preset.
      *
-     * The submenu opens on hover or ArrowRight and collapses on mouse-leave.
-     * Hover the trigger, then click the option before the pointer leaves, and
-     * retry the whole sequence via toPass so a half-open popover cannot stack.
+     * The submenu opens on hover and collapses on the trigger's mouse-leave, so
+     * driving it with the pointer is racy: the popover closes while Playwright
+     * travels to the option. Instead the submenu is opened with the keyboard
+     * (the trigger opens it on ArrowRight) so the pointer never has to leave.
+     *
+     * The whole open sequence is retried via toPass because the menu's mount/
+     * unmount transitions can transiently swallow a click or drop focus; each
+     * attempt first presses Escape to return to a known-closed state so a retry
+     * never stacks a second popover on top of a half-open one.
      */
     private async chooseDurationPreset(fieldId: string, kind: 'ttl' | 'grace', triggerName: RegExp, seconds: number) {
         // Scope the trigger to this row's open menu. The "Time-to-live"/"Grace
@@ -129,18 +135,22 @@ export default class SessionAttributes {
         await expect(async () => {
             await this.page.keyboard.press('Escape');
             await this.page.keyboard.press('Escape');
+            if (await this.dotMenu(fieldId).isVisible()) {
+                await this.page.mouse.click(1, 1);
+            }
             await expect(this.dotMenu(fieldId)).toBeHidden({timeout: 5000});
 
             await this.dotMenuButton(fieldId).click();
-            await expect(trigger).toBeVisible({timeout: 3000});
-            // SubMenu opens on hover or ArrowRight and closes on mouse-leave, so keep
-            // the pointer on the trigger while the option is clicked.
-            await trigger.hover();
+            await expect(trigger).toBeVisible({timeout: 2000});
             await trigger.press('ArrowRight');
-            await expect(option).toBeVisible({timeout: 3000});
-            await option.click();
-            await expect(this.dotMenu(fieldId)).toBeHidden({timeout: 5000});
-        }).toPass({timeout: 30000, intervals: [250, 500, 1000]});
+            await expect(option).toBeVisible({timeout: 2000});
+        }).toPass({timeout: 20000, intervals: [250, 500, 1000]});
+
+        await option.click();
+
+        // Selecting a preset closes the whole menu (forceCloseOnSelect). Wait
+        // for it to fully unmount so a follow-up openDotMenu starts clean.
+        await expect(this.dotMenu(fieldId)).toBeHidden();
     }
 
     /**
