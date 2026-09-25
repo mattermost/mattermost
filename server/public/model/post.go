@@ -508,7 +508,9 @@ type GetPostsOptions struct {
 
 type PostCountOptions struct {
 	// Only include posts on a specific team. "" for any team.
-	TeamId             string
+	TeamId string
+	// Only include posts authored by a specific user. "" for any user.
+	UserId             string
 	MustHaveFile       bool
 	MustHaveHashtag    bool
 	ExcludeDeleted     bool
@@ -516,6 +518,9 @@ type PostCountOptions struct {
 	UsersPostsOnly     bool
 	// AllowFromCache looks up cache only when ExcludeDeleted and UsersPostsOnly are true and rest are falsy.
 	AllowFromCache bool
+	// UseMaster reads from the writer instead of a replica. Set this for
+	// preflight checks that must not observe replica lag.
+	UseMaster bool
 
 	// retrieves posts in the inclusive range: [SinceUpdateAt + LastPostId, UntilUpdateAt]
 	SincePostID   string

@@ -92,6 +92,24 @@ func (_m *NotifyAdminStore) GetDataByUserIdAndFeature(userID string, feature mod
 	return r0, r1
 }
 
+// PermanentDeleteByUser provides a mock function with given fields: userID
+func (_m *NotifyAdminStore) PermanentDeleteByUser(userID string) error {
+	ret := _m.Called(userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PermanentDeleteByUser")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Save provides a mock function with given fields: data
 func (_m *NotifyAdminStore) Save(data *model.NotifyAdminData) (*model.NotifyAdminData, error) {
 	ret := _m.Called(data)

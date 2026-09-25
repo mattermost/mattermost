@@ -5939,6 +5939,10 @@
     "translation": "Unable to remove the channel member."
   },
   {
+    "id": "app.channel.permanent_delete_sidebar_by_user.app_error",
+    "translation": "Unable to delete sidebar categories for user."
+  },
+  {
     "id": "app.channel.pinned_posts.app_error",
     "translation": "Unable to find the pinned posts."
   },
@@ -6087,6 +6091,10 @@
     "translation": "Failed to record channel member history. Failed to update existing join record"
   },
   {
+    "id": "app.channel_member_history.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete channel member history for user."
+  },
+  {
     "id": "app.cloud.preview_modal_bucket_url_not_configured",
     "translation": "Preview bucket URL is not configured"
   },
@@ -6185,6 +6193,10 @@
   {
     "id": "app.command_webhook.try_use.invalid",
     "translation": "Invalid webhook."
+  },
+  {
+    "id": "app.command_webhooks.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete command webhooks for user."
   },
   {
     "id": "app.compile_csv_chunks.header_error",
@@ -6739,6 +6751,10 @@
   {
     "id": "app.desktop_token.validate.no_user",
     "translation": "Cannot find a user for this token"
+  },
+  {
+    "id": "app.desktop_tokens.delete_by_user.app_error",
+    "translation": "Unable to delete desktop tokens for user."
   },
   {
     "id": "app.draft.delete.app_error",
@@ -7949,6 +7965,10 @@
     "translation": "If you received this test notification, it worked!"
   },
   {
+    "id": "app.notify_admin.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete admin notification requests for user."
+  },
+  {
     "id": "app.notify_admin.save.app_error",
     "translation": "Unable to save notify data."
   },
@@ -8501,6 +8521,10 @@
     "translation": "Could not save or update plugin key value."
   },
   {
+    "id": "app.post.analytics_post_count.app_error",
+    "translation": "Unable to count the posts for the user."
+  },
+  {
     "id": "app.post.analytics_posts_count.app_error",
     "translation": "Unable to get post counts."
   },
@@ -8645,6 +8669,10 @@
     "translation": "Failed to permanently delete post."
   },
   {
+    "id": "app.post.permanent_delete_post_reminders_by_user.app_error",
+    "translation": "Unable to delete post reminders for user."
+  },
+  {
     "id": "app.post.property_values.field_bound_exceeded.app_error",
     "translation": "The number of attributes that apply to this post exceeds the supported limit."
   },
@@ -8705,6 +8733,10 @@
     "translation": "Unable to update the Post."
   },
   {
+    "id": "app.post_acknowledgement.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete post acknowledgements for user."
+  },
+  {
     "id": "app.post_persistent_notification.delete_by_channel.app_error",
     "translation": "Unable to delete the persistent notifications by channel."
   },
@@ -8759,6 +8791,10 @@
   {
     "id": "app.prepackged-plugin.invalid_version.app_error",
     "translation": "Prepackged plugin version could not be parsed."
+  },
+  {
+    "id": "app.product_notices.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete product notice view state for user."
   },
   {
     "id": "app.property.access_denied.app_error",
@@ -9127,6 +9163,10 @@
   {
     "id": "app.reaction.save.save.too_many_reactions",
     "translation": "Reaction limit has been reached for this post."
+  },
+  {
+    "id": "app.read_receipt.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete read receipts for user."
   },
   {
     "id": "app.recap.cooldown_active.app_error",
@@ -9595,12 +9635,20 @@
     "translation": "Session attribute fields cannot be created or deleted, and only their enabled, ttl_seconds and grace_period_seconds may be changed."
   },
   {
+    "id": "app.shared_channel.permanent_delete_users_by_user.app_error",
+    "translation": "Unable to delete shared channel users for user."
+  },
+  {
     "id": "app.status.get.app_error",
     "translation": "Encountered an error retrieving the status."
   },
   {
     "id": "app.status.get.missing.app_error",
     "translation": "No entry for that status exists."
+  },
+  {
+    "id": "app.status.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete the status for user."
   },
   {
     "id": "app.submit_interactive_dialog.decode_json_error",
@@ -9907,6 +9955,10 @@
     "translation": "Unable to mark all threads as read by channel"
   },
   {
+    "id": "app.thread.permanent_delete_memberships_by_user.app_error",
+    "translation": "Unable to delete thread memberships for user."
+  },
+  {
     "id": "app.toast.send_toast_message.message.app_error",
     "translation": "Message is required"
   },
@@ -10005,6 +10057,10 @@
   {
     "id": "app.upload.upload_data.update.app_error",
     "translation": "Failed to update the upload session."
+  },
+  {
+    "id": "app.upload_session.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete upload sessions for user."
   },
   {
     "id": "app.usage.get_storage_usage.app_error",
@@ -10125,6 +10181,10 @@
   {
     "id": "app.user.permanent_delete.app_error",
     "translation": "Unable to delete the existing account."
+  },
+  {
+    "id": "app.user.permanent_delete.too_many_posts.app_error",
+    "translation": "This user has {{.Count}} posts, which is more than the {{.Max}} post limit for permanently deleting a user. Delete some of the user's posts and try again."
   },
   {
     "id": "app.user.permanentdeleteuser.internal_error",
@@ -10329,6 +10389,10 @@
   {
     "id": "app.user_terms_of_service.get_by_user.no_rows.app_error",
     "translation": "No terms of service found."
+  },
+  {
+    "id": "app.user_terms_of_service.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete the terms of service record for user."
   },
   {
     "id": "app.user_terms_of_service.save.app_error",

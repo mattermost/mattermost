@@ -378,3 +378,15 @@ func (s SqlChannelMemberHistoryStore) GetChannelsLeftSince(userID string, since 
 
 	return channelIds, nil
 }
+
+func (s SqlChannelMemberHistoryStore) PermanentDeleteByUser(userID string) error {
+	query := s.getQueryBuilder().
+		Delete("ChannelMemberHistory").
+		Where(sq.Eq{"UserId": userID})
+
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
+		return errors.Wrapf(err, "failed to delete ChannelMemberHistory with userId=%s", userID)
+	}
+
+	return nil
+}
