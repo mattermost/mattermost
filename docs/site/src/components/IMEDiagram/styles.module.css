@@ -451,34 +451,30 @@ a.footerCell:hover {
   text-decoration: none;
 }
 
-/* Dark mode: keep the footer strips white with dark text so brand marks
- * (GitHub, React Native, Mattermost, etc.) remain visible. Mirrors the
- * deck, where these strips are white regardless of surrounding tone. */
 [data-theme='dark'] .footerCell {
-  background: var(--mm-color-white);
-  color: var(--mm-color-denim, #1E325C);
-  border-color: rgba(255, 255, 255, 0.15);
+  background: var(--mm-denim-700, #121E37);
+  color: var(--mm-color-white);
 }
 
-[data-theme='dark'] a.footerCell:hover {
-  border-color: var(--mm-color-marigold, #FFBC1F);
-  background: var(--mm-marigold-100, rgba(255, 188, 31, 0.16));
-  color: var(--mm-color-denim, #1E325C);
-}
-
-/* Dark mode: brand marks on cell / intro / corner surfaces need a light
- * chip so dark logos (OpenAI, Splunk, Plus, …) stay legible against
- * the near-black cell background. Footer strips are already white in
- * dark mode, so we don't need the chip there. */
-[data-theme='dark'] .logoImg {
-  background: var(--mm-color-white);
+/* Dark mode: brand marks are mostly near-black glyphs that disappear on
+ * dark surfaces. Wrap each in a small white chip so it stays legible
+ * whether it sits on a footer strip, a cell, or a corner. Padding
+ * stays inside the pre-existing width/height (border-box) so strip
+ * heights and grid alignment don't change vs light mode. */
+[data-theme='dark'] .logoImg,
+[data-theme='dark'] .cornerLogo {
+  background: #e6e8ec;
   border-radius: 3px;
-  padding: 0.1rem 0.25rem;
+  padding: 0.15rem 0.3rem;
   box-sizing: border-box;
 }
-[data-theme='dark'] .footerCell .logoImg {
-  background: transparent;
-  padding: 0;
+
+[data-theme='dark'] .logoGrid .logoImg {
+  padding: 0.1rem 0.2rem;
+}
+
+[data-theme='dark'] .cornerLogo {
+  padding: 0.08rem 0.18rem;
 }
 
 /* === Logo strips === */
@@ -604,6 +600,13 @@ a.footerCell:hover {
 .footerCell .logoImg {
   height: 1.1rem;
   max-width: 2.4rem;
+}
+
+/* Inside a horizontal footer strip the logo strip sits inline with the
+ * text, so drop the stacking-context top margin that logoStrip carries
+ * for its intro-column use — otherwise the icons ride ~7px low. */
+.footerCell .logoStrip {
+  margin-top: 0;
 }
 
 .logoBadge {
