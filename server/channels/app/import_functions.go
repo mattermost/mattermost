@@ -1070,7 +1070,11 @@ func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bo
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(nErr, &nfErr):
-				// If the owner does not exist, we assume the owner is a plugin hence keeping the owner username as is.
+				// Kept verbatim: the owner is either a plugin id or a user id whose account is gone.
+				rctx.Logger().Warn("Bot owner did not resolve to a user during import; keeping the value as the owner id",
+					mlog.String("bot_username", *data.Username),
+					mlog.String("owner", *data.Owner),
+				)
 				bot.OwnerId = *data.Owner
 			default:
 				return model.NewAppError("importBot", "app.import.import_bot.owner_could_not_found.error", map[string]any{"Owner": *data.Owner}, "", http.StatusInternalServerError).Wrap(nErr)

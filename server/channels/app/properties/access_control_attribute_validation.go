@@ -28,6 +28,11 @@ var (
 // This avoids a circular dependency between the properties and app packages.
 type PermissionChecker func(rctx request.CTX, userID string, permission *model.Permission) bool
 
+// DirectChannelChecker reports whether a channel is a direct or group message.
+// This avoids a circular dependency between the properties and app packages,
+// the same way PermissionChecker does.
+type DirectChannelChecker func(rctx request.CTX, channelID string) (bool, error)
+
 // AccessControlAttributeValidationHook validates and sanitizes property field attributes
 // and values for managed property groups. It owns the full attr pipeline
 // for these groups:
@@ -53,28 +58,68 @@ type PermissionChecker func(rctx request.CTX, userID string, permission *model.P
 //   - enforces that managed="admin" can only be set by callers with
 //     PermissionManageSystem, and keeps PermissionValues in sync with the
 //     managed attribute
+//   - refuses a human write to a channel-object value whose target is a DM or
+//     GM, at every permission tier, on both the upsert and the delete paths
+//     (see refuseDirectChannelValueWrite)
 //
 // The hook only applies to groups whose IDs are in managedGroupIDs.
+
+// RequiredAttributeEnforcementProvider reports whether required-attribute
+// enforcement is currently active. Backed by a closure over live config so a
+// flag flip takes effect without restarting the hook.
+type RequiredAttributeEnforcementProvider func() bool
+
 type AccessControlAttributeValidationHook struct {
 	BasePropertyHook
-	propertyService   *PropertyService
-	managedGroupIDs   map[string]struct{}
-	permissionChecker PermissionChecker
+	propertyService              *PropertyService
+	managedGroupIDs              map[string]struct{}
+	permissionChecker            PermissionChecker
+	pluginChecker                PluginChecker
+	directChannelChecker         DirectChannelChecker
+	requiredAttributeEnforcement RequiredAttributeEnforcementProvider
 }
 
 var _ PropertyHook = (*AccessControlAttributeValidationHook)(nil)
 
+// AccessControlAttributeValidationHookConfig carries the hook's callbacks into
+// the app package. A config struct rather than three positional callbacks ahead
+// of a variadic.
+//
+// Every callback is optional, and each rule that needs one guards on nil, so a
+// test can construct the hook with only the callbacks its assertions reach.
+type AccessControlAttributeValidationHookConfig struct {
+	// PermissionChecker resolves a permission for a caller. Without it, the
+	// manage_system bypasses are unavailable and those callers are treated as
+	// ordinary users.
+	PermissionChecker PermissionChecker
+	// PluginChecker reports whether a caller ID is an installed plugin.
+	// Without it, only the built-in sync services count as machine actors.
+	PluginChecker PluginChecker
+	// DirectChannelChecker reports whether a channel is a DM or GM. Without
+	// it, refuseDirectChannelValueWrite does not run at all.
+	DirectChannelChecker DirectChannelChecker
+	// RequiredAttributeEnforcement reports whether required-attribute
+	// enforcement is active for channel-object-type fields. A nil provider
+	// defaults to enforced. Applies uniformly to every required channel
+	// field, classification included; a required field on any other object
+	// type (post, user) is always enforced regardless of this provider.
+	RequiredAttributeEnforcement RequiredAttributeEnforcementProvider
+}
+
 // NewAccessControlAttributeValidationHook creates a hook that validates field attributes and
 // values for the given property groups.
-func NewAccessControlAttributeValidationHook(ps *PropertyService, permChecker PermissionChecker, managedGroupIDs ...string) *AccessControlAttributeValidationHook {
+func NewAccessControlAttributeValidationHook(ps *PropertyService, cfg AccessControlAttributeValidationHookConfig, managedGroupIDs ...string) *AccessControlAttributeValidationHook {
 	ids := make(map[string]struct{}, len(managedGroupIDs))
 	for _, id := range managedGroupIDs {
 		ids[id] = struct{}{}
 	}
 	return &AccessControlAttributeValidationHook{
-		propertyService:   ps,
-		managedGroupIDs:   ids,
-		permissionChecker: permChecker,
+		propertyService:              ps,
+		managedGroupIDs:              ids,
+		permissionChecker:            cfg.PermissionChecker,
+		pluginChecker:                cfg.PluginChecker,
+		directChannelChecker:         cfg.DirectChannelChecker,
+		requiredAttributeEnforcement: cfg.RequiredAttributeEnforcement,
 	}
 }
 
@@ -83,13 +128,20 @@ func (h *AccessControlAttributeValidationHook) isGroupManaged(groupID string) bo
 	return ok
 }
 
+// requiredEnforced reports whether required-attribute enforcement is active.
+// A nil provider defaults to enforced, matching pre-flag behavior, so tests
+// and callers that don't care about the flag don't need to supply one.
+func (h *AccessControlAttributeValidationHook) requiredEnforced() bool {
+	return h.requiredAttributeEnforcement == nil || h.requiredAttributeEnforcement()
+}
+
 // sanitizeAndValidateFieldAttrs trims string attrs, applies the visibility
 // default, clears attrs that don't apply to the field type, validates each
 // attr, and auto-IDs+validates options for select-shaped fields. Mutates
 // field.Attrs in place. prevType is the field's type before this operation.
 // prevType is empty on creation of a new field. prevActions is the field's
 // attrs["actions"] before this operation, nil on creation.
-func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(field *model.PropertyField, prevType model.PropertyFieldType, prevActions any) error {
+func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(field *model.PropertyField, prevType model.PropertyFieldType, prevActions any, prevRequired bool) error {
 	if field.Attrs == nil {
 		field.Attrs = model.StringInterface{}
 	}
@@ -155,6 +207,16 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateFieldAttrs(fie
 		if err := model.SanitizeAndValidatePropertyFieldBoolAttr(field, key); err != nil {
 			return fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
 		}
+	}
+	// The kill switch blocks only newly marking a channel field required: a
+	// field that predates the switch being engaged keeps its required=true
+	// attr untouched (same lenient-grandfather rationale as Name and
+	// Actions above), so it snaps back to enforced the moment the switch
+	// flips off again. Non-channel fields (post, user) are never gated by
+	// this flag, matching the value-enforcement side in validateValues.
+	if field.ObjectType == model.PropertyFieldObjectTypeChannel && !h.requiredEnforced() &&
+		model.IsPropertyFieldRequired(field) && !prevRequired {
+		return newRequiredAttrDisabledError(field)
 	}
 	if err := model.SanitizeAndValidatePropertyFieldChangePolicy(field); err != nil {
 		return fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
@@ -534,10 +596,12 @@ func (h *AccessControlAttributeValidationHook) PreCreatePropertyField(rctx reque
 		return nil, appErr
 	}
 
-	// Create: no prior type or actions, so a rank field here is authored directly
-	// and its ranks are validated strictly rather than repaired, and actions get
-	// the strict check with nothing to grandfather.
-	if err := h.sanitizeAndValidateFieldAttrs(field, "", nil); err != nil {
+	// Create: no prior type, actions, or required state, so a rank field here is
+	// authored directly and its ranks are validated strictly rather than
+	// repaired, actions get the strict check with nothing to grandfather, and a
+	// required=true channel field is rejected outright if the kill switch is on
+	// (there is nothing to grandfather on a brand new field).
+	if err := h.sanitizeAndValidateFieldAttrs(field, "", nil, false); err != nil {
 		return nil, err
 	}
 
@@ -562,7 +626,7 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyField(rctx reque
 		}
 	}
 
-	if err := h.sanitizeAndValidateFieldAttrs(field, existing.Type, existing.Attrs[model.PropertyFieldAttrActions]); err != nil {
+	if err := h.sanitizeAndValidateFieldAttrs(field, existing.Type, existing.Attrs[model.PropertyFieldAttrActions], model.IsPropertyFieldRequired(existing)); err != nil {
 		return nil, err
 	}
 
@@ -599,14 +663,17 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyFields(rctx requ
 
 		// prevType stays empty when the field isn't found (the store surfaces
 		// the not-found error later); strict rank validation is the safe
-		// default for that path.
+		// default for that path, and prevRequired stays false so a required
+		// channel field is rejected outright rather than grandfathered.
 		var prevType model.PropertyFieldType
 		var prevActions any
+		var prevRequired bool
 		if existing != nil {
 			prevType = existing.Type
 			prevActions = existing.Attrs[model.PropertyFieldAttrActions]
+			prevRequired = model.IsPropertyFieldRequired(existing)
 		}
-		if err := h.sanitizeAndValidateFieldAttrs(field, prevType, prevActions); err != nil {
+		if err := h.sanitizeAndValidateFieldAttrs(field, prevType, prevActions, prevRequired); err != nil {
 			return nil, fmt.Errorf("field %s: %w", field.ID, err)
 		}
 
@@ -746,6 +813,61 @@ func (h *AccessControlAttributeValidationHook) validateValueAgainstField(field *
 	return nil, nil
 }
 
+// refuseDirectChannelValueWrite refuses a write to a channel-object value whose
+// target is a DM or GM unless the caller holds PermissionManageSystem or is a
+// machine actor. These values are meant to be derived from the participants'
+// own attributes rather than typed in, so participation alone does not earn the
+// write at any permission tier.
+//
+// Who passes, and why:
+//
+//   - callers with PermissionManageSystem -- sysadmins, and local-mode admins
+//     via the CallerIDLocalAdmin short-circuit inside permissionChecker.
+//   - machine actors: an installed plugin, or an LDAP/SAML sync service. These
+//     are the derivation path the rule reserves the write for.
+//
+// Everyone else is refused, including a participant of the DM or GM itself. An
+// untagged caller (empty caller ID) is refused too, failing closed.
+//
+// Ordering matters for cost: the caller checks come first, so a plugin or a
+// sysadmin pays no channel lookup and only an ordinary user triggers one.
+// Targets are deduped because a batch upsert normally addresses one channel.
+func (h *AccessControlAttributeValidationHook) refuseDirectChannelValueWrite(rctx request.CTX, values []*model.PropertyValue) error {
+	if h.directChannelChecker == nil {
+		return nil
+	}
+
+	callerID := h.propertyService.extractCallerID(rctx)
+	if isMachineCaller(h.pluginChecker, callerID) {
+		return nil
+	}
+	if callerID != "" && h.permissionChecker != nil &&
+		h.permissionChecker(rctx, callerID, model.PermissionManageSystem) {
+		return nil
+	}
+
+	seen := make(map[string]struct{}, len(values))
+	for _, value := range values {
+		if value.TargetType != model.PropertyValueTargetTypeChannel {
+			continue
+		}
+		if _, dup := seen[value.TargetID]; dup {
+			continue
+		}
+		seen[value.TargetID] = struct{}{}
+
+		isDirect, err := h.directChannelChecker(rctx, value.TargetID)
+		if err != nil {
+			return fmt.Errorf("failed to resolve channel %s for the direct-channel value check: %w", value.TargetID, err)
+		}
+		if isDirect {
+			return newDirectChannelValueError(value.TargetID)
+		}
+	}
+
+	return nil
+}
+
 func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, values []*model.PropertyValue) error {
 	if len(values) == 0 {
 		return nil
@@ -754,6 +876,12 @@ func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, 
 	groupID := values[0].GroupID
 	if !h.isGroupManaged(groupID) {
 		return nil
+	}
+
+	// Authorization precedes validation, and refusing here avoids the field
+	// round trip below.
+	if err := h.refuseDirectChannelValueWrite(rctx, values); err != nil {
+		return err
 	}
 
 	// Collect unique field IDs
@@ -797,7 +925,10 @@ func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, 
 		if err != nil {
 			return fmt.Errorf("field %s: %s: %w", value.FieldID, err.Error(), ErrInvalidValue)
 		}
-		if model.IsPropertyFieldRequired(field) && model.IsEmptyPropertyValue(value.Value) {
+		// The kill switch is scoped to channel attributes: a required field on any
+		// other object type (post, user) stays enforced regardless of the flag.
+		if (field.ObjectType != model.PropertyFieldObjectTypeChannel || h.requiredEnforced()) &&
+			model.IsPropertyFieldRequired(field) && model.IsEmptyPropertyValue(value.Value) {
 			return newRequiredValueError(field)
 		}
 		if len(optionIDs) == 0 {
@@ -838,7 +969,7 @@ func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, 
 		}
 	}
 
-	return h.validateChangePolicy(groupID, values, fieldMap)
+	return h.validateChangePolicy(rctx, groupID, values, fieldMap)
 }
 
 // validateChangePolicy enforces attrs.change_policy: a value may be set once,
@@ -853,7 +984,7 @@ func (h *AccessControlAttributeValidationHook) validateValues(rctx request.CTX, 
 // This is a read-then-write with no transaction around it, so two concurrent
 // first writes can both pass. That is the window the rest of the property system
 // already lives with, and the loser overwrites a value set milliseconds earlier.
-func (h *AccessControlAttributeValidationHook) validateChangePolicy(groupID string, values []*model.PropertyValue, fieldMap map[string]*model.PropertyField) error {
+func (h *AccessControlAttributeValidationHook) validateChangePolicy(rctx request.CTX, groupID string, values []*model.PropertyValue, fieldMap map[string]*model.PropertyField) error {
 	// Grouped by target so one search covers every governed field on a channel:
 	// PropertyValueSearchOpts carries a single FieldID, so a per-field lookup
 	// would cost a round trip each. "any" is the default and the common case,
@@ -871,7 +1002,7 @@ func (h *AccessControlAttributeValidationHook) validateChangePolicy(groupID stri
 	}
 
 	for targetID, pending := range governed {
-		existing, err := h.getValuesForTarget(groupID, model.PropertyValueTargetTypeChannel, targetID)
+		existing, err := h.getValuesForTarget(rctx, groupID, model.PropertyValueTargetTypeChannel, targetID)
 		if err != nil {
 			return err
 		}
@@ -975,6 +1106,13 @@ func newChangePolicyError(field *model.PropertyField, policy string) error {
 	}
 }
 
+// newDirectChannelValueError returns the refusal for a hand-written DM/GM
+// channel attribute value.
+func newDirectChannelValueError(channelID string) error {
+	details := fmt.Sprintf("channel %s: direct and group channel attribute values are derived, not set", channelID)
+	return model.NewAppError("UpsertPropertyValues", "app.property_value.direct_channel.app_error", nil, details, http.StatusForbidden)
+}
+
 // newRequiredValueError returns the refusal for writing or deleting an empty
 // value on a required field.
 func newRequiredValueError(field *model.PropertyField) error {
@@ -982,9 +1120,18 @@ func newRequiredValueError(field *model.PropertyField) error {
 	return model.NewAppError("UpsertPropertyValues", "app.property_value.required.app_error", nil, details, http.StatusBadRequest)
 }
 
+// newRequiredAttrDisabledError returns the refusal for newly marking a channel
+// field required while required-attribute enforcement is disabled: nothing
+// would enforce it, and an admin authoring it now would reasonably expect the
+// opposite.
+func newRequiredAttrDisabledError(field *model.PropertyField) error {
+	details := fmt.Sprintf("field %s: cannot mark required while required-attribute enforcement is disabled", field.ID)
+	return model.NewAppError("UpsertPropertyField", "app.property_field.required_disabled.app_error", nil, details, http.StatusBadRequest)
+}
+
 // getValuesForTarget loads every value stored against one target, paging with
 // the same bounds as the access-control lookups.
-func (h *AccessControlAttributeValidationHook) getValuesForTarget(groupID, targetType, targetID string) ([]*model.PropertyValue, error) {
+func (h *AccessControlAttributeValidationHook) getValuesForTarget(rctx request.CTX, groupID, targetType, targetID string) ([]*model.PropertyValue, error) {
 	allValues := []*model.PropertyValue{}
 	var cursor model.PropertyValueSearchCursor
 
@@ -1002,7 +1149,7 @@ func (h *AccessControlAttributeValidationHook) getValuesForTarget(groupID, targe
 			opts.Cursor = cursor
 		}
 
-		values, err := h.propertyService.searchPropertyValues(groupID, opts)
+		values, err := h.propertyService.searchPropertyValues(rctx, groupID, opts)
 		if err != nil {
 			return nil, fmt.Errorf("failed to load existing values for target %s: %w", targetID, err)
 		}
@@ -1080,6 +1227,11 @@ func (h *AccessControlAttributeValidationHook) PreDeletePropertyValue(rctx reque
 		// itself will fail downstream with the appropriate not-found error.
 		return nil
 	}
+	// A delete is a clear, so a participant must not be able to use it to strip
+	// a DM/GM marking that they could not have written in the first place.
+	if dcErr := h.refuseDirectChannelValueWrite(rctx, []*model.PropertyValue{value}); dcErr != nil {
+		return dcErr
+	}
 	return h.refuseGovernedDelete(rctx, groupID, []*model.PropertyValue{value})
 }
 
@@ -1090,7 +1242,15 @@ func (h *AccessControlAttributeValidationHook) PreDeletePropertyValuesForTarget(
 	if targetType != model.PropertyValueTargetTypeChannel || !h.isGroupManaged(groupID) {
 		return nil
 	}
-	values, err := h.getValuesForTarget(groupID, targetType, targetID)
+	// Checked against a synthetic value so a refusal costs no value load; the
+	// rule only reads TargetType and TargetID.
+	if err := h.refuseDirectChannelValueWrite(rctx, []*model.PropertyValue{{
+		TargetType: targetType,
+		TargetID:   targetID,
+	}}); err != nil {
+		return err
+	}
+	values, err := h.getValuesForTarget(rctx, groupID, targetType, targetID)
 	if err != nil {
 		return err
 	}
@@ -1139,8 +1299,11 @@ func (h *AccessControlAttributeValidationHook) refuseGovernedDelete(rctx request
 		}
 		// Required is enforced for every target type, matching the write path
 		// in validateValues. change_policy stays channel-only -- see
-		// validateChangePolicy for why.
-		if model.IsPropertyFieldRequired(field) {
+		// validateChangePolicy for why. The kill switch is likewise scoped to
+		// channel attributes: a required post/user field stays enforced
+		// regardless of the flag.
+		if (field.ObjectType != model.PropertyFieldObjectTypeChannel || h.requiredEnforced()) &&
+			model.IsPropertyFieldRequired(field) {
 			return newRequiredValueError(field)
 		}
 		if v.TargetType == model.PropertyValueTargetTypeChannel && model.GetPropertyFieldChangePolicy(field) != model.PropertyFieldChangePolicyAny {

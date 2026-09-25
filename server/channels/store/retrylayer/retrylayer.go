@@ -40,6 +40,7 @@ type RetryLayer struct {
 	EmojiStore                      store.EmojiStore
 	FileInfoStore                   store.FileInfoStore
 	GroupStore                      store.GroupStore
+	HealthFindingStore              store.HealthFindingStore
 	JobStore                        store.JobStore
 	LicenseStore                    store.LicenseStore
 	LinkMetadataStore               store.LinkMetadataStore
@@ -165,6 +166,10 @@ func (s *RetryLayer) FileInfo() store.FileInfoStore {
 
 func (s *RetryLayer) Group() store.GroupStore {
 	return s.GroupStore
+}
+
+func (s *RetryLayer) HealthFinding() store.HealthFindingStore {
+	return s.HealthFindingStore
 }
 
 func (s *RetryLayer) Job() store.JobStore {
@@ -433,6 +438,11 @@ type RetryLayerFileInfoStore struct {
 
 type RetryLayerGroupStore struct {
 	store.GroupStore
+	Root *RetryLayer
+}
+
+type RetryLayerHealthFindingStore struct {
+	store.HealthFindingStore
 	Root *RetryLayer
 }
 
@@ -832,11 +842,11 @@ func (s *RetryLayerAccessControlPolicyStore) SearchPolicies(rctx request.CTX, op
 
 }
 
-func (s *RetryLayerAccessControlPolicyStore) SetActiveStatus(rctx request.CTX, id string, active bool) (*model.AccessControlPolicy, error) {
+func (s *RetryLayerAccessControlPolicyStore) SetMembershipAutoAdd(rctx request.CTX, list []model.AccessControlPolicyAutoAddUpdate) ([]*model.AccessControlPolicy, error) {
 
 	tries := 0
 	for {
-		result, err := s.AccessControlPolicyStore.SetActiveStatus(rctx, id, active)
+		result, err := s.AccessControlPolicyStore.SetMembershipAutoAdd(rctx, list)
 		if err == nil {
 			return result, nil
 		}
@@ -853,24 +863,9 @@ func (s *RetryLayerAccessControlPolicyStore) SetActiveStatus(rctx request.CTX, i
 
 }
 
-func (s *RetryLayerAccessControlPolicyStore) SetActiveStatusMultiple(rctx request.CTX, list []model.AccessControlPolicyActiveUpdate) ([]*model.AccessControlPolicy, error) {
+func (s *RetryLayerAttributesStore) ClearUserAttributesCache() {
 
-	tries := 0
-	for {
-		result, err := s.AccessControlPolicyStore.SetActiveStatusMultiple(rctx, list)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
+	s.AttributesStore.ClearUserAttributesCache()
 
 }
 
@@ -961,6 +956,12 @@ func (s *RetryLayerAttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX,
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
+
+}
+
+func (s *RetryLayerAttributesStore) InvalidateUserAttributes(userID string) {
+
+	s.AttributesStore.InvalidateUserAttributes(userID)
 
 }
 
@@ -7363,6 +7364,132 @@ func (s *RetryLayerGroupStore) UpsertMembers(groupID string, userIDs []string) (
 
 }
 
+func (s *RetryLayerHealthFindingStore) DeleteBefore(lastSeenBefore int64) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.HealthFindingStore.DeleteBefore(lastSeenBefore)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerHealthFindingStore) GetByFingerprints(fingerprints []string) ([]*model.HealthFinding, error) {
+
+	tries := 0
+	for {
+		result, err := s.HealthFindingStore.GetByFingerprints(fingerprints)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerHealthFindingStore) List(filter model.HealthFindingFilter) ([]*model.HealthFinding, error) {
+
+	tries := 0
+	for {
+		result, err := s.HealthFindingStore.List(filter)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerHealthFindingStore) Mute(fingerprint string, userID string, at int64) error {
+
+	tries := 0
+	for {
+		err := s.HealthFindingStore.Mute(fingerprint, userID, at)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerHealthFindingStore) Unmute(fingerprint string) error {
+
+	tries := 0
+	for {
+		err := s.HealthFindingStore.Unmute(fingerprint)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerHealthFindingStore) Upsert(findings []*model.HealthFinding) error {
+
+	tries := 0
+	for {
+		err := s.HealthFindingStore.Upsert(findings)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerJobStore) Cleanup(expiryTime int64, batchSize int) error {
 
 	tries := 0
@@ -11251,11 +11378,32 @@ func (s *RetryLayerPropertyFieldStore) MutateOptions(groupID string, fieldID str
 
 }
 
-func (s *RetryLayerPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
+func (s *RetryLayerPropertyFieldStore) PermanentDeleteOwnedOptions(groupID string, fieldID string) error {
 
 	tries := 0
 	for {
-		result, err := s.PropertyFieldStore.SearchPropertyFields(opts)
+		err := s.PropertyFieldStore.PermanentDeleteOwnedOptions(groupID, fieldID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPropertyFieldStore) SearchPropertyFields(rctx request.CTX, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
+
+	tries := 0
+	for {
+		result, err := s.PropertyFieldStore.SearchPropertyFields(rctx, opts)
 		if err == nil {
 			return result, nil
 		}
@@ -11524,11 +11672,11 @@ func (s *RetryLayerPropertyValueStore) GetMany(groupID string, ids []string) ([]
 
 }
 
-func (s *RetryLayerPropertyValueStore) SearchPropertyValues(opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
+func (s *RetryLayerPropertyValueStore) SearchPropertyValues(rctx request.CTX, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyValueStore.SearchPropertyValues(opts)
+		result, err := s.PropertyValueStore.SearchPropertyValues(rctx, opts)
 		if err == nil {
 			return result, nil
 		}
@@ -19288,11 +19436,11 @@ func (s *RetryLayerUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit in
 
 }
 
-func (s *RetryLayerUserAccessTokenStore) GetExpiringTokens(now int64, thresholds []int, limit int) ([]*model.UserAccessToken, error) {
+func (s *RetryLayerUserAccessTokenStore) GetExpiringTokens(now int64, thresholds []int, limit int, includeUserOwnedTokens bool) ([]*model.UserAccessToken, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserAccessTokenStore.GetExpiringTokens(now, thresholds, limit)
+		result, err := s.UserAccessTokenStore.GetExpiringTokens(now, thresholds, limit, includeUserOwnedTokens)
 		if err == nil {
 			return result, nil
 		}
@@ -20261,6 +20409,7 @@ func New(childStore store.Store) *RetryLayer {
 	newStore.EmojiStore = &RetryLayerEmojiStore{EmojiStore: childStore.Emoji(), Root: &newStore}
 	newStore.FileInfoStore = &RetryLayerFileInfoStore{FileInfoStore: childStore.FileInfo(), Root: &newStore}
 	newStore.GroupStore = &RetryLayerGroupStore{GroupStore: childStore.Group(), Root: &newStore}
+	newStore.HealthFindingStore = &RetryLayerHealthFindingStore{HealthFindingStore: childStore.HealthFinding(), Root: &newStore}
 	newStore.JobStore = &RetryLayerJobStore{JobStore: childStore.Job(), Root: &newStore}
 	newStore.LicenseStore = &RetryLayerLicenseStore{LicenseStore: childStore.License(), Root: &newStore}
 	newStore.LinkMetadataStore = &RetryLayerLinkMetadataStore{LinkMetadataStore: childStore.LinkMetadata(), Root: &newStore}

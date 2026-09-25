@@ -932,7 +932,7 @@ DELETE FROM threadmemberships WHERE (postid, userid) IN (
 <td colspan="3">For servers wanting to allow websockets to connect from origins other than the origin of the site URL, please set the <code>ServiceSettings.AllowCorsFrom</code> | <a href="/administration-guide/configure/integrations-configuration-settings#enable-cross-origin-requests-from">configuration setting</a>. Also ensure that | the <code>siteURL</code> is set correctly. |</td>
 </tr>
 <tr>
-<td>In v8.0 release, the following repositories are merged into one: <code>mattermost-server</code>, <code>mattermost-webapp</code> and <code>mmctl</code>. Developers should read the updated <a href="https://developers.mattermost.com/contribute/developer-setup/">Developer Guide</a> for details.</td>
+<td>In v8.0 release, the following repositories are merged into one: <code>mattermost-server</code>, <code>mattermost-webapp</code> and <code>mmctl</code>. Developers should read the updated <a href="https://docs.mattermost.com/developers/contribute/developer-setup/">Developer Guide</a> for details.</td>
 </tr>
 <tr>
 <td>Fixed an issue caused by a migration in the previous release. Query takes around 11ms on a PostgreSQL 14 DB t3.medium RDS instance. Locks on the preferences table will only be acquired if there are rows to delete, but the time taken is negligible.</td>
@@ -1275,7 +1275,7 @@ DELETE FROM threadmemberships WHERE (postid, userid) IN (
 </tr>
 <tr>
 <td rowspan="2">v5.20.0</td>
-<td>Any <a href="https://developers.mattermost.com/integrate/admin-guide/admin-plugins-beta/#pre-packaged-plugins">pre-packaged plugin</a> that is not enabled in the <code>config.json</code> will no longer install automatically, but can continue to be installed via the <a href="https://developers.mattermost.com/integrate/admin-guide/admin-plugins-beta/#plugin-marketplace">Plugin Marketplace</a>.</td>
+<td>Any <a href="https://docs.mattermost.com/developers/integrate/plugins/using-and-managing-plugins#pre-packaged-plugins">pre-packaged plugin</a> that is not enabled in the <code>config.json</code> will no longer install automatically, but can continue to be installed via the <a href="https://docs.mattermost.com/developers/integrate/plugins/using-and-managing-plugins#mattermost-marketplace">Plugin Marketplace</a>.</td>
 </tr>
 <tr>
 <td>Boolean elements from interactive dialogs are no longer serialized as strings. While we try to avoid breaking changes, this change was necessary to allow both the web and mobile apps to work with the boolean elements introduced with v5.16.</td>
@@ -1316,7 +1316,7 @@ DELETE FROM threadmemberships WHERE (postid, userid) IN (
 </tr>
 <tr>
 <td rowspan="4">v5.12.0</td>
-<td>If your plugin uses the <code>DeleteEphemeralMessage</code> plugin API, update it to accept a <code>postId string</code> parameter. See <a href="https://developers.mattermost.com/extend/plugins/server/reference/#API.DeleteEphemeralPost">documentation</a> to learn more.</td>
+<td>If your plugin uses the <code>DeleteEphemeralMessage</code> plugin API, update it to accept a <code>postId string</code> parameter. See <a href="https://docs.mattermost.com/developers/integrate/reference/server#API.DeleteEphemeralPost">documentation</a> to learn more.</td>
 </tr>
 <tr>
 <td>Image link and YouTube previews do not display unless <strong>System Console &gt; Enable Link Previews</strong> is enabled. Please ensure that your Mattermost server is connected to the internet and has network access to the websites from which previews are expected to appear. <a href="https://forum.mattermost.com/t/link-previews-managed-server-side-in-v5-12-and-later/7712">Learn more here</a>.</td>

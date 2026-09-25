@@ -4,6 +4,7 @@
 package model
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -165,6 +166,48 @@ func TestFeatureFlagsPermissionPoliciesDependencies(t *testing.T) {
 		f.PolicySimulation = true
 		require.False(t, f.IsChannelPermissionPoliciesEnabled())
 		require.True(t, f.IsPolicySimulationEnabled())
+	})
+}
+
+// TestFeatureFlagsChannelAttributesRequiredEnabled pins down the
+// ChannelAttributesRequired flag contract.
+func TestFeatureFlagsChannelAttributesRequiredEnabled(t *testing.T) {
+	t.Run("sub-flag defaults to false (enforcement off) after SetDefaults", func(t *testing.T) {
+		var f FeatureFlags
+		f.SetDefaults()
+
+		require.False(t, f.ChannelAttributesRequired)
+
+		f.ChannelAttributes = true
+		require.False(t, f.IsChannelAttributesRequiredEnabled())
+	})
+
+	t.Run("umbrella off disables enforcement regardless of the sub-flag", func(t *testing.T) {
+		f := FeatureFlags{ChannelAttributes: false, ChannelAttributesRequired: true}
+		require.False(t, f.IsChannelAttributesRequiredEnabled())
+	})
+
+	t.Run("sub-flag false disables enforcement even with the umbrella on", func(t *testing.T) {
+		f := FeatureFlags{ChannelAttributes: true, ChannelAttributesRequired: false}
+		require.False(t, f.IsChannelAttributesRequiredEnabled())
+	})
+
+	t.Run("both on enables enforcement", func(t *testing.T) {
+		f := FeatureFlags{ChannelAttributes: true, ChannelAttributesRequired: true}
+		require.True(t, f.IsChannelAttributesRequiredEnabled())
+	})
+
+	t.Run("a field absent from a persisted FeatureFlags block decodes to false (enforcement off)", func(t *testing.T) {
+		// Simulates upgrading a server that already persisted a FeatureFlags
+		// block predating this flag's existence: absent field decodes to Go
+		// zero value (false = enforcement off), the safe default.
+		raw := []byte(`{"ChannelAttributes": true}`)
+		var f FeatureFlags
+		require.NoError(t, json.Unmarshal(raw, &f))
+
+		require.False(t, f.ChannelAttributesRequired)
+		require.False(t, f.IsChannelAttributesRequiredEnabled(),
+			"a server upgrading with a persisted FeatureFlags block leaves required-attribute enforcement off until explicitly enabled")
 	})
 }
 
