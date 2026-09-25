@@ -45,6 +45,7 @@ func (a *App) CreateChannelBookmark(rctx request.CTX, newBookmark *model.Channel
 		return nil, model.NewAppError("CreateChannelBookmark", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	message.Add("bookmark", string(bookmarkJSON))
+	a.setupBroadcastHookForAbacBookmarks(message, bookmark.ChannelId, "bookmark", bookmark)
 	a.Publish(message)
 	return bookmark, nil
 }
@@ -99,6 +100,7 @@ func (a *App) UpdateChannelBookmark(rctx request.CTX, updateBookmark *model.Chan
 		return nil, model.NewAppError("UpdateChannelBookmark", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	message.Add("bookmarks", string(bookmarkJSON))
+	a.setupBroadcastHookForAbacBookmarks(message, updateBookmark.ChannelId, "bookmarks", response.Updated, response.Deleted)
 	a.Publish(message)
 
 	return response, nil
@@ -120,6 +122,7 @@ func (a *App) DeleteChannelBookmark(bookmarkId, connectionId string) (*model.Cha
 		return nil, model.NewAppError("DeleteChannelBookmark", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	message.Add("bookmark", string(bookmarkJSON))
+	a.setupBroadcastHookForAbacBookmarks(message, bookmark.ChannelId, "bookmark", bookmark)
 	a.Publish(message)
 
 	return bookmark, nil
@@ -146,6 +149,7 @@ func (a *App) UpdateChannelBookmarkSortOrder(bookmarkId, channelId string, newIn
 		return nil, model.NewAppError("UpdateSortOrder", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 	message.Add("bookmarks", string(bookmarkJSON))
+	a.setupBroadcastHookForAbacBookmarks(message, channelId, "bookmarks", bookmarks...)
 	a.Publish(message)
 
 	return bookmarks, nil
