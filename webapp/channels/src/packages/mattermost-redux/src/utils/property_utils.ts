@@ -36,6 +36,27 @@ export function isPropertyFieldEditable(field: PropertyField): boolean {
     return getPropertyFieldChangePolicy(field) !== 'never';
 }
 
+/**
+ * Whether a field's values are written by an integration rather than by people,
+ * so no session user -- sysadmin included -- may set them.
+ *
+ * Mirrors checkValueWriteAccess in the server's properties access control hook:
+ * attrs.protected reserves the values for the plugin named in
+ * attrs.source_plugin_id (only a plugin can set either), and an attrs.owners
+ * list makes them authoritative to the listed owners. Neither consults
+ * permission_values -- the write is refused before that tier is reached.
+ */
+export function isPropertyFieldSourceManaged(field: PropertyField): boolean {
+    const attrs = field.attrs;
+    if (!attrs) {
+        return false;
+    }
+    if (attrs.protected === true) {
+        return true;
+    }
+    return Array.isArray(attrs.owners) && attrs.owners.length > 0;
+}
+
 // Whether a stored value counts as set. Mirrors isEmptyPropertyValue on the
 // server: null, an empty string and an empty list all read as "Not set".
 export function isPropertyValueSet(raw: unknown): boolean {

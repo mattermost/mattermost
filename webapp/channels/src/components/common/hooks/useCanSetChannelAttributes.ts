@@ -10,14 +10,15 @@ import {Permissions} from 'mattermost-redux/constants';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import {getPropertyFieldChangePolicy} from 'mattermost-redux/utils/property_utils';
+import {getPropertyFieldChangePolicy, isPropertyFieldSourceManaged} from 'mattermost-redux/utils/property_utils';
 
 import type {GlobalState} from 'types/store';
 
 /**
  * Whether the current user may set an attribute's value on a channel. Mirrors the
- * server's permission_values tier rather than replacing it — the server stays
- * authoritative; this only decides whether to offer an affordance that would fail.
+ * server's plugin-managed gate and permission_values tier rather than replacing
+ * them — the server stays authoritative; this only decides whether to offer an
+ * affordance that would fail.
  *
  * attrs.change_policy governs *changes*, so it is checked only against an existing
  * value: an attribute whose creation-time write failed must stay fillable, or it
@@ -38,6 +39,13 @@ export default function useCanSetChannelAttributes(channelId: string) {
 
     return useCallback((field: PropertyField, hasValue = false): boolean => {
         if (!channel) {
+            return false;
+        }
+
+        // A plugin-managed attribute's values belong to the integration that
+        // writes them, so the server refuses every session write regardless of
+        // permission_values. Offering an editor here only produces a save error.
+        if (isPropertyFieldSourceManaged(field)) {
             return false;
         }
 
