@@ -19,6 +19,7 @@ import {ALL_RESOURCE_TYPES, ATTRIBUTE_APPLIES_TO_ADD_HEADER_TRIGGER_ID, resource
 import type {AttributeAppliesToItemProps, ResourceObjectType, UserManagedValue} from './attribute_applies_to_constants';
 import AttributeAppliesToPostItem from './attribute_applies_to_post_item';
 import AttributeAppliesToUserItem from './attribute_applies_to_user_item';
+import type {ExternalSource} from './external_source';
 import ResourceTypeIcon from './resource_type_icon';
 
 import type {ChannelResourceConfig} from '../applies_to/channels/types';
@@ -50,6 +51,10 @@ type Props = {
     onUserVisibilityChange?: (visibility: FieldVisibility) => void;
     userManaged?: UserManagedValue;
     onUserManagedChange?: (managed: UserManagedValue) => void;
+
+    // Set when the attribute's values are synced from AD/LDAP or SAML, which
+    // the Users row surfaces as a read-only "Managed by" indicator.
+    externalSource?: ExternalSource;
 
     // Channels only: the settings its row edits, held by the page because the
     // linked channel field is built from them on Save.
@@ -93,6 +98,7 @@ function AttributeAppliesTo({
     onUserVisibilityChange,
     userManaged,
     onUserManagedChange,
+    externalSource,
     channelResource,
     onChannelResourceChange,
     ordered,
@@ -206,6 +212,7 @@ function AttributeAppliesTo({
                                         onVisibilityChange: onUserVisibilityChange,
                                         managed: userManaged,
                                         onManagedChange: onUserManagedChange,
+                                        externalSource,
                                     } : {};
                                     return (
                                         <Item

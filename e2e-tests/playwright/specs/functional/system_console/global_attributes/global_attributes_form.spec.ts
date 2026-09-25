@@ -1621,6 +1621,118 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, name);
             }
         });
+
+        /**
+         * @objective Ensure a Users row on an AD/LDAP-synced attribute surfaces a Managed by
+         * indicator naming that source, greyed out and impossible to interact with, carrying the
+         * same sync icon the Definition block's synced chip uses, above helper text saying the
+         * values are not editable in Mattermost.
+         */
+        test('shows a disabled AD/LDAP Managed by indicator on the Users row of a synced attribute', async ({pw}) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const name = `e2e_managed_by_ldap_${timestamp}`;
+            const displayName = `Playwright Managed By Ldap ${timestamp}`;
+
+            try {
+                const template = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
+                    attrs: {display_name: displayName, ldap: 'employeeID'},
+                });
+                await createLinkedDependentField(adminClient, name, template.id, 'text', 'user', {
+                    display_name: displayName,
+                });
+
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}/attribute_details/${template.id}`);
+                await page.getByTestId('attributeAppliesToRow-user-toggle').click();
+
+                // * The Managed by indicator names AD/LDAP, above the "not editable" helper text
+                const managedBy = page.getByTestId('attributeAppliesToUserManagedBy');
+                await expect(managedBy).toContainText('AD/LDAP');
+                await expect(
+                    page.getByTestId('attributeAppliesToRow-user-body').getByText('Not editable in Mattermost.'),
+                ).toBeVisible();
+
+                // * It carries the same glyph as the Definition block's synced chip, compared by
+                // path data so the two cannot drift apart unnoticed
+                const chipIcon = await page
+                    .getByTestId('attributeExternalSourceChip-ldap')
+                    .locator('svg path')
+                    .first()
+                    .getAttribute('d');
+                expect(chipIcon).toBeTruthy();
+                await expect(managedBy.locator('svg path').first()).toHaveAttribute('d', chipIcon!);
+
+                // * It is greyed out and cannot be operated: it carries no chevron to suggest a
+                // menu, and forcing a click past the disabled state still opens none
+                await expect(managedBy).toBeDisabled();
+                await expect(managedBy).toHaveAccessibleName(/^Managed by: AD\/LDAP\./);
+                await expect(managedBy.locator('.AttributeSelect__value')).toHaveCSS('opacity', '0.6');
+                await expect(managedBy.locator('.icon-chevron-down')).toHaveCount(0);
+                await managedBy.click({force: true});
+                await expect(page.getByRole('menuitemradio')).toHaveCount(0);
+
+                // * The row's editable settings are still there -- the indicator reports the
+                // source, it does not lock the rest of the card
+                await expect(page.getByTestId('attributeAppliesToUserProfileDisplay-always')).toBeEnabled();
+                await expect(page.getByTestId('attributeAppliesToUserWhoCanSet-admin')).toBeEnabled();
+            } finally {
+                await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, name);
+            }
+        });
+
+        /**
+         * @objective Ensure the Managed by indicator tracks the linked source live: absent while
+         * the attribute is managed in Mattermost, naming SAML once SAML is linked, and gone again
+         * once the link is removed.
+         */
+        test('adds and removes the Managed by indicator as a source is linked and unlinked', async ({pw}) => {
+            const {adminUser} = await requireGlobalAttributesEnabled(pw);
+
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            const {page} = systemConsolePage;
+            await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+            await page.getByTestId('newAttributeButton').click();
+
+            await page.getByTestId('attributeAppliesToAddResourceButtonHeader').click();
+            await page.getByRole('menuitem', {name: 'Users'}).click();
+            await page.getByTestId('attributeAppliesToRow-user-toggle').click();
+
+            // * An attribute managed in Mattermost has no Managed by row at all
+            await expect(page.getByTestId('attributeAppliesToRow-user-body')).toBeVisible();
+            await expect(page.getByTestId('attributeAppliesToUserManagedBy')).toHaveCount(0);
+            await expect(page.getByText('Not editable in Mattermost.')).toHaveCount(0);
+
+            // # Link SAML
+            await page.getByTestId('attributeExternalSourceTrigger').click();
+            await page.getByRole('menuitem', {name: /^SAML/}).click();
+            await page.getByPlaceholder('department').fill('position');
+            await page.getByRole('button', {name: 'Save'}).click();
+
+            // * The indicator appears naming SAML, not AD/LDAP
+            const managedBy = page.getByTestId('attributeAppliesToUserManagedBy');
+            await expect(managedBy).toContainText('SAML');
+            await expect(managedBy).not.toContainText('AD/LDAP');
+
+            // * ...with the same glyph the SAML chip in the Definition block carries
+            const chipIcon = await page
+                .getByTestId('attributeExternalSourceChip-saml')
+                .locator('svg path')
+                .first()
+                .getAttribute('d');
+            expect(chipIcon).toBeTruthy();
+            await expect(managedBy.locator('svg path').first()).toHaveAttribute('d', chipIcon!);
+
+            // # Unlink it again
+            await page.getByTestId('attributeExternalSourceChip-saml-remove').click();
+
+            // * The indicator and its helper text go away with the link
+            await expect(page.getByTestId('attributeAppliesToUserManagedBy')).toHaveCount(0);
+            await expect(page.getByText('Not editable in Mattermost.')).toHaveCount(0);
+        });
     });
 
     test.describe('display name rendering', () => {
