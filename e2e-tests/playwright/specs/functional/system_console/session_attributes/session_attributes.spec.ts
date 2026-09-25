@@ -178,6 +178,10 @@ test.describe('System Console - Session Attributes', () => {
     /**
      * @objective Verify a staged edit blocks sidebar navigation with a discard
      * prompt, and that Cancel reverts the staged change.
+     *
+     * Stages via one-click Enable rather than a TTL preset. The duration
+     * submenu is covered by the persist test and is too racy here: the nav
+     * guard only needs any unsaved edit.
      */
     test('blocks navigation while dirty and reverts on cancel', {tag: '@session_attributes'}, async ({pw}) => {
         const {systemConsolePage, fields} = await setupSessionAttributesTest(pw);
@@ -189,12 +193,12 @@ test.describe('System Console - Session Attributes', () => {
         // # Navigate to Session Attributes page
         await sa.goto();
 
-        // # Capture the rendered TTL, then stage a different TTL (24h)
-        const beforeTtl = (await sa.ttl(field.id).textContent())?.trim() ?? '';
-        await sa.setTtlPreset(field.id, 86400);
+        // # Stage a one-click Enable (dot menu, no duration submenu)
+        await expect(sa.status(field.id)).toContainText('Disabled');
+        await sa.enable(field.id);
 
         // * Verify the edit is staged and Save is enabled
-        await expect(sa.ttl(field.id)).toHaveText('24h');
+        await expect(sa.status(field.id)).toContainText('Enabled');
         await expect(sa.saveButton).toBeEnabled();
 
         // # Attempt to navigate away via the sidebar while dirty
@@ -212,8 +216,8 @@ test.describe('System Console - Session Attributes', () => {
         // # Cancel the staged edit via the Save Changes panel
         await sa.cancel();
 
-        // * Verify the TTL reverted and Save returned to disabled
-        await expect(sa.ttl(field.id)).toHaveText(beforeTtl);
+        // * Verify the status reverted and Save returned to disabled
+        await expect(sa.status(field.id)).toContainText('Disabled');
         await expect(sa.saveButton).toBeDisabled();
     });
 
