@@ -8,13 +8,12 @@ title: "Migrate from Slack"
 Mattermost provides a migration path from Slack so you can bring collaboration history into a self-hosted Mattermost environment. The recommended flow is:
 
 1. [Prepare your Mattermost environment](#1-prepare-your-mattermost-environment).
-2. [Export data from Slack](#2-export-your-data-from-slack) using Slack’s tools and documentation.
-3. [Understand which Slack export format you have](#3-understand-your-slack-export-format) (single workspace vs Enterprise Grid).
-4. [Review what migrates and what does not](#what-migrates--what-doesnt).
-5. [Transform the Slack export into a Mattermost bulk import package with `mmetl`](#5-transform-the-export-with-mmetl).
+2. [Export data from Slack](#2-export-your-data-from-slack) using Slack’s tools and documentation. Identify whether you have a single-workspace or Enterprise Grid export.
+3. [Review what migrates and what does not](#what-migrates--what-doesnt).
+4. [Transform the Slack export into a Mattermost bulk import package with `mmetl`](#4-transform-the-export-with-mmetl).
    - For Enterprise Grid, split the export with `grid-transform` first. Run `transform slack --dry-run` before the full transform, which produces a JSONL file and `data/` attachments directory.
-6. [Handle multiple exports](#6-handle-multiple-exports), if applicable.
-7. [Package and import the data into Mattermost](#7-package-and-import-into-mattermost) using the [bulk loading](/administration-guide/onboard/bulk-loading-data) documentation.
+5. [Handle multiple exports](#5-handle-multiple-exports), if applicable.
+6. [Package and import the data into Mattermost](#6-package-and-import-into-mattermost) using the [bulk loading](/administration-guide/onboard/bulk-loading-data) documentation.
 
 This is a *best effort* migration. Mattermost tools preserve the majority of messages, files, and workspace structure, but Slack and Mattermost differ architecturally, and manual adjustments are often required. Plan for days to weeks depending on export size and complexity. Always run a trial migration in a development or staging environment first.
 
@@ -36,7 +35,7 @@ This guide assumes you already have a Mattermost Server ready to accept data. If
 - **Data history**: Prefer a smaller time window for the first import (for example, the last six months). Expand after a successful trial.
 - **Export size**: Files under ~25 GB often complete within a day; exports over ~100 GB can take several days per iteration.
 - **Attachments**: Exclude very large or non-critical files (installers, videos, outdated assets) when you can, to speed iteration.
-- **Phased imports**: Multiple smaller exports (for example, six dumps of six months each) are supported and recommended. See [Handle multiple exports](#6-handle-multiple-exports).
+- **Phased imports**: Multiple smaller exports (for example, six dumps of six months each) are supported and recommended. See [Handle multiple exports](#5-handle-multiple-exports).
 
 ### Infrastructure
 
@@ -86,8 +85,6 @@ Slack periodically changes its export format without notice. Before a large migr
 
 </Note>
 
-## 3. Understand your Slack export format
-
 ### Single-workspace exports
 
 A typical single-workspace zip includes:
@@ -119,7 +116,7 @@ Slack Export/
 
 Public and private channel names appear as top-level folders of daily post files. A public-channels-only export omits `groups.json`, `dms.json`, `mpims.json`, and private-channel folders.
 
-Use `mmetl transform slack` on this archive (see [Transform](#5-transform-the-export-with-mmetl)).
+Use `mmetl transform slack` on this archive (see [Transform](#4-transform-the-export-with-mmetl)).
 
 ### Enterprise Grid exports \{#enterprise-grid-exports}
 
@@ -167,7 +164,7 @@ Enterprise Grid Export/
 
 Shared channels often appear at the root; per-workspace data lives under `/teams/`. Grid migrations usually take more time because of manual team mapping. See [Transform an Enterprise Grid export](#transform-an-enterprise-grid-export-optional).
 
-## 4. What migrates / What doesn’t \{#what-migrates--what-doesnt}
+## 3. What migrates / What doesn’t \{#what-migrates--what-doesnt}
 
 The Slack path focuses on core collaboration data: posts, threads, reactions, file attachments, users, and channels. Bot users and bot messages also migrate when you configure `--bot-owner`. Slash commands, workflows, webhooks, and other integrations do not migrate and must be rebuilt in Mattermost.
 
@@ -249,7 +246,7 @@ If a Slack user has no email in the export, `mmetl transform slack` does not inv
 
 Search the JSONL for your `--default-email-domain` value or `@local`, correct addresses, then re-validate with `mmctl import validate`. If you leave temporary placeholders in place, update those users in Mattermost after import.
 
-## 5. Transform the export with mmetl
+## 4. Transform the export with mmetl
 
 [`mmetl`](https://github.com/mattermost/mmetl) converts a Slack export into Mattermost’s bulk import format: a [JSONL](https://jsonlines.org/) file plus a `data/` directory of attachments.
 
@@ -411,7 +408,7 @@ Large transforms move through four phases. Watch `transform-slack.log` (and cons
    {"level":"info","msg":"Slack Import: Converted markdown"}
    ```
 
-## 6. Handle multiple exports
+## 5. Handle multiple exports
 
 Customers often receive several Slack dumps (for example, six archives covering six months each) or run weekly exports during cutover.
 
@@ -421,9 +418,9 @@ Customers often receive several Slack dumps (for example, six archives covering 
 - Import chronologically when practical (oldest first).
 - Rely on Mattermost bulk import **idempotency**: overlapping posts with the same author and `create_at` are not duplicated.
 - Keep team names and `--guest-handling` / `--bot-owner` choices consistent across batches.
-- For very large histories, prefer several medium imports over one multi-hundred-GB upload (see [Package and import](#7-package-and-import-into-mattermost)).
+- For very large histories, prefer several medium imports over one multi-hundred-GB upload (see [Package and import](#6-package-and-import-into-mattermost)).
 
-## 7. Package and import into Mattermost
+## 6. Package and import into Mattermost
 
 When `mmetl` finishes, you should have:
 
@@ -530,7 +527,7 @@ To move authentication to LDAP or SAML after import, see [mmctl user migrate-aut
 
 ### Can I import in batches, or must I import everything at once?
 
-Batches are fine and recommended. Transform and import incrementally; Mattermost bulk import is idempotent. See [Handle multiple exports](#6-handle-multiple-exports).
+Batches are fine and recommended. Transform and import incrementally; Mattermost bulk import is idempotent. See [Handle multiple exports](#5-handle-multiple-exports).
 
 ### Do I need to create users before running the import?
 
