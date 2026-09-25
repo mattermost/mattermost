@@ -1625,8 +1625,8 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         /**
          * @objective Ensure a Users row on an AD/LDAP-synced attribute surfaces a Managed by
          * indicator naming that source, greyed out and impossible to interact with, carrying the
-         * same sync icon the Definition block's synced chip uses, above helper text saying the
-         * values are not editable in Mattermost.
+         * same sync icon the Definition block's synced chip uses, alongside helper text saying
+         * the values are not editable in Mattermost.
          */
         test('shows a disabled AD/LDAP Managed by indicator on the Users row of a synced attribute', async ({pw}) => {
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);

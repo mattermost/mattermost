@@ -55,8 +55,11 @@ describe('AttributeSelect', () => {
         expect(screen.getByRole('menu', {name: 'Select type'})).toHaveAttribute('id', 'attribute-type-menu');
         expect(screen.getByRole('menuitemradio', {name: 'Text'})).toHaveAttribute('id', 'attribute-type-text');
         expect(screen.getByRole('menuitemradio', {name: 'Text'})).toHaveAttribute('aria-checked', 'true');
-        expect(screen.getByRole('menuitemradio', {name: 'Text'}).querySelector('svg')).toBeInTheDocument();
         expect(screen.getByRole('menuitemradio', {name: 'Select'})).toHaveAttribute('aria-checked', 'false');
+
+        // Each option carries its OWN icon, not the selected one repeated.
+        const glyph = (name: string) => screen.getByRole('menuitemradio', {name}).querySelector('svg path')!.getAttribute('d');
+        expect(glyph('Text')).not.toEqual(glyph('Select'));
 
         await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
         expect(onChange).toHaveBeenCalledTimes(1);
