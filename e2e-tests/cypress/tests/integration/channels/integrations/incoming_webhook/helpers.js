@@ -12,12 +12,13 @@ export function enableUsernameAndIconOverride(enable) {
 }
 
 export function enableUsernameAndIconOverrideInt(enableUsername, enableIcon) {
-    // # Visit integration management at system console and change override values
-    cy.visit('/admin_console/integrations/integration_management');
-    cy.findByTestId('ServiceSettings.EnablePostUsernameOverride' + enableUsername).check({force: true});
-    cy.findByTestId('ServiceSettings.EnablePostIconOverride' + enableIcon).check({force: true});
-
-    // # Save the settings
-    cy.get('#saveSetting').should('be.enabled').click({force: true});
-    cy.get('#saveSetting').should('be.disabled');
+    // Set override flags via API. Visiting the admin console and clicking Save
+    // leaves #saveSetting disabled when a previous spec already applied the
+    // same values, which flakes MM-T622 and related webhook tests.
+    cy.apiUpdateConfig({
+        ServiceSettings: {
+            EnablePostUsernameOverride: enableUsername,
+            EnablePostIconOverride: enableIcon,
+        },
+    });
 }
