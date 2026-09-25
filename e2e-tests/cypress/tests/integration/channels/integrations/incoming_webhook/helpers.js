@@ -7,30 +7,55 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
+import * as TIMEOUTS from '@/fixtures/timeouts';
+
 export function enableUsernameAndIconOverride(enable) {
     enableUsernameAndIconOverrideInt(enable, enable);
 }
 
 export function enableUsernameAndIconOverrideInt(enableUsername, enableIcon) {
-    // # Visit integration management at system console and change override values
-    cy.visit('/admin_console/integrations/integration_management');
-    cy.get('#saveSetting').should('be.visible').and('be.disabled');
+    // Patch only these two flags via PUT of the current config. The admin-console
+    // Save control stays disabled when the radios already match, and apiUpdateConfig
+    // also resets e2e defaults. Wait until both flags are visible to the API so a
+    // webhook is not posted with a stale EnablePostIconOverride.
+    const flagsMatch = (config) => (
+        config.ServiceSettings.EnablePostUsernameOverride === enableUsername &&
+        config.ServiceSettings.EnablePostIconOverride === enableIcon
+    );
 
-    const usernameTestId = 'ServiceSettings.EnablePostUsernameOverride' + enableUsername;
-    const iconTestId = 'ServiceSettings.EnablePostIconOverride' + enableIcon;
+    cy.apiGetConfig().then(({config}) => {
+        if (flagsMatch(config)) {
+            return;
+        }
 
-    cy.findByTestId(usernameTestId).then(($username) => {
-        cy.findByTestId(iconTestId).then(($icon) => {
-            // Skip Save when both flags are already in the requested state.
-            // Checking an already-selected control leaves Save disabled and flakes MM-T622.
-            if ($username.is(':checked') && $icon.is(':checked')) {
-                return;
+        const nextConfig = {
+            ...config,
+            ServiceSettings: {
+                ...config.ServiceSettings,
+                EnablePostUsernameOverride: enableUsername,
+                EnablePostIconOverride: enableIcon,
+            },
+        };
+
+        cy.getCookie('MMCSRF').then((csrfCookie) => {
+            const headers = {};
+            if (csrfCookie?.value) {
+                headers['X-CSRF-Token'] = csrfCookie.value;
             }
 
-            cy.findByTestId(usernameTestId).check({force: true});
-            cy.findByTestId(iconTestId).check({force: true});
-            cy.get('#saveSetting').should('be.enabled').click({force: true});
-            cy.get('#saveSetting').should('be.disabled');
+            cy.request({
+                url: '/api/v4/config',
+                method: 'PUT',
+                body: nextConfig,
+                headers,
+            }).then((response) => {
+                expect(response.status).to.equal(200);
+            });
         });
     });
+
+    cy.waitUntil(
+        () => cy.apiGetConfig().then(({config}) => flagsMatch(config)),
+        {timeout: TIMEOUTS.HALF_MIN, interval: TIMEOUTS.HALF_SEC},
+    );
 }
