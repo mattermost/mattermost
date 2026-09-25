@@ -17,6 +17,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func channelAccessDenialChannelID(rctx request.CTX) string {
+	channelID, _ := ChannelAccessEnforcementDenial(rctx)
+	return channelID
+}
+
 // The umbrella feature flag has to come from SetupConfig: UpdateConfig silently
 // drops FeatureFlags writes, which would leave every test here passing vacuously.
 type channelReadAccessHarness struct {
@@ -40,7 +45,7 @@ func setupChannelReadAccessTest(t *testing.T) *channelReadAccessHarness {
 
 	return &channelReadAccessHarness{
 		th:   th,
-		rctx: WithChannelReadAccessMemo(th.Context.WithSession(session)),
+		rctx: WithChannelAccessMemo(th.Context.WithSession(session)),
 	}
 }
 
@@ -182,7 +187,7 @@ func TestHasChannelReadAccess(t *testing.T) {
 		decides(mockACS, false)
 
 		require.False(t, h.th.App.HasChannelReadAccess(h.rctx, h.th.BasicUser.Id, h.th.BasicChannel))
-		require.Empty(t, ChannelReadAccessEnforcementDenial(h.rctx),
+		require.Empty(t, channelAccessDenialChannelID(h.rctx),
 			"a suppression-path denial must not be reportable as the reason a request failed")
 	})
 
@@ -192,11 +197,11 @@ func TestHasChannelReadAccess(t *testing.T) {
 		governed(mockACS)
 		decides(mockACS, false)
 
-		require.Empty(t, ChannelReadAccessEnforcementDenial(h.rctx), "nothing evaluated yet")
+		require.Empty(t, channelAccessDenialChannelID(h.rctx), "nothing evaluated yet")
 
 		ok, _ := h.th.App.SessionHasPermissionToReadChannel(h.rctx, *h.rctx.Session(), h.th.BasicChannel)
 		require.False(t, ok)
-		require.Equal(t, h.th.BasicChannel.Id, ChannelReadAccessEnforcementDenial(h.rctx))
+		require.Equal(t, h.th.BasicChannel.Id, channelAccessDenialChannelID(h.rctx))
 	})
 
 	t.Run("does not record an allow as a denial", func(t *testing.T) {
@@ -207,7 +212,7 @@ func TestHasChannelReadAccess(t *testing.T) {
 
 		ok, _ := h.th.App.SessionHasPermissionToReadChannel(h.rctx, *h.rctx.Session(), h.th.BasicChannel)
 		require.True(t, ok)
-		require.Empty(t, ChannelReadAccessEnforcementDenial(h.rctx))
+		require.Empty(t, channelAccessDenialChannelID(h.rctx))
 	})
 
 	t.Run("a filter does not record an enforcement denial", func(t *testing.T) {
@@ -218,10 +223,10 @@ func TestHasChannelReadAccess(t *testing.T) {
 
 		require.Empty(t, h.th.App.FilterChannelsByReadAccess(h.rctx, h.th.BasicUser.Id, []*model.Channel{h.th.BasicChannel}),
 			"the denied channel should be dropped")
-		require.Empty(t, ChannelReadAccessEnforcementDenial(h.rctx))
+		require.Empty(t, channelAccessDenialChannelID(h.rctx))
 
 		require.Empty(t, h.th.App.FilterChannelIDsByReadAccess(h.rctx, h.th.BasicUser.Id, []string{h.th.BasicChannel.Id}))
-		require.Empty(t, ChannelReadAccessEnforcementDenial(h.rctx))
+		require.Empty(t, channelAccessDenialChannelID(h.rctx))
 	})
 
 	// Keeps push recipients, webhook owners and admin-acting-for-user evaluations
@@ -233,7 +238,7 @@ func TestHasChannelReadAccess(t *testing.T) {
 		decides(mockACS, false)
 
 		require.False(t, h.th.App.EnforceChannelReadAccess(h.rctx, h.th.BasicUser2.Id, h.th.BasicChannel))
-		require.Empty(t, ChannelReadAccessEnforcementDenial(h.rctx),
+		require.Empty(t, channelAccessDenialChannelID(h.rctx),
 			"the session user is the only one the response is about")
 	})
 
@@ -244,11 +249,11 @@ func TestHasChannelReadAccess(t *testing.T) {
 		decides(mockACS, false)
 
 		require.False(t, h.th.App.EnforceChannelReadAccess(h.rctx, h.th.BasicUser.Id, h.th.BasicChannel))
-		require.Equal(t, h.th.BasicChannel.Id, ChannelReadAccessEnforcementDenial(h.rctx))
+		require.Equal(t, h.th.BasicChannel.Id, channelAccessDenialChannelID(h.rctx))
 
 		second := h.th.CreateChannel(t, h.th.BasicTeam)
 		require.False(t, h.th.App.EnforceChannelReadAccess(h.rctx, h.th.BasicUser.Id, second))
-		require.Equal(t, second.Id, ChannelReadAccessEnforcementDenial(h.rctx),
+		require.Equal(t, second.Id, channelAccessDenialChannelID(h.rctx),
 			"when two channels are gated in sequence, the later denial is the one the request dies on")
 	})
 }
@@ -640,60 +645,70 @@ func TestEvaluateChannelReadAccessGovernanceCheckFailsClosed(t *testing.T) {
 	mockACS.AssertCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
 }
 
-// Every channel-scoped permission must be deliberately classified as a read or a
-// write. channel_read_access gates only the reads; a new read permission left out of
-// isChannelReadPermission would silently escape the gate, so adding one to the model
-// fails here until somebody decides which side it belongs on.
-func TestChannelReadPermissionClassification(t *testing.T) {
+// Every channel-scoped permission must be deliberately classified as a read, a
+// write, or neither. channel_read_access gates the reads and channel_write_access
+// gates the writes; a new permission left out of both allowlists silently escapes
+// both gates, so adding one to the model fails here until somebody decides which
+// side it belongs on.
+func TestChannelPermissionClassification(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	want := map[string]bool{
-		"add_bookmark_private_channel":            false,
-		"add_bookmark_public_channel":             false,
-		"add_reaction":                            false,
-		"convert_private_channel_to_public":       false,
-		"convert_public_channel_to_private":       false,
-		"create_post":                             false,
-		"create_post_ephemeral":                   false,
-		"create_post_public":                      false,
-		"delete_bookmark_private_channel":         false,
-		"delete_bookmark_public_channel":          false,
-		"delete_others_posts":                     false,
-		"delete_post":                             false,
-		"delete_private_channel":                  false,
-		"delete_public_channel":                   false,
-		"edit_bookmark_private_channel":           false,
-		"edit_bookmark_public_channel":            false,
-		"edit_file_attachment":                    false,
-		"edit_others_posts":                       false,
-		"edit_post":                               false,
-		"manage_channel_access_rules":             false,
-		"manage_channel_join_requests":            false,
-		"manage_channel_roles":                    false,
-		"manage_private_channel_auto_translation": false,
-		"manage_private_channel_banner":           false,
-		"manage_private_channel_discoverability":  false,
-		"manage_private_channel_members":          false,
-		"manage_private_channel_properties":       false,
-		"manage_public_channel_auto_translation":  false,
-		"manage_public_channel_banner":            false,
-		"manage_public_channel_members":           false,
-		"manage_public_channel_properties":        false,
-		"order_bookmark_private_channel":          false,
-		"order_bookmark_public_channel":           false,
-		"read_channel":                            true,
-		"read_channel_content":                    true,
+	const (
+		classRead    = "read"
+		classWrite   = "write"
+		classNeither = "neither"
+	)
+
+	want := map[string]string{
+		"add_bookmark_private_channel":      classWrite,
+		"add_bookmark_public_channel":       classWrite,
+		"add_reaction":                      classWrite,
+		"convert_private_channel_to_public": classWrite,
+		"convert_public_channel_to_private": classWrite,
+		"create_post":                       classWrite,
+		"create_post_ephemeral":             classWrite,
+		"create_post_public":                classWrite,
+		"delete_bookmark_private_channel":   classWrite,
+		"delete_bookmark_public_channel":    classWrite,
+		"delete_others_posts":               classWrite,
+		"delete_post":                       classWrite,
+		"delete_private_channel":            classWrite,
+		"delete_public_channel":             classWrite,
+		"edit_bookmark_private_channel":     classWrite,
+		"edit_bookmark_public_channel":      classWrite,
+		"edit_file_attachment":              classWrite,
+		"edit_others_posts":                 classWrite,
+		"edit_post":                         classWrite,
+		// Policy administration, not channel content. Gating it would make a policy
+		// that denies its own author unfixable, since the gate binds system admins
+		// too — so every call site asks RBAC-only and this stays off both lists.
+		"manage_channel_access_rules":             classNeither,
+		"manage_channel_join_requests":            classWrite,
+		"manage_channel_roles":                    classWrite,
+		"manage_private_channel_auto_translation": classWrite,
+		"manage_private_channel_banner":           classWrite,
+		"manage_private_channel_discoverability":  classWrite,
+		"manage_private_channel_members":          classWrite,
+		"manage_private_channel_properties":       classWrite,
+		"manage_public_channel_auto_translation":  classWrite,
+		"manage_public_channel_banner":            classWrite,
+		"manage_public_channel_members":           classWrite,
+		"manage_public_channel_properties":        classWrite,
+		"order_bookmark_private_channel":          classWrite,
+		"order_bookmark_public_channel":           classWrite,
+		"read_channel":                            classRead,
+		"read_channel_content":                    classRead,
 		// Never reaches the channel gates: it is only an error payload behind an
-		// IsSystemAdmin check, so it is not part of the allowlist.
-		"read_deleted_posts":          false,
-		"read_private_channel_groups": true,
-		"read_public_channel_groups":  true,
-		"remove_others_reactions":     false,
-		"remove_reaction":             false,
-		"upload_file":                 false,
-		"use_channel_mentions":        false,
-		"use_group_mentions":          false,
-		"use_slash_commands":          false,
+		// IsSystemAdmin check, so it is on neither allowlist.
+		"read_deleted_posts":          classNeither,
+		"read_private_channel_groups": classRead,
+		"read_public_channel_groups":  classRead,
+		"remove_others_reactions":     classWrite,
+		"remove_reaction":             classWrite,
+		"upload_file":                 classWrite,
+		"use_channel_mentions":        classWrite,
+		"use_group_mentions":          classWrite,
+		"use_slash_commands":          classWrite,
 	}
 
 	for _, permission := range model.AllPermissions {
@@ -701,10 +716,17 @@ func TestChannelReadPermissionClassification(t *testing.T) {
 			continue
 		}
 
-		isRead, classified := want[permission.Id]
+		class, classified := want[permission.Id]
 		require.True(t, classified,
-			"classify %s as a channel read or a write, then add it here", permission.Id)
-		require.Equal(t, isRead, isChannelReadPermission(permission), permission.Id)
+			"classify %s as a channel read, a write, or neither, then add it here", permission.Id)
+
+		isRead := isChannelReadPermission(permission)
+		isWrite := isChannelWritePermission(permission)
+		require.False(t, isRead && isWrite,
+			"%s is on both allowlists; a permission is a read or a write, never both", permission.Id)
+
+		require.Equal(t, class == classRead, isRead, "isChannelReadPermission(%s)", permission.Id)
+		require.Equal(t, class == classWrite, isWrite, "isChannelWritePermission(%s)", permission.Id)
 	}
 }
 
@@ -896,4 +918,135 @@ func TestChannelScopedEventsCarryTheReadAccessHook(t *testing.T) {
 			}
 		})
 	}
+}
+
+// Join/leave send two copies of each event: a channel-wide one that tells the other
+// members, and a user-scoped one to the joining or leaving user. Only the channel-wide
+// copy is gated. The removed user's copy is how their client drops the channel, so
+// gating it would leave a denied user with a stale channel in the sidebar.
+func TestChannelJoinLeaveEventsCarryTheReadAccessHook(t *testing.T) {
+	// capture runs the publisher and returns every websocket event it published.
+	capture := func(t *testing.T, h *channelReadAccessHarness, run func(*testing.T)) []*model.WebSocketEvent {
+		t.Helper()
+
+		cluster := &testlib.FakeClusterInterface{}
+		h.th.Server.Platform().SetCluster(cluster)
+		run(t)
+
+		var events []*model.WebSocketEvent
+		for _, msg := range cluster.SelectMessages(func(msg *model.ClusterMessage) bool {
+			return msg.Event == model.ClusterEventPublish
+		}) {
+			event, err := model.WebSocketEventFromJSON(bytes.NewReader(msg.Data))
+			require.NoError(t, err)
+			events = append(events, event)
+		}
+		return events
+	}
+
+	// find returns the single event of the given type whose broadcast is channel-wide
+	// (channelWide) or addressed to one user (!channelWide).
+	find := func(t *testing.T, events []*model.WebSocketEvent, eventType model.WebsocketEventType, channelID string, channelWide bool) *model.WebSocketEvent {
+		t.Helper()
+
+		var found []*model.WebSocketEvent
+		for _, event := range events {
+			if event.EventType() != eventType {
+				continue
+			}
+			broadcast := event.GetBroadcast()
+			if channelWide && broadcast.ChannelId == channelID && broadcast.UserId == "" {
+				found = append(found, event)
+			}
+			if !channelWide && broadcast.UserId != "" && (broadcast.ChannelId == channelID || event.GetData()["channel_id"] == channelID) {
+				found = append(found, event)
+			}
+		}
+		require.Len(t, found, 1, "%s (channel-wide=%v)", eventType, channelWide)
+		return found[0]
+	}
+
+	requireHooked := func(t *testing.T, event *model.WebSocketEvent, channelID string) {
+		t.Helper()
+		require.Contains(t, event.GetBroadcast().BroadcastHooks, broadcastChannelReadAccess, "%s", event.EventType())
+		require.Contains(t, event.GetBroadcast().BroadcastHookArgs,
+			map[string]any{"channel_id": channelID}, "%s", event.EventType())
+	}
+
+	requireNotHooked := func(t *testing.T, event *model.WebSocketEvent) {
+		t.Helper()
+		require.NotContains(t, event.GetBroadcast().BroadcastHooks, broadcastChannelReadAccess, "%s", event.EventType())
+	}
+
+	disableABAC := func(h *channelReadAccessHarness) {
+		// Turning ABAC off rather than dropping the license, as in
+		// TestChannelScopedEventsCarryTheReadAccessHook.
+		h.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = false
+		})
+	}
+
+	t.Run("add user to channel", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		h.mockACS(t)
+
+		addUser := func(t *testing.T) (*model.Channel, []*model.WebSocketEvent) {
+			channel := h.th.CreateChannel(t, h.th.BasicTeam)
+			events := capture(t, h, func(t *testing.T) {
+				_, appErr := h.th.App.AddUserToChannel(h.rctx, h.th.BasicUser2, channel, false)
+				require.Nil(t, appErr)
+			})
+			return channel, events
+		}
+
+		channel, events := addUser(t)
+		requireHooked(t, find(t, events, model.WebsocketEventUserAdded, channel.Id, true), channel.Id)
+		requireNotHooked(t, find(t, events, model.WebsocketEventUserAdded, channel.Id, false))
+
+		disableABAC(h)
+		channel, events = addUser(t)
+		requireNotHooked(t, find(t, events, model.WebsocketEventUserAdded, channel.Id, true))
+	})
+
+	t.Run("remove user from channel", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		h.mockACS(t)
+
+		removeUser := func(t *testing.T) (*model.Channel, []*model.WebSocketEvent) {
+			channel := h.th.CreateChannel(t, h.th.BasicTeam)
+			h.th.AddUserToChannel(t, h.th.BasicUser2, channel)
+			events := capture(t, h, func(t *testing.T) {
+				require.Nil(t, h.th.App.RemoveUserFromChannel(h.rctx, h.th.BasicUser2.Id, h.th.BasicUser.Id, channel))
+			})
+			return channel, events
+		}
+
+		channel, events := removeUser(t)
+		requireHooked(t, find(t, events, model.WebsocketEventUserRemoved, channel.Id, true), channel.Id)
+		requireNotHooked(t, find(t, events, model.WebsocketEventUserRemoved, channel.Id, false))
+
+		disableABAC(h)
+		channel, events = removeUser(t)
+		requireNotHooked(t, find(t, events, model.WebsocketEventUserRemoved, channel.Id, true))
+	})
+
+	t.Run("join default channels", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		h.mockACS(t)
+
+		townSquare, appErr := h.th.App.GetChannelByName(h.th.Context, model.DefaultChannelName, h.th.BasicTeam.Id, false)
+		require.Nil(t, appErr)
+
+		joinTeam := func(t *testing.T) []*model.WebSocketEvent {
+			user := h.th.CreateUser(t)
+			return capture(t, h, func(t *testing.T) {
+				h.th.LinkUserToTeam(t, user, h.th.BasicTeam)
+			})
+		}
+
+		requireHooked(t, find(t, joinTeam(t), model.WebsocketEventUserAdded, townSquare.Id, true), townSquare.Id)
+
+		disableABAC(h)
+		requireNotHooked(t, find(t, joinTeam(t), model.WebsocketEventUserAdded, townSquare.Id, true))
+	})
 }

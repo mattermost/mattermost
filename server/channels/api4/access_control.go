@@ -44,6 +44,19 @@ func preserveSystemManagedFields(c *Context, policy *model.AccessControlPolicy) 
 	return nil
 }
 
+// requirePolicyChannelWriteAccess gates channel-scoped policy administration on the
+// channel's own channel_write_access policy, so a channel or team admin who may not
+// write in the channel can no longer add, edit or delete its membership and permission
+// policies.
+func requirePolicyChannelWriteAccess(c *Context, channelID string, hasManageSystem bool) bool {
+	// Permitting for `hasManageSystem` so allow creating policies from System Console
+	if hasManageSystem || channelID == "" {
+		return true
+	}
+
+	return requireChannelWriteAccessByID(c, channelID)
+}
+
 func (api *API) InitAccessControlPolicy() {
 	api.BaseRoutes.AccessControlPolicies.Handle("", api.APISessionRequired(createAccessControlPolicy)).Methods(http.MethodPut)
 	api.BaseRoutes.AccessControlPolicies.Handle("/search", api.APISessionRequired(searchAccessControlPolicies)).Methods(http.MethodPost)
@@ -192,9 +205,13 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 				return
 			}
 
-			hasChannelPermission, _ := c.App.HasPermissionToChannelRBACOnly(c.AppContext, c.AppContext.Session().UserId, policy.ID, model.PermissionManageChannelAccessRules)
+			hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, policy.ID, model.PermissionManageChannelAccessRules)
 			if !hasChannelPermission {
 				c.SetPermissionError(model.PermissionManageChannelAccessRules)
+				return
+			}
+
+			if !requirePolicyChannelWriteAccess(c, policy.ID, hasManageSystem) {
 				return
 			}
 
@@ -297,6 +314,16 @@ func getAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 				return
 			}
 		}
+
+		if channelPermErr == nil {
+			gatedChannelID := channelID
+			if gatedChannelID == "" {
+				gatedChannelID = policyID
+			}
+			if !requirePolicyChannelWriteAccess(c, gatedChannelID, hasSystemPermission) {
+				return
+			}
+		}
 	}
 
 	policy, appErr := c.App.GetAccessControlPolicy(c.AppContext, policyID)
@@ -365,6 +392,10 @@ func deleteAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 				}
 			}
 		}
+
+		if channelPermErr == nil && !requirePolicyChannelWriteAccess(c, policyID, hasSystemPermission) {
+			return
+		}
 	}
 
 	appErr := c.App.DeleteAccessControlPolicy(c.AppContext, policyID)
@@ -403,12 +434,16 @@ func checkExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 				c.SetPermissionError(model.PermissionManageSystem)
 				return
 			}
-			hasChannelPermission, _ := c.App.HasPermissionToChannelRBACOnly(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
+			hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
 			if !hasChannelPermission {
 				c.SetPermissionError(model.PermissionManageChannelAccessRules)
 				return
 			}
 		}
+	}
+
+	if !requirePolicyChannelWriteAccess(c, channelId, hasSystemPermission) {
+		return
 	}
 
 	errs, appErr := c.App.CheckExpression(c.AppContext, checkExpressionRequest.Expression)
@@ -455,11 +490,15 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionManageSystem)
 			return
 		}
-		hasChannelPermission, _ := c.App.HasPermissionToChannelRBACOnly(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
+		hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
 		if !hasChannelPermission {
 			c.SetPermissionError(model.PermissionManageChannelAccessRules)
 			return
 		}
+	}
+
+	if !requirePolicyChannelWriteAccess(c, channelId, hasSystemPermission) {
+		return
 	}
 
 	var users []*model.User
@@ -592,9 +631,9 @@ func teamAdminCELContextOK(c *Context, channelID, teamID string) bool {
 //     resolves to a channel in that team. Without this guard a team
 //     admin could simulate a policy for any channel by pairing their
 //     team_id with a foreign channel_id; the cross-team check forces
-//     the auth to fall through to HasPermissionToChannelRBACOnly for any
+//     the auth to fall through to HasPermissionToChannel for any
 //     channel outside the admin's team.
-//   - channel admin: when channelID is set, via HasPermissionToChannelRBACOnly
+//   - channel admin: when channelID is set, via HasPermissionToChannel
 //     (which already covers the channel's actual team admins).
 //
 // On failure the function sets the appropriate permission error on `c`
@@ -613,7 +652,7 @@ func authorizeSimulatePolicy(c *Context, channelID, teamID string) (hasSystemPer
 		c.SetPermissionError(model.PermissionManageSystem)
 		return false, false
 	}
-	hasChannelPermission, _ := c.App.HasPermissionToChannelRBACOnly(c.AppContext, c.AppContext.Session().UserId, channelID, model.PermissionManageChannelAccessRules)
+	hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelID, model.PermissionManageChannelAccessRules)
 	if !hasChannelPermission {
 		c.SetPermissionError(model.PermissionManageChannelAccessRules)
 		return false, false
@@ -683,6 +722,10 @@ func simulatePolicyForUsers(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	hasSystemPermission, ok := authorizeSimulatePolicy(c, params.ChannelID, params.TeamID)
 	if !ok {
+		return
+	}
+
+	if !requirePolicyChannelWriteAccess(c, params.ChannelID, hasSystemPermission) {
 		return
 	}
 
@@ -776,12 +819,17 @@ func validateExpressionAgainstRequester(c *Context, w http.ResponseWriter, r *ht
 				c.SetPermissionError(model.PermissionManageSystem)
 				return
 			}
-			hasChannelPermission, _ := c.App.HasPermissionToChannelRBACOnly(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
+			hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
 			if !hasChannelPermission {
 				c.SetPermissionError(model.PermissionManageChannelAccessRules)
 				return
 			}
 		}
+	}
+
+	// After the whole block above, so the gate binds the team-admin path too.
+	if !requirePolicyChannelWriteAccess(c, channelId, hasSystemPermission) {
+		return
 	}
 
 	// Direct validation against requester
@@ -910,6 +958,10 @@ func updateActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionManageSystem)
 			return
 		}
+
+		if !requirePolicyChannelWriteAccess(c, policyID, hasManageSystemPermission) {
+			return
+		}
 	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventUpdateActiveStatus, model.AuditStatusFail)
@@ -1005,6 +1057,10 @@ func setActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 					c.SetPermissionError(model.PermissionManageChannelAccessRules)
 					return
 				}
+			}
+
+			if channelPermErr == nil && !requirePolicyChannelWriteAccess(c, entry.ID, hasSystemPermission) {
+				return
 			}
 		}
 	}
@@ -1401,12 +1457,16 @@ func getFieldsAutocomplete(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			hasChannelPermission, _ := c.App.HasPermissionToChannelRBACOnly(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
+			hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
 			if !hasChannelPermission {
 				c.SetPermissionError(model.PermissionManageChannelAccessRules)
 				return
 			}
 		}
+	}
+
+	if !requirePolicyChannelWriteAccess(c, channelId, hasSystemPermission) {
+		return
 	}
 
 	after := r.URL.Query().Get("after")
@@ -1473,13 +1533,18 @@ func convertToVisualAST(c *Context, w http.ResponseWriter, r *http.Request) {
 				c.SetPermissionError(model.PermissionManageSystem)
 				return
 			}
-			hasChannelPermission, _ := c.App.HasPermissionToChannelRBACOnly(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
+			hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
 			if !hasChannelPermission {
 				c.SetPermissionError(model.PermissionManageChannelAccessRules)
 				return
 			}
 		}
 	}
+
+	if !requirePolicyChannelWriteAccess(c, channelId, hasSystemPermission) {
+		return
+	}
+
 	var visualAST *model.VisualExpression
 	var appErr *model.AppError
 

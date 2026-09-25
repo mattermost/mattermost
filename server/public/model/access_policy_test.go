@@ -1875,13 +1875,30 @@ func TestChannelReadAccessAction(t *testing.T) {
 		require.True(t, allowedActionsV0_3[AccessControlPolicyActionChannelReadAccess])
 	})
 
-	t.Run("counts as a permission-rule action on a policy", func(t *testing.T) {
+	t.Run("counts as a permission-rule action on a policy, and HasAction finds it", func(t *testing.T) {
+		var nilPolicy *AccessControlPolicy
+		require.False(t, nilPolicy.HasAction(AccessControlPolicyActionChannelReadAccess))
+
+		fileOnly := &AccessControlPolicy{Rules: []AccessControlPolicyRule{{
+			Actions: []string{AccessControlPolicyActionUploadFileAttachment},
+		}}}
+		require.False(t, fileOnly.HasAction(AccessControlPolicyActionChannelReadAccess))
+		require.True(t, fileOnly.HasPermissionRuleAction())
+
 		// The action can be on any rule, and can share one with the file actions.
 		mixed := &AccessControlPolicy{Rules: []AccessControlPolicyRule{
 			{Actions: []string{AccessControlPolicyActionMembership}},
 			{Actions: []string{AccessControlPolicyActionChannelReadAccess}},
 		}}
+		require.True(t, mixed.HasAction(AccessControlPolicyActionChannelReadAccess))
+		require.False(t, mixed.HasAction(AccessControlPolicyActionChannelWriteAccess))
 		require.True(t, mixed.HasPermissionRuleAction())
+
+		writeOnly := &AccessControlPolicy{Rules: []AccessControlPolicyRule{{
+			Actions: []string{AccessControlPolicyActionChannelWriteAccess},
+		}}}
+		require.False(t, writeOnly.HasAction(AccessControlPolicyActionChannelReadAccess))
+		require.True(t, writeOnly.HasAction(AccessControlPolicyActionChannelWriteAccess))
 	})
 
 	t.Run("accepted on a v0.3 system permission policy without name or role", func(t *testing.T) {
@@ -2096,4 +2113,103 @@ func TestChannelReadAccessAction(t *testing.T) {
 		require.NotNil(t, err)
 		require.Equal(t, "model.access_policy.is_valid.rule_role.app_error", err.Id)
 	})
+}
+
+// TestChannelWriteAccessAction covers how channel_write_access validates. It
+// shares every rule with channel_read_access — permission action, channel-role
+// requirement on v0.4, channel-resolving policy types only — so this asserts the
+// contract rather than re-testing the shared machinery.
+func TestChannelWriteAccessAction(t *testing.T) {
+	t.Run("is a permission action", func(t *testing.T) {
+		require.True(t, IsPermissionAction(AccessControlPolicyActionChannelWriteAccess))
+		require.True(t, allowedActionsV0_3[AccessControlPolicyActionChannelWriteAccess])
+	})
+
+	t.Run("accepted on a v0.3 system permission policy with session attributes", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypePermission,
+			Name:     "Read-only off managed devices",
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Roles:    []string{SystemUserRoleId},
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionChannelWriteAccess},
+				Expression: `user.session.ip_address.inCIDR("10.0.0.0/8")`,
+			}},
+		}
+		require.Nil(t, policy.IsValid())
+	})
+
+	t.Run("accepted on a v0.4 channel policy with name and channel role", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeChannel,
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_4,
+			Rules: []AccessControlPolicyRule{{
+				Name:       "Members may post",
+				Role:       ChannelUserRoleId,
+				Actions:    []string{AccessControlPolicyActionChannelWriteAccess},
+				Expression: `user.attributes.dept == "eng"`,
+			}},
+		}
+		require.Nil(t, policy.IsValid())
+	})
+
+	t.Run("may share a rule with the read action and the file actions", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeChannel,
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_4,
+			Rules: []AccessControlPolicyRule{{
+				Name: "Everything at once",
+				Role: ChannelUserRoleId,
+				Actions: []string{
+					AccessControlPolicyActionChannelReadAccess,
+					AccessControlPolicyActionChannelWriteAccess,
+					AccessControlPolicyActionUploadFileAttachment,
+				},
+				Expression: "true",
+			}},
+		}
+		require.Nil(t, policy.IsValid())
+	})
+
+	t.Run("v0.4 channel rule requires a channel-scoped role", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeChannel,
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_4,
+			Rules: []AccessControlPolicyRule{{
+				Name:       "No role",
+				Actions:    []string{AccessControlPolicyActionChannelWriteAccess},
+				Expression: "true",
+			}},
+		}
+		require.NotNil(t, policy.IsValid())
+	})
+
+	// Same reasoning as the read action: parent and team policies never resolve
+	// to a channel, and v0.3 is the version those types actually reach.
+	for _, policyType := range []string{AccessControlPolicyTypeParent, AccessControlPolicyTypeTeam} {
+		t.Run("rejected on a v0.3 "+policyType+" policy", func(t *testing.T) {
+			policy := &AccessControlPolicy{
+				ID:       NewId(),
+				Type:     policyType,
+				Name:     "Not a channel",
+				Revision: 0,
+				Version:  AccessControlPolicyVersionV0_3,
+				Rules: []AccessControlPolicyRule{{
+					Actions:    []string{AccessControlPolicyActionChannelWriteAccess},
+					Expression: "true",
+				}},
+			}
+			err := policy.IsValid()
+			require.NotNil(t, err)
+			require.Equal(t, "model.access_policy.is_valid.actions.channel_write_access_type.app_error", err.Id)
+		})
+	}
 }

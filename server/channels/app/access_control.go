@@ -2498,10 +2498,12 @@ func (a *App) ValidateChannelAccessControlPermission(rctx request.CTX, userID, c
 		return appErr
 	}
 
-	// Check if user has channel admin permission for the specific channel
-	// RBACOnly: policy administration has to survive a policy that denies its own
-	// author, or a mis-scoped rule would be unrepairable through the API.
-	if ok, _ := a.HasPermissionToChannelRBACOnly(rctx, userID, channelID, model.PermissionManageChannelAccessRules); !ok {
+	// Check if user has channel admin permission for the specific channel.
+	// Policy administration has to survive a policy that denies its own author, or a
+	// mis-scoped rule would lock the channel admin out of the only API that can repair
+	// it. HasPermissionToChannel is RBAC-only, which is what makes that hold: do not
+	// switch this to SessionHasPermissionToChannel, which does evaluate the policy.
+	if ok, _ := a.HasPermissionToChannel(rctx, userID, channelID, model.PermissionManageChannelAccessRules); !ok {
 		return model.NewAppError("ValidateChannelAccessControlPermission", "app.pap.access_control.insufficient_channel_permissions", nil, "user_id="+userID+" channel_id="+channelID, http.StatusForbidden)
 	}
 
@@ -2548,9 +2550,10 @@ func (a *App) ValidateAccessControlPolicyPermissionWithOptions(rctx request.CTX,
 
 	// For read-only operations, allow access to system policies if they're applied to the specific channel
 	if opts.isReadOnly && policy.Type != model.AccessControlPolicyTypeChannel && opts.channelID != "" {
-		// Check if user has access to the channel
-		// RBACOnly: reached from the policy-administration surfaces above.
-		if ok, _ := a.HasPermissionToChannelRBACOnly(rctx, userID, opts.channelID, model.PermissionReadChannel); !ok {
+		// Check if user has access to the channel. Reached from the policy-administration
+		// surfaces, so it stays RBAC-only for the same reason as above: reading the policy
+		// that denies you is how you find out it needs fixing.
+		if ok, _ := a.HasPermissionToChannel(rctx, userID, opts.channelID, model.PermissionReadChannel); !ok {
 			return model.NewAppError("ValidateAccessControlPolicyPermissionWithOptions", "app.pap.access_control.insufficient_permissions", nil, "user_id="+userID+" channel_id="+opts.channelID, http.StatusForbidden)
 		}
 

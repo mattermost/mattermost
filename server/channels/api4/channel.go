@@ -1006,10 +1006,6 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !requireChannelReadAccess(c, channel) {
-		return
-	}
-
 	isContentReviewer := false
 	asContentReviewer, _ := strconv.ParseBool(r.URL.Query().Get(model.AsContentReviewerParam))
 	if asContentReviewer {
@@ -1065,6 +1061,12 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// After the membership checks, so a non-member is refused the same way whether or not
+	// a policy would also deny them.
+	if !requireChannelReadAccess(c, channel) {
+		return
+	}
+
 	err = c.App.FillInChannelProps(c.AppContext, channel)
 	if err != nil {
 		c.Err = err
@@ -1106,6 +1108,46 @@ func requireChannelReadAccess(c *Context, channel *model.Channel) bool {
 	}
 	c.SetPermissionError(model.PermissionReadChannel)
 	return false
+}
+
+func requireChannelReadAccessByID(c *Context, channelID string) bool {
+	if c.App.EnforceChannelReadAccessByID(c.AppContext, c.AppContext.Session().UserId, channelID) {
+		return true
+	}
+	c.SetPermissionError(model.PermissionReadChannel)
+	return false
+}
+
+func requireChannelWriteAccess(c *Context, channel *model.Channel) bool {
+	if c.App.EnforceChannelWriteAccess(c.AppContext, c.AppContext.Session().UserId, channel) {
+		return true
+	}
+	c.SetPermissionError(model.PermissionCreatePost)
+	return false
+}
+
+func requireChannelWriteAccessByID(c *Context, channelID string) bool {
+	if c.App.EnforceChannelWriteAccessByID(c.AppContext, c.AppContext.Session().UserId, channelID) {
+		return true
+	}
+	c.SetPermissionError(model.PermissionCreatePost)
+	return false
+}
+
+func requireChannelReadAccessForIDs(c *Context, channelIDs []string) (kept []string, ok bool) {
+	if len(channelIDs) == 0 {
+		return channelIDs, true
+	}
+
+	kept = c.App.FilterChannelIDsByReadAccess(c.AppContext, c.AppContext.Session().UserId, channelIDs)
+	if len(kept) == 0 {
+		// Nothing survived, so the first id is necessarily one of the denials; running it
+		// back through the enforcement gate records the witness SetPermissionError needs.
+		requireChannelReadAccessByID(c, channelIDs[0])
+		return nil, false
+	}
+
+	return kept, true
 }
 
 // discoverableNonMemberView returns a sanitized non-member view of `channel`
@@ -1982,10 +2024,6 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !requireChannelReadAccess(c, channel) {
-		return
-	}
-
 	if channel.Type == model.ChannelTypeOpen {
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel) {
 			if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionReadChannel); !ok {
@@ -2004,6 +2042,12 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
+	}
+
+	// After the membership checks: a policy denial is a distinct 403, so running it
+	// first would tell a non-member that the private channel behind the 404 exists.
+	if !requireChannelReadAccess(c, channel) {
+		return
 	}
 
 	appErr = c.App.FillInChannelProps(c.AppContext, channel)
@@ -2030,10 +2074,6 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	if !requireChannelReadAccess(c, channel) {
-		return
-	}
-
 	channelOk, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionReadChannel)
 	if channel.Type == model.ChannelTypeOpen {
 		teamOk := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel)
@@ -2050,6 +2090,11 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 			c.Err = model.NewAppError("getChannelByNameForTeamName", "app.channel.get_by_name.missing.app_error", nil, "teamId="+channel.TeamId+", "+"name="+channel.Name+"", http.StatusNotFound)
 			return
 		}
+	}
+
+	// After the membership checks, for the same reason as getChannelByName.
+	if !requireChannelReadAccess(c, channel) {
+		return
 	}
 
 	appErr = c.App.FillInChannelProps(c.AppContext, channel)
@@ -2197,6 +2242,8 @@ func getChannelMembersForTeamForUser(c *Context, w http.ResponseWriter, r *http.
 		c.Err = err
 		return
 	}
+
+	members = c.App.FilterChannelMembersByReadAccess(c.AppContext, c.Params.UserId, members)
 
 	// Sanitize members for current user
 	currentUserId := c.AppContext.Session().UserId
@@ -2631,6 +2678,16 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Read rather than write, and gated here rather than at the manage-members choke
+	// point below, because the public-channel self-add path is authorised on a team
+	// permission and never reaches that point. Joining is a read-tier action: a write
+	// rule that excludes non-members would otherwise make a channel you can plainly
+	// see unjoinable. Adding *other* users still gets the write gate, from the
+	// manage_*_channel_members checks below. Matches requestJoinChannel.
+	if !requireChannelReadAccess(c, channel) {
+		return
+	}
+
 	canAddSelf := false
 	canAddOthers := false
 	if channel.Type == model.ChannelTypeOpen {
@@ -2807,6 +2864,13 @@ func setChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Require system admin
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
 		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	// Rewriting the member list is a write to the channel, and this handler never
+	// reaches a channel permission check. The channel-access policies bind system
+	// admins too, so the check above does not stand in for the gate.
+	if !requireChannelWriteAccessByID(c, c.Params.ChannelId) {
 		return
 	}
 

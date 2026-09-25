@@ -3087,7 +3087,7 @@ func (a *App) threadsForUserPage(rctx request.CTX, userID, teamID string, option
 		return a.Srv().Store().Thread().GetThreadsForUser(rctx, userID, teamID, opts)
 	}
 
-	if !a.channelReadAccessEnforcementActive() {
+	if !a.channelAccessEnforcementActive() {
 		return fetch(options)
 	}
 

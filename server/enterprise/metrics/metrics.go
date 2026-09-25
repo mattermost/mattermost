@@ -246,6 +246,11 @@ type MetricsInterfaceImpl struct {
 	AccessControlEvaluateDuration          prometheus.Histogram
 	AccessControlSearchQueryDuration       prometheus.Histogram
 	AccessControlCacheInvalidation         prometheus.Counter
+	AccessControlDecisions                 *prometheus.CounterVec
+	// accessControlDecisionCounters holds every AccessControlDecisions series resolved
+	// up front, keyed by action then decision, so the evaluation hot path skips the
+	// CounterVec label hashing. Read-only after New.
+	accessControlDecisionCounters map[string]map[string]prometheus.Counter
 
 	// Auto-translation metrics
 	AutoTranslateTranslateDuration       *prometheus.HistogramVec
@@ -1672,6 +1677,19 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		})
 	m.Registry.MustRegister(m.AccessControlCacheInvalidation)
 
+	m.AccessControlDecisions = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemAccessControl,
+			Name:        "decisions_total",
+			Help:        "Total number of access control decisions, by action and decision",
+			ConstLabels: additionalLabels,
+		},
+		[]string{"action", "decision"},
+	)
+	m.Registry.MustRegister(m.AccessControlDecisions)
+	m.accessControlDecisionCounters = newAccessControlDecisionCounters(m.AccessControlDecisions)
+
 	// Auto-translation Subsystem
 	m.AutoTranslateTranslateDuration = prometheus.NewHistogramVec(
 		withLabels(prometheus.HistogramOpts{
@@ -2376,6 +2394,56 @@ func (mi *MetricsInterfaceImpl) ObserveAccessControlEvaluateDuration(value float
 
 func (mi *MetricsInterfaceImpl) IncrementAccessControlCacheInvalidation() {
 	mi.AccessControlCacheInvalidation.Inc()
+}
+
+// accessControlDecisionActionOther is the action label for any action outside
+// accessControlDecisionActions, so the label stays bounded.
+const accessControlDecisionActionOther = "other"
+
+var accessControlDecisionActions = []string{
+	model.AccessControlPolicyActionMembership,
+	model.AccessControlPolicyActionUploadFileAttachment,
+	model.AccessControlPolicyActionDownloadFileAttachment,
+	model.AccessControlPolicyActionChannelReadAccess,
+	model.AccessControlPolicyActionChannelWriteAccess,
+	einterfaces.AccessControlDecisionActionPlugin,
+	accessControlDecisionActionOther,
+}
+
+var accessControlDecisions = []string{
+	einterfaces.AccessControlDecisionAllow,
+	einterfaces.AccessControlDecisionDenyResourcePolicy,
+	einterfaces.AccessControlDecisionDenyPermissionPolicy,
+	einterfaces.AccessControlDecisionError,
+}
+
+// newAccessControlDecisionCounters resolves every (action, decision) series. Doing it
+// up front also exports each series at 0, so a deny ratio has a denominator before
+// the first request is ever denied.
+func newAccessControlDecisionCounters(vec *prometheus.CounterVec) map[string]map[string]prometheus.Counter {
+	counters := make(map[string]map[string]prometheus.Counter, len(accessControlDecisionActions))
+	for _, action := range accessControlDecisionActions {
+		byDecision := make(map[string]prometheus.Counter, len(accessControlDecisions))
+		for _, decision := range accessControlDecisions {
+			byDecision[decision] = vec.WithLabelValues(action, decision)
+		}
+		counters[action] = byDecision
+	}
+	return counters
+}
+
+func (mi *MetricsInterfaceImpl) IncrementAccessControlDecision(action, decision string) {
+	byDecision, ok := mi.accessControlDecisionCounters[action]
+	if !ok {
+		action = accessControlDecisionActionOther
+		byDecision = mi.accessControlDecisionCounters[action]
+	}
+	if counter, ok := byDecision[decision]; ok {
+		counter.Inc()
+		return
+	}
+	// A decision missing from accessControlDecisions: still count it rather than drop it.
+	mi.AccessControlDecisions.WithLabelValues(action, decision).Inc()
 }
 
 func (mi *MetricsInterfaceImpl) ObserveAutoTranslateTranslateDuration(objectType string, elapsed float64) {

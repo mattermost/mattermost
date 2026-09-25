@@ -50,6 +50,7 @@ const (
 	AccessControlPolicyActionUploadFileAttachment   = "upload_file_attachment"
 	AccessControlPolicyActionDownloadFileAttachment = "download_file_attachment"
 	AccessControlPolicyActionChannelReadAccess      = "channel_read_access"
+	AccessControlPolicyActionChannelWriteAccess     = "channel_write_access"
 
 	AccessControlPolicyScopeTeam = "team"
 
@@ -89,6 +90,7 @@ var allowedActionsV0_3 = map[string]bool{
 	AccessControlPolicyActionUploadFileAttachment:   true,
 	AccessControlPolicyActionDownloadFileAttachment: true,
 	AccessControlPolicyActionChannelReadAccess:      true,
+	AccessControlPolicyActionChannelWriteAccess:     true,
 }
 
 // allowedChannelRolesV0_4 is the set of channel-scoped roles that may appear
@@ -106,6 +108,7 @@ var allowedPermissionActionsV0_4 = map[string]bool{
 	AccessControlPolicyActionUploadFileAttachment:   true,
 	AccessControlPolicyActionDownloadFileAttachment: true,
 	AccessControlPolicyActionChannelReadAccess:      true,
+	AccessControlPolicyActionChannelWriteAccess:     true,
 }
 
 // IsPermissionAction reports whether the given action is a non-membership
@@ -175,6 +178,21 @@ func (p *AccessControlPolicy) HasPermissionRuleAction() bool {
 	}
 	for i := range p.Rules {
 		if slices.ContainsFunc(p.Rules[i].Actions, IsPermissionAction) {
+			return true
+		}
+	}
+	return false
+}
+
+// HasAction reports whether any rule on this policy carries the given action.
+// The write gate uses it to decide whether a channel's own policy governs
+// writes. Safe to call on a nil policy.
+func (p *AccessControlPolicy) HasAction(action string) bool {
+	if p == nil {
+		return false
+	}
+	for i := range p.Rules {
+		if slices.Contains(p.Rules[i].Actions, action) {
 			return true
 		}
 	}
@@ -693,16 +711,20 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_3() *AppError {
 		if slices.Contains(rule.Actions, AccessControlPolicyActionMembership) && strings.Contains(rule.Expression, "user.session") {
 			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.session_attribute_on_membership.app_error", nil, "", 400)
 		}
-		// channel_read_access only makes sense where the policy resolves to a channel:
-		// a system permission policy, or a channel resource policy. On a parent
-		// or team policy the rule would be stored under the unscoped rule key
+		// The channel-access actions only make sense where the policy resolves to a
+		// channel: a system permission policy, or a channel resource policy. On a
+		// parent or team policy the rule would be stored under the unscoped rule key
 		// and evaluated for the wrong subjects. v0.4 already rejects every
 		// permission action outside channel policies; v0.3 has no such check,
-		// and tightening it for channel_read_access alone avoids changing how existing
-		// file-action policies validate.
+		// and tightening it for the channel-access actions alone avoids changing how
+		// existing file-action policies validate.
 		if slices.Contains(rule.Actions, AccessControlPolicyActionChannelReadAccess) &&
 			p.Type != AccessControlPolicyTypePermission && p.Type != AccessControlPolicyTypeChannel {
 			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.actions.channel_read_access_type.app_error", nil, fmt.Sprintf("channel_read_access is not allowed on %s policies", p.Type), 400)
+		}
+		if slices.Contains(rule.Actions, AccessControlPolicyActionChannelWriteAccess) &&
+			p.Type != AccessControlPolicyTypePermission && p.Type != AccessControlPolicyTypeChannel {
+			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.actions.channel_write_access_type.app_error", nil, fmt.Sprintf("channel_write_access is not allowed on %s policies", p.Type), 400)
 		}
 
 		if appErr := rule.validateRuleContract(); appErr != nil {

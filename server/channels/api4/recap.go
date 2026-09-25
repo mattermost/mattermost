@@ -36,11 +36,44 @@ func addRecapChannelIDsToAuditRec(auditRec *model.AuditRecord, recap *model.Reca
 	if len(recap.Channels) == 0 {
 		return
 	}
+	model.AddEventParameterToAuditRec(auditRec, "channel_ids", recapChannelIDs(recap))
+}
+
+func recapChannelIDs(recap *model.Recap) []string {
 	channelIDs := make([]string, 0, len(recap.Channels))
 	for _, channel := range recap.Channels {
 		channelIDs = append(channelIDs, channel.ChannelId)
 	}
-	model.AddEventParameterToAuditRec(auditRec, "channel_ids", channelIDs)
+	return channelIDs
+}
+
+// keepRecapChannels retains only the recap channels whose ids are in channelIDs.
+func keepRecapChannels(recap *model.Recap, channelIDs []string) {
+	if len(channelIDs) == len(recap.Channels) {
+		return
+	}
+
+	keep := make(map[string]bool, len(channelIDs))
+	for _, channelID := range channelIDs {
+		keep[channelID] = true
+	}
+
+	kept := make([]*model.RecapChannel, 0, len(channelIDs))
+	for _, channel := range recap.Channels {
+		if keep[channel.ChannelId] {
+			kept = append(kept, channel)
+		}
+	}
+	recap.Channels = kept
+}
+
+func filterRecapChannelsByReadAccess(c *Context, recap *model.Recap) {
+	if len(recap.Channels) == 0 {
+		return
+	}
+
+	kept := c.App.FilterChannelIDsByReadAccess(c.AppContext, c.AppContext.Session().UserId, recapChannelIDs(recap))
+	keepRecapChannels(recap, kept)
 }
 
 func getRecapLimitStatus(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -88,6 +121,12 @@ func createRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("agent_id")
 		return
 	}
+
+	kept, ok := requireChannelReadAccessForIDs(c, req.ChannelIds)
+	if !ok {
+		return
+	}
+	req.ChannelIds = kept
 
 	auditRec := c.MakeAuditRecord(model.AuditEventCreateRecap, model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
@@ -137,6 +176,8 @@ func getRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("getRecap", "api.recap.permission_denied", nil, "", http.StatusForbidden)
 		return
 	}
+
+	filterRecapChannelsByReadAccess(c, recap)
 
 	// Log channel IDs accessed through viewing this recap summary
 	addRecapChannelIDsToAuditRec(auditRec, recap)
@@ -212,6 +253,8 @@ func markRecapAsRead(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	filterRecapChannelsByReadAccess(c, updatedRecap)
+
 	auditRec.Success()
 	auditRec.AddEventResultState(updatedRecap)
 
@@ -272,6 +315,12 @@ func regenerateRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("regenerateRecap", "api.recap.permission_denied", nil, "", http.StatusForbidden)
 		return
 	}
+
+	channelIDs, ok := requireChannelReadAccessForIDs(c, recapChannelIDs(recap))
+	if !ok {
+		return
+	}
+	keepRecapChannels(recap, channelIDs)
 
 	// Log channel IDs that will be re-summarized
 	addRecapChannelIDsToAuditRec(auditRec, recap)
