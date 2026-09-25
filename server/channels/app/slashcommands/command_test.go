@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -471,6 +472,97 @@ func TestDoCommandRequest(t *testing.T) {
 
 		assert.NotNil(t, resp)
 		assert.Equal(t, "Hello, World!", resp.Text)
+	})
+
+	t.Run("with a valid json response and any 2xx status", func(t *testing.T) {
+		for _, statusCode := range []int{
+			http.StatusOK, // control: the only status accepted before MM-59493
+			http.StatusCreated,
+			http.StatusAccepted,
+			299, // upper bound of the accepted range
+		} {
+			t.Run(strconv.Itoa(statusCode), func(t *testing.T) {
+				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					w.Header().Add("Content-Type", "application/json")
+					w.WriteHeader(statusCode)
+
+					_, err := io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
+					require.NoError(t, err)
+				}))
+				t.Cleanup(server.Close)
+
+				_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
+				require.Nil(t, err)
+
+				require.NotNil(t, resp)
+				assert.Equal(t, "Hello, World!", resp.Text)
+			})
+		}
+	})
+
+	t.Run("with an empty bodyless 2xx response", func(t *testing.T) {
+		// 204 and 205 carry no body, so an integration that nevertheless advertises a JSON
+		// content type must still be an empty success rather than a parse failure.
+		for _, statusCode := range []int{
+			http.StatusNoContent,
+			http.StatusResetContent,
+		} {
+			for _, tc := range []struct {
+				name        string
+				contentType string
+			}{
+				{"without a content type", ""},
+				{"advertising a json content type", "application/json"},
+			} {
+				t.Run(strconv.Itoa(statusCode)+" "+tc.name, func(t *testing.T) {
+					server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+						if tc.contentType != "" {
+							w.Header().Add("Content-Type", tc.contentType)
+						}
+						w.WriteHeader(statusCode)
+					}))
+					t.Cleanup(server.Close)
+
+					_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
+					require.Nil(t, err)
+
+					require.NotNil(t, resp)
+					assert.Empty(t, resp.Text)
+				})
+			}
+		}
+	})
+
+	t.Run("with an unsuccessful response", func(t *testing.T) {
+		// 300 exercises the first status above the accepted 2xx range; Go's HTTP client
+		// does not treat it as a redirect, so it reaches DoCommandRequest as-is.
+		for _, tc := range []struct {
+			statusCode     int
+			expectedStatus string
+		}{
+			{http.StatusMultipleChoices, "300 Multiple Choices"},
+			{http.StatusBadRequest, "400 Bad Request"},
+			{http.StatusInternalServerError, "500 Internal Server Error"},
+		} {
+			t.Run(strconv.Itoa(tc.statusCode), func(t *testing.T) {
+				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					w.WriteHeader(tc.statusCode)
+
+					_, err := io.Copy(w, strings.NewReader("the remote integration is unhappy"))
+					require.NoError(t, err)
+				}))
+				t.Cleanup(server.Close)
+
+				_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL, Trigger: "unhappy"}, url.Values{})
+				require.NotNil(t, err)
+				require.Nil(t, resp)
+
+				assert.Equal(t, "api.command.execute_command.failed_resp.app_error", err.Id)
+				assert.Equal(t, http.StatusInternalServerError, err.StatusCode)
+				assert.Contains(t, err.Message, tc.expectedStatus)
+				assert.Equal(t, "the remote integration is unhappy", err.DetailedError)
+			})
+		}
 	})
 
 	t.Run("with a large text response", func(t *testing.T) {
