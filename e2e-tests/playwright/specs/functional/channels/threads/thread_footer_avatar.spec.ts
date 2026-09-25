@@ -15,10 +15,6 @@ test('MM-69802 Thread footer avatar with broken image URL renders with equal wid
     // so we need a dedicated client per user to get distinct thread participants.
     const {adminClient, team, user, userClient} = await pw.initSetup();
 
-    // ThreadFooter only mounts with collapsed reply threads. Sibling specs
-    // disable CRT on the shared e2e server and do not always restore it.
-    await adminClient.patchConfig({ServiceSettings: {CollapsedThreads: CollapsedThreads.ALWAYS_ON}});
-
     const [otherUser1, otherUser2] = await adminClient.createUsers(team.id, 2, 'thread-avatar');
 
     const makeUserClient = async (u: typeof otherUser1) => {
@@ -48,16 +44,19 @@ test('MM-69802 Thread footer avatar with broken image URL renders with equal wid
     // fallback) so the browser is forced to render alt text — the state the CSS fix addresses.
     await page.route(/\/api\/v4\/users\/[^/]*\/image/, (route) => route.fulfill({status: 404}));
 
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    // ThreadFooter only mounts with CRT. Sibling specs disable it on the shared
+    // server; re-apply immediately before goto and retry if another worker races.
+    let rootPost;
+    await expect(async () => {
+        await adminClient.patchConfig({ServiceSettings: {CollapsedThreads: CollapsedThreads.ALWAYS_ON}});
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
+        rootPost = await channelsPage.centerView.getPostById(root.id);
+        await rootPost.toBeVisible();
+        await expect(rootPost.threadFooter.container).toBeVisible({timeout: 5000});
+    }).toPass({timeout: 30000, intervals: [1000, 2000, 5000]});
 
-    const rootPost = await channelsPage.centerView.getPostById(root.id);
-    await rootPost.toBeVisible();
-
-    const {threadFooter} = rootPost;
-    await expect(threadFooter.container).toBeVisible({timeout: 20000});
-
-    const avatarImages = threadFooter.container.locator('img.Avatar');
+    const avatarImages = rootPost!.threadFooter.container.locator('img.Avatar');
     await expect(avatarImages.first()).toBeVisible();
 
     const count = await avatarImages.count();
