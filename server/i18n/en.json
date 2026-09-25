@@ -13727,6 +13727,10 @@
     "translation": "Invalid processed at time."
   },
   {
+    "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
+    "translation": "Burn-on-read messages cannot be sent as recurring scheduled posts."
+  },
+  {
     "id": "model.scheduled_post.is_valid.repeat_files.app_error",
     "translation": "Recurring scheduled posts cannot have file attachments."
   },
