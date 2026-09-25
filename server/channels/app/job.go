@@ -274,7 +274,7 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 		if channelID != "" {
 			// Check specific channel permission
 			ctx := request.EmptyContext(a.Srv().Log())
-			hasChannelPermission, _ := a.HasPermissionToChannel(ctx, session.UserId, channelID, model.PermissionManageChannelAccessRules)
+			hasChannelPermission, _ := a.HasPermissionToChannelRBACOnly(ctx, session.UserId, channelID, model.PermissionManageChannelAccessRules)
 			if hasChannelPermission {
 				return true, model.PermissionManageChannelAccessRules
 			}
