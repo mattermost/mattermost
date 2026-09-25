@@ -3,7 +3,10 @@
 
 import type {PropertyField} from '@mattermost/types/properties';
 
+import {GeneralTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
+
+import {clearGraphOptionNameCache, commitGraphOptionNames, getGraphOptionNames} from 'components/property_fields/graph/use_graph_option_names';
 
 import {ALL_RESOURCE_TYPES} from './attribute_details/attribute_applies_to_constants';
 import type {ResourceObjectType} from './attribute_details/attribute_applies_to_constants';
@@ -20,6 +23,8 @@ import {
     formatAttributeHeadingName,
     isAttributeFieldType,
     linkedFieldsByResourceType,
+    syncUserAttributeFieldDelete,
+    syncUserAttributeFieldUpsert,
     updateAttributeField,
 } from './utils';
 
@@ -707,6 +712,123 @@ describe('global_attributes/utils', () => {
             expect(byType.user?.id).toBe('u1');
             expect(byType.channel?.id).toBe('c1');
             expect(byType.post).toBeUndefined();
+        });
+    });
+
+    describe('syncUserAttributeFieldUpsert', () => {
+        beforeEach(() => {
+            clearGraphOptionNameCache();
+        });
+
+        it('dispatches a created action for a user-object field', () => {
+            const dispatch = jest.fn();
+            const field = {id: 'f1', object_type: 'user'} as PropertyField;
+
+            syncUserAttributeFieldUpsert(dispatch, field, true);
+
+            expect(dispatch).toHaveBeenCalledWith({type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_CREATED, data: field});
+        });
+
+        it('dispatches a patched action when the write is an update', () => {
+            const dispatch = jest.fn();
+            const field = {id: 'f1', object_type: 'user'} as PropertyField;
+
+            syncUserAttributeFieldUpsert(dispatch, field, false);
+
+            expect(dispatch).toHaveBeenCalledWith({type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED, data: field});
+        });
+
+        it.each(['channel', 'post', 'template'])('ignores a %s-object field', (objectType) => {
+            const dispatch = jest.fn();
+
+            syncUserAttributeFieldUpsert(dispatch, {id: 'f1', object_type: objectType} as PropertyField, true);
+
+            expect(dispatch).not.toHaveBeenCalled();
+        });
+
+        it('replaces cached graph option names from the returned field', () => {
+            commitGraphOptionNames('f1', {option_id_1: 'AURORA', option_id_gone: 'REMOVED'});
+            const dispatch = jest.fn();
+            const field = {
+                id: 'f1',
+                object_type: 'user',
+                type: 'graph',
+                attrs: {options: [{id: 'option_id_1', name: 'BOREALIS'}, {id: 'option_id_2', name: 'CIRRUS'}]},
+            } as unknown as PropertyField;
+
+            syncUserAttributeFieldUpsert(dispatch, field, false);
+
+            expect(dispatch).toHaveBeenCalledWith({type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED, data: field});
+            expect(getGraphOptionNames('f1')).toEqual({
+                names: {option_id_1: 'BOREALIS', option_id_2: 'CIRRUS'},
+                didResolve: true,
+            });
+        });
+
+        it('clears cached graph names and leaves the field unresolved when the option list is withheld', () => {
+            commitGraphOptionNames('f1', {option_id_1: 'AURORA'});
+            const dispatch = jest.fn();
+            const field = {
+                id: 'f1',
+                object_type: 'user',
+                type: 'graph',
+                attrs: {options_omitted: true},
+            } as unknown as PropertyField;
+
+            syncUserAttributeFieldUpsert(dispatch, field, false);
+
+            expect(dispatch).toHaveBeenCalledWith({type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED, data: field});
+            expect(getGraphOptionNames('f1')).toEqual({names: {}, didResolve: false});
+        });
+
+        it('leaves cached graph names untouched for a non-graph field', () => {
+            commitGraphOptionNames('f1', {option_id_1: 'AURORA'});
+            const dispatch = jest.fn();
+            const field = {id: 'f1', object_type: 'user', type: 'select'} as PropertyField;
+
+            syncUserAttributeFieldUpsert(dispatch, field, false);
+
+            expect(getGraphOptionNames('f1')).toEqual({
+                names: {option_id_1: 'AURORA'},
+                didResolve: true,
+            });
+        });
+
+        it.each(['channel', 'post', 'template'])('does not touch the graph name cache for a %s-object graph field', (objectType) => {
+            commitGraphOptionNames('f1', {option_id_1: 'AURORA'});
+            const dispatch = jest.fn();
+            const field = {
+                id: 'f1',
+                object_type: objectType,
+                type: 'graph',
+                attrs: {options: [{id: 'option_id_1', name: 'BOREALIS'}]},
+            } as unknown as PropertyField;
+
+            syncUserAttributeFieldUpsert(dispatch, field, false);
+
+            expect(dispatch).not.toHaveBeenCalled();
+            expect(getGraphOptionNames('f1')).toEqual({
+                names: {option_id_1: 'AURORA'},
+                didResolve: true,
+            });
+        });
+    });
+
+    describe('syncUserAttributeFieldDelete', () => {
+        it('dispatches a deleted action keyed by field id for a user-object field', () => {
+            const dispatch = jest.fn();
+
+            syncUserAttributeFieldDelete(dispatch, 'user', 'f1');
+
+            expect(dispatch).toHaveBeenCalledWith({type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_DELETED, data: 'f1'});
+        });
+
+        it.each(['channel', 'post', 'template'])('ignores a %s-object field', (objectType) => {
+            const dispatch = jest.fn();
+
+            syncUserAttributeFieldDelete(dispatch, objectType, 'f1');
+
+            expect(dispatch).not.toHaveBeenCalled();
         });
     });
 });

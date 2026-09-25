@@ -2269,6 +2269,93 @@ describe('AttributeDetails', () => {
             expect(patchPropertyField).not.toHaveBeenCalledWith('access_control', 'user', expect.anything(), expect.anything());
         });
 
+        it('mirrors the server-updated Users field into the CPA cache after a template options PATCH', async () => {
+            const originalUser = makeLinked('user', 'user-field', {
+                type: 'select',
+                attrs: {display_name: 'Department', options: [{id: 'opt-1', name: 'Engineering'}]},
+            });
+            const refreshedUser = makeLinked('user', 'user-field', {
+                type: 'select',
+                attrs: {
+                    display_name: 'Department',
+                    options: [{id: 'opt-1', name: 'Engineering'}, {id: 'opt-2', name: 'Sales'}],
+                },
+            });
+            const template = makeTemplate({
+                type: 'select',
+                attrs: {display_name: 'Department', options: [{id: 'opt-1', name: 'Engineering'}]},
+            });
+
+            let afterTemplatePatch = false;
+            jest.spyOn(Client4, 'getPropertyFields').mockImplementation((_group, objectType) => {
+                if (objectType === 'template') {
+                    return Promise.resolve([template]);
+                }
+                if (objectType === 'user') {
+                    return Promise.resolve([afterTemplatePatch ? refreshedUser : originalUser]);
+                }
+                return Promise.resolve([]);
+            });
+            jest.spyOn(Client4, 'patchPropertyField').mockImplementation(async () => {
+                afterTemplatePatch = true;
+                return template;
+            });
+
+            const {store} = renderEdit({
+                entities: {
+                    general: {
+                        customProfileAttributes: {
+                            [originalUser.id]: originalUser,
+                        },
+                    },
+                },
+            });
+            await waitForForm();
+
+            await userEvent.type(screen.getByTestId('attributeOptionsValues__addInput'), 'Sales{Enter}');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+            expect(store.getState().entities.general.customProfileAttributes['user-field']).toEqual(refreshedUser);
+        });
+
+        it('still saves when the post-PATCH Users refetch fails', async () => {
+            const originalUser = makeLinked('user', 'user-field', {
+                type: 'select',
+                attrs: {display_name: 'Department', options: [{id: 'opt-1', name: 'Engineering'}]},
+            });
+            const template = makeTemplate({
+                type: 'select',
+                attrs: {display_name: 'Department', options: [{id: 'opt-1', name: 'Engineering'}]},
+            });
+
+            let afterTemplatePatch = false;
+            jest.spyOn(Client4, 'getPropertyFields').mockImplementation((_group, objectType) => {
+                if (afterTemplatePatch) {
+                    return Promise.reject(new Error('boom'));
+                }
+                if (objectType === 'template') {
+                    return Promise.resolve([template]);
+                }
+                if (objectType === 'user') {
+                    return Promise.resolve([originalUser]);
+                }
+                return Promise.resolve([]);
+            });
+            jest.spyOn(Client4, 'patchPropertyField').mockImplementation(async () => {
+                afterTemplatePatch = true;
+                return template;
+            });
+
+            renderEdit();
+            await waitForForm();
+
+            await userEvent.type(screen.getByTestId('attributeOptionsValues__addInput'), 'Sales{Enter}');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
+        });
+
         it('folds matching display_name into the existing Channels config PATCH', async () => {
             mockLoadedField(makeTemplate(), [makeLinked('channel', 'channel-field')]);
             const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockImplementation((_group, objectType) => (

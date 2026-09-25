@@ -75,11 +75,12 @@ test.describe('System Console - Session Attributes', () => {
             // * Verify a seeded-but-client-native field does NOT carry the Server label
             await expect(sa.serverLabel(clientIpAddress.id)).toHaveCount(0);
 
-            // * Verify the derived Type column maps text/select fields correctly
-            await expect(sa.type(ipAddress.id)).toContainText('IP');
+            // * Verify the derived Type column maps text/select fields correctly.
+            // IP/Version display types were removed; getDisplayType is String | Boolean | Enum.
+            await expect(sa.type(ipAddress.id)).toContainText('String');
             await expect(sa.type(vpnActive.id)).toContainText('Boolean');
             await expect(sa.type(networkInterfaceType.id)).toContainText('Enum');
-            await expect(sa.type(osVersion.id)).toContainText('Version');
+            await expect(sa.type(osVersion.id)).toContainText('String');
 
             // * Verify seeded fields render as Disabled by default
             await expect(sa.status(ipAddress.id)).toContainText('Disabled');
@@ -177,6 +178,10 @@ test.describe('System Console - Session Attributes', () => {
     /**
      * @objective Verify a staged edit blocks sidebar navigation with a discard
      * prompt, and that Cancel reverts the staged change.
+     *
+     * Stages via one-click Enable rather than a TTL preset. The duration
+     * submenu is covered by the persist test and is too racy here: the nav
+     * guard only needs any unsaved edit.
      */
     test('blocks navigation while dirty and reverts on cancel', {tag: '@session_attributes'}, async ({pw}) => {
         const {systemConsolePage, fields} = await setupSessionAttributesTest(pw);
@@ -188,12 +193,12 @@ test.describe('System Console - Session Attributes', () => {
         // # Navigate to Session Attributes page
         await sa.goto();
 
-        // # Capture the rendered TTL, then stage a different TTL (24h)
-        const beforeTtl = (await sa.ttl(field.id).textContent())?.trim() ?? '';
-        await sa.setTtlPreset(field.id, 86400);
+        // # Stage a one-click Enable (dot menu, no duration submenu)
+        await expect(sa.status(field.id)).toContainText('Disabled');
+        await sa.enable(field.id);
 
         // * Verify the edit is staged and Save is enabled
-        await expect(sa.ttl(field.id)).toHaveText('24h');
+        await expect(sa.status(field.id)).toContainText('Enabled');
         await expect(sa.saveButton).toBeEnabled();
 
         // # Attempt to navigate away via the sidebar while dirty
@@ -211,8 +216,8 @@ test.describe('System Console - Session Attributes', () => {
         // # Cancel the staged edit via the Save Changes panel
         await sa.cancel();
 
-        // * Verify the TTL reverted and Save returned to disabled
-        await expect(sa.ttl(field.id)).toHaveText(beforeTtl);
+        // * Verify the status reverted and Save returned to disabled
+        await expect(sa.status(field.id)).toContainText('Disabled');
         await expect(sa.saveButton).toBeDisabled();
     });
 

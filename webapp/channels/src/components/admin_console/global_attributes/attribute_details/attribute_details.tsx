@@ -7,6 +7,7 @@ import type {IntlShape, MessageDescriptor} from 'react-intl';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 import {useParams} from 'react-router-dom';
+import type {Dispatch} from 'redux';
 
 import type {ClientError} from '@mattermost/client';
 import {ChevronLeftIcon} from '@mattermost/compass-icons/components';
@@ -63,6 +64,8 @@ import {
     isAttributeFieldType,
     linkedFieldsByResourceType,
     patchLinkedAttributeField,
+    syncUserAttributeFieldDelete,
+    syncUserAttributeFieldUpsert,
     updateAttributeField,
 } from '../utils';
 
@@ -219,6 +222,7 @@ type SaveOutcome =
 // than attempted for a failure this banner can't explain). Returns the
 // settled failure outcome for handleSave to hand to finalizeSave.
 async function rollbackLinkedFields(
+    dispatch: Dispatch,
     createdLinkedFields: Array<{type: ResourceObjectType; field: PropertyField}>,
     templateFieldId: string,
     failedType: ResourceObjectType,
@@ -229,6 +233,10 @@ async function rollbackLinkedFields(
         try {
             // eslint-disable-next-line no-await-in-loop
             await deleteLinkedAttributeField(created.type, created.field.id);
+
+            // A user field was mirrored into the CPA slice as it was created;
+            // drop it back out now that the rollback has removed it server-side.
+            syncUserAttributeFieldDelete(dispatch, created.type, created.field.id);
         } catch {
             survivingTypes.push(created.type);
         }
@@ -978,7 +986,8 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             // below entirely.
             if (objectType !== GLOBAL_ATTRIBUTES_OBJECT_TYPE) {
                 try {
-                    await updateAttributeField(objectType, fieldId, patch);
+                    const updatedField = await updateAttributeField(objectType, fieldId, patch);
+                    syncUserAttributeFieldUpsert(dispatch, updatedField, false);
                 } catch (error) {
                     finalizeSave({
                         success: false,
@@ -1020,6 +1029,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                     try {
                         // eslint-disable-next-line no-await-in-loop
                         await deleteLinkedAttributeField(type, existing.id);
+                        syncUserAttributeFieldDelete(dispatch, type, existing.id);
                         delete persistedLinkedFieldsRef.current[type];
                     } catch {
                         finalizeSave({
@@ -1058,6 +1068,26 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 return;
             }
 
+            // updatePropertyField returns only the template. The server still
+            // rewrites linked fields in that same write (options, type), but
+            // the originating tab never receives property_field_* for it.
+            // Newly created Users rows and an explicit Users-config PATCH are
+            // synced below; an already-persisted Users row that stays applied
+            // is not, so read it back into the CPA slice. A fetch miss must
+            // not fail the save -- the template update has already landed.
+            if (appliesTo.includes('user') && !toCreate.includes('user') && persistedLinkedFieldsRef.current.user) {
+                try {
+                    const linkedFields = await fetchLinkedFieldsForTemplate(fieldId, allowedResourceTypes);
+                    const userField = linkedFieldsByResourceType(linkedFields).user;
+                    if (userField) {
+                        persistedLinkedFieldsRef.current.user = userField;
+                        syncUserAttributeFieldUpsert(dispatch, userField, false);
+                    }
+                } catch {
+                    // Best-effort originating-tab cache refresh only.
+                }
+            }
+
             if (!typeChanged && !(await deleteRemovedLinkedFields('applies_to_remove_partial_save'))) {
                 return;
             }
@@ -1075,6 +1105,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         newResourcePermissionValuesFor(type),
                     );
                     persistedLinkedFieldsRef.current[type] = linkedField;
+                    syncUserAttributeFieldUpsert(dispatch, linkedField, true);
                     if (type === 'user') {
                         originalUserVisibilityRef.current = userVisibility;
                         originalUserManagedRef.current = userManaged;
@@ -1129,6 +1160,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                             (visibilityChanged || managedChanged) ? userConfigPermissionValues : undefined,
                         );
                         persistedLinkedFieldsRef.current.user = updatedUserField;
+                        syncUserAttributeFieldUpsert(dispatch, updatedUserField, false);
                         if (visibilityChanged || managedChanged) {
                             originalUserVisibilityRef.current = userVisibility;
                             originalUserManagedRef.current = userManaged;
@@ -1241,15 +1273,16 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                     newResourcePermissionValuesFor(type),
                 );
                 createdLinkedFields.push({type, field: linkedField});
+                syncUserAttributeFieldUpsert(dispatch, linkedField, true);
             } catch (error) {
                 // eslint-disable-next-line no-await-in-loop
-                outcome = await rollbackLinkedFields(createdLinkedFields, templateField.id, type, error);
+                outcome = await rollbackLinkedFields(dispatch, createdLinkedFields, templateField.id, type, error);
                 break;
             }
         }
 
         finalizeSave(outcome);
-    }, [canSave, isEditMode, fieldId, objectType, nameUnchanged, displayName, currentName, fieldType, typeChanged, options, ldapAttr, samlAttr, appliesTo, channelResource, finalizeSave, confirmRemoveAppliesTo, userVisibility, userManaged]);
+    }, [dispatch, canSave, isEditMode, fieldId, objectType, nameUnchanged, displayName, currentName, fieldType, typeChanged, options, ldapAttr, samlAttr, appliesTo, channelResource, finalizeSave, confirmRemoveAppliesTo, userVisibility, userManaged, allowedResourceTypes]);
 
     const handleChannelResourceChange = useCallback((next: ChannelResourceConfig) => {
         setChannelResource(next);
