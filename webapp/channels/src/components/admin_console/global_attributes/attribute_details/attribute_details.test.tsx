@@ -2675,6 +2675,20 @@ describe('AttributeDetails', () => {
                 expect(screen.getByTestId('attributeAppliesToRow-user-toggleLockWrap')).toBeInTheDocument();
             });
 
+            it('does not show Managed by when leftover ldap/saml attrs are present on a plugin-owned field', async () => {
+                mockPluginInstalled();
+                mockLoadedField(makePluginOwnedTemplate({
+                    attrs: {display_name: 'Plugin field', source_plugin_id: PLUGIN_ID, protected: true, ldap: 'dept', saml: 'department'},
+                }), [makeLinked('user', 'user-field')]);
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.queryByTestId('attributeAppliesToUserManagedBy')).not.toBeInTheDocument();
+                expect(screen.queryByText('Managed by')).not.toBeInTheDocument();
+                expect(screen.queryByText('Not editable in Mattermost.')).not.toBeInTheDocument();
+            });
+
             it('keeps Save disabled regardless of otherwise-valid field state', async () => {
                 mockPluginInstalled();
                 mockLoadedField(makePluginOwnedTemplate());

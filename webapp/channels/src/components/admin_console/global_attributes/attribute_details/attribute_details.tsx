@@ -831,7 +831,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     }, [handleDoneClick, handleCancelEdit]);
 
     const hasExternalSource = Boolean(ldapAttr || samlAttr);
-    const managedByExternalSource = resolveExternalSource(ldapAttr, samlAttr);
+    const managedByExternalSource = isPluginOwned ? undefined : resolveExternalSource(ldapAttr, samlAttr);
 
     // External source (LDAP/SAML) is a user-identity concept. A template's linked
     // children can include a user field, so every template keeps the editor
