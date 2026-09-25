@@ -1,0 +1,131 @@
+name: docs-ime-render
+
+# Regenerates the rendered PNG snapshot of the IME diagram
+# (`docs/site/static/img/ime/entadv.png`) whenever a PR touches the
+# component, its content, its render script, or the assets it uses.
+# The fresh PNG is committed back to the PR's own branch, so the author
+# sees it in their diff and it lands via the same merge as the code.
+#
+# The live docs site renders `<IMEDiagram />` at page-view time — this
+# PNG exists only for external use (marketing decks, PR descriptions,
+# emails, GitHub issues) where a live React component can't be
+# embedded. Being shipped by docs-cd means it lives at the stable URL
+# https://docs.mattermost.com/img/ime/entadv.png, which survives
+# branch deletion (unlike raw.githubusercontent.com feature-branch
+# links).
+#
+# Why PR CI and not a master-triggered job:
+#   - Master is protected by org rulesets that reject direct pushes
+#     from the default GITHUB_TOKEN (bypass list is admins + a single
+#     integration app), so a post-merge auto-commit to master is not
+#     possible without provisioning a new GitHub App.
+#   - Pushing to the PR's own branch is unrestricted (contents: write
+#     on the built-in token is enough) and makes the PNG part of the
+#     normal review + merge flow.
+#
+# Trigger paths intentionally exclude the PNG output itself so that
+# the auto-commit does not re-fire this workflow on itself.
+
+on:
+  pull_request:
+    paths:
+      - "docs/site/src/components/IMEDiagram/**"
+      - "docs/site/scripts/render-ime.mjs"
+      - "docs/site/static/img/ime/logos/**"
+      - "docs/site/static/img/ime/banner-bg.jpg"
+      - ".github/workflows/docs-ime-render.yml"
+
+# One render per PR at a time. Newer pushes cancel the in-flight run
+# so we don't queue up stale renders behind a rapid succession of
+# force-pushes.
+concurrency:
+  group: docs-ime-render-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  render:
+    name: Render IME diagram PNG
+    runs-on: ubuntu-24.04
+    # Fork PRs: GITHUB_TOKEN is read-only on the fork's branch, so we
+    # can't push back. Skip cleanly — the fork author can run
+    # `npm run render:ime` locally and include the PNG in their PR.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - name: render/checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          # `pull_request` events default to the ephemeral merge ref;
+          # we need the PR's actual head so we can push a new commit
+          # back to it.
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
+
+      - name: render/setup-node
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version-file: docs/site/.nvmrc
+          cache: npm
+          cache-dependency-path: docs/site/package-lock.json
+
+      - name: render/setup-go
+        # Required by the `prestart` npm lifecycle: it generates the
+        # OpenAPI spec, plugin godocs, and sidebars before Docusaurus
+        # boots. Matches the setup docs-cd uses for the site build.
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+        with:
+          go-version-file: api/server/go.mod
+
+      - name: render/install-docs-dependencies
+        working-directory: docs/site
+        run: npm ci
+
+      - name: render/start-docusaurus
+        working-directory: docs/site
+        # Boot the dev server in the background. `prestart` (sidebars,
+        # OpenAPI, plugin docs) runs first; once we're past that,
+        # Docusaurus is up on :3000 within ~30s of compile.
+        run: |
+          nohup npx docusaurus start --port 3000 --no-open > /tmp/docusaurus.log 2>&1 &
+          echo "docusaurus pid $!"
+
+      - name: render/wait-for-server
+        # Rspack cold compile can take a few minutes on a fresh runner;
+        # give it up to five before failing.
+        run: |
+          npx --yes wait-on --timeout 300000 --httpTimeout 5000 http://localhost:3000
+
+      - name: render/render-ime
+        working-directory: docs/site
+        run: npm run render:ime
+
+      - name: render/commit-if-changed
+        env:
+          RENDERED_PNG: docs/site/static/img/ime/entadv.png
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          if git diff --quiet -- "$RENDERED_PNG"; then
+            echo "No change to $RENDERED_PNG; nothing to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$RENDERED_PNG"
+          git commit -m "chore(docs): refresh rendered IME diagram
+
+          Auto-generated by .github/workflows/docs-ime-render.yml.
+
+          [skip ci]"
+          git push origin "HEAD:$HEAD_REF"
+
+      - name: render/dump-server-log-on-failure
+        if: failure()
+        run: |
+          echo "::group::docusaurus log tail"
+          tail -n 200 /tmp/docusaurus.log || true
+          echo "::endgroup::"
