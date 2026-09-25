@@ -451,9 +451,34 @@ a.footerCell:hover {
   text-decoration: none;
 }
 
+/* Dark mode: keep the footer strips white with dark text so brand marks
+ * (GitHub, React Native, Mattermost, etc.) remain visible. Mirrors the
+ * deck, where these strips are white regardless of surrounding tone. */
 [data-theme='dark'] .footerCell {
-  background: var(--mm-denim-700, #121E37);
-  color: var(--mm-color-white);
+  background: var(--mm-color-white);
+  color: var(--mm-color-denim, #1E325C);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+[data-theme='dark'] a.footerCell:hover {
+  border-color: var(--mm-color-marigold, #FFBC1F);
+  background: var(--mm-marigold-100, rgba(255, 188, 31, 0.16));
+  color: var(--mm-color-denim, #1E325C);
+}
+
+/* Dark mode: brand marks on cell / intro / corner surfaces need a light
+ * chip so dark logos (OpenAI, Splunk, Plus, …) stay legible against
+ * the near-black cell background. Footer strips are already white in
+ * dark mode, so we don't need the chip there. */
+[data-theme='dark'] .logoImg {
+  background: var(--mm-color-white);
+  border-radius: 3px;
+  padding: 0.1rem 0.25rem;
+  box-sizing: border-box;
+}
+[data-theme='dark'] .footerCell .logoImg {
+  background: transparent;
+  padding: 0;
 }
 
 /* === Logo strips === */
