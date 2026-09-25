@@ -261,7 +261,7 @@ Shared channels often appear at the root; per-workspace data lives under `/teams
 1. [Download the latest mmetl release](https://github.com/mattermost/mmetl/releases/) for your OS and architecture.
 2. Run `mmetl help` (or `./mmetl help`) to explore commands.
 
-### Transform an Enterprise Grid export (optional)
+### 4.1 Split an Enterprise Grid export (optional) \{#transform-an-enterprise-grid-export-optional}
 Skip this subsection unless you have a Slack **Enterprise Grid** export. Grid archives must be split into per-workspace exports with `mmetl grid-transform` **before** you run `mmetl transform slack` on each team.
 
 1. Download the full Grid export from Slack.
@@ -287,7 +287,7 @@ If inference fails, pass `--team-map-path teams.json`:
 - **Key**: Slack workspace ID as it appears in a message's `team` field (typically `T...`).
 - **Value**: The existing `teams/<name>/` folder in the export. Must match Slack's folder name exactly. This is the output zip name, not the Mattermost `--team` value.
 
-### Validate the Slack export
+### 4.2 Validate the Slack export \{#validate-the-slack-export}
 
 For a single-workspace export, use the original zip. For Enterprise Grid, use each per-workspace zip produced by `grid-transform`. Set `--team` to the destination Mattermost team and use the same transform flags you plan to use for the full run (including `--bot-owner` if the export contains bots):
 
@@ -302,7 +302,7 @@ For a single-workspace export, use the original zip. For Enterprise Grid, use ea
 
 Dry-run parses and transforms the export without writing JSONL or copying attachments. It logs warnings and errors to the terminal and exits non-zero if it finds problems, including missing attachments that a full transform would skip. Fix reported issues before the full run. Use `--skip-attachments` only if you intend to skip attachment checks and copying in the full run.
 
-### Run the transform
+### 4.3 Run the transform \{#run-the-transform}
 
 Use a small export (or `--skip-attachments`) for the first run so you can learn the flow quickly.
 
@@ -435,11 +435,11 @@ When `mmetl` finishes, you should have:
 - A `.jsonl` bulk import file
 - A `data/` directory of attachments
 
-### Before you import
+### 6.1 Review the import data \{#before-you-import}
 
 In some cases, depending on the transform configuration, you may need to review or edit the JSONL before you zip and upload. For missing or synthesized emails (`--default-email-domain`, `--skip-empty-emails`, or `@local` placeholders), see [User emails](#user-emails).
 
-### Package the import
+### 6.2 Package the import \{#package-the-import}
 
 Zip them together:
 
@@ -455,7 +455,7 @@ mmctl import validate ./mattermost-bulk-import.zip
 
 Then follow the Mattermost **[Bulk loading data](/administration-guide/onboard/bulk-loading-data)** guide to import the zip with `mmctl`. That guide covers authentication, job status, and the full import data format.
 
-### Choose an upload method
+### 6.3 Choose an upload method \{#choose-an-upload-method}
 
 | Situation | Recommended method |
 | --- | --- |
