@@ -6,12 +6,14 @@ package platform
 import (
 	"bytes"
 	"encoding/json"
+	"net/http"
 	"os"
 	"path"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/stretchr/testify/assert"
@@ -199,6 +201,46 @@ func TestGetLogsSkipSendPathValidation(t *testing.T) {
 		require.NotNil(t, appErr)
 		assert.Equal(t, "api.admin.file_read_error", appErr.Id)
 	})
+}
+
+// Covers GetLogsSkipSend path validation without enabling a logger file target,
+// which is the MM-70918 cleanup race in TestGetLogsSkipSendPathValidation.
+func TestGetLogsSkipSendRejectsPathOutsideLogRoot(t *testing.T) {
+	logDir, err := os.MkdirTemp("", "logs")
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		require.NoError(t, os.RemoveAll(logDir))
+	})
+
+	outsideDir, err := os.MkdirTemp("", "outside")
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		require.NoError(t, os.RemoveAll(outsideDir))
+	})
+
+	outsideLogLocation := config.GetLogFileLocation(outsideDir)
+	err = os.WriteFile(outsideLogLocation, []byte("secret data\n"), 0644)
+	require.NoError(t, err)
+
+	cfgStore := config.NewTestMemoryStore()
+	cfg := cfgStore.Get().Clone()
+	*cfg.LogSettings.EnableFile = true
+	*cfg.LogSettings.FileLocation = outsideDir
+	_, _, err = cfgStore.Set(cfg)
+	require.NoError(t, err)
+
+	logger := mlog.CreateConsoleTestLogger(t)
+	ps := &PlatformService{
+		configStore: cfgStore,
+		logger:      logger,
+	}
+	ps.SetLogRootPathOverride(logDir)
+
+	lines, appErr := ps.GetLogsSkipSend(request.EmptyContext(logger), 0, 10, &model.LogFilter{})
+	assert.Nil(t, lines)
+	require.NotNil(t, appErr)
+	assert.Equal(t, "api.admin.file_read_error", appErr.Id)
+	assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
 }
 
 func TestGetAdvancedLogs(t *testing.T) {
