@@ -17,13 +17,38 @@ type LanguageObject = {
 
 const HighlightedLanguages: LanguageObject = Constants.HighlightedLanguages;
 
+// The cost of highlighting grows super-linearly with the total length of the input, so longer code is
+// rendered as escaped plain text instead.
+const MAX_HIGHLIGHTED_LENGTH = 5000;
+
+// Resolves once everything handed to runInOwnTask so far has run, so that each piece of work is
+// scheduled only after the previous one is done rather than all of them at once.
+let previousTask: Promise<void> = Promise.resolve();
+
+// Runs work in a task of its own, once the previously queued work has finished. Highlighting runs on
+// the main thread, so spreading a series of blocks over one task each lets the browser pick up other
+// queued work in between them instead of running them all in a single stretch.
+function runInOwnTask<T>(work: () => T): Promise<T> {
+    const result = previousTask.
+        then(() => new Promise<void>((resolve) => {
+            setTimeout(resolve, 0);
+        })).
+        then(work);
+
+    // Only the timing of the result is of interest here, so neither its value nor a rejection is
+    // carried over to whatever is queued next.
+    previousTask = result.then(() => undefined, () => undefined);
+
+    return result;
+}
+
 export async function highlight(lang: string, code: string) {
     const language = getLanguageFromNameOrAlias(lang);
 
-    if (language) {
+    if (language && code.length <= MAX_HIGHLIGHTED_LENGTH) {
         try {
             await registerLanguage(language);
-            return hlJS.highlight(code, {language}).value;
+            return await runInOwnTask(() => hlJS.highlight(code, {language}).value);
         } catch {
             // fall through if highlighting fails and handle below
         }
