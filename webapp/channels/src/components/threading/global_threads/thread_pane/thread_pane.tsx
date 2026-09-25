@@ -13,6 +13,7 @@ import {setThreadFollow} from 'mattermost-redux/actions/threads';
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getPost, makeGetPostsForThread} from 'mattermost-redux/selectors/entities/posts';
 
+import ChannelAttributeLabels from 'components/channel_attributes/channel_attribute_labels';
 import {focusPost} from 'components/permalink_view/actions';
 import PopoutButton from 'components/popout_button';
 import {getThreadPopoutTitle} from 'components/thread_popout/thread_popout';
@@ -130,6 +131,12 @@ const ThreadPane = ({
                                 {channel?.display_name}
                             </Button>
                         </h3>
+                        <ChannelAttributeLabels
+                            channelId={channelId}
+                            surface={['info', 'header']}
+                            allowEmptyVisible={true}
+                            interactive={false}
+                        />
                     </>
                 )}
                 right={(
