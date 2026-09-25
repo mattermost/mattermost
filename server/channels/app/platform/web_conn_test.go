@@ -12,6 +12,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"runtime"
+	"slices"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -383,6 +385,7 @@ func TestWebConnDecodeAllocationTracksFrameSize(t *testing.T) {
 		concurrentConnections = 20
 		allowance             = 32 << 20
 		declaredEntries       = 1_000_000
+		declaredShortEntries  = 65535
 	)
 
 	msgpackString := func(s string) []byte {
@@ -410,10 +413,31 @@ func TestWebConnDecodeAllocationTracksFrameSize(t *testing.T) {
 		return binary.BigEndian.AppendUint32([]byte{0xDD}, elements)
 	}
 
+	// map16 declares its entry count in two header bytes instead of four.
+	map16Header := func(entries uint16) []byte {
+		return binary.BigEndian.AppendUint16([]byte{0xDE}, entries)
+	}
+
 	oneEntryMap := func(key string, value []byte) []byte {
 		b := []byte{0x81}
 		b = append(b, msgpackString(key)...)
 		return append(b, value...)
+	}
+
+	// nestedDeclaredMaps builds {"k1": "v1", "k2": <count headers>, "k3": "v3"},
+	// where each header sits in the value position of the entry opened by the
+	// header before it, below two entries the frame does carry.
+	nestedDeclaredMaps := func(count int) []byte {
+		b := []byte{0x83} // three entry map
+		b = append(b, msgpackString("k1")...)
+		b = append(b, msgpackString("v1")...)
+		b = append(b, msgpackString("k2")...)
+		for range count {
+			b = append(b, map16Header(declaredShortEntries)...)
+			b = append(b, msgpackString("")...) // key of the entry each header opens
+		}
+		b = append(b, msgpackString("k3")...)
+		return append(b, msgpackString("v3")...)
 	}
 
 	// The reference frame carries the entries it declares: {"data": {"a": "b"}}.
@@ -476,6 +500,14 @@ func TestWebConnDecodeAllocationTracksFrameSize(t *testing.T) {
 			name:  "declared array length",
 			frame: frame(oneEntryMap("a", array32Header(declaredEntries))),
 		},
+		{
+			name:  "declared map length in a short header",
+			frame: frame(map16Header(declaredShortEntries)),
+		},
+		{
+			name:  "declared lengths nested below entries the frame carries",
+			frame: frame(nestedDeclaredMaps(3)),
+		},
 	}
 
 	for _, tc := range testCases {
@@ -520,25 +552,142 @@ func TestWebConnDecodesAuthenticatedFrames(t *testing.T) {
 		},
 	}
 
-	binaryFrame, err := msgpack.Marshal(req)
-	require.NoError(t, err)
-	textFrame, err := json.Marshal(req)
-	require.NoError(t, err)
+	// Collections whose declared lengths are zero, and collections nested
+	// several levels below the top of the frame.
+	sparseReq := &model.WebSocketRequest{
+		Seq:    2,
+		Action: action,
+		Data: map[string]any{
+			"empty_map":  map[string]any{},
+			"empty_list": []any{},
+			"nested": map[string]any{
+				"second": map[string]any{
+					"third": []any{map[string]any{"fourth": []any{"leaf"}}},
+				},
+			},
+		},
+	}
 
 	testCases := []struct {
 		name        string
 		messageType int
-		frame       []byte
+		request     *model.WebSocketRequest
 	}{
 		{
 			name:        "binary msgpack frame",
 			messageType: websocket.BinaryMessage,
-			frame:       binaryFrame,
+			request:     req,
 		},
 		{
 			name:        "text JSON frame",
 			messageType: websocket.TextMessage,
-			frame:       textFrame,
+			request:     req,
+		},
+		{
+			name:        "binary frame of empty and nested collections",
+			messageType: websocket.BinaryMessage,
+			request:     sparseReq,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var frame []byte
+			var err error
+			if tc.messageType == websocket.BinaryMessage {
+				frame, err = msgpack.Marshal(tc.request)
+			} else {
+				frame, err = json.Marshal(tc.request)
+			}
+			require.NoError(t, err)
+
+			s := newAuthenticatedWebConnServer(t, th, session, 1)
+
+			clientConn, wc := s.dial(t)
+			require.True(t, wc.IsAuthenticated())
+
+			require.NoError(t, clientConn.WriteMessage(tc.messageType, frame))
+
+			select {
+			case got := <-routed:
+				assert.Equal(t, tc.request.Seq, got.Seq)
+				assert.Equal(t, tc.request.Action, got.Action)
+				assert.Equal(t, tc.request.Data, got.Data)
+			case <-time.After(5 * time.Second):
+				require.FailNow(t, "the request was not dispatched to its handler")
+			}
+
+			select {
+			case posted := <-wc.pluginPosted:
+				assert.Equal(t, tc.request.Action, posted.req.Action)
+				for key, value := range tc.request.Data {
+					assert.Equal(t, value, posted.req.Data[key])
+				}
+			case <-time.After(5 * time.Second):
+				require.FailNow(t, "the request was not forwarded to the plugin hooks")
+			}
+
+			clientConn.Close()
+			s.waitForReadPumps(t, 1)
+		})
+	}
+}
+
+// binaryFrameOfSize returns the msgpack encoding of a request for action,
+// padded so the encoding is exactly size bytes.
+func binaryFrameOfSize(tb testing.TB, action string, size int) []byte {
+	padding := size
+	for range 10 {
+		encoded, err := msgpack.Marshal(&model.WebSocketRequest{
+			Seq:    1,
+			Action: action,
+			Data:   map[string]any{"padding": strings.Repeat("x", padding)},
+		})
+		require.NoError(tb, err)
+		if len(encoded) == size {
+			return encoded
+		}
+		padding += size - len(encoded)
+		require.Positive(tb, padding)
+	}
+
+	require.FailNow(tb, "could not encode a request of the requested size")
+	return nil
+}
+
+func TestWebConnReadsBinaryFramesUpToTheReadLimit(t *testing.T) {
+	th := Setup(t)
+
+	user := th.CreateUserOrGuest(t, false)
+	session := model.Session{
+		UserId:    user.Id,
+		Token:     model.NewId(),
+		ExpiresAt: model.GetMillis() + 100000,
+	}
+
+	const action = "test_read_limit_action"
+	routed := make(chan *model.WebSocketRequest, 1)
+	th.Service.WebSocketRouter.Handle(action, &recordingWebSocketHandler{requests: routed})
+
+	atLimit := binaryFrameOfSize(t, action, model.SocketMaxMessageSizeKb)
+
+	// One byte past the limit, trailing an encoding that is complete without it.
+	pastLimit := append(slices.Clone(atLimit), 0xC0)
+
+	testCases := []struct {
+		name           string
+		frame          []byte
+		wantDispatched bool
+	}{
+		{
+			name:           "frame at the read limit",
+			frame:          atLimit,
+			wantDispatched: true,
+		},
+		{
+			name:           "frame past the read limit",
+			frame:          pastLimit,
+			wantDispatched: false,
 		},
 	}
 
@@ -549,29 +698,26 @@ func TestWebConnDecodesAuthenticatedFrames(t *testing.T) {
 			clientConn, wc := s.dial(t)
 			require.True(t, wc.IsAuthenticated())
 
-			require.NoError(t, clientConn.WriteMessage(tc.messageType, tc.frame))
+			require.NoError(t, clientConn.WriteMessage(websocket.BinaryMessage, tc.frame))
 
 			select {
 			case got := <-routed:
-				assert.Equal(t, req.Seq, got.Seq)
-				assert.Equal(t, req.Action, got.Action)
-				assert.Equal(t, req.Data, got.Data)
-			case <-time.After(5 * time.Second):
-				require.FailNow(t, "the request was not dispatched to its handler")
-			}
+				require.Truef(t, tc.wantDispatched,
+					"a %d byte frame was dispatched to its handler, over a read limit of %d bytes",
+					len(tc.frame), model.SocketMaxMessageSizeKb)
+				assert.Equal(t, action, got.Action)
 
-			select {
-			case posted := <-wc.pluginPosted:
-				assert.Equal(t, req.Action, posted.req.Action)
-				for key, value := range req.Data {
-					assert.Equal(t, value, posted.req.Data[key])
-				}
-			case <-time.After(5 * time.Second):
-				require.FailNow(t, "the request was not forwarded to the plugin hooks")
-			}
+				clientConn.Close()
+				s.waitForReadPumps(t, 1)
+			case <-s.readPumpDone:
+				require.Falsef(t, tc.wantDispatched,
+					"readPump returned without dispatching a %d byte frame, under a read limit of %d bytes",
+					len(tc.frame), model.SocketMaxMessageSizeKb)
 
-			clientConn.Close()
-			s.waitForReadPumps(t, 1)
+				clientConn.Close()
+			case <-time.After(5 * time.Second):
+				require.FailNow(t, "the connection neither dispatched the frame nor closed")
+			}
 		})
 	}
 }
