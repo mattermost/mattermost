@@ -136,7 +136,7 @@ export default class SessionAttributes {
             await this.page.keyboard.press('Escape');
             await this.page.keyboard.press('Escape');
             if (await this.dotMenu(fieldId).isVisible()) {
-                await this.page.locator('body').click({position: {x: 1, y: 1}, force: true});
+                await this.page.mouse.click(1, 1);
             }
             await expect(this.dotMenu(fieldId)).toBeHidden({timeout: 5000});
 
