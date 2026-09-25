@@ -12,6 +12,7 @@ Mattermost provides a migration path from Slack so you can bring collaboration h
 3. [Understand which Slack export format you have](#3-understand-your-slack-export-format) (single workspace vs Enterprise Grid).
 4. [Review what migrates and what does not](#what-migrates--what-doesnt).
 5. [Transform the Slack export into a Mattermost bulk import package with `mmetl`](#5-transform-the-export-with-mmetl).
+   - For Enterprise Grid, split the export with `grid-transform` first. Run `transform slack --dry-run` before the full transform, which produces a JSONL file and `data/` attachments directory.
 6. [Handle multiple exports](#6-handle-multiple-exports), if applicable.
 7. [Package and import the data into Mattermost](#7-package-and-import-into-mattermost) using the [bulk loading](/administration-guide/onboard/bulk-loading-data) documentation.
 
@@ -24,18 +25,6 @@ Slack’s data control policies and export capabilities can change at any time, 
 Consider [talking to a Mattermost expert](https://mattermost.com/contact-sales/) if your organization needs support migrating from Slack to Mattermost.
 
 </Note>
-
-### Migration at a glance
-
-| Step | What you do | Outcome |
-| --- | --- | --- |
-| [1. Prepare](#1-prepare-your-mattermost-environment) | Scope the migration and tune Mattermost | Server ready for import |
-| [2. Export from Slack](#2-export-your-data-from-slack) | Generate a Slack export zip | Raw Slack archive |
-| [3. Understand the format](#3-understand-your-slack-export-format) | Identify single-workspace vs Enterprise Grid | Correct transform path |
-| [4. Review coverage](#what-migrates--what-doesnt) | Know gaps (emoji, guests, emails, MPIMs, integrations) | Realistic expectations |
-| [5. Transform with mmetl](#5-transform-the-export-with-mmetl) | `grid-transform` for Enterprise Grid, then `transform slack --dry-run` and `transform slack` | `.jsonl` + `data/` attachments |
-| [6. Multiple dumps](#6-handle-multiple-exports) | Process phased or split exports safely | Combined history without duplicates |
-| [7. Import into Mattermost](#7-package-and-import-into-mattermost) | Zip the package; follow bulk loading docs | Live Mattermost data |
 
 ## 1. Prepare your Mattermost environment
 
