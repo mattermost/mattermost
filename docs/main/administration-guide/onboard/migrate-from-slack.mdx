@@ -14,6 +14,7 @@ Mattermost provides a migration path from Slack so you can bring collaboration h
    - For Enterprise Grid, split the export with `grid-transform` first. Run `transform slack --dry-run` before the full transform, which produces a JSONL file and `data/` attachments directory.
    - For multiple exports, transform each archive separately and import them chronologically.
 5. [Package and import the data into Mattermost](#5-package-and-import-into-mattermost) using the [bulk loading](/administration-guide/onboard/bulk-loading-data) documentation.
+6. [Validate the migration](#6-validate-the-migration) before the production cutover.
 
 This is a *best effort* migration. Mattermost tools preserve the majority of messages, files, and workspace structure, but Slack and Mattermost differ architecturally, and manual adjustments are often required. Plan for days to weeks depending on export size and complexity. Always run a trial migration in a development or staging environment first.
 
@@ -479,15 +480,26 @@ Notes:
 - It is not supported when the server is in High Availability; disable HA for the import window or use the standard upload path.
 - Imports into S3-backed file storage typically outperform local/NFS disk for large jobs.
 
-Monitor jobs with `mmctl import job list` / `mmctl import job show <JOB_ID> --json` as described in the bulk loading and [mmctl](/administration-guide/manage/mmctl-command-line-tool#mmctl-import) docs.
+## 6. Validate the migration
 
-## After you import
+After each import, confirm the job completed and compare representative data in Mattermost with the Slack export. Account for the gaps described in [feature mapping](#what-migrates--what-doesnt) before the production cutover.
 
-These steps are Slack-migration specific after a successful bulk import.
+### 6.1 Check the import job
 
-### Fix unread channels and threads
+Use `mmctl import job list` and `mmctl import job show <JOB_ID> --json` to confirm the job completed and review any errors. See the [bulk loading](/administration-guide/onboard/bulk-loading-data) and [mmctl](/administration-guide/manage/mmctl-command-line-tool#mmctl-import) docs for job details.
 
-After importing, messages may appear unread for users. Run against the Mattermost database:
+### 6.2 Verify migrated data
+
+Spot-check the imported data against the Slack export:
+
+- Confirm the expected users, bots, guests, public and private channels, and archived channels are present.
+- Open sample 1:1 DMs, Group Messages, and oversized multi-party DMs converted to private channels. For Enterprise Grid, also check org-wide DMs and [placeholder users](#org-wide-dms).
+- Compare sample posts, thread replies, reactions, and file attachments. Check the transform logs for skipped content, and confirm custom emoji reactions display after matching emoji are added.
+- Test account access with an imported user after [activation](#email-verification-and-account-activation).
+
+### 6.3 Fix unread channels and threads if needed
+
+If imported messages appear unread for users, back up the database and run the following SQL on PostgreSQL:
 
 ``` sql
 begin;
@@ -523,7 +535,7 @@ update preferences
 commit;
 ```
 
-### Email verification and account activation
+### 6.4 Activate imported accounts \{#email-verification-and-account-activation}
 
 Bulk import (the `mmetl` + `mmctl import` path in this guide) always marks imported user emails as verified. Users do not need a separate email confirmation step.
 
