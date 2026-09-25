@@ -139,7 +139,7 @@ export default class SessionAttributes {
             await expect(trigger).toBeVisible({timeout: 5000});
             await trigger.press('ArrowRight');
             await expect(option).toBeVisible({timeout: 5000});
-        }).toPass({timeout: 30000, intervals: [250, 500, 1000]});
+        }).toPass({timeout: 20000, intervals: [250, 500, 1000]});
 
         await option.click();
 
