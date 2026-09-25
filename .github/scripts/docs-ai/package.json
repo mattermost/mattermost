@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "AI review pipeline for docs/ — persona registry, router, persona review, report.",
+  "description": "AI docs pipelines: persona review (review/) and gap analysis (gap/), with shared lib/.",
   "scripts": {
     "test": "node --test"
   },

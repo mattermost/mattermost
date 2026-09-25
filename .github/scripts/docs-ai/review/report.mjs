@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import {readFileSync, readdirSync, existsSync, appendFileSync} from 'node:fs';
 import {join} from 'node:path';
-import {upsertStickyComment} from './lib/github.mjs';
+import {upsertStickyComment} from '../lib/github.mjs';
 
 const MARKER = '<!-- docs-ai-review:v1 -->';
 
