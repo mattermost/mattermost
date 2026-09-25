@@ -29,7 +29,7 @@ type Props = {
 
     /**
      * Show a channel-picker step before the members list. Used for a
-     * resource.attributes.* rule the editor has no channel scope for: the
+     * channel.attributes.* rule the editor has no channel scope for: the
      * picked channel id is threaded into searchUsers so the rule can be
      * resolved against that channel's attribute values. When false the modal
      * opens straight to the members list, unchanged.

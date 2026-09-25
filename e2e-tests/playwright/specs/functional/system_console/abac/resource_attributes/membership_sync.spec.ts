@@ -27,10 +27,10 @@ import {
 } from './helpers';
 
 /**
- * resource.attributes.* membership sync + enforcement (lane agreement).
+ * channel.attributes.* membership sync + enforcement (lane agreement).
  *
  * A policy that mixes the requesting user's attribute with the accessed
- * channel's attribute (user.attributes.<a> == resource.attributes.<a>) must:
+ * channel's attribute (user.attributes.<a> == channel.attributes.<a>) must:
  *  - remove only the members whose value differs from the channel's (SQL sync lane),
  *  - let an admin add a matching user but block a non-matching one (runtime PDP lane),
  *  - remove everyone when the channel doesn't set the referenced attribute (deny-on-miss).
@@ -38,7 +38,7 @@ import {
  * Authoring/sync are driven through the REST API so the tests don't depend on
  * the table-editor's RHS constraints.
  */
-test.describe('ABAC resource.attributes - membership sync', {tag: ['@abac', '@abac_resource_attributes']}, () => {
+test.describe('ABAC channel.attributes - membership sync', {tag: ['@abac', '@abac_resource_attributes']}, () => {
     // Fixtures this file created, torn down after each test. The access_control group
     // allows at most 20 user-object fields, so a spec that leaks its fields eventually
     // fails every later spec's setup rather than its own.
@@ -66,7 +66,7 @@ test.describe('ABAC resource.attributes - membership sync', {tag: ['@abac', '@ab
         } as Parameters<typeof adminClient.patchConfig>[0]);
 
         // Same field name on both object types → user.attributes.<attr> compared
-        // to resource.attributes.<attr>.
+        // to channel.attributes.<attr>.
         const attr = `region${pw.random.id()}`;
         const userAttribute: CustomProfileAttribute[] = [{name: attr, type: 'text', value: ''}];
         const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, userAttribute);
@@ -94,7 +94,7 @@ test.describe('ABAC resource.attributes - membership sync', {tag: ['@abac', '@ab
 
         const policyId = await createParentPolicyViaAPI(adminClient, {
             name: `Resource Region ${pw.random.id()}`,
-            expression: `user.attributes.${attr} == resource.attributes.${attr}`,
+            expression: `user.attributes.${attr} == channel.attributes.${attr}`,
         });
         cleanups.push(() => deleteParentPolicy(adminClient, policyId, [channel.id]));
         await assignChannelsToPolicy(adminClient, policyId, [channel.id]);
@@ -154,7 +154,7 @@ test.describe('ABAC resource.attributes - membership sync', {tag: ['@abac', '@ab
 
         const policyId = await createParentPolicyViaAPI(adminClient, {
             name: `Resource DenyOnMiss ${pw.random.id()}`,
-            expression: `user.attributes.${attr} == resource.attributes.${attr}`,
+            expression: `user.attributes.${attr} == channel.attributes.${attr}`,
         });
         cleanups.push(() => deleteParentPolicy(adminClient, policyId, [channel.id]));
         await assignChannelsToPolicy(adminClient, policyId, [channel.id]);

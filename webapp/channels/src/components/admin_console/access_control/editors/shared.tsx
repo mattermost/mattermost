@@ -25,11 +25,11 @@ export const MASKED_VALUE_TOKEN_LITERAL = '"--------"';
 
 // The accessed channel's attributes, the comparison target for a rule about the
 // requesting user (whose own attributes are USER_ATTRIBUTE_CEL_PREFIX, below).
-export const RESOURCE_ATTRIBUTES_PREFIX = 'resource.attributes.';
+export const CHANNEL_ATTRIBUTES_PREFIX = 'channel.attributes.';
 
 // value_type on a visual-AST condition. Matches model.ValueType: 0 = literal,
 // 1 = attribute reference (the RHS is another attribute path, e.g. a
-// resource.attributes.* selector rather than a quoted constant).
+// channel.attributes.* selector rather than a quoted constant).
 export const VISUAL_AST_ATTRIBUTE_VALUE_TYPE = 1;
 
 // CEL operator constants
@@ -183,7 +183,7 @@ export function isGraphOperator(op: string): boolean {
 }
 
 // Whether a row's right-hand side may be the accessed channel's attribute
-// (resource.attributes.*) rather than literal values, given the operator and the
+// (channel.attributes.*) rather than literal values, given the operator and the
 // attribute's type. The comparison operators and the graph hierarchy predicates
 // always may. The multiselect list operators may only on a multiselect
 // attribute: on a graph attribute they mean exact membership against literal
@@ -365,28 +365,28 @@ const CEL_STRING_LIST = String.raw`\[\s*(?:${CEL_STRING}(?:\s*,\s*${CEL_STRING})
 
 // A selector reading an attribute of the channel being accessed, which a
 // comparison may use in place of a literal.
-const RESOURCE_SELECTOR = String.raw`resource\.attributes\.\w+`;
+const CHANNEL_SELECTOR = String.raw`channel\.attributes\.\w+`;
 
 // The first pattern accepts ==, != and the ranked ordinal operators
-// (>=, <=, >, <) against either a quoted value or a resource.attributes.*
+// (>=, <=, >, <) against either a quoted value or a channel.attributes.*
 // selector (comparing the user attribute to the accessed channel's). >= / <=
 // precede > / < in the alternation so the two-char forms match before the
 // one-char ones.
 const SIMPLE_CONDITION_PATTERNS: RegExp[] = [
-    new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\s*(==|!=|>=|<=|>|<)\s*(?:${CEL_STRING}|${RESOURCE_SELECTOR})$`),
+    new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\s*(==|!=|>=|<=|>|<)\s*(?:${CEL_STRING}|${CHANNEL_SELECTOR})$`),
 
     // Multiselect list-vs-list against the accessed channel's attribute,
     // stored verbatim as a member call: the receiver is the user's multiselect
-    // attribute and the single argument is a resource.attributes.* selector
+    // attribute and the single argument is a channel.attributes.* selector
     // (never a literal — that form is the in-chain below).
-    new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\.(?:hasAnyOf|hasAllOf)\(${RESOURCE_SELECTOR}\)$`),
+    new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\.(?:hasAnyOf|hasAllOf)\(${CHANNEL_SELECTOR}\)$`),
 
     // A graph hierarchy predicate: a member call on the user's graph attribute
     // whose single argument is a list of option names or the accessed channel's
     // graph attribute. Only the custom-profile namespace, since a session
     // attribute is never a graph field. Exact membership on a graph attribute is
     // the `in` form matched below, unchanged.
-    new RegExp(String.raw`^user\.attributes\.\w+\.(?:coversAll|coversAny|withinAll|withinAny)\((?:${CEL_STRING_LIST}|${RESOURCE_SELECTOR})\)$`),
+    new RegExp(String.raw`^user\.attributes\.\w+\.(?:coversAll|coversAny|withinAll|withinAny)\((?:${CEL_STRING_LIST}|${CHANNEL_SELECTOR})\)$`),
 
     new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\s+in\s+${CEL_STRING_LIST}$`),
     new RegExp(String.raw`^((${CEL_STRING_LIST})|${CEL_STRING})\s+in\s+user\.(?:attributes|session)\.\w+$`),
@@ -544,20 +544,20 @@ export function TestButton({onClick, disabled, disabledTooltip, label}: TestButt
 // the modal's first step.
 export function referencesResourceAttributes(expression: string): boolean {
     // Strip quoted string literals first so a value like
-    // "resource.attributes.minClearance" is not mistaken for an actual
+    // "channel.attributes.minClearance" is not mistaken for an actual
     // attribute reference (which would wrongly force a test channel).
     // Simple quote stripping; doesn't handle escaped quotes inside a literal,
     // which these editors never emit — parse the AST if that ever changes.
     const withoutLiterals = expression.replace(/'[^']*'|"[^"]*"/g, '');
-    return withoutLiterals.includes(RESOURCE_ATTRIBUTES_PREFIX);
+    return withoutLiterals.includes(CHANNEL_ATTRIBUTES_PREFIX);
 }
 
 interface TestResultsProps {
     expression: string;
 
-    /** Channel to resolve resource.attributes.* against, when the editor has
+    /** Channel to resolve channel.attributes.* against, when the editor has
      *  one of its own (channel settings). When absent and the rule references
-     *  resource.attributes.*, the modal opens a channel-picker step first and
+     *  channel.attributes.*, the modal opens a channel-picker step first and
      *  threads the chosen id into the search. */
     channelId?: string;
     teamId?: string;
@@ -567,7 +567,7 @@ interface TestResultsProps {
     /** Plugin override for the members search, forwarded from
      *  CELEditorActions.searchUsers. When provided it replaces the built-in
      *  searchUsersForExpression thunk. The picker's chosen channel id is
-     *  threaded in as the trailing arg so a resource.attributes.* rule can be
+     *  threaded in as the trailing arg so a channel.attributes.* rule can be
      *  resolved against it (the override may ignore it if it resolves its own). */
     searchUsers?: (expression: string, term: string, after: string, limit: number, channelId?: string) => Promise<ActionResult<AccessControlTestResult>>;
 }
@@ -586,7 +586,7 @@ export function TestResults({expression, channelId, teamId, isStacked, onExited,
                     if (searchUsers) {
                         // Wrap in a thunk so TestResultsModal can dispatch it unchanged.
                         // Thread the picker's channel (falling back to the editor's own
-                        // scope) so a resource.attributes.* rule resolves against it —
+                        // scope) so a channel.attributes.* rule resolves against it —
                         // without this, such a rule tested here fails to sqlize server-side.
                         const search = searchUsers;
                         return () => search(expression, term, after, limit, pickedChannelId ?? channelId);

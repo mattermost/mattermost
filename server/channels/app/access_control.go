@@ -842,13 +842,13 @@ func isThisRuleScope(scope string) bool {
 // indexed by field name.
 const userAttributesPathPrefix = "user.attributes."
 
-// resourceAttributesPathPrefix is the analogous prefix for the accessed
-// resource's custom attributes (e.g. `resource.attributes.Sensitivity`).
+// channelAttributesPathPrefix is the analogous prefix for the accessed
+// channel's custom attributes (e.g. `channel.attributes.Sensitivity`).
 // A simulator leaf carrying this prefix records the target channel's own
 // attribute value, which must be hidden when the channel field is
 // protected — separately from the user side, since a channel field's
 // visibility can differ from a same-named user field.
-const resourceAttributesPathPrefix = "resource.attributes."
+const channelAttributesPathPrefix = "channel.attributes."
 
 // protectedCPAAttributes bundles the sets of protected CPA field names
 // per attribute root. User and resource (channel) fields are tracked
@@ -944,7 +944,7 @@ func (a *App) RedactSimulationAttributesForCaller(rctx request.CTX, resp *model.
 	// Top-level Attributes maps hold only the simulated user's own
 	// snapshot (resource attributes never appear there), so they are
 	// pruned against the user set alone. The evaluation trees can carry
-	// both user.attributes.* and resource.attributes.* leaves, so the
+	// both user.attributes.* and channel.attributes.* leaves, so the
 	// tree walker matches each against the set for its root.
 	stripProtectedAttributes(resp, protected.user)
 	redactProtectedEvaluationTreeActualValues(resp, protected)
@@ -960,7 +960,7 @@ func (a *App) RedactSimulationAttributesForCaller(rctx request.CTX, resp *model.
 // and the evaluation-tree walker likewise records `user.attributes.<name>`
 // on each leaf — so matching by name is correct for the user set. Channel
 // fields are matched the same way, by name, against their own set: the
-// walker records those as `resource.attributes.<name>`.
+// walker records those as `channel.attributes.<name>`.
 func (a *App) protectedCPAFieldNamesForCaller(rctx request.CTX) (protectedCPAAttributes, error) {
 	protected := protectedCPAAttributes{
 		user:     map[string]struct{}{},
@@ -1107,7 +1107,7 @@ func stripProtectedAttributes(resp *model.PolicySimulationResponse, protected ma
 // EvaluationTree (and the per-rule subtrees attached under
 // MergedRules) on every result and session decision in `resp`. For
 // each leaf node whose `Attribute` references a protected CPA field
-// (path format `user.attributes.<name>` or `resource.attributes.<name>`),
+// (path format `user.attributes.<name>` or `channel.attributes.<name>`),
 // the leaf's `ActualValue` is blanked.
 //
 // Why ActualValue and nothing else:
@@ -1117,7 +1117,7 @@ func stripProtectedAttributes(resp *model.PolicySimulationResponse, protected ma
 //     not the user's or channel's data — also already in `Expression`.
 //   - `ActualValue` is the only field that records the target's
 //     concrete attribute value — the user's for a `user.attributes.*`
-//     leaf, the accessed channel's for a `resource.attributes.*` leaf.
+//     leaf, the accessed channel's for a `channel.attributes.*` leaf.
 //     That's the one we must redact.
 func redactProtectedEvaluationTreeActualValues(resp *model.PolicySimulationResponse, protected protectedCPAAttributes) {
 	if resp == nil || protected.isEmpty() {
@@ -1169,7 +1169,7 @@ func redactProtectedActualValuesInTree(node *model.PolicySimulationEvaluationNod
 }
 
 // isProtectedAttributePath returns true when `path` is a canonical CPA
-// leaf reference — `user.attributes.<name>` or `resource.attributes.<name>`
+// leaf reference — `user.attributes.<name>` or `channel.attributes.<name>`
 // — whose `<name>` is in the protected set for that root. Each root is
 // matched against its own set so a channel field's visibility can't be
 // inferred from a same-named user field. Returns false for empty paths
@@ -1972,7 +1972,7 @@ func (a *App) GetAccessControlFieldsAutocomplete(rctx request.CTX, channelID str
 	}
 
 	// A policy references the requesting user (user.attributes.*) and the
-	// accessed resource (resource.attributes.*). Resource attributes are
+	// accessed channel (channel.attributes.*). The latter are
 	// channel-object-type CPA fields, so include them when a channel is in
 	// scope, or when the caller explicitly asks for them — a policy that many
 	// channels import has no single channel to scope by, and still needs the

@@ -73,7 +73,7 @@ describe('parseExpression', () => {
                 {
                     attribute: 'user.attributes.clearance',
                     operator: '>=',
-                    value: 'resource.attributes.minClearance',
+                    value: 'channel.attributes.minClearance',
                     value_type: 1, // attribute reference, not a literal
                     attribute_type: 'rank',
                 },
@@ -95,13 +95,13 @@ describe('parseExpression', () => {
 
     test('a literal RHS that looks like a path stays a literal value', () => {
         // value_type 0 (literal) must not be treated as a resource target even
-        // if the string happens to start with resource.attributes.
+        // if the string happens to start with channel.attributes.
         const ast: AccessControlVisualAST = {
             conditions: [
                 {
                     attribute: 'user.attributes.note',
                     operator: '==',
-                    value: 'resource.attributes.minClearance',
+                    value: 'channel.attributes.minClearance',
                     value_type: 0,
                     attribute_type: 'text',
                 },
@@ -113,7 +113,7 @@ describe('parseExpression', () => {
                 attribute: 'note',
                 attribute_object_type: 'user',
                 operator: 'is',
-                values: ['resource.attributes.minClearance'],
+                values: ['channel.attributes.minClearance'],
                 attribute_type: 'text',
                 hasMaskedValues: false,
             },
@@ -384,13 +384,13 @@ describe('parseExpression with multiselect attributes', () => {
     test('maps a hasAnyOf channel-attribute target to a targetAttribute row', () => {
         // A multiselect list-vs-list comparison is stored as a member call, so
         // the visual AST surfaces its RHS as an attribute reference (value_type
-        // 1) pointing at resource.attributes.* rather than a literal list.
+        // 1) pointing at channel.attributes.* rather than a literal list.
         const ast: AccessControlVisualAST = {
             conditions: [
                 {
                     attribute: 'user.attributes.programs',
                     operator: 'hasAnyOf',
-                    value: 'resource.attributes.channelPrograms',
+                    value: 'channel.attributes.channelPrograms',
                     value_type: 1,
                     attribute_type: 'multiselect',
                 },
@@ -416,7 +416,7 @@ describe('parseExpression with multiselect attributes', () => {
                 {
                     attribute: 'user.attributes.skills',
                     operator: 'hasAllOf',
-                    value: 'resource.attributes.requiredSkills',
+                    value: 'channel.attributes.requiredSkills',
                     value_type: 1,
                     attribute_type: 'multiselect',
                 },
@@ -686,7 +686,7 @@ describe('rowToCEL', () => {
             hasMaskedValues: false,
             targetAttribute: 'owningTeam',
         });
-        expect(cel).toBe('user.attributes.team == resource.attributes.owningTeam');
+        expect(cel).toBe('user.attributes.team == channel.attributes.owningTeam');
     });
 
     test('resource target on a ranked operator preserves the ordinal comparison', () => {
@@ -698,7 +698,7 @@ describe('rowToCEL', () => {
             hasMaskedValues: false,
             targetAttribute: 'minClearance',
         });
-        expect(cel).toBe('user.attributes.clearance >= resource.attributes.minClearance');
+        expect(cel).toBe('user.attributes.clearance >= channel.attributes.minClearance');
     });
 
     test('resource target is ignored for non-comparison operators', () => {
@@ -724,7 +724,7 @@ describe('rowToCEL', () => {
             hasMaskedValues: false,
             targetAttribute: 'channelPrograms',
         });
-        expect(cel).toBe('user.attributes.programs.hasAnyOf(resource.attributes.channelPrograms)');
+        expect(cel).toBe('user.attributes.programs.hasAnyOf(channel.attributes.channelPrograms)');
     });
 
     test('has_all_of with a channel-attribute target emits the member-function form', () => {
@@ -736,7 +736,7 @@ describe('rowToCEL', () => {
             hasMaskedValues: false,
             targetAttribute: 'requiredSkills',
         });
-        expect(cel).toBe('user.attributes.skills.hasAllOf(resource.attributes.requiredSkills)');
+        expect(cel).toBe('user.attributes.skills.hasAllOf(channel.attributes.requiredSkills)');
     });
 
     test('has_any_of keeps the literal in-chain when there is no target', () => {
@@ -830,7 +830,7 @@ describe('rowToCEL', () => {
             hasMaskedValues: false,
             targetAttribute: 'channelPrograms',
         });
-        expect(cel).toBe(`user.attributes.programs.${operator}(resource.attributes.channelPrograms)`);
+        expect(cel).toBe(`user.attributes.programs.${operator}(channel.attributes.channelPrograms)`);
     });
 
     test('a hierarchy predicate escapes quotes in option names', () => {
@@ -1034,7 +1034,7 @@ describe('multiselect target round-trips (parseExpression -> rowToCEL)', () => {
                 {
                     attribute: 'user.attributes.programs',
                     operator: celFn,
-                    value: 'resource.attributes.channelPrograms',
+                    value: 'channel.attributes.channelPrograms',
                     value_type: 1,
                     attribute_type: 'multiselect',
                 },
@@ -1044,7 +1044,7 @@ describe('multiselect target round-trips (parseExpression -> rowToCEL)', () => {
         const rows = parseExpression(ast);
         expect(rows[0].targetAttribute).toBe('channelPrograms');
         expect(rows[0].values).toEqual([]);
-        expect(rowToCEL(rows[0])).toBe(`user.attributes.programs.${celFn}(resource.attributes.channelPrograms)`);
+        expect(rowToCEL(rows[0])).toBe(`user.attributes.programs.${celFn}(channel.attributes.channelPrograms)`);
     });
 
     test.each([
@@ -1101,7 +1101,7 @@ describe('graph hierarchy round-trips (parseExpression -> rowToCEL)', () => {
                 {
                     attribute: 'user.attributes.programs',
                     operator: celFn,
-                    value: 'resource.attributes.channelPrograms',
+                    value: 'channel.attributes.channelPrograms',
                     value_type: 1,
                     attribute_type: 'graph',
                 },
@@ -1112,7 +1112,7 @@ describe('graph hierarchy round-trips (parseExpression -> rowToCEL)', () => {
         expect(rows[0].operator).toBe(celFn);
         expect(rows[0].targetAttribute).toBe('channelPrograms');
         expect(rows[0].values).toEqual([]);
-        expect(rowToCEL(rows[0])).toBe(`user.attributes.programs.${celFn}(resource.attributes.channelPrograms)`);
+        expect(rowToCEL(rows[0])).toBe(`user.attributes.programs.${celFn}(channel.attributes.channelPrograms)`);
     });
 
     test('exact membership survives arriving labelled multiselect', () => {
@@ -1507,11 +1507,11 @@ describe('isSimpleCondition', () => {
     });
 
     test.each(['==', '!=', '>=', '>', '<=', '<'])('comparison %s against a resource attribute is simple', (op) => {
-        expect(isSimpleCondition(`user.attributes.clearance ${op} resource.attributes.minClearance`)).toBe(true);
+        expect(isSimpleCondition(`user.attributes.clearance ${op} channel.attributes.minClearance`)).toBe(true);
     });
 
     test.each(['hasAnyOf', 'hasAllOf'])('%s against a resource attribute is simple', (fn) => {
-        expect(isSimpleCondition(`user.attributes.programs.${fn}(resource.attributes.channelPrograms)`)).toBe(true);
+        expect(isSimpleCondition(`user.attributes.programs.${fn}(channel.attributes.channelPrograms)`)).toBe(true);
     });
 
     test('rejects hasAnyOf/hasAllOf with a literal (non-resource) argument', () => {
@@ -1522,7 +1522,7 @@ describe('isSimpleCondition', () => {
 
     test('rejects a resource attribute on the left side', () => {
         // The left side must always be the requesting user's attribute.
-        expect(isSimpleCondition('resource.attributes.minClearance == "Secret"')).toBe(false);
+        expect(isSimpleCondition('channel.attributes.minClearance == "Secret"')).toBe(false);
     });
 
     test('rejects function calls', () => {

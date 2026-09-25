@@ -26,7 +26,7 @@ import {
 /**
  * Test-matching-users channel picker end to end.
  *
- * A parent policy that references resource.attributes.* has no channel scope of
+ * A parent policy that references channel.attributes.* has no channel scope of
  * its own, so "Test access rule" cannot resolve the rule until the admin picks a
  * concrete channel. The shared test modal therefore opens a channel-picker step
  * first; the picked channel's attribute values are threaded into the matching-users
@@ -39,7 +39,7 @@ import {
  * throttled (~30s) cadence, so the first read after setting values may lag — the
  * matching assertion re-searches until the view catches up.
  */
-test.describe('ABAC resource.attributes - test picker', {tag: ['@abac', '@abac_resource_attributes']}, () => {
+test.describe('ABAC channel.attributes - test picker', {tag: ['@abac', '@abac_resource_attributes']}, () => {
     // Fixtures this file created, torn down after each test. The access_control group
     // allows at most 20 user-object fields, so a spec that leaks its fields eventually
     // fails every later spec's setup rather than its own.
@@ -67,7 +67,7 @@ test.describe('ABAC resource.attributes - test picker', {tag: ['@abac', '@abac_r
         } as Parameters<typeof adminClient.patchConfig>[0]);
 
         // Same field name on both object types so user.attributes.<attr> compares
-        // to resource.attributes.<attr>.
+        // to channel.attributes.<attr>.
         const attr = `region${pw.random.id()}`;
         const fieldsMap = await setupCustomProfileAttributeFields(adminClient, [{name: attr, type: 'text', value: ''}]);
         cleanups.push(() => deleteCustomProfileAttributes(adminClient, fieldsMap));
@@ -84,7 +84,7 @@ test.describe('ABAC resource.attributes - test picker', {tag: ['@abac', '@abac_r
 
         const policyId = await createParentPolicyViaAPI(adminClient, {
             name: `Picker ${pw.random.id()}`,
-            expression: `user.attributes.${attr} == resource.attributes.${attr}`,
+            expression: `user.attributes.${attr} == channel.attributes.${attr}`,
         });
         cleanups.push(() => deleteParentPolicy(adminClient, policyId));
 

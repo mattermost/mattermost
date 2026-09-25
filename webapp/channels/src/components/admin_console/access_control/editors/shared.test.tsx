@@ -648,7 +648,7 @@ describe('isSimpleExpression / isSimpleCondition with graph attributes', () => {
     });
 
     test.each(['coversAll', 'coversAny', 'withinAll', 'withinAny'])('%s against a channel attribute is simple', (fn) => {
-        expect(isSimpleCondition(`user.attributes.programs.${fn}(resource.attributes.programs)`)).toBe(true);
+        expect(isSimpleCondition(`user.attributes.programs.${fn}(channel.attributes.programs)`)).toBe(true);
     });
 
     test('exact membership on a graph attribute is the plain in form', () => {
@@ -672,7 +672,22 @@ describe('isSimpleExpression / isSimpleCondition with graph attributes', () => {
     });
 
     test('a hierarchy predicate on the resource side is not simple', () => {
-        expect(isSimpleCondition('resource.attributes.programs.coversAll(["F-18 Program"])')).toBe(false);
+        expect(isSimpleCondition('channel.attributes.programs.coversAll(["F-18 Program"])')).toBe(false);
+    });
+});
+
+describe('isSimpleExpression / isSimpleCondition with channel attribute targets', () => {
+    test('a channel attribute target combines with the other condition kinds', () => {
+        expect(isSimpleExpression('user.attributes.clearance >= channel.attributes.minClearance && user.attributes.dept == "Eng"')).toBe(true);
+    });
+
+    test('the resource.* spelling is not simple', () => {
+        // The accessed channel is `channel` in CEL; a resource.*-rooted rule
+        // does not compile server-side, so the table editor must not claim it
+        // either — it would build a row it cannot emit back.
+        expect(isSimpleCondition('user.attributes.clearance >= resource.attributes.minClearance')).toBe(false);
+        expect(isSimpleCondition('user.attributes.programs.hasAnyOf(resource.attributes.programs)')).toBe(false);
+        expect(isSimpleCondition('user.attributes.programs.coversAll(resource.attributes.programs)')).toBe(false);
     });
 });
 
@@ -809,16 +824,16 @@ describe('isNativeMethodOperator', () => {
 
 describe('referencesResourceAttributes', () => {
     test('true for an actual resource attribute reference', () => {
-        expect(referencesResourceAttributes('user.attributes.clearance >= resource.attributes.minClearance')).toBe(true);
+        expect(referencesResourceAttributes('user.attributes.clearance >= channel.attributes.minClearance')).toBe(true);
     });
 
     test('false when the prefix only appears inside a quoted literal', () => {
-        expect(referencesResourceAttributes('user.attributes.note == "resource.attributes.minClearance"')).toBe(false);
-        expect(referencesResourceAttributes("user.attributes.note == 'resource.attributes.minClearance'")).toBe(false);
+        expect(referencesResourceAttributes('user.attributes.note == "channel.attributes.minClearance"')).toBe(false);
+        expect(referencesResourceAttributes("user.attributes.note == 'channel.attributes.minClearance'")).toBe(false);
     });
 
     test('true when a real reference coexists with a quoted literal', () => {
-        expect(referencesResourceAttributes('user.attributes.note == "resource.attributes.x" && user.attributes.c >= resource.attributes.min')).toBe(true);
+        expect(referencesResourceAttributes('user.attributes.note == "channel.attributes.x" && user.attributes.c >= channel.attributes.min')).toBe(true);
     });
 
     test('false for a resource-free expression', () => {

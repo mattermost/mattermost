@@ -38,7 +38,7 @@ import {
  * hasAnyOf = the lists intersect. hasAllOf = the channel's list is a subset of
  * the user's (the user holds every value the channel requires).
  */
-test.describe('ABAC resource.attributes - multiselect targets', {tag: ['@abac', '@abac_resource_attributes']}, () => {
+test.describe('ABAC channel.attributes - multiselect targets', {tag: ['@abac', '@abac_resource_attributes']}, () => {
     // Fixtures this file created, torn down after each test. The access_control group
     // allows at most 20 user-object fields, so a spec that leaks its fields eventually
     // fails every later spec's setup rather than its own.
@@ -91,7 +91,7 @@ test.describe('ABAC resource.attributes - multiselect targets', {tag: ['@abac', 
 
         const policyId = await createParentPolicyViaAPI(adminClient, {
             name: `HasAnyOf ${pw.random.id()}`,
-            expression: `user.attributes.${scale.userFieldName}.hasAnyOf(resource.attributes.${scale.channelFieldName})`,
+            expression: `user.attributes.${scale.userFieldName}.hasAnyOf(channel.attributes.${scale.channelFieldName})`,
         });
         cleanups.push(() => deleteParentPolicy(adminClient, policyId, [channel.id]));
         await assignChannelsToPolicy(adminClient, policyId, [channel.id]);
@@ -152,7 +152,7 @@ test.describe('ABAC resource.attributes - multiselect targets', {tag: ['@abac', 
 
         const policyId = await createParentPolicyViaAPI(adminClient, {
             name: `HasAllOf ${pw.random.id()}`,
-            expression: `user.attributes.${scale.userFieldName}.hasAllOf(resource.attributes.${scale.channelFieldName})`,
+            expression: `user.attributes.${scale.userFieldName}.hasAllOf(channel.attributes.${scale.channelFieldName})`,
         });
         cleanups.push(() => deleteParentPolicy(adminClient, policyId, [channel.id]));
         await assignChannelsToPolicy(adminClient, policyId, [channel.id]);

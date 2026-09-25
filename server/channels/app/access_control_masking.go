@@ -352,15 +352,15 @@ func (a *App) maskConditionValues(rctx request.CTX, callerID string, condition *
 
 // cpaAttributeRoots maps a CEL attribute-path prefix to the PropertyField
 // object type whose CPA schema backs it: user.attributes.* is the requesting
-// user, resource.attributes.* is the accessed channel.
+// user, channel.attributes.* is the accessed channel.
 var cpaAttributeRoots = []struct{ prefix, objectType string }{
 	{userAttributesPathPrefix, model.PropertyFieldObjectTypeUser},
-	{resourceAttributesPathPrefix, model.PropertyFieldObjectTypeChannel},
+	{channelAttributesPathPrefix, model.PropertyFieldObjectTypeChannel},
 }
 
 // splitCPAAttribute splits a CEL attribute path into its CPA object type and
 // field name. ok is false for any path that is not a non-empty custom-attribute
-// selector (native selectors such as user.email or resource.id carry no
+// selector (native selectors such as user.email or channel.id carry no
 // ".attributes." segment and own no maskable literal).
 func splitCPAAttribute(attribute string) (objectType, fieldName string, ok bool) {
 	for _, r := range cpaAttributeRoots {

@@ -18,7 +18,7 @@ import type {TableRow} from './value_selector_menu';
 import ValueSelectorMenu from './value_selector_menu';
 
 import CELHelpModal from '../../modals/cel_help/cel_help_modal';
-import {AddAttributeButton, TestButton, TestResults, HelpText, OPERATOR_CONFIG, OPERATOR_LABELS, OperatorLabel, isMultiValueOperator, isMultiselectOperator, isGraphOperator, isRankOperator, isNativeMethodOperator, isFieldAdvertisedOperator, operatorSupportsChannelTarget, celPathFor, isNativeField, isNativeBooleanField, hasControlledAttributeValues, allowedOperatorLabelsForField, defaultOperatorForField, isValidYoungerThanDaysValue, valuePlaceholderForOperator, RESOURCE_ATTRIBUTES_PREFIX, VISUAL_AST_ATTRIBUTE_VALUE_TYPE, SESSION_ATTRIBUTE_CEL_PREFIX, USER_ATTRIBUTE_CEL_PREFIX} from '../shared';
+import {AddAttributeButton, TestButton, TestResults, HelpText, OPERATOR_CONFIG, OPERATOR_LABELS, OperatorLabel, isMultiValueOperator, isMultiselectOperator, isGraphOperator, isRankOperator, isNativeMethodOperator, isFieldAdvertisedOperator, operatorSupportsChannelTarget, celPathFor, isNativeField, isNativeBooleanField, hasControlledAttributeValues, allowedOperatorLabelsForField, defaultOperatorForField, isValidYoungerThanDaysValue, valuePlaceholderForOperator, CHANNEL_ATTRIBUTES_PREFIX, VISUAL_AST_ATTRIBUTE_VALUE_TYPE, SESSION_ATTRIBUTE_CEL_PREFIX, USER_ATTRIBUTE_CEL_PREFIX} from '../shared';
 
 import './table_editor.scss';
 
@@ -58,7 +58,7 @@ export function rowToCEL(row: TableRow): string {
     // operators below, which lower to a chain of `in` tests.
     if (isGraphOperator(row.operator)) {
         if (row.targetAttribute) {
-            return `${attributeExpr}.${row.operator}(resource.attributes.${row.targetAttribute})`;
+            return `${attributeExpr}.${row.operator}(${CHANNEL_ATTRIBUTES_PREFIX}${row.targetAttribute})`;
         }
         const targets = row.values.map((val: string) => celStringLiteral(val)).join(', ');
         return `${attributeExpr}.${row.operator}([${targets}])`;
@@ -67,19 +67,19 @@ export function rowToCEL(row: TableRow): string {
     const config = OPERATOR_CONFIG[row.operator];
 
     // Right-hand side is the accessed channel's attribute, not a literal:
-    // user.attributes.X <op> resource.attributes.Y. Which operators may take one
+    // user.attributes.X <op> channel.attributes.Y. Which operators may take one
     // depends on the attribute type as well — see operatorSupportsChannelTarget.
     // The literal-value forms below still apply when the row has no
     // targetAttribute, or when the operator cannot carry one.
     if (row.targetAttribute && operatorSupportsChannelTarget(row.operator, row.attribute_type)) {
         if (config?.type === 'comparison') {
-            return `${attributeExpr} ${config.celOp} resource.attributes.${row.targetAttribute}`;
+            return `${attributeExpr} ${config.celOp} ${CHANNEL_ATTRIBUTES_PREFIX}${row.targetAttribute}`;
         }
 
         // What is left is a multiselect list-vs-list comparison, stored verbatim
         // as a member-function call the engine holds as-is.
         const fn = row.operator === OperatorLabel.HAS_ALL_OF ? 'hasAllOf' : 'hasAnyOf';
-        return `${attributeExpr}.${fn}(resource.attributes.${row.targetAttribute})`;
+        return `${attributeExpr}.${fn}(${CHANNEL_ATTRIBUTES_PREFIX}${row.targetAttribute})`;
     }
 
     // native_method (e.g. youngerThanDays) takes an unquoted integer argument.
@@ -272,7 +272,7 @@ export const parseExpression = (visualAST: AccessControlVisualAST): TableRow[] =
         // Extracts the attribute name, removing the CEL namespace prefix. The
         // two-segment forms (user.attributes.<name>, user.session.<name>) are
         // matched before the single-segment native form (user.<name>). The left
-        // side is always the requesting user's attribute; a resource.attributes.*
+        // side is always the requesting user's attribute; a channel.attributes.*
         // reference only appears on the right (captured below as targetAttribute).
         if (node.attribute.startsWith(USER_ATTRIBUTE_CEL_PREFIX)) {
             attr = node.attribute.slice(USER_ATTRIBUTE_CEL_PREFIX.length);
@@ -300,7 +300,7 @@ export const parseExpression = (visualAST: AccessControlVisualAST): TableRow[] =
             op = OperatorLabel.IS_EXACTLY;
         }
 
-        // A value_type of "attribute" whose RHS is a resource.attributes.*
+        // A value_type of "attribute" whose RHS is a channel.attributes.*
         // selector means the condition compares the user attribute to the
         // accessed channel's attribute. Capture the target field; values are
         // unused in that case.
@@ -314,8 +314,8 @@ export const parseExpression = (visualAST: AccessControlVisualAST): TableRow[] =
         let values: string[];
         if (node.value_type === VISUAL_AST_ATTRIBUTE_VALUE_TYPE &&
             typeof node.value === 'string' &&
-            node.value.startsWith(RESOURCE_ATTRIBUTES_PREFIX)) {
-            targetAttribute = node.value.slice(RESOURCE_ATTRIBUTES_PREFIX.length);
+            node.value.startsWith(CHANNEL_ATTRIBUTES_PREFIX)) {
+            targetAttribute = node.value.slice(CHANNEL_ATTRIBUTES_PREFIX.length);
             values = [];
         } else if (Array.isArray(node.value)) {
             values = node.value.map((v) => String(v));
@@ -395,7 +395,7 @@ function TableEditor({
     // The autocomplete returns both the requesting user's attributes and the
     // accessed channel's (resource) attributes, tagged by object_type. The left
     // picker only ever offers user attributes; channel attributes are offered
-    // as comparison targets on the right side (resource.attributes.*).
+    // as comparison targets on the right side (channel.attributes.*).
     const {userFields, resourceAttributes} = useMemo(() => {
         const uf: UserPropertyField[] = [];
         const ra: UserPropertyField[] = [];
@@ -697,7 +697,7 @@ function TableEditor({
     }, [updateExpression, rows]);
 
     // Switch the row's right-hand side to the accessed channel's attribute
-    // (resource.attributes.*). Literal values are cleared — the two are
+    // (channel.attributes.*). Literal values are cleared — the two are
     // mutually exclusive.
     const updateRowTarget = useCallback((index: number, targetAttribute: string) => {
         const newRows = [...rows];
@@ -897,7 +897,7 @@ function TableEditor({
             {/* Built-in expression-only modal. Suppressed when the parent
               * provided an `onTestClick` override (used by the permission-rule
               * editor, which renders its own dual-lane simulation modal). With
-              * no channelId, a resource.attributes.* rule gets a channel-picker
+              * no channelId, a channel.attributes.* rule gets a channel-picker
               * step inside the modal before the members list. */}
             {!onTestClick && showTestResults && (
                 <TestResults

@@ -345,7 +345,7 @@ test.describe('System Console - Membership Policy graph operators', () => {
             policyId = await saveAndReopenInSimpleMode(
                 page,
                 policyName,
-                `user.attributes.${hierarchy!.userFieldName}.coversAll(resource.attributes.${hierarchy!.channelFieldName})`,
+                `user.attributes.${hierarchy!.userFieldName}.coversAll(channel.attributes.${hierarchy!.channelFieldName})`,
                 (id) => {
                     policyId = id;
                 },

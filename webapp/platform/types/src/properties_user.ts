@@ -28,7 +28,7 @@ export const SESSION_ATTRIBUTES_OBJECT_TYPE = 'session';
 export const USER_OBJECT_TYPE = 'user';
 
 // Channel-targeted attributes. On the ABAC autocomplete these are the fields a
-// policy references as `resource.attributes.*` — the accessed channel's values,
+// policy references as `channel.attributes.*` — the accessed channel's values,
 // as opposed to the requesting user's (`USER_OBJECT_TYPE`).
 export const CHANNEL_ATTRIBUTES_OBJECT_TYPE = 'channel';
 

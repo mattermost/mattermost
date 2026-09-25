@@ -15,7 +15,7 @@ import {
 } from './helpers';
 
 /**
- * Authoring round-trip for resource.attributes.* over the real HTTP boundary
+ * Authoring round-trip for channel.attributes.* over the real HTTP boundary
  * (Playwright drives a live server with the enterprise engine, so SavePolicy /
  * cel-check validation runs for real — the api4 Go tests mock the engine and
  * cannot).
@@ -24,7 +24,7 @@ import {
  * (multiselect reject, rank scale-match, permission-policy accept) lives in the
  * enterprise engine unit tests.
  */
-test.describe('ABAC resource.attributes - authoring', {tag: ['@abac', '@abac_resource_attributes']}, () => {
+test.describe('ABAC channel.attributes - authoring', {tag: ['@abac', '@abac_resource_attributes']}, () => {
     // Fixtures this file created, torn down after each test. The access_control group
     // allows at most 20 user-object fields, so a spec that leaks its fields eventually
     // fails every later spec's setup rather than its own.
@@ -58,13 +58,13 @@ test.describe('ABAC resource.attributes - authoring', {tag: ['@abac', '@abac_res
         // mixed user/resource expression on a parent policy.
         const policyId = await createParentPolicyViaAPI(adminClient, {
             name: `Accept Resource ${pw.random.id()}`,
-            expression: `resource.attributes.${attr} == "us"`,
+            expression: `channel.attributes.${attr} == "us"`,
         });
         expect(policyId).toBeTruthy();
         cleanups.push(() => deleteParentPolicy(adminClient, policyId));
     });
 
-    test('rejects has(resource.attributes.*) at check time', async ({pw}) => {
+    test('rejects has(channel.attributes.*) at check time', async ({pw}) => {
         await pw.skipIfNoLicense();
         await pw.ensureFeatureFlag('ResourceAttributesInPolicies', true);
 
@@ -83,9 +83,9 @@ test.describe('ABAC resource.attributes - authoring', {tag: ['@abac', '@abac_res
         // Assert the reason, not just that validation failed: a bare count also
         // passes on an unrelated compile or engine error, and would have kept
         // passing while the feature flag denied every resource reference.
-        const errors = await adminClient.checkAccessControlExpression(`has(resource.attributes.${attr})`);
+        const errors = await adminClient.checkAccessControlExpression(`has(channel.attributes.${attr})`);
         expect(errors.length).toBeGreaterThan(0);
-        expect(errors[0].message).toContain('has() is not supported on resource attributes');
+        expect(errors[0].message).toContain('has() is not supported on channel attributes');
     });
 
     test('rejects assigning a resource parent to a team', async ({pw}) => {
@@ -102,13 +102,13 @@ test.describe('ABAC resource.attributes - authoring', {tag: ['@abac', '@abac_res
 
         const policyId = await createParentPolicyViaAPI(adminClient, {
             name: `Team Boundary ${pw.random.id()}`,
-            expression: `resource.attributes.${attr} == "us"`,
+            expression: `channel.attributes.${attr} == "us"`,
         });
 
         cleanups.push(() => deleteParentPolicy(adminClient, policyId));
 
         // A team's resource is a team, which has no CPA attributes, so a parent
-        // that references resource.attributes.* must not be importable by a team.
+        // that references channel.attributes.* must not be importable by a team.
         await expectAssignTeamsDenied(adminClient, policyId, [team.id]);
     });
 });

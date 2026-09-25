@@ -3719,13 +3719,13 @@ func TestRedactProtectedActualValuesInTree(t *testing.T) {
 						// resource set, not the user set.
 						{
 							Kind:        model.PolicySimulationEvaluationKindCompare,
-							Attribute:   "resource.attributes.Sensitivity",
+							Attribute:   "channel.attributes.Sensitivity",
 							ActualValue: "secret",
 						},
 						// Public channel attribute: preserved.
 						{
 							Kind:        model.PolicySimulationEvaluationKindCompare,
-							Attribute:   "resource.attributes.Region",
+							Attribute:   "channel.attributes.Region",
 							ActualValue: "us-east",
 						},
 					},
@@ -3799,29 +3799,29 @@ func TestIsProtectedAttributePath(t *testing.T) {
 		assert.True(t, isProtectedAttributePath("user.attributes.Clearance", protected))
 	})
 
-	t.Run("returns true for the canonical resource.attributes.<name> form", func(t *testing.T) {
-		assert.True(t, isProtectedAttributePath("resource.attributes.Sensitivity", protected))
+	t.Run("returns true for the canonical channel.attributes.<name> form", func(t *testing.T) {
+		assert.True(t, isProtectedAttributePath("channel.attributes.Sensitivity", protected))
 	})
 
 	t.Run("matches each root against its own set, not the other's", func(t *testing.T) {
 		// Clearance is protected user-side but not resource-side, and
 		// vice versa for Sensitivity — the sets must not cross.
-		assert.False(t, isProtectedAttributePath("resource.attributes.Clearance", protected))
+		assert.False(t, isProtectedAttributePath("channel.attributes.Clearance", protected))
 		assert.False(t, isProtectedAttributePath("user.attributes.Sensitivity", protected))
 	})
 
 	t.Run("returns false for non-CPA paths", func(t *testing.T) {
-		// Session / native / bare resource selectors carry no
+		// Session / native / bare channel selectors carry no
 		// `.attributes.` segment — only `user.attributes.*` and
-		// `resource.attributes.*` are in scope for the CPA filter.
+		// `channel.attributes.*` are in scope for the CPA filter.
 		assert.False(t, isProtectedAttributePath("session.network_status", protected))
-		assert.False(t, isProtectedAttributePath("resource.id", protected))
+		assert.False(t, isProtectedAttributePath("channel.id", protected))
 		assert.False(t, isProtectedAttributePath("channel.member_count", protected))
 	})
 
 	t.Run("returns false for paths whose suffix is not in the protected set", func(t *testing.T) {
 		assert.False(t, isProtectedAttributePath("user.attributes.Region", protected))
-		assert.False(t, isProtectedAttributePath("resource.attributes.Region", protected))
+		assert.False(t, isProtectedAttributePath("channel.attributes.Region", protected))
 	})
 
 	t.Run("returns false for empty inputs", func(t *testing.T) {
@@ -3829,7 +3829,7 @@ func TestIsProtectedAttributePath(t *testing.T) {
 		assert.False(t, isProtectedAttributePath("user.attributes.Clearance", protectedCPAAttributes{}))
 		assert.False(t, isProtectedAttributePath("user.attributes.", protected),
 			"empty suffix must not match — that's a malformed path, not a protected reference")
-		assert.False(t, isProtectedAttributePath("resource.attributes.", protected),
+		assert.False(t, isProtectedAttributePath("channel.attributes.", protected),
 			"empty suffix must not match — that's a malformed path, not a protected reference")
 	})
 }
@@ -5931,7 +5931,7 @@ func TestGetAccessControlFieldsAutocomplete_ExcludesNonUserFields(t *testing.T) 
 }
 
 // When scoped to a channel, autocomplete additionally returns channel-object-type
-// CPA fields (resource.attributes.*), each tagged with its ObjectType, alongside
+// CPA fields (channel.attributes.*), each tagged with its ObjectType, alongside
 // the user fields.
 func TestGetAccessControlFieldsAutocomplete_IncludesChannelFieldsWhenScoped(t *testing.T) {
 	th := Setup(t).InitBasic(t)

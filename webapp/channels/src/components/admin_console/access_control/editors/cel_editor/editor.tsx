@@ -137,11 +137,11 @@ export interface CELEditorProps {
     userAttributes: CELUserAttribute[];
 
     /**
-     * Channel-object-type attributes exposed as the resource.attributes.*
+     * Channel-object-type attributes exposed as the channel.attributes.*
      * autocomplete root, letting a policy compare the requesting user against
      * the accessed channel (e.g. user.attributes.clearance >=
-     * resource.attributes.minClearance). Empty for editors with no channel
-     * fields in scope (e.g. team policies), which then get no resource root.
+     * channel.attributes.minClearance). Empty for editors with no channel
+     * fields in scope (e.g. team policies), which then get no channel root.
      */
     resourceAttributes?: Array<{
         attribute: string;
@@ -198,13 +198,13 @@ function CELEditor({
 
     const schemas = buildCELSchemas(userAttributes);
 
-    // Only declare the resource.attributes.* root when channel fields are in
-    // scope, so editors that can't reference a resource (e.g. team policies)
+    // Only declare the channel.attributes.* root when channel fields are in
+    // scope, so editors that can't reference a channel (e.g. team policies)
     // don't offer an empty root.
     if (resourceAttributes.length > 0) {
         const validName = (attr: string) => !attr.includes(' ') && attr.trim() !== '';
-        schemas.resource = ['attributes'];
-        schemas['resource.attributes'] = resourceAttributes.map((attr) => attr.attribute).filter(validName);
+        schemas.channel = ['attributes'];
+        schemas['channel.attributes'] = resourceAttributes.map((attr) => attr.attribute).filter(validName);
     }
 
     const injectedCheckExpression = actions?.checkExpression;
@@ -521,7 +521,7 @@ function CELEditor({
             {/* Built-in expression-only modal. Suppressed when the
               * parent provided an `onTestClick` override (used by the
               * permission-rule editor, which renders its own dual-lane
-              * SimulateAccessModal). With no channelId, a resource.attributes.*
+              * SimulateAccessModal). With no channelId, a channel.attributes.*
               * rule gets a channel-picker step inside the modal before the
               * members list. */}
             {!onTestClick && editorState.showTestResults && (

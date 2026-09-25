@@ -8,12 +8,12 @@ import {enableUserManagedAttributes} from '../support';
 import {createChannelTextField, deletePropertyFieldQuietly, expectMaskedTokenRejected} from './helpers';
 
 /**
- * Attribute-value masking on the resource.attributes.* write path.
+ * Attribute-value masking on the channel.attributes.* write path.
  *
  * The masked-value sentinel ("--------", model.MaskingTokenValue) is a
  * response-only placeholder the server substitutes for literals a caller can't
  * see. It must never round-trip back into storage: saving a policy whose
- * resource.attributes.* condition still carries the sentinel is rejected. This
+ * channel.attributes.* condition still carries the sentinel is rejected. This
  * is the write-path half of the symmetric masking gate, asserted over HTTP.
  *
  * The read-path (caller-relative redaction of resource literals in GET /
@@ -23,7 +23,7 @@ import {createChannelTextField, deletePropertyFieldQuietly, expectMaskedTokenRej
  * the CEL-walker/visual-AST masking tests, and the existing user-attribute
  * masking Playwright suite whose mechanics the resource path shares.
  */
-test.describe('ABAC resource.attributes - masking write path', {tag: ['@abac', '@abac_masking']}, () => {
+test.describe('ABAC channel.attributes - masking write path', {tag: ['@abac', '@abac_masking']}, () => {
     // Fixtures this file created, torn down after each test. The access_control group
     // allows at most 20 user-object fields, so a spec that leaks its fields eventually
     // fails every later spec's setup rather than its own.
@@ -39,7 +39,7 @@ test.describe('ABAC resource.attributes - masking write path', {tag: ['@abac', '
         cleanups.length = 0;
     });
 
-    test('rejects saving a resource.attributes condition carrying the masked sentinel', async ({pw}) => {
+    test('rejects saving a channel.attributes condition carrying the masked sentinel', async ({pw}) => {
         await pw.skipIfNoLicense();
         await pw.ensureFeatureFlag('ResourceAttributesInPolicies', true);
 
@@ -64,7 +64,7 @@ test.describe('ABAC resource.attributes - masking write path', {tag: ['@abac', '
         // value and is rejected.
         await expectMaskedTokenRejected(adminClient, {
             name: `Masked Sentinel ${pw.random.id()}`,
-            expression: `resource.attributes.${attr} == "--------"`,
+            expression: `channel.attributes.${attr} == "--------"`,
         });
     });
 });

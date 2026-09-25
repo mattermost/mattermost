@@ -5272,7 +5272,7 @@ export default class Client4 {
             params.append('team_id', teamId);
         }
 
-        // Parent policies reference resource.attributes.* (channel-object-type
+        // Parent policies reference channel.attributes.* (channel-object-type
         // fields) without a single channel to scope by; ask for them explicitly.
         if (includeResourceFields) {
             params.append('include_resource_fields', 'true');

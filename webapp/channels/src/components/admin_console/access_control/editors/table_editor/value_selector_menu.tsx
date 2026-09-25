@@ -23,7 +23,7 @@ export interface TableRow {
     hasMaskedValues: boolean;
 
     // When set, the right-hand side of the condition is the accessed channel's
-    // attribute (resource.attributes.<targetAttribute>) rather than a literal
+    // attribute (channel.attributes.<targetAttribute>) rather than a literal
     // value; `values` is then ignored. Only meaningful for comparison operators
     // and the multiselect list operators (has any of / has all of). The left
     // side stays the requesting user's attribute.
@@ -47,7 +47,7 @@ export interface ValueSelectorMenuProps {
     // Comparable channel attributes offered as the right-hand side alongside
     // literal values (the consolidated VALUES + CHANNEL ATTRIBUTES dropdown).
     // Empty/undefined when the operator or attribute type has no target. When
-    // one is picked, the row switches to a resource.attributes.<name> target.
+    // one is picked, the row switches to a channel.attributes.<name> target.
     channelFields?: UserPropertyField[];
     onSelectTarget?: (name: string) => void;
 

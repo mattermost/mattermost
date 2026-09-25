@@ -30,7 +30,7 @@ interface Props {
     onSelect: (channelId: string) => void;
 }
 
-// First step of the shared test modal for a resource.attributes.* rule with no
+// First step of the shared test modal for a channel.attributes.* rule with no
 // channel scope of its own: pick a concrete channel whose attribute values the
 // rule is resolved against. Rows are icon + name + team + chevron — no member
 // counts (the members step reports the matching users).

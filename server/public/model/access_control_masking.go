@@ -82,7 +82,7 @@ func (info *MaskingFieldInfo) IsValueHidden(lit string) bool {
 
 // MaskingFieldResolver answers field-visibility questions for a property
 // attribute identified by its CPA object type (PropertyFieldObjectTypeUser for
-// user.attributes.*, PropertyFieldObjectTypeChannel for resource.attributes.*)
+// user.attributes.*, PropertyFieldObjectTypeChannel for channel.attributes.*)
 // and field name (the suffix after the ".attributes." segment, e.g.
 // "department"). The object type is required because a user field and a channel
 // field can share a name but differ in visibility, so each must be resolved

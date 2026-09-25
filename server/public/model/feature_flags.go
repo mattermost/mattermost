@@ -148,7 +148,7 @@ type FeatureFlags struct {
 
 	// FEATURE_FLAG_REMOVAL: ResourceAttributesInPolicies - Remove this when the
 	// feature is GA. Gates access rules that compare a user's attributes against
-	// the accessed channel's (resource.attributes.*): when off, the autocomplete
+	// the accessed channel's (channel.attributes.*): when off, the autocomplete
 	// endpoint omits channel-object-type fields, so no editor offers them, and
 	// saving a policy that references one is rejected. It does NOT gate
 	// evaluation — a rule stored while the flag was on keeps being enforced,

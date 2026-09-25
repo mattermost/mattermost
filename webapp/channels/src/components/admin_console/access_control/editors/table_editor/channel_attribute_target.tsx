@@ -18,7 +18,7 @@ import {AttributeIcon} from './attribute_selector_menu';
 // dropdown: the comparable channel fields the row's user attribute may be
 // compared against, as a single-select radio list with a checkmark on the
 // current target. Selecting one switches the row from a literal value to a
-// resource.attributes.<name> target (the caller clears the literal values).
+// channel.attributes.<name> target (the caller clears the literal values).
 //
 // Returned as a flat array (not a wrapper component) so the items stay direct
 // children of the MUI menu list — matching the option-list render — which keeps

@@ -7,7 +7,7 @@ import type {Client4} from '@mattermost/client';
 import type {PlaywrightExtended} from '@mattermost/playwright-lib';
 
 /**
- * Helpers for exercising resource.attributes.* (channel custom profile
+ * Helpers for exercising channel.attributes.* (channel custom profile
  * attributes) end to end. The subject of a policy stays the user; these helpers
  * provision the *resource* side — channel-object-type CPA fields in the
  * access_control group and per-channel values — plus API-driven policy authoring
@@ -31,7 +31,7 @@ const TEMPLATE_OBJECT_TYPE = 'template';
 
 /**
  * Create a channel-object-type text CPA field in the access_control group. The
- * ABAC materialized view surfaces it as resource.attributes.<name>. Marked
+ * ABAC materialized view surfaces it as channel.attributes.<name>. Marked
  * admin-managed so SavePolicy's name normalization accepts a reference to it
  * (channel fields have no user-managed-attributes toggle). Returns the field id.
  */
@@ -79,7 +79,7 @@ type ParentPolicyOptions = {
 export async function createParentPolicyViaAPI(adminClient: Client4, opts: ParentPolicyOptions): Promise<string> {
     // The version sent here is advisory: CreateOrUpdateAccessControlPolicy
     // overwrites it (v0.3, bumped to v0.4 only for permission-action rules), and
-    // no version gates resource.attributes.* — that's the
+    // no version gates channel.attributes.* — that's the
     // ResourceAttributesInPolicies flag plus the "not a team policy" rule.
     const policy = await adminClient.updateOrCreateAccessControlPolicy({
         id: '',
@@ -458,7 +458,7 @@ export async function expectAssignTeamsDenied(
     await expectRejection(
         () => adminClient.assignTeamsToAccessControlPolicy(policyId, teamIds),
         {statusCode: 400, serverErrorId: 'app.pap.save_policy.team_resource_attributes'},
-        'a team cannot import a parent that references resource.attributes.*',
+        'a team cannot import a parent that references channel.attributes.*',
     );
 }
 
