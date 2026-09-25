@@ -12,13 +12,26 @@ export function enableUsernameAndIconOverride(enable) {
 }
 
 export function enableUsernameAndIconOverrideInt(enableUsername, enableIcon) {
-    // Set override flags via API. Visiting the admin console and clicking Save
-    // leaves #saveSetting disabled when a previous spec already applied the
-    // same values, which flakes MM-T622 and related webhook tests.
-    cy.apiUpdateConfig({
-        ServiceSettings: {
-            EnablePostUsernameOverride: enableUsername,
-            EnablePostIconOverride: enableIcon,
-        },
+    // Keep the admin-console Save path so unrelated settings are not reset.
+    // If the radios are already in the desired state, Save stays disabled —
+    // skip instead of waiting for it to enable (MM-T622 flake).
+    cy.visit('/admin_console/integrations/integration_management');
+
+    const usernameTestId = 'ServiceSettings.EnablePostUsernameOverride' + enableUsername;
+    const iconTestId = 'ServiceSettings.EnablePostIconOverride' + enableIcon;
+
+    cy.findByTestId(usernameTestId).should('exist');
+    cy.findByTestId(iconTestId).should('exist');
+
+    cy.findByTestId(usernameTestId).then(($username) => {
+        cy.findByTestId(iconTestId).then(($icon) => {
+            if ($username.is(':checked') && $icon.is(':checked')) {
+                return;
+            }
+            cy.findByTestId(usernameTestId).check({force: true});
+            cy.findByTestId(iconTestId).check({force: true});
+            cy.get('#saveSetting').should('be.enabled').click({force: true});
+            cy.get('#saveSetting').should('be.disabled');
+        });
     });
 }
