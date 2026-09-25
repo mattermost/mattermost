@@ -85,7 +85,7 @@ func (_m *SamlInterface) ConfigureSP(rctx request.CTX) error {
 }
 
 // DoLogin provides a mock function with given fields: rctx, encodedXML, relayState
-func (_m *SamlInterface) DoLogin(rctx request.CTX, encodedXML string, relayState map[string]string) (*model.User, *saml2.AssertionInfo, *model.AppError) {
+func (_m *SamlInterface) DoLogin(rctx request.CTX, encodedXML string, relayState map[string]string) (*model.User, *saml2.AssertionInfo, bool, *model.AppError) {
 	ret := _m.Called(rctx, encodedXML, relayState)
 
 	if len(ret) == 0 {
@@ -94,8 +94,9 @@ func (_m *SamlInterface) DoLogin(rctx request.CTX, encodedXML string, relayState
 
 	var r0 *model.User
 	var r1 *saml2.AssertionInfo
-	var r2 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, string, map[string]string) (*model.User, *saml2.AssertionInfo, *model.AppError)); ok {
+	var r2 bool
+	var r3 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string, map[string]string) (*model.User, *saml2.AssertionInfo, bool, *model.AppError)); ok {
 		return rf(rctx, encodedXML, relayState)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string, map[string]string) *model.User); ok {
@@ -114,15 +115,21 @@ func (_m *SamlInterface) DoLogin(rctx request.CTX, encodedXML string, relayState
 		}
 	}
 
-	if rf, ok := ret.Get(2).(func(request.CTX, string, map[string]string) *model.AppError); ok {
+	if rf, ok := ret.Get(2).(func(request.CTX, string, map[string]string) bool); ok {
 		r2 = rf(rctx, encodedXML, relayState)
 	} else {
-		if ret.Get(2) != nil {
-			r2 = ret.Get(2).(*model.AppError)
+		r2 = ret.Get(2).(bool)
+	}
+
+	if rf, ok := ret.Get(3).(func(request.CTX, string, map[string]string) *model.AppError); ok {
+		r3 = rf(rctx, encodedXML, relayState)
+	} else {
+		if ret.Get(3) != nil {
+			r3 = ret.Get(3).(*model.AppError)
 		}
 	}
 
-	return r0, r1, r2
+	return r0, r1, r2, r3
 }
 
 // GetMetadata provides a mock function with given fields: rctx
