@@ -12,10 +12,11 @@ export function enableUsernameAndIconOverride(enable) {
 }
 
 export function enableUsernameAndIconOverrideInt(enableUsername, enableIcon) {
-    // PUT the two flags on the current config. Visiting Integration Management
-    // and clicking Save fails when leftover config already matches (Save stays
-    // disabled). Do not use apiUpdateConfig: it merges e2e defaults and can
-    // reset unrelated settings.
+    // Patch only the two override flags. Visiting Integration Management and
+    // clicking Save fails when leftover config already matches (Save stays
+    // disabled). Do not use apiUpdateConfig: it merges e2e defaults. Do not
+    // GET-then-full-PUT /api/v4/config: a stale snapshot can overwrite other
+    // concurrent config changes.
     cy.apiGetConfig().then(({config}) => {
         if (
             config.ServiceSettings.EnablePostUsernameOverride === enableUsername &&
@@ -24,15 +25,6 @@ export function enableUsernameAndIconOverrideInt(enableUsername, enableIcon) {
             return;
         }
 
-        const next = {
-            ...config,
-            ServiceSettings: {
-                ...config.ServiceSettings,
-                EnablePostUsernameOverride: enableUsername,
-                EnablePostIconOverride: enableIcon,
-            },
-        };
-
         cy.getCookie('MMCSRF').then((csrfCookie) => {
             const headers = {'X-Requested-With': 'XMLHttpRequest'};
             if (csrfCookie?.value) {
@@ -40,9 +32,14 @@ export function enableUsernameAndIconOverrideInt(enableUsername, enableIcon) {
             }
             cy.request({
                 method: 'PUT',
-                url: '/api/v4/config',
+                url: '/api/v4/config/patch',
                 headers,
-                body: next,
+                body: {
+                    ServiceSettings: {
+                        EnablePostUsernameOverride: enableUsername,
+                        EnablePostIconOverride: enableIcon,
+                    },
+                },
             }).its('status').should('eq', 200).then(() => {
                 cy.apiGetConfig().then(({config: updated}) => {
                     expect(updated.ServiceSettings.EnablePostUsernameOverride).to.equal(enableUsername);
