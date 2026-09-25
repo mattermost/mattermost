@@ -43,7 +43,7 @@ import './classification_attribute.scss';
 
 export const CLASSIFICATION_ATTRIBUTE_ROUTE = `${GLOBAL_ATTRIBUTES_LIST_ROUTE}/classification`;
 
-type LoadState = 'loading' | 'ready' | 'missing' | 'failed';
+type LoadState = 'loading' | 'ready' | 'missing' | 'failed' | 'conflict';
 
 // The property routes answer 404 for a field that does not exist, which both of this
 // page's loads treat as absent rather than broken.
@@ -76,6 +76,10 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
     const [loadState, setLoadState] = useState<LoadState>('loading');
     const [template, setTemplate] = useState<PropertyField | null>(null);
 
+    // A same-named field classification does not own. Editing here would either
+    // describe it wrongly or collide with it on save, so the page stops.
+    const [conflictField, setConflictField] = useState<PropertyField | null>(null);
+
     // The field as the server currently holds it, so Save knows whether to create,
     // patch or delete rather than inferring it from the form.
     const [channelField, setChannelField] = useState<PropertyField | null>(null);
@@ -102,17 +106,33 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                 // ordinary state for both of these: classification may not be set up,
                 // and it may be set up without applying to channels. Only a real
                 // failure gets the error state.
-                const [templateField, existingChannelField] = await Promise.all([
-                    fetchClassificationField().catch(rethrowUnlessNotFound),
-                    fetchChannelClassificationField().catch(rethrowUnlessNotFound),
-                ]);
+                const templateLookup = (await fetchClassificationField().catch(rethrowUnlessNotFound)) ?? {};
                 if (!isMountedRef.current) {
                     return;
                 }
+                if (templateLookup.conflict) {
+                    setConflictField(templateLookup.conflict);
+                    setLoadState('conflict');
+                    return;
+                }
+
+                const templateField = templateLookup.field;
                 if (!templateField) {
                     setLoadState('missing');
                     return;
                 }
+
+                const channelLookup = (await fetchChannelClassificationField(templateField.id).catch(rethrowUnlessNotFound)) ?? {};
+                if (!isMountedRef.current) {
+                    return;
+                }
+                if (channelLookup.conflict) {
+                    setConflictField(channelLookup.conflict);
+                    setLoadState('conflict');
+                    return;
+                }
+
+                const existingChannelField = channelLookup.field;
                 setTemplate(templateField);
                 setChannelField(existingChannelField ?? null);
                 setChannelResource(existingChannelField ? parseChannelFieldConfig(existingChannelField) : null);
@@ -284,6 +304,18 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                                         <FormattedMessage {...messages.markingsPageName}/>
                                     </Link>
                                 )}}
+                            />
+                        </p>
+                    )}
+                    {loadState === 'conflict' && conflictField && (
+                        <p
+                            className='ClassificationAttribute__notice'
+                            role='alert'
+                            data-testid='classificationAttributeConflict'
+                        >
+                            <FormattedMessage
+                                {...messages.nameConflict}
+                                values={{name: conflictField.name}}
                             />
                         </p>
                     )}
@@ -496,6 +528,10 @@ const messages = defineMessages({
     notConfigured: {
         id: 'admin.global_attributes.classification.not_configured',
         defaultMessage: 'Classification is not set up yet. Enable it on the {link} page first.',
+    },
+    nameConflict: {
+        id: 'admin.global_attributes.classification.name_conflict',
+        defaultMessage: 'An attribute named "{name}" already exists but is not part of classification. Rename or remove it in Attribute Management, then reload this page.',
     },
     loadFailed: {
         id: 'admin.global_attributes.classification.load_failed',

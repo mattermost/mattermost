@@ -9,6 +9,9 @@ const CHANNEL_OBJECT_TYPE = 'channel';
 const TARGET_TYPE = 'system';
 const CLASSIFICATION_FIELD_NAME = 'classification';
 const CHANNEL_LINKED_FIELD_NAME = 'classification';
+// Must match CLASSIFICATIONS_FIELD_TYPE in the webapp utils. A select-typed
+// field with this name is treated as a foreign attribute, not adopted.
+const CLASSIFICATIONS_FIELD_TYPE = 'rank';
 
 export const TEST_LEVELS = [
     {name: 'UNCLASSIFIED', color: '#007A33', rank: 1},
@@ -97,7 +100,7 @@ export async function setupClassificationWithChannelField(
     // Create template field
     const templateField = await adminClient.createPropertyField(PROPERTY_GROUP, TEMPLATE_OBJECT_TYPE, {
         name: CLASSIFICATION_FIELD_NAME,
-        type: 'select',
+        type: CLASSIFICATIONS_FIELD_TYPE,
         target_type: TARGET_TYPE,
         target_id: '',
         attrs: {
@@ -113,7 +116,7 @@ export async function setupClassificationWithChannelField(
     // including the creator, set a value on it.
     const channelField = await adminClient.createPropertyField(PROPERTY_GROUP, CHANNEL_OBJECT_TYPE, {
         name: CHANNEL_LINKED_FIELD_NAME,
-        type: 'select',
+        type: CLASSIFICATIONS_FIELD_TYPE,
         target_type: TARGET_TYPE,
         target_id: '',
         linked_field_id: templateField.id,
