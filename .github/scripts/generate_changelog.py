@@ -8,7 +8,9 @@ Expects these environment variables:
                       (e.g. "mattermost/mattermost,mattermost/enterprise")
   MILESTONE         - Milestone title (e.g. "v11.7.0")
   VERSION           - Version label for the changelog entry (e.g. "v11.7.0")
-  RELEASE_TYPE      - (optional) "feature" (default) or "esr" (Extended Support Release).
+  RELEASE_TYPE      - (optional) "feature" (default), "major" (a vX.0 release), or
+                      "esr" (Extended Support Release). Selects the heading label and
+                      the anchor slug other docs pages deep-link to.
   RELEASE_DATE      - (optional) Release day date (e.g. "2026-05-15"). Defaults to today.
   GO_VERSION        - (optional) Go version used in this release (e.g. "go1.22.5").
                       If not provided, changelog notes it is unchanged from previous release.
@@ -16,8 +18,8 @@ Expects these environment variables:
                       Auto-constructed from VERSION if not provided.
   ANTHROPIC_API_KEY - (optional) If set, release notes are polished by Claude
                       before being written to the changelog.
-  CHANGELOG_PATH    - (optional) Path to the changelog file to update. Defaults to
-                      "CHANGELOG.md". In mattermost/mattermost this should be
+  CHANGELOG_PATH    - (optional) Path to the changelog file to update. Defaults to the
+                      file for VERSION's major release, e.g. "v11.9.0" ->
                       "docs/main/product-overview/mattermost-v11-changelog.mdx".
 
 The target changelog is an MDX file: it opens with YAML frontmatter, imports MDX
@@ -66,20 +68,35 @@ SYSTEM_PROMPT = """You are an expert technical writer and copyeditor for Matterm
 
 Here are your instructions:
 
-1.  **Section structure:** Use `###` for top-level sections and `####` for subsections. Only include sections that have relevant content — do not output empty sections. Do NOT add horizontal rules or line separators between sections. Do NOT add a blank line between a section/subsection heading and its first bullet point.
+1.  **Section structure:** Use `###` for top-level sections and `####` for subsections. Only include sections that have relevant content — do not output empty sections. NEVER output a horizontal rule (`---`) between sections or anywhere else. Do NOT add a blank line between a section/subsection heading and its first bullet point.
 
     Top-level sections and their subsections, in this order:
 
     - `### Upgrade Impact` — for changes that affect upgrading, with subsections as applicable:
-        - `#### Database Schema Changes` — schema migrations such as new tables, new columns, changed columns, or new indexes. Example items: "Added a new ``Watermarks`` table.", "Added a new column ``DeleteAt`` to the ``ChannelMembers`` table."
+        - `#### Database Schema Changes` — schema migrations such as new tables, new columns, changed columns, or new indexes. Lead with a single summary bullet, then nest each individual change beneath it. Use this exact shape:
+
+           - The following schema changes are included in the VERSION release. No database downtime is expected for this upgrade.
+             - Added a new ``Watermarks`` table.
+             - Added a new column ``DeleteAt`` to the ``ChannelMembers`` table.
+
+          (Write the real version number in place of VERSION. The summary bullet uses one space; each change uses three.)
         - `#### config.json` — new or changed configuration settings. Use this exact block format for each plan grouping (no blank line between the `#### config.json` heading and the description paragraph, and no blank line between the description paragraph and the first bullet):
           New setting options were added to ``config.json``. Below is a list of the additions and their default values on install. The settings can be modified in ``config.json``, or the System Console when available.
-          - **Changes to Enterprise Advanced plan:**
-            - Under ``ExperimentalSettings`` in ``config.json``, added ``EnableWatermark`` configuration setting to add watermarking toggle in the server.
+           - **Changes to Enterprise Advanced plan:**
+             - Under ``ExperimentalSettings`` in ``config.json``, added ``EnableWatermark`` configuration setting to add watermarking toggle in the server.
+           - Removed ``LdapSettings.LoginButtonColor`` configuration setting from the database.
 
-          Adapt the plan name (e.g. "Changes to All plans:", "Changes to Enterprise plan:", "Changes to Enterprise Advanced plan:") and list each setting change as a bullet under the appropriate plan heading.
+          Adapt the plan name (e.g. "Changes to All plans:", "Changes to Enterprise plans:", "Changes to Enterprise Advanced plan:") and nest each setting change beneath the appropriate plan bullet. Plan bullets use one space; the settings beneath them use three. Removed settings are listed as top-level one-space bullets, not under a plan grouping.
         - `#### Compatibility` — minimum version requirement changes for browsers, OS, or clients. Example: "Updated minimum Edge and Chrome versions to 146+."
-    - `### Improvements` — for new features and enhancements only. Do NOT place items beginning with "Fixed..." here — those belong in Bug Fixes. Begin this section with the line `See BLOG_POST_LINK on the highlights in our latest release.` (use the exact placeholder `BLOG_POST_LINK` — it will be replaced automatically with a Markdown link), followed by a blank line before the first `####` subsection heading. Then add subsections as applicable:
+    - `### Improvements` — for new features and enhancements only. Do NOT place items beginning with "Fixed..." here — those belong in Bug Fixes. The line immediately after the `### Improvements` heading — with NO blank line between them — must be `See BLOG_POST_LINK on the highlights in our latest release.` (use the exact placeholder `BLOG_POST_LINK`; it is replaced automatically with a Markdown link). Then a blank line, then the first `####` subsection heading. It must look exactly like this:
+
+      ### Improvements
+      See BLOG_POST_LINK on the highlights in our latest release.
+
+      #### User Interface
+       - First item.
+
+      Subsections, as applicable:
         - `#### User Interface` — user interface and UX changes and new visual features. Pre-packaged plugin version updates go at the TOP of this subsection, before other items. Always write "user interface" in full — never abbreviate as "UI".
         - `#### Plugins/Integrations` — plugin and integration improvements (use as a separate subsection when there are enough items to warrant it)
         - `#### Administration` — System Console features, logging, support packet changes
@@ -92,7 +109,6 @@ Here are your instructions:
     - `### Go Version` — Always include this section. The Go version content will be injected automatically — output only this heading with no content beneath it.
     - `### Open Source Components` — open source component additions or removals. Format each item as: "Added ``<package>`` to <repo_url>." or "Removed ``<package>`` from <repo_url>." Example: "Added ``x/text`` to https://github.com/mattermost/mattermost/." Only include if there are relevant notes.
     - `### Security` — security-related fixes not already covered under Bug Fixes
-    - `### Contributors` — contributor acknowledgements. Only include if the raw notes contain contributor information; otherwise omit this section entirely (it is usually added manually after generation).
 
 2.  **Sentence patterns:** Follow these conventions consistently:
     - New features and additions: "Added [feature]..." or "Added support for [feature]..."
@@ -101,6 +117,8 @@ Here are your instructions:
     - Removals: "Removed [thing]..."
 
 3.  **Terminology:** Always write "user interface" in full — never use the abbreviation "UI". Always spell out messaging abbreviations: "DM" → "Direct Message", "GM" → "Group Message", "DM/GM" → "Direct/Group Message".
+
+    **Never shorten an identifier.** API endpoint paths, configuration setting names, command names, table and column names, and feature flags must be reproduced from the raw note exactly, in full. Do not abbreviate a path to its last segment (``/api/v4/ephemeral_mode/cleanup`` must never become ``/cleanup``), and do not drop a setting's group prefix. Copy the identifier character for character; if the raw note does not give a full path, use whatever it does give rather than inventing a shorter one.
 
 4.  **Code formatting:** Use double backticks for all of the following:
     - Configuration settings (e.g., ``ServiceSettings.EnableDynamicClientRegistration``)
@@ -112,7 +130,13 @@ Here are your instructions:
     - Feature flags (e.g., ``MM_FEATUREFLAGS_CJKSEARCH``)
     - Package names in Open Source Components (e.g., ``x/text``)
 
-5.  **Markdown formatting:** Indent each bullet point with two spaces (e.g., `  - item`). Ensure correct and clean Markdown syntax throughout. Do not insert horizontal rules (`---`) or any other separators between sections. Do not add a blank line between a section/subsection heading and its first bullet point.
+5.  **Markdown formatting — indentation is exact:**
+    - Top-level bullets are indented with exactly ONE space: ` - item`
+    - Nested bullets are indented with exactly THREE spaces: `   - nested item`
+    - Never use two or four spaces. This applies to every section without exception.
+    - NEVER output a horizontal rule (`---`) or any other separator line anywhere in the output. Sections are separated by their headings alone. A `---` line will corrupt the document.
+    - Do not add a blank line between a section/subsection heading and the first line beneath it, whether that line is a bullet or a paragraph.
+    - Do add a single blank line before each new heading.
 
 6.  **MDX safety:** The changelog is an `.mdx` file, so raw `{`, `}`, and `<` characters are parsed as JSX and will break the docs build. Therefore:
     - Never output a bare `{` or `}` in prose. If a release note needs braces, wrap the text in double backticks (e.g. ``{"key": "value"}``) so it becomes inline code.
@@ -246,21 +270,30 @@ def extract_release_notes(body: str) -> list[str] | None:
     return notes if notes else None
 
 
-def polish_with_ai(raw_notes: list[str]) -> str:
+# Output cap for the polish request. A full feature release is comfortably larger than
+# the previous 4096: the v12.0 entry is ~32k characters, roughly 8k tokens.
+MAX_OUTPUT_TOKENS = 16384
+
+
+def polish_with_ai(raw_notes: list[str]) -> tuple[str, bool]:
     """
     Send raw release notes to Claude for categorization, formatting, and proofreading.
     Falls back to a simple bullet list if ANTHROPIC_API_KEY is not set.
+
+    Returns the text and whether it was actually polished. The caller needs to know:
+    the truncation check only makes sense on polished prose, because raw notes are
+    written by PR authors and routinely arrive without a closing full stop.
     """
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
         print("ℹ️  ANTHROPIC_API_KEY not set — skipping AI polish, using raw notes")
-        return "\n".join(f"- {note}" for note in raw_notes)
+        return "\n".join(f"- {note}" for note in raw_notes), False
 
     try:
         import anthropic
     except ImportError:
         print("⚠️  anthropic package not installed — skipping AI polish")
-        return "\n".join(f"- {note}" for note in raw_notes)
+        return "\n".join(f"- {note}" for note in raw_notes), False
 
     print("✨ Sending notes to Claude for categorization and proofreading...")
     client = anthropic.Anthropic(api_key=api_key)
@@ -270,12 +303,207 @@ def polish_with_ai(raw_notes: list[str]) -> str:
 
     response = client.messages.create(
         model="claude-sonnet-4-6",
-        max_tokens=4096,
+        # A full feature release runs well past 4096 output tokens — the v12.0 entry is
+        # ~32k characters — and the overflow was silently cut mid-word.
+        max_tokens=MAX_OUTPUT_TOKENS,
         system=SYSTEM_PROMPT,
         messages=[{"role": "user", "content": user_message}],
     )
 
-    return response.content[0].text.strip()
+    # The response is truncated, not short, when the output cap is reached. Left
+    # unchecked this commits a half-written sentence to customer-facing docs.
+    if response.stop_reason == "max_tokens":
+        raise RuntimeError(
+            f"Claude hit the {MAX_OUTPUT_TOKENS}-token output cap and its response was "
+            f"truncated mid-output. Raise MAX_OUTPUT_TOKENS, or split this release's "
+            f"notes across more than one request."
+        )
+
+    return response.content[0].text.strip(), True
+
+
+def normalize_formatting(text: str) -> str:
+    """Deterministically correct formatting details the AI commonly gets wrong.
+
+    The system prompt specifies all of these, but model compliance is not guaranteed,
+    and each of these mistakes produces a visibly wrong diff. Fixing them here is
+    cheap and reliable.
+
+      1. Strip horizontal rules (``---``), which must never appear in a changelog entry.
+      2. Normalize bullet indentation to the changelog convention of one space for
+         top-level bullets and two more per nesting level (1/3/5). Models variously
+         emit 0/2, 1/3 or 2/4, so levels are ranked from the distinct indents within
+         each list block rather than measured against a fixed threshold or against a
+         single minimum taken across the whole fragment.
+      3. Remove a blank line between the ``### Improvements`` heading and the blog
+         post line that must immediately follow it.
+
+    MDX safety: rule 1 would otherwise strip the ``---`` delimiters of a YAML
+    frontmatter block, which MDX requires at the very start of the file. This is
+    normally called only on the AI-generated fragment (which has no frontmatter),
+    but a leading frontmatter block is detected and preserved verbatim so the
+    function is also safe if it is ever applied to whole file contents.
+    """
+    # Split off and protect a leading YAML frontmatter block.
+    frontmatter = ""
+    fm_match = re.match(r"\A---\n.*?\n---\n", text, re.DOTALL)
+    if fm_match:
+        frontmatter = fm_match.group(0)
+        text = text[fm_match.end():]
+
+    # 1. Remove standalone horizontal rules.
+    text = re.sub(r"(?m)^[ \t]*(?:-{3,}|\*{3,}|_{3,})[ \t]*$\n?", "", text)
+
+    # 2. Normalize bullet indentation to the changelog convention: one space for
+    #    top-level bullets and two more per nesting level (1/3/5). Models variously
+    #    emit 0/2, 1/3 or 2/4, so a level is derived from the distinct indents present
+    #    rather than from a fixed threshold: two spaces means top-level in a 2/4
+    #    fragment but nested in a 0/2 one.
+    #
+    #    Indents are ranked, not just compared against the shallowest, so a three-level
+    #    list stays three levels instead of collapsing its two deepest into one.
+    #
+    #    Ranking is per list block rather than across the whole fragment. Sections are
+    #    generated independently and can disagree on base indent; a fragment-wide
+    #    minimum would demote an already-correct top-level bullet to nested just
+    #    because some other section happened to start one space shallower.
+    bullet_re = re.compile(r"^( *)- ")
+
+    def _starts_new_block(line: str) -> bool:
+        """True for a non-blank line that is neither a bullet nor a bullet continuation."""
+        return bool(line.strip()) and not bullet_re.match(line) and not line.startswith(" ")
+
+    lines = text.split("\n")
+    block_start = 0
+    for index in range(len(lines) + 1):
+        if index < len(lines) and not _starts_new_block(lines[index]):
+            continue
+        block = lines[block_start:index]
+        indents = sorted({len(m.group(1)) for m in map(bullet_re.match, block) if m})
+        if indents:
+            level_of = {indent: level for level, indent in enumerate(indents)}
+            for offset, line in enumerate(block):
+                match = bullet_re.match(line)
+                if match:
+                    level = level_of[len(match.group(1))]
+                    block[offset] = " " * (1 + 2 * level) + line[match.end(1):]
+            lines[block_start:index] = block
+        block_start = index + 1
+    text = "\n".join(lines)
+
+    # 3. Close the gap between ### Improvements and its blog post line.
+    text = re.sub(r"(?m)^(### Improvements)[ \t]*\n\s*\n(?=See )", r"\1\n", text)
+
+    # 4. Collapse runs of blank lines (removing a rule can leave a doubled gap).
+    #    At least one blank line is always kept, which MDX needs around JSX blocks.
+    text = re.sub(r"\n{3,}", "\n\n", text)
+
+    return frontmatter + text
+
+
+# Regions of Markdown whose contents must never be escaped. Fenced blocks are listed
+# first so they are consumed whole: an inline-code alternative would otherwise match
+# across a fence that contains backticks and protect the wrong spans.
+_MDX_PROTECTED_RE = re.compile(
+    r"```[\s\S]*?```"     # fenced code block (backticks)
+    r"|~~~[\s\S]*?~~~"    # fenced code block (tildes)
+    r"|``[^`]*``"         # inline code span (double backtick)
+    r"|`[^`]*`"           # inline code span (single backtick)
+    r"|\]\([^)]*\)"       # Markdown link destination
+)
+
+
+def escape_mdx_unsafe(text: str) -> str:
+    """Backslash-escape characters that MDX would parse as JSX.
+
+    In MDX an unescaped ``{`` opens a JSX expression and ``<`` followed by a letter,
+    ``/`` or ``!`` opens a JSX element, so release-note prose containing text such as
+    ``<plugin ID>`` or ``{"status": "ok"}`` fails the docs build. The system prompt
+    instructs the model to wrap such text in backticks, but compliance is not
+    guaranteed and the failure mode is a broken build, so escape defensively.
+
+    Only applied to the AI-generated fragment — never to whole file contents, which
+    legitimately contain JSX components such as <Note> and <Important>.
+
+    ``}`` is deliberately left alone: escaping ``{`` alone is sufficient to prevent a
+    JSX expression, and a bare ``}`` is harmless. This also keeps the generated
+    heading anchor ``\\{#release-v11-9-feature-release}`` intact.
+    """
+    def _escape(segment: str) -> str:
+        segment = re.sub(r"(?<!\\)\{", r"\\{", segment)
+        segment = re.sub(r"(?<!\\)<(?=[A-Za-z/!])", r"\\<", segment)
+        return segment
+
+    parts = []
+    last = 0
+    for match in _MDX_PROTECTED_RE.finditer(text):
+        parts.append(_escape(text[last:match.start()]))
+        parts.append(match.group(0))   # protected region, copied verbatim
+        last = match.end()
+    parts.append(_escape(text[last:]))
+    return "".join(parts)
+
+
+# A bullet that ends in none of these is very likely a sentence that was cut off.
+_BULLET_TERMINATORS = (".", "!", "?", ":")
+
+_BULLET_RE = re.compile(r"^ *- +(\S.*)$")
+
+
+def check_for_truncation(text: str) -> None:
+    """Raise if any bullet looks like a sentence that was cut off mid-way.
+
+    A truncated response is the worst failure mode this script has: it is not an
+    error, just a shorter changelog, so it lands in customer-facing docs as a
+    half-written sentence. ``polish_with_ai`` already rejects a response that hit the
+    output cap; this is the backstop for a truncation that arrives any other way.
+
+    Call this on AI-polished prose only. The no-API-key fallback emits PR authors' raw
+    notes verbatim, and those routinely end without a full stop — measured against the
+    v12.0.0 milestone, 4 of 71 do — so they are not truncation and must not fail a run.
+
+    Bullets that legitimately end without sentence punctuation are not flagged:
+
+      - a bare inline-code span, e.g. a list of removed ``config.json`` setting names
+      - a fully bold label, e.g. ``- **Changes to All plans:**``
+      - a Markdown link or parenthetical, e.g. a contributor list
+      - a bare URL
+      - a bullet whose text continues on the following line
+
+    Calibrated against the v10, v11 and v12 changelogs: zero false positives across
+    all 2,702 existing bullets.
+    """
+    lines = text.split("\n")
+    suspicious = []
+    for index, line in enumerate(lines):
+        match = _BULLET_RE.match(line)
+        if not match:
+            continue
+        content = match.group(1).rstrip()
+
+        # A bullet continued on the next line is not truncated.
+        following = lines[index + 1] if index + 1 < len(lines) else ""
+        if following.strip() and not _BULLET_RE.match(following) and not following.startswith("#"):
+            continue
+        if re.match(r"^\*\*.*\*\*$", content):
+            continue
+        if re.split(r"\s+", content)[-1].startswith(("http://", "https://")):
+            continue
+
+        stripped = re.sub(r"[*_]+$", "", content).rstrip()
+        if not stripped or stripped.endswith(_BULLET_TERMINATORS):
+            continue
+        if stripped.endswith(("`", ")")):
+            continue
+        suspicious.append(line.strip())
+
+    if suspicious:
+        listed = "\n".join(f"   {item}" for item in suspicious)
+        raise RuntimeError(
+            f"{len(suspicious)} changelog bullet(s) end without terminal punctuation "
+            f"and look truncated. Refusing to write a half-written sentence to the "
+            f"changelog:\n{listed}"
+        )
 
 
 def normalize_go_version(go_version: str) -> str:
@@ -309,7 +537,84 @@ def extract_previous_go_version(changelog_path: str) -> str | None:
     return None
 
 
-def insert_changelog_entry(entry: str, changelog_path: str = "CHANGELOG.md") -> None:
+# Header block for a brand-new major-version changelog file, mirroring the existing
+# v11 file exactly. Used to scaffold e.g. mattermost-v12-changelog.mdx on the first
+# run for a new major, so the entry is never written without MDX frontmatter.
+CHANGELOG_HEADER_TEMPLATE = """---
+title: "v{major} Changelog"
+---
+import Inc0_common_esr_support_upgrade from './common-esr-support-upgrade.mdx';
+
+<Important>
+
+<Inc0_common_esr_support_upgrade />
+
+</Important>
+<Note>
+
+Platform and OS scope reflects reported and tested environments and may not represent all affected configurations.
+
+</Note>
+"""
+
+
+# Directory holding the per-major changelog files in mattermost/mattermost.
+DOCS_DIR = "docs/main/product-overview"
+
+
+# Heading label for each RELEASE_TYPE. The anchor slug is derived from the label
+# (lowercased, spaces to dashes), matching the established convention:
+#   "Major Release"            -> #release-v12-0-major-release
+#   "Feature Release"          -> #release-v11-9-feature-release
+#   "Extended Support Release" -> #release-v11-7-extended-support-release
+RELEASE_LABELS = {
+    "feature": "Feature Release",
+    "major": "Major Release",
+    "esr": "Extended Support Release",
+}
+
+
+def major_version(version: str) -> str:
+    """Return the major version number from a version label: "v12.0.0" -> "12"."""
+    match = re.match(r"v?(\d+)\.", version)
+    if not match:
+        raise RuntimeError(
+            f"Cannot parse a major version from {version!r}; expected a form like v12.0.0"
+        )
+    return match.group(1)
+
+
+def changelog_path_for_version(version: str, docs_dir: str = DOCS_DIR) -> str:
+    """Derive the changelog file path from the release version.
+
+    "v12.0.0" -> "docs/main/product-overview/mattermost-v12-changelog.mdx"
+
+    The workflow passes CHANGELOG_PATH explicitly, but a fixed fallback would make a
+    direct invocation of this script write a v12 entry into whatever file that default
+    named — the v11 changelog, or the repository-root CHANGELOG.md — with nothing to
+    warn about it. Deriving the default removes that failure mode entirely.
+    """
+    return os.path.join(docs_dir, f"mattermost-v{major_version(version)}-changelog.mdx")
+
+
+def previous_major_changelog_path(changelog_path: str) -> str | None:
+    """Given .../mattermost-v12-changelog.mdx, return .../mattermost-v11-changelog.mdx.
+
+    Used to carry the Go version forward on the first run against a new major-version
+    changelog file, which has no previous entry of its own to read.
+    """
+    match = re.search(r"(.*?)(\d+)(-changelog\.mdx?)$", changelog_path)
+    if not match:
+        return None
+    prefix, major, suffix = match.groups()
+    if int(major) <= 1:
+        return None
+    return f"{prefix}{int(major) - 1}{suffix}"
+
+
+def insert_changelog_entry(
+    entry: str, changelog_path: str = "CHANGELOG.md", header: str = ""
+) -> None:
     """Insert a new version entry into the changelog after the static file header block.
 
     The v11 changelog is an MDX file whose header consists of YAML frontmatter, MDX
@@ -325,8 +630,9 @@ def insert_changelog_entry(entry: str, changelog_path: str = "CHANGELOG.md") -> 
     HEADER_END_MARKER = "may not represent all affected configurations.\n\n</Note>"
 
     if not existing.strip():
-        # New or empty file: the entry is the whole document.
-        new_content = entry
+        # New or empty file (e.g. the first release of a new major version). Write the
+        # standard header first — an MDX file without frontmatter fails the docs build.
+        new_content = (header + "\n\n" + entry) if header else entry
     elif HEADER_END_MARKER in existing:
         idx = existing.index(HEADER_END_MARKER) + len(HEADER_END_MARKER)
         new_content = existing[:idx] + "\n\n\n" + entry + existing[idx:]
@@ -352,6 +658,12 @@ def insert_changelog_entry(entry: str, changelog_path: str = "CHANGELOG.md") -> 
             + "\n\n"
             + existing[first_release.start():]
         )
+
+    # The first release of a new major version writes a file that does not exist yet,
+    # so its directory may not either when the script runs outside the repo root.
+    parent = os.path.dirname(changelog_path)
+    if parent:
+        os.makedirs(parent, exist_ok=True)
 
     with open(changelog_path, "w", encoding="utf-8") as f:
         f.write(new_content)
@@ -391,17 +703,29 @@ def main():
     release_type = os.environ.get("RELEASE_TYPE", "feature").strip().lower()
     release_date = os.environ.get("RELEASE_DATE", "").strip() or date.today().strftime("%Y-%m-%d")
     go_version = os.environ.get("GO_VERSION", "").strip()
-    changelog_path = os.environ.get("CHANGELOG_PATH", "CHANGELOG.md")
+    # Derived from VERSION by default so a new major version needs no edit here, and
+    # cannot land in the previous major's file. CHANGELOG_PATH overrides it.
+    changelog_path = os.environ.get("CHANGELOG_PATH") or changelog_path_for_version(VERSION)
+    print(f"📄 Changelog file: {changelog_path}")
 
     # Anchor slugs replace dots with dashes: "v11.9" → "v11-9"
     version_slug_anchor = version_short.replace(".", "-")
 
-    if release_type == "esr":
-        release_label = "Extended Support Release"
-        anchor_slug = f"release-{version_slug_anchor}-extended-support-release"
-    else:
-        release_label = "Feature Release"
-        anchor_slug = f"release-{version_slug_anchor}-feature-release"
+    # The heading label and the anchor slug must agree: other docs pages deep-link to
+    # the anchor, so a label/slug mismatch silently breaks those links. Derive the slug
+    # from the label rather than writing it out twice.
+    release_label = RELEASE_LABELS.get(release_type, RELEASE_LABELS["feature"])
+    anchor_slug = f"release-{version_slug_anchor}-{release_label.lower().replace(' ', '-')}"
+
+    # A vX.0 release is a major release. Getting this wrong produces both the wrong
+    # heading and the wrong anchor, so say so loudly rather than letting it through
+    # to be corrected by hand afterwards.
+    if re.match(r"^v\d+\.0$", version_short) and release_type != "major":
+        print(
+            f"⚠️  {version_short} looks like a major release, but RELEASE_TYPE is "
+            f"'{release_type}' — the heading will read '{release_label}' and the anchor "
+            f"will be '#{anchor_slug}'. Re-run with RELEASE_TYPE=major if that is wrong."
+        )
 
     # MDX heading anchor. The opening brace is escaped (\{) because MDX would otherwise
     # parse it as a JSX expression.
@@ -425,13 +749,25 @@ def main():
         go_section = f"### Go Version\n - {version_short} is built with Go ``{formatted_go}``."
     else:
         prev_go = extract_previous_go_version(changelog_path)
+        if not prev_go:
+            # First release in a new major-version file: carry the Go version forward
+            # from the previous major's changelog rather than emitting vague prose.
+            previous_file = previous_major_changelog_path(changelog_path)
+            if previous_file:
+                prev_go = extract_previous_go_version(previous_file)
+                if prev_go:
+                    print(f"ℹ️  Go version carried forward from {previous_file}: {prev_go}")
         if prev_go:
             go_section = f"### Go Version\n - {version_short} is built with Go ``{prev_go}``."
         else:
             go_section = f"### Go Version\n - {version_short} uses the same Go version as the previous release."
 
+    ai_polished = False
     if all_notes:
-        polished = polish_with_ai(all_notes)
+        # normalize_formatting fixes layout; escape_mdx_unsafe makes the prose
+        # MDX-safe. Both are applied to the AI fragment only, never to file contents.
+        raw_polished, ai_polished = polish_with_ai(all_notes)
+        polished = escape_mdx_unsafe(normalize_formatting(raw_polished))
         blog_url = os.environ.get("BLOG_POST_URL", "").strip()
         if not blog_url:
             # Auto-construct short URL (no patch suffix): v11.6.0 → mattermost-v11-6-is-now-available
@@ -465,7 +801,18 @@ def main():
         entry += go_section + "\n"
         entry += "\n_No other release notes for this version._\n"
 
-    insert_changelog_entry(entry, changelog_path)
+    # Last gate before the entry is written: fail the run rather than commit a
+    # half-written sentence to customer-facing docs.
+    #
+    # Only meaningful on AI-polished prose. The no-API-key fallback passes PR authors'
+    # raw notes straight through, and those routinely end without a full stop, so
+    # running the check there would block the run over notes that are not truncated
+    # at all.
+    if ai_polished:
+        check_for_truncation(entry)
+
+    header = CHANGELOG_HEADER_TEMPLATE.format(major=major_version(VERSION))
+    insert_changelog_entry(entry, changelog_path, header=header)
 
     prs_with_notes = total_prs - len(no_notes_prs)
     print(f"✅ Changelog updated with notes from {prs_with_notes} PR(s) across {len(REPOS)} repo(s)")
