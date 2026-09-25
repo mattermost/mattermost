@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {createColumnHelper, getCoreRowModel, useReactTable, type ColumnDef} from '@tanstack/react-table';
-import classNames from 'classnames';
 import type {ComponentType} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {MessageDescriptor} from 'react-intl';
@@ -11,7 +10,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
 import type {ClientError} from '@mattermost/client';
-import {ChevronDownCircleOutlineIcon, DotsHorizontalIcon, EyeOutlineIcon, FormatListBulletedIcon, MenuVariantIcon, OpenInNewIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SitemapIcon, SortAscendingIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {DotsHorizontalIcon, EyeOutlineIcon, MenuVariantIcon, OpenInNewIcon, PencilOutlineIcon, PowerPlugOutlineIcon, SyncIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FieldType, PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
@@ -20,7 +19,7 @@ import {valueRefersToOptions} from '@mattermost/types/properties';
 import PropertyTypes from 'mattermost-redux/action_types/properties';
 import {fetchPropertyFields} from 'mattermost-redux/actions/properties';
 import {getConfig as getAdminConfig} from 'mattermost-redux/selectors/entities/admin';
-import {getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getPropertyGroupByName, getUnlinkedSystemFieldsForGroup, makeGetPropertyFieldsForObjectTypeAndGroup} from 'mattermost-redux/selectors/entities/properties';
 import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
 
@@ -36,18 +35,21 @@ import AlertBanner from 'components/alert_banner';
 import {useIsFieldOrphaned, usePluginInventoryLoaded} from 'components/common/hooks/use_field_orphaned';
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {getHistory} from 'utils/browser_history';
 import {LicenseSkus} from 'utils/constants';
-import {isMinimumEnterpriseAdvancedLicense} from 'utils/license_utils';
 
 import type {GlobalState} from 'types/store';
 
 import {ALL_RESOURCE_TYPES, resourceTypeLabels} from './attribute_details/attribute_applies_to_constants';
 import type {ResourceObjectType} from './attribute_details/attribute_applies_to_constants';
+import type {AttributeTypeId} from './attribute_type';
+import {ATTRIBUTE_TYPE_DESCRIPTOR, ATTRIBUTE_TYPE_FALLBACK_LABEL, getAttributeTypeDescriptor, getTypeLabelForField} from './attribute_type';
 import {CLASSIFICATION_ATTRIBUTE_ROUTE} from './classification_attribute';
 import {attributeDetailsRoute, GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, GLOBAL_ATTRIBUTES_TARGET_TYPE} from './constants';
 import {useGlobalAttributeFieldDelete} from './global_attribute_delete_modal';
+import useAllowedResourceTypes from './use_allowed_resource_types';
 import {appliedResourceTypesByTemplateId, deleteAttributeField, syncUserAttributeFieldDelete} from './utils';
 
 import {it} from '../admin_definition_helpers';
@@ -57,17 +59,8 @@ import './global_attributes_table.scss';
 
 const columnHelper = createColumnHelper<PropertyField>();
 
-// Same set as the User Attributes page's type selector (user_properties_type_menu.tsx).
-const TYPE_ICONS: Partial<Record<FieldType, ComponentType<IconProps>>> = {
-    text: MenuVariantIcon,
-    select: ChevronDownCircleOutlineIcon,
-    multiselect: FormatListBulletedIcon,
-    rank: SortAscendingIcon,
-    graph: SitemapIcon,
-};
-
-export function getTypeIcon(fieldType: FieldType): ComponentType<IconProps> {
-    return TYPE_ICONS[fieldType] ?? MenuVariantIcon;
+export function getTypeIcon(typeId: AttributeTypeId | FieldType): ComponentType<IconProps> {
+    return ATTRIBUTE_TYPE_DESCRIPTOR[typeId as AttributeTypeId]?.icon ?? MenuVariantIcon;
 }
 
 export function getDisplayName(field: PropertyField): string {
@@ -112,8 +105,8 @@ function useClassificationAttributePageReachable(): boolean {
     });
 }
 
-export function getTypeLabel(fieldType: FieldType): MessageDescriptor {
-    return (typeLabels as Partial<Record<FieldType, MessageDescriptor>>)[fieldType] ?? typeLabels.fallback;
+export function getTypeLabel(typeId: AttributeTypeId | FieldType): MessageDescriptor {
+    return ATTRIBUTE_TYPE_DESCRIPTOR[typeId as AttributeTypeId]?.label ?? ATTRIBUTE_TYPE_FALLBACK_LABEL;
 }
 
 export function fieldMatchesSearch(field: PropertyField, query: string, typeLabel: string): boolean {
@@ -198,7 +191,15 @@ function SourceCell({field, isClassificationRow}: ClassificationAwareCellProps) 
     );
 }
 
-function AppliesToCell({types}: {types: ResourceObjectType[]}) {
+function AppliesToCell({types, loading}: {types: ResourceObjectType[]; loading?: boolean}) {
+    if (loading && types.length === 0) {
+        return (
+            <span data-testid='global-attribute-applies-to'>
+                <LoadingSpinner/>
+            </span>
+        );
+    }
+
     if (types.length === 0) {
         return <span data-testid='global-attribute-applies-to'>{'—'}</span>;
     }
@@ -246,7 +247,7 @@ function AttributeCell({field, isClassificationRow}: ClassificationAwareCellProp
     return (
         <span className='GlobalAttributesTable__attribute'>
             <span
-                className={classNames('GlobalAttributesTable__name', {'GlobalAttributesTable__name--classification': isClassificationRow})}
+                className='GlobalAttributesTable__name'
                 data-testid='global-attribute-name'
             >
                 {getDisplayName(field)}
@@ -254,7 +255,7 @@ function AttributeCell({field, isClassificationRow}: ClassificationAwareCellProp
             {isClassificationRow && (
                 <span
                     id={classificationSubtitleId(field.id)}
-                    className='GlobalAttributesTable__subtitle GlobalAttributesTable__subtitle--classification'
+                    className='GlobalAttributesTable__subtitle'
                     data-testid={`global-attribute-classification-subtitle-${field.id}`}
                 >
                     <FormattedMessage {...messages.classificationSubtitle}/>
@@ -265,14 +266,13 @@ function AttributeCell({field, isClassificationRow}: ClassificationAwareCellProp
 }
 
 type ActionsCellProps = ClassificationAwareCellProps & {
-    canEditClassification: boolean;
     isMobileView: boolean;
     pluginInventoryLoaded: boolean;
     onDeleteError: (message: string | null) => void;
     onDeleteModalExited: () => void;
 };
 
-function ActionsCell({field, isClassificationRow, canEditClassification, isMobileView, pluginInventoryLoaded, onDeleteError, onDeleteModalExited}: ActionsCellProps) {
+function ActionsCell({field, isClassificationRow, isMobileView, pluginInventoryLoaded, onDeleteError, onDeleteModalExited}: ActionsCellProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const promptDelete = useGlobalAttributeFieldDelete();
@@ -303,9 +303,12 @@ function ActionsCell({field, isClassificationRow, canEditClassification, isMobil
         }
     }, [dispatch, field.id, field.object_type, formatMessage, onDeleteError]);
 
+    // Classification's definition lives on Classification Markings; this row only
+    // offers the open-in-new link there. Row click still opens the attribute page
+    // when that route is reachable.
     if (isClassificationRow) {
         const classificationLinkLabel = formatMessage(actionsLabels.classificationLink);
-        const externalLink = (
+        return (
             <WithTooltip
                 title={classificationLinkLabel}
                 disabled={isMobileView}
@@ -323,47 +326,6 @@ function ActionsCell({field, isClassificationRow, canEditClassification, isMobil
                     />
                 </Link>
             </WithTooltip>
-        );
-
-        if (!canEditClassification) {
-            return externalLink;
-        }
-
-        // Both destinations: Edit configures which resources classification applies
-        // to, the link goes to where its levels are defined.
-        return (
-            <div className='GlobalAttributesTable__actions--classification'>
-                <Menu.Container
-                    menuButton={{
-                        id: `${menuId}-button`,
-                        class: 'btn btn-transparent GlobalAttributesTable__actionsButton',
-                        children: <DotsHorizontalIcon size={18}/>,
-                        dataTestId: menuId,
-                        'aria-label': formatMessage(actionsLabels.tooltip),
-                    }}
-                    menuButtonTooltip={{text: formatMessage(actionsLabels.tooltip)}}
-                    menu={{
-                        id: `${menuId}-menu`,
-                        'aria-label': formatMessage(actionsLabels.menuLabel),
-                    }}
-                    anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
-                    transformOrigin={{vertical: 'top', horizontal: 'right'}}
-                >
-                    <Menu.LinkItem
-                        id={`${menuId}-edit`}
-                        to={CLASSIFICATION_ATTRIBUTE_ROUTE}
-                        leadingElement={<PencilOutlineIcon size={18}/>}
-                        labels={<span><FormattedMessage {...actionsLabels.edit}/></span>}
-                    />
-                    <Menu.LinkItem
-                        id={`${menuId}-markings`}
-                        to={CLASSIFICATIONS_MARKINGS_ADMIN_URL}
-                        leadingElement={<OpenInNewIcon size={18}/>}
-                        labels={<span><FormattedMessage {...actionsLabels.classificationLink}/></span>}
-                    />
-                </Menu.Container>
-                {externalLink}
-            </div>
         );
     }
 
@@ -421,6 +383,7 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
     const dispatch = useDispatch();
 
     const [loaded, setLoaded] = useState(false);
+    const [resourcesLoaded, setResourcesLoaded] = useState(false);
     const [loadError, setLoadError] = useState(false);
     const [suppressedScopes, setSuppressedScopes] = useState<ReadonlySet<ResourceObjectType>>(() => new Set());
     const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -471,27 +434,25 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
         getUnlinkedSystemFieldsForGroup(state, groupId),
     );
 
-    // Same gate the details page applies. Channel is fetched only when channel
-    // attributes are licensed and enabled: the server 501s a channel-scoped
-    // access_control GET below Enterprise Advanced, and this page is reachable at
-    // plain Enterprise.
-    const channelAttributesEnabled = useSelector((state: GlobalState) =>
-        getFeatureFlagValue(state, 'ChannelAttributes') === 'true' && isMinimumEnterpriseAdvancedLicense(getLicense(state)));
-
-    const resourceTypesToFetch = useMemo(
-        () => ALL_RESOURCE_TYPES.filter((type) => channelAttributesEnabled || type !== 'channel'),
-        [channelAttributesEnabled],
-    );
+    // Same gate the details page applies, so a resource this server does not
+    // offer is never fetched or listed here either.
+    const resourceTypesToFetch = useAllowedResourceTypes();
 
     useEffect(() => {
         let active = true;
 
         const load = async () => {
             try {
+                // Paint the table from template fields first; Applies-to chips and
+                // unlinked resource rows fill in once the background scope fetches
+                // settle.
                 await dispatch(fetchPropertyFields(GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, GLOBAL_ATTRIBUTES_TARGET_TYPE));
                 if (!active) {
                     return;
                 }
+                setLoadError(false);
+                setLoaded(true);
+                setResourcesLoaded(false);
 
                 // Both non-template rows and applies-to chips come from the
                 // per-resource fields. A rejected fetch does not replace that
@@ -517,16 +478,14 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                     }
                 });
                 setSuppressedScopes(suppressed);
-                setLoadError(false);
+                setResourcesLoaded(true);
             } catch (error) {
                 // Surface an error state instead of a misleading empty state.
                 console.error('GlobalAttributesTable-load: ', error); // eslint-disable-line no-console
                 if (active) {
                     setLoadError(true);
-                }
-            } finally {
-                if (active) {
                     setLoaded(true);
+                    setResourcesLoaded(true);
                 }
             }
         };
@@ -541,12 +500,17 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
     // getUnlinkedSystemFieldsForGroup reads every cached user/channel/post field.
     // Channel fields can already be in the store (channel-header labels, a prior
     // visit while licensed) after resourceTypesToFetch has dropped that scope, so
-    // keep the table in lockstep with what this page actually fetched.
+    // keep the table in lockstep with what this page actually fetched. Unlinked
+    // rows also wait on resourcesLoaded so they do not flash before suppressedScopes
+    // is known.
     const allRows = useMemo(
-        () => [...fields, ...unlinkedFields.filter((field) => !suppressedScopes.has(field.object_type as ResourceObjectType))].sort(
+        () => [
+            ...fields,
+            ...(resourcesLoaded ? unlinkedFields.filter((field) => !suppressedScopes.has(field.object_type as ResourceObjectType)) : []),
+        ].sort(
             (a, b) => getDisplayName(a).localeCompare(getDisplayName(b)),
         ),
-        [fields, unlinkedFields, suppressedScopes],
+        [fields, unlinkedFields, suppressedScopes, resourcesLoaded],
     );
 
     // The Source column resolves plugin-owned rows to a plugin display name, but
@@ -600,7 +564,7 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
     }, [deleteError, deleteModalExited]);
 
     const rows = useMemo(
-        () => allRows.filter((field) => fieldMatchesSearch(field, searchQuery, formatMessage(getTypeLabel(field.type)))),
+        () => allRows.filter((field) => fieldMatchesSearch(field, searchQuery, formatMessage(getTypeLabelForField(field)))),
         [allRows, formatMessage, searchQuery],
     );
 
@@ -610,8 +574,7 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
             return;
         }
 
-        // Same destinations as the row's Edit/View action: classification has
-        // its own page (or the markings page when that edit route is hidden).
+        // Classification has its own page (or the markings page when that edit route is hidden).
         if (isClassificationMarkingsField(field, groupId) && classificationMarkingsReachable) {
             getHistory().push(classificationAttributePageReachable ? CLASSIFICATION_ATTRIBUTE_ROUTE : CLASSIFICATIONS_MARKINGS_ADMIN_URL);
             return;
@@ -647,9 +610,10 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
             columnHelper.accessor('type', {
                 id: 'type',
                 header: () => <FormattedMessage {...messages.type}/>,
-                cell: ({getValue}) => {
-                    const fieldType = getValue();
-                    const Icon = getTypeIcon(fieldType);
+                cell: ({row}) => {
+                    const descriptor = getAttributeTypeDescriptor(row.original);
+                    const label = getTypeLabelForField(row.original);
+                    const Icon = descriptor.fieldType === row.original.type ? descriptor.icon : MenuVariantIcon;
 
                     return (
                         <span
@@ -657,7 +621,7 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                             data-testid='global-attribute-type'
                         >
                             <Icon size={16}/>
-                            <FormattedMessage {...getTypeLabel(fieldType)}/>
+                            <FormattedMessage {...label}/>
                         </span>
                     );
                 },
@@ -668,7 +632,10 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                 id: 'applies_to',
                 header: () => <FormattedMessage {...messages.appliesTo}/>,
                 cell: ({row}) => (
-                    <AppliesToCell types={appliesToFor(row.original)}/>
+                    <AppliesToCell
+                        types={appliesToFor(row.original)}
+                        loading={!resourcesLoaded}
+                    />
                 ),
                 enableHiding: false,
             }),
@@ -703,7 +670,6 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                         <ActionsCell
                             field={row.original}
                             isClassificationRow={isClassificationRow(row.original)}
-                            canEditClassification={classificationAttributePageReachable}
                             isMobileView={isMobileView}
                             pluginInventoryLoaded={pluginInventoryLoadedRef.current}
                             onDeleteError={setDeleteError}
@@ -714,7 +680,7 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                 enableHiding: false,
             }),
         ];
-    }, [appliesToByTemplateId, groupId, classificationMarkingsReachable, classificationAttributePageReachable, isMobileView, handleDeleteModalExited]);
+    }, [appliesToByTemplateId, groupId, classificationMarkingsReachable, isMobileView, handleDeleteModalExited, resourcesLoaded]);
 
     const table = useReactTable<PropertyField>({
         data: rows,
@@ -748,6 +714,13 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
     }
 
     if (rows.length === 0) {
+        // Template list can be empty while unlinked resource fields are still
+        // in flight — stay on the loading screen so the empty state does not
+        // flash before those rows arrive.
+        if (!resourcesLoaded && allRows.length === 0) {
+            return <LoadingScreen/>;
+        }
+
         const isSearchEmpty = allRows.length > 0 && Boolean(searchQuery.trim());
         return (
             <div
@@ -810,14 +783,17 @@ const messages = defineMessages({
     loadError: {id: 'admin.global_attributes.table.load_error', defaultMessage: 'There was an error while loading attributes.'},
 });
 
-export const typeLabels = defineMessages({
-    text: {id: 'admin.global_attributes.table.type.text', defaultMessage: 'Text'},
-    select: {id: 'admin.global_attributes.table.type.select', defaultMessage: 'Select'},
-    multiselect: {id: 'admin.global_attributes.table.type.multiselect', defaultMessage: 'Multiselect'},
-    rank: {id: 'admin.global_attributes.table.type.rank', defaultMessage: 'Ranked'},
-    graph: {id: 'admin.global_attributes.table.type.graph', defaultMessage: 'Hierarchical'},
-    fallback: {id: 'admin.global_attributes.table.type.fallback', defaultMessage: 'Other'},
-});
+export const typeLabels = {
+    text: ATTRIBUTE_TYPE_DESCRIPTOR.text.label,
+    email: ATTRIBUTE_TYPE_DESCRIPTOR.email.label,
+    phone: ATTRIBUTE_TYPE_DESCRIPTOR.phone.label,
+    url: ATTRIBUTE_TYPE_DESCRIPTOR.url.label,
+    select: ATTRIBUTE_TYPE_DESCRIPTOR.select.label,
+    multiselect: ATTRIBUTE_TYPE_DESCRIPTOR.multiselect.label,
+    rank: ATTRIBUTE_TYPE_DESCRIPTOR.rank.label,
+    graph: ATTRIBUTE_TYPE_DESCRIPTOR.graph.label,
+    fallback: ATTRIBUTE_TYPE_FALLBACK_LABEL,
+};
 
 const sourceLabels = defineMessages({
     ldapAndSaml: {id: 'admin.global_attributes.table.source.ldap_and_saml', defaultMessage: 'AD/LDAP, SAML'},

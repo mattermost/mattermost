@@ -128,12 +128,12 @@ The JSON payload can contain the following parameters:
 <tr>
 <td><code>props</code></td>
 <td>No</td>
-<td>A JSON object for storing metadata. Use <a href="https://developers.mattermost.com/integrate/reference/mm-blocks/">Mattermost Blocks</a> for rich, interactive content. The <code>card</code> property can be used to display extra Markdown-formatted text in the post's info panel (RHS). This is available in Mattermost v5.14 and later, and is not yet supported on mobile.</td>
+<td>A JSON object for storing metadata. Use <a href="https://docs.mattermost.com/developers/integrate/reference/mm-blocks/">Mattermost Blocks</a> for rich, interactive content. The <code>card</code> property can be used to display extra Markdown-formatted text in the post's info panel (RHS). This is available in Mattermost v5.14 and later, and is not yet supported on mobile.</td>
 </tr>
 <tr>
 <td><code>priority</code></td>
 <td>No</td>
-<td>Sets the priority of the message. See <a href="https://developers.mattermost.com/integrate/reference/message-priority/">message priorities</a>.</td>
+<td>Sets the priority of the message. See <a href="https://docs.mattermost.com/developers/integrate/reference/message-priority/">message priorities</a>.</td>
 </tr>
 </tbody>
 </table>
@@ -217,13 +217,13 @@ If your integration posts the JSON payload as plain text instead of a rendered m
 
 Transform basic message posts into rich, interactive notifications by including buttons, menus, and other interactive elements in your webhook messages, making them more engaging and useful for your team.
 
-- [Mattermost Blocks](https://developers.mattermost.com/integrate/reference/mm-blocks/): Create structured, interactive posts with text, images, buttons, and menus.
-- [Interactive Dialogs](https://developers.mattermost.com/integrate/plugins/interactive-dialogs/): Guide users to successful outcomes when interactions need structured input or confirmation (for example, “Acknowledge with note” or “Assign to user”). Improve data quality with required fields, minimum/maximum input lengths, server‑driven user/channel pickers, validated defaults, inline field errors, placeholders, and help text that help users enter the right data the first time.
-- [Message Priority](https://developers.mattermost.com/integrate/reference/message-priority/): Set `priority` to elevate critical posts and optionally request acknowledgements or persistent notifications.
+- [Mattermost Blocks](https://docs.mattermost.com/developers/integrate/reference/mm-blocks/): Create structured, interactive posts with text, images, buttons, and menus.
+- [Interactive Dialogs](https://docs.mattermost.com/developers/integrate/plugins/interactive-dialogs/): Guide users to successful outcomes when interactions need structured input or confirmation (for example, “Acknowledge with note” or “Assign to user”). Improve data quality with required fields, minimum/maximum input lengths, server‑driven user/channel pickers, validated defaults, inline field errors, placeholders, and help text that help users enter the right data the first time.
+- [Message Priority](https://docs.mattermost.com/developers/integrate/reference/message-priority/): Set `priority` to elevate critical posts and optionally request acknowledgements or persistent notifications.
 
 <Tip>
 
-- Need a dedicated identity, permissions scoping, or need to post outside of webhook/command flows? Use a [bot account](https://developers.mattermost.com/integrate/reference/bot-accounts/) if you need a more permanent solution than using overrides for simple branding.
-- If your system later needs to call Mattermost APIs (e.g., post follow-ups, open dialogs), authenticate with a bot user [personal access token](https://developers.mattermost.com/integrate/reference/personal-access-token/). We recommend avoiding human/System Admin personal access tokens for automations and rotating and storing tokens securely.
+- Need a dedicated identity, permissions scoping, or need to post outside of webhook/command flows? Use a [bot account](https://docs.mattermost.com/developers/integrate/reference/bot-accounts/) if you need a more permanent solution than using overrides for simple branding.
+- If your system later needs to call Mattermost APIs (e.g., post follow-ups, open dialogs), authenticate with a bot user [personal access token](https://docs.mattermost.com/developers/integrate/reference/personal-access-token/). We recommend avoiding human/System Admin personal access tokens for automations and rotating and storing tokens securely.
 
 </Tip>

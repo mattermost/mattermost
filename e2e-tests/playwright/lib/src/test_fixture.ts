@@ -69,6 +69,7 @@ import {
     runMmctl,
     samlServerConfig,
     saveUpgradePhaseLogs,
+    setDefaultOnboardingPreferences,
     suspendKeycloakUser,
     updateLdapUser,
     upgradeServerImage,
@@ -207,6 +208,7 @@ export class PlaywrightExtended {
     readonly createNewTeam;
     readonly isOutsideRemoteUserHour;
     readonly makeClient;
+    readonly setDefaultOnboardingPreferences;
 
     // ./visual
     readonly matchSnapshot;
@@ -226,6 +228,7 @@ export class PlaywrightExtended {
     readonly landingLoginPage;
     readonly signupPage;
     readonly resetPasswordPage;
+    readonly errorPage;
 
     // Same default page as above, post-login, for specs that authenticate it directly.
     readonly channelsPage;
@@ -315,6 +318,7 @@ export class PlaywrightExtended {
         this.landingLoginPage = new pages.LandingLoginPage(page, isMobile);
         this.signupPage = new pages.SignupPage(page);
         this.resetPasswordPage = new pages.ResetPasswordPage(page);
+        this.errorPage = new pages.ErrorPage(page);
 
         // Same default page as above, post-login
         this.channelsPage = new pages.ChannelsPage(page);
@@ -332,6 +336,7 @@ export class PlaywrightExtended {
         this.createNewUserProfile = createNewUserProfile;
         this.createNewTeam = createNewTeam;
         this.makeClient = makeClient;
+        this.setDefaultOnboardingPreferences = setDefaultOnboardingPreferences;
 
         // ./visual
         this.matchSnapshot = matchSnapshot;
