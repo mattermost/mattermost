@@ -34,7 +34,7 @@ type Props<T extends string> = {
     options?: Array<AttributeSelectOption<T>>;
     ariaLabel: string;
 
-    // Names the popup itself, when it has one. Defaults to the trigger's label.
+    // Names the popup itself. Unused by a `locked` select, which has none.
     menuAriaLabel?: string;
     onChange?: (id: T) => void;
 
@@ -103,7 +103,7 @@ function AttributeSelect<T extends string>({
             }}
             menu={{
                 id: `${idPrefix}-menu`,
-                'aria-label': menuAriaLabel ?? ariaLabel,
+                'aria-label': menuAriaLabel,
             }}
         >
             {options.map((option) => {

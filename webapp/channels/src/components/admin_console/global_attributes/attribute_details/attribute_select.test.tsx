@@ -55,6 +55,7 @@ describe('AttributeSelect', () => {
         expect(screen.getByRole('menu', {name: 'Select type'})).toHaveAttribute('id', 'attribute-type-menu');
         expect(screen.getByRole('menuitemradio', {name: 'Text'})).toHaveAttribute('id', 'attribute-type-text');
         expect(screen.getByRole('menuitemradio', {name: 'Text'})).toHaveAttribute('aria-checked', 'true');
+        expect(screen.getByRole('menuitemradio', {name: 'Text'}).querySelector('svg')).toBeInTheDocument();
         expect(screen.getByRole('menuitemradio', {name: 'Select'})).toHaveAttribute('aria-checked', 'false');
 
         await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));

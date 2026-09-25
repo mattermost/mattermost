@@ -939,8 +939,13 @@ describe('AttributeDetails', () => {
             await addUsersResourceAndExpand();
             await linkViaMenu(/^SAML/, 'position');
 
-            expect(screen.getByTestId('attributeAppliesToUserManagedBy')).toHaveTextContent('SAML');
-            expect(screen.getByTestId('attributeAppliesToUserManagedBy')).not.toHaveTextContent('AD/LDAP');
+            const managedBy = screen.getByTestId('attributeAppliesToUserManagedBy');
+            expect(managedBy).toHaveTextContent('SAML');
+            expect(managedBy).not.toHaveTextContent('AD/LDAP');
+
+            const chipIcon = screen.getByTestId('attributeExternalSourceChip-saml').querySelector('svg path');
+            expect(chipIcon).not.toBeNull();
+            expect(managedBy.querySelector('svg path')).toHaveAttribute('d', chipIcon!.getAttribute('d'));
         });
 
         it('names AD/LDAP when both sources are linked, and falls back to the survivor once one is unlinked', async () => {

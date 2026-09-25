@@ -85,17 +85,26 @@ describe('AttributeAppliesToUserItem', () => {
         await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
 
         const managedBy = screen.getByTestId('attributeAppliesToUserManagedBy');
-        expect(managedBy).toHaveTextContent(sourceLabel);
         expect(managedBy).toBeDisabled();
         expect(managedBy).toHaveAccessibleName(`Managed by: ${sourceLabel}. Values are synced from an external source and cannot be changed here.`);
-        expect(screen.getByText('Not editable in Mattermost.')).toBeInTheDocument();
+
+        // Label, value and helper text in one assertion, so dropping or
+        // reordering any of the three fails rather than silently reading as an
+        // absent string.
+        expect(managedBy.closest('.AttributeAppliesToItem__row')).toHaveTextContent(
+            new RegExp(`^Managed by${sourceLabel.replace('/', '\\/')}Not editable in Mattermost\\.$`),
+        );
+
+        const body = screen.getByTestId('attributeAppliesToRow-user-body');
+        expect([...body.querySelectorAll('.AttributeAppliesToItem__label')].map((el) => el.textContent)).toEqual([
+            'Managed by',
+            'Profile display',
+            'Who can set the value',
+        ]);
 
         // No chevron: the value can never change, so the control must not
         // advertise a menu the way a merely-unavailable select does.
         expect(managedBy.querySelector('.icon-chevron-down')).toBeNull();
-
-        const body = screen.getByTestId('attributeAppliesToRow-user-body');
-        expect(body.textContent!.indexOf('Managed by')).toBeLessThan(body.textContent!.indexOf('Profile display'));
 
         await userEvent.click(managedBy);
         expect(screen.queryByRole('menuitemradio')).not.toBeInTheDocument();
