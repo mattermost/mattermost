@@ -20,7 +20,7 @@ func (api *API) initChannelJoinRequestRoutes() {
 		return
 	}
 
-	api.BaseRoutes.Channel.Handle("/join_request", api.APISessionRequired(requestJoinChannel)).Methods(http.MethodPost)
+	api.BaseRoutes.Channel.Handle("/join_request", api.APISessionRequiredChannelRead(requestJoinChannel)).Methods(http.MethodPost)
 	api.BaseRoutes.Channel.Handle("/join_request", api.APISessionRequired(getMyChannelJoinRequest)).Methods(http.MethodGet)
 	api.BaseRoutes.Channel.Handle("/join_request", api.APISessionRequired(withdrawMyChannelJoinRequest)).Methods(http.MethodDelete)
 
@@ -59,9 +59,8 @@ func requestJoinChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !requireChannelReadAccessByID(c, c.Params.ChannelId) {
-		return
-	}
+	// Channel read access is enforced by the middleware (APISessionRequiredChannelRead)
+	// via the {channel_id} URL parameter — no in-handler check needed.
 
 	auditRec := c.MakeAuditRecord(model.AuditEventCreateChannelJoinRequest, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)

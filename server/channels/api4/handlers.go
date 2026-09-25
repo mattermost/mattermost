@@ -66,6 +66,54 @@ func (api *API) APISessionRequired(h handlerFunc, opts ...APIHandlerOption) http
 	return handler
 }
 
+// APISessionRequiredChannelRead provides a handler for API endpoints that require session auth
+// and channel read access. The channel ID is extracted from the {channel_id} mux variable.
+// For routes where the channel ID is not in the URL, use APISessionRequired and call
+// requireChannelReadAccess/requireChannelReadAccessByID in the handler body.
+func (api *API) APISessionRequiredChannelRead(h handlerFunc, opts ...APIHandlerOption) http.Handler {
+	handler := &web.Handler{
+		Srv:            api.srv,
+		HandleFunc:     h,
+		HandlerName:    web.GetHandlerName(h),
+		RequireSession: true,
+		TrustRequester: false,
+		RequireMfa:     true,
+		IsStatic:       false,
+		IsLocal:        false,
+		ChannelAccess:  web.ChannelAccessRead,
+	}
+	setHandlerOpts(handler, opts...)
+
+	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
+		return gzhttp.GzipHandler(handler)
+	}
+	return handler
+}
+
+// APISessionRequiredChannelWrite provides a handler for API endpoints that require session auth
+// and channel write access. The channel ID is extracted from the {channel_id} mux variable.
+// For routes where the channel ID is not in the URL, use APISessionRequired and call
+// requireChannelWriteAccessByID in the handler body.
+func (api *API) APISessionRequiredChannelWrite(h handlerFunc, opts ...APIHandlerOption) http.Handler {
+	handler := &web.Handler{
+		Srv:            api.srv,
+		HandleFunc:     h,
+		HandlerName:    web.GetHandlerName(h),
+		RequireSession: true,
+		TrustRequester: false,
+		RequireMfa:     true,
+		IsStatic:       false,
+		IsLocal:        false,
+		ChannelAccess:  web.ChannelAccessWrite,
+	}
+	setHandlerOpts(handler, opts...)
+
+	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
+		return gzhttp.GzipHandler(handler)
+	}
+	return handler
+}
+
 // CloudAPIKeyRequired provides a handler for webhook endpoints to access Cloud installations from CWS
 func (api *API) CloudAPIKeyRequired(h handlerFunc, opts ...APIHandlerOption) http.Handler {
 	handler := &web.Handler{

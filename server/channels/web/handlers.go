@@ -75,6 +75,18 @@ func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Reque
 	}
 }
 
+// ChannelAccessMode declares the channel access enforcement level for a handler.
+// When set, the Handler middleware automatically enforces channel read or write
+// access using the {channel_id} mux variable, so individual handler functions
+// don't need to sprinkle requireChannelReadAccess / requireChannelWriteAccess calls.
+type ChannelAccessMode int
+
+const (
+	ChannelAccessNone  ChannelAccessMode = iota // no channel access check (default)
+	ChannelAccessRead                           // enforce channel read access
+	ChannelAccessWrite                          // enforce channel write access (implies read)
+)
+
 type Handler struct {
 	Srv                       *app.Server
 	HandleFunc                func(*Context, http.ResponseWriter, *http.Request)
@@ -88,6 +100,7 @@ type Handler struct {
 	IsLocal                   bool
 	DisableWhenBusy           bool
 	FileAPI                   bool
+	ChannelAccess             ChannelAccessMode
 
 	cspShaDirective string
 }
@@ -371,6 +384,26 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			c.AppContext = c.AppContext.WithSession(&model.Session{Local: true})
 		} else if !isLocalOrigin {
 			c.Err = model.NewAppError("", "api.context.local_origin_required.app_error", nil, "LocalOriginRequired", http.StatusUnauthorized)
+		}
+	}
+
+	// Middleware-based channel access enforcement: when the handler declares a
+	// ChannelAccess mode and the URL contains a {channel_id}, enforce read/write
+	// access before the handler runs. This eliminates the need for individual
+	// handlers to call requireChannelReadAccess / requireChannelWriteAccess.
+	if c.Err == nil && h.ChannelAccess != ChannelAccessNone {
+		channelID := c.Params.ChannelId
+		if channelID != "" {
+			switch h.ChannelAccess {
+			case ChannelAccessRead:
+				if !c.App.EnforceChannelReadAccessByID(c.AppContext, c.AppContext.Session().UserId, channelID) {
+					c.SetPermissionError(model.PermissionReadChannel)
+				}
+			case ChannelAccessWrite:
+				if !c.App.EnforceChannelWriteAccessByID(c.AppContext, c.AppContext.Session().UserId, channelID) {
+					c.SetPermissionError(model.PermissionCreatePost)
+				}
+			}
 		}
 	}
 

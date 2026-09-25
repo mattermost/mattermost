@@ -113,7 +113,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.ChannelMembers.Handle("", api.APISessionRequired(getChannelMembers)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelMembers.Handle("/ids", api.APISessionRequired(getChannelMembersByIds)).Methods(http.MethodPost)
 	api.BaseRoutes.ChannelMembers.Handle("", api.APISessionRequired(addChannelMember)).Methods(http.MethodPost)
-	api.BaseRoutes.ChannelMembers.Handle("", api.APISessionRequired(setChannelMembers)).Methods(http.MethodPut)
+	api.BaseRoutes.ChannelMembers.Handle("", api.APISessionRequiredChannelWrite(setChannelMembers)).Methods(http.MethodPut)
 	api.BaseRoutes.ChannelMembersForUser.Handle("", api.APISessionRequired(getChannelMembersForTeamForUser)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelMember.Handle("", api.APISessionRequired(getChannelMember)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelMember.Handle("", api.APISessionRequired(removeChannelMember)).Methods(http.MethodDelete)
@@ -2867,12 +2867,8 @@ func setChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Rewriting the member list is a write to the channel, and this handler never
-	// reaches a channel permission check. The channel-access policies bind system
-	// admins too, so the check above does not stand in for the gate.
-	if !requireChannelWriteAccessByID(c, c.Params.ChannelId) {
-		return
-	}
+	// Channel write access is enforced by the middleware (APISessionRequiredChannelWrite)
+	// via the {channel_id} URL parameter — no in-handler check needed.
 
 	// Parse query params
 	batchSize := setChannelMembersDefaultBatchSize
