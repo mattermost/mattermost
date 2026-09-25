@@ -56,11 +56,7 @@ export async function createMaskingTextField(client: Client4, fieldName: string)
     }
 }
 
-async function postMaskingMultiselectField(
-    client: Client4,
-    fieldName: string,
-    options: string[],
-): Promise<string> {
+async function postMaskingMultiselectField(client: Client4, fieldName: string, options: string[]): Promise<string> {
     const url = `${client.getBaseRoute()}/custom_profile_attributes/fields`;
     const created = await (client as any).doFetch(url, {
         method: 'POST',
