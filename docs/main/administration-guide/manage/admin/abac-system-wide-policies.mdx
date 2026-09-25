@@ -15,6 +15,8 @@ Use this guide to create and manage organization-wide attribute-based access pol
 
 From Mattermost v10.11, user-managed attributes are excluded from attribute-based access control (ABAC) rules by default for security reasons. This prevents access control policies from being circumvented by users editing their own profile attributes. To include user-managed attributes in ABAC rules, a system admin must explicitly enable the `EnableUserManagedAttributes` configuration setting. See the [user attribute](/administration-guide/manage/admin/user-attributes#before-you-begin) documentation for details on enabling this feature. This configuration setting is available only in Enterprise Edition Advanced and is disabled by default.
 
+From Mattermost v12, [session attributes](/administration-guide/manage/admin/session-attributes) describing the connection a user is on - such as their IP address, VPN status, and device posture - can be used in [permission policies](#permission-policies). Each session attribute must be enabled in **System Console \> System Attributes \> Session Attributes** before a rule can reference it.
+
 ## Define access control policies
 
 You can add multiple rules to a single policy, and each rule can include multiple attribute values.
@@ -93,9 +95,11 @@ From Mattermost v11.8.0, you can use **Simulate access** to preview allowed and 
 
 Simulation can test draft policy changes before they affect live channel access or file permissions. Detailed rule and attribute information is shown only when the denial comes from the policy or scope you're editing; otherwise, Mattermost may show that access was denied by another policy.
 
+From Mattermost v12, results can also show a neutral **No recent session** indicator. This appears when the contributing rules reference [session attributes](/administration-guide/manage/admin/session-attributes) (`user.session.*`) and the selected user has no cached session attributes to evaluate - usually because they haven't connected recently, or haven't connected from a client that reports those attributes.
+
 <Note>
 
-**Simulate access** and channel-level permission policies for file upload and file download are gated by the `PermissionPolicies` feature flag (`MM_FEATUREFLAGS_PERMISSIONPOLICIES`) and require a Mattermost Enterprise Advanced license. See the Mattermost developer documentation for details on [enabling feature flags in a self-hosted deployment](https://developers.mattermost.com/contribute/more-info/server/feature-flags/#self-hosted-and-local-development). Mattermost Cloud customers can request this feature flag be enabled by contacting their Mattermost Account Manager or by [creating a support ticket](https://support.mattermost.com/hc/en-us/requests/new?ticket_form_id=11184911962004).
+**Simulate access** and channel-level permission policies for file upload and file download are gated by the `PermissionPolicies` feature flag (`MM_FEATUREFLAGS_PERMISSIONPOLICIES`) and require a Mattermost Enterprise Advanced license. See the Mattermost developer documentation for details on [enabling feature flags in a self-hosted deployment](https://docs.mattermost.com/developers/contribute/more-info/server/feature-flags/#self-hosted-and-local-development). Mattermost Cloud customers can request this feature flag be enabled by contacting their Mattermost Account Manager or by [creating a support ticket](https://support.mattermost.com/hc/en-us/requests/new?ticket_form_id=11184911962004).
 
 </Note>
 
@@ -173,6 +177,8 @@ Permission policies can be used to restrict the following actions based on user 
 When a permission policy applies, users who don't match the configured attribute values can't perform the restricted action. Users may see file attachments as unavailable or redacted in messages they would otherwise have access to. See [Restricted file attachments](/end-user-guide/collaborate/share-files-in-messages#restricted-file-attachments) for the end-user-facing behavior.
 
 Permission policies follow the same unique-name requirement as access policies: each parent permission policy must have a unique name, and Mattermost surfaces a user-friendly error if a duplicate name is entered.
+
+From Mattermost v12, permission policy rules can also evaluate [session attributes](/administration-guide/manage/admin/session-attributes) - for example, restricting file downloads to devices on a corporate IP range or to MDM-enrolled devices. Because a rule that references a session attribute denies any session that doesn't report it, review the platform availability of each attribute before applying it to a file action your users depend on. Client-reported attributes such as `mdm_enrolled` are self-attested posture signals rather than proof; for stronger assurance, gate on server-measured values instead - `ip_address` with an IP range check, or `tls_device_id` asserted by your reverse proxy.
 
 ## Attribute value masking
 

@@ -7,7 +7,7 @@ import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import {openModal} from 'actions/views/modals';
 
-import {act, renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
+import {act, fireEvent, renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
 
 import AttributeGraphDeleteModal from './delete_modal';
@@ -215,6 +215,36 @@ describe('AttributeOptionsGraphValues', () => {
         expect(onOptionsChange).toHaveBeenCalledWith(addChildOption(options, 'Child', 'Root'));
     });
 
+    it('aligns a child draft with existing siblings at the same depth', async () => {
+        renderWithContext(
+            <AttributeOptionsGraphValues
+                options={[
+                    {id: '', name: 'newtop', parents: []},
+                    {id: '', name: 'newmiddle', parents: ['newtop']},
+                    {id: '', name: 'newmiddle2', parents: ['newtop']},
+                ]}
+                onOptionsChange={jest.fn()}
+            />,
+        );
+
+        await clickRowAddChild('newtop');
+        const draft = await screen.findByTestId('attributeOptionsGraphRow__childDraft');
+
+        expect(getRow('newtop')).toHaveAttribute('data-depth', '0');
+        expect(getRow('newmiddle', 'newtop')).toHaveAttribute('data-depth', '1');
+        expect(getRow('newmiddle2', 'newtop')).toHaveAttribute('data-depth', '1');
+        expect(draft).toHaveAttribute('data-depth', '1');
+        expect(draft.style.getPropertyValue('--attribute-options-graph-values-indent')).toBe(
+            getRow('newmiddle', 'newtop').style.getPropertyValue('--attribute-options-graph-values-indent'),
+        );
+        expect(within(draft).queryByTestId('attributeOptionsGraphRow__dragHandle')).not.toBeInTheDocument();
+        expect(draft.querySelector('.attribute-options-graph-values__draft-handle-spacer')).toBeNull();
+
+        const items = [...screen.getByTestId('attributeOptionsGraphList').querySelectorAll(':scope > li')];
+        expect(items[items.length - 2]).toHaveAttribute('data-option-name', 'newmiddle2');
+        expect(items[items.length - 1]).toBe(draft);
+    });
+
     it('cancels the child draft without adding a value', async () => {
         const onOptionsChange = jest.fn();
         const options: PropertyFieldOption[] = [{id: '', name: 'Root', parents: []}];
@@ -408,6 +438,39 @@ describe('AttributeOptionsGraphValues', () => {
         const parentsAnchor = within(nameWrap).getByTestId('attributeOptionsGraphRow__parentsAnchor');
         expect(parentsAnchor.tagName).toBe('DIV');
         expect(parentsAnchor).toHaveClass('attribute-options-graph-values__parents-anchor');
+    });
+
+    it('portals parent search suggestions outside the value menu and does not close on suggestion press', async () => {
+        renderWithContext(
+            <AttributeOptionsGraphValues
+                options={[
+                    {id: '', name: 'Air', parents: []},
+                    {id: '', name: 'Maritime', parents: []},
+                ]}
+                onOptionsChange={jest.fn()}
+            />,
+        );
+
+        await clickRowParents('Air');
+        expect(await screen.findByTestId('attributeGraphParentsPane__back')).toHaveTextContent('Parents of Air');
+
+        const search = screen.getByTestId('attributeGraphParentsPane__search');
+        const menuPaper = search.closest('.MuiPopover-paper');
+        expect(menuPaper).toBeTruthy();
+
+        await userEvent.click(search);
+        const suggestions = await screen.findByTestId('attributeGraphParentsPane__suggestions');
+        expect(suggestions.closest('.attribute-graph-parents-pane')).toBeNull();
+        expect(menuPaper).not.toContainElement(suggestions);
+        expect(suggestions.closest('.attribute-graph-parents-pane__suggestions-paper')).toBeTruthy();
+
+        const candidate = screen.getByTestId('attributeGraphParentsPane__candidate-Maritime');
+        fireEvent.mouseDown(candidate);
+        fireEvent.pointerDown(candidate);
+        expect(screen.getByTestId('attributeGraphParentsPane__back')).toHaveTextContent('Parents of Air');
+        expect(screen.getByTestId('attributeGraphParentsPane__suggestions')).toBeInTheDocument();
+        expect(screen.getByRole('menu', {name: 'Edit Air', hidden: true})).toBeInTheDocument();
+        expect(screen.getByTestId('attributeOptionsGraphRow__parentsAnchor')).toHaveAttribute('aria-expanded', 'true');
     });
 
     it('indents dual occurrences by their own path depth, not maxDepth', () => {

@@ -2166,7 +2166,6 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 }
 
 func TestInterpluginPluginHTTPContext(t *testing.T) {
-	t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-70788")
 	mainHelper.Parallel(t)
 	th := Setup(t)
 	const testTimeout = 10 * time.Second
@@ -2418,8 +2417,13 @@ func TestInterpluginPluginHTTPContext(t *testing.T) {
 			}
 			readErrCh = make(chan error, 1)
 			go func() {
-				_, readErr := resp.Body.Read(make([]byte, 1))
-				readErrCh <- readErr
+				for {
+					_, readErr := resp.Body.Read(make([]byte, 1))
+					if readErr != nil {
+						readErrCh <- readErr
+						return
+					}
+				}
 			}()
 			select {
 			case err = <-readErrCh:
