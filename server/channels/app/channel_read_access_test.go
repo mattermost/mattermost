@@ -919,3 +919,134 @@ func TestChannelScopedEventsCarryTheReadAccessHook(t *testing.T) {
 		})
 	}
 }
+
+// Join/leave send two copies of each event: a channel-wide one that tells the other
+// members, and a user-scoped one to the joining or leaving user. Only the channel-wide
+// copy is gated. The removed user's copy is how their client drops the channel, so
+// gating it would leave a denied user with a stale channel in the sidebar.
+func TestChannelJoinLeaveEventsCarryTheReadAccessHook(t *testing.T) {
+	// capture runs the publisher and returns every websocket event it published.
+	capture := func(t *testing.T, h *channelReadAccessHarness, run func(*testing.T)) []*model.WebSocketEvent {
+		t.Helper()
+
+		cluster := &testlib.FakeClusterInterface{}
+		h.th.Server.Platform().SetCluster(cluster)
+		run(t)
+
+		var events []*model.WebSocketEvent
+		for _, msg := range cluster.SelectMessages(func(msg *model.ClusterMessage) bool {
+			return msg.Event == model.ClusterEventPublish
+		}) {
+			event, err := model.WebSocketEventFromJSON(bytes.NewReader(msg.Data))
+			require.NoError(t, err)
+			events = append(events, event)
+		}
+		return events
+	}
+
+	// find returns the single event of the given type whose broadcast is channel-wide
+	// (channelWide) or addressed to one user (!channelWide).
+	find := func(t *testing.T, events []*model.WebSocketEvent, eventType model.WebsocketEventType, channelID string, channelWide bool) *model.WebSocketEvent {
+		t.Helper()
+
+		var found []*model.WebSocketEvent
+		for _, event := range events {
+			if event.EventType() != eventType {
+				continue
+			}
+			broadcast := event.GetBroadcast()
+			if channelWide && broadcast.ChannelId == channelID && broadcast.UserId == "" {
+				found = append(found, event)
+			}
+			if !channelWide && broadcast.UserId != "" && (broadcast.ChannelId == channelID || event.GetData()["channel_id"] == channelID) {
+				found = append(found, event)
+			}
+		}
+		require.Len(t, found, 1, "%s (channel-wide=%v)", eventType, channelWide)
+		return found[0]
+	}
+
+	requireHooked := func(t *testing.T, event *model.WebSocketEvent, channelID string) {
+		t.Helper()
+		require.Contains(t, event.GetBroadcast().BroadcastHooks, broadcastChannelReadAccess, "%s", event.EventType())
+		require.Contains(t, event.GetBroadcast().BroadcastHookArgs,
+			map[string]any{"channel_id": channelID}, "%s", event.EventType())
+	}
+
+	requireNotHooked := func(t *testing.T, event *model.WebSocketEvent) {
+		t.Helper()
+		require.NotContains(t, event.GetBroadcast().BroadcastHooks, broadcastChannelReadAccess, "%s", event.EventType())
+	}
+
+	disableABAC := func(h *channelReadAccessHarness) {
+		// Turning ABAC off rather than dropping the license, as in
+		// TestChannelScopedEventsCarryTheReadAccessHook.
+		h.th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = false
+		})
+	}
+
+	t.Run("add user to channel", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		h.mockACS(t)
+
+		addUser := func(t *testing.T) (*model.Channel, []*model.WebSocketEvent) {
+			channel := h.th.CreateChannel(t, h.th.BasicTeam)
+			events := capture(t, h, func(t *testing.T) {
+				_, appErr := h.th.App.AddUserToChannel(h.rctx, h.th.BasicUser2, channel, false)
+				require.Nil(t, appErr)
+			})
+			return channel, events
+		}
+
+		channel, events := addUser(t)
+		requireHooked(t, find(t, events, model.WebsocketEventUserAdded, channel.Id, true), channel.Id)
+		requireNotHooked(t, find(t, events, model.WebsocketEventUserAdded, channel.Id, false))
+
+		disableABAC(h)
+		channel, events = addUser(t)
+		requireNotHooked(t, find(t, events, model.WebsocketEventUserAdded, channel.Id, true))
+	})
+
+	t.Run("remove user from channel", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		h.mockACS(t)
+
+		removeUser := func(t *testing.T) (*model.Channel, []*model.WebSocketEvent) {
+			channel := h.th.CreateChannel(t, h.th.BasicTeam)
+			h.th.AddUserToChannel(t, h.th.BasicUser2, channel)
+			events := capture(t, h, func(t *testing.T) {
+				require.Nil(t, h.th.App.RemoveUserFromChannel(h.rctx, h.th.BasicUser2.Id, h.th.BasicUser.Id, channel))
+			})
+			return channel, events
+		}
+
+		channel, events := removeUser(t)
+		requireHooked(t, find(t, events, model.WebsocketEventUserRemoved, channel.Id, true), channel.Id)
+		requireNotHooked(t, find(t, events, model.WebsocketEventUserRemoved, channel.Id, false))
+
+		disableABAC(h)
+		channel, events = removeUser(t)
+		requireNotHooked(t, find(t, events, model.WebsocketEventUserRemoved, channel.Id, true))
+	})
+
+	t.Run("join default channels", func(t *testing.T) {
+		h := setupChannelReadAccessTest(t)
+		h.mockACS(t)
+
+		townSquare, appErr := h.th.App.GetChannelByName(h.th.Context, model.DefaultChannelName, h.th.BasicTeam.Id, false)
+		require.Nil(t, appErr)
+
+		joinTeam := func(t *testing.T) []*model.WebSocketEvent {
+			user := h.th.CreateUser(t)
+			return capture(t, h, func(t *testing.T) {
+				h.th.LinkUserToTeam(t, user, h.th.BasicTeam)
+			})
+		}
+
+		requireHooked(t, find(t, joinTeam(t), model.WebsocketEventUserAdded, townSquare.Id, true), townSquare.Id)
+
+		disableABAC(h)
+		requireNotHooked(t, find(t, joinTeam(t), model.WebsocketEventUserAdded, townSquare.Id, true))
+	})
+}

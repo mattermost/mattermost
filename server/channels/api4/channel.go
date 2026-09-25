@@ -1006,10 +1006,6 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !requireChannelReadAccess(c, channel) {
-		return
-	}
-
 	isContentReviewer := false
 	asContentReviewer, _ := strconv.ParseBool(r.URL.Query().Get(model.AsContentReviewerParam))
 	if asContentReviewer {
@@ -1063,6 +1059,12 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionReadChannel)
 			return
 		}
+	}
+
+	// After the membership checks, so a non-member is refused the same way whether or not
+	// a policy would also deny them.
+	if !requireChannelReadAccess(c, channel) {
+		return
 	}
 
 	err = c.App.FillInChannelProps(c.AppContext, channel)
@@ -2022,10 +2024,6 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !requireChannelReadAccess(c, channel) {
-		return
-	}
-
 	if channel.Type == model.ChannelTypeOpen {
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel) {
 			if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionReadChannel); !ok {
@@ -2044,6 +2042,12 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
+	}
+
+	// After the membership checks: a policy denial is a distinct 403, so running it
+	// first would tell a non-member that the private channel behind the 404 exists.
+	if !requireChannelReadAccess(c, channel) {
+		return
 	}
 
 	appErr = c.App.FillInChannelProps(c.AppContext, channel)
@@ -2070,10 +2074,6 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	if !requireChannelReadAccess(c, channel) {
-		return
-	}
-
 	channelOk, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionReadChannel)
 	if channel.Type == model.ChannelTypeOpen {
 		teamOk := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel)
@@ -2090,6 +2090,11 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 			c.Err = model.NewAppError("getChannelByNameForTeamName", "app.channel.get_by_name.missing.app_error", nil, "teamId="+channel.TeamId+", "+"name="+channel.Name+"", http.StatusNotFound)
 			return
 		}
+	}
+
+	// After the membership checks, for the same reason as getChannelByName.
+	if !requireChannelReadAccess(c, channel) {
+		return
 	}
 
 	appErr = c.App.FillInChannelProps(c.AppContext, channel)

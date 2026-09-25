@@ -224,6 +224,12 @@ func (a *App) setupBroadcastHookForChannelReadAccess(channelID string, message *
 	useChannelReadAccessHook(message, channelID)
 }
 
+// SetupBroadcastHookForChannelReadAccess exposes setupBroadcastHookForChannelReadAccess to
+// services outside the app package that publish channel-scoped events.
+func (a *App) SetupBroadcastHookForChannelReadAccess(channelID string, message *model.WebSocketEvent) {
+	a.setupBroadcastHookForChannelReadAccess(channelID, message)
+}
+
 func (a *App) HasChannelReadAccess(rctx request.CTX, userID string, channel *model.Channel) bool {
 	return a.hasChannelAccess(rctx, userID, channel, model.AccessControlPolicyActionChannelReadAccess)
 }

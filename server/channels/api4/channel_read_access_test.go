@@ -595,3 +595,84 @@ func TestChannelReadAccessChannelsForUserFilterFollowsTheSession(t *testing.T) {
 	require.Empty(t, channels,
 		"the queried user's channels must not expose ones the requester is denied")
 }
+
+// The lookups check membership before the policy. A policy denial is a distinct 403, so
+// checking the policy first would tell a non-member probing a private channel name that
+// the channel behind the 404 exists. Whoever gets past membership (a member, a team admin,
+// anyone who can read a public channel) is then refused by the policy.
+func TestChannelReadAccessLookupsCheckMembershipFirst(t *testing.T) {
+	const notFoundByNameErrorID = "app.channel.get_by_name.missing.app_error"
+	const rbacDeniedErrorID = "api.context.permissions.app_error"
+
+	type lookup struct {
+		name string
+		call func(f *channelReadAccessFixture, channel *model.Channel) (*model.Response, error)
+	}
+	byID := lookup{"by id", func(f *channelReadAccessFixture, channel *model.Channel) (*model.Response, error) {
+		_, resp, err := f.th.Client.GetChannel(context.Background(), channel.Id)
+		return resp, err
+	}}
+	byName := lookup{"by name", func(f *channelReadAccessFixture, channel *model.Channel) (*model.Response, error) {
+		_, resp, err := f.th.Client.GetChannelByName(context.Background(), channel.Name, f.th.BasicTeam.Id, "")
+		return resp, err
+	}}
+	byTeamName := lookup{"by name for team name", func(f *channelReadAccessFixture, channel *model.Channel) (*model.Response, error) {
+		_, resp, err := f.th.Client.GetChannelByNameForTeamName(context.Background(), channel.Name, f.th.BasicTeam.Name, "")
+		return resp, err
+	}}
+
+	requireDenied := func(t *testing.T, resp *model.Response, err error, wantStatus int, wantErrorID string) {
+		t.Helper()
+		require.Error(t, err)
+		require.NotNil(t, resp)
+		require.Equal(t, wantStatus, resp.StatusCode)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok, "expected an AppError, got %T", err)
+		require.Equal(t, wantErrorID, appErr.Id)
+	}
+
+	t.Run("private channel, non-member", func(t *testing.T) {
+		f, _ := setupChannelReadAccessAPI(t, false)
+		channel := f.th.CreateChannelWithClient(t, f.th.SystemAdminClient, model.ChannelTypePrivate)
+
+		for _, l := range []lookup{byName, byTeamName} {
+			t.Run(l.name, func(t *testing.T) {
+				resp, err := l.call(f, channel)
+				requireDenied(t, resp, err, http.StatusNotFound, notFoundByNameErrorID)
+			})
+		}
+
+		// By id a non-member was always refused with a 403; it must stay the RBAC one.
+		t.Run(byID.name, func(t *testing.T) {
+			resp, err := byID.call(f, channel)
+			requireDenied(t, resp, err, http.StatusForbidden, rbacDeniedErrorID)
+		})
+	})
+
+	t.Run("private channel, team admin non-member", func(t *testing.T) {
+		f, _ := setupChannelReadAccessAPI(t, false)
+		channel := f.th.CreateChannelWithClient(t, f.th.SystemAdminClient, model.ChannelTypePrivate)
+		f.th.UpdateUserToTeamAdmin(t, f.th.BasicUser, f.th.BasicTeam)
+		// The session caches team roles, so log in again to pick up the promotion.
+		f.th.LoginBasic(t)
+
+		for _, l := range []lookup{byName, byTeamName} {
+			t.Run(l.name, func(t *testing.T) {
+				resp, err := l.call(f, channel)
+				requireDenied(t, resp, err, http.StatusForbidden, abacDeniedErrorID)
+			})
+		}
+	})
+
+	t.Run("public channel, non-member", func(t *testing.T) {
+		f, _ := setupChannelReadAccessAPI(t, false)
+		channel := f.th.CreateChannelWithClient(t, f.th.SystemAdminClient, model.ChannelTypeOpen)
+
+		for _, l := range []lookup{byID, byName, byTeamName} {
+			t.Run(l.name, func(t *testing.T) {
+				resp, err := l.call(f, channel)
+				requireDenied(t, resp, err, http.StatusForbidden, abacDeniedErrorID)
+			})
+		}
+	})
+}
