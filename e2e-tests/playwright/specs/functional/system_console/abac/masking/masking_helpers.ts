@@ -4,7 +4,7 @@
 import type {Page} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 
-import {deleteFieldFromDB} from './masking_db_setup';
+import {deleteFieldFromDB, purgeFieldsByPrefix} from './masking_db_setup';
 
 export async function enableMaskingFlag(client: Client4): Promise<void> {
     const config = await client.getConfig();
@@ -20,7 +20,12 @@ export async function disableMaskingFlag(client: Client4): Promise<void> {
     await client.updateConfig(config);
 }
 
-export async function createMaskingTextField(client: Client4, fieldName: string): Promise<string> {
+function isPropertyFieldLimitError(err: unknown): boolean {
+    const msg = err instanceof Error ? err.message : String(err);
+    return msg.includes('maximum number of property fields');
+}
+
+async function postMaskingTextField(client: Client4, fieldName: string): Promise<string> {
     const url = `${client.getBaseRoute()}/custom_profile_attributes/fields`;
     const created = await (client as any).doFetch(url, {
         method: 'POST',
@@ -37,7 +42,21 @@ export async function createMaskingTextField(client: Client4, fieldName: string)
     return created.id as string;
 }
 
-export async function createMaskingMultiselectField(
+export async function createMaskingTextField(client: Client4, fieldName: string): Promise<string> {
+    try {
+        return await postMaskingTextField(client, fieldName);
+    } catch (err) {
+        if (!isPropertyFieldLimitError(err)) {
+            throw err;
+        }
+        // User-type CPA cap is 20; leftover Masking* fields from other specs on
+        // the same server fill it. Purge then retry once.
+        await purgeFieldsByPrefix('Masking');
+        return await postMaskingTextField(client, fieldName);
+    }
+}
+
+async function postMaskingMultiselectField(
     client: Client4,
     fieldName: string,
     options: string[],
@@ -57,6 +76,22 @@ export async function createMaskingMultiselectField(
         }),
     });
     return created.id as string;
+}
+
+export async function createMaskingMultiselectField(
+    client: Client4,
+    fieldName: string,
+    options: string[],
+): Promise<string> {
+    try {
+        return await postMaskingMultiselectField(client, fieldName, options);
+    } catch (err) {
+        if (!isPropertyFieldLimitError(err)) {
+            throw err;
+        }
+        await purgeFieldsByPrefix('Masking');
+        return await postMaskingMultiselectField(client, fieldName, options);
+    }
 }
 
 /**
