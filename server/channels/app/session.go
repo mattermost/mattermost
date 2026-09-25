@@ -24,10 +24,8 @@ import (
 // maxSessionsLimit prevents a potential DOS caused by creating an unbounded number of sessions; MM-55320
 const maxSessionsLimit = 500
 
-// redactedTokenParams fills in api.context.invalid_token.error without the secret
-// it used to carry. The presented token must not reach the params: AppError.Error()
-// and SystemMessage() both render them, and every caller that reports a session
-// failure writes one of those to the server log; MM-70121.
+// redactedTokenParams stands in for the presented token in api.context.invalid_token.error,
+// which callers render into the server log; MM-70121
 var redactedTokenParams = map[string]any{"Token": "<redacted>", "Error": ""}
 
 func (a *App) CreateSession(rctx request.CTX, session *model.Session) (*model.Session, *model.AppError) {

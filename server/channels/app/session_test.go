@@ -763,9 +763,8 @@ func TestGetSessionErrorDoesNotContainToken(t *testing.T) {
 		return fmt.Sprintf("%s %v", id, args)
 	}
 
-	// wantDetail guards against a vacuous assertion by pinning each case to the
-	// failure path it is named after; the marker pins the params so that dropping
-	// them altogether, which would render "token=<no value>", is caught too.
+	// wantDetail pins each case to the failure path it is named after; asserting on the
+	// marker also catches dropping the params entirely, which renders "token=<no value>".
 	assertRedacted := func(t *testing.T, token string, err *model.AppError, wantDetail string) {
 		t.Helper()
 		require.NotNil(t, err)
@@ -824,7 +823,6 @@ func TestGetSessionErrorDoesNotContainToken(t *testing.T) {
 	})
 
 	t.Run("cloud API key mismatch", func(t *testing.T) {
-		// t.Setenv prevents t.Parallel — env var has no config equivalent
 		t.Setenv("MM_CLOUD_API_KEY", model.NewId())
 		token := model.NewId()
 
