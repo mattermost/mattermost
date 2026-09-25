@@ -1303,6 +1303,15 @@ type AttributesStore interface {
 	// change that can affect many users at once (e.g. deleting a field). No-op outside the local
 	// cache layer.
 	ClearUserPropertyValuesEpochCache()
+
+	// InvalidateUserAttributes drops the cached user-attributes Subject for a single user. Call
+	// after that user's property values change. No-op outside the local cache layer.
+	InvalidateUserAttributes(userID string)
+
+	// ClearUserAttributesCache drops all cached user-attributes Subjects. Call after a change
+	// that can affect many users at once (e.g. deleting a field). No-op outside the local cache
+	// layer.
+	ClearUserAttributesCache()
 }
 
 type SessionAttributeStore interface {

@@ -25,8 +25,25 @@ func TestFindingStore(t *testing.T, newStore func(t *testing.T) FindingStore) {
 		got, err := store.GetByFingerprints([]string{fp1, model.NewId(), fp2})
 		require.NoError(t, err)
 		require.Len(t, got, 2)
-		require.Equal(t, fp1, got[0].Fingerprint)
-		require.Equal(t, fp2, got[1].Fingerprint)
+		assert.NotNil(t, findFinding(got, fp1))
+		assert.NotNil(t, findFinding(got, fp2))
+	})
+
+	t.Run("get by fingerprints treats input as a set", func(t *testing.T) {
+		t.Parallel()
+
+		store := newStore(t)
+		fp1, fp2 := model.NewId(), model.NewId()
+		require.NoError(t, store.Upsert([]*model.HealthFinding{
+			testFinding(fp1, "check_cluster_status", 100),
+			testFinding(fp2, "check_database_pool", 101),
+		}))
+
+		got, err := store.GetByFingerprints([]string{fp1, fp1, "", fp2})
+		require.NoError(t, err)
+		require.Len(t, got, 2)
+		assert.NotNil(t, findFinding(got, fp1))
+		assert.NotNil(t, findFinding(got, fp2))
 	})
 
 	t.Run("upsert idempotency", func(t *testing.T) {
@@ -161,8 +178,8 @@ func TestFindingStore(t *testing.T, newStore func(t *testing.T) FindingStore) {
 		remaining, err := store.GetByFingerprints([]string{oldFp, equalFp, newFp})
 		require.NoError(t, err)
 		require.Len(t, remaining, 2)
-		require.Equal(t, equalFp, remaining[0].Fingerprint)
-		require.Equal(t, newFp, remaining[1].Fingerprint)
+		assert.NotNil(t, findFinding(remaining, equalFp))
+		assert.NotNil(t, findFinding(remaining, newFp))
 	})
 
 	t.Run("mute and unmute unknown fingerprint return ErrFindingNotFound", func(t *testing.T) {
