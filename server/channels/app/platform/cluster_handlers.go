@@ -121,11 +121,23 @@ func (ps *PlatformService) invalidateWebConnSessionCacheForAllUsersSkipClusterSe
 	}
 }
 
+// softInvalidateWebConnSessionCacheForAllUsersSkipClusterSend is like
+// invalidateWebConnSessionCacheForAllUsersSkipClusterSend but keeps session
+// tokens, so each WebConn reloads its session on next use.
+func (ps *PlatformService) softInvalidateWebConnSessionCacheForAllUsersSkipClusterSend() {
+	for _, hub := range ps.hubs {
+		if hub != nil {
+			hub.InvalidateAllCache()
+		}
+	}
+}
+
 func (ps *PlatformService) InvalidateAllCachesSkipSend() *model.AppError {
 	ps.logger.Info("Purging all caches")
 	if err := ps.ClearAllUsersSessionCacheLocal(); err != nil {
 		ps.logger.Error("Failed to purge session cache", mlog.Err(err))
 	}
+	ps.softInvalidateWebConnSessionCacheForAllUsersSkipClusterSend()
 	if err := ps.statusCache.Purge(); err != nil {
 		ps.logger.Warn("Failed to clear the status cache", mlog.Err(err))
 	}
