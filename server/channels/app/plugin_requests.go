@@ -75,10 +75,11 @@ func (a *App) ServeInternalPluginRequest(userID string, w http.ResponseWriter, r
 
 	hooks, err := pluginsEnvironment.HooksForPlugin(targetPluginID)
 	if err != nil {
+		// The query string is omitted because it can carry an access_token.
 		a.Log().Error("Access to route for non-existent plugin in internal plugin request",
 			mlog.String("source_plugin_id", sourcePluginID),
 			mlog.String("target_plugin_id", targetPluginID),
-			mlog.String("url", r.URL.String()),
+			mlog.String("url", r.URL.Path),
 			mlog.Err(err),
 		)
 		http.NotFound(w, r)

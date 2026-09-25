@@ -291,20 +291,25 @@ func TestWebConnRejectBinaryFrameUnauthenticated(t *testing.T) {
 func TestWebConnIsBasicAuthenticatedDoesNotLogToken(t *testing.T) {
 	th := Setup(t)
 
-	logBuffer := &mlog.Buffer{}
-	require.NoError(t, mlog.AddWriterTarget(th.Service.Logger(), logBuffer, true, mlog.StdAll...))
-
 	testCases := []struct {
 		name       string
 		statusCode int
 		wantLog    string
+		resolve    func(wc *WebConn) bool
 	}{
-		{"session rejected", http.StatusUnauthorized, "Invalid session."},
-		{"session lookup failed", http.StatusInternalServerError, "Could not get session"},
+		{"session rejected", http.StatusUnauthorized, "Invalid session.", func(wc *WebConn) bool { return wc.IsBasicAuthenticated() }},
+		{"session lookup failed", http.StatusInternalServerError, "Could not get session", func(wc *WebConn) bool { return wc.IsBasicAuthenticated() }},
+		{"team membership lookup failed", http.StatusInternalServerError, "Could not get session", func(wc *WebConn) bool {
+			wc.SetSession(nil)
+			return wc.isMemberOfTeam(model.NewId())
+		}},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			logBuffer := &mlog.Buffer{}
+			require.NoError(t, mlog.AddWriterTarget(th.Service.Logger(), logBuffer, true, mlog.StdAll...))
+
 			token := model.NewId()
 
 			suite := &platform_mocks.SuiteIFace{}
@@ -315,7 +320,7 @@ func TestWebConnIsBasicAuthenticatedDoesNotLogToken(t *testing.T) {
 				Session:   model.Session{Token: token, ExpiresAt: model.GetMillis() - 1000},
 			}, suite, &hookRunner{})
 
-			assert.False(t, wc.IsBasicAuthenticated())
+			assert.False(t, tc.resolve(wc))
 			require.NoError(t, th.Service.Logger().Flush())
 
 			logs := logBuffer.String()

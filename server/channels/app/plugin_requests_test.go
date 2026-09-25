@@ -751,20 +751,46 @@ func TestServePluginRequestUnknownPluginDoesNotLogQueryString(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	buffer := &mlog.Buffer{}
-	require.NoError(t, mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...))
+	testCases := []struct {
+		name    string
+		path    string
+		wantLog string
+		serve   func(w http.ResponseWriter, r *http.Request)
+	}{
+		{
+			name:    "external request",
+			path:    "/plugins/unknownplugin/endpoint",
+			wantLog: "Access to route for non-existent plugin",
+			serve:   th.App.ch.ServePluginRequest,
+		},
+		{
+			name:    "internal request",
+			path:    "/endpoint",
+			wantLog: "Access to route for non-existent plugin in internal plugin request",
+			serve: func(w http.ResponseWriter, r *http.Request) {
+				th.App.ServeInternalPluginRequest("", w, r, "sourceplugin", "unknownplugin")
+			},
+		},
+	}
 
-	token := model.NewId()
-	req := httptest.NewRequest(http.MethodGet, "/plugins/unknownplugin/endpoint?access_token="+token, nil)
-	req = mux.SetURLVars(req, map[string]string{"plugin_id": "unknownplugin"})
-	rr := httptest.NewRecorder()
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			buffer := &mlog.Buffer{}
+			require.NoError(t, mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...))
 
-	th.App.ch.ServePluginRequest(rr, req)
-	require.Equal(t, http.StatusNotFound, rr.Code)
-	require.NoError(t, th.TestLogger.Flush())
+			token := model.NewId()
+			req := httptest.NewRequest(http.MethodGet, tc.path+"?access_token="+token, nil)
+			req = mux.SetURLVars(req, map[string]string{"plugin_id": "unknownplugin"})
+			rr := httptest.NewRecorder()
 
-	logs := buffer.String()
-	require.Contains(t, logs, "Access to route for non-existent plugin", "the unresolved plugin id was never logged")
-	assert.Contains(t, logs, `"url":"/plugins/unknownplugin/endpoint"`)
-	assert.NotContains(t, logs, token)
+			tc.serve(rr, req)
+			require.Equal(t, http.StatusNotFound, rr.Code)
+			require.NoError(t, th.TestLogger.Flush())
+
+			logs := buffer.String()
+			require.Contains(t, logs, tc.wantLog, "the unresolved plugin id was never logged")
+			assert.Contains(t, logs, `"url":"`+tc.path+`"`)
+			assert.NotContains(t, logs, token)
+		})
+	}
 }

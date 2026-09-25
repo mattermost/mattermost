@@ -55,6 +55,7 @@ func testSessionGetDoesNotLeakToken(t *testing.T, rctx request.CTX, ss store.Sto
 
 	var nfErr *store.ErrNotFound
 	require.ErrorAs(t, err, &nfErr)
+	assert.Contains(t, err.Error(), "sessionIdOrToken=<redacted>")
 	assert.NotContains(t, err.Error(), token)
 }
 

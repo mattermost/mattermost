@@ -764,11 +764,13 @@ func TestGetSessionErrorDoesNotContainToken(t *testing.T) {
 	}
 
 	// wantDetail guards against a vacuous assertion by pinning each case to the
-	// failure path it is named after.
+	// failure path it is named after; the marker pins the params so that dropping
+	// them altogether, which would render "token=<no value>", is caught too.
 	assertRedacted := func(t *testing.T, token string, err *model.AppError, wantDetail string) {
 		t.Helper()
 		require.NotNil(t, err)
 		require.Contains(t, err.Error(), wantDetail)
+		assert.Contains(t, err.SystemMessage(i18n.T), "token=<redacted>")
 		assert.NotContains(t, err.Error(), token)
 		assert.NotContains(t, err.SystemMessage(i18n.T), token)
 		assert.NotContains(t, err.SystemMessage(echoParams), token)
@@ -778,7 +780,7 @@ func TestGetSessionErrorDoesNotContainToken(t *testing.T) {
 		token := model.NewId()
 
 		_, err := th.App.GetSession(token)
-		assertRedacted(t, token, err, `resource "UserAccessToken" not found`)
+		assertRedacted(t, token, err, `resource "UserAccessToken" not found, id: token=<redacted>`)
 	})
 
 	t.Run("token does not match the stored session", func(t *testing.T) {
