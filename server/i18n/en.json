@@ -2965,6 +2965,22 @@
     "translation": "An error occurred while downloading the plugin."
   },
   {
+    "id": "api.plugin.signature_public_key.disabled.app_error",
+    "translation": "Managing custom plugin signature public keys is disabled."
+  },
+  {
+    "id": "api.plugin.signature_public_key.file.app_error",
+    "translation": "Unable to open the uploaded plugin signature public key file."
+  },
+  {
+    "id": "api.plugin.signature_public_key.missing_filename.app_error",
+    "translation": "A filename query parameter is required to remove a plugin signature public key."
+  },
+  {
+    "id": "api.plugin.signature_public_key.no_file.app_error",
+    "translation": "Missing public_key file in multipart/form request."
+  },
+  {
     "id": "api.plugin.upload.array.app_error",
     "translation": "File array is empty in multipart/form request."
   },
@@ -2981,8 +2997,16 @@
     "translation": "Missing file in multipart/form request."
   },
   {
+    "id": "api.plugin.upload.signature.app_error",
+    "translation": "Unable to read the plugin signature file from the multipart form request."
+  },
+  {
+    "id": "api.plugin.upload.signature_required.app_error",
+    "translation": "A plugin signature file is required when plugin signature verification is enabled. Upload the plugin bundle together with its detached signature."
+  },
+  {
     "id": "api.plugin.verify_plugin.app_error",
-    "translation": "Unable to verify plugin signature."
+    "translation": "Unable to verify plugin signature. The signature did not match the Mattermost signing key or any configured customer public keys."
   },
   {
     "id": "api.post.burn_post.user_not_in_channel.app_error",
@@ -8295,6 +8319,18 @@
   {
     "id": "app.pdp.access_evaluation.permission_policy.app_error",
     "translation": "Failed to evaluate permission policy."
+  },
+  {
+    "id": "app.plugin.add_public_key.empty.app_error",
+    "translation": "Plugin signature public key file is empty."
+  },
+  {
+    "id": "app.plugin.add_public_key.invalid.app_error",
+    "translation": "Uploaded file is not a valid OpenPGP public key."
+  },
+  {
+    "id": "app.plugin.add_public_key.invalid_name.app_error",
+    "translation": "Invalid plugin signature public key filename."
   },
   {
     "id": "app.plugin.addon_not_licensed.app_error",

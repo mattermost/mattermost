@@ -499,13 +499,16 @@ type Props = BaseProps & {
     appsFeatureFlagEnabled: boolean;
     license?: ClientLicense;
     actions: {
-        uploadPlugin: (fileData: File, force: boolean) => Promise<ActionResult>;
+        uploadPlugin: (fileData: File, force: boolean, signature?: File) => Promise<ActionResult>;
         removePlugin: (pluginId: string) => Promise<ActionResult>;
         getPlugins: () => Promise<ActionResult>;
         getPluginStatuses: () => Promise<ActionResult>;
         enablePlugin: (pluginId: string) => Promise<ActionResult>;
         disablePlugin: (pluginId: string) => Promise<ActionResult>;
         installPluginFromUrl: (url: string, force: boolean) => Promise<ActionResult>;
+        uploadPluginSignaturePublicKey: (fileData: File) => Promise<ActionResult>;
+        removePluginSignaturePublicKey: (filename: string) => Promise<ActionResult>;
+        getConfig: () => Promise<ActionResult>;
     };
 } & WrappedComponentProps;
 
@@ -513,6 +516,7 @@ type State = BaseState & {
     loading: boolean;
     fileSelected: boolean;
     file: File | null;
+    signatureFile: File | null;
     pluginDownloadUrl: string;
     serverError: JSX.Element | string | null;
     lastMessage: string | null;
@@ -533,11 +537,16 @@ type State = BaseState & {
     automaticPrepackagedPlugins: boolean;
     marketplaceUrl: string;
     requirePluginSignature: boolean;
+    signaturePublicKeyFiles: string[];
     removing: string | null;
     draggingUpload: boolean;
+    uploadingPublicKey: boolean;
+    publicKeyError: string | null;
 };
 export class PluginManagement extends OLDAdminSettings<Props, State> {
     private fileInput: React.RefObject<HTMLInputElement | null>;
+    private signatureFileInput: React.RefObject<HTMLInputElement | null>;
+    private publicKeyFileInput: React.RefObject<HTMLInputElement | null>;
     constructor(props: Props) {
         super(props);
 
@@ -545,6 +554,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             loading: true,
             fileSelected: false,
             file: null,
+            signatureFile: null,
             pluginDownloadUrl: '',
             serverError: null,
             lastMessage: null,
@@ -558,8 +568,15 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             showRemoveModal: false,
             resolveRemoveModal: null,
             draggingUpload: false,
+            uploadingPublicKey: false,
+            publicKeyError: null,
         });
+        if (!this.state.signaturePublicKeyFiles) {
+            this.state = Object.assign(this.state, {signaturePublicKeyFiles: []});
+        }
         this.fileInput = React.createRef();
+        this.signatureFileInput = React.createRef();
+        this.publicKeyFileInput = React.createRef();
     }
     getConfigFromState = (config: Props['config']) => {
         if (config && config.PluginSettings) {
@@ -586,6 +603,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             automaticPrepackagedPlugins: config?.PluginSettings?.AutomaticPrepackagedPlugins,
             marketplaceUrl: config?.PluginSettings?.MarketplaceURL,
             requirePluginSignature: config?.PluginSettings?.RequirePluginSignature,
+            signaturePublicKeyFiles: [...(config?.PluginSettings?.SignaturePublicKeyFiles || [])],
         };
 
         return state;
@@ -627,6 +645,15 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             );
         }
 
+        if (this.signedUploadRequired()) {
+            return (
+                <FormattedMessage
+                    id='admin.plugin.upload.dropzone_title_signed'
+                    defaultMessage='Click or drop plugin bundle (.tar.gz)'
+                />
+            );
+        }
+
         return (
             <FormattedMessage
                 id='admin.plugin.upload.dropzone_title'
@@ -635,11 +662,20 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
         );
     };
 
+    customSignatureKeysEnabled = () => {
+        return Boolean(this.props.config?.FeatureFlags?.EnableCustomPluginSignatureKeys);
+    };
+
+    signedUploadRequired = () => {
+        return Boolean(this.props.config.PluginSettings?.RequirePluginSignature) && this.customSignatureKeysEnabled();
+    };
+
     canUploadPlugin = () => {
         const enable = this.props.config?.PluginSettings?.Enable;
         const requirePluginSignature = this.props.config.PluginSettings?.RequirePluginSignature;
+        const signatureBlocksUpload = requirePluginSignature && !this.customSignatureKeysEnabled();
 
-        return Boolean(this.state.enableUploads && enable && !requirePluginSignature && !this.props.isDisabled && !this.state.uploading);
+        return Boolean(this.state.enableUploads && enable && !signatureBlocksUpload && !this.props.isDisabled && !this.state.uploading);
     };
 
     handleSelectedUploadFile = (file: File) => {
@@ -650,6 +686,12 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             file,
             overwriteUploadConflict: null,
         });
+        if (this.signedUploadRequired()) {
+            if (this.state.signatureFile) {
+                this.helpSubmitUpload(file, false, this.state.signatureFile);
+            }
+            return;
+        }
         this.helpSubmitUpload(file, false);
     };
 
@@ -659,6 +701,144 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             this.handleSelectedUploadFile(element.files[0]);
         }
         Utils.clearFileInput(element);
+    };
+
+    handleSignatureUpload = () => {
+        const element = this.signatureFileInput.current as HTMLInputElement;
+        if (element.files && element.files.length > 0) {
+            const signatureFile = element.files[0];
+            this.setState({signatureFile, serverError: null, lastMessage: null});
+            if (this.state.file) {
+                this.helpSubmitUpload(this.state.file, false, signatureFile);
+            }
+        }
+        Utils.clearFileInput(element);
+    };
+
+    handlePublicKeyUpload = async () => {
+        const element = this.publicKeyFileInput.current as HTMLInputElement;
+        if (!element.files || element.files.length === 0) {
+            return;
+        }
+        const file = element.files[0];
+        this.setState({uploadingPublicKey: true, publicKeyError: null});
+        const {error} = await this.props.actions.uploadPluginSignaturePublicKey(file);
+        if (error) {
+            this.setState({
+                uploadingPublicKey: false,
+                publicKeyError: error.message,
+            });
+            Utils.clearFileInput(element);
+            return;
+        }
+
+        const filename = file.name.split(/[/\\]/).pop() || file.name;
+        this.setState((prev) => ({
+            uploadingPublicKey: false,
+            publicKeyError: null,
+            signaturePublicKeyFiles: prev.signaturePublicKeyFiles.includes(filename) ?
+                prev.signaturePublicKeyFiles :
+                [...prev.signaturePublicKeyFiles, filename],
+        }));
+        await this.props.actions.getConfig();
+        Utils.clearFileInput(element);
+    };
+
+    handleRemovePublicKey = async (filename: string) => {
+        this.setState({publicKeyError: null});
+        const {error} = await this.props.actions.removePluginSignaturePublicKey(filename);
+        if (error) {
+            this.setState({publicKeyError: error.message});
+            return;
+        }
+        this.setState((prev) => ({
+            signaturePublicKeyFiles: prev.signaturePublicKeyFiles.filter((name) => name !== filename),
+        }));
+        await this.props.actions.getConfig();
+    };
+
+    renderSignaturePublicKeysSetting = () => {
+        const publicKeys = this.state.signaturePublicKeyFiles || [];
+        const disabled = this.props.isDisabled || !this.state.enable || this.state.uploadingPublicKey;
+
+        return (
+            <SettingSet
+                label={
+                    <FormattedMessage
+                        id='admin.plugins.settings.signaturePublicKeys'
+                        defaultMessage='Plugin Signature Public Keys:'
+                    />
+                }
+                helpText={
+                    <FormattedMessage
+                        id='admin.plugins.settings.signaturePublicKeysDesc'
+                        defaultMessage='Upload OpenPGP public keys trusted to verify plugin signatures, in addition to the Mattermost signing key. See <link>documentation</link> to learn more.'
+                        values={{
+                            link: (msg: React.ReactNode) => (
+                                <ExternalLink
+                                    href={DeveloperLinks.PLUGIN_SIGNING}
+                                    location='plugin_management'
+                                >
+                                    {msg}
+                                </ExternalLink>
+                            ),
+                        }}
+                    />
+                }
+            >
+                {publicKeys.length > 0 && (
+                    <ul className='PluginManagement__publicKeyList'>
+                        {publicKeys.map((filename) => (
+                            <li key={filename}>
+                                <span>{filename}</span>
+                                <button
+                                    type='button'
+                                    className='btn btn-link btn-danger'
+                                    disabled={disabled}
+                                    onClick={() => this.handleRemovePublicKey(filename)}
+                                >
+                                    <FormattedMessage
+                                        id='admin.plugins.settings.signaturePublicKeys.remove'
+                                        defaultMessage='Remove'
+                                    />
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+                <button
+                    type='button'
+                    className='btn btn-tertiary'
+                    disabled={disabled}
+                    onClick={() => this.publicKeyFileInput.current?.click()}
+                >
+                    {this.state.uploadingPublicKey ? (
+                        <FormattedMessage
+                            id='admin.plugins.settings.signaturePublicKeys.uploading'
+                            defaultMessage='Uploading...'
+                        />
+                    ) : (
+                        <FormattedMessage
+                            id='admin.plugins.settings.signaturePublicKeys.upload'
+                            defaultMessage='Upload Public Key'
+                        />
+                    )}
+                </button>
+                <input
+                    ref={this.publicKeyFileInput}
+                    className='PluginManagement__fileInput'
+                    type='file'
+                    accept='.asc,.gpg,.pub'
+                    onChange={this.handlePublicKeyUpload}
+                    disabled={disabled}
+                />
+                {this.state.publicKeyError && (
+                    <div className='PluginManagement__uploadStatus PluginManagement__uploadStatus--error'>
+                        <span>{this.state.publicKeyError}</span>
+                    </div>
+                )}
+            </SettingSet>
+        );
     };
 
     pluginInstallConflictFromProps = (props?: Record<string, string>): PluginInstallConflict => {
@@ -728,9 +908,23 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
         return this.props.intl.formatMessage(messages.uploadSuccessUpdated, {pluginName});
     };
 
-    helpSubmitUpload = async (file: File, force: boolean) => {
+    helpSubmitUpload = async (file: File, force: boolean, signature?: File) => {
+        const signatureFile = signature || this.state.signatureFile || undefined;
+        if (this.signedUploadRequired() && !signatureFile) {
+            this.setState({
+                serverError: this.props.intl.formatMessage({
+                    id: 'admin.plugin.upload.signature_required',
+                    defaultMessage: 'A detached signature file (.sig or .asc) is required when plugin signature verification is enabled.',
+                }),
+            });
+            return;
+        }
+
         this.setState({uploading: true, overwriteUploadConflict: null, serverError: null, lastMessage: null});
-        const {data, error} = await this.props.actions.uploadPlugin(file, force);
+        const uploadResult = signatureFile ?
+            await this.props.actions.uploadPlugin(file, force, signatureFile) :
+            await this.props.actions.uploadPlugin(file, force);
+        const {data, error} = uploadResult;
 
         if (error) {
             if (error.server_error_id === 'app.plugin.install_id.app_error' && !force) {
@@ -745,6 +939,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             this.setState({
                 file: null,
                 fileSelected: false,
+                signatureFile: null,
                 uploading: false,
                 overwritingUpload: false,
                 overwriteUploadConflict: null,
@@ -756,7 +951,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             } else {
                 this.setState({serverError: error.message});
             }
-            this.setState({file: null, fileSelected: false});
+            this.setState({file: null, fileSelected: false, signatureFile: null});
             return;
         }
 
@@ -772,6 +967,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
         this.setState({
             file: null,
             fileSelected: false,
+            signatureFile: null,
             serverError: null,
             lastMessage: msg,
             overwritingUpload: false,
@@ -785,6 +981,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
         this.setState({
             file: null,
             fileSelected: false,
+            signatureFile: null,
             serverError: null,
             confirmOverwriteUploadModal: false,
             overwriteUploadConflict: null,
@@ -797,7 +994,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
     handleOverwriteUploadPlugin = () => {
         this.setState({confirmOverwriteUploadModal: false, overwriteUploadConflict: null, overwritingUpload: true});
         if (this.state.file) {
-            this.helpSubmitUpload(this.state.file, true);
+            this.helpSubmitUpload(this.state.file, true, this.state.signatureFile || undefined);
         }
     };
 
@@ -1078,7 +1275,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             );
         }
 
-        if (requirePluginSignature) {
+        if (requirePluginSignature && !this.customSignatureKeysEnabled()) {
             return (
                 <FormattedMessage
                     id='admin.plugin.upload.disabled_signature_required'
@@ -1107,7 +1304,8 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
         let lastMessage = <></>;
 
         // Using props values to make sure these are set on the server and not just locally
-        const enableUploadButton = enableUploads && enable && !requirePluginSignature;
+        const signatureBlocksUpload = requirePluginSignature && !this.customSignatureKeysEnabled();
+        const enableUploadButton = enableUploads && enable && !signatureBlocksUpload;
         const uploadDisabledReason = this.renderUploadDisabledReason(enable, enableUploads, requirePluginSignature);
         const uploadDropzoneDisabled = !enableUploadButton || this.props.isDisabled || this.state.uploading;
 
@@ -1287,26 +1485,44 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                                         />
                                     }
                                     helpText={
-                                        <FormattedMessage
-                                            id='admin.plugins.settings.requirePluginSignatureDesc'
-                                            defaultMessage='When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more.'
-                                            values={{
-                                                link: (msg: React.ReactNode) => (
-                                                    <ExternalLink
-                                                        href={DeveloperLinks.PLUGIN_SIGNING}
-                                                        location='plugin_management'
-                                                    >
-                                                        {msg}
-                                                    </ExternalLink>
-                                                ),
-                                            }}
-                                        />
+                                        this.customSignatureKeysEnabled() ? (
+                                            <FormattedMessage
+                                                id='admin.plugins.settings.requirePluginSignatureDescSignedUpload'
+                                                defaultMessage='When true, plugins must be signed and verified against the Mattermost signing key or a configured customer public key. Upload a plugin bundle together with its detached signature (.sig or .asc). See <link>documentation</link> to learn more.'
+                                                values={{
+                                                    link: (msg: React.ReactNode) => (
+                                                        <ExternalLink
+                                                            href={DeveloperLinks.PLUGIN_SIGNING}
+                                                            location='plugin_management'
+                                                        >
+                                                            {msg}
+                                                        </ExternalLink>
+                                                    ),
+                                                }}
+                                            />
+                                        ) : (
+                                            <FormattedMessage
+                                                id='admin.plugins.settings.requirePluginSignatureDesc'
+                                                defaultMessage='When true, uploading plugins is disabled and may only be installed through the Marketplace. Plugins are always verified during Mattermost server startup and initialization. See <link>documentation</link> to learn more.'
+                                                values={{
+                                                    link: (msg: React.ReactNode) => (
+                                                        <ExternalLink
+                                                            href={DeveloperLinks.PLUGIN_SIGNING}
+                                                            location='plugin_management'
+                                                        >
+                                                            {msg}
+                                                        </ExternalLink>
+                                                    ),
+                                                }}
+                                            />
+                                        )
                                     }
                                     value={this.state.requirePluginSignature}
                                     disabled={this.props.isDisabled || !this.state.enable}
                                     onChange={this.handleChange}
                                     setByEnv={this.isSetByEnv('PluginSettings.RequirePluginSignature')}
                                 />
+                                {this.customSignatureKeysEnabled() && this.renderSignaturePublicKeysSetting()}
                                 <BooleanSetting
                                     id='automaticPrepackagedPlugins'
                                     label={<FormattedMessage {...messages.automaticPrepackagedPlugins}/>}
@@ -1368,6 +1584,54 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                                         onChange={this.handleUpload}
                                         disabled={uploadDropzoneDisabled}
                                     />
+                                    {this.signedUploadRequired() && enableUploadButton && !this.props.isDisabled && (
+                                        <div className='PluginManagement__signatureUpload'>
+                                            <p className='help-text'>
+                                                <FormattedMessage
+                                                    id='admin.plugin.upload.signature_help'
+                                                    defaultMessage='Also select the detached OpenPGP signature for the plugin bundle (.sig or .asc). Upload starts when both files are selected.'
+                                                />
+                                            </p>
+                                            {this.state.file && !this.state.signatureFile && (
+                                                <p className='help-text'>
+                                                    <FormattedMessage
+                                                        id='admin.plugin.upload.signature_pending'
+                                                        defaultMessage='Plugin selected: {fileName}. Now choose a signature file.'
+                                                        values={{fileName: this.state.file.name}}
+                                                    />
+                                                </p>
+                                            )}
+                                            <button
+                                                type='button'
+                                                className='btn btn-tertiary'
+                                                onClick={() => this.signatureFileInput.current?.click()}
+                                                disabled={this.state.uploading}
+                                            >
+                                                <FormattedMessage
+                                                    id='admin.plugin.upload.choose_signature'
+                                                    defaultMessage='Choose Signature File'
+                                                />
+                                            </button>
+                                            {this.state.signatureFile && (
+                                                <span className='help-text'>
+                                                    {' '}
+                                                    <FormattedMessage
+                                                        id='admin.plugin.upload.selected_signature'
+                                                        defaultMessage='Selected signature: {fileName}'
+                                                        values={{fileName: this.state.signatureFile.name}}
+                                                    />
+                                                </span>
+                                            )}
+                                            <input
+                                                ref={this.signatureFileInput}
+                                                className='PluginManagement__fileInput'
+                                                type='file'
+                                                accept='.sig,.asc'
+                                                onChange={this.handleSignatureUpload}
+                                                disabled={this.state.uploading}
+                                            />
+                                        </div>
+                                    )}
                                     {serverError}
                                     {lastMessage}
                                 </SettingSet>

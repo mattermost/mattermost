@@ -169,6 +169,11 @@ type FeatureFlags struct {
 	// existing hard-coded Mattermost public key and any admin-configured public keys.
 	EnableMFIPluginSignaturePublicKey bool
 
+	// EnableCustomPluginSignatureKeys gates System Console / API management of customer
+	// plugin signature public keys, and signed console plugin uploads when
+	// RequirePluginSignature is enabled.
+	EnableCustomPluginSignatureKeys bool
+
 	// FEATURE_FLAG_REMOVAL: RecurringScheduledPosts - Remove this when the feature is GA.
 	RecurringScheduledPosts bool
 
@@ -241,6 +246,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.MmBlocksEnabled = true
 
 	f.EnableMFIPluginSignaturePublicKey = true
+
+	f.EnableCustomPluginSignatureKeys = false
 
 	f.RecurringScheduledPosts = false
 

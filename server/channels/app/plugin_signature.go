@@ -35,21 +35,31 @@ func (s *Server) getPublicKey(name string) ([]byte, *model.AppError) {
 
 // AddPublicKey will add plugin public key to the config. Overwrites the previous file
 func (a *App) AddPublicKey(name string, key io.Reader) *model.AppError {
-	if isSamlFile(&a.Config().SamlSettings, name) {
-		return model.NewAppError("AddPublicKey", "app.plugin.modify_saml.app_error", nil, "", http.StatusInternalServerError)
+	filename := filepath.Base(name)
+	if filename == "." || filename == string(filepath.Separator) || filename == "" {
+		return model.NewAppError("AddPublicKey", "app.plugin.add_public_key.invalid_name.app_error", nil, "", http.StatusBadRequest)
+	}
+	if isSamlFile(&a.Config().SamlSettings, filename) {
+		return model.NewAppError("AddPublicKey", "app.plugin.modify_saml.app_error", nil, "", http.StatusBadRequest)
 	}
 	data, err := io.ReadAll(key)
 	if err != nil {
 		return model.NewAppError("AddPublicKey", "app.plugin.write_file.read.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	err = a.Srv().platform.SetConfigFile(name, data)
+	if len(data) == 0 {
+		return model.NewAppError("AddPublicKey", "app.plugin.add_public_key.empty.app_error", nil, "", http.StatusBadRequest)
+	}
+	if err := validatePublicKey(data); err != nil {
+		return model.NewAppError("AddPublicKey", "app.plugin.add_public_key.invalid.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+	err = a.Srv().platform.SetConfigFile(filename, data)
 	if err != nil {
 		return model.NewAppError("AddPublicKey", "app.plugin.write_file.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	a.UpdateConfig(func(cfg *model.Config) {
-		if !slices.Contains(cfg.PluginSettings.SignaturePublicKeyFiles, name) {
-			cfg.PluginSettings.SignaturePublicKeyFiles = append(cfg.PluginSettings.SignaturePublicKeyFiles, name)
+		if !slices.Contains(cfg.PluginSettings.SignaturePublicKeyFiles, filename) {
+			cfg.PluginSettings.SignaturePublicKeyFiles = append(cfg.PluginSettings.SignaturePublicKeyFiles, filename)
 		}
 	})
 
@@ -58,10 +68,10 @@ func (a *App) AddPublicKey(name string, key io.Reader) *model.AppError {
 
 // DeletePublicKey will delete plugin public key from the config.
 func (a *App) DeletePublicKey(name string) *model.AppError {
-	if isSamlFile(&a.Config().SamlSettings, name) {
-		return model.NewAppError("AddPublicKey", "app.plugin.modify_saml.app_error", nil, "", http.StatusInternalServerError)
-	}
 	filename := filepath.Base(name)
+	if isSamlFile(&a.Config().SamlSettings, filename) {
+		return model.NewAppError("DeletePublicKey", "app.plugin.modify_saml.app_error", nil, "", http.StatusBadRequest)
+	}
 	if err := a.Srv().platform.RemoveConfigFile(filename); err != nil {
 		return model.NewAppError("DeletePublicKey", "app.plugin.delete_public_key.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -102,11 +112,11 @@ func (ch *Channels) verifyPlugin(logger *mlog.Logger, plugin, signature io.ReadS
 		}
 		publicKey := bytes.NewReader(pkBytes)
 		if _, err := plugin.Seek(0, io.SeekStart); err != nil {
-			logger.Warn("Unable to seek in public key reader for ", mlog.String("public_key_path", pk))
+			logger.Warn("Unable to seek in plugin reader for configured public key", mlog.String("public_key_path", pk))
 			continue
 		}
 		if _, err := signature.Seek(0, io.SeekStart); err != nil {
-			logger.Warn("Unable to seek in signature for public key ", mlog.String("public_key_path", pk))
+			logger.Warn("Unable to seek in signature for public key", mlog.String("public_key_path", pk))
 			continue
 		}
 		if err := verifySignature(publicKey, plugin, signature); err == nil {
@@ -115,7 +125,18 @@ func (ch *Channels) verifyPlugin(logger *mlog.Logger, plugin, signature io.ReadS
 		}
 	}
 
-	return model.NewAppError("VerifyPlugin", "api.plugin.verify_plugin.app_error", nil, "", http.StatusInternalServerError)
+	return model.NewAppError("VerifyPlugin", "api.plugin.verify_plugin.app_error", nil, "", http.StatusUnauthorized)
+}
+
+func validatePublicKey(data []byte) error {
+	pk, err := decodeIfArmored(bytes.NewReader(data))
+	if err != nil {
+		return errors.Wrap(err, "can't decode public key")
+	}
+	if _, err = openpgp.ReadKeyRing(pk); err != nil {
+		return errors.Wrap(err, "can't read public key")
+	}
+	return nil
 }
 
 func verifySignature(publicKey, message, signature io.Reader) error {

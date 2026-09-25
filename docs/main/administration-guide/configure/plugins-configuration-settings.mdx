@@ -21,7 +21,7 @@ Review and manage the following plugin configuration options in the System Conso
 - [User satisfaction surveys](#user-satisfaction-surveys)
 - [ServiceNow](#servicenow)
 - [Zoom](#zoom)
-- [config.json-only settings](#configjson-only-settings)
+- [Additional plugin settings](#additional-plugin-settings)
 
 <Tip>
 
@@ -75,7 +75,7 @@ Disabling this configuration setting in larger deployments may improve server pe
 </colgroup>
 <tbody>
 <tr>
-<td><ul><li><strong>true</strong>: Enables plugin signature validation for managed and unmanaged plugins.</li><li><strong>false</strong>: <strong>(Default)</strong> Disables plugin signature validation for managed and unmanaged plugins.</li></ul></td>
+<td><ul><li><strong>true</strong>: Enables plugin signature validation for managed and unmanaged plugins. When the <code>EnableCustomPluginSignatureKeys</code> feature flag is enabled, System Console plugin uploads remain available but require a detached signature file verified against the Mattermost signing key or a configured customer public key.</li><li><strong>false</strong>: <strong>(Default)</strong> Disables plugin signature validation for managed and unmanaged plugins.</li></ul></td>
 <td><ul><li>System Config path: <strong>Plugins &gt; Plugin Management</strong></li><li><code>config.json</code> setting: <code>PluginSettings</code> &gt; <code>RequirePluginSignature</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_PLUGINSETTINGS_REQUIREPLUGINSIGNATURE</code></li></ul></td>
 </tr>
 </tbody>
@@ -83,7 +83,7 @@ Disabling this configuration setting in larger deployments may improve server pe
 
 <Note>
 
-\- This setting is applicable to self-hosted deployments only. - From Mattermost server v10.11, pre-packaged plugins require signature validation on startup. Distributions that bundle custom pre-packaged plugins must configure custom public keys via `PluginSettings.SignaturePublicKeyFiles` to validate their signatures. - **Mattermost server v10.10 and earlier**: Pre-packaged plugins are not subject to signature validation. - Plugins installed through the Marketplace are always subject to signature validation at the time of download. - Enabling this configuration will result in [plugin file uploads](#upload-plugin) being disabled in the System Console.
+\- This setting is applicable to self-hosted deployments only. - From Mattermost server v10.11, pre-packaged plugins require signature validation on startup. Distributions that bundle custom pre-packaged plugins must configure custom public keys via `PluginSettings.SignaturePublicKeyFiles` to validate their signatures. - **Mattermost server v10.10 and earlier**: Pre-packaged plugins are not subject to signature validation. - Plugins installed through the Marketplace are always subject to signature validation at the time of download. - When this setting is enabled and the `EnableCustomPluginSignatureKeys` feature flag is off, [plugin file uploads](#upload-plugin) are disabled in the System Console. When the feature flag is on, uploads remain available but require a matching detached signature file.
 
 </Note>
 
@@ -125,7 +125,7 @@ Disabling this configuration setting in larger deployments may improve server pe
 
 <Note>
 
-\- This setting is applicable to self-hosted deployments only. - When plugin uploads are enabled, the error `Received invlaid response from the server` when uploading a plugin file typically indicates that the [MaxFileSize](/administration-guide/configure/environment-configuration-settings#maximum-file-size) configuration setting isn't large enough to support the plugin file upload. Additional proxy setting updateds may also be required. - The ability to upload plugin files is disabled when the [Require plugin signature](#require-plugin-signature) configuration setting is enabled.
+\- This setting is applicable to self-hosted deployments only. - When plugin uploads are enabled, the error `Received invlaid response from the server` when uploading a plugin file typically indicates that the [MaxFileSize](/administration-guide/configure/environment-configuration-settings#maximum-file-size) configuration setting isn't large enough to support the plugin file upload. Additional proxy setting updateds may also be required. - When the [Require plugin signature](#require-plugin-signature) configuration setting is enabled and the `EnableCustomPluginSignatureKeys` feature flag is off, plugin file uploads are disabled. When the feature flag is on, uploads require a detached signature file.
 
 </Note>
 
@@ -1853,15 +1853,13 @@ See the [Connect Zoom to Mattermost](/integrations-guide/zoom) product documenta
 
 ------------------------------------------------------------------------------------------------------------------------
 
-## config.json-only settings
-
-The following self-hosted deployment settings are only configurable in the `config.json` file and are not available in the System Console.
+## Additional plugin settings
 
 ### Signature public key files
 
-This setting isn't available in the System Console and can only be set in `config.json`.
+In addition to the Mattermost plugin signing key built into the server, each public key configured here is trusted to validate plugin signatures.
 
-In addition to the Mattermost plugin signing key built into the server, each public key specified here is trusted to validate plugin signatures.
+When the `EnableCustomPluginSignatureKeys` feature flag is enabled, system admins can add, view, and remove these public keys from **System Console > Plugins > Plugin Management**. Keys can also be configured via `config.json` as described below.
 
 <Important>
 
@@ -1880,7 +1878,7 @@ When bundling custom plugins:
 </colgroup>
 <tbody>
 <tr>
-<td>This feature's <code>config.json</code> setting is <code>"SignaturePublicKeyFiles": &#123;&#125;</code> with string array input consisting of contents that are relative or absolute paths to signature files.</td>
+<td>System Config path: <strong>Plugins &gt; Plugin Management</strong> (when <code>EnableCustomPluginSignatureKeys</code> is enabled).<br/>This feature's <code>config.json</code> setting is <code>"SignaturePublicKeyFiles": []</code> with a string array of public key filenames stored in the Mattermost config directory (or absolute paths to public key files).</td>
 </tr>
 </tbody>
 </table>

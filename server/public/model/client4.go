@@ -6664,14 +6664,19 @@ func (c *Client4) GetChannelsForScheme(ctx context.Context, schemeId string, pag
 
 // UploadPlugin takes an io.Reader stream pointing to the contents of a .tar.gz plugin.
 func (c *Client4) UploadPlugin(ctx context.Context, file io.Reader) (*Manifest, *Response, error) {
-	return c.uploadPlugin(ctx, file, false)
+	return c.uploadPlugin(ctx, file, nil, false)
 }
 
 func (c *Client4) UploadPluginForced(ctx context.Context, file io.Reader) (*Manifest, *Response, error) {
-	return c.uploadPlugin(ctx, file, true)
+	return c.uploadPlugin(ctx, file, nil, true)
 }
 
-func (c *Client4) uploadPlugin(ctx context.Context, file io.Reader, force bool) (*Manifest, *Response, error) {
+// UploadPluginWithSignature uploads a plugin bundle together with a detached OpenPGP signature.
+func (c *Client4) UploadPluginWithSignature(ctx context.Context, file, signature io.Reader, force bool) (*Manifest, *Response, error) {
+	return c.uploadPlugin(ctx, file, signature, force)
+}
+
+func (c *Client4) uploadPlugin(ctx context.Context, file, signature io.Reader, force bool) (*Manifest, *Response, error) {
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)
 
@@ -6691,6 +6696,16 @@ func (c *Client4) uploadPlugin(ctx context.Context, file io.Reader, force bool) 
 		return nil, nil, err
 	}
 
+	if signature != nil {
+		sigPart, sigErr := writer.CreateFormFile("signature", "plugin.tar.gz.sig")
+		if sigErr != nil {
+			return nil, nil, sigErr
+		}
+		if _, err = io.Copy(sigPart, signature); err != nil {
+			return nil, nil, err
+		}
+	}
+
 	if err = writer.Close(); err != nil {
 		return nil, nil, err
 	}
@@ -6701,6 +6716,40 @@ func (c *Client4) uploadPlugin(ctx context.Context, file io.Reader, force bool) 
 	}
 
 	return DecodeJSONFromResponse[*Manifest](r)
+}
+
+// UploadPluginSignaturePublicKey uploads a customer OpenPGP public key used to verify plugin signatures.
+func (c *Client4) UploadPluginSignaturePublicKey(ctx context.Context, data []byte, filename string) (*Response, error) {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	part, err := writer.CreateFormFile("public_key", filename)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
+		return nil, err
+	}
+
+	if err = writer.Close(); err != nil {
+		return nil, err
+	}
+
+	_, resp, err := c.doUploadFile(ctx, c.pluginsRoute().Join("signature", "public_key"), body.Bytes(), writer.FormDataContentType())
+	return resp, err
+}
+
+// DeletePluginSignaturePublicKey removes a previously uploaded customer plugin signature public key.
+func (c *Client4) DeletePluginSignaturePublicKey(ctx context.Context, filename string) (*Response, error) {
+	values := url.Values{}
+	values.Set("filename", filename)
+	r, err := c.doAPIDeleteWithQuery(ctx, c.pluginsRoute().Join("signature", "public_key"), values)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
 }
 
 func (c *Client4) InstallPluginFromURL(ctx context.Context, downloadURL string, force bool) (*Manifest, *Response, error) {

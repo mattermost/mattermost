@@ -810,6 +810,7 @@ const defaultServerConfig: AdminConfig = {
         ClusterGracefulDrain: true,
         ChannelBookmarks: true,
         EnableMFIPluginSignaturePublicKey: true,
+        EnableCustomPluginSignatureKeys: false,
         RecurringScheduledPosts: false,
     },
     ImportSettings: {

@@ -102,6 +102,9 @@ describe('components/PluginManagement', () => {
             getPluginStatuses: jest.fn().mockResolvedValue([]),
             enablePlugin: jest.fn(),
             disablePlugin: jest.fn(),
+            uploadPluginSignaturePublicKey: jest.fn().mockResolvedValue({data: true}),
+            removePluginSignaturePublicKey: jest.fn().mockResolvedValue({data: true}),
+            getConfig: jest.fn().mockResolvedValue({data: {}}),
         },
     };
 
@@ -294,6 +297,9 @@ describe('components/PluginManagement', () => {
                 getPluginStatuses: jest.fn().mockResolvedValue([]),
                 enablePlugin: jest.fn(),
                 disablePlugin: jest.fn(),
+                uploadPluginSignaturePublicKey: jest.fn().mockResolvedValue({data: true}),
+                removePluginSignaturePublicKey: jest.fn().mockResolvedValue({data: true}),
+                getConfig: jest.fn().mockResolvedValue({data: {}}),
             },
         };
         const ref = React.createRef<InstanceType<typeof PluginManagement>>();
@@ -401,6 +407,9 @@ describe('components/PluginManagement', () => {
                 getPluginStatuses: jest.fn().mockResolvedValue([]),
                 enablePlugin: jest.fn(),
                 disablePlugin: jest.fn(),
+                uploadPluginSignaturePublicKey: jest.fn().mockResolvedValue({data: true}),
+                removePluginSignaturePublicKey: jest.fn().mockResolvedValue({data: true}),
+                getConfig: jest.fn().mockResolvedValue({data: {}}),
             },
         };
         const ref = React.createRef<InstanceType<typeof PluginManagement>>();
@@ -467,6 +476,9 @@ describe('components/PluginManagement', () => {
                 getPluginStatuses: jest.fn().mockResolvedValue([]),
                 enablePlugin: jest.fn(),
                 disablePlugin: jest.fn(),
+                uploadPluginSignaturePublicKey: jest.fn().mockResolvedValue({data: true}),
+                removePluginSignaturePublicKey: jest.fn().mockResolvedValue({data: true}),
+                getConfig: jest.fn().mockResolvedValue({data: {}}),
             },
         };
         const ref = React.createRef<InstanceType<typeof PluginManagement>>();
@@ -533,6 +545,9 @@ describe('components/PluginManagement', () => {
                 getPluginStatuses: jest.fn().mockResolvedValue([]),
                 enablePlugin: jest.fn(),
                 disablePlugin: jest.fn(),
+                uploadPluginSignaturePublicKey: jest.fn().mockResolvedValue({data: true}),
+                removePluginSignaturePublicKey: jest.fn().mockResolvedValue({data: true}),
+                getConfig: jest.fn().mockResolvedValue({data: {}}),
             },
         };
         const ref = React.createRef<InstanceType<typeof PluginManagement>>();
@@ -601,6 +616,9 @@ describe('components/PluginManagement', () => {
                 getPluginStatuses: jest.fn().mockResolvedValue([]),
                 enablePlugin: jest.fn(),
                 disablePlugin: jest.fn(),
+                uploadPluginSignaturePublicKey: jest.fn().mockResolvedValue({data: true}),
+                removePluginSignaturePublicKey: jest.fn().mockResolvedValue({data: true}),
+                getConfig: jest.fn().mockResolvedValue({data: {}}),
             },
         };
         const ref = React.createRef<InstanceType<typeof PluginManagement>>();
@@ -766,6 +784,30 @@ describe('components/PluginManagement', () => {
 
         expect(screen.getByRole('button', {name: /Click or drop plugin bundle to upload/})).toBeDisabled();
         expect(screen.getByText('Plugin signatures are required. Install plugins through Marketplace instead.')).toBeInTheDocument();
+    });
+
+    test('lists configured signature public keys and enables signed upload when feature flag is on', () => {
+        const props = {
+            ...defaultProps,
+            config: {
+                ...defaultProps.config,
+                FeatureFlags: {
+                    EnableCustomPluginSignatureKeys: true,
+                },
+                PluginSettings: {
+                    ...defaultProps.config.PluginSettings,
+                    RequirePluginSignature: true,
+                    SignaturePublicKeyFiles: ['development-public-key.asc'],
+                },
+            },
+        };
+        renderWithContext(<PluginManagement {...props}/>);
+
+        expect(screen.getByText('development-public-key.asc')).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Upload Public Key'})).toBeEnabled();
+        expect(screen.getByRole('button', {name: 'Choose Signature File'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: /Click or drop plugin bundle/})).toBeEnabled();
+        expect(screen.queryByText('Plugin signatures are required. Install plugins through Marketplace instead.')).not.toBeInTheDocument();
     });
 
     test('explains why direct upload is disabled when plugin uploads are disabled', () => {
