@@ -153,4 +153,62 @@ export function reviewSystemBlocks(id) {
   ];
 }
 
+export function writerPrompt() {
+  return readFileSync(join(PROMPTS_DIR, 'docs-writer.md'), 'utf8').trim();
+}
+
+// Authoring persona body is a review rubric; the writer prompt reframes it as
+// the audience lens. Same cache prefix (conventions) as reviewers.
+export function authorSystemBlocks(id) {
+  const persona = getPersona(id);
+  return [
+    {type: 'text', text: conventions(), cache_control: {type: 'ephemeral'}},
+    {type: 'text', text: writerPrompt(), cache_control: {type: 'ephemeral'}},
+    {
+      type: 'text',
+      text: `## Audience lens: ${persona.label}\n\nThe brief below describes the reader you write for. Author for them; do not emit review JSON.\n\n${persona.prompt}`,
+      cache_control: {type: 'ephemeral'},
+    },
+  ];
+}
+
+export function neutralAuthorSystemBlocks() {
+  return [
+    {type: 'text', text: conventions(), cache_control: {type: 'ephemeral'}},
+    {type: 'text', text: writerPrompt(), cache_control: {type: 'ephemeral'}},
+    {
+      type: 'text',
+      text: '## Audience lens: general technical writer\n\nNo path-matched authoring persona applied. Write clear operator-facing documentation.',
+      cache_control: {type: 'ephemeral'},
+    },
+  ];
+}
+
+/** Longest matching docs_paths prefix wins among author-scoped personas. */
+export function authorForPath(relPath) {
+  const authors = personasWithScope('author');
+  let best = null;
+  let bestLen = -1;
+  for (const p of authors) {
+    for (const prefix of p.docsPaths) {
+      if ((relPath === prefix || relPath.startsWith(`${prefix}/`)) && prefix.length > bestLen) {
+        best = p;
+        bestLen = prefix.length;
+      }
+    }
+  }
+  return best;
+}
+
+export function groupPathsByAuthor(paths) {
+  const groups = new Map(); // personaId | 'neutral' → paths[]
+  for (const path of paths) {
+    const persona = authorForPath(path);
+    const key = persona?.id ?? 'neutral';
+    if (!groups.has(key)) groups.set(key, {personaId: persona?.id ?? null, paths: []});
+    groups.get(key).paths.push(path);
+  }
+  return [...groups.values()];
+}
+
 export {PERSONAS_DIR, PROMPTS_DIR, REPO_ROOT};

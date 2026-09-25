@@ -1,0 +1,364 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {additionsDiff} from '../lib/diff.mjs';
+import {authorForPath, groupPathsByAuthor} from '../lib/personas.mjs';
+import {
+  assertVersionAnchors,
+  hasVersionAnchor,
+  parseFileBlocks,
+  versionFromMilestone,
+} from './files.mjs';
+import {briefFromGapResult, briefFromPrEvidence, parseGapBrief} from './gap-brief.mjs';
+import {DENY_PREFIXES, extractDocsPaths, isAllowedPath} from './paths.mjs';
+import {sourcePrFrom, assertWriterProvenance} from './sync.mjs';
+import {groupPathAllowlist, missingGroupTargets, normalizeDocsPath, parseMaxRevisions, authorLoop} from './author-loop.mjs';
+import {MARKER, buildComment, decide} from '../gap/gap.mjs';
+
+test('allowlist accepts hand-authored content roots', () => {
+  assert.equal(isAllowedPath('docs/main/administration-guide/foo.mdx'), true);
+  assert.equal(isAllowedPath('docs/develop/contribute/bar.mdx'), true);
+  assert.equal(isAllowedPath('docs/api/examples.mdx'), true);
+  assert.equal(isAllowedPath('docs/api/index.mdx'), true);
+});
+
+test('deny list wins over allow prefixes', () => {
+  for (const prefix of DENY_PREFIXES) {
+    assert.equal(isAllowedPath(`${prefix}x.mdx`), false, prefix);
+  }
+  assert.equal(isAllowedPath('docs/api/reference/users.mdx'), false);
+  assert.equal(isAllowedPath('docs/site/docusaurus.config.js'), false);
+  assert.equal(isAllowedPath('../etc/passwd'), false);
+});
+
+test('extractDocsPaths pulls exact content paths from prose', () => {
+  const text =
+    'Update docs/main/administration-guide/configure/x.mdx and docs/api/examples.mdx; ignore docs/site/foo.';
+  assert.deepEqual(extractDocsPaths(text).sort(), [
+    'docs/api/examples.mdx',
+    'docs/main/administration-guide/configure/x.mdx',
+  ]);
+});
+
+test('versionFromMilestone reads vMAJOR.MINOR', () => {
+  assert.equal(versionFromMilestone('v11.7.0'), 'v11.7');
+  assert.equal(versionFromMilestone('Mattermost v10.12'), 'v10.12');
+  assert.equal(versionFromMilestone('no version here'), null);
+});
+
+test('hasVersionAnchor accepts the convention or the framed human marker', () => {
+  assert.equal(hasVersionAnchor('From Mattermost v11.7, users can…'), true);
+  assert.equal(
+    hasVersionAnchor('From Mattermost [NOT PRESENT — REQUIRES HUMAN JUDGMENT], users can…'),
+    true,
+  );
+  assert.equal(hasVersionAnchor('See [NOT PRESENT — REQUIRES HUMAN JUDGMENT].'), false);
+  assert.equal(hasVersionAnchor('No version at all.'), false);
+});
+
+test('hasVersionAnchor requires the milestone version when supplied', () => {
+  assert.equal(hasVersionAnchor('From Mattermost v9.5, legacy…', 'v11.7'), false);
+  assert.equal(hasVersionAnchor('From Mattermost v11.7, new…', 'v11.7'), true);
+  assert.equal(
+    hasVersionAnchor('From Mattermost [NOT PRESENT — REQUIRES HUMAN JUDGMENT]', 'v11.7'),
+    true,
+  );
+  assert.equal(hasVersionAnchor('[NOT PRESENT — REQUIRES HUMAN JUDGMENT]', 'v11.7'), false);
+});
+
+test('assertVersionAnchors rejects capability pages without an anchor', () => {
+  assert.throws(
+    () =>
+      assertVersionAnchors(
+        [{path: 'docs/main/x.mdx', content: '---\ntitle: X\n---\n\nHello.\n'}],
+        {milestoneVersion: 'v11.7'},
+      ),
+    /missing version anchor/,
+  );
+});
+
+test('assertVersionAnchors rejects a stale anchor that is not the milestone', () => {
+  assert.throws(
+    () =>
+      assertVersionAnchors(
+        [{path: 'docs/main/x.mdx', content: '---\ntitle: X\n---\n\nFrom Mattermost v9.5, …\n'}],
+        {milestoneVersion: 'v11.7'},
+      ),
+    /missing version anchor/,
+  );
+});
+
+test('parseFileBlocks reads path= fences', () => {
+  const text = [
+    '```mdx path=docs/main/end-user-guide/a.mdx',
+    '---',
+    'title: A',
+    '---',
+    '',
+    'From Mattermost v11.7, a.',
+    '```',
+    '',
+    '```mdx path=docs/main/administration-guide/b.mdx',
+    '---',
+    'title: B',
+    '---',
+    '',
+    'From Mattermost v11.7, b.',
+    '```',
+  ].join('\n');
+  const files = parseFileBlocks(text);
+  assert.equal(files.length, 2);
+  assert.equal(files[0].path, 'docs/main/end-user-guide/a.mdx');
+  assert.match(files[1].content, /title: B/);
+});
+
+test('parseFileBlocks preserves nested three-backtick samples inside a longer fence', () => {
+  const text = [
+    '````mdx path=docs/main/administration-guide/example.mdx',
+    '---',
+    'title: Example',
+    '---',
+    '',
+    'From Mattermost v11.7, run:',
+    '',
+    '```bash',
+    'mmctl config get ServiceSettings.SiteURL',
+    '```',
+    '',
+    'Done.',
+    '````',
+  ].join('\n');
+  const files = parseFileBlocks(text);
+  assert.equal(files.length, 1);
+  assert.equal(files[0].path, 'docs/main/administration-guide/example.mdx');
+  assert.match(files[0].content, /```bash/);
+  assert.match(files[0].content, /mmctl config get/);
+  assert.match(files[0].content, /Done\./);
+});
+
+test('additionsDiff synthesises a reviewable unified diff', () => {
+  const diff = additionsDiff([
+    {path: 'docs/main/x.mdx', content: '---\ntitle: X\n---\n\nBody\n'},
+  ]);
+  assert.match(diff, /diff --git a\/docs\/main\/x\.mdx/);
+  assert.match(diff, /\+---/);
+  assert.match(diff, /\+Body/);
+});
+
+test('authorForPath matches an exact docs_paths prefix and paths under it', () => {
+  assert.equal(authorForPath('docs/main/administration-guide')?.id, 'system-admin');
+  assert.equal(authorForPath('docs/main/administration-guide/configure/x.mdx')?.id, 'system-admin');
+  assert.equal(authorForPath('docs/main/end-user-guide/collaborate/y.mdx')?.id, 'end-user');
+  assert.equal(authorForPath('docs/develop/api/foo.mdx')?.id, 'developer-dx');
+});
+
+test('authorForPath prefers the longest matching docs_paths prefix', () => {
+  // security-compliance owns administration-guide/comply; system-admin owns administration-guide.
+  assert.equal(
+    authorForPath('docs/main/administration-guide/comply/compliance-export.mdx')?.id,
+    'security-compliance',
+  );
+  assert.equal(
+    authorForPath('docs/main/administration-guide/onboard/ad-ldap.mdx')?.id,
+    'security-compliance',
+  );
+});
+
+test('authorForPath returns null when nothing matches', () => {
+  assert.equal(authorForPath('docs/main/unknown-section/x.mdx'), null);
+  assert.equal(authorForPath('server/channels/app/foo.go'), null);
+});
+
+test('groupPathsByAuthor batches by persona and keeps unmatched paths neutral', () => {
+  const groups = groupPathsByAuthor([
+    'docs/main/administration-guide/a.mdx',
+    'docs/main/deployment-guide/b.mdx',
+    'docs/main/end-user-guide/c.mdx',
+    'docs/main/orphan/page.mdx',
+  ]);
+  const byId = Object.fromEntries(groups.map((g) => [g.personaId, g.paths]));
+  assert.deepEqual(byId['system-admin'], [
+    'docs/main/administration-guide/a.mdx',
+    'docs/main/deployment-guide/b.mdx',
+  ]);
+  assert.deepEqual(byId['end-user'], ['docs/main/end-user-guide/c.mdx']);
+  assert.deepEqual(byId[null], ['docs/main/orphan/page.mdx']);
+});
+
+test('parseGapBrief recovers actions and paths from a sticky comment', () => {
+  const comment = buildComment({
+    result: {
+      assessment: 'required',
+      summary: 'Adds EnableFoo.',
+      confidence: 'high',
+      impacts: [
+        {
+          change: 'Config',
+          files: 'config.go',
+          audiences: 'Admin',
+          action: 'Document',
+          docsLocation: 'docs/main/administration-guide/configure/foo.mdx',
+        },
+      ],
+      actions: ['Document EnableFoo in docs/main/administration-guide/configure/foo.mdx'],
+    },
+    decision: decide({assessment: 'required', labels: [], priorState: null}),
+    sha: 'abc1234',
+    runUrl: 'https://example.test/run',
+  });
+
+  assert.match(comment, new RegExp(MARKER));
+  const brief = parseGapBrief(comment);
+  assert.equal(brief.assessment, 'required');
+  assert.equal(brief.actions.length, 1);
+  assert.ok(brief.targetPaths.includes('docs/main/administration-guide/configure/foo.mdx'));
+  assert.match(brief.summary, /EnableFoo/);
+});
+
+test('briefFromGapResult uses impact docs_location', () => {
+  const brief = briefFromGapResult({
+    assessment: 'recommended',
+    summary: 's',
+    actions: [],
+    impacts: [{docs_location: 'docs/main/security-guide/x.mdx'}],
+  });
+  assert.deepEqual(brief.targetPaths, ['docs/main/security-guide/x.mdx']);
+});
+
+test('briefFromGapResult drops directory, denied, and non-string impact locations', () => {
+  const brief = briefFromGapResult({
+    assessment: 'required',
+    summary: 's',
+    actions: [],
+    impacts: [
+      {docs_location: 'docs/main/administration-guide/'},
+      {docs_location: 'docs/site/foo.mdx'},
+      {docs_location: 'docs/api/reference/openapi.mdx'},
+      {docsLocation: 42},
+      {docs_location: '  ./docs/main/administration-guide/configure/foo.mdx  '},
+      {docs_location: null},
+    ],
+  });
+  assert.deepEqual(brief.targetPaths, ['docs/main/administration-guide/configure/foo.mdx']);
+});
+
+test('parseMaxRevisions accepts non-negative integers and rejects malformed values', () => {
+  assert.equal(parseMaxRevisions(undefined), 2);
+  assert.equal(parseMaxRevisions(''), 2);
+  assert.equal(parseMaxRevisions('two'), 2);
+  assert.equal(parseMaxRevisions('2.5'), 2);
+  assert.equal(parseMaxRevisions('2abc'), 2);
+  assert.equal(parseMaxRevisions('0'), 0);
+  assert.equal(parseMaxRevisions('3'), 3);
+  assert.equal(parseMaxRevisions('-1'), 2);
+  assert.equal(parseMaxRevisions(null, 5), 5);
+});
+
+test('briefFromPrEvidence drafts from title/body when no sticky exists', () => {
+  const brief = briefFromPrEvidence({
+    prTitle: 'Add EnableFoo',
+    prBody: 'See docs/main/administration-guide/configure/foo.mdx',
+  });
+  assert.equal(brief.assessment, 'required');
+  assert.equal(brief.actions.length, 1);
+  assert.ok(brief.targetPaths.includes('docs/main/administration-guide/configure/foo.mdx'));
+  assert.match(brief.summary, /EnableFoo/);
+});
+
+test('sourcePrFrom reads branch and body marker', () => {
+  assert.equal(sourcePrFrom({headRef: 'docs/pr-38177'}), '38177');
+  assert.equal(sourcePrFrom({body: '<!-- docs-ai-source-pr:99 -->\nhello'}), '99');
+  assert.equal(sourcePrFrom({explicit: '12', headRef: 'docs/pr-99'}), '12');
+  assert.equal(sourcePrFrom({headRef: 'feature/x'}), null);
+});
+
+test('assertWriterProvenance requires same-repo head and exact bot author', () => {
+  assert.throws(
+    () => assertWriterProvenance({repo: 'o/r', headRepo: 'fork/r', prUser: 'bot[bot]', botLogin: 'bot[bot]'}),
+    /head repo/,
+  );
+  assert.throws(
+    () => assertWriterProvenance({repo: 'o/r', headRepo: 'o/r', prUser: 'human', botLogin: 'bot[bot]'}),
+    /PR author/,
+  );
+  assert.throws(
+    () => assertWriterProvenance({repo: 'o/r', headRepo: 'o/r', prUser: 'bot[bot]', botLogin: ''}),
+    /DOCS_AI_BOT_LOGIN/,
+  );
+  assert.doesNotThrow(() =>
+    assertWriterProvenance({repo: 'o/r', headRepo: 'o/r', prUser: 'bot[bot]', botLogin: 'bot[bot]'}),
+  );
+});
+
+test('groupPathAllowlist keeps only concrete docs/ targets', () => {
+  const allow = groupPathAllowlist([
+    'docs/main/administration-guide/a.mdx',
+    './docs/main/b.mdx/',
+    '(unspecified — derive from the gap brief)',
+  ]);
+  assert.equal(allow.size, 2);
+  assert.ok(allow.has('docs/main/administration-guide/a.mdx'));
+  assert.ok(allow.has('docs/main/b.mdx'));
+  assert.equal(normalizeDocsPath('./docs/main/x.mdx'), 'docs/main/x.mdx');
+});
+
+test('missingGroupTargets requires every concrete target to be authored', () => {
+  const targets = [
+    'docs/main/administration-guide/a.mdx',
+    'docs/main/administration-guide/b.mdx',
+  ];
+  assert.deepEqual(
+    missingGroupTargets([{path: 'docs/main/administration-guide/a.mdx', content: 'x'}], targets),
+    ['docs/main/administration-guide/b.mdx'],
+  );
+  assert.deepEqual(
+    missingGroupTargets(
+      [
+        {path: 'docs/main/administration-guide/a.mdx', content: 'x'},
+        {path: 'docs/main/administration-guide/b.mdx', content: 'y'},
+      ],
+      targets,
+    ),
+    [],
+  );
+  assert.deepEqual(missingGroupTargets([{path: 'docs/main/a.mdx', content: 'x'}], ['(unspecified)']), []);
+});
+
+test('authorLoop keeps prior files when a revision drops the version anchor', async () => {
+  const path = 'docs/main/administration-guide/configure/foo.mdx';
+  const fileBlock = (body) =>
+    ['````mdx path=' + path, '---', 'title: Foo', '---', '', body, '````'].join('\n');
+
+  let authorCalls = 0;
+  const completeFn = async ({userPrompt}) => {
+    const prompt = String(userPrompt || '');
+    if (prompt.includes('Which reviewers apply?')) {
+      return {text: '{"personas": ["system-admin"]}', usage: {}};
+    }
+    if (prompt.includes('Review the diff above')) {
+      return {
+        text: JSON.stringify({
+          verdict: 'REQUEST_CHANGES',
+          summary: 'Needs a clearer lead.',
+          feedback: ['Clarify the lead sentence.'],
+        }),
+        usage: {},
+      };
+    }
+    authorCalls += 1;
+    if (prompt.includes('Revise the pages')) {
+      return {text: fileBlock('Foo is available.'), usage: {}};
+    }
+    return {text: fileBlock('From Mattermost v11.7, Foo is available.'), usage: {}};
+  };
+
+  const {files, trail} = await authorLoop({
+    brief: {summary: 's', actions: [], targetPaths: [path]},
+    input: {milestoneVersion: 'v11.7', milestoneTitle: 'v11.7.0', prTitle: 'Add Foo'},
+    completeFn,
+  });
+
+  assert.equal(authorCalls, 2);
+  assert.equal(files.length, 1);
+  assert.match(files[0].content, /From Mattermost v11\.7/);
+  assert.ok(trail.openConcerns.some((c) => /Revision rejected/.test(c.summary)));
+});

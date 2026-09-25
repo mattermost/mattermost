@@ -1,0 +1,292 @@
+name: Docs Writer (Merged PR)
+
+# When a PR merges still carrying Docs/Needed, draft the missing pages in this
+# repo from the gap sticky comment, then open a draft PR. Closing that draft
+# flips Docs/Needed → Docs/Done on the originating PR.
+#
+# Requires DOCS_AI_APP_CLIENT_ID (variable) + DOCS_AI_APP_PRIVATE_KEY (secret)
+# so the opened PR triggers docs-review.yml (GITHUB_TOKEN PRs do not).
+#
+# Fork merges soft-skip: pull_request from a fork gets no secrets (same posture
+# as docs-gap.yml). Re-run via workflow_dispatch after merge if needed. Do not
+# switch this to pull_request_target — the sync job must not run on forged
+# fork heads named docs/pr-*.
+
+on:
+  pull_request:
+    types: [closed]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Merged PR number that still carries Docs/Needed
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: >-
+    docs-writer-${{ github.event.pull_request.number || inputs.pr_number || github.event.pull_request.head.ref }}
+  cancel-in-progress: false
+
+jobs:
+  draft:
+    name: Draft docs PR
+    runs-on: ubuntu-24.04
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.merged == true &&
+       contains(github.event.pull_request.labels.*.name, 'Docs/Needed') &&
+       !startsWith(github.event.pull_request.head.ref, 'docs/pr-'))
+    env:
+      HAS_ANTHROPIC_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+      HAS_DOCS_AI_APP: ${{ vars.DOCS_AI_APP_CLIENT_ID != '' && secrets.DOCS_AI_APP_PRIVATE_KEY != '' }}
+    steps:
+      - name: Soft-skip when secrets are unset
+        id: gate
+        run: |
+          set -euo pipefail
+          if [ "$HAS_ANTHROPIC_KEY" != "true" ]; then
+            echo "::warning::ANTHROPIC_API_KEY unset; skipping docs writer."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          elif [ "$HAS_DOCS_AI_APP" != "true" ]; then
+            echo "::warning::DOCS_AI_APP credentials unset; skipping docs writer."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Generate App token
+        if: steps.gate.outputs.run == 'true'
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.DOCS_AI_APP_CLIENT_ID }}
+          private-key: ${{ secrets.DOCS_AI_APP_PRIVATE_KEY }}
+          repositories: mattermost
+          # Narrow below the App installation grant (cannot exceed it).
+          permission-contents: write
+          permission-pull-requests: write
+          permission-issues: write
+
+      - name: Checkout
+        if: steps.gate.outputs.run == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: master
+          token: ${{ steps.app-token.outputs.token }}
+          fetch-depth: 0
+
+      - name: Resolve source PR
+        if: steps.gate.outputs.run == 'true'
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_PR: ${{ inputs.pr_number }}
+          EVENT_PR: ${{ github.event.pull_request.number }}
+          EVENT_TITLE: ${{ github.event.pull_request.title }}
+          EVENT_AUTHOR: ${{ github.event.pull_request.user.login }}
+          EVENT_MILESTONE_TITLE: ${{ github.event.pull_request.milestone.title }}
+          EVENT_MILESTONE_NUMBER: ${{ github.event.pull_request.milestone.number }}
+        run: |
+          set -euo pipefail
+          mkdir -p .docs-ai/writer
+
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            DATA=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${INPUT_PR}")
+            PR_NUMBER="$INPUT_PR"
+            TITLE=$(echo "$DATA" | jq -r '.title')
+            AUTHOR=$(echo "$DATA" | jq -r '.user.login')
+            MILESTONE_TITLE=$(echo "$DATA" | jq -r '.milestone.title // ""')
+            MILESTONE_NUMBER=$(echo "$DATA" | jq -r '.milestone.number // ""')
+            MERGED=$(echo "$DATA" | jq -r '.merged')
+            LABELS=$(echo "$DATA" | jq -r '[.labels[].name] | join(",")')
+            if [ "$MERGED" != "true" ]; then
+              echo "::error::PR #${PR_NUMBER} is not merged."
+              exit 1
+            fi
+            if [[ ",$LABELS," != *",Docs/Needed,"* ]]; then
+              echo "::error::PR #${PR_NUMBER} does not carry Docs/Needed."
+              exit 1
+            fi
+          else
+            PR_NUMBER="$EVENT_PR"
+            TITLE="$EVENT_TITLE"
+            AUTHOR="$EVENT_AUTHOR"
+            MILESTONE_TITLE="$EVENT_MILESTONE_TITLE"
+            MILESTONE_NUMBER="$EVENT_MILESTONE_NUMBER"
+          fi
+
+          if [ -z "$MILESTONE_NUMBER" ] || [ "$MILESTONE_NUMBER" = "null" ]; then
+            echo "::error title=Missing milestone::Set a milestone on #${PR_NUMBER} before Docs/Needed can draft pages (version anchor source)."
+            exit 1
+          fi
+
+          printf '%s' "$TITLE" > .docs-ai/writer/pr-title.txt
+          gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '.body // ""' \
+            > .docs-ai/writer/pr-body.txt
+
+          {
+            echo "pr_number=${PR_NUMBER}"
+            echo "pr_author=${AUTHOR}"
+            echo "milestone_title=${MILESTONE_TITLE}"
+            echo "branch=docs/pr-${PR_NUMBER}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Collect merged code diff
+        if: steps.gate.outputs.run == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+        run: |
+          set -euo pipefail
+          # Cap so an unbounded monorepo diff cannot overwhelm the prompt.
+          gh pr diff "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" 2>/dev/null \
+            | head -c 80000 > .docs-ai/writer/code.diff || true
+
+      - name: Set up Node
+        if: steps.gate.outputs.run == 'true'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: .github/scripts/docs-ai/package-lock.json
+
+      - name: Install dependencies
+        if: steps.gate.outputs.run == 'true'
+        working-directory: .github/scripts/docs-ai
+        run: npm ci --ignore-scripts
+
+      - name: Validate persona registry
+        if: steps.gate.outputs.run == 'true'
+        working-directory: .github/scripts/docs-ai
+        run: npm test
+
+      - name: Author docs
+        if: steps.gate.outputs.run == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+          MILESTONE_TITLE: ${{ steps.pr.outputs.milestone_title }}
+          PR_BODY_FILE: .docs-ai/writer/pr-body.txt
+          CODE_DIFF_FILE: .docs-ai/writer/code.diff
+          DOCS_AI_WRITER_MODEL: ${{ vars.DOCS_AI_WRITER_MODEL }}
+          DOCS_AI_REVIEW_MODEL: ${{ vars.DOCS_AI_REVIEW_MODEL }}
+          DOCS_AI_ROUTER_MODEL: ${{ vars.DOCS_AI_ROUTER_MODEL }}
+          DOCS_AI_MAX_REVISIONS: ${{ vars.DOCS_AI_MAX_REVISIONS }}
+          REPO_ROOT: ${{ github.workspace }}
+        run: |
+          set -euo pipefail
+          PR_TITLE=$(cat .docs-ai/writer/pr-title.txt)
+          export PR_TITLE
+          node .github/scripts/docs-ai/writer/run.mjs
+
+      - name: Configure git identity
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          git config user.name "${{ vars.DOCS_AI_GIT_USERNAME || 'mattermost-docs-ai[bot]' }}"
+          git config user.email "${{ vars.DOCS_AI_GIT_EMAIL || '41898282+github-actions[bot]@users.noreply.github.com' }}"
+
+      - name: Commit and push
+        if: steps.gate.outputs.run == 'true'
+        id: push
+        env:
+          BRANCH: ${{ steps.pr.outputs.branch }}
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          set -euo pipefail
+          git checkout -B "$BRANCH"
+          git add docs/main docs/develop docs/api/examples.mdx docs/api/index.mdx 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "::error::Writer produced no file changes."
+            exit 1
+          fi
+          printf 'docs: AI draft for #%s\n' "$PR_NUMBER" | git commit -F -
+          if git ls-remote --exit-code origin "refs/heads/${BRANCH}" >/dev/null 2>&1; then
+            git push origin "HEAD:refs/heads/${BRANCH}" --force-with-lease
+          else
+            git push -u origin "HEAD:refs/heads/${BRANCH}"
+          fi
+
+      - name: Open or update draft PR
+        if: steps.gate.outputs.run == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          BRANCH: ${{ steps.pr.outputs.branch }}
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+          PR_AUTHOR: ${{ steps.pr.outputs.pr_author }}
+        run: |
+          set -euo pipefail
+          EXISTING=$(gh pr list --head "$BRANCH" --state open --json number,url --jq 'first // empty')
+          TITLE="docs: AI draft for #${PR_NUMBER}"
+
+          if [ -n "$EXISTING" ]; then
+            NUM=$(echo "$EXISTING" | jq -r .number)
+            URL=$(echo "$EXISTING" | jq -r .url)
+            gh pr edit "$NUM" --body-file .docs-ai/writer/pr-body.md
+          else
+            URL=$(gh pr create \
+              --base master \
+              --head "$BRANCH" \
+              --title "$TITLE" \
+              --body-file .docs-ai/writer/pr-body.md \
+              --draft)
+            NUM=$(gh pr view "$BRANCH" --json number --jq .number)
+            gh pr edit "$NUM" --add-reviewer "$PR_AUTHOR" || true
+          fi
+
+          {
+            echo "## Docs writer"
+            echo ""
+            echo "Draft PR: ${URL}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Comment on source PR
+        if: steps.gate.outputs.run == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+          BRANCH: ${{ steps.pr.outputs.branch }}
+        run: |
+          set -euo pipefail
+          URL=$(gh pr view "$BRANCH" --json url --jq .url)
+          gh pr comment "$PR_NUMBER" --body "Draft documentation PR opened: ${URL}"
+
+  sync:
+    name: Mark Docs/Done
+    runs-on: ubuntu-24.04
+    if: |
+      github.event_name == 'pull_request' &&
+      github.event.action == 'closed' &&
+      startsWith(github.event.pull_request.head.ref, 'docs/pr-')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+
+      - name: Sync labels on source PR
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Provenance: trusted event fields only (not branch/body/label).
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          PR_USER: ${{ github.event.pull_request.user.login }}
+          DOCS_AI_BOT_LOGIN: ${{ vars.DOCS_AI_BOT_LOGIN }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          mkdir -p .docs-ai/writer
+          gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq '.body // ""' \
+            > .docs-ai/writer/sync-body.txt
+          PR_BODY_FILE=.docs-ai/writer/sync-body.txt node .github/scripts/docs-ai/writer/sync.mjs

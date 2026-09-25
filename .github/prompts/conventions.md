@@ -14,8 +14,9 @@ to, in this form:
 
 **Authoring.** Never invent a version or infer one from a branch name or date; a wrong
 version is worse than none, because readers believe it. Take it from the PR or issue
-milestone. With no milestone, write `[NOT PRESENT — REQUIRES HUMAN JUDGMENT]` and leave
-it for a human.
+milestone. With no milestone, write `From Mattermost [NOT PRESENT — REQUIRES HUMAN JUDGMENT]`
+and leave it for a human — keep the "From Mattermost …" frame so readers see a version
+is missing.
 
 **Reviewing.** Check the anchor, never supply one.
 
@@ -23,8 +24,9 @@ it for a human.
   knows when their own work ships and you do not.
 - Present — accept it. You have no release schedule to check it against, so a version is
   not suspect merely because you cannot verify it.
-- `[NOT PRESENT — REQUIRES HUMAN JUDGMENT]` still in the content — always a finding, and
-  one only a human can clear. Report it; never try to resolve it by supplying a version.
+- `From Mattermost [NOT PRESENT — REQUIRES HUMAN JUDGMENT]` still in the content — always
+  a finding, and one only a human can clear. Report it; never try to resolve it by
+  supplying a version.
 
 ## Frontmatter
 
