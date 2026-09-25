@@ -2353,6 +2353,10 @@
     "translation": "Unable to create emoji. Image must be smaller than {{.MaxWidth}} by {{.MaxHeight}}."
   },
   {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "Unable to create emoji. The image is too large to process. Try using one with smaller dimensions or fewer frames."
+  },
+  {
     "id": "api.emoji.upload.open.app_error",
     "translation": "Unable to create the emoji. An error occurred when trying to open the attached image."
   },

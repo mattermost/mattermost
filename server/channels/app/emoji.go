@@ -151,26 +151,40 @@ func (a *App) uploadEmojiImage(rctx request.CTX, id string, filename string, fil
 	// Create a buffer for the resized image
 	buf := &bytes.Buffer{}
 
+	// Resizing goes through the shared decoder so the work it takes to turn the
+	// source into an emoji is accounted for the same way as for other
+	// user-uploaded images. The decoded data is released as soon as the result
+	// is encoded, so it is not held for the duration of the upload.
 	if isGIF {
-		g, err := gif.DecodeAll(file)
+		g, release, err := a.ch.imgDecoder.DecodeAllGIF(file)
 		if err != nil {
+			if errors.Is(err, imaging.ErrResolutionLimit) {
+				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.too_large_to_process.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			}
 			return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.gif_decode_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
+		defer release()
 
 		resizeEmojiGif(g)
 		if err := gif.EncodeAll(buf, g); err != nil {
 			return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.gif_encode_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
+		release()
 	} else {
-		img, _, err := image.Decode(file)
+		img, _, release, err := a.ch.imgDecoder.DecodeMemBounded(file)
 		if err != nil {
+			if errors.Is(err, imaging.ErrResolutionLimit) {
+				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.too_large_to_process.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			}
 			return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.decode_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
+		defer release()
 
 		resizedImg := resizeEmoji(img, config.Width, config.Height)
 		if err := a.ch.imgEncoder.EncodePNG(buf, resizedImg); err != nil {
 			return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.encode_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
+		release()
 	}
 
 	_, appErr := a.WriteFile(buf, getEmojiImagePath(id))
