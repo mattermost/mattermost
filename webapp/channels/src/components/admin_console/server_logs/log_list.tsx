@@ -285,7 +285,6 @@ export default class LogList extends React.PureComponent<Props, State> {
             <Button
                 emphasis='tertiary'
                 size='sm'
-                className='ml-2'
                 onClick={this.showErrors}
             >
                 <FormattedMessage

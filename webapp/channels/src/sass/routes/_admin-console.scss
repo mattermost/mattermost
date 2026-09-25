@@ -95,10 +95,6 @@
         }
     }
 
-    .admin-console__content {
-        max-width: 920px;
-    }
-
     .admin-console__checkbox-list {
         padding: 0;
         margin: 0;
@@ -343,7 +339,6 @@
     .banner {
         padding: 0.8em 1.5rem;
         border: variables.$border-gray;
-        margin: 4px 0 2em;
         background: variables.$white;
         font-size: 0.95em;
 
@@ -382,6 +377,10 @@
             background: #fcf8e3;
             color: #8a6d3b;
         }
+    }
+
+    .banner.info {
+        margin-bottom: 1em;
     }
 
     .popover {
@@ -1193,11 +1192,6 @@
     max-width: none;
     height: 100%;
     flex-direction: column;
-
-    // We keep the banner the same width and only expand the content box.
-    .banner {
-        max-width: 920px;
-    }
 
     .banner-buttons {
         display: flex;
