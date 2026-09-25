@@ -194,7 +194,7 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
                 })
                 .toEqual([optionId(caveats, 'NOFORN'), optionId(caveats, 'ORCON')]);
 
-            // # Remove the first one from the still-open editor
+            // # Remove the first one from its chip in the trigger
             await info.attributes.deselect(caveats.name, 'NOFORN');
 
             // * Only the remaining option survives, and the header agrees
@@ -512,6 +512,62 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
             // * The unset optional attribute has no row, and there is no way to add one
             await expect(info.attributes.row(optional.name)).toHaveCount(0);
             await expect(info.attributes.addButton).toHaveCount(0);
+        } finally {
+            await deleteAttributes(adminClient, created);
+        }
+    });
+
+    /**
+     * @objective Verify a single-select value offers no clear control beside its chip, and
+     * is cleared from the option menu instead.
+     */
+    test('clears a single-select value from its menu rather than a control beside the chip', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+
+        const {adminClient, team} = await pw.initSetup();
+        const suffix = pw.random.id();
+        const created: PropertyField[] = [];
+
+        try {
+            await purgeAttributes(adminClient);
+
+            const marking = await createAttribute(adminClient, attributeName('single_clear', suffix), {
+                options: ['SECRET', 'PUBLIC'],
+                actions: [DISPLAY_LABEL_INFO],
+            });
+            created.push(marking);
+
+            const channel = await createChannelForAttributes(adminClient, team, `edit-clear-${suffix}`);
+            const channelAdmin = await promoteToChannelAdmin(
+                pw,
+                adminClient,
+                team,
+                channel.id,
+                `chanadmin-clear-${suffix}`,
+            );
+            await setChannelValue(adminClient, channel.id, marking, optionId(marking, 'SECRET'));
+
+            const {channelsPage} = await pw.testBrowser.login(channelAdmin);
+            await channelsPage.goto(team.name, channel.name);
+            await channelsPage.toBeVisible();
+
+            const info = await channelsPage.openChannelInfo();
+            await expect(info.attributes.chip(marking.name)).toHaveText('SECRET');
+
+            // * Nothing but the value's own trigger sits in the row
+            await expect(info.attributes.row(marking.name).getByRole('button', {name: /^Clear /})).toHaveCount(0);
+
+            // # Clear it from the option menu
+            await info.attributes.startEditing(marking.name);
+            await channelsPage.page.getByRole('menuitem', {name: /^Clear /}).click();
+
+            // * The value is gone from the store
+            await expect
+                .poll(async () => {
+                    return valueFor(await readChannelValues(adminClient, channel.id), marking) ?? null;
+                })
+                .toBeNull();
         } finally {
             await deleteAttributes(adminClient, created);
         }

@@ -47,25 +47,4 @@
         text-overflow: ellipsis;
         white-space: nowrap;
     }
-
-    &__remove {
-        display: inline-flex;
-        width: 14px;
-        height: 14px;
-        flex-shrink: 0;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        border: none;
-        background: transparent;
-        color: inherit;
-        cursor: pointer;
-        line-height: 0;
-        opacity: 0.56;
-
-        &:hover,
-        &:focus-visible {
-            opacity: 1;
-        }
-    }
 }

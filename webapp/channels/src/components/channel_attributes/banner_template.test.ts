@@ -8,6 +8,8 @@ import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities
 import {
     attributeToken,
     hasAttributeTokens,
+    insertToken,
+    isBlankTemplate,
     referencedFieldNames,
     renderBannerTemplate,
     tokenSuggestions,
@@ -44,6 +46,10 @@ describe('renderBannerTemplate', () => {
         expect(renderBannerTemplate('{{classification}} · {{program}}', attributes)).toBe('TOP SECRET · AURORA');
     });
 
+    test('collapses a template that is nothing but separator residue', () => {
+        expect(renderBannerTemplate(' · ', [])).toBe('');
+    });
+
     test('preserves surrounding literal text and markdown', () => {
         expect(renderBannerTemplate('**{{classification}}** — handle with care', [attribute('classification', 'SECRET')])).
             toBe('**SECRET** — handle with care');
@@ -55,6 +61,19 @@ describe('renderBannerTemplate', () => {
 
     test('repeats an attribute referenced twice', () => {
         expect(renderBannerTemplate('{{program}} / {{program}}', [attribute('program', 'AURORA')])).toBe('AURORA / AURORA');
+    });
+
+    test('preserves authored punctuation and URLs when tokens resolve', () => {
+        expect(renderBannerTemplate('https://example.com/{{program}}?ref=1 // Note.. {{classification}}', [
+            attribute('program', 'aurora'),
+            attribute('classification', 'SECRET'),
+        ])).toBe('https://example.com/aurora?ref=1 // Note.. SECRET');
+    });
+
+    test('does not tidy unrelated punctuation when another token collapses', () => {
+        expect(renderBannerTemplate('https://example.com/a//b?ref=1 · {{missing}} · {{program}}', [
+            attribute('program', 'AURORA'),
+        ])).toBe('https://example.com/a//b?ref=1 · AURORA');
     });
 
     // The regression that matters: everything written before this feature existed
@@ -90,6 +109,49 @@ describe('renderBannerTemplate', () => {
             const attributes = [attribute('a', 'ONE'), attribute('b', ''), attribute('c', 'THREE')];
             expect(renderBannerTemplate('{{a}} · {{b}} · {{c}}', attributes)).toBe('ONE · THREE');
         });
+
+        test('cleans up ., /, and ? separators the same way', () => {
+            expect(renderBannerTemplate('{{gone}} . {{program}}', [attribute('program', 'AURORA')])).toBe('AURORA');
+            expect(renderBannerTemplate('{{gone}} / {{program}}', [attribute('program', 'AURORA')])).toBe('AURORA');
+            expect(renderBannerTemplate('{{gone}} ? {{program}}', [attribute('program', 'AURORA')])).toBe('AURORA');
+        });
+
+        test('cleans up a two-character separator run', () => {
+            expect(renderBannerTemplate('{{gone}} || {{program}}', [attribute('program', 'AURORA')])).toBe('AURORA');
+            expect(renderBannerTemplate('{{a}} .. {{b}} .. {{c}}', [
+                attribute('a', 'ONE'),
+                attribute('b', ''),
+                attribute('c', 'THREE'),
+            ])).toBe('ONE .. THREE');
+        });
+
+        test('leaves surrounding literal text when every attribute is unset', () => {
+            expect(renderBannerTemplate('{{gone}} · {{also}} Test', [])).toBe('Test');
+        });
+    });
+});
+
+describe('isBlankTemplate', () => {
+    test('an empty template is blank', () => {
+        expect(isBlankTemplate('')).toBe(true);
+        expect(isBlankTemplate('   ')).toBe(true);
+    });
+
+    test('the separators left behind by deleting every chip are blank', () => {
+        expect(isBlankTemplate('·')).toBe(true);
+        expect(isBlankTemplate(' · · ')).toBe(true);
+        expect(isBlankTemplate('/')).toBe(true);
+    });
+
+    test('a template still referencing an attribute is never blank', () => {
+        // It renders to nothing only until the value arrives, which is the feature.
+        expect(isBlankTemplate('{{classification}}')).toBe(false);
+        expect(isBlankTemplate('{{a}} · {{b}}')).toBe(false);
+    });
+
+    test('authored words are not blank, even next to a separator', () => {
+        expect(isBlankTemplate('Need help?')).toBe(false);
+        expect(isBlankTemplate('· Restricted')).toBe(false);
     });
 });
 
@@ -130,12 +192,12 @@ describe('attributeToken', () => {
 describe('tokenSuggestions', () => {
     test('offers the display name as the label and the machine name as the token', () => {
         expect(tokenSuggestions([attribute('caveat', 'NOFORN', 'Caveat / Releasability')])).toEqual([
-            {name: 'caveat', label: 'Caveat / Releasability'},
+            {name: 'caveat', label: 'Caveat / Releasability', value: 'NOFORN'},
         ]);
     });
 
     test('falls back to the machine name when there is no display name', () => {
-        expect(tokenSuggestions([attribute('program', 'AURORA')])).toEqual([{name: 'program', label: 'program'}]);
+        expect(tokenSuggestions([attribute('program', 'AURORA')])).toEqual([{name: 'program', label: 'program', value: 'AURORA'}]);
     });
 });
 
@@ -160,5 +222,21 @@ describe('withRequiredTokens', () => {
 
     test('is a no-op when nothing is designated', () => {
         expect(withRequiredTokens('Handle with care', [])).toBe('Handle with care');
+    });
+});
+
+describe('insertToken', () => {
+    test('pads a token that would otherwise touch text on both sides', () => {
+        expect(insertToken('textmore', 4, '{{program}}')).toEqual({template: 'text {{program}} more', leadingSpace: true});
+    });
+
+    test('pads a token placed right after another token', () => {
+        expect(insertToken('{{classification}}', 18, '{{program}}').template).toBe('{{classification}} {{program}}');
+    });
+
+    test('adds nothing where whitespace or an edge already separates it', () => {
+        expect(insertToken('', 0, '{{program}}')).toEqual({template: '{{program}}', leadingSpace: false});
+        expect(insertToken('text ', 5, '{{program}}').template).toBe('text {{program}}');
+        expect(insertToken(' more', 0, '{{program}}').template).toBe('{{program}} more');
     });
 });

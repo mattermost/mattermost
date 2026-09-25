@@ -251,7 +251,7 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                             data-testid='classificationAttributeBackLink'
                         >
                             <ChevronLeftIcon
-                                size={20}
+                                size={28}
                                 aria-hidden={true}
                             />
                         </BlockableLink>

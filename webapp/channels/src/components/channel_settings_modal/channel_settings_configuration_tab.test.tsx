@@ -4,6 +4,8 @@
 import React from 'react';
 import type {MockStoreEnhanced} from 'redux-mock-store';
 
+import type {PropertyField} from '@mattermost/types/properties';
+
 import {PropertyTypes} from 'mattermost-redux/action_types';
 
 import useChannelClassificationBanner from 'components/common/hooks/useChannelClassificationBanner';
@@ -13,6 +15,9 @@ import {fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/re
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsConfigurationTab from './channel_settings_configuration_tab';
+
+// Fixture states name only the slices a test needs.
+type PartialState = Parameters<typeof renderWithContext>[1];
 
 // Mock the redux actions and selectors
 jest.mock('mattermost-redux/actions/channels', () => ({
@@ -1539,6 +1544,656 @@ describe('ChannelSettingsConfigurationTab', () => {
             await waitFor(() => {
                 const errorPanel = screen.getByText(/Server boom/).closest('.SaveChangesPanel');
                 expect(errorPanel).toHaveClass('error');
+            });
+        });
+    });
+
+    describe('emptying the banner with channel attributes on', () => {
+        const attributesEnabledState = {
+            entities: {
+                general: {
+                    config: {FeatureFlagChannelAttributes: 'true'},
+                    license: {IsLicensed: 'true', SkuShortName: 'advanced'},
+                },
+            },
+        };
+
+        const bannerField: PropertyField = {
+            id: 'program',
+            group_id: 'access_control_id',
+            name: 'program',
+            type: 'text',
+            target_id: '',
+            target_type: 'system',
+            object_type: 'channel',
+            create_at: 1,
+            update_at: 1,
+            delete_at: 0,
+            created_by: '',
+            updated_by: '',
+            attrs: {actions: ['display_banner_top']},
+        };
+
+        const withBannerField = (required = false) => ({
+            entities: {
+                ...attributesEnabledState.entities,
+                properties: {
+                    groups: {byId: {access_control_id: {id: 'access_control_id', name: 'access_control'}}, byName: {access_control: {id: 'access_control_id', name: 'access_control'}}},
+                    fields: {
+                        byId: {program: bannerField},
+                        byObjectType: {channel: {access_control_id: {program: {...bannerField, attrs: {...bannerField.attrs, required}}}}},
+                    },
+                    values: {byTargetId: {}, byFieldId: {}},
+                },
+            },
+        });
+
+        // The composer is contenteditable, so an edit is a DOM mutation followed by
+        // the input event React listens for -- userEvent.clear() has nothing to clear.
+        const clearComposer = () => {
+            const editor = screen.getByTestId('bannerTextEditor');
+            editor.textContent = '';
+            fireEvent.input(editor);
+        };
+
+        const renderTab = () => renderWithContext(
+            <ChannelSettingsConfigurationTab
+                {...baseProps}
+                channel={mockChannelWithBanner}
+            />,
+            attributesEnabledState,
+        );
+
+        it('persists a separate opt-out when turning off an attribute-driven banner', async () => {
+            const {patchChannel} = require('mattermost-redux/actions/channels');
+            patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
+            mockedUseChannelClassificationBanner.mockReturnValue({
+                hasClassification: true,
+                classificationBanner: {enabled: true, text: 'Test banner text', background_color: '#ff0000'},
+                classificationId: undefined,
+                bannerText: 'Test banner text',
+                classificationIsBannerDesignated: false,
+            });
+
+            renderWithContext(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    channel={{...mockChannelWithBanner, banner_info: {...mockChannelWithBanner.banner_info, enabled: false}}}
+                />,
+                withBannerField(),
+            );
+
+            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            expect(patchChannel).toHaveBeenCalledWith('channel1', expect.objectContaining({
+                banner_info: expect.objectContaining({enabled: false, attribute_banner_disabled: true}),
+            }));
+        });
+
+        it('clears the persisted opt-out when turning the attribute banner back on', async () => {
+            const {patchChannel} = require('mattermost-redux/actions/channels');
+            patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
+
+            renderWithContext(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    channel={{...mockChannelWithBanner, banner_info: {...mockChannelWithBanner.banner_info, enabled: false, attribute_banner_disabled: true}}}
+                />,
+                withBannerField(),
+            );
+
+            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            expect(patchChannel).toHaveBeenCalledWith('channel1', expect.objectContaining({
+                banner_info: expect.objectContaining({enabled: true, attribute_banner_disabled: false}),
+            }));
+        });
+
+        it('rejects blank required banner text even if the native banner is disabled', async () => {
+            const {patchChannel} = require('mattermost-redux/actions/channels');
+            patchChannel.mockClear();
+
+            renderWithContext(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    channel={{...mockChannelWithBanner, banner_info: {...mockChannelWithBanner.banner_info, enabled: false}}}
+                />,
+                withBannerField(true),
+            );
+            clearComposer();
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            expect(screen.getByText('Banner text is required')).toBeInTheDocument();
+            expect(patchChannel).not.toHaveBeenCalled();
+        });
+
+        it('says nothing until the author tries to save', async () => {
+            renderTab();
+            clearComposer();
+
+            // Clearing the text is the start of an edit, not a mistake to report.
+            expect(screen.queryByText(/Add banner text, or turn off the channel banner/)).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            const errorPanel = screen.getByText(/Add banner text, or turn off the channel banner/).closest('.SaveChangesPanel');
+            expect(errorPanel).toHaveClass('error');
+        });
+
+        it('lets the toggle go off once the text is gone, and clears the error with it', async () => {
+            renderTab();
+            clearComposer();
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
+
+            // Off means off: the section collapses and the blocking error is gone,
+            // rather than outliving the state that raised it.
+            expect(screen.queryByTestId('bannerTextEditor')).not.toBeInTheDocument();
+            expect(screen.queryByText(/Add banner text, or turn off the channel banner/)).not.toBeInTheDocument();
+            expect(screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
+        });
+
+        it('clears the error as soon as text is written back', async () => {
+            renderTab();
+            clearComposer();
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+            expect(screen.getByText(/Add banner text, or turn off the channel banner/)).toBeInTheDocument();
+
+            const editor = screen.getByTestId('bannerTextEditor');
+            editor.textContent = 'Restricted';
+            fireEvent.input(editor);
+
+            expect(screen.queryByText(/Add banner text, or turn off the channel banner/)).not.toBeInTheDocument();
+        });
+
+        it('saves the emptied text alongside the disabled banner', async () => {
+            const {patchChannel} = require('mattermost-redux/actions/channels');
+            patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
+            patchChannel.mockClear();
+
+            renderTab();
+            clearComposer();
+            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            await waitFor(() => {
+                expect(patchChannel).toHaveBeenCalledWith('channel1', expect.objectContaining({
+                    banner_info: {
+                        enabled: false,
+                        text: '',
+                        background_color: '#ff0000',
+                    },
+                }));
+            });
+        });
+
+        it('keeps the emptied text when the banner is switched back on', async () => {
+            renderTab();
+            clearComposer();
+
+            const toggle = screen.getByTestId('channelBannerToggle-button');
+            await userEvent.click(toggle);
+            await userEvent.click(toggle);
+
+            // Turning the banner off is how the author resolves "enabled but empty",
+            // so it must not quietly restore the text they just deleted.
+            expect(screen.getByTestId('bannerTextEditor')).toHaveTextContent('');
+        });
+
+        it('previews the emptied text rather than the saved banner', () => {
+            mockedUseChannelClassificationBanner.mockReturnValue({
+                hasClassification: false,
+                classificationBanner: undefined,
+                classificationId: undefined,
+                bannerText: 'Test banner text',
+                classificationIsBannerDesignated: false,
+            });
+
+            renderTab();
+            clearComposer();
+
+            expect(screen.getByTestId('bannerPreviewEmptyNotice')).toBeInTheDocument();
+            expect(screen.queryByTestId('bannerAttributePreview')).not.toBeInTheDocument();
+        });
+
+        it('treats the separators left behind by the last deleted attribute as empty', async () => {
+            renderTab();
+
+            const editor = screen.getByTestId('bannerTextEditor');
+            editor.textContent = ' · ';
+            fireEvent.input(editor);
+
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            expect(screen.getByText(/Add banner text, or turn off the channel banner/)).toBeInTheDocument();
+        });
+    });
+
+    describe('seeding designated banner attributes', () => {
+        const GROUP_ID = 'group_access_control';
+        const bannerField = {
+            id: 'field_level',
+            group_id: GROUP_ID,
+            name: 'Level',
+            type: 'select',
+            target_id: '',
+            target_type: 'system',
+            object_type: 'channel',
+            attrs: {actions: ['display_banner_top'], options: []},
+            create_at: 1,
+            update_at: 1,
+            delete_at: 0,
+            created_by: '',
+            updated_by: '',
+        };
+        const stateWithBannerField = {
+            entities: {
+                general: {
+                    config: {FeatureFlagChannelAttributes: 'true'},
+                    license: {IsLicensed: 'true', SkuShortName: 'advanced'},
+                },
+                properties: {
+                    groups: {byId: {[GROUP_ID]: {id: GROUP_ID, name: 'access_control'}}, byName: {access_control: {id: GROUP_ID, name: 'access_control'}}},
+                    fields: {
+                        byId: {[bannerField.id]: bannerField},
+                        byObjectType: {channel: {[GROUP_ID]: {[bannerField.id]: bannerField}}},
+                    },
+                    values: {byTargetId: {}, byFieldId: {}},
+                },
+            },
+        } as PartialState;
+
+        const emptiedChannel = {
+            ...mockChannel,
+            banner_info: {enabled: false, text: '', background_color: '#DDDDDD'},
+        };
+
+        it('seeds the designated attributes on a channel that never had banner text', async () => {
+            renderWithContext(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    channel={{...mockChannel, banner_info: undefined}}
+                />,
+                stateWithBannerField,
+            );
+
+            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
+
+            expect(screen.getByTestId('bannerTextEditor').textContent).not.toBe('');
+        });
+
+        it('does not refill a banner the channel deliberately emptied', async () => {
+            renderWithContext(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    channel={emptiedChannel}
+                />,
+                stateWithBannerField,
+            );
+
+            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
+
+            expect(screen.getByTestId('bannerTextEditor').textContent).toBe('');
+        });
+
+        it('stops reporting changes once the emptied banner is saved', async () => {
+            const {rerender} = renderWithContext(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    channel={{...mockChannel, banner_info: undefined}}
+                />,
+                stateWithBannerField,
+            );
+
+            const toggle = screen.getByTestId('channelBannerToggle-button');
+            await userEvent.click(toggle);
+            const editor = screen.getByTestId('bannerTextEditor');
+            editor.textContent = '';
+            fireEvent.input(editor);
+            await userEvent.click(toggle);
+
+            // What patchChannel stored, handed back as the new prop.
+            rerender(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    channel={{...emptiedChannel, banner_info: {...emptiedChannel.banner_info, attribute_banner_disabled: true}}}
+                />,
+            );
+
+            expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
+        });
+    });
+
+    describe('banner colour with classification on the banner', () => {
+        const GROUP_ID = 'group_access_control';
+        const classificationField = {
+            id: 'field_classification',
+            group_id: GROUP_ID,
+            name: 'classification',
+            type: 'select',
+            target_id: '',
+            target_type: 'system',
+            object_type: 'channel',
+            attrs: {actions: ['display_banner_top'], options: [{id: 'secret', name: 'SECRET', color: '#c8102e'}]},
+            create_at: 1,
+            update_at: 1,
+            delete_at: 0,
+            created_by: '',
+            updated_by: '',
+        };
+        const classificationValue = {
+            id: 'value_classification',
+            target_id: 'channel1',
+            target_type: 'channel',
+            group_id: GROUP_ID,
+            field_id: classificationField.id,
+            value: 'secret',
+            create_at: 1,
+            update_at: 1,
+            delete_at: 0,
+            created_by: '',
+            updated_by: '',
+        };
+        const state = {
+            entities: {
+                general: {
+                    config: {FeatureFlagChannelAttributes: 'true'},
+                    license: {IsLicensed: 'true', SkuShortName: 'advanced'},
+                },
+                properties: {
+                    groups: {byId: {[GROUP_ID]: {id: GROUP_ID, name: 'access_control'}}, byName: {access_control: {id: GROUP_ID, name: 'access_control'}}},
+                    fields: {
+                        byId: {[classificationField.id]: classificationField},
+                        byObjectType: {channel: {[GROUP_ID]: {[classificationField.id]: classificationField}}},
+                    },
+                    values: {byTargetId: {channel1: {[classificationField.id]: classificationValue}}, byFieldId: {}},
+                },
+            },
+        } as PartialState;
+        const channelWithClassificationToken = {
+            ...mockChannel,
+            banner_info: {enabled: true, text: '{{classification}}', background_color: '#00ff00'},
+        };
+
+        beforeEach(() => {
+            mockedUseChannelClassificationBanner.mockReturnValue({
+                hasClassification: true,
+                classificationBanner: {enabled: true, text: 'SECRET', background_color: '#c8102e'},
+                classificationId: 'secret',
+                bannerText: 'SECRET',
+                classificationIsBannerDesignated: true,
+            });
+        });
+
+        const renderTab = () => renderWithContext(
+            <ChannelSettingsConfigurationTab
+                {...baseProps}
+                channel={channelWithClassificationToken}
+            />,
+            state,
+        );
+
+        it('locks the picker to the classification colour while its token is in the text', () => {
+            renderTab();
+
+            const colorInput = screen.getByTestId('color-inputColorValue');
+            expect(colorInput).toBeDisabled();
+            expect(colorInput).toHaveValue('#c8102e');
+        });
+
+        it('disables the picker while the banner text would display nothing', () => {
+            renderTab();
+
+            const editor = screen.getByTestId('bannerTextEditor');
+            editor.textContent = '';
+            fireEvent.input(editor);
+
+            expect(screen.getByTestId('bannerPreviewEmptyNotice')).toBeInTheDocument();
+            expect(screen.getByTestId('color-inputColorValue')).toBeDisabled();
+        });
+
+        it('unlocks the picker once the classification token is removed', () => {
+            renderTab();
+
+            const editor = screen.getByTestId('bannerTextEditor');
+            editor.textContent = 'Handle with care';
+            fireEvent.input(editor);
+
+            const colorInput = screen.getByTestId('color-inputColorValue');
+            expect(colorInput).not.toBeDisabled();
+            expect(colorInput).toHaveValue('#00ff00');
+        });
+    });
+
+    describe('unsaved changes with channel attributes on', () => {
+        const attributesEnabledState = {
+            entities: {
+                general: {
+                    config: {FeatureFlagChannelAttributes: 'true'},
+                    license: {IsLicensed: 'true', SkuShortName: 'advanced'},
+                },
+            },
+        };
+        const noAttributeBanner = {
+            hasClassification: false,
+            classificationBanner: undefined,
+            classificationId: undefined,
+            bannerText: undefined,
+            classificationIsBannerDesignated: false,
+        };
+        const attributeBanner = {
+            hasClassification: true,
+            classificationBanner: {enabled: true, text: 'SECRET', background_color: '#c8102e'},
+            classificationId: 'secret',
+            bannerText: 'SECRET',
+            classificationIsBannerDesignated: false,
+        };
+
+        // The attribute banner comes and goes as values load and as saves change the
+        // template. The classification section is hidden here, so none of that is an
+        // edit the author made.
+        it('does not treat the attribute banner appearing as an unsaved change', () => {
+            mockedUseChannelClassificationBanner.mockReturnValue(noAttributeBanner);
+            const {rerender} = renderWithContext(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    channel={mockChannelWithBanner}
+                />,
+                attributesEnabledState,
+            );
+
+            mockedUseChannelClassificationBanner.mockReturnValue(attributeBanner);
+            rerender(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    channel={mockChannelWithBanner}
+                />,
+            );
+
+            expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
+        });
+
+        it('picks up a banner edit made after a save changed the attribute banner', async () => {
+            const {patchChannel} = require('mattermost-redux/actions/channels');
+            patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
+
+            mockedUseChannelClassificationBanner.mockReturnValue(attributeBanner);
+            const {rerender} = renderWithContext(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    channel={mockChannelWithBanner}
+                />,
+                attributesEnabledState,
+            );
+
+            const editor = screen.getByTestId('bannerTextEditor');
+            editor.textContent = 'Handle with care';
+            fireEvent.input(editor);
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+            await screen.findByText('Settings saved');
+
+            // What the save hands back: the new text, and a banner no longer driven
+            // by the attribute.
+            mockedUseChannelClassificationBanner.mockReturnValue(noAttributeBanner);
+            rerender(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    channel={{...mockChannelWithBanner, banner_info: {...mockChannelWithBanner.banner_info, text: 'Handle with care'}}}
+                />,
+            );
+
+            // The saved notice closes itself.
+            await waitFor(() => {
+                expect(screen.queryByText('Settings saved')).not.toBeInTheDocument();
+            }, {timeout: 5000});
+
+            const nextEdit = screen.getByTestId('bannerTextEditor');
+            nextEdit.textContent = 'Handle with extra care';
+            fireEvent.input(nextEdit);
+
+            expect(screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
+        });
+    });
+
+    describe('switching an attribute-driven banner off', () => {
+        const attributesEnabledState = {
+            entities: {
+                general: {
+                    config: {FeatureFlagChannelAttributes: 'true'},
+                    license: {IsLicensed: 'true', SkuShortName: 'advanced'},
+                },
+                properties: {
+                    groups: {byId: {group_ac: {id: 'group_ac', name: 'access_control'}}, byName: {access_control: {id: 'group_ac', name: 'access_control'}}},
+                    fields: {
+                        byId: {},
+                        byObjectType: {channel: {group_ac: {
+                            field_program: {
+                                id: 'field_program',
+                                group_id: 'group_ac',
+                                name: 'program',
+                                type: 'select',
+                                target_id: '',
+                                target_type: 'system',
+                                object_type: 'channel',
+                                attrs: {actions: ['display_banner_top'], options: [{id: 'opt1', name: 'AURORA'}]},
+                                create_at: 1,
+                                update_at: 1,
+                                delete_at: 0,
+                                created_by: '',
+                                updated_by: '',
+                            },
+                        }}},
+                    },
+                    values: {byTargetId: {}, byFieldId: {}},
+                },
+            },
+        } as PartialState;
+
+        // Shown on by the attribute while banner_info.enabled is still false.
+        const drivenChannel = {
+            ...mockChannel,
+            banner_info: {enabled: false, text: '{{program}}', background_color: '#00ff00'},
+        };
+
+        beforeEach(() => {
+            mockedUseChannelClassificationBanner.mockReturnValue({
+                hasClassification: true,
+                classificationBanner: {enabled: true, text: 'AURORA', background_color: '#00ff00'},
+                classificationId: 'opt1',
+                bannerText: 'AURORA',
+                classificationIsBannerDesignated: false,
+            });
+        });
+
+        const renderTab = () => renderWithContext(
+            <ChannelSettingsConfigurationTab
+                {...baseProps}
+                channel={drivenChannel}
+            />,
+            attributesEnabledState,
+        );
+
+        it('saves the banner as off', async () => {
+            const {patchChannel} = require('mattermost-redux/actions/channels');
+            patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
+            patchChannel.mockClear();
+
+            renderTab();
+            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            await waitFor(() => {
+                expect(patchChannel).toHaveBeenCalledWith('channel1', expect.objectContaining({
+                    banner_info: expect.objectContaining({enabled: false}),
+                }));
+            });
+        });
+
+        it('stays on after saving, once the stored banner no longer needs the attribute to read as on', async () => {
+            const {patchChannel} = require('mattermost-redux/actions/channels');
+            patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
+
+            const {rerender} = renderTab();
+            const editor = screen.getByTestId('bannerTextEditor');
+            editor.textContent = 'Handle with care';
+            fireEvent.input(editor);
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+            await screen.findByText('Settings saved');
+
+            // What the save hands back, before the attribute banner has caught up.
+            mockedUseChannelClassificationBanner.mockReturnValue({
+                hasClassification: false,
+                classificationBanner: undefined,
+                classificationId: undefined,
+                bannerText: undefined,
+                classificationIsBannerDesignated: false,
+            });
+            rerender(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    channel={{...drivenChannel, banner_info: {enabled: true, text: 'Handle with care', background_color: '#00ff00'}}}
+                />,
+            );
+
+            expect(screen.getByTestId('bannerTextEditor')).toBeInTheDocument();
+            await waitFor(() => {
+                expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
+            }, {timeout: 5000});
+        });
+
+        it('blocks saving an attribute-driven banner emptied without switching it off', async () => {
+            const {patchChannel} = require('mattermost-redux/actions/channels');
+            patchChannel.mockClear();
+
+            renderTab();
+            const editor = screen.getByTestId('bannerTextEditor');
+            editor.textContent = '';
+            fireEvent.input(editor);
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            // Still on as far as what would be stored, so empty text must not reach the server.
+            expect(screen.getByText(/Add banner text, or turn off the channel banner/)).toBeInTheDocument();
+            expect(patchChannel).not.toHaveBeenCalled();
+        });
+
+        it('saves the banner as on when only its text was edited', async () => {
+            const {patchChannel} = require('mattermost-redux/actions/channels');
+            patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
+            patchChannel.mockClear();
+
+            renderTab();
+            const editor = screen.getByTestId('bannerTextEditor');
+            editor.textContent = 'Handle with care';
+            fireEvent.input(editor);
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            await waitFor(() => {
+                expect(patchChannel).toHaveBeenCalledWith('channel1', expect.objectContaining({
+                    banner_info: expect.objectContaining({enabled: true, text: 'Handle with care'}),
+                }));
             });
         });
     });

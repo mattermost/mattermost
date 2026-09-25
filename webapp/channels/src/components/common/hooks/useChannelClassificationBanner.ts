@@ -25,7 +25,7 @@ import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities
 import {getChannelAttributeFields, getChannelBannerFields, getPropertyValueForTargetField, makeGetResolvedChannelAttributes} from 'mattermost-redux/selectors/entities/properties';
 
 import {CLASSIFICATIONS_CHANNEL_FIELD_NAME, CLASSIFICATIONS_CHANNEL_OBJECT_TYPE} from 'components/admin_console/classification_markings/utils';
-import {renderBannerTemplate} from 'components/channel_attributes/banner_template';
+import {hasAttributeToken, renderBannerTemplate} from 'components/channel_attributes/banner_template';
 
 import {isMinimumEnterpriseAdvancedLicense} from 'utils/license_utils';
 
@@ -107,9 +107,9 @@ export default function useChannelClassificationBanner(channelId: string): Chann
     const hasAdvancedLicense = isMinimumEnterpriseAdvancedLicense(useSelector(getLicense));
     const channelFields = useSelector(getChannelAttributeFields);
 
-    // All of them, in sort_order: designation is the admin saying an attribute must
-    // be on screen, so several designated attributes share one banner. Order is
-    // configuration rather than field creation order.
+    // All of them, in sort_order: designation is the admin's default for what a
+    // fresh channel banner starts with. Several designated attributes share one
+    // banner; a channel may rewrite or drop any of them once it authors text.
     const bannerFields = useSelector(getChannelBannerFields);
     const designatedFields = useMemo(() => {
         if (!attributesEnabled || !hasAdvancedLicense) {
@@ -220,12 +220,16 @@ export default function useChannelClassificationBanner(channelId: string): Chann
             position,
         };
 
-        // Designated path: every designated attribute shares one banner, joined in
-        // sort_order. Each contributes its own resolved display string — a select
-        // gives its option's name, a multiset joins its options, a text attribute
-        // passes its stored value through.
+        // Designated path: every designated attribute can contribute, joined in
+        // sort_order as the default when the channel has no authored template.
+        // An authored banner_info.text wins — including when the channel has
+        // removed designated tokens from it.
         if (designated) {
             const classificationIsBannerDesignated = designatedFields.some((field) => field.name === CLASSIFICATIONS_CHANNEL_FIELD_NAME);
+
+            if (channelBannerInfo?.attribute_banner_disabled) {
+                return {...noBanner, classificationIsBannerDesignated};
+            }
 
             const contributions = designatedFields.
                 map((field) => namedAttributes.find((resolved) => resolved.field.id === field.id)).
@@ -243,30 +247,44 @@ export default function useChannelClassificationBanner(channelId: string): Chann
                     return true;
                 });
 
-            if (contributions.length === 0) {
+            // An authored template wins over the designation default, including when
+            // every referenced attribute is unset (tokens collapse, separators tidy,
+            // leftover literal text may remain). Only channels with no text key yet
+            // fall back to joining whatever still has a value.
+            const authoredText = channelBannerInfo?.text;
+
+            let bannerText: string;
+            if (typeof authoredText === 'string') {
+                bannerText = authoredText ? renderBannerTemplate(authoredText, templateAttributes) : '';
+            } else if (contributions.length === 0) {
+                return {...noBanner, classificationIsBannerDesignated};
+            } else {
+                bannerText = contributions.map((resolved) => resolved.displayValue).join(' · ');
+            }
+
+            if (!bannerText.trim()) {
                 return {...noBanner, classificationIsBannerDesignated};
             }
 
-            const joinedText = contributions.map((resolved) => resolved.displayValue).join(' · ');
-            const bannerText = channelBannerInfo?.text ? renderBannerTemplate(channelBannerInfo.text, templateAttributes) : joinedText;
+            // Classification colour wins while classification is actually on the
+            // banner: it has a value here and, for an authored template, its token is
+            // still in it. Once the channel removes the token the colour is theirs.
+            // Otherwise an authored colour takes priority, and only a single
+            // contributing attribute can otherwise speak for the banner.
+            const classificationContribution = contributions.find((resolved) => resolved.field.name === CLASSIFICATIONS_CHANNEL_FIELD_NAME);
+            const classificationColor = classificationContribution?.option?.color;
+            const classificationInBanner = Boolean(classificationColor) &&
+                (typeof authoredText !== 'string' || hasAttributeToken(authoredText, CLASSIFICATIONS_CHANNEL_FIELD_NAME));
 
-            if (!bannerText) {
-                return {...noBanner, classificationIsBannerDesignated};
-            }
-
-            // Classification colour wins unconditionally: it is locked at the UI level
-            // so authored background_color is never written when classification is
-            // designated. Otherwise an authored colour takes priority, and only a
-            // single contributing attribute can otherwise speak for the banner.
             let backgroundColor: string;
             let classificationId: string | undefined;
-            if (classificationIsBannerDesignated) {
-                const classificationContribution = contributions.find((resolved) => resolved.field.name === CLASSIFICATIONS_CHANNEL_FIELD_NAME);
-                backgroundColor = classificationContribution?.option?.color || DEFAULT_BANNER_COLOR;
+            if (classificationInBanner) {
+                backgroundColor = classificationColor || DEFAULT_BANNER_COLOR;
                 classificationId = classificationContribution?.value?.value as string | undefined;
             } else {
+                const colorContributions = contributions.filter((resolved) => resolved !== classificationContribution);
                 const authoredColor = channelBannerInfo?.background_color;
-                backgroundColor = authoredColor || (contributions.length === 1 ? contributions[0].option?.color : undefined) || DEFAULT_BANNER_COLOR;
+                backgroundColor = authoredColor || (colorContributions.length === 1 ? colorContributions[0].option?.color : undefined) || DEFAULT_BANNER_COLOR;
                 classificationId = contributions.length === 1 ? contributions[0].value?.value as string | undefined : undefined;
             }
 
