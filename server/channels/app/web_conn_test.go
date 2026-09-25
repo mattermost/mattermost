@@ -227,10 +227,14 @@ func TestWebConnShouldSendEvent(t *testing.T) {
 	})
 
 	t.Run("channel member cache invalidated after user added to channel", func(t *testing.T) {
+		event = event.SetBroadcast(&model.WebsocketBroadcast{ChannelId: channel2.Id})
+		assert.True(t, basicUserWc.ShouldSendEvent(event), "expected user 1")
+		assert.False(t, basicUser2Wc.ShouldSendEvent(event), "did not expect user 2, who is not a member of the channel")
+		assert.True(t, adminUserWc.ShouldSendEvent(event), "expected admin")
+
 		th.AddUserToChannel(t, th.BasicUser2, channel2)
 		basicUser2Wc.InvalidateCache()
 
-		event = event.SetBroadcast(&model.WebsocketBroadcast{ChannelId: channel2.Id})
 		assert.True(t, basicUserWc.ShouldSendEvent(event), "expected user 1")
 		assert.True(t, basicUser2Wc.ShouldSendEvent(event), "expected user 2")
 		assert.True(t, adminUserWc.ShouldSendEvent(event), "expected admin")
