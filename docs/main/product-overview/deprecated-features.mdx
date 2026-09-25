@@ -27,6 +27,7 @@ This page describes features that are removed from support for Mattermost, or wi
 - The ``MoveThreadsEnabled`` feature flag is no longer supported, and the server fails to start if it is enabled. Use the [Wrangler plugin](https://github.com/mattermost/mattermost-plugin-wrangler) to move threads between channels instead.
 - The ``AppsEnabled`` feature flag is no longer supported and must be disabled. The server fails to start if the flag is set to ``true``.
 - The required ``format`` query parameter has been removed from the ``GET /api/v4/license/client`` endpoint. The endpoint now returns the client license information without requiring format specification.
+- The **System Console > System Attributes > User Attributes** page has been removed on Enterprise plans. Existing Custom Profile Attributes (User Attributes) fields are migrated automatically into **Attribute Management** on server startup and are managed there from v12.0. The old page's URL redirects to Attribute Management.
 
 ### Mattermost Mobile App v2.45 (October 2026)
 
