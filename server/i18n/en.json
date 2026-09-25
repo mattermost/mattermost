@@ -424,6 +424,10 @@
     "translation": "Missing team_id in request body"
   },
   {
+    "id": "api.channel.create_channel.scheme_scope.error",
+    "translation": "Unable to set the scheme on the channel because the supplied scheme is not a channel scheme."
+  },
+  {
     "id": "api.channel.create_default_channels.off_topic",
     "translation": "Off-Topic"
   },
