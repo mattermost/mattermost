@@ -1,0 +1,237 @@
+---
+title: "Session attributes"
+---
+import useBaseUrl from '@docusaurus/useBaseUrl';
+
+<PlanAvailability slug="entry-adv" />
+
+From Mattermost v12, [permission policies](/administration-guide/manage/admin/abac-system-wide-policies#permission-policies) can evaluate **session attributes** in addition to user attributes. A user attribute describes *who* someone is. A session attribute describes *how they're connecting right now*, such as the network they're on, the client they're using, and the state of their device.
+
+This lets you write rules such as "only allow file downloads from a corporate IP range" or "block uploads from jailbroken mobile devices". Session attributes are referenced in policy expressions as `user.session.<name>`, for example `user.session.vpn_active == "true"`.
+
+<Note>
+
+Session attributes can only be used in permission policies, not membership policies.
+
+</Note>
+
+## How session attributes work
+
+### Collection
+
+Session attributes come from two sources:
+
+- **Server-derived attributes** are measured by the Mattermost server from the request itself: the connection's IP address and the `User-Agent` header.
+- **Client-reported attributes** are collected by the Desktop App or mobile app using native operating system APIs and sent to the server in an `X-MM-Session-Attributes` request header.
+
+Clients only collect what you've enabled. When a client connects, the server tells it which attributes apply to its platform and how often to refresh each one. The server ignores any value it doesn't expect, such as one for a disabled attribute or for an attribute that platform can't support.
+
+Reported values are held in the session's in-memory cache. They aren't written to the database, aren't included in compliance exports, and are discarded when the user logs out or the session is revoked or expires.
+
+### Platform availability
+
+Not every client can report every attribute. The **Platforms** column in the System Console and in the [Session attribute reference](#session-attribute-reference) shows which clients support each one.
+
+- **Web browsers** can't report device or network attributes such as `os_platform`, `vpn_active`, or `client_ip_address`, because a browser can't access the operating system APIs needed to measure them. If you only want to allow managed desktop and mobile clients, this is the desired behavior. If you want to check posture only where it can be measured, write the rule so browser sessions are handled deliberately.
+- **Desktop** native device and network collection is only implemented on Windows and macOS. These attributes are absent on desktop sessions on other platforms.
+- **Mobile** users are prompted for location access when `ssid` is enabled, because iOS and Android put Wi-Fi network information behind that permission. Mattermost only reads the current network's name and doesn't collect device location, but a user who declines reports no SSID and is denied by any rule that requires it. See [Session attribute collection](/deployment-guide/mobile/mobile-security-features#session-attribute-collection).
+
+### TTL and grace period
+
+Each attribute has two timers that control how fresh its value must be:
+
+- **TTL (time-to-live)**: How long a client waits before reporting the attribute again. A short TTL keeps the value current at the cost of slightly larger requests; a long TTL reduces overhead but lets the value go stale.
+- **Grace period**: How long after the TTL elapses Mattermost still uses the last reported value. Once TTL plus grace period passes without a fresh report, the attribute is treated as absent and rules referencing it deny access.
+
+Defaults vary by attribute; see the [Session attribute reference](#session-attribute-reference). Both timers offer presets of 15 seconds, 30 seconds, 1 minute, 5 minutes, 1 hour, and 24 hours. Server-derived attributes aren't affected by these timers, because Mattermost measures them on every request.
+
+<Tip>
+
+Grace periods absorb brief network interruptions. A very short grace period can intermittently deny users on unstable connections while their client catches up.
+
+</Tip>
+
+### Privacy
+
+Collection is opt-in on the server and on by default in the client. No attribute is collected unless a System Admin enables it.
+
+Desktop App users can stop reporting attributes by clearing **Settings \> Advanced \> Enable session attributes**, after which any rule that depends on a client-reported attribute denies that user. While the setting is enabled, the Desktop App shows users every attribute it can collect and the value it currently reports. See [Session attribute collection](/deployment-guide/desktop/desktop-app-deployment#session-attribute-collection) for how to communicate this to your users.
+
+## Set up session attributes
+
+### Prerequisites
+
+- A Mattermost Enterprise Advanced license.
+- [Attribute-based access control](/administration-guide/manage/admin/attribute-based-access-control) must be enabled in **System Console \> System Attributes \> Attribute-Based Access**.
+- Client-reported attributes require Mattermost Desktop App v6.3 or later, or Mattermost mobile app v2.44 or later. Web browsers and older apps can only report a subset of attributes. See [Platform availability](#platform-availability).
+
+### Steps
+
+1. **Enable the attributes you need.** In the System Console, go to **System Attributes \> Session Attributes**. Every attribute is disabled by default. For each attribute you plan to use, select **More** <img src={useBaseUrl('/img/ui/dots-horizontal_F01D8.svg')} alt="Use the More icon to access additional message options." className="theme-icon" />, then select **Enable**.
+2. **Adjust the timers (optional).** From the same **More** menu, you can change how often clients report the attribute and how long a reported value stays usable. See [TTL and grace period](#ttl-and-grace-period).
+3. **Add a rule to a permission policy.** Create or edit a [permission policy](/administration-guide/manage/admin/abac-system-wide-policies#permission-policies) and add a rule that uses the attribute. See [Write session attribute rules](#write-session-attribute-rules).
+4. **Simulate access.** Use [Simulate access](#simulate-access-with-session-attributes) to check the result for real users on the clients they actually use.
+5. **Save the policy.**
+
+### Before you write a rule
+
+- **A missing attribute denies access.** If a rule references an attribute the session doesn't have, the user is denied. This applies whether the attribute was never reported, is disabled, isn't supported on the user's client, or has gone stale past its TTL and grace period. This is deliberate: otherwise a rule such as `user.session.jailbreak_detected != "true"` would pass for any client that omits the attribute, including one that omits it on purpose.
+- **Every rule is also a client requirement.** Web browsers can't report device or network attributes, so a rule using one of them denies all browser users, including users of the web app. For example:
+  - `user.session.os_platform == "windows"` denies every browser and mobile session, not just non-Windows desktops.
+  - `user.session.vpn_active == "false"` denies browser sessions, because they never report `vpn_active`.
+  - `user.session.hardware_id != ""` denies every mobile and browser session, and any desktop session on a platform without native collection.
+- **Values are case-sensitive.** `user.session.ssid == "corp-wifi"` never matches a network named `Corp-WiFi`. This matters most for free-text attributes such as `ssid` and `client_fqdn`.
+- **Boolean values are strings.** `vpn_active`, `mdm_enrolled`, and `jailbreak_detected` are reported as the strings `"true"` and `"false"`, so compare them as strings: `user.session.mdm_enrolled == "true"`.
+- **Disabling an attribute breaks rules that use it.** Mattermost blocks saving a policy that references a disabled or unknown attribute, but disabling an attribute that an existing policy already uses doesn't invalidate that policy. The policy then denies everyone.
+- **Client-reported values are self-attested.** Treat them as posture signals rather than proof. See [Can users spoof session attributes?](#can-users-spoof-session-attributes).
+
+### Simulate access with session attributes
+
+[Simulate access](/administration-guide/manage/admin/abac-system-wide-policies#simulate-access) evaluates draft policies against selected users before you save. When the rules reference `user.session.*` and the selected user has no cached session attributes, Mattermost shows a neutral **No recent session** result instead of allow or deny.
+
+**No recent session** means there was no session data to evaluate, not that the user would be denied. It usually means the user hasn't connected recently from a client that reports the attributes your rules use. Have the user connect from the client you're targeting, then re-run the simulation.
+
+## Write session attribute rules
+
+Enabled session attributes appear in the permission policy editors alongside user attributes. In the simple editor, attributes with a fixed set of values, such as `os_platform`, `vpn_active`, and `user_agent_browser_name`, offer their values in a dropdown. In the Advanced Mode CEL editor, reference them as `user.session.<name>` and combine them with the usual CEL operators:
+
+```
+user.session.mdm_enrolled == "true" || user.session.os_platform in ["macos", "windows"]
+```
+
+### IP range and version conditions
+
+Mattermost provides dedicated operators for matching an IP address against a subnet and for comparing versions. In the simple editor they appear in the operator menu after you select a supported attribute. In the CEL editor, write them as functions on the attribute:
+
+```
+user.session.<name>.<function>("<value>")
+```
+
+| Operator | CEL function | What it checks | Available on |
+|----|----|----|----|
+| **in IP range** | `inCIDR` | The IP address falls inside the given CIDR block, such as `10.0.0.0/8`. | `ip_address`, `client_ip_address` |
+| **version is** | `versionEQ` | The version is exactly the given version. | `os_version`, `client_version`, `user_agent_browser_version` |
+| **version is at least** | `versionGTE` | The version is equal to or newer than the given version. | `os_version`, `client_version`, `user_agent_browser_version` |
+| **version is greater than** | `versionGT` | The version is strictly newer than the given version. | `os_version`, `client_version`, `user_agent_browser_version` |
+| **version is at most** | `versionLTE` | The version is equal to or older than the given version. | `os_version`, `client_version`, `user_agent_browser_version` |
+| **version is less than** | `versionLT` | The version is strictly older than the given version. | `os_version`, `client_version`, `user_agent_browser_version` |
+
+To allow several address ranges, join `inCIDR` checks with `||`:
+
+```
+user.session.ip_address.inCIDR("10.0.0.0/8") || user.session.ip_address.inCIDR("192.168.0.0/16")
+```
+
+To require a managed Windows desktop client on a corporate subnet running a supported version:
+
+```
+user.session.os_platform == "windows" && user.session.mdm_enrolled == "true" && user.session.ip_address.inCIDR("10.0.0.0/8") && user.session.client_version.versionGTE("6.3.0")
+```
+
+Keep the following in mind:
+
+- **Version comparisons follow semantic versioning**, so `6.10.0` is newer than `6.9.0`. A leading `v` and shortened versions such as `6.3` are accepted. Pre-release versions such as `6.3.0-rc1` sort before the matching release.
+- **Avoid exact-matching** `client_version`. Different clients format the build number differently, so `client_version == "2.44.0+807"` can match one client and deny another that reports the same release as `2.44.0+6000807`. Use **version is at least**, or compare against a shortened version such as `2.44`.
+- **IP family must match.** An IPv4 range only matches IPv4 addresses. `client_ip_address` prefers IPv4 but falls back to IPv6 when the device has no usable IPv4 address, and `ip_address` is whichever family the connection arrived on. On a dual-stack network, cover both families.
+- **An unparseable value denies access.** If the attribute doesn't hold a valid IP address or version, the user is denied.
+- **Select Validate syntax** before saving in the CEL editor to catch misspelled function names and malformed CIDR blocks or version strings.
+
+### Trusted proxy headers and inCIDR rules
+
+When `ServiceSettings.TrustedProxyIPHeader` is configured, Mattermost takes `ip_address` from that header instead of the connection. An `inCIDR` rule on `ip_address` is only trustworthy when clients can't reach the Mattermost server directly **and** your reverse proxy overwrites the header with the real client address on every inbound request. If the proxy appends to a client-supplied value, or a client can bypass the proxy, the address is attacker-controlled and any network rule built on it can be satisfied at will.
+
+### VPN detection
+
+`vpn_active` is determined by the **types of network interfaces present on the device**, not by inspecting traffic. Mattermost looks for interfaces the operating system reports as VPN or tunnel adapters, such as `utun` and `ipsec` interfaces on macOS and iOS, and adapters whose type or name identifies them as VPN or tunnel devices on Windows. This has limits:
+
+- **Split-tunnel VPNs** may be reported as active even when traffic to Mattermost isn't going through the tunnel, or not reported at all, depending on how the client provisions its interfaces.
+- **Non-standard VPN implementations** that don't present a recognizable tunnel interface aren't detected.
+
+<Warning>
+
+`vpn_active` tells you a tunnel interface exists, not that the Mattermost connection uses it. To enforce that requests come from your network, use an `inCIDR` check on `ip_address` against the ranges your VPN gateway presents, and treat `vpn_active` as a supporting signal.
+
+</Warning>
+
+## Session attribute reference
+
+The **Session Attributes** list in the System Console shows each attribute's name, type, supported platforms, TTL, grace period, and status. Attributes marked **Server** are measured by the Mattermost server rather than reported by the client.
+
+| Attribute | Description | Platforms | How it's collected | Default TTL / grace |
+|----|----|----|----|----|
+| `ip_address` | The IP address the request arrived from, as measured by the server, such as `203.0.113.42`. | Desktop, mobile, browser | Read from the request connection, or from `ServiceSettings.TrustedProxyIPHeader` when that setting is configured. See [Trusted proxy headers and inCIDR rules](#trusted-proxy-headers-and-incidr-rules). | n/a |
+| `user_agent_platform` | Hardware platform. One of `Windows`, `Macintosh`, `Linux`, `iPad`, `iPhone`, `iPod`, `BlackBerry`, `Windows Phone`, or `Unknown`. | Desktop, mobile, browser | Parsed from the `User-Agent` header. | n/a |
+| `user_agent_os` | Operating system. One of `Windows`, `Windows 10`, `Windows 8.1`, `Windows 8`, `Windows 7`, `Windows Vista`, `Windows XP x64 Edition`, `Windows XP`, `Windows 2000`, `Windows Phone`, `Mac OS`, `iOS`, `Android`, `Chrome OS`, `Linux`, `BlackBerry`, `Kindle`, `webOS`, or `Unknown`. | Desktop, mobile, browser | Parsed from the `User-Agent` header. | n/a |
+| `user_agent_browser_name` | Client name. One of `Chrome`, `Firefox`, `Safari`, `Edge`, `Internet Explorer`, `Opera`, `Android`, `BlackBerry`, `Desktop App`, `Mobile App`, `mmctl`, or `Unknown`. | Desktop, mobile, browser | Parsed from the `User-Agent` header. | n/a |
+| `user_agent_browser_version` | Version of the browser or Mattermost client, such as `130.0.6723`. | Desktop, mobile, browser | Parsed from the `User-Agent` header. | n/a |
+| `client_ip_address` | The IP address of the device's own primary network interface, as the device sees it, such as `10.0.12.34`. Differs from `ip_address` when the user is behind NAT or a proxy. | Desktop, mobile | Read from the primary network interface using native OS APIs. IPv4 is used when available; the client falls back to IPv6 when no IPv4 address is present. | 15s / 15s |
+| `network_interface_type` | Type of the device's primary network interface. One of `wifi`, `ethernet`, `cellular`, `vpn`, or `other`. | Desktop, mobile | macOS: `SCNetworkInterface` interface type. Windows: IP Helper adapter type. iOS: `NWPathMonitor`. Android: `NetworkCapabilities` transport type. | 15s / 15s |
+| `vpn_active` | Whether a VPN or tunnel interface is active on the device. `true` or `false`. | Desktop, mobile | Detected by inspecting the device's network interfaces for known VPN and tunnel adapter types. See [VPN detection](#vpn-detection) for accuracy limitations. | 15s / 15s |
+| `ssid` | Name of the Wi-Fi network the device is connected to. Empty when the device isn't on Wi-Fi. | Desktop, mobile | Windows: WLAN API. iOS and Android: platform Wi-Fi APIs, which require the user to grant location access. Not collected on macOS desktop. | 15s / 15s |
+| `mdm_enrolled` | Whether the device is enrolled in mobile device management. `true` or `false`. | Desktop, mobile | Windows: presence of MDM enrollment registry entries. iOS: managed app configuration. Android: managed profile or managed app restrictions. Always reports `false` on macOS desktop. | 60s / 60s |
+| `jailbreak_detected` | Whether the mobile device appears to be jailbroken or rooted. `true` or `false`. | Mobile | Root and jailbreak heuristics provided by the mobile OS integration. | 60s / 60s |
+| `os_platform` | The device's operating system family. One of `macos`, `windows`, `linux`, `ios`, or `android`. | Desktop, mobile | Reported directly by the client using Electron or React Native APIs. | 60s / 60s |
+| `os_version` | The device's operating system version, such as `15.3.1` or `10.0.22631`. | Desktop, mobile | Reported directly by the client using Electron or React Native APIs. | 60s / 60s |
+| `client_version` | The version of the Mattermost Desktop App or mobile app, such as `6.3.0`. | Desktop, mobile | Reported directly by the client using Electron or React Native APIs. | 60s / 60s |
+| `hardware_id` | A stable hardware identifier for the device. | Desktop | macOS: `IOPlatformUUID`. Windows: SMBIOS system UUID. | 300s / 300s |
+| `client_device_id` | A per-vendor, per-install device identifier for mobile devices. | Mobile | iOS: `identifierForVendor`. Android: `ANDROID_ID`. | 300s / 300s |
+| `tls_device_id` | A device identity asserted by your reverse proxy, typically derived from a client TLS certificate. | Desktop, browser | Read from the `X-Mattermost-Session-Attribute-Device-Id` header, and only when `TrustProxyDeviceIdentityHeader` is enabled. Any caller that can set that header can set this value, so it's only trustworthy when clients can't bypass your proxy - see [Trust proxy device identity header](#trust-proxy-device-identity-header). | 300s / 300s |
+| `server_fqdn` | The hostname of the Mattermost server the client is connected to. Useful when a client connects to multiple servers. | Desktop, mobile | Derived by the client from the configured server URL. | 300s / 300s |
+| `client_fqdn` | The device's own fully qualified domain name. | Desktop | macOS: local hostname combined with the primary DNS search domain. Windows: `GetComputerNameExW`. | 300s / 300s |
+
+## Configuration settings
+
+Both settings are managed in **System Console \> System Attributes \> Attribute-Based Access** and are disabled by default.
+
+### Trust proxy device identity header
+
+Populates the `tls_device_id` session attribute from the `X-Mattermost-Session-Attribute-Device-Id` request header, allowing a reverse proxy that performs mutual TLS to assert a device identity that the client itself can't forge.
+
+- `config.json` setting: `"AccessControlSettings.TrustProxyDeviceIdentityHeader": false` with options `true` and `false`.
+- Environment variable: `MM_ACCESSCONTROLSETTINGS_TRUSTPROXYDEVICEIDENTITYHEADER`
+
+<Warning>
+
+Only enable this setting when a reverse proxy you control terminates every connection to Mattermost **and** strips or overwrites `X-Mattermost-Session-Attribute-Device-Id` on inbound requests. If clients can reach the Mattermost server directly, or if your proxy passes the header through unmodified, any client can assert an arbitrary device identity and satisfy policies that gate on `tls_device_id`.
+
+</Warning>
+
+### Enforce device ID consistency
+
+Revokes a session when the device identity reported on it changes mid-session. Mattermost compares `tls_device_id`, `client_device_id`, and `hardware_id` against the values previously cached for the session. If one of them changes, the session is revoked, the user must log in again, and the revocation is recorded in the audit log. When disabled, a changed device identity overwrites the cached value without revoking the session.
+
+- `config.json` setting: `"AccessControlSettings.EnforceDeviceIDConsistency": false` with options `true` and `false`.
+- Environment variable: `MM_ACCESSCONTROLSETTINGS_ENFORCEDEVICEIDCONSISTENCY`
+
+This setting mitigates session token theft: a stolen token replayed from a device that reports a different identifier has its session revoked. A replay that reports no device identifier, or one on a session that never cached one, isn't revoked. `tls_device_id` is only present when [Trust proxy device identity header](#trust-proxy-device-identity-header) is enabled, and the other two identifiers depend on [platform availability](#platform-availability). Enable this setting once you've confirmed the identifiers you rely on report stable values across your fleet, since an identifier that legitimately changes will log users out.
+
+## Troubleshooting and FAQs
+
+### Why is a user denied access when their attributes look correct?
+
+Work through these in order:
+
+1. **Check the client.** Confirm the user is on a client that can report the attribute, using the **Platforms** column in the [Session attribute reference](#session-attribute-reference).
+2. **Check the attribute is enabled** in **System Console \> System Attributes \> Session Attributes**.
+3. **Check value casing.** Free-text values such as `ssid` must match exactly what the client reports.
+4. **Check freshness.** If TTL plus grace period has elapsed without a fresh report, the attribute is treated as absent.
+5. **Check the user's Desktop App setting.** If **Settings \> Advanced \> Enable session attributes** is cleared, the client reports nothing. When enabled, the table beneath it shows the value the app currently reports for each attribute, which tells you whether the problem is on the client or the server.
+6. **Check location permission for** `ssid`. Mobile devices only report the Wi-Fi network name when the user has granted location access.
+
+### Can users spoof session attributes?
+
+Client-reported attributes are self-attested, so treat them as posture signals rather than cryptographic proof. Mattermost limits the exposure: server-derived attributes are measured from the request rather than accepted from the client; `tls_device_id` is only accepted from a trusted proxy; incoming values are dropped when they're unknown, disabled, or not valid for the requesting platform; and [Enforce device ID consistency](#enforce-device-id-consistency) revokes sessions whose device identity changes.
+
+For controls that must not be self-attested, use `ip_address` with `inCIDR`, or `tls_device_id` backed by mutual TLS at your proxy. Both depend on your proxy being correctly configured; see [Trusted proxy headers and inCIDR rules](#trusted-proxy-headers-and-incidr-rules) and [Trust proxy device identity header](#trust-proxy-device-identity-header).
+
+### Are session attributes collected for bots, personal access tokens, or integrations?
+
+No. Collection is limited to interactive end-user sessions. Personal access token sessions, OAuth app sessions, local mode sessions, and remote cluster tokens collect nothing, not even server-derived attributes. Policies that reference session attributes deny these callers.
+
+### Do session attributes work in a high availability cluster?
+
+Yes. Attribute updates are broadcast to all nodes in a [high availability cluster](/deployment-guide/server/high-availability-cluster-based-deployment), so every node evaluates policies against the same view of a session.
+
+### Can I add my own session attributes?
+
+No. The set of session attributes is fixed. You can enable, disable, and tune the TTL and grace period of the built-in attributes, but you can't add, rename, or remove them, or change their types or supported platforms. For organization-specific values, use [user attributes](/administration-guide/manage/admin/user-attributes) instead.

@@ -41,7 +41,7 @@ export interface EnterpriseEditionProps {
     handleRemove: (e: React.MouseEvent<HTMLButtonElement>) => Promise<void>;
     isDisabled: boolean;
     removing: boolean;
-    fileInputRef: RefObject<HTMLInputElement>;
+    fileInputRef: RefObject<HTMLInputElement | null>;
     handleChange: () => void;
     statsActiveUsers: number;
     isLicenseSetByEnvVar: boolean;
@@ -375,7 +375,7 @@ const renderLicenseContent = (
     isDisabled: boolean,
     removing: boolean,
     skuName: string,
-    fileInputRef: RefObject<HTMLInputElement>,
+    fileInputRef: RefObject<HTMLInputElement | null>,
     handleChange: () => void,
     statsActiveUsers: number,
     expirationDays: number,
@@ -454,7 +454,7 @@ const renderLicenseContent = (
 };
 
 const renderAddNewLicenseButton = (
-    fileInputRef: RefObject<HTMLInputElement>,
+    fileInputRef: RefObject<HTMLInputElement | null>,
     handleChange: () => void,
     isLicenseSetByEnvVar: boolean,
 ) => {

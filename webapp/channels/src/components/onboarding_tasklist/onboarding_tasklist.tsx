@@ -17,11 +17,10 @@ import {
     getBool,
     getMyPreferences as getMyPreferencesSelector,
 } from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUserId, isFirstAdmin, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import {getShowTaskListBool} from 'selectors/onboarding';
 
-import {useFirstAdminUser, useIsCurrentUserSystemAdmin} from 'components/global_header/hooks';
 import {
     useTasksListWithStatus,
     OnboardingTaskCategory,
@@ -153,8 +152,8 @@ const OnBoardingTaskList = (): JSX.Element | null => {
     const [completedCount, setCompletedCount] = useState(tasksList.filter((task) => task.status).length);
     const [showAnimation, setShowAnimation] = useState(false);
     const itemsLeft = tasksList.length - completedCount;
-    const isCurrentUserSystemAdmin = useIsCurrentUserSystemAdmin();
-    const isFirstAdmin = useFirstAdminUser();
+    const isUserSystemAdmin = useSelector(isCurrentUserSystemAdmin);
+    const isUserFirstAdmin = useSelector(isFirstAdmin);
     const isEnableOnboardingFlow = useSelector((state: GlobalState) => getConfig(state).EnableOnboardingFlow === 'true');
     const [showTaskList, firstTimeOnboarding] = useSelector(
         getShowTaskListBool,
@@ -252,7 +251,9 @@ const OnBoardingTaskList = (): JSX.Element | null => {
             <CompletedAnimation completed={showAnimation}/>
             <Button
                 onClick={toggleTaskList}
-                ref={(element) => setTrigger(element)}
+                ref={(element) => {
+                    setTrigger(element);
+                }}
                 open={open}
                 data-cy='onboarding-task-list-action-button'
                 aria-label={formatMessage({id: 'onboardingTask.checklist.start_onboarding_process', defaultMessage: 'Start the onboarding process.'})}
@@ -269,8 +270,8 @@ const OnBoardingTaskList = (): JSX.Element | null => {
                     {completedCount === tasksList.length ? (
                         <Completed
                             dismissAction={dismissChecklist}
-                            isFirstAdmin={isFirstAdmin}
-                            isCurrentUserSystemAdmin={isCurrentUserSystemAdmin}
+                            isFirstAdmin={isUserFirstAdmin}
+                            isCurrentUserSystemAdmin={isUserSystemAdmin}
                         />
                     ) : (
                         <>

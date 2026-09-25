@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"image/png"
 	"io"
+	"maps"
 	"net/http"
 	"net/url"
 	"os"
@@ -21,10 +22,10 @@ import (
 	"time"
 
 	"github.com/dgryski/dgoogauth"
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -3869,6 +3870,186 @@ func TestGetUsersNotInChannel(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// TestGetUsersNotInChannelTeamScope checks that the listing is scoped to teams
+// the caller can view, so the team given as in_team is evaluated against the
+// caller's own team access and not only against the supplied channel.
+func TestGetUsersNotInChannelTeamScope(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+
+	// A team the basic user is not a member of, with a member of its own so the
+	// listing would be non-empty if it were served.
+	otherTeam := th.CreateTeamWithClient(t, th.SystemAdminClient)
+	otherTeamUser := th.CreateUser(t)
+	th.LinkUserToTeam(t, otherTeamUser, otherTeam)
+
+	// The same shape as otherTeam, but archived.
+	archivedTeam := th.CreateTeamWithClient(t, th.SystemAdminClient)
+	th.LinkUserToTeam(t, th.CreateUser(t), archivedTeam)
+	_, err := th.SystemAdminClient.SoftDeleteTeam(context.Background(), archivedTeam.Id)
+	require.NoError(t, err)
+
+	// A member of the basic user's own team who is not in the basic channel:
+	// the expected result of the authorized listing.
+	basicTeamUser := th.CreateUser(t)
+	th.LinkUserToTeam(t, basicTeamUser, th.BasicTeam)
+
+	// A channel that belongs to no team and that the caller can always read.
+	dmChannel := th.CreateDmChannel(t, th.BasicUser2)
+
+	// A guest of th.BasicTeam and th.BasicChannel.
+	_, guestClient := th.CreateGuestAndClient(t)
+
+	// A response tag issued for otherTeam to a caller who is allowed to see it,
+	// so a row below can replay it as a caller who is not.
+	otherTeamEtag := func() string {
+		query := url.Values{"not_in_team": {th.BasicTeam.Id}, "in_team": {otherTeam.Id}}
+		resp, respErr := th.SystemAdminClient.DoAPIGet(context.Background(), "/users?"+query.Encode(), "")
+		require.NoError(t, respErr)
+		defer resp.Body.Close()
+		return resp.Header.Get(model.HeaderEtagServer)
+	}()
+	require.NotEmpty(t, otherTeamEtag)
+
+	testCases := []struct {
+		name string
+		// client defaults to th.Client, a plain member of th.BasicTeam and
+		// th.BasicChannel, so channel access is never what decides the outcome.
+		client           *model.Client4
+		query            url.Values
+		etag             string
+		expectedStatus   int
+		expectedUserID   string
+		unexpectedUserID string
+	}{
+		{
+			name:           "team the caller is a member of",
+			query:          url.Values{"in_team": {th.BasicTeam.Id}, "not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus: http.StatusOK,
+			expectedUserID: basicTeamUser.Id,
+			// A member of the supplied channel is filtered out of the listing.
+			unexpectedUserID: th.BasicUser.Id,
+		},
+		{
+			name:           "team the caller is not a member of",
+			query:          url.Values{"in_team": {otherTeam.Id}, "not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus: http.StatusForbidden,
+		},
+		{
+			name:           "team the caller is not a member of, with a channel outside any team",
+			query:          url.Values{"in_team": {otherTeam.Id}, "not_in_channel": {dmChannel.Id}},
+			expectedStatus: http.StatusForbidden,
+		},
+		{
+			name:           "archived team the caller is not a member of",
+			query:          url.Values{"in_team": {archivedTeam.Id}, "not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus: http.StatusForbidden,
+		},
+		{
+			name:           "guest on a team they belong to",
+			client:         guestClient,
+			query:          url.Values{"in_team": {th.BasicTeam.Id}, "not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name:           "guest on a team they do not belong to",
+			client:         guestClient,
+			query:          url.Values{"in_team": {otherTeam.Id}, "not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus: http.StatusForbidden,
+		},
+		{
+			name:           "system admin",
+			client:         th.SystemAdminClient,
+			query:          url.Values{"in_team": {otherTeam.Id}, "not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus: http.StatusOK,
+			expectedUserID: otherTeamUser.Id,
+		},
+		{
+			name:             "repeated team filter, the caller's own team first",
+			query:            url.Values{"in_team": {th.BasicTeam.Id, otherTeam.Id}, "not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus:   http.StatusOK,
+			expectedUserID:   basicTeamUser.Id,
+			unexpectedUserID: otherTeamUser.Id,
+		},
+		{
+			name:           "repeated team filter, the caller's own team second",
+			query:          url.Values{"in_team": {otherTeam.Id, th.BasicTeam.Id}, "not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus: http.StatusForbidden,
+		},
+		{
+			name:           "team filter padded with whitespace",
+			query:          url.Values{"in_team": {" " + th.BasicTeam.Id + " "}, "not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus: http.StatusForbidden,
+		},
+		{
+			name:           "team filter in a different case",
+			query:          url.Values{"in_team": {strings.ToUpper(th.BasicTeam.Id)}, "not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus: http.StatusForbidden,
+		},
+		{
+			name:           "channel filter with no team filter",
+			query:          url.Values{"not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name:           "channel filter with an empty team filter",
+			query:          url.Values{"in_team": {""}, "not_in_channel": {th.BasicChannel.Id}},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			// The team filter also scopes the response tag on this combination,
+			// so replaying a tag issued to an allowed caller must not serve it.
+			name:           "team the caller is not a member of, alongside a team they are",
+			query:          url.Values{"not_in_team": {th.BasicTeam.Id}, "in_team": {otherTeam.Id}},
+			etag:           otherTeamEtag,
+			expectedStatus: http.StatusForbidden,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			client := tc.client
+			if client == nil {
+				client = th.Client
+			}
+
+			query := url.Values{}
+			maps.Copy(query, tc.query)
+			query.Set("page", "0")
+			query.Set("per_page", "200")
+
+			resp, err := client.DoAPIGet(context.Background(), "/users?"+query.Encode(), tc.etag)
+			require.NotNil(t, resp)
+			defer resp.Body.Close()
+			require.Equal(t, tc.expectedStatus, resp.StatusCode)
+
+			if tc.expectedStatus != http.StatusOK {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+
+			var users []*model.User
+			require.NoError(t, json.NewDecoder(resp.Body).Decode(&users))
+
+			userIDs := make([]string, 0, len(users))
+			for _, u := range users {
+				CheckUserSanitization(t, u)
+				userIDs = append(userIDs, u.Id)
+			}
+			if tc.expectedUserID != "" {
+				require.Contains(t, userIDs, tc.expectedUserID)
+			}
+			if tc.unexpectedUserID != "" {
+				require.NotContains(t, userIDs, tc.unexpectedUserID)
+			}
+		})
+	}
+}
+
 // TestGetUsersNotInChannelAbacMatchOnly exercises the dispatcher in
 // getUsers that decides whether to apply ABAC filtering based on the
 // channel type and the abac_match_only query parameter. The underlying
@@ -6306,7 +6487,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		CheckErrorID(t, err, "app.user_access_token.expires_at_too_far.app_error")
 	})
 
-	t.Run("bot tokens are exempt from expiry enforcement", func(t *testing.T) {
+	t.Run("user-owned bot tokens are subject to expiry enforcement", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
@@ -6328,13 +6509,92 @@ func TestCreateUserAccessToken(t *testing.T) {
 			require.Nil(t, appErr)
 		}()
 
-		// Bot is allowed a non-expiring token even though a max lifetime is
-		// configured — bots are programmatic clients and bypass the PAT expiry
-		// policy, matching the existing EnableUserAccessTokens bypass.
-		rtoken, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), createdBot.UserId, "test bot token", 0)
+		_, resp, err = th.SystemAdminClient.CreateUserAccessToken(context.Background(), createdBot.UserId, "test bot token", 0)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "app.user_access_token.expires_at_required.app_error")
+
+		expiresAt := model.GetMillis() + 7*model.DayInMilliseconds
+		rtoken, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), createdBot.UserId, "test bot token", expiresAt)
 		require.NoError(t, err)
-		assert.Equal(t, int64(0), rtoken.ExpiresAt)
+		assert.Equal(t, expiresAt, rtoken.ExpiresAt)
 		assert.True(t, rtoken.IsActive)
+	})
+
+	t.Run("system bot tokens are subject to expiry enforcement", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableUserAccessTokens = true
+			*cfg.ServiceSettings.MaximumPersonalAccessTokenLifetimeDays = 30
+		})
+
+		systemBot, appErr := th.App.GetSystemBot(th.Context)
+		require.Nil(t, appErr)
+
+		_, resp, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), systemBot.UserId, "system bot token", 0)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "app.user_access_token.expires_at_required.app_error")
+	})
+
+	t.Run("bot tokens stay enforced once the owning account is deleted", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableUserAccessTokens = true
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+			*cfg.ServiceSettings.MaximumPersonalAccessTokenLifetimeDays = 30
+		})
+
+		owner := th.CreateUser(t)
+		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    GenerateTestUsername(),
+			DisplayName: "orphaned bot",
+			OwnerId:     owner.Id,
+		})
+		require.Nil(t, appErr)
+		defer func() {
+			require.Nil(t, th.App.PermanentDeleteBot(th.Context, bot.UserId))
+		}()
+
+		require.Nil(t, th.App.PermanentDeleteUser(th.Context, owner))
+
+		_, resp, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), bot.UserId, "orphaned bot token", 0)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "app.user_access_token.expires_at_required.app_error")
+	})
+
+	t.Run("plugin-owned bot tokens remain exempt from expiry enforcement", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableUserAccessTokens = true
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+			*cfg.ServiceSettings.MaximumPersonalAccessTokenLifetimeDays = 30
+		})
+
+		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    GenerateTestUsername(),
+			DisplayName: "plugin bot",
+			OwnerId:     "com.mattermost.test",
+		})
+		require.Nil(t, appErr)
+		defer func() {
+			require.Nil(t, th.App.PermanentDeleteBot(th.Context, bot.UserId))
+		}()
+
+		token, appErr := th.App.CreateUserAccessToken(th.Context, &model.UserAccessToken{
+			UserId:      bot.UserId,
+			Description: "plugin bot token",
+		})
+		require.Nil(t, appErr)
+		defer func() { require.NoError(t, th.App.Srv().Store().UserAccessToken().Delete(token.Id)) }()
+		assert.Zero(t, token.ExpiresAt)
 	})
 }
 
@@ -6625,11 +6885,10 @@ func TestGetUserAccessTokens(t *testing.T) {
 	})
 }
 
-// seedNonCompliantTokens creates a mix of tokens for a user while no lifetime
-// policy is in effect (so never-expiring and far-future tokens can be saved),
-// plus a bot token, and returns the IDs of the tokens that should be considered
+// seedNonCompliantTokens creates a mix of user and bot tokens while no lifetime
+// policy is in effect and returns the IDs that should be considered
 // non-compliant once a 30-day policy is enabled.
-func seedNonCompliantTokens(t *testing.T, th *TestHelper) (nonCompliantIDs []string, compliantID string, botTokenID string) {
+func seedNonCompliantTokens(t *testing.T, th *TestHelper) (nonCompliantIDs []string, compliantID string, pluginBotTokenID string) {
 	t.Helper()
 
 	day := int64(24 * 60 * 60 * 1000)
@@ -6646,13 +6905,26 @@ func seedNonCompliantTokens(t *testing.T, th *TestHelper) (nonCompliantIDs []str
 	compliant, appErr := th.App.CreateUserAccessToken(th.Context, &model.UserAccessToken{UserId: th.BasicUser.Id, Description: "compliant", ExpiresAt: model.GetMillis() + 10*day})
 	require.Nil(t, appErr)
 
-	// Bot token with no expiry — bots are exempt from the policy, must survive.
+	// User-owned bot token with no expiry — non-compliant.
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableBotAccountCreation = true })
 	bot := th.CreateBotWithSystemAdminClient(t)
 	botToken, appErr := th.App.CreateUserAccessToken(th.Context, &model.UserAccessToken{UserId: bot.UserId, Description: "bot token"})
 	require.Nil(t, appErr)
 
-	return []string{noExpiry.Id, farFuture.Id}, compliant.Id, botToken.Id
+	// Plugin-owned bot token with no expiry — exempt.
+	pluginBot, appErr := th.App.CreateBot(th.Context, &model.Bot{
+		Username: GenerateTestUsername(),
+		OwnerId:  "com.mattermost.test",
+	})
+	require.Nil(t, appErr)
+	pluginBotToken, appErr := th.App.CreateUserAccessToken(th.Context, &model.UserAccessToken{UserId: pluginBot.UserId, Description: "plugin bot token"})
+	require.Nil(t, appErr)
+	t.Cleanup(func() {
+		_ = th.App.Srv().Store().UserAccessToken().Delete(pluginBotToken.Id)
+		_ = th.App.PermanentDeleteBot(th.Context, pluginBot.UserId)
+	})
+
+	return []string{noExpiry.Id, farFuture.Id, botToken.Id}, compliant.Id, pluginBotToken.Id
 }
 
 func TestGetNonCompliantUserAccessTokenCount(t *testing.T) {
@@ -6679,7 +6951,7 @@ func TestGetNonCompliantUserAccessTokenCount(t *testing.T) {
 		assert.Equal(t, int64(0), result.Count)
 	})
 
-	t.Run("counts only non-compliant non-bot tokens", func(t *testing.T) {
+	t.Run("counts non-compliant user and user-owned bot tokens", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
@@ -6690,7 +6962,7 @@ func TestGetNonCompliantUserAccessTokenCount(t *testing.T) {
 
 		result, _, err := th.SystemAdminClient.GetNonCompliantUserAccessTokenCount(context.Background())
 		require.NoError(t, err)
-		assert.Equal(t, int64(2), result.Count)
+		assert.Equal(t, int64(3), result.Count)
 	})
 }
 
@@ -6718,18 +6990,18 @@ func TestRevokeNonCompliantUserAccessTokens(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
-	t.Run("revokes only non-compliant non-bot tokens", func(t *testing.T) {
+	t.Run("revokes non-compliant user and user-owned bot tokens", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
-		nonCompliantIDs, compliantID, botTokenID := seedNonCompliantTokens(t, th)
+		nonCompliantIDs, compliantID, pluginBotTokenID := seedNonCompliantTokens(t, th)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.MaximumPersonalAccessTokenLifetimeDays = 30 })
 
 		result, _, err := th.SystemAdminClient.RevokeNonCompliantUserAccessTokens(context.Background())
 		require.NoError(t, err)
-		assert.Equal(t, int64(2), result.Count)
+		assert.Equal(t, int64(3), result.Count)
 
 		// Non-compliant tokens are gone.
 		for _, id := range nonCompliantIDs {
@@ -6737,10 +7009,10 @@ func TestRevokeNonCompliantUserAccessTokens(t *testing.T) {
 			require.NotNil(t, appErr)
 		}
 
-		// Compliant and bot tokens survive.
+		// Compliant and plugin-owned bot tokens survive.
 		_, appErr := th.App.GetUserAccessToken(compliantID, false)
 		require.Nil(t, appErr)
-		_, appErr = th.App.GetUserAccessToken(botTokenID, false)
+		_, appErr = th.App.GetUserAccessToken(pluginBotTokenID, false)
 		require.Nil(t, appErr)
 
 		// A second run is now a no-op.
@@ -7447,6 +7719,56 @@ func TestRotateUserAccessToken(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
+
+	t.Run("user-owned bot rotation requires an expiry when policy is set", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableUserAccessTokens = true
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+			*cfg.ServiceSettings.MaximumPersonalAccessTokenLifetimeDays = 30
+		})
+
+		bot := th.CreateBotWithSystemAdminClient(t)
+		expiresAt := model.GetMillis() + 7*model.DayInMilliseconds
+		token, _, err := th.SystemAdminClient.CreateUserAccessToken(context.Background(), bot.UserId, "bot token", expiresAt)
+		require.NoError(t, err)
+
+		_, resp, err := th.SystemAdminClient.RotateUserAccessToken(context.Background(), token.Id, 0)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "app.user_access_token.expires_at_required.app_error")
+
+		rotatedExpiry := model.GetMillis() + 14*model.DayInMilliseconds
+		rotated, _, err := th.SystemAdminClient.RotateUserAccessToken(context.Background(), token.Id, rotatedExpiry)
+		require.NoError(t, err)
+		assert.Equal(t, rotatedExpiry, rotated.ExpiresAt)
+	})
+
+	t.Run("plugin-owned bot rotation remains exempt from expiry policy", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableUserAccessTokens = true
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+			*cfg.ServiceSettings.MaximumPersonalAccessTokenLifetimeDays = 30
+		})
+
+		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{Username: GenerateTestUsername(), OwnerId: "com.mattermost.test"})
+		require.Nil(t, appErr)
+		token, appErr := th.App.CreateUserAccessToken(th.Context, &model.UserAccessToken{UserId: bot.UserId, Description: "plugin bot token"})
+		require.Nil(t, appErr)
+		t.Cleanup(func() {
+			_ = th.App.Srv().Store().UserAccessToken().Delete(token.Id)
+			_ = th.App.PermanentDeleteBot(th.Context, bot.UserId)
+		})
+
+		rotated, appErr := th.App.RotateUserAccessToken(th.Context, token, 0)
+		require.Nil(t, appErr)
+		assert.Zero(t, rotated.ExpiresAt)
+	})
 }
 
 func TestUserAccessTokenInactiveUser(t *testing.T) {
@@ -7529,6 +7851,36 @@ func TestUserAccessTokenDisableConfigBotsExcluded(t *testing.T) {
 
 	_, _, err = th.Client.GetMe(context.Background(), "")
 	require.NoError(t, err)
+}
+
+func TestExpiredBotAccessTokenIsRejected(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableBotAccountCreation = true
+		*cfg.ServiceSettings.EnableUserAccessTokens = false
+	})
+
+	bot, _, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
+		Username: GenerateTestUsername(),
+	})
+	require.NoError(t, err)
+
+	token := &model.UserAccessToken{
+		Token:       model.NewId(),
+		UserId:      bot.UserId,
+		Description: "expired bot token",
+		ExpiresAt:   model.GetMillis() - 1000,
+	}
+	_, err = th.App.Srv().Store().UserAccessToken().Save(token)
+	require.NoError(t, err)
+
+	th.Client.AuthToken = token.Token
+	_, resp, err := th.Client.GetMe(context.Background(), "")
+	require.Error(t, err)
+	CheckUnauthorizedStatus(t, resp)
+	CheckErrorID(t, err, "api.context.session_expired.app_error")
 }
 
 func TestGetUsersByStatus(t *testing.T) {
@@ -11126,7 +11478,7 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 
 		user := th.CreateUser(t)
 
-		for i := 0; i < *maxAttempts; i++ {
+		for range *maxAttempts {
 			_, _, err := client.Login(context.Background(), user.Email, wrongPassword)
 			require.Error(t, err)
 		}
@@ -11205,7 +11557,7 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 
 		user := th.CreateUser(t)
 
-		for i := 0; i < *maxAttempts; i++ {
+		for range *maxAttempts {
 			_, _, err := client.Login(context.Background(), user.Email, wrongPassword)
 			require.Error(t, err)
 		}
@@ -11237,7 +11589,7 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 
 		user := th.CreateUser(t)
 
-		for i := 0; i < *maxAttempts; i++ {
+		for range *maxAttempts {
 			_, _, err := client.Login(context.Background(), user.Email, wrongPassword)
 			require.Error(t, err)
 		}
@@ -11273,7 +11625,7 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 		_, appErr := th.App.UpdateUserRoles(th.Context, sysadmin.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 		require.Nil(t, appErr)
 
-		for i := 0; i < *maxAttempts; i++ {
+		for range *maxAttempts {
 			_, _, err := client.Login(context.Background(), sysadmin.Email, wrongPassword)
 			require.Error(t, err)
 		}
@@ -11305,7 +11657,7 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 		_, appErr := th.App.UpdateUserRoles(th.Context, sysadmin.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 		require.Nil(t, appErr)
 
-		for i := 0; i < *maxAttempts; i++ {
+		for range *maxAttempts {
 			_, _, err := client.Login(context.Background(), sysadmin.Email, wrongPassword)
 			require.Error(t, err)
 		}

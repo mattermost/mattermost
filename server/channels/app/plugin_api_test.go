@@ -2417,8 +2417,13 @@ func TestInterpluginPluginHTTPContext(t *testing.T) {
 			}
 			readErrCh = make(chan error, 1)
 			go func() {
-				_, readErr := resp.Body.Read(make([]byte, 1))
-				readErrCh <- readErr
+				for {
+					_, readErr := resp.Body.Read(make([]byte, 1))
+					if readErr != nil {
+						readErrCh <- readErr
+						return
+					}
+				}
 			}()
 			select {
 			case err = <-readErrCh:
@@ -2867,7 +2872,7 @@ func TestInterpluginPluginHTTPStreaming(t *testing.T) {
 
 					w.WriteHeader(http.StatusOK)
 
-					for i := 0; i < totalChunks; i++ {
+					for range totalChunks {
 						chunk := bytes.Repeat([]byte("X"), chunkSize)
 						w.Write(chunk)
 

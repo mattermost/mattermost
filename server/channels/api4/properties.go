@@ -14,6 +14,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/web"
 )
@@ -35,6 +36,11 @@ func (api *API) InitProperties() {
 		api.BaseRoutes.PropertyFields.Handle("", api.APISessionRequired(createPropertyField)).Methods(http.MethodPost)
 		api.BaseRoutes.PropertyField.Handle("", api.APISessionRequired(patchPropertyField)).Methods(http.MethodPatch)
 		api.BaseRoutes.PropertyField.Handle("", api.APISessionRequired(deletePropertyField)).Methods(http.MethodDelete)
+
+		api.BaseRoutes.PropertyFieldOptions.Handle("", api.APISessionRequired(getPropertyFieldOptions)).Methods(http.MethodGet)
+		api.BaseRoutes.PropertyFieldOptions.Handle("", api.APISessionRequired(createPropertyFieldOptions)).Methods(http.MethodPost)
+		api.BaseRoutes.PropertyFieldOptions.Handle("", api.APISessionRequired(patchPropertyFieldOptions)).Methods(http.MethodPatch)
+		api.BaseRoutes.PropertyFieldOptions.Handle("", api.APISessionRequired(deletePropertyFieldOptions)).Methods(http.MethodDelete)
 
 		api.BaseRoutes.PropertyValues.Handle("", api.APISessionRequired(patchPropertyValues)).Methods(http.MethodPatch)
 		api.BaseRoutes.PropertySystemValues.Handle("", api.APISessionRequired(patchSystemPropertyValues)).Methods(http.MethodPatch)
@@ -84,6 +90,59 @@ func requireChannelAttributeLicense(c *Context, group *model.PropertyGroup, call
 	}
 
 	return true
+}
+
+// requireChannelAttributeLicenseForTemplate refuses a request against an
+// access_control template that a channel field links to, unless the license is
+// Enterprise Advanced. requireChannelAttributeLicense cannot catch this case:
+// it runs before any field is read and keys on the object type in the URL,
+// which is "template" here. Sets c.Err and returns false on refusal.
+//
+// Best-effort: this catches a template a channel field links to directly.
+// A linked field may not itself be a link target, so a chain cannot hide
+// the template; dependents still come and go, so the answer is only as
+// good as this moment.
+func requireChannelAttributeLicenseForTemplate(c *Context, rctx request.CTX, group *model.PropertyGroup, field *model.PropertyField, callerName string) bool {
+	if group.Name != model.AccessControlPropertyGroupName ||
+		field.ObjectType != model.PropertyFieldObjectTypeTemplate ||
+		model.MinimumEnterpriseAdvancedLicense(c.App.License()) {
+		return true
+	}
+
+	dependents, searchErr := c.App.SearchPropertyFields(rctx, group.ID, model.PropertyFieldSearchOpts{
+		ObjectTypes:   []string{model.PropertyFieldObjectTypeChannel},
+		LinkedFieldID: field.ID,
+		PerPage:       1,
+	})
+	if searchErr != nil {
+		c.Err = searchErr
+		return false
+	}
+	if len(dependents) > 0 {
+		c.Err = model.NewAppError(callerName, "api.property.channel_attributes.license.app_error", nil, "", http.StatusNotImplemented)
+		return false
+	}
+
+	return true
+}
+
+// resolvePropertyGroupParam reads the propertyGroup query parameter and resolves it to a
+// property group ID. Returns "" when the parameter is absent, which callers pass straight through to
+// PreparePostForClientOpts as "do not hydrate". On any validation failure it sets c.Err, so callers
+// check that rather than the returned value.
+func resolvePropertyGroupParam(c *Context, r *http.Request) string {
+	raw := strings.TrimSpace(r.URL.Query().Get("propertyGroup"))
+	if raw == "" {
+		return ""
+	}
+
+	c.Params.GroupName = raw
+	group := getV2Group(c, "resolvePropertyGroupParam")
+	if group == nil {
+		return ""
+	}
+
+	return group.ID
 }
 
 func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -164,28 +223,40 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Default permission levels: pin all three for non-admins, nil-fill for
-	// admins. Stays in API because it is session-bound.
-	isAdmin := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+	// Set before the permission levels are resolved.
+	field.CreatedBy = c.AppContext.Session().UserId
+	field.UpdatedBy = c.AppContext.Session().UserId
+
+	// Default permission levels: whoever administers the field's scope may
+	// configure them, everyone else has all three pinned to the default.
+	canPin := c.App.SessionHasPermissionToAdministerPropertyFieldScope(c.AppContext, *c.AppContext.Session(), field)
 	defaultLevel := app.DefaultPropertyFieldPermissionLevel(field)
-	if !isAdmin {
+	defaultValuesLevel := app.DefaultPropertyFieldValuesPermissionLevel(field)
+	if !canPin {
 		field.PermissionField = &defaultLevel
-		field.PermissionValues = &defaultLevel
+		field.PermissionValues = &defaultValuesLevel
 		field.PermissionOptions = &defaultLevel
 	} else {
 		if field.PermissionField == nil {
 			field.PermissionField = &defaultLevel
 		}
 		if field.PermissionValues == nil {
-			field.PermissionValues = &defaultLevel
+			field.PermissionValues = &defaultValuesLevel
 		}
 		if field.PermissionOptions == nil {
 			field.PermissionOptions = &defaultLevel
 		}
+
+		// Anti-lockout: an unlinked field must be editable by whoever creates
+		// it, or they could pin a level that leaves them unable to patch or
+		// delete their own field.
+		isLinked := field.LinkedFieldID != nil && *field.LinkedFieldID != ""
+		if !isLinked && !c.App.SessionHasPermissionToEditPropertyField(c.AppContext, *c.AppContext.Session(), field) {
+			c.Err = model.NewAppError("createPropertyField", "api.property_field.create.creator_cannot_edit.app_error", nil, "", http.StatusForbidden)
+			return
+		}
 	}
 
-	field.CreatedBy = c.AppContext.Session().UserId
-	field.UpdatedBy = c.AppContext.Session().UserId
 	connectionID := r.Header.Get(model.ConnectionId)
 
 	createdField, appErr := c.App.CreatePropertyField(rctx, field, false, connectionID)
@@ -366,7 +437,9 @@ func searchPropertyFieldsCore(c *Context, w http.ResponseWriter, group *model.Pr
 		return
 	}
 
-	fields, err := c.App.SearchPropertyFields(c.AppContext, group.ID, opts)
+	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
+
+	fields, err := c.App.SearchPropertyFields(rctx, group.ID, opts)
 	if err != nil {
 		c.Err = err
 		return
@@ -511,6 +584,10 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !requireChannelAttributeLicenseForTemplate(c, rctx, group, existingField, "patchPropertyField") {
+		return
+	}
+
 	// PermissionValues is only patchable on a linked field (any object type),
 	// and only to Member or Sysadmin. Requiring LinkedFieldID keeps this off
 	// standalone fields, which can have a weaker (Member-level) PermissionField
@@ -604,6 +681,10 @@ func deletePropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if existingField.ObjectType != c.Params.ObjectType {
 		c.Err = model.NewAppError("deletePropertyField", "api.property_field.object_type_mismatch.app_error", nil, "", http.StatusNotFound)
+		return
+	}
+
+	if !requireChannelAttributeLicenseForTemplate(c, rctx, group, existingField, "deletePropertyField") {
 		return
 	}
 
@@ -727,7 +808,9 @@ func getPropertyValuesCore(c *Context, w http.ResponseWriter, r *http.Request, o
 	model.AddEventParameterToAuditRec(auditRec, "target_id", targetID)
 	model.AddEventParameterToAuditRec(auditRec, "since", opts.SinceUpdateAt)
 
-	values, err := c.App.SearchPropertyValues(c.AppContext, group.ID, opts)
+	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
+
+	values, err := c.App.SearchPropertyValues(rctx, group.ID, opts)
 	if err != nil {
 		c.Err = err
 		return
@@ -912,9 +995,11 @@ func hasTargetAccess(c *Context, objectType, targetID string, write bool) bool {
 				perm = model.PermissionManagePrivateChannelProperties
 			default:
 				// DM/GM channels have no manage_*_channel_properties permission, so
-				// this outer gate only checks membership. The per-field tier check in
-				// SessionHasPermissionToSetPropertyFieldValues is what actually keeps
-				// participants from setting DM/GM values.
+				// this outer gate only checks membership, and the per-field tier check
+				// in SessionHasPermissionToSetPropertyFieldValues resolves participation
+				// as membership too. Groups that need DM/GM values kept out of users'
+				// hands enforce that in their own PropertyHook — see
+				// AccessControlAttributeValidationHook for the access_control group.
 				perm = model.PermissionReadChannel
 			}
 			hasPermission, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), targetID, perm)
@@ -984,6 +1069,21 @@ func hasTargetAccess(c *Context, objectType, targetID string, write bool) bool {
 // for property-service hook identification. Local-mode (unrestricted)
 // sessions have an empty Session.UserId but full admin privileges, so they
 // are tagged with CallerIDLocalAdmin instead.
+//
+// EVERY handler that reads or writes property fields, options or values must
+// pass an rctx built with this -- reads no less than writes. An access mode of
+// shared_only masks a field's options and values against what the caller
+// themselves holds, so a read that does not say who is asking is answered as a
+// caller who holds nothing and is shown nothing. That fails closed, which is
+// correct, but it is also the exact answer a legitimate caller who shares
+// nothing with the target gets, so a handler that forgets looks like masking
+// doing its job and nothing anywhere says otherwise.
+//
+// There is no structural guard, and there is deliberately no log either: the
+// property service cannot tell a request that forgot to tag itself from a
+// caller that is genuinely anonymous, so warning on the second to catch the
+// first would mean a line per anonymous read forever. Nothing will tell you.
+// Reviewing a new property handler means checking this by eye.
 func sessionCallerID(c *Context) string {
 	session := c.AppContext.Session()
 	if session.IsUnrestricted() {

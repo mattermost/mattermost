@@ -709,16 +709,29 @@ components:
           description: Whether this field is protected from API modification
         permission_field:
           type: string
-          description: Permission level for editing the field definition
-          enum: [none, sysadmin, member]
+          description: >
+            Permission level for editing (and deleting) the field definition.
+            `creator` resolves to the field's `created_by`, in addition to
+            everyone `admin` grants, and is only valid on fields whose object
+            type is `post` or `channel`.
+          enum: [none, sysadmin, member, admin, creator]
         permission_values:
           type: string
-          description: Permission level for setting values on objects
-          enum: [none, sysadmin, member]
+          description: >
+            Permission level for setting values on objects. `creator` resolves
+            to the creator of the object the value is attached to (a post's
+            author, a channel's creator), in addition to everyone `admin`
+            grants, and is only valid on fields whose object type is `post` or
+            `channel`.
+          enum: [none, sysadmin, member, admin, creator]
         permission_options:
           type: string
-          description: Permission level for managing options on select/multiselect fields
-          enum: [none, sysadmin, member]
+          description: >
+            Permission level for managing options on select/multiselect fields.
+            `creator` resolves to the field's `created_by`, in addition to
+            everyone `admin` grants, and is only valid on fields whose object
+            type is `post` or `channel`.
+          enum: [none, sysadmin, member, admin, creator]
         linked_field_id:
           type: string
           nullable: true
@@ -769,7 +782,10 @@ components:
         field_id:
           type: string
         value:
-          type: string
+          description: >
+            The property's value, whose JSON shape depends on the field's type: most types
+            (`text`, `select`, `date`, `user`) store a JSON string, while `multiselect` and
+            `multiuser` store a JSON array of strings.
         create_at:
           type: integer
           format: int64
@@ -932,6 +948,20 @@ components:
             Any acknowledgements made to this point.
           items:
             $ref: "#/components/schemas/PostAcknowledgement"
+        property_values:
+          type: array
+          description: >
+            The property values attached to this post for the property group named in the
+            `propertyGroup` query parameter. Present only when that parameter was
+            supplied, the lookup succeeded, and the post has at least one value in that group.
+          items:
+            $ref: "#/components/schemas/PropertyValue"
+        property_values_unavailable:
+          type: boolean
+          description: >
+            Present and `true` when the lookup of this post's property values failed; omitted
+            otherwise. It does **not** mean the post has no property values, it means they could
+            not be retrieved, and `property_values` is therefore absent or incomplete.
     TeamMap:
       type: object
       description: A mapping of teamIds to teams.
@@ -3205,6 +3235,13 @@ components:
             The minimum Mattermost server version required for the plugin.
 
             Available as server version 5.6.
+        required_add_on:
+          type: string
+          description: |
+            The add-on the server license must grant before the plugin can be
+            enabled.
+
+            Available as server version 12.0.
         backend:
           type: object
           description: Deprecated in Mattermost 5.2 release.
