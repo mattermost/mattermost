@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {CollapsedThreads} from '@mattermost/types/config';
+
 import {expect, test, PlaywrightClient4, testConfig} from '@mattermost/playwright-lib';
 
 /**
@@ -12,6 +14,10 @@ test('MM-69802 Thread footer avatar with broken image URL renders with equal wid
     // adminClient.createPost always posts as sysadmin regardless of user_id,
     // so we need a dedicated client per user to get distinct thread participants.
     const {adminClient, team, user, userClient} = await pw.initSetup();
+
+    // ThreadFooter only mounts with collapsed reply threads. Sibling specs
+    // disable CRT on the shared e2e server and do not always restore it.
+    await adminClient.patchConfig({ServiceSettings: {CollapsedThreads: CollapsedThreads.ALWAYS_ON}});
 
     const [otherUser1, otherUser2] = await adminClient.createUsers(team.id, 2, 'thread-avatar');
 
@@ -49,7 +55,7 @@ test('MM-69802 Thread footer avatar with broken image URL renders with equal wid
     await rootPost.toBeVisible();
 
     const {threadFooter} = rootPost;
-    await threadFooter.toBeVisible();
+    await expect(threadFooter.container).toBeVisible({timeout: 20000});
 
     const avatarImages = threadFooter.container.locator('img.Avatar');
     await expect(avatarImages.first()).toBeVisible();
