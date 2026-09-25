@@ -27,8 +27,8 @@ write only what that sentence requires.
   gap brief. If evidence is absent, write `[NOT PRESENT IN PR — REQUIRES HUMAN JUDGMENT]`
   at the claim site — never invent behaviour, UI labels, config keys, or defaults.
 - Version anchoring comes only from `milestone.version` in the brief. When present, use
-  `From Mattermost vX.Y` for new or changed capability. When absent, use
-  `[NOT PRESENT — REQUIRES HUMAN JUDGMENT]` in place of a version — never guess.
+  `From Mattermost vX.Y` for new or changed capability. When absent, write
+  `From Mattermost [NOT PRESENT — REQUIRES HUMAN JUDGMENT]` — never guess a version.
 - Do not hand-author `docs/api/reference/**`, `docs/site/**`, `docs/styles/**`,
   `docs/pdf/**`, `docs/vendor/**`, or `docs/main/agents/docs/**`.
 - Do not edit changelogs, important upgrade notes, or version-archive pages unless the
@@ -48,12 +48,12 @@ Do not document internal debug or trace noise with no admin troubleshooting valu
 logging changes when the product has no observability documentation for that surface
 (implementation-only logs).
 
-Examples to document: a DEBUG line that explains why a job skipped on a non-leader node;
-a new metric such as `api_request_duration_seconds`; a new audit event such as
-`USER_PASSWORD_CHANGED`.
+Examples to document: an Info/Warn log an admin uses to diagnose a failed job; a new
+metric such as `api_request_duration_seconds`; a new audit event such as
+`USER_PASSWORD_CHANGED`; a config option that changes what is logged.
 
-Examples not to document: "added trace logging in `processWidgets()`"; "improved log
-formatting" when the meaning of the output is unchanged.
+Examples not to document: "added DEBUG/trace logging in `processWidgets()`"; "improved
+log formatting" when the meaning of the output is unchanged.
 
 ## Anti-patterns
 
