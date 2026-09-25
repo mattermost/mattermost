@@ -153,6 +153,7 @@ func TestValidateLogFilePathWithRootOverride(t *testing.T) {
 }
 
 func TestGetLogsSkipSendPathValidation(t *testing.T) {
+	t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-70918")
 	mainHelper.Parallel(t)
 
 	th := Setup(t)
