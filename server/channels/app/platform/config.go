@@ -110,6 +110,11 @@ func (ps *PlatformService) SaveConfig(newCfg *model.Config, sendConfigChangeClus
 	// Validate log file paths (logs errors for now, will block server startup in future version)
 	config.WarnIfLogPathsOutsideRoot(newCfg)
 
+	if err := config.ValidateLogTargets(newCfg, ps.Config()); err != nil {
+		ps.Log().Error("Rejecting configuration with an invalid logging destination", mlog.Err(err))
+		return nil, nil, model.NewAppError("saveConfig", "app.save_config.invalid_log_target.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	oldCfg, newCfg, err := ps.configStore.Set(newCfg)
 	if errors.Is(err, config.ErrReadOnlyConfiguration) {
 		return nil, nil, model.NewAppError("saveConfig", "ent.cluster.save_config.error", nil, "", http.StatusForbidden).Wrap(err)
@@ -177,9 +182,19 @@ func (ps *PlatformService) ConfigureLogger(name string, logger *mlog.Logger, log
 		return fmt.Errorf("invalid config source for %s, %w", name, err)
 	}
 
+	removedTargets := config.RemoveUnsafeLogTargets(cfg, ps.Config())
+
 	// this will remove any existing targets and replace with those defined in cfg.
 	if err := logger.ConfigureTargets(cfg, nil); err != nil {
 		return fmt.Errorf("invalid config for %s, %w", name, err)
+	}
+
+	for _, removed := range removedTargets {
+		ps.Log().Error("Removed logging target with an invalid destination. No log records will be written to this file.",
+			mlog.String("logger", name),
+			mlog.String("target", removed.Name),
+			mlog.String("path", removed.Path),
+			mlog.String("reason", removed.Reason))
 	}
 
 	if resultMsg != "" {

@@ -12,6 +12,7 @@ import (
 	"path"
 	"path/filepath"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-multierror"
@@ -273,7 +274,7 @@ func (ps *PlatformService) GetAdvancedLogs(rctx request.CTX) ([]*model.FileData,
 		}
 
 		for _, t := range cfg {
-			if t.Type != "file" {
+			if !strings.EqualFold(t.Type, "file") {
 				continue
 			}
 			var fileOption struct {
