@@ -3,10 +3,12 @@
 
 import type {Dispatch} from 'redux';
 
-import type {PropertyField, PropertyFieldOption, PropertyPermissionLevel} from '@mattermost/types/properties';
+import {supportsHierarchy, type PropertyField, type PropertyFieldOption, type PropertyPermissionLevel} from '@mattermost/types/properties';
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
+
+import {clearGraphOptionNamesForField, commitGraphOptionNames} from 'components/property_fields/graph/use_graph_option_names';
 
 import {ALL_RESOURCE_TYPES} from './attribute_details/attribute_applies_to_constants';
 import type {ResourceObjectType} from './attribute_details/attribute_applies_to_constants';
@@ -23,9 +25,27 @@ const USER_RESOURCE_OBJECT_TYPE: ResourceObjectType = 'user';
 // stays stale until a reload. A field returned from the create/patch call
 // carries its authoritative option list (unlike the stripped broadcast), so it
 // can be stored as-is.
+//
+// Graph option names live in a module-level cache that useGraphOptionNames
+// prefers over the field's inline list. Remote property_field_* events already
+// clear and recommit that cache; the originating tab has to do the same here
+// or a renamed option keeps showing its old name until reload.
 export function syncUserAttributeFieldUpsert(dispatch: Dispatch, field: PropertyField, created: boolean): void {
     if (field.object_type !== USER_RESOURCE_OBJECT_TYPE) {
         return;
+    }
+    if (supportsHierarchy(field)) {
+        clearGraphOptionNamesForField(field.id);
+        const optionsOmitted = field.attrs?.options_omitted === true;
+        if (!optionsOmitted && Array.isArray(field.attrs?.options)) {
+            const names: Record<string, string> = {};
+            for (const option of field.attrs.options as PropertyFieldOption[]) {
+                if (option.id) {
+                    names[option.id] = option.name;
+                }
+            }
+            commitGraphOptionNames(field.id, names);
+        }
     }
     dispatch({
         type: created ? GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_CREATED : GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_PATCHED,

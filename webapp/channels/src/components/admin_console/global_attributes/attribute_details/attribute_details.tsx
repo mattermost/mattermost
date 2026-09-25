@@ -1047,6 +1047,26 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 return;
             }
 
+            // updatePropertyField returns only the template. The server still
+            // rewrites linked fields in that same write (options, type), but
+            // the originating tab never receives property_field_* for it.
+            // Newly created Users rows and an explicit Users-config PATCH are
+            // synced below; an already-persisted Users row that stays applied
+            // is not, so read it back into the CPA slice. A fetch miss must
+            // not fail the save -- the template update has already landed.
+            if (appliesTo.includes('user') && !toCreate.includes('user') && persistedLinkedFieldsRef.current.user) {
+                try {
+                    const linkedFields = await fetchLinkedFieldsForTemplate(fieldId, channelAttributesEnabled);
+                    const userField = linkedFieldsByResourceType(linkedFields).user;
+                    if (userField) {
+                        persistedLinkedFieldsRef.current.user = userField;
+                        syncUserAttributeFieldUpsert(dispatch, userField, false);
+                    }
+                } catch {
+                    // Best-effort originating-tab cache refresh only.
+                }
+            }
+
             if (!typeChanged && !(await deleteRemovedLinkedFields('applies_to_remove_partial_save'))) {
                 return;
             }
@@ -1184,7 +1204,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         }
 
         finalizeSave(outcome);
-    }, [dispatch, canSave, isEditMode, fieldId, objectType, nameUnchanged, displayName, currentName, fieldType, typeChanged, options, ldapAttr, samlAttr, appliesTo, channelResource, finalizeSave, confirmRemoveAppliesTo, userVisibility, userManaged]);
+    }, [dispatch, canSave, isEditMode, fieldId, objectType, nameUnchanged, displayName, currentName, fieldType, typeChanged, options, ldapAttr, samlAttr, appliesTo, channelResource, finalizeSave, confirmRemoveAppliesTo, userVisibility, userManaged, channelAttributesEnabled]);
 
     const handleChannelResourceChange = useCallback((next: ChannelResourceConfig) => {
         setChannelResource(next);

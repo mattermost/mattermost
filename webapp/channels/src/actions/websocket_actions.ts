@@ -1588,6 +1588,18 @@ export function handlePropertyFieldCreatedOrUpdated(
                             },
                         },
                     });
+
+                    // User Management skips its mount fetch while this
+                    // slice is nonempty, so a restored list would otherwise
+                    // stay until reconnect. Follow with a refetch only for
+                    // admins who can open that page (the same
+                    // SYSCONSOLE_WRITE_USERMANAGEMENT_USERS gate as
+                    // getShowManageUserSettings; license is already required
+                    // to reach this branch). Other clients keep the restored
+                    // list.
+                    if (haveISystemPermission(doGetState(), {permission: Permissions.SYSCONSOLE_WRITE_USERMANAGEMENT_USERS})) {
+                        doDispatch(getCustomProfileAttributeFields());
+                    }
                 } else {
                     doDispatch(getCustomProfileAttributeFields());
                 }

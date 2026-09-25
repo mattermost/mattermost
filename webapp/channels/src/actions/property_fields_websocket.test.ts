@@ -11,6 +11,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 import {PropertyTypes} from 'mattermost-redux/action_types';
 import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {fetchPropertyFields} from 'mattermost-redux/actions/properties';
+import {Permissions} from 'mattermost-redux/constants';
 import {getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
 import {getPropertyFieldById} from 'mattermost-redux/selectors/entities/properties';
 
@@ -222,7 +223,7 @@ describe('property_field events for user attributes', () => {
 
     function makeStore(
         customProfileAttributes: Record<string, UserPropertyField>,
-        {groupCachedByName = false, cachedPropertyFields = [] as PropertyField[], licensed = true} = {},
+        {groupCachedByName = false, cachedPropertyFields = [] as PropertyField[], licensed = true, canManageUserSettings = false} = {},
     ) {
         return realConfigureStore({
             entities: {
@@ -243,6 +244,19 @@ describe('property_field events for user attributes', () => {
                         byId: {[CPA_GROUP_ID]: {id: CPA_GROUP_ID, name: 'access_control'}},
                         byName: {access_control: {id: CPA_GROUP_ID, name: 'access_control'}},
                     } : {byId: {}, byName: {}},
+                },
+                users: {
+                    currentUserId: 'admin_user_id',
+                    profiles: {
+                        admin_user_id: {id: 'admin_user_id', roles: 'system_user'},
+                    },
+                },
+                roles: {
+                    roles: {
+                        system_user: {
+                            permissions: canManageUserSettings ? [Permissions.SYSCONSOLE_WRITE_USERMANAGEMENT_USERS] : [],
+                        },
+                    },
                 },
             },
         });
@@ -426,10 +440,28 @@ describe('property_field events for user attributes', () => {
         store.dispatch(handlePropertyFieldCreatedOrUpdated(updatedEvent(withheld)));
 
         // Patched in place from the field's own cached entry rather than dropping
-        // the whole map and reloading it.
+        // the whole map and reloading it. Clients without User Management write
+        // permission do not refetch.
         expect(getCustomProfileAttributes(store.getState())[0].attrs.options).toEqual([{id: 'option_id_1', name: 'AURORA'}]);
         expect(getCustomProfileAttributeFields).not.toHaveBeenCalled();
         expect(fetchPropertyFields).toHaveBeenCalledTimes(scopeRefetches);
+    });
+
+    test('a User Management administrator refetches withheld options after restoring the cached list', () => {
+        // User Management skips its mount fetch when the slice is nonempty, so
+        // the restored options would otherwise stay until reconnect. Those
+        // admins follow the patch with a refetch; other clients do not.
+        const existing = userAttribute({
+            type: 'select',
+            attrs: {options: [{id: 'option_id_1', name: 'AURORA'}]},
+        });
+        const store = makeStore({[existing.id]: existing}, {canManageUserSettings: true});
+
+        const withheld = userAttribute({type: 'select', attrs: {options_omitted: true}});
+        store.dispatch(handlePropertyFieldCreatedOrUpdated(updatedEvent(withheld)));
+
+        expect(getCustomProfileAttributes(store.getState())[0].attrs.options).toEqual([{id: 'option_id_1', name: 'AURORA'}]);
+        expect(getCustomProfileAttributeFields).toHaveBeenCalledTimes(1);
     });
 
     test('a user attribute whose options were withheld with nothing cached is read back from the server', () => {
