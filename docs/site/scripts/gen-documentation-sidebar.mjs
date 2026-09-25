@@ -546,7 +546,12 @@ const ADMIN_MANAGE_GROUPS = {
 };
 
 // `admin/`-prefixed basenames live in the nested sub-folder.
+//
+// Workspace organization is a standalone leaf rather than an Access control
+// child: it's structural guidance that spans teams, channels, and permissions,
+// and it's the entry point admins look for before any of the policy pages.
 const ADMIN_MANAGE_ORDER = [
+  'admin/workspace-organization',
   {group: 'accessControl'},
   {group: 'serverOps'},
   {group: 'licensing'},
@@ -597,7 +602,6 @@ const COLLABORATE_GROUPS = {
       'browse-channels',
       'join-leave-channels',
       'create-channels',
-      'channel-naming-conventions',
       'channel-header-purpose',
       'rename-channels',
       'navigate-between-channels',
@@ -681,7 +685,7 @@ const COLLABORATE_ORDER = [
 // Agents.
 const COLLABORATE_HIDDEN = new Set([
   'channel-types', 'browse-channels', 'create-channels', 'join-leave-channels',
-  'navigate-between-channels', 'channel-naming-conventions', 'channel-header-purpose',
+  'navigate-between-channels', 'channel-header-purpose',
   'rename-channels', 'archive-unarchive-channels', 'favorite-channels',
   'mark-channels-unread', 'manage-channel-members', 'manage-channel-bookmarks',
   'display-channel-banners', 'autotranslate-messages', 'convert-public-channels',
