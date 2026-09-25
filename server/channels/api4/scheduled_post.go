@@ -236,6 +236,12 @@ func updateScheduledPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		scheduledPost.RepeatTimezone = existingScheduledPost.RepeatTimezone
 	}
 
+	// The type is immutable; App.UpdateScheduledPost restores it from the stored record via
+	// RestoreNonUpdatableFields. Do it here as well so the checks below see the type the post
+	// will actually be sent with, rather than whatever the client echoed back — clients that
+	// omit type would otherwise skip the burn-on-read checks entirely.
+	scheduledPost.Type = existingScheduledPost.Type
+
 	if len(scheduledPost.FileIds) > 0 {
 		originalPost, err := existingScheduledPost.ToPost()
 		if err != nil {

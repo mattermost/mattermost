@@ -3017,6 +3017,10 @@
     "translation": "@{{.Username}} didn't get notified by this mention because they aren't a member of this team."
   },
   {
+    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
+    "translation": "You do not have permission to send burn-on-read messages in this channel."
+  },
+  {
     "id": "api.post.create_post.burn_on_read.app_error",
     "translation": "An error occurred while creating a burn-on-read post."
   },
