@@ -12,27 +12,25 @@ export function enableUsernameAndIconOverride(enable) {
 }
 
 export function enableUsernameAndIconOverrideInt(enableUsername, enableIcon) {
-    // Patch only these two flags. cy.apiUpdateConfig also merges e2e defaults,
-    // which can change image-proxy/site settings MM-T622 asserts against, and
-    // the admin-console Save path flakes when the radios are already set.
-    cy.apiGetConfig().then(({config}) => {
-        config.ServiceSettings.EnablePostUsernameOverride = enableUsername;
-        config.ServiceSettings.EnablePostIconOverride = enableIcon;
+    // # Visit integration management at system console and change override values
+    cy.visit('/admin_console/integrations/integration_management');
+    cy.get('#saveSetting').should('be.visible').and('be.disabled');
 
-        cy.getCookie('MMCSRF').then((csrfCookie) => {
-            const headers = {};
-            if (csrfCookie?.value) {
-                headers['X-CSRF-Token'] = csrfCookie.value;
+    const usernameTestId = 'ServiceSettings.EnablePostUsernameOverride' + enableUsername;
+    const iconTestId = 'ServiceSettings.EnablePostIconOverride' + enableIcon;
+
+    cy.findByTestId(usernameTestId).then(($username) => {
+        cy.findByTestId(iconTestId).then(($icon) => {
+            // Skip Save when both flags are already in the requested state.
+            // Checking an already-selected control leaves Save disabled and flakes MM-T622.
+            if ($username.is(':checked') && $icon.is(':checked')) {
+                return;
             }
 
-            cy.request({
-                url: '/api/v4/config',
-                method: 'PUT',
-                body: config,
-                headers,
-            }).then((response) => {
-                expect(response.status).to.equal(200);
-            });
+            cy.findByTestId(usernameTestId).check({force: true});
+            cy.findByTestId(iconTestId).check({force: true});
+            cy.get('#saveSetting').should('be.enabled').click({force: true});
+            cy.get('#saveSetting').should('be.disabled');
         });
     });
 }
