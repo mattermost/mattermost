@@ -1,0 +1,230 @@
+[
+    {
+        "id": "app.command.execute.error",
+        "translation": "Kunde inte utföra kommandot."
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.heading",
+        "translation": "Status om förseningar"
+    },
+    {
+        "id": "app.user.digest.tasks.zero_assigned",
+        "translation": "Du har 0 tilldelade uppgifter."
+    },
+    {
+        "id": "app.user.digest.tasks.num_assigned_due_until_today",
+        "translation": {
+            "one": "Du har {{.Count}} tilldelad uppgift som nu är försenad:",
+            "other": "Du har {{.Count}} tilldelade uppgifter som nu är försenade:"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.num_assigned",
+        "translation": {
+            "one": "Du har tilldelats {{.Count}} uppgift:",
+            "other": "Du har tilldelats totalt {{.Count}} uppgifter:"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.heading",
+        "translation": "Dina tilldelade uppgifter"
+    },
+    {
+        "id": "app.user.digest.tasks.due_yesterday",
+        "translation": "Skulle utförts igår"
+    },
+    {
+        "id": "app.user.digest.tasks.due_x_days_ago",
+        "translation": "Försenad {{.Count}} dagar"
+    },
+    {
+        "id": "app.user.digest.tasks.due_today",
+        "translation": "Ska utföras idag"
+    },
+    {
+        "id": "app.user.digest.tasks.due_in_x_days",
+        "translation": {
+            "one": "Ska utföras inom {{.Count}} dag",
+            "other": "Ska utföras inom {{.Count}} dagar"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.due_after_today",
+        "translation": {
+            "one": "Du har **{{.Count}} tilldelad uppgift som ska utföras idag**.",
+            "other": "Du har **{{.Count}} tilldelade uppgifter som ska utföras idag**."
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.all_tasks_command",
+        "translation": "Använd `/playbook todo` för att se alla dina uppgifter."
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.zero_in_progress",
+        "translation": "Du har 0 pågående körningar."
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.num_in_progress",
+        "translation": {
+            "one": "Du har {{.Count}} körning som för närvarande pågår:",
+            "other": "Du har {{.Count}} körningar som för närvarande pågår:"
+        }
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.heading",
+        "translation": "Körningar som pågår"
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.zero_overdue",
+        "translation": "Du har 0 försenade körningar."
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.num_overdue",
+        "translation": {
+            "one": "Du har {{.Count}} körning som borde ha fått en statusuppdatering:",
+            "other": "Du har {{.Count}} körningar som borde ha fått en statusuppdatering:"
+        }
+    },
+    {
+        "id": "app.user.run.request_update",
+        "translation": "@here - @{{.Name}} begärde en statusuppdatering för [{{.RunName}}]({{.RunURL}}). \n"
+    },
+    {
+        "id": "app.user.run.request_get_involved",
+        "translation": "@here - @{{.Name}} vill delta i denna körning. Om du vill inkludera dem som deltagare lägger du till dem i den här kanalen.\n"
+    },
+    {
+        "id": "app.user.run.joined_run_channel_private_participate",
+        "translation": "@{{.Name}} har anslutit till körningen. De har inte lagts till i den privata kanalen men vilken medlem om helst kan bjuda in dem att ansluta.\n"
+    },
+    {
+        "id": "app.user.run.joined_run_channel_private_add_participant",
+        "translation": "@{{.Name}} har lagts till i körningen av @{{.RequesterName}}. De har inte blivit automatiskt tillagda i kanalen eftersom @{{.RequesterName}} inte är en kanalmedlem och detta är en privat kanal.\n"
+    },
+    {
+        "id": "app.user.run.status_enable",
+        "translation": "@{{.Username}} aktiverade statusuppdateringar för [{{.RunName}}]({{.RunURL}})"
+    },
+    {
+        "id": "app.user.run.status_disable",
+        "translation": "@{{.Username}} inaktiverade statusuppdateringarna för [{{.RunName}}]({{.RunURL}})"
+    },
+    {
+        "id": "app.user.run.request_join_channel",
+        "translation": "@{{.Name}} är en deltagare i en körning och vill gå med i den här kanalen. Alla medlemmar i kanalen kan bjuda in dem.\n"
+    },
+    {
+        "id": "app.user.run.update_status.title",
+        "translation": "Statusuppdateringar"
+    },
+    {
+        "id": "app.user.run.update_status.submit_label",
+        "translation": "Skicka"
+    },
+    {
+        "id": "app.user.run.update_status.reminder_for_next_update",
+        "translation": "Påminnelse om nästa uppdatering"
+    },
+    {
+        "id": "app.user.run.update_status.num_channel",
+        "translation": {
+            "one": "Ge en uppdatering till intressenterna. Detta inlägg kommer att sändas till {{.Count}} kanal.",
+            "other": "Ge en uppdatering till intressenterna. Detta inlägg kommer att sändas till {{.Count}} kanaler."
+        }
+    },
+    {
+        "id": "app.user.run.update_status.finish_run.placeholder",
+        "translation": "Markera också körningen som avslutad"
+    },
+    {
+        "id": "app.user.run.update_status.finish_run",
+        "translation": "Slutför körningen"
+    },
+    {
+        "id": "app.user.run.update_status.change_since_last_update",
+        "translation": "Förändring sedan den senaste uppdateringen"
+    },
+    {
+        "id": "app.user.run.confirm_finish.title",
+        "translation": "Bekräfta att avsluta körningen"
+    },
+    {
+        "id": "app.user.run.confirm_finish.submit_label",
+        "translation": "Slutför körningen"
+    },
+    {
+        "id": "app.user.run.confirm_finish.num_outstanding",
+        "translation": {
+            "one": "Det finns **{{.Count}} utestående uppgift**. Är du säker på att du vill avsluta körningen *{{.RunName}}* för alla deltagare?",
+            "other": "Det finns **{{.Count}} utestående uppgifter**. Är du säker på att du vill avsluta körningen *{{.RunName}}* för alla deltagare?"
+        }
+    },
+    {
+        "id": "app.user.run.add_to_timeline.title",
+        "translation": "Lägg till i tidslinjen för körning"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary.placeholder",
+        "translation": "Kort sammanfattning som visas i tidslinjen"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary.help",
+        "translation": "Max 64 tecken"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary",
+        "translation": "Sammanfattning"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.submit_label",
+        "translation": "Lägg till i tidslinjen för körning"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.playbook_run",
+        "translation": "Kör Playbook"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.title",
+        "translation": "Lägg till en ny uppgift"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.submit_label",
+        "translation": "Lägg till uppgift"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.name",
+        "translation": "Namn"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.description",
+        "translation": "Beskrivning"
+    },
+    {
+        "id": "app.user.new_run.title",
+        "translation": "Kör playbook"
+    },
+    {
+        "id": "app.user.new_run.submit_label",
+        "translation": "Starta körning"
+    },
+    {
+        "id": "app.user.new_run.run_name",
+        "translation": "Namn på körning"
+    },
+    {
+        "id": "app.user.new_run.playbook",
+        "translation": "Playbook"
+    },
+    {
+        "id": "app.user.new_run.new_playbook",
+        "translation": "[Klicka här]({{.RunURL}}) för att skapa din egen playbook."
+    },
+    {
+        "id": "app.user.new_run.intro",
+        "translation": "**Ägare** {{.Username}}"
+    },
+    {
+        "id": "playbooks.checklist.condition.reason.modified",
+        "translation": "visas eftersom uppgiften ändrades"
+    }
+]

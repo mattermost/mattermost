@@ -1,0 +1,230 @@
+[
+    {
+        "id": "app.user.digest.tasks.due_after_today",
+        "translation": {
+            "one": "Önnek van **{{.Count}} Önhöz rendelt feladat aminek a határideje ma után van**.",
+            "other": "Önnek van **{{.Count}} Önhöz rendelt feladat aminek a határideje ma után van**."
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.num_assigned",
+        "translation": {
+            "one": "Önhöz {{.Count}} feladat van hozzárendelve:",
+            "other": "Önhöz {{.Count}} feladat van hozzárendelve:"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.due_in_x_days",
+        "translation": {
+            "one": "Határidő lejár {{.Count}} nap múlva",
+            "other": "Határidő lejár {{.Count}} nap múlva"
+        }
+    },
+    {
+        "id": "app.user.digest.tasks.num_assigned_due_until_today",
+        "translation": {
+            "one": "Önnek {{.Count}} Önhöz rendelt feladata van késedelemben:",
+            "other": "Önnek {{.Count}} Önhöz rendelt feladata van késedelemben:"
+        }
+    },
+    {
+        "id": "app.user.run.request_get_involved",
+        "translation": "@here — @{{.Name}} részt szeretne venni ebben a futásban. Ahhoz, hogy résztvevők lehessenek, adja hozzá őket ehhez a csatornához.\n"
+    },
+    {
+        "id": "app.user.run.request_update",
+        "translation": "@here — @{{.Name}} kért egy állapot frissítést a [{{.RunName}}]({{.RunURL}}) futásról. \n"
+    },
+    {
+        "id": "app.user.digest.tasks.zero_assigned",
+        "translation": "Önhöz 0 feladat van hozzárendelve."
+    },
+    {
+        "id": "app.user.digest.tasks.heading",
+        "translation": "Önhöz rendelt feladatok"
+    },
+    {
+        "id": "app.user.digest.tasks.due_yesterday",
+        "translation": "Tegnap lejárt"
+    },
+    {
+        "id": "app.user.digest.tasks.due_x_days_ago",
+        "translation": "Határidő lejárt {{.Count}} nappal ezelőtt"
+    },
+    {
+        "id": "app.user.digest.tasks.due_today",
+        "translation": "Határidő ma"
+    },
+    {
+        "id": "app.user.digest.tasks.all_tasks_command",
+        "translation": "Kérem használja a `/playbook todo` parancsot az összes feladat megtekintéséhez."
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.zero_in_progress",
+        "translation": "Önnek 0 futása van éppen folyamatban."
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.num_overdue",
+        "translation": {
+            "one": "Önnek {{.Count}} futása van lejárt állapot frissítéssel:",
+            "other": "Önnek {{.Count}} futása van lejárt állapot frissítéssel:"
+        }
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.num_in_progress",
+        "translation": {
+            "one": "Önnek {{.Count}} futása van folyamatban:",
+            "other": "Önnek {{.Count}} futása van folyamatban:"
+        }
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.zero_overdue",
+        "translation": "Önnek 0 futása van késedelemben."
+    },
+    {
+        "id": "app.user.digest.overdue_status_updates.heading",
+        "translation": "Késedelmes állapot frissítések"
+    },
+    {
+        "id": "app.command.execute.error",
+        "translation": "Nem sikerült végrehajtani a parancsot."
+    },
+    {
+        "id": "app.user.digest.runs_in_progress.heading",
+        "translation": "Futások folyamatban"
+    },
+    {
+        "id": "app.user.run.retro_publish",
+        "translation": "@{{.Name}} közzétett egy visszatekintőt\n[A teljes visszatekintő megtekintése]({{.URL}})\n"
+    },
+    {
+        "id": "app.user.run.request_join_channel",
+        "translation": "@{{.Name}} egy futás résztvevője és csatlakozni szeretne ehhez a csatornához. A csatorna bármelyik tagja meghívhatja.\n"
+    },
+    {
+        "id": "app.user.run.joined_run_channel_private_add_participant",
+        "translation": "@{{.Name}} a @{{.RequesterName}} által hozzá lett adva a futáshoz. Nem kerültek automatikusan hozzá a csatornához, mivel @{{.RequesterName}} nem tagja a csatornának, és a csatorna privát.\n"
+    },
+    {
+        "id": "app.user.run.joined_run_channel_private_participate",
+        "translation": "@{{.Name}} csatlakozott a futáshoz. Nem kerültek automatikusan hozzádásra a privát csatornához, de a csatorna bármelyik tagja meghívhatja őket, hogy csatlakozzanak.\n"
+    },
+    {
+        "id": "app.user.run.status_enable",
+        "translation": "@{{.Username}} engedélyezte az állapot frissítést a [{{.RunName}}]({{.RunURL}}) futáshoz"
+    },
+    {
+        "id": "app.user.run.status_disable",
+        "translation": "@{{.Username}} letiltotta az állapot frissítést a [{{.RunName}}]({{.RunURL}}) futáshoz"
+    },
+    {
+        "id": "app.user.new_run.intro",
+        "translation": "**Tulajdonos** {{.Username}}"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.submit_label",
+        "translation": "Feladat hozzáadása"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary.placeholder",
+        "translation": "Rövid összefoglaló az idővonalon"
+    },
+    {
+        "id": "app.user.run.confirm_finish.num_outstanding",
+        "translation": {
+            "one": "Van **{{.Count}} elmaradt feladat**. Biztos, hogy be kívánja fejezni a *{{.RunName}}* futást minden résztvevő számára?",
+            "other": "Van **{{.Count}} elmaradt feladat**. Biztos, hogy be kívánja fejezni a *{{.RunName}}* futást minden résztvevő számára?"
+        }
+    },
+    {
+        "id": "app.user.run.update_status.num_channel",
+        "translation": {
+            "one": "Tájékoztassa az érdekelt feleket. Ezt a bejegyzést {{.Count}} csatornában fogjuk közzétenni.",
+            "other": "Tájékoztassa az érdekelt feleket. Ezt a bejegyzést {{.Count}} csatornában fogjuk közzétenni."
+        }
+    },
+    {
+        "id": "app.user.new_run.run_name",
+        "translation": "Futás neve"
+    },
+    {
+        "id": "app.user.new_run.submit_label",
+        "translation": "Futás indítása"
+    },
+    {
+        "id": "app.user.new_run.title",
+        "translation": "Forgatókönyv indítása"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.description",
+        "translation": "Leírás"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.name",
+        "translation": "Név"
+    },
+    {
+        "id": "app.user.run.add_checklist_item.title",
+        "translation": "Új feladat hozzáadása"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.playbook_run",
+        "translation": "Forgatókönyv futás"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.submit_label",
+        "translation": "Hozzáadás a futás idővonalához"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary",
+        "translation": "Összefoglaló"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.summary.help",
+        "translation": "Max 64 karakter"
+    },
+    {
+        "id": "app.user.run.add_to_timeline.title",
+        "translation": "Hozzáadás a futás idővonalához"
+    },
+    {
+        "id": "app.user.run.confirm_finish.submit_label",
+        "translation": "Befejezés"
+    },
+    {
+        "id": "app.user.run.confirm_finish.title",
+        "translation": "Befejezés jóváhagyása"
+    },
+    {
+        "id": "app.user.run.update_status.change_since_last_update",
+        "translation": "Módosítások az utolsó frissítés óta"
+    },
+    {
+        "id": "app.user.run.update_status.finish_run",
+        "translation": "Futás befejezése"
+    },
+    {
+        "id": "app.user.run.update_status.finish_run.placeholder",
+        "translation": "Továbbá a futás megjelölése befejezettként"
+    },
+    {
+        "id": "app.user.run.update_status.reminder_for_next_update",
+        "translation": "Emlékeztető a következő frissítéshez"
+    },
+    {
+        "id": "app.user.run.update_status.submit_label",
+        "translation": "Küldés"
+    },
+    {
+        "id": "app.user.run.update_status.title",
+        "translation": "Állapot frissítés"
+    },
+    {
+        "id": "app.user.new_run.playbook",
+        "translation": "Forgatókönyv"
+    },
+    {
+        "id": "playbooks.checklist.condition.reason.modified",
+        "translation": "megjelenítve mert a feladat módosult"
+    }
+]
