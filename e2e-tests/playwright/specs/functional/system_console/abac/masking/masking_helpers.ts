@@ -52,7 +52,7 @@ export async function createMaskingTextField(client: Client4, fieldName: string)
         // User-type CPA cap is 20; leftover Masking* fields from other specs on
         // the same server fill it. Purge then retry once.
         await purgeFieldsByPrefix('Masking');
-        return await postMaskingTextField(client, fieldName);
+        return postMaskingTextField(client, fieldName);
     }
 }
 
@@ -90,7 +90,7 @@ export async function createMaskingMultiselectField(
             throw err;
         }
         await purgeFieldsByPrefix('Masking');
-        return await postMaskingMultiselectField(client, fieldName, options);
+        return postMaskingMultiselectField(client, fieldName, options);
     }
 }
 
