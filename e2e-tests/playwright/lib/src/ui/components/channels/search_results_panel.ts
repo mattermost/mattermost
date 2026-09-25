@@ -13,11 +13,26 @@ import SearchTeamSelector from './search_team_selector';
 export default class SearchResultsPanel {
     readonly container: Locator;
     readonly filesTab: Locator;
+    readonly channelFilesRegion: Locator;
+    readonly filesFilterButton: Locator;
+    readonly filesFilterMenu: Locator;
+    readonly noFilesFound: Locator;
     readonly teamSelector: SearchTeamSelector;
 
     constructor(container: Locator) {
         this.container = container;
         this.filesTab = container.getByRole('tab', {name: /^Files/});
+        this.channelFilesRegion = container.getByRole('region', {name: /^Files /});
+        this.filesFilterButton = container
+            .getByRole('button', {name: 'Filter'})
+            .or(container.locator('#filesFilterButton'));
+        const namedFilesFilterMenu = container.page().getByRole('menu', {name: 'file menu'});
+        const unnamedFilesFilterMenu = container
+            .page()
+            .getByRole('menu')
+            .filter({has: container.page().getByRole('menuitem', {name: 'Documents'})});
+        this.filesFilterMenu = namedFilesFilterMenu.or(unnamedFilesFilterMenu);
+        this.noFilesFound = container.getByText('No files found', {exact: true});
         this.teamSelector = new SearchTeamSelector(container.getByTestId('searchResultsTeamSelector'));
     }
 
@@ -38,6 +53,23 @@ export default class SearchResultsPanel {
      */
     getResultItems() {
         return this.container.getByTestId('search-item-container');
+    }
+
+    getFileResultItems() {
+        return this.getResultItems();
+    }
+
+    async toHaveFiles(files: string[]) {
+        const items = this.getFileResultItems();
+        await expect(items).toHaveCount(files.length);
+        for (const [index, file] of files.entries()) {
+            await expect(items.nth(index).getByText(file, {exact: true})).toBeVisible();
+        }
+    }
+
+    async filterFilesBy(option: string) {
+        await this.filesFilterButton.click();
+        await this.filesFilterMenu.getByRole('menuitem', {name: option, exact: true}).click();
     }
 
     /**
@@ -74,6 +106,10 @@ export default class SearchResultsPanel {
         const item = this.getResultByText(text).first();
         await item.hover();
         await item.getByRole('button', {name: 'more'}).click();
+    }
+
+    getAddReactionButton(text: string) {
+        return this.getResultByText(text).first().getByRole('button', {name: 'Add Reaction'});
     }
 
     /**
