@@ -87,18 +87,22 @@ jobs:
 
       - name: render/start-docusaurus
         working-directory: docs/site
-        # Boot the dev server in the background. `prestart` (sidebars,
-        # OpenAPI, plugin docs) runs first; once we're past that,
-        # Docusaurus is up on :3000 within ~30s of compile.
+        # Boot the dev server in the background. Must go through
+        # `npm start` (not `npx docusaurus start`) so the `prestart`
+        # lifecycle fires — it stages agent docs, generates sidebars,
+        # regenerates the OpenAPI reference, and builds plugin docs.
+        # Skipping it leaves `sidebars/api.ts` requiring a module that
+        # doesn't exist, and Docusaurus crashes at boot.
         run: |
-          nohup npx docusaurus start --port 3000 --no-open > /tmp/docusaurus.log 2>&1 &
+          nohup npm start -- --port 3000 --no-open > /tmp/docusaurus.log 2>&1 &
           echo "docusaurus pid $!"
 
       - name: render/wait-for-server
-        # Rspack cold compile can take a few minutes on a fresh runner;
-        # give it up to five before failing.
+        # `prestart` (OpenAPI + plugin godocs + sidebars) plus Rspack's
+        # cold compile can easily run 5–8 minutes on a fresh runner;
+        # give it ten before failing.
         run: |
-          npx --yes wait-on --timeout 300000 --httpTimeout 5000 http://localhost:3000
+          npx --yes wait-on --timeout 600000 --httpTimeout 5000 http://localhost:3000
 
       - name: render/render-ime
         working-directory: docs/site
