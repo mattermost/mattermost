@@ -14,12 +14,11 @@
  *
  * Usage:
  *   npm run docusaurus start &          # or `serve` against a built site
- *   node scripts/render-ime.mjs         # renders every variant
- *   node scripts/render-ime.mjs entadv  # renders one variant
+ *   npm run render:ime                  # installs chromium then renders every variant
+ *   node scripts/render-ime.mjs entadv  # renders one variant (assumes chromium is installed)
  *
- * Playwright is a transitive dep of some Docusaurus plugins on some
- * setups; if not present, install with `npm i -D playwright` and run
- * `npx playwright install chromium`.
+ * Playwright ships as a devDependency; `npm run render:ime` also runs
+ * `playwright install chromium` first so a fresh checkout works.
  */
 
 import fs from 'node:fs/promises';
@@ -43,7 +42,7 @@ async function main() {
   try {
     ({chromium} = await import('playwright'));
   } catch (err) {
-    console.error('Playwright not installed. Run: npm i -D playwright && npx playwright install chromium');
+    console.error('Playwright not installed. Run `npm install`, then `npx playwright install chromium`.');
     process.exit(1);
   }
 
