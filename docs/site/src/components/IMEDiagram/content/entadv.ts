@@ -51,7 +51,7 @@ export const entadv: IMEContent = {
         {
           title: 'Audio, Screenshare & 1-1 Video',
           bodyLead: 'Calls',
-          body: 'Live communication w/ transcription & summary',
+          body: 'Live communication with transcription & summary',
           iconSrc: '/img/ime/logos/icon-audio.png',
           to: '/end-user-guide/collaborate/audio-and-screensharing',
         },
@@ -72,7 +72,7 @@ export const entadv: IMEContent = {
         {
           title: 'Future Applications',
           body: 'New integrated applications to meet customer needs',
-          icon: 'star',
+          iconSrc: '/img/ime/logos/star.svg',
         },
       ],
       footers: [

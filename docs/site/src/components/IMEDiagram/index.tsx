@@ -2,8 +2,7 @@ import React, {useEffect, useState} from 'react';
 import Link from '@docusaurus/Link';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import styles from './styles.module.css';
-import type {Cell as CellData, FooterStrip, IconName, IMEContent, Intro, Layer, Logo} from './types';
-import {getIcon} from './icons';
+import type {Cell as CellData, FooterStrip, IMEContent, Intro, Layer, Logo} from './types';
 import {getVariant, variants} from './content';
 
 /**
@@ -24,13 +23,9 @@ function Img({src, alt, className}: {src: string; alt: string; className?: strin
   return <img src={useBaseUrl(src)} alt={alt} className={className} />;
 }
 
-function CellIcon({iconSrc, icon, alt}: {iconSrc?: string; icon?: IconName; alt?: string}) {
-  if (iconSrc) {
-    return <span className={`${styles.icon} ${styles.iconImg}`} aria-hidden><Img src={iconSrc} alt={alt ?? ''} /></span>;
-  }
-  const svg = getIcon(icon);
-  if (!svg) return null;
-  return <span className={styles.icon} aria-hidden>{svg}</span>;
+function CellIcon({iconSrc, alt}: {iconSrc?: string; alt?: string}) {
+  if (!iconSrc) return null;
+  return <span className={`${styles.icon} ${styles.iconImg}`} aria-hidden><Img src={iconSrc} alt={alt ?? ''} /></span>;
 }
 
 function Cell({data}: {data: CellData}) {
@@ -84,7 +79,7 @@ function Cell({data}: {data: CellData}) {
   ) : (
     <>
       {corner}
-      <CellIcon iconSrc={data.iconSrc} icon={data.icon} alt={data.title} />
+      <CellIcon iconSrc={data.iconSrc} alt={data.title} />
       <div className={styles.cellBody}>
         {title}
         {isSideBySide ? (
@@ -113,9 +108,9 @@ function IntroPanel({data}: {data: Intro}) {
   return (
     <div className={styles.intro}>
       <h3>
-        {data.iconSrc
-          ? <span className={`${styles.introIcon} ${styles.introIconImg}`}><Img src={data.iconSrc} alt="" /></span>
-          : (getIcon(data.icon) && <span className={styles.introIcon}>{getIcon(data.icon)}</span>)}
+        {data.iconSrc && (
+          <span className={`${styles.introIcon} ${styles.introIconImg}`}><Img src={data.iconSrc} alt="" /></span>
+        )}
         {data.title}
       </h3>
       {data.body && <p>{data.body}</p>}
@@ -140,10 +135,8 @@ function LogoStrip({logos, layout, columns}: {logos: Logo[]; layout?: 'strip' | 
 }
 
 function FooterCell({data}: {data: FooterStrip}) {
-  const icon = getIcon(data.icon);
   const inner = (
     <>
-      {icon && <span className={styles.footerIcon}>{icon}</span>}
       <span>{data.text}</span>
       {data.logos && <LogoStrip logos={data.logos} />}
     </>

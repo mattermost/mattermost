@@ -7,9 +7,6 @@
  * new file that exports an `IMEContent` object — no JSX required.
  */
 
-/** Icon key that must exist in `icons.tsx`. Prefer `iconSrc` for product marks. */
-export type IconName = 'star';
-
 /** A single brand mark rendered inside a logo strip. */
 export type Logo = {
   alt: string;
@@ -29,9 +26,7 @@ export type Cell = {
   bodyLead?: string;
   body?: string;
   bullets?: string[];
-  /** Named icon rendered as SVG (from `icons.tsx`). */
-  icon?: IconName;
-  /** Image icon path (e.g. `/img/ime/logos/icon-chat.png`). Takes precedence over `icon` when set. */
+  /** Image icon path (e.g. `/img/ime/logos/icon-chat.png`). */
   iconSrc?: string;
   to?: string;
   /** Logo strip rendered below the body. Layout controlled by `logoLayout`. */
@@ -74,7 +69,6 @@ export type Cell = {
 export type Intro = {
   title: string;
   body?: string;
-  icon?: IconName;
   iconSrc?: string;
   /** Optional logo constellation shown below the intro title (mirrors the deck's decorative badge rows). */
   logos?: Logo[];
@@ -83,7 +77,6 @@ export type Intro = {
 /** A footer strip inside a layer (e.g. "Web, Desktop, Mobile & MS Teams"). */
 export type FooterStrip = {
   text: string;
-  icon?: IconName;
   to?: string;
   logos?: Logo[];
 };
