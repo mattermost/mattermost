@@ -57,7 +57,7 @@ describe('AttributeSelect', () => {
         expect(screen.getByRole('menuitemradio', {name: 'Text'})).toHaveAttribute('aria-checked', 'true');
         expect(screen.getByRole('menuitemradio', {name: 'Select'})).toHaveAttribute('aria-checked', 'false');
 
-        // Each option carries its OWN icon, not the selected one repeated.
+        // Each option carries its own icon, not the selected one repeated.
         const glyph = (name: string) => screen.getByRole('menuitemradio', {name}).querySelector('svg path')!.getAttribute('d');
         expect(glyph('Text')).not.toEqual(glyph('Select'));
 
@@ -99,14 +99,5 @@ describe('AttributeSelect', () => {
         await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
         expect(screen.queryByRole('menuitemradio')).not.toBeInTheDocument();
         expect(onChange).not.toHaveBeenCalled();
-    });
-
-    it('defaults the menu to the single selected option when no option list is given', async () => {
-        const onChange = jest.fn();
-        renderComponent({selected: email, options: undefined, onChange});
-
-        await userEvent.click(screen.getByTestId('attributeSelect'));
-        expect(screen.getAllByRole('menuitemradio')).toHaveLength(1);
-        expect(screen.getByRole('menuitemradio', {name: 'Email'})).toHaveAttribute('aria-checked', 'true');
     });
 });

@@ -831,8 +831,6 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     }, [handleDoneClick, handleCancelEdit]);
 
     const hasExternalSource = Boolean(ldapAttr || samlAttr);
-
-    // Names the sync source on the Users resource row.
     const managedByExternalSource = resolveExternalSource(ldapAttr, samlAttr);
 
     // External source (LDAP/SAML) is a user-identity concept. A template's linked

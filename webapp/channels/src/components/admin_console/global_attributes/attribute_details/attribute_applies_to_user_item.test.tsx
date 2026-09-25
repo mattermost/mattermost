@@ -89,8 +89,7 @@ describe('AttributeAppliesToUserItem', () => {
         expect(managedBy).toHaveAccessibleName(`Managed by: ${sourceLabel}. Values are synced from an external source and cannot be changed here.`);
 
         // Label, value and helper text in one assertion, so dropping or
-        // reordering any of the three fails rather than silently reading as an
-        // absent string.
+        // reordering any of the three fails.
         expect(managedBy.closest('.AttributeAppliesToItem__row')).toHaveTextContent(
             new RegExp(`^Managed by${sourceLabel.replace('/', '\\/')}Not editable in Mattermost\\.$`),
         );

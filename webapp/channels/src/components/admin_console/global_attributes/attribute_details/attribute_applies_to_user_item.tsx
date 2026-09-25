@@ -25,9 +25,8 @@ const BODY_ID = 'attribute-applies-to-user-panel';
 // Display order: Always | When set | Hidden.
 const PROFILE_DISPLAY_VALUES: FieldVisibility[] = ['always', 'when_set', 'hidden'];
 
-// One per source, each rendered on its own as the sole, pre-selected option of
-// the Managed-by select. The icon is the same rotating-arrows glyph the
-// Definition block's "Synced with" chips carry.
+// What the Managed-by indicator names, one per source. The icon is the same
+// rotating-arrows glyph the Definition block's "Synced with" chips carry.
 const MANAGED_BY_OPTIONS: Record<ExternalSource, AttributeSelectOption<ExternalSource>> = {
     ldap: {id: 'ldap', icon: SyncIcon, label: externalSourceMessages.ldap.title},
     saml: {id: 'saml', icon: SyncIcon, label: externalSourceMessages.saml.title},

@@ -30,7 +30,7 @@ type Props<T extends string> = {
     // longer offered by, the picker still has to name that type.
     selected: AttributeSelectOption<T>;
 
-    // Menu contents. A single-option select needs only `selected`.
+    // Menu contents. Omitted by a `locked` select, which has no menu.
     options?: Array<AttributeSelectOption<T>>;
     ariaLabel: string;
 
@@ -47,14 +47,14 @@ type Props<T extends string> = {
     locked?: boolean;
 };
 
-// The single-select control the attribute detail page uses for Type, and for
-// any other field on that page whose value is one of a fixed, icon-labelled
-// set. Callers own the tooltip that explains a `locked` state.
+// The single-select control the attribute detail page uses for Type and for
+// the Users row's Managed-by indicator. Callers own the tooltip that explains
+// a `locked` state.
 function AttributeSelect<T extends string>({
     idPrefix,
     dataTestId,
     selected,
-    options = [selected],
+    options = [],
     ariaLabel,
     menuAriaLabel,
     onChange,
@@ -64,16 +64,11 @@ function AttributeSelect<T extends string>({
     const SelectedIcon = selected.icon;
     const buttonId = `${idPrefix}-menu-button`;
 
-    const buttonContent = (
-        <>
-            <span className='AttributeSelect__value'>
-                <SelectedIcon size={18}/>
-                <FormattedMessage {...selected.label}/>
-            </span>
-            {!locked && (
-                <i className='icon icon-chevron-down'/>
-            )}
-        </>
+    const value = (
+        <span className='AttributeSelect__value'>
+            <SelectedIcon size={18}/>
+            <FormattedMessage {...selected.label}/>
+        </span>
     );
 
     if (locked) {
@@ -86,7 +81,7 @@ function AttributeSelect<T extends string>({
                 aria-label={ariaLabel}
                 data-testid={dataTestId}
             >
-                {buttonContent}
+                {value}
             </button>
         );
     }
@@ -98,7 +93,12 @@ function AttributeSelect<T extends string>({
                 class: 'AttributeSelect',
                 disabled,
                 'aria-label': ariaLabel,
-                children: buttonContent,
+                children: (
+                    <>
+                        {value}
+                        <i className='icon icon-chevron-down'/>
+                    </>
+                ),
                 dataTestId,
             }}
             menu={{

@@ -899,8 +899,6 @@ describe('AttributeDetails', () => {
             await waitFor(() => expect(screen.queryByPlaceholderText('department')).not.toBeInTheDocument());
         };
 
-        // The Managed-by indicator lives on the Users resource card, so these
-        // reach past the Definition block the rest of this describe covers.
         const addResourceAndExpand = async (label: string, type: string) => {
             await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
             await userEvent.click(screen.getByRole('menuitem', {name: label}));
@@ -908,11 +906,9 @@ describe('AttributeDetails', () => {
             await userEvent.click(screen.getByTestId(`attributeAppliesToRow-${type}-toggle`));
         };
 
-        const addUsersResourceAndExpand = () => addResourceAndExpand('Users', 'user');
-
         it('names the linked source as the Users resource\'s Managed-by value, and drops the row once the link is removed', async () => {
             renderComponent();
-            await addUsersResourceAndExpand();
+            await addResourceAndExpand('Users', 'user');
 
             expect(screen.queryByTestId('attributeAppliesToUserManagedBy')).not.toBeInTheDocument();
 
@@ -936,7 +932,7 @@ describe('AttributeDetails', () => {
 
         it('shows SAML as the Managed-by value when SAML is the only linked source', async () => {
             renderComponent();
-            await addUsersResourceAndExpand();
+            await addResourceAndExpand('Users', 'user');
             await linkViaMenu(/^SAML/, 'position');
 
             const managedBy = screen.getByTestId('attributeAppliesToUserManagedBy');
@@ -950,7 +946,7 @@ describe('AttributeDetails', () => {
 
         it('names AD/LDAP when both sources are linked, and falls back to the survivor once one is unlinked', async () => {
             renderComponent();
-            await addUsersResourceAndExpand();
+            await addResourceAndExpand('Users', 'user');
             await linkViaMenu(/AD\/LDAP/, 'employeeID');
             await linkViaMenu(/^SAML/, 'position');
 
@@ -964,8 +960,7 @@ describe('AttributeDetails', () => {
         it('reports the source on the Users card alone, leaving the Channels and Posts cards unmarked', async () => {
             renderComponent();
             await linkViaMenu(/AD\/LDAP/, 'employeeID');
-            await addUsersResourceAndExpand();
-
+            await addResourceAndExpand('Users', 'user');
             await addResourceAndExpand('Channels', 'channel');
             await addResourceAndExpand('Posts', 'post');
 
