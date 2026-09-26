@@ -133,7 +133,7 @@ describe('BurnOnReadConfirmationModal', () => {
     it('should autofocus Delete Now button', () => {
         renderWithContext(<BurnOnReadConfirmationModal {...baseProps}/>);
 
-        const confirmButton = screen.getByText('Delete Now');
+        const confirmButton = screen.getByRole('button', {name: 'Delete Now'});
         expect(confirmButton).toHaveFocus();
     });
 });
