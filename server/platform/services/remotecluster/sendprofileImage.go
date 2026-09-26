@@ -141,8 +141,7 @@ func (rcs *Service) sendProfileImageToRemote(timeout time.Duration, task sendPro
 	}
 	defer resp.Body.Close()
 
-	_, err = io.ReadAll(resp.Body)
-	if err != nil {
+	if err = drainRemoteResponse(resp.Body); err != nil {
 		return err
 	}
 

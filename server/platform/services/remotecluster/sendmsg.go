@@ -8,7 +8,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -163,13 +162,15 @@ func (rcs *Service) sendFrameToRemote(timeout time.Duration, rc *model.RemoteClu
 		return nil, err
 	}
 	defer resp.Body.Close()
-	body, err = io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
+	body, readErr := readRemoteResponse(resp.Body)
 	if resp.StatusCode != http.StatusOK {
+		if readErr != nil {
+			return nil, fmt.Errorf("unexpected response: %d - %s", resp.StatusCode, resp.Status)
+		}
 		return body, fmt.Errorf("unexpected response: %d - %s", resp.StatusCode, resp.Status)
+	}
+	if readErr != nil {
+		return nil, readErr
 	}
 	return body, nil
 }
