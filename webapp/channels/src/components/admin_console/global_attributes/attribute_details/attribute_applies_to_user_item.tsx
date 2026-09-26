@@ -6,12 +6,16 @@ import React, {useState, type JSX} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
-import {ChevronDownIcon} from '@mattermost/compass-icons/components';
+import {ChevronDownIcon, SyncIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FieldVisibility} from '@mattermost/types/properties';
 
 import {resourceTypeLabels, type AttributeAppliesToItemProps} from './attribute_applies_to_constants';
+import AttributeSelect from './attribute_select';
+import type {AttributeSelectOption} from './attribute_select';
+import type {ExternalSource} from './external_source';
+import {externalSourceMessages} from './external_source';
 import ResourceTypeIcon from './resource_type_icon';
 
 import './attribute_applies_to_item.scss';
@@ -20,6 +24,13 @@ const BODY_ID = 'attribute-applies-to-user-panel';
 
 // Display order: Always | When set | Hidden.
 const PROFILE_DISPLAY_VALUES: FieldVisibility[] = ['always', 'when_set', 'hidden'];
+
+// What the Managed-by indicator names, one per source. The icon is the same
+// rotating-arrows glyph the Definition block's "Synced with" chips carry.
+const MANAGED_BY_OPTIONS: Record<ExternalSource, AttributeSelectOption<ExternalSource>> = {
+    ldap: {id: 'ldap', icon: SyncIcon, label: externalSourceMessages.ldap.title},
+    saml: {id: 'saml', icon: SyncIcon, label: externalSourceMessages.saml.title},
+};
 
 // The Users row of the Applies-to list -- owns its own expand/collapse state
 // (deliberately not the shared Accordion component: AccordionCard renders the
@@ -35,6 +46,7 @@ function AttributeAppliesToUserItem({
     onVisibilityChange,
     managed = '',
     onManagedChange,
+    externalSource,
 }: AttributeAppliesToItemProps): JSX.Element {
     const {formatMessage} = useIntl();
     const [isOpen, setIsOpen] = useState(false);
@@ -104,6 +116,25 @@ function AttributeAppliesToUserItem({
                     className='AttributeAppliesToItem__body'
                     data-testid='attributeAppliesToRow-user-body'
                 >
+                    {externalSource && (
+                        <div className='AttributeAppliesToItem__row'>
+                            <span className='AttributeAppliesToItem__label'>
+                                <FormattedMessage {...messages.managedByLabel}/>
+                            </span>
+                            <div className='AttributeAppliesToItem__managedBy'>
+                                <AttributeSelect
+                                    idPrefix='attribute-applies-to-user-managed-by'
+                                    dataTestId='attributeAppliesToUserManagedBy'
+                                    selected={MANAGED_BY_OPTIONS[externalSource]}
+                                    locked={true}
+                                    ariaLabel={formatMessage(messages.managedByAriaLabel, {value: formatMessage(externalSourceMessages[externalSource].title)})}
+                                />
+                                <div className='AttributeAppliesToItem__helpText'>
+                                    <FormattedMessage {...messages.managedByHelp}/>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                     <div className='AttributeAppliesToItem__row'>
                         <span className='AttributeAppliesToItem__label'>
                             <FormattedMessage {...messages.profileDisplayLabel}/>
@@ -176,6 +207,18 @@ const messages = defineMessages({
     expandLabel: {id: 'admin.global_attributes.attribute_details.applies_to.item.expand', defaultMessage: 'Expand {label}'},
     collapseLabel: {id: 'admin.global_attributes.attribute_details.applies_to.item.collapse', defaultMessage: 'Collapse {label}'},
     removeLabel: {id: 'admin.global_attributes.attribute_details.applies_to.item.remove', defaultMessage: 'Remove resource'},
+    managedByLabel: {
+        id: 'admin.global_attributes.attribute_details.applies_to.item.user.managed_by.label',
+        defaultMessage: 'Managed by',
+    },
+    managedByAriaLabel: {
+        id: 'admin.global_attributes.attribute_details.applies_to.item.user.managed_by.aria_label',
+        defaultMessage: 'Managed by: {value}. Values are synced from an external source and cannot be changed here.',
+    },
+    managedByHelp: {
+        id: 'admin.global_attributes.attribute_details.applies_to.item.user.managed_by.help',
+        defaultMessage: 'Not editable in Mattermost.',
+    },
     profileDisplayLabel: {
         id: 'admin.global_attributes.attribute_details.applies_to.item.user.profile_display.label',
         defaultMessage: 'Profile display',
