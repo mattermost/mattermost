@@ -580,9 +580,7 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
             await expect(info.attributes.addMenuItem(owned.name)).toHaveCount(0);
 
             // * The stored value is untouched
-            expect(valueFor(await readChannelValues(adminClient, channel.id), owned)).toBe(
-                optionId(owned, 'NOFORN'),
-            );
+            expect(valueFor(await readChannelValues(adminClient, channel.id), owned)).toBe(optionId(owned, 'NOFORN'));
         } finally {
             await deleteAttributes(adminClient, created);
         }
