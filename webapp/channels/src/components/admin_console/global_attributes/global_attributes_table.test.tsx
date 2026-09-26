@@ -226,9 +226,7 @@ describe('GlobalAttributesTable', () => {
             expect(getPropertyFields).toHaveBeenCalledWith(
                 'access_control',
                 'template',
-                'system',
-                undefined,
-                expect.anything(),
+                expect.objectContaining({targetType: 'system'}),
             );
         });
         expect(screen.getByTestId('loading-screen')).toBeInTheDocument();

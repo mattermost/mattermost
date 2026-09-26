@@ -87,7 +87,7 @@ describe('property_field_updated withheld option lists', () => {
 
         expect(receivedField(actions).attrs.options).toEqual(CACHED_OPTIONS);
         expect(receivedField(actions).attrs.options_count).toBe(1);
-        expect(fetchPropertyFields).toHaveBeenCalledWith(GROUP_NAME, 'channel', 'channel', CHANNEL_ID);
+        expect(fetchPropertyFields).toHaveBeenCalledWith(GROUP_NAME, 'channel', {targetType: 'channel', targetId: CHANNEL_ID});
     });
 
     test('an unmarked field is stored as received and triggers no refetch', () => {
@@ -106,7 +106,7 @@ describe('property_field_updated withheld option lists', () => {
         const actions = dispatchEvent(eventField);
 
         expect(receivedField(actions).attrs.options).toBeUndefined();
-        expect(fetchPropertyFields).toHaveBeenCalledWith(GROUP_NAME, 'channel', 'channel', CHANNEL_ID);
+        expect(fetchPropertyFields).toHaveBeenCalledWith(GROUP_NAME, 'channel', {targetType: 'channel', targetId: CHANNEL_ID});
     });
 
     test('a withheld field whose group is unknown triggers no refetch', () => {
