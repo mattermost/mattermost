@@ -1879,7 +1879,8 @@ func TestPushNotificationRace(t *testing.T) {
 		platform.ConfigStore(memoryStore),
 		platform.SetFileStore(&fmocks.FileBackend{}),
 		platform.SetExportFileStore(&fmocks.FileBackend{}),
-		platform.StoreOverride(mockStore))
+		platform.StoreOverride(mockStore),
+		platform.DisableGlobalLogger())
 	require.NoError(t, err)
 	ch, err := NewChannels(s)
 	require.NoError(t, err)

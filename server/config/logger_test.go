@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -211,6 +212,110 @@ func TestValidateLogFilePath(t *testing.T) {
 
 		err = ValidateLogFilePath(nonExistentFile, root)
 		assert.NoError(t, err)
+	})
+
+	t.Run("rejects a dangling symlink escaping root", func(t *testing.T) {
+		root, err := os.MkdirTemp("", "logroot")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			os.RemoveAll(root)
+		})
+
+		outsideDir, err := os.MkdirTemp("", "outside")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			os.RemoveAll(outsideDir)
+		})
+
+		// Target is deliberately never created, so the link resolves to nothing.
+		link := filepath.Join(root, "dangling.log")
+		err = os.Symlink(filepath.Join(outsideDir, "absent.log"), link)
+		require.NoError(t, err)
+
+		err = ValidateLogFilePath(link, root)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "unresolved symlink")
+	})
+
+	t.Run("rejects a path deeper than the resolver limit", func(t *testing.T) {
+		root, err := os.MkdirTemp("", "logroot")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			os.RemoveAll(root)
+		})
+
+		deep := filepath.Join(root, strings.Repeat("a/", maxLogPathDepth+10)+"app.log")
+
+		err = ValidateLogFilePath(deep, root)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "maximum directory depth")
+	})
+
+	t.Run("rejects non-existent file path outside root", func(t *testing.T) {
+		root, err := os.MkdirTemp("", "logroot")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			os.RemoveAll(root)
+		})
+
+		outsideDir, err := os.MkdirTemp("", "outside")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			os.RemoveAll(outsideDir)
+		})
+
+		err = ValidateLogFilePath(filepath.Join(outsideDir, "future.log"), root)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "outside logging root")
+	})
+
+	t.Run("rejects non-existent file under a symlinked directory escaping root", func(t *testing.T) {
+		root, err := os.MkdirTemp("", "logroot")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			os.RemoveAll(root)
+		})
+
+		outsideDir, err := os.MkdirTemp("", "outside")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			os.RemoveAll(outsideDir)
+		})
+
+		err = os.Symlink(outsideDir, filepath.Join(root, "escape"))
+		require.NoError(t, err)
+
+		err = ValidateLogFilePath(filepath.Join(root, "escape", "future.log"), root)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "outside logging root")
+	})
+
+	t.Run("allows paths when root itself is reached through a symlink", func(t *testing.T) {
+		realRoot, err := os.MkdirTemp("", "logroot")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			os.RemoveAll(realRoot)
+		})
+
+		linkDir, err := os.MkdirTemp("", "link")
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			os.RemoveAll(linkDir)
+		})
+
+		// Reach the same directory through a symlink, as /var -> /private/var does.
+		symlinkedRoot := filepath.Join(linkDir, "logs")
+		err = os.Symlink(realRoot, symlinkedRoot)
+		require.NoError(t, err)
+
+		err = os.WriteFile(filepath.Join(realRoot, "app.log"), []byte("test"), 0644)
+		require.NoError(t, err)
+
+		assert.NoError(t, ValidateLogFilePath(filepath.Join(symlinkedRoot, "app.log"), symlinkedRoot))
+		assert.NoError(t, ValidateLogFilePath(filepath.Join(symlinkedRoot, "future.log"), symlinkedRoot))
+
+		assert.NoError(t, ValidateLogFilePath(filepath.Join(realRoot, "app.log"), symlinkedRoot))
+		assert.NoError(t, ValidateLogFilePath(filepath.Join(symlinkedRoot, "app.log"), realRoot))
 	})
 }
 
