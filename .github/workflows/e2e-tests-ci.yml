@@ -291,6 +291,7 @@ jobs:
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
+      ANTHROPIC_API_KEY: "${{ secrets.ANTHROPIC_API_KEY }}"
 
   # Enterprise FIPS Edition
   e2e-cypress-fips:
@@ -344,3 +345,4 @@ jobs:
     secrets:
       MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
+      ANTHROPIC_API_KEY: "${{ secrets.ANTHROPIC_API_KEY }}"

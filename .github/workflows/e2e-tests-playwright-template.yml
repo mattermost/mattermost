@@ -90,6 +90,9 @@ on:
         required: false
       REPORT_WEBHOOK_URL:
         required: false
+      ANTHROPIC_API_KEY:
+        description: "Optional; enables the second judge in E2E triage"
+        required: false
 
 # Callers must grant: contents: read, statuses: write, id-token: write
 permissions:
@@ -351,6 +354,7 @@ jobs:
       contents: read
       id-token: write
       statuses: write
+      pull-requests: write
     outputs:
       commit_status_description: ${{ steps.summary.outputs.commit_status_description }}
       webhook_payload: ${{ steps.summary.outputs.webhook_payload }}
@@ -375,6 +379,24 @@ jobs:
           ref-branch: ${{ inputs.ref_branch }}
           commit-status-context: ${{ inputs.context_name }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+      # Is this red run the PR's fault? History rules plus a second judge with
+      # checkable evidence; writes the required status only in enforce mode.
+      - name: ci/e2e-triage
+        id: triage
+        # Runs on master as well as on PRs. On master the question changes from
+        # "is this the PR's fault" to "is master noisy or actually broken", and
+        # only intermittency clears a failure: a test that failed in the previous
+        # master run too is a streak, not a flake, and stays red. A master run has
+        # no PR to comment on, so the story lands in the job summary.
+        if: always()
+        continue-on-error: true
+        uses: mattermost/mattermost-test-automation-toolkit/actions/e2e-triage@da3ab59c1a9735bc52c81a886d72e65dcd13b34d # actions/e2e-triage, branch e2e-triage
+        with:
+          composite-identity: ${{ needs.prepare-run.outputs.composite-identity-json }}
+          status-context: ${{ inputs.context_name }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          mode: ${{ vars.E2E_TRIAGE_MODE || 'report-only' }}
       - name: ci/publish-webhook
         if: inputs.enable_reporting && env.REPORT_WEBHOOK_URL != ''
         env:
@@ -385,5 +407,15 @@ jobs:
       - name: ci/assert-results
         env:
           SUMMARY_OUTCOME: ${{ steps.summary.outcome }}
+          TRIAGE_VERDICT: ${{ steps.triage.outputs.verdict }}
+          TRIAGE_MODE: ${{ vars.E2E_TRIAGE_MODE || 'report-only' }}
         run: |
-          [ "$SUMMARY_OUTCOME" = "success" ]
+          # Triage can only turn a red run green, never the other way round.
+          # A green summary passes on its own, so a triage outage can never fail
+          # a run whose tests all passed. A red summary passes only on a SUCCESS
+          # verdict in enforce mode, so an empty verdict — triage itself failed —
+          # leaves the run red. That is the fail-closed default.
+          if [ "$SUMMARY_OUTCOME" = "success" ]; then
+            exit 0
+          fi
+          [ "$TRIAGE_MODE" = "enforce" ] && [ "$TRIAGE_VERDICT" = "SUCCESS" ]
