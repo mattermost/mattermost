@@ -562,6 +562,33 @@ describe('components/AdminSidebar', () => {
         expect(container).toMatchSnapshot();
     });
 
+    test('places Session Attributes immediately after Attribute Management', () => {
+        const props = {
+            ...defaultProps,
+            license: {
+                IsLicensed: 'true',
+                SkuShortName: 'advanced',
+            },
+            config: {
+                ...defaultProps.config,
+                FeatureFlags: {
+                    SessionAttributes: true,
+                },
+            },
+            buildEnterpriseReady: true,
+        };
+
+        renderWithContext(<AdminSidebar {...props}/>);
+
+        const systemAttributes = screen.getByTestId('system_attributes');
+        const titles = Array.from(systemAttributes.querySelectorAll('.sidebar-section-title__text')).map((el) => el.textContent);
+        const attributeManagementIndex = titles.indexOf('Attribute Management');
+        const sessionAttributesIndex = titles.indexOf('Session Attributes');
+
+        expect(attributeManagementIndex).toBeGreaterThan(-1);
+        expect(sessionAttributesIndex).toBe(attributeManagementIndex + 1);
+    });
+
     describe('generateIndex', () => {
         const props: Props = {
             license: {},
