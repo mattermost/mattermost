@@ -109,10 +109,11 @@ func (a *App) SearchAllowedActionsForCurrentUser(rctx request.CTX, req model.Act
 		return resp, nil
 	}
 
-	// All currently registered resource types are channel-scoped, so req.Resource.ID
-	// is always a channel ID here. If a non-channel resource type is ever added to
-	// renderableABACActions, this call must be updated to pass the correct channel ID.
-	subject, appErr := a.BuildAccessControlSubjectForSession(rctx, req.Resource.ID)
+	channelID := ""
+	if req.Resource.Type == model.AccessControlPolicyTypeChannel {
+		channelID = req.Resource.ID
+	}
+	subject, appErr := a.BuildAccessControlSubjectForSession(rctx, channelID)
 	if appErr != nil {
 		rctx.Logger().Info("Failed to build ABAC subject for render-decision search",
 			mlog.String("resource_type", req.Resource.Type),
