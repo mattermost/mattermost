@@ -16,7 +16,7 @@ import type {GlobalState} from 'types/store';
 
 /**
  * Whether the current user may set an attribute's value on a channel. Mirrors the
- * server's plugin-managed gate and permission_values tier rather than replacing
+ * server's source-managed gate and permission_values tier rather than replacing
  * them — the server stays authoritative; this only decides whether to offer an
  * affordance that would fail.
  *
@@ -42,9 +42,8 @@ export default function useCanSetChannelAttributes(channelId: string) {
             return false;
         }
 
-        // A plugin-managed attribute's values belong to the integration that
-        // writes them, so the server refuses every session write regardless of
-        // permission_values. Offering an editor here only produces a save error.
+        // The integration that owns these values writes them itself, so the server
+        // refuses every session write before permission_values is reached.
         if (isPropertyFieldSourceManaged(field)) {
             return false;
         }

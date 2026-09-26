@@ -44,9 +44,12 @@ type FieldOptions = {
     actions?: string[];
     permissionValues?: PropertyField['permission_values'];
     type?: PropertyField['type'];
+
+    // Merged last, so a test can add attrs the named options do not cover.
+    attrs?: Record<string, unknown>;
 };
 
-function field(id: string, {required, editable, changePolicy, options, actions = ['display_label_info'], permissionValues = 'member', type = 'select'}: FieldOptions = {}): PropertyField {
+function field(id: string, {required, editable, changePolicy, options, actions = ['display_label_info'], permissionValues = 'member', type = 'select', attrs = {}}: FieldOptions = {}): PropertyField {
     return {
         id,
         group_id: GROUP_ID,
@@ -66,6 +69,7 @@ function field(id: string, {required, editable, changePolicy, options, actions =
             ...(required === undefined ? {} : {required}),
             ...(editable === undefined ? {} : {editable}),
             ...(changePolicy === undefined ? {} : {change_policy: changePolicy}),
+            ...attrs,
         },
         create_at: 1,
         update_at: 1,
@@ -660,6 +664,118 @@ describe('ChannelInfoAttributes', () => {
             expect(screen.queryByTestId('channelInfoAttributeEdit-program')).not.toBeInTheDocument();
             expect(screen.getByLabelText('This attribute cannot be changed after it is set')).toBeInTheDocument();
             expect(screen.queryByTestId('channelInfoAddAttributeButton')).not.toBeInTheDocument();
+        });
+    });
+
+    // The server refuses every session write to these, so an editor here can only
+    // ever end in "Couldn't save".
+    describe('an attribute whose values an integration owns', () => {
+        const SOURCE_MANAGED_LOCK = 'This attribute is managed by an integration and cannot be changed here';
+
+        const ownership: Array<[string, Record<string, unknown>]> = [
+            ['a protected plugin attribute', {protected: true, source_plugin_id: 'com.example.markings'}],
+            ['an owner-managed attribute', {owners: [{id: 'com.example.scim', type: 'plugin', scopes: []}]}],
+            ['an ldap-synced attribute', {ldap: 'department'}],
+            ['a saml-synced attribute', {saml: 'Department'}],
+        ];
+
+        test.each(ownership)('%s shows its value as a read-only chip behind a lock', (_name, attrs) => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('program', {attrs})], [value('program', 'opt_program')]),
+            );
+
+            expect(screen.getByTestId('attributeChip')).toHaveTextContent('VALUE_PROGRAM');
+            expect(screen.getByLabelText(SOURCE_MANAGED_LOCK)).toBeInTheDocument();
+            expect(screen.queryByTestId('channelInfoAttributeEdit-program')).not.toBeInTheDocument();
+        });
+
+        // The lock must not be type-partial: every option-valued shape a marking
+        // takes has to reach it, not just the plain select the other cases use.
+        test.each(['select', 'multiselect', 'rank'] as const)('a %s attribute an integration owns has no editor', (type) => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState(
+                    [field('program', {type, attrs: {protected: true, source_plugin_id: 'com.example.markings'}})],
+                    [value('program', type === 'multiselect' ? ['opt_program'] : 'opt_program')],
+                ),
+            );
+
+            expect(screen.getByTestId('attributeChip')).toHaveTextContent('VALUE_PROGRAM');
+            expect(screen.getByLabelText(SOURCE_MANAGED_LOCK)).toBeInTheDocument();
+            expect(screen.queryByTestId('channelInfoAttributeEdit-program')).not.toBeInTheDocument();
+        });
+
+        // Unlike the change policy, the integration owns the value before there
+        // is one, so the lock has to survive an empty row.
+        test.each(ownership)('%s is locked and unfillable while still unset', (_name, attrs) => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('program', {required: true, attrs})], []),
+            );
+
+            expect(screen.getByTestId('channelInfoAttributeUnset-program')).toBeInTheDocument();
+            expect(screen.getByLabelText(SOURCE_MANAGED_LOCK)).toBeInTheDocument();
+            expect(screen.queryByTestId('channelInfoAttributeEdit-program')).not.toBeInTheDocument();
+        });
+
+        // A second, ordinary attribute keeps the menu itself on screen, so the
+        // assertion is that this one entry is missing rather than the whole menu.
+        test.each(ownership)('%s is not offered in the Add attribute menu', async (_name, attrs) => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('program', {attrs}), field('region')], []),
+            );
+
+            // Optional and unset, so it must not have leaked in as a locked empty
+            // row either.
+            expect(screen.queryByTestId('channelInfoAttributeRow-program')).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByTestId('channelInfoAddAttributeButton'));
+
+            expect(await screen.findByTestId('channelInfoAddAttribute-region')).toBeInTheDocument();
+            expect(screen.queryByTestId('channelInfoAddAttribute-program')).not.toBeInTheDocument();
+        });
+
+        // Both reasons apply; the one the user cannot work around is the useful one.
+        test('names the integration rather than the change policy when both would lock it', () => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState(
+                    [field('program', {changePolicy: 'never', attrs: {protected: true, source_plugin_id: 'com.example.markings'}})],
+                    [value('program', 'opt_program')],
+                ),
+            );
+
+            expect(screen.getByLabelText(SOURCE_MANAGED_LOCK)).toBeInTheDocument();
+            expect(screen.queryByLabelText('This attribute cannot be changed after it is set')).not.toBeInTheDocument();
+        });
+
+        test('a text attribute an integration owns renders as text with no editor to open', () => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState(
+                    [field('program', {type: 'text', attrs: {protected: true, source_plugin_id: 'com.example.markings'}})],
+                    [value('program', 'REL TO USA')],
+                ),
+            );
+
+            expect(screen.getByTestId('channelInfoAttributeRow-program')).toHaveTextContent('REL TO USA');
+            expect(screen.getByLabelText(SOURCE_MANAGED_LOCK)).toBeInTheDocument();
+            expect(screen.queryByTestId('channelInfoAttributeEdit-program')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('channelAttributeEdit-program')).not.toBeInTheDocument();
+        });
+
+        // Ownership is the only thing that locks: a field the same plugin created
+        // but left unreserved must keep its editor.
+        test('leaves a plugin-created attribute that is not reserved editable', () => {
+            renderWithContext(
+                <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+                makeState([field('program', {attrs: {source_plugin_id: 'com.example.markings'}})], [value('program', 'opt_program')]),
+            );
+
+            expect(screen.getByTestId('channelInfoAttributeEdit-program')).toBeInTheDocument();
+            expect(screen.queryByLabelText(SOURCE_MANAGED_LOCK)).not.toBeInTheDocument();
         });
     });
 

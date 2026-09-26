@@ -40,11 +40,12 @@ export function isPropertyFieldEditable(field: PropertyField): boolean {
  * Whether a field's values are written by an integration rather than by people,
  * so no session user -- sysadmin included -- may set them.
  *
- * Mirrors checkValueWriteAccess in the server's properties access control hook:
- * attrs.protected reserves the values for the plugin named in
- * attrs.source_plugin_id (only a plugin can set either), and an attrs.owners
- * list makes them authoritative to the listed owners. Neither consults
- * permission_values -- the write is refused before that tier is reached.
+ * Mirrors all three refusals in checkValueWriteAccess on the server: an
+ * attrs.owners list hands the values to the listed owners, attrs.protected
+ * reserves them for the plugin in attrs.source_plugin_id (only a plugin can set
+ * either key), and an attrs.ldap or attrs.saml mapping reserves them for that
+ * sync service. None of them consults permission_values -- the write is refused
+ * before that tier is reached.
  */
 export function isPropertyFieldSourceManaged(field: PropertyField): boolean {
     const attrs = field.attrs;
@@ -54,7 +55,16 @@ export function isPropertyFieldSourceManaged(field: PropertyField): boolean {
     if (attrs.protected === true) {
         return true;
     }
-    return Array.isArray(attrs.owners) && attrs.owners.length > 0;
+    if (Array.isArray(attrs.owners) && attrs.owners.length > 0) {
+        return true;
+    }
+    return isSyncMapping(attrs.ldap) || isSyncMapping(attrs.saml);
+}
+
+// GetPropertyFieldSyncSource reads these as strings, so anything else is not a
+// mapping the sync service would recognise either.
+function isSyncMapping(mapping: unknown): boolean {
+    return typeof mapping === 'string' && mapping !== '';
 }
 
 // Whether a stored value counts as set. Mirrors isEmptyPropertyValue on the

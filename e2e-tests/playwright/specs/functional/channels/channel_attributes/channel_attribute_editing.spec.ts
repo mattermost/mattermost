@@ -11,6 +11,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 import {
     DISPLAY_LABEL_HEADER,
     DISPLAY_LABEL_INFO,
+    assignAttributeOwner,
     attributeName,
     createAttribute,
     createChannelForAttributes,
@@ -512,6 +513,76 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
             // * The unset optional attribute has no row, and there is no way to add one
             await expect(info.attributes.row(optional.name)).toHaveCount(0);
             await expect(info.attributes.addButton).toHaveCount(0);
+        } finally {
+            await deleteAttributes(adminClient, created);
+        }
+    });
+
+    /**
+     * @objective Verify an attribute whose values an integration owns is read-only
+     * in Channel Info, even for a system admin.
+     */
+    test('shows an attribute owned by an integration as read-only, even to a system admin', async ({pw}) => {
+        await pw.skipIfNoLicense();
+        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+
+        const {adminClient, adminUser, team} = await pw.initSetup();
+        const suffix = pw.random.id();
+        const created: PropertyField[] = [];
+
+        try {
+            await purgeAttributes(adminClient);
+
+            const owned = await createAttribute(adminClient, attributeName('owned', suffix), {
+                options: ['NOFORN', 'RELIDO'],
+                actions: [DISPLAY_LABEL_INFO],
+            });
+            const ordinary = await createAttribute(adminClient, attributeName('ordinary', suffix), {
+                options: ['ALPHA'],
+                actions: [DISPLAY_LABEL_INFO],
+            });
+            created.push(owned, ordinary);
+
+            const channel = await createChannelForAttributes(adminClient, team, `edit-owned-${suffix}`);
+            await adminClient.addToChannel(adminUser.id, channel.id);
+
+            // Seed the value while the attribute is still ordinary, the way the
+            // owning integration would have written it.
+            await setChannelValue(adminClient, channel.id, owned, optionId(owned, 'NOFORN'));
+            await assignAttributeOwner(adminClient, owned, 'com.example.markings');
+
+            const {channelsPage} = await pw.testBrowser.login(adminUser);
+            await channelsPage.goto(team.name, channel.name);
+            await channelsPage.toBeVisible();
+
+            const info = await channelsPage.openChannelInfo();
+
+            // * The value is shown as a plain chip behind a lock, with nothing to open
+            await expect(info.attributes.chip(owned.name)).toHaveText('NOFORN');
+            await expect(info.attributes.lock(owned.name)).toBeVisible();
+            await expect(info.attributes.lock(owned.name)).toHaveAttribute(
+                'aria-label',
+                'This attribute is managed by an integration and cannot be changed here',
+            );
+            await expect(info.attributes.editButton(owned.name)).toHaveCount(0);
+
+            // # Click the chip where the editor's trigger would be
+            await info.attributes.chip(owned.name).click();
+
+            // * No option menu opens, so the write the server would refuse is never offered
+            await expect(channelsPage.page.getByText('RELIDO', {exact: true})).toHaveCount(0);
+            await expect(info.attributes.error(owned.name)).toHaveCount(0);
+
+            // * The ordinary attribute beside it is still offered for adding, so the
+            // * lock is scoped to the owned one rather than the whole panel
+            await info.attributes.addButton.click();
+            await expect(info.attributes.addMenuItem(ordinary.name)).toBeVisible();
+            await expect(info.attributes.addMenuItem(owned.name)).toHaveCount(0);
+
+            // * The stored value is untouched
+            expect(valueFor(await readChannelValues(adminClient, channel.id), owned)).toBe(
+                optionId(owned, 'NOFORN'),
+            );
         } finally {
             await deleteAttributes(adminClient, created);
         }
