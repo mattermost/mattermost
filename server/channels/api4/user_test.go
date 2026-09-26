@@ -5556,6 +5556,95 @@ func TestLoginWithGuestMagicLinkTokenRejectsDeactivatedUser(t *testing.T) {
 	})
 }
 
+func TestGetLoginType(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	_, err := th.Client.Logout(context.Background())
+	require.NoError(t, err)
+
+	// The webapp decodes every response body as JSON whatever the status code is, so a body
+	// it chokes on surfaces as "Received invalid response from the server." instead of the
+	// real error. Go through the raw client to assert on the body the webapp actually sees.
+	postLoginType := func(t *testing.T, loginID string) (int, map[string]any) {
+		t.Helper()
+		req, err := http.NewRequest(http.MethodPost, th.Client.APIURL+"/users/login/type", strings.NewReader(model.MapToJSON(map[string]string{"login_id": loginID})))
+		require.NoError(t, err)
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := th.Client.HTTPClient.Do(req)
+		require.NoError(t, err)
+		defer closeBody(resp)
+
+		var body map[string]any
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&body), "response body must be valid JSON")
+
+		return resp.StatusCode, body
+	}
+
+	// The webapp renders body["message"], so the translated string is part of the contract
+	// and not just the error id.
+	assertMagicLinkUnavailable := func(t *testing.T, loginID string) {
+		t.Helper()
+		status, body := postLoginType(t, loginID)
+		assert.Equal(t, http.StatusNotFound, status)
+		assert.Equal(t, "api.user.login.guest_magic_link.disabled.error", body["id"])
+		assert.Equal(t, "Login with magic link is disabled.", body["message"])
+	}
+
+	t.Run("returns an empty login type for a password account when guest magic link is available", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense("guest_accounts"))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.GuestAccountsSettings.Enable = true
+			*cfg.GuestAccountsSettings.EnableGuestMagicLink = true
+		})
+
+		status, body := postLoginType(t, th.BasicUser.Email)
+		assert.Equal(t, http.StatusOK, status)
+		assert.Equal(t, "", body["auth_service"])
+	})
+
+	t.Run("returns a JSON error when guest accounts are disabled", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense("guest_accounts"))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.GuestAccountsSettings.Enable = false
+			*cfg.GuestAccountsSettings.EnableGuestMagicLink = true
+		})
+
+		assertMagicLinkUnavailable(t, th.BasicUser.Email)
+	})
+
+	t.Run("returns a JSON error when guest magic link is disabled", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicense("guest_accounts"))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.GuestAccountsSettings.Enable = true
+			*cfg.GuestAccountsSettings.EnableGuestMagicLink = false
+		})
+
+		assertMagicLinkUnavailable(t, th.BasicUser.Email)
+	})
+
+	t.Run("returns a JSON error when the license does not include guest accounts", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseWithFalseDefaults("guest_accounts"))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.GuestAccountsSettings.Enable = true
+			*cfg.GuestAccountsSettings.EnableGuestMagicLink = true
+		})
+
+		assertMagicLinkUnavailable(t, th.BasicUser.Email)
+	})
+
+	t.Run("returns a JSON error when the server is unlicensed", func(t *testing.T) {
+		th.App.Srv().SetLicense(nil)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.GuestAccountsSettings.Enable = true
+			*cfg.GuestAccountsSettings.EnableGuestMagicLink = true
+		})
+
+		assertMagicLinkUnavailable(t, th.BasicUser.Email)
+	})
+}
+
 func TestLoginCookies(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should return cookies with X-Requested-With header", func(t *testing.T) {
