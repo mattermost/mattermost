@@ -3,10 +3,16 @@
 
 import React from 'react';
 
+import {captureStillFrame} from '@mattermost/shared/utils/capture_still_frame';
+
 import SizeAwareImage from 'components/size_aware_image';
 
-import {renderWithContext, act, screen} from 'tests/react_testing_utils';
+import {renderWithContext, act, screen, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
+
+jest.mock('@mattermost/shared/utils/capture_still_frame', () => ({
+    captureStillFrame: jest.fn().mockResolvedValue(null),
+}));
 
 function simulateImageLoad(img: HTMLImageElement, naturalWidth: number, naturalHeight: number) {
     Object.defineProperty(img, 'naturalWidth', {value: naturalWidth, configurable: true});
@@ -19,6 +25,15 @@ function simulateImageLoad(img: HTMLImageElement, naturalWidth: number, naturalH
 function simulateImageError(img: HTMLImageElement) {
     return act(() => {
         img.dispatchEvent(new Event('error', {bubbles: true}));
+    });
+}
+
+function setWindowActive(isActive: boolean) {
+    jest.spyOn(document, 'hasFocus').mockReturnValue(isActive);
+    Object.defineProperty(document, 'visibilityState', {value: isActive ? 'visible' : 'hidden', configurable: true});
+    act(() => {
+        window.dispatchEvent(new Event(isActive ? 'focus' : 'blur'));
+        document.dispatchEvent(new Event('visibilitychange'));
     });
 }
 
@@ -38,6 +53,11 @@ describe('components/SizeAwareImage', () => {
         }),
         enablePublicLink: true,
     };
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+        Object.defineProperty(document, 'visibilityState', {value: 'visible', configurable: true});
+    });
 
     const state = {
         entities: {
@@ -298,5 +318,125 @@ describe('components/SizeAwareImage', () => {
 
         const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
         expect(container.querySelector('button.size-aware-image__copy_link')).toBeNull();
+    });
+
+    describe('animated image freezing', () => {
+        const gifProps = {
+            ...baseProps,
+            src: 'https://example.com/image.gif',
+        };
+
+        test('should swap to a captured still frame once the window becomes inactive', async () => {
+            setWindowActive(true);
+            (captureStillFrame as jest.Mock).mockResolvedValue('data:image/gif;base64,frozen-frame');
+
+            renderWithContext(<SizeAwareImage {...gifProps}/>, state);
+
+            const img = screen.getByRole('img', {hidden: true}) as HTMLImageElement;
+            await simulateImageLoad(img, 300, 200);
+            expect(img.getAttribute('src')).toEqual(gifProps.src);
+
+            setWindowActive(false);
+
+            await waitFor(() => {
+                expect(img.getAttribute('src')).toEqual('data:image/gif;base64,frozen-frame');
+            });
+            expect(captureStillFrame).toHaveBeenCalledWith(gifProps.src);
+        });
+
+        test('should restore the live src once the window becomes active again', async () => {
+            setWindowActive(true);
+            (captureStillFrame as jest.Mock).mockResolvedValue('data:image/gif;base64,frozen-frame');
+
+            renderWithContext(<SizeAwareImage {...gifProps}/>, state);
+
+            const img = screen.getByRole('img', {hidden: true}) as HTMLImageElement;
+            await simulateImageLoad(img, 300, 200);
+
+            setWindowActive(false);
+            await waitFor(() => {
+                expect(img.getAttribute('src')).toEqual('data:image/gif;base64,frozen-frame');
+            });
+
+            setWindowActive(true);
+
+            expect(img.getAttribute('src')).toEqual(gifProps.src);
+        });
+
+        test('should not freeze an image that is not likely to be animated', async () => {
+            setWindowActive(true);
+
+            renderWithContext(<SizeAwareImage {...baseProps}/>, state);
+
+            const img = screen.getByRole('img', {hidden: true}) as HTMLImageElement;
+            await simulateImageLoad(img, 300, 200);
+
+            setWindowActive(false);
+
+            expect(captureStillFrame).not.toHaveBeenCalled();
+            expect(img.getAttribute('src')).toEqual(baseProps.src);
+        });
+
+        test('should treat a gif fileInfo extension as animated even without a .gif src suffix', async () => {
+            setWindowActive(true);
+            const props = {
+                ...baseProps,
+                fileInfo: TestHelper.getFileInfoMock({
+                    ...baseProps.fileInfo,
+                    extension: 'gif',
+                }),
+            };
+            (captureStillFrame as jest.Mock).mockResolvedValue('data:image/gif;base64,frozen-frame');
+
+            renderWithContext(<SizeAwareImage {...props}/>, state);
+
+            const img = screen.getByRole('img', {hidden: true}) as HTMLImageElement;
+            await simulateImageLoad(img, 300, 200);
+
+            setWindowActive(false);
+
+            await waitFor(() => {
+                expect(img.getAttribute('src')).toEqual('data:image/gif;base64,frozen-frame');
+            });
+        });
+
+        test('should not capture a still frame before the image has loaded', () => {
+            setWindowActive(true);
+
+            renderWithContext(<SizeAwareImage {...gifProps}/>, state);
+
+            setWindowActive(false);
+
+            expect(captureStillFrame).not.toHaveBeenCalled();
+        });
+
+        test('should capture a still frame if the image finishes loading while already inactive', async () => {
+            setWindowActive(false);
+            (captureStillFrame as jest.Mock).mockResolvedValue('data:image/gif;base64,frozen-frame');
+
+            renderWithContext(<SizeAwareImage {...gifProps}/>, state);
+
+            const img = screen.getByRole('img', {hidden: true}) as HTMLImageElement;
+            await simulateImageLoad(img, 300, 200);
+
+            await waitFor(() => {
+                expect(img.getAttribute('src')).toEqual('data:image/gif;base64,frozen-frame');
+            });
+        });
+
+        test('should keep the live src if capturing the still frame fails', async () => {
+            setWindowActive(true);
+            (captureStillFrame as jest.Mock).mockResolvedValue(null);
+
+            renderWithContext(<SizeAwareImage {...gifProps}/>, state);
+
+            const img = screen.getByRole('img', {hidden: true}) as HTMLImageElement;
+            await simulateImageLoad(img, 300, 200);
+
+            setWindowActive(false);
+
+            await waitFor(() => expect(captureStillFrame).toHaveBeenCalled());
+            expect(img.getAttribute('src')).toEqual(gifProps.src);
+        });
     });
 });
