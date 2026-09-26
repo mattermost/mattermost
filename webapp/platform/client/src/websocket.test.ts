@@ -642,6 +642,61 @@ describe('websocketclient', () => {
         });
     });
 
+    test('should reset server sequence on hello with new connection id even when no missed listeners registered', () => {
+        jest.useFakeTimers();
+
+        const mockWebSocket = new MockWebSocket();
+        const client = new WebSocketClient({
+            newWebSocketFn: (url: string) => {
+                mockWebSocket.url = url;
+                setTimeout(() => {
+                    if (mockWebSocket.onopen) {
+                        mockWebSocket.open();
+                    }
+                }, 1);
+                return mockWebSocket;
+            },
+            minWebSocketRetryTime: 1,
+            reconnectJitterRange: 1,
+        });
+
+        const messages: any[] = [];
+        client.addMessageListener((msg) => {
+            messages.push(msg);
+        });
+
+        // No missedEventCallback or addMissedMessageListener registered
+
+        client.initialize('mock.url');
+        jest.advanceTimersByTime(5);
+
+        // First hello: sets connectionId to 'conn-1', serverSequence goes 0 -> 1
+        // The hello itself is delivered since seq 0 matches serverSequence 0
+        const hello1 = {event: 'hello', data: {connection_id: 'conn-1', server_hostname: 'host1'}, seq: 0};
+        mockWebSocket.onmessage!({data: JSON.stringify(hello1)});
+        expect(messages).toHaveLength(1);
+
+        // Receive events at seq 1, 2 — serverSequence advances to 3
+        mockWebSocket.onmessage!({data: JSON.stringify({event: 'posted', data: {}, seq: 1})});
+        mockWebSocket.onmessage!({data: JSON.stringify({event: 'posted', data: {}, seq: 2})});
+        expect(messages).toHaveLength(3);
+
+        // Simulate server restart: hello arrives with a different connection_id.
+        // serverSequence must reset to 0, then hello (seq 0) matches 0, serverSequence becomes 1.
+        // Without the fix, the hello handler was gated on having missed listeners, so
+        // serverSequence would NOT reset and would remain 3, causing a seq mismatch disconnect.
+        const hello2 = {event: 'hello', data: {connection_id: 'conn-2', server_hostname: 'host2'}, seq: 0};
+        mockWebSocket.onmessage!({data: JSON.stringify(hello2)});
+        expect(messages).toHaveLength(4);
+
+        // After restart, server sends event at seq 1 — this must match serverSequence (1)
+        mockWebSocket.onmessage!({data: JSON.stringify({event: 'posted', data: {}, seq: 1})});
+        expect(messages).toHaveLength(5);
+
+        client.close();
+        jest.useRealTimers();
+    });
+
     test('should be able to use WebSocketClient in a non-browser environment', () => {
         const mockWebSocket = new MockWebSocket();
 
