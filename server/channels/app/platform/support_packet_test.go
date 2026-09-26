@@ -62,6 +62,34 @@ func (s *fixedDBStatsStore) GetDiagnostics(_ request.CTX) (*store.DatabaseDiagno
 	return diagnostics, nil
 }
 
+type failingDiagnosticsStore struct {
+	store.Store
+	schemaVersionErr error
+	dbVersionErr     error
+	diagnosticsErr   error
+}
+
+func (s *failingDiagnosticsStore) GetDBSchemaVersion() (int, error) {
+	if s.schemaVersionErr != nil {
+		return 0, s.schemaVersionErr
+	}
+	return s.Store.GetDBSchemaVersion()
+}
+
+func (s *failingDiagnosticsStore) GetDbVersion(numerical bool) (string, error) {
+	if s.dbVersionErr != nil {
+		return "", s.dbVersionErr
+	}
+	return s.Store.GetDbVersion(numerical)
+}
+
+func (s *failingDiagnosticsStore) GetDiagnostics(rctx request.CTX) (*store.DatabaseDiagnostics, error) {
+	if s.diagnosticsErr != nil {
+		return nil, s.diagnosticsErr
+	}
+	return s.Store.GetDiagnostics(rctx)
+}
+
 // shortCPUProfileDuration keeps GenerateSupportPacket calls fast in tests
 // that don't care about the CPU profile's contents.
 var shortCPUProfileDuration = model.NewPointer(100 * time.Millisecond)
@@ -235,10 +263,10 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 	getDiagnostics := func(t *testing.T) *model.SupportPacketDiagnostics {
 		t.Helper()
 
-		d, err := th.Service.getSupportPacketDiagnostics(th.Context)
+		d, err := th.Service.GetSupportPacketDiagnostics(th.Context)
 		require.NotNil(t, d)
 		assert.NoError(t, err)
-		return d
+		return d.Diagnostics
 	}
 
 	t.Run("Happy path", func(t *testing.T) {
@@ -1092,6 +1120,169 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 		assert.Equal(t, model.StatusFail, packet.OAuthProviders.GitLab.Status)
 		assert.Contains(t, packet.OAuthProviders.GitLab.Error, "no discovery or token endpoint")
+	})
+}
+
+func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
+	th := Setup(t)
+
+	setStore := func(t *testing.T, s *failingDiagnosticsStore) {
+		originalStore := th.Service.Store
+		s.Store = originalStore
+		th.Service.Store = s
+		t.Cleanup(func() {
+			th.Service.Store = originalStore
+		})
+	}
+
+	requireSectionErrors := func(t *testing.T, failed map[model.NodeSection][]string) {
+		t.Helper()
+
+		nodeDiagnostics, err := th.Service.GetSupportPacketDiagnostics(th.Context)
+		require.NotNil(t, nodeDiagnostics)
+		require.NotNil(t, nodeDiagnostics.Diagnostics)
+		if len(failed) == 0 {
+			require.NoError(t, err)
+		} else {
+			require.Error(t, err)
+		}
+
+		require.Len(t, nodeDiagnostics.Errors, len(model.AllNodeSections()))
+		for _, section := range model.AllNodeSections() {
+			sectionErr, ok := nodeDiagnostics.Errors[section]
+			require.True(t, ok, "section %q should be present", section)
+
+			messages, isFailed := failed[section]
+			if !isFailed {
+				assert.NoError(t, sectionErr, "section %q", section)
+				continue
+			}
+			require.Error(t, sectionErr, "section %q", section)
+			for _, msg := range messages {
+				assert.ErrorContains(t, sectionErr, msg)
+				assert.ErrorContains(t, err, msg)
+			}
+		}
+	}
+
+	t.Run("all sections present and clean", func(t *testing.T) {
+		requireSectionErrors(t, nil)
+	})
+
+	t.Run("DB schema version fails", func(t *testing.T) {
+		setStore(t, &failingDiagnosticsStore{schemaVersionErr: errors.New("schema down")})
+
+		requireSectionErrors(t, map[model.NodeSection][]string{
+			model.SectionDatabaseIdentity: {"error while getting DB type and schema version"},
+		})
+	})
+
+	t.Run("DB version fails", func(t *testing.T) {
+		setStore(t, &failingDiagnosticsStore{dbVersionErr: errors.New("version down")})
+
+		requireSectionErrors(t, map[model.NodeSection][]string{
+			model.SectionDatabaseIdentity: {"error while getting DB version"},
+		})
+	})
+
+	t.Run("both DB identity sites fail", func(t *testing.T) {
+		setStore(t, &failingDiagnosticsStore{
+			schemaVersionErr: errors.New("schema down"),
+			dbVersionErr:     errors.New("version down"),
+		})
+
+		requireSectionErrors(t, map[model.NodeSection][]string{
+			model.SectionDatabaseIdentity: {"schema down", "version down"},
+		})
+	})
+
+	t.Run("store diagnostics fail", func(t *testing.T) {
+		setStore(t, &failingDiagnosticsStore{diagnosticsErr: errors.New("stats down")})
+
+		requireSectionErrors(t, map[model.NodeSection][]string{
+			model.SectionDatabaseStats: {"error while collecting support packet database diagnostics"},
+		})
+	})
+
+	t.Run("disk space fails", func(t *testing.T) {
+		originalFileStore := th.Service.filestore
+		originalDir := *th.Service.Config().FileSettings.Directory
+		t.Cleanup(func() {
+			err := SetFileStore(originalFileStore)(th.Service)
+			require.NoError(t, err)
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.FileSettings.Directory = model.NewPointer(originalDir)
+			})
+		})
+
+		fb := &fmocks.FileBackend{}
+		fb.On("DriverName").Return(model.ImageDriverLocal)
+		fb.On("TestConnection").Return(nil)
+		err := SetFileStore(fb)(th.Service)
+		require.NoError(t, err)
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.FileSettings.Directory = model.NewPointer(filepath.Join(t.TempDir(), "missing"))
+		})
+
+		requireSectionErrors(t, map[model.NodeSection][]string{
+			model.SectionFilestoreDisk: {"error while getting disk space info"},
+		})
+	})
+
+	t.Run("cluster infos fail", func(t *testing.T) {
+		cluster := emocks.NewClusterInterface(t)
+		// Setup's background config publishes reach whichever cluster is installed.
+		cluster.On("SendClusterMessage", mock.Anything).Return().Maybe()
+		cluster.On("GetClusterId").Return("cluster-id")
+		cluster.On("GetClusterInfos").Return(nil, errors.New("gossip down"))
+		originalCluster := th.Service.clusterIFace
+		t.Cleanup(func() {
+			th.Service.clusterIFace = originalCluster
+		})
+		th.Service.clusterIFace = cluster
+
+		requireSectionErrors(t, map[model.NodeSection][]string{
+			model.SectionCluster: {"error while getting cluster infos"},
+		})
+	})
+
+	t.Run("LDAP vendor info fails", func(t *testing.T) {
+		ldapMock := &emocks.LdapDiagnosticInterface{}
+		ldapMock.On("RunTest", mock.AnythingOfType("*request.Context")).Return(nil)
+		ldapMock.On("GetVendorNameAndVendorVersion", mock.AnythingOfType("*request.Context")).Return("", "", errors.New("vendor down"))
+		originalLDAP := th.Service.ldapDiagnostic
+		t.Cleanup(func() {
+			th.Service.ldapDiagnostic = originalLDAP
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.LdapSettings.EnableSync = model.NewPointer(false)
+			})
+		})
+		th.Service.ldapDiagnostic = ldapMock
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.LdapSettings.EnableSync = model.NewPointer(true)
+		})
+
+		requireSectionErrors(t, map[model.NodeSection][]string{
+			model.SectionLDAPProbe: {"error while getting LDAP vendor info"},
+		})
+	})
+
+	t.Run("failed probe stays present and clean", func(t *testing.T) {
+		ldapMock := &emocks.LdapDiagnosticInterface{}
+		ldapMock.On("RunTest", mock.AnythingOfType("*request.Context")).Return(model.NewAppError("", "bind failed", nil, "", 0))
+		originalLDAP := th.Service.ldapDiagnostic
+		t.Cleanup(func() {
+			th.Service.ldapDiagnostic = originalLDAP
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.LdapSettings.EnableSync = model.NewPointer(false)
+			})
+		})
+		th.Service.ldapDiagnostic = ldapMock
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.LdapSettings.EnableSync = model.NewPointer(true)
+		})
+
+		requireSectionErrors(t, nil)
 	})
 }
 

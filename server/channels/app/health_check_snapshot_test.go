@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -21,7 +22,7 @@ import (
 )
 
 // Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
-func TestBuildHealthSnapshotNoDiagnosticsCollected(t *testing.T) {
+func TestBuildHealthSnapshotStandaloneLeaderDiagnostics(t *testing.T) {
 	th := Setup(t)
 
 	err := th.App.clearLatestVersionCache()
@@ -35,9 +36,53 @@ func TestBuildHealthSnapshotNoDiagnosticsCollected(t *testing.T) {
 	require.Len(t, nodes, 1)
 	require.True(t, nodes[0].IsLeader)
 	require.Nil(t, nodes[0].ClusterInfo)
-	for _, node := range nodes {
-		require.Nil(t, node.Diagnostics)
+	require.NotNil(t, nodes[0].Diagnostics)
+	require.NotNil(t, nodes[0].Diagnostics.Diagnostics)
+	for _, section := range model.AllNodeSections() {
+		assert.True(t, nodes[0].Has(section), "section %q", section)
 	}
+}
+
+// threeNodeCluster reports this node as id-2 of three.
+type threeNodeCluster struct {
+	captureClusterMock
+}
+
+func (c *threeNodeCluster) GetClusterId() string { return "id-2" }
+
+func (c *threeNodeCluster) GetClusterInfos() ([]*model.ClusterInfo, error) {
+	return []*model.ClusterInfo{
+		{Id: "id-1", Hostname: "node-1"},
+		{Id: "id-2", Hostname: "node-2"},
+		{Id: "id-3", Hostname: "node-3"},
+	}, nil
+}
+
+// Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
+func TestBuildHealthSnapshotOnlyLeaderHasDiagnostics(t *testing.T) {
+	th := SetupWithClusterMock(t, &threeNodeCluster{})
+
+	err := th.App.clearLatestVersionCache()
+	require.NoError(t, err)
+
+	snapshot, buildErr := th.App.buildHealthSnapshotWithLatestVersionURL(th.Context, latestVersionServer(t).URL)
+	require.NoError(t, buildErr)
+	require.NotNil(t, snapshot)
+
+	nodes := snapshot.Nodes()
+	require.Len(t, nodes, 3)
+	for _, node := range nodes {
+		if node.IsLeader {
+			assert.Equal(t, "id-2", node.ClusterInfo.Id)
+			require.NotNil(t, node.Diagnostics)
+			assert.Equal(t, 3, node.Diagnostics.Diagnostics.Cluster.NumberOfNodes)
+		} else {
+			assert.Nil(t, node.Diagnostics, "follower %q", node.ClusterInfo.Id)
+		}
+	}
+	leader, ok := snapshot.Leader()
+	require.True(t, ok)
+	assert.Equal(t, "id-2", leader.ClusterInfo.Id)
 }
 
 // Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
@@ -64,6 +109,12 @@ func TestBuildHealthSnapshotSectionFailureIsolationWithPartialStats(t *testing.T
 	storeMock.On("Command").Return(originalStore.Command())
 	storeMock.On("Webhook").Return(originalStore.Webhook())
 	storeMock.On("Job").Return(originalStore.Job())
+	storeMock.On("GetDBSchemaVersion").Return(originalStore.GetDBSchemaVersion())
+	storeMock.On("GetDbVersion", false).Return(originalStore.GetDbVersion(false))
+	storeMock.On("TotalMasterDbConnections").Return(originalStore.TotalMasterDbConnections())
+	storeMock.On("TotalReadDbConnections").Return(originalStore.TotalReadDbConnections())
+	storeMock.On("TotalSearchDbConnections").Return(originalStore.TotalSearchDbConnections())
+	storeMock.On("GetDiagnostics", mock.Anything).Return(originalStore.GetDiagnostics(th.Context))
 	storeMock.On("ClearCaches")
 	storeMock.On("Close").Return(nil)
 
