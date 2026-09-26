@@ -154,4 +154,63 @@ test.describe('Channel Settings Modal - Permissions Policy tab (v0.4)', () => {
 
         await channelSettings.close();
     });
+
+    /**
+     * @objective Verify that an open permission rule editor, which blocks navigation to the modal's other
+     * sections, says so instead of silently swallowing the click.
+     */
+    test(
+        'MM-PP_v0_4_c4 blocked section switch while editing a permission rule explains itself',
+        {tag: '@channel_settings'},
+        async ({pw}) => {
+            const {adminUser, adminClient, team} = await pw.initSetup();
+            await enableABACConfig(adminClient);
+            await ensureDepartmentAttribute(adminClient);
+
+            const channel = await createPrivateChannel(adminClient, team.id);
+
+            const {page} = await pw.testBrowser.login(adminUser);
+            const channelsPage = new ChannelsPage(page);
+            await channelsPage.goto(team.name, channel.name);
+            await channelsPage.toBeVisible();
+
+            const channelSettings = await channelsPage.openChannelSettings();
+            const permissionsTab = channelSettings.container.getByTestId('permissions_policy-tab-button');
+            await expect(permissionsTab).toBeVisible();
+            await permissionsTab.click();
+
+            const tab = channelSettings.container.locator('.ChannelSettingsModal__permissionsPolicyTab');
+            await expect(tab).toBeVisible({timeout: 10000});
+
+            // # Open the rule editor and start a draft
+            await tab.getByTestId('permissions-policy-add-rule').click();
+            const editor = channelSettings.container.getByTestId('permissions-policy-editor');
+            await expect(editor).toBeVisible({timeout: 5000});
+            await editor.getByTestId('permissions-policy-editor-name').fill('Block external uploads');
+
+            // # Try to leave the editor by selecting the Info section
+            await channelSettings.infoTab.click();
+
+            // * The blocked switch is explained rather than ignored. The modal
+            // withdraws the explanation after 3s, so assert inside that window.
+            await expect(channelSettings.container.getByTestId('permissions-policy-editor-error')).toHaveText(
+                'You have unsaved changes. Save or cancel this rule to continue.',
+                {timeout: 2000},
+            );
+
+            // * The Permissions Policy section is still the selected one and the draft is intact
+            await expect(permissionsTab).toHaveAttribute('aria-selected', 'true');
+            await expect(editor.getByTestId('permissions-policy-editor-name')).toHaveValue('Block external uploads');
+            await expect(channelSettings.infoSettings.container).not.toBeVisible();
+
+            // # Leave the editor the supported way
+            await channelSettings.container.getByTestId('permissions-policy-editor-cancel').click();
+            await expect(editor).not.toBeVisible();
+
+            // * Section switching works again once no rule is being edited
+            await channelSettings.openInfoTab();
+
+            await channelSettings.close();
+        },
+    );
 });

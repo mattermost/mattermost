@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -593,6 +593,14 @@ function ChannelSettingsPermissionsPolicyTab({
     const hasErrors = Boolean(formError) || Boolean(showTabSwitchError);
     const shouldShowPanel = (hasUnsavedChanges || saveChangesPanelState === SAVE_RESULT_SAVED) && editingKey === null;
 
+    // An open rule editor counts as unsaved changes, so the modal refuses
+    // section switches while it is open. The SaveChangesPanel that explains the
+    // refusal only renders in the list view, so surface it here instead.
+    const editorError = formError || (showTabSwitchError ? formatMessage({
+        id: 'channel_settings.permissions_policy.editor.tab_switch_error',
+        defaultMessage: 'You have unsaved changes. Save or cancel this rule to continue.',
+    }) : '');
+
     // ── Render: load error (defensive — replaces both list and editor) ───
     // Block all editing affordances when the initial policy load failed
     // for a reason other than 404. Falling through to the regular
@@ -643,7 +651,7 @@ function ChannelSettingsPermissionsPolicyTab({
                 attributesLoaded={attributesLoaded}
                 enableUserManagedAttributes={accessControlSettings?.EnableUserManagedAttributes || false}
                 isSystemAdmin={isSystemAdmin}
-                error={formError}
+                error={editorError}
                 onCancel={cancelEditor}
                 onCommit={commitDraft}
                 buildSimulationPolicy={buildSimulationPolicy}
@@ -963,6 +971,13 @@ function PermissionRuleEditor({
     // that rebuilds `initial` (e.g. surfacing a validation error on save).
     const [draft, setDraft] = useState<EditableRule>(initial);
     const [showTest, setShowTest] = useState(false);
+    const errorRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (error) {
+            errorRef.current?.scrollIntoView?.({behavior: 'smooth', block: 'nearest'});
+        }
+    }, [error]);
 
     const actionLabels = useMemo(() => {
         const labels: Record<string, string> = {};
@@ -1247,8 +1262,10 @@ function PermissionRuleEditor({
 
             {error && (
                 <div
+                    ref={errorRef}
                     className='ChannelSettingsModal__permissionsPolicyError'
                     data-testid='permissions-policy-editor-error'
+                    role='alert'
                 >
                     {error}
                 </div>
