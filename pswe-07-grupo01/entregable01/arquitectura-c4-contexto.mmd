@@ -1,0 +1,14 @@
+C4Context
+    title Diagrama C4 de contexto: Mejoras de colaboración en Mattermost
+
+    Person(member, "Miembro / autor", "Colabora mediante equipos, canales y mensajes.")
+    Person(team_admin, "Team Admin", "Administra los miembros de su equipo.")
+    Person(system_admin, "System Admin", "Administra la instancia.")
+
+    System(mattermost, "Mattermost", "Colaboración de equipos.")
+
+    Rel(member, mattermost, "Colabora en")
+    Rel(team_admin, mattermost, "Administra equipo")
+    Rel(system_admin, mattermost, "Administra instancia")
+
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
