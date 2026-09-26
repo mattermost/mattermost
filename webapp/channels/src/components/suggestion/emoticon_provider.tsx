@@ -23,6 +23,10 @@ import type {SuggestionProps} from './suggestion';
 export const MIN_EMOTICON_LENGTH = 2;
 export const EMOJI_CATEGORY_SUGGESTION_BLOCKLIST = ['skintone'];
 
+// Based on api4.EmojiMaxAutocompleteItems on the server. Since the server only does prefix matches, a
+// response below this limit means the store already has every custom emoji matching any longer prefix.
+export const CUSTOM_EMOJI_AUTOCOMPLETE_LIMIT = 100;
+
 type EmojiItem = {
     emoji: Emoji;
     name: string;
@@ -53,9 +57,12 @@ const EmoticonSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Emoji
 EmoticonSuggestion.displayName = 'EmoticonSuggestion';
 
 export default class EmoticonProvider extends Provider {
+    private fullyFetchedPrefix: string;
+
     constructor() {
         super();
 
+        this.fullyFetchedPrefix = '';
         this.triggerCharacter = ':';
     }
 
@@ -84,13 +91,32 @@ export default class EmoticonProvider extends Provider {
             }
         }
 
-        if (store.getState().entities.general.config.EnableCustomEmoji === 'true') {
-            store.dispatch(autocompleteCustomEmojis(partialName)).then(() => this.findAndSuggestEmojis(text, partialName, resultsCallback));
-        } else {
-            this.findAndSuggestEmojis(text, partialName, resultsCallback);
+        this.startNewRequest(partialName);
+        this.findAndSuggestEmojis(text, partialName, resultsCallback);
+
+        if (this.shouldFetchCustomEmojis(partialName)) {
+            store.dispatch(autocompleteCustomEmojis(partialName)).then(({data}) => {
+                if (!data || partialName !== this.latestPrefix) {
+                    return;
+                }
+
+                if (data.length < CUSTOM_EMOJI_AUTOCOMPLETE_LIMIT) {
+                    this.fullyFetchedPrefix = partialName;
+                }
+
+                this.findAndSuggestEmojis(text, partialName, resultsCallback);
+            });
         }
 
         return true;
+    }
+
+    shouldFetchCustomEmojis(partialName: string) {
+        if (store.getState().entities.general.config.EnableCustomEmoji !== 'true') {
+            return false;
+        }
+
+        return !this.fullyFetchedPrefix || !partialName.startsWith(this.fullyFetchedPrefix);
     }
 
     formatEmojis(emojis: EmojiItem[]) {
