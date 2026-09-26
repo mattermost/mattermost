@@ -75,11 +75,12 @@ test.describe('System Console - Session Attributes', () => {
             // * Verify a seeded-but-client-native field does NOT carry the Server label
             await expect(sa.serverLabel(clientIpAddress.id)).toHaveCount(0);
 
-            // * Verify the derived Type column maps text/select fields correctly
-            await expect(sa.type(ipAddress.id)).toContainText('IP');
+            // * Verify the derived Type column. Product display types are only
+            // String | Boolean | Enum — IP/Version labels were removed.
+            await expect(sa.type(ipAddress.id)).toContainText('String');
             await expect(sa.type(vpnActive.id)).toContainText('Boolean');
             await expect(sa.type(networkInterfaceType.id)).toContainText('Enum');
-            await expect(sa.type(osVersion.id)).toContainText('Version');
+            await expect(sa.type(osVersion.id)).toContainText('String');
 
             // * Verify seeded fields render as Disabled by default
             await expect(sa.status(ipAddress.id)).toContainText('Disabled');
@@ -188,12 +189,12 @@ test.describe('System Console - Session Attributes', () => {
         // # Navigate to Session Attributes page
         await sa.goto();
 
-        // # Capture the rendered TTL, then stage a different TTL (24h)
-        const beforeTtl = (await sa.ttl(field.id).textContent())?.trim() ?? '';
-        await sa.setTtlPreset(field.id, 86400);
+        // # Stage Enable. This test only needs a dirty page; TTL/grace presets
+        // are covered by the persist test and their nested submenu is racy.
+        await sa.enable(field.id);
 
         // * Verify the edit is staged and Save is enabled
-        await expect(sa.ttl(field.id)).toHaveText('24h');
+        await expect(sa.status(field.id)).toContainText('Enabled');
         await expect(sa.saveButton).toBeEnabled();
 
         // # Attempt to navigate away via the sidebar while dirty
@@ -211,8 +212,8 @@ test.describe('System Console - Session Attributes', () => {
         // # Cancel the staged edit via the Save Changes panel
         await sa.cancel();
 
-        // * Verify the TTL reverted and Save returned to disabled
-        await expect(sa.ttl(field.id)).toHaveText(beforeTtl);
+        // * Verify Enable reverted and Save returned to disabled
+        await expect(sa.status(field.id)).toContainText('Disabled');
         await expect(sa.saveButton).toBeDisabled();
     });
 

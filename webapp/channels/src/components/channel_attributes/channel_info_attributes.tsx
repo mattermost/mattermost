@@ -10,7 +10,7 @@ import type {PropertyField, PropertyFieldOption} from '@mattermost/types/propert
 import {supportsOptions} from '@mattermost/types/properties';
 
 import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities/properties';
-import {canMoveToOption, getPropertyFieldChangePolicy, getPropertyFieldLabel, isPropertyFieldRequired, isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
+import {canMoveToOption, getPropertyFieldChangePolicy, getPropertyFieldLabel, isPropertyFieldRequired, isPropertyFieldSourceManaged, isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
 
 import useCanSetChannelAttributes from 'components/common/hooks/useCanSetChannelAttributes';
 import {selectChannelInfoAttributes} from 'components/common/hooks/useChannelInfoAttributes';
@@ -61,6 +61,10 @@ const lockReasons = defineMessages({
     lower_only: {
         id: 'channel_attributes.info.locked_lower_only',
         defaultMessage: 'This attribute can only be lowered, never raised',
+    },
+    source_managed: {
+        id: 'channel_attributes.info.locked_source_managed',
+        defaultMessage: 'This attribute is managed by an integration and cannot be changed here',
     },
 });
 
@@ -220,7 +224,12 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
                         const hasValue = isPropertyValueSet(attribute.value?.value);
                         const policy = getPropertyFieldChangePolicy(field);
                         const stuck = hasValue && !hasReachableOption(field, attribute.value?.value);
-                        const locked = hasValue && (policy === 'never' || stuck);
+
+                        // An integration owns this attribute's values whether or not one is
+                        // set yet, so unlike the change policy this locks an empty row too.
+                        const sourceManaged = isPropertyFieldSourceManaged(field);
+                        const locked = sourceManaged || (hasValue && (policy === 'never' || stuck));
+                        const lockReason = sourceManaged ? lockReasons.source_managed : (lockReasons[policy as keyof typeof lockReasons] ?? lockReasons.never);
                         const isText = field.type === 'text';
                         const editable = isChannelAdmin && hasEditor(field) && !stuck && canSet(field, hasValue);
                         const isEditing = editingFieldId === field.id;
@@ -306,7 +315,7 @@ const ChannelInfoAttributes = ({channelId}: Props) => {
                                         <LockOutlineIcon
                                             size={12}
                                             data-testid={`channelInfoAttributeLock-${field.name}`}
-                                            aria-label={formatMessage(lockReasons[policy as keyof typeof lockReasons] ?? lockReasons.never)}
+                                            aria-label={formatMessage(lockReason)}
                                         />
                                     )}
                                 </span>
