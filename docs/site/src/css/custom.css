@@ -532,6 +532,14 @@ table tbody td {
   border-color: var(--mm-border-subtle);
   padding: 0.7rem 1rem;
 }
+
+/* Comparison tables: the arrow column is a gutter. `hidden` wins the
+ * collapsed-border conflict, so the lines shared with the cells on either
+ * side disappear while row separators stay. */
+.markdown .capability-map table :is(th, td):nth-child(3) {
+  border-left-style: hidden;
+  border-right-style: hidden;
+}
 table tbody tr:nth-child(even) {
   background: var(--mm-denim-50);
 }
