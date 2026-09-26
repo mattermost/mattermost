@@ -6,13 +6,13 @@
     z-index: 100;
     height: variables.$backstage-bar-height;
     padding: 10px 20px;
-    border-bottom: 1px solid variables.$light-gray;
-    background: variables.$white;
+    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    background: var(--center-channel-bg);
     grid-area: header;
 }
 
-.backstage-navbar__back {
-    color: var(--sys-button-bg);
+.backstage-navbar a.backstage-navbar__back {
+    color: var(--link-color);
     text-decoration: none;
 
     .fa {
@@ -22,8 +22,9 @@
     }
 
     &:hover,
-    &:active {
-        color: var(--sys-button-bg);
+    &:active,
+    &:focus {
+        color: var(--link-color);
         text-decoration: underline;
     }
 }
@@ -31,7 +32,8 @@
 .backstage-body {
     overflow: auto;
     width: 100%;
-    background-color: variables.$bg--gray;
+    background-color: var(--center-channel-bg);
+    color: var(--center-channel-color);
     grid-area: main;
 }
 
@@ -39,7 +41,8 @@
     max-width: 1200px;
     padding-left: 135px;
     margin: 46px auto;
-    background-color: variables.$bg--gray;
+    background-color: var(--center-channel-bg);
+    color: var(--center-channel-color);
     vertical-align: top;
 }
 
@@ -58,8 +61,8 @@
         @include mixins.clearfix;
         border-radius: 2px;
 
-        border-right: 1px solid variables.$light-gray;
-        border-left: 1px solid variables.$light-gray;
+        border-right: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-left: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
     }
 }
 
@@ -74,10 +77,15 @@
         position: relative;
         display: block;
         padding: 0 10px;
-        border-top: 1px solid variables.$light-gray;
-        border-bottom: 1px solid variables.$light-gray;
-        color: variables.$black;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        color: var(--center-channel-color);
         line-height: 35px;
+
+        &:hover,
+        &:focus {
+            color: var(--center-channel-color);
+        }
 
         .fa {
             position: relative;
@@ -92,9 +100,11 @@
         }
     }
 
-    .category-title--active {
-        background-color: variables.$primary-color;
-        color: variables.$white;
+    a.category-title--active,
+    a.category-title--active:hover,
+    a.category-title--active:focus {
+        background-color: var(--button-bg);
+        color: var(--button-color);
 
         .fa {
             opacity: 1;
@@ -107,34 +117,44 @@
     }
 
     .sections {
-        border-bottom: 1px solid variables.$light-gray;
-        background: variables.$white;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        background: var(--center-channel-bg);
     }
 
-    .section-title,
-    .subsection-title {
+    a.section-title,
+    a.subsection-title {
         display: block;
         padding: 6px 12px 6px 34px;
+        color: var(--center-channel-color);
         font-size: 0.95em;
         line-height: 20px;
         text-decoration: none;
+
+        &:hover,
+        &:focus {
+            color: var(--center-channel-color);
+        }
     }
 
     .subsection-title {
         padding-left: 3em;
     }
 
-    .section-title--active,
-    .subsection-title--active {
-        background-color: variables.$primary-color;
-        color: variables.$white;
+    a.section-title--active,
+    a.subsection-title--active,
+    a.section-title--active:hover,
+    a.section-title--active:focus,
+    a.subsection-title--active:hover,
+    a.subsection-title--active:focus {
+        background-color: var(--button-bg);
+        color: var(--button-color);
         font-weight: 600;
     }
 }
 
 .backstage-header__divider {
     margin: 0 10px;
-    color: variables.$gray;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
 }
 
 .backstage-header {
@@ -192,15 +212,16 @@
 
     input {
         padding-left: 30px;
-        background: variables.$white;
+        background: var(--center-channel-bg);
+        color: var(--center-channel-color);
     }
 }
 
 .backstage-list {
     min-height: 50px;
     padding: 5px 15px;
-    border: 1px solid variables.$light-gray;
-    background-color: variables.$white;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    background-color: var(--center-channel-bg);
 }
 
 .backstage-list__help {
@@ -211,7 +232,7 @@
 .backstage-list__item {
     position: relative;
     padding: 20px 15px;
-    border-bottom: 1px solid variables.$light-gray;
+    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
 
     &:last-child {
         border: none;
@@ -264,8 +285,9 @@
 .backstage-form {
     position: relative;
     padding: 40px 30px 30px;
-    border: 1px solid variables.$light-gray;
-    background-color: variables.$white;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    background-color: var(--center-channel-bg);
+    color: var(--center-channel-color);
 
     &.backstage-form__confirmation {
         padding: 30px 30px 20px;
@@ -291,16 +313,17 @@
     }
 
     .form-control {
-        background: variables.$white;
+        background: var(--center-channel-bg);
+        color: var(--center-channel-color);
 
         &:focus {
-            border-color: variables.$primary-color;
+            border-color: var(--button-bg);
         }
     }
 
     .form__help {
         margin-top: 1em;
-        color: variables.$dark-gray;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
         font-size: 0.95em;
 
         & + .form__help {
@@ -312,7 +335,7 @@
 .backstage-form__footer {
     overflow: hidden;
     padding-top: 1.8em;
-    border-top: 1px solid variables.$light-gray;
+    border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
     margin-top: 2.5em;
     text-align: right;
 
@@ -342,19 +365,24 @@
 .integration-option {
     flex: 0 0 30%;
     padding: 20px;
-    border: 1px solid variables.$light-gray;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
     border-radius: 4px;
     margin: 0 30px 30px 0;
-    background-color: variables.$white;
+    background-color: var(--center-channel-bg);
     text-align: center;
     transition: all 0.2s ease;
 
     &:hover {
         @extend %box-shadow-1;
 
-        color: initial;
         text-decoration: none;
     }
+}
+
+.backstage-content a.integration-option,
+.backstage-content a.integration-option:hover,
+.backstage-content a.integration-option:focus {
+    color: var(--center-channel-color);
 }
 
 .integration-option__image {
@@ -364,11 +392,11 @@
 
 .integration-option__title {
     margin-bottom: 10px;
-    color: variables.$black;
+    color: var(--center-channel-color);
 }
 
 .integration-option__description {
-    color: variables.$dark-gray;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
 }
 
 .emoji-list__table {
@@ -429,7 +457,7 @@
 }
 
 .bot-list {
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
     border-radius: 4px;
     margin-top: 12px;
     line-height: 24px;
@@ -437,7 +465,7 @@
 
 .bot-list__item {
     padding: 8px 12px;
-    background: functions.alpha-color(variables.$black, 0.02);
+    background: rgba(var(--center-channel-color-rgb), 0.04);
     font-size: 13px;
 
     &:first-child {
@@ -445,7 +473,7 @@
     }
 
     &:hover {
-        background: functions.alpha-color(variables.$black, 0.06);
+        background: rgba(var(--center-channel-color-rgb), 0.08);
     }
 
     &.alert {
@@ -497,15 +525,15 @@
 .bot-disabled {
     width: 100%;
     height: 11px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
     margin-top: 10px;
     margin-bottom: 10px;
     text-align: left;
 
     span {
         padding: 0 10px;
-        background-color: #fff;
-        color: #000;
+        background-color: var(--center-channel-bg);
+        color: var(--center-channel-color);
         font-family: "Open Sans";
         font-size: 14px;
         font-weight: 600;
@@ -552,8 +580,8 @@
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    background: variables.$black;
-    color: variables.$white;
+    background: var(--center-channel-color);
+    color: var(--center-channel-bg);
     text-decoration: none;
     transition: all 0.15s ease;
 
@@ -564,13 +592,13 @@
 
 .bot-profile__section {
     padding-top: 1em;
-    border-top: 1px solid rgba(0, 0, 0, 0.15);
+    border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
     margin-bottom: 1em;
 }
 
 .bot-list__disabled {
     .item-details {
-        color: rgba(variables.$black, 0.75);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
     }
 
     .bot-list {
@@ -579,7 +607,7 @@
 }
 
 .bot-token-has-error {
-    color: #a94442;
+    color: var(--error-text);
 }
 
 .outgoing-oauth-connections-edit-secret {
@@ -600,11 +628,11 @@
 
 .outgoing-oauth-connection-validation-message {
     &.validation-success {
-        color: #06d6a0;
+        color: var(--online-indicator);
     }
 
     &.validation-error {
-        color: #d24b4e;
+        color: var(--error-text);
     }
 
     svg {
@@ -637,7 +665,7 @@
 #confirmModal.integrations-backstage-modal {
     #confirmModalLabel,
     #confirmModalBody {
-        color: rgb(51, 51, 51);
+        color: var(--center-channel-color);
     }
 
     #confirmModalBody p {

@@ -103,7 +103,8 @@ body.admin-onboarding #root {
 .app__body {
     #root.channel-view {
         &:has(.backstage-body) {
-            background-color: variables.$bg--gray;
+            background-color: var(--center-channel-bg);
+            color: var(--center-channel-color);
         }
     }
 }

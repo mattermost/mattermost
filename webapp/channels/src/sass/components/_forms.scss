@@ -272,9 +272,13 @@
 
 .form-control[disabled],
 .form-control[readonly],
-fieldset[disabled] .form-control,
-.backstage-form .form-control[disabled] {
+fieldset[disabled] .form-control {
     background-color: #f9f9f9;
+}
+
+.backstage-form .form-control[disabled] {
+    background-color: rgba(var(--center-channel-color-rgb), 0.08);
+    color: var(--center-channel-color);
 }
 
 input[type="file"]:focus,
