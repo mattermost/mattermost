@@ -5,6 +5,7 @@ package imaging
 
 import (
 	"bytes"
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"image"
@@ -18,6 +19,24 @@ import (
 	_ "golang.org/x/image/tiff"
 	_ "golang.org/x/image/webp"
 )
+
+const (
+	riffChunkHeaderSize = 8  // FourCC (4 bytes) + uint32 data size (4 bytes)
+	riffContainerSize   = 12 // "RIFF" + uint32 total size + "WEBP" FourCC
+	anmfFrameHeaderSize = 16 // Frame X, Y, Width, Height, Duration, Flags
+	vp8xPayloadSize     = 10 // Flags (4 bytes) + Canvas W-1 (3 bytes) + Canvas H-1 (3 bytes)
+
+	// maxANMFPayload caps how many bytes we read from a single ANMF chunk. A
+	// 64 MB cap is generous for any compressed WebP frame while preventing a
+	// crafted file from directing us to buffer an unreasonable amount of data.
+	maxANMFPayload = 64 * 1024 * 1024
+)
+
+// ErrResolutionCapExceeded is returned when an image's declared resolution
+// exceeds the configured MaxDecodedResolution. Callers can use errors.Is to
+// distinguish this from other decode failures and skip retries that cannot
+// possibly succeed under the same cap.
+var ErrResolutionCapExceeded = errors.New("imaging: resolution cap exceeded")
 
 // DecoderOptions holds configuration options for an image decoder.
 type DecoderOptions struct {
@@ -108,7 +127,8 @@ func (d *Decoder) checkConfigResolution(cfg image.Config, cfgErr error) error {
 		return nil
 	}
 	if exceedsResolution(int64(cfg.Width), int64(cfg.Height), d.opts.MaxDecodedResolution) {
-		return fmt.Errorf("imaging: image resolution %dx%d exceeds the maximum allowed %d pixels", cfg.Width, cfg.Height, d.opts.MaxDecodedResolution)
+		return fmt.Errorf("imaging: image resolution %dx%d exceeds the maximum allowed %d pixels: %w",
+			cfg.Width, cfg.Height, d.opts.MaxDecodedResolution, ErrResolutionCapExceeded)
 	}
 	return nil
 }
@@ -202,6 +222,149 @@ func GetDimensions(imageData io.Reader) (width int, height int, err error) {
 		}
 	}
 	return
+}
+
+// DecodeWebPFirstFrame decodes the first frame of an animated WebP.
+// It streams the RIFF chunk list so only the first ANMF frame payload is read
+// into memory — the rest of the file is discarded without buffering.
+func (d *Decoder) DecodeWebPFirstFrame(r io.Reader) (image.Image, error) {
+	var header [riffContainerSize]byte
+	if _, err := io.ReadFull(r, header[:]); err != nil {
+		return nil, fmt.Errorf("webp: read failed: %w", err)
+	}
+	if string(header[:4]) != "RIFF" || string(header[riffChunkHeaderSize:]) != "WEBP" {
+		return nil, errors.New("webp: not a WebP file")
+	}
+
+	// Animated WebP must start with VP8X and have the animation bit (bit 1) set.
+	// Still images start with VP8/VP8L at the top level and are rejected fast.
+	var chunkHdr [riffChunkHeaderSize]byte
+	if _, err := io.ReadFull(r, chunkHdr[:]); err != nil {
+		return nil, errors.New("webp: not animated")
+	}
+	firstSize := int64(binary.LittleEndian.Uint32(chunkHdr[4:]))
+	if string(chunkHdr[:4]) != "VP8X" || firstSize < vp8xPayloadSize {
+		return nil, errors.New("webp: not animated")
+	}
+	var vp8xFlags [vp8xPayloadSize]byte
+	if _, err := io.ReadFull(r, vp8xFlags[:]); err != nil {
+		return nil, errors.New("webp: not animated")
+	}
+	if vp8xFlags[0]&0x02 == 0 {
+		return nil, errors.New("webp: not animated")
+	}
+	if remaining := firstSize - vp8xPayloadSize; remaining > 0 {
+		if _, err := io.CopyN(io.Discard, r, remaining); err != nil {
+			return nil, errors.New("webp: not animated")
+		}
+	}
+
+	for {
+		if _, err := io.ReadFull(r, chunkHdr[:]); err != nil {
+			break
+		}
+		size := int64(binary.LittleEndian.Uint32(chunkHdr[4:]))
+
+		if string(chunkHdr[:4]) == "ANMF" && size >= anmfFrameHeaderSize+riffChunkHeaderSize {
+			if size > maxANMFPayload {
+				return nil, errors.New("webp: ANMF chunk too large")
+			}
+			payload, err := io.ReadAll(io.LimitReader(r, size))
+			if err != nil || int64(len(payload)) != size {
+				break
+			}
+			container, err := anmfContainer(payload)
+			if err != nil {
+				return nil, err
+			}
+			rd, err := d.enforceResolutionLimit(bytes.NewReader(container))
+			if err != nil {
+				return nil, err
+			}
+			if d.opts.ConcurrencyLevel != 0 {
+				d.sem <- struct{}{}
+				defer func() { <-d.sem }()
+			}
+			img, _, err := image.Decode(rd)
+			if err != nil {
+				return nil, fmt.Errorf("webp: first frame decode failed: %w", err)
+			}
+			return img, nil
+		}
+
+		if _, err := io.CopyN(io.Discard, r, size+size%2); err != nil {
+			break
+		}
+	}
+	return nil, errors.New("webp: no decodable animation frame found")
+}
+
+// anmfContainer builds a standalone RIFF/WEBP container from an ANMF chunk payload.
+// The payload begins with the 16-byte ANMF frame header followed by subchunks.
+// For lossy VP8 frames that carry an ALPH subchunk, it builds the extended format
+// (VP8X + ALPH + VP8) so the golang webp decoder preserves transparency.
+func anmfContainer(anmf []byte) ([]byte, error) {
+	if len(anmf) < anmfFrameHeaderSize+riffChunkHeaderSize {
+		return nil, errors.New("webp: ANMF payload too short")
+	}
+	// ANMF header bytes 6-8: frame width minus one; bytes 9-11: frame height minus one.
+	wMinus1 := binary.LittleEndian.Uint32(anmf[6:]) & 0xFFFFFF
+	hMinus1 := binary.LittleEndian.Uint32(anmf[9:]) & 0xFFFFFF
+
+	sub := anmf[anmfFrameHeaderSize:]
+	var alph []byte
+	for pos := 0; pos+riffChunkHeaderSize <= len(sub); {
+		size := int(binary.LittleEndian.Uint32(sub[pos+4 : pos+riffChunkHeaderSize]))
+		end := pos + riffChunkHeaderSize + size
+		if end > len(sub) {
+			break
+		}
+		switch string(sub[pos : pos+4]) {
+		case "ALPH":
+			alph = sub[pos:min(end+size%2, len(sub))] // include RIFF pad byte so the next chunk isn't misread
+		case "VP8L":
+			return webpContainer(sub[pos:end]), nil
+		case "VP8 ":
+			if alph != nil {
+				return webpContainer(vp8xChunk(wMinus1, hMinus1), alph, sub[pos:end]), nil
+			}
+			return webpContainer(sub[pos:end]), nil
+		}
+		pos = end + size%2
+	}
+	return nil, errors.New("webp: no VP8/VP8L subchunk in ANMF frame")
+}
+
+// webpContainer wraps one or more chunks in a minimal RIFF/WEBP container.
+func webpContainer(chunks ...[]byte) []byte {
+	total := 4 // "WEBP"
+	for _, c := range chunks {
+		total += len(c)
+	}
+	buf := make([]byte, riffChunkHeaderSize+total)
+	copy(buf, "RIFF")
+	binary.LittleEndian.PutUint32(buf[4:], uint32(total))
+	pos := riffChunkHeaderSize + copy(buf[riffChunkHeaderSize:], "WEBP")
+	for _, c := range chunks {
+		pos += copy(buf[pos:], c)
+	}
+	return buf
+}
+
+// vp8xChunk builds an 18-byte VP8X chunk for the extended WebP format.
+// It sets only the alpha flag; all other feature bits are left zero.
+func vp8xChunk(wMinus1, hMinus1 uint32) []byte {
+	c := make([]byte, riffChunkHeaderSize+vp8xPayloadSize)
+	copy(c, "VP8X")
+	binary.LittleEndian.PutUint32(c[4:], vp8xPayloadSize)
+	c[8] = 0x10 // alpha flag (bit 4 per the WebP spec)
+	c[12] = byte(wMinus1)
+	c[13] = byte(wMinus1 >> 8)
+	c[14] = byte(wMinus1 >> 16)
+	c[15] = byte(hMinus1)
+	c[16] = byte(hMinus1 >> 8)
+	c[17] = byte(hMinus1 >> 16)
+	return c
 }
 
 // This is only needed to try and simplify GC work.
