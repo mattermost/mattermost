@@ -159,3 +159,30 @@ func markPropertyValuesUnavailable(posts []*model.Post) {
 		post.Metadata.PropertyValuesUnavailable = model.NewPointer(true)
 	}
 }
+
+// CanSetPostPropertyValueOnCreate reports whether userID may set field's value on a post they
+// are about to create in channel.
+//
+// A nil or unrecognised level denies, matching the property API. That check is the only gate on
+// this path, so a field the property API would refuse a value for must not become settable
+// through post creation.
+func (a *App) CanSetPostPropertyValueOnCreate(rctx request.CTX, userID string, field *model.PropertyField, channel *model.Channel) bool {
+	if field == nil || field.PermissionValues == nil || channel == nil {
+		return false
+	}
+
+	switch *field.PermissionValues {
+	case model.PermissionLevelMember:
+		ok, _ := a.HasPermissionToChannel(rctx, userID, channel.Id, model.PermissionReadChannel)
+		return ok
+	case model.PermissionLevelCreator:
+		// The author of a post they are creating is themselves.
+		return true
+	case model.PermissionLevelAdmin:
+		return a.hasChannelPropertyAdmin(rctx, userID, channel.Id)
+	case model.PermissionLevelSysadmin:
+		return a.HasPermissionTo(rctx, userID, model.PermissionManageSystem)
+	default:
+		return false
+	}
+}

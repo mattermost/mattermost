@@ -457,3 +457,90 @@ func TestHydratePropertyValuesBoundGuards(t *testing.T) {
 		assert.Empty(t, empty.Metadata.PropertyValues)
 	})
 }
+
+func TestCanSetPostPropertyValueOnCreate(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// th.BasicUser created th.BasicChannel and so holds SchemeAdmin there.
+	// th.BasicUser2 is a plain member, added below.
+	plainMember := th.BasicUser2
+	_, appErr := th.App.AddUserToChannel(th.Context, plainMember, th.BasicChannel, false)
+	require.Nil(t, appErr)
+
+	outsider := th.CreateUser(t)
+	th.LinkUserToTeam(t, outsider, th.BasicTeam)
+
+	dm := th.CreateDmChannel(t, plainMember)
+
+	// The field is never read from the store — only its PermissionValues is —
+	// so an in-memory field carrying the level under test is the whole input.
+	fieldAt := func(level model.PermissionLevel) *model.PropertyField {
+		return &model.PropertyField{
+			ID:               model.NewId(),
+			GroupID:          model.NewId(),
+			Name:             "create time " + model.NewId(),
+			Type:             model.PropertyFieldTypeText,
+			ObjectType:       model.PropertyFieldObjectTypePost,
+			TargetType:       string(model.PropertyFieldTargetLevelSystem),
+			PermissionValues: model.NewPointer(level),
+		}
+	}
+
+	noLevel := fieldAt(model.PermissionLevelMember)
+	noLevel.PermissionValues = nil
+
+	testCases := []struct {
+		name    string
+		userID  string
+		field   *model.PropertyField
+		channel *model.Channel
+		want    bool
+	}{
+		// member is channel membership, via HasPermissionToChannel, so
+		// sysadmins cascade through and non-members do not.
+		{"member level, channel admin", th.BasicUser.Id, fieldAt(model.PermissionLevelMember), th.BasicChannel, true},
+		{"member level, plain member", plainMember.Id, fieldAt(model.PermissionLevelMember), th.BasicChannel, true},
+		{"member level, outsider", outsider.Id, fieldAt(model.PermissionLevelMember), th.BasicChannel, false},
+		{"member level, sysadmin", th.SystemAdminUser.Id, fieldAt(model.PermissionLevelMember), th.BasicChannel, true},
+
+		// admin is channel-property admin: manage_channel_roles on a normal
+		// channel, non-guest participation on a DM.
+		{"admin level, channel admin", th.BasicUser.Id, fieldAt(model.PermissionLevelAdmin), th.BasicChannel, true},
+		{"admin level, plain member", plainMember.Id, fieldAt(model.PermissionLevelAdmin), th.BasicChannel, false},
+		{"admin level, outsider", outsider.Id, fieldAt(model.PermissionLevelAdmin), th.BasicChannel, false},
+		{"admin level, sysadmin", th.SystemAdminUser.Id, fieldAt(model.PermissionLevelAdmin), th.BasicChannel, true},
+		{"admin level, DM participant", plainMember.Id, fieldAt(model.PermissionLevelAdmin), dm, true},
+		{"admin level, non-participant on a DM", outsider.Id, fieldAt(model.PermissionLevelAdmin), dm, false},
+
+		// creator is true for whoever is creating the post — including the
+		// outsider row, which every other level denies. The caller is
+		// responsible for having established they may post here at all.
+		{"creator level, channel admin", th.BasicUser.Id, fieldAt(model.PermissionLevelCreator), th.BasicChannel, true},
+		{"creator level, plain member", plainMember.Id, fieldAt(model.PermissionLevelCreator), th.BasicChannel, true},
+		{"creator level, outsider", outsider.Id, fieldAt(model.PermissionLevelCreator), th.BasicChannel, true},
+		{"creator level, empty user id", "", fieldAt(model.PermissionLevelCreator), th.BasicChannel, true},
+
+		{"sysadmin level, sysadmin", th.SystemAdminUser.Id, fieldAt(model.PermissionLevelSysadmin), th.BasicChannel, true},
+		{"sysadmin level, channel admin", th.BasicUser.Id, fieldAt(model.PermissionLevelSysadmin), th.BasicChannel, false},
+		{"sysadmin level, plain member", plainMember.Id, fieldAt(model.PermissionLevelSysadmin), th.BasicChannel, false},
+
+		// A field the property API would refuse a value for must not become
+		// settable here, so everything that is not a recognised level denies —
+		// for the sysadmin too.
+		{"none level, sysadmin", th.SystemAdminUser.Id, fieldAt(model.PermissionLevelNone), th.BasicChannel, false},
+		{"none level, channel admin", th.BasicUser.Id, fieldAt(model.PermissionLevelNone), th.BasicChannel, false},
+		{"unrecognised level, sysadmin", th.SystemAdminUser.Id, fieldAt(model.PermissionLevel("banana")), th.BasicChannel, false},
+		{"empty level, sysadmin", th.SystemAdminUser.Id, fieldAt(model.PermissionLevel("")), th.BasicChannel, false},
+		{"no level set, sysadmin", th.SystemAdminUser.Id, noLevel, th.BasicChannel, false},
+		{"nil field, sysadmin", th.SystemAdminUser.Id, nil, th.BasicChannel, false},
+		{"nil channel, sysadmin", th.SystemAdminUser.Id, fieldAt(model.PermissionLevelCreator), nil, false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.want,
+				th.App.CanSetPostPropertyValueOnCreate(th.Context, tc.userID, tc.field, tc.channel))
+		})
+	}
+}
