@@ -56,7 +56,9 @@ test.describe('Board Attributes - attribute types', {tag: '@board_attributes'}, 
             await ba.saveAndWaitForSettled();
 
             // * Server reflects the chosen type
-            const fields = await adminClient.getPropertyFields(BOARDS_GROUP, OBJECT_TYPE_POST, SYSTEM_TARGET_TYPE);
+            const fields = await adminClient.getPropertyFields(BOARDS_GROUP, OBJECT_TYPE_POST, {
+                targetType: SYSTEM_TARGET_TYPE,
+            });
             const created = (fields ?? []).find((f) => f.name === name);
             expect(created).toBeDefined();
             expect(created!.type).toBe(SERVER_TYPE_BY_UI_LABEL[uiType]);

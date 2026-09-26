@@ -75,7 +75,7 @@ func TestGetPostWithPropertyGroups(t *testing.T) {
 		assert.Equal(t, field.ID, post.Metadata.PropertyValues[0].FieldID)
 	})
 
-	t.Run("etags are served whether or not values are requested", func(t *testing.T) {
+	t.Run("an etag is served only when values are not requested", func(t *testing.T) {
 		th := setupPostPropertyTest(t)
 		groupName := model.PostAttributesPropertyGroupName
 		field := th.createField(t, th.groupID, "sensitivity")
@@ -88,13 +88,14 @@ func TestGetPostWithPropertyGroups(t *testing.T) {
 		_, groupResp, err := th.Client.GetPostWithOptions(context.Background(), th.BasicPost.Id, "",
 			model.GetPostOptions{PropertyGroup: groupName})
 		require.NoError(t, err)
-		assert.NotEmpty(t, groupResp.Etag)
-		assert.Equal(t, plainResp.Etag, groupResp.Etag)
+		assert.Empty(t, groupResp.Etag)
 
-		post, resp, err := th.Client.GetPostWithOptions(context.Background(), th.BasicPost.Id, groupResp.Etag,
+		post, resp, err := th.Client.GetPostWithOptions(context.Background(), th.BasicPost.Id, plainResp.Etag,
 			model.GetPostOptions{PropertyGroup: groupName})
 		require.NoError(t, err)
-		CheckEtag(t, post, resp)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, post)
+		assert.Len(t, post.Metadata.PropertyValues, 1)
 	})
 
 	t.Run("parameter validation", func(t *testing.T) {

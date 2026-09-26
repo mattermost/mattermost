@@ -45,14 +45,17 @@ export function isPropertyValueSet(raw: unknown): boolean {
     return !(Array.isArray(raw) && raw.length === 0);
 }
 
-function getFieldOptions(field: PropertyField): PropertyFieldOption[] {
+// A field's option list, or an empty one. attrs is loosely typed, so every
+// caller would otherwise repeat the same cast; an absent list and an empty list
+// are not distinguishable on the wire, so both read as empty here.
+export function getPropertyFieldOptions(field: PropertyField): PropertyFieldOption[] {
     return (field.attrs?.options as PropertyFieldOption[] | undefined) ?? [];
 }
 
 // The server normalises rank fields to a contiguous 1..N, so the positional
 // fallback only covers option lists cached before that ran.
 export function getOptionRank(field: PropertyField, optionId: string): number | undefined {
-    const options = getFieldOptions(field);
+    const options = getPropertyFieldOptions(field);
     const index = options.findIndex((option) => option.id === optionId);
     if (index < 0) {
         return undefined;
@@ -101,10 +104,12 @@ export function canMoveToOption(field: PropertyField, currentValue: unknown, opt
 // heading ("Classification"), not the slug.
 const CLASSIFICATION_FIELD_NAME = 'classification';
 
-function formatPropertyFieldLabel(name: string): string {
+// Title-cases an internal name so it reads as a heading. Also used directly by
+// the Manage Attributes page, which renders a field's slug as a page heading.
+export function formatPropertyFieldLabel(name: string): string {
     const trimmed = name.trim();
     if (!trimmed) {
-        return name;
+        return trimmed;
     }
     return trimmed.charAt(0).toLocaleUpperCase() + trimmed.slice(1);
 }

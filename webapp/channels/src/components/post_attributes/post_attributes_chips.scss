@@ -1,0 +1,91 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.PostAttributesChips {
+    display: flex;
+
+    width: fit-content;
+    max-width: 100%;
+    flex-wrap: wrap;
+    align-items: center;
+
+    gap: 4px;
+    margin-block: 4px;
+    text-align: start;
+
+    .SelectProperty,
+    .TextProperty {
+        padding: 2px 6px;
+        font-size: 11px;
+        line-height: 16px;
+    }
+
+    .TextProperty {
+        display: block;
+        overflow: hidden;
+        max-width: 240px;
+        border-radius: 4px;
+        background: rgba(var(--center-channel-color-rgb), 0.12);
+        color: rgba(var(--center-channel-color-rgb), 1);
+        font-weight: 600;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .UserPropertyRenderer {
+        height: 20px;
+        align-items: center;
+        border-radius: 4px;
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: var(--center-channel-color);
+        font-size: 11px;
+        font-weight: 600;
+        gap: 4px;
+        line-height: 16px;
+        padding-inline: 6px 8px;
+
+        .Avatar {
+            width: 16px;
+            min-width: 16px;
+            height: 16px;
+        }
+
+        .user-popover {
+            overflow: hidden;
+            color: inherit;
+            font-size: inherit;
+            font-weight: inherit;
+            line-height: inherit;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+}
+
+.PostAttributesChips__overflow {
+    display: flex;
+    min-width: 28px;
+    height: 20px;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    background: rgba(var(--center-channel-color-rgb), 0.08);
+    color: var(--center-channel-color);
+    font-size: 11px;
+    font-weight: 600;
+    padding-inline: 6px;
+    pointer-events: none;
+}
+
+.PostAttributesChips__unavailable {
+    display: inline-flex;
+    height: 20px;
+    align-items: center;
+    border-radius: 4px;
+    background: rgba(var(--center-channel-color-rgb), 0.08);
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    font-size: 11px;
+    font-weight: 600;
+    margin-block: 4px;
+    padding-inline: 8px;
+}

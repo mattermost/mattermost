@@ -219,7 +219,7 @@ const ChannelAttributeLabels = ({channelId, surface, allowEmptyVisible = false}:
                     type='button'
                     className='ChannelAttributeLabels__overflow'
                     aria-label={formatMessage(
-                        {id: 'channel_attributes.labels.overflow_aria', defaultMessage: '{count, plural, one {# more attribute} other {# more attributes}}'},
+                        {id: 'generic.more_attributes', defaultMessage: '{count, plural, one {# more attribute} other {# more attributes}}'},
                         {count: overflowIds.length},
                     )}
                     data-testid={`channelAttributeLabelsOverflow-${surfaceId}`}

@@ -3,10 +3,10 @@
 
 import nock from 'nock';
 
-import type {PropertyField} from '@mattermost/types/properties';
+import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 import type {GlobalState} from '@mattermost/types/store';
 
-import {fetchPropertyFields, patchPropertyField} from 'mattermost-redux/actions/properties';
+import {fetchPropertyFields, patchPropertyField, patchPropertyValues} from 'mattermost-redux/actions/properties';
 import {Client4} from 'mattermost-redux/client';
 
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
@@ -94,7 +94,7 @@ describe('Actions.fetchPropertyFields', () => {
 
         getPropertyFields.mockResolvedValueOnce([field]).mockResolvedValue([]);
 
-        const result = await store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, TARGET_TYPE));
+        const result = await store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, {targetType: TARGET_TYPE}));
 
         expect(result.data).toEqual([field]);
 
@@ -107,7 +107,7 @@ describe('Actions.fetchPropertyFields', () => {
         const store = configureStore();
         getPropertyFields.mockResolvedValue([]);
 
-        await store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, TARGET_TYPE));
+        await store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, {targetType: TARGET_TYPE}));
 
         const state = store.getState() as GlobalState;
         expect(state.entities.properties.groups.byName[GROUP]).toBeUndefined();
@@ -119,14 +119,14 @@ describe('Actions.fetchPropertyFields', () => {
         field.group_id = GROUP_UUID;
 
         getPropertyFields.mockResolvedValueOnce([field]).mockResolvedValueOnce([]);
-        await store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, TARGET_TYPE));
+        await store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, {targetType: TARGET_TYPE}));
 
         let state = store.getState() as GlobalState;
         expect(state.entities.properties.fields.byObjectType[OBJECT_TYPE]?.[GROUP_UUID]?.['field-1']).toEqual(field);
 
         // The field was deleted server-side; a directory-mode refetch no longer returns it.
         getPropertyFields.mockResolvedValue([]);
-        await store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, TARGET_TYPE));
+        await store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, {targetType: TARGET_TYPE}));
 
         state = store.getState() as GlobalState;
         expect(state.entities.properties.fields.byObjectType[OBJECT_TYPE]?.[GROUP_UUID]).toBeUndefined();
@@ -140,7 +140,7 @@ describe('Actions.fetchPropertyFields', () => {
 
         // Seed the store as if an earlier fetch already cached this field for the scope.
         getPropertyFields.mockResolvedValueOnce([field]).mockResolvedValueOnce([]);
-        await store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, TARGET_TYPE));
+        await store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, {targetType: TARGET_TYPE}));
 
         let resolveOlderPage: (fields: PropertyField[]) => void = () => {};
 
@@ -152,8 +152,8 @@ describe('Actions.fetchPropertyFields', () => {
             mockResolvedValueOnce([]); // older fetch's terminating (empty) page
 
         // Start an older fetch (still in flight) before a newer one for the same scope.
-        const olderFetch = store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, TARGET_TYPE));
-        const newerFetch = store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, TARGET_TYPE));
+        const olderFetch = store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, {targetType: TARGET_TYPE}));
+        const newerFetch = store.dispatch(fetchPropertyFields(GROUP, OBJECT_TYPE, {targetType: TARGET_TYPE}));
 
         // The newer fetch resolves first, discovering the field was deleted server-side.
         await newerFetch;
@@ -168,5 +168,109 @@ describe('Actions.fetchPropertyFields', () => {
 
         state = store.getState() as GlobalState;
         expect(state.entities.properties.fields.byObjectType[OBJECT_TYPE]?.[GROUP_UUID]).toBeUndefined();
+    });
+});
+
+describe('Actions.patchPropertyValues', () => {
+    const TARGET_ID = 'post-1';
+    const VALUES_GROUP = 'post_attributes';
+    const VALUES_OBJECT_TYPE = 'post';
+    const GROUP_UUID = 'realgroupuuid000000000002x';
+    const ROUTE = `/properties/groups/${VALUES_GROUP}/${VALUES_OBJECT_TYPE}/values/${TARGET_ID}`;
+
+    function makeValue(fieldId: string, value: unknown, updateAt = 1): PropertyValue<unknown> {
+        return {
+            id: `value-${fieldId}`,
+            target_id: TARGET_ID,
+            target_type: 'post',
+            group_id: GROUP_UUID,
+            field_id: fieldId,
+            value,
+            create_at: 1,
+            update_at: updateAt,
+            delete_at: 0,
+            created_by: 'user-1',
+            updated_by: 'user-1',
+        } as PropertyValue<unknown>;
+    }
+
+    beforeAll(() => {
+        TestHelper.initBasic(Client4);
+    });
+
+    afterAll(() => {
+        TestHelper.tearDown();
+    });
+
+    afterEach(() => {
+        nock.cleanAll();
+    });
+
+    it('sends the items on the values route and merges the response into the slice', async () => {
+        const store = configureStore();
+        const returned = makeValue('field-1', 'opt_b', 2);
+
+        // Matched on the body as well as the route: the server contracts on a
+        // bare JSON array of patch items, and a spy on the client method would
+        // not notice either of those changing.
+        nock(Client4.getBaseRoute()).
+            patch(ROUTE, [{field_id: 'field-1', value: 'opt_b'}]).
+            reply(200, [returned]);
+
+        const result = await store.dispatch(patchPropertyValues(
+            VALUES_GROUP,
+            VALUES_OBJECT_TYPE,
+            TARGET_ID,
+            [{field_id: 'field-1', value: 'opt_b'}],
+        ));
+
+        expect(result.data).toEqual([returned]);
+
+        const state = store.getState() as GlobalState;
+        expect(state.entities.properties.values.byTargetId[TARGET_ID]['field-1']).toEqual(returned);
+    });
+
+    it('merges rather than replaces, so a write to one field leaves the others alone', async () => {
+        const store = configureStore();
+        const first = makeValue('field-1', 'opt_a');
+        const second = makeValue('field-2', 'kept');
+
+        nock(Client4.getBaseRoute()).patch(ROUTE).reply(200, [first, second]);
+        await store.dispatch(patchPropertyValues(VALUES_GROUP, VALUES_OBJECT_TYPE, TARGET_ID, [
+            {field_id: 'field-1', value: 'opt_a'},
+            {field_id: 'field-2', value: 'kept'},
+        ]));
+
+        nock(Client4.getBaseRoute()).patch(ROUTE).reply(200, [makeValue('field-1', 'opt_b', 2)]);
+        await store.dispatch(patchPropertyValues(VALUES_GROUP, VALUES_OBJECT_TYPE, TARGET_ID, [
+            {field_id: 'field-1', value: 'opt_b'},
+        ]));
+
+        const state = store.getState() as GlobalState;
+        expect(state.entities.properties.values.byTargetId[TARGET_ID]['field-1'].value).toBe('opt_b');
+        expect(state.entities.properties.values.byTargetId[TARGET_ID]['field-2']).toEqual(second);
+    });
+
+    it('returns the error and dispatches nothing when the write is rejected', async () => {
+        const store = configureStore();
+
+        nock(Client4.getBaseRoute()).patch(ROUTE).reply(403, {
+            id: 'api.context.permissions.app_error',
+            message: 'forbidden',
+            status_code: 403,
+        });
+
+        const result = await store.dispatch(patchPropertyValues(
+            VALUES_GROUP,
+            VALUES_OBJECT_TYPE,
+            TARGET_ID,
+            [{field_id: 'field-1', value: 'opt_b'}],
+        ));
+
+        expect(result.error).toBeDefined();
+        expect(result.error).toHaveProperty('status_code', 403);
+
+        const state = store.getState() as GlobalState;
+        expect(state.entities.properties.values.byTargetId[TARGET_ID]).toBeUndefined();
     });
 });

@@ -341,7 +341,7 @@ describe('fetchClassificationField', () => {
         expect(Client4.getPropertyFields).toHaveBeenCalledTimes(2);
 
         const secondCallArgs = (Client4.getPropertyFields as jest.Mock).mock.calls[1];
-        expect(secondCallArgs[4]).toEqual({cursorId: 'p2', cursorCreateAt: 200});
+        expect(secondCallArgs[2]).toMatchObject({cursorId: 'p2', cursorCreateAt: 200});
     });
 
     test('should return undefined when no pages contain the field', async () => {
@@ -391,9 +391,10 @@ describe('fetchChannelClassificationField', () => {
         expect(Client4.getPropertyFields).toHaveBeenCalledWith(
             ACCESS_CONTROL_PROPERTY_GROUP,
             CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
-            CLASSIFICATIONS_FIELD_TARGET_TYPE,
-            '',
-            expect.any(Object),
+            expect.objectContaining({
+                targetType: CLASSIFICATIONS_FIELD_TARGET_TYPE,
+                targetId: '',
+            }),
         );
     });
 
@@ -432,7 +433,7 @@ describe('fetchChannelClassificationField', () => {
         expect(Client4.getPropertyFields).toHaveBeenCalledTimes(2);
 
         const secondCallArgs = (Client4.getPropertyFields as jest.Mock).mock.calls[1];
-        expect(secondCallArgs[4]).toEqual({cursorId: 'p2', cursorCreateAt: 200});
+        expect(secondCallArgs[2]).toMatchObject({cursorId: 'p2', cursorCreateAt: 200});
     });
 
     test('should return undefined when field list is empty', async () => {

@@ -67,8 +67,7 @@ export default function GlobalClassificationBanner({position}: Props) {
             dispatch(fetchPropertyFields(
                 ACCESS_CONTROL_PROPERTY_GROUP,
                 CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
-                CLASSIFICATIONS_FIELD_TARGET_TYPE,
-                CLASSIFICATIONS_FIELD_TARGET_ID,
+                {targetType: CLASSIFICATIONS_FIELD_TARGET_TYPE, targetId: CLASSIFICATIONS_FIELD_TARGET_ID},
             ));
         }
         if (linkedField && !systemValue) {

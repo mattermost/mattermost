@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Post} from '@mattermost/types/posts';
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
-import {PropertyTypes, UserTypes} from 'mattermost-redux/action_types';
+import {PostTypes, PropertyTypes, UserTypes} from 'mattermost-redux/action_types';
 
 import propertiesReducer from './properties';
 
@@ -719,6 +720,151 @@ describe('propertiesReducer', () => {
 
             expect(state2.groups.byId).toEqual({});
             expect(state2.groups.byName).toEqual({});
+        });
+    });
+
+    describe('valuesReducer: hydrated post values', () => {
+        function post(id: string, values?: Array<PropertyValue<unknown>>) {
+            const metadata = values ? {property_values: values} : {};
+            return {id, metadata} as unknown as Post;
+        }
+
+        test('RECEIVED_POSTS lifts values off hydrated posts and ignores unhydrated ones', () => {
+            const v = makeValue({id: 'v1', target_id: 'p1', field_id: 'f1', value: 'SECRET'});
+
+            const state = propertiesReducer(initialState, {
+                type: PostTypes.RECEIVED_POSTS,
+                data: {posts: {p1: post('p1', [v]), p2: post('p2')}},
+            });
+
+            expect(state.values.byTargetId.p1.f1.value).toBe('SECRET');
+            expect(state.values.byFieldId.f1.p1.value).toBe('SECRET');
+            expect(state.values.byTargetId.p2).toBeUndefined();
+        });
+
+        test('RECEIVED_POSTS accepts an array of posts, not only a record', () => {
+            const v = makeValue({id: 'v1', target_id: 'p1', field_id: 'f1'});
+
+            const state = propertiesReducer(initialState, {
+                type: PostTypes.RECEIVED_POSTS,
+                data: {posts: [post('p1', [v])]},
+            });
+
+            expect(state.values.byTargetId.p1.f1).toEqual(v);
+        });
+
+        test('RECEIVED_NEW_POST and RECEIVED_POST lift values off a single post', () => {
+            const v1 = makeValue({id: 'v1', target_id: 'p1', field_id: 'f1'});
+            const v2 = makeValue({id: 'v2', target_id: 'p2', field_id: 'f1'});
+
+            let state = propertiesReducer(initialState, {
+                type: PostTypes.RECEIVED_NEW_POST,
+                data: post('p1', [v1]),
+            });
+            state = propertiesReducer(state, {
+                type: PostTypes.RECEIVED_POST,
+                data: post('p2', [v2]),
+            });
+
+            expect(state.values.byTargetId.p1.f1).toEqual(v1);
+            expect(state.values.byTargetId.p2.f1).toEqual(v2);
+        });
+
+        test('a post arriving with no property_values leaves an existing bucket untouched, by reference', () => {
+            const v = makeValue({id: 'v1', target_id: 'p1', field_id: 'f1'});
+            const seeded = propertiesReducer(initialState, {
+                type: PostTypes.RECEIVED_POSTS,
+                data: {posts: {p1: post('p1', [v])}},
+            });
+
+            const after = propertiesReducer(seeded, {
+                type: PostTypes.RECEIVED_POSTS,
+                data: {posts: {p1: post('p1')}},
+            });
+
+            expect(after.values).toBe(seeded.values);
+            expect(after.values.byTargetId.p1.f1).toEqual(v);
+        });
+
+        test('a hydrated value older than the stored one does not overwrite it', () => {
+            const newer = makeValue({id: 'v1', target_id: 'p1', field_id: 'f1', value: 'new', update_at: 2000});
+            const seeded = propertiesReducer(initialState, {
+                type: PropertyTypes.RECEIVED_PROPERTY_VALUES,
+                data: {values: [newer]},
+            });
+
+            const older = makeValue({id: 'v1', target_id: 'p1', field_id: 'f1', value: 'stale', update_at: 1000});
+            const after = propertiesReducer(seeded, {
+                type: PostTypes.RECEIVED_POSTS,
+                data: {posts: {p1: post('p1', [older])}},
+            });
+
+            expect(after.values.byTargetId.p1.f1.value).toBe('new');
+        });
+
+        test('a websocket update newer than a hydrated value wins', () => {
+            const hydrated = makeValue({id: 'v1', target_id: 'p1', field_id: 'f1', value: 'old', update_at: 1000});
+            const seeded = propertiesReducer(initialState, {
+                type: PostTypes.RECEIVED_POSTS,
+                data: {posts: {p1: post('p1', [hydrated])}},
+            });
+
+            const after = propertiesReducer(seeded, {
+                type: PropertyTypes.RECEIVED_PROPERTY_VALUES,
+                data: {values: [makeValue({id: 'v1', target_id: 'p1', field_id: 'f1', value: 'new', update_at: 2000})]},
+            });
+
+            expect(after.values.byTargetId.p1.f1.value).toBe('new');
+        });
+
+        test('a delete after a hydrated load removes that field and leaves the rest', () => {
+            const seeded = propertiesReducer(initialState, {
+                type: PostTypes.RECEIVED_POSTS,
+                data: {posts: {p1: post('p1', [
+                    makeValue({id: 'v1', target_id: 'p1', field_id: 'f1'}),
+                    makeValue({id: 'v2', target_id: 'p1', field_id: 'f2'}),
+                ])}},
+            });
+
+            const after = propertiesReducer(seeded, {
+                type: PropertyTypes.PROPERTY_VALUE_DELETED,
+                data: {targetId: 'p1', fieldId: 'f1'},
+            });
+
+            expect(after.values.byTargetId.p1.f1).toBeUndefined();
+            expect(after.values.byTargetId.p1.f2.id).toBe('v2');
+            expect(after.values.byFieldId.f1).toBeUndefined();
+        });
+
+        test('a tombstone inside metadata is not stored', () => {
+            const state = propertiesReducer(initialState, {
+                type: PostTypes.RECEIVED_POSTS,
+                data: {posts: {p1: post('p1', [makeValue({target_id: 'p1', field_id: 'f1', delete_at: 5000})])}},
+            });
+
+            expect(state.values.byTargetId.p1).toBeUndefined();
+        });
+
+        // The reducer handles three post action types, not the eight that can carry a
+        // PostList. That is safe only because every dispatch of one of the other five sits
+        // in the same batchActions as a RECEIVED_POSTS — a convention the action creators
+        // hold, which no type enforces.
+        test.each([
+            PostTypes.RECEIVED_POSTS_IN_CHANNEL,
+            PostTypes.RECEIVED_POSTS_SINCE,
+            PostTypes.RECEIVED_POSTS_AFTER,
+            PostTypes.RECEIVED_POSTS_BEFORE,
+            PostTypes.RECEIVED_POSTS_IN_THREAD,
+        ])('%s on its own stores nothing', (type) => {
+            const v = makeValue({id: 'v1', target_id: 'p1', field_id: 'f1'});
+
+            const state = propertiesReducer(initialState, {
+                type,
+                data: {posts: {p1: post('p1', [v])}},
+                channelId: 'c1',
+            });
+
+            expect(state.values).toBe(initialState.values);
         });
     });
 });

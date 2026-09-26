@@ -275,9 +275,10 @@ describe('GlobalClassificationBanner', () => {
         expect(Client4.getPropertyFields).toHaveBeenCalledWith(
             ACCESS_CONTROL_PROPERTY_GROUP,
             CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
-            CLASSIFICATIONS_FIELD_TARGET_TYPE,
-            CLASSIFICATIONS_FIELD_TARGET_ID,
-            expect.anything(),
+            expect.objectContaining({
+                targetType: CLASSIFICATIONS_FIELD_TARGET_TYPE,
+                targetId: CLASSIFICATIONS_FIELD_TARGET_ID,
+            }),
         );
     });
 });

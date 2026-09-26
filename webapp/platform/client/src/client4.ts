@@ -118,7 +118,7 @@ import type {
 import type {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics, PostInfo} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
-import type {NameMappedPropertyFields, PropertyField, PropertyFieldOptionPage, PropertyValue} from '@mattermost/types/properties';
+import type {NameMappedPropertyFields, PropertyField, PropertyFieldOptionPage, PropertyFieldsQuery, PropertyValue} from '@mattermost/types/properties';
 import type {UserPropertyField, UserPropertyFieldPatch} from '@mattermost/types/properties_user';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {Recap, CreateRecapRequest, ScheduledRecap, ScheduledRecapInput, RecapLimitStatus} from '@mattermost/types/recaps';
@@ -2530,20 +2530,33 @@ export default class Client4 {
 
     // Generic Property Field Routes
 
-    getPropertyFields = async (groupName: string, objectType: string, targetType: string, targetId?: string, options?: {perPage?: number; cursorId?: string; cursorCreateAt?: number}) => {
-        const params = new URLSearchParams({target_type: targetType});
-        if (targetId) {
-            params.set('target_id', targetId);
+    getPropertyFields = async (groupName: string, objectType: string, query: PropertyFieldsQuery) => {
+        const params = new URLSearchParams();
+
+        if (query.channelId) {
+            params.set('channel_id', query.channelId);
         }
-        if (options?.perPage) {
-            params.set('per_page', String(options.perPage));
+        if (query.teamId) {
+            params.set('team_id', query.teamId);
         }
-        if (options?.cursorId) {
-            params.set('cursor_id', options.cursorId);
+
+        if (query.targetType) {
+            params.set('target_type', query.targetType);
         }
-        if (options?.cursorCreateAt !== undefined) {
-            params.set('cursor_create_at', String(options.cursorCreateAt));
+        if (query.targetId) {
+            params.set('target_id', query.targetId);
         }
+
+        if (query.perPage) {
+            params.set('per_page', String(query.perPage));
+        }
+        if (query.cursorId) {
+            params.set('cursor_id', query.cursorId);
+        }
+        if (query.cursorCreateAt !== undefined) {
+            params.set('cursor_create_at', String(query.cursorCreateAt));
+        }
+
         return this.doFetch<PropertyField[]>(
             `${this.getPropertyFieldsRoute(groupName, objectType)}?${params.toString()}`,
             {method: 'GET'},

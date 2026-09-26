@@ -4,11 +4,12 @@
 import {screen} from '@testing-library/react';
 import React from 'react';
 
-import type {PropertyField, PropertyValue, SelectPropertyField} from '@mattermost/types/properties';
+import type {FieldType, PropertyField, PropertyValue, SelectPropertyField} from '@mattermost/types/properties';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 
 import PropertyValueRenderer from './propertyValueRenderer';
+import {SPECIALISED_TEXT_SUBTYPES, canRenderPropertyValue} from './renderable';
 
 // Mock all child components
 jest.mock('./text_property_renderer/textPropertyRenderer', () => {
@@ -23,9 +24,15 @@ jest.mock('./user_property_renderer/userPropertyRenderer', () => {
     };
 });
 
-jest.mock('./select_property_renderer/selectPropertyRenderer', () => {
-    return function MockSelectPropertyRenderer({value}: {field: PropertyField; value: PropertyValue<unknown>}) {
-        return <div data-testid='mock-select-property'>{String(value.value)}</div>;
+jest.mock('./option_property_renderer/option_property_renderer', () => {
+    return function MockOptionPropertyRenderer({field, value, maxItems}: {field: PropertyField; value: PropertyValue<unknown>; maxItems?: number}) {
+        return (
+            <div data-testid='mock-option-property'>
+                {JSON.stringify(value.value)}
+                <span data-testid='mock-option-field-type'>{field.type}</span>
+                <span data-testid='mock-option-max-items'>{String(maxItems)}</span>
+            </div>
+        );
     };
 });
 
@@ -203,7 +210,11 @@ describe('PropertyValueRenderer', () => {
             expect(screen.getByText('1642694400000')).toBeInTheDocument();
         });
 
-        it('should return null for unknown text subtype', () => {
+        // Falls back rather than blanking: a subtype added server-side before
+        // this client knows about it still stores a string, and a caller that
+        // budgeted a slot for it (the post chip row) would otherwise spend the
+        // slot on nothing.
+        it('should render an unknown text subtype as plain text', () => {
             const field = {
                 id: 'field-1',
                 name: 'Unknown Field',
@@ -217,14 +228,15 @@ describe('PropertyValueRenderer', () => {
                 value: 'test value',
             } as PropertyValue<string>;
 
-            const {container} = renderWithContext(
+            renderWithContext(
                 <PropertyValueRenderer
                     field={field}
                     value={value}
                 />,
             );
 
-            expect(container.firstChild).toBeNull();
+            expect(screen.getByTestId('mock-text-property')).toBeInTheDocument();
+            expect(screen.getByText('test value')).toBeInTheDocument();
         });
     });
 
@@ -253,96 +265,125 @@ describe('PropertyValueRenderer', () => {
         });
     });
 
-    describe('select field type', () => {
-        it('should render SelectPropertyRenderer for select field', () => {
-            const field = {
-                id: 'field-1',
-                name: 'Select Field',
-                type: 'select',
-                attrs: {
-                    options: [
-                        {id: 'option1', name: 'Option 1', color: 'blue'},
-                    ],
-                },
-            } as SelectPropertyField;
+    // One renderer for the whole option-bearing family, so the dispatch test is
+    // about which types reach it and what cap they carry, not about markup.
+    describe('option-bearing field types', () => {
+        const optionField = (type: string) => ({
+            id: 'field-1',
+            name: 'Option Field',
+            type,
+            attrs: {
+                options: [
+                    {id: 'option1', name: 'Option 1', color: 'blue'},
+                    {id: 'option2', name: 'Option 2', color: 'red'},
+                ],
+            },
+        } as SelectPropertyField);
 
-            const value = {
-                value: 'option1',
-            } as PropertyValue<string>;
-
+        it.each(['select', 'rank', 'multiselect'])('should render OptionPropertyRenderer for a %s field', (type) => {
             renderWithContext(
                 <PropertyValueRenderer
-                    field={field}
-                    value={value}
+                    field={optionField(type)}
+                    value={{value: 'option1'} as PropertyValue<string>}
                 />,
             );
 
-            expect(screen.getByTestId('mock-select-property')).toBeInTheDocument();
-            expect(screen.getByText('option1')).toBeInTheDocument();
+            expect(screen.getByTestId('mock-option-property')).toBeInTheDocument();
+            expect(screen.getByTestId('mock-option-field-type')).toHaveTextContent(type);
+        });
+
+        // Without this, the chip row's budget stops at the field boundary and a
+        // single multiselect holding twelve entries renders twelve chips.
+        it('should pass maxItems through to the renderer', () => {
+            renderWithContext(
+                <PropertyValueRenderer
+                    field={optionField('multiselect')}
+                    value={{value: ['option1', 'option2']} as PropertyValue<string[]>}
+                    maxItems={1}
+                />,
+            );
+
+            expect(screen.getByTestId('mock-option-max-items')).toHaveTextContent('1');
+        });
+
+        it('should leave maxItems undefined when the caller sets no budget', () => {
+            renderWithContext(
+                <PropertyValueRenderer
+                    field={optionField('multiselect')}
+                    value={{value: ['option1', 'option2']} as PropertyValue<string[]>}
+                />,
+            );
+
+            expect(screen.getByTestId('mock-option-max-items')).toHaveTextContent('undefined');
+        });
+    });
+
+    describe('multiuser field type', () => {
+        const multiuserField = {
+            id: 'field-1',
+            name: 'Reviewers',
+            type: 'multiuser',
+            attrs: {},
+        } as unknown as PropertyField;
+
+        it('should render one UserPropertyRenderer per stored id', () => {
+            renderWithContext(
+                <PropertyValueRenderer
+                    field={multiuserField}
+                    value={{value: ['user-id-1', 'user-id-2']} as PropertyValue<string[]>}
+                />,
+            );
+
+            expect(screen.getAllByTestId('mock-user-property').map((node) => node.textContent)).
+                toEqual(['user-id-1', 'user-id-2']);
+        });
+
+        // The chip row's budget stops at the field boundary otherwise, and one
+        // multiuser holding twelve ids renders twelve chips in one slot.
+        it('should cap the list at maxItems', () => {
+            renderWithContext(
+                <PropertyValueRenderer
+                    field={multiuserField}
+                    value={{value: ['user-id-1', 'user-id-2', 'user-id-3']} as PropertyValue<string[]>}
+                    maxItems={2}
+                />,
+            );
+
+            expect(screen.getAllByTestId('mock-user-property').map((node) => node.textContent)).
+                toEqual(['user-id-1', 'user-id-2']);
+        });
+
+        // `toValueList` normalises, so a field that holds one id without an array
+        // around it behaves as `user` does rather than rendering nothing.
+        it('should render a bare value as a single entry', () => {
+            renderWithContext(
+                <PropertyValueRenderer
+                    field={multiuserField}
+                    value={{value: 'user-id-1'} as PropertyValue<string>}
+                />,
+            );
+
+            expect(screen.getAllByTestId('mock-user-property').map((node) => node.textContent)).
+                toEqual(['user-id-1']);
         });
     });
 
     describe('unsupported field types', () => {
-        it('should return null for unsupported field type', () => {
+        it.each([
+            ['an unrecognised type', 'unsupported', 'test value'],
+            ['date', 'date', 1642694400000],
+        ])('should return null for %s', (_label, type, raw) => {
             const field = {
                 id: 'field-1',
-                name: 'Unsupported Field',
-                type: 'unsupported' as unknown,
+                name: 'Unrendered Field',
+                type,
                 attrs: {},
-            } as PropertyField;
-
-            const value = {
-                value: 'test value',
-            } as PropertyValue<string>;
+            } as unknown as PropertyField;
 
             const {container} = renderWithContext(
                 <PropertyValueRenderer
                     field={field}
-                    value={value}
-                />,
-            );
-
-            expect(container.firstChild).toBeNull();
-        });
-
-        it('should return null for multiselect field type', () => {
-            const field = {
-                id: 'field-1',
-                name: 'Multiselect Field',
-                type: 'multiselect',
-                attrs: {},
-            } as PropertyField;
-
-            const value = {
-                value: ['option1', 'option2'],
-            } as PropertyValue<string[]>;
-
-            const {container} = renderWithContext(
-                <PropertyValueRenderer
-                    field={field}
-                    value={value}
-                />,
-            );
-
-            expect(container.firstChild).toBeNull();
-        });
-
-        it('should return null for date field type', () => {
-            const field = {
-                id: 'field-1',
-                name: 'Date Field',
-                type: 'date',
-                attrs: {},
-            } as PropertyField;
-
-            const value = {
-                value: 1642694400000,
-            } as PropertyValue<number>;
-
-            const {container} = renderWithContext(
-                <PropertyValueRenderer
-                    field={field}
-                    value={value}
+                    value={{value: raw} as PropertyValue<unknown>}
                 />,
             );
 
@@ -440,5 +481,73 @@ describe('PropertyValueRenderer', () => {
             expect(screen.getByTestId('mock-text-property')).toBeInTheDocument();
             expect(screen.getByText('undefined')).toBeInTheDocument();
         });
+    });
+});
+
+describe('canRenderPropertyValue agrees with what PropertyValueRenderer draws', () => {
+    function makeField(type: FieldType, attrs: PropertyField['attrs']): PropertyField {
+        return {
+            id: 'field_1',
+            group_id: 'group_1',
+            name: 'attr',
+            type,
+            target_id: '',
+            target_type: 'system',
+            object_type: 'post',
+            create_at: 1,
+            update_at: 1,
+            delete_at: 0,
+            created_by: 'user_1',
+            updated_by: 'user_1',
+            attrs,
+        };
+    }
+
+    function drawsSomething(field: PropertyField, raw: unknown): boolean {
+        const {container, unmount} = renderWithContext(
+            <PropertyValueRenderer
+                field={field}
+                value={{value: raw} as PropertyValue<unknown>}
+            />,
+        );
+        const drawn = container.innerHTML !== '';
+        unmount();
+        return drawn;
+    }
+
+    /*
+     * A value shaped to suit each type, so no type reads as unrenderable merely
+     * because it was handed the wrong shape.
+     *
+     * Typed as a total Record, which is the point: adding a member to
+     * `FieldType` fails to compile here until it is given a sample value, and
+     * the case below then forces a decision about whether it renders.
+     */
+    const VALUE_BY_TYPE: Record<FieldType, unknown> = {
+        text: 'MM-1',
+        select: 'opt_1',
+        rank: 'opt_1',
+        multiselect: ['opt_1'],
+        user: 'user_1',
+        multiuser: ['user_1'],
+        date: 1700000000000,
+        graph: ['opt_1'],
+    };
+
+    const ALL_FIELD_TYPES = Object.keys(VALUE_BY_TYPE) as FieldType[];
+
+    it.each(ALL_FIELD_TYPES)('%s', (type) => {
+        const field = makeField(type, {options: [{id: 'opt_1', name: 'OPT'}]});
+
+        expect(canRenderPropertyValue(field)).toBe(drawsSomething(field, VALUE_BY_TYPE[type]));
+    });
+
+    // 'text' and an unknown subtype both fall back to the plain renderer, so
+    // every one of these draws something.
+    it.each([...SPECIALISED_TEXT_SUBTYPES, 'text', 'not_a_subtype'])('text subtype %s', (subType) => {
+        const field = makeField('text', {subType});
+
+        expect(canRenderPropertyValue(field)).toBe(true);
+        expect(drawsSomething(field, 'MM-1')).toBe(true);
     });
 });

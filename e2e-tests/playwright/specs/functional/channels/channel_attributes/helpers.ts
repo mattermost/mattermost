@@ -178,7 +178,7 @@ export async function deleteAttributes(adminClient: Client4, fields: PropertyFie
 export async function purgeAttributes(adminClient: Client4): Promise<void> {
     for (const objectType of ['channel', 'user'] as const) {
         try {
-            const fields = await adminClient.getPropertyFields(GROUP, objectType, TARGET_TYPE);
+            const fields = await adminClient.getPropertyFields(GROUP, objectType, {targetType: TARGET_TYPE});
             const stale = (fields ?? []).filter(
                 (field) => field.name.startsWith(FIELD_PREFIX) && field.delete_at === 0,
             );
@@ -197,7 +197,7 @@ export async function purgeAttributes(adminClient: Client4): Promise<void> {
  * deletes a field someone meant to keep.
  */
 export async function assertNoForeignRequiredAttributes(adminClient: Client4): Promise<void> {
-    const fields = await adminClient.getPropertyFields(GROUP, 'channel', TARGET_TYPE, undefined, {perPage: 200});
+    const fields = await adminClient.getPropertyFields(GROUP, 'channel', {targetType: TARGET_TYPE, perPage: 200});
     const foreign = (fields ?? []).filter(
         (field) => field.delete_at === 0 && field.attrs?.required === true && !field.name.startsWith(FIELD_PREFIX),
     );

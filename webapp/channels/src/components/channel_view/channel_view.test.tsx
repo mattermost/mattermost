@@ -58,6 +58,7 @@ describe('components/channel_view', () => {
         isChannelBookmarksEnabled: false,
         missingChannelRole: false,
         fetchIsRestrictedDM: jest.fn(),
+        loadPostAttributeFields: jest.fn(),
         canRestrictDirectMessage: false,
         restrictDirectMessage: false,
     };
@@ -131,5 +132,39 @@ describe('components/channel_view', () => {
             />,
         );
         expect(baseProps.fetchIsRestrictedDM).toHaveBeenCalledTimes(1);
+    });
+
+    // The centre channel's half of the fields fetch. Fields are scoped to a channel,
+    // so the chips on every post in view depend on this firing for the channel the
+    // user is actually looking at.
+    describe('post attribute fields', () => {
+        it('loads them once on mount, for the channel in view', () => {
+            renderWithContext(<ChannelView {...baseProps}/>);
+
+            expect(baseProps.loadPostAttributeFields).toHaveBeenCalledTimes(1);
+            expect(baseProps.loadPostAttributeFields).toHaveBeenCalledWith('channelId');
+        });
+
+        it('loads them again on a channel change', () => {
+            const {rerender} = renderWithContext(<ChannelView {...baseProps}/>);
+
+            rerender(
+                <ChannelView
+                    {...baseProps}
+                    channelId='newChannelId'
+                />,
+            );
+
+            expect(baseProps.loadPostAttributeFields).toHaveBeenCalledTimes(2);
+            expect(baseProps.loadPostAttributeFields).toHaveBeenLastCalledWith('newChannelId');
+        });
+
+        it('does not reload them when the channel has not changed', () => {
+            const {rerender} = renderWithContext(<ChannelView {...baseProps}/>);
+
+            rerender(<ChannelView {...baseProps}/>);
+
+            expect(baseProps.loadPostAttributeFields).toHaveBeenCalledTimes(1);
+        });
     });
 });

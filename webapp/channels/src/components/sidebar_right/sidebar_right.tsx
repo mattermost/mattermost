@@ -61,6 +61,7 @@ export type Props = {
         updateSearchTerms: (terms: string) => void;
         showChannelFiles: (channelId: string) => void;
         showChannelInfo: (channelId: string) => void;
+        loadPostAttributeFields: (channelId?: string) => void;
     };
 };
 
@@ -208,6 +209,11 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
         this.handleRHSFocus(prevProps);
 
         const {actions, isChannelFiles, isPinnedPosts, rhsChannel, channel} = this.props;
+
+        if (rhsChannel?.id !== prevProps.rhsChannel?.id) {
+            actions.loadPostAttributeFields(rhsChannel?.id);
+        }
+
         if (isPinnedPosts && prevProps.isPinnedPosts === isPinnedPosts && rhsChannel && rhsChannel.id !== prevProps.rhsChannel?.id) {
             actions.showPinnedPosts(rhsChannel.id);
         }

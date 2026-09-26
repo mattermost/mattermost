@@ -54,7 +54,7 @@ test.describe('System Console - Classification markings', () => {
         // The group must exist (seeded by the server) before classification markings can be saved;
         // the API returns "The specified property group was not found." otherwise.
         try {
-            await adminClient.getPropertyFields('custom_profile_attributes', 'template', 'system');
+            await adminClient.getPropertyFields('custom_profile_attributes', 'template', {targetType: 'system'});
         } catch {
             test.skip(
                 true,

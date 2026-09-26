@@ -635,4 +635,84 @@ describe('components/dot_menu/DotMenu', () => {
         // Since reply option doesn't exist, keyboard shortcut should be blocked (no way to verify action wasn't called, but menu item being hidden confirms it)
         expect(replyOption).toBeNull();
     });
+
+    describe('the Attributes menu item', () => {
+        const POST_ATTRIBUTES_GROUP_ID = 'post_attributes_group_id';
+
+        const field = {
+            id: 'field_1',
+            group_id: POST_ATTRIBUTES_GROUP_ID,
+            name: 'classification',
+            type: 'select',
+            object_type: 'post',
+            target_type: 'channel',
+            target_id: 'channel_id_1',
+            attrs: {options: [{id: 'opt_secret', name: 'SECRET'}]},
+            create_at: 1,
+            update_at: 1,
+            delete_at: 0,
+            created_by: 'user_1',
+            updated_by: 'user_1',
+        };
+
+        function stateWith({flag, fields}: {flag: boolean; fields: boolean}): DeepPartial<GlobalState> {
+            const byId = fields ? {[field.id]: field} : {};
+
+            return {
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    general: {
+                        ...initialState.entities!.general,
+                        config: {
+                            ...initialState.entities!.general!.config,
+                            FeatureFlagPostAttributes: flag ? 'true' : 'false',
+                        },
+                    },
+                    properties: {
+                        fields: {byId, byObjectType: {post: {[POST_ATTRIBUTES_GROUP_ID]: byId}}},
+
+                        // Deliberately empty: the menu item is gated on the channel
+                        // having fields, never on the post having values. A post with
+                        // no values renders no chip row, so this is the only way in.
+                        values: {byTargetId: {}, byFieldId: {}},
+                        groups: {
+                            byId: {[POST_ATTRIBUTES_GROUP_ID]: {id: POST_ATTRIBUTES_GROUP_ID, name: 'post_attributes'}},
+                            byName: {post_attributes: {id: POST_ATTRIBUTES_GROUP_ID, name: 'post_attributes'}},
+                        },
+                    },
+                },
+            } as DeepPartial<GlobalState>;
+        }
+
+        async function openDotMenu(state: DeepPartial<GlobalState>) {
+            const props = {
+                ...baseProps,
+                post: post1,
+                location: Locations.CENTER,
+            };
+
+            renderWithContext(<DotMenuRoot {...props}/>, state);
+
+            await userEvent.click(screen.getByTestId(`PostDotMenu-Button-${post1.id}`));
+        }
+
+        test('is shown when the flag is on and the channel has fields, on a post with no values', async () => {
+            await openDotMenu(stateWith({flag: true, fields: true}));
+
+            expect(screen.getByTestId(`post_attributes_${post1.id}`)).toBeInTheDocument();
+        });
+
+        test('is hidden when the feature flag is off', async () => {
+            await openDotMenu(stateWith({flag: false, fields: true}));
+
+            expect(screen.queryByTestId(`post_attributes_${post1.id}`)).not.toBeInTheDocument();
+        });
+
+        test('is hidden when the channel declares no fields', async () => {
+            await openDotMenu(stateWith({flag: true, fields: false}));
+
+            expect(screen.queryByTestId(`post_attributes_${post1.id}`)).not.toBeInTheDocument();
+        });
+    });
 });
