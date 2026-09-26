@@ -37,7 +37,10 @@ export async function setClassificationMarkingsFeatureFlag(adminClient: Client4,
 export async function deleteClassificationMarkingsFieldIfExists(adminClient: Client4) {
     // Delete channel linked fields first (created by channel classification tests).
     try {
-        const channelFields = await adminClient.getPropertyFields(PROPERTY_GROUP, 'channel', {targetType: TARGET_TYPE, targetId: ''});
+        const channelFields = await adminClient.getPropertyFields(PROPERTY_GROUP, 'channel', {
+            targetType: TARGET_TYPE,
+            targetId: '',
+        });
         for (const f of channelFields.filter((f) => f.name === 'classification' && f.delete_at === 0)) {
             await adminClient.deletePropertyField(PROPERTY_GROUP, 'channel', f.id);
         }
@@ -49,7 +52,10 @@ export async function deleteClassificationMarkingsFieldIfExists(adminClient: Cli
     // to handle stale data from earlier versions of the feature.
     for (const objectType of [LINKED_OBJECT_TYPE, 'user'] as const) {
         try {
-            const linkedFields = await adminClient.getPropertyFields(PROPERTY_GROUP, objectType, {targetType: TARGET_TYPE, targetId: SYSTEM_FIELD_TARGET_ID});
+            const linkedFields = await adminClient.getPropertyFields(PROPERTY_GROUP, objectType, {
+                targetType: TARGET_TYPE,
+                targetId: SYSTEM_FIELD_TARGET_ID,
+            });
             const matchingLinkedFields = linkedFields.filter(
                 (f) => f.name === LINKED_CLASSIFICATION_FIELD_NAME && f.delete_at === 0 && f.linked_field_id,
             );
