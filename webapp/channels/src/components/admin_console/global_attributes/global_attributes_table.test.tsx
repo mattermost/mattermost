@@ -167,8 +167,8 @@ describe('GlobalAttributesTable', () => {
             resolveUser = resolve;
         });
 
-        getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
-            if (opts?.cursorId) {
+        getPropertyFields.mockImplementation((_group, objectType, query) => {
+            if (query?.cursorId) {
                 return Promise.resolve([]);
             }
             if (objectType === 'template') {
@@ -207,8 +207,8 @@ describe('GlobalAttributesTable', () => {
             resolveUser = resolve;
         });
 
-        getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
-            if (opts?.cursorId) {
+        getPropertyFields.mockImplementation((_group, objectType, query) => {
+            if (query?.cursorId) {
                 return Promise.resolve([]);
             }
             if (objectType === 'template') {
@@ -545,8 +545,8 @@ describe('GlobalAttributesTable', () => {
     // the PostAttributes gate alone, not to every scope being off.
     it('skips the post scope entirely when the PostAttributes flag is off', async () => {
         const template = makeField({id: 'template-1', name: 'department'});
-        getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
-            if (opts?.cursorId) {
+        getPropertyFields.mockImplementation((_group, objectType, query) => {
+            if (query?.cursorId) {
                 return Promise.resolve([]);
             }
             if (objectType === 'template') {
