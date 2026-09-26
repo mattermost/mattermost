@@ -4,10 +4,12 @@
 package config
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"syscall"
 
 	"github.com/pkg/errors"
 
@@ -27,6 +29,10 @@ var (
 // Not to be used directly. Only to be used as a backing store for config.Store
 type FileStore struct {
 	path string
+
+	// createdEmpty is set when we created the (empty) config file ourselves in NewFileStore
+	// and haven't written to it yet. That's the only time an empty file means a new install.
+	createdEmpty bool
 }
 
 // NewFileStore creates a new instance of a config store backed by the given file path.
@@ -36,6 +42,7 @@ func NewFileStore(path string, createFileIfNotExists bool) (fs *FileStore, err e
 		return nil, err
 	}
 
+	createdEmpty := false
 	f, err := os.Open(resolvedPath)
 	if err != nil && errors.Is(err, os.ErrNotExist) && createFileIfNotExists {
 		file, err2 := os.Create(resolvedPath)
@@ -43,6 +50,7 @@ func NewFileStore(path string, createFileIfNotExists bool) (fs *FileStore, err e
 			return nil, fmt.Errorf("could not create config file: %w", err2)
 		}
 		defer file.Close()
+		createdEmpty = true
 	} else if err != nil {
 		return nil, err
 	} else {
@@ -50,7 +58,8 @@ func NewFileStore(path string, createFileIfNotExists bool) (fs *FileStore, err e
 	}
 
 	return &FileStore{
-		path: resolvedPath,
+		path:         resolvedPath,
+		createdEmpty: createdEmpty,
 	}, nil
 }
 
@@ -117,12 +126,125 @@ func (fs *FileStore) persist(cfg *model.Config) error {
 		return errors.Wrap(err, "failed to serialize")
 	}
 
-	err = os.WriteFile(fs.path, b, 0600)
+	// The config is written back on every startup, usually with nothing changed. Skipping
+	// those writes means we only touch the file when we actually have to.
+	if current, readErr := os.ReadFile(fs.path); readErr == nil && bytes.Equal(current, b) {
+		return nil
+	}
+
+	err = writeFileAtomically(fs.path, b)
 	if err != nil {
 		return errors.Wrap(err, "failed to write file")
 	}
+	fs.createdEmpty = false
 
 	return nil
+}
+
+// writeFileAtomically writes data to a temp file next to path and then renames it into place,
+// so a failed write (a full disk, say) leaves the old file as it was instead of truncating it.
+func writeFileAtomically(path string, data []byte) error {
+	// If path is a symlink, replace the file it points to and keep the link.
+	target, err := filepath.EvalSymlinks(path)
+	if err != nil {
+		if !errors.Is(err, os.ErrNotExist) {
+			return err
+		}
+		target = path
+	}
+
+	perm := os.FileMode(0600)
+	if info, statErr := os.Stat(target); statErr == nil {
+		perm = info.Mode().Perm()
+	}
+
+	tmp, err := os.CreateTemp(filepath.Dir(target), "."+filepath.Base(target)+".tmp-*")
+	if err != nil {
+		// We can't create files in the directory, but the config file itself may still be
+		// writable (e.g. only config.json is mounted into a container). Write it in place
+		// rather than failing outright.
+		if errors.Is(err, os.ErrPermission) {
+			return writeFileInPlace(target, data, perm)
+		}
+		return err
+	}
+	tmpName := tmp.Name()
+	defer os.Remove(tmpName)
+
+	if _, err = tmp.Write(data); err != nil {
+		tmp.Close()
+		return err
+	}
+	if err = tmp.Chmod(perm); err != nil {
+		tmp.Close()
+		return err
+	}
+	if err = tmp.Sync(); err != nil {
+		tmp.Close()
+		return err
+	}
+	if err = tmp.Close(); err != nil {
+		return err
+	}
+
+	if err = os.Rename(tmpName, target); err != nil {
+		// You can't rename over a file that is itself a mount point (e.g. a bind-mounted
+		// config.json), so write it in place instead. The temp file lives on a different
+		// filesystem here, so writing it doesn't tell us anything about space on the target.
+		if errors.Is(err, syscall.EBUSY) || errors.Is(err, syscall.EXDEV) {
+			return writeFileInPlace(target, data, perm)
+		}
+		return err
+	}
+
+	// Sync the directory too, otherwise the rename itself can be lost if the machine goes
+	// down right after. Not every platform lets you do this (Windows doesn't), so it's best effort.
+	if dir, dirErr := os.Open(filepath.Dir(target)); dirErr == nil {
+		_ = dir.Sync()
+		dir.Close()
+	}
+
+	return nil
+}
+
+// writeFileInPlace overwrites path without truncating it first, for the cases where we can't
+// swap in a temp file. The part that grows the file is written first, because that's the only
+// part that needs new disk space. If it fails, we cut the file back to its old size and the old
+// config is still there. Only then do we overwrite the existing bytes and trim any leftovers.
+func writeFileInPlace(path string, data []byte, perm os.FileMode) error {
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, perm)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	info, err := f.Stat()
+	if err != nil {
+		return err
+	}
+	oldSize := info.Size()
+
+	if int64(len(data)) > oldSize {
+		if _, err = f.WriteAt(data[oldSize:], oldSize); err != nil {
+			_ = f.Truncate(oldSize)
+			return err
+		}
+		if err = f.Sync(); err != nil {
+			_ = f.Truncate(oldSize)
+			return err
+		}
+	}
+
+	if _, err = f.WriteAt(data, 0); err != nil {
+		return err
+	}
+	if err = f.Truncate(int64(len(data))); err != nil {
+		return err
+	}
+	if err = f.Sync(); err != nil {
+		return err
+	}
+	return f.Close()
 }
 
 // Load updates the current configuration from the backing store.
@@ -138,6 +260,13 @@ func (fs *FileStore) Load() ([]byte, error) {
 	fileBytes, err := io.ReadAll(f)
 	if err != nil {
 		return nil, err
+	}
+
+	// If we didn't create this empty file ourselves, the config was most likely lost (a write
+	// that failed half way, for example). Treating it as a new install would quietly reset
+	// every setting to its default, so refuse to start and let the admin sort it out.
+	if len(fileBytes) == 0 && !fs.createdEmpty {
+		return nil, fmt.Errorf("config file %s is empty: restore it from a backup, or delete it to start with the default configuration", fs.path)
 	}
 
 	return fileBytes, nil
