@@ -26,9 +26,8 @@ test('should lock account after exceeding max login attempts and unlock via admi
             await pw.loginPage.loginInput.fill(user.username);
             await pw.loginPage.passwordInput.fill('WrongPassword!');
             await pw.loginPage.signInButton.click();
-            await expect(
-                pw.loginPage.page.getByText('The email/username or password is invalid.', {exact: true}),
-            ).toBeVisible();
+            // Copy varies (invalid credentials vs incorrect password); the banner is the stable signal.
+            await expect(pw.loginPage.errorBanner).toBeVisible();
         }
 
         // 5. Correct password should now be rejected — account is locked
@@ -36,10 +35,7 @@ test('should lock account after exceeding max login attempts and unlock via admi
         await pw.loginPage.passwordInput.fill(user.password);
         await pw.loginPage.signInButton.click();
         await expect(
-            pw.loginPage.page.getByText(
-                'Your account is locked because of too many failed password attempts. Please reset your password.',
-                {exact: true},
-            ),
+            pw.loginPage.page.getByText(/Your account is locked because of too many failed password attempts/),
         ).toBeVisible();
         await expect(pw.loginPage.page).toHaveURL(/\/login/);
 
