@@ -124,5 +124,11 @@ report.xml
 go.*.orig
 config.override.mk
 docker-compose.override.yaml
-
 /tests/big_testplugin.tar.gz
+
+# Export artifacts
+*_export.zip
+*_export-report.json
+
+# mmctl binary
+/mmctl

@@ -711,6 +711,7 @@ const defaultServerConfig: AdminConfig = {
             CustomSMTPPort: '25',
             CustomHeaderName: '',
             CustomHeaderValue: '',
+            SenderAddress: '',
         },
     },
     JobSettings: {
@@ -791,7 +792,6 @@ const defaultServerConfig: AdminConfig = {
         EnableShiftEscapeToMarkAllRead: false,
         AutoTranslation: true,
         ClassificationMarkings: true,
-        GlobalAttributes: false,
         BurnOnRead: true,
         EnableAIPluginBridge: false,
         EnableAIRecaps: false,

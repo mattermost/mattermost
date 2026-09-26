@@ -243,6 +243,7 @@ func channelAttributeValuesForCreate(c *Context, channel *model.Channel, license
 
 	channelAttributesAvailable := c.App.Config().FeatureFlags.ChannelAttributes && model.MinimumEnterpriseAdvancedLicense(license)
 	classificationAvailable := c.App.Config().FeatureFlags.ClassificationMarkings && model.MinimumEnterpriseLicense(license)
+	requiredAttributesEnforced := c.App.Config().FeatureFlags.IsChannelAttributesRequiredEnabled()
 
 	if !channelAttributesAvailable && !classificationAvailable {
 		if len(items) > 0 {
@@ -309,6 +310,9 @@ func channelAttributeValuesForCreate(c *Context, channel *model.Channel, license
 			continue
 		}
 		if !channelAttributeFieldAvailable(field, channelAttributesAvailable, classificationAvailable) {
+			continue
+		}
+		if !requiredAttributesEnforced {
 			continue
 		}
 		if value, ok := supplied[field.ID]; !ok || model.IsEmptyPropertyValue(value) {
@@ -581,8 +585,9 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	updatingAutoTranslation := patch.AutoTranslation != nil
 	updatingManagedCategory := patch.ManagedCategoryName != nil
 	updatingDiscoverable := patch.Discoverable != nil
+	updatingDisableJoinLeaveMessages := patch.DisableJoinLeaveMessages != nil
 
-	if !updatingProperties && !updatingAutoTranslation && patch.BannerInfo == nil && !updatingManagedCategory && !updatingDiscoverable {
+	if !updatingProperties && !updatingAutoTranslation && patch.BannerInfo == nil && !updatingManagedCategory && !updatingDiscoverable && !updatingDisableJoinLeaveMessages {
 		c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.no_changes.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
@@ -620,9 +625,14 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if updatingDisableJoinLeaveMessages && (oldChannel.Type == model.ChannelTypeGroup || oldChannel.Type == model.ChannelTypeDirect) {
+		c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	switch oldChannel.Type {
 	case model.ChannelTypeOpen:
-		if updatingProperties {
+		if updatingProperties || updatingDisableJoinLeaveMessages {
 			if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManagePublicChannelProperties); !ok {
 				c.SetPermissionError(model.PermissionManagePublicChannelProperties)
 				return
@@ -636,7 +646,7 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 	case model.ChannelTypePrivate:
-		if updatingProperties {
+		if updatingProperties || updatingDisableJoinLeaveMessages {
 			if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManagePrivateChannelProperties); !ok {
 				c.SetPermissionError(model.PermissionManagePrivateChannelProperties)
 				return
@@ -1284,7 +1294,7 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	clientPostList := c.App.PreparePostListForClient(c.AppContext, posts)
+	clientPostList := c.App.PreparePostListForClient(c.AppContext, posts, nil)
 	clientPostList, isMemberForAllPreviews, err := c.App.SanitizePostListMetadataForUser(c.AppContext, clientPostList, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err

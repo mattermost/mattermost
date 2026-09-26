@@ -3883,6 +3883,7 @@ type GlobalRelayMessageExportSettings struct {
 	CustomSMTPPort       *string `access:"compliance_compliance_export"`
 	CustomHeaderName     *string `access:"compliance_compliance_export"` // optional custom header name added to each exported EML
 	CustomHeaderValue    *string `access:"compliance_compliance_export"` // value sent with the custom header
+	SenderAddress        *string `access:"compliance_compliance_export"` // optional fixed From / SMTP envelope sender; empty keeps participant-derived From
 }
 
 func (s *GlobalRelayMessageExportSettings) SetDefaults() {
@@ -3912,6 +3913,9 @@ func (s *GlobalRelayMessageExportSettings) SetDefaults() {
 	}
 	if s.CustomHeaderValue == nil {
 		s.CustomHeaderValue = new("")
+	}
+	if s.SenderAddress == nil {
+		s.SenderAddress = new("")
 	}
 }
 
@@ -5495,10 +5499,14 @@ func (s *MessageExportSettings) isValid() *AppError {
 		}
 
 		if (*s.ExportFormat == ComplianceExportTypeGlobalrelay || *s.ExportFormat == ComplianceExportTypeGlobalrelayZip) &&
-			s.GlobalRelaySettings != nil &&
-			SafeDereference(s.GlobalRelaySettings.CustomerType) == GlobalrelayCustomerTypeCustom {
-			if appErr := s.GlobalRelaySettings.isValidCustomHeader(); appErr != nil {
-				return appErr
+			s.GlobalRelaySettings != nil {
+			if SafeDereference(s.GlobalRelaySettings.CustomerType) == GlobalrelayCustomerTypeCustom {
+				if appErr := s.GlobalRelaySettings.isValidCustomHeader(); appErr != nil {
+					return appErr
+				}
+			}
+			if sender := SafeDereference(s.GlobalRelaySettings.SenderAddress); sender != "" && !IsValidEmail(sender) {
+				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.sender_address.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
 	}
@@ -5813,7 +5821,7 @@ func structToMapFilteredByTag(t any, typeOfTag, filterTag string) map[string]any
 
 	out := map[string]any{}
 
-	for i := 0; i < val.NumField(); i++ {
+	for i := range val.NumField() {
 		field := val.Field(i)
 
 		structField := elemField.Field(i)
@@ -6005,7 +6013,7 @@ func isDomainName(s string) bool {
 	last := byte('.')
 	ok := false // Ok once we've seen a letter.
 	partlen := 0
-	for i := 0; i < len(s); i++ {
+	for i := range len(s) {
 		c := s[i]
 		switch {
 		default:

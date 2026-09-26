@@ -3,11 +3,12 @@
 
 import './menu.scss';
 
-export {Menu as Container} from './menu';
+export {Menu as Container, MENU_CLOSE_ANIMATION_DURATION} from './menu';
 export {SubMenu} from './sub_menu';
 export {MenuItem as Item} from './menu_item';
 export {MenuItemInput as InputItem} from './menu_item_input';
 export {MenuItemLink as LinkItem} from './menu_item_link';
+export {MenuItemExternalLink as ItemExternalLink} from './menu_item_external_link';
 export {MenuTitle as Title} from './menu_title';
 export type {FirstMenuItemProps} from './menu_item';
 export {MenuItemSeparator as Separator} from './menu_item_separator';

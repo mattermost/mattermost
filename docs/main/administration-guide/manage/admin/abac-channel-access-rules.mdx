@@ -52,6 +52,7 @@ Channel access rules use the same simple interface as system policies, allowing 
     - **Set values**: Enter the required attribute values
 3.  Add multiple conditions as needed. All conditions are combined with logical AND (all must be satisfied).
 4.  Select **Test access rules** to preview which users would be granted access based on your current rules.
+5.  Select **Save** at the bottom of the tab to apply your changes.
 
 ### Auto-sync membership
 
@@ -117,16 +118,27 @@ From Mattermost v11.8.0, channel admins can define channel-level permission rule
 
 For system-wide permission policies that restrict file upload and download actions, see [Permission policies](/administration-guide/manage/admin/abac-system-wide-policies#permission-policies).
 
+After adding or editing a rule in the **Permissions Policy** tab, select **Save** at the bottom of the tab to apply it.
+
+From Mattermost v12, permission rules can also use any [session attributes](/administration-guide/manage/admin/session-attributes) a System Admin has enabled, letting you restrict file actions by device or network rather than by who the user is.
+
+<Warning>
+
+A rule that references a session attribute denies any session that doesn't have it. The server measures `ip_address` and the `user_agent_*` values from every request, but `os_platform` is reported only by Desktop sessions, while `vpn_active` is reported by Desktop and mobile apps. A rule using either attribute denies everyone working in a web browser. Review [platform availability](/administration-guide/manage/admin/session-attributes#platform-availability) and simulate the rule before saving it.
+
+</Warning>
+
 ## Simulate access
 
 From Mattermost v11.8.0, admins can use **Simulate access** in Channel Settings to preview whether selected users can perform actions such as uploading files or downloading files before saving policy changes.
 
 - Simulation can evaluate draft rules before they're saved, so you can confirm the intended scope without affecting live channel access.
 - Some denied results may indicate that the decision came from another policy. In that case, Mattermost shows that access was denied by another policy without exposing policy details you aren't authorized to see.
+- From Mattermost v12, a neutral **No recent session** result indicates that the rules reference [session attributes](/administration-guide/manage/admin/session-attributes) and the selected user has no cached session data to evaluate.
 
 <Note>
 
-Channel-level permission policies and **Simulate access** are gated by the `PermissionPolicies` feature flag (`MM_FEATUREFLAGS_PERMISSIONPOLICIES`) and require a Mattermost Enterprise Advanced license. See the Mattermost developer documentation for details on [enabling feature flags in a self-hosted deployment](https://developers.mattermost.com/contribute/more-info/server/feature-flags/#self-hosted-and-local-development). Mattermost Cloud customers can request this feature flag be enabled by contacting their Mattermost Account Manager or by [creating a support ticket](https://support.mattermost.com/hc/en-us/requests/new?ticket_form_id=11184911962004).
+Channel-level permission policies and **Simulate access** are gated by the `PermissionPolicies` feature flag (`MM_FEATUREFLAGS_PERMISSIONPOLICIES`) and require a Mattermost Enterprise Advanced license. See the Mattermost developer documentation for details on [enabling feature flags in a self-hosted deployment](https://docs.mattermost.com/developers/contribute/more-info/server/feature-flags/#self-hosted-and-local-development). Mattermost Cloud customers can request this feature flag be enabled by contacting their Mattermost Account Manager or by [creating a support ticket](https://support.mattermost.com/hc/en-us/requests/new?ticket_form_id=11184911962004).
 
 </Note>
 

@@ -19,8 +19,9 @@
 package app
 
 import (
+	"cmp"
 	"net/http"
-	"sort"
+	"slices"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
@@ -41,7 +42,7 @@ func (a *App) resolveGuards(rctx request.CTX, channelID, callerName string) (gua
 		return nil, nil
 	}
 	sorted := append([]*store.ChannelGuard(nil), raw...)
-	sort.Slice(sorted, func(i, j int) bool { return sorted[i].PluginId < sorted[j].PluginId })
+	slices.SortFunc(sorted, func(a, b *store.ChannelGuard) int { return cmp.Compare(a.PluginId, b.PluginId) })
 	env := ch.GetPluginsEnvironment()
 	if env == nil {
 		// Plugin system disabled in config or not yet initialized, but guards exist for this
@@ -408,6 +409,14 @@ func (a *App) runGuardedScheduledPostWillBeCreated(
 	callerName string,
 	buildRejectionErr func(reason string) *model.AppError,
 ) (*model.ScheduledPost, *model.AppError) {
+	// Plugins must never learn that a burn-on-read post happened, matching CreatePost. The hook
+	// is skipped outright rather than sanitized, so guard claimants cannot reject these either.
+	// Unlike CreatePost, which gates this at the call site before invoking the guarded hook, the
+	// check lives inside this method so callers can't accidentally run the hook for these posts.
+	if scheduledPost.Type == model.PostTypeBurnOnRead {
+		return scheduledPost, nil
+	}
+
 	// Channel the guard is resolved for; reused for the inactive-plugin log below.
 	originalChannelID := scheduledPost.ChannelId
 

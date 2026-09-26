@@ -84,6 +84,169 @@ func TestCreateOAuthApp(t *testing.T) {
 	CheckNotImplementedStatus(t, resp)
 }
 
+// setupCreateOAuthAppClient returns a client whose user holds manage_oauth, with the OAuth service
+// provider enabled. When asSystemAdmin is false, the permission is granted to the system user role.
+func setupCreateOAuthAppClient(t *testing.T, th *TestHelper, asSystemAdmin bool) *model.Client4 {
+	t.Helper()
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
+	t.Cleanup(func() {
+		th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuthServiceProvider })
+	})
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+
+	if asSystemAdmin {
+		return th.SystemAdminClient
+	}
+
+	th.AddPermissionToRole(t, model.PermissionManageOAuth.Id, model.SystemUserRoleId)
+
+	return th.Client
+}
+
+func TestCreateOAuthAppRespectsSessionOrigin(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	testCases := []struct {
+		name          string
+		asSystemAdmin bool
+		isTrusted     bool
+		isPublic      bool
+	}{
+		{
+			name:          "system admin",
+			asSystemAdmin: true,
+		},
+		{
+			name:          "system admin, trusted app",
+			asSystemAdmin: true,
+			isTrusted:     true,
+		},
+		{
+			name:          "system admin, public client",
+			asSystemAdmin: true,
+			isPublic:      true,
+		},
+		{
+			name: "user granted manage_oauth",
+		},
+		{
+			name:      "user granted manage_oauth, trusted app",
+			isTrusted: true,
+		},
+		{
+			name:     "user granted manage_oauth, public client",
+			isPublic: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mainHelper.Parallel(t)
+			th := Setup(t)
+
+			client := setupCreateOAuthAppClient(t, th, tc.asSystemAdmin)
+
+			// The session is one delegated to a third party through the OAuth2 authorization flow.
+			session, appErr := th.App.GetSession(client.AuthToken)
+			require.Nil(t, appErr)
+			session.IsOAuth = true
+			th.App.AddSessionToCache(session)
+
+			appRequest := &model.OAuthAppRequest{
+				Name:         GenerateTestAppName(),
+				Homepage:     "https://nowhere.com",
+				Description:  "test",
+				CallbackUrls: []string{"https://nowhere.com"},
+				IsTrusted:    tc.isTrusted,
+				IsPublic:     tc.isPublic,
+			}
+
+			r, err := client.DoAPIPostJSON(context.Background(), "/oauth/apps", appRequest)
+			require.NotNil(t, r)
+			defer closeBody(r)
+
+			// An OAuth delegated session is not permitted to register an application.
+			CheckForbiddenStatus(t, model.BuildResponse(r))
+			require.Error(t, err)
+
+			// No application was registered for the requested name.
+			apps, appErr := th.App.GetOAuthApps(0, 1000)
+			require.Nil(t, appErr)
+			names := make([]string, 0, len(apps))
+			for _, a := range apps {
+				names = append(names, a.Name)
+			}
+			assert.NotContains(t, names, appRequest.Name)
+		})
+	}
+}
+
+func TestCreateOAuthAppWithDirectSession(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	testCases := []struct {
+		name          string
+		asSystemAdmin bool
+		isPublic      bool
+	}{
+		{
+			name:          "system admin, confidential client",
+			asSystemAdmin: true,
+		},
+		{
+			name:          "system admin, public client",
+			asSystemAdmin: true,
+			isPublic:      true,
+		},
+		{
+			name: "user granted manage_oauth, confidential client",
+		},
+		{
+			name:     "user granted manage_oauth, public client",
+			isPublic: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mainHelper.Parallel(t)
+			th := Setup(t)
+
+			client := setupCreateOAuthAppClient(t, th, tc.asSystemAdmin)
+
+			appRequest := &model.OAuthAppRequest{
+				Name:         GenerateTestAppName(),
+				Homepage:     "https://nowhere.com",
+				Description:  "test",
+				CallbackUrls: []string{"https://nowhere.com"},
+				IsPublic:     tc.isPublic,
+			}
+
+			r, err := client.DoAPIPostJSON(context.Background(), "/oauth/apps", appRequest)
+			require.NoError(t, err)
+			require.NotNil(t, r)
+			defer closeBody(r)
+
+			CheckCreatedStatus(t, model.BuildResponse(r))
+
+			var rapp model.OAuthApp
+			require.NoError(t, json.NewDecoder(r.Body).Decode(&rapp))
+
+			assert.NotEmpty(t, rapp.Id)
+			assert.Equal(t, appRequest.Name, rapp.Name)
+			if tc.isPublic {
+				assert.Empty(t, rapp.ClientSecret, "a public client has no secret")
+			} else {
+				assert.NotEmpty(t, rapp.ClientSecret, "a confidential client is issued a secret")
+			}
+		})
+	}
+}
+
 func TestUpdateOAuthApp(t *testing.T) {
 	// MM-62895: re-enabled to collect failure data (14mo, empty Jira description).
 
