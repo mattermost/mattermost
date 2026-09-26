@@ -194,7 +194,12 @@ func localAddChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	model.AddEventParameterAuditableToAuditRec(auditRec, "channel", channel)
 
-	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
+	if channel.Type == model.ChannelTypeDirect {
+		c.Err = model.NewAppError("localAddChannelMember", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if channel.Type == model.ChannelTypeGroup && !c.App.Config().FeatureFlags.EnableMutableGroupMessages {
 		c.Err = model.NewAppError("localAddChannelMember", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
