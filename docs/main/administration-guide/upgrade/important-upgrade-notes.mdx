@@ -21,6 +21,70 @@ We recommend reviewing the [additional upgrade notes](#additional-upgrade-notes)
 </thead>
 <tbody>
 <tr>
+<td rowspan="21">v12.0</td>
+<td><p>This release includes a database migration that increases the maximum message length from 16k to 262k characters (~1 MB of text). Although widening <code>VARCHAR</code> is metadata-only on supported PostgreSQL versions, the migration requires an <code>ACCESS EXCLUSIVE</code> lock on affected tables, including <code>posts</code>. Acquiring this lock can be delayed by active or idle-in-transaction database sessions and may temporarily block reads and writes. One deployment with approximately 12 million posts observed an upgrade delay of about 10 minutes. Actual duration depends primarily on database activity and lock contention, so large or busy deployments should test the migration and schedule a maintenance window.</p></td>
+</tr>
+<tr>
+<td><p>Several pre-packaged plugins received major version updates in v12.0 because they required changes to run on this release without errors. Web app plugins that have not been rebuilt for v12.0 may have their activation suppressed to prevent runtime errors. Before upgrading, update community-built plugins to a release that supports v12.0, and rebuild and test any self-built plugins against v12.0. See the React 19 note in this section for the APIs removed in that version and the codemod for updating a plugin.</p></td>
+</tr>
+<tr>
+<td><p>Mattermost Mobile App v2.45 (October 2026) raises the minimum supported mobile operating systems to iOS v18 and Android v11. Devices running iOS v17 or earlier, or Android v10 or earlier, no longer receive new versions of the app from the App Store or Google Play; the installed version continues to work but receives no further updates, including security fixes. Users on those devices should update their operating system to continue receiving mobile app updates. See the <a href="/product-overview/mobile-app-changelog#release-v2-45-0">mobile app changelog</a> for details.</p></td>
+</tr>
+<tr>
+<td><p>RHEL 7 and RHEL 8 are no longer supported deployment targets. The v12.0 binaries require glibc 2.34 or later, which makes them incompatible with RHEL 7 (glibc 2.17) and RHEL 8 (glibc 2.28), and v11.11 was the last release to support them. Upgrade to RHEL 9, or migrate to Ubuntu 22.04/24.04 LTS, Debian Bookworm, or a container-based deployment, <em>before</em> upgrading the server. See the <a href="https://forum.mattermost.com/t/starting-with-mattermost-v12-0-october-2026-rhel-7-and-rhel-8-are-no-longer-supported-deployment-targets/25974">forum post</a> for migration options.</p></td>
+</tr>
+<tr>
+<td><p>OpenSearch 1.x is no longer a supported search backend; the minimum supported version is OpenSearch 2.x. Upgrade OpenSearch to 2.x or newer, or migrate to Elasticsearch 8.x/9.x, before upgrading. See the <a href="https://forum.mattermost.com/t/starting-with-mattermost-v12-0-october-2026-opensearch-1-x-is-no-longer-a-supported-search-backend/25979">forum post</a> for migration options.</p></td>
+</tr>
+<tr>
+<td><p><code>atmos/camo</code> is no longer supported as an image proxy. If <code>ImageProxySettings.ImageProxyType</code> is set to <code>atmos/camo</code>, the server logs a configuration error on startup and <strong>fails to start</strong>. Before upgrading, set <code>ImageProxySettings.ImageProxyType</code> to <code>local</code> to use the built-in proxy, or set <code>ImageProxySettings.Enable</code> to <code>false</code> to disable image proxying. The <code>RemoteImageProxyURL</code> and <code>RemoteImageProxyOptions</code> settings have been removed and are ignored. See the <a href="https://forum.mattermost.com/t/starting-with-mattermost-v12-0-october-2026-atmos-camo-is-no-longer-supported-as-an-image-proxy/25980">forum post</a> for migration options.</p></td>
+</tr>
+<tr>
+<td><p>User sessions and personal access tokens (PATs) can no longer set post identity or display-override props. The server strips props such as <code>from_webhook</code>, <code>override_username</code>, and <code>override_icon_url</code> from client and PAT payloads, re-applying them only under verified integration authority. Posts are still created, but forged props are silently removed and the message appears as the authenticating user, with no error returned. Incoming webhooks, slash commands, and bot accounts are unaffected. Migrate any scripts relying on PAT forging to an incoming webhook or bot account. See the <a href="https://forum.mattermost.com/t/starting-with-mattermost-v12-0-october-2026-user-and-personal-access-token-pat-sessions-can-no-longer-set-post-identity-or-display-override-props/26052">forum post</a> for migration options.</p></td>
+</tr>
+<tr>
+<td><p>The Mattermost web and desktop apps are built on <a href="https://react.dev/blog/2024/04/25/react-19-upgrade-guide">React 19</a>. Only plugins that register web app (frontend) components are affected; server-only plugins are unaffected. Plugins calling APIs removed in React 19 (<code>ReactDOM.findDOMNode</code>, <code>propTypes</code>/<code>defaultProps</code> on function components, legacy Context, string refs), or depending on legacy synchronous rendering, may break. Run <code>npx codemod@latest react/19/migration-recipe</code> against affected plugins. See the <a href="https://forum.mattermost.com/t/starting-with-mattermost-v12-0-october-2026-the-mattermost-web-and-desktop-apps-are-built-on-react-19/26038">forum post</a> for full details.</p></td>
+</tr>
+<tr>
+<td><p>Deprecated interactive dialog <code>date</code>/<code>datetime</code> fields have been removed. Top-level <code>min_date</code>, <code>max_date</code>, and <code>time_interval</code>, and <code>datetime_config.allow_manual_time_entry</code>, are no longer accepted and are silently ignored. Use <code>datetime_config</code> with <code>manual_time_entry</code> instead.</p></td>
+</tr>
+<tr>
+<td><p>Deprecated Slack compatibility type aliases and functions have been removed from the go package: <code>SlackAttachment</code>, <code>SlackAttachmentField</code>, <code>ParseSlackAttachment</code>, and <code>StringifySlackFieldValue</code>. Use <code>MessageAttachment</code>, <code>MessageAttachmentField</code>, <code>ParseMessageAttachment</code>, and <code>StringifyMessageAttachmentFieldValue</code> instead.</p></td>
+</tr>
+<tr>
+<td><p>A set of unused configuration settings has been removed: <code>ElasticsearchSettings.BulkIndexingTimeWindowSeconds</code>, <code>ClusterSettings.EnableExperimentalGossipEncryption</code>, <code>ExperimentalSettings.ClientSideCertEnable</code>, <code>TeamSettings.ExperimentalViewArchivedChannels</code>, <code>CloudSettings.CWSMock</code>, <code>PluginSettings.ChimeraOAuthProxyURL</code>, <code>DataRetentionSettings.EnableBoardsDeletion</code>, <code>DataRetentionSettings.BoardsRetentionDays</code>, <code>SqlSettings.AtRestEncryptKey</code>, <code>NativeAppSettings.EnableIntuneMAM</code>, and <code>GuestAccountsSettings.AllowEmailAccounts</code>. Removed fields left in an existing <code>config.json</code> are ignored and the server starts normally, so no configuration changes are required. Use <code>IntuneSettings.Enable</code> in place of <code>NativeAppSettings.EnableIntuneMAM</code>.</p></td>
+</tr>
+<tr>
+<td><p>The <code>LocalizationSettings.EnableExperimentalLocales</code> configuration setting has been removed, along with the work-in-progress translation catalogs it exposed. Only the 22 officially supported languages are selectable. The setting is ignored if left in an existing <code>config.json</code>.</p></td>
+</tr>
+<tr>
+<td><p>The minimum supported PostgreSQL version is now v15. PostgreSQL v14 and earlier are no longer supported. Upgrade your database to PostgreSQL v15 or later <em>before</em> upgrading the server. See the <a href="/deployment-guide/software-hardware-requirements#minimum-postgresql-database-support-policy">minimum supported PostgreSQL version policy</a> for details.</p></td>
+</tr>
+<tr>
+<td><p>The <code>MoveThreadsEnabled</code> feature flag is no longer supported, and the server <strong>fails to start</strong> if it is enabled. Disable the flag before upgrading. Use the <a href="https://github.com/mattermost/mattermost-plugin-wrangler">Wrangler plugin</a> to move threads between channels instead.</p></td>
+</tr>
+<tr>
+<td><p>The <code>AppsEnabled</code> feature flag is no longer supported and must be disabled. The server <strong>fails to start</strong> if the flag is set to <code>true</code>. Disable the flag before upgrading.</p></td>
+</tr>
+<tr>
+<td><p>The built-in Slack import API and CLI have been removed. The <code>POST /teams/&#123;team_id&#125;/import</code> endpoint and the <code>mattermost import slack</code> command are no longer available, so any automation calling either will fail after upgrading. Migrate those workflows to the <a href="https://docs.mattermost.com/administration-guide/onboard/migrate-from-slack.html">mmetl tool with <code>mmctl import</code></a> before upgrading.</p></td>
+</tr>
+<tr>
+<td><p>The <code>POST /api/v4/logs/query</code> API now returns HTTP 400 when <code>date_from</code> or <code>date_to</code> is a non-empty value that cannot be parsed with the layout <code>"2006-01-02 15:04:05.999 -07:00"</code>. Previously such values were silently ignored and the request returned HTTP 200 with unfiltered results. Empty values continue to mean "unbounded". Check any integration that queries this endpoint for date formats it relies on.</p></td>
+</tr>
+<tr>
+<td><p>Auto-adding members to a channel or team with an attribute-based access policy is now stored on the policy's membership rule instead of the policy's active flag, and is set per channel and per team. Existing settings are migrated automatically. Clients using <code>PUT /api/v4/access_control_policies</code> to set the <code>active</code> field to control auto-adding must set the membership rule's <code>auto_add</code> metadata instead; the <code>/access_control_policies/activate</code> endpoint continues to work unchanged.</p></td>
+</tr>
+<tr>
+<td><p>The channel member API endpoints no longer return <code>last_viewed_at</code> and <code>last_update_at</code> for other users' memberships. They previously returned an invalid value of <code>-1</code>; the fields are now omitted from the response entirely when they belong to a user other than the requester. Check any integration that reads those fields for users other than the requester, as it must now handle their absence rather than the <code>-1</code> sentinel.</p></td>
+</tr>
+<tr>
+<td><p>The required <code>format</code> query parameter has been removed from the <code>GET /api/v4/license/client</code> endpoint. The endpoint previously returned HTTP 400 unless <code>format=old</code> was supplied; it now ignores the parameter and always returns the client license information. Integrations that already send <code>format=old</code> continue to work unchanged, so no action is required before upgrading.</p></td>
+</tr>
+<tr>
+<td><p>The <strong>System Console &gt; System Attributes &gt; User Attributes</strong> page has been removed on Enterprise plans. Existing Custom Profile Attributes (User Attributes) fields are migrated automatically into <strong>Attribute Management</strong> on server startup and are managed there from v12.0. The old page's URL redirects to Attribute Management.</p></td>
+</tr>
+<tr>
 <td>v11.11</td>
 <td><p>The updated <code>glibc-openssl-fips</code> bundle includes a new OpenSSL build that enforces the FIPS minimum key length of 112 bits for HMAC operations. The PostgreSQL driver (lib/pq) passes the database password as the HMAC key during SCRAM authentication, so a password shorter than 112 bits, or 14 ASCII characters, now causes a panic on connect rather than a graceful failure. Before upgrading, FIPS deployments should verify that the password in <code>SqlSettings.DataSource</code> is at least 14 characters and rotate it in PostgreSQL if it is shorter. Standard, non-FIPS builds are unaffected.</p></td>
 </tr>

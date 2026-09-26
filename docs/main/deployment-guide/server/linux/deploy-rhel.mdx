@@ -6,11 +6,11 @@ sidebar_label: "Red Hat (RHEL)"
 <EditionAvailability tiers="free,professional,enterprise,enterprise-advanced" />
 <DeploymentAvailability modes="self-hosted" />
 
-Install Mattermost Server on Red Hat Enterprise Linux (RHEL), Rocky Linux, AlmaLinux, Oracle Linux 7+, or CentOS Stream. RHEL doesn't have a signed APT-style repository, so this guide installs from the release tarball with manual systemd setup, then walks through the security configuration RHEL deployments typically need (SELinux contexts, firewalld rules, fapolicyd allow rules).
+Install Mattermost Server on Red Hat Enterprise Linux (RHEL) 9+ or a compatible distribution, such as Rocky Linux, AlmaLinux, Oracle Linux, or CentOS Stream 9+. RHEL doesn't have a signed APT-style repository, so this guide installs from the release tarball with manual systemd setup, then walks through the security configuration RHEL deployments typically need (SELinux contexts, firewalld rules, fapolicyd allow rules).
 
 <Note title="Minimum requirements">
 
-- **Operating system**: RHEL 7+, Rocky / Alma 8+, Oracle Linux 7+, CentOS Stream 8+.
+- **Operating system**: RHEL 9+, Rocky Linux 9+, AlmaLinux 9+, Oracle Linux 9+, or CentOS Stream 9+. From v12.0, the server binary requires glibc 2.34 or later, so version 7 and 8 releases of these distributions (glibc 2.17 and 2.28) can run Mattermost v11.11 or earlier only, including the v11.7 ESR.
 - **Hardware**: 1 vCPU and 2 GB RAM (supports up to ~1,000 users).
 - **Database**: [PostgreSQL 14+](/administration-guide/manage/admin/postgres-migration).
 - **Network**: TCP 80/443 inbound (TLS), 8065 inbound (System Console), 10025 outbound (SMTP relay if used).
@@ -37,7 +37,7 @@ SSH onto the target host and download the release. Replace `amd64` with `arm64` 
 <TabItem value="latest" label="Latest release" default>
 
 ```sh
-wget https://releases.mattermost.com/11.11.1/mattermost-11.11.1-linux-amd64.tar.gz
+wget https://releases.mattermost.com/12.0.0/mattermost-12.0.0-linux-amd64.tar.gz
 ```
 
 </TabItem>
