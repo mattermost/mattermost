@@ -24,3 +24,21 @@ func TestCreateProfileImage(t *testing.T) {
 
 	require.Equal(t, colorful, img.At(1, 1), "Failed to create correct color")
 }
+
+func TestCreateProfileImage_EmptyUsername(t *testing.T) {
+	t.Run("empty username should not panic", func(t *testing.T) {
+		require.NotPanics(t, func() {
+			b, err := createProfileImage("", "eo1zkdr96pdj98pjmq8zy35wba", "nunito-bold.ttf")
+			require.NoError(t, err)
+			require.NotEmpty(t, b)
+		})
+	})
+
+	t.Run("whitespace-only username should not panic", func(t *testing.T) {
+		require.NotPanics(t, func() {
+			b, err := createProfileImage("   ", "eo1zkdr96pdj98pjmq8zy35wba", "nunito-bold.ttf")
+			require.NoError(t, err)
+			require.NotEmpty(t, b)
+		})
+	})
+}
