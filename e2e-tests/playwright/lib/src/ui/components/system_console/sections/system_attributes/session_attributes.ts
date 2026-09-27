@@ -130,9 +130,15 @@ export default class SessionAttributes {
         const trigger = this.dotMenu(fieldId).getByRole('menuitem', {name: triggerName});
         const option = this.page.getByTestId(`session-attribute-${kind}-option-${fieldId}-${seconds}`);
 
+        await this.row(fieldId).scrollIntoViewIfNeeded();
+
         await expect(async () => {
             await this.page.keyboard.press('Escape');
-            await expect(this.dotMenu(fieldId)).toBeHidden({timeout: 2000});
+            await this.page.keyboard.press('Escape');
+            if (await this.dotMenu(fieldId).isVisible()) {
+                await this.page.locator('body').click({position: {x: 1, y: 1}, force: true});
+            }
+            await expect(this.dotMenu(fieldId)).toBeHidden({timeout: 5000});
 
             await this.dotMenuButton(fieldId).click();
             await expect(trigger).toBeVisible({timeout: 2000});

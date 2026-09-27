@@ -14,10 +14,23 @@ export function enableUsernameAndIconOverride(enable) {
 export function enableUsernameAndIconOverrideInt(enableUsername, enableIcon) {
     // # Visit integration management at system console and change override values
     cy.visit('/admin_console/integrations/integration_management');
-    cy.findByTestId('ServiceSettings.EnablePostUsernameOverride' + enableUsername).check({force: true});
-    cy.findByTestId('ServiceSettings.EnablePostIconOverride' + enableIcon).check({force: true});
+    cy.get('#saveSetting').should('be.visible').and('be.disabled');
 
-    // # Save the settings
-    cy.get('#saveSetting').should('be.enabled').click({force: true});
-    cy.get('#saveSetting').should('be.disabled');
+    const usernameTestId = 'ServiceSettings.EnablePostUsernameOverride' + enableUsername;
+    const iconTestId = 'ServiceSettings.EnablePostIconOverride' + enableIcon;
+
+    cy.findByTestId(usernameTestId).then(($username) => {
+        cy.findByTestId(iconTestId).then(($icon) => {
+            // Skip Save when both flags are already in the requested state.
+            // Checking an already-selected control leaves Save disabled.
+            if ($username.is(':checked') && $icon.is(':checked')) {
+                return;
+            }
+
+            cy.findByTestId(usernameTestId).check({force: true});
+            cy.findByTestId(iconTestId).check({force: true});
+            cy.get('#saveSetting').should('be.enabled').click({force: true});
+            cy.get('#saveSetting').should('be.disabled');
+        });
+    });
 }

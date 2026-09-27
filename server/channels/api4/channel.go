@@ -52,6 +52,35 @@ func rejectSpaceChannelByID(c *Context, channelId string) bool {
 	return false
 }
 
+// validateChannelSchemeAssignment checks a scheme id carried by a channel that is
+// about to be created. Assigning a scheme at creation time requires the same
+// permission as managing permission schemes, and the scheme must be an existing
+// one whose scope is channel, matching what the channel scheme endpoint accepts.
+// It returns false and sets c.Err when the request must not proceed.
+func validateChannelSchemeAssignment(c *Context, channel *model.Channel) bool {
+	if channel.SchemeId == nil || *channel.SchemeId == "" {
+		return true
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementPermissions) {
+		c.SetPermissionError(model.PermissionSysconsoleWriteUserManagementPermissions)
+		return false
+	}
+
+	scheme, appErr := c.App.GetScheme(*channel.SchemeId)
+	if appErr != nil {
+		c.Err = appErr
+		return false
+	}
+
+	if scheme.Scope != model.SchemeScopeChannel {
+		c.Err = model.NewAppError("validateChannelSchemeAssignment", "api.channel.create_channel.scheme_scope.error", nil, "", http.StatusBadRequest)
+		return false
+	}
+
+	return true
+}
+
 func (api *API) InitChannel() {
 	api.BaseRoutes.Channels.Handle("", api.APISessionRequired(getAllChannels)).Methods(http.MethodGet)
 	api.BaseRoutes.Channels.Handle("", api.APISessionRequired(createChannel)).Methods(http.MethodPost)
@@ -176,6 +205,10 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if channel.Type == model.ChannelTypePrivate && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionCreatePrivateChannel) {
 		c.SetPermissionError(model.PermissionCreatePrivateChannel)
+		return
+	}
+
+	if !validateChannelSchemeAssignment(c, channel) {
 		return
 	}
 
