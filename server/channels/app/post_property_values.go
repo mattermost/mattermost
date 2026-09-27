@@ -186,3 +186,40 @@ func (a *App) CanSetPostPropertyValueOnCreate(rctx request.CTX, userID string, f
 		return false
 	}
 }
+
+// setPostPropertyValuesOnCreate writes a new post's attribute values and removes the post
+// again if that write fails.
+//
+// Compensating is only safe here: the values go in before the plugin hook, before
+// PreparePostForClient and before handlePostEvents, so nobody has been told the post exists
+// and nobody but the author can see it.
+func (a *App) setPostPropertyValuesOnCreate(rctx request.CTX, post *model.Post, values []*model.PropertyValue) *model.AppError {
+	for _, value := range values {
+		value.TargetID = post.Id
+		value.TargetType = model.PropertyValueTargetTypePost
+		value.CreatedBy = post.UserId
+		value.UpdatedBy = post.UserId
+	}
+
+	written, appErr := a.UpsertPropertyValues(rctx, values, model.PropertyFieldObjectTypePost, post.Id, "")
+	if appErr == nil {
+		// Attach rather than re-read: this runs before PreparePostForClient and
+		// handlePostEvents, so both the response and the `posted` event carry them.
+		if post.Metadata == nil {
+			post.Metadata = &model.PostMetadata{}
+		}
+		post.Metadata.PropertyValues = written
+		return nil
+	}
+
+	if deleteErr := a.PermanentDeletePost(rctx, post.Id, post.UserId); deleteErr != nil {
+		// The post now exists without the values it was created with, which is the state
+		// this path exists to prevent — logged loudly rather than folded into the returned
+		// error.
+		rctx.Logger().Error("Failed to remove post after its attribute values could not be written",
+			mlog.String("post_id", post.Id),
+			mlog.Err(deleteErr))
+	}
+
+	return appErr
+}

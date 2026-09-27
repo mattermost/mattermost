@@ -5,11 +5,17 @@ package app
 
 import (
 	"encoding/json"
+	"net/http"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
+	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -543,4 +549,352 @@ func TestCanSetPostPropertyValueOnCreate(t *testing.T) {
 				th.App.CanSetPostPropertyValueOnCreate(th.Context, tc.userID, tc.field, tc.channel))
 		})
 	}
+}
+
+// staged builds a value in the shape a caller hands CreatePost: group, field and value only.
+// CreatePost owns the target and the author, so leaving them unset here is what proves it.
+func (th *propertyValuesTestHelper) staged(field *model.PropertyField, raw string) *model.PropertyValue {
+	return &model.PropertyValue{
+		GroupID: th.groupID,
+		FieldID: field.ID,
+		Value:   json.RawMessage(raw),
+	}
+}
+
+// asUser points the request session at userID for the rest of the subtest. CreatePost runs
+// PreparePostForClient and SanitizePostMetadataForUser against the session, so an empty one
+// would not exercise the author's own view of the post it just created.
+func (th *propertyValuesTestHelper) asUser(t *testing.T, userID string) {
+	t.Helper()
+	original := th.Context.Session().UserId
+	th.Context.Session().UserId = userID
+	t.Cleanup(func() { th.Context.Session().UserId = original })
+}
+
+func (th *propertyValuesTestHelper) storedValueFieldIDs(t *testing.T, postID string) []string {
+	t.Helper()
+	values, appErr := th.App.SearchPropertyValues(th.Context, th.groupID, model.PropertyValueSearchOpts{
+		TargetType: model.PropertyValueTargetTypePost,
+		TargetIDs:  []string{postID},
+		PerPage:    model.PostAttributesMaxApplicableFields + 1,
+	})
+	require.Nil(t, appErr)
+
+	ids := make([]string, 0, len(values))
+	for _, value := range values {
+		ids = append(ids, value.FieldID)
+	}
+	return ids
+}
+
+func (th *propertyValuesTestHelper) assertPendingPostIDReleased(t *testing.T, pendingPostID string) {
+	t.Helper()
+	var postID string
+	err := th.App.Srv().seenPendingPostIdsCache.Get(pendingPostID, &postID)
+	assert.ErrorIs(t, err, cache.ErrKeyNotFound,
+		"the pending post id must be released so the client can retry, got %q", postID)
+}
+
+// recordingPostStore wraps a real PostStore to watch, and optionally break, the compensating
+// delete. CreatePost returns a nil post on the failure path, so PermanentDelete is the only
+// place the doomed post's ID becomes observable to a test.
+type recordingPostStore struct {
+	store.PostStore
+	deleteErr  error
+	deletedIDs []string
+}
+
+func (r *recordingPostStore) PermanentDelete(rctx request.CTX, postID string) error {
+	r.deletedIDs = append(r.deletedIDs, postID)
+	if r.deleteErr != nil {
+		return r.deleteErr
+	}
+	return r.PostStore.PermanentDelete(rctx, postID)
+}
+
+type recordingPostStoreWrapper struct {
+	store.Store
+	posts *recordingPostStore
+}
+
+func (w *recordingPostStoreWrapper) Post() store.PostStore { return w.posts }
+
+// watchPostDeletes swaps in a store whose PostStore records every PermanentDelete, failing it
+// when deleteErr is non-nil. Every other store call passes through to the real store, so the
+// rest of CreatePost behaves normally.
+func (th *propertyValuesTestHelper) watchPostDeletes(t *testing.T, deleteErr error) *recordingPostStore {
+	t.Helper()
+	original := th.App.Srv().Store()
+	posts := &recordingPostStore{PostStore: original.Post(), deleteErr: deleteErr}
+	th.App.Srv().SetStore(&recordingPostStoreWrapper{Store: original, posts: posts})
+	t.Cleanup(func() { th.App.Srv().SetStore(original) })
+	return posts
+}
+
+// missingFieldValueErrorID is what UpsertPropertyValues returns for missingFieldValue: its
+// bulk GetPropertyFields lookup fails first, before the per-value field_not_found check.
+const missingFieldValueErrorID = "app.property_field.not_found.app_error"
+
+// missingFieldValue carries a well-formed field ID that no field has — the state a post whose
+// field was deleted between validation and the write arrives in. It fails the value write
+// during validation, so no property row is ever written.
+func (th *propertyValuesTestHelper) missingFieldValue() *model.PropertyValue {
+	return &model.PropertyValue{
+		GroupID: th.groupID,
+		FieldID: model.NewId(),
+		Value:   json.RawMessage(`"confidential"`),
+	}
+}
+
+func TestCreatePostPropertyValues(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("staged values are written, attached and persisted", func(t *testing.T) {
+		th := setupPropertyValuesTest(t)
+		th.asUser(t, th.BasicUser.Id)
+		field := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
+
+		created, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "with attributes",
+			Metadata: &model.PostMetadata{
+				PropertyValues: []*model.PropertyValue{th.staged(field, `"confidential"`)},
+			},
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		require.NotNil(t, created.Metadata)
+		require.Len(t, created.Metadata.PropertyValues, 1)
+		written := created.Metadata.PropertyValues[0]
+		assert.Equal(t, field.ID, written.FieldID)
+		assert.JSONEq(t, `"confidential"`, string(written.Value))
+		// The caller stages group, field and value; these four are CreatePost's to fill in.
+		assert.Equal(t, created.Id, written.TargetID)
+		assert.Equal(t, model.PropertyValueTargetTypePost, written.TargetType)
+		assert.Equal(t, th.BasicUser.Id, written.CreatedBy)
+		assert.Equal(t, th.BasicUser.Id, written.UpdatedBy)
+
+		// Attaching to the returned post is not enough on its own: the rows have to be in the
+		// store, so a later read of the same post finds them.
+		assert.Equal(t, []string{field.ID}, th.storedValueFieldIDs(t, created.Id))
+		hydrated := th.prepare(t, created, th.groupID)
+		assert.Equal(t, []string{field.ID}, valueFieldIDs(hydrated))
+	})
+
+	t.Run("a reply behaves like a root post", func(t *testing.T) {
+		th := setupPropertyValuesTest(t)
+		th.asUser(t, th.BasicUser.Id)
+		field := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
+		root := th.post(t, th.BasicChannel)
+
+		created, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			RootId:    root.Id,
+			Message:   "reply with attributes",
+			Metadata: &model.PostMetadata{
+				PropertyValues: []*model.PropertyValue{th.staged(field, `"secret"`)},
+			},
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		require.Len(t, created.Metadata.PropertyValues, 1)
+		// The values belong to the reply, not to the thread's root.
+		assert.Equal(t, created.Id, created.Metadata.PropertyValues[0].TargetID)
+		assert.Equal(t, []string{field.ID}, th.storedValueFieldIDs(t, created.Id))
+		assert.Empty(t, th.storedValueFieldIDs(t, root.Id))
+	})
+
+	// Every existing caller leaves Metadata nil or without PropertyValues, and must
+	// keep behaving exactly as it did.
+	t.Run("no staged values writes nothing", func(t *testing.T) {
+		th := setupPropertyValuesTest(t)
+		th.asUser(t, th.BasicUser.Id)
+		th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
+
+		testCases := []struct {
+			name     string
+			metadata *model.PostMetadata
+		}{
+			{"nil metadata", nil},
+			{"metadata without values", &model.PostMetadata{}},
+			{"an empty value slice", &model.PostMetadata{PropertyValues: []*model.PropertyValue{}}},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				created, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+					ChannelId: th.BasicChannel.Id,
+					UserId:    th.BasicUser.Id,
+					Message:   "no attributes",
+					Metadata:  tc.metadata,
+				}, th.BasicChannel, model.CreatePostFlags{})
+				require.Nil(t, appErr)
+
+				require.NotNil(t, created.Metadata)
+				assert.Empty(t, created.Metadata.PropertyValues)
+				// No rows written is the observable half of "UpsertPropertyValues was never
+				// called": the call has no other effect that survives the request.
+				assert.Empty(t, th.storedValueFieldIDs(t, created.Id))
+			})
+		}
+	})
+
+	t.Run("a failed value write removes the post and releases the pending id", func(t *testing.T) {
+		th := setupPropertyValuesTest(t)
+		th.asUser(t, th.BasicUser.Id)
+		deletes := th.watchPostDeletes(t, nil)
+
+		pendingPostID := model.NewId()
+		created, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId:     th.BasicChannel.Id,
+			UserId:        th.BasicUser.Id,
+			Message:       "doomed",
+			PendingPostId: pendingPostID,
+			Metadata: &model.PostMetadata{
+				PropertyValues: []*model.PropertyValue{th.missingFieldValue()},
+			},
+		}, th.BasicChannel, model.CreatePostFlags{})
+
+		require.NotNil(t, appErr)
+		assert.Equal(t, missingFieldValueErrorID, appErr.Id)
+		assert.Nil(t, created)
+
+		require.Len(t, deletes.deletedIDs, 1, "the post that was just saved must be deleted again")
+		_, getErr := th.App.GetSinglePost(th.Context, deletes.deletedIDs[0], true)
+		require.NotNil(t, getErr)
+		assert.Equal(t, http.StatusNotFound, getErr.StatusCode)
+
+		// Without this the client's retry is deduplicated against a post that no longer
+		// exists, and the author silently loses the message.
+		th.assertPendingPostIDReleased(t, pendingPostID)
+	})
+
+	t.Run("a failed value write whose compensating delete also fails", func(t *testing.T) {
+		th := setupPropertyValuesTest(t)
+		th.asUser(t, th.BasicUser.Id)
+		deletes := th.watchPostDeletes(t, assert.AnError)
+
+		pendingPostID := model.NewId()
+		created, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId:     th.BasicChannel.Id,
+			UserId:        th.BasicUser.Id,
+			Message:       "doomed and undeletable",
+			PendingPostId: pendingPostID,
+			Metadata: &model.PostMetadata{
+				PropertyValues: []*model.PropertyValue{th.missingFieldValue()},
+			},
+		}, th.BasicChannel, model.CreatePostFlags{})
+
+		// The caller is told why the write failed; the delete failure is only logged, so it
+		// cannot mask the reason the post was rejected.
+		require.NotNil(t, appErr)
+		assert.Equal(t, missingFieldValueErrorID, appErr.Id)
+		assert.Nil(t, created)
+		th.assertPendingPostIDReleased(t, pendingPostID)
+
+		require.Len(t, deletes.deletedIDs, 1)
+		// The post outlives the failed write — the state the log line exists to report. Not
+		// asserted as "gone", because the delete that would have removed it also failed.
+		surviving, getErr := th.App.GetSinglePost(th.Context, deletes.deletedIDs[0], true)
+		require.Nil(t, getErr)
+		assert.Equal(t, "doomed and undeletable", surviving.Message)
+		assert.Empty(t, th.storedValueFieldIDs(t, surviving.Id))
+
+		require.NoError(t, th.TestLogger.Flush())
+		testlib.AssertLog(t, th.LogBuffer, mlog.LvlError.Name,
+			"Failed to remove post after its attribute values could not be written")
+	})
+
+	// Values are attached to the post before handlePostEvents runs, so a client that is
+	// watching the channel sees them without refetching the post.
+	t.Run("the posted websocket event carries the values", func(t *testing.T) {
+		th := setupPropertyValuesTest(t)
+		th.asUser(t, th.BasicUser.Id)
+		field := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
+
+		// Joining generates its own `posted` event, so it has to happen before the socket is
+		// connected or that event would be the one read below.
+		th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+
+		messages, closeWS := connectFakeWebSocket(t, th.TestHelper, th.BasicUser2.Id, "",
+			[]model.WebsocketEventType{model.WebsocketEventPosted})
+		defer closeWS()
+
+		created, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "broadcast with attributes",
+			Metadata: &model.PostMetadata{
+				PropertyValues: []*model.PropertyValue{th.staged(field, `"confidential"`)},
+			},
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		var received *model.WebSocketEvent
+		select {
+		case received = <-messages:
+		case <-time.After(10 * time.Second):
+			require.FailNow(t, "timed out waiting for the posted event")
+		}
+		require.Equal(t, model.WebsocketEventPosted, received.EventType())
+
+		postJSON, ok := received.GetData()["post"].(string)
+		require.True(t, ok, "the posted event must carry the post")
+
+		var broadcast model.Post
+		require.NoError(t, json.Unmarshal([]byte(postJSON), &broadcast))
+		require.Equal(t, created.Id, broadcast.Id)
+		require.NotNil(t, broadcast.Metadata)
+		require.Len(t, broadcast.Metadata.PropertyValues, 1)
+		assert.Equal(t, field.ID, broadcast.Metadata.PropertyValues[0].FieldID)
+		assert.Equal(t, created.Id, broadcast.Metadata.PropertyValues[0].TargetID)
+		assert.JSONEq(t, `"confidential"`, string(broadcast.Metadata.PropertyValues[0].Value))
+	})
+
+	// PreparePostForClient replaces Metadata wholesale for an unrevealed burn-on-read post, so
+	// attaching values earlier in CreatePost cannot leak them to a non-author. Pinned here
+	// because the two are far apart and nothing else couples them.
+	t.Run("an unrevealed burn-on-read post carries no values for a non-author", func(t *testing.T) {
+		th := setupPropertyValuesTest(t)
+		th.asUser(t, th.BasicUser.Id)
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.EnableBurnOnRead = new(true)
+		})
+
+		field := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
+
+		// The viewer joins before the post exists. With a recipient who has not read it, the
+		// post stays unrevealed and Metadata.ExpireAt stays zero, which is the condition the
+		// blanking branch keys on.
+		viewer := th.CreateUser(t)
+		th.LinkUserToTeam(t, viewer, th.BasicTeam)
+		th.AddUserToChannel(t, viewer, th.BasicChannel)
+
+		borPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "burn after reading",
+			Type:      model.PostTypeBurnOnRead,
+			Metadata: &model.PostMetadata{
+				PropertyValues: []*model.PropertyValue{th.staged(field, `"confidential"`)},
+			},
+		}
+		borPost.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(10*60*1000))
+
+		created, _, appErr := th.App.CreatePost(th.Context, borPost, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+		// The author's own response still carries them, so this is withholding and not a
+		// failure to write.
+		require.Len(t, created.Metadata.PropertyValues, 1)
+		assert.Equal(t, []string{field.ID}, th.storedValueFieldIDs(t, created.Id))
+
+		th.asUser(t, viewer.Id)
+		prepared := th.App.PreparePostForClient(th.Context, created, &model.PreparePostForClientOpts{})
+		require.NotNil(t, prepared.Metadata)
+		assert.Empty(t, prepared.Metadata.PropertyValues)
+	})
 }

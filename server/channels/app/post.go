@@ -443,6 +443,15 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		}
 	}
 
+	// Runs before the MessageHasBeenPosted hook, PreparePostForClient and handlePostEvents,
+	// so on success all three see the values, and on failure the post is gone before anyone
+	// but the author could have seen it.
+	if propertyValues := rpost.Metadata.GetPropertyValues(); len(propertyValues) > 0 {
+		if appErr := a.setPostPropertyValuesOnCreate(rctx, rpost, propertyValues); appErr != nil {
+			return nil, false, appErr
+		}
+	}
+
 	// MessageWillBePosted ran before the post had an ID, so this is recorded here, now that
 	// rpost carries the one assigned by Save.
 	a.RecordPostDeliveryToPlugins(rctx, willBePostedPluginIDs, rpost)
