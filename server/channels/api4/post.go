@@ -159,6 +159,25 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		SilentNotification: silentBool,
 	}
 
+	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	propertyValues, appErr := postAttributeValuesForCreate(c, &post, channel)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	model.AddEventParameterToAuditRec(auditRec, "property_value_count", len(propertyValues))
+
+	if post.Metadata == nil {
+		post.Metadata = &model.PostMetadata{}
+	}
+	post.Metadata.PropertyValues = propertyValues
+
 	rp, isMemberForPreviews, err := c.App.CreatePostAsUserWithFlags(c.AppContext, c.App.PostWithProxyRemovedFromImageURLs(&post), c.AppContext.Session().Id, createFlags)
 	if err != nil {
 		c.Err = err

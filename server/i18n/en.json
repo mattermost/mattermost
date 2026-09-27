@@ -3819,6 +3819,14 @@
     "description": "API error when a user does not have permission to send a burn-on-read message in a channel due to an attribute-based-access-control (ABAC) permission policy."
   },
   {
+    "id": "api.post.create_post.attribute_no_permission.app_error",
+    "translation": "You do not have permission to set one or more of the requested post attribute values."
+  },
+  {
+    "id": "api.post.create_post.attributes_feature_disabled.app_error",
+    "translation": "Post attributes are not enabled on this server."
+  },
+  {
     "id": "api.post.create_post.burn_on_read.app_error",
     "translation": "An error occurred while creating a burn-on-read post.",
     "description": "API error when creating a burn-on-read post fails; 'burn-on-read' is the self-destructing message feature name."
@@ -3842,6 +3850,10 @@
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "Invalid ChannelId for RootId parameter.",
     "description": "API error when a reply's root post belongs to a different channel than the one being posted to; 'ChannelId'/'RootId' are API parameter names."
+  },
+  {
+    "id": "api.post.create_post.invalid_attribute.app_error",
+    "translation": "One or more post attribute values could not be applied."
   },
   {
     "id": "api.post.create_post.root_id.app_error",

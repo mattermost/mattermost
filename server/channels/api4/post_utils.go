@@ -128,3 +128,86 @@ func checkEditFileAttachmentPermission(c *Context, newFileIds []string, original
 		c.SetPermissionError(model.PermissionEditFileAttachment)
 	}
 }
+
+// postAttributeValuesForCreate turns the submitted metadata values into PropertyValues to
+// write with the post.
+//
+// With the flag off and nothing submitted this returns (nil, nil) without touching the
+// property store, which is what keeps createPost byte-identical to its pre-feature
+// behaviour — the reason this is safe to add to the most-used endpoint in the product.
+//
+// Errors never name an attribute: which attributes a server defines is itself sensitive,
+// and the caller may not be allowed to see them.
+func postAttributeValuesForCreate(c *Context, post *model.Post, channel *model.Channel) ([]*model.PropertyValue, *model.AppError) {
+	items := post.Metadata.GetPropertyValues()
+
+	if !c.App.Config().FeatureFlags.PostAttributes {
+		if len(items) > 0 {
+			return nil, model.NewAppError("Api4.createPost", "api.post.create_post.attributes_feature_disabled.app_error", nil, "", http.StatusBadRequest)
+		}
+		return nil, nil
+	}
+
+	if len(items) == 0 {
+		return nil, nil
+	}
+
+	group, appErr := c.App.GetPropertyGroup(c.AppContext, model.PostAttributesPropertyGroupName)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	// One call covers all three scopes a post's fields can come from: the system, the
+	// post's team and its channel.
+	fields, appErr := c.App.SearchPropertyFields(c.AppContext, group.ID, model.PropertyFieldSearchOpts{
+		ObjectTypes: []string{model.PropertyFieldObjectTypePost},
+		ChannelID:   channel.Id,
+		TeamID:      channel.TeamId,
+		PerPage:     model.PostAttributesMaxApplicableFields + 1,
+	})
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	// If the per-target cap was ever bypassed elsewhere, the page here may be truncated and
+	// a legitimate field could look unknown to this request.
+	fieldByID := make(map[string]*model.PropertyField, len(fields))
+	for _, field := range fields {
+		fieldByID[field.ID] = field
+	}
+
+	seen := make(map[string]bool, len(items))
+	values := make([]*model.PropertyValue, 0, len(items))
+	for _, item := range items {
+		// The client submits full PropertyValue structs, so everything the server owns has
+		// to be rejected rather than quietly dropped: a caller that sent an ID or a
+		// TargetID meant something by it and should not be told the write succeeded as
+		// asked.
+		if item.ID != "" || item.GroupID != "" || item.TargetID != "" || item.TargetType != "" ||
+			item.CreateAt != 0 || item.UpdateAt != 0 || item.CreatedBy != "" || item.UpdatedBy != "" {
+			return nil, model.NewAppError("Api4.createPost", "api.post.create_post.invalid_attribute.app_error", nil, "server-owned field set by client", http.StatusBadRequest)
+		}
+		if !model.IsValidId(item.FieldID) {
+			return nil, model.NewAppError("Api4.createPost", "api.post.create_post.invalid_attribute.app_error", nil, "invalid field id", http.StatusBadRequest)
+		}
+		if seen[item.FieldID] {
+			return nil, model.NewAppError("Api4.createPost", "api.post.create_post.invalid_attribute.app_error", nil, "duplicate field", http.StatusBadRequest)
+		}
+		field, ok := fieldByID[item.FieldID]
+		if !ok {
+			return nil, model.NewAppError("Api4.createPost", "api.post.create_post.invalid_attribute.app_error", nil, "unknown field", http.StatusBadRequest)
+		}
+		if !c.App.CanSetPostPropertyValueOnCreate(c.AppContext, c.AppContext.Session().UserId, field, channel) {
+			return nil, model.NewAppError("Api4.createPost", "api.post.create_post.attribute_no_permission.app_error", nil, "", http.StatusForbidden)
+		}
+
+		seen[item.FieldID] = true
+		values = append(values, &model.PropertyValue{
+			GroupID: group.ID,
+			FieldID: field.ID,
+			Value:   item.Value,
+		})
+	}
+
+	return values, nil
+}
