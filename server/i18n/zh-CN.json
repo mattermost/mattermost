@@ -1374,10 +1374,6 @@
     "translation": "无法在已删除的频道更新消息。"
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "我们找不到现有的消息或评论去更新。"
-  },
-  {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "已经删除 id={{.PostId}}。"
   },

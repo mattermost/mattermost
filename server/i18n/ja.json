@@ -1374,10 +1374,6 @@
     "translation": "削除されたチャンネルの投稿は更新できません。"
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "更新すべき投稿またはコメントが見付かりませんでした。"
-  },
-  {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "既に削除されたIDです id={{.PostId}}。"
   },

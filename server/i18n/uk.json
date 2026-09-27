@@ -1344,10 +1344,6 @@
     "translation": "Неможливо оновити допис у видаленому каналі."
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Не вдалося знайти існуючий допис або коментар для оновлення."
-  },
-  {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "Вже видалено id={{.PostId}}."
   },

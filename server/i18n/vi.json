@@ -128,10 +128,6 @@
     "translation": "server_error:Gặp phải lỗi máy chủ nội bộ trong khi kéo người dùng từ cơ sở dữ liệu"
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Chúng tôi không thể tìm thấy kênh."
-  },
-  {
     "id": "model.config.is_valid.password_length.app_error",
     "translation": "Độ dài mật khẩu tối thiểu phải là một số nguyên lớn hơn hoặc bằng {{.MinLength}} và nhỏ hơn hoặc bằng {{.MaxLength}}."
   },
