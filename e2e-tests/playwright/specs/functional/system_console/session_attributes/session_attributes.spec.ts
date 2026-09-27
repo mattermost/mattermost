@@ -75,11 +75,12 @@ test.describe('System Console - Session Attributes', () => {
             // * Verify a seeded-but-client-native field does NOT carry the Server label
             await expect(sa.serverLabel(clientIpAddress.id)).toHaveCount(0);
 
-            // * Verify the derived Type column maps text/select fields correctly
-            await expect(sa.type(ipAddress.id)).toContainText('IP');
+            // * Verify the Type column: select true/false is Boolean, other
+            //   selects are Enum, and every non-select field is String.
+            await expect(sa.type(ipAddress.id)).toContainText('String');
             await expect(sa.type(vpnActive.id)).toContainText('Boolean');
             await expect(sa.type(networkInterfaceType.id)).toContainText('Enum');
-            await expect(sa.type(osVersion.id)).toContainText('Version');
+            await expect(sa.type(osVersion.id)).toContainText('String');
 
             // * Verify seeded fields render as Disabled by default
             await expect(sa.status(ipAddress.id)).toContainText('Disabled');

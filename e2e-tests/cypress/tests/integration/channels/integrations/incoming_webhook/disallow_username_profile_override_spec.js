@@ -45,11 +45,36 @@ describe('Incoming webhook', () => {
     });
 
     it('MM-T622 Disallow override of username and profile picture', () => {
-        const iconUrl = 'https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png';
+        // Same stable fixture MM-T188 / markdown image specs use.
+        const iconUrl = 'https://raw.githubusercontent.com/mattermost/mattermost/master/e2e-tests/cypress/tests/fixtures/mattermost-icon_128x128.png';
 
         // # Enable username and icon override
         cy.apiAdminLogin();
         enableUsernameAndIconOverride(true);
+
+        // # Store the icon on the hook now that override is allowed. Payload
+        // icon_url is still sent below; hook-level URL is what MM-T620 uses
+        // when the payload field does not stick.
+        cy.apiGetIncomingWebhook(incomingWebhook.id).then(({webhook}) => {
+            cy.getCookie('MMCSRF').then((csrfCookie) => {
+                const headers = {'X-Requested-With': 'XMLHttpRequest'};
+                if (csrfCookie?.value) {
+                    headers['X-CSRF-Token'] = csrfCookie.value;
+                }
+                cy.request({
+                    method: 'PUT',
+                    url: `/api/v4/hooks/incoming/${webhook.id}`,
+                    headers,
+                    body: {
+                        ...webhook,
+                        icon_url: iconUrl,
+                    },
+                }).its('status').should('eq', 201);
+            });
+        });
+        cy.apiGetIncomingWebhook(incomingWebhook.id).then(({webhook}) => {
+            expect(webhook.icon_url).to.equal(iconUrl);
+        });
 
         // # Login as test user, visit test channel and post any message
         cy.apiLogin(testUser);
