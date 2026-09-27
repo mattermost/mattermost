@@ -1379,10 +1379,6 @@
     "translation": "Não é possível atualizar uma publicação em um canal excluído."
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Não foi possível encontrar a publicação ou comentário para atualizar."
-  },
-  {
     "id": "api.post.update_post.permissions_details.app_error",
     "translation": "Já excluído id={{.PostId}}."
   },
