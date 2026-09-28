@@ -5415,6 +5415,68 @@ func TestGetPinnedPosts(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestGetPinnedPostsResultCount(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+
+	channelWithPinnedPosts := func(t *testing.T, pinnedCount int) *model.Channel {
+		channel := th.CreatePublicChannel(t)
+
+		posts := make([]*model.Post, 0, pinnedCount)
+		for i := range pinnedCount {
+			posts = append(posts, &model.Post{
+				UserId:    th.BasicUser.Id,
+				ChannelId: channel.Id,
+				Message:   fmt.Sprintf("pinned %d", i),
+				IsPinned:  true,
+			})
+		}
+
+		_, _, nErr := th.App.Srv().Store().Post().SaveMultiple(th.Context, posts)
+		require.NoError(t, nErr)
+
+		return channel
+	}
+
+	shortChannel := channelWithPinnedPosts(t, 5)
+	longChannel := channelWithPinnedPosts(t, web.PerPageMaximum+50)
+
+	testCases := []struct {
+		description   string
+		client        *model.Client4
+		channel       *model.Channel
+		expectedCount int
+	}{
+		{
+			description:   "returns every pinned post when they fit in a page",
+			client:        client,
+			channel:       shortChannel,
+			expectedCount: 5,
+		},
+		{
+			description:   "returns at most a page of pinned posts",
+			client:        client,
+			channel:       longChannel,
+			expectedCount: web.PerPageMaximum,
+		},
+		{
+			description:   "returns at most a page of pinned posts to a system administrator",
+			client:        th.SystemAdminClient,
+			channel:       longChannel,
+			expectedCount: web.PerPageMaximum,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.description, func(t *testing.T) {
+			posts, _, err := testCase.client.GetPinnedPosts(context.Background(), testCase.channel.Id, "")
+			require.NoError(t, err)
+			assert.Len(t, posts.Order, testCase.expectedCount)
+		})
+	}
+}
+
 func TestUpdateChannelRoles(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

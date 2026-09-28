@@ -963,6 +963,10 @@ func (s SqlChannelStore) InvalidateChannel(id string) {
 func (s SqlChannelStore) InvalidateChannelByName(teamId, name string) {
 }
 
+// pinnedPostsLimit is the number of pinned posts a single channel query returns. It mirrors
+// web.PerPageMaximum, which the store cannot import.
+const pinnedPostsLimit = 200
+
 func (s SqlChannelStore) GetPinnedPosts(channelId string) (*model.PostList, error) {
 	pl := model.NewPostList()
 
@@ -975,7 +979,8 @@ func (s SqlChannelStore) GetPinnedPosts(channelId string) (*model.PostList, erro
 			"ChannelId": channelId,
 			"DeleteAt":  0,
 		}).
-		OrderBy("CreateAt ASC")
+		OrderBy("CreateAt ASC").
+		Limit(uint64(pinnedPostsLimit))
 
 	posts := []*model.Post{}
 	if err := s.GetReplica().SelectBuilder(&posts, query); err != nil {

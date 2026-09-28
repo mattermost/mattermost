@@ -851,16 +851,17 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// For now, by default we return all items unless it's set to maintain
-	// backwards compatibility with mobile. But when the next ESR passes, we need to
-	// change this to web.PerPageDefault.
-	perPage := 0
+	// Requests that don't ask for a page size get a full page. When the next ESR
+	// passes, we need to change this to web.PerPageDefault.
+	perPage := web.PerPageMaximum
 	if perPageStr := r.URL.Query().Get("perPage"); perPageStr != "" {
-		var err error
-		perPage, err = strconv.Atoi(perPageStr)
-		if err != nil || perPage > web.PerPageMaximum {
+		val, err := strconv.Atoi(perPageStr)
+		if err != nil || val < 0 || val > web.PerPageMaximum {
 			c.SetInvalidParamWithErr("perPage", err)
 			return
+		}
+		if val > 0 {
+			perPage = val
 		}
 	}
 
