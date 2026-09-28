@@ -979,14 +979,17 @@ func (s SqlChannelStore) GetPinnedPosts(channelId string) (*model.PostList, erro
 			"ChannelId": channelId,
 			"DeleteAt":  0,
 		}).
-		OrderBy("CreateAt ASC").
+		OrderBy("CreateAt DESC", "Id DESC").
 		Limit(uint64(pinnedPostsLimit))
 
 	posts := []*model.Post{}
 	if err := s.GetReplica().SelectBuilder(&posts, query); err != nil {
 		return nil, errors.Wrap(err, "failed to find Posts")
 	}
-	for _, post := range posts {
+	// The query returns newest-first; PostList.Order stays oldest-first so
+	// filterInaccessiblePosts and the client reverse keep their existing contracts.
+	for i := len(posts) - 1; i >= 0; i-- {
+		post := posts[i]
 		pl.AddPost(post)
 		pl.AddOrder(post.Id)
 	}

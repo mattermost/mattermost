@@ -5420,9 +5420,10 @@ func TestGetPinnedPostsResultCount(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	client := th.Client
 
-	channelWithPinnedPosts := func(t *testing.T, pinnedCount int) *model.Channel {
+	channelWithPinnedPosts := func(t *testing.T, pinnedCount int) (*model.Channel, []*model.Post) {
 		channel := th.CreatePublicChannel(t)
 
+		createdAt := model.GetMillis()
 		posts := make([]*model.Post, 0, pinnedCount)
 		for i := range pinnedCount {
 			posts = append(posts, &model.Post{
@@ -5430,17 +5431,18 @@ func TestGetPinnedPostsResultCount(t *testing.T) {
 				ChannelId: channel.Id,
 				Message:   fmt.Sprintf("pinned %d", i),
 				IsPinned:  true,
+				CreateAt:  createdAt + int64(i),
 			})
 		}
 
-		_, _, nErr := th.App.Srv().Store().Post().SaveMultiple(th.Context, posts)
+		saved, _, nErr := th.App.Srv().Store().Post().SaveMultiple(th.Context, posts)
 		require.NoError(t, nErr)
 
-		return channel
+		return channel, saved
 	}
 
-	shortChannel := channelWithPinnedPosts(t, 5)
-	longChannel := channelWithPinnedPosts(t, web.PerPageMaximum+50)
+	shortChannel, shortPosts := channelWithPinnedPosts(t, 5)
+	longChannel, longPosts := channelWithPinnedPosts(t, web.PerPageMaximum+50)
 
 	testCases := []struct {
 		description   string
@@ -5475,6 +5477,31 @@ func TestGetPinnedPostsResultCount(t *testing.T) {
 			assert.Len(t, posts.Order, testCase.expectedCount)
 		})
 	}
+
+	t.Run("keeps the most recently created pinned posts when the page is full", func(t *testing.T) {
+		posts, _, err := client.GetPinnedPosts(context.Background(), longChannel.Id, "")
+		require.NoError(t, err)
+		require.Len(t, posts.Order, web.PerPageMaximum)
+
+		oldestKept := longPosts[len(longPosts)-web.PerPageMaximum]
+		assert.Contains(t, posts.Posts, oldestKept.Id)
+		assert.NotContains(t, posts.Posts, longPosts[0].Id)
+		assert.Contains(t, posts.Posts, longPosts[len(longPosts)-1].Id)
+
+		assert.Equal(t, oldestKept.Id, posts.Order[0])
+		assert.Equal(t, longPosts[len(longPosts)-1].Id, posts.Order[len(posts.Order)-1])
+		for i := 1; i < len(posts.Order); i++ {
+			assert.LessOrEqual(t, posts.Posts[posts.Order[i-1]].CreateAt, posts.Posts[posts.Order[i]].CreateAt)
+		}
+	})
+
+	t.Run("keeps ascending order when every pinned post fits in a page", func(t *testing.T) {
+		posts, _, err := client.GetPinnedPosts(context.Background(), shortChannel.Id, "")
+		require.NoError(t, err)
+		require.Len(t, posts.Order, len(shortPosts))
+		assert.Equal(t, shortPosts[0].Id, posts.Order[0])
+		assert.Equal(t, shortPosts[len(shortPosts)-1].Id, posts.Order[len(posts.Order)-1])
+	})
 }
 
 func TestUpdateChannelRoles(t *testing.T) {
