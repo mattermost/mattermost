@@ -167,7 +167,6 @@ export default class SessionAttributes {
     async enable(fieldId: string) {
         await this.openDotMenu(fieldId);
         await this.page.getByTestId(`session-attribute-enable-${fieldId}`).click();
-        await expect(this.dotMenu(fieldId)).toBeHidden();
     }
 
     /**

@@ -190,12 +190,12 @@ test.describe('System Console - Session Attributes', () => {
         // # Navigate to Session Attributes page
         await sa.goto();
 
-        // # Stage Enable. This test only needs a dirty page; TTL/grace presets
-        // are covered by the persist test and their nested submenu is racy.
-        await sa.enable(field.id);
+        // # Capture the rendered TTL, then stage a different TTL (24h)
+        const beforeTtl = (await sa.ttl(field.id).textContent())?.trim() ?? '';
+        await sa.setTtlPreset(field.id, 86400);
 
         // * Verify the edit is staged and Save is enabled
-        await expect(sa.status(field.id)).toContainText('Enabled');
+        await expect(sa.ttl(field.id)).toHaveText('24h');
         await expect(sa.saveButton).toBeEnabled();
 
         // # Attempt to navigate away via the sidebar while dirty
@@ -213,8 +213,8 @@ test.describe('System Console - Session Attributes', () => {
         // # Cancel the staged edit via the Save Changes panel
         await sa.cancel();
 
-        // * Verify Enable reverted and Save returned to disabled
-        await expect(sa.status(field.id)).toContainText('Disabled');
+        // * Verify the TTL reverted and Save returned to disabled
+        await expect(sa.ttl(field.id)).toHaveText(beforeTtl);
         await expect(sa.saveButton).toBeDisabled();
     });
 
