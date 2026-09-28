@@ -539,17 +539,10 @@ func useAbacBookmarksHook(message *model.WebSocketEvent, channelID, field string
 }
 
 // abacFileActionsActive reports whether ABAC file action policies are evaluated on this server.
+// This is the same condition sanitizeFileAttachmentsForUser gates on; kept as a thin alias here
+// since callers in this file reason about broadcast hooks, not post sanitization.
 func (a *App) abacFileActionsActive() bool {
-	if a.Srv().Channels().AccessControl == nil {
-		return false
-	}
-
-	cfg := a.Config().AccessControlSettings.EnableAttributeBasedAccessControl
-	if cfg == nil || !*cfg {
-		return false
-	}
-
-	return a.Config().FeatureFlags.PermissionPolicies
+	return a.fileAttachmentPoliciesActive()
 }
 
 // setupBroadcastHookForAbacBookmarks registers abacBookmarksBroadcastHook when ABAC is active
