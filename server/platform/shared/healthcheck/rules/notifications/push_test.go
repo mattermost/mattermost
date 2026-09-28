@@ -102,6 +102,25 @@ func TestPushRules(t *testing.T) {
 			},
 		},
 		{
+			name:     "https test proxy with port and path",
+			snapshot: pushSnapshot(true, "HTTPS://Push-Test.mattermost.com:443/"),
+			want: map[string]pushWant{
+				"PUSH_EMPTY_URL":  resolved,
+				"PUSH_BAD_SCHEME": resolved,
+				"PUSH_TEST_PROXY": {state: healthcheck.StateFiring, messageID: "health.rule.push_test_proxy.message", url: "HTTPS://Push-Test.mattermost.com:443/"},
+			},
+		},
+		{
+			name:     "test proxy host only in query",
+			snapshot: pushSnapshot(true, "https://push.example.com/?ref=push-test.mattermost.com"),
+			want:     map[string]pushWant{"PUSH_EMPTY_URL": resolved, "PUSH_BAD_SCHEME": resolved, "PUSH_TEST_PROXY": resolved},
+		},
+		{
+			name:     "lookalike test proxy host",
+			snapshot: pushSnapshot(true, "https://push-test.mattermost.com.example.com"),
+			want:     map[string]pushWant{"PUSH_EMPTY_URL": resolved, "PUSH_BAD_SCHEME": resolved, "PUSH_TEST_PROXY": resolved},
+		},
+		{
 			name:     "http test proxy reports only the scheme",
 			snapshot: pushSnapshot(true, "http://push-test.mattermost.com"),
 			want: map[string]pushWant{

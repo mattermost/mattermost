@@ -4,6 +4,7 @@
 package notifications
 
 import (
+	"net/url"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -70,26 +71,31 @@ var pushTestProxy = healthcheck.Rule{
 }
 
 // pushServer returns the configured push server, with enabled=false when push is off.
-func pushServer(s *healthcheck.Snapshot) (url string, enabled, ok bool) {
+func pushServer(s *healthcheck.Snapshot) (server string, enabled, ok bool) {
 	enabled, ok = s.ConfigBool(func(cfg *model.Config) *bool { return cfg.EmailSettings.SendPushNotifications })
 	if !ok || !enabled {
 		return "", enabled, ok
 	}
 
-	url, ok = s.ConfigString(func(cfg *model.Config) *string { return cfg.EmailSettings.PushNotificationServer })
-	return url, true, ok
+	server, ok = s.ConfigString(func(cfg *model.Config) *string { return cfg.EmailSettings.PushNotificationServer })
+	return server, true, ok
 }
 
-func hasScheme(url, scheme string) bool {
-	return strings.HasPrefix(strings.ToLower(url), scheme)
+func hasScheme(server, scheme string) bool {
+	return strings.HasPrefix(strings.ToLower(server), scheme)
+}
+
+func isTestProxy(server string) bool {
+	u, err := url.Parse(server)
+	return err == nil && u.Scheme == "https" && strings.EqualFold(u.Hostname(), "push-test.mattermost.com")
 }
 
 func evalPushEmptyURL(s *healthcheck.Snapshot) []healthcheck.Result {
-	url, enabled, ok := pushServer(s)
+	server, enabled, ok := pushServer(s)
 	switch {
 	case !ok:
 		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
-	case enabled && url == "":
+	case enabled && server == "":
 		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.push_empty_url.message"))}
 	default:
 		return []healthcheck.Result{healthcheck.Resolved()}
@@ -97,26 +103,26 @@ func evalPushEmptyURL(s *healthcheck.Snapshot) []healthcheck.Result {
 }
 
 func evalPushBadScheme(s *healthcheck.Snapshot) []healthcheck.Result {
-	url, enabled, ok := pushServer(s)
+	server, enabled, ok := pushServer(s)
 	switch {
 	case !ok:
 		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
-	case !enabled || url == "" || hasScheme(url, "https://"):
+	case !enabled || server == "" || hasScheme(server, "https://"):
 		return []healthcheck.Result{healthcheck.Resolved()}
-	case hasScheme(url, "http://"):
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.push_bad_scheme.message.http")).WithDetail("url", url)}
+	case hasScheme(server, "http://"):
+		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.push_bad_scheme.message.http")).WithDetail("url", server)}
 	default:
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.push_bad_scheme.message.missing")).WithDetail("url", url)}
+		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.push_bad_scheme.message.missing")).WithDetail("url", server)}
 	}
 }
 
 func evalPushTestProxy(s *healthcheck.Snapshot) []healthcheck.Result {
-	url, enabled, ok := pushServer(s)
+	server, enabled, ok := pushServer(s)
 	switch {
 	case !ok:
 		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
-	case enabled && hasScheme(url, "https://") && strings.Contains(strings.ToLower(url), "push-test.mattermost.com"):
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.push_test_proxy.message")).WithDetail("url", url)}
+	case enabled && isTestProxy(server):
+		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.push_test_proxy.message")).WithDetail("url", server)}
 	default:
 		return []healthcheck.Result{healthcheck.Resolved()}
 	}
