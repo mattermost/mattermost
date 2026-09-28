@@ -75,7 +75,8 @@ test('MM-T1772 applies a new minimum password length on signup', {tag: '@authent
 });
 
 /**
- * @objective Verify clearing Minimum password length resets to 5, or is rejected on FIPS (min 14).
+ * @objective Verify clearing Minimum password length resets it to the server default on regular
+ * builds, and is rejected as below the FIPS-enforced minimum (14) on FIPS builds.
  */
 test(
     'MM-T1773 resets Minimum password length to the default after clearing it',
@@ -83,8 +84,10 @@ test(
     async ({pw}) => {
         const {adminUser, adminClient} = await pw.initSetup();
         const originalMinimumLength = (await adminClient.getConfig()).PasswordSettings.MinimumLength;
-        const customLength = originalMinimumLength === 20 ? 21 : 20;
+
+        // # The field always falls back to 5 when cleared; that is below the FIPS minimum (14)
         const isFips = (await adminClient.getClientConfig()).IsFipsEnabled === 'true';
+        const customLength = originalMinimumLength === 20 ? 21 : 20;
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
         try {
@@ -96,14 +99,15 @@ test(
             await systemConsolePage.passwordSettings.reload();
             await expect(systemConsolePage.passwordSettings.minimumLength).toHaveValue(String(customLength));
 
-            // # Clear the field and save (empty is sent as 5)
+            // # Clear the field and save
             await systemConsolePage.passwordSettings.minimumLength.clear();
             await systemConsolePage.passwordSettings.save();
 
             if (isFips) {
-                // * 5 is below the FIPS minimum of 14; the custom value stays
+                // * Verify the fallback value (5) is rejected as below the FIPS minimum (14)
                 await expect(systemConsolePage.passwordSettings.lengthError).toBeVisible();
-                expect((await adminClient.getConfig()).PasswordSettings.MinimumLength).toBe(customLength);
+                const unchangedLength = (await adminClient.getConfig()).PasswordSettings.MinimumLength;
+                expect(unchangedLength).toBe(customLength);
             } else {
                 await systemConsolePage.passwordSettings.reload();
 
