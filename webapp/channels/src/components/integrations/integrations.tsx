@@ -247,7 +247,7 @@ export default class Integrations extends React.PureComponent <Props> {
                         }}
                     />
                 </div>
-                <div className='integrations-list d-flex flex-wrap'>
+                <div className='integrations-list'>
                     {options}
                 </div>
             </div>

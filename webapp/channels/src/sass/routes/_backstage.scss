@@ -361,19 +361,24 @@
     }
 }
 
+.integrations-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 32px;
+}
+
 .integration-option {
-    flex: 0 0 30%;
     padding: 20px;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    box-shadow: var(--elevation-1);
     border-radius: 4px;
-    margin: 0 30px 30px 0;
     background-color: var(--center-channel-bg);
     text-align: center;
     transition: all 0.2s ease;
 
     &:hover {
-        @extend %box-shadow-1;
-
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
+        box-shadow: var(--elevation-3);
         text-decoration: none;
     }
 }
