@@ -629,4 +629,29 @@ func TestOwnersWithAdminManaged(t *testing.T) {
 		require.NotNil(t, updated.PermissionValues)
 		assert.Equal(t, model.PermissionLevelSysadmin, *updated.PermissionValues)
 	})
+
+	t.Run("listed owner plugin edits an admin-managed field", func(t *testing.T) {
+		created := createOwnedAdminManaged(t, "owned_admin_owner_edits")
+		created.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility] = model.PropertyFieldVisibilityAlways
+		rctx := RequestContextWithCallerID(th.Context, "plugin-owner")
+		updated, _, upErr := th.service.UpdatePropertyField(rctx, th.CPAGroupID, created)
+		require.NoError(t, upErr)
+		assert.Equal(t, model.PropertyFieldVisibilityAlways, updated.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility])
+		assert.Equal(t, "admin", updated.Attrs[model.PropertyFieldAttrManaged])
+	})
+
+	t.Run("listed owner plugin removes itself as the last owner", func(t *testing.T) {
+		created := createOwnedAdminManaged(t, "owned_admin_owner_leaves")
+		delete(created.Attrs, model.PropertyAttrsOwners)
+		rctx := RequestContextWithCallerID(th.Context, "plugin-owner")
+		_, _, upErr := th.service.UpdatePropertyField(rctx, th.CPAGroupID, created)
+		require.NoError(t, upErr)
+
+		stored, getErr := th.service.GetPropertyField(rctxAdmin, th.CPAGroupID, created.ID)
+		require.NoError(t, getErr)
+		assert.False(t, model.HasPropertyFieldOwners(stored))
+		assert.Equal(t, "admin", stored.Attrs[model.PropertyFieldAttrManaged])
+		require.NotNil(t, stored.PermissionValues)
+		assert.Equal(t, model.PermissionLevelSysadmin, *stored.PermissionValues)
+	})
 }

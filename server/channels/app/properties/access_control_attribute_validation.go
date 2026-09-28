@@ -519,7 +519,8 @@ func rankSortKey(rank *int) int {
 //   - When managed="admin", PermissionValues is set to sysadmin. This is
 //     gated on PermissionManageSystem; callers without an identifiable
 //     caller ID (e.g. internal callers with no session on rctx) are
-//     treated as non-admin and rejected.
+//     treated as non-admin and rejected. Listed owners of existing
+//     admin-managed fields are exempt from this check.
 //   - When the field is owner-managed, PermissionValues is pinned to sysadmin.
 //     Human value writes are already blocked authoritatively by
 //     checkOwnerValueWriteAccess in the property-service hook, but pinning
@@ -529,19 +530,31 @@ func rankSortKey(rank *int) int {
 //   - Otherwise, PermissionValues is left as-is when set, and default-filled
 //     by ObjectType when nil (member for user fields, sysadmin for system
 //     and template). Caller pins are never downgraded.
-func (h *AccessControlAttributeValidationHook) enforceGroupPermissions(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
+func (h *AccessControlAttributeValidationHook) enforceGroupPermissions(rctx request.CTX, field, existing *model.PropertyField) (*model.PropertyField, error) {
 	sysadmin := model.PermissionLevelSysadmin
 
 	if managed, _ := field.Attrs[model.PropertyFieldAttrManaged].(string); managed == "admin" {
-		// Verify the caller has admin privileges. Default-deny if the
-		// permission checker isn't wired up or if the caller is
-		// unidentifiable — we never silently promote to sysadmin.
-		if h.permissionChecker == nil {
-			return nil, fmt.Errorf("missing permission to set managed=admin: no permission checker configured: %w", ErrAdminRequired)
-		}
 		callerID := h.propertyService.extractCallerID(rctx)
-		if callerID == "" || !h.permissionChecker(rctx, callerID, model.PermissionManageSystem) {
-			return nil, fmt.Errorf("missing permission to set managed=admin: only system admins can set managed=admin: %w", ErrAdminRequired)
+
+		exempt := false
+		if existing != nil {
+			if exManaged, _ := existing.Attrs[model.PropertyFieldAttrManaged].(string); exManaged == "admin" {
+				if isMachineCaller(h.pluginChecker, callerID) && isListedOwner(existing, callerID) {
+					exempt = true
+				}
+			}
+		}
+
+		if !exempt {
+			// Verify the caller has admin privileges. Default-deny if the
+			// permission checker isn't wired up or if the caller is
+			// unidentifiable — we never silently promote to sysadmin.
+			if h.permissionChecker == nil {
+				return nil, fmt.Errorf("missing permission to set managed=admin: no permission checker configured: %w", ErrAdminRequired)
+			}
+			if callerID == "" || !h.permissionChecker(rctx, callerID, model.PermissionManageSystem) {
+				return nil, fmt.Errorf("missing permission to set managed=admin: only system admins can set managed=admin: %w", ErrAdminRequired)
+			}
 		}
 		field.PermissionValues = &sysadmin
 	} else if model.HasPropertyFieldOwners(field) {
@@ -600,7 +613,7 @@ func (h *AccessControlAttributeValidationHook) PreCreatePropertyField(rctx reque
 		return nil, err
 	}
 
-	return h.enforceGroupPermissions(rctx, field)
+	return h.enforceGroupPermissions(rctx, field, nil)
 }
 
 func (h *AccessControlAttributeValidationHook) PreUpdatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField) (*model.PropertyField, error) {
@@ -625,7 +638,7 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyField(rctx reque
 		return nil, err
 	}
 
-	return h.enforceGroupPermissions(rctx, field)
+	return h.enforceGroupPermissions(rctx, field, existing)
 }
 
 func (h *AccessControlAttributeValidationHook) PreUpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
@@ -672,7 +685,7 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyFields(rctx requ
 			return nil, fmt.Errorf("field %s: %w", field.ID, err)
 		}
 
-		updated, err := h.enforceGroupPermissions(rctx, field)
+		updated, err := h.enforceGroupPermissions(rctx, field, existing)
 		if err != nil {
 			return nil, fmt.Errorf("field %s: %w", field.ID, err)
 		}
