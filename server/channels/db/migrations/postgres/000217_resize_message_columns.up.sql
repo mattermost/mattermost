@@ -6,6 +6,7 @@ BEGIN
     FROM information_schema.columns
     WHERE table_name = 'posts' AND column_name = 'message';
     IF col_len IS NOT NULL AND col_len < 1048576 THEN
+        DROP INDEX IF EXISTS idx_posts_message_txt;
         ALTER TABLE posts ALTER COLUMN message TYPE VARCHAR(1048576);
     END IF;
 
