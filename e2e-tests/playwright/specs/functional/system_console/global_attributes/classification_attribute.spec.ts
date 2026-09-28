@@ -19,23 +19,20 @@ import {
 } from '../../channels/channel_classification/helpers';
 
 import {findChannelField} from './applies_to_helpers';
-import {requireGlobalAttributesEnabled, setGlobalAttributesFeatureFlag} from './global_attributes_helpers';
+import {requireGlobalAttributesEnabled} from './global_attributes_helpers';
 
 test.describe(
     'System Console - the classification attribute page',
     {tag: ['@system_console', '@channel_attributes']},
     () => {
-        // Shares the server-wide GlobalAttributes and ClassificationMarkings flags with
-        // its sibling specs.
+        // Shares the server-wide ClassificationMarkings flag with its sibling specs.
         test.describe.configure({mode: 'serial'});
 
-        let originalGlobalAttributes: boolean | undefined;
         let originalClassificationMarkings: boolean | undefined;
 
         test.beforeAll(async () => {
             const {adminClient} = await getAdminClient();
             const {FeatureFlags} = await adminClient.getConfig();
-            originalGlobalAttributes = FeatureFlags.GlobalAttributes === true;
             originalClassificationMarkings = FeatureFlags.ClassificationMarkings === true;
             await setClassificationMarkingsFeatureFlag(adminClient, true);
         });
@@ -46,9 +43,6 @@ test.describe(
                 return;
             }
             await deleteClassificationFieldsIfExist(adminClient);
-            if (originalGlobalAttributes !== undefined) {
-                await setGlobalAttributesFeatureFlag(adminClient, originalGlobalAttributes);
-            }
             if (originalClassificationMarkings !== undefined) {
                 await setClassificationMarkingsFeatureFlag(adminClient, originalClassificationMarkings);
             }

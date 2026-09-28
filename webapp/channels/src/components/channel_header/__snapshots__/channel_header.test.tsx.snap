@@ -245,9 +245,6 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
               </div>
             </div>
           </div>
-          <div
-            class="channel-header__attributes"
-          />
         </div>
       </div>
       <button
@@ -346,9 +343,6 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
               </div>
             </div>
           </div>
-          <div
-            class="channel-header__attributes"
-          />
         </div>
       </div>
       <button
@@ -447,9 +441,6 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
               </div>
             </div>
           </div>
-          <div
-            class="channel-header__attributes"
-          />
         </div>
       </div>
       <button
@@ -548,9 +539,6 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
               </div>
             </div>
           </div>
-          <div
-            class="channel-header__attributes"
-          />
         </div>
       </div>
       <button
@@ -649,9 +637,6 @@ exports[`components/ChannelHeader should render archived view 1`] = `
               </div>
             </div>
           </div>
-          <div
-            class="channel-header__attributes"
-          />
         </div>
       </div>
       <button
@@ -760,9 +745,6 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
               </div>
             </div>
           </div>
-          <div
-            class="channel-header__attributes"
-          />
         </div>
       </div>
       <button
@@ -861,9 +843,6 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
               </div>
             </div>
           </div>
-          <div
-            class="channel-header__attributes"
-          />
         </div>
       </div>
       <button
@@ -1149,9 +1128,6 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
               </div>
             </div>
           </div>
-          <div
-            class="channel-header__attributes"
-          />
         </div>
       </div>
       <button
@@ -1250,9 +1226,6 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
               </div>
             </div>
           </div>
-          <div
-            class="channel-header__attributes"
-          />
         </div>
       </div>
       <button
@@ -1351,9 +1324,6 @@ exports[`components/ChannelHeader should render properly when populated with cha
               </div>
             </div>
           </div>
-          <div
-            class="channel-header__attributes"
-          />
         </div>
       </div>
       <button
@@ -1457,9 +1427,6 @@ exports[`components/ChannelHeader should render properly when there are pending 
               </div>
             </div>
           </div>
-          <div
-            class="channel-header__attributes"
-          />
         </div>
       </div>
       <button
@@ -1558,9 +1525,6 @@ exports[`components/ChannelHeader should render shared view 1`] = `
               </div>
             </div>
           </div>
-          <div
-            class="channel-header__attributes"
-          />
         </div>
       </div>
       <button
@@ -1675,9 +1639,6 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
               </div>
             </div>
           </div>
-          <div
-            class="channel-header__attributes"
-          />
         </div>
       </div>
       <button

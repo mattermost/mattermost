@@ -9,36 +9,16 @@
  * console UI and then checks what a user sees, with no API seeding in between.
  */
 
-import {expect, test, getAdminClient} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 
 import {configureChannelAttribute, deleteChannelFieldIfExists, findChannelField} from './applies_to_helpers';
-import {
-    deleteGlobalAttributeFieldIfExists,
-    requireGlobalAttributesEnabled,
-    setGlobalAttributesFeatureFlag,
-} from './global_attributes_helpers';
+import {deleteGlobalAttributeFieldIfExists, requireGlobalAttributesEnabled} from './global_attributes_helpers';
 
 test.describe(
     'System Console - applying an attribute to channels',
     {tag: ['@system_console', '@channel_attributes']},
     () => {
-        // Shares the server-wide GlobalAttributes flag with the sibling spec.
         test.describe.configure({mode: 'serial'});
-
-        let originalFlagValue: boolean | undefined;
-
-        test.beforeAll(async () => {
-            const {adminClient} = await getAdminClient();
-            const {FeatureFlags} = await adminClient.getConfig();
-            originalFlagValue = FeatureFlags.GlobalAttributes === true;
-        });
-
-        test.afterAll(async () => {
-            const {adminClient} = await getAdminClient();
-            if (adminClient && originalFlagValue !== undefined) {
-                await setGlobalAttributesFeatureFlag(adminClient, originalFlagValue);
-            }
-        });
 
         /**
          * @objective Ensure the Channels row writes every channel key onto a linked channel field.

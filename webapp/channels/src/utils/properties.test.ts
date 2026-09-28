@@ -7,6 +7,7 @@ import {
     filterCELIdentifier,
     getUserPropertyFieldLabel,
     isFieldOrphaned,
+    isWithheldPropertyValue,
     slugifyForCEL,
     validateCPAFieldName,
 } from './properties';
@@ -300,5 +301,28 @@ describe('isFieldOrphaned', () => {
         expect(isFieldOrphaned({attrs: {protected: true}}, installed)).toBe(false);
         expect(isFieldOrphaned({attrs: {}}, installed)).toBe(false);
         expect(isFieldOrphaned({}, installed)).toBe(false);
+    });
+});
+
+describe('isWithheldPropertyValue', () => {
+    it('reports the withheld marker', () => {
+        expect(isWithheldPropertyValue({withheld: true})).toBe(true);
+    });
+
+    // Every case below is a shape a real property value can legitimately have,
+    // so a false positive here would misread a genuine value as withheld.
+    const falseCases = [
+        ['null', null],
+        ['undefined', undefined],
+        ['a string value', 'AURORA'],
+        ['an array of options', ['opt1', 'opt2']],
+        ['an empty object', {}],
+        ['withheld: false', {withheld: false}],
+        ['withheld as a string', {withheld: 'true'}],
+        ['an array containing a withheld-shaped object', [{withheld: true}]],
+    ] as const;
+
+    test.each(falseCases)('%s -> false', (_label, value) => {
+        expect(isWithheldPropertyValue(value)).toBe(false);
     });
 });

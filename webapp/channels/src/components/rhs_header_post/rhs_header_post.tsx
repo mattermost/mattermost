@@ -8,6 +8,7 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 
+import ChannelAttributeLabels from 'components/channel_attributes/channel_attribute_labels';
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
@@ -183,15 +184,17 @@ class RhsHeaderPost extends React.PureComponent<Props> {
 
         return (
             <div className='sidebar--right__header'>
-                <span
+                <div
                     className='sidebar--right__title'
                     id='rhsPanelTitle'
                 >
                     {back}
-                    <FormattedMessage
-                        id='rhs_header.details'
-                        defaultMessage='Thread'
-                    />
+                    <span className='sidebar--right__title__heading'>
+                        <FormattedMessage
+                            id='rhs_header.details'
+                            defaultMessage='Thread'
+                        />
+                    </span>
                     {channelName &&
                         <button
                             onClick={this.handleJumpClick}
@@ -200,12 +203,18 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                             {channelName}
                         </button>
                     }
-                </span>
+                    <ChannelAttributeLabels
+                        channelId={this.props.channel.id}
+                        surface={['info', 'header']}
+                        allowEmptyVisible={true}
+                    />
+                </div>
                 <div className='controls'>
                     {this.props.isCollapsedThreadsEnabled ? (
                         <FollowButton
                             className='sidebar--right__follow__thread'
                             isFollowing={isFollowingThread}
+                            iconOnly={true}
                             onClick={this.handleFollowChange}
                         />
                     ) : null}

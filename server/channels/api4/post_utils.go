@@ -27,9 +27,7 @@ func userCreatePostPermissionCheckWithContext(c *Context, channelId string) {
 }
 
 func postHardenedModeCheckWithContext(where string, c *Context, props model.StringInterface) {
-	isIntegration := c.AppContext.Session().IsIntegration()
-
-	if appErr := app.PostHardenedModeCheckWithApp(c.App, isIntegration, props); appErr != nil {
+	if appErr := app.PostHardenedModeCheckWithApp(c.App, c.AppContext.Session().IsIntegration(), props); appErr != nil {
 		appErr.Where = where
 		c.Err = appErr
 	}

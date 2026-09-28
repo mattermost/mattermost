@@ -4,6 +4,7 @@
   "eyebrow": "SECURITY",
   "version": "unreleased",
   "spine": [
+    "/security-guide/security-updates",
     "/security-guide/cmmc-compliance",
     "/security-guide/finra-compliance",
     "/security-guide/hipaa-compliance",

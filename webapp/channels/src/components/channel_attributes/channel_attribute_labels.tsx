@@ -17,11 +17,14 @@ import {
 } from '@floating-ui/react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useDispatch} from 'react-redux';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities/properties';
 import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
+
+import {showChannelInfo} from 'actions/views/rhs';
 
 import type {ChannelLabelSurface} from 'components/common/hooks/useChannelLabels';
 import useChannelLabels from 'components/common/hooks/useChannelLabels';
@@ -49,14 +52,18 @@ function optionColor(attribute: ResolvedChannelAttribute): string | undefined {
 type Props = {
     channelId: string;
 
-    // Which of the header's two chip slots this instance fills: 'header' is the
-    // row under the channel name, 'info' the inline strip beside the member count.
-    // Both can be mounted at once, so every testid below is scoped by it.
-    surface: ChannelLabelSurface;
+    // One surface, or several merged into a single row so overflow is decided
+    // once. The header passes both so info and header chips collapse together
+    // instead of each treating the other as a sibling that eats their space.
+    surface: ChannelLabelSurface | ChannelLabelSurface[];
+
+    // Thread header: if a chip will not fit, collapse every chip into +N rather
+    // than keeping a clipped first chip beside the count.
+    allowEmptyVisible?: boolean;
 };
 
 /**
- * The channel's designated attribute values, as chips, for one channel header slot.
+ * The channel's designated attribute values, as chips.
  * Mounted as a child because channel_header.tsx is a class component.
  *
  * Labels are informational — nothing here enforces access, and no string may
@@ -69,9 +76,11 @@ type ChipSpec = {
     color?: string;
 };
 
-const ChannelAttributeLabels = ({channelId, surface}: Props) => {
+const ChannelAttributeLabels = ({channelId, surface, allowEmptyVisible = false}: Props) => {
     const {formatMessage} = useIntl();
+    const dispatch = useDispatch();
     const labels = useChannelLabels(channelId, surface);
+    const surfaceId = Array.isArray(surface) ? surface.join('-') : surface;
 
     // Expand each attribute into one ChipSpec per value (multiselect → N chips).
     const chipSpecs = useMemo((): ChipSpec[] => {
@@ -94,7 +103,7 @@ const ChannelAttributeLabels = ({channelId, surface}: Props) => {
     }, [labels]);
 
     const ids = useMemo(() => chipSpecs.map((s) => s.chipId), [chipSpecs]);
-    const {containerRef, registerChipRef, overflowRef, visibleIds, overflowIds, measured} = useLabelsOverflow(ids);
+    const {containerRef, registerChipRef, overflowRef, visibleIds, overflowIds, measured} = useLabelsOverflow(ids, {allowEmptyVisible});
 
     const byChipId = useMemo(() => {
         const map = new Map<string, ChipSpec>();
@@ -127,6 +136,11 @@ const ChannelAttributeLabels = ({channelId, surface}: Props) => {
     }, [ids]);
 
     const [isPopoverOpen, setPopoverOpen] = useState(false);
+
+    const openChannelInfo = useCallback(() => {
+        dispatch(showChannelInfo(channelId));
+        setPopoverOpen(false);
+    }, [dispatch, channelId]);
 
     const {refs: {setReference, setFloating}, floatingStyles, context: floatingContext} = useFloating({
         open: overflowIds.length > 0 && isPopoverOpen,
@@ -166,13 +180,18 @@ const ChannelAttributeLabels = ({channelId, surface}: Props) => {
                 className='ChannelAttributeLabels__item'
             >
                 <WithTooltip title={spec.fieldLabel}>
-                    <span>
+                    <button
+                        type='button'
+                        className='ChannelAttributeLabels__chipButton'
+                        onClick={openChannelInfo}
+                    >
                         <AttributeChip
                             label={spec.fieldLabel}
                             value={spec.value}
                             color={spec.color}
+                            size='medium'
                         />
-                    </span>
+                    </button>
                 </WithTooltip>
             </span>
         );
@@ -182,12 +201,14 @@ const ChannelAttributeLabels = ({channelId, surface}: Props) => {
         <div
             ref={containerRef}
             className='ChannelAttributeLabels'
-            data-testid={`channelAttributeLabels-${surface}`}
+            data-testid={`channelAttributeLabels-${surfaceId}`}
             style={measured ? undefined : {visibility: 'hidden'}}
         >
-            <div className='ChannelAttributeLabels__visible'>
-                {visibleIds.map(renderChip)}
-            </div>
+            {visibleIds.length > 0 && (
+                <div className='ChannelAttributeLabels__visible'>
+                    {visibleIds.map(renderChip)}
+                </div>
+            )}
 
             {overflowIds.length > 0 && (
                 <button
@@ -201,7 +222,7 @@ const ChannelAttributeLabels = ({channelId, surface}: Props) => {
                         {id: 'channel_attributes.labels.overflow_aria', defaultMessage: '{count, plural, one {# more attribute} other {# more attributes}}'},
                         {count: overflowIds.length},
                     )}
-                    data-testid={`channelAttributeLabelsOverflow-${surface}`}
+                    data-testid={`channelAttributeLabelsOverflow-${surfaceId}`}
                     {...getReferenceProps()}
                 >
                     <FormattedMessage
@@ -218,7 +239,7 @@ const ChannelAttributeLabels = ({channelId, surface}: Props) => {
                         ref={setFloating}
                         className='ChannelAttributeLabels__popover'
                         style={{...floatingStyles, ...transitionStyles}}
-                        data-testid={`channelAttributeLabelsPopover-${surface}`}
+                        data-testid={`channelAttributeLabelsPopover-${surfaceId}`}
                         {...getFloatingProps()}
                     >
                         {overflowIds.map((id) => {
@@ -235,15 +256,37 @@ const ChannelAttributeLabels = ({channelId, surface}: Props) => {
                                     <span className='ChannelAttributeLabels__popoverLabel'>
                                         {spec.fieldLabel}
                                     </span>
-                                    <AttributeChip
-                                        label={spec.fieldLabel}
-                                        value={spec.value}
-                                        color={spec.color}
-                                        announceLabel={false}
-                                    />
+                                    <button
+                                        type='button'
+                                        className='ChannelAttributeLabels__chipButton'
+                                        onClick={openChannelInfo}
+                                    >
+                                        <AttributeChip
+                                            label={spec.fieldLabel}
+                                            value={spec.value}
+                                            color={spec.color}
+                                            size='medium'
+                                            announceLabel={false}
+                                        />
+                                    </button>
                                 </div>
                             );
                         })}
+                        <div
+                            className='ChannelAttributeLabels__popoverDivider'
+                            role='separator'
+                        />
+                        <button
+                            type='button'
+                            className='ChannelAttributeLabels__viewAll'
+                            onClick={openChannelInfo}
+                            data-testid={`channelAttributeLabelsViewAll-${surfaceId}`}
+                        >
+                            <FormattedMessage
+                                id='channel_attributes.labels.view_all'
+                                defaultMessage='View all attributes'
+                            />
+                        </button>
                     </div>
                 </FloatingPortal>
             )}

@@ -4,11 +4,11 @@
 package storetest
 
 import (
+	"cmp"
 	"errors"
 	"fmt"
 	"math"
 	"slices"
-	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -4435,8 +4435,8 @@ func testTeamMembersMinusGroupMembers(t *testing.T, rctx request.CTX, ss store.S
 		groups = append(groups, group)
 	}
 
-	sort.Slice(users, func(i, j int) bool {
-		return users[i].Username < users[j].Username
+	slices.SortFunc(users, func(a, b *model.User) int {
+		return cmp.Compare(a.Username, b.Username)
 	})
 
 	// Add even users to even group, and the inverse
@@ -4593,8 +4593,8 @@ func testChannelMembersMinusGroupMembers(t *testing.T, rctx request.CTX, ss stor
 		groups = append(groups, group)
 	}
 
-	sort.Slice(users, func(i, j int) bool {
-		return users[i].Username < users[j].Username
+	slices.SortFunc(users, func(a, b *model.User) int {
+		return cmp.Compare(a.Username, b.Username)
 	})
 
 	// Add even users to even group, and the inverse

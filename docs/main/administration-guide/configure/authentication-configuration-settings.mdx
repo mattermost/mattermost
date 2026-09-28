@@ -655,7 +655,7 @@ If this setting is `false`, no additional users are designated as system admins 
 </colgroup>
 <tbody>
 <tr>
-<td><p>This setting accepts an AD/LDAP filter that designates the selected users as system admins. Users are promoted to this role on their next sign-in or on the next scheduled AD/LDAP sync.</p><p>If the Admin Filter is removed, users who are currently logged in retain their Admin role until their next sign-in.</p><p>String input.</p></td>
+<td><p>This setting accepts an AD/LDAP filter that designates the selected users as system admins. Users are promoted to this role on their next AD/LDAP sign-in. This filter isn't evaluated during scheduled AD/LDAP synchronization, and it doesn't apply to users who authenticate with SAML, even when <strong>Enable Synchronizing SAML Accounts With AD/LDAP</strong> is enabled. Use the SAML <strong>Admin Attribute</strong> setting to designate system admins for SAML-authenticated users.</p><p>If the Admin Filter is removed, users who are currently logged in retain their Admin role until their next sign-in.</p><p>String input.</p></td>
 <td><ul><li>System Config path: <strong>Authentication &gt; AD/LDAP</strong></li><li><code>config.json</code> setting: <code>LdapSettings</code> &gt; <code>AdminFilter</code></li><li>Environment variable: <code>MM_LDAPSETTINGS_ADMINFILTER</code></li></ul></td>
 </tr>
 </tbody>
@@ -1038,6 +1038,7 @@ In line with Microsoft ADFS guidance, we recommend [configuring intranet forms-b
 
 - AD/LDAP synchronization must be enabled and configured through the settings under **Authentication \> AD/LDAP**.
 - Prior to Mattermost v10.9, users not present on the LDAP server could log in, but would be deactivated on the next LDAP sync.
+- Synchronization updates user attributes only. It doesn't change a user's system admin role. The AD/LDAP **Admin Filter** isn't applied to SAML-authenticated users; use the SAML **Admin Attribute** setting to designate system admins instead.
 - See [AD/LDAP Setup](/administration-guide/onboard/ad-ldap) to learn more about configuring AD/LDAP.
 
 </Note>

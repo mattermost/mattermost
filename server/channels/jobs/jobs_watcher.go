@@ -4,7 +4,7 @@
 package jobs
 
 import (
-	"math/rand"
+	"math/rand/v2"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -39,8 +39,7 @@ func (watcher *Watcher) Start() {
 	mlog.Debug("Watcher Started")
 	// Delay for some random number of milliseconds before starting to ensure that multiple
 	// instances of the jobserver  don't poll at a time too close to each other.
-	rand.Seed(time.Now().UTC().UnixNano())
-	<-time.After(time.Duration(rand.Intn(watcher.pollingInterval)) * time.Millisecond)
+	<-time.After(time.Duration(rand.IntN(watcher.pollingInterval)) * time.Millisecond)
 
 	defer func() {
 		mlog.Debug("Watcher Finished")

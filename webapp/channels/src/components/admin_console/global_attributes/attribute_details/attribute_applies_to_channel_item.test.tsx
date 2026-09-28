@@ -71,14 +71,15 @@ describe('AttributeAppliesToChannelItem', () => {
         expect(screen.getByTestId('attributeAppliesToRow-channel-remove')).toBeDisabled();
     });
 
-    it('states the configuration while collapsed, and stops once it is on screen', async () => {
+    it('states the configuration in the row summary', async () => {
         renderComponent({config: {required: true, changePolicy: 'never', displayLocations: ['display_label_header']}});
 
         expect(screen.getByTestId('attributeAppliesToRow-channel-summary')).
             toHaveTextContent('Required · Display: Header · Locked once set');
 
         await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-toggle'));
-        expect(screen.queryByTestId('attributeAppliesToRow-channel-summary')).not.toBeInTheDocument();
+        expect(screen.getByTestId('attributeAppliesToRow-channel-summary')).
+            toHaveTextContent('Required · Display: Header · Locked once set');
     });
 
     it('reports a settings change without holding it itself', async () => {

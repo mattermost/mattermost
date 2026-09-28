@@ -84,6 +84,13 @@ test.describe('Mobile view RHS auto-focus', () => {
         await channelsPage.goto();
         await channelsPage.toBeVisible();
 
+        // # Wait for the mobile navbar's channel menu button to render. Right after page load
+        // the app can still be settling into mobile layout; opening the menu before that
+        // settles races the header page object's one-shot visibility check, which then falls
+        // back to the desktop header's copy of the button -- permanently hidden at this
+        // viewport width -- and times out.
+        await expect(page.locator('#navbar #channelHeaderDropdownButton')).toBeVisible();
+
         // # Open the mobile channel header menu
         await channelsPage.centerView.header.openChannelMenu();
 

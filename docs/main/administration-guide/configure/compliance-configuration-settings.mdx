@@ -382,6 +382,21 @@ The email address your Global Relay server monitors for incoming compliance expo
 </tbody>
 </table>
 
+### Global Relay sender address
+
+An optional fixed From address used for every exported Global Relay EML and as the SMTP envelope sender. When left blank (the default), the export continues to derive From from the first channel participant by username. Participant emails remain in the To header so archiving systems can still index conversation participants.
+
+<table style={{width: '72%'}}>
+<colgroup>
+<col style={{width: '71%'}} />
+</colgroup>
+<tbody>
+<tr>
+<td>This feature's <code>config.json</code> setting is <code>".MessageExportSettings.GlobalRelaySettings.SenderAddress": ""</code> with string input.</td>
+</tr>
+</tbody>
+</table>
+
 ### SMTP server name
 
 The SMTP server name URL that will receive your Global Relay EML file when a [custom customer account type](#global-relay-customer-account) is configured.

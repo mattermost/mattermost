@@ -4,9 +4,10 @@
 package model
 
 import (
+	"cmp"
 	"encoding/json"
 	"io"
-	"sort"
+	"slices"
 )
 
 type PostList struct {
@@ -167,8 +168,8 @@ func (o *PostList) Extend(other *PostList) {
 }
 
 func (o *PostList) SortByCreateAt() {
-	sort.Slice(o.Order, func(i, j int) bool {
-		return o.Posts[o.Order[i]].CreateAt > o.Posts[o.Order[j]].CreateAt
+	slices.SortFunc(o.Order, func(a, b string) int {
+		return cmp.Compare(o.Posts[b].CreateAt, o.Posts[a].CreateAt)
 	})
 }
 

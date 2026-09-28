@@ -86,7 +86,7 @@ test.describe('System Console - Membership Policy ranked operators', () => {
         if (field) {
             await deleteCustomProfileAttributes(adminClient, {
                 [field.id]: field,
-                __ownedIds: new Set([field.id]),
+                ownedIds: new Set([field.id]),
             } as any);
             field = undefined;
         }
@@ -126,7 +126,6 @@ test.describe('System Console - Membership Policy ranked operators', () => {
         }
         await addAttributeButton.click();
 
-        // # Select the ranked attribute by name
         await selectAttributeInEditor(page, field!.name);
 
         // * The row defaults to the canonical ranked operator, "is at least"

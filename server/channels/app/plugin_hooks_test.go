@@ -13,7 +13,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -4830,6 +4830,154 @@ func TestHookScheduledPostWillBeCreated(t *testing.T) {
 		require.NotNil(t, appErr)
 		assert.Contains(t, appErr.Id, "rejected_by_plugin")
 	})
+
+	t.Run("burn-on-read skips the hook on save and update", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, pluginIDs, errs := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) ScheduledPostWillBeCreated(c *plugin.Context, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, string) {
+				p.API.KVSet("called_"+scheduledPost.Id, []byte("true"))
+				scheduledPost.Message = "modified-by-plugin"
+				return scheduledPost, ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+		require.NoError(t, errs[0])
+		pluginID := pluginIDs[0]
+
+		// The hook is synchronous, so the key is written by the time the call returns. Checking
+		// it separates "the plugin never ran" from "the plugin ran and its reply was discarded":
+		// merely learning that a burn-on-read post exists is the leak.
+		hookCalledFor := func(t *testing.T, scheduledPostID string) bool {
+			t.Helper()
+			value, appErr := th.App.GetPluginKey(pluginID, "called_"+scheduledPostID)
+			require.Nil(t, appErr)
+			return value != nil
+		}
+
+		// Control: a regular scheduled post in the same channel does reach the plugin, so the
+		// burn-on-read assertions below cannot pass just because the hook is unwired.
+		regular, appErr := th.App.SaveScheduledPost(th.Context, &model.ScheduledPost{
+			Draft: model.Draft{
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "regular",
+			},
+			ScheduledAt: model.GetMillis() + 60_000,
+		}, "")
+		require.Nil(t, appErr)
+		require.Equal(t, "modified-by-plugin", regular.Message)
+		require.True(t, hookCalledFor(t, regular.Id))
+
+		saved, appErr := th.App.SaveScheduledPost(th.Context, &model.ScheduledPost{
+			Draft: model.Draft{
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "burn-on-read secret",
+				Type:      model.PostTypeBurnOnRead,
+			},
+			ScheduledAt: model.GetMillis() + 60_000,
+		}, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, saved)
+		assert.Equal(t, "burn-on-read secret", saved.Message)
+		assert.False(t, hookCalledFor(t, saved.Id), "plugin must not learn a burn-on-read post was scheduled")
+
+		fetched, storeErr := th.App.Srv().Store().ScheduledPost().Get(th.Context, saved.Id)
+		require.NoError(t, storeErr)
+		assert.Equal(t, "burn-on-read secret", fetched.Message)
+
+		// Clients omit Type on update; UpdateScheduledPost restores it from the stored row before
+		// dispatching, so the hook must stay skipped for that shape too.
+		saved.Type = ""
+		saved.Message = "burn-on-read secret edited"
+		updated, appErr := th.App.UpdateScheduledPost(th.Context, th.BasicUser.Id, saved, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, updated)
+		assert.Equal(t, model.PostTypeBurnOnRead, updated.Type)
+		assert.Equal(t, "burn-on-read secret edited", updated.Message)
+		assert.False(t, hookCalledFor(t, saved.Id), "plugin must not learn a burn-on-read post was edited")
+
+		fetched, storeErr = th.App.Srv().Store().ScheduledPost().Get(th.Context, saved.Id)
+		require.NoError(t, storeErr)
+		assert.Equal(t, "burn-on-read secret edited", fetched.Message)
+	})
+
+	t.Run("burn-on-read cannot be rejected by the hook", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, _, errs := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) ScheduledPostWillBeCreated(c *plugin.Context, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, string) {
+				return nil, "scheduled post not permitted"
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+		require.NoError(t, errs[0])
+
+		// Control: the same plugin does reject a regular scheduled post in this channel.
+		_, appErr := th.App.SaveScheduledPost(th.Context, &model.ScheduledPost{
+			Draft: model.Draft{
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "regular",
+			},
+			ScheduledAt: model.GetMillis() + 60_000,
+		}, "")
+		require.NotNil(t, appErr)
+		require.Contains(t, appErr.Id, "rejected_by_plugin")
+
+		saved, appErr := th.App.SaveScheduledPost(th.Context, &model.ScheduledPost{
+			Draft: model.Draft{
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "burn-on-read secret",
+				Type:      model.PostTypeBurnOnRead,
+			},
+			ScheduledAt: model.GetMillis() + 60_000,
+		}, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, saved)
+
+		fetched, storeErr := th.App.Srv().Store().ScheduledPost().Get(th.Context, saved.Id)
+		require.NoError(t, storeErr)
+		assert.Equal(t, "burn-on-read secret", fetched.Message)
+	})
 }
 
 func TestHookDraftWillBeUpserted(t *testing.T) {
@@ -6564,7 +6712,7 @@ func main() {
 		require.Nil(t, th.App.RegisterChannelGuard(th.Context, th.BasicChannel.Id, id1))
 
 		sortedIDs := []string{id0, id1}
-		sort.Strings(sortedIDs)
+		slices.Sort(sortedIDs)
 		// Each plugin prepends its tag to whatever message it receives. Walking in
 		// sorted order: the first plugin sees "original" and produces "G?:original";
 		// the second plugin sees that and prepends its own tag. Build the expected
@@ -6640,7 +6788,7 @@ func main() {
 			pluginIDs[2]: g3CountFile.Name(),
 		}
 		sortedIDs := []string{pluginIDs[0], pluginIDs[1], pluginIDs[2]}
-		sort.Strings(sortedIDs)
+		slices.Sort(sortedIDs)
 
 		// Find rejecter's index in the sorted order.
 		rejecterIdx := -1

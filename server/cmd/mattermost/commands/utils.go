@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -31,7 +31,7 @@ func printStringMap(value reflect.Value, tabVal int) string {
 		stringToKeyMap[k.String()] = k
 	}
 
-	sort.Strings(sortedKeys)
+	slices.Sort(sortedKeys)
 
 	for _, keyString := range sortedKeys {
 		key := stringToKeyMap[keyString]

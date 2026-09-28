@@ -62,7 +62,7 @@ type State = {
 const ABAC_MATCH_HARD_CAP = 1000;
 
 export class AddUsersToTeamModal extends React.PureComponent<Props, State> {
-    selectedItemRef: React.RefObject<HTMLDivElement>;
+    selectedItemRef: React.RefObject<HTMLDivElement | null>;
 
     public constructor(props: Props) {
         super(props);

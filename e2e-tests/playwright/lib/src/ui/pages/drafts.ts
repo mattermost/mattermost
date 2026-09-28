@@ -52,4 +52,18 @@ export default class DraftsPage {
         await lastPost.waitFor();
         return new components.DraftPost(lastPost);
     }
+
+    draftViews() {
+        return this.page.getByTestId('draftView');
+    }
+
+    async expectDraftCount(count: number) {
+        await expect(this.draftViews()).toHaveCount(count);
+    }
+
+    async getDraftByChannelName(channelName: string) {
+        const draft = this.draftViews().filter({hasText: channelName}).first();
+        await draft.waitFor();
+        return new components.DraftPost(draft);
+    }
 }

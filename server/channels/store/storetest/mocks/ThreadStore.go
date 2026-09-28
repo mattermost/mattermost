@@ -200,6 +200,36 @@ func (_m *ThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, in
 	return r0, r1
 }
 
+// GetThreadFollowerIDsForChannel provides a mock function with given fields: teamName, channelName, includeArchivedChannels
+func (_m *ThreadStore) GetThreadFollowerIDsForChannel(teamName string, channelName string, includeArchivedChannels bool) ([]string, error) {
+	ret := _m.Called(teamName, channelName, includeArchivedChannels)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetThreadFollowerIDsForChannel")
+	}
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, bool) ([]string, error)); ok {
+		return rf(teamName, channelName, includeArchivedChannels)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, bool) []string); ok {
+		r0 = rf(teamName, channelName, includeArchivedChannels)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, bool) error); ok {
+		r1 = rf(teamName, channelName, includeArchivedChannels)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetThreadFollowers provides a mock function with given fields: threadID, fetchOnlyActive
 func (_m *ThreadStore) GetThreadFollowers(threadID string, fetchOnlyActive bool) ([]string, error) {
 	ret := _m.Called(threadID, fetchOnlyActive)

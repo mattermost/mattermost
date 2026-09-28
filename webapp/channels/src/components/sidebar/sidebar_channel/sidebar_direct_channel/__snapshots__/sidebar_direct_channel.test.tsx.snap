@@ -62,7 +62,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
       class="tour-tip__pulsating-dot-ctr"
       data-pulsating-dot-placement="right"
       id="tipButton"
-      style="transform: translate(undefinedpx, undefinedpx);"
     >
       <span
         class="pulsating_dot"
@@ -135,7 +134,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
       class="tour-tip__pulsating-dot-ctr"
       data-pulsating-dot-placement="right"
       id="tipButton"
-      style="transform: translate(undefinedpx, undefinedpx);"
     >
       <span
         class="pulsating_dot"
@@ -208,7 +206,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
       class="tour-tip__pulsating-dot-ctr"
       data-pulsating-dot-placement="right"
       id="tipButton"
-      style="transform: translate(undefinedpx, undefinedpx);"
     >
       <span
         class="pulsating_dot"
@@ -269,7 +266,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_direct_channel should match 
       class="tour-tip__pulsating-dot-ctr"
       data-pulsating-dot-placement="right"
       id="tipButton"
-      style="transform: translate(undefinedpx, undefinedpx);"
     >
       <span
         class="pulsating_dot"

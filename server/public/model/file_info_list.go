@@ -4,7 +4,8 @@
 package model
 
 import (
-	"sort"
+	"cmp"
+	"slices"
 )
 
 type FileInfoList struct {
@@ -85,8 +86,8 @@ func (o *FileInfoList) Extend(other *FileInfoList) {
 }
 
 func (o *FileInfoList) SortByCreateAt() {
-	sort.Slice(o.Order, func(i, j int) bool {
-		return o.FileInfos[o.Order[i]].CreateAt > o.FileInfos[o.Order[j]].CreateAt
+	slices.SortFunc(o.Order, func(a, b string) int {
+		return cmp.Compare(o.FileInfos[b].CreateAt, o.FileInfos[a].CreateAt)
 	})
 }
 

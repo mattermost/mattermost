@@ -96,8 +96,25 @@ export function canMoveToOption(field: PropertyField, currentValue: unknown, opt
     return policy === 'raise_only' ? nextRank > currentRank : nextRank < currentRank;
 }
 
+// Classification Markings stores its unique name as this lowercase slug and
+// does not write display_name. User-facing surfaces should match the admin
+// heading ("Classification"), not the slug.
+const CLASSIFICATION_FIELD_NAME = 'classification';
+
+function formatPropertyFieldLabel(name: string): string {
+    const trimmed = name.trim();
+    if (!trimmed) {
+        return name;
+    }
+    return trimmed.charAt(0).toLocaleUpperCase() + trimmed.slice(1);
+}
+
 // display_name is the admin-facing override; name is the CEL-safe slug fallback.
 export function getPropertyFieldLabel(field: PropertyField): string {
     const displayName = field.attrs?.display_name;
-    return typeof displayName === 'string' && displayName ? displayName : field.name;
+    const raw = typeof displayName === 'string' && displayName ? displayName : field.name;
+    if (field.name === CLASSIFICATION_FIELD_NAME) {
+        return formatPropertyFieldLabel(raw);
+    }
+    return raw;
 }

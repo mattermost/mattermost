@@ -148,3 +148,26 @@ export function fetchSystemPropertyValues<T = unknown>(
         return {data: values};
     };
 }
+
+/**
+ * Fetches a target's property values for a given group and object type, then
+ * stores them in Redux. Used to repair a target after a websocket broadcast
+ * withheld a non-public value: the client can't be handed the value over the
+ * wire, so it refetches through the read path, which masks it the same way.
+ */
+export function fetchPropertyValues<T = unknown>(
+    groupName: string,
+    objectType: string,
+    targetId: string,
+): ActionFuncAsync<Array<PropertyValue<T>>> {
+    return async (dispatch) => {
+        const values = await Client4.getPropertyValues<T>(groupName, objectType, targetId);
+
+        dispatch({
+            type: PropertyTypes.RECEIVED_PROPERTY_VALUES,
+            data: {values},
+        });
+
+        return {data: values};
+    };
+}

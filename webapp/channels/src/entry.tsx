@@ -4,13 +4,9 @@
 import React from 'react';
 import ReactDOMClient from 'react-dom/client';
 
-import {logError, LogErrorBarMode} from 'mattermost-redux/actions/errors';
-
-import store from 'stores/redux_store';
-
 import App from 'components/app';
 
-import {AnnouncementBarTypes} from 'utils/constants';
+import {registerGlobalErrorHandlers} from 'utils/global_error_handler';
 import {setCSRFFromCookie} from 'utils/utils';
 
 // Import our styles
@@ -29,34 +25,13 @@ declare global {
 // This is for anything that needs to be done for ALL react components.
 // This runs before we start to render anything.
 function preRenderSetup(onPreRenderSetupReady: () => void) {
-    window.onerror = (msg, url, line, column, error) => {
-        // Benign Chromium ResizeObserver noise (Monaco automaticLayout, etc.).
-        // Covers both "loop limit exceeded" and "loop completed with undelivered notifications."
-        if (typeof msg === 'string' && msg.startsWith('ResizeObserver loop')) {
-            return;
-        }
-
-        store.dispatch(
-            logError(
-                {
-                    type: AnnouncementBarTypes.DEVELOPER,
-                    message: 'A JavaScript error in the webapp client has occurred. (msg: ' + msg + ', row: ' + line + ', col: ' + column + ').',
-                    stack: error?.stack,
-                    url,
-                },
-                {errorBarMode: LogErrorBarMode.InDevMode},
-            ),
-        );
-    };
-
+    registerGlobalErrorHandlers();
     setCSRFFromCookie();
-
     onPreRenderSetupReady();
 }
 
 function renderReactRootComponent() {
     const container = document.getElementById('root')!;
-
     ReactDOMClient.createRoot(container).render(<App/>);
 }
 

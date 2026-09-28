@@ -176,7 +176,7 @@ type State = {
 };
 
 export class FileUpload extends PureComponent<Props, State> {
-    fileInput: RefObject<HTMLInputElement>;
+    fileInput: RefObject<HTMLInputElement | null>;
     unbindDragsterEvents?: () => void;
 
     static defaultProps = {

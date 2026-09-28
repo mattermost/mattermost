@@ -84,8 +84,8 @@ class SearchableUserList extends React.PureComponent<Props, State> {
     };
 
     private nextTimeoutId: NodeJS.Timeout;
-    private scrollbarsRef: React.RefObject<HTMLDivElement>;
-    private filterRef: React.RefObject<HTMLInputElement>;
+    private scrollbarsRef: React.RefObject<HTMLDivElement | null>;
+    private filterRef: React.RefObject<HTMLInputElement | null>;
 
     constructor(props: Props) {
         super(props);

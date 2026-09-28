@@ -9,12 +9,79 @@ import {partitionAt} from 'utils/array';
 
 // Reserved for the +N affordance. Measured against the outer container, which holds
 // both the chip row and the button, so the reserve and the width agree.
-const OVERFLOW_CHIP_WIDTH = 34;
+const OVERFLOW_CHIP_WIDTH = 42;
 
 // Gap between chips, matching $chip-gap in channel_attribute_labels.scss.
 const CHIP_GAP = 4;
 
+// Keep in sync with min-width on .channel-header__description in _headers.scss.
+const DESCRIPTION_MIN_WIDTH = 100;
+
+const TITLE_SELECTOR = '.channel-header__title';
+const DESCRIPTION_SELECTOR = 'channel-header__description';
+
 const RECALC_DEBOUNCE_MS = 100;
+
+function outerWidth(element: Element): number {
+    const style = window.getComputedStyle(element);
+    return element.getBoundingClientRect().width +
+        (parseFloat(style.marginLeft) || 0) +
+        (parseFloat(style.marginRight) || 0);
+}
+
+/**
+ * Width the chips may occupy. In the channel header this is the title row minus
+ * the channel name, the icon buttons, and a 100px floor for the header text —
+ * not the icons cluster's current width, which is content-sized and would
+ * collapse the chips permanently once they overflowed.
+ */
+function availableWidthForLabels(containerEl: HTMLElement): number {
+    const title = containerEl.closest(TITLE_SELECTOR);
+    if (title) {
+        let used = 0;
+        for (const child of Array.from(title.children)) {
+            if (child.contains(containerEl)) {
+                used += outerWidth(child) - child.getBoundingClientRect().width;
+                for (const iconChild of Array.from(child.children)) {
+                    if (iconChild !== containerEl) {
+                        used += outerWidth(iconChild) + CHIP_GAP;
+                    }
+                }
+            } else if (child.classList.contains(DESCRIPTION_SELECTOR)) {
+                used += DESCRIPTION_MIN_WIDTH;
+            } else {
+                used += outerWidth(child);
+            }
+        }
+        return title.getBoundingClientRect().width - used;
+    }
+
+    const parent = containerEl.parentElement;
+    if (!parent) {
+        return 0;
+    }
+    let siblingWidth = 0;
+    for (const child of Array.from(parent.children)) {
+        if (child === containerEl) {
+            continue;
+        }
+
+        // Thread header: the channel name ellipsizes so +N never disappears.
+        // Subtracting its current width would leave the chips nothing, then
+        // clip the overflow chip itself.
+        if (child.classList.contains('sidebar--right__title__channel')) {
+            continue;
+        }
+
+        siblingWidth += child.getBoundingClientRect().width + CHIP_GAP;
+    }
+
+    // Padding is inside the parent's border box but outside the chips. Counting
+    // it as available width would keep extra chips on the row until they wrap.
+    const style = window.getComputedStyle(parent);
+    const padding = (parseFloat(style.paddingLeft) || 0) + (parseFloat(style.paddingRight) || 0);
+    return parent.getBoundingClientRect().width - padding - siblingWidth;
+}
 
 /**
  * Splits chip ids into those that fit the measured container and those that
@@ -24,7 +91,15 @@ const RECALC_DEBOUNCE_MS = 100;
  * use_bookmarks_overflow.ts solves the same problem for a draggable bar. If a
  * third caller appears, extract the shared core rather than growing either copy.
  */
-export function useLabelsOverflow(ids: string[]) {
+type OverflowOptions = {
+
+    // Channel header always keeps one chip so the row is not just "+3". The
+    // thread header is tight enough that a forced chip becomes a colour square;
+    // there, overflow may include every chip.
+    allowEmptyVisible?: boolean;
+};
+
+export function useLabelsOverflow(ids: string[], {allowEmptyVisible = false}: OverflowOptions = {}) {
     const [containerEl, setContainerEl] = useState<HTMLDivElement | null>(null);
     const containerRef = useCallback((node: HTMLDivElement | null) => {
         setContainerEl(node);
@@ -42,6 +117,7 @@ export function useLabelsOverflow(ids: string[]) {
     const observerRef = useRef<ResizeObserver | null>(null);
 
     const idsRef = useLatest(ids);
+    const allowEmptyVisibleRef = useLatest(allowEmptyVisible);
     const [overflowStartIndex, setOverflowStartIndex] = useState(ids.length);
 
     // False until calculateOverflow has run at least once with real measurements.
@@ -57,20 +133,7 @@ export function useLabelsOverflow(ids: string[]) {
             return;
         }
 
-        // Space left by the container's siblings, not the container's own width. The
-        // container is content-sized, so measuring it would measure the chips we are
-        // deciding about — the split would then depend on the previous split.
-        const parent = containerEl.parentElement;
-        let availableWidth = 0;
-        if (parent) {
-            let siblingWidth = 0;
-            for (const child of Array.from(parent.children)) {
-                if (child !== containerEl) {
-                    siblingWidth += child.getBoundingClientRect().width + CHIP_GAP;
-                }
-            }
-            availableWidth = parent.getBoundingClientRect().width - siblingWidth;
-        }
+        const availableWidth = availableWidthForLabels(containerEl);
 
         // Not laid out yet. Show everything rather than bailing: the row holds only
         // the chips it is allowed to show, so bailing deadlocks — no visible chips
@@ -87,19 +150,23 @@ export function useLabelsOverflow(ids: string[]) {
             const chipEl = chipRefs.current.get(currentIds[i]);
 
             // Use live width when the chip is in the DOM; fall back to the cached
-            // width from the last time it was visible. A chip with no width data
-            // at all (never rendered) is treated as too wide to fit — this stops
-            // the loop and avoids a "show all → measure → hide → no width → show
-            // all" oscillation that would otherwise blink indefinitely.
+            // width from the last time it was visible. If a chip has never been
+            // measured, wait — collapsing it would hide it, so it would never
+            // get a width, and the row would stay on +N even after space opens.
             let contentWidth: number;
             if (chipEl) {
-                contentWidth = chipEl.getBoundingClientRect().width;
+                // scrollWidth is the unconstrained chip, even when the last visible
+                // one is ellipsizing. Measuring the shrunk box would make more
+                // chips look like they fit, then hide them, then fit, forever.
+                contentWidth = Math.max(chipEl.getBoundingClientRect().width, chipEl.scrollWidth);
+                if (contentWidth <= 0) {
+                    return;
+                }
                 chipWidthCache.current.set(currentIds[i], contentWidth);
             } else {
                 const cached = chipWidthCache.current.get(currentIds[i]);
                 if (cached === undefined) {
-                    nextIndex = Math.max(1, i);
-                    break;
+                    return;
                 }
                 contentWidth = cached;
             }
@@ -115,8 +182,7 @@ export function useLabelsOverflow(ids: string[]) {
             const reserve = isLast ? 0 : overflowWidth + CHIP_GAP;
 
             if (usedWidth + chipWidth + reserve > availableWidth) {
-                // At least one chip: a header showing only "+3" names no marking.
-                nextIndex = Math.max(1, i);
+                nextIndex = allowEmptyVisibleRef.current ? i : Math.max(1, i);
                 break;
             }
 
@@ -125,7 +191,7 @@ export function useLabelsOverflow(ids: string[]) {
 
         setOverflowStartIndex(nextIndex);
         setMeasured(true);
-    }, [containerEl, idsRef]);
+    }, [containerEl, idsRef, allowEmptyVisibleRef]);
 
     const debouncedCalculateOverflow = useDebounce(calculateOverflow, RECALC_DEBOUNCE_MS);
 
@@ -133,12 +199,20 @@ export function useLabelsOverflow(ids: string[]) {
         const observer = new ResizeObserver(debouncedCalculateOverflow);
         observerRef.current = observer;
         chipRefs.current.forEach((el) => observer.observe(el));
+        const title = containerEl?.closest(TITLE_SELECTOR);
+        const parent = containerEl?.parentElement;
+        if (title) {
+            observer.observe(title);
+        }
+        if (parent && parent !== title) {
+            observer.observe(parent);
+        }
 
         return () => {
             observer.disconnect();
             observerRef.current = null;
         };
-    }, [debouncedCalculateOverflow]);
+    }, [debouncedCalculateOverflow, containerEl]);
 
     const registerChipRef = useCallback((id: string, element: HTMLElement | null) => {
         const existing = chipRefs.current.get(id);
@@ -162,6 +236,11 @@ export function useLabelsOverflow(ids: string[]) {
         return () => registerChipRef('__container', null);
     }, [containerEl, registerChipRef]);
 
+    // Keyed on the chips themselves, not the array holding them: callers rebuild
+    // that array on every value change and every graph name that resolves, and
+    // re-hiding the row for each one blanked every chip while one was edited.
+    const idsKey = ids.join('\0');
+
     // Show everything when the set changes, then measure and shrink. Labels arrive
     // after mount, so a stale index from the empty set would render a +N alone.
     // Drop cache entries for IDs that are no longer in the set — a new chip that
@@ -177,7 +256,10 @@ export function useLabelsOverflow(ids: string[]) {
         setOverflowStartIndex(ids.length);
         debouncedCalculateOverflow();
         return () => debouncedCalculateOverflow.cancel();
-    }, [ids, debouncedCalculateOverflow]);
+
+        // idsKey stands in for ids so a new array identity does not retrigger.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [idsKey, debouncedCalculateOverflow]);
 
     const [visibleIds, overflowIds] = useMemo(
         () => partitionAt(ids, overflowStartIndex),

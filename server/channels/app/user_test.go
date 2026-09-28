@@ -2505,6 +2505,46 @@ func TestPatchUser(t *testing.T) {
 		require.Nil(t, err)
 		require.Empty(t, u.Password)
 	})
+
+	t.Run("Patch bot username to a reserved system-owned bot username", func(t *testing.T) {
+		bot, err := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    model.NewUsername(),
+			Description: "a bot",
+			OwnerId:     th.BasicUser.Id,
+		})
+		require.Nil(t, err)
+		defer func() {
+			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			require.Nil(t, err)
+		}()
+
+		_, err = th.App.PatchUser(th.Context, bot.UserId, &model.UserPatch{
+			Username: new(model.BotSystemBotUsername),
+		}, true)
+		require.NotNil(t, err)
+		require.Equal(t, "app.user.update.reserved_username.app_error", err.Id)
+	})
+
+	t.Run("UpdateUser directly (bypassing PatchUser) cannot rename a bot into a reserved username", func(t *testing.T) {
+		bot, err := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    model.NewUsername(),
+			Description: "a bot",
+			OwnerId:     th.BasicUser.Id,
+		})
+		require.Nil(t, err)
+		defer func() {
+			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			require.Nil(t, err)
+		}()
+
+		botUser, err := th.App.GetUser(th.Context, bot.UserId)
+		require.Nil(t, err)
+
+		botUser.Username = model.BotSystemBotUsername
+		_, err = th.App.UpdateUser(th.Context, botUser, false)
+		require.NotNil(t, err)
+		require.Equal(t, "app.user.update.reserved_username.app_error", err.Id)
+	})
 }
 
 func TestUpdateThreadReadForUser(t *testing.T) {
@@ -2622,6 +2662,73 @@ func TestGetThreadsForUserSanitizesRootPost(t *testing.T) {
 		require.Len(t, threads.Threads, 1)
 		assertSanitized(t, threads.Threads[0].Post)
 	})
+}
+
+func TestUpdateThreadFollowForUserFromChannelAddStripsActionIntegrations(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+	})
+
+	rootPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "interactive root",
+		Props: model.StringInterface{
+			model.PostPropsAttachments: []*model.MessageAttachment{
+				{
+					Text: "hello",
+					Actions: []*model.PostAction{
+						{
+							Type: model.PostActionTypeButton,
+							Name: "action",
+							Integration: &model.PostActionIntegration{
+								URL:     "http://localhost:8065/secret-endpoint",
+								Context: map[string]any{"secret_marker": "s3cr3t"},
+							},
+						},
+					},
+				},
+			},
+		},
+	}, th.BasicChannel, model.CreatePostFlags{})
+	require.Nil(t, appErr)
+
+	_, _, appErr = th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		RootId:    rootPost.Id,
+		Message:   "reply",
+	}, th.BasicChannel, model.CreatePostFlags{})
+	require.Nil(t, appErr)
+
+	messages, closeWS := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", []model.WebsocketEventType{model.WebsocketEventThreadUpdated})
+	defer closeWS()
+
+	appErr = th.App.UpdateThreadFollowForUserFromChannelAdd(th.Context, th.BasicUser2.Id, th.BasicTeam.Id, rootPost.Id)
+	require.Nil(t, appErr)
+
+	select {
+	case event := <-messages:
+		threadJSON, ok := event.GetData()["thread"].(string)
+		require.True(t, ok)
+		assert.NotContains(t, threadJSON, "secret-endpoint")
+		assert.NotContains(t, threadJSON, "secret_marker")
+
+		var thread model.ThreadResponse
+		require.NoError(t, json.Unmarshal([]byte(threadJSON), &thread))
+		require.NotNil(t, thread.Post)
+		attachments := thread.Post.Attachments()
+		require.Len(t, attachments, 1)
+		require.Len(t, attachments[0].Actions, 1)
+		assert.Equal(t, "action", attachments[0].Actions[0].Name, "non-secret attachment data must be preserved")
+		assert.Nil(t, attachments[0].Actions[0].Integration)
+	case <-time.After(10 * time.Second):
+		require.Fail(t, "Did not receive websocket message in time")
+	}
 }
 
 func TestCreateUserWithInitialPreferences(t *testing.T) {

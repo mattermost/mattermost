@@ -13,7 +13,9 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -23,7 +25,7 @@ func TestAccessControlAttributeValidationHook(t *testing.T) {
 	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_validation", Version: model.PropertyGroupVersionV2})
 	require.NoError(t, err)
 
-	hook := NewAccessControlAttributeValidationHook(th.service, nil, group.ID)
+	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, group.ID)
 	th.service.AddHook(hook)
 
 	t.Run("allows valid visibility on create", func(t *testing.T) {
@@ -586,6 +588,137 @@ func TestAccessControlAttributeValidationHook(t *testing.T) {
 		result, upsertErr := th.service.UpsertPropertyValue(th.Context, value)
 		require.NoError(t, upsertErr)
 		assert.NotEmpty(t, result.ID)
+	})
+
+	// Graph field validation tests
+
+	// newGraphField creates a graph field holding one option per given name, and
+	// reports the identifier each name was given.
+	newGraphField := func(t *testing.T, names ...string) (*model.PropertyField, map[string]string) {
+		t.Helper()
+		options := make([]any, 0, len(names))
+		for _, name := range names {
+			options = append(options, map[string]any{"id": model.NewId(), "name": name})
+		}
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "graph_field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeGraph,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs:      model.StringInterface{model.PropertyFieldAttributeOptions: options},
+		})
+
+		ids := make(map[string]string, len(names))
+		for _, option := range options {
+			option := option.(map[string]any)
+			ids[option["name"].(string)] = option["id"].(string)
+		}
+		return field, ids
+	}
+
+	graphValue := func(field *model.PropertyField, optionIDs ...string) *model.PropertyValue {
+		encoded, err := json.Marshal(optionIDs)
+		require.NoError(t, err)
+		return &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   model.NewId(),
+			TargetType: "user",
+			Value:      encoded,
+		}
+	}
+
+	t.Run("graph — accepts the options the field holds", func(t *testing.T) {
+		field, ids := newGraphField(t, "Air Program", "Fighter Jet Program")
+
+		result, upsertErr := th.service.UpsertPropertyValue(th.Context, graphValue(field, ids["Air Program"], ids["Fighter Jet Program"]))
+		require.NoError(t, upsertErr)
+		assert.NotEmpty(t, result.ID)
+	})
+
+	t.Run("graph — rejects an option the field does not hold", func(t *testing.T) {
+		field, ids := newGraphField(t, "Air Program")
+
+		_, upsertErr := th.service.UpsertPropertyValue(th.Context, graphValue(field, ids["Air Program"], model.NewId()))
+		require.Error(t, upsertErr)
+		assert.Contains(t, upsertErr.Error(), "does not exist")
+	})
+
+	t.Run("graph — rejects an option listed twice", func(t *testing.T) {
+		field, ids := newGraphField(t, "Air Program")
+
+		_, upsertErr := th.service.UpsertPropertyValue(th.Context, graphValue(field, ids["Air Program"], ids["Air Program"]))
+		require.Error(t, upsertErr)
+		assert.Contains(t, upsertErr.Error(), "listed more than once")
+	})
+
+	t.Run("graph — rejects a value that is not an array of options", func(t *testing.T) {
+		field, ids := newGraphField(t, "Air Program")
+
+		value := graphValue(field)
+		value.Value = json.RawMessage(`"` + ids["Air Program"] + `"`)
+		_, upsertErr := th.service.UpsertPropertyValue(th.Context, value)
+		require.Error(t, upsertErr)
+		assert.Contains(t, upsertErr.Error(), "expected string array value for graph field")
+	})
+
+	t.Run("graph — accepts a field whose options are past the point of being served inline", func(t *testing.T) {
+		// The state a graph field is normally in: a field with more than
+		// model.PropertyFieldMaxHydratedOptions options reads back with no option
+		// list at all, so a check against the inlined list would refuse every value
+		// written to one. This is the subtest that fails if the check ever stops
+		// asking the option rows.
+		names := make([]string, 0, model.PropertyFieldMaxHydratedOptions+1)
+		for i := range model.PropertyFieldMaxHydratedOptions + 1 {
+			names = append(names, fmt.Sprintf("Program %d", i))
+		}
+		field, ids := newGraphField(t, names...)
+
+		stored, getErr := th.service.GetPropertyField(th.Context, group.ID, field.ID)
+		require.NoError(t, getErr)
+		require.True(t, model.PropertyFieldOptionsOmitted(stored.Attrs), "the field should read back without its option list")
+
+		result, upsertErr := th.service.UpsertPropertyValue(th.Context, graphValue(field, ids["Program 7"]))
+		require.NoError(t, upsertErr)
+		assert.NotEmpty(t, result.ID)
+	})
+
+	t.Run("graph — a value naming a deleted option is still readable", func(t *testing.T) {
+		// An option is soft-deleted, and the values pointing at it are left alone:
+		// such a value is ignored everywhere it is read rather than being an error,
+		// which is how the property system has always treated one. Only writing it
+		// again is refused.
+		field, ids := newGraphField(t, "Air Program", "Sea Program")
+
+		written, upsertErr := th.service.UpsertPropertyValue(th.Context, graphValue(field, ids["Air Program"], ids["Sea Program"]))
+		require.NoError(t, upsertErr)
+
+		require.NoError(t, th.dbStore.PropertyField().DeleteOptions(group.ID, field.ID, 0, []string{ids["Sea Program"]}))
+
+		read, getErr := th.service.GetPropertyValue(th.Context, group.ID, written.ID)
+		require.NoError(t, getErr)
+		var held []string
+		require.NoError(t, json.Unmarshal(read.Value, &held))
+		assert.ElementsMatch(t, []string{ids["Air Program"], ids["Sea Program"]}, held)
+
+		_, rewriteErr := th.service.UpsertPropertyValue(th.Context, graphValue(field, ids["Air Program"], ids["Sea Program"]))
+		require.Error(t, rewriteErr, "writing the dangling option again should be refused")
+		assert.Contains(t, rewriteErr.Error(), "does not exist")
+	})
+
+	t.Run("a value of a type nothing validates is refused", func(t *testing.T) {
+		// Not reachable through a stored field: every type the model allows has a
+		// case, so the field this needs cannot be created. The refusal exists so that
+		// adding a type and forgetting to validate its values is a failure rather
+		// than a field whose values nothing checks at all, and calling the check
+		// directly is the only way to reach it.
+		_, err := hook.validateValueAgainstField(
+			&model.PropertyField{ID: model.NewId(), GroupID: group.ID, Type: "spline"},
+			&model.PropertyValue{Value: json.RawMessage(`"anything"`)},
+		)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "values of a spline field are not validated")
 	})
 
 	// User field validation tests
@@ -1233,6 +1366,38 @@ func TestAccessControlAttributeValidationHook(t *testing.T) {
 			assert.True(t, ok, "each option element should be map[string]any, got %T", opt)
 		}
 	})
+
+	t.Run("sanitizeAndValidateOptions carries a graph field's parents through", func(t *testing.T) {
+		// That canonicalization decodes each option into a fixed shape and encodes it
+		// again, which drops every key the shape does not name. The options above
+		// carry none that matter; the parents of a graph field's option do, and a
+		// hierarchy silently dropped here would leave every option a root -- covered
+		// by nothing, so every rule written over it denies.
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeGraph,
+			TargetType: "system",
+			ObjectType: "template",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Air"},
+					map[string]any{"name": "Fighter Jet", "parents": []string{"Air"}},
+				},
+			},
+		}
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+
+		options := created.Attrs[model.PropertyFieldAttributeOptions].([]any)
+		require.Len(t, options, 2)
+		air := options[0].(map[string]any)["id"].(string)
+		jet := options[1].(map[string]any)["id"].(string)
+
+		above, resolveErr := th.service.AncestorsOrSelf(th.Context, created, []string{jet})
+		require.NoError(t, resolveErr)
+		assert.ElementsMatch(t, []string{jet, air}, above[jet])
+	})
 }
 
 func TestAccessControlAttributeValidationHookManagedAuthorization(t *testing.T) {
@@ -1248,7 +1413,7 @@ func TestAccessControlAttributeValidationHookManagedAuthorization(t *testing.T) 
 		return userID == adminUserID && perm.Id == model.PermissionManageSystem.Id
 	}
 
-	hook := NewAccessControlAttributeValidationHook(th.service, permChecker, group.ID)
+	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{PermissionChecker: permChecker}, group.ID)
 	th.service.AddHook(hook)
 
 	t.Run("admin can create field with managed=admin", func(t *testing.T) {
@@ -1402,7 +1567,7 @@ func TestAccessControlAttributeValidationHookRankOptions(t *testing.T) {
 	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_rank_validation", Version: model.PropertyGroupVersionV2})
 	require.NoError(t, err)
 
-	hook := NewAccessControlAttributeValidationHook(th.service, nil, group.ID)
+	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, group.ID)
 	th.service.AddHook(hook)
 
 	rankField := func(options []any) *model.PropertyField {
@@ -1543,6 +1708,71 @@ func TestAccessControlAttributeValidationHookRankOptions(t *testing.T) {
 	})
 }
 
+// TestAccessControlAttributeValidationHookDuplicateOptionIDs covers the
+// rejection of an inline option list that repeats an option ID. Without it the
+// store's upsert conflicts on (FieldID, ID) twice in one statement and the
+// caller gets a 500 for what is a client error.
+func TestAccessControlAttributeValidationHookDuplicateOptionIDs(t *testing.T) {
+	th := Setup(t)
+
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_duplicate_option_ids", Version: model.PropertyGroupVersionV2})
+	require.NoError(t, err)
+
+	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, group.ID)
+	th.service.AddHook(hook)
+
+	selectField := func(options []any) *model.PropertyField {
+		return &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: options,
+			},
+		}
+	}
+
+	t.Run("create with a repeated option id is refused and names the id", func(t *testing.T) {
+		repeatedID := model.NewId()
+		_, createErr := th.service.CreatePropertyField(th.Context, selectField([]any{
+			map[string]any{"id": repeatedID, "name": "A"},
+			map[string]any{"id": repeatedID, "name": "B"},
+		}))
+		require.ErrorIs(t, createErr, ErrInvalidFieldAttrs)
+		assert.Contains(t, createErr.Error(), repeatedID)
+	})
+
+	t.Run("the id is named even when the names also collide", func(t *testing.T) {
+		repeatedID := model.NewId()
+		_, createErr := th.service.CreatePropertyField(th.Context, selectField([]any{
+			map[string]any{"id": repeatedID, "name": "A"},
+			map[string]any{"id": repeatedID, "name": "A"},
+		}))
+		require.ErrorIs(t, createErr, ErrInvalidFieldAttrs)
+		assert.Contains(t, createErr.Error(), "duplicate option id")
+		assert.Contains(t, createErr.Error(), repeatedID)
+	})
+
+	t.Run("update with a repeated option id is refused and names the id", func(t *testing.T) {
+		field, createErr := th.service.CreatePropertyField(th.Context, selectField([]any{
+			map[string]any{"name": "A"},
+			map[string]any{"name": "B"},
+		}))
+		require.NoError(t, createErr)
+
+		repeatedID := model.NewId()
+		field.Attrs[model.PropertyFieldAttributeOptions] = []any{
+			map[string]any{"id": repeatedID, "name": "A"},
+			map[string]any{"id": repeatedID, "name": "B"},
+		}
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.ErrorIs(t, updateErr, ErrInvalidFieldAttrs)
+		assert.Contains(t, updateErr.Error(), repeatedID)
+	})
+}
+
 // TestAccessControlAttributeValidationHookRankConversion covers the repair that
 // runs when a field is converted INTO rank from another type: arbitrary option
 // ranks (non-sequential, duplicated, or missing) are renumbered to a gap-free
@@ -1554,7 +1784,7 @@ func TestAccessControlAttributeValidationHookRankConversion(t *testing.T) {
 	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_rank_conversion", Version: model.PropertyGroupVersionV2})
 	require.NoError(t, err)
 
-	hook := NewAccessControlAttributeValidationHook(th.service, nil, group.ID)
+	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, group.ID)
 	th.service.AddHook(hook)
 
 	// ranksByName parses a persisted field's canonical []any options into a
@@ -1733,7 +1963,7 @@ func TestAccessControlAttributeValidationHookSync(t *testing.T) {
 		return userID == adminUserID && perm.Id == model.PermissionManageSystem.Id
 	}
 
-	hook := NewAccessControlAttributeValidationHook(th.service, permChecker, group.ID)
+	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{PermissionChecker: permChecker}, group.ID)
 	th.service.AddHook(hook)
 
 	adminRctx := RequestContextWithCallerID(th.Context, adminUserID)
@@ -1920,8 +2150,10 @@ func TestAccessControlAttributeValidationHook_Owners(t *testing.T) {
 	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_owner_validation", Version: model.PropertyGroupVersionV2})
 	require.NoError(t, err)
 
-	hook := NewAccessControlAttributeValidationHook(th.service, func(_ request.CTX, userID string, _ *model.Permission) bool {
-		return userID == "admin-user"
+	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{
+		PermissionChecker: func(_ request.CTX, userID string, _ *model.Permission) bool {
+			return userID == "admin-user"
+		},
 	}, group.ID)
 	th.service.AddHook(hook)
 
@@ -2181,13 +2413,135 @@ func TestAccessControlAttributeValidationHook_Owners(t *testing.T) {
 	})
 }
 
+// TestAccessControlAttributeValidationHookBatchesOptionLookups pins the cost of
+// validating a batch: however many values in it reference the same
+// option-bearing field, that field's existence check must reach the store
+// exactly once. A mocked PropertyFieldStore that fails the test on a second
+// call to GetExistingOptionIDs for the same field is what catches a
+// regression back to one call per value.
+func TestAccessControlAttributeValidationHookBatchesOptionLookups(t *testing.T) {
+	groupID := model.NewId()
+
+	fieldA := &model.PropertyField{ID: model.NewId(), GroupID: groupID, Type: model.PropertyFieldTypeSelect}
+	fieldB := &model.PropertyField{ID: model.NewId(), GroupID: groupID, Type: model.PropertyFieldTypeMultiselect}
+
+	optionA1, optionA2 := model.NewId(), model.NewId()
+	optionB1, optionB2 := model.NewId(), model.NewId()
+
+	mockFieldStore := &storemocks.PropertyFieldStore{}
+	mockFieldStore.On("GetMany", mock.Anything, groupID, mock.Anything).
+		Return([]*model.PropertyField{fieldA, fieldB}, nil)
+	mockFieldStore.On("GetExistingOptionIDs", fieldA, []string{optionA1, optionA2}).
+		Return([]string{optionA1, optionA2}, nil).Once()
+	mockFieldStore.On("GetExistingOptionIDs", fieldB, []string{optionB1, optionB2}).
+		Return([]string{optionB1, optionB2}, nil).Once()
+
+	ps, err := New(ServiceConfig{
+		PropertyGroupStore: &storemocks.PropertyGroupStore{},
+		PropertyFieldStore: mockFieldStore,
+		PropertyValueStore: &storemocks.PropertyValueStore{},
+	})
+	require.NoError(t, err)
+
+	hook := NewAccessControlAttributeValidationHook(ps, AccessControlAttributeValidationHookConfig{}, groupID)
+
+	values := []*model.PropertyValue{
+		{GroupID: groupID, FieldID: fieldA.ID, Value: json.RawMessage(`"` + optionA1 + `"`)},
+		{GroupID: groupID, FieldID: fieldB.ID, Value: json.RawMessage(`["` + optionB1 + `","` + optionB2 + `"]`)},
+		{GroupID: groupID, FieldID: fieldA.ID, Value: json.RawMessage(`"` + optionA2 + `"`)},
+	}
+
+	require.NoError(t, hook.validateValues(request.TestContext(t), values))
+
+	// .Once() above already fails the test if either field is looked up
+	// twice; this additionally confirms both expected calls actually fired.
+	mockFieldStore.AssertExpectations(t)
+}
+
+// TestAccessControlAttributeValidationHookDedupesOptionLookup pins that a batch
+// naming the same option on the same field more than once still looks it up
+// only once per ID: a duplicated ID list would eventually push a large batch's
+// store query past PostgreSQL's bind parameter limit.
+func TestAccessControlAttributeValidationHookDedupesOptionLookup(t *testing.T) {
+	groupID := model.NewId()
+
+	field := &model.PropertyField{ID: model.NewId(), GroupID: groupID, Type: model.PropertyFieldTypeSelect}
+	optionID := model.NewId()
+
+	mockFieldStore := &storemocks.PropertyFieldStore{}
+	mockFieldStore.On("GetMany", mock.Anything, groupID, mock.Anything).
+		Return([]*model.PropertyField{field}, nil)
+	mockFieldStore.On("GetExistingOptionIDs", field, []string{optionID}).
+		Return([]string{optionID}, nil).Once()
+
+	ps, err := New(ServiceConfig{
+		PropertyGroupStore: &storemocks.PropertyGroupStore{},
+		PropertyFieldStore: mockFieldStore,
+		PropertyValueStore: &storemocks.PropertyValueStore{},
+	})
+	require.NoError(t, err)
+
+	hook := NewAccessControlAttributeValidationHook(ps, AccessControlAttributeValidationHookConfig{}, groupID)
+
+	values := []*model.PropertyValue{
+		{GroupID: groupID, FieldID: field.ID, Value: json.RawMessage(`"` + optionID + `"`)},
+		{GroupID: groupID, FieldID: field.ID, Value: json.RawMessage(`"` + optionID + `"`)},
+	}
+
+	require.NoError(t, hook.validateValues(request.TestContext(t), values))
+
+	// The mocked call's exact one-element slice already fails the test if the
+	// duplicate reaches the store; .Once() confirms it was still called at all.
+	mockFieldStore.AssertExpectations(t)
+}
+
+// TestAccessControlAttributeValidationHookOptionLookupStoreFailure pins that a
+// GetExistingOptionIDs failure fails the whole batch with that store error, rather
+// than being read as an empty "existing" set that reports every pending option as
+// missing.
+func TestAccessControlAttributeValidationHookOptionLookupStoreFailure(t *testing.T) {
+	groupID := model.NewId()
+
+	field := &model.PropertyField{ID: model.NewId(), GroupID: groupID, Type: model.PropertyFieldTypeSelect}
+	optionID := model.NewId()
+
+	storeErr := fmt.Errorf("connection refused")
+
+	mockFieldStore := &storemocks.PropertyFieldStore{}
+	mockFieldStore.On("GetMany", mock.Anything, groupID, mock.Anything).
+		Return([]*model.PropertyField{field}, nil)
+	mockFieldStore.On("GetExistingOptionIDs", field, []string{optionID}).
+		Return(nil, storeErr).Once()
+
+	ps, err := New(ServiceConfig{
+		PropertyGroupStore: &storemocks.PropertyGroupStore{},
+		PropertyFieldStore: mockFieldStore,
+		PropertyValueStore: &storemocks.PropertyValueStore{},
+	})
+	require.NoError(t, err)
+
+	hook := NewAccessControlAttributeValidationHook(ps, AccessControlAttributeValidationHookConfig{}, groupID)
+
+	values := []*model.PropertyValue{
+		{GroupID: groupID, FieldID: field.ID, Value: json.RawMessage(`"` + optionID + `"`)},
+	}
+
+	validateErr := hook.validateValues(request.TestContext(t), values)
+	require.Error(t, validateErr)
+	assert.ErrorIs(t, validateErr, storeErr, "the store failure must remain in the chain")
+	assert.NotErrorIs(t, validateErr, ErrInvalidValue, "a store failure must not be read as a missing option")
+	assert.NotContains(t, validateErr.Error(), "does not exist")
+
+	mockFieldStore.AssertExpectations(t)
+}
+
 func TestAccessControlAttributeValidationHookChangePolicy(t *testing.T) {
 	th := Setup(t)
 
 	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_change_policy", Version: model.PropertyGroupVersionV2})
 	require.NoError(t, err)
 
-	hook := NewAccessControlAttributeValidationHook(th.service, nil, group.ID)
+	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, group.ID)
 	th.service.AddHook(hook)
 
 	// optionIDs returns the persisted option IDs in rank order, so a test can
@@ -2417,7 +2771,7 @@ func TestAccessControlAttributeValidationHookRequired(t *testing.T) {
 	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_required", Version: model.PropertyGroupVersionV2})
 	require.NoError(t, err)
 
-	hook := NewAccessControlAttributeValidationHook(th.service, nil, group.ID)
+	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{}, group.ID)
 	th.service.AddHook(hook)
 
 	newRequiredField := func(t *testing.T, objectType string) *model.PropertyField {
@@ -2532,5 +2886,550 @@ func TestAccessControlAttributeValidationHookRequired(t *testing.T) {
 		require.NoError(t, err, "clearing a non-required value must not be refused")
 
 		require.NoError(t, th.service.DeletePropertyValue(th.Context, group.ID, value.ID))
+	})
+}
+
+// The DM/GM channel-attribute rule. This suite owns it: the app-layer
+// counterparts run against throwaway groups, which the hook skips, so they can
+// only observe the generic default. Only the rows here see the restriction.
+func TestAccessControlAttributeValidationHookDirectChannelValues(t *testing.T) {
+	th := Setup(t)
+
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_direct_channel", Version: model.PropertyGroupVersionV2})
+	require.NoError(t, err)
+
+	// A second, unmanaged group proves the rule stays inside its own group.
+	otherGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_direct_channel_other", Version: model.PropertyGroupVersionV2})
+	require.NoError(t, err)
+
+	const (
+		sysadminID      = "sysadmin-user"
+		ordinaryID      = "ordinary-user"
+		deriverPluginID = "com.example.deriver"
+		directErrorID   = "app.property_value.direct_channel.app_error"
+	)
+
+	// The properties package has no channels, which is exactly why the rule
+	// takes a callback. These two IDs are the DM and the GM.
+	dmID := model.NewId()
+	gmID := model.NewId()
+	publicChannelID := model.NewId()
+	directIDs := map[string]bool{dmID: true, gmID: true}
+
+	// Caller IDs are readable strings, matching the other suites in this file,
+	// but a value's TargetID goes through PropertyValue.IsValid and must be a
+	// real ID.
+	userTargetID := model.NewId()
+
+	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{
+		PermissionChecker: func(_ request.CTX, userID string, _ *model.Permission) bool {
+			return userID == sysadminID || userID == model.CallerIDLocalAdmin
+		},
+		PluginChecker:        func(pluginID string) bool { return pluginID == deriverPluginID },
+		DirectChannelChecker: func(_ request.CTX, channelID string) (bool, error) { return directIDs[channelID], nil },
+	}, group.ID)
+	th.service.AddHook(hook)
+
+	newField := func(t *testing.T, groupID, objectType string, level model.PermissionLevel) *model.PropertyField {
+		t.Helper()
+		field, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:          groupID,
+			Name:             "dm_rule_" + model.NewId(),
+			Type:             model.PropertyFieldTypeText,
+			TargetType:       "system",
+			ObjectType:       objectType,
+			PermissionValues: model.NewPointer(level),
+		})
+		require.NoError(t, createErr)
+		return field
+	}
+
+	memberChannelField := newField(t, group.ID, model.PropertyFieldObjectTypeChannel, model.PermissionLevelMember)
+	adminChannelField := newField(t, group.ID, model.PropertyFieldObjectTypeChannel, model.PermissionLevelAdmin)
+	postField := newField(t, group.ID, model.PropertyFieldObjectTypePost, model.PermissionLevelMember)
+	userField := newField(t, group.ID, model.PropertyFieldObjectTypeUser, model.PermissionLevelMember)
+	otherGroupField := newField(t, otherGroup.ID, model.PropertyFieldObjectTypeChannel, model.PermissionLevelMember)
+
+	asCaller := func(callerID string) request.CTX {
+		return RequestContextWithCallerID(th.Context, callerID)
+	}
+
+	value := func(groupID, fieldID, targetID, targetType, raw string) *model.PropertyValue {
+		return &model.PropertyValue{
+			GroupID:    groupID,
+			FieldID:    fieldID,
+			TargetID:   targetID,
+			TargetType: targetType,
+			Value:      json.RawMessage(raw),
+		}
+	}
+
+	channelValue := func(field *model.PropertyField, channelID, raw string) *model.PropertyValue {
+		return value(field.GroupID, field.ID, channelID, model.PropertyValueTargetTypeChannel, raw)
+	}
+
+	upsertAs := func(callerID string, v *model.PropertyValue) error {
+		_, upsertErr := th.service.UpsertPropertyValue(asCaller(callerID), v)
+		return upsertErr
+	}
+
+	requireRefused := func(t *testing.T, err error) {
+		t.Helper()
+		require.Error(t, err)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, directErrorID, appErr.Id)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+	}
+
+	t.Run("an ordinary user cannot write a DM channel value", func(t *testing.T) {
+		requireRefused(t, upsertAs(ordinaryID, channelValue(memberChannelField, dmID, `"SECRET"`)))
+	})
+
+	t.Run("an ordinary user cannot write a GM channel value", func(t *testing.T) {
+		requireRefused(t, upsertAs(ordinaryID, channelValue(memberChannelField, gmID, `"SECRET"`)))
+	})
+
+	// The rule must not leak to normal channels: this is the regression guard
+	// that proves the restriction is about DM/GMs and nothing else.
+	t.Run("an ordinary user can still write a public channel value", func(t *testing.T) {
+		require.NoError(t, upsertAs(ordinaryID, channelValue(memberChannelField, publicChannelID, `"SECRET"`)))
+	})
+
+	t.Run("a sysadmin can write a DM channel value", func(t *testing.T) {
+		require.NoError(t, upsertAs(sysadminID, channelValue(memberChannelField, dmID, `"SECRET"`)))
+	})
+
+	t.Run("a local-mode admin can write a DM channel value", func(t *testing.T) {
+		require.NoError(t, upsertAs(model.CallerIDLocalAdmin, channelValue(memberChannelField, dmID, `"LOCAL"`)))
+	})
+
+	// Plugins and sync services are the derivation path the rule reserves the
+	// write for, so they must pass where a participant does not.
+	t.Run("a plugin can write a DM channel value", func(t *testing.T) {
+		require.NoError(t, upsertAs(deriverPluginID, channelValue(memberChannelField, dmID, `"DERIVED"`)))
+	})
+
+	t.Run("the LDAP sync service can write a DM channel value", func(t *testing.T) {
+		require.NoError(t, upsertAs(model.CallerIDLDAPSync, channelValue(memberChannelField, dmID, `"SYNCED"`)))
+	})
+
+	t.Run("an untagged caller is refused, failing closed", func(t *testing.T) {
+		_, upsertErr := th.service.UpsertPropertyValue(th.Context, channelValue(memberChannelField, dmID, `"UNTAGGED"`))
+		requireRefused(t, upsertErr)
+	})
+
+	// Rows below prove the rule is not upsert-only. Each entry point has its
+	// own pre-hook dispatcher, so each needs its own assertion.
+	t.Run("CreatePropertyValue is refused", func(t *testing.T) {
+		_, createErr := th.service.CreatePropertyValue(asCaller(ordinaryID), channelValue(memberChannelField, dmID, `"CREATED"`))
+		requireRefused(t, createErr)
+	})
+
+	t.Run("UpdatePropertyValue is refused", func(t *testing.T) {
+		existing, seedErr := th.service.UpsertPropertyValue(asCaller(sysadminID), channelValue(memberChannelField, dmID, `"SEEDED"`))
+		require.NoError(t, seedErr)
+
+		existing.Value = json.RawMessage(`"UPDATED"`)
+		_, updateErr := th.service.UpdatePropertyValue(asCaller(ordinaryID), group.ID, existing)
+		requireRefused(t, updateErr)
+	})
+
+	// A delete is a clear, so a participant must not be able to strip a marking
+	// they could never have written.
+	t.Run("DeletePropertyValue is refused", func(t *testing.T) {
+		existing, seedErr := th.service.UpsertPropertyValue(asCaller(sysadminID), channelValue(memberChannelField, dmID, `"SEEDED"`))
+		require.NoError(t, seedErr)
+
+		requireRefused(t, th.service.DeletePropertyValue(asCaller(ordinaryID), group.ID, existing.ID))
+	})
+
+	t.Run("DeletePropertyValuesForTarget is refused", func(t *testing.T) {
+		_, seedErr := th.service.UpsertPropertyValue(asCaller(sysadminID), channelValue(memberChannelField, dmID, `"SEEDED"`))
+		require.NoError(t, seedErr)
+
+		requireRefused(t, th.service.DeletePropertyValuesForTarget(asCaller(ordinaryID), group.ID, model.PropertyValueTargetTypeChannel, dmID))
+	})
+
+	// The recorded post-object decision: a marking on a message in a DM stays
+	// writable by a participant, because that is the post-attributes feature
+	// this rule must not break.
+	t.Run("a post-object value on a DM post is allowed", func(t *testing.T) {
+		postID := model.NewId()
+		require.NoError(t, upsertAs(ordinaryID, value(group.ID, postField.ID, postID, model.PropertyValueTargetTypePost, `"FLAGGED"`)))
+	})
+
+	t.Run("a user-object value is allowed", func(t *testing.T) {
+		require.NoError(t, upsertAs(ordinaryID, value(group.ID, userField.ID, userTargetID, model.PropertyValueTargetTypeUser, `"ATTR"`)))
+	})
+
+	t.Run("an unmanaged group is untouched", func(t *testing.T) {
+		require.NoError(t, upsertAs(ordinaryID, channelValue(otherGroupField, dmID, `"SECRET"`)))
+	})
+
+	t.Run("an admin-tier field is refused too", func(t *testing.T) {
+		requireRefused(t, upsertAs(ordinaryID, channelValue(adminChannelField, dmID, `"SECRET"`)))
+	})
+
+	t.Run("a batch carrying one DM value refuses the whole batch", func(t *testing.T) {
+		_, upsertErr := th.service.UpsertPropertyValues(asCaller(ordinaryID), []*model.PropertyValue{
+			channelValue(memberChannelField, publicChannelID, `"OK"`),
+			channelValue(memberChannelField, dmID, `"SECRET"`),
+		})
+		requireRefused(t, upsertErr)
+	})
+}
+
+func TestAccessControlAttributeValidationHookRequiredEnforcementFlag(t *testing.T) {
+	th := Setup(t)
+
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_required_flag", Version: model.PropertyGroupVersionV2})
+	require.NoError(t, err)
+
+	enforced := true
+	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{
+		RequiredAttributeEnforcement: func() bool { return enforced },
+	}, group.ID)
+	th.service.AddHook(hook)
+
+	field, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "text_" + model.NewId(),
+		Type:       model.PropertyFieldTypeText,
+		TargetType: "system",
+		ObjectType: model.PropertyFieldObjectTypeChannel,
+		Attrs: model.StringInterface{
+			model.PropertyFieldAttrRequired: true,
+		},
+	})
+	require.NoError(t, createErr)
+
+	t.Run("enforcement off: empty write on a required field succeeds", func(t *testing.T) {
+		enforced = false
+		defer func() { enforced = true }()
+
+		_, err := th.service.UpsertPropertyValue(th.Context, &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   model.NewId(),
+			TargetType: model.PropertyValueTargetTypeChannel,
+			Value:      json.RawMessage(`""`),
+		})
+		require.NoError(t, err)
+	})
+
+	t.Run("enforcement off: deleting a set required value succeeds", func(t *testing.T) {
+		channelID := model.NewId()
+		value, err := th.service.UpsertPropertyValue(th.Context, &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   channelID,
+			TargetType: model.PropertyValueTargetTypeChannel,
+			Value:      json.RawMessage(`"SECRET"`),
+		})
+		require.NoError(t, err)
+
+		enforced = false
+		defer func() { enforced = true }()
+
+		require.NoError(t, th.service.DeletePropertyValue(th.Context, group.ID, value.ID))
+	})
+
+	t.Run("enforcement back on: empty write on a required field is refused again", func(t *testing.T) {
+		_, err := th.service.UpsertPropertyValue(th.Context, &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   model.NewId(),
+			TargetType: model.PropertyValueTargetTypeChannel,
+			Value:      json.RawMessage(`""`),
+		})
+		require.Error(t, err)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, "app.property_value.required.app_error", appErr.Id)
+	})
+}
+
+// TestAccessControlAttributeValidationHookRequiredEnforcementFlagNonChannelScope
+// pins that the kill switch is scoped to channel-object-type fields only: a
+// required post or user field stays enforced on both the write and delete
+// paths even while RequiredAttributeEnforcement reports enforcement off.
+func TestAccessControlAttributeValidationHookRequiredEnforcementFlagNonChannelScope(t *testing.T) {
+	th := Setup(t)
+
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_required_flag_non_channel", Version: model.PropertyGroupVersionV2})
+	require.NoError(t, err)
+
+	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{
+		RequiredAttributeEnforcement: func() bool { return false },
+	}, group.ID)
+	th.service.AddHook(hook)
+
+	newRequiredField := func(t *testing.T, objectType string) *model.PropertyField {
+		t.Helper()
+		field, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "text_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: objectType,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrRequired: true,
+			},
+		})
+		require.NoError(t, createErr)
+		return field
+	}
+
+	requireRefused := func(t *testing.T, err error) {
+		t.Helper()
+		require.Error(t, err)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, "app.property_value.required.app_error", appErr.Id)
+	}
+
+	t.Run("a required post field write is still refused with enforcement off", func(t *testing.T) {
+		field := newRequiredField(t, model.PropertyFieldObjectTypePost)
+		_, err := th.service.UpsertPropertyValue(th.Context, &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   model.NewId(),
+			TargetType: model.PropertyValueTargetTypePost,
+			Value:      json.RawMessage(`""`),
+		})
+		requireRefused(t, err)
+	})
+
+	t.Run("deleting a required post field value is still refused with enforcement off", func(t *testing.T) {
+		field := newRequiredField(t, model.PropertyFieldObjectTypePost)
+		value, err := th.service.UpsertPropertyValue(th.Context, &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   model.NewId(),
+			TargetType: model.PropertyValueTargetTypePost,
+			Value:      json.RawMessage(`"SET"`),
+		})
+		require.NoError(t, err)
+
+		requireRefused(t, th.service.DeletePropertyValue(th.Context, group.ID, value.ID))
+	})
+
+	t.Run("a required user field write is still refused with enforcement off", func(t *testing.T) {
+		field := newRequiredField(t, model.PropertyFieldObjectTypeUser)
+		_, err := th.service.UpsertPropertyValue(th.Context, &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   model.NewId(),
+			TargetType: model.PropertyValueTargetTypeUser,
+			Value:      json.RawMessage(`""`),
+		})
+		requireRefused(t, err)
+	})
+
+	t.Run("deleting a required user field value is still refused with enforcement off", func(t *testing.T) {
+		field := newRequiredField(t, model.PropertyFieldObjectTypeUser)
+		value, err := th.service.UpsertPropertyValue(th.Context, &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    field.ID,
+			TargetID:   model.NewId(),
+			TargetType: model.PropertyValueTargetTypeUser,
+			Value:      json.RawMessage(`"SET"`),
+		})
+		require.NoError(t, err)
+
+		requireRefused(t, th.service.DeletePropertyValue(th.Context, group.ID, value.ID))
+	})
+}
+
+// TestAccessControlAttributeValidationHookRequiredAttrCreationGuard pins the
+// field-definition side of the kill switch: while enforcement is off, a
+// channel field cannot be newly marked required (create or update), a field
+// that predates the switch keeps its required=true untouched, and a
+// non-channel field is never gated by this at all.
+func TestAccessControlAttributeValidationHookRequiredAttrCreationGuard(t *testing.T) {
+	th := Setup(t)
+
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_required_creation_guard", Version: model.PropertyGroupVersionV2})
+	require.NoError(t, err)
+
+	enforced := true
+	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{
+		RequiredAttributeEnforcement: func() bool { return enforced },
+	}, group.ID)
+	th.service.AddHook(hook)
+
+	requireDisabledErr := func(t *testing.T, err error) {
+		t.Helper()
+		require.Error(t, err)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, "app.property_field.required_disabled.app_error", appErr.Id)
+	}
+
+	t.Run("creating a required channel field is refused while enforcement is off", func(t *testing.T) {
+		enforced = false
+		defer func() { enforced = true }()
+
+		_, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "text_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrRequired: true,
+			},
+		})
+		requireDisabledErr(t, createErr)
+	})
+
+	t.Run("creating a required post or user field succeeds while enforcement is off", func(t *testing.T) {
+		enforced = false
+		defer func() { enforced = true }()
+
+		for _, objectType := range []string{model.PropertyFieldObjectTypePost, model.PropertyFieldObjectTypeUser} {
+			_, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+				GroupID:    group.ID,
+				Name:       "text_" + model.NewId(),
+				Type:       model.PropertyFieldTypeText,
+				TargetType: "system",
+				ObjectType: objectType,
+				Attrs: model.StringInterface{
+					model.PropertyFieldAttrRequired: true,
+				},
+			})
+			require.NoError(t, createErr, "object type %s", objectType)
+		}
+	})
+
+	t.Run("marking an existing channel field required is refused while enforcement is off", func(t *testing.T) {
+		field, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "text_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+		})
+		require.NoError(t, createErr)
+
+		enforced = false
+		defer func() { enforced = true }()
+
+		field.Attrs[model.PropertyFieldAttrRequired] = true
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		requireDisabledErr(t, updateErr)
+	})
+
+	t.Run("a channel field already required before the switch keeps its attrs editable", func(t *testing.T) {
+		field, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "text_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrRequired: true,
+			},
+		})
+		require.NoError(t, createErr)
+
+		enforced = false
+		defer func() { enforced = true }()
+
+		// required stays true, untouched -- only an unrelated attr changes.
+		field.Attrs[model.PropertyFieldAttrDisplayName] = "Renamed"
+		updated, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.NoError(t, updateErr)
+		assert.True(t, model.IsPropertyFieldRequired(updated))
+	})
+
+	t.Run("turning required off on an existing channel field is allowed while enforcement is off", func(t *testing.T) {
+		field, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "text_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrRequired: true,
+			},
+		})
+		require.NoError(t, createErr)
+
+		enforced = false
+		defer func() { enforced = true }()
+
+		field.Attrs[model.PropertyFieldAttrRequired] = false
+		updated, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.NoError(t, updateErr)
+		assert.False(t, model.IsPropertyFieldRequired(updated))
+	})
+}
+
+// TestAccessControlAttributeValidationHookRequiredEnforcementFlagClassification
+// pins that classification gets no special treatment from the kill switch: a
+// required classification-linked field goes inert and comes back exactly like
+// any other required field under the same RequiredAttributeEnforcement flag.
+func TestAccessControlAttributeValidationHookRequiredEnforcementFlagClassification(t *testing.T) {
+	th := Setup(t)
+
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_required_flag_classification", Version: model.PropertyGroupVersionV2})
+	require.NoError(t, err)
+
+	enforced := true
+	hook := NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{
+		RequiredAttributeEnforcement: func() bool { return enforced },
+	}, group.ID)
+	th.service.AddHook(hook)
+
+	templateField, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "classification",
+		Type:       model.PropertyFieldTypeText,
+		TargetType: "system",
+		ObjectType: model.PropertyFieldObjectTypeTemplate,
+	})
+	require.NoError(t, createErr)
+
+	classificationField, createErr := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+		GroupID:       group.ID,
+		Name:          "classification",
+		Type:          model.PropertyFieldTypeText,
+		TargetType:    "system",
+		ObjectType:    model.PropertyFieldObjectTypeChannel,
+		LinkedFieldID: &templateField.ID,
+		Attrs: model.StringInterface{
+			model.PropertyFieldAttrRequired: true,
+		},
+	})
+	require.NoError(t, createErr)
+
+	t.Run("enforcement off: empty write on a required classification-linked field succeeds", func(t *testing.T) {
+		enforced = false
+		defer func() { enforced = true }()
+
+		_, err := th.service.UpsertPropertyValue(th.Context, &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    classificationField.ID,
+			TargetID:   model.NewId(),
+			TargetType: model.PropertyValueTargetTypeChannel,
+			Value:      json.RawMessage(`""`),
+		})
+		require.NoError(t, err)
+	})
+
+	t.Run("enforcement back on: empty write on a required classification-linked field is refused again", func(t *testing.T) {
+		_, err := th.service.UpsertPropertyValue(th.Context, &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    classificationField.ID,
+			TargetID:   model.NewId(),
+			TargetType: model.PropertyValueTargetTypeChannel,
+			Value:      json.RawMessage(`""`),
+		})
+		require.Error(t, err)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, "app.property_value.required.app_error", appErr.Id)
 	})
 }

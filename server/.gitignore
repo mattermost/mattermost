@@ -124,3 +124,10 @@ report.xml
 go.*.orig
 config.override.mk
 docker-compose.override.yaml
+
+# Export artifacts
+*_export.zip
+*_export-report.json
+
+# mmctl binary
+/mmctl

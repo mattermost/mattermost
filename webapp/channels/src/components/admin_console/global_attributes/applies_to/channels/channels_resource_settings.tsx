@@ -3,9 +3,13 @@
 
 import React, {useCallback} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
+
+import {CheckIcon} from '@mattermost/compass-icons/components';
+
+import {isChannelAttributesRequiredEnabled} from 'mattermost-redux/selectors/entities/general';
 
 import * as Menu from 'components/menu';
-import Toggle from 'components/toggle';
 
 import {changePolicyLabelFor, displayLocationLabel} from './summary';
 import type {ChannelChangePolicy, ChannelDisplayLocation, ChannelResourceConfig} from './types';
@@ -39,8 +43,14 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled}: Props) =
     const intl = useIntl();
     const {formatMessage} = intl;
 
-    const handleRequiredToggle = useCallback(() => {
-        onChange({...value, required: !value.required});
+    // ChannelAttributesRequired gates this toggle entirely rather than disabling
+    // it: while enforcement is off there is no way to act on setting it, and
+    // leaving it interactive would let an admin configure a state that quietly
+    // does nothing until the flag is enabled.
+    const requiredEnforcementEnabled = useSelector(isChannelAttributesRequiredEnabled);
+
+    const handleRequiredToggle = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+        onChange({...value, required: event.target.checked});
     }, [onChange, value]);
 
     const handleChangePolicySelect = useCallback((changePolicy: ChannelChangePolicy) => {
@@ -69,33 +79,43 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled}: Props) =
             className='ChannelsResourceSettings'
             data-testid='channelsResourceSettings'
         >
-            <div className='ChannelsResourceSettings__field'>
-                <span className='ChannelsResourceSettings__label'>
-                    <FormattedMessage {...messages.requiredLabel}/>
-                </span>
-                <div className='ChannelsResourceSettings__control'>
-                    <div className='ChannelsResourceSettings__switch'>
-                        <span
-                            className='ChannelsResourceSettings__switchState'
-                            aria-hidden='true'
+            {requiredEnforcementEnabled && (
+                <div className='ChannelsResourceSettings__field'>
+                    <span className='ChannelsResourceSettings__label'>
+                        <FormattedMessage {...messages.requiredLabel}/>
+                    </span>
+                    <div className='ChannelsResourceSettings__control'>
+                        <label
+                            className='ChannelsResourceSettings__switch'
+                            htmlFor='channelsResourceRequired'
                         >
-                            <FormattedMessage {...(value.required ? messages.on : messages.off)}/>
-                        </span>
-                        <Toggle
-                            id='channelsResourceRequired'
-                            size='btn-md'
-                            toggleClassName='btn-toggle-primary'
-                            toggled={value.required}
-                            disabled={disabled}
-                            onToggle={handleRequiredToggle}
-                            ariaLabel={formatMessage(messages.requiredLabel)}
-                        />
+                            <span className='ChannelsResourceSettings__switchLabel'>
+                                <FormattedMessage {...(value.required ? messages.on : messages.off)}/>
+                            </span>
+                            <span className='ChannelsResourceSettings__switchTrack'>
+                                <input
+                                    id='channelsResourceRequired'
+                                    type='checkbox'
+                                    role='switch'
+                                    className='ChannelsResourceSettings__switchInput'
+                                    checked={value.required}
+                                    disabled={disabled}
+                                    onChange={handleRequiredToggle}
+                                    aria-label={formatMessage(messages.requiredLabel)}
+                                    data-testid='channelsResourceRequired-button'
+                                />
+                                <span
+                                    className='ChannelsResourceSettings__switchKnob'
+                                    aria-hidden={true}
+                                />
+                            </span>
+                        </label>
+                        <p className='ChannelsResourceSettings__help'>
+                            <FormattedMessage {...(value.required ? messages.requiredOnHelp : messages.requiredOffHelp)}/>
+                        </p>
                     </div>
-                    <p className='ChannelsResourceSettings__help'>
-                        <FormattedMessage {...(value.required ? messages.requiredOnHelp : messages.requiredOffHelp)}/>
-                    </p>
                 </div>
-            </div>
+            )}
 
             <div className='ChannelsResourceSettings__field'>
                 <span
@@ -110,21 +130,33 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled}: Props) =
                         role='group'
                         aria-labelledby={LOCATIONS_LABEL_ID}
                     >
-                        {CHANNEL_DISPLAY_LOCATIONS.map((location) => (
-                            <label
-                                key={location}
-                                className='ChannelsResourceSettings__checkbox'
-                            >
-                                <input
-                                    type='checkbox'
-                                    checked={value.displayLocations.includes(location)}
-                                    disabled={disabled}
-                                    onChange={(e) => handleLocationChange(location, e.target.checked)}
-                                    data-testid={`channelsResourceLocation-${location}`}
-                                />
-                                <span>{displayLocationLabel(location, intl)}</span>
-                            </label>
-                        ))}
+                        {CHANNEL_DISPLAY_LOCATIONS.map((location) => {
+                            const checked = value.displayLocations.includes(location);
+                            return (
+                                <label
+                                    key={location}
+                                    className='ChannelsResourceSettings__checkbox'
+                                >
+                                    <input
+                                        type='checkbox'
+                                        className='ChannelsResourceSettings__checkboxInput'
+                                        checked={checked}
+                                        disabled={disabled}
+                                        onChange={(e) => handleLocationChange(location, e.target.checked)}
+                                        data-testid={`channelsResourceLocation-${location}`}
+                                    />
+                                    <span
+                                        className='ChannelsResourceSettings__checkboxBox'
+                                        aria-hidden={true}
+                                    >
+                                        {checked && <CheckIcon size={12}/>}
+                                    </span>
+                                    <span className='ChannelsResourceSettings__checkboxLabel'>
+                                        {displayLocationLabel(location, intl)}
+                                    </span>
+                                </label>
+                            );
+                        })}
                     </div>
                     <p className='ChannelsResourceSettings__help'>
                         <FormattedMessage {...messages.displayHelp}/>

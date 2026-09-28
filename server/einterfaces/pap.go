@@ -52,14 +52,22 @@ type PolicyAdministrationPointInterface interface {
 	// System Console and Channel Settings.
 	SimulatePolicyForUsers(rctx request.CTX, params model.PolicySimulationByUsersParams) (*model.PolicySimulationResponse, *model.AppError)
 
-	// OnPropertyFieldOptionsChanged signals the access control service that
-	// a property field's options changed (e.g. an admin re-ranked or
-	// renamed options on a rank-typed field). The service invalidates any
-	// cached per-field metadata and clears compiled-policy cache entries
-	// for policies that reference the field so subsequent evaluations
-	// re-read the authoritative values. Safe to call for any field type;
+	// OnPropertyFieldOptionsChanged signals the access control service that a
+	// property field's options changed — renamed or re-ranked, and for a field
+	// whose options form a hierarchy, added, deleted, or moved under a
+	// different parent. The service invalidates any cached per-field metadata
+	// and clears compiled-policy cache entries for policies that reference the
+	// field so subsequent evaluations re-read the authoritative values. Called
+	// once per field the change touched, which includes the fields serving
+	// another field's options as their own. Safe to call for any field type;
 	// the service no-ops for fields it does not track.
 	OnPropertyFieldOptionsChanged(rctx request.CTX, fieldID string)
+
+	// InvalidateAllPolicyCaches purges every compiled policy, local and
+	// cluster-wide, both the resource-policy cache and the permission-policy
+	// cache. For a caller that cannot enumerate which compiled policies a
+	// change made stale, dropping all of them is the only sound alternative.
+	InvalidateAllPolicyCaches(rctx request.CTX)
 
 	// HasMaskedValuesForCaller reports whether expression contains any literal
 	// value hidden from the caller according to resolver. Returns an error when

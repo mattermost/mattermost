@@ -7,10 +7,17 @@ import {defineMessages} from 'react-intl';
 
 import {AccountOutlineIcon, MessageTextOutlineIcon, ProductChannelsIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
+import type {FieldVisibility} from '@mattermost/types/properties';
 
 import type {ChannelResourceConfig} from '../applies_to/channels/types';
 
 export type ResourceObjectType = 'user' | 'channel' | 'post';
+
+// Mirrors CPA's attrs.managed value domain exactly (see user_properties_dot_menu.tsx) --
+// '' means member-editable, 'admin' means locked to System Administrator. Deliberately
+// not the richer PSAv2 PropertyPermissionLevel type: this writes the same value CPA already
+// writes, not a parallel permission mechanism.
+export type UserManagedValue = '' | 'admin';
 
 // Fixed Users -> Channels -> Posts order used everywhere a resource list is
 // rendered (the picker menu, and used to derive "available" options) -- not
@@ -32,6 +39,15 @@ export type AttributeAppliesToItemProps = {
     // case) renders no tooltip, matching today's existing behavior.
     lockedTooltip?: ReactNode;
     onRemove: () => void;
+
+    // Users-only config. Optional so this shared prop type still fits
+    // AttributeAppliesToChannelItem/AttributeAppliesToPostItem, which don't have
+    // a config panel yet and simply don't destructure these -- Channels/Posts
+    // should define their own config shape once they need one, not inherit this one.
+    visibility?: FieldVisibility;
+    onVisibilityChange?: (visibility: FieldVisibility) => void;
+    managed?: UserManagedValue;
+    onManagedChange?: (managed: UserManagedValue) => void;
 };
 
 // Channels is the one resource with settings of its own, so its row takes the

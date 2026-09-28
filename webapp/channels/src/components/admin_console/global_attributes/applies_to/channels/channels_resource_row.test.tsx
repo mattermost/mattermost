@@ -3,15 +3,32 @@
 
 import React from 'react';
 
+import type {DeepPartial} from '@mattermost/types/utilities';
+
 import {DISPLAY_BANNER_TOP, DISPLAY_LABEL_HEADER, DISPLAY_LABEL_INFO} from 'mattermost-redux/constants/properties';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+
+import type {GlobalState} from 'types/store';
 
 import ChannelsResourceRow from './channels_resource_row';
 import type {ChannelResourceConfig} from './types';
 import {DEFAULT_CHANNEL_RESOURCE_CONFIG} from './types';
 
 describe('ChannelsResourceRow', () => {
+    // The Required toggle itself is gated on this flag; its own on/off behavior
+    // is covered in channels_resource_settings.test.tsx, so it is left on here.
+    const requiredEnabledState: DeepPartial<GlobalState> = {
+        entities: {
+            general: {
+                config: {
+                    FeatureFlagChannelAttributes: 'true',
+                    FeatureFlagChannelAttributesRequired: 'true',
+                },
+            },
+        },
+    };
+
     const renderRow = (overrides: Partial<ChannelResourceConfig> = {}, props: {disabled?: boolean; ordered?: boolean} = {}) => {
         const onChange = jest.fn();
         const onRemove = jest.fn();
@@ -26,7 +43,7 @@ describe('ChannelsResourceRow', () => {
             />
         );
 
-        const view = renderWithContext(row(overrides));
+        const view = renderWithContext(row(overrides), requiredEnabledState);
 
         return {
             onChange,
@@ -130,7 +147,7 @@ describe('ChannelsResourceRow', () => {
         expect(screen.queryByText('Who can set the value')).not.toBeInTheDocument();
     });
 
-    it('names its icon-only disclosure control', async () => {
+    it('names its disclosure control', async () => {
         renderRow();
 
         expect(screen.getByRole('button', {name: 'Collapse channel settings'})).toBeInTheDocument();

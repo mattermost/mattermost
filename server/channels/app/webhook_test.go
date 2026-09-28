@@ -198,6 +198,311 @@ func TestHandleIncomingWebhookDirectMessage(t *testing.T) {
 	})
 }
 
+func TestHandleIncomingWebhookDirectMessageTeamScope(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+
+	// teamA holds the webhook and its channel. hookOwner is also a member of teamB, which is
+	// where outsideUser lives, so the two users share a team without sharing the webhook's team.
+	teamA := th.BasicTeam
+	teamB := th.CreateTeam(t)
+	channelA := th.BasicChannel
+	hookOwner := th.BasicUser
+	teamAUser := th.BasicUser2
+	th.LinkUserToTeam(t, hookOwner, teamB)
+
+	outsideUser := th.CreateUser(t)
+	th.LinkUserToTeam(t, outsideUser, teamB)
+
+	hook, appErr := th.App.CreateIncomingWebhookForChannel(hookOwner.Id, channelA, &model.IncomingWebhook{ChannelId: channelA.Id, ChannelLocked: false})
+	require.Nil(t, appErr)
+	require.Equal(t, teamA.Id, hook.TeamId)
+	defer func() {
+		require.Nil(t, th.App.DeleteIncomingWebhook(hook.Id))
+	}()
+
+	setRestrictDirectMessage := func(value string) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictDirectMessage = value })
+	}
+
+	// directMessages returns the messages in the direct channel between the two users, and an
+	// empty slice when that channel was never created.
+	directMessages := func(t *testing.T, userID1, userID2 string) []string {
+		t.Helper()
+
+		channel, err := th.App.GetChannelByName(th.Context, model.GetDMNameFromIds(userID1, userID2), "", true)
+		if err != nil {
+			require.Equal(t, http.StatusNotFound, err.StatusCode)
+			return nil
+		}
+
+		list, err := th.App.GetPosts(th.Context, channel.Id, 0, 60)
+		require.Nil(t, err)
+
+		messages := make([]string, 0, len(list.Posts))
+		for _, post := range list.ToSlice() {
+			messages = append(messages, post.Message)
+		}
+		return messages
+	}
+
+	// requireNoDirectChannel asserts that no direct channel exists for the two users, which is
+	// what a request refused by username must leave behind: resolving the target by username is
+	// what would otherwise create the channel on the way to the post.
+	requireNoDirectChannel := func(t *testing.T, userID1, userID2 string) {
+		t.Helper()
+
+		channel, err := th.App.GetChannelByName(th.Context, model.GetDMNameFromIds(userID1, userID2), "", true)
+		assert.Nil(t, channel)
+		require.NotNil(t, err)
+		assert.Equal(t, http.StatusNotFound, err.StatusCode)
+	}
+
+	t.Run("refuses a DM to a user outside the webhook team when direct messages are team restricted", func(t *testing.T) {
+		setRestrictDirectMessage(model.DirectMessageTeam)
+		defer setRestrictDirectMessage(model.DirectMessageAny)
+
+		message := "restricted dm " + model.NewId()
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:        message,
+			ChannelName: "@" + outsideUser.Username,
+		})
+		requireNoDirectChannel(t, hookOwner.Id, outsideUser.Id)
+		require.NotNil(t, err)
+		assert.Equal(t, http.StatusForbidden, err.StatusCode)
+	})
+
+	t.Run("allows a DM to a member of the webhook team when direct messages are team restricted", func(t *testing.T) {
+		setRestrictDirectMessage(model.DirectMessageTeam)
+		defer setRestrictDirectMessage(model.DirectMessageAny)
+
+		message := "same team dm " + model.NewId()
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:        message,
+			ChannelName: "@" + teamAUser.Username,
+		})
+		require.Nil(t, err)
+		assert.Contains(t, directMessages(t, hookOwner.Id, teamAUser.Id), message)
+	})
+
+	t.Run("allows a DM to a user outside the webhook team when direct messages are unrestricted", func(t *testing.T) {
+		setRestrictDirectMessage(model.DirectMessageAny)
+
+		message := "unrestricted dm " + model.NewId()
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:        message,
+			ChannelName: "@" + outsideUser.Username,
+		})
+		require.Nil(t, err)
+		assert.Contains(t, directMessages(t, hookOwner.Id, outsideUser.Id), message)
+	})
+
+	t.Run("allows posting to a channel of the webhook team when direct messages are team restricted", func(t *testing.T) {
+		setRestrictDirectMessage(model.DirectMessageTeam)
+		defer setRestrictDirectMessage(model.DirectMessageAny)
+
+		message := "channel post " + model.NewId()
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:        message,
+			ChannelName: "#" + channelA.Name,
+		})
+		require.Nil(t, err)
+
+		list, err := th.App.GetPosts(th.Context, channelA.Id, 0, 60)
+		require.Nil(t, err)
+		messages := make([]string, 0, len(list.Posts))
+		for _, post := range list.ToSlice() {
+			messages = append(messages, post.Message)
+		}
+		assert.Contains(t, messages, message)
+	})
+
+	t.Run("allows a DM to the webhook owner when direct messages are team restricted", func(t *testing.T) {
+		setRestrictDirectMessage(model.DirectMessageTeam)
+		defer setRestrictDirectMessage(model.DirectMessageAny)
+
+		message := "own dm " + model.NewId()
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:        message,
+			ChannelName: "@" + hookOwner.Username,
+		})
+		require.Nil(t, err)
+		assert.Contains(t, directMessages(t, hookOwner.Id, hookOwner.Id), message)
+	})
+
+	t.Run("refuses a DM to a user removed from the webhook team when direct messages are team restricted", func(t *testing.T) {
+		setRestrictDirectMessage(model.DirectMessageTeam)
+		defer setRestrictDirectMessage(model.DirectMessageAny)
+
+		// departedUser keeps teamB, so the only thing that changes with the removal from teamA
+		// is the membership row the webhook's team scope looks at, which is left behind soft
+		// deleted rather than dropped.
+		departedUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, departedUser, teamA)
+		th.LinkUserToTeam(t, departedUser, teamB)
+		th.RemoveUserFromTeam(t, departedUser, teamA)
+
+		message := "departed dm " + model.NewId()
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:        message,
+			ChannelName: "@" + departedUser.Username,
+		})
+		requireNoDirectChannel(t, hookOwner.Id, departedUser.Id)
+		require.NotNil(t, err)
+		assert.Equal(t, http.StatusForbidden, err.StatusCode)
+	})
+
+	t.Run("refuses a DM to a user outside the webhook team when the target username case differs", func(t *testing.T) {
+		setRestrictDirectMessage(model.DirectMessageTeam)
+		defer setRestrictDirectMessage(model.DirectMessageAny)
+
+		// A user of teamB only, so the refusal can be read from the absence of the channel the
+		// username would resolve to.
+		upperCaseTarget := th.CreateUser(t)
+		th.LinkUserToTeam(t, upperCaseTarget, teamB)
+
+		message := "upper case dm " + model.NewId()
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:        message,
+			ChannelName: "@" + strings.ToUpper(upperCaseTarget.Username),
+		})
+		requireNoDirectChannel(t, hookOwner.Id, upperCaseTarget.Id)
+		require.NotNil(t, err)
+		assert.Equal(t, http.StatusForbidden, err.StatusCode)
+	})
+
+	t.Run("refuses a DM to a user outside an archived webhook team when direct messages are team restricted", func(t *testing.T) {
+		// teamC is archived after the webhook is created, while its member also belongs to
+		// teamB, so the webhook owner still shares a live team with them.
+		teamC := th.CreateTeam(t)
+		channelC := th.CreateChannel(t, teamC)
+		th.LinkUserToTeam(t, hookOwner, teamC)
+		teamCUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, teamCUser, teamC)
+		th.LinkUserToTeam(t, teamCUser, teamB)
+
+		hookC, appErr := th.App.CreateIncomingWebhookForChannel(hookOwner.Id, channelC, &model.IncomingWebhook{ChannelId: channelC.Id, ChannelLocked: false})
+		require.Nil(t, appErr)
+		defer func() {
+			require.Nil(t, th.App.DeleteIncomingWebhook(hookC.Id))
+		}()
+		require.Nil(t, th.App.SoftDeleteTeam(teamC.Id))
+
+		setRestrictDirectMessage(model.DirectMessageTeam)
+		defer setRestrictDirectMessage(model.DirectMessageAny)
+
+		message := "archived team dm " + model.NewId()
+		err := th.App.HandleIncomingWebhook(th.Context, hookC.Id, &model.IncomingWebhookRequest{
+			Text:        message,
+			ChannelName: "@" + teamCUser.Username,
+		})
+		requireNoDirectChannel(t, hookOwner.Id, teamCUser.Id)
+		require.NotNil(t, err)
+		assert.Equal(t, http.StatusForbidden, err.StatusCode)
+	})
+
+	t.Run("refuses a direct channel outside the webhook team targeted by its channel name", func(t *testing.T) {
+		setRestrictDirectMessage(model.DirectMessageAny)
+		directChannel, appErr := th.App.GetOrCreateDirectChannel(th.Context, hookOwner.Id, outsideUser.Id)
+		require.Nil(t, appErr)
+
+		setRestrictDirectMessage(model.DirectMessageTeam)
+		defer setRestrictDirectMessage(model.DirectMessageAny)
+
+		message := "named direct channel " + model.NewId()
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:        message,
+			ChannelName: directChannel.Name,
+		})
+		assert.NotContains(t, directMessages(t, hookOwner.Id, outsideUser.Id), message)
+		require.NotNil(t, err)
+		assert.Equal(t, http.StatusForbidden, err.StatusCode)
+	})
+
+	// channelMessages returns the messages of any channel, including the direct and group
+	// channels that GetPosts is reached for by channel id rather than by member ids.
+	channelMessages := func(t *testing.T, channelID string) []string {
+		t.Helper()
+
+		list, err := th.App.GetPosts(th.Context, channelID, 0, 60)
+		require.Nil(t, err)
+
+		messages := make([]string, 0, len(list.Posts))
+		for _, post := range list.ToSlice() {
+			messages = append(messages, post.Message)
+		}
+		return messages
+	}
+
+	t.Run("allows a direct channel of the webhook team targeted by its channel name when direct messages are team restricted", func(t *testing.T) {
+		setRestrictDirectMessage(model.DirectMessageAny)
+		directChannel, appErr := th.App.GetOrCreateDirectChannel(th.Context, hookOwner.Id, teamAUser.Id)
+		require.Nil(t, appErr)
+
+		setRestrictDirectMessage(model.DirectMessageTeam)
+		defer setRestrictDirectMessage(model.DirectMessageAny)
+
+		message := "same team named direct channel " + model.NewId()
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:        message,
+			ChannelName: directChannel.Name,
+		})
+		require.Nil(t, err)
+		assert.Contains(t, channelMessages(t, directChannel.Id), message)
+	})
+
+	t.Run("refuses a group channel with a member outside the webhook team when direct messages are team restricted", func(t *testing.T) {
+		setRestrictDirectMessage(model.DirectMessageAny)
+		groupChannel := th.CreateGroupChannel(t, teamAUser, outsideUser)
+		require.Equal(t, model.GetGroupNameFromUserIds([]string{hookOwner.Id, teamAUser.Id, outsideUser.Id}), groupChannel.Name)
+
+		setRestrictDirectMessage(model.DirectMessageTeam)
+		defer setRestrictDirectMessage(model.DirectMessageAny)
+
+		message := "outside group channel " + model.NewId()
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:        message,
+			ChannelName: groupChannel.Name,
+		})
+		assert.NotContains(t, channelMessages(t, groupChannel.Id), message)
+		require.NotNil(t, err)
+		assert.Equal(t, http.StatusForbidden, err.StatusCode)
+	})
+
+	t.Run("allows a group channel of the webhook team when direct messages are team restricted", func(t *testing.T) {
+		setRestrictDirectMessage(model.DirectMessageAny)
+		teamAUser2 := th.CreateUser(t)
+		th.LinkUserToTeam(t, teamAUser2, teamA)
+		groupChannel := th.CreateGroupChannel(t, teamAUser, teamAUser2)
+
+		setRestrictDirectMessage(model.DirectMessageTeam)
+		defer setRestrictDirectMessage(model.DirectMessageAny)
+
+		message := "same team group channel " + model.NewId()
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:        message,
+			ChannelName: groupChannel.Name,
+		})
+		require.Nil(t, err)
+		assert.Contains(t, channelMessages(t, groupChannel.Id), message)
+	})
+
+	t.Run("allows a group channel with a member outside the webhook team when direct messages are unrestricted", func(t *testing.T) {
+		setRestrictDirectMessage(model.DirectMessageAny)
+
+		groupChannel := th.CreateGroupChannel(t, teamAUser, outsideUser)
+
+		message := "unrestricted group channel " + model.NewId()
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:        message,
+			ChannelName: groupChannel.Name,
+		})
+		require.Nil(t, err)
+		assert.Contains(t, channelMessages(t, groupChannel.Id), message)
+	})
+}
+
 func TestCreateIncomingWebhookForChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -328,6 +633,19 @@ func TestCreateIncomingWebhookForChannel(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("rejects a direct channel because incoming webhooks require a team id", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+
+		directChannel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+		require.Empty(t, directChannel.TeamId)
+
+		createdHook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, directChannel, &model.IncomingWebhook{ChannelId: directChannel.Id})
+		assert.Nil(t, createdHook)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "model.incoming_hook.team_id.app_error", appErr.Id)
+	})
 }
 
 func TestUpdateIncomingWebhook(t *testing.T) {
@@ -475,7 +793,7 @@ func TestCreateWebhookPost(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
-	hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+	hook, appErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, DisplayName: "TestHook"})
 	require.Nil(t, appErr)
 	defer func() {
 		appErr = th.App.DeleteIncomingWebhook(hook.Id)
@@ -498,6 +816,7 @@ func TestCreateWebhookPost(t *testing.T) {
 	assert.Contains(t, post.GetProps(), model.PostPropsFromWebhook, "missing from_webhook prop")
 	assert.Contains(t, post.GetProps(), model.PostPropsAttachments, "missing attachments prop")
 	assert.Contains(t, post.GetProps(), model.PostPropsWebhookDisplayName, "missing webhook_display_name prop")
+	assert.Equal(t, "TestHook", post.GetProp(model.PostPropsWebhookDisplayName), "webhook_display_name should be re-injected from CreatePostFlags")
 
 	_, appErr = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", "", nil, model.PostTypeSystemGeneric, "", nil, false)
 	require.NotNil(t, appErr, "Should have failed - bad post type")

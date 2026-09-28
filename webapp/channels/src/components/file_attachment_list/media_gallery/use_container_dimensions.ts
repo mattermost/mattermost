@@ -9,7 +9,7 @@ export type ContainerDimensions = {
     height: number;
 };
 
-export function useContainerDimensions(ref: RefObject<HTMLElement>): ContainerDimensions {
+export function useContainerDimensions(ref: RefObject<HTMLElement | null>): ContainerDimensions {
     const [dimensions, setDimensions] = useState<ContainerDimensions>({width: 0, height: 0});
 
     useLayoutEffect(() => {

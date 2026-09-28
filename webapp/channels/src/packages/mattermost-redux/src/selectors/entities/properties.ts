@@ -12,6 +12,9 @@ import {
     DISPLAY_BANNER_TOP,
     DISPLAY_LABEL_HEADER,
     DISPLAY_LABEL_INFO,
+    POST_OBJECT_TYPE,
+    SYSTEM_TARGET_TYPE,
+    USER_OBJECT_TYPE,
 } from 'mattermost-redux/constants/properties';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
@@ -22,16 +25,29 @@ function getPropertyFieldsById(state: GlobalState) {
     return state.entities.properties.fields.byId;
 }
 
-export const getPropertyFieldsForObjectTypeAndGroup = createSelector(
-    'getPropertyFieldsForObjectTypeAndGroup',
-    (state: GlobalState, objectType: string, groupId: string) => state.entities.properties.fields.byObjectType[objectType]?.[groupId],
-    (fields) => {
-        if (!fields) {
-            return [];
-        }
-        return Object.values(fields);
-    },
-);
+const EMPTY_FIELDS: PropertyField[] = [];
+
+/**
+ * A factory because Object.values() is a new array and the memoizer only
+ * keeps the last arguments. Four shared calls in one render (template /
+ * user / channel / post) evict each other and return fresh arrays on
+ * every Redux update. One instance per (objectType, consumer).
+ */
+export function makeGetPropertyFieldsForObjectTypeAndGroup(): (state: GlobalState, objectType: string, groupId: string) => PropertyField[] {
+    return createSelector(
+        'makeGetPropertyFieldsForObjectTypeAndGroup',
+        (state: GlobalState, objectType: string, groupId: string) => state.entities.properties.fields.byObjectType[objectType]?.[groupId],
+        (fields) => {
+            if (!fields) {
+                return EMPTY_FIELDS;
+            }
+            const values = Object.values(fields);
+            return values.length === 0 ? EMPTY_FIELDS : values;
+        },
+    );
+}
+
+export const getPropertyFieldsForObjectTypeAndGroup = makeGetPropertyFieldsForObjectTypeAndGroup();
 
 export function getPropertyFieldById(state: GlobalState, fieldId: string): PropertyField | undefined {
     return getPropertyFieldsById(state)[fieldId];
@@ -114,8 +130,6 @@ export const getPropertyValuesForField = createSelector(
 
 // Channel attribute selectors
 
-const EMPTY_FIELDS: PropertyField[] = [];
-
 // Ties break on name, not create_at: chip order is something people are told to
 // read, so it must follow the configuration rather than insertion timing.
 function sortByFieldOrder(fields: PropertyField[]): PropertyField[] {
@@ -153,6 +167,35 @@ export const getChannelAttributeFields: (state: GlobalState) => PropertyField[] 
         }
         const live = Object.values(fields).filter((field) => field.delete_at === 0);
         return live.length === 0 ? EMPTY_FIELDS : sortByFieldOrder(live);
+    },
+);
+
+/**
+ * System-scoped fields from all three object types (user, channel, post) that are
+ * not a template's linked child, for the Manage Attributes page. A field with
+ * linked_field_id set is already represented by that template's own row, so it is
+ * excluded here to avoid listing the same attribute twice.
+ *
+ * groupId is the group's real UUID; fields are stored under that id, never under
+ * the group name, so the caller resolves the id first.
+ */
+export const getUnlinkedSystemFieldsForGroup: (state: GlobalState, groupId: string) => PropertyField[] = createSelector(
+    'getUnlinkedSystemFieldsForGroup',
+    (state: GlobalState, groupId: string) => state.entities.properties.fields.byObjectType[USER_OBJECT_TYPE]?.[groupId],
+    (state: GlobalState, groupId: string) => state.entities.properties.fields.byObjectType[CHANNEL_OBJECT_TYPE]?.[groupId],
+    (state: GlobalState, groupId: string) => state.entities.properties.fields.byObjectType[POST_OBJECT_TYPE]?.[groupId],
+    (userFields, channelFields, postFields) => {
+        const all = [
+            ...Object.values(userFields ?? {}),
+            ...Object.values(channelFields ?? {}),
+            ...Object.values(postFields ?? {}),
+        ];
+        const unlinked = all.filter((field) => (
+            field.target_type === SYSTEM_TARGET_TYPE &&
+            field.delete_at === 0 &&
+            !field.linked_field_id
+        ));
+        return unlinked.length === 0 ? EMPTY_FIELDS : unlinked;
     },
 );
 

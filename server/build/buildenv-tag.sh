@@ -5,7 +5,8 @@
 #
 # The tag comes from the Dockerfiles, since those are what actually determine
 # the image, and they are checked against .go-version and .nvmrc so the pins
-# cannot drift apart unnoticed.
+# cannot drift apart unnoticed. mise.toml pins Node for developers rather than
+# for the image, but it is checked here too, for the same reason.
 set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/../.."
@@ -25,6 +26,11 @@ satisfies() {
 
 go_version=$(cat server/.go-version)
 node_spec=$(cat .nvmrc)
+
+mise_version=$(awk -F'"' '$1 ~ /^node[[:space:]]*=[[:space:]]*$/ { print $2; exit }' mise.toml)
+[[ -n "${mise_version}" ]] || fail "mise.toml: no node pin"
+satisfies "${mise_version}" "${node_spec}" ||
+    fail "mise.toml: node is ${mise_version}, but .nvmrc says ${node_spec}"
 
 node_version=""
 for dockerfile in "${DOCKERFILES[@]}"; do

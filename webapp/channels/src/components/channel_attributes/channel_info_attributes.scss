@@ -1,85 +1,174 @@
 .ChannelInfoAttributes {
+    display: flex;
+    flex-direction: column;
     margin-bottom: 12px;
+    gap: 8px;
 
-    // Matches ChannelDescriptionHeading in about_area_channel.tsx, so this block
-    // reads as a sibling of CHANNEL PURPOSE rather than a new kind of section.
+    // Matches ChannelDescriptionHeading / proto group-title (11px, 0.75).
     &__heading {
-        padding: 4px 0;
-        color: rgb(var(--center-channel-color-rgb));
-        font-size: 12px;
+        padding: 6px 0;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 11px;
         font-weight: 600;
-        letter-spacing: 0.24px;
+        letter-spacing: 0.11px;
         line-height: 16px;
         text-transform: uppercase;
     }
 
-    &__row {
+    &__body {
         display: flex;
-        min-height: 28px;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
+        flex-direction: column;
+        gap: 8px;
+    }
 
-        &:hover .ChannelInfoAttributes__edit,
-        &:focus-within .ChannelInfoAttributes__edit {
-            opacity: 1;
-        }
+    &__list {
+        display: flex;
+        flex-direction: column;
+    }
+
+    &__row {
+        display: grid;
+        align-items: center;
+        padding: 2px 0;
+        gap: 10px;
+        grid-template-columns: 152px minmax(0, 1fr);
     }
 
     &__label {
         display: inline-flex;
+        min-width: 0;
+        min-height: 28px;
         align-items: center;
-        color: rgba(var(--center-channel-color-rgb), 1);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
         font-weight: 600;
         gap: 4px;
+        line-height: 16px;
 
         svg {
-            color: rgba(var(--center-channel-color-rgb), 0.56);
+            color: rgba(var(--center-channel-color-rgb), 0.48);
         }
     }
 
     &__value {
+        display: flex;
+        width: 100%;
+        min-width: 0;
+        min-height: 28px;
+        align-items: center;
+        justify-content: flex-start;
+    }
+
+    &__valueActive {
+        display: flex;
+        width: 100%;
+        min-width: 0;
+        min-height: 28px;
+        flex: 1;
+        align-items: center;
+
+        > .ChannelInfoAttributes__valueTrigger {
+            width: auto;
+            min-width: 0;
+            flex: 1;
+        }
+
+        &:hover .AttributeChip__remove,
+        &:focus-within .AttributeChip__remove {
+            opacity: 0.56;
+            pointer-events: auto;
+        }
+    }
+
+    &__valueTrigger {
+        display: inline-flex;
+        width: 100%;
+        min-width: 0;
+        min-height: 28px;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 0 8px 0 4px;
+        border: none;
+        border-radius: 4px;
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+        text-align: left;
+
+        &:hover,
+        &[aria-expanded='true'] {
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--button-bg);
+            outline-offset: 2px;
+        }
+    }
+
+    &__textInput {
+        width: 100%;
+        min-height: 28px;
+        box-sizing: border-box;
+        padding: 4px 8px 4px 4px;
+        border: none;
+        border-radius: 4px;
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: var(--center-channel-color);
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 16px;
+        outline: none;
+
+        &:focus {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+        }
+
+        &:disabled {
+            opacity: 0.64;
+        }
+    }
+
+    .AttributeChip__remove {
+        overflow: hidden;
+        opacity: 0;
+        pointer-events: none;
+
+        // Keep the control in the tab order (display:none would remove it)
+        // and reveal it when focused from the keyboard.
+        &:focus-visible {
+            opacity: 0.56;
+            pointer-events: auto;
+        }
+    }
+
+    &__optionLabel {
         display: inline-flex;
         min-width: 0;
         align-items: center;
-        gap: 4px;
+    }
 
-        .DropdownInput {
-            min-width: 140px;
-        }
+    &__textValue {
+        overflow: hidden;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 16px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     &__empty {
-        color: rgba(var(--center-channel-color-rgb), 0.56);
-    }
-
-    // Revealed on row hover or focus, as the purpose and header rows already do,
-    // so the section stays quiet until someone reaches for it.
-    &__edit {
-        display: inline-flex;
-        width: 24px;
-        height: 24px;
-        align-items: center;
-        justify-content: center;
-        border: 0;
-        border-radius: 4px;
-        background: none;
-        color: rgba(var(--center-channel-color-rgb), 0.64);
-        opacity: 0;
-
-        &:hover,
-        &:focus {
-            background: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.75);
-            opacity: 1;
-        }
+        color: rgba(var(--center-channel-color-rgb), 0.48);
+        font-size: 12px;
+        font-weight: 400;
+        line-height: 16px;
     }
 
     &__error {
-        flex-basis: 100%;
         color: var(--error-text);
         font-size: 12px;
+        grid-column: 1 / -1;
         line-height: 16px;
     }
 
@@ -87,18 +176,23 @@
         display: inline-flex;
         width: fit-content;
         align-items: center;
-        padding: 2px 6px;
+        padding: 2px 0;
         border: none;
         border-radius: 4px;
-        margin-top: 4px;
         background: transparent;
-        color: var(--link-color);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
         font-size: 12px;
         font-weight: 600;
-        gap: 4px;
+        gap: 6px;
+        line-height: 16px;
 
         &:hover {
-            background: rgba(var(--button-bg-rgb), 0.08);
+            color: var(--center-channel-color);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--button-bg);
+            outline-offset: 2px;
         }
     }
 }
