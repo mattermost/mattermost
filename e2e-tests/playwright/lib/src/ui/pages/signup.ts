@@ -25,6 +25,8 @@ export default class SignupPage {
     readonly emailError;
     readonly usernameError;
     readonly passwordError;
+    readonly passwordLengthError;
+    readonly passwordComplexityError;
     readonly domainRestrictionError;
     readonly noSignInMethods;
     readonly createAccountWithFollowing;
@@ -54,6 +56,10 @@ export default class SignupPage {
             'Usernames have to begin with a lowercase letter and be 3-22 characters long. You can use lowercase letters, numbers, periods, dashes, and underscores.',
         );
         this.passwordError = page.getByText(/Must be \d+-72 characters long\./);
+        this.passwordLengthError = page.getByText(/Your password must be \d+-72 characters long\.$/);
+        this.passwordComplexityError = page.getByText(
+            /Your password must be \d+-72 characters long and include both lowercase and uppercase letters, numbers, and special characters\./,
+        );
         this.domainRestrictionError = page.getByText(
             'The email you provided does not belong to an accepted domain. Please contact your administrator or sign up with a different email.',
         );

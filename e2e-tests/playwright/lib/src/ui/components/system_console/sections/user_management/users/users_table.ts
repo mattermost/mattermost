@@ -13,13 +13,22 @@ const USERS_REPORT_RESPONSE_TIMEOUT_MS = 10_000;
  * action that triggers the fetch (click, search, etc.) so Playwright does not sit
  * on the timeout when the response already finished.
  */
-export function waitForUsersReportResponse(page: Page) {
+export function waitForUsersReportResponse(page: Page, searchTerm?: string) {
     return page.waitForResponse(
-        (response) =>
-            response.url().includes('/api/v4/reports/users') &&
-            !response.url().includes('/count') &&
-            response.request().method() === 'GET' &&
-            response.ok(),
+        (response) => {
+            if (
+                !response.url().includes('/api/v4/reports/users') ||
+                response.url().includes('/count') ||
+                response.request().method() !== 'GET' ||
+                !response.ok()
+            ) {
+                return false;
+            }
+            if (searchTerm === undefined) {
+                return true;
+            }
+            return new URL(response.url()).searchParams.get('search_term') === searchTerm;
+        },
         {timeout: USERS_REPORT_RESPONSE_TIMEOUT_MS},
     );
 }
@@ -78,6 +87,22 @@ export class UsersTable {
      */
     getRowByIndex(index: number): UserRow {
         return new UserRow(this.bodyRows.nth(index), index);
+    }
+
+    /**
+     * Get a user row by exact username, since the search is a partial LIKE match and can
+     * return more than one row.
+     */
+    async getRowByUsername(username: string): Promise<UserRow> {
+        const count = await this.bodyRows.count();
+        for (let index = 0; index < count; index++) {
+            const row = this.getRowByIndex(index);
+            const text = (await row.userName.textContent())?.trim();
+            if (text === username) {
+                return row;
+            }
+        }
+        throw new Error(`No user row found for username "${username}"`);
     }
 
     /**
