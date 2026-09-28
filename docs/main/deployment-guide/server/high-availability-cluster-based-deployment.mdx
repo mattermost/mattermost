@@ -673,7 +673,7 @@ Amazon Aurora PostgreSQL provides managed database service with built-in high av
 
    </Important>
 
-2. **Configure read replicas:** Point directly to individual reader instance endpoints (not the reader endpoint). Create a configuration patch file:
+2. **Configure read replicas:** Point `DataSourceReplicas` to the Aurora cluster reader endpoint as a single entry, and shorten the connection lifetime so read connections keep spreading across reader instances. Create a configuration patch file:
 
    ```bash
    # Create a configuration patch file
@@ -681,9 +681,9 @@ Amazon Aurora PostgreSQL provides managed database service with built-in high av
    {
      "SqlSettings": {
        "DataSourceReplicas": [
-         "postgres://username:password@your-cluster-instance-1.xxxxx.region.rds.amazonaws.com:5432/mattermost?sslmode=require&connect_timeout=10",
-         "postgres://username:password@your-cluster-instance-2.xxxxx.region.rds.amazonaws.com:5432/mattermost?sslmode=require&connect_timeout=10"
-       ]
+         "postgres://username:password@your-cluster.cluster-ro-xxxxx.region.rds.amazonaws.com:5432/mattermost?sslmode=require&connect_timeout=10"
+       ],
+       "ConnMaxLifetimeMilliseconds": 300000
      }
    }
    EOF
@@ -695,11 +695,19 @@ Amazon Aurora PostgreSQL provides managed database service with built-in high av
    rm /tmp/replica-config.json
    ```
 
-   <Note>
+   The reader endpoint always points to the reader instances that are currently available, so the configuration doesn't need to change when you add or remove readers, including with Aurora Replica Auto Scaling.
 
-   Use **individual reader instance endpoints** rather than the Aurora reader endpoint. Mattermost has its own load balancing logic for read queries and can failover to the primary connection if reader instances become unavailable.
+   <Important>
 
-   </Note>
+   The reader endpoint picks a reader instance once, when a connection opens, and every query on that connection goes to the same instance. With the default [maximum connection lifetime](/administration-guide/configure/environment-configuration-settings#maximum-connection-lifetime) of 1 hour, an uneven split between readers can last up to an hour, and newly added readers receive little traffic until old connections expire. Set `ConnMaxLifetimeMilliseconds` to between `60000` and `300000` (1 to 5 minutes) so that connections regularly reconnect and rebalance. Use Amazon CloudWatch to compare CPU and connection counts across reader instances, and adjust the value if the load stays uneven.
+
+   </Important>
+
+   **Alternative: individual reader instance endpoints.** You can list each reader instance endpoint as a separate entry in `DataSourceReplicas`. Mattermost then rotates read queries across the entries one query at a time, which spreads load more evenly than the reader endpoint does. Only use this approach if the set of reader instances rarely changes:
+
+   - The list must be updated every time a reader instance is added, removed, or replaced. New readers receive no traffic until they're added, so this approach doesn't work with Aurora Replica Auto Scaling.
+   - Mattermost sends reads to the primary only when every listed replica is marked offline, and it marks a replica offline only after a connection error, not a timeout. A reader that becomes unresponsive stays in rotation, and the queries sent to it wait until the [query timeout](/administration-guide/configure/environment-configuration-settings#query-timeout) expires.
+   - Each entry gets its own connection pool, so connection counts grow with the number of readers. See the sizing guidance in the next step.
 
 3. **Configure connection pool settings:**
 
@@ -709,13 +717,15 @@ Amazon Aurora PostgreSQL provides managed database service with built-in high av
    mmctl config set SqlSettings.MaxIdleConns 50
    ```
 
-   The recommended ratio is 2:1 (MaxOpenConns:MaxIdleConns). These settings apply **per data source, per Mattermost server node**, not as a cluster-wide total: each node opens its own connection pool, sized to `MaxOpenConns`, for the primary database and for each read replica and search replica.
+   The recommended ratio is 2:1 (MaxOpenConns:MaxIdleConns). These settings apply **per data source, per Mattermost server node**, not as a cluster-wide total: each node opens its own connection pool, sized to `MaxOpenConns`, for the primary database and for each entry in `DataSourceReplicas` and `DataSourceSearchReplicas`.
 
-   To size `max_connections` on the database (or any connection-pooling proxy in front of it), first count the data sources per node—the primary counts as 1, then add the number of read replicas and the number of search replicas. Multiply that count by `MaxOpenConns`, then multiply again by the number of app server nodes:
+   A single reader endpoint entry gets a single pool, no matter how many reader instances sit behind it. If you replace several reader instance entries with one reader endpoint entry, raise `MaxOpenConns` and `MaxIdleConns` to keep the same read capacity. For example, replacing 3 instance entries at `MaxOpenConns` 100 needs `MaxOpenConns` 300 to allow the same 300 read connections per node. Because the primary uses the same setting, also confirm the writer's `max_connections` can handle the higher value.
+
+   To size `max_connections` on the database (or any connection-pooling proxy in front of it), first count the data sources per node: the primary counts as 1, then add the number of entries in `DataSourceReplicas` and `DataSourceSearchReplicas`. Multiply that count by `MaxOpenConns`, then multiply again by the number of app server nodes:
 
    `MaxOpenConns` x (data sources per node) x (number of app nodes)
 
-   For example, with one primary and two read replicas, each node has 3 data sources. Across a 3-node cluster, at the default `MaxOpenConns` of 100, that's 3 x 3 x 100 = 900 possible connections.
+   For example, with one primary and two reader instance entries, each node has 3 data sources. Across a 3-node cluster, at the default `MaxOpenConns` of 100, that's 3 x 3 x 100 = 900 possible connections.
 
 4. **Verify database configuration:** Restart Mattermost and check that database connections are healthy:
 
