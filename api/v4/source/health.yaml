@@ -1,0 +1,145 @@
+  /api/v4/health/findings:
+    get:
+      tags:
+        - health
+      summary: Get health findings
+      description: |
+        Get the findings stored by the server's latest health evaluation, for product-surface rules only.
+        `title`, `message` and `remediation` are rendered in the locale of the request's `Accept-Language`
+        header, falling back to English. Findings whose rule is no longer registered are left out.
+
+        The server evaluates its health rules once an hour, so a finding can be up to an hour old; each
+        finding's `last_seen_at` is the time it was last evaluated.
+
+        __Minimum server version__: 12.1
+
+        ##### Permissions
+
+        Must have `manage_system` permission. Also available over local mode.
+
+        Requires the `HealthDashboard` feature flag and an Enterprise license.
+      operationId: GetHealthFindings
+      parameters:
+        - name: muted
+          in: query
+          description: |
+            Which findings to return by mute state. Omit to return only unmuted findings; `included`
+            returns muted and unmuted findings; `only` returns only muted findings.
+          required: false
+          schema:
+            type: string
+            enum:
+              - included
+              - only
+      responses:
+        "200":
+          description: Health findings retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/HealthFinding"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          description: The `HealthDashboard` feature flag is off, or the server does not have an Enterprise license.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+  "/api/v4/health/findings/{fingerprint}/mute":
+    post:
+      tags:
+        - health
+      summary: Mute a health finding
+      description: |
+        Mute a health finding so it is no longer returned by default. The mute is kept until the finding
+        is unmuted, and muting an already muted finding succeeds. The mute is recorded in the audit log.
+
+        __Minimum server version__: 12.1
+
+        ##### Permissions
+
+        Must have `manage_system` permission. Not available over local mode.
+
+        Requires the `HealthDashboard` feature flag and an Enterprise license.
+      operationId: MuteHealthFinding
+      parameters:
+        - name: fingerprint
+          in: path
+          description: The finding's fingerprint, 32 lowercase hexadecimal characters.
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Health finding mute successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          description: The `HealthDashboard` feature flag is off, or the server does not have an Enterprise license.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
+    delete:
+      tags:
+        - health
+      summary: Unmute a health finding
+      description: |
+        Unmute a health finding. Unmuting a finding that is not muted succeeds. The unmute is recorded
+        in the audit log.
+
+        __Minimum server version__: 12.1
+
+        ##### Permissions
+
+        Must have `manage_system` permission. Not available over local mode.
+
+        Requires the `HealthDashboard` feature flag and an Enterprise license.
+      operationId: UnmuteHealthFinding
+      parameters:
+        - name: fingerprint
+          in: path
+          description: The finding's fingerprint, 32 lowercase hexadecimal characters.
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Health finding unmute successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          description: The `HealthDashboard` feature flag is off, or the server does not have an Enterprise license.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"

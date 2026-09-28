@@ -79,6 +79,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/telemetry"
 	"github.com/mattermost/mattermost/server/v8/platform/services/upgrader"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 )
@@ -156,6 +157,8 @@ type Server struct {
 	AutoTranslation         einterfaces.AutoTranslationInterface
 
 	agentsBridgeOverride AgentsBridge
+
+	healthRulesOverride *healthcheck.Registry
 
 	ch *Channels
 
