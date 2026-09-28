@@ -110,6 +110,15 @@ const (
 	MutedOnly MutedFilter = "only"
 )
 
+func (m MutedFilter) IsValid() bool {
+	switch m {
+	case MutedExcluded, MutedIncluded, MutedOnly:
+		return true
+	default:
+		return false
+	}
+}
+
 type HealthFindingFilter struct {
 	Surfaces []string    `json:"surfaces,omitempty"`
 	Muted    MutedFilter `json:"muted,omitempty"`
