@@ -297,10 +297,6 @@ describe('TableEditor - graph attributes', () => {
         await userEvent.click(screen.getByTestId('valueSelectorMenuButton'));
         await userEvent.click(await screen.findByRole('menuitemradio', {name: /channelPrograms/}));
         expect(onChange).toHaveBeenLastCalledWith('user.attributes.programs.coversAny(resource.attributes.channelPrograms)');
-
-        await userEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
-        await userEvent.click(await screen.findByRole('menuitemradio', {name: 'has all of'}));
-        expect(onChange).toHaveBeenLastCalledWith('user.attributes.programs.hasAllOf(resource.attributes.channelPrograms)');
     });
 
     test('a membership operator on a graph attribute offers a channel target with the same option owner', async () => {

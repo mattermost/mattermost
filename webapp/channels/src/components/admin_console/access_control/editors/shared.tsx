@@ -365,17 +365,18 @@ const RESOURCE_SELECTOR = String.raw`resource\.attributes\.\w+`;
 const SIMPLE_CONDITION_PATTERNS: RegExp[] = [
     new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\s*(==|!=|>=|<=|>|<)\s*(?:${CEL_STRING}|${RESOURCE_SELECTOR})$`),
 
-    // Multiselect list-vs-list against the accessed channel's attribute,
-    // stored verbatim as a member call: the receiver is the user's multiselect
-    // attribute and the single argument is a resource.attributes.* selector
-    // (never a literal — that form is the in-chain below).
+    // List-vs-list against the accessed channel's attribute, stored verbatim
+    // as a member call: the receiver is the user's multiselect attribute, or a
+    // graph attribute matched exactly against a channel graph attribute, and the
+    // single argument is a resource.attributes.* selector (never a literal —
+    // that form is the in-chain below).
     new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\.(?:hasAnyOf|hasAllOf)\(${RESOURCE_SELECTOR}\)$`),
 
     // A graph hierarchy predicate: a member call on the user's graph attribute
     // whose single argument is a list of option names or the accessed channel's
     // graph attribute. Only the custom-profile namespace, since a session
-    // attribute is never a graph field. Exact membership on a graph attribute is
-    // the `in` form matched below, unchanged.
+    // attribute is never a graph field. Exact membership against literal options is
+    // the `in` form below; against a channel attribute it is the member call above.
     new RegExp(String.raw`^user\.attributes\.\w+\.(?:coversAll|coversAny|withinAll|withinAny)\((?:${CEL_STRING_LIST}|${RESOURCE_SELECTOR})\)$`),
 
     new RegExp(String.raw`^user\.(?:attributes|session)\.\w+\s+in\s+${CEL_STRING_LIST}$`),
