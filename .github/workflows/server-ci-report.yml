@@ -45,7 +45,7 @@ jobs:
       REPORT_MATRIX: ${{ steps.report.outputs.REPORT_MATRIX }}
     steps:
       - name: report/download-artifacts-from-PR-workflow
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           run-id: ${{ inputs.source-run-id }}
           github-token: ${{ github.token }}
@@ -98,7 +98,7 @@ jobs:
       matrix: ${{ fromJson(needs.generate-report-matrix.outputs.REPORT_MATRIX) }}
     steps:
       - name: report/download-artifacts-from-PR-workflow
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           run-id: ${{ inputs.source-run-id }}
           github-token: ${{ github.token }}
@@ -124,7 +124,7 @@ jobs:
           fi
       - name: Publish test report
         id: report
-        uses: mikepenz/action-junit-report@49b2ca06f62aa7ef83ae6769a2179271e160d8e4 # v6.3.1
+        uses: mikepenz/action-junit-report@d9f48fc87bc235f7e214acf696ca5abc0a986f16 # v6.4.2
         with:
           report_paths: ${{ matrix.test.artifact }}/report.xml
           check_name: ${{ matrix.test.name }} (Results)
