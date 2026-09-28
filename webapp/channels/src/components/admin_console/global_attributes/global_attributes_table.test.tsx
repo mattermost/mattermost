@@ -1141,7 +1141,6 @@ describe('GlobalAttributesTable', () => {
 
         it('shows AD/LDAP when attrs.ldap is set', async () => {
             getPropertyFields.mockResolvedValueOnce([makeField({attrs: {ldap: 'someAttribute'}})]).mockResolvedValue([]);
-            getPropertyFields.mockResolvedValueOnce([makeField({attrs: {ldap: 'someAttribute'}})]).mockResolvedValue([]);
 
             renderWithContext(<GlobalAttributesTable/>, getBaseState());
 
