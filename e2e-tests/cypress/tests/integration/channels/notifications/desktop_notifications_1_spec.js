@@ -240,7 +240,7 @@ describe('Desktop notifications', () => {
                 cy.postMessageAs({sender: otherUser, message: 'hi', channelId: dmChannel.id});
 
                 // * DM notification is received
-                cy.get('@withNotification').should('have.been.called');
+                cy.get('@withNotification').should('have.been.calledTwice');
             });
         });
     });
