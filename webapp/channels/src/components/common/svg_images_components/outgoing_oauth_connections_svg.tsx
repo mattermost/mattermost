@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// Sourced from @mattermost/compass-ui illustrations/oauth.svg
+// Sourced from @mattermost/compass-ui illustrations/oauth.svg with outgoing-webhook-style arrow
 
 import React from 'react';
 
@@ -9,7 +9,7 @@ type Props = {
     className?: string;
 };
 
-const OauthApplicationsSvg = ({className}: Props) => (
+const OutgoingOauthConnectionsSvg = ({className}: Props) => (
     <svg
         className={className}
         width='119'
@@ -77,7 +77,12 @@ const OauthApplicationsSvg = ({className}: Props) => (
         <path d='M63.087 70.4434L63.2089 73.2061L61.824 73.2673L61.7032 70.5326C61.6719 69.8226 61.2985 69.501 60.7502 69.5253C60.2018 69.5495 59.8575 69.8887 59.8879 70.5776L60.0102 73.3474L58.6253 73.4085L58.5049 70.6809C58.4347 69.0922 59.3109 68.3561 60.7098 68.2944C62.1089 68.2326 63.019 68.9038 63.087 70.4434Z' fill='#fff'/>
         <path d='M53.4641 71.3466L54.8909 71.7318L54.5791 72.8867L50.4072 71.7607L50.7191 70.6056L52.1459 70.9908L53.1179 67.3896L54.436 67.7455L53.4641 71.3466Z' fill='#fff'/>
         <path d='M46.7199 70.3433L45.5489 69.6415L46.4967 68.0599L44.9938 67.1591L44.046 68.7406L42.875 68.0388L45.4075 63.8135L46.5785 64.5154L45.6162 66.121L47.1192 67.0219L48.0815 65.4162L49.2525 66.1182L46.7199 70.3433Z' fill='#fff'/>
+        <g>
+            <path d='M90 44.155H116M116 44.155L108.5 36.655M116 44.155L108.5 51.655' stroke='var(--center-channel-color)' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'/>
+            <path d='M86.5 44.155H84' stroke='var(--center-channel-color)' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'/>
+            <path d='M81 44.155H79.5' stroke='var(--center-channel-color)' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'/>
+        </g>
     </svg>
 );
 
-export default OauthApplicationsSvg;
+export default OutgoingOauthConnectionsSvg;

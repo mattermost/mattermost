@@ -11,13 +11,13 @@ import {Permissions} from 'mattermost-redux/constants';
 import BotAccountsSvg from 'components/common/svg_images_components/bot_accounts_svg';
 import IncomingWebhookSvg from 'components/common/svg_images_components/incoming_webhook_svg';
 import OauthApplicationsSvg from 'components/common/svg_images_components/oauth_applications_svg';
+import OutgoingOauthConnectionsSvg from 'components/common/svg_images_components/outgoing_oauth_connections_svg';
 import OutgoingWebhookSvg from 'components/common/svg_images_components/outgoing_webhook_svg';
 import SlashCommandsSvg from 'components/common/svg_images_components/slash_commands_svg';
 import ExternalLink from 'components/external_link';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
 
-import OutgoingOAuthConnectionsIcon from 'images/outgoing_oauth_connection.png';
 import * as Utils from 'utils/utils';
 
 import IntegrationOption from './integration_option';
@@ -165,12 +165,7 @@ export default class Integrations extends React.PureComponent <Props> {
                 >
                     <IntegrationOption
                         key='outgoingOAuthConnections'
-                        image={(
-                            <img
-                                alt=''
-                                src={OutgoingOAuthConnectionsIcon}
-                            />
-                        )}
+                        image={<OutgoingOauthConnectionsSvg/>}
                         title={
                             <FormattedMessage
                                 id='integrations.outgoingOAuthConnections.title'
