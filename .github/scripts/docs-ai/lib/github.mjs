@@ -25,11 +25,12 @@ export async function* issueComments(repo, pr, {request = gh, perPage = PER_PAGE
   }
 }
 
+// Report posts as github-actions[bot]; matching any Bot lets another steal the sticky.
+const STICKY_AUTHOR = 'github-actions[bot]';
+
 export async function findStickyComment(repo, pr, {marker, request = gh}) {
   for await (const c of issueComments(repo, pr, {request})) {
-    // The marker is an invisible HTML comment, so anyone able to comment could
-    // plant one and have the next run overwrite their post.
-    if (c.body?.includes(marker) && c.user?.type === 'Bot') return c;
+    if (c.body?.includes(marker) && c.user?.login === STICKY_AUTHOR) return c;
   }
   return null;
 }

@@ -99,6 +99,19 @@ test('a marker planted by a human is skipped on every page', async () => {
   assert.deepEqual(result, {action: 'updated', id: 500});
 });
 
+test('a marker planted by a different bot is skipped', async () => {
+  const planted = {
+    id: 3,
+    body: `${MARKER} overwrite me`,
+    user: {type: 'Bot', login: 'some-other[bot]'},
+  };
+  const s = stub([[planted, bot(500)]]);
+
+  const result = await upsertStickyComment(REPO, PR, {marker: MARKER, body: 'fresh', request: s.request});
+
+  assert.deepEqual(result, {action: 'updated', id: 500});
+});
+
 test('a human marker alone yields a new comment rather than an edit', async () => {
   const planted = {id: 3, body: `${MARKER} overwrite me`, user: {type: 'User', login: 'attacker'}};
   const s = stub([[human(1), planted]]);

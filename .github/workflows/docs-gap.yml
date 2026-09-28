@@ -30,7 +30,6 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
-      id-token: write
     outputs:
       analyzable: ${{ steps.diff.outputs.analyzable }}
       result: ${{ steps.gap.outputs.structured_output }}
@@ -102,9 +101,11 @@ jobs:
         id: gap
         if: steps.diff.outputs.analyzable == 'true'
         continue-on-error: true
-        uses: anthropics/claude-code-action@26ec041249acb0a944c0a47b6c0c13f05dbc5b44 # v1.0.70
+        uses: anthropics/claude-code-action@756cc22e19660d20e8cc9496b4f242475a7f7790 # v1.0.235
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Without this the action uses Claude App via OIDC (needs id-token: write).
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           allowed_bots: "cursor,claude"
           prompt: ${{ steps.prompt.outputs.prompt }}
           claude_args: |
