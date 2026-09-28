@@ -75,7 +75,8 @@ test('MM-T1772 applies a new minimum password length on signup', {tag: '@authent
 });
 
 /**
- * @objective Verify clearing Minimum password length resets it to the server default.
+ * @objective Verify clearing Minimum password length resets it to the server default on regular
+ * builds, and is rejected as below the FIPS-enforced minimum (14) on FIPS builds.
  */
 test(
     'MM-T1773 resets Minimum password length to the default after clearing it',
@@ -83,6 +84,9 @@ test(
     async ({pw}) => {
         const {adminUser, adminClient} = await pw.initSetup();
         const originalMinimumLength = (await adminClient.getConfig()).PasswordSettings.MinimumLength;
+
+        // # The field always falls back to 5 when cleared; that is below the FIPS minimum (14)
+        const isFips = (await adminClient.getClientConfig()).IsFipsEnabled === 'true';
         const customLength = originalMinimumLength === 20 ? 21 : 20;
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
@@ -98,12 +102,20 @@ test(
             // # Clear the field and save
             await systemConsolePage.passwordSettings.minimumLength.clear();
             await systemConsolePage.passwordSettings.save();
-            await systemConsolePage.passwordSettings.reload();
 
-            // * Verify the saved value resets to the compiled default, not the on-prem override
-            const resetLength = (await adminClient.getConfig()).PasswordSettings.MinimumLength;
-            expect(resetLength).toBe(5);
-            await expect(systemConsolePage.passwordSettings.minimumLength).toHaveValue(String(resetLength));
+            if (isFips) {
+                // * Verify the fallback value (5) is rejected as below the FIPS minimum (14)
+                await expect(systemConsolePage.passwordSettings.lengthError).toBeVisible();
+                const unchangedLength = (await adminClient.getConfig()).PasswordSettings.MinimumLength;
+                expect(unchangedLength).toBe(customLength);
+            } else {
+                await systemConsolePage.passwordSettings.reload();
+
+                // * Verify the saved value resets to the compiled default, not the on-prem override
+                const resetLength = (await adminClient.getConfig()).PasswordSettings.MinimumLength;
+                expect(resetLength).toBe(5);
+                await expect(systemConsolePage.passwordSettings.minimumLength).toHaveValue(String(resetLength));
+            }
         } finally {
             await adminClient.patchConfig({PasswordSettings: {MinimumLength: originalMinimumLength}});
         }
