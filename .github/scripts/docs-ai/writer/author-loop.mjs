@@ -66,6 +66,20 @@ export function loadExistingPages(repoRoot, groupPaths) {
   return pages;
 }
 
+/** Refuse pages too large to fit in the prompt without truncation (would risk deleting omitted content). */
+export const MAX_PAGE_PROMPT_CHARS = 100_000;
+
+export function assertPagesFitPrompt(pages, maxChars = MAX_PAGE_PROMPT_CHARS) {
+  for (const p of pages || []) {
+    const n = String(p.content ?? '').length;
+    if (n > maxChars) {
+      throw new Error(
+        `${p.path}: page is ${n} characters (limit ${maxChars}); refusing to author a replacement that might omit content`,
+      );
+    }
+  }
+}
+
 function buildAuthorUserPrompt({brief, groupPaths, input, revisionFeedback, existingPages}) {
   const parts = [
     DATA_NOTICE,
@@ -98,14 +112,18 @@ function buildAuthorUserPrompt({brief, groupPaths, input, revisionFeedback, exis
   );
 
   if (existingPages?.length) {
+    // Full page only (no truncation): assertPagesFitPrompt already rejected oversized files.
+    const pageTag = revisionFeedback?.length ? 'current-draft' : 'existing-page';
     for (const page of existingPages) {
       parts.push(
-        block(`existing-page path=${page.path}`, page.content, {maxChars: 30_000}),
+        block(`${pageTag} path=${page.path}`, page.content, {maxChars: Number.MAX_SAFE_INTEGER}),
         '',
       );
     }
     parts.push(
-      'For paths with an existing-page block, edit that page in place (smallest change that closes the gap). Output the full updated file.',
+      revisionFeedback?.length
+        ? 'For paths with a current-draft block, revise that draft in place. Output the full updated file.'
+        : 'For paths with an existing-page block, edit that page in place (smallest change that closes the gap). Output the full updated file.',
       '',
     );
   }
@@ -125,9 +143,11 @@ function buildAuthorUserPrompt({brief, groupPaths, input, revisionFeedback, exis
   return parts.join('\n');
 }
 
-async function authorPass({personaId, groupPaths, brief, input, revisionFeedback, completeFn}) {
+async function authorPass({personaId, groupPaths, brief, input, revisionFeedback, basePages, completeFn}) {
   const system = personaId ? authorSystemBlocks(personaId) : neutralAuthorSystemBlocks();
-  const existingPages = loadExistingPages(input.repoRoot, groupPaths);
+  // Revisions use the in-memory draft; initial passes load the on-disk page when present.
+  const existingPages = basePages ?? loadExistingPages(input.repoRoot, groupPaths);
+  assertPagesFitPrompt(existingPages);
   const {text, usage} = await completeFn({
     model: WRITER_MODEL,
     system,
@@ -291,6 +311,7 @@ export async function authorLoop({brief, input, completeFn = complete} = {}) {
         brief,
         input,
         revisionFeedback: blocking,
+        basePages: groupFiles,
         completeFn,
       });
       const revisedMissing = missingGroupTargets(revised, group.paths);

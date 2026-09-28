@@ -13,8 +13,10 @@ import {briefFromGapResult, briefFromPrEvidence, parseGapBrief} from './gap-brie
 import {DENY_PREFIXES, extractDocsPaths, isAllowedPath} from './paths.mjs';
 import {sourcePrFrom, assertWriterProvenance} from './sync.mjs';
 import {
+  assertPagesFitPrompt,
   groupPathAllowlist,
   loadExistingPages,
+  MAX_PAGE_PROMPT_CHARS,
   missingGroupTargets,
   normalizeDocsPath,
   parseMaxRevisions,
@@ -341,6 +343,37 @@ test('assertSafeMdx allows theme imports and house JSX; rejects odd imports and 
       ]),
     /export statements/,
   );
+  assert.throws(
+    () =>
+      assertSafeMdx([
+        {
+          path: 'docs/main/x.mdx',
+          content: "export{meta};\n\nHello.\n",
+        },
+      ]),
+    /export statements/,
+  );
+  assert.throws(
+    () =>
+      assertSafeMdx([
+        {
+          path: 'docs/main/x.mdx',
+          content: "import fs from 'fs'; // ignored\n\nHello.\n",
+        },
+      ]),
+    /disallowed MDX import source/,
+  );
+});
+
+test('assertPagesFitPrompt rejects oversized pages', () => {
+  assert.throws(
+    () =>
+      assertPagesFitPrompt([{path: 'docs/main/huge.mdx', content: 'x'.repeat(MAX_PAGE_PROMPT_CHARS + 1)}]),
+    /refusing to author/,
+  );
+  assert.doesNotThrow(() =>
+    assertPagesFitPrompt([{path: 'docs/main/ok.mdx', content: 'x'.repeat(100)}]),
+  );
 });
 
 test('assertWriterProvenance requires same-repo head and exact bot author', () => {
@@ -414,6 +447,7 @@ test('authorLoop keeps prior files when a revision drops the version anchor', as
     ['````mdx path=' + path, '---', 'title: Foo', '---', '', body, '````'].join('\n');
 
   let authorCalls = 0;
+  let sawCurrentDraft = false;
   const completeFn = async ({userPrompt}) => {
     const prompt = String(userPrompt || '');
     if (prompt.includes('Which reviewers apply?')) {
@@ -431,6 +465,9 @@ test('authorLoop keeps prior files when a revision drops the version anchor', as
     }
     authorCalls += 1;
     if (prompt.includes('Revise the pages')) {
+      if (prompt.includes('current-draft path=' + path) && prompt.includes('From Mattermost v11.7')) {
+        sawCurrentDraft = true;
+      }
       return {text: fileBlock('Foo is available.'), usage: {}};
     }
     return {text: fileBlock('From Mattermost v11.7, Foo is available.'), usage: {}};
@@ -443,6 +480,7 @@ test('authorLoop keeps prior files when a revision drops the version anchor', as
   });
 
   assert.equal(authorCalls, 2);
+  assert.equal(sawCurrentDraft, true);
   assert.equal(files.length, 1);
   assert.match(files[0].content, /From Mattermost v11\.7/);
   assert.ok(trail.openConcerns.some((c) => /Revision rejected/.test(c.summary)));

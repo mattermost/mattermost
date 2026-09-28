@@ -11,12 +11,19 @@ export const HUMAN_JUDGMENT_MARKER = '[NOT PRESENT — REQUIRES HUMAN JUDGMENT]'
 export const HUMAN_JUDGMENT_VERSION_ANCHOR = `From Mattermost ${HUMAN_JUDGMENT_MARKER}`;
 
 // Line-start import; capture module. Optional "X from" covers `import X from 'm'` and `import 'm'`.
-const MDX_IMPORT_RE = /^import\s+(?:[\s\S]*?\s+from\s+)?['"]([^'"]+)['"]\s*;?\s*$/gm;
-const MDX_EXPORT_RE = /^export\s+/m;
+const MDX_IMPORT_RE = /^import\s+(?:.*?\s+from\s+)?['"]([^'"]+)['"]\s*;?\s*$/;
+// Word boundary so `export{…}` / `export*` match, not only `export `.
+const MDX_EXPORT_RE = /^export\b/;
 
 /** Import sources AI-authored MDX may use. Everything else is rejected before write. */
 const SAFE_IMPORT_RE =
   /^(?:@theme\/|@docusaurus\/|\.\.?\/).+$/;
+
+/** Drop a trailing // comment so `import X from 'y'; // note` is still checked. */
+function stripLineComment(line) {
+  // Require whitespace before // so https:// inside a string is left alone.
+  return line.replace(/\s+\/\/.*$/, '');
+}
 
 export function parseFileBlocks(text) {
   const blocks = [];
@@ -59,21 +66,21 @@ function withoutFencedCode(content) {
 
 /**
  * Structural MDX gate before write: known import sources only, no export.
- * Not a content denylist — model/provider protections + docs CI + human review
- * cover the rest. House-style JSX components are allowed.
+ * Line-based on fenced-stripped content (no MDX parser dependency). House-style
+ * JSX is allowed; model protections + docs CI + human review cover the rest.
  */
 export function assertSafeMdx(files) {
   for (const f of files) {
     const content = withoutFencedCode(f.content ?? '');
-    if (MDX_EXPORT_RE.test(content)) {
-      throw new Error(`${f.path}: MDX export statements are not allowed in AI drafts`);
-    }
-    const importRe = new RegExp(MDX_IMPORT_RE.source, 'gm');
-    let m;
-    while ((m = importRe.exec(content)) !== null) {
-      const source = m[1];
-      if (!SAFE_IMPORT_RE.test(source)) {
-        throw new Error(`${f.path}: disallowed MDX import source "${source}"`);
+    for (const rawLine of content.split('\n')) {
+      const line = stripLineComment(rawLine).trimEnd();
+      if (!line) continue;
+      if (MDX_EXPORT_RE.test(line)) {
+        throw new Error(`${f.path}: MDX export statements are not allowed in AI drafts`);
+      }
+      const m = line.match(MDX_IMPORT_RE);
+      if (m && !SAFE_IMPORT_RE.test(m[1])) {
+        throw new Error(`${f.path}: disallowed MDX import source "${m[1]}"`);
       }
     }
   }
