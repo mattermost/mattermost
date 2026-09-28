@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 import {readFileSync, writeFileSync, mkdirSync, existsSync} from 'node:fs';
 import {dirname} from 'node:path';
-import {complete, parseJson, usageLine} from './lib/anthropic.mjs';
-import {getPersona, reviewSystemBlocks} from './lib/personas.mjs';
-import {DATA_NOTICE, block} from './lib/untrusted.mjs';
+import {complete, parseJson, usageLine} from '../lib/anthropic.mjs';
+import {getPersona, reviewSystemBlocks} from '../lib/personas.mjs';
+import {DATA_NOTICE, block} from '../lib/untrusted.mjs';
 
 const MODEL = process.env.DOCS_AI_REVIEW_MODEL || 'claude-sonnet-4-5-20250929';
 const VERDICTS = ['APPROVE', 'REQUEST_CHANGES', 'COMMENT'];
