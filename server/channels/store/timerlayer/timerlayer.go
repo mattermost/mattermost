@@ -824,6 +824,21 @@ func (s *TimerLayerAccessControlPolicyStore) SetMembershipAutoAdd(rctx request.C
 	return result, err
 }
 
+func (s *TimerLayerAttributesStore) ClearUserAttributesCache() {
+	start := time.Now()
+
+	s.AttributesStore.ClearUserAttributesCache()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AttributesStore.ClearUserAttributesCache", success, elapsed)
+	}
+}
+
 func (s *TimerLayerAttributesStore) ClearUserPropertyValuesEpochCache() {
 	start := time.Now()
 
@@ -901,6 +916,21 @@ func (s *TimerLayerAttributesStore) GetUserPropertyValuesEpoch(rctx request.CTX,
 		s.Root.Metrics.ObserveStoreMethodDuration("AttributesStore.GetUserPropertyValuesEpoch", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerAttributesStore) InvalidateUserAttributes(userID string) {
+	start := time.Now()
+
+	s.AttributesStore.InvalidateUserAttributes(userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AttributesStore.InvalidateUserAttributes", success, elapsed)
+	}
 }
 
 func (s *TimerLayerAttributesStore) InvalidateUserPropertyValuesEpoch(userID string) {

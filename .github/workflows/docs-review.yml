@@ -1,0 +1,172 @@
+name: Docs AI Review
+
+# Persona review of docs changes → one sticky PR comment.
+#
+# workflow_dispatch only while tuning. Single job so a later pull_request
+# trigger stays one check. Scripts/prompts come from the workflow ref;
+# only the docs diff, title, and body come from the target PR.
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Pull request number to review
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: docs-review-${{ inputs.pr_number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    name: Review
+    runs-on: ubuntu-24.04
+    env:
+      HAS_ANTHROPIC_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+    steps:
+      - name: Checkout pipeline
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Resolve PR
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+        run: |
+          set -euo pipefail
+          mkdir -p .docs-ai
+          DATA=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}")
+
+          HEAD_REPO=$(echo "$DATA" | jq -r '.head.repo.full_name')
+          if [ "$HEAD_REPO" != "$GITHUB_REPOSITORY" ]; then
+            echo "::error::Refusing fork PR #${PR_NUMBER} (${HEAD_REPO}). Dispatch against a same-repo branch."
+            exit 1
+          fi
+
+          # Files, not GITHUB_OUTPUT — a PR body can contain the heredoc delimiter.
+          echo "$DATA" | jq -r '.title' > .docs-ai/pr-title.txt
+          echo "$DATA" | jq -r '.body // ""' > .docs-ai/pr-body.txt
+
+          {
+            echo "pr_number=${PR_NUMBER}"
+            echo "head_sha=$(echo "$DATA" | jq -r '.head.sha')"
+            echo "base_sha=$(echo "$DATA" | jq -r '.base.sha')"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Collect docs diff
+        id: diff
+        env:
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+          HEAD_SHA: ${{ steps.pr.outputs.head_sha }}
+          BASE_SHA: ${{ steps.pr.outputs.base_sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p .docs-ai/results
+
+          PATHSPEC=(
+            docs/main docs/develop
+            ':(exclude)docs/main/agents/docs'
+          )
+
+          # Merge ref first; fall back when missing (usually a conflicted PR).
+          if git fetch --no-tags --depth=2 origin \
+              "pull/${PR_NUMBER}/merge:refs/docs-ai/pr-merge"; then
+            LEFT="refs/docs-ai/pr-merge^1"
+            RIGHT="refs/docs-ai/pr-merge"
+          else
+            echo "Merge ref unavailable; falling back to ${BASE_SHA}...${HEAD_SHA}"
+            git fetch --no-tags origin "${BASE_SHA}" "${HEAD_SHA}"
+            LEFT="${BASE_SHA}"
+            RIGHT="${HEAD_SHA}"
+          fi
+
+          git diff --name-only "${LEFT}" "${RIGHT}" -- "${PATHSPEC[@]}" \
+            | grep -E '\.(mdx|md)$' > .docs-ai/files.txt || true
+          git diff "${LEFT}" "${RIGHT}" -- "${PATHSPEC[@]}" > .docs-ai/pr.diff
+
+          COUNT=$(wc -l < .docs-ai/files.txt | tr -d ' ')
+          echo "Changed documentation pages: ${COUNT}"
+          cat .docs-ai/files.txt
+
+          if [ "${COUNT}" -eq 0 ]; then
+            echo "No documentation content changed; skipping review." >> "$GITHUB_STEP_SUMMARY"
+            echo "reviewable=false" >> "$GITHUB_OUTPUT"
+          elif [ "$HAS_ANTHROPIC_KEY" != "true" ]; then
+            echo "ANTHROPIC_API_KEY unset; skipping review." >> "$GITHUB_STEP_SUMMARY"
+            echo "reviewable=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "reviewable=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Node
+        if: steps.diff.outputs.reviewable == 'true'
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version-file: .nvmrc
+          cache: "npm"
+          cache-dependency-path: .github/scripts/docs-ai/package-lock.json
+
+      - name: Install dependencies
+        if: steps.diff.outputs.reviewable == 'true'
+        working-directory: .github/scripts/docs-ai
+        run: npm ci --ignore-scripts
+
+      - name: Validate persona registry
+        if: steps.diff.outputs.reviewable == 'true'
+        working-directory: .github/scripts/docs-ai
+        run: npm test
+
+      - name: Select personas
+        id: route
+        if: steps.diff.outputs.reviewable == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          DOCS_AI_ROUTER_MODEL: ${{ vars.DOCS_AI_ROUTER_MODEL }}
+        run: |
+          set -euo pipefail
+          PERSONAS=$(node .github/scripts/docs-ai/router.mjs --diff .docs-ai/pr.diff)
+          echo "personas=${PERSONAS}" >> "$GITHUB_OUTPUT"
+          echo "Routed personas: ${PERSONAS}"
+
+      - name: Review personas
+        if: steps.route.outputs.personas != ''
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          DOCS_AI_REVIEW_MODEL: ${{ vars.DOCS_AI_REVIEW_MODEL }}
+          PERSONAS_JSON: ${{ steps.route.outputs.personas }}
+        run: |
+          set -euo pipefail
+          mkdir -p .docs-ai/results
+          PR_TITLE=$(cat .docs-ai/pr-title.txt)
+
+          # Fail-soft: persona-review.mjs writes ERROR on failure.
+          pids=()
+          while IFS= read -r PERSONA; do
+            [ -n "$PERSONA" ] || continue
+            node .github/scripts/docs-ai/persona-review.mjs \
+              --persona "$PERSONA" \
+              --diff .docs-ai/pr.diff \
+              --pr-title "$PR_TITLE" \
+              --pr-body-file .docs-ai/pr-body.txt \
+              --out ".docs-ai/results/${PERSONA}.json" &
+            pids+=($!)
+          done < <(echo "$PERSONAS_JSON" | jq -r '.[]')
+
+          for pid in "${pids[@]}"; do
+            wait "$pid" || true
+          done
+
+      - name: Post comment
+        if: steps.route.outputs.personas != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+          PR_HEAD_SHA: ${{ steps.pr.outputs.head_sha }}
+        run: node .github/scripts/docs-ai/report.mjs --results-dir .docs-ai/results
