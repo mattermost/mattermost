@@ -6,9 +6,12 @@ package platform
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -21,10 +24,13 @@ import (
 )
 
 type hookRunner struct {
+	disconnected atomic.Int64
 }
 
 func (h *hookRunner) RunMultiHook(hookRunnerFunc func(hooks plugin.Hooks, _ *model.Manifest) bool, hookId int) {
-
+	if hookId == plugin.OnWebSocketDisconnectID {
+		h.disconnected.Add(1)
+	}
 }
 func (h *hookRunner) HooksForPlugin(id string) (plugin.Hooks, error) {
 	return nil, errors.New("not implemented")
@@ -282,4 +288,122 @@ func TestWebConnRejectBinaryFrameUnauthenticated(t *testing.T) {
 	case <-time.After(5 * time.Second):
 		require.Fail(t, "readPump did not exit after receiving binary frame")
 	}
+}
+
+// haltingHandler is a websocket handler whose execution ends before it returns
+// to its caller. It stands in for any handler that does not run to completion.
+type haltingHandler struct {
+	served atomic.Int64
+}
+
+func (h *haltingHandler) ServeWebSocket(_ *WebConn, _ *model.WebSocketRequest) {
+	h.served.Add(1)
+	panic(errors.New("handler did not run to completion"))
+}
+
+func TestWebConnPumpCompletesTeardown(t *testing.T) {
+	th := Setup(t)
+
+	const action = "test_conn_teardown"
+	handler := &haltingHandler{}
+	th.Service.WebSocketRouter.Handle(action, handler)
+
+	// The number of simultaneous connections the teardown contract has to hold for.
+	const numConns = 20
+
+	runner := &hookRunner{}
+	serverConns := make(chan *WebConn, numConns)
+	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		upgrader := &websocket.Upgrader{}
+		conn, err := upgrader.Upgrade(w, r, nil)
+		if !assert.NoError(t, err) {
+			return
+		}
+
+		wc := th.Service.NewWebConn(&WebConnConfig{
+			WebSocket:    conn,
+			ConnectionID: model.NewId(),
+			Session: model.Session{
+				UserId:    model.NewId(),
+				Token:     model.NewId(),
+				ExpiresAt: model.GetMillis() + 100000,
+			},
+		}, th.Suite, runner)
+		// the router only dispatches to a registered handler on an authenticated
+		// connection, so the request would never reach it otherwise
+		assert.True(t, wc.IsAuthenticated())
+		serverConns <- wc
+
+		go func() {
+			defer func() {
+				_ = recover()
+			}()
+			wc.Pump()
+		}()
+	}))
+	defer s.Close()
+
+	var wg sync.WaitGroup
+	clientConns := make(chan *websocket.Conn, numConns)
+	wg.Add(numConns)
+	for range numConns {
+		go func() {
+			defer wg.Done()
+
+			d := websocket.Dialer{}
+			c, _, err := d.Dial("ws://"+s.Listener.Addr().String()+"/ws", nil)
+			if !assert.NoError(t, err) {
+				return
+			}
+			clientConns <- c
+
+			assert.NoError(t, c.WriteJSON(&model.WebSocketRequest{Seq: 1, Action: action}))
+		}()
+	}
+	wg.Wait()
+	close(clientConns)
+	for c := range clientConns {
+		defer c.Close()
+	}
+
+	wcs := make([]*WebConn, 0, numConns)
+	for range numConns {
+		select {
+		case wc := <-serverConns:
+			wcs = append(wcs, wc)
+		case <-time.After(10 * time.Second):
+			require.FailNow(t, "not every connection was established")
+		}
+	}
+
+	// the request reaches the registered handler on every connection, so each
+	// one exercises the same path
+	require.Eventually(t, func() bool {
+		return handler.served.Load() == int64(numConns)
+	}, 10*time.Second, 50*time.Millisecond, "every request should have reached the registered handler")
+
+	deadline := time.After(20 * time.Second)
+	for i, wc := range wcs {
+		// every connection releases its resources, whatever the handler did
+		select {
+		case <-wc.pumpFinished:
+		case <-deadline:
+			require.FailNow(t, fmt.Sprintf("connection %d did not complete its teardown", i))
+		}
+
+		// the queue the per-connection consumer ranges over is released, so
+		// that consumer is no longer running
+		select {
+		case _, open := <-wc.pluginPosted:
+			assert.False(t, open, "connection %d still holds its message queue", i)
+		default:
+			assert.Fail(t, fmt.Sprintf("connection %d still holds its message queue", i))
+		}
+	}
+
+	// every connection reports its disconnect, so hooks watching the
+	// connection lifecycle still run
+	require.Eventually(t, func() bool {
+		return runner.disconnected.Load() == int64(numConns)
+	}, 10*time.Second, 50*time.Millisecond, "every connection should have reported its disconnect")
 }
