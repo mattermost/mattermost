@@ -106,11 +106,39 @@ func (a *App) UnmuteHealthFinding(rctx request.CTX, fingerprint string) *model.A
 	return nil
 }
 
+// GetHealthFindings returns product-surface findings only, whatever surfaces the filter asks for:
+// internal rules are for support engineers, not the customer admin who calls the API.
 func (a *App) GetHealthFindings(rctx request.CTX, filter model.HealthFindingFilter) ([]*model.HealthFinding, *model.AppError) {
+	filter.Surfaces = []string{string(healthcheck.SurfaceProduct)}
 	findings, err := a.Srv().Store().HealthFinding().List(filter)
 	if err != nil {
-		return nil, model.NewAppError("GetHealthFindings", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GetHealthFindings", "app.health_finding.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return findings, nil
+}
+
+func (a *App) GetHealthFinding(rctx request.CTX, fingerprint string) (*model.HealthFinding, *model.AppError) {
+	findings, err := a.Srv().Store().HealthFinding().GetByFingerprints([]string{fingerprint})
+	if err != nil {
+		return nil, model.NewAppError("GetHealthFinding", "app.health_finding.get.app_error", nil, "fingerprint="+fingerprint, http.StatusInternalServerError).Wrap(err)
+	}
+	if len(findings) == 0 {
+		return nil, model.NewAppError("GetHealthFinding", "app.health_finding.get.not_found.app_error", nil, "fingerprint="+fingerprint, http.StatusNotFound)
+	}
+
+	return findings[0], nil
+}
+
+// HealthRules returns the rule registry that stored findings are rendered with.
+func (a *App) HealthRules() *healthcheck.Registry {
+	if rules := a.Srv().healthRulesOverride; rules != nil {
+		return rules
+	}
+	return healthcheck.Builtin()
+}
+
+// SetHealthRulesOverride replaces the built-in rule registry returned by App.HealthRules.
+func (s *Server) SetHealthRulesOverride(rules *healthcheck.Registry) {
+	s.healthRulesOverride = rules
 }
