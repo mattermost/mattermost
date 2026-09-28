@@ -360,8 +360,7 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOptions(field 
 // sanitizeAndValidateOwners normalizes and validates the owners attr on a
 // field. Each entry is trimmed and must be well-formed ({id, type, scopes}
 // with a recognized type); scopes are trimmed and deduped; duplicate owner
-// entries (same type+id) are merged. Owners may not be combined with
-// managed="admin". An empty or absent list is removed so HasPropertyFieldOwners
+// entries (same type+id) are merged. An empty or absent list is removed so HasPropertyFieldOwners
 // stays false. The normalized list is written back in canonical form
 // ([]any of maps) so downstream readers see a single shape.
 //
@@ -391,10 +390,6 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOwners(field *
 	if len(owners) == 0 {
 		delete(field.Attrs, model.PropertyAttrsOwners)
 		return nil
-	}
-
-	if managed, _ := field.Attrs[model.PropertyFieldAttrManaged].(string); managed == "admin" {
-		return fmt.Errorf("owners cannot be combined with managed=admin: %w", ErrInvalidFieldAttrs)
 	}
 
 	normalized := make([]model.PropertyOwner, 0, len(owners))
