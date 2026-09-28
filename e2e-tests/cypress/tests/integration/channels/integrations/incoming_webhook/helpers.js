@@ -12,12 +12,40 @@ export function enableUsernameAndIconOverride(enable) {
 }
 
 export function enableUsernameAndIconOverrideInt(enableUsername, enableIcon) {
-    // # Visit integration management at system console and change override values
-    cy.visit('/admin_console/integrations/integration_management');
-    cy.findByTestId('ServiceSettings.EnablePostUsernameOverride' + enableUsername).check({force: true});
-    cy.findByTestId('ServiceSettings.EnablePostIconOverride' + enableIcon).check({force: true});
+    // Patch only the two override flags. Visiting Integration Management and
+    // clicking Save fails when leftover config already matches (Save stays
+    // disabled). Do not use apiUpdateConfig: it merges e2e defaults. Do not
+    // GET-then-full-PUT /api/v4/config: a stale snapshot can overwrite other
+    // concurrent config changes.
+    cy.apiGetConfig().then(({config}) => {
+        if (
+            config.ServiceSettings.EnablePostUsernameOverride === enableUsername &&
+            config.ServiceSettings.EnablePostIconOverride === enableIcon
+        ) {
+            return;
+        }
 
-    // # Save the settings
-    cy.get('#saveSetting').should('be.enabled').click({force: true});
-    cy.get('#saveSetting').should('be.disabled');
+        cy.getCookie('MMCSRF').then((csrfCookie) => {
+            const headers = {'X-Requested-With': 'XMLHttpRequest'};
+            if (csrfCookie?.value) {
+                headers['X-CSRF-Token'] = csrfCookie.value;
+            }
+            cy.request({
+                method: 'PUT',
+                url: '/api/v4/config/patch',
+                headers,
+                body: {
+                    ServiceSettings: {
+                        EnablePostUsernameOverride: enableUsername,
+                        EnablePostIconOverride: enableIcon,
+                    },
+                },
+            }).its('status').should('eq', 200).then(() => {
+                cy.apiGetConfig().then(({config: updated}) => {
+                    expect(updated.ServiceSettings.EnablePostUsernameOverride).to.equal(enableUsername);
+                    expect(updated.ServiceSettings.EnablePostIconOverride).to.equal(enableIcon);
+                });
+            });
+        });
+    });
 }
