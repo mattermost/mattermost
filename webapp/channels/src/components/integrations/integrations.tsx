@@ -10,13 +10,13 @@ import {Permissions} from 'mattermost-redux/constants';
 
 import BotAccountsSvg from 'components/common/svg_images_components/bot_accounts_svg';
 import IncomingWebhookSvg from 'components/common/svg_images_components/incoming_webhook_svg';
+import OauthApplicationsSvg from 'components/common/svg_images_components/oauth_applications_svg';
 import OutgoingWebhookSvg from 'components/common/svg_images_components/outgoing_webhook_svg';
 import SlashCommandsSvg from 'components/common/svg_images_components/slash_commands_svg';
 import ExternalLink from 'components/external_link';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
 
-import OAuthIcon from 'images/oauth_icon.png';
 import OutgoingOAuthConnectionsIcon from 'images/outgoing_oauth_connection.png';
 import * as Utils from 'utils/utils';
 
@@ -137,12 +137,7 @@ export default class Integrations extends React.PureComponent <Props> {
                 >
                     <IntegrationOption
                         key='oauth2Apps'
-                        image={(
-                            <img
-                                alt=''
-                                src={OAuthIcon}
-                            />
-                        )}
+                        image={<OauthApplicationsSvg/>}
                         title={
                             <FormattedMessage
                                 id='integrations.oauthApps.title'
