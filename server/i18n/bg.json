@@ -6000,10 +6000,6 @@
     "translation": "Вече изтрит id={{.PostId}}."
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Не може да се намери съществуващата публикация или коментар за обновяване."
-  },
-  {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
     "translation": "Не може да се обнови публикация в изтрит канал."
   },
