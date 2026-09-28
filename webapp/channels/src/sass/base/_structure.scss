@@ -273,6 +273,12 @@ body.app__body #root {
                 padding: 0;
                 border-radius: 0;
 
+                &:has(.backstage-body) {
+                    grid-template:
+                        "header" min-content
+                        "main";
+                }
+
                 #channel_view,
                 #SidebarContainer,
                 .product-wrapper,

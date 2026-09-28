@@ -55,6 +55,24 @@
     }
 }
 
+@media screen and (max-width: 960px) {
+    .backstage-content {
+        max-width: 100%;
+        padding: 0;
+        margin: 30px;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .integrations-list {
+        grid-template-columns: 1fr;
+    }
+
+    .backstage-content {
+        margin: 16px;
+    }
+}
+
 @media screen and (max-width: 1140px) {
     .inner-wrap {
         &.move--left {
