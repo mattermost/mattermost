@@ -988,8 +988,7 @@ func (s SqlChannelStore) GetPinnedPosts(channelId string) (*model.PostList, erro
 	}
 	// The query returns newest-first; PostList.Order stays oldest-first so
 	// filterInaccessiblePosts and the client reverse keep their existing contracts.
-	for i := len(posts) - 1; i >= 0; i-- {
-		post := posts[i]
+	for _, post := range slices.Backward(posts) {
 		pl.AddPost(post)
 		pl.AddOrder(post.Id)
 	}
