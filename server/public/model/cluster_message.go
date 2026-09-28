@@ -59,6 +59,7 @@ const (
 	ClusterEventInvalidateCacheForPostTranslationEtag       ClusterEvent = "inv_post_translation_etag"
 	ClusterEventInvalidateCacheForAccessControlPolicyEtag   ClusterEvent = "inv_access_control_policy_etag"
 	ClusterEventInvalidateCacheForUserPropertyValuesEpoch   ClusterEvent = "inv_user_property_values_epoch"
+	ClusterEventInvalidateCacheForUserAttributes            ClusterEvent = "inv_user_attributes"
 	ClusterEventAutoTranslationTask                         ClusterEvent = "autotranslation_task"
 	ClusterEventBusyStateChanged                            ClusterEvent = "busy_state_change"
 	// Note: if you are adding a new event, please also add it in the slice of

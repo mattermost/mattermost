@@ -18,7 +18,7 @@ import * as Menu from 'components/menu';
 
 import {ModalIdentifiers} from 'utils/constants';
 
-import type {AttributeFieldType} from '../utils';
+import type {AttributeTypeId} from '../utils';
 
 import './attribute_external_source.scss';
 
@@ -31,7 +31,7 @@ const TRIGGER_ID = 'attribute-external-source-trigger';
 type Props = {
     ldapAttr: string;
     samlAttr: string;
-    fieldType: AttributeFieldType;
+    fieldType: AttributeTypeId;
     onLink: (source: ExternalSource, value: string) => void;
     disabled?: boolean;
 

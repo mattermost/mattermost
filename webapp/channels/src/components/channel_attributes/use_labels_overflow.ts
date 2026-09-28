@@ -236,6 +236,11 @@ export function useLabelsOverflow(ids: string[], {allowEmptyVisible = false}: Ov
         return () => registerChipRef('__container', null);
     }, [containerEl, registerChipRef]);
 
+    // Keyed on the chips themselves, not the array holding them: callers rebuild
+    // that array on every value change and every graph name that resolves, and
+    // re-hiding the row for each one blanked every chip while one was edited.
+    const idsKey = ids.join('\0');
+
     // Show everything when the set changes, then measure and shrink. Labels arrive
     // after mount, so a stale index from the empty set would render a +N alone.
     // Drop cache entries for IDs that are no longer in the set — a new chip that
@@ -251,7 +256,10 @@ export function useLabelsOverflow(ids: string[], {allowEmptyVisible = false}: Ov
         setOverflowStartIndex(ids.length);
         debouncedCalculateOverflow();
         return () => debouncedCalculateOverflow.cancel();
-    }, [ids, debouncedCalculateOverflow]);
+
+        // idsKey stands in for ids so a new array identity does not retrigger.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [idsKey, debouncedCalculateOverflow]);
 
     const [visibleIds, overflowIds] = useMemo(
         () => partitionAt(ids, overflowStartIndex),

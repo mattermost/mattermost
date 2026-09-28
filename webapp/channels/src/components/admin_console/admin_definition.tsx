@@ -283,7 +283,7 @@ const AdminDefinition: AdminDefinitionType = {
     about: {
         icon: (
             <InformationOutlineIcon
-                size={16}
+                size={14}
                 color={'currentColor'}
             />
         ),
@@ -309,7 +309,7 @@ const AdminDefinition: AdminDefinitionType = {
     billing: {
         icon: (
             <CreditCardOutlineIcon
-                size={16}
+                size={14}
                 color={'currentColor'}
             />
         ),
@@ -369,7 +369,7 @@ const AdminDefinition: AdminDefinitionType = {
     reporting: {
         icon: (
             <ChartBarIcon
-                size={16}
+                size={14}
                 color={'currentColor'}
             />
         ),
@@ -430,7 +430,7 @@ const AdminDefinition: AdminDefinitionType = {
     user_management: {
         icon: (
             <AccountMultipleOutlineIcon
-                size={16}
+                size={14}
                 color={'currentColor'}
             />
         ),
@@ -1005,7 +1005,7 @@ const AdminDefinition: AdminDefinitionType = {
     environment: {
         icon: (
             <ServerVariantIcon
-                size={16}
+                size={14}
                 color={'currentColor'}
             />
         ),
@@ -2621,7 +2621,7 @@ const AdminDefinition: AdminDefinitionType = {
     site: {
         icon: (
             <CogOutlineIcon
-                size={16}
+                size={14}
                 color={'currentColor'}
             />
         ),
@@ -4424,7 +4424,7 @@ const AdminDefinition: AdminDefinitionType = {
     authentication: {
         icon: (
             <ShieldOutlineIcon
-                size={16}
+                size={14}
                 color={'currentColor'}
             />
         ),
@@ -5962,7 +5962,7 @@ const AdminDefinition: AdminDefinitionType = {
     plugins: {
         icon: (
             <PowerPlugOutlineIcon
-                size={16}
+                size={14}
                 color={'currentColor'}
             />
         ),
@@ -5993,7 +5993,7 @@ const AdminDefinition: AdminDefinitionType = {
     integrations: {
         icon: (
             <SitemapIcon
-                size={16}
+                size={14}
                 color={'currentColor'}
             />
         ),
@@ -6365,7 +6365,7 @@ const AdminDefinition: AdminDefinitionType = {
     compliance: {
         icon: (
             <FormatListBulletedIcon
-                size={16}
+                size={14}
                 color={'currentColor'}
             />
         ),
@@ -6688,7 +6688,7 @@ const AdminDefinition: AdminDefinitionType = {
     experimental: {
         icon: (
             <FlaskOutlineIcon
-                size={16}
+                size={14}
                 color={'currentColor'}
             />
         ),

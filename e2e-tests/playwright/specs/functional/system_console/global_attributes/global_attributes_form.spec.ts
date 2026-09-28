@@ -473,6 +473,97 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         });
 
         /**
+         * @objective Ensure the Type menu lists Phone and URL alongside the other createable
+         * types, defaults to Text, and hides Email (CPA already hid it; the server still
+         * accepts value_type email via the API).
+         */
+        test('type menu lists Text, Phone, URL, Select, Multiselect, and Ranked, with Text checked and Email hidden', async ({
+            pw,
+        }) => {
+            const {adminUser} = await requireGlobalAttributesEnabled(pw);
+
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+            await systemConsolePage.page.getByTestId('newAttributeButton').click();
+            await expect(systemConsolePage.page).toHaveURL(/attribute_details/);
+
+            await systemConsolePage.page.getByTestId('attributeTypeMenuButton').click();
+
+            for (const label of ['Text', 'Phone', 'URL', 'Select', 'Multiselect', 'Ranked']) {
+                await expect(
+                    systemConsolePage.page.getByRole('menuitemradio', {name: label, exact: true}),
+                ).toBeVisible();
+            }
+            await expect(
+                systemConsolePage.page.getByRole('menuitemradio', {name: 'Text', exact: true}),
+            ).toHaveAttribute('aria-checked', 'true');
+            await expect(systemConsolePage.page.getByRole('menuitemradio', {name: 'Email', exact: true})).toHaveCount(
+                0,
+            );
+        });
+
+        for (const {uiType, valueType, displayPrefix, expectedNamePrefix} of [
+            {
+                uiType: 'Phone',
+                valueType: 'phone',
+                displayPrefix: 'Playwright Phone',
+                expectedNamePrefix: 'playwright_phone',
+            },
+            {uiType: 'URL', valueType: 'url', displayPrefix: 'Playwright Url', expectedNamePrefix: 'playwright_url'},
+        ] as const) {
+            /**
+             * @objective Ensure a Phone or URL attribute can be created end-to-end as type
+             * text with the matching attrs.value_type, and the list Type column shows that
+             * subtype rather than Text.
+             */
+            test(`creates a ${uiType} attribute as type text with attrs.value_type ${valueType}`, async ({pw}) => {
+                const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+                const timestamp = Date.now();
+                // Short prefix: see the 40-char Unique name cap noted in the bare-Text test above
+                const displayName = `${displayPrefix} ${timestamp}`;
+                const expectedName = `${expectedNamePrefix}_${timestamp}`;
+
+                try {
+                    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                    await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                    await systemConsolePage.page.getByTestId('newAttributeButton').click();
+                    await expect(systemConsolePage.page).toHaveURL(/attribute_details/);
+
+                    await systemConsolePage.page.getByTestId('attributeDisplayNameInput').fill(displayName);
+                    await expect(systemConsolePage.page.getByTestId('attributeUniqueNameValue')).toHaveText(
+                        expectedName,
+                    );
+
+                    await systemConsolePage.page.getByTestId('attributeTypeMenuButton').click();
+                    await systemConsolePage.page.getByRole('menuitemradio', {name: uiType, exact: true}).click();
+
+                    // * Phone/URL keep the free-text options help — they are text subtypes,
+                    // not option lists
+                    await expect(systemConsolePage.page.getByTestId('attributeOptionsHelp')).toBeVisible();
+                    await expect(systemConsolePage.page.getByTestId('attributeOptionsValues')).toHaveCount(0);
+                    await expect(systemConsolePage.page.getByTestId('attributeTypeMenuButton')).toContainText(uiType);
+
+                    await systemConsolePage.page.getByTestId('saveSetting').click();
+
+                    await expect(systemConsolePage.page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+                    const row = systemConsolePage.page.locator('tr', {
+                        has: systemConsolePage.page.getByTestId('global-attribute-name').filter({hasText: displayName}),
+                    });
+                    await expect(row.getByTestId('global-attribute-type')).toContainText(uiType);
+                    await expect(row.getByTestId('global-attribute-options')).toContainText('Free Text');
+
+                    const field = await getGlobalAttributeFieldByName(adminClient, expectedName);
+                    expect(field?.type).toBe('text');
+                    expect(field?.attrs?.value_type).toBe(valueType);
+                } finally {
+                    await deleteGlobalAttributeFieldIfExists(adminClient, expectedName);
+                }
+            });
+        }
+
+        /**
          * @objective Ensure switching type mid-form preserves already-entered options rather than
          * discarding them, per the ticket's "freely switch types" requirement.
          */
@@ -492,7 +583,7 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
 
             // # Switch to Text (options editor unmounts) and back to Select
             await systemConsolePage.page.getByTestId('attributeTypeMenuButton').click();
-            await systemConsolePage.page.getByRole('menuitemradio', {name: 'Text'}).click();
+            await systemConsolePage.page.getByRole('menuitemradio', {name: 'Text', exact: true}).click();
             await expect(systemConsolePage.page.getByTestId('attributeOptionsValues')).toHaveCount(0);
 
             await systemConsolePage.page.getByTestId('attributeTypeMenuButton').click();
@@ -751,11 +842,12 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         }) => {
             const {adminUser} = await requireGlobalAttributesEnabled(pw);
 
-            // The Channels resource type is additionally gated behind the ChannelAttributes
-            // flag (attribute_details.tsx) -- without this, an environment where it's off
-            // (e.g. an upgraded-from-older-release server whose config predates the flag)
-            // only offers Users and Posts, failing the 3-item assertion below.
+            // Channels and Posts are each gated behind their own feature flag
+            // (use_allowed_resource_types.ts) -- Channels additionally needs the
+            // Enterprise Advanced tier. Without both flags on, the picker offers
+            // fewer types and the 3-item assertion below fails.
             await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.skipIfFeatureFlagNotSet('PostAttributes', true);
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
@@ -916,8 +1008,10 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
 
             // See the "offers only unselected types" test above: Channels requires the
-            // ChannelAttributes flag on top of the Enterprise-tier license.
+            // ChannelAttributes flag on top of the Enterprise-tier license, and Posts
+            // requires PostAttributes. This test adds all three resources.
             await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+            await pw.skipIfFeatureFlagNotSet('PostAttributes', true);
 
             const timestamp = Date.now();
             // Kept short: see the "saves Profile display..." test below -- a full
@@ -1156,6 +1250,93 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
             await page.getByRole('menuitemradio', {name: 'Select', exact: true}).click();
             await expect(graphRow(page, 'Root')).toHaveCount(0);
             await expect(page.getByTestId('attributeOptionsValues__chipLabel')).toHaveCount(0);
+        });
+
+        /**
+         * @objective Ensure Parents-of search suggestions float in their own popover so the
+         * value menu stays a fixed-height list, the candidate list is not clipped, and picking
+         * a candidate still applies.
+         */
+        test('keeps the Parents of menu fixed-height when search suggestions open', async ({pw}) => {
+            const {adminUser, adminClient} = await requireHierarchicalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const displayName = `Playwright Suggest ${timestamp}`;
+            const expectedName = `playwright_suggest_${timestamp}`;
+
+            try {
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+                await page.getByTestId('newAttributeButton').click();
+                await page.getByTestId('attributeDisplayNameInput').fill(displayName);
+
+                await page.getByTestId('attributeTypeMenuButton').click();
+                await page.getByRole('menuitemradio', {name: 'Hierarchical'}).click();
+
+                // # Air and Maritime as sibling roots
+                await page.getByTestId('attributeOptionsGraphEmpty__nameInput').fill('Air');
+                await page.getByTestId('attributeOptionsGraphEmpty__addButton').click();
+                await page.getByTestId('attributeOptionsGraphAddTop__nameInput').fill('Maritime');
+                await page.getByTestId('attributeOptionsGraphAddTop__addButton').click();
+
+                // # Open Air's Parents pane and focus the search field
+                await openGraphRowParents(page, 'Air');
+                const valueMenu = page.getByRole('menu', {name: 'Edit Air'});
+                await expect(page.getByTestId('attributeGraphParentsPane__back')).toHaveText('Parents of Air');
+                await expect(valueMenu).toBeVisible();
+
+                // Measure the pane, not role=menu. Nested MUI Modal aria-hides the
+                // parent menu paper; its getBoundingClientRect can shift ~16px even
+                // when the suggestion list is portaled.
+                const pane = page.locator('.attribute-graph-parents-pane');
+                const heightBeforeSearch = await pane.evaluate((el) => el.getBoundingClientRect().height);
+                await page.getByTestId('attributeGraphParentsPane__search').click();
+
+                const suggestions = page.getByTestId('attributeGraphParentsPane__suggestions');
+                await expect(suggestions).toBeVisible();
+                await expect(page.getByTestId('attributeGraphParentsPane__candidate-Maritime')).toBeVisible();
+
+                // * Suggestions live in a portal below the field, not inside the pane
+                const suggestionsAreInsideMenu = await suggestions.evaluate((el) =>
+                    Boolean(el.closest('.attribute-graph-parents-pane')),
+                );
+                expect(suggestionsAreInsideMenu).toBe(false);
+
+                const listBox = await suggestions.boundingBox();
+                const searchBox = await page.getByTestId('attributeGraphParentsPane__search').boundingBox();
+                expect(listBox).toBeTruthy();
+                expect(searchBox).toBeTruthy();
+                expect(listBox!.height).toBeGreaterThan(0);
+                expect(listBox!.y).toBeGreaterThan(searchBox!.y);
+
+                // offsetWidth is the value we assign to the paper. boundingBox can
+                // disagree by 8–18px once the list is portaled onto document.body.
+                const widthDelta = await page.evaluate(() => {
+                    const field = document.querySelector('.attribute-graph-parents-pane__search-field');
+                    const paper = document.querySelector('.attribute-graph-parents-pane__suggestions-paper');
+                    if (!(field instanceof HTMLElement) || !(paper instanceof HTMLElement)) {
+                        return Number.POSITIVE_INFINITY;
+                    }
+                    return Math.abs(paper.offsetWidth - field.offsetWidth);
+                });
+                expect(widthDelta).toBeLessThan(1);
+
+                // Nested MUI popover aria-hides the parent menu, so getByRole without
+                // includeHidden (and boundingBox visibility checks) cannot resolve it.
+                const mountedValueMenu = page.getByRole('menu', {name: 'Edit Air', includeHidden: true});
+
+                // * Pane does not grow by a suggestion row (~36px). Focus and the
+                // nested modal can still shift getBoundingClientRect by ~6–16px.
+                const heightAfterSearch = await pane.evaluate((el) => el.getBoundingClientRect().height);
+                expect(Math.abs(heightAfterSearch - heightBeforeSearch)).toBeLessThan(24);
+                await expect(mountedValueMenu).toBeAttached();
+
+                await page.getByTestId('attributeGraphParentsPane__candidate-Maritime').click();
+                await expect(graphRow(page, 'Air', 'Maritime')).toBeVisible();
+            } finally {
+                await deleteGlobalAttributeFieldIfExists(adminClient, expectedName);
+            }
         });
 
         /**
@@ -1557,6 +1738,98 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 ).toBeVisible();
             } finally {
                 await deleteGlobalAttributeFieldIfExists(adminClient, name);
+            }
+        });
+
+        /**
+         * @objective Renaming a template's display_name also renames a linked channel
+         * field that still shares that label -- Channel Info reads the linked field's
+         * display_name, and the Save path cascades only when it still matches.
+         */
+        test('renames a matching linked channel display_name when the template display name changes', async ({pw}) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+
+            const timestamp = Date.now();
+            const name = `business_unit_${timestamp}`;
+            const displayName = `Business Unit ${timestamp}`;
+            const updatedDisplayName = `Cost Center ${timestamp}`;
+
+            try {
+                const field = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
+                    attrs: {display_name: displayName},
+                });
+                await createLinkedDependentField(adminClient, name, field.id, 'text', 'channel', {
+                    display_name: displayName,
+                    actions: ['display_label_info'],
+                });
+
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                await page.getByTestId(`global-attribute-actions-${field.id}`).click();
+                await page.locator(`#global-attribute-actions-${field.id}-edit`).click();
+                await expect(page).toHaveURL(new RegExp(`attribute_details/${field.id}$`));
+                await expect(page.getByTestId('attributeAppliesToRow-channel')).toBeVisible();
+
+                await page.getByTestId('attributeDisplayNameInput').fill(updatedDisplayName);
+                await page.getByTestId('saveSetting').click();
+                await expect(page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+
+                const linkedFields = await fetchLinkedFieldsForTemplate(adminClient, field.id);
+                const channelField = linkedFields.find((f) => f.object_type === 'channel');
+                expect(channelField?.attrs?.display_name).toBe(updatedDisplayName);
+            } finally {
+                await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, name);
+            }
+        });
+
+        /**
+         * @objective A linked field whose display_name already diverged from the template
+         * must keep that custom label when the template is renamed.
+         */
+        test('does not overwrite a diverged linked channel display_name when renaming the template', async ({pw}) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+
+            const timestamp = Date.now();
+            const name = `department_${timestamp}`;
+            const displayName = `Department ${timestamp}`;
+            const customLinkedDisplayName = `Org Unit ${timestamp}`;
+            const updatedDisplayName = `Division ${timestamp}`;
+
+            try {
+                const field = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
+                    attrs: {display_name: displayName},
+                });
+                await createLinkedDependentField(adminClient, name, field.id, 'text', 'channel', {
+                    display_name: customLinkedDisplayName,
+                    actions: ['display_label_info'],
+                });
+
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                await page.getByTestId(`global-attribute-actions-${field.id}`).click();
+                await page.locator(`#global-attribute-actions-${field.id}-edit`).click();
+                await expect(page).toHaveURL(new RegExp(`attribute_details/${field.id}$`));
+
+                await page.getByTestId('attributeDisplayNameInput').fill(updatedDisplayName);
+                await page.getByTestId('saveSetting').click();
+                await expect(page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+
+                const linkedFields = await fetchLinkedFieldsForTemplate(adminClient, field.id);
+                const channelField = linkedFields.find((f) => f.object_type === 'channel');
+                expect(channelField?.attrs?.display_name).toBe(customLinkedDisplayName);
+
+                const template = await getGlobalAttributeFieldByName(adminClient, name);
+                expect(template?.attrs?.display_name).toBe(updatedDisplayName);
+            } finally {
+                await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, name);
             }
         });
 
