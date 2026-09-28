@@ -673,44 +673,6 @@ const AdminDefinition: AdminDefinitionType = {
                     component: UserAttributesRedirect,
                 },
             },
-            session_attributes: {
-                url: 'system_attributes/session_attributes',
-                title: defineMessage({id: 'admin.sidebar.sessionAttributes', defaultMessage: 'Session Attributes'}),
-                searchableStrings: sessionAttributesSearchableStrings,
-                isHidden: it.any(
-                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
-                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
-                    it.configIsFalse('FeatureFlags', 'SessionAttributes'),
-                ),
-                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
-                schema: {
-                    id: 'SessionAttributes',
-                    component: SessionAttributesPage,
-                },
-                restrictedIndicator: getRestrictedIndicator(false, LicenseSkus.EnterpriseAdvanced),
-            },
-            session_attributes_feature_discovery: {
-                url: 'system_attributes/session_attributes',
-                isDiscovery: true,
-                title: defineMessage({id: 'admin.sidebar.sessionAttributes', defaultMessage: 'Session Attributes'}),
-                isHidden: it.any(
-                    it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
-                    it.configIsFalse('FeatureFlags', 'SessionAttributes'),
-                ),
-                schema: {
-                    id: 'SessionAttributes',
-                    name: defineMessage({id: 'admin.session_attributes.title', defaultMessage: 'Session Attributes'}),
-                    settings: [
-                        {
-                            type: 'custom',
-                            component: SessionAttributesFeatureDiscovery,
-                            key: 'SessionAttributesFeatureDiscovery',
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
-                        },
-                    ],
-                },
-                restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.EnterpriseAdvanced),
-            },
             board_attributes: {
                 url: 'system_attributes/board_attributes',
                 title: defineMessage({id: 'admin.sidebar.board_attributes', defaultMessage: 'Board Attributes'}),
@@ -768,6 +730,44 @@ const AdminDefinition: AdminDefinitionType = {
                     id: 'GlobalAttributes',
                     component: GlobalAttributes,
                 },
+            },
+            session_attributes: {
+                url: 'system_attributes/session_attributes',
+                title: defineMessage({id: 'admin.sidebar.sessionAttributes', defaultMessage: 'Session Attributes'}),
+                searchableStrings: sessionAttributesSearchableStrings,
+                isHidden: it.any(
+                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.configIsFalse('FeatureFlags', 'SessionAttributes'),
+                ),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                schema: {
+                    id: 'SessionAttributes',
+                    component: SessionAttributesPage,
+                },
+                restrictedIndicator: getRestrictedIndicator(false, LicenseSkus.EnterpriseAdvanced),
+            },
+            session_attributes_feature_discovery: {
+                url: 'system_attributes/session_attributes',
+                isDiscovery: true,
+                title: defineMessage({id: 'admin.sidebar.sessionAttributes', defaultMessage: 'Session Attributes'}),
+                isHidden: it.any(
+                    it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
+                    it.configIsFalse('FeatureFlags', 'SessionAttributes'),
+                ),
+                schema: {
+                    id: 'SessionAttributes',
+                    name: defineMessage({id: 'admin.session_attributes.title', defaultMessage: 'Session Attributes'}),
+                    settings: [
+                        {
+                            type: 'custom',
+                            component: SessionAttributesFeatureDiscovery,
+                            key: 'SessionAttributesFeatureDiscovery',
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
+                        },
+                    ],
+                },
+                restrictedIndicator: getRestrictedIndicator(true, LicenseSkus.EnterpriseAdvanced),
             },
             attribute_based_access_control: {
                 url: 'system_attributes/attribute_based_access_control',
