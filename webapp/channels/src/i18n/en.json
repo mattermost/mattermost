@@ -16963,9 +16963,9 @@
     "defaultMessage": "Reorder row",
     "description": "Accessibility label for the drag handle button used to reorder rows in admin console tables."
   },
-  "adminConsole.list.table.exactTime.at": {
-    "defaultMessage": "at",
-    "description": "The word 'at' inserted between the date and the time in exact-timestamp tooltips of admin console tables (e.g. 'July 30, 2026 at 08:00:00 PM')."
+  "adminConsole.list.table.exactTime": {
+    "defaultMessage": "{date, date, long} at {date, time, medium}",
+    "description": "Tooltip on the relative dates (e.g. 'Today', '3 days') in admin console tables such as System Users, showing the exact date and time. {date} is a timestamp; the date and time are formatted for the reader's locale, so only the connecting word needs translating, and it may be dropped where the language needs none."
   },
   "adminConsole.list.table.genericError": {
     "defaultMessage": "There was an error loading the data, please try again",

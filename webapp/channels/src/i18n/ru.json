@@ -3159,7 +3159,7 @@
   "admin.webserverModeTitle": "Режим веб-сервера:",
   "admin.webserverModeUncompressed": "Без сжатия",
   "admin.webserverModeUncompressedDescription": "Mattermost сервер будет отдавать несжатые статические файлы.",
-  "adminConsole.list.table.exactTime.at": "на",
+  "adminConsole.list.table.exactTime": "{date, date, long} на {date, time, medium}",
   "adminConsole.list.table.genericError": "Произошла ошибка при загрузке данных, попробуй ещё раз",
   "adminConsole.list.table.genericLoading": "Загрузка",
   "adminConsole.list.table.genericNoData": "Нет данных",

@@ -3282,7 +3282,7 @@
   "admin.webserverModeTitle": "Site sunucusu kipi:",
   "admin.webserverModeUncompressed": "Sıkıştırılmamış",
   "admin.webserverModeUncompressedDescription": "Mattermost sunucusu durağan dosyaları sıkıştırılmamış olarak sunar.",
-  "adminConsole.list.table.exactTime.at": "zaman",
+  "adminConsole.list.table.exactTime": "{date, date, long} zaman {date, time, medium}",
   "adminConsole.list.table.genericError": "Veriler yüklenirken bir sorun çıktı. Lütfen yeniden deneyin",
   "adminConsole.list.table.genericLoading": "Yükleniyor",
   "adminConsole.list.table.genericNoData": "Herhangi bir veri yok",

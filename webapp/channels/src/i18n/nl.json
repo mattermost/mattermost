@@ -3366,7 +3366,7 @@
   "admin.webserverModeTitle": "Webserver modus:",
   "admin.webserverModeUncompressed": "Ongecomprimeerd",
   "admin.webserverModeUncompressedDescription": "Mattermost server zal statische bestanden ongecomprimeerd serveren.",
-  "adminConsole.list.table.exactTime.at": "op",
+  "adminConsole.list.table.exactTime": "{date, date, long} op {date, time, medium}",
   "adminConsole.list.table.genericError": "Er is een fout opgetreden bij het laden van de gegevens. Probeer het opnieuw",
   "adminConsole.list.table.genericLoading": "Bezig met laden",
   "adminConsole.list.table.genericNoData": "Geen gegevens",

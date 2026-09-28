@@ -2644,7 +2644,7 @@
   "admin.webserverModeTitle": "網頁伺服器模式：",
   "admin.webserverModeUncompressed": "不壓縮",
   "admin.webserverModeUncompressedDescription": "Mattermost 伺服器將會傳送未經壓縮的靜態檔案。",
-  "adminConsole.list.table.exactTime.at": "於",
+  "adminConsole.list.table.exactTime": "{date, date, long} 於 {date, time, medium}",
   "adminConsole.list.table.genericError": "載入資料時發生錯誤，請再嘗試一次",
   "adminConsole.list.table.genericLoading": "載入中",
   "adminConsole.list.table.genericNoData": "無資料",
