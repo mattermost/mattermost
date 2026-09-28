@@ -92,3 +92,10 @@ func TestHealthFindingRender(t *testing.T) {
 		assert.Empty(t, f.Message)
 	})
 }
+
+func TestMutedFilterIsValid(t *testing.T) {
+	for _, muted := range []MutedFilter{MutedExcluded, MutedIncluded, MutedOnly} {
+		assert.True(t, muted.IsValid(), "muted=%q", muted)
+	}
+	assert.False(t, MutedFilter("all").IsValid())
+}
