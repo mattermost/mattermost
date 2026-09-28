@@ -183,21 +183,11 @@ export function isGraphOperator(op: string): boolean {
 }
 
 // Whether a row's right-hand side may be the accessed channel's attribute
-// (resource.attributes.*) rather than literal values, given the operator and the
-// attribute's type. The comparison operators and the graph hierarchy predicates
-// always may. The multiselect list operators may only on a multiselect
-// attribute: on a graph attribute they mean exact membership against literal
-// option names, and the policy engine has no live-versus-live form for a pair of
-// graph attributes, so offering a target there would build a rule that fails to
-// save.
-export function operatorSupportsChannelTarget(op: string, attributeType?: string): boolean {
-    if (isGraphOperator(op)) {
-        return true;
-    }
-    if (isMultiselectOperator(op)) {
-        return attributeType !== 'graph';
-    }
-    return OPERATOR_CONFIG[op]?.type === 'comparison';
+// (resource.attributes.*) rather than literal values: true for the comparison
+// operators, the multiselect list operators and the graph hierarchy predicates.
+export function operatorSupportsChannelTarget(op: string): boolean {
+    return isGraphOperator(op) || isMultiselectOperator(op) ||
+        OPERATOR_CONFIG[op]?.type === 'comparison';
 }
 
 // Ordinal comparison operators exclusive to ranked attributes. IS_NOT is

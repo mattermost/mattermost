@@ -55,7 +55,7 @@ export function rowToCEL(row: TableRow): string {
     // channel's graph attribute. Neither shape fits OPERATOR_CONFIG, so the
     // predicate is recognized from the operator alone, before config is read.
     // Exact membership on a graph attribute is not here: it stays on the list
-    // operators below, which lower to a chain of `in` tests.
+    // operators below, which lower to a chain of `in` tests for literal options.
     if (isGraphOperator(row.operator)) {
         if (row.targetAttribute) {
             return `${attributeExpr}.${row.operator}(resource.attributes.${row.targetAttribute})`;
@@ -67,17 +67,16 @@ export function rowToCEL(row: TableRow): string {
     const config = OPERATOR_CONFIG[row.operator];
 
     // Right-hand side is the accessed channel's attribute, not a literal:
-    // user.attributes.X <op> resource.attributes.Y. Which operators may take one
-    // depends on the attribute type as well — see operatorSupportsChannelTarget.
+    // user.attributes.X <op> resource.attributes.Y — see operatorSupportsChannelTarget.
     // The literal-value forms below still apply when the row has no
     // targetAttribute, or when the operator cannot carry one.
-    if (row.targetAttribute && operatorSupportsChannelTarget(row.operator, row.attribute_type)) {
+    if (row.targetAttribute && operatorSupportsChannelTarget(row.operator)) {
         if (config?.type === 'comparison') {
             return `${attributeExpr} ${config.celOp} resource.attributes.${row.targetAttribute}`;
         }
 
-        // What is left is a multiselect list-vs-list comparison, stored verbatim
-        // as a member-function call the engine holds as-is.
+        // What is left is a list-vs-list comparison (multiselect or graph), stored
+        // verbatim as a member-function call the engine holds as-is.
         const fn = row.operator === OperatorLabel.HAS_ALL_OF ? 'hasAllOf' : 'hasAnyOf';
         return `${attributeExpr}.${fn}(resource.attributes.${row.targetAttribute})`;
     }
@@ -239,8 +238,8 @@ export const isOperatorValidForType = (op: string, type?: string): boolean => {
     }
     if (type === 'graph') {
         // The hierarchy predicates, plus the two list operators — on a graph
-        // attribute those lower to a chain of `in` tests, which is the exact,
-        // hierarchy-blind membership check. Every other operator is refused when
+        // attribute those lower to a chain of `in` tests for literal options,
+        // which is the exact, hierarchy-blind membership check. Every other operator is refused when
         // the policy is saved.
         return isGraphOperator(op) || isMultiselectOperator(op);
     }
@@ -673,17 +672,15 @@ function TableEditor({
         };
 
         // Drop the resource target when the new operator cannot carry one
-        // (e.g. "in", "starts with", or the membership operators on a graph
-        // attribute) — otherwise it would survive invisibly and be emitted in
-        // a form the server refuses. Read the type off the pre-update row: an
-        // operator change never changes which attribute the row names.
-        if (!operatorSupportsChannelTarget(newOperator, attributeTypeForRow(rows[index]))) {
+        // (e.g. "in", "starts with") — otherwise it would survive invisibly and
+        // be emitted in a form the server refuses.
+        if (!operatorSupportsChannelTarget(newOperator)) {
             newRows[index].targetAttribute = undefined;
         }
 
         setRows(newRows);
         updateExpression(newRows);
-    }, [updateExpression, rows, attributeTypeForRow]);
+    }, [updateExpression, rows]);
 
     const updateRowValues = useCallback((index: number, values: string[]) => {
         const newRows = [...rows];
@@ -768,10 +765,9 @@ function TableEditor({
                             // Channel attributes this row's operator can compare
                             // against, if any. comparableChannelFields has
                             // already enforced the shared option scale; the
-                            // operator and the attribute's type decide whether a
-                            // target is offered at all.
+                            // operator decides whether a target is offered at all.
                             const supportsTarget = targets.length > 0 &&
-                                operatorSupportsChannelTarget(row.operator, attributeTypeForRow(row));
+                                operatorSupportsChannelTarget(row.operator);
                             const cellDisabled = disabled || row.hasMaskedValues;
                             return (
                                 <tr
