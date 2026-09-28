@@ -2,7 +2,7 @@
   "_meta": {
     "maintained": "by hand",
     "note": "Legacy Sphinx URL redirects, originally bulk-extracted during the docs migration. Add new entries at the end of the array. `from` must be unique and must not contain an anchor; `to` should point at a page that exists, or the redirect silently dead-ends.",
-    "active": 1038
+    "active": 1039
   },
   "redirects": [
     {
@@ -255,7 +255,7 @@
     },
     {
       "from": "/collaborate/channel-naming-conventions",
-      "to": "/end-user-guide/collaborate/channel-naming-conventions"
+      "to": "/administration-guide/manage/admin/workspace-organization#channel-naming-conventions"
     },
     {
       "from": "/collaborate/channel-types",
@@ -579,7 +579,7 @@
     },
     {
       "from": "/channels/channel-naming-conventions",
-      "to": "/end-user-guide/collaborate/channel-naming-conventions"
+      "to": "/administration-guide/manage/admin/workspace-organization#channel-naming-conventions"
     },
     {
       "from": "/channels/rename-channels",
@@ -1339,7 +1339,7 @@
     },
     {
       "from": "/help/getting-started/organizing",
-      "to": "/end-user-guide/collaborate/channel-naming-conventions"
+      "to": "/administration-guide/manage/admin/workspace-organization"
     },
     {
       "from": "/help/getting-started/organizing-conversations",
@@ -1991,7 +1991,7 @@
     },
     {
       "from": "/messaging/organizing-channels",
-      "to": "/end-user-guide/collaborate/channel-naming-conventions"
+      "to": "/administration-guide/manage/admin/workspace-organization#channel-naming-conventions"
     },
     {
       "from": "/messaging/organizing-conversations",
@@ -1999,7 +1999,7 @@
     },
     {
       "from": "/messaging/organizing-mattermost",
-      "to": "/end-user-guide/collaborate/channel-naming-conventions"
+      "to": "/administration-guide/manage/admin/workspace-organization"
     },
     {
       "from": "/messaging/pinning-messages",
@@ -4156,6 +4156,10 @@
     {
       "from": "/welcome/team-keyboard-shortcuts",
       "to": "/end-user-guide/collaborate/team-keyboard-shortcuts"
+    },
+    {
+      "from": "/end-user-guide/collaborate/channel-naming-conventions",
+      "to": "/administration-guide/manage/admin/workspace-organization#channel-naming-conventions"
     }
   ]
 }

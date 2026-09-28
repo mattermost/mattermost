@@ -5,6 +5,8 @@ import type {PropertyField} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
 
+import {ALL_RESOURCE_TYPES} from './attribute_details/attribute_applies_to_constants';
+import type {ResourceObjectType} from './attribute_details/attribute_applies_to_constants';
 import {
     ATTRIBUTE_FIELD_TYPES,
     appliedResourceTypesByTemplateId,
@@ -153,6 +155,23 @@ describe('global_attributes/utils', () => {
 
             const attrs = createPropertyField.mock.calls[0][2].attrs as Record<string, unknown>;
             expect(attrs).not.toHaveProperty('options');
+            expect(attrs).not.toHaveProperty('value_type');
+        });
+
+        it('sends type text with attrs.value_type for phone and url', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
+
+            await createAttributeField('Work phone', 'work_phone', 'phone', []);
+            expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
+                type: 'text',
+                attrs: {display_name: 'Work phone', value_type: 'phone'},
+            }));
+
+            await createAttributeField('Homepage', 'homepage', 'url', []);
+            expect(createPropertyField).toHaveBeenLastCalledWith('access_control', 'template', expect.objectContaining({
+                type: 'text',
+                attrs: {display_name: 'Homepage', value_type: 'url'},
+            }));
         });
 
         it('propagates a rejection from Client4', async () => {
@@ -306,6 +325,17 @@ describe('global_attributes/utils', () => {
 
             await expect(createLinkedAttributeField('user', 'name', 'text', 'Name', 'template-id')).rejects.toThrow('boom');
         });
+
+        it('sends attrs.value_type on a linked phone/url field because the server does not copy it from the template', async () => {
+            const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
+
+            await createLinkedAttributeField('user', 'work_phone', 'phone', 'Work phone', 'template-id');
+
+            expect(createPropertyField).toHaveBeenCalledWith('access_control', 'user', expect.objectContaining({
+                type: 'text',
+                attrs: {display_name: 'Work phone', value_type: 'phone'},
+            }));
+        });
     });
 
     describe('deleteLinkedAttributeField', () => {
@@ -347,6 +377,7 @@ describe('global_attributes/utils', () => {
                     options: [{id: 'opt-1', name: 'Engineering'}, {id: '', name: 'Sales'}],
                     ldap: null,
                     saml: null,
+                    value_type: null,
                 },
             });
         });
@@ -369,6 +400,7 @@ describe('global_attributes/utils', () => {
                     options: null,
                     ldap: 'department',
                     saml: null,
+                    value_type: null,
                 },
             });
         });
@@ -397,6 +429,7 @@ describe('global_attributes/utils', () => {
                     ],
                     ldap: null,
                     saml: null,
+                    value_type: null,
                 },
             });
         });
@@ -439,6 +472,7 @@ describe('global_attributes/utils', () => {
                     ],
                     ldap: null,
                     saml: null,
+                    value_type: null,
                 },
             });
         });
@@ -467,6 +501,42 @@ describe('global_attributes/utils', () => {
                 }),
             }));
         });
+
+        it('sends attrs.value_type for phone and url, and null when switching back to plain text', async () => {
+            const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue({} as PropertyField);
+
+            await updateAttributeField('template', 'field-id', {
+                type: 'phone',
+                displayName: 'Work phone',
+                options: [],
+                ldapAttr: '',
+                samlAttr: '',
+            });
+
+            expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'template', 'field-id', {
+                type: 'text',
+                attrs: {
+                    display_name: 'Work phone',
+                    options: null,
+                    ldap: null,
+                    saml: null,
+                    value_type: 'phone',
+                },
+            });
+
+            await updateAttributeField('template', 'field-id', {
+                type: 'url',
+                displayName: 'Homepage',
+                options: [],
+                ldapAttr: '',
+                samlAttr: '',
+            });
+
+            expect(patchPropertyField).toHaveBeenLastCalledWith('access_control', 'template', 'field-id', expect.objectContaining({
+                type: 'text',
+                attrs: expect.objectContaining({value_type: 'url'}),
+            }));
+        });
     });
 
     describe('fetchAttributeField', () => {
@@ -486,7 +556,7 @@ describe('global_attributes/utils', () => {
                 return Promise.resolve([]);
             });
 
-            await expect(fetchAttributeField('field-1', true)).resolves.toBe(live);
+            await expect(fetchAttributeField('field-1', ALL_RESOURCE_TYPES)).resolves.toBe(live);
         });
 
         it('returns a matching live user/channel/post field', async () => {
@@ -498,7 +568,7 @@ describe('global_attributes/utils', () => {
                 return Promise.resolve([]);
             });
 
-            await expect(fetchAttributeField('field-1', true)).resolves.toBe(live);
+            await expect(fetchAttributeField('field-1', ALL_RESOURCE_TYPES)).resolves.toBe(live);
         });
 
         it('ignores a user/channel/post field that is a linked child of a template', async () => {
@@ -509,23 +579,27 @@ describe('global_attributes/utils', () => {
                 return Promise.resolve([]);
             });
 
-            await expect(fetchAttributeField('field-1', true)).resolves.toBeUndefined();
+            await expect(fetchAttributeField('field-1', ALL_RESOURCE_TYPES)).resolves.toBeUndefined();
         });
 
         it('returns undefined when the id is not in any object type', async () => {
             jest.spyOn(Client4, 'getPropertyFields').mockResolvedValue([{id: 'other', delete_at: 0} as PropertyField]);
 
-            await expect(fetchAttributeField('field-1', true)).resolves.toBeUndefined();
+            await expect(fetchAttributeField('field-1', ALL_RESOURCE_TYPES)).resolves.toBeUndefined();
         });
 
-        it('does not query the channel scope when includeChannel is false', async () => {
+        it.each([
+            [['user'], ['template', 'user']],
+
+            // Deliberately out of canonical order: the scopes are queried in
+            // ALL_RESOURCE_TYPES order, not in the order they were allowed.
+            [['post', 'user'], ['template', 'user', 'post']],
+        ])('queries the template scope plus the allowed resource scopes %p', async (allowedTypes, expected) => {
             const getPropertyFields = jest.spyOn(Client4, 'getPropertyFields').mockResolvedValue([]);
 
-            await fetchAttributeField('field-1', false);
+            await fetchAttributeField('field-1', allowedTypes as ResourceObjectType[]);
 
-            const queriedObjectTypes = getPropertyFields.mock.calls.map((call) => call[1]);
-            expect(queriedObjectTypes).toEqual(expect.arrayContaining(['template', 'user', 'post']));
-            expect(queriedObjectTypes).not.toContain('channel');
+            expect(getPropertyFields.mock.calls.map((call) => call[1])).toEqual(expected);
         });
     });
 
@@ -550,7 +624,7 @@ describe('global_attributes/utils', () => {
                 return Promise.resolve([]);
             });
 
-            const fields = await fetchLinkedFieldsForTemplate('template-id', true);
+            const fields = await fetchLinkedFieldsForTemplate('template-id', ALL_RESOURCE_TYPES);
 
             expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'user', 'system', undefined, expect.objectContaining({perPage: 200}));
             expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'channel', 'system', undefined, expect.objectContaining({perPage: 200}));
@@ -558,14 +632,15 @@ describe('global_attributes/utils', () => {
             expect(fields.map((field) => field.id)).toEqual(['u1', 'c1']);
         });
 
-        it('does not query the channel scope when includeChannel is false', async () => {
+        it.each([
+            [['user'], ['user']],
+            [['post', 'user'], ['user', 'post']],
+        ])('only queries the allowed resource scopes %p', async (allowedTypes, expected) => {
             const getPropertyFields = jest.spyOn(Client4, 'getPropertyFields').mockResolvedValue([]);
 
-            await fetchLinkedFieldsForTemplate('template-id', false);
+            await fetchLinkedFieldsForTemplate('template-id', allowedTypes as ResourceObjectType[]);
 
-            const queriedObjectTypes = getPropertyFields.mock.calls.map((call) => call[1]);
-            expect(queriedObjectTypes).toEqual(expect.arrayContaining(['user', 'post']));
-            expect(queriedObjectTypes).not.toContain('channel');
+            expect(getPropertyFields.mock.calls.map((call) => call[1])).toEqual(expected);
         });
     });
 

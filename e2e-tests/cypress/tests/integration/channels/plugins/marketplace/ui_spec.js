@@ -51,7 +51,7 @@ describe('Plugin Marketplace', () => {
         cy.visit(townsquareLink);
 
         // # Open up marketplace
-        cy.uiOpenProductMenu('Marketplace');
+        cy.uiOpenSwitchProductMenu('Marketplace');
 
         // * Verify error bar should not be visible
         cy.get('#error_bar').should('not.exist');
@@ -77,7 +77,7 @@ describe('Plugin Marketplace', () => {
         cy.uiClose();
 
         // # Open up marketplace
-        cy.uiOpenProductMenu('Marketplace');
+        cy.uiOpenSwitchProductMenu('Marketplace');
 
         // * Verify search plugins should be focused
         cy.findByPlaceholderText('Search Marketplace').should('be.focused');

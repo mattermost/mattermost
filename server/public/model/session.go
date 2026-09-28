@@ -312,6 +312,8 @@ var standardDevicePlatforms = []string{
 	PushNotifyAppleReactNative,
 	PushNotifyAppleReactNative + "beta",
 	PushNotifyAndroidReactNative,
+	PushNotifyAppleOxide,
+	PushNotifyAndroidOxide,
 }
 
 // voIPDevicePlatforms is the allowlist for VoIPDeviceId. Android isn't here

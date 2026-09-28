@@ -66,6 +66,7 @@ export default class ChannelsPage {
     readonly userGroupsModal;
     readonly leaveTeamModal;
     readonly archivedChannelMessage;
+    readonly switchProductMenu;
 
     readonly postContainer;
     readonly channelMenu;
@@ -138,6 +139,7 @@ export default class ChannelsPage {
         this.userAccountMenu = new components.UserAccountMenu(page.locator('#userAccountMenu'));
         this.scheduleMessageMenu = new components.ScheduleMessageMenu(page.locator('#dropdown_send_post_options'));
         this.teamMenu = new components.TeamMenu(page.locator('#sidebarTeamMenu'));
+        this.switchProductMenu = new components.SwitchProductMenu(page.locator('#switchProductMenu'));
 
         // Popovers
         this.emojiGifPickerPopup = new components.EmojiGifPicker(page.locator('#emojiGifPicker'));

@@ -1,9 +1,10 @@
 name: Documentation Impact Review
+# Temporarily disabled: the mattermost/docs content was migrated into the
+# monorepo, and this workflow still checks out and analyzes the legacy
+# mattermost/docs RST tree. Re-enable the pull_request trigger once the
+# workflow has been updated to point at the in-repo documentation.
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
-    branches:
-      - master
+  workflow_dispatch:
 concurrency:
   group: ${{ format('docs-impact-{0}', github.event.pull_request.number) }}
   cancel-in-progress: true
