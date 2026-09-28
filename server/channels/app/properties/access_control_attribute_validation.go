@@ -360,9 +360,9 @@ func (h *AccessControlAttributeValidationHook) sanitizeAndValidateOptions(field 
 // sanitizeAndValidateOwners normalizes and validates the owners attr on a
 // field. Each entry is trimmed and must be well-formed ({id, type, scopes}
 // with a recognized type); scopes are trimmed and deduped; duplicate owner
-// entries (same type+id) are merged. An empty or absent list is removed so HasPropertyFieldOwners
-// stays false. The normalized list is written back in canonical form
-// ([]any of maps) so downstream readers see a single shape.
+// entries (same type+id) are merged. An empty or absent list is removed so
+// HasPropertyFieldOwners stays false. The normalized list is written back in
+// canonical form ([]any of maps) so downstream readers see a single shape.
 //
 // Defensive bounds (see the Property Owner* constants) cap the id and scope
 // lengths and the number of owners/scopes so a buggy or hostile owner cannot
@@ -519,8 +519,9 @@ func rankSortKey(rank *int) int {
 //   - When managed="admin", PermissionValues is set to sysadmin. This is
 //     gated on PermissionManageSystem; callers without an identifiable
 //     caller ID (e.g. internal callers with no session on rctx) are
-//     treated as non-admin and rejected. Listed owners of existing
-//     admin-managed fields are exempt from this check.
+//     treated as non-admin and rejected. A plugin listed as an owner of a
+//     field that is already admin-managed is exempt, so it can edit the
+//     field or remove itself as owner without being a system admin.
 //   - When the field is owner-managed, PermissionValues is pinned to sysadmin.
 //     Human value writes are already blocked authoritatively by
 //     checkOwnerValueWriteAccess in the property-service hook, but pinning
