@@ -132,6 +132,7 @@
         &:hover,
         &:focus {
             color: var(--center-channel-color);
+            background: rgba(var(--center-channel-color-rgb), 0.08);
         }
     }
 
