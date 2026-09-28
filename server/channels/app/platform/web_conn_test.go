@@ -362,9 +362,17 @@ func TestWebConnPumpCompletesTeardown(t *testing.T) {
 	}
 	wg.Wait()
 	close(clientConns)
+	clients := make([]*websocket.Conn, 0, numConns)
 	for c := range clientConns {
-		defer c.Close()
+		clients = append(clients, c)
 	}
+	// the client side stays open until the assertions below are done, so that
+	// the handler is what ends each connection
+	t.Cleanup(func() {
+		for _, c := range clients {
+			c.Close()
+		}
+	})
 
 	wcs := make([]*WebConn, 0, numConns)
 	for range numConns {
