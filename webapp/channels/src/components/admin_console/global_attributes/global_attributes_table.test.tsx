@@ -1050,7 +1050,97 @@ describe('GlobalAttributesTable', () => {
             getPluginStatuses.mockRestore();
         });
 
+        describe('owned attributes', () => {
+            const mockTemplateWithUserField = (userFieldAttrs?: PropertyField['attrs']) => {
+                const template = makeField({id: 'template-1', name: 'department'});
+                getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
+                    if (opts?.cursorId) {
+                        return Promise.resolve([]);
+                    }
+                    if (objectType === 'template') {
+                        return Promise.resolve([template]);
+                    }
+                    if (objectType === 'user') {
+                        return Promise.resolve([makeField({
+                            id: 'user-1',
+                            object_type: 'user',
+                            linked_field_id: template.id,
+                            attrs: userFieldAttrs,
+                        })]);
+                    }
+                    return Promise.resolve([]);
+                });
+            };
+
+            it('names a plugin owner from the admin plugin statuses on a template row', async () => {
+                const getPluginStatuses = jest.spyOn(Client4, 'getPluginStatuses').mockResolvedValue([{
+                    plugin_id: 'com.mattermost.scim',
+                    name: 'SCIM',
+                    description: '',
+                    version: '1.0.0',
+                    cluster_id: '',
+                    plugin_path: '',
+                    state: 1,
+                }]);
+                mockTemplateWithUserField({owners: [{id: 'com.mattermost.scim', type: 'plugin', scopes: []}]});
+
+                renderWithContext(<GlobalAttributesTable/>, getAllScopesState());
+
+                await waitFor(() => {
+                    expect(screen.getByTestId('global-attribute-source')).toHaveTextContent('Managed by SCIM');
+                });
+                expect(screen.getByTestId('global-attribute-source').querySelector('svg')).toBeInTheDocument();
+
+                getPluginStatuses.mockRestore();
+            });
+
+            it('names the owners of a standalone user attribute', async () => {
+                getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
+                    if (opts?.cursorId || objectType !== 'user') {
+                        return Promise.resolve([]);
+                    }
+                    return Promise.resolve([makeField({
+                        id: 'user-1',
+                        name: 'standalone',
+                        object_type: 'user',
+                        attrs: {owners: [{id: 'svc-sync', type: 'service', scopes: []}]},
+                    })]);
+                });
+
+                renderWithContext(<GlobalAttributesTable/>, getAllScopesState());
+
+                await waitFor(() => {
+                    expect(screen.getByTestId('global-attribute-source')).toHaveTextContent('Managed by svc-sync');
+                });
+            });
+
+            it('lists every owner in stored order', async () => {
+                mockTemplateWithUserField({owners: [
+                    {id: 'svc-b', type: 'service', scopes: []},
+                    {id: 'svc-a', type: 'service', scopes: []},
+                ]});
+
+                renderWithContext(<GlobalAttributesTable/>, getAllScopesState());
+
+                await waitFor(() => {
+                    expect(screen.getByTestId('global-attribute-source')).toHaveTextContent('Managed by svc-b and svc-a');
+                });
+            });
+
+            it('still reads "Managed here" when the linked user field has no owners', async () => {
+                mockTemplateWithUserField({owners: []});
+
+                renderWithContext(<GlobalAttributesTable/>, getAllScopesState());
+
+                await waitFor(() => {
+                    expect(screen.getByTestId('global-attribute-applies-to')).toHaveTextContent('Users');
+                });
+                expect(screen.getByTestId('global-attribute-source')).toHaveTextContent('Managed here');
+            });
+        });
+
         it('shows AD/LDAP when attrs.ldap is set', async () => {
+            getPropertyFields.mockResolvedValueOnce([makeField({attrs: {ldap: 'someAttribute'}})]).mockResolvedValue([]);
             getPropertyFields.mockResolvedValueOnce([makeField({attrs: {ldap: 'someAttribute'}})]).mockResolvedValue([]);
 
             renderWithContext(<GlobalAttributesTable/>, getBaseState());

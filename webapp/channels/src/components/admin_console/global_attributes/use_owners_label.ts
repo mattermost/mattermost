@@ -11,7 +11,7 @@ import {getPluginDisplayName} from 'selectors/plugins';
 
 import type {GlobalState} from 'types/store';
 
-const NO_OWNERS: PropertyFieldOwner[] = [];
+export const NO_OWNERS: PropertyFieldOwner[] = [];
 
 export function getFieldOwners(field: Pick<PropertyField, 'attrs'>): PropertyFieldOwner[] {
     const owners = field.attrs?.owners;

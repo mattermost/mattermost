@@ -1708,6 +1708,7 @@
   "admin.global_attributes.table.source.ldap": "AD/LDAP",
   "admin.global_attributes.table.source.ldap_and_saml": "AD/LDAP, SAML",
   "admin.global_attributes.table.source.managed": "Managed here",
+  "admin.global_attributes.table.source.owned_by": "Managed by {owners}",
   "admin.global_attributes.table.source.saml": "SAML",
   "admin.global_attributes.table.type": "Type",
   "admin.global_attributes.table.type.email": "Email",

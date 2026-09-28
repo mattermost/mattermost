@@ -15,6 +15,7 @@ import type IconProps from '@mattermost/compass-icons/components/props';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FieldType, PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import {valueRefersToOptions} from '@mattermost/types/properties';
+import type {PropertyFieldOwner} from '@mattermost/types/properties_user';
 
 import PropertyTypes from 'mattermost-redux/action_types/properties';
 import {fetchPropertyFields} from 'mattermost-redux/actions/properties';
@@ -50,6 +51,7 @@ import {CLASSIFICATION_ATTRIBUTE_ROUTE} from './classification_attribute';
 import {attributeDetailsRoute, GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, GLOBAL_ATTRIBUTES_TARGET_TYPE} from './constants';
 import {useGlobalAttributeFieldDelete} from './global_attribute_delete_modal';
 import useAllowedResourceTypes from './use_allowed_resource_types';
+import {getFieldOwners, NO_OWNERS, useOwnersLabel} from './use_owners_label';
 import {appliedResourceTypesByTemplateId, deleteAttributeField} from './utils';
 
 import {it} from '../admin_definition_helpers';
@@ -155,7 +157,8 @@ type ClassificationAwareCellProps = {
     isClassificationRow: boolean;
 };
 
-function SourceCell({field, isClassificationRow}: ClassificationAwareCellProps) {
+function SourceCell({field, isClassificationRow, owners}: ClassificationAwareCellProps & {owners: PropertyFieldOwner[]}) {
+    const ownersLabel = useOwnersLabel(owners);
     const pluginId = field.attrs?.source_plugin_id as string | undefined;
     const pluginDisplayName = useSelector((state: GlobalState) => getPluginDisplayName(state, pluginId));
 
@@ -172,13 +175,21 @@ function SourceCell({field, isClassificationRow}: ClassificationAwareCellProps) 
         content = <FormattedMessage {...sourceLabels.ldap}/>;
     } else if (kind === 'saml') {
         content = <FormattedMessage {...sourceLabels.saml}/>;
+    } else if (owners.length > 0) {
+        content = (
+            <FormattedMessage
+                {...sourceLabels.ownedBy}
+                values={{owners: ownersLabel}}
+            />
+        );
     } else {
         content = <FormattedMessage {...sourceLabels.managed}/>;
     }
 
     // The classification row identifies its source via text alone ("Classification
     // Markings"), not a plugin/ldap/saml/managed kind, so it doesn't get one of those icons.
-    const Icon = isClassificationRow ? undefined : getSourceIcon(kind);
+    const isOwned = kind === 'managed' && owners.length > 0;
+    const Icon = isClassificationRow ? undefined : getSourceIcon(isOwned ? 'plugin' : kind);
 
     return (
         <span
@@ -429,6 +440,18 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
         ]),
         [channelLinkedFields, suppressedScopes, postLinkedFields, userLinkedFields],
     );
+    const ownersByTemplateId = useMemo(() => {
+        const byTemplate: Record<string, PropertyFieldOwner[]> = {};
+        if (suppressedScopes.has('user')) {
+            return byTemplate;
+        }
+        for (const field of userLinkedFields) {
+            if (field.linked_field_id && field.delete_at === 0) {
+                byTemplate[field.linked_field_id] = getFieldOwners(field);
+            }
+        }
+        return byTemplate;
+    }, [suppressedScopes, userLinkedFields]);
     const unlinkedFields = useSelector((state: GlobalState) =>
         getUnlinkedSystemFieldsForGroup(state, groupId),
     );
@@ -516,7 +539,16 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
     // server-only plugins are absent from the webapp manifest registry — their names
     // live in the admin plugin statuses, which nothing else on this page loads.
     // Fetched once, and only when a plugin-owned row is actually present.
-    const hasPluginOwnedFields = useMemo(() => allRows.some((field) => Boolean(field.attrs?.source_plugin_id)), [allRows]);
+    const ownersFor = useCallback((field: PropertyField): PropertyFieldOwner[] => {
+        if (field.object_type === 'user') {
+            return getFieldOwners(field);
+        }
+        return ownersByTemplateId[field.id] ?? NO_OWNERS;
+    }, [ownersByTemplateId]);
+
+    const hasPluginOwnedFields = useMemo(() => allRows.some((field) => (
+        Boolean(field.attrs?.source_plugin_id) || ownersFor(field).some((owner) => owner.type === 'plugin')
+    )), [allRows, ownersFor]);
 
     // Whether the plugin inventory is known yet. This gates the orphan check
     // rather than the Source column, which degrades harmlessly to the plugin ID:
@@ -645,6 +677,7 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                     <SourceCell
                         field={row.original}
                         isClassificationRow={isClassificationRow(row.original)}
+                        owners={ownersFor(row.original)}
                     />
                 ),
                 enableHiding: false,
@@ -679,7 +712,7 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                 enableHiding: false,
             }),
         ];
-    }, [appliesToByTemplateId, groupId, classificationMarkingsReachable, isMobileView, handleDeleteModalExited, resourcesLoaded]);
+    }, [appliesToByTemplateId, groupId, classificationMarkingsReachable, isMobileView, handleDeleteModalExited, resourcesLoaded, ownersFor]);
 
     const table = useReactTable<PropertyField>({
         data: rows,
@@ -799,6 +832,7 @@ const sourceLabels = defineMessages({
     ldap: {id: 'admin.global_attributes.table.source.ldap', defaultMessage: 'AD/LDAP'},
     saml: {id: 'admin.global_attributes.table.source.saml', defaultMessage: 'SAML'},
     managed: {id: 'admin.global_attributes.table.source.managed', defaultMessage: 'Managed here'},
+    ownedBy: {id: 'admin.global_attributes.table.source.owned_by', defaultMessage: 'Managed by {owners}'},
     classificationMarkings: {
         id: 'admin.global_attributes.table.source.classification_markings',
         defaultMessage: 'Classification Markings',
