@@ -6,6 +6,9 @@ BEGIN
     FROM information_schema.columns
     WHERE table_name = 'posts' AND column_name = 'message';
     IF col_len IS NOT NULL AND col_len < 1048576 THEN
+        -- Postgres rebuilds expression indexes on an altered column while holding
+        -- an ACCESS EXCLUSIVE lock on posts. Drop it here so the ALTER is
+        -- metadata-only; 000233 recreates it with CREATE INDEX CONCURRENTLY.
         DROP INDEX IF EXISTS idx_posts_message_txt;
         ALTER TABLE posts ALTER COLUMN message TYPE VARCHAR(1048576);
     END IF;
