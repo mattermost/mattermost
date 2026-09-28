@@ -22,7 +22,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
@@ -4091,4 +4093,283 @@ func TestPatchChannelDefaultCategoryReapplyIsIdempotent(t *testing.T) {
 			assert.Equal(t, 1, count, "channel should appear exactly once in the default category")
 		}
 	}
+}
+
+// TestRemoveUserFromChannelMembershipConsistency proves that once a user is
+// removed from a private channel or a group message, every backend path agrees
+// that they are gone: channel access, post retrieval, thread membership / unread
+// metadata, websocket fanout for an already-authenticated connection, and
+// repeated removals. Remaining members keep their thread, unread and event state.
+func TestRemoveUserFromChannelMembershipConsistency(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+		// Exercise the per-connection membership check in WebConn.ShouldSendEvent.
+		*cfg.ServiceSettings.EnableWebHubChannelIteration = false
+	})
+
+	newWebConn := func(t *testing.T, user *model.User) (*platform.WebConn, *model.Session) {
+		t.Helper()
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: user.Id, Roles: user.GetRawRoles(), TeamMembers: []*model.TeamMember{
+			{
+				UserId: user.Id,
+				TeamId: th.BasicTeam.Id,
+				Roles:  model.TeamUserRoleId,
+			},
+		}})
+		require.Nil(t, appErr)
+
+		wc := &platform.WebConn{
+			Platform: th.Server.Platform(),
+			Suite:    th.App,
+			UserId:   user.Id,
+			T:        i18n.T,
+		}
+		wc.SetConnectionID(model.NewId())
+		wc.SetSession(session)
+		wc.SetSessionToken(session.Token)
+		wc.SetSessionExpiresAt(session.ExpiresAt)
+		return wc, session
+	}
+
+	// createThread has `author` start a thread that `followers` follow, then adds a
+	// reply so the thread is unread for every follower. Followers never post, so
+	// their unread state does not depend on notification side effects.
+	createThread := func(t *testing.T, channel *model.Channel, author *model.User, followers ...*model.User) *model.Post {
+		t.Helper()
+		root, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    author.Id,
+			ChannelId: channel.Id,
+			Message:   "root " + model.NewId(),
+		}, channel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+		for _, follower := range followers {
+			require.Nil(t, th.App.UpdateThreadFollowForUser(follower.Id, channel.TeamId, root.Id, true))
+		}
+		// Make sure the reply lands strictly after the followers' LastViewed.
+		time.Sleep(5 * time.Millisecond)
+		_, _, appErr = th.App.CreatePost(th.Context, &model.Post{
+			UserId:    author.Id,
+			ChannelId: channel.Id,
+			RootId:    root.Id,
+			Message:   "reply " + model.NewId(),
+		}, channel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+		return root
+	}
+
+	getThreads := func(t *testing.T, user *model.User, teamID string) *model.Threads {
+		t.Helper()
+		threads, appErr := th.App.GetThreadsForUser(th.Context, user.Id, teamID, model.GetUserThreadsOpts{})
+		require.Nil(t, appErr)
+		return threads
+	}
+	threadIDs := func(threads *model.Threads) []string {
+		ids := make([]string, 0, len(threads.Threads))
+		for _, thread := range threads.Threads {
+			ids = append(ids, thread.PostId)
+		}
+		return ids
+	}
+	teamThreadCount := func(t *testing.T, user *model.User) int64 {
+		t.Helper()
+		teamsUnread, appErr := th.App.GetTeamsUnreadForUser("", user.Id, true)
+		require.Nil(t, appErr)
+		for _, tu := range teamsUnread {
+			if tu.TeamId == th.BasicTeam.Id {
+				return tu.ThreadCount
+			}
+		}
+		return 0
+	}
+
+	// author posts, removedUser and remainingUser follow. author is also a member of both channels.
+	author := th.CreateUser(t)
+	th.LinkUserToTeam(t, author, th.BasicTeam)
+	removedUser := th.BasicUser
+	remainingUser := th.BasicUser2
+
+	privateChannel := th.CreatePrivateChannel(t, th.BasicTeam) // creator (removedUser) is a member
+	th.AddUserToChannel(t, remainingUser, privateChannel)
+	th.AddUserToChannel(t, author, privateChannel)
+	gm := th.CreateGroupChannel(t, remainingUser, author) // removedUser, remainingUser, author
+
+	privateRoot := createThread(t, privateChannel, author, removedUser, remainingUser)
+	gmRoot := createThread(t, gm, author, removedUser, remainingUser)
+
+	privateEvent := model.NewWebSocketEvent(model.WebsocketEventPosted, "", privateChannel.Id, "", nil, "")
+	gmEvent := model.NewWebSocketEvent(model.WebsocketEventPosted, "", gm.Id, "", nil, "")
+
+	removedWc, removedSession := newWebConn(t, removedUser)
+	remainingWc, _ := newWebConn(t, remainingUser)
+
+	// Sanity: while everybody is a member all paths agree that both users can see both threads.
+	for _, user := range []*model.User{removedUser, remainingUser} {
+		threads := getThreads(t, user, th.BasicTeam.Id)
+		require.ElementsMatch(t, []string{privateRoot.Id, gmRoot.Id}, threadIDs(threads))
+		require.EqualValues(t, 2, threads.Total)
+		require.EqualValues(t, 2, threads.TotalUnreadThreads)
+		require.EqualValues(t, 1, teamThreadCount(t, user))
+	}
+	require.True(t, removedWc.ShouldSendEvent(privateEvent))
+	require.True(t, removedWc.ShouldSendEvent(gmEvent))
+	require.True(t, remainingWc.ShouldSendEvent(privateEvent))
+	require.True(t, remainingWc.ShouldSendEvent(gmEvent))
+
+	assertNoAccess := func(t *testing.T, channel *model.Channel, root *model.Post, event *model.WebSocketEvent) {
+		t.Helper()
+
+		// Channel access.
+		ok, isMember := th.App.HasPermissionToReadChannel(th.Context, removedUser.Id, channel)
+		require.False(t, ok)
+		require.False(t, isMember)
+		_, appErr := th.App.GetChannelMember(th.Context, channel.Id, removedUser.Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+
+		// The cache-backed membership map used by the permission checks agrees with the DB.
+		members, err := th.App.Srv().Store().Channel().GetAllChannelMembersForUser(th.Context, removedUser.Id, true, true)
+		require.NoError(t, err)
+		require.NotContains(t, members, channel.Id)
+
+		// Direct post fetch with a still-valid session.
+		_, appErr, _ = th.App.GetPostIfAuthorized(th.Context, root.Id, removedSession, false)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+
+		// Thread membership / unread metadata.
+		_, appErr = th.App.GetThreadMembershipForUser(removedUser.Id, root.Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+		require.NotContains(t, threadIDs(getThreads(t, removedUser, th.BasicTeam.Id)), root.Id)
+		require.NotContains(t, threadIDs(getThreads(t, removedUser, "")), root.Id)
+
+		// Websocket fanout: a brand-new connection for the (still authenticated) user must
+		// not receive channel-scoped events for this channel.
+		freshWc, _ := newWebConn(t, removedUser)
+		require.False(t, freshWc.ShouldSendEvent(event))
+	}
+
+	t.Run("removed from private channel", func(t *testing.T) {
+		require.Nil(t, th.App.RemoveUserFromChannel(th.Context, removedUser.Id, remainingUser.Id, privateChannel))
+
+		assertNoAccess(t, privateChannel, privateRoot, privateEvent)
+
+		// The already-open connection: removal ran InvalidateChannelCacheForUser, which makes the
+		// hub call InvalidateCache on every registered connection of the user. Once that happens the
+		// next membership lookup must reject the private channel while the GM still passes.
+		removedWc.InvalidateCache()
+		require.False(t, removedWc.ShouldSendEvent(privateEvent))
+		require.True(t, removedWc.ShouldSendEvent(gmEvent))
+
+		// The GM is untouched for the removed user.
+		threads := getThreads(t, removedUser, th.BasicTeam.Id)
+		require.ElementsMatch(t, []string{gmRoot.Id}, threadIDs(threads))
+		require.EqualValues(t, 1, threads.Total)
+		require.EqualValues(t, 1, threads.TotalUnreadThreads)
+		require.Zero(t, teamThreadCount(t, removedUser))
+
+		// Repeating the removal is a clean "not a member" and changes nothing.
+		appErr := th.App.RemoveUserFromChannel(th.Context, removedUser.Id, remainingUser.Id, privateChannel)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+		count, appErr := th.App.GetChannelMemberCount(th.Context, privateChannel.Id)
+		require.Nil(t, appErr)
+		require.EqualValues(t, 2, count) // remainingUser + author
+		assertNoAccess(t, privateChannel, privateRoot, privateEvent)
+	})
+
+	t.Run("remaining member keeps thread, unread and event delivery", func(t *testing.T) {
+		ok, isMember := th.App.HasPermissionToReadChannel(th.Context, remainingUser.Id, privateChannel)
+		require.True(t, ok)
+		require.True(t, isMember)
+
+		tm, appErr := th.App.GetThreadMembershipForUser(remainingUser.Id, privateRoot.Id)
+		require.Nil(t, appErr)
+		require.True(t, tm.Following)
+
+		threads := getThreads(t, remainingUser, th.BasicTeam.Id)
+		require.ElementsMatch(t, []string{privateRoot.Id, gmRoot.Id}, threadIDs(threads))
+		require.EqualValues(t, 2, threads.Total)
+		require.EqualValues(t, 2, threads.TotalUnreadThreads)
+		require.EqualValues(t, 1, teamThreadCount(t, remainingUser))
+
+		require.True(t, remainingWc.ShouldSendEvent(privateEvent))
+		require.True(t, remainingWc.ShouldSendEvent(gmEvent))
+	})
+
+	t.Run("removed from group message", func(t *testing.T) {
+		// Public API behaviour for valid members is unchanged: nobody can leave a GM.
+		appErr := th.App.LeaveChannel(th.Context, gm.Id, removedUser.Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+
+		// The internal removal path (used by bulk clean-ups) must leave every path in agreement.
+		require.Nil(t, th.App.removeUserFromChannel(th.Context, removedUser.Id, "", gm))
+
+		assertNoAccess(t, gm, gmRoot, gmEvent)
+		removedWc.InvalidateCache()
+		require.False(t, removedWc.ShouldSendEvent(gmEvent))
+
+		for _, teamID := range []string{th.BasicTeam.Id, ""} {
+			threads := getThreads(t, removedUser, teamID)
+			require.Empty(t, threads.Threads)
+			require.Zero(t, threads.Total)
+			require.Zero(t, threads.TotalUnreadThreads)
+			require.Zero(t, threads.TotalUnreadMentions)
+		}
+
+		// Remaining members are unaffected.
+		threads := getThreads(t, remainingUser, th.BasicTeam.Id)
+		require.ElementsMatch(t, []string{privateRoot.Id, gmRoot.Id}, threadIDs(threads))
+		require.EqualValues(t, 2, threads.TotalUnreadThreads)
+		require.True(t, remainingWc.ShouldSendEvent(gmEvent))
+
+		// Repeated internal removal: clean 404, no side effects.
+		appErr = th.App.removeUserFromChannel(th.Context, removedUser.Id, "", gm)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+		count, appErr := th.App.GetChannelMemberCount(th.Context, gm.Id)
+		require.Nil(t, appErr)
+		require.EqualValues(t, 2, count)
+	})
+
+	t.Run("stale thread memberships never resurface and are cleaned up on retry", func(t *testing.T) {
+		// Re-add the user and let them follow the private thread again.
+		_, appErr := th.App.AddUserToChannel(th.Context, removedUser, privateChannel, false)
+		require.Nil(t, appErr)
+		require.Nil(t, th.App.UpdateThreadFollowForUser(removedUser.Id, th.BasicTeam.Id, privateRoot.Id, true))
+		require.ElementsMatch(t, []string{privateRoot.Id}, threadIDs(getThreads(t, removedUser, th.BasicTeam.Id)))
+
+		// Simulate a partial failure from before this fix: the channel membership is gone
+		// but the ThreadMemberships row survived.
+		require.NoError(t, th.App.Srv().Store().Channel().RemoveMember(th.Context, privateChannel.Id, removedUser.Id))
+		th.App.Srv().Platform().InvalidateChannelCacheForUser(removedUser.Id)
+		tm, appErr := th.App.GetThreadMembershipForUser(removedUser.Id, privateRoot.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, tm)
+
+		// Even with the stale row, thread paths agree with channel access.
+		ok, _ := th.App.HasPermissionToReadChannel(th.Context, removedUser.Id, privateChannel)
+		require.False(t, ok)
+		threads := getThreads(t, removedUser, th.BasicTeam.Id)
+		require.Empty(t, threads.Threads)
+		require.Zero(t, threads.Total)
+		require.Zero(t, threads.TotalUnreadThreads)
+
+		// A retried removal keeps reporting "not a member" but drops the stale thread state.
+		appErr = th.App.RemoveUserFromChannel(th.Context, removedUser.Id, remainingUser.Id, privateChannel)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+		_, appErr = th.App.GetThreadMembershipForUser(removedUser.Id, privateRoot.Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+
+		// The remaining member's state is still intact.
+		_, appErr = th.App.GetThreadMembershipForUser(remainingUser.Id, privateRoot.Id)
+		require.Nil(t, appErr)
+	})
 }

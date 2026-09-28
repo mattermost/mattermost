@@ -10861,3 +10861,87 @@ func TestSessionAttributesDeviceMismatchRejectsSubsequentRequest(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
+
+// TestThreadsHiddenAfterRemovalFromPrivateChannel proves, through the public
+// API, that a user removed from a private channel can no longer fetch or infer
+// thread activity from it via the thread endpoints, while a remaining member's
+// view is unchanged.
+func TestThreadsHiddenAfterRemovalFromPrivateChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.ThreadAutoFollow = true
+		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
+	})
+
+	// BasicUser creates the private channel and the thread; BasicUser2 joins, follows
+	// the thread and is later removed.
+	channel := th.CreatePrivateChannel(t)
+	th.AddUserToChannel(t, th.BasicUser2, channel)
+
+	rpost, _ := postAndCheck(t, th.Client, &model.Post{ChannelId: channel.Id, Message: "root"})
+	appErr := th.App.UpdateThreadFollowForUser(th.BasicUser2.Id, th.BasicTeam.Id, rpost.Id, true)
+	require.Nil(t, appErr)
+	postAndCheck(t, th.Client, &model.Post{ChannelId: channel.Id, Message: "reply", RootId: rpost.Id})
+
+	client2 := th.CreateClient()
+	th.LoginBasic2WithClient(t, client2)
+
+	// Before the removal BasicUser2 sees the thread and its unread state.
+	threads, _, err := client2.GetUserThreads(context.Background(), th.BasicUser2.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
+	require.NoError(t, err)
+	require.Len(t, threads.Threads, 1)
+	require.EqualValues(t, 1, threads.TotalUnreadThreads)
+	_, _, err = client2.GetUserThread(context.Background(), th.BasicUser2.Id, th.BasicTeam.Id, rpost.Id, false)
+	require.NoError(t, err)
+	_, _, err = client2.GetPostThread(context.Background(), rpost.Id, "", false)
+	require.NoError(t, err)
+
+	_, err = th.SystemAdminClient.RemoveUserFromChannel(context.Background(), channel.Id, th.BasicUser2.Id)
+	require.NoError(t, err)
+
+	t.Run("removed user cannot infer thread activity", func(t *testing.T) {
+		threads, _, err := client2.GetUserThreads(context.Background(), th.BasicUser2.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
+		require.NoError(t, err)
+		require.Empty(t, threads.Threads)
+		require.Zero(t, threads.Total)
+		require.Zero(t, threads.TotalUnreadThreads)
+		require.Zero(t, threads.TotalUnreadMentions)
+
+		_, resp, err := client2.GetUserThread(context.Background(), th.BasicUser2.Id, th.BasicTeam.Id, rpost.Id, false)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		_, resp, err = client2.GetPostThread(context.Background(), rpost.Id, "", false)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		_, resp, err = client2.GetChannelUnread(context.Background(), channel.Id, th.BasicUser2.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		resp, err = client2.UpdateThreadFollowForUser(context.Background(), th.BasicUser2.Id, th.BasicTeam.Id, rpost.Id, true)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		// Removing again reports the user is not a member, without disturbing anything else.
+		resp, err = th.SystemAdminClient.RemoveUserFromChannel(context.Background(), channel.Id, th.BasicUser2.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("remaining member is unaffected", func(t *testing.T) {
+		list, _, err := th.Client.GetPostThread(context.Background(), rpost.Id, "", false)
+		require.NoError(t, err)
+		require.Contains(t, list.Posts, rpost.Id)
+
+		_, _, err = th.Client.GetChannelUnread(context.Background(), channel.Id, th.BasicUser.Id)
+		require.NoError(t, err)
+
+		threads, _, err := th.Client.GetUserThreads(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
+		require.NoError(t, err)
+		require.Len(t, threads.Threads, 1)
+		require.Equal(t, rpost.Id, threads.Threads[0].PostId)
+	})
+}
