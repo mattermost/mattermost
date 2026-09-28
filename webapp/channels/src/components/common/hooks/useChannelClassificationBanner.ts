@@ -249,13 +249,14 @@ export default function useChannelClassificationBanner(channelId: string): Chann
 
             // An authored template wins over the designation default, including when
             // every referenced attribute is unset (tokens collapse, separators tidy,
-            // leftover literal text may remain). Only channels with no text key yet
-            // fall back to joining whatever still has a value.
+            // leftover literal text may remain). Empty string is treated as no authored
+            // text — the settings tab has historically written text:'' as a side effect
+            // of saving classification — so only a non-empty string overrides the join.
             const authoredText = channelBannerInfo?.text;
 
             let bannerText: string;
-            if (typeof authoredText === 'string') {
-                bannerText = authoredText ? renderBannerTemplate(authoredText, templateAttributes) : '';
+            if (authoredText) {
+                bannerText = renderBannerTemplate(authoredText, templateAttributes);
             } else if (contributions.length === 0) {
                 return {...noBanner, classificationIsBannerDesignated};
             } else {
@@ -274,7 +275,7 @@ export default function useChannelClassificationBanner(channelId: string): Chann
             const classificationContribution = contributions.find((resolved) => resolved.field.name === CLASSIFICATIONS_CHANNEL_FIELD_NAME);
             const classificationColor = classificationContribution?.option?.color;
             const classificationInBanner = Boolean(classificationColor) &&
-                (typeof authoredText !== 'string' || hasAttributeToken(authoredText, CLASSIFICATIONS_CHANNEL_FIELD_NAME));
+                (!authoredText || hasAttributeToken(authoredText, CLASSIFICATIONS_CHANNEL_FIELD_NAME));
 
             let backgroundColor: string;
             let classificationId: string | undefined;

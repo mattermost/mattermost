@@ -506,7 +506,7 @@ describe('useChannelClassificationBanner', () => {
                 expect(result.current.classificationBanner?.background_color).toBe('#1E325C');
             });
 
-            test('hides the banner when the authored text is empty', () => {
+            test('falls back to designation when banner_info.text is empty string (legacy settings-tab artifact)', () => {
                 mockClassification({available: false, channelField: null, levels: []});
 
                 const {result} = renderHookWithContext(
@@ -517,8 +517,8 @@ describe('useChannelClassificationBanner', () => {
                     ),
                 );
 
-                expect(result.current.hasClassification).toBe(false);
-                expect(result.current.classificationBanner).toBeUndefined();
+                expect(result.current.classificationIsBannerDesignated).toBe(true);
+                expect(result.current.classificationBanner?.background_color).toBe('#1E325C');
             });
 
             test('keeps leftover literal text when every attribute token is unset', () => {
