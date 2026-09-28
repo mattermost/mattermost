@@ -13,6 +13,7 @@ import {Permissions} from 'mattermost-redux/constants';
 
 import ChannelInviteModal from 'components/channel_invite_modal';
 import ChannelNotificationsModal from 'components/channel_notifications_modal';
+import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 import Scrollbars from 'components/common/scrollbars';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';
@@ -124,6 +125,7 @@ const ChannelInfoRhs = ({
 }: Props) => {
     const currentUserId = currentUser.id;
     const channelURL = getSiteURL() + '/' + currentTeam.name + '/channels/' + channel.name;
+    const mutableGroupMessagesEnabled = useGetFeatureFlagValue('EnableMutableGroupMessages') === 'true';
 
     const toggleFavorite = () => {
         if (isFavorite) {
@@ -142,7 +144,7 @@ const ChannelInfoRhs = ({
     };
 
     const addPeople = () => {
-        if (channel.type === Constants.GM_CHANNEL) {
+        if (channel.type === Constants.GM_CHANNEL && !mutableGroupMessagesEnabled) {
             return actions.openModal({
                 modalId: ModalIdentifiers.CREATE_DM_CHANNEL,
                 dialogType: MoreDirectChannels,
