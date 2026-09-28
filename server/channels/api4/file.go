@@ -337,7 +337,7 @@ NextPart:
 		if formname == "" {
 			// A part without a form name holds no value to parse, and is read
 			// up to the same limit as one that does.
-			if _, err := readMultipartFormValue(io.Discard, part); err != nil {
+			if _, err = readMultipartFormValue(io.Discard, part); err != nil {
 				c.Err = model.NewAppError("uploadFileMultipart",
 					"api.file.upload_file.read_request.app_error",
 					nil, err.Error(), http.StatusBadRequest)
@@ -348,7 +348,8 @@ NextPart:
 		}
 		if filename == "" {
 			var b bytes.Buffer
-			n, err := readMultipartFormValue(&b, part)
+			var n int64
+			n, err = readMultipartFormValue(&b, part)
 			if err != nil {
 				c.Err = model.NewAppError("uploadFileMultipart",
 					"api.file.upload_file.read_form_value.app_error",
