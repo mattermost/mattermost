@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -530,5 +531,102 @@ func TestOwnerSyncBidirectionalTransitions(t *testing.T) {
 		require.True(t, model.HasPropertyFieldOwners(updated))
 
 		assertCombinedWrites(t, created.ID)
+	})
+}
+
+func TestOwnersWithAdminManaged(t *testing.T) {
+	th := Setup(t)
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{
+		Name:    model.AccessControlPropertyGroupName,
+		Version: model.PropertyGroupVersionV2,
+	})
+	require.NoError(t, err)
+	th.CPAGroupID = group.ID
+
+	adminID := model.NewId()
+	pluginChecker := func(pluginID string) bool {
+		return pluginID == "plugin-owner" || pluginID == "plugin-other"
+	}
+
+	// Register hooks in production order.
+	acHook := NewAccessControlHook(th.service, nil, th.CPAGroupID)
+	acHook.setPluginCheckerForTests(pluginChecker)
+	th.service.AddHook(acHook)
+
+	th.service.AddHook(NewAccessControlAttributeValidationHook(th.service, AccessControlAttributeValidationHookConfig{
+		PermissionChecker: func(_ request.CTX, userID string, permission *model.Permission) bool {
+			return userID == adminID && permission.Id == model.PermissionManageSystem.Id
+		},
+		PluginChecker: pluginChecker,
+	}, th.CPAGroupID))
+
+	rctxAdmin := RequestContextWithCallerID(th.Context, adminID)
+
+	createOwnedAdminManaged := func(t *testing.T, name string) *model.PropertyField {
+		t.Helper()
+		field := ownerField(th.CPAGroupID, name, "plugin-owner", []string{"entra"})
+		field.Attrs[model.PropertyFieldAttrManaged] = "admin"
+		created, err := th.service.CreatePropertyField(rctxAdmin, field)
+		require.NoError(t, err)
+		return created
+	}
+
+	newValue := func(fieldID string) *model.PropertyValue {
+		return &model.PropertyValue{
+			GroupID:    th.CPAGroupID,
+			FieldID:    fieldID,
+			TargetType: "user",
+			TargetID:   model.NewId(),
+			Value:      json.RawMessage(`"v"`),
+		}
+	}
+
+	t.Run("admin adds owners to an admin-managed field", func(t *testing.T) {
+		created, err := th.service.CreatePropertyField(rctxAdmin, &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			Name:       "admin_managed_add_owners",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttrManaged: "admin",
+			},
+		})
+		require.NoError(t, err)
+
+		created.Attrs[model.PropertyAttrsOwners] = []model.PropertyOwner{
+			{ID: "plugin-owner", Type: model.PropertyOwnerTypePlugin, Scopes: []string{"entra"}},
+		}
+		updated, _, upErr := th.service.UpdatePropertyField(rctxAdmin, th.CPAGroupID, created)
+		require.NoError(t, upErr)
+		require.True(t, model.HasPropertyFieldOwners(updated))
+		assert.Equal(t, "admin", updated.Attrs[model.PropertyFieldAttrManaged])
+		require.NotNil(t, updated.PermissionValues)
+		assert.Equal(t, model.PermissionLevelSysadmin, *updated.PermissionValues)
+	})
+
+	t.Run("denies a system admin writing a value", func(t *testing.T) {
+		created := createOwnedAdminManaged(t, "owned_admin_value_admin")
+		_, upErr := th.service.UpsertPropertyValue(rctxAdmin, newValue(created.ID))
+		require.Error(t, upErr)
+		assert.ErrorIs(t, upErr, ErrAccessDenied)
+	})
+
+	t.Run("allows the owner plugin writing a value with a matching scope", func(t *testing.T) {
+		created := createOwnedAdminManaged(t, "owned_admin_value_owner")
+		rctx := RequestContextWithCallerIDAndOptions(th.Context, "plugin-owner", model.PropertyRequestOptions{ActingAsScope: "entra"})
+		_, upErr := th.service.UpsertPropertyValue(rctx, newValue(created.ID))
+		require.NoError(t, upErr)
+	})
+
+	t.Run("admin removes owners from an admin-managed field", func(t *testing.T) {
+		created := createOwnedAdminManaged(t, "owned_admin_remove_owners")
+		delete(created.Attrs, model.PropertyAttrsOwners)
+		updated, _, upErr := th.service.UpdatePropertyField(rctxAdmin, th.CPAGroupID, created)
+		require.NoError(t, upErr)
+		assert.False(t, model.HasPropertyFieldOwners(updated))
+		assert.Equal(t, "admin", updated.Attrs[model.PropertyFieldAttrManaged])
+		require.NotNil(t, updated.PermissionValues)
+		assert.Equal(t, model.PermissionLevelSysadmin, *updated.PermissionValues)
 	})
 }
