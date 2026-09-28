@@ -42,6 +42,21 @@ func TestSessionStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("GetSessionsWithActiveDeviceIds", func(t *testing.T) { testGetSessionsWithActiveDeviceIds(t, rctx, ss) })
 	t.Run("GetAllSessionsWithActiveDeviceIds", func(t *testing.T) { testGetAllSessionsWithActiveDeviceIds(t, rctx, ss) })
 	t.Run("GetMobileSessionMetadata", func(t *testing.T) { testGetMobileSessionMetadata(t, rctx, ss) })
+	t.Run("SessionGetDoesNotLeakToken", func(t *testing.T) { testSessionGetDoesNotLeakToken(t, rctx, ss) })
+}
+
+// Session().Get accepts either a session id or a session token and cannot tell them
+// apart, so the value must never reach the error it returns. MM-70121.
+func testSessionGetDoesNotLeakToken(t *testing.T, rctx request.CTX, ss store.Store) {
+	token := model.NewId()
+
+	_, err := ss.Session().Get(rctx, token)
+	require.Error(t, err)
+
+	var nfErr *store.ErrNotFound
+	require.ErrorAs(t, err, &nfErr)
+	assert.Contains(t, err.Error(), "sessionIdOrToken=<redacted>")
+	assert.NotContains(t, err.Error(), token)
 }
 
 func testSessionStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {

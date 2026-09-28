@@ -21,6 +21,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/email"
 	emailmocks "github.com/mattermost/mattermost/server/v8/channels/app/email/mocks"
@@ -2723,4 +2724,29 @@ func TestTeamSendEvents(t *testing.T) {
 		require.Equal(t, "", teamFromEvent.Email)
 		require.Equal(t, "", teamFromEvent.InviteId)
 	}
+}
+
+// MM-70121: a team invitation token is a credential, so the warning logged when an
+// expired one cannot be deleted must not carry its value.
+func TestAddUserToTeamWithTokenDoesNotLogInviteToken(t *testing.T) {
+	th := SetupWithStoreMock(t)
+
+	buffer := &mlog.Buffer{}
+	require.NoError(t, mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...))
+
+	tokenStore := mocks.TokenStore{}
+	tokenStore.On("Delete", mock.AnythingOfType("string")).Return(errors.New("forced delete failure"))
+	th.App.Srv().Store().(*mocks.Store).On("Token").Return(&tokenStore)
+
+	token := model.NewToken(model.TokenTypeTeamInvitation, "")
+	token.CreateAt = model.GetMillis() - model.InvitationExpiryTime - 1
+
+	_, _, appErr := th.App.AddUserToTeamWithToken(th.Context, model.NewId(), token)
+	require.NotNil(t, appErr)
+	require.Equal(t, "api.user.create_user.signup_link_expired.app_error", appErr.Id)
+	require.NoError(t, th.TestLogger.Flush())
+
+	logs := buffer.String()
+	require.Contains(t, logs, "Error deleting expired team invitation token during team join")
+	assert.NotContains(t, logs, token.Token)
 }

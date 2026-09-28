@@ -791,7 +791,7 @@ func (wc *WebConn) IsBasicAuthenticated() bool {
 			if err.StatusCode >= http.StatusBadRequest && err.StatusCode < http.StatusInternalServerError {
 				wc.Platform.logger.Debug("Invalid session.", mlog.Err(err))
 			} else {
-				wc.Platform.logger.Error("Could not get session", mlog.String("session_token", wc.GetSessionToken()), mlog.Err(err))
+				wc.Platform.logger.Error("Could not get session", mlog.Err(err))
 			}
 
 			wc.SetSessionToken("")
@@ -1054,7 +1054,7 @@ func (wc *WebConn) isMemberOfTeam(teamID string) bool {
 			if err.StatusCode >= http.StatusBadRequest && err.StatusCode < http.StatusInternalServerError {
 				wc.Platform.logger.Debug("Invalid session.", mlog.Err(err))
 			} else {
-				wc.Platform.logger.Error("Could not get session", mlog.String("session_token", wc.GetSessionToken()), mlog.Err(err))
+				wc.Platform.logger.Error("Could not get session", mlog.Err(err))
 			}
 			return false
 		}

@@ -53,7 +53,7 @@ func (s SqlTokenStore) Save(token *model.Token) error {
 
 func (s SqlTokenStore) Delete(token string) error {
 	if _, err := s.GetMaster().Exec("DELETE FROM Tokens WHERE Token = ?", token); err != nil {
-		return errors.Wrapf(err, "failed to delete Token with value %s", token)
+		return errors.Wrap(err, "failed to delete Token by value")
 	}
 	return nil
 }
@@ -70,9 +70,9 @@ func (s SqlTokenStore) GetByToken(tokenString string) (*model.Token, error) {
 
 	if err := s.GetReplica().Get(&token, query, args...); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("Token", fmt.Sprintf("Token=%s", tokenString))
+			return nil, store.NewErrNotFound("Token", "Token=<redacted>")
 		}
-		return nil, errors.Wrapf(err, "failed to get Token with value %s", tokenString)
+		return nil, errors.Wrap(err, "failed to get Token by value")
 	}
 
 	return &token, nil
@@ -85,7 +85,7 @@ func (s SqlTokenStore) ConsumeOnce(tokenType, tokenStr string) (*model.Token, er
 
 	if err := s.GetMaster().Get(&token, query, tokenType, tokenStr); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("Token", tokenStr)
+			return nil, store.NewErrNotFound("Token", "Token=<redacted>")
 		}
 		return nil, errors.Wrapf(err, "failed to consume token with type %s", tokenType)
 	}

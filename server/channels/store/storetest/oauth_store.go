@@ -30,6 +30,29 @@ func TestOAuthStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("OAuthGetAuthorizedApps", func(t *testing.T) { testOAuthGetAuthorizedApps(t, rctx, ss) })
 	t.Run("OAuthGetAccessDataByUserForApp", func(t *testing.T) { testOAuthGetAccessDataByUserForApp(t, rctx, ss) })
 	t.Run("DeleteApp", func(t *testing.T) { testOAuthStoreDeleteApp(t, rctx, ss) })
+	t.Run("AccessDataLookupsDoNotLeakToken", func(t *testing.T) { testOAuthStoreAccessDataLookupsDoNotLeakToken(t, rctx, ss) })
+}
+
+// Access data lookup failures surface through PlatformService.RevokeAccessToken and
+// the authorization code failure through the /oauth/access_token response; both end
+// up in the server log, so the credential must not be part of the error. MM-70121.
+func testOAuthStoreAccessDataLookupsDoNotLeakToken(t *testing.T, rctx request.CTX, ss store.Store) {
+	token := model.NewId()
+
+	_, err := ss.OAuth().GetAccessData(token)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "OAuthAccessData")
+	assert.NotContains(t, err.Error(), token)
+
+	_, err = ss.OAuth().GetAccessDataByRefreshToken(token)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "OAuthAccessData")
+	assert.NotContains(t, err.Error(), token)
+
+	_, err = ss.OAuth().GetAuthData(token)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "code=<redacted>")
+	assert.NotContains(t, err.Error(), token)
 }
 
 func testOAuthStoreSaveApp(t *testing.T, rctx request.CTX, ss store.Store) {
