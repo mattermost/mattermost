@@ -9,6 +9,7 @@ import type {
     ClusterSettings,
     EmailSettings,
     ExperimentalSettings,
+    IntuneSettings,
     LdapSettings,
     LogSettings,
     Office365Settings,
@@ -43,6 +44,7 @@ type TestAdminConfig = {
     TeamSettings: Partial<TeamSettings>;
     GitLabSettings: Partial<SSOSettings>;
     GoogleSettings: Partial<SSOSettings>;
+    IntuneSettings: Partial<IntuneSettings>;
     Office365Settings: Partial<Office365Settings>;
     OpenIdSettings: Partial<SSOSettings>;
     SamlSettings: Partial<SamlSettings>;
@@ -102,6 +104,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
         // specs do not inherit leftover IdP buttons or EnableSyncWithLdap.
         GitLabSettings: {Enable: false},
         GoogleSettings: {Enable: false},
+        IntuneSettings: {Enable: false},
         Office365Settings: {Enable: false},
         OpenIdSettings: {Enable: false},
         SamlSettings: {Enable: false, EnableSyncWithLdap: false},
