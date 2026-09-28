@@ -173,6 +173,7 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
     // still resolve after the user has moved to another. Fields are keyed by a
     // global template id, so a stale result cannot simply be filtered by field
     // id -- it would still match a same-named field on the new channel.
+    const rootRef = useRef<HTMLDivElement>(null);
     const visitTokenRef = useRef(0);
     useEffect(() => {
         visitTokenRef.current += 1;
@@ -262,6 +263,16 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
         if (added?.field.type === 'text') {
             setEditingFieldId(fieldId);
         }
+        requestAnimationFrame(() => {
+            let el: HTMLElement | null = rootRef.current;
+            while (el) {
+                if (el.scrollHeight > el.clientHeight && getComputedStyle(el).overflowY !== 'visible') {
+                    el.scrollTop = el.scrollHeight;
+                    break;
+                }
+                el = el.parentElement;
+            }
+        });
     }, [allAttributes]);
 
     const handleCancel = useCallback((fieldId: string) => {
@@ -275,6 +286,7 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
 
     return (
         <div
+            ref={rootRef}
             className='ChannelInfoAttributes'
             data-testid='channelInfoAttributes'
         >

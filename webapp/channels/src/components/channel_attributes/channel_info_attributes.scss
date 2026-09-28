@@ -4,11 +4,10 @@
     margin-bottom: 12px;
     gap: 8px;
 
-    // Matches ChannelDescriptionHeading / proto group-title (11px, 0.75).
     &__heading {
         padding: 6px 0;
-        color: rgba(var(--center-channel-color-rgb), 0.75);
-        font-size: 11px;
+        color: rgba(var(--center-channel-color-rgb), 0.9);
+        font-size: 12px;
         font-weight: 600;
         letter-spacing: 0.11px;
         line-height: 16px;
