@@ -4308,12 +4308,15 @@ export default class Client4 {
 
     // Plugin Routes
 
-    uploadPlugin = async (fileData: File, force = false) => {
+    uploadPlugin = async (fileData: File, force = false, signature?: File) => {
         const formData = new FormData();
         if (force) {
             formData.append('force', 'true');
         }
         formData.append('plugin', fileData);
+        if (signature) {
+            formData.append('signature', signature);
+        }
 
         const request: any = {
             method: 'post',
@@ -4323,6 +4326,26 @@ export default class Client4 {
         return this.doFetch<PluginManifest>(
             this.getPluginsRoute(),
             request,
+        );
+    };
+
+    uploadPluginSignaturePublicKey = (fileData: File) => {
+        const formData = new FormData();
+        formData.append('public_key', fileData);
+
+        return this.doFetch<StatusOK>(
+            `${this.getPluginsRoute()}/signature/public_key`,
+            {
+                method: 'post',
+                body: formData,
+            },
+        );
+    };
+
+    deletePluginSignaturePublicKey = (filename: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getPluginsRoute()}/signature/public_key${buildQueryString({filename})}`,
+            {method: 'delete'},
         );
     };
 

@@ -9,6 +9,13 @@
         settings.
 
 
+        When `PluginSettings.RequirePluginSignature` is true and the
+        `EnableCustomPluginSignatureKeys` feature flag is enabled, a detached
+        OpenPGP signature must also be provided in the `signature` form field
+        and will be verified against the Mattermost signing key or any
+        configured customer public keys.
+
+
         ##### Permissions
 
         Must have `manage_system` permission.
@@ -24,6 +31,10 @@
               properties:
                 plugin:
                   description: The plugin image to be uploaded
+                  type: string
+                  format: binary
+                signature:
+                  description: Optional detached OpenPGP signature for the plugin bundle. Required when plugin signature verification is enforced and custom signature keys are enabled.
                   type: string
                   format: binary
                 force:
@@ -523,3 +534,87 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+
+  /api/v4/plugins/signature/public_key:
+    post:
+      tags:
+        - plugins
+      summary: Upload plugin signature public key
+      description: >
+        Upload a customer OpenPGP public key used to verify plugin signatures,
+        in addition to the Mattermost signing key. Requires the
+        `EnableCustomPluginSignatureKeys` feature flag.
+
+
+        ##### Permissions
+
+        Must have `sysconsole_write_plugins` permission.
+
+
+        __Minimum server version__: 11.x
+      operationId: UploadPluginSignaturePublicKey
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                public_key:
+                  description: OpenPGP public key file (binary or ASCII-armored)
+                  type: string
+                  format: binary
+              required:
+                - public_key
+      responses:
+        "200":
+          description: Public key uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    delete:
+      tags:
+        - plugins
+      summary: Remove plugin signature public key
+      description: >
+        Remove a previously uploaded customer plugin signature public key.
+        Requires the `EnableCustomPluginSignatureKeys` feature flag.
+
+
+        ##### Permissions
+
+        Must have `sysconsole_write_plugins` permission.
+
+
+        __Minimum server version__: 11.x
+      operationId: DeletePluginSignaturePublicKey
+      parameters:
+        - name: filename
+          in: query
+          required: true
+          description: Filename of the public key to remove
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Public key removed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"

@@ -41,11 +41,21 @@ func (api *API) InitPlugin() {
 
 	api.BaseRoutes.Plugins.Handle("/marketplace/first_admin_visit", api.APIHandler(setFirstAdminVisitMarketplaceStatus)).Methods(http.MethodPost)
 	api.BaseRoutes.Plugins.Handle("/marketplace/first_admin_visit", api.APISessionRequired(getFirstAdminVisitMarketplaceStatus)).Methods(http.MethodGet)
+
+	api.BaseRoutes.Plugins.Handle("/signature/public_key", api.APISessionRequired(addPluginSignaturePublicKey, handlerParamFileAPI)).Methods(http.MethodPost)
+	api.BaseRoutes.Plugins.Handle("/signature/public_key", api.APISessionRequired(removePluginSignaturePublicKey)).Methods(http.MethodDelete)
 }
 
 func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	config := c.App.Config()
-	if !*config.PluginSettings.Enable || !*config.PluginSettings.EnableUploads || *config.PluginSettings.RequirePluginSignature {
+	if !*config.PluginSettings.Enable || !*config.PluginSettings.EnableUploads {
+		c.Err = model.NewAppError("uploadPlugin", "app.plugin.upload_disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	requireSignature := *config.PluginSettings.RequirePluginSignature
+	customKeysEnabled := config.FeatureFlags.EnableCustomPluginSignatureKeys
+	if requireSignature && !customKeysEnabled {
 		c.Err = model.NewAppError("uploadPlugin", "app.plugin.upload_disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -88,13 +98,134 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
+	pluginBytes, err := io.ReadAll(file)
+	if err != nil {
+		c.Err = model.NewAppError("uploadPlugin", "api.plugin.upload.file.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	}
+	pluginReader := bytes.NewReader(pluginBytes)
+
 	force := false
 	if len(m.Value["force"]) > 0 && m.Value["force"][0] == "true" {
 		force = true
 	}
 
-	installPlugin(c, w, file, force)
+	var signatureReader io.ReadSeeker
+	signatureArray, hasSignature := m.File["signature"]
+	if hasSignature && len(signatureArray) > 0 {
+		sigFile, sigErr := signatureArray[0].Open()
+		if sigErr != nil {
+			c.Err = model.NewAppError("uploadPlugin", "api.plugin.upload.signature.app_error", nil, "", http.StatusBadRequest).Wrap(sigErr)
+			return
+		}
+		defer sigFile.Close()
+		sigBytes, sigErr := io.ReadAll(sigFile)
+		if sigErr != nil {
+			c.Err = model.NewAppError("uploadPlugin", "api.plugin.upload.signature.app_error", nil, "", http.StatusBadRequest).Wrap(sigErr)
+			return
+		}
+		if len(sigBytes) == 0 {
+			c.Err = model.NewAppError("uploadPlugin", "api.plugin.upload.signature.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+		model.AddEventParameterToAuditRec(auditRec, "signature_filename", signatureArray[0].Filename)
+		signatureReader = bytes.NewReader(sigBytes)
+	}
+
+	if requireSignature && signatureReader == nil {
+		c.Err = model.NewAppError("uploadPlugin", "api.plugin.upload.signature_required.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	installPlugin(c, w, pluginReader, signatureReader, force)
+	if c.Err != nil {
+		return
+	}
 	auditRec.Success()
+}
+
+func addPluginSignaturePublicKey(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.Config().FeatureFlags.EnableCustomPluginSignatureKeys {
+		c.Err = model.NewAppError("addPluginSignaturePublicKey", "api.plugin.signature_public_key.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+		c.Err = model.NewAppError("addPluginSignaturePublicKey", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWritePlugins) {
+		c.SetPermissionError(model.PermissionSysconsoleWritePlugins)
+		return
+	}
+
+	if err := r.ParseMultipartForm(*c.App.Config().FileSettings.MaxFileSize); err != nil {
+		c.Err = model.NewAppError("addPluginSignaturePublicKey", "api.plugin.signature_public_key.no_file.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	}
+
+	m := r.MultipartForm
+	fileArray, ok := m.File["public_key"]
+	if !ok || len(fileArray) <= 0 {
+		c.Err = model.NewAppError("addPluginSignaturePublicKey", "api.plugin.signature_public_key.no_file.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	fileData := fileArray[0]
+	auditRec := c.MakeAuditRecord(model.AuditEventAddPluginSignaturePublicKey, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "filename", fileData.Filename)
+
+	file, err := fileData.Open()
+	if err != nil {
+		c.Err = model.NewAppError("addPluginSignaturePublicKey", "api.plugin.signature_public_key.file.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	}
+	defer file.Close()
+
+	if appErr := c.App.AddPublicKey(fileData.Filename, file); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
+}
+
+func removePluginSignaturePublicKey(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.Config().FeatureFlags.EnableCustomPluginSignatureKeys {
+		c.Err = model.NewAppError("removePluginSignaturePublicKey", "api.plugin.signature_public_key.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+		c.Err = model.NewAppError("removePluginSignaturePublicKey", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWritePlugins) {
+		c.SetPermissionError(model.PermissionSysconsoleWritePlugins)
+		return
+	}
+
+	filename := r.URL.Query().Get("filename")
+	if filename == "" {
+		c.Err = model.NewAppError("removePluginSignaturePublicKey", "api.plugin.signature_public_key.missing_filename.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventRemovePluginSignaturePublicKey, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "filename", filename)
+
+	if appErr := c.App.DeletePublicKey(filename); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+	ReturnStatusOK(w)
 }
 
 func installPluginFromURL(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -123,7 +254,7 @@ func installPluginFromURL(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	installPlugin(c, w, bytes.NewReader(pluginFileBytes), force)
+	installPlugin(c, w, bytes.NewReader(pluginFileBytes), nil, force)
 	auditRec.Success()
 }
 
@@ -409,7 +540,7 @@ func parseMarketplacePluginFilter(u *url.URL) (*model.MarketplacePluginFilter, e
 	}, nil
 }
 
-func installPlugin(c *Context, w http.ResponseWriter, plugin io.ReadSeeker, force bool) {
+func installPlugin(c *Context, w http.ResponseWriter, plugin io.ReadSeeker, signature io.ReadSeeker, force bool) {
 	conflict, err := fileutils.CheckDirectoryConflict(*c.App.Config().PluginSettings.Directory, *c.App.Config().ImportSettings.Directory)
 	if err != nil {
 		c.Err = model.NewAppError("installPlugin", "api.plugin.install.check_directory.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -420,7 +551,7 @@ func installPlugin(c *Context, w http.ResponseWriter, plugin io.ReadSeeker, forc
 		return
 	}
 
-	manifest, appErr := c.App.InstallPlugin(plugin, force)
+	manifest, appErr := c.App.InstallPluginWithSignature(plugin, signature, force)
 	if appErr != nil {
 		c.Err = appErr
 		return

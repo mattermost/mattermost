@@ -170,12 +170,32 @@ func (ch *Channels) removePluginFromClusterMessage(pluginID string) {
 // InstallPlugin unpacks and installs a plugin but does not enable or activate it unless the
 // plugin was already enabled.
 func (a *App) InstallPlugin(pluginFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
+	return a.InstallPluginWithSignature(pluginFile, nil, replace)
+}
+
+// InstallPluginWithSignature installs a plugin bundle, optionally verifying and persisting a
+// detached OpenPGP signature. When signatureFile is non-nil, the signature is verified against
+// trusted keys before installation and stored alongside the bundle.
+func (a *App) InstallPluginWithSignature(pluginFile, signatureFile io.ReadSeeker, replace bool) (*model.Manifest, *model.AppError) {
 	installationStrategy := installPluginLocallyOnlyIfNew
 	if replace {
 		installationStrategy = installPluginLocallyAlways
 	}
 
-	return a.ch.installPlugin(pluginFile, nil, installationStrategy)
+	if signatureFile != nil {
+		logger := a.Log()
+		if appErr := a.ch.verifyPlugin(logger, pluginFile, signatureFile); appErr != nil {
+			return nil, appErr
+		}
+		if _, err := pluginFile.Seek(0, io.SeekStart); err != nil {
+			return nil, model.NewAppError("InstallPluginWithSignature", "app.plugin.seek.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		if _, err := signatureFile.Seek(0, io.SeekStart); err != nil {
+			return nil, model.NewAppError("InstallPluginWithSignature", "app.plugin.seek.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	return a.ch.installPlugin(pluginFile, signatureFile, installationStrategy)
 }
 
 // installPlugin extracts and installs the given plugin bundle (optionally signed) for the

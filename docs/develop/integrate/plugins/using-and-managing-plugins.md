@@ -193,9 +193,20 @@ This command will generate `com.mattermost.demo-plugin-0.1.0.tar.gz.sig`, which 
 
 ## Plugin verification
 
-Mattermost server will verify plugin signatures downloaded from the Marketplace. Plugins are verified against a hard-coded Mattermost public key, as well as any additional public keys configured on the server.
+Mattermost server will verify plugin signatures downloaded from the Marketplace, installed as pre-packaged plugins, and (when signature verification is required) uploaded through the System Console. Plugins are verified against a hard-coded Mattermost public key, as well as any additional public keys configured on the server.
 
-To add custom public keys for plugin signature verification, add the key file names to the `PluginSettings.SignaturePublicKeyFiles` setting in your `config.json`:
+### System Console (feature-flagged)
+
+When the `EnableCustomPluginSignatureKeys` feature flag is enabled:
+
+1. Go to **System Console > Plugins > Plugin Management**.
+2. Upload one or more OpenPGP public keys under **Plugin Signature Public Keys**.
+3. Optionally enable **Require Plugin Signature**. Console uploads then require both the plugin `.tar.gz` bundle and its detached `.sig` / `.asc` signature.
+4. To rotate a key, upload the new public key under a new filename, then remove the old key.
+
+### config.json
+
+To add custom public keys for plugin signature verification without the System Console, add the key file names to the `PluginSettings.SignaturePublicKeyFiles` setting in your `config.json`:
 
 ```json
 "PluginSettings": {
@@ -236,7 +247,7 @@ With plugin uploads enabled, navigate to **System Console > Plugins > Management
 
 
 <Note title="Note">
-1. When `RequirePluginSignature` is `true`, plugin uploads cannot be enabled, and may only be installed via the Marketplace (which verifies Plugin Code Signatures).
+1. When `RequirePluginSignature` is `true` and the `EnableCustomPluginSignatureKeys` feature flag is off, plugin uploads cannot be enabled, and may only be installed via the Marketplace (which verifies Plugin Code Signatures). When the feature flag is on, uploads require a detached signature verified against the Mattermost key or a configured customer public key.
 2. `EnableRemoteMarketplaceURL` also remains disabled as long as `EnableUploads` is disabled.
 </Note>
 

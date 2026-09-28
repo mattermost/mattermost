@@ -319,6 +319,8 @@ const (
 	AuditEventRemovePlugin                        = "removePlugin"                        // delete plugin
 	AuditEventSetFirstAdminVisitMarketplaceStatus = "setFirstAdminVisitMarketplaceStatus" // set first admin visit status
 	AuditEventUploadPlugin                        = "uploadPlugin"                        // upload plugin file to server for installation
+	AuditEventAddPluginSignaturePublicKey         = "addPluginSignaturePublicKey"         // add customer plugin signature public key
+	AuditEventRemovePluginSignaturePublicKey      = "removePluginSignaturePublicKey"      // remove customer plugin signature public key
 )
 
 // Posts

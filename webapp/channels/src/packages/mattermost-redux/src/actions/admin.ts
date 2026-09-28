@@ -522,11 +522,41 @@ export function getUsersPerDayAnalytics(teamId = '') {
     return getAnalytics('user_counts_with_posts_day', teamId);
 }
 
-export function uploadPlugin(fileData: File, force = false): ActionFuncAsync {
+export function uploadPlugin(fileData: File, force = false, signature?: File): ActionFuncAsync {
     return async (dispatch, getState) => {
         let data;
         try {
-            data = await Client4.uploadPlugin(fileData, force);
+            data = await Client4.uploadPlugin(fileData, force, signature);
+        } catch (error) {
+            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
+            dispatch(logError(error as ServerError));
+            return {error};
+        }
+
+        return {data};
+    };
+}
+
+export function uploadPluginSignaturePublicKey(fileData: File): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.uploadPluginSignaturePublicKey(fileData);
+        } catch (error) {
+            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
+            dispatch(logError(error as ServerError));
+            return {error};
+        }
+
+        return {data};
+    };
+}
+
+export function removePluginSignaturePublicKey(filename: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.deletePluginSignaturePublicKey(filename);
         } catch (error) {
             forceLogoutIfNecessary(error as ServerError, dispatch, getState);
             dispatch(logError(error as ServerError));

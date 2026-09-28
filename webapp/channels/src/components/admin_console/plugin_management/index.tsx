@@ -14,6 +14,9 @@ import {
     installPluginFromUrl,
     enablePlugin,
     disablePlugin,
+    uploadPluginSignaturePublicKey,
+    removePluginSignaturePublicKey,
+    getConfig,
 } from 'mattermost-redux/actions/admin';
 import {appsFeatureFlagEnabled} from 'mattermost-redux/selectors/entities/apps';
 
@@ -39,6 +42,9 @@ function mapDispatchToProps(dispatch: Dispatch) {
             getPluginStatuses,
             enablePlugin,
             disablePlugin,
+            uploadPluginSignaturePublicKey,
+            removePluginSignaturePublicKey,
+            getConfig,
         }, dispatch),
     };
 }
