@@ -72,6 +72,24 @@
                         requested_ack:
                           type: boolean
                           description: Set to true to request for acknowledgements
+                    property_values:
+                      type: array
+                      description: >
+                        Values for the post's attributes, defined as custom profile
+                        attribute fields scoped to a post. Each entry is validated
+                        against the applicable fields for the post's channel; an
+                        error does not name which attribute failed validation.
+                      items:
+                        type: object
+                        required:
+                          - field_id
+                          - value
+                        properties:
+                          field_id:
+                            type: string
+                            description: The ID of the attribute field this value is for
+                          value:
+                            description: The value to set for the attribute, whose shape depends on the field's type
         description: Post object to create
         required: true
       responses:
