@@ -99,6 +99,7 @@ async function main() {
     milestoneTitle,
     milestoneVersion,
     prUrl: `https://github.com/${repo}/pull/${pr}`,
+    repoRoot,
   };
 
   const {files, trail} = await authorLoop({brief, input});

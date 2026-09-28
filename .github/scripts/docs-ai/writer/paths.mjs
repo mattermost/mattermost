@@ -23,7 +23,8 @@ export const DOCS_PATH_RE =
 export function extractDocsPaths(text) {
   if (!text) return [];
   const found = String(text).match(DOCS_PATH_RE) ?? [];
-  return [...new Set(found)];
+  // Deny list (e.g. docs/main/agents/docs/) can still match DOCS_PATH_RE.
+  return [...new Set(found)].filter(isAllowedPath);
 }
 
 export function isAllowedPath(relPath) {

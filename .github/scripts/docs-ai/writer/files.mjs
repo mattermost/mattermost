@@ -10,6 +10,14 @@ export const HUMAN_JUDGMENT_MARKER = '[NOT PRESENT — REQUIRES HUMAN JUDGMENT]'
 /** Escape hatch when the release is unknown — keeps the "From Mattermost …" frame. */
 export const HUMAN_JUDGMENT_VERSION_ANCHOR = `From Mattermost ${HUMAN_JUDGMENT_MARKER}`;
 
+// Line-start import; capture module. Optional "X from" covers `import X from 'm'` and `import 'm'`.
+const MDX_IMPORT_RE = /^import\s+(?:[\s\S]*?\s+from\s+)?['"]([^'"]+)['"]\s*;?\s*$/gm;
+const MDX_EXPORT_RE = /^export\s+/m;
+
+/** Import sources AI-authored MDX may use. Everything else is rejected before write. */
+const SAFE_IMPORT_RE =
+  /^(?:@theme\/|@docusaurus\/|\.\.?\/).+$/;
+
 export function parseFileBlocks(text) {
   const blocks = [];
   let m;
@@ -44,7 +52,35 @@ export function assertVersionAnchors(files, {milestoneVersion, required = true} 
   }
 }
 
+/** Drop fenced code samples so prose gates do not false-positive on examples. */
+function withoutFencedCode(content) {
+  return String(content).replace(/^(`{3,}).*?\n[\s\S]*?\n\1[ \t]*$/gm, '');
+}
+
+/**
+ * Structural MDX gate before write: known import sources only, no export.
+ * Not a content denylist — model/provider protections + docs CI + human review
+ * cover the rest. House-style JSX components are allowed.
+ */
+export function assertSafeMdx(files) {
+  for (const f of files) {
+    const content = withoutFencedCode(f.content ?? '');
+    if (MDX_EXPORT_RE.test(content)) {
+      throw new Error(`${f.path}: MDX export statements are not allowed in AI drafts`);
+    }
+    const importRe = new RegExp(MDX_IMPORT_RE.source, 'gm');
+    let m;
+    while ((m = importRe.exec(content)) !== null) {
+      const source = m[1];
+      if (!SAFE_IMPORT_RE.test(source)) {
+        throw new Error(`${f.path}: disallowed MDX import source "${source}"`);
+      }
+    }
+  }
+}
+
 export function writeFiles(repoRoot, files) {
+  assertSafeMdx(files);
   const written = [];
   for (const f of files) {
     const {abs, rel} = resolveAllowed(repoRoot, f.path);

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
- * When a docs/pr-<n> draft closes, flip Docs/Needed → Docs/Done on the source PR.
+ * When a docs/pr-<n> draft merges, flip Docs/Needed → Docs/Done on the source PR.
  *
  *   node writer/sync.mjs
  *
@@ -22,10 +22,11 @@ const BODY_RE = /<!--\s*docs-ai-source-pr:(\d+)\s*-->/;
 
 export function sourcePrFrom({headRef, body, explicit}) {
   if (explicit) return String(explicit);
-  const fromBody = body?.match(BODY_RE);
-  if (fromBody) return fromBody[1];
+  // Prefer branch name: body markers are easy to edit; head.ref is event metadata.
   const fromBranch = headRef?.match(BRANCH_RE);
   if (fromBranch) return fromBranch[1];
+  const fromBody = body?.match(BODY_RE);
+  if (fromBody) return fromBody[1];
   return null;
 }
 

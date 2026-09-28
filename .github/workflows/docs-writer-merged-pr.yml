@@ -79,6 +79,7 @@ jobs:
           ref: master
           token: ${{ steps.app-token.outputs.token }}
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Resolve source PR
         if: steps.gate.outputs.run == 'true'
@@ -96,6 +97,10 @@ jobs:
           mkdir -p .docs-ai/writer
 
           if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            if [[ ! "$INPUT_PR" =~ ^[0-9]+$ ]]; then
+              echo "::error::pr_number must be a positive integer (got '${INPUT_PR}')."
+              exit 1
+            fi
             DATA=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${INPUT_PR}")
             PR_NUMBER="$INPUT_PR"
             TITLE=$(echo "$DATA" | jq -r '.title')
@@ -187,9 +192,12 @@ jobs:
 
       - name: Configure git identity
         if: steps.gate.outputs.run == 'true'
+        env:
+          GIT_USERNAME: ${{ vars.DOCS_AI_GIT_USERNAME || 'mattermost-docs-ai[bot]' }}
+          GIT_EMAIL: ${{ vars.DOCS_AI_GIT_EMAIL || '41898282+github-actions[bot]@users.noreply.github.com' }}
         run: |
-          git config user.name "${{ vars.DOCS_AI_GIT_USERNAME || 'mattermost-docs-ai[bot]' }}"
-          git config user.email "${{ vars.DOCS_AI_GIT_EMAIL || '41898282+github-actions[bot]@users.noreply.github.com' }}"
+          git config user.name "$GIT_USERNAME"
+          git config user.email "$GIT_EMAIL"
 
       - name: Commit and push
         if: steps.gate.outputs.run == 'true'
@@ -200,6 +208,7 @@ jobs:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           set -euo pipefail
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           git checkout -B "$BRANCH"
           git add docs/main docs/develop docs/api/examples.mdx docs/api/index.mdx 2>/dev/null || true
           if git diff --cached --quiet; then
@@ -263,6 +272,7 @@ jobs:
     if: |
       github.event_name == 'pull_request' &&
       github.event.action == 'closed' &&
+      github.event.pull_request.merged == true &&
       startsWith(github.event.pull_request.head.ref, 'docs/pr-')
     steps:
       - name: Checkout

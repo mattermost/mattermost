@@ -1,3 +1,5 @@
+import {existsSync, readFileSync} from 'node:fs';
+import {join} from 'node:path';
 import {complete, usageLine} from '../lib/anthropic.mjs';
 import {additionsDiff} from '../lib/diff.mjs';
 import {
@@ -6,10 +8,11 @@ import {
   groupPathsByAuthor,
   neutralAuthorSystemBlocks,
   personasWithScope,
+  REPO_ROOT as DEFAULT_ROOT,
 } from '../lib/personas.mjs';
 import {DATA_NOTICE, block} from '../lib/untrusted.mjs';
 import {reviewPersona} from '../review/persona-review.mjs';
-import {assertVersionAnchors, mergeFiles, parseFileBlocks} from './files.mjs';
+import {assertSafeMdx, assertVersionAnchors, mergeFiles, parseFileBlocks} from './files.mjs';
 import {isAllowedPath} from './paths.mjs';
 
 const WRITER_MODEL = process.env.DOCS_AI_WRITER_MODEL || 'claude-sonnet-4-6';
@@ -49,7 +52,21 @@ export function missingGroupTargets(files, groupPaths) {
   return [...allow].filter((t) => !have.has(t)).sort();
 }
 
-function buildAuthorUserPrompt({brief, groupPaths, input, revisionFeedback}) {
+/** Load on-disk pages for targets so updates edit the real page, not a blank rewrite. */
+export function loadExistingPages(repoRoot, groupPaths) {
+  const root = repoRoot || DEFAULT_ROOT;
+  const pages = [];
+  for (const raw of groupPaths || []) {
+    const path = normalizeDocsPath(raw);
+    if (!path.startsWith('docs/') || !isAllowedPath(path)) continue;
+    const abs = join(root, path);
+    if (!existsSync(abs)) continue;
+    pages.push({path, content: readFileSync(abs, 'utf8')});
+  }
+  return pages;
+}
+
+function buildAuthorUserPrompt({brief, groupPaths, input, revisionFeedback, existingPages}) {
   const parts = [
     DATA_NOTICE,
     '',
@@ -80,6 +97,19 @@ function buildAuthorUserPrompt({brief, groupPaths, input, revisionFeedback}) {
     '',
   );
 
+  if (existingPages?.length) {
+    for (const page of existingPages) {
+      parts.push(
+        block(`existing-page path=${page.path}`, page.content, {maxChars: 30_000}),
+        '',
+      );
+    }
+    parts.push(
+      'For paths with an existing-page block, edit that page in place (smallest change that closes the gap). Output the full updated file.',
+      '',
+    );
+  }
+
   if (revisionFeedback?.length) {
     parts.push(
       block('reviewer-feedback', JSON.stringify(revisionFeedback, null, 2), {maxChars: 12_000}),
@@ -97,10 +127,17 @@ function buildAuthorUserPrompt({brief, groupPaths, input, revisionFeedback}) {
 
 async function authorPass({personaId, groupPaths, brief, input, revisionFeedback, completeFn}) {
   const system = personaId ? authorSystemBlocks(personaId) : neutralAuthorSystemBlocks();
+  const existingPages = loadExistingPages(input.repoRoot, groupPaths);
   const {text, usage} = await completeFn({
     model: WRITER_MODEL,
     system,
-    userPrompt: buildAuthorUserPrompt({brief, groupPaths, input, revisionFeedback}),
+    userPrompt: buildAuthorUserPrompt({
+      brief,
+      groupPaths,
+      input,
+      revisionFeedback,
+      existingPages,
+    }),
     maxTokens: 8192,
     temperature: 0.3,
   });
@@ -207,6 +244,7 @@ export async function authorLoop({brief, input, completeFn = complete} = {}) {
       );
     }
     assertVersionAnchors(groupFiles, {milestoneVersion: input.milestoneVersion});
+    assertSafeMdx(groupFiles);
 
     let revision = 0;
     let lastResults = [];
@@ -270,10 +308,11 @@ export async function authorLoop({brief, input, completeFn = complete} = {}) {
       }
       try {
         assertVersionAnchors(revised, {milestoneVersion: input.milestoneVersion});
+        assertSafeMdx(revised);
       } catch (e) {
-        // Dropped anchor must not replace a complete, anchored prior pass.
+        // Dropped anchor / unsafe MDX must not replace a complete prior pass.
         console.error(
-          `[author-loop] revision failed anchor check (${e.message}); keeping prior files`,
+          `[author-loop] revision failed validation (${e.message}); keeping prior files`,
         );
         trail.openConcerns.push({
           persona: group.personaId ?? 'neutral',

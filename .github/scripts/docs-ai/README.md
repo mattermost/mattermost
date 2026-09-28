@@ -45,7 +45,7 @@ single job so it becomes one check rather than a matrix of them.
 | `gap/prepare.mjs` | Collects diffs and renders the gap prompt |
 | `gap/report.mjs` | Posts the sticky gap comment and owns `Docs/Needed` |
 | `writer/run.mjs` | Reads the gap sticky, runs the author loop, writes MDX |
-| `writer/sync.mjs` | On close of `docs/pr-*`, flips `Docs/Needed` → `Docs/Done` |
+| `writer/sync.mjs` | On merge of `docs/pr-*`, flips `Docs/Needed` → `Docs/Done` |
 
 `npm test` (run from this directory) is the registry validator the workflow also runs
 before reviewing or writing.

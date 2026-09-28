@@ -1,8 +1,9 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {additionsDiff} from '../lib/diff.mjs';
-import {authorForPath, groupPathsByAuthor} from '../lib/personas.mjs';
+import {authorForPath, groupPathsByAuthor, REPO_ROOT} from '../lib/personas.mjs';
 import {
+  assertSafeMdx,
   assertVersionAnchors,
   hasVersionAnchor,
   parseFileBlocks,
@@ -11,7 +12,14 @@ import {
 import {briefFromGapResult, briefFromPrEvidence, parseGapBrief} from './gap-brief.mjs';
 import {DENY_PREFIXES, extractDocsPaths, isAllowedPath} from './paths.mjs';
 import {sourcePrFrom, assertWriterProvenance} from './sync.mjs';
-import {groupPathAllowlist, missingGroupTargets, normalizeDocsPath, parseMaxRevisions, authorLoop} from './author-loop.mjs';
+import {
+  groupPathAllowlist,
+  loadExistingPages,
+  missingGroupTargets,
+  normalizeDocsPath,
+  parseMaxRevisions,
+  authorLoop,
+} from './author-loop.mjs';
 import {MARKER, buildComment, decide} from '../gap/gap.mjs';
 
 test('allowlist accepts hand-authored content roots', () => {
@@ -37,6 +45,12 @@ test('extractDocsPaths pulls exact content paths from prose', () => {
     'docs/api/examples.mdx',
     'docs/main/administration-guide/configure/x.mdx',
   ]);
+});
+
+test('extractDocsPaths drops deny-listed paths that match the path regex', () => {
+  const text =
+    'See docs/main/agents/docs/foo.mdx and docs/main/administration-guide/configure/x.mdx';
+  assert.deepEqual(extractDocsPaths(text), ['docs/main/administration-guide/configure/x.mdx']);
 });
 
 test('versionFromMilestone reads vMAJOR.MINOR', () => {
@@ -271,6 +285,64 @@ test('sourcePrFrom reads branch and body marker', () => {
   assert.equal(sourcePrFrom({headRef: 'feature/x'}), null);
 });
 
+test('sourcePrFrom prefers branch over editable body marker', () => {
+  assert.equal(
+    sourcePrFrom({
+      headRef: 'docs/pr-38177',
+      body: '<!-- docs-ai-source-pr:99 -->\nforged',
+    }),
+    '38177',
+  );
+});
+
+test('assertSafeMdx allows theme imports and house JSX; rejects odd imports and exports', () => {
+  assert.doesNotThrow(() =>
+    assertSafeMdx([
+      {
+        path: 'docs/main/x.mdx',
+        content: [
+          '---',
+          'title: X',
+          '---',
+          '',
+          "import Tabs from '@theme/Tabs';",
+          "import Help from './help.mdx';",
+          '',
+          '<PlanAvailability slug="ent-adv" />',
+          '',
+          'From Mattermost v11.7, …',
+          '',
+          '```js',
+          'export default function demo() {}',
+          'import fs from "fs";',
+          '```',
+          '',
+        ].join('\n'),
+      },
+    ]),
+  );
+  assert.throws(
+    () =>
+      assertSafeMdx([
+        {
+          path: 'docs/main/x.mdx',
+          content: "import fs from 'fs';\n\nHello.\n",
+        },
+      ]),
+    /disallowed MDX import source/,
+  );
+  assert.throws(
+    () =>
+      assertSafeMdx([
+        {
+          path: 'docs/main/x.mdx',
+          content: "export const meta = {};\n\nHello.\n",
+        },
+      ]),
+    /export statements/,
+  );
+});
+
 test('assertWriterProvenance requires same-repo head and exact bot author', () => {
   assert.throws(
     () => assertWriterProvenance({repo: 'o/r', headRepo: 'fork/r', prUser: 'bot[bot]', botLogin: 'bot[bot]'}),
@@ -299,6 +371,19 @@ test('groupPathAllowlist keeps only concrete docs/ targets', () => {
   assert.ok(allow.has('docs/main/administration-guide/a.mdx'));
   assert.ok(allow.has('docs/main/b.mdx'));
   assert.equal(normalizeDocsPath('./docs/main/x.mdx'), 'docs/main/x.mdx');
+});
+
+test('loadExistingPages reads allowed on-disk targets only', () => {
+  const pages = loadExistingPages(REPO_ROOT, [
+    'docs/api/index.mdx',
+    'docs/main/agents/docs/missing.mdx',
+    'docs/main/does-not-exist-ai-writer-test.mdx',
+  ]);
+  assert.deepEqual(
+    pages.map((p) => p.path),
+    ['docs/api/index.mdx'],
+  );
+  assert.ok(pages[0].content.length > 0);
 });
 
 test('missingGroupTargets requires every concrete target to be authored', () => {
