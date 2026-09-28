@@ -216,6 +216,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-0-is-now-availab
  - Fixed a regression where a native "No file chosen" file-picker control could appear on the System Console user detail page.
  - Updated direct and group channel targeting for incoming webhooks while direct messages are scoped to team members.
  - Fixed an issue where changing a channel attribute, or opening some attribute dropdowns, briefly blanked out every attribute chip in the channel header.
+ - Fixed an issue where invalidating cached sessions did not propagate to already-open websocket connections in some cases.
 
 ### API Changes
  - Added ``POST /access_control/decisions/actions/search (searchAccessControlDecisionActions)`` API endpoint.
