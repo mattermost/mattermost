@@ -32,7 +32,7 @@
 .backstage-body {
     overflow: auto;
     width: 100%;
-    background-color: var(--center-channel-bg);
+    background-color: color-mix(in srgb, var(--center-channel-bg), var(--center-channel-color) 4%);
     color: var(--center-channel-color);
     grid-area: main;
 }
@@ -41,7 +41,6 @@
     max-width: 1200px;
     padding-left: 135px;
     margin: 46px auto;
-    background-color: var(--center-channel-bg);
     color: var(--center-channel-color);
     vertical-align: top;
 }
@@ -386,13 +385,23 @@
 }
 
 .integration-option__image {
+    display: flex;
     height: 80px;
+    align-items: center;
+    justify-content: center;
     margin: 0.5em 0 0.7em;
+
+    img,
+    svg {
+        max-width: 100%;
+        max-height: 80px;
+    }
 }
 
 .integration-option__title {
     margin-bottom: 10px;
     color: var(--center-channel-color);
+    font-weight: 600;
 }
 
 .integration-option__description {
