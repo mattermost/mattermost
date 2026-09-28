@@ -2732,7 +2732,7 @@ func (a *App) ValidateExpressionAgainstRequester(rctx request.CTX, expression st
 func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles string, channelID string) (*model.Subject, *model.AppError) {
 	a.refreshAttributeViewIfStale(rctx)
 
-	group, err := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
+	group, err := a.Srv().propertyService.Group(model.AccessControlPropertyGroupName)
 	if err != nil {
 		return nil, model.NewAppError("BuildAccessControlSubject", "app.access_control.build_subject.group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
