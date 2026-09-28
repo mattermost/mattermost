@@ -1,0 +1,67 @@
+name: Group Mattermost CI
+
+on:
+  push:
+    branches:
+      - master
+      - cicd-pipeline
+    paths:
+      - "server/channels/app/**"
+      - "server/go.mod"
+      - "server/go.sum"
+      - ".github/workflows/group-mattermost-ci.yml"
+
+  pull_request:
+    branches:
+      - master
+    paths:
+      - "server/channels/app/**"
+      - "server/go.mod"
+      - "server/go.sum"
+      - ".github/workflows/group-mattermost-ci.yml"
+
+  workflow_dispatch:
+
+jobs:
+  validate-test-build:
+    name: Validate, Test, and Build
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: server
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: server/go.mod
+          cache-dependency-path: server/go.sum
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Verify dependencies
+        run: go mod verify
+
+      - name: Test users, authentication, files, and content
+        run: |
+          go test ./channels/app \
+            -run 'Test.*(Authentication|Login|Session|User|File|Upload|Download)' \
+            -count=1 \
+            -timeout=20m
+
+      - name: Build Mattermost server
+        run: |
+          mkdir -p build
+          go build -o build/mattermost ./cmd/mattermost
+
+      - name: Upload server artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mattermost-server-linux
+          path: server/build/mattermost
+          retention-days: 7
