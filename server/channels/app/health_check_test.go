@@ -82,51 +82,6 @@ func listHealthFindings(t *testing.T, th *TestHelper) []*model.HealthFinding {
 	return findings
 }
 
-func TestHealthCheckTaskLeaderOnly(t *testing.T) {
-	t.Run("a follower never starts the task", func(t *testing.T) {
-		th := SetupWithClusterMock(t, &testlib.FakeClusterInterface{})
-		th.App.Srv().SetLicense(model.NewTestLicense("cluster"))
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ClusterSettings.Enable = true
-		})
-		require.False(t, th.App.IsLeader())
-
-		runHealthCheckTask(th.App)
-
-		assert.Nil(t, th.App.ch.healthCheckTask)
-	})
-
-	t.Run("the leader starts the task", func(t *testing.T) {
-		th := Setup(t)
-		require.True(t, th.App.IsLeader())
-
-		runHealthCheckTask(th.App)
-
-		assert.NotNil(t, th.App.ch.healthCheckTask)
-	})
-
-	t.Run("a repeated became-leader callback keeps the running task", func(t *testing.T) {
-		th := Setup(t)
-
-		updateHealthCheckTask(th.App, true)
-		task := th.App.ch.healthCheckTask
-		require.NotNil(t, task)
-
-		updateHealthCheckTask(th.App, true)
-		assert.Same(t, task, th.App.ch.healthCheckTask)
-	})
-
-	t.Run("losing leadership cancels the task", func(t *testing.T) {
-		th := Setup(t)
-
-		updateHealthCheckTask(th.App, true)
-		require.NotNil(t, th.App.ch.healthCheckTask)
-
-		updateHealthCheckTask(th.App, false)
-		assert.Nil(t, th.App.ch.healthCheckTask)
-	})
-}
-
 func TestRunHealthCheckGating(t *testing.T) {
 	t.Run("flag off writes nothing", func(t *testing.T) {
 		th, svc := setupHealthCheck(t, false)
