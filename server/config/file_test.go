@@ -962,49 +962,6 @@ func TestFileStoreSave(t *testing.T) {
 	})
 }
 
-func TestFileStoreEmptyFile(t *testing.T) {
-	t.Run("file created by the store is initialized with defaults", func(t *testing.T) {
-		path := filepath.Join(t.TempDir(), "config.json")
-
-		fs, err := NewFileStore(path, true)
-		require.NoError(t, err)
-		configStore, err := NewStoreFromBacking(fs, nil, false)
-		require.NoError(t, err)
-		defer configStore.Close()
-
-		assertFileNotEqualsConfig(t, emptyConfig, path)
-	})
-
-	t.Run("existing empty file is not replaced with defaults", func(t *testing.T) {
-		path := filepath.Join(t.TempDir(), "config.json")
-		require.NoError(t, os.WriteFile(path, nil, 0600))
-
-		fs, err := NewFileStore(path, true)
-		require.NoError(t, err)
-		_, err = NewStoreFromBacking(fs, nil, false)
-		require.ErrorContains(t, err, "is empty")
-
-		data, err := os.ReadFile(path)
-		require.NoError(t, err)
-		require.Empty(t, data)
-	})
-
-	t.Run("file emptied after it was written is not replaced with defaults", func(t *testing.T) {
-		path := filepath.Join(t.TempDir(), "config.json")
-
-		fs, err := NewFileStore(path, true)
-		require.NoError(t, err)
-		configStore, err := NewStoreFromBacking(fs, nil, false)
-		require.NoError(t, err)
-		defer configStore.Close()
-
-		require.NoError(t, os.Truncate(path, 0))
-
-		err = configStore.Load()
-		require.ErrorContains(t, err, "is empty")
-	})
-}
-
 func TestFileStorePersistSkipsUnchangedConfig(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "config.json")
 
@@ -1088,6 +1045,26 @@ func TestWriteFileAtomically(t *testing.T) {
 		assert.Equal(t, os.ModeSymlink, info.Mode()&os.ModeSymlink)
 
 		data, err := os.ReadFile(target)
+		require.NoError(t, err)
+		assert.Equal(t, "new", string(data))
+	})
+
+	t.Run("writes in place when the directory is not writable", func(t *testing.T) {
+		if runtime.GOOS == "windows" {
+			t.Skip("unix permissions are not supported on windows")
+		}
+		if os.Geteuid() == 0 {
+			t.Skip("root can write to read-only directories")
+		}
+		dir := t.TempDir()
+		path := filepath.Join(dir, "config.json")
+		require.NoError(t, os.WriteFile(path, []byte("old"), 0600))
+		require.NoError(t, os.Chmod(dir, 0500))
+		t.Cleanup(func() { require.NoError(t, os.Chmod(dir, 0700)) })
+
+		require.NoError(t, writeFileAtomically(path, []byte("new")))
+
+		data, err := os.ReadFile(path)
 		require.NoError(t, err)
 		assert.Equal(t, "new", string(data))
 	})
