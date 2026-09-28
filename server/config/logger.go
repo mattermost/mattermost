@@ -358,7 +358,7 @@ func validateAdvancedLoggingPaths(loggingJSON json.RawMessage, configSection str
 	// map iteration order is random; sort so the reported target is deterministic
 	for _, targetName := range slices.Sorted(maps.Keys(logCfg)) {
 		target := logCfg[targetName]
-		if target.Type != "file" {
+		if !strings.EqualFold(target.Type, "file") {
 			continue
 		}
 

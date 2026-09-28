@@ -480,6 +480,25 @@ func TestValidateLogPaths(t *testing.T) {
 		assert.Contains(t, err.Error(), filepath.Join(outside, "out.log"))
 	})
 
+	t.Run("AdvancedLoggingJSON file type is case-insensitive", func(t *testing.T) {
+		// logr lowercases type before building targets; mixed case must still be enforced
+		raw, err := json.Marshal(map[string]any{
+			"evil": map[string]any{
+				"type":    "File",
+				"levels":  []map[string]any{{"id": 2, "name": "error"}},
+				"options": map[string]any{"filename": filepath.Join(outside, "out.log")},
+			},
+		})
+		require.NoError(t, err)
+
+		cfg := baseCfg()
+		cfg.LogSettings.AdvancedLoggingJSON = raw
+
+		err = ValidateLogPaths(cfg, root)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), `LogSettings.AdvancedLoggingJSON target "evil"`)
+	})
+
 	t.Run("ExperimentalAuditSettings.FileName outside root", func(t *testing.T) {
 		cfg := baseCfg()
 		cfg.ExperimentalAuditSettings.FileEnabled = new(true)
