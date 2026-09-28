@@ -239,8 +239,8 @@ export const isOperatorValidForType = (op: string, type?: string): boolean => {
     if (type === 'graph') {
         // The hierarchy predicates, plus the two list operators — on a graph
         // attribute those lower to a chain of `in` tests for literal options,
-        // which is the exact, hierarchy-blind membership check. Every other operator is refused when
-        // the policy is saved.
+        // which is the exact, hierarchy-blind membership check. Every other
+        // operator is refused when the policy is saved.
         return isGraphOperator(op) || isMultiselectOperator(op);
     }
     return !isMultiselectOperator(op) && !isRankOperator(op) && !isNativeMethodOperator(op) && !isGraphOperator(op) && !isFieldAdvertisedOperator(op);
