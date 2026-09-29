@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "AI docs pipelines: persona review (review/) and gap analysis (gap/), with shared lib/.",
+  "description": "AI docs pipelines: persona review (review/), gap analysis (gap/), and writer (writer/), with shared lib/.",
   "scripts": {
     "test": "node --test"
   },
