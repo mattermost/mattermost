@@ -41,6 +41,7 @@ const MANAGED_BY_OPTIONS: Record<ExternalSource, AttributeSelectOption<ExternalS
 function AttributeAppliesToUserItem({
     disabled = false,
     lockedTooltip,
+    removeLockedTooltip,
     onRemove,
     visibility = 'when_set',
     onVisibilityChange,
@@ -75,6 +76,21 @@ function AttributeAppliesToUserItem({
                 <span className='AttributeAppliesToItem__label'>{label}</span>
             </span>
         </button>
+    );
+
+    const removeButton = (
+        <Button
+            type='button'
+            emphasis='tertiary'
+            variant='destructive'
+            size='sm'
+            className='AttributeAppliesToItem__remove'
+            onClick={onRemove}
+            disabled={disabled || Boolean(removeLockedTooltip)}
+            data-testid='attributeAppliesToRow-user-remove'
+        >
+            <FormattedMessage {...messages.removeLabel}/>
+        </Button>
     );
 
     const whoCanSetDisabled = disabled || Boolean(whoCanSetLockedTooltip);
@@ -122,20 +138,17 @@ function AttributeAppliesToUserItem({
                         </span>
                     </WithTooltip>
                 ) : toggleButton}
-                {isOpen && (
-                    <Button
-                        type='button'
-                        emphasis='tertiary'
-                        variant='destructive'
-                        size='sm'
-                        className='AttributeAppliesToItem__remove'
-                        onClick={onRemove}
-                        disabled={disabled}
-                        data-testid='attributeAppliesToRow-user-remove'
-                    >
-                        <FormattedMessage {...messages.removeLabel}/>
-                    </Button>
-                )}
+                {isOpen && (removeLockedTooltip ? (
+                    <WithTooltip title={removeLockedTooltip}>
+                        <span
+                            // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child; without this the disabled Remove is unreachable by keyboard, so the tooltip explaining the lock is mouse-only
+                            tabIndex={0}
+                            data-testid='attributeAppliesToRow-user-removeLockWrap'
+                        >
+                            {removeButton}
+                        </span>
+                    </WithTooltip>
+                ) : removeButton)}
             </div>
             {isOpen && (
                 <div

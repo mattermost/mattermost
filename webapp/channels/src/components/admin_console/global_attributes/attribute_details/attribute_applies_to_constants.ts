@@ -40,6 +40,10 @@ export type AttributeAppliesToItemProps = {
     // lock tooltip convention on the parent page. Undefined (the `saving`
     // case) renders no tooltip, matching today's existing behavior.
     lockedTooltip?: ReactNode;
+
+    // Locks only Remove and explains why; the row still expands and its
+    // settings keep following `disabled`.
+    removeLockedTooltip?: ReactNode;
     onRemove: () => void;
 
     // Users-only config. Optional so this shared prop type still fits

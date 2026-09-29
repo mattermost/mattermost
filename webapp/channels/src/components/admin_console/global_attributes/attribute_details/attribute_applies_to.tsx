@@ -41,6 +41,10 @@ type Props = {
     // the transient `saving` state -- threaded straight through to each row's
     // AttributeAppliesToItemProps.lockedTooltip. Undefined renders no tooltip.
     lockedTooltip?: ReactNode;
+
+    // Locks Remove on the rows of the given types and explains why; those rows
+    // still expand and their settings stay editable.
+    removeLockedTooltips?: Partial<Record<ResourceObjectType, ReactNode>>;
     onAdd: (type: ResourceObjectType) => void;
     onRemove: (type: ResourceObjectType) => void;
 
@@ -93,6 +97,7 @@ function AttributeAppliesTo({
     disabled = false,
     hideAddResource = false,
     lockedTooltip,
+    removeLockedTooltips,
     onAdd,
     onRemove,
     userVisibility,
@@ -203,6 +208,7 @@ function AttributeAppliesTo({
                                                 ordered={ordered}
                                                 disabled={disabled}
                                                 lockedTooltip={lockedTooltip}
+                                                removeLockedTooltip={removeLockedTooltips?.[type]}
                                                 onRemove={() => onRemove(type)}
                                             />
                                         );
@@ -222,6 +228,7 @@ function AttributeAppliesTo({
                                             key={type}
                                             disabled={disabled}
                                             lockedTooltip={lockedTooltip}
+                                            removeLockedTooltip={removeLockedTooltips?.[type]}
                                             onRemove={() => onRemove(type)}
                                             {...userProps}
                                         />

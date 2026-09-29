@@ -200,6 +200,60 @@ describe('AttributeAppliesToUserItem', () => {
         expect(screen.getByTestId('attributeAppliesToRow-user-remove')).toBeEnabled();
     });
 
+    it('removeLockedTooltip locks only Remove behind a tooltip wrap', async () => {
+        const onVisibilityChange = jest.fn();
+        renderComponent({removeLockedTooltip: 'Managed by SCIM', onVisibilityChange});
+        await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+
+        expect(screen.getByTestId('attributeAppliesToRow-user-removeLockWrap')).toBeInTheDocument();
+        expect(screen.getByTestId('attributeAppliesToRow-user-remove')).toBeDisabled();
+        await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-remove'));
+        expect(onRemove).not.toHaveBeenCalled();
+
+        expect(screen.getByTestId('attributeAppliesToRow-user-toggle')).toBeEnabled();
+        expect(screen.queryByTestId('attributeAppliesToRow-user-toggleLockWrap')).not.toBeInTheDocument();
+        expect(screen.getByTestId('attributeAppliesToUserProfileDisplay-always')).toBeEnabled();
+        await userEvent.click(screen.getByTestId('attributeAppliesToUserProfileDisplay-always'));
+        expect(onVisibilityChange).toHaveBeenCalledWith('always');
+        expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-member')).toBeEnabled();
+        expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-admin')).toBeEnabled();
+    });
+
+    it('renders no Remove lock wrap and enables Remove without removeLockedTooltip', async () => {
+        renderComponent();
+        await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+
+        expect(screen.queryByTestId('attributeAppliesToRow-user-removeLockWrap')).not.toBeInTheDocument();
+        expect(screen.getByTestId('attributeAppliesToRow-user-remove')).toBeEnabled();
+    });
+
+    it('removeLockedTooltip locks only Remove behind a tooltip wrap', async () => {
+        const onVisibilityChange = jest.fn();
+        renderComponent({removeLockedTooltip: 'Managed by SCIM', onVisibilityChange});
+        await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+
+        expect(screen.getByTestId('attributeAppliesToRow-user-removeLockWrap')).toBeInTheDocument();
+        expect(screen.getByTestId('attributeAppliesToRow-user-remove')).toBeDisabled();
+        await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-remove'));
+        expect(onRemove).not.toHaveBeenCalled();
+
+        expect(screen.getByTestId('attributeAppliesToRow-user-toggle')).toBeEnabled();
+        expect(screen.queryByTestId('attributeAppliesToRow-user-toggleLockWrap')).not.toBeInTheDocument();
+        expect(screen.getByTestId('attributeAppliesToUserProfileDisplay-always')).toBeEnabled();
+        await userEvent.click(screen.getByTestId('attributeAppliesToUserProfileDisplay-always'));
+        expect(onVisibilityChange).toHaveBeenCalledWith('always');
+        expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-member')).toBeEnabled();
+        expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-admin')).toBeEnabled();
+    });
+
+    it('renders no Remove lock wrap and enables Remove without removeLockedTooltip', async () => {
+        renderComponent();
+        await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+
+        expect(screen.queryByTestId('attributeAppliesToRow-user-removeLockWrap')).not.toBeInTheDocument();
+        expect(screen.getByTestId('attributeAppliesToRow-user-remove')).toBeEnabled();
+    });
+
     it('renders no Who can set the value lock wrap and enables the radios without whoCanSetLockedTooltip', async () => {
         renderComponent();
         await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
