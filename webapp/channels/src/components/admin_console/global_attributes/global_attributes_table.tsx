@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {createColumnHelper, getCoreRowModel, useReactTable, type ColumnDef} from '@tanstack/react-table';
-import classNames from 'classnames';
 import type {ComponentType} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {MessageDescriptor} from 'react-intl';
@@ -37,6 +36,7 @@ import AlertBanner from 'components/alert_banner';
 import {useIsFieldOrphaned, usePluginInventoryLoaded} from 'components/common/hooks/use_field_orphaned';
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {getHistory} from 'utils/browser_history';
 import {LicenseSkus} from 'utils/constants';
@@ -198,7 +198,15 @@ function SourceCell({field, isClassificationRow}: ClassificationAwareCellProps) 
     );
 }
 
-function AppliesToCell({types}: {types: ResourceObjectType[]}) {
+function AppliesToCell({types, loading}: {types: ResourceObjectType[]; loading?: boolean}) {
+    if (loading && types.length === 0) {
+        return (
+            <span data-testid='global-attribute-applies-to'>
+                <LoadingSpinner/>
+            </span>
+        );
+    }
+
     if (types.length === 0) {
         return <span data-testid='global-attribute-applies-to'>{'—'}</span>;
     }
@@ -246,7 +254,7 @@ function AttributeCell({field, isClassificationRow}: ClassificationAwareCellProp
     return (
         <span className='GlobalAttributesTable__attribute'>
             <span
-                className={classNames('GlobalAttributesTable__name', {'GlobalAttributesTable__name--classification': isClassificationRow})}
+                className='GlobalAttributesTable__name'
                 data-testid='global-attribute-name'
             >
                 {getDisplayName(field)}
@@ -254,7 +262,7 @@ function AttributeCell({field, isClassificationRow}: ClassificationAwareCellProp
             {isClassificationRow && (
                 <span
                     id={classificationSubtitleId(field.id)}
-                    className='GlobalAttributesTable__subtitle GlobalAttributesTable__subtitle--classification'
+                    className='GlobalAttributesTable__subtitle'
                     data-testid={`global-attribute-classification-subtitle-${field.id}`}
                 >
                     <FormattedMessage {...messages.classificationSubtitle}/>
@@ -265,14 +273,13 @@ function AttributeCell({field, isClassificationRow}: ClassificationAwareCellProp
 }
 
 type ActionsCellProps = ClassificationAwareCellProps & {
-    canEditClassification: boolean;
     isMobileView: boolean;
     pluginInventoryLoaded: boolean;
     onDeleteError: (message: string | null) => void;
     onDeleteModalExited: () => void;
 };
 
-function ActionsCell({field, isClassificationRow, canEditClassification, isMobileView, pluginInventoryLoaded, onDeleteError, onDeleteModalExited}: ActionsCellProps) {
+function ActionsCell({field, isClassificationRow, isMobileView, pluginInventoryLoaded, onDeleteError, onDeleteModalExited}: ActionsCellProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const promptDelete = useGlobalAttributeFieldDelete();
@@ -302,9 +309,12 @@ function ActionsCell({field, isClassificationRow, canEditClassification, isMobil
         }
     }, [dispatch, field.id, formatMessage, onDeleteError]);
 
+    // Classification's definition lives on Classification Markings; this row only
+    // offers the open-in-new link there. Row click still opens the attribute page
+    // when that route is reachable.
     if (isClassificationRow) {
         const classificationLinkLabel = formatMessage(actionsLabels.classificationLink);
-        const externalLink = (
+        return (
             <WithTooltip
                 title={classificationLinkLabel}
                 disabled={isMobileView}
@@ -322,47 +332,6 @@ function ActionsCell({field, isClassificationRow, canEditClassification, isMobil
                     />
                 </Link>
             </WithTooltip>
-        );
-
-        if (!canEditClassification) {
-            return externalLink;
-        }
-
-        // Both destinations: Edit configures which resources classification applies
-        // to, the link goes to where its levels are defined.
-        return (
-            <div className='GlobalAttributesTable__actions--classification'>
-                <Menu.Container
-                    menuButton={{
-                        id: `${menuId}-button`,
-                        class: 'btn btn-transparent GlobalAttributesTable__actionsButton',
-                        children: <DotsHorizontalIcon size={18}/>,
-                        dataTestId: menuId,
-                        'aria-label': formatMessage(actionsLabels.tooltip),
-                    }}
-                    menuButtonTooltip={{text: formatMessage(actionsLabels.tooltip)}}
-                    menu={{
-                        id: `${menuId}-menu`,
-                        'aria-label': formatMessage(actionsLabels.menuLabel),
-                    }}
-                    anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
-                    transformOrigin={{vertical: 'top', horizontal: 'right'}}
-                >
-                    <Menu.LinkItem
-                        id={`${menuId}-edit`}
-                        to={CLASSIFICATION_ATTRIBUTE_ROUTE}
-                        leadingElement={<PencilOutlineIcon size={18}/>}
-                        labels={<span><FormattedMessage {...actionsLabels.edit}/></span>}
-                    />
-                    <Menu.LinkItem
-                        id={`${menuId}-markings`}
-                        to={CLASSIFICATIONS_MARKINGS_ADMIN_URL}
-                        leadingElement={<OpenInNewIcon size={18}/>}
-                        labels={<span><FormattedMessage {...actionsLabels.classificationLink}/></span>}
-                    />
-                </Menu.Container>
-                {externalLink}
-            </div>
         );
     }
 
@@ -420,6 +389,7 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
     const dispatch = useDispatch();
 
     const [loaded, setLoaded] = useState(false);
+    const [resourcesLoaded, setResourcesLoaded] = useState(false);
     const [loadError, setLoadError] = useState(false);
     const [suppressedScopes, setSuppressedScopes] = useState<ReadonlySet<ResourceObjectType>>(() => new Set());
     const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -479,10 +449,16 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
 
         const load = async () => {
             try {
+                // Paint the table from template fields first; Applies-to chips and
+                // unlinked resource rows fill in once the background scope fetches
+                // settle.
                 await dispatch(fetchPropertyFields(GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, GLOBAL_ATTRIBUTES_TARGET_TYPE));
                 if (!active) {
                     return;
                 }
+                setLoadError(false);
+                setLoaded(true);
+                setResourcesLoaded(false);
 
                 // Both non-template rows and applies-to chips come from the
                 // per-resource fields. A rejected fetch does not replace that
@@ -508,16 +484,14 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                     }
                 });
                 setSuppressedScopes(suppressed);
-                setLoadError(false);
+                setResourcesLoaded(true);
             } catch (error) {
                 // Surface an error state instead of a misleading empty state.
                 console.error('GlobalAttributesTable-load: ', error); // eslint-disable-line no-console
                 if (active) {
                     setLoadError(true);
-                }
-            } finally {
-                if (active) {
                     setLoaded(true);
+                    setResourcesLoaded(true);
                 }
             }
         };
@@ -532,12 +506,17 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
     // getUnlinkedSystemFieldsForGroup reads every cached user/channel/post field.
     // Channel fields can already be in the store (channel-header labels, a prior
     // visit while licensed) after resourceTypesToFetch has dropped that scope, so
-    // keep the table in lockstep with what this page actually fetched.
+    // keep the table in lockstep with what this page actually fetched. Unlinked
+    // rows also wait on resourcesLoaded so they do not flash before suppressedScopes
+    // is known.
     const allRows = useMemo(
-        () => [...fields, ...unlinkedFields.filter((field) => !suppressedScopes.has(field.object_type as ResourceObjectType))].sort(
+        () => [
+            ...fields,
+            ...(resourcesLoaded ? unlinkedFields.filter((field) => !suppressedScopes.has(field.object_type as ResourceObjectType)) : []),
+        ].sort(
             (a, b) => getDisplayName(a).localeCompare(getDisplayName(b)),
         ),
-        [fields, unlinkedFields, suppressedScopes],
+        [fields, unlinkedFields, suppressedScopes, resourcesLoaded],
     );
 
     // The Source column resolves plugin-owned rows to a plugin display name, but
@@ -601,8 +580,7 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
             return;
         }
 
-        // Same destinations as the row's Edit/View action: classification has
-        // its own page (or the markings page when that edit route is hidden).
+        // Classification has its own page (or the markings page when that edit route is hidden).
         if (isClassificationMarkingsField(field, groupId) && classificationMarkingsReachable) {
             getHistory().push(classificationAttributePageReachable ? CLASSIFICATION_ATTRIBUTE_ROUTE : CLASSIFICATIONS_MARKINGS_ADMIN_URL);
             return;
@@ -660,7 +638,10 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                 id: 'applies_to',
                 header: () => <FormattedMessage {...messages.appliesTo}/>,
                 cell: ({row}) => (
-                    <AppliesToCell types={appliesToFor(row.original)}/>
+                    <AppliesToCell
+                        types={appliesToFor(row.original)}
+                        loading={!resourcesLoaded}
+                    />
                 ),
                 enableHiding: false,
             }),
@@ -695,7 +676,6 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                         <ActionsCell
                             field={row.original}
                             isClassificationRow={isClassificationRow(row.original)}
-                            canEditClassification={classificationAttributePageReachable}
                             isMobileView={isMobileView}
                             pluginInventoryLoaded={pluginInventoryLoadedRef.current}
                             onDeleteError={setDeleteError}
@@ -706,7 +686,7 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                 enableHiding: false,
             }),
         ];
-    }, [appliesToByTemplateId, groupId, classificationMarkingsReachable, classificationAttributePageReachable, isMobileView, handleDeleteModalExited]);
+    }, [appliesToByTemplateId, groupId, classificationMarkingsReachable, isMobileView, handleDeleteModalExited, resourcesLoaded]);
 
     const table = useReactTable<PropertyField>({
         data: rows,
@@ -740,6 +720,13 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
     }
 
     if (rows.length === 0) {
+        // Template list can be empty while unlinked resource fields are still
+        // in flight — stay on the loading screen so the empty state does not
+        // flash before those rows arrive.
+        if (!resourcesLoaded && allRows.length === 0) {
+            return <LoadingScreen/>;
+        }
+
         const isSearchEmpty = allRows.length > 0 && Boolean(searchQuery.trim());
         return (
             <div

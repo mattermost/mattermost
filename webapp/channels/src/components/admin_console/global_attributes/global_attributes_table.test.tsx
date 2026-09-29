@@ -161,6 +161,90 @@ describe('GlobalAttributesTable', () => {
         });
     });
 
+    it('paints template rows before resource-scope fetches settle', async () => {
+        let resolveUser: (value: PropertyField[]) => void;
+        const userPending = new Promise<PropertyField[]>((resolve) => {
+            resolveUser = resolve;
+        });
+
+        getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
+            if (opts?.cursorId) {
+                return Promise.resolve([]);
+            }
+            if (objectType === 'template') {
+                return Promise.resolve([makeField({id: 'template-1', name: 'department', attrs: {display_name: 'Department'}})]);
+            }
+            if (objectType === 'user') {
+                return userPending;
+            }
+            return Promise.resolve([]);
+        });
+
+        renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+        expect(await screen.findByText('Department')).toBeInTheDocument();
+        expect(screen.queryByTestId('loading-screen')).not.toBeInTheDocument();
+        expect(within(screen.getByTestId('global-attribute-applies-to')).getByTestId('loadingSpinner')).toBeInTheDocument();
+
+        await act(async () => {
+            resolveUser!([makeField({
+                id: 'user-1',
+                object_type: 'user',
+                linked_field_id: 'template-1',
+            })]);
+            await userPending;
+        });
+
+        await waitFor(() => {
+            expect(screen.getByTestId('global-attribute-applies-to')).toHaveTextContent('Users');
+        });
+        expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
+    });
+
+    it('keeps the loading screen when the template list is empty until resource scopes settle', async () => {
+        let resolveUser: (value: PropertyField[]) => void;
+        const userPending = new Promise<PropertyField[]>((resolve) => {
+            resolveUser = resolve;
+        });
+
+        getPropertyFields.mockImplementation((_group, objectType, _targetType, _targetId, opts) => {
+            if (opts?.cursorId) {
+                return Promise.resolve([]);
+            }
+            if (objectType === 'template') {
+                return Promise.resolve([]);
+            }
+            if (objectType === 'user') {
+                return userPending;
+            }
+            return Promise.resolve([]);
+        });
+
+        renderWithContext(<GlobalAttributesTable/>, getBaseState());
+
+        await waitFor(() => {
+            expect(getPropertyFields).toHaveBeenCalledWith(
+                'access_control',
+                'template',
+                'system',
+                undefined,
+                expect.anything(),
+            );
+        });
+        expect(screen.getByTestId('loading-screen')).toBeInTheDocument();
+        expect(screen.queryByTestId('global-attributes-empty')).not.toBeInTheDocument();
+        expect(screen.queryByText('user_field')).not.toBeInTheDocument();
+
+        await act(async () => {
+            resolveUser!([makeField({id: 'u1', name: 'user_field', object_type: 'user'})]);
+            await userPending;
+        });
+
+        expect(await screen.findByText('user_field')).toBeInTheDocument();
+        expect(screen.queryByTestId('loading-screen')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('global-attributes-empty')).not.toBeInTheDocument();
+    });
+
     it('fetches access_control/template fields scoped to the system target type', async () => {
         getPropertyFields.mockResolvedValueOnce([]).mockResolvedValue([]);
 
@@ -252,7 +336,9 @@ describe('GlobalAttributesTable', () => {
 
             renderWithContext(<GlobalAttributesTable/>, getAllScopesState());
 
-            expect(await screen.findByText('user_field')).toBeInTheDocument();
+            await waitFor(() => {
+                expect(screen.getByText('user_field')).toBeInTheDocument();
+            });
             expect(screen.getByText('channel_field')).toBeInTheDocument();
             expect(screen.getByText('post_field')).toBeInTheDocument();
         });
@@ -414,7 +500,10 @@ describe('GlobalAttributesTable', () => {
 
         renderWithContext(<GlobalAttributesTable/>, getBaseState());
 
-        expect(await screen.findByTestId('global-attribute-applies-to')).toHaveTextContent('—');
+        await waitFor(() => {
+            expect(screen.getByTestId('global-attribute-applies-to')).toHaveTextContent('—');
+        });
+        expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
     });
 
     it('renders Applies-to chips for the resources a field is linked to', async () => {
@@ -445,11 +534,14 @@ describe('GlobalAttributesTable', () => {
 
         renderWithContext(<GlobalAttributesTable/>, getAllScopesState());
 
-        const appliesTo = await screen.findByTestId('global-attribute-applies-to');
-        expect(appliesTo).toHaveTextContent('Users');
+        await waitFor(() => {
+            expect(screen.getByTestId('global-attribute-applies-to')).toHaveTextContent('Users');
+        });
+        const appliesTo = screen.getByTestId('global-attribute-applies-to');
         expect(appliesTo).toHaveTextContent('Posts');
         expect(appliesTo).not.toHaveTextContent('Channels');
         expect(appliesTo).not.toHaveTextContent('—');
+        expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
     });
 
     // Channels stays fully enabled so the missing Posts chip is attributable to
@@ -528,9 +620,11 @@ describe('GlobalAttributesTable', () => {
 
         renderWithContext(<GlobalAttributesTable/>, state);
 
-        const appliesTo = await screen.findByTestId('global-attribute-applies-to');
-        expect(appliesTo).toHaveTextContent('—');
-        expect(appliesTo).not.toHaveTextContent('Users');
+        await waitFor(() => {
+            expect(screen.getByTestId('global-attribute-applies-to')).toHaveTextContent('—');
+        });
+        expect(screen.getByTestId('global-attribute-applies-to')).not.toHaveTextContent('Users');
+        expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
 
         consoleSpy.mockRestore();
     });
@@ -583,10 +677,13 @@ describe('GlobalAttributesTable', () => {
 
         renderWithContext(<GlobalAttributesTable/>, state);
 
-        const appliesTo = await screen.findByTestId('global-attribute-applies-to');
-        expect(appliesTo).toHaveTextContent('Users');
+        await waitFor(() => {
+            expect(screen.getByTestId('global-attribute-applies-to')).toHaveTextContent('Users');
+        });
+        const appliesTo = screen.getByTestId('global-attribute-applies-to');
         expect(appliesTo).not.toHaveTextContent('Channels');
         expect(appliesTo).not.toHaveTextContent('—');
+        expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
 
         consoleSpy.mockRestore();
     });
@@ -1452,7 +1549,7 @@ describe('GlobalAttributesTable', () => {
     });
 
     describe('Classification Markings row', () => {
-        it('renders the subtitle, an open-in-new link and a menu carrying Edit when the field matches and the destination is reachable', async () => {
+        it('renders the subtitle and an open-in-new link with no actions menu when the field matches and the destination is reachable', async () => {
             getPropertyFields.mockResolvedValueOnce([makeClassificationField()]).mockResolvedValue([]);
 
             renderWithContext(<GlobalAttributesTable/>, getReachableState());
@@ -1464,9 +1561,9 @@ describe('GlobalAttributesTable', () => {
             expect(link).toHaveAttribute('href', CLASSIFICATIONS_MARKINGS_ADMIN_URL);
             expect(link).toHaveAccessibleName('Open Classification Markings');
 
-            // * Unlike every other row, this one's Edit is live: it is the only way to
-            // configure classification's resources outside the API
-            expect(screen.getByTestId('global-attribute-actions-field-1')).toBeInTheDocument();
+            // * The definition is edited on Classification Markings; this row must not
+            // offer a duplicate Edit/More-actions menu next to the open-in-new link
+            expect(screen.queryByTestId('global-attribute-actions-field-1')).not.toBeInTheDocument();
 
             // * The Source column also identifies this row's true source, rather than the
             // generic "Managed here" every other native field gets
@@ -1532,6 +1629,24 @@ describe('GlobalAttributesTable', () => {
             await userEvent.hover(link);
             await new Promise((resolve) => setTimeout(resolve, 500));
             expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+        });
+
+        it('does not dim the name or subtitle, so a read-only definition does not read as a disabled attribute', async () => {
+            getPropertyFields.
+                mockResolvedValueOnce([makeClassificationField(), makeField({id: 'field-2', attrs: {display_name: 'Program'}})]).
+                mockResolvedValue([]);
+
+            renderWithContext(<GlobalAttributesTable/>, getReachableState());
+
+            const [classificationName, ordinaryName] = await screen.findAllByTestId('global-attribute-name');
+            expect(classificationName).toHaveTextContent('Classification');
+            expect(ordinaryName).toHaveTextContent('Program');
+
+            // * Dimming the row on top of its "Definition is read-only" subtitle made a
+            // correctly configured attribute look disabled
+            expect(classificationName.className).toBe(ordinaryName.className);
+            expect(screen.getByTestId('global-attribute-classification-subtitle-field-1').className).
+                toBe('GlobalAttributesTable__subtitle');
         });
 
         it('leaves an unrelated field (not matching name/object_type/group_id) entirely unaffected even when the destination is reachable', async () => {

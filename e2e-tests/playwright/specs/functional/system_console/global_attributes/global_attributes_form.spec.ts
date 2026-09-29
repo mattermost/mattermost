@@ -1253,6 +1253,93 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
         });
 
         /**
+         * @objective Ensure Parents-of search suggestions float in their own popover so the
+         * value menu stays a fixed-height list, the candidate list is not clipped, and picking
+         * a candidate still applies.
+         */
+        test('keeps the Parents of menu fixed-height when search suggestions open', async ({pw}) => {
+            const {adminUser, adminClient} = await requireHierarchicalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const displayName = `Playwright Suggest ${timestamp}`;
+            const expectedName = `playwright_suggest_${timestamp}`;
+
+            try {
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+                await page.getByTestId('newAttributeButton').click();
+                await page.getByTestId('attributeDisplayNameInput').fill(displayName);
+
+                await page.getByTestId('attributeTypeMenuButton').click();
+                await page.getByRole('menuitemradio', {name: 'Hierarchical'}).click();
+
+                // # Air and Maritime as sibling roots
+                await page.getByTestId('attributeOptionsGraphEmpty__nameInput').fill('Air');
+                await page.getByTestId('attributeOptionsGraphEmpty__addButton').click();
+                await page.getByTestId('attributeOptionsGraphAddTop__nameInput').fill('Maritime');
+                await page.getByTestId('attributeOptionsGraphAddTop__addButton').click();
+
+                // # Open Air's Parents pane and focus the search field
+                await openGraphRowParents(page, 'Air');
+                const valueMenu = page.getByRole('menu', {name: 'Edit Air'});
+                await expect(page.getByTestId('attributeGraphParentsPane__back')).toHaveText('Parents of Air');
+                await expect(valueMenu).toBeVisible();
+
+                // Measure the pane, not role=menu. Nested MUI Modal aria-hides the
+                // parent menu paper; its getBoundingClientRect can shift ~16px even
+                // when the suggestion list is portaled.
+                const pane = page.locator('.attribute-graph-parents-pane');
+                const heightBeforeSearch = await pane.evaluate((el) => el.getBoundingClientRect().height);
+                await page.getByTestId('attributeGraphParentsPane__search').click();
+
+                const suggestions = page.getByTestId('attributeGraphParentsPane__suggestions');
+                await expect(suggestions).toBeVisible();
+                await expect(page.getByTestId('attributeGraphParentsPane__candidate-Maritime')).toBeVisible();
+
+                // * Suggestions live in a portal below the field, not inside the pane
+                const suggestionsAreInsideMenu = await suggestions.evaluate((el) =>
+                    Boolean(el.closest('.attribute-graph-parents-pane')),
+                );
+                expect(suggestionsAreInsideMenu).toBe(false);
+
+                const listBox = await suggestions.boundingBox();
+                const searchBox = await page.getByTestId('attributeGraphParentsPane__search').boundingBox();
+                expect(listBox).toBeTruthy();
+                expect(searchBox).toBeTruthy();
+                expect(listBox!.height).toBeGreaterThan(0);
+                expect(listBox!.y).toBeGreaterThan(searchBox!.y);
+
+                // offsetWidth is the value we assign to the paper. boundingBox can
+                // disagree by 8–18px once the list is portaled onto document.body.
+                const widthDelta = await page.evaluate(() => {
+                    const field = document.querySelector('.attribute-graph-parents-pane__search-field');
+                    const paper = document.querySelector('.attribute-graph-parents-pane__suggestions-paper');
+                    if (!(field instanceof HTMLElement) || !(paper instanceof HTMLElement)) {
+                        return Number.POSITIVE_INFINITY;
+                    }
+                    return Math.abs(paper.offsetWidth - field.offsetWidth);
+                });
+                expect(widthDelta).toBeLessThan(1);
+
+                // Nested MUI popover aria-hides the parent menu, so getByRole without
+                // includeHidden (and boundingBox visibility checks) cannot resolve it.
+                const mountedValueMenu = page.getByRole('menu', {name: 'Edit Air', includeHidden: true});
+
+                // * Pane does not grow by a suggestion row (~36px). Focus and the
+                // nested modal can still shift getBoundingClientRect by ~6–16px.
+                const heightAfterSearch = await pane.evaluate((el) => el.getBoundingClientRect().height);
+                expect(Math.abs(heightAfterSearch - heightBeforeSearch)).toBeLessThan(24);
+                await expect(mountedValueMenu).toBeAttached();
+
+                await page.getByTestId('attributeGraphParentsPane__candidate-Maritime').click();
+                await expect(graphRow(page, 'Air', 'Maritime')).toBeVisible();
+            } finally {
+                await deleteGlobalAttributeFieldIfExists(adminClient, expectedName);
+            }
+        });
+
+        /**
          * @objective Ensure adding a second parent through the Parents pane asks Add
          * {parent} as a parent? and, once confirmed with Add, records both parent names.
          */
@@ -1534,6 +1621,118 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, name);
             }
         });
+
+        /**
+         * @objective Ensure a Users row on an AD/LDAP-synced attribute surfaces a Managed by
+         * indicator naming that source, greyed out and impossible to interact with, carrying the
+         * same sync icon the Definition block's synced chip uses, alongside helper text saying
+         * the values are not editable in Mattermost.
+         */
+        test('shows a disabled AD/LDAP Managed by indicator on the Users row of a synced attribute', async ({pw}) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+
+            const timestamp = Date.now();
+            const name = `e2e_managed_by_ldap_${timestamp}`;
+            const displayName = `Playwright Managed By Ldap ${timestamp}`;
+
+            try {
+                const template = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
+                    attrs: {display_name: displayName, ldap: 'employeeID'},
+                });
+                await createLinkedDependentField(adminClient, name, template.id, 'text', 'user', {
+                    display_name: displayName,
+                });
+
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}/attribute_details/${template.id}`);
+                await page.getByTestId('attributeAppliesToRow-user-toggle').click();
+
+                // * The Managed by indicator names AD/LDAP, above the "not editable" helper text
+                const managedBy = page.getByTestId('attributeAppliesToUserManagedBy');
+                await expect(managedBy).toContainText('AD/LDAP');
+                await expect(
+                    page.getByTestId('attributeAppliesToRow-user-body').getByText('Not editable in Mattermost.'),
+                ).toBeVisible();
+
+                // * It carries the same glyph as the Definition block's synced chip, compared by
+                // path data so the two cannot drift apart unnoticed
+                const chipIcon = await page
+                    .getByTestId('attributeExternalSourceChip-ldap')
+                    .locator('svg path')
+                    .first()
+                    .getAttribute('d');
+                expect(chipIcon).toBeTruthy();
+                await expect(managedBy.locator('svg path').first()).toHaveAttribute('d', chipIcon!);
+
+                // * It is greyed out and cannot be operated: it carries no chevron to suggest a
+                // menu, and forcing a click past the disabled state still opens none
+                await expect(managedBy).toBeDisabled();
+                await expect(managedBy).toHaveAccessibleName(/^Managed by: AD\/LDAP\./);
+                await expect(managedBy.locator('.AttributeSelect__value')).toHaveCSS('opacity', '0.6');
+                await expect(managedBy.locator('.icon-chevron-down')).toHaveCount(0);
+                await managedBy.click({force: true});
+                await expect(page.getByRole('menuitemradio')).toHaveCount(0);
+
+                // * The row's editable settings are still there -- the indicator reports the
+                // source, it does not lock the rest of the card
+                await expect(page.getByTestId('attributeAppliesToUserProfileDisplay-always')).toBeEnabled();
+                await expect(page.getByTestId('attributeAppliesToUserWhoCanSet-admin')).toBeEnabled();
+            } finally {
+                await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, name);
+            }
+        });
+
+        /**
+         * @objective Ensure the Managed by indicator tracks the linked source live: absent while
+         * the attribute is managed in Mattermost, naming SAML once SAML is linked, and gone again
+         * once the link is removed.
+         */
+        test('adds and removes the Managed by indicator as a source is linked and unlinked', async ({pw}) => {
+            const {adminUser} = await requireGlobalAttributesEnabled(pw);
+
+            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            const {page} = systemConsolePage;
+            await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+            await page.getByTestId('newAttributeButton').click();
+
+            await page.getByTestId('attributeAppliesToAddResourceButtonHeader').click();
+            await page.getByRole('menuitem', {name: 'Users'}).click();
+            await page.getByTestId('attributeAppliesToRow-user-toggle').click();
+
+            // * An attribute managed in Mattermost has no Managed by row at all
+            await expect(page.getByTestId('attributeAppliesToRow-user-body')).toBeVisible();
+            await expect(page.getByTestId('attributeAppliesToUserManagedBy')).toHaveCount(0);
+            await expect(page.getByText('Not editable in Mattermost.')).toHaveCount(0);
+
+            // # Link SAML
+            await page.getByTestId('attributeExternalSourceTrigger').click();
+            await page.getByRole('menuitem', {name: /^SAML/}).click();
+            await page.getByPlaceholder('department').fill('position');
+            await page.getByRole('button', {name: 'Save'}).click();
+
+            // * The indicator appears naming SAML, not AD/LDAP
+            const managedBy = page.getByTestId('attributeAppliesToUserManagedBy');
+            await expect(managedBy).toContainText('SAML');
+            await expect(managedBy).not.toContainText('AD/LDAP');
+
+            // * ...with the same glyph the SAML chip in the Definition block carries
+            const chipIcon = await page
+                .getByTestId('attributeExternalSourceChip-saml')
+                .locator('svg path')
+                .first()
+                .getAttribute('d');
+            expect(chipIcon).toBeTruthy();
+            await expect(managedBy.locator('svg path').first()).toHaveAttribute('d', chipIcon!);
+
+            // # Unlink it again
+            await page.getByTestId('attributeExternalSourceChip-saml-remove').click();
+
+            // * The indicator and its helper text go away with the link
+            await expect(page.getByTestId('attributeAppliesToUserManagedBy')).toHaveCount(0);
+            await expect(page.getByText('Not editable in Mattermost.')).toHaveCount(0);
+        });
     });
 
     test.describe('display name rendering', () => {
@@ -1651,6 +1850,98 @@ test.describe('System Console - Global Attributes form', {tag: '@system_console'
                 ).toBeVisible();
             } finally {
                 await deleteGlobalAttributeFieldIfExists(adminClient, name);
+            }
+        });
+
+        /**
+         * @objective Renaming a template's display_name also renames a linked channel
+         * field that still shares that label -- Channel Info reads the linked field's
+         * display_name, and the Save path cascades only when it still matches.
+         */
+        test('renames a matching linked channel display_name when the template display name changes', async ({pw}) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+
+            const timestamp = Date.now();
+            const name = `business_unit_${timestamp}`;
+            const displayName = `Business Unit ${timestamp}`;
+            const updatedDisplayName = `Cost Center ${timestamp}`;
+
+            try {
+                const field = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
+                    attrs: {display_name: displayName},
+                });
+                await createLinkedDependentField(adminClient, name, field.id, 'text', 'channel', {
+                    display_name: displayName,
+                    actions: ['display_label_info'],
+                });
+
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                await page.getByTestId(`global-attribute-actions-${field.id}`).click();
+                await page.locator(`#global-attribute-actions-${field.id}-edit`).click();
+                await expect(page).toHaveURL(new RegExp(`attribute_details/${field.id}$`));
+                await expect(page.getByTestId('attributeAppliesToRow-channel')).toBeVisible();
+
+                await page.getByTestId('attributeDisplayNameInput').fill(updatedDisplayName);
+                await page.getByTestId('saveSetting').click();
+                await expect(page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+
+                const linkedFields = await fetchLinkedFieldsForTemplate(adminClient, field.id);
+                const channelField = linkedFields.find((f) => f.object_type === 'channel');
+                expect(channelField?.attrs?.display_name).toBe(updatedDisplayName);
+            } finally {
+                await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, name);
+            }
+        });
+
+        /**
+         * @objective A linked field whose display_name already diverged from the template
+         * must keep that custom label when the template is renamed.
+         */
+        test('does not overwrite a diverged linked channel display_name when renaming the template', async ({pw}) => {
+            const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
+            await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
+
+            const timestamp = Date.now();
+            const name = `department_${timestamp}`;
+            const displayName = `Department ${timestamp}`;
+            const customLinkedDisplayName = `Org Unit ${timestamp}`;
+            const updatedDisplayName = `Division ${timestamp}`;
+
+            try {
+                const field = await createGlobalAttributeField(adminClient, name, {
+                    type: 'text',
+                    attrs: {display_name: displayName},
+                });
+                await createLinkedDependentField(adminClient, name, field.id, 'text', 'channel', {
+                    display_name: customLinkedDisplayName,
+                    actions: ['display_label_info'],
+                });
+
+                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+                const {page} = systemConsolePage;
+                await page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+
+                await page.getByTestId(`global-attribute-actions-${field.id}`).click();
+                await page.locator(`#global-attribute-actions-${field.id}-edit`).click();
+                await expect(page).toHaveURL(new RegExp(`attribute_details/${field.id}$`));
+
+                await page.getByTestId('attributeDisplayNameInput').fill(updatedDisplayName);
+                await page.getByTestId('saveSetting').click();
+                await expect(page).toHaveURL(new RegExp(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}$`));
+
+                const linkedFields = await fetchLinkedFieldsForTemplate(adminClient, field.id);
+                const channelField = linkedFields.find((f) => f.object_type === 'channel');
+                expect(channelField?.attrs?.display_name).toBe(customLinkedDisplayName);
+
+                const template = await getGlobalAttributeFieldByName(adminClient, name);
+                expect(template?.attrs?.display_name).toBe(updatedDisplayName);
+            } finally {
+                await deleteAppliesToAttributeAndLinkedFieldsIfExists(adminClient, name);
             }
         });
 
