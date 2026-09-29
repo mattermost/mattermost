@@ -77,6 +77,60 @@ describe('AttributeAppliesToUserItem', () => {
         expect(onManagedChange).toHaveBeenCalledWith('admin');
     });
 
+    it.each([
+        ['ldap' as const, 'AD/LDAP'],
+        ['saml' as const, 'SAML'],
+    ])('Managed by: names %s as the sync source above the editable settings, and offers nothing to change', async (externalSource, sourceLabel) => {
+        renderComponent({externalSource});
+        await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+
+        const managedBy = screen.getByTestId('attributeAppliesToUserManagedBy');
+        expect(managedBy).toBeDisabled();
+        expect(managedBy).toHaveAccessibleName(`Managed by: ${sourceLabel}. Values are synced from an external source and cannot be changed here.`);
+
+        // Label, value and helper text in one assertion, so dropping or
+        // reordering any of the three fails.
+        expect(managedBy.closest('.AttributeAppliesToItem__row')).toHaveTextContent(
+            new RegExp(`^Managed by${sourceLabel.replace('/', '\\/')}Not editable in Mattermost\\.$`),
+        );
+
+        const body = screen.getByTestId('attributeAppliesToRow-user-body');
+        expect([...body.querySelectorAll('.AttributeAppliesToItem__label')].map((el) => el.textContent)).toEqual([
+            'Managed by',
+            'Profile display',
+            'Who can set the value',
+        ]);
+
+        // No chevron: the value can never change, so the control must not
+        // advertise a menu the way a merely-unavailable select does.
+        expect(managedBy.querySelector('.icon-chevron-down')).toBeNull();
+
+        await userEvent.click(managedBy);
+        expect(screen.queryByRole('menuitemradio')).not.toBeInTheDocument();
+    });
+
+    it('Managed by: omits the row entirely for an attribute with no external source', async () => {
+        renderComponent();
+        await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+
+        expect(screen.queryByTestId('attributeAppliesToUserManagedBy')).not.toBeInTheDocument();
+        expect(screen.queryByText('Managed by')).not.toBeInTheDocument();
+        expect(screen.queryByText('Not editable in Mattermost.')).not.toBeInTheDocument();
+    });
+
+    it('Managed by: leaves the editable settings untouched, so a synced attribute still configures its own display and permission', async () => {
+        const onVisibilityChange = jest.fn();
+        const onManagedChange = jest.fn();
+        renderComponent({externalSource: 'ldap', visibility: 'when_set', onVisibilityChange, managed: '', onManagedChange});
+        await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+
+        await userEvent.click(screen.getByTestId('attributeAppliesToUserProfileDisplay-always'));
+        expect(onVisibilityChange).toHaveBeenCalledWith('always');
+
+        await userEvent.click(screen.getByTestId('attributeAppliesToUserWhoCanSet-admin'));
+        expect(onManagedChange).toHaveBeenCalledWith('admin');
+    });
+
     it('disables both config controls when disabled, once expanded', async () => {
         const {rerender} = renderComponent();
         await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
