@@ -173,7 +173,7 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary save-button"
+        class="btn btn-primary"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
@@ -242,7 +242,7 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
       class="admin-console-save"
     >
       <button
-        class="btn btn-primary save-button"
+        class="btn btn-primary"
         data-testid="saveSetting"
         disabled=""
         id="saveSetting"
