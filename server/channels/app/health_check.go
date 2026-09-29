@@ -123,7 +123,7 @@ func (a *App) GetHealthFinding(rctx request.CTX, fingerprint string) (*model.Hea
 	if err != nil {
 		return nil, model.NewAppError("GetHealthFinding", "app.health_finding.get.app_error", nil, "fingerprint="+fingerprint, http.StatusInternalServerError).Wrap(err)
 	}
-	if len(findings) == 0 {
+	if len(findings) == 0 || findings[0].Surface != string(healthcheck.SurfaceProduct) {
 		return nil, model.NewAppError("GetHealthFinding", "app.health_finding.get.not_found.app_error", nil, "fingerprint="+fingerprint, http.StatusNotFound)
 	}
 
