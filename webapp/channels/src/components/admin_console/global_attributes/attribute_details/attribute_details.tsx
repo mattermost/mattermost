@@ -40,6 +40,7 @@ import type {ResourceObjectType, UserManagedValue} from './attribute_applies_to_
 import AttributeExternalSource from './attribute_external_source';
 import AttributeOptionsRankValues from './attribute_options_rank_values';
 import AttributeOptionsValues from './attribute_options_values';
+import AttributeOwnersSource from './attribute_owners_source';
 import AttributePluginSource from './attribute_plugin_source';
 import {useConfirmRemoveAppliesTo} from './attribute_remove_applies_to_warning_modal';
 import AttributeSelect from './attribute_select';
@@ -1619,16 +1620,24 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                             pluginInventoryLoaded={pluginInventoryLoaded}
                                         />
                                     ) : (
-                                        showsExternalSource && fieldType !== 'graph' && (
-                                            <AttributeExternalSource
-                                                ldapAttr={ldapAttr}
-                                                samlAttr={samlAttr}
-                                                fieldType={fieldType}
-                                                onLink={handleLink}
-                                                disabled={saving || effectiveDisabled}
-                                                disableAdding={typeLockedByAppliesTo}
-                                            />
-                                        )
+                                        <>
+                                            {isOwned && (
+                                                <AttributeOwnersSource
+                                                    owners={owners}
+                                                    pluginInventoryLoaded={pluginInventoryLoaded}
+                                                />
+                                            )}
+                                            {showsExternalSource && fieldType !== 'graph' && (
+                                                <AttributeExternalSource
+                                                    ldapAttr={ldapAttr}
+                                                    samlAttr={samlAttr}
+                                                    fieldType={fieldType}
+                                                    onLink={handleLink}
+                                                    disabled={saving || effectiveDisabled}
+                                                    disableAdding={typeLockedByAppliesTo}
+                                                />
+                                            )}
+                                        </>
                                     )}
                                 </div>
                             </div>

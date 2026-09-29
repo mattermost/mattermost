@@ -2863,6 +2863,50 @@ describe('AttributeDetails', () => {
                 expect(screen.getByTestId('attributeTypeMenuButton')).toHaveAccessibleName(/applies to a resource/);
                 expect(screen.getByTestId('attributeNameEditLink')).toHaveAccessibleName(/applies to a resource/);
             });
+
+            it('shows the owners note beside the external-source editor on an owned template', async () => {
+                mockScimStatus(true);
+                mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field', {attrs: {display_name: 'Department', owners: [scimOwner]}})]);
+
+                renderEdit();
+                await waitForForm();
+
+                await waitFor(() => expect(screen.getByTestId('attributeOwnersSourceManagedBy')).toHaveTextContent('Managed by SCIM'));
+                expect(screen.getByTestId('attributeExternalSource')).toBeInTheDocument();
+                expect(screen.queryByTestId('attributePluginSource')).not.toBeInTheDocument();
+            });
+
+            it('shows the owners note beside the external-source editor on an owned standalone user field', async () => {
+                mockScimStatus(true);
+                mockLoadedNonTemplateField(makeNonTemplate('user', {attrs: {display_name: 'Department', owners: [scimOwner]}}));
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.getByTestId('attributeOwnersSource')).toBeInTheDocument();
+                expect(screen.getByTestId('attributeExternalSource')).toBeInTheDocument();
+            });
+
+            it('shows no owners note when the linked Users field has no owners', async () => {
+                mockLoadedField(makeTemplate(), [makeLinked('user', 'user-field')]);
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.queryByTestId('attributeOwnersSource')).not.toBeInTheDocument();
+            });
+
+            it('shows only the plugin note, without the external-source editor, for a plugin-created template', async () => {
+                mockScimStatus(true);
+                mockLoadedField(makePluginOwnedTemplate(), [makeLinked('user', 'user-field', {attrs: {display_name: 'Plugin field', owners: [scimOwner]}})]);
+
+                renderEdit();
+                await waitForForm();
+
+                expect(screen.getByTestId('attributePluginSource')).toBeInTheDocument();
+                expect(screen.queryByTestId('attributeOwnersSource')).not.toBeInTheDocument();
+                expect(screen.queryByTestId('attributeExternalSource')).not.toBeInTheDocument();
+            });
         });
 
         it('redirects to the listing when the field is Classification Markings', async () => {
