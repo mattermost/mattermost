@@ -5,10 +5,14 @@ import type {Locator} from '@playwright/test';
 import {expect} from '@playwright/test';
 
 /**
- * The test-id suffix of a chip strip. The channel header renders the header and
- * info designations as one merged strip.
+ * Which of the channel header's two chip slots to address: 'header' is the row
+ * under the channel name, 'info' the inline strip beside the member count. Each
+ * slot carries its own test ids, since both can be on screen at once.
+ *
+ * 'info-header' is the merged row the thread chrome uses, where the two slots
+ * share one row so overflow is decided once.
  */
-export type ChannelAttributeSurface = 'info-header';
+export type ChannelAttributeSurface = 'header' | 'info' | 'info-header';
 
 /**
  * The attribute chips in one channel header slot.

@@ -565,6 +565,38 @@ describe('ChannelAttributeLabels', () => {
         expect(screen.queryByTestId('channelAttributeLabelsOverflow-header')).not.toBeInTheDocument();
     });
 
+    test('in the thread header, chips read as labels because Channel Info cannot open there', async () => {
+        stubWidths(110);
+        const showChannelInfo = jest.spyOn(rhsActions, 'showChannelInfo');
+
+        renderWithContext(
+            <ChannelAttributeLabels
+                channelId={CHANNEL_ID}
+                surface='header'
+                interactive={false}
+            />,
+            makeState([field('a'), field('b'), field('c')]),
+        );
+
+        const chip = await screen.findByTestId('attributeChip');
+        expect(chip.closest('button')).toBeNull();
+        await userEvent.click(chip);
+
+        const overflow = await screen.findByTestId('channelAttributeLabelsOverflow-header');
+        await act(async () => {
+            overflow.click();
+        });
+
+        // The overflowed values are still readable, but nothing in the popover
+        // offers to open a panel that would never load.
+        const popover = await screen.findByTestId('channelAttributeLabelsPopover-header');
+        expect(popover).toHaveTextContent('B');
+        expect(popover.querySelector('button')).toBeNull();
+        expect(screen.queryByTestId('channelAttributeLabelsViewAll-header')).not.toBeInTheDocument();
+
+        expect(showChannelInfo).not.toHaveBeenCalled();
+    });
+
     test('opens channel info from View all attributes', async () => {
         stubWidths(110);
         const showChannelInfo = jest.spyOn(rhsActions, 'showChannelInfo');
