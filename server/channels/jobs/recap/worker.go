@@ -19,7 +19,7 @@ type AppIface interface {
 	Publish(message *model.WebSocketEvent)
 }
 
-func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, appInstance AppIface) *jobs.SimpleWorker {
+func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, appInstance AppIface) *jobs.PoolWorker {
 	isEnabled := func(cfg *model.Config) bool {
 		return cfg.AIRecapsEnabled()
 	}
@@ -31,7 +31,14 @@ func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, appInstanc
 		})
 	}
 
-	return jobs.NewSimpleWorker("Recap", jobServer, execute, isEnabled)
+	poolSize := func(cfg *model.Config) int {
+		if cfg == nil {
+			return model.RecapProcessingDefaultMaxConcurrentJobs
+		}
+		return cfg.AIRecapSettings.Processing.MaxConcurrentJobsOrDefault()
+	}
+
+	return jobs.NewPoolWorker("Recap", jobServer, execute, isEnabled, poolSize)
 }
 
 func processRecapJob(logger mlog.LoggerIFace, job *model.Job, storeInstance store.Store, appInstance AppIface, setProgress func(int64)) error {
