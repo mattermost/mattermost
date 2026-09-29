@@ -56,8 +56,8 @@ jobs:
             echo "Checking: $CONTEXT_NAME"
 
             # Get current status
-            STATUS_JSON=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${COMMIT_SHA}/statuses" --paginate --slurp \
-              --jq "[.[][] | select(.context == \"$CONTEXT_NAME\")] | first // empty")
+            STATUS_JSON=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${COMMIT_SHA}/statuses" --paginate --slurp | \
+              jq "[.[][] | select(.context == \"$CONTEXT_NAME\")] | first // empty")
 
             if [ -z "$STATUS_JSON" ]; then
               echo "  No status found, skipping"

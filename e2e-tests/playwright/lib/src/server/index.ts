@@ -8,7 +8,13 @@ export {getOnPremServerConfig} from './default_config';
 export {initSetup, getAdminClient} from './init';
 export {createRandomPost} from './post';
 export {createNewTeam, createRandomTeam} from './team';
-export {createNewUserProfile, createRandomUser, getDefaultAdminUser, isOutsideRemoteUserHour} from './user';
+export {
+    createNewUserProfile,
+    createRandomUser,
+    getDefaultAdminUser,
+    isOutsideRemoteUserHour,
+    setDefaultOnboardingPreferences,
+} from './user';
 export {extractEmailLink, getRecentEmail} from './email';
 export type {InbucketEmail} from './email';
 export {
@@ -73,6 +79,7 @@ export {ensureLocalFile, listMattermostDataFiles} from './filestore';
 export {ensurePostgresSearch} from './postgres_search';
 export {ensureFeatureFlag} from './feature_flags';
 export {ensureServerEnv, ensureSiteUrl} from './server_env';
+export {generateTotp, enableUserMfa, disableMfa} from './mfa';
 export {runMmctl, runMmctlLocal, ensureMmctl} from './mmctl';
 export type {MmctlResult} from './mmctl';
 export {upgradeServerImage} from './version';

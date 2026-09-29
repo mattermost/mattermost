@@ -247,7 +247,7 @@ describe('Integrations', () => {
         cy.postMessage('hello');
 
         // # Navigate to slash commands and create the slash command
-        cy.uiOpenProductMenu('Integrations');
+        cy.uiOpenSwitchProductMenu('Integrations');
         cy.get('#slashCommands').click();
         cy.get('#addSlashCommand').click();
         cy.get('#displayName').type(`Test${timestamp}`);
