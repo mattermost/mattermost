@@ -49,6 +49,12 @@ func splitCPAAttrs(attrs model.StringInterface) (schema, display model.StringInt
 			display[k] = v
 		}
 	}
+	// Owners are schema (stored on the template) but must also be readable from
+	// the user field: callers read owners from the returned CPAField (which is
+	// the user field), and enforceGroupPermissions needs them to pin PermissionValues.
+	if v, ok := attrs[model.PropertyAttrsOwners]; ok {
+		display[model.PropertyAttrsOwners] = v
+	}
 	return schema, display
 }
 
@@ -169,6 +175,14 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	// a per-object-type default because the system-TargetType sysadmin clause
 	// does not apply to value writes.
 	defaultValuesLevel := app.DefaultPropertyFieldValuesPermissionLevel(userField)
+	// Owner-managed fields must stay sysadmin-write even if the owners list is
+	// later dropped. splitCPAAttrs copies owners to displayAttrs so
+	// enforceGroupPermissions will also pin this, but set it here first so the
+	// nil-fill below is already at the right level as a safety net.
+	if model.HasPropertyFieldOwners(rawField) {
+		sysadmin := model.PermissionLevelSysadmin
+		defaultValuesLevel = sysadmin
+	}
 	userFieldPermLevel := app.DefaultPropertyFieldPermissionLevel(userField)
 	if userField.PermissionField == nil {
 		userField.PermissionField = &userFieldPermLevel
