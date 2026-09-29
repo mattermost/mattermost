@@ -364,7 +364,7 @@ func TestReadInvalidPackets(t *testing.T) {
 	t.Run("truncated zip never panics", func(t *testing.T) {
 		data := zipFiles(t, fixtureFiles(t, "ha"))
 
-		for size := range len(data) {
+		for size := range data {
 			require.NotPanics(t, func() {
 				p, err := Read(bytes.NewReader(data[:size]), int64(size))
 				if err == nil {
