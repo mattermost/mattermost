@@ -44,8 +44,10 @@
     }
 
     &--medium.AttributeChip--dismissible {
-        padding: 4px 4px 4px 8px;
-        gap: 4px;
+        // Default matches a non-dismissible medium chip. Channel-info / inline
+        // pickers tighten the trailing edge only while the dismiss control is shown.
+        padding: 4px 8px;
+        gap: 0;
     }
 
     &--neutral {

@@ -75,19 +75,41 @@
     }
 
     // Dismiss only while the value menu is open (or the control is keyboard-focused).
+    // Collapse the control's box when hidden so chips do not reserve trailing space.
+    .AttributeChip--dismissible {
+        padding: 4px 8px;
+        gap: 0;
+    }
+
     .AttributeChip__remove {
+        overflow: hidden;
+        width: 0;
+        height: 0;
+        margin: 0;
         opacity: 0;
         pointer-events: none;
 
         &:focus-visible {
+            width: 14px;
+            height: 14px;
+            margin-inline-start: 4px;
             opacity: 0.56;
             pointer-events: auto;
         }
     }
 
-    &__valueTrigger[aria-expanded='true'] .AttributeChip__remove {
-        opacity: 0.56;
-        pointer-events: auto;
+    &__valueTrigger[aria-expanded='true'] {
+        .AttributeChip--dismissible {
+            padding: 4px 4px 4px 8px;
+        }
+
+        .AttributeChip__remove {
+            width: 14px;
+            height: 14px;
+            margin-inline-start: 4px;
+            opacity: 0.56;
+            pointer-events: auto;
+        }
     }
 
     &__valueTrigger {
