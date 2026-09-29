@@ -67,6 +67,7 @@ Platform and OS scope reflects reported and tested environments and may not repr
  - Backfilled ``auto_add: "always"`` metadata into ``AccessControlPolicies`` membership rules, migrating automatic-member behavior from the ``Active`` column to per-rule metadata with no performance impact.
  - Added GIN index ``idx_access_control_policies_rules`` on ``AccessControlPolicies(Data -> 'rules')`` to speed up access-control policy membership lookups with no downtime or locking impact.
  - Added a GIN index on ``AccessControlPolicies(Data -> 'imports')`` using ``jsonb_path_ops``, eliminating sequential scans on imports containment queries with no downtime or lock impact on normal traffic.
+ - Removed stale ``ldap`` and ``saml`` keys from the ``Attrs JSONB`` column in ``PropertyFields`` for all non-user, non-template rows; irreversible data cleanup with no expected downtime but potential full-table scan on unindexed deployments.
 
 #### config.json
 New setting options were added to ``config.json``. Below is a list of the additions and their default values on install. The settings can be modified in ``config.json``, or the System Console when available.
@@ -221,6 +222,7 @@ See [this blog post](https://mattermost.com/blog/mattermost-v12-0-is-now-availab
  - Updated direct and group channel targeting for incoming webhooks while direct messages are scoped to team members.
  - Fixed an issue where changing a channel attribute, or opening some attribute dropdowns, briefly blanked out every attribute chip in the channel header.
  - Fixed an issue where invalidating cached sessions did not propagate to already-open websocket connections in some cases.
+ - Fixed an issue where channel attribute values could not be saved when the underlying attribute definition had an LDAP or SAML sync source set, resulting in a 403 Forbidden error.
 
 ### API Changes
  - Added ``POST /access_control/decisions/actions/search (searchAccessControlDecisionActions)`` API endpoint.
