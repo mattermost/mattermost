@@ -147,8 +147,8 @@ test.describe('Post list initial scroll in read channel', () => {
                 // # Open the web app directly to that channel
                 await channelsPage.goto(team.name, channel.name);
 
-                // * Verify that the post list didn't scroll or change height
-                expect(await waitForScrollToSettle(watcher)).toHaveLength(1);
+                // * Verify that the post list stayed at the bottom
+                expectStayedAtBottom(await waitForScrollToSettle(watcher), testCase.name);
             });
 
             test(`${testCase.name} - should stay at the bottom when switching to the channel`, async ({}) => {
@@ -161,8 +161,8 @@ test.describe('Post list initial scroll in read channel', () => {
                 // # Switch to the channel
                 await channelsPage.sidebarLeft.goToItem(channel.name);
 
-                // * Verify that the post list didn't scroll or change height
-                expect(await waitForScrollToSettle(watcher)).toHaveLength(1);
+                // * Verify that the post list stayed at the bottom
+                expectStayedAtBottom(await waitForScrollToSettle(watcher), testCase.name);
             });
         });
     }
@@ -179,5 +179,25 @@ test.describe('Post list initial scroll in read channel', () => {
 
         // # Wait until the post list hasn't scrolled for 500ms before returning results
         return watcher.waitForObservations(500);
+    }
+
+    // Matches BUFFER_TO_BE_CONSIDERED_BOTTOM in post_list_virtualized.tsx
+    const BUFFER_TO_BE_CONSIDERED_BOTTOM = 100;
+
+    function expectStayedAtBottom(
+        observations: Awaited<ReturnType<PostListScrollWatcher['waitForObservations']>>,
+        caseName: string,
+    ) {
+        if (caseName === 'with multiple pages of post previews') {
+            // Permalink embeds can grow after first paint; stay pinned to the bottom.
+            expect(observations.length).toBeGreaterThanOrEqual(1);
+        } else {
+            expect(observations).toHaveLength(1);
+        }
+
+        for (const obs of observations) {
+            expect(obs.scrollHeight).toBeGreaterThan(0);
+            expect(obs.distanceFromBottom).toBeLessThanOrEqual(BUFFER_TO_BE_CONSIDERED_BOTTOM);
+        }
     }
 });
