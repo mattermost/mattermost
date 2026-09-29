@@ -404,18 +404,20 @@ describe('ChannelInfoAttributes', () => {
                 makeState([field('program')], [value('program', 'opt_program')]),
             );
 
-            await userEvent.hover(screen.getByTestId('channelInfoAttributeEdit-program'));
             const trigger = screen.getByTestId('channelInfoAttributeEdit-program');
             const remove = screen.getByTestId('attributeChipRemove');
 
-            // Remove lives inside the chip (and thus the trigger); pointer handlers
-            // must keep the menu closed and still clear the value.
+            // Remove lives inside the chip; it is only interactive while the menu
+            // is open. Opening first, then clicking remove, must clear without
+            // leaving the menu stuck open from the remove click itself.
             expect(trigger).toContainElement(remove);
             expect(screen.getByTestId('attributeChip')).toContainElement(remove);
 
+            await userEvent.click(trigger);
+            expect(await screen.findByRole('menu', {name: 'Program'})).toBeInTheDocument();
+
             await userEvent.click(remove);
 
-            expect(screen.queryByRole('menu', {name: 'Program'})).not.toBeInTheDocument();
             await waitFor(() => expect(patchSpy).toHaveBeenCalledWith(
                 'access_control',
                 'channel',

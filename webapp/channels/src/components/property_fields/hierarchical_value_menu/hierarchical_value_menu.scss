@@ -96,6 +96,22 @@
             font-weight: 400;
             line-height: 16px;
         }
+
+        // Dismiss only while the picker is open (or the control is keyboard-focused).
+        .AttributeChip__remove {
+            opacity: 0;
+            pointer-events: none;
+
+            &:focus-visible {
+                opacity: 0.56;
+                pointer-events: auto;
+            }
+        }
+
+        .hierarchical-value-menu__button[aria-expanded='true'] .AttributeChip__remove {
+            opacity: 0.56;
+            pointer-events: auto;
+        }
     }
 
     &__button-inner {

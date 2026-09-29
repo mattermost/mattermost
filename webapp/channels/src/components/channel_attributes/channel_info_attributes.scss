@@ -74,6 +74,22 @@
         }
     }
 
+    // Dismiss only while the value menu is open (or the control is keyboard-focused).
+    .AttributeChip__remove {
+        opacity: 0;
+        pointer-events: none;
+
+        &:focus-visible {
+            opacity: 0.56;
+            pointer-events: auto;
+        }
+    }
+
+    &__valueTrigger[aria-expanded='true'] .AttributeChip__remove {
+        opacity: 0.56;
+        pointer-events: auto;
+    }
+
     &__valueTrigger {
         display: inline-flex;
         width: 100%;
