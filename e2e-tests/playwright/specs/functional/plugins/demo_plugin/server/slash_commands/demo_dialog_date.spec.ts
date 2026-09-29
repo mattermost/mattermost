@@ -60,8 +60,9 @@ test('should open /dialog date and post submit confirmation after selecting date
     // 7. Select a date using the Meeting Date picker
     await dialog.getByRole('button', {name: /Select a meeting date/i}).click();
     await expect(channelsPage.page.getByRole('grid')).toBeVisible();
-    // Click day 20 — reliably available in any month
-    await channelsPage.page.getByRole('grid').getByText('20', {exact: true}).click();
+    // Use next month so the chosen day is never in the past (and therefore disabled).
+    await channelsPage.page.getByLabel('Go to next month').click();
+    await channelsPage.page.getByRole('grid').getByText('15', {exact: true}).click();
 
     // 8. Select date and time using the Meeting Date & Time picker.
     // The datetime field renders via DateTimeInput which wraps its date part in
@@ -72,7 +73,8 @@ test('should open /dialog date and post submit confirmation after selecting date
     // include in accname but which is invisible to textContent inspection.
     await dialog.locator('.dateTime__date').getByRole('button').click();
     await expect(channelsPage.page.getByRole('grid')).toBeVisible();
-    await channelsPage.page.getByRole('grid').getByText('22', {exact: true}).click();
+    await channelsPage.page.getByLabel('Go to next month').click();
+    await channelsPage.page.getByRole('grid').getByText('16', {exact: true}).click();
 
     // Select a time from the time picker.  The time button carries aria-label="Time"
     // (set explicitly in DateTimeInput), so the name-based locator is reliable here.
