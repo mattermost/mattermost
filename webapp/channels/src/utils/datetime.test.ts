@@ -3,6 +3,7 @@
 
 import {
     getDiff,
+    getMillisUntilNextDay,
     isToday,
     isYesterday,
 } from './datetime';
@@ -150,5 +151,32 @@ describe('diff: day', () => {
         date.setMinutes(59);
 
         expect(getDiff(date, now, tz, 'day')).toBe(-366);
+    });
+});
+
+describe('getMillisUntilNextDay', () => {
+    const HOUR = 60 * 60 * 1000;
+
+    test('ten seconds before midnight', () => {
+        expect(getMillisUntilNextDay(new Date('2019-05-03T23:59:50Z'), 'UTC')).toBe(10 * 1000);
+    });
+
+    test('exactly at midnight', () => {
+        expect(getMillisUntilNextDay(new Date('2019-05-04T00:00:00Z'), 'UTC')).toBe(24 * HOUR);
+    });
+
+    test('measured in the given timezone rather than UTC', () => {
+        // 08:59:50 on the following day in Tokyo, so its midnight is 15 hours and 10 seconds away.
+        expect(getMillisUntilNextDay(new Date('2019-05-03T23:59:50Z'), 'Asia/Tokyo')).toBe((15 * HOUR) + (10 * 1000));
+    });
+
+    test('day shortened by the start of daylight saving time', () => {
+        // Midnight on the day New York springs forward, which only has 23 hours.
+        expect(getMillisUntilNextDay(new Date('2019-03-10T05:00:00Z'), 'America/New_York')).toBe(23 * HOUR);
+    });
+
+    test('day lengthened by the end of daylight saving time', () => {
+        // Midnight on the day New York falls back, which has 25 hours.
+        expect(getMillisUntilNextDay(new Date('2019-11-03T04:00:00Z'), 'America/New_York')).toBe(25 * HOUR);
     });
 });

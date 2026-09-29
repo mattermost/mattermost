@@ -6,7 +6,7 @@ import moment from 'moment';
 import React from 'react';
 
 import {fakeDate} from 'tests/helpers/date';
-import {renderWithContext} from 'tests/react_testing_utils';
+import {act, renderWithContext} from 'tests/react_testing_utils';
 
 /**
  * Helper to compute the expected dateTime attribute value.
@@ -322,5 +322,158 @@ describe('components/timestamp/Timestamp', () => {
             />,
         );
         expect(container.textContent).toBe('19:15');
+    });
+});
+
+describe('components/timestamp/Timestamp day rollover', () => {
+    const TEN_SECONDS_BEFORE_MIDNIGHT = new Date('2019-05-03T23:59:50Z');
+    const EARLIER_THAT_EVENING = new Date('2019-05-03T20:00:00Z');
+
+    const TODAY_YESTERDAY_RANGES = [
+        RelativeRanges.TODAY_TITLE_CASE,
+        RelativeRanges.YESTERDAY_TITLE_CASE,
+    ];
+
+    beforeEach(() => {
+        jest.useFakeTimers();
+        jest.setSystemTime(TEN_SECONDS_BEFORE_MIDNIGHT);
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
+    });
+
+    function advanceBy(millis: number) {
+        act(() => {
+            jest.advanceTimersByTime(millis);
+        });
+    }
+
+    test('should relabel Today as Yesterday once the local day changes', () => {
+        const {container} = renderWithContext(
+            <Timestamp
+                value={EARLIER_THAT_EVENING}
+                timeZone='UTC'
+                useTime={false}
+                ranges={TODAY_YESTERDAY_RANGES}
+            />,
+        );
+
+        expect(container.textContent).toEqual('Today');
+
+        advanceBy(11 * 1000);
+
+        expect(container.textContent).toEqual('Yesterday');
+    });
+
+    test('should relabel today as yesterday for day-relative ranges', () => {
+        const {container} = renderWithContext(
+            <Timestamp
+                value={EARLIER_THAT_EVENING}
+                timeZone='UTC'
+                useTime={false}
+                ranges={[RelativeRanges.TODAY_YESTERDAY]}
+            />,
+        );
+
+        expect(container.textContent).toEqual('today');
+
+        advanceBy(11 * 1000);
+
+        expect(container.textContent).toEqual('yesterday');
+    });
+
+    test('should recount the days for a day-relative timestamp without any ranges', () => {
+        const {container} = renderWithContext(
+            <Timestamp
+                value={new Date('2019-04-30T20:00:00Z')}
+                timeZone='UTC'
+                useTime={false}
+                unit='day'
+            />,
+        );
+
+        expect(container.textContent).toEqual('3 days ago');
+
+        advanceBy(11 * 1000);
+
+        expect(container.textContent).toEqual('4 days ago');
+    });
+
+    test('should drop the weekday format once the value is more than six days old', () => {
+        const {container} = renderWithContext(
+            <Timestamp
+                value={new Date('2019-04-27T12:00:00Z')}
+                timeZone='UTC'
+                useTime={false}
+            />,
+        );
+
+        expect(container.textContent).toEqual('Saturday');
+
+        advanceBy(11 * 1000);
+
+        expect(container.textContent).toEqual('April 27');
+    });
+
+    test('should use the given timezone to decide where the day boundary falls', () => {
+        const {container} = renderWithContext(
+            <Timestamp
+                value={EARLIER_THAT_EVENING}
+                timeZone='Asia/Tokyo'
+                useTime={false}
+                ranges={TODAY_YESTERDAY_RANGES}
+            />,
+        );
+
+        expect(container.textContent).toEqual('Today');
+
+        // Midnight passes in UTC, but it is still the same day in Tokyo.
+        advanceBy(11 * 1000);
+
+        expect(container.textContent).toEqual('Today');
+
+        // Midnight in Tokyo.
+        advanceBy(15 * 60 * 60 * 1000);
+
+        expect(container.textContent).toEqual('Yesterday');
+    });
+
+    test('should not schedule an update when only a time is rendered', () => {
+        renderWithContext(
+            <Timestamp
+                value={EARLIER_THAT_EVENING}
+                timeZone='UTC'
+                useDate={false}
+            />,
+        );
+
+        expect(jest.getTimerCount()).toBe(0);
+    });
+
+    test('should keep a single pending update across re-renders', () => {
+        const {rerender} = renderWithContext(
+            <Timestamp
+                value={EARLIER_THAT_EVENING}
+                timeZone='UTC'
+                useTime={false}
+                className='before'
+                ranges={TODAY_YESTERDAY_RANGES}
+            />,
+        );
+
+        expect(jest.getTimerCount()).toBe(1);
+
+        rerender(
+            <Timestamp
+                value={EARLIER_THAT_EVENING}
+                timeZone='UTC'
+                useTime={false}
+                className='after'
+                ranges={TODAY_YESTERDAY_RANGES}
+            />,
+        );
+
+        expect(jest.getTimerCount()).toBe(1);
     });
 });

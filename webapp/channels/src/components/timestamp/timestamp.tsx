@@ -19,7 +19,7 @@ import {isValidElementType} from 'react-is';
 
 import type {RequireOnlyOne} from '@mattermost/types/utilities';
 
-import {isSameYear, isWithin, isEqual, getDiff} from 'utils/datetime';
+import {isSameYear, isWithin, isEqual, getDiff, getMillisUntilNextDay} from 'utils/datetime';
 import {resolve} from 'utils/resolvable';
 import type {Resolvable} from 'utils/resolvable';
 
@@ -44,6 +44,7 @@ export type RelativeOptions = FormatRelativeTimeOptions & {
     relNearest?: number;
     truncateEndpoints?: boolean;
     updateIntervalInSeconds?: number;
+    updateAtNextDay?: boolean;
     capitalize?: boolean;
 };
 
@@ -54,6 +55,7 @@ function isRelative(format: ResolvedFormats['relative']): format is RelativeOpti
 export type SimpleRelativeOptions = {
     message: ReactNode;
     updateIntervalInSeconds?: number;
+    updateAtNextDay?: boolean;
 };
 
 function isSimpleRelative(format: unknown): format is SimpleRelativeOptions {
@@ -84,6 +86,13 @@ type DisplayAs = {
 };
 
 export type RangeDescriptor = Breakpoint & DisplayAs;
+
+type ResolvedRange = DisplayAs & {
+
+    // Set when the range was selected by comparing calendar days, so the choice stops
+    // being valid once the local day changes.
+    dependsOnCurrentDay?: boolean;
+};
 
 function normalizeRangeDescriptor(unit: NonNullable<Props['units']>[number]): RangeDescriptor {
     if (typeof unit === 'string' || typeof unit === 'number') {
@@ -282,8 +291,8 @@ class Timestamp extends PureComponent<Props, State> {
         return undefined;
     }
 
-    autoRange(value: Date, units: Props['units'] = (this.props.units || this.props.ranges)): DisplayAs {
-        return units?.map(normalizeRangeDescriptor).find(({equals, within}) => {
+    autoRange(value: Date, units: Props['units'] = (this.props.units || this.props.ranges)): ResolvedRange {
+        const range = units?.map(normalizeRangeDescriptor).find(({equals, within}) => {
             if (equals != null) {
                 return isEqual(value, this.state.now, this.props.timeZone, ...equals);
             }
@@ -291,9 +300,22 @@ class Timestamp extends PureComponent<Props, State> {
                 return isWithin(value, this.state.now, this.props.timeZone, ...within);
             }
             return false;
-        }) ?? {
-            display: [this.props.unit],
-            updateIntervalInSeconds: this.props.updateIntervalInSeconds,
+        });
+
+        if (!range) {
+            return {
+                display: [this.props.unit],
+                updateIntervalInSeconds: this.props.updateIntervalInSeconds,
+            };
+        }
+
+        const [breakpointUnit] = range.equals ?? range.within ?? [];
+
+        return {
+            display: range.display,
+            updateIntervalInSeconds: range.updateIntervalInSeconds,
+            capitalize: range.capitalize,
+            dependsOnCurrentDay: breakpointUnit === 'day',
         };
     }
 
@@ -306,6 +328,7 @@ class Timestamp extends PureComponent<Props, State> {
                     display,
                     updateIntervalInSeconds = this.props.updateIntervalInSeconds,
                     capitalize = this.props.capitalize,
+                    dependsOnCurrentDay,
                 } = this.autoRange(value);
 
                 if (display) {
@@ -313,6 +336,7 @@ class Timestamp extends PureComponent<Props, State> {
                         return {
                             message: display,
                             updateIntervalInSeconds,
+                            updateAtNextDay: dependsOnCurrentDay,
                         };
                     }
 
@@ -330,6 +354,7 @@ class Timestamp extends PureComponent<Props, State> {
                             numeric,
                             style,
                             updateIntervalInSeconds: updateIntervalInSeconds ?? defaultRefreshIntervals.get(unit),
+                            updateAtNextDay: dependsOnCurrentDay || unit === 'day',
                             capitalize,
                         };
                     }
@@ -380,16 +405,36 @@ class Timestamp extends PureComponent<Props, State> {
         return null;
     }
 
-    private maybeUpdate(relative: ResolvedFormats['relative']): ReturnType<typeof setTimeout> | null {
-        if (!relative ||
-            !relative.updateIntervalInSeconds) {
+    private getUpdateDelay({relative, date}: ResolvedFormats): number | null {
+        if (relative && relative.updateIntervalInSeconds) {
+            return relative.updateIntervalInSeconds * 1000;
+        }
+
+        // Labels like "Today" and formats picked by how many days ago the value was both stop
+        // being accurate once the local day rolls over, so refresh them at the day boundary.
+        if (relative ? relative.updateAtNextDay : Boolean(date)) {
+            return getMillisUntilNextDay(this.state.now, this.props.timeZone);
+        }
+
+        return null;
+    }
+
+    private maybeUpdate(formats: ResolvedFormats): ReturnType<typeof setTimeout> | null {
+        if (this.nextUpdate) {
+            clearTimeout(this.nextUpdate);
+        }
+
+        const delay = this.getUpdateDelay(formats);
+
+        if (delay == null) {
             return null;
         }
+
         return setTimeout(() => {
             if (this.mounted) {
                 this.setState({now: new Date()});
             }
-        }, relative.updateIntervalInSeconds * 1000);
+        }, delay);
     }
 
     static format({relative, date, time}: FormattedParts): ReactNode {
@@ -442,7 +487,7 @@ class Timestamp extends PureComponent<Props, State> {
             );
         }
 
-        this.nextUpdate = this.maybeUpdate(formats.relative);
+        this.nextUpdate = this.maybeUpdate(formats);
 
         if (children) {
             return resolve(children, {value, timeZone, formatted, ...parts}, formats);
