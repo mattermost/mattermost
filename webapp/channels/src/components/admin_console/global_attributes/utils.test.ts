@@ -17,7 +17,6 @@ import {
     deleteLinkedAttributeField,
     fetchAttributeField,
     fetchLinkedFieldsForTemplate,
-    formatAttributeHeadingName,
     isAttributeFieldType,
     linkedFieldsByResourceType,
     updateAttributeField,
@@ -626,9 +625,9 @@ describe('global_attributes/utils', () => {
 
             const fields = await fetchLinkedFieldsForTemplate('template-id', ALL_RESOURCE_TYPES);
 
-            expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'user', 'system', undefined, expect.objectContaining({perPage: 200}));
-            expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'channel', 'system', undefined, expect.objectContaining({perPage: 200}));
-            expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'post', 'system', undefined, expect.objectContaining({perPage: 200}));
+            expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'user', expect.objectContaining({targetType: 'system', perPage: 200}));
+            expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'channel', expect.objectContaining({targetType: 'system', perPage: 200}));
+            expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'post', expect.objectContaining({targetType: 'system', perPage: 200}));
             expect(fields.map((field) => field.id)).toEqual(['u1', 'c1']);
         });
 
@@ -656,21 +655,6 @@ describe('global_attributes/utils', () => {
             expect(isAttributeFieldType('date')).toBe(false);
             expect(isAttributeFieldType('user')).toBe(false);
             expect(isAttributeFieldType('')).toBe(false);
-        });
-    });
-
-    describe('formatAttributeHeadingName', () => {
-        it('title-cases the first letter so internal names read as headings', () => {
-            expect(formatAttributeHeadingName('classification')).toBe('Classification');
-            expect(formatAttributeHeadingName('  department')).toBe('Department');
-        });
-
-        it('leaves an already-capitalized display name unchanged', () => {
-            expect(formatAttributeHeadingName('Test Attribute')).toBe('Test Attribute');
-        });
-
-        it('returns an empty string when the name is blank', () => {
-            expect(formatAttributeHeadingName('   ')).toBe('');
         });
     });
 

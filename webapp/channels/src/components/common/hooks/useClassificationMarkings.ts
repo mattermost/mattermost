@@ -66,8 +66,7 @@ export default function useClassificationMarkings(): ClassificationMarkingsState
             dispatch(fetchPropertyFields(
                 ACCESS_CONTROL_PROPERTY_GROUP,
                 CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
-                CLASSIFICATIONS_FIELD_TARGET_TYPE,
-                CLASSIFICATIONS_FIELD_TARGET_ID,
+                {targetType: CLASSIFICATIONS_FIELD_TARGET_TYPE, targetId: CLASSIFICATIONS_FIELD_TARGET_ID},
             ));
         }
     }, [featureEnabled, hasEnterpriseLicense, channelField, dispatch]);

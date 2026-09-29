@@ -3,10 +3,11 @@
 
 import {combineReducers} from 'redux';
 
-import type {PropertyField, PropertyFieldsState, PropertyGroupsState, PropertyValuesState} from '@mattermost/types/properties';
+import type {Post} from '@mattermost/types/posts';
+import type {PropertyField, PropertyFieldsState, PropertyGroupsState, PropertyValue, PropertyValuesState} from '@mattermost/types/properties';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
-import {PropertyTypes, UserTypes} from 'mattermost-redux/action_types';
+import {PostTypes, PropertyTypes, UserTypes} from 'mattermost-redux/action_types';
 import {isPSAv1PropertyField} from 'mattermost-redux/utils/property_utils';
 
 const initialFieldsState: PropertyFieldsState = {
@@ -190,46 +191,101 @@ function fieldsReducer(
     }
 }
 
+/**
+ * Merges values into the store.
+ *
+ * Two skips, both correctness rather than optimisation:
+ *
+ * - A value strictly older than the stored one is dropped.
+ * - Tombstones are never stored. PROPERTY_VALUE_DELETED and its siblings are how a
+ *   deletion reaches this slice.
+ */
+function mergeValues(state: PropertyValuesState, values: Array<PropertyValue<unknown>>): PropertyValuesState {
+    let nextByTargetId: PropertyValuesState['byTargetId'] | undefined;
+    let nextByFieldId: PropertyValuesState['byFieldId'] | undefined;
+
+    for (const value of values) {
+        const {target_id: targetId, field_id: fieldId} = value;
+
+        if (!targetId || !fieldId || value.delete_at > 0) {
+            continue;
+        }
+
+        const stored = state.byTargetId[targetId]?.[fieldId];
+        if (stored && stored.id === value.id && stored.update_at > value.update_at) {
+            continue;
+        }
+
+        if (!nextByTargetId) {
+            nextByTargetId = {...state.byTargetId};
+            nextByFieldId = {...state.byFieldId};
+        }
+
+        // byTargetId
+        if (!nextByTargetId[targetId]) {
+            nextByTargetId[targetId] = {};
+        } else if (nextByTargetId[targetId] === state.byTargetId[targetId]) {
+            nextByTargetId[targetId] = {...nextByTargetId[targetId]};
+        }
+        nextByTargetId[targetId][fieldId] = value;
+
+        // byFieldId
+        if (!nextByFieldId![fieldId]) {
+            nextByFieldId![fieldId] = {};
+        } else if (nextByFieldId![fieldId] === state.byFieldId[fieldId]) {
+            nextByFieldId![fieldId] = {...nextByFieldId![fieldId]};
+        }
+        nextByFieldId![fieldId][targetId] = value;
+    }
+
+    if (!nextByTargetId) {
+        return state;
+    }
+
+    return {byTargetId: nextByTargetId, byFieldId: nextByFieldId!};
+}
+
+/**
+ * Lifts hydrated property values out of a batch of posts.
+ *
+ * `action.data.posts` is a record on most paths but an array on others
+ * (getPostsByIds, the thread actions), which is why this normalises both — the same
+ * reason the files reducer calls Object.values on it.
+ */
+function valuesFromPosts(posts: Post[] | Record<string, Post>): Array<PropertyValue<unknown>> {
+    const list = Array.isArray(posts) ? posts : Object.values(posts ?? {});
+
+    return list.flatMap((post) => post?.metadata?.property_values ?? []);
+}
+
 function valuesReducer(
     state: PropertyValuesState = initialValuesState,
     action: MMReduxAction,
 ): PropertyValuesState {
     switch (action.type) {
-    case PropertyTypes.RECEIVED_PROPERTY_VALUES: {
-        const values = action.data.values ?? [];
-        if (values.length === 0) {
-            return state;
-        }
+    case PropertyTypes.RECEIVED_PROPERTY_VALUES:
+        return mergeValues(state, action.data.values ?? []);
 
-        const nextByTargetId = {...state.byTargetId};
-        const nextByFieldId = {...state.byFieldId};
+    // Hydrated post fetches carry a post's property values on its metadata, the same
+    // way they carry its files — and the files reducer lifts those into the files
+    // slice from exactly these three action types.
+    //
+    // This MUST only ever merge. `property_values` is omitempty on the wire, so a post
+    // arriving without the key is indistinguishable between "hydrated, has no values"
+    // and "not hydrated at all" — and the second is the common case, since search,
+    // pinned posts and websocket-delivered posts are never hydrated.
+    case PostTypes.RECEIVED_NEW_POST:
+    case PostTypes.RECEIVED_POST:
+        return mergeValues(state, valuesFromPosts([action.data]));
 
-        for (const value of values) {
-            const {target_id: targetId, field_id: fieldId} = value;
-
-            // byTargetId
-            if (!nextByTargetId[targetId]) {
-                nextByTargetId[targetId] = {};
-            } else if (
-                nextByTargetId[targetId] === state.byTargetId[targetId]
-            ) {
-                nextByTargetId[targetId] = {...nextByTargetId[targetId]};
-            }
-            nextByTargetId[targetId][fieldId] = value;
-
-            // byFieldId
-            if (!nextByFieldId[fieldId]) {
-                nextByFieldId[fieldId] = {};
-            } else if (
-                nextByFieldId[fieldId] === state.byFieldId[fieldId]
-            ) {
-                nextByFieldId[fieldId] = {...nextByFieldId[fieldId]};
-            }
-            nextByFieldId[fieldId][targetId] = value;
-        }
-
-        return {byTargetId: nextByTargetId, byFieldId: nextByFieldId};
-    }
+    // Three action types, though eight carry a PostList. The other five —
+    // RECEIVED_POSTS_IN_CHANNEL, _SINCE, _AFTER, _BEFORE and _IN_THREAD — are never
+    // dispatched alone: every one of them travels in the same batchActions as a
+    // RECEIVED_POSTS carrying the same posts. That is a convention the action creators
+    // in actions/posts.ts hold, not something the types enforce, so a new dispatch that
+    // breaks it would lose the values silently.
+    case PostTypes.RECEIVED_POSTS:
+        return mergeValues(state, valuesFromPosts(action.data?.posts));
 
     case PropertyTypes.PROPERTY_VALUE_DELETED: {
         const {targetId, fieldId} = action.data;

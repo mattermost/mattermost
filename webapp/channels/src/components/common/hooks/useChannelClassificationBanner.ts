@@ -172,8 +172,7 @@ export default function useChannelClassificationBanner(channelId: string): Chann
         dispatch(fetchPropertyFields(
             ACCESS_CONTROL_PROPERTY_GROUP,
             CHANNEL_OBJECT_TYPE,
-            SYSTEM_TARGET_TYPE,
-            SYSTEM_TARGET_ID,
+            {targetType: SYSTEM_TARGET_TYPE, targetId: SYSTEM_TARGET_ID},
         ));
     }, [attributesEnabled, hasAdvancedLicense, channelFields.length, dispatch]);
 

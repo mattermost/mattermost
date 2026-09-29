@@ -259,6 +259,18 @@ export function shouldUpdatePost(receivedPost: Post, storedPost?: Post): boolean
             return true;
         }
 
+        // Same shape of problem: hydration can fail on one fetch and succeed on the next
+        // without the post changing, so update_at cannot tell them apart. Without this a
+        // post that failed once keeps saying its attributes are unavailable until it is
+        // edited, and one that recovers keeps rendering the values it had when it broke.
+        // The flag is omitempty, so absent and false are the same answer — which is also
+        // why this never fires for a caller that did not ask for hydration.
+        if (storedPost.metadata && receivedPost.metadata &&
+            (storedPost.metadata.property_values_unavailable ?? false) !== (receivedPost.metadata.property_values_unavailable ?? false)
+        ) {
+            return true;
+        }
+
         // The stored post is the same as the one we've received
         return false;
     }

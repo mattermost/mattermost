@@ -24,6 +24,7 @@ import AutoHeightSwitcher, {AutoHeightSlots} from 'components/common/auto_height
 import EditPost from 'components/edit_post';
 import FileAttachmentListContainer from 'components/file_attachment_list';
 import MessageWithAdditionalContent from 'components/message_with_additional_content';
+import PostAttributesChips from 'components/post_attributes/post_attributes_chips';
 import PriorityLabel from 'components/post_priority/post_priority_label';
 import PostProfilePicture from 'components/post_profile_picture';
 import PostAcknowledgements from 'components/post_view/acknowledgements';
@@ -131,6 +132,7 @@ export type Props = {
     shortcutReactToLastPostEmittedFrom?: string;
     isPostAcknowledgementsEnabled: boolean;
     isPostPriorityEnabled: boolean;
+    isPostAttributesEnabled?: boolean;
     isCardOpen?: boolean;
     canDelete?: boolean;
     pluginActions: PostActionComponent[];
@@ -908,6 +910,12 @@ function PostComponent(props: Props) {
                             />
                             }
                         </div>
+                        {props.isPostAttributesEnabled && (
+                            <PostAttributesChips
+                                post={post}
+                                channel={props.channel}
+                            />
+                        )}
                         {comment}
                         <div
                             className={postClass}

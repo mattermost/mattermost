@@ -73,7 +73,7 @@ export async function configureChannelAttribute(
 }
 
 export async function findChannelField(adminClient: Client4, name: string): Promise<PropertyField | undefined> {
-    const fields = await adminClient.getPropertyFields(PROPERTY_GROUP, 'channel', 'system', undefined, {perPage: 200});
+    const fields = await adminClient.getPropertyFields(PROPERTY_GROUP, 'channel', {targetType: 'system', perPage: 200});
     return fields.find((field) => field.name === name && field.delete_at === 0);
 }
 

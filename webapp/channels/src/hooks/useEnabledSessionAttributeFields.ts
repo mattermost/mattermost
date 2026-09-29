@@ -31,7 +31,7 @@ export function useEnabledSessionAttributeFields(enabled: boolean): UserProperty
         dispatch(fetchPropertyFields(
             SESSION_ATTRIBUTES_GROUP_ID,
             SESSION_ATTRIBUTES_OBJECT_TYPE,
-            SESSION_ATTRIBUTES_TARGET_TYPE,
+            {targetType: SESSION_ATTRIBUTES_TARGET_TYPE},
         ));
     }, [dispatch, enabled]);
 

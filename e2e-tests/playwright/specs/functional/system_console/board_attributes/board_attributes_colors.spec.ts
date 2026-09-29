@@ -36,7 +36,7 @@ test.describe('Board Attributes - option color picker', {tag: '@board_attributes
         await ba.saveAndWaitForSettled();
 
         // * Server reflects the color token
-        const fields = await adminClient.getPropertyFields('boards', 'post', 'system');
+        const fields = await adminClient.getPropertyFields('boards', 'post', {targetType: 'system'});
         const updated = (fields ?? []).find((f) => f.name === attrName);
         const option = ((updated!.attrs as {options?: Array<{name: string; color?: string}>})?.options ?? []).find(
             (o) => o.name === optionName,

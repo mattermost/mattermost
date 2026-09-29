@@ -19,7 +19,7 @@ import type {OpenDialogRequest} from '@mattermost/types/integrations';
 import type {Job} from '@mattermost/types/jobs';
 import type {Post, PostAcknowledgement} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
-import {supportsHierarchy, type PropertyValue} from '@mattermost/types/properties';
+import {supportsHierarchy, type PropertyFieldsScope, type PropertyValue} from '@mattermost/types/properties';
 import {SESSION_ATTRIBUTES_OBJECT_TYPE} from '@mattermost/types/properties_user';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {Role} from '@mattermost/types/roles';
@@ -361,16 +361,14 @@ export function reconnect() {
             fetchPropertyFields(
                 ACCESS_CONTROL_PROPERTY_GROUP,
                 CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE,
-                CLASSIFICATIONS_FIELD_TARGET_TYPE,
-                CLASSIFICATIONS_FIELD_TARGET_ID,
+                {targetType: CLASSIFICATIONS_FIELD_TARGET_TYPE, targetId: CLASSIFICATIONS_FIELD_TARGET_ID},
             ),
         );
         dispatch(
             fetchPropertyFields(
                 ACCESS_CONTROL_PROPERTY_GROUP,
                 CLASSIFICATIONS_SYSTEM_OBJECT_TYPE,
-                CLASSIFICATIONS_FIELD_TARGET_TYPE,
-                CLASSIFICATIONS_FIELD_TARGET_ID,
+                {targetType: CLASSIFICATIONS_FIELD_TARGET_TYPE, targetId: CLASSIFICATIONS_FIELD_TARGET_ID},
             ),
         );
         dispatch(fetchSystemPropertyValues(ACCESS_CONTROL_PROPERTY_GROUP));
@@ -1512,7 +1510,17 @@ export function handlePropertyFieldCreatedOrUpdated(
 
             const groupName = getPropertyGroupById(state, field.group_id)?.name;
             if (groupName) {
-                doDispatch(fetchPropertyFields(groupName, field.object_type, field.target_type, field.target_id));
+                /*
+                 * A field's target_type is a plain string, so it cannot narrow
+                 * to the scope union's literal arms on its own. Sending both
+                 * keys is what the positional call did before the scope object
+                 * existed, and the scope is spread straight into the query, so
+                 * the request is unchanged.
+                 */
+                doDispatch(fetchPropertyFields(groupName, field.object_type, {
+                    targetType: field.target_type,
+                    targetId: field.target_id,
+                } as PropertyFieldsScope));
             }
         }
 

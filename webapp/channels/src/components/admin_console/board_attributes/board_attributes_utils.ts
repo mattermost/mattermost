@@ -36,7 +36,7 @@ export const useBoardPropertyFields = () => {
     // current fields
     const [fieldCollection, readIO] = useThing<BoardPropertyFields>(useMemo(() => ({
         get: async () => {
-            const data = await Client4.getPropertyFields(BOARDS_PROPERTY_GROUP_NAME, BOARDS_PROPERTY_OBJECT_TYPE, BOARDS_PROPERTY_TARGET_TYPE);
+            const data = await Client4.getPropertyFields(BOARDS_PROPERTY_GROUP_NAME, BOARDS_PROPERTY_OBJECT_TYPE, {targetType: BOARDS_PROPERTY_TARGET_TYPE});
 
             // Protected (system) fields render first, then custom fields ordered by sort_order.
             const sorted = (data as BoardsPropertyField[]).sort((a, b) => {

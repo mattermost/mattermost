@@ -724,5 +724,51 @@ describe('PostUtils', () => {
 
             expect(shouldUpdatePost(post, stored)).toBe(true);
         });
+
+        // Hydration can fail on one fetch and succeed on the next without the post
+        // itself changing, so update_at says nothing about it. Both directions matter:
+        // one leaves `Attributes unavailable` frozen on a healthy post, the other
+        // leaves stale chips on a post whose values could not be read.
+        it('should return true when hydration started failing', () => {
+            const stored = TestHelper.getPostMock({
+                ...storedPost,
+                metadata: {} as Post['metadata'],
+            });
+            const post = TestHelper.getPostMock({
+                ...storedPost,
+                metadata: {property_values_unavailable: true} as Post['metadata'],
+            });
+
+            expect(shouldUpdatePost(post, stored)).toBe(true);
+        });
+
+        it('should return true when hydration stopped failing', () => {
+            const stored = TestHelper.getPostMock({
+                ...storedPost,
+                metadata: {property_values_unavailable: true} as Post['metadata'],
+            });
+            const post = TestHelper.getPostMock({
+                ...storedPost,
+                metadata: {} as Post['metadata'],
+            });
+
+            expect(shouldUpdatePost(post, stored)).toBe(true);
+        });
+
+        // The flag is omitempty, so absent and false are the same answer. Every caller
+        // that never asked for hydration sits on this branch, which is what bounds the
+        // blast radius of the check.
+        it('should return false when neither post was hydrated', () => {
+            const stored = TestHelper.getPostMock({
+                ...storedPost,
+                metadata: {} as Post['metadata'],
+            });
+            const post = TestHelper.getPostMock({
+                ...storedPost,
+                metadata: {property_values_unavailable: false} as Post['metadata'],
+            });
+
+            expect(shouldUpdatePost(post, stored)).toBe(false);
+        });
     });
 });

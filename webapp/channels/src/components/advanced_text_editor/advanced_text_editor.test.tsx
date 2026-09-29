@@ -1094,4 +1094,77 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             )).toBeInTheDocument();
         });
     });
+
+    describe('post attributes button', () => {
+        const flagOn = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    config: {
+                        FeatureFlagPostAttributes: 'true',
+                    },
+                },
+            },
+        });
+
+        it('is absent with the feature flag off', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                initialState,
+            );
+
+            expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
+        });
+
+        it('is present in the centre channel composer with the flag on', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                flagOn,
+            );
+
+            expect(screen.getByTestId('post-attributes-composer-add')).toBeInTheDocument();
+        });
+
+        it('is present in the RHS reply composer with the flag on', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    location={Locations.RHS_COMMENT}
+                    rootId='root-post-id'
+                />,
+                flagOn,
+            );
+
+            expect(screen.getByTestId('post-attributes-composer-add')).toBeInTheDocument();
+        });
+
+        it('is absent when editing an existing post', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    isInEditMode={true}
+                />,
+                flagOn,
+            );
+
+            expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
+        });
+
+        it('sits before the formatting toggle in the action row', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                flagOn,
+            );
+
+            const add = screen.getByLabelText('Add attributes');
+            const formatting = screen.getByLabelText('formatting');
+
+            expect(add.compareDocumentPosition(formatting) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        });
+    });
 });

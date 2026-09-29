@@ -445,7 +445,7 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                 // Paint the table from template fields first; Applies-to chips and
                 // unlinked resource rows fill in once the background scope fetches
                 // settle.
-                await dispatch(fetchPropertyFields(GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, GLOBAL_ATTRIBUTES_TARGET_TYPE));
+                await dispatch(fetchPropertyFields(GLOBAL_ATTRIBUTES_GROUP_NAME, GLOBAL_ATTRIBUTES_OBJECT_TYPE, {targetType: GLOBAL_ATTRIBUTES_TARGET_TYPE}));
                 if (!active) {
                     return;
                 }
@@ -459,7 +459,7 @@ export default function GlobalAttributesTable({searchQuery = ''}: GlobalAttribut
                 // cached, so drop those scopes from the table instead of showing
                 // stale data.
                 const scopeResults = await Promise.allSettled(resourceTypesToFetch.map((objectType) =>
-                    dispatch(fetchPropertyFields(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, GLOBAL_ATTRIBUTES_TARGET_TYPE)),
+                    dispatch(fetchPropertyFields(GLOBAL_ATTRIBUTES_GROUP_NAME, objectType, {targetType: GLOBAL_ATTRIBUTES_TARGET_TYPE})),
                 ));
                 if (!active) {
                     return;
