@@ -403,3 +403,56 @@ func TestMuteHealthFindingAudit(t *testing.T) {
 		assert.Equal(t, finding.Code, entries[0].Parameters["code"], event)
 	}
 }
+
+func TestHealthCheckPushURLRoundTrip(t *testing.T) {
+	th := setupHealthDashboard(t, true)
+
+	setPushServer := func(url string) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
+			cfg.EmailSettings.PushNotificationServer = model.NewPointer(url)
+		})
+	}
+
+	checkPushFindings := func() map[string]*model.HealthFinding {
+		t.Helper()
+		require.NoError(t, th.App.RunHealthCheck(th.Context))
+
+		findings, resp, err := th.SystemAdminClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		byCode := map[string]*model.HealthFinding{}
+		for _, f := range findings {
+			if strings.HasPrefix(f.Code, "PUSH_") {
+				byCode[f.Code] = f
+			}
+		}
+		return byCode
+	}
+
+	setPushServer("https://push.example.com")
+	before := checkPushFindings()
+	require.Contains(t, before, "PUSH_BAD_SCHEME")
+	for code, f := range before {
+		assert.Equal(t, string(healthcheck.StateResolved), f.State, code)
+	}
+
+	setPushServer("http://push.example.com")
+	firing := checkPushFindings()
+	badScheme := firing["PUSH_BAD_SCHEME"]
+	require.NotNil(t, badScheme)
+	assert.Equal(t, string(healthcheck.StateFiring), badScheme.State)
+	assert.Equal(t, "health.rule.push_bad_scheme.message.http", badScheme.MessageID)
+	assert.NotEmpty(t, badScheme.Message)
+	assert.Equal(t, string(healthcheck.StateResolved), firing["PUSH_EMPTY_URL"].State)
+	assert.Equal(t, string(healthcheck.StateResolved), firing["PUSH_TEST_PROXY"].State)
+
+	setPushServer("https://push.example.com")
+	after := checkPushFindings()
+	for code, f := range after {
+		assert.Equal(t, string(healthcheck.StateResolved), f.State, code)
+	}
+	assert.Equal(t, before["PUSH_BAD_SCHEME"].Fingerprint, after["PUSH_BAD_SCHEME"].Fingerprint)
+	assert.Equal(t, before["PUSH_BAD_SCHEME"].FirstSeenAt, after["PUSH_BAD_SCHEME"].FirstSeenAt)
+}
