@@ -330,7 +330,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const [sourcePluginId, setSourcePluginId] = useState<string | undefined>(undefined);
     const isPluginOwned = Boolean(sourcePluginId);
 
-    // A plugin-created attribute keeps its own, stricter lock and wording.
+    // Plugin-created attributes are excluded: they have their own, stricter lock and wording.
     const [owners, setOwners] = useState<PropertyFieldOwner[]>(NO_OWNERS);
     const isOwned = owners.length > 0 && !isPluginOwned;
     const ownersLabel = useOwnersLabel(owners);
@@ -1285,9 +1285,9 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     // graph outranks externalSource/appliesTo because it is the only one of the
     // three the admin cannot undo: telling them to remove resources or unlink a
     // source would promise an unlock that never arrives. owned outranks graph
-    // and the rest: an owned template always has a linked Users field, so
-    // without it the tooltip would blame "applies to a resource" instead of
-    // the integration that actually holds the attribute.
+    // and the rest: an owned template always has a linked Users field, so a
+    // lower-ranked reason would blame "applies to a resource" instead of the
+    // integration that actually holds the attribute.
     const typeLockReason = firstMatchingReason<'pluginOrphaned' | 'plugin' | 'owned' | 'graph' | 'externalSource' | 'appliesTo'>(
         ['pluginOrphaned', isPluginOwned && isOrphaned],
         ['plugin', isPluginOwned],
