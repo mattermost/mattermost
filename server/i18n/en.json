@@ -17153,7 +17153,8 @@
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
-    "translation": "Burn-on-read messages cannot be sent as recurring scheduled posts."
+    "translation": "Burn-on-read messages cannot be sent as recurring scheduled posts.",
+    "description": "Validation error (400) returned to an end user who tries to save a repeating weekly post of Burn-on-read type; Burn-on-Read posts cannot be weekly recurring posts."
   },
   {
     "id": "model.scheduled_post.is_valid.repeat_files.app_error",
